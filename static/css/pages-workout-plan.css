@@ -3508,14 +3508,6 @@ select.filter-dropdown:focus {
   --superset-bg-4: rgba(217, 119, 6, 0.08);
 }
 
-/* Dark mode superset colors */
-[data-bs-theme="dark"] {
-  --superset-bg-1: rgba(124, 58, 237, 0.15);
-  --superset-bg-2: rgba(8, 145, 178, 0.15);
-  --superset-bg-3: rgba(5, 150, 105, 0.15);
-  --superset-bg-4: rgba(217, 119, 6, 0.15);
-}
-
 /* Superset action buttons container */
 .superset-actions {
   display: flex;
@@ -5470,111 +5462,6 @@ svg[id^="body-posterior-hypertrophy-advanced"] .muscle-region.partial {
    DARK MODE
    ============================================================================ */
 
-[data-bs-theme="dark"] .muscle-selector-container,
-.dark-mode .muscle-selector-container {
-    background: var(--bs-body-bg, #1a1d21);
-    border-color: var(--bs-border-color, #495057);
-}
-
-[data-bs-theme="dark"] .muscle-selector-content,
-.dark-mode .muscle-selector-content {
-    background: var(--bs-body-bg, #212529);
-    border-color: var(--bs-border-color, #495057);
-}
-
-[data-bs-theme="dark"] .svg-container,
-.dark-mode .svg-container {
-    background: #2b3035;
-}
-
-/* Dark mode SVG body outline */
-[data-bs-theme="dark"] .body-outline,
-.dark-mode .body-outline {
-    stroke: #8c99a4;
-}
-
-/* Dark mode muscle regions */
-[data-bs-theme="dark"] .muscle-region,
-.dark-mode .muscle-region {
-    fill: rgba(100, 181, 246, 0.2);
-    stroke: rgba(100, 181, 246, 0.4);
-}
-
-[data-bs-theme="dark"] .muscle-region:hover,
-[data-bs-theme="dark"] .muscle-region.hover,
-.dark-mode .muscle-region:hover,
-.dark-mode .muscle-region.hover {
-    fill: rgba(100, 181, 246, 0.45);
-    stroke: rgba(100, 181, 246, 0.8);
-}
-
-[data-bs-theme="dark"] .muscle-region.selected,
-.dark-mode .muscle-region.selected {
-    fill: rgba(129, 199, 132, 0.5);
-    stroke: rgba(102, 187, 106, 0.85);
-}
-
-[data-bs-theme="dark"] .muscle-region.selected:hover,
-[data-bs-theme="dark"] .muscle-region.selected.hover,
-.dark-mode .muscle-region.selected:hover,
-.dark-mode .muscle-region.selected.hover {
-    fill: rgba(129, 199, 132, 0.65);
-    stroke: rgba(102, 187, 106, 0.95);
-}
-
-[data-bs-theme="dark"] .muscle-region.partial,
-.dark-mode .muscle-region.partial {
-    fill: rgba(255, 213, 79, 0.4);
-    stroke: rgba(255, 193, 7, 0.75);
-}
-
-/* Dark mode legend */
-[data-bs-theme="dark"] .legend-item:hover,
-[data-bs-theme="dark"] .legend-item.hover,
-.dark-mode .legend-item:hover,
-.dark-mode .legend-item.hover {
-    background-color: rgba(100, 181, 246, 0.12);
-}
-
-[data-bs-theme="dark"] .legend-checkbox,
-.dark-mode .legend-checkbox {
-    background: var(--bs-body-bg, #212529);
-    border-color: var(--bs-border-color, #495057);
-}
-
-[data-bs-theme="dark"] .legend-key,
-.dark-mode .legend-key {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-/* Dark mode scrollbar */
-[data-bs-theme="dark"] .legend-items::-webkit-scrollbar-thumb,
-.dark-mode .legend-items::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-[data-bs-theme="dark"] .legend-items::-webkit-scrollbar-thumb:hover,
-.dark-mode .legend-items::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-/* Dark mode summary */
-[data-bs-theme="dark"] .selection-summary,
-.dark-mode .selection-summary {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-/* Dark mode tabs */
-[data-bs-theme="dark"] .muscle-body-tabs .nav-link:hover,
-.dark-mode .muscle-body-tabs .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-[data-bs-theme="dark"] .muscle-body-tabs .nav-link.active,
-.dark-mode .muscle-body-tabs .nav-link.active {
-    background-color: var(--bs-body-bg, #212529);
-    border-color: var(--bs-border-color, #495057) var(--bs-border-color, #495057) var(--bs-body-bg, #212529);
-}
 .workout-estimate-provenance {
     color: var(--ink-3);
     font-size: 0.82rem;
