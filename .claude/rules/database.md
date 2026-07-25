@@ -90,6 +90,26 @@ counts) before publishing it atomically, and never deletes or writes to the
 original. Any failure returns the legacy path and logs recovery steps; it never
 seeds a clean database after finding real data.
 
+## Catalog upgrades (`utils/catalog_upgrade.py`)
+The seed only initializes a new install. `upgrade_catalog_from_seed()` brings an
+existing runtime catalog up to the shipped one and runs from `app.py` startup
+only — never from `run_all_initializers()`, which the test suite uses to build
+deliberately empty schemas.
+
+Additive and update-only. It inserts exercises the runtime database lacks
+(with their isolated muscles), refreshes only `movement_pattern`,
+`movement_subpattern`, `youtube_video_id`, `media_path` on existing rows, and
+**never deletes or renames**. Everything else is user-owned: `save_exercise()`
+lets a user rewrite an exercise's muscle groups, equipment, mechanic, and
+difficulty — including on catalog exercises — and derives
+`exercise_isolated_muscles` from `advanced_isolated_muscles`. A `NULL` shipped
+value never overwrites a populated one.
+
+The trigger is a SHA-256 over the shipped catalog's rows, recorded in
+`catalog_version` (catalog metadata, deliberately not in
+`OWNED_TABLES_DROP_ORDER`). Adding a column to `save_exercise`'s editable list
+fails `tests/test_catalog_upgrade.py`.
+
 ## Env vars that affect DB (`utils/config.py`)
 | Variable | Default | Effect |
 |---|---|---|

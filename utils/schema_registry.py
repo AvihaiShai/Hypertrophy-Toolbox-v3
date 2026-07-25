@@ -10,6 +10,7 @@ from utils.database import (
     add_user_profile_tables,
     add_volume_tracking_tables,
 )
+from utils.catalog_upgrade import add_catalog_version_table
 from utils.db_initializer import initialize_database
 from utils.logger import get_logger
 from utils.program_backup import initialize_backup_tables
@@ -131,6 +132,8 @@ def run_all_initializers(*, force_base: bool = False) -> None:
     initialize_exercise_order()
     logger.info("Initializing backup tables...")
     initialize_backup_tables()
+    logger.info("Adding catalog version table...")
+    add_catalog_version_table()
     logger.info("Database initialization complete")
 
 

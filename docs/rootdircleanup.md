@@ -1113,7 +1113,8 @@ Therefore:
   for `DB_FILE` yet. **Shipped** — see §7.6.
 - **B2** activates the frozen `DB_FILE` switch **atomically with** legacy
   migration and backup copying — one PR, or not at all. **Shipped** — see §7.7.
-- **B3** adds catalog versioning and additive upgrade behavior.
+- **B3** adds catalog versioning and additive upgrade behavior. **Shipped** —
+  see §7.8.
 
 ### 7.3 Migration precedence
 
@@ -1179,21 +1180,21 @@ silently diverge until this exists.
 
 The approved policy is **versioned, additive/update-only**:
 
-- [ ] Version catalog content independently from the mutable schema, and record
+- [x] Version catalog content independently from the mutable schema, and record
       the applied version in the runtime database.
-- [ ] Apply the upgrade idempotently: re-running it changes nothing.
-- [ ] Insert catalog exercises that the runtime database lacks.
-- [ ] Update catalog-owned columns of exercises it already has.
-- [ ] **Never delete or rename a catalog exercise automatically.** A row absent
+- [x] Apply the upgrade idempotently: re-running it changes nothing.
+- [x] Insert catalog exercises that the runtime database lacks.
+- [x] Update catalog-owned columns of exercises it already has.
+- [x] **Never delete or rename a catalog exercise automatically.** A row absent
       from a newer catalog is left alone. Renaming is deletion plus insertion
       against a text primary key, and the user's plans and logs reference that
       key.
-- [ ] Never cascade into user-owned tables. `exercise_isolated_muscles` is
+- [x] Never cascade into user-owned tables. `exercise_isolated_muscles` is
       catalog data and is reconciled with the catalog; `user_selection`,
       `workout_log`, and every other registered owned table are untouchable.
-- [ ] Preserve user-owned columns and user-created rows according to an
+- [x] Preserve user-owned columns and user-created rows according to an
       explicit, documented column split.
-- [ ] Test upgrade from at least the previous shipped catalog version.
+- [x] Test upgrade from at least the previous shipped catalog version.
 
 The asymmetry is deliberate. Adding a wrong exercise is a cosmetic defect the
 user can ignore; deleting one silently invalidates their training history.
@@ -1223,16 +1224,16 @@ Stop and report before merging if any of these becomes true:
 
 Cross-packet:
 
-- [ ] Existing legacy user data survives migration exactly once.
-- [ ] Fresh install receives the full catalog and zero user rows.
-- [ ] Repeated startup does not recopy or reset the database.
-- [ ] Packaged upgrades do not overwrite runtime data.
-- [ ] Automatic backups and erase-data recovery target the new runtime
+- [x] Existing legacy user data survives migration exactly once.
+- [x] Fresh install receives the full catalog and zero user rows.
+- [x] Repeated startup does not recopy or reset the database.
+- [x] Packaged upgrades do not overwrite runtime data.
+- [x] Automatic backups and erase-data recovery target the new runtime
       directory.
-- [ ] Logs do not require write access to the installation directory.
-- [ ] Worktrees remain isolated.
-- [ ] `DB_FILE` overrides remain deterministic.
-- [ ] Full pytest, E2E, cold-start, old-schema migration, packaged smoke, and
+- [x] Logs do not require write access to the installation directory.
+- [x] Worktrees remain isolated.
+- [x] `DB_FILE` overrides remain deterministic.
+- [x] Full pytest, E2E, cold-start, old-schema migration, packaged smoke, and
       recovery tests pass.
 
 ### 7.6 Recorded B1 results
@@ -1333,6 +1334,75 @@ build:
   installation directory exactly where every earlier release put it. The app
   served 1,897 exercises, the database moved to the runtime root, **the plan row
   survived**, and **the original file is still there, byte-identical**.
+
+### 7.8 Recorded B3 results
+
+`utils/catalog_upgrade.py` applies the shipped catalog to an existing runtime
+database. `app.py` calls it after `run_all_initializers()` and only when the
+seed bootstrap did *not* just create the database — never from
+`run_all_initializers()` itself, for the same reason the seed bootstrap is not
+called there: the test suite initializes empty schemas deliberately, and
+injecting 1,897 exercises would change what most of the suite means.
+
+**Versioning is content-addressed.** The applied version is recorded in a
+`catalog_version` table, but the trigger is a SHA-256 over the shipped catalog's
+own rows rather than a hand-maintained number. A number can be forgotten during
+a catalog change; a content hash cannot go stale. `catalog_version` is catalog
+metadata and is deliberately absent from `OWNED_TABLES_DROP_ORDER`, so erasing
+user data does not force a needless full re-scan.
+
+#### The finding that shaped this packet
+
+§7.4 assumed a clean split between catalog columns and user columns, and that
+`exercise_isolated_muscles` could simply be "reconciled with the catalog". The
+code says otherwise. `ExerciseManager.save_exercise()` — reached from
+`POST /add_exercise` — lets a user rewrite an exercise's muscle groups,
+equipment, mechanic, difficulty, utility, grips, stabilizers, synergists, and
+force, **including on catalog exercises**. Those columns are user-owned the
+moment a row exists, and refreshing them from the seed would silently discard
+the user's edit. The same call derives `exercise_isolated_muscles` from the
+user-editable `advanced_isolated_muscles` column, so reconciling that table
+would overwrite user intent too.
+
+The implemented split is therefore narrower than §7.4 implied, and deliberately
+so:
+
+- **Refreshed on existing rows:** `movement_pattern`, `movement_subpattern`,
+  `youtube_video_id`, `media_path` — the four columns no application path lets a
+  user write.
+- **Never touched on existing rows:** every user-editable column, and
+  `exercise_isolated_muscles`.
+- **Inserted whole:** exercises absent from the runtime database, with their
+  isolated muscles.
+- **Never removed or renamed:** an exercise absent from a newer catalog is left
+  alone, whether it is a user's own or a retired one.
+
+A test parses `exercise_manager.py` and fails if any refreshed column appears in
+`save_exercise`'s editable column list — so a column that later becomes
+user-editable breaks the build instead of quietly starting to discard edits.
+
+**A missing shipped value never erases a populated one.** Verifying against the
+real catalog turned up the hazard: the shipped seed carries `media_path` for
+**0 of 1,897** rows and `youtube_video_id` for **56**, while `movement_pattern`
+is complete and `movement_subpattern` covers 1,282. Refreshing on plain
+inequality would blank populated columns the moment a catalog was regenerated
+without them — data loss dressed as an update. Only non-`NULL` shipped values
+are applied, and a test pins both halves: the empty value does not erase, and a
+real correction still lands.
+
+This stays inside the approved B-D5 policy (additive/update-only, never delete
+or rename); it is strictly more conservative than the policy's minimum.
+
+Baseline at the packet's starting commit `abfc048`: **1,837 passed / 1 skipped**.
+After: **1,856 passed / 1 skipped** — 19 catalog-upgrade contracts.
+
+Checked against the real 1,897-exercise catalog, not only synthetic fixtures.
+An "older install" was built by deleting three exercises, corrupting
+`movement_pattern` on five, editing one exercise's equipment, setting a
+`media_path` the seed does not carry, and adding a user-created exercise with a
+plan row referencing it. The upgrade inserted the three, corrected all five,
+preserved the equipment edit and the `media_path`, kept the user's exercise and
+plan, and the second run reported `already-current`.
 
 ---
 
@@ -1678,7 +1748,7 @@ schema changes, and merges only on green CI.
        frozen database path.
 4. [x] **B2** — frozen runtime database path, legacy migration, and backup
        copying, activated atomically.
-5. [ ] **B3** — catalog versioning and additive upgrade behavior.
+5. [x] **B3** — catalog versioning and additive upgrade behavior.
 
 The verified starting point for this sequence is `origin/main` at
 `631f61a13036861841a00ce8360d40b6698f16f8`.

@@ -4,6 +4,7 @@ import utils.config
 from utils.database import DatabaseHandler
 from utils.auto_backup import create_startup_backup, describe_snapshot
 from utils.catalog_seed import bootstrap_runtime_database
+from utils.catalog_upgrade import upgrade_catalog_from_seed
 from utils.runtime_migration import prepare_runtime_database
 from utils.schema_registry import drop_all_owned_tables, run_all_initializers
 from routes.workout_log import workout_log_bp
@@ -62,6 +63,14 @@ migration = prepare_runtime_database()
 utils.config.DB_FILE = str(migration.database_path)
 database_seeded = bootstrap_runtime_database()
 run_all_initializers(force_base=False)
+
+# Bring an existing install's catalog up to the shipped one. Called from real
+# startup only, never from run_all_initializers(): the test suite initializes
+# empty schemas on purpose, and seeding 1,897 exercises into them would change
+# what most of the suite means. Additive and update-only — see
+# utils/catalog_upgrade.py for why deletion is not the symmetric case.
+if not database_seeded:
+    upgrade_catalog_from_seed()
 
 # The immutable seed is already a pristine recovery source. Avoid an immediate,
 # redundant first-run snapshot; normal subsequent startups retain the backup.
