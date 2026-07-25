@@ -9,20 +9,26 @@ provenance remains unchanged head `e46b67e`, with its ledger committed as
 (history-preserving merge `40bc09f`); nothing was pushed through WP4.3d.
 WP4.3e (Welcome) shipped to `origin/main` via PR #160 (`5e7d290`), WP4.3f
 (Session Summary) via PR #161 (`08256f0`), WP4.3g (Weekly Summary) via PR #162
-(`bc9da14`), and WP4.3h (User Profile) plus WP4.3i-i/i-b…i-g via PR up to
-`00eb6f9`. Track B is mostly shipped; WPB.4 remains unimplemented and
-product-risk gated.
+(`bc9da14`), WP4.3h (User Profile) plus WP4.3i-i/i-b…i-g via PR up to
+`00eb6f9`, WP4.3i-h via PR #164 (`bfadf9d`), and WP4.3i-dead plus
+WP4.3i-filter-btn via **PR #165 (merge commit `95f30c1`, 2026-07-25)**. Track B
+is mostly shipped; WPB.4 remains unimplemented and product-risk gated.
 
-**Phase-4 frontier — WP4.3i Workout Plan dead-CSS sweep.** Three packets sit
-past `00eb6f9`; only the first is pushed:
+**Phase-4 frontier — WP4.3i Workout Plan dead-CSS sweep, fully shipped.** Three
+packets sit past `00eb6f9`; **all three are on `origin/main`**:
 
 | Packet | Commit | State | Headline |
 |---|---|---|---|
 | WP4.3i-h | `bfadf9d` | **on `origin/main`** (PR #164, squash) | 18 dead `[data-bs-theme]`/`.dark-mode` rules deleted, −113 lines, pure deletion; pytest **1,751 / 0** |
-| WP4.3i-dead | `db23801` | local `main` only (cherry-pick of `93a3134`) | 14 overridden **rest-state** declarations deleted, −33 lines, `!important` 520 → 513; contracts **26/26**, pytest **1,752 / 0**, focused Stylelint **1,221 → 1,204** |
-| WP4.3i-filter-btn | `cb5ff6e` | local `main` only (fast-forward from `wt/css-wp4-3i-filter-btn`); **current HEAD** | 5 rules gated on the non-existent `#filter-btn` deleted — 48 lines / 27 decls / 25 `!important` / 37 literals; contracts **27/27**, Workout Plan Chromium **56 passed**, pytest **1,753 / 0**, focused Stylelint **1,204 → 1,138 (−66)**, first packet to move `selector-max-id` and `selector-max-specificity` (−10 each) |
+| WP4.3i-dead | `db23801` | **on `origin/main`** (PR #165; cherry-pick of `93a3134`) | 14 overridden **rest-state** declarations deleted, −33 lines, `!important` 520 → 513; contracts **26/26**, pytest **1,752 / 0**, focused Stylelint **1,221 → 1,204** |
+| WP4.3i-filter-btn | `cb5ff6e` | **on `origin/main`** (PR #165; authored on `wt/css-wp4-3i-filter-btn`) | 5 rules gated on the non-existent `#filter-btn` deleted — 48 lines / 27 decls / 25 `!important` / 37 literals; contracts **27/27**, Workout Plan Chromium **56 passed**, pytest **1,753 / 0**, focused Stylelint **1,204 → 1,138 (−66)**, first packet to move `selector-max-id` and `selector-max-specificity` (−10 each) |
 
-Local `main` is therefore **two commits ahead of `origin/main` and unpushed**.
+**PR #165 was merged 2026-07-25 as merge commit `95f30c1`**, with the closeout
+docs commit `0cd44eb`. A true merge commit was used rather than a squash, so
+`db23801` and `cb5ff6e` remain individually reachable from `main` and the ladder
+above stays valid. The PR landed green — **14/14 checks**, `mergeStateStatus`
+CLEAN, 0 required approving reviews — over a six-file diff whose CSS change was
+0 insertions / 81 deletions. **Local `main` == `origin/main` == `95f30c1`.**
 Evidence: [`CSS_PHASE4_WP4_3I_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_3I_DEAD_EVIDENCE.md)
 and [`CSS_PHASE4_WP4_3I_FILTER_BTN_EVIDENCE.md`](CSS_PHASE4_WP4_3I_FILTER_BTN_EVIDENCE.md).
 No visual baseline was updated in any packet, and no Bootstrap output, SCSS, or

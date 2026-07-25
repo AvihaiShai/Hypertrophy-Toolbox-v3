@@ -4,17 +4,28 @@
 
 ## Current State
 
-> **2026-07-25 (LATEST) — WP4.3i-h PUSHED; WP4.3i-dead and WP4.3i-filter-btn
-> INTEGRATED LOCALLY ONLY. `origin/main` == `bfadf9d`; local `main` ==
-> `cb5ff6e`, two commits ahead and NOT pushed.** The 2026-07-24 note below is
+> **2026-07-25 (LATEST) — the WP4.3i Workout Plan dead-CSS arc is fully SHIPPED
+> and PUSHED. Local `main` == `origin/main` == `95f30c1`.** WP4.3i-dead and
+> WP4.3i-filter-btn reached `origin/main` via **PR #165**, merged 2026-07-25 as
+> **merge commit `95f30c1`** — a true merge commit, not a squash, so `db23801`,
+> `cb5ff6e`, and the docs commit `0cd44eb` all remain individually reachable and
+> the commit ladder below stays valid. The 2026-07-24 note further down is
 > superseded as to HEAD (`00eb6f9` is no longer HEAD) but remains accurate for
 > the WP4.3h + i-i/i-b…i-g arc it records. Exact ladder:
 >
 > | Packet | Commit | State |
 > |---|---|---|
 > | WP4.3i-h | `bfadf9d` | on `origin/main` (PR #164, squash) |
-> | WP4.3i-dead | `db23801` | local `main` only — cherry-pick of `93a3134` |
-> | WP4.3i-filter-btn | `cb5ff6e` | local `main` only — fast-forward, current HEAD |
+> | WP4.3i-dead | `db23801` | on `origin/main` via PR #165 — cherry-pick of `93a3134` |
+> | WP4.3i-filter-btn | `cb5ff6e` | on `origin/main` via PR #165 |
+> | closeout docs | `0cd44eb` | on `origin/main` via PR #165 |
+> | PR #165 merge | `95f30c1` | `origin/main` HEAD, merged 2026-07-25 |
+>
+> PR #165 landed green: **14/14 checks passed** (all nine required contexts,
+> including the `E2E Functional (Chromium)` fan-in gate), `mergeStateStatus`
+> **CLEAN**, and branch protection required **0** approving reviews. Its diff was
+> exactly six files — the two CSS/test changes, the two evidence docs, and the
+> two status docs — with the CSS change **0 insertions / 81 deletions**.
 >
 > **WP4.3i-h — obsolete theme-selector rule removal (`bfadf9d`, PR #164).**
 > Pure deletion in `static/css/pages-workout-plan.css`: 18 dead
@@ -42,9 +53,9 @@
 > Every future dead-CSS packet on this page must pair the sweep with a
 > rest-state differential AND a same-CSS control run.**
 >
-> **WP4.3i-filter-btn — dead `#filter-btn` family removal (`cb5ff6e`,
-> integrated into local `main` 2026-07-25 by fast-forward from branch
-> `wt/css-wp4-3i-filter-btn`, base `db23801`).** Deletion only: the **five**
+> **WP4.3i-filter-btn — dead `#filter-btn` family removal (`cb5ff6e`, authored
+> on branch `wt/css-wp4-3i-filter-btn` over base `db23801`, shipped to
+> `origin/main` via PR #165 on 2026-07-25).** Deletion only: the **five**
 > rules gated exclusively on `#filter-btn`, an element that exists nowhere in
 > the application — **48 lines, 27 declarations, 25 `!important`, 37 colour
 > literals**, 0 insertions. All 10 comma-separated arms were inspected; every
@@ -106,7 +117,7 @@
 > 7. Before dispatching any next packet, check `gh pr list` and existing
 >    `wt/css-wp4-3i-*` / `wt/wp4-3-*` branches — WP4.3g was once duplicated.
 >
-> **Wait for explicit direction before the next packet, and before pushing.**
+> **Wait for explicit owner direction before beginning another refactor packet.**
 >
 > **2026-07-24 — WP4.3h User Profile + the full WP4.3i Workout Plan
 > dead-CSS/dead-fallback arc SHIPPED (superseded as to HEAD by the 2026-07-25
