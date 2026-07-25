@@ -909,20 +909,27 @@ Two gaps remain:
 Packet A3 closes both and is deliberately small: it changes no packaging
 inputs, no allowlist, and no application behavior.
 
-- [ ] Compare staged content by SHA-256, not by size and mtime.
-- [ ] Keep a size fast path so the common case does not hash twice for nothing;
+- [x] Compare staged content by SHA-256, not by size and mtime.
+- [x] Keep a size fast path so the common case does not hash twice for nothing;
       equal sizes must fall through to the digest.
-- [ ] Make a content mismatch self-healing in `sync_staging_tree()` (restage)
+- [x] Make a content mismatch self-healing in `sync_staging_tree()` (restage)
       and fatal in `verify_staging_tree()` (fail closed). A stale staging tree
       must not be able to poison every later build.
-- [ ] Emit `manifest.sha256` in standard `sha256sum` format beside the staging
+- [x] Emit `manifest.sha256` in standard `sha256sum` format beside the staging
       root, so `sha256sum -c` and any reviewer can re-verify independently.
-- [ ] Write it beside the staging root, never inside it: the staging tree must
+- [x] Write it beside the staging root, never inside it: the staging tree must
       keep matching the manifest exactly, and an extra file inside would be
       rejected as unexpected.
-- [ ] Add the mutation regression test: stage, rewrite a staged file with
+- [x] Add the mutation regression test: stage, rewrite a staged file with
       equal-length content, restore its mtime exactly, and assert both that
       restaging repairs it and that verification rejects it.
+
+**Line endings are part of the contract.** Writing the record through Windows
+text mode produced CRLF, and `sha256sum -c` then looked for paths with a
+trailing carriage return and failed on all 997. The writer pins `newline="\n"`
+and a test asserts the bytes contain no `\r` — found only because the record was
+checked with the external tool it claims compatibility with, not just with the
+reader that wrote it.
 
 **Hashing cost is accepted.** The tracked asset tree is about 61 MB. Staging
 reads it roughly three times per build (copy decision, copy, verification)
@@ -966,12 +973,38 @@ Standing decisions:
   bootloader validation machine-independent and repeatable, which one
   developer's host policy never was in either direction.
 
-- [ ] Add a `windows-latest` deep-gate job that builds via the canonical spec.
-- [ ] Launch the real `.exe`, not the payload, and assert it serves the app.
-- [ ] Assert the packaged data allowlist and absence of ignored content in the
+- [x] Add a `windows-latest` deep-gate job that builds via the canonical spec.
+- [x] Launch the real `.exe`, not the payload, and assert it serves the app.
+- [x] Assert the packaged data allowlist and absence of ignored content in the
       built tree.
-- [ ] Verify the built assets against `manifest.sha256`.
-- [ ] Label the local payload smoke explicitly in code and documentation.
+- [x] Verify the built assets against `manifest.sha256`.
+- [x] Label the local payload smoke explicitly in code and documentation.
+
+The smoke itself is now committed as `scripts/smoke_packaged_app.py` rather than
+reconstructed by hand each packet, which is what let A2's environment note go
+unchallenged for a day. Static checks run against the untouched build output;
+the server runs from a throwaway copy, so first-run writes never dirty `dist/`.
+
+`frozen-windows` lives in the manual deep gate beside the other packaged and
+cold-start smokes, so it does not add ten minutes to every PR. Promoting it to a
+required PR check is an owner decision: it needs a branch-protection change, and
+required-check names are exact-match.
+
+#### Recorded A3 results
+
+Base `origin/main` `906b2fe` (plan-doc merge), itself on the `631f61a` verified
+starting point. pytest baseline **1,785 passed / 1 skipped**; after the change
+**1,792 passed / 1 skipped** — the seven new staging contracts.
+
+A real `build_exe.bat` build completed (exit 0, pinned PyInstaller 6.21.0) and
+regenerated both the staging tree and `build/manifest.sha256` after
+`--clean` wiped `build/`. Against that distribution:
+
+- Static inspection passed all eight checks, including **997 packaged assets
+  matching `manifest.sha256`** and the two-file `data/` allowlist.
+- `sha256sum -c` verified all 997 staged files independently.
+- The **real bootloader** passed the full 22-check runtime smoke, three runs out
+  of three, and payload mode passed once for comparison.
 
 ---
 
@@ -1539,9 +1572,9 @@ Every packet starts from freshly fetched `origin/main`, records its actual
 starting SHA and test baseline, ships as one PR declaring its behavior and
 schema changes, and merges only on green CI.
 
-1. [ ] This document records the accepted decisions and closes the Packet B
-       authorization checklist.
-2. [ ] **A3** — staging SHA-256 hardening and the real frozen gate.
+1. [x] This document records the accepted decisions and closes the Packet B
+       authorization checklist. (PR #171.)
+2. [x] **A3** — staging SHA-256 hardening and the real frozen gate.
 3. [ ] **B1** — resolver, config, and logging foundation, without switching the
        frozen database path.
 4. [ ] **B2** — frozen runtime database path, legacy migration, and backup
