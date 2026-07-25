@@ -1218,3 +1218,44 @@ def test_workout_plan_drops_remaining_dead_defined_token_fallbacks() -> None:
         if "--superset-row-color" not in f and "--wpdd-shadow-lg" not in f
     ]
     assert offenders == [], offenders
+
+
+def test_workout_plan_drops_obsolete_theme_selector_mechanisms() -> None:
+    """WP4.3i-h: `[data-bs-theme]` and `.dark-mode` never match at runtime.
+
+    The app toggles dark mode with `data-theme` only. Rules gated on Bootstrap's
+    `data-bs-theme` attribute or on a `.dark-mode` class could never render, so
+    the Workout Plan bundle must not reintroduce either mechanism.
+    """
+    css = (ROOT / "static" / "css" / "pages-workout-plan.css").read_text(
+        encoding="utf-8"
+    )
+    dark_mode_js = (ROOT / "static" / "js" / "darkMode.js").read_text(
+        encoding="utf-8"
+    )
+
+    # Premise 1: the runtime writes data-theme and never data-bs-theme.
+    assert "setAttribute('data-theme', 'dark')" in dark_mode_js
+    assert "data-bs-theme" not in dark_mode_js
+
+    # Premise 2: nothing applies `dark-mode` as a class.
+    applies_class = re.compile(
+        r"classList\.(?:add|toggle|replace)\([^)]*['\"]dark-mode(?![\w-])"
+    )
+    class_attr = re.compile(r"class\s*=\s*['\"][^'\"]*\bdark-mode(?![\w-])")
+    sources = [
+        *(ROOT / "templates").rglob("*.html"),
+        *(ROOT / "static" / "js").rglob("*.js"),
+        *(ROOT / "e2e").rglob("*.ts"),
+    ]
+    for path in sources:
+        text = path.read_text(encoding="utf-8")
+        assert not applies_class.search(text), path
+        assert not class_attr.search(text), path
+
+    # Contract: no rule in the bundle is gated on either dead mechanism.
+    assert "data-bs-theme" not in css
+    assert ".dark-mode" not in css
+
+    # ...while the live dark-mode mechanism is untouched.
+    assert "[data-theme='dark']" in css
