@@ -379,7 +379,7 @@ Checklist:
       definition after confirming no application import path requires them.
 - [x] Keep genuine runtime/export dependencies such as XlsxWriter and openpyxl
       unless import analysis plus a packaged smoke proves otherwise.
-- [ ] Prove one clean build in a disposable, isolated worktree before changing
+- [x] Prove one clean build in a disposable, isolated worktree before changing
       the seed/bootstrap behavior.
 
 #### Recorded A0 decisions
@@ -390,11 +390,15 @@ Checklist:
   unrecorded version and its environment was discarded, so the version could not
   be recovered — hence the explicit pin plus a re-proved build.
 - **The build environment stays `venv/`, deliberately separate from `.venv`.**
-  `.venv` carries dev-only packages that `requirements.txt` never declares
-  (pytest, playwright, and incidentally pandas 3.0.3 / numpy 2.4.4). Building
-  from it would make the artifact depend on undeclared developer state, which is
-  exactly the reproducibility failure this packet exists to remove. `venv/` is
-  already gitignored.
+  `.venv` has accumulated packages `requirements.txt` never declares — pandas
+  3.0.3 and numpy 2.4.4 — which is precisely how the stale hidden imports
+  appeared to work. Building from it would make the artifact depend on
+  undeclared developer state. `venv/` is already gitignored.
+- **Observed, not fixed here:** `requirements.txt` mixes runtime and test
+  dependencies (`pytest`, `pytest-playwright`, `playwright`, `vulture`), so the
+  build environment installs test tooling it never needs. Splitting them is
+  Packet C's "decide whether PyInstaller belongs in a development requirements
+  file" item; A0 deliberately does not change the runtime dependency set.
 - **Dependency install is now unconditional.** The previous "install only if
   `flask` is missing" guard meant an environment created before a requirements
   change kept building against the stale set. pip is a no-op when satisfied.
@@ -407,6 +411,25 @@ Checklist:
   (`utils/export_utils.py`), so PyInstaller's static analysis will not find it.
   `openpyxl` is a module-level import in `utils/volume_splitter_service.py` and
   is kept as belt-and-braces.
+
+#### A0 re-probe result (2026-07-25)
+
+Built from a disposable `-Seed empty` worktree at commit `1155c06`, asserted
+clean of `data/database.db`, `data/auto_backup/` content, `.personal-*`, and
+`static/bodymaps/GPT/` before building.
+
+- `pyinstaller==6.21.0` resolved and installed; build exit code 0.
+- **Zero pandas/NumPy diagnostics** — the nonfatal build errors the first probe
+  reported are gone, confirming those hidden imports were the cause.
+- Distribution is 81 MB. `_internal/data/` contained **only**
+  `free_exercise_db_mapping.csv` and `youtube_curated_top_n.csv`. No
+  `auto_backup`, no `.personal-*`, no nested `.git`, no `static/bodymaps/GPT/`.
+- **`_internal/data/` contained no database at all.** Built from a clean
+  checkout the packaged app ships zero exercises, because the only catalog
+  source is the builder's own working-copy `data/database.db`. This is the
+  mirror image of the privacy defect and is independent confirmation that the
+  seed plus first-run bootstrap (decision 4A) is required, not merely tidier.
+- `youtube_curated_top_n.csv` is packaged today, confirming the allowlist need.
 
 Consolidating `build_exe.bat` onto the committed spec (D5) stays in Packet A;
 A0 changes only the dependency contract and the stale hidden imports, so the

@@ -27,10 +27,11 @@ echo [OK] %PYVER% found
 echo.
 
 :: The build deliberately uses its own "venv", not the developer ".venv".
-:: .venv carries dev-only packages (pytest, playwright, pandas, numpy) that are
-:: not declared in requirements.txt, so building from it makes the result depend
-:: on incidental developer state. A dedicated environment built only from
-:: requirements.txt + requirements-build.txt is reproducible.
+:: .venv has accumulated packages that requirements.txt never declares (pandas,
+:: numpy), so building from it makes the artifact depend on incidental developer
+:: state -- that is how the stale pandas/numpy hidden imports appeared to work.
+:: A dedicated environment built only from the committed requirements files is
+:: reproducible.
 
 :: Check if virtual environment exists, create if not
 if not exist "venv" (
