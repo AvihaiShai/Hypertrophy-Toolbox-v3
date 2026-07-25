@@ -64,13 +64,20 @@ def main():
         print("  Application loaded successfully!")
         print()
         
-        # Start browser opener in background thread
-        browser_thread = threading.Thread(target=open_browser, args=(port, 2))
-        browser_thread.daemon = True
-        browser_thread.start()
-        
+        # Start browser opener in background thread. Automated packaged smokes
+        # set HT_NO_BROWSER so a CI runner does not spawn a browser it cannot
+        # close.
+        headless = os.getenv('HT_NO_BROWSER', '0') == '1'
+        if not headless:
+            browser_thread = threading.Thread(
+                target=open_browser, args=(port, 2)
+            )
+            browser_thread.daemon = True
+            browser_thread.start()
+
         print(f"  Server running at: http://127.0.0.1:{port}")
-        print("  Browser will open automatically...")
+        if not headless:
+            print("  Browser will open automatically...")
         print("\n  Press Ctrl+C to stop the server")
         print("="*50 + "\n")
         

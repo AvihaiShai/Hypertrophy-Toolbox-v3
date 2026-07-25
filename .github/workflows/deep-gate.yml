@@ -284,6 +284,57 @@ jobs:
             con.close()
         PY
 
+  frozen-windows:
+    name: Frozen executable (real bootloader, Windows)
+    # The half the development machine cannot run. Smart App Control there
+    # refuses to launch a freshly built, unsigned bootloader (WinError 4551),
+    # so the local smoke falls back to --mode payload, which exercises the
+    # packaged files but NOT the bootloader. GitHub's Windows runners do not
+    # enforce Smart App Control, so this job launches the executable an end
+    # user actually double-clicks. Disabling Smart App Control locally is not
+    # an option that was ever on the table.
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install runtime and pinned build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-build.txt
+        python -c "import PyInstaller; print('PyInstaller ' + PyInstaller.__version__)"
+
+    # Staging is what the spec calls too; running it first fails a broken
+    # manifest in seconds instead of after a full build, and writes the
+    # manifest.sha256 the smoke verifies the built tree against.
+    - name: Stage tracked package assets
+      run: python scripts/stage_package_assets.py
+
+    - name: Build via the canonical spec
+      run: pyinstaller --clean --noconfirm Hypertrophy-Toolbox.spec
+
+    # --mode bootloader is the entire point of this job. Do not weaken it to
+    # payload mode to make a red run green: a payload pass says nothing about
+    # whether the executable starts.
+    - name: Smoke the real bootloader
+      run: |
+        python scripts/smoke_packaged_app.py --mode bootloader
+
+    - name: Upload distribution inventory on failure
+      if: failure()
+      run: |
+        Get-ChildItem -Recurse dist/Hypertrophy-Toolbox/_internal/data |
+          Select-Object FullName, Length | Format-Table -AutoSize
+      shell: pwsh
+
   visual-linux:
     name: Visual regression (Linux baselines)
     # Opt-in only: a normal deep-gate run skips this unless run_visual=true. This

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import stat
 import subprocess
 from pathlib import Path
@@ -10,13 +11,18 @@ import pytest
 
 from scripts.stage_package_assets import (
     ASSET_ROOTS,
+    DIGEST_FILENAME,
     STAGING_RELATIVE,
     StagingError,
     _reject_case_collisions,
     _reject_repository_metadata,
+    digest_manifest_path,
+    file_digest,
+    read_digest_manifest,
     staged_datas,
     sync_staging_tree,
     tracked_assets,
+    verify_against_digest_manifest,
     verify_staging_tree,
 )
 
@@ -253,6 +259,136 @@ def test_case_colliding_assets_are_rejected():
 def test_gitlinked_repository_metadata_is_rejected():
     with pytest.raises(StagingError, match="Repository metadata"):
         _reject_repository_metadata(["static/vendor/thing/.git/config"])
+
+
+def _mutate_preserving_size_and_mtime(path: Path, replacement: bytes) -> None:
+    """Rewrite *path* at its original length with its original timestamps."""
+    original = path.stat()
+    assert len(replacement) == original.st_size, "test must preserve size"
+    path.write_bytes(replacement)
+    os.utime(path, (original.st_atime, original.st_mtime))
+
+
+def test_equal_size_equal_mtime_mutation_is_detected_and_repaired(
+    asset_repo: Path, tmp_path: Path
+):
+    """The regression this packet exists for.
+
+    Size and integer mtime both agree on a staged file rewritten in place at
+    the same length with its timestamp restored, so the previous comparison
+    neither recopied nor rejected it.
+    """
+    staging_root = tmp_path / "staging"
+    manifest = sync_staging_tree(asset_repo, staging_root)
+    staged = staging_root / "static" / "css" / "base.css"
+    source = asset_repo / "static" / "css" / "base.css"
+    _mutate_preserving_size_and_mtime(staged, b"b{}")
+
+    assert staged.stat().st_size == source.stat().st_size
+    assert int(staged.stat().st_mtime) == int(source.stat().st_mtime)
+
+    with pytest.raises(StagingError, match="content: static/css/base.css"):
+        verify_staging_tree(asset_repo, staging_root, manifest)
+
+    # Restaging repairs it: a diverged staging tree must not be able to wedge
+    # every later build.
+    sync_staging_tree(asset_repo, staging_root)
+
+    assert staged.read_bytes() == source.read_bytes()
+    verify_staging_tree(asset_repo, staging_root, manifest)
+
+
+def test_digest_manifest_records_every_staged_asset(
+    asset_repo: Path, tmp_path: Path
+):
+    staging_root = tmp_path / "staging"
+    manifest = sync_staging_tree(asset_repo, staging_root)
+
+    recorded = read_digest_manifest(digest_manifest_path(staging_root))
+
+    assert sorted(recorded) == manifest
+    for relative, digest in recorded.items():
+        assert digest == file_digest(asset_repo / relative)
+
+
+def test_digest_manifest_is_stored_beside_the_staging_tree(
+    asset_repo: Path, tmp_path: Path
+):
+    """Inside the tree it would be pruned as an unexpected file."""
+    staging_root = tmp_path / "staging"
+    manifest = sync_staging_tree(asset_repo, staging_root)
+
+    digest_path = digest_manifest_path(staging_root)
+    assert digest_path == tmp_path / DIGEST_FILENAME
+    assert not list(staging_root.rglob(DIGEST_FILENAME))
+    verify_staging_tree(asset_repo, staging_root, manifest)
+
+
+def test_digest_manifest_is_sha256sum_verifiable(
+    asset_repo: Path, tmp_path: Path
+):
+    staging_root = tmp_path / "staging"
+    sync_staging_tree(asset_repo, staging_root)
+
+    lines = (
+        digest_manifest_path(staging_root)
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
+
+    assert lines == [
+        f"{file_digest(asset_repo / 'static/css/base.css')}  "
+        "static/css/base.css",
+        f"{file_digest(asset_repo / 'templates/base.html')}  "
+        "templates/base.html",
+    ]
+
+
+def test_digest_manifest_uses_lf_endings(asset_repo: Path, tmp_path: Path):
+    """Windows text mode would emit CRLF and break `sha256sum -c`."""
+    staging_root = tmp_path / "staging"
+    sync_staging_tree(asset_repo, staging_root)
+
+    raw = digest_manifest_path(staging_root).read_bytes()
+
+    assert b"\r" not in raw
+    assert raw.endswith(b"\n")
+
+
+def test_built_tree_verification_detects_tampering(
+    asset_repo: Path, tmp_path: Path
+):
+    """A distribution can be checked without the source it was built from."""
+    staging_root = tmp_path / "staging"
+    sync_staging_tree(asset_repo, staging_root)
+    digest_path = digest_manifest_path(staging_root)
+    built = tmp_path / "dist" / "_internal"
+    shutil.copytree(staging_root, built)
+
+    assert verify_against_digest_manifest(built, digest_path) == [
+        "static/css/base.css",
+        "templates/base.html",
+    ]
+
+    _mutate_preserving_size_and_mtime(built / "static" / "css" / "base.css", b"b{}")
+    with pytest.raises(StagingError, match="content: static/css/base.css"):
+        verify_against_digest_manifest(built, digest_path)
+
+    (built / "static" / "css" / "base.css").unlink()
+    with pytest.raises(StagingError, match="missing: static/css/base.css"):
+        verify_against_digest_manifest(built, digest_path)
+
+
+def test_malformed_digest_records_are_rejected(tmp_path: Path):
+    digest_path = tmp_path / DIGEST_FILENAME
+
+    digest_path.write_text("not-a-digest  static/css/base.css\n", encoding="utf-8")
+    with pytest.raises(StagingError, match="Malformed digest record"):
+        verify_against_digest_manifest(tmp_path, digest_path)
+
+    digest_path.write_text("", encoding="utf-8")
+    with pytest.raises(StagingError, match="Digest record is empty"):
+        verify_against_digest_manifest(tmp_path, digest_path)
 
 
 def test_spec_default_staging_root_is_ignored_build_output():
