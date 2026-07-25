@@ -1,0 +1,10 @@
+# Build-only requirements for producing the Windows/PyInstaller distribution.
+#
+# Kept separate from requirements.txt so the packaged application's runtime
+# dependency set stays minimal and auditable. Install both files into the build
+# environment (build_exe.bat does this).
+#
+# Pinned exactly: an unpinned PyInstaller makes "the build succeeded" a claim
+# about whatever version happened to be current that day, which is not a
+# reproducible result. 6.15.0 is the first release supporting Python 3.14.
+pyinstaller==6.21.0

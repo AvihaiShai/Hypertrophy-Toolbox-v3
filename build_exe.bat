@@ -26,6 +26,12 @@ for /f "tokens=*" %%i in ('python --version 2^>^&1') do set PYVER=%%i
 echo [OK] %PYVER% found
 echo.
 
+:: The build deliberately uses its own "venv", not the developer ".venv".
+:: .venv carries dev-only packages (pytest, playwright, pandas, numpy) that are
+:: not declared in requirements.txt, so building from it makes the result depend
+:: on incidental developer state. A dedicated environment built only from
+:: requirements.txt + requirements-build.txt is reproducible.
+
 :: Check if virtual environment exists, create if not
 if not exist "venv" (
     echo [SETUP] Creating virtual environment...
@@ -39,35 +45,30 @@ if not exist "venv" (
     echo.
 )
 
-:: Install dependencies if needed
-echo [INFO] Checking Flask...
-venv\Scripts\python.exe -c "import flask" >nul 2>&1
+:: Install runtime + build dependencies. Run unconditionally: the previous
+:: "install only if flask is missing" check left stale environments untouched,
+:: so a venv created before a requirements change silently kept building with
+:: the old dependency set. pip is a no-op when everything is already satisfied.
+echo [INFO] Installing runtime dependencies...
+venv\Scripts\pip.exe install -r requirements.txt
 if errorlevel 1 (
-    echo [SETUP] Installing dependencies...
-    venv\Scripts\pip.exe install -r requirements.txt
-    if errorlevel 1 (
-        echo [ERROR] Failed to install dependencies!
-        pause
-        exit /b 1
-    )
-    echo [OK] Dependencies installed
-    echo.
+    echo [ERROR] Failed to install runtime dependencies!
+    pause
+    exit /b 1
 )
+echo [OK] Runtime dependencies installed
+echo.
 
-:: Install PyInstaller if not present
-echo [INFO] Checking PyInstaller...
-venv\Scripts\python.exe -c "import PyInstaller" >nul 2>&1
+echo [INFO] Installing pinned build dependencies...
+venv\Scripts\pip.exe install -r requirements-build.txt
 if errorlevel 1 (
-    echo [SETUP] Installing PyInstaller...
-    venv\Scripts\pip.exe install pyinstaller
-    if errorlevel 1 (
-        echo [ERROR] Failed to install PyInstaller!
-        pause
-        exit /b 1
-    )
-    echo [OK] PyInstaller installed
-    echo.
+    echo [ERROR] Failed to install build dependencies!
+    pause
+    exit /b 1
 )
+venv\Scripts\python.exe -c "import PyInstaller; print('  PyInstaller ' + PyInstaller.__version__)"
+echo [OK] Build dependencies installed
+echo.
 
 :: Clean previous builds
 echo [INFO] Cleaning previous builds...
@@ -96,8 +97,6 @@ venv\Scripts\pyinstaller.exe --name "Hypertrophy-Toolbox" ^
     --hidden-import=flask ^
     --hidden-import=jinja2 ^
     --hidden-import=werkzeug ^
-    --hidden-import=pandas ^
-    --hidden-import=numpy ^
     --hidden-import=openpyxl ^
     --hidden-import=xlsxwriter ^
     --collect-submodules=werkzeug ^
