@@ -1080,16 +1080,28 @@ accepted explicitly.
 
 ### Packet A execution prerequisites
 
-- [ ] Active workstream ownership and starting revision are recorded.
+> **Bookkeeping note.** These items duplicate state also tracked in §6.1 and the
+> §12 sequence, so they can drift out of sync — they did once already, when A0
+> landed and only §6.1 was updated. Whoever completes an item must tick it in
+> **both** places, or the next session will re-do finished work.
+
+- [x] Active workstream ownership and starting revision are recorded. Packet A
+      starts from `origin/main` at **`b715a02`**; no other workstream is active
+      (zero open PRs, single worktree).
 - [x] PR #165 is merged into `origin/main`.
-- [ ] This approved plan is tracked and integrated into `origin/main`, so the
-      implementation worktree can read it.
+- [x] This approved plan is tracked and integrated into `origin/main`, so the
+      implementation worktree can read it. (PR #166.)
 - [ ] Packet A is based on the refreshed, recorded `origin/main`, not the
       handover-branch `HEAD`.
-- [ ] Both redundant CSS/security worktrees receive a final clean-status and
-      runtime-data check, then are cleanly retired.
-- [ ] Packet A0 pins the build environment and proves a clean disposable build.
-- [ ] Packet A0's `-Seed empty` worktree is verified to contain no runtime DB,
+- [x] Both redundant CSS/security worktrees receive a final clean-status and
+      runtime-data check, then are cleanly retired. Both were verified clean,
+      removed, and their branches deleted; the leftover `filter-btn` directory's
+      two junctions to the main checkout's `.venv` / `node_modules` were unlinked
+      individually (never recursively) with both targets verified intact after.
+- [x] Packet A0 pins the build environment and proves a clean disposable build.
+      (PR #167, `b715a02` — `pyinstaller==6.21.0`, exit 0, zero pandas/NumPy
+      diagnostics.)
+- [x] Packet A0's `-Seed empty` worktree is verified to contain no runtime DB,
       backup, personal export, or GPT scratch input before building.
 - [ ] The sanitized source database is copied into the implementation worktree
       with hashes and counts revalidated.
