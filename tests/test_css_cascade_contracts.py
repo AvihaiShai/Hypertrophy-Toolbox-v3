@@ -1259,3 +1259,93 @@ def test_workout_plan_drops_obsolete_theme_selector_mechanisms() -> None:
 
     # ...while the live dark-mode mechanism is untouched.
     assert "[data-theme='dark']" in css
+
+
+def _wp_rule_body(css: str, selector: str) -> str:
+    """Return the declaration block that follows an exact selector line."""
+    marker = selector + " {"
+    start = css.index(marker) + len(marker)
+    depth, i = 1, start
+    while depth:
+        if css[i] == "{":
+            depth += 1
+        elif css[i] == "}":
+            depth -= 1
+        i += 1
+    return css[start:i - 1]
+
+
+def test_workout_plan_drops_overridden_rest_state_declarations() -> None:
+    """WP4.3i-dead: 14 permanently-overridden rest-state declarations are gone.
+
+    A sentinel sweep plus a rest-state computed-style differential proved these
+    never reached the rendered page -- the Calm-Glass table system and the
+    exercise-selection action bar in components.css out-specify and !important
+    them. Deleting them left all 31,074 computed-style records byte-identical in
+    both themes. This contract pins the removals AND the rules that actually
+    win, so a future cascade change forces a revisit instead of a silent re-add.
+    """
+    css = (ROOT / "static" / "css" / "pages-workout-plan.css").read_text(
+        encoding="utf-8"
+    )
+    components = (ROOT / "static" / "css" / "components.css").read_text(
+        encoding="utf-8"
+    )
+    wp = '#workout[data-page="workout-plan"]'
+    dark = "[data-theme='dark'] " + wp
+
+    # --- 1. Dormant declarations are gone from the rules that carried them. ---
+    dropped = {
+        f"{wp} .selection-actions": ("background:", "border:", "box-shadow:"),
+        f"{dark} .selection-actions": ("border:", "box-shadow:"),
+        f"{wp} .workout-plan-table thead th": (
+            "background:", "border-bottom:", "border-top:", "box-shadow:",
+            "text-shadow:",
+        ),
+        f"{dark} .workout-plan-table thead th": ("color:", "text-shadow:"),
+        f"{wp} .workout-plan-table tbody td": ("background:", "box-shadow:"),
+    }
+    for selector, props in dropped.items():
+        body = _wp_rule_body(css, selector)
+        for prop in props:
+            assert prop not in body, f"{selector} still declares {prop}"
+
+    # --- 2. Surviving declarations in those same rules are untouched. ---
+    kept = {
+        f"{wp} .workout-plan-table tbody td": (
+            "padding:", "border-bottom: 1px solid rgba(229, 231, 235, 0.4)",
+            "color: var(--wp-text);",
+        ),
+        f"{wp} .workout-plan-table thead th": ("position: sticky;", "z-index:"),
+        f"{wp} .selection-actions": ("border-radius: 18px;", "width: 100%"),
+    }
+    for selector, props in kept.items():
+        body = _wp_rule_body(css, selector)
+        for prop in props:
+            assert prop in body, f"{selector} lost {prop}"
+
+    # --- 3. The real owners still own the painted surface. ---
+    for owner in (".table.table-calm thead th {", ".table.table-calm tbody td {"):
+        assert owner in components, owner
+    assert '#workout[data-page="workout-plan"], .workout-log-page' in components
+    assert (
+        '#workout[data-page="workout-plan"] #exercise-selection-frame '
+        '#action-buttons-row.selection-actions {'
+    ) in components
+
+    # --- 4. Interaction-state twins are deliberately NOT removed. ---
+    # Those states animate, so the differential could not certify them; they are
+    # deferred rather than deleted on weaker evidence.
+    for deferred in (
+        f"{wp} .selection-actions:hover {{",
+        f"{wp} .workout-plan-table tbody tr:hover td {{",
+        f"{wp} .collapse-toggle:focus-visible {{",
+        f"{wp} .collapse-toggle:disabled {{",
+    ):
+        assert deferred in css, deferred
+    assert "box-shadow:" in _wp_rule_body(css, f"{wp} .selection-actions:hover")
+
+    # --- 5. No empty rule, and the layer split is unchanged. ---
+    assert not re.search(r"\{\s*\}", css)
+    assert css.count("@layer workout {") == 1
+    assert css.count("@layer workout-dropdowns {") == 1
