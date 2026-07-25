@@ -4,7 +4,166 @@
 
 ## Current State
 
-> **2026-07-21 (LATEST) — WP4.3e/f/g SHIPPED; everything below is PUSHED;
+> **2026-07-25 (LATEST) — WP4.3i-h PUSHED; WP4.3i-dead and WP4.3i-filter-btn
+> INTEGRATED LOCALLY ONLY. `origin/main` == `bfadf9d`; local `main` ==
+> `cb5ff6e`, two commits ahead and NOT pushed.** The 2026-07-24 note below is
+> superseded as to HEAD (`00eb6f9` is no longer HEAD) but remains accurate for
+> the WP4.3h + i-i/i-b…i-g arc it records. Exact ladder:
+>
+> | Packet | Commit | State |
+> |---|---|---|
+> | WP4.3i-h | `bfadf9d` | on `origin/main` (PR #164, squash) |
+> | WP4.3i-dead | `db23801` | local `main` only — cherry-pick of `93a3134` |
+> | WP4.3i-filter-btn | `cb5ff6e` | local `main` only — fast-forward, current HEAD |
+>
+> **WP4.3i-h — obsolete theme-selector rule removal (`bfadf9d`, PR #164).**
+> Pure deletion in `static/css/pages-workout-plan.css`: 18 dead
+> `[data-bs-theme]` / `.dark-mode` rules, **−113 lines**, zero insertions. The
+> authoritative pytest run used the canonical tracked catalog
+> (`HEAD:data/database.db`) and returned **1,751 passed / 0 failed**. Worktree
+> and branch were cleaned after merge. Owner ruling recorded for the token
+> track: page-local value-scale tokens (`--wp-white-a05`…) carrying exact rgba,
+> priority i-j/i-m/i-n/i-o, with i-k/i-l deferred.
+>
+> **WP4.3i-dead — overridden rest-state declaration removal (`db23801`).**
+> Deletion only: **14** declarations, 33 lines, 0 insertions;
+> `!important` 520 → 513. The sweep nominated **24**; scope shrank to 14 because
+> a same-CSS CONTROL run over the forced interaction states produced **52
+> differing records** — those states animate, so forced-state snapshots are not
+> a stable oracle. The rest-state differential is stable: control **0 diffs /
+> 31,074 records**, old-vs-new **0 diffs / 31,074 records**. **The 10
+> interaction-state declarations are DEFERRED, not dead** — they are left in
+> place deliberately and the contract test asserts they are still present.
+> Gates: cascade/selector contracts **26/26**, full pytest **1,752 / 0**,
+> focused Stylelint **1,221 → 1,204 (−17)**, total **5,877 → 5,860**, no
+> category increased. Evidence:
+> `docs/CSS_PHASE4_WP4_3I_DEAD_EVIDENCE.md`.
+> **Method rule established here: a sentinel sweep alone over-reports deadness.
+> Every future dead-CSS packet on this page must pair the sweep with a
+> rest-state differential AND a same-CSS control run.**
+>
+> **WP4.3i-filter-btn — dead `#filter-btn` family removal (`cb5ff6e`,
+> integrated into local `main` 2026-07-25 by fast-forward from branch
+> `wt/css-wp4-3i-filter-btn`, base `db23801`).** Deletion only: the **five**
+> rules gated exclusively on `#filter-btn`, an element that exists nowhere in
+> the application — **48 lines, 27 declarations, 25 `!important`, 37 colour
+> literals**, 0 insertions. All 10 comma-separated arms were inspected; every
+> one is `#filter-btn`-gated, so no live grouped arm was lost. There is no Apply
+> Filters button: filtering is change-driven through `filterExercises()` in
+> `static/js/modules/filters.js`, and the live hooks (`#clear-filters-btn`, the
+> 12 `button.wpdd-button.wpdd-filter` triggers) are untouched. Runtime DOM
+> probes returned 0 both before and after exercising a filter. Gates:
+> cascade/selector contracts **27/27** (new
+> `test_workout_plan_drops_dead_filter_button_family`, red path proven twice),
+> Workout Plan Chromium (`workout-plan` + `exercise-interactions`) **56
+> passed**, full pytest **1,753 / 0** on the canonical catalog. Focused
+> Stylelint **1,204 → 1,138 (−66)** — the largest single lint reduction of the
+> WP4.3i arc and the only packet to move `selector-max-id` and
+> `selector-max-specificity` (**−10 each**); total **5,860 → 5,794**, no
+> category increased. Cascade layers byte-identical (every deletion sits above
+> the layered region). Evidence:
+> `docs/CSS_PHASE4_WP4_3I_FILTER_BTN_EVIDENCE.md`.
+>
+> **Known animated-logo visual red — the pixel count is NOT an invariant.**
+> `workout-plan desktop dark` is the established WP4.0 animated-navbar-logo red.
+> In the i-filter-btn run it failed at **1,039 px on the first attempt and
+> 1,046 px on the retry within the same run**; i-h and i-dead happened to land
+> on 1,039 twice. Diff-image inspection confirms red pixels appear **only** on
+> the animated navbar logo — the filter panel, controls, exercise-selection
+> block and plan table are all ghosted-unchanged. Treat this as animated-media
+> drift in a band, not a fixed signature; do not gate on the exact number. The
+> other five variants (`desktop light`, `tablet light/dark`, `mobile
+> light/dark`) are byte-identical. **No visual baseline was updated in any
+> packet**; `git status -- e2e/__screenshots__` is empty, and no Bootstrap
+> output, SCSS, or database file appears in any diff.
+>
+> **Attempted and deliberately NOT committed — do not re-dispatch:**
+> - **WP4.3i-jm** — stopped, nothing committed. The sentinel sweep proved 40 of
+>   97 packet literals never render (Inline Controls **0/21**), and the Page
+>   Header is contract-locked by the shipped WP4.3i-c. The best legal variant
+>   was net-zero Stylelint.
+> - **WP4.3i-o** — not committed. The premise (11 tokenizable `#fff` uses)
+>   collapsed to **2** verified-live, semantically-equivalent uses: 3 dead by
+>   selector, 1 surface-not-ink, 4 unverified/JS-created, 1 white-on-white
+>   latent. Two consumers do not justify a token.
+>
+> **NEXT-STATE CONSTRAINTS — all owner-gated, none started:**
+> 1. **Do not remove the 10 deferred interaction-state declarations.** They
+>    require animation stabilization plus a same-CSS control reaching **zero**
+>    differing records before any deletion is permissible.
+> 2. **Do not touch the WP4.3i-c Page Header contract.**
+> 3. **Do not tokenize the remaining white literals** merely to remove
+>    literals — the i-o investigation found only two live, semantically
+>    equivalent consumers.
+> 4. The remaining Workout Plan **raw-literal → token extraction and
+>    `!important` weighting review** is redesign-sized and has **not started**.
+> 5. **WP4.3j (Workout Log** — `pages-workout-log.css`, 2,185 lines /
+>    293 `!important`, still uncovered**)** and **WP4.4 (shared bundles /
+>    navbar / `theme-dark.css`)** have **not started**.
+> 6. Two findings stay DEFERRED and unacted: the superset dark-tint gap
+>    (`--superset-bg-1..4` has no live dark override) and the dead
+>    `body.dark-mode` in `static/css/layout.css:1120` (→ WP4.4).
+> 7. Before dispatching any next packet, check `gh pr list` and existing
+>    `wt/css-wp4-3i-*` / `wt/wp4-3-*` branches — WP4.3g was once duplicated.
+>
+> **Wait for explicit direction before the next packet, and before pushing.**
+>
+> **2026-07-24 — WP4.3h User Profile + the full WP4.3i Workout Plan
+> dead-CSS/dead-fallback arc SHIPPED (superseded as to HEAD by the 2026-07-25
+> note above; `00eb6f9` is no longer HEAD).** Both landed after the 2026-07-21
+> WP4.3g note below. Both are on `origin/main` and reached it before the i-h /
+> i-dead / i-filter-btn packets recorded above; the "local `main` ==
+> `origin/main`" claim in this entry was true on 2026-07-24 only.
+>
+> **WP4.3h — User Profile dark/token cleanup (2026-07-22, base `bc9da14`; merge
+> `e34d254`).** Only `static/css/pages-user-profile.css` changed, plus the
+> cascade-contract test. Audit finding: unlike the summary bundles, this 1,843-line
+> bundle (**zero** `!important`) was already authored on the shared token
+> vocabulary — nearly every hex is a `var(--token, #fallback)`, deliberately left
+> intact exactly as WP4.3a–g left shared-token fallbacks. Only the genuinely
+> repeated **raw** literals (color-mix operands and a few direct `fill:`/
+> `box-shadow:` values) were extracted into eight page-local semantic tokens (six
+> theme-independent `:root`, two `[data-theme='dark']` dark-only). Every
+> substitution is exact-value → byte-identical render. Evidence:
+> `docs/CSS_PHASE4_WP4_3H_EVIDENCE.md`.
+>
+> **WP4.3i — Workout Plan non-`--bs-*` dead-*fallback* arc COMPLETE (2026-07-22 →
+> 2026-07-24; base `e34d254` → `00eb6f9`). The wider dead-*CSS* sweep continued
+> afterwards in i-h / i-dead / i-filter-btn — see the 2026-07-25 note above.**
+> A multi-packet sweep of
+> `pages-workout-plan.css`. The original **i-a** (tokenize the "2026 Glass Style"
+> filter cluster) was **abandoned and reverted** (`354fa4d`) once a browser
+> sentinel sweep proved none of those values rendered; owner direction was to
+> **delete browser-proven-dead CSS** rather than formalize tokens a later packet
+> would remove. Shipped sub-packets:
+> - **i-i** (`3e8624c`) — removed the dormant filter glass cluster (deletion-only, supersedes i-a).
+> - **i-b** (`cd49703`) — removed dormant `wpdd` duplicate rules.
+> - **i-c** (`db691d9`) — cleaned header/frame ownership.
+> - **i-d** (`2522272`) — dropped dead Muscle Selector local-token fallbacks.
+> - **i-e** (`011d59e`) — dropped dead dropdown-popover local-token fallbacks.
+> - **i-f** (`6593a8d`) — dropped dead table global-token fallbacks.
+> - **i-g** (`392d7e3`, HEAD merge `00eb6f9`) — stripped the seven remaining dead **defined-token** fallbacks, keeping two live ones intact: `--superset-row-color` (assigned dynamically inline per superset row) and `--wpdd-shadow-lg`. Closes the non-`--bs-*` dead-fallback arc.
+>
+> i-g gates: cascade/selector contracts **24/24** (new
+> `test_workout_plan_drops_remaining_dead_defined_token_fallbacks` locks the
+> "no non-`--bs-*` dead fallback remains except the two live tokens" milestone
+> invariant), Vitest **105/105**, full pytest **1,750 passed**, focused Workout
+> Plan visual **5 passed + 1 known red** (`workout-plan desktop-dark` **1,039 px**,
+> the exact WP4.0 baseline — pre-existing animated-media drift, computed-value-inert;
+> light desktop/tablet/mobile byte-identical). Evidence:
+> `docs/CSS_PHASE4_WP4_3I_EVIDENCE.md` (i-i) plus `_B`/`_C`/`_D`/`_E`/`_F`/`_G`.
+>
+> **Remaining on `pages-workout-plan.css` as measured on 2026-07-24: ~218
+> hardcoded hex / 520 `!important`** — the harder redesign-sized work
+> (raw-literal→exact-value token extraction plus the `!important` weighting
+> review), multi-packet, NOT started. *(The `!important` figure has since fallen
+> to **513** at `db23801` and **488** at `cb5ff6e`; see the 2026-07-25 note
+> above for current counts.)* Then **WP4.3j (Workout Log** —
+> `pages-workout-log.css`, 2,185 lines / 293 `!important`, still uncovered**)**
+> and **WP4.4 (shared bundles / navbar / theme-dark)**. **Wait for explicit
+> direction before beginning any.**
+>
+> **2026-07-21 — WP4.3e/f/g SHIPPED; everything below is PUSHED;
 > `main` == `origin/main` at `bc9da14`.** The three remaining WP4.3 route
 > packets reached `origin/main` as squash-merges — **WP4.3e Welcome** via
 > **PR #160** (`5e7d290`), **WP4.3f Session Summary** via **PR #161**
