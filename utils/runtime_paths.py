@@ -110,6 +110,25 @@ def logs_dir() -> Path:
     return runtime_root() / LOGS_DIRNAME
 
 
+def publish_without_overwrite(temporary: Path, target: Path) -> None:
+    """Atomically publish *temporary* as *target*, preserving any winner.
+
+    Raises ``FileExistsError`` when *target* already exists, which is what makes
+    two simultaneous first launches safe: the loser finds the winner's file
+    rather than replacing it. Both paths must be siblings, and therefore on one
+    device.
+    """
+    if os.name == "nt":
+        # Windows rename is atomic and fails when the destination exists.
+        os.rename(temporary, target)
+        return
+
+    # POSIX rename replaces an existing destination, so use an atomic hard-link
+    # publication instead.
+    os.link(temporary, target)
+    temporary.unlink()
+
+
 def ensure_directory(path: Path) -> Path:
     """Create *path* if absent and return it.
 

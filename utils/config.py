@@ -1,23 +1,25 @@
 import os
 
 from utils.runtime_paths import (
-    legacy_data_dir,
-    legacy_database_path,
+    installation_root,
     logs_dir,
+    runtime_data_dir,
+    runtime_database_path,
 )
 
 # Paths
 # BASE_DIR is the installation root: the repository in a checkout, the bundle in
 # a frozen build. utils/runtime_paths.py owns every path derived from it.
-BASE_DIR = str(legacy_data_dir().parent)
-DATA_DIR = str(legacy_data_dir())  # Database and backups (Packet B2 moves these)
+BASE_DIR = str(installation_root())
+DATA_DIR = str(runtime_data_dir())  # Database and backups; per-user when frozen
 LOGS_DIR = str(logs_dir())  # Per-user writable when frozen, repository-local otherwise
 
 # Database File
-# Still installation-relative on purpose. Packet B2 repoints this to
-# runtime_paths.runtime_database_path() atomically with legacy migration; doing
-# it earlier would seed an empty database over an upgrading user's real data.
-DB_FILE = os.getenv("DB_FILE", str(legacy_database_path()))  # Allow override via environment variable
+# Resolved, not installation-relative: a frozen install writes to the per-user
+# data directory, so an application update cannot overwrite user data and a
+# read-only installation directory still works. utils/runtime_migration.py moves
+# an existing database here on the first startup that needs it.
+DB_FILE = os.getenv("DB_FILE", str(runtime_database_path()))  # Allow override via environment variable
 
 # Application Constants
 APP_TITLE = "Workout Tracker"

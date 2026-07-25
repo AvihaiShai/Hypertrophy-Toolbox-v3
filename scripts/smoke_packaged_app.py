@@ -24,6 +24,7 @@ import argparse
 import json
 import os
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -152,12 +153,20 @@ def _post_json(url: str, payload: dict, timeout: float = 30.0):
     return urllib.request.urlopen(request, timeout=timeout)
 
 
-def _launch(work_dir: Path, mode: str, payload_python: Path | None):
+def _launch(
+    work_dir: Path,
+    mode: str,
+    payload_python: Path | None,
+    runtime_root: Path,
+):
     child_environment = {
         **os.environ,
         "HT_NO_BROWSER": "1",
         "FLASK_USE_RELOADER": "0",
+        # Never let a smoke write into the real per-user data directory.
+        "HT_RUNTIME_DIR": str(runtime_root),
     }
+    child_environment.pop("DB_FILE", None)
 
     if mode == "bootloader":
         executable = work_dir / "Hypertrophy-Toolbox.exe"
@@ -206,16 +215,18 @@ def serve_and_check(
     mode: str,
     payload_python: Path | None,
     port: int,
+    runtime_root: Path,
 ) -> None:
     """Boot the distribution and assert it serves real catalog-backed pages."""
     base_url = f"http://127.0.0.1:{port}"
-    runtime_db = work_dir / "_internal" / "data" / "database.db"
-    seed = work_dir / "_internal" / "data" / "catalog.seed.db"
+    bundled_data = work_dir / "_internal" / "data"
+    runtime_db = runtime_root / "data" / "database.db"
+    seed = bundled_data / "catalog.seed.db"
     seed_digest = file_digest(seed)
 
     _check(not runtime_db.exists(), "no runtime database before first launch")
 
-    process = _launch(work_dir, mode, payload_python)
+    process = _launch(work_dir, mode, payload_python, runtime_root)
     try:
         _wait_for_server(base_url, process)
         for route in PAGES:
@@ -255,14 +266,107 @@ def serve_and_check(
         except subprocess.TimeoutExpired:
             process.kill()
 
-    _check(runtime_db.is_file(), "first launch created the runtime database")
+    _check(
+        runtime_db.is_file(),
+        f"first launch created the runtime database at {runtime_db}",
+    )
     _check(
         file_digest(seed) == seed_digest,
         "the packaged catalog seed is byte-identical after first run",
     )
+    # The Packet B property, asserted against the real installation directory:
+    # a running application must add nothing to the bundle it was installed
+    # from, or an update would overwrite user data.
     _check(
-        not (work_dir / "_internal" / "data" / "auto_backup").exists(),
+        sorted(path.name for path in bundled_data.iterdir())
+        == sorted(APPROVED_DATA_FILES),
+        "the installation directory gained no runtime files",
+    )
+    _check(
+        (runtime_root / "logs" / "app.log").is_file(),
+        "logs were written under the runtime root, not the installation",
+    )
+    _check(
+        not (bundled_data / "auto_backup").exists()
+        and not (runtime_root / "data" / "auto_backup").exists(),
         "no redundant first-run backup",
+    )
+
+
+LEGACY_ROUTINE = "SMOKE - Legacy Routine"
+
+
+def _plant_legacy_database(work_dir: Path) -> Path:
+    """Write a pre-Packet-B database into the installation directory.
+
+    This is what an existing user's install looks like: a real database sitting
+    beside the packaged assets, because that is where every earlier release put
+    it.
+    """
+    bundled_data = work_dir / "_internal" / "data"
+    legacy = bundled_data / "database.db"
+    shutil.copyfile(bundled_data / "catalog.seed.db", legacy)
+    connection = sqlite3.connect(str(legacy))
+    try:
+        exercise = connection.execute(
+            "SELECT exercise_name FROM exercises ORDER BY exercise_name LIMIT 1"
+        ).fetchone()[0]
+        connection.execute(
+            "INSERT INTO user_selection "
+            "(routine, exercise, sets, min_rep_range, max_rep_range, weight) "
+            "VALUES (?, ?, 3, 8, 12, 60.0)",
+            (LEGACY_ROUTINE, exercise),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    return legacy
+
+
+def check_upgrade_migration(
+    work_dir: Path,
+    mode: str,
+    payload_python: Path | None,
+    port: int,
+    runtime_root: Path,
+) -> None:
+    """Assert an existing install's data moves once and survives intact."""
+    legacy = _plant_legacy_database(work_dir)
+    legacy_digest = file_digest(legacy)
+    runtime_db = runtime_root / "data" / "database.db"
+    base_url = f"http://127.0.0.1:{port}"
+
+    process = _launch(work_dir, mode, payload_python, runtime_root)
+    try:
+        _wait_for_server(base_url, process)
+        with _get(f"{base_url}/get_all_exercises") as response:
+            exercises = json.loads(response.read())["data"]
+        _check(
+            len(exercises) == EXPECTED_EXERCISES,
+            f"upgraded install serves {len(exercises)} exercises",
+        )
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            process.kill()
+
+    _check(runtime_db.is_file(), "the database moved to the runtime root")
+
+    connection = sqlite3.connect(str(runtime_db))
+    try:
+        migrated = connection.execute(
+            "SELECT COUNT(*) FROM user_selection WHERE routine = ?",
+            (LEGACY_ROUTINE,),
+        ).fetchone()[0]
+    finally:
+        connection.close()
+    _check(migrated == 1, "the pre-existing plan row survived the move")
+
+    _check(
+        legacy.is_file() and file_digest(legacy) == legacy_digest,
+        "the original database is still there, byte-identical",
     )
 
 
@@ -296,6 +400,11 @@ def main() -> None:
         action="store_true",
         help="Inspect the built tree only.",
     )
+    parser.add_argument(
+        "--skip-upgrade",
+        action="store_true",
+        help="Skip the legacy-database migration run.",
+    )
     args = parser.parse_args()
 
     dist = args.dist.resolve()
@@ -317,8 +426,24 @@ def main() -> None:
             print(f"[SMOKE] copying distribution to {work_dir}")
             shutil.copytree(dist, work_dir)
             serve_and_check(
-                work_dir, args.mode, args.payload_python, args.port
+                work_dir,
+                args.mode,
+                args.payload_python,
+                args.port,
+                Path(temporary) / "runtime",
             )
+
+            if not args.skip_upgrade:
+                upgrade_dir = Path(temporary) / f"{dist.name}-upgrade"
+                print(f"[SMOKE] upgrade run from {upgrade_dir}")
+                shutil.copytree(dist, upgrade_dir)
+                check_upgrade_migration(
+                    upgrade_dir,
+                    args.mode,
+                    args.payload_python,
+                    args.port,
+                    Path(temporary) / "runtime-upgrade",
+                )
     except (SmokeError, OSError, ValueError) as exc:
         raise SystemExit(f"[SMOKE] FAIL: {exc}") from exc
 

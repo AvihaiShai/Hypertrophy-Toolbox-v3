@@ -9,6 +9,7 @@ from pathlib import Path
 
 import utils.config
 from utils.logger import get_logger
+from utils.runtime_paths import publish_without_overwrite
 
 
 logger = get_logger()
@@ -25,19 +26,6 @@ def resolve_catalog_seed_path() -> Path:
     else:
         bundle_root = Path(__file__).resolve().parents[1]
     return bundle_root / "data" / CATALOG_SEED_FILENAME
-
-
-def _publish_without_overwrite(temporary: Path, target: Path) -> None:
-    """Atomically publish *temporary* while preserving a concurrent winner."""
-    if os.name == "nt":
-        # Windows rename is atomic and fails when the destination exists.
-        os.rename(temporary, target)
-        return
-
-    # POSIX rename replaces an existing destination, so use an atomic hard-link
-    # publication instead. Both paths are siblings and therefore on one device.
-    os.link(temporary, target)
-    temporary.unlink()
 
 
 def bootstrap_runtime_database(
@@ -86,7 +74,7 @@ def bootstrap_runtime_database(
             os.fsync(copied.fileno())
 
         try:
-            _publish_without_overwrite(temporary, target)
+            publish_without_overwrite(temporary, target)
         except FileExistsError:
             logger.info(
                 "Runtime database was created concurrently at %s; "
