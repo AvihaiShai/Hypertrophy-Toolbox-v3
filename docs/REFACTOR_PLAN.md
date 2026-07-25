@@ -1,16 +1,67 @@
 # Deep Refactor Plan — v3 (2026-07-04, full-scan grounded)
 
-**Status: Track A, Phases -1 through 3, and Phase-4 packets WP4.-1, WP4.0a,
-WP4.0, WP4.1, WP4.2, WP4.3a, WP4.3b, WP4.3c, and WP4.3d are complete. WP2.2 is committed as `c461840`; optional WP3.6 is
-committed as `0cbedac`. WP4.0 measurement provenance remains unchanged head
-`e46b67e`, with its ledger committed as `ca725c2`. Local integration verification
-is complete through WP4.3d: its history-preserving local merge is `40bc09f` and
-the narrow post-merge gates passed. Nothing was pushed through WP4.3d. WP4.3e (Welcome) shipped to origin/main via
-PR #160 (`5e7d290`), WP4.3f (Session Summary) shipped via PR #161 (`08256f0`),
-and WP4.3g (Weekly Summary) shipped via PR on top of it;
-User Profile and later packets have not started.
-Track B is mostly shipped; WPB.4 remains unimplemented
-and product-risk gated.**
+**Status (2026-07-25): Track A, Phases -1 through 3, and Phase-4 packets
+WP4.-1, WP4.0a, WP4.0, WP4.1, WP4.2, and WP4.3a–WP4.3h are complete, as is the
+WP4.3i Workout Plan dead-CSS arc through WP4.3i-filter-btn.** WP2.2 is committed
+as `c461840`; optional WP3.6 is committed as `0cbedac`. WP4.0 measurement
+provenance remains unchanged head `e46b67e`, with its ledger committed as
+`ca725c2`. Local integration verification through WP4.3d is complete
+(history-preserving merge `40bc09f`); nothing was pushed through WP4.3d.
+WP4.3e (Welcome) shipped to `origin/main` via PR #160 (`5e7d290`), WP4.3f
+(Session Summary) via PR #161 (`08256f0`), WP4.3g (Weekly Summary) via PR #162
+(`bc9da14`), and WP4.3h (User Profile) plus WP4.3i-i/i-b…i-g via PR up to
+`00eb6f9`. Track B is mostly shipped; WPB.4 remains unimplemented and
+product-risk gated.
+
+**Phase-4 frontier — WP4.3i Workout Plan dead-CSS sweep.** Three packets sit
+past `00eb6f9`; only the first is pushed:
+
+| Packet | Commit | State | Headline |
+|---|---|---|---|
+| WP4.3i-h | `bfadf9d` | **on `origin/main`** (PR #164, squash) | 18 dead `[data-bs-theme]`/`.dark-mode` rules deleted, −113 lines, pure deletion; pytest **1,751 / 0** |
+| WP4.3i-dead | `db23801` | local `main` only (cherry-pick of `93a3134`) | 14 overridden **rest-state** declarations deleted, −33 lines, `!important` 520 → 513; contracts **26/26**, pytest **1,752 / 0**, focused Stylelint **1,221 → 1,204** |
+| WP4.3i-filter-btn | `cb5ff6e` | local `main` only (fast-forward from `wt/css-wp4-3i-filter-btn`); **current HEAD** | 5 rules gated on the non-existent `#filter-btn` deleted — 48 lines / 27 decls / 25 `!important` / 37 literals; contracts **27/27**, Workout Plan Chromium **56 passed**, pytest **1,753 / 0**, focused Stylelint **1,204 → 1,138 (−66)**, first packet to move `selector-max-id` and `selector-max-specificity` (−10 each) |
+
+Local `main` is therefore **two commits ahead of `origin/main` and unpushed**.
+Evidence: [`CSS_PHASE4_WP4_3I_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_3I_DEAD_EVIDENCE.md)
+and [`CSS_PHASE4_WP4_3I_FILTER_BTN_EVIDENCE.md`](CSS_PHASE4_WP4_3I_FILTER_BTN_EVIDENCE.md).
+No visual baseline was updated in any packet, and no Bootstrap output, SCSS, or
+database file appears in any diff.
+
+**Known animated-logo visual red — not a fixed pixel count.** `workout-plan
+desktop dark` remains the WP4.0 animated-navbar-logo red. It failed at **1,039 px
+first attempt and 1,046 px on retry within the same i-filter-btn run**; i-h and
+i-dead happened to land on 1,039 twice. Red pixels appear only on the animated
+navbar logo. Treat it as drift in a band, not an invariant, and do not gate on
+the exact number. The other five variants are byte-identical.
+
+**Method rule established by WP4.3i-dead:** a browser sentinel sweep alone
+**over-reports deadness**. Its 24-declaration verdict reduced to 14 once a stable
+oracle was demanded, because a same-CSS control run over forced interaction
+states produced 52 differing records — those states animate. Every future
+dead-CSS packet on this page must pair the sweep with a rest-state differential
+**and** a same-CSS control.
+
+**Next-state constraints — all owner-gated, none started:**
+
+1. **Do not remove the 10 deferred interaction-state declarations** from
+   WP4.3i-dead. They require animation stabilization plus a same-CSS control
+   reaching **zero** differing records; the i-dead contract asserts they are
+   still present.
+2. **Do not modify the WP4.3i-c Page Header contract.** Section 829 is 15/15
+   live and locked.
+3. **Do not tokenize the remaining white literals** merely to remove literals —
+   the i-o investigation found only **two** live, semantically equivalent
+   consumers.
+4. The remaining Workout Plan **raw-literal → token extraction and `!important`
+   weighting review** is redesign-sized, multi-packet, and **has not started**.
+5. **WP4.3j (Workout Log)** and **WP4.4 (shared bundles / navbar /
+   `theme-dark.css`)** have **not started**.
+6. Deferred and unacted: the superset dark-tint gap (`--superset-bg-1..4` has no
+   live dark override) and the dead `body.dark-mode` in
+   `static/css/layout.css:1120` (→ WP4.4).
+7. **WP4.3i-jm and WP4.3i-o were attempted and deliberately not committed** —
+   do not re-dispatch them. See `docs/MASTER_HANDOVER.md` for why.
 
 This supersedes v2. It incorporates:
 
@@ -1086,8 +1137,15 @@ committed Weekly Summary images and every integrity lock are unchanged. Full
 visuals reproduce only the exact WP4.0 known reds (workout-plan desktop-dark
 1,039 px; plan-desktop-light-advanced 6,262 px). Evidence:
 [`CSS_PHASE4_WP4_3G_EVIDENCE.md`](CSS_PHASE4_WP4_3G_EVIDENCE.md). Shipped to
-origin/main via PR. Next is WP4.3h User Profile (audit/minimal); wait for
-explicit direction before starting it.
+origin/main via PR #162 (`bc9da14`).
+
+**WP4.3h User Profile and the WP4.3i Workout Plan dead-CSS arc followed and are
+complete through WP4.3i-filter-btn (`cb5ff6e`).** Their per-packet evidence docs
+are `CSS_PHASE4_WP4_3H_EVIDENCE.md` and `CSS_PHASE4_WP4_3I_EVIDENCE.md` plus
+`_B`/`_C`/`_D`/`_E`/`_F`/`_G`, `_DEAD`, and `_FILTER_BTN`. The current-status
+section at the top of this document carries the commit ladder, gates, the
+animated-logo known red, and the next-state constraints; `docs/MASTER_HANDOVER.md`
+carries the narrative. **Wait for explicit direction before the next packet.**
 
 ### WP4.4 Shared bundles, navbar, and `theme-dark.css`
 
