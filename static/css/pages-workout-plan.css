@@ -1887,36 +1887,6 @@ select.filter-dropdown:focus {
     inset 0 2px 4px rgba(0, 109, 119, 0.1);
 }
 
-/* Apply Filters Button - Blue - High Contrast */
-#workout[data-page="workout-plan"] #filter-btn.btn,
-#workout[data-page="workout-plan"] #filter-btn.btn.btn-primary {
-  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
-  color: #ffffff !important;
-  font-weight: 700 !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.5) !important;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.5), 0 2px 4px rgba(30, 64, 175, 0.4) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-#workout[data-page="workout-plan"] #filter-btn.btn:hover:not(:disabled),
-#workout[data-page="workout-plan"] #filter-btn.btn.btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
-  color: #ffffff !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.5) !important;
-  box-shadow: 0 6px 16px rgba(30, 64, 175, 0.55), 0 3px 6px rgba(30, 64, 175, 0.45) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  transform: translateY(-2px);
-}
-
-#workout[data-page="workout-plan"] #filter-btn.btn:active:not(:disabled),
-#workout[data-page="workout-plan"] #filter-btn.btn.btn-primary:active:not(:disabled) {
-  background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%) !important;
-  color: #ffffff !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.6) !important;
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 6px rgba(30, 64, 175, 0.5), 0 1px 2px rgba(30, 64, 175, 0.4) !important;
-}
-
 /* Clear Filters Button - Midnight Blue Glass */
 #workout[data-page="workout-plan"] #clear-filters-btn.btn {
   background: linear-gradient(135deg,
@@ -2125,24 +2095,6 @@ select.filter-dropdown:focus {
     0 8px 24px rgba(152, 223, 214, 0.2),
     0 4px 10px rgba(152, 223, 214, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #filter-btn.btn,
-[data-theme='dark'] #workout[data-page="workout-plan"] #filter-btn.btn.btn-primary {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.4) 0%, rgba(30, 64, 175, 0.4) 100%) !important;
-  color: #bfdbfe !important;
-  font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 2px rgba(0, 0, 0, 0.3) !important;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4), 0 2px 4px rgba(37, 99, 235, 0.3) !important;
-  border: 1px solid rgba(191, 219, 254, 0.2) !important;
-}
-
-[data-theme='dark'] #workout[data-page="workout-plan"] #filter-btn.btn:hover:not(:disabled),
-[data-theme='dark'] #workout[data-page="workout-plan"] #filter-btn.btn.btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0.5) 100%) !important;
-  color: #dbeafe !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 2px rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(191, 219, 254, 0.3) !important;
 }
 
 [data-theme='dark'] #workout[data-page="workout-plan"] #clear-filters-btn.btn {

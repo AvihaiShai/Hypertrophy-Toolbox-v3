@@ -1349,3 +1349,63 @@ def test_workout_plan_drops_overridden_rest_state_declarations() -> None:
     assert not re.search(r"\{\s*\}", css)
     assert css.count("@layer workout {") == 1
     assert css.count("@layer workout-dropdowns {") == 1
+
+
+def test_workout_plan_drops_dead_filter_button_family() -> None:
+    """WP4.3i-filter-btn: the `#filter-btn` rule family is gone and stays gone.
+
+    Workout Plan has no "Apply Filters" button. Filtering is change-driven --
+    `filters.js` reacts to the filter dropdowns -- and the only real filter
+    button is `#clear-filters-btn`. The five rules styling `#filter-btn` could
+    never match, so they were deleted. This contract pins both halves: the dead
+    family is absent, and the route still supplies no `#filter-btn` consumer, so
+    reintroducing the element forces a deliberate restyle rather than silently
+    reviving dead CSS.
+    """
+    css = (ROOT / "static" / "css" / "pages-workout-plan.css").read_text(
+        encoding="utf-8"
+    )
+
+    # --- 1. The dead family is gone from the page bundle. ---
+    assert "#filter-btn" not in css
+
+    # --- 2. No route surface creates the element. ---
+    # (`backup-filter-btn` on the Backup page is a different, live control.)
+    sources = [
+        *(ROOT / "templates").rglob("*.html"),
+        *(ROOT / "static" / "js").rglob("*.js"),
+        *(ROOT / "e2e").rglob("*.ts"),
+        ROOT / "app.py",
+    ]
+    for path in sources:
+        text = path.read_text(encoding="utf-8")
+        stripped = text.replace("backup-filter-btn", "").replace("clear-filters-btn", "")
+        assert 'id="filter-btn"' not in stripped, path
+        assert "getElementById('filter-btn')" not in stripped, path
+        assert 'getElementById("filter-btn")' not in stripped, path
+        assert "#filter-btn" not in stripped, path
+
+    # --- 3. The live filter hooks are untouched. ---
+    template = (ROOT / "templates" / "workout_plan.html").read_text(encoding="utf-8")
+    assert 'id="clear-filters-btn"' in template
+    assert 'id="filters-form"' in template
+    assert "filter-dropdown" in template
+    filters_js = (ROOT / "static" / "js" / "modules" / "filters.js").read_text(
+        encoding="utf-8"
+    )
+    assert "getElementById('clear-filters-btn')" in filters_js
+    assert "export async function filterExercises" in filters_js
+
+    # The Clear Filters styling in this bundle must survive the deletion.
+    assert (
+        '#workout[data-page="workout-plan"] #clear-filters-btn.btn {' in css
+    )
+    assert (
+        "[data-theme='dark'] #workout[data-page=\"workout-plan\"] "
+        "#clear-filters-btn.btn {"
+    ) in css
+
+    # --- 4. Nothing was emptied and the layer split is unchanged. ---
+    assert not re.search(r"\{\s*\}", css)
+    assert css.count("@layer workout {") == 1
+    assert css.count("@layer workout-dropdowns {") == 1
