@@ -30,6 +30,7 @@ logs/*
 *.sqlite
 *.sqlite3
 !e2e/fixtures/database.visual.seed.db
+!data/catalog.seed.db
 data/*.db.backup_*
 
 # IDE

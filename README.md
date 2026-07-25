@@ -79,7 +79,7 @@ To create the standalone `.exe` package for distribution to end users:
    ```bash
    build_exe.bat
    ```
-   (PyInstaller will be installed automatically if needed)
+   (the pinned build toolchain is installed into the dedicated `venv/`)
 
 2. **Find the output in the `dist` folder (NOT `build`):**
    ```
@@ -92,7 +92,11 @@ To create the standalone `.exe` package for distribution to end users:
 
    > **Important:** The `build` folder contains temporary files and will NOT work. Always use `dist`.
 
-3. **Distribute:** Zip the entire `dist/Hypertrophy-Toolbox/` folder and share with users
+3. **Fresh-install data:** The package contains an immutable exercise catalog
+   seed. The first launch copies it to the runtime `database.db`; it never
+   overwrites an existing database.
+
+4. **Distribute:** Zip the entire `dist/Hypertrophy-Toolbox/` folder and share with users
 
 ## ✨ Features
 

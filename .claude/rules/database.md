@@ -60,7 +60,15 @@ def add_myfeature_table() -> None:
 DatabaseHandler writes are locked via `_DB_LOCK` (`threading.RLock`, `database.py:24`) — see `execute_query` (line 236) and `executemany` (line 311).
 
 ## Seed database
-No built-in seed. Fresh installs start empty; bring your own `data/database.db` backup to restore the exercise catalog. On corruption, `_attempt_database_recovery()` quarantines the bad file as `*.corrupted_<timestamp>` and a fresh empty DB is created on next init.
+`data/catalog.seed.db` is an immutable, physically sanitized catalog asset.
+`bootstrap_runtime_database()` in `utils/catalog_seed.py` copies it atomically
+to a missing configured `DB_FILE` during real `app.py` startup. Existing
+databases are never replaced. The bootstrap is deliberately not called by
+`DatabaseHandler`, config imports, or `run_all_initializers()`, so isolated
+tests and explicit empty-schema initialization remain empty.
+
+On corruption, `_attempt_database_recovery()` quarantines the bad file as
+`*.corrupted_<timestamp>` and a fresh empty DB is created on next init.
 
 ## Env vars that affect DB (`utils/config.py`)
 | Variable | Default | Effect |
@@ -72,12 +80,9 @@ No built-in seed. Fresh installs start empty; bring your own `data/database.db` 
 ## Startup sequence (`app.py`)
 ```
 app.py startup:
-  initialize_database()           ← utils/db_initializer.py — tables + normalization (no seed)
-  add_progression_goals_table()   ← utils/database.py
-  add_volume_tracking_tables()    ← utils/database.py
-  initialize_exercise_order()     ← routes/workout_plan.py — ALTERs user_selection
-  init_backup_tables()            ← routes/program_backup.py → utils/program_backup.py
-  create_startup_backup()         ← utils/auto_backup.py — snapshots live DB to data/auto_backup/
+  bootstrap_runtime_database()    ← copies catalog seed only when DB_FILE is missing
+  run_all_initializers()          ← canonical schema registry sequence
+  create_startup_backup()         ← skipped for the pristine first-run seed copy
 ```
 
 ## Typical failures

@@ -19,7 +19,11 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SEED = REPO_ROOT / "e2e" / "fixtures" / "database.visual.seed.db"
-DEFAULT_SOURCE = DEFAULT_SEED if DEFAULT_SEED.exists() else REPO_ROOT / "data" / "database.db"
+DEFAULT_SOURCE = (
+    DEFAULT_SEED
+    if DEFAULT_SEED.exists()
+    else REPO_ROOT / "data" / "catalog.seed.db"
+)
 DEFAULT_OUTPUT = REPO_ROOT / "artifacts" / "visual" / "database.visual.db"
 
 # Paths this seeder must never overwrite: the developer's live DB and the

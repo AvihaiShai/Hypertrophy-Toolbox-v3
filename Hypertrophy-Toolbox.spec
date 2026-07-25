@@ -1,4 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
+from pathlib import Path
+
 from PyInstaller.utils.hooks import collect_submodules
 
 # pandas/numpy were dropped when the exporters moved to XlsxWriter directly
@@ -8,6 +10,41 @@ from PyInstaller.utils.hooks import collect_submodules
 hiddenimports = ['flask', 'jinja2', 'werkzeug', 'openpyxl', 'xlsxwriter']
 hiddenimports += collect_submodules('werkzeug')
 hiddenimports += collect_submodules('jinja2')
+
+approved_data_files = [
+    ('data/catalog.seed.db', 'data'),
+    ('data/free_exercise_db_mapping.csv', 'data'),
+]
+
+
+def collect_asset_tree(source, destination, excluded_subtree=None):
+    source_root = Path(source)
+    excluded_root = (
+        (source_root / excluded_subtree).resolve()
+        if excluded_subtree
+        else None
+    )
+    assets = []
+    for asset in source_root.rglob('*'):
+        if not asset.is_file():
+            continue
+        resolved = asset.resolve()
+        if excluded_root and (
+            resolved == excluded_root or excluded_root in resolved.parents
+        ):
+            continue
+        relative_parent = asset.relative_to(source_root).parent
+        target = (Path(destination) / relative_parent).as_posix()
+        assets.append((asset.as_posix(), target))
+    return assets
+
+
+template_assets = collect_asset_tree('templates', 'templates')
+static_assets = collect_asset_tree(
+    'static',
+    'static',
+    excluded_subtree='bodymaps/GPT/',
+)
 
 # Minimal excludes - only things definitely not needed (prioritize performance over size)
 excludes = [
@@ -19,7 +56,7 @@ a = Analysis(
     ['app_launcher.py'],
     pathex=[],
     binaries=[],
-    datas=[('templates', 'templates'), ('static', 'static'), ('data', 'data')],
+    datas=template_assets + static_assets + approved_data_files,
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
