@@ -2,6 +2,7 @@
 from flask import Flask, jsonify, request, make_response, g
 from utils.database import DatabaseHandler
 from utils.auto_backup import create_startup_backup, describe_snapshot
+from utils.catalog_seed import bootstrap_runtime_database
 from utils.schema_registry import drop_all_owned_tables, run_all_initializers
 from routes.workout_log import workout_log_bp
 from routes.weekly_summary import weekly_summary_bp
@@ -49,10 +50,13 @@ add_request_id_middleware(app)
 register_error_handlers(app)
 
 # Initialize the database
+database_seeded = bootstrap_runtime_database()
 run_all_initializers(force_base=False)
 
-# Snapshot the live DB to data/auto_backup/ so a wipe or corruption has a recovery point.
-create_startup_backup()
+# The immutable seed is already a pristine recovery source. Avoid an immediate,
+# redundant first-run snapshot; normal subsequent startups retain the backup.
+if not database_seeded:
+    create_startup_backup()
 
 # Register blueprints
 app.register_blueprint(main_bp)

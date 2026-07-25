@@ -71,38 +71,28 @@ venv\Scripts\python.exe -c "import PyInstaller; print('  PyInstaller ' + PyInsta
 echo [OK] Build dependencies installed
 echo.
 
+:: Fail closed before PyInstaller recursively collects static/templates.
+echo [INFO] Checking package asset inputs...
+venv\Scripts\python.exe scripts\guard_package_assets.py
+if errorlevel 1 (
+    echo [ERROR] Package asset guard failed!
+    pause
+    exit /b 1
+)
+echo [OK] Package asset inputs approved
+echo.
+
 :: Clean previous builds
 echo [INFO] Cleaning previous builds...
 if exist "dist" rmdir /s /q dist
 if exist "build" rmdir /s /q build
-if exist "Hypertrophy-Toolbox.spec" del /q "Hypertrophy-Toolbox.spec"
-
-:: Check if favicon exists, adjust command accordingly
-set ICON_ARG=
-if exist "static\images\favicon.ico" (
-    set ICON_ARG=--icon=static/images/favicon.ico
-)
 
 :: Build the executable
 echo.
 echo [BUILD] Creating executable (this may take several minutes)...
 echo.
 
-venv\Scripts\pyinstaller.exe --name "Hypertrophy-Toolbox" ^
-    --onedir ^
-    --console ^
-    %ICON_ARG% ^
-    --add-data "templates;templates" ^
-    --add-data "static;static" ^
-    --add-data "data;data" ^
-    --hidden-import=flask ^
-    --hidden-import=jinja2 ^
-    --hidden-import=werkzeug ^
-    --hidden-import=openpyxl ^
-    --hidden-import=xlsxwriter ^
-    --collect-submodules=werkzeug ^
-    --collect-submodules=jinja2 ^
-    app_launcher.py
+venv\Scripts\pyinstaller.exe --clean --noconfirm Hypertrophy-Toolbox.spec
 
 if errorlevel 1 (
     echo.

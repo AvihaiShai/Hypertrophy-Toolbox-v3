@@ -79,8 +79,8 @@ jobs:
         path: artifacts/playwright
         retention-days: 7
 
-  cold-start:
-    name: Cold start (missing DB) smoke
+  first-install:
+    name: First install (catalog seed) smoke
     runs-on: ubuntu-latest
 
     steps:
@@ -98,11 +98,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # Fresh-clone / first-run path: no data/database.db present. The real app.py
-    # startup must build the schema from scratch and serve the welcome page.
-    - name: Boot with no database.db and assert GET / -> 200
+    # Fresh-clone / first-run path: the real app.py startup must copy the
+    # immutable catalog seed into a missing configured runtime DB.
+    - name: Boot missing runtime DB and assert seeded catalog
       run: |
-        export DB_FILE=artifacts/deep-gate/cold-start.db
+        export DB_FILE=artifacts/deep-gate/first-install.db
         mkdir -p "$(dirname "$DB_FILE")"
         rm -f "$DB_FILE" "$DB_FILE-wal" "$DB_FILE-shm" "$DB_FILE-journal"
         DB_FILE="$DB_FILE" FLASK_USE_RELOADER=0 python app.py &
@@ -114,7 +114,77 @@ jobs:
           sleep 2
         done
         kill "$APP_PID" 2>/dev/null || true
-        echo "cold start: GET / -> $code"
+        echo "first install: GET / -> $code"
+        [ "$code" = "200" ]
+        python - <<'PY'
+        import os
+        import sqlite3
+
+        from utils.schema_registry import OWNED_TABLES_DROP_ORDER
+
+        con = sqlite3.connect(os.environ["DB_FILE"])
+        try:
+            exercises = con.execute("SELECT COUNT(*) FROM exercises").fetchone()[0]
+            assert exercises == 1897, exercises
+            for table in OWNED_TABLES_DROP_ORDER:
+                count = con.execute(
+                    f'SELECT COUNT(*) FROM "{table}"'
+                ).fetchone()[0]
+                assert count == 0, (table, count)
+        finally:
+            con.close()
+        PY
+
+  empty-schema:
+    name: Empty-schema initializer smoke
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Bypass app.py's first-install bootstrap deliberately. This preserves the
+    # independent contract that initializers can create a valid empty schema.
+    - name: Initialize an empty DB, boot it, and assert GET / -> 200
+      run: |
+        export DB_FILE=artifacts/deep-gate/empty-schema.db
+        mkdir -p "$(dirname "$DB_FILE")"
+        rm -f "$DB_FILE" "$DB_FILE-wal" "$DB_FILE-shm" "$DB_FILE-journal"
+        python - <<'PY'
+        import sqlite3
+
+        import utils.config
+        from utils.schema_registry import run_all_initializers
+
+        run_all_initializers(force_base=True)
+        con = sqlite3.connect(utils.config.DB_FILE)
+        try:
+            exercises = con.execute("SELECT COUNT(*) FROM exercises").fetchone()[0]
+            assert exercises == 0, exercises
+        finally:
+            con.close()
+        PY
+        DB_FILE="$DB_FILE" FLASK_USE_RELOADER=0 python app.py &
+        APP_PID=$!
+        code=000
+        for _ in $(seq 1 30); do
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:5000/ || echo 000)
+          [ "$code" = "200" ] && break
+          sleep 2
+        done
+        kill "$APP_PID" 2>/dev/null || true
+        echo "empty schema: GET / -> $code"
         [ "$code" = "200" ]
 
   old-db-migration:

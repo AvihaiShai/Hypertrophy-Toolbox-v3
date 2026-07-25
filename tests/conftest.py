@@ -57,7 +57,7 @@ def test_db_path(tmp_path):
 def catalog_db_path(tmp_path):
     """Copy the shipped catalog into a test-scoped, read-only snapshot."""
     repo_root = Path(__file__).resolve().parents[1]
-    source = repo_root / "data" / "database.db"
+    source = repo_root / "data" / "catalog.seed.db"
     destination = tmp_path / "catalog.db"
 
     assert source.exists(), f"Shipped catalog database is missing: {source}"

@@ -30,9 +30,11 @@ def test_test_database_paths_never_resolve_to_the_live_database(
     test_db_path, catalog_db_path
 ):
     live_db = Path(__file__).resolve().parents[1] / "data" / "database.db"
+    seed_db = Path(__file__).resolve().parents[1] / "data" / "catalog.seed.db"
 
     assert Path(test_db_path).resolve() != live_db.resolve()
     assert Path(catalog_db_path).resolve() != live_db.resolve()
+    assert Path(catalog_db_path).read_bytes() == seed_db.read_bytes()
 
 
 def test_distinct_test_databases_do_not_share_sqlite_locks(tmp_path):

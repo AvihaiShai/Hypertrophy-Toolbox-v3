@@ -454,23 +454,35 @@ an undefined build environment.
 
 ### 6.2 Packet A preflight
 
-- [ ] Stop the Flask server and any process that may have the database open.
-- [ ] Confirm `data/database.db-wal`, `-shm`, and `-journal` do not exist.
-- [ ] Record the implementation worktree's starting commit.
-- [ ] Record the pre-change targeted and full pytest baseline at that commit.
-- [ ] Record SHA-256 hashes and row counts for the source local database.
-- [ ] Confirm all catalog hashes and user-table counts listed in Section 4.5.
-- [ ] Preserve a recoverable copy of the source database outside the paths that
+#### Packet A execution record (2026-07-25)
+
+The implementation worktree was created with
+`scripts/new-worktree.ps1 -Task rootdircleanup-packet-a -Seed copy-current`
+from refreshed `origin/main` at `8dba5b226277909d8a13cb36679274dffdd89257`.
+The copied source database had file SHA-256
+`7585cd4d36be20d523e484298afd48d2950e68f4c8ad87e2e97b5456fe8707b6`;
+its catalog counts, logical hashes, zero owned-table counts, integrity, and
+foreign-key checks matched §4.5. A recoverable copy was preserved outside the
+implementation and package paths. The pre-change targeted baseline was
+**46 passed**, and the full baseline was **1,753 passed**.
+
+- [x] Stop the Flask server and any process that may have the database open.
+- [x] Confirm `data/database.db-wal`, `-shm`, and `-journal` do not exist.
+- [x] Record the implementation worktree's starting commit.
+- [x] Record the pre-change targeted and full pytest baseline at that commit.
+- [x] Record SHA-256 hashes and row counts for the source local database.
+- [x] Confirm all catalog hashes and user-table counts listed in Section 4.5.
+- [x] Preserve a recoverable copy of the source database outside the paths that
       will be renamed or packaged.
-- [ ] Confirm unrelated dirty files and active workstream ownership before
+- [x] Confirm unrelated dirty files and active workstream ownership before
       editing shared paths.
 - [x] Confirm PR #165 merged; `origin/main` was `95f30c1` at the
       2026-07-25 review.
-- [ ] Fetch `origin` again immediately before execution and record the exact
+- [x] Fetch `origin` again immediately before execution and record the exact
       `origin/main` SHA selected as the Packet A base.
-- [ ] Start Packet A from that refreshed `origin/main`; do not inherit the
+- [x] Start Packet A from that refreshed `origin/main`; do not inherit the
       current handover branch by accident.
-- [ ] Settle, update, or retire worktrees that retain `skip-worktree` state for
+- [x] Settle, update, or retire worktrees that retain `skip-worktree` state for
       `data/database.db` before landing the untracking change.
 
 #### Base-branch and live-worktree warning
@@ -520,24 +532,24 @@ If Packet A is implemented in a worktree:
 
 ### 6.3 Create the canonical seed
 
-- [ ] Remove the `skip-worktree` flag deliberately.
-- [ ] Create `data/catalog.seed.db` from the validated local catalog.
-- [ ] Ensure the tracked `data/database.db` entry is removed.
-- [ ] Add `!data/catalog.seed.db` to `.gitignore` after the broad `*.db` rule,
+- [x] Remove the `skip-worktree` flag deliberately.
+- [x] Create `data/catalog.seed.db` from the validated local catalog.
+- [x] Ensure the tracked `data/database.db` entry is removed.
+- [x] Add `!data/catalog.seed.db` to `.gitignore` after the broad `*.db` rule,
       beside the existing `!e2e/fixtures/database.visual.seed.db` exception.
-- [ ] Prove the exception is effective: the seed is visible to Git, stages
+- [x] Prove the exception is effective: the seed is visible to Git, stages
       normally, and appears in a fresh-clone/file-list check.
-- [ ] Physically sanitize the seed using a clean SQLite backup/rebuild followed
+- [x] Physically sanitize the seed using a clean SQLite backup/rebuild followed
       by `VACUUM`, rather than relying only on `DELETE`.
-- [ ] Confirm `PRAGMA freelist_count = 0` after finalization.
-- [ ] Confirm `sqlite_sequence` contains no user-owned sequence state.
-- [ ] Confirm no WAL/SHM/journal sidecars are staged or packaged.
-- [ ] Confirm only the two catalog tables contain rows.
-- [ ] Confirm all current schema tables exist.
-- [ ] Confirm the logical catalog hashes remain unchanged.
-- [ ] Confirm `PRAGMA integrity_check = ok`.
-- [ ] Confirm `PRAGMA foreign_key_check` returns zero rows.
-- [ ] Confirm ordinary app startup never writes to `catalog.seed.db`.
+- [x] Confirm `PRAGMA freelist_count = 0` after finalization.
+- [x] Confirm `sqlite_sequence` contains no user-owned sequence state.
+- [x] Confirm no WAL/SHM/journal sidecars are staged or packaged.
+- [x] Confirm only the two catalog tables contain rows.
+- [x] Confirm all current schema tables exist.
+- [x] Confirm the logical catalog hashes remain unchanged.
+- [x] Confirm `PRAGMA integrity_check = ok`.
+- [x] Confirm `PRAGMA foreign_key_check` returns zero rows.
+- [x] Confirm ordinary app startup never writes to `catalog.seed.db`.
 
 The seed should be treated as an immutable application asset. Runtime code may
 copy from it but must never connect to it in writable mode.
@@ -566,29 +578,35 @@ Before `run_all_initializers()`:
 
 Checklist:
 
-- [ ] Put bootstrap logic in a testable utility rather than embedding a large
+- [x] Put bootstrap logic in a testable utility rather than embedding a large
       block directly in `app.py`.
-- [ ] Invoke that utility only from real `app.py` startup immediately before
+- [x] Invoke that utility only from real `app.py` startup immediately before
       `run_all_initializers()`.
-- [ ] Add regression tests proving `run_all_initializers()`,
+- [x] Add regression tests proving `run_all_initializers()`,
       `DatabaseHandler`, and `utils.config` do not bootstrap the seed on their
       own.
-- [ ] Create the target parent directory safely.
-- [ ] Copy through a temporary sibling file and atomically rename it, preventing
+- [x] Create the target parent directory safely.
+- [x] Copy through a temporary sibling file and atomically rename it, preventing
       a partial database if startup is interrupted.
-- [ ] Handle two simultaneous first launches without corrupting or overwriting a
+- [x] Handle two simultaneous first launches without corrupting or overwriting a
       completed target.
-- [ ] Never overwrite an existing database, including an old-schema or corrupt
+- [x] Never overwrite an existing database, including an old-schema or corrupt
       one; existing recovery/migration behavior remains authoritative.
-- [ ] Preserve the `DB_FILE` environment override.
-- [ ] Decide and document that an explicitly configured but missing `DB_FILE`
+- [x] Preserve the `DB_FILE` environment override.
+- [x] Decide and document that an explicitly configured but missing `DB_FILE`
       receives the seed. This is the recommended behavior because it matches a
       real fresh installation at any selected path.
-- [ ] Ensure normal isolated pytest fixtures that intentionally create empty
+- [x] Ensure normal isolated pytest fixtures that intentionally create empty
       databases remain empty unless they explicitly exercise application
       bootstrap.
-- [ ] Update `.claude/rules/database.md`, which currently states that there is
+- [x] Update `.claude/rules/database.md`, which currently states that there is
       no built-in seed.
+
+**First-run backup decision:** the pristine seed copy is not immediately
+snapshotted. It is already identical to the immutable packaged recovery asset,
+so `app.py` skips `create_startup_backup()` only on the process that wins
+first-run publication. Normal later startups retain the existing rolling
+backup behavior.
 
 ### 6.5 Preserve both first-install and empty-schema coverage
 
@@ -606,43 +624,43 @@ Maintain two distinct contracts:
 
 Checklist:
 
-- [ ] Reword the deep-gate job so its name matches what it proves.
-- [ ] Assert `GET /` returns 200.
-- [ ] Assert the first-install database contains the expected catalog.
-- [ ] Assert every user-owned table is empty.
-- [ ] Preserve a separate missing/empty database initializer test.
-- [ ] Keep the old-schema migration job unchanged except for path terminology.
+- [x] Reword the deep-gate job so its name matches what it proves.
+- [x] Assert `GET /` returns 200.
+- [x] Assert the first-install database contains the expected catalog.
+- [x] Assert every user-owned table is empty.
+- [x] Preserve a separate missing/empty database initializer test.
+- [x] Keep the old-schema migration job unchanged except for path terminology.
 
 ### 6.6 Consolidate and restrict packaging
 
-- [ ] Change the spec from `('data', 'data')` to explicit file entries.
-- [ ] Include only `data/catalog.seed.db` and
+- [x] Change the spec from `('data', 'data')` to explicit file entries.
+- [x] Include only `data/catalog.seed.db` and
       `data/free_exercise_db_mapping.csv` from `data/`.
-- [ ] Do not package `data/youtube_curated_top_n.csv`; it is a developer-side
+- [x] Do not package `data/youtube_curated_top_n.csv`; it is a developer-side
       catalog-application input, not a runtime dependency.
-- [ ] Make `build_exe.bat` invoke `Hypertrophy-Toolbox.spec`.
-- [ ] Stop deleting the committed spec during builds.
-- [ ] Confirm the destination paths match bootstrap's frozen asset lookup.
-- [ ] Exclude `static/bodymaps/GPT/` and its nested `.git/` content from the
+- [x] Make `build_exe.bat` invoke `Hypertrophy-Toolbox.spec`.
+- [x] Stop deleting the committed spec during builds.
+- [x] Confirm the destination paths match bootstrap's frozen asset lookup.
+- [x] Exclude `static/bodymaps/GPT/` and its nested `.git/` content from the
       build.
-- [ ] Add a fail-closed pre-build guard that inventories ignored/untracked
+- [x] Add a fail-closed pre-build guard that inventories ignored/untracked
       content under `static/` and `templates/`.
-- [ ] Permit only the exact `static/bodymaps/GPT/` root that the spec explicitly
+- [x] Permit only the exact `static/bodymaps/GPT/` root that the spec explicitly
       excludes; fail on every other ignored/untracked path.
-- [ ] Test the guard with a synthetic unexpected ignored/untracked asset so it
+- [x] Test the guard with a synthetic unexpected ignored/untracked asset so it
       is proven fail-closed.
-- [ ] Verify intended tracked vendor assets, licenses, templates, JavaScript,
+- [x] Verify intended tracked vendor assets, licenses, templates, JavaScript,
       CSS, images, and fonts remain present after tightening asset collection.
-- [ ] Confirm `RUN_APP.bat` is still copied into the distribution.
+- [x] Confirm `RUN_APP.bat` is still copied into the distribution.
 
 Repair the E2E fallback without weakening the live-data guard:
 
-- [ ] Change `e2e/scripts/prepare_visual_db.py::DEFAULT_SOURCE` to fall back to
+- [x] Change `e2e/scripts/prepare_visual_db.py::DEFAULT_SOURCE` to fall back to
       `data/catalog.seed.db`, not the now-untracked `data/database.db`, when the
       visual fixture is missing.
-- [ ] Keep `LIVE_DB = data/database.db` and the `data/auto_backup/` output guard
+- [x] Keep `LIVE_DB = data/database.db` and the `data/auto_backup/` output guard
       unchanged; those still identify paths a seeder must never overwrite.
-- [ ] Confirm `prepare_e2e_db.py` continues to prefer the tracked visual fixture
+- [x] Confirm `prepare_e2e_db.py` continues to prefer the tracked visual fixture
       and wipe its own throwaway user state.
 
 ### 6.7 Add privacy and packaging contracts
@@ -652,17 +670,17 @@ registry.
 
 For every registered table, tests must:
 
-- [ ] Assert the table exists in the seed.
-- [ ] Assert its row count is zero.
+- [x] Assert the table exists in the seed.
+- [x] Assert its row count is zero.
 
 The existence assertion matters: silently skipping a missing table would allow
 a stale seed to pass.
 
 Add a schema-registry completeness check:
 
-- [ ] Enumerate all non-internal tables in the seed.
-- [ ] Treat `exercises` and `exercise_isolated_muscles` as catalog tables.
-- [ ] Assert every other application table is represented in
+- [x] Enumerate all non-internal tables in the seed.
+- [x] Treat `exercises` and `exercise_isolated_muscles` as catalog tables.
+- [x] Assert every other application table is represented in
       `OWNED_TABLES_DROP_ORDER`.
 
 This catches the case where a developer creates a new user table but forgets to
@@ -670,45 +688,55 @@ add it to the registry; testing only the tuple cannot detect its own omissions.
 
 Additional contracts:
 
-- [ ] Assert catalog row counts and stable logical-row hashes.
-- [ ] Assert SQLite integrity and foreign-key integrity.
-- [ ] Assert `catalog_db_path` copies `data/catalog.seed.db`, never the runtime
+- [x] Assert catalog row counts and stable logical-row hashes.
+- [x] Assert SQLite integrity and foreign-key integrity.
+- [x] Assert `catalog_db_path` copies `data/catalog.seed.db`, never the runtime
       database.
-- [ ] Assert the spec contains no recursive `data/` source.
-- [ ] Assert the spec's approved data source set exactly matches the allowlist.
-- [ ] If the batch file remains a second packaging definition, assert its
+- [x] Assert the spec contains no recursive `data/` source.
+- [x] Assert the spec's approved data source set exactly matches the allowlist.
+- [x] If the batch file remains a second packaging definition, assert its
       approved data set too.
-- [ ] Build the executable and inspect the actual `dist/` tree; source-text tests
+- [x] Build the executable and inspect the actual `dist/` tree; source-text tests
       are not sufficient.
-- [ ] Assert the distribution contains none of:
+- [x] Assert the distribution contains none of:
       `auto_backup`, `.personal-*`, additional `.db` files, SQLite sidecars, or
       unapproved files from `data/`.
-- [ ] Assert the distribution contains no `static/bodymaps/GPT/`, nested `.git`
+- [x] Assert the distribution contains no `static/bodymaps/GPT/`, nested `.git`
       directories, or other ignored/untracked source-tree files.
-- [ ] Check a reviewed Packet A set of required static/template assets and smoke
+- [x] Check a reviewed Packet A set of required static/template assets and smoke
       their production paths so the GPT exclusion cannot silently remove
       required UI assets.
-- [ ] Open the shipped seed from the built distribution read-only and rerun the
+- [x] Open the shipped seed from the built distribution read-only and rerun the
       privacy contract against that exact artifact.
 
 ### 6.8 Packet A verification gate
 
-- [ ] Targeted seed/privacy tests pass.
-- [ ] Catalog invariant and volume taxonomy tests pass.
-- [ ] Harness isolation tests pass.
-- [ ] Config/bootstrap tests pass.
-- [ ] Old-database migration tests pass.
-- [ ] Full pytest matches the baseline established at the packet's actual
+Recorded Packet A results: focused pytest **65 passed**; full pytest
+**1,772 passed** (**1,753** baseline plus 19 Packet A contracts); Chromium
+navigation/API smoke **67 passed**; real pinned PyInstaller build exit 0.
+The built data allowlist contained exactly two files. Its shipped seed SHA-256
+was `678c9641fc280afba98cb1c5b52979e0391200c891f540c476002b895cd22d1f`
+and passed the read-only privacy contract. A clean-copy executable smoke
+returned HTTP 200, exposed 1,897 exercises, returned 225 Barbell-filtered
+results, created the runtime DB, left the seed unchanged, and created no
+redundant first-run backup.
+
+- [x] Targeted seed/privacy tests pass.
+- [x] Catalog invariant and volume taxonomy tests pass.
+- [x] Harness isolation tests pass.
+- [x] Config/bootstrap tests pass.
+- [x] Old-database migration tests pass.
+- [x] Full pytest matches the baseline established at the packet's actual
       starting commit.
-- [ ] Relevant Playwright smoke tests pass against a throwaway runtime DB.
-- [ ] `build_exe.bat` completes successfully.
-- [ ] The packaged application boots from a clean extracted directory.
-- [ ] First packaged launch creates a runtime copy and leaves the packaged seed
+- [x] Relevant Playwright smoke tests pass against a throwaway runtime DB.
+- [x] `build_exe.bat` completes successfully.
+- [x] The packaged application boots from a clean extracted directory.
+- [x] First packaged launch creates a runtime copy and leaves the packaged seed
       unchanged.
-- [ ] The packaged app serves the main page and exercise filters return catalog
+- [x] The packaged app serves the main page and exercise filters return catalog
       data.
-- [ ] The final `git diff` contains only intentional Packet A files.
-- [ ] `git status` is also checked with ignored and index-flag awareness.
+- [x] The final `git diff` contains only intentional Packet A files.
+- [x] `git status` is also checked with ignored and index-flag awareness.
 
 ### 6.9 Packet A expected file scope
 
@@ -1091,7 +1119,7 @@ accepted explicitly.
 - [x] PR #165 is merged into `origin/main`.
 - [x] This approved plan is tracked and integrated into `origin/main`, so the
       implementation worktree can read it. (PR #166.)
-- [ ] Packet A is based on the refreshed, recorded `origin/main`, not the
+- [x] Packet A is based on the refreshed, recorded `origin/main`, not the
       handover-branch `HEAD`.
 - [x] Both redundant CSS/security worktrees receive a final clean-status and
       runtime-data check, then are cleanly retired. Both were verified clean,
@@ -1103,23 +1131,23 @@ accepted explicitly.
       diagnostics.)
 - [x] Packet A0's `-Seed empty` worktree is verified to contain no runtime DB,
       backup, personal export, or GPT scratch input before building.
-- [ ] The sanitized source database is copied into the implementation worktree
+- [x] The sanitized source database is copied into the implementation worktree
       with hashes and counts revalidated.
 
 ### Packet A completion checklist
 
-- [ ] Packet A0 and privacy preflight complete.
-- [ ] Clean physical seed committed.
-- [ ] Runtime DB untracked and ignored.
-- [ ] Bootstrap implemented and tested.
-- [ ] Packaging definitions consolidated.
-- [ ] Privacy and registry-completeness contracts added.
-- [ ] Deep-gate coverage split correctly.
-- [ ] Full pytest baseline passes.
-- [ ] Built distribution inspected.
-- [ ] Packaged first-run smoke passes.
-- [ ] Documentation updated.
-- [ ] Final diff contains no unrelated changes.
+- [x] Packet A0 and privacy preflight complete.
+- [x] Clean physical seed committed.
+- [x] Runtime DB untracked and ignored.
+- [x] Bootstrap implemented and tested.
+- [x] Packaging definitions consolidated.
+- [x] Privacy and registry-completeness contracts added.
+- [x] Deep-gate coverage split correctly.
+- [x] Full pytest baseline passes.
+- [x] Built distribution inspected.
+- [x] Packaged first-run smoke passes.
+- [x] Documentation updated.
+- [x] Final diff contains no unrelated changes.
 
 ### Packet B authorization checklist
 
