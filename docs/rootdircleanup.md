@@ -1,8 +1,9 @@
 # Root Directory Cleanup and Data Packaging Safety Plan
 
-**Status:** Owner-approved execution plan; implementation has not started
+**Status:** Packets A0, A, and A2 shipped. Packet A3 and Packet B are
+owner-approved and next; Packet C is unstarted.
 
-**Last evidence pass:** 2026-07-25
+**Last evidence pass:** 2026-07-26
 
 **Scope:** Repository-root hygiene, shipped database privacy, PyInstaller data
 allowlisting, first-run database bootstrap, and the later runtime-data location
@@ -887,6 +888,79 @@ script created the worktree and then aborted before seeding it. It now tests
 `git ls-files -- data/database.db` for output instead, which stays silent for an
 untracked path.
 
+### 6.11 Packet A3 — Staging integrity and real frozen validation
+
+Packet A2 proved the staged tree is *the tracked set* — the right file names,
+sizes, and executable bits. It does not prove the staged bytes are the tracked
+bytes.
+
+Two gaps remain:
+
+1. `_needs_copy()` decides on size plus integer mtime, and
+   `verify_staging_tree()` compares only size and the executable bit. A staged
+   file mutated in place to the same length, with its mtime restored, is
+   neither recopied nor rejected. That is exactly the shape of an edit made by
+   a tool that preserves timestamps, of a partially written copy that happens
+   to land on the same length, and of deliberate tampering with a build
+   directory.
+2. Nothing records what was staged. After a build there is no artifact a
+   reviewer can re-verify the distribution against.
+
+Packet A3 closes both and is deliberately small: it changes no packaging
+inputs, no allowlist, and no application behavior.
+
+- [ ] Compare staged content by SHA-256, not by size and mtime.
+- [ ] Keep a size fast path so the common case does not hash twice for nothing;
+      equal sizes must fall through to the digest.
+- [ ] Make a content mismatch self-healing in `sync_staging_tree()` (restage)
+      and fatal in `verify_staging_tree()` (fail closed). A stale staging tree
+      must not be able to poison every later build.
+- [ ] Emit `manifest.sha256` in standard `sha256sum` format beside the staging
+      root, so `sha256sum -c` and any reviewer can re-verify independently.
+- [ ] Write it beside the staging root, never inside it: the staging tree must
+      keep matching the manifest exactly, and an extra file inside would be
+      rejected as unexpected.
+- [ ] Add the mutation regression test: stage, rewrite a staged file with
+      equal-length content, restore its mtime exactly, and assert both that
+      restaging repairs it and that verification rejects it.
+
+**Hashing cost is accepted.** The tracked asset tree is about 61 MB. Staging
+reads it roughly three times per build (copy decision, copy, verification)
+instead of once. That is seconds against a multi-minute PyInstaller build, and
+the verification pass deliberately recomputes rather than trusting digests
+cached by the copy decision — otherwise the proof and the thing it proves share
+a failure mode.
+
+#### Real frozen validation
+
+The Packet A2 environment note stands: Windows Smart App Control refuses to
+launch the freshly built, unsigned bootloader on the build machine
+(`WinError 4551`), so the local packaged smoke boots the packaged payload with
+the build interpreter over the distribution's own `_internal/` tree. That
+exercises the packaged templates, static assets, catalog seed, and application
+modules — and **not** the bootloader.
+
+Standing decisions:
+
+- **Smart App Control is never disabled.** Weakening host security to make a
+  build gate pass inverts the trade. Windows Sandbox may be used only if it is
+  already available without changing host security settings.
+- **The payload smoke keeps running and stays labelled** as not exercising the
+  bootloader. It is useful evidence; it is not the evidence it is sometimes
+  mistaken for.
+- **CI supplies the missing half.** A `windows-latest` deep-gate job builds
+  with pinned PyInstaller and launches the real
+  `dist/Hypertrophy-Toolbox/Hypertrophy-Toolbox.exe`. GitHub's Windows runners
+  do not enforce Smart App Control, so the bootloader an end user actually
+  double-clicks is executed there.
+
+- [ ] Add a `windows-latest` deep-gate job that builds via the canonical spec.
+- [ ] Launch the real `.exe`, not the payload, and assert it serves the app.
+- [ ] Assert the packaged data allowlist and absence of ignored content in the
+      built tree.
+- [ ] Verify the built assets against `manifest.sha256`.
+- [ ] Label the local payload smoke explicitly in code and documentation.
+
 ---
 
 ## 7. Packet B — Runtime Data Outside Immutable Application Assets
@@ -895,18 +969,66 @@ Packet B is the preferred long-term design but is intentionally separate
 because it changes path semantics across the application, tests, scripts,
 worktrees, logs, backups, and installed builds.
 
-### 7.1 Required product decisions
+### 7.1 Required product decisions — owner-approved 2026-07-26
 
-- [ ] Choose the per-user runtime directory convention on Windows, macOS, and
-      Linux, or adopt a maintained helper such as `platformdirs`.
-- [ ] Decide whether source checkouts use the OS user-data directory or retain a
-      worktree-local ignored runtime path.
-- [ ] Decide how an existing `data/database.db` is migrated.
-- [ ] Decide whether logs move with the runtime database.
-- [ ] Decide whether automatic backups move with the runtime database.
-- [ ] Decide how portable/USB-style installs are supported, if at all.
+All five were accepted as proposed. They are recorded here as the authoritative
+statement; the checklist in §12 tracks their closure.
 
-### 7.2 Recommended path behavior
+- [x] **B-D1. One centralized runtime-path policy.** A single resolver owns
+      every runtime path — database, backups, logs, recovery files — and
+      applies one documented precedence order (§7.2). No module derives a
+      runtime path from `__file__`, and nothing creates runtime directories as
+      an import side effect.
+- [x] **B-D2. Source stays repository-local; only frozen builds use OS
+      user-data paths.** A checkout or worktree keeps `<repo>/data/database.db`.
+      Worktree isolation is a property of the resolver, not of a launcher flag
+      that a developer can forget. Pointing parallel worktrees at one OS-level
+      SQLite file is precisely the WAL-corruption failure
+      `scripts/new-worktree.ps1` exists to prevent.
+- [x] **B-D3. Verified, non-destructive frozen-install migration.** The legacy
+      database is copied through the SQLite backup API, verified, and left in
+      place. It is never deleted, never moved, and never written to. An
+      existing runtime database is never replaced. Migration that cannot be
+      verified fails loudly with recovery instructions rather than falling
+      through to a clean seed.
+- [x] **B-D4. Logs relocate; legacy backups are copied once, best-effort; old
+      logs do not migrate.** Logging must not require write access to the
+      installation directory. Historical log files carry no user value and are
+      left where they are. Backup copying is best-effort by design: a failure
+      to copy old snapshots must never block startup, because the originals
+      still exist.
+- [x] **B-D5. Versioned, additive/update-only catalog upgrades.** Catalog
+      content is versioned independently of the schema. A newer shipped catalog
+      inserts new exercises and updates catalog-owned columns of existing ones.
+      It never deletes or renames a catalog exercise automatically, and never
+      cascades into user-owned rows.
+
+Two consequences follow and are approved with them:
+
+- **Portable installs are supported through the resolver**, not as a separate
+  mode: an explicit runtime-root override (§7.2) is the documented mechanism.
+- **`utils/database.py::DATA_DIR` is removed.** It is dead — recomputed from
+  `DB_FILE` at import and read by nothing — and leaving a second, staler
+  notion of "the data directory" beside a centralized resolver is exactly the
+  drift B-D1 exists to prevent.
+
+### 7.2 Approved path policy and precedence
+
+The resolver answers one question — *where does mutable runtime state live* —
+and everything else derives from its answer. Precedence, highest first:
+
+1. **`DB_FILE`** — explicit, absolute authority over the database path. It is
+   never migrated into, never overridden, and never inferred from. Tests and
+   CI depend on this.
+2. **An explicit runtime-root override** — relocates the whole runtime tree
+   (database, backups, logs) in one move. This is the supported answer for
+   portable/USB installs and for a launcher that wants a per-worktree root.
+3. **Frozen build** — a per-user OS application-data directory:
+   `%LOCALAPPDATA%` on Windows, `~/Library/Application Support` on macOS,
+   `$XDG_DATA_HOME` (falling back to `~/.local/share`) on Linux. Local rather
+   than roaming on Windows: a SQLite database should not be synchronized
+   between machines by a roaming profile.
+4. **Source checkout or worktree** — `<repo>/data`, exactly as today.
 
 For frozen releases:
 
@@ -925,6 +1047,28 @@ For source checkouts and worktrees:
 This distinction is necessary. Moving the default to one global user-data path
 without updating the worktree model would reintroduce the database-sharing and
 WAL corruption risk that `scripts/new-worktree.ps1` was created to prevent.
+
+### 7.2.1 Packet B sequencing — owner-required correction
+
+Splitting Packet B into reviewable pieces creates one state that must never
+exist, even transiently on `main`:
+
+> The frozen application resolves its database to the **new** runtime path
+> while legacy migration is **not yet active**.
+
+A user upgrading into that state gets a freshly seeded, empty database while
+their real data sits untouched at the old path. It is recoverable, but it
+presents data loss to the user and is indistinguishable from it in the moment.
+
+Therefore:
+
+- **B1** introduces and tests the resolver, removes import-time directory
+  creation, and relocates logging. It **must not** switch the frozen database
+  path. The resolver may compute the frozen runtime path; nothing may use it
+  for `DB_FILE` yet.
+- **B2** activates the frozen `DB_FILE` switch **atomically with** legacy
+  migration and backup copying — one PR, or not at all.
+- **B3** adds catalog versioning and additive upgrade behavior.
 
 ### 7.3 Migration precedence
 
@@ -952,22 +1096,87 @@ Checklist:
 - [ ] Test read-only installation directories.
 - [ ] Test upgrade/reinstall over an existing user-data directory.
 
-### 7.4 Catalog updates after first install
+Non-destructiveness is absolute (B-D3):
+
+- [ ] Never delete, move, truncate, or write to the legacy database.
+- [ ] Never replace an existing runtime database, whatever its schema or state.
+- [ ] Verify the migrated copy before it is published as the runtime database —
+      a copy that cannot be verified is not a migration.
+- [ ] On any failure, leave the legacy database authoritative and report
+      recovery steps. Never seed a clean database after finding legacy data and
+      never present that as success.
+
+**Publication order matters.** Copy to a temporary file in the destination
+directory, verify that copy, and only then publish it to the runtime path
+atomically. Verifying after publication leaves a window in which a half-copied
+database is already the live one.
+
+### 7.3.1 Logs and backups (B-D4)
+
+- [ ] Logs are written under the resolved runtime root, never the installation
+      directory.
+- [ ] `utils/logger.py` stops creating directories at import time; the resolver
+      owns creation.
+- [ ] Existing log files are not migrated. They are development history, not
+      user data.
+- [ ] Legacy `data/auto_backup/` snapshots are copied once into the new runtime
+      root, best-effort.
+- [ ] A backup-copy failure is logged and startup continues. The originals are
+      untouched, so a failure costs nothing; blocking startup over it would.
+- [ ] Backup rotation, `create_startup_backup()`, and erase-data recovery all
+      target the resolved runtime root.
+
+### 7.4 Catalog updates after first install (B-D5)
 
 A seed only initializes new users. It does not automatically update the catalog
-inside an existing runtime database.
+inside an existing runtime database, so fresh installs and upgraded installs
+silently diverge until this exists.
 
-Before Packet B is considered complete, define how future releases add or
-correct catalog rows without overwriting user state:
+The approved policy is **versioned, additive/update-only**:
 
-- Version catalog content independently from the mutable schema.
-- Apply idempotent catalog migrations/imports to existing runtime databases.
-- Preserve user-owned columns or custom rows according to an explicit policy.
-- Test upgrade from at least the previous shipped catalog version.
+- [ ] Version catalog content independently from the mutable schema, and record
+      the applied version in the runtime database.
+- [ ] Apply the upgrade idempotently: re-running it changes nothing.
+- [ ] Insert catalog exercises that the runtime database lacks.
+- [ ] Update catalog-owned columns of exercises it already has.
+- [ ] **Never delete or rename a catalog exercise automatically.** A row absent
+      from a newer catalog is left alone. Renaming is deletion plus insertion
+      against a text primary key, and the user's plans and logs reference that
+      key.
+- [ ] Never cascade into user-owned tables. `exercise_isolated_muscles` is
+      catalog data and is reconciled with the catalog; `user_selection`,
+      `workout_log`, and every other registered owned table are untouchable.
+- [ ] Preserve user-owned columns and user-created rows according to an
+      explicit, documented column split.
+- [ ] Test upgrade from at least the previous shipped catalog version.
 
-Without this, fresh installs and upgraded installs can silently diverge.
+The asymmetry is deliberate. Adding a wrong exercise is a cosmetic defect the
+user can ignore; deleting one silently invalidates their training history.
 
 ### 7.5 Packet B verification
+
+Per packet:
+
+- **B1** — resolver precedence tests across frozen/source/override cases; no
+  import-time directory creation; logging writes under the resolved root; the
+  frozen database path is computed but unused. Full pytest plus a Chromium
+  smoke.
+- **B2** — every §7.3 migration contract, on real files: legacy present, legacy
+  absent, both present, WAL/SHM outstanding, spaces and non-ASCII in paths,
+  read-only installation directory, repeat startup, and the real
+  frozen-executable gate.
+- **B3** — catalog upgrade from the previous shipped version, idempotence,
+  additive-only behavior, and user-row preservation.
+
+Stop and report before merging if any of these becomes true:
+
+1. Migration could fall through to a clean seed after finding legacy data.
+2. An existing runtime database could be replaced.
+3. A catalog operation would delete a catalog row or cascade into user rows.
+4. Windows frozen validation cannot exercise the real bootloader.
+5. Implementation requires materially changing any approved policy above.
+
+Cross-packet:
 
 - [ ] Existing legacy user data survives migration exactly once.
 - [ ] Fresh install receives the full catalog and zero user rows.
@@ -1079,6 +1288,16 @@ under ignored artifact/runtime locations, not the root.
 | Visual seeder fallback dangles | It falls back to the runtime path that Packet A untracks | Repoint only `DEFAULT_SOURCE` to the catalog seed; preserve live-output guards |
 | Development-only CSV is shipped | A conservative allowlist can become a new broad include | Ship only files reached by packaged runtime code |
 | History rewrite creates greater damage | Force-push breaks ancestry without erasing caches reliably | Keep the standing no-rewrite decision |
+| Staged file mutated at equal size and mtime | Size/mtime comparison passes and the file is never recopied or rejected | Packet A3 compares SHA-256; equal sizes fall through to the digest |
+| Digest cache proves itself | Reusing the copy decision's digests in verification gives both the same failure mode | Verification recomputes independently |
+| `manifest.sha256` staged inside the tree | The tree must match the manifest exactly, so the record of it becomes an unexpected file | Write it beside the staging root |
+| Payload smoke mistaken for a bootloader smoke | It exercises the same packaged files and reads like a full packaged run | Label it in code and docs; require the real `.exe` on a `windows-latest` runner |
+| Frozen path switches before migration exists | Splitting Packet B for reviewability creates the gap between B1 and B2 | Activate the frozen `DB_FILE` switch atomically with migration (§7.2.1) |
+| Migration verified after publication | A half-copied database is already live during the check | Copy to a temporary file, verify, then publish atomically |
+| Legacy database "cleaned up" after migration | Deleting the source looks tidy and removes the only fallback | Never delete, move, or write to the legacy database |
+| Backup copying blocks startup | Treating a best-effort copy as a hard dependency | Log and continue; the originals are untouched |
+| Catalog upgrade removes a stale exercise | A row missing from a newer catalog looks like a deletion instruction | Additive/update-only; deletion and rename are never automatic |
+| Catalog rename orphans user rows | The catalog primary key is the exercise name that plans and logs reference | Never rename automatically; treat as an owner-approved data migration |
 
 ---
 
@@ -1273,11 +1492,51 @@ accepted explicitly.
 
 ### Packet B authorization checklist
 
-- [ ] Runtime path policy selected.
-- [ ] Source-worktree isolation policy selected.
-- [ ] Legacy migration policy selected.
-- [ ] Logs and backups policy selected.
-- [ ] Catalog upgrade policy selected.
+Owner approval recorded on 2026-07-26. All five decisions were accepted as
+proposed; see §7.1 for their authoritative statement.
+
+- [x] Runtime path policy selected. (B-D1 — centralized resolver, §7.2
+      precedence.)
+- [x] Source-worktree isolation policy selected. (B-D2 — repository-local for
+      checkouts and worktrees; OS user-data paths only when frozen.)
+- [x] Legacy migration policy selected. (B-D3 — verified, non-destructive;
+      the legacy database is never deleted or modified.)
+- [x] Logs and backups policy selected. (B-D4 — relocate logs, copy legacy
+      backups once best-effort, do not migrate old logs.)
+- [x] Catalog upgrade policy selected. (B-D5 — versioned, additive/update-only;
+      never delete or rename catalog exercises automatically.)
+
+Also approved in the same ruling:
+
+- [x] Packet A3 lands first as an independent PR: SHA-256 staging
+      verification, `manifest.sha256`, and the equal-size/equal-mtime mutation
+      regression test.
+- [x] A real `windows-latest` frozen-executable gate is added; the local
+      payload smoke stays, clearly labelled as not exercising the bootloader.
+- [x] Smart App Control is never disabled. Windows Sandbox may be used only if
+      already available without changing host security settings.
+- [x] `utils/database.py::DATA_DIR` is removed in the Packet B change that
+      centralizes path resolution.
+- [x] Sequencing correction: the frozen `DB_FILE` switch activates atomically
+      with legacy migration (§7.2.1).
+
+### Packet A3 / B execution sequence
+
+Every packet starts from freshly fetched `origin/main`, records its actual
+starting SHA and test baseline, ships as one PR declaring its behavior and
+schema changes, and merges only on green CI.
+
+1. [ ] This document records the accepted decisions and closes the Packet B
+       authorization checklist.
+2. [ ] **A3** — staging SHA-256 hardening and the real frozen gate.
+3. [ ] **B1** — resolver, config, and logging foundation, without switching the
+       frozen database path.
+4. [ ] **B2** — frozen runtime database path, legacy migration, and backup
+       copying, activated atomically.
+5. [ ] **B3** — catalog versioning and additive upgrade behavior.
+
+The verified starting point for this sequence is `origin/main` at
+`631f61a13036861841a00ce8360d40b6698f16f8`.
 
 ### Packet C completion checklist
 
