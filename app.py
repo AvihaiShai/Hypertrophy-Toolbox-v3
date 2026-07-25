@@ -1,8 +1,10 @@
 
 from flask import Flask, jsonify, request, make_response, g
+import utils.config
 from utils.database import DatabaseHandler
 from utils.auto_backup import create_startup_backup, describe_snapshot
 from utils.catalog_seed import bootstrap_runtime_database
+from utils.runtime_migration import prepare_runtime_database
 from utils.schema_registry import drop_all_owned_tables, run_all_initializers
 from routes.workout_log import workout_log_bp
 from routes.weekly_summary import weekly_summary_bp
@@ -49,7 +51,15 @@ add_request_id_middleware(app)
 # Register standardized error handlers
 register_error_handlers(app)
 
-# Initialize the database
+# Initialize the database.
+# Order matters and is load-bearing: an existing database is moved out of the
+# installation directory BEFORE the seed bootstrap runs, so a user upgrading a
+# frozen install never boots onto a fresh empty catalog while their real data
+# sits at the old path. A migration that could not be proven correct returns the
+# legacy path, and the seed bootstrap then sees an existing database and does
+# nothing.
+migration = prepare_runtime_database()
+utils.config.DB_FILE = str(migration.database_path)
 database_seeded = bootstrap_runtime_database()
 run_all_initializers(force_base=False)
 

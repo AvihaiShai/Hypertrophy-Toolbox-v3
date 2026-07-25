@@ -140,26 +140,26 @@ class TestUserDataRoot:
         )
 
 
-class TestPacketB1DoesNotMoveTheDatabase:
-    """The sequencing constraint, as an executable contract.
+class TestPacketB2MovesTheDatabase:
+    """The switch B1 deliberately withheld, now active.
 
-    Packet B2 activates the frozen database switch atomically with legacy
-    migration. If that switch lands first, an upgrading user boots onto a
-    freshly seeded empty database while their real one sits at the old path.
-    These tests fail the moment the switch happens early — deleting them is
-    part of B2's job, not a way to make B1 pass.
+    B1 asserted the opposite of these: that a frozen process still resolved
+    ``DB_FILE`` to the legacy path, and that nothing referenced
+    ``runtime_database_path`` at all. Those guards existed so the switch could
+    not land before migration, and B2 is the packet entitled to replace them.
     """
 
     def test_legacy_database_path_is_installation_relative(
         self, clean_environment
     ):
+        """Still resolvable — it is the migration source and recovery path."""
         _freeze(clean_environment)
 
         assert runtime_paths.legacy_database_path() == (
             runtime_paths.installation_root() / "data" / "database.db"
         )
 
-    def test_configured_db_file_is_still_the_legacy_path_when_frozen(
+    def test_configured_db_file_leaves_the_installation_when_frozen(
         self, clean_environment
     ):
         _freeze(clean_environment)
@@ -168,44 +168,58 @@ class TestPacketB1DoesNotMoveTheDatabase:
 
         try:
             importlib.reload(utils.config)
+            configured = Path(utils.config.DB_FILE)
 
-            assert (
-                Path(utils.config.DB_FILE)
-                == runtime_paths.legacy_database_path()
-            )
-            assert (
-                Path(utils.config.DB_FILE)
-                != runtime_paths.runtime_database_path()
+            assert configured == runtime_paths.runtime_database_path()
+            assert configured != runtime_paths.legacy_database_path()
+            assert not configured.is_relative_to(
+                runtime_paths.installation_root()
             )
         finally:
             clean_environment.undo()
             importlib.reload(utils.config)
 
-    def test_nothing_in_the_application_reads_the_new_database_path(self):
-        """B1 computes runtime_database_path(); B2 is what wires it up.
+    def test_source_checkouts_keep_the_repository_database(
+        self, clean_environment
+    ):
+        """The switch must be invisible to a checkout and to every worktree."""
+        import utils.config
 
-        Parsed rather than grepped: prose about the eventual switch is exactly
-        what this packet is supposed to contain.
+        clean_environment.delenv("DB_FILE", raising=False)
+        try:
+            importlib.reload(utils.config)
+
+            assert (
+                Path(utils.config.DB_FILE)
+                == runtime_paths.legacy_database_path()
+            )
+        finally:
+            clean_environment.undo()
+            importlib.reload(utils.config)
+
+    def test_startup_migrates_before_it_seeds(self):
+        """Ordering is the whole safety property, so it is asserted directly.
+
+        Seeding first would create an empty database at the new path, after
+        which migration would correctly decline to overwrite it — and the user
+        would be looking at an empty catalog with their data still on disk.
         """
-        repository = Path(__file__).resolve().parents[1]
-        readers = []
-        for directory in ("utils", "routes"):
-            for path in (repository / directory).rglob("*.py"):
-                if path.name == "runtime_paths.py":
-                    continue
-                tree = ast.parse(path.read_text(encoding="utf-8"))
-                referenced = any(
-                    (isinstance(node, ast.Name) and node.id == NEW_PATH_HELPER)
-                    or (
-                        isinstance(node, ast.Attribute)
-                        and node.attr == NEW_PATH_HELPER
-                    )
-                    for node in ast.walk(tree)
-                )
-                if referenced:
-                    readers.append(path.relative_to(repository).as_posix())
+        source = (
+            Path(__file__).resolve().parents[1] / "app.py"
+        ).read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        called_at = {}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                called_at.setdefault(node.func.id, node.lineno)
 
-        assert readers == []
+        assert "prepare_runtime_database" in called_at
+        assert "bootstrap_runtime_database" in called_at
+        assert (
+            called_at["prepare_runtime_database"]
+            < called_at["bootstrap_runtime_database"]
+            < called_at["run_all_initializers"]
+        )
 
 
 class TestEnvironmentOverride:
@@ -272,7 +286,7 @@ def test_config_paths_delegate_to_the_resolver():
     """One policy, not three modules that happen to agree."""
     import utils.config
 
-    assert Path(utils.config.DATA_DIR) == runtime_paths.legacy_data_dir()
+    assert Path(utils.config.DATA_DIR) == runtime_paths.runtime_data_dir()
     assert Path(utils.config.LOGS_DIR) == runtime_paths.logs_dir()
     assert Path(utils.config.BASE_DIR) == runtime_paths.installation_root()
 

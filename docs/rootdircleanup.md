@@ -1112,7 +1112,7 @@ Therefore:
   path. The resolver may compute the frozen runtime path; nothing may use it
   for `DB_FILE` yet. **Shipped** — see §7.6.
 - **B2** activates the frozen `DB_FILE` switch **atomically with** legacy
-  migration and backup copying — one PR, or not at all.
+  migration and backup copying — one PR, or not at all. **Shipped** — see §7.7.
 - **B3** adds catalog versioning and additive upgrade behavior.
 
 ### 7.3 Migration precedence
@@ -1129,25 +1129,25 @@ The migration must be idempotent and follow an explicit precedence:
 
 Checklist:
 
-- [ ] Use the SQLite backup API or an equivalent consistent copy for a live
+- [x] Use the SQLite backup API or an equivalent consistent copy for a live
       database.
-- [ ] Refuse migration while unresolved WAL/SHM state exists unless SQLite
+- [x] Refuse migration while unresolved WAL/SHM state exists unless SQLite
       performs the copy through a live connection.
-- [ ] Record migration completion without putting sensitive paths or row data in
+- [x] Record migration completion without putting sensitive paths or row data in
       logs.
-- [ ] Provide a clear recovery message if migration fails.
-- [ ] Verify old-schema migration after relocation.
-- [ ] Test paths containing spaces and non-ASCII characters.
-- [ ] Test read-only installation directories.
-- [ ] Test upgrade/reinstall over an existing user-data directory.
+- [x] Provide a clear recovery message if migration fails.
+- [x] Verify old-schema migration after relocation.
+- [x] Test paths containing spaces and non-ASCII characters.
+- [x] Test read-only installation directories.
+- [x] Test upgrade/reinstall over an existing user-data directory.
 
 Non-destructiveness is absolute (B-D3):
 
-- [ ] Never delete, move, truncate, or write to the legacy database.
-- [ ] Never replace an existing runtime database, whatever its schema or state.
-- [ ] Verify the migrated copy before it is published as the runtime database —
+- [x] Never delete, move, truncate, or write to the legacy database.
+- [x] Never replace an existing runtime database, whatever its schema or state.
+- [x] Verify the migrated copy before it is published as the runtime database —
       a copy that cannot be verified is not a migration.
-- [ ] On any failure, leave the legacy database authoritative and report
+- [x] On any failure, leave the legacy database authoritative and report
       recovery steps. Never seed a clean database after finding legacy data and
       never present that as success.
 
@@ -1158,17 +1158,17 @@ database is already the live one.
 
 ### 7.3.1 Logs and backups (B-D4)
 
-- [ ] Logs are written under the resolved runtime root, never the installation
+- [x] Logs are written under the resolved runtime root, never the installation
       directory.
-- [ ] `utils/logger.py` stops creating directories at import time; the resolver
+- [x] `utils/logger.py` stops creating directories at import time; the resolver
       owns creation.
-- [ ] Existing log files are not migrated. They are development history, not
+- [x] Existing log files are not migrated. They are development history, not
       user data.
-- [ ] Legacy `data/auto_backup/` snapshots are copied once into the new runtime
+- [x] Legacy `data/auto_backup/` snapshots are copied once into the new runtime
       root, best-effort.
-- [ ] A backup-copy failure is logged and startup continues. The originals are
+- [x] A backup-copy failure is logged and startup continues. The originals are
       untouched, so a failure costs nothing; blocking startup over it would.
-- [ ] Backup rotation, `create_startup_backup()`, and erase-data recovery all
+- [x] Backup rotation, `create_startup_backup()`, and erase-data recovery all
       target the resolved runtime root.
 
 ### 7.4 Catalog updates after first install (B-D5)
@@ -1280,6 +1280,59 @@ assert behavior instead of implementation.
 Runtime check: `HT_RUNTIME_DIR` pointed at a throwaway directory, real `app.py`
 startup served `GET /` → 200 and wrote **both** `data/database.db` and
 `logs/app.log` under that root, leaving the repository's own `logs/` untouched.
+
+### 7.7 Recorded B2 results
+
+`utils/runtime_migration.py` owns the decision, and `app.py` calls it
+immediately **before** `bootstrap_runtime_database()`. That order is the whole
+safety property: seeding first would create an empty database at the new path,
+after which migration would correctly decline to overwrite it — and the user
+would be staring at an empty catalog with their data still on disk. A test
+parses `app.py` and asserts the call order rather than trusting it.
+
+Non-destructiveness, as implemented:
+
+- The legacy database is opened `mode=ro` through a URI connection. It is
+  physically never written, so a read-only installation directory migrates
+  fine — which a test asserts by chmod-ing the source directory to `0o500`.
+- Unresolved `-wal` / `-journal` sidecars **refuse** migration rather than
+  copying past them. Copying a database whose committed transactions still live
+  in a WAL would silently drop them, and resolving the WAL would mean writing to
+  the legacy file. Refusing costs one restart; the alternative costs data.
+- The copy goes to a temporary sibling, is verified there — `integrity_check`,
+  `foreign_key_check`, and per-table row counts equal to the source — and only
+  then is published with the same no-overwrite atomic rename the seed bootstrap
+  uses. That primitive moved to `runtime_paths.publish_without_overwrite()`; two
+  copies of an atomic-publication routine is one too many.
+- Every failure path returns the **legacy** path as the database to use, logs
+  what failed, and logs how to retry. A corrupt legacy database yields a refusal
+  and a recovery message, never a clean seed.
+
+Backups are copied best-effort, once, and a failure is logged and swallowed: the
+originals are untouched, so a failed copy costs nothing, while blocking startup
+over it would cost the user their session. Old logs are not migrated.
+
+**A defect the tests caught before merge.** `_verify_copy` originally used
+`with sqlite3.connect(...)`, which commits but does not close. On POSIX the
+rename succeeds anyway with the handle open; on Windows it fails with
+`WinError 32`. Every successful-migration test failed on Windows and would have
+passed in Linux CI — the copy verified and then could not be published. Fixed
+with `contextlib.closing`.
+
+Baseline at the packet's starting commit `a7883d4`: **1,812 passed / 1 skipped**.
+After: **1,837 passed / 1 skipped** — 25 migration contracts, including the B1
+guards inverted into their B2 counterparts.
+
+Real frozen validation, `--mode bootloader` against a fresh `build_exe.bat`
+build:
+
+- Fresh install: the runtime database is created **under the runtime root**, the
+  packaged seed is byte-identical, **the installation directory gains no runtime
+  files at all**, and `app.log` is written under the runtime root.
+- Upgrade: a legacy database carrying a plan row was planted in the
+  installation directory exactly where every earlier release put it. The app
+  served 1,897 exercises, the database moved to the runtime root, **the plan row
+  survived**, and **the original file is still there, byte-identical**.
 
 ---
 
@@ -1623,7 +1676,7 @@ schema changes, and merges only on green CI.
 2. [x] **A3** — staging SHA-256 hardening and the real frozen gate.
 3. [x] **B1** — resolver, config, and logging foundation, without switching the
        frozen database path.
-4. [ ] **B2** — frozen runtime database path, legacy migration, and backup
+4. [x] **B2** — frozen runtime database path, legacy migration, and backup
        copying, activated atomically.
 5. [ ] **B3** — catalog versioning and additive upgrade behavior.
 

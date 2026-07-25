@@ -77,11 +77,18 @@ data directory → the repository. Never derive a runtime path from `__file__`,
 and never create runtime directories at import time — `get_db_connection()`
 creates a missing database parent, and logging creates its own directory.
 
-Logs already follow the resolver (`runtime_root()/logs`). The **database does
-not yet**: `DB_FILE` still defaults to `legacy_database_path()`
-(`<installation>/data/database.db`) even when frozen. Packet B2 repoints it
-atomically with legacy migration; `tests/test_runtime_paths.py` fails if that
-switch lands early.
+Database, backups, and logs all follow the resolver. A frozen install writes to
+`%LOCALAPPDATA%\HypertrophyToolbox\` and adds nothing to its own installation
+directory; a source checkout still uses `<repo>/data` and `<repo>/logs`.
+
+`utils/runtime_migration.py::prepare_runtime_database()` runs in `app.py`
+**before** `bootstrap_runtime_database()` — seeding first would create an empty
+database that migration would then correctly decline to replace. It opens the
+legacy database `mode=ro`, refuses when `-wal`/`-journal` sidecars are
+outstanding, verifies the copy (`integrity_check`, `foreign_key_check`, row
+counts) before publishing it atomically, and never deletes or writes to the
+original. Any failure returns the legacy path and logs recovery steps; it never
+seeds a clean database after finding real data.
 
 ## Env vars that affect DB (`utils/config.py`)
 | Variable | Default | Effect |
@@ -94,6 +101,8 @@ switch lands early.
 ## Startup sequence (`app.py`)
 ```
 app.py startup:
+  prepare_runtime_database()      ← moves a legacy database to the runtime root, once
+  utils.config.DB_FILE = ...      ← whatever that decided (legacy path on failure)
   bootstrap_runtime_database()    ← copies catalog seed only when DB_FILE is missing
   run_all_initializers()          ← canonical schema registry sequence
   create_startup_backup()         ← skipped for the pristine first-run seed copy
