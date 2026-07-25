@@ -369,18 +369,71 @@ At review time:
 
 Checklist:
 
-- [ ] Add `requirements-build.txt` with an exact PyInstaller version validated
+- [x] Add `requirements-build.txt` with an exact PyInstaller version validated
       against the repository's supported Python version.
-- [ ] Make the build script install both runtime requirements and the pinned
+- [x] Make the build script install both runtime requirements and the pinned
       build requirements into its declared environment.
-- [ ] Decide whether the build environment remains `venv/` or becomes `.venv`;
+- [x] Decide whether the build environment remains `venv/` or becomes `.venv`;
       Packet A0 must resolve the inconsistency before Packet A relies on it.
-- [ ] Remove stale pandas/NumPy hidden imports from the canonical packaging
+- [x] Remove stale pandas/NumPy hidden imports from the canonical packaging
       definition after confirming no application import path requires them.
-- [ ] Keep genuine runtime/export dependencies such as XlsxWriter and openpyxl
+- [x] Keep genuine runtime/export dependencies such as XlsxWriter and openpyxl
       unless import analysis plus a packaged smoke proves otherwise.
-- [ ] Prove one clean build in a disposable, isolated worktree before changing
+- [x] Prove one clean build in a disposable, isolated worktree before changing
       the seed/bootstrap behavior.
+
+#### Recorded A0 decisions
+
+- **PyInstaller pinned to `6.21.0`** in `requirements-build.txt`. This machine
+  runs Python 3.14.4; 6.15.0 is the earliest release offered for 3.14, and
+  6.21.0 was the latest available at pin time. The first A0 probe ran with an
+  unrecorded version and its environment was discarded, so the version could not
+  be recovered — hence the explicit pin plus a re-proved build.
+- **The build environment stays `venv/`, deliberately separate from `.venv`.**
+  `.venv` has accumulated packages `requirements.txt` never declares — pandas
+  3.0.3 and numpy 2.4.4 — which is precisely how the stale hidden imports
+  appeared to work. Building from it would make the artifact depend on
+  undeclared developer state. `venv/` is already gitignored.
+- **Observed, not fixed here:** `requirements.txt` mixes runtime and test
+  dependencies (`pytest`, `pytest-playwright`, `playwright`, `vulture`), so the
+  build environment installs test tooling it never needs. Splitting them is
+  Packet C's "decide whether PyInstaller belongs in a development requirements
+  file" item; A0 deliberately does not change the runtime dependency set.
+- **Dependency install is now unconditional.** The previous "install only if
+  `flask` is missing" guard meant an environment created before a requirements
+  change kept building against the stale set. pip is a no-op when satisfied.
+- **`pandas` / `numpy` hidden imports removed** from both the spec and
+  `build_exe.bat`. Neither is imported by `app.py`, `app_launcher.py`,
+  `routes/`, or `utils/` — the exporters moved to XlsxWriter directly, and the
+  only surviving mentions are comments recording that migration. Neither is in
+  `requirements.txt`, so declaring them only produced resolution errors.
+- **`xlsxwriter` stays declared.** It is imported lazily inside functions
+  (`utils/export_utils.py`), so PyInstaller's static analysis will not find it.
+  `openpyxl` is a module-level import in `utils/volume_splitter_service.py` and
+  is kept as belt-and-braces.
+
+#### A0 re-probe result (2026-07-25)
+
+Built from a disposable `-Seed empty` worktree at commit `1155c06`, asserted
+clean of `data/database.db`, `data/auto_backup/` content, `.personal-*`, and
+`static/bodymaps/GPT/` before building.
+
+- `pyinstaller==6.21.0` resolved and installed; build exit code 0.
+- **Zero pandas/NumPy diagnostics** — the nonfatal build errors the first probe
+  reported are gone, confirming those hidden imports were the cause.
+- Distribution is 81 MB. `_internal/data/` contained **only**
+  `free_exercise_db_mapping.csv` and `youtube_curated_top_n.csv`. No
+  `auto_backup`, no `.personal-*`, no nested `.git`, no `static/bodymaps/GPT/`.
+- **`_internal/data/` contained no database at all.** Built from a clean
+  checkout the packaged app ships zero exercises, because the only catalog
+  source is the builder's own working-copy `data/database.db`. This is the
+  mirror image of the privacy defect and is independent confirmation that the
+  seed plus first-run bootstrap (decision 4A) is required, not merely tidier.
+- `youtube_curated_top_n.csv` is packaged today, confirming the allowlist need.
+
+Consolidating `build_exe.bat` onto the committed spec (D5) stays in Packet A;
+A0 changes only the dependency contract and the stale hidden imports, so the
+two definitions still drift until §6.6 lands.
 
 The preflight build must not use the present main-checkout `data/` directory.
 Create a disposable worktree with `-Seed empty`, confirm it contains none of the

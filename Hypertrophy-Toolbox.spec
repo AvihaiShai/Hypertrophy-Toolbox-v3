@@ -1,7 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_submodules
 
-hiddenimports = ['flask', 'jinja2', 'werkzeug', 'pandas', 'numpy', 'openpyxl', 'xlsxwriter']
+# pandas/numpy were dropped when the exporters moved to XlsxWriter directly
+# (see routes/exports.py and utils/export_utils.py) and are not declared in
+# requirements.txt; listing them here only produced build-time resolution errors.
+# xlsxwriter is imported lazily inside functions, so it must stay declared here.
+hiddenimports = ['flask', 'jinja2', 'werkzeug', 'openpyxl', 'xlsxwriter']
 hiddenimports += collect_submodules('werkzeug')
 hiddenimports += collect_submodules('jinja2')
 
