@@ -319,7 +319,8 @@ directory to recreate the defect.
 Packet A2 later replaces broad asset-tree collection with a staging directory
 populated from an explicit tracked-file manifest. That is the stronger
 long-term design, but separating it makes the asset-parity change independently
-reviewable.
+reviewable. **Shipped** — see §6.10; the GPT exclusion and the fail-closed
+guard both became unnecessary once the manifest replaced the walk.
 
 ### D5. One canonical packaging definition
 
@@ -767,21 +768,124 @@ warning.
 Packet A2 replaces Packet A's broad `static/` and `templates/` inputs with a
 staging tree created from an explicit tracked-file manifest.
 
-- [ ] Generate the manifest deterministically from the intended repository
+- [x] Generate the manifest deterministically from the intended repository
       assets.
-- [ ] Do not depend on ignored/untracked working-copy content.
-- [ ] Preserve executable-bit/path/case behavior needed by the supported
+- [x] Do not depend on ignored/untracked working-copy content.
+- [x] Preserve executable-bit/path/case behavior needed by the supported
       platforms.
-- [ ] Compare the staged tree with the tracked source set before building.
-- [ ] Review a complete asset-parity diff, including vendor licenses and media.
-- [ ] Run page, CSS, JavaScript, favicon, body-map, and exercise-media packaged
+- [x] Compare the staged tree with the tracked source set before building.
+- [x] Review a complete asset-parity diff, including vendor licenses and media.
+- [x] Run page, CSS, JavaScript, favicon, body-map, and exercise-media packaged
       smoke tests.
-- [ ] Confirm the final distribution contains no nested repository metadata.
-- [ ] Remove Packet A's temporary broad-tree guard only when the staging
+- [x] Confirm the final distribution contains no nested repository metadata.
+- [x] Remove Packet A's temporary broad-tree guard only when the staging
       manifest makes it redundant and equivalent fail-closed tests exist.
 
 Packet A2 is not required to land Packet A. Keeping it separate reduces the risk
 that privacy remediation silently drops required vendor assets.
+
+#### Implemented design
+
+`scripts/stage_package_assets.py` owns the manifest. `git ls-files -- static
+templates` is the only source of truth, so the manifest is deterministic,
+sorted, and structurally incapable of naming ignored or untracked content. The
+script mirrors the manifest into `build/package-assets/` — gitignored build
+output — with `shutil.copy2`, which carries mode bits and mtimes, then verifies
+the staged tree against the manifest and against the tracked sources' sizes and
+executable bits before returning. Stale files left by a previous manifest are
+pruned, so a removed asset cannot survive in a distribution.
+
+`Hypertrophy-Toolbox.spec` calls `staged_datas(REPO_ROOT)` and passes the result
+straight to `Analysis(datas=...)`; the filesystem walk and its
+`excluded_subtree='bodymaps/GPT/'` subtraction are gone. Staging therefore runs
+inside the canonical packaging definition, which also covers a direct
+`pyinstaller Hypertrophy-Toolbox.spec` invocation. `build_exe.bat` runs the same
+script once before the build so a broken manifest fails in seconds rather than
+after a full build; it must run *after* the `rmdir /s /q build` clean, and the
+spec's own call is what survives, because PyInstaller's `--clean` wipes the work
+path before executing the spec.
+
+Fail-closed conditions: a manifest that is empty (built outside a git checkout),
+a tracked asset missing from the working copy, a path whose segments include
+`.git`, paths differing only by case, a staged tree with missing or unexpected
+files, staged content whose size or executable bit diverges from the source, and
+a `--staging-root` that contains a checkout — pruning would delete it.
+
+Packet A's `scripts/guard_package_assets.py` and its test are removed. The guard
+existed to detect ignored/untracked files that a recursive walk would collect;
+with the manifest there is no walk to protect, and
+`tests/test_package_asset_staging.py` proves the exclusion directly by staging a
+synthetic repository containing an ignored `static/bodymaps/GPT/` root (with a
+nested `.git/`), an ignored `*.tmp` file, and an untracked template.
+
+#### Asset-parity diff
+
+The Packet A collector (filesystem walk minus the GPT root) and the Packet A2
+manifest were compared file by file in the implementation worktree:
+**997 files on both sides, zero added, zero dropped.** Per category, both sides
+carry 18 templates, 19 CSS files, 64 JavaScript files, 883 images, 6 vendor
+license/notice/version files, and 883 vendor assets. Neither side carries a font
+file — the repository tracks none, so the manifest cannot ship one; a future
+font would be staged automatically because the manifest is not extension-filtered.
+
+Run against the primary checkout, which does hold the ignored scratch tree, the
+same comparison shows the mechanism working: an unfiltered walk of `static/` and
+`templates/` finds **1,114** files, the manifest yields **997**, and the
+**117**-file difference is exactly the ignored `static/bodymaps/GPT/` content,
+including its nested `.git`. Under Packet A that exclusion depended on one
+hard-coded subtree name; under Packet A2 it is a property of the manifest.
+
+Dev-only tracked files (`CLAUDE.md` orientation notes, `static/js/modules/
+__tests__/`, the Bootstrap source map, the vendored `.swift` path sources) stay
+packaged, exactly as under Packet A. Shrinking the shipped set is a content
+decision, not a safety one; keeping parity exact is what makes this diff
+reviewable. Packet C can revisit it.
+
+#### Recorded Packet A2 results
+
+Baseline at the packet's starting commit `22350ec`: full pytest **1,772
+passed**. After the change: full pytest **1,785 passed, 1 skipped** — the 15
+staging contracts replace the guard's 3, plus one new spec contract, and the
+skip is the POSIX-only executable-bit test that cannot assert on Windows.
+Focused packaging pytest (staging, packaging contract, seed, bootstrap, harness
+isolation) **35 passed / 1 skipped**. Chromium navigation + API smoke **67
+passed** against the worktree's throwaway visual-seed database.
+
+`build_exe.bat` completed with exit code 0 on pinned PyInstaller 6.21.0. The
+staging step reported 979 `static/` and 18 `templates/` files. The built
+`dist/Hypertrophy-Toolbox/_internal/` tree contains **exactly the 997 manifest
+files** under `static/` and `templates/`, exactly two files under `data/`
+(`catalog.seed.db`, `free_exercise_db_mapping.csv`), no `.git` directory
+anywhere, no `auto_backup`, no `.personal-*`, no SQLite sidecars, and no second
+`.db`. The shipped seed's SHA-256 is unchanged at
+`678c9641fc280afba98cb1c5b52979e0391200c891f540c476002b895cd22d1f`.
+
+The packaged smoke ran from a clean copy of the distribution and passed all 28
+checks: the six main pages, `base.css`, the Bootstrap bundle, `app.js`,
+`fetch-wrapper.js`, the favicon, the advanced body-map SVG, a MuscleMap vendor
+path source, `exercises.json`, the free-exercise-db `LICENSE`, and a real
+exercise-media JPEG all returned 200 with correct content types;
+`/get_all_exercises` returned **1,897** rows and `/filter_exercises` returned
+**225** Barbell rows; first run created the runtime database, left the packaged
+seed byte-identical, and wrote no redundant first-run backup.
+
+> **Environment note.** Windows Smart App Control is enforced on the build
+> machine and refuses to launch the freshly built, unsigned PyInstaller
+> bootloader (`WinError 4551`), so the runtime half of the smoke booted the
+> packaged payload with the pinned build interpreter over the distribution's own
+> `_internal/` tree — the same packaged templates, static assets, catalog seed,
+> and compiled application modules, minus the bootloader. Every static
+> distribution check ran against the real build output. This is a machine
+> policy, not a packaging regression: nothing in Packet A2 touches the
+> bootloader, and code signing is a distribution question for Packet C.
+
+`scripts/new-worktree.ps1` needed a one-line repair to run this packet at all.
+Packet A untracked `data/database.db`, after which
+`git ls-files --error-unmatch data/database.db` wrote to stderr, and
+`$ErrorActionPreference = "Stop"` turned that into a terminating error — the
+script created the worktree and then aborted before seeding it. It now tests
+`git ls-files -- data/database.db` for output instead, which stays silent for an
+untracked path.
 
 ---
 
@@ -1086,7 +1190,8 @@ under ignored artifact/runtime locations, not the root.
 6. Create the implementation worktree explicitly from that `origin/main`.
 7. Land the committed Packet A0 build-definition changes as the first isolated
    commit, then implement and verify Packet A.
-8. Review and land Packet A2 separately.
+8. Review and land Packet A2 separately. Landed from `origin/main` at
+   `22350ec`; see §6.10 for the recorded results.
 
 The disposable A0 probe is technically independent and can occur earlier
 because its artifact is never published. Any committed plan, A0, or Packet A
@@ -1148,6 +1253,23 @@ accepted explicitly.
 - [x] Packaged first-run smoke passes.
 - [x] Documentation updated.
 - [x] Final diff contains no unrelated changes.
+
+### Packet A2 completion checklist
+
+> **Bookkeeping note.** These items duplicate §6.10. Whoever completes one must
+> tick it in **both** places.
+
+- [x] Manifest generated deterministically from `git ls-files`.
+- [x] Staging tree rebuilt, pruned, and verified against tracked sources.
+- [x] Executable-bit, path, and case behavior preserved and tested.
+- [x] Asset-parity diff reviewed: 997 files, zero added, zero dropped.
+- [x] Packet A's broad-tree guard removed with equivalent fail-closed tests.
+- [x] `Hypertrophy-Toolbox.spec` remains the canonical packaging definition.
+- [x] Real `build_exe.bat` build completed and the `dist/` tree inspected.
+- [x] Packaged smoke passed from a clean copy of the distribution.
+- [x] Shipped seed unchanged, private, and never overwritten.
+- [x] Full pytest and Chromium smoke pass against the recorded baseline.
+- [x] Final diff contains only intentional Packet A2 files.
 
 ### Packet B authorization checklist
 

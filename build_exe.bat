@@ -71,21 +71,24 @@ venv\Scripts\python.exe -c "import PyInstaller; print('  PyInstaller ' + PyInsta
 echo [OK] Build dependencies installed
 echo.
 
-:: Fail closed before PyInstaller recursively collects static/templates.
-echo [INFO] Checking package asset inputs...
-venv\Scripts\python.exe scripts\guard_package_assets.py
-if errorlevel 1 (
-    echo [ERROR] Package asset guard failed!
-    pause
-    exit /b 1
-)
-echo [OK] Package asset inputs approved
-echo.
-
 :: Clean previous builds
 echo [INFO] Cleaning previous builds...
 if exist "dist" rmdir /s /q dist
 if exist "build" rmdir /s /q build
+
+:: Resolve the tracked-asset manifest before the long build starts. The spec
+:: stages and verifies it again at build time -- that is the authoritative
+:: check, since PyInstaller's --clean wipes build\ before executing the spec --
+:: but failing here keeps a broken manifest from costing a full build first.
+echo [INFO] Staging tracked package assets...
+venv\Scripts\python.exe scripts\stage_package_assets.py
+if errorlevel 1 (
+    echo [ERROR] Package asset staging failed!
+    pause
+    exit /b 1
+)
+echo [OK] Package asset manifest verified
+echo.
 
 :: Build the executable
 echo.
