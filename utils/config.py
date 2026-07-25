@@ -1,13 +1,23 @@
 import os
 
+from utils.runtime_paths import (
+    legacy_data_dir,
+    legacy_database_path,
+    logs_dir,
+)
+
 # Paths
-# Set BASE_DIR to the root of the project
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DATA_DIR = os.path.join(BASE_DIR, "data")  # Centralized data folder
-LOGS_DIR = os.path.join(BASE_DIR, "logs")  # Centralized logs folder
+# BASE_DIR is the installation root: the repository in a checkout, the bundle in
+# a frozen build. utils/runtime_paths.py owns every path derived from it.
+BASE_DIR = str(legacy_data_dir().parent)
+DATA_DIR = str(legacy_data_dir())  # Database and backups (Packet B2 moves these)
+LOGS_DIR = str(logs_dir())  # Per-user writable when frozen, repository-local otherwise
 
 # Database File
-DB_FILE = os.getenv("DB_FILE", os.path.join(DATA_DIR, "database.db"))  # Allow override via environment variable
+# Still installation-relative on purpose. Packet B2 repoints this to
+# runtime_paths.runtime_database_path() atomically with legacy migration; doing
+# it earlier would seed an empty database over an upgrading user's real data.
+DB_FILE = os.getenv("DB_FILE", str(legacy_database_path()))  # Allow override via environment variable
 
 # Application Constants
 APP_TITLE = "Workout Tracker"
@@ -25,6 +35,7 @@ MAX_FILENAME_LENGTH = 200
 # Streaming threshold - exports larger than this will use streaming (bytes)
 STREAMING_THRESHOLD = 5 * 1024 * 1024  # 5MB
 
-# Ensure required directories exist
-os.makedirs(DATA_DIR, exist_ok=True)  # Ensure the data directory exists
-os.makedirs(LOGS_DIR, exist_ok=True)  # Ensure the logs directory exists
+# Directories are NOT created here. Importing a configuration module should not
+# touch the filesystem: it ran during test collection and in any script that
+# imported utils, creating stray data/ and logs/ trees. Each consumer creates
+# what it needs via runtime_paths.ensure_directory().

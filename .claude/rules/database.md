@@ -70,10 +70,24 @@ tests and explicit empty-schema initialization remain empty.
 On corruption, `_attempt_database_recovery()` quarantines the bad file as
 `*.corrupted_<timestamp>` and a fresh empty DB is created on next init.
 
+## Runtime paths (`utils/runtime_paths.py`)
+One resolver owns every mutable path. Precedence, highest first: `DB_FILE`
+(database only) → `HT_RUNTIME_DIR` (whole runtime tree) → frozen per-user OS
+data directory → the repository. Never derive a runtime path from `__file__`,
+and never create runtime directories at import time — `get_db_connection()`
+creates a missing database parent, and logging creates its own directory.
+
+Logs already follow the resolver (`runtime_root()/logs`). The **database does
+not yet**: `DB_FILE` still defaults to `legacy_database_path()`
+(`<installation>/data/database.db`) even when frozen. Packet B2 repoints it
+atomically with legacy migration; `tests/test_runtime_paths.py` fails if that
+switch lands early.
+
 ## Env vars that affect DB (`utils/config.py`)
 | Variable | Default | Effect |
 |---|---|---|
-| `DB_FILE` | `data/database.db` | SQLite path. Tests patch `utils.config.DB_FILE` directly. |
+| `DB_FILE` | `data/database.db` | SQLite path; wins over every resolved path. Tests patch `utils.config.DB_FILE` directly. |
+| `HT_RUNTIME_DIR` | unset | Relocates the whole runtime tree (data + logs). Portable installs. |
 | `FLASK_DEBUG` | `'0'` in `app.py:259`; `'1'` in `database.py:90` | Controls Flask debug AND journal mode |
 | `TESTING` | unset | Set to `'1'` by `tests/conftest.py` for the shared pytest harness |
 

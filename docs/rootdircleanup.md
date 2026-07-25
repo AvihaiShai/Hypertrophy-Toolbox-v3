@@ -1110,7 +1110,7 @@ Therefore:
 - **B1** introduces and tests the resolver, removes import-time directory
   creation, and relocates logging. It **must not** switch the frozen database
   path. The resolver may compute the frozen runtime path; nothing may use it
-  for `DB_FILE` yet.
+  for `DB_FILE` yet. **Shipped** — see §7.6.
 - **B2** activates the frozen `DB_FILE` switch **atomically with** legacy
   migration and backup copying — one PR, or not at all.
 - **B3** adds catalog versioning and additive upgrade behavior.
@@ -1234,6 +1234,52 @@ Cross-packet:
 - [ ] `DB_FILE` overrides remain deterministic.
 - [ ] Full pytest, E2E, cold-start, old-schema migration, packaged smoke, and
       recovery tests pass.
+
+### 7.6 Recorded B1 results
+
+`utils/runtime_paths.py` is the resolver. Before it, "where does state live" was
+answered independently by `utils/config.py` (from its own `__file__`),
+`utils/database.py` (from `DB_FILE`), and `utils/auto_backup.py` (from the
+database's parent). Three answers that happened to agree is not one policy, and
+a frozen build made them disagree — the installation directory is not writable
+in general, yet all three pointed at it.
+
+What B1 changed:
+
+- `runtime_root()` implements the §7.2 precedence. `HT_RUNTIME_DIR` is the
+  runtime-root override; it relocates the whole tree in one move and is the
+  supported portable-install mechanism.
+- **Logs moved**; the database did not. `logs_dir()` is `runtime_root()/logs`,
+  so a frozen install writes logs to `%LOCALAPPDATA%\HypertrophyToolbox\logs`
+  instead of needing write access to its own installation directory. Logs carry
+  nothing worth migrating, so relocating them cannot lose anything — which is
+  exactly why they can move a packet before the database.
+- **Import-time directory creation is gone.** `utils/config.py` used to
+  `os.makedirs` both `data/` and `logs/` at import, in whatever directory
+  happened to resolve — including during test collection. `get_db_connection()`
+  now creates a missing database parent directory at connection time, which
+  preserves the old guarantee for every entry point, and logging creates its own
+  directory when it initializes.
+- **`utils/database.py::DATA_DIR` removed.** Dead — recomputed from `DB_FILE` at
+  import and imported by nothing.
+- In a source checkout every resolved path is byte-for-byte what it was before.
+
+The sequencing constraint is enforced by tests, not by discipline.
+`TestPacketB1DoesNotMoveTheDatabase` asserts that a *frozen* process still
+resolves `DB_FILE` to `legacy_database_path()`, and an AST scan asserts that no
+module under `utils/` or `routes/` references `runtime_database_path()` at all.
+Those tests fail the moment the switch lands early; deleting them is part of
+B2's work, not a way to make B1 pass.
+
+Baseline at the packet's starting commit `e576cda`: **1,792 passed / 1 skipped**.
+After: **1,812 passed / 1 skipped** — 20 new resolver contracts, minus the
+`test_config` pair that asserted import-time directory creation and the
+`test_logger` case that asserted `os.makedirs` was called, both rewritten to
+assert behavior instead of implementation.
+
+Runtime check: `HT_RUNTIME_DIR` pointed at a throwaway directory, real `app.py`
+startup served `GET /` → 200 and wrote **both** `data/database.db` and
+`logs/app.log` under that root, leaving the repository's own `logs/` untouched.
 
 ---
 
@@ -1575,7 +1621,7 @@ schema changes, and merges only on green CI.
 1. [x] This document records the accepted decisions and closes the Packet B
        authorization checklist. (PR #171.)
 2. [x] **A3** — staging SHA-256 hardening and the real frozen gate.
-3. [ ] **B1** — resolver, config, and logging foundation, without switching the
+3. [x] **B1** — resolver, config, and logging foundation, without switching the
        frozen database path.
 4. [ ] **B2** — frozen runtime database path, legacy migration, and backup
        copying, activated atomically.
