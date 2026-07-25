@@ -933,26 +933,38 @@ a failure mode.
 
 #### Real frozen validation
 
-The Packet A2 environment note stands: Windows Smart App Control refuses to
-launch the freshly built, unsigned bootloader on the build machine
-(`WinError 4551`), so the local packaged smoke boots the packaged payload with
-the build interpreter over the distribution's own `_internal/` tree. That
-exercises the packaged templates, static assets, catalog seed, and application
-modules — and **not** the bootloader.
+**Correction — the Packet A2 environment note no longer reproduces.** It
+recorded that Smart App Control refuses to launch the freshly built, unsigned
+bootloader (`WinError 4551`), so the local smoke ran the packaged payload
+instead. Re-measured on 2026-07-26 against a real `build_exe.bat` build:
+
+- Smart App Control is still in **enforcement** mode
+  (`VerifiedAndReputablePolicyState = 1`).
+- `dist/Hypertrophy-Toolbox/Hypertrophy-Toolbox.exe` nonetheless launched and
+  passed the full packaged smoke — 22 checks including six pages, ten assets,
+  1,897 exercises, 225 Barbell matches, and an unmodified seed — **three runs
+  out of three**.
+
+So the block was conditional on something that has since changed, not on the
+policy being on. The payload fallback is kept, and everything below still
+holds: local success now is not a gate, because it depends on a machine state
+this project does not control and cannot assert.
 
 Standing decisions:
 
 - **Smart App Control is never disabled.** Weakening host security to make a
   build gate pass inverts the trade. Windows Sandbox may be used only if it is
-  already available without changing host security settings.
-- **The payload smoke keeps running and stays labelled** as not exercising the
-  bootloader. It is useful evidence; it is not the evidence it is sometimes
-  mistaken for.
-- **CI supplies the missing half.** A `windows-latest` deep-gate job builds
-  with pinned PyInstaller and launches the real
-  `dist/Hypertrophy-Toolbox/Hypertrophy-Toolbox.exe`. GitHub's Windows runners
-  do not enforce Smart App Control, so the bootloader an end user actually
-  double-clicks is executed there.
+  already available without changing host security settings. That this became
+  unnecessary is luck, not vindication.
+- **Payload mode stays, and stays labelled** as not exercising the bootloader —
+  in the script's `--mode` help, in its output, and here. It is the fallback
+  for the next machine that does get blocked. A passing payload run is not
+  evidence that the executable starts.
+- **CI owns the real gate.** A `windows-latest` deep-gate job builds with
+  pinned PyInstaller and launches the real
+  `dist/Hypertrophy-Toolbox/Hypertrophy-Toolbox.exe`. This is what makes
+  bootloader validation machine-independent and repeatable, which one
+  developer's host policy never was in either direction.
 
 - [ ] Add a `windows-latest` deep-gate job that builds via the canonical spec.
 - [ ] Launch the real `.exe`, not the payload, and assert it serves the app.
@@ -1292,6 +1304,7 @@ under ignored artifact/runtime locations, not the root.
 | Digest cache proves itself | Reusing the copy decision's digests in verification gives both the same failure mode | Verification recomputes independently |
 | `manifest.sha256` staged inside the tree | The tree must match the manifest exactly, so the record of it becomes an unexpected file | Write it beside the staging root |
 | Payload smoke mistaken for a bootloader smoke | It exercises the same packaged files and reads like a full packaged run | Label it in code and docs; require the real `.exe` on a `windows-latest` runner |
+| Host security state recorded as a permanent fact | A2's `WinError 4551` note stopped reproducing without anything in the repository changing | Re-measure environment claims when acting on them; keep the gate in CI where the state is controlled |
 | Frozen path switches before migration exists | Splitting Packet B for reviewability creates the gap between B1 and B2 | Activate the frozen `DB_FILE` switch atomically with migration (§7.2.1) |
 | Migration verified after publication | A half-copied database is already live during the check | Copy to a temporary file, verify, then publish atomically |
 | Legacy database "cleaned up" after migration | Deleting the source looks tidy and removes the only fallback | Never delete, move, or write to the legacy database |
