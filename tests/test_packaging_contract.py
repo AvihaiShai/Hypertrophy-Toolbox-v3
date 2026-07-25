@@ -45,7 +45,18 @@ def test_spec_data_allowlist_is_exact_and_non_recursive():
 
     assert approved == APPROVED_DATA_FILES
     assert "('data', 'data')" not in source
-    assert "excluded_subtree='bodymaps/GPT/'" in source
+
+
+def test_spec_collects_assets_from_the_tracked_staging_manifest():
+    source = (REPO_ROOT / "Hypertrophy-Toolbox.spec").read_text(
+        encoding="utf-8"
+    )
+
+    assert "from scripts.stage_package_assets import staged_datas" in source
+    assert "asset_files = staged_datas(REPO_ROOT)" in source
+    # A filesystem walk would readmit ignored/untracked working-copy content.
+    assert "rglob" not in source
+    assert "collect_asset_tree" not in source
 
 
 def test_batch_file_uses_only_the_committed_spec():
@@ -56,7 +67,7 @@ def test_batch_file_uses_only_the_committed_spec():
     assert command in lowered
     assert "--add-data" not in lowered
     assert "del /q \"hypertrophy-toolbox.spec\"" not in lowered
-    assert "scripts\\guard_package_assets.py" in lowered
+    assert "scripts\\stage_package_assets.py" in lowered
 
 
 def test_reviewed_runtime_assets_remain_tracked():

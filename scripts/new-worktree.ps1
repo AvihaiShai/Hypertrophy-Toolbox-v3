@@ -96,9 +96,13 @@ $TargetDb = Join-Path $DataDir "database.db"
 # HEAD's copy at $TargetDb. Without --skip-worktree, seeding overwrites it and
 # leaves the new worktree dirty, which blocks `git worktree remove` and makes
 # the binary DB commit-bait. Mark it skip-worktree in the new worktree only.
+#
+# `ls-files` without --error-unmatch stays silent for an untracked path. The
+# --error-unmatch form writes to stderr, which $ErrorActionPreference = "Stop"
+# turns into a terminating error -- so once Packet A untracked data/database.db,
+# this line aborted the script before any seeding happened.
 $DbIsTracked = $false
-$null = git -C $WorktreePath ls-files --error-unmatch "data/database.db" 2>$null
-if ($LASTEXITCODE -eq 0) {
+if (git -C $WorktreePath ls-files -- "data/database.db") {
     $DbIsTracked = $true
     git -C $WorktreePath update-index --skip-worktree "data/database.db" | Out-Null
     Write-Host "data/database.db is tracked in this repo; applied --skip-worktree in the new worktree so seeding stays out of the index."

@@ -1,7 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
 from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_submodules
+
+REPO_ROOT = Path(SPECPATH).resolve()  # noqa: F821 - injected by PyInstaller
+sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.stage_package_assets import staged_datas  # noqa: E402
 
 # pandas/numpy were dropped when the exporters moved to XlsxWriter directly
 # (see routes/exports.py and utils/export_utils.py) and are not declared in
@@ -17,34 +23,12 @@ approved_data_files = [
 ]
 
 
-def collect_asset_tree(source, destination, excluded_subtree=None):
-    source_root = Path(source)
-    excluded_root = (
-        (source_root / excluded_subtree).resolve()
-        if excluded_subtree
-        else None
-    )
-    assets = []
-    for asset in source_root.rglob('*'):
-        if not asset.is_file():
-            continue
-        resolved = asset.resolve()
-        if excluded_root and (
-            resolved == excluded_root or excluded_root in resolved.parents
-        ):
-            continue
-        relative_parent = asset.relative_to(source_root).parent
-        target = (Path(destination) / relative_parent).as_posix()
-        assets.append((asset.as_posix(), target))
-    return assets
-
-
-template_assets = collect_asset_tree('templates', 'templates')
-static_assets = collect_asset_tree(
-    'static',
-    'static',
-    excluded_subtree='bodymaps/GPT/',
-)
+# static/ and templates/ are collected from a staging tree rebuilt from
+# `git ls-files`, not from a filesystem walk. Ignored and untracked working-copy
+# content (the GPT body-map scratch root and its nested .git among it) is absent
+# from the manifest, so it cannot be packaged and needs no exclusion list.
+# staged_datas() fails closed if the staged tree diverges from tracked sources.
+asset_files = staged_datas(REPO_ROOT)
 
 # Minimal excludes - only things definitely not needed (prioritize performance over size)
 excludes = [
@@ -56,7 +40,7 @@ a = Analysis(
     ['app_launcher.py'],
     pathex=[],
     binaries=[],
-    datas=template_assets + static_assets + approved_data_files,
+    datas=asset_files + approved_data_files,
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
