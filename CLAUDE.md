@@ -43,19 +43,7 @@ Any change to core workflow behavior (plan/log/analyze/progress/distribute/backu
 ## 2. Architecture
 
 ### Startup sequence (`app.py`)
-```
-initialize_database()           ← utils/db_initializer.py — tables + normalization (no seed)
-add_progression_goals_table()   ← utils/database.py
-add_volume_tracking_tables()    ← utils/database.py
-add_user_profile_tables()       ← utils/database.py
-add_body_composition_snapshots_table() ← utils/database.py
-add_strength_calibration_tables()      ← utils/database.py
-add_fatigue_context_settings_table()   ← utils/database.py
-initialize_exercise_order()     ← routes/workout_plan.py — ALTERs user_selection
-init_backup_tables()            ← routes/program_backup.py → utils/program_backup.py
-create_startup_backup()         ← utils/auto_backup.py — snapshots live DB to data/auto_backup/
-```
-Then registers 13 blueprints (`register_blueprint` calls in `app.py`), plus one direct route: `POST /erase-data` (`erase_data()` in `app.py`).
+`app.py` initializes the schema through a single call to `run_all_initializers(force_base=False)` (defined in `utils/schema_registry.py`, WP2.6) — the per-table `initialize_*` / `add_*_table` functions are registered there, not called individually from `app.py`. It then snapshots the live DB via `create_startup_backup()`, registers 13 blueprints (`register_blueprint` calls in `app.py`), plus one direct route: `POST /erase-data` (`erase_data()` in `app.py`) — the erase route is **not** a blueprint.
 
 ### Module boundaries
 ```
