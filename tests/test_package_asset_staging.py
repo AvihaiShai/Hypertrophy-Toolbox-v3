@@ -235,6 +235,15 @@ def test_executable_bit_survives_staging(asset_repo: Path, tmp_path: Path):
     assert (staging_root / "static" / "hook.sh").stat().st_mode & stat.S_IXUSR
 
 
+def test_staging_refuses_to_prune_a_checkout(asset_repo: Path):
+    """Pruning a staging root that contains the repository would delete it."""
+    with pytest.raises(StagingError, match="Refusing to stage over a checkout"):
+        sync_staging_tree(asset_repo, asset_repo)
+
+    with pytest.raises(StagingError, match="Refusing to stage over a checkout"):
+        sync_staging_tree(asset_repo, asset_repo.parent)
+
+
 def test_case_colliding_assets_are_rejected():
     """A case-insensitive filesystem would silently merge these two files."""
     with pytest.raises(StagingError, match="differ only by case"):

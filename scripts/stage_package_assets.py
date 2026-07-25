@@ -97,6 +97,13 @@ def _prune_staging_tree(staging_root: Path, wanted: set[str]) -> None:
 
 def sync_staging_tree(repo_root: Path, staging_root: Path) -> list[str]:
     """Rebuild the staging tree from tracked sources and return the manifest."""
+    # Staging prunes whatever the manifest does not name, so a --staging-root
+    # containing the checkout would delete the checkout.
+    if repo_root.resolve().is_relative_to(staging_root.resolve()):
+        raise StagingError(
+            f"Refusing to stage over a checkout: {staging_root.resolve()}"
+        )
+
     manifest = tracked_assets(repo_root)
     for relative in manifest:
         source = repo_root / relative

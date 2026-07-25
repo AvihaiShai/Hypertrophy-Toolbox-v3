@@ -808,7 +808,8 @@ path before executing the spec.
 Fail-closed conditions: a manifest that is empty (built outside a git checkout),
 a tracked asset missing from the working copy, a path whose segments include
 `.git`, paths differing only by case, a staged tree with missing or unexpected
-files, and staged content whose size or executable bit diverges from the source.
+files, staged content whose size or executable bit diverges from the source, and
+a `--staging-root` that contains a checkout — pruning would delete it.
 
 Packet A's `scripts/guard_package_assets.py` and its test are removed. The guard
 existed to detect ignored/untracked files that a recursive walk would collect;
@@ -843,11 +844,11 @@ reviewable. Packet C can revisit it.
 #### Recorded Packet A2 results
 
 Baseline at the packet's starting commit `22350ec`: full pytest **1,772
-passed**. After the change: full pytest **1,784 passed, 1 skipped** — the 15
+passed**. After the change: full pytest **1,785 passed, 1 skipped** — the 15
 staging contracts replace the guard's 3, plus one new spec contract, and the
 skip is the POSIX-only executable-bit test that cannot assert on Windows.
 Focused packaging pytest (staging, packaging contract, seed, bootstrap, harness
-isolation) **34 passed / 1 skipped**. Chromium navigation + API smoke **67
+isolation) **35 passed / 1 skipped**. Chromium navigation + API smoke **67
 passed** against the worktree's throwaway visual-seed database.
 
 `build_exe.bat` completed with exit code 0 on pinned PyInstaller 6.21.0. The
