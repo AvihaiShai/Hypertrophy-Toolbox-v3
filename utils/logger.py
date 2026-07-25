@@ -4,7 +4,7 @@ Structured logging configuration with request ID support.
 import logging
 import os
 from logging.handlers import RotatingFileHandler
-from utils.config import LOGS_DIR
+from utils.runtime_paths import ensure_directory, logs_dir
 
 
 class RequestIdFilter(logging.Filter):
@@ -30,9 +30,11 @@ def setup_logging(app=None):
     Args:
         app: Flask application instance (optional)
     """
-    # Ensure logs directory exists
-    os.makedirs(LOGS_DIR, exist_ok=True)
-    
+    # Resolved here rather than at import so a relocated runtime root and the
+    # frozen per-user path both take effect. A frozen install must never need
+    # write access to its own installation directory just to log.
+    log_directory = ensure_directory(logs_dir())
+
     # Create logger
     logger = logging.getLogger('hypertrophy_toolbox')
     logger.setLevel(logging.DEBUG)
@@ -45,7 +47,7 @@ def setup_logging(app=None):
     request_id_filter = RequestIdFilter()
     
     # File handler with rotation (10MB max, keep 5 backups)
-    log_file = os.path.join(LOGS_DIR, 'app.log')
+    log_file = os.path.join(log_directory, 'app.log')
     file_handler = RotatingFileHandler(
         log_file,
         maxBytes=10 * 1024 * 1024,  # 10MB

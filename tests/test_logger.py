@@ -65,18 +65,31 @@ class TestSetupLogging:
     """Tests for setup_logging function."""
 
     @patch('utils.logger.RotatingFileHandler')
-    @patch('utils.logger.os.makedirs')
-    def test_creates_logs_directory(self, mock_makedirs, mock_handler):
-        """Should create logs directory."""
+    def test_creates_the_resolved_logs_directory(
+        self, mock_handler, tmp_path, monkeypatch
+    ):
+        """Should create the logs directory the resolver points at.
+
+        Asserted through the filesystem rather than through a mocked
+        os.makedirs: the point is that a relocated runtime root gets its logs
+        directory, not which call creates it.
+        """
         mock_handler.return_value = MagicMock()
-        
-        # Clear existing logger to force recreation
         import utils.logger
+        from utils.runtime_paths import RUNTIME_ROOT_ENV
+
+        runtime_root = tmp_path / "runtime"
+        monkeypatch.setenv(RUNTIME_ROOT_ENV, str(runtime_root))
         utils.logger._logger = None
-        
-        logger = utils.logger.setup_logging()
-        
-        mock_makedirs.assert_called()
+        original_handlers = logging.getLogger('hypertrophy_toolbox').handlers
+        logging.getLogger('hypertrophy_toolbox').handlers = []
+        try:
+            utils.logger.setup_logging()
+        finally:
+            logging.getLogger('hypertrophy_toolbox').handlers = original_handlers
+            utils.logger._logger = None
+
+        assert (runtime_root.resolve() / "logs").is_dir()
 
     @patch('utils.logger.RotatingFileHandler')
     @patch('utils.logger.os.makedirs')

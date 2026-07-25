@@ -10,9 +10,9 @@ from datetime import date as _date, datetime as _datetime
 from pathlib import Path
 from typing import Any, Optional, Union
 
-from utils.config import DB_FILE
 import utils.config  # For dynamic DB_FILE access in tests
 from utils.logger import get_logger
+from utils.runtime_paths import ensure_directory
 
 logger = get_logger()
 
@@ -25,7 +25,6 @@ _DB_LOCK = threading.RLock()
 
 # Guard against double initialization during Flask auto-reload
 _INITIALIZATION_COMPLETE: dict[str, bool] = {}
-DATA_DIR = Path(DB_FILE).resolve().parent
 
 
 def _register_sqlite_converters() -> None:
@@ -246,6 +245,13 @@ def get_db_connection(database_path: Optional[str] = None) -> sqlite3.Connection
     """
     # Use dynamic config lookup to support test overrides
     db_path = str(Path(database_path or utils.config.DB_FILE))
+    # Importing utils.config used to create the data directory as a side
+    # effect. Creating it here instead keeps that guarantee for every entry
+    # point, including a configured DB_FILE under a directory that does not
+    # exist yet, without a filesystem write at import time.
+    target = Path(db_path)
+    if not target.exists():
+        ensure_directory(target.parent)
     attempted_recovery = False
     
     with _DB_LOCK:

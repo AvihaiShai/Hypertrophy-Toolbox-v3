@@ -31,15 +31,23 @@ class TestConfigPaths:
         assert LOGS_DIR.startswith(BASE_DIR)
         assert LOGS_DIR.endswith("logs")
 
-    def test_data_dir_created(self):
-        """DATA_DIR should exist (created on import)."""
-        from utils.config import DATA_DIR
-        assert os.path.isdir(DATA_DIR)
+    def test_importing_config_creates_no_directories(self, tmp_path):
+        """Importing configuration must not touch the filesystem.
 
-    def test_logs_dir_created(self):
-        """LOGS_DIR should exist (created on import)."""
-        from utils.config import LOGS_DIR
-        assert os.path.isdir(LOGS_DIR)
+        It used to create data/ and logs/ under whatever directory resolved at
+        import, including during test collection and in unrelated scripts.
+        Consumers create what they need, where they need it.
+        """
+        import importlib
+        import utils.config
+
+        runtime_root = tmp_path / "runtime"
+        with patch.dict(os.environ, {"HT_RUNTIME_DIR": str(runtime_root)}):
+            importlib.reload(utils.config)
+            try:
+                assert not runtime_root.exists()
+            finally:
+                importlib.reload(utils.config)
 
 
 class TestDbFile:
