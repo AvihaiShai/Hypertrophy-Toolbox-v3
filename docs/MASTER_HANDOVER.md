@@ -4,10 +4,38 @@
 
 ## Current State
 
-> **2026-07-26 (LATEST) — the root-cleanup / data-packaging track is COMPLETE
+> **2026-07-26 (LATEST) — WP4.3j-a is merged; WP4.3j-b closed as an audit-only
+> no-op.** WP4.3j-a reached `main` through PR #181 at **`99dfee1`**, removing
+> five overpainted dark-mode table-cell `background-color` declarations.
+> Production delta: five deletions; `!important` **292 → 287**; focused and
+> total Stylelint **−10**; Workout Log visuals **6/6** update-free; contracts
+> **30/30**; focused functional Chromium **33/33**; full pytest **1,856 passed /
+> 1 skipped**. Evidence:
+> [`CSS_PHASE4_WP4_3J_A_EVIDENCE.md`](CSS_PHASE4_WP4_3J_A_EVIDENCE.md).
+>
+> WP4.3j-b investigated the apparent duplicate responsive `@media` ladders and
+> made **zero CSS changes**. The premise collapsed: the regions target different
+> selector/property families, while the measured table padding/type declarations
+> are suppressed by the important shared `components.css` table-cell rule and
+> the measured frame-padding declarations are suppressed by
+> `html body .workout-log-frame { padding: 0 !important; }`. Fourteen browser
+> probes across both sides of the 1200–2561px transitions found invariant table
+> padding `12px 16px`, font size `14.08px`, and frame padding `0px`. The
+> `992px` table-overflow rule, the first ladder's page/button/routine families,
+> and the separate legend query were **not measured and are not classified as
+> dead**. Evidence:
+> [`CSS_PHASE4_WP4_3J_B_EVIDENCE.md`](CSS_PHASE4_WP4_3J_B_EVIDENCE.md).
+>
+> Two follow-ups are recorded but owner-gated and **not started**: a separate
+> Workout Log dead-CSS packet limited to the proven-inert property families,
+> and WP4.4 review of the shared `:is()` selector whose ID-bearing argument
+> exports ID-level specificity to every branch. Do not begin either without
+> explicit owner direction.
+>
+> **2026-07-26 — the root-cleanup / data-packaging track is COMPLETE
 > and CLOSED. Every packet — A0, A, A2, A3, B1, B2, B3, C1, C2, C3 — is merged.
-> The track's last code-bearing commit is `2a30bda` (#179); only this closeout
-> entry follows it.** This supersedes the 2026-07-25
+> The track's last code-bearing commit is `2a30bda` (#179); later commits belong
+> to documentation closeout or the resumed CSS track.** This supersedes the 2026-07-25
 > CSS note below **as to HEAD only**; that note remains the authoritative record
 > of the WP4.3i arc and its commit ladder, and every CSS constraint it lists is
 > still binding. Closed record:

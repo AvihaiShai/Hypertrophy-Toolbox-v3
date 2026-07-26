@@ -1,8 +1,9 @@
 # Deep Refactor Plan — v3 (2026-07-04, full-scan grounded)
 
-**Status (2026-07-25): Track A, Phases -1 through 3, and Phase-4 packets
+**Status (2026-07-26): Track A, Phases -1 through 3, and Phase-4 packets
 WP4.-1, WP4.0a, WP4.0, WP4.1, WP4.2, and WP4.3a–WP4.3h are complete, as is the
-WP4.3i Workout Plan dead-CSS arc through WP4.3i-filter-btn.** WP2.2 is committed
+WP4.3i Workout Plan dead-CSS arc through WP4.3i-filter-btn. WP4.3j-a is merged,
+and WP4.3j-b is complete as an audit-only no-op.** WP2.2 is committed
 as `c461840`; optional WP3.6 is committed as `0cbedac`. WP4.0 measurement
 provenance remains unchanged head `e46b67e`, with its ledger committed as
 `ca725c2`. Local integration verification through WP4.3d is complete
@@ -62,15 +63,27 @@ dead-CSS packet on this page must pair the sweep with a rest-state differential
 4. The remaining Workout Plan **raw-literal → token extraction and `!important`
    weighting review** is redesign-sized, multi-packet, and **has not started**.
 5. **WP4.3j (Workout Log) is IN PROGRESS as a sub-arc**; **WP4.4 (shared bundles
-   / navbar / `theme-dark.css`)** has **not started**. WP4.3j-a removed the five
-   overpainted dark-mode `background-color` declarations on columns 1–4 and
-   15–17 — evidence:
+   / navbar / `theme-dark.css`)** has **not started**. WP4.3j-a merged through
+   PR #181 at `99dfee1`; it removed the five overpainted dark-mode
+   `background-color` declarations on columns 1–4 and 15–17 — evidence:
    [`CSS_PHASE4_WP4_3J_A_EVIDENCE.md`](CSS_PHASE4_WP4_3J_A_EVIDENCE.md).
    **Method addition from that packet: for declarations suppressed by overpaint
    rather than by the cascade, the differential must be taken in pixel space.** A
    computed-declaration-owner audit certifies them live — correctly, by its own
-   question — while zero pixels change. Later j packets (j-b `@media` ladder
-   duplication, j-c header/cell glass) are **not started** and stay owner-gated.
+   question — while zero pixels change. WP4.3j-b then audited the apparent
+   duplicate `@media` ladders and closed as a **zero-CSS-change no-op**: they
+   target different selector/property families, while the measured table
+   padding/type declarations lose to the shared important `components.css`
+   table-cell owner and the measured frame-padding declarations lose to
+   `html body .workout-log-frame { padding: 0 !important; }`. Fourteen
+   breakpoint probes were invariant. The `992px` overflow rule, the first
+   ladder's page/button/routine families, and the separate legend query were not
+   measured and are not classified as dead. Evidence:
+   [`CSS_PHASE4_WP4_3J_B_EVIDENCE.md`](CSS_PHASE4_WP4_3J_B_EVIDENCE.md).
+   A separate deletion packet limited to the proven-inert families and j-c
+   header/cell glass are **not started** and stay owner-gated. The shared
+   ID-bearing `:is()` specificity finding belongs to WP4.4 and is recorded, not
+   acted on.
 6. Deferred and unacted: the superset dark-tint gap (`--superset-bg-1..4` has no
    live dark override) and the dead `body.dark-mode` in
    `static/css/layout.css:1120` (→ WP4.4).

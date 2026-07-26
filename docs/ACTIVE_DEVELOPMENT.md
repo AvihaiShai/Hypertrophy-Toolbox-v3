@@ -4,22 +4,31 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-26 — no workstream is in flight. The root-cleanup / data-packaging
-track is CLOSED.** Every packet shipped — A0, A, A2, A3, B1, B2, B3, C1, C2, C3,
-plus a documentation follow-up. The last code-bearing commit of the track is
-`2a30bda` (#179); this closeout entry is the only thing after it. pytest
-baseline **1,856 passed / 1 skipped**. All 225 checklist items in
-[`rootdircleanup.md`](rootdircleanup.md) are ticked and its §13 Definition of Done
-is met, so **that document is a closed record — do not execute its checklists.**
-Its durable outputs are the ADR-002 root-file policy in
-[`DECISIONS.md`](DECISIONS.md) and the invariants summarized in
-[`MASTER_HANDOVER.md`](MASTER_HANDOVER.md), which is where the packet ladder lives.
+**2026-07-26 — no workstream is in flight. WP4.3j-a is merged at `99dfee1`
+(PR #181), and WP4.3j-b is complete as an audit-only, no-op investigation.**
+WP4.3j-a removed five overpainted dark-mode Workout Log table-cell declarations:
+`!important` **292 → 287**, visuals **6/6** update-free, contracts **30/30**,
+focused functional Chromium **33/33**, and full pytest **1,856 passed /
+1 skipped**.
 
-The Phase-4 CSS track is **paused and owner-gated**, not abandoned. Its
-constraints — the ten deferred interaction-state declarations, the WP4.3i-c Page
-Header contract, WP4.3j (Workout Log) and WP4.4 (shared bundles) both unstarted —
-are recorded in `MASTER_HANDOVER.md` and still bind. Do not resume any CSS packet
-without explicit direction.
+WP4.3j-b changed no production file. Its supposed duplicate `@media` ladders
+proved to be different selector/property families, and browser ownership tracing
+showed that the measured table padding/type declarations never beat the shared
+important `components.css` table-cell rule. The measured frame-padding family
+never beats `html body .workout-log-frame { padding: 0 !important; }`. The
+`992px` table overflow, first-ladder page/button/routine families, and separate
+legend query were not measured and remain unclassified. Exact evidence:
+[`CSS_PHASE4_WP4_3J_B_EVIDENCE.md`](CSS_PHASE4_WP4_3J_B_EVIDENCE.md).
+
+The root-cleanup / data-packaging track also remains CLOSED. All packets shipped,
+all 225 checklist items in [`rootdircleanup.md`](rootdircleanup.md) are ticked,
+and that closed record must not be re-executed.
+
+The Phase-4 CSS track is paused and owner-gated. A separate Workout Log dead-CSS
+packet may target only the property families proven inert by j-b; WP4.4 may
+review the shared `:is()` specificity trap. Neither is authorized or started.
+The ten WP4.3i deferred interaction-state declarations and WP4.3i-c Page Header
+contract remain untouched.
 
 WPB.4 also remains unimplemented and owner-gated: it requires retaining one
 synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
@@ -28,8 +37,8 @@ intentional review of the exact golden diff before any behavior change.
 ## Next Action
 
 Await owner direction. Nothing is in flight, and no packet is waiting to be
-picked up. Do not begin CSS, fatigue, or feature work — and do not reopen the
-root-cleanup track.
+picked up. Do not begin the Workout Log deletion candidate, WP4.4, fatigue, or
+feature work — and do not reopen the root-cleanup track.
 
 ---
 
