@@ -1,8 +1,17 @@
 # Root Directory Cleanup and Data Packaging Safety Plan
 
-**Status:** COMPLETE. Packets A0, A, A2, A3, B1, B2, B3, C1, C2, and C3 are all
-shipped and merged. Every checklist in this document is closed; §13 Definition of
-Done is met.
+**Status:** COMPLETE and CLOSED. Packets A0, A, A2, A3, B1, B2, B3, C1, C2, and
+C3 are all shipped and merged. Every checklist in this document is closed; §13
+Definition of Done is met.
+
+> **Do not execute anything in this document.** It is a closed record, kept for
+> the reasoning behind decisions that are still binding — not a work queue. All
+> 225 checklist items are ticked, and the preflight steps, worktree warnings, and
+> "stop and report before merging" gates below describe work that already
+> happened. Read it to understand *why* the seed, the packaging allowlist, the
+> path resolver, and the root-file policy are shaped as they are; the policy
+> itself lives in `docs/DECISIONS.md` ADR-002, and current state lives in
+> `docs/MASTER_HANDOVER.md`.
 
 **Last evidence pass:** 2026-07-26 — pytest baseline **1,856 passed / 1 skipped**,
 unchanged across all three Packet C packets, none of which altered runtime
