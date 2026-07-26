@@ -1442,32 +1442,27 @@ body.modal-open #clearLogModal {
 [data-theme='dark'] .workout-log-table td:nth-child(2),
 [data-theme='dark'] .workout-log-table td:nth-child(3) {
     color: #e0e0e0 !important;
-    background-color: #2d2d2d !important;
 }
 
 /* Row number column */
 [data-theme='dark'] .workout-log-table td:nth-child(1) {
     color: #e0e0e0 !important;
-    background-color: #1a1a1a !important;
 }
 
 /* Plan Sets column */
 [data-theme='dark'] .workout-log-table td:nth-child(4) {
     color: #e0e0e0 !important;
-    background-color: #2d2d2d !important;
 }
 
 /* Last Progression column */
 [data-theme='dark'] .workout-log-table td:nth-child(15) {
     color: #e0e0e0 !important;
-    background-color: #2d2d2d !important;
 }
 
 /* Overload status and Actions columns */
 [data-theme='dark'] .workout-log-table td:nth-child(16),
 [data-theme='dark'] .workout-log-table td:nth-child(17) {
     color: #e0e0e0 !important;
-    background-color: #2d2d2d !important;
 }
 
 /* Fix text color inside colored columns */

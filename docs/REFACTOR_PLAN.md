@@ -61,8 +61,16 @@ dead-CSS packet on this page must pair the sweep with a rest-state differential
    consumers.
 4. The remaining Workout Plan **raw-literal → token extraction and `!important`
    weighting review** is redesign-sized, multi-packet, and **has not started**.
-5. **WP4.3j (Workout Log)** and **WP4.4 (shared bundles / navbar /
-   `theme-dark.css`)** have **not started**.
+5. **WP4.3j (Workout Log) is IN PROGRESS as a sub-arc**; **WP4.4 (shared bundles
+   / navbar / `theme-dark.css`)** has **not started**. WP4.3j-a removed the five
+   overpainted dark-mode `background-color` declarations on columns 1–4 and
+   15–17 — evidence:
+   [`CSS_PHASE4_WP4_3J_A_EVIDENCE.md`](CSS_PHASE4_WP4_3J_A_EVIDENCE.md).
+   **Method addition from that packet: for declarations suppressed by overpaint
+   rather than by the cascade, the differential must be taken in pixel space.** A
+   computed-declaration-owner audit certifies them live — correctly, by its own
+   question — while zero pixels change. Later j packets (j-b `@media` ladder
+   duplication, j-c header/cell glass) are **not started** and stay owner-gated.
 6. Deferred and unacted: the superset dark-tint gap (`--superset-bg-1..4` has no
    live dark override) and the dead `body.dark-mode` in
    `static/css/layout.css:1120` (→ WP4.4).
