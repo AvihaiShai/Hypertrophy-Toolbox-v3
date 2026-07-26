@@ -111,6 +111,9 @@ with DatabaseHandler() as db:
     db.execute_query("INSERT INTO t (c) VALUES (?)", (val,))
 ```
 
+### Repository root policy
+The root holds five categories only — entry points, user-facing start/readme files, build manifests, root-discovered tool config, and repository operating instructions. Generated output (baselines, reports, screenshots, scratch DBs) goes under the gitignored `artifacts/`, never the root. Full table and rationale: `docs/DECISIONS.md` ADR-002.
+
 ### Constants and normalization
 `utils/constants.py` has canonical enums. Always normalize before persisting: `normalize_muscle()`, `normalize_equipment()`, etc. from `utils/normalization.py`.
 

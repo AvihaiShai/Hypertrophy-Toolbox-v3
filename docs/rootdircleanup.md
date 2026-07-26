@@ -1,12 +1,12 @@
 # Root Directory Cleanup and Data Packaging Safety Plan
 
-**Status:** Packets A0, A, A2, A3, B1, B2, and B3 are shipped and merged
-(`origin/main` at `43691f2`). Packet C is owner-approved and in progress: **C1
-shipped** (generated-output paths + documentation synchronization); **C2**
-(launcher/environment + user-facing distribution docs) and **C3** (IDE tracking +
-root-policy closeout) are next, as separate packets.
+**Status:** COMPLETE. Packets A0, A, A2, A3, B1, B2, B3, C1, C2, and C3 are all
+shipped and merged. Every checklist in this document is closed; §13 Definition of
+Done is met.
 
-**Last evidence pass:** 2026-07-26 — pytest baseline **1,856 passed / 1 skipped**
+**Last evidence pass:** 2026-07-26 — pytest baseline **1,856 passed / 1 skipped**,
+unchanged across all three Packet C packets, none of which altered runtime
+behavior.
 
 **Scope:** Repository-root hygiene, shipped database privacy, PyInstaller data
 allowlisting, first-run database bootstrap, and the later runtime-data location
@@ -1477,30 +1477,52 @@ gap explicitly.
 
 ### 8.2 Launcher and distribution modernization
 
-- [ ] Revisit the Packet A0 build-environment choice only if user-launcher and
+All closed by Packet C2 (PR #177):
+
+- [x] Revisit the Packet A0 build-environment choice only if user-launcher and
       developer-build ergonomics still conflict; do not undo the pinned,
-      reproducible build contract.
-- [ ] Standardize `START.bat` with canonical `.venv` commands, or document why
-      the user launcher intentionally owns a separate `venv`.
-- [ ] Remove the duplicate `pause` in `START.bat`.
-- [ ] Verify the supported Python version in `QUICK_START.md` and `README.md`.
-- [ ] Decide whether `QUICK_START.md` duplicates too much of `README.md`.
-- [ ] Keep user-facing launchers at the root if double-click discoverability is
-      still a product requirement.
-- [ ] Keep the spec at the root unless a tested build command explicitly points
-      elsewhere; a root spec is conventional.
+      reproducible build contract. **A0 upheld.** Measurement settled it: `venv/`
+      holds PyInstaller 6.21.0 and no pandas/NumPy; `.venv/` holds pandas + NumPy
+      (undeclared) and no PyInstaller.
+- [x] Standardize `START.bat` with canonical `.venv` commands, or document why
+      the user launcher intentionally owns a separate `venv`. **Documented, not
+      standardized** — `.venv` would break the launcher for its actual audience,
+      end users who have no development checkout. The audit also found `venv/` is
+      *co-owned* by `START.bat` and `build_exe.bat`, so the latter's "dedicated
+      environment" comment was corrected: reproducibility rests on its
+      unconditional install of both requirements files, not on isolation.
+- [x] Remove the duplicate `pause` in `START.bat`.
+- [x] Verify the supported Python version in `QUICK_START.md` and `README.md`.
+      Now **"3.11+, developed and built on 3.14"**; the previous `3.10+` claim was
+      tested by nothing.
+- [x] Decide whether `QUICK_START.md` duplicates too much of `README.md`.
+      **Kept and trimmed.** Its unique feature walkthrough and troubleshooting
+      stay; the duplicated build/distribute steps and file table now point at
+      README. The duplication was not merely untidy — it is how an unpinned
+      `pip install pyinstaller` survived Packet A0 in a second file.
+- [x] Keep user-facing launchers at the root if double-click discoverability is
+      still a product requirement. **Kept** — settled by §4.2 and the non-goals;
+      no action was needed.
+- [x] Keep the spec at the root unless a tested build command explicitly points
+      elsewhere; a root spec is conventional. **Kept, and it is load-bearing
+      rather than merely conventional:** the spec derives `REPO_ROOT` from
+      `SPECPATH`, and `test_batch_file_uses_only_the_committed_spec` asserts
+      `build_exe.bat` invokes it by that exact name.
 
 ### 8.3 IDE metadata
 
 `.idea/` and `.vscode/` are ignored now, but some files remain tracked because
 they predate the ignore rules.
 
-- [ ] Decide whether `.vscode/launch.json` is useful shared project
-      configuration.
-- [ ] Remove tracked `.idea/` metadata unless there is a documented team reason
-      to retain it.
-- [ ] Do not delete personal IDE files from a user's filesystem merely to
-      untrack them; use `git rm --cached` when appropriate.
+- [x] Decide whether `.vscode/launch.json` is useful shared project
+      configuration. **Yes, once fixed** — see the C3 results below.
+- [x] Remove tracked `.idea/` metadata unless there is a documented team reason
+      to retain it. Five files untracked; no team reason existed, and they
+      carried a stale `Python 3.12` SDK name nothing else in the repository uses.
+- [x] Do not delete personal IDE files from a user's filesystem merely to
+      untrack them; use `git rm --cached` when appropriate. Honored — all five
+      `.idea/` files and both `.vscode/` files remain on disk, verified before
+      and after.
 
 ### 8.4 Root documentation policy
 
@@ -1515,6 +1537,46 @@ filenames. A healthy root may contain:
 
 Generated reports, screenshots, scratch databases, and personal state belong
 under ignored artifact/runtime locations, not the root.
+
+#### Recorded C3 results
+
+**The root policy is documented as `docs/DECISIONS.md` ADR-002**, with a
+four-line pointer from `CLAUDE.md` §3. The ADR, not the pointer, carries the
+category table: `CLAUDE.md` self-imposes a 200-line cap and stands at 192, so the
+table could not live inline, and `docs/ai_workflow/DOC_RETENTION.md` already
+directs durable choices to `DECISIONS.md`.
+
+**Nothing moved.** All 24 tracked root files map to one of the five approved
+categories, so §8.4 resolved to a documentation task. Two corollaries were
+recorded because they were nearly violated during the audit: some root files are
+load-bearing at the root (`Hypertrophy-Toolbox.spec` derives `REPO_ROOT` from
+`SPECPATH`, and a packaging contract test asserts `build_exe.bat` invokes it by
+that exact name), and membership in an approved category does not by itself
+justify a file's contents.
+
+**`.idea/` untracked, disk untouched.** Five files left the index via
+`git rm -r --cached`; all five remain on disk, verified before and after, and
+`.gitignore` already covered them so no untracked noise appeared.
+
+**`.vscode/launch.json` fixed and kept tracked.** Its Flask configuration ran
+`flask run`, which bypasses `app.py`'s `__main__` block and therefore the
+`use_reloader=False` guard whose comment states that the reloader's child process
+re-runs all startup code and causes database corruption. After Packet B that
+re-run includes runtime migration and seed bootstrap. `--no-reload` was added and
+the config is now the only supported way to attach a debugger without diverging
+from `app.py`'s startup behavior.
+
+Two corrections to the audit's own characterization, found while implementing:
+
+- **`FLASK_ENV` is not inert in this repository.** It is deprecated in Flask
+  since 2.3, but `utils/database.py` reads it directly to choose DELETE over WAL
+  journal mode. Removing it from `launch.json` is safe only because `FLASK_DEBUG=1`
+  independently produces the same answer — which is why `FLASK_DEBUG` was kept.
+- **The hazard was real but partially mitigated, not unguarded.** Debug mode
+  already forces DELETE journal mode, and Packet A/B made seed publication and
+  migration atomic and no-overwrite, so a double startup was not free to corrupt
+  at will. The fix stands on the narrower ground that the configuration ran a code
+  path `app.py` deliberately avoids.
 
 ---
 
@@ -1844,17 +1906,20 @@ accepted.
 ### Packet C completion checklist
 
 - [x] Baselines write to `artifacts/`. (C1.)
-- [ ] Launcher environment naming is consistent. (C2.)
+- [x] Launcher environment naming is consistent. (C2 — `venv/` and `.venv/` keep
+      their separate, measured roles; `README.md` now sends developers to
+      `.venv`, and `build_exe.bat` no longer claims an isolation it does not
+      have.)
 - [x] Packaging dependencies are reproducible. **Already satisfied by Packet A0**
       — pinned `pyinstaller==6.21.0`, both requirements files installed
       unconditionally, the committed spec as the single definition, and
       `test_batch_file_uses_only_the_committed_spec` locking it. Bookkeeping only;
       see the authorization checklist above for why the requirements split was
       declined.
-- [ ] IDE tracking decision completed. (C3 — decision made, removal pending.)
-- [ ] Root-file policy documented in the main contributor guidance. (C3 — as an
-      ADR in `docs/DECISIONS.md` with a pointer from `CLAUDE.md`, which is at
-      189/200 lines and cannot absorb the table inline.)
+- [x] IDE tracking decision completed. (C3 — `.idea/` untracked and left on
+      disk; `.vscode/launch.json` fixed and kept tracked.)
+- [x] Root-file policy documented in the main contributor guidance. (C3 —
+      `docs/DECISIONS.md` ADR-002, pointed to from `CLAUDE.md` §3.)
 
 ---
 
@@ -1874,3 +1939,17 @@ The root cleanup is genuinely complete when:
 9. Worktree isolation, database recovery, and migration behavior remain intact.
 10. All applicable test, E2E, and packaged smoke gates pass from the recorded
     starting revision.
+
+**All ten are met as of 2026-07-26.** Items 3–10 closed with Packets A0–B3;
+items 1 and 2 closed with Packet C — the root is categorized by `docs/DECISIONS.md`
+ADR-002 and generated output is directed to `artifacts/`.
+
+Worth stating plainly, because the plan opened with the opposite assumption: the
+original request was to clean up a root that looked like clutter, and **no root
+file turned out to be clutter**. All 24 tracked root files were legitimate. What
+the audit found instead was a tracked user database, packaging that recursively
+swallowed ignored personal files, a frozen application writing into its own
+installation directory, and existing installs that could never receive catalog
+updates. The cosmetic request was worth taking seriously precisely because
+following it carefully surfaced four real defects — and worth resisting where it
+would have moved working infrastructure for appearance.
