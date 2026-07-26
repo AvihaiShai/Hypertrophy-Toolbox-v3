@@ -39,12 +39,20 @@ This will automatically:
 
 1. **Create and activate virtual environment:**
    ```bash
-   python -m venv venv
+   python -m venv .venv
    # Windows
-   venv\Scripts\activate
+   .venv\Scripts\activate
    # Linux/Mac
-   source venv/bin/activate
+   source .venv/bin/activate
    ```
+
+   > **Why `.venv` and not `venv`?** They are two environments with different
+   > jobs, and the split is deliberate. `.venv` is the development environment —
+   > the one `playwright.config.ts`, `pyrightconfig.json`, and the test commands
+   > all expect. `venv` belongs to `START.bat` and `build_exe.bat`; the build
+   > installs the pinned toolchain there from the committed requirements files, so
+   > a release never depends on packages that happen to be in a developer's
+   > environment. Don't build from `.venv`, and don't point the tools at `venv`.
 
 2. **Install dependencies:**
    ```bash
@@ -69,7 +77,7 @@ This will automatically:
 | `START.bat` | 1-click launcher (requires Python installed) |
 | `build_exe.bat` | Builds standalone .exe for distribution |
 | `app_launcher.py` | Wrapper script for executable build |
-| `QUICK_START.md` | Detailed setup instructions |
+| `QUICK_START.md` | Feature walkthrough (starter generator, progression, pattern coverage) and troubleshooting |
 
 ## 📦 Building the Standalone Executable (For Developers)
 
@@ -79,7 +87,8 @@ To create the standalone `.exe` package for distribution to end users:
    ```bash
    build_exe.bat
    ```
-   (the pinned build toolchain is installed into the dedicated `venv/`)
+   (the pinned build toolchain is installed into `venv/`, from
+   `requirements.txt` + `requirements-build.txt` — not from your `.venv`)
 
 2. **Find the output in the `dist` folder (NOT `build`):**
    ```
@@ -117,7 +126,8 @@ To create the standalone `.exe` package for distribution to end users:
 
 See the [`docs/`](docs/) folder:
 
-- [scope.md](docs/scope.md) - Architecture and tech stack
+- [README.md](docs/README.md) - Documentation index
+- [CLAUDE.md](CLAUDE.md) - Architecture, module boundaries, and conventions
 - [CHANGELOG.md](docs/CHANGELOG.md) - Version history
 - [CSS_OWNERSHIP_MAP.md](docs/CSS_OWNERSHIP_MAP.md) - CSS file organization
 - [muscle_selector.md](docs/muscle_selector.md) - Muscle selector component
@@ -125,10 +135,11 @@ See the [`docs/`](docs/) folder:
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Flask 3.1+, Python 3.14, SQLite
+- **Backend**: Flask 3.1+, SQLite
+- **Python**: 3.11+ (CI runs 3.11; developed and built on 3.14)
 - **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
 - **Styling**: Custom Bootstrap 5.1.3 build + custom CSS
-- **Testing**: pytest (321 tests)
+- **Testing**: pytest, Playwright (Chromium), Vitest
 
 ## 🧪 Running Tests
 
