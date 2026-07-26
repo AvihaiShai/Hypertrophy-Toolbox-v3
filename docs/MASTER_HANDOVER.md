@@ -4,8 +4,77 @@
 
 ## Current State
 
-> **2026-07-25 (LATEST) — the WP4.3i Workout Plan dead-CSS arc is fully SHIPPED
-> and PUSHED. Local `main` == `origin/main` == `95f30c1`.** WP4.3i-dead and
+> **2026-07-26 (LATEST) — the root-cleanup / data-packaging track shipped
+> Packets A0, A, A2, A3, B1, B2, and B3. Local `main` == `origin/main` ==
+> `43691f2`.** This supersedes the 2026-07-25 CSS note below **as to HEAD only**;
+> that note remains the authoritative record of the WP4.3i arc and its commit
+> ladder, and every CSS constraint it lists is still binding. Plan of record:
+> [`docs/rootdircleanup.md`](rootdircleanup.md). Exact ladder:
+>
+> | Packet | Commit | PR | What it did |
+> |---|---|---|---|
+> | Plan approval | `a559222` / `8583224` | #166 | Committed the approved plan so a main-based worktree could read it |
+> | A0 | `b715a02` | #167 | Pinned the build environment (`requirements-build.txt`, `pyinstaller==6.21.0`); dropped stale pandas/NumPy hidden imports |
+> | A0 docs | `8dba5b2` | #168 | Synced Packet A prerequisites with shipped state |
+> | A | `a3121bf` / `22350ec` | #169 | Immutable `data/catalog.seed.db`; untracked `data/database.db`; first-run bootstrap; `data/` packaging allowlist |
+> | A2 | `3b3fb2b`, `7a3787c` / `631f61a` | #170 | `static/`+`templates/` staged from a `git ls-files` manifest instead of a filesystem walk |
+> | B decisions | `906b2fe` | #171 | Recorded the five owner-approved Packet B policies |
+> | A3 | `e576cda` | #172 | SHA-256 staging verification, `manifest.sha256`, real `windows-latest` bootloader gate |
+> | B1 | `a7883d4` | #173 | `utils/runtime_paths.py` resolver; logs left the install directory; no import-time directory creation |
+> | B2 | `abfc048` | #174 | Frozen `DB_FILE` switch **atomically with** verified non-destructive legacy migration |
+> | B3 | `43691f2` | #175 | Content-addressed catalog versioning; additive/update-only catalog upgrade |
+>
+> **pytest baseline: 1,856 passed / 1 skipped** (re-verified on `43691f2`,
+> 2026-07-26). The single skip is the POSIX-only executable-bit staging test that
+> cannot assert on Windows. Baseline ladder across the track:
+> 1,753 → 1,772 (A) → 1,785 (A2) → 1,792 (A3) → 1,812 (B1) → 1,837 (B2) → 1,856 (B3).
+>
+> **What changed that earlier docs may still contradict:**
+> - **The tracked database is gone.** `data/database.db` is untracked and ignored;
+>   the tracked catalog is the immutable `data/catalog.seed.db` (negated in
+>   `.gitignore` after the broad `*.db` rule). No `skip-worktree` flag remains.
+> - **An absent database is no longer an empty one.** First launch copies the seed
+>   — 1,897 exercises, zero user rows. Seeding is called only from real `app.py`
+>   startup, never from `run_all_initializers()`, so pytest fixtures stay empty.
+> - **Frozen builds no longer write to their installation directory.** Database,
+>   backups, and logs resolve through `utils/runtime_paths.py`
+>   (`%LOCALAPPDATA%\HypertrophyToolbox` when frozen); `HT_RUNTIME_DIR` relocates
+>   the whole tree and is the supported portable-install mechanism. Source
+>   checkouts and worktrees remain repository-local, deliberately — one OS-level
+>   SQLite file shared across worktrees is the WAL corruption
+>   `scripts/new-worktree.ps1` exists to prevent.
+> - **Legacy data migrates once, non-destructively.** The old database is opened
+>   read-only, copied to a temporary sibling, verified there, then published
+>   atomically. It is never deleted, moved, or written to. Every failure path
+>   returns the legacy path and reports recovery steps — never a clean seed.
+> - **Existing installs get catalog updates.** Additive/update-only: inserts
+>   missing exercises, refreshes only the four columns no user can edit
+>   (`movement_pattern`, `movement_subpattern`, `youtube_video_id`, `media_path`),
+>   and never deletes or renames a catalog exercise. A missing shipped value never
+>   erases a populated one.
+> - **Packaging is allowlist-based and verified against the real build output**,
+>   with a `windows-latest` deep-gate job launching the actual bootloader.
+>
+> **Root cleanup Packet C is IN PROGRESS.** C1 (generated-output paths +
+> documentation synchronization) is this change. Owner-approved decisions for the
+> remaining packets, recorded 2026-07-26:
+> - **C2** — keep `venv/` (build + user launcher) and `.venv/` (dev) separate and
+>   fix only the docs that misdescribe them; declare **"Python 3.11+, developed and
+>   built on 3.14"**; keep `QUICK_START.md` but trim its duplication of `README.md`.
+> - **C3** — fix `.vscode/launch.json` and keep it tracked; untrack `.idea/`
+>   with `git rm --cached` (**never delete from disk**); document the root-file
+>   policy as an ADR in `docs/DECISIONS.md` with a pointer from `CLAUDE.md`
+>   (which is at 189/200 lines and cannot absorb the table inline).
+> - **Not doing:** splitting `requirements.txt`. Test tooling never reaches the
+>   distribution (verified by inspecting `dist/`), and 14 required-check CI steps
+>   install it.
+> - **Nothing moves out of the repository root** — all 24 tracked root files map to
+>   an approved category.
+>
+> **2026-07-25 — the WP4.3i Workout Plan dead-CSS arc is fully SHIPPED
+> and PUSHED. `origin/main` was `95f30c1` at the time of this entry** (superseded
+> as to HEAD by the 2026-07-26 note above; the CSS constraints below still bind).
+> WP4.3i-dead and
 > WP4.3i-filter-btn reached `origin/main` via **PR #165**, merged 2026-07-25 as
 > **merge commit `95f30c1`** — a true merge commit, not a squash, so `db23801`,
 > `cb5ff6e`, and the docs commit `0cd44eb` all remain individually reachable and

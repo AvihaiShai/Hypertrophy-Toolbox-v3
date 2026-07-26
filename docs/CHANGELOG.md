@@ -2,6 +2,35 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - July 26, 2026
+
+### Packaging, runtime data location, and catalog updates (root-cleanup Packets A0–B3)
+
+Shipped via PRs #166–#175. No calculation, API response shape, or exercise
+catalog content changed.
+
+**Fresh installs**
+
+- The distribution now ships an immutable exercise catalog, `data/catalog.seed.db`. The first launch copies it to the runtime database and never overwrites an existing one. Previously a build from a clean checkout shipped **zero** exercises, because the only catalog source was the builder's own working copy.
+- Packaging is allowlist-based: exactly `catalog.seed.db` and `free_exercise_db_mapping.csv` from `data/`, and `static/`+`templates/` staged from a `git ls-files` manifest rather than a filesystem walk. Ignored and untracked working-copy content — local backups, personal exports, scratch body-map trees and their nested `.git` — can no longer enter a build. The built tree is verified against a `manifest.sha256` record, and a `windows-latest` gate launches the real executable.
+
+**Existing installs — migration**
+
+- Frozen builds no longer keep mutable data inside their installation directory. The database, automatic backups, and logs now live under a per-user application-data directory (`%LOCALAPPDATA%\HypertrophyToolbox` on Windows), resolved centrally by `utils/runtime_paths.py`.
+- **Your existing database migrates automatically, once, on first launch after upgrading.** It is copied read-only, verified, and only then published. The original file is never deleted, moved, or written to, and remains exactly where it was. If migration cannot be verified, the app keeps using the original database and reports recovery steps — it never silently starts from an empty catalog.
+- Migration refuses to run while unresolved WAL/journal sidecars exist; close the app cleanly and relaunch. Old log files are not migrated. Existing automatic backups are copied best-effort; a failure there is logged and does not block startup.
+- Set `HT_RUNTIME_DIR` to relocate the whole runtime tree in one move — the supported mechanism for portable/USB installs. `DB_FILE` still overrides the database path and wins over everything else.
+- Source checkouts and worktrees are unaffected and stay repository-local, deliberately: pointing parallel worktrees at one OS-level SQLite file is the WAL corruption `scripts/new-worktree.ps1` exists to prevent.
+
+**Existing installs — catalog updates**
+
+- A newer shipped catalog is now applied to existing databases instead of only new ones. The upgrade is additive and update-only: it inserts exercises you don't have and refreshes only the four columns no application path lets you edit (`movement_pattern`, `movement_subpattern`, `youtube_video_id`, `media_path`).
+- It **never** deletes or renames a catalog exercise, and never touches user-owned tables. Your edits to an exercise's muscles, equipment, mechanic, difficulty, grips, or force are preserved, as are user-created exercises and every plan or log row referencing them. A value absent from a newer catalog never erases a populated one.
+
+**Repository hygiene**
+
+- `data/database.db` is no longer tracked. The build environment is pinned (`requirements-build.txt`, `pyinstaller==6.21.0`) and `build_exe.bat` now invokes the committed spec instead of reconstructing a second configuration.
+
 ## Unreleased - May 23, 2026
 
 ### HTTP endpoint removals (Track B WPB.6)

@@ -125,6 +125,7 @@ app.py startup:
   utils.config.DB_FILE = ...      ← whatever that decided (legacy path on failure)
   bootstrap_runtime_database()    ← copies catalog seed only when DB_FILE is missing
   run_all_initializers()          ← canonical schema registry sequence
+  upgrade_catalog_from_seed()     ← additive catalog refresh; skipped when the seed just ran
   create_startup_backup()         ← skipped for the pristine first-run seed copy
 ```
 

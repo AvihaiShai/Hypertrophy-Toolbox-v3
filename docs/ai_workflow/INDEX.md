@@ -53,4 +53,7 @@
   the agent workflow plan; default-manager activation remains Phase 6-gated).
 
 ## Baselines (gitignored, generated locally)
-- `baseline_pytest.txt`, `baseline_e2e.txt` — last full-suite outputs; not in git
+- `artifacts/baseline_pytest.txt`, `artifacts/baseline_e2e.txt` — last full-suite outputs; not in git
+- Generated output belongs under `artifacts/`, never the repository root. `/artifacts/`
+  is gitignored, and Playwright (`playwright.config.ts`), pytest's cache (`pytest.ini`),
+  and both CI workflows already write there.

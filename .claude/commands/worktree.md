@@ -24,11 +24,23 @@ If only one agent is active, stay in the main checkout — worktrees are overhea
 
 | Mode | What it does | Use when |
 |---|---|---|
-| `visual` (default) | Copies `e2e/fixtures/database.visual.seed.db` into `data/database.db`. If the fixture is missing, warns and leaves the DB absent so `app.py` initializes fresh on launch. | E2E or template work that expects the fixture dataset. |
-| `empty` | Leaves `data/database.db` absent. `app.py` will run `initialize_database()` on first launch. | Fresh dev / unit-test work. |
+| `visual` (default) | Copies `e2e/fixtures/database.visual.seed.db` into `data/database.db`. If the fixture is missing, warns and leaves the DB absent — see the seed note below for what launching then does. | E2E or template work that expects the fixture dataset. |
+| `empty` | Leaves `data/database.db` absent. **This no longer means an empty database** — see the seed note below. | Fresh dev / unit-test work. |
 | `copy-current` | Copies the main checkout's `data/database.db` if it exists. Warns about WAL/SHM sidecars; stop the source app first. | Reproducing a bug against your live local data. |
 
 The script always checks the source exists before copying — missing source warns and skips rather than failing the worktree creation.
+
+> **Seed note — "absent DB" is not "empty DB".** Since the packaging/privacy packet,
+> an absent `data/database.db` is populated on first `app.py` launch by
+> `bootstrap_runtime_database()`, which copies the tracked `data/catalog.seed.db`:
+> **1,897 exercises and zero user rows**. So `-Seed empty` gives you a clean
+> *catalog*, not a blank database. A genuinely empty schema comes only from
+> `run_all_initializers(force_base=True)` against a fresh `DB_FILE`, which is what
+> the pytest fixtures do — the seed bootstrap is deliberately never called from
+> `run_all_initializers()`. See `.claude/rules/database.md`.
+>
+> The script's own console text still says "app.py will initialize on first run",
+> which is true but incomplete; it does not mention the seed copy.
 
 ## Per-worktree, never shared
 

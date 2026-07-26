@@ -4,6 +4,34 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
+**2026-07-26 — root cleanup Packet C.** The root-cleanup / data-packaging track
+(Packets A0, A, A2, A3, B1, B2, B3) is shipped; `main` == `origin/main` ==
+`43691f2`; pytest baseline **1,856 passed / 1 skipped**. Packet C1
+(generated-output paths + documentation synchronization) is the change in flight.
+C2 (launcher/environment + user-facing distribution docs) and C3 (IDE tracking +
+root-policy closeout) follow as separate packets, with owner decisions already
+recorded. Plan of record: [`rootdircleanup.md`](rootdircleanup.md); full state and
+the packet ladder: [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md).
+
+The Phase-4 CSS track is **paused and owner-gated**, not abandoned. Its
+constraints — the ten deferred interaction-state declarations, the WP4.3i-c Page
+Header contract, WP4.3j (Workout Log) and WP4.4 (shared bundles) both unstarted —
+are recorded in `MASTER_HANDOVER.md` and still bind. Do not resume any CSS packet
+without explicit direction.
+
+WPB.4 also remains unimplemented and owner-gated: it requires retaining one
+synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
+intentional review of the exact golden diff before any behavior change.
+
+## Next Action
+
+Finish Packet C1, then C2, then C3 — each as its own PR, merged on green CI.
+Do not begin CSS, fatigue, or feature work.
+
+---
+
+## Superseded — prior objective (historical)
+
 **2026-07-19 — Phase-4 WP4.3d Volume Splitter dark/token cleanup is integrated
 into local `main` as history-preserving merge `40bc09f`.** Exact repeated
 status, accent, heading, and dark-surface values now use page-local semantic
@@ -22,11 +50,8 @@ DBs are unchanged. The narrow post-merge git-diff, contract, PostCSS, Flake8,
 tsc, Node-syntax, and Vitest gates passed; all protected identities remained
 unchanged. Nothing was pushed. Evidence:
 `docs/CSS_PHASE4_WP4_3D_EVIDENCE.md`.
-WPB.4 remains unimplemented and gated on retaining one synthetic `Unassigned` session,
-an explicit unresolved denominator decision, and intentional review of the exact golden
-diff before any behavior change.
 
-## Next Action
+### Next Action (as of 2026-07-19 — superseded)
 
 WP4.3d is integrated locally. Leave the branch/worktree intact; do not push or
 begin Welcome, another WP4.3 page, or WP4.4 until explicit direction.
