@@ -38,9 +38,6 @@ The script always checks the source exists before copying — missing source war
 > `run_all_initializers(force_base=True)` against a fresh `DB_FILE`, which is what
 > the pytest fixtures do — the seed bootstrap is deliberately never called from
 > `run_all_initializers()`. See `.claude/rules/database.md`.
->
-> The script's own console text still says "app.py will initialize on first run",
-> which is true but incomplete; it does not mention the seed copy.
 
 ## Per-worktree, never shared
 

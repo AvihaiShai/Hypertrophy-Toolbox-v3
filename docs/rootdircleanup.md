@@ -1467,13 +1467,12 @@ pass. `docs/CHANGELOG.md` gained the A0–B3 entry; the packets changed packagin
 runtime data location, migration, and catalog-update behavior, all user-visible,
 and none of it was recorded.
 
-**Deliberately not touched:** dated evidence documents
+**Deliberately not touched during C1:** dated evidence documents
 (`docs/CSS_PHASE4_*_EVIDENCE.md`, `docs/scan/**`, `docs/SCAN_FINDINGS.md`,
 `docs/archive/**`) — they were accurate when written, and rewriting history is a
-standing non-goal. Also untouched: `scripts/new-worktree.ps1`, to keep C1 free of
-executable changes. Its console text says "app.py will initialize on first run",
-which is true but does not mention the seed copy; `worktree.md` now records that
-gap explicitly.
+standing non-goal. C1 also left `scripts/new-worktree.ps1` untouched to keep that
+packet free of executable changes. A later documentation-only follow-up corrected
+its console text to mention both the catalog-seed copy and schema initialization.
 
 ### 8.2 Launcher and distribution modernization
 

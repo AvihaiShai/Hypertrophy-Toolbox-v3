@@ -15,7 +15,8 @@
 .PARAMETER Seed
     DB seed mode:
       visual       (default) copy e2e/fixtures/database.visual.seed.db
-      empty        leave data/database.db absent; app.py will initialize on launch
+      empty        leave data/database.db absent; app.py will copy the catalog
+                   seed and initialize the schema on launch
       copy-current copy the current checkout's data/database.db if it exists
 
 .PARAMETER BranchPrefix
@@ -116,17 +117,17 @@ switch ($Seed) {
             Write-Host "Seeded $TargetDb from visual fixture."
         }
         else {
-            $Fallback = if ($DbIsTracked) { "leaving the tracked HEAD copy in place" } else { "no DB present; app.py will initialize on first run" }
+            $Fallback = if ($DbIsTracked) { "leaving the tracked HEAD copy in place" } else { "no DB present; app.py will copy the catalog seed and initialize the schema on first run" }
             Write-Warning "Visual fixture not found at $Fixture. $Fallback."
         }
     }
     "empty" {
         if (Test-Path $TargetDb) {
             Remove-Item -LiteralPath $TargetDb -Force
-            Write-Host "Empty seed mode: removed checked-out $TargetDb. app.py will initialize on first run."
+            Write-Host "Empty seed mode: removed checked-out $TargetDb. app.py will copy the catalog seed and initialize the schema on first run."
         }
         else {
-            Write-Host "Empty seed mode: $TargetDb absent. app.py will initialize on first run."
+            Write-Host "Empty seed mode: $TargetDb absent. app.py will copy the catalog seed and initialize the schema on first run."
         }
     }
     "copy-current" {
@@ -137,7 +138,7 @@ switch ($Seed) {
             Write-Warning "WAL/SHM sidecars were NOT copied. Stop the source app before relying on this seed."
         }
         else {
-            $Fallback = if ($DbIsTracked) { "leaving the tracked HEAD copy in place" } else { "no DB present; app.py will initialize on first run" }
+            $Fallback = if ($DbIsTracked) { "leaving the tracked HEAD copy in place" } else { "no DB present; app.py will copy the catalog seed and initialize the schema on first run" }
             Write-Warning "Source data/database.db not found at $Source. $Fallback."
         }
     }
