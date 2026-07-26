@@ -1,6 +1,16 @@
-# Exercise Import Decisions
+# Repository Decisions
 
-This document captures the non-negotiable rules for the Excel to SQLite merge utility.
+This document records durable, cross-cutting project decisions as lightweight
+architecture decision records (ADRs). Accepted decisions remain here as
+historical context even when the code or tool that prompted them is later
+retired; changed decisions are superseded by a new ADR rather than silently
+rewritten.
+
+## Historical exercise-import rules
+
+The Excel-to-SQLite merge utility that these rules governed is no longer present
+under `scripts/`. The rules are retained as historical context for ADR-001, not
+as instructions for a currently supported command.
 
 - **Normalization rules**: Trim leading/trailing whitespace, collapse internal whitespace to a single space, and normalize endash/emdash characters to the ASCII hyphen before any comparisons.
 - **Exact name matching**: Import logic only merges rows whose normalized `exercise_name` strings are identical. No fuzzy, partial, or substring matching is permitted.
@@ -9,7 +19,7 @@ This document captures the non-negotiable rules for the Excel to SQLite merge ut
 - **Update-only flag**: `--update-only` converts unmatched Excel rows into skipped entries instead of inserts.
 - **Default paths**: Unless overridden, the tool reads from `data/exercises.xlsx`, writes to `data/database.db`, and emits Markdown artifacts in `docs/`.
 
-## Data semantics
+### Data semantics
 
 - Equipment semantics: The equipment field intentionally includes both gear (Barbell, Dumbbells, …) and categories (Yoga, Recovery, Stretches, Cardio). These are first-class filter values.
 - Enumerations: Incoming `force`, `mechanic`, and `difficulty` values are canonicalized to `Push`/`Pull`/`Hold`, `Compound`/`Isolation`, and `Beginner`/`Intermediate`/`Advanced` respectively before merging.
