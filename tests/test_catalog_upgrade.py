@@ -42,8 +42,8 @@ CATALOG_COLUMNS = (
 )
 
 
-def _exercise(name: str, **overrides) -> dict:
-    row = {column: None for column in CATALOG_COLUMNS}
+def _exercise(name: str, **overrides) -> dict[str, str | None]:
+    row: dict[str, str | None] = {column: None for column in CATALOG_COLUMNS}
     row["exercise_name"] = name
     row["primary_muscle_group"] = "Chest"
     row["equipment"] = "Barbell"
