@@ -22,7 +22,7 @@ Generate evidence-based workout plans with one click:
 1. Go to **Workout Plan** page
 2. Click the green **Generate Plan** button
 3. Configure your preferences:
-   - **Training Days**: 1-3 days per week
+   - **Training Days**: 1-5 days per week
    - **Environment**: Gym (full equipment) or Home (bodyweight/minimal)
    - **Experience Level**: Novice, Intermediate, or Advanced
    - **Goal**: Hypertrophy, Strength, or General fitness
@@ -45,31 +45,18 @@ Monitor your program balance on the **Weekly Summary** page:
 
 ---
 
-## 🔧 For Developers (Building the Executable)
+## 🔧 For Developers
 
-### Prerequisites
-- Python 3.10+ installed
-- All dependencies installed (`pip install -r requirements.txt`)
+**Python 3.11+** (CI runs 3.11; developed and built on 3.14).
 
-### Building the Standalone Executable
+Build and distribution steps live in one place — see
+[Building the Standalone Executable](README.md#-building-the-standalone-executable-for-developers)
+in `README.md`. In short: run `build_exe.bat`, then zip `dist/Hypertrophy-Toolbox/`.
 
-1. **Run the build script:**
-   ```
-   build_exe.bat
-   ```
-
-2. **Wait for build to complete** (3-5 minutes)
-
-3. **Find your executable in:**
-   ```
-   dist/Hypertrophy-Toolbox/
-   ```
-
-### Distributing to Users
-
-1. Zip the entire `dist/Hypertrophy-Toolbox/` folder
-2. Share the zip file
-3. Users extract and run `Hypertrophy-Toolbox.exe`
+The build installs its own pinned toolchain into `venv/` from `requirements.txt`
+and `requirements-build.txt`. Don't install PyInstaller by hand — an unpinned
+version makes "the build succeeded" a claim about whatever release happened to be
+current that day.
 
 ---
 
@@ -87,17 +74,16 @@ Monitor your program balance on the **Weekly Summary** page:
 - Manually open: http://localhost:5000
 
 ### Executable Build Fails
-- Make sure all dependencies are installed
-- Run: `pip install -r requirements.txt`
-- Run: `pip install pyinstaller`
+- Re-run `build_exe.bat`. It installs everything it needs into `venv/` on every
+  run, from `requirements.txt` and `requirements-build.txt`.
+- Do **not** `pip install pyinstaller` manually. The version is pinned in
+  `requirements-build.txt` on purpose; installing an unpinned one is how builds
+  stop being reproducible.
+- If it still fails, delete the `venv/`, `build/`, and `dist/` folders and run the
+  script again.
 
 ---
 
 ## 📁 File Overview
 
-| File | Purpose |
-|------|---------|
-| `START.bat` | Quick launcher for users with Python |
-| `build_exe.bat` | Creates standalone .exe (for developers) |
-| `app_launcher.py` | Wrapper for executable build |
-| `RUN_APP.bat` | Helper script included in executable |
+See [Launcher Files](README.md#-launcher-files) in `README.md`.

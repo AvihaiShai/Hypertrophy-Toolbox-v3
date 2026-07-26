@@ -26,12 +26,17 @@ for /f "tokens=*" %%i in ('python --version 2^>^&1') do set PYVER=%%i
 echo [OK] %PYVER% found
 echo.
 
-:: The build deliberately uses its own "venv", not the developer ".venv".
+:: The build deliberately uses "venv", not the developer ".venv".
 :: .venv has accumulated packages that requirements.txt never declares (pandas,
 :: numpy), so building from it makes the artifact depend on incidental developer
 :: state -- that is how the stale pandas/numpy hidden imports appeared to work.
-:: A dedicated environment built only from the committed requirements files is
-:: reproducible.
+:: An environment built only from the committed requirements files is reproducible.
+::
+:: Note that "venv" is shared with START.bat, which creates it for end users and
+:: installs only requirements.txt. So this environment is not isolated from the
+:: user launcher, only from ".venv" -- what keeps the build reproducible is the
+:: unconditional install of both requirements files below, which repairs a venv
+:: that START.bat created with the runtime set alone.
 
 :: Check if virtual environment exists, create if not
 if not exist "venv" (

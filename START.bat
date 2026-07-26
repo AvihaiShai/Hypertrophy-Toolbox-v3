@@ -103,4 +103,3 @@ venv\Scripts\python.exe app.py
 echo.
 echo [INFO] Server stopped.
 pause
-pause
