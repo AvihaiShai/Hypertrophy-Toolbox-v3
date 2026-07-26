@@ -4,8 +4,36 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-26 — no workstream is in flight. WP4.3j-a is merged at `99dfee1`
-(PR #181), and WP4.3j-b is complete as an audit-only, no-op investigation.**
+**2026-07-26 — no workstream is in flight. WP4.3j-b-dead is the latest shipped
+packet; WP4.3j-a is merged at `99dfee1` (PR #181), and WP4.3j-b was an
+audit-only, no-op investigation.**
+
+WP4.3j-b-dead is the deletion packet the j-b audit nominated but explicitly did
+not authorize. It removed three inert responsive families from
+`static/css/pages-workout-log.css` — the eight-query `RESPONSIVE FRAME
+ADJUSTMENTS` block, the first ladder's `thead th` / `td` padding and type blocks,
+and the base `.workout-log-frame` `padding: var(--frame-padding, 1.25rem)`
+declaration. Lines **2,180 → 2,025**; `@media` **17 → 9**. Every j-b claim was
+re-proven on a fresh branch cut from merged `main`: **385 declaration-instances
+examined across 14 widths, 0 ever a winning owner**; before vs after **0
+differing records / 504** and **14/14 zero-diff** frame pixels; invariants
+measured identical at every probe (cell padding `12px 16px`, font size
+`14.08px`, frame padding `0px`). Stylelint moved by **zero** (focused 717,
+total 5,784, `!important` 285, no category increased) — the deleted declarations
+triggered no rule, so the win is 155 non-rendering lines rather than a lint
+score. Gates: visuals **6/6** update-free, contracts **31/31**, focused
+functional Chromium **33/33**, full pytest **1,857 passed / 1 skipped**.
+Evidence: [`CSS_PHASE4_WP4_3J_B_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_3J_B_DEAD_EVIDENCE.md).
+
+Two oracle constraints carried forward: the **full-page pixel oracle is unusable
+on this route** (a same-CSS control drifts at 10 of 14 widths inside the animated
+navbar strip `y ∈ [18,40]` — scope pixel claims to the element under test), and a
+specificity model that mishandles `:is()` or splits selectors on a naive comma
+will **report an owner contradicting the computed value**. Retained on purpose
+and contract-asserted: the `992px` overflow rule, page padding, delete-button and
+icon sizing, routine-cell widths and typography, the late legend query, and the
+five now-empty first-ladder media shells.
+
 WP4.3j-a removed five overpainted dark-mode Workout Log table-cell declarations:
 `!important` **292 → 287**, visuals **6/6** update-free, contracts **30/30**,
 focused functional Chromium **33/33**, and full pytest **1,856 passed /
@@ -24,11 +52,11 @@ The root-cleanup / data-packaging track also remains CLOSED. All packets shipped
 all 225 checklist items in [`rootdircleanup.md`](rootdircleanup.md) are ticked,
 and that closed record must not be re-executed.
 
-The Phase-4 CSS track is paused and owner-gated. A separate Workout Log dead-CSS
-packet may target only the property families proven inert by j-b; WP4.4 may
-review the shared `:is()` specificity trap. Neither is authorized or started.
-The ten WP4.3i deferred interaction-state declarations and WP4.3i-c Page Header
-contract remain untouched.
+The Phase-4 CSS track is paused and owner-gated. The Workout Log dead-CSS packet
+that j-b nominated **has now shipped as WP4.3j-b-dead** and is closed. WP4.4 may
+review the shared `:is()` specificity trap; it is not authorized or started, and
+neither is j-c header/cell-glass work. The ten WP4.3i deferred interaction-state
+declarations and WP4.3i-c Page Header contract remain untouched.
 
 WPB.4 also remains unimplemented and owner-gated: it requires retaining one
 synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
@@ -37,8 +65,9 @@ intentional review of the exact golden diff before any behavior change.
 ## Next Action
 
 Await owner direction. Nothing is in flight, and no packet is waiting to be
-picked up. Do not begin the Workout Log deletion candidate, WP4.4, fatigue, or
-feature work — and do not reopen the root-cleanup track.
+picked up. The Workout Log deletion candidate is **done** (WP4.3j-b-dead). Do not
+begin WP4.3j-c, WP4.4, fatigue, or feature work — and do not reopen the
+root-cleanup track.
 
 ---
 

@@ -3,7 +3,8 @@
 **Status (2026-07-26): Track A, Phases -1 through 3, and Phase-4 packets
 WP4.-1, WP4.0a, WP4.0, WP4.1, WP4.2, and WP4.3a–WP4.3h are complete, as is the
 WP4.3i Workout Plan dead-CSS arc through WP4.3i-filter-btn. WP4.3j-a is merged,
-and WP4.3j-b is complete as an audit-only no-op.** WP2.2 is committed
+WP4.3j-b is complete as an audit-only no-op, and WP4.3j-b-dead has shipped the
+deletion it nominated.** WP2.2 is committed
 as `c461840`; optional WP3.6 is committed as `0cbedac`. WP4.0 measurement
 provenance remains unchanged head `e46b67e`, with its ledger committed as
 `ca725c2`. Local integration verification through WP4.3d is complete
@@ -80,10 +81,26 @@ dead-CSS packet on this page must pair the sweep with a rest-state differential
    ladder's page/button/routine families, and the separate legend query were not
    measured and are not classified as dead. Evidence:
    [`CSS_PHASE4_WP4_3J_B_EVIDENCE.md`](CSS_PHASE4_WP4_3J_B_EVIDENCE.md).
-   A separate deletion packet limited to the proven-inert families and j-c
-   header/cell glass are **not started** and stay owner-gated. The shared
-   ID-bearing `:is()` specificity finding belongs to WP4.4 and is recorded, not
-   acted on.
+   **WP4.3j-b-dead then SHIPPED the deletion packet j-b had only nominated.** It
+   removed the eight-query `RESPONSIVE FRAME ADJUSTMENTS` block, the first
+   ladder's `thead th` / `td` padding and type blocks, and the base
+   `.workout-log-frame` `padding: var(--frame-padding, 1.25rem)` declaration:
+   lines **2,180 → 2,025**, `@media` **17 → 9**. Every j-b claim was re-proven on
+   a branch cut fresh from merged `main` — **385 declaration-instances across 14
+   widths, 0 ever a winning owner**; before vs after **0 differing records / 504**
+   and **14/14 zero-diff** frame pixels; invariants measured identical
+   (`12px 16px`, `14.08px`, `0px`). Gates: visuals **6/6** update-free, contracts
+   **31/31** (red path proven), functional Chromium **33/33**, pytest **1,857 / 1
+   skipped**. Stylelint moved by **zero** and is reported as zero. Evidence:
+   [`CSS_PHASE4_WP4_3J_B_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_3J_B_DEAD_EVIDENCE.md).
+   **Two oracle rules added by this packet:** the full-page pixel oracle is
+   unusable on this route (same-CSS control drifts at 10/14 widths inside the
+   animated navbar strip `y ∈ [18,40]` — scope pixel claims to the element under
+   test), and a specificity model that mishandles `:is()` or splits selectors on a
+   naive comma will report an owner contradicting the computed value.
+   **j-c header/cell glass is still not started** and stays owner-gated. The
+   shared ID-bearing `:is()` specificity finding belongs to WP4.4 and is recorded,
+   not acted on.
 6. Deferred and unacted: the superset dark-tint gap (`--superset-bg-1..4` has no
    live dark override) and the dead `body.dark-mode` in
    `static/css/layout.css:1120` (→ WP4.4).

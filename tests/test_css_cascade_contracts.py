@@ -1409,3 +1409,117 @@ def test_workout_plan_drops_dead_filter_button_family() -> None:
     assert not re.search(r"\{\s*\}", css)
     assert css.count("@layer workout {") == 1
     assert css.count("@layer workout-dropdowns {") == 1
+
+
+def test_workout_log_drops_inert_responsive_table_and_frame_families() -> None:
+    """WP4.3j-b-dead: the responsive families the j-b audit proved inert are gone.
+
+    Three families were deleted from `pages-workout-log.css`, each because a
+    browser walk at fourteen widths (1200/1201 ... 2560/2561) showed it never
+    owned a computed value:
+
+    * the eight-query `RESPONSIVE FRAME ADJUSTMENTS` ladder -- its frame padding
+      lost to the important zero-padding `html body .workout-log-frame` rule, and
+      its `thead th` padding/font-size lost to the important `:is()` table-cell
+      rule in `components.css`;
+    * the `thead th` and `td` padding/font-size/letter-spacing blocks in the
+      first responsive ladder, which lost to that same shared rule;
+    * the base `.workout-log-frame` `padding: var(--frame-padding, ...)`
+      declaration, which lost to the same important zero-padding rule.
+
+    The second half of this contract is the more important half: the families the
+    audit did *not* classify -- the 992px table overflow rule, page padding,
+    delete-button and icon sizing, routine-cell widths and typography, and the
+    late legend query -- must still be present. This packet was a deletion of
+    proven-dead declarations, not a redesign of responsive behavior.
+    """
+    css = (ROOT / "static" / "css" / "pages-workout-log.css").read_text(
+        encoding="utf-8"
+    )
+    body = COMMENT_RE.sub("", css)
+
+    # --- 1. The eight-query frame ladder is gone. ---
+    # Only the standalone media-gated rules were deleted. The same selector still
+    # appears as a comma arm of the live base header group, which must survive --
+    # hence matching on the `{` terminator rather than the bare selector.
+    assert "RESPONSIVE FRAME ADJUSTMENTS" not in body
+    assert ".workout-log-frame .workout-log-table thead th {" not in body
+    assert ".workout-log-frame .workout-log-table thead th,\n" in body
+    for dead_padding in (
+        "padding: 0.35rem 0.15rem;",
+        "padding: 0.4rem 0.175rem;",
+        "padding: 0.425rem 0.2rem;",
+        "padding: 0.45rem 0.225rem;",
+        "padding: 0.5rem 0.25rem;",
+        "padding: 0.65rem 0.35rem;",
+        "padding: 0.85rem 0.5rem;",
+    ):
+        assert dead_padding not in body
+
+    # --- 2. The base frame padding declaration is gone; the owner remains. ---
+    assert "--frame-padding" not in body
+    assert "html body .workout-log-frame," in body
+    owner = re.search(
+        r"html body \.workout-log-frame,\s*html body \.workout-log-frame \.tbl-wrap \{[^}]*\}",
+        body,
+    )
+    assert owner is not None
+    assert "padding: 0 !important;" in owner.group(0)
+
+    # --- 3. The dead first-ladder cell blocks are gone. ---
+    # Anchored on the media-query indent: `table.workout-log-table thead th {`
+    # closes the live base group at column 0 and must not be matched here.
+    for dead_cell_rule in (
+        "\n    .workout-log-table thead th {",
+        "\n    .workout-log-table td {",
+    ):
+        assert dead_cell_rule not in body
+
+    # --- 4. The shared owner that beat them is untouched. ---
+    components = (ROOT / "static" / "css" / "components.css").read_text(
+        encoding="utf-8"
+    )
+    assert '#workout[data-page="workout-plan"], .workout-log-page' in components
+    assert "var(--wp-table-cell-padding, 0.75rem 1rem) !important" in components
+    assert "var(--wp-table-fs, 0.88rem) !important" in components
+
+    # --- 5. Every explicitly out-of-scope responsive family survives. ---
+    # The 992px table overflow rule.
+    overflow = re.search(
+        r"@media \(max-width: 992px\) \{\s*\.workout-log-table \{[^}]*\}", body
+    )
+    assert overflow is not None
+    assert "overflow-x: auto;" in overflow.group(0)
+    assert "display: block;" in overflow.group(0)
+
+    # Page padding, delete-button and icon sizing, routine-cell width + type.
+    assert ".workout-log-page {\n        padding: 0 !important;\n    }" in body
+    assert ".workout-log-table .btn-danger.btn-sm {" in body
+    assert ".workout-log-table .btn-danger i {" in body
+    assert "min-width: 28px !important;" in body
+    assert "min-width: 30px !important;" in body
+    assert ".workout-log-table .routine-cell {" in body
+    assert ".workout-log-table .routine-cell .routine-program {" in body
+
+    # The separate late legend query.
+    legend = re.search(
+        r"@media \(max-width: 1200px\) \{\s*\.legend-item \{[^}]*\}", body
+    )
+    assert legend is not None
+    assert "min-width: 180px;" in legend.group(0)
+
+    # --- 6. The ladder shells are retained, only their dead rules removed. ---
+    for shell in (
+        "@media (min-width: 1281px) and (max-width: 1366px) {",
+        "@media (min-width: 1367px) and (max-width: 1536px) {",
+        "@media (min-width: 1537px) and (max-width: 1600px) {",
+        "@media (min-width: 1921px) and (max-width: 2560px) {",
+        "@media (min-width: 2561px) {",
+    ):
+        assert shell in body
+
+    # --- 7. Deleting inert declarations must not have added weight. ---
+    # None of the deleted declarations carried `!important`, so the real
+    # declaration count is unchanged rather than reduced. Counted on the
+    # comment-stripped body: three of the file's raw occurrences sit in prose.
+    assert body.count("!important") == 285

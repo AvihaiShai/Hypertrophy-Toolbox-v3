@@ -4,7 +4,49 @@
 
 ## Current State
 
-> **2026-07-26 (LATEST) — WP4.3j-a is merged; WP4.3j-b closed as an audit-only
+> **2026-07-26 (LATEST) — WP4.3j-b-dead SHIPPED: the deletion packet the j-b
+> audit nominated but did not authorize.** It removed the three responsive
+> families j-b proved inert from `static/css/pages-workout-log.css`: the complete
+> eight-query `RESPONSIVE FRAME ADJUSTMENTS` block, the `thead th` / `td`
+> padding/type blocks in the first responsive ladder, and the base
+> `.workout-log-frame` `padding: var(--frame-padding, 1.25rem)` declaration.
+> **Lines 2,180 → 2,025 (−155); `@media` 17 → 9.**
+>
+> **The j-b findings were re-proven from scratch, not trusted.** A fresh 14-width
+> browser walk (1200/1201 … 2560/2561) examined **385 declaration-instances** in
+> the deletion scope and found **0** that ever owned a computed value. Before vs
+> after: **0 differing records / 504** and **14/14 zero-diff** frame pixels.
+> Measured invariants, identical on both sides at every probe: cell padding
+> `12px 16px`, font size `14.08px`, frame padding `0px`.
+>
+> **Two oracle lessons, both worth keeping.** (1) The **full-page pixel oracle is
+> unusable on this route** — a same-CSS control drifted at 10 of 14 widths, all of
+> it inside the animated navbar strip `y ∈ [18,40]`. The oracle was scoped to
+> `.workout-log-frame`, where the claim lives. (2) A regex specificity model with
+> a naive `,` split **reported an owner that contradicted the measured computed
+> value**, because it shreds the `components.css` `:is(...)` selector and does not
+> give `:is()` the specificity of its most specific argument. A reported owner
+> that disagrees with the computed value is a broken oracle, not a finding.
+>
+> **Stylelint moved by zero, and that is reported as zero** — focused 717 → 717,
+> total 5,784 → 5,784, no category increased, `!important` 285 → 285. None of the
+> deleted declarations triggered a rule in this config. The win is 155 lines that
+> could never render.
+>
+> Gates: visuals **6/6** update-free (`PW_VISUAL_SEED=1`, no baseline updated),
+> contracts **31/31** (30 + one new, red path proven), focused functional Chromium
+> **33/33**, full pytest **1,857 passed / 1 skipped** (baseline 1,856 + the new
+> contract). Evidence:
+> [`CSS_PHASE4_WP4_3J_B_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_3J_B_DEAD_EVIDENCE.md).
+>
+> Deliberately retained and asserted present by the contract: the `992px` table
+> overflow rule, page padding, delete-button/icon sizing, routine-cell widths and
+> typography, and the late legend query. The five first-ladder media **shells**
+> that became empty were kept with an explanatory comment — collapsing them is
+> structural work, not deletion of dead declarations. **j-c and WP4.4 remain
+> unstarted and owner-gated.**
+>
+> **2026-07-26 — WP4.3j-a is merged; WP4.3j-b closed as an audit-only
 > no-op.** WP4.3j-a reached `main` through PR #181 at **`99dfee1`**, removing
 > five overpainted dark-mode table-cell `background-color` declarations.
 > Production delta: five deletions; `!important` **292 → 287**; focused and
