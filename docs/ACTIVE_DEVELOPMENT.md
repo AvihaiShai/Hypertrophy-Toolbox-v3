@@ -4,14 +4,16 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-26 — root cleanup Packet C.** The root-cleanup / data-packaging track
-(Packets A0, A, A2, A3, B1, B2, B3) is shipped; `main` == `origin/main` ==
-`43691f2`; pytest baseline **1,856 passed / 1 skipped**. Packet C1
-(generated-output paths + documentation synchronization) is the change in flight.
-C2 (launcher/environment + user-facing distribution docs) and C3 (IDE tracking +
-root-policy closeout) follow as separate packets, with owner decisions already
-recorded. Plan of record: [`rootdircleanup.md`](rootdircleanup.md); full state and
-the packet ladder: [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md).
+**2026-07-26 — no workstream is in flight. The root-cleanup / data-packaging
+track is CLOSED.** Every packet shipped — A0, A, A2, A3, B1, B2, B3, C1, C2, C3,
+plus a documentation follow-up. The last code-bearing commit of the track is
+`2a30bda` (#179); this closeout entry is the only thing after it. pytest
+baseline **1,856 passed / 1 skipped**. All 225 checklist items in
+[`rootdircleanup.md`](rootdircleanup.md) are ticked and its §13 Definition of Done
+is met, so **that document is a closed record — do not execute its checklists.**
+Its durable outputs are the ADR-002 root-file policy in
+[`DECISIONS.md`](DECISIONS.md) and the invariants summarized in
+[`MASTER_HANDOVER.md`](MASTER_HANDOVER.md), which is where the packet ladder lives.
 
 The Phase-4 CSS track is **paused and owner-gated**, not abandoned. Its
 constraints — the ten deferred interaction-state declarations, the WP4.3i-c Page
@@ -25,8 +27,9 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-Finish Packet C1, then C2, then C3 — each as its own PR, merged on green CI.
-Do not begin CSS, fatigue, or feature work.
+Await owner direction. Nothing is in flight, and no packet is waiting to be
+picked up. Do not begin CSS, fatigue, or feature work — and do not reopen the
+root-cleanup track.
 
 ---
 

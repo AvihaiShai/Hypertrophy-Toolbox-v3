@@ -4,12 +4,16 @@
 
 ## Current State
 
-> **2026-07-26 (LATEST) — the root-cleanup / data-packaging track shipped
-> Packets A0, A, A2, A3, B1, B2, and B3. Local `main` == `origin/main` ==
-> `43691f2`.** This supersedes the 2026-07-25 CSS note below **as to HEAD only**;
-> that note remains the authoritative record of the WP4.3i arc and its commit
-> ladder, and every CSS constraint it lists is still binding. Plan of record:
-> [`docs/rootdircleanup.md`](rootdircleanup.md). Exact ladder:
+> **2026-07-26 (LATEST) — the root-cleanup / data-packaging track is COMPLETE
+> and CLOSED. Every packet — A0, A, A2, A3, B1, B2, B3, C1, C2, C3 — is merged.
+> The track's last code-bearing commit is `2a30bda` (#179); only this closeout
+> entry follows it.** This supersedes the 2026-07-25
+> CSS note below **as to HEAD only**; that note remains the authoritative record
+> of the WP4.3i arc and its commit ladder, and every CSS constraint it lists is
+> still binding. Closed record:
+> [`docs/rootdircleanup.md`](rootdircleanup.md) — read it for the *reasoning*
+> behind the invariants below, but **do not execute its checklists**; all 225 are
+> ticked and its §13 Definition of Done is met. Exact ladder:
 >
 > | Packet | Commit | PR | What it did |
 > |---|---|---|---|
@@ -23,11 +27,18 @@
 > | B1 | `a7883d4` | #173 | `utils/runtime_paths.py` resolver; logs left the install directory; no import-time directory creation |
 > | B2 | `abfc048` | #174 | Frozen `DB_FILE` switch **atomically with** verified non-destructive legacy migration |
 > | B3 | `43691f2` | #175 | Content-addressed catalog versioning; additive/update-only catalog upgrade |
+> | C1 | `d620af8` | #176 | Generated output routed to the gitignored `artifacts/`; docs synced with A0–B3 |
+> | C2 | `3365627` | #177 | Corrected launcher environment, Python version, and distribution docs |
+> | C3 | `1e28b3b` | #178 | `.idea/` untracked (left on disk); `.vscode/launch.json` fixed; ADR-002 root policy |
+> | Follow-up | `2a30bda` | #179 | Closed doc gaps; `new-worktree.ps1` console text now mentions the seed copy |
 >
 > **pytest baseline: 1,856 passed / 1 skipped** (re-verified on `43691f2`,
-> 2026-07-26). The single skip is the POSIX-only executable-bit staging test that
+> 2026-07-26; unchanged through `2a30bda` — Packets C1–C3 altered no runtime
+> behavior). The single skip is the POSIX-only executable-bit staging test that
 > cannot assert on Windows. Baseline ladder across the track:
-> 1,753 → 1,772 (A) → 1,785 (A2) → 1,792 (A3) → 1,812 (B1) → 1,837 (B2) → 1,856 (B3).
+> 1,753 → 1,772 (A) → 1,785 (A2) → 1,792 (A3) → 1,812 (B1) → 1,837 (B2) → 1,856 (B3)
+> → 1,856 (C1–C3, docs only). PR #179 also ran the **full** Playwright suite green
+> — both functional shards, smoke, backup, fatigue context, and erase flow.
 >
 > **What changed that earlier docs may still contradict:**
 > - **The tracked database is gone.** `data/database.db` is untracked and ignored;
@@ -55,21 +66,28 @@
 > - **Packaging is allowlist-based and verified against the real build output**,
 >   with a `windows-latest` deep-gate job launching the actual bootloader.
 >
-> **Root cleanup Packet C is IN PROGRESS.** C1 (generated-output paths +
-> documentation synchronization) is this change. Owner-approved decisions for the
-> remaining packets, recorded 2026-07-26:
-> - **C2** — keep `venv/` (build + user launcher) and `.venv/` (dev) separate and
->   fix only the docs that misdescribe them; declare **"Python 3.11+, developed and
->   built on 3.14"**; keep `QUICK_START.md` but trim its duplication of `README.md`.
-> - **C3** — fix `.vscode/launch.json` and keep it tracked; untrack `.idea/`
->   with `git rm --cached` (**never delete from disk**); document the root-file
->   policy as an ADR in `docs/DECISIONS.md` with a pointer from `CLAUDE.md`
->   (which is at 189/200 lines and cannot absorb the table inline).
-> - **Not doing:** splitting `requirements.txt`. Test tooling never reaches the
->   distribution (verified by inspecting `dist/`), and 14 required-check CI steps
->   install it.
-> - **Nothing moves out of the repository root** — all 24 tracked root files map to
->   an approved category.
+> **Root cleanup Packet C SHIPPED, closing the track.** What it settled, all
+> owner-approved 2026-07-26 and now merged:
+> - **C1** — generated output (baselines, reports, screenshots, scratch DBs) goes
+>   under the gitignored `artifacts/`, never the repository root.
+> - **C2** — `venv/` (build + user launcher) and `.venv/` (dev) stay separate,
+>   because `venv/` carries pinned PyInstaller and no pandas/NumPy while `.venv/`
+>   carries undeclared pandas + NumPy; only the docs that misdescribed them were
+>   fixed. Declared **"Python 3.11+, developed and built on 3.14."**
+>   `QUICK_START.md` kept, its unpinned `pip install pyinstaller` corrected.
+> - **C3** — `.vscode/launch.json` fixed (its `flask run` config bypassed
+>   `app.py`'s `use_reloader=False` guard) and kept tracked; `.idea/` untracked
+>   with `git rm --cached`, left on disk; the root-file policy recorded as
+>   **ADR-002** in `docs/DECISIONS.md`, pointed to from `CLAUDE.md` §3.
+> - **Not done, deliberately:** splitting `requirements.txt`. Test tooling never
+>   reaches the distribution (verified by inspecting `dist/`), and 14
+>   required-check CI steps install it.
+> - **Nothing moved out of the repository root** — all 24 tracked root files map
+>   to an approved ADR-002 category. The audit that opened by assuming the root
+>   was clutter found **no root file that was clutter**; the real defects were the
+>   tracked user database, recursive packaging inputs, a frozen app writing into
+>   its own install directory, and installs that could never receive catalog
+>   updates. All four are fixed.
 >
 > **2026-07-25 — the WP4.3i Workout Plan dead-CSS arc is fully SHIPPED
 > and PUSHED. `origin/main` was `95f30c1` at the time of this entry** (superseded
