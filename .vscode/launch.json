@@ -2,17 +2,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            // --no-reload is load-bearing, do not remove it. This config runs
+            // `flask run`, which bypasses app.py's __main__ block and therefore
+            // its use_reloader=False guard. With the reloader on, Werkzeug forks
+            // a child that re-runs all module-level startup -- now including the
+            // Packet B runtime migration and seed bootstrap -- in two processes
+            // against one database. app.py avoids that deliberately; so does this.
+            //
+            // FLASK_DEBUG=1 is kept on purpose: it enables the debugger, and
+            // utils/database.py reads it to select DELETE journal mode instead of
+            // WAL, which is the safer mode during development. FLASK_ENV was
+            // removed -- Flask has ignored it since 2.3, and the one place that
+            // still reads it (utils/database.py) already gets the same answer
+            // from FLASK_DEBUG.
             "name": "Flask (Hypertrophy Toolbox)",
             "type": "debugpy",
             "request": "launch",
             "module": "flask",
             "env": {
                 "FLASK_APP": "app.py",
-                "FLASK_ENV": "development",
                 "FLASK_DEBUG": "1"
             },
             "args": [
                 "run",
+                "--no-reload",
                 "--host",
                 "localhost",
                 "--port",
