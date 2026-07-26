@@ -543,7 +543,9 @@ erase-flow 2. The full Playwright inventory is 505 tests across 30 specs.
 - Archive the v2 candidates plus `seed_visual_baseline.py` only after updating its docs
   and static-analysis disposition; do not confuse it with
   `e2e/scripts/build_visual_seed.py` or `prepare_visual_db.py`.
-- Remove root `baseline_e2e.txt`/`baseline_pytest.txt` and ignore future copies.
+- ~~Remove root `baseline_e2e.txt`/`baseline_pytest.txt` and ignore future copies.~~
+  **Done** — the files were removed and `/baseline*.txt` is ignored (`.gitignore`);
+  the generating command now writes to `artifacts/` (root-cleanup Packet C1).
 - Gate: full pytest, pyright baseline diff, visual seed smoke, CI.
 
 ### WP0.4 JavaScript dead-code sweep

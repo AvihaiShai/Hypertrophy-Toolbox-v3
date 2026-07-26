@@ -43,14 +43,22 @@ Any change to core workflow behavior (plan/log/analyze/progress/distribute/backu
 ## 2. Architecture
 
 ### Startup sequence (`app.py`)
-`app.py` initializes the schema through a single call to `run_all_initializers(force_base=False)` (defined in `utils/schema_registry.py`, WP2.6) — the per-table `initialize_*` / `add_*_table` functions are registered there, not called individually from `app.py`. It then snapshots the live DB via `create_startup_backup()`, registers 13 blueprints (`register_blueprint` calls in `app.py`), plus one direct route: `POST /erase-data` (`erase_data()` in `app.py`) — the erase route is **not** a blueprint.
+The order is load-bearing — `.claude/rules/database.md` has the reasoning:
+```
+prepare_runtime_database()              ← moves a legacy DB out of the install dir, once
+bootstrap_runtime_database()            ← copies data/catalog.seed.db only when DB_FILE is missing
+run_all_initializers(force_base=False)  ← canonical schema registry (utils/schema_registry.py, WP2.6)
+upgrade_catalog_from_seed()             ← additive catalog refresh; skipped on a fresh seed
+create_startup_backup()                 ← also skipped on a fresh seed
+```
+The per-table `initialize_*` / `add_*_table` functions are registered in `utils/schema_registry.py`, not called individually from `app.py`. Seeding and catalog upgrade are called **only** from real `app.py` startup, never from `run_all_initializers()` — the test suite creates empty schemas on purpose. `app.py` then registers 13 blueprints (`register_blueprint` calls in `app.py`), plus one direct route: `POST /erase-data` (`erase_data()` in `app.py`) — the erase route is **not** a blueprint.
 
 ### Module boundaries
 ```
 app.py                 ← startup + middleware only; no business logic
   routes/*.py          ← HTTP: validate input → call utils → return response
     utils/*.py         ← all business logic + DB queries
-      utils/database.py → DatabaseHandler → data/database.db (SQLite)
+      utils/database.py → DatabaseHandler → SQLite (path resolved by utils/runtime_paths.py)
 ```
 
 - Routes import from utils; utils never import from routes.
@@ -92,7 +100,7 @@ app.py                 ← startup + middleware only; no business logic
 from utils.logger import get_logger
 logger = get_logger()
 ```
-Returns the `'hypertrophy_toolbox'` named logger (`utils/logger.py`). Logs to `logs/app.log` (rotating 10MB × 5) and console (INFO+).
+Returns the `'hypertrophy_toolbox'` named logger (`utils/logger.py`). Logs to `<runtime root>/logs/app.log` (rotating 10MB × 5) and console (INFO+). The runtime root is the repository in a source checkout and `%LOCALAPPDATA%\HypertrophyToolbox` in a frozen build — never assume repository-local paths (`utils/runtime_paths.py`).
 
 ### DatabaseHandler pattern
 ```python
@@ -109,7 +117,8 @@ with DatabaseHandler() as db:
 ### Env vars (`utils/config.py`)
 | Variable | Default | Effect |
 |---|---|---|
-| `DB_FILE` | `data/database.db` | SQLite path. Tests patch `utils.config.DB_FILE` directly. |
+| `DB_FILE` | `<runtime root>/data/database.db` | SQLite path; wins over every resolved path. Tests patch `utils.config.DB_FILE` directly. |
+| `HT_RUNTIME_DIR` | unset | Relocates the whole runtime tree (database, backups, logs) in one move. The supported portable-install mechanism. |
 | `FLASK_DEBUG` | `'0'` in `app.py`; `'1'` in `utils/database.py` | Controls Flask debug AND journal mode |
 | `FLASK_USE_RELOADER` | `'0'` | Auto-reload (off by default — avoids WAL corruption) |
 | `TESTING` | unset | Set to `'1'` by `tests/conftest.py` |
@@ -146,9 +155,10 @@ npx playwright test --project=chromium --reporter=line
 - [ ] Write tests in `tests/test_myfeature.py`.
 
 ### B. Refactor safely
-1. **Before**: run full test suite, record baseline.
+1. **Before**: run full test suite, record baseline. Generated output goes under the gitignored `artifacts/`, never the repository root.
    ```bash
-   .venv/Scripts/python.exe -m pytest tests/ -q > baseline.txt 2>&1
+   mkdir -p artifacts
+   .venv/Scripts/python.exe -m pytest tests/ -q > artifacts/baseline_pytest.txt 2>&1
    ```
 2. **Scope**: Grep for function/class name across `routes/`, `utils/`, `templates/`, `tests/`.
 3. **Change**: one module at a time, keeping old interface as a thin wrapper if callers span multiple files.

@@ -1,9 +1,12 @@
 # Root Directory Cleanup and Data Packaging Safety Plan
 
-**Status:** Packets A0, A, and A2 shipped. Packet A3 and Packet B are
-owner-approved and next; Packet C is unstarted.
+**Status:** Packets A0, A, A2, A3, B1, B2, and B3 are shipped and merged
+(`origin/main` at `43691f2`). Packet C is owner-approved and in progress: **C1
+shipped** (generated-output paths + documentation synchronization); **C2**
+(launcher/environment + user-facing distribution docs) and **C3** (IDE tracking +
+root-policy closeout) are next, as separate packets.
 
-**Last evidence pass:** 2026-07-26
+**Last evidence pass:** 2026-07-26 — pytest baseline **1,856 passed / 1 skipped**
 
 **Scope:** Repository-root hygiene, shipped database privacy, PyInstaller data
 allowlisting, first-run database bootstrap, and the later runtime-data location
@@ -1413,13 +1416,64 @@ boundary is safe.
 
 ### 8.1 Root generated-output policy
 
-- [ ] Redirect baseline output to `artifacts/` instead of the root.
-- [ ] Update the baseline command in `CLAUDE.md`.
-- [ ] Update `docs/ai_workflow/INDEX.md`, which currently documents root
+- [x] Redirect baseline output to `artifacts/` instead of the root.
+- [x] Update the baseline command in `CLAUDE.md`.
+- [x] Update `docs/ai_workflow/INDEX.md`, which currently documents root
       `baseline_*.txt` files.
-- [ ] Keep root screenshot patterns ignored as defense in depth.
-- [ ] Prefer tools that write screenshots and reports directly under
-      `artifacts/`.
+- [x] Keep root screenshot patterns ignored as defense in depth. *(Already true
+      before Packet C: `.gitignore` carries `/baseline*.txt` and the four root
+      screenshot patterns, and the root is physically clean of both.)*
+- [x] Prefer tools that write screenshots and reports directly under
+      `artifacts/`. *(Already true before Packet C: `playwright.config.ts` routes
+      report, test-results, and the throwaway E2E database under `artifacts/`;
+      `pytest.ini` sets `cache_dir = artifacts/pytest/cache`; both CI workflows
+      write only there. No script writes a root PNG.)*
+
+A fourth reference the original checklist missed was also updated:
+`docs/REFACTOR_PLAN.md`'s WP0.x line calling for root `baseline_*.txt` removal.
+
+#### Recorded C1 results
+
+Shipped from `origin/main` at `43691f2`, pytest baseline **1,856 passed /
+1 skipped** unchanged — the packet touches no executable code.
+
+Beyond §8.1, C1 reconciled the documentation drift the completed packets left
+behind. `docs/MASTER_HANDOVER.md` still described `95f30c1` and the WP4.3i CSS
+arc, with **zero** mentions of Packets A0–B3, `catalog.seed.db`,
+`runtime_paths`, or PRs #166–#175 — the file new sessions are told to read first
+was seven packets stale. Its WP4.3i commit ladder and CSS constraints were
+preserved intact and the new state prepended above them.
+
+`CLAUDE.md` was the more dangerous case: it is always loaded, whereas the fully
+current `.claude/rules/database.md` loads only when editing `utils/database*.py`.
+Its §2 startup sequence omitted migration, seed bootstrap, and catalog upgrade
+entirely and described `create_startup_backup()` as unconditional; its env table
+had no `HT_RUNTIME_DIR`; and it presented database and log paths as universally
+repository-local. All corrected, landing at **189/200 lines** against its own cap
+— which is why §8.4's root policy belongs in an ADR rather than inline.
+
+Two further corrections, one of them a behavior contradiction rather than a
+staleness: `.claude/commands/worktree.md` documented `-Seed empty` as producing a
+database that `app.py` fills via `initialize_database()`. Both halves were wrong
+— that function is not what startup calls, and since Packet A an absent database
+is seeded with **1,897 exercises**. Anyone relying on `empty` was getting the
+opposite of the documented behavior. `.claude/rules/database.md`'s startup
+diagram was missing `upgrade_catalog_from_seed()` (B3 documented it in prose but
+not in the diagram).
+
+`docs/ACTIVE_DEVELOPMENT.md`, which calls itself the execution source of truth,
+was frozen further back still (2026-07-19, WP4.3d) and was refreshed in the same
+pass. `docs/CHANGELOG.md` gained the A0–B3 entry; the packets changed packaging,
+runtime data location, migration, and catalog-update behavior, all user-visible,
+and none of it was recorded.
+
+**Deliberately not touched:** dated evidence documents
+(`docs/CSS_PHASE4_*_EVIDENCE.md`, `docs/scan/**`, `docs/SCAN_FINDINGS.md`,
+`docs/archive/**`) — they were accurate when written, and rewriting history is a
+standing non-goal. Also untouched: `scripts/new-worktree.ps1`, to keep C1 free of
+executable changes. Its console text says "app.py will initialize on first run",
+which is true but does not mention the seed copy; `worktree.md` now records that
+gap explicitly.
 
 ### 8.2 Launcher and distribution modernization
 
@@ -1753,13 +1807,54 @@ schema changes, and merges only on green CI.
 The verified starting point for this sequence is `origin/main` at
 `631f61a13036861841a00ce8360d40b6698f16f8`.
 
+### Packet C authorization checklist
+
+Owner approval recorded on 2026-07-26, after an audit that verified the starting
+state rather than trusting the checklist boxes. All four recommended options were
+accepted.
+
+- [x] **C-D1. `venv/` and `.venv/` stay separate; fix only the docs.** Measured:
+      `venv/` carries PyInstaller 6.21.0 and **no** pandas/NumPy; `.venv/` carries
+      pandas + NumPy (undeclared) and no PyInstaller. Building from `.venv` would
+      reintroduce exactly the defect A0 fixed. Newly found and to be corrected in
+      C2: `venv/` is **co-owned** by `START.bat`, so `build_exe.bat`'s comment
+      claiming a dedicated environment overstates the isolation, and `README.md`'s
+      developer setup points at `venv/` while every tool config assumes `.venv`.
+- [x] **C-D2. Declare "Python 3.11+, developed and built on 3.14."** Five sources
+      disagreed: CI and pyright say 3.11, `QUICK_START.md` says 3.10+ (untested by
+      anything), `README.md` says 3.14, `.idea/` says 3.12, both venvs run 3.14.4.
+- [x] **C-D3. Keep `QUICK_START.md`, trim its duplication of `README.md`.** It
+      holds genuinely unique content, but line 92 instructs an **unpinned**
+      `pip install pyinstaller` — a live regression against A0's reproducible
+      build contract, and the one policy regression this audit found.
+- [x] **C-D4. Fix `.vscode/launch.json` and keep it tracked.** Its Flask config
+      uses `flask run` with `FLASK_DEBUG=1`, bypassing `app.py`'s
+      `use_reloader=False` guard — the exact double-process condition that
+      comment says causes database corruption, now also re-running Packet B
+      migration and seed bootstrap.
+- [x] **Not splitting `requirements.txt`.** A0 observed it mixes runtime and test
+      dependencies. Inspecting the built `dist/` shows pytest, playwright, and
+      vulture **never reach the distribution** (the spec excludes `pytest`;
+      PyInstaller bundles only reachable imports), while 14 required-check CI
+      steps install from it. The split buys nothing measurable and risks every PR.
+- [x] **Nothing moves out of the repository root.** All 24 tracked root files map
+      to an approved §8.4 category; §8.4 is a documentation task, not a
+      relocation task.
+
 ### Packet C completion checklist
 
-- [ ] Baselines write to `artifacts/`.
-- [ ] Launcher environment naming is consistent.
-- [ ] Packaging dependencies are reproducible.
-- [ ] IDE tracking decision completed.
-- [ ] Root-file policy documented in the main contributor guidance.
+- [x] Baselines write to `artifacts/`. (C1.)
+- [ ] Launcher environment naming is consistent. (C2.)
+- [x] Packaging dependencies are reproducible. **Already satisfied by Packet A0**
+      — pinned `pyinstaller==6.21.0`, both requirements files installed
+      unconditionally, the committed spec as the single definition, and
+      `test_batch_file_uses_only_the_committed_spec` locking it. Bookkeeping only;
+      see the authorization checklist above for why the requirements split was
+      declined.
+- [ ] IDE tracking decision completed. (C3 — decision made, removal pending.)
+- [ ] Root-file policy documented in the main contributor guidance. (C3 — as an
+      ADR in `docs/DECISIONS.md` with a pointer from `CLAUDE.md`, which is at
+      189/200 lines and cannot absorb the table inline.)
 
 ---
 
