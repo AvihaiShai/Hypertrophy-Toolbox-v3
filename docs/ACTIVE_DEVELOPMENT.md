@@ -4,8 +4,52 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-27 — no workstream is in flight. WP4.3j-c is complete as an
-evidence-only audit that changed no production file.** It audited the
+**2026-07-27 (LATEST) — WP4.3j-c-dead SHIPPED: the 37 cascade-dead header and
+table-cell glass rules the j-c audit nominated are deleted.** Regions D (dark
+cell glass, 3 rules), E (positional metric-lane glass, 20), F (dark-mode
+visibility, 8) and six of the eight region-G final-override rules are gone from
+`static/css/pages-workout-log.css`. **Lines 2,025 → 1,621 (−404); 69
+declarations; `!important` 285 → 217 (−68).**
+
+**The audit was re-proven, not inherited.** The branch was cut fresh from merged
+`main` at `69dcf5e`. A pre-deletion sweep confirmed all 37 rules resolve to
+exactly one CSSOM rule, all 37 genuinely match live elements, and **none ever
+wins** any audited record. Before vs after: **0 computed-value differences and 0
+declaration-owner differences across 15,336 records**, and **6/6 zero-diff**
+`.workout-log-frame` captures (byte-identical PNGs). Positive controls that the
+change reached the browser: matching-rule count fell by **exactly 37** in every
+context, and **5,496 records lost candidates while 0 gained any**.
+
+Retained on purpose and contract-asserted: the two region-G hover rules and
+their winning `filter: saturate(…) brightness(…)` (51 records each); regions A,
+B, C, H and I, with region H locked byte-for-byte by sha256; the nine unverified
+declarations; the five empty media shells and every other excluded responsive
+family. Gates: visuals **6/6** update-free (no baseline written), contracts
+**32/32** with the red path proven five ways, focused functional Chromium
+**33/33**, full pytest **1,858 passed / 1 skipped**. Stylelint total **5,784 →
+5,498** and focused **717 → 431** (both −286), with `no-descending-specificity`
+**200 → 38** — the biggest category move of the Phase-4 arc — and **no category
+increased**. Evidence:
+[`CSS_PHASE4_WP4_3J_C_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_3J_C_DEAD_EVIDENCE.md).
+
+**Two measured corrections to the j-c audit.** Its projected `!important`
+movement of 71 (`285 → 214`) counted region F over a line span that also covers
+the retained editable-input and badge rules; the eight region-F rules carry 8,
+so the real movement is 68 (`285 → 217`). And of the nine unverified
+declarations it places "all in region H", eight are — the ninth is the region-A
+header `text-transform`. Both regions are retained, so the scope is unaffected.
+
+**Method rule added: *every deadness sweep must carry a known-live control.***
+Two new oracle defects each made rules look deader than they are — `propKey`
+enumerates expanded longhands, so matching authored shorthand names against it
+hid 29 of the 37; and Chrome re-serializes `:nth-child(even)` as
+`:nth-child(2n)`, hiding the other 13. Both were invisible to the "does it ever
+win?" question, which answered 0 either way. What exposed them was the two
+retained hover rules — known live winners — reporting 0 wins under the broken
+matcher.
+
+**2026-07-27 — WP4.3j-c was the preceding packet, an evidence-only audit that
+changed no production file.** It audited the
 overlapping header and table-cell glass systems in
 `static/css/pages-workout-log.css` across all 17 columns, both themes, and
 desktop/tablet/mobile.
@@ -106,14 +150,22 @@ intentional review of the exact golden diff before any behavior change.
 ## Next Action
 
 Await owner direction. Nothing is in flight, and no packet is waiting to be
-picked up. WP4.3j-c is **closed as evidence-only**. Do not begin the deletion
-packet it nominates, WP4.4, fatigue, or feature work — and do not reopen the
-root-cleanup track.
+picked up. WP4.3j-c-dead is **shipped and closed**; the deletion packet the j-c
+audit nominated no longer exists as pending work. Do not begin another Workout
+Log packet, WP4.4, fatigue, or feature work — and do not reopen the root-cleanup
+track.
 
-Note on sequencing, recorded for whenever the owner does decide: a WP4.4 repair
-of the shared `:is()` selector would **resurrect** the dead regions A–G on this
-page unless they are deleted first. The deletion packet should therefore precede
-WP4.4, not follow it.
+The sequencing constraint is now **discharged**: a WP4.4 repair of the shared
+`:is()` selector would have **resurrected** regions D–G on this page, which is
+why the deletion had to precede it. Those rules are gone, so WP4.4 can be
+evaluated on its own merits whenever the owner authorizes it. Regions A, B and C
+remain page-local and ID-free, so a WP4.4 selector repair would still change what
+they own — that is a WP4.4 question, not an open item here.
+
+Still untouched and owner-gated: the two region-G hover rules' dead
+`background`/`box-shadow` declarations, the remaining Workout Log raw-literal →
+token extraction, the ten WP4.3i deferred interaction-state declarations, and the
+WP4.3i-c Page Header contract.
 
 ---
 

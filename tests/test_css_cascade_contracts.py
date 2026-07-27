@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -36,6 +37,9 @@ ROUTE_BUNDLES = {
     "backup.html": "pages-backup.css",
 }
 LAYER_ORDER = ("workout", "navbar", "workout-dropdowns", "welcome")
+# WP4.3j-c-dead: the region-H metric-lane block, the one page-local family on
+# the Workout Log page that wins anything. Locked byte-for-byte.
+REGION_H_SHA256 = "2d411015e933d5d7872fa4a25752ae657c5168217b57841e303113e0ab29281e"
 FRAME_ROUTE_BUNDLES = {
     "plan": "pages-workout-plan.css",
     "log": "pages-workout-log.css",
@@ -1519,7 +1523,203 @@ def test_workout_log_drops_inert_responsive_table_and_frame_families() -> None:
         assert shell in body
 
     # --- 7. Deleting inert declarations must not have added weight. ---
-    # None of the deleted declarations carried `!important`, so the real
-    # declaration count is unchanged rather than reduced. Counted on the
-    # comment-stripped body: three of the file's raw occurrences sit in prose.
-    assert body.count("!important") == 285
+    # None of the declarations WP4.3j-b-dead removed carried `!important`, so
+    # that packet left the count unchanged at 285. WP4.3j-c-dead then removed
+    # 68 important declarations along with its 37 cascade-dead rules, taking it
+    # to 217; the current total is owned by
+    # `test_workout_log_drops_cascade_dead_header_and_cell_glass`.
+    assert body.count("!important") == 217
+
+
+def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
+    """WP4.3j-c-dead: the 37 rules the j-c audit proved never win are gone.
+
+    Every rule below was re-verified against the live cascade before deletion:
+    each matched real elements in at least three of the six contexts, and none
+    was the winning owner of any of the 15,336 audited (target x property)
+    records. Their deadness is conditional on `#workout-log-table` keeping
+    `table` and `table-calm`, which is what lets the shared `components.css`
+    rule match, so that premise is asserted here too.
+    """
+    body = COMMENT_RE.sub(
+        "", (ROOT / "static" / "css" / "pages-workout-log.css").read_text(encoding="utf-8")
+    )
+
+    # --- 1. All 37 authorized rules are absent. ------------------------------
+    # Each entry is a selector arm unique to one deleted rule: present before
+    # this packet, absent after it. The region-E arms carry `thead`/`tbody`,
+    # which is what separates them from the retained column-width rules that
+    # also use `.workout-log-table th:nth-child(N)`.
+    deleted_rule_arms = (
+        # region D - dark-mode table-cell glass (base / even-row / hover)
+        "[data-theme='dark'] .workout-log-frame .workout-log-table td",
+        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td",
+        "[data-theme='dark'] .workout-log-frame .workout-log-table tbody tr:hover td",
+        # region E - positional metric-lane glass, light and dark
+        ".workout-log-table thead th:nth-child(5)",
+        ".workout-log-table tbody tr:nth-child(even) td:nth-child(5)",
+        "[data-theme='dark'] .workout-log-table thead th:nth-child(5)",
+        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(5)",
+        ".workout-log-table thead th:nth-child(6)",
+        ".workout-log-table tbody tr:nth-child(even) td:nth-child(6)",
+        "[data-theme='dark'] .workout-log-table thead th:nth-child(6)",
+        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(6)",
+        ".workout-log-table thead th:nth-child(7)",
+        ".workout-log-table tbody tr:nth-child(even) td:nth-child(7)",
+        "[data-theme='dark'] .workout-log-table thead th:nth-child(7)",
+        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(7)",
+        ".workout-log-table thead th:nth-child(8)",
+        ".workout-log-table tbody tr:nth-child(even) td:nth-child(8)",
+        "[data-theme='dark'] .workout-log-table thead th:nth-child(8)",
+        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(8)",
+        ".workout-log-table thead th:nth-child(9)",
+        ".workout-log-table tbody tr:nth-child(even) td:nth-child(9)",
+        "[data-theme='dark'] .workout-log-table thead th:nth-child(9)",
+        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(9)",
+        # region F - comprehensive dark-mode visibility (`color: #e0e0e0`)
+        "[data-theme='dark'] .workout-log-table tbody td",
+        "[data-theme='dark'] .workout-log-table td:nth-child(1)",
+        "[data-theme='dark'] .workout-log-table td:nth-child(2)",
+        "[data-theme='dark'] .workout-log-table td:nth-child(4)",
+        "[data-theme='dark'] .workout-log-table td:nth-child(5)",
+        "[data-theme='dark'] .workout-log-table td:nth-child(15)",
+        "[data-theme='dark'] .workout-log-table td:nth-child(16)",
+        "[data-theme='dark'] .workout-log-table th:nth-child(5)",
+        # region G - the six non-hover final-override rules
+        ".tbl.workout-log-table thead th",
+        ".tbl.workout-log-table tbody td",
+        "[data-theme='dark'] .tbl.workout-log-table thead th",
+        "[data-theme='dark'] .tbl.workout-log-table tbody td",
+        ".tbl.workout-log-table tbody tr:nth-child(even) td",
+        "[data-theme='dark'] .tbl.workout-log-table tbody tr:nth-child(even) td",
+    )
+    assert len(set(deleted_rule_arms)) == 37
+    for arm in deleted_rule_arms:
+        assert arm not in body, arm
+
+    # The positional lane system is gone whole, not merely at its entry points.
+    assert "COLUMN COLOR PAIRING SYSTEM" not in body
+    for lane_colour in (
+        "rgba(239, 246, 255, 0.7)",  # min reps, light
+        "rgba(236, 253, 245, 0.7)",  # max reps, light
+        "rgba(255, 251, 235, 0.7)",  # RIR, light
+        "rgba(245, 243, 255, 0.7)",  # RPE, light
+        "rgba(255, 241, 242, 0.7)",  # weight, light
+    ):
+        assert lane_colour not in body
+
+    # --- 2. The shared components.css owners that beat them are unchanged. ---
+    components = (ROOT / "static" / "css" / "components.css").read_text(encoding="utf-8")
+    shared_arm = (
+        ':is(#workout[data-page="workout-plan"], .workout-log-page, '
+        ".summary-frame.frame-calm-glass, .progression-plan-container)"
+    )
+    assert shared_arm in components
+    # The (1,4,2) rule that owns dark cell text - what the region-F
+    # `color: #e0e0e0` declarations lost to in every context.
+    dark_cell = re.search(
+        r"\[data-theme='dark'\] :is\(#workout\[data-page=\"workout-plan\"\][^{]*?"
+        r"\.table\.table-calm tbody td \{[^}]*\}",
+        components,
+    )
+    assert dark_cell is not None
+    assert "color: var(--ink-1, #eef1f6) !important;" in dark_cell.group(0)
+
+    # --- 3. Both hover rules survive, and so do their winning filters. -------
+    # `filter` is the only property any page-local rule in the final-override
+    # block owns: L1527 in light, L1538 in dark, 51 winning records each.
+    for hover_selector, hover_filter in (
+        (
+            ".tbl.workout-log-table tbody tr:hover td",
+            "filter: saturate(1.02) brightness(0.99);",
+        ),
+        (
+            "[data-theme='dark'] .tbl.workout-log-table tbody tr:hover td",
+            "filter: saturate(1.05) brightness(1.03);",
+        ),
+    ):
+        assert hover_selector in body
+        assert hover_filter in body
+    # Three hover filters remain in the file. The third belongs to the region-C
+    # light hover rule, which proposes a hover `filter` and loses to the
+    # region-G light winner above; region C is out of this packet's scope and
+    # is retained verbatim.
+    assert body.count("filter: saturate(") == 3
+    assert ".workout-log-table tbody tr:hover td" in body
+
+    # --- 4. Region H, the (1,5,2) lane system, is byte-for-byte intact. ------
+    # It is the one page-local family on this page that renders, because it
+    # matches the shared owner's ID-level specificity deliberately rather than
+    # answering it with more `!important`.
+    raw = (ROOT / "static" / "css" / "pages-workout-log.css").read_text(encoding="utf-8")
+    start = raw.index("EXPLICIT METRIC LANE PAIRING")
+    end = raw.index("NUMBER INPUT SPINNERS")
+    region_h = raw[start:end]
+    assert (
+        hashlib.sha256(region_h.replace("\r\n", "\n").encode()).hexdigest()
+        == REGION_H_SHA256
+    )
+
+    # --- 5. The nine declarations the audit could not verify remain. ---------
+    # Eight are dark planned/scored lane-header properties in region H; the
+    # ninth is the base header `text-transform` in region A. None is
+    # classified dead and none was touched here.
+    assert "text-transform: none !important;" in body
+    for unverified in (
+        "background-color: rgba(var(--metric-dark-rgb), 0.28) !important;",
+        "border-bottom-color: rgba(var(--metric-dark-rgb), 0.42) !important;",
+        "background-color: rgba(var(--metric-dark-rgb), 0.42) !important;",
+        "border-bottom-color: rgba(var(--metric-dark-rgb), 0.56) !important;",
+        "color: var(--metric-heading-dark, rgba(255, 255, 255, 0.95)) !important;",
+    ):
+        assert unverified in body
+
+    # --- 6. The premise the deadness is conditional on. ----------------------
+    # If `#workout-log-table` ever lost `table` or `table-calm` the shared rule
+    # would stop matching, and the deleted rules would have been the fallback.
+    log_template = (ROOT / "templates" / "workout_log.html").read_text(encoding="utf-8")
+    table_tag = re.search(r'<table id="workout-log-table".*?>', log_template, re.DOTALL)
+    assert table_tag is not None
+    table_classes = re.search(r'class="([^"]+)"', table_tag.group(0))
+    assert table_classes is not None
+    assert {"table", "table-calm"} <= set(table_classes.group(1).split())
+    # No JavaScript removes or toggles them: the only runtime class changes on
+    # this table are the `tbl--view-simple` / `tbl--view-advanced` additions.
+    for js_path in sorted((ROOT / "static" / "js").rglob("*.js")):
+        js = js_path.read_text(encoding="utf-8")
+        for forbidden in (
+            "classList.remove('table-calm')",
+            'classList.remove("table-calm")',
+            "classList.toggle('table-calm')",
+            'classList.toggle("table-calm")',
+            "classList.remove('table')",
+            'classList.remove("table")',
+        ):
+            assert forbidden not in js, f"{js_path.name}: {forbidden}"
+
+    # --- 7. Everything excluded from this packet's scope survives. -----------
+    for shell in (
+        "@media (min-width: 1281px) and (max-width: 1366px) {",
+        "@media (min-width: 1367px) and (max-width: 1536px) {",
+        "@media (min-width: 1537px) and (max-width: 1600px) {",
+        "@media (min-width: 1921px) and (max-width: 2560px) {",
+        "@media (min-width: 2561px) {",
+    ):
+        assert shell in body
+    overflow = re.search(
+        r"@media \(max-width: 992px\) \{\s*\.workout-log-table \{[^}]*\}", body
+    )
+    assert overflow is not None
+    assert "overflow-x: auto;" in overflow.group(0)
+    legend = re.search(r"@media \(max-width: 1200px\) \{\s*\.legend-item \{[^}]*\}", body)
+    assert legend is not None
+    # Retained neighbours of the deleted blocks: the editable-input and badge
+    # rules that share the dark-mode section with region F.
+    assert "[data-theme='dark'] .workout-log-table .editable-input {" in body
+    assert "[data-theme='dark'] .workout-log-table .badge {" in body
+
+    # --- 8. The measured weight reduction. -----------------------------------
+    # 68 `!important` declarations left with the 37 rules (285 -> 217). The j-c
+    # audit projected 71 because it counted region F over its line span, which
+    # also covers the retained editable-input and badge rules.
+    assert body.count("!important") == 217
