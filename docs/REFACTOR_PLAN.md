@@ -1291,7 +1291,31 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 > (`b`, `d1`, `e`, `f1`, then `d2`, `f2`) → `g` → `h`. **The arc stops after
 > `h`** for the N4 owner checkpoint. Gate 1 authority does **not** extend to
 > `i`; `j` and `k` wait until `i` is approved, narrowed, or abandoned.
-> **Active packet: WP4.4-a**, a measure-only baseline packet.
+>
+> **WP4.4-a is COMPLETE** — PR #187, squash `46e340e`, read-only, no production
+> CSS changed. **The active packet is now WP4.4-c (`motion.css`)**, pure
+> deletion of proven non-winners. `c` is scheduled first among the deletion
+> packets and **must merge before `b`, `d1`, `e` or `f1` begin**, because it
+> changes the oracle environment those packets depend on.
+>
+> **Method rule M6a is binding on every remaining packet** (Plan v2 §2b):
+> suppress transitions before applying, reading **and** removing a sentinel — a
+> transitioned property reads back its pre-sentinel value and reports a live
+> declaration as dead. Inline `!important` does not help.
+>
+> **Packet-a corrections that supersede this section's projections** (Plan v2
+> C1–C8): the `:is()` family specificity range is **(1,3,0)–(1,5,3)**, not
+> (1,3,1)/(1,3,2), across **17 rules** from 19 `:is(` tokens; the visual matrix
+> is **66** tests per platform, not 60; `templates/error.html` is **not
+> reachable by a 404** (`app.py:194` returns an inline document with no
+> stylesheet), so no packet may treat a bad URL as exercising it; seven-surface
+> Stylelint is **2,883** with `components.css` at **1,989**; V4's 86/8
+> thresholds were global WP4.1 figures and are **26/2** here. The ten inherited
+> Linux `desktop` reds and the eight uncertifiable Welcome elements are
+> ledgered in
+> [`CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`](CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json)
+> — **do not rebaseline the reds**, and **no packet may classify a declaration
+> affecting those eight elements as dead using the rest-state harness.**
 
 - **Prerequisite discharged 2026-07-27.** The `components.css` `:is()` arm that
   exports ID-level specificity is why four generations of page-local Workout Log
@@ -1370,11 +1394,11 @@ decisions are silently outstanding; either resolve them or leave them explicitly
 > the detailed work-packet requirements above and wait for explicit owner
 > direction wherever the plan requires it.
 
-Snapshot: **2026-07-27**. The active packet is **WP4.4-a**, a measure-only
-baseline packet on `wt/wp4-4-a-baseline`; it produces evidence and audit
-tooling, not a production CSS edit. The continuous pyright burn-down is a
-standing track, not an active packet or branch. No other implementation packet
-is in progress.
+Snapshot: **2026-07-27**. **WP4.4-a is complete and merged** (PR #187, squash
+`46e340e`); it produced evidence and audit tooling, not a production CSS edit.
+The active packet is now **WP4.4-c** (`motion.css`), the first deletion packet.
+The continuous pyright burn-down is a standing track, not an active packet or
+branch. No other implementation packet is in progress.
 
 | Area / packet | Owner-review status | What has been done / current boundary | Why it is not started, deferred, or gated |
 |---|---|---|---|
@@ -1393,7 +1417,8 @@ is in progress.
 | Workout Plan — remaining raw-literal/token extraction and `!important` weighting | **Not started / owner-gated** | No implementation packet has started. | The remaining work is redesign-sized and multi-packet; literal removal alone is not sufficient justification. It requires explicit owner direction and a protected visual/cascade plan. |
 | Workout Plan — WP4.3i-jm and WP4.3i-o | **Closed / do not resume** | Both investigations were attempted and deliberately left uncommitted. | Their premises did not justify a safe change. They must not be re-dispatched; the detailed reasons remain in `docs/MASTER_HANDOVER.md`. |
 | Workout Log — cleanup beyond WP4.3j-d-hover-paint | **Not started / owner-gated** | Work is paused at the completed j-d boundary; retained regions and unverified declarations remain protected by the recorded contracts. | Further cleanup needs a newly scoped packet, explicit owner direction, and fresh cascade/visual measurement. A shared-selector change can alter page-local ownership, so prior deadness findings cannot be generalized. |
-| WP4.4 — shared bundles, navbar, and `theme-dark.css` (packets `a`–`h`) | **Ongoing — WP4.4-a** | Plan v2 is **Gate-1 approved** (owner, 2026-07-27, rulings N1–N10) in `docs/css_phase4_wp4_4/PLANNING.md`; the prerequisite deletion sequence is discharged. Execution is authorized in order: `a` → `c` → the approved deletion packets (`b`, `d1`, `e`, `f1`, then `d2`, `f2`) → `g` → `h`. WP4.4-a, a measure-only baseline packet, is in progress. | Not gated through `h`. The gates still bind: Regions A–C of Workout Log must be re-measured before any shared-selector repair, and each packet carries the full visual, dark-mode, navigation, accessibility, and summary-page gates. |
+| WP4.4-a — shared-surface baseline and cascade harness | **Done** | Merged via PR #187 (squash `46e340e`), read-only, no production CSS changed. Delivered the pinned baseline JSON, the committed harness under `scripts/css_audit/`, nine red-path-proven contracts, and `/fatigue` visual baselines on both platforms under N7. Harness self-checks 22/22; M4 resolution check 9,842 pairs / 0 inversions. | — |
+| WP4.4 — shared bundles, navbar, and `theme-dark.css` (packets `c`–`h`) | **Ongoing — WP4.4-c** | Plan v2 is **Gate-1 approved** (owner, 2026-07-27, rulings N1–N10) in `docs/css_phase4_wp4_4/PLANNING.md`; the prerequisite deletion sequence is discharged and `a` has landed. Remaining order: `c` → (`b`, `d1`, `e`, `f1`) → (`d2`, `f2`) → `g` → `h`. **`c` must merge before `b`/`d1`/`e`/`f1` begin** — it changes the oracle environment they depend on. | Not gated through `h`. The gates still bind: Regions A–C of Workout Log must be re-measured before any shared-selector repair; each packet carries the full visual, dark-mode, navigation, accessibility and summary-page gates; **M6a is binding**; and the ten inherited Linux `desktop` reds plus the eight uncertifiable Welcome elements are ledgered and must not be re-attributed or rebaselined. |
 | WP4.4-i — shared `:is()` selector repair | **Gated — hard stop after `h`** | Nothing started. Ruling N4 requires a separate owner checkpoint immediately before `i`; ruling N9 restricts admissible repair shapes to CSS-local ones in `static/css/components.css`. | Gate 1 authority explicitly does **not** extend to `i`. Before any edit, `i`'s enumerated repair shape and both pre-change inventories (the complete `:is()` family from `g`/`h`, and the G3 regions A–C measurement) must be presented and approved. |
 | WP4.4 — packets `j` and `k` | **Blocked on `i`** | Nothing started. | They follow only after `i` is resolved — approved, narrowed, or abandoned per ruling N3. |
 | Superset dark tint and `layout.css` dead `body.dark-mode` | **Deferred to WP4.4** | The missing live dark override for `--superset-bg-1..4` and the dead selector at `static/css/layout.css:1120` are recorded but unchanged. | Both belong to shared-theme/layout ownership work and must not be changed in an unrelated page packet. |

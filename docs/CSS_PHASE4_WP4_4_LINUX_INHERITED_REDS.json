@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "producedBy": "WP4.4-a closeout",
+  "sourceCommit": "46e340e5f2de60118d4d2d4af55ff61a1783800c",
+  "recordedOn": "2026-07-27",
+  "purpose": "Machine-readable reconciliation ledger for the N8 Linux deep gates at packets h, i, j and k. Every entry is a red that already existed before the WP4.4 arc began. A packet that reproduces one of these has NOT caused it.",
+  "rules": [
+    "These reds are inherited. Do not attribute them to the packet under test.",
+    "Do NOT rebaseline them. Correcting the committed Linux ledger is a separate change needing owner approval (V2, R3 condition 6).",
+    "A red on a file NOT in this ledger is a real finding and a rollback trigger.",
+    "The animated-logo red remains a band, never an exact pixel count (M7)."
+  ],
+  "linuxInheritedReds": {
+    "evidence": "The visual-linux deep gate (run 30288077299, run_visual=true, visual_mode=generate) regenerated all 84 Linux baselines. The 6 /fatigue captures were new and were committed under N7; the other 60 were compared against the committed ledger WITHOUT being written. Ten differ.",
+    "platform": "linux",
+    "snapshotDir": "e2e/__screenshots__/linux/visual.spec.ts-snapshots",
+    "count": 10,
+    "allDesktopVariants": true,
+    "note": "Every drifting baseline is a `desktop` variant (1440x900). No `mobile` or `tablet` baseline drifted. Differences are roughly 0.1% of file size.",
+    "files": [
+      "body-composition-desktop-light.png",
+      "progression-desktop-light.png",
+      "session-summary-desktop-light.png",
+      "volume-splitter-desktop-light.png",
+      "weekly-summary-desktop-light.png",
+      "welcome-desktop-light.png",
+      "workout-log-desktop-dark.png",
+      "workout-log-desktop-light.png",
+      "workout-plan-desktop-dark.png",
+      "workout-plan-desktop-light.png"
+    ]
+  },
+  "uncertifiableElements": {
+    "evidence": "Rest-state differential over 11 routes x 2 themes. These elements run animations with `animation-iteration-count: infinite`, so two captures taken a frame apart legitimately disagree and no rest state exists to compare.",
+    "rule": "NO downstream packet may classify a declaration affecting these elements as dead on the authority of the rest-state harness. Certifying them requires a different instrument, proposed and approved separately.",
+    "route": "/",
+    "routeName": "welcome",
+    "appliesToBothThemes": true,
+    "count": 8,
+    "elements": [
+      {
+        "domPath": "html/body[1]/main[1]/div[0]/div[0]/div[0]/div[0]/i[1]",
+        "selector": "i.fas.fa-heart.credit-heart",
+        "animationName": "heartbeat",
+        "animationDuration": "1.5s"
+      },
+      {
+        "domPath": "html/body[1]/main[1]/div[0]/div[0]/section[1]/div[1]/div[0]",
+        "selector": "div.hero-center-icon",
+        "animationName": "pulse-glow",
+        "animationDuration": "3s"
+      },
+      {
+        "domPath": "html/body[1]/main[1]/div[0]/div[0]/section[1]/div[1]/div[1]",
+        "selector": "div.hero-card.hero-card-1",
+        "animationName": "float",
+        "animationDuration": "6s"
+      },
+      {
+        "domPath": "html/body[1]/main[1]/div[0]/div[0]/section[1]/div[1]/div[2]",
+        "selector": "div.hero-card.hero-card-2",
+        "animationName": "float",
+        "animationDuration": "6s"
+      },
+      {
+        "domPath": "html/body[1]/main[1]/div[0]/div[0]/section[1]/div[1]/div[3]",
+        "selector": "div.hero-card.hero-card-3",
+        "animationName": "float",
+        "animationDuration": "6s"
+      },
+      {
+        "domPath": "html/body[1]/main[1]/div[0]/div[0]/section[1]/div[1]/div[4]",
+        "selector": "div.hero-card.hero-card-4",
+        "animationName": "float",
+        "animationDuration": "6s"
+      },
+      {
+        "domPath": "html/body[1]/main[1]/div[0]/div[0]/section[1]/div[1]/div[5]",
+        "selector": "div.hero-card.hero-card-5",
+        "animationName": "float",
+        "animationDuration": "6s"
+      },
+      {
+        "domPath": "html/body[1]/main[1]/div[0]/div[0]/section[1]/div[1]/div[6]",
+        "selector": "div.hero-card.hero-card-6",
+        "animationName": "float",
+        "animationDuration": "6s"
+      }
+    ],
+    "adjacentNote": "`div.developer-credit-banner` carries an infinite animation on its `::before` pseudo-element. It is NOT in the element list, because the animation belongs to the pseudo-element and the host element's own `animation-name` computes to `none`. A packet touching that banner's pseudo-element paint must treat it as uncertifiable too."
+  },
+  "visualMatrix": {
+    "testsPerPlatform": 66,
+    "pages": 11,
+    "viewports": 3,
+    "themes": 2,
+    "changedBy": "N7 added /fatigue; the matrix was 60 before Packet a.",
+    "note": "Downstream gates that say 'the full 60-test matrix' mean 66."
+  }
+}

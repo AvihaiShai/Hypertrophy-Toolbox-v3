@@ -4,7 +4,64 @@
 
 ## Current State
 
-> **2026-07-27 (LATEST) — WP4.3j-d-hover-paint is COMPLETE in PR #186.**
+> **2026-07-27 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
+> N1–N10); packet WP4.4-a is COMPLETE in PR #187 (squash `46e340e`). The next
+> packet is WP4.4-c (`motion.css`).**
+>
+> WP4.4-a was read-only — **no production CSS changed**. It delivered the
+> measured baseline every later packet must cite
+> ([`CSS_PHASE4_WP4_4_A_BASELINE.json`](CSS_PHASE4_WP4_4_A_BASELINE.json)), the
+> committed cascade harness under `scripts/css_audit/`, and nine contracts each
+> proven to fail before acceptance. Evidence:
+> [`CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md).
+>
+> **Harness self-checks: 22/22 contexts pass** same-CSS control, sentinel and
+> 0-tolerance pixel control, on consecutive full-matrix runs. The M4 resolution
+> check compares **9,842 ordered cascade pairs** against Chrome's own
+> matched-rule data with **0 inversions**. Every self-check failed first, and
+> each failure was a real defect — the most important is now binding method rule
+> **M6a**.
+>
+> **M6a (binding on every remaining WP4.4 packet).** *Suppress transitions
+> before applying, reading AND removing a sentinel.* A sentinel written to a
+> transitioned property reads back its **pre-sentinel** value for the transition
+> duration, so `getComputedStyle` reports "no effect" on an element the sentinel
+> reached perfectly — a false deadness verdict. Inline `!important` does not
+> help; the lag is in the computed value, not the cascade. Measured live on
+> `header` and `select`, which carry `transition: all 0.3s`.
+>
+> **Corrections that supersede the plan's projections** (detail in Plan v2
+> §"Measured corrections from Packet a", C1–C8):
+>
+> - The shared `:is()` family specificity range is **(1,3,0)–(1,5,3)**, not
+>   (1,3,1)/(1,3,2). **19 `:is(` tokens = 17 rules.** Packet `i` may not assume
+>   a uniform family specificity.
+> - The visual matrix is **66 tests per platform** (11 pages), not 60. N7
+>   authorized `/fatigue` baseline **creation** on Windows *and* Linux; zero
+>   existing snapshots were modified. `.claude/rules/testing.md` corrected
+>   48 → 66.
+> - **`templates/error.html` is not reachable by a 404.** `app.py:194` returns a
+>   hard-coded inline document with **no stylesheet link**; `error.html` renders
+>   only when a route handler catches an exception. No packet may treat a bad
+>   URL as exercising it.
+> - Seven-surface Stylelint is **2,883** (`components.css` **1,989**), not the
+>   projected 2,681/1,787. V4's thresholds of 86/8 were *global* WP4.1 figures;
+>   the true seven-surface values are **26/2**.
+> - **Ten inherited Linux `desktop` reds** and the **eight uncertifiable Welcome
+>   elements** are ledgered machine-readably in
+>   [`CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`](CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json).
+>   N8 packets (h, i, j, k) reconcile against it. **Do not rebaseline the ten**,
+>   and **no packet may classify a declaration affecting those eight elements as
+>   dead using the rest-state harness.**
+>
+> **Next: WP4.4-c (`motion.css`), pure deletion of proven non-winners only.** Its
+> primary proof is the Packet-a motion oracle under both `reduce` and
+> `no-preference` with M6a applied; `visual.spec.ts` is a **backstop only**,
+> because it neutralizes motion before every capture (F1). No Linux deep gate at
+> `c` under N8, and no snapshot updates. **`c` merges before `b`, `d1`, `e` or
+> `f1` begin**, because it changes the oracle environment those packets depend on.
+>
+> **2026-07-27 — WP4.3j-d-hover-paint is COMPLETE in PR #186.**
 > Exactly four declarations are gone from the two retained Region G Workout Log
 > hover rules: light/dark `background` and `box-shadow`. Both selector lists and
 > both live filters are byte-identical; the rules are now filter-only.

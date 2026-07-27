@@ -7,6 +7,21 @@
 **Base:** `main` @ `f4f9ee6` (clean).
 **Execution order authorized at Gate 1:** `a` → `c` → the approved deletion packets → **hard stop before `i`** for the N4 implementation-time checkpoint.
 
+### ⚠️ Measured corrections from Packet a (binding — supersede the projections below)
+
+Packet **a** shipped 2026-07-27 (PR #187, squash `46e340e`) and replaced several figures this document projected. Where they differ, **the measurement wins**; the authority is [`docs/CSS_PHASE4_WP4_4_A_BASELINE.json`](../CSS_PHASE4_WP4_4_A_BASELINE.json) and the narrative is [`docs/CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](../CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md). These are factual/method corrections; **they do not reopen Gate 1 and do not expand production scope.**
+
+| # | Was | Is | Consequence |
+|---|---|---|---|
+| C1 | `:is()` family specificity `(1,3,1)`/`(1,3,2)` (G1) | **(1,3,0) – (1,5,3)** | Packet **i** may **not** assume a uniform family specificity. 19 `:is(` tokens = **17 rules** (two rules span two selector lines). |
+| C2 | Visual matrix = **60** tests (10 pages) | **66** tests (11 pages), per platform | Every downstream "full 60-test matrix" gate now means **66**. `.claude/rules/testing.md:87` corrected 48 → 66. |
+| C3 | `error.html` is "painted 100% by shared bundles" as a rendered route (F5/PR#2) | **Not reachable by a 404 at all.** `app.py:194` returns a hard-coded inline document with **no stylesheet link**; `error.html` renders only when a route handler catches an exception | No packet may treat a bad URL as exercising `error.html`. It has no pixel coverage and is not a shared-bundle canary. |
+| C4 | seven-surface Stylelint **2,681**; `components.css` **1,787** | **2,883**; `components.css` **1,989** | V5 line-contribution projections leaning on the old figure are optimistic. |
+| C5 | V4 thresholds `no-duplicate-selectors` **86**, `declaration-block-no-duplicate-properties` **8** | **26** and **2** on the seven surfaces (86/8 were *global* WP4.1 figures) | V3/V4 gate against the a-baseline. The old thresholds were unreachable. |
+| C6 | — | **10 inherited Linux `desktop` reds**, ledgered in [`docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`](../CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json) | **N8** packets (h, i, j, k) reconcile against that ledger. These reds are **pre-existing and must not be rebaselined**. |
+| C7 | — | **8 Welcome elements are uncertifiable** by the rest-state harness (infinite animations) | **No downstream packet may classify any declaration affecting those 8 elements as dead using this harness.** Paths are in the ledger file and in `artifacts/wp4_4/runtime/summary.json`. |
+| C8 | M6 | **M6a added** — suppress transitions before applying, reading and removing a sentinel | Binding on every remaining packet. See §2b. |
+
 ### Terminology (binding for this document)
 
 | Term | Meaning | Count |
@@ -1450,7 +1465,7 @@ The 2.6–6.8%-of-30,768 figure is derived, not asserted, the denominator is anc
 
 ### §2b Method rules — M1–M12 (consolidated)
 
-M1–M8 carry forward from v1 unchanged in substance; M4 is extended; M9–M12 are new.
+M1–M8 carry forward from v1 unchanged in substance; M4 is extended; M9–M12 are new. **M6a was added after Packet a measured it** — a factual/method correction that tightens the approved plan; it does not reopen Gate 1 or expand production scope.
 
 | # | Obligation | Origin |
 |---|---|---|
@@ -1460,6 +1475,7 @@ M1–M8 carry forward from v1 unchanged in substance; M4 is extended; M9–M12 a
 | M4 | The specificity/ownership model must handle `:is()`/`:where()`/`:not()`/`:has()`, must not naively comma-split, **and must implement `@layer` ordering plus the `!important` inversion** — unit-checked against hand-computed cases before use. | WP4.3j-b-dead, j-c; **extended by A6** |
 | M5 | Every deadness sweep carries a **known-live control**; a failing control invalidates the sweep. | WP4.3j-c-dead |
 | M6 | **A probe that changes nothing proves nothing.** Sentinel-took-effect asserted per record; `var()`-bearing shorthands are invisible to longhand CSSOM queries. | WP4.3j-c |
+| **M6a** | **Suppress transitions before applying, reading AND removing a sentinel.** A sentinel written to a transitioned property reads back its **pre-sentinel** value for the whole transition duration, so `getComputedStyle` reports "no effect" on an element the sentinel reached perfectly — a false deadness verdict. Inline `!important` does **not** help: the lag is in the computed value, not in the cascade. The release is symmetric — drop the sentinel while transitions are still suppressed, or the revert check reads the value mid-flight. Measured live on `header` and `select`, which carry `transition: all 0.3s`. **Binding on every remaining WP4.4 packet.** | **WP4.4-a; adopted by the owner 2026-07-27 as a binding clarification of M6** |
 | M7 | The animated-logo red is a **band** (1,039 / 1,046 observed in one run), never an exact-pixel invariant — **and it exceeds `maxDiffPixels: 800`**, so it presents as a real snapshot failure. | WP4.3i-filter-btn; **F3** |
 | M8 | **Delete only proven non-winners.** Never delete a winning declaration. (Precondition of the commutativity theorem — see F17 restriction in §4.) | derived |
 | **M9** | The oracle's property universe must be **longhand-complete**, and **no packet may delete a custom-property declaration under the non-winner rule**. Removal requires a `var()` dependency graph resolved across all 21 hand-maintained sources, plus route coverage for every consumer found. | **A5 + PR#5** |
