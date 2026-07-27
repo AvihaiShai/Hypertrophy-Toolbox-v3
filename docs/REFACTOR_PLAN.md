@@ -51,7 +51,8 @@ states produced 52 differing records — those states animate. Every future
 dead-CSS packet on this page must pair the sweep with a rest-state differential
 **and** a same-CSS control.
 
-**Next-state constraints — all owner-gated, none started:**
+**Next-state constraints. Items 1–4 are owner-gated and not started; item 5
+records the WP4.4 authorization granted at Gate 1:**
 
 1. **Do not remove the 10 deferred interaction-state declarations** from
    WP4.3i-dead. They require animation stabilization plus a same-CSS control
@@ -65,8 +66,12 @@ dead-CSS packet on this page must pair the sweep with a rest-state differential
 4. The remaining Workout Plan **raw-literal → token extraction and `!important`
    weighting review** is redesign-sized, multi-packet, and **has not started**.
 5. **WP4.3j (Workout Log) is complete through WP4.3j-d-hover-paint and pauses
-   there**; **WP4.4 (shared bundles / navbar / `theme-dark.css`)** has **not
-   started**. WP4.3j-a merged through
+   there**; **WP4.4 (shared bundles / navbar / `theme-dark.css`) Plan v2 is
+   Gate-1 approved (owner, 2026-07-27) and executes from
+   [`docs/css_phase4_wp4_4/PLANNING.md`](css_phase4_wp4_4/PLANNING.md)** —
+   authorized order `a` → `c` → the approved deletion packets → `g` → `h`, then
+   a **hard stop before `i`** for the N4 owner checkpoint. WP4.3j-a merged
+   through
    PR #181 at `99dfee1`; it removed the five overpainted dark-mode
    `background-color` declarations on columns 1–4 and 15–17 — evidence:
    [`CSS_PHASE4_WP4_3J_A_EVIDENCE.md`](CSS_PHASE4_WP4_3J_A_EVIDENCE.md).
@@ -1263,7 +1268,8 @@ contracts **33/33**, focused functional Chromium **33/33**, pytest **1,859
 passed / 1 skipped**; Stylelint total **5,498 → 5,490**, focused **431 → 423**,
 no category increased. Evidence:
 [`CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md).
-**Wait for explicit direction before further Workout Log cleanup or WP4.4.**
+**Wait for explicit direction before further Workout Log cleanup.** WP4.4 is
+separately authorized at Gate 1 — see the section below.
 
 **WP4.3h User Profile and the WP4.3i Workout Plan dead-CSS arc followed and are
 complete through WP4.3i-filter-btn (`cb5ff6e`).** Their per-packet evidence docs
@@ -1274,6 +1280,18 @@ animated-logo known red, and the next-state constraints; `docs/MASTER_HANDOVER.m
 carries the narrative. **Wait for explicit direction before the next packet.**
 
 ### WP4.4 Shared bundles, navbar, and `theme-dark.css`
+
+> **Superseded as the executable specification.** WP4.4 Plan v2 in
+> [`docs/css_phase4_wp4_4/PLANNING.md`](css_phase4_wp4_4/PLANNING.md) is
+> **Gate-1 approved (owner, 2026-07-27, rulings N1–N10)** and is the plan that
+> executes. The bullets below remain as the original scope statement and the
+> prerequisite record; where they differ from Plan v2, Plan v2 wins.
+>
+> **Authorized sequence:** `a` → `c` → the approved deletion packets
+> (`b`, `d1`, `e`, `f1`, then `d2`, `f2`) → `g` → `h`. **The arc stops after
+> `h`** for the N4 owner checkpoint. Gate 1 authority does **not** extend to
+> `i`; `j` and `k` wait until `i` is approved, narrowed, or abandoned.
+> **Active packet: WP4.4-a**, a measure-only baseline packet.
 
 - **Prerequisite discharged 2026-07-27.** The `components.css` `:is()` arm that
   exports ID-level specificity is why four generations of page-local Workout Log
@@ -1341,3 +1359,43 @@ decisions are silently outstanding; either resolve them or leave them explicitly
 - [x] Owner approves Track A execution (2026-07-04).
 - [x] Owner approves Track B execution (behavior + contract changes) (2026-07-04).
 - [x] Owner approves Plan v3 for refactor execution (2026-07-05).
+
+---
+
+## Owner review status table — not for agents or LLMs
+
+> **Owner-review aid only.** This table is for the human owner to review progress.
+> It is **not** an instruction set, execution queue, authorization to start work,
+> or source for autonomous dispatch by agents or LLMs. Agents and LLMs must use
+> the detailed work-packet requirements above and wait for explicit owner
+> direction wherever the plan requires it.
+
+Snapshot: **2026-07-27**. The active packet is **WP4.4-a**, a measure-only
+baseline packet on `wt/wp4-4-a-baseline`; it produces evidence and audit
+tooling, not a production CSS edit. The continuous pyright burn-down is a
+standing track, not an active packet or branch. No other implementation packet
+is in progress.
+
+| Area / packet | Owner-review status | What has been done / current boundary | Why it is not started, deferred, or gated |
+|---|---|---|---|
+| Owner decisions and plan approval | **Done** | OD1–OD10 are resolved; Track A, Track B, and Plan v3 approvals are recorded. | — |
+| Track A — A1–A8 bug fixes | **Done** | All eight fixes shipped in PRs #91–#98 with the integrated test and E2E gates passing. | — |
+| Track B — WPB.1–WPB.3 and WPB.5–WPB.9 | **Done** | All owner-decided behavior/contract packets except WPB.4 shipped, including the required fatigue-context CI job. | — |
+| Track B — WPB.4 `Unassigned` weekly-summary bucket | **Gated / not started** | The owner decision and risk-mitigation gate are documented; WP2.3 supplied the prerequisite goldens, but no WPB.4 implementation has started. | Protected calculation behavior still requires explicit product-risk review, a decision about the `global_sessions` denominator, intentional golden-delta review, and the named summary functional/visual gates. |
+| Phase -1 — evidence, docs, and gate hardening | **Done** | WP-1.0–WP-1.5 shipped. | — |
+| Phase 0 — dead code and repository hygiene | **Done** | Phase 0 is closed under the plan’s top-level status. | — |
+| Phase 1 — route and service boundaries | **Done** | WP1.1–WP1.8 shipped in PRs #121–#130 while preserving endpoint and response contracts except for separately approved Track B changes. | — |
+| Phase 2 — Python structure and schema ownership | **Done** | Phase 2 is closed; this includes the schema registry, duplication registry, protected decompositions, and WP2.2 plan-generator work. | — |
+| Phase 3 — JavaScript characterization, extraction, and transport | **Done** | The core JS track is closed; optional WP3.6 was also completed and committed. | — |
+| Phase 4 foundation — WP4.-1 through WP4.2 | **Done** | Cascade/load-order foundation, selector hardening, known-red ledger, token consolidation, and shared-frame ownership work are complete. | — |
+| WP4.3 page packets completed to the current boundary | **Done** | WP4.3a–WP4.3h are complete; the Workout Plan arc is complete through WP4.3i-filter-btn; Workout Log is complete through WP4.3j-d-hover-paint. WP4.3j-b and WP4.3j-c were audit-only packets, and their authorized deletion follow-ups shipped. | — |
+| Workout Plan — 10 deferred interaction-state declarations | **Deferred / gated** | The declarations were investigated and intentionally retained; the existing contract asserts their presence. | Animated interaction states made the deadness oracle unstable. Removal requires animation stabilization and a same-CSS control that reaches zero differing records. |
+| Workout Plan — remaining raw-literal/token extraction and `!important` weighting | **Not started / owner-gated** | No implementation packet has started. | The remaining work is redesign-sized and multi-packet; literal removal alone is not sufficient justification. It requires explicit owner direction and a protected visual/cascade plan. |
+| Workout Plan — WP4.3i-jm and WP4.3i-o | **Closed / do not resume** | Both investigations were attempted and deliberately left uncommitted. | Their premises did not justify a safe change. They must not be re-dispatched; the detailed reasons remain in `docs/MASTER_HANDOVER.md`. |
+| Workout Log — cleanup beyond WP4.3j-d-hover-paint | **Not started / owner-gated** | Work is paused at the completed j-d boundary; retained regions and unverified declarations remain protected by the recorded contracts. | Further cleanup needs a newly scoped packet, explicit owner direction, and fresh cascade/visual measurement. A shared-selector change can alter page-local ownership, so prior deadness findings cannot be generalized. |
+| WP4.4 — shared bundles, navbar, and `theme-dark.css` (packets `a`–`h`) | **Ongoing — WP4.4-a** | Plan v2 is **Gate-1 approved** (owner, 2026-07-27, rulings N1–N10) in `docs/css_phase4_wp4_4/PLANNING.md`; the prerequisite deletion sequence is discharged. Execution is authorized in order: `a` → `c` → the approved deletion packets (`b`, `d1`, `e`, `f1`, then `d2`, `f2`) → `g` → `h`. WP4.4-a, a measure-only baseline packet, is in progress. | Not gated through `h`. The gates still bind: Regions A–C of Workout Log must be re-measured before any shared-selector repair, and each packet carries the full visual, dark-mode, navigation, accessibility, and summary-page gates. |
+| WP4.4-i — shared `:is()` selector repair | **Gated — hard stop after `h`** | Nothing started. Ruling N4 requires a separate owner checkpoint immediately before `i`; ruling N9 restricts admissible repair shapes to CSS-local ones in `static/css/components.css`. | Gate 1 authority explicitly does **not** extend to `i`. Before any edit, `i`'s enumerated repair shape and both pre-change inventories (the complete `:is()` family from `g`/`h`, and the G3 regions A–C measurement) must be presented and approved. |
+| WP4.4 — packets `j` and `k` | **Blocked on `i`** | Nothing started. | They follow only after `i` is resolved — approved, narrowed, or abandoned per ruling N3. |
+| Superset dark tint and `layout.css` dead `body.dark-mode` | **Deferred to WP4.4** | The missing live dark override for `--superset-bg-1..4` and the dead selector at `static/css/layout.css:1120` are recorded but unchanged. | Both belong to shared-theme/layout ownership work and must not be changed in an unrelated page packet. |
+| Continuous pyright baseline burn-down | **Ongoing — standing track only** | The track remains available for one file or one tightly coupled diagnostic family at a time; no active packet is identified by this snapshot. | It has no single phase-close packet. Each change must remain type-only, reduce the diagnostic multiset, and pass focused plus full pytest gates. |
+| Overall refactor plan | **Partially complete; WP4.4 in execution** | Track A and Phases -1 through 3 are complete; Track B is complete except WPB.4; Phase 4 is complete through the boundaries listed above, and the WP4.4 shared-bundle arc is now executing under Gate-1 authority. | The only authorized work is WP4.4 packets `a` through `h`. WPB.4 and the remaining Workout Plan / Workout Log page cleanup stay paused pending separate owner selection; WP4.4-i needs the N4 checkpoint. |
