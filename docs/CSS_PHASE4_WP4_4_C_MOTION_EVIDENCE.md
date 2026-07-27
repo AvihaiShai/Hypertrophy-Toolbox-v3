@@ -213,3 +213,11 @@ cannot satisfy it.
 The correction is isolated to `scripts/css_audit/measure.py` and
 `tests/test_css_wp4_4_a_baseline_contracts.py`; it does not change a measured
 value or production behavior.
+
+The first PR run exposed a CI-only prerequisite: Actions' default shallow
+checkout did not contain Packet a's historical source commit, so `git show`
+failed before it could measure the CSS. The baseline is now pinned to Packet
+a's merged squash commit (`46e340e`), whose seven shared CSS surfaces are
+byte-identical to the original measurement commit, and only the pytest job uses
+`fetch-depth: 0`. This preserves the strong source-commit check without a
+network operation inside pytest or a dependency on Packet a's temporary branch.
