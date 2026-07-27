@@ -4,7 +4,36 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-27 (LATEST) — WP4.3j-c-dead SHIPPED: the 37 cascade-dead header and
+**2026-07-27 (LATEST) — finish shipping WP4.3j-d-hover-paint, then stop.**
+The packet removes exactly four cascade-dead declarations from the two retained
+Region G Workout Log hover rules: light/dark `background` and `box-shadow`.
+Both full selector lists and both live filters are byte-identical; the rules are
+now filter-only. `!important` **217 → 213**.
+
+The real-hover differential is green across light/dark ×
+desktop/tablet/mobile: **11,016 records, 0 computed-value differences, 0
+declaration-owner differences, 6/6 byte-identical frame captures**. Known-live
+filter controls passed 6/6 before and after. Same-CSS controls were 0 on both
+sides; resolution self-check was **2,924 / 0 per side**; sentinels were **24/24
+effective per side**. Positive control: **408 records lost candidates, 0 gained
+any**, while rule counts remained unchanged.
+
+The prior Region H hash contract accidentally anchored on an earlier prose
+mention and covered Region G. Its unique banner anchor and corrected 282-line
+span are now explicit; the old defect caused false failures, never false passes.
+The new hover contract pins both selector lists and filter-only bodies and goes
+red against the historical bundle, a removed live filter, and a restored
+background.
+
+Gates: visuals **6/6** update-free, CSS/visual contracts **33/33**, focused
+functional Chromium **33/33**, full pytest **1,859 passed / 1 skipped**.
+Stylelint total **5,498 → 5,490**, focused **431 → 423**, no category increased.
+Evidence:
+[`CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md).
+After this packet lands, await owner direction; do not begin further Workout Log
+cleanup or WP4.4.
+
+**2026-07-27 — WP4.3j-c-dead SHIPPED: the 37 cascade-dead header and
 table-cell glass rules the j-c audit nominated are deleted.** Regions D (dark
 cell glass, 3 rules), E (positional metric-lane glass, 20), F (dark-mode
 visibility, 8) and six of the eight region-G final-override rules are gone from
@@ -137,11 +166,12 @@ The root-cleanup / data-packaging track also remains CLOSED. All packets shipped
 all 225 checklist items in [`rootdircleanup.md`](rootdircleanup.md) are ticked,
 and that closed record must not be re-executed.
 
-The Phase-4 CSS track is paused and owner-gated. The Workout Log dead-CSS packet
-that j-b nominated **has now shipped as WP4.3j-b-dead** and is closed. WP4.4 may
-review the shared `:is()` specificity trap; it is not authorized or started, and
-neither is j-c header/cell-glass work. The ten WP4.3i deferred interaction-state
-declarations and WP4.3i-c Page Header contract remain untouched.
+The Phase-4 CSS track is paused and owner-gated after WP4.3j-d ships. The j-b
+and j-c dead-CSS packets are closed, and WP4.3j-d removes the final four
+authorized Region G hover-paint declarations. WP4.4 may review the shared
+`:is()` specificity trap, but it is not authorized or started. The ten WP4.3i
+deferred interaction-state declarations and WP4.3i-c Page Header contract remain
+untouched.
 
 WPB.4 also remains unimplemented and owner-gated: it requires retaining one
 synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
@@ -149,11 +179,9 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-Await owner direction. Nothing is in flight, and no packet is waiting to be
-picked up. WP4.3j-c-dead is **shipped and closed**; the deletion packet the j-c
-audit nominated no longer exists as pending work. Do not begin another Workout
-Log packet, WP4.4, fatigue, or feature work — and do not reopen the root-cleanup
-track.
+Complete the WP4.3j-d ship sequence, then await owner direction. No further
+Workout Log packet is authorized. Do not begin WP4.4, fatigue, or feature work,
+and do not reopen the root-cleanup track.
 
 The sequencing constraint is now **discharged**: a WP4.4 repair of the shared
 `:is()` selector would have **resurrected** regions D–G on this page, which is
@@ -162,9 +190,8 @@ evaluated on its own merits whenever the owner authorizes it. Regions A, B and C
 remain page-local and ID-free, so a WP4.4 selector repair would still change what
 they own — that is a WP4.4 question, not an open item here.
 
-Still untouched and owner-gated: the two region-G hover rules' dead
-`background`/`box-shadow` declarations, the remaining Workout Log raw-literal →
-token extraction, the ten WP4.3i deferred interaction-state declarations, and the
+Still untouched and owner-gated: the remaining Workout Log raw-literal → token
+extraction, the ten WP4.3i deferred interaction-state declarations, and the
 WP4.3i-c Page Header contract.
 
 ---

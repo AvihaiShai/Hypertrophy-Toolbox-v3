@@ -4,8 +4,8 @@
 WP4.-1, WP4.0a, WP4.0, WP4.1, WP4.2, and WP4.3a–WP4.3h are complete, as is the
 WP4.3i Workout Plan dead-CSS arc through WP4.3i-filter-btn. WP4.3j-a is merged,
 WP4.3j-b is complete as an audit-only no-op, WP4.3j-b-dead has shipped the
-deletion it nominated, and WP4.3j-c is complete as an evidence-only audit whose
-deletion candidate is documented but NOT authorized.** WP2.2 is committed
+deletion it nominated, WP4.3j-c-dead has shipped the c-audit deletion, and
+WP4.3j-d-hover-paint is complete and locally green.** WP2.2 is committed
 as `c461840`; optional WP3.6 is committed as `0cbedac`. WP4.0 measurement
 provenance remains unchanged head `e46b67e`, with its ledger committed as
 `ca725c2`. Local integration verification through WP4.3d is complete
@@ -64,8 +64,9 @@ dead-CSS packet on this page must pair the sweep with a rest-state differential
    consumers.
 4. The remaining Workout Plan **raw-literal → token extraction and `!important`
    weighting review** is redesign-sized, multi-packet, and **has not started**.
-5. **WP4.3j (Workout Log) is IN PROGRESS as a sub-arc**; **WP4.4 (shared bundles
-   / navbar / `theme-dark.css`)** has **not started**. WP4.3j-a merged through
+5. **WP4.3j (Workout Log) is complete through WP4.3j-d-hover-paint and pauses
+   there**; **WP4.4 (shared bundles / navbar / `theme-dark.css`)** has **not
+   started**. WP4.3j-a merged through
    PR #181 at `99dfee1`; it removed the five overpainted dark-mode
    `background-color` declarations on columns 1–4 and 15–17 — evidence:
    [`CSS_PHASE4_WP4_3J_A_EVIDENCE.md`](CSS_PHASE4_WP4_3J_A_EVIDENCE.md).
@@ -117,18 +118,27 @@ dead-CSS packet on this page must pair the sweep with a rest-state differential
    [`CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md).
    It **corrects** the j-a claim that the dark `#e0e0e0` colours are live
    winners — they are cascade-dead, beaten by `components.css` at `(1,4,2)`.
-   A deletion candidate (**37 rules, 436 lines, 71 `!important`**, retaining the
-   L1527/L1538 hover `filter`) is documented with exact selectors, oracle and
-   gates but is **NOT authorized and NOT started**. **Method rule added: a probe
+   The documented deletion candidate later shipped as **WP4.3j-c-dead**: 37
+   rules / 69 declarations, lines **2,025 → 1,621**, `!important` **285 → 217**.
+   **WP4.3j-d-hover-paint** then removed the four cascade-dead light/dark
+   `background` and `box-shadow` declarations from the two retained Region G
+   hover rules while preserving their full selectors and live filters. Its
+   real-hover differential is **0 computed / 0 owner differences across 11,016
+   records and 6/6 byte-identical frames**; 408 records lost candidates and 0
+   gained any. Gates: contracts **33/33**, focused Chromium **33/33**, pytest
+   **1,859 / 1 skipped**. Stylelint total **5,498 → 5,490**, focused **431 →
+   423**, no category increased. Evidence:
+   [`CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md).
+   **Method rule added by the c audit: a probe
    that changes nothing proves nothing** — four oracle defects each produced a
    confident false deadness verdict (`var()`-bearing shorthands invisible to
    longhand CSSOM queries, an injected sentinel losing the cascade, a running
    transition outranking important author declarations, and `page.screenshot`
    not painting clip regions beyond the viewport).
    The shared ID-bearing `:is()` specificity finding still belongs to WP4.4 and
-   is recorded, not acted on — but the audit adds a sequencing constraint:
-   **repairing that selector in WP4.4 would resurrect the dead regions A–G unless
-   they are deleted first.**
+   is recorded, not acted on. The sequencing constraint is discharged for the
+   deleted D–G families; regions A–C remain and must be re-measured if WP4.4
+   changes the shared selector.
 6. Deferred and unacted: the superset dark-tint gap (`--superset-bg-1..4` has no
    live dark override) and the dead `body.dark-mode` in
    `static/css/layout.css:1120` (→ WP4.4).
@@ -1239,6 +1249,22 @@ Evidence:
 first would have resurrected these rules. **Wait for explicit direction before
 the next packet.**
 
+**WP4.3j-d-hover-paint completed 2026-07-27 in
+`wt/wp4-3j-d-hover-paint`, cut fresh from merged `main` at `c29b05f`.** It
+removed exactly four cascade-dead declarations from the two retained Region G
+hover rules: light/dark `background` and `box-shadow`. Both complete selector
+lists and both winning filters are byte-identical. A real mouse-hover audit
+compared **11,016 records** across six contexts: **0 computed-value differences,
+0 declaration-owner differences, and 6/6 byte-identical frames**. Known-live
+filter controls passed 6/6 before and after; **408 records lost candidates and 0
+gained any**. The Region H contract's defective first-occurrence anchor was
+corrected to its unique 282-line banner span. Gates: visuals **6/6** update-free,
+contracts **33/33**, focused functional Chromium **33/33**, pytest **1,859
+passed / 1 skipped**; Stylelint total **5,498 → 5,490**, focused **431 → 423**,
+no category increased. Evidence:
+[`CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md).
+**Wait for explicit direction before further Workout Log cleanup or WP4.4.**
+
 **WP4.3h User Profile and the WP4.3i Workout Plan dead-CSS arc followed and are
 complete through WP4.3i-filter-btn (`cb5ff6e`).** Their per-packet evidence docs
 are `CSS_PHASE4_WP4_3H_EVIDENCE.md` and `CSS_PHASE4_WP4_3I_EVIDENCE.md` plus
@@ -1252,9 +1278,10 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 - **Prerequisite discharged 2026-07-27.** The `components.css` `:is()` arm that
   exports ID-level specificity is why four generations of page-local Workout Log
   table styling were dead. Repairing that selector would have *resurrected* them,
-  so WP4.3j-c-dead deleted them first. Regions A, B and C on that page remain
-  page-local and ID-free, so a selector repair still changes what they own —
-  re-measure before assuming otherwise.
+  so WP4.3j-c-dead deleted the dead rules first and WP4.3j-d removed the four
+  dead hover-paint declarations from the retained Region G rules. Regions A, B
+  and C on that page remain page-local and ID-free, so a selector repair still
+  changes what they own — re-measure before assuming otherwise.
 - Handle base/layout/components/a11y/motion separately from navbar/theme.
 - Triage navbar's three live generations rule by rule.
 - Triage `theme-dark.css` into legacy values versus legitimate token remaps; do not bulk

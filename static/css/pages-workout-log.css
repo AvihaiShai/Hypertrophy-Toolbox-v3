@@ -1116,18 +1116,22 @@ body.modal-open #clearLogModal {
 /* The six non-hover override rules that stood here — header, cell, their dark
    counterparts and the two even-row rules — were removed in WP4.3j-c-dead as
    cascade-dead against the shared components.css owner. The two hover rules
-   below are RETAINED: their background and box-shadow are dead too, but their
-   `filter` is the winning owner of filter on hovered cells. */
+   below survived that packet with their paint declarations still attached;
+   WP4.3j-d-hover-paint then removed those four declarations, measured in the
+   real hover state. What is left is the only thing either rule ever owned. */
 
-/* Hover override */
+/* Hover tint. These two rules exist solely to own `filter` on hovered cells:
+   nothing else on the page declares it in this state, so they win at (0,3,3)
+   light / (0,4,3) dark without needing `!important`. Hover BACKGROUND and
+   BOX-SHADOW are owned elsewhere and were never taken from here — on metric
+   lanes by the region-H `(1,5,2)`–`(1,7,3)` rules below, and on every other
+   cell by the shared `components.css` `.table.table-calm` hover rule at
+   `(1,4,3)` / `(1,5,3)`. Do not reintroduce paint here; it cannot win.
+   Evidence: docs/CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md */
 .tbl.workout-log-table tbody tr:hover td,
 .tbl--responsive.workout-log-table tbody tr:hover td,
 .workout-log-frame .tbl tbody tr:hover td,
 .workout-log-frame .tbl--responsive tbody tr:hover td {
-    background: var(--lane-hover-bg, linear-gradient(180deg,
-      rgba(255, 255, 255, 0.99) 0%,
-      rgba(250, 252, 255, 0.96) 100%)) !important;
-    box-shadow: var(--lane-hover-shadow, inset 0 0 0 1px rgba(79, 140, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.55)) !important;
     filter: saturate(1.02) brightness(0.99);
 }
 
@@ -1135,10 +1139,6 @@ body.modal-open #clearLogModal {
 [data-theme='dark'] .tbl--responsive.workout-log-table tbody tr:hover td,
 [data-theme='dark'] .workout-log-frame .tbl tbody tr:hover td,
 [data-theme='dark'] .workout-log-frame .tbl--responsive tbody tr:hover td {
-    background: var(--lane-hover-bg, linear-gradient(180deg,
-      rgba(30, 36, 48, 0.99) 0%,
-      rgba(26, 32, 44, 0.97) 100%)) !important;
-    box-shadow: var(--lane-hover-shadow, inset 0 0 0 1px rgba(96, 165, 250, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05)) !important;
     filter: saturate(1.05) brightness(1.03);
 }
 
