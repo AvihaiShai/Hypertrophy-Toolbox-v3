@@ -84,7 +84,7 @@ Fixtures: `e2e/fixtures.ts` exports `test` (console-error collector), `ROUTES`, 
 | `listener-cleanup.spec.ts` | 3 | Detached picker/dropdown listener cleanup | Exercises in plan |
 | `ui-hardening.spec.ts` | 12 | Toast, form-state, modal keyboard/focus contracts | Varies |
 | `user-profile.spec.ts` | 24 | Profile, lifts, settings, body map, insights | None |
-| `visual.spec.ts` | 48 | Eight-page viewport/theme screenshot matrix | Visual seed |
+| `visual.spec.ts` | 66 | Eleven-page × 3 viewport × 2 theme screenshot matrix | Visual seed |
 | `visual-baseline-thumbnails.spec.ts` | 18 | Plan/log thumbnail screenshot matrix | Visual seed |
 
 Support files:
