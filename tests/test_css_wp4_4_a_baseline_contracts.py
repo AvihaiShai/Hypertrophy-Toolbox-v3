@@ -54,28 +54,38 @@ def _baseline() -> dict:
     return json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
 
 
-def test_wp4_4_baseline_is_pinned_and_matches_disk() -> None:
-    """The baseline's per-surface counts equal the files as they are now.
+def test_wp4_4_baseline_is_pinned_and_matches_its_source_commit() -> None:
+    """The baseline's per-surface counts equal the surfaces AT ITS OWN COMMIT.
 
     This is the gate that makes "no later packet may inherit a projection as
     fact" mechanical. Plan v1 projected 2,681 Stylelint warnings across the
     seven surfaces and 1,787 for components.css; the measured values are 2,883
     and 1,989. Prose could not have caught that.
+
+    Checked against `sourceCommit` rather than the working tree. A baseline
+    claims "these were the counts when I measured them", and that is what makes
+    it citable; comparing it to HEAD instead couples it to every later packet,
+    so the arc's first legitimate deletion reds it — WP4.4-c hit exactly that
+    and fixed the semantics here. The `git show` form is also the stronger
+    check: it cannot be satisfied by editing the CSS and the JSON together.
     """
     baseline = _baseline()
 
     assert baseline["packet"] == "WP4.4-a"
-    assert re.fullmatch(r"[0-9a-f]{40}", baseline["sourceCommit"])
+    commit = baseline["sourceCommit"]
+    assert re.fullmatch(r"[0-9a-f]{40}", commit)
 
+    total = 0
     for name in SEVEN_SURFACES:
         recorded = baseline["surfaces"][name]
-        on_disk = measure.surface_counts(name)
-        assert recorded["lines"] == on_disk["lines"], name
-        assert recorded["importantDeclarations"] == on_disk["importantDeclarations"], name
+        at_commit = measure.counts_from_text(measure.surface_text_at(commit, name))
+        assert recorded["lines"] == at_commit["lines"], name
+        assert (
+            recorded["importantDeclarations"] == at_commit["importantDeclarations"]
+        ), name
+        total += at_commit["lines"]
 
-    assert baseline["totals"]["sharedSurfaceLines"] == sum(
-        measure.surface_counts(name)["lines"] for name in SEVEN_SURFACES
-    )
+    assert baseline["totals"]["sharedSurfaceLines"] == total
 
 
 def test_important_is_counted_in_reconcilable_units() -> None:
