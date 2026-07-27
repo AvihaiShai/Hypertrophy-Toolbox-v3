@@ -1,10 +1,11 @@
 # Deep Refactor Plan — v3 (2026-07-04, full-scan grounded)
 
-**Status (2026-07-26): Track A, Phases -1 through 3, and Phase-4 packets
+**Status (2026-07-27): Track A, Phases -1 through 3, and Phase-4 packets
 WP4.-1, WP4.0a, WP4.0, WP4.1, WP4.2, and WP4.3a–WP4.3h are complete, as is the
 WP4.3i Workout Plan dead-CSS arc through WP4.3i-filter-btn. WP4.3j-a is merged,
-WP4.3j-b is complete as an audit-only no-op, and WP4.3j-b-dead has shipped the
-deletion it nominated.** WP2.2 is committed
+WP4.3j-b is complete as an audit-only no-op, WP4.3j-b-dead has shipped the
+deletion it nominated, and WP4.3j-c is complete as an evidence-only audit whose
+deletion candidate is documented but NOT authorized.** WP2.2 is committed
 as `c461840`; optional WP3.6 is committed as `0cbedac`. WP4.0 measurement
 provenance remains unchanged head `e46b67e`, with its ledger committed as
 `ca725c2`. Local integration verification through WP4.3d is complete
@@ -98,9 +99,36 @@ dead-CSS packet on this page must pair the sweep with a rest-state differential
    animated navbar strip `y ∈ [18,40]` — scope pixel claims to the element under
    test), and a specificity model that mishandles `:is()` or splits selectors on a
    naive comma will report an owner contradicting the computed value.
-   **j-c header/cell glass is still not started** and stays owner-gated. The
-   shared ID-bearing `:is()` specificity finding belongs to WP4.4 and is recorded,
-   not acted on.
+   **WP4.3j-c is now COMPLETE as an evidence-only audit** of the overlapping
+   header and table-cell glass systems — no production file changed. It found
+   that **the Workout Log table is painted by the shared `components.css`
+   `.table.table-calm` system, not by the page's own glass systems**: of **322**
+   declarations audited across regions A–I, **227 never win anywhere**, 31 are
+   live, 55 mixed, 9 unverified, and **0 are winning-but-overpainted**. Regions
+   **D (dark cell), E (metric-lane `nth-child` glass) and F (dark-mode
+   visibility)** are dead in their entirety. The cause is the ID-bearing `:is()`
+   arm exporting `(1,3,1)`/`(1,3,2)` specificity; every page-local rule in A–G is
+   ID-free and unreachable regardless of `!important`. The only page-local family
+   that renders is region H, the only one written with an ID at `(1,5,2)`.
+   Per-column ownership collapses to two groups (1–4/15–17 vs the 5–14 metric
+   lanes) with **no column deviating from its group**. Audit gates: pixel control
+   **0 diff 6/6**, resolution self-check **9,358 / 0 mismatches**, sentinels
+   **222/222 effective**, **15,336** records. Evidence:
+   [`CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md).
+   It **corrects** the j-a claim that the dark `#e0e0e0` colours are live
+   winners — they are cascade-dead, beaten by `components.css` at `(1,4,2)`.
+   A deletion candidate (**37 rules, 436 lines, 71 `!important`**, retaining the
+   L1527/L1538 hover `filter`) is documented with exact selectors, oracle and
+   gates but is **NOT authorized and NOT started**. **Method rule added: a probe
+   that changes nothing proves nothing** — four oracle defects each produced a
+   confident false deadness verdict (`var()`-bearing shorthands invisible to
+   longhand CSSOM queries, an injected sentinel losing the cascade, a running
+   transition outranking important author declarations, and `page.screenshot`
+   not painting clip regions beyond the viewport).
+   The shared ID-bearing `:is()` specificity finding still belongs to WP4.4 and
+   is recorded, not acted on — but the audit adds a sequencing constraint:
+   **repairing that selector in WP4.4 would resurrect the dead regions A–G unless
+   they are deleted first.**
 6. Deferred and unacted: the superset dark-tint gap (`--superset-bg-1..4` has no
    live dark override) and the dead `body.dark-mode` in
    `static/css/layout.css:1120` (→ WP4.4).

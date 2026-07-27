@@ -4,9 +4,50 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-26 — no workstream is in flight. WP4.3j-b-dead is the latest shipped
-packet; WP4.3j-a is merged at `99dfee1` (PR #181), and WP4.3j-b was an
-audit-only, no-op investigation.**
+**2026-07-27 — no workstream is in flight. WP4.3j-c is complete as an
+evidence-only audit that changed no production file.** It audited the
+overlapping header and table-cell glass systems in
+`static/css/pages-workout-log.css` across all 17 columns, both themes, and
+desktop/tablet/mobile.
+
+Result: **the Workout Log table is painted by the shared `components.css`
+`.table.table-calm` system, not by the page's own glass systems.** Of **322**
+audited declarations in regions A–I, **227 never win anywhere**, **31** are live,
+**55** are mixed, **9** are unverified, and **0** are winning-but-overpainted.
+Regions **D (dark cell), E (metric-lane `nth-child` glass) and F (dark-mode
+visibility)** are dead in their entirety. The cause is that the shared selector's
+`:is()` carries an ID arm and so exports `(1,3,1)`/`(1,3,2)` ID-level
+specificity, which no ID-free page-local rule can reach no matter how much
+`!important` it carries. The one page-local family that *does* render — the
+region-H lane rules — is the only one written with an ID, at `(1,5,2)`.
+
+Gates for the audit itself: same-CSS pixel control **0 differing pixels in 6/6
+contexts**, resolution self-check **9,358 checks / 0 mismatches**, sentinel
+probes **222/222 verified effective**, **0** unexplained zero-diffs, **15,336**
+ownership records. Evidence:
+[`CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md).
+
+The audit **corrects a claim in the shipped WP4.3j-a evidence**: the eight
+`color: #e0e0e0 !important` declarations in the dark-mode visibility block are
+cascade-dead, not live winners — the computed dark cell colour is
+`rgb(238, 241, 246)` from `components.css` at `(1,4,2)`. The j-a packet itself is
+unaffected; only its stated reason for retaining that block was wrong.
+
+A deletion candidate is **documented with exact selectors, oracle and gates —
+37 rules, 436 lines, 71 `!important` — and is NOT authorized.** Do not start it
+without new owner approval.
+
+**Method rule added:** *a probe that changes nothing proves nothing.* Four
+separate oracle defects in this packet each produced confident false "dead CSS"
+before being caught — a `var()`-bearing shorthand being invisible to longhand
+CSSOM queries, an injected sentinel losing the cascade, a running CSS transition
+outranking important author declarations, and `page.screenshot` not painting
+clip regions beyond the viewport. Every negative pixel result must carry
+positive evidence that the probe worked.
+
+**2026-07-26 — WP4.3j-b-dead was the previously shipped packet; WP4.3j-a is
+merged at `99dfee1` (PR #181), and WP4.3j-b was an audit-only, no-op
+investigation.**
 
 WP4.3j-b-dead is the deletion packet the j-b audit nominated but explicitly did
 not authorize. It removed three inert responsive families from
@@ -65,9 +106,14 @@ intentional review of the exact golden diff before any behavior change.
 ## Next Action
 
 Await owner direction. Nothing is in flight, and no packet is waiting to be
-picked up. The Workout Log deletion candidate is **done** (WP4.3j-b-dead). Do not
-begin WP4.3j-c, WP4.4, fatigue, or feature work — and do not reopen the
+picked up. WP4.3j-c is **closed as evidence-only**. Do not begin the deletion
+packet it nominates, WP4.4, fatigue, or feature work — and do not reopen the
 root-cleanup track.
+
+Note on sequencing, recorded for whenever the owner does decide: a WP4.4 repair
+of the shared `:is()` selector would **resurrect** the dead regions A–G on this
+page unless they are deleted first. The deletion packet should therefore precede
+WP4.4, not follow it.
 
 ---
 
