@@ -3,6 +3,7 @@
 Date: 2026-07-27
 Branch: `wt/wp4-3j-d-hover-paint`
 Base: merged `main` at `c29b05f`
+Pull request: #186
 
 ## Outcome
 

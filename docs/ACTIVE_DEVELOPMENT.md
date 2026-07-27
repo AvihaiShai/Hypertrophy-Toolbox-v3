@@ -4,7 +4,7 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-27 (LATEST) — finish shipping WP4.3j-d-hover-paint, then stop.**
+**2026-07-27 (LATEST) — WP4.3j-d-hover-paint is complete in PR #186; then stop.**
 The packet removes exactly four cascade-dead declarations from the two retained
 Region G Workout Log hover rules: light/dark `background` and `box-shadow`.
 Both full selector lists and both live filters are byte-identical; the rules are
@@ -179,9 +179,9 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-Complete the WP4.3j-d ship sequence, then await owner direction. No further
-Workout Log packet is authorized. Do not begin WP4.4, fatigue, or feature work,
-and do not reopen the root-cleanup track.
+After WP4.3j-d PR #186, await owner direction. No further Workout Log packet is
+authorized. Do not begin WP4.4, fatigue, or feature work, and do not reopen the
+root-cleanup track.
 
 The sequencing constraint is now **discharged**: a WP4.4 repair of the shared
 `:is()` selector would have **resurrected** regions D–G on this page, which is

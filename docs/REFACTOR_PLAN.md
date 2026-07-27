@@ -5,7 +5,7 @@ WP4.-1, WP4.0a, WP4.0, WP4.1, WP4.2, and WP4.3a–WP4.3h are complete, as is the
 WP4.3i Workout Plan dead-CSS arc through WP4.3i-filter-btn. WP4.3j-a is merged,
 WP4.3j-b is complete as an audit-only no-op, WP4.3j-b-dead has shipped the
 deletion it nominated, WP4.3j-c-dead has shipped the c-audit deletion, and
-WP4.3j-d-hover-paint is complete and locally green.** WP2.2 is committed
+WP4.3j-d-hover-paint is complete in PR #186.** WP2.2 is committed
 as `c461840`; optional WP3.6 is committed as `0cbedac`. WP4.0 measurement
 provenance remains unchanged head `e46b67e`, with its ledger committed as
 `ca725c2`. Local integration verification through WP4.3d is complete

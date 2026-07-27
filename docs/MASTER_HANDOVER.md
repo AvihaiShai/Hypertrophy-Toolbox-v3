@@ -4,7 +4,7 @@
 
 ## Current State
 
-> **2026-07-27 (LATEST) — WP4.3j-d-hover-paint is COMPLETE and locally green.**
+> **2026-07-27 (LATEST) — WP4.3j-d-hover-paint is COMPLETE in PR #186.**
 > Exactly four declarations are gone from the two retained Region G Workout Log
 > hover rules: light/dark `background` and `box-shadow`. Both selector lists and
 > both live filters are byte-identical; the rules are now filter-only.
@@ -960,9 +960,8 @@
 
 ## Next Safe Step
 
-**Current:** finish shipping WP4.3j-d-hover-paint, then stop. No further Workout
-Log cleanup and no WP4.4 work is authorized. After this packet lands, await
-explicit owner direction.
+**Current:** after WP4.3j-d-hover-paint PR #186, stop and await explicit owner
+direction. No further Workout Log cleanup and no WP4.4 work is authorized.
 
 Use [docs/ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md) as the execution source
 of truth. The older Fatigue Stage-4 and Body Composition material below is
