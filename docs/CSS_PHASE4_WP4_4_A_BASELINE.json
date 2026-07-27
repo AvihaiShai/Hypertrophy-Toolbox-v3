@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packet": "WP4.4-a",
-  "sourceCommit": "894d88267e276ab576a411288941ee80925404ee",
+  "sourceCommit": "f8d5a8e6c992fe71b5f9031ad67279de69ae62ea",
   "purpose": "Measured baseline for the WP4.4 shared-bundle arc. Packets b-k cite this file; a number absent from it may not be quoted as fact (F13).",
   "authoritativeUnits": {
     "important": "importantDeclarations (comments excluded) — the only unit comparable to Stylelint",
@@ -925,7 +925,7 @@
       "nameAndSizeSha256": "030d983bc22d4fc0a05d360086d1c891c4a1cb0535a70e1125bfa1b8982dfa84"
     },
     "linux/visual.spec.ts-snapshots": {
-      "count": 60,
+      "count": 66,
       "files": [
         "backup-desktop-dark.png",
         "backup-desktop-light.png",
@@ -939,6 +939,12 @@
         "body-composition-mobile-light.png",
         "body-composition-tablet-dark.png",
         "body-composition-tablet-light.png",
+        "fatigue-desktop-dark.png",
+        "fatigue-desktop-light.png",
+        "fatigue-mobile-dark.png",
+        "fatigue-mobile-light.png",
+        "fatigue-tablet-dark.png",
+        "fatigue-tablet-light.png",
         "progression-desktop-dark.png",
         "progression-desktop-light.png",
         "progression-mobile-dark.png",
@@ -988,7 +994,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "f972d95abd2531ef0bd29826aa5172f1a7a1376cedffdb7160b1ec6a38f37841"
+      "nameAndSizeSha256": "6a70c93241ae77511502d82d9d856aa58393df69b660eac00c159b6f78bc7ac8"
     },
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 18,
@@ -1017,7 +1023,7 @@
   },
   "fatigueBaselines": {
     "win32": "created",
-    "linux": "pending",
+    "linux": "created",
     "ruling": "N7 — creation on Windows and Linux, authorized at Gate 1; NOT authorization to rebaseline any pre-existing screenshot",
     "matrixSize": "11 pages x 3 viewports x 2 themes = 66 (was 60)"
   },
