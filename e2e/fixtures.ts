@@ -88,6 +88,11 @@ export const ROUTES = {
   VOLUME_SPLITTER: '/volume_splitter',
   BACKUP: '/backup',
   USER_PROFILE: '/user_profile',
+  // templates/fatigue.html links no page bundle at all, so this route is
+  // painted entirely by the shared global bundles — the highest shared-CSS
+  // exposure in the app. Added to the visual matrix by WP4.4-a under owner
+  // ruling N7 so that arc has a pixel oracle here.
+  FATIGUE: '/fatigue',
 } as const;
 
 /**

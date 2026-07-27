@@ -17,6 +17,7 @@ const pages = [
   { name: 'volume-splitter', route: ROUTES.VOLUME_SPLITTER },
   { name: 'user-profile', route: ROUTES.USER_PROFILE },
   { name: 'backup', route: ROUTES.BACKUP },
+  { name: 'fatigue', route: ROUTES.FATIGUE },
 ] as const;
 
 const viewports = [

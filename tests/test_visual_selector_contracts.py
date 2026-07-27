@@ -44,6 +44,35 @@ def test_visual_matrix_covers_profile_and_backup():
     assert 'data-testid="backup-center-page"' in read("templates/backup.html")
 
 
+def test_visual_matrix_covers_fatigue_the_purely_shared_css_route():
+    """`/fatigue` is painted 100% by the shared global bundles.
+
+    `templates/fatigue.html` declares no `page_css` block and links no
+    stylesheet of its own, so every pixel on it comes from the seven surfaces
+    the WP4.4 arc rewrites. It was the one rendered route with no pixel oracle
+    at all, which made "no unexplained visual differences" unfalsifiable exactly
+    where shared-CSS exposure is highest. Baselines created by WP4.4-a under
+    owner ruling N7.
+    """
+    visual_spec = read("e2e/visual.spec.ts")
+    fixtures = read("e2e/fixtures.ts")
+    template = read("templates/fatigue.html")
+
+    assert "FATIGUE: '/fatigue'," in fixtures
+    assert "{ name: 'fatigue', route: ROUTES.FATIGUE }," in visual_spec
+
+    # The premise of the test above: if fatigue.html ever gains its own bundle,
+    # this route stops being the pure shared-CSS canary and the reasoning that
+    # justified the baselines no longer holds.
+    assert "page_css" not in template
+    assert ".css" not in template
+
+    snapshots = ROOT / "e2e" / "__screenshots__" / "win32" / "visual.spec.ts-snapshots"
+    for viewport in ("mobile", "tablet", "desktop"):
+        for theme in ("light", "dark"):
+            assert (snapshots / f"fatigue-{viewport}-{theme}.png").is_file()
+
+
 def test_style_assertions_resolve_semantic_tokens_without_literal_rgb():
     nav_spec = read("e2e/nav-dropdown.spec.ts")
     summary_spec = read("e2e/summary-pages.spec.ts")
