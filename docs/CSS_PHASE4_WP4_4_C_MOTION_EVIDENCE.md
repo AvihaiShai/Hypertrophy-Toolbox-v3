@@ -47,11 +47,39 @@ It was proven under that state, on the real element, in both themes, with M6a ap
 
 **M6a was applied and was necessary.** `transition-property: none` is set inline *before* the class is added and released only *after* the read; the button carries a transition, so an unsuppressed read returns the pre-class value and would have reported the animation as dead too.
 
-### What beats them
+### What beats them — the layered `!important` inversion (G10 / A6)
 
-Both `#add_exercise_btn.btn` (`components.css:242`, `(1,1,0)`) and `.btn.btn-calm-primary` (`components.css:3154`, `(0,2,0)`) declare the same properties with `!important`. `.is-success` is `(0,1,0)` with `!important` and loses to both on specificity.
+`.is-success` in `motion.css` is **unlayered** and `!important`, at specificity `(0,1,0)`.
 
-⚠️ **The rendered value is neither of the two rules' colours** — the button computes to `rgb(76, 110, 245)` (the calm-primary accent), not the seafoam `#98DFD6` that `components.css:242` declares at higher specificity. That inversion is **unexplained and out of scope for this packet**; it is recorded in §7 as a finding, not acted on. It does not affect this deletion: `.is-success` loses to *both* candidates, so which of them ultimately wins cannot make a deleted non-winner live.
+The declarations that actually render are `components.css:3540-3548`, which sit **inside `@layer workout`** (opened at `components.css:3539`) and are **also `!important`**:
+
+```css
+@layer workout {
+#workout[data-page="workout-plan"] .btn.btn-calm-primary,
+#workout[data-page="workout-plan"] :where(.btn).btn-calm-primary,
+#workout[data-page="workout-plan"] .modal-content.frame-calm-glass .btn.btn-calm-primary {
+  background: var(--accent, #4c6ef5) !important;
+  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 78%, white 22%) !important;
+  color: var(--accent-ink, #ffffff) !important;
+  …
+}
+```
+
+**In the important half of the cascade, layer order is inverted.** For normal declarations, unlayered rules beat layered ones; for `!important` declarations the ordering reverses and **unlayered `!important` is the weakest tier**, so a layered `!important` outranks every unlayered `!important` *regardless of specificity*. This is exactly the mechanism recorded as **G10** and council finding **A6** in `docs/css_phase4_wp4_4/PLANNING.md:165-170`, and it is why **N2** freezes layer membership arc-wide.
+
+`#add_exercise_btn` carries `class="btn btn-primary btn-calm-primary"` (`templates/workout_plan.html:247`) inside `<div id="workout" data-page="workout-plan">` (`:10`), so the layered block matches it on every render. **`.is-success` therefore could never win `background-color`, `border-*-color` or `color` on that element — in either theme, in any interaction state, at any specificity it could have been given.** The three deleted declarations are dead by cascade construction, not merely dead by measurement.
+
+The measured values are the layered block's own, to the digit:
+
+| Property | Winning declaration (`components.css:3540-3548`, `@layer workout`, `!important`) | Computed |
+|---|---|---|
+| `background-color` | `background: var(--accent, #4c6ef5)` | `rgb(76, 110, 245)` |
+| `color` | `color: var(--accent-ink, #ffffff)` | `rgb(255, 255, 255)` |
+| `border-*-color` | `border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 78%, white 22%)` | `color(srgb 0.452471 0.556471 0.969412)` |
+
+The `color-mix` arithmetic checks out against the observed value: `#4c6ef5` is srgb `(0.2980, 0.4314, 0.9608)`, and `channel × 0.78 + 0.22` gives `(0.4524, 0.5562, 0.9694)`.
+
+Two unlayered rules also declare these properties with `!important` — `#add_exercise_btn.btn` (`components.css:242`, `(1,1,0)`, seafoam `#98DFD6`) and `.btn.btn-calm-primary` (`components.css:3154`, `(0,2,0)`) — and `.is-success` at `(0,1,0)` loses to both of those on specificity as well. Neither is the winner: both are unlayered `!important`, so both are outranked by the layered block. The seafoam colour at `components.css:242` does not render on this button. That is the documented behaviour of `@layer`, not an anomaly.
 
 ---
 
@@ -98,7 +126,9 @@ Per-declaration ownership was resolved over Chrome's own `CSS.getMatchedStylesFo
 | Linux deep gate | **not run** — N8 requires it at h, i, j, k only |
 | Snapshot updates | **none** — `git diff` shows zero `e2e/__screenshots__/` paths |
 
-**`visual.spec.ts` is a backstop only, not the primary proof (F1).** `prepareForScreenshot()` sets `animation-duration: 0s !important` and `transition-duration: 0s !important` globally before every capture, so it cannot falsify a change to `motion.css` — deleting the entire file would leave the matrix byte-identical. The primary proof is the ownership differential in §2 and the pre/post harness capture in §8.
+**`visual.spec.ts` is a backstop only, not the primary proof (F1).** `prepareForScreenshot()` (`e2e/visual-helpers.ts:45,47`) sets `animation-duration: 0s !important` and `transition-duration: 0s !important` globally before every capture. It therefore suppresses animation and transition **timing**, and `visual.spec.ts` **cannot by itself falsify a timing-only `motion.css` regression**.
+
+That is the whole of the claim. `motion.css` also carries non-timing paint and geometry — the `.skeleton` gradient, `background-size`, `border-radius`, and two `!important` colour declarations — so deleting the entire file would **not** be expected to leave the matrix byte-identical, and this document does not assert that it would. For Packet c specifically, the visual matrix is a backstop; the deletion's safety is established by the cascade argument and computed-style differential in §2, the per-packet contract tests, and the pre/post ownership capture in §8.
 
 ---
 
@@ -120,9 +150,10 @@ Per-declaration ownership was resolved over Chrome's own `CSS.getMatchedStylesFo
 
 ## 7. Findings handed on
 
-1. **Unexplained cascade inversion on `#add_exercise_btn`** (§2). `components.css:242` declares `background-color: #98DFD6 !important` at `(1,1,0)`; `components.css:3154` declares `background: var(--accent, #4c6ef5) !important` at `(0,2,0)`. The lower-specificity rule is what renders. Both are `components.css`, so this belongs to **packet h**, which owns that surface. Worth resolving before h deletes anything in that neighbourhood.
+1. **Observation, not a defect: the seafoam `#add_exercise_btn` paint at `components.css:242` never renders.** It is unlayered `!important` at `(1,1,0)`; the layered `!important` block at `components.css:3540-3548` outranks it under the `@layer` importance inversion (§2). **Packet h is not being asked to investigate this as an unresolved issue** — the mechanism is known, documented at G10/A6, and frozen by N2. It is noted only because `components.css:242` is a candidate that h will encounter, and h's own classification must model layers before judging it either way.
 2. **`base.css` also defines `.skeleton`** (`base.css:93`) with `background`, `background-size` and `animation: skeleton-loading`. `motion.css` loads after `base.css` at equal specificity, so **every one of those declarations is overridden**, and `@keyframes skeleton-loading` has no live consumer. This is a **packet b** candidate — not touched here, because `base.css` is b's exclusive path.
-3. **The exploratory ownership prober's winner attribution is not authoritative.** It correctly identified the non-winners, but named a beater whose colour is not what renders (§2). It is preserved as the generated artifact `artifacts/wp4_4/ownership_probe.mjs`, not committed into the packet-a-owned `scripts/css_audit/` directory. Treat its output as **nomination-only**, exactly as the plan treats packet `g` — every nomination must be confirmed by a direct computed-style differential before deletion. Its "never wins anywhere" output was independently confirmed here; its "beaten by" output was not.
+3. **The exploratory ownership prober does not model cascade-layer `!important` inversion.** That is the precise limitation, and the only one this packet observed: it ranks candidate winners by specificity and source order within the unlayered tier, so when the true winner is a layered `!important` rule it names an unlayered runner-up instead. Its non-winner identification was correct and was independently confirmed here; its **winner attribution** is unsound wherever `@layer` is in play — `components.css:3539`, `navbar.css:6`, `pages-workout-plan.css:468`/`:718`, `pages-welcome.css:6`. This is **not** a claim that its winner attribution is unreliable in general. It is preserved as the generated artifact `artifacts/wp4_4/ownership_probe.mjs`, not committed into the packet-a-owned `scripts/css_audit/` directory. Treat its output as **nomination-only**, exactly as the plan treats packet `g`: every nomination must be confirmed by a direct computed-style differential before deletion, and any packet touching a layered surface must resolve the winner with layer awareness.
+4. **Documentation drift in the Gate-1 planning artifact.** `docs/css_phase4_wp4_4/PLANNING.md:1133`, `:1416` and `:1517` still name the baseline contract by its former name, `test_wp4_4_baseline_is_pinned_and_matches_disk`. The test was renamed to `test_wp4_4_baseline_is_pinned_and_matches_its_source_commit` by this packet (§8). **`PLANNING.md` is deliberately not edited** — it is the approved Gate-1 artifact and no implementation packet may amend it. The drift is recorded here so the reference is traceable; `scripts/css_audit/emit_baseline.py` and `docs/CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md` were updated, since those describe the test's behaviour rather than record an approved decision.
 
 ---
 
@@ -221,3 +252,81 @@ a's merged squash commit (`46e340e`), whose seven shared CSS surfaces are
 byte-identical to the original measurement commit, and only the pytest job uses
 `fetch-depth: 0`. This preserves the strong source-commit check without a
 network operation inside pytest or a dependency on Packet a's temporary branch.
+
+---
+
+## 9. Must-retain handoff to Packet h
+
+**Packet h owns `components.css`. This is a must-retain, in the same class as
+the `.value-changed` blocks (PR#3, M10).**
+
+> **`components.css:3540-3548` — the layered `@layer workout` success-state
+> paint on `#workout[data-page="workout-plan"] .btn.btn-calm-primary` — must
+> remain, as `!important` and inside its layer, for as long as the deleted
+> `motion.css` `.is-success` fallback stays absent.** An equivalent owner
+> providing the same required paint on that element is an acceptable
+> substitute; nothing else is.
+
+**Why this is now load-bearing.** Before WP4.4-c, `.is-success` carried
+`background-color`, `border-color` and `color` as unlayered `!important`
+declarations. They never rendered — the layered block outranked them at every
+moment (§2) — but they were a latent fallback: had the layered block been
+removed or de-`!important`ed, they would have become the winners. This packet
+deleted them as proven non-winners under M8, which is correct, and which also
+means **that fallback no longer exists**.
+
+**Obligation on h.** If h removes `components.css:3540-3548`, drops its
+`!important`, moves it across a layer boundary (already forbidden by N2), or
+narrows its selector list so `#add_exercise_btn` no longer matches, then h
+must:
+
+1. re-prove the `.is-success` success state on the real `#add_exercise_btn`
+   under M6a, exactly as §2 and §8 did here;
+2. provide a replacement owner for `background-color`, `border-*-color` and
+   `color` on that element in **both** themes; and
+3. record the result in its own evidence doc.
+
+Without a replacement, the button falls back to `components.css:242`
+(seafoam `#98DFD6 !important`) or, failing that, to Bootstrap's `.btn-primary`
+— a visible change, and therefore a V1 rollback trigger, on a route the packet
+may not have captured.
+
+**A documentation handoff is deliberate here; no cross-packet test was added.**
+A contract in `tests/test_css_wp4_4_motion_contracts.py` asserting the presence
+of a `components.css` rule would make Packet c's contract file a claim on
+Packet h's exclusive production path, which N1 exists to prevent, and would red
+h's legitimate work rather than inform it. The obligation belongs in h's own
+must-retain register.
+
+---
+
+## 10. Ownership ruling — owner-authorized cross-packet corrections
+
+Three of this PR's seven files lie outside Packet c's declared ownership
+(`PLANNING.md:419`): the Packet-a measurement/test/baseline paths
+(`scripts/css_audit/measure.py`, `tests/test_css_wp4_4_a_baseline_contracts.py`,
+`docs/CSS_PHASE4_WP4_4_A_BASELINE.json`) and `.github/workflows/ci.yml`, a
+never-claimed shared path.
+
+**The owner explicitly authorized these corrections, on review, as an exception
+scoped to this PR.** Recorded terms:
+
+- The exception covers **only** the Packet-a measurement/test/baseline paths and
+  `.github/workflows/ci.yml`.
+- The changes were **necessary**, not opportunistic: Packet a's baseline contract
+  compared an immutable measurement against the working tree, so the arc's first
+  authorized deletion necessarily red it, and the corrected `git show` form could
+  not execute under Actions' default shallow checkout.
+- **No concurrent writer existed.** Packet a is merged and closed; no other packet
+  was open against these paths.
+- The authorization **does not broaden Packet c's production ownership**. Packet c
+  still owns exactly `static/css/motion.css`,
+  `tests/test_css_wp4_4_motion_contracts.py`, and this evidence document.
+- The authorization **does not permit unrelated cleanup** in the touched files, and
+  none was performed — the diffs are confined to the baseline-semantics fix, the
+  `sourceCommit` repin, and the single `fetch-depth: 0` on the pytest job.
+
+The `docs/CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md` and
+`scripts/css_audit/emit_baseline.py` edits in the follow-up commit fall under the
+same exception: both describe the renamed contract's behaviour and would
+otherwise document semantics the code no longer has.
