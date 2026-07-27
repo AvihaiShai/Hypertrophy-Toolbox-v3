@@ -37,9 +37,10 @@ ROUTE_BUNDLES = {
     "backup.html": "pages-backup.css",
 }
 LAYER_ORDER = ("workout", "navbar", "workout-dropdowns", "welcome")
-# WP4.3j-c-dead: the region-H metric-lane block, the one page-local family on
-# the Workout Log page that wins anything. Locked byte-for-byte.
-REGION_H_SHA256 = "2d411015e933d5d7872fa4a25752ae657c5168217b57841e303113e0ab29281e"
+# WP4.3j-c-dead: the region-H metric-lane block, the one page-local paint family
+# on the Workout Log page that wins. Locked byte-for-byte. WP4.3j-d corrected
+# the original anchor, which accidentally started at an earlier prose mention.
+REGION_H_SHA256 = "18658442af0598e5612be704b7e655d14b1dab689efd404138d90a7a93988818"
 FRAME_ROUTE_BUNDLES = {
     "plan": "pages-workout-plan.css",
     "log": "pages-workout-log.css",
@@ -1526,9 +1527,9 @@ def test_workout_log_drops_inert_responsive_table_and_frame_families() -> None:
     # None of the declarations WP4.3j-b-dead removed carried `!important`, so
     # that packet left the count unchanged at 285. WP4.3j-c-dead then removed
     # 68 important declarations along with its 37 cascade-dead rules, taking it
-    # to 217; the current total is owned by
-    # `test_workout_log_drops_cascade_dead_header_and_cell_glass`.
-    assert body.count("!important") == 217
+    # to 217. WP4.3j-d-hover-paint then removed four more, taking it to 213; the
+    # current total is owned by the two Workout Log dead-CSS contracts below.
+    assert body.count("!important") == 213
 
 
 def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
@@ -1652,9 +1653,15 @@ def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
     # matches the shared owner's ID-level specificity deliberately rather than
     # answering it with more `!important`.
     raw = (ROOT / "static" / "css" / "pages-workout-log.css").read_text(encoding="utf-8")
-    start = raw.index("EXPLICIT METRIC LANE PAIRING")
+    region_h_anchor = (
+        "EXPLICIT METRIC LANE PAIRING\n"
+        "   Planned/scored pairs share a hue"
+    )
+    assert raw.count(region_h_anchor) == 1
+    start = raw.index(region_h_anchor)
     end = raw.index("NUMBER INPUT SPINNERS")
     region_h = raw[start:end]
+    assert region_h.count("\n") == 282
     assert (
         hashlib.sha256(region_h.replace("\r\n", "\n").encode()).hexdigest()
         == REGION_H_SHA256
@@ -1721,5 +1728,62 @@ def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
     # --- 8. The measured weight reduction. -----------------------------------
     # 68 `!important` declarations left with the 37 rules (285 -> 217). The j-c
     # audit projected 71 because it counted region F over its line span, which
-    # also covers the retained editable-input and badge rules.
-    assert body.count("!important") == 217
+    # also covers the retained editable-input and badge rules. WP4.3j-d then
+    # removed four cascade-dead hover-paint declarations (217 -> 213).
+    assert body.count("!important") == 213
+
+
+def _assert_workout_log_hover_rules_are_filter_only(css: str) -> None:
+    hover_rules = (
+        (
+            ".tbl.workout-log-table tbody tr:hover td,\n"
+            ".tbl--responsive.workout-log-table tbody tr:hover td,\n"
+            ".workout-log-frame .tbl tbody tr:hover td,\n"
+            ".workout-log-frame .tbl--responsive tbody tr:hover td",
+            ".workout-log-frame .tbl--responsive tbody tr:hover td",
+            "filter: saturate(1.02) brightness(0.99);",
+        ),
+        (
+            "[data-theme='dark'] .tbl.workout-log-table tbody tr:hover td,\n"
+            "[data-theme='dark'] .tbl--responsive.workout-log-table tbody tr:hover td,\n"
+            "[data-theme='dark'] .workout-log-frame .tbl tbody tr:hover td,\n"
+            "[data-theme='dark'] .workout-log-frame .tbl--responsive tbody tr:hover td",
+            "[data-theme='dark'] .workout-log-frame .tbl--responsive tbody tr:hover td",
+            "filter: saturate(1.05) brightness(1.03);",
+        ),
+    )
+    for selector_list, final_selector, expected_filter in hover_rules:
+        assert css.count(selector_list + " {") == 1
+        rule_body = _wp_rule_body(css, final_selector)
+        assert rule_body.strip() == expected_filter
+        assert "background" not in rule_body
+        assert "box-shadow" not in rule_body
+
+    # Region C's separate hover family and third filter remain deliberately
+    # untouched; its var()-backed paint still consumes the Region H variables.
+    region_c_selector = (
+        ".workout-log-table tbody tr:hover td,\n"
+        ".workout-log-frame .workout-log-table tbody tr:hover td,\n"
+        ".tbl--responsive.workout-log-table tbody tr:hover td"
+    )
+    assert css.count(region_c_selector + " {") == 1
+    region_c_body = _wp_rule_body(
+        css, ".tbl--responsive.workout-log-table tbody tr:hover td"
+    )
+    assert "background: var(--lane-hover-bg," in region_c_body
+    assert "box-shadow: var(--lane-hover-shadow," in region_c_body
+    assert "filter: saturate(1.02) brightness(0.99);" in region_c_body
+    assert css.count("filter: saturate(") == 3
+
+
+def test_workout_log_hover_rules_own_only_their_live_filters() -> None:
+    """WP4.3j-d: Region G hover rules retain selectors/filters, not dead paint.
+
+    Real mouse hover across light/dark and desktop/tablet/mobile proved all four
+    paint declarations entered the candidate set but never won. The two filters
+    are known-live controls and remain the winning owners in every context.
+    """
+    css = (ROOT / "static" / "css" / "pages-workout-log.css").read_text(
+        encoding="utf-8"
+    )
+    _assert_workout_log_hover_rules_are_filter_only(css)

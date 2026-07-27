@@ -4,7 +4,35 @@
 
 ## Current State
 
-> **2026-07-27 (LATEST) — WP4.3j-c-dead SHIPPED: the 37 cascade-dead rules the
+> **2026-07-27 (LATEST) — WP4.3j-d-hover-paint is COMPLETE in PR #186.**
+> Exactly four declarations are gone from the two retained Region G Workout Log
+> hover rules: light/dark `background` and `box-shadow`. Both selector lists and
+> both live filters are byte-identical; the rules are now filter-only.
+> `!important` **217 → 213**, Stylelint total **5,498 → 5,490** and focused
+> **431 → 423**, with no category increase.
+>
+> **Real-hover proof:** 51 targets × 36 properties × 6 contexts = **11,016**
+> records, with **0 computed-value differences, 0 declaration-owner differences,
+> and 6/6 byte-identical frame captures**. Same-CSS controls were 0 before and
+> after in all contexts; resolution self-check was **2,924 / 0 mismatches per
+> side**; sentinels were **24/24 effective per side**. The known-live filters
+> remained the winning owners 6/6. Positive control: **408 records lost
+> candidates and 0 gained any**; rule counts stayed fixed.
+>
+> The previous Region H sha256 contract was over-broad: its first-occurrence
+> anchor began inside an earlier deletion note and accidentally covered Region
+> G. WP4.3j-d anchors the unique banner, asserts the **282-line** span, and locks
+> the corrected hash. The defect caused a false failure, never a false pass. A
+> separate hover contract pins both complete selector lists, exact filters,
+> filter-only bodies, and the retained Region C hover family; it goes red against
+> the full pre-deletion bundle, a removed filter, and a restored background.
+>
+> Gates: visuals **6/6** update-free, contracts **33/33**, focused functional
+> Chromium **33/33**, full pytest **1,859 passed / 1 skipped**. Evidence:
+> [`CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_D_HOVER_PAINT_EVIDENCE.md).
+> WP4.4 remains unstarted and owner-gated.
+>
+> **2026-07-27 — WP4.3j-c-dead SHIPPED: the 37 cascade-dead rules the
 > j-c audit nominated are deleted from `static/css/pages-workout-log.css`.**
 > Regions **D** (dark cell glass, 3 rules), **E** (positional metric-lane glass,
 > 20), **F** (dark-mode visibility, 8) and **six of the eight region-G**
@@ -932,13 +960,12 @@
 
 ## Next Safe Step
 
-**Current:** WP4.3b is integrated into local `main` as history-preserving merge
-`92291ed`; its narrow post-merge gates passed, protected identities remained
-unchanged, and nothing was pushed. Do not begin Progression, another WP4.3 page,
-or WP4.4 until explicitly directed. The older Stage-4 paragraph below is retained
-as historical context, not the current next action.
+**Current:** after WP4.3j-d-hover-paint PR #186, stop and await explicit owner
+direction. No further Workout Log cleanup and no WP4.4 work is authorized.
 
-Use [docs/ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md) as the execution source of truth. **Local `main` is in sync with `origin/main` (0 commits ahead) after pushing `df9b6f9` (movement_pattern cleanup), `f2cdc23` (Stage 4 observer tooling), and the 2026-05-29 handover sync.** The active tracking item is **Fatigue Meter Phase 2 Stage 4 calibration window — OPEN 2026-05-24, earliest close 2026-06-07** (≥2 weeks real use). The Stage 4 calibration observer (`scripts/fatigue_stage4_observer.py`, daily scheduled task) is ready and strictly read-only; it stays idle and appends nothing while `workout_log` is empty (verified 2026-05-29). **Automation observability tooling added 2026-05-30:** `scripts/check_fatigue_stage4_automation.ps1` (read-only health check — classifies the automation as [BROKEN] / [SKIPPED] / [IDLE] / [READY], explains task result codes incl. `0` and `0x800710E0`, reports the live `workout_log` count via the read-only `scripts/fatigue_stage4_status.py` helper) and `scripts/install_fatigue_stage4_observer_task.ps1` (idempotent `schtasks /Create ... /F` installer/repair, default daily 20:00). Verified 2026-05-30: check -> **[IDLE]** (last result `0`, `workout_log` empty); installer idempotent; `schtasks /Run` succeeded. No thresholds / scenarios / boundary tests / DB touched — see [PHASE2_PLANNING.md §10](fatigue_meter/PHASE2_PLANNING.md). Working tree should remain clean except for `data/database.db` runtime dirt after committing this tooling. Pre-existing closed-workstream rules still hold: redesign post-P8 triage closed (10 shipped, #1 deferred by owner choice), phase5_3i_plan closed as accepted-as-shipped. Fatigue calibration guardrails: no per-muscle threshold tuning without ≥2 same-direction real-use disagreements; no edits to `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`; no `tests/test_fatigue.py` boundary-test edits; no `scripts/fatigue_calibration_report.py::SCENARIOS` tuning without a fresh owner override. See [docs/fatigue_meter/PHASE2_PLANNING.md](fatigue_meter/PHASE2_PLANNING.md) Stage 4 + §10 for evidence-collection guidance.
+Use [docs/ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md) as the execution source
+of truth. The older Fatigue Stage-4 and Body Composition material below is
+retained as historical verification context, not as the current next action.
 
 **Verification of Body Composition Issue #21 second slice (2026-05-20, later):**
 
