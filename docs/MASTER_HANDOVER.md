@@ -4,7 +4,93 @@
 
 ## Current State
 
-> **2026-07-27 (LATEST) — WP4.3j-c CLOSED as an evidence-only audit; no
+> **2026-07-27 (LATEST) — WP4.3j-c-dead SHIPPED: the 37 cascade-dead rules the
+> j-c audit nominated are deleted from `static/css/pages-workout-log.css`.**
+> Regions **D** (dark cell glass, 3 rules), **E** (positional metric-lane glass,
+> 20), **F** (dark-mode visibility, 8) and **six of the eight region-G**
+> final-override rules — 69 declarations in all. **Lines 2,025 → 1,621 (−404);
+> `!important` 285 → 217 (−68); `@media` unchanged at 9.**
+>
+> **The audit was treated as a nomination, not as proof.** The branch was cut
+> fresh from merged `main` at `69dcf5e`, not continued from the pre-squash audit
+> history, and the scope was re-resolved *structurally* — by selector shape and
+> declared properties, not by the audit's line numbers. A first attempt keyed on
+> region G's line range swept up 26 rules including region H; the shape test
+> ("every arm targets `.tbl`/`.tbl--responsive`, not `.workout-log-table`")
+> returns exactly 6. The deleter refuses to write on any failed assertion.
+>
+> **Pre-deletion re-verification:** all 37 rules resolve to exactly one CSSOM
+> rule in all six contexts, all 37 genuinely **match** live elements (none is
+> merely dead by selector), and **none ever wins** any audited record. The two
+> retained region-G hover rules own `filter` — 51 records each.
+>
+> **Before/after differential: 0 computed-value differences and 0
+> declaration-owner differences across 15,336 records**, with **6/6 zero-diff**
+> `.workout-log-frame` captures (byte-identical PNGs). Same-CSS control 0
+> differing pixels 6/6 on **both** sides; resolution self-check 9,358 checks / 0
+> mismatches on both sides; sentinels 38/38 effective per context on both sides;
+> 0 unexplained zero-diffs. Owner identity excludes the rule's `order` index,
+> which necessarily shifts when 37 rules are removed — comparing it would report
+> 15,336 spurious differences.
+>
+> **Two positive controls that the deletion reached the browser:** matching-rule
+> count fell by **exactly 37** in every context (2,196→2,159 / 2,052→2,015 /
+> 1,950→1,913), and **5,496 records lost candidates while 0 gained any** — the
+> deleted rules were demonstrably in the cascade and demonstrably never winning
+> it.
+>
+> **Retained and contract-asserted:** the two region-G hover rules with their
+> exact winning `filter` declarations (not partially cleaned — that is a separate
+> decision); regions A, B, C, H and I, with the region-H `(1,5,2)` lane system
+> locked **byte-for-byte by sha256**; the nine unverified declarations; the
+> transparent 1 px header top border; the five empty media shells, the 992 px
+> overflow rule and the late legend query; modal/editable-input/badge styling.
+> A third `filter: saturate(…)` remains in the file — the region-C light hover
+> loser, out of scope.
+>
+> **The premise is now protected.** The deadness is conditional on
+> `#workout-log-table` keeping `table` and `table-calm`; the contract asserts
+> those classes on the template and that no JavaScript removes or toggles them.
+> Neither file was modified — the tests only read them.
+>
+> **Gates:** visuals **6/6** update-free (`PW_VISUAL_SEED=1`, no baseline
+> written), contracts **32/32** with the red path proven five ways (whole
+> pre-deletion bundle, removing a live hover filter, one byte inside region H,
+> resurrecting a region-E rule, dropping `table-calm` from the template), focused
+> functional Chromium **33/33**, full pytest **1,858 passed / 1 skipped**.
+> **Stylelint total 5,784 → 5,498 and focused 717 → 431 (both −286), no category
+> increased** — `declaration-no-important` −68, `declaration-property-value-
+> disallowed-list` −56, and **`no-descending-specificity` 200 → 38 (−162)**, the
+> biggest category move of the Phase-4 arc. Unlike j-b-dead, where Stylelint
+> moved by zero, the whole total-warning reduction comes from this one file.
+> Evidence:
+> [`CSS_PHASE4_WP4_3J_C_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_3J_C_DEAD_EVIDENCE.md).
+>
+> **Two measured corrections to the j-c audit.** Its projected `71 !important`
+> (`285 → 214`) counted region F over a line span that also covers the retained
+> editable-input and badge rules; the eight region-F rules carry 8, so the
+> measured movement is **68** (`285 → 217`). D (8), E (30) and G (22) match
+> exactly. And of the nine unverified declarations it places "all in region H",
+> eight are — the ninth is the region-A header `text-transform`. Both regions are
+> retained, so the scope is unaffected.
+>
+> **Method rule added — *every deadness sweep must carry a known-live control.***
+> Two new oracle defects each made rules look *deader* than they are: (1)
+> `Array.from(rule.style)` enumerates **expanded longhands**, so identifying a
+> source rule by comparing its authored property names against `propKey` matched
+> nothing for every shorthand-declaring rule — **29 of the 37** reported "matches
+> no element"; (2) Chrome **re-serializes `:nth-child(even)` as
+> `:nth-child(2n)`**, hiding the other **13**. Both are invisible to the question
+> the packet asks — "does it ever win?" answered **0** under the broken *and* the
+> fixed matcher — so a run that only checked for wins would have shipped on a
+> matcher that matched nothing. What exposed them was the two retained hover
+> rules, known live winners, reporting **0 wins**.
+>
+> **Sequencing constraint discharged.** A WP4.4 repair of the shared `:is()`
+> selector would have resurrected these rules; that is why the deletion had to
+> come first. WP4.4 remains unstarted and owner-gated.
+>
+> **2026-07-27 — WP4.3j-c, the preceding packet, was an evidence-only audit; no
 > production file changed.** It audited the overlapping header and table-cell
 > glass systems in `static/css/pages-workout-log.css` — the base light header and
 > cell blocks, their dark counterparts, the comprehensive dark-mode visibility

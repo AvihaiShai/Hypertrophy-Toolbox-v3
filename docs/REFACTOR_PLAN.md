@@ -1213,6 +1213,32 @@ visuals reproduce only the exact WP4.0 known reds (workout-plan desktop-dark
 [`CSS_PHASE4_WP4_3G_EVIDENCE.md`](CSS_PHASE4_WP4_3G_EVIDENCE.md). Shipped to
 origin/main via PR #162 (`bc9da14`).
 
+**WP4.3j-c-dead completed 2026-07-27 in `wt/wp4-3j-c-dead`, cut fresh from
+merged `main` at `69dcf5e`.** It deleted the 37 rules the WP4.3j-c audit
+nominated but did not authorize: regions D (dark cell glass, 3), E (positional
+metric-lane glass, 20), F (dark-mode visibility, 8) and six of the eight
+region-G final-override rules — 69 declarations. **Lines 2,025 → 1,621 (−404);
+`!important` 285 → 217 (−68); `@media` unchanged at 9.** The scope was
+re-resolved structurally by selector shape rather than by the audit's line
+numbers, and every claim was re-proven: all 37 rules match live elements and
+none ever wins; before vs after **0 computed-value and 0 declaration-owner
+differences across 15,336 records**; **6/6 zero-diff** frame captures; same-CSS
+control 0 on both sides; matching-rule count −37 per context and 5,496 records
+losing candidates as positive controls. The two region-G hover rules are
+retained with their winning `filter` declarations, and region H is locked
+byte-for-byte by sha256. Gates: visuals **6/6** update-free, contracts
+**32/32** (red path proven five ways), focused functional Chromium **33/33**,
+pytest **1,858 passed / 1 skipped**; Stylelint total **5,784 → 5,498**, focused
+**717 → 431**, `no-descending-specificity` **200 → 38**, no category increased.
+Two measured corrections to the audit are recorded (its `!important` projection
+of 71 was 68; one of the nine unverified declarations is in region A, not H), as
+is a new method rule — *every deadness sweep must carry a known-live control*.
+Evidence:
+[`CSS_PHASE4_WP4_3J_C_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_3J_C_DEAD_EVIDENCE.md).
+**This deletion had to precede WP4.4:** repairing the shared `:is()` selector
+first would have resurrected these rules. **Wait for explicit direction before
+the next packet.**
+
 **WP4.3h User Profile and the WP4.3i Workout Plan dead-CSS arc followed and are
 complete through WP4.3i-filter-btn (`cb5ff6e`).** Their per-packet evidence docs
 are `CSS_PHASE4_WP4_3H_EVIDENCE.md` and `CSS_PHASE4_WP4_3I_EVIDENCE.md` plus
@@ -1223,6 +1249,12 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 
 ### WP4.4 Shared bundles, navbar, and `theme-dark.css`
 
+- **Prerequisite discharged 2026-07-27.** The `components.css` `:is()` arm that
+  exports ID-level specificity is why four generations of page-local Workout Log
+  table styling were dead. Repairing that selector would have *resurrected* them,
+  so WP4.3j-c-dead deleted them first. Regions A, B and C on that page remain
+  page-local and ID-free, so a selector repair still changes what they own —
+  re-measure before assuming otherwise.
 - Handle base/layout/components/a11y/motion separately from navbar/theme.
 - Triage navbar's three live generations rule by rule.
 - Triage `theme-dark.css` into legacy values versus legitimate token remaps; do not bulk
