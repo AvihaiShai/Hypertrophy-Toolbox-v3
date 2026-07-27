@@ -4,7 +4,74 @@
 
 ## Current State
 
-> **2026-07-26 (LATEST) — WP4.3j-b-dead SHIPPED: the deletion packet the j-b
+> **2026-07-27 (LATEST) — WP4.3j-c CLOSED as an evidence-only audit; no
+> production file changed.** It audited the overlapping header and table-cell
+> glass systems in `static/css/pages-workout-log.css` — the base light header and
+> cell blocks, their dark counterparts, the comprehensive dark-mode visibility
+> block, the final override block, the late frame/table glass block, and the
+> shared `components.css` table-cell owner (read only) — across all 17 columns,
+> both themes, and desktop/tablet/mobile.
+>
+> **Headline: the Workout Log table is painted by the shared `components.css`
+> `.table.table-calm` system, not by the page's own glass systems.** Of **322**
+> distinct declarations audited in regions A–I, **227 never win anywhere**, 31
+> are live, 55 mixed, 9 unverified, and **0 are winning-but-overpainted**.
+> Regions **D (dark cell, 3 rules), E (metric-lane `nth-child` glass, 20 rules)
+> and F (dark-mode visibility, 8 rules)** are dead in their entirety. The cause is
+> the ID-bearing `:is()` arm in the shared selector, which exports `(1,3,1)` /
+> `(1,3,2)` ID-level specificity to the `.workout-log-page` branch that matches;
+> every page-local rule in regions A–G is ID-free at `(0,1,1)`–`(0,4,3)`, so no
+> amount of `!important` reaches it. **The one page-local family that does render
+> is region H**, the only one written with an ID (`(1,5,2)`) — and the only place
+> in the file where the problem was diagnosed rather than answered with more
+> `!important`. Regions A–G are a stack of four successive attempts to restyle
+> cells that had already lost the cascade.
+>
+> **Per-column result: the split is 2-way, not 17-way.** Columns 1–4/15–17 are
+> owned by `components.css`; columns 5–14 take background and header colour from
+> region H. No individual column deviates from its group, and the live
+> differentiation is class-driven (`metric-lane`), not positional — a useful
+> qualifier on the j-a note about 196 positional `nth-child` rules.
+>
+> **Audit gates:** same-CSS pixel control **0 differing pixels, 6/6 contexts**;
+> resolution self-check **9,358 checks / 0 mismatches**; sentinel probes
+> **222/222 verified effective**; **0** unexplained zero-diffs; **15,336**
+> ownership records against 2,196/2,052/1,950 matching rules. Evidence:
+> [`CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md`](CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md).
+>
+> **Correction to shipped evidence.** `CSS_PHASE4_WP4_3J_A_EVIDENCE.md` records
+> that the dark-mode visibility block's `color: #e0e0e0` declarations are "live
+> winners, not dead." They are **cascade-dead** — the computed dark cell colour is
+> `rgb(238, 241, 246)` from `components.css` `var(--ink-1, #eef1f6)` at `(1,4,2)`.
+> The j-a packet is unaffected (it deleted `background-color`, not these), but its
+> stated reason for retaining the block was wrong: it ranked a page-local
+> declaration against its page-local neighbours instead of against every loaded
+> stylesheet — the same error class as the j-b `:is()` trap.
+>
+> **Deletion candidate documented, NOT authorized, NOT started:** regions D + E +
+> F plus 6 of the 8 rules in region G — **37 rules, 436 lines, 71 `!important`** —
+> explicitly retaining the L1527/L1538 hover `filter` declarations, which are the
+> winning owners of `filter`. The evidence names the exact selectors, the required
+> oracle, and the proposed gates. **Do not begin it without new owner approval.**
+> Sequencing note: a WP4.4 repair of the shared `:is()` selector would
+> **resurrect** regions A–G unless they are deleted first.
+>
+> **Method rule added — *a probe that changes nothing proves nothing.*** Four
+> oracle defects each produced a confident false "dead CSS" verdict before being
+> caught: (1) CSSOM cannot expand a `var()`-bearing shorthand, so querying
+> longhands alone hid exactly the shared owners that win (338 resolution
+> mismatches → 0 after adding shorthand fallback); (2) an injected stylesheet
+> sentinel at `(1,1,2)` silently lost to the page's own `(1,5,2)` rules, and its
+> zero pixel diff read as deadness — sentinels must be applied **inline
+> `!important`** and asserted to have moved the computed value; (3) a running CSS
+> transition outranks even important author declarations, so a computed value read
+> immediately after applying a sentinel returns the pre-transition value; (4)
+> `page.screenshot` does not paint clip regions beyond the viewport — at mobile a
+> naive frame-top clip returned a near-blank image and **every** sentinel on it
+> read as zero-diff. Also: `img.decode()` on a never-fetched `loading="lazy"`
+> image never settles, which hung the run at mobile width.
+>
+> **2026-07-26 — WP4.3j-b-dead SHIPPED: the deletion packet the j-b
 > audit nominated but did not authorize.** It removed the three responsive
 > families j-b proved inert from `static/css/pages-workout-log.css`: the complete
 > eight-query `RESPONSIVE FRAME ADJUSTMENTS` block, the `thead th` / `td`
