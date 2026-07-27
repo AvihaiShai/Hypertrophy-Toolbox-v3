@@ -35,11 +35,15 @@ def build(stylelint_path: Path | None) -> dict[str, object]:
             + "\n  ".join(blind_spot_failures)
         )
 
-    surfaces = {
-        name: measure.surface_counts(name) for name in measure.SHARED_SURFACES
+    surfaces: dict[str, dict[str, object]] = {
+        name: dict(measure.surface_counts(name)) for name in measure.SHARED_SURFACES
     }
     for name in measure.READ_ONLY_SURFACES:
-        surfaces[name] = measure.surface_counts(name) | {"readOnly": True}
+        entry: dict[str, object] = dict(measure.surface_counts(name))
+        entry["readOnly"] = True
+        surfaces[name] = entry
+
+    totals = measure_totals()
 
     stylelint: dict[str, object] | None = None
     if stylelint_path and stylelint_path.exists():
@@ -49,6 +53,16 @@ def build(stylelint_path: Path | None) -> dict[str, object]:
     four_branch = [r for r in is_records if r["isArgumentBranchCount"] == 4]
     three_branch = [r for r in is_records if r["isArgumentBranchCount"] == 3]
     six_branch = [r for r in is_records if r["isArgumentBranchCount"] == 6]
+
+    is_family_summary = {
+        "totalIsTokens": len(is_records),
+        "distinctRules": len({r["ruleLine"] for r in is_records}),
+        "fourBranchTokens": len(four_branch),
+        "fourBranchRules": len({r["ruleLine"] for r in four_branch}),
+        "threeBranchRules": len({r["ruleLine"] for r in three_branch}),
+        "sixBranchTokens": len(six_branch),
+        "sixBranchRules": len({r["ruleLine"] for r in six_branch}),
+    }
 
     return {
         "schemaVersion": 1,
@@ -71,18 +85,7 @@ def build(stylelint_path: Path | None) -> dict[str, object]:
             ),
         },
         "surfaces": surfaces,
-        "totals": {
-            "sharedSurfaceLines": sum(
-                surfaces[name]["lines"] for name in measure.SHARED_SURFACES
-            ),
-            "importantDeclarations": sum(
-                surfaces[name]["importantDeclarations"]
-                for name in measure.SHARED_SURFACES
-            ),
-            "importantLines": sum(
-                surfaces[name]["importantLines"] for name in measure.SHARED_SURFACES
-            ),
-        },
+        "totals": totals,
         "stylelintSevenSurfaces": stylelint,
         "layers": {
             "order": measure.layer_order(),
@@ -102,16 +105,7 @@ def build(stylelint_path: Path | None) -> dict[str, object]:
                 if measure.layer_spans(name)
             },
         },
-        "isFamily": {
-            "totalIsTokens": len(is_records),
-            "distinctRules": len({r["ruleLine"] for r in is_records}),
-            "fourBranchTokens": len(four_branch),
-            "fourBranchRules": len({r["ruleLine"] for r in four_branch}),
-            "threeBranchRules": len({r["ruleLine"] for r in three_branch}),
-            "sixBranchTokens": len(six_branch),
-            "sixBranchRules": len({r["ruleLine"] for r in six_branch}),
-            "records": is_records,
-        },
+        "isFamily": is_family_summary | {"records": is_records},
         "snapshotManifest": measure.snapshot_manifest(),
         "fatigueBaselines": measure.fatigue_baseline_status()
         | {
@@ -132,6 +126,16 @@ def build(stylelint_path: Path | None) -> dict[str, object]:
     }
 
 
+def measure_totals() -> dict[str, int]:
+    """Line and `!important` totals over the seven shared surfaces."""
+    counts = [measure.surface_counts(name) for name in measure.SHARED_SURFACES]
+    return {
+        "sharedSurfaceLines": sum(entry["lines"] for entry in counts),
+        "importantDeclarations": sum(entry["importantDeclarations"] for entry in counts),
+        "importantLines": sum(entry["importantLines"] for entry in counts),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -147,13 +151,20 @@ def main() -> None:
     args.out.write_text(
         json.dumps(baseline, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+    # Reported from typed sources rather than by indexing back into the
+    # object-valued payload, which is JSON-shaped and not statically indexable.
+    totals = measure_totals()
+    family = measure.is_family()
     print(f"wrote {args.out.relative_to(measure.ROOT)}")
-    print(f"  sourceCommit           {baseline['sourceCommit']}")
-    print(f"  shared surface lines   {baseline['totals']['sharedSurfaceLines']}")
-    print(f"  !important decls       {baseline['totals']['importantDeclarations']}")
-    print(f"  :is() tokens / rules   {baseline['isFamily']['totalIsTokens']} / {baseline['isFamily']['distinctRules']}")
-    print(f"  contract anchors       {len(baseline['contractAnchors'])}")
-    print(f"  pinned declarations    {len(baseline['pinnedDeclarations'])}")
+    print(f"  sourceCommit           {measure.source_commit()}")
+    print(f"  shared surface lines   {totals['sharedSurfaceLines']}")
+    print(f"  !important decls       {totals['importantDeclarations']}")
+    print(
+        f"  :is() tokens / rules   {len(family)} / "
+        f"{len({record['ruleLine'] for record in family})}"
+    )
+    print(f"  contract anchors       {len(measure.contract_anchors())}")
+    print(f"  pinned declarations    {len(measure.pinned_declarations())}")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packet": "WP4.4-a",
-  "sourceCommit": "918e7f5c3e5365688dc69bbccb9d45af4169ebea",
+  "sourceCommit": "894d88267e276ab576a411288941ee80925404ee",
   "purpose": "Measured baseline for the WP4.4 shared-bundle arc. Packets b-k cite this file; a number absent from it may not be quoted as fact (F13).",
   "authoritativeUnits": {
     "important": "importantDeclarations (comments excluded) — the only unit comparable to Stylelint",

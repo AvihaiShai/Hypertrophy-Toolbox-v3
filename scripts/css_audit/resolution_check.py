@@ -73,12 +73,13 @@ def check_file(path: Path) -> dict:
                 buckets.setdefault(_bucket(rule, important), []).append(rule)
 
         for bucket, rules in buckets.items():
-            previous = None
+            previous: tuple[str, specificity.Specificity] | None = None
             for rule in rules:
                 current = _matched_specificity(rule)
                 if previous is not None:
+                    previous_selector, previous_specificity = previous
                     compared += 1
-                    if tuple(current) < tuple(previous.get("specificity")):
+                    if tuple(current) < tuple(previous_specificity):
                         inversions.append(
                             {
                                 "path": record["path"],
@@ -87,16 +88,13 @@ def check_file(path: Path) -> dict:
                                     "layers": list(bucket[1]),
                                     "media": list(bucket[2]),
                                 },
-                                "earlierSelector": previous["selector"],
-                                "earlierSpecificity": str(previous["specificity"]),
+                                "earlierSelector": previous_selector,
+                                "earlierSpecificity": str(previous_specificity),
                                 "laterSelector": rule.get("selector", ""),
                                 "laterSpecificity": str(current),
                             }
                         )
-                previous = {
-                    "selector": rule.get("selector", ""),
-                    "specificity": current,
-                }
+                previous = (rule.get("selector", ""), current)
 
     return {
         "file": path.name,
