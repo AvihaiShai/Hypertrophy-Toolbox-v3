@@ -1,32 +1,42 @@
 
-from flask import Flask, jsonify, request, make_response, g
-import utils.config
-from utils.database import DatabaseHandler
-from utils.auto_backup import create_startup_backup, describe_snapshot
-from utils.catalog_seed import bootstrap_runtime_database
-from utils.catalog_upgrade import upgrade_catalog_from_seed
-from utils.runtime_migration import prepare_runtime_database
-from utils.schema_registry import drop_all_owned_tables, run_all_initializers
-from routes.workout_log import workout_log_bp
-from routes.weekly_summary import weekly_summary_bp
-from routes.session_summary import session_summary_bp
-from routes.exports import exports_bp
-from routes.filters import filters_bp
-from routes.workout_plan import workout_plan_bp
-from routes.main import main_bp
-from routes.progression_plan import progression_plan_bp
-from routes.user_profile import user_profile_bp
-from routes.body_composition import body_composition_bp
-from routes.volume_splitter import volume_splitter_bp
-from routes.program_backup import program_backup_bp
-from routes.fatigue import fatigue_bp
-from datetime import datetime
-from werkzeug.middleware.proxy_fix import ProxyFix
-from utils.logger import setup_logging
-from utils.errors import error_response, register_error_handlers, is_xhr_request
-from utils.request_id import add_request_id_middleware
-import time
-import sys
+# The interpreter guard runs before the rest of the imports on purpose, so an
+# unsupported Python fails with ADR-003's message instead of a SyntaxError from
+# a dependency that assumes newer syntax. That ordering makes every import below
+# E402, hence the per-line suppressions. Do NOT collapse them into a file-level
+# `# flake8: noqa: E402` - flake8 7.x treats that as a blanket noqa and would
+# silently drop this file out of the blocking F401/F811/E711/E712 gate.
+from utils.python_version import require_supported_python
+
+require_supported_python()
+
+from flask import Flask, jsonify, request, make_response, g  # noqa: E402
+import utils.config  # noqa: E402
+from utils.database import DatabaseHandler  # noqa: E402
+from utils.auto_backup import create_startup_backup, describe_snapshot  # noqa: E402
+from utils.catalog_seed import bootstrap_runtime_database  # noqa: E402
+from utils.catalog_upgrade import upgrade_catalog_from_seed  # noqa: E402
+from utils.runtime_migration import prepare_runtime_database  # noqa: E402
+from utils.schema_registry import drop_all_owned_tables, run_all_initializers  # noqa: E402
+from routes.workout_log import workout_log_bp  # noqa: E402
+from routes.weekly_summary import weekly_summary_bp  # noqa: E402
+from routes.session_summary import session_summary_bp  # noqa: E402
+from routes.exports import exports_bp  # noqa: E402
+from routes.filters import filters_bp  # noqa: E402
+from routes.workout_plan import workout_plan_bp  # noqa: E402
+from routes.main import main_bp  # noqa: E402
+from routes.progression_plan import progression_plan_bp  # noqa: E402
+from routes.user_profile import user_profile_bp  # noqa: E402
+from routes.body_composition import body_composition_bp  # noqa: E402
+from routes.volume_splitter import volume_splitter_bp  # noqa: E402
+from routes.program_backup import program_backup_bp  # noqa: E402
+from routes.fatigue import fatigue_bp  # noqa: E402
+from datetime import datetime  # noqa: E402
+from werkzeug.middleware.proxy_fix import ProxyFix  # noqa: E402
+from utils.logger import setup_logging  # noqa: E402
+from utils.errors import error_response, register_error_handlers, is_xhr_request  # noqa: E402
+from utils.request_id import add_request_id_middleware  # noqa: E402
+import time  # noqa: E402
+import sys  # noqa: E402
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False  # This makes Flask handle URLs with or without trailing slashes

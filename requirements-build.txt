@@ -1,4 +1,5 @@
 # Build-only requirements for producing the Windows/PyInstaller distribution.
+# Requires Python >=3.14.6, matching the runtime and CI contract.
 #
 # Kept separate from requirements.txt so the packaged application's runtime
 # dependency set stays minimal and auditable. Install both files into the build

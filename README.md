@@ -8,6 +8,10 @@ Design your workout plan using science - all the tools you need to design, track
 
 **Double-click `START.bat`** - That's it!
 
+**Requirement:** Python 3.14.6 or newer. The launcher reads `.python-version`,
+selects the registered Python 3.14 runtime through the Windows Python launcher,
+and checks any existing `venv` before starting.
+
 This will automatically:
 - Check for Python installation
 - Create a virtual environment
@@ -37,7 +41,14 @@ This will automatically:
 
 ### Option 3: Manual Setup (For Developers)
 
-1. **Create and activate virtual environment:**
+1. **Install Python 3.14.6 or newer:**
+
+   Use the [Python 3.14.6 release](https://www.python.org/downloads/release/python-3146/)
+   or another compatible 3.14.6+ distribution. The committed
+   `.python-version` is the canonical interpreter pin used by CI and
+   version-aware environment managers.
+
+2. **Create and activate virtual environment:**
    ```bash
    python -m venv .venv
    # Windows
@@ -54,19 +65,19 @@ This will automatically:
    > a release never depends on packages that happen to be in a developer's
    > environment. Don't build from `.venv`, and don't point the tools at `venv`.
 
-2. **Install dependencies:**
+3. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    npm install
    npm run build:css
    ```
 
-3. **Run the application:**
+4. **Run the application:**
    ```bash
    python app.py
    ```
 
-4. **Open** `http://localhost:5000`
+5. **Open** `http://localhost:5000`
 
 ---
 
@@ -136,7 +147,7 @@ See the [`docs/`](docs/) folder:
 ## 🛠️ Tech Stack
 
 - **Backend**: Flask 3.1+, SQLite
-- **Python**: 3.11+ (CI runs 3.11; developed and built on 3.14)
+- **Python**: 3.14.6+ (source, CI, type analysis, and executable builds)
 - **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
 - **Styling**: Custom Bootstrap 5.1.3 build + custom CSS
 - **Testing**: pytest, Playwright (Chromium), Vitest

@@ -9,6 +9,8 @@ import webbrowser
 import time
 import traceback
 
+from utils.python_version import require_supported_python
+
 
 def show_error_and_wait(title: str, message: str, details: str | None = None) -> None:
     """Show error and wait for user input before closing."""
@@ -48,6 +50,7 @@ def open_browser(port: int = 5000, delay: int = 2) -> None:
     webbrowser.open(f'http://localhost:{port}')
 
 def main():
+    require_supported_python()
     port = 5000
     
     print("\n" + "="*50)

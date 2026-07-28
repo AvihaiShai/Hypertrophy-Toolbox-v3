@@ -1,13 +1,17 @@
 {
   "venvPath": ".",
   "venv": ".venv",
-  "pythonVersion": "3.11",
+  "pythonVersion": "3.14",
   "pythonPlatform": "Windows",
   "exclude": [
     "**/node_modules",
     "**/__pycache__",
     "**/.*",
-    "docs/archive/**"
+    "artifacts/**",
+    "build/**",
+    "dist/**",
+    "docs/archive/**",
+    "venv/**"
   ],
   "executionEnvironments": [
     {

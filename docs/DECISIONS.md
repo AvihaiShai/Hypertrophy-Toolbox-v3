@@ -46,7 +46,7 @@ New cross-cutting or durable project decisions should be added here as lightweig
   | Application entry points | `app.py`, `app_launcher.py` |
   | User-facing start / readme files | `README.md`, `QUICK_START.md`, `START.bat`, `RUN_APP.bat` |
   | Build manifests | `Hypertrophy-Toolbox.spec`, `build_exe.bat`, `requirements.txt`, `requirements-build.txt`, `package.json`, `package-lock.json` |
-  | Tool configuration that relies on root discovery | `.gitignore`, `.mcp.json`, `pyproject.toml`, `pyrightconfig.json`, `pytest.ini`, `.stylelintrc.json`, `.stylelintignore`, `tsconfig.json`, `vitest.config.js`, `playwright.config.ts` |
+  | Tool configuration that relies on root discovery | `.gitignore`, `.mcp.json`, `.python-version`, `pyproject.toml`, `pyrightconfig.json`, `pytest.ini`, `.stylelintrc.json`, `.stylelintignore`, `tsconfig.json`, `vitest.config.js`, `playwright.config.ts` |
   | Repository operating instructions | `CLAUDE.md`, `AGENTS.md` |
 
   Generated reports, screenshots, scratch databases, baselines, and personal state do not belong in the root. They go under the gitignored `artifacts/` (build output under `build/` and `dist/`; runtime state under the path `utils/runtime_paths.py` resolves).
@@ -55,6 +55,13 @@ New cross-cutting or durable project decisions should be added here as lightweig
   - **Do not move a root file merely to reduce the file count.** Some are load-bearing at the root: `Hypertrophy-Toolbox.spec` derives `REPO_ROOT` from `SPECPATH`, and a packaging contract test asserts `build_exe.bat` invokes it by that exact name. Root visibility is also part of what makes `START.bat` usable for its audience.
   - **A file in an approved category is not automatically justified.** It still has to be correct and non-duplicative; C2 trimmed `QUICK_START.md` rather than deleting it.
 - **Consequences**: Adding a root file now requires naming its category, which makes the review question concrete instead of aesthetic. New generated output has an obvious destination, so the "temporary file at the root" habit has no excuse. The cost is that this table needs updating whenever a genuinely new root file is added — accepted, because the alternative is re-deriving the policy from scratch each time. The audit behind it is recorded in `docs/rootdircleanup.md` §8.4 and §12.
+
+### ADR-003: Python 3.14.6 is the minimum supported runtime
+- **Date**: 2026-07-29
+- **Status**: accepted
+- **Context**: The repository advertised Python 3.11+ while development and executable builds already ran on 3.14. CI and Pyright therefore validated an older runtime than the one used to ship the application, and local environments could silently retain an obsolete interpreter.
+- **Decision**: Python 3.14.6 is the minimum for source runs, tests, CI, and executable builds. `.python-version` is the exact CI/environment-manager pin; Pyright targets the corresponding 3.14 language and standard-library surface; `utils/python_version.py` enforces the patch-level floor; and both Windows entry points derive the registered Python minor from the pin, validate its patch level, and validate any retained `venv`.
+- **Consequences**: The project no longer promises Python 3.11–3.13 compatibility. Runtime, CI, analysis, and packaging now agree, and stale virtual environments fail with an actionable message. Adopting a newer minimum requires updating the canonical pin, runtime contract, Pyright target when the minor changes, its committed diagnostic baseline, and verification under the exact interpreter.
 
 ### ADR-NNN: <title>
 - **Date**: YYYY-MM-DD

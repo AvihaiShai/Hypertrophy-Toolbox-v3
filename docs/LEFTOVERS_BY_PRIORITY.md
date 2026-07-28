@@ -4,6 +4,10 @@
 >
 > **Live truth caveat:** `docs/MASTER_HANDOVER.md` + `docs/ACTIVE_DEVELOPMENT.md` (refreshed 2026-06-09) are the canonical current state. This file is the prioritized *to-do* view derived from them plus a full subsystem-doc + archive scan.
 >
+> **Runtime supersession (2026-07-29):** historical Python 3.11/3.12
+> reconciliation entries below remain as shipped audit history. ADR-003
+> supersedes them: the repository-wide minimum is now Python 3.14.6.
+>
 > **Review history:**
 > - **v1–v10 (2026-05-23 → 2026-05-24):** initial backlog framing → in-flight triage → six-scope landing → KI-001/KI-009/§4.6/§5/worktree closures → Phase 2 Stage 4 reframe. (Detail preserved in the closed sections below.)
 > - **v11 (2026-06-10, Opus full re-scan):** File was ~3 weeks + one major workstream stale (last real update 2026-05-24). Re-scanned all `docs/` subsystem folders + `docs/archive/`. Added **Section A — Current Open Backlog (Prioritized Plan)** reflecting everything that landed since v10: the entire **Learned Calibration Phase 2 track** (2A–2D-C shipped PRs #53–#58; **2D-D BLOCKED** 2026-06-09), the **CI/CD Improvement Plan** (all phases shipped PRs #40–#51 + optional fast-follows), the **Stage 4 observer tooling + tests** (PR #59 `672491c`), and the deferred **Fatigue Phase 3 / Profile v2** backlogs. Verified live facts: `workout_log` = **0 rows**; Stage-4 observer test PR **merged** (not pending); `main` tip `284dca4`. Old "row #15" reframed into Section A. Closed sections 0/1/2/4/5/6 retained unchanged as audit trail.

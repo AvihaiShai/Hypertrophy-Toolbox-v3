@@ -15,6 +15,9 @@ All business logic and DB access. Routes call into here; nothing in here imports
 ## Conventions
 - DB access via `with DatabaseHandler() as db:` only (`database.py:200`). No `sqlite3.connect()` calls.
 - Logger via `get_logger()` (`logger.py:121`). Never `print()` or a custom logger.
+  Sole exception: `python_version.py`, the pre-flight interpreter guard, writes to
+  stdout/stderr — `get_logger()` would create the runtime tree as a side effect,
+  and its batch-file callers need the message on stderr. Rationale in its docstring.
 - Normalize before persisting: `normalize_muscle()`, `normalize_equipment()`, etc. from `normalization.py`.
 - `utils/__init__.py` is **not** an authoritative facade for new code — import the concrete module (`from utils.db_initializer import ...`).
 

@@ -37,7 +37,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version-file: '.python-version'
         cache: 'pip'
 
     - name: Set up Node.js
@@ -90,7 +90,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version-file: '.python-version'
         cache: 'pip'
 
     - name: Install Python dependencies
@@ -146,7 +146,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version-file: '.python-version'
         cache: 'pip'
 
     - name: Install Python dependencies
@@ -198,7 +198,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version-file: '.python-version'
         cache: 'pip'
 
     - name: Install Python dependencies
@@ -302,7 +302,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version-file: '.python-version'
         cache: 'pip'
 
     - name: Install runtime and pinned build dependencies
@@ -355,7 +355,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version-file: '.python-version'
         cache: 'pip'
 
     - name: Set up Node.js
@@ -432,7 +432,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version-file: '.python-version'
 
     - name: Check for outdated packages
       run: |
