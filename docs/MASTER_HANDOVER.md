@@ -15,17 +15,40 @@
 >
 > **WP4.4-c** deleted the three cascade-dead `.is-success` paint declarations
 > from `motion.css`, retaining the `success-pulse` animation. `.is-success` is
-> applied only to `#add_exercise_btn`, where `components.css:242` wins all three
-> properties in both themes — that rule carries no theme qualifier.
+> applied only to `#add_exercise_btn`, which never renders those three
+> properties from `motion.css`.
 >
-> **How it wins, precisely.** Both declarations are `!important` and **both are
-> unlayered**: `motion.css` declares no `@layer` at all, and `components.css`
-> opens its only layer (`@layer workout`) at line 3539, well after line 242. The
-> `@layer` important-order inversion therefore never engages here, and
-> **specificity decides** — `#add_exercise_btn.btn` (1,1,0) over `.is-success`
-> (0,1,0). Recorded explicitly because the inversion is the natural thing to
-> reach for in a codebase that uses layers, and it is the wrong explanation for
-> this packet. Per ruling
+> **What actually beats them — the layered `!important` inversion (G10 / A6).**
+> Several rules match this element. The winner is the layered one; every
+> unlayered rule is a fallback that never renders:
+>
+> | Source | Layer | Verdict |
+> |---|---|---|
+> | `motion.css` `.is-success`, specificity `(0,1,0)` | unlayered, `!important` | deleted, proven non-winner |
+> | `components.css:242` `#add_exercise_btn.btn`, specificity `(1,1,0)` | unlayered, `!important` | **runner-up only** — an unlayered fallback that never renders |
+> | `components.css:3154` `.btn.btn-calm-primary`, specificity `(0,2,0)` | unlayered, `!important` | runner-up only, same reason |
+> | `components.css:3540-3548` `#workout[data-page="workout-plan"] .btn.btn-calm-primary` | **inside `@layer workout`**, `!important` | **the actual winner** |
+>
+> **Important-layer ordering is resolved before specificity.** For `!important`
+> declarations layer order is inverted, so the explicit `workout` layer outranks
+> the implicit final unlayered layer — the layered rule wins regardless of the
+> unlayered rules being more specific. Specificity is only the tie-break *within*
+> a layer, which is why `components.css:242` outranks `.is-success` yet still
+> never paints.
+>
+> The computed values settle it: the merged evidence records
+> `background-color: rgb(76, 110, 245)` and `color: rgb(255, 255, 255)` — that is
+> `var(--accent)` `#4c6ef5` and `var(--accent-ink)` from the layered accent rule,
+> **not** line 242's seafoam `#98DFD6` / `#006D77`.
+>
+> **Method note, recorded because it produced a wrong answer.** An audit that
+> greps only for the literal `#add_exercise_btn` finds lines 242/248/254 and
+> misses `.btn.btn-calm-primary` entirely. The element is
+> `class="btn btn-primary btn-calm-primary"`
+> ([`templates/workout_plan.html:247`](../templates/workout_plan.html)) inside
+> `<div id="workout" data-page="workout-plan">` (line 10), so the generic
+> selector matches it. **Resolve ownership against the element's real classes and
+> ancestors, never by ID-literal search.** Per ruling
 > F1 the packet did **not** rely on `visual.spec.ts` — `prepareForScreenshot()`
 > zeroes animation and transition before capture, so it cannot falsify this
 > packet. Ownership was resolved over `CSS.getMatchedStylesForNode` across 11
