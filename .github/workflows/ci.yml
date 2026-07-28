@@ -442,6 +442,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # WP4.4's immutable baseline contract verifies the seven shared CSS
+        # surfaces at the merged Packet-a commit via `git show`.
+        fetch-depth: 0
       
     - name: Set up Python
       uses: actions/setup-python@v5

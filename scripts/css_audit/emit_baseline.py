@@ -2,8 +2,10 @@
 
 F13 converts "no later packet may inherit a projection as fact" from prose into
 a gate: every number packets b–k cite must appear in this file, and
-`test_wp4_4_baseline_is_pinned_and_matches_disk` re-derives the per-surface line
-counts from disk so a stale baseline reds pytest rather than passing quietly.
+`test_wp4_4_baseline_is_pinned_and_matches_its_source_commit` re-derives the
+per-surface line counts from the surfaces **as committed at `sourceCommit`** —
+not from the working tree — so a stale baseline reds pytest rather than passing
+quietly, while a later packet's authorized deletion does not.
 
 usage:
     python -m scripts.css_audit.emit_baseline [--stylelint artifacts/wp4_4/stylelint_surfaces.json]

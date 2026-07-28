@@ -257,9 +257,21 @@ Each new contract was **proven to fail**, then reverted:
 
 | Contract | Injected fault | Observed |
 |---|---|---|
-| `test_wp4_4_baseline_is_pinned_and_matches_disk` | appended 2 lines to `base.css` | `assert 123 == 125` |
+| `test_wp4_4_baseline_is_pinned_and_matches_its_source_commit` | appended 2 lines to `base.css` | `assert 123 == 125` |
 | `test_snapshot_manifest_…_pytest_red` | appended one byte to a baseline PNG | manifest sha mismatch |
 | `test_specificity_model_agrees_…` | removed `where` from the zero-specificity set | self-check failure on the `:where()` case |
+
+⚠️ **Amended by WP4.4-c.** The baseline contract shipped here as
+`test_wp4_4_baseline_is_pinned_and_matches_disk`, comparing the recorded counts
+to the working tree — which is why the working-tree fault above red it. That
+coupled the immutable baseline to every later packet, so the arc's first
+authorized deletion red it too. WP4.4-c renamed it to
+`test_wp4_4_baseline_is_pinned_and_matches_its_source_commit` and re-derives each
+surface from `git show <sourceCommit>:static/css/<surface>` — the pinned commit,
+not the working tree. The row above is retained as the historical record of the
+contract as shipped by Packet a; the current red path is corrupting a recorded
+count in the baseline JSON, re-proven in
+[`CSS_PHASE4_WP4_4_C_MOTION_EVIDENCE.md`](CSS_PHASE4_WP4_4_C_MOTION_EVIDENCE.md) §8.
 
 ---
 
