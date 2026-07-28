@@ -1,4 +1,4 @@
-$inputJson = [Console]::In.ReadToEnd() | ConvertFrom-Json
+﻿$inputJson = [Console]::In.ReadToEnd() | ConvertFrom-Json
 $filePath = [string]$inputJson.tool_input.file_path
 
 if (-not $filePath -or $filePath -notmatch '(?i)(^|[\\/])docs[\\/][^\\/]+[\\/]PLANNING\.md$') {

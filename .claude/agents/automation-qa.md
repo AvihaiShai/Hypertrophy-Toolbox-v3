@@ -10,15 +10,15 @@ hooks:
     - matcher: "Edit|Write"
       hooks:
         - type: command
-          command: "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/guard-test-write.ps1"
+          command: 'powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-test-write.ps1"'
     - matcher: "Bash|PowerShell"
       hooks:
         - type: command
-          command: "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/guard-destructive-command.ps1"
+          command: 'powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-destructive-command.ps1"'
     - matcher: "Skill"
       hooks:
         - type: command
-          command: "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/guard-skill.ps1 -AllowedCsv run-tests,run-e2e,verify-suite"
+          command: 'powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-skill.ps1" -AllowedCsv run-tests,run-e2e,verify-suite'
 ---
 
 You independently translate approved acceptance criteria into tests.
