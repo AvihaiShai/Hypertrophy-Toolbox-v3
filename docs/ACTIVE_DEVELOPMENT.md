@@ -4,7 +4,20 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-27 (LATEST) — WP4.3j-d-hover-paint is complete in PR #186; then stop.**
+**2026-07-28 (LATEST) — WP4.4-c is complete in PR #188 (squash `1b13bfc`).**
+WP4.4 packets `a` (PR #187, `46e340e`) and `c` are both merged, so the
+`c`-before-`b`/`d1`/`e`/`f1` prerequisite is discharged. Those four packets are
+eligible, file-disjoint (`b` base, `d` a11y, `e` layout, `f` navbar) and
+concurrently authorized by Plan v2 §(a) — **none is started, and each still
+needs explicit owner direction.** The arc hard-stops after `h` per ruling N4.
+
+**Superseded (2026-07-27):** *"WP4.3j-d-hover-paint is complete in PR #186; then
+stop."* That instruction was correct when written and is retained below as the
+Workout Log record. It stopped being the current objective when Gate 1 was
+approved and WP4.4 began executing; this file, `MASTER_HANDOVER.md` and
+`REFACTOR_PLAN.md` had drifted apart, which is what `/status` now reconciles.
+
+**WP4.3j-d-hover-paint (PR #186) — complete, and the Workout Log boundary.**
 The packet removes exactly four cascade-dead declarations from the two retained
 Region G Workout Log hover rules: light/dark `background` and `box-shadow`.
 Both full selector lists and both live filters are byte-identical; the rules are
@@ -179,9 +192,16 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-After WP4.3j-d PR #186, await owner direction. No further Workout Log packet is
-authorized. Do not begin WP4.4, fatigue, or feature work, and do not reopen the
-root-cleanup track.
+WP4.4-c is merged. `b`, `d1`, `e` and `f1` are eligible and unstarted — await
+owner direction before dispatching any of them, and dispatch at most one writer
+per file. No further Workout Log packet is authorized, and do not begin fatigue
+or feature work or reopen the root-cleanup track.
+
+> **Superseded 2026-07-28.** This section previously read "Do not begin WP4.4",
+> which contradicted merged history from PR #187 and PR #188 as well as the
+> Current Objective above. Because this file declares itself the execution
+> source of truth, an agent obeying it would have refused to continue work that
+> was already built and green.
 
 The sequencing constraint is now **discharged**: a WP4.4 repair of the shared
 `:is()` selector would have **resurrected** regions D–G on this page, which is

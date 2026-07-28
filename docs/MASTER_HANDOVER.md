@@ -4,9 +4,59 @@
 
 ## Current State
 
-> **2026-07-27 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
-> N1–N10); packet WP4.4-a is COMPLETE in PR #187 (squash `46e340e`). The next
-> packet is WP4.4-c (`motion.css`).**
+> **2026-07-28 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
+> N1–N10). Packet WP4.4-a is COMPLETE in PR #187 (squash `46e340e`) and packet
+> WP4.4-c is COMPLETE in PR #188 (squash `1b13bfc`). The `c`-first prerequisite
+> is discharged; `b`, `d1`, `e` and `f1` are now eligible and none is started.**
+>
+> Those four are file-disjoint — `b` base, `d` a11y, `e` layout, `f` navbar —
+> and Plan v2 §(a) authorizes them concurrently, one writer per file. They still
+> need explicit owner direction before dispatch.
+>
+> **WP4.4-c** deleted the three cascade-dead `.is-success` paint declarations
+> from `motion.css`, retaining the `success-pulse` animation. `.is-success` is
+> applied only to `#add_exercise_btn`, which never renders those three
+> properties from `motion.css`.
+>
+> **What actually beats them — the layered `!important` inversion (G10 / A6).**
+> Several rules match this element. The winner is the layered one; every
+> unlayered rule is a fallback that never renders:
+>
+> | Source | Layer | Verdict |
+> |---|---|---|
+> | `motion.css` `.is-success`, specificity `(0,1,0)` | unlayered, `!important` | deleted, proven non-winner |
+> | `components.css:242` `#add_exercise_btn.btn`, specificity `(1,1,0)` | unlayered, `!important` | **runner-up only** — an unlayered fallback that never renders |
+> | `components.css:3154` `.btn.btn-calm-primary`, specificity `(0,2,0)` | unlayered, `!important` | runner-up only, same reason |
+> | `components.css:3540-3548` `#workout[data-page="workout-plan"] .btn.btn-calm-primary` | **inside `@layer workout`**, `!important` | **the actual winner** |
+>
+> **Important-layer ordering is resolved before specificity.** For `!important`
+> declarations layer order is inverted, so the explicit `workout` layer outranks
+> the implicit final unlayered layer — the layered rule wins regardless of the
+> unlayered rules being more specific. Specificity is only the tie-break *within*
+> a layer, which is why `components.css:242` outranks `.is-success` yet still
+> never paints.
+>
+> The computed values settle it: the merged evidence records
+> `background-color: rgb(76, 110, 245)` and `color: rgb(255, 255, 255)` — that is
+> `var(--accent)` `#4c6ef5` and `var(--accent-ink)` from the layered accent rule,
+> **not** line 242's seafoam `#98DFD6` / `#006D77`.
+>
+> **Method note, recorded because it produced a wrong answer.** An audit that
+> greps only for the literal `#add_exercise_btn` finds lines 242/248/254 and
+> misses `.btn.btn-calm-primary` entirely. The element is
+> `class="btn btn-primary btn-calm-primary"`
+> ([`templates/workout_plan.html:247`](../templates/workout_plan.html)) inside
+> `<div id="workout" data-page="workout-plan">` (line 10), so the generic
+> selector matches it. **Resolve ownership against the element's real classes and
+> ancestors, never by ID-literal search.** Per ruling
+> F1 the packet did **not** rely on `visual.spec.ts` — `prepareForScreenshot()`
+> zeroes animation and transition before capture, so it cannot falsify this
+> packet. Ownership was resolved over `CSS.getMatchedStylesForNode` across 11
+> routes × 2 themes under both `prefers-reduced-motion` states, with **0
+> motion-record differences**. It also re-pinned the Packet-a baseline contract
+> to verify the seven surfaces at the baseline's own `sourceCommit`, and added
+> an ancestry assertion so a pin to an unreachable pre-squash commit reds
+> readably instead of dying on a fresh clone.
 >
 > WP4.4-a was read-only — **no production CSS changed**. It delivered the
 > measured baseline every later packet must cite
@@ -54,12 +104,15 @@
 >   and **no packet may classify a declaration affecting those eight elements as
 >   dead using the rest-state harness.**
 >
-> **Next: WP4.4-c (`motion.css`), pure deletion of proven non-winners only.** Its
-> primary proof is the Packet-a motion oracle under both `reduce` and
-> `no-preference` with M6a applied; `visual.spec.ts` is a **backstop only**,
-> because it neutralizes motion before every capture (F1). No Linux deep gate at
-> `c` under N8, and no snapshot updates. **`c` merges before `b`, `d1`, `e` or
-> `f1` begin**, because it changes the oracle environment those packets depend on.
+> **WP4.4-c (`motion.css`) is COMPLETE — PR #188, squash `1b13bfc`.** Superseded
+> 2026-07-28; this paragraph previously read "Next: WP4.4-c" and stated the
+> merge-ordering constraint in the future tense. Its primary proof was the
+> Packet-a motion oracle under both `reduce` and `no-preference` with M6a
+> applied; `visual.spec.ts` was a **backstop only**, because it neutralizes
+> motion before every capture (F1). No Linux deep gate ran at `c` under N8, and
+> no snapshots were updated. The **`c`-before-`b`/`d1`/`e`/`f1` constraint is
+> discharged** — it existed because `c` changes the oracle environment those
+> packets depend on, and `c` has now merged.
 >
 > **2026-07-27 — WP4.3j-d-hover-paint is COMPLETE in PR #186.**
 > Exactly four declarations are gone from the two retained Region G Workout Log
@@ -1017,8 +1070,19 @@
 
 ## Next Safe Step
 
-**Current:** after WP4.3j-d-hover-paint PR #186, stop and await explicit owner
-direction. No further Workout Log cleanup and no WP4.4 work is authorized.
+**Current:** WP4.4 packets `a` and `c` are merged. `b`, `d1`, `e` and `f1` are
+eligible and unstarted; they need explicit owner direction before dispatch.
+Workout Log cleanup beyond WP4.3j-d-hover-paint (PR #186) remains closed and
+owner-gated.
+
+> **Superseded 2026-07-28.** This section previously read "no WP4.4 work is
+> authorized", which contradicted the Current State block above it and
+> contradicted merged history: Gate 1 was approved 2026-07-27 and PR #187 and
+> PR #188 both landed. That contradiction is what `/status`
+> ([`.claude/commands/status.md`](../.claude/commands/status.md)) exists to
+> catch — the same drift previously caused agents to be dispatched at
+> already-shipped WP3.5 and WP4.3g work. Reconcile this file, `ACTIVE_DEVELOPMENT.md`
+> and `REFACTOR_PLAN.md` together, or not at all.
 
 Use [docs/ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md) as the execution source
 of truth. The older Fatigue Stage-4 and Body Composition material below is
