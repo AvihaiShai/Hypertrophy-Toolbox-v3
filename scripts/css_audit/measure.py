@@ -81,7 +81,17 @@ def surface_counts(filename: str) -> dict[str, int]:
     `theme-dark.css:595` carries the literal text "Zero !important." inside a
     comment, which is why the raw units over-count by exactly one arc-wide.
     """
-    text = (CSS_DIR / filename).read_text(encoding="utf-8")
+    return counts_from_text((CSS_DIR / filename).read_text(encoding="utf-8"))
+
+
+def counts_from_text(text: str) -> dict[str, int]:
+    """The same measurement, over arbitrary text rather than a file on disk.
+
+    Split out so a baseline can be checked against the surfaces **as they were
+    at the commit it was measured at**, which is the only claim a baseline
+    actually makes. Comparing it to HEAD instead couples it to every later
+    packet, and the first legitimate deletion in the arc reds it.
+    """
     code = _blank_comments(text)
     lines = text.splitlines()
 
@@ -92,6 +102,18 @@ def surface_counts(filename: str) -> dict[str, int]:
         "importantOccurrences": len(IMPORTANT_RE.findall(text)),
         "importantDeclarations": len(IMPORTANT_RE.findall(code)),
     }
+
+
+def surface_text_at(commit: str, filename: str) -> str:
+    """`static/css/<filename>` as committed at ``commit``."""
+    return subprocess.run(
+        ["git", "show", f"{commit}:static/css/{filename}"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    ).stdout
 
 
 # --------------------------------------------------------------------------
