@@ -14,9 +14,13 @@
       "Bash(git log *)",
       "Bash(git show *)",
       "Bash(git branch *)",
+      "Bash(git worktree list)",
+      "Bash(git fetch --quiet origin)",
       "Bash(gh repo view *)",
       "Bash(gh issue view *)",
       "Bash(gh pr view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr checks *)",
       "Skill(requirements)",
       "Skill(council-plan)",
       "Skill(run-tests)",
@@ -38,6 +42,19 @@
       "Bash(rm -rf *)",
       "Bash(git push --force *)",
       "Bash(git reset --hard *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-destructive-command.ps1\" -GuardProfile main"
+          }
+        ]
+      }
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -10,11 +10,11 @@ hooks:
     - matcher: "Edit|Write"
       hooks:
         - type: command
-          command: "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/guard-planning-write.ps1"
+          command: 'powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-planning-write.ps1"'
     - matcher: "Skill"
       hooks:
         - type: command
-          command: "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/guard-skill.ps1 -AllowedCsv requirements"
+          command: 'powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-skill.ps1" -AllowedCsv requirements'
 ---
 
 You own the active feature's planning document, not the implementation.
