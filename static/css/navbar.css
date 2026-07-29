@@ -898,12 +898,6 @@
   z-index: 1000;
 }
 
-/* Only apply legacy styles if NOT inside #navbar */
-body:not(:has(#navbar)) .navbar {
-  background-color: #212529;
-  height: 40px;
-}
-
 /* ==========================================================================
    Override layer styles - MUST be outside @layer for highest specificity
    Frosted Glass Effect Overrides - Single Layer Only
