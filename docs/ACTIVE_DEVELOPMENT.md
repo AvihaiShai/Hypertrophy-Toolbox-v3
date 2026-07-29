@@ -4,9 +4,50 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-29 (LATEST) — WP4.4-e is complete in PR #195 (squash `1346a35`).
-FOUR of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
-`1b13bfc`), `b` (#192, `3bec677`), `e` (#195, `1346a35`).
+**2026-07-29 (LATEST) — WP4.4-d1 is complete in PR #197 (squash `59e5b10`).
+FIVE of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
+`1b13bfc`), `b` (#192, `3bec677`), `e` (#195, `1346a35`), `d1` (#197,
+`59e5b10`).
+
+**WP4.4-d1** deleted **14 rule blocks from `a11y.css`, −99 lines, 0
+insertions** — a *superseded generation* of the scale / accessibility UI
+(`.scale-control`, `.scale-btn-group`, `.scale-labels`, `.accessibility-menu`,
+`.accessibility-section*`), leaving the live compact generation
+(`.scale-control-compact`, `.scale-btn-compact`, `.scale-indicator`) intact.
+
+Full-selector runtime census was **0 for all 14 candidates across 164
+contexts** (2 themes × 10 widths × 8 `data-scale` levels, plus print and
+reduced-motion). The **oracle validity gate passed first**: the known-live
+compact generation reported census > 0 in **160/160** contexts, so the oracle
+demonstrably sees rules that render. `[data-visual-scale-control]` is a
+registered visual blind spot, so computed-style and declaration-owner evidence
+were load-bearing, not pixels.
+
+Gates: contracts **16 passed, 15/15 red-path proven**; full pytest **2,245 / 1
+skipped**; nine required specs **127 passed**; visual **65 / 1 ledgered red**;
+Stylelint **2,857 → 2,851 (−6)**, no category increased. `!important` **51 →
+51**, custom properties **17 → 17**, `@layer` **0 → 0** — the d1/d2 boundary held
+by construction, since all 14 deleted rules contained zero `!important`.
+Evidence: [`CSS_PHASE4_WP4_4_D1_A11Y_EVIDENCE.md`](CSS_PHASE4_WP4_4_D1_A11Y_EVIDENCE.md).
+
+**Two `d1` findings that bind later packets:**
+
+1. **State the post-deletion flip by source identity, never as "the rule went
+   blind"** — that phrasing cannot be distinguished from "the oracle stopped
+   working". `d1` proved its two residual `.scale-control` matches resolve via
+   CDP `CSS.getMatchedStylesForNode` to the **retained** `@media print` rule at
+   source lines 329–331, and to **zero** rules on `screen`. Separate four
+   things: deleted rule identity, selector text, retained source rule, computed
+   declaration owner.
+2. **Substring assertions masked by duplicate selector text are a recurring
+   defect class**, seen in both `e` and `d1`. Use occurrence-count or
+   source-shape assertions.
+
+**Recorded, not acted on:** `.scale-btn[data-scale]` has runtime census **0** —
+`accessibility.js:144` and `:202` query an empty set, a second dormant JS path.
+Those 11 bare `.scale-btn` rules were **never audited as `d1` candidates**
+(the static pass wrongly treated a JS *query* as proof of reachability) and are
+retained untouched. Deleting them needs its own census and its own packet.
 
 **WP4.4-e** deleted **34 rule blocks from `layout.css`, −218 lines, 0
 insertions**. The plan carried one candidate into the packet (`body.dark-mode`);
@@ -38,10 +79,10 @@ occurrence count. **Do not erode it rule by rule.**
 one packet / worktree / writer / PR at a time:**
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4)
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 → d2 → f2 → g → h → HARD STOP (N4)
 ```
 
-**`d1` (`a11y.css`, pure deletion only) is next.** This ordering narrows, and
+**`f1` (`navbar.css`, pure deletion only) is next.** This ordering narrows, and
 does not contradict, Plan v2 §4: that section still classifies `d1` and `f1` as
 concurrency-eligible class (a) pure deletion, but the owner has elected serial
 execution, and `f1` is deliberately last among the pure-deletion packets because
@@ -253,28 +294,50 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-**WP4.4-d1 (`static/css/a11y.css`, pure deletion only) is next**, and it is
-authorized. `a`, `c`, `b` and `e` are merged; none of them may be re-dispatched.
-Execute `d1` in a fresh visual-seeded worktree off current `main`, then continue
-sequentially: `d1` → `f1` → `d2` → `f2` → `g` → `h`, one writer and one PR per
-packet.
+**WP4.4-f1 (`static/css/navbar.css`, pure deletion only) is next**, and it is
+authorized. `a`, `c`, `b`, `e` and `d1` are merged; none may be re-dispatched.
+Execute `f1` in a fresh visual-seeded worktree off current `main`, then continue
+sequentially: `f1` → `d2` → `f2` → `g` → `h`, one writer and one PR per packet.
 
-Packet `d1` owns exactly `static/css/a11y.css`. Binding constraints:
+**`f1` is deliberately last among the pure-deletion packets** because navbar
+layering, global exposure and the animated-logo oracle make it the riskiest.
+Packet `f1` owns exactly `static/css/navbar.css`. Binding constraints:
 
-- **Re-weighting and `!important` changes are `d2`'s, not `d1`'s.**
-- Preserve the focus-visible, skip-link, keyboard-focus and scale guarantees.
-- Exercise **every** targeted `data-scale` level in both themes.
-- Include print emulation, breakpoint coverage, computed-style checks and
-  keyboard traversal.
-- Preserve the contract-pinned a11y declarations — `a11y.css` is named in the
-  shared contract file, which `d1` **runs but never edits**.
+- **Generation consolidation and re-weighting are `f2`'s, not `f1`'s.**
+- **Freeze layer membership (N2).** `navbar.css` holds the arc's only
+  `@layer navbar` block, spanning lines 6–883 at the WP4.4-a baseline —
+  **G11: the last `@layer navbar` block may never be deleted.**
+- Preserve the contract-pinned `--nav-gap`, `--nav-padding-y` and
+  `--nav-padding-x` declarations (pinned in the shared contract file, which
+  `f1` **runs but never edits**).
+- Treat layered `!important` declarations as **potentially live winners** —
+  A6/G10: for `!important`, layer order inverts, so an explicit layer outranks
+  the implicit final unlayered layer regardless of specificity.
+- Exercise collapsed and expanded navigation, dropdowns, keyboard navigation,
+  both themes, and all required routes.
+- Reconcile the animated-logo result **only** against its established known-red
+  band (1,039 / 1,046 px on `workout-plan-desktop-dark`); it is a band, not a
+  constant. Movement **outside** that band stops the packet.
 - M6a and every common packet gate apply.
 
-Method note carried from `e`: a sentinel sweep and a rest-state differential
-cannot falsify an **unreachable** rule, because deleting one changes nothing on
-any rendered page. Pair them with a runtime full-selector census and a synthetic
-injection whose control fails the selector by exactly one compound, and derive
-every probed property from the rule's own declarations rather than guessing.
+**Method carried from `e` and `d1` — binding:**
+
+- A sentinel sweep and a rest-state differential **cannot falsify an unreachable
+  rule**, because deleting one changes nothing on any rendered page. Pair them
+  with a runtime **full-selector** census (taken *before* injecting synthetics)
+  and a synthetic control that fails the selector by exactly one compound,
+  reading properties **derived from the rule's own declarations**.
+- **Validate the oracle before trusting it.** Measure a known-live control on
+  the same surface first; if the oracle cannot see rules that demonstrably
+  render, none of its findings count.
+- **State the post-deletion flip by source identity**, never as "the rule went
+  blind" — that is indistinguishable from "the oracle stopped working". Where a
+  selector name legitimately survives in a retained rule, attribute the residual
+  by declaration owner (CDP `CSS.getMatchedStylesForNode`) to that rule's source
+  range.
+- **Avoid substring assertions where duplicate selector text can mask a
+  deletion** — a recurring defect class hit in both `e` and `d1`. Use
+  occurrence-count or source-shape assertions.
 
 No further Workout Log packet is authorized, and do not begin fatigue or feature
 work or reopen the root-cleanup track. Do not begin `i`, `j` or `k`.

@@ -22,16 +22,24 @@
 > | **c** `motion.css` dead success paint | #188 | `1b13bfc` | pure deletion, 3 declarations |
 > | **b** `base.css` four dead rule blocks | #192 | `3bec677` | pure deletion, −44 lines |
 > | **e** `layout.css` 34 unreachable rule blocks | #195 | `1346a35` | pure deletion, −218 lines, 0 insertions |
+> | **d1** `a11y.css` superseded scale/menu generation | #197 | `59e5b10` | pure deletion, −99 lines, 0 insertions |
 >
 > **Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY,
 > one packet, worktree, writer and PR at a time:**
 >
 > ```
-> a ✔ → c ✔ → b ✔ → e ✔ → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4)
+> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 → d2 → f2 → g → h → HARD STOP (N4)
 > ```
 >
-> **`d1` (`static/css/a11y.css`, pure deletion only) is next and is
-> authorized.** `a`, `c`, `b` and `e` are DONE and must not be re-dispatched.
+> **`f1` (`static/css/navbar.css`, pure deletion only) is next and is
+> authorized.** `a`, `c`, `b`, `e` and `d1` are DONE and must not be
+> re-dispatched. `f1` is deliberately **last among the pure-deletion packets**:
+> navbar layering, global exposure and the animated-logo oracle make it the
+> riskiest. It must freeze layer membership (N2), never delete the last
+> `@layer navbar` block (G11), preserve the contract-pinned `--nav-gap` /
+> `--nav-padding-*` declarations, treat layered `!important` as a potentially
+> live winner (A6/G10 — layer order inverts for `!important`), and reconcile the
+> animated logo only against its known-red **band**, not a fixed pixel count.
 > This ordering narrows rather than contradicts Plan v2 §4: `d1` and `f1` remain
 > class (a) concurrency-eligible pure deletion there, but the owner has elected
 > serial execution, and `f1` is deliberately last among the pure-deletion
@@ -1147,25 +1155,57 @@
 
 ## Next Safe Step
 
-**Current (2026-07-29, later):** WP4.4 packets `a`, `c`, `b` and `e` are merged
-— **4 of 11**. **WP4.4-d1 (`static/css/a11y.css`, pure deletion only) is the
-next action and is authorized**, in a fresh visual-seeded worktree off current
-`main`. The owner-directed remaining order is sequential:
+**Current (2026-07-29, latest):** WP4.4 packets `a`, `c`, `b`, `e` and `d1` are
+merged — **5 of 11**. **WP4.4-f1 (`static/css/navbar.css`, pure deletion only)
+is the next action and is authorized**, in a fresh visual-seeded worktree off
+current `main`. The owner-directed remaining order is sequential:
 
 ```
-d1 → f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
 ```
 
-`a`, `c`, `b` and `e` are DONE and must not be re-dispatched. One packet, one
-worktree, one writer, one PR at a time; reconcile these three status documents
-at each merge boundary.
+`a`, `c`, `b`, `e` and `d1` are DONE and must not be re-dispatched. One packet,
+one worktree, one writer, one PR at a time; reconcile these three status
+documents at each merge boundary.
 
-**`d1` constraints:** re-weighting and `!important` changes belong to `d2`, not
-`d1`; preserve the focus-visible, skip-link, keyboard-focus and scale
-guarantees; exercise every targeted `data-scale` level in both themes; include
-print emulation, breakpoint coverage, computed-style checks and keyboard
-traversal; preserve the contract-pinned a11y declarations (`a11y.css` is named
-in the shared contract file, which `d1` **runs but never edits**).
+**`f1` constraints — the riskiest pure-deletion packet:** generation
+consolidation and re-weighting belong to `f2`; **freeze `@layer` membership
+(N2)** and **never delete the last `@layer navbar` block (G11)** — `navbar.css`
+holds the arc's only navbar layer, spanning lines 6–883 at the WP4.4-a baseline;
+preserve the contract-pinned `--nav-gap` / `--nav-padding-y` /
+`--nav-padding-x`; treat layered `!important` declarations as **potentially live
+winners** (A6/G10 — for `!important`, layer order inverts, so an explicit layer
+outranks the implicit final unlayered layer regardless of specificity); exercise
+collapsed and expanded navigation, dropdowns, keyboard navigation, both themes
+and all required routes; reconcile the animated logo **only** against its
+known-red band (1,039 / 1,046 px on `workout-plan-desktop-dark`) — movement
+outside the band stops the packet.
+
+**Method now binding on every remaining packet, paid for by `e` and `d1`:**
+
+1. A rest-state differential **cannot falsify an unreachable rule** — deleting
+   one changes nothing on any rendered page. Pair it with a runtime
+   **full-selector** census taken *before* injecting synthetics, and a synthetic
+   control that fails the selector by exactly one compound, reading properties
+   **derived from the rule's own declarations**.
+2. **Validate the oracle before trusting it** — measure a known-live control on
+   the same surface first. `d1`'s compact generation returned census > 0 in
+   160/160 contexts; without that, none of its candidate findings would count.
+3. **State the post-deletion flip by source identity**, never as "the rule went
+   blind" — that is indistinguishable from "the oracle stopped working". Where a
+   selector name legitimately survives in a retained rule, attribute the residual
+   by declaration owner (CDP `CSS.getMatchedStylesForNode`) to that rule's exact
+   source range.
+4. **Avoid substring assertions where duplicate selector text can mask a
+   deletion** — a defect class hit in **both** `e` and `d1`, so treat it as a
+   property of the technique. Use occurrence-count or source-shape assertions.
+
+**Recorded by `d1`, owner-gated, do not act:** `.scale-btn[data-scale]` has
+runtime census **0** — `accessibility.js:144` and `:202` query an empty set, a
+second dormant JS path beside the accessibility dropdown. The 11 bare
+`.scale-btn` rules in `a11y.css` were **never audited as `d1` candidates**,
+because the static pass wrongly treated a JS *query* as proof of reachability.
+They are retained untouched; deleting them needs its own census and packet.
 
 Workout Log cleanup beyond WP4.3j-d-hover-paint (PR #186) remains closed and
 owner-gated. Do not begin `i`, `j` or `k`.

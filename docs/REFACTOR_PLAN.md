@@ -69,7 +69,7 @@ records the WP4.4 authorization granted at Gate 1:**
    there**; **WP4.4 (shared bundles / navbar / `theme-dark.css`) Plan v2 is
    Gate-1 approved (owner, 2026-07-27) and executes from
    [`docs/css_phase4_wp4_4/PLANNING.md`](css_phase4_wp4_4/PLANNING.md)** —
-   authorized order `a` ✔ → `c` ✔ → `b` ✔ → `e` → `d1` → `f1` → `d2` → `f2` →
+   authorized order `a` ✔ → `c` ✔ → `b` ✔ → `e` ✔ → `d1` ✔ → `f1` → `d2` → `f2` →
    `g` → `h`, run **sequentially** per owner direction of 2026-07-29, then a
    **hard stop before `i`** for the N4 owner checkpoint. WP4.3j-a merged
    through
@@ -1292,7 +1292,7 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 > one packet / worktree / writer / PR at a time:**
 >
 > ```
-> a ✔ → c ✔ → b ✔ → e ✔ → d1 → f1 → d2 → f2 → g → h → HARD STOP
+> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 → d2 → f2 → g → h → HARD STOP
 > ```
 >
 > **The arc stops after `h`** for the N4 owner checkpoint. Gate 1 authority does
@@ -1333,10 +1333,18 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 > element can distinguish them. Pinned by exact occurrence count; delete as a
 > unit under fresh evidence or not at all.
 >
-> The `c`-before-`b`/`d1`/`e`/`f1` prerequisite is **discharged**; `b` and `e`
-> are **shipped**. **`d1` (`a11y.css`, pure deletion only) is next**; `a`, `c`,
-> `b` and `e` must not be re-dispatched. Each packet still owns exactly one
-> file — `d` a11y, `f` navbar — never two writers on one file.
+> **WP4.4-d1 is COMPLETE** — PR #197, squash `59e5b10`, merged 2026-07-29.
+> Pure deletion of **14 rule blocks from `a11y.css` (−99 lines, 0 insertions)**:
+> a *superseded generation* of the scale / accessibility UI, leaving the live
+> compact generation intact. Full-selector census 0 for all 14 across 164
+> contexts; oracle validity gate passed first (live generation 160/160).
+> `!important` **51 → 51**, custom properties 17 → 17, `@layer` 0 → 0.
+>
+> The `c`-before-`b`/`d1`/`e`/`f1` prerequisite is **discharged**; `b`, `e` and
+> `d1` are **shipped**. **`f1` (`navbar.css`, pure deletion only) is next** and
+> is deliberately last among the pure-deletion packets — navbar layering, global
+> exposure and the animated-logo oracle make it the riskiest. `a`, `c`, `b`, `e`
+> and `d1` must not be re-dispatched.
 >
 > **Method rule M6a is binding on every remaining packet** (Plan v2 §2b):
 > suppress transitions before applying, reading **and** removing a sentinel — a
@@ -1434,18 +1442,21 @@ decisions are silently outstanding; either resolve them or leave them explicitly
 > the detailed work-packet requirements above and wait for explicit owner
 > direction wherever the plan requires it.
 
-Snapshot: **2026-07-29 (later)**. **Four of eleven WP4.4 packets are merged.**
+Snapshot: **2026-07-29 (latest)**. **Five of eleven WP4.4 packets are merged.**
 **WP4.4-a** (PR #187, squash `46e340e`) produced evidence and audit tooling, not
 a production CSS edit. **WP4.4-c** (PR #188, squash `1b13bfc`) was the arc's
 first production CSS deletion. **WP4.4-b** (PR #192, squash `3bec677`) deleted
 four dead `base.css` rule blocks. **WP4.4-e** (PR #195, squash `1346a35`)
-deleted 34 unreachable `layout.css` rule blocks, −218 lines. **`a`, `c`, `b` and
-`e` are DONE and must not be re-dispatched.**
+deleted 34 unreachable `layout.css` rule blocks, −218 lines. **WP4.4-d1**
+(PR #197, squash `59e5b10`) deleted a superseded scale/menu generation from
+`a11y.css`, −99 lines. **`a`, `c`, `b`, `e` and `d1` are DONE and must not be
+re-dispatched.**
 
 The owner directed a **sequential** remaining order on 2026-07-29 — one packet,
 worktree, writer and PR at a time:
-`d1` → `f1` → `d2` → `f2` → `g` → `h` → **hard stop for the N4 owner checkpoint
-before `i`**. **WP4.4-d1 (`a11y.css`, pure deletion only) is the next action.**
+`f1` → `d2` → `f2` → `g` → `h` → **hard stop for the N4 owner checkpoint
+before `i`**. **WP4.4-f1 (`navbar.css`, pure deletion only) is the next
+action**, and is deliberately last among the pure-deletion packets.
 The continuous pyright burn-down is a standing track, not an active packet or
 branch.
 
@@ -1470,7 +1481,9 @@ branch.
 | WP4.4-c — `motion.css` dead success paint | **Done** | Merged via PR #188 (squash `1b13bfc`, 2026-07-28). Deleted the three cascade-dead `.is-success` paint declarations, retaining `success-pulse`; ownership resolved over `CSS.getMatchedStylesForNode` across 11 routes × 2 themes under both `prefers-reduced-motion` states, 0 motion-record differences. Also re-pinned the Packet-a baseline contract to its own `sourceCommit` and added the ancestry assertion. | — |
 | WP4.4-b — `base.css` four dead rule blocks | **Done** | Merged via PR #192 (squash `3bec677`, 2026-07-29). Pure deletion, −44 lines: the `.skeleton` block beaten by `motion.css` at equal specificity, plus the three unreachable classes `.loading-spinner`, `.fade-enter`, `.fade-enter-active`. All 12 `:root` custom properties retained and contract-pinned under M9. Packet contracts 8 passed; full pytest 2,204 / 1 skipped; five required specs 68 passed; visual 65 passed / 1 ledgered known red; Stylelint −2, no rule increased. | — |
 | WP4.4-e — `layout.css` unreachable rule blocks | **Done** | Merged via PR #195 (squash `1346a35`, 2026-07-29). Pure deletion of **34 rule blocks, −218 lines, 0 insertions**: the `.tbl-col-chooser*` widget (10), `.form-container` (9), `.input-frame .row` (6), `.el-clip`/`.col--*` (3), `.tbl--loading` + `::after` + orphaned `@keyframes tbl-spin` (3), `.sr-only`, standalone `.tbl-toolbar`, `body.dark-mode`. Census 0 on the full selector across 11 routes × 2 themes × 16 widths; 0 declaration-owner differences / 64,961 records; contracts 13 passed with 13/13 red-path proven; pytest 2,230 / 1 skipped; seven required specs 89 passed; visual 65 / 1 ledgered red; Stylelint 2,875 → 2,857 (−18); `!important` 24 → 24; `@layer` 0 → 0. | — |
-| WP4.4 — shared bundles, navbar, and `theme-dark.css` (packets `d`–`h`) | **Ongoing — `d1` is next and authorized** | Plan v2 is **Gate-1 approved** (owner, 2026-07-27, rulings N1–N10) in `docs/css_phase4_wp4_4/PLANNING.md`. `a`, `c`, `b` and `e` have landed (4 of 11). The owner directed a **sequential** order on 2026-07-29: `d1` → `f1` → `d2` → `f2` → `g` → `h`, one packet/worktree/writer/PR at a time. Packets remain file-disjoint — `d` a11y, `f` navbar. The serial order narrows Plan v2 §4's concurrent class (a) authorization rather than contradicting it; `f1` is last among the pure-deletion packets as the riskiest. | Not gated through `h`. The gates still bind: Regions A–C of Workout Log must be re-measured before any shared-selector repair; each packet carries the full visual, dark-mode, navigation, accessibility and summary-page gates; **M6a is binding**; and the ten inherited Linux `desktop` reds plus the eight uncertifiable Welcome elements are ledgered and must not be re-attributed or rebaselined. **Method addition from `e`: a rest-state differential cannot falsify an unreachable rule — pair it with a full-selector runtime census and a synthetic injection whose control fails the selector by exactly one compound, reading properties derived from the rule's own declarations.** |
+| WP4.4-d1 — `a11y.css` superseded scale/menu generation | **Done** | Merged via PR #197 (squash `59e5b10`, 2026-07-29). Pure deletion of **14 rule blocks, −99 lines, 0 insertions**: `.scale-control`, `.scale-control-label`, `.scale-btn-group`, `.scale-labels`, `.scale-label`, `.accessibility-menu`, `.accessibility-section*` and their `@media` overrides. The live compact generation (`.scale-control-compact`, `.scale-btn-compact`, `.scale-indicator`) is retained and contract-pinned. Full-selector census **0 for all 14 across 164 contexts** (2 themes × 10 widths × 8 `data-scale` levels + print + reduced-motion); **oracle validity gate passed first** (live generation census > 0 in 160/160). Residual `.scale-control` matches attributed by CDP to the **retained** `@media print` rule at source lines 329–331; **0** rules on `screen`. Contracts 16 passed with **15/15 red-path proven**; pytest 2,245/1 skipped; nine specs 127 passed; visual 65/1 ledgered red; Stylelint 2,857 → 2,851 (−6). `!important` **51 → 51**, custom properties 17 → 17, `@layer` 0 → 0. | — |
+| WP4.4 — shared bundles, navbar, and `theme-dark.css` (packets `f`–`h`) | **Ongoing — `f1` is next and authorized** | Plan v2 is **Gate-1 approved** (owner, 2026-07-27, rulings N1–N10) in `docs/css_phase4_wp4_4/PLANNING.md`. `a`, `c`, `b`, `e` and `d1` have landed (5 of 11). The owner directed a **sequential** order on 2026-07-29: `f1` → `d2` → `f2` → `g` → `h`, one packet/worktree/writer/PR at a time. The serial order narrows Plan v2 §4's concurrent class (a) authorization rather than contradicting it; **`f1` is last among the pure-deletion packets as the riskiest** — navbar layering, global exposure and the animated-logo oracle. | Not gated through `h`. The gates still bind: Regions A–C of Workout Log must be re-measured before any shared-selector repair; each packet carries the full visual, dark-mode, navigation, accessibility and summary-page gates; **M6a is binding**; the ten inherited Linux `desktop` reds plus the eight uncertifiable Welcome elements are ledgered and must not be re-attributed or rebaselined. **`f1` specifically:** freeze `@layer` membership (N2), **never delete the last `@layer navbar` block (G11)**, preserve contract-pinned `--nav-gap` / `--nav-padding-*`, treat layered `!important` as a potentially live winner (A6/G10 — layer order inverts for `!important`), and reconcile the animated logo only against its known-red **band**. **Method from `e` + `d1`: a rest-state differential cannot falsify an unreachable rule — pair it with a full-selector runtime census taken before injection, a synthetic control failing the selector by exactly one compound with properties derived from the rule's own declarations, a known-live control validating the oracle first, and source-identity attribution (CDP declaration owner) rather than "the rule went blind". Avoid substring assertions where duplicate selector text can mask a deletion — that defect class recurred in both `e` and `d1`.** |
+| `a11y.css` bare `.scale-btn` rules | **Recorded by `d1` / not audited / gated** | 11 exact-token occurrences. Runtime census is **0** — `accessibility.js:144` and `:202` query an empty set, a second dormant JS path beside the accessibility dropdown. `d1`'s static pass wrongly treated that JS *query* as proof of reachability, so these rules were **never audited as candidates** and are retained untouched. | Deleting them requires its own census, its own oracle-validity control and its own packet. A JavaScript query is not evidence of reachability. |
 | `layout.css` `.tbl-show-*` / `.tbl-hide-*` breakpoint helpers | **Deferred by WP4.4-e / gated** | Nine rules. Census 0 and six of nine are visible to the synthetic oracle, but three declare `display: block` — a bare div's initial value — so no control element can distinguish them and their post-deletion flip cannot be demonstrated. Pinned by exact occurrence count in `tests/test_css_wp4_4_layout_contracts.py`. | Splitting the family would leave `@media` overrides targeting classes with no base rule. It must be deleted as a **unit** under fresh evidence, never eroded rule by rule. |
 | WP4.4-i — shared `:is()` selector repair | **Gated — hard stop after `h`** | Nothing started. Ruling N4 requires a separate owner checkpoint immediately before `i`; ruling N9 restricts admissible repair shapes to CSS-local ones in `static/css/components.css`. | Gate 1 authority explicitly does **not** extend to `i`. Before any edit, `i`'s enumerated repair shape and both pre-change inventories (the complete `:is()` family from `g`/`h`, and the G3 regions A–C measurement) must be presented and approved. |
 | WP4.4 — packets `j` and `k` | **Blocked on `i`** | Nothing started. | They follow only after `i` is resolved — approved, narrowed, or abandoned per ruling N3. |
