@@ -13,14 +13,45 @@
 > 3.14.6 environment. This tooling/runtime-policy change does not alter the
 > WP4.4 packet ordering or next-safe-step below.
 >
-> **2026-07-28 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
-> N1–N10). Packet WP4.4-a is COMPLETE in PR #187 (squash `46e340e`) and packet
-> WP4.4-c is COMPLETE in PR #188 (squash `1b13bfc`). The `c`-first prerequisite
-> is discharged; `b`, `d1`, `e` and `f1` are now eligible and none is started.**
+> **2026-07-29 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
+> N1–N10). THREE of eleven packets are merged:**
 >
-> Those four are file-disjoint — `b` base, `d` a11y, `e` layout, `f` navbar —
-> and Plan v2 §(a) authorizes them concurrently, one writer per file. They still
-> need explicit owner direction before dispatch.
+> | Packet | PR | Squash | Nature |
+> |---|---|---|---|
+> | **a** shared-surface baseline + cascade harness | #187 | `46e340e` | read-only, no production CSS |
+> | **c** `motion.css` dead success paint | #188 | `1b13bfc` | pure deletion, 3 declarations |
+> | **b** `base.css` four dead rule blocks | #192 | `3bec677` | pure deletion, −44 lines |
+>
+> **Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY,
+> one packet, worktree, writer and PR at a time:**
+>
+> ```
+> e → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+> ```
+>
+> **`e` (`static/css/layout.css`) is next and is authorized.** `b` is DONE and
+> must not be re-dispatched. This ordering narrows rather than contradicts Plan
+> v2 §4: `e`, `d1` and `f1` remain class (a) concurrency-eligible pure deletion
+> there, but the owner has elected serial execution, and `f1` is deliberately
+> last among the pure-deletion packets because navbar layering, global exposure
+> and the animated-logo oracle make it the riskiest. Gate 1 authority does not
+> extend to `i`, `j` or `k`.
+>
+> **WP4.4-b** deleted the `.skeleton` block beaten by `motion.css` at equal
+> specificity, plus the three unreachable classes `.loading-spinner`,
+> `.fade-enter` and `.fade-enter-active`. All 12 `:root` custom properties were
+> retained and contract-pinned under M9 — no custom property was deleted under
+> the ordinary non-winner rule. Gates: packet contracts **8 passed**, full
+> pytest **2,204 passed / 1 skipped**, the five required specs **68 passed**,
+> visual **65 passed / 1 ledgered known red**, Stylelint **−2** with no rule
+> increased. Evidence:
+> [`CSS_PHASE4_WP4_4_B_BASE_EVIDENCE.md`](CSS_PHASE4_WP4_4_B_BASE_EVIDENCE.md).
+>
+> > **Superseded 2026-07-29.** This block previously read *"Packet WP4.4-a is
+> > COMPLETE … and packet WP4.4-c is COMPLETE … `b`, `d1`, `e` and `f1` are now
+> > eligible and none is started."* Correct on 2026-07-28; stale once PR #192
+> > merged `b`. Retained because the `c`-first-discharge reasoning below still
+> > stands.
 >
 > **WP4.4-c** deleted the three cascade-dead `.is-success` paint declarations
 > from `motion.css`, retaining the `success-pulse` animation. `.is-success` is
@@ -1081,11 +1112,29 @@
 
 ## Next Safe Step
 
-**Current:** WP4.4 packets `a` and `c` are merged. `b`, `d1`, `e` and `f1` are
-eligible and unstarted; they need explicit owner direction before dispatch.
-Workout Log cleanup beyond WP4.3j-d-hover-paint (PR #186) remains closed and
-owner-gated.
+**Current (2026-07-29):** WP4.4 packets `a`, `c` and `b` are merged — 3 of 11.
+**WP4.4-e (`static/css/layout.css`) is the next action and is authorized**,
+executed as pure deletion only in a fresh visual-seeded worktree off current
+`main`. The owner-directed remaining order is sequential:
 
+```
+e → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+```
+
+`b` is DONE (PR #192, squash `3bec677`) and must not be re-dispatched. One
+packet, one worktree, one writer, one PR at a time; reconcile these three status
+documents at each merge boundary. The dead `body.dark-mode` at
+`static/css/layout.css:1120` is a **candidate only** for `e` and must be
+re-proved under computed-owner evidence + rest-state differential + same-CSS
+control + M6a sentinel handling; `dark-mode.spec.ts` alone is not proof (F4).
+Workout Log cleanup beyond WP4.3j-d-hover-paint (PR #186) remains closed and
+owner-gated. Do not begin `i`, `j` or `k`.
+
+> **Superseded 2026-07-29.** This section previously read *"WP4.4 packets `a`
+> and `c` are merged. `b`, `d1`, `e` and `f1` are eligible and unstarted; they
+> need explicit owner direction before dispatch."* `b` merged in PR #192 and the
+> owner gave explicit direction for the sequence through `h` on 2026-07-29.
+>
 > **Superseded 2026-07-28.** This section previously read "no WP4.4 work is
 > authorized", which contradicted the Current State block above it and
 > contradicted merged history: Gate 1 was approved 2026-07-27 and PR #187 and

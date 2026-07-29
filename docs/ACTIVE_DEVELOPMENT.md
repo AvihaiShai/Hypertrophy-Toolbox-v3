@@ -4,12 +4,40 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-28 (LATEST) — WP4.4-c is complete in PR #188 (squash `1b13bfc`).**
-WP4.4 packets `a` (PR #187, `46e340e`) and `c` are both merged, so the
-`c`-before-`b`/`d1`/`e`/`f1` prerequisite is discharged. Those four packets are
-eligible, file-disjoint (`b` base, `d` a11y, `e` layout, `f` navbar) and
-concurrently authorized by Plan v2 §(a) — **none is started, and each still
-needs explicit owner direction.** The arc hard-stops after `h` per ruling N4.
+**2026-07-29 (LATEST) — WP4.4-b is complete in PR #192 (squash `3bec677`).
+Three of eleven packets are merged: `a` (PR #187, `46e340e`), `c` (PR #188,
+`1b13bfc`) and `b` (PR #192, `3bec677`).** `b` deleted four dead `base.css`
+rule blocks (−44 lines): the `.skeleton` block beaten by `motion.css` at equal
+specificity, plus the three unreachable `.loading-spinner` / `.fade-enter` /
+`.fade-enter-active` classes. All 12 `:root` custom properties were retained and
+contract-pinned under M9. Gates: packet contracts **8 passed**, full pytest
+**2,204 passed / 1 skipped**, the five required specs **68 passed**, visual
+**65 passed / 1 ledgered known red**, Stylelint **−2** with no rule increased.
+Evidence: [`CSS_PHASE4_WP4_4_B_BASE_EVIDENCE.md`](CSS_PHASE4_WP4_4_B_BASE_EVIDENCE.md).
+
+**Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY from
+here.** The owner has authorized packets through `h` and directed one packet,
+one worktree, one writer and one PR at a time:
+
+```
+e → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+```
+
+`e` is next. This narrows, and does not contradict, Plan v2 §4: that section
+still classifies `e`, `d1` and `f1` as concurrency-eligible class (a) pure
+deletion, but the owner has elected serial execution, and `f1` is deliberately
+last among the pure-deletion packets because navbar layering, global exposure
+and the animated-logo oracle make it the riskiest. Each packet reconciles these
+three status documents at its merge boundary. The arc hard-stops after `h` per
+ruling N4; Gate 1 authority does not extend to `i`, `j` or `k`.
+
+> **Superseded 2026-07-29.** This section previously read *"WP4.4-c is complete
+> in PR #188 … `b`, `d1`, `e` and `f1` are eligible, none started, each still
+> needs explicit owner direction."* That was accurate when written on 2026-07-28
+> and is retained here as the `c`-boundary record. It went stale when PR #192
+> merged `b`: an agent obeying it would have re-dispatched an already-shipped
+> packet, which is exactly the `/status` drift class that previously caused
+> re-dispatch at WP3.5 and WP4.3g.
 
 **Separate owner-directed runtime maintenance (2026-07-29):** the repository
 minimum is now Python 3.14.6 for source, CI, type analysis, and packaged builds.
@@ -190,17 +218,42 @@ authorized Region G hover-paint declarations. WP4.4 may review the shared
 deferred interaction-state declarations and WP4.3i-c Page Header contract remain
 untouched.
 
+> **Superseded as to WP4.4 (2026-07-27 / 2026-07-29).** The sentence "WP4.4 …
+> is not authorized or started" was true on 2026-07-26 and is retained for the
+> j-b record only. Gate 1 approved WP4.4 on 2026-07-27; `a`, `c` and `b` have
+> since merged. The `:is()` repair specifically (packet `i`) does remain
+> unauthorized and hard-stopped behind the N4 checkpoint. The WP4.3i and
+> Workout Log statements in this paragraph are still current.
+
 WPB.4 also remains unimplemented and owner-gated: it requires retaining one
 synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
 intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-WP4.4-c is merged. `b`, `d1`, `e` and `f1` are eligible and unstarted — await
-owner direction before dispatching any of them, and dispatch at most one writer
-per file. No further Workout Log packet is authorized, and do not begin fatigue
-or feature work or reopen the root-cleanup track.
+**WP4.4-e (`static/css/layout.css`) is next**, and it is authorized. `a`, `c`
+and `b` are merged; `b` must not be re-dispatched. Execute `e` in a fresh
+visual-seeded worktree off current `main`, as pure deletion only, then continue
+sequentially: `e` → `d1` → `f1` → `d2` → `f2` → `g` → `h`, one writer and one
+PR per packet.
 
+Packet `e` owns exactly `static/css/layout.css`. The dead `body.dark-mode` rule
+recorded at `static/css/layout.css:1120` is a **candidate only** and must be
+re-proved under the current method before deletion — computed-owner evidence
+with all stylesheets loaded, a rest-state before/after differential, a same-CSS
+control, and M6a transition suppression around applying, reading and removing
+every sentinel. `dark-mode.spec.ts` alone is **not** proof of deadness (F4). If
+it proves live, retain it and correct the historical assumption in the packet
+evidence.
+
+No further Workout Log packet is authorized, and do not begin fatigue or feature
+work or reopen the root-cleanup track. Do not begin `i`, `j` or `k`.
+
+> **Superseded 2026-07-29.** This section previously read *"WP4.4-c is merged.
+> `b`, `d1`, `e` and `f1` are eligible and unstarted — await owner direction."*
+> `b` shipped in PR #192 (`3bec677`) and the owner has since directed the
+> sequential order above, so `b` is no longer eligible and `e` no longer waits.
+>
 > **Superseded 2026-07-28.** This section previously read "Do not begin WP4.4",
 > which contradicted merged history from PR #187 and PR #188 as well as the
 > Current Objective above. Because this file declares itself the execution
