@@ -197,13 +197,14 @@ def erase_data():
             data={"auto_backup": describe_snapshot(snapshot_path)},
             message=response_message
         ))
-    except Exception as e:
+    except Exception:
         logger.exception("Error erasing data")
         return error_response("INTERNAL_ERROR", "Failed to erase data", 500)
 
 @app.errorhandler(404)
-def handle_404(e):
+def handle_404(error):
     """Handle 404 errors gracefully without logging stack traces for common requests."""
+    del error  # Flask supplies the exception, but this handler only needs the request.
     # Don't log full exception for common missing resources like favicon
     if request.path == '/favicon.ico':
         # Return a simple 204 No Content response for favicon
@@ -277,6 +278,7 @@ if __name__ == "__main__":
     
     # Handle SIGTERM (Ctrl+C) gracefully
     def signal_handler(_sig, _frame):
+        del _sig, _frame  # Required by signal.signal(); intentionally unused.
         logger.info("Received shutdown signal, cleaning up...")
         cleanup_on_exit()
         import sys
