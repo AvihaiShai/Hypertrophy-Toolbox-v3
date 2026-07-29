@@ -4,10 +4,64 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-29 (LATEST) — WP4.4-d1 is complete in PR #197 (squash `59e5b10`).
-FIVE of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
+**2026-07-29 (LATEST) — WP4.4-f1 is complete in PR #199 (squash `1127486`).
+SIX of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
 `1b13bfc`), `b` (#192, `3bec677`), `e` (#195, `1346a35`), `d1` (#197,
-`59e5b10`).
+`59e5b10`), `f1` (#199, `1127486`).
+
+**WP4.4-f1** deleted **one rule from `navbar.css`, −6 lines, 0 insertions** —
+`body:not(:has(#navbar)) .navbar`. Unreachable **by construction**, not only by
+census: `navbar.css` is linked from exactly one template (`base.html:22`), that
+template renders `#navbar` unconditionally (`base.html:36`), and every other
+template extends it — `error.html` included. So every document loading the
+stylesheet contains `#navbar` and the guard can never be satisfied. Runtime
+census agreed at **0 matches in 522/522 contexts** (11 routes × 2 themes × 14
+widths covering every breakpoint edge in the file's 11 distinct `@media`
+conditions, plus collapsed/expanded, dropdown open, CDP-forced
+hover/focus/active, reduced-motion, contrast and print).
+
+**The plan projected −150 to −400 lines; the packet delivered −6, and that is
+correct.** A projected line reduction is not an acceptance criterion. Scope was
+not widened to produce a larger diff.
+
+Gates: contracts **16 passed, 16/16 red-path proven** with a **sha256-identical**
+restore; full pytest **2,262 / 1 skipped** (`main` collects 2,247, so +16 is
+exactly the new file); nine required specs **127 passed**; visual **65 / 1
+ledgered red**; owner differential **0 / 64,961**; motion **0 / 306,864**;
+same-CSS control **0 / 17,048** on both sides; sentinels **4,270 / 4,270** took
+effect and reverted on all three runs. Stylelint **2,851 → 2,850 (−1)**, no
+category increased. `!important` **93 → 93**, custom properties **72 → 72**,
+`@layer` blocks **1 → 1**, layered rules **103 → 103** (N2 held).
+Evidence: [`CSS_PHASE4_WP4_4_F1_NAVBAR_EVIDENCE.md`](CSS_PHASE4_WP4_4_F1_NAVBAR_EVIDENCE.md).
+
+**Three `f1` findings that bind later packets:**
+
+1. **The "three live generations" count is established, not assumed** — layered
+   scoped (103 rules), legacy `.navbar` fallback (2), unlayered override tail
+   (89), plus 5 `@keyframes` steps.
+2. **Generation B is NOT dead legacy, and `navbar.css:885` / `:893` lie about
+   it.** The `.navbar` rule is **unlayered** while `#navbar { position: sticky }`
+   is inside `@layer navbar`; for normal declarations the unlayered class
+   selector beats the layered ID selector, so `position: fixed` is what the
+   browser computes. Deleting it would unpin the navbar. Retained and
+   contract-pinned, layer membership included.
+3. **A relaxation that is not provably a superset manufactures deadness.** The
+   first census run nominated 39 rules; **38 were artifacts** (`>` combinators
+   corrupted, substitution inside `:not()` yielding invalid `:not()`,
+   `@keyframes` steps parsed as rules, and a CDP listener attached after
+   `CSS.enable` reporting 0 matched declarations). Each was caught by a control.
+
+**Known-red update:** the animated-logo band is **875/882 ∪ 1,039/1,046**. `f1`
+measured 875 (882 retry), matching `b` and `c`; a same-CSS pixel control with
+`navbar.css` byte-identical to `main` produced the identical count, so it is
+packet-independent.
+
+**Deferred by `f1`, owner-gated, do NOT act:** 155 matched-but-never-winning
+`navbar.css` declarations are **uncertified** (the owner sweep's
+`!important`/layer arbitration was never validated against a known-live
+*overridden* control) and are retained whole; and the six duplicate
+`#navbar > .container-fluid` rules plus near-duplicate `@media` conditions are
+consolidation, which is **`f2`'s exclusively**.
 
 **WP4.4-d1** deleted **14 rule blocks from `a11y.css`, −99 lines, 0
 insertions** — a *superseded generation* of the scale / accessibility UI
@@ -79,17 +133,19 @@ occurrence count. **Do not erode it rule by rule.**
 one packet / worktree / writer / PR at a time:**
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 → d2 → f2 → g → h → HARD STOP (N4)
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 → f2 → g → h → HARD STOP (N4)
 ```
 
-**`f1` (`navbar.css`, pure deletion only) is next.** This ordering narrows, and
-does not contradict, Plan v2 §4: that section still classifies `d1` and `f1` as
-concurrency-eligible class (a) pure deletion, but the owner has elected serial
-execution, and `f1` is deliberately last among the pure-deletion packets because
-navbar layering, global exposure and the animated-logo oracle make it the
-riskiest. Each packet reconciles these three status documents at its merge
-boundary. The arc hard-stops after `h` per ruling N4; Gate 1 authority does not
-extend to `i`, `j` or `k`.
+**`d2` is next**, and the pure-deletion run is now finished: every packet the
+owner classified as class (a) has shipped. Each packet reconciles these three
+status documents at its merge boundary. The arc hard-stops after `h` per ruling
+N4; Gate 1 authority does not extend to `i`, `j` or `k`.
+
+> **Superseded 2026-07-29 (latest).** This section previously announced WP4.4-d1
+> as LATEST with `f1` next, and described `f1` as "deliberately last among the
+> pure-deletion packets because navbar layering, global exposure and the
+> animated-logo oracle make it the riskiest". That framing was correct and is
+> retained as the `d1`-boundary record; `f1` has since merged in PR #199.
 
 > **Superseded 2026-07-29 (later).** This section previously announced WP4.4-b
 > as LATEST with `e` next. `e` has since merged in PR #195.
@@ -294,30 +350,53 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-**WP4.4-f1 (`static/css/navbar.css`, pure deletion only) is next**, and it is
-authorized. `a`, `c`, `b`, `e` and `d1` are merged; none may be re-dispatched.
-Execute `f1` in a fresh visual-seeded worktree off current `main`, then continue
-sequentially: `f1` → `d2` → `f2` → `g` → `h`, one writer and one PR per packet.
+**WP4.4-d2 is next.** `a`, `c`, `b`, `e`, `d1` and `f1` are merged; none may be
+re-dispatched. The pure-deletion run is finished — every class (a) packet has
+shipped. Execute `d2` in a fresh visual-seeded worktree off current `main`, then
+continue sequentially: `d2` -> `f2` -> `g` -> `h`, one writer and one PR per
+packet. `d2` and `f2` are re-weighting packets, not deletions, and each still
+needs its own explicit owner go-ahead before any edit.
 
-**`f1` is deliberately last among the pure-deletion packets** because navbar
-layering, global exposure and the animated-logo oracle make it the riskiest.
-Packet `f1` owns exactly `static/css/navbar.css`. Binding constraints:
+**What `f1` established, and what it deliberately left for `f2`:**
 
-- **Generation consolidation and re-weighting are `f2`'s, not `f1`'s.**
+- The **"three live generations" count is confirmed at exactly three** and is no
+  longer an assumption: layered scoped (103 rules), legacy `.navbar` fallback
+  (2), unlayered override tail (89), plus 5 `@keyframes` steps.
+- **Generation B is NOT dead legacy.** `navbar.css:885` and `:893` claim the
+  `.navbar` rule is an overridden fallback that "only applies outside #navbar".
+  It is the live winner for `position`: it is unlayered while
+  `#navbar { position: sticky }` is inside `@layer navbar`, and for normal
+  declarations the unlayered class selector beats the layered ID selector.
+  Correcting those comments is an insertion, so `f1` recorded the defect rather
+  than fixing it.
+- **155 matched-but-never-winning declarations are nominated but UNCERTIFIED**
+  and were retained whole. The owner sweep's `!important`/layer arbitration was
+  never validated against a known-live *overridden* control, so the set is not
+  actionable as it stands. Certifying it requires paying for that control.
+- **Six rules share `#navbar > .container-fluid`** across both layers, and the
+  11 `@media` conditions include near-duplicates (`max-width: 991px` vs
+  `991.98px`). Both are consolidation — `f2`'s exclusively.
+
+**Binding constraints that remain in force for `f2`:**
+
 - **Freeze layer membership (N2).** `navbar.css` holds the arc's only
-  `@layer navbar` block, spanning lines 6–883 at the WP4.4-a baseline —
+  `@layer navbar` block, spanning lines 6-883 at the WP4.4-a baseline —
   **G11: the last `@layer navbar` block may never be deleted.**
 - Preserve the contract-pinned `--nav-gap`, `--nav-padding-y` and
   `--nav-padding-x` declarations (pinned in the shared contract file, which
-  `f1` **runs but never edits**).
+  packets **run but never edit**).
 - Treat layered `!important` declarations as **potentially live winners** —
   A6/G10: for `!important`, layer order inverts, so an explicit layer outranks
   the implicit final unlayered layer regardless of specificity.
 - Exercise collapsed and expanded navigation, dropdowns, keyboard navigation,
   both themes, and all required routes.
 - Reconcile the animated-logo result **only** against its established known-red
-  band (1,039 / 1,046 px on `workout-plan-desktop-dark`); it is a band, not a
-  constant. Movement **outside** that band stops the packet.
+  band, which is now **875/882 union 1,039/1,046 px** on
+  `workout-plan-desktop-dark`. `f1` measured 875 (882 on retry), matching `b`
+  and `c`, and a same-CSS pixel control with `navbar.css` byte-identical to
+  `main` produced the identical count — so the low half of the band is
+  packet-independent and current. It is a band, not a constant. Movement
+  outside it stops the packet.
 - M6a and every common packet gate apply.
 
 **Method carried from `e` and `d1` — binding:**
@@ -338,6 +417,16 @@ Packet `f1` owns exactly `static/css/navbar.css`. Binding constraints:
 - **Avoid substring assertions where duplicate selector text can mask a
   deletion** — a recurring defect class hit in both `e` and `d1`. Use
   occurrence-count or source-shape assertions.
+- **A selector relaxation that is not provably a superset manufactures
+  deadness.** `f1`'s first census nominated 39 rules and **38 were artifacts**:
+  `>` combinators rewritten, substitution run inside `:not()` producing the
+  invalid `:not()`, `@keyframes` steps parsed as style rules, and a CDP
+  `styleSheetAdded` listener attached *after* `CSS.enable` (reporting 0 matched
+  declarations, which would have made every rule look cascade-dead). Each was
+  caught by a control, never by reading the verdicts. Relax only in the
+  direction that makes a selector easier to match, and only at paren depth 0.
+- **A projected line reduction is not an acceptance criterion.** `f1` shipped −6
+  lines against a −150 to −400 projection and is complete.
 
 No further Workout Log packet is authorized, and do not begin fatigue or feature
 work or reopen the root-cleanup track. Do not begin `i`, `j` or `k`.

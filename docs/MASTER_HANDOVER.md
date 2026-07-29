@@ -14,7 +14,7 @@
 > WP4.4 packet ordering or next-safe-step below.
 >
 > **2026-07-29 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
-> N1–N10). FOUR of eleven packets are merged:**
+> N1–N10). SIX of eleven packets are merged:**
 >
 > | Packet | PR | Squash | Nature |
 > |---|---|---|---|
@@ -23,28 +23,64 @@
 > | **b** `base.css` four dead rule blocks | #192 | `3bec677` | pure deletion, −44 lines |
 > | **e** `layout.css` 34 unreachable rule blocks | #195 | `1346a35` | pure deletion, −218 lines, 0 insertions |
 > | **d1** `a11y.css` superseded scale/menu generation | #197 | `59e5b10` | pure deletion, −99 lines, 0 insertions |
+> | **f1** `navbar.css` unreachable legacy fallback | #199 | `1127486` | pure deletion, −6 lines, 0 insertions |
 >
 > **Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY,
 > one packet, worktree, writer and PR at a time:**
 >
 > ```
-> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 → d2 → f2 → g → h → HARD STOP (N4)
+> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 → f2 → g → h → HARD STOP (N4)
 > ```
 >
-> **`f1` (`static/css/navbar.css`, pure deletion only) is next and is
-> authorized.** `a`, `c`, `b`, `e` and `d1` are DONE and must not be
-> re-dispatched. `f1` is deliberately **last among the pure-deletion packets**:
-> navbar layering, global exposure and the animated-logo oracle make it the
-> riskiest. It must freeze layer membership (N2), never delete the last
-> `@layer navbar` block (G11), preserve the contract-pinned `--nav-gap` /
-> `--nav-padding-*` declarations, treat layered `!important` as a potentially
-> live winner (A6/G10 — layer order inverts for `!important`), and reconcile the
-> animated logo only against its known-red **band**, not a fixed pixel count.
-> This ordering narrows rather than contradicts Plan v2 §4: `d1` and `f1` remain
-> class (a) concurrency-eligible pure deletion there, but the owner has elected
-> serial execution, and `f1` is deliberately last among the pure-deletion
-> packets because navbar layering, global exposure and the animated-logo oracle
-> make it the riskiest. Gate 1 authority does not extend to `i`, `j` or `k`.
+> **`d2` is next.** `a`, `c`, `b`, `e`, `d1` and `f1` are DONE and must not be
+> re-dispatched. Gate 1 authority does not extend to `i`, `j` or `k`.
+>
+> **WP4.4-f1 outcome — a small diff is the correct outcome here.** `f1` deleted
+> exactly **one** rule, `body:not(:has(#navbar)) .navbar` (−6 lines), against a
+> plan projection of −150 to −400. The projection is not an acceptance
+> criterion and scope was not widened to approach it. `navbar.css` is linked
+> only from `base.html:22`, which renders `#navbar` unconditionally, so that
+> selector's guard is unsatisfiable in every document that loads the file;
+> census agreed at 0/522 contexts.
+>
+> **The "three live generations" count is now established, not assumed** —
+> layered scoped (103 rules), legacy `.navbar` fallback (2), unlayered override
+> tail (89), plus 5 `@keyframes` steps.
+>
+> **Binding retention finding: generation B is NOT dead legacy, and the file's
+> own comments lie about it.** `navbar.css:885` and `:893` describe the
+> `.navbar` rule as an overridden legacy fallback that "only applies outside
+> #navbar". It is the live winner: it is **unlayered** while
+> `#navbar { position: sticky }` sits inside `@layer navbar`, so for *normal*
+> declarations the class selector beats the ID selector and `position: fixed` is
+> what the browser computes — corroborated by WP4.4-a §5 defect 5, which had to
+> clip captures below a **fixed** top bar. A packet trusting those comments
+> would unpin the navbar. Retained whole and contract-pinned, layer membership
+> included.
+>
+> **Method addition carried forward: a selector relaxation that is not provably
+> a superset manufactures deadness.** `f1`'s first census run nominated 39
+> rules and **38 were instrumentation artifacts** — `>` combinators corrupted,
+> substitution run inside `:not()` producing the invalid `:not()`, `@keyframes`
+> steps parsed as style rules, and a CDP `styleSheetAdded` listener attached
+> *after* `CSS.enable` (which reported 0 matched declarations and would have
+> made every rule look cascade-dead). Every one was caught by a control, not by
+> reading the verdicts.
+>
+> **The animated-logo known-red band is 875/882 ∪ 1,039/1,046.** `f1` measured
+> **875 px, 882 on retry**, reproducing `b` and `c` exactly. A same-CSS pixel
+> control with `navbar.css` restored byte-identical to `main` produced the
+> identical 875/882, so the count is independent of the packet. Treat it as a
+> band, never a constant, and never "fix" it by raising `maxDiffPixels`.
+>
+> **Two `f1` findings deferred to `f2`, both owner-gated:** (1) **155
+> matched-but-never-winning `navbar.css` declarations** were nominated by a
+> declaration-owner sweep over 150 states but are **NOT certified** — the
+> sweep's `!important`/layer arbitration was never validated against a known-live
+> *overridden* control, so all 155 are retained; (2) six rules share the selector
+> `#navbar > .container-fluid` across both layers, and the 11 `@media` conditions
+> contain near-duplicates (`max-width: 991px` vs `991.98px`). Both are
+> consolidation, which is `f2`'s exclusively.
 >
 > **WP4.4-e outcome and the method lesson worth carrying.** The plan carried
 > **one** candidate into `e` (`body.dark-mode`); the audit found **42**
@@ -1155,31 +1191,40 @@
 
 ## Next Safe Step
 
-**Current (2026-07-29, latest):** WP4.4 packets `a`, `c`, `b`, `e` and `d1` are
-merged — **5 of 11**. **WP4.4-f1 (`static/css/navbar.css`, pure deletion only)
-is the next action and is authorized**, in a fresh visual-seeded worktree off
-current `main`. The owner-directed remaining order is sequential:
+**Current (2026-07-29, latest):** WP4.4 packets `a`, `c`, `b`, `e`, `d1` and
+`f1` are merged — **6 of 11**, and the pure-deletion run is **finished**.
+**WP4.4-d2 is the next action**, in a fresh visual-seeded worktree off current
+`main`. `d2` and `f2` are re-weighting packets, not deletions, and each needs
+its own explicit owner go-ahead before any edit. The owner-directed remaining
+order is sequential:
 
 ```
-f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
 ```
 
-`a`, `c`, `b`, `e` and `d1` are DONE and must not be re-dispatched. One packet,
-one worktree, one writer, one PR at a time; reconcile these three status
+`a`, `c`, `b`, `e`, `d1` and `f1` are DONE and must not be re-dispatched. One
+packet, one worktree, one writer, one PR at a time; reconcile these three status
 documents at each merge boundary.
 
-**`f1` constraints — the riskiest pure-deletion packet:** generation
-consolidation and re-weighting belong to `f2`; **freeze `@layer` membership
-(N2)** and **never delete the last `@layer navbar` block (G11)** — `navbar.css`
-holds the arc's only navbar layer, spanning lines 6–883 at the WP4.4-a baseline;
-preserve the contract-pinned `--nav-gap` / `--nav-padding-y` /
-`--nav-padding-x`; treat layered `!important` declarations as **potentially live
-winners** (A6/G10 — for `!important`, layer order inverts, so an explicit layer
-outranks the implicit final unlayered layer regardless of specificity); exercise
-collapsed and expanded navigation, dropdowns, keyboard navigation, both themes
-and all required routes; reconcile the animated logo **only** against its
-known-red band (1,039 / 1,046 px on `workout-plan-desktop-dark`) — movement
-outside the band stops the packet.
+**Constraints that survive `f1` and bind `f2`:** generation consolidation and
+re-weighting belong to `f2`; **freeze `@layer` membership (N2)** and **never
+delete the last `@layer navbar` block (G11)** — `navbar.css` holds the arc's
+only navbar layer, spanning lines 6–883 at the WP4.4-a baseline; preserve the
+contract-pinned `--nav-gap` / `--nav-padding-y` / `--nav-padding-x`; treat
+layered `!important` declarations as **potentially live winners** (A6/G10 — for
+`!important`, layer order inverts, so an explicit layer outranks the implicit
+final unlayered layer regardless of specificity); exercise collapsed and
+expanded navigation, dropdowns, keyboard navigation, both themes and all
+required routes; reconcile the animated logo **only** against its known-red
+band, now measured as **875/882 ∪ 1,039/1,046 px** on
+`workout-plan-desktop-dark` — `f1` observed 875 (882 retry) and proved it
+packet-independent with a same-CSS pixel control. Movement outside the band
+stops the packet.
+
+> **Superseded 2026-07-29 (latest).** This block previously read *"`a`, `c`,
+> `b`, `e` and `d1` are merged — 5 of 11. WP4.4-f1 … is the next action"* and
+> gave the band as 1,039 / 1,046 only. `f1` merged in PR #199 (`1127486`) and
+> widened the recorded band downward.
 
 **Method now binding on every remaining packet, paid for by `e` and `d1`:**
 
