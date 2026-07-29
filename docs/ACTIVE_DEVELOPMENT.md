@@ -4,10 +4,44 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-29 (LATEST) — WP4.4-f1 is complete in PR #199 (squash `1127486`).
-SIX of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
+**2026-07-29 (LATEST) — WP4.4-d2 is complete in PR #201 (squash `0a912d9`).
+SEVEN of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
 `1b13bfc`), `b` (#192, `3bec677`), `e` (#195, `1346a35`), `d1` (#197,
-`59e5b10`), `f1` (#199, `1127486`).
+`59e5b10`), `f1` (#199, `1127486`), `d2` (#201, `0a912d9`).
+
+**WP4.4-d2** adjudicated all **51** `!important` annotations left in
+`a11y.css` after `d1`. Exactly one was certified and de-weighted:
+`.is-invalid { box-shadow }`. The declaration remains present and remains the
+effective owner wherever it owned before; only its priority changed.
+`!important` **51 → 50**, declarations **240 → 240**, style rules **94 → 94**,
+custom properties **17 → 17**, `@layer` **0 → 0**. No selector, value,
+declaration, rule order or media placement changed.
+
+The second apparent candidate,
+`.selection-field.has-validation-error label { color }`, **failed**
+certification and retains its `!important`. In a doubly-matched ancestor stress
+state, de-weighting moves declaration ownership to the later
+`pages-workout-plan.css:4449` rule in **15/15** light-mode measurements even
+though the computed value remains the same. The broad census missed this
+because its synthetic only applied `has-validation-error` to
+`.selection-field`, never to `.cascade-dropdown-wrapper`. **A census verdict is
+a nomination, not certification; declaration-owner adjudication against the
+exact competing structure must follow it.**
+
+The packet also proved that the arc's CSS-only M6a transition suppressor is
+beatable: an unlayered universal `transition: none !important` loses both to
+layered `!important` under layer-order inversion and to more-specific unlayered
+`!important`. The packet's oracle bypassed that cascade with the Web Animations
+API and added CTLF, whose `--no-settle` red path fails as designed.
+`scripts/css_audit/runtime_probe.mjs` still carries the beatable suppressor and
+must not be treated as transition-safe until its owning packet repairs it.
+
+Gates: contracts **22 passed, 22/22 red-path proven** with every source restored
+sha256-identical; full pytest **2,268 / 1 skipped**; nine required Chromium
+specs **127 passed**; visual **65 / 1 ledgered red** at 875 px (882 retry),
+inside the established band; Stylelint **2,850 → 2,849 (−1)** with no other
+rule increased. CI on PR #201 passed all 14 checks. Evidence:
+[`CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md`](CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md).
 
 **WP4.4-f1** deleted **one rule from `navbar.css`, −6 lines, 0 insertions** —
 `body:not(:has(#navbar)) .navbar`. Unreachable **by construction**, not only by
@@ -133,15 +167,19 @@ occurrence count. **Do not erode it rule by rule.**
 one packet / worktree / writer / PR at a time:**
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 → f2 → g → h → HARD STOP (N4)
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 → g → h → HARD STOP (N4)
 ```
 
-**`d2` is next**, and the pure-deletion run is now finished: every packet the
-owner classified as class (a) has shipped. Each packet reconciles these three
-status documents at its merge boundary. The arc hard-stops after `h` per ruling
-N4; Gate 1 authority does not extend to `i`, `j` or `k`.
+**`f2` is next.** The pure-deletion run and the first re-weighting packet are
+finished. `a`, `c`, `b`, `e`, `d1`, `f1` and `d2` must not be re-dispatched.
+Each packet reconciles these three status documents at its merge boundary. The
+arc hard-stops after `h` per ruling N4; Gate 1 authority does not extend to
+`i`, `j` or `k`.
 
-> **Superseded 2026-07-29 (latest).** This section previously announced WP4.4-d1
+> **Superseded 2026-07-29 (latest).** This section previously announced
+> WP4.4-f1 as LATEST with `d2` next. `d2` has since merged in PR #201.
+>
+> **Superseded 2026-07-29.** This section previously announced WP4.4-d1
 > as LATEST with `f1` next, and described `f1` as "deliberately last among the
 > pure-deletion packets because navbar layering, global exposure and the
 > animated-logo oracle make it the riskiest". That framing was correct and is
@@ -350,12 +388,11 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-**WP4.4-d2 is next.** `a`, `c`, `b`, `e`, `d1` and `f1` are merged; none may be
-re-dispatched. The pure-deletion run is finished — every class (a) packet has
-shipped. Execute `d2` in a fresh visual-seeded worktree off current `main`, then
-continue sequentially: `d2` -> `f2` -> `g` -> `h`, one writer and one PR per
-packet. `d2` and `f2` are re-weighting packets, not deletions, and each still
-needs its own explicit owner go-ahead before any edit.
+**WP4.4-f2 is next.** `a`, `c`, `b`, `e`, `d1`, `f1` and `d2` are merged;
+none may be re-dispatched. Execute `f2` in a fresh visual-seeded worktree off
+current `main`, then continue sequentially: `f2` -> `g` -> `h`, one writer and
+one PR per packet. `f2` is a re-weighting/consolidation packet, not a deletion
+packet, and still needs its own explicit owner go-ahead before any edit.
 
 **What `f1` established, and what it deliberately left for `f2`:**
 
@@ -398,6 +435,15 @@ needs its own explicit owner go-ahead before any edit.
   packet-independent and current. It is a band, not a constant. Movement
   outside it stops the packet.
 - M6a and every common packet gate apply.
+- **A CSS-only transition suppressor does not satisfy M6a.** `d2` proved the
+  universal unlayered `!important` suppressor is beatable. Use a control that
+  itself carries a winning transitioned declaration and settle in-flight
+  `CSSTransition` objects outside the cascade, or repair the shared harness in a
+  packet that owns it.
+- **A census verdict needs declaration-owner adjudication.** `d2`'s broad
+  census called C50 removable because its synthetic never constructed the
+  doubly-matched label. The targeted exact-structure probe found an owner
+  transfer in 15/15 light-mode measurements and correctly retained it.
 
 **Method carried from `e` and `d1` — binding:**
 
