@@ -111,16 +111,13 @@
     overflow: visible;
     transition: height var(--nav-transition), box-shadow var(--nav-transition),
                 background-color var(--nav-transition);
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   /* Hide scrollbar for navbar specifically */
   #navbar::-webkit-scrollbar {
     display: none;
-  }
-
-  #navbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
   }
 
   /* Also hide scrollbar for navbar container-fluid */
@@ -490,15 +487,10 @@
     left: 0;
     right: 0;
     height: 3px;
-    background-color: transparent;
-    transform: scaleX(0);
+    background-color: #3b82f6;
+    transform: scaleX(1);
     transition: transform var(--nav-transition);
     border-radius: var(--nav-radius-sm) var(--nav-radius-sm) 0 0;
-  }
-
-  #navbar #darkModeToggle::before {
-    transform: scaleX(1);
-    background-color: #3b82f6;
   }
 
   [data-theme='dark'] #navbar #darkModeToggle::before {
@@ -880,6 +872,14 @@
     outline-offset: 2px;
     border-radius: var(--nav-radius-sm);
   }
+  /*
+   * WP4.4-f2 generation consolidation:
+   * - scrollbar declarations share the layered #navbar base rule;
+   * - dark-toggle defaults share their original layered rule;
+   * - no declaration moved across the layer boundary.
+   * The layer's cascade semantics remain unchanged.
+   * Its closing boundary is source-pinned by the arc baseline contract.
+   */
 }
 
 /* ==========================================================================
@@ -962,6 +962,8 @@
   align-items: center !important;
   background: transparent !important;
   background-color: transparent !important;
+  max-width: 1200px;
+  gap: var(--s-3, 12px);
 }
 
 #navbar .navbar-collapse {
@@ -1039,11 +1041,6 @@
   --nav-pill-active: color-mix(in srgb, var(--surface-2, #1d2238) 72%, var(--accent, #4c6ef5) 28%);
   --nav-pill-ink: var(--ink-2, #b4bad0);
   --nav-pill-ink-strong: var(--ink-1, #eef1f6);
-}
-
-:where(#navbar) > .container-fluid {
-  max-width: 1200px;
-  gap: var(--s-3, 12px);
 }
 
 :where(#navbar) .navbar-brand,

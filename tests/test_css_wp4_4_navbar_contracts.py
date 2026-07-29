@@ -1,8 +1,8 @@
-"""WP4.4-f1 cascade contracts for `static/css/navbar.css`.
+"""WP4.4-f1/f2 cascade contracts for `static/css/navbar.css`.
 
-These lock the premises the packet's single deletion rests on. Each test fails
-under its own violation (F16); the red-path proofs are recorded in
-docs/CSS_PHASE4_WP4_4_F1_NAVBAR_EVIDENCE.md.
+The f1 tests retain the premises its single deletion rests on. The f2 tests
+lock three exact-structure generation consolidations after browser ownership
+adjudication. Red-path proofs are recorded in the packet evidence documents.
 
 The assertions are deliberately **structural and occurrence-aware** rather than
 substring-based. `.navbar` is the selector text of BOTH the rule f1 deleted
@@ -170,14 +170,70 @@ def test_the_single_sourced_navbar_layer_block_survives() -> None:
 
 
 # --------------------------------------------------------------------------
-# Whole-surface invariants -- these are what make the packet pure deletion
+# f2 exact-structure consolidation contracts
 # --------------------------------------------------------------------------
 
-# Measured on the post-deletion file; every one was identical before it.
+
+def test_f2_scrollbar_declarations_share_the_layered_navbar_base_rule() -> None:
+    """The duplicate layered `#navbar` block is folded without moving layers."""
+    matches = [
+        rule
+        for rule in _rules(_css())
+        if rule["selector"] == "#navbar"
+        and rule["layer"] == "@layer navbar"
+        and "position: sticky" in rule["decls"]
+    ]
+    assert len(matches) == 1
+    assert "-ms-overflow-style: none" in matches[0]["decls"]
+    assert "scrollbar-width: none" in matches[0]["decls"]
+    assert sum(
+        "-ms-overflow-style: none" in rule["decls"]
+        for rule in _rules(_css())
+        if rule["selector"] == "#navbar" and rule["layer"] == "@layer navbar"
+    ) == 1
+
+
+def test_f2_dark_toggle_indicator_has_one_layered_owner_rule() -> None:
+    """The later same-selector override is folded into the earlier rule."""
+    matches = [
+        rule
+        for rule in _rules(_css())
+        if rule["selector"] == "#navbar #darkModeToggle::before"
+        and rule["layer"] == "@layer navbar"
+    ]
+    assert len(matches) == 1
+    assert "background-color: #3b82f6" in matches[0]["decls"]
+    assert "transform: scaleX(1)" in matches[0]["decls"]
+    assert "background-color: transparent" not in matches[0]["decls"]
+    assert "transform: scaleX(0)" not in matches[0]["decls"]
+
+
+def test_f2_calm_container_declarations_share_the_unlayered_base_rule() -> None:
+    """The low-specificity duplicate is consolidated only after owner proof."""
+    rules = _rules(_css())
+    assert not any(rule["selector"] == ":where(#navbar) > .container-fluid" for rule in rules)
+    matches = [
+        rule
+        for rule in rules
+        if rule["selector"] == "#navbar > .container-fluid"
+        and rule["layer"] is None
+        and "height: 100% !important" in rule["decls"]
+    ]
+    assert len(matches) == 1
+    assert "max-width: 1200px" in matches[0]["decls"]
+    assert "gap: var(--s-3, 12px)" in matches[0]["decls"]
+
+
+# --------------------------------------------------------------------------
+# Whole-surface invariants
+# --------------------------------------------------------------------------
+
+# Measured on the post-f2 file. Importance, custom properties, layer blocks,
+# and keyframes are unchanged from f1; only the style-rule count moves.
 IMPORTANT_DECLARATIONS = 93
 CUSTOM_PROPERTY_DECLARATIONS = 72
 LAYER_BLOCKS = 1
-STYLE_RULES = 193
+STYLE_RULES = 190
 KEYFRAME_STEPS = 5
 
 
@@ -198,12 +254,12 @@ def test_layer_membership_is_frozen() -> None:
     css = _strip_comments(_css())
     assert len(re.findall(r"@layer\s+[\w-]+\s*\{", css)) == LAYER_BLOCKS
     rules = _rules(_css())
-    assert sum(1 for r in rules if r["layer"]) == 103
-    assert sum(1 for r in rules if r["layer"] is None) == 90
+    assert sum(1 for r in rules if r["layer"]) == 101
+    assert sum(1 for r in rules if r["layer"] is None) == 89
 
 
-def test_exactly_one_rule_was_removed_from_the_surface() -> None:
-    """The packet's whole production change, stated as a count."""
+def test_f2_consolidated_rule_count_is_exact() -> None:
+    """Three duplicate source rules were folded; the exact final count is pinned."""
     assert len(_rules(_css())) == STYLE_RULES
 
 
