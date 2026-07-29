@@ -47,7 +47,8 @@ Monitor your program balance on the **Weekly Summary** page:
 
 ## 🔧 For Developers
 
-**Python 3.11+** (CI runs 3.11; developed and built on 3.14).
+**Python 3.14.6+** is required for source runs and executable builds. CI reads
+the exact minimum from `.python-version`.
 
 Build and distribution steps live in one place — see
 [Building the Standalone Executable](README.md#-building-the-standalone-executable-for-developers)
@@ -63,8 +64,15 @@ current that day.
 ## ❓ Troubleshooting
 
 ### "Python is not installed" Error
-- Download Python from https://www.python.org/downloads/
-- **IMPORTANT:** Check "Add Python to PATH" during installation
+- Install Python 3.14.6 or newer from
+  https://www.python.org/downloads/release/python-3146/
+- Ensure the Windows Python launcher or Python install manager is enabled;
+  `START.bat` selects the registered 3.14 runtime directly.
+
+### Existing Virtual Environment Uses an Older Python
+- Delete the `venv/` folder and rerun `START.bat` or `build_exe.bat`.
+- For development, recreate `.venv` with Python 3.14.6+ and reinstall
+  `requirements.txt`.
 
 ### App Won't Start
 - Make sure no other app is using port 5000

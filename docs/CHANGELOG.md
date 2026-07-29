@@ -2,6 +2,20 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - July 29, 2026
+
+### Python 3.14.6 minimum runtime
+
+- Source runs, tests, CI, Pyright analysis, and Windows executable builds now
+  share a Python 3.14 baseline, with 3.14.6 as the patch-level minimum.
+- `.python-version` is the exact CI/environment-manager pin. `START.bat`,
+  `build_exe.bat`, `app.py`, and `app_launcher.py` reject older interpreters;
+  retained `venv` environments must also meet the minimum.
+- All pinned runtime and build dependencies resolve on CPython 3.14.6.
+  PyInstaller remains pinned to 6.21.0, which supports Python 3.14.
+- Pyright excludes generated output and both virtual-environment roots, and its
+  committed allowlist is regenerated under the Python 3.14 analysis target.
+
 ## Unreleased - July 26, 2026
 
 ### Packaging, runtime data location, and catalog updates (root-cleanup Packets A0–B3)

@@ -14,17 +14,55 @@ cd /d "%~dp0"
 echo [INFO] Working directory: %cd%
 echo.
 
-:: Check if Python is installed
-python --version >nul 2>&1
+:: Read the canonical pin and select its registered Python minor explicitly.
+:: This keeps builds reproducible even if another project changes the global
+:: "python" PATH order.
+if not exist ".python-version" (
+    echo [ERROR] Missing .python-version runtime contract!
+    pause
+    exit /b 1
+)
+set /p PYTHON_VERSION=<.python-version
+for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do set "PYTHON_TAG=%%a.%%b"
+set "PYTHON_CMD=py -%PYTHON_TAG%"
+
+:: Check if the required Python minor is registered.
+%PYTHON_CMD% --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Python is not installed or not in PATH!
+    echo [ERROR] Registered Python %PYTHON_TAG% is not installed!
+    echo Install Python %PYTHON_VERSION% or newer from:
+    echo https://www.python.org/downloads/release/python-3146/
+    echo Make sure the Python launcher or install manager is enabled.
     pause
     exit /b 1
 )
 
-for /f "tokens=*" %%i in ('python --version 2^>^&1') do set PYVER=%%i
+for /f "tokens=*" %%i in ('%PYTHON_CMD% --version 2^>^&1') do set PYVER=%%i
 echo [OK] %PYVER% found
 echo.
+
+:: Enforce the repository's canonical minimum before creating or reusing a venv.
+%PYTHON_CMD% -m utils.python_version >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Hypertrophy Toolbox requires Python %PYTHON_VERSION% or newer.
+    echo Update the registered Python %PYTHON_TAG% runtime and try again.
+    echo.
+    pause
+    exit /b 1
+)
+
+:: A venv keeps the interpreter it was created with. Refuse an older retained
+:: environment instead of producing an artifact with the wrong interpreter.
+if exist "venv\Scripts\python.exe" (
+    venv\Scripts\python.exe -m utils.python_version >nul 2>&1
+    if errorlevel 1 (
+        echo [ERROR] The existing "venv" was created with Python older than 3.14.6.
+        echo Delete the "venv" folder and run build_exe.bat again.
+        echo.
+        pause
+        exit /b 1
+    )
+)
 
 :: The build deliberately uses "venv", not the developer ".venv".
 :: .venv has accumulated packages that requirements.txt never declares (pandas,
@@ -41,7 +79,7 @@ echo.
 :: Check if virtual environment exists, create if not
 if not exist "venv" (
     echo [SETUP] Creating virtual environment...
-    python -m venv venv
+    %PYTHON_CMD% -m venv venv
     if errorlevel 1 (
         echo [ERROR] Failed to create virtual environment!
         pause

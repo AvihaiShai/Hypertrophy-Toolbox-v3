@@ -1502,7 +1502,8 @@ All closed by Packet C2 (PR #177):
 - [x] Remove the duplicate `pause` in `START.bat`.
 - [x] Verify the supported Python version in `QUICK_START.md` and `README.md`.
       Now **"3.11+, developed and built on 3.14"**; the previous `3.10+` claim was
-      tested by nothing.
+      tested by nothing. **Superseded 2026-07-29 by ADR-003:** the
+      repository-wide minimum is now Python 3.14.6.
 - [x] Decide whether `QUICK_START.md` duplicates too much of `README.md`.
       **Kept and trimmed.** Its unique feature walkthrough and troubleshooting
       stay; the duplicated build/distribute steps and file table now point at
@@ -1893,6 +1894,8 @@ accepted.
 - [x] **C-D2. Declare "Python 3.11+, developed and built on 3.14."** Five sources
       disagreed: CI and pyright say 3.11, `QUICK_START.md` says 3.10+ (untested by
       anything), `README.md` says 3.14, `.idea/` says 3.12, both venvs run 3.14.4.
+      **Superseded 2026-07-29 by ADR-003:** the repository-wide minimum is now
+      Python 3.14.6.
 - [x] **C-D3. Keep `QUICK_START.md`, trim its duplication of `README.md`.** It
       holds genuinely unique content, but line 92 instructs an **unpinned**
       `pip install pyinstaller` — a live regression against A0's reproducible

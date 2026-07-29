@@ -11,6 +11,10 @@ eligible, file-disjoint (`b` base, `d` a11y, `e` layout, `f` navbar) and
 concurrently authorized by Plan v2 §(a) — **none is started, and each still
 needs explicit owner direction.** The arc hard-stops after `h` per ruling N4.
 
+**Separate owner-directed runtime maintenance (2026-07-29):** the repository
+minimum is now Python 3.14.6 for source, CI, type analysis, and packaged builds.
+This does not authorize or reorder any WP4.4 packet; see ADR-003.
+
 **Superseded (2026-07-27):** *"WP4.3j-d-hover-paint is complete in PR #186; then
 stop."* That instruction was correct when written and is retained below as the
 Workout Log record. It stopped being the current objective when Gate 1 was

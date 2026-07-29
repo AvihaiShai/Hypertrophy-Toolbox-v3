@@ -4,6 +4,15 @@
 
 ## Current State
 
+> **2026-07-29 — Owner-directed runtime alignment:** Python **3.14.6+** is now
+> the repository-wide minimum for source runs, tests, CI and executable builds.
+> `.python-version` pins the exact CI interpreter; Pyright targets 3.14; runtime
+> and Windows entry points select the registered pinned minor and reject older
+> registered or retained-venv interpreters.
+> All pinned runtime/build dependencies were resolved in an isolated CPython
+> 3.14.6 environment. This tooling/runtime-policy change does not alter the
+> WP4.4 packet ordering or next-safe-step below.
+>
 > **2026-07-28 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
 > N1–N10). Packet WP4.4-a is COMPLETE in PR #187 (squash `46e340e`) and packet
 > WP4.4-c is COMPLETE in PR #188 (squash `1b13bfc`). The `c`-first prerequisite
@@ -435,6 +444,8 @@
 >   because `venv/` carries pinned PyInstaller and no pandas/NumPy while `.venv/`
 >   carries undeclared pandas + NumPy; only the docs that misdescribed them were
 >   fixed. Declared **"Python 3.11+, developed and built on 3.14."**
+>   **Superseded 2026-07-29 by ADR-003:** Python 3.14.6 is now the minimum
+>   everywhere, with `.python-version` as the exact CI/environment-manager pin.
 >   `QUICK_START.md` kept, its unpinned `pip install pyinstaller` corrected.
 > - **C3** — `.vscode/launch.json` fixed (its `flask run` config bypassed
 >   `app.py`'s `use_reloader=False` guard) and kept tracked; `.idea/` untracked
