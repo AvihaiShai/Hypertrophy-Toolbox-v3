@@ -4,32 +4,54 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-29 (LATEST) — WP4.4-b is complete in PR #192 (squash `3bec677`).
-Three of eleven packets are merged: `a` (PR #187, `46e340e`), `c` (PR #188,
-`1b13bfc`) and `b` (PR #192, `3bec677`).** `b` deleted four dead `base.css`
-rule blocks (−44 lines): the `.skeleton` block beaten by `motion.css` at equal
-specificity, plus the three unreachable `.loading-spinner` / `.fade-enter` /
-`.fade-enter-active` classes. All 12 `:root` custom properties were retained and
-contract-pinned under M9. Gates: packet contracts **8 passed**, full pytest
-**2,204 passed / 1 skipped**, the five required specs **68 passed**, visual
-**65 passed / 1 ledgered known red**, Stylelint **−2** with no rule increased.
-Evidence: [`CSS_PHASE4_WP4_4_B_BASE_EVIDENCE.md`](CSS_PHASE4_WP4_4_B_BASE_EVIDENCE.md).
+**2026-07-29 (LATEST) — WP4.4-e is complete in PR #195 (squash `1346a35`).
+FOUR of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
+`1b13bfc`), `b` (#192, `3bec677`), `e` (#195, `1346a35`).
 
-**Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY from
-here.** The owner has authorized packets through `h` and directed one packet,
-one worktree, one writer and one PR at a time:
+**WP4.4-e** deleted **34 rule blocks from `layout.css`, −218 lines, 0
+insertions**. The plan carried one candidate into the packet (`body.dark-mode`);
+the audit found **42** fully-unreachable rules. `body.dark-mode` was re-proved,
+not inherited: the rule *is* functional (all seven `--tbl-*` tokens change in
+11/22 contexts when the class is applied) but its selector is never satisfied —
+`<body>` never carries the class, and `darkMode.js:64` sets `data-theme` on the
+root element. It was deleted on **unreachability**, not the ordinary non-winner
+rule, which does not apply to custom properties. The tokens keep their live
+`[data-theme="dark"]` definitions, now contract-pinned.
+
+Evidence: 0 declaration-owner differences / 64,961 records; 0 motion /
+306,864; 2 paint / 340,960, both the ledgered Welcome blur reproduced by the
+before-run's own same-CSS control. Census 0 for all 42 candidates across 11
+routes × 2 themes × 16 widths. Gates: contracts **13 passed, 13/13 red-path
+proven**, full pytest **2,230 / 1 skipped**, seven required specs **89 passed**,
+visual **65 / 1 ledgered red**, Stylelint **2,875 → 2,857 (−18)**, no category
+increased. `!important` 24 → 24 and `@layer` 0 → 0.
+Evidence: [`CSS_PHASE4_WP4_4_E_LAYOUT_EVIDENCE.md`](CSS_PHASE4_WP4_4_E_LAYOUT_EVIDENCE.md).
+
+**Nine rules were deliberately deferred** — the `.tbl-show-*` / `.tbl-hide-*`
+family. Census is 0 and six of nine are oracle-visible, but three declare
+`display: block` (a bare div's initial value), so no control element can
+distinguish them. Splitting the family would leave `@media` overrides targeting
+classes with no base rule, so it is deferred whole and pinned by exact
+occurrence count. **Do not erode it rule by rule.**
+
+**Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY,
+one packet / worktree / writer / PR at a time:**
 
 ```
-e → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+a ✔ → c ✔ → b ✔ → e ✔ → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4)
 ```
 
-`e` is next. This narrows, and does not contradict, Plan v2 §4: that section
-still classifies `e`, `d1` and `f1` as concurrency-eligible class (a) pure
-deletion, but the owner has elected serial execution, and `f1` is deliberately
-last among the pure-deletion packets because navbar layering, global exposure
-and the animated-logo oracle make it the riskiest. Each packet reconciles these
-three status documents at its merge boundary. The arc hard-stops after `h` per
-ruling N4; Gate 1 authority does not extend to `i`, `j` or `k`.
+**`d1` (`a11y.css`, pure deletion only) is next.** This ordering narrows, and
+does not contradict, Plan v2 §4: that section still classifies `d1` and `f1` as
+concurrency-eligible class (a) pure deletion, but the owner has elected serial
+execution, and `f1` is deliberately last among the pure-deletion packets because
+navbar layering, global exposure and the animated-logo oracle make it the
+riskiest. Each packet reconciles these three status documents at its merge
+boundary. The arc hard-stops after `h` per ruling N4; Gate 1 authority does not
+extend to `i`, `j` or `k`.
+
+> **Superseded 2026-07-29 (later).** This section previously announced WP4.4-b
+> as LATEST with `e` next. `e` has since merged in PR #195.
 
 > **Superseded 2026-07-29.** This section previously read *"WP4.4-c is complete
 > in PR #188 … `b`, `d1`, `e` and `f1` are eligible, none started, each still
@@ -231,20 +253,28 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-**WP4.4-e (`static/css/layout.css`) is next**, and it is authorized. `a`, `c`
-and `b` are merged; `b` must not be re-dispatched. Execute `e` in a fresh
-visual-seeded worktree off current `main`, as pure deletion only, then continue
-sequentially: `e` → `d1` → `f1` → `d2` → `f2` → `g` → `h`, one writer and one
-PR per packet.
+**WP4.4-d1 (`static/css/a11y.css`, pure deletion only) is next**, and it is
+authorized. `a`, `c`, `b` and `e` are merged; none of them may be re-dispatched.
+Execute `d1` in a fresh visual-seeded worktree off current `main`, then continue
+sequentially: `d1` → `f1` → `d2` → `f2` → `g` → `h`, one writer and one PR per
+packet.
 
-Packet `e` owns exactly `static/css/layout.css`. The dead `body.dark-mode` rule
-recorded at `static/css/layout.css:1120` is a **candidate only** and must be
-re-proved under the current method before deletion — computed-owner evidence
-with all stylesheets loaded, a rest-state before/after differential, a same-CSS
-control, and M6a transition suppression around applying, reading and removing
-every sentinel. `dark-mode.spec.ts` alone is **not** proof of deadness (F4). If
-it proves live, retain it and correct the historical assumption in the packet
-evidence.
+Packet `d1` owns exactly `static/css/a11y.css`. Binding constraints:
+
+- **Re-weighting and `!important` changes are `d2`'s, not `d1`'s.**
+- Preserve the focus-visible, skip-link, keyboard-focus and scale guarantees.
+- Exercise **every** targeted `data-scale` level in both themes.
+- Include print emulation, breakpoint coverage, computed-style checks and
+  keyboard traversal.
+- Preserve the contract-pinned a11y declarations — `a11y.css` is named in the
+  shared contract file, which `d1` **runs but never edits**.
+- M6a and every common packet gate apply.
+
+Method note carried from `e`: a sentinel sweep and a rest-state differential
+cannot falsify an **unreachable** rule, because deleting one changes nothing on
+any rendered page. Pair them with a runtime full-selector census and a synthetic
+injection whose control fails the selector by exactly one compound, and derive
+every probed property from the rule's own declarations rather than guessing.
 
 No further Workout Log packet is authorized, and do not begin fatigue or feature
 work or reopen the root-cleanup track. Do not begin `i`, `j` or `k`.

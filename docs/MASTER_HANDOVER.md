@@ -14,28 +14,63 @@
 > WP4.4 packet ordering or next-safe-step below.
 >
 > **2026-07-29 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
-> N1–N10). THREE of eleven packets are merged:**
+> N1–N10). FOUR of eleven packets are merged:**
 >
 > | Packet | PR | Squash | Nature |
 > |---|---|---|---|
 > | **a** shared-surface baseline + cascade harness | #187 | `46e340e` | read-only, no production CSS |
 > | **c** `motion.css` dead success paint | #188 | `1b13bfc` | pure deletion, 3 declarations |
 > | **b** `base.css` four dead rule blocks | #192 | `3bec677` | pure deletion, −44 lines |
+> | **e** `layout.css` 34 unreachable rule blocks | #195 | `1346a35` | pure deletion, −218 lines, 0 insertions |
 >
 > **Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY,
 > one packet, worktree, writer and PR at a time:**
 >
 > ```
-> e → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+> a ✔ → c ✔ → b ✔ → e ✔ → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4)
 > ```
 >
-> **`e` (`static/css/layout.css`) is next and is authorized.** `b` is DONE and
-> must not be re-dispatched. This ordering narrows rather than contradicts Plan
-> v2 §4: `e`, `d1` and `f1` remain class (a) concurrency-eligible pure deletion
-> there, but the owner has elected serial execution, and `f1` is deliberately
-> last among the pure-deletion packets because navbar layering, global exposure
-> and the animated-logo oracle make it the riskiest. Gate 1 authority does not
-> extend to `i`, `j` or `k`.
+> **`d1` (`static/css/a11y.css`, pure deletion only) is next and is
+> authorized.** `a`, `c`, `b` and `e` are DONE and must not be re-dispatched.
+> This ordering narrows rather than contradicts Plan v2 §4: `d1` and `f1` remain
+> class (a) concurrency-eligible pure deletion there, but the owner has elected
+> serial execution, and `f1` is deliberately last among the pure-deletion
+> packets because navbar layering, global exposure and the animated-logo oracle
+> make it the riskiest. Gate 1 authority does not extend to `i`, `j` or `k`.
+>
+> **WP4.4-e outcome and the method lesson worth carrying.** The plan carried
+> **one** candidate into `e` (`body.dark-mode`); the audit found **42**
+> fully-unreachable rules, including an entire `.tbl-col-chooser` widget the app
+> has never rendered. 34 blocks were deleted; 9 were deferred.
+>
+> `body.dark-mode` was re-proved rather than inherited, and cleared on the right
+> basis: the rule *is* functional (all seven `--tbl-*` tokens change in 11/22
+> contexts) but its selector is *never satisfied*. Deleted on **unreachability**,
+> **not** the ordinary non-winner rule — which does not apply to custom
+> properties, and that block declared only custom properties.
+>
+> **Binding method addition: a rest-state differential cannot falsify an
+> unreachable rule.** If nothing carries the class, deleting the rule changes
+> nothing on any rendered page, so a zero-diff result is *consistent with*
+> deadness but is not proof of it. Pair it with (a) a runtime **full-selector**
+> census taken before any synthetic is injected, and (b) synthetic injection
+> whose control fails the selector by exactly one compound, reading properties
+> **derived from the rule's own declarations**.
+>
+> Four instrumentation defects were caught by controls before anything was
+> deleted, every one pointing the deletion-favourable way: hand-written property
+> lists; a single-viewport probe blind to `@media`-gated rules; a census counting
+> the leaf class (Bootstrap's shared `.row` / `.active`) instead of the full
+> selector; and a control byte-identical to its own test element when the leaf is
+> a bare tag. Full detail in
+> [`CSS_PHASE4_WP4_4_E_LAYOUT_EVIDENCE.md`](CSS_PHASE4_WP4_4_E_LAYOUT_EVIDENCE.md) §3f.
+>
+> Also recorded there: **FontAwesome 5.15.4 independently defines `.sr-only`**
+> (`templates/base.html:16`, CDN-only, no fallback), with a `white-space: nowrap`
+> residual versus the deleted `layout.css` copy.
+>
+> > **Superseded 2026-07-29 (later).** This block previously listed three merged
+> > packets with `e` next. `e` merged in PR #195.
 >
 > **WP4.4-b** deleted the `.skeleton` block beaten by `motion.css` at equal
 > specificity, plus the three unreachable classes `.loading-spinner`,
@@ -1112,23 +1147,39 @@
 
 ## Next Safe Step
 
-**Current (2026-07-29):** WP4.4 packets `a`, `c` and `b` are merged — 3 of 11.
-**WP4.4-e (`static/css/layout.css`) is the next action and is authorized**,
-executed as pure deletion only in a fresh visual-seeded worktree off current
+**Current (2026-07-29, later):** WP4.4 packets `a`, `c`, `b` and `e` are merged
+— **4 of 11**. **WP4.4-d1 (`static/css/a11y.css`, pure deletion only) is the
+next action and is authorized**, in a fresh visual-seeded worktree off current
 `main`. The owner-directed remaining order is sequential:
 
 ```
-e → d1 → f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+d1 → f1 → d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
 ```
 
-`b` is DONE (PR #192, squash `3bec677`) and must not be re-dispatched. One
-packet, one worktree, one writer, one PR at a time; reconcile these three status
-documents at each merge boundary. The dead `body.dark-mode` at
-`static/css/layout.css:1120` is a **candidate only** for `e` and must be
-re-proved under computed-owner evidence + rest-state differential + same-CSS
-control + M6a sentinel handling; `dark-mode.spec.ts` alone is not proof (F4).
+`a`, `c`, `b` and `e` are DONE and must not be re-dispatched. One packet, one
+worktree, one writer, one PR at a time; reconcile these three status documents
+at each merge boundary.
+
+**`d1` constraints:** re-weighting and `!important` changes belong to `d2`, not
+`d1`; preserve the focus-visible, skip-link, keyboard-focus and scale
+guarantees; exercise every targeted `data-scale` level in both themes; include
+print emulation, breakpoint coverage, computed-style checks and keyboard
+traversal; preserve the contract-pinned a11y declarations (`a11y.css` is named
+in the shared contract file, which `d1` **runs but never edits**).
+
 Workout Log cleanup beyond WP4.3j-d-hover-paint (PR #186) remains closed and
 owner-gated. Do not begin `i`, `j` or `k`.
+
+**Deferred by `e`, owner-gated, do not act:** the nine-rule
+`.tbl-show-*` / `.tbl-hide-*` breakpoint-helper family in `layout.css`. Census
+is 0 and six of nine are oracle-visible, but three declare `display: block` — a
+bare div's initial value — so no control element can distinguish them. It is
+pinned by exact occurrence count and must be deleted as a **unit** under fresh
+evidence, never eroded rule by rule.
+
+> **Superseded 2026-07-29 (later).** This section previously read "packets `a`,
+> `c` and `b` are merged — 3 of 11 … WP4.4-e is the next action". `e` merged in
+> PR #195 (squash `1346a35`).
 
 > **Superseded 2026-07-29.** This section previously read *"WP4.4 packets `a`
 > and `c` are merged. `b`, `d1`, `e` and `f1` are eligible and unstarted; they
