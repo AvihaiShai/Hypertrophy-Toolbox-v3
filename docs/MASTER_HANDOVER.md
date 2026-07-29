@@ -14,7 +14,7 @@
 > WP4.4 packet ordering or next-safe-step below.
 >
 > **2026-07-29 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
-> N1–N10). SIX of eleven packets are merged:**
+> N1–N10). SEVEN of eleven packets are merged:**
 >
 > | Packet | PR | Squash | Nature |
 > |---|---|---|---|
@@ -24,16 +24,50 @@
 > | **e** `layout.css` 34 unreachable rule blocks | #195 | `1346a35` | pure deletion, −218 lines, 0 insertions |
 > | **d1** `a11y.css` superseded scale/menu generation | #197 | `59e5b10` | pure deletion, −99 lines, 0 insertions |
 > | **f1** `navbar.css` unreachable legacy fallback | #199 | `1127486` | pure deletion, −6 lines, 0 insertions |
+> | **d2** `a11y.css` `!important` re-weighting | #201 | `0a912d9` | 1 annotation de-weighted; 50 retained |
 >
 > **Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY,
 > one packet, worktree, writer and PR at a time:**
 >
 > ```
-> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 → f2 → g → h → HARD STOP (N4)
+> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 → g → h → HARD STOP (N4)
 > ```
 >
-> **`d2` is next.** `a`, `c`, `b`, `e`, `d1` and `f1` are DONE and must not be
-> re-dispatched. Gate 1 authority does not extend to `i`, `j` or `k`.
+> **`f2` is next.** `a`, `c`, `b`, `e`, `d1`, `f1` and `d2` are DONE and must
+> not be re-dispatched. Gate 1 authority does not extend to `i`, `j` or `k`.
+>
+> **WP4.4-d2 outcome — one certified annotation is the correct yield.** All 51
+> `!important` annotations remaining in `a11y.css` were adjudicated.
+> `.is-invalid { box-shadow }` was de-weighted and remains the same effective
+> owner wherever it owned before. `!important` **51 → 50**; declarations
+> **240 → 240**, style rules **94 → 94**, custom properties **17 → 17** and
+> `@layer` **0 → 0**. No selector, value, declaration, rule order or media
+> placement changed.
+>
+> **The second apparent candidate failed certification and was retained.**
+> The broad census called
+> `.selection-field.has-validation-error label { color }` removable, but its
+> synthetic never constructed the exact doubly-matched label: it added
+> `has-validation-error` to `.selection-field`, never to
+> `.cascade-dropdown-wrapper`. A targeted exact-structure probe found that
+> de-weighting moves ownership to the later `pages-workout-plan.css:4449` rule
+> in **15/15** light-mode measurements, despite an identical computed value.
+> This is the binding reason a census oracle needs a declaration-owner
+> adjudicator behind it.
+>
+> **M6a correction from d2: the CSS-only transition suppressor is beatable.**
+> The unlayered universal `transition: none !important` loses to layered
+> `!important` under the inversion and to more-specific unlayered
+> `!important`. `d2` settled `CSSTransition` objects through the Web Animations
+> API and proved CTLF's `--no-settle` red path. The committed
+> `scripts/css_audit/runtime_probe.mjs` still carries the beatable suppressor;
+> no remaining packet may assume that stylesheet rule alone enforces M6a.
+>
+> Gates: contracts **22 passed / 22 red paths proven**, pytest **2,268 passed /
+> 1 skipped**, nine functional specs **127 passed**, visual **65 passed / 1
+> ledgered red** inside the established band, Stylelint **−1** with no other
+> rule increased, and all 14 PR checks green. Evidence:
+> [`CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md`](CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md).
 >
 > **WP4.4-f1 outcome — a small diff is the correct outcome here.** `f1` deleted
 > exactly **one** rule, `body:not(:has(#navbar)) .navbar` (−6 lines), against a
@@ -1191,20 +1225,20 @@
 
 ## Next Safe Step
 
-**Current (2026-07-29, latest):** WP4.4 packets `a`, `c`, `b`, `e`, `d1` and
-`f1` are merged — **6 of 11**, and the pure-deletion run is **finished**.
-**WP4.4-d2 is the next action**, in a fresh visual-seeded worktree off current
-`main`. `d2` and `f2` are re-weighting packets, not deletions, and each needs
-its own explicit owner go-ahead before any edit. The owner-directed remaining
-order is sequential:
+**Current (2026-07-29, latest):** WP4.4 packets `a`, `c`, `b`, `e`, `d1`, `f1`
+and `d2` are merged — **7 of 11**. The pure-deletion run and first re-weighting
+packet are finished. **WP4.4-f2 is the next action**, in a fresh visual-seeded
+worktree off current `main`. It is a re-weighting/consolidation packet, not a
+deletion packet, and needs its own explicit owner go-ahead before any edit. The
+owner-directed remaining order is sequential:
 
 ```
-d2 → f2 → g → h → HARD STOP (N4 owner checkpoint before i)
+f2 → g → h → HARD STOP (N4 owner checkpoint before i)
 ```
 
-`a`, `c`, `b`, `e`, `d1` and `f1` are DONE and must not be re-dispatched. One
-packet, one worktree, one writer, one PR at a time; reconcile these three status
-documents at each merge boundary.
+`a`, `c`, `b`, `e`, `d1`, `f1` and `d2` are DONE and must not be
+re-dispatched. One packet, one worktree, one writer and one PR at a time;
+reconcile these three status documents at each merge boundary.
 
 **Constraints that survive `f1` and bind `f2`:** generation consolidation and
 re-weighting belong to `f2`; **freeze `@layer` membership (N2)** and **never
@@ -1220,6 +1254,19 @@ band, now measured as **875/882 ∪ 1,039/1,046 px** on
 `workout-plan-desktop-dark` — `f1` observed 875 (882 retry) and proved it
 packet-independent with a same-CSS pixel control. Movement outside the band
 stops the packet.
+
+**Method additions from `d2` that bind `f2`:** a CSS-only universal
+`transition: none !important` suppressor does not satisfy M6a because the
+cascade can beat it; include a transitioned known-live control and settle
+in-flight `CSSTransition` objects outside the cascade, or repair the shared
+harness in a packet that owns it. A broad census verdict is only a nomination:
+follow it with an exact-structure declaration-owner adjudication capable of
+constructing every competing selector combination. C50 would have shipped
+incorrectly without that second oracle.
+
+> **Superseded 2026-07-29 (latest).** This block previously read *"`a`, `c`,
+> `b`, `e`, `d1` and `f1` are merged — 6 of 11. WP4.4-d2 is the next action"*.
+> `d2` merged in PR #201 (`0a912d9`) and `f2` is now next.
 
 > **Superseded 2026-07-29 (latest).** This block previously read *"`a`, `c`,
 > `b`, `e` and `d1` are merged — 5 of 11. WP4.4-f1 … is the next action"* and
