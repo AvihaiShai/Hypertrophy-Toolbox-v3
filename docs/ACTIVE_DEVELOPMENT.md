@@ -4,10 +4,35 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-29 (LATEST) — WP4.4-d2 is complete in PR #201 (squash `0a912d9`).
-SEVEN of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
+**2026-07-30 (LATEST) — WP4.4-f2 is complete in PR #205 (squash `6a5465c`).
+EIGHT of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
 `1b13bfc`), `b` (#192, `3bec677`), `e` (#195, `1346a35`), `d1` (#197,
-`59e5b10`), `f1` (#199, `1127486`), `d2` (#201, `0a912d9`).
+`59e5b10`), `f1` (#199, `1127486`), `d2` (#201, `0a912d9`), `f2` (#205,
+`6a5465c`).
+
+**WP4.4-f2** consolidated three exact duplicate `navbar.css` source rules into
+their existing generation owners. Style rules **193 → 190**, declarations
+**692 → 690**, physical lines **1,536 → 1,533**. The single
+`@layer navbar` block remains source-pinned at lines 6–883; layer membership,
+all **93** `!important` occurrences, all **72** custom-property declarations,
+and `--nav-gap` / `--nav-padding-y` / `--nav-padding-x` are unchanged.
+
+Exact declaration-owner adjudication proved the merged scrollbar and
+light-theme toggle background are live winners, mobile container `max-width`
+and row gap remain live, and the desktop base `max-width` remains overridden.
+The exhaustive post matrix had **486/486** candidate, restore and focus checks
+green across 11 routes, both themes, 20 breakpoint-edge widths, navigation
+states, forced interactions, reduced motion, contrast and print. The M6a
+control observed and externally settled **7** genuine `CSSTransition` objects;
+its `--no-settle` red path failed as required.
+
+Gates: contracts **62 passed**; full pytest **2,271 passed / 1 skipped**;
+required functional/navigation/accessibility Chromium **127 passed** plus
+`fatigue.spec.ts` **8 passed**; visual **65 / 1 ledgered red** at
+875/882/875 px inside the established band; Stylelint **2,849 → 2,844 (−5)**
+over the seven surfaces, with no category increase. All 14 CI checks on PR #205
+passed. Evidence:
+[`CSS_PHASE4_WP4_4_F2_NAVBAR_EVIDENCE.md`](CSS_PHASE4_WP4_4_F2_NAVBAR_EVIDENCE.md).
 
 **WP4.4-d2** adjudicated all **51** `!important` annotations left in
 `a11y.css` after `d1`. Exactly one was certified and de-weighted:
@@ -167,16 +192,19 @@ occurrence count. **Do not erode it rule by rule.**
 one packet / worktree / writer / PR at a time:**
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 → g → h → HARD STOP (N4)
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g → h → HARD STOP (N4)
 ```
 
-**`f2` is next.** The pure-deletion run and the first re-weighting packet are
-finished. `a`, `c`, `b`, `e`, `d1`, `f1` and `d2` must not be re-dispatched.
+**`g` is next.** The navbar generation-consolidation packet is finished. `a`,
+`c`, `b`, `e`, `d1`, `f1`, `d2` and `f2` must not be re-dispatched.
 Each packet reconciles these three status documents at its merge boundary. The
 arc hard-stops after `h` per ruling N4; Gate 1 authority does not extend to
 `i`, `j` or `k`.
 
-> **Superseded 2026-07-29 (latest).** This section previously announced
+> **Superseded 2026-07-30 (latest).** This section previously announced
+> WP4.4-d2 as LATEST with `f2` next. `f2` has since merged in PR #205.
+>
+> **Superseded 2026-07-29.** This section previously announced
 > WP4.4-f1 as LATEST with `d2` next. `d2` has since merged in PR #201.
 >
 > **Superseded 2026-07-29.** This section previously announced WP4.4-d1
@@ -388,13 +416,14 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-**WP4.4-f2 is next.** `a`, `c`, `b`, `e`, `d1`, `f1` and `d2` are merged;
-none may be re-dispatched. Execute `f2` in a fresh visual-seeded worktree off
-current `main`, then continue sequentially: `f2` -> `g` -> `h`, one writer and
-one PR per packet. `f2` is a re-weighting/consolidation packet, not a deletion
-packet, and still needs its own explicit owner go-ahead before any edit.
+**WP4.4-g is next.** `a`, `c`, `b`, `e`, `d1`, `f1`, `d2` and `f2` are
+merged; none may be re-dispatched. Execute only the read-only
+`components.css` cascade audit from current `main`, then continue sequentially
+to `h`, one packet, worktree, writer and PR at a time. Packet `g` owns no
+production path: it classifies and nominates, but authorizes no deletion or
+selector repair.
 
-**What `f1` established, and what it deliberately left for `f2`:**
+**What `f1` and `f2` established, and what remains protected:**
 
 - The **"three live generations" count is confirmed at exactly three** and is no
   longer an assumption: layered scoped (103 rules), legacy `.navbar` fallback
@@ -410,11 +439,12 @@ packet, and still needs its own explicit owner go-ahead before any edit.
   and were retained whole. The owner sweep's `!important`/layer arbitration was
   never validated against a known-live *overridden* control, so the set is not
   actionable as it stands. Certifying it requires paying for that control.
-- **Six rules share `#navbar > .container-fluid`** across both layers, and the
-  11 `@media` conditions include near-duplicates (`max-width: 991px` vs
-  `991.98px`). Both are consolidation — `f2`'s exclusively.
+- `f2` consolidated only the three exact, owner-proven duplicate structures:
+  layered scrollbar declarations, layered dark-toggle defaults, and the
+  identical-match-set calm container declarations. It did **not** chase the
+  remaining near-duplicate media conditions or any of f1's 155 nominations.
 
-**Binding constraints that remain in force for `f2`:**
+**What `f2` proved, and later packets must not undo:**
 
 - **Freeze layer membership (N2).** `navbar.css` holds the arc's only
   `@layer navbar` block, spanning lines 6-883 at the WP4.4-a baseline —
@@ -425,21 +455,20 @@ packet, and still needs its own explicit owner go-ahead before any edit.
 - Treat layered `!important` declarations as **potentially live winners** —
   A6/G10: for `!important`, layer order inverts, so an explicit layer outranks
   the implicit final unlayered layer regardless of specificity.
-- Exercise collapsed and expanded navigation, dropdowns, keyboard navigation,
-  both themes, and all required routes.
+- The exhaustive matrix exercised collapsed and expanded navigation, dropdowns,
+  keyboard navigation, both themes, all required routes, 20 breakpoint-edge
+  widths, forced interaction states, reduced motion, contrast and print with
+  **486/486** candidate/restore/focus checks green.
 - Reconcile the animated-logo result **only** against its established known-red
   band, which is now **875/882 union 1,039/1,046 px** on
-  `workout-plan-desktop-dark`. `f1` measured 875 (882 on retry), matching `b`
-  and `c`, and a same-CSS pixel control with `navbar.css` byte-identical to
-  `main` produced the identical count — so the low half of the band is
-  packet-independent and current. It is a band, not a constant. Movement
-  outside it stops the packet.
+  `workout-plan-desktop-dark`. `f2` measured 875/882/875, while `f1` proved the
+  low half packet-independent with a same-CSS control. It is a band, not a
+  constant.
 - M6a and every common packet gate apply.
-- **A CSS-only transition suppressor does not satisfy M6a.** `d2` proved the
-  universal unlayered `!important` suppressor is beatable. Use a control that
-  itself carries a winning transitioned declaration and settle in-flight
-  `CSSTransition` objects outside the cascade, or repair the shared harness in a
-  packet that owns it.
+- **A CSS-only transition suppressor does not satisfy M6a.** `f2` used a
+  genuinely transitioned known-live control, observed 7 live
+  `CSSTransition` objects, settled them outside the cascade, and proved the
+  `--no-settle` red path. The shared suppressor alone remains insufficient.
 - **A census verdict needs declaration-owner adjudication.** `d2`'s broad
   census called C50 removable because its synthetic never constructed the
   doubly-matched label. The targeted exact-structure probe found an owner
@@ -475,7 +504,8 @@ packet, and still needs its own explicit owner go-ahead before any edit.
   lines against a −150 to −400 projection and is complete.
 
 No further Workout Log packet is authorized, and do not begin fatigue or feature
-work or reopen the root-cleanup track. Do not begin `i`, `j` or `k`.
+work or reopen the root-cleanup track. Do not begin `h`, `i`, `j` or `k` while
+`g` is next.
 
 > **Superseded 2026-07-29.** This section previously read *"WP4.4-c is merged.
 > `b`, `d1`, `e` and `f1` are eligible and unstarted — await owner direction."*
