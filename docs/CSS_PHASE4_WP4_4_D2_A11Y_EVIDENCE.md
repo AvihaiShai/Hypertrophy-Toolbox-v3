@@ -297,6 +297,20 @@ label that only a11y's rule reaches, so the state never actually stressed
 anything and reported clean. The check now tags the specific label matching
 **both** selectors and fails if no such label exists.
 
+**The census oracle alone would have shipped C50 — the packet's most important
+methodological result.** The full matrix reports C50 `REMOVABLE` both before and
+after the edit, and it is not wrong to do so: its synthetic pass adds
+`.has-validation-error` only to `.selection-field`, never to a
+`.cascade-dropdown-wrapper`, so **the doubly-matched label the failure depends
+on is never constructed**. A sweep can only adjudicate the states it builds.
+Ownership-by-sentinel answers *"does this declaration win?"*; it does not answer
+*"which declaration wins?"*, and only the second question exposes a same-value
+owner transfer.
+
+**M6b — an annotation that is asymmetric with a retained sibling requires a
+declaration-owner adjudication, not a census verdict.** Binding on the remaining
+re-weighting packets (`f2`, and any later `!important` work).
+
 **Why it is retained rather than argued away.** The doubly-matched state does
 not appear to be reachable in the shipping app today: the routine field is a
 hidden input, so `setFieldValidationState` takes its `isCascadeRoutine` branch
@@ -423,10 +437,10 @@ so the protection and the measurement agree.
 | Gate | Result |
 |---|---|
 | `tests/test_css_wp4_4_a11y_contracts.py` | **22 passed** (16 d1 + 6 d2) |
-| Red-path proof | **22/22** go red under their own violation; every source restored **sha256-identical**; green after |
-| Full `pytest tests/` | **2,268 passed, 1 skipped** (503.85s) |
+| Red-path proof | **22/22** go red under their own violation; every source restored **sha256-identical**; green after — **but see the correction below, the first run of this proof was broken** |
+| Full `pytest tests/` | **2,268 passed, 1 skipped** (503.85s; independently re-run at 431.27s, same counts) |
 | Shared `test_css_cascade_contracts.py`, `test_visual_selector_contracts.py`, `test_css_wp4_4_a_baseline_contracts.py` | run **unedited** inside the full suite; `git status` on them is empty |
-| `accessibility`, `dark-mode`, `smoke-navigation`, `summary-pages`, `volume-progress`, `fatigue`, `fatigue-stage4-smokes`, `ui-hardening`, `nav-dropdown` | **127 passed** (3.6m) |
+| `accessibility`, `dark-mode`, `smoke-navigation`, `summary-pages`, `volume-progress`, `fatigue`, `fatigue-stage4-smokes`, `ui-hardening`, `nav-dropdown` | **127 passed** (3.6m); independent re-run of the same selector set **133 passed** (4.5m) |
 | `visual.spec.ts`, Chromium, full matrix, `PW_VISUAL_SEED=1` | **65 passed, 1 failed** — the ledgered red, below |
 | Positive flip check (`d2_flip.mjs`) | **PASS** |
 | Stylelint, seven surfaces | **2,850 → 2,849 (−1)**, no rule increased, **0** parse errors |
@@ -434,6 +448,33 @@ so the protection and the measurement agree.
 
 Test count reconciles: `f1` recorded 2,262 passed on `main`; this branch adds
 the 6 new d2 contracts and collects **2,268**.
+
+### 5.0 Correction — the red-path proof was itself broken on its first run
+
+This is recorded rather than quietly repaired, because it is the same failure
+class the packet exists to guard against: **a check that cannot fail proves
+nothing, and a mutation that does not apply is exactly such a check.**
+
+`redpath_d2.py` first reported **14/22**, with **8 cases silently no-op**. The
+sources on this checkout are **CRLF**, and every mutation written with a plain
+`\n` matched nothing at all — the script printed a line per case regardless, so
+the eight broken cases were indistinguishable from real ones at a glance. The
+affected cases were `mixed_selector_lists`, `focus_visible_premise` (×2),
+`no_custom_property`, `certified_removal_kept`, `asymmetric_sibling`, the
+`.is-invalid:focus` retention, and the `@-moz-document` retention.
+
+Three of those guard **d2's own dispositions**, so before the repair the packet
+had *no* proof that its asymmetric-sibling, protected-focus and
+Chromium-invisible contracts could fail.
+
+**Repair.** The replace helper now tries both line endings; the regex helper
+widens `\n` to `\r?\n` (with one pattern fixed by hand — in a *raw* string `\n`
+is backslash-plus-n, so the widening never saw a newline to widen); and a no-op
+is now printed as **"NO-OP (proof broken)"** and counted as a failure.
+
+**Post-correction: 22/22 go red, all sources restored byte-identically, suite
+green after.** The `22/22` figure in the table above is only true of the
+repaired script.
 
 ### 5.1 The one visual failure is the ledgered animated-logo red, in band
 
@@ -524,6 +565,44 @@ of which are deterministic (0 same-CSS drift over 466 paired runs) and measure
 declaration ownership directly rather than inferring it from a whole-page
 snapshot. This is a limitation of the shared runtime harness on a re-weighting
 packet, and it is left for `f2`/`g` to fix rather than patched over here.
+
+### 5.5 Keyboard focus-indicator census — measured against its own noise floor
+
+Packet `d` must not weaken keyboard focus visibility, so this is reported with a
+control rather than as a bare number. An element counts as having an indicator
+when `outline-style ≠ none` with `outline-width > 0`, **or** `box-shadow ≠ none`.
+
+The first comparison looked like a regression — 1,329/2,046 before against
+1,307/2,040 after — and it was **not** one. `data/database.db` was rewritten
+between those two matrices, so they traversed different DOMs; the differing stop
+counts are the tell. Re-measured in one session against one database:
+
+| `a11y.css` | Tab stops | with indicator |
+|---|---:|---:|
+| `main` (`c280a6e1…`) run 1 | 2,040 | 1,306 |
+| `main` run 2 | 2,040 | **1,309** |
+| `main` run 3 | 2,040 | 1,308 |
+| **d2** (`adce3716…`) run 1 | 2,040 | 1,308 |
+| **d2** run 2 | 2,040 | 1,308 |
+
+`main` disagrees with itself across a spread of **3**; d2's 1,308 sits inside
+it, and the stop count is identical in all five runs. The four differing
+contexts all resolve to the **same** element,
+`html/body/header/div/nav/ul[0]/li[2]/a` (a navbar link) at `data-scale` 3, and
+the direction is inconsistent — gained in three contexts, lost in one. That is
+flake, not causation. The mechanism is the D7 class: the keyboard pass reads
+computed style without the settle repair, so a transitioned navbar link can be
+read mid-flight. **No effect attributable to d2**, and `.is-invalid` is applied
+nowhere during a Tab traversal, so the de-weighted declaration cannot reach this
+measure at all.
+
+### 5.6 Same-CSS pixel control settles authorship of the visual red
+
+With `a11y.css` restored **byte-identical to `main`** (`git diff` empty,
+sha `c280a6e1…`) in the same worktree, the same spec produced the **identical
+875 / 882 / 875**. The red is independent of this packet, exactly as the same
+control established at the `b`, `c` and `f1` boundaries. The packet version was
+then restored and re-verified (sha `adce3716…`, contracts 22/22).
 
 ---
 
