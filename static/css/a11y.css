@@ -123,31 +123,7 @@ html[data-scale="8"] {
 /* ========================================================================
    Scale Control Styling
    ======================================================================== */
-.scale-control {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    border-radius: var(--nav-radius-sm, 8px);
-    background: transparent;
-}
 
-.scale-control-label {
-    font-size: 0.85rem;
-    color: var(--nav-text-muted, #a8b2c1);
-    margin-right: 4px;
-    white-space: nowrap;
-}
-
-.scale-btn-group {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    background: var(--nav-surface, #141a23);
-    border-radius: var(--nav-radius-sm, 8px);
-    padding: 2px;
-    border: 1px solid var(--nav-border, #202837);
-}
 
 .scale-btn {
     display: flex;
@@ -241,59 +217,6 @@ html[data-scale="8"] {
     font-size: 1rem;
 }
 
-.accessibility-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    min-width: 220px;
-    padding: 12px;
-    background: var(--nav-surface, #141a23);
-    border: 1px solid var(--nav-border, #202837);
-    border-radius: var(--nav-radius, 12px);
-    box-shadow: var(--nav-shadow, 0 6px 24px rgba(0, 0, 0, 0.25));
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: all var(--nav-transition, 200ms) ease;
-    z-index: 1001;
-}
-
-.accessibility-dropdown.open .accessibility-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(4px);
-}
-
-.accessibility-section {
-    padding: 8px 0;
-}
-
-.accessibility-section:not(:last-child) {
-    border-bottom: 1px solid var(--nav-border, #202837);
-    margin-bottom: 8px;
-}
-
-.accessibility-section-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--nav-text-muted, #a8b2c1);
-    margin-bottom: 8px;
-}
-
-/* Scale indicator labels */
-.scale-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 6px;
-    padding: 0 2px;
-}
-
-.scale-label {
-    font-size: 0.65rem;
-    color: var(--nav-text-muted, #a8b2c1);
-}
 
 /* ========================================================================
    Compact Scale Control (for navbar inline)
@@ -384,36 +307,14 @@ html[data-scale="8"] {
    Responsive Adjustments
    ======================================================================== */
 @media (max-width: 991.98px) {
-    .scale-control {
-        padding: 8px 0;
-        width: 100%;
-        justify-content: center;
-    }
 
-    .scale-btn-group {
-        flex: 1;
-        max-width: 200px;
-        justify-content: center;
-    }
 
     .scale-btn {
         flex: 1;
         max-width: 36px;
     }
 
-    .accessibility-menu {
-        position: fixed;
-        top: auto;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        border-radius: var(--nav-radius-lg, 16px) var(--nav-radius-lg, 16px) 0 0;
-        transform: translateY(100%);
-    }
 
-    .accessibility-dropdown.open .accessibility-menu {
-        transform: translateY(0);
-    }
 }
 
 /* ========================================================================
