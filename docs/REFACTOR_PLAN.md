@@ -69,8 +69,9 @@ records the WP4.4 authorization granted at Gate 1:**
    there**; **WP4.4 (shared bundles / navbar / `theme-dark.css`) Plan v2 is
    Gate-1 approved (owner, 2026-07-27) and executes from
    [`docs/css_phase4_wp4_4/PLANNING.md`](css_phase4_wp4_4/PLANNING.md)** —
-   authorized order `a` → `c` → the approved deletion packets → `g` → `h`, then
-   a **hard stop before `i`** for the N4 owner checkpoint. WP4.3j-a merged
+   authorized order `a` ✔ → `c` ✔ → `b` ✔ → `e` → `d1` → `f1` → `d2` → `f2` →
+   `g` → `h`, run **sequentially** per owner direction of 2026-07-29, then a
+   **hard stop before `i`** for the N4 owner checkpoint. WP4.3j-a merged
    through
    PR #181 at `99dfee1`; it removed the five overpainted dark-mode
    `background-color` declarations on columns 1–4 and 15–17 — evidence:
@@ -1287,10 +1288,19 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 > executes. The bullets below remain as the original scope statement and the
 > prerequisite record; where they differ from Plan v2, Plan v2 wins.
 >
-> **Authorized sequence:** `a` → `c` → the approved deletion packets
-> (`b`, `d1`, `e`, `f1`, then `d2`, `f2`) → `g` → `h`. **The arc stops after
-> `h`** for the N4 owner checkpoint. Gate 1 authority does **not** extend to
-> `i`; `j` and `k` wait until `i` is approved, narrowed, or abandoned.
+> **Authorized sequence, as directed by the owner on 2026-07-29 — SEQUENTIAL,
+> one packet / worktree / writer / PR at a time:**
+>
+> ```
+> a ✔ → c ✔ → b ✔ → e → d1 → f1 → d2 → f2 → g → h → HARD STOP
+> ```
+>
+> **The arc stops after `h`** for the N4 owner checkpoint. Gate 1 authority does
+> **not** extend to `i`; `j` and `k` wait until `i` is approved, narrowed, or
+> abandoned. The serial order narrows Plan v2 §4 (which classifies `e`, `d1` and
+> `f1` as concurrency-eligible class (a)) rather than contradicting it; `f1` is
+> deliberately last among the pure-deletion packets because navbar layering,
+> global exposure and the animated-logo oracle make it the riskiest.
 >
 > **WP4.4-a is COMPLETE** — PR #187, squash `46e340e`, read-only, no production
 > CSS changed.
@@ -1302,10 +1312,17 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 > (plus an ancestry assertion, so a pin to an unreachable pre-squash commit
 > reds instead of dying on a fresh clone).
 >
-> The `c`-before-`b`/`d1`/`e`/`f1` prerequisite is therefore **discharged**.
-> Those four packets are now eligible, and Plan v2 §(a) authorizes them
-> concurrently: each owns exactly one file (`b` base, `d` a11y, `e` layout,
-> `f` navbar), never two writers on one file. None is started.
+> **WP4.4-b is COMPLETE** — PR #192, squash `3bec677`, merged 2026-07-29. Pure
+> deletion of four dead `base.css` rule blocks (−44 lines): `.skeleton`, beaten
+> by `motion.css` at equal specificity, and the three unreachable classes
+> `.loading-spinner`, `.fade-enter`, `.fade-enter-active`. All 12 `:root` custom
+> properties retained and contract-pinned under M9. Stylelint **−2**, no rule
+> increased; full pytest **2,204 / 1 skipped**; visual **65 / 1 ledgered red**.
+>
+> The `c`-before-`b`/`d1`/`e`/`f1` prerequisite is **discharged**, and `b` is
+> now **shipped**. **`e` (`layout.css`) is next**; `b` must not be re-dispatched.
+> Each packet still owns exactly one file — `d` a11y, `e` layout, `f` navbar —
+> never two writers on one file.
 >
 > **Method rule M6a is binding on every remaining packet** (Plan v2 §2b):
 > suppress transitions before applying, reading **and** removing a sentinel — a
@@ -1403,12 +1420,16 @@ decisions are silently outstanding; either resolve them or leave them explicitly
 > the detailed work-packet requirements above and wait for explicit owner
 > direction wherever the plan requires it.
 
-Snapshot: **2026-07-28**. **WP4.4-a is complete and merged** (PR #187, squash
-`46e340e`); it produced evidence and audit tooling, not a production CSS edit.
-**WP4.4-c is complete and merged** (PR #188, squash `1b13bfc`), the arc's first
-production CSS deletion. **No implementation packet is currently active.**
-`b`, `d1`, `e` and `f1` are eligible now that the `c`-first prerequisite is
-discharged, but none is started and each awaits explicit owner direction. The
+Snapshot: **2026-07-29**. **Three of eleven WP4.4 packets are merged.**
+**WP4.4-a** (PR #187, squash `46e340e`) produced evidence and audit tooling, not
+a production CSS edit. **WP4.4-c** (PR #188, squash `1b13bfc`) was the arc's
+first production CSS deletion. **WP4.4-b** (PR #192, squash `3bec677`) deleted
+four dead `base.css` rule blocks. **`b` is DONE and must not be re-dispatched.**
+
+The owner directed a **sequential** remaining order on 2026-07-29 — one packet,
+worktree, writer and PR at a time:
+`e` → `d1` → `f1` → `d2` → `f2` → `g` → `h` → **hard stop for the N4 owner
+checkpoint before `i`**. **WP4.4-e (`layout.css`) is the next action.** The
 continuous pyright burn-down is a standing track, not an active packet or
 branch.
 
@@ -1431,9 +1452,10 @@ branch.
 | Workout Log — cleanup beyond WP4.3j-d-hover-paint | **Not started / owner-gated** | Work is paused at the completed j-d boundary; retained regions and unverified declarations remain protected by the recorded contracts. | Further cleanup needs a newly scoped packet, explicit owner direction, and fresh cascade/visual measurement. A shared-selector change can alter page-local ownership, so prior deadness findings cannot be generalized. |
 | WP4.4-a — shared-surface baseline and cascade harness | **Done** | Merged via PR #187 (squash `46e340e`), read-only, no production CSS changed. Delivered the pinned baseline JSON, the committed harness under `scripts/css_audit/`, nine red-path-proven contracts, and `/fatigue` visual baselines on both platforms under N7. Harness self-checks 22/22; M4 resolution check 9,842 pairs / 0 inversions. | — |
 | WP4.4-c — `motion.css` dead success paint | **Done** | Merged via PR #188 (squash `1b13bfc`, 2026-07-28). Deleted the three cascade-dead `.is-success` paint declarations, retaining `success-pulse`; ownership resolved over `CSS.getMatchedStylesForNode` across 11 routes × 2 themes under both `prefers-reduced-motion` states, 0 motion-record differences. Also re-pinned the Packet-a baseline contract to its own `sourceCommit` and added the ancestry assertion. | — |
-| WP4.4 — shared bundles, navbar, and `theme-dark.css` (packets `b`–`h`) | **Ongoing — `b`/`d1`/`e`/`f1` eligible, none started** | Plan v2 is **Gate-1 approved** (owner, 2026-07-27, rulings N1–N10) in `docs/css_phase4_wp4_4/PLANNING.md`. `a` and `c` have both landed, so the `c`-first prerequisite is **discharged**. Remaining order: (`b`, `d1`, `e`, `f1`) → (`d2`, `f2`) → `g` → `h`. The four eligible packets are file-disjoint — `b` base, `d` a11y, `e` layout, `f` navbar — and Plan v2 §(a) authorizes them concurrently, one writer per file. | Not gated through `h`. The gates still bind: Regions A–C of Workout Log must be re-measured before any shared-selector repair; each packet carries the full visual, dark-mode, navigation, accessibility and summary-page gates; **M6a is binding**; and the ten inherited Linux `desktop` reds plus the eight uncertifiable Welcome elements are ledgered and must not be re-attributed or rebaselined. |
+| WP4.4-b — `base.css` four dead rule blocks | **Done** | Merged via PR #192 (squash `3bec677`, 2026-07-29). Pure deletion, −44 lines: the `.skeleton` block beaten by `motion.css` at equal specificity, plus the three unreachable classes `.loading-spinner`, `.fade-enter`, `.fade-enter-active`. All 12 `:root` custom properties retained and contract-pinned under M9. Packet contracts 8 passed; full pytest 2,204 / 1 skipped; five required specs 68 passed; visual 65 passed / 1 ledgered known red; Stylelint −2, no rule increased. | — |
+| WP4.4 — shared bundles, navbar, and `theme-dark.css` (packets `d`–`h`) | **Ongoing — `e` is next and authorized** | Plan v2 is **Gate-1 approved** (owner, 2026-07-27, rulings N1–N10) in `docs/css_phase4_wp4_4/PLANNING.md`. `a`, `c` and `b` have landed (3 of 11). The owner directed a **sequential** order on 2026-07-29: `e` → `d1` → `f1` → `d2` → `f2` → `g` → `h`, one packet/worktree/writer/PR at a time. Packets remain file-disjoint — `d` a11y, `e` layout, `f` navbar. The serial order narrows Plan v2 §4's concurrent class (a) authorization rather than contradicting it; `f1` is last among the pure-deletion packets as the riskiest. | Not gated through `h`. The gates still bind: Regions A–C of Workout Log must be re-measured before any shared-selector repair; each packet carries the full visual, dark-mode, navigation, accessibility and summary-page gates; **M6a is binding**; and the ten inherited Linux `desktop` reds plus the eight uncertifiable Welcome elements are ledgered and must not be re-attributed or rebaselined. |
 | WP4.4-i — shared `:is()` selector repair | **Gated — hard stop after `h`** | Nothing started. Ruling N4 requires a separate owner checkpoint immediately before `i`; ruling N9 restricts admissible repair shapes to CSS-local ones in `static/css/components.css`. | Gate 1 authority explicitly does **not** extend to `i`. Before any edit, `i`'s enumerated repair shape and both pre-change inventories (the complete `:is()` family from `g`/`h`, and the G3 regions A–C measurement) must be presented and approved. |
 | WP4.4 — packets `j` and `k` | **Blocked on `i`** | Nothing started. | They follow only after `i` is resolved — approved, narrowed, or abandoned per ruling N3. |
-| Superset dark tint and `layout.css` dead `body.dark-mode` | **Deferred to WP4.4** | The missing live dark override for `--superset-bg-1..4` and the dead selector at `static/css/layout.css:1120` are recorded but unchanged. | Both belong to shared-theme/layout ownership work and must not be changed in an unrelated page packet. |
+| Superset dark tint and `layout.css` dead `body.dark-mode` | **`body.dark-mode` now in scope for WP4.4-e as a candidate; superset tint still deferred** | The missing live dark override for `--superset-bg-1..4` remains recorded and unchanged. The selector at `static/css/layout.css:1120` enters WP4.4-e's audit as a **candidate only** — the "dead" label is an inherited assumption, not a current measurement. | The superset tint belongs to `theme-dark.css` ownership (packet `j`), still gated. `layout.css:1120` may be deleted only if re-proved under the current method: computed-owner evidence with all stylesheets loaded, a rest-state before/after differential, a same-CSS control, and M6a transition suppression around sentinel apply/read/remove. `dark-mode.spec.ts` alone is **not** proof of deadness (F4). If it proves live, it is retained and the historical assumption is corrected in the packet evidence. |
 | Continuous pyright baseline burn-down | **Ongoing — standing track only** | The track remains available for one file or one tightly coupled diagnostic family at a time; no active packet is identified by this snapshot. | It has no single phase-close packet. Each change must remain type-only, reduce the diagnostic multiset, and pass focused plus full pytest gates. |
 | Overall refactor plan | **Partially complete; WP4.4 in execution** | Track A and Phases -1 through 3 are complete; Track B is complete except WPB.4; Phase 4 is complete through the boundaries listed above, and the WP4.4 shared-bundle arc is now executing under Gate-1 authority. | The only authorized work is WP4.4 packets `a` through `h`. WPB.4 and the remaining Workout Plan / Workout Log page cleanup stay paused pending separate owner selection; WP4.4-i needs the N4 checkpoint. |
