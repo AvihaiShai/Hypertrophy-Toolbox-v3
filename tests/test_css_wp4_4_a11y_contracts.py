@@ -1,16 +1,22 @@
-"""WP4.4-d1 cascade contracts for `static/css/a11y.css`.
+"""WP4.4-d1 + d2 cascade contracts for `static/css/a11y.css`.
 
 d1 deleted a superseded generation of the scale / accessibility-menu UI. These
 contracts lock the premises that deletion rested on, and -- just as importantly
 -- lock the d1/d2 boundary and the accessibility guarantees d1 was required to
 preserve.
 
+d2 re-weighted exactly one annotation and RETAINED the other 50. Its contracts
+lock both halves of that result: the certified removal keeps its declaration,
+and the retentions -- especially the ones a reader would mistake for oversights
+-- keep their `!important`.
+
 Packet-owned. This file never edits, and must not be confused with, the shared
-`tests/test_css_cascade_contracts.py`, which d1 runs but does not touch
+`tests/test_css_cascade_contracts.py`, which d1 and d2 run but do not touch
 (Plan v2 section 4d -- only packet i may amend that file).
 
 Every assertion here has a demonstrated red path; see
-docs/CSS_PHASE4_WP4_4_D1_A11Y_EVIDENCE.md.
+docs/CSS_PHASE4_WP4_4_D1_A11Y_EVIDENCE.md and
+docs/CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md.
 """
 
 from __future__ import annotations
@@ -141,7 +147,12 @@ def test_live_compact_generation_is_still_rendered() -> None:
     """
     base = (TEMPLATES / "base.html").read_text(encoding="utf-8")
     for cls in LIVE_GENERATION:
-        assert cls in base, (
+        # Boundary-anchored, NOT `cls in base`. A plain substring check stays
+        # green when the class is renamed to `scale-control-compactXX`, because
+        # the original name is a prefix of the new one -- the red-path proof
+        # caught exactly that, and it is the same defect class as d1's
+        # `"*:focus-visible," in css`.
+        assert re.search(rf"{re.escape(cls)}(?![\w-])", base), (
             f"templates/base.html no longer renders .{cls}; the a11y.css rules "
             "d1 preserved for it would now be unreachable and must be re-audited"
         )
@@ -206,18 +217,140 @@ def test_mixed_selector_lists_kept_their_dead_branch() -> None:
     )
 
 
-def test_d1_removed_no_important_declaration() -> None:
-    """The d1/d2 boundary, expressed as a count.
+def test_important_count_is_exactly_the_d2_certified_result() -> None:
+    """The d1/d2 boundary and d2's own result, expressed as a count.
 
-    Every one of the 14 deleted rules contained zero `!important`, so d1
-    removed none. All 51 remain in retained rules. Re-weighting is d2's.
+    d1 was pure deletion: every one of its 14 deleted rules contained zero
+    `!important`, so all 51 survived it. d2 re-weighted **one** of them --
+    `.is-invalid { box-shadow }` -- after certifying that the declaration
+    remains the effective owner in every state it is intended to own, so the
+    file now carries 50.
 
-    Red path: deleting any `!important` declaration from a retained rule, or
-    deleting a retained rule that carries one, fails this test.
+    The number is deliberately exact in both directions. Dropping to 49 means
+    an annotation was de-weighted without certification; rising to 51 means
+    d2's single certified removal was reverted or a new annotation was added.
+
+    Red path: removing `!important` from any other declaration gives 49 and
+    fails; restoring it on `.is-invalid { box-shadow }` gives 51 and fails.
     """
-    assert _strip_comments(_css()).count("!important") == 51, (
-        "a11y.css !important count moved. d1 is pure deletion and must not "
-        "re-weight: dropping !important from a retained declaration belongs to d2."
+    assert _strip_comments(_css()).count("!important") == 50, (
+        "a11y.css !important count moved off d2's certified result of 50 "
+        "(d1 left 51; d2 removed exactly one, on `.is-invalid { box-shadow }`)."
+    )
+
+
+def _rule_body(selector: str) -> str:
+    """The declaration block of the first rule whose selector list matches."""
+    css = _strip_comments(_css())
+    m = re.search(
+        rf"(?:^|}})\s*{re.escape(selector)}\s*\{{(.*?)\}}",
+        css,
+        flags=re.S | re.M,
+    )
+    assert m, f"a11y.css no longer contains a rule for `{selector}`"
+    return m.group(1)
+
+
+def test_d2_certified_removal_kept_its_declaration() -> None:
+    """Re-weighting is not deletion.
+
+    d2 removed the `!important` token from `.is-invalid { box-shadow }`. The
+    declaration itself, and its exact value, must survive unchanged -- a
+    re-weighting packet that deletes the declaration has changed rendering,
+    not cascade weight.
+
+    Red path: deleting the box-shadow declaration, or altering its value,
+    fails this test.
+    """
+    body = _rule_body(".is-invalid")
+    m = re.search(r"box-shadow\s*:([^;]*);", body)
+    assert m, ".is-invalid lost its box-shadow declaration; d2 re-weights, it does not delete"
+    value = m.group(1).strip()
+    assert value == "0 0 0 0.2rem rgba(220, 53, 69, 0.25)", (
+        f".is-invalid box-shadow value changed to `{value}`; d2 may only remove "
+        "the !important token, never touch the value"
+    )
+    assert "!important" not in m.group(0), (
+        ".is-invalid box-shadow regained !important; this is d2's one certified removal"
+    )
+
+
+def test_the_asymmetric_sibling_kept_its_important() -> None:
+    """`.is-invalid` carries two annotations and only one was certified.
+
+    Bootstrap declares `border-color` on `.is-invalid` **at rest**
+    (`.form-control.is-invalid`), but declares `box-shadow` only in its
+    `:focus` variants. So de-weighting `border-color` changes the computed
+    value and de-weighting `box-shadow` does not. That asymmetry inside a
+    single rule is the reason d2 shipped one of the two, and it is exactly the
+    kind of thing a later tidy-up would "even out" without measuring.
+
+    Red path: removing `!important` from the border-color line fails.
+    """
+    body = _rule_body(".is-invalid")
+    m = re.search(r"border-color\s*:[^;]*;", body)
+    assert m, ".is-invalid lost its border-color declaration"
+    assert "!important" in m.group(0), (
+        ".is-invalid border-color lost its !important. It is NOT interchangeable "
+        "with the box-shadow sibling d2 de-weighted: Bootstrap competes for "
+        "border-color at rest, and de-weighting this one changes the computed value."
+    )
+
+
+# Selectors whose `!important` d2 measured and deliberately did NOT remove.
+# Each is a live or uncertified owner; none may be de-weighted without its own
+# certification run.
+RETAINED_ANNOTATIONS = (
+    # certification attempted and FAILED: with .has-validation-error also on an
+    # ancestor, de-weighting hands the owner to pages-workout-plan.css:4449,
+    # which declares the same colour at the same specificity without !important.
+    ".selection-field.has-validation-error label",
+    # dark twin: de-weighting it loses ownership outright.
+    '[data-theme="dark"] .selection-field.has-validation-error label',
+    # the focus half of the validation pair -- protected focus system.
+    ".is-invalid:focus",
+)
+
+
+@pytest.mark.parametrize("selector", RETAINED_ANNOTATIONS)
+def test_measured_retentions_keep_their_important(selector: str) -> None:
+    """Retentions that a reader would plausibly mistake for oversights.
+
+    Red path: removing `!important` from any of these fails this test.
+    """
+    body = _rule_body(selector)
+    assert "!important" in body, (
+        f"`{selector}` lost its !important. d2 measured this annotation and "
+        "retained it deliberately; see docs/CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md."
+    )
+
+
+def test_chromium_invisible_annotations_were_not_removed() -> None:
+    """12 annotations never reach Chromium; that is not evidence about them.
+
+    Eight sit inside `@-moz-document url-prefix()`, which Chromium never
+    parses, and four are `-moz-box-shadow`, which its declaration parser drops.
+    A Chromium-only oracle cannot see them, so it cannot certify them, and
+    "the harness reported nothing" must never be read as "safe to remove".
+
+    Red path: de-weighting any declaration inside the `@-moz-document` block,
+    or any `-moz-box-shadow`, fails this test.
+    """
+    css = _strip_comments(_css())
+    moz = re.search(r"@-moz-document url-prefix\(\)\s*\{(.*?\n\})\s*\n", css, flags=re.S)
+    assert moz, "a11y.css lost its @-moz-document block"
+    assert moz.group(1).count("!important") == 8, (
+        "the @-moz-document block no longer carries 8 !important declarations; "
+        "Chromium cannot see this block, so d2's oracle can never certify it"
+    )
+    # Count the ANNOTATED declarations, not the property name. Counting
+    # `-moz-box-shadow` alone stays green when one is de-weighted, since the
+    # property is still there -- the red-path proof caught exactly that.
+    annotated = re.findall(r"-moz-box-shadow\s*:[^;]*!\s*important\s*;", css)
+    assert len(annotated) == 4, (
+        f"a11y.css carries {len(annotated)} annotated -moz-box-shadow "
+        "declarations, expected 4. Chromium drops this property at parse time, "
+        "so d2's oracle cannot see these -- unmeasurable is not dead."
     )
 
 

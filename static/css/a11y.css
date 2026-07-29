@@ -499,7 +499,12 @@ html[data-scale="5"] *:focus-visible {
 /* Invalid field styling */
 .is-invalid {
     border-color: var(--danger-color, #dc3545) !important;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    /* WP4.4-d2: de-weighted. This rule stayed the effective owner of
+       box-shadow in every measured state, so the annotation changed nothing.
+       The sibling border-color above is NOT de-weighted -- de-weighting it
+       does change the computed value. Evidence:
+       docs/CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md */
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
 .is-invalid:focus {
@@ -690,6 +695,15 @@ html[data-scale="5"] *:focus-visible {
 
 /* Label highlight for invalid required fields */
 .selection-field.has-validation-error label {
+    /* WP4.4-d2: RETAINED. Certification was attempted and FAILED. When an
+       ancestor also carries .has-validation-error, a label matches both this
+       rule and pages-workout-plan.css:4449
+       `.cascade-dropdown-wrapper.has-validation-error label`, which declares
+       the same #dc3545 at the SAME (0,2,1) specificity, is likewise unlayered,
+       and loads after a11y.css. De-weighting here therefore loses the
+       source-order tie and hands the declaration owner to that rule --
+       identical computed value, different owner, which does not meet the
+       packet's bar. See docs/CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md. */
     color: #dc3545 !important;
 }
 
