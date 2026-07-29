@@ -260,9 +260,6 @@ body:not(:has(#navbar)) .navbar,
 /* ============================================================
    MOBILE FIRST - Base (< 576px)
    ============================================================ */
-.form-container {
-    flex-direction: column;
-}
 
 .uniform-dropdown {
     width: 100%;
@@ -283,10 +280,6 @@ body:not(:has(#navbar)) .navbar,
    MEDIUM DEVICES - Tablets Landscape (768px - 991px)
    ============================================================ */
 @media screen and (min-width: 768px) {
-    .form-container {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
     
     .uniform-dropdown {
         width: auto;
@@ -325,9 +318,6 @@ body:not(:has(#navbar)) .navbar,
         max-width: 480px;
     }
     
-    .form-container {
-        gap: var(--space-md, 0.875rem);
-    }
 }
 
 /* ============================================================
@@ -389,14 +379,7 @@ body:not(:has(#navbar)) .navbar,
         font-size: 0.7rem;
     }
     
-    .form-container {
-        gap: 0.25rem;
-    }
     
-    .input-frame .row {
-        gap: 0.25rem;
-        padding: 0.25rem;
-    }
     
     h1 { font-size: 1.1rem; }
     h2 { font-size: 0.95rem; }
@@ -477,14 +460,7 @@ body:not(:has(#navbar)) .navbar,
         font-size: 0.72rem;
     }
     
-    .form-container {
-        gap: 0.3rem;
-    }
     
-    .input-frame .row {
-        gap: 0.3rem;
-        padding: 0.3rem;
-    }
     
     h1 { font-size: 1.15rem; }
     h2 { font-size: 1rem; }
@@ -565,14 +541,7 @@ body:not(:has(#navbar)) .navbar,
         font-size: 0.75rem;
     }
     
-    .form-container {
-        gap: 0.325rem;
-    }
     
-    .input-frame .row {
-        gap: 0.325rem;
-        padding: 0.325rem;
-    }
     
     h1 { font-size: 1.2rem; }
     h2 { font-size: 1.05rem; }
@@ -653,14 +622,7 @@ body:not(:has(#navbar)) .navbar,
         font-size: 0.78rem;
     }
     
-    .form-container {
-        gap: 0.35rem;
-    }
     
-    .input-frame .row {
-        gap: 0.35rem;
-        padding: 0.35rem;
-    }
     
     h1 { font-size: 1.25rem; }
     h2 { font-size: 1.1rem; }
@@ -741,14 +703,7 @@ body:not(:has(#navbar)) .navbar,
         font-size: 0.8rem;
     }
     
-    .form-container {
-        gap: 0.375rem;
-    }
     
-    .input-frame .row {
-        gap: 0.375rem;
-        padding: 0.375rem;
-    }
     
     h1 { font-size: 1.375rem; }
     h2 { font-size: 1.125rem; }
@@ -903,14 +858,7 @@ body:not(:has(#navbar)) .navbar,
         --bs-gutter-y: 0 !important;
     }
     
-    .form-container {
-        gap: 0.75rem;
-    }
     
-    .input-frame .row {
-        gap: 0.75rem;
-        padding: 0.75rem;
-    }
 }
 
 /* ============================================================
@@ -1116,16 +1064,6 @@ body:not(:has(#navbar)) .navbar,
   --tbl-sticky-shadow-header: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Dark mode class fallback (if data-theme not used) */
-body.dark-mode {
-  --tbl-border-color: #374151;
-  --tbl-header-bg: #1f2937;
-  --tbl-header-color: #f9fafb;
-  --tbl-row-hover-bg: #374151;
-  --tbl-stripe-bg: #1f2937;
-  --tbl-sticky-shadow: 2px 0 4px rgba(0, 0, 0, 0.3);
-  --tbl-sticky-shadow-header: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
 
 /* ============================================================
    TABLE WRAPPER & CONTAINER
@@ -1265,26 +1203,6 @@ body.dark-mode {
   font-variant-numeric: tabular-nums;
 }
 
-/* Ellipsis for long content */
-.el-clip,
-.col--ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 20ch;
-}
-
-/* Wrap long text */
-.col--wrap {
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-/* No wrap */
-.col--nowrap {
-  white-space: nowrap;
-}
 
 /* ============================================================
    COLUMN PRIORITY CLASSES
@@ -1505,21 +1423,6 @@ body.dark-mode {
   z-index: 20;
 }
 
-.tbl-col-chooser-trigger {
-  padding: 0.5rem 0.875rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px solid var(--tbl-border-color);
-  border-radius: 0.375rem;
-  background-color: var(--bs-body-bg, #ffffff);
-  color: var(--bs-body-color, #212529);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
 
 @media (max-width: 768px) {
   .tbl-controls {
@@ -1527,83 +1430,8 @@ body.dark-mode {
   }
 }
 
-.tbl-col-chooser-trigger:hover {
-  background-color: var(--tbl-row-hover-bg);
-  border-color: var(--bs-primary, #0d6efd);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.tbl-col-chooser-trigger:focus {
-  outline: 2px solid var(--bs-primary, #0d6efd);
-  outline-offset: 2px;
-}
-
-.tbl-col-chooser {
-  position: relative;
-  display: inline-block;
-  z-index: 20;
-}
-
-.tbl-col-chooser-trigger {
-  position: relative;
-}
-
-.tbl-col-chooser-menu {
-  position: fixed;
-  top: auto;
-  left: auto;
-  max-width: 280px;
-  min-width: 200px;
-  max-height: 400px;
-  overflow-y: auto;
-  background-color: var(--bs-body-bg, #ffffff);
-  border: 1px solid var(--tbl-border-color);
-  border-radius: 0.375rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100000;
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-  will-change: transform;
-  padding: 0.5rem;
-  transition: opacity 0.15s ease-out, visibility 0s linear 0.15s;
-}
-
-.tbl-col-chooser-menu.active {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 0.15s ease-out, visibility 0s linear 0s;
-}
 
 /* Ensure menu doesn't overflow viewport on the right */
-@media (max-width: 640px) {
-  .tbl-col-chooser-menu {
-    position: fixed;
-    top: auto;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 20px;
-    max-width: calc(100vw - 2rem);
-  }
-}
-
-.tbl-col-chooser-menu label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.5rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tbl-col-chooser-menu input[type="checkbox"] {
-  cursor: pointer;
-}
-
 /* ============================================================
    VIEW MODE TOGGLE (Simple/Advanced) - Glass Style
    ============================================================ */
@@ -1691,15 +1519,6 @@ body.dark-mode {
    STICKY FILTERS/TOOLBAR (if present)
    ============================================================ */
 
-.tbl-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: calc(var(--tbl-z-header) + 1);
-  background-color: var(--bs-body-bg, #ffffff);
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--tbl-border-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
 
 /* ============================================================
    ACCESSIBILITY ENHANCEMENTS
@@ -1714,18 +1533,6 @@ body.dark-mode {
   outline-offset: -2px;
 }
 
-/* Screen reader only content */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
 
 /* ============================================================
    PRINT STYLES
@@ -1767,31 +1574,6 @@ body.dark-mode {
    LOADING STATE
    ============================================================ */
 
-.tbl--loading {
-  opacity: 0.6;
-  pointer-events: none;
-  position: relative;
-}
-
-.tbl--loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid var(--tbl-border-color);
-  border-top-color: var(--bs-primary, #0d6efd);
-  border-radius: 50%;
-  animation: tbl-spin 0.8s linear infinite;
-}
-
-@keyframes tbl-spin {
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
 
 /* ============================================================
    RESPONSIVE BREAKPOINT HELPERS
