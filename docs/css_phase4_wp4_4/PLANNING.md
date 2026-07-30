@@ -7,13 +7,63 @@
 **Base:** `main` @ `f4f9ee6` (clean).
 **Execution order authorized at Gate 1:** `a` → `c` → the approved deletion packets → **hard stop before `i`** for the N4 implementation-time checkpoint.
 
+---
+
+### ■ EXECUTION STATUS (2026-07-31) — the arc is AT the N4 hard stop. No packet is next.
+
+**Gate 1 authority is exhausted.** All ten packets it authorized are merged; the
+eleventh (`i`) is owner-gated by N4 and **has not been approved**.
+
+| Packet | PR | Squash |
+|---|---|---|
+| `a` | #187 | `46e340e` |
+| `c` | #188 | `1b13bfc` |
+| `b` | #192 | `3bec677` |
+| `e` | #195 | `1346a35` |
+| `d1` | #197 | `59e5b10` |
+| `f1` | #199 | `1127486` |
+| `d2` | #201 | `0a912d9` |
+| `f2` | #205 | `6a5465c` |
+| **`g`** | **#207** | **`4b7ca58`** |
+| **`g` terminology correction** | **#209** | **`a895cb0`** |
+| **`h`** | **#208** | **`b2b1cb7`** |
+
+```
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → ■ N4 HARD STOP
+```
+
+**`h` shipped:** 101 declarations, 138 lines, 20 `!important` declarations, 87 cuts and 11
+whole rules deleted from `components.css`. It withheld 235 behind the Packet-a layer-span
+pin, 18 `.btn.btn-video`, 2 removal-oracle withdrawals and 6 `.value-changed`. The
+**`:is()` family: zero eligible, zero touched.** Region H unchanged.
+
+**Both N4 pre-change inventories are prepared and merged:**
+[Inventory A — the complete `:is()` family](../CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md) ·
+[Inventory B — G3 Workout Log regions A–C](../CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md).
+**The owner approval N4 requires has not been given.** Do not start, branch or edit `i`,
+`j` or `k`.
+
+**Binding lesson from g + h:** a zero-winner ownership result is **not** a removal verdict;
+an inline-`!important` sentinel proves reachability and probe integrity only; **only a
+removal oracle grants deletion authority.** g nominated 342 zero-winners and h's removal
+oracle proved 35 of them live on removal (336 entered certification: 35 removal-live / 180
+`deadCertified` / 121 unmatched; D384–D389 never entered).
+
+**Separate open owner decision, NOT part of N4:** whether to re-pin the Packet-a
+`@layer workout` span (`openLine 3539 / closeLine 4104`) to recover h's 235 withheld
+declarations.
+
+---
+
 ### ⚠️ Measured corrections from Packet a (binding — supersede the projections below)
 
 Packet **a** shipped 2026-07-27 (PR #187, squash `46e340e`) and replaced several figures this document projected. Where they differ, **the measurement wins**; the authority is [`docs/CSS_PHASE4_WP4_4_A_BASELINE.json`](../CSS_PHASE4_WP4_4_A_BASELINE.json) and the narrative is [`docs/CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](../CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md). These are factual/method corrections; **they do not reopen Gate 1 and do not expand production scope.**
 
 | # | Was | Is | Consequence |
 |---|---|---|---|
-| C1 | `:is()` family specificity `(1,3,1)`/`(1,3,2)` (G1) | **(1,3,0) – (1,5,3)** | Packet **i** may **not** assume a uniform family specificity. 19 `:is(` tokens = **17 rules** (two rules span two selector lines). |
+| C1 | `:is()` family specificity `(1,3,1)`/`(1,3,2)` (G1) | **(1,2,0) – (1,5,3)** — see C1a | Packet **i** may **not** assume a uniform family specificity. 19 `:is(` tokens = **17 rules** (two rules span two selector lines). |
+| C1a | C1 as first written: **(1,3,0) – (1,5,3)** | **(1,2,0) – (1,5,3)** | C1 gave the range of per-*rule* maxima. Measured per **selector line**, the floor is `components.css:3335` `:is(…) :where(.table).table-calm` at **(1,2,0)** — `:where()` contributes zero, so that arm is one class lighter than its `:3336` twin at (1,3,0). It is the family's lowest-weight arm and therefore the one a page-local `(0,2,x)` rule comes closest to reaching. Source: [Inventory A §2.1](../CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md). |
+| C9 | The reduced-motion `:is()` rule is at `components.css:4433`, inside `@media` opened at `:4417` | **`:4413`, inside `@media` opened at `:4397`; the rule opens at `:4398`** | WP4.4-h deleted 138 lines, **20 of them before pristine 4417**, so every identity in that block shifts by −20. Cites of "`:4433`" now name a line that does not exist. The twelve four-branch rules at `:3335`–`:3411` are before h's legal window (4105–5345) and did **not** move. |
 | C2 | Visual matrix = **60** tests (10 pages) | **66** tests (11 pages), per platform | Every downstream "full 60-test matrix" gate now means **66**. `.claude/rules/testing.md:87` corrected 48 → 66. |
 | C3 | `error.html` is "painted 100% by shared bundles" as a rendered route (F5/PR#2) | **Not reachable by a 404 at all.** `app.py:194` returns a hard-coded inline document with **no stylesheet link**; `error.html` renders only when a route handler catches an exception | No packet may treat a bad URL as exercising `error.html`. It has no pixel coverage and is not a shared-bundle canary. |
 | C4 | seven-surface Stylelint **2,681**; `components.css` **1,787** | **2,883**; `components.css` **1,989** | V5 line-contribution projections leaning on the old figure are optimistic. |
@@ -33,7 +83,7 @@ Four branches produce five routes because the single branch `.summary-frame.fram
 
 **Corrected by the council (architecture-reviewer A10, test-strategist F8) — the binding triple is `six specs / five routes / four selector branches`:**
 
-- The shared family is **twelve four-branch rules** (`components.css:3335`, `:3351`, `:3360`, `:3368`, `:3377`, `:3381`, `:3386`, `:3390`, `:3395`, `:3400`, `:3405`, `:3409` — note the rule opened at `:3335` has a second selector line at `:3336`) **plus one *three-branch* rule at `:4433`**, which omits `.summary-frame.frame-calm-glass` and sits inside `@media (prefers-reduced-motion: reduce)` opened at `:4417`. Reduced-motion transition suppression is therefore **not** currently applied to Weekly/Session Summary tables. That is a **pre-existing behavioural asymmetry, not a typo to fix in passing**; normalizing it would be a visible/behavioural change on two routes under reduced motion and requires separate owner approval.
+- The shared family is **twelve four-branch rules** (`components.css:3335`, `:3351`, `:3360`, `:3368`, `:3377`, `:3381`, `:3386`, `:3390`, `:3395`, `:3400`, `:3405`, `:3409` — note the rule opened at `:3335` has a second selector line at `:3336`, which is a **first-class member of the enumeration**, not a footnote: at (1,3,0) versus `:3335`'s (1,2,0) the two arms carry *different* weights) **plus one *three-branch* rule at `:4433` → post-`h` `:4413`** (rule opens `:4398`), which omits `.summary-frame.frame-calm-glass` and sits inside `@media (prefers-reduced-motion: reduce)` opened at `:4417` **→ post-`h` `:4397`** (see C9). Reduced-motion transition suppression is therefore **not** currently applied to Weekly/Session Summary tables. That is a **pre-existing behavioural asymmetry, not a typo to fix in passing**; normalizing it would be a visible/behavioural change on two routes under reduced motion and requires separate owner approval.
 - `components.css` contains **19** `:is(` occurrences in total (verified by grep). "The complete `:is()` family" means the thirteen rules above; the remainder — including the second ID-exporting construct `input.input-calm-inset:is(#weight, #sets, …)` at `:3635`, `:3655`, `:3678`, `:3749`, `:3750`, which is already nested under `#workout[data-page="workout-plan"]` and therefore not a cross-route leak — is enumerated and classified by WP4.4-a so R3 condition 1 has a defensible closure argument.
 - **Five affected routes are covered by six spec files**, not five: `workout-plan.spec.ts`, `exercise-interactions.spec.ts`, `superset-edge-cases.spec.ts`, `workout-log.spec.ts`, `summary-pages.spec.ts` (Weekly **and** Session), `progression.spec.ts`.
 
@@ -329,7 +379,7 @@ Every packet's evidence doc must restate and satisfy these. They are not prose; 
 
 | # | Constraint | Source |
 |---|---|---|
-| G1 | The shared `components.css` `:is()` selector exports **ID-level specificity** — `(1,3,1)`/`(1,3,2)` + `!important` — from its ID-bearing branch to **all four branches**, reaching **five affected routes**. `static/css/components.css:3335-3413`, plus `:4433`. | `CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md` |
+| G1 | The shared `components.css` `:is()` selector exports **ID-level specificity** — `(1,3,1)`/`(1,3,2)` + `!important` — from its ID-bearing branch to **all four branches**, reaching **five affected routes**. `static/css/components.css:3335-3413`, plus `:4433`. **Corrected by C1/C1a/C9:** the per-selector-line range is **(1,2,0)–(1,5,3)**, the family spans `:3335`–`:3411` (unmoved by `h`), and the reduced-motion rule is now `:4413` (rule opens `:4398`). The claim itself — every branch inherits `a = 1` — is unchanged. Full enumeration: [Inventory A](../CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md). | `CSS_PHASE4_WP4_3J_C_AUDIT_EVIDENCE.md` |
 | G2 | The **deletion prerequisite is discharged**: WP4.3j-c-dead deleted the 37 dead rules (regions D–G) and WP4.3j-d removed the four dead hover-paint declarations, so a shared-selector repair can no longer resurrect them. | REFACTOR_PLAN §WP4.4; `..._J_C_DEAD_...`, `..._J_D_HOVER_PAINT_...` |
 | G3 | **Workout Log regions A, B and C remain page-local and ID-free.** Any packet that changes shared selector ownership MUST re-measure A–C **before and after**. This is a hard gate on packet **WP4.4-i**, not advice. | REFACTOR_PLAN §WP4.4 bullet 1 |
 | G4 | The **superset dark-tint gap** (`--superset-bg-1..4`, defined `pages-workout-plan.css:3424-3427`, consumed `:3553-3568`, no live dark override) belongs to WP4.4 but is **DEFERRED unacted** by R2. Record it; change nothing. | REFACTOR_PLAN next-state 6; R2 |
@@ -521,7 +571,7 @@ Applied to **every** packet. A packet that cannot satisfy all six is rejected, n
 |---|---|
 | **Production paths owned** | `static/css/components.css` (**exclusive, single-writer, sequential**) |
 | **Test/evidence paths owned** | `docs/CSS_PHASE4_WP4_4_I_IS_REPAIR_EVIDENCE.md`; extends `tests/test_css_wp4_4_components_contracts.py` |
-| **Selectors / declaration families in scope** | the complete `:is()` family established by R3 condition 1 — at minimum `components.css:3335`, `:3351`, `:3360`, `:3368`, `:3377`, `:3381`, `:3386`, `:3390`, `:3395`, `:3400`, `:3405`, `:3409`, `:4433`. Four selector branches; five affected routes |
+| **Selectors / declaration families in scope** | the complete `:is()` family established by R3 condition 1, **now fully enumerated at current-`main` identity in [Inventory A](../CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md)** — the twelve four-branch rules at `components.css:3335` (**two selector lines, `:3335` + `:3336`**), `:3351`, `:3360`, `:3368`, `:3377`, `:3381`, `:3386`, `:3390`, `:3395`, `:3400`, `:3405`, `:3409` — 38 declarations, four selector branches, five affected routes — **plus** the three-branch reduced-motion rule at `:4398`–`:4415` whose `:is()` line is **`:4413`** (was `:4433` pre-`h`; C9), 1 declaration, three branches, three routes. The five remaining `:is(` tokens (`:3635`, `:3655`, `:3678`, `:3749`, `:3750`) are **out of scope** — already ID-scoped under `#workout` and inside `@layer workout`, which N2 freezes |
 | **Explicit exclusions** | any page bundle. **Per R3 condition 8, a required page-bundle edit is named and escalated as separately owner-gated — never absorbed.** Region H (G9); the ten frozen interaction-state declarations (G6); the WP4.3i-c Page Header contract (G7); layer membership (G10) |
 | **Dependency / merge order** | after **h** (same-file serialization) and after every other implementation packet has merged. **Second-to-last implementation packet** |
 | **Concurrency** | **(c) sequential, cascade-coupled** — by construction. No packet may run concurrently with it, because it re-decides ownership on five routes at once |

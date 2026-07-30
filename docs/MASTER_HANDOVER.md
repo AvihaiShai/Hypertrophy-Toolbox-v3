@@ -13,8 +13,9 @@
 > 3.14.6 environment. This tooling/runtime-policy change does not alter the
 > WP4.4 packet ordering or next-safe-step below.
 >
-> **2026-07-30 (LATEST) — WP4.4 is EXECUTING. Gate 1 is approved (rulings
-> N1–N10). EIGHT of eleven packets are merged:**
+> **2026-07-31 (LATEST) — WP4.4 has REACHED THE N4 HARD STOP. TEN of eleven
+> packets are merged. NO PACKET IS NEXT.** Gate 1 (rulings N1–N10) is fully
+> discharged: every packet it authorized has shipped.
 >
 > | Packet | PR | Squash | Nature |
 > |---|---|---|---|
@@ -26,18 +27,92 @@
 > | **f1** `navbar.css` unreachable legacy fallback | #199 | `1127486` | pure deletion, −6 lines, 0 insertions |
 > | **d2** `a11y.css` `!important` re-weighting | #201 | `0a912d9` | 1 annotation de-weighted; 50 retained |
 > | **f2** `navbar.css` generation consolidation | #205 | `6a5465c` | 3 exact duplicate rules folded; layer/importance frozen |
+> | **g** `components.css` read-only cascade audit | #207 | `4b7ca58` | read-only; 342 zero-winner nominations, 0 deletions |
+> | **g-correction** zero-winner terminology | #209 | `a895cb0` | documentation only, 1 file |
+> | **h** `components.css` certified dead declarations | #208 | `b2b1cb7` | 101 declarations deleted, −138 lines |
 >
-> **Owner-directed execution order (2026-07-29) — the arc runs SEQUENTIALLY,
-> one packet, worktree, writer and PR at a time:**
+> **Owner-directed execution order (2026-07-29) — now fully consumed:**
 >
 > ```
-> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g → h → HARD STOP (N4)
+> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → ■ N4 HARD STOP
 > ```
 >
-> **`g` is next.** `a`, `c`, `b`, `e`, `d1`, `f1`, `d2` and `f2` are DONE
-> and must not be re-dispatched. Packet `g` is the read-only `components.css`
-> cascade audit; it owns no production path and nominates but authorizes no
-> deletion. Gate 1 authority does not extend to `i`, `j` or `k`.
+> **NO PACKET IS NEXT.** The arc stops here by ruling **N4**. **Gate 1 authority
+> does not extend to `i`, `j` or `k`** — none of them may be started, branched,
+> worktree'd or edited without a fresh owner decision. All ten merged packets are
+> DONE and must not be re-dispatched.
+>
+> ### OPEN BLOCKER — the N4 owner checkpoint
+>
+> N4 requires that, before any WP4.4-i edit, i's **enumerated repair shape** and
+> **both pre-change inventories** are presented and approved. Both inventories are
+> now prepared and merged; **the approval has not been given.**
+>
+> | N4 deliverable | State |
+> |---|---|
+> | Inventory A — the complete `:is()` family | ✔ [`CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md`](CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md) |
+> | Inventory B — G3 Workout Log regions A–C | ✔ [`CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md`](CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md) |
+> | Enumerated repair shape | ✔ presented (N9 admits two CSS-local shapes) |
+> | **Owner approval** | **✘ NOT GIVEN — this is the blocker** |
+>
+> Per **N3**, i may still end in abandonment, and that outcome is pre-authorized
+> as an acceptable arc result, not a failure.
+>
+> **A separate, independent owner decision is outstanding: the Packet-a layer-span
+> pin.** WP4.4-h withheld **235** measured-dead declarations because deleting them
+> would move `components.css`'s `@layer workout` span (`openLine 3539 /
+> closeLine 4104`) and red a contract outside h's write set. Recovering them
+> requires re-pinning that span. **That decision is not part of N4 and must not be
+> bundled into it.**
+>
+> ### The binding lesson from g + h
+>
+> **A zero-winner ownership result is not a removal verdict.** An
+> inline-`!important` sentinel proves only that a selector reaches an element and
+> that the probe restores cleanly. **Only a removal oracle grants deletion
+> authority.** WP4.4-g's census nominated 342 zero-winners; WP4.4-h's removal
+> oracle proved **35 of them are live on removal**. Of the 336 that entered the
+> 264-context certification run, the split was **35 removal-live / 180
+> `deadCertified` / 121 unmatched**; the remaining six (D384–D389) never entered
+> it. Any future packet that reads "won zero longhands" as "safe to delete" is
+> repeating an error this arc has already measured.
+>
+> **WP4.4-h outcome — 101 of 388 measured-dead declarations deleted, and the gap
+> is the point.** Shipped: **101 declarations**, **138 lines**, **20 `!important`
+> declarations**, **87 cuts**, **11 whole rules** deleted from `components.css`.
+> `components.css` SHA-256 after:
+> `883e6aa85564c42b36ca801529081b279f119e5c99a539dc235bc84d72107964`.
+>
+> **What h withheld, and why each exclusion is pinned as a count rather than as
+> prose:**
+>
+> | Withheld | Declarations | Reason |
+> |---|---:|---|
+> | Packet-a layer-span pin | **235** | dead by measurement, but the only legal deletion window is lines 4105–5345; deleting earlier moves the frozen `@layer workout` span. **Separate owner decision.** |
+> | `.btn.btn-video` family | **18** | no differential blast coverage — appears only in the seeded DOM, so removal cannot be structurally certified |
+> | Removal-oracle withdrawals | **2** | 1 proved live, 1 never probed |
+> | `.value-changed` | **6** | reachable only through a JavaScript-applied class (M10 / PR#3) |
+> | `:is()` family | **0** | **none eligible and none touched** — the whole family belongs to i, owner-gated under N4 |
+> | Custom properties / pseudo-state / pseudo-element / keyframe steps | 0 each | never eligible (M9, M12) |
+>
+> **Region H is unchanged.** It is locked byte-for-byte by `REGION_H_SHA256`
+> (`tests/test_css_cascade_contracts.py:43`) and lives in
+> `pages-workout-log.css`; h wrote one production file, `components.css`, so G9
+> holds by construction as well as by rule. Note that G9/Region H is a **different
+> lock from G3/regions A–C** — h's Region H finding does not discharge G3, which
+> is why Inventory B exists.
+>
+> Evidence:
+> [`CSS_PHASE4_WP4_4_H_COMPONENTS_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_4_H_COMPONENTS_DEAD_EVIDENCE.md)
+> and
+> [`CSS_PHASE4_WP4_4_G_COMPONENTS_AUDIT_EVIDENCE.md`](CSS_PHASE4_WP4_4_G_COMPONENTS_AUDIT_EVIDENCE.md)
+> (terminology-corrected).
+>
+> > **Superseded 2026-07-31.** This block previously read *"EIGHT of eleven
+> > packets are merged"* and *"`g` is next."* Both were correct on 2026-07-30 and
+> > are stale now that `g` (#207), the g terminology correction (#209) and `h`
+> > (#208) have all merged. **Every statement anywhere in this file that names a
+> > next packet for WP4.4 is superseded: no packet is next.**
 >
 > **WP4.4-f2 outcome — consolidation stopped at the ownership bar.** Three
 > exact duplicate source rules were folded into their existing generation
@@ -1249,23 +1324,38 @@
 - **None blocking.** Working tree clean except for `data/database.db` runtime dirt (owner-approved kept dirty; do not commit). Local `main` is fully up to date with `origin/main` (0 commits ahead) after the 2026-05-29 push of `df9b6f9` + `f2cdc23` + handover sync. Body Composition Issue #21 fully closed (PR #31 + PR #32 + 2026-05-23 Profile hooks). Worktree disposition (former LEFTOVERS row #14) closed 2026-05-23 by inspection + branch cleanup (`21859a1`) — both old worktree paths were already absent from disk and the stale branch refs (`test/visual-baseline-thumbnails` local + remote, `redesign/calm-glass-2026` remote) deleted.
 
 ## Blockers
-- None.
+
+- **WP4.4 — the N4 owner checkpoint is OPEN and blocks the whole arc.** Ten of
+  eleven packets are merged and Gate 1 authority is exhausted. `i`, `j` and `k`
+  require a fresh owner decision. Both N4 pre-change inventories are prepared and
+  merged; the approval is not given. See the LATEST block at the top of this file.
+- **WP4.4 — the Packet-a layer-span pin is a separate open owner decision.**
+  235 measured-dead `components.css` declarations are withheld behind it. Not part
+  of N4; do not bundle the two.
 
 ## Next Safe Step
 
-**Current (2026-07-30, latest):** WP4.4 packets `a`, `c`, `b`, `e`, `d1`, `f1`,
-`d2` and `f2` are merged — **8 of 11**. Navbar consolidation is finished.
-**WP4.4-g is the next action**, as a read-only `components.css` cascade audit
-from current `main`. It owns no production path, nominates but authorizes no
-deletion, and blocks `h`. The owner-directed remaining order is sequential:
+**Current (2026-07-31, latest): there is no next packet.** WP4.4 packets `a`,
+`c`, `b`, `e`, `d1`, `f1`, `d2`, `f2`, `g` and `h` are merged — **10 of 11** —
+and the owner-directed execution order is fully consumed:
 
 ```
-g → h → HARD STOP (N4 owner checkpoint before i)
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → ■ N4 HARD STOP
 ```
 
-`a`, `c`, `b`, `e`, `d1`, `f1`, `d2` and `f2` are DONE and must not be
-re-dispatched. One packet, one worktree, one writer and one PR at a time;
-reconcile these three status documents at each merge boundary.
+**The next safe step is to WAIT for the owner's N4 decision.** Do not start,
+branch, worktree or edit anything for `i`, `j` or `k`; do not edit
+`static/css/components.css` for `i`; do not decide the Packet-a layer-span
+question. Gate 1 does not authorize any of it.
+
+All ten merged packets are DONE and must not be re-dispatched. If the owner
+approves i, it resumes under the same discipline: one packet, one worktree, one
+writer and one PR at a time, reconciling these three status documents at each
+merge boundary.
+
+> **Superseded 2026-07-31.** This section previously read *"WP4.4-g is the next
+> action"* with the remaining order `g → h → HARD STOP`. Correct on 2026-07-30;
+> stale once #207, #209 and #208 merged.
 
 **`f2` closeout findings later packets must not undo:** layer membership is
 frozen (N2), the last `@layer navbar` block survives (G11), and the block still
