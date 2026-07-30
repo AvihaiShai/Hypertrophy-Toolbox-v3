@@ -1,12 +1,22 @@
 # WP4.4-g — `components.css` read-only cascade audit evidence
 
-**Status:** complete, evidence-only. **Audited commit:** `7bc718b0211441451f8992fd9aa5573d080cecb1`.
-No production CSS, template, JavaScript, Python, snapshot, database, or shared test-support file was changed. WP4.4-h was not started.
+**Status:** complete, evidence-only; terminology corrected after WP4.4-h removal testing.
+**Audited commit:** `7bc718b0211441451f8992fd9aa5573d080cecb1`.
+No production CSS, template, JavaScript, Python, snapshot, database, or shared test-support file
+was changed.
 
 ## 1. Authorized scope and result
 
-This packet audited all 2,148 declarations in all 678 style-rule/keyframe-step families in `static/css/components.css`. The result is an advisory broad census: **289 live, 342 dead, 345 mixed, and 1,172 unverified declarations**.
-The 342 “dead” entries are nominations for WP4.4-h re-proof, not deletion certification. WP4.4-g authorizes zero deletions and made zero production changes.
+This packet audited all 2,148 declarations in all 678 style-rule/keyframe-step families in
+`static/css/components.css`. The result is an advisory broad ownership census: **289
+all-observed winners, 342 zero-winner nominations, 345 mixed-winner observations, and 1,172
+unverified declarations**.
+
+The 342 zero-winner entries are nominations for removal testing, not deletion certification.
+WP4.4-g authorizes zero deletions and made zero production changes. The original ledger used the
+short labels `live`, `dead`, and `mixed`; throughout this document they describe only the census's
+observed ownership result. In particular, historical `dead` means **zero-winner nomination**, never
+“safe to remove.”
 
 | Audited identity | Value |
 |---|---|
@@ -18,14 +28,82 @@ The 342 “dead” entries are nominations for WP4.4-h re-proof, not deletion ce
 | Keyframe-step declarations | 25 |
 | Custom-property declarations | 3 |
 
+### 1.1 Post-audit correction — 35 zero-winners are removal-live
+
+WP4.4-h later removed declarations individually from the served stylesheet and measured every
+computed value. That removal oracle proved that **35 of this audit's 342 zero-winner nominations
+are live on removal**:
+
+| Family | Removal-live declaration IDs |
+|---|---|
+| Base / outline buttons | D16, D33, D34 |
+| `.form-label` (top-level rule) | D194, D196 |
+| `.form-select` | D276, D279 |
+| `.form-label` (six separate breakpoint rules) | D402, D410, D418, D426, D434, D450 |
+| Tables and table containers | D471, D477, D481, D483, D569 |
+| Modal / alert | D896, D1094 |
+| Calm primary button | D1175, D1176, D1177, D1178 |
+| Calm ghost button | D1186, D1187, D1189 |
+| Disabled calm inputs | D1242, D1243, D1244, D1245, D1246 |
+| Calm danger button | D1286, D1287, D1289 |
+| **Total** | **35** |
+
+The IDs are the 1-based PostCSS `walkDecls` ordinal over the same pristine
+`components.css` SHA-256 recorded above, so the cross-packet identity is exact. In the 264-context
+certification run, seven of the highest-impact examples were D1187 (7,616 computed differences),
+D196 (3,888), D1178 (3,792), D1176 (2,976), D477 (1,532), D194 (1,416), and D1094 (1,248).
+
+The historical ownership label and the removal result are orthogonal: each ID above is historical
+`dead` because it won no observed longhand in WP4.4-g, yet removal-live because WP4.4-h observed
+computed-value changes when the authored declaration was removed.
+
+| Independent removal evidence | Value |
+|---|---|
+| Matrix | 264 contexts; idempotence, restoration, and source/CSSOM alignment controls clean |
+| Full per-context result | `h-certify-full.json`, SHA-256 `d2dc28d95aaeaa212068158db02cc14c47c0497dead6431582d274e872ad90bc` |
+| Certified set summary | `h-certified-sets.json`, SHA-256 `8c95761c212a7a1491eb1e9feeb959ba12c2eda887b4dc0f84b5fe3116b99fa5` |
+| Source-range identity map | `h-ranges.json`, SHA-256 `cf9f4937bddf91c01cfabbbf603134899ea2999db62866dfe90d4f8cbb5dfcc4` |
+
+WP4.4-h entered 336 of the 342 nominations into that certification run: 35 were removal-live, 180
+were `deadCertified` by the removal oracle, and 121 were unmatched in that matrix. The remaining
+six, D384–D389, are the `.value-changed` block withheld because it is reachable only through a
+JavaScript-applied class (M10 / PR #3).
+
+This does not invalidate the ownership census: those declarations still won zero longhands under
+its model and matrix. It corrects the interpretation. An inline-`!important` sentinel can prove
+that a selector reaches an element and that the probe restores cleanly; it cannot prove that
+removing the authored declaration is inert. A later declaration can win while the candidate still
+affects inheritance, shorthand expansion, current-color dependants, or the set of values resolved
+elsewhere in the cascade.
+
+Consequently:
+
+- the 35 IDs above are **retain — removal-live**;
+- every other zero-winner remains only a nomination unless a separate removal oracle certifies it;
+- `unverified`, never-probed, unresolved, or no-demonstrated-match entries are always retained;
+- only WP4.4-h's separately certified deletion set receives deletion authority.
+
+WP4.4-h's committed evidence is
+[`CSS_PHASE4_WP4_4_H_COMPONENTS_DEAD_EVIDENCE.md`](CSS_PHASE4_WP4_4_H_COMPONENTS_DEAD_EVIDENCE.md),
+merged to `main` from PR #208 as squash commit
+`b2b1cb742a6ddd327c5bd879b6aa1598ffa98f46`. That squash is the citable identity; the pre-merge
+branch head `5503a2351e1cdc684cb5fc53c8c1e538be3c7e2d` no longer exists on any ref.
+
 ## 2. Classification contract
 
-- **Live:** won every observed longhand instance, and its sentinel changed and restored the computed value; observed keyframe families are the one explicit non-inline exception.
-- **Dead:** matched at least one real rendered element, won zero observed longhands, and its inline-important sentinel both changed and restored the computed value.
-- **Mixed:** won some but not all matched longhand instances, with the same passing sentinel control.
+- **All-observed winner** (historical `live`): won every observed longhand instance, and its
+  sentinel changed and restored the computed value; observed keyframe families are the one explicit
+  non-inline exception.
+- **Zero-winner nomination** (historical `dead`): matched at least one real rendered element, won
+  zero observed longhands, and its inline-important sentinel both changed and restored the computed
+  value. This is an ownership result, not a removal verdict.
+- **Mixed-winner observation** (historical `mixed`): won some but not all matched longhand
+  instances, with the same passing sentinel control.
 - **Unverified:** unreachable in the matrix, pseudo-state/pseudo-element constrained, custom-property constrained by M9, unobserved keyframe, or a probe that could not demonstrate an observable effect.
 
-A rule family is “mixed” in Appendix A whenever its declarations do not all share one classification. This family aggregate must not be confused with a declaration classified mixed.
+A rule family is `mixed` in Appendix A whenever its declarations do not all share one census
+classification. This family aggregate must not be confused with a declaration classified
+mixed-winner.
 
 ## 3. Matrix
 
@@ -66,10 +144,10 @@ The error template remains the Packet-a recorded gap: a bad URL reaches the inli
 
 - **M1–M3:** this broad census combines full-selector reachability, exact declaration ownership, sentinel evidence, fresh-load same-CSS controls, and a real element-scoped raster. It does not claim a per-nomination removal differential: that is why every zero-winner is only a nomination. WP4.4-h must add its own rest-state computed/owner and scoped-pixel before/after differential. No full-page animated-navbar capture is used.
 - **M4:** selector branches come from CDP’s matching-selector indices; browser specificity is used without substring identity or naive comma splitting. The committed hand cases cover `:is()`/`:where()`/`:not()`/`:has()`. The ownership rank also implements normal layer order and the important inversion.
-- **M5:** known-live layered Workout Plan declarations were seen, while the documented unlayered Add Exercise fallbacks were correctly identified as non-winners.
-- **M6/M6a:** sentinels are inline-important, longhand-complete for the shorthands present here, and CSS transitions are externally finished/cancelled before apply, read, removal, and restoration read.
+- **M5:** known-winner layered Workout Plan declarations were seen, while the documented unlayered Add Exercise fallbacks were correctly identified as non-winners.
+- **M6/M6a:** sentinels are inline-important, longhand-complete for the shorthands present here, and CSS transitions are externally finished/cancelled before apply, read, removal, and restoration read. This establishes reachability and probe integrity only; it is not a removal-safety oracle.
 - **M7:** the Windows logo red remains the recorded band `875/882 ∪ 1,039/1,046` pixels. No snapshot was regenerated or updated.
-- **M8/M9:** only zero-winner declarations enter the dead nomination set. Custom properties never enter it, and shorthand ownership is expanded to longhands.
+- **M8/M9:** only zero-winner declarations enter the nomination set. Custom properties never enter it, and shorthand ownership is expanded to longhands.
 - **M10–M12:** `.value-changed` was applied on the real controls. Browser pseudo-state declarations are deliberately unverified: the combined forced-state pass proves reachability, but does not pretend that simultaneously forcing all states proves each state in isolation.
 
 ## 5. Oracle controls and red paths
@@ -85,15 +163,15 @@ The error template remains the Packet-a recorded gap: a bad URL reaches the inli
 | Exact CDP source-range mapping | **PASS — 0 unmapped component declarations** |
 | Sentinel attempted | 1,212 declarations |
 | Sentinel effect + restore | 1,178 changed; 1,212 restored |
-| Sentinel inconclusive quarantine | 34 attempted/no-effect → **unverified**, never dead |
+| Sentinel inconclusive quarantine | 34 attempted/no-effect → **unverified**, never nominated |
 | Restoration failures | **0** |
 | Classified records resting on a failed M6 control | **0** |
-| Known-live control | **PASS** — L3546 `border-radius` = live |
-| Known-dead control | **PASS** — L243 `background-color` = dead; L244 `color` = dead; L245 `border` = dead |
+| Known-winner control | **PASS** — L3546 `border-radius` = all-observed winner |
+| Known-zero-winner control | **PASS** — L243 `background-color`, L244 `color`, and L245 `border` = zero-winner nominations |
 | Source restoration | **PASS — SHA-256 unchanged at `53799e819816b15a46a6e30ba7751c3e46781cb193095398947d139bdf171099`** |
 | Production diff | **PASS — empty** |
 
-Packet-a registers 16 Welcome control element-instances as uncertifiable across the two themes; the census does not convert them into dead nominations. The inherited Linux ledger remains the 10 desktop-only reds listed in Packet a. WP4.4-g did not run a Linux deep gate because Plan v2’s consolidated g row requires contract files and no E2E suite.
+Packet-a registers 16 Welcome control element-instances as uncertifiable across the two themes; the census does not convert them into zero-winner nominations. The inherited Linux ledger remains the 10 desktop-only reds listed in Packet a. WP4.4-g did not run a Linux deep gate because Plan v2’s consolidated g row requires contract files and no E2E suite.
 
 Exact Linux inherited ledger: `body-composition-desktop-light`, `progression-desktop-light`, `session-summary-desktop-light`, `volume-splitter-desktop-light`, `weekly-summary-desktop-light`, `welcome-desktop-light`, `workout-log-desktop-dark`, `workout-log-desktop-light`, `workout-plan-desktop-dark`, `workout-plan-desktop-light`. Exact current Windows ledger: only `workout-plan-desktop-dark`, inside the animated-logo band `875/882 ∪ 1,039/1,046`. No baseline was updated.
 
@@ -103,14 +181,14 @@ The first wide-frame mobile control was rejected before results were trusted: Wo
 
 ## 6. Results
 
-| Unit | Live | Dead | Mixed | Unverified | Total |
+| Unit | All-observed winner | Zero-winner nomination | Mixed-winner | Unverified | Total |
 |---|---:|---:|---:|---:|---:|
 | Declarations | 289 | **342** | 345 | 1172 | 2148 |
 | Rule families | 53 | **65** | 148 | 412 | 678 |
 
 ### Special families
 
-| Family | Live | Dead | Mixed | Unverified | Ruling |
+| Family | All-observed winner | Zero-winner nomination | Mixed-winner | Unverified | Ruling |
 |---|---:|---:|---:|---:|---|
 | `@media declarations` | 31 | 38 | 78 | 50 | M11 representatives exercised each current condition; unverified entries remain non-nominations. |
 | `@layer workout declarations` | 75 | 7 | 61 | 138 | N2 membership frozen; no layer edit is nominated. |
@@ -119,7 +197,7 @@ The first wide-frame mobile control was rejected before results were trusted: Wo
 | `pseudo-state declarations` | 0 | 0 | 0 | 330 | All retained unverified under M12; no hover/focus/active deletion nomination. |
 | `other JS/state-class declarations` | 0 | 0 | 0 | 171 | All retained unverified under M10 because those states were not individually driven. |
 
-### Largest fully dead rule-family nominations
+### Largest all-zero-winner rule-family nominations
 
 These are census nominations only. WP4.4-h must re-cut from merged main, re-run classification, and supply its own before/after computed-owner and element-pixel differential before deleting anything.
 
@@ -160,13 +238,21 @@ These are census nominations only. WP4.4-h must re-cut from merged main, re-run 
 | **Reason total** | **1172** |
 | **Reported unverified total** | **1172** |
 
-The reason buckets are mutually exclusive. Unsupported vendor aliases, constrained widths, and values already equal to every valid sentinel are in the no-observable-effect bucket. They are retained; the audit does not reinterpret a no-op as deadness.
+The reason buckets are mutually exclusive. Unsupported vendor aliases, constrained widths, and values already equal to every valid sentinel are in the no-observable-effect bucket. They are retained; the audit does not reinterpret a no-op as a nomination.
 
-## 7. Adversarial review of dead nominations
+## 7. Adversarial review of zero-winner nominations
 
-Every one of the 342 dead nominations passed all of these predicates: exact source-range identity, at least one real selector match, zero winning longhands across the entire matrix, no custom property, no pseudo-element, no pseudo-state, no undriven JS/state class, no keyframe step, and an effective/restored inline sentinel. A declaration failing any predicate is live, mixed, or unverified instead.
+Every one of the 342 zero-winner nominations passed all of these census predicates: exact
+source-range identity, at least one real selector match, zero winning longhands across the entire
+matrix, no custom property, no pseudo-element, no pseudo-state, no undriven JS/state class, no
+keyframe step, and an effective/restored inline sentinel. A declaration failing any predicate is
+an all-observed winner, mixed-winner, or unverified instead. Passing every predicate still does
+not certify removal, as the 35 removal-live findings in §1.1 demonstrate.
 
-The known layer inversion behaves as required: the unlayered Add Exercise fallback at L243–245 is a zero-winner, while the layered important owner at L3546 is live in every matched instance. This is the control that would fail if normal layer ordering were accidentally applied to important declarations.
+The known layer inversion behaves as required: the unlayered Add Exercise fallback at L243–245 is
+a zero-winner, while the layered important owner at L3546 is an all-observed winner in every matched
+instance. This is the control that would fail if normal layer ordering were accidentally applied to
+important declarations.
 
 No declaration in the shared `:is()` family, the protected Workout Log regions, a custom-property family, or a pseudo-state family is authorized for deletion here. Line numbers are evidence identities only; h must resolve candidates structurally and re-prove against its own SHA.
 
@@ -204,7 +290,15 @@ The audit runner and its JSON/PNG/log output are intentionally ignored under `ar
 
 ## Appendix A — complete rule/declaration classification ledger
 
-This is the exhaustive committed ledger. Declaration IDs are stable only for the audited SHA. Each entry includes source line, property, value, and classification.
+This is the exhaustive committed census ledger. Declaration IDs are stable only for the audited
+SHA. Each entry includes source line, property, value, and the original emitted classification.
+
+The literal `live`, `dead`, and `mixed` labels are retained here so the ledger remains an exact
+record of the original census output rather than a silently rewritten artifact. Read them using the
+corrected terminology in §2: `live` = all-observed winner, `dead` = zero-winner nomination, and
+`mixed` = mixed-winner observation. The 35 IDs in §1.1 additionally carry the authoritative
+**retain — removal-live** disposition, which overrides any deletion inference from their historical
+`dead` label.
 
 | Rule | At-context | Selector | Family | Declaration classifications |
 |---:|---|---|---|---|
@@ -889,4 +983,10 @@ This is the exhaustive committed ledger. Declaration IDs are stable only for the
 
 ## 9. Handoff
 
-WP4.4-g stops here. WP4.4-h is the next authorized packet, but it is **not started**. It must audit a fresh branch cut from merged main and may act only on structurally re-resolved, freshly re-proved nominations.
+The original WP4.4-g packet stopped here and authorized no production change. WP4.4-h subsequently
+performed the required fresh removal certification on its own branch. This terminology correction
+changes no census record and grants no new deletion authority; it makes the g evidence safe to cite
+without conflating “won zero in the ownership model” with “inert when removed.”
+
+WP4.4-i is **not started or authorized by this correction**. After h and this docs-only correction
+are accepted, the arc stops at the N4 owner checkpoint.
