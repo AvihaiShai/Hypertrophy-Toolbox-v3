@@ -8,9 +8,11 @@ WP4.4-h deletes declarations that own nothing. It is a pure deletion: `git diff`
 `static/css/components.css` shows removals only — no insertion, no re-weighting, no new
 `!important`.
 
-> **Every measurement in this document comes from the `h4` cycle.** All earlier `h`, `h2` and `h3`
-> artifacts are inadmissible and are retained under `artifacts/wp4_4/` with `CONTAMINATED-`,
-> `SUPERSEDED-`, `INADMISSIBLE-` or `QUARANTINED-` prefixes, never cited as proof. §5 records why.
+> **Every original shipment measurement in this document comes from the `h4` cycle.** The
+> post-review classification and single-process aggregate reruns are identified explicitly as
+> `h5`. All earlier `h`, `h2` and `h3` artifacts are inadmissible and are retained under
+> `artifacts/wp4_4/` with `CONTAMINATED-`, `SUPERSEDED-`, `INADMISSIBLE-` or `QUARANTINED-`
+> prefixes, never cited as proof. §5 records why.
 
 Three files changed: `static/css/components.css`,
 `tests/test_css_wp4_4_components_contracts.py`, and this document. No shared contract, baseline
@@ -411,6 +413,52 @@ Both are asserted *positively* by
 `test_the_two_withdrawn_declarations_are_still_present`, because their absence from the deletion
 list is only the absence of a claim and would not notice a later packet deleting them.
 
+#### Post-review clean-SHA certification with fatal independent controls
+
+Review of the first certification exposed a genuine oracle-design gap: a run containing only
+deletion candidates can return zero differences both when every candidate is dead and when the
+oracle is blind. The certification was therefore re-run from the exact pristine stylesheet SHA
+`53799e819816b15a46a6e30ba7751c3e46781cb193095398947d139bdf171099` with the 101 candidates and
+five independently proven live declarations kept in separate result sets.
+
+The live spikes are not annotations. Missing any one is a fatal run failure, as are any
+idempotence, restoration or CSSOM/source-alignment failure; a candidate classified live,
+`neverProbed`, `reachedNothing` or unresolved also fails the run.
+
+| Result | Value |
+|---|---:|
+| Candidate declarations | **101** |
+| Candidate `deadCertified` | **101** |
+| Candidate live / `neverProbed` / `reachedNothing` / unresolved | **0 / 0 / 0 / 0** |
+| Idempotence / restoration / CSSOM-source alignment failures | **0 / 0 / 0** |
+| External assets unavailable | **0** |
+| Fatal failures | **0** |
+| Verdict | **PASS** |
+
+| Independent live spike | Family | Computed differences | Probed / matched contexts | Result |
+|---|---|---:|---:|---|
+| D196 | `.form-label { color }` | 972 | 66 / 48 | **LIVE** |
+| D477 | `.table th { border-bottom }` | 242 | 66 / 48 | **LIVE** |
+| D1094 | `.alert { border-radius }` | 432 | 66 / 66 | **LIVE** |
+| D1178 | `.btn-calm-primary { color }` | 1,404 | 66 / 66 | **LIVE** |
+| D1187 | `.btn-calm-ghost { border }` | 2,250 | 66 / 66 | **LIVE** |
+
+All declaration IDs above are the 1-based postcss `walkDecls` ordinal over that single pristine
+SHA. This identity discipline also makes the independent-review intersection valid: of the 101 PR
+candidates, 7 had been independently classified dead and 94 had been reported as “no demonstrated
+match.” The corrected clean-SHA run resolved **all 94** rather than treating that bucket as a
+deletion warrant. None remained unproven.
+
+The binding disposition is now explicit:
+
+- `deadCertified` → eligible for deletion;
+- `live` → retain;
+- `neverProbed`, unresolved, or no demonstrated match → retain unless separately certified.
+
+The result is `artifacts/wp4_4/h5-certify-live-spikes.json`, SHA-256
+`b3982329832fb87decc4b015ff162b34a378f4f12fa6bf175be478e80c6c3714`. Generated evidence remains
+gitignored under A11; the command and identities needed to reproduce it are recorded in §11.
+
 ### 7.4 The intersection, and the manifest that encodes it
 
 The deletion set is the intersection: **101 declarations**, each of which
@@ -487,6 +535,65 @@ value as a result**. That is the definition of a declaration that owns nothing.
 The same-CSS control (§5) and this run differ in exactly one input — the stylesheet — so the zero on
 every other term is attributable to the deletion and not to harness stability, which the control
 independently established at zero.
+
+### 8.1 Post-review single-process paired proof
+
+The `h4` aggregate was valid, but it captured the two stylesheet states in separate processes.
+Review correctly identified a stronger design: serve the pristine stylesheet as a route override
+against the on-disk deleted stylesheet, capture both sides of each context consecutively, and keep
+the browser, server, seeded database, network cache and process fixed. This removes cross-run state
+as a possible silent confounder.
+
+`h5-paired-full` implements that design. One Node process (PID 19348) and one Flask listener (PID
+27884) captured **330 pristine + 330 deleted** sides. The on-disk file remained
+`883e6aa85564c42b36ca801529081b279f119e5c99a539dc235bc84d72107964` throughout; only the response
+body for `/static/css/components.css` changed between paired sides. The pristine override was
+reconstructed from the branch base and refused to run unless its bytes hashed to
+`53799e819816b15a46a6e30ba7751c3e46781cb193095398947d139bdf171099`.
+
+| Paired-run identity/control | Result |
+|---|---|
+| Contexts | **330 before + 330 after**, 330 unique labels on each side, identical ordered label set |
+| Paired process | **same PID 19348** on both indices |
+| CSS identities | pristine `53799e8…` / deleted `883e6aa…`; on-disk identity stayed deleted |
+| Frozen database | `7cef8e0a…` on both sides; startup/end runtime DB hashes identical |
+| Manifest | `d4e2dfee3bae1b77827960a4acb1e5d011a24372c0a76c2dd5384045f3a77ac5` on both sides |
+| Property universe / blast set | 113 / 43, identical, blast cap 0 (uncapped) |
+| Network | 11 cached assets, **0 unavailable**, identical on both sides |
+| Unstable computed passes / retries | **0 / 0** |
+| Exclusivity guards | 354 checks, one CSS hash, one runtime DB hash, one listener PID |
+| Process stderr | **0 bytes** |
+
+The hardened comparator also refuses an `after` run unless the CSS identities differ and
+`candidatesLost > 0`; that makes “compared the same input twice” and “captured no candidate
+effect” fatal rather than clean-looking zeroes.
+
+```
+run                 : h5 single-process paired (101 declarations deleted)
+mode                : after (allowed non-zero: candidatesLost)
+identical CSS       : false
+contexts compared   : 330
+  computedDifferences      0
+  ownerDifferences         0
+  candidatesLost           52425  (required positive control)
+  candidatesGained         0
+  pagePromotions           0
+  pixelDifferingContexts   0
+  elementsOnlyBefore       0
+  elementsOnlyAfter        0
+  blastNodesOnlyBefore     0
+  blastNodesOnlyAfter      0
+  stackDifferences         0
+positive controls   : PASS
+verdict             : PASS
+```
+
+| `h5` artifact | SHA-256 |
+|---|---|
+| `h5-paired-full/before/index.json` | `2fa635a8bfd019cbff8b3fce1f47c1d065ff3bd36f12ee1373436a4686b42dd6` |
+| `h5-paired-full/after/index.json` | `133c1c664ceec30ee3e8dc54710b2ceaf230470359de94acae476b4b58374dfa` |
+| `h5-paired-full-strict.json` | `0a93e67145e30c6c3d9b741b6b817756bf4b153b1c3a0b31994216a9cfd3f113` |
+| stdout / empty stderr | `4c2572a954b7eb4678b9b9c98465bb98d499a93c07011756dedda07c6b31dce7` / `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 
 ---
 
@@ -568,15 +675,24 @@ run overlapped another.
 | Gate | Result |
 |---|---|
 | `tests/test_css_wp4_4_components_contracts.py` (this packet) | **7 passed** |
+| Pyright, packet contract | **0 errors**; `close_index` initialized and narrowed without changing the assertion |
 | `tests/test_css_cascade_contracts.py` (shared, unmodified) | **passed** |
 | `tests/test_css_wp4_4_a_baseline_contracts.py` (Packet a, unmodified) | **passed** |
 | Full `pytest tests/` | **2,278 passed, 1 skipped, 0 failed** (370 s) |
 | Chromium E2E, full suite | **475 passed, 0 failed**, 17 not run (§10.2) |
 | Chromium visual gate (`PW_VISUAL_SEED=1`) | 66 passed, **2 pre-existing failures** (§10.2) |
 | Stylelint, seven WP4.4 surfaces | **2,844 → 2,775 (−69)**, **0 category increases** |
+| Post-review Stylelint re-measure | **2,775**, byte-identical to the `h4` after report; SHA-256 `e7952a1d…` |
+| PostCSS structure | parse **PASS**; 0 empty rules; 0 empty at-rules; stack differential 0 |
 | Region H SHA-256 | `18658442…` — **unchanged**, 282 lines, source file untouched |
 | Tracked paths changed | exactly the three authorized |
-| `git diff` shape | **0 insertions, 138 deletions** |
+| `components.css` diff shape | **0 insertions, 138 deletions** |
+
+The local structure helper also carries a conservative “orphan comment” heuristic. It reports one
+standalone `/* Modal Base Styles */` comment at line 2374 on both the pristine and deleted files
+(**1 → 1**), so that pre-existing signal is not treated as deletion debris. The actual structural
+requirements are clean: both files parse, neither has an empty rule or at-rule, and the paired
+stylesheet-stack comparison is zero.
 
 ### 10.1 Stylelint, per rule
 
@@ -697,4 +813,26 @@ node artifacts/wp4_4/h_differential.mjs --out artifacts/wp4_4/h4-after \
 node artifacts/wp4_4/h_compare_strict.mjs --mode after \
   --before artifacts/wp4_4/h4-before --after artifacts/wp4_4/h4-after \
   --out artifacts/wp4_4/h4-after-strict.json
+
+# 6. post-review classification with five fatal, independently proven live controls
+node artifacts/wp4_4/h_apply.mjs --manifest artifacts/wp4_4/h4-manifest-101.json --mode restore
+node artifacts/wp4_4/h_certify.mjs --manifest artifacts/wp4_4/h4-manifest-101.json \
+  --out artifacts/wp4_4/h5-certify-live-spikes.json --widths 375,768,1440 \
+  --live-control-ids 1187,196,1178,477,1094 \
+  --expect-css-sha 53799e819816b15a46a6e30ba7751c3e46781cb193095398947d139bdf171099 \
+  --expect-db-sha  7cef8e0acb9106534ba9ff8a935d825d94f913211191f43e46dba830b4da1d47
+node artifacts/wp4_4/h_apply.mjs --manifest artifacts/wp4_4/h4-manifest-101.json --mode apply
+
+# 7. post-review aggregate: both stylesheet states captured per context in one process
+node artifacts/wp4_4/h_differential.mjs --out artifacts/wp4_4/h5-paired-full \
+  --manifest artifacts/wp4_4/h4-manifest-101.json \
+  --expect-css-sha 883e6aa85564c42b36ca801529081b279f119e5c99a539dc235bc84d72107964 \
+  --expect-db-sha  7cef8e0acb9106534ba9ff8a935d825d94f913211191f43e46dba830b4da1d47 \
+  --paired-before-ref 4b7ca585cf03cc5f2de4fd88c257f29460173640 \
+  --paired-before-sha 53799e819816b15a46a6e30ba7751c3e46781cb193095398947d139bdf171099
+node artifacts/wp4_4/h_compare_strict.mjs --mode after \
+  --before artifacts/wp4_4/h5-paired-full/before \
+  --after artifacts/wp4_4/h5-paired-full/after \
+  --out artifacts/wp4_4/h5-paired-full-strict.json \
+  --label h5-single-process-paired
 ```

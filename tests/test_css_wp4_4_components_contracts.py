@@ -302,6 +302,7 @@ def test_the_packet_stayed_above_the_frozen_layer_span() -> None:
     open_index = css.index("@layer workout")
     brace = css.index("{", open_index)
     depth = 0
+    close_index: int | None = None
     for index in range(brace, len(css)):
         if css[index] == "{":
             depth += 1
@@ -311,6 +312,7 @@ def test_the_packet_stayed_above_the_frozen_layer_span() -> None:
                 close_index = index
                 break
 
+    assert close_index is not None
     assert css.count("@layer") == 1
     assert css.count("\n", 0, open_index) + 1 == 3539
     assert css.count("\n", 0, close_index) + 1 == 4104
