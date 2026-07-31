@@ -1613,7 +1613,7 @@ def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
     components = (ROOT / "static" / "css" / "components.css").read_text(encoding="utf-8")
     shared_arm = (
         ':is(#workout[data-page="workout-plan"], .workout-log-page, '
-        ".summary-frame.frame-calm-glass, .progression-plan-container)"
+        ".summary-frame.frame-calm-glass)"  # WP4.4-i split the progression branch out
     )
     assert shared_arm in components
     # The (1,4,2) rule that owns dark cell text - what the region-F

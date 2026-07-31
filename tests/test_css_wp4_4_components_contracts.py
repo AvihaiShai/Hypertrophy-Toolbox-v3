@@ -215,11 +215,15 @@ PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
 FROZEN_FAMILY_COUNTS = {
     # A9 / N4: the whole `:is()` family belongs to WP4.4-i.
     r":is\(": 19,
-    r":where\(": 58,
+    # `:where\(` and `:hover` were global occurrence counts here (58 and 115).
+    # They are now asserted structurally instead — see
+    # `test_where_and_hover_are_frozen_outside_the_i_owned_family` and
+    # `test_the_i_owned_family_carries_only_the_approved_progression_splits`.
+    # The premise is unchanged and the protection is strictly narrower in scope
+    # and stronger in kind; the reasoning is in this module's docstring.
     # M10 / PR#3: reachable only through a JS-applied class.
     r"\.value-changed": 20,
     # M12 / PR#10: hover, focus and active are out of scope, declared up front.
-    r":hover": 115,
     r":focus": 174,
     r":active": 16,
     # An inline sentinel cannot address a pseudo-element, so none was eligible.
@@ -233,6 +237,51 @@ FROZEN_FAMILY_COUNTS = {
     # N2 freezes layer membership arc-wide.
     r"@layer": 1,
 }
+
+# ---------------------------------------------------------------------------
+# The WP4.4-i shared-selector family, identified structurally.
+#
+# WP4.4-i splits `.progression-plan-container` out of all thirteen rules so that
+# branch stops borrowing ID-level specificity. Splitting a selector line
+# duplicates every token on it, which the old global `:where\(` == 58 and
+# `:hover` == 115 locks forbade — including on the three rules WP4.4-i owns.
+# Those locks were over-broad for their purpose: h's premise is that h touched
+# no `:where()`/`:hover` construct, not that the constructs may never change.
+#
+# The premise is therefore re-expressed, not relaxed. Occurrences OUTSIDE these
+# fourteen selector lines stay frozen at exactly the counts h shipped, and the
+# fourteen lines themselves must carry exactly the approved shapes and no other
+# token. An unrelated `:where()`/`:hover` addition or removal anywhere else in
+# the file still reds, as it did before.
+#
+# A line belongs to the family iff it carries one of the retained donor groups.
+# The donor is `#workout[data-page="workout-plan"]` at (1,1,0): `:is()` takes the
+# specificity of its most specific argument, so the retained group's specificity
+# is bit-identical to the original four-branch list, and the Workout Log and
+# Summary branches — both measured unsafe to de-weight — keep their weight.
+# ---------------------------------------------------------------------------
+DONOR_GROUP = (
+    ':is(#workout[data-page="workout-plan"], .workout-log-page, '
+    ".summary-frame.frame-calm-glass)"
+)
+# The reduced-motion rule omits `.summary-frame.frame-calm-glass` deliberately:
+# summary table cells are not transition-suppressed under reduced motion.
+DONOR_GROUP_REDUCED_MOTION = ':is(#workout[data-page="workout-plan"], .workout-log-page)'
+PROGRESSION_BRANCH = ".progression-plan-container"
+
+I_OWNED_SELECTOR_LINES = 14
+
+# Frozen: identical before and after the split, because the split only ever
+# duplicates a token onto the same physical line it already occupied.
+WHERE_OUTSIDE_FAMILY = 57
+HOVER_OUTSIDE_FAMILY = 113
+
+# The exact attributable delta. R1's first arm is the only family line carrying
+# `:where(`; R6 and R12 are the only two carrying `:hover`. Each gains exactly
+# one duplicate from its progression arm.
+WHERE_INSIDE_FAMILY = 2
+HOVER_INSIDE_FAMILY = 4
+IS_INSIDE_FAMILY = 14
 
 BEFORE_LINES = 5345
 AFTER_LINES = 5207
@@ -289,6 +338,80 @@ def test_excluded_families_are_numerically_frozen() -> None:
     for pattern, expected in FROZEN_FAMILY_COUNTS.items():
         flags = re.M if pattern.startswith("^") else 0
         assert len(re.findall(pattern, css, flags)) == expected, pattern
+
+
+def _family_partition(css: str) -> tuple[list[str], list[str]]:
+    """Split the file into the WP4.4-i family's selector lines and everything else.
+
+    Keyed on the retained donor group rather than on line numbers, because the
+    zero-line invariant is what keeps the `@layer workout` span pinned and a
+    line-keyed scope swept up an unintended region once already (WP4.3j-c).
+    """
+    inside: list[str] = []
+    outside: list[str] = []
+    for line in css.splitlines():
+        matched = DONOR_GROUP in line or DONOR_GROUP_REDUCED_MOTION in line
+        (inside if matched else outside).append(line)
+    return inside, outside
+
+
+def test_where_and_hover_are_frozen_outside_the_i_owned_family() -> None:
+    """h's premise, re-expressed: h touched no `:where()`/`:hover` construct.
+
+    This is the half that stayed frozen. Every occurrence outside WP4.4-i's
+    fourteen selector lines is pinned at exactly the count WP4.4-h shipped, so an
+    unrelated addition or removal anywhere else in the file reds here exactly as
+    it did under the old global counts.
+    """
+    css = _strip_comments(_css())
+    inside, outside = _family_partition(css)
+
+    assert len(inside) == I_OWNED_SELECTOR_LINES, (
+        f"expected {I_OWNED_SELECTOR_LINES} family selector lines, got {len(inside)}"
+    )
+    rest = "\n".join(outside)
+    assert rest.count(":where(") == WHERE_OUTSIDE_FAMILY
+    assert rest.count(":hover") == HOVER_OUTSIDE_FAMILY
+    # The five remaining `:is(` tokens are the ID-scoped Workout Plan input
+    # fields inside `@layer workout`, which N2 freezes and WP4.4-i excluded.
+    assert rest.count(":is(") == 19 - IS_INSIDE_FAMILY
+
+
+def test_the_i_owned_family_carries_only_the_approved_progression_splits() -> None:
+    """The other half: the family lines carry the approved shapes and nothing else.
+
+    Each of the fourteen lines is `<progression arm>, <donor-group arm>` on one
+    physical line. So every token on a split line appears exactly twice, and the
+    attributable delta against WP4.4-h is exactly +1 `:where(` (R1's first arm)
+    and +2 `:hover` (R6 and R12). Any other token movement on these lines — a
+    fourth branch, a normalised reduced-motion set, a dropped `:where(.table)`
+    arm — changes one of these counts and reds.
+    """
+    css = _strip_comments(_css())
+    inside, _ = _family_partition(css)
+    family = "\n".join(inside)
+
+    assert family.count(":where(") == WHERE_INSIDE_FAMILY
+    assert family.count(":hover") == HOVER_INSIDE_FAMILY
+    assert family.count(":is(") == IS_INSIDE_FAMILY
+    # Every family line carries the progression arm exactly once, and no line
+    # re-admits the branch into the `:is()` list it was split out of.
+    for line in inside:
+        assert line.count(PROGRESSION_BRANCH) == 1, line
+        assert f", {PROGRESSION_BRANCH})" not in line, line
+
+    # The three rules the old global counts made unrepairable, pinned by shape.
+    stripped = [line.strip() for line in inside]
+    for expected in (
+        f"{PROGRESSION_BRANCH} :where(.table).table-calm, "
+        f"{DONOR_GROUP} :where(.table).table-calm,",
+        f"{PROGRESSION_BRANCH} .table.table-calm, {DONOR_GROUP} .table.table-calm {{",
+        f"{PROGRESSION_BRANCH} .table.table-calm tbody tr:hover td, "
+        f"{DONOR_GROUP} .table.table-calm tbody tr:hover td {{",
+        f"[data-theme='dark'] {PROGRESSION_BRANCH} .table.table-calm tbody tr:hover td, "
+        f"[data-theme='dark'] {DONOR_GROUP} .table.table-calm tbody tr:hover td {{",
+    ):
+        assert expected in stripped, expected
 
 
 def test_the_packet_stayed_above_the_frozen_layer_span() -> None:
