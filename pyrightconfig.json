@@ -15,7 +15,12 @@
   ],
   "executionEnvironments": [
     {
-      "root": "."
+      "root": ".",
+      // `scripts/css_audit/` is an importable package (it has `__init__.py`), and
+      // the CSS contract tests import from it after adding `scripts` to sys.path
+      // at runtime. Pyright cannot follow that, so resolve the package properly
+      // here rather than suppressing the import at each call site.
+      "extraPaths": ["scripts"]
     }
   ]
 }
