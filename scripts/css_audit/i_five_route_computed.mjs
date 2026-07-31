@@ -68,6 +68,14 @@ const ROUTES = [
 ];
 
 /**
+ * Per-route minimum `.table-calm` body rows. `/progression` is the only route the
+ * repair actually de-weights, and `i_seed_probe_db.py` seeds six open goals so the
+ * even-row, last-row and hover rules all have something to match. Asserting the
+ * count here ties that seeding to an enforced control.
+ */
+const MIN_ROWS = { progression: 6 };
+
+/**
  * The union of longhands the thirteen family rules declare, expanded from their
  * shorthands, plus the inherited properties they can move (`color`, `font-*`,
  * `letter-spacing`) and enough layout to catch a reflow. A shorthand read back
@@ -191,9 +199,23 @@ async function capture(browser, route, theme, width, hover) {
   }, theme);
   await page.waitForTimeout(120);
 
+  // Two of the thirteen rewritten rules are hover-only (`tbody tr:hover td`,
+  // light and dark). Both the zero-row case and a hover exception used to be
+  // swallowed here, so a hover context that never actually hovered still counted
+  // as a captured context and the run reported a clean zero having never
+  // exercised those rules. Record what happened instead of discarding it.
+  const hoverState = { requested: hover, rows: 0, landed: false, error: null };
   if (hover) {
     const row = page.locator('table.table-calm tbody tr').first();
-    if (await row.count()) await row.hover({ force: true }).catch(() => {});
+    hoverState.rows = await row.count();
+    if (hoverState.rows) {
+      try {
+        await row.hover({ force: true });
+        hoverState.landed = await row.evaluate((node) => node.matches(':hover'));
+      } catch (error) {
+        hoverState.error = String(error?.message ?? error);
+      }
+    }
     await page.waitForTimeout(120);
   }
 
@@ -226,12 +248,13 @@ async function capture(browser, route, theme, width, hover) {
         tables: document.querySelectorAll('table.table-calm').length,
         headerCells: document.querySelectorAll('table.table-calm thead th').length,
         bodyCells: document.querySelectorAll('table.table-calm tbody td').length,
+        bodyRows: document.querySelectorAll('table.table-calm tbody tr').length,
       },
     };
   }, PROPERTIES);
 
   await context.close();
-  return result;
+  return { ...result, hover: hoverState };
 }
 
 // ---------------------------------------------------------------------------
@@ -256,7 +279,10 @@ async function main() {
     widths: WIDTHS,
     themes: THEMES,
     routes: ROUTES.map((r) => r.key),
-    properties: PROPERTIES.length,
+    // The list, not just its length: the diff compares the two captures' property
+    // sets, and a longhand present on one side only would otherwise be dropped
+    // silently rather than reported.
+    properties: PROPERTIES,
   };
 
   await assertPortFree();
@@ -286,9 +312,23 @@ async function main() {
             if (first.presence.theme !== theme) {
               failures.push(`${label}: data-theme is ${JSON.stringify(first.presence.theme)}`);
             }
+            // `i_seed_probe_db.py` seeds exactly MIN_ROWS.progression open goals so
+            // that `tr:nth-child(even)`, `tr:last-child` and `tr:hover` are all
+            // exercised. Until now nothing checked that they rendered: the
+            // page-aggregate `bodyCells !== 0` is satisfied by a single cell of any
+            // other `.table-calm` on the route.
+            const minimum = MIN_ROWS[route.key];
+            if (minimum && first.presence.bodyRows < minimum) {
+              failures.push(`${label}: ${first.presence.bodyRows} body rows, expected at least ${minimum}`);
+            }
+            if (hover) {
+              if (!first.hover.rows) failures.push(`${label}: hover requested but no row to hover`);
+              else if (first.hover.error) failures.push(`${label}: hover threw — ${first.hover.error}`);
+              else if (!first.hover.landed) failures.push(`${label}: hover did not land; :hover never matched`);
+            }
 
             contexts[label] = first.records;
-            presence[label] = first.presence;
+            presence[label] = { ...first.presence, hover: first.hover };
             process.stdout.write(`  ${label}: ${Object.keys(first.records).length} elements\n`);
           }
         }
@@ -299,7 +339,21 @@ async function main() {
     server.kill();
   }
 
-  writeFileSync(join(outDir, 'computed.json'), JSON.stringify({ meta, presence, contexts }, null, 1));
+  // Positive hover control. The per-context checks above prove `:hover` matched;
+  // this proves it made a difference the capture can see. If every hover context
+  // is byte-identical to its rest context, the two hover-only rules in the family
+  // are unexercised no matter how many contexts were recorded.
+  const hoverPairs = Object.keys(contexts).filter((label) => label.endsWith('|hover'));
+  const movedByHover = hoverPairs.filter(
+    (label) => JSON.stringify(contexts[label]) !== JSON.stringify(contexts[label.replace(/\|hover$/, '|rest')]),
+  );
+  if (hoverPairs.length && !movedByHover.length) {
+    failures.push('hover control: no hover context differs from its rest context; the hover rules are unexercised');
+  }
+  meta.hoverContextsThatMoved = `${movedByHover.length}/${hoverPairs.length}`;
+  meta.controlsPassed = failures.length === 0;
+
+  writeFileSync(join(outDir, 'computed.json'), JSON.stringify({ meta, presence, contexts, failures }, null, 1));
   writeFileSync(join(outDir, 'meta.json'), JSON.stringify({ meta, presence, failures }, null, 1));
 
   if (failures.length) {

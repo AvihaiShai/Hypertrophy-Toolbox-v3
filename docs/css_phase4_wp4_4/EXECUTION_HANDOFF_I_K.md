@@ -5,22 +5,56 @@ This is the volatile restart ledger for
 material gate result, PR transition, merge/rebase and before ending a session. Evidence
 filenames never establish provenance; the served checkout, commit and content digest do.
 
-## Snapshot — 2026-07-31 17:57 +03:00
+## Snapshot — 2026-07-31 23:30 +03:00
 
 | Field | Current value |
 |---|---|
-| Active packet | WP4.4-i |
-| Main / origin/main | `1019d34` — PR #211 merged; authority/status sync is prepared locally but not committed |
-| Main dirty paths | owner `CLAUDE.md` plus seven intentional authority/status docs; never stage `CLAUDE.md` |
-| Branch | `wt/wp4-4-i-is-repair` |
+| Active packet | WP4.4-i **corrective** (C13, in-scope); packet i itself is merged |
+| Main / origin/main | `09bf9a0` — contains PR #212 (packet i, merged by the owner) and PR #213 (authority/status sync) |
+| Main dirty paths | owner `CLAUDE.md` only — never stage, stash, discard or copy it |
+| Branch | `wt/wp4-4-i-oracle-provenance` |
 | Worktree | `D:/development/Hypertrophy-Toolbox-v3-main-wp4-4-i-is-repair` |
-| HEAD / parent | `232d6b5` / `1019d34` |
-| Worktree status | clean; one packet commit ahead of main |
-| Remote / PR | no remote branch; no i PR yet |
-| Intended i CSS SHA | `0702558b…` |
-| Pristine post-h CSS SHA | `883e6aa8…` |
-| Running job at snapshot | none as of 18:03; the full pytest started at 17:55 finished, but this read-only audit did not capture its result |
-| True blocker | none; first land the docs-only authority/status PR, then resume i under C16 |
+| HEAD / parent | `09bf9a0` (tracking `origin/main`); corrective uncommitted |
+| Worktree status | dirty by intent: 4 audit scripts, 2 test files, 1 evidence doc, this file, + 2 new scripts |
+| Remote / PR | no remote branch; corrective PR not yet opened |
+| i CSS SHA (unchanged by the corrective) | `0702558b…c6f0e5` |
+| Pristine pre-i CSS SHA | `883e6aa8…107964` (available at `1019d34`) |
+| Second checkout used for before-halves | `D:/development/Hypertrophy-Toolbox-v3-main-wp4-4-j` @ `1019d34`, restored clean after each use |
+| True blocker | none |
+
+**No production CSS changes in this corrective.** `static/css/components.css` is untouched at
+`0702558b…`; the corrective repairs oracles, contracts and evidence only.
+
+## Corrective gate results — all from the post-#212 tree
+
+| Gate | Result | Artifact under `artifacts/wp4_4/i/` |
+|---|---|---|
+| Full pytest | **2289 passed, 1 skipped** (was 2,287; corrective adds 2 contracts) | `r3-pytest-full.txt` |
+| Cascade + components + packet contracts | **47 passed** | — |
+| Computed differential `883e6aa8` → `0702558b` | **0 differences / 758,400 values** | `r3-diff-computed/diff.json` |
+| Cross-run same-CSS control | **0 differences** | `r3-diff-samecss/diff.json` |
+| Known-live control | **8,856** (session 4,578 · weekly 4,278; dark 5,688 · light 3,168) | `r3-knownlive-diff/diff.json` |
+| G3 regions A–C, two different roots | **0 resurrections, 0 drift, 0 provenance failures** | `r3-g3-diff/diff.json` |
+| Element-scoped pixel differential | 29/30 byte-identical; the 30th differs **identically** in the same-CSS control → 0 packet pixels | `r3-pixel/`, `r3-pixel-control/` |
+| Stylelint, matched 21-source glob | `no-descending-specificity` 194→204 (+10), all on approved lines; every other category flat | `r3-stylelint-{before,after}.json` |
+| Windows visual matrix | **36 failed / 30 passed on both halves, identities exactly equal**; 0 new, 0 cleared, no snapshot changed | `r3-visual-{before,after}.json` |
+
+### What the corrective actually fixes
+
+1. **G3 was unfalsifiable.** `n4_regions_abc.mjs` recorded only `pages-workout-log.css`,
+   which no admissible repair touches, so both halves were byte-indistinguishable and
+   `i_diff_g3.mjs` printed a full PASS when handed the same summary twice. Both now carry
+   identity and refusal logic, and `--root` lets the before half come from a real second
+   checkout instead of an in-place swap.
+2. **The known-live control was unreproducible.** 8,856 was a real number from a scratch hand
+   edit that exists nowhere in git. `i_known_live_mutation.mjs` now regenerates it
+   deterministically (`883e6aa8…` → `9326fc63…`) and reproduces **8,856 exactly**.
+3. **The evidence quoted two different mutations as one.** §3's table was the unguarded
+   8,784 run; §9 quoted the guarded 8,856 run. Now a single reproducible run throughout.
+4. **Stylelint's halves were run over different file sets** (21 sources vs 19), which
+   inflated run-wide `no-descending-specificity` to 473→638. Matched, it is 473→483.
+5. **The pixel differential belonged to PR #211.** `i_element_pixel_diff.mjs` is i's own,
+   with a same-CSS determinism control.
 
 ## Checkpoint contents
 

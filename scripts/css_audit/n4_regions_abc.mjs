@@ -37,14 +37,32 @@
  * sentinel is written: this measures declaration ownership from CDP cascade data,
  * so nothing is applied to the page that would have to be removed again.
  *
+ * Provenance is recorded, never inferred from the output directory's name. The
+ * run records its checkout root, git head/branch/dirty state, the `--side` it was
+ * told it is, and the on-disk *and served* digests of both `pages-workout-log.css`
+ * and `components.css`. `components.css` is the file any `:is()` repair edits, so
+ * it is the only digest that can distinguish a before half from an after half —
+ * recording just `pages-workout-log.css`, which no admissible repair touches, left
+ * the two summaries byte-indistinguishable and the gate unverifiable from its own
+ * artifacts.
+ *
+ * The diff half requires the two summaries to come from different checkout roots,
+ * so `--root` selects which checkout is served and measured. Without it the before
+ * half could only be produced by swapping `components.css` in place in the after
+ * half's own tree, which leaves no durable proof of which bytes were served when —
+ * the same unreproducibility this corrective exists to remove.
+ *
  * usage:
  *   node scripts/css_audit/n4_regions_abc.mjs \
+ *     --side before|after \
+ *     [--root <checkout>] \
  *     --frozen-db artifacts/wp4_4/probe-frozen.db \
  *     --expect-db-sha <sha256> \
+ *     [--expect-components-sha <sha256>] \
  *     --out artifacts/wp4_4/n4-regions-abc
  */
 import { chromium } from '@playwright/test';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, copyFileSync, existsSync, unlinkSync, rmSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -52,10 +70,9 @@ import { createHash } from 'node:crypto';
 import { connect } from 'node:net';
 import postcss from 'postcss';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const SELF_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const PORT = 5000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const CSS_PATH = join(ROOT, 'static/css/pages-workout-log.css');
 const PAGE_URL_SUFFIX = '/static/css/pages-workout-log.css';
 
 const argv = process.argv.slice(2);
@@ -63,11 +80,30 @@ const arg = (name, fallback = null) => {
   const i = argv.indexOf(name);
   return i < 0 ? fallback : argv[i + 1];
 };
+// Which checkout is served and measured. Defaults to this script's own tree, so
+// the after half needs no flag; the before half points at a checkout of the
+// pre-repair commit.
+const ROOT = resolve(arg('--root', SELF_ROOT));
+const CSS_PATH = join(ROOT, 'static/css/pages-workout-log.css');
 const outDir = resolve(arg('--out', 'artifacts/wp4_4/n4-regions-abc'));
 const frozenDb = resolve(arg('--frozen-db', 'artifacts/wp4_4/probe-frozen.db'));
 const expectDbSha = arg('--expect-db-sha');
 const expectCssSha = arg('--expect-css-sha');
 const dbPath = resolve('artifacts/wp4_4/n4-probe.db');
+
+// WP4.4-i corrective: which half of the G3 gate this run is, and which
+// components.css it must serve. `--side` is recorded, never inferred; the
+// variable under test is components.css, and until this packet the summary
+// recorded only pages-workout-log.css — byte-identical on both halves by
+// design, so two summaries were indistinguishable and the diff could not tell
+// a real before/after pair from the same capture supplied twice.
+const side = arg('--side');
+if (side !== null && side !== 'before' && side !== 'after') {
+  throw new Error(`--side must be "before" or "after", got ${JSON.stringify(side)}`);
+}
+const expectComponentsSha = arg('--expect-components-sha');
+const COMPONENTS_PATH = join(ROOT, 'static/css/components.css');
+const COMPONENTS_URL_SUFFIX = '/static/css/components.css';
 
 const WIDTHS = (arg('--widths', '375,768,1440')).split(',').map(Number);
 const THEMES = ['light', 'dark'];
@@ -496,13 +532,68 @@ async function settlePage(page) {
   });
 }
 
+const portOccupied = () =>
+  new Promise((done) => {
+    const socket = connect({ host: '127.0.0.1', port: PORT });
+    const settle = (value) => { socket.destroy(); done(value); };
+    socket.once('connect', () => settle(true));
+    socket.once('error', () => settle(false));
+    socket.setTimeout(1000, () => settle(false));
+  });
+
+/**
+ * Refuse to measure a server this run did not start.
+ *
+ * `startServer` polls the port, so a server left listening by an earlier run
+ * satisfies the wait instantly while the freshly spawned process fails to bind
+ * and exits. The run then reports the sha of this checkout's file on disk while
+ * having measured a different checkout entirely. `i_five_route_computed.mjs`
+ * closed that hole for the computed differential; the G3 harness — which
+ * measures the packet's declared *hard* gate — did not have it until now.
+ */
+async function assertPortFree() {
+  if (await portOccupied()) {
+    throw new Error(
+      `port ${PORT} is already in use; another server would be measured instead of ${ROOT}. ` +
+      'Stop it first — do not assume it serves the same checkout.'
+    );
+  }
+}
+
+/** The served bytes, not the bytes on disk, are what the browser cascaded. */
+async function assertServed(suffix, expectedSha) {
+  const response = await fetch(`${BASE_URL}${suffix}`);
+  if (!response.ok) throw new Error(`could not fetch ${suffix}: ${response.status}`);
+  const servedSha = createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex');
+  if (servedSha !== expectedSha) {
+    throw new Error(
+      `the server is serving ${suffix} ${servedSha} but ${ROOT} has ${expectedSha}. ` +
+      'A different checkout is being measured.'
+    );
+  }
+  return servedSha;
+}
+
+function gitIdentity() {
+  const run = (args) => {
+    const result = spawnSync('git', ['-C', ROOT, ...args], { encoding: 'utf8' });
+    return result.status === 0 ? result.stdout.trim() : null;
+  };
+  return { head: run(['rev-parse', 'HEAD']), branch: run(['rev-parse', '--abbrev-ref', 'HEAD']), dirty: run(['status', '--porcelain']) !== '' };
+}
+
 async function startServer() {
+  await assertPortFree();
   const python = join(ROOT, '.venv/Scripts/python.exe');
   const server = spawn(python, ['app.py'], {
     cwd: ROOT,
     env: { ...process.env, DB_FILE: dbPath, FLASK_DEBUG: '0', FLASK_USE_RELOADER: '0', TESTING: '0' },
     stdio: 'ignore',
   });
+  // A child that dies before binding must fail the run, not fall through to a
+  // stale listener on the same port.
+  let exited = null;
+  server.once('exit', (code) => { exited = code ?? 'signal'; });
   const portOpen = () =>
     new Promise((done) => {
       const socket = connect({ host: '127.0.0.1', port: PORT });
@@ -515,6 +606,7 @@ async function startServer() {
       socket.setTimeout(1000, () => settle(false));
     });
   for (let attempt = 0; attempt < 120; attempt += 1) {
+    if (exited !== null) throw new Error(`app.py exited with ${exited} before the port opened`);
     if (await portOpen()) return server;
     await new Promise((done) => setTimeout(done, 500));
   }
@@ -698,6 +790,10 @@ async function main() {
   if (expectCssSha && cssSha !== expectCssSha) {
     throw new Error(`pages-workout-log.css is ${cssSha}, expected ${expectCssSha}`);
   }
+  const componentsSha = fileSha(COMPONENTS_PATH);
+  if (expectComponentsSha && componentsSha !== expectComponentsSha) {
+    throw new Error(`components.css is ${componentsSha}, expected ${expectComponentsSha}`);
+  }
   if (!expectDbSha) throw new Error('--expect-db-sha is required');
   if (!existsSync(frozenDb)) throw new Error(`missing frozen database ${frozenDb}`);
 
@@ -733,6 +829,11 @@ async function main() {
   mkdirSync(outDir, { recursive: true });
 
   const server = await startServer();
+  // Prove the browser will cascade THIS checkout's bytes before measuring
+  // anything. components.css is the file the repair edits, so it is the digest
+  // that distinguishes the two halves of the gate.
+  const servedComponentsSha = await assertServed(COMPONENTS_URL_SUFFIX, componentsSha);
+  const servedPageCssSha = await assertServed(PAGE_URL_SUFFIX, cssSha);
   const browser = await chromium.launch();
   const contexts = [];
   for (const theme of THEMES) {
@@ -842,11 +943,19 @@ async function main() {
 
   const summary = {
     generatedFrom: 'scripts/css_audit/n4_regions_abc.mjs',
-    purpose: 'G3 pre-change ownership measurement of Workout Log regions A, B and C',
+    purpose: `G3 ownership measurement of Workout Log regions A, B and C${side ? ` — ${side} half` : ''}`,
     identity: {
+      side,
+      root: ROOT,
+      git: gitIdentity(),
       cssFile: 'static/css/pages-workout-log.css',
       cssSha256: cssSha,
-      frozenDbSha256: expectDbSha,
+      servedCssSha256: servedPageCssSha,
+      // The variable under test. Recording only pages-workout-log.css made the
+      // two halves indistinguishable, because no admissible repair touches it.
+      componentsCssSha256: componentsSha,
+      servedComponentsCssSha256: servedComponentsSha,
+      frozenDbSha256: copiedDbSha,
       widths: WIDTHS,
       themes: THEMES,
       route: '/workout_log',
@@ -886,14 +995,19 @@ async function main() {
     perDeclaration,
   };
 
-  writeFileSync(join(outDir, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
-  writeFileSync(join(outDir, 'records.json'), `${JSON.stringify(passes.first, null, 2)}\n`);
-  writeFileSync(join(outDir, 'same-css-control.json'), `${JSON.stringify(differing, null, 2)}\n`);
-
   const fatal = [];
   if (differing.length) fatal.push(`same-CSS control: ${differing.length} differing records`);
   if (deadRegions.length) fatal.push(`known-live control: no live winner in region(s) ${deadRegions.join(', ')}`);
   if (resolution.mismatches.length) fatal.push(`resolution self-check: ${resolution.mismatches.length} mismatches`);
+  // The verdict ships inside the artifact. This file used to be written before
+  // the fatal check ran, so a run with a dirty control still left a summary that
+  // read exactly like a clean one and the diff half would consume it.
+  summary.controls.fatal = fatal;
+  summary.controls.passed = fatal.length === 0;
+
+  writeFileSync(join(outDir, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
+  writeFileSync(join(outDir, 'records.json'), `${JSON.stringify(passes.first, null, 2)}\n`);
+  writeFileSync(join(outDir, 'same-css-control.json'), `${JSON.stringify(differing, null, 2)}\n`);
 
   console.log(JSON.stringify({ ...summary, perDeclaration: undefined }, null, 2));
   if (fatal.length) {

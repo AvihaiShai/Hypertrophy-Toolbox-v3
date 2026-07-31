@@ -1,15 +1,16 @@
 # WP4.4-i — `components.css` `:is()` shared-selector repair
 
 **Status:** implemented across **all thirteen rules** of the family. One branch of four was
-repaired; the other three are retained deliberately, two because de-weighting them is
-*measured* to resurrect suppressed page-local rules and one because it is the specificity
-donor.
+repaired; the other three are retained deliberately — one because de-weighting it is
+*measured live* to resurrect suppressed page-local rules, one on Inventory B's static
+ownership measurement, and one because it is the specificity donor.
 
-**Branch:** `wt/wp4-4-i-is-repair`. **Base:** `89523ed` (`main` after PR #210).
+**Branch:** `wt/wp4-4-i-is-repair`. **Base:** `1019d34` (`main` after PR #211), merged as
+`5f7b5ac` (PR #212).
 **`static/css/components.css`:** `883e6aa8…` → `0702558b…`, **5,207 newlines before and
 after**, 14 selector lines rewritten in place, no declaration added or removed.
 
-> **Verification is complete with one explicit, owner-approved exception.** Gate 8's "no
+> Gate 8's "no
 > category up" is **not** satisfied: `no-descending-specificity` rises by 10. §7 enumerates
 > every one of those warnings and attributes 100% of them to the approved split lines. The
 > packet also **does not deliver** the `selector-max-id` / `selector-max-specificity`
@@ -81,29 +82,47 @@ because the family borrows `a = 1`:
 | `pages-weekly-summary.css:172-177` `[data-theme='dark'] #weekly-summary-container .table thead th` | (1,2,2) | R9 |
 | `pages-weekly-summary.css:183-188` `[data-theme='dark'] #weekly-summary-container .table td` | (1,2,1) | R10 |
 
-`pages-session-summary.css:116-127, 178-204` mirrors all of them.
+`pages-session-summary.css:116-122` (border-collapse), `:124-129` (the
+`border: 1px solid var(--ss-table-border) !important` mirror) and `:178-204` mirror all of
+them.
 
-This was not left as arithmetic. The branch was de-weighted in a scratch mutation and the
-five-route differential re-run against the same frozen database:
+This was not left as arithmetic. The branch is de-weighted by a committed, deterministic
+mutation and the five-route differential re-run against the same frozen database:
 
 | Control result | Value |
 |---|---|
-| Computed-value changes | **8,784** |
-| Routes affected | session-summary 4,542 · weekly-summary 4,242 |
+| Computed-value changes | **8,856** |
+| Routes affected | session-summary 4,578 · weekly-summary 4,278 |
 | Routes unaffected | workout-plan **0** · workout-log **0** · progression **0** |
-| By theme | dark 5,616 · light 3,168 |
-| Properties | `border-*-color` 7,056 · `color` 972 · `background-color` 756 |
+| By theme | dark 5,688 · light 3,168 |
+| Properties | `border-*-color` 7,056 · `color` 972 · `background-color` 792 · `box-shadow` 36 |
 
-The resurrected values are the **unmigrated legacy palette**: `border-*-color:
+Provenance: `artifacts/wp4_4/i/r3-knownlive-diff/diff.json`. Before half
+`artifacts/wp4_4/i/r3-before` (root `…-wp4-4-i-is-repair`, `components.css`
+`883e6aa8…107964`); control half `artifacts/wp4_4/i/r3-knownlive` (root `…-wp4-4-j` at
+`1019d34` carrying the mutation, `components.css` `9326fc63…4d9094`); frozen DB
+`5bc6d340…9a1b61` on both halves; both halves guarded, `controlsPassed: true`.
+
+The resurrected values are the **unmigrated legacy palette**. Dark: `border-*-color:
 rgba(0,0,0,0) → rgb(64,64,64)` (`#404040`), `color: rgb(238,241,246) → rgb(224,224,224)`
 (`#e0e0e0`), `background-color: rgb(22,26,45) → rgb(26,26,26)` (`#1a1a1a`) and
-`→ rgb(45,45,45)` (`#2d2d2d`) — `--wk-dark-*` / `--ss-dark-*`, which `theme-dark.css` does
-not remap.
+`→ rgb(45,45,45)` (`#2d2d2d`), and `box-shadow: <accent ring> → none` — `--wk-dark-*` /
+`--ss-dark-*`, which `theme-dark.css` does not remap. Light contributes the remaining
+3,168, all `border-*-color`, from the same legacy families.
 
 **This run does double duty.** It is the N3 disproof for this branch *and* the known-live
 control for the instrument: a differential reporting zero is indistinguishable from a broken
 differential until it is shown to report non-zero when the cascade really moves. The
 instrument is unchanged between that run and §5, so the control carries.
+
+**The mutation is committed, not scratch.** `scripts/css_audit/i_known_live_mutation.mjs`
+splits `.summary-frame.frame-calm-glass` out of the family's `:is()` list on all thirteen
+lines that carry it, refuses to run against any input other than the pristine
+`883e6aa8…107964`, and produces `9326fc63…4d9094` deterministically. Earlier revisions of
+this document quoted **8,784** here and **8,856** in §9: those were two *different* hand
+mutations made on different days, neither reproducible, and the smaller one omitted the dark
+`tr:hover td` arm (`:3409`) — which is exactly the missing 6 `background-color` + 6
+`box-shadow` per dark hover context, +72. Only the reproducible figure is quoted now.
 
 ### `.workout-log-page` — UNSAFE, retained on Inventory B
 
@@ -217,8 +236,10 @@ so it is pinned by `test_the_repair_added_no_lines` and
 
 ## 5. The five-route computed-value differential
 
-The committed pixel matrix cannot falsify this repair: `visual.spec.ts` is deep-gate-only,
-carries `maxDiffPixels: 800` against V1's "zero visual differences", and
+The committed pixel matrix cannot falsify this repair: `visual.spec.ts` runs only under the
+manual deep gate (`.github/workflows/deep-gate.yml`, per `.github/workflows/ci.yml:476`) and
+screenshots through `visualScreenshotOptions`, which carries `maxDiffPixels: 800`
+(`e2e/visual-helpers.ts:187,206`) against V1's "zero visual differences", and
 `docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` already reds **every desktop capture of
 every affected route in at least one theme** — so a real regression there is
 indistinguishable from the inherited red by any assertion M7 permits. The primary oracle is
@@ -242,13 +263,27 @@ Inventory B's evidence was lost (§8).
 | **Computed-value differences** | **0** |
 
 Measured `883e6aa8…` → `0702558b…` against the same frozen database. The known-live control
-in §3, run through this identical instrument, reports **8,784** differences, so this zero is
+in §3, run through this identical instrument, reports **8,856** differences, so this zero is
 a measurement rather than a blind spot.
+
+Provenance: `artifacts/wp4_4/i/r3-before` (`components.css` == served == `883e6aa8…107964`)
+versus `artifacts/wp4_4/i/r3-after` (== served == `0702558b…c6f0e5`), both from root
+`…-wp4-4-i-is-repair`, frozen DB `5bc6d340…9a1b61`, verdict in
+`artifacts/wp4_4/i/r3-diff-computed/diff.json`.
 
 Controls, each fatal: same-CSS control (every context captured twice, zero differing); DOM
 presence (every route renders a `.table-calm` with body cells); theme applied (`data-theme`
 asserted, per Inventory B defect 2); transition settling via the Web Animations API before
-any computed read (M6a). All clean on both halves.
+any computed read (M6a). All clean on both halves — recorded as `failures: []` and
+`controlsPassed: true` in `r3-before/meta.json` and `r3-after/meta.json`.
+
+**The same-CSS control is also run across processes.** The in-run M5 control captures each
+context twice inside a single run, which cannot detect drift introduced by the server, the
+database copy or the browser launch. `artifacts/wp4_4/i/r3-samecss` is an independent second
+capture of the *same* `0702558b…` tree; `i_diff_computed --expect-same-css` reports **0
+differences across the same 758,400 values**. So the instrument is neither noisy (identical
+input → identical output across whole runs) nor blind (§3's mutation → 8,856), and the zero
+above sits between two live controls rather than standing alone.
 
 ---
 
@@ -256,13 +291,45 @@ any computed read (M6a). All clean on both halves.
 
 The differential says the repair changes nothing. The committed visual matrix initially
 disagreed: `progression desktop dark` and `progression tablet dark` failed
-**deterministically** — 3,613 and 2,235 pixels, identical to the pixel over three repeats,
-while pristine `main` passed the same captures 18/18. A contradiction between two oracles
-has to be resolved, not averaged.
+**deterministically** — reported at the time as 3,613 and 2,235 pixels, identical to the
+pixel over three repeats, while pristine `main` passed the same captures 18/18. A
+contradiction between two oracles has to be resolved, not averaged.
+
+Those six pre-#211 runs produced no committed reporter output, so the three figures above
+are recorded here as history rather than as evidence; what closed the contradiction is the
+root cause below, and the reconciliation now in §9 shows the Progression captures agreeing
+with `main` on both halves.
 
 **The production cascade really is unchanged.** A full-page capture — every element, every
 computed property, plus bounding rects, rendered against the same database the visual
-matrix uses — reports **0 differences across 276 elements at both widths**.
+matrix uses — reported **0 differences across 276 elements at both widths**. That capture
+was taken with a scratch harness that was never committed, so by this document's own A11
+standard it is corroboration, not evidence. The committed replacement is
+[`i_element_pixel_diff.mjs`](../scripts/css_audit/i_element_pixel_diff.mjs), an
+**element-scoped pixel differential** that serves both checkouts in turn on the same port
+and rasterises `table.table-calm` across 5 routes × 2 themes × 3 widths.
+
+| Element-scoped pixel result | Value |
+|---|---|
+| Contexts compared | 30 |
+| Byte-identical captures | **29** |
+| Contexts differing | 1 — `workout-log|dark|1440`, **3 pixels**, 1×11 box at (195,462), max channel delta 3/255 |
+| Same-CSS control (`--expect-same-css`, `883e6aa8…` against itself) | **the identical 3 pixels, same box, same delta** |
+| **Packet-attributable pixel delta** | **0** |
+
+The one differing context differs *identically* in the same-CSS control, so it is the
+instrument's noise floor and not a packet effect. It is also structurally impossible for it
+to be one: `workout-log` is styled by the **retained** donor group, whose specificity is
+bit-identical to the four-branch original, and all 12 of its computed contexts report zero
+differences in §5. Artifacts: `artifacts/wp4_4/i/r3-pixel/pixel-diff.json` and
+`artifacts/wp4_4/i/r3-pixel-control/pixel-diff.json`.
+
+An earlier revision of the harness reported a 379-pixel difference at
+`workout-log|light|768` with max delta 224. That was a **focus ring**: Workout Log renders a
+table of focusable inputs and which one holds focus after load is not deterministic. The
+harness now blurs the active element and requires two consecutive identical rasters before
+accepting one; the artifact has not recurred in three subsequent runs. It was never
+reproducible and never appeared on any route the repair reaches.
 
 **The red came from the test harness's own injected CSS.** `e2e/visual-helpers.ts` flattened
 dark surfaces with a rule computing to **(0,3,1)**, and the Progression goals table carries
@@ -298,6 +365,22 @@ Both halves run the committed [`n4_regions_abc.mjs`](../scripts/css_audit/n4_reg
 against the same probe database; the diff is
 [`i_diff_g3.mjs`](../scripts/css_audit/i_diff_g3.mjs).
 
+**The two halves are measured from two different checkouts**, and the diff refuses them
+otherwise. Before: `artifacts/wp4_4/i/r3-g3-before-1019d34`, root
+`…-wp4-4-j` at `1019d34`, clean tree, `components.css` == served == `883e6aa8…107964`.
+After: `artifacts/wp4_4/i/r3-g3-after`, root `…-wp4-4-i-is-repair` at `09bf9a0`,
+`components.css` == served == `0702558b…c6f0e5`. `pages-workout-log.css`
+(`d07e2c07…73c8c6`) and the frozen DB (`5bc6d340…9a1b61`) are byte-identical on both halves,
+so `components.css` is the only variable. Verdict:
+`artifacts/wp4_4/i/r3-g3-diff/diff.json`, **0 provenance failures**.
+
+This matters because the gate was previously unfalsifiable. The measurement recorded only
+`pages-workout-log.css`, which no admissible repair touches, so both halves' summaries were
+byte-indistinguishable and passing the *same* summary twice printed a full PASS. The harness
+now records `--side`, the checkout root, git head/branch/dirty state and the on-disk **and
+served** digests of both stylesheets; the diff refuses same-root, same-`components.css`,
+wrong-side, failed-control, empty and positionally-drifted inputs.
+
 | | before (`883e6aa8…`) | after (`0702558b…`) |
 |---|---:|---:|
 | Ownership records | 56,304 | 56,304 |
@@ -331,8 +414,23 @@ has zero always-wins. Nothing resurrected.
 
 ## 7. Stylelint — the bounded exception, enumerated
 
-Measured with the pinned configuration over `static/css/**`; `components.css` is the only
-file changed.
+Measured by running the project's own `lint:css` command —
+`stylelint "static/css/**/*.css" "scss/**/*.scss"` — from each checkout, with byte-identical
+`.stylelintrc.json` and `.stylelintignore`. **Both halves resolve the same 21 sources**, so
+the comparison is like-for-like at the run level as well as per file. Artifacts:
+`artifacts/wp4_4/i/r3-stylelint-before.json` (root `…-wp4-4-j` at `1019d34`) and
+`artifacts/wp4_4/i/r3-stylelint-after.json` (root `…-wp4-4-i-is-repair`).
+
+`components.css` is the only file whose count moves: **1,920 → 1,930**, every other source
+byte-for-byte unchanged in warnings. Run-wide that is **5,382 → 5,392**, and
+`no-descending-specificity` **473 → 483** — the same +10, nothing else.
+
+An earlier revision compared two runs over *different* file sets (21 sources including
+`scss/**` from the main checkout versus 19 including the ignored
+`bootstrap.custom.min.css` from the worktree), which made the run-wide totals
+incomparable and appeared to show `no-descending-specificity` rising 473 → 638. Under the
+matched glob that inflation disappears; it was an artifact of the mismatch, not a
+regression.
 
 | Rule | Before | After | Δ |
 |---|---:|---:|---:|
@@ -373,8 +471,9 @@ line-keyed attribution is the honest one and is what the table above reports.
 
 No warning was suppressed, disabled or configured around; `.stylelintrc.json` is unmodified.
 Stylelint is measure-only and non-blocking in CI (`.github/workflows/ci.yml:644`), and
-against the pinned WP4.1 baseline every category remains far below it
-(`no-descending-specificity` 783 → ~481 arc-wide).
+against the pinned WP4.1 baseline of **783** `no-descending-specificity` the arc remains far
+below it: **483** run-wide after this packet, up 10 from 473. That is a different scope from
+the table above, which counts `components.css` only (194 → 204).
 
 ### Measured under-delivery
 
@@ -416,10 +515,18 @@ row-position rule in the family. Progression went from 11 elements per context t
 
 ## 9. Contracts and gates
 
-`tests/test_css_wp4_4_i_is_repair_contracts.py` is packet-owned per **N1**. Its six tests
-pin the thirteen-rule completeness, the zero-line invariant, the single-physical-line shape,
-the donor-group invariant for both unsafe branches, the reduced-motion asymmetry, and the
-whole-file token totals.
+`tests/test_css_wp4_4_i_is_repair_contracts.py` is packet-owned per **N1**. Its **eight**
+tests pin the thirteen-rule completeness, the zero-line invariant, the single-physical-line
+shape, the donor-group invariant for both unsafe branches, the reduced-motion asymmetry, the
+whole-file token totals, the specificity of the split arms computed directly rather than
+asserted, and the lowest arm's dependency on PR #211's `data-visual-preserve-border` hook.
+
+The last two were added by this corrective. The specificity contract closes a gap where the
+file's central claim — that the Progression arm becomes ID-free while the donor arm does not
+— was pinned only by matching selector *text*, which cannot detect a specificity change that
+preserves the string. The hook contract pins a cross-file dependency that was load-bearing
+but unenforced: if PR #211's inert hook were removed, the repair would silently reacquire the
+visual red it was cleared of.
 
 The reduced-motion asymmetry deserves its pin. That rule's `:is()` omits
 `.summary-frame.frame-calm-glass` deliberately: summary table cells are **not**
@@ -432,22 +539,38 @@ it** — no spec sets `reducedMotion`, and `e2e/visual-helpers.ts:44-48` forces
 All figures below are from **post-rebase** runs onto `1019d34`; every pre-rebase result was
 discarded rather than carried forward.
 
-| Gate | Result |
-|---|---|
-| Full `pytest` | **2287 passed, 1 skipped** |
-| CSS + visual contracts | **59 passed** |
-| Computed-value differential | **0 differences / 758,400 values**, served sha asserted on both halves |
-| Known-live control | **8,856** differences, summary routes only — the instrument is live |
-| G3 regions A–C | **0 resurrections, 0 ownership drift** |
-| Stylelint | **+10 `no-descending-specificity`, 100% attributed to the approved split lines**; every other category flat; no line outside the approved set changed |
-| Visual matrix (visual specs only) | **37 failures, identities exactly `main`'s 37**; both Progression reds gone; **no snapshot changed** |
-| Full Chromium suite | **49 failed / 475 passed / 17 not run — identical counts _and_ identities to `main`'s full-suite run** |
+| Gate | Result | Artifact |
+|---|---|---|
+| Full `pytest` | **2289 passed, 1 skipped** (2,287 before this corrective added two contracts) | `artifacts/wp4_4/i/r3-pytest-full.txt` |
+| CSS cascade + components + packet contracts | **47 passed** | rerun of the three named files |
+| Computed-value differential | **0 differences / 758,400 values**, served sha asserted on both halves | `r3-diff-computed/diff.json` |
+| Same-CSS control, cross-run | **0 differences** over the same 758,400 values | `r3-diff-samecss/diff.json` |
+| Known-live control | **8,856** differences (session 4,578 · weekly 4,278), summary routes only — the instrument is live | `r3-knownlive-diff/diff.json` |
+| G3 regions A–C | **0 resurrections, 0 ownership drift, 0 provenance failures**, halves from two different checkouts | `r3-g3-diff/diff.json` |
+| Element-scoped pixel differential | **29/30 byte-identical**; the 30th differs identically in the same-CSS control → **0 packet-attributable pixels** | `r3-pixel/pixel-diff.json`, `r3-pixel-control/pixel-diff.json` |
+| Stylelint (matched glob, 21 sources both halves) | **+10 `no-descending-specificity`, 100% attributed to the approved split lines**; every other category flat; no line outside the approved set changed | `r3-stylelint-before.json`, `r3-stylelint-after.json` |
+| Windows visual matrix (`visual.spec.ts`) | **36 failed / 30 passed on both halves, failure identities exactly equal** — 0 new, 0 cleared; **no snapshot changed** | `r3-visual-before.json`, `r3-visual-after.json` |
+| Linux deep gate (N8) | dispatched on the corrective branch; reconciled against `CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` | see §9 note |
 
-The full suite reports 12 more failures than the visual-only run
-(`body-composition`, `user-profile`). Those are pre-existing full-suite state pollution:
-earlier functional specs mutate the database before the visual captures run, and `main`
-reproduces the same 49 with the same identities. `user-profile` was independently measured
-**nondeterministic** — five captures of an identical variant produced five distinct hashes.
+Artifact paths are relative to `artifacts/wp4_4/i/`. The `r3-*` series supersedes the
+earlier `before/`, `after13/`, `g3-*`, `control-*` and `r2-*` runs, which are retained only
+as historical diagnostics: their metadata records no checkout root and, for the G3 pair, no
+`components.css` digest, so they cannot establish which tree produced them.
+
+**The Windows visual matrix is a reconciliation, not a pass.** Both halves fail 36 of 66
+captures — the pre-repair tree at `1019d34` and the repaired tree produce the **same 36
+identities**, across six routes at three viewports in both themes. Two of those routes,
+`backup` and `fatigue`, are ones this family cannot reach at all, which is what an
+environment-wide red looks like rather than a packet effect. The reconciliation the gate
+actually asks for is that the sets are equal, and they are: zero introduced, zero cleared,
+and `git status e2e/__screenshots__/` is empty on both runs, so nothing was rebaselined.
+
+An earlier revision of this document reported **37** visual failures and a
+**49 failed / 475 passed / 17 not run** full-suite figure. Neither had a committed artifact
+and the visual number does not reproduce; the measured Windows figure is 36 on both halves.
+The full Chromium suite is not re-measured locally here — it is the CI gate on the
+corrective's pull request, which runs the required suites on Linux, and that run is the
+citation for it rather than an unreproduced local count.
 
 ### A measurement defect found and closed during this packet
 
@@ -463,32 +586,80 @@ asserts that the **served** `components.css` bytes match the checkout under test
 bytes being what the browser actually cascades. Every number in this document comes from a
 guarded run, and each capture records `servedCssSha256` alongside the on-disk digest.
 
+The same defect had a second, worse form in the G3 harness, closed in the same corrective.
+`n4_regions_abc.mjs` recorded only `pages-workout-log.css` — a file no admissible repair
+touches — so both halves of a before/after pair were byte-indistinguishable and
+`i_diff_g3.mjs`, which compared only `perDeclaration` and `totals`, printed a full PASS when
+handed the *same* summary twice. The hard gate could not fail. It now records `--side`, the
+checkout root, git identity and both stylesheets' on-disk and served digests, and the diff
+rejects same-root, same-`components.css`, wrong-side, failed-control, empty and
+positionally-drifted inputs. `--root` exists so the before half can be served from a real
+second checkout instead of an in-place swap.
+
 ---
 
 ## 10. Reproduction
 
+`$I` is a checkout of this packet (`components.css` `0702558b…`); `$J` is a checkout of the
+pre-repair commit `1019d34` (`components.css` `883e6aa8…`). Two roots are required: the G3
+diff and the pixel differential both refuse a comparison whose halves share a checkout,
+because an in-place file swap leaves no durable proof of which bytes were served when.
+
 ```bash
 # probe database (byte-reproducible; not committed)
-python scripts/css_audit/i_seed_probe_db.py --out artifacts/wp4_4/i/probe-i.db
+python scripts/css_audit/i_seed_probe_db.py --out artifacts/wp4_4/i/probe-r3.db
 # → sha256 5bc6d3405464ca983123e95309b13cb1b505f28053bc043565adb2b0389a1b61
 
-# five-route computed capture, once per checkout
-node scripts/css_audit/i_five_route_computed.mjs \
-  --root <checkout> --frozen-db artifacts/wp4_4/i/probe-i.db \
-  --out artifacts/wp4_4/i/<label>
+# five-route computed capture, once per checkout, plus a second run of the same tree
+node scripts/css_audit/i_five_route_computed.mjs --root $J \
+  --frozen-db artifacts/wp4_4/i/probe-r3.db --out artifacts/wp4_4/i/r3-before
+node scripts/css_audit/i_five_route_computed.mjs --root $I \
+  --frozen-db artifacts/wp4_4/i/probe-r3.db --out artifacts/wp4_4/i/r3-after
+node scripts/css_audit/i_five_route_computed.mjs --root $I \
+  --frozen-db artifacts/wp4_4/i/probe-r3.db --out artifacts/wp4_4/i/r3-samecss
 
-# differential (non-zero exit on any difference)
+# differential, then the cross-run same-CSS control (non-zero exit on any difference)
 node scripts/css_audit/i_diff_computed.mjs \
-  artifacts/wp4_4/i/before/computed.json artifacts/wp4_4/i/after13/computed.json
+  artifacts/wp4_4/i/r3-before/computed.json artifacts/wp4_4/i/r3-after/computed.json \
+  --out artifacts/wp4_4/i/r3-diff-computed          # → 0 differences / 758,400 values
+node scripts/css_audit/i_diff_computed.mjs \
+  artifacts/wp4_4/i/r3-after/computed.json artifacts/wp4_4/i/r3-samecss/computed.json \
+  --expect-same-css --out artifacts/wp4_4/i/r3-diff-samecss    # → 0 differences
+
+# known-live control: de-weight the UNSAFE summary branch in $J, capture, diff, revert
+node scripts/css_audit/i_known_live_mutation.mjs --root $J   # 883e6aa8… → 9326fc63…
+node scripts/css_audit/i_five_route_computed.mjs --root $J \
+  --frozen-db artifacts/wp4_4/i/probe-r3.db --out artifacts/wp4_4/i/r3-knownlive
+node scripts/css_audit/i_diff_computed.mjs \
+  artifacts/wp4_4/i/r3-before/computed.json artifacts/wp4_4/i/r3-knownlive/computed.json \
+  --out artifacts/wp4_4/i/r3-knownlive-diff        # → 8,856 differences (4,578 / 4,278)
+git -C $J checkout -- static/css/components.css
 
 # G3 regions A-C, once per checkout, then diff
-node scripts/css_audit/n4_regions_abc.mjs \
-  --frozen-db artifacts/wp4_4/i/probe-i.db \
+node scripts/css_audit/n4_regions_abc.mjs --side before --root $J \
+  --frozen-db artifacts/wp4_4/i/probe-r3.db \
   --expect-db-sha 5bc6d3405464ca983123e95309b13cb1b505f28053bc043565adb2b0389a1b61 \
+  --expect-components-sha 883e6aa85564c42b36ca801529081b279f119e5c99a539dc235bc84d72107964 \
   --expect-css-sha d07e2c07ebe9585df2779ad078a3d5335247a4427cf41420af2497630173c8c6 \
-  --out artifacts/wp4_4/i/g3-<label>
+  --out artifacts/wp4_4/i/r3-g3-before-1019d34
+node scripts/css_audit/n4_regions_abc.mjs --side after \
+  --frozen-db artifacts/wp4_4/i/probe-r3.db \
+  --expect-db-sha 5bc6d3405464ca983123e95309b13cb1b505f28053bc043565adb2b0389a1b61 \
+  --expect-components-sha 0702558b66403ed561ada6b141a739bb0739de0d5df4b16f0f37aee3c7c6f0e5 \
+  --expect-css-sha d07e2c07ebe9585df2779ad078a3d5335247a4427cf41420af2497630173c8c6 \
+  --out artifacts/wp4_4/i/r3-g3-after
 node scripts/css_audit/i_diff_g3.mjs \
-  artifacts/wp4_4/i/g3-before/summary.json artifacts/wp4_4/i/g3-after13/summary.json
+  artifacts/wp4_4/i/r3-g3-before-1019d34/summary.json \
+  artifacts/wp4_4/i/r3-g3-after/summary.json --out artifacts/wp4_4/i/r3-g3-diff
+
+# element-scoped pixel differential (serves both roots in turn on the same port)
+node scripts/css_audit/i_element_pixel_diff.mjs \
+  --before-root $J --after-root $I \
+  --frozen-db artifacts/wp4_4/i/probe-r3.db --out artifacts/wp4_4/i/r3-pixel
+
+# Stylelint, the project's own lint:css command, run from each checkout
+node node_modules/stylelint/bin/stylelint.mjs "static/css/**/*.css" "scss/**/*.scss" \
+  --formatter json --output-file artifacts/wp4_4/i/r3-stylelint-<half>.json
 ```
 
 `pages-workout-log.css` is byte-identical to Inventory B's recorded digest (`d07e2c07…`) on
