@@ -135,9 +135,6 @@
 }
 
 /* Add hover effect for the results table */
-:where([data-theme="dark"] .results-section .table tbody tr:hover) {
-    background-color: var(--hover-bg) !important;
-}
 
 /* Form Elements - Glass */
 :where([data-theme="dark"] .form-control),
@@ -292,21 +289,10 @@
 }
 
 /* Tables - Add table-responsive styles */
-:where([data-theme="dark"] .table-responsive) {
-    background-color: var(--card-bg) !important;
-    color: var(--text-primary) !important;
-}
 
 /* Ensure text is visible in all table contexts */
-:where([data-theme="dark"] .table-responsive .table) {
-    color: var(--text-primary) !important;
-    background-color: var(--card-bg) !important;
-}
 
 /* Ensure consistent background color */
-:where([data-theme="dark"] .results-section) {
-    background-color: var(--card-bg) !important;
-}
 
 /* Ensure table header remains visible when scrolling */
 :where([data-theme="dark"] .table-responsive thead th) {
@@ -318,14 +304,12 @@
 
 /* Add border to table-responsive to match overall theme */
 :where([data-theme="dark"] .table-responsive) {
-    border: 1px solid var(--border-color);
     border-radius: 0.25rem;
 }
 
 /* Tables and Results Section */
 :where([data-theme="dark"] .results-section),
 :where([data-theme="dark"] .table-responsive) {
-    background-color: var(--bg-primary) !important;
     color: var(--text-primary) !important;
     border: 1px solid var(--border-color);
 }
@@ -378,28 +362,6 @@
 }
 
 /* Results Body Table Specific Styles */
-:where([data-theme="dark"] #results-body) {
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-}
-
-:where([data-theme="dark"] #results-body tr) {
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-}
-
-:where([data-theme="dark"] #results-body tr:nth-of-type(odd)) {
-    background-color: var(--table-stripe) !important;
-}
-
-:where([data-theme="dark"] #results-body td) {
-    color: var(--text-primary) !important;
-    border-color: var(--border-color) !important;
-}
-
-:where([data-theme="dark"] #results-body tr:hover) {
-    background-color: var(--hover-bg) !important;
-}
 
 /* Ensure the parent table has proper background */
 :where([data-theme="dark"] #results-body table) {
@@ -477,7 +439,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range),
 :where([data-theme="dark"] .input-fields-group input#min_rep),
 :where([data-theme="dark"] .input-fields-group input#max_rep_range) {
-    background-color: #fce4ec !important;
     background: #fce4ec !important;
     border-color: #f8bbd9 !important;
     color: #1e293b !important;
@@ -487,7 +448,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#min_rep:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#max_rep_range:hover:not(:disabled)) {
-    background-color: #f8bbd9 !important;
     background: #f8bbd9 !important;
     border-color: #ec407a !important;
 }
@@ -496,7 +456,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#max_rep_range:focus),
 :where([data-theme="dark"] .input-fields-group input#min_rep:focus),
 :where([data-theme="dark"] .input-fields-group input#max_rep_range:focus) {
-    background-color: #fce4ec !important;
     background: #fce4ec !important;
     border-color: #ec407a !important;
     box-shadow: 0 0 0 3px rgba(236, 64, 122, 0.3) !important;
@@ -507,7 +466,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe),
 :where([data-theme="dark"] .input-fields-group input#rir),
 :where([data-theme="dark"] .input-fields-group input#rpe) {
-    background-color: #e8f5e9 !important;
     background: #e8f5e9 !important;
     border-color: #c8e6c9 !important;
     color: #1e293b !important;
@@ -517,7 +475,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#rir:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#rpe:hover:not(:disabled)) {
-    background-color: #c8e6c9 !important;
     background: #c8e6c9 !important;
     border-color: #66bb6a !important;
 }
@@ -526,7 +483,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#rpe:focus),
 :where([data-theme="dark"] .input-fields-group input#rir:focus),
 :where([data-theme="dark"] .input-fields-group input#rpe:focus) {
-    background-color: #e8f5e9 !important;
     background: #e8f5e9 !important;
     border-color: #66bb6a !important;
     box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.3) !important;
@@ -537,7 +493,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets),
 :where([data-theme="dark"] .input-fields-group input#weight),
 :where([data-theme="dark"] .input-fields-group input#sets) {
-    background-color: #fff9c4 !important;
     background: #fff9c4 !important;
     border-color: #fff176 !important;
     color: #1e293b !important;
@@ -547,7 +502,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#weight:hover:not(:disabled)),
 :where([data-theme="dark"] .input-fields-group input#sets:hover:not(:disabled)) {
-    background-color: #fff176 !important;
     background: #fff176 !important;
     border-color: #fdd835 !important;
 }
@@ -556,7 +510,6 @@
 :where([data-theme="dark"] #workout[data-page="workout-plan"] .input-fields-group .input-group input#sets:focus),
 :where([data-theme="dark"] .input-fields-group input#weight:focus),
 :where([data-theme="dark"] .input-fields-group input#sets:focus) {
-    background-color: #fff9c4 !important;
     background: #fff9c4 !important;
     border-color: #fdd835 !important;
     box-shadow: 0 0 0 3px rgba(253, 216, 53, 0.3) !important;
