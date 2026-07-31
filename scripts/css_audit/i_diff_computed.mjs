@@ -31,7 +31,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
-const FLAGS = new Set(['--expect-same-css']);
+const FLAGS = new Set(['--expect-same-css', '--allow-same-root']);
 const argv = process.argv.slice(2);
 const positional = [];
 for (let i = 0; i < argv.length; i += 1) {
@@ -40,6 +40,12 @@ for (let i = 0; i < argv.length; i += 1) {
 }
 const [beforePath, afterPath] = positional;
 const expectSameCss = argv.includes('--expect-same-css');
+// The two legitimate one-checkout comparisons are the determinism control
+// (same tree twice) and the known-live control (one tree, mutated in place and
+// reverted). Everything else measured from a single root is an in-place file
+// swap, which leaves no durable proof of which bytes were served when -- the
+// sibling differs refuse it and this one must too.
+const allowSameRoot = argv.includes('--allow-same-root') || expectSameCss;
 const outArg = process.argv.indexOf('--out');
 const outDir = outArg < 0 ? null : resolve(process.argv[outArg + 1]);
 
@@ -78,6 +84,15 @@ if (!report.before.css || !report.after.css) {
     `both captures served components.css ${report.before.css}; ` +
     'this is a self-comparison, not a before/after differential ' +
     '(pass --expect-same-css if this is the M5 same-CSS control)',
+  );
+}
+if (!report.before.root || !report.after.root) {
+  fatal.push('a capture is missing its checkout root');
+} else if (!allowSameRoot && report.before.root === report.after.root) {
+  fatal.push(
+    `both captures were measured from ${report.before.root}; `
+    + 'a before/after pair from one checkout is an in-place swap '
+    + '(pass --allow-same-root only for the known-live control)',
   );
 }
 // Both capture harnesses write their artifact before exiting non-zero, so a run
