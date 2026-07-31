@@ -1,6 +1,13 @@
 # Deep Refactor Plan — v3 (2026-07-04, full-scan grounded)
 
-**Status (2026-07-30): Track A, Phases -1 through 3, and Phase-4 packets
+**Status update (2026-07-31, supersedes the older frontier prose below):** WP4.4
+is complete through h; N4 is approved; the visual-harness prerequisite merged in
+PR #211 (`1019d34`); Packet i is active and j/k are authorized sequentially.
+See [`N4_CONTINUATION_AUTHORITY.md`](css_phase4_wp4_4/N4_CONTINUATION_AUTHORITY.md)
+and [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md).
+The 235 Packet-a-span declarations are deferred and outside i–k.
+
+**Status (2026-07-30, superseded by the update above): Track A, Phases -1 through 3, and Phase-4 packets
 WP4.-1, WP4.0a, WP4.0, WP4.1, WP4.2, and WP4.3a–WP4.3h are complete, as is the
 WP4.3i Workout Plan dead-CSS arc through WP4.3i-filter-btn. WP4.3j-a is merged,
 WP4.3j-b is complete as an audit-only no-op, WP4.3j-b-dead has shipped the
@@ -1511,7 +1518,12 @@ decisions are silently outstanding; either resolve them or leave them explicitly
 > the detailed work-packet requirements above and wait for explicit owner
 > direction wherever the plan requires it.
 
-Snapshot: **2026-07-30 (latest)**. **Eight of eleven WP4.4 packets are merged.**
+Snapshot: **2026-07-31 (latest)**. The ten pre-N4 packets are merged; N4 is
+approved; PR #211 (`1019d34`) is merged; **WP4.4-i is active** and j/k are
+authorized sequentially under the continuation authority. The older packet
+counts/status prose immediately below is retained as historical detail.
+
+> **Superseded snapshot detail (2026-07-30).** **Eight of eleven WP4.4 packets are merged.**
 **WP4.4-a** (PR #187, squash `46e340e`) produced evidence and audit tooling, not
 a production CSS edit. **WP4.4-c** (PR #188, squash `1b13bfc`) was the arc's
 first production CSS deletion. **WP4.4-b** (PR #192, squash `3bec677`) deleted
@@ -1526,11 +1538,9 @@ exact duplicate `navbar.css` source rules with layer membership and importance
 unchanged. **`a`, `c`, `b`, `e`, `d1`, `f1`, `d2` and `f2` are DONE and must
 not be re-dispatched.**
 
-The owner directed a **sequential** remaining order on 2026-07-29 — one packet,
-worktree, writer and PR at a time:
-`g` → `h` → **hard stop for the N4 owner checkpoint before `i`**.
-**WP4.4-g is the next action.** It is a read-only `components.css` cascade
-audit, owns no production path, and nominates but authorizes no deletion.
+The current remaining order is sequential — one packet, worktree, writer and PR
+at a time: `i` → `j` → `k`. Parallelism is read-only analysis/review within a
+packet; stateful gates and writes remain serialized.
 The continuous pyright burn-down is a standing track, not an active packet or
 branch.
 
@@ -1558,11 +1568,12 @@ branch.
 | WP4.4-d1 — `a11y.css` superseded scale/menu generation | **Done** | Merged via PR #197 (squash `59e5b10`, 2026-07-29). Pure deletion of **14 rule blocks, −99 lines, 0 insertions**: `.scale-control`, `.scale-control-label`, `.scale-btn-group`, `.scale-labels`, `.scale-label`, `.accessibility-menu`, `.accessibility-section*` and their `@media` overrides. The live compact generation (`.scale-control-compact`, `.scale-btn-compact`, `.scale-indicator`) is retained and contract-pinned. Full-selector census **0 for all 14 across 164 contexts** (2 themes × 10 widths × 8 `data-scale` levels + print + reduced-motion); **oracle validity gate passed first** (live generation census > 0 in 160/160). Residual `.scale-control` matches attributed by CDP to the **retained** `@media print` rule at source lines 329–331; **0** rules on `screen`. Contracts 16 passed with **15/15 red-path proven**; pytest 2,245/1 skipped; nine specs 127 passed; visual 65/1 ledgered red; Stylelint 2,857 → 2,851 (−6). `!important` **51 → 51**, custom properties 17 → 17, `@layer` 0 → 0. | — |
 | WP4.4-d2 — `a11y.css` `!important` re-weighting | **Done** | Merged via PR #201 (squash `0a912d9`, 2026-07-29). Adjudicated all 51 annotations: `.is-invalid { box-shadow }` certified and de-weighted; 50 retained. The C50 census nomination failed targeted exact-structure certification because ownership moves to `pages-workout-plan.css:4449` in 15/15 light measurements despite the same computed value. `!important` 51 → 50; declarations/rules/custom properties/layers unchanged. Contracts 22 passed with 22/22 red paths proven; pytest 2,268/1 skipped; nine specs 127 passed; visual 65/1 ledgered red; all 14 CI checks green. | — |
 | WP4.4-f2 — `navbar.css` generation consolidation | **Done** | Merged via PR #205 (squash `6a5465c`, 2026-07-30). Consolidated three exact duplicate source rules: layered scrollbar declarations, layered dark-toggle defaults, and identical-match-set calm container declarations. Style rules 193 → 190; declarations 692 → 690; lines 1,536 → 1,533. The sole layer remains at lines 6–883; all 93 `!important` occurrences, 72 custom-property declarations and pinned nav variables are unchanged. Exact owner matrix 486/486 green; genuine M6a control settled 7 transitions; contracts 62; pytest 2,271/1; required Chromium 127 + fatigue 8; visual 65/1 inside the band; Stylelint −5; all 14 CI checks green. | — |
-| WP4.4 — shared bundles, navbar, and `theme-dark.css` (packets `g`–`h`) | **Ongoing — `g` is next** | Plan v2 is **Gate-1 approved** (owner, 2026-07-27, rulings N1–N10) in `docs/css_phase4_wp4_4/PLANNING.md`. `a`, `c`, `b`, `e`, `d1`, `f1`, `d2` and `f2` have landed (8 of 11). The owner-directed remaining sequence is `g` → `h`, one packet/worktree/writer/PR at a time. Packet `g` is a read-only `components.css` cascade audit: it owns no production path and nominates but authorizes no deletion. | Not gated through `h`. `g` must record the exact audited commit and pass M4/M5/M6 controls; a failing control invalidates the audit and blocks `h`. Regions A–C of Workout Log remain protected before any later shared-selector repair. The ten inherited Linux `desktop` reds and eight uncertifiable Welcome elements must not be re-attributed or rebaselined. |
+| WP4.4 — shared bundles through `h` | **Done** | `g` merged in #207 (`4b7ca58`), its terminology correction in #209 (`a895cb0`), and `h` in #208 (`b2b1cb7`). PR #211 (`1019d34`) then corrected the visual harness prerequisite without snapshots or effective-render change. | Do not re-dispatch. The g/h zero-winner-versus-removal lesson remains binding. |
 | `a11y.css` bare `.scale-btn` rules | **Recorded by `d1` / not audited / gated** | 11 exact-token occurrences. Runtime census is **0** — `accessibility.js:144` and `:202` query an empty set, a second dormant JS path beside the accessibility dropdown. `d1`'s static pass wrongly treated that JS *query* as proof of reachability, so these rules were **never audited as candidates** and are retained untouched. | Deleting them requires its own census, its own oracle-validity control and its own packet. A JavaScript query is not evidence of reachability. |
 | `layout.css` `.tbl-show-*` / `.tbl-hide-*` breakpoint helpers | **Deferred by WP4.4-e / gated** | Nine rules. Census 0 and six of nine are visible to the synthetic oracle, but three declare `display: block` — a bare div's initial value — so no control element can distinguish them and their post-deletion flip cannot be demonstrated. Pinned by exact occurrence count in `tests/test_css_wp4_4_layout_contracts.py`. | Splitting the family would leave `@media` overrides targeting classes with no base rule. It must be deleted as a **unit** under fresh evidence, never eroded rule by rule. |
-| WP4.4-i — shared `:is()` selector repair | **Gated — hard stop after `h`** | Nothing started. Ruling N4 requires a separate owner checkpoint immediately before `i`; ruling N9 restricts admissible repair shapes to CSS-local ones in `static/css/components.css`. | Gate 1 authority explicitly does **not** extend to `i`. Before any edit, `i`'s enumerated repair shape and both pre-change inventories (the complete `:is()` family from `g`/`h`, and the G3 regions A–C measurement) must be presented and approved. |
-| WP4.4 — packets `j` and `k` | **Blocked on `i`** | Nothing started. | They follow only after `i` is resolved — approved, narrowed, or abandoned per ruling N3. |
+| WP4.4-i — shared `:is()` selector repair | **Active / N4 approved** | Existing worktree and WIP checkpoint are recorded in the execution handoff. The owner approved the CSS-local split-list, branch-safe narrow-or-abandon shape and bounded contract/Stylelint exceptions. | Finish only from fresh post-#211 evidence. True G3 before comes from current main and after from i; artifact names do not establish provenance. |
+| WP4.4-j — `theme-dark.css` triage | **Authorized after i resolves** | Not started; arrange its isolated checkout from merged post-i main through the external worktree workflow. | Preservation-only: retain uncertified/custom-property/JS-state work, accept a no-op, no rebaseline or visible change. |
+| WP4.4-k — final integration | **Authorized after j merges** | Not started; docs/verification only. | N10 stays evidence-only; do not edit `QUALITY_GATE.md`. Corrective subpackets are limited by the continuation authority. |
 | Superset dark tint and `layout.css` dead `body.dark-mode` | **`body.dark-mode` RESOLVED by WP4.4-e; superset tint still deferred** | `body.dark-mode` was re-proved and **deleted** in PR #195. The rule was *functional* (all seven `--tbl-*` tokens changed in 11/22 contexts when the class was applied) but its selector was *never satisfied*: `<body>` never carries the class and `darkMode.js:64` sets `data-theme` on the root element. Deleted on **unreachability**, explicitly **not** the ordinary non-winner rule, which does not apply to custom properties. The seven tokens keep their live `[data-theme="dark"]` definitions, now contract-pinned. The missing live dark override for `--superset-bg-1..4` remains recorded and unchanged. | The superset tint belongs to `theme-dark.css` ownership (packet `j`), still gated. |
 | Continuous pyright baseline burn-down | **Ongoing — standing track only** | The track remains available for one file or one tightly coupled diagnostic family at a time; no active packet is identified by this snapshot. | It has no single phase-close packet. Each change must remain type-only, reduce the diagnostic multiset, and pass focused plus full pytest gates. |
-| Overall refactor plan | **Partially complete; WP4.4 in execution** | Track A and Phases -1 through 3 are complete; Track B is complete except WPB.4; Phase 4 is complete through the boundaries listed above, and the WP4.4 shared-bundle arc is now executing under Gate-1 authority. | The only authorized work is WP4.4 packets `a` through `h`. WPB.4 and the remaining Workout Plan / Workout Log page cleanup stay paused pending separate owner selection; WP4.4-i needs the N4 checkpoint. |
+| Overall refactor plan | **Partially complete; WP4.4-i active** | Track A and Phases -1 through 3 are complete; Track B is complete except WPB.4; WP4.4 continues under the dated N4 authority through i → j → k. | WPB.4 and remaining Workout Plan/Log cleanup stay paused. The 235 layer-pin declarations remain deferred. |

@@ -13,9 +13,13 @@
 > 3.14.6 environment. This tooling/runtime-policy change does not alter the
 > WP4.4 packet ordering or next-safe-step below.
 >
-> **2026-07-31 (LATEST) — WP4.4 has REACHED THE N4 HARD STOP. TEN of eleven
-> packets are merged. NO PACKET IS NEXT.** Gate 1 (rulings N1–N10) is fully
-> discharged: every packet it authorized has shipped.
+> **2026-07-31 (LATEST) — N4 IS APPROVED; WP4.4-i IS ACTIVE.** The ten
+> pre-checkpoint packets are merged, the visual-harness prerequisite is merged
+> in PR #211 (`1019d34`), and the owner authorized continuous sequential
+> execution `i` → `j` → `k` under
+> [`N4_CONTINUATION_AUTHORITY.md`](css_phase4_wp4_4/N4_CONTINUATION_AUTHORITY.md).
+> The live restart ledger is
+> [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md).
 >
 > | Packet | PR | Squash | Nature |
 > |---|---|---|---|
@@ -30,40 +34,41 @@
 > | **g** `components.css` read-only cascade audit | #207 | `4b7ca58` | read-only; 342 zero-winner nominations, 0 deletions |
 > | **g-correction** zero-winner terminology | #209 | `a895cb0` | documentation only, 1 file |
 > | **h** `components.css` certified dead declarations | #208 | `b2b1cb7` | 101 declarations deleted, −138 lines |
+> | **visual harness prerequisite** | #211 | `1019d34` | inert Progression hook + property-level determinism correction; no snapshot or effective-render change |
 >
-> **Owner-directed execution order (2026-07-29) — now fully consumed:**
+> **Current owner-authorized execution order:**
 >
 > ```
-> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → ■ N4 HARD STOP
+> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ▶ → j → k
 > ```
 >
-> **NO PACKET IS NEXT.** The arc stops here by ruling **N4**. **Gate 1 authority
-> does not extend to `i`, `j` or `k`** — none of them may be started, branched,
-> worktree'd or edited without a fresh owner decision. All ten merged packets are
-> DONE and must not be re-dispatched.
+> **Packet i is next and active.** The fresh N4 decision has been given; do not
+> request it again. All ten earlier packets are DONE and must not be re-dispatched.
+> Packet i narrows to proven-safe branches or uses the pre-authorized N3
+> abandonment, then proceeds directly to j and k.
 >
-> ### OPEN BLOCKER — the N4 owner checkpoint
+> ### N4 checkpoint — DISCHARGED
 >
 > N4 requires that, before any WP4.4-i edit, i's **enumerated repair shape** and
 > **both pre-change inventories** are presented and approved. Both inventories are
-> now prepared and merged; **the approval has not been given.**
+> prepared and merged; **the owner approved the continuation on 2026-07-31.**
 >
 > | N4 deliverable | State |
 > |---|---|
 > | Inventory A — the complete `:is()` family | ✔ [`CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md`](CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md) |
 > | Inventory B — G3 Workout Log regions A–C | ✔ [`CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md`](CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md) |
 > | Enumerated repair shape | ✔ presented (N9 admits two CSS-local shapes) |
-> | **Owner approval** | **✘ NOT GIVEN — this is the blocker** |
+> | **Owner approval** | **✔ GIVEN — see the continuation authority** |
 >
 > Per **N3**, i may still end in abandonment, and that outcome is pre-authorized
 > as an acceptable arc result, not a failure.
 >
-> **A separate, independent owner decision is outstanding: the Packet-a layer-span
-> pin.** WP4.4-h withheld **235** measured-dead declarations because deleting them
+> **The separate Packet-a layer-span decision is resolved for this arc: DEFER.**
+> WP4.4-h withheld **235** measured-dead declarations because deleting them
 > would move `components.css`'s `@layer workout` span (`openLine 3539 /
 > closeLine 4104`) and red a contract outside h's write set. Recovering them
-> requires re-pinning that span. **That decision is not part of N4 and must not be
-> bundled into it.**
+> requires re-pinning that span. **Do not re-pin or touch them during i–k; record a
+> separately certified future packet at closeout.**
 >
 > ### The binding lesson from g + h
 >
@@ -1325,33 +1330,28 @@
 
 ## Blockers
 
-- **WP4.4 — the N4 owner checkpoint is OPEN and blocks the whole arc.** Ten of
-  eleven packets are merged and Gate 1 authority is exhausted. `i`, `j` and `k`
-  require a fresh owner decision. Both N4 pre-change inventories are prepared and
-  merged; the approval is not given. See the LATEST block at the top of this file.
-- **WP4.4 — the Packet-a layer-span pin is a separate open owner decision.**
-  235 measured-dead `components.css` declarations are withheld behind it. Not part
-  of N4; do not bundle the two.
+- **No owner-decision blocker is open for WP4.4 i–k.** N4 is approved and routine
+  outcomes are pre-answered in the continuation authority.
+- The Packet-a layer-span work is **deferred, not blocking**: 235 declarations
+  remain untouched for a separately certified future packet.
+- Current transient execution state and any real external blocker are recorded in
+  [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md).
 
 ## Next Safe Step
 
-**Current (2026-07-31, latest): there is no next packet.** WP4.4 packets `a`,
-`c`, `b`, `e`, `d1`, `f1`, `d2`, `f2`, `g` and `h` are merged — **10 of 11** —
-and the owner-directed execution order is fully consumed:
+**Current (2026-07-31, latest): Packet i is active.** WP4.4 packets `a`, `c`,
+`b`, `e`, `d1`, `f1`, `d2`, `f2`, `g` and `h` plus the PR #211 visual-harness
+prerequisite are merged. The current order is:
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → ■ N4 HARD STOP
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ▶ → j → k
 ```
 
-**The next safe step is to WAIT for the owner's N4 decision.** Do not start,
-branch, worktree or edit anything for `i`, `j` or `k`; do not edit
-`static/css/components.css` for `i`; do not decide the Packet-a layer-span
-question. Gate 1 does not authorize any of it.
-
-All ten merged packets are DONE and must not be re-dispatched. If the owner
-approves i, it resumes under the same discipline: one packet, one worktree, one
-writer and one PR at a time, reconciling these three status documents at each
-merge boundary.
+**The next safe step is to resume the existing i worktree from the live handoff,**
+first checking for an already-running gate and then completing true current-main
+before versus final-i after evidence. Continue through i PR/CI/merge, then arrange j
+and k sequentially through the external worktree workflow. Use parallel read-only agents with one writer and serialized
+stateful gates. Do not reopen the 235 declarations.
 
 > **Superseded 2026-07-31.** This section previously read *"WP4.4-g is the next
 > action"* with the remaining order `g → h → HARD STOP`. Correct on 2026-07-30;
@@ -1413,7 +1413,7 @@ because the static pass wrongly treated a JS *query* as proof of reachability.
 They are retained untouched; deleting them needs its own census and packet.
 
 Workout Log cleanup beyond WP4.3j-d-hover-paint (PR #186) remains closed and
-owner-gated. Do not begin `i`, `j` or `k`.
+owner-gated. The i–k continuation does not authorize that separate cleanup.
 
 **Deferred by `e`, owner-gated, do not act:** the nine-rule
 `.tbl-show-*` / `.tbl-hide-*` breakpoint-helper family in `layout.css`. Census
