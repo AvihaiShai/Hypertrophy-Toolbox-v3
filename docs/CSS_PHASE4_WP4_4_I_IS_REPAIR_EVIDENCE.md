@@ -580,7 +580,7 @@ discarded rather than carried forward.
 | Element-scoped pixel differential | **54/54 byte-identical**, cleaner than the same-CSS control's 52/54 noise floor → **0 packet-attributable pixels** | `r3-pixel/pixel-diff.json`, `r3-pixel-control/pixel-diff.json` |
 | Stylelint (matched glob, 21 sources both halves) | **+10 `no-descending-specificity`, 100% attributed to the approved split lines**; every other category flat; no line outside the approved set changed | `r3-stylelint-before.json`, `r3-stylelint-after.json` |
 | Windows visual matrix (`visual.spec.ts`) | **36 failed / 30 passed on both halves, failure identities exactly equal** — 0 new, 0 cleared; **no snapshot changed** | `r3-visual-before.json`, `r3-visual-after.json` |
-| Linux deep gate (N8) | dispatched on the corrective branch; reconciled against `CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` | see §9 note |
+| Linux deep gate (N8) | full E2E incl. accessibility **passed**; visual job's 11 reds are **identical to the pre-i tree's 11**, so none is packet-caused | runs `30663355864` (i) and `30665129779` (`1019d34`) |
 
 Artifact paths are relative to `artifacts/wp4_4/i/`. The `r3-*` series supersedes the
 earlier `before/`, `after13/`, `g3-*`, `control-*` and `r2-*` runs, which are retained only
@@ -601,6 +601,42 @@ and the visual number does not reproduce; the measured Windows figure is 36 on b
 The full Chromium suite is not re-measured locally here — it is the CI gate on the
 corrective's pull request, which runs the required suites on Linux, and that run is the
 citation for it rather than an unreproduced local count.
+
+### N8 — the Linux deep gate, run for the first time on this packet
+
+`gh workflow run deep-gate.yml --ref <branch> -f run_visual=true -f visual_mode=compare`.
+**Full E2E including accessibility passed**, as did the cold-start, empty-schema, old-DB
+migration and frozen-executable smokes. The `visual-linux` job failed, and reconciling that
+failure is the gate.
+
+Ten of its eleven reds are exactly the ten files in
+[`CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`](CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json) —
+the full ledger, nothing missing and nothing added. The eleventh,
+`visual-baseline-thumbnails.spec.ts › plan-desktop-light-advanced`, is **not** in that
+ledger, whose scope is `visual.spec.ts-snapshots` only. The ledger's own rule is
+unambiguous: *"A red on a file NOT in this ledger is a real finding and a rollback
+trigger."* It failed all three retries, so it is deterministic rather than a flake.
+
+That was settled by measurement, not by argument. The same deep gate was dispatched against
+`1019d34` — the pre-repair commit, which does not contain this packet — and it reports the
+**same eleven failures with the same identities**, `plan-desktop-light-advanced` included:
+
+| | pre-i (`1019d34`, run `30665129779`) | i + corrective (run `30663355864`) |
+|---|---|---|
+| Failed | 11 | 11 |
+| Failure identities | — | **identical** |
+| Passed | 57 | 56, plus 1 flaky |
+
+The single accounting difference is `user-profile desktop light`, which passed outright on
+one run and passed on retry on the other. That route is independently recorded as
+nondeterministic, and it is not one the repair reaches.
+
+So the eleventh red is inherited, and the rollback trigger does not fire. It does, however,
+mean the committed ledger is **incomplete**: it was produced at WP4.4-a from `visual.spec.ts`
+alone and does not account for the thumbnails spec. Extending it is explicitly out of scope
+here — the ledger's own rules require owner approval for any correction to it (V2, R3
+condition 6) — so this is recorded as a **proposal for packet k**, alongside the N10
+`QUALITY_GATE.md` row, and no ledger file is edited by this packet.
 
 ### A measurement defect found and closed during this packet
 

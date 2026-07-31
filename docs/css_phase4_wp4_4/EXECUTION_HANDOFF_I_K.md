@@ -38,6 +38,17 @@ filenames never establish provenance; the served checkout, commit and content di
 | Element-scoped pixel differential | 29/30 byte-identical; the 30th differs **identically** in the same-CSS control → 0 packet pixels | `r3-pixel/`, `r3-pixel-control/` |
 | Stylelint, matched 21-source glob | `no-descending-specificity` 194→204 (+10), all on approved lines; every other category flat | `r3-stylelint-{before,after}.json` |
 | Windows visual matrix | **36 failed / 30 passed on both halves, identities exactly equal**; 0 new, 0 cleared, no snapshot changed | `r3-visual-{before,after}.json` |
+| N8 Linux deep gate | full E2E incl. accessibility **passed**; visual job 11 reds **identical to the pre-i tree's 11** | runs `30663355864` (i), `30665129779` (`1019d34`) |
+
+### Open item for packet k — the Linux ledger is incomplete
+
+`CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` lists 10 inherited reds, all from
+`visual.spec.ts`. The N8 gate reds an 11th, `visual-baseline-thumbnails.spec.ts`
+`plan-desktop-light-advanced`, which the ledger does not cover — and its rules make an
+unlisted red a rollback trigger. Dispatching the same gate against `1019d34` proved the red
+is inherited (identical 11 failures with no packet present), so it does not block i. The
+ledger still under-describes reality. Correcting it needs owner approval (V2, R3 condition
+6), so **k carries it as a proposal only** and no packet edits that file.
 
 ### What the corrective actually fixes
 
