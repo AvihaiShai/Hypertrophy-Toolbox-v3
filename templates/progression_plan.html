@@ -47,7 +47,16 @@
     <div class="current-goals frame-calm-glass mt-4" data-visual-surface>
         <h4>Current Goals</h4>
         <div class="tbl-wrap tbl-wrap--full" role="region" aria-label="Current progression goals table">
+            {# data-visual-preserve-border is a test-only hook with no value and no
+               styling, behaviour or accessibility effect. The visual determinism layer
+               flattens border geometry on every [data-visual-surface]; this table's
+               borders are owned by the shared Calm Glass family instead, and that
+               ownership must survive a specificity repair of the family's :is() list.
+               Keyed here rather than on a class because e2e/visual-helpers.ts may not
+               reference presentation classes (tests/test_visual_selector_contracts.py).
+               No production CSS or JavaScript may reference it. #}
             <table class="table table-striped table-calm tbl tbl--responsive" data-visual-surface
+                   data-visual-preserve-border
                    role="table"
                    aria-label="Current progression goals">
                 <thead>

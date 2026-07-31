@@ -48,7 +48,7 @@ const WIDTHS = [[375, 812], [768, 1024], [1440, 900]];
 const THEMES = ['light', 'dark'];
 
 const SURFACE = "html[data-theme='dark'] [data-visual-surface][data-visual-surface]";
-const EXCLUDED = `${SURFACE}:where(:not(.progression-plan-container .table-calm))`;
+const EXCLUDED = `${SURFACE}:where(:not([data-visual-preserve-border]))`;
 
 /** The rule as shipped before the correction: one block, every property. */
 const OLD_RULES = `
@@ -280,6 +280,7 @@ async function main() {
               clean: controlDiffs.length === 0 && controlPageSame && controlElementSame,
             },
           };
+          if (!report.contexts[label].control.clean) report.totals.dirtyControls += 1;
           report.totals.matchDelta += onlyOld.length + onlyNew.length;
           report.totals.computed += diffs.length;
           if (!fullPageSame) report.totals.fullPagePixels += 1;

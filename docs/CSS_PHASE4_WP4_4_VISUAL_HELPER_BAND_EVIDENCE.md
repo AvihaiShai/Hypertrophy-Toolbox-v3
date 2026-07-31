@@ -1,6 +1,8 @@
 # Visual determinism layer — the specificity band it occupies
 
-**Change:** `e2e/visual-helpers.ts` only. No production file, no template, no snapshot.
+**Change:** `e2e/visual-helpers.ts`, plus one inert test-only attribute in
+`templates/progression_plan.html` and its contract. No production CSS or JavaScript, no
+snapshot.
 **Branch:** `wt/wp4-4-visual-helper-band` off `89523ed`.
 
 ---
@@ -39,7 +41,7 @@ Split by **property**, not by element:
 | Rule | Selector | Properties |
 |---|---|---|
 | A | unchanged `(0,3,1)`, every surface | `background`, `background-image`, `box-shadow`, `text-shadow` |
-| B | `…:where(:not(.progression-plan-container .table-calm))` | `border-color`, `border-radius` |
+| B | `…:where(:not([data-visual-preserve-border]))` | `border-color`, `border-radius` |
 
 Only the two properties the product family actually owns are withheld, and only from one
 element. `background`/`box-shadow` remain with the family's dark rule at (0,4,0) in both
@@ -47,6 +49,24 @@ states; `text-shadow` — which the family never declares, and which **inherits*
 with this layer in both states, so an element-wholesale exclusion would have been wrong.
 `:where()` contributes zero specificity, so rule B stays (0,3,1) for every surface it still
 matches.
+
+**Why an attribute and not a class.** `tests/test_visual_selector_contracts.py` forbids
+presentation classes in this file — `.table-calm` and `.frame-calm-glass` are on the banned
+list — precisely because those are what a CSS refactor churns, which is the situation here.
+The `aria-label` was rejected too: it is user-facing copy, and a reword would silently
+disable the exclusion with no failing test to explain the moved baselines. So the hook is
+`data-visual-preserve-border`: valueless, inert, referenced by nothing in `static/css` or
+`static/js`, and pinned by
+`test_border_preserve_hook_is_inert_and_used_only_by_the_visual_helper` — which proves it
+exists exactly once, that no production file reads it, that the helper keys on it rather
+than on a class or the copy, and that rule A was not narrowed. Its red paths cover hook
+removal, duplication, a production reference, a broadened exclusion, and a revert to the
+aria-label.
+
+That contract needed a correction of its own: counting raw string occurrences made the
+"hook was deleted" red path undetectable, because the Jinja comment above the hook *names*
+it, so deleting the attribute left the count unchanged. It now strips Jinja comments and
+counts rendered usage.
 
 ## 3. Proofs, all on unmodified `main`
 
@@ -61,7 +81,7 @@ three times (old, old-again as a same-CSS control, new).
 | 2 | Zero computed-value/owner differences on all affected surfaces | **0** across every `[data-visual-surface]` element *and all descendants* |
 | 2 | Zero pixels on an element-scoped Progression-table capture | **0** differing |
 | 3 | No passing screenshot moved beneath the tolerance | see below |
-| 4 | Known reds stay within their bands | **36/36 identical pixel counts, 0 moved** |
+| 4 | Known reds stay within their bands | **35/36 identical; 1 moved by 1px of 2,026,263** |
 | — | Same-CSS controls | **0 dirty** |
 
 **Proof 3 detail.** Two contexts showed a full-page byte difference with zero computed
@@ -73,9 +93,16 @@ differences. Neither is attributable:
 * `session-summary|dark|375` — **deterministic and variant-identical**: eight captures
   alternating old/new produced a single hash.
 
+**Proof 4 detail.** `workout-plan mobile light` reported 2,026,262 rather than 2,026,263 —
+a single pixel in 0.0%. It is light theme, where this rule matches zero elements and cannot
+act. Re-run nine times on unmodified `main`, that capture yields **both** values
+(2,026,263 ×7, 2,026,262 ×2): a two-value band, exactly what M7 describes. The observed
+value is inside it.
+
 **Full-suite check.** `visual.spec.ts` + `visual-baseline-thumbnails.spec.ts` on this branch
 produce **37 failures whose identities are exactly `main`'s 37**, with 30 passed and 17 not
-run — and all 36 reds carrying pixel counts report counts identical to `main`. Those 37 are
+run — and 35 of the 36 reds carrying pixel counts are identical to `main`, the 36th inside
+its measured band per the detail above. Those 37 are
 pre-existing Windows baseline drift at ratios 0.28–0.92 on `workout-plan`, `workout-log`,
 `weekly-summary`, `session-summary`, `fatigue`, `backup` and one thumbnail; they fail
 identically with and without this change. No snapshot was rebaselined.
