@@ -3,16 +3,19 @@
 *Phase 4 CSS. Planning artifact only. Follows [`docs/ai_workflow/PLAN_REVIEW_TEMPLATE.md`](../ai_workflow/PLAN_REVIEW_TEMPLATE.md).*
 
 **Planning size:** Large / cross-cutting per [QUALITY_GATE.md](../ai_workflow/QUALITY_GATE.md#plan-stage-routing) → **Gate 0 required**, then Gate 1 via [`/council-plan`](../../.claude/commands/council-plan.md).
-**Status:** **Gate 0 APPROVED** (owner, subject to rulings R1–R6 below). **Gate 1 APPROVED** (owner, 2026-07-27, subject to rulings N1–N10 as recorded in "Owner decisions — N1–N10" below). Plan v1 drafted; council run (architecture-reviewer, test-strategist, product-risk-reviewer); response matrix complete; **Plan v2 is the executable plan**.
+**Status:** **Gate 0 APPROVED** (owner, subject to rulings R1–R6 below). **Gate 1 APPROVED** (owner, 2026-07-27, subject to rulings N1–N10). **N4 CONTINUATION APPROVED** (owner, 2026-07-31) under [`N4_CONTINUATION_AUTHORITY.md`](N4_CONTINUATION_AUTHORITY.md). Plan v2 remains the executable technical plan; the dated continuation authority supersedes its spent hard-stop instructions and records the bounded post-N4 exceptions.
 **Base:** `main` @ `f4f9ee6` (clean).
-**Execution order authorized at Gate 1:** `a` → `c` → the approved deletion packets → **hard stop before `i`** for the N4 implementation-time checkpoint.
+**Current authorized order:** completed packets through `h` → N4 approved → PR #211 harness prerequisite merged → `i` → `j` → `k`.
 
 ---
 
-### ■ EXECUTION STATUS (2026-07-31) — the arc is AT the N4 hard stop. No packet is next.
+### ▶ EXECUTION STATUS (2026-07-31) — N4 is discharged; Packet i is active
 
-**Gate 1 authority is exhausted.** All ten packets it authorized are merged; the
-eleventh (`i`) is owner-gated by N4 and **has not been approved**.
+All ten pre-checkpoint packets are merged. The owner approved the proof-first,
+narrow-or-abandon execution of `i` and continuous sequential execution through `j` and
+`k`. The binding authority, routine-decision fallbacks and genuine hard stops are in
+[`N4_CONTINUATION_AUTHORITY.md`](N4_CONTINUATION_AUTHORITY.md); the live restart state is
+in [`EXECUTION_HANDOFF_I_K.md`](EXECUTION_HANDOFF_I_K.md).
 
 | Packet | PR | Squash |
 |---|---|---|
@@ -27,9 +30,10 @@ eleventh (`i`) is owner-gated by N4 and **has not been approved**.
 | **`g`** | **#207** | **`4b7ca58`** |
 | **`g` terminology correction** | **#209** | **`a895cb0`** |
 | **`h`** | **#208** | **`b2b1cb7`** |
+| **visual harness prerequisite** | **#211** | **`1019d34`** |
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → ■ N4 HARD STOP
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ▶ → j → k
 ```
 
 **`h` shipped:** 101 declarations, 138 lines, 20 `!important` declarations, 87 cuts and 11
@@ -40,8 +44,9 @@ pin, 18 `.btn.btn-video`, 2 removal-oracle withdrawals and 6 `.value-changed`. T
 **Both N4 pre-change inventories are prepared and merged:**
 [Inventory A — the complete `:is()` family](../CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md) ·
 [Inventory B — G3 Workout Log regions A–C](../CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md).
-**The owner approval N4 requires has not been given.** Do not start, branch or edit `i`,
-`j` or `k`.
+**N4 approval was given on 2026-07-31.** Do not ask for it again. Packet i may narrow to
+safe branches or end in the pre-authorized N3 abandonment; either resolution proceeds to
+j and k.
 
 **Binding lesson from g + h:** a zero-winner ownership result is **not** a removal verdict;
 an inline-`!important` sentinel proves reachability and probe integrity only; **only a
@@ -49,9 +54,9 @@ removal oracle grants deletion authority.** g nominated 342 zero-winners and h's
 oracle proved 35 of them live on removal (336 entered certification: 35 removal-live / 180
 `deadCertified` / 121 unmatched; D384–D389 never entered).
 
-**Separate open owner decision, NOT part of N4:** whether to re-pin the Packet-a
-`@layer workout` span (`openLine 3539 / closeLine 4104`) to recover h's 235 withheld
-declarations.
+**Separate decision resolved for this arc:** do **not** re-pin the Packet-a `@layer
+workout` span (`openLine 3539 / closeLine 4104`) and do not touch h's 235 withheld
+declarations. Record a separately certified future packet at closeout.
 
 ---
 
@@ -1690,6 +1695,11 @@ Unchanged from Plan v1 except: **c merges first**; **d and f split into d1/d2 an
 - [x] All ten owner decisions resolved — N1–N10 recorded above as binding rulings.
 - [x] Ready to implement.
 
-**GATE 1 APPROVED.** Plan v2 is the executable plan. Implementation is authorized in this order: **`a`**, then **`c`**, then the approved deletion packets (`b`, `d1`, `e`, `f1`, then `d2`, `f2`), then `g`, then `h`. **The arc stops after `h`** for the N4 owner checkpoint; **no work on `i` is authorized by this gate**. `j` and `k` follow only after i is resolved (approved, narrowed, or abandoned per N3).
+**GATE 1 APPROVED (historical scope).** Plan v2 authorized `a` through `h` and
+correctly stopped at N4. **N4 was subsequently approved by the owner on 2026-07-31.**
+[`N4_CONTINUATION_AUTHORITY.md`](N4_CONTINUATION_AUTHORITY.md) now authorizes the
+sequential `i` → `j` → `k` continuation, records all bounded exceptions and pre-answers
+routine decisions. Where this historical Gate-1 paragraph says i is unauthorized, the
+dated continuation authority supersedes it.
 
 Planning-artifact commit precedes implementation: this document is committed by itself, with no production, test, or handover file in the same commit.

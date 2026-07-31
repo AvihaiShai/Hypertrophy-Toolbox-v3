@@ -4,25 +4,27 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-31 (LATEST) — WP4.4 has reached the N4 hard stop. NO PACKET IS NEXT.
-TEN of eleven packets are merged:** `a` (#187, `46e340e`), `c` (#188,
+**2026-07-31 (LATEST) — N4 is approved and WP4.4-i is ACTIVE.** The ten
+pre-checkpoint packets are merged: `a` (#187, `46e340e`), `c` (#188,
 `1b13bfc`), `b` (#192, `3bec677`), `e` (#195, `1346a35`), `d1` (#197,
 `59e5b10`), `f1` (#199, `1127486`), `d2` (#201, `0a912d9`), `f2` (#205,
 `6a5465c`), `g` (#207, `4b7ca58`) with its terminology correction (#209,
-`a895cb0`), and `h` (#208, `b2b1cb7`).
+`a895cb0`), and `h` (#208, `b2b1cb7`). The visual-harness prerequisite also
+merged in PR #211 (`1019d34`).
 
-**Gate 1 authority is exhausted.** Every packet it authorized has shipped. **`i`,
-`j` and `k` are NOT authorized** and may not be started, branched, worktree'd or
-edited. The open blocker is the **N4 owner checkpoint**: both required
-pre-change inventories are merged
+**The fresh N4 owner decision has been given.** Packet i is proof-first and may
+narrow or use the pre-authorized N3 abandonment; either outcome continues
+sequentially through j and k. Both required pre-change inventories are merged
 ([Inventory A](CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md),
 [Inventory B](CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md)) and the enumerated
-repair shape is presented, but **owner approval has not been given**. Per N3, i
-may still end in abandonment, and that is a pre-authorized arc result.
+repair shape is approved. Binding decisions, automatic fallbacks and genuine
+hard stops are in
+[`N4_CONTINUATION_AUTHORITY.md`](css_phase4_wp4_4/N4_CONTINUATION_AUTHORITY.md);
+live restart state is in
+[`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md).
 
-A **separate** owner decision is also outstanding: whether to re-pin the Packet-a
-`@layer workout` span (`openLine 3539 / closeLine 4104`) so h's **235** withheld
-measured-dead declarations become recoverable. **Do not bundle it into N4.**
+The separate Packet-a decision is **defer**: do not re-pin the `@layer workout`
+span or touch h's **235** withheld declarations during i–k.
 
 **WP4.4-h** deleted **101 declarations**, **138 lines**, **20 `!important`
 declarations**, **87 cuts** and **11 whole rules** from `components.css`
@@ -223,15 +225,14 @@ distinguish them. Splitting the family would leave `@media` overrides targeting
 classes with no base rule, so it is deferred whole and pinned by exact
 occurrence count. **Do not erode it rule by rule.**
 
-**Owner-directed execution order (2026-07-29) — now fully consumed:**
+**Current owner-authorized execution order:**
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → ■ N4 HARD STOP
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ▶ → j → k
 ```
 
-**No packet is next.** All ten merged packets must not be re-dispatched. The arc
-has hard-stopped after `h` per ruling N4; **Gate 1 authority does not extend to
-`i`, `j` or `k`**, and the N4 owner decision is the open blocker.
+**Packet i is active.** All ten earlier packets must not be re-dispatched. The
+dated N4 continuation authority supersedes the earlier hard-stop instruction.
 
 > **Superseded 2026-07-31.** This block previously read *"`g` is next"* and drew
 > the order with `g → h` still pending. Both merged (#207/#209 and #208).
@@ -441,9 +442,9 @@ untouched.
 > **Superseded as to WP4.4 (2026-07-27 / 2026-07-29).** The sentence "WP4.4 …
 > is not authorized or started" was true on 2026-07-26 and is retained for the
 > j-b record only. Gate 1 approved WP4.4 on 2026-07-27; `a`, `c` and `b` have
-> since merged. The `:is()` repair specifically (packet `i`) does remain
-> unauthorized and hard-stopped behind the N4 checkpoint. The WP4.3i and
-> Workout Log statements in this paragraph are still current.
+> since merged. The later N4 continuation authority supersedes this paragraph's
+> old statement that packet i was unauthorized. The WP4.3i and separate Workout
+> Log cleanup statements remain current.
 
 WPB.4 also remains unimplemented and owner-gated: it requires retaining one
 synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
@@ -451,24 +452,20 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-**NO PACKET IS NEXT. Wait for the owner's N4 decision.** All ten authorized
-WP4.4 packets — `a`, `c`, `b`, `e`, `d1`, `f1`, `d2`, `f2`, `g`, `h` — are
-merged, and none may be re-dispatched. **Gate 1 authority does not extend to
-`i`, `j` or `k`.**
+**Resume the existing WP4.4-i worktree from the live execution handoff.** The
+fresh N4 decision authorizes sequential i → j → k and pre-answers routine
+outcomes. Use one writer and parallel read-only reviewers; serialize DB/server/
+browser gates. All ten earlier packets are merged and must not be re-dispatched.
 
-Specifically forbidden without a fresh owner decision:
-
-- creating an `i` branch or worktree;
-- editing `static/css/components.css` for `i`;
-- beginning `i`, `j` or `k` in any form;
-- deciding whether to re-pin the Packet-a `@layer workout` span — the **235**
-  withheld declarations are a **separate** owner decision from N4.
+Still forbidden: snapshot rebaseline, visible/behavioral change, layer movement,
+protected-contract weakening, unrelated page/template/JS work, and touching the
+**235** deferred declarations.
 
 Both N4 pre-change inventories are prepared and merged:
 [Inventory A — the complete `:is()` family](CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md)
 and
 [Inventory B — G3 Workout Log regions A–C](CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md).
-Inventory B's headline for the decision: **29 of the 45 region A/B/C declarations
+Inventory B's headline for the approved narrow-or-abandon execution: **29 of the 45 region A/B/C declarations
 are currently suppressed, at least in part, by the very `:is()` selector i would
 repair, and 16 of those have nothing else above them.** Per N3, if no branch can
 be proven safe, **i is abandoned** and WP4.4 ends as audit + deletion — a
@@ -555,13 +552,13 @@ pre-authorized outcome, not a failure.
   lines against a −150 to −400 projection and is complete.
 
 No further Workout Log packet is authorized, and do not begin fatigue or feature
-work or reopen the root-cleanup track. **Do not begin `i`, `j` or `k`** — the arc
-is stopped at the N4 owner checkpoint.
+work or reopen the root-cleanup track. This restriction does not block the
+explicitly authorized i → j → k continuation.
 
 > **Superseded 2026-07-31.** The closing sentence previously read *"Do not begin
 > `h`, `i`, `j` or `k` while `g` is next."* `g` and `h` have both merged; the
-> prohibition now covers `i`, `j` and `k`, and is not conditional on a packet
-> being in flight.
+> later N4 continuation authority also supersedes its prohibition on `i`, `j`
+> and `k`.
 >
 > **Superseded 2026-07-29.** This section previously read *"WP4.4-c is merged.
 > `b`, `d1`, `e` and `f1` are eligible and unstarted — await owner direction."*
