@@ -65,13 +65,37 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
         background-attachment: scroll !important;
       }
 
+      /* This flattener computes to (0,3,1) and is entirely !important, so it owns
+         a surface only where no product rule out-specifies it. On the Progression
+         goals table the shared components.css Calm Glass family does - but only
+         because that family's :is() list borrows ID-level weight from its #workout
+         branch. A packet that splits a non-ID branch out of that list drops the arm
+         to (0,3,0), below this rule, and the flattener would silently take over
+         border-color and border-radius there: two committed dark baselines move for
+         a product change that alters no rendered value.
+
+         Only those two properties are at issue, so the rule is split by property
+         rather than by element. background and box-shadow are re-declared by the
+         family's dark rule at (0,4,0), which still wins after a split; text-shadow
+         is NOT declared by the family at all, so this layer legitimately owns it -
+         and text-shadow inherits, so an element-wholesale exclusion would hand it
+         away and change every descendant. The flattening set below is unchanged and
+         still matches every surface. */
       html[data-theme='dark'] [data-visual-surface][data-visual-surface] {
         background: var(--visual-surface-1) !important;
         background-image: none !important;
-        border-color: #273145 !important;
-        border-radius: 0 !important;
         box-shadow: none !important;
         text-shadow: none !important;
+      }
+      /* Border geometry only, withheld from surfaces whose borders the product
+         owns. Keyed on the inert [data-visual-preserve-border] hook rather than a
+         class, because presentation classes are exactly what a CSS refactor churns
+         (tests/test_visual_selector_contracts.py). :where(:not(...)) contributes
+         zero specificity, so this stays (0,3,1) for every surface it still matches
+         and the match-set delta is one element per dark Progression viewport. */
+      html[data-theme='dark'] [data-visual-surface][data-visual-surface]:where(:not([data-visual-preserve-border])) {
+        border-color: #273145 !important;
+        border-radius: 0 !important;
       }
       html[data-theme='dark'] [data-page="workout-plan"] [data-visual-header]::before {
         background: transparent !important;
