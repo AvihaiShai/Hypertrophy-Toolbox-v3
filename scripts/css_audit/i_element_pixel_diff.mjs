@@ -83,6 +83,14 @@ const ROUTES = [
 /** The element the shared family styles — the whole scope of any i regression. */
 const TARGET = 'table.table-calm';
 
+/**
+ * Per-route minimum body rows, mirroring `i_five_route_computed.mjs`.
+ * `/progression` is the only route the repair de-weights, and
+ * `i_seed_probe_db.py` seeds six open goals so the even-row, last-row and hover
+ * rules all have something to match.
+ */
+const MIN_ROWS = { progression: 6 };
+
 const sha = (buffer) => createHash('sha256').update(buffer).digest('hex');
 const fileSha = (path) => sha(readFileSync(path));
 
@@ -183,27 +191,57 @@ async function captureRoot(root, label) {
               document.activeElement instanceof HTMLElement && document.activeElement.blur();
               window.scrollTo(0, 0);
             });
-            const element = page.locator(TARGET).first();
             const count = await page.locator(TARGET).count();
-            const box = await element.boundingBox();
-            if (count === 0 || !box || box.width === 0 || box.height === 0) {
-              throw new Error(`${route.key}|${theme}|${width}: no rendered ${TARGET} (count=${count})`);
+            if (count === 0) throw new Error(`${route.key}|${theme}|${width}: no ${TARGET} rendered`);
+            // Weekly and Session Summary each render three `.table-calm` tables
+            // side by side, so `.first()` would leave two thirds of the family's
+            // surface unrasterised on those routes.
+            for (let index = 0; index < count; index += 1) {
+              const element = page.locator(TARGET).nth(index);
+              const box = await element.boundingBox();
+              // A header-only table satisfies a naive presence gate while proving
+              // nothing: four of the thirteen family rules are `tbody td`,
+              // `tr:nth-child(even) td`, `tr:last-child td` and `tr:hover td`.
+              // WP4.4-h lost a round of captures to exactly this — a stale WAL
+              // sidecar emptied the tables and every control still passed.
+              const rows = await element.locator('tbody tr').count();
+              const cells = await element.locator('tbody td').count();
+              if (!box || box.width === 0 || box.height === 0) {
+                throw new Error(`${route.key}|${theme}|${width}#${index}: ${TARGET} has no box`);
+              }
+              if (cells === 0 || rows < (MIN_ROWS[route.key] ?? 1)) {
+                throw new Error(
+                  `${route.key}|${theme}|${width}#${index}: ${rows} body rows / ${cells} body cells — ` +
+                  'the row-styling rules would not be rasterised'
+                );
+              }
+              // Require two consecutive identical rasters before accepting one.
+              // This settles residual async paint without masking a real change:
+              // a cascade difference is stable and still reported.
+              // Blur before *every* shot, not once before the loop. Page scripts
+              // can focus a field asynchronously after the initial blur; if that
+              // happens between two shots and then persists, the next pair
+              // matches and the loop accepts a raster containing a focus ring.
+              // That is the ~412-pixel high-contrast box this control kept
+              // catching on identical CSS.
+              const shoot = async () => {
+                await page.evaluate(() => {
+                  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                });
+                return element.screenshot({ animations: 'disabled', caret: 'hide' });
+              };
+              let png = await shoot();
+              let attempts = 1;
+              for (; attempts < 6; attempts += 1) {
+                const again = await shoot();
+                if (sha(again) === sha(png)) break;
+                png = again;
+              }
+              if (attempts === 6) throw new Error(`${route.key}|${theme}|${width}#${index}: raster never settled`);
+              const key = `${route.key}|${theme}|${width}#${index}`;
+              captures[key] = { sha: sha(png), width: Math.round(box.width), height: Math.round(box.height), png };
+              presence[key] = { tables: count, rows, cells, attempts };
             }
-            // Require two consecutive identical rasters before accepting one.
-            // This settles residual async paint without masking a real change:
-            // a cascade difference is stable and still reported.
-            const shoot = () => element.screenshot({ animations: 'disabled', caret: 'hide' });
-            let png = await shoot();
-            let attempts = 1;
-            for (; attempts < 6; attempts += 1) {
-              const again = await shoot();
-              if (sha(again) === sha(png)) break;
-              png = again;
-            }
-            if (attempts === 6) throw new Error(`${route.key}|${theme}|${width}: raster never settled`);
-            const key = `${route.key}|${theme}|${width}`;
-            captures[key] = { sha: sha(png), width: Math.round(box.width), height: Math.round(box.height), png };
-            presence[key] = { tables: count, attempts, box: { width: Math.round(box.width), height: Math.round(box.height) } };
             await context.close();
           }
         }
@@ -272,10 +310,27 @@ async function countDifferingPixels(browser, aPng, bPng) {
 mkdirSync(outDir, { recursive: true });
 if (!existsSync(frozenDb)) throw new Error(`frozen DB not found: ${frozenDb}`);
 mkdirSync(dirname(dbPath), { recursive: true });
-copyFileSync(frozenDb, dbPath);
-const dbSha = fileSha(dbPath);
 
+/**
+ * Reset the work database before each half.
+ *
+ * The sidecars must go first: a stale `-wal` left by the previous server can
+ * replay over a freshly copied database and silently revert it. That is not
+ * hypothetical — it emptied the tables during WP4.4-h and produced `td = 0`
+ * while every control still reported clean. Both halves also have to start from
+ * identical bytes, or the comparison measures database drift.
+ */
+const resetDb = () => {
+  for (const sidecar of [`${dbPath}-wal`, `${dbPath}-shm`]) {
+    if (existsSync(sidecar)) unlinkSync(sidecar);
+  }
+  copyFileSync(frozenDb, dbPath);
+  return fileSha(dbPath);
+};
+
+const beforeDbSha = resetDb();
 const before = await captureRoot(beforeRoot, 'before');
+const afterDbSha = resetDb();
 const after = await captureRoot(afterRoot, 'after');
 
 const fatal = [];
@@ -296,6 +351,7 @@ const missing = keys.filter((key) => !after.captures[key]);
 const extra = Object.keys(after.captures).filter((key) => !before.captures[key]);
 if (missing.length || extra.length) fatal.push(`context drift: onlyBefore=${missing} onlyAfter=${extra}`);
 if (keys.length === 0) fatal.push('zero contexts captured; an empty comparison is not a pass');
+if (beforeDbSha !== afterDbSha) fatal.push(`the two halves started from different databases: ${beforeDbSha} vs ${afterDbSha}`);
 
 const mismatches = keys.filter((key) => after.captures[key] && before.captures[key].sha !== after.captures[key].sha);
 
@@ -317,14 +373,14 @@ const report = {
   target: TARGET,
   before: { root: beforeRoot, components: before.onDisk, served: before.served },
   after: { root: afterRoot, components: after.onDisk, served: after.served },
-  db: dbSha,
+  db: { before: beforeDbSha, after: afterDbSha },
   contexts: keys.length,
   identicalContexts: keys.length - mismatches.length,
   mismatchedContexts: mismatches.length,
   quantified,
   perContext: Object.fromEntries(keys.map((key) => [key, {
-    before: { sha: before.captures[key].sha, ...before.presence[key].box },
-    after: after.captures[key] ? { sha: after.captures[key].sha, ...after.presence[key].box } : null,
+    before: { sha: before.captures[key].sha, ...before.presence[key] },
+    after: after.captures[key] ? { sha: after.captures[key].sha, ...after.presence[key] } : null,
   }])),
   fatal,
   passed: fatal.length === 0 && mismatches.length === 0,
@@ -342,3 +398,7 @@ for (const message of fatal) console.log(`FATAL: ${message}`);
 console.log(report.passed
   ? '\nPASS — every element-scoped capture is byte-identical'
   : '\nFAIL — see pixel-diff.json');
+
+// Every sibling differ sets this. Without it a real regression, or any fatal
+// provenance violation, exits 0 and reads as a pass to any caller or CI wrapper.
+process.exit(report.passed ? 0 : 1);

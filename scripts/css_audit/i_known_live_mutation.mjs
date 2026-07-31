@@ -53,9 +53,14 @@ const arg = (name, fallback = null) => {
 
 /** The post-h, pre-i `components.css` this mutation is defined against. */
 const PRISTINE_SHA = '883e6aa85564c42b36ca801529081b279f119e5c99a539dc235bc84d72107964';
+/** What it must produce — the CSS behind the recorded 8,856-difference control. */
+const CONTROL_SHA = '9326fc63109262ffd39401eb439bc75567f9e2f66da4ca2543d18d27574d9094';
+/** Family selector lines carrying the summary branch, in the pristine file. */
+const EXPECTED_LINES = 13;
 
 const root = resolve(arg('--root'));
 const expectSha = arg('--expect-sha', PRISTINE_SHA);
+const expectOutputSha = arg('--expect-output-sha', CONTROL_SHA);
 const cssPath = join(root, 'static/css/components.css');
 
 const IS_LIST = '#workout[data-page="workout-plan"], .workout-log-page, .summary-frame.frame-calm-glass, .progression-plan-container';
@@ -97,9 +102,23 @@ const mutated = lines.map((line, index) => {
   return `${keptArms}, ${summaryArm}${terminator}`;
 });
 
-if (touched.length === 0) throw new Error('no family selectors matched; the mutation would be a no-op');
+// Pinning the input alone is not enough. If the transformation ever changes, an
+// unpinned output would still be "deterministic" while no longer being the
+// mutation the recorded 8,856 came from — recreating the exact defect this file
+// exists to close. The line count is pinned for the same reason: the 8,784
+// figure this supersedes differed only by omitting one line, `:3409`.
+if (touched.length !== EXPECTED_LINES) {
+  throw new Error(`expected to mutate ${EXPECTED_LINES} family selector lines, mutated ${touched.length}`);
+}
 
 const output = Buffer.from(mutated.join(eol), 'utf8');
+const outputSha = sha(output);
+if (expectOutputSha && outputSha !== expectOutputSha) {
+  throw new Error(
+    `the mutation produced ${outputSha} but the recorded control CSS is ${expectOutputSha}. ` +
+    'The transformation changed; the 8,856 figure it produced no longer follows from this script.'
+  );
+}
 writeFileSync(cssPath, output);
 
 console.log(`mutated ${touched.length} family selector lines in ${cssPath}`);

@@ -706,7 +706,7 @@ async function captureContext(browser, regions, declIndex, context) {
 
   const { root } = await client.send('DOM.getDocument', { depth: -1, pierce: false });
   const records = [];
-  const resolutionChecks = { checked: 0, mismatches: [] };
+  const resolutionChecks = { checked: 0, valueCompared: 0, mismatches: [] };
 
   for (const target of targets) {
     const { nodeId } = await client.send('DOM.querySelector', {
@@ -761,6 +761,52 @@ async function captureContext(browser, regions, declIndex, context) {
 
   // M4 resolution self-check on a deterministic sample: the model's winner must
   // agree with the browser's computed value.
+  //
+  // This check used to read `computed` and then test only `computed === null`.
+  // `document.querySelector` was given a path harvested from this same page
+  // moments earlier, so it never missed, `ownerValue` was never referenced, and
+  // the control reported `mismatches: 0` unconditionally — a control that could
+  // not fail, validating the specificity/layer/!important model that G3's whole
+  // ownership count depends on.
+  //
+  // The model records the *authored* value (`var(--surface-1, #f4f6fa)`) while
+  // the browser reports the *resolved* one (`rgb(244, 246, 250)`), which is why
+  // a naive equality was never written. Two checks that do work:
+  //   - a winning declaration must produce a non-empty computed value;
+  //   - when the winner's value is context-free (no var/calc/color-mix/env/attr),
+  //     it can be resolved in an isolated page and compared exactly.
+  // The isolated page is a fresh about:blank context, so the measured page is
+  // never mutated and M6 still holds.
+  const CONTEXT_DEPENDENT = /\b(var|calc|color-mix|env|attr|clamp|min|max)\s*\(/;
+  const probeContext = await browser.newContext();
+  const probe = await probeContext.newPage();
+  const resolveCache = new Map();
+  // Set the *authored* property and read back the longhand, so a shorthand
+  // winner (`border: 1px solid X` owning `border-top-color`) expands the way the
+  // browser expands it. `!important` is stripped first: it is part of the
+  // recorded value but `setProperty` rejects it inside the value string and
+  // silently leaves the initial value, which made every `!important` winner look
+  // like a model disagreement.
+  const resolveLiteral = async (ownerProp, longhand, value) => {
+    const key = `${ownerProp}|${longhand}|${value}`;
+    if (resolveCache.has(key)) return resolveCache.get(key);
+    const resolved = await probe.evaluate(
+      ({ prop, read, raw }) => {
+        const node = document.createElement('div');
+        document.documentElement.appendChild(node);
+        node.style.setProperty(prop, raw);
+        const out = getComputedStyle(node).getPropertyValue(read);
+        node.remove();
+        return out;
+      },
+      { prop: ownerProp, read: longhand, raw: value },
+    );
+    resolveCache.set(key, resolved);
+    return resolved;
+  };
+  const stripImportant = (value) => String(value ?? '').replace(/\s*!\s*important\s*$/i, '').trim();
+  const normalise = (value) => String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+
   const sample = [...new Map(records.map((record) => [`${record.element}|${record.longhand}`, record])).values()]
     .sort((left, right) => (left.element + left.longhand).localeCompare(right.element + right.longhand))
     .slice(0, 400);
@@ -775,8 +821,26 @@ async function captureContext(browser, regions, declIndex, context) {
     resolutionChecks.checked += 1;
     if (computed === null) {
       resolutionChecks.mismatches.push({ ...record, computed, reason: 'element-not-found' });
+      continue;
+    }
+    if (computed === '') {
+      resolutionChecks.mismatches.push({ ...record, computed, reason: 'winner-resolves-to-nothing' });
+      continue;
+    }
+    const authored = stripImportant(record.ownerValue);
+    // `currentColor` and the CSS-wide keywords resolve against the real element's
+    // own inherited state, which a detached probe cannot reproduce.
+    if (CONTEXT_DEPENDENT.test(authored) || /^(inherit|initial|unset|revert(-layer)?|currentcolor)$/i.test(authored)) continue;
+    const expected = await resolveLiteral(record.ownerProp ?? record.longhand, record.longhand, authored);
+    // An unparseable value yields '' from the probe; that says nothing about the
+    // model, so it is not counted as a comparison rather than scored as a pass.
+    if (expected === '') continue;
+    resolutionChecks.valueCompared += 1;
+    if (normalise(expected) !== normalise(computed)) {
+      resolutionChecks.mismatches.push({ ...record, computed, expected, reason: 'model-winner-disagrees-with-browser' });
     }
   }
+  await probeContext.close();
 
   await page.close();
   return { records, presence, settled, resolutionChecks };
@@ -845,7 +909,7 @@ async function main() {
 
   const passes = { first: [], second: [] };
   const presenceByContext = {};
-  const resolution = { checked: 0, mismatches: [] };
+  const resolution = { checked: 0, valueCompared: 0, mismatches: [] };
   try {
     for (const passName of ['first', 'second']) {
       for (const context of contexts) {
@@ -853,6 +917,7 @@ async function main() {
         if (passName === 'first') {
           presenceByContext[context.label] = result.presence;
           resolution.checked += result.resolutionChecks.checked;
+          resolution.valueCompared += result.resolutionChecks.valueCompared;
           resolution.mismatches.push(...result.resolutionChecks.mismatches);
           if (result.presence.bodyCells === 0) {
             throw new Error(`${context.label}: table rendered 0 body cells — the seeded DOM is missing`);
@@ -982,7 +1047,22 @@ async function main() {
       domPresence: presenceByContext,
       sameCssControl: { records: passes.first.length, differing: differing.length },
       knownLiveControl: { liveDeclarationsByRegion: liveByRegion, regionsWithNoLiveWinner: deadRegions },
-      resolutionSelfCheck: { checked: resolution.checked, mismatches: resolution.mismatches.length },
+      resolutionSelfCheck: {
+        checked: resolution.checked,
+        valueCompared: resolution.valueCompared,
+        mismatches: resolution.mismatches.length,
+        // A count alone cannot be acted on. A failing model-agreement control is
+        // either a real cascade-model defect or an artefact of how the authored
+        // value was resolved, and only the records distinguish them.
+        sample: resolution.mismatches.slice(0, 40).map((entry) => ({
+          reason: entry.reason,
+          longhand: entry.longhand,
+          ownerProp: entry.ownerProp,
+          ownerValue: entry.ownerValue,
+          expected: entry.expected,
+          computed: entry.computed,
+        })),
+      },
     },
     totals: {
       records: passes.first.length,

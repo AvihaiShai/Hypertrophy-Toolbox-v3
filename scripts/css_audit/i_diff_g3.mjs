@@ -95,8 +95,8 @@ must(
   'the two halves used different pages-workout-log.css; the gate measures that file and it must be held constant',
 );
 must(
-  idBefore.frozenDbSha256 === idAfter.frozenDbSha256,
-  `frozen DB differs: ${idBefore.frozenDbSha256} vs ${idAfter.frozenDbSha256}`,
+  Boolean(idBefore.frozenDbSha256) && idBefore.frozenDbSha256 === idAfter.frozenDbSha256,
+  `frozen DB differs or was not recorded: ${idBefore.frozenDbSha256} vs ${idAfter.frozenDbSha256}`,
 );
 must(
   Object.keys(before.perDeclaration ?? {}).length > 0,

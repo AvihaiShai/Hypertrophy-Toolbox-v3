@@ -309,27 +309,35 @@ standard it is corroboration, not evidence. The committed replacement is
 **element-scoped pixel differential** that serves both checkouts in turn on the same port
 and rasterises `table.table-calm` across 5 routes × 2 themes × 3 widths.
 
+Every `.table-calm` is rasterised, not just the first: Weekly and Session Summary each
+render three side by side, so a `.first()` capture would have left two thirds of those
+routes' surface unmeasured. Each capture is gated on body rows and cells — a header-only
+table would otherwise satisfy presence while rasterising none of the four row-styling rules.
+
 | Element-scoped pixel result | Value |
 |---|---|
-| Contexts compared | 30 |
-| Byte-identical captures | **29** |
-| Contexts differing | 1 — `workout-log|dark|1440`, **3 pixels**, 1×11 box at (195,462), max channel delta 3/255 |
-| Same-CSS control (`--expect-same-css`, `883e6aa8…` against itself) | **the identical 3 pixels, same box, same delta** |
+| Contexts compared | **54** (9 tables × 2 themes × 3 widths) |
+| Byte-identical captures | **54** |
+| Contexts differing | **0** |
+| Same-CSS control (`--expect-same-css`, `883e6aa8…` against itself) | 52/54 — two contexts differ by **3 pixels** each, a 1×11 box at max channel delta 3/255 |
 | **Packet-attributable pixel delta** | **0** |
 
-The one differing context differs *identically* in the same-CSS control, so it is the
-instrument's noise floor and not a packet effect. It is also structurally impossible for it
-to be one: `workout-log` is styled by the **retained** donor group, whose specificity is
-bit-identical to the four-branch original, and all 12 of its computed contexts report zero
-differences in §5. Artifacts: `artifacts/wp4_4/i/r3-pixel/pixel-diff.json` and
+**The repair's comparison is cleaner than the instrument's own control.** The control
+establishes a residual noise floor on `workout-log` at 1440 — three pixels in a 1×11 sliver
+at a delta of 3/255, which is sub-pixel text antialiasing rather than anything a rule can
+paint. The before/after comparison shows none of it. A packet effect cannot be smaller than
+the noise of the instrument measuring it, so this is zero, and it agrees with §5's zero
+across 758,400 computed values. Artifacts: `artifacts/wp4_4/i/r3-pixel/pixel-diff.json` and
 `artifacts/wp4_4/i/r3-pixel-control/pixel-diff.json`.
 
-An earlier revision of the harness reported a 379-pixel difference at
-`workout-log|light|768` with max delta 224. That was a **focus ring**: Workout Log renders a
-table of focusable inputs and which one holds focus after load is not deterministic. The
-harness now blurs the active element and requires two consecutive identical rasters before
-accepting one; the artifact has not recurred in three subsequent runs. It was never
-reproducible and never appeared on any route the repair reaches.
+Two harness defects were found *by* this control and fixed before the numbers above were
+taken. A ~412-pixel high-contrast box was a **focus ring**: Workout Log and Workout Plan
+render tables of focusable inputs, page scripts move focus asynchronously, and blurring once
+before the settle loop let a focus that landed between two shots persist into an accepted
+raster — so the blur now runs before every shot. Separately the work database was copied
+without first deleting its `-wal`/`-shm` sidecars, the documented WP4.4-h failure mode in
+which a stale journal empties the tables while every control still reports clean. Both
+halves now reset from the frozen database and their digests are recorded per half.
 
 **The red came from the test harness's own injected CSS.** `e2e/visual-helpers.ts` flattened
 dark surfaces with a rule computing to **(0,3,1)**, and the Progression goals table carries
@@ -398,8 +406,30 @@ wrong-side, failed-control, empty and positionally-drifted inputs.
 
 All controls clean on both halves: specificity model 10/10, the G3 ID-free assertion (every
 region arm `a = 0`), DOM presence, dark-theme presence, same-CSS control (56,304 records, 0
-differing), known-live control (live winners found in A, B and C), and resolution self-check
-(4,800 checked, 0 mismatches).
+differing), known-live control (live winners found in A, B and C), and the M4 resolution
+self-check (4,800 sampled, **1,854 values actually compared**, 0 mismatches).
+
+**The M4 control did not previously check anything.** Its stated job is to confirm the
+ownership model — the specificity, layer and `!important` ranking this whole gate is
+computed from — agrees with the browser. It read `getComputedStyle` and then tested only
+whether the element was found, using a selector harvested from the same page moments
+earlier, so it never missed and `record.ownerValue` was never referenced. It reported
+`mismatches: 0` unconditionally, which meant G3's ownership counts rested on an
+unvalidated cascade model.
+
+It now resolves the winning declaration's authored value in an isolated `about:blank`
+context — so the measured page is still never mutated and M6 holds — and compares it to the
+element's computed value. Values that a detached probe cannot reproduce are skipped rather
+than scored: `var()`, `calc()`, `color-mix()`, `env()`, `attr()`, `clamp/min/max`, and the
+CSS-wide keywords including `currentColor`. The artifact now reports `valueCompared`
+alongside `checked`, because 4,800 sampled and 1,854 genuinely compared are different claims
+and only the second is evidence.
+
+The repaired control immediately failed twice on real defects in its own resolution — the
+recorded value carries its `!important` suffix, which `setProperty` rejects inside a value
+string, and a shorthand winner must be set as the shorthand and read back as the longhand.
+Both are fixed; it then passed at 1,854 comparisons on both halves. A control that has been
+observed to fail is worth more than one that has only ever passed.
 
 **The before half reproduces Inventory B's published totals exactly** — 56,304 / 45 / 9 / 6
 / 30 / 0 — despite running against a regenerated probe database rather than the lost
@@ -546,8 +576,8 @@ discarded rather than carried forward.
 | Computed-value differential | **0 differences / 758,400 values**, served sha asserted on both halves | `r3-diff-computed/diff.json` |
 | Same-CSS control, cross-run | **0 differences** over the same 758,400 values | `r3-diff-samecss/diff.json` |
 | Known-live control | **8,856** differences (session 4,578 · weekly 4,278), summary routes only — the instrument is live | `r3-knownlive-diff/diff.json` |
-| G3 regions A–C | **0 resurrections, 0 ownership drift, 0 provenance failures**, halves from two different checkouts | `r3-g3-diff/diff.json` |
-| Element-scoped pixel differential | **29/30 byte-identical**; the 30th differs identically in the same-CSS control → **0 packet-attributable pixels** | `r3-pixel/pixel-diff.json`, `r3-pixel-control/pixel-diff.json` |
+| G3 regions A–C | **0 resurrections, 0 ownership drift, 0 provenance failures**, halves from two different checkouts; M4 model-agreement **1,854 values compared, 0 mismatches** | `r3-g3-diff/diff.json` |
+| Element-scoped pixel differential | **54/54 byte-identical**, cleaner than the same-CSS control's 52/54 noise floor → **0 packet-attributable pixels** | `r3-pixel/pixel-diff.json`, `r3-pixel-control/pixel-diff.json` |
 | Stylelint (matched glob, 21 sources both halves) | **+10 `no-descending-specificity`, 100% attributed to the approved split lines**; every other category flat; no line outside the approved set changed | `r3-stylelint-before.json`, `r3-stylelint-after.json` |
 | Windows visual matrix (`visual.spec.ts`) | **36 failed / 30 passed on both halves, failure identities exactly equal** — 0 new, 0 cleared; **no snapshot changed** | `r3-visual-before.json`, `r3-visual-after.json` |
 | Linux deep gate (N8) | dispatched on the corrective branch; reconciled against `CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` | see §9 note |
