@@ -215,12 +215,18 @@ PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
 FROZEN_FAMILY_COUNTS = {
     # A9 / N4: the whole `:is()` family belongs to WP4.4-i.
     r":is\(": 19,
-    # `:where\(` and `:hover` were global occurrence counts here (58 and 115).
-    # They are now asserted structurally instead — see
-    # `test_where_and_hover_are_frozen_outside_the_i_owned_family` and
-    # `test_the_i_owned_family_carries_only_the_approved_progression_splits`.
-    # The premise is unchanged and the protection is strictly narrower in scope
-    # and stronger in kind; the reasoning is in this module's docstring.
+    # `:where\(` and `:hover` were 58 and 115 here before WP4.4-i. The packet
+    # split fourteen family selector lines, which moved 2 and 4 occurrences from
+    # outside the family to inside it, so the global totals rose by exactly the
+    # in-family counts. The partition — frozen outside, exact shapes inside — is
+    # asserted by `test_where_and_hover_are_frozen_outside_the_i_owned_family`
+    # and `test_the_i_owned_family_carries_only_the_approved_progression_splits`.
+    #
+    # The global totals stay in this dict as well. Holding the invariant only as
+    # the sum of two separate test functions means deleting either one silently
+    # halves the lock, and nothing would red.
+    r":where\(": 59,
+    r":hover": 117,
     # M10 / PR#3: reachable only through a JS-applied class.
     r"\.value-changed": 20,
     # M12 / PR#10: hover, focus and active are out of scope, declared up front.

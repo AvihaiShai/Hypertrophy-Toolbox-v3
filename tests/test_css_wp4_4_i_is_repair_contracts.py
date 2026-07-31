@@ -21,9 +21,9 @@ currently loses to it a chance to win. Measured per branch:
 * `.summary-frame.frame-calm-glass` — both summary bundles carry ID-scoped
   `!important` rules (`#weekly-summary-container` / `#session-summary-container`)
   that win on `a` alone once the arm drops to `a = 0`. De-weighting it was
-  measured, not argued: 8,784 computed values change across the two summary
-  routes, reverting to the unmigrated `#404040` / `#e0e0e0` / `#2d2d2d` /
-  `#1a1a1a` legacy palette.
+  measured, not argued: 8,856 computed values change across the two summary
+  routes (session-summary 4,578 · weekly-summary 4,278), reverting to the
+  unmigrated `#404040` / `#e0e0e0` / `#2d2d2d` / `#1a1a1a` legacy palette.
 * `#workout[data-page="workout-plan"]` — carries the ID itself, so splitting it
   out changes its own specificity by nothing while stripping the donor from the
   other three. It is the donor and must stay.
@@ -46,6 +46,7 @@ it is enforced here rather than left as folklore.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -132,16 +133,23 @@ def test_every_repaired_rule_keeps_both_arms_on_one_physical_line() -> None:
     selector list in order and the split arm is one `a` below its sibling. Order
     inside a selector list has no cascade effect — every arm shares one
     declaration block at one source position — so this is presentation only.
+
+    The one-physical-line invariant is carried by the donor-arm check below, not
+    by the line's punctuation: every CSS selector line ends in `,` or `{`,
+    including the *first* line of the forbidden two-line split. What actually
+    rules that out is that a reflowed rule puts the progression arm and the donor
+    arm on separate lines, so neither line satisfies both halves at once.
     """
-    for line in _family_lines(_css()):
+    lines = _family_lines(_css())
+    assert lines, "no family lines found; the loop below would pass vacuously"
+    for line in lines:
         stripped = line.strip()
         assert stripped.startswith(PROG_BRANCH) or stripped.startswith(
             f"[data-theme='dark'] {PROG_BRANCH}"
         ), f"progression arm is not first: {stripped}"
-        assert stripped.endswith(",") or stripped.endswith("{"), (
-            f"split arm is not on one physical line: {stripped}"
+        assert PROG_BRANCH in line, (
+            f"the donor arm is on a line of its own — the rule was reflowed: {stripped}"
         )
-        assert DONOR_GROUP in line or DONOR_GROUP_REDUCED_MOTION in line
 
 
 def test_the_unsafe_branches_never_lose_the_id_donor() -> None:
@@ -197,10 +205,77 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
     partition — frozen outside the family, exact shapes inside it. These are the
     whole-file totals that partition implies, asserted on the raw text so the two
     files would disagree if either drifted.
+
+    The partition is measured on comment-stripped text and implies `:hover` 117;
+    the raw count is 118 because one `:hover` lives inside a comment. That single
+    occurrence is asserted here rather than left as an unstated offset.
     """
     css = _css()
     assert css.count(":is(") == 19
     assert css.count(":where(") == 59
     assert css.count(":hover") == 118
+    commented_hovers = sum(
+        block.count(":hover") for block in re.findall(r"/\*.*?\*/", css, re.DOTALL)
+    )
+    assert commented_hovers == 1, (
+        "the raw/stripped :hover offset changed; the 118 above and the 117 in "
+        "test_css_wp4_4_components_contracts.py no longer reconcile"
+    )
     # Unchanged: a selector rewrite adds no declarations. WP4.4-h shipped 919.
     assert len(re.findall(r"!important", css)) == 919
+
+
+def test_the_progression_arm_is_id_free_and_the_donor_arm_is_not() -> None:
+    """The packet's premise, computed rather than pattern-matched.
+
+    Every other contract in this file checks selector *text*. This one checks the
+    thing the text is a proxy for: after the split, each progression arm computes
+    `a = 0` while its donor sibling still computes `a = 1`. A reformatting that
+    preserved the strings but changed the grouping — or a future `:is()` that
+    smuggled an ID back into the progression arm — would pass the shape checks and
+    fail here.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from css_audit.specificity import selector_list_specificity, split_selector_list
+
+    for line in _family_lines(_css()):
+        arms = split_selector_list(line.strip().rstrip("{").rstrip(","))
+        progression = [arm for arm in arms if PROG_BRANCH in arm]
+        donor = [arm for arm in arms if ID_DONOR in arm]
+        assert progression and donor, f"expected both arms on one line: {line.strip()}"
+        assert selector_list_specificity(", ".join(progression)).ids == 0, (
+            f"the progression arm still borrows ID weight: {progression}"
+        )
+        assert selector_list_specificity(", ".join(donor)).ids == 1, (
+            f"the donor arm lost its ID; the unsafe branches are de-weighted: {donor}"
+        )
+
+
+def test_the_lowest_arm_still_depends_on_the_pr_211_visual_hook() -> None:
+    """`components.css:3336` is the one arm whose safety lives outside this file.
+
+    The split drops that arm to (0,3,0), just below the dark-surface flattener in
+    `e2e/visual-helpers.ts` at (0,3,1). The only reason two dark Progression
+    baselines do not move is the `:where(:not([data-visual-preserve-border]))`
+    exclusion and the inert attribute PR #211 added to the template. That
+    attribute reads as dead markup — a later cleanup pass would delete it and
+    silently hand `border-color` and `border-radius` to the flattener.
+
+    `tests/test_visual_selector_contracts.py` pins the hook, but it was written
+    for PR #211 and says nothing about the specificity band this packet vacated.
+    This is the missing back-reference: if the split exists, so must the hook.
+    """
+    if not _family_lines(_css()):
+        return  # the split was reverted; the dependency no longer applies
+
+    template = (ROOT / "templates" / "progression_plan.html").read_text(encoding="utf-8")
+    helper = (ROOT / "e2e" / "visual-helpers.ts").read_text(encoding="utf-8")
+
+    assert "data-visual-preserve-border" in template, (
+        "the WP4.4-i split de-weighted the Progression table below the visual "
+        "flattener; removing this hook moves two committed dark baselines"
+    )
+    assert ":where(:not([data-visual-preserve-border]))" in helper, (
+        "the flattener's exclusion arm is gone; it now owns border-color and "
+        "border-radius on the Progression table that WP4.4-i de-weighted"
+    )

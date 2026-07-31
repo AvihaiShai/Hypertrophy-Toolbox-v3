@@ -15,7 +15,8 @@
   ],
   "executionEnvironments": [
     {
-      "root": "."
+      "root": ".",
+      "extraPaths": ["scripts"]
     }
   ]
 }
