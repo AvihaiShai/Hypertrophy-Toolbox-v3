@@ -30,6 +30,11 @@ for (let i = 0; i < argv.length; i += 1) {
 const [beforeDir, afterDir] = positional;
 if (!beforeDir || !afterDir) throw new Error('usage: j_diff_theme.mjs <before/> <after/> [--out <dir>]');
 const outDir = arg('--out') ? resolve(arg('--out')) : null;
+// The known-live control mutates one checkout in place and compares it with
+// itself, so it is the single legitimate same-root comparison. Everything else
+// measured from one root is an in-place swap with no durable proof of which
+// bytes were served when.
+const allowSameRoot = argv.includes('--allow-same-root');
 
 const load = (dir) => ({
   meta: JSON.parse(readFileSync(join(dir, 'meta.json'), 'utf8')),
@@ -43,8 +48,9 @@ const must = (cond, msg) => { if (!cond) fatal.push(msg); };
 
 const bm = before.meta.meta;
 const am = after.meta.meta;
-must(Boolean(bm.root) && Boolean(am.root) && bm.root !== am.root,
-  `both halves were captured from the same root ${bm.root}`);
+must(Boolean(bm.root) && Boolean(am.root) && (allowSameRoot || bm.root !== am.root),
+  `both halves were captured from the same root ${bm.root} `
+  + '(pass --allow-same-root only for the known-live control)');
 must(Boolean(bm.themeDarkCssSha256) && Boolean(am.themeDarkCssSha256)
   && bm.themeDarkCssSha256 !== am.themeDarkCssSha256,
   `both halves served the same theme-dark.css ${bm.themeDarkCssSha256} — nothing under test changed`);

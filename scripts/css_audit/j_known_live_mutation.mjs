@@ -38,6 +38,17 @@ const arg = (name, fallback = null) => {
 /** The post-removal `theme-dark.css` this control is defined against. */
 const EXPECTED_INPUT = 'e54818bf790eb2c11474f68ecddc25d66304d9edf650cf698853276e419f2fca';
 const TOKEN = '--bg-primary';
+/**
+ * `--bg-primary` proves the instrument is live, but it only surfaces where no
+ * later rule overrides it — in practice the volume-splitter tables. The
+ * declarations this packet deleted live in the results-section /
+ * table-responsive cluster, which `background: none !important` dominates, and a
+ * control that never lights up that cluster cannot show the instrument would
+ * have seen a regression there. The `shadow-winner` mode re-points that very
+ * declaration — the one whose presence made the deleted declarations dead — so
+ * the control fires in exactly the region the packet touched.
+ */
+const MODE = arg('--mode', 'token');
 /** A colour that appears nowhere else in the bundle, so every hit is the token. */
 const SENTINEL = '#ff00ff';
 
@@ -63,13 +74,19 @@ const lines = text.split(eol);
 
 const touched = [];
 const mutated = lines.map((line, index) => {
+  if (MODE === 'shadow-winner') {
+    const m = /^(\s*)background\s*:\s*none\s*!important;(.*)$/.exec(line);
+    if (!m) return line;
+    touched.push({ line: index + 1, from: 'background: none !important' });
+    return `${m[1]}background: ${SENTINEL} !important;${m[2]}`;
+  }
   const match = new RegExp(`^(\\s*)${TOKEN}\\s*:\\s*([^;]+);(.*)$`).exec(line);
   if (!match) return line;
   touched.push({ line: index + 1, from: match[2].trim() });
   return `${match[1]}${TOKEN}: ${SENTINEL};${match[3]}`;
 });
 
-if (touched.length === 0) throw new Error(`no ${TOKEN} declaration found; the control would be a no-op`);
+if (touched.length === 0) throw new Error(`mode ${MODE} matched nothing; the control would be a no-op`);
 
 const output = Buffer.from(mutated.join(eol), 'utf8');
 const outputSha = sha(output);
