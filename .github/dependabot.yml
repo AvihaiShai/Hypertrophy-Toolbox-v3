@@ -1,0 +1,56 @@
+# Phase 0.3 of docs/TESTING_STRATEGY_PLANNING.md, closing half of blindspot B10:
+# the JS dependency surface had no automated update or vulnerability tracking at
+# all, and `bootstrap` sits pinned at 5.1.3 (2021) feeding the SCSS build.
+#
+# Grouping is deliberate. Three sessions work this repository concurrently and
+# every PR runs a ~14-job pipeline, so a fan of individual bumps is expensive
+# noise. npm and github-actions minor/patch updates are batched into one PR per
+# ecosystem per week; majors still arrive separately because they are the ones
+# that need reading. pip is left ungrouped -- Flask, Werkzeug and Jinja2 are
+# runtime dependencies of a local-first app where a bad bump is a user-visible
+# break, and those deserve to be reviewed one at a time.
+version: 2
+
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Every package in this repository is a devDependency (prod: 1, dev: 246
+      # per `npm audit --json`), so this group is the whole graph minus majors.
+      npm-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(actions)"
+    groups:
+      actions-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
