@@ -26,7 +26,9 @@ FIRST_PARTY_LINK = re.compile(
 
 
 def _templates():
-    return sorted(TEMPLATES.glob("*.html"))
+    # rglob, not glob: templates/partials/ carries none of these links today, so
+    # a first-party link added there would otherwise be silently uncovered.
+    return sorted(TEMPLATES.rglob("*.html"))
 
 
 def test_app_version_matches_package_json():
@@ -39,6 +41,22 @@ def test_app_version_matches_package_json():
 def test_app_version_is_a_usable_url_token():
     """It goes straight into a query string, so it must need no escaping."""
     assert re.fullmatch(r"[A-Za-z0-9.\-_]+", APP_VERSION)
+
+
+def test_the_link_regex_actually_matches_something():
+    """A floor under the parametrized test below, which passes vacuously if the
+    regex stops matching.
+
+    ``FIRST_PARTY_LINK`` requires single-quoted ``url_for('static', ...)``.
+    Reformatting the templates to double quotes, or changing the ``url_for``
+    call shape, would drop every match to zero — and "no unversioned links
+    found" is exactly what an empty result looks like.
+    """
+    total = sum(
+        len(FIRST_PARTY_LINK.findall(path.read_text(encoding="utf-8")))
+        for path in _templates()
+    )
+    assert total >= 30, f"only {total} first-party links matched; the regex has drifted"
 
 
 @pytest.mark.parametrize('template', _templates(), ids=lambda p: p.name)

@@ -16,6 +16,13 @@ from utils.effective_sets import (
 from utils.logger import get_logger
 
 
+# Session bucket for rows whose routine is falsy. The production schema is
+# `routine TEXT NOT NULL`, so the reachable case is the empty string; such rows
+# arrive from restored backups, legacy data, or direct database edits. All falsy
+# values coalesce here, so the summary never reports more than one anonymous
+# session. Matches `session_summary.py`'s bucket name (WPB.4 / OD4).
+UNASSIGNED_ROUTINE = 'Unassigned'
+
 # Map new volume classes to CSS-compatible status
 EFFECTIVE_STATUS_MAP = {
     'low': 'low',
@@ -67,7 +74,7 @@ def _aggregate_weekly_volumes(
 
     for row in rows:
         sets = row.get('sets') or 0
-        routine = row.get('routine')
+        routine = row.get('routine') or UNASSIGNED_ROUTINE
         min_rep = row.get('min_rep_range')
         max_rep = row.get('max_rep_range')
         rir = row.get('rir')
@@ -135,9 +142,10 @@ def _aggregate_weekly_volumes(
             raw_bucket['reps'] += raw_weighted_reps
             raw_bucket['volume'] += raw_weighted_volume
 
-            # Track session contributions for frequency calculation
-            if routine:
-                sessions_by_muscle[muscle][routine] += eff_contribution
+            # Track session contributions for frequency calculation. Falsy
+            # routines coalesce into one synthetic UNASSIGNED_ROUTINE session
+            # rather than dropping out, matching session_summary.py (WPB.4).
+            sessions_by_muscle[muscle][routine] += eff_contribution
 
     return effective_totals, raw_totals, sessions_by_muscle
 

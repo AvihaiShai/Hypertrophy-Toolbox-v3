@@ -57,29 +57,83 @@ def real_app_client(tmp_path_factory):
     ``/erase-data`` confirm guard, the error-handler layering, trailing-slash
     routing — so it can only be covered against the real one.
 
-    ``app.py`` is a module-level singleton whose startup runs on first import.
-    Whichever test module imports it first wins; later imports are cached
-    no-ops. A per-module fixture that only patched ``DB_FILE`` was therefore
-    order-dependent — the module that ran second pointed at a scratch database
-    that no startup had ever initialized, and its requests failed on missing
-    tables. This does explicitly what that startup does, so import order stops
-    mattering.
+    Isolation here is load-bearing, and patching ``utils.config.DB_FILE`` alone
+    is NOT enough:
+
+    * ``utils/config.py`` resolves ``DB_FILE`` from the **environment** at import
+      time, and ``prepare_runtime_database()`` takes its ``explicit-override``
+      branch only when ``os.environ['DB_FILE']`` is set.
+    * ``app.py``'s startup then *reassigns* ``utils.config.DB_FILE`` from that
+      call's result. With no environment override, a first import resolves the
+      real runtime database — the checkout's own ``data/database.db`` in a source
+      tree — and silently discards the scratch path.
+
+    So the environment variable is set too, the scratch path is reasserted after
+    the import (whether or not that import was a cached no-op that ran startup
+    under some other module's path), and the resolved path is asserted before any
+    write happens. Both the environment variable and the module attribute are
+    restored on teardown, as is the app's original ``TESTING`` value.
     """
     scratch_db = tmp_path_factory.mktemp('real_app') / 'database.db'
-    original_db_file = utils.config.DB_FILE
+    scratch_resolved = Path(scratch_db).resolve()
+    runtime_root = tmp_path_factory.mktemp('real_app_runtime')
+
+    # None means "was not set" for the environment variable, and "never captured"
+    # for TESTING — neither is a value either can legitimately hold here.
+    original_env_db = os.environ.get('DB_FILE')
+    original_env_runtime = os.environ.get('HT_RUNTIME_DIR')
+    original_config_db = utils.config.DB_FILE
+    original_testing: bool | None = None
+    real_app = None
+
+    os.environ['DB_FILE'] = str(scratch_db)
+    # DB_FILE only relocates the database. HT_RUNTIME_DIR relocates the whole
+    # runtime tree, so auto-backups and logs land in the scratch area too rather
+    # than in the repository — otherwise the first test to exercise a path that
+    # writes a backup would target <repo>/data/auto_backup.
+    os.environ['HT_RUNTIME_DIR'] = str(runtime_root)
     utils.config.DB_FILE = str(scratch_db)
     try:
         from app import app as real_app
+
+        # Read what app.py's startup actually resolved, BEFORE overwriting it.
+        # The previous version reasserted the scratch path first and then
+        # compared, which read back the value it had just written and so could
+        # never detect a defeated override. On a cached import nothing reassigns
+        # and this is simply the value set above; on a fresh import it is
+        # whatever prepare_runtime_database() decided, which is the case worth
+        # catching. Failing here happens before bootstrap_runtime_database() and
+        # run_all_initializers() below, so a defeated override cannot reach a
+        # real database.
+        resolved_by_startup = Path(utils.config.DB_FILE).resolve()
+        if resolved_by_startup != scratch_resolved:
+            pytest.fail(
+                "real_app_client refuses to run: app.py's startup resolved a "
+                "database that is not the fixture scratch database.\n"
+                f"  resolved: {resolved_by_startup}\n  scratch:  {scratch_resolved}"
+            )
+
+        original_testing = bool(real_app.config.get('TESTING', False))
+        real_app.config['TESTING'] = True
 
         with real_app.app_context():
             bootstrap_runtime_database()
             run_all_initializers(force_base=True)
 
-        real_app.config['TESTING'] = True
         with real_app.test_client() as client:
             yield client
     finally:
-        utils.config.DB_FILE = original_db_file
+        if real_app is not None and original_testing is not None:
+            real_app.config['TESTING'] = original_testing
+        utils.config.DB_FILE = original_config_db
+        if original_env_db is None:
+            os.environ.pop('DB_FILE', None)
+        else:
+            os.environ['DB_FILE'] = original_env_db
+        if original_env_runtime is None:
+            os.environ.pop('HT_RUNTIME_DIR', None)
+        else:
+            os.environ['HT_RUNTIME_DIR'] = original_env_runtime
         _cleanup_database_files(str(scratch_db))
 
 
