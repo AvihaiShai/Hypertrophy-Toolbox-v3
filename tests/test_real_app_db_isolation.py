@@ -17,10 +17,19 @@ first import resolves the **real runtime database** — in a source checkout, th
 repository's own ``data/database.db``.
 
 These tests spawn a subprocess so the startup genuinely re-runs. Each one also
-sets ``HT_RUNTIME_DIR`` to a throwaway sandbox, which relocates the entire runtime
-tree (database, backups, logs). That is belt-and-braces: it means a regression
-makes these tests *fail* rather than write to anyone's real database, and it gives
-the negative case a concrete runtime path to assert was never created.
+sets ``HT_RUNTIME_DIR`` to a throwaway sandbox, which relocates the runtime tree
+(database, backups, logs) and gives the negative case a concrete runtime path to
+assert was never created.
+
+``HT_RUNTIME_DIR`` does **not** relocate the *legacy* source path, though:
+``legacy_data_dir()`` is installation-relative, so ``prepare_runtime_database()``
+still reads the repository's own ``data/database.db`` when deciding whether to
+migrate. It opens that file read-only and never deletes it, but if unresolved
+``-wal``/``-journal`` sidecars make the migration refuse, it returns the legacy
+path — and the negative case, which deliberately withholds ``DB_FILE``, would then
+run ``upgrade_catalog_from_seed()`` against the developer's real database.
+``_skip_if_legacy_database_is_busy`` refuses to run in that state rather than
+write to it.
 """
 import json
 import os
@@ -50,6 +59,27 @@ print(json.dumps({
     "runtime_db": os.path.abspath(runtime_db),
 }))
 """
+
+
+def _skip_if_legacy_database_is_busy():
+    """Refuse the negative case when it could reach the real database.
+
+    Only the ``set_env_db=False`` path needs this: with no ``DB_FILE`` override,
+    ``prepare_runtime_database()`` inspects the repository's own database, and an
+    outstanding SQLite sidecar makes it decline the migration and hand back the
+    legacy path. Skipping is the honest outcome — the alternative is a test that
+    writes to a developer's live data to prove a point about isolation.
+    """
+    legacy = ROOT / 'data' / 'database.db'
+    busy = [
+        suffix for suffix in ('-wal', '-shm', '-journal')
+        if Path(f"{legacy}{suffix}").exists()
+    ]
+    if busy:
+        pytest.skip(
+            f"{legacy.name} has outstanding {', '.join(busy)} sidecars; the "
+            "negative case would fall back to the real database"
+        )
 
 
 def _first_import(tmp_path, *, set_env_db, mode="patch-config-too"):
@@ -97,6 +127,7 @@ def test_patching_config_alone_is_not_isolation(tmp_path):
     exact defect the fixture guards against; if this test ever fails, the startup
     contract changed and ``real_app_client``'s comment needs revisiting.
     """
+    _skip_if_legacy_database_is_busy()
     report, scratch = _first_import(tmp_path, set_env_db=False)
 
     assert Path(report["active_db"]).resolve() != scratch.resolve()

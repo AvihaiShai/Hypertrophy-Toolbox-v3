@@ -172,7 +172,7 @@ def _require_free_port(port: int) -> None:
             )
 
 
-def _check_asset_version_policy(base_url: str) -> None:
+def _check_asset_version_policy(base_url: str, mode: str) -> None:
     """F4, and the only place it can actually be verified.
 
     The one-year ``STATIC_LONG_MAX_AGE`` applies **only** in a frozen build, so
@@ -201,13 +201,28 @@ def _check_asset_version_policy(base_url: str) -> None:
 
     probe = links[0].split("?")[0]
 
-    with _get(f"{base_url}{probe}?v={APP_VERSION}") as response:
-        cache_control = response.headers.get("Cache-Control", "")
-    _check(
-        "max-age=31536000" in cache_control and "immutable" in cache_control,
-        f"versioned asset is long-cached: {probe}?v={APP_VERSION} -> "
-        f"{cache_control!r}",
-    )
+    # The long-cache branch is set under getattr(sys, 'frozen', False), which is
+    # true for the bootloader and false for payload mode -- payload runs
+    # `<interpreter> app.pyc`, so app.py's frozen block never executes and every
+    # static response correctly revalidates. Asserting the long cache there would
+    # fail for a reason that is not a defect, so it is skipped explicitly rather
+    # than silently: a payload run must not be read as having verified it.
+    if mode == "bootloader":
+        from app import STATIC_LONG_MAX_AGE_SECONDS
+
+        with _get(f"{base_url}{probe}?v={APP_VERSION}") as response:
+            cache_control = response.headers.get("Cache-Control", "")
+        _check(
+            f"max-age={STATIC_LONG_MAX_AGE_SECONDS}" in cache_control
+            and "immutable" in cache_control,
+            f"versioned asset is long-cached: {probe}?v={APP_VERSION} -> "
+            f"{cache_control!r}",
+        )
+    else:
+        print(
+            "  --  SKIPPED: long-cache assertion needs a frozen build; payload "
+            "mode is not frozen, so this run does NOT verify F4's cache window"
+        )
 
     for label, url in (
         ("unversioned", f"{base_url}{probe}"),
@@ -335,7 +350,7 @@ def serve_and_check(
                     f"GET {route} -> 200 ({content_type})",
                 )
 
-        _check_asset_version_policy(base_url)
+        _check_asset_version_policy(base_url, mode)
 
         with _get(f"{base_url}/get_all_exercises") as response:
             exercises = json.loads(response.read())["data"]
