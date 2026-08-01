@@ -4,6 +4,40 @@
 
 ## Current State
 
+### Known Windows visual reds — the WP4.0 pair, both OPEN and deferred
+
+*Durable ledger. A correctly seeded Windows visual run (`PW_VISUAL_SEED=1`) reds on **exactly these
+two** tests and nothing else. Neither is a regression; both predate the app.py review. **Never
+rebaseline either, and never gate on an exact pixel count — both are bands.***
+
+| # | Test | Spec | Observed | Historical | Status |
+|---|---|---|---:|---:|---|
+| 1 | `visual baseline: workout-plan › workout-plan desktop dark` | `visual.spec.ts` | 875 px (882 retry) | band 875/882 ∪ 1,039/1,046 | **open, deferred** — animated navbar logo |
+| 2 | `§4 visual baseline — workout_plan thumbnails › plan-desktop-light-advanced` | `visual-baseline-thumbnails.spec.ts` | **6,084 px** (6,098 retry) | **6,262 px** | **open, deferred** — see below |
+
+**Entry 2 — `plan-desktop-light-advanced`, recorded explicitly (2026-08-01).**
+
+- **Failure:** 6,084 px differing (6,098 on the in-run retry), ratio 0.01.
+- **Reproduction:** re-run of the same spec, same seed, same host at the **pre-P4 commit
+  `99c5a36`** reproduces it exactly — one failure plus 16 serial skips. Therefore
+  **pre-existing and NOT caused by app.py-review P4 (`16a4e53`)**; a `?v=` query string cannot
+  change rendering, and the differing pixels sit on the skip-link and a navbar element, not on
+  thumbnail content.
+- **Classification:** pre-existing, non-P4 defect. It is the second of the two **WP4.0** known reds
+  long recorded in this file as the pair *"workout-plan desktop-dark 1,039 px;
+  plan-desktop-light-advanced 6,262 px"*.
+- **What is new:** only the **pixel-count drift**, 6,262 → 6,084/6,098. Treat it as a band exactly
+  as entry 1 already is. Nothing else about it changed.
+- **Status: OPEN, deferred for a separate fix decision.** Not owned by the app.py review plan, which
+  is closed. See [`APP_PY_REVIEW_PLAN.md`](APP_PY_REVIEW_PLAN.md) §7a for the measurement context.
+
+**Reading these correctly.** A failure inside `visual-baseline-thumbnails.spec.ts` skips the
+remainder of that spec — `e2e/visual-baseline-thumbnails.spec.ts:45` sets
+`test.describe.configure({ mode: 'serial' })`. The resulting "N did not run" is **serial-mode
+collateral, never a documented tail**. And a visual run made *without* `PW_VISUAL_SEED=1` seeds via
+`prepare_e2e_db.py` — the user-state-wiped functional seed — which cannot match visual baselines and
+reds dozens of tests spuriously; that is a harness misconfiguration, not a product defect.
+
 > **2026-07-29 — Owner-directed runtime alignment:** Python **3.14.6+** is now
 > the repository-wide minimum for source runs, tests, CI and executable builds.
 > `.python-version` pins the exact CI interpreter; Pyright targets 3.14; runtime
@@ -1347,7 +1381,7 @@
 | Redesign post-P8 triage | ✅ complete — 10 of 11 shipped, #1 deferred by owner choice (keep nav Backup link) | none | local-only `debug/redesign_post_p8_issues_SESSION_STATE.md` (closed; annotated 2026-05-19) |
 | phase5_3i_plan | ✅ closed — accepted-as-shipped (owner decision 2026-05-19) | none | local-only `debug/phase5_3i_plan_SESSION_STATE.md` (closed banner added); planning doc shipped `c0da18e` 2026-04-15 and deleted `635fa3e` 2026-04-24; 5A–5H validation gates never ran but `12c90ac` refactors have held 5+ weeks under 1160-test baseline with no regression |
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
-| app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). | **One open item, and it is not P4's.** A correctly seeded visual run reds **twice** on Windows, not once: the ledgered animated-logo `workout-plan desktop dark` (875/882, in band) **plus** `visual-baseline-thumbnails.spec.ts › plan-desktop-light-advanced` (6084 px), which reproduces at the pre-P4 commit `99c5a36` and is therefore pre-existing and **unledgered**. It needs its own entry or fix decision. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
+| app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). | **None owned by this plan.** A correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else** — `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262). Both are pre-existing, both are OPEN and deferred, and both are ledgered in §"Known Windows visual reds" at the top of this file. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | **PROPOSED — needs revision.** Assesses the six-document suite (PRD / TDD / App Flow / Design Brief / Backend Schema / Engineering Plan) against the existing brownfield docs surface. Verdict: fill the real gaps rather than write six documents from scratch — **App Flow** and **Design Brief** are the genuine gaps; the Engineering Plan is already covered as a living process by `/council-plan`, per-feature `PLANNING.md` and `QUALITY_GATE.md`. Committed 2026-08-01 via PR #219. | None. Gate 0 approves requirements only; no packet may start until the revised plan completes council review and receives Gate 1 owner approval. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) |
 | Testing strategy review | **PLANNING — nothing shipped from it.** Claims were verified against the live repository (configs read directly, Playwright `--list` and pytest collection executed, all 90 pytest files, both workflows, the backup subsystem and the E2E suite audited). Adjudicates two external AI reviews, records verified current state, and lists blindspots both models missed. Phases **D1–D7** are proposals. Committed 2026-08-01 via PR #220. | None. **No phase is started and none is selected** — owner picks which, if any, to run. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md) |
 
@@ -1358,10 +1392,11 @@
   **P3 is the only one left** and is planning-only — Gate 0 and Gate 1 are both
   unsigned. See `## Next Safe Step`.
 - **The app.py review is CLOSED** (2026-08-01) — all five packets merged, and
-  P4's gates were discharged post-merge in §7a. No decision is open on the
-  *plan*; see [`APP_PY_REVIEW_PLAN.md`](APP_PY_REVIEW_PLAN.md) §7 and §7a. One
-  decision **is** open outside it: the pre-existing, unledgered
-  `plan-desktop-light-advanced` visual red that §7a surfaced.
+  P4's gates were discharged post-merge in §7a. No decision is open on it; see
+  [`APP_PY_REVIEW_PLAN.md`](APP_PY_REVIEW_PLAN.md) §7 and §7a. Separately, the
+  **two WP4.0 known Windows visual reds remain open and deferred** — ledgered in
+  §"Known Windows visual reds" at the top of this file. They are not owned by
+  this plan and predate it.
 - **Two planning documents remain parked pre-approval** — the product
   documentation suite (PROPOSED, needs revision) and the testing strategy review
   (PLANNING, D1–D7 unselected). Rows in `## Active Workstreams`. Neither is

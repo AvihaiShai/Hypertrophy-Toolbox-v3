@@ -3,8 +3,8 @@
 **Status:** **EXECUTED AND CLOSED (2026-08-01).** All five packets are merged; see §7 for the
 shipped ledger. **P4's gates were discharged post-merge, not at merge time — see §7a.** Its PR
 reported an E2E result that its own retained artifact contradicts, and its packaged smoke never
-ran. Both have since been run correctly and pass; §7a records the false claim, the true
-accounting, and one pre-existing visual red that the correction surfaced.
+ran. Both have since been run correctly and pass; §7a records the false claim and the true
+accounting. No visual red beyond the documented WP4.0 pair was found.
 Owner decisions D1–D4 are signed in §5. Findings were triple-verified
 (independent review → Codex cross-verification → a third source-level check), and the finding
 surface is exhausted — **do not commission another review round, and do not reopen this plan
@@ -402,19 +402,27 @@ not payload evidence. It covered fresh-install first launch, static asset MIME t
    precisely the documented animated-navbar-logo band (875/882 ∪ 1039/1046). A band, not a
    constant; not rebaselined.
 
-2. **`visual-baseline-thumbnails.spec.ts › plan-desktop-light-advanced` — PRE-EXISTING, not P4, and
-   previously undocumented.** 6084 px (6098 on retry). A control run of the same spec, same seed,
-   same host, at the **pre-P4 commit `99c5a36`** reproduces it exactly — one failure, 16 serial
-   skips. Diff pixels sit on the skip-link and a navbar element, not thumbnail content, and a `?v=`
-   query string cannot change rendering.
+2. **`visual-baseline-thumbnails.spec.ts › plan-desktop-light-advanced` — the *second* WP4.0 known
+   red, pre-existing and not P4.** 6084 px (6098 on retry) against a historical **6,262 px**. A
+   control run of the same spec, same seed, same host, at the **pre-P4 commit `99c5a36`** reproduces
+   it exactly — one failure, 16 serial skips. Diff pixels sit on the skip-link and a navbar element,
+   not thumbnail content, and a `?v=` query string cannot change rendering.
 
-   **This is an open item and it is not P4's.** It is recorded here because the correction found it,
-   not because this plan owns it. It needs its own ledger entry or fix decision. Until then, a
-   correctly seeded visual run on Windows reds **twice**, not once — treat the thumbnails red as
-   known-but-unledgered rather than as a new regression, and do not rebaseline it.
+**So there is no red beyond the documented set.** Both failures are the long-standing WP4.0 known
+reds, recorded in `MASTER_HANDOVER.md` as the pair *"workout-plan desktop-dark 1,039 px;
+plan-desktop-light-advanced 6,262 px"*. The one genuinely new observation is that **the thumbnails
+red's pixel count has drifted** (6,262 → 6084/6098), exactly as the animated-logo red already
+drifts within its documented 875/882 ∪ 1039/1046 band. Both are bands, not constants. The drift is
+ledgered in `MASTER_HANDOVER.md` §"Known Windows visual reds" and deferred for a separate fix
+decision; it is **not** a P4 regression and must not be rebaselined.
+
+> **Correction (2026-08-01):** an earlier draft of this section, and the correction comment first
+> posted to PR #236, called the thumbnails red "previously undocumented" and "not in any ledger".
+> That was wrong — it is documented in `MASTER_HANDOVER.md` in eight places as one of the two WP4.0
+> known reds. Only its *pixel count* was un-banded. The claim is corrected here rather than left
+> standing, since the whole point of this closeout is that verification records must be accurate.
 
 **Why this plan stays CLOSED.** Every P4-attributable gate passes: patch intact, pytest green,
-nonvisual E2E clean, the only visual red inside P4's own scope is the documented one, and the
-packaged smoke passes via a real bootloader. The second red is proven orthogonal to P4 by a
-pre-merge control. Reopening the plan for it would misattribute a pre-existing defect to this
-packet.
+nonvisual E2E clean, both visual reds are the documented WP4.0 pair, and the packaged smoke passes
+via a real bootloader. Neither red is P4's — one is proven orthogonal by a pre-merge control, and
+both predate the packet by months.
