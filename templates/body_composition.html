@@ -3,7 +3,7 @@
 {% block title %}Body Composition - Hypertrophy Toolbox{% endblock %}
 
 {% block page_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-body-composition.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-body-composition.css') }}?v={{ app_version }}">
 {% endblock %}
 
 {% block content %}
@@ -216,5 +216,5 @@
 {% endblock %}
 
 {% block page_js %}
-    <script type="module" src="{{ url_for('static', filename='js/modules/body-composition.js') }}?v={{ range(1, 1000000) | random }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/modules/body-composition.js') }}?v={{ app_version }}"></script>
 {% endblock %}

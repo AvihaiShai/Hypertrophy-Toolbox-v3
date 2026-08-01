@@ -4,7 +4,7 @@
 {% block title %}Session Summary - Hypertrophy Toolbox{% endblock %}
 
 {% block page_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-session-summary.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-session-summary.css') }}?v={{ app_version }}">
 {% endblock %}
 
 {% block content %}
@@ -210,5 +210,5 @@
     </div>
 </div>
 
-<script type="module" src="{{ url_for('static', filename='js/modules/session-summary.js') }}?v={{ range(1, 1000000) | random }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/modules/session-summary.js') }}?v={{ app_version }}"></script>
 {% endblock %}

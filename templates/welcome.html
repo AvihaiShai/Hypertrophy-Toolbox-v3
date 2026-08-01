@@ -3,7 +3,7 @@
 {% block title %}Welcome - Hypertrophy Toolbox{% endblock %}
 
 {% block page_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-welcome.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-welcome.css') }}?v={{ app_version }}">
 {% endblock %}
 
 {% block content %}
@@ -374,6 +374,6 @@
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/welcome.js') }}"></script>
+<script src="{{ url_for('static', filename='js/welcome.js') }}?v={{ app_version }}"></script>
 
 {% endblock %}

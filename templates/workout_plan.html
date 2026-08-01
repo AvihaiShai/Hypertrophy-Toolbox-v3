@@ -3,7 +3,7 @@
 {% block title %}Workout Plan - Hypertrophy Toolbox{% endblock %}
 
 {% block page_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-workout-plan.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-workout-plan.css') }}?v={{ app_version }}">
 {% endblock %}
 
 {% block content %}
@@ -556,9 +556,9 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
-<script src="{{ url_for('static', filename='js/modules/muscle-selector.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modules/muscle-selector.js') }}?v={{ app_version }}"></script>
 
-<script type="module" src="{{ url_for('static', filename='js/modules/workout-plan-page.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/modules/workout-plan-page.js') }}?v={{ app_version }}"></script>
 
 <!-- Clear Plan Confirmation Modal -->
 <div class="modal fade" id="clearPlanModal" tabindex="-1" aria-labelledby="clearPlanModalLabel" aria-hidden="true">
