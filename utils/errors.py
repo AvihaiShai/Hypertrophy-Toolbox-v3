@@ -272,14 +272,6 @@ def register_fallback_handlers(app):
     @app.errorhandler(Exception)
     def handle_exception(e):
         """Global handler for genuinely unhandled exceptions; always a 500."""
-        import sys
-        import traceback
-
-        # Log to both logger and stderr for export routes
-        if hasattr(e, '__class__'):
-            print(f"=== EXCEPTION: {e.__class__.__name__}: {e} ===", file=sys.stderr, flush=True)
-            traceback.print_exc(file=sys.stderr)
-
         logger.exception(f"Unhandled exception: {e}")
 
         if is_xhr_request():
