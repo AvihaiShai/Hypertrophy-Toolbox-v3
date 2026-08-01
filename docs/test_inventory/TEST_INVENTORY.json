@@ -230,8 +230,8 @@
     "total_tests": 541
   },
   "pytest": {
-    "collected_deterministic": 2013,
-    "deterministic_files": 93,
+    "collected_deterministic": 2018,
+    "deterministic_files": 94,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -500,6 +500,10 @@
         "tests": 13
       },
       {
+        "file": "tests/test_real_app_db_isolation.py",
+        "tests": 5
+      },
+      {
         "file": "tests/test_replace_exercise.py",
         "tests": 17
       },
@@ -616,7 +620,7 @@
         "tests": 40
       }
     ],
-    "total_files": 94
+    "total_files": 95
   },
   "schema_version": 1
 }
