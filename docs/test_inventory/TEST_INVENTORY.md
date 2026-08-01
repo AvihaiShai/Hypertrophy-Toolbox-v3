@@ -15,8 +15,8 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **541** |
 | Playwright spec files | **30** |
 | Required functional gate — `E2E Functional (Chromium)` | **426** tests across 24 specs |
-| pytest collected nodes (deterministic subset) | **2027** across 95 files |
-| pytest test files (all) | **96** |
+| pytest collected nodes (deterministic subset) | **2058** across 97 files |
+| pytest test files (all) | **98** |
 | Hard waits (lines containing waitForTimeout) | **93** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -90,11 +90,12 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_double_progression.py` | 30 |
 | `tests/test_downstream_normalization.py` | 5 |
 | `tests/test_effective_sets.py` | 42 |
-| `tests/test_erase_data_guard.py` | 9 |
+| `tests/test_erase_data_guard.py` | 10 |
 | `tests/test_error_page_contract.py` | 7 |
 | `tests/test_errors_utils.py` | 31 |
 | `tests/test_exercise_manager.py` | 37 |
 | `tests/test_exercise_media.py` | 6 |
+| `tests/test_export_weekly_summary_sheet.py` | 4 |
 | `tests/test_exports.py` | 52 |
 | `tests/test_fatigue.py` | 134 |
 | `tests/test_fatigue_context.py` | 29 |
@@ -136,7 +137,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_schema_registry.py` | 5 |
 | `tests/test_session_summary.py` | 30 |
 | `tests/test_session_summary_routes.py` | 31 |
-| `tests/test_static_cache_policy.py` | 9 |
+| `tests/test_static_cache_policy.py` | 12 |
 | `tests/test_strength_calibration.py` | 36 |
 | `tests/test_superset.py` | 14 |
 | `tests/test_superset_service.py` | 9 |
@@ -145,7 +146,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_ui_flows.py` | 17 |
 | `tests/test_user_profile_routes.py` | 30 |
 | `tests/test_utils_package.py` | 1 |
-| `tests/test_version.py` | 19 |
+| `tests/test_version.py` | 22 |
 | `tests/test_visual_selector_contracts.py` | 5 |
 | `tests/test_volume_ai.py` | 26 |
 | `tests/test_volume_classifier.py` | 43 |
@@ -155,6 +156,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_weekly_summary.py` | 4 |
 | `tests/test_weekly_summary_golden.py` | 1 |
 | `tests/test_weekly_summary_routes.py` | 30 |
+| `tests/test_weekly_summary_unassigned.py` | 20 |
 | `tests/test_workout_log_calibration_route.py` | 7 |
 | `tests/test_workout_log_routes.py` | 58 |
 | `tests/test_workout_log_utils.py` | 30 |

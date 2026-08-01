@@ -76,31 +76,41 @@ def real_app_client(tmp_path_factory):
     """
     scratch_db = tmp_path_factory.mktemp('real_app') / 'database.db'
     scratch_resolved = Path(scratch_db).resolve()
+    runtime_root = tmp_path_factory.mktemp('real_app_runtime')
 
     # None means "was not set" for the environment variable, and "never captured"
     # for TESTING — neither is a value either can legitimately hold here.
     original_env_db = os.environ.get('DB_FILE')
+    original_env_runtime = os.environ.get('HT_RUNTIME_DIR')
     original_config_db = utils.config.DB_FILE
     original_testing: bool | None = None
     real_app = None
 
     os.environ['DB_FILE'] = str(scratch_db)
+    # DB_FILE only relocates the database. HT_RUNTIME_DIR relocates the whole
+    # runtime tree, so auto-backups and logs land in the scratch area too rather
+    # than in the repository — otherwise the first test to exercise a path that
+    # writes a backup would target <repo>/data/auto_backup.
+    os.environ['HT_RUNTIME_DIR'] = str(runtime_root)
     utils.config.DB_FILE = str(scratch_db)
     try:
         from app import app as real_app
 
-        # app.py's startup reassigns utils.config.DB_FILE. Reassert
-        # unconditionally: on a fresh import it ran just now, and on a cached
-        # import it ran earlier under whatever path that first importer had.
-        utils.config.DB_FILE = str(scratch_db)
-
-        # Fail before touching a database, not after. A mismatch here means the
-        # override was defeated and the next line would initialize the real one.
-        active = Path(utils.config.DB_FILE).resolve()
-        if active != scratch_resolved:
+        # Read what app.py's startup actually resolved, BEFORE overwriting it.
+        # The previous version reasserted the scratch path first and then
+        # compared, which read back the value it had just written and so could
+        # never detect a defeated override. On a cached import nothing reassigns
+        # and this is simply the value set above; on a fresh import it is
+        # whatever prepare_runtime_database() decided, which is the case worth
+        # catching. Failing here happens before bootstrap_runtime_database() and
+        # run_all_initializers() below, so a defeated override cannot reach a
+        # real database.
+        resolved_by_startup = Path(utils.config.DB_FILE).resolve()
+        if resolved_by_startup != scratch_resolved:
             pytest.fail(
-                "real_app_client refuses to run: the active database is not the "
-                f"fixture scratch database.\n  active:  {active}\n  scratch: {scratch_resolved}"
+                "real_app_client refuses to run: app.py's startup resolved a "
+                "database that is not the fixture scratch database.\n"
+                f"  resolved: {resolved_by_startup}\n  scratch:  {scratch_resolved}"
             )
 
         original_testing = bool(real_app.config.get('TESTING', False))
@@ -120,6 +130,10 @@ def real_app_client(tmp_path_factory):
             os.environ.pop('DB_FILE', None)
         else:
             os.environ['DB_FILE'] = original_env_db
+        if original_env_runtime is None:
+            os.environ.pop('HT_RUNTIME_DIR', None)
+        else:
+            os.environ['HT_RUNTIME_DIR'] = original_env_runtime
         _cleanup_database_files(str(scratch_db))
 
 
