@@ -731,8 +731,54 @@ jobs:
     - name: Install npm dependencies
       run: npm ci
 
-    - name: Run Vitest
-      run: npm run test:js
+    # Phase 1 step 6 of docs/TESTING_STRATEGY_PLANNING.md. REPORT-ONLY: no
+    # coverage thresholds are configured in vitest.config.js, so this cannot fail
+    # on a number. The job also stays NON-REQUIRED -- decision D2's js-unit half
+    # is explicitly NOT signed, and §5 step 12 wants two weeks of green plus real
+    # jsdom module tests before that conversation.
+    #
+    # Expect a very low figure: only 8 of 49 modules have any test (blindspot B7).
+    # That number is the argument for Phase 3 step 12, not a problem to fix here.
+    - name: Run Vitest with coverage
+      run: npm run test:js -- --coverage
+
+    - name: Summarize JS coverage (measure-only)
+      if: always()
+      continue-on-error: true
+      run: |
+        node -e "
+          const fs = require('fs');
+          const p = 'artifacts/js-coverage/coverage-summary.json';
+          if (!fs.existsSync(p)) {
+            console.log('::warning title=JS coverage::No coverage summary was produced.');
+            process.exit(0);
+          }
+          const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+          const t = s.total;
+          const files = Object.keys(s).filter(k => k !== 'total');
+          const zero = files.filter(k => s[k].statements.pct === 0);
+          const pct = m => t[m].pct.toFixed(1) + '%';
+          console.log('::notice title=JS coverage (measure-only)::statements=' + pct('statements') + ' branches=' + pct('branches') + ' functions=' + pct('functions') + ' lines=' + pct('lines'));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            '### JS coverage (measure-only — no thresholds, non-required job)\n\n' +
+            '| Metric | Coverage |\n|---|---:|\n' +
+            '| statements | ' + pct('statements') + ' |\n' +
+            '| branches | ' + pct('branches') + ' |\n' +
+            '| functions | ' + pct('functions') + ' |\n' +
+            '| lines | ' + pct('lines') + ' |\n\n' +
+            '**' + zero.length + ' of ' + files.length + ' modules have 0% coverage.**\n\n' +
+            'A low number here is the expected finding, not a regression: only a handful of\n' +
+            'modules under static/js have any unit test at all (blindspot B7). This figure is\n' +
+            'the argument for Phase 3 step 12; see TESTING_STRATEGY_PLANNING.md section 8.6.\n');
+        "
+
+    - name: Upload JS coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: js-coverage
+        path: artifacts/js-coverage
+        retention-days: 14
 
   # Refactor Plan v3 WP4.1: pinned stylelint measurement for the hand-authored
   # CSS/SCSS surface. This is a NEW, NON-required job and renames no existing
