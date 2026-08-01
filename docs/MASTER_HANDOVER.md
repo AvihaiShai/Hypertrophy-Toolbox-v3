@@ -13,13 +13,30 @@
 > 3.14.6 environment. This tooling/runtime-policy change does not alter the
 > WP4.4 packet ordering or next-safe-step below.
 >
-> **2026-07-31 (LATEST) — N4 IS APPROVED; WP4.4-i IS ACTIVE.** The ten
-> pre-checkpoint packets are merged, the visual-harness prerequisite is merged
-> in PR #211 (`1019d34`), and the owner authorized continuous sequential
-> execution `i` → `j` → `k` under
-> [`N4_CONTINUATION_AUTHORITY.md`](css_phase4_wp4_4/N4_CONTINUATION_AUTHORITY.md).
-> The live restart ledger is
-> [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md).
+> **2026-08-01 (LATEST) — WP4.4 IS COMPLETE. The `i` → `j` → `k` tail is merged
+> and the arc is closed.** Every packet from `a` to `k` has landed. `i` merged as
+> `5f7b5ac` (PR #212) with an in-scope corrective at `666471e` (PR #215); `j`
+> merged as `47c7687` (PR #216); `k` is this closeout.
+>
+> **The arc removed 539 net lines from the seven shared bundles and changed
+> nothing observable.** A whole-page computed differential between the arc base
+> `46e340e` and the arc end reports **0 differences across 2,275,668 computed
+> values** in both themes, 66 contexts, 0 element drift. Stylelint across the
+> seven surfaces fell **2,883 → 2,751 (−132)**, with every surface down;
+> `!important` fell by 48. Full evidence and the three open proposals are in
+> [`CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md`](CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md).
+>
+> **Do not quote the WP4.1 per-surface Stylelint baseline as WP4.4's
+> contribution.** Against it `components.css` reads +143 and the arc reads +70,
+> which would report this arc as a regression. Those figures were taken at
+> `9ee7638`, before WP4.3; `components.css` was already 1,989 when WP4.4 began.
+> The arc-base measurement above is the correct comparison.
+>
+> Still deferred and untouched: the **235** declarations WP4.4-h withheld (C8),
+> the superset dark-tint gap (G4), and unlinking `theme-dark.css` (R4).
+> Historical context for the tail:
+> [`N4_CONTINUATION_AUTHORITY.md`](css_phase4_wp4_4/N4_CONTINUATION_AUTHORITY.md)
+> and [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md).
 >
 > | Packet | PR | Squash | Nature |
 > |---|---|---|---|

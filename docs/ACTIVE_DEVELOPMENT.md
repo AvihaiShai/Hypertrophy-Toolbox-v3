@@ -4,13 +4,26 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-07-31 (LATEST) — N4 is approved and WP4.4-i is ACTIVE.** The ten
-pre-checkpoint packets are merged: `a` (#187, `46e340e`), `c` (#188,
-`1b13bfc`), `b` (#192, `3bec677`), `e` (#195, `1346a35`), `d1` (#197,
-`59e5b10`), `f1` (#199, `1127486`), `d2` (#201, `0a912d9`), `f2` (#205,
-`6a5465c`), `g` (#207, `4b7ca58`) with its terminology correction (#209,
-`a895cb0`), and `h` (#208, `b2b1cb7`). The visual-harness prerequisite also
-merged in PR #211 (`1019d34`).
+**2026-08-01 (LATEST) — WP4.4 IS COMPLETE; the arc is closed at `k`.** Every
+packet is merged: `a` (#187, `46e340e`), `c` (#188, `1b13bfc`), `b` (#192,
+`3bec677`), `e` (#195, `1346a35`), `d1` (#197, `59e5b10`), `f1` (#199,
+`1127486`), `d2` (#201, `0a912d9`), `f2` (#205, `6a5465c`), `g` (#207,
+`4b7ca58`) with its terminology correction (#209, `a895cb0`), `h` (#208,
+`b2b1cb7`), the visual-harness prerequisite (#211, `1019d34`), **`i` (#212,
+`5f7b5ac`) with its oracle corrective (#215, `666471e`)**, and **`j` (#216,
+`47c7687`)**.
+
+**Arc result: −539 net lines across the seven shared bundles, 0 observable
+change.** The arc-base-to-arc-end computed differential reports **0 differences
+across 2,275,668 values** in both themes. Stylelint **2,883 → 2,751 (−132)**,
+every surface down; `!important` −48. See
+[`CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md`](CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md)
+for the full report, the ledger reconciliation, and three proposals left open
+for the owner (the incomplete Linux inherited-reds ledger, the N10
+`QUALITY_GATE.md` row, and the `:where()` inertia finding in `theme-dark.css`).
+
+Deferred and untouched: the 235 declarations WP4.4-h withheld, the superset
+dark-tint gap, and unlinking `theme-dark.css`.
 
 **The fresh N4 owner decision has been given.** Packet i is proof-first and may
 narrow or use the pre-authorized N3 abandonment; either outcome continues
