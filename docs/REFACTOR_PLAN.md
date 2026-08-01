@@ -1534,9 +1534,11 @@ decisions are silently outstanding; either resolve them or leave them explicitly
 Snapshot: **2026-08-01 (latest)**. **WP4.4 is complete and the arc is closed at
 `k`.** Every packet `a` through `k` is merged — the tail being `i` (#212,
 `5f7b5ac`) with its oracle corrective (#215, `666471e`), `j` (#216, `47c7687`)
-and `k` (#217, `c521d3a`). **No packet in this arc is next.** Three closeout
-proposals remain open for the owner: P1 (PR #223), P2 (PR #222) and P3
-(`theme-dark.css` `:where()` inertia, not started — needs Gate 1). The older
+and `k` (#217, `c521d3a`). **No packet in this arc is next.** Of the three
+closeout proposals, **P1 (#223, `d543a4b`) and P2 (#222, `4b0670b`) are
+owner-approved and merged**; **P3** (`theme-dark.css` `:where()` inertia) is
+**planning only** with Gate 0 and Gate 1 both unsigned — see
+[`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md). The older
 packet counts/status prose immediately below is retained as historical detail.
 
 > **Superseded 2026-08-01.** This snapshot previously read *"Snapshot:

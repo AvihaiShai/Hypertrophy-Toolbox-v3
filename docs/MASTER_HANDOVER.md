@@ -1353,9 +1353,10 @@
 
 ## Open Decisions
 
-- **Three WP4.4 closeout proposals await the owner** — P1 (PR #223), P2 (PR #222)
-  and P3 (not started). See `## Next Safe Step` for what each one is and why P1
-  sequences before P3. None of them blocks other work.
+- **Two of the three WP4.4 closeout proposals are discharged.** P1 merged as
+  `d543a4b` (PR #223) and P2 as `4b0670b` (PR #222), both owner-approved.
+  **P3 is the only one left** and is planning-only — Gate 0 and Gate 1 are both
+  unsigned. See `## Next Safe Step`.
 - **Three planning documents are parked pre-approval** — the app.py review
   (DRAFT), the product documentation suite (PROPOSED, needs revision) and the
   testing strategy review (PLANNING, D1–D7 unselected). Rows in
@@ -1372,13 +1373,14 @@
 
 - **No blocker is open for WP4.4.** The arc is closed at `k`; there is no next
   packet in it.
-- **Two owner approvals are pending.** They gate their own PRs, nothing else:
-  PR #223 (proposal P1, the Linux inherited-reds ledger — approval required per
-  V2 / R3 condition 6) and PR #222 (proposal P2, the `static/css/**`
-  `QUALITY_GATE.md` row — owner-gated by N10).
-- **P3 must not start before Gate 1.** The `theme-dark.css` `:where()` inertia
-  finding is a new arc, not a closeout chore. Run `/council-plan` first, and land
-  P1 before it — P3's N8 gate reconciles against the ledger P1 corrects.
+- **P1 and P2 are approved and merged** — `d543a4b` (#223) and `4b0670b` (#222).
+  Neither gates anything further.
+- **P3 must not start before Gate 1, and Gate 0 is unsigned too.** The
+  `theme-dark.css` `:where()` inertia finding is a new arc, not a closeout chore,
+  and the plan-stage routing table makes a shared-surface change **Large** —
+  which requires **both** gates. Plan v1 and the council review are at
+  [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md). The
+  P1-before-P3 precondition is already satisfied.
 - The Packet-a layer-span work is **deferred, not blocking**: 235 declarations
   remain untouched for a separately certified future packet.
 
@@ -1405,12 +1407,13 @@ is owner adjudication of the three closeout proposals recorded in
 | Proposal | State |
 |---|---|
 | **P1** — the Linux inherited-reds ledger under-described reality: its **schema-v1** shape bound the ledger to a single spec file and recorded **10** reds, while its own rules made an unlisted red a rollback trigger | **Owner-approved and merged** via PR #223 (V2 / R3 condition 6 discharged). Schema **v2** covers **11** reds across two spec files; the 10-red figure is historical schema-v1 text |
-| **P2** — no `static/css/**` row in `QUALITY_GATE.md`, so every CSS packet re-infers its gate routing | PR #222 open, **awaiting owner review** (N10) |
-| **P3** — `theme-dark.css` is largely inert: `:where()` zeroes its specificity, so a far larger reduction than C11 permitted is likely available | **not started** — needs Gate 1 via `/council-plan` |
+| **P2** — no `static/css/**` row in `QUALITY_GATE.md`, so every CSS packet re-infers its gate routing | **Owner-approved and merged** via PR #222 (N10 discharged), with two owner amendments: cascade-contract edits must be *explicitly scoped, justified, and must not weaken an existing guarantee*, and a Targeted-test derivation bullet now routes `static/css/**` to that row instead of the `/verify-suite` fallback — **closing F21 fully** |
+| **P3** — `theme-dark.css` is largely inert: `:where()` zeroes its specificity, so a far larger reduction than C11 permitted is likely available | **Planning only — Gate 0 and Gate 1 both UNSIGNED.** Plan v1 + council review at [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md). No production CSS touched; R4 still forbids unlinking the file |
 
-**Sequence P1 before P3.** P3's verification is the N8 Linux deep gate, which
-reconciles against the very ledger P1 corrects; running P3 first trips the false
-rollback trigger P1 exists to remove.
+**The P1-before-P3 precondition is satisfied.** P3's verification is the N8 Linux
+deep gate, which reconciles against the ledger P1 corrects; P1 merged as
+`d543a4b`, so the ledger is schema v2 with 11 reds across two spec files before
+any P3 packet runs.
 
 Deferred, and not to be reopened without a separate owner decision: the **235**
 declarations `h` withheld behind the frozen `@layer workout` span (C8), the

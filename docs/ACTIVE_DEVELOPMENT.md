@@ -244,11 +244,14 @@ occurrence count. **Do not erode it rule by rule.**
 a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ✔ → j ✔ → k ✔
 ```
 
-**No packet in this arc is active or next. Do not dispatch one.** The three open
-closeout proposals are P1 (PR #223, awaiting owner approval), P2 (PR #222,
-awaiting owner review) and P3 (`theme-dark.css` `:where()` inertia — not started,
-needs Gate 1 via `/council-plan`). **Land P1 before P3:** P3's N8 gate reconciles
-against the very ledger P1 corrects.
+**No packet in this arc is active or next. Do not dispatch one.** Of the three
+closeout proposals, **P1 and P2 are owner-approved and merged** — `d543a4b`
+(PR #223, ledger schema v2, 11 reds across two spec files) and `4b0670b`
+(PR #222, the `static/css/**` gate row plus the derivation bullet that closes
+F21). **P3** (`theme-dark.css` `:where()` inertia) is **planning only**: Gate 0
+and Gate 1 are both unsigned, Plan v1 and the council review live at
+[`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md), and no
+production CSS has been touched. The P1-before-P3 precondition is satisfied.
 
 > **Superseded 2026-08-01.** This block previously showed `i ▶ → j → k` and read
 > *"Packet i is active."* Correct on 2026-07-31; stale once #212, #215, #216 and
