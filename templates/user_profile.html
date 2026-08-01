@@ -3,7 +3,7 @@
 {% block title %}User Profile - Hypertrophy Toolbox{% endblock %}
 
 {% block page_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-user-profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-user-profile.css') }}?v={{ app_version }}">
 {% endblock %}
 
 {% block content %}
@@ -644,5 +644,5 @@
 {% endblock %}
 
 {% block page_js %}
-    <script type="module" src="{{ url_for('static', filename='js/modules/user-profile.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/modules/user-profile.js') }}?v={{ app_version }}"></script>
 {% endblock %}

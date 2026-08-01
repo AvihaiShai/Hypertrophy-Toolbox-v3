@@ -40,6 +40,7 @@ from utils.errors import (  # noqa: E402
     success_response,
 )
 from utils.request_id import add_request_id_middleware  # noqa: E402
+from utils.version import APP_VERSION  # noqa: E402
 import time  # noqa: E402
 import sys  # noqa: E402
 
@@ -151,6 +152,17 @@ def safe_media_path(value):
 def start_timer():
     """Store request start time for performance logging."""
     g.start_time = time.time()
+
+@app.context_processor
+def inject_app_version():
+    """Expose the app version so templates can cache-bust first-party assets.
+
+    Frozen builds set SEND_FILE_MAX_AGE_DEFAULT to a year, so without a
+    version-derived `?v=` an upgraded install keeps serving the previous
+    build's CSS and JS from cache.
+    """
+    return {'app_version': APP_VERSION}
+
 
 @app.context_processor
 def inject_scale_level():

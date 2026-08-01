@@ -5,7 +5,7 @@
 {% block page_css %}
     <!-- Flatpickr for custom date format -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-progression.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages-progression.css') }}?v={{ app_version }}">
 {% endblock %}
 
 {% block content %}
