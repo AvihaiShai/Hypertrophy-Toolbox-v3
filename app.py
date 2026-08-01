@@ -33,7 +33,12 @@ from routes.fatigue import fatigue_bp  # noqa: E402
 from datetime import datetime  # noqa: E402
 from werkzeug.middleware.proxy_fix import ProxyFix  # noqa: E402
 from utils.logger import setup_logging  # noqa: E402
-from utils.errors import error_response, register_error_handlers, register_fallback_handlers  # noqa: E402
+from utils.errors import (  # noqa: E402
+    error_response,
+    register_error_handlers,
+    register_fallback_handlers,
+    success_response,
+)
 from utils.request_id import add_request_id_middleware  # noqa: E402
 import time  # noqa: E402
 import sys  # noqa: E402
@@ -116,7 +121,7 @@ for rule in app.url_map.iter_rules():
     logger.debug(f"{rule.endpoint}: {rule.rule} [{methods}]")
 
 @app.template_filter('datetime')
-def format_datetime(value, format='%d-%m-%Y'):
+def format_datetime(value, date_format='%d-%m-%Y'):
     if value and value != 'None':
         try:
             if isinstance(value, str):
@@ -124,7 +129,7 @@ def format_datetime(value, format='%d-%m-%Y'):
                 date_obj = datetime.strptime(value, '%Y-%m-%d')
             else:
                 date_obj = value
-            return date_obj.strftime(format)
+            return date_obj.strftime(date_format)
         except (ValueError, TypeError):
             return value
     return ''
@@ -186,14 +191,10 @@ def erase_data():
         # Reinitialize database - force=True to bypass the initialization guard
         # since we just dropped the tables
         run_all_initializers(force_base=True)
-        
-        from utils.errors import success_response
-
-        response_message = 'All data has been erased and tables reinitialized successfully.'
 
         return jsonify(success_response(
             data={"auto_backup": describe_snapshot(snapshot_path)},
-            message=response_message
+            message='All data has been erased and tables reinitialized successfully.'
         ))
     except Exception:
         logger.exception("Error erasing data")
@@ -218,7 +219,7 @@ if __name__ == "__main__":
     
     atexit.register(cleanup_on_exit)
     
-    # Handle SIGTERM (Ctrl+C) gracefully
+    # Handle SIGINT (Ctrl+C) and SIGTERM gracefully
     def signal_handler(_sig, _frame):
         del _sig, _frame  # Required by signal.signal(); intentionally unused.
         logger.info("Received shutdown signal, cleaning up...")
