@@ -413,8 +413,19 @@ jobs:
   # e2e-backup above. It must therefore NEVER join the e2e-functional-shard
   # spec lists. Mirrors the e2e-fatigue-context idiom: an isolated single-spec
   # job with its own fresh server + throwaway DB (playwright.config.ts
-  # webServer command), intentionally NOT added to branch protection's
-  # required_status_checks.
+  # webServer command).
+  #
+  # PROMOTED TO REQUIRED on 2026-08-01 (decision D2, signed; Phase 0 step 4 of
+  # docs/TESTING_STRATEGY_PLANNING.md). It guards the most destructive endpoint
+  # in the application: the production confirm-guard, the 400 path and the
+  # auto_backup response payload were reachable only through this job.
+  #
+  # THE "(non-required)" IN THE JOB NAME BELOW IS NOW FALSE, AND MUST STAY.
+  # The name is the exact branch-protection context string; renaming it orphans
+  # the required check and blocks every open pull request. This is the same
+  # load-bearing lie e2e-fatigue-context carries — that job has been required
+  # since 2026-07-05 while still calling itself non-required. Promotion is a
+  # protection-API change, never a YAML rename (TESTING_STRATEGY_PLANNING.md 8.3).
   e2e-erase-flow:
     name: E2E Erase Flow (Chromium, isolated, non-required)
     runs-on: ubuntu-latest

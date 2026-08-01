@@ -345,6 +345,30 @@ proven, enforcement is deferred by design and this paragraph is the record of wh
 | **Phase 2, step 8** — test the real `/erase-data` | **Delivered by `APP_PY_REVIEW_PLAN.md` P1 + P5**, not by this plan | P1 extracts the shared handler registration consumed by both `app.py` and `tests/conftest.py`; P5 adds the confirm-guard pytest (missing/wrong `confirm` → 400) against the real handler. Blindspot **B2** closes there. Do not implement it here |
 | Phase 0, step 4 — promote `e2e-erase-flow` | This plan | Independent of the above: it makes the *existing* E2E guard required while P1+P5 add the pytest-level guard |
 
+### 8.5.1 Required-check promotion — the exact procedure used
+
+Promoting a job is a **branch-protection API change**. Editing YAML does nothing, and renaming
+the job actively breaks things. The procedure, for the next person who needs it:
+
+```bash
+# 1. READ the current list first. Never write one from memory.
+gh api repos/{owner}/{repo}/branches/main/protection/required_status_checks --jq '.contexts'
+
+# 2. APPEND the exact existing job name. Never replace the list —
+#    other sessions' open pull requests depend on every entry already in it.
+gh api -X PATCH repos/{owner}/{repo}/branches/main/protection/required_status_checks \
+  -f 'contexts[]=<each existing context>' \
+  -f 'contexts[]=E2E Erase Flow (Chromium, isolated, non-required)'
+
+# 3. VERIFY on a real pull request that the context is both required and satisfied.
+```
+
+The context string is copied byte-for-byte from the job's `name:` field, parenthetical included —
+even though that parenthetical is now false. See §8.3.
+
+**Applied 2026-08-01**: nine contexts before, ten after. The tenth is
+`E2E Erase Flow (Chromium, isolated, non-required)`. §7.3 entry criterion 3 is satisfied.
+
 ### 8.6 Execution log
 
 Filled in as each pull request merges. Numbers here are **observed**, never carried over from the
