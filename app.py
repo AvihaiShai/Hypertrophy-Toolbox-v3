@@ -9,7 +9,7 @@ from utils.python_version import require_supported_python
 
 require_supported_python()
 
-from flask import Flask, jsonify, request, make_response, g  # noqa: E402
+from flask import Flask, jsonify, request, g  # noqa: E402
 import utils.config  # noqa: E402
 from utils.database import DatabaseHandler  # noqa: E402
 from utils.auto_backup import create_startup_backup, describe_snapshot  # noqa: E402
@@ -33,7 +33,7 @@ from routes.fatigue import fatigue_bp  # noqa: E402
 from datetime import datetime  # noqa: E402
 from werkzeug.middleware.proxy_fix import ProxyFix  # noqa: E402
 from utils.logger import setup_logging  # noqa: E402
-from utils.errors import error_response, register_error_handlers, is_xhr_request  # noqa: E402
+from utils.errors import error_response, register_error_handlers, register_fallback_handlers  # noqa: E402
 from utils.request_id import add_request_id_middleware  # noqa: E402
 import time  # noqa: E402
 import sys  # noqa: E402
@@ -59,8 +59,13 @@ logger = setup_logging(app)
 # Add request ID middleware for tracking and correlation
 add_request_id_middleware(app)
 
-# Register standardized error handlers
+# Register standardized error handlers, then the fallback layer that owns
+# whatever they do not: 404, unclaimed HTTP errors, and unhandled exceptions.
+# Both live in utils.errors so the priority-7 test fixture registers identical
+# layering instead of hand-copying it. Order matters — see
+# register_fallback_handlers' docstring.
 register_error_handlers(app)
+register_fallback_handlers(app)
 
 # Initialize the database.
 # Order matters and is load-bearing: an existing database is moved out of the
@@ -201,62 +206,6 @@ def erase_data():
         logger.exception("Error erasing data")
         return error_response("INTERNAL_ERROR", "Failed to erase data", 500)
 
-@app.errorhandler(404)
-def handle_404(error):
-    """Handle 404 errors gracefully without logging stack traces for common requests."""
-    del error  # Flask supplies the exception, but this handler only needs the request.
-    # Don't log full exception for common missing resources like favicon
-    if request.path == '/favicon.ico':
-        # Return a simple 204 No Content response for favicon
-        from flask import make_response
-        return make_response('', 204)
-    
-    logger.warning(f"404 Not Found: {request.path}")
-    if is_xhr_request():
-        return error_response("NOT_FOUND", "The requested resource was not found", 404)
-
-    html = (
-        "<!DOCTYPE html>"
-        "<html lang='en'>"
-        "<head><meta charset='utf-8'><title>Not Found</title></head>"
-        "<body><h1>Not Found</h1><p>The requested resource was not found.</p></body>"
-        "</html>"
-    )
-    from flask import make_response
-    response = make_response(html, 404)
-    response.headers['Content-Type'] = 'text/html; charset=utf-8'
-    return response
-
-# Global error handler for unhandled exceptions
-@app.errorhandler(Exception)
-def handle_exception(e):
-    """Global exception handler that logs stack traces."""
-    import sys
-    import traceback
-    # Don't log 404 errors as exceptions
-    if isinstance(e, Exception) and "404" in str(e):
-        return handle_404(e)
-    
-    # Log to both logger and stderr for export routes
-    if hasattr(e, '__class__'):
-        print(f"=== EXCEPTION: {e.__class__.__name__}: {e} ===", file=sys.stderr, flush=True)
-        traceback.print_exc(file=sys.stderr)
-    
-    logger.exception(f"Unhandled exception: {e}")
-    
-    if is_xhr_request():
-        return error_response("INTERNAL_ERROR", "An unexpected error occurred", 500)
-
-    html = (
-        "<!DOCTYPE html>"
-        "<html lang='en'>"
-        "<head><meta charset='utf-8'><title>Internal Server Error</title></head>"
-        "<body><h1>Internal Server Error</h1><p>An unexpected error occurred.</p></body>"
-        "</html>"
-    )
-    response = make_response(html, 500)
-    response.headers['Content-Type'] = 'text/html; charset=utf-8'
-    return response
 
 if __name__ == "__main__":
     import atexit
