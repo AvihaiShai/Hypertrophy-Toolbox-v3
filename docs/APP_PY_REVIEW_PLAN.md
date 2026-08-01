@@ -1,7 +1,11 @@
 # app.py Review Plan — COMPLETE
 
 **Status:** **EXECUTED AND CLOSED (2026-08-01).** All five packets are merged; see §7 for the
-shipped ledger. Owner decisions D1–D4 are signed in §5. Findings were triple-verified
+shipped ledger. **P4's gates were discharged post-merge, not at merge time — see §7a.** Its PR
+reported an E2E result that its own retained artifact contradicts, and its packaged smoke never
+ran. Both have since been run correctly and pass; §7a records the false claim and the true
+accounting. No visual red beyond the documented WP4.0 pair was found.
+Owner decisions D1–D4 are signed in §5. Findings were triple-verified
 (independent review → Codex cross-verification → a third source-level check), and the finding
 surface is exhausted — **do not commission another review round, and do not reopen this plan
 as a "next task".** Retained as the rationale record for why each change was made.
@@ -339,3 +343,122 @@ practice adopted for every packet after it: **verify on a branch rebased onto cu
 not merely on the branch's own base.** The shared `real_app_client` fixture in
 `tests/conftest.py` now performs `app.py`'s startup explicitly rather than depending on having
 caused it.
+
+## 7a. P4 verification closeout (2026-08-01) — gates discharged after the merge
+
+**P4's code is sound and is not in question.** `16a4e53` was re-audited against current `main` from
+a clean worktree and the patch is intact. What was wrong was the *verification record*.
+
+### What PR #236 claimed, and what actually happened
+
+Its description reported **"475 passed, 0 failed, 17 did-not-run — documented visual-baseline
+tail."** Its own retained artifact refutes this. `.last-run.json` in the P4 worktree, written
+**19:06** — eleven minutes before the 19:17:51 merge — records `"status": "failed"` with **49**
+failed test IDs (48 `visual.spec.ts`, 1 `visual-baseline-thumbnails.spec.ts`).
+
+True accounting of that run, against a live enumeration of **541 tests / 30 files** (nonvisual
+**457 / 28**, visual tail **84** = 66 + 18):
+
+| Bucket | Count | Composition |
+|---|---:|---|
+| passed | 475 | 457 nonvisual + 18 `visual.spec.ts` |
+| failed | **49** | 48 `visual.spec.ts` + 1 thumbnails |
+| did not run | 17 | remainder of the thumbnails spec |
+
+**Root cause — invalid methodology, not a product defect.** `playwright.config.ts:33` picks the
+seed script from the environment; without `PW_VISUAL_SEED=1` the web server seeds with
+`prepare_e2e_db.py`, the *user-state-wiped functional* seed. Visual baselines are captured against
+the visual fixture, so they cannot match. The non-runs are serial-mode collateral:
+`e2e/visual-baseline-thumbnails.spec.ts:45` sets `test.describe.configure({ mode: 'serial' })`, so
+one failure skips the rest of that block. **"Did not run" here is a skipped remainder, never a
+documented tail — do not read it as one again.**
+
+**The packaged smoke never ran at all.** No `build/` or `dist/` existed in the P4 worktree and no
+post-P4 deep-gate run existed.
+
+### Replacement results — correct methodology, clean worktree off `main` @ `bb4858e`
+
+All figures below were measured in one isolated worktree cut from `bb4858e`. `main` moved several
+times during the run, so the commit is pinned rather than described as "current" — later commits,
+notably `#262`, post-date these numbers. `--update-snapshots` was never used; `git status --
+e2e/__screenshots__` is empty.
+
+| Gate | Result |
+|---|---|
+| Patch integrity | `APP_VERSION` 3.0.1 = `package.json` 3.0.1; **33/33** first-party CSS/JS links versioned; **0** unversioned; **0** residual random busters; theme-dark raw-substring contract green |
+| pytest (full) | **2334 passed, 1 skipped**, exit 0 |
+| E2E nonvisual (28 specs) | **457 enumerated / 457 executed / 457 passed** / 0 failed / 0 skipped / 0 did-not-run |
+| E2E visual, `PW_VISUAL_SEED=1` (2 specs) | 84 enumerated / 68 executed / **66 passed / 2 failed / 16 did-not-run** |
+| Packaged smoke | **`PASS via real bootloader`**, 36/36 checks, exit 0 |
+
+**Packaged smoke detail.** Built from tracked `main` content in a dedicated build venv via the
+canonical pinned process — Python **3.14.6** (`.python-version`), PyInstaller **6.21.0**
+(`requirements-build.txt`) — then `stage_package_assets.py` → `pyinstaller --clean --noconfirm
+Hypertrophy-Toolbox.spec` → `smoke_packaged_app.py --mode bootloader`. Smart App Control did **not**
+raise `WinError 4551` on this host, so payload mode was never used: this is a real bootloader pass,
+not payload evidence. It covered fresh-install first launch, static asset MIME types,
+`/get_all_exercises` → 1897, `/filter_exercises Barbell` → 225, and the upgrade path.
+
+### The two visual reds
+
+1. **`visual.spec.ts › workout-plan desktop dark` — expected and ledgered.** 875 px, 882 on retry:
+   precisely the documented animated-navbar-logo band (875/882 ∪ 1039/1046). A band, not a
+   constant; not rebaselined.
+
+2. **`visual-baseline-thumbnails.spec.ts › plan-desktop-light-advanced` — the *second* WP4.0 known
+   red, pre-existing and not P4.** 6084 px (6098 on retry) against a historical **6,262 px**. A
+   control run of the same spec, same seed, same host, at the **pre-P4 commit `99c5a36`** reproduces
+   it exactly — one failure, 16 serial skips. Diff pixels sit on the skip-link and a navbar element,
+   not thumbnail content, and a `?v=` query string cannot change rendering.
+
+**So there is no red beyond the documented set.** Both failures are the long-standing WP4.0 known
+reds, recorded in `MASTER_HANDOVER.md` as the pair *"workout-plan desktop-dark 1,039 px;
+plan-desktop-light-advanced 6,262 px"*. The one genuinely new observation is that **the thumbnails
+red's pixel count has drifted** (6,262 → 6084/6098), exactly as the animated-logo red already
+drifts within its documented 875/882 ∪ 1039/1046 band. Both are bands, not constants. The drift is
+ledgered in `MASTER_HANDOVER.md` §"Known Windows visual reds" and deferred for a separate fix
+decision; it is **not** a P4 regression and must not be rebaselined.
+
+> **Correction (2026-08-01):** an earlier draft of this section, and the correction comment first
+> posted to PR #236, called the thumbnails red "previously undocumented" and "not in any ledger".
+> That was wrong — it is documented in `MASTER_HANDOVER.md` in eight places as one of the two WP4.0
+> known reds. Only its *pixel count* was un-banded. The claim is corrected here rather than left
+> standing, since the whole point of this closeout is that verification records must be accurate.
+
+### What this audit did NOT catch — `#262`
+
+While this closeout was in review, **PR #262 (`1619262`) landed as a further P4 gate repair**, and it
+fixes a residual F4 defect that the audit above missed.
+
+P4 versioned every first-party template link, and this audit confirmed that half rigorously —
+33/33 links, 0 unversioned, 0 residual busters. **It never asked whether versioning URLs actually
+closes F4.** It does not. A frozen build set `SEND_FILE_MAX_AGE_DEFAULT` to a year for *every*
+static response, so any asset that cannot carry a `?v=` inherited the year and still went stale
+after an upgrade — the exact bug F4 records. Two classes can never carry one:
+
+- **transitive ES-module imports** — `?v=` on `app.js` does not propagate to `import './toast.js'`,
+  which resolves against the module URL and is fetched bare;
+- **runtime-built URLs** — the bodymap SVGs and the vendor exercise catalog are assembled in
+  JavaScript, where no template can reach them.
+
+`#262` adds `apply_static_cache_policy()`, narrowing the long cache to requests carrying the current
+`APP_VERSION` and making everything else revalidate, and stops setting
+`SEND_FILE_MAX_AGE_DEFAULT` at all.
+
+`#262` also adds `packaged-smoke-windows` to `ci.yml`: a `windows-latest` PyInstaller build plus a
+real-bootloader smoke on every PR, serving on port 5123 to prove the `HT_PORT` wiring both launch
+paths previously ignored. The gate this section reports as "never ran" is therefore now permanent
+rather than manually discharged — its first run passed 36/36, including `all 18 rendered
+first-party links carry ?v=3.0.1` and the four unversionable shapes revalidating.
+`deep-gate.yml`'s `frozen-windows` job remains the manual twin.
+
+**The audit lesson.** This closeout verified P4 against *its own checklist* — version constant,
+link count, buster removal, contracts — and every one of those passed. It did not verify that the
+checklist was sufficient to close the finding it came from. A gate that only re-checks the
+implementer's own success criteria cannot discover that the criteria were incomplete.
+
+**Why this plan stays CLOSED.** Every P4-attributable gate passes: patch intact, pytest green,
+nonvisual E2E clean, both visual reds are the documented WP4.0 pair, and the packaged smoke passes
+via a real bootloader. Neither red is P4's — one is proven orthogonal by a pre-merge control, and
+both predate the packet by months. The F4 residual above was **found and fixed on `main` in `#262`**
+rather than left open, so it closes the finding rather than reopening the plan.
