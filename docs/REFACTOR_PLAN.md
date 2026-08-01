@@ -1531,10 +1531,17 @@ decisions are silently outstanding; either resolve them or leave them explicitly
 > the detailed work-packet requirements above and wait for explicit owner
 > direction wherever the plan requires it.
 
-Snapshot: **2026-07-31 (latest)**. The ten pre-N4 packets are merged; N4 is
-approved; PR #211 (`1019d34`) is merged; **WP4.4-i is active** and j/k are
-authorized sequentially under the continuation authority. The older packet
-counts/status prose immediately below is retained as historical detail.
+Snapshot: **2026-08-01 (latest)**. **WP4.4 is complete and the arc is closed at
+`k`.** Every packet `a` through `k` is merged — the tail being `i` (#212,
+`5f7b5ac`) with its oracle corrective (#215, `666471e`), `j` (#216, `47c7687`)
+and `k` (#217, `c521d3a`). **No packet in this arc is next.** Three closeout
+proposals remain open for the owner: P1 (PR #223), P2 (PR #222) and P3
+(`theme-dark.css` `:where()` inertia, not started — needs Gate 1). The older
+packet counts/status prose immediately below is retained as historical detail.
+
+> **Superseded 2026-08-01.** This snapshot previously read *"Snapshot:
+> 2026-07-31 (latest) … **WP4.4-i is active** and j/k are authorized
+> sequentially"*. Correct on 2026-07-31; stale once the tail merged.
 
 > **Superseded snapshot detail (2026-07-30).** **Eight of eleven WP4.4 packets are merged.**
 **WP4.4-a** (PR #187, squash `46e340e`) produced evidence and audit tooling, not
