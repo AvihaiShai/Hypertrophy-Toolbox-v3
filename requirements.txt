@@ -11,7 +11,7 @@ pytest==9.0.3
 # the plugin changes nothing unless a --cov flag is passed, so local runs and the
 # other sessions' workflows are unaffected.
 pytest-cov==7.1.0
-pytest-playwright==0.7.2
+pytest-playwright==0.8.0
 # Keep in lockstep with @playwright/test in package.json. The E2E suite is
 # driven entirely by the npm package; this one arrives via pytest-playwright and
 # is otherwise unused in the repository, so a skew here is silent -- which is
