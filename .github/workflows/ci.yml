@@ -6,10 +6,27 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+# CI hygiene (blindspot B9, Phase 0.2 of docs/TESTING_STRATEGY_PLANNING.md).
+# Before this, rapid pushes to a pull request left every superseded run going,
+# burning a full pipeline per push.
+#
+# The key is WORKFLOW-SCOPED on purpose (section 7.3 entry criterion 4): it
+# begins with github.workflow, so "CI/CD Pipeline" runs share a group only with
+# each other and can never contend with -- let alone cancel -- a
+# "Deep Gate (manual)" run on the same ref.
+#
+# cancel-in-progress is restricted to pull_request events. A push to main or
+# develop is never cancelled, so a merge always gets a complete pipeline even if
+# another merge lands seconds later.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
     - name: Checkout code
@@ -30,7 +47,9 @@ jobs:
 
     - name: Run pip-audit
       run: |
-        pip install pip-audit
+        # Pinned (B9): an unpinned runtime install left this REQUIRED gate's
+        # behaviour depending on whatever pip-audit released that morning.
+        pip install pip-audit==2.10.1
         # CVE-2026-3219 in pip itself has no Fix Version yet (upstream has
         # not released a patched pip). Remove --ignore-vuln once `pip`
         # publishes a fix.
@@ -40,6 +59,7 @@ jobs:
   lint:
     name: Code Linting
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
     - name: Checkout code
@@ -98,6 +118,7 @@ jobs:
   frontend-build:
     name: Frontend Build (npm ci + SCSS)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Checkout code
@@ -118,6 +139,7 @@ jobs:
   e2e-smoke:
     name: E2E Smoke (Chromium)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: frontend-build
 
     steps:
@@ -166,6 +188,7 @@ jobs:
   e2e-functional-shard:
     name: E2E Functional Shard ${{ matrix.shard }}/2
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: frontend-build
     strategy:
       fail-fast: false
@@ -260,6 +283,7 @@ jobs:
   e2e-functional:
     name: E2E Functional (Chromium)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: e2e-functional-shard
     if: always()
 
@@ -277,6 +301,7 @@ jobs:
   e2e-backup:
     name: E2E Backup (Chromium, isolated)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: frontend-build
 
     # program-backup.spec.ts performs live backup/restore mutations. It runs in
@@ -338,6 +363,7 @@ jobs:
   e2e-fatigue-context:
     name: E2E Fatigue Context (Chromium, non-required)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: frontend-build
 
     steps:
@@ -392,6 +418,7 @@ jobs:
   e2e-erase-flow:
     name: E2E Erase Flow (Chromium, isolated, non-required)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: frontend-build
 
     steps:
@@ -438,6 +465,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     
     steps:
     - name: Checkout code
@@ -500,6 +528,7 @@ jobs:
     # protection-matching, not because pyright is purely measure-only.
     name: Type Check (tsc blocking + pyright measure-only)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Checkout code
@@ -591,6 +620,7 @@ jobs:
   js-unit:
     name: JS Unit (Vitest, non-required)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Checkout code
@@ -615,6 +645,7 @@ jobs:
   css-stylelint-measure:
     name: CSS Stylelint Measurement (non-required)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     continue-on-error: true
 
     steps:
@@ -667,13 +698,24 @@ jobs:
   # check is also the cross-platform determinism proof required by section 7.3
   # entry criterion 1.
   #
-  # MEASURE-ONLY (continue-on-error: true) BY DESIGN, not by oversight. Two other
-  # plans -- docs/APP_PY_REVIEW_PLAN.md packets P1-P5 and WPB.4 -- are adding tests
-  # right now, and a blocking drift gate would red their pull requests for
-  # legitimately moving a count. Section 8.4 of the planning document records the
-  # flip condition: drop continue-on-error once BOTH have merged and the committed
-  # inventory has been regenerated to match. This job is NEW and non-required; it
-  # renames no existing (load-bearing) branch-protection context.
+  # MEASURE-ONLY BY DESIGN, not by oversight. Two other plans --
+  # docs/APP_PY_REVIEW_PLAN.md packets P1-P5 and WPB.4 -- are adding tests right
+  # now, and a drift gate that reds their pull requests for legitimately moving a
+  # count is exactly what section 8.4 promised not to do.
+  #
+  # "Measure-only" here means GENUINELY GREEN, not merely non-blocking.
+  # continue-on-error alone still renders a red X in the checks list, which reads
+  # as a failure to everyone else even though it blocks nothing. So the drift step
+  # captures its own exit code and reports through ::warning + the job summary,
+  # the same idiom css-stylelint-measure already uses. continue-on-error stays as
+  # a backstop for an unexpected tool crash.
+  #
+  # FLIP TO BLOCKING once BOTH of those plans have merged and the committed
+  # inventory has been regenerated to match: change `exit 0` to `exit $STATUS` in
+  # the drift step and drop continue-on-error. Section 8.4 is the record.
+  #
+  # This job is NEW and non-required; it renames no existing (load-bearing)
+  # branch-protection context.
   #
   # Deliberately no browser install and no Flask server: `playwright test --list`
   # only parses specs and `pytest --collect-only` imports without running, so this
@@ -681,6 +723,7 @@ jobs:
   test-inventory:
     name: Test Inventory Drift (non-required)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     continue-on-error: true
 
     steps:
@@ -707,8 +750,29 @@ jobs:
     - name: Install npm dependencies
       run: npm ci
 
+    # Measure-only: the drift verdict is an annotation, not a failed step. Swap
+    # `exit 0` for `exit $STATUS` to flip this gate to blocking (see the flip
+    # condition in the job comment above).
     - name: Check committed inventory against a fresh Linux regeneration
-      run: python scripts/generate_test_inventory.py --check
+      run: |
+        set +e
+        python scripts/generate_test_inventory.py --check > inventory_drift.txt 2>&1
+        STATUS=$?
+        set -e
+        cat inventory_drift.txt
+        if [ "$STATUS" -ne 0 ]; then
+          echo "::warning title=Test inventory drift (measure-only)::The committed inventory does not match a fresh regeneration. Run scripts/generate_test_inventory.py and commit the result. Not blocking: see TESTING_STRATEGY_PLANNING.md 8.4."
+          {
+            echo "### Test inventory drift (measure-only — not blocking)"
+            echo
+            echo '```'
+            head -c 8000 inventory_drift.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "::notice title=Test inventory::Committed inventory matches a fresh Linux regeneration."
+        fi
+        exit 0
 
     - name: Report totals and regenerate for the artifact
       if: always()
@@ -728,9 +792,17 @@ jobs:
         print(f"| pytest collected nodes | {py['collected_deterministic']} across {py['deterministic_files']} files (deterministic subset of {py['total_files']}) |")
         print(f"| Hard waits ({hw['metric']}) | {hw['total_lines']} across {hw['files_with_waits']} files |")
         print()
-        print("Drift against the committed inventory is reported in the previous step. This job is")
-        print("measure-only until APP_PY P1-P5 and WPB.4 merge (TESTING_STRATEGY_PLANNING.md 8.4).")
+        print("Drift against the committed inventory is reported in the previous step as a warning.")
+        print("Measure-only until APP_PY P1-P5 and WPB.4 merge (TESTING_STRATEGY_PLANNING.md 8.4).")
         PY
+
+    - name: Upload drift report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-inventory-drift
+        path: inventory_drift.txt
+        retention-days: 14
 
     - name: Upload regenerated inventory
       if: always()
