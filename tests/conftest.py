@@ -20,6 +20,7 @@ from routes.body_composition import body_composition_bp
 from routes.volume_splitter import volume_splitter_bp
 from routes.program_backup import program_backup_bp
 from routes.fatigue import fatigue_bp
+from utils.catalog_seed import bootstrap_runtime_database
 from utils.schema_registry import drop_all_owned_tables, run_all_initializers
 from utils.errors import success_response, error_response
 import utils.config
@@ -45,6 +46,41 @@ def _cleanup_database_files(database_path: str) -> None:
         except OSError:
             # Some tests intentionally exercise open connections; leave best-effort cleanup non-fatal.
             pass
+
+
+@pytest.fixture(scope='module')
+def real_app_client(tmp_path_factory):
+    """A client for ``app.py``'s own routes, on a scratch database.
+
+    Distinct from the ``app`` fixture below, which builds a blueprint-only twin.
+    Some behavior lives on the real application object and nowhere else — the
+    ``/erase-data`` confirm guard, the error-handler layering, trailing-slash
+    routing — so it can only be covered against the real one.
+
+    ``app.py`` is a module-level singleton whose startup runs on first import.
+    Whichever test module imports it first wins; later imports are cached
+    no-ops. A per-module fixture that only patched ``DB_FILE`` was therefore
+    order-dependent — the module that ran second pointed at a scratch database
+    that no startup had ever initialized, and its requests failed on missing
+    tables. This does explicitly what that startup does, so import order stops
+    mattering.
+    """
+    scratch_db = tmp_path_factory.mktemp('real_app') / 'database.db'
+    original_db_file = utils.config.DB_FILE
+    utils.config.DB_FILE = str(scratch_db)
+    try:
+        from app import app as real_app
+
+        with real_app.app_context():
+            bootstrap_runtime_database()
+            run_all_initializers(force_base=True)
+
+        real_app.config['TESTING'] = True
+        with real_app.test_client() as client:
+            yield client
+    finally:
+        utils.config.DB_FILE = original_db_file
+        _cleanup_database_files(str(scratch_db))
 
 
 @pytest.fixture
