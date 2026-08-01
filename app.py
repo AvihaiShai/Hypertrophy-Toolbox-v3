@@ -44,6 +44,11 @@ from utils.version import APP_VERSION  # noqa: E402
 import time  # noqa: E402
 import sys  # noqa: E402
 
+# The frozen build's long-cache window. Named rather than inlined so the tests
+# and scripts/smoke_packaged_app.py assert against this value instead of each
+# hardcoding their own copy, which could then silently disagree with it.
+STATIC_LONG_MAX_AGE_SECONDS = 31536000  # 1 year
+
 app = Flask(__name__)
 app.url_map.strict_slashes = False  # This makes Flask handle URLs with or without trailing slashes
 app.wsgi_app = ProxyFix(app.wsgi_app)
@@ -61,7 +66,7 @@ if getattr(sys, 'frozen', False):
     # SEND_FILE_MAX_AGE_DEFAULT is deliberately left alone: it would apply the
     # year to every static response including unversioned ones, which is the
     # stale-after-upgrade bug F4 records.
-    app.config['STATIC_LONG_MAX_AGE'] = 31536000  # 1 year
+    app.config['STATIC_LONG_MAX_AGE'] = STATIC_LONG_MAX_AGE_SECONDS
 
 # Setup structured logging
 logger = setup_logging(app)
@@ -176,12 +181,24 @@ def apply_static_cache_policy(response):
 
     Anything without the current version therefore gets ``no-cache``, which
     still allows a 304 on an unchanged file but can never serve a stale one.
+
+    Only successful responses are long-cached. ``request.endpoint`` is set at
+    routing time, so a request for a file missing from the bundle still reaches
+    here as ``'static'`` after ``send_static_file`` raised ``NotFound`` — and a
+    year-long ``immutable`` on that 404 would pin it in the browser, so a
+    hot-fix that ships the file without bumping the version could never be
+    picked up. That is the same stale-after-upgrade failure this hook exists to
+    prevent, arriving by the opposite route.
     """
     if request.endpoint != 'static':
         return response
 
     long_max_age = app.config.get('STATIC_LONG_MAX_AGE', 0)
-    if long_max_age and request.args.get('v') == APP_VERSION:
+    if (
+        long_max_age
+        and response.status_code in (200, 304)
+        and request.args.get('v') == APP_VERSION
+    ):
         response.headers['Cache-Control'] = (
             f'public, max-age={long_max_age}, immutable'
         )
@@ -193,9 +210,14 @@ def apply_static_cache_policy(response):
 def inject_app_version():
     """Expose the app version so templates can cache-bust first-party assets.
 
-    Frozen builds set SEND_FILE_MAX_AGE_DEFAULT to a year, so without a
-    version-derived `?v=` an upgraded install keeps serving the previous
-    build's CSS and JS from cache.
+    Frozen builds long-cache only version-matching static requests — see
+    apply_static_cache_policy() and STATIC_LONG_MAX_AGE. Without this value in
+    the template context every link renders `?v=` empty, nothing matches, and
+    the long cache silently stops applying to anything.
+
+    Do NOT "restore" SEND_FILE_MAX_AGE_DEFAULT here: setting it applies the year
+    to every static response including unversioned ones, which is the
+    stale-after-upgrade bug F4 records.
     """
     return {'app_version': APP_VERSION}
 
