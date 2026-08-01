@@ -376,9 +376,12 @@ documented tail — do not read it as one again.**
 **The packaged smoke never ran at all.** No `build/` or `dist/` existed in the P4 worktree and no
 post-P4 deep-gate run existed.
 
-### Replacement results — correct methodology, clean worktree off current `main`
+### Replacement results — correct methodology, clean worktree off `main` @ `bb4858e`
 
-`--update-snapshots` was never used; `git status -- e2e/__screenshots__` is empty.
+All figures below were measured in one isolated worktree cut from `bb4858e`. `main` moved several
+times during the run, so the commit is pinned rather than described as "current" — later commits,
+notably `#262`, post-date these numbers. `--update-snapshots` was never used; `git status --
+e2e/__screenshots__` is empty.
 
 | Gate | Result |
 |---|---|
@@ -422,7 +425,33 @@ decision; it is **not** a P4 regression and must not be rebaselined.
 > known reds. Only its *pixel count* was un-banded. The claim is corrected here rather than left
 > standing, since the whole point of this closeout is that verification records must be accurate.
 
+### What this audit did NOT catch — `#262`
+
+While this closeout was in review, **PR #262 (`1619262`) landed as a further P4 gate repair**, and it
+fixes a residual F4 defect that the audit above missed.
+
+P4 versioned every first-party template link, and this audit confirmed that half rigorously —
+33/33 links, 0 unversioned, 0 residual busters. **It never asked whether versioning URLs actually
+closes F4.** It does not. A frozen build set `SEND_FILE_MAX_AGE_DEFAULT` to a year for *every*
+static response, so any asset that cannot carry a `?v=` inherited the year and still went stale
+after an upgrade — the exact bug F4 records. Two classes can never carry one:
+
+- **transitive ES-module imports** — `?v=` on `app.js` does not propagate to `import './toast.js'`,
+  which resolves against the module URL and is fetched bare;
+- **runtime-built URLs** — the bodymap SVGs and the vendor exercise catalog are assembled in
+  JavaScript, where no template can reach them.
+
+`#262` adds `apply_static_cache_policy()`, narrowing the long cache to requests carrying the current
+`APP_VERSION` and making everything else revalidate, and stops setting
+`SEND_FILE_MAX_AGE_DEFAULT` at all.
+
+**The audit lesson.** This closeout verified P4 against *its own checklist* — version constant,
+link count, buster removal, contracts — and every one of those passed. It did not verify that the
+checklist was sufficient to close the finding it came from. A gate that only re-checks the
+implementer's own success criteria cannot discover that the criteria were incomplete.
+
 **Why this plan stays CLOSED.** Every P4-attributable gate passes: patch intact, pytest green,
 nonvisual E2E clean, both visual reds are the documented WP4.0 pair, and the packaged smoke passes
 via a real bootloader. Neither red is P4's — one is proven orthogonal by a pre-merge control, and
-both predate the packet by months.
+both predate the packet by months. The F4 residual above was **found and fixed on `main` in `#262`**
+rather than left open, so it closes the finding rather than reopening the plan.
