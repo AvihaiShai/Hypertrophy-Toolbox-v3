@@ -8,11 +8,20 @@ paths:
 
 # Testing guide
 
-## Baselines (re-verify after significant changes)
-- **pytest**: 1613 passed on integrated `main` @ `c0d5c38` (2026-07-05) — `.venv/Scripts/python.exe -m pytest tests/ -q`
-- **Playwright inventory**: 501 tests across 30 specs — `npx playwright test --list --project=chromium`
-- **Required functional CI set**: 404 tests, split **202 + 202** across two Chromium shards
-- **Summary-page Playwright**: 20 tests — `npx playwright test e2e/summary-pages.spec.ts --project=chromium --reporter=line`
+## Baselines — do not hand-count
+
+Every test total lives in the generated inventory, not in prose:
+
+**[`docs/test_inventory/TEST_INVENTORY.md`](../../docs/test_inventory/TEST_INVENTORY.md)** — per-spec and per-file counts, the required-functional-gate size, and the hard-wait tally. Machine-readable twin: `TEST_INVENTORY.json`.
+
+```bash
+.venv/Scripts/python.exe scripts/generate_test_inventory.py            # regenerate
+.venv/Scripts/python.exe scripts/generate_test_inventory.py --check    # diff vs committed
+```
+
+CI regenerates and diffs it on every PR (`Test Inventory Drift (non-required)`). When your change moves a count, regenerate and commit the artifact in the same PR.
+
+Hand-maintained totals previously rotted into five contradictory numbers at once — the counts that used to sit here were among them. See blindspot B3 in [`docs/TESTING_STRATEGY_PLANNING.md`](../../docs/TESTING_STRATEGY_PLANNING.md). Don't reintroduce one.
 
 ## Fixture hierarchy (`tests/conftest.py`)
 ```
@@ -52,40 +61,42 @@ Config: `playwright.config.ts` — auto-starts Flask via `.venv/Scripts/python.e
 
 Fixtures: `e2e/fixtures.ts` exports `test` (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `expectToast()`.
 
-## E2E test map (Chromium, 501 total across 30 specs)
+## E2E test map
 
-| Spec | Tests | User flow | Fixtures needed |
-|---|---|---|---|
-| `smoke-navigation.spec.ts` | 10 | Page loads, navbar links, full navigation cycle | None |
-| `dark-mode.spec.ts` | 6 | Toggle dark mode, localStorage persistence | None |
-| `nav-dropdown.spec.ts` | 7 | Desktop/mobile navbar behavior and actionability | None |
-| `workout-plan.spec.ts` | 35 | Routine cascade, plan CRUD, filters, generator, controls, media | Exercises in DB |
-| `workout-log.spec.ts` | 23 | Import/edit/delete/date/mobile/media flows | Plan + log entries |
-| `summary-pages.spec.ts` | 20 | Weekly + session structure, Effective/Raw columns, contribution mode, pattern coverage | Exercises |
-| `progression.spec.ts` | 26 | Page, selector, goals CRUD, methodology, status indicators | Exercises + log |
-| `volume-splitter.spec.ts` | 27 | Sliders, modes, calculate/reset/export/history | None |
-| `volume-progress.spec.ts` | 16 | Active-plan volume drawer behavior and geometry | Exercises in DB |
-| `program-backup.spec.ts` | 20 | Backup Center CRUD, restore, confirmations, API | Plan data |
-| `erase-flow.spec.ts` | 2 | Erase confirmation and auto-backup banner | None |
-| `exercise-interactions.spec.ts` | 21 | Delete, replace, superset, inline edit, details | Exercises in plan |
-| `accessibility.spec.ts` | 24 | Keyboard, ARIA, focus, skip links, contrast | None |
-| `api-integration.spec.ts` | 58 | API contracts across core workflows | Varies |
-| `empty-states.spec.ts` | 16 | Empty plan/log/filters/summaries | None |
-| `error-handling.spec.ts` | 12 | Server 500/503, malformed JSON, double-click | None (mocked) |
-| `superset-edge-cases.spec.ts` | 12 | Link >2/<2, delete, unlink, replace, persistence | 2+ exercises |
-| `validation-boundary.spec.ts` | 23 | Negative, rep range, zero, RIR/RPE bounds, decimals | Exercise available |
-| `browser-navigation-state.spec.ts` | 3 | Back button, refresh, deep-link | None |
-| `replace-exercise-errors.spec.ts` | 3 | No alternative, all in routine, missing metadata | Specific setup |
-| `body-composition.spec.ts` | 5 | Snapshot CRUD, BMI fallback, JS/Python parity | None |
-| `fatigue.spec.ts` | 8 | Fatigue page, periods, empty/mobile/dark states | None |
-| `fatigue-context.spec.ts` | 6 | Profile setting and advisory Workout Controls | Mocked estimate API |
-| `fatigue-stage4-smokes.spec.ts` | 5 | Badge mobile geometry and dark contrast | None |
-| `learned-calibration.spec.ts` | 8 | Calibration settings, actions, golden path | Profile + log data |
-| `listener-cleanup.spec.ts` | 3 | Detached picker/dropdown listener cleanup | Exercises in plan |
-| `ui-hardening.spec.ts` | 12 | Toast, form-state, modal keyboard/focus contracts | Varies |
-| `user-profile.spec.ts` | 24 | Profile, lifts, settings, body map, insights | None |
-| `visual.spec.ts` | 66 | Eleven-page × 3 viewport × 2 theme screenshot matrix | Visual seed |
-| `visual-baseline-thumbnails.spec.ts` | 18 | Plan/log thumbnail screenshot matrix | Visual seed |
+Per-spec counts are in [`docs/test_inventory/TEST_INVENTORY.md`](../../docs/test_inventory/TEST_INVENTORY.md), which also marks which specs feed the required functional gate. This table covers what the generator cannot derive: what each spec is *for*.
+
+| Spec | User flow | Fixtures needed |
+|---|---|---|
+| `smoke-navigation.spec.ts` | Page loads, navbar links, full navigation cycle | None |
+| `dark-mode.spec.ts` | Toggle dark mode, localStorage persistence | None |
+| `nav-dropdown.spec.ts` | Desktop/mobile navbar behavior and actionability | None |
+| `workout-plan.spec.ts` | Routine cascade, plan CRUD, filters, generator, controls, media | Exercises in DB |
+| `workout-log.spec.ts` | Import/edit/delete/date/mobile/media flows | Plan + log entries |
+| `summary-pages.spec.ts` | Weekly + session structure, Effective/Raw columns, contribution mode, pattern coverage | Exercises |
+| `progression.spec.ts` | Page, selector, goals CRUD, methodology, status indicators | Exercises + log |
+| `volume-splitter.spec.ts` | Sliders, modes, calculate/reset/export/history | None |
+| `volume-progress.spec.ts` | Active-plan volume drawer behavior and geometry | Exercises in DB |
+| `program-backup.spec.ts` | Backup Center CRUD, restore, confirmations, API | Plan data |
+| `erase-flow.spec.ts` | Erase confirmation and auto-backup banner | None |
+| `exercise-interactions.spec.ts` | Delete, replace, superset, inline edit, details | Exercises in plan |
+| `accessibility.spec.ts` | Keyboard, ARIA, focus, skip links, contrast | None |
+| `api-integration.spec.ts` | API contracts across core workflows | Varies |
+| `empty-states.spec.ts` | Empty plan/log/filters/summaries | None |
+| `error-handling.spec.ts` | Server 500/503, malformed JSON, double-click | None (mocked) |
+| `superset-edge-cases.spec.ts` | Link >2/<2, delete, unlink, replace, persistence | 2+ exercises |
+| `validation-boundary.spec.ts` | Negative, rep range, zero, RIR/RPE bounds, decimals | Exercise available |
+| `browser-navigation-state.spec.ts` | Back button, refresh, deep-link | None |
+| `replace-exercise-errors.spec.ts` | No alternative, all in routine, missing metadata | Specific setup |
+| `body-composition.spec.ts` | Snapshot CRUD, BMI fallback, JS/Python parity | None |
+| `fatigue.spec.ts` | Fatigue page, periods, empty/mobile/dark states | None |
+| `fatigue-context.spec.ts` | Profile setting and advisory Workout Controls | Mocked estimate API |
+| `fatigue-stage4-smokes.spec.ts` | Badge mobile geometry and dark contrast | None |
+| `learned-calibration.spec.ts` | Calibration settings, actions, golden path | Profile + log data |
+| `listener-cleanup.spec.ts` | Detached picker/dropdown listener cleanup | Exercises in plan |
+| `ui-hardening.spec.ts` | Toast, form-state, modal keyboard/focus contracts | Varies |
+| `user-profile.spec.ts` | Profile, lifts, settings, body map, insights | None |
+| `visual.spec.ts` | Eleven-page × 3 viewport × 2 theme screenshot matrix | Visual seed |
+| `visual-baseline-thumbnails.spec.ts` | Plan/log thumbnail screenshot matrix | Visual seed |
 
 Support files:
 - `e2e/fixtures.ts` — shared fixtures, route constants, selectors, helpers
