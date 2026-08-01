@@ -238,15 +238,24 @@ distinguish them. Splitting the family would leave `@media` overrides targeting
 classes with no base rule, so it is deferred whole and pinned by exact
 occurrence count. **Do not erode it rule by rule.**
 
-**Current owner-authorized execution order:**
+**Execution order — fully discharged:**
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ▶ → j → k
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ✔ → j ✔ → k ✔
 ```
 
-**Packet i is active.** All ten earlier packets must not be re-dispatched. The
-dated N4 continuation authority supersedes the earlier hard-stop instruction.
+**No packet in this arc is active or next. Do not dispatch one.** The three open
+closeout proposals are P1 (PR #223, awaiting owner approval), P2 (PR #222,
+awaiting owner review) and P3 (`theme-dark.css` `:where()` inertia — not started,
+needs Gate 1 via `/council-plan`). **Land P1 before P3:** P3's N8 gate reconciles
+against the very ledger P1 corrects.
 
+> **Superseded 2026-08-01.** This block previously showed `i ▶ → j → k` and read
+> *"Packet i is active."* Correct on 2026-07-31; stale once #212, #215, #216 and
+> #217 merged. The Current Objective block at the top of this file was updated by
+> packet `k` but this block was not, so the execution source of truth asserted
+> both "the arc is closed" and "packet i is active" at once.
+>
 > **Superseded 2026-07-31.** This block previously read *"`g` is next"* and drew
 > the order with `g → h` still pending. Both merged (#207/#209 and #208).
 >

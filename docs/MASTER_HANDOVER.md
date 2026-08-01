@@ -53,16 +53,20 @@
 > | **h** `components.css` certified dead declarations | #208 | `b2b1cb7` | 101 declarations deleted, −138 lines |
 > | **visual harness prerequisite** | #211 | `1019d34` | inert Progression hook + property-level determinism correction; no snapshot or effective-render change |
 >
-> **Current owner-authorized execution order:**
+> **Execution order — fully discharged:**
 >
 > ```
-> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ▶ → j → k
+> a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ✔ → j ✔ → k ✔
 > ```
 >
-> **Packet i is next and active.** The fresh N4 decision has been given; do not
-> request it again. All ten earlier packets are DONE and must not be re-dispatched.
-> Packet i narrows to proven-safe branches or uses the pre-authorized N3
-> abandonment, then proceeds directly to j and k.
+> **No packet in this arc is next. Do not dispatch one.** The `i` → `j` → `k`
+> tail merged on 2026-07-31/08-01; the three open closeout proposals and their
+> sequencing are in `## Next Safe Step`.
+>
+> > **Superseded 2026-08-01.** These two blocks previously showed `i ▶ → j → k`
+> > and read *"Packet i is next and active."* Correct on 2026-07-31. Packet `k`
+> > added the completion block at the top of this section but left these
+> > unmarked, so the same section asserted both outcomes at once.
 >
 > ### N4 checkpoint — DISCHARGED
 >
@@ -1341,38 +1345,82 @@
 | Redesign post-P8 triage | ✅ complete — 10 of 11 shipped, #1 deferred by owner choice (keep nav Backup link) | none | local-only `debug/redesign_post_p8_issues_SESSION_STATE.md` (closed; annotated 2026-05-19) |
 | phase5_3i_plan | ✅ closed — accepted-as-shipped (owner decision 2026-05-19) | none | local-only `debug/phase5_3i_plan_SESSION_STATE.md` (closed banner added); planning doc shipped `c0da18e` 2026-04-15 and deleted `635fa3e` 2026-04-24; 5A–5H validation gates never ran but `12c90ac` refactors have held 5+ weeks under 1160-test baseline with no regression |
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
+| app.py review | **DRAFT — not approved for execution.** Started as a cross-check of an external review of `app.py` whose content was lost in transit; the owner then directed an independent review. Findings F1–F3 were confirmed **empirically** (real app object, `DB_FILE` on a scratch database, requests through `test_client()` with `DEBUG=False, TESTING=False`) and independently reproduced by a second review, which raised six corrections now folded in. Committed 2026-08-01 via PR #218. | None. This document authorizes no code change. Needs owner review before any finding becomes a work packet. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
+| Product documentation suite | **PROPOSED — needs revision.** Assesses the six-document suite (PRD / TDD / App Flow / Design Brief / Backend Schema / Engineering Plan) against the existing brownfield docs surface. Verdict: fill the real gaps rather than write six documents from scratch — **App Flow** and **Design Brief** are the genuine gaps; the Engineering Plan is already covered as a living process by `/council-plan`, per-feature `PLANNING.md` and `QUALITY_GATE.md`. Committed 2026-08-01 via PR #219. | None. Gate 0 approves requirements only; no packet may start until the revised plan completes council review and receives Gate 1 owner approval. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) |
+| Testing strategy review | **PLANNING — nothing shipped from it.** Claims were verified against the live repository (configs read directly, Playwright `--list` and pytest collection executed, all 90 pytest files, both workflows, the backup subsystem and the E2E suite audited). Adjudicates two external AI reviews, records verified current state, and lists blindspots both models missed. Phases **D1–D7** are proposals. Committed 2026-08-01 via PR #220. | None. **No phase is started and none is selected** — owner picks which, if any, to run. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md) |
 
 ## Open Decisions
-- **None blocking.** Working tree clean except for `data/database.db` runtime dirt (owner-approved kept dirty; do not commit). Local `main` is fully up to date with `origin/main` (0 commits ahead) after the 2026-05-29 push of `df9b6f9` + `f2cdc23` + handover sync. Body Composition Issue #21 fully closed (PR #31 + PR #32 + 2026-05-23 Profile hooks). Worktree disposition (former LEFTOVERS row #14) closed 2026-05-23 by inspection + branch cleanup (`21859a1`) — both old worktree paths were already absent from disk and the stale branch refs (`test/visual-baseline-thumbnails` local + remote, `redesign/calm-glass-2026` remote) deleted.
+
+- **Three WP4.4 closeout proposals await the owner** — P1 (PR #223), P2 (PR #222)
+  and P3 (not started). See `## Next Safe Step` for what each one is and why P1
+  sequences before P3. None of them blocks other work.
+- **Three planning documents are parked pre-approval** — the app.py review
+  (DRAFT), the product documentation suite (PROPOSED, needs revision) and the
+  testing strategy review (PLANNING, D1–D7 unselected). Rows in
+  `## Active Workstreams`. None is started; each needs its own owner decision.
+
+> **Superseded 2026-08-01.** The note below read *"None blocking"* and described
+> a working tree and `origin/main` parity measured on **2026-05-29**. Retained
+> for the Body Composition and worktree-disposition history it records; do not
+> read its tree/sync claims as current.
+
+- Working tree clean except for `data/database.db` runtime dirt (owner-approved kept dirty; do not commit). Local `main` is fully up to date with `origin/main` (0 commits ahead) after the 2026-05-29 push of `df9b6f9` + `f2cdc23` + handover sync. Body Composition Issue #21 fully closed (PR #31 + PR #32 + 2026-05-23 Profile hooks). Worktree disposition (former LEFTOVERS row #14) closed 2026-05-23 by inspection + branch cleanup (`21859a1`) — both old worktree paths were already absent from disk and the stale branch refs (`test/visual-baseline-thumbnails` local + remote, `redesign/calm-glass-2026` remote) deleted.
 
 ## Blockers
 
-- **No owner-decision blocker is open for WP4.4 i–k.** N4 is approved and routine
-  outcomes are pre-answered in the continuation authority.
+- **No blocker is open for WP4.4.** The arc is closed at `k`; there is no next
+  packet in it.
+- **Two owner approvals are pending.** They gate their own PRs, nothing else:
+  PR #223 (proposal P1, the Linux inherited-reds ledger — approval required per
+  V2 / R3 condition 6) and PR #222 (proposal P2, the `static/css/**`
+  `QUALITY_GATE.md` row — owner-gated by N10).
+- **P3 must not start before Gate 1.** The `theme-dark.css` `:where()` inertia
+  finding is a new arc, not a closeout chore. Run `/council-plan` first, and land
+  P1 before it — P3's N8 gate reconciles against the ledger P1 corrects.
 - The Packet-a layer-span work is **deferred, not blocking**: 235 declarations
   remain untouched for a separately certified future packet.
-- Current transient execution state and any real external blocker are recorded in
-  [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md).
+
+> **Superseded 2026-08-01.** This section previously read *"No owner-decision
+> blocker is open for WP4.4 i–k. N4 is approved…"* and pointed at
+> [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md) for
+> live execution state. Correct while i–k were running; that handoff is now a
+> historical restart ledger, not live state.
 
 ## Next Safe Step
 
-**Current (2026-07-31, latest): Packet i is active.** WP4.4 packets `a`, `c`,
-`b`, `e`, `d1`, `f1`, `d2`, `f2`, `g` and `h` plus the PR #211 visual-harness
-prerequisite are merged. The current order is:
+**Current (2026-08-01, latest): WP4.4 is COMPLETE and the arc is closed at `k`.**
+Every packet is merged and the authorized order is fully discharged:
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ▶ → j → k
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ✔ → j ✔ → k ✔
 ```
 
-**The next safe step is to resume the existing i worktree from the live handoff,**
-first checking for an already-running gate and then completing true current-main
-before versus final-i after evidence. Continue through i PR/CI/merge, then arrange j
-and k sequentially through the external worktree workflow. Use parallel read-only agents with one writer and serialized
-stateful gates. Do not reopen the 235 declarations.
+**There is no next packet in this arc. Do not dispatch one.** The next safe step
+is owner adjudication of the three closeout proposals recorded in
+[`CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md`](CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md)
+§5:
 
-> **Superseded 2026-07-31.** This section previously read *"WP4.4-g is the next
-> action"* with the remaining order `g → h → HARD STOP`. Correct on 2026-07-30;
-> stale once #207, #209 and #208 merged.
+| Proposal | State |
+|---|---|
+| **P1** — the Linux inherited-reds ledger covers only 10 reds from one spec file, while its own rules make an unlisted red a rollback trigger | PR #223 open, **awaiting owner approval** (V2 / R3 condition 6) |
+| **P2** — no `static/css/**` row in `QUALITY_GATE.md`, so every CSS packet re-infers its gate routing | PR #222 open, **awaiting owner review** (N10) |
+| **P3** — `theme-dark.css` is largely inert: `:where()` zeroes its specificity, so a far larger reduction than C11 permitted is likely available | **not started** — needs Gate 1 via `/council-plan` |
+
+**Sequence P1 before P3.** P3's verification is the N8 Linux deep gate, which
+reconciles against the very ledger P1 corrects; running P3 first trips the false
+rollback trigger P1 exists to remove.
+
+Deferred, and not to be reopened without a separate owner decision: the **235**
+declarations `h` withheld behind the frozen `@layer workout` span (C8), the
+superset dark-tint gap (G4), and unlinking `theme-dark.css` (R4).
+
+> **Superseded 2026-08-01.** This section previously read *"Packet i is active"*
+> and instructed resuming the i worktree from the live handoff. Correct on
+> 2026-07-31; stale once #212, #215, #216 and #217 merged. Packet `k` reconciled
+> the Current State block at the top of this file but left this section and
+> `## Blockers` untouched, so the file asserted both "the arc is closed" and
+> "packet i is active" at once — the precise drift class the note at the end of
+> this section says `/status` exists to catch.
 
 **`f2` closeout findings later packets must not undo:** layer membership is
 frozen (N2), the last `@layer navbar` block survives (G11), and the block still
