@@ -35,7 +35,7 @@ WP4.3e (Welcome) shipped to `origin/main` via PR #160 (`5e7d290`), WP4.3f
 (`bc9da14`), WP4.3h (User Profile) plus WP4.3i-i/i-b…i-g via PR up to
 `00eb6f9`, WP4.3i-h via PR #164 (`bfadf9d`), and WP4.3i-dead plus
 WP4.3i-filter-btn via **PR #165 (merge commit `95f30c1`, 2026-07-25)**. Track B
-is mostly shipped; WPB.4 remains unimplemented and product-risk gated.
+is shipped in full — **WPB.4 landed 2026-08-01**, closing the last open packet.
 
 **Phase-4 frontier — WP4.3i Workout Plan dead-CSS sweep, fully shipped.** Three
 packets sit past `00eb6f9`; **all three are on `origin/main`**:
@@ -466,6 +466,20 @@ Playwright inventory **504 tests / 30 specs**.
 - Gate: export pytest family plus the export/workout-log E2E paths.
 
 ### WPB.4 (OD4) Weekly summary `Unassigned` bucket for null routines
+
+> **SHIPPED 2026-08-01.** Gate 0 and Gate 1 both owner-signed after a full
+> `/council-plan`. The risk-mitigation gate below is discharged; two of its
+> clauses were **amended by the owner at Gate 1** and the amendments are
+> authoritative over the original wording:
+> **(D5)** criterion 10's browser assertion was replaced by a DB-backed,
+> unmocked route-JSON assertion — no product write path can create a falsy
+> routine (`utils/exercise_manager.py:36` rejects it), so the E2E had no legal
+> seeding path and a mocked one would have passed against unmodified code.
+> `e2e/summary-pages.spec.ts` is regression coverage only, unmodified.
+> **(D2)** the export gate became net-new coverage of `build_summary_sheets`,
+> because no export test family existed to extend.
+> **(D1)** `global_sessions` deliberately still excludes the synthetic bucket.
+> Full record: [`wpb4_unassigned_bucket/PLANNING.md`](wpb4_unassigned_bucket/PLANNING.md).
 
 - Protected calc zone. Weekly summary buckets null-routine rows as `Unassigned`,
   matching session summary, instead of dropping them from frequency.
@@ -1570,8 +1584,8 @@ branch.
 |---|---|---|---|
 | Owner decisions and plan approval | **Done** | OD1–OD10 are resolved; Track A, Track B, and Plan v3 approvals are recorded. | — |
 | Track A — A1–A8 bug fixes | **Done** | All eight fixes shipped in PRs #91–#98 with the integrated test and E2E gates passing. | — |
-| Track B — WPB.1–WPB.3 and WPB.5–WPB.9 | **Done** | All owner-decided behavior/contract packets except WPB.4 shipped, including the required fatigue-context CI job. | — |
-| Track B — WPB.4 `Unassigned` weekly-summary bucket | **Gated / not started** | The owner decision and risk-mitigation gate are documented; WP2.3 supplied the prerequisite goldens, but no WPB.4 implementation has started. | Protected calculation behavior still requires explicit product-risk review, a decision about the `global_sessions` denominator, intentional golden-delta review, and the named summary functional/visual gates. |
+| Track B — WPB.1–WPB.3 and WPB.5–WPB.9 | **Done** | All owner-decided behavior/contract packets shipped, including the required fatigue-context CI job. | — |
+| Track B — WPB.4 `Unassigned` weekly-summary bucket | **Done** | Shipped 2026-08-01. Falsy routines coalesce into one synthetic `Unassigned` session in `_aggregate_weekly_volumes`; the WP2.3 golden was intentionally regenerated and the reviewed delta is confined to the `Calves` sentinel — 16 values across 4 fields × 4 modes, with weekly totals, reps, volume, status and classifications bit-identical. Gate 0 and Gate 1 both owner-signed after a full `/council-plan` (3 reviewers, 19 findings, all dispositioned). | — |
 | Phase -1 — evidence, docs, and gate hardening | **Done** | WP-1.0–WP-1.5 shipped. | — |
 | Phase 0 — dead code and repository hygiene | **Done** | Phase 0 is closed under the plan’s top-level status. | — |
 | Phase 1 — route and service boundaries | **Done** | WP1.1–WP1.8 shipped in PRs #121–#130 while preserving endpoint and response contracts except for separately approved Track B changes. | — |
@@ -1598,4 +1612,4 @@ branch.
 | WP4.4-k — final integration | **Authorized after j merges** | Not started; docs/verification only. | N10 stays evidence-only; do not edit `QUALITY_GATE.md`. Corrective subpackets are limited by the continuation authority. |
 | Superset dark tint and `layout.css` dead `body.dark-mode` | **`body.dark-mode` RESOLVED by WP4.4-e; superset tint still deferred** | `body.dark-mode` was re-proved and **deleted** in PR #195. The rule was *functional* (all seven `--tbl-*` tokens changed in 11/22 contexts when the class was applied) but its selector was *never satisfied*: `<body>` never carries the class and `darkMode.js:64` sets `data-theme` on the root element. Deleted on **unreachability**, explicitly **not** the ordinary non-winner rule, which does not apply to custom properties. The seven tokens keep their live `[data-theme="dark"]` definitions, now contract-pinned. The missing live dark override for `--superset-bg-1..4` remains recorded and unchanged. | The superset tint belongs to `theme-dark.css` ownership (packet `j`), still gated. |
 | Continuous pyright baseline burn-down | **Ongoing — standing track only** | The track remains available for one file or one tightly coupled diagnostic family at a time; no active packet is identified by this snapshot. | It has no single phase-close packet. Each change must remain type-only, reduce the diagnostic multiset, and pass focused plus full pytest gates. |
-| Overall refactor plan | **Partially complete; WP4.4 closed at `k`** | Track A and Phases -1 through 3 are complete; Track B is complete except WPB.4. WP4.4 is complete — every packet `a` through `k` is merged and the arc is closed, discharging the dated N4 authority. Of the three closeout proposals, P1 (#223, `d543a4b`) and P2 (#222, `4b0670b`) are owner-approved and merged; P3 is planning-only. | WPB.4 and remaining Workout Plan/Log cleanup stay paused. P3 must not start while Gate 0 and Gate 1 are unsigned. The 235 layer-pin declarations remain deferred. |
+| Overall refactor plan | **Partially complete; WP4.4 closed at `k`; Track B closed** | Track A and Phases -1 through 3 are complete; **Track B is now complete — WPB.4, its last packet, shipped 2026-08-01**. WP4.4 is complete — every packet `a` through `k` is merged and the arc is closed, discharging the dated N4 authority. Of the three closeout proposals, P1 (#223, `d543a4b`) and P2 (#222, `4b0670b`) are owner-approved and merged; P3 is planning-only. | Remaining Workout Plan/Log cleanup stays paused. P3 must not start while Gate 0 and Gate 1 are unsigned. The 235 layer-pin declarations remain deferred. |

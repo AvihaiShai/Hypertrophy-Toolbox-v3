@@ -16,5 +16,24 @@ export default defineConfig({
     test: {
         environment: 'node',
         include: ['static/js/**/*.test.js'],
+
+        // Phase 1 step 6 of docs/TESTING_STRATEGY_PLANNING.md. REPORT-ONLY: no
+        // `thresholds` key, so `vitest run --coverage` can report any number
+        // without failing. The js-unit job stays non-required (decision D2's
+        // js-unit half is explicitly NOT signed), so nothing here gates a merge.
+        //
+        // `all: true` is the whole point. Without it v8 reports only files a test
+        // imported, which would score the 8 covered modules and silently omit the
+        // 41 that have no test at all -- a flattering number that hides blindspot
+        // B7. With it, every module under static/js counts, including the ones at
+        // zero.
+        coverage: {
+            provider: 'v8',
+            all: true,
+            include: ['static/js/**/*.js'],
+            exclude: ['static/js/**/*.test.js'],
+            reporter: ['text-summary', 'json-summary', 'html'],
+            reportsDirectory: 'artifacts/js-coverage',
+        },
     },
 });

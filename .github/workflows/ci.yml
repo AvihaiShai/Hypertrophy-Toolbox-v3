@@ -7,19 +7,42 @@ on:
     branches: [ main, develop ]
 
 # CI hygiene (blindspot B9, Phase 0.2 of docs/TESTING_STRATEGY_PLANNING.md).
-# Before this, rapid pushes to a pull request left every superseded run going,
-# burning a full pipeline per push.
+# Rapid pushes to a pull request used to leave every superseded run going,
+# burning a full pipeline per push. Superseding a PR run is the only thing this
+# group is allowed to do.
 #
-# The key is WORKFLOW-SCOPED on purpose (section 7.3 entry criterion 4): it
-# begins with github.workflow, so "CI/CD Pipeline" runs share a group only with
-# each other and can never contend with -- let alone cancel -- a
-# "Deep Gate (manual)" run on the same ref.
+# WORKFLOW-SCOPED (section 7.3 entry criterion 4): the key begins with
+# github.workflow, so "CI/CD Pipeline" runs share a group only with each other
+# and can never contend with -- let alone cancel -- a "Deep Gate (manual)" run.
 #
-# cancel-in-progress is restricted to pull_request events. A push to main or
-# develop is never cancelled, so a merge always gets a complete pipeline even if
-# another merge lands seconds later.
+# THE NON-PR KEY MUST STAY UNIQUE PER RUN. github.run_id is not decoration.
+#
+# The first version of this block used `github.ref` as the non-PR key, which
+# gave EVERY push to main one shared group, and paired it with
+# cancel-in-progress: false in the belief that false means "never cancelled".
+# It does not. cancel-in-progress governs runs that are already IN PROGRESS;
+# a run still QUEUED in an occupied group is cancelled outright when a newer
+# run joins that group. GitHub documents this: "Any previously pending job or
+# workflow in the concurrency group will be cancelled."
+#
+# Observed 2026-08-01, four merges inside three minutes:
+#
+#   0c89942  18:34:11  in_progress
+#   9fe5dbd  18:34:30  CANCELLED  <- WPB.4, zero jobs ever started
+#   ff276cf  18:36:50  pending
+#
+# 9fe5dbd is a calculation-semantics change to utils/weekly_summary.py with
+# golden-file updates, and it reached main with NO post-merge validation at all.
+# That is the exact signal that caught the d453010 cross-PR breakage earlier the
+# same day, so losing it silently is worse than the redundant runs the group was
+# added to prevent.
+#
+# github.run_id is unique per run, so every push gets its own group, is never
+# queued behind another push, and therefore can never be cancelled by one.
+# PR runs keep the PR-number key and keep superseding each other, which is the
+# only behaviour this block was ever meant to provide.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -413,8 +436,19 @@ jobs:
   # e2e-backup above. It must therefore NEVER join the e2e-functional-shard
   # spec lists. Mirrors the e2e-fatigue-context idiom: an isolated single-spec
   # job with its own fresh server + throwaway DB (playwright.config.ts
-  # webServer command), intentionally NOT added to branch protection's
-  # required_status_checks.
+  # webServer command).
+  #
+  # PROMOTED TO REQUIRED on 2026-08-01 (decision D2, signed; Phase 0 step 4 of
+  # docs/TESTING_STRATEGY_PLANNING.md). It guards the most destructive endpoint
+  # in the application: the production confirm-guard, the 400 path and the
+  # auto_backup response payload were reachable only through this job.
+  #
+  # THE "(non-required)" IN THE JOB NAME BELOW IS NOW FALSE, AND MUST STAY.
+  # The name is the exact branch-protection context string; renaming it orphans
+  # the required check and blocks every open pull request. This is the same
+  # load-bearing lie e2e-fatigue-context carries — that job has been required
+  # since 2026-07-05 while still calling itself non-required. Promotion is a
+  # protection-API change, never a YAML rename (TESTING_STRATEGY_PLANNING.md 8.3).
   e2e-erase-flow:
     name: E2E Erase Flow (Chromium, isolated, non-required)
     runs-on: ubuntu-latest
@@ -486,11 +520,86 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Run pytest
+    # Phase 1 step 5 of docs/TESTING_STRATEGY_PLANNING.md, decision D1 (signed
+    # 2026-08-01): coverage is NON-BLOCKING MEASUREMENT. There is deliberately no
+    # --cov-fail-under and no threshold of any kind -- this job's verdict is still
+    # exactly "did the tests pass". The observed number is the baseline for a
+    # future baseline-diff ratchet (the scripts/pyright_baseline_diff.py pattern
+    # this repo already proves), not a line anyone has to stay above today. The
+    # phase-3 decision that ruled coverage out is reversed only this far.
+    #
+    # Scope is utils + routes. app.py is deliberately ABSENT: pytest never imports
+    # it, so coverage answers --cov=app with "Module app was never imported" and
+    # no row at all. Its one import site is the app_client fixture at
+    # tests/test_pattern_coverage.py:329, which no test in that class requests --
+    # a dead fixture. That is blindspot B2 surfacing in the coverage data, and it
+    # is recorded in section 8.6 rather than papered over with a permanent warning.
+    - name: Run pytest with coverage
       run: |
-        pytest tests/ -v --tb=short --junitxml=artifacts/pytest/junit.xml
+        pytest tests/ -v --tb=short --junitxml=artifacts/pytest/junit.xml \
+          --cov=utils --cov=routes \
+          --cov-report=term \
+          --cov-report=xml:artifacts/pytest/coverage.xml \
+          --cov-report=html:artifacts/pytest/htmlcov
       env:
         PYTHONPATH: ${{ github.workspace }}
+
+    # Measure-only reporting. Never fails: `if: always()` so a red test suite
+    # still publishes whatever coverage was collected, and the script itself
+    # cannot fail the job.
+    - name: Summarize coverage (measure-only)
+      if: always()
+      continue-on-error: true
+      run: |
+        python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+        import xml.etree.ElementTree as ET
+
+        # The four surfaces Phase 1 step 5 names as core, corrected against the
+        # tree: the plan says "utils/double_progression*", which does not exist.
+        # The double-progression logic lives in utils/progression_plan.py.
+        CORE_PREFIXES = (
+            "utils/effective_sets",
+            "utils/progression_plan",
+            "utils/volume_",
+            "utils/program_backup",
+        )
+
+        try:
+            root = ET.parse("artifacts/pytest/coverage.xml").getroot()
+        except Exception as exc:
+            print("### Coverage\n\nNo coverage report was produced (%s)." % exc)
+            raise SystemExit(0)
+
+        overall = float(root.get("line-rate", 0)) * 100
+        classes = []
+        for cls in root.iter("class"):
+            name = (cls.get("filename") or "").replace("\\", "/")
+            classes.append((name, float(cls.get("line-rate", 0)) * 100))
+        classes.sort()
+
+        print("### Python coverage (measure-only — no threshold, D1)")
+        print()
+        print("**Overall: %.1f%%** across %d measured files." % (overall, len(classes)))
+        print()
+        print("| Core module | Coverage |")
+        print("|---|---:|")
+        for name, rate in classes:
+            if name.startswith(CORE_PREFIXES):
+                print("| `%s` | %.0f%% |" % (name, rate))
+        print()
+        weakest = sorted(classes, key=lambda c: c[1])[:8]
+        print("<details><summary>Eight weakest modules</summary>")
+        print()
+        print("| Module | Coverage |")
+        print("|---|---:|")
+        for name, rate in weakest:
+            print("| `%s` | %.0f%% |" % (name, rate))
+        print()
+        print("</details>")
+        print()
+        print("No threshold is enforced. This number is the baseline for a future")
+        print("baseline-diff ratchet; see TESTING_STRATEGY_PLANNING.md section 8.6.")
+        PY
 
     - name: Upload pytest JUnit XML
       if: always()
@@ -499,6 +608,16 @@ jobs:
         name: pytest-junit
         path: artifacts/pytest/junit.xml
         retention-days: 7
+
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-coverage
+        path: |
+          artifacts/pytest/coverage.xml
+          artifacts/pytest/htmlcov
+        retention-days: 14
 
   # NOTE: the former `dependency-check` job (outdated/safety scans) moved to the
   # manual Deep Gate (.github/workflows/deep-gate.yml) in Phase 4.5 — it's
@@ -635,8 +754,54 @@ jobs:
     - name: Install npm dependencies
       run: npm ci
 
-    - name: Run Vitest
-      run: npm run test:js
+    # Phase 1 step 6 of docs/TESTING_STRATEGY_PLANNING.md. REPORT-ONLY: no
+    # coverage thresholds are configured in vitest.config.js, so this cannot fail
+    # on a number. The job also stays NON-REQUIRED -- decision D2's js-unit half
+    # is explicitly NOT signed, and §5 step 12 wants two weeks of green plus real
+    # jsdom module tests before that conversation.
+    #
+    # Expect a very low figure: only 8 of 49 modules have any test (blindspot B7).
+    # That number is the argument for Phase 3 step 12, not a problem to fix here.
+    - name: Run Vitest with coverage
+      run: npm run test:js -- --coverage
+
+    - name: Summarize JS coverage (measure-only)
+      if: always()
+      continue-on-error: true
+      run: |
+        node -e "
+          const fs = require('fs');
+          const p = 'artifacts/js-coverage/coverage-summary.json';
+          if (!fs.existsSync(p)) {
+            console.log('::warning title=JS coverage::No coverage summary was produced.');
+            process.exit(0);
+          }
+          const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+          const t = s.total;
+          const files = Object.keys(s).filter(k => k !== 'total');
+          const zero = files.filter(k => s[k].statements.pct === 0);
+          const pct = m => t[m].pct.toFixed(1) + '%';
+          console.log('::notice title=JS coverage (measure-only)::statements=' + pct('statements') + ' branches=' + pct('branches') + ' functions=' + pct('functions') + ' lines=' + pct('lines'));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            '### JS coverage (measure-only — no thresholds, non-required job)\n\n' +
+            '| Metric | Coverage |\n|---|---:|\n' +
+            '| statements | ' + pct('statements') + ' |\n' +
+            '| branches | ' + pct('branches') + ' |\n' +
+            '| functions | ' + pct('functions') + ' |\n' +
+            '| lines | ' + pct('lines') + ' |\n\n' +
+            '**' + zero.length + ' of ' + files.length + ' modules have 0% coverage.**\n\n' +
+            'A low number here is the expected finding, not a regression: only a handful of\n' +
+            'modules under static/js have any unit test at all (blindspot B7). This figure is\n' +
+            'the argument for Phase 3 step 12; see TESTING_STRATEGY_PLANNING.md section 8.6.\n');
+        "
+
+    - name: Upload JS coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: js-coverage
+        path: artifacts/js-coverage
+        retention-days: 14
 
   # Refactor Plan v3 WP4.1: pinned stylelint measurement for the hand-authored
   # CSS/SCSS surface. This is a NEW, NON-required job and renames no existing
@@ -698,33 +863,34 @@ jobs:
   # check is also the cross-platform determinism proof required by section 7.3
   # entry criterion 1.
   #
-  # MEASURE-ONLY BY DESIGN, not by oversight. Two other plans --
-  # docs/APP_PY_REVIEW_PLAN.md packets P1-P5 and WPB.4 -- are adding tests right
-  # now, and a drift gate that reds their pull requests for legitimately moving a
-  # count is exactly what section 8.4 promised not to do.
+  # BLOCKING since 2026-08-01. The section 8.4 flip condition is discharged: the
+  # two plans that were adding tests have both merged -- docs/APP_PY_REVIEW_PLAN.md
+  # packets P1-P5, and WPB.4 in PR #256 (`9fe5dbd`) -- and the committed inventory
+  # matches a fresh regeneration on both platforms (this job is green on Linux;
+  # `scripts/generate_test_inventory.py --check` is clean on Windows). That
+  # cross-platform agreement is the section 7.3 entry-criterion-1 proof, not just
+  # a drift result.
   #
-  # "Measure-only" here means GENUINELY GREEN, not merely non-blocking.
-  # continue-on-error alone still renders a red X in the checks list, which reads
-  # as a failure to everyone else even though it blocks nothing. So the drift step
-  # captures its own exit code and reports through ::warning + the job summary,
-  # the same idiom css-stylelint-measure already uses. continue-on-error stays as
-  # a backstop for an unexpected tool crash.
+  # The flip is TWO edits, not one: `exit $STATUS` in the drift step AND no
+  # continue-on-error on the job. Either alone leaves the gate open -- an
+  # `exit 0` step can never fail, and continue-on-error swallows a real failure.
   #
-  # FLIP TO BLOCKING once BOTH of those plans have merged and the committed
-  # inventory has been regenerated to match: change `exit 0` to `exit $STATUS` in
-  # the drift step and drop continue-on-error. Section 8.4 is the record.
+  # A drifted inventory now reds the job. The fix is always the same and never a
+  # workflow edit: run `python scripts/generate_test_inventory.py` and commit the
+  # regenerated artifact in the PR that moved the count.
   #
-  # This job is NEW and non-required; it renames no existing (load-bearing)
-  # branch-protection context.
+  # The name carries no "(non-required)" suffix. This job is not in branch
+  # protection, so it was renamed freely -- unlike the two E2E jobs that still
+  # carry the suffix while being genuinely required. See QUALITY_GATE.md
+  # "CI job naming"; never rename those two.
   #
   # Deliberately no browser install and no Flask server: `playwright test --list`
   # only parses specs and `pytest --collect-only` imports without running, so this
   # job never binds port 5000 (section 8.2) and stays cheap.
   test-inventory:
-    name: Test Inventory Drift (non-required)
+    name: Test Inventory Drift
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true
 
     steps:
     - name: Checkout code
@@ -750,9 +916,9 @@ jobs:
     - name: Install npm dependencies
       run: npm ci
 
-    # Measure-only: the drift verdict is an annotation, not a failed step. Swap
-    # `exit 0` for `exit $STATUS` to flip this gate to blocking (see the flip
-    # condition in the job comment above).
+    # Blocking: the drift verdict is the step's exit code. `set +e` around the
+    # check is what lets the report render before the step fails, so keep the
+    # captured $STATUS rather than letting the command fail the step directly.
     - name: Check committed inventory against a fresh Linux regeneration
       run: |
         set +e
@@ -761,9 +927,12 @@ jobs:
         set -e
         cat inventory_drift.txt
         if [ "$STATUS" -ne 0 ]; then
-          echo "::warning title=Test inventory drift (measure-only)::The committed inventory does not match a fresh regeneration. Run scripts/generate_test_inventory.py and commit the result. Not blocking: see TESTING_STRATEGY_PLANNING.md 8.4."
+          echo "::error title=Test inventory drift::The committed inventory does not match a fresh regeneration. Run scripts/generate_test_inventory.py and commit the result."
           {
-            echo "### Test inventory drift (measure-only — not blocking)"
+            echo "### Test inventory drift — blocking"
+            echo
+            echo 'Run `python scripts/generate_test_inventory.py` and commit the regenerated'
+            echo 'artifact in the same PR that changed the test surface.'
             echo
             echo '```'
             head -c 8000 inventory_drift.txt
@@ -772,7 +941,7 @@ jobs:
         else
           echo "::notice title=Test inventory::Committed inventory matches a fresh Linux regeneration."
         fi
-        exit 0
+        exit $STATUS
 
     - name: Report totals and regenerate for the artifact
       if: always()
@@ -894,3 +1063,66 @@ jobs:
         path: artifacts/npm-audit
         retention-days: 14
 
+
+  packaged-smoke-windows:
+    name: Packaged Smoke (Windows bootloader, non-required)
+    # F4's premise -- SEND_FILE_MAX_AGE_DEFAULT's one-year window -- exists ONLY
+    # under getattr(sys, 'frozen', False). Every assertion about asset cache
+    # policy is therefore unobservable outside a packaged run, which is why P4
+    # shipped without this gate ever running.
+    #
+    # deep-gate.yml's `frozen-windows` job has done the same build since the
+    # packaging work, but deep-gate is workflow_dispatch-only, so it never gates
+    # a PR (blindspot B8, docs/TESTING_STRATEGY_PLANNING.md section 4). This is
+    # that job on the PR pipeline. Keep the two in step: a change to the build
+    # or the smoke invocation here belongs there too.
+    #
+    # Non-required on purpose, following the e2e-fatigue-context precedent:
+    # accumulate green runs before the owner promotes it in branch protection.
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    - name: Install runtime and pinned build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-build.txt
+        python -c "import PyInstaller; print('PyInstaller ' + PyInstaller.__version__)"
+
+    # Staging is what the spec calls too; running it first fails a broken
+    # manifest in seconds instead of after a full build, and writes the
+    # manifest.sha256 the smoke verifies the built tree against.
+    - name: Stage tracked package assets
+      run: python scripts/stage_package_assets.py
+
+    - name: Build via the canonical spec
+      run: pyinstaller --clean --noconfirm Hypertrophy-Toolbox.spec
+
+    # --mode bootloader is the entire point. Do not weaken it to payload mode to
+    # make a red run green: a payload pass says nothing about whether the
+    # executable starts.
+    #
+    # --port is deliberately NOT 5000. Both launch paths used to hardcode 5000
+    # while this script polled --port, so any non-default port silently failed;
+    # serving on 5123 is what proves that wiring works. The smoke refuses to run
+    # when the port is already owned, so a passing run cannot be some other
+    # process answering.
+    - name: Smoke the real bootloader
+      run: python scripts/smoke_packaged_app.py --mode bootloader --port 5123
+
+    - name: Upload distribution inventory on failure
+      if: failure()
+      run: |
+        Get-ChildItem -Recurse dist/Hypertrophy-Toolbox/_internal/data |
+          Select-Object FullName, Length | Format-Table -AutoSize
+      shell: pwsh

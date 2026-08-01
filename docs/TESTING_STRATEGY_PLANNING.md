@@ -2,7 +2,7 @@
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7.
-> **Status**: **Phase 0 + Phase 1 authorized 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2–5 remain PLANNING** — proposals awaiting owner selection, with D3–D7 unsigned. Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2–5 remain PLANNING** — proposals awaiting owner selection, with D3–D7 unsigned. Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document.
 
 ---
 
@@ -345,17 +345,132 @@ proven, enforcement is deferred by design and this paragraph is the record of wh
 | **Phase 2, step 8** — test the real `/erase-data` | **Delivered by `APP_PY_REVIEW_PLAN.md` P1 + P5**, not by this plan | P1 extracts the shared handler registration consumed by both `app.py` and `tests/conftest.py`; P5 adds the confirm-guard pytest (missing/wrong `confirm` → 400) against the real handler. Blindspot **B2** closes there. Do not implement it here |
 | Phase 0, step 4 — promote `e2e-erase-flow` | This plan | Independent of the above: it makes the *existing* E2E guard required while P1+P5 add the pytest-level guard |
 
+### 8.5.1 Required-check promotion — the exact procedure used
+
+Promoting a job is a **branch-protection API change**. Editing YAML does nothing, and renaming
+the job actively breaks things. The procedure, for the next person who needs it:
+
+```bash
+# 1. READ the current list first. Never write one from memory.
+gh api repos/{owner}/{repo}/branches/main/protection/required_status_checks --jq '.contexts'
+
+# 2. APPEND the exact existing job name. Never replace the list —
+#    other sessions' open pull requests depend on every entry already in it.
+gh api -X PATCH repos/{owner}/{repo}/branches/main/protection/required_status_checks \
+  -f 'contexts[]=<each existing context>' \
+  -f 'contexts[]=E2E Erase Flow (Chromium, isolated, non-required)'
+
+# 3. VERIFY on a real pull request that the context is both required and satisfied.
+```
+
+The context string is copied byte-for-byte from the job's `name:` field, parenthetical included —
+even though that parenthetical is now false. See §8.3.
+
+**Applied 2026-08-01**: nine contexts before, ten after. The tenth is
+`E2E Erase Flow (Chromium, isolated, non-required)`. §7.3 entry criterion 3 is satisfied.
+
 ### 8.6 Execution log
 
-Filled in as each pull request merges. Numbers here are **observed**, never carried over from the
-prose above — §4 B3 is the standing reminder that hand-maintained counts drift.
+**Phase 0 and Phase 1 are COMPLETE.** All seven pull requests merged on 2026-08-01. Numbers here
+are **observed**, never carried over from the prose above — §4 B3 is the standing reminder that
+hand-maintained counts drift.
 
-| PR | Item | State |
+| PR | Item | Squash | State |
+|---|---|---|---|
+| [#229](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/229) | PR-0 — §8, D1 + D2(erase-flow) recorded as signed | `fe5917b` | ✅ merged |
+| [#231](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/231) | PR-1 — generated test inventory (Phase 0.1) | `037d98c` | ✅ merged |
+| [#233](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/233) | PR-2 — CI hardening (Phase 0.2) | `99c5a36` | ✅ merged |
+| [#237](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/237) | PR-3 — JS supply chain (Phase 0.3) | `11cb732` | ✅ merged |
+| [#248](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/248) | PR-4 — promote `e2e-erase-flow` (Phase 0.4) | `83958e5` | ✅ merged |
+| [#253](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/253) | PR-5 — Python coverage, non-blocking (Phase 1.5) | `bb4858e` | ✅ merged |
+| [#254](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/254) | PR-6 — JS coverage, report-only (Phase 1.6) | `70b8931` | ✅ merged |
+
+#### Observed baselines
+
+Every figure below was produced by CI on Linux unless noted. Regenerate rather than quote.
+
+| Metric | Value | Source |
 |---|---|---|
-| — | PR-0 — this section | in flight |
-| — | PR-1 — generated test inventory (Phase 0.1) | pending |
-| — | PR-2 — CI hardening (Phase 0.2) | pending |
-| — | PR-3 — JS supply chain (Phase 0.3) | pending |
-| — | PR-4 — promote `e2e-erase-flow` (Phase 0.4) | pending |
-| — | PR-5 — Python coverage, non-blocking (Phase 1.5) | pending |
-| — | PR-6 — JS coverage, non-blocking (Phase 1.6) | pending |
+| Playwright tests | **541** across 30 specs | `TEST_INVENTORY.json` |
+| Required functional gate | **426** across 24 specs | derived from `ci.yml` |
+| pytest, deterministic subset | **1,994** across 92 files | `TEST_INVENTORY.json` |
+| Hard waits (`waitForTimeout` lines) | **93** across 15 files | `TEST_INVENTORY.json` |
+| **Python coverage** (`utils` + `routes`) | **87%** — 7,801 statements, 1,040 missed | `Run Tests`, PR #253 |
+| **JS coverage** (statements) | **5.14%** — 375 / 7,293 | `js-unit`, PR #254 |
+| JS modules at exactly 0% | **47 of 55** | `js-unit`, PR #254 |
+| npm audit, full graph | **4 high** — `immutable`, `picomatch`, `postcss`, `fast-uri` | `js-supply-chain` |
+
+**Python per-module**, for the future baseline-diff ratchet:
+`utils/progression_plan.py` 98% · `utils/effective_sets.py` 96% · `utils/volume_ai.py` 100% ·
+`utils/volume_export.py` 100% · `utils/volume_classifier.py` 97% · `utils/volume_taxonomy.py` 96% ·
+`utils/volume_progress.py` 87% · `utils/program_backup.py` 83% ·
+`utils/volume_splitter_service.py` 66% · `routes/program_backup.py` 68% ·
+`routes/volume_splitter.py` 67%.
+Weakest overall: `routes/filters.py` **49%**, `utils/python_version.py` 60%, `utils/logger.py` 64%.
+
+#### Corrections to this document, found by executing it
+
+1. **`utils/double_progression*` does not exist.** Phase 1 step 5 names it as a core module for
+   coverage regression checks. There is no such file — only `tests/test_double_progression.py`. The
+   double-progression logic lives in **`utils/progression_plan.py`** (98%), which the coverage
+   summary reports instead. A regression check on a phantom module would have protected nothing
+   while appearing to protect something.
+
+2. **`app.py` has zero pytest coverage and cannot be measured today.** Coverage answers `--cov=app`
+   with `Module app was never imported`. Its only import site is the `app_client` fixture at
+   `tests/test_pattern_coverage.py:329`, which **no test in its class requests** — a dead fixture.
+   So the startup sequence, middleware, error handlers and the erase route are invisible to
+   coverage. This is blindspot **B2** surfacing independently in the coverage data. The scope is
+   `utils` + `routes` for that reason.
+
+3. **The pytest node count is not platform-invariant, and one file is why.**
+   `tests/test_guard_destructive_command.py:58` parametrizes over the PowerShell hosts actually
+   installed (`HOSTS = [n for n in ("powershell", "pwsh") if shutil.which(n)]`): 322 nodes on a
+   Windows box with both, 163 on the ubuntu runner with `pwsh` only. That variance is the file's
+   design — it exists because the guard passed under pwsh 7 while being a parser error under Windows
+   PowerShell 5.1 — so the inventory models it via `ENVIRONMENT_DEPENDENT_PYTEST_FILES` and reports
+   a deterministic subset instead of flattening the test. §7.3 entry criterion 1 is satisfied on
+   that basis, not by pretending the raw total reproduces.
+
+4. **`--omit=dev` is a false green here, quantifiably.** `npm audit --json` reports
+   `dependencies: {prod: 1, dev: 246}`. Omitting dev scans **one package out of 246** and prints
+   "found 0 vulnerabilities" for a graph carrying four high-severity advisories. sol5.6's P1 finding
+   is confirmed with a number, and the reason is written into `ci.yml` beside the command.
+
+#### Deviations from the plan as written
+
+| Deviation | Why |
+|---|---|
+| The drift check reports via `::warning` and exits 0, rather than relying on `continue-on-error` alone | `continue-on-error` keeps a job from *blocking* but still paints a red ✗, which reads as failure to the other sessions — precisely the noise §8.4 promised not to create. "Measure-only" now means genuinely green. Flipping to blocking is `exit 0` → `exit $STATUS` |
+| `cancel-in-progress` restricted to `pull_request` events | Tighter than asked. Superseded PR runs are cancelled (the B9 complaint), but a push to `main`/`develop` is never cancelled, so a merge always gets a complete pipeline |
+| The npm audit job is also measure-only | Phase 0 step 3 requires a documented severity/exception policy before blocking, and that policy is not in this slice. All four current findings are transitive devDependencies of the build/test toolchain, so blocking today would halt every merge over code that never reaches a user |
+| PR-4 verified on its own pull request rather than a throwaway | Protection was applied *after* #248 was green, then #248 was re-queried: `MERGEABLE` / `CLEAN` with the new context passing. That satisfies §7.3 criterion 3 on a real PR without extra noise |
+
+#### Cross-session incident, 2026-08-01
+
+`main` was red from `d453010` (app.py **P2**, #232) until `bd121c9` (#234). `Run Tests` is a required
+context, so **every** pull request in the repository was unmergeable for the duration.
+
+Root cause: a module-scoped `real_app_client` fixture that depended on `app.py` import order — **not**
+trailing-slash behaviour, which the failing assertions superficially pointed at. P2 and P5 each
+passed on their own pull request; the defect existed only with both on `main`. Session A fixed it in
+[#234](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/234).
+
+The durable lesson is the one this document already argues elsewhere: **a green pull request is not
+evidence of a green `main`** when several packets land in the same window. Nothing in the current CI
+shape detects a cross-PR interaction before it reaches `main`.
+
+#### Still open
+
+- **The inventory drift check is measure-only.** §8.4's flip condition is now *partly* met — app.py
+  P1, P2 and P5 have merged — but **WPB.4 has not**. Flip only when it has: regenerate the
+  inventory, confirm it matches, change `exit 0` to `exit $STATUS`, drop `continue-on-error`.
+- **The npm audit job is measure-only**, pending the severity/exception policy (Phase 0 step 3).
+- **No coverage ratchet exists.** Both numbers above are baselines, nothing more. Designing the
+  baseline-diff (per `scripts/pyright_baseline_diff.py`) is future work; do not add a bare threshold.
+- **`js-unit` stays non-required.** D2's js-unit half is unsigned.
+- **D3–D7 remain unsigned.** Phases 2–5 remain proposals. Phase 2 step 8 was delivered by APP_PY
+  P1+P5 (§8.5).
+- **Dependabot is now live** and opened ~14 pull requests on first run. The per-ecosystem limit is 5
+  and npm/actions minor+patch are grouped, but the first sweep is unavoidably large because nothing
+  had ever been updated. Expect the steady-state weekly volume to be far smaller.
