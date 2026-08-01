@@ -1,0 +1,610 @@
+{
+  "generator": "scripts/generate_test_inventory.py",
+  "hard_waits": {
+    "files": [
+      {
+        "file": "e2e/accessibility.spec.ts",
+        "lines": 2
+      },
+      {
+        "file": "e2e/dark-mode.spec.ts",
+        "lines": 1
+      },
+      {
+        "file": "e2e/empty-states.spec.ts",
+        "lines": 9
+      },
+      {
+        "file": "e2e/error-handling.spec.ts",
+        "lines": 11
+      },
+      {
+        "file": "e2e/exercise-interactions.spec.ts",
+        "lines": 7
+      },
+      {
+        "file": "e2e/fatigue-stage4-smokes.spec.ts",
+        "lines": 1
+      },
+      {
+        "file": "e2e/learned-calibration.spec.ts",
+        "lines": 2
+      },
+      {
+        "file": "e2e/listener-cleanup.spec.ts",
+        "lines": 1
+      },
+      {
+        "file": "e2e/progression.spec.ts",
+        "lines": 7
+      },
+      {
+        "file": "e2e/summary-pages.spec.ts",
+        "lines": 2
+      },
+      {
+        "file": "e2e/superset-edge-cases.spec.ts",
+        "lines": 17
+      },
+      {
+        "file": "e2e/ui-hardening.spec.ts",
+        "lines": 1
+      },
+      {
+        "file": "e2e/validation-boundary.spec.ts",
+        "lines": 2
+      },
+      {
+        "file": "e2e/volume-splitter.spec.ts",
+        "lines": 23
+      },
+      {
+        "file": "e2e/workout-log.spec.ts",
+        "lines": 7
+      }
+    ],
+    "files_with_waits": 15,
+    "metric": "lines containing waitForTimeout",
+    "total_lines": 93
+  },
+  "playwright": {
+    "project": "chromium",
+    "required_functional_set": {
+      "gate": "E2E Functional (Chromium)",
+      "spec_files": 24,
+      "tests": 426
+    },
+    "specs": [
+      {
+        "in_required_functional_set": true,
+        "spec": "accessibility.spec.ts",
+        "tests": 24
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "api-integration.spec.ts",
+        "tests": 57
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "body-composition.spec.ts",
+        "tests": 9
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "browser-navigation-state.spec.ts",
+        "tests": 3
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "dark-mode.spec.ts",
+        "tests": 6
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "empty-states.spec.ts",
+        "tests": 16
+      },
+      {
+        "in_required_functional_set": false,
+        "spec": "erase-flow.spec.ts",
+        "tests": 2
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "error-handling.spec.ts",
+        "tests": 12
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "exercise-interactions.spec.ts",
+        "tests": 21
+      },
+      {
+        "in_required_functional_set": false,
+        "spec": "fatigue-context.spec.ts",
+        "tests": 6
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "fatigue-stage4-smokes.spec.ts",
+        "tests": 5
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "fatigue.spec.ts",
+        "tests": 8
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "learned-calibration.spec.ts",
+        "tests": 8
+      },
+      {
+        "in_required_functional_set": false,
+        "spec": "listener-cleanup.spec.ts",
+        "tests": 3
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "nav-dropdown.spec.ts",
+        "tests": 7
+      },
+      {
+        "in_required_functional_set": false,
+        "spec": "program-backup.spec.ts",
+        "tests": 20
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "progression.spec.ts",
+        "tests": 26
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "replace-exercise-errors.spec.ts",
+        "tests": 3
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "smoke-navigation.spec.ts",
+        "tests": 10
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "summary-pages.spec.ts",
+        "tests": 20
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "superset-edge-cases.spec.ts",
+        "tests": 12
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "ui-hardening.spec.ts",
+        "tests": 31
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "user-profile.spec.ts",
+        "tests": 24
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "validation-boundary.spec.ts",
+        "tests": 23
+      },
+      {
+        "in_required_functional_set": false,
+        "spec": "visual-baseline-thumbnails.spec.ts",
+        "tests": 18
+      },
+      {
+        "in_required_functional_set": false,
+        "spec": "visual.spec.ts",
+        "tests": 66
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "volume-progress.spec.ts",
+        "tests": 16
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "volume-splitter.spec.ts",
+        "tests": 27
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "workout-log.spec.ts",
+        "tests": 23
+      },
+      {
+        "in_required_functional_set": true,
+        "spec": "workout-plan.spec.ts",
+        "tests": 35
+      }
+    ],
+    "total_spec_files": 30,
+    "total_tests": 541
+  },
+  "pytest": {
+    "collected_deterministic": 1979,
+    "deterministic_files": 90,
+    "environment_dependent_files": [
+      {
+        "file": "tests/test_guard_destructive_command.py",
+        "reason": "Parametrized over the PowerShell hosts actually installed (HOSTS = [n for n in ('powershell', 'pwsh') if shutil.which(n)], line 58). A Windows box has both and collects 322; the ubuntu runner has pwsh only and collects 163. That is the point of the file -- the guard once passed under pwsh 7 and was a parser error under Windows PowerShell 5.1 -- so the variance is the design, not drift."
+      }
+    ],
+    "files": [
+      {
+        "file": "tests/test_auto_backup.py",
+        "tests": 7
+      },
+      {
+        "file": "tests/test_body_composition_routes.py",
+        "tests": 20
+      },
+      {
+        "file": "tests/test_body_fat.py",
+        "tests": 43
+      },
+      {
+        "file": "tests/test_calibration_integration.py",
+        "tests": 28
+      },
+      {
+        "file": "tests/test_catalog_invariants.py",
+        "tests": 2
+      },
+      {
+        "file": "tests/test_catalog_seed.py",
+        "tests": 3
+      },
+      {
+        "file": "tests/test_catalog_seed_bootstrap.py",
+        "tests": 10
+      },
+      {
+        "file": "tests/test_catalog_upgrade.py",
+        "tests": 19
+      },
+      {
+        "file": "tests/test_config.py",
+        "tests": 20
+      },
+      {
+        "file": "tests/test_constants.py",
+        "tests": 45
+      },
+      {
+        "file": "tests/test_css_cascade_contracts.py",
+        "tests": 30
+      },
+      {
+        "file": "tests/test_css_wp4_4_a11y_contracts.py",
+        "tests": 22
+      },
+      {
+        "file": "tests/test_css_wp4_4_a_baseline_contracts.py",
+        "tests": 9
+      },
+      {
+        "file": "tests/test_css_wp4_4_base_contracts.py",
+        "tests": 8
+      },
+      {
+        "file": "tests/test_css_wp4_4_components_contracts.py",
+        "tests": 9
+      },
+      {
+        "file": "tests/test_css_wp4_4_i_is_repair_contracts.py",
+        "tests": 8
+      },
+      {
+        "file": "tests/test_css_wp4_4_layout_contracts.py",
+        "tests": 13
+      },
+      {
+        "file": "tests/test_css_wp4_4_motion_contracts.py",
+        "tests": 5
+      },
+      {
+        "file": "tests/test_css_wp4_4_navbar_contracts.py",
+        "tests": 19
+      },
+      {
+        "file": "tests/test_css_wp4_4_theme_dark_contracts.py",
+        "tests": 7
+      },
+      {
+        "file": "tests/test_database_dispatch.py",
+        "tests": 25
+      },
+      {
+        "file": "tests/test_database_user_profile.py",
+        "tests": 4
+      },
+      {
+        "file": "tests/test_db_migration.py",
+        "tests": 7
+      },
+      {
+        "file": "tests/test_double_progression.py",
+        "tests": 30
+      },
+      {
+        "file": "tests/test_downstream_normalization.py",
+        "tests": 5
+      },
+      {
+        "file": "tests/test_effective_sets.py",
+        "tests": 42
+      },
+      {
+        "file": "tests/test_error_page_contract.py",
+        "tests": 7
+      },
+      {
+        "file": "tests/test_errors_utils.py",
+        "tests": 31
+      },
+      {
+        "file": "tests/test_exercise_manager.py",
+        "tests": 37
+      },
+      {
+        "file": "tests/test_exercise_media.py",
+        "tests": 6
+      },
+      {
+        "file": "tests/test_exports.py",
+        "tests": 52
+      },
+      {
+        "file": "tests/test_fatigue.py",
+        "tests": 134
+      },
+      {
+        "file": "tests/test_fatigue_context.py",
+        "tests": 29
+      },
+      {
+        "file": "tests/test_fatigue_golden.py",
+        "tests": 1
+      },
+      {
+        "file": "tests/test_fatigue_routes.py",
+        "tests": 14
+      },
+      {
+        "file": "tests/test_fatigue_stage4_observer.py",
+        "tests": 26
+      },
+      {
+        "file": "tests/test_filter_predicates.py",
+        "tests": 39
+      },
+      {
+        "file": "tests/test_filter_registry.py",
+        "tests": 10
+      },
+      {
+        "file": "tests/test_filter_values.py",
+        "tests": 8
+      },
+      {
+        "file": "tests/test_free_exercise_db_mapping.py",
+        "tests": 85
+      },
+      {
+        "file": "tests/test_guard_destructive_command.py",
+        "tests": null
+      },
+      {
+        "file": "tests/test_harness_isolation.py",
+        "tests": 3
+      },
+      {
+        "file": "tests/test_lift_matching.py",
+        "tests": 3
+      },
+      {
+        "file": "tests/test_logger.py",
+        "tests": 14
+      },
+      {
+        "file": "tests/test_maintenance.py",
+        "tests": 19
+      },
+      {
+        "file": "tests/test_muscle_selector_mapping.py",
+        "tests": 15
+      },
+      {
+        "file": "tests/test_normalization.py",
+        "tests": 6
+      },
+      {
+        "file": "tests/test_package_asset_staging.py",
+        "tests": 22
+      },
+      {
+        "file": "tests/test_packaging_contract.py",
+        "tests": 5
+      },
+      {
+        "file": "tests/test_pattern_coverage.py",
+        "tests": 23
+      },
+      {
+        "file": "tests/test_phase3_features.py",
+        "tests": 19
+      },
+      {
+        "file": "tests/test_plan_generator.py",
+        "tests": 35
+      },
+      {
+        "file": "tests/test_plan_generator_refactor_contracts.py",
+        "tests": 6
+      },
+      {
+        "file": "tests/test_priority0_api_contract.py",
+        "tests": 11
+      },
+      {
+        "file": "tests/test_priority0_filters.py",
+        "tests": 16
+      },
+      {
+        "file": "tests/test_priority0_fk_integrity.py",
+        "tests": 8
+      },
+      {
+        "file": "tests/test_priority7_error_handling.py",
+        "tests": 28
+      },
+      {
+        "file": "tests/test_profile_estimator.py",
+        "tests": 95
+      },
+      {
+        "file": "tests/test_profile_estimator_contract.py",
+        "tests": 6
+      },
+      {
+        "file": "tests/test_program_backup.py",
+        "tests": 36
+      },
+      {
+        "file": "tests/test_progression_plan_routes.py",
+        "tests": 18
+      },
+      {
+        "file": "tests/test_progression_plan_utils.py",
+        "tests": 46
+      },
+      {
+        "file": "tests/test_pyright_baseline_diff.py",
+        "tests": 13
+      },
+      {
+        "file": "tests/test_python_version_contract.py",
+        "tests": 13
+      },
+      {
+        "file": "tests/test_replace_exercise.py",
+        "tests": 17
+      },
+      {
+        "file": "tests/test_runtime_migration.py",
+        "tests": 24
+      },
+      {
+        "file": "tests/test_runtime_paths.py",
+        "tests": 22
+      },
+      {
+        "file": "tests/test_schema_registry.py",
+        "tests": 5
+      },
+      {
+        "file": "tests/test_session_summary.py",
+        "tests": 30
+      },
+      {
+        "file": "tests/test_session_summary_routes.py",
+        "tests": 31
+      },
+      {
+        "file": "tests/test_strength_calibration.py",
+        "tests": 36
+      },
+      {
+        "file": "tests/test_superset.py",
+        "tests": 14
+      },
+      {
+        "file": "tests/test_superset_service.py",
+        "tests": 9
+      },
+      {
+        "file": "tests/test_template_landmarks.py",
+        "tests": 2
+      },
+      {
+        "file": "tests/test_ui_flows.py",
+        "tests": 17
+      },
+      {
+        "file": "tests/test_user_profile_routes.py",
+        "tests": 30
+      },
+      {
+        "file": "tests/test_utils_package.py",
+        "tests": 1
+      },
+      {
+        "file": "tests/test_visual_selector_contracts.py",
+        "tests": 5
+      },
+      {
+        "file": "tests/test_volume_ai.py",
+        "tests": 26
+      },
+      {
+        "file": "tests/test_volume_classifier.py",
+        "tests": 43
+      },
+      {
+        "file": "tests/test_volume_progress.py",
+        "tests": 31
+      },
+      {
+        "file": "tests/test_volume_splitter_api.py",
+        "tests": 12
+      },
+      {
+        "file": "tests/test_volume_taxonomy.py",
+        "tests": 8
+      },
+      {
+        "file": "tests/test_weekly_summary.py",
+        "tests": 4
+      },
+      {
+        "file": "tests/test_weekly_summary_golden.py",
+        "tests": 1
+      },
+      {
+        "file": "tests/test_weekly_summary_routes.py",
+        "tests": 30
+      },
+      {
+        "file": "tests/test_workout_log_calibration_route.py",
+        "tests": 7
+      },
+      {
+        "file": "tests/test_workout_log_routes.py",
+        "tests": 58
+      },
+      {
+        "file": "tests/test_workout_log_utils.py",
+        "tests": 30
+      },
+      {
+        "file": "tests/test_workout_plan_routes.py",
+        "tests": 67
+      },
+      {
+        "file": "tests/test_youtube_video_id.py",
+        "tests": 40
+      }
+    ],
+    "total_files": 91
+  },
+  "schema_version": 1
+}
