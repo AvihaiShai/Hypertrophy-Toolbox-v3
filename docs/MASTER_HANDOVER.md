@@ -375,12 +375,14 @@
 > - Seven-surface Stylelint is **2,883** (`components.css` **1,989**), not the
 >   projected 2,681/1,787. V4's thresholds of 86/8 were *global* WP4.1 figures;
 >   the true seven-surface values are **26/2**.
-> - **Ten inherited Linux `desktop` reds** and the **eight uncertifiable Welcome
->   elements** are ledgered machine-readably in
+> - **Eleven inherited Linux `desktop` reds across two spec files** and the
+>   **eight uncertifiable Welcome elements** are ledgered machine-readably in
 >   [`CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`](CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json).
->   N8 packets (h, i, j, k) reconcile against it. **Do not rebaseline the ten**,
->   and **no packet may classify a declaration affecting those eight elements as
->   dead using the rest-state harness.**
+>   N8 packets (h, i, j, k) reconcile against it. **Do not rebaseline the
+>   eleven**, and **no packet may classify a declaration affecting those eight
+>   elements as dead using the rest-state harness.** *Corrected from ten under
+>   proposal P1 — the `visual-baseline-thumbnails.spec.ts` red was omitted
+>   because the ledger's v1 shape held only one spec file.*
 >
 > **WP4.4-c (`motion.css`) is COMPLETE — PR #188, squash `1b13bfc`.** Superseded
 > 2026-07-28; this paragraph previously read "Next: WP4.4-c" and stated the
