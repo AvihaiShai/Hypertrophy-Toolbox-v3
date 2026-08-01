@@ -15,8 +15,8 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **541** |
 | Playwright spec files | **30** |
 | Required functional gate — `E2E Functional (Chromium)` | **426** tests across 24 specs |
-| pytest collected nodes (deterministic subset) | **1979** across 90 files |
-| pytest test files (all) | **91** |
+| pytest collected nodes (deterministic subset) | **1994** across 92 files |
+| pytest test files (all) | **93** |
 | Hard waits (lines containing waitForTimeout) | **93** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -90,6 +90,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_double_progression.py` | 30 |
 | `tests/test_downstream_normalization.py` | 5 |
 | `tests/test_effective_sets.py` | 42 |
+| `tests/test_erase_data_guard.py` | 9 |
 | `tests/test_error_page_contract.py` | 7 |
 | `tests/test_errors_utils.py` | 31 |
 | `tests/test_exercise_manager.py` | 37 |
@@ -138,6 +139,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_superset.py` | 14 |
 | `tests/test_superset_service.py` | 9 |
 | `tests/test_template_landmarks.py` | 2 |
+| `tests/test_trailing_slash_routing.py` | 6 |
 | `tests/test_ui_flows.py` | 17 |
 | `tests/test_user_profile_routes.py` | 30 |
 | `tests/test_utils_package.py` | 1 |

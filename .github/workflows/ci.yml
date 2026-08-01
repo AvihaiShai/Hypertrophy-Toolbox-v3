@@ -698,13 +698,24 @@ jobs:
   # check is also the cross-platform determinism proof required by section 7.3
   # entry criterion 1.
   #
-  # MEASURE-ONLY (continue-on-error: true) BY DESIGN, not by oversight. Two other
-  # plans -- docs/APP_PY_REVIEW_PLAN.md packets P1-P5 and WPB.4 -- are adding tests
-  # right now, and a blocking drift gate would red their pull requests for
-  # legitimately moving a count. Section 8.4 of the planning document records the
-  # flip condition: drop continue-on-error once BOTH have merged and the committed
-  # inventory has been regenerated to match. This job is NEW and non-required; it
-  # renames no existing (load-bearing) branch-protection context.
+  # MEASURE-ONLY BY DESIGN, not by oversight. Two other plans --
+  # docs/APP_PY_REVIEW_PLAN.md packets P1-P5 and WPB.4 -- are adding tests right
+  # now, and a drift gate that reds their pull requests for legitimately moving a
+  # count is exactly what section 8.4 promised not to do.
+  #
+  # "Measure-only" here means GENUINELY GREEN, not merely non-blocking.
+  # continue-on-error alone still renders a red X in the checks list, which reads
+  # as a failure to everyone else even though it blocks nothing. So the drift step
+  # captures its own exit code and reports through ::warning + the job summary,
+  # the same idiom css-stylelint-measure already uses. continue-on-error stays as
+  # a backstop for an unexpected tool crash.
+  #
+  # FLIP TO BLOCKING once BOTH of those plans have merged and the committed
+  # inventory has been regenerated to match: change `exit 0` to `exit $STATUS` in
+  # the drift step and drop continue-on-error. Section 8.4 is the record.
+  #
+  # This job is NEW and non-required; it renames no existing (load-bearing)
+  # branch-protection context.
   #
   # Deliberately no browser install and no Flask server: `playwright test --list`
   # only parses specs and `pytest --collect-only` imports without running, so this
@@ -739,8 +750,29 @@ jobs:
     - name: Install npm dependencies
       run: npm ci
 
+    # Measure-only: the drift verdict is an annotation, not a failed step. Swap
+    # `exit 0` for `exit $STATUS` to flip this gate to blocking (see the flip
+    # condition in the job comment above).
     - name: Check committed inventory against a fresh Linux regeneration
-      run: python scripts/generate_test_inventory.py --check
+      run: |
+        set +e
+        python scripts/generate_test_inventory.py --check > inventory_drift.txt 2>&1
+        STATUS=$?
+        set -e
+        cat inventory_drift.txt
+        if [ "$STATUS" -ne 0 ]; then
+          echo "::warning title=Test inventory drift (measure-only)::The committed inventory does not match a fresh regeneration. Run scripts/generate_test_inventory.py and commit the result. Not blocking: see TESTING_STRATEGY_PLANNING.md 8.4."
+          {
+            echo "### Test inventory drift (measure-only — not blocking)"
+            echo
+            echo '```'
+            head -c 8000 inventory_drift.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "::notice title=Test inventory::Committed inventory matches a fresh Linux regeneration."
+        fi
+        exit 0
 
     - name: Report totals and regenerate for the artifact
       if: always()
@@ -760,9 +792,17 @@ jobs:
         print(f"| pytest collected nodes | {py['collected_deterministic']} across {py['deterministic_files']} files (deterministic subset of {py['total_files']}) |")
         print(f"| Hard waits ({hw['metric']}) | {hw['total_lines']} across {hw['files_with_waits']} files |")
         print()
-        print("Drift against the committed inventory is reported in the previous step. This job is")
-        print("measure-only until APP_PY P1-P5 and WPB.4 merge (TESTING_STRATEGY_PLANNING.md 8.4).")
+        print("Drift against the committed inventory is reported in the previous step as a warning.")
+        print("Measure-only until APP_PY P1-P5 and WPB.4 merge (TESTING_STRATEGY_PLANNING.md 8.4).")
         PY
+
+    - name: Upload drift report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-inventory-drift
+        path: inventory_drift.txt
+        retention-days: 14
 
     - name: Upload regenerated inventory
       if: always()
