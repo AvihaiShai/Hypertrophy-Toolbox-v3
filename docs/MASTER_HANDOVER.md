@@ -110,9 +110,12 @@
 >
 > ### Two flips deliberately deferred, with written trigger conditions
 >
-> - **Inventory drift check** is measure-only. §8.4's condition is *partly* met — app.py P1/P2/P5
->   have merged — but **WPB.4 has not** (in flight as #256). Flip only after it merges *and* its
->   post-merge checks on `main` are green.
+> - **Inventory drift check** is measure-only. **§8.4's condition is now fully met** — all five
+>   app.py packets merged (P1 `24a6f68`, P2 `d453010`, P3 `573bb7e`, P4 `16a4e53`, P5 `e71e3859`)
+>   and **WPB.4 merged as `9fe5dbd` (#256)** with 18/18 checks green. The flip is unblocked and is
+>   the owner's call. *Corrected 2026-08-01: this previously read "app.py P1/P2/P5 have merged — but
+>   **WPB.4 has not** (in flight as #256)", which implied P3/P4 were outstanding and that the flip
+>   was still gated. Both were true when written and are false now.*
 > - **`npm audit`** is measure-only pending a documented severity/exception policy (Phase 0 step 3).
 >   All four current findings are transitive devDependencies of the build/test toolchain.
 >
