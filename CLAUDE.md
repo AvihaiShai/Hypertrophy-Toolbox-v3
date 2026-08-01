@@ -67,23 +67,6 @@ app.py                 ← startup + middleware only; no business logic
 - All JSON responses via `success_response()` / `error_response()` (`utils/errors.py`).
 - All logging via `get_logger()` (`utils/logger.py`).
 
-### Blueprints (registered in `app.py`)
-| Blueprint | File | Key routes |
-|---|---|---|
-| `main_bp` | `routes/main.py` | `GET /` |
-| `workout_log_bp` | `routes/workout_log.py` | `GET /workout_log`, `POST /update_workout_log` |
-| `weekly_summary_bp` | `routes/weekly_summary.py` | `GET /weekly_summary`, `GET /api/pattern_coverage` |
-| `session_summary_bp` | `routes/session_summary.py` | `GET /session_summary` |
-| `exports_bp` | `routes/exports.py` | `POST /export_workout_plan` |
-| `filters_bp` | `routes/filters.py` | `POST /api/exercises`, `GET /api/available_filters` |
-| `workout_plan_bp` | `routes/workout_plan.py` | `GET /workout_plan`, `POST /add_exercise`, `POST /generate_starter_plan` |
-| `progression_plan_bp` | `routes/progression_plan.py` | `GET /progression` |
-| `user_profile_bp` | `routes/user_profile.py` | `GET /user_profile`, `GET /api/user_profile/estimate` |
-| `body_composition_bp` | `routes/body_composition.py` | `GET /body_composition`, `POST /api/body_composition/snapshots` |
-| `volume_splitter_bp` | `routes/volume_splitter.py` | `GET /volume_splitter` |
-| `program_backup_bp` | `routes/program_backup.py` | `GET/POST /api/backups`, `POST /api/backups/<id>/restore` |
-| `fatigue_bp` | `routes/fatigue.py` | `GET /fatigue` |
-
 ### Deeper references
 - Routes / API endpoints / filters / security → `.claude/rules/routes.md` (loads when editing `routes/**`).
 - DB schema / DatabaseHandler / adding tables → `.claude/rules/database.md` (loads when editing `utils/database*.py` or `utils/db_initializer.py`).
@@ -95,21 +78,8 @@ app.py                 ← startup + middleware only; no business logic
 
 ## 3. Conventions
 
-### Logger pattern (every module)
-```python
-from utils.logger import get_logger
-logger = get_logger()
-```
-Returns the `'hypertrophy_toolbox'` named logger (`utils/logger.py`). Logs to `<runtime root>/logs/app.log` (rotating 10MB × 5) and console (INFO+). The runtime root is the repository in a source checkout and `%LOCALAPPDATA%\HypertrophyToolbox` in a frozen build — never assume repository-local paths (`utils/runtime_paths.py`).
-
-### DatabaseHandler pattern
-```python
-from utils.database import DatabaseHandler
-with DatabaseHandler() as db:
-    rows = db.fetch_all("SELECT ... WHERE col = ?", (value,))
-    row  = db.fetch_one("SELECT ... WHERE id = ?", (id,))
-    db.execute_query("INSERT INTO t (c) VALUES (?)", (val,))
-```
+### Logging
+`get_logger()` returns the `'hypertrophy_toolbox'` named logger (`utils/logger.py`). Logs to `<runtime root>/logs/app.log` (rotating 10MB × 5) and console (INFO+). The runtime root is the repository in a source checkout and `%LOCALAPPDATA%\HypertrophyToolbox` in a frozen build — never assume repository-local paths (`utils/runtime_paths.py`).
 
 ### Repository root policy
 The root holds five categories only — entry points, user-facing start/readme files, build manifests, root-discovered tool config, and repository operating instructions. Generated output (baselines, reports, screenshots, scratch DBs) goes under the gitignored `artifacts/`, never the root. Full table and rationale: `docs/DECISIONS.md` ADR-002.

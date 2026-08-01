@@ -125,6 +125,14 @@ inherited, so it blocked nothing, but the ledger under-describes reality and eve
 packet will hit the same false trigger. Correcting it requires owner approval (V2, R3
 condition 6).
 
+> **Applied — pending that approval.** P1 is implemented in
+> `docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` **schema v2**, which replaces the single
+> `snapshotDir` object with a `specs[]` array so the ledger can cover more than one spec file.
+> The 10 `visual.spec.ts` entries and all four v1 rules carry over verbatim; the eleventh is
+> ADDED coverage citing this section and `1019d34`. **No snapshot file was regenerated,
+> modified or deleted** — this is not a rebaseline. The change still needs owner approval
+> under V2 / R3 condition 6 and must not merge without it.
+
 **P2 — the N10 `QUALITY_GATE.md` row.** Per **C12**, recorded here as a proposal only;
 `QUALITY_GATE.md` is not edited by this arc.
 
