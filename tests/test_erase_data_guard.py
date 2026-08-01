@@ -14,27 +14,8 @@ before ``drop_all_owned_tables()``, so nothing here can erase anything.
 """
 import pytest
 
-
-@pytest.fixture(scope='module')
-def real_app_client(tmp_path_factory):
-    """A client for app.py's real route, on a scratch database.
-
-    ``conftest.py`` sets ``TESTING=1``, which makes ``create_startup_backup()``
-    a no-op, so importing the module writes no snapshot into the runtime tree.
-    """
-    import utils.config
-
-    scratch_db = tmp_path_factory.mktemp('erase_guard') / 'database.db'
-    original_db_file = utils.config.DB_FILE
-    utils.config.DB_FILE = str(scratch_db)
-    try:
-        from app import app
-
-        app.config['TESTING'] = True
-        with app.test_client() as client:
-            yield client
-    finally:
-        utils.config.DB_FILE = original_db_file
+# ``real_app_client`` comes from tests/conftest.py. It has to be the real route:
+# the conftest twin has no confirm guard at all, which is the gap F5 records.
 
 
 def _assert_rejected(response):

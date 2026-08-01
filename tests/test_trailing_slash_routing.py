@@ -17,27 +17,9 @@ with no coverage is indistinguishable from the hook never having been exercised.
 """
 import pytest
 
-
-@pytest.fixture(scope='module')
-def real_app_client(tmp_path_factory):
-    """A client for the real app.py routes, on a scratch database.
-
-    The conftest test app has no ``clear_trailing`` hook and never did, so it
-    cannot tell whether the production hook is gone. This has to be the real one.
-    """
-    import utils.config
-
-    scratch_db = tmp_path_factory.mktemp('trailing_slash') / 'database.db'
-    original_db_file = utils.config.DB_FILE
-    utils.config.DB_FILE = str(scratch_db)
-    try:
-        from app import app
-
-        app.config['TESTING'] = True
-        with app.test_client() as client:
-            yield client
-    finally:
-        utils.config.DB_FILE = original_db_file
+# ``real_app_client`` comes from tests/conftest.py. The conftest test app has no
+# ``clear_trailing`` hook and never did, so it cannot tell whether the production
+# hook is gone — this coverage has to run against app.py's real routes.
 
 
 @pytest.mark.parametrize('path', ['/workout_plan/', '/weekly_summary/', '/progression/'])
