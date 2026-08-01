@@ -230,7 +230,7 @@
     "total_tests": 541
   },
   "pytest": {
-    "collected_deterministic": 2051,
+    "collected_deterministic": 2058,
     "deterministic_files": 97,
     "environment_dependent_files": [
       {
@@ -345,7 +345,7 @@
       },
       {
         "file": "tests/test_erase_data_guard.py",
-        "tests": 9
+        "tests": 10
       },
       {
         "file": "tests/test_error_page_contract.py",
@@ -533,7 +533,7 @@
       },
       {
         "file": "tests/test_static_cache_policy.py",
-        "tests": 9
+        "tests": 12
       },
       {
         "file": "tests/test_strength_calibration.py",
@@ -569,7 +569,7 @@
       },
       {
         "file": "tests/test_version.py",
-        "tests": 19
+        "tests": 22
       },
       {
         "file": "tests/test_visual_selector_contracts.py",
