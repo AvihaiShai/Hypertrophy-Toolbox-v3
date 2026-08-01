@@ -812,3 +812,85 @@ jobs:
         path: docs/test_inventory
         retention-days: 14
 
+  # Phase 0.3 of docs/TESTING_STRATEGY_PLANNING.md, closing the other half of
+  # blindspot B10: pip-audit has gated every PR for a while, but the JS dependency
+  # graph had no vulnerability scanning at all.
+  #
+  # NEVER add --omit=dev. This is the sol5.6 P1 finding and it is not theoretical
+  # here: `npm audit --json` reports dependencies {prod: 1, dev: 246}, so omitting
+  # dev scans ONE package out of 246 and prints "found 0 vulnerabilities" while
+  # four high-severity advisories sit in the graph the build actually uses. That
+  # false green is worse than no scan, because it looks like a closed gap.
+  #
+  # MEASURE-ONLY: the audit's verdict is a ::warning plus a job summary, never a
+  # failed step -- same idiom as css-stylelint-measure and test-inventory. Making
+  # it blocking needs a documented severity/exception policy first (Phase 0 step 3),
+  # which is not in this signed slice: every finding today is a transitive
+  # devDependency of the build/test toolchain, so a blocking gate would stop all
+  # merges over something that never reaches a user's machine. Swap `exit 0` for
+  # `exit $STATUS` once that policy exists.
+  #
+  # NEW and non-required; renames no existing branch-protection context.
+  js-supply-chain:
+    name: JS Supply Chain (npm audit, non-required)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    # No `npm ci`: `npm audit` resolves the committed package-lock.json against
+    # the advisory database directly, so installing first buys nothing.
+    - name: Audit the full dependency graph (including devDependencies)
+      run: |
+        mkdir -p artifacts/npm-audit
+        set +e
+        npm audit --json > artifacts/npm-audit/npm-audit.json 2>artifacts/npm-audit/npm-audit.err
+        STATUS=$?
+        npm audit > artifacts/npm-audit/npm-audit.txt 2>&1
+        set -e
+        cat artifacts/npm-audit/npm-audit.txt
+        node -e "
+          const fs = require('fs');
+          let r;
+          try { r = JSON.parse(fs.readFileSync('artifacts/npm-audit/npm-audit.json', 'utf8')); }
+          catch (e) {
+            console.log('::warning title=npm audit::Could not parse npm audit JSON: ' + e.message);
+            process.exit(0);
+          }
+          const v = r.metadata.vulnerabilities;
+          const d = r.metadata.dependencies;
+          const sev = ['critical', 'high', 'moderate', 'low', 'info'];
+          const line = sev.map(s => s + '=' + v[s]).join(' ');
+          console.log('::notice title=npm audit (measure-only)::' + line + ' total=' + v.total);
+          if (v.total > 0) {
+            console.log('::warning title=npm audit (measure-only)::' + v.total + ' advisories in the full dependency graph (' + line + '). Not blocking: a severity/exception policy is required first, see TESTING_STRATEGY_PLANNING.md Phase 0 step 3.');
+          }
+          const rows = sev.map(s => '| ' + s + ' | ' + v[s] + ' |').join('\n');
+          const names = Object.keys(r.vulnerabilities || {}).sort();
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            '### npm audit — full graph, measure-only\n\n' +
+            '| Severity | Count |\n|---|---:|\n' + rows + '\n| **total** | **' + v.total + '** |\n\n' +
+            'Scanned **' + d.total + '** dependencies (prod ' + d.prod + ', dev ' + d.dev + ', optional ' + d.optional + ').\n\n' +
+            (names.length ? 'Affected packages: ' + names.map(n => '\`' + n + '\`').join(', ') + '\n\n' : '') +
+            '\`--omit=dev\` is deliberately NOT used: it would scan ' + d.prod + ' of ' + d.total +
+            ' packages and report a false clean bill of health.\n');
+        "
+        exit 0
+
+    - name: Upload npm audit report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: js-supply-chain-npm-audit
+        path: artifacts/npm-audit
+        retention-days: 14
+
