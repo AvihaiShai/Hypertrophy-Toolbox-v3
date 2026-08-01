@@ -74,8 +74,7 @@ def _summary(counting=CountingMode.EFFECTIVE, contribution=ContributionMode.TOTA
 # ---------------------------------------------------------------------------
 # Criterion 1 — an empty-string routine is bucketed, not discarded
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize(("counting", "contribution"), [(p.values[0], p.values[1]) for p in MODE_MATRIX],
-                         ids=[p.id for p in MODE_MATRIX])
+@pytest.mark.parametrize(("counting", "contribution"), MODE_MATRIX)
 @pytest.mark.usefixtures("clean_db")
 def test_empty_routine_counts_toward_frequency(db_handler, counting, contribution):
     _add_ex(db_handler, "Anon Raise", "Calves")
@@ -213,8 +212,7 @@ def test_d1_global_sessions_excludes_the_synthetic_bucket(db_handler):
 # ---------------------------------------------------------------------------
 # Criterion 7 — totals are invariant to whether the routine is named
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize(("counting", "contribution"), [(p.values[0], p.values[1]) for p in MODE_MATRIX],
-                         ids=[p.id for p in MODE_MATRIX])
+@pytest.mark.parametrize(("counting", "contribution"), MODE_MATRIX)
 @pytest.mark.usefixtures("clean_db")
 def test_totals_are_identical_whether_the_routine_is_named(db_handler, counting, contribution):
     """The same rows must produce the same volume figures under either routine value."""
