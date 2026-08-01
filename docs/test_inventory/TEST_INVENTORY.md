@@ -15,8 +15,8 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **541** |
 | Playwright spec files | **30** |
 | Required functional gate — `E2E Functional (Chromium)` | **426** tests across 24 specs |
-| pytest collected nodes (deterministic subset) | **2013** across 93 files |
-| pytest test files (all) | **94** |
+| pytest collected nodes (deterministic subset) | **2037** across 95 files |
+| pytest test files (all) | **96** |
 | Hard waits (lines containing waitForTimeout) | **93** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -95,6 +95,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_errors_utils.py` | 31 |
 | `tests/test_exercise_manager.py` | 37 |
 | `tests/test_exercise_media.py` | 6 |
+| `tests/test_export_weekly_summary_sheet.py` | 4 |
 | `tests/test_exports.py` | 52 |
 | `tests/test_fatigue.py` | 134 |
 | `tests/test_fatigue_context.py` | 29 |
@@ -153,6 +154,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_weekly_summary.py` | 4 |
 | `tests/test_weekly_summary_golden.py` | 1 |
 | `tests/test_weekly_summary_routes.py` | 30 |
+| `tests/test_weekly_summary_unassigned.py` | 20 |
 | `tests/test_workout_log_calibration_route.py` | 7 |
 | `tests/test_workout_log_routes.py` | 58 |
 | `tests/test_workout_log_utils.py` | 30 |

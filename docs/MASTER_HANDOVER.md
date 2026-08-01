@@ -4,6 +4,41 @@
 
 ## Current State
 
+> **2026-08-01 (LATEST) — WPB.4 SHIPPED. Track B is closed.** Weekly summary now
+> buckets falsy-routine rows into one synthetic `Unassigned` session instead of
+> dropping them from frequency, matching `session_summary.py:90`. This was the
+> last open Track B packet.
+>
+> **Every "WPB.4 remains unimplemented / gated" statement in this file is
+> superseded.** Those sentences live inside dated historical progress entries
+> (around lines 1188, 1206, 1231, 1245) and are left intact as the point-in-time
+> record they are — do not read them as current state.
+>
+> The production change is two lines in `_aggregate_weekly_volumes`. The WP2.3
+> golden was intentionally regenerated and the reviewed delta is confined to the
+> `Calves` sentinel: **16 values, 4 fields × 4 modes**, with weekly totals, reps,
+> volume, status and classifications **bit-identical**.
+>
+> **Three owner decisions are load-bearing and must not be silently reversed:**
+> **D1** — `global_sessions` (`utils/weekly_summary.py:252`) still **excludes**
+> the synthetic bucket. It is the fallback denominator only for muscles clearing
+> `>= 1.0` in no session, so including it would perturb every unrelated
+> low-frequency muscle. *A `Forearms` row in a regenerated golden diff means the
+> wrong option was implemented.*
+> **D4** — the "Routines" column keeps its label and now counts the unnamed
+> bucket; UI and visual-baseline scope were deliberately not expanded.
+> **D5** — criterion 10's browser assertion was replaced by a DB-backed unmocked
+> route-JSON assertion. **No product write path can create a falsy routine** —
+> `utils/exercise_manager.py:36` rejects it and no route can update `routine`, so
+> these rows arrive only from restored backups, legacy data, or direct edits.
+>
+> Gate 0 and Gate 1 were both owner-signed after a full `/council-plan`: three
+> reviewers, **19 findings, all dispositioned**. The council caught three defects
+> that would each have surfaced after the golden was regenerated, including that
+> `GENERATE_GOLDEN` is **shared** with `tests/test_fatigue_golden.py` — leaving it
+> set silently re-baselines a second protected zone while reporting `skipped`.
+> Full record: [`wpb4_unassigned_bucket/PLANNING.md`](wpb4_unassigned_bucket/PLANNING.md).
+
 > **2026-07-29 — Owner-directed runtime alignment:** Python **3.14.6+** is now
 > the repository-wide minimum for source runs, tests, CI and executable builds.
 > `.python-version` pins the exact CI interpreter; Pyright targets 3.14; runtime
