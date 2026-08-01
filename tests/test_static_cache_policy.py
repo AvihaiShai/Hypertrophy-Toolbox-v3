@@ -119,3 +119,47 @@ def test_policy_leaves_non_static_responses_alone(real_app_client):
     response = real_app_client.get('/')
     assert response.status_code == 200
     assert 'no-cache, must-revalidate' != response.headers.get('Cache-Control', '')
+
+
+def test_a_missing_versioned_asset_is_not_long_cached(frozen_cache_client):
+    """A 404 must never inherit the year.
+
+    ``request.endpoint`` is set at routing time, so a file missing from the
+    bundle still arrives here as ``'static'`` after ``send_static_file`` raised
+    ``NotFound``. Long-caching that pins the 404 in the browser, and a hot-fix
+    shipping the file without a version bump could never be picked up — the same
+    stale-after-upgrade failure F4 exists to prevent, by the opposite route.
+    """
+    response = frozen_cache_client.get(f'/static/css/not-a-real-file.css?v={APP_VERSION}')
+    assert response.status_code == 404
+    cache_control = response.headers.get('Cache-Control', '')
+    assert str(LONG_MAX_AGE) not in cache_control
+    assert 'no-cache' in cache_control
+
+
+def test_rendered_pages_carry_the_version(real_app_client):
+    """The context processor is what connects APP_VERSION to the templates, and
+    nothing else asserts it end to end.
+
+    ``test_version.py`` reads template *source*; the tests above build their URLs
+    from ``APP_VERSION`` in Python. So renaming the key ``inject_app_version``
+    returns would render every link as ``?v=`` — Jinja prints an undefined as
+    empty — while both files stayed green and the long cache silently stopped
+    matching anything.
+    """
+    html = real_app_client.get('/').get_data(as_text=True)
+    assert f'?v={APP_VERSION}' in html
+
+
+def test_frozen_window_is_a_real_year(real_app_client):
+    """The frozen block's value itself, which the fixture would otherwise mask.
+
+    ``frozen_cache_client`` injects ``STATIC_LONG_MAX_AGE``, so deleting the
+    assignment in ``app.py``'s frozen block leaves every test above passing while
+    a packaged build long-caches nothing. Asserting the module constant is the
+    cheap half of that; the packaged smoke asserts the served header.
+    """
+    from app import STATIC_LONG_MAX_AGE_SECONDS
+
+    assert STATIC_LONG_MAX_AGE_SECONDS == LONG_MAX_AGE
+    assert STATIC_LONG_MAX_AGE_SECONDS > 0

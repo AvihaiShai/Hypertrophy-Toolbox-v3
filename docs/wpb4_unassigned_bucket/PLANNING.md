@@ -1,5 +1,28 @@
 # Plan Review — WPB.4 (OD4) Weekly-summary `Unassigned` bucket for falsy routines
 
+> # ✅ SHIPPED 2026-08-01 — PR #256, squash `9fe5dbd`. DO NOT EXECUTE THIS PLAN.
+>
+> **This document is a historical record, not a work order.** Everything below —
+> the Gate 1 authorization, the 15-step **Sequence**, and every imperative
+> instruction — **has already been carried out.** `utils/weekly_summary.py` now
+> buckets falsy routines as `Unassigned`; the goldens were regenerated once, under
+> review, and merged.
+>
+> **Re-running any step would cause damage, not duplication.** Step 8 sets
+> `GENERATE_GOLDEN` and regenerates `tests/goldens/weekly_summary_golden.json` — a
+> protected calculation zone. That flag is **shared** with
+> `tests/test_fatigue_golden.py`, so re-running it would also silently re-baseline
+> `tests/goldens/fatigue_golden.json` while both tests report `skipped`, under an
+> active calibration freeze.
+>
+> Gates at merge: **18/18 checks green**. Write set held to D4 (a) / D5 (a) — no
+> `static/js/**`, `templates/**`, or `e2e/**`. Verified post-merge against
+> `origin/main`.
+>
+> *Line-number citations below (notably **F13**'s pointers into
+> `MASTER_HANDOVER.md`) were accurate when written and have since drifted. They are
+> historical references to edits already made — do not follow them as instructions.*
+
 *Protected calculation zone. Plan-stage size is **Large** under
 [QUALITY_GATE.md](../ai_workflow/QUALITY_GATE.md#plan-stage-routing) — "any
 schema/API/calculation-surface change" — so **both** Gate 0 and Gate 1 are required.
@@ -8,7 +31,7 @@ Nothing below authorizes an edit to `utils/weekly_summary.py`.*
 **Status: Gate 0 ✅ APPROVED · council complete (3 reviewers, 19 findings, all
 dispositioned) · Gate 1 ✅ APPROVED 2026-08-01 with D4 (a), D5 (a), D2 re-put
 confirmed and F12 acknowledged. Implementation authorized on branch
-`wt/wpb4-unassigned-bucket`.**
+`wt/wpb4-unassigned-bucket` — and **since executed and merged as `9fe5dbd`**.**
 
 ---
 
@@ -1200,3 +1223,23 @@ true cost, or re-scope it.
 > in particular the D1 `Forearms` tripwire, the one-shot reviewed golden
 > regeneration, and the `GENERATE_GOLDEN` disarm protecting
 > `tests/goldens/fatigue_golden.json`.
+
+---
+
+## ✅ EXECUTED AND CLOSED — 2026-08-01
+
+**The authorization above was discharged.** WPB.4 merged as **PR #256, squash
+`9fe5dbd`**, 18/18 checks green.
+
+| | |
+|---|---|
+| Production change | `utils/weekly_summary.py` only — the two sites named in Plan v2 |
+| Tests added | `tests/test_weekly_summary_unassigned.py`, `tests/test_export_weekly_summary_sheet.py` (D2 re-put, from zero) |
+| Golden | `tests/goldens/weekly_summary_golden.json` regenerated **once**, `Calves` only — the D1 `Forearms` tripwire held |
+| Docs folded in per F12 | `MASTER_HANDOVER.md`, `DUPLICATION_REGISTRY.md`, `REFACTOR_PLAN.md` |
+| Write set | **D4 (a) / D5 (a) honoured** — no `static/js/**`, `templates/**`, or `e2e/**` |
+
+**Nothing in this document remains to be done.** The Sequence, the write-set
+table and every "must / apply / regenerate" instruction are a record of completed
+work. Verified post-merge against `origin/main`; see the banner at the top of this
+file for why re-executing step 8 would be actively harmful.

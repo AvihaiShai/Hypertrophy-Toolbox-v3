@@ -328,9 +328,11 @@ class TestWorkoutLogEndpoints:
     
     def test_update_workout_log_success(self, error_client):
         """Test successful workout log update."""
-        # This would require actual database setup
-        # Placeholder for integration test
-        pass
+        # An empty `pass` body counted toward this file's total while asserting
+        # nothing. Skipping states the same intent honestly: the happy path needs
+        # plan+log fixtures this error-handling app does not build, and it is
+        # already covered by tests/test_workout_log_routes.py.
+        pytest.skip("happy path covered by test_workout_log_routes.py; this app has no fixtures")
     
     def test_update_workout_log_validation_error(self, error_client):
         """Test workout log update with missing ID."""
@@ -362,15 +364,14 @@ class TestLogging:
         """Test that request ID appears in log messages."""
         response = error_client.get('/')
         request_id = response.headers.get('X-Request-ID')
-        
-        # Check if request ID appears in logs
-        # Note: This depends on your logging configuration
-        # and may need adjustment based on actual log output
-        log_contains_request_id = any(
-            request_id in record.message 
-            for record in caplog.records
-        )
-        # This assertion might need adjustment based on your specific logging setup
+
+        # Previously this computed a `log_contains_request_id` boolean and never
+        # asserted it, so the test could not fail. Whether the id reaches caplog
+        # depends on handler propagation for the named logger, which this fixture
+        # does not control; the contract that is actually this middleware's to
+        # keep is that every response carries a well-formed id.
+        assert request_id, "no X-Request-ID on the response"
+        assert request_id.startswith('req_')
 
 
 def test_request_id_format():

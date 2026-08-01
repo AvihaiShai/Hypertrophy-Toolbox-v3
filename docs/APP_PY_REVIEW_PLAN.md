@@ -445,6 +445,13 @@ after an upgrade — the exact bug F4 records. Two classes can never carry one:
 `APP_VERSION` and making everything else revalidate, and stops setting
 `SEND_FILE_MAX_AGE_DEFAULT` at all.
 
+`#262` also adds `packaged-smoke-windows` to `ci.yml`: a `windows-latest` PyInstaller build plus a
+real-bootloader smoke on every PR, serving on port 5123 to prove the `HT_PORT` wiring both launch
+paths previously ignored. The gate this section reports as "never ran" is therefore now permanent
+rather than manually discharged — its first run passed 36/36, including `all 18 rendered
+first-party links carry ?v=3.0.1` and the four unversionable shapes revalidating.
+`deep-gate.yml`'s `frozen-windows` job remains the manual twin.
+
 **The audit lesson.** This closeout verified P4 against *its own checklist* — version constant,
 link count, buster removal, contracts — and every one of those passed. It did not verify that the
 checklist was sufficient to close the finding it came from. A gate that only re-checks the
