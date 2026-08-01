@@ -18,12 +18,16 @@ Coverage is deliberately broad (see the product-risk review for WP2.3):
 * Muscle contribution weighting (primary 1.0 / secondary 0.5 / tertiary 0.25).
 * Frequency's ``>= 1.0`` threshold locked ABOVE and BELOW, where the per-routine total
   accumulates across multiple exercises BEFORE the threshold test (M5).
-* Falsy-routine ("null routine") behavior (OD4, DEFERRED): a muscle sourced only from a
-  falsy routine contributes volume but drops out of frequency / session counts (M2). The
-  schema is ``routine TEXT NOT NULL``, so the reachable falsy case is the empty string
-  ``''`` — exactly what ``if routine:`` and pattern coverage's ``.get('routine', ...)``
-  branch on. This golden LOCKS that drop-from-frequency behavior; it must NOT be "fixed"
-  into a WPB.4 ``Unassigned`` bucket here.
+* Falsy-routine ("null routine") behavior (OD4 / WPB.4, SHIPPED 2026-08-01): a muscle
+  sourced only from a falsy routine is bucketed into one synthetic ``Unassigned`` session
+  and counts toward frequency, matching ``session_summary.py``. The schema is
+  ``routine TEXT NOT NULL``, so the reachable falsy case is the empty string ``''``;
+  such rows arrive from restored backups, legacy data, or direct database edits. This
+  golden LOCKS the ``Unassigned`` bucketing. Note the deliberate asymmetry owner-decision
+  D1 preserves: ``global_sessions`` (``weekly_summary.py:244``) still **excludes** the
+  synthetic bucket, so it remains the fallback denominator only for muscles that reach
+  ``>= 1.0`` effective sets in no session at all. Pattern coverage is unchanged — it
+  still keys falsy routines as ``''`` via ``.get('routine', ...)``.
 * DIRECT_ONLY is per-contribution, not per-muscle: a muscle that is secondary in one
   exercise and primary in another is credited only via its primary instance (S3).
 * Pattern coverage: the empty-pattern ``_infer_pattern`` fallback branches (M3), and the
@@ -127,7 +131,9 @@ def _seed_weekly_main(db) -> None:
     _add_sel(db, "Legs A", "Back Squat", 8, 8, 10, 2, 100.0)
     _add_sel(db, "Pull A", "Barbell Row", 6, 8, 10, 2, 60.0)
     _add_sel(db, "Pull A", "Biceps Curl", 4, 8, 10, 2, 20.0)
-    # Falsy (empty-string) routine: Calves sourced ONLY here -> volume but no frequency (M2/OD4).
+    # Falsy (empty-string) routine: Calves sourced ONLY here -> one synthetic
+    # 'Unassigned' session, so frequency is 1 and the per-session figures are
+    # undiluted (M2/OD4, WPB.4). Its 5.1 effective sets clear the >= 1.0 threshold.
     _add_sel(db, "", "Calf Raise", 6, 8, 10, 2, 50.0)
     # Frequency accumulation ABOVE threshold: two 0.85 contributions sum to 1.7 >= 1.0 (M5).
     _add_sel(db, "Freq A", "Rear Delt A", 1, 8, 10, 2, 10.0)

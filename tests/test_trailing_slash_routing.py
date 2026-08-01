@@ -50,6 +50,9 @@ def test_trailing_slash_post_is_not_downgraded_to_get(real_app_client):
     response = real_app_client.post('/export_to_workout_log/', json={})
     assert response.status_code not in (301, 302, 303, 307, 308)
     assert 'Location' not in response.headers
+    # Without this the test passes if the route is deleted outright: a 404 is
+    # also "not a redirect". The POST has to actually reach the endpoint.
+    assert response.status_code != 404
 
 
 def test_root_path_is_unaffected(real_app_client):
