@@ -2,7 +2,7 @@
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7.
-> **Status**: PLANNING — no changes shipped from this document. Every phase below is a proposal awaiting owner selection.
+> **Status**: **Phase 0 + Phase 1 authorized 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2–5 remain PLANNING** — proposals awaiting owner selection, with D3–D7 unsigned. Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document.
 
 ---
 
@@ -218,6 +218,9 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 | D6 | `BACKUP_SCHEMA_VERSION` | Prefer defining and enforcing a compatibility policy. Removal is only acceptable as an explicit DB/API contract migration, not a testing cleanup |
 | D7 | Auto-backup file snapshots: keep "no in-app restore" stance? | Keep, but document the manual recovery procedure in the README |
 
+**Sign-off state (2026-08-01):** D1 is signed as non-blocking measurement, and D2 is signed for
+`e2e-erase-flow` only. **D3–D7 are unsigned** and no work may act on them. See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
+
 ---
 
 ## 7. sol5.6 implementation review and action record
@@ -266,3 +269,93 @@ Before Phase 4 is marked complete:
 1. Visual compare must have no unconditional known red; any accepted exception must be narrow, documented, and machine-enforced.
 2. A scheduled dry run must show visual, packaging, first-install, and old-DB migration jobs as executed—not skipped.
 3. A release dry run must fail when any one of those jobs is deliberately made red, proving the fan-in/gating contract.
+
+---
+
+## 8. Parallel-execution constraints
+
+> **Status of this section**: binding on the Phase 0–1 execution slice authorized on
+> 2026-08-01. It records the rules that keep this document's execution from breaking
+> two other plans running concurrently against the same repository.
+
+### 8.1 Owner sign-off recorded (2026-08-01)
+
+| Decision | Ruling | Scope authorized |
+|---|---|---|
+| **D1** — reverse the phase-3 "no coverage" decision | **Signed: yes, as NON-BLOCKING measurement.** No threshold, no `--cov-fail-under`, no gate. The observed number is recorded as the baseline for a future baseline-diff ratchet (the `pyright_baseline_diff.py` pattern), not as a pass/fail line | Phase 1, steps 5 and 6 |
+| **D2** — promote `e2e-erase-flow` to a required check | **Signed for the `e2e-erase-flow` half only.** The `js-unit` half is explicitly *not* signed and stays non-required until its own stability window is argued separately | Phase 0, step 4 |
+| **D3–D7** | **Not signed.** No work in this slice may act on them | — |
+
+Nothing beyond Phase 0 and Phase 1 is authorized by this sign-off. Phases 2–5 remain proposals.
+
+### 8.2 The port-5000 single-runner rule
+
+`playwright.config.ts` pins `baseURL http://127.0.0.1:5000` and its `webServer` auto-starts Flask
+on that port. Two concurrent E2E runs on one machine collide — and the `/worktree` skill isolates
+the **SQLite database, not the port**.
+
+This is the same constraint recorded as
+[`APP_PY_REVIEW_PLAN.md` §5 D4](APP_PY_REVIEW_PLAN.md), extended here from two contenders to
+**three**: the app.py review packets (P1–P5), the WPB.4 weekly-summary `Unassigned` bucket work,
+and this document's execution. Consequences:
+
+- Only one session may hold port 5000 at a time. A session that does not need E2E must not take it.
+- **The Phase 0–1 slice takes no E2E turn at all.** Nothing in Phase 0 or Phase 1 requires a local
+  Playwright run or a local Flask server; every CI change in this slice is validated on its own
+  pull request's CI run, where each job gets its own runner and its own server.
+- Full local `pytest` is unaffected — it uses the Flask test client and a per-test temporary SQLite
+  file, binds no port, and contends with nothing.
+
+### 8.3 CI edits are strictly additive
+
+`.github/workflows/ci.yml` job `name:` fields are branch-protection contexts matched **exactly**.
+Renaming one orphans its required check and leaves every in-flight pull request unmergeable.
+
+- **Never rename an existing job `name:`.** Add jobs and steps; do not re-label.
+- This includes names that are now factually wrong. `e2e-fatigue-context` is named
+  `E2E Fatigue Context (Chromium, non-required)` and *has been required since 2026-07-05*. The
+  parenthetical is a lie, and it is load-bearing configuration — keep it. The same applies to
+  `Type Check (tsc blocking + pyright measure-only)`, where pyright is also baseline-gated.
+- Promotion to required is a **branch-protection API change**, never a YAML rename. Read the
+  current context list, append to it, and never replace it blindly — other sessions' open pull
+  requests depend on the existing set.
+- Serialize `ci.yml` edits to one open pull request at a time, so this slice does not conflict with
+  itself.
+
+### 8.4 The inventory drift check ships measure-only
+
+Phase 0 step 1 calls for a CI drift check that **fails** on an unexplained inventory diff. It ships
+with `continue-on-error: true` instead, because Sessions A and B are actively adding tests: a
+blocking drift gate would red every pull request that legitimately changes the test count, including
+theirs.
+
+**Flip condition** — the check becomes blocking only after *both* of these have merged:
+
+1. `docs/APP_PY_REVIEW_PLAN.md` packets **P1–P5**, and
+2. **WPB.4** (the weekly-summary `Unassigned` bucket).
+
+At that point, regenerate the committed inventory, confirm it matches, and remove
+`continue-on-error`. Until then §7.3 entry criterion 1 is only half-satisfied: determinism is
+proven, enforcement is deferred by design and this paragraph is the record of why.
+
+### 8.5 Ownership hand-offs
+
+| This document's item | Owner | Note |
+|---|---|---|
+| **Phase 2, step 8** — test the real `/erase-data` | **Delivered by `APP_PY_REVIEW_PLAN.md` P1 + P5**, not by this plan | P1 extracts the shared handler registration consumed by both `app.py` and `tests/conftest.py`; P5 adds the confirm-guard pytest (missing/wrong `confirm` → 400) against the real handler. Blindspot **B2** closes there. Do not implement it here |
+| Phase 0, step 4 — promote `e2e-erase-flow` | This plan | Independent of the above: it makes the *existing* E2E guard required while P1+P5 add the pytest-level guard |
+
+### 8.6 Execution log
+
+Filled in as each pull request merges. Numbers here are **observed**, never carried over from the
+prose above — §4 B3 is the standing reminder that hand-maintained counts drift.
+
+| PR | Item | State |
+|---|---|---|
+| — | PR-0 — this section | in flight |
+| — | PR-1 — generated test inventory (Phase 0.1) | pending |
+| — | PR-2 — CI hardening (Phase 0.2) | pending |
+| — | PR-3 — JS supply chain (Phase 0.3) | pending |
+| — | PR-4 — promote `e2e-erase-flow` (Phase 0.4) | pending |
+| — | PR-5 — Python coverage, non-blocking (Phase 1.5) | pending |
+| — | PR-6 — JS coverage, non-blocking (Phase 1.6) | pending |
