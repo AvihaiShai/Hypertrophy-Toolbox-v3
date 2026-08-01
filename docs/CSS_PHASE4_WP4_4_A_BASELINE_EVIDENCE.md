@@ -277,7 +277,7 @@ count in the baseline JSON, re-proven in
 
 ## 13. Open items handed to downstream packets
 
-1. **10 pre-existing Linux baselines do not reproduce** (all `desktop` variants — see §11). Packets h, i, j and k run the Linux deep gate under N8 and must treat these as inherited reds, not as their own regressions, and must not rebaseline them.
+1. **10 pre-existing Linux baselines do not reproduce** (all `desktop` variants — see §11). Packets h, i, j and k run the Linux deep gate under N8 and must treat these as inherited reds, not as their own regressions, and must not rebaseline them. **Later correction:** these ten are the `visual.spec.ts` set, which is all Packet a measured. The N8 gate also runs `visual-baseline-thumbnails.spec.ts` and reds an **eleventh**, `plan-desktop-light-advanced`, likewise inherited. The ledger now covers all 11 at schema v2 — see P1 in [`CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md`](CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md) §5.
 2. **G1 specificity range** is wider than recorded — (1,3,0)…(1,5,3), not (1,3,1)/(1,3,2). Packet **i** must not assume a uniform family specificity.
 3. **M6a** (transitioned-sentinel lag) is proposed for adoption as an arc method rule.
 4. **`error.html` unreachable by 404** — the plan's route-coverage premise needs amending; no packet should treat a bad URL as exercising it.

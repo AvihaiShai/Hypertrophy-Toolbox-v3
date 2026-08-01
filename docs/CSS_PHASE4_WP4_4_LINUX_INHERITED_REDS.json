@@ -1,33 +1,111 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "producedBy": "WP4.4-a closeout",
+  "revisedBy": "WP4.4 closeout proposal P1",
   "sourceCommit": "46e340e5f2de60118d4d2d4af55ff61a1783800c",
   "recordedOn": "2026-07-27",
+  "revisedOn": "2026-08-01",
   "purpose": "Machine-readable reconciliation ledger for the N8 Linux deep gates at packets h, i, j and k. Every entry is a red that already existed before the WP4.4 arc began. A packet that reproduces one of these has NOT caused it.",
+  "schemaHistory": [
+    {
+      "version": 1,
+      "on": "2026-07-27",
+      "shape": "`linuxInheritedReds` was a single object bound to one `snapshotDir`, with one `count`, one `evidence` string and one flat `files` array.",
+      "producedBy": "WP4.4-a closeout"
+    },
+    {
+      "version": 2,
+      "on": "2026-08-01",
+      "reason": "The v1 shape could describe exactly one spec file. The N8 deep gate reds eleven tests, not ten: the ten `visual.spec.ts` baselines v1 already carried, plus `visual-baseline-thumbnails.spec.ts › plan-desktop-light-advanced`, which lives in a different snapshot directory and which v1 had no slot for. Because the ledger's own rules make an unlisted red a rollback trigger, that omission turned a known-inherited red into a false rollback trigger for every future CSS packet. v2 makes the ledger multi-spec so the omission is structurally fixable rather than repeatable.",
+      "change": "`linuxInheritedReds` is now `{platform, totalCount, specs[]}`. Each element of `specs[]` carries its own `spec`, `snapshotDir`, `count`, `evidence`, `provenance` and `files`, so the ledger can cover any number of spec files. `snapshotDir`, `count`, `evidence`, `allDesktopVariants`, `note` and `files` moved from the `linuxInheritedReds` object into the `specs[0]` entry unchanged.",
+      "rebaseline": "None. No snapshot file was regenerated, modified or deleted by this revision. The ten v1 entries are carried over byte-for-byte; the eleventh is ADDED coverage of an already-measured inherited red, not a new baseline.",
+      "authority": "Correcting the committed Linux ledger requires owner approval (V2, R3 condition 6). This revision is proposal P1 from `docs/CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md` §5 and must not land without it."
+    }
+  ],
   "rules": [
     "These reds are inherited. Do not attribute them to the packet under test.",
     "Do NOT rebaseline them. Correcting the committed Linux ledger is a separate change needing owner approval (V2, R3 condition 6).",
     "A red on a file NOT in this ledger is a real finding and a rollback trigger.",
-    "The animated-logo red remains a band, never an exact pixel count (M7)."
+    "The animated-logo red remains a band, never an exact pixel count (M7).",
+    "Scope is per spec file. A red is covered only when its spec appears in `linuxInheritedReds.specs[].spec` AND its baseline appears in that same entry's `files`. A red in a covered spec but on an uncovered file is still a real finding and a rollback trigger.",
+    "Adding a spec entry requires the same proof the existing entries carry: the red must reproduce on a commit that does not contain the packet under test. Record that commit in the entry's `provenance`."
   ],
   "linuxInheritedReds": {
-    "evidence": "The visual-linux deep gate (run 30288077299, run_visual=true, visual_mode=generate) regenerated all 84 Linux baselines. The 6 /fatigue captures were new and were committed under N7; the other 60 were compared against the committed ledger WITHOUT being written. Ten differ.",
     "platform": "linux",
-    "snapshotDir": "e2e/__screenshots__/linux/visual.spec.ts-snapshots",
-    "count": 10,
-    "allDesktopVariants": true,
-    "note": "Every drifting baseline is a `desktop` variant (1440x900). No `mobile` or `tablet` baseline drifted. Differences are roughly 0.1% of file size.",
-    "files": [
-      "body-composition-desktop-light.png",
-      "progression-desktop-light.png",
-      "session-summary-desktop-light.png",
-      "volume-splitter-desktop-light.png",
-      "weekly-summary-desktop-light.png",
-      "welcome-desktop-light.png",
-      "workout-log-desktop-dark.png",
-      "workout-log-desktop-light.png",
-      "workout-plan-desktop-dark.png",
-      "workout-plan-desktop-light.png"
+    "totalCount": 11,
+    "totalCountNote": "Eleven reds across two spec files. The N8 deep gate reported exactly this set at three separate refs — `1019d34` (run 30665129779), i + corrective (run 30663355864) and j (run 30671022691) — with identical failure identities each time.",
+    "specs": [
+      {
+        "spec": "e2e/visual.spec.ts",
+        "snapshotDir": "e2e/__screenshots__/linux/visual.spec.ts-snapshots",
+        "count": 10,
+        "evidence": "The visual-linux deep gate (run 30288077299, run_visual=true, visual_mode=generate) regenerated all 84 Linux baselines. The 6 /fatigue captures were new and were committed under N7; the other 60 were compared against the committed ledger WITHOUT being written. Ten differ.",
+        "allDesktopVariants": true,
+        "note": "Every drifting baseline is a `desktop` variant (1440x900). No `mobile` or `tablet` baseline drifted. Differences are roughly 0.1% of file size.",
+        "provenance": {
+          "recordedBy": "WP4.4-a closeout",
+          "recordedOn": "2026-07-27",
+          "recordedAtCommit": "46e340e5f2de60118d4d2d4af55ff61a1783800c",
+          "deepGateRuns": ["30288077299"],
+          "evidenceDocs": [
+            "docs/CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md §13 item 1"
+          ]
+        },
+        "files": [
+          "body-composition-desktop-light.png",
+          "progression-desktop-light.png",
+          "session-summary-desktop-light.png",
+          "volume-splitter-desktop-light.png",
+          "weekly-summary-desktop-light.png",
+          "welcome-desktop-light.png",
+          "workout-log-desktop-dark.png",
+          "workout-log-desktop-light.png",
+          "workout-plan-desktop-dark.png",
+          "workout-plan-desktop-light.png"
+        ]
+      },
+      {
+        "spec": "e2e/visual-baseline-thumbnails.spec.ts",
+        "snapshotDir": "e2e/__screenshots__/linux/visual-baseline-thumbnails.spec.ts-snapshots",
+        "count": 1,
+        "evidence": "The N8 deep gate (visual_mode=compare) was dispatched against `1019d34` — a commit predating the whole i–k tail — and reported `visual-baseline-thumbnails.spec.ts › plan-desktop-light-advanced` as failed, with the same identity it carries on i and on j. A red that reproduces on a tree containing none of the packets under test is inherited by definition. It failed all three Playwright retries at every ref, so it is deterministic rather than a flake.",
+        "allDesktopVariants": true,
+        "note": "Like the ten `visual.spec.ts` entries, the only drifting variant is `desktop`. The `mobile` and `tablet` thumbnails and the `simple` and `dark` desktop variants of the same page all pass.",
+        "addedBy": "WP4.4 closeout proposal P1",
+        "addedReason": "v1 declared its scope as `visual.spec.ts-snapshots` and had no slot for a second spec, so this red — already measured as inherited — fell under the ledger's own `A red on a file NOT in this ledger is a real finding and a rollback trigger` rule. Every future CSS packet would have hit that false trigger.",
+        "provenance": {
+          "recordedBy": "WP4.4 closeout proposal P1",
+          "recordedOn": "2026-08-01",
+          "provenInheritedAtCommit": "1019d34b81c15e6480cffce1fe23e9d322a79907",
+          "provenInheritedAtCommitShort": "1019d34",
+          "provenInheritedAtCommitSubject": "test(e2e): stop the dark surface flattener owning the Progression table borders (#211)",
+          "whyThatCommitProvesIt": "`1019d34` contains no packet from the WP4.4 i–k tail, so a red that reproduces there cannot have been caused by i, j or k.",
+          "deepGateRuns": [
+            {
+              "run": "30665129779",
+              "ref": "1019d34",
+              "result": "11 failed / 57 passed"
+            },
+            {
+              "run": "30663355864",
+              "ref": "i + corrective",
+              "result": "11 failed / 56 passed + 1 flaky"
+            },
+            {
+              "run": "30671022691",
+              "ref": "j",
+              "result": "11 failed / 57 passed"
+            }
+          ],
+          "evidenceDocs": [
+            "docs/CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md §4 (Ledger reconciliation)",
+            "docs/CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md §5 (proposal P1)",
+            "docs/CSS_PHASE4_WP4_4_I_IS_REPAIR_EVIDENCE.md §N8",
+            "docs/css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md — 'Open item for packet k'"
+          ]
+        },
+        "files": ["plan-desktop-light-advanced.png"]
+      }
     ]
   },
   "uncertifiableElements": {
@@ -95,6 +173,7 @@
     "viewports": 3,
     "themes": 2,
     "changedBy": "N7 added /fatigue; the matrix was 60 before Packet a.",
-    "note": "Downstream gates that say 'the full 60-test matrix' mean 66."
+    "note": "Downstream gates that say 'the full 60-test matrix' mean 66.",
+    "scopeNote": "This matrix describes `visual.spec.ts` only, and it is NOT the whole of what the N8 gate runs. The `visual-linux` job in `.github/workflows/deep-gate.yml` invokes `e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts` together, so the thumbnails matrix is inside every N8 result quoted against this ledger. Reading `testsPerPlatform: 66` as the gate's total is what let the eleventh red go unledgered until schema v2."
   }
 }
