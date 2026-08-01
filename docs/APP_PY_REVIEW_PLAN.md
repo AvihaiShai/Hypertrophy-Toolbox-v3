@@ -1,7 +1,9 @@
-# app.py Review Plan — DRAFT (brainstorming)
+# app.py Review Plan — APPROVED
 
-**Status:** DRAFT — not approved for execution. This document exists to mature the plan
-through owner review before any code changes.
+**Status:** **APPROVED for execution (owner, 2026-08-01).** All four Section 5 decisions are
+signed; findings are triple-verified (independent review → Codex cross-verification → a third
+source-level check), fix designs vetted, round-2 checks resolved (§3b). The finding surface is
+exhausted — **do not commission another review round.** Execution order and gates: §6.
 **Origin (2026-08-01):** started as a cross-check of an external (Codex) review of `app.py`
 whose content was lost in transit; the owner then directed an independent review instead.
 **Verification (2026-08-01):** F1–F3 were confirmed **empirically** by importing the real
@@ -144,6 +146,11 @@ against the real handler once F7's shared registration exists — not merely "mi
   unhandled exception, not only export routes as its comment claims, and duplicates the logger
   traceback. Reclassified from "intentional, keep" to "revisit in F6": either scope it to the
   stated purpose or delete it and rely on `logger.exception`.
+- **Evaluated and dismissed — `internal_error` (`utils/errors.py:173-202`) is NOT an F6 item.**
+  A third-round candidate proposed deleting its logging block as dead code duplicating
+  `handle_exception`'s. Empirical check (isolated Flask app, `register_error_handlers()` +
+  a catch-all, no `app.py` import) **refutes the duplication** and qualifies the deadness —
+  see §2 for the retained-deliberately row and §3c for the evidence. No action in P3.
 
 ### F7 — handler coverage exists only via **hand-copied duplicates**, never the real registration code (reworded per Codex)
 
@@ -162,8 +169,19 @@ function; have `app.py` and `test_priority7_error_handling.py`'s fixture call it
 hand-copy). Per Codex's caution, do **not** bolt the catch-all onto the shared conftest `app`
 fixture — a global catch-all under `TESTING=True` would mask unexpected exceptions the rest of
 the suite should surface. Use a dedicated production-like fixture instead. Regression tests:
-405 stays 405 (+ `Allow` header), "404"-in-message stays 500, XHR vs HTML negotiation,
-erase-data confirm guard (F5).
+
+1. **Handler precedence survives the guard** — the code-registered 400 / 422 / 500 / 404 /
+   `APIError` handlers still win after `isinstance(e, HTTPException)` is added to the catch-all.
+   This is the behavior the guard is most likely to disturb: the negotiator and those handlers
+   compete for the same exception class, and Flask resolves it by the code-keyed map winning
+   over the class-keyed one (§3b). Assert each of the five by its distinctive body/envelope,
+   not merely by status code — a negotiator that stole 500 would still return 500.
+   `abort(500)` → `internal_error` is the sharp case (§3c).
+2. 405 stays 405 **and carries its `Allow` header** (the header is the regression the JSON
+   envelope path would silently drop).
+3. `"404"`-in-message (`ValueError("bad value 4041")`) stays 500, not 404 (F2).
+4. XHR vs HTML negotiation on the same status — JSON envelope for XHR, Werkzeug/HTML otherwise.
+5. Erase-data confirm guard (F5) — deferred to P5, which depends on this shared registration.
 
 ---
 
@@ -178,6 +196,7 @@ erase-data confirm guard (F5).
 | `FLASK_DEBUG` default mismatch (`app.py` `'0'` vs `database.py` `'1'`) | Documented safe outcome in `utils/CLAUDE.md` (non-debug Flask + conservative journal mode) |
 | `use_reloader` off by default | WAL-corruption avoidance, documented |
 | ProxyFix on a localhost app | Harmless locally; app is local-first by non-goal. Optional: drop it, but zero urgency |
+| `internal_error` (`utils/errors.py:173-202`) unreachable today | Reachable **only** via an explicit `abort(500)` / raised `InternalServerError`, and production code makes **zero `abort()` calls of any kind** (`routes/`, `utils/`, `app.py`). But it is dead-and-correct, not dead-and-broken: it does **not** duplicate `handle_exception`'s logging (the two paths are mutually exclusive) and it logs a live traceback when it does fire — both verified in §3c. It completes the symmetric 400/422/500 set `register_error_handlers()` offers any future `abort(500)`. **Keep it**; P1 pins its precedence instead of deleting it |
 
 ---
 
@@ -198,25 +217,88 @@ one was re-verified against the source before acceptance:
 
 ---
 
-## 4. Proposed packet split (once matured)
+## 3b. Execution-readiness checks (2026-08-01) — round-2 items resolved inline
+
+The round-2 verification items (drafted for Codex in `artifacts/CODEX_VERIFICATION_PROMPT.md`)
+were mechanical checks, resolved directly instead:
+
+| Check | Result |
+|---|---|
+| Negotiator vs. handler precedence (Flask 3.1.3) | **Sound.** Code-registered handlers beat the class-registered `Exception` handler — proven empirically (unknown route → `handle_404`, not the catch-all) and in-suite (`test_priority7_error_handling.py:175-191` asserts 400/422/500/`APIError` handlers stay live with the layered catch-all registered after them) |
+| History of the 418→500 assertion (open question 3) | **Characterization, not product decision.** `test_later_exception_handler_owns_unrecognized_http_errors` was added in `7aee742` (WP0.1, PR #112, 2026-07-05, "remove proven Python dead code") to prove `app.py`'s catch-all owned those errors after the shadowed `utils/errors.py` handlers were deleted — a behavior-preserving refactor lock, not a chosen contract. Flipping it in P1 is legitimate with migration notes |
+| F3 client scan — anything relying on trailing-slash redirects | **None found.** Zero quoted trailing-slash URLs across `static/js/**`, `e2e/**`, `templates/**` |
+| F4 version source | **No Python-side version constant exists.** Only `package.json` `"version": "3.0.1"` (npm-side). P4 must introduce one (e.g. a `utils/version.py` constant, or a build-time stamp readable in both source and frozen runs) — owner choice |
+
+## 3c. Third-round check — the `internal_error` candidate (2026-08-01)
+
+A third source-level review round proposed that `internal_error` (`utils/errors.py:173`) never
+fires for unhandled exceptions, leaving "two 500-loggers with only one live". The first half is
+correct; the conclusion is not. Method: an isolated Flask app that calls the real
+`register_error_handlers()`, adds a catch-all mirroring `app.py:231`, and captures
+`app.logger` records — **`app.py` is never imported, so no database is touched.**
+
+| Claim under test | Verdict | Evidence |
+|---|---|---|
+| `internal_error` never fires for genuine unhandled exceptions | **CONFIRMED** | route raising `ValueError("plain boom")` → catch-all body, and `app.logger` recorded **nothing** from `errors.py`. The class-keyed `Exception` handler wins the MRO race, exactly as F1 describes |
+| It is therefore unreachable in this app | **CONFIRMED (stronger than proposed)** | `grep -rn "abort(" routes/ utils/ app.py` → **zero matches**. Nothing raises a 500 `HTTPException`, so the only trigger is never pulled |
+| Its logging block duplicates `handle_exception`'s | **REFUTED** | The two paths are mutually exclusive — whichever handler owns the request is the only one that logs. No request can produce both records |
+| Its `app.logger.exception()` runs with no active exception | **REFUTED** | `abort(500)` → handler logged `'Internal server error'` with a **full live traceback** ending in `werkzeug.exceptions.InternalServerError`. Flask invokes error handlers from inside its own `except` block, so `sys.exc_info()` is live |
+
+**Disposition: keep the handler, take no F6 action.** Recorded in §2. The one genuine
+consequence is a P1 obligation: the new `HTTPException` negotiator must not capture 500 away
+from `internal_error`, which the §4 P1 precedence regression pins directly.
+
+## 4. Packet split — APPROVED
 
 | Packet | Contents | Risk | Gate |
 |---|---|---|---|
-| P1 | F1 + F2 + F7: shared handler registration (also adopted by the priority-7 fixture, killing its hand-copy), `HTTPException` negotiator preserving status + `Allow`/headers + XHR JSON envelope, delete the `"404" in str(e)` branch, new regression tests. **Must deliberately flip `test_priority7_error_handling.py:193` from 500 to the correct status** — that is a documented-behavior change requiring migration notes | Low-medium — status codes change on currently-wrong paths (500→405 etc.); audit `e2e/error-handling.spec.ts`, `api-integration.spec.ts`, and all of `test_priority7_error_handling.py` first | `/verify-suite` |
-| P2 | F3 (delete `clear_trailing`) | Low — conftest proves route reachability without it; scan E2E for trailing-slash URLs first | pytest + smoke-navigation E2E |
-| P3 | F6 cleanup (now incl. stderr print decision) | None (no behavior change except removing duplicate stderr traceback) | pytest |
-| P4 | F4 asset-cache policy: one app-version-derived `?v=` for all first-party CSS/JS; remove all 7 random busters | Medium — touches `base.html` + 3 templates; frozen-build verification needed | `/verify-suite` + packaged smoke |
+| P1 | F1 + F2 + F7: shared handler registration (also adopted by the priority-7 fixture, killing its hand-copy), `HTTPException` negotiator preserving status + `Allow`/headers + XHR JSON envelope, delete the `"404" in str(e)` branch, the five regression tests listed in F7 — **including the precedence assertion that the code-registered 400/422/500/404/`APIError` handlers still win**. **Flips `test_priority7_error_handling.py:193` from 500 to 418** (owner-approved, §5 D3) — a documented-behavior change requiring migration notes | Low-medium — status codes change on currently-wrong paths (500→405 etc.); audit `e2e/error-handling.spec.ts`, `api-integration.spec.ts`, and all of `test_priority7_error_handling.py` first | `/verify-suite` |
+| P2 | F3 — **delete** the `clear_trailing` hook (owner-approved, §5 D1) | Low — conftest proves route reachability without it; the §3b client scan found nothing relying on the redirect | pytest + smoke-navigation E2E |
+| P3 | F6 cleanup (incl. the stderr print decision). **Excludes `internal_error`** — evaluated and dismissed in §3c | None (no behavior change except removing the duplicate stderr traceback) | pytest |
+| P4 | F4 asset-cache policy: introduce `utils/version.py` (owner-approved, §5 D2), expose it via a context processor, apply one `?v={{ app_version }}` to all first-party CSS/JS links, remove all 7 random busters | Medium — touches `base.html` + 3 templates; frozen-build verification needed | `/verify-suite` + packaged smoke |
 | P5 | F5 confirm-guard pytest (missing/wrong `confirm` → 400) against the real handler — depends on P1's shared registration | None | pytest |
 
 Per CLAUDE.md's refactor invariant: P1 changes API response *status codes* on paths that are
 currently wrong — PR description must carry migration notes.
 
-## 5. Open questions for the owner
+## 5. Owner decisions — ALL SIGNED (2026-08-01)
 
-1. F3: delete `clear_trailing` outright, or keep a query-preserving 308 canonicalizer?
-2. F4: is an app-version cache-buster acceptable, or is there an existing version constant to reuse?
-3. P1 flips `test_priority7_error_handling.py:193` (418 → 500 becomes 418 → 418): confirm the
-   500-for-unrecognized-HTTP-errors behavior was never *intentionally* specified — the test
-   name ("later exception handler owns unrecognized http errors") reads as characterization
-   of the layering, not as a product decision, but the owner should confirm.
-4. Priority relative to the active WP4.4 i→j→k CSS arc — this plan should not preempt it.
+| # | Decision | Owner ruling | Binds |
+|---|---|---|---|
+| **D1** | F3 — delete `clear_trailing`, or keep a query-preserving 308? | **Delete the hook outright.** `strict_slashes = False` already makes every route reachable either way, and the §3b client scan found zero quoted trailing-slash URLs across `static/js/**`, `e2e/**`, `templates/**` | P2 |
+| **D2** | F4 — which version source to introduce (none exists today)? | **A `utils/version.py` constant**, exposed to templates by a context processor. Identical behavior in a source checkout and a frozen build, no build step. Per-file content hashing and a build-time git stamp were both considered and rejected as more machinery than the risk warrants | P4 |
+| **D3** | P1 flips `test_priority7_error_handling.py:193` from 418→500 to 418→418 — was the 500 behavior ever intentionally specified? | **No. Approved.** §3b traced the assertion to `7aee742` (WP0.1, PR #112), written to lock a behavior-preserving refactor, not to choose a contract. 500-for-unrecognized-HTTP-errors is a bug | P1 |
+| **D4** | Sequencing against the WP4.4 CSS arc | **Run all five now.** The arc closed at `k`; CSS closeouts P1/P2 merged (`d543a4b`, `4b0670b`); CSS-P3 is planning-only and edits `static/css/theme-dark.css` only — R4 still forbids unlinking, so it never touches `base.html`. The file-overlap objection to P4 is void | §6 |
+
+**D4 is corroborated by the CSS-P3 plan itself** (`docs/css_theme_dark_p3/PLANNING.md`, PR #225):
+its scope section rules *"R4 — unlinking `theme-dark.css`, and any edit to `templates/base.html`.
+**Out entirely**"*, and its council review records `templates/base.html untouched`. So P4 and
+CSS-P3 have no file in common.
+
+**One cross-arc contract P4 must not break.**
+`tests/test_css_wp4_4_theme_dark_contracts.py:32` asserts the raw substring
+`"css/theme-dark.css" in base.html`. P4's buster appends `?v={{ app_version }}` *outside* the
+`url_for()` call, so `filename='css/theme-dark.css'` — and therefore the substring — survives.
+Verify this test still passes in P4's gate rather than assuming it.
+
+**D4's one live constraint is the E2E port, not the files.** `playwright.config.ts:67` pins
+`baseURL http://127.0.0.1:5000` and its `webServer` auto-starts Flask there, so two concurrent
+E2E runs collide. The `/worktree` skill isolates the SQLite database, **not** the port. P1's and
+P4's `/verify-suite` gates must therefore run one at a time; the pytest-only gates (P3, P5) and
+P2's targeted spec do not contend.
+
+## 6. Execution order
+
+```
+P1 ─────────────> P5          (P5 needs P1's shared registration)
+P2, P3 alongside              (independent; no file overlap with P1)
+                  └────────> P4 last
+```
+
+| Step | Gate | Notes |
+|---|---|---|
+| P1 | `/verify-suite` | Migration notes mandatory in the PR (status codes change) |
+| P2 | pytest + `smoke-navigation` E2E | |
+| P3 | pytest | |
+| P5 | pytest | After P1 merges |
+| P4 | `/verify-suite` + packaged smoke | Serialize its E2E against P1's |
