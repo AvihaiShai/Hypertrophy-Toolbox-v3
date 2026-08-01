@@ -1404,7 +1404,7 @@ is owner adjudication of the three closeout proposals recorded in
 
 | Proposal | State |
 |---|---|
-| **P1** — the Linux inherited-reds ledger covers only 10 reds from one spec file, while its own rules make an unlisted red a rollback trigger | PR #223 open, **awaiting owner approval** (V2 / R3 condition 6) |
+| **P1** — the Linux inherited-reds ledger under-described reality: its **schema-v1** shape bound the ledger to a single spec file and recorded **10** reds, while its own rules made an unlisted red a rollback trigger | **Owner-approved and merged** via PR #223 (V2 / R3 condition 6 discharged). Schema **v2** covers **11** reds across two spec files; the 10-red figure is historical schema-v1 text |
 | **P2** — no `static/css/**` row in `QUALITY_GATE.md`, so every CSS packet re-infers its gate routing | PR #222 open, **awaiting owner review** (N10) |
 | **P3** — `theme-dark.css` is largely inert: `:where()` zeroes its specificity, so a far larger reduction than C11 permitted is likely available | **not started** — needs Gate 1 via `/council-plan` |
 
