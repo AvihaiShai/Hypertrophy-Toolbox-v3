@@ -56,7 +56,12 @@ worth remembering as method rather than as incident:
 | Windows visual matrix | **36 failed / 30 passed on both halves, identities exactly equal**; 0 new, 0 cleared, no snapshot changed | `r3-visual-{before,after}.json` |
 | N8 Linux deep gate | full E2E incl. accessibility **passed**; visual job 11 reds **identical to the pre-i tree's 11** | runs `30663355864` (i), `30665129779` (`1019d34`) |
 
-### Open item for packet k — the Linux ledger is incomplete
+### Open item for packet k — the Linux ledger is incomplete (RESOLVED by P1)
+
+> **Resolved.** The ledger was corrected to schema v2 under proposal P1 — it is now multi-spec
+> and carries all **11** reds, the eleventh with its `1019d34` provenance. The paragraph below
+> is the original statement of the gap, kept as written. It describes schema v1, not the
+> current file.
 
 `CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` lists 10 inherited reds, all from
 `visual.spec.ts`. The N8 gate reds an 11th, `visual-baseline-thumbnails.spec.ts`

@@ -665,6 +665,13 @@ ledger, whose scope is `visual.spec.ts-snapshots` only. The ledger's own rule is
 unambiguous: *"A red on a file NOT in this ledger is a real finding and a rollback
 trigger."* It failed all three retries, so it is deterministic rather than a flake.
 
+> **Later correction.** The two paragraphs above describe the ledger at **schema v1**, which
+> is what packet i reconciled against. Schema v2 (proposal P1, see
+> [`CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md`](CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md)
+> §5) made the ledger multi-spec and added the eleventh red with the `1019d34` provenance i
+> established below. Against the current file all **11** are ledgered, so this gate no longer
+> leaves an unlisted red. The measurement is unchanged; only the ledger's coverage is.
+
 That was settled by measurement, not by argument. The same deep gate was dispatched against
 `1019d34` — the pre-repair commit, which does not contain this packet — and it reports the
 **same eleven failures with the same identities**, `plan-desktop-light-advanced` included:

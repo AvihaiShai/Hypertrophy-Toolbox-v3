@@ -379,12 +379,14 @@
 > - Seven-surface Stylelint is **2,883** (`components.css` **1,989**), not the
 >   projected 2,681/1,787. V4's thresholds of 86/8 were *global* WP4.1 figures;
 >   the true seven-surface values are **26/2**.
-> - **Ten inherited Linux `desktop` reds** and the **eight uncertifiable Welcome
->   elements** are ledgered machine-readably in
+> - **Eleven inherited Linux `desktop` reds across two spec files** and the
+>   **eight uncertifiable Welcome elements** are ledgered machine-readably in
 >   [`CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`](CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json).
->   N8 packets (h, i, j, k) reconcile against it. **Do not rebaseline the ten**,
->   and **no packet may classify a declaration affecting those eight elements as
->   dead using the rest-state harness.**
+>   N8 packets (h, i, j, k) reconcile against it. **Do not rebaseline the
+>   eleven**, and **no packet may classify a declaration affecting those eight
+>   elements as dead using the rest-state harness.** *Corrected from ten under
+>   proposal P1 — the `visual-baseline-thumbnails.spec.ts` red was omitted
+>   because the ledger's v1 shape held only one spec file.*
 >
 > **WP4.4-c (`motion.css`) is COMPLETE — PR #188, squash `1b13bfc`.** Superseded
 > 2026-07-28; this paragraph previously read "Next: WP4.4-c" and stated the
@@ -1402,7 +1404,7 @@ is owner adjudication of the three closeout proposals recorded in
 
 | Proposal | State |
 |---|---|
-| **P1** — the Linux inherited-reds ledger covers only 10 reds from one spec file, while its own rules make an unlisted red a rollback trigger | PR #223 open, **awaiting owner approval** (V2 / R3 condition 6) |
+| **P1** — the Linux inherited-reds ledger under-described reality: its **schema-v1** shape bound the ledger to a single spec file and recorded **10** reds, while its own rules made an unlisted red a rollback trigger | **Owner-approved and merged** via PR #223 (V2 / R3 condition 6 discharged). Schema **v2** covers **11** reds across two spec files; the 10-red figure is historical schema-v1 text |
 | **P2** — no `static/css/**` row in `QUALITY_GATE.md`, so every CSS packet re-infers its gate routing | PR #222 open, **awaiting owner review** (N10) |
 | **P3** — `theme-dark.css` is largely inert: `:where()` zeroes its specificity, so a far larger reduction than C11 permitted is likely available | **not started** — needs Gate 1 via `/council-plan` |
 

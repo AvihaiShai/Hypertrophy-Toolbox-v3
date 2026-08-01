@@ -1446,8 +1446,9 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 > reachable by a 404** (`app.py:194` returns an inline document with no
 > stylesheet), so no packet may treat a bad URL as exercising it; seven-surface
 > Stylelint is **2,883** with `components.css` at **1,989**; V4's 86/8
-> thresholds were global WP4.1 figures and are **26/2** here. The ten inherited
-> Linux `desktop` reds and the eight uncertifiable Welcome elements are
+> thresholds were global WP4.1 figures and are **26/2** here. The **eleven**
+> inherited Linux `desktop` reds — spanning two spec files, corrected from ten
+> under proposal P1 — and the eight uncertifiable Welcome elements are
 > ledgered in
 > [`CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`](CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json)
 > — **do not rebaseline the reds**, and **no packet may classify a declaration
