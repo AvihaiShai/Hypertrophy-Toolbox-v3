@@ -23,7 +23,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
+import socket
 import sqlite3
 import subprocess
 import sys
@@ -153,11 +155,86 @@ def _post_json(url: str, payload: dict, timeout: float = 30.0):
     return urllib.request.urlopen(request, timeout=timeout)
 
 
+def _require_free_port(port: int) -> None:
+    """Refuse to smoke against a port something else already owns.
+
+    Without this the smoke can pass while never having launched anything: it
+    polls ``127.0.0.1:<port>``, some unrelated process answers, and every
+    assertion runs against that instead of the packaged build.
+    """
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.settimeout(1.0)
+        if probe.connect_ex(("127.0.0.1", port)) == 0:
+            raise SmokeError(
+                f"port {port} is already in use; the smoke would test whatever "
+                f"owns it rather than the packaged build. Pass --port with a "
+                f"free port."
+            )
+
+
+def _check_asset_version_policy(base_url: str) -> None:
+    """F4, and the only place it can actually be verified.
+
+    The one-year ``STATIC_LONG_MAX_AGE`` applies **only** in a frozen build, so
+    the whole point of the cache-busting work is unobservable outside a packaged
+    run. Three things have to hold together, and each fails differently:
+
+    1. rendered pages carry ``?v=<APP_VERSION>`` on their first-party links;
+    2. a request at the current version is long-cached;
+    3. a request without one -- transitive ES-module imports and runtime-built
+       asset URLs can never carry it -- must revalidate instead, or it inherits
+       the year and goes stale after an upgrade, which is the bug itself.
+    """
+    from utils.version import APP_VERSION
+
+    with _get(f"{base_url}/") as response:
+        html = response.read().decode("utf-8", "replace")
+
+    links = re.findall(r'(?:href|src)="(/static/(?:css|js)/[^"]+)"', html)
+    _check(bool(links), "the rendered page links first-party CSS/JS")
+    unversioned = [link for link in links if f"?v={APP_VERSION}" not in link]
+    _check(
+        not unversioned,
+        f"all {len(links)} rendered first-party links carry ?v={APP_VERSION}"
+        + (f" (missing on {unversioned})" if unversioned else ""),
+    )
+
+    probe = links[0].split("?")[0]
+
+    with _get(f"{base_url}{probe}?v={APP_VERSION}") as response:
+        cache_control = response.headers.get("Cache-Control", "")
+    _check(
+        "max-age=31536000" in cache_control and "immutable" in cache_control,
+        f"versioned asset is long-cached: {probe}?v={APP_VERSION} -> "
+        f"{cache_control!r}",
+    )
+
+    for label, url in (
+        ("unversioned", f"{base_url}{probe}"),
+        ("stale version", f"{base_url}{probe}?v=0.0.0-stale"),
+        # A transitive ES-module import: fetched bare, since ?v= on the parent
+        # never propagates to what it imports.
+        ("transitive import", f"{base_url}/static/js/modules/fetch-wrapper.js"),
+        # A runtime-built URL: JS constructs this, so no template can version it.
+        (
+            "runtime-built asset",
+            f"{base_url}/static/bodymaps/hypertrophy-advanced/body_anterior.svg",
+        ),
+    ):
+        with _get(url) as response:
+            cache_control = response.headers.get("Cache-Control", "")
+        _check(
+            "no-cache" in cache_control and "31536000" not in cache_control,
+            f"{label} must revalidate: {cache_control!r}",
+        )
+
+
 def _launch(
     work_dir: Path,
     mode: str,
     payload_python: Path | None,
     runtime_root: Path,
+    port: int,
 ):
     child_environment = {
         **os.environ,
@@ -165,6 +242,10 @@ def _launch(
         "FLASK_USE_RELOADER": "0",
         # Never let a smoke write into the real per-user data directory.
         "HT_RUNTIME_DIR": str(runtime_root),
+        # Both launch paths read this -- app_launcher.py for the bootloader and
+        # app.py's __main__ for the payload. Without it they hardcode 5000 while
+        # this script polls --port, so a non-default port could never work.
+        "HT_PORT": str(port),
     }
     child_environment.pop("DB_FILE", None)
 
@@ -218,6 +299,7 @@ def serve_and_check(
     runtime_root: Path,
 ) -> None:
     """Boot the distribution and assert it serves real catalog-backed pages."""
+    _require_free_port(port)
     base_url = f"http://127.0.0.1:{port}"
     bundled_data = work_dir / "_internal" / "data"
     runtime_db = runtime_root / "data" / "database.db"
@@ -226,9 +308,18 @@ def serve_and_check(
 
     _check(not runtime_db.exists(), "no runtime database before first launch")
 
-    process = _launch(work_dir, mode, payload_python, runtime_root)
+    process = _launch(work_dir, mode, payload_python, runtime_root, port)
     try:
         _wait_for_server(base_url, process)
+
+        # Identity: prove the server answering is the child just launched, not
+        # something that already owned the port. _require_free_port() showed the
+        # port was free beforehand and this child is still the live owner.
+        _check(
+            process.poll() is None,
+            f"the launched child (pid {process.pid}) is still serving",
+        )
+
         for route in PAGES:
             with _get(f"{base_url}{route}") as response:
                 _check(response.status == 200, f"GET {route} -> 200")
@@ -243,6 +334,8 @@ def serve_and_check(
                     ),
                     f"GET {route} -> 200 ({content_type})",
                 )
+
+        _check_asset_version_policy(base_url)
 
         with _get(f"{base_url}/get_all_exercises") as response:
             exercises = json.loads(response.read())["data"]
@@ -334,9 +427,10 @@ def check_upgrade_migration(
     legacy = _plant_legacy_database(work_dir)
     legacy_digest = file_digest(legacy)
     runtime_db = runtime_root / "data" / "database.db"
+    _require_free_port(port)
     base_url = f"http://127.0.0.1:{port}"
 
-    process = _launch(work_dir, mode, payload_python, runtime_root)
+    process = _launch(work_dir, mode, payload_python, runtime_root, port)
     try:
         _wait_for_server(base_url, process)
         with _get(f"{base_url}/get_all_exercises") as response:

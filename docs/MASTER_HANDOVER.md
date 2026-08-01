@@ -38,6 +38,107 @@
 > `GENERATE_GOLDEN` is **shared** with `tests/test_fatigue_golden.py` — leaving it
 > set silently re-baselines a second protected zone while reporting `skipped`.
 > Full record: [`wpb4_unassigned_bucket/PLANNING.md`](wpb4_unassigned_bucket/PLANNING.md).
+> **2026-08-01 — TESTING STRATEGY PHASE 0 + PHASE 1 ARE COMPLETE.**
+> Eight pull requests merged the same day. The repository now measures its own test surface
+> instead of describing it, and the destructive-path E2E guard is a required check.
+>
+> **This closes Phase 0 and Phase 1 of [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) only.**
+> Owner sign-off covered **D1** (coverage as non-blocking measurement) and the
+> `e2e-erase-flow` half of **D2**. **D3-D7 remain unsigned and untouched; Phases 2-5 remain
+> proposals.** Do not dispatch Phase 2+ work from this block.
+>
+> | PR | What | Squash |
+> |---|---|---|
+> | #229 | §8 parallel-execution constraints; D1 + D2(erase-flow) recorded as signed | `fe5917b` |
+> | #231 | Generated test inventory + measure-only drift job (Phase 0.1) | `037d98c` |
+> | #233 | CI hardening: 14 job timeouts, workflow-scoped concurrency, pinned `pip-audit`, Playwright skew closed (Phase 0.2) | `99c5a36` |
+> | #237 | `.github/dependabot.yml` + full-graph `npm audit`, measure-only (Phase 0.3) | `11cb732` |
+> | #248 | `e2e-erase-flow` promoted to a required check (Phase 0.4, D2) | `83958e5` |
+> | #253 | `pytest-cov`, non-blocking, no threshold (Phase 1.5, D1) | `bb4858e` |
+> | #254 | `@vitest/coverage-v8`, report-only (Phase 1.6) | `70b8931` |
+> | #255 | §8.6 execution log | `20ede92` |
+>
+> **Branch protection is now 10 required contexts**, up from 9. The tenth is
+> `E2E Erase Flow (Chromium, isolated, non-required)` — appended via the protection API after
+> reading the existing list, never replacing it. **That parenthetical is now false and must
+> stay**: the string *is* the branch-protection context, so renaming the job orphans the check
+> and blocks every open pull request. `E2E Fatigue Context (Chromium, non-required)` carries the
+> identical load-bearing lie and has been required since 2026-07-05.
+>
+> **Post-merge validation on `main`.** The three merges that changed CI behaviour were each
+> confirmed green on `main` itself, not merely on their pull requests:
+>
+> | Commit | Result |
+> |---|---|
+> | `bb4858e` (#253, Python coverage) | ✅ green on `main` |
+> | `70b8931` (#254, JS coverage) | ✅ green on `main` |
+> | `20ede92` (#255, execution log) | ✅ green on `main` — **16/16 jobs, 10/10 required contexts** |
+>
+> ### Coverage baselines — informational only, no thresholds anywhere
+>
+> | | Value | Scope |
+> |---|---|---|
+> | **Python** | **87%** — 7,801 statements, 1,040 missed | `utils` + `routes` |
+> | **JS** | **5.14%** statements — **47 of 55 modules at exactly 0%** | `static/js/**` |
+>
+> **There is no `--cov-fail-under`, no Vitest `thresholds` key, and no ratchet.** These are
+> baselines for a *future* baseline-diff (the `scripts/pyright_baseline_diff.py` pattern), and
+> §7.1 is explicit that "observed − 2%" is a tolerance rather than a ratchet. Do not add a bare
+> threshold. `js-unit` stays **non-required** — D2's js-unit half is unsigned.
+>
+> ### Four corrections the plan needed, each found by executing it
+>
+> 1. **`utils/double_progression*` does not exist.** Phase 1 step 5 named it as a core module to
+>    watch. There is no such file; the logic lives in `utils/progression_plan.py` (98%).
+> 2. **`app.py` has zero pytest coverage and cannot be measured today** — its only import site is
+>    the `app_client` fixture at `tests/test_pattern_coverage.py:329`, which no test in its class
+>    requests. Blindspot **B2**, arriving independently through the coverage data.
+> 3. **The pytest node count is not platform-invariant.** `tests/test_guard_destructive_command.py:58`
+>    parametrizes over the PowerShell hosts actually installed — 322 nodes on Windows, 163 on the
+>    ubuntu runner. The inventory models this rather than flattening a test that exists precisely
+>    because the two hosts behave differently.
+> 4. **`npm audit --omit=dev` is a false green here**: `dependencies: {prod: 1, dev: 246}`, so it
+>    scans one package of 246 and reports zero against four high-severity advisories.
+>
+> ### Generated inventory replaces every hand-counted total
+>
+> [`docs/test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md) (+ `.json`) is now
+> the single producer. **541** Playwright tests / 30 specs, **426** in the required functional
+> gate (the docs had said 404), **1,994** deterministic pytest nodes / 92 files, **93** hard
+> waits. `.claude/rules/testing.md` lost its Baselines block and its per-spec `Tests` column and
+> now points here. Regenerate with `scripts/generate_test_inventory.py`; never restate a count.
+>
+> ### Two flips deliberately deferred, with written trigger conditions
+>
+> - **Inventory drift check** is measure-only. §8.4's condition is *partly* met — app.py P1/P2/P5
+>   have merged — but **WPB.4 has not** (in flight as #256). Flip only after it merges *and* its
+>   post-merge checks on `main` are green.
+> - **`npm audit`** is measure-only pending a documented severity/exception policy (Phase 0 step 3).
+>   All four current findings are transitive devDependencies of the build/test toolchain.
+>
+> Both flips are a one-token change (`exit 0` → `exit $STATUS`) beside the condition in `ci.yml`.
+>
+> ### Operational lesson worth keeping
+>
+> `continue-on-error: true` keeps a job from *blocking* but still paints a **red ✗**, which reads
+> as failure to every other session. For a genuinely-green measure-only job, capture the exit code
+> and report via `::warning`, then `exit 0` — the `css-stylelint-measure` idiom.
+>
+> ### Cross-session incident, same day
+>
+> `main` was red from `d453010` (app.py P2, #232) to `bd121c9` (#234). `Run Tests` is required, so
+> **every** pull request in the repository was unmergeable for the duration. Root cause: a
+> module-scoped `real_app_client` fixture depending on `app.py` import order — **not** the
+> trailing-slash behaviour the failing assertions pointed at. P2 and P5 were each green on their
+> own PR; the defect existed only with both on `main`. Fixed by Session A in #234.
+> **A green pull request is not evidence of a green `main`** when several packets land in the same
+> window, and nothing in the current CI shape detects a cross-PR interaction before it lands.
+>
+> ### Dependabot is live
+>
+> `.github/dependabot.yml` covers pip, npm and github-actions weekly. The first sweep opened 13
+> pull requests (#239-#252) because nothing had ever been updated; steady state will be far
+> smaller. **None have been merged** — triage is owner-gated and several are majors.
 
 > **2026-07-29 — Owner-directed runtime alignment:** Python **3.14.6+** is now
 > the repository-wide minimum for source runs, tests, CI and executable builds.
@@ -48,7 +149,7 @@
 > 3.14.6 environment. This tooling/runtime-policy change does not alter the
 > WP4.4 packet ordering or next-safe-step below.
 >
-> **2026-08-01 (LATEST) — WP4.4 IS COMPLETE. The `i` → `j` → `k` tail is merged
+> **2026-08-01 — WP4.4 IS COMPLETE. The `i` → `j` → `k` tail is merged
 > and the arc is closed.** Every packet from `a` to `k` has landed. `i` merged as
 > `5f7b5ac` (PR #212) with an in-scope corrective at `666471e` (PR #215); `j`
 > merged as `47c7687` (PR #216); `k` is this closeout.
