@@ -143,13 +143,6 @@ def safe_media_path(value):
     return value if is_valid_media_path_shape(value) else None
 
 @app.before_request
-def clear_trailing():
-    from flask import redirect, request
-    rp = request.path 
-    if rp != '/' and rp.endswith('/'):
-        return redirect(rp[:-1])
-
-@app.before_request
 def start_timer():
     """Store request start time for performance logging."""
     g.start_time = time.time()
