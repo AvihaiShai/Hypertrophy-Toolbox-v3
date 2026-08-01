@@ -73,7 +73,7 @@ jobs:
 
     - name: Upload Playwright artifacts
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: deep-gate-full-e2e
         path: artifacts/playwright
@@ -404,7 +404,7 @@ jobs:
     # by a human after downloading and inspecting this artifact.
     - name: Upload generated Linux baselines
       if: ${{ inputs.visual_mode == 'generate' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: visual-baselines-linux
         path: e2e/__screenshots__/linux/**
@@ -413,7 +413,7 @@ jobs:
     # compare (or generate) failure → upload report + actual/expected/diff PNGs.
     - name: Upload Playwright report + diffs
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: visual-linux-report
         path: artifacts/playwright

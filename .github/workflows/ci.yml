@@ -108,7 +108,7 @@ jobs:
 
     - name: Upload flake8 diagnostics
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: static-analysis-flake8
         path: |
@@ -264,7 +264,7 @@ jobs:
 
     - name: Upload Playwright artifacts
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: playwright-functional-shard-${{ matrix.shard }}-of-2
         path: artifacts/playwright
@@ -343,7 +343,7 @@ jobs:
 
     - name: Upload Playwright artifacts
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: playwright-backup
         path: artifacts/playwright
@@ -401,7 +401,7 @@ jobs:
 
     - name: Upload Playwright artifacts
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: playwright-fatigue-context
         path: artifacts/playwright
@@ -467,7 +467,7 @@ jobs:
 
     - name: Upload Playwright artifacts
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: playwright-erase-flow
         path: artifacts/playwright
@@ -580,7 +580,7 @@ jobs:
 
     - name: Upload pytest JUnit XML
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-junit
         path: artifacts/pytest/junit.xml
@@ -588,7 +588,7 @@ jobs:
 
     - name: Upload coverage report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-coverage
         path: |
@@ -698,7 +698,7 @@ jobs:
 
     - name: Upload static-analysis outputs
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: static-analysis-typecheck
         path: |
@@ -774,7 +774,7 @@ jobs:
 
     - name: Upload JS coverage report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: js-coverage
         path: artifacts/js-coverage
@@ -827,7 +827,7 @@ jobs:
 
     - name: Upload stylelint measurement
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: static-analysis-stylelint
         path: artifacts/stylelint
@@ -940,7 +940,7 @@ jobs:
 
     - name: Upload drift report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test-inventory-drift
         path: inventory_drift.txt
@@ -948,7 +948,7 @@ jobs:
 
     - name: Upload regenerated inventory
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test-inventory
         path: docs/test_inventory
@@ -1030,7 +1030,7 @@ jobs:
 
     - name: Upload npm audit report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: js-supply-chain-npm-audit
         path: artifacts/npm-audit
