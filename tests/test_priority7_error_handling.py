@@ -22,14 +22,14 @@ def error_app():
     the shared app from conftest.py.
     """
     import utils.config
-    from flask import Flask, abort, make_response
+    from flask import Flask, abort
     from routes.workout_plan import workout_plan_bp, initialize_exercise_order
     from routes.workout_log import workout_log_bp
     from routes.main import main_bp
     from routes.filters import filters_bp
     from utils.db_initializer import initialize_database
     from utils.database import add_progression_goals_table, add_volume_tracking_tables
-    from utils.errors import register_error_handlers
+    from utils.errors import register_error_handlers, register_fallback_handlers
     from utils.request_id import add_request_id_middleware
     
     # Use temp test database
@@ -51,25 +51,13 @@ def error_app():
     app.register_blueprint(workout_log_bp)
     app.register_blueprint(filters_bp)
     
-    # Register middleware and error handlers
+    # Register middleware and error handlers exactly as app.py does. This fixture
+    # used to hand-copy app.py's 404 and catch-all handlers, which could drift
+    # from production silently; both now come from the shared registration.
     add_request_id_middleware(app)
     register_error_handlers(app)
+    register_fallback_handlers(app)
 
-    # app.py registers these two handlers after register_error_handlers(). Keep
-    # the fixture layered the same way so tests prove the production winners,
-    # rather than relying on the shadowed helper registrations removed in WP0.1.
-    @app.errorhandler(404)
-    def layered_not_found(_error):
-        if is_xhr_request():
-            return error_response("NOT_FOUND", "The requested resource was not found", 404)
-        return make_response("<html><h1>Not Found</h1></html>", 404)
-
-    @app.errorhandler(Exception)
-    def layered_exception(_error):
-        if is_xhr_request():
-            return error_response("INTERNAL_ERROR", "An unexpected error occurred", 500)
-        return make_response("<html><h1>Internal Server Error</h1></html>", 500)
-    
     # Add error trigger route BEFORE any requests
     @app.route('/__trigger_internal_error')
     def __trigger_internal_error():
@@ -83,7 +71,16 @@ def error_app():
     def __trigger_api_error():
         from utils.errors import APIError
         raise APIError('TEST_API_ERROR', 'forced API error', 409)
-    
+
+    @app.route('/__post_only', methods=['POST'])
+    def __post_only():
+        return 'posted'
+
+    @app.route('/__trigger_404_in_message')
+    def __trigger_404_in_message():
+        # F2: the deleted `"404" in str(e)` branch rendered Not Found for this.
+        raise ValueError('bad value 4041')
+
     # Initialize database within app context
     with app.app_context():
         initialize_database()
@@ -190,13 +187,73 @@ class TestErrorHandlers:
         assert response.status_code == 409
         assert response.get_json()['error']['code'] == 'TEST_API_ERROR'
 
-    def test_later_exception_handler_owns_unrecognized_http_errors(self, error_client):
+    def test_unrecognized_http_errors_keep_their_own_status(self, error_client):
+        """P1/F1. This previously asserted 418 -> 500, characterizing the bug:
+        the Exception catch-all owned every HTTPException without a code-keyed
+        handler. The generic negotiator now answers with the real status.
+
+        History: added as `test_later_exception_handler_owns_unrecognized_http_errors`
+        in 7aee742 (WP0.1, PR #112) to lock a behavior-preserving refactor, not to
+        specify a contract. Flipped under APP_PY_REVIEW_PLAN.md decision D3.
+        """
         response = error_client.get(
             '/__trigger_http_error/418', headers={'Accept': 'application/json'}
         )
+        assert response.status_code == 418
+        assert response.get_json()['error']['code'] == 'I_M_A_TEAPOT'
+
+    def test_method_not_allowed_keeps_status_and_allow_header(self, error_client):
+        """P1/F1. A GET on a POST-only route is the most reachable case: it used
+        to return 500 with a logged stack trace. The `Allow` header is the part a
+        bare JSON envelope would silently drop, so assert it on both paths."""
+        xhr = error_client.get('/__post_only', headers={'Accept': 'application/json'})
+        assert xhr.status_code == 405
+        assert xhr.get_json()['error']['code'] == 'METHOD_NOT_ALLOWED'
+        assert 'POST' in xhr.headers['Allow']
+
+        browser = error_client.get('/__post_only', headers={'Accept': 'text/html'})
+        assert browser.status_code == 405
+        assert 'POST' in browser.headers['Allow']
+
+    def test_exception_message_containing_404_still_returns_500(self, error_client):
+        """P1/F2. `if "404" in str(e): return handle_404(e)` never fired for a
+        genuine NotFound — the code-keyed 404 handler wins first — so it only
+        ever misfired, rendering Not Found for unrelated exceptions."""
+        response = error_client.get(
+            '/__trigger_404_in_message', headers={'Accept': 'application/json'}
+        )
         assert response.status_code == 500
-        assert response.get_json()['error']['message'] == 'An unexpected error occurred'
-    
+        assert response.get_json()['error']['code'] == 'INTERNAL_ERROR'
+
+    def test_negotiator_does_not_steal_code_keyed_statuses(self, error_client):
+        """P1 precedence guard. The negotiator and the 400/422/500 handlers
+        compete for the same exception class, so status code alone cannot tell
+        them apart — a negotiator that stole 500 would still return 500. Assert
+        the distinctive message each code-keyed handler produces.
+        """
+        for status_code, message in (
+            (400, 'The request could not be understood or was missing required parameters.'),
+            (422, 'The request was well-formed but contained invalid data.'),
+            (500, 'An internal server error occurred. Please try again later.'),
+        ):
+            response = error_client.get(
+                f'/__trigger_http_error/{status_code}',
+                headers={'Accept': 'application/json'},
+            )
+            assert response.status_code == status_code
+            assert response.get_json()['error']['message'] == message
+
+        not_found = error_client.get('/nonexistent', headers={'Accept': 'application/json'})
+        assert not_found.status_code == 404
+        assert not_found.get_json()['error']['code'] == 'NOT_FOUND'
+
+    def test_http_error_negotiates_html_for_browser_requests(self, error_client):
+        """P1/F1. Browser requests get Werkzeug's own page, not the JSON envelope."""
+        response = error_client.get('/__trigger_http_error/403', headers={'Accept': 'text/html'})
+        assert response.status_code == 403
+        assert response.mimetype == 'text/html'
+        assert b'Forbidden' in response.data
+
     def test_error_response_helper(self, error_app):
         """Test error_response helper function."""
         with error_app.test_request_context():
