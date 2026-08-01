@@ -78,12 +78,15 @@ def test_rejected_erase_leaves_the_catalog_intact(real_app_client):
     """
     from utils.database import DatabaseHandler
 
-    with DatabaseHandler() as db:
-        before = db.fetch_one("SELECT COUNT(*) AS n FROM exercises")["n"]
+    def exercise_count() -> int:
+        with DatabaseHandler() as db:
+            row = db.fetch_one("SELECT COUNT(*) AS n FROM exercises")
+        assert row is not None, "COUNT(*) always returns a row"
+        return row["n"]
+
+    before = exercise_count()
     assert before > 0, "scratch database seeded no exercises; test proves nothing"
 
     _assert_rejected(real_app_client.post('/erase-data', json={'confirm': 'nope'}))
 
-    with DatabaseHandler() as db:
-        after = db.fetch_one("SELECT COUNT(*) AS n FROM exercises")["n"]
-    assert after == before
+    assert exercise_count() == before
