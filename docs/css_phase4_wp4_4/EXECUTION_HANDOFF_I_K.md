@@ -5,25 +5,41 @@ This is the volatile restart ledger for
 material gate result, PR transition, merge/rebase and before ending a session. Evidence
 filenames never establish provenance; the served checkout, commit and content digest do.
 
-## Snapshot — 2026-07-31 23:30 +03:00
+## Snapshot — 2026-08-01 — ARC CLOSED
 
-| Field | Current value |
+**The i → j → k tail is complete. This ledger is now historical.**
+
+| Field | Final value |
 |---|---|
-| Active packet | WP4.4-i **corrective** (C13, in-scope); packet i itself is merged |
-| Main / origin/main | `09bf9a0` — contains PR #212 (packet i, merged by the owner) and PR #213 (authority/status sync) |
-| Main dirty paths | owner `CLAUDE.md` only — never stage, stash, discard or copy it |
-| Branch | `wt/wp4-4-i-oracle-provenance` |
-| Worktree | `D:/development/Hypertrophy-Toolbox-v3-main-wp4-4-i-is-repair` |
-| HEAD / parent | `09bf9a0` (tracking `origin/main`); corrective uncommitted |
-| Worktree status | dirty by intent: 4 audit scripts, 2 test files, 1 evidence doc, this file, + 2 new scripts |
-| Remote / PR | no remote branch; corrective PR not yet opened |
-| i CSS SHA (unchanged by the corrective) | `0702558b…c6f0e5` |
-| Pristine pre-i CSS SHA | `883e6aa8…107964` (available at `1019d34`) |
-| Second checkout used for before-halves | `D:/development/Hypertrophy-Toolbox-v3-main-wp4-4-j` @ `1019d34`, restored clean after each use |
-| True blocker | none |
+| Active packet | none — WP4.4 is closed at `k` |
+| origin/main | `47c7687` (+ this k closeout) |
+| Main dirty paths | owner `CLAUDE.md` only — never staged, stashed, discarded or copied at any point |
+| i | PR #212 `5f7b5ac`, plus oracle corrective PR #215 `666471e` |
+| j | PR #216 `47c7687` — 25 shadow-certified removals, 621 → 574 lines |
+| k | this closeout; no production change |
+| Arc result | **−539 net lines**, **0 computed-value differences over 2,275,668 values** in both themes |
+| Stylelint (arc base → end) | **2,883 → 2,751 (−132)**, every one of the seven surfaces down |
+| Deferred, untouched | the 235 h-withheld declarations (C8), superset tint (G4), unlinking `theme-dark.css` (R4) |
 
-**No production CSS changes in this corrective.** `static/css/components.css` is untouched at
-`0702558b…`; the corrective repairs oracles, contracts and evidence only.
+Final report, ledger reconciliation and the three open proposals:
+[`CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md`](../CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md).
+
+### What the tail cost, and why
+
+Both i and j needed corrections that only appeared under adversarial review, and both are
+worth remembering as method rather than as incident:
+
+- **A gate that cannot fail is worse than no gate.** i's G3 recorded only a file no
+  admissible repair touches, so passing the *same* summary twice printed a full PASS; and its
+  M4 model-agreement control never referenced the value it claimed to check, so it reported
+  zero mismatches unconditionally. Both are now falsifiable, and the repaired M4 failed twice
+  on real defects before passing.
+- **A zero means nothing without a live control.** Every differential in the tail is now
+  bracketed by a same-CSS control (no false positives) and a known-live mutation (no false
+  negatives), both committed and digest-pinned rather than run by hand.
+- **Provenance is content, not filenames.** Every capture records its checkout root and the
+  *served* digest, and every differ refuses a single-root pair unless a control explicitly
+  opts in.
 
 ## Corrective gate results — all from the post-#212 tree
 

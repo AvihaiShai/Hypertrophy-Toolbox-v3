@@ -1,11 +1,23 @@
 # Deep Refactor Plan — v3 (2026-07-04, full-scan grounded)
 
-**Status update (2026-07-31, supersedes the older frontier prose below):** WP4.4
-is complete through h; N4 is approved; the visual-harness prerequisite merged in
-PR #211 (`1019d34`); Packet i is active and j/k are authorized sequentially.
+**Status update (2026-08-01, supersedes every status line below):** **WP4.4 is
+COMPLETE and the arc is closed.** `i` merged as `5f7b5ac` (PR #212) with an
+in-scope oracle corrective at `666471e` (PR #215); `j` merged as `47c7687`
+(PR #216); `k` is the closeout. The arc removed **539 net lines** from the seven
+shared bundles with **0 observable change** — an arc-base-to-arc-end computed
+differential over **2,275,668 values** in both themes reports zero. Stylelint
+**2,883 → 2,751 (−132)** measured from the arc base; `!important` −48. Report:
+[`CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md`](CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md).
+
+The §WP4.4 end-state below says `theme-dark.css` is reduced to justified remaps
+*"or is removed after proof"*. **The removal half was explicitly out of reach for
+this arc (R4)** and remains so: `templates/base.html` is frozen and the file is
+still linked. `j` reduced it 621 → 574 lines. The 235 Packet-a-span declarations
+remain deferred (C8), as does the superset dark-tint gap (G4).
+
 See [`N4_CONTINUATION_AUTHORITY.md`](css_phase4_wp4_4/N4_CONTINUATION_AUTHORITY.md)
-and [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md).
-The 235 Packet-a-span declarations are deferred and outside i–k.
+and [`EXECUTION_HANDOFF_I_K.md`](css_phase4_wp4_4/EXECUTION_HANDOFF_I_K.md) for
+the tail's authority and restart ledger.
 
 **Status (2026-07-30, superseded by the update above): Track A, Phases -1 through 3, and Phase-4 packets
 WP4.-1, WP4.0a, WP4.0, WP4.1, WP4.2, and WP4.3a–WP4.3h are complete, as is the
