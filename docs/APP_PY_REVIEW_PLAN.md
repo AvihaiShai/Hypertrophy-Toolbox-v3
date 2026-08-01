@@ -1,7 +1,11 @@
 # app.py Review Plan — COMPLETE
 
 **Status:** **EXECUTED AND CLOSED (2026-08-01).** All five packets are merged; see §7 for the
-shipped ledger. Owner decisions D1–D4 are signed in §5. Findings were triple-verified
+shipped ledger. **P4's gates were discharged post-merge, not at merge time — see §7a.** Its PR
+reported an E2E result that its own retained artifact contradicts, and its packaged smoke never
+ran. Both have since been run correctly and pass; §7a records the false claim, the true
+accounting, and one pre-existing visual red that the correction surfaced.
+Owner decisions D1–D4 are signed in §5. Findings were triple-verified
 (independent review → Codex cross-verification → a third source-level check), and the finding
 surface is exhausted — **do not commission another review round, and do not reopen this plan
 as a "next task".** Retained as the rationale record for why each change was made.
@@ -339,3 +343,78 @@ practice adopted for every packet after it: **verify on a branch rebased onto cu
 not merely on the branch's own base.** The shared `real_app_client` fixture in
 `tests/conftest.py` now performs `app.py`'s startup explicitly rather than depending on having
 caused it.
+
+## 7a. P4 verification closeout (2026-08-01) — gates discharged after the merge
+
+**P4's code is sound and is not in question.** `16a4e53` was re-audited against current `main` from
+a clean worktree and the patch is intact. What was wrong was the *verification record*.
+
+### What PR #236 claimed, and what actually happened
+
+Its description reported **"475 passed, 0 failed, 17 did-not-run — documented visual-baseline
+tail."** Its own retained artifact refutes this. `.last-run.json` in the P4 worktree, written
+**19:06** — eleven minutes before the 19:17:51 merge — records `"status": "failed"` with **49**
+failed test IDs (48 `visual.spec.ts`, 1 `visual-baseline-thumbnails.spec.ts`).
+
+True accounting of that run, against a live enumeration of **541 tests / 30 files** (nonvisual
+**457 / 28**, visual tail **84** = 66 + 18):
+
+| Bucket | Count | Composition |
+|---|---:|---|
+| passed | 475 | 457 nonvisual + 18 `visual.spec.ts` |
+| failed | **49** | 48 `visual.spec.ts` + 1 thumbnails |
+| did not run | 17 | remainder of the thumbnails spec |
+
+**Root cause — invalid methodology, not a product defect.** `playwright.config.ts:33` picks the
+seed script from the environment; without `PW_VISUAL_SEED=1` the web server seeds with
+`prepare_e2e_db.py`, the *user-state-wiped functional* seed. Visual baselines are captured against
+the visual fixture, so they cannot match. The non-runs are serial-mode collateral:
+`e2e/visual-baseline-thumbnails.spec.ts:45` sets `test.describe.configure({ mode: 'serial' })`, so
+one failure skips the rest of that block. **"Did not run" here is a skipped remainder, never a
+documented tail — do not read it as one again.**
+
+**The packaged smoke never ran at all.** No `build/` or `dist/` existed in the P4 worktree and no
+post-P4 deep-gate run existed.
+
+### Replacement results — correct methodology, clean worktree off current `main`
+
+`--update-snapshots` was never used; `git status -- e2e/__screenshots__` is empty.
+
+| Gate | Result |
+|---|---|
+| Patch integrity | `APP_VERSION` 3.0.1 = `package.json` 3.0.1; **33/33** first-party CSS/JS links versioned; **0** unversioned; **0** residual random busters; theme-dark raw-substring contract green |
+| pytest (full) | **2334 passed, 1 skipped**, exit 0 |
+| E2E nonvisual (28 specs) | **457 enumerated / 457 executed / 457 passed** / 0 failed / 0 skipped / 0 did-not-run |
+| E2E visual, `PW_VISUAL_SEED=1` (2 specs) | 84 enumerated / 68 executed / **66 passed / 2 failed / 16 did-not-run** |
+| Packaged smoke | **`PASS via real bootloader`**, 36/36 checks, exit 0 |
+
+**Packaged smoke detail.** Built from tracked `main` content in a dedicated build venv via the
+canonical pinned process — Python **3.14.6** (`.python-version`), PyInstaller **6.21.0**
+(`requirements-build.txt`) — then `stage_package_assets.py` → `pyinstaller --clean --noconfirm
+Hypertrophy-Toolbox.spec` → `smoke_packaged_app.py --mode bootloader`. Smart App Control did **not**
+raise `WinError 4551` on this host, so payload mode was never used: this is a real bootloader pass,
+not payload evidence. It covered fresh-install first launch, static asset MIME types,
+`/get_all_exercises` → 1897, `/filter_exercises Barbell` → 225, and the upgrade path.
+
+### The two visual reds
+
+1. **`visual.spec.ts › workout-plan desktop dark` — expected and ledgered.** 875 px, 882 on retry:
+   precisely the documented animated-navbar-logo band (875/882 ∪ 1039/1046). A band, not a
+   constant; not rebaselined.
+
+2. **`visual-baseline-thumbnails.spec.ts › plan-desktop-light-advanced` — PRE-EXISTING, not P4, and
+   previously undocumented.** 6084 px (6098 on retry). A control run of the same spec, same seed,
+   same host, at the **pre-P4 commit `99c5a36`** reproduces it exactly — one failure, 16 serial
+   skips. Diff pixels sit on the skip-link and a navbar element, not thumbnail content, and a `?v=`
+   query string cannot change rendering.
+
+   **This is an open item and it is not P4's.** It is recorded here because the correction found it,
+   not because this plan owns it. It needs its own ledger entry or fix decision. Until then, a
+   correctly seeded visual run on Windows reds **twice**, not once — treat the thumbnails red as
+   known-but-unledgered rather than as a new regression, and do not rebaseline it.
+
+**Why this plan stays CLOSED.** Every P4-attributable gate passes: patch intact, pytest green,
+nonvisual E2E clean, the only visual red inside P4's own scope is the documented one, and the
+packaged smoke passes via a real bootloader. The second red is proven orthogonal to P4 by a
+pre-merge control. Reopening the plan for it would misattribute a pre-existing defect to this
+packet.
