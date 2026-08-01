@@ -8,5 +8,9 @@ XlsxWriter==3.2.9
 openpyxl==3.1.5
 pytest==9.0.3
 pytest-playwright==0.7.2
-playwright==1.59.0
+# Keep in lockstep with @playwright/test in package.json. The E2E suite is
+# driven entirely by the npm package; this one arrives via pytest-playwright and
+# is otherwise unused in the repository, so a skew here is silent -- which is
+# exactly why it drifted to 1.59.0 against npm's 1.60.0 (blindspot B9).
+playwright==1.60.0
 vulture==2.16
