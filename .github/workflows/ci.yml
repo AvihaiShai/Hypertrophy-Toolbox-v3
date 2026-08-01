@@ -863,33 +863,34 @@ jobs:
   # check is also the cross-platform determinism proof required by section 7.3
   # entry criterion 1.
   #
-  # MEASURE-ONLY BY DESIGN, not by oversight. Two other plans --
-  # docs/APP_PY_REVIEW_PLAN.md packets P1-P5 and WPB.4 -- are adding tests right
-  # now, and a drift gate that reds their pull requests for legitimately moving a
-  # count is exactly what section 8.4 promised not to do.
+  # BLOCKING since 2026-08-01. The section 8.4 flip condition is discharged: the
+  # two plans that were adding tests have both merged -- docs/APP_PY_REVIEW_PLAN.md
+  # packets P1-P5, and WPB.4 in PR #256 (`9fe5dbd`) -- and the committed inventory
+  # matches a fresh regeneration on both platforms (this job is green on Linux;
+  # `scripts/generate_test_inventory.py --check` is clean on Windows). That
+  # cross-platform agreement is the section 7.3 entry-criterion-1 proof, not just
+  # a drift result.
   #
-  # "Measure-only" here means GENUINELY GREEN, not merely non-blocking.
-  # continue-on-error alone still renders a red X in the checks list, which reads
-  # as a failure to everyone else even though it blocks nothing. So the drift step
-  # captures its own exit code and reports through ::warning + the job summary,
-  # the same idiom css-stylelint-measure already uses. continue-on-error stays as
-  # a backstop for an unexpected tool crash.
+  # The flip is TWO edits, not one: `exit $STATUS` in the drift step AND no
+  # continue-on-error on the job. Either alone leaves the gate open -- an
+  # `exit 0` step can never fail, and continue-on-error swallows a real failure.
   #
-  # FLIP TO BLOCKING once BOTH of those plans have merged and the committed
-  # inventory has been regenerated to match: change `exit 0` to `exit $STATUS` in
-  # the drift step and drop continue-on-error. Section 8.4 is the record.
+  # A drifted inventory now reds the job. The fix is always the same and never a
+  # workflow edit: run `python scripts/generate_test_inventory.py` and commit the
+  # regenerated artifact in the PR that moved the count.
   #
-  # This job is NEW and non-required; it renames no existing (load-bearing)
-  # branch-protection context.
+  # The name carries no "(non-required)" suffix. This job is not in branch
+  # protection, so it was renamed freely -- unlike the two E2E jobs that still
+  # carry the suffix while being genuinely required. See QUALITY_GATE.md
+  # "CI job naming"; never rename those two.
   #
   # Deliberately no browser install and no Flask server: `playwright test --list`
   # only parses specs and `pytest --collect-only` imports without running, so this
   # job never binds port 5000 (section 8.2) and stays cheap.
   test-inventory:
-    name: Test Inventory Drift (non-required)
+    name: Test Inventory Drift
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true
 
     steps:
     - name: Checkout code
@@ -915,9 +916,9 @@ jobs:
     - name: Install npm dependencies
       run: npm ci
 
-    # Measure-only: the drift verdict is an annotation, not a failed step. Swap
-    # `exit 0` for `exit $STATUS` to flip this gate to blocking (see the flip
-    # condition in the job comment above).
+    # Blocking: the drift verdict is the step's exit code. `set +e` around the
+    # check is what lets the report render before the step fails, so keep the
+    # captured $STATUS rather than letting the command fail the step directly.
     - name: Check committed inventory against a fresh Linux regeneration
       run: |
         set +e
@@ -926,9 +927,12 @@ jobs:
         set -e
         cat inventory_drift.txt
         if [ "$STATUS" -ne 0 ]; then
-          echo "::warning title=Test inventory drift (measure-only)::The committed inventory does not match a fresh regeneration. Run scripts/generate_test_inventory.py and commit the result. Not blocking: see TESTING_STRATEGY_PLANNING.md 8.4."
+          echo "::error title=Test inventory drift::The committed inventory does not match a fresh regeneration. Run scripts/generate_test_inventory.py and commit the result."
           {
-            echo "### Test inventory drift (measure-only — not blocking)"
+            echo "### Test inventory drift — blocking"
+            echo
+            echo 'Run `python scripts/generate_test_inventory.py` and commit the regenerated'
+            echo 'artifact in the same PR that changed the test surface.'
             echo
             echo '```'
             head -c 8000 inventory_drift.txt
@@ -937,7 +941,7 @@ jobs:
         else
           echo "::notice title=Test inventory::Committed inventory matches a fresh Linux regeneration."
         fi
-        exit 0
+        exit $STATUS
 
     - name: Report totals and regenerate for the artifact
       if: always()
