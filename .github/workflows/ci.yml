@@ -725,7 +725,7 @@ jobs:
         print("|---|---|")
         print(f"| Playwright tests (chromium) | {pw['total_tests']} across {pw['total_spec_files']} specs |")
         print(f"| Required functional gate | {req['tests']} tests across {req['spec_files']} specs |")
-        print(f"| pytest collected nodes | {py['total_collected']} across {py['total_files']} files |")
+        print(f"| pytest collected nodes | {py['collected_deterministic']} across {py['deterministic_files']} files (deterministic subset of {py['total_files']}) |")
         print(f"| Hard waits ({hw['metric']}) | {hw['total_lines']} across {hw['files_with_waits']} files |")
         print()
         print("Drift against the committed inventory is reported in the previous step. This job is")
