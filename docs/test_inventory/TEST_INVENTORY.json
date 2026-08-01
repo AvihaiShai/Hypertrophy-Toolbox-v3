@@ -230,6 +230,14 @@
     "total_tests": 541
   },
   "pytest": {
+    "collected_deterministic": 1979,
+    "deterministic_files": 90,
+    "environment_dependent_files": [
+      {
+        "file": "tests/test_guard_destructive_command.py",
+        "reason": "Parametrized over the PowerShell hosts actually installed (HOSTS = [n for n in ('powershell', 'pwsh') if shutil.which(n)], line 58). A Windows box has both and collects 322; the ubuntu runner has pwsh only and collects 163. That is the point of the file -- the guard once passed under pwsh 7 and was a parser error under Windows PowerShell 5.1 -- so the variance is the design, not drift."
+      }
+    ],
     "files": [
       {
         "file": "tests/test_auto_backup.py",
@@ -393,7 +401,7 @@
       },
       {
         "file": "tests/test_guard_destructive_command.py",
-        "tests": 322
+        "tests": null
       },
       {
         "file": "tests/test_harness_isolation.py",
@@ -596,7 +604,6 @@
         "tests": 40
       }
     ],
-    "total_collected": 2301,
     "total_files": 91
   },
   "schema_version": 1

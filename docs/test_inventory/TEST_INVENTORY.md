@@ -15,8 +15,8 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **541** |
 | Playwright spec files | **30** |
 | Required functional gate — `E2E Functional (Chromium)` | **426** tests across 24 specs |
-| pytest collected nodes | **2301** |
-| pytest test files | **91** |
+| pytest collected nodes (deterministic subset) | **1979** across 90 files |
+| pytest test files (all) | **91** |
 | Hard waits (lines containing waitForTimeout) | **93** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -57,6 +57,10 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `workout-plan.spec.ts` | 35 | yes |
 
 ## pytest files
+
+`env-dependent` marks a file whose collected count varies with the machine, not the code. Those counts are deliberately not committed — a committed number would report drift on every host that differs from whoever regenerated last — so the headline total above is the deterministic subset and reproduces byte-for-byte on Windows and Linux.
+
+- **`tests/test_guard_destructive_command.py`** — Parametrized over the PowerShell hosts actually installed (HOSTS = [n for n in ('powershell', 'pwsh') if shutil.which(n)], line 58). A Windows box has both and collects 322; the ubuntu runner has pwsh only and collects 163. That is the point of the file -- the guard once passed under pwsh 7 and was a parser error under Windows PowerShell 5.1 -- so the variance is the design, not drift.
 
 | File | Collected |
 |---|---:|
@@ -100,7 +104,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_filter_registry.py` | 10 |
 | `tests/test_filter_values.py` | 8 |
 | `tests/test_free_exercise_db_mapping.py` | 85 |
-| `tests/test_guard_destructive_command.py` | 322 |
+| `tests/test_guard_destructive_command.py` | env-dependent |
 | `tests/test_harness_isolation.py` | 3 |
 | `tests/test_lift_matching.py` | 3 |
 | `tests/test_logger.py` | 14 |

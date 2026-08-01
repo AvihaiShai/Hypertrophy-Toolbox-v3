@@ -45,6 +45,25 @@ FUNCTIONAL_SHARD_JOB = "e2e-functional-shard"
 
 SCHEMA_VERSION = 1
 
+# Files whose COLLECTED NODE COUNT legitimately depends on the machine, not on
+# the code. Their counts are reported but never committed, because a committed
+# number would report drift on every host that differs from whoever regenerated
+# last. Everything else must reproduce byte-for-byte on Windows and Linux.
+#
+# Add an entry only for genuine environment dependence, never to silence a real
+# diff. A stale entry is caught: the generator fails if a listed file collects
+# nothing.
+ENVIRONMENT_DEPENDENT_PYTEST_FILES = {
+    "tests/test_guard_destructive_command.py": (
+        "Parametrized over the PowerShell hosts actually installed "
+        "(HOSTS = [n for n in ('powershell', 'pwsh') if shutil.which(n)], line 58). "
+        "A Windows box has both and collects 322; the ubuntu runner has pwsh only "
+        "and collects 163. That is the point of the file -- the guard once passed "
+        "under pwsh 7 and was a parser error under Windows PowerShell 5.1 -- so the "
+        "variance is the design, not drift."
+    ),
+}
+
 
 # --------------------------------------------------------------------------
 # Playwright
@@ -216,6 +235,16 @@ def build_inventory() -> dict:
             "ci.yml runs spec files Playwright does not list: " + ", ".join(unknown)
         )
 
+    # A listed file that no longer collects anything means the allowlist has gone
+    # stale and is now hiding a file instead of describing one.
+    stale = [path for path in ENVIRONMENT_DEPENDENT_PYTEST_FILES if path not in pytest_counts]
+    if stale:
+        raise SystemExit(
+            "ENVIRONMENT_DEPENDENT_PYTEST_FILES lists files pytest did not collect: "
+            + ", ".join(stale)
+            + ". Remove the entry rather than leaving it to suppress a real count."
+        )
+
     return {
         "schema_version": SCHEMA_VERSION,
         "generator": "scripts/generate_test_inventory.py",
@@ -238,10 +267,26 @@ def build_inventory() -> dict:
             ],
         },
         "pytest": {
-            "total_collected": sum(pytest_counts.values()),
+            "collected_deterministic": sum(
+                count for path, count in pytest_counts.items()
+                if path not in ENVIRONMENT_DEPENDENT_PYTEST_FILES
+            ),
+            "deterministic_files": len(
+                [path for path in pytest_counts if path not in ENVIRONMENT_DEPENDENT_PYTEST_FILES]
+            ),
             "total_files": len(pytest_counts),
+            "environment_dependent_files": [
+                {"file": path, "reason": reason}
+                for path, reason in sorted(ENVIRONMENT_DEPENDENT_PYTEST_FILES.items())
+            ],
             "files": [
-                {"file": path, "tests": pytest_counts[path]} for path in sorted(pytest_counts)
+                {
+                    "file": path,
+                    "tests": (
+                        None if path in ENVIRONMENT_DEPENDENT_PYTEST_FILES else pytest_counts[path]
+                    ),
+                }
+                for path in sorted(pytest_counts)
             ],
         },
         "hard_waits": {
@@ -288,8 +333,11 @@ def render_markdown(inventory: dict) -> str:
         f"**{pw['required_functional_set']['tests']}** tests across "
         f"{pw['required_functional_set']['spec_files']} specs |"
     )
-    out.append(f"| pytest collected nodes | **{py['total_collected']}** |")
-    out.append(f"| pytest test files | **{py['total_files']}** |")
+    out.append(
+        f"| pytest collected nodes (deterministic subset) | **{py['collected_deterministic']}** "
+        f"across {py['deterministic_files']} files |"
+    )
+    out.append(f"| pytest test files (all) | **{py['total_files']}** |")
     out.append(
         f"| Hard waits ({waits['metric']}) | **{waits['total_lines']}** across "
         f"{waits['files_with_waits']} files |"
@@ -310,10 +358,21 @@ def render_markdown(inventory: dict) -> str:
     out.append("")
     out.append("## pytest files")
     out.append("")
+    out.append(
+        "`env-dependent` marks a file whose collected count varies with the machine, not the "
+        "code. Those counts are deliberately not committed — a committed number would report "
+        "drift on every host that differs from whoever regenerated last — so the headline total "
+        "above is the deterministic subset and reproduces byte-for-byte on Windows and Linux."
+    )
+    out.append("")
+    for row in inventory["pytest"]["environment_dependent_files"]:
+        out.append(f"- **`{row['file']}`** — {row['reason']}")
+    out.append("")
     out.append("| File | Collected |")
     out.append("|---|---:|")
     for row in py["files"]:
-        out.append(f"| `{row['file']}` | {row['tests']} |")
+        value = "env-dependent" if row["tests"] is None else row["tests"]
+        out.append(f"| `{row['file']}` | {value} |")
     out.append("")
     out.append("## Hard waits by file")
     out.append("")
@@ -397,7 +456,11 @@ def main() -> int:
         f"  playwright: {pw['total_tests']} tests / {pw['total_spec_files']} specs "
         f"({pw['required_functional_set']['tests']} required-functional)"
     )
-    print(f"  pytest:     {py['total_collected']} collected / {py['total_files']} files")
+    print(
+        f"  pytest:     {py['collected_deterministic']} collected / "
+        f"{py['deterministic_files']} files (deterministic subset; "
+        f"{py['total_files'] - py['deterministic_files']} env-dependent file(s) excluded)"
+    )
     print(f"  hard waits: {inventory['hard_waits']['total_lines']} lines")
     return 0
 
