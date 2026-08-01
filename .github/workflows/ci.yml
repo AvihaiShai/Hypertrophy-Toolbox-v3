@@ -497,11 +497,86 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Run pytest
+    # Phase 1 step 5 of docs/TESTING_STRATEGY_PLANNING.md, decision D1 (signed
+    # 2026-08-01): coverage is NON-BLOCKING MEASUREMENT. There is deliberately no
+    # --cov-fail-under and no threshold of any kind -- this job's verdict is still
+    # exactly "did the tests pass". The observed number is the baseline for a
+    # future baseline-diff ratchet (the scripts/pyright_baseline_diff.py pattern
+    # this repo already proves), not a line anyone has to stay above today. The
+    # phase-3 decision that ruled coverage out is reversed only this far.
+    #
+    # Scope is utils + routes. app.py is deliberately ABSENT: pytest never imports
+    # it, so coverage answers --cov=app with "Module app was never imported" and
+    # no row at all. Its one import site is the app_client fixture at
+    # tests/test_pattern_coverage.py:329, which no test in that class requests --
+    # a dead fixture. That is blindspot B2 surfacing in the coverage data, and it
+    # is recorded in section 8.6 rather than papered over with a permanent warning.
+    - name: Run pytest with coverage
       run: |
-        pytest tests/ -v --tb=short --junitxml=artifacts/pytest/junit.xml
+        pytest tests/ -v --tb=short --junitxml=artifacts/pytest/junit.xml \
+          --cov=utils --cov=routes \
+          --cov-report=term \
+          --cov-report=xml:artifacts/pytest/coverage.xml \
+          --cov-report=html:artifacts/pytest/htmlcov
       env:
         PYTHONPATH: ${{ github.workspace }}
+
+    # Measure-only reporting. Never fails: `if: always()` so a red test suite
+    # still publishes whatever coverage was collected, and the script itself
+    # cannot fail the job.
+    - name: Summarize coverage (measure-only)
+      if: always()
+      continue-on-error: true
+      run: |
+        python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+        import xml.etree.ElementTree as ET
+
+        # The four surfaces Phase 1 step 5 names as core, corrected against the
+        # tree: the plan says "utils/double_progression*", which does not exist.
+        # The double-progression logic lives in utils/progression_plan.py.
+        CORE_PREFIXES = (
+            "utils/effective_sets",
+            "utils/progression_plan",
+            "utils/volume_",
+            "utils/program_backup",
+        )
+
+        try:
+            root = ET.parse("artifacts/pytest/coverage.xml").getroot()
+        except Exception as exc:
+            print("### Coverage\n\nNo coverage report was produced (%s)." % exc)
+            raise SystemExit(0)
+
+        overall = float(root.get("line-rate", 0)) * 100
+        classes = []
+        for cls in root.iter("class"):
+            name = (cls.get("filename") or "").replace("\\", "/")
+            classes.append((name, float(cls.get("line-rate", 0)) * 100))
+        classes.sort()
+
+        print("### Python coverage (measure-only — no threshold, D1)")
+        print()
+        print("**Overall: %.1f%%** across %d measured files." % (overall, len(classes)))
+        print()
+        print("| Core module | Coverage |")
+        print("|---|---:|")
+        for name, rate in classes:
+            if name.startswith(CORE_PREFIXES):
+                print("| `%s` | %.0f%% |" % (name, rate))
+        print()
+        weakest = sorted(classes, key=lambda c: c[1])[:8]
+        print("<details><summary>Eight weakest modules</summary>")
+        print()
+        print("| Module | Coverage |")
+        print("|---|---:|")
+        for name, rate in weakest:
+            print("| `%s` | %.0f%% |" % (name, rate))
+        print()
+        print("</details>")
+        print()
+        print("No threshold is enforced. This number is the baseline for a future")
+        print("baseline-diff ratchet; see TESTING_STRATEGY_PLANNING.md section 8.6.")
+        PY
 
     - name: Upload pytest JUnit XML
       if: always()
@@ -510,6 +585,16 @@ jobs:
         name: pytest-junit
         path: artifacts/pytest/junit.xml
         retention-days: 7
+
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-coverage
+        path: |
+          artifacts/pytest/coverage.xml
+          artifacts/pytest/htmlcov
+        retention-days: 14
 
   # NOTE: the former `dependency-check` job (outdated/safety scans) moved to the
   # manual Deep Gate (.github/workflows/deep-gate.yml) in Phase 4.5 — it's
