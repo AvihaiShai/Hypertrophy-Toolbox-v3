@@ -86,6 +86,35 @@ Run the union. If the union is empty, run `/verify-suite`.
 
 Both end with `/handover` to record what shipped.
 
+## CI job naming — the `(non-required)` suffix is not a status claim
+
+**Branch protection matches a check by its exact display name.** Renaming a job that
+sits in the required-contexts list orphans that context: the gate silently stops being
+enforced and the PR blocks on a check that will never report again.
+
+Two jobs carry a `(non-required)` suffix while being **genuinely required** in branch
+protection today:
+
+- `E2E Fatigue Context (Chromium, non-required)`
+- `E2E Erase Flow (Chromium, isolated, non-required)`
+
+**Treat their suffix as historical and leave both names byte-for-byte alone.** They were
+promoted into branch protection without a matching rename, and correcting the label now
+would cost more than the inaccuracy does. The same reasoning already keeps
+`Type Check (tsc blocking + pyright measure-only)` frozen.
+
+The rule that follows:
+
+| Situation | Action |
+|---|---|
+| Job is **in** branch protection | Never rename it alone. A rename is only safe when paired with a branch-protection context update in the same change. |
+| Job is **not** in branch protection | Rename freely — and drop a stale `(non-required)` suffix when its meaning changes. |
+| Promoting a job to blocking | Removing `continue-on-error` and returning a real exit code makes the **job** fail. It does **not** make the merge block until the context is added to branch protection — those are two separate changes. |
+
+`Test Inventory Drift` was renamed under the second row when it became blocking on
+2026-08-01: it is not a required context, so the rename was free. Adding it to branch
+protection remains a separate, deliberate step.
+
 ## Known exceptions to treat as pre-existing
 
 Current full-suite baseline (2026-05-10):

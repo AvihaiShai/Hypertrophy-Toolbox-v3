@@ -18,6 +18,32 @@ import pytest
 # the conftest twin has no confirm guard at all, which is the gap F5 records.
 
 
+def test_app_py_registers_the_fallback_handlers(real_app_client):
+    """`app.py`'s own layering, which nothing else asserts.
+
+    `test_priority7_error_handling.py` builds its own Flask app and calls the
+    shared registration itself, so it proves the *functions* work — not that
+    `app.py` calls them. Deleting `register_fallback_handlers(app)` from `app.py`
+    left all 28 of those tests green. These three run against the real object.
+    """
+    # F1: the negotiator gives unclaimed HTTP errors their real status.
+    method_not_allowed = real_app_client.get(
+        '/export_to_workout_log', headers={'Accept': 'application/json'}
+    )
+    assert method_not_allowed.status_code == 405
+    assert 'POST' in method_not_allowed.headers.get('Allow', '')
+
+    # F7: the 404 handler, in its XHR shape.
+    not_found = real_app_client.get(
+        '/__no_such_route__', headers={'Accept': 'application/json'}
+    )
+    assert not_found.status_code == 404
+    assert not_found.get_json()['error']['code'] == 'NOT_FOUND'
+
+    # The favicon short-circuit, which is asserted nowhere else.
+    assert real_app_client.get('/favicon.ico').status_code == 204
+
+
 def _assert_rejected(response):
     assert response.status_code == 400
     body = response.get_json()

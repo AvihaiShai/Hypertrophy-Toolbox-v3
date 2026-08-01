@@ -2,13 +2,22 @@
 # the JS dependency surface had no automated update or vulnerability tracking at
 # all, and `bootstrap` sits pinned at 5.1.3 (2021) feeding the SCSS build.
 #
-# Grouping is deliberate. Three sessions work this repository concurrently and
-# every PR runs a ~14-job pipeline, so a fan of individual bumps is expensive
-# noise. npm and github-actions minor/patch updates are batched into one PR per
-# ecosystem per week; majors still arrive separately because they are the ones
-# that need reading. pip is left ungrouped -- Flask, Werkzeug and Jinja2 are
-# runtime dependencies of a local-first app where a bad bump is a user-visible
-# break, and those deserve to be reviewed one at a time.
+# Grouping policy: batch only what MUST move together, and keep everything whose
+# failure mode is worth attributing on its own pull request.
+#
+# Three sessions work this repository concurrently and every PR runs a ~15-job
+# pipeline, so batching is genuinely valuable -- but only where a grouped red
+# build still tells you which package caused it. The npm block below explains
+# where that line fell in practice.
+#
+#   npm             -> grouped ONLY by compatibility (peer-pinned packages).
+#   github-actions  -> grouped by minor/patch; actions are mutually independent.
+#   pip             -> ungrouped. Flask, Werkzeug and Jinja2 are runtime
+#                      dependencies of a local-first app where a bad bump is a
+#                      user-visible break; they deserve one PR each.
+#
+# Majors are isolated everywhere except inside a peer-pinned family, where
+# splitting them would produce an unresolvable lockfile.
 version: 2
 
 updates:
@@ -29,12 +38,43 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
+    # Grouping is by COMPATIBILITY, not by semver category.
+    #
+    # The first attempt grouped every npm package whose bump happened to be
+    # minor-or-patch. That put `bootstrap` 5.1.3 -> 5.3.8 (a 2021->2025 jump that
+    # is only technically minor) in the same pull request as `sass`
+    # 1.94 -> 1.102, and the pair broke the SCSS build:
+    #
+    #   node_modules/bootstrap/scss/_functions.scss 37:24
+    #   @return red($value), green($value), blue($value);
+    #                        ^^^^^^^^^^^^^  Undefined variable
+    #
+    # Because both moved together, the log could not say which one was at fault.
+    # Sharing a semver category is not evidence that two packages are safe to
+    # review as one change; it is only evidence that their version numbers moved
+    # by a similar amount.
+    #
+    # So only packages that MUST move together are grouped. Everything else --
+    # bootstrap, sass, stylelint, postcss-scss, @playwright/test -- is
+    # deliberately ungrouped and arrives one package per pull request, which is
+    # what makes a red build attributable.
     groups:
-      # Every package in this repository is a devDependency (prod: 1, dev: 246
-      # per `npm audit --json`), so this group is the whole graph minus majors.
-      npm-minor-and-patch:
+      # A genuine compatibility constraint, not tidiness. @vitest/coverage-v8
+      # declares an EXACT peer on vitest ("vitest": "4.1.10"), so bumping either
+      # alone leaves the lockfile unresolvable and `npm ci` fails. Deliberately
+      # NOT restricted to minor/patch: a vitest major must carry its coverage
+      # provider with it for exactly the same reason.
+      vitest:
         patterns:
-          - "*"
+          - "vitest"
+          - "@vitest/*"
+
+      # The compiler and the type definitions it consumes. Restricted to
+      # minor/patch so a TypeScript major arrives on its own and gets read.
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
         update-types:
           - "minor"
           - "patch"
@@ -47,6 +87,11 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(actions)"
+    # Left grouped by semver category on purpose. Actions are independent of one
+    # another -- there is no shared build artefact for a bad pair to corrupt --
+    # and a patch bump across four actions is pure noise. Majors already arrive
+    # separately under this rule, which is how the v7 bumps showed up as four
+    # reviewable pull requests rather than one.
     groups:
       actions-minor-and-patch:
         patterns:
