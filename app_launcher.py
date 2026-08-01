@@ -51,8 +51,11 @@ def open_browser(port: int = 5000, delay: int = 2) -> None:
 
 def main():
     require_supported_python()
-    port = 5000
-    
+    # Honour HT_PORT so the packaged smoke can serve on a port it has confirmed
+    # is free. This is the bootloader launch path; app.py's __main__ is the other.
+    from utils.config import runtime_port
+    port = runtime_port()
+
     print("\n" + "="*50)
     print("  HYPERTROPHY TOOLBOX")
     print("="*50)

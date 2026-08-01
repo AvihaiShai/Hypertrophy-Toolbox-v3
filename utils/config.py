@@ -24,6 +24,25 @@ DB_FILE = os.getenv("DB_FILE", str(runtime_database_path()))  # Allow override v
 # Application Constants
 APP_TITLE = "Workout Tracker"
 
+# Server port. Both packaged launch paths honour this — the bootloader through
+# app_launcher.py and the payload through app.py's __main__ — so an automated
+# smoke can serve on a port it has confirmed is free instead of colliding with
+# whatever already owns 5000. Invalid or out-of-range values fall back to the
+# default rather than crashing a user's launcher.
+DEFAULT_PORT = 5000
+
+
+def runtime_port() -> int:
+    """Resolve the port to serve on from ``HT_PORT``, defaulting to 5000."""
+    raw = os.getenv("HT_PORT")
+    if not raw:
+        return DEFAULT_PORT
+    try:
+        port = int(raw)
+    except ValueError:
+        return DEFAULT_PORT
+    return port if 1 <= port <= 65535 else DEFAULT_PORT
+
 # Export Configuration
 # Maximum rows per export to prevent memory issues
 MAX_EXPORT_ROWS = int(os.getenv("MAX_EXPORT_ROWS", 1000000))
