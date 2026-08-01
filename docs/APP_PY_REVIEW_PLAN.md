@@ -1,9 +1,10 @@
-# app.py Review Plan — APPROVED
+# app.py Review Plan — COMPLETE
 
-**Status:** **APPROVED for execution (owner, 2026-08-01).** All four Section 5 decisions are
-signed; findings are triple-verified (independent review → Codex cross-verification → a third
-source-level check), fix designs vetted, round-2 checks resolved (§3b). The finding surface is
-exhausted — **do not commission another review round.** Execution order and gates: §6.
+**Status:** **EXECUTED AND CLOSED (2026-08-01).** All five packets are merged; see §7 for the
+shipped ledger. Owner decisions D1–D4 are signed in §5. Findings were triple-verified
+(independent review → Codex cross-verification → a third source-level check), and the finding
+surface is exhausted — **do not commission another review round, and do not reopen this plan
+as a "next task".** Retained as the rationale record for why each change was made.
 **Origin (2026-08-01):** started as a cross-check of an external (Codex) review of `app.py`
 whose content was lost in transit; the owner then directed an independent review instead.
 **Verification (2026-08-01):** F1–F3 were confirmed **empirically** by importing the real
@@ -302,3 +303,39 @@ P2, P3 alongside              (independent; no file overlap with P1)
 | P3 | pytest | |
 | P5 | pytest | After P1 merges |
 | P4 | `/verify-suite` + packaged smoke | Serialize its E2E against P1's |
+
+## 7. Shipped ledger (2026-08-01) — plan CLOSED
+
+| Packet | PR | Squash | What landed |
+|---|---|---|---|
+| **P1** F1+F2+F7 | #227 | `24a6f68` | Shared `register_fallback_handlers()`; generic `HTTPException` negotiator. 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404" in str(e)` misfire deleted; the priority-7 fixture's hand-copy killed; 418→418 flip per D3 |
+| **P2** F3 | #232 | `d453010` | `clear_trailing` deleted per D1. Query strings survive, trailing-slash POSTs stay POSTs. 6 regression tests |
+| **P3** F6 | #235 | `573bb7e` | Always-true `hasattr` guard and the redundant stderr traceback removed; `success_response` import hoisted; SIGINT/SIGTERM comment corrected; `format` renamed to `date_format` |
+| **P4** F4 | #236 | `16a4e53` | `utils/version.py` introduced per D2; `inject_app_version()` context processor; all 33 first-party CSS/JS links versioned, all 7 random busters removed. 19 tests |
+| **P5** F5 | #230 | `e71e3859` | `/erase-data` confirm guard covered against the real route. 9 tests, mutation-verified |
+
+Plan approval itself merged as `b0cdaf3` (#226).
+
+**Found during execution, not in the original findings:**
+
+- **A live pre-existing bug.** `_html_error` was missing its `f` prefix, so every
+  browser-facing 400/422/500 page rendered a literal `<title>{title}</title>`. Fixed in P1,
+  which needed that helper for the 404 page.
+- **The `Type Check` CI job is not measure-only**, despite its name.
+  `scripts/pyright_baseline_diff.py` blocks net-new diagnostics against a committed baseline.
+  It caught a real `Optional` subscript in P5's first push. Run it locally before pushing:
+  `npx pyright@1.1.410 --outputjson > pyright.json` then
+  `python scripts/pyright_baseline_diff.py --current pyright.json --baseline docs/ci_cd_phase3/pyright-baseline.json`.
+- **The §4 note that "P2 and P3 have no file overlap with P1" was wrong.** All three edit
+  `app.py`, and P1 *moves* P3's stderr-print target into `utils/errors.py` while P2's deletion
+  makes another F6 item moot. They were run serially, not in parallel.
+
+**One regression was introduced and fixed** (`bd121c9`, #234). P2 and P5 each added a
+module-scoped fixture that patched `DB_FILE` then imported `app`. `app.py` is a module-level
+singleton whose startup runs on first import only, so whichever module imported it second got a
+scratch database nothing had initialized. Both PRs were legitimately green — P2 branched before
+P5 merged, so the two files never ran together until both were on `main`. The lesson, and the
+practice adopted for every packet after it: **verify on a branch rebased onto current `main`,
+not merely on the branch's own base.** The shared `real_app_client` fixture in
+`tests/conftest.py` now performs `app.py`'s startup explicitly rather than depending on having
+caused it.
