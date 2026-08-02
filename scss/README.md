@@ -4,7 +4,7 @@ This directory contains the custom Bootstrap SCSS configuration for the Hypertro
 
 ## Purpose
 
-Instead of loading the full Bootstrap 5.1.3 (~150KB), we create a minimal build with only the components we actually use (~60-80KB), reducing the CSS bundle size by approximately 50-70%.
+Instead of loading the full Bootstrap 5.3.8 bundle, we create a minimal build with only the components we actually use (approximately 124KB instead of 232KB minified).
 
 ## Setup
 
@@ -83,7 +83,7 @@ To switch from CDN to custom build:
 
 **Before**:
 ```html
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 ```
 
 **After**:

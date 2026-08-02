@@ -952,7 +952,7 @@ jobs:
         d = json.load(open("docs/test_inventory/TEST_INVENTORY.json"))
         pw, py, hw = d["playwright"], d["pytest"], d["hard_waits"]
         req = pw["required_functional_set"]
-        print("### Test inventory (measure-only)")
+        print("### Test inventory (drift check is blocking)")
         print()
         print("| Metric | Linux regeneration |")
         print("|---|---|")
@@ -961,8 +961,9 @@ jobs:
         print(f"| pytest collected nodes | {py['collected_deterministic']} across {py['deterministic_files']} files (deterministic subset of {py['total_files']}) |")
         print(f"| Hard waits ({hw['metric']}) | {hw['total_lines']} across {hw['files_with_waits']} files |")
         print()
-        print("Drift against the committed inventory is reported in the previous step as a warning.")
-        print("Measure-only until APP_PY P1-P5 and WPB.4 merge (TESTING_STRATEGY_PLANNING.md 8.4).")
+        print("Drift against the committed inventory is enforced by the previous step, which fails this job.")
+        print("When the test surface changes, run `python scripts/generate_test_inventory.py` and commit")
+        print("the regenerated artifact in the same PR (see docs/TESTING_STRATEGY_PLANNING.md §8.4).")
         PY
 
     - name: Upload drift report
