@@ -16,5 +16,9 @@ pytest-playwright==0.8.0
 # driven entirely by the npm package; this one arrives via pytest-playwright and
 # is otherwise unused in the repository, so a skew here is silent -- which is
 # exactly why it drifted to 1.59.0 against npm's 1.60.0 (blindspot B9).
-playwright==1.60.0
+#
+# The lockstep is no longer a request: tests/test_playwright_version_contract.py
+# fails if this pin and @playwright/test diverge, so a one-sided Dependabot bump
+# reds its own pull request instead of landing quietly.
+playwright==1.61.0
 vulture==2.16
