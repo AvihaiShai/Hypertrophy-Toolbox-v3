@@ -61,6 +61,14 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
       [data-testid="exercise-table"] tr > :first-child {
         position: static !important;
       }
+      /* Closed fixed overlays live just outside the viewport. Full-page and
+         oversized-locator screenshots expand beyond that viewport and would
+         otherwise capture those non-visible layers at compositor-dependent
+         offsets. */
+      .vp-drawer[aria-hidden="true"],
+      .vp-backdrop[hidden] {
+        display: none !important;
+      }
       html {
         --visual-surface-0: #eef1f6;
         --visual-surface-1: #f7f9fc;
@@ -171,7 +179,18 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
         element.style.setProperty('text-shadow', 'none', 'important');
       });
 
+    /* Lazy thumbnails can start loading only when Playwright scrolls an
+       oversized target into view. Decode every image up front so neither the
+       target geometry nor its paint state changes between comparison frames. */
+    const images = Array.from(document.images);
+    images.forEach((image) => {
+      image.loading = 'eager';
+    });
+    await Promise.all(images.map((image) => image.decode().catch(() => undefined)));
     await document.fonts.ready;
+    await new Promise<void>((resolveFrame) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolveFrame()));
+    });
     window.scrollTo(0, 0);
   });
 }
@@ -185,7 +204,7 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
 export async function prepareForElementScreenshot(page: Page): Promise<void> {
   await prepareForScreenshot(page);
   await page.addStyleTag({
-    content: '#navbar { position: absolute !important; }',
+    content: '#navbar { visibility: hidden !important; }',
   });
 }
 
