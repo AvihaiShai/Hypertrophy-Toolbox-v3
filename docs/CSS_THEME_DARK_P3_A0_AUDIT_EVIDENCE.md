@@ -315,6 +315,25 @@ figure below comes from `scripts/css_audit/p3_ceiling.py::measure_theme_dark()`.
 | Bytes newline-normalized (LF) | **22,018** | — | — |
 | Line ending | **CRLF** | — | — |
 | `sha256` of the bytes on disk | **`e54818bf790eb2c11474f68ecddc25d66304d9edf650cf698853276e419f2fca`** | — | — |
+
+> **⚠️ The four byte-level figures above are checkout-dependent, and this is not pedantry —
+> it broke CI.** The repository is `core.autocrlf=true` with **no `.gitattributes`**, so the
+> committed blob is **LF** and a Windows worktree materializes it as **CRLF**. Both forms are
+> the same file; only the bytes differ. **Re-confirmed after the line-ending repair, and both
+> figures stand:**
+>
+> | Form | Bytes | `sha256` | Lines |
+> |---|---|---|---|
+> | Windows worktree (**CRLF**) — what this document measured | **22,592** | `e54818bf…` | 574 |
+> | Committed blob / **Linux CI checkout** (LF) | **22,018** | `3ab06083c89eae0b5dd46d820dde4d2da1d59de1ffa6d825585aaca0ad17e14a` | 574 |
+>
+> The difference is exactly **574** — one `CR` per line — which is the same arithmetic as the
+> `measure.surface_counts()` unit mismatch two paragraphs below, arriving from the other
+> direction. **Every structural figure in the table (lines, blocks, rules, declarations,
+> `!important`, `.value-changed`, `:where(` tokens) is line-ending-invariant and identical on
+> both platforms.** Only bytes and digests move. A later reader on Linux should expect
+> `bytesOnDisk: 22018` and `lineEnding: LF` from the emitter and treat that as agreement, not
+> drift.
 | Brace-opening blocks | **74** | 74 | yes |
 | Top-level **style** rules | **72** | 72 | yes |
 | Top-level at-rules | **1** | 1 (`@media`) | yes |
@@ -403,6 +422,16 @@ independent `importantDeclarations` count. Two tools, two methods, same number.
   base**, and no `--expect-sha` override is needed. It will need a deliberate re-pin after
   P3-c's first cut — silencing it with `--expect-sha` is the thing the tool's own docstring
   forbids.
+
+  > **Qualified after the line-ending repair, because the original sentence was true on only
+  > one platform.** The tool reads with `readFileSync(cssPath)` — a **Buffer**, no newline
+  > translation — and hashes those raw bytes (`j_known_live_mutation.mjs:28,60,62`). So
+  > `EXPECTED_INPUT` is the digest of the **CRLF** form. **The claim above holds on a Windows
+  > checkout and does not hold on a Linux one**, where the file is LF and hashes to
+  > `3ab06083…` (§3.1). On Linux the control refuses to run without `--expect-sha`, which is
+  > precisely the override its docstring forbids using to silence it. **Recorded, not
+  > repaired** — the tool is outside this packet's owned paths, and the arc is terminated. See
+  > §10 row 11.
 - **⚠️ "Assumed `selector-max-id: 24` measures syntax, not cascade weight."** Measured
   stronger than assumed: the file's selectors contain **82 ID tokens**, and **all 82 are
   inside a `:where()` argument**, contributing zero specificity. Stylelint's 24 is a *warning*
@@ -924,12 +953,71 @@ that this arc is not authorized to change."*
 | 8 | 16 thumbnail tests have never executed on any recorded N8 run; `totalCount: 11` is a floor | §8.5 | **recorded as a precondition on P3-c**, not on this packet |
 | 9 | `docs/test_inventory/TEST_INVENTORY.{json,md}` drift — this packet adds 37 tests and `Test Inventory Drift` is blocking as of #267 | §2.3 | **✅ RESOLVED at finalization.** Regenerated under a dispatch that authorized the collection-only `npx playwright test --list`; `--check` reports up to date. The whole diff is this packet's own 37 tests. |
 | 10 | The plan's gate table for read-only packets omits `pyright baseline diff`, which is blocking on every PR and did catch 7 net-new diagnostics here | §2 | **recorded.** Not a defect in the plan's reasoning — the a0 column derives from the `static/css/**` row, and pyright is a repository-wide gate. A future packet adding Python should run it regardless of its column. |
+| 11 | `j_known_live_mutation.mjs`'s `EXPECTED_INPUT` is the digest of the **CRLF** bytes, so j's known-live control **cannot run unmodified on a Linux checkout** — the file is LF there and hashes to `3ab06083…` | §3.4 | **recorded, not repaired.** Outside owned paths and the arc is terminated. The repo has **no `.gitattributes`** under `core.autocrlf=true`, so every raw-byte digest pinned against a working-tree file has this property. Any future packet re-pinning that constant must say which form it pinned. |
 
 ---
 
 ## 11. Contracts — the O14 / O15 discipline
 
-`tests/test_css_theme_dark_p3_audit_contracts.py`, **37 tests**, all green.
+`tests/test_css_theme_dark_p3_audit_contracts.py`, **37 tests**, all green **on both line-ending
+forms**.
+
+### 11.0 A line-ending defect in this file, found by CI and repaired
+
+**Five of the 37 passed on Windows and failed on the Linux runner.** The module embedded CSS
+anchors with explicit `\r\n` escapes and matched them against
+`THEME_DARK.read_text(encoding="utf-8", newline="")` — and `newline=""` performs no
+translation, so it yields **CRLF on Windows and LF on Linux** (§3.1). The anchors matched on
+exactly one platform.
+
+**This is the arc's own named Tier-2 hazard — "CRLF and character-offset math" — arriving in
+the test rather than in the finding.** The evidence had already recorded it against
+`measure.surface_counts()` as a *byte-count* mismatch (§3.1, §10 row 4); the same root cause
+produced a *substring-match* mismatch here. The audit flagged the hazard and then tripped over
+it, which is worth stating plainly rather than quietly fixing.
+
+**The repair normalizes the input, it does not flip the platform.** A single `_read_css()`
+helper reads with `newline=""` and then normalizes to `\n`, every embedded CSS literal is
+stored with `\n`, and `_synthetic_css()` writes its fixture back with `newline=""` so the
+fixture is byte-for-byte LF on both platforms. Rewriting the literals to CRLF instead would
+merely have moved the failure to Linux-only developers.
+
+**All twelve escape sites were converted, not only the five that failed.** One of them —
+the eighth `.value-changed` rule injected by the zero-headroom red path — was latent: its
+*anchor* contained no newline so the test passed on Linux, while the text it *inserted*
+carried a stray `CR` into an LF file.
+
+**No contract changed what it asserts.** The Ceiling-3 substring finding, the block budget,
+the F1 shadow nomination, the zero-headroom row and the Q1 defect probe all assert exactly
+what they asserted before, with every red path intact.
+
+**Verified on both forms rather than argued.** With the working tree converted to LF to
+reproduce the Linux checkout, **36 of 37 pass**; the single failure is
+`test_this_packet_wrote_no_production_css` correctly detecting the deliberately dirtied
+`static/css/theme-dark.css` that the simulation itself created. Restored byte-identically
+(`sha256 e54818bf…`), the file is **37 / 37**.
+
+**`scripts/css_audit/p3_ceiling.py` does not share the defect**, checked rather than assumed —
+see §11.0a.
+
+### 11.0a Why the emitter was already platform-proof
+
+Every `read_text()` in `p3_ceiling.py` omits `newline=`, so Python's **universal-newline mode**
+translates CRLF to LF on the way in. Its CSS text is therefore LF on both platforms already,
+and it embeds **no multi-line CSS literal** to match against file text. An AST walk over every
+string constant in the module found only two containing a `CR`, and both are correct:
+
+| Site | Construct | Why it is not the defect |
+|---|---|---|
+| `p3_ceiling.py:299` | `"lineEnding": "CRLF" if "\r\n" in text else "LF"` | A **detector**, not a matcher. It is *supposed* to report whichever form is on disk, and it is the figure §3.1 quotes. |
+| `p3_ceiling.py:1214` | `blanked[selector_start] in " \t\r\n"` | A single-character whitespace-class test. `\r` simply never occurs in LF input; `\n` still matches. |
+
+The one deliberate non-translating read is `raw_bytes = path.read_bytes()` in
+`measure_theme_dark()` (`:224`), which produces `bytesOnDisk`, `sha256OfBytesOnDisk` and
+`lineEnding`. **That must stay untranslated** — it is what makes the O10 offset hazard visible
+at all, and those three values are *reported*, never asserted. No contract in this file pins a
+byte count, a digest or a line ending, which is why the emitter's platform-dependent figures
+never reached CI as a red.
 
 **O15 — red paths are committed, executed fixtures.** Every red path is a synthetic tree the
 test writes and feeds to the same function under test: a copied `tests/` directory with one

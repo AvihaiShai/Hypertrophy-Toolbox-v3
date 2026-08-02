@@ -68,6 +68,38 @@ EXPECTED_CONTENT_ROWS = {
 
 
 # ---------------------------------------------------------------------------
+# Line endings — normalize the INPUT, never the expectation
+# ---------------------------------------------------------------------------
+#
+# This repository is `core.autocrlf=true` with no `.gitattributes`, so the
+# committed blob for `theme-dark.css` is LF while a Windows worktree checks it
+# out as CRLF. Reading it with `newline=""` (no translation) therefore yields
+# CRLF on Windows and LF on Linux, and any CSS literal in this module that
+# embeds a specific line ending matches on exactly one platform.
+#
+# The fix is to normalize what is *read* and to write every embedded literal
+# with `\n`. Rewriting the literals to CRLF instead would only flip which
+# platform fails; normalizing the input makes both agree. This is the concrete
+# form of the same CRLF hazard the evidence records against
+# `measure.surface_counts()` (§3.1) — there it is a byte-count unit mismatch,
+# here it was a substring-match mismatch.
+#
+# `read_bytes()` inside `p3_ceiling` is deliberately left alone: it must keep
+# reporting the true on-disk bytes and line ending, which is what makes the
+# O10 offset hazard visible at all.
+
+
+def _read_css(path: Path) -> str:
+    """Read CSS with line endings normalized to ``\\n`` on every platform.
+
+    `newline=""` first, so nothing is translated on the way in and the
+    normalization is explicit and single-sourced rather than implicit in
+    Python's universal-newline mode.
+    """
+    return path.read_text(encoding="utf-8", newline="").replace("\r\n", "\n")
+
+
+# ---------------------------------------------------------------------------
 # Fixture builders — the committed, executed red paths (O15)
 # ---------------------------------------------------------------------------
 
@@ -91,8 +123,13 @@ def _synthetic_tests_dir(tmp_path: Path, edits: dict[str, tuple[str, str]]) -> P
 
 
 def _synthetic_css(tmp_path: Path, edits: list[tuple[str, str, int]]) -> Path:
-    """Copy ``theme-dark.css`` into ``tmp_path``, applying text edits."""
-    text = THEME_DARK.read_text(encoding="utf-8", newline="")
+    """Copy ``theme-dark.css`` into ``tmp_path``, applying text edits.
+
+    The copy is normalized to ``\\n`` and written back with ``newline=""`` so no
+    translation happens on the way out either: the fixture is byte-for-byte LF
+    on Windows and on Linux, and so is every anchor matched against it.
+    """
+    text = _read_css(THEME_DARK)
     for old, new, count in edits:
         assert old in text, f"fixture anchor missing from theme-dark.css: {old!r}"
         text = text.replace(old, new, count)
@@ -301,9 +338,9 @@ def test_the_block_budget_is_derived_from_the_file_and_the_bound_red_path(
         tmp_path,
         [
             (
-                ':where([data-theme="dark"] .frame-content) {\r\n'
-                "    background: rgba(26, 26, 34, 0.5) !important;\r\n"
-                "}\r\n",
+                ':where([data-theme="dark"] .frame-content) {\n'
+                "    background: rgba(26, 26, 34, 0.5) !important;\n"
+                "}\n",
                 "",
                 1,
             )
@@ -346,7 +383,7 @@ def test_the_two_token_blocks_and_the_f1_shadow_nomination_are_measured_red_path
 ) -> None:
     """Drop one redeclaration from the later block and the nomination must void."""
     css = _synthetic_css(
-        tmp_path, [("  --table-stripe: var(--surface-1);\r\n", "", 1)]
+        tmp_path, [("  --table-stripe: var(--surface-1);\n", "", 1)]
     )
     figures = p3_ceiling.measure_theme_dark(css)
     with pytest.raises(AssertionError):
@@ -382,7 +419,7 @@ def test_the_value_changed_floor_is_emitted_with_zero_headroom_red_path(
         [
             (
                 "/* Dark mode reduced motion */",
-                ":where([data-theme='dark'] .value-changed) { outline: none; }\r\n"
+                ":where([data-theme='dark'] .value-changed) { outline: none; }\n"
                 "/* Dark mode reduced motion */",
                 1,
             )
@@ -428,9 +465,9 @@ def test_the_backdrop_filter_pin_is_detected_as_satisfiable_by_absence_red_path(
     css = _synthetic_css(
         tmp_path,
         [
-            ("    -webkit-backdrop-filter: blur(8px) !important;\r\n", "", 2),
+            ("    -webkit-backdrop-filter: blur(8px) !important;\n", "", 2),
             (
-                "    backdrop-filter: blur(8px) !important;\r\n"
+                "    backdrop-filter: blur(8px) !important;\n"
                 "    border: 1px solid rgba(255, 255, 255, 0.1) !important;",
                 "    border: 1px solid rgba(255, 255, 255, 0.1) !important;",
                 1,
@@ -482,11 +519,11 @@ def test_the_o14_detector_distinguishes_a_sliced_haystack_red_path(
 # ---------------------------------------------------------------------------
 
 _RESULTS_BODY_RULE = (
-    ':where([data-theme="dark"] .table.table-hover tbody),\r\n'
-    ':where([data-theme="dark"] #results-body) {\r\n'
-    "    background-color: var(--bg-primary) !important;\r\n"
-    "    color: var(--text-primary) !important;\r\n"
-    "}\r\n"
+    ':where([data-theme="dark"] .table.table-hover tbody),\n'
+    ':where([data-theme="dark"] #results-body) {\n'
+    "    background-color: var(--bg-primary) !important;\n"
+    "    color: var(--text-primary) !important;\n"
+    "}\n"
 )
 
 
@@ -522,7 +559,7 @@ def test_the_certified_removals_pin_still_passes_at_zero() -> None:
     the assertion's own predicate over a CSS text with the protected rule
     deleted and showing it stays green.
     """
-    _check_q1_defect_is_live(THEME_DARK.read_text(encoding="utf-8", newline=""))
+    _check_q1_defect_is_live(_read_css(THEME_DARK))
 
 
 def test_the_certified_removals_pin_still_passes_at_zero_red_path(
@@ -540,7 +577,7 @@ def test_the_certified_removals_pin_still_passes_at_zero_red_path(
         ],
     )
     with pytest.raises(AssertionError):
-        _check_q1_defect_is_live(css.read_text(encoding="utf-8", newline=""))
+        _check_q1_defect_is_live(_read_css(css))
 
 
 # ---------------------------------------------------------------------------
