@@ -566,7 +566,43 @@ arc is allowed to produce; Q4 and Q5 change how it is executed and recorded.
 | **Q10** | **DEFERRED** to P3-a0. a0 must size the shared blind-spot-register repair so it can ship standalone if the arc is abandoned. The arc is safe either way — P3-a1 owns P3-local registers regardless. |
 | **Q11** | **#274 lands before P3-b.** P3-a0 and P3-a1 may proceed regardless. See the sequencing amendment below. |
 
-#### Q11 sequencing — OWNER AMENDMENT, 2026-08-02
+#### Q11 — EVENT UPDATE: #274 HAS LANDED, WITHOUT ITS BASELINES (2026-08-02)
+
+> **`#274` merged as `4435b04`** during the P3-a0 run, followed by `#275` (Node 24) as
+> `95f603f`. Bootstrap **5.3.8 is on `main`**. **The intended sequencing below was not
+> followed: the merge carries ZERO baseline PNGs** — `git show --stat 4435b04` lists eleven
+> files and no `e2e/__screenshots__/**` entry. #274 did **not** carry its own baselines.
+>
+> **What this discharges, and what it does not:**
+>
+> | | Status |
+> |---|---|
+> | **Q11's ordering constraint** | **Discharged.** #274 can no longer land mid-arc. Any measurement taken from now on is against the 5.3.8 cascade — which is the cascade the deletions would ship against. |
+> | **P3-b** | **Unblocked.** Its gates are pytest + a Stylelint reconcile + controls; it runs no visual matrix. Its classification would now be produced against the correct cascade. *(Execution still requires a separate owner dispatch — the arc is funded through P3-a0 only.)* |
+> | **P3-c / P3-d** | **Still blocked.** They require the full `visual.spec.ts` 66/platform matrix, the 18 Windows thumbnails and the N8 deep gate at **0/0**, against baselines that are now stale for **two independent reasons**: the 57 pre-#274 CSS/template commits, **and** Bootstrap 5.1.3 → 5.3.8. |
+> | **Testing Phase 4 stopgap (D3 of the testing plan)** | **Still blocked**, for the same reason. |
+>
+> **The regeneration debt got strictly worse, not better** — it is now the union of two
+> unrelated causes rather than one, and the branch-side route that would have kept it to a
+> single review of 84 PNGs is no longer available. **The dispatch ref changes accordingly:**
+>
+> ```
+> gh workflow run deep-gate.yml --ref main -f run_visual=true -f visual_mode=generate
+> ```
+>
+> Both inputs remain mandatory — `visual-linux` is gated `if: ${{ inputs.run_visual }}` and
+> that input still defaults to `false`.
+>
+> **P3-a0's outputs are unaffected and need no re-derivation.** `static/css/theme-dark.css` is
+> blob `dffaa58` at both `ac16e4c` and `95f603f`, and
+> `tests/test_css_wp4_4_theme_dark_contracts.py`, `tests/test_css_cascade_contracts.py`,
+> `tests/test_css_wp4_4_a_baseline_contracts.py` and `scripts/css_audit/**` are all unchanged
+> across the two merges. The emitted ceiling, the Ceiling-3 finding, the tool assessment, the
+> N8 reconciliation and the Q10 sizing all hold. **What is stale is a0's arc-base pin
+> (`2332242`), its pytest total, and its Stylelint anchor** — all three must be re-measured on
+> a rebase onto `95f603f` before a0 opens a pull request.
+
+#### Q11 sequencing — OWNER AMENDMENT, 2026-08-02 *(superseded in part by the event update above — the branch-side route is no longer available)*
 
 The Linux baselines are **not** regenerated on `main`. Baselines generated against Bootstrap
 5.1.3 would be invalidated the moment #274 lands, costing a second review of 84 PNGs. Instead
