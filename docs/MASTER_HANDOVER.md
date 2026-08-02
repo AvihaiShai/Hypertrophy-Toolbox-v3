@@ -4,7 +4,48 @@
 
 ## Current State
 
-> **2026-08-01 (LATEST) — WPB.4 SHIPPED. Track B is closed.** Weekly summary now
+> **2026-08-02 (LATEST) — CSS closeout proposal P3 is TERMINATED at `P3-a0`.**
+> Owner decision, 2026-08-02. **`P3-a0` is the arc's only implemented packet.
+> `P3-a1` is NOT funded and `P3-b` … `P3-e` are NOT authorized. P3 ends when a0
+> merges, and reopening it requires a new owner decision.**
+>
+> **Why it stopped.** a0 was commissioned as a read-only audit that would price the
+> rest of the arc *before* any instrument existed. It assessed all nineteen
+> committed `scripts/css_audit/` tools and found the price is **nine new tools, not
+> the seven Plan v1 proposed** — the assessment raised the estimate rather than
+> lowering it. Against the deletion yield the owner had already accepted at **Q6**
+> (*"a small certified deletion plus a reusable instrument, not a gutted file"*),
+> nine tools does not clear the cost/risk bar. **The audit paid for itself by
+> stopping the work**, which is what the a0/a1 split existed to make possible.
+>
+> **Three a0 outputs outlive the arc — do not re-derive them:**
+>
+> | Output | Where | Why it still matters |
+> |---|---|---|
+> | The **ceiling emitter** | `scripts/css_audit/p3_ceiling.py` | Converts 14 prose deletion ceilings into a mechanical enumeration that runs on any tree. It also found that `tests/test_css_cascade_contracts.py:1007` is a **bare substring check satisfied by 4 lines, not 2** — `-webkit-backdrop-filter: blur(8px) !important;` *contains* the pinned literal — so `.frame-header`'s dark blur override can be deleted **entirely** with that gate still green. The pin protects nothing it claims to protect. |
+> | The **nineteen-tool assessment** | evidence §6 | The only thing that could price a1, and **the artifact that terminated the arc.** |
+> | The **N8 denominator reconciliation** | evidence §8 | 11 failed + 57 passed + **16 that never ran** = 84. The 16 are serial-mode collateral in `visual-baseline-thumbnails.spec.ts`. **`totalCount: 11` is a FLOOR, not the inherited-red count** — the Linux baseline recovery packet must verify **84** baselines, not the 68 the ledger describes. |
+>
+> Sized but **not** implemented and **not** tied to P3: the **Q10 blind-spot-register
+> repair** (evidence §9) — ≈170–200 lines across two files plus one JSON array,
+> standalone, gated by full pytest alone. `QUALITY_GATE.md:39` routes *every future
+> CSS packet* into that register and it is one-way verified today, so the defect
+> stands for all of them until someone takes it. With no P3-a1 to own a P3-local
+> register, the standalone route is now the only route.
+>
+> **Stale P3 lines survive elsewhere in this file, deliberately.** `## Open
+> Decisions` (*"P3 is the only one left and is planning-only — Gate 0 and Gate 1
+> are both unsigned"*) and `## Blockers` (*"P3 must not start before Gate 1, and
+> Gate 0 is unsigned too"*) both predate the sign-off and the termination. Under
+> the owner's final **D3** ruling a terminal packet may write **only** this lead
+> block and `## Next Safe Step`, so a0 left them untouched rather than exceed its
+> authority. **Read them as superseded by this entry**; correcting them is an owner
+> action.
+>
+> Full record: [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md)
+> and [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md).
+
+> **2026-08-01 — WPB.4 SHIPPED. Track B is closed.** Weekly summary now
 > buckets falsy-routine rows into one synthetic `Unassigned` session instead of
 > dropping them from frequency, matching `session_summary.py:90`. This was the
 > last open Track B packet.
@@ -1603,7 +1644,38 @@ behind the CSS it describes.
 
 ## Next Safe Step
 
-**Current (2026-08-01, latest): WP4.4 is COMPLETE and the arc is closed at `k`.**
+**Current (2026-08-02, latest): all three WP4.4 closeout proposals are settled.
+P1 and P2 merged; P3 is TERMINATED at `P3-a0`. There is no next P3 packet — do
+not dispatch one.**
+
+**The next safe step is no longer P3 adjudication.** The two candidates that
+remain are both *outside* this arc and each needs its own owner decision:
+
+| Candidate | State |
+|---|---|
+| **The Linux visual-baseline recovery packet** | **Not P3 work**, explicitly. A separate packet branched from the current `main`. It must verify all **84** expected baselines — including the **16 thumbnail tests that have never executed on any recorded run** (P3-a0 §8) — classify every changed/added/deleted PNG, and stop at a **draft** PR for owner review. The only authorized dispatch is `gh workflow run deep-gate.yml --ref main -f run_visual=true -f visual_mode=generate`; **both inputs are mandatory**, since `run_visual` defaults to `false` and a bare dispatch generates nothing. |
+| **The Q10 blind-spot-register repair** | Sized by P3-a0 (§9) at **≈170–200 lines**, standalone, **gated by full pytest alone** — `e2e/visual-helpers.ts` is read, never written, so no snapshot moves. It never depended on P3 and is available now. A whole-file `emit_baseline` regeneration is **not** the shape: it moves `isFamily` and reds `test_is_family_enumeration_is_complete_and_classified`. Patch **only** the `oracleBlindSpots` array. |
+
+**P3 — terminated, and what that forecloses.** `P3-a1` is **not funded**;
+`P3-b`, `P3-c`, `P3-d` and `P3-e` are **not authorized**. **Reopening requires a
+new owner decision**, and the Gate 0 / Gate 1 sign-off confers no residual
+authority over any later packet. The preconditions those packets carried —
+#274's ordering, the replacement ledger, the N8 exclusion bucket — are void as
+P3 obligations; only the 84-vs-68 baseline consequence survives, reassigned to
+the recovery packet above.
+
+**Still deferred and still not to be reopened without a separate owner
+decision:** the **235** declarations `h` withheld behind the frozen
+`@layer workout` span (C8), the superset dark-tint gap (G4), and unlinking
+`theme-dark.css` (R4) — **R4 still stands; P3's termination does not relax it.**
+
+> **Superseded 2026-08-02.** The block below read *"the next safe step is owner
+> adjudication of the three closeout proposals"* and carried P3 as *"Planning
+> only — Gate 0 and Gate 1 both UNSIGNED."* Both gates were signed on 2026-08-02,
+> `P3-a0` was then executed, and the owner terminated the arc at it the same day.
+> The table is retained below as the P1/P2 record.
+
+**Historical (2026-08-01): WP4.4 is COMPLETE and the arc is closed at `k`.**
 Every packet is merged and the authorized order is fully discharged:
 
 ```
@@ -1619,12 +1691,13 @@ is owner adjudication of the three closeout proposals recorded in
 |---|---|
 | **P1** — the Linux inherited-reds ledger under-described reality: its **schema-v1** shape bound the ledger to a single spec file and recorded **10** reds, while its own rules made an unlisted red a rollback trigger | **Owner-approved and merged** via PR #223 (V2 / R3 condition 6 discharged). Schema **v2** covers **11** reds across two spec files; the 10-red figure is historical schema-v1 text |
 | **P2** — no `static/css/**` row in `QUALITY_GATE.md`, so every CSS packet re-infers its gate routing | **Owner-approved and merged** via PR #222 (N10 discharged), with two owner amendments: cascade-contract edits must be *explicitly scoped, justified, and must not weaken an existing guarantee*, and a Targeted-test derivation bullet now routes `static/css/**` to that row instead of the `/verify-suite` fallback — **closing F21 fully** |
-| **P3** — `theme-dark.css` is largely inert: `:where()` zeroes its specificity, so a far larger reduction than C11 permitted is likely available | **Planning only — Gate 0 and Gate 1 both UNSIGNED.** Plan v1 + council review at [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md). No production CSS touched; R4 still forbids unlinking the file |
+| **P3** — `theme-dark.css` is largely inert: `:where()` zeroes its specificity, so a far larger reduction than C11 permitted is likely available | **🛑 TERMINATED at `P3-a0`, owner, 2026-08-02.** Both gates *were* signed that day and `P3-a0` — a read-only audit — executed and is the arc's **only** implemented packet. Its nineteen-tool assessment priced `P3-a1` at **nine** new tools, which the owner ruled does not clear the cost/risk bar against the Q6 yield. **`P3-a1` is not funded; `P3-b` … `P3-e` are not authorized; reopening needs a new owner decision.** **No production CSS was ever touched and R4 still forbids unlinking the file.** Evidence: [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md) |
 
-**The P1-before-P3 precondition is satisfied.** P3's verification is the N8 Linux
-deep gate, which reconciles against the ledger P1 corrects; P1 merged as
-`d543a4b`, so the ledger is schema v2 with 11 reds across two spec files before
-any P3 packet runs.
+~~**The P1-before-P3 precondition is satisfied.**~~ **Moot — no P3 packet will
+run.** It was satisfied (`d543a4b` made the ledger schema v2 with 11 reds across
+two spec files), and P3-a0 never needed it: a0 dispatched no deep gate and
+reconciled the N8 denominator documentarily instead. The one consequence that
+outlives this is that **11 is a floor** — see the recovery packet above.
 
 Deferred, and not to be reopened without a separate owner decision: the **235**
 declarations `h` withheld behind the frozen `@layer workout` span (C8), the

@@ -1,6 +1,45 @@
 # Deep Refactor Plan — v3 (2026-07-04, full-scan grounded)
 
-**Status update (2026-08-01, supersedes every status line below):** **WP4.4 is
+**Status update (2026-08-02, supersedes every status line below, including the
+2026-08-01 update):** **CSS closeout proposal P3 is TERMINATED at `P3-a0`.**
+Owner decision, 2026-08-02. All three WP4.4 closeout proposals are now settled:
+**P1** merged (`d543a4b`, #223), **P2** merged (`4b0670b`, #222), and **P3 ends
+at its first packet.**
+
+**`P3-a0` — a read-only audit — is the arc's only implemented packet. `P3-a1` is
+NOT funded and `P3-b` … `P3-e` are NOT authorized. Reopening requires a new owner
+decision.** a0's assessment of all nineteen committed `scripts/css_audit/` tools
+priced `P3-a1` at **nine** new tools rather than the seven Plan v1 proposed —
+raising the estimate, not lowering it — which does not clear the cost/risk bar
+against the yield accepted at **Q6**.
+
+**Nothing in the Phase 4 end-state below is unlocked by this.** a0 wrote **no**
+production CSS and **no** snapshot: `static/css/**` and `e2e/__screenshots__/**`
+are byte-identical to `main`. **R4 still stands** — `templates/base.html` is
+frozen and `theme-dark.css` is still linked. The 235 Packet-a-span declarations
+(C8) and the superset dark-tint gap (G4) remain deferred. The §WP4.4 end-state's
+*"or is removed after proof"* half is now **permanently out of reach for this
+arc**, not merely deferred within it.
+
+**Three a0 outputs outlive the arc:** the ceiling emitter
+`scripts/css_audit/p3_ceiling.py`; the nineteen-tool assessment; and the N8
+denominator reconciliation, which closes at 11 failed + 57 passed + **16 that
+never ran** = 84 and therefore makes **`totalCount: 11` a floor**. That last one
+is reassigned to the separate Linux visual-baseline recovery packet, which is
+**not** P3 work and must verify **84** baselines rather than 68. Sized but not
+implemented: the standalone **Q10** blind-spot-register repair, ≈170–200 lines,
+gated by full pytest alone.
+
+> **Scope note.** Under the owner's final **D3** ruling a terminal packet may write
+> **only** the lead block and the next-step section of the three status documents.
+> The *"Owner review status table"* at the end of this file still records P3 as
+> planning-only with unsigned gates; **a0 left it untouched rather than exceed its
+> authority. Read it as superseded by this update.**
+
+Record: [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md)
+and [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md).
+
+**Status update (2026-08-01, superseded in part by the update above):** **WP4.4 is
 COMPLETE and the arc is closed.** `i` merged as `5f7b5ac` (PR #212) with an
 in-scope oracle corrective at `666471e` (PR #215); `j` merged as `47c7687`
 (PR #216); `k` is the closeout. The arc removed **539 net lines** from the seven

@@ -4,7 +4,47 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-01 (LATEST) — WP4.4 IS COMPLETE; the arc is closed at `k`.** Every
+**2026-08-02 (LATEST) — CSS closeout proposal P3 is TERMINATED at `P3-a0`. There
+is no active P3 packet and none may be dispatched.**
+
+Owner decision, 2026-08-02. **`P3-a0` is the arc's only implemented packet.
+`P3-a1` is NOT funded; `P3-b`, `P3-c`, `P3-d` and `P3-e` are NOT authorized. P3
+ends when a0 merges, and reopening it requires a new owner decision** — the
+Gate 0 / Gate 1 sign-off confers no residual authority over any later packet.
+
+**Why.** `P3-a0` was a read-only audit commissioned to price the rest of the arc
+before any instrument existed. It assessed all nineteen committed
+`scripts/css_audit/` tools and found the price is **nine new tools, not the seven
+Plan v1 proposed** — the assessment raised the estimate rather than lowering it.
+Against the yield already accepted at **Q6** (*"a small certified deletion plus a
+reusable instrument, not a gutted file"*), that does not clear the cost/risk bar.
+
+**a0 wrote no production CSS and no snapshot.** `static/css/**` and
+`e2e/__screenshots__/**` are byte-identical to `main`; **R4 still forbids
+unlinking `theme-dark.css`** and is unaffected by the termination.
+
+**Three outputs outlive the arc — do not re-derive them:** the **ceiling emitter**
+`scripts/css_audit/p3_ceiling.py`, which mechanised 14 prose deletion ceilings and
+proved `tests/test_css_cascade_contracts.py:1007` is a bare substring check
+satisfied by **4** lines rather than 2 (so `.frame-header`'s dark blur override is
+deletable with that gate green); the **nineteen-tool assessment**, which is the
+artifact that terminated the arc; and the **N8 denominator reconciliation** —
+11 failed + 57 passed + **16 that never ran** = 84, making **`totalCount: 11` a
+FLOOR**, which the separate Linux baseline recovery packet must carry.
+
+Sized but not implemented and not tied to P3: the **Q10 blind-spot-register
+repair**, ≈170–200 lines, standalone, gated by full pytest alone.
+
+> **Scope note.** Under the owner's final **D3** ruling a terminal packet may write
+> **only** the lead block and the next-step section of the three status documents.
+> The WP4.4 execution-order block later in this file still calls P3 *"planning
+> only, Gate 0 and Gate 1 both unsigned"*; **a0 left it untouched rather than
+> exceed its authority. Read it as superseded by this entry.**
+
+Full record: [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md)
+and [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md).
+
+**2026-08-01 — WP4.4 IS COMPLETE; the arc is closed at `k`.** Every
 packet is merged: `a` (#187, `46e340e`), `c` (#188, `1b13bfc`), `b` (#192,
 `3bec677`), `e` (#195, `1346a35`), `d1` (#197, `59e5b10`), `f1` (#199,
 `1127486`), `d2` (#201, `0a912d9`), `f2` (#205, `6a5465c`), `g` (#207,
