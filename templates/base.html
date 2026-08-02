@@ -278,6 +278,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Global Error Handler -->
     <script src="{{ url_for('static', filename='js/global-error-handler.js') }}?v={{ app_version }}"></script>
+    <!-- KI-006: wrap Tab/Shift+Tab at the modal boundary; Bootstrap's focusin trap cannot
+         fire when focus falls through to document.body -->
+    <script src="{{ url_for('static', filename='js/modules/modal-focus-trap.js') }}?v={{ app_version }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/app.js') }}?v={{ app_version }}"></script>
     <script src="{{ url_for('static', filename='js/darkMode.js') }}?v={{ app_version }}"></script>
     <script src="{{ url_for('static', filename='js/accessibility.js') }}?v={{ app_version }}"></script>
