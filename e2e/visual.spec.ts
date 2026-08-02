@@ -1,5 +1,6 @@
-import { test, expect, ROUTES, waitForPageReady } from './strict-fixtures';
+import { test, ROUTES, waitForPageReady } from './strict-fixtures';
 import {
+  expectFullPageScreenshot,
   installDeterminism,
   prepareForScreenshot,
   visualScreenshotOptions,
@@ -48,7 +49,10 @@ for (const appPage of pages) {
           await waitForPageReady(page);
           await prepareForScreenshot(page);
 
-          await expect(page).toHaveScreenshot(
+          // Segments only when the page is taller than Chromium can capture;
+          // every other page keeps its single baseline and its existing name.
+          await expectFullPageScreenshot(
+            page,
             `${appPage.name}-${viewport.name}-${theme}.png`,
             visualScreenshotOptions(page),
           );

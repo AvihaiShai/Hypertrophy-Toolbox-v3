@@ -1,0 +1,261 @@
+"""Determinism contracts for the visual-regression capture pipeline.
+
+Three defects made the 84-baseline visual suite nondeterministic across runs of
+the identical CI job at the identical SHA. Two of them are checkable from Python
+and are locked here; the third (media readiness) is a capture-time property and
+lives in ``e2e/visual-helpers.ts``.
+
+**The startup race.** ``e2e/fixtures/database.visual.seed.db`` has no
+``youtube_video_id`` column. ``prepare_visual_db.py`` snapshots it and runs
+``run_all_initializers()``, which ``ALTER TABLE``s the column in as all NULL.
+``app.py`` startup *then* runs ``upgrade_catalog_from_seed()``, which takes about
+1.6 s and populates 56 curated ids. Playwright's ``webServer`` readiness only
+waits for the TCP port, so any page served inside that window renders the
+uncurated branch of ``buildPlayButton`` (a magnifier icon) while a page served
+after it renders the curated branch (a play icon). Four of the six seeded plan
+exercises are curated, so every plan-bearing baseline had two legal renderings.
+The fix is to finish the catalog upgrade *before* the server starts.
+
+**The Chromium surface limit.** A capture taller than 16,384 px does not fail —
+it silently truncates to a flat, unpainted tail. Two committed baselines
+(``user-profile-mobile-dark``/``-light``, 19,785 px and 19,742 px) truncate at
+row 16,392, so the bottom 3,393 px (17.1%) of the mobile Profile page has never
+been exercised in either theme.
+"""
+from __future__ import annotations
+
+import shutil
+import sqlite3
+import struct
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SCREENSHOT_ROOT = REPO_ROOT / "e2e" / "__screenshots__"
+VISUAL_SEED = REPO_ROOT / "e2e" / "fixtures" / "database.visual.seed.db"
+CATALOG_SEED = REPO_ROOT / "data" / "catalog.seed.db"
+PREPARE_VISUAL_DB = REPO_ROOT / "e2e" / "scripts" / "prepare_visual_db.py"
+PREPARE_E2E_DB = REPO_ROOT / "e2e" / "scripts" / "prepare_e2e_db.py"
+
+# Chromium cannot allocate a capture surface taller than this. Keep in step with
+# MAX_CAPTURE_HEIGHT_PX in e2e/visual-helpers.ts.
+MAX_CAPTURE_HEIGHT_PX = 16_384
+
+CURATED_ID_SQL = (
+    "SELECT COUNT(*) FROM exercises "
+    "WHERE youtube_video_id IS NOT NULL AND TRIM(youtube_video_id) <> ''"
+)
+POPULATED_MEDIA_SQL = (
+    "SELECT COUNT(*) FROM exercises "
+    "WHERE media_path IS NOT NULL AND TRIM(media_path) <> ''"
+)
+
+# Baselines that the segmented user-profile capture retires but that this change
+# deliberately does not delete: regenerating baseline PNGs is a separate,
+# reviewed step, and this branch is code + tests only.
+#
+# The assertion below is a strict *equality*, not an allowlist, and that is the
+# point. A new oversized baseline fails it, and so does a stale entry: once the
+# regeneration step replaces these two names with their ``-segment-N`` files,
+# the computed set becomes empty, this constant no longer matches, and the test
+# forces its own removal. Do not add anything here to silence a real capture.
+AWAITING_SEGMENTED_REGENERATION = {
+    "user-profile-mobile-dark.png",
+    "user-profile-mobile-light.png",
+}
+
+
+def _png_size(path: Path) -> tuple[int, int]:
+    """Return ``(width, height)`` from a PNG IHDR chunk."""
+    header = path.read_bytes()[:24]
+    if header[:8] != b"\x89PNG\r\n\x1a\n":
+        raise AssertionError(f"Not a PNG: {path}")
+    width, height = struct.unpack(">II", header[16:24])
+    return width, height
+
+
+def _committed_baselines() -> list[Path]:
+    return sorted(SCREENSHOT_ROOT.rglob("*.png"))
+
+
+def _run_seeder(script: Path, output: Path) -> None:
+    result = subprocess.run(
+        [sys.executable, str(script), "--output", str(output)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    assert result.returncode == 0, (
+        f"{script.name} failed ({result.returncode}):\n"
+        f"{result.stdout}\n{result.stderr}"
+    )
+
+
+def _scalar(database: Path, sql: str) -> int:
+    with sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True) as db:
+        return int(db.execute(sql).fetchone()[0])
+
+
+def _columns(database: Path, table: str) -> set[str]:
+    with sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True) as db:
+        return {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+
+
+@pytest.fixture(scope="module")
+def prepared_visual_db(tmp_path_factory) -> Path:
+    output = tmp_path_factory.mktemp("visual-seed") / "database.visual.db"
+    _run_seeder(PREPARE_VISUAL_DB, output)
+    return output
+
+
+@pytest.fixture(scope="module")
+def prepared_e2e_db(tmp_path_factory) -> Path:
+    output = tmp_path_factory.mktemp("e2e-seed") / "database.e2e.db"
+    _run_seeder(PREPARE_E2E_DB, output)
+    return output
+
+
+# --------------------------------------------------------------------------
+# Chromium surface limit
+# --------------------------------------------------------------------------
+
+
+def test_no_committed_visual_baseline_exceeds_the_chromium_surface_limit():
+    """A capture over 16,384 px truncates to a blank tail instead of failing.
+
+    Nothing in Playwright or Chromium reports this, so the only place it can be
+    caught is the committed corpus.
+    """
+    baselines = _committed_baselines()
+    assert baselines, f"No committed baselines found under {SCREENSHOT_ROOT}"
+
+    oversized = {}
+    for path in baselines:
+        width, height = _png_size(path)
+        if max(width, height) > MAX_CAPTURE_HEIGHT_PX:
+            oversized[path.name] = (width, height)
+
+    assert set(oversized) == AWAITING_SEGMENTED_REGENERATION, (
+        "Baselines over Chromium's "
+        f"{MAX_CAPTURE_HEIGHT_PX}px capture surface: {oversized}. "
+        "Expected exactly the two names retired by the segmented user-profile "
+        "capture and awaiting regeneration."
+    )
+
+
+def test_the_retired_oversized_baselines_are_the_user_profile_mobile_pair():
+    """Pin what the carve-out above is allowed to cover.
+
+    Both retired names must exist on every platform that carries baselines, so
+    the constant cannot quietly stop describing real files.
+    """
+    platforms = sorted(p.name for p in SCREENSHOT_ROOT.iterdir() if p.is_dir())
+    assert platforms, "No platform baseline directories"
+
+    for platform in platforms:
+        snapshots = SCREENSHOT_ROOT / platform / "visual.spec.ts-snapshots"
+        for name in sorted(AWAITING_SEGMENTED_REGENERATION):
+            assert (snapshots / name).is_file(), (
+                f"{platform}/{name} is listed as awaiting regeneration but is "
+                "not present; drop it from AWAITING_SEGMENTED_REGENERATION."
+            )
+
+
+def test_the_capture_helper_declares_the_same_surface_limit():
+    """The TypeScript capture path and this contract must agree on the number."""
+    helper = (REPO_ROOT / "e2e" / "visual-helpers.ts").read_text(encoding="utf-8")
+    assert "MAX_CAPTURE_HEIGHT_PX = 16_384" in helper, (
+        "e2e/visual-helpers.ts must export MAX_CAPTURE_HEIGHT_PX = 16_384 so a "
+        "capture taller than Chromium's surface limit is segmented rather than "
+        "silently truncated."
+    )
+
+
+# --------------------------------------------------------------------------
+# Visual-fixture catalog determinism
+# --------------------------------------------------------------------------
+
+
+def test_the_committed_visual_seed_still_lacks_the_curated_video_column():
+    """Why the seeder has to run the catalog upgrade at all.
+
+    If a regenerated fixture ever ships the column populated this test fails,
+    which is the signal to re-derive the numbers below rather than trust them.
+    """
+    assert "youtube_video_id" not in _columns(VISUAL_SEED, "exercises")
+
+
+def test_prepared_visual_db_ships_a_fully_upgraded_catalog(prepared_visual_db):
+    """The prepared DB must already hold every curated id the shipped catalog has.
+
+    Without this the ids arrive ~1.6 s into ``app.py`` startup, after Playwright
+    has already accepted the port as ready, and ``buildPlayButton`` renders a
+    magnifier before that point and a play icon after it.
+    """
+    assert "youtube_video_id" in _columns(prepared_visual_db, "exercises")
+
+    shipped = _scalar(CATALOG_SEED, CURATED_ID_SQL)
+    assert shipped > 0, "The shipped catalog carries no curated ids to compare against"
+
+    prepared = _scalar(prepared_visual_db, CURATED_ID_SQL)
+    assert prepared == shipped, (
+        f"Prepared visual DB has {prepared} curated youtube_video_id rows but the "
+        f"shipped catalog has {shipped}. app.py startup would mutate the "
+        "difference in under a running capture."
+    )
+
+
+def test_prepared_visual_db_leaves_no_catalog_work_for_app_startup(
+    prepared_visual_db, tmp_path, monkeypatch
+):
+    """The race-closing property, asserted directly.
+
+    A second upgrade against the same catalog must be a recorded no-op. That is
+    what guarantees ``app.py`` cannot change a rendered value after Playwright
+    has decided the server is ready.
+
+    Runs against a copy: the upgrade writes, and the module-scoped fixture is
+    shared with the assertions below.
+    """
+    import utils.config
+    from utils.catalog_upgrade import upgrade_catalog_from_seed
+
+    replica = tmp_path / "database.visual.replica.db"
+    shutil.copy2(prepared_visual_db, replica)
+
+    monkeypatch.setattr(utils.config, "DB_FILE", str(replica))
+    result = upgrade_catalog_from_seed()
+
+    assert result.reason == "already-current", (
+        f"app.py startup would still apply a catalog upgrade: {result}"
+    )
+    assert result.applied is False
+
+
+def test_prepared_visual_db_keeps_the_fixture_thumbnails(prepared_visual_db):
+    """``media_path`` is catalog-owned but ships empty, and must not be blanked.
+
+    The visual fixture's whole purpose is rendering real thumbnails; a refresh
+    that overwrote populated values with the shipped NULLs would empty every
+    plan and log baseline.
+    """
+    fixture_media = _scalar(VISUAL_SEED, POPULATED_MEDIA_SQL)
+    assert fixture_media > 0, "The visual fixture carries no media_path values"
+    assert _scalar(prepared_visual_db, POPULATED_MEDIA_SQL) == fixture_media
+
+
+def test_the_functional_seed_is_not_dragged_into_the_catalog_upgrade(prepared_e2e_db):
+    """``prepare_e2e_db.py`` reuses ``apply_migrations`` and must stay unchanged.
+
+    The functional suite asserts the *uncurated* branch of the video button
+    (``workout-plan.spec.ts``: "Seed rows are uncurated -> search-variant icon").
+    Upgrading its catalog is a separate, deliberate decision with its own
+    re-baselining cost, so the visual seeder opts in explicitly rather than
+    changing the shared helper's default.
+    """
+    assert _scalar(prepared_e2e_db, CURATED_ID_SQL) == 0
