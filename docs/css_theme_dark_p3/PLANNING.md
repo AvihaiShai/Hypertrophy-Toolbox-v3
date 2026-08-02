@@ -13,7 +13,7 @@ stage."* → **Gate 0 + Gate 1 both required.**
 | Gate | State |
 |---|---|
 | **Gate 0** (requirements) | **✅ SIGNED 2026-08-02.** Q1 (split), Q3, Q4, Q5 (amended to the post-regeneration/post-#274 ledger), Q6, Q8, Q9 and **Q11** answered; **Q10 deferred to P3-a0** with a sizing obligation. Rulings in *Section 0 sign-off — GATE 0*. |
-| **Gate 1** (council-reviewed plan) | **✅ SIGNED 2026-08-02.** Plan v2 accepted whole; **P3-a split accepted (5 → 6 packets)**; **D1 yes · D2 yes · D3 P3-e sole writer with a widened termination exception · D4 no**; the standing self-certification risk explicitly accepted. |
+| **Gate 1** (council-reviewed plan) | **✅ SIGNED 2026-08-02.** Plan v2 accepted whole; **P3-a split accepted (5 → 6 packets)**; **D1 yes · D2 yes · D3 P3-e sole writer · D4 no**; the standing self-certification risk explicitly accepted. **One item is OPEN, not blocking:** the abandonment hole under sole-writer — see the ⚠️ note in the D3 amendment. |
 
 **Base:** `main` @ **`4b0670b`** (the commit that merged proposal **P2**, PR #222 — the
 `static/css/**` gate row). *Re-pinned at council: Plan v1 read `d543a4b`, which is **P1**
@@ -1446,28 +1446,32 @@ production CSS. Depends on P3-a0's evidence and on the owner's answer to **Q10**
 the matrix and never wired it into the plan, which is exactly the failure mode that finding
 was about)*:
 
-> **OWNER RULING, 2026-08-02 — D3 is decided as neither branch as written.**
-> **`P3-e` is the sole routine writer** of `docs/MASTER_HANDOVER.md`,
-> `docs/ACTIVE_DEVELOPMENT.md` and `docs/REFACTOR_PLAN.md`, **with one widened exception:**
-> any packet that **changes the next safe step** *or* **terminates the arc** writes the
-> **lead block** and **`## Next Safe Step`** at merge. Those three paths appear in the
-> *"Paths owned"* row of every packet **only under that exception**, never for routine
-> per-packet appends.
->
-> **Why the exception is widened past the reviewer's version.** Sole-writer alone has a hole
-> the owner identified at sign-off: **abandonment is a pre-authorized outcome** (AC11, AB-1,
-> AB-2) and, with execution funded only through **P3-a0**, ending at a0 or a1 is the *likely*
-> path — not the exotic one. Under strict sole-writer, P3-e never runs on that path, so the
-> arc terminates and **no status document ever records that it did**. That reproduces the exact
-> drift class this arc's D3 discussion exists to prevent, just with the opposite sign: not a
-> stale *"packet i is active"*, but a stale *"P3 is authorized and pending"* left standing
-> forever after the arc has stopped.
+> **OWNER RULING, 2026-08-02 — D3: `P3-e` is the SOLE WRITER.**
+> `docs/MASTER_HANDOVER.md`, `docs/ACTIVE_DEVELOPMENT.md` and `docs/REFACTOR_PLAN.md` appear in
+> the *"Paths owned"* row of **`P3-e` only**. No other packet names them, and no packet takes a
+> per-packet append at merge time.
 >
 > The per-packet-append branch was refused for the reason the repository already paid for:
 > WP4.4-k's failure was not *"we appended too rarely"* — it was *"we appended to the header and
 > believed we were done"*, leaving three trailing sections asserting a closed packet was
 > active. Six packets each holding routine append authority multiplies the occasions for that
-> mistake; this ruling grants the authority only where silence is itself a defect.
+> mistake.
+>
+> ---
+>
+> **⚠️ OPEN — the abandonment hole, recorded not resolved.** Sole-writer has a gap the owner
+> identified while deciding D3, and the ruling above does **not** close it: **abandonment is a
+> pre-authorized outcome** (AC11, AB-1, AB-2) and, with execution funded only through
+> **P3-a0**, ending at a0 or a1 is the *likely* path rather than the exotic one. Under strict
+> sole-writer **P3-e never runs on that path**, so the arc can terminate with **no status
+> document ever recording that it stopped** — a stale *"P3 is authorized and pending"* left
+> standing indefinitely. That is the same drift class as WP4.4-k's, with the opposite sign.
+>
+> **Interim rule until the owner rules otherwise:** a packet that terminates the arc **does not
+> write the status documents** — it **stops and escalates to the owner**, naming the three
+> paths and the exact lines that would need to change. The recording is then an owner action,
+> not a packet action. *A one-line owner ruling can convert this into the widened D3 exception
+> (terminating packet writes the lead block and `## Next Safe Step` at merge) at any time.*
 
 ### Expected gates per packet — the v2 table
 
@@ -1656,10 +1660,13 @@ with both `domPath` and `selector`, committed, with no `artifacts/` dependency.
       - [x] **D1 — YES.** P3-c stops for its own owner checkpoint before the first cut, with
             the P3-b intersection-and-exclusion table as the presented artifact.
       - [x] **D2 — YES.** Per-packet contract files, permanently, never consolidated.
-      - [x] **D3 — P3-e is SOLE WRITER, with a widened exception.** Any packet that **changes
-            the next safe step** *or* **terminates the arc** writes the lead block and
-            `## Next Safe Step` at merge. See the operative amendment under *Changes to the
-            packets*.
+      - [x] **D3 — P3-e is SOLE WRITER.** No other packet names the three status documents and
+            no packet takes a per-packet append. **One item is OPEN and recorded, not blocking:**
+            under sole-writer, an arc that terminates at P3-a0 or P3-a1 — the likely path under
+            P3-a0-only funding — would never reach P3-e, so nothing would record that it
+            stopped. **Interim rule: a terminating packet stops and escalates to the owner
+            rather than writing the status docs.** See the ⚠️ note in the D3 amendment under
+            *Changes to the packets*.
       - [x] **D4 — NO.** The existing `static/css/**` row in `QUALITY_GATE.md` already routes
             this arc; no arc-specific row or note is added.
       - [x] **The P3-a split — ACCEPTED.** The arc is **six** packets: P3-a0, P3-a1, P3-b,
