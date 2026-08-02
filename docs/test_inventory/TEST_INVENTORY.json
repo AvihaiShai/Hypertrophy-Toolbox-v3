@@ -4,7 +4,7 @@
     "files": [
       {
         "file": "e2e/accessibility.spec.ts",
-        "lines": 2
+        "lines": 1
       },
       {
         "file": "e2e/dark-mode.spec.ts",
@@ -65,14 +65,14 @@
     ],
     "files_with_waits": 15,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 93
+    "total_lines": 92
   },
   "playwright": {
     "project": "chromium",
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 24,
-      "tests": 426
+      "tests": 432
     },
     "specs": [
       {
@@ -183,7 +183,7 @@
       {
         "in_required_functional_set": true,
         "spec": "ui-hardening.spec.ts",
-        "tests": 31
+        "tests": 37
       },
       {
         "in_required_functional_set": true,
@@ -227,7 +227,7 @@
       }
     ],
     "total_spec_files": 30,
-    "total_tests": 541
+    "total_tests": 547
   },
   "pytest": {
     "collected_deterministic": 2102,

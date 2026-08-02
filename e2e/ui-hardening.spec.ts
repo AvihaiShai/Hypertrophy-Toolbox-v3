@@ -437,6 +437,163 @@ test.describe('UI Hardening — Form State Persistence', () => {
   });
 });
 
+/* ------------------------------------------------------------------------- *
+ * KI-006 — strict modal keyboard helpers, shared by the Plan and Log modals.
+ *
+ * `focusableDescriptors` mirrors the selector list Bootstrap's own FocusTrap uses
+ * (SelectorEngine.focusableChildren), so "first" and "last" here mean the same
+ * elements Bootstrap will bounce focus to. Descriptors are returned as strings so
+ * a failure names the element that actually held focus instead of just `false`.
+ * ------------------------------------------------------------------------- */
+
+type FocusProbe = {
+  count: number;
+  first: string;
+  last: string;
+  active: string;
+  activeInside: boolean;
+};
+
+async function probeFocus(page: Page, modalSelector: string): Promise<FocusProbe> {
+  const modalId = modalSelector.replace(/^#/, '');
+  const probe = await page.evaluate((id): FocusProbe | null => {
+    const modal = document.getElementById(id);
+    if (!modal) return null;
+    const selector = ['a', 'button', 'input', 'textarea', 'select', 'details', '[tabindex]', '[contenteditable="true"]']
+      .map((s) => `${s}:not([tabindex^="-"])`)
+      .join(',');
+    const describe = (el: Element | null): string => {
+      if (!el) return '<none>';
+      const idPart = el.id ? `#${el.id}` : '';
+      const cls = typeof el.className === 'string' && el.className.trim()
+        ? `.${el.className.trim().split(/\s+/).join('.')}`
+        : '';
+      const text = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 30);
+      return `${el.tagName.toLowerCase()}${idPart}${cls}${text ? `[${text}]` : ''}`;
+    };
+    const items = Array.from(modal.querySelectorAll<HTMLElement>(selector)).filter((el) => {
+      if ((el as HTMLButtonElement).disabled) return false;
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    });
+    return {
+      count: items.length,
+      first: describe(items[0] ?? null),
+      last: describe(items[items.length - 1] ?? null),
+      active: describe(document.activeElement),
+      activeInside: document.activeElement ? modal.contains(document.activeElement) : false,
+    };
+  }, modalId);
+
+  expect(probe, `modal ${modalSelector} not found in DOM`).not.toBeNull();
+  return probe as FocusProbe;
+}
+
+/** Focus the first or last focusable control inside the modal. */
+async function focusBoundaryControl(page: Page, modalSelector: string, edge: 'first' | 'last'): Promise<void> {
+  const modalId = modalSelector.replace(/^#/, '');
+  await page.evaluate(
+    ({ modalId, edge }) => {
+      const modal = document.getElementById(modalId);
+      if (!modal) throw new Error(`Modal not found: ${modalId}`);
+      const selector = ['a', 'button', 'input', 'textarea', 'select', 'details', '[tabindex]', '[contenteditable="true"]']
+        .map((s) => `${s}:not([tabindex^="-"])`)
+        .join(',');
+      const items = Array.from(modal.querySelectorAll<HTMLElement>(selector)).filter((el) => {
+        if ((el as HTMLButtonElement).disabled) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      });
+      if (items.length === 0) throw new Error(`No focusable controls inside ${modalId}`);
+      (edge === 'first' ? items[0] : items[items.length - 1]).focus();
+    },
+    { modalId, edge }
+  );
+}
+
+async function expectForwardWraparound(page: Page, modalSelector: string): Promise<void> {
+  const before = await probeFocus(page, modalSelector);
+  expect(before.count, `${modalSelector} needs at least two focusable controls to prove wraparound`).toBeGreaterThan(1);
+
+  await focusBoundaryControl(page, modalSelector, 'last');
+  const atLast = await probeFocus(page, modalSelector);
+  expect(atLast.active, 'focus should start on the last control').toBe(atLast.last);
+
+  await page.keyboard.press('Tab');
+
+  const after = await probeFocus(page, modalSelector);
+  expect(after.activeInside, `Tab from the last control escaped ${modalSelector}; focus landed on ${after.active}`).toBe(true);
+  expect(after.active, `Tab from the last control should wrap to the first control of ${modalSelector}`).toBe(after.first);
+}
+
+async function expectBackwardWraparound(page: Page, modalSelector: string): Promise<void> {
+  const before = await probeFocus(page, modalSelector);
+  expect(before.count, `${modalSelector} needs at least two focusable controls to prove wraparound`).toBeGreaterThan(1);
+
+  await focusBoundaryControl(page, modalSelector, 'first');
+  const atFirst = await probeFocus(page, modalSelector);
+  expect(atFirst.active, 'focus should start on the first control').toBe(atFirst.first);
+
+  await page.keyboard.press('Shift+Tab');
+
+  const after = await probeFocus(page, modalSelector);
+  expect(after.activeInside, `Shift+Tab from the first control escaped ${modalSelector}; focus landed on ${after.active}`).toBe(true);
+  expect(after.active, `Shift+Tab from the first control should wrap to the last control of ${modalSelector}`).toBe(after.last);
+}
+
+/** Escape must close the modal on its own — no close-button fallback. */
+async function expectEscapeCloses(page: Page, modalSelector: string): Promise<void> {
+  const modalId = modalSelector.replace(/^#/, '');
+  const hidden = page.evaluate((id) => {
+    return new Promise<void>((resolve, reject) => {
+      const el = document.getElementById(id);
+      if (!el) {
+        reject(new Error(`Modal not found: ${id}`));
+        return;
+      }
+      const timeoutId = window.setTimeout(() => reject(new Error(`Escape did not fire hidden.bs.modal on ${id}`)), 5000);
+      el.addEventListener('hidden.bs.modal', () => {
+        window.clearTimeout(timeoutId);
+        resolve();
+      }, { once: true });
+    });
+  }, modalId);
+
+  await page.keyboard.press('Escape');
+  await hidden;
+
+  const modal = page.locator(modalSelector);
+  await expect(modal).not.toHaveClass(/show/);
+  await expect(page.locator('.modal-backdrop')).toHaveCount(0);
+  await expect(page.locator('body.modal-open')).toHaveCount(0);
+}
+
+/** Click a `data-bs-toggle="modal"` trigger and wait for Bootstrap to finish showing it. */
+async function openModalViaTrigger(page: Page, triggerSelector: string, modalSelector: string): Promise<void> {
+  const trigger = page.locator(triggerSelector);
+  await expect(trigger, `${triggerSelector} must be present and visible — no silent skip`).toBeVisible();
+  await expect(trigger).toBeEnabled();
+
+  const modalId = modalSelector.replace(/^#/, '');
+  const shown = page.evaluate((id) => {
+    return new Promise<void>((resolve, reject) => {
+      const el = document.getElementById(id);
+      if (!el) {
+        reject(new Error(`Modal not found: ${id}`));
+        return;
+      }
+      const timeoutId = window.setTimeout(() => reject(new Error(`Timed out waiting for shown.bs.modal on ${id}`)), 5000);
+      el.addEventListener('shown.bs.modal', () => {
+        window.clearTimeout(timeoutId);
+        resolve();
+      }, { once: true });
+    });
+  }, modalId);
+
+  await trigger.click();
+  await shown;
+}
+
 test.describe('UI Hardening — Modal Keyboard & Focus', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
@@ -505,20 +662,23 @@ test.describe('UI Hardening — Modal Keyboard & Focus', () => {
     expect(activeIsInsideModal).toBe(true);
   });
 
-  test('first Tab from inside modal keeps focus inside modal', async ({ page }) => {
+  // KI-006 closeout. The previous assertion pressed Tab once from `.btn-close` and
+  // only checked that focus was still *somewhere* inside the modal — true after one
+  // Tab even with no trap at all, so it could not prove wraparound. These two tests
+  // drive focus to the real boundary in each direction instead.
+  test('forward focus trap wraps from the last control back to the first', async ({ page }) => {
     await openClearPlanModal(page);
+    await expectForwardWraparound(page, '#clearPlanModal');
+  });
 
-    const modal = page.locator('#clearPlanModal');
-    await modal.locator('.btn-close').focus();
-    await page.keyboard.press('Tab');
+  test('backward focus trap wraps from the first control back to the last', async ({ page }) => {
+    await openClearPlanModal(page);
+    await expectBackwardWraparound(page, '#clearPlanModal');
+  });
 
-    const activeIsInsideModal = await page.evaluate(() => {
-      const active = document.activeElement as HTMLElement | null;
-      if (!active) return false;
-      const modalEl = document.getElementById('clearPlanModal');
-      return modalEl ? modalEl.contains(active) : false;
-    });
-    expect(activeIsInsideModal).toBe(true);
+  test('Escape alone closes the modal and releases the backdrop', async ({ page }) => {
+    await openClearPlanModal(page);
+    await expectEscapeCloses(page, '#clearPlanModal');
   });
 
   test('modal closes and backdrop is removed after pressing close button', async ({ page }) => {
@@ -532,6 +692,47 @@ test.describe('UI Hardening — Modal Keyboard & Focus', () => {
 
     // After close, page must not retain modal-open lock on body (would otherwise block scroll)
     await expect(page.locator('body.modal-open')).toHaveCount(0, { timeout: 5000 });
+  });
+});
+
+/* ========================================================================= *
+ * KI-006 — the Workout Log side of the same contract.
+ *
+ * The gap analysis scoped KI-006 to "modals across workout_plan.html +
+ * workout_log.html", but every assertion lived on the Plan page. `#clear-log-btn`
+ * is rendered unconditionally, so this needs no visibility guard either.
+ * ========================================================================= */
+test.describe('UI Hardening — Workout Log Modal Keyboard & Focus', () => {
+  test.beforeEach(async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+    await page.goto(ROUTES.WORKOUT_LOG);
+    await waitForPageReady(page);
+  });
+
+  test.afterEach(async ({ consoleErrors }) => {
+    consoleErrors.assertNoErrors();
+  });
+
+  test('focus moves inside the Clear Log modal once it is fully shown', async ({ page }) => {
+    await openModalViaTrigger(page, '#clear-log-btn', '#clearLogModal');
+
+    const probe = await probeFocus(page, '#clearLogModal');
+    expect(probe.activeInside, `focus stayed outside the modal on ${probe.active}`).toBe(true);
+  });
+
+  test('forward focus trap wraps from the last control back to the first', async ({ page }) => {
+    await openModalViaTrigger(page, '#clear-log-btn', '#clearLogModal');
+    await expectForwardWraparound(page, '#clearLogModal');
+  });
+
+  test('backward focus trap wraps from the first control back to the last', async ({ page }) => {
+    await openModalViaTrigger(page, '#clear-log-btn', '#clearLogModal');
+    await expectBackwardWraparound(page, '#clearLogModal');
+  });
+
+  test('Escape alone closes the modal and releases the backdrop', async ({ page }) => {
+    await openModalViaTrigger(page, '#clear-log-btn', '#clearLogModal');
+    await expectEscapeCloses(page, '#clearLogModal');
   });
 });
 

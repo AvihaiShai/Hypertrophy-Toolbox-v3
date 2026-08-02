@@ -12,12 +12,12 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **541** |
+| Playwright tests (chromium) | **547** |
 | Playwright spec files | **30** |
-| Required functional gate — `E2E Functional (Chromium)` | **426** tests across 24 specs |
+| Required functional gate — `E2E Functional (Chromium)` | **432** tests across 24 specs |
 | pytest collected nodes (deterministic subset) | **2102** across 101 files |
 | pytest test files (all) | **102** |
-| Hard waits (lines containing waitForTimeout) | **93** across 15 files |
+| Hard waits (lines containing waitForTimeout) | **92** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
 
@@ -46,7 +46,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `smoke-navigation.spec.ts` | 10 | yes |
 | `summary-pages.spec.ts` | 20 | yes |
 | `superset-edge-cases.spec.ts` | 12 | yes |
-| `ui-hardening.spec.ts` | 31 | yes |
+| `ui-hardening.spec.ts` | 37 | yes |
 | `user-profile.spec.ts` | 24 | yes |
 | `validation-boundary.spec.ts` | 23 | yes |
 | `visual-baseline-thumbnails.spec.ts` | 18 | — |
@@ -173,7 +173,7 @@ Flake-and-latency debt (blindspot B5). Phase 5 step 16 burns this down worst-fil
 
 | File | Lines with `waitForTimeout` |
 |---|---:|
-| `e2e/accessibility.spec.ts` | 2 |
+| `e2e/accessibility.spec.ts` | 1 |
 | `e2e/dark-mode.spec.ts` | 1 |
 | `e2e/empty-states.spec.ts` | 9 |
 | `e2e/error-handling.spec.ts` | 11 |
