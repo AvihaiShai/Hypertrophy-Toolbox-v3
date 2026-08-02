@@ -2375,7 +2375,7 @@ tr.sortable-drag {
 
 /*
  * IMPORTANT: Do NOT set pointer-events: none on .modal
- * Bootstrap 5.1.3 handles modal click handling correctly out of the box.
+ * Bootstrap handles modal click handling correctly out of the box.
  * The modal backdrop is a SEPARATE element (.modal-backdrop) that Bootstrap manages.
  *
  * The .modal is position: fixed and covers the viewport.
