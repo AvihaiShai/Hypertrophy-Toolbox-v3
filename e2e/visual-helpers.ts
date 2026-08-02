@@ -51,6 +51,16 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
       }
 
       html { scroll-behavior: auto !important; }
+      /* Playwright captures full pages and oversized locators outside the
+         viewport. Sticky table layers are recomposited while that happens, so
+         the header and first column can land at different offsets between the
+         consecutive frames used by toHaveScreenshot(). Static positioning is
+         visually equivalent at the capture's scroll origin and prevents those
+         capture-only jumps. */
+      [data-testid="exercise-table"] thead th,
+      [data-testid="exercise-table"] tr > :first-child {
+        position: static !important;
+      }
       html {
         --visual-surface-0: #eef1f6;
         --visual-surface-1: #f7f9fc;
@@ -163,6 +173,19 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
 
     await document.fonts.ready;
     window.scrollTo(0, 0);
+  });
+}
+
+/**
+ * Prepare an oversized locator capture without letting the sticky page navbar
+ * overlay the locator as Playwright scrolls it into view. Absolute positioning
+ * keeps the navbar's full-page behaviour unchanged and moves it out of the
+ * table-only capture once the document is scrolled to the target.
+ */
+export async function prepareForElementScreenshot(page: Page): Promise<void> {
+  await prepareForScreenshot(page);
+  await page.addStyleTag({
+    content: '#navbar { position: absolute !important; }',
   });
 }
 
