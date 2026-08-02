@@ -1,190 +1,282 @@
 # Leftovers by Priority
 
-> **Purpose:** Prioritized punch list of unfinished / parked / deferred items discovered in `docs/` and in the local working tree. Sections A (current open backlog) and the closed-item audit trail below.
+> **Audit snapshot:** 2026-08-02, deep-scan revision v22 (post-Fable execution-
+> safety review). Codex authored v18, Opus re-verified as v19, v20 reconciled
+> #264–#267, v21 added the third-model deep scan, and v22 makes the resulting
+> queue safe and executable.
 >
-> **Live truth caveat:** `docs/MASTER_HANDOVER.md` + `docs/ACTIVE_DEVELOPMENT.md` (refreshed 2026-06-09) are the canonical current state. This file is the prioritized *to-do* view derived from them plus a full subsystem-doc + archive scan.
+> **Purpose:** current, evidence-based queue of unfinished work, small closeouts,
+> stale plans, and disposable artifacts. This replaces the June punch list and
+> its long closed-item history. Historical implementation evidence stays in the
+> linked source plans, Git history, and the archive.
 >
-> **Runtime supersession (2026-07-29):** historical Python 3.11/3.12
-> reconciliation entries below remain as shipped audit history. ADR-003
-> supersedes them: the repository-wide minimum is now Python 3.14.6.
+> **Authority:** use freshly fetched `origin/main`, generated inventories,
+> current code, and read-only runtime data ahead of old prose. At the v22
+> recheck `origin/main` had advanced to `f178790`; the shared checkout remained
+> at `5b7a4f1` (**10 behind**) with overlapping uncommitted doc work. These are
+> snapshot facts, not execution inputs: fetch, recompute divergence, and recount
+> PRs/worktrees immediately before acting. Preserve and reconcile the dirty doc
+> patch before updating `main`; never pull through it blindly.
+
+> **What v19/v20 already corrected in the plan** (kept for continuity): the
+> two-edit inventory flip, the "(non-required)" naming trap, salvage of unlanded
+> `…-verify` work (merged via #266), stale PR/worktree counts, classification
+> of `build/`+`dist/` as disposable output, and identification — **not yet
+> removal** — of the unignored SQLite sidecars.
 >
-> **Review history:**
-> - **v1–v10 (2026-05-23 → 2026-05-24):** initial backlog framing → in-flight triage → six-scope landing → KI-001/KI-009/§4.6/§5/worktree closures → Phase 2 Stage 4 reframe. (Detail preserved in the closed sections below.)
-> - **v11 (2026-06-10, Opus full re-scan):** File was ~3 weeks + one major workstream stale (last real update 2026-05-24). Re-scanned all `docs/` subsystem folders + `docs/archive/`. Added **Section A — Current Open Backlog (Prioritized Plan)** reflecting everything that landed since v10: the entire **Learned Calibration Phase 2 track** (2A–2D-C shipped PRs #53–#58; **2D-D BLOCKED** 2026-06-09), the **CI/CD Improvement Plan** (all phases shipped PRs #40–#51 + optional fast-follows), the **Stage 4 observer tooling + tests** (PR #59 `672491c`), and the deferred **Fatigue Phase 3 / Profile v2** backlogs. Verified live facts: `workout_log` = **0 rows**; Stage-4 observer test PR **merged** (not pending); `main` tip `284dca4`. Old "row #15" reframed into Section A. Closed sections 0/1/2/4/5/6 retained unchanged as audit trail.
-> - **v12 (2026-06-10, Codex review for Opus):** Re-reviewed v11 against live git, DB status, active docs, subsystem docs, and `docs/archive/`. Confirmed the P0/P2/P3 ordering is broadly right, but added a **P1 doc-truth cleanup block**: canonical handover files lag PR #59/#60, E2E inventory is stale (repo has 28 spec files), plan-volume archive needs shipped/historical banners across the whole subfolder, and a few active cross-references still say already-shipped Body Composition / Known Issues work is open. Also closed the proposed anterior-triceps PLANNING edit as already done.
-> - **v13 (2026-06-10, Codex A4-A6 cleanup):** Closed the remaining P1 doc-truth housekeeping: plan-volume archive banners added to all three files, `E2E_TESTING.md` refreshed from 25 → 28 spec files, and stale Body Composition / Known Issues cross-reference sentences patched. `HEAD`/`origin/main` verified at `6acc537`; only P0 data-gated work, P2 optional CI fast-follows, and P3 owner-gated product remain.
-> - **v14 (2026-06-10, Codex A7 cleanup):** Reproduced the `accessibility.spec.ts:283` focus-return flake locally (1/10 repeat failure), traced it to closing `#generatePlanModal` before Bootstrap's show transition finished, and patched the spec to wait for `shown.bs.modal` / `hidden.bs.modal` before asserting focus returns to `#generate-plan-btn`. Verified targeted repeat 10/10 and full `e2e/accessibility.spec.ts` 24/24. `HEAD`/`origin/main` before this local change: `89062d1`.
+> **What v21 adds — findings from angles no prior pass took:**
+> **(1)** a docs-wide link-integrity sweep: **12 broken at the snapshot**,
+> headlined by three *active* workflow docs claiming to implement a
+> `.claude/SHARED_PLAN.md` tier system that no longer exists (new P1.8);
+> **(2)** single-producer policy violations that predate the policy —
+> `E2E_TESTING.md` is a hand-maintained count inventory frozen at 2026-06-10;
+> **(3)** `CHANGELOG.md` stops at July 29 and records none of the August ships,
+> including user-visible WPB.4; **(4)** a numbering collision between the
+> grounding scan's bug list (A1–A12) and `REFACTOR_PLAN.md`'s Track A (A1–A8)
+> that makes this file's own "shipped" row misleading — corrected in §2 with the
+> explicit mapping; **(5)** Dependabot has re-filed the *known SCSS-breaking*
+> Bootstrap 5.1.3→5.3.8 bump as #269, and #268's new ignore policy covers only
+> stylelint — bootstrap files as semver-minor, so no existing rule catches it;
+> **(6)** a small set of evidence/design docs has no durable inbound index link
+> (the v22 candidates are named in P1.1; do not pin a count that this plan's own
+> links immediately change); **(7)** the queue and
+> worktree counts churn intra-day — v22 requires recount-at-execution for both
+> surfaces and treats every number in this document as snapshot evidence only.
 
----
+## Status key
 
-## Section A — Current Open Backlog (Prioritized Plan, 2026-06-10)
+| Status | Meaning |
+|---|---|
+| **READY** | Small, bounded work with no unresolved product decision. |
+| **WAIT** | A named external condition must become true first. |
+| **OWNER** | Requires an explicit owner choice; do not infer one. |
+| **PROPOSAL** | Valid future work, but not a forgotten activity or current commitment. |
+| **RETIRE** | Shipped, superseded, irrelevant, or disposable after the stated safety check. |
 
-Ordered by what to handle first. Most of the project is shipped; the genuinely open work is small and front-loaded on **data collection**, then **cheap housekeeping**, then **optional polish**, then **owner-gated future product**.
+**Current classification (v22):** **READY** — P1.4, P1.5, P1.7;
+**WAIT** — P1.1 (reconcile the dirty doc patch with current `main` and #271),
+P1.2 (known dirty/open-PR worktrees must be excluded); **OWNER** — P1.3,
+P1.6, P1.8, P2.1–P2.4; every item in P3 is a **PROPOSAL**. Artifact
+targets explicitly labeled safe-to-retire are **RETIRE** only after their stated
+safety checks. There is no weaker "OWNER-lite" status.
 
-### P0 — Gated on real usage data (you are the blocker, not code)
+## 1. Recommended execution order
 
-Both items below wait on the same thing: a populated `workout_log`. **Verified 2026-06-10: `workout_log` = 0 rows.** Nothing here is actionable by an agent until you actually log training sessions over multiple weeks.
+### P1 — Small closeouts that remove real debt
 
-| # | Item | Status | Gate / next action | Effort |
-|---|---|---|---|---|
-| A1 | **Fatigue Meter Phase 2 — Stage 4 calibration window** | OPEN since 2026-05-24; nominal earliest-close 2026-06-07 **passed without closing** because no data exists. | **Action: log real workouts.** The observer (`scripts/fatigue_stage4_observer.py`, daily scheduled task) is installed + idle and appends nothing while `workout_log` is empty. Then collect per-muscle band disagreements as `(muscle, period, engine band, felt label, direction)`. **Close rule: ≥2 same-direction real-use disagreements = signal; 1 = noise.** No threshold tuning before that bar. | owner data + review |
-| A2 | **Learned Calibration Phase 2D-D — suggestion modification** | **BLOCKED 2026-06-09. Do not start.** First advisory→prescriptive step (2D-A/B/C all keep the number unchanged). | Unblock needs ALL of: non-empty multi-week `workout_log`; ≥2 same-direction real-use disagreements (the A1 evidence); explicit owner approval to cross advisory→prescriptive; decisions on touched output(s) / magnitude / double-counting (G4). Detail: [`user_profile/LEARNED_CALIBRATION_PLAN.md`](user_profile/LEARNED_CALIBRATION_PLAN.md) §"Phase 2D-D Gate Review — BLOCKED". | gated |
+| ID | Activity | Why it is still open | Completion action | Effort |
+|---|---|---|---|---:|
+| P1.1 | **Documentation truth and compaction pass** — *WAIT on reconciliation with current `main` and #271* | PR #265 merged (WPB.4 plan banner, handover flip gate, registry row 8), and **#270 is merged** (testing-strategy workstream status). PR **#271 remains open** at the v22 snapshot and corrects the Test Inventory job-summary prose. **Residue after reconciling those changes:** `DUPLICATION_REGISTRY.md` rows **3, 11, 14** + its summary-table/row-4 contradiction; [`ai_workflow/INDEX.md`](ai_workflow/INDEX.md) omissions (testing-strategy, theme-dark P3, app.py review, product-docs; still calls the Fatigue *Phase 2* Stage 4 window open) — note an **uncommitted local edit** already adds the cross-model row; [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md) KI-003/KI-007 stale statuses; [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) omits part of the current visual-red state; [`fatigue_meter/PLANNING.md:3`](fatigue_meter/PLANNING.md) "awaiting sign-off on Stage 0"; [`REFACTOR_PLAN.md:425`](REFACTOR_PLAN.md) WPB.4-is-gated inside a dated block; and [`MASTER_HANDOVER.md:107`](MASTER_HANDOVER.md) restates stale generated test totals. **New in v21/v22:** [`CHANGELOG.md`](CHANGELOG.md) ends at July 29 — WPB.4 (user-visible weekly-summary change), asset cache-versioning (#262/#266), and the CI gate promotions (#248/#267) are unrecorded; [`E2E_TESTING.md`](E2E_TESTING.md) (last updated 2026-06-10) is a hand-maintained per-spec inventory violating the single-producer rule — gut its counts and point at [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md); [`docs/README.md:13`](README.md) still describes this file as the June "punch list" and sells `E2E_TESTING.md` as "current inventory"; [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) also carries dated copied totals; the remaining inbound-reference candidates need an index link or archive-disposition entry when retention permits: `CSS_PHASE4_WP4_3I_B_EVIDENCE.md`, `_C_`, `_D_`, `_E_`, `_F_`, `_G_`, `_H_`, `WP3_5_FETCH_INVENTORY.md`, `archive/CLEANUP_V2_DEAD_CODE_AUDIT.md`, and `user_profile/DUMBBELL_LOAD_BASIS_FIX.md`. The v21 pre-revision scan also counted `PROFILE_ESTIMATOR_CLUSTERS.md` and `RELATED_EXERCISE_TRANSFER_DESIGN.md`; v22 excludes them because production/test code references the former and this queue now links the latter. | First preserve this dirty patch, fetch, and reconcile it with the merged #270/#272/#273 changes plus #271 if that PR has landed by execution time. Then sweep only the named residue. **Never copy a replacement test count into prose**; link to the generated inventory. Mark dated blocks as historical rather than rewriting them. **Sequencing:** this file's P3 links to `CROSS_MODEL_ORCHESTRATION_PLAN.md`, which is still **untracked** — commit that file (with its INDEX row) before or with this one, or the link breaks on `main`. Do not archive recent completed plans until [`DOC_RETENTION.md`](ai_workflow/DOC_RETENTION.md)'s 6-month/no-open-reference rule is met. | 2–4 h |
+| P1.2 | **Remove obsolete worktrees and generated artifacts** | **The registered-worktree count is unstable — 24 at v19, 25 at v20, 29 at v21, 30 at the v22 recheck.** Recount with `git worktree list --porcelain` at execution time. Known holds at v22: `…-bs538-spike` has uncommitted changes in `scss/custom-bootstrap.scss`, the generated Bootstrap bundle/map, and `templates/base.html`; `…-wp4-4-f1-navbar` carries untracked `.venv`/`node_modules`; the current checkout carries the doc patch; and any worktree associated with an open PR (including #269/#271 work at this snapshot) is protected. A local worktree branch name may differ from the GitHub PR head, so branch-name lookup alone is not proof. Generated output remains approximately: `artifacts/` 1.7 GB (`wp4_4` 643 MB held, `playwright` 522 MB, `environment-backups` 460 MB, `vbl_check` 21 MB), `build/` 76 MB, `dist/` 92 MB, `logs/` 63 MB, `debug/` 1 MB. | For **every** non-current worktree, record path/branch/HEAD and run `git status --short --untracked-files=all`; any output means **skip and preserve**. Query `gh pr list --state all --head <branch>`, but treat it only as one signal: also compare the worktree HEAD OID with PR commits and use Git patch-equivalence/diff checks because squash merges and alternate local branch names defeat ancestry/name tests. Remove only a clean worktree with no unique patch and no open-PR association, through `git worktree remove <exact-path>`, then `git worktree prune`; do not recursively delete a registered worktree and do not delete its branch unless separately proven disposable. Delete transient artifacts only after confirming no active investigation/process references them; retain the protected `wp4_4` bundle pending its explicit decision. | 1–3 h |
+| P1.3 | **Fix the `/verify-and-polish` → `/handover` skill-guard contradiction** | **Confirmed verbatim.** [`senior-developer.md:30`](../.claude/agents/senior-developer.md) passes `-AllowedCsv run-tests,run-e2e,verify-suite,verify-and-polish,verify,run,build-css,run-hypertrophy-toolbox` — no `handover` — while [`verify-and-polish.md:11`](../.claude/commands/verify-and-polish.md) makes `/handover` step 4. The agent can start the command it is allowed to run and then be blocked partway through it. | Decide the intended contract, then either permit `handover` for `senior-developer` or remove/delegate that step. Add a guard test for the chosen path. The older `git merge-base` false-positive is already fixed and must not be reopened. | 30–90 min |
+| P1.4 | **Delete the remaining small UI/debug scaffolding** | **All six confirmed in the live tree.** A user-visible `Available exercises: {{ exercises|length }}` block at [`progression_plan.html:21`](../templates/progression_plan.html#L21); **17** unguarded `console.log` calls in [`progression-plan.js`](../static/js/modules/progression-plan.js); an inert `const APP_DEBUG = false` wrapper at [`app.js:35`](../static/js/app.js#L35); zero-caller `handleApiResponse()` at [`workout-plan.js:94`](../static/js/modules/workout-plan.js#L94); `WORKOUT_PLAN_DEBUG` declared twice (module scope in `workout-plan-add-exercise.js:33`, function scope in `workout-plan.js:137`); and [`ui-hardening.spec.ts:541-546`](../e2e/ui-hardening.spec.ts#L541) still labels the now-green KI-005 tests "PRE-IMPLEMENTATION" and "expected to be RED." The E2E assertion at [`progression.spec.ts:98`](../e2e/progression.spec.ts#L98) is wrapped in `if (await debugInfo.isVisible())`, so deleting the template block does **not** red that test. | One bounded hygiene packet: remove the visible debug counter and simplify the now-dead E2E branch; remove or consistently gate the verbose logs; delete the zero-caller helper; consolidate the two inert debug wrappers; correct only the named KI-005 comment block. Run affected Vitest/pytest plus `e2e/progression.spec.ts` and Workout Plan smoke coverage. Ignore the copies under `build/` and `dist/` — regenerated output. | 1–3 h |
+| P1.5 | **Close KI-006 with honest modal keyboard tests** | Confirmed. [`accessibility.spec.ts:103-115`](../e2e/accessibility.spec.ts#L103-L115) presses Escape, waits 500 ms, and then **clicks the close button if the modal is still open** — the test passes whether or not Escape works. The whole block is guarded by `if (btnVisible)`. The focus-trap assertion checks only that the *first* Tab stays inside, which cannot prove wraparound. **v21 note:** these tests exercise Bootstrap 5.1.3 modal defaults — land this closeout *before* any Bootstrap upgrade decision (P1.6/#269), or the upgrade ships against tests that can't fail. | Add strict Escape and forward/backward wraparound assertions for the Plan and Log modals, without the fallback click and without the visibility guard. Fix production behavior only if those tests expose a failure; otherwise this is a test-only closeout and KI-006 can be marked resolved in [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md). | 2–4 h |
+| P1.6 | **Triage the dependency queue — including the Bootstrap policy gap** | **Recount with `gh pr list --state open` at execution time.** At the v22 recheck the open queue was six Dependabot PRs (#245, #249–#251, #261, #269) plus owner #271; #240/#243/#244/#246 had merged, as had #270. **#252 was CLOSED by policy** — #268 added a Dependabot ignore for stylelint *majors* after v17 changed warning semantics on identical CSS. **The remaining policy gap:** that ignore names only stylelint, and **#269 re-files bootstrap 5.1.3→5.3.8**; its isolated CI run confirms the SCSS build failure (`_functions.scss` undefined-variable), not merely the earlier grouped Bootstrap+Sass ambiguity. Bootstrap 5.1→5.3 is technically semver-minor, so the "majors are isolated" convention never catches it, and it will re-file weekly. Bootstrap 5.1.3 is load-bearing across `templates/base.html`, the SCSS build, KI-006 modal semantics, and both platform visual-baseline sets. Older heads may also predate current required contexts and remain `BLOCKED` until refreshed. | Three lanes: **(a)** refresh/rebase green low-risk updates and merge in small batches; **(b)** decide #269 the way #252 was decided — either extend the `dependabot.yml` ignore to bootstrap or authorize a deliberate Bootstrap-5.3 migration packet that fixes SCSS and then runs the modal + Windows/Linux visual gates; do not let it linger as a weekly re-filer; **(c)** review each remaining major (#249 node types and #251 TypeScript 7 at this snapshot) individually. The Actions-v7 queue is discharged at v22 but must be recounted rather than copied forward. Keep the `npm audit` severity/exception-policy decision separate. | 2–6 h |
+| P1.7 | **Close two repository-hygiene gaps** | Still present at this audit. (a) `.gitignore:29`'s `*.db` does not match SQLite sidecars, so `data/auto_backup/database_20260712_000549.db-shm` and `.db-wal` sit **untracked and unignored** — one `git add -A` from being committed. Their presence beside a July-12 snapshot also means a backup DB was opened read-write and not clean-closed. (b) `docs/requirements_dry_run/` is an empty leftover directory. | Add `*.db-shm` / `*.db-wal` to `.gitignore`, delete the two orphaned sidecars after confirming no process holds them, and remove the empty directory. No production change. | 15–30 min |
+| P1.8 | **Resolve the `.claude/SHARED_PLAN.md` ghost authority** — *new in v21* | Three **active** workflow docs claim to *implement* a tiered plan system whose source file does not exist: [`PARALLEL_WORKFLOW.md:3`](ai_workflow/PARALLEL_WORKFLOW.md) ("Implements `.claude/SHARED_PLAN.md` Tier 2.1"), [`PLAN_REVIEW_TEMPLATE.md:3`](ai_workflow/PLAN_REVIEW_TEMPLATE.md) ("Tier 2.2 Appendix A2.2"), and [`WORKSTREAM_OWNERSHIP.md:3,32`](ai_workflow/WORKSTREAM_OWNERSHIP.md) ("Appendix A2.1"). Only `INDEX.md` hedges ("optional… if present"). An agent told to consult the tier definitions has nowhere to go; the tier/appendix numbering is now meaningless. This survived every prior audit because no pass checked links in *workflow* docs. | **OWNER decision, then 30 min:** either restore/recreate a minimal `SHARED_PLAN.md` defining the tiers, or (simpler, recommended) strip the "Implements Tier …" claims and let each doc stand on its own authority. Update `INDEX.md:9` to match. Also fix or annotate the two historical broken links in `workout_cool_integration/` (deleted screenshots dir) and the six in `archive/MISSING_TESTS_PART2.md` only if touched for other reasons — archive docs are point-in-time records. | 30–60 min |
 
-**Guardrails for both (no edits without ≥2 real-use disagreements + fresh owner go-ahead):** do not edit `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`; do not edit `tests/test_fatigue.py` boundary tests; do not tune `scripts/fatigue_calibration_report.py::SCENARIOS`.
+### P2 — Product/workflow activities that can be explicitly closed or advanced
 
-### P1 — Cheap housekeeping (safe to do now, no owner gate)
+| ID | Activity | Real state / gate | Completion action | Effort |
+|---|---|---|---|---:|
+| P2.1 | **Fatigue *Phase 2* Stage 4 disposition** | **Disambiguation first (v21):** two "Stage 4"s exist. *Phase 1* Stage 4 was parked 2026-05-13 and **closed 2026-05-20** — [`STAGE4_PARKED_HANDOFF.md`](fatigue_meter/STAGE4_PARKED_HANDOFF.md) carries a proper SUPERSEDED banner. The open item is ***Phase 2*** Stage 4 ([`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md), window opened 2026-05-24). That window is inactive: every user table in `data/database.db` is empty (`workout_log=0`), the last observer log is 2026-05-30, no scheduled task is installed. Learned Calibration 2D-D depends on the same missing evidence. | **OWNER:** (a) restart real-use collection and keep Stage 4 open, or (b) close the inactive window as "no evidence / no threshold change," park 2D-D, and retire the no-longer-used observer tooling instructions **plus the generated artifacts committed under `docs/fatigue_meter/`** (`baseline-2026-04-30*.txt`, `generated-calibration-report.md`) per retention policy. Never tune thresholds or make 2D-D prescriptive without the documented evidence bar and fresh approval. | 15 min decision; weeks if restarted |
+| P2.2 | **Fatigue body heatmap** | Owner-requested and technically close to assembly, but [`HEATMAP_PLANNING.md`](fatigue_meter/HEATMAP_PLANNING.md) remains a draft with six owner decisions. Existing MuscleMap SVG, body-map coloring code, fatigue `muscle_rows`, band colors, and period reload behavior cover most of the implementation surface. | Resolve §8 decisions, sign the plan, implement a visualization-only slice with no formula/threshold/schema/API change, and close it. | 1–2 d after decisions |
+| P2.3 | **Visual-baseline debt: the Windows pair plus stale Linux baselines** | Two real Windows-only failures remain: the animated navbar logo in Workout Plan desktop dark, and `plan-desktop-light-advanced` in `visual-baseline-thumbnails.spec.ts` (**6,084 px** measured / 6,098 retry vs **6,262 px** baseline — [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) Windows ledger). New on `origin/main` via #273: the **Linux** baselines were last written before 57 later CSS/template commits and now produce at least 11 failures (57 pass, 16 do not run); this is separate from the Windows pair and blocks the signed D3 weekly deep-gate stopgap. [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) does not yet describe the full platform-specific state. | **OWNER action first:** run the Linux generate workflow, download and inspect all 84 PNGs by eye, commit only approved baselines, then confirm Linux compare is green before adding D3's weekly schedule. Separately stabilize the Windows animation/snapshot timing and diagnose the advanced-thumbnail delta; never blind-rebaseline or raise the global tolerance. Coordinate all of this with any Bootstrap #269 decision because that upgrade changes the same render surface. | 0.5–2 d + owner visual review |
+| P2.4 | **Broader KI-005 manual-edit provenance staleness** | KI-005 itself is shipped and Gate-2 approved. Only the explicitly accepted limitation remains: arbitrary manual edits can leave estimate provenance/ancillary text stale. | Treat as a new UX packet only if this is visible or confusing in real use. Do not reopen the completed KI-005 implementation plan for cosmetic comment work. | OWNER / demand-gated |
 
-| # | Item | Status | Action | Effort |
-|---|---|---|---|---|
-| A3 | **Canonical handover docs lag current git truth** | ✅ **DONE 2026-06-10.** [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) + [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md) current-state/branch blocks refreshed: PR #59 (`672491c`) marked shipped (was "pending"), PR #60 (`284dca4`) recorded, and the stale `5bf4880` tip references corrected. Historical commit chains left intact. Current `main`/`origin/main` tip after PR #61: `6acc537`. | Done. | — |
-| A4 | **Stale archived plan-volume docs read as live work** | ✅ **DONE 2026-06-10.** Added "SHIPPED / historical reference only" banners to [`PLAN_VOLUME_INTEGRATION.md`](archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION.md), [`PLAN_VOLUME_INTEGRATION_PLANNING.md`](archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION_PLANNING.md), and [`PLAN_VOLUME_INTEGRATION_EXECUTION.md`](archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION_EXECUTION.md). The historical implementation/gate text remains preserved below the banners. | Done. | — |
-| A5 | **E2E inventory doc stale** | ✅ **DONE 2026-06-10.** [`E2E_TESTING.md`](E2E_TESTING.md) now says 28 Playwright specs, lists `fatigue-context.spec.ts`, `fatigue.spec.ts`, and `learned-calibration.spec.ts`, and keeps the no-full-suite-pass caveat. | Done. | — |
-| A6 | **Stale cross-references in active trackers** | ✅ **DONE 2026-06-10.** [`user_profile/development_issues.md`](user_profile/development_issues.md) now points Issue #21 to the resolved Body Composition work and shipped Profile hooks; [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md) now says the Known Issues map exists in §0. Historical review bodies are preserved. | Done. | — |
+### P3 — Valid proposals, not forgotten near-complete work
 
-### P2 — Optional CI/CD fast-follows (all phases already shipped; pick when convenient)
+These items remain legitimate but should not displace the P1–P2 closeouts:
 
-All CI/CD phases (0/1/2.1/3/4/4.2/5) shipped via PRs #40–#51. These are documented opt-in hardening steps from [`CI_CD_IMPROVEMENT_PLAN.md`](archive/ci_cd/CI_CD_IMPROVEMENT_PLAN.md) + `archive/ci_cd/phase*/PLANNING.md`. None block anything. A7–A11 are now closed; **A12 misc is the only remaining P2 item** (no measure-only flake8 flip candidates left).
+- **Testing Strategy Phases 2–5 and remaining decisions** in
+  [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md). Phases 0–1 are
+  complete; #270 corrected the handover and is merged. D1 and the
+  `e2e-erase-flow` half of D2 are signed; #272/#273 additionally signed **D5**
+  (Chromium-only, shipped as ADR-004) and the **D3 weekly deep-gate stopgap**.
+  D3 is authorized but blocked on P2.3's stale Linux baselines. **D4, D6, D7
+  and the `js-unit` half of D2 remain unsigned.** Python and JS coverage remain
+  measurement-only; Phases 2, 3 and 5 remain proposals, and Phase 4 is not
+  complete.
+- **Product documentation suite** in [`PRODUCT_DOCS_PLAN.md`](PRODUCT_DOCS_PLAN.md):
+  a fresh proposal, not stale work. App Flow and Design Brief are the clearest
+  gaps; Gate 0/1 and revision are still required.
+- **Cross-model orchestration** in
+  [`ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md`](ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md):
+  a newly authored proposal (699 lines, Gate 0/Gate 1 pending) for an opt-in
+  `$orchestrate` Codex→Opus delegation flow. **v21 caution: the file is
+  currently untracked and its `INDEX.md` row uncommitted** — it exists only in
+  this checkout until committed; see P1.1's sequencing note. It is a proposal,
+  not a leftover.
+- **Theme-dark P3** in [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md):
+  fresh, council-reviewed planning with Gate 0 and Gate 1 unsigned. A large CSS
+  change, not a cleanup leftover.
+- **App-JS TypeScript checking:** `tsconfig.json` still covers E2E/config only.
+  Expanding it across ~14.6k lines of untyped app JavaScript is a large
+  migration, not the cheap A12 task the old plan implied.
+- **User Profile v2:** per-exercise overrides, auto-updated lifts, bodyweight
+  add-ons, confidence display, and future related-exercise transfer ratios.
+  The current DB has no profile/lift/log evidence; the shipped 2A infrastructure
+  (`exercise_transfer_ratios` schema, [`RELATED_EXERCISE_TRANSFER_DESIGN.md`](user_profile/RELATED_EXERCISE_TRANSFER_DESIGN.md))
+  is in place but unpopulated. Product ideas, not nearly finished activities.
+- **Fatigue Phase 3:** owner-supplied landmarks for six unranked muscles,
+  systemic/joint fatigue, decay, `%1RM`, technique modifiers, custom thresholds,
+  partial-week display, and API work. Do not invent domain thresholds.
+- **Remaining CSS/refactor tail:** the 235 `@layer workout` pins, Workout
+  Plan/Log redesign-sized cleanup, superset dark tint, theme-dark unlinking,
+  10 animation-dependent declarations, `.tbl-show-*`/`.tbl-hide-*` as a unit,
+  dormant `.scale-btn[data-scale]`, and 155 uncertified navbar nominations.
+  Explicitly deferred/owner-gated, not forgotten quick wins.
+- **Grounding-scan doc set** (`docs/scan/PHASE_02…22`, `SCAN_FINDINGS.md`,
+  `SCAN_PROGRESS.md`, `SCAN_RECOMMENDATIONS.md`) and the ~56 `CSS_PHASE4_*`
+  evidence files at the `docs/` root: both arcs complete and merged; the scan
+  tracker still points at a deleted worktree (`D:/development/HT-scan`). Archive
+  candidates under [`DOC_RETENTION.md`](ai_workflow/DOC_RETENTION.md), but the
+  6-month criterion is unmet and `QUALITY_GATE.md` links several `CSS_PHASE4_*`
+  files directly. Revisit, do not act now.
 
-| # | Item | Notes |
+## 2. Findings that are already done, superseded, or no longer relevant
+
+Do not resurrect these from unchecked boxes or old dated prose.
+
+| Prior activity / stale claim | Current disposition |
+|---|---|
+| **WPB.4 `Unassigned` weekly-summary bucket is gated/not started** | **SHIPPED** in PR #256 (`9fe5dbd`); Track B closed. The planning doc now carries a SHIPPED / DO-NOT-EXECUTE banner (#265). |
+| **Old A12: add JavaScript unit tests** | **DONE.** Vitest, coverage reporting, nine test files, and a non-required CI job exist. Low coverage is a separate future decision. |
+| **Old A12: audit known-red E2E** | **DONE.** Generated inventory plus the inherited-red ledgers replaced the manual count. Only the two explicit Windows visual reds remain. |
+| **Agent Workflow v2 / Phase 5** | **COMPLETE and owner-signed.** Keep only P1.3's concrete guard contradiction; do not call the whole workflow unfinished. |
+| **KI-005 Workout Controls persistence** | **COMPLETE, ported, verified, and Gate-2 reapproved.** Its planning artifact is completion history, not an active checklist. |
+| **KI-003 Program Backup suite pollution** | **RESOLVED by CI isolation.** `E2E Backup (Chromium, isolated)` runs on a fresh server and throwaway DB and is a required context. Only the gap-analysis doc still says "Mitigated" (P1.1). |
+| **KI-004 last-toast-wins** | Intentional/tested behavior; not an open defect. |
+| **KI-007 isolated-muscle table empty** | **OBSOLETE/RESOLVED.** Both live and seed DBs contain **1,598** mappings across **1,897** exercises (re-queried). |
+| **KI-008 multi-tab conflict detection** | **NO LONGER RELEVANT** under the single-user/single-tab product model. Keep as a non-goal, not backlog. |
+| **User Profile issues 1–24 / phases A–H** | **SHIPPED.** Unchecked boxes inside historical issue bodies are stale narrative, not work. |
+| **Learned Calibration 2A–2D-C** | **SHIPPED.** Only 2D-D remains, blocked with P2.1's real-use evidence gate. |
+| **Fatigue *Phase 1* Stage 4** | **CLOSED 2026-05-20, owner-reviewed, no threshold changes.** [`STAGE4_PARKED_HANDOFF.md`](fatigue_meter/STAGE4_PARKED_HANDOFF.md) is properly superseded-bannered. Do not confuse with the open *Phase 2* Stage 4 (P2.1). |
+| **Program Backup "restore an active volume plan and clear `is_active`"** | **IRRELEVANT.** Current Program Backup stores `user_selection`, not `volume_plans`; the archived R6 premise does not match the product. |
+| **Program Backup non-atomic creation and export 500 ms delay** | **FIXED.** Backup creation uses one transaction; export cleanup retries only after an unlink failure. |
+| **Grounding-scan bug list A1–A12 (SCAN_RECOMMENDATIONS §A)** | **ALL DISPOSITIONED — but the numbering does not match `REFACTOR_PLAN.md` Track A (A1–A8), which caused this file's own earlier rows to under-enumerate.** Mapping: scan-A1…A5, A8, A10, A11 → Track A fixes (toast severity, duplicate submission, badge drift, error page + fatigue error path, backup atomicity, listener cleanup, export delay); **scan-A6 → WPB.1** (#103, weight 0); **scan-A7 → WPB.2** (#107, server-side bounds); **scan-A12 → WPB.3** (#128, export no longer mutates `exercise_order`; the route is POST and delegates to `export_plan_to_workout_log()`); scan-A9 (tokens.css cascade order) → resolved in the Phase 4 CSS work and locked by `tests/test_css_cascade_contracts.py`. When citing "A-numbers," always name the source document. |
+| **Refactor Track A, Track B, Phases -1 through 3, WP4.4 a–k** | **COMPLETE** after WPB.4. Remaining CSS work is the deferred P3 registry above. `REFACTOR_PLAN.md:425` still says otherwise inside a dated block — P1.1's marker job, not reopened work. |
+| **app.py review P1–P5** | **COMPLETE**, including packaged-smoke permanence and #266's post-merge cache/payload/isolation hardening. |
+| **`Test Inventory Drift` is a deferred, one-token flip** | **DONE / superseded.** PR #267 removed `continue-on-error`, returns `exit $STATUS`, renamed the job safely, and the live branch-protection list requires it as the 11th context. The two older required E2E names retain their historical `(non-required)` suffix by documented design. |
+| **Post-merge `main` runs may be cancelled by PR activity** | **FIXED** in #264; post-merge runs for #264–#267 completed green. |
+| **#252 stylelint 16→17 red** | **CLOSED by policy, not merged.** #268 added a Dependabot ignore for stylelint majors: v17 changes warning semantics on byte-identical CSS, and the baseline deliberately pins 16.11.0. A major upgrade requires an owner-approved re-baselining packet. **The same reasoning is now pending for bootstrap — see P1.6.** |
+| **Body Composition, Filter View Mode, workout.cool/YouTube curation, movement-pattern cleanup, response-contract migration, catalogue seed/packaging work** | **COMPLETE.** Reopen only for a concrete regression or new product request. |
+| **Archived plan-volume unchecked tasks / archive-wide unchecked boxes** | Historical records, not open work, unless a current plan explicitly reactivates an item. |
+
+## 3. Artifact and documentation retirement plan
+
+### Safe to retire after this plan is committed and the listed checks pass
+
+| Target | Observed size | Disposition |
+|---|---:|---|
+| Obsolete non-current Git worktrees | ~6+ GB | **Recount at execution time** (30 at the v22 snapshot and still volatile). Apply P1.2's status/HEAD/patch-equivalence proof; skip every dirty worktree and every open-PR association. Known v22 exclusions include the Bootstrap spike, WP4.4 F1 navbar, current checkout, and any #269/#271 worktree still active at execution time. |
+| `artifacts/playwright/` | 522 MB | Generated test output; delete when no failure investigation is active. |
+| `artifacts/environment-backups/20260729-python-3.14.4/` | 460 MB | Obsolete after the Python 3.14.6 alignment, provided no current task references it. |
+| `dist/` | 92 MB | Gitignored PyInstaller output; regenerated by `build_exe.bat`. |
+| `build/` | 76 MB | Gitignored packaging staging output; regenerated on next build. |
+| `logs/` | 63 MB | Delete old generated logs. The May fatigue observer log is stale evidence, not a live calibration record. |
+| `artifacts/vbl_check/` | 21 MB | Visual-baseline scratch; delete unless P2.3 is actively using it. |
+| `debug/*` | ~1 MB | Delete, do not archive, per [`DOC_RETENTION.md`](ai_workflow/DOC_RETENTION.md). |
+| `data/auto_backup/*.db-shm`, `*.db-wal` | <1 MB | Orphaned SQLite sidecars, untracked **and** unignored. Delete and extend `.gitignore` (P1.7). |
+| `docs/requirements_dry_run/` | empty | Empty leftover directory; remove (P1.7). |
+
+### Hold or review before deleting
+
+| Target | Observed size | Why it is protected |
+|---|---:|---|
+| Any worktree backing an open PR | — | Recheck `gh pr list` immediately before the cleanup pass; the set changes daily. |
+| `data/auto_backup/*.db` | 5.6 MB / 7 snapshots | Real recovery snapshots; retention/rotation owns them. |
+| `artifacts/wp4_4/` | 643 MB | Theme-dark P3 may need prior instrumentation context. Extract reusable inputs or explicitly reject P3 before deleting. |
+| current checkout and current document change | — | Never include in a bulk deletion. The main checkout currently holds uncommitted doc work (see Authority note). |
+| local branches not proven patch-equivalent | — | Preserve salvage branches and unique commits; inspect PR/squash history first. |
+
+### Documentation handling
+
+- Keep canonical guides, indexes, decision records, current handover, generated
+  inventories, and active product/workflow plans.
+- Trim completed plans that accumulated append-only execution transcripts;
+  preserve final decisions, migration constraints, evidence links, and reopen
+  conditions.
+- Archive completed plans only after no open references and ≥6 months without
+  meaningful edits. The grounding-scan and `CSS_PHASE4_*` sets fail both today.
+- **Load-bearing `docs/` paths in code (v21, concrete list):** before moving any
+  doc, know that `scripts/generate_test_inventory.py`,
+  `scripts/pyright_baseline_diff.py`, `scripts/css_audit/emit_baseline.py`,
+  `scripts/fatigue_stage4_observer.py`, `scripts/fatigue_calibration_report.py`,
+  ~18 references in `.github/workflows/ci.yml`, and `deep-gate.yml` all hardcode
+  `docs/` paths. Grep the whole repo, not just docs.
+- Delete local/debug/generated command output instead of turning it into project
+  memory. (`MASTER_HANDOVER.local.md` is gitignored, current, and operational —
+  not a leftover.)
+
+## 4. Remaining source TODOs
+
+Four `TODO` markers remain in production Python, covering three decisions
+(`constants.py` carries the same question on two adjacent alias lines). None is a
+quick implementation task without an owner decision. No `TODO`/`FIXME` markers
+remain in `static/js/`.
+
+| Location | TODO | Disposition |
 |---|---|---|
-| A7 | **Investigate `accessibility.spec.ts:283` focus-return flake** | ✅ **DONE 2026-06-10.** Reproduced locally, then fixed test timing in [`e2e/accessibility.spec.ts`](../e2e/accessibility.spec.ts) by waiting for Bootstrap modal lifecycle events before close/focus assertions. Verification: `npx playwright test e2e/accessibility.spec.ts -g "focus returns after modal closes" --project=chromium --repeat-each=10` = 10 passed; `npx playwright test e2e/accessibility.spec.ts --project=chromium` = 24 passed. |
-| A8 | **Flip flake8 rules to blocking** | ✅ **DONE — fully closed 2026-06-11.** First pass (2026-06-10): added `F811,E711,E712` to the blocking `--select` in `.github/workflows/ci.yml` (they sat at ~0) + aligned `--exclude`; fixed `tests/test_plan_generator.py:594` E712. Final flip (2026-06-11, PR #74 `18de45e`): drove the last candidate **F401 from 56 → 0** (removed unused imports across ~30 test files + `app.py`/`routes/body_composition.py`/`routes/user_profile.py`/`utils/fatigue_data.py`/two scripts; deleted stray `replace.py`), added `F401` to the blocking `--select`, and dropped it from the measure-only diagnostics. The "load-bearing re-exports" worry proved moot — `utils/__init__.py` uses `__all__` (zero F401) and `app.py`'s hits were unused `flask` symbols, not side-effect imports. Verified `flake8 --select=F401` = 0 + pytest 1595 passed + CI green. **No measure-only flake8 flip candidates remain** (`F841` `except … as e` idiom stays measured-only by design). |
-| A9 | **Flip pyright to blocking** | ✅ **DONE 2026-06-10.** Baseline-allowlist landed: committed snapshot [`docs/ci_cd_phase3/pyright-baseline.json`](ci_cd_phase3/pyright-baseline.json) (190 diagnostics / 58 distinct keys under the committed `pyrightconfig.json` — py3.12 + Windows; the old ~138 figure predates the learned-calibration/fatigue growth) + reusable [`scripts/pyright_baseline_diff.py`](../scripts/pyright_baseline_diff.py). The `typecheck` job keeps the measure-only pyright count/artifact, then runs a **blocking** baseline-diff that fails only on NET-NEW diagnostics (keyed by file+rule+message+severity, repo-relative POSIX path, multiset counts — reproduces cross-OS). Existing backlog never reds the build. Tests: `tests/test_pyright_baseline_diff.py` (13 cases incl. duplicate-count + resolved-baseline). Regenerate via `--write-baseline`. pyright config reconciliation (py3.11-vs-3.12) stays A12. |
-| A10 | **Promote excluded specs to required-PR after a stability run** | ✅ **DONE 2026-06-11.** Promoted all three measure-first specs (`accessibility`, `fatigue-stage4-smokes`, `volume-progress`) into the required `e2e-functional` job by adding them to its Chromium spec list in `.github/workflows/ci.yml` — **no job/check-context rename, no branch-protection change**. Evidence: a throwaway `--repeat-each=5` ubuntu probe (`probe/a10-e2e-promotion-stability`, since deleted) → **225/225 green, zero flakes**, plus the 2026-06-05 deep-gate full-e2e green and a local Windows pass. CI inclusion contract in [`e2e/CLAUDE.md`](../e2e/CLAUDE.md) updated. **Watch:** monitor the first ~10 real PR runs for any geometry flake (`volume-progress` ±1px / `fatigue-stage4-smokes` overflow asserts); if one appears, revert that single spec line. Follow-up on 2026-06-11 fixed `nav-dropdown` issue #8 and promoted it too; visual specs stay excluded. |
-| A11 | **Shard `e2e-functional` to n=2** | ✅ **DONE 2026-06-11.** Split the single `e2e-functional` job into a 2-way matrix `e2e-functional-shard` (`name: E2E Functional Shard ${{ matrix.shard }}/2`, `fail-fast: false`, `matrix.shard: [1, 2]`) running the **identical** explicit spec list with `--shard=${{ matrix.shard }}/2`, plus an `e2e-functional` **fan-in gate** that keeps the required check context `E2E Functional (Chromium)` byte-for-byte (`needs: e2e-functional-shard`, `if: always()`, green iff both shards pass). Each shard has its own setup/server/seeded throwaway DB; per-shard artifacts upload as `playwright-functional-shard-<i>-of-2`. **No `playwright.config.ts` change** (`fullyParallel: false` stays); **no branch-protection change** (the new `Shard 1/2`/`Shard 2/2` contexts are non-required). Green + red paths validated on the PR's own CI; realized shard runtimes + wall-clock savings recorded in the PR. CI contract in [`e2e/CLAUDE.md`](../e2e/CLAUDE.md) + [`ci_cd_phase1/PLANNING.md`](archive/ci_cd/phase1/PLANNING.md) updated. Pre-A11 single-job baseline: ~13 min. |
-| A12 | **Lower-value / out-of-scope** | **Pyright py3.11-vs-3.12 reconcile ✅ DONE 2026-06-11** (PR #76 `e2778c0`): aligned `pyrightconfig.json` `pythonVersion` 3.12 → 3.11 to match the CI runtime + regenerated the baseline; **old-vs-new diagnostic delta = 0** (190 diags / 58 keys, symmetric diff 0, `reportMissingImports` 0), job name unchanged, no branch-protection change, CI green. **Remaining (optional, none blocking):** expand tsc to app JS (`static/js/modules/*` — 29 files / ~14.6k untyped LOC, large); add JS unit tests (Vitest/Jest — greenfield, needs owner direction); audit the manual-deep E2E baseline (visual/thumbnails/remaining geometry reds that never gate a required PR). Only if complexity grows. |
+| [`utils/constants.py:19`](../utils/constants.py#L19) | Consider collapsing `Front-Shoulder` into anatomical deltoid naming. | **OWNER / taxonomy migration.** Cross-module string matching makes this a product/data migration, not a rename. |
+| [`utils/constants.py:100-101`](../utils/constants.py#L100-L101) | Decide whether `Mid/Upper Back` remains a dedicated grouping (duplicated on both casing aliases). | **OWNER / taxonomy decision.** Preserve current aliases until decided; resolve both lines together. |
+| [`utils/program_backup.py:18`](../utils/program_backup.py#L18) | `schema_version` is written but not consumed. | Testing Strategy decision D6: define/enforce compatibility or explicitly remove the unused contract. Do not silently implement a migration policy. |
 
-### P3 — Deferred-by-design future product (needs owner direction; do NOT start unprompted)
+## 5. Evidence used for this revision
 
-These are intentional future-phase scope, not oversights. Listed so this file is the single index; source-of-truth gates live in the linked docs.
+v21 deliberately took angles the prior passes did not; v22 re-ran the
+execution-sensitive checks and corrected the queue where live state had moved:
 
-**Fatigue Meter Phase 3** ([`fatigue_meter/PHASE2_PLANNING.md §10`](fatigue_meter/PHASE2_PLANNING.md), [`BRAINSTORM.md`](fatigue_meter/BRAINSTORM.md)):
-- **Most concrete:** owner-vetted **MEV/MAV/MRV for the 6 unranked muscles** (Front-Shoulder, Rear-Shoulder, Lower Back, Hip-Adductors, Middle-Traps, Neck) — they render `—` until supplied. Do not invent thresholds.
-- Per-muscle SFR cards · systemic + joint fatigue channels (B+C) · decay model · %1RM path (blocked on populated reference lifts, 0/1897) · technique modifier (opt-in) · `user_fatigue_thresholds` calibration table (first schema change) · partial-week "X/N expected" display · `/api/fatigue/*` endpoints.
-- **📌 Fatigue body heatmap — COMMITTED (owner-requested 2026-06-13), NOT deferred.** Exception to this section's "do NOT start" rule — the owner has greenlit it. Pure visualization on `/fatigue` reusing the MuscleMap figure + `bodymap-svg.js` coloring + the `fatigue-*` band palette; **no math / threshold / schema / `/api` change**, calibration-freeze-safe. Gated only on the open decisions in [`HEATMAP_PLANNING.md §8`](fatigue_meter/HEATMAP_PLANNING.md); then `/council-plan` → implement (§6 there). Tracked in [`PHASE2_PLANNING.md §3`](fatigue_meter/PHASE2_PLANNING.md).
+- **Novel sweeps:** a scripted link-integrity check over every `docs/**/*.md`
+  found 12 broken links (itemized; the total link count changes as this document
+  adds links); a scripted inbound-reference check over 146 docs, followed by a
+  v22 correction for references introduced by this plan and filename references
+  from production/test code; a count-restating grep against the single-producer
+  policy; a `docs/`-path grep across `tests/`, `scripts/`, and workflows.
+- **Cross-numbering audit:** `SCAN_RECOMMENDATIONS.md` §A read in full and each
+  A-item traced into `REFACTOR_PLAN.md` Track A / WPB packets, with scan-A12
+  verified closed in code (`routes/exports.py` POST route, no `exercise_order`
+  mutation) — resolving the collision that made earlier "shipped" rows
+  under-enumerate.
+- **Dependency policy:** `.github/dependabot.yml` read in full, including its
+  own record of the Bootstrap+Sass SCSS break; #268's body and #252's CLOSED
+  state confirmed via `gh`; #269's isolated failing checks inspected. The v22
+  queue was recounted rather than copied from v21.
+- **Git/GitHub:** `origin/main` re-fetched at `f178790`; the checkout remained at
+  `5b7a4f1` (10 behind), #270/#272/#273 were merged, #271 remained open, and all
+  dirty paths were enumerated. No pinned queue count is an execution input.
+- **Docs:** `STAGE4_PARKED_HANDOFF.md`, the three orphan `user_profile/` design
+  docs, `E2E_TESTING.md`, `CHANGELOG.md` entry list, `TEST_INVENTORY.md` header,
+  `DECISIONS.md` ADR log, `docs/README.md`, and the new 699-line
+  `CROSS_MODEL_ORCHESTRATION_PLAN.md` (untracked) all read at source.
+- **Carried forward from v19/v20** (re-verified where volatile): worktree
+  enumeration (30 at the v22 snapshot), artifact/log sizes, DB row counts,
+  P1.3–P1.5 premises, production TODO markers, and branch-protection contexts.
+  The v22 status pass found three dirty checkouts: current, Bootstrap spike, and
+  WP4.4 F1 navbar; all are explicit P1.2 exclusions.
 
-**User Profile v2** ([`user_profile/DESIGN.md §10`](user_profile/DESIGN.md), [`RELATED_EXERCISE_TRANSFER_DESIGN.md`](user_profile/RELATED_EXERCISE_TRANSFER_DESIGN.md)):
-- Per-exercise override ratios · auto-update reference lifts from logged data · bodyweight add-on for weighted pull-ups/dips · "estimate based on N/14 lifts" confidence indicator · 6 open related-transfer ratio-seeding design questions (Phase 2A shipped with zero seeded ratios).
+## 6. Definition of "closed" for this queue
 
-**Other deferred:** KI-008 multi-tab editing conflict detection ([`UI_SCENARIOS_GAP_ANALYSIS.md §0`](UI_SCENARIOS_GAP_ANALYSIS.md)) — out of scope under single-user/single-tab model, no demand signal.
+An item leaves this file only when one of these is true:
 
-### What is NOT open (closed since v10 — folded in here so this file is current)
+1. the implementation and proportional verification have landed on `main`;
+2. the owner explicitly rejects/parks it and the source plan records the reopen
+   condition;
+3. current code/data proves the premise obsolete, and active docs no longer
+   present it as work; or
+4. disposable artifacts are removed after the safety checks above.
 
-- **Learned Calibration MVP + 2A + 2B + 2C + 2D-A + 2D-B + 2D-C** — all shipped (PRs #37/#53/#54/#55/#56/#57/#58). Only 2D-D remains (A2, blocked).
-- **CI/CD Improvement Plan** — all phases shipped (PRs #40–#51). Optional fast-follows A7–A11 closed (A11 = `e2e-functional` sharding PR #71; A8 F401 flip fully closed PR #74 `18de45e`); A12's pyright py3.11 reconcile done (PR #76 `e2778c0`). Only optional A12 leftovers remain (app-JS tsc, JS unit tests, known-red E2E audit) — none blocking.
-- **Stage 4 observer tooling + tests** — `scripts/fatigue_stage4_observer.py` + `_status.py` + health-check/installer PowerShell scripts; **test PR #59 (`672491c`) merged** (handover said "pending" — it is in fact on `main`).
-- **`movement_pattern` catalog cleanup** — shipped `df9b6f9` (454 NULLs → 0).
-- **Archive folder** — all historical; nothing open. `PUPPETEER_TEST_FINDINGS.md` is obsolete (puppeteer dropped, PR #60); the plan-volume-integration trio is shipped and now carries shipped/historical banners.
-- **Anterior `triceps` workout.cool planning note** — already reflected in [`workout_cool_integration/PLANNING.md §3.3`](workout_cool_integration/PLANNING.md) and execution log; no longer a P1 item.
-
----
-
-## Section B — Closed-Item Audit Trail (v1–v10, preserved unchanged)
-
-## 0. CLOSED — Six In-Flight Scopes All Landed (2026-05-23)
-
-**All six scopes the owner accepted landed as separate commits on local `main`.**
-
-The local working tree contained **six distinct workstreams** mixed together. Owner direction was "keep both A and B; keep both C and D as two separate commits; keep both E and F; run targeted tests before each commit." All six landed cleanly; targeted gates passed for each.
-
-### Outcome — six commits landed
-
-| # | Scope | Landed as | Targeted gate |
-|---|---|---|---|
-| A | **Profile BC hooks (Issues #17/#18)** | `de3e4d0` `feat(profile): surface latest body composition snapshot (#17 + #18)` | pytest 26 passed + Playwright 2 passed (A+B combined) |
-| B | **Profile workout.cool bodymap §3.6** | `18ad223` `feat(profile): mount workout-cool bodymap with worst-state aggregation (§3.6)` | pytest 91 passed + same Playwright |
-| C | **Navbar hover dropdowns** | `ef475cc` `feat(navbar): hover-to-open desktop dropdowns` | Playwright `e2e/nav-dropdown.spec.ts` 6 passed |
-| D | **Navbar icon accents + motion** | `89561df` `feat(navbar): accent colors + hover motion on Profile, Body Composition, and Backup icons` | Playwright icon-test 1 passed |
-| E | **Body Composition visual baselines** | `40d7dd2` `test(visual): add Body Composition snapshot baselines` | Playwright `visual.spec.ts -g body-composition` 6 passed |
-| F | **UI hardening spec + Known Issues table** | `0ae5b39` `test+docs: lock down toast/form/modal contracts and add Known Issues table` | Playwright `e2e/ui-hardening.spec.ts` 12 passed |
-
-### Bookkeeping corrections noted during execution
-
-- `static/css/pages-user-profile.css` was originally bucketed under B in this doc, but the diff actually styles A's `.profile-insights-body-fat` + `.profile-insights-tile-subline`. It landed with A.
-- `templates/base.html` (Profile nav icon swap `fa-user-circle` → `fa-user-alt`) was an orphan per the v4 doc; it belonged to D and landed with D.
-- Per-block splits on `e2e/user-profile.spec.ts` (A vs B) and `e2e/nav-dropdown.spec.ts` (C vs D) used Edit-out / stage / Edit-back rather than `git add -p` since the harness has no interactive shell.
-
----
-
-## 1. CLOSED — P0 Docs Hygiene (executed 2026-05-23 as a single doc-only commit on top of the six feature commits)
-
-All ten items below shipped in one docs-only commit on top of A–F. Each links to the corrected file.
-
-| #  | File / area | What was stale | Resolution |
-|----|---|---|---|
-| 1  | [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md) + [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) | Described PR #31 follow-ups as non-blocking TODO; they shipped as PR #32 (`94482d7`). | Refreshed Current Objective + Workstream Queue + Active Workstreams table + Open Decisions + Next Safe Step to reflect PR #32 shipped + 6 new ahead-of-origin commits. |
-| 2  | [`CLAUDE_MD_AUDIT.md §2`](CLAUDE_MD_AUDIT.md) | Listed `pattern_coverage` + replace-exercise as response-contract exceptions. | Rewritten to "None" with link to `cbf745a` migration. |
-| 3  | [`archive/body_composition/development_issues.md`](archive/body_composition/development_issues.md) | Issue #21 still showed `Open`. | Flipped to Resolved; all acceptance boxes ticked; pointed at PR #31, PR #32, and `de3e4d0` for the Profile hooks. |
-| 4  | [`E2E_TESTING.md`](E2E_TESTING.md) | Said 19 specs; actual is 25. | Bumped to 25; added rows for `body-composition`, `fatigue-stage4-smokes`, `ui-hardening`, `user-profile`, `visual-baseline-thumbnails`, `volume-progress`. |
-| 5  | [`CSS_OWNERSHIP_MAP.md`](CSS_OWNERSHIP_MAP.md) | Said 16 CSS files; actual is 18. | Bumped to 18; added `pages-user-profile.css` and `pages-body-composition.css` to both tables. |
-| 6  | [`workout_cool_integration/PLANNING.md`](workout_cool_integration/PLANNING.md) + [`YOUTUBE_REFERENCE_VIDEOS.md`](workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md) | Described `data/youtube_curated_top_n.csv` as header-only. | Updated to 36 curated rows + header (commit `cf21191`); both docs reframe the work as "first batch shipped." |
-| 7  | [`workout_cool_integration/EXECUTION_LOG.md`](workout_cool_integration/EXECUTION_LOG.md) | Said §3.6 was "deferred indefinitely; future separate plan." | Added two new top entries: 2026-05-23 §3.6 shipped (`18ad223`) and 2026-05-22 §5 curation (`cf21191`). |
-| 8  | [`CHANGELOG.md`](CHANGELOG.md) | "Unreleased - May 11, 2026" was the most recent entry. | Added six new Unreleased sections: May 23 (Profile #17/#18 hooks + §3.6 + navbar + visual baselines + ui-hardening), May 22 (YouTube curation), May 21 (PR #32 + response-contract migration), May 20 (PR #31 + fatigue badge + Stage 4 close), May 18 (§4.6 + dependency pins), May 15 (§4 thumbnails). |
-| 9  | [`ai_workflow/INDEX.md`](ai_workflow/INDEX.md) | Said fatigue meter "parked; Phase 1 + Stage 4 entry shipped." | Rewrote to "closed; Phase 1 + Stage 4 shipped"; added Body Composition Issue #21 row; updated workout.cool row to include §3.6 + YouTube curation. |
-| 10 | [`docs/README.md`](README.md) | Last updated 2026-05-11; omitted `ACTIVE_DEVELOPMENT.md`, `MASTER_HANDOVER.md`, this file. | Added `MASTER_HANDOVER.md`, `ACTIVE_DEVELOPMENT.md`, `LEFTOVERS_BY_PRIORITY.md` to active docs; moved `VOLUME_TAXONOMY_AUDIT.md` to Archive (completed Phase 0 audit). |
+The best short sequence is **preserve the dirty doc patch → fetch/reconcile it
+with current `main` (including #270/#272/#273 and #271 if landed) → commit the
+orchestration plan + INDEX row + this file together → P1.7 → P1.2 cleanup of
+only proven-clean/unprotected targets → P1.1 residue → READY packets P1.4/P1.5**.
+Then obtain the OWNER decisions for P1.3/P1.8, P1.6/#269, P2.3's visual-baseline
+work, and Fatigue Phase 2 Stage 4. Do not schedule D3 until the Linux compare is
+green. This clears the highest-value stale state before any new large proposal.
 
 ---
 
-## 2. CLOSED — KI-001 Filter Cache (resolved 2026-05-23 by deletion)
-
-| # | Item | Resolution |
-|---|---|---|
-| 11 | **KI-001 — Filter cache invalidation** | Resolved by deleting the module. Triage discovered `utils/filter_cache.py` was dormant code: zero `from utils.filter_cache` imports in `routes/`, `utils/`, or `app.py`; `get_cached_unique_values()` only called by `warm_cache()` which itself was never wired into startup; the then-live `routes/filters.py::get_unique_values` route hit `DatabaseHandler` directly (that unused route was later removed in WPB.6). Catalogue mutations (`save_exercise`, `remove_exercise_by_name`) had no HTTP path. Removing the module eliminated the "1 hour staleness" theoretical risk AND the latent SQLi exposure on the un-validated `f"SELECT DISTINCT {column} FROM {table}"` at line 85. `tests/test_filter_cache.py` (~440 LOC, 30+ tests) removed along with it. |
-
----
-
-## 3. Remaining Backlog — superseded by Section A (2026-06-10)
-
-> The single open row that lived here (row #15 — Fatigue Phase 2 Stage 4 calibration window) is now tracked as **A1** in Section A, with the live `workout_log = 0` fact and the passed 2026-06-07 nominal date recorded. Rows #4, #5, #8, #9, #12, #13, #14 were closed in v5–v9 (see Sections 0/4/5/6). The Phase-3 follow-ups previously parked here are now enumerated under **P3** in Section A.
-
----
-
-## 4. CLOSED — Row #13 §4.6 Pixel Baselines (resolved 2026-05-23 by `toHaveScreenshot()` lock-in)
-
-| # | Item | Resolution |
-|---|---|---|
-| 13 | **§4.6 pixel baselines** | Resolved. [`e2e/visual-baseline-thumbnails.spec.ts`](../e2e/visual-baseline-thumbnails.spec.ts) was promoted from inspection-only PNGs to committed `toHaveScreenshot()` baselines under [`e2e/__screenshots__/visual-baseline-thumbnails.spec.ts-snapshots/`](../e2e/__screenshots__/visual-baseline-thumbnails.spec.ts-snapshots/). 18 PNGs cover the full §4.6 matrix at `maxDiffPixelRatio: 0.01`. Verified via the canonical isolated-DB harness → **18 passed in 14.3s**. See [`docs/workout_cool_integration/EXECUTION_LOG.md`](workout_cool_integration/EXECUTION_LOG.md) (top entry) for the full command sequence. |
-
----
-
-## 5. CLOSED — Row #12 §5 YouTube Curation (resolved 2026-05-23 by diminishing returns)
-
-| # | Item | Resolution |
-|---|---|---|
-| 12 | **workout.cool §5 curation** | Closed. Owner-approved `ff244aa` added 20 owner-vetted rows on top of `cf21191`'s starter 36, bringing [`data/youtube_curated_top_n.csv`](../data/youtube_curated_top_n.csv) to **56 curated rows + header**. Usage triage of the remaining ~1,841 uncurated catalogue rows confirmed all but one have 0–1 combined uses (lone exception `Barbell Close Grip Bench Press` at 2 uses); the 56-row set already covers every common/core lift with meaningful usage signal. Further expansion would require fabricating unvalidated YouTube IDs, which is worse UX than the search fallback. See [`docs/workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md`](workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md) "Curation Closed" for the reopen flow. |
-
----
-
-## 6. CLOSED — Row #14 Worktree Disposition (resolved 2026-05-23 by inspection + branch cleanup)
-
-| # | Item | Resolution |
-|---|---|---|
-| 14 | **Worktree disposition** | Closed. Both worktree paths (`Hypertrophy-Toolbox-v3-visual-baseline-s4`, `Hypertrophy-Toolbox-v3-redesign-calm-glass`) already absent from disk; neither registered in `git worktree list`. The row's "still checked out locally" claim was stale. Two dangling branch refs verified redundant and deleted with owner approval: `test/visual-baseline-thumbnails @ 99910a4` (shipped via PR #22 squash `631b5f8` + later `b5b8c7a`) and `origin/redesign/calm-glass-2026 @ ba519df` (strict ancestor of `origin/main`). |
-
----
-
-## 7. Low-Priority Code TODOs (for completeness; don't let these distract)
-
-| Location                           | TODO                                                                                  | Disposition                                                  |
-|------------------------------------|---------------------------------------------------------------------------------------|--------------------------------------------------------------|
-| [`utils/program_backup.py:18`](../utils/program_backup.py#L18) | `schema_version` written but not yet consumed                                       | Forward-looking marker; no action needed                     |
-| [`utils/constants.py:11`](../utils/constants.py#L11)           | Evaluate collapsing `Front-Shoulder` into anatomical naming once UI migrates          | Long-term taxonomy decision                                  |
-| [`utils/constants.py:92-93`](../utils/constants.py#L92)        | Confirm whether `Mid/Upper Back` rollup should remain a dedicated grouping            | Long-term taxonomy decision                                  |
-
----
-
-## Source References
-
-| Section / item             | Source-of-truth doc                                                                                          |
-|----------------------------|--------------------------------------------------------------------------------------------------------------|
-| Section A P0 (A1/A2)       | [`fatigue_meter/PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) Stage 4 + §10, [`user_profile/LEARNED_CALIBRATION_PLAN.md`](user_profile/LEARNED_CALIBRATION_PLAN.md) §"Phase 2D-D Gate Review", [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) |
-| Section A P1 (A3–A6)       | `git log` (`6acc537` / `284dca4` / `672491c` / `f136f60` / `99f64ad`), [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md), [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md), [`E2E_TESTING.md`](E2E_TESTING.md), archived plan-volume docs, Body Composition/Profile/UI trackers |
-| Section A P2 (A7–A12)      | [`CI_CD_IMPROVEMENT_PLAN.md`](archive/ci_cd/CI_CD_IMPROVEMENT_PLAN.md), `archive/ci_cd/phase{1,3,4_2,5}/PLANNING.md`, `.github/workflows/ci.yml`, [`e2e/accessibility.spec.ts`](../e2e/accessibility.spec.ts) |
-| Section A P3               | [`fatigue_meter/PHASE2_PLANNING.md §10`](fatigue_meter/PHASE2_PLANNING.md), [`user_profile/DESIGN.md §10`](user_profile/DESIGN.md), [`user_profile/RELATED_EXERCISE_TRANSFER_DESIGN.md`](user_profile/RELATED_EXERCISE_TRANSFER_DESIGN.md), [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md) |
-| Section 0 (dirty tree)     | `git diff --stat HEAD`, `git status --short` (2026-05-23 revisions)                                          |
-| Sections 1–6 (closed)      | per-row links above; preserved from v1–v10                                                                   |
-| Section 7                  | grep `TODO|FIXME` across `utils/`, `routes/`, `static/js/`                                                    |
-
----
-
-*Last updated: 2026-06-11 (v17 — Opus did the A12 pyright py3.11-vs-3.12 reconcile: aligned `pyrightconfig.json` to 3.11 to match the CI runtime + regenerated the baseline, PR #76 `e2778c0`; old-vs-new diagnostic delta = 0 (190 diags / 58 keys, symmetric diff 0, `reportMissingImports` 0), job name unchanged, no branch-protection change. v16 closed A8 F401 flip (PR #74 `18de45e`); v15 closed A11 sharding (PR #71 `17b9d7f`).) Closed sections 0/1/2/4/5/6 retained as audit trail. Live facts verified: `workout_log` = 0 rows; `main`/`origin/main` tip `e2778c0` (PR #76 merged). Remaining A12 leftovers (app-JS tsc, JS unit tests, known-red E2E audit) are optional and non-blocking.*
+*Last updated: 2026-08-02 (v22 — post-Fable execution-safety revision: live-state
+reconciliation, destructive-worktree safeguards, generated-count discipline,
+explicit status classification, KI-005 target precision, dependency recount,
+and D3/D5 + Linux-baseline updates; checked against `origin/main` @ `f178790`.)*
