@@ -3,6 +3,7 @@ import {
   installDeterminism,
   prepareForScreenshot,
   visualScreenshotOptions,
+  waitForVisualReady,
   type VisualTheme,
 } from './visual-helpers';
 
@@ -47,6 +48,10 @@ for (const appPage of pages) {
           await page.goto(appPage.route);
           await waitForPageReady(page);
           await prepareForScreenshot(page);
+          // Completeness gate. prepareForScreenshot freezes animation, but
+          // nothing before this asserted the page had finished rendering, which
+          // is how a truncated baseline was generated on 2026-08-02.
+          await waitForVisualReady(page, { name: appPage.name });
 
           await expect(page).toHaveScreenshot(
             `${appPage.name}-${viewport.name}-${theme}.png`,

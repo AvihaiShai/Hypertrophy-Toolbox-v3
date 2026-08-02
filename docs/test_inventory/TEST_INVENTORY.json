@@ -202,6 +202,11 @@
       },
       {
         "in_required_functional_set": false,
+        "spec": "visual-field-separator.spec.ts",
+        "tests": 42
+      },
+      {
+        "in_required_functional_set": false,
         "spec": "visual.spec.ts",
         "tests": 66
       },
@@ -226,12 +231,12 @@
         "tests": 35
       }
     ],
-    "total_spec_files": 30,
-    "total_tests": 547
+    "total_spec_files": 31,
+    "total_tests": 589
   },
   "pytest": {
-    "collected_deterministic": 2102,
-    "deterministic_files": 101,
+    "collected_deterministic": 2112,
+    "deterministic_files": 102,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -286,6 +291,10 @@
       {
         "file": "tests/test_css_cascade_contracts.py",
         "tests": 30
+      },
+      {
+        "file": "tests/test_css_field_separator_contracts.py",
+        "tests": 10
       },
       {
         "file": "tests/test_css_theme_dark_p3_audit_contracts.py",
@@ -648,7 +657,7 @@
         "tests": 40
       }
     ],
-    "total_files": 102
+    "total_files": 103
   },
   "schema_version": 1
 }

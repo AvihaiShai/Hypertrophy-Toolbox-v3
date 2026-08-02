@@ -1632,3 +1632,94 @@ body:not(:has(#navbar)) .navbar,
     display: block;
   }
 }
+
+/* ==========================================================================
+   Accessible table separators (WCAG 2.2 SC 1.4.11, non-text contrast)
+   ==========================================================================
+ *
+ * WHY THESE LIVE HERE
+ * -------------------
+ * Beside --tbl-border-color, which they consume: the token and its consumers
+ * stay in one file. Three other homes were rejected because each would have
+ * required rewriting another packet's historical record to make room:
+ * components.css is pinned by tests/test_css_wp4_4_components_contracts.py to
+ * an exact line and !important count proving WP4.4-h was a pure deletion;
+ * a11y.css is pinned by tests/test_css_wp4_4_a11y_contracts.py to WP4.4-d2's
+ * certified 50 !important; and a new stylesheet would breach the eight-bundle
+ * runtime cap in tests/test_css_cascade_contracts.py. None of those should be
+ * weakened to make room for this.
+ *
+ * layout.css loads BEFORE components.css, so these rules cannot rely on source
+ * order. Every arm is therefore deliberately one step ABOVE the rule it
+ * outranks -- the doubled `.table.table` / `.table-calm.table-calm` and the
+ * repeated theme attribute each buy exactly one class of weight while matching
+ * precisely what the single form matches. Specificity does the work; position
+ * is irrelevant.
+ *
+ * WHAT IT FIXES
+ * -------------
+ * Two different borders draw the boundaries in a table, and they regressed
+ * independently:
+ *   - the row-card outline, from --tbl-card-border;
+ *   - the field/row separator, the cell bottom border, addressed here.
+ * In card mode the cell bottom border is the ONLY divider between a label and
+ * the next label/value pair -- no gap, no fill change, no shadow -- and in grid
+ * mode it is the row divider. Three earlier rules left it below the 3:1
+ * non-text contrast floor or removed it outright:
+ *   1. `.table th, .table td` pins every cell border to #d0d0d0 !important,
+ *      which is 1.54:1 on a white card;
+ *   2. the Calm Glass family sets cell borders to
+ *      `color-mix(--ink-3 16%, transparent)` !important, ~1.1:1;
+ *   3. dark theme restates the colour again per page (#495057, #404040, and a
+ *      near-transparent white on the Workout Plan grid).
+ *
+ * SCOPE DISCIPLINE
+ * ----------------
+ * Every rule below owns exactly one longhand, border-bottom-color, and takes
+ * its value from --tbl-border-color -- the same token the row-card outline
+ * uses, so both separators move together and the contrast floor in
+ * tests/test_css_wp4_4_layout_contracts.py governs both. No Bootstrap border
+ * variable is repointed; no unrelated #d0d0d0 use is touched.
+ *
+ * The !important is unavoidable: it has to participate in an !important
+ * cascade it did not create.
+ */
+
+/* Light theme. Arms are written `tbody td`, not `> :not(caption) > * > *`,
+ * because the Calm Glass family states its cell colour through a `tbody td`
+ * rule at (0,3,2)/(1,3,2); the descendant-star form measures (0,3,1) and loses
+ * by one class. The first attempt at this fix used the star form and silently
+ * changed nothing on five of the seven families. */
+.table.table tbody td,
+.progression-plan-container .table.table-calm.table-calm tbody td,
+:is(#workout[data-page="workout-plan"], .workout-log-page, .summary-frame.frame-calm-glass) .table.table-calm.table-calm tbody td {
+    border-bottom-color: var(--tbl-border-color) !important;
+}
+
+/* Dark theme states the same cell colour again through page-scoped rules that
+ * outrank the light arms above. The theme attribute is repeated to lift each
+ * arm exactly one step past its dark competitor: it selects precisely what the
+ * single form selects, so the duplication buys specificity, not reach, and
+ * avoids escalating to an id. */
+[data-theme='dark'][data-theme='dark'] .table.table tbody td,
+[data-theme='dark'][data-theme='dark'] .results-section tbody td,
+[data-theme='dark'][data-theme='dark'] .progression-plan-container .table.table-calm.table-calm tbody td,
+[data-theme='dark'][data-theme='dark'] :is(#workout[data-page="workout-plan"], .workout-log-page, .summary-frame.frame-calm-glass) .table.table-calm.table-calm tbody td {
+    border-bottom-color: var(--tbl-border-color) !important;
+}
+
+/* Card mode stacks cells vertically, so the final cell of a card must not draw
+ * a divider under the last field -- the card outline already closes it. Scoped
+ * to the two card-mode queries layout.css uses, and expressed as width rather
+ * than colour so the geometry matches the non-important rule it reinforces. */
+@container table-container (max-width: 576px) {
+    .tbl--responsive tbody tr td:last-child {
+        border-bottom-width: 0 !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .tbl-wrap .tbl--responsive tbody tr td:last-child {
+        border-bottom-width: 0 !important;
+    }
+}

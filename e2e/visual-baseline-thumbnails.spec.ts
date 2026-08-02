@@ -22,6 +22,7 @@ import {
   elementScreenshotOptions,
   installDeterminism,
   prepareForScreenshot,
+  waitForVisualReady,
   type VisualTheme,
 } from './visual-helpers';
 
@@ -79,6 +80,7 @@ test.describe('§4 visual baseline — workout_plan thumbnails', () => {
 
           // Save screenshot artifact (full table only — keeps diff size sane).
           await prepareForScreenshot(page);
+          await waitForVisualReady(page, { name: 'plan-thumbnails' });
           const target = page.getByTestId('exercise-table');
           await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
 
@@ -121,6 +123,7 @@ test.describe('§4 visual baseline — workout_log thumbnails', () => {
         expect(htmlTheme).toBe(theme);
 
         await prepareForScreenshot(page);
+        await waitForVisualReady(page, { name: 'log-thumbnails' });
         const target = page.getByTestId('workout-log-table');
         await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
 
