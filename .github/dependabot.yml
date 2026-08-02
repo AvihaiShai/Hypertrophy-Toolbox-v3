@@ -38,6 +38,13 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
+    # Stylelint is pinned as part of the committed CSS measurement baseline.
+    # Major upgrades require a deliberate re-baselining packet because changed
+    # rule semantics can alter warning counts even when the CSS is unchanged.
+    ignore:
+      - dependency-name: "stylelint"
+        update-types:
+          - "version-update:semver-major"
     # Grouping is by COMPATIBILITY, not by semver category.
     #
     # The first attempt grouped every npm package whose bump happened to be
