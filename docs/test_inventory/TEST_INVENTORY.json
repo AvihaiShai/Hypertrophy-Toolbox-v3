@@ -230,8 +230,8 @@
     "total_tests": 541
   },
   "pytest": {
-    "collected_deterministic": 2062,
-    "deterministic_files": 99,
+    "collected_deterministic": 2099,
+    "deterministic_files": 100,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -286,6 +286,10 @@
       {
         "file": "tests/test_css_cascade_contracts.py",
         "tests": 30
+      },
+      {
+        "file": "tests/test_css_theme_dark_p3_audit_contracts.py",
+        "tests": 37
       },
       {
         "file": "tests/test_css_wp4_4_a11y_contracts.py",
@@ -640,7 +644,7 @@
         "tests": 40
       }
     ],
-    "total_files": 100
+    "total_files": 101
   },
   "schema_version": 1
 }
