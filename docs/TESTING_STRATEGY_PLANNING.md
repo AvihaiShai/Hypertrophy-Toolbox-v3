@@ -1,8 +1,8 @@
 # Testing Strategy Review & Plan
 
 > **Date**: 2026-08-01
-> **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7.
-> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2–5 remain PLANNING** — proposals awaiting owner selection, with D3–D7 unsigned. Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document.
+> **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D4, D6 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and that stopgap is blocked on the stale Linux baseline set ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02)). Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
 
 ---
 
@@ -34,7 +34,7 @@
 | "Build smoke test — catches PyInstaller didn't bundle templates" | ❌ Already exists | [deep-gate.yml:287-336](../.github/workflows/deep-gate.yml#L287-L336): `windows-latest`, real `pyinstaller --clean --noconfirm`, then `scripts/smoke_packaged_app.py --mode bootloader` (real bootloader, explicitly not weakened to payload mode). Plus 27 source-level packaging contract tests in pytest. The *real* gap is that it never runs on a PR (§4, B8). |
 | "Supply chain: pip-audit + npm audit + Dependabot + bandit" | ⚠️ Half right | `pip-audit` is already a **blocking required check** on every PR ([ci.yml:31-38](../.github/workflows/ci.yml#L31-L38)). `npm audit`, Dependabot, bandit, semgrep, CodeQL: all genuinely absent — the JS dependency surface has zero automated vulnerability scanning. |
 | "Mutation testing, quarterly" | ✅ Valid gap | `mutmut` absent; no mutation testing anywhere. And §4 B1 shows exactly why this repo needs it. |
-| "Skip load testing" | ✅ Correct call | Nothing to add for concurrent users. (Two inline latency assertions already exist — see §4 B17.) |
+| "Skip load testing" | ✅ Correct call | Nothing to add for concurrent users. (Two inline latency assertions already exist — see §4 B13.) |
 | "The wider the tier, the faster and cheaper each test is" | ❌ Backwards | Unit tests are the fast/cheap tier; browser E2E is the slow/expensive one. Codex caught this; the rest of Opus's own paragraph (run the fast suite on every save) only makes sense with the correct ordering. |
 | "'Never test manually again' is not reachable; keep a 10-minute release checklist" | ✅ Correct | Both models agree; this document keeps that conclusion (§5, residual). |
 
@@ -87,7 +87,7 @@
 - **Automated a11y engine** (axe/pa11y) — none.
 - **Firefox / WebKit / mobile-device projects** — none active.
 - **Scheduled/nightly/release/tag workflows** — none. `build_exe.bat` is never referenced by any workflow.
-- **Time-freezing library** (freegun/time-machine) — none on the Python side (visual specs freeze the browser clock).
+- **Time-freezing library** (freezegun/time-machine) — none on the Python side (visual specs freeze the browser clock).
 - **Test retry tooling for pytest** — none (Playwright gets 2 CI retries; a flaky pytest hard-fails the required check).
 
 ### 2.3 Prior art both models missed
@@ -151,6 +151,7 @@ Live suite: **541 tests / 30 specs**. Documented totals: 501 ([.claude/rules/tes
 
 **B8 — The shipping artifact is never tested on the PR path.**
 The frozen .exe build + bootloader smoke, first-install boot, old-DB migration boot, and visual comparison all live exclusively in a manually-dispatched workflow with no schedule and no release trigger. Nothing forces them to run before a release because **there is no release process at all** (no tag workflow, no release checklist in force).
+*Update 2026-08-02: partially closed — #262 added `packaged-smoke-windows` (real PyInstaller build + real bootloader smoke, non-required) to every PR. The release-process half of B8 still stands. See §9.1.*
 
 **B9 — CI hygiene findings (none affect correctness today, all are latent cost/risk):**
 no `timeout-minutes` on any of the 20 jobs (hangs burn up to 6h of runner); no `concurrency` group (rapid pushes run redundant 12-job pipelines); setup (`npm ci` + CSS build + pip install + browser install) duplicated verbatim across 6+ jobs with no artifact reuse; `pylint` installed but never invoked; `pip-audit`/`safety` installed unpinned at runtime; Python↔Node Playwright version skew (1.59.0 vs 1.60.0); two required job names are factually misleading and can't be renamed without orphaning branch-protection contexts (known gotcha).
@@ -178,7 +179,7 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 4. **Promote `e2e-erase-flow` to required** (2 tests, isolated job, cheap) — the only current guard on the destructive path. This requires both the repository change and an explicit GitHub branch-protection update; renaming the job or editing YAML alone does not promote a status context. Preserve the exact required-context name and verify it on a test PR.
 
 ### Phase 1 — Measurement, non-blocking (Codex's sequence, adopted)
-5. **Python coverage:** add `pytest-cov`, emit report + artifact in the `test` job, no threshold. After 2–3 weeks of data, commit the observed baseline and compare each run against it. A threshold at “observed − 2%” is a tolerance, not a ratchet: it permits an immediate regression and never rises after improvement. Use an explicit baseline-update workflow (the pyright baseline-diff pattern) and include regression checks for `utils/effective_sets.py`, `utils/double_progression*`, `utils/volume_*`, and `utils/program_backup.py` so unrelated coverage cannot mask a core-module drop.
+5. **Python coverage:** add `pytest-cov`, emit report + artifact in the `test` job, no threshold. After 2–3 weeks of data, commit the observed baseline and compare each run against it. A threshold at “observed − 2%” is a tolerance, not a ratchet: it permits an immediate regression and never rises after improvement. Use an explicit baseline-update workflow (the pyright baseline-diff pattern) and include regression checks for `utils/effective_sets.py`, `utils/double_progression*`, `utils/volume_*`, and `utils/program_backup.py` so unrelated coverage cannot mask a core-module drop. *(Fable 5, 2026-08-02: when the ratchet is designed, prefer a per-PR **diff-coverage** gate over a baseline-total comparison, keeping the per-core-module floors as the safety net — §9.2 F5-5.)*
 6. **JS coverage:** add the Vitest-4-compatible pinned `@vitest/coverage-v8`, using the same report-first and committed-baseline pattern. Expect a very low number (16% of modules have any tests) — that number is the argument for Phase 3, step 12. Do not make coverage blocking until the collector has produced stable, reproducible results in CI.
 
 ### Phase 2 — Make existing tests honest (fixes B1, B2, B4)
@@ -187,20 +188,40 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 9. **Adopt strict console-error fixtures beyond visual specs.** Migrate specs off the suppressing fixture incrementally (start with smoke-navigation + workout-plan); keep a per-spec allowlist for genuinely expected errors instead of the global substring list.
 
 ### Phase 3 — New test types where they pay (the valid half of Opus)
-10. **Hypothesis on the calculation core** — `effective_sets`, `double_progression`, volume splitter, plan generator. **Every invariant must be owner-confirmed first** (Gate 0 + `product-risk-reviewer`): candidate invariants like "suggested weight never decreases when reps hit ceiling" or "split volume sums to input" must survive rounding/caps/config review before they become tests. Remember the module's own product rule: effective sets are informational-only.
+10. **Hypothesis on the calculation core** — `effective_sets`, `double_progression`, volume splitter, plan generator. **Every invariant must be owner-confirmed first** (Gate 0 + `product-risk-reviewer`): candidate invariants like "suggested weight never decreases when reps hit ceiling" or "split volume sums to input" must survive rounding/caps/config review before they become tests. Remember the module's own product rule: effective sets are informational-only. *(Fable 5, 2026-08-02: two operational preconditions before any property test lands — point Hypothesis's `.hypothesis/` example database under `artifacts/` (ADR-002) and register a CI profile with `derandomize=True`/`deadline=None`, because `Run Tests` is a required check with no retry — §9.2 F5-3.)*
 11. **Backup-row fuzzing (Codex's corrected version):** feed `restore_backup()` type-confused/NULL/out-of-range `program_backup_items` rows; assert a clean error + intact live program (the rollback machinery is already tested for injected faults — this extends it to malformed persisted data). Treat `schema_version` as a compatibility-policy decision first: it is persisted, tested, and returned by the API, so deleting it is a DB/API contract change requiring migration notes and consumer review. If retained, define supported/unsupported-version behavior and test it; do not fuzz a value that restore still ignores. `prune_auto_backups()` currently has no production caller—decide whether to remove that dead surface before adding tests that would entrench it.
-12. **JS unit expansion with jsdom** for the highest-risk DOM modules (`exercises.js`, `workout-controls-persistence.js` — the KI-005 contract, `toast.js` — the KI-004 contract, `backup-center.js`), then **promote the Vitest job to required** once green for 2 weeks.
+12. **JS unit expansion with jsdom** for the highest-risk DOM modules (`exercises.js`, `workout-controls-persistence.js` — the KI-005 contract, `toast.js` — the KI-004 contract, `backup-center.js`), then **promote the Vitest job to required** once green for 2 weeks. *(Fable 5, 2026-08-02: adopt jsdom via per-file `// @vitest-environment jsdom` pragmas, leaving the global `environment: 'node'` and the 9 existing files untouched — §9.2 F5-6.)*
 
 ### Phase 4 — Release gate (fixes B8; the largest structural gap)
 13. **Precondition: make the visual job capable of being a green gate.** *(Measured 2026-08-02: this
     step's premise understates the problem. It is not one animated-logo failure — the **Linux**
     baseline set reds on **at least eleven** tests because 57 CSS/template commits landed after the
     baselines were frozen. Read [§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02)
-    before acting on this step.)* The current suite has a ledgered animated-logo failure above `maxDiffPixels: 800`; resolve it or encode a narrow, reviewable expected-difference oracle before requiring the job. Do not raise the global tolerance. Then define a tag/`workflow_dispatch` "release" pipeline that runs frozen-windows, first-install, old-db-migration, and visual compare as **blocking** steps, plus the 10-minute manual checklist below. Until then, add a weekly scheduled deep-gate run—but change `visual-linux` from `if: inputs.run_visual` to a condition that also runs on `schedule` (and release/tag events), because scheduled events supply no workflow-dispatch input and would otherwise silently skip visual comparison. Verify the scheduled run's required job set rather than treating an overall green workflow with skipped jobs as coverage.
+    before acting on this step.)* The current suite has a ledgered animated-logo failure above `maxDiffPixels: 800`; resolve it or encode a narrow, reviewable expected-difference oracle before requiring the job. Do not raise the global tolerance. Then define a tag/`workflow_dispatch` "release" pipeline that runs frozen-windows, first-install, old-db-migration, and visual compare as **blocking** steps, plus the 10-minute manual checklist below. Until then, add a weekly scheduled deep-gate run—but change `visual-linux` from `if: inputs.run_visual` to a condition that also runs on `schedule` (and release/tag events), because scheduled events supply no workflow-dispatch input and would otherwise silently skip visual comparison. Verify the scheduled run's required job set rather than treating an overall green workflow with skipped jobs as coverage. *(Fable 5, 2026-08-02: #262 has since put the frozen build + bootloader smoke on the PR path as the non-required `packaged-smoke-windows` job, so step 13's remaining scope is the release/tag pipeline, the visual precondition established in the bracket above, and that job's promotion; build the release gate by extracting the build+smoke into a `workflow_call` reusable workflow consumed by PR, schedule, and release triggers rather than authoring a third copy — §9.2 F5-8.)*
+
+    > **Regeneration route — owner decision, 2026-08-02.** The stale Linux baselines are **not**
+    > regenerated on `main`. PR #274 (Bootstrap 5.1.3 → 5.3.8) adds **86 `!important`
+    > declarations** and **638 `--bs-*` custom properties** to `bootstrap.custom.min.css`, so any
+    > baseline generated against 5.1.3 is invalidated the moment #274 lands — costing a second
+    > review of the same 84 PNGs. The regeneration therefore runs **on the Bootstrap branch**, and
+    > **#274 lands carrying its own baselines**, which discharges this precondition and the D3
+    > stopgap together. Dispatch requires **both** inputs — `visual-linux` is gated
+    > `if: ${{ inputs.run_visual }}` and `run_visual` defaults to `false`, so a bare
+    > `gh workflow run deep-gate.yml --ref <branch>` runs the deep gate with **no visual job and
+    > no baselines**:
+    >
+    > ```
+    > gh workflow run deep-gate.yml --ref wt/bootstrap-538-compat \
+    >   -f run_visual=true -f visual_mode=generate
+    > ```
+    >
+    > Generate mode sets `--update-snapshots` and uploads the artifact
+    > **`visual-baselines-linux`** (`e2e/__screenshots__/linux/**`, 14-day retention). CI never
+    > pushes; the owner downloads, reviews and commits.
 14. Decide the browser-matrix question **explicitly** (recommendation: stay Chromium-only for this single-user local tool, but record it as an ADR in `docs/DECISIONS.md` so it's a decision, not drift).
 
 ### Phase 5 — Periodic audits (not CI)
-15. **Mutation testing** (`mutmut`) over `utils/` calculation modules, quarterly, as a suite audit. B1 is direct evidence this class of problem exists here; expect it to also flag weak pytest assertions.
+15. **Mutation testing** (`mutmut`) over `utils/` calculation modules, quarterly, as a suite audit. B1 is direct evidence this class of problem exists here; expect it to also flag weak pytest assertions. *(Fable 5, 2026-08-02: `mutmut` ≥3 is fork-based and does not run on Windows — this checkout's primary platform. Run it as a manually-dispatched Linux CI job on the deep-gate pattern, or pin the WSL route explicitly — §9.2 F5-2.)*
 16. **Flake-debt burn-down:** replace `waitForTimeout` sleeps with event/condition waits, worst files first (volume-splitter 23, superset-edge-cases 17). Track count in the generated inventory.
 17. **Further visual-oracle tightening:** after Phase 4's known-red precondition is satisfied, revisit `maxDiffPixels: 800` per-page (the WP4.4 harness work already provides better per-element oracles) and prefer per-element zero-diff checks for high-risk controls. Keep any permanent animated-logo exception narrow and explicit rather than weakening the global oracle.
 
@@ -442,6 +463,10 @@ Weakest overall: `routes/filters.py` **49%**, `utils/python_version.py` 60%, `ut
    So the startup sequence, middleware, error handlers and the erase route are invisible to
    coverage. This is blindspot **B2** surfacing independently in the coverage data. The scope is
    `utils` + `routes` for that reason.
+   *Update 2026-08-02: stale — since #230/#258, `real_app_client` is a live, order-independent
+   fixture consumed by `test_erase_data_guard.py`, `test_real_app_db_isolation.py`, and
+   `test_static_cache_policy.py`, so `app.py` is imported on every full run and `--cov=app` is now
+   feasible. See §9.1.*
 
 3. **The pytest node count is not platform-invariant, and one file is why.**
    `tests/test_guard_destructive_command.py:58` parametrizes over the PowerShell hosts actually
@@ -487,6 +512,8 @@ shape detects a cross-PR interaction before it reaches `main`.
   `5b7a4f1` flipped the check to blocking and dropped its stale `(non-required)` suffix. The job
   summary prose that still described measure-only behaviour is corrected by
   [#271](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/271).
+  *(See [§9.1](#91-ground-truth-deltas--the-doc-rotted-within-hours) for what this closure —
+  landing hours after the log was written — teaches about §8.6 as a hand-maintained ledger.)*
 - **The npm audit job is measure-only**, pending the severity/exception policy (Phase 0 step 3).
 - **No coverage ratchet exists.** Both numbers above are baselines, nothing more. Designing the
   baseline-diff (per `scripts/pyright_baseline_diff.py`) is future work; do not add a bare threshold.
@@ -567,3 +594,160 @@ updated in the same PR or the workflow will contradict itself.
 - **Dependabot is now live** and opened ~14 pull requests on first run. The per-ecosystem limit is 5
   and npm/actions minor+patch are grouped, but the first sweep is unavoidably large because nothing
   had ever been updated. Expect the steady-state weekly volume to be far smaller.
+
+---
+
+## 9. Fable 5 review (2026-08-02)
+
+**Reviewer identity:** `claude-fable-5`
+**Review type:** independent post-execution review, one day after the Phase 0–1 slice shipped.
+Every claim below was re-verified against the live repository on 2026-08-02 (`ci.yml`, branch
+protection via `gh api`, `.gitignore`, `utils/auto_backup.py`, `package.json`, `tests/`,
+`e2e/fixtures.ts`); read-only except for this document.
+**Disposition:** the ordering principle (§5 — make the suite honest before making it bigger) is
+correct, and nothing below argues for reordering. What this pass adds: (a) the document had
+drifted from ground truth **within hours** of its last update, including one blindspot that
+partially closed itself; (b) implementation-level blindspots in Phases 1–5 that Opus 5, Codex,
+sol5.6, and the executing session all missed. Small in-place amendments are marked
+*(Fable 5, 2026-08-02: …)*; everything heavier awaits owner selection.
+
+*Corrected at owner review, 2026-08-02: this disposition originally carried a third claim — that
+**F5-1** was "one non-test finding that is the highest harm-per-effort item currently in this
+file." **F5-1 was factually wrong and has been retracted**; `.gitignore:29` already ignores
+every snapshot, and the real defect is two WAL sidecars, tracked at `LEFTOVERS_BY_PRIORITY.md`
+P1.7. The claim is struck rather than re-ranked. Note also that **D3 and D5 were signed on
+2026-08-02** (§8.1a) — the original wording "awaits owner selection alongside D3–D7" predated
+that and has been narrowed.*
+
+### 9.1 Ground-truth deltas — the doc rotted within hours
+
+| Claim (written 2026-08-01, PR #255) | Reality, verified 2026-08-02 |
+|---|---|
+| §8.6 "The inventory drift check is measure-only… flip only when WPB.4 has [merged]" | WPB.4 merged the same evening (#256, `9fe5dbd`); #267 (`5b7a4f1`, 22:30) flipped the check to blocking and added **`Test Inventory Drift` as the 11th required context** — applied via the §8.5.1 read-first procedure. Closed. |
+| B8 "The shipping artifact is never tested on the PR path" | #262 added `packaged-smoke-windows` to `ci.yml`: real `pyinstaller --clean` build + real bootloader smoke (port 5123, deliberately ≠ 5000) **on every PR**, non-required by design pending green accumulation (the `e2e-fatigue-context` promotion precedent, per the job's own comment). B8's remaining substance: the promotion decision, the absent release/tag pipeline, and visual compare still manual-only. |
+| §8.6 correction 2: "`app.py` has zero pytest coverage **and cannot be measured today**" | Stale. Since #230/#258, `real_app_client` is a live, order-independent fixture consumed by three test files; `app.py` is imported on every full pytest run. Adding `--cov=app` to the coverage job is now feasible and closes the measurement blind spot that correction described. |
+| `.claude/rules/testing.md:22` names the job "`Test Inventory Drift (non-required)`" | The suffix was dropped in #267 and the job is required. One more B3-class prose drift; fix in the next docs PR. |
+
+**Meta-finding.** §8.6's "Still open" list is a hand-maintained **status** ledger inside a
+planning document. B3's lesson was applied to *counts* (generated inventory) but not to *status
+claims* — and two of the list's five bullets were wrong before the calendar day ended. Treat §8.6
+as the dated point-in-time record it is; answer "what is open now" only with ground-truth queries
+(`gh api …/required_status_checks --jq '.contexts'`, the drift step's `exit` line in `ci.yml`,
+`/status`), never by reading this file.
+
+### 9.2 New findings
+
+**F5-1 — two WAL sidecars in `data/auto_backup/` are unignored. *(Corrected at owner review,
+2026-08-02 — the original finding was wrong and is retracted.)***
+
+**What this finding first claimed, and why it was wrong.** It asserted that `data/auto_backup/`
+is not gitignored at all and that the full database snapshots are *"one `git add` away"* — a
+directory-wide privacy exposure — and proposed ignoring the whole directory. That is false.
+`.gitignore:29`'s bare `*.db` pattern is **not** path-anchored, so it already matches every
+snapshot at any depth. Verified by `git check-ignore` over all nine files in the directory:
+
+| File | Verdict |
+|---|---|
+| `database_20260704_004339.db` · `…20260711_172725.db` · `…20260711_213123.db` · `…20260711_215217.db` · `…20260712_000549.db` · `…20260722_044704.db` · `…20260724_034925.db` | **IGNORED** (7 of 7) |
+| `database_20260712_000549.db-shm` | **UNIGNORED** |
+| `database_20260712_000549.db-wal` | **UNIGNORED** |
+
+**No snapshot of the live database is exposed.** The directory shows as `?? data/auto_backup/`
+in `git status` only because git collapses a directory containing *any* untracked file — here,
+the two sidecars. Reading that line as "the snapshots are untracked" is the error that produced
+this finding, and it is the same class of mistake as trusting a hand-maintained status ledger:
+a summary display was read as a per-file fact.
+
+**The real finding, correctly scoped.** Exactly two files are unignored: the `.db-shm` and
+`.db-wal` sidecars of `database_20260712_000549`. They are WAL journal sidecars, not snapshots.
+The fix is **sidecar-scoped**, not directory-wide.
+
+**`docs/LEFTOVERS_BY_PRIORITY.md` P1.7 has this right and supersedes this entry** — it scopes
+the fix to `*.db-shm` / `*.db-wal`, and its §3 hold-table deliberately **protects**
+`data/auto_backup/*.db` as *"Real recovery snapshots; retention/rotation owns them."* Ignoring
+the whole directory as originally proposed would have fought that protection for no gain.
+**Track the fix at P1.7; this entry stands only as the retraction.**
+
+**F5-2 — Phase 5's mutation-testing tool does not run on the owner's machine.**
+`mutmut` ≥3 is fork-based and unsupported on Windows; this checkout is Windows-first. "Quarterly
+mutmut audit" as written would silently become *never*. Run it as a manually-dispatched **Linux CI
+job** (deep-gate is already the template for exactly this shape) or pin the WSL route explicitly.
+Intent unchanged; only the venue moves. *(Amendment applied at Phase 5 step 15.)*
+
+**F5-3 — Phase 3's Hypothesis step is missing its operational preconditions.**
+(a) Hypothesis writes its example database to `.hypothesis/` in the CWD by default — a
+repository-root artifact, which ADR-002 forbids; point it under `artifacts/` or set
+`database=None` in CI. (b) `Run Tests` is a required check with **no retry** (§2.2), and
+Hypothesis generation is randomized by design; register a CI settings profile with
+`derandomize=True` and `deadline=None` (shared-runner timing variance), keeping randomized
+exploration for local or scheduled runs — otherwise step 10 introduces the suite's first
+nondeterministic required-path failures, the exact class §2.2 flags as un-retryable. (c) Hypothesis
+tests collect as single pytest nodes, so the now-blocking inventory gate is insensitive to example
+counts — but every Phase 2–5 test add/remove must regenerate
+`docs/test_inventory/TEST_INVENTORY.json` in the same PR, which no phase currently says.
+*(Amendment applied at Phase 3 step 10.)*
+
+**F5-4 — Phase 2 will turn required jobs red, and the plan doesn't sequence for it.**
+Repairing assertions that "cannot fail" (B1) and unsuppressing console errors (B4) surfaces
+whatever the vacuity and suppression have been masking — real contrast violations, real
+null-dereferences — and `accessibility.spec.ts` runs inside the **required** functional shards.
+Landing repairs directly can block every PR the day they merge. The repo already owns the correct
+pattern and Phase 1 uses it: **measure → baseline → ratchet.** Run axe and the strict fixture in
+report-only mode first, size the debt, triage into fix-now vs. per-spec allowlist entries with
+issue links, then flip to asserting. Budget for *app-side* fixes (theme contrast tokens, null
+guards), not only test edits — those are user-visible changes that take the normal review path.
+*(No amendment applied — this materially reshapes Phase 2's steps and belongs to the owner's
+Phase 2 selection.)*
+
+**F5-5 — Design the coverage ratchet as a per-PR diff gate, not a baseline-total comparison.**
+The planned committed-baseline + per-core-module floors (Phase 1, per the pyright pattern) still
+admits the classic global-ratchet failure: new untested code in one module hides behind deletions
+or unrelated test adds elsewhere, and per-module floors punish refactors that legitimately move
+code across module boundaries. A diff-coverage gate (`diff-cover` consumes the `coverage.xml` the
+job already emits plus the PR diff; the same tool reads LCOV for the JS side) asserts the thing
+actually wanted — *new and changed lines are tested* — needs no stored baseline, and hands the PR
+author a local, actionable number. Recommendation: diff coverage as the blocking primitive, with
+the per-core-module floors kept as the safety net for `utils/effective_sets.py`-class modules.
+None of the four prior reviews considered it. *(Amendment applied at Phase 1 step 5.)*
+
+**F5-6 — Phase 3 step 12 has a cheaper migration path than it implies.**
+Vitest honors a per-file `// @vitest-environment jsdom` pragma, so DOM-module tests adopt jsdom
+file-by-file with the global `environment: 'node'` (and the 9 existing green files) untouched.
+`jsdom` 29 is already in `devDependencies`. *(Amendment applied at Phase 3 step 12.)*
+
+**F5-7 — The npm-audit flip mechanism is undesigned, and Dependabot changes the picture weekly.**
+Phase 0 step 3 requires a "documented severity/exception policy" before blocking, but nothing
+defines how a *new* advisory is distinguished from the four standing highs — all transitive
+devDependencies that Dependabot's grouped updates may clear or churn at any time. Without a
+committed allowlist, the job's only futures are "measure-only forever" or "block with four
+standing reds". Concrete form of the missing policy: commit an advisory allowlist keyed by
+advisory ID with expiry dates (the pyright-baseline pattern yet again); the job fails only on
+advisories not in the file.
+
+**F5-8 — Phase 4 should reuse the PR-path build, not author a third copy.**
+`ci.yml`'s packaged-smoke job comment already mandates keeping *two* build definitions in step
+(`ci.yml` ↔ `deep-gate.yml`). A release pipeline written as a third copy triples that sync burden.
+Extract the build+smoke into a reusable workflow (`workflow_call`) consumed by all three triggers —
+PR, schedule, release/tag — so Phase 4's blocking release gate is the same tested definition that
+runs daily, and §7.3's fan-in dry-run proves one artifact instead of three. *(Amendment applied at
+Phase 4 step 13.)*
+
+### 9.3 In-place amendments applied by this pass
+
+Beyond the *(Fable 5, 2026-08-02: …)* notes at Phase 1 step 5, Phase 3 steps 10 and 12, Phase 4
+step 13, and Phase 5 step 15, plus the dated updates inside B8 and §8.6:
+
+1. §1.2's "Skip load testing" row referenced **§4 B17**, which does not exist — the blindspot list
+   ends at B14 and the latency-assertion content is **B13**. Corrected.
+2. §2.2 "freegun" → "freezegun".
+
+Nothing else was altered: the §1–§4 adjudications, the §6 decision table, and the §7 sol5.6 record
+stand as written.
+
+**Sign-off status — corrected at owner review, 2026-08-02.** This section originally closed
+*"D3–D7 remain unsigned; Phases 2–5 remain proposals."* The first half is **superseded**:
+**D3 and D5 were signed on 2026-08-02** and are recorded in **§8.1a**, which governs. D5 shipped
+as `DECISIONS.md` **ADR-004** (Chromium-only); **D3 was signed as the stopgap half only**, and
+that stopgap is itself blocked on the stale Linux baseline set (**§8.7**). **D4, D6 and D7
+remain unsigned**, as does the js-unit half of D2. **Phases 2, 3 and 5 remain proposals, and
+Phase 4 is not complete.**
