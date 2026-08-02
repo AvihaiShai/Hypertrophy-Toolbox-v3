@@ -288,10 +288,15 @@ a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ 
 closeout proposals, **P1 and P2 are owner-approved and merged** — `d543a4b`
 (PR #223, ledger schema v2, 11 reds across two spec files) and `4b0670b`
 (PR #222, the `static/css/**` gate row plus the derivation bullet that closes
-F21). **P3** (`theme-dark.css` `:where()` inertia) is **planning only**: Gate 0
-and Gate 1 are both unsigned, Plan v1 and the council review live at
-[`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md), and no
-production CSS has been touched. The P1-before-P3 precondition is satisfied.
+F21). **P3** (`theme-dark.css` `:where()` inertia) is **TERMINATED**: both gates
+were **signed 2026-08-02**, **`P3-a0` shipped** (PR #280, squash `cd93480`), and
+the owner then **terminated the arc at a0** — a0's nineteen-tool assessment priced
+`P3-a1` at **nine** new tools against the small deletion yield already accepted at
+Q6. **`P3-a1` … `P3-e` carry no residual authorization; reopening requires a new
+owner decision.** **No production CSS was ever touched** — a0 was read-only with
+respect to `static/css/**`, so the arc ends with `theme-dark.css` byte-identical
+to where it started. Full record:
+[`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md).
 
 > **Superseded 2026-08-01.** This block previously showed `i ▶ → j → k` and read
 > *"Packet i is active."* Correct on 2026-07-31; stale once #212, #215, #216 and

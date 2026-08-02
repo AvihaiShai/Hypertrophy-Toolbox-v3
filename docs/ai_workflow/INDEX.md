@@ -27,6 +27,9 @@
 - [Volume taxonomy audit](../archive/VOLUME_TAXONOMY_AUDIT.md)
 
 ## Workflow artifacts
+- [Cross-model orchestration proposal](CROSS_MODEL_ORCHESTRATION_PLAN.md) — proposed
+  opt-in `$orchestrate` Codex-to-Opus workflow; Gate 0/Gate 1 pending and not
+  implemented
 - [Quality Gate](QUALITY_GATE.md) — change-type → required tests/reviewers map
 - [Autonomy Model](AUTONOMY.md) — Codex/Claude approval, sandbox, worktree, and review boundaries
 - [Parallel Workflow](PARALLEL_WORKFLOW.md) — one manager-led feature per checkout,

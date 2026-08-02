@@ -1,22 +1,24 @@
 # Leftovers by Priority
 
-> **Audit snapshot:** 2026-08-02, deep-scan revision v22 (post-Fable execution-
-> safety review). Codex authored v18, Opus re-verified as v19, v20 reconciled
-> #264–#267, v21 added the third-model deep scan, and v22 makes the resulting
-> queue safe and executable.
+> **Audit snapshot:** 2026-08-02, deep-scan revision v23 (final adversarial
+> audit). Codex authored v18, Opus re-verified as v19, v20 reconciled
+> #264–#267, v21 added the third-model deep scan, v22 made the resulting queue
+> safe and executable, and v23 audits v22 for anything factually wrong, unsafe,
+> ambiguously gated, mis-sequenced, or non-executable.
 >
 > **Purpose:** current, evidence-based queue of unfinished work, small closeouts,
 > stale plans, and disposable artifacts. This replaces the June punch list and
 > its long closed-item history. Historical implementation evidence stays in the
 > linked source plans, Git history, and the archive.
 >
-> **Authority:** use freshly fetched `origin/main`, generated inventories,
-> current code, and read-only runtime data ahead of old prose. At the v22
-> recheck `origin/main` had advanced to `f178790`; the shared checkout remained
-> at `5b7a4f1` (**10 behind**) with overlapping uncommitted doc work. These are
-> snapshot facts, not execution inputs: fetch, recompute divergence, and recount
-> PRs/worktrees immediately before acting. Preserve and reconcile the dirty doc
-> patch before updating `main`; never pull through it blindly.
+> **Authority (corrected at v23):** use freshly fetched `origin/main`, generated
+> inventories, current code, and read-only runtime data ahead of old prose.
+> v22's own authority note was stale in a way that inverted its instruction: it
+> reported `origin/main` at `f178790` with the checkout **10 behind**. In fact
+> this document's commit sits directly on top of the current `origin/main`
+> (`ac16e4c`, PR #271) — **1 ahead, 0 behind**, nothing to reconcile. Every
+> number in this file remains snapshot evidence: fetch, recompute divergence,
+> and recount PRs/worktrees immediately before acting.
 
 > **What v19/v20 already corrected in the plan** (kept for continuity): the
 > two-edit inventory flip, the "(non-required)" naming trap, salvage of unlanded
@@ -43,6 +45,75 @@
 > worktree counts churn intra-day — v22 requires recount-at-execution for both
 > surfaces and treats every number in this document as snapshot evidence only.
 
+> **What v23 adds — new findings only; v18–v22 findings above are not repeated.**
+>
+> **N1 — this plan is not reachable by anyone else, and `origin` still publishes
+> the June punch list.** `git ls-remote --heads origin` has no
+> `docs/status-reconciliation`; `gh pr list --head docs/status-reconciliation
+> --state all` returns `[]`. Commit `2b16474` exists only on two **local**
+> branches (`docs/status-reconciliation`, `wip/session-docs`). Meanwhile
+> `origin/main:docs/LEFTOVERS_BY_PRIORITY.md` and the one branch that *is*
+> pushed (`origin/docs/testing-strategy-reconciliation` @ `bdb1f60`) both still
+> carry **v17, dated 2026-06-11**. The entire v18→v23 arc is one `git branch -D`
+> from being lost, and every reader of the repository currently sees the June
+> list. **Publishing this branch is the highest-value action in the file.**
+>
+> **N2 — the Bootstrap decision was already taken.** #269 is **CLOSED, not
+> merged** (2026-08-02T00:45:22Z) and **#274 opened 20 seconds earlier** as a
+> real migration: Bootstrap 5.3.8, `variables-dark`/`maps` added to the SCSS
+> import graph, rebuilt bundle + map, CDN pin alignment, and a new
+> `tests/test_bootstrap_version_contract.py`. #274 also corrects the diagnosis —
+> the hard failure is `_root.scss` needing `$theme-colors-rgb` from the maps
+> layer; the `red()`/`green()`/`blue()` messages are only deprecation warnings.
+> P1.6 lane (b) is therefore **decided**; "#269 will re-file weekly" is obsolete.
+>
+> **N3 — the P1.5 ↔ Bootstrap hazard has already materialised.** #274's stated
+> validation includes "Chromium navigation/accessibility/UI sweep — 127 passed",
+> which contains exactly the tests P1.5 proves cannot fail. The upgrade is being
+> validated by a modal-keyboard test structurally incapable of detecting a
+> modal-keyboard regression. v22's "land P1.5 before any Bootstrap *decision*"
+> is too weak and aimed at the wrong PR.
+>
+> **N4 — #250 is not an unexplained red; it has a named prerequisite.** #275
+> (draft) diagnoses it: jsdom 30 requires Node `^22.22.2 || ^24.15.0 || >=26`
+> while CI pins Node 20.20.2, so `EBADENGINE` fires and Vitest workers crash
+> through undici. #275 moves all 13 `setup-node` pins to Node 24, adds
+> `tests/test_node_version_contract.py`, and deliberately excludes #250.
+>
+> **N5 — the now-required drift gate creates generated-file contention.**
+> `Test Inventory Drift` is a **required** context (11 total, read from the
+> protection API). #274 and #275 both modify `docs/test_inventory/TEST_INVENTORY.json`
+> and `.md`; P1.4 and P1.5 will each have to regenerate the same two files.
+>
+> **N6 — P1.4 and P1.5 collide on one spec file.** P1.4 edits the KI-005 header
+> in `e2e/ui-hardening.spec.ts`; P1.5 adds modal assertions to the same spec and
+> to `accessibility.spec.ts`. Both change test counts.
+>
+> **N7 — the retention constraint is harder than "QUALITY_GATE links them".**
+> Six CSS evidence artifacts are **pytest-pinned** in `tests/test_css_wp4_4_*.py`
+> (`_D1_A11Y_`, `_D2_A11Y_`, `_E_LAYOUT_`, `_H_COMPONENTS_DEAD_`,
+> `_A_BASELINE.json`, `_1_STYLELINT_BASELINE.json`); moving one reds the required
+> `Run Tests`. The seven orphan `WP4_3I_*` files are **not** test- or
+> CI-referenced and are the genuinely movable subset.
+>
+> **N8 — cleanup executability in this repo.** `git worktree remove` is
+> intercepted by `.claude/hooks/guard-destructive-command.ps1:438-440` with
+> decision **`ask`** (an unattended run stalls rather than proceeds) and
+> `git reset --hard` is **denied** outright at `:397`. Worktrees are now **35**
+> (24→25→29→30→35 across revisions) with three dirty; and the shared checkout
+> **changed branch mid-audit** (`docs/testing-strategy-reconciliation` →
+> `docs/p3-gate-signoff`), which is the recount rule proving itself.
+>
+> **N9 — a duplicate of the orchestration plan is still loose.**
+> `CROSS_MODEL_ORCHESTRATION_PLAN.md` is committed here *and* sits untracked in
+> the shared checkout. Committing that copy on another branch forks the document.
+>
+> **N10 — this document did not render correctly.** The P1.4 row contained a raw
+> `|` inside `{{ exercises|length }}`, splitting it into six cells in a
+> five-column table, so GitHub dropped the trailing content of the row that
+> describes the debug block. Fixed at v23 by escaping the pipe. Anything quoting
+> Jinja, shell pipes, or regex alternation inside these tables must escape `|`.
+
 ## Status key
 
 | Status | Meaning |
@@ -53,12 +124,17 @@
 | **PROPOSAL** | Valid future work, but not a forgotten activity or current commitment. |
 | **RETIRE** | Shipped, superseded, irrelevant, or disposable after the stated safety check. |
 
-**Current classification (v22):** **READY** — P1.4, P1.5, P1.7;
-**WAIT** — P1.1 (reconcile the dirty doc patch with current `main` and #271),
-P1.2 (known dirty/open-PR worktrees must be excluded); **OWNER** — P1.3,
-P1.6, P1.8, P2.1–P2.4; every item in P3 is a **PROPOSAL**. Artifact
-targets explicitly labeled safe-to-retire are **RETIRE** only after their stated
-safety checks. There is no weaker "OWNER-lite" status.
+**Current classification (v23, superseding v22's):** **READY** — **P1.0** (new,
+publish this branch), P1.4, P1.5, P1.7; **WAIT** — P1.2 (known dirty/open-PR
+worktrees must be excluded); **OWNER** — P1.3, P1.6, P1.8, P2.1–P2.4; every item
+in P3 is a **PROPOSAL**. Artifact targets explicitly labeled safe-to-retire are
+**RETIRE** only after their stated safety checks. There is no weaker "OWNER-lite"
+status.
+
+**P1.1 is reclassified WAIT → READY.** v22 gated it on "reconcile the dirty doc
+patch with current `main` and #271". That patch is now committed and #271 is
+merged as `ac16e4c`, which is this commit's direct parent — the named condition
+is already true, so the gate was blocking the item for no reason.
 
 ## 1. Recommended execution order
 
@@ -66,12 +142,13 @@ safety checks. There is no weaker "OWNER-lite" status.
 
 | ID | Activity | Why it is still open | Completion action | Effort |
 |---|---|---|---|---:|
-| P1.1 | **Documentation truth and compaction pass** — *WAIT on reconciliation with current `main` and #271* | PR #265 merged (WPB.4 plan banner, handover flip gate, registry row 8), and **#270 is merged** (testing-strategy workstream status). PR **#271 remains open** at the v22 snapshot and corrects the Test Inventory job-summary prose. **Residue after reconciling those changes:** `DUPLICATION_REGISTRY.md` rows **3, 11, 14** + its summary-table/row-4 contradiction; [`ai_workflow/INDEX.md`](ai_workflow/INDEX.md) omissions (testing-strategy, theme-dark P3, app.py review, product-docs; still calls the Fatigue *Phase 2* Stage 4 window open) — note an **uncommitted local edit** already adds the cross-model row; [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md) KI-003/KI-007 stale statuses; [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) omits part of the current visual-red state; [`fatigue_meter/PLANNING.md:3`](fatigue_meter/PLANNING.md) "awaiting sign-off on Stage 0"; [`REFACTOR_PLAN.md:425`](REFACTOR_PLAN.md) WPB.4-is-gated inside a dated block; and [`MASTER_HANDOVER.md:107`](MASTER_HANDOVER.md) restates stale generated test totals. **New in v21/v22:** [`CHANGELOG.md`](CHANGELOG.md) ends at July 29 — WPB.4 (user-visible weekly-summary change), asset cache-versioning (#262/#266), and the CI gate promotions (#248/#267) are unrecorded; [`E2E_TESTING.md`](E2E_TESTING.md) (last updated 2026-06-10) is a hand-maintained per-spec inventory violating the single-producer rule — gut its counts and point at [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md); [`docs/README.md:13`](README.md) still describes this file as the June "punch list" and sells `E2E_TESTING.md` as "current inventory"; [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) also carries dated copied totals; the remaining inbound-reference candidates need an index link or archive-disposition entry when retention permits: `CSS_PHASE4_WP4_3I_B_EVIDENCE.md`, `_C_`, `_D_`, `_E_`, `_F_`, `_G_`, `_H_`, `WP3_5_FETCH_INVENTORY.md`, `archive/CLEANUP_V2_DEAD_CODE_AUDIT.md`, and `user_profile/DUMBBELL_LOAD_BASIS_FIX.md`. The v21 pre-revision scan also counted `PROFILE_ESTIMATOR_CLUSTERS.md` and `RELATED_EXERCISE_TRANSFER_DESIGN.md`; v22 excludes them because production/test code references the former and this queue now links the latter. | First preserve this dirty patch, fetch, and reconcile it with the merged #270/#272/#273 changes plus #271 if that PR has landed by execution time. Then sweep only the named residue. **Never copy a replacement test count into prose**; link to the generated inventory. Mark dated blocks as historical rather than rewriting them. **Sequencing:** this file's P3 links to `CROSS_MODEL_ORCHESTRATION_PLAN.md`, which is still **untracked** — commit that file (with its INDEX row) before or with this one, or the link breaks on `main`. Do not archive recent completed plans until [`DOC_RETENTION.md`](ai_workflow/DOC_RETENTION.md)'s 6-month/no-open-reference rule is met. | 2–4 h |
-| P1.2 | **Remove obsolete worktrees and generated artifacts** | **The registered-worktree count is unstable — 24 at v19, 25 at v20, 29 at v21, 30 at the v22 recheck.** Recount with `git worktree list --porcelain` at execution time. Known holds at v22: `…-bs538-spike` has uncommitted changes in `scss/custom-bootstrap.scss`, the generated Bootstrap bundle/map, and `templates/base.html`; `…-wp4-4-f1-navbar` carries untracked `.venv`/`node_modules`; the current checkout carries the doc patch; and any worktree associated with an open PR (including #269/#271 work at this snapshot) is protected. A local worktree branch name may differ from the GitHub PR head, so branch-name lookup alone is not proof. Generated output remains approximately: `artifacts/` 1.7 GB (`wp4_4` 643 MB held, `playwright` 522 MB, `environment-backups` 460 MB, `vbl_check` 21 MB), `build/` 76 MB, `dist/` 92 MB, `logs/` 63 MB, `debug/` 1 MB. | For **every** non-current worktree, record path/branch/HEAD and run `git status --short --untracked-files=all`; any output means **skip and preserve**. Query `gh pr list --state all --head <branch>`, but treat it only as one signal: also compare the worktree HEAD OID with PR commits and use Git patch-equivalence/diff checks because squash merges and alternate local branch names defeat ancestry/name tests. Remove only a clean worktree with no unique patch and no open-PR association, through `git worktree remove <exact-path>`, then `git worktree prune`; do not recursively delete a registered worktree and do not delete its branch unless separately proven disposable. Delete transient artifacts only after confirming no active investigation/process references them; retain the protected `wp4_4` bundle pending its explicit decision. | 1–3 h |
+| P1.0 | **Publish this branch — new at v23, and the safe first packet** | **READY.** The v18→v23 audit arc exists only on local branches (`docs/status-reconciliation`, `wip/session-docs`); `git ls-remote --heads origin` shows no matching remote ref and no PR exists. `origin/main` and the pushed `docs/testing-strategy-reconciliation` branch both still serve **v17 (2026-06-11)**. Until this is published, every other item here is invisible to any other session or machine, and a single branch deletion loses six revisions of audit work. The commit is already based on current `origin/main` (`ac16e4c`), so it is a clean fast-forwardable push. | Push `docs/status-reconciliation` and open a PR. Docs-only: the change touches `docs/**` exclusively, so `Run Tests`, the E2E gates, and `Test Inventory Drift` are unaffected. **Do not** rebase, force-push, or delete `wip/session-docs` until the PR is merged — it is the only second copy. Do this before P1.1, because P1.1 edits the same file. | 10–20 min |
+| P1.1 | **Documentation truth and compaction pass** — *v23: WAIT → **READY**, gate already satisfied* | PR #265 merged (WPB.4 plan banner, handover flip gate, registry row 8), and **#270 is merged** (testing-strategy workstream status). PR **#271 remains open** at the v22 snapshot and corrects the Test Inventory job-summary prose. **Residue after reconciling those changes:** `DUPLICATION_REGISTRY.md` rows **3, 11, 14** + its summary-table/row-4 contradiction; [`ai_workflow/INDEX.md`](ai_workflow/INDEX.md) omissions (testing-strategy, theme-dark P3, app.py review, product-docs; still calls the Fatigue *Phase 2* Stage 4 window open) — note an **uncommitted local edit** already adds the cross-model row; [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md) KI-003/KI-007 stale statuses; [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) omits part of the current visual-red state; [`fatigue_meter/PLANNING.md:3`](fatigue_meter/PLANNING.md) "awaiting sign-off on Stage 0"; [`REFACTOR_PLAN.md:425`](REFACTOR_PLAN.md) WPB.4-is-gated inside a dated block; and [`MASTER_HANDOVER.md:107`](MASTER_HANDOVER.md) restates stale generated test totals. **New in v21/v22:** [`CHANGELOG.md`](CHANGELOG.md) ends at July 29 — WPB.4 (user-visible weekly-summary change), asset cache-versioning (#262/#266), and the CI gate promotions (#248/#267) are unrecorded; [`E2E_TESTING.md`](E2E_TESTING.md) (last updated 2026-06-10) is a hand-maintained per-spec inventory violating the single-producer rule — gut its counts and point at [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md); [`docs/README.md:13`](README.md) still describes this file as the June "punch list" and sells `E2E_TESTING.md` as "current inventory"; [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) also carries dated copied totals; the remaining inbound-reference candidates need an index link or archive-disposition entry when retention permits: `CSS_PHASE4_WP4_3I_B_EVIDENCE.md`, `_C_`, `_D_`, `_E_`, `_F_`, `_G_`, `_H_`, `WP3_5_FETCH_INVENTORY.md`, `archive/CLEANUP_V2_DEAD_CODE_AUDIT.md`, and `user_profile/DUMBBELL_LOAD_BASIS_FIX.md`. The v21 pre-revision scan also counted `PROFILE_ESTIMATOR_CLUSTERS.md` and `RELATED_EXERCISE_TRANSFER_DESIGN.md`; v22 excludes them because production/test code references the former and this queue now links the latter. | **v23 corrections to this row:** #271 is **merged** (`ac16e4c`) and is this commit's parent, so the reconciliation prerequisite is discharged — do not re-derive it. `CROSS_MODEL_ORCHESTRATION_PLAN.md` **is committed here** together with its `INDEX.md` row, so v22's "still untracked, commit it before or with this one" is stale *inside this very commit*; the live risk is the opposite (**N9**) — an untracked duplicate of the same file still sits in the shared checkout and must not be committed on another branch. Run P1.0 first, then sweep only the named residue. **Never copy a replacement test count into prose**; link to the generated inventory. Mark dated blocks as historical rather than rewriting them. Do not archive recent completed plans until [`DOC_RETENTION.md`](ai_workflow/DOC_RETENTION.md)'s 6-month/no-open-reference rule is met. | 2–4 h |
+| P1.2 | **Remove obsolete worktrees and generated artifacts** | **The registered-worktree count is unstable — 24 at v19, 25 at v20, 29 at v21, 30 at v22, and 35 at the v23 recheck.** Recount with `git worktree list --porcelain` at execution time. **v23 additions (N8):** three worktrees are dirty right now — the shared checkout, `…-bs538-spike` (4 files; the #274 source), and `…-wp4-4-f1-navbar` (2). New since v22: `…-bs538-rebuild`, `…-node24-ci` (#275), `…-tsdrift`, and the read-only audit worktree `D:/development/HT-v23-audit` created for this revision (detached at this commit — **exclude it, and remove it only after P1.0 has published the branch**). The shared checkout **switched branch during this audit** (`docs/testing-strategy-reconciliation` → `docs/p3-gate-signoff`), so any branch/path fact here is evidence, never an execution input. **Command executability:** `git worktree remove` is intercepted by [`guard-destructive-command.ps1:438-440`](../.claude/hooks/guard-destructive-command.ps1) with decision **`ask`** — an unattended agent run stalls instead of proceeding — and `git reset --hard` is **denied** at `:397`, so no recovery path may rely on it. Known holds otherwise unchanged: any worktree associated with an open PR (now #245, #250, #274, #275) is protected. A local worktree branch name may differ from the GitHub PR head, so branch-name lookup alone is not proof. Generated output remains approximately: `artifacts/` 1.7 GB (`wp4_4` 643 MB held, `playwright` 522 MB, `environment-backups` 460 MB, `vbl_check` 21 MB), `build/` 76 MB, `dist/` 92 MB, `logs/` 63 MB, `debug/` 1 MB. | For **every** non-current worktree, record path/branch/HEAD and run `git status --short --untracked-files=all`; any output means **skip and preserve**. Query `gh pr list --state all --head <branch>`, but treat it only as one signal: also compare the worktree HEAD OID with PR commits and use Git patch-equivalence/diff checks because squash merges and alternate local branch names defeat ancestry/name tests. Remove only a clean worktree with no unique patch and no open-PR association, through `git worktree remove <exact-path>`, then `git worktree prune`; do not recursively delete a registered worktree and do not delete its branch unless separately proven disposable. Delete transient artifacts only after confirming no active investigation/process references them; retain the protected `wp4_4` bundle pending its explicit decision. | 1–3 h |
 | P1.3 | **Fix the `/verify-and-polish` → `/handover` skill-guard contradiction** | **Confirmed verbatim.** [`senior-developer.md:30`](../.claude/agents/senior-developer.md) passes `-AllowedCsv run-tests,run-e2e,verify-suite,verify-and-polish,verify,run,build-css,run-hypertrophy-toolbox` — no `handover` — while [`verify-and-polish.md:11`](../.claude/commands/verify-and-polish.md) makes `/handover` step 4. The agent can start the command it is allowed to run and then be blocked partway through it. | Decide the intended contract, then either permit `handover` for `senior-developer` or remove/delegate that step. Add a guard test for the chosen path. The older `git merge-base` false-positive is already fixed and must not be reopened. | 30–90 min |
-| P1.4 | **Delete the remaining small UI/debug scaffolding** | **All six confirmed in the live tree.** A user-visible `Available exercises: {{ exercises|length }}` block at [`progression_plan.html:21`](../templates/progression_plan.html#L21); **17** unguarded `console.log` calls in [`progression-plan.js`](../static/js/modules/progression-plan.js); an inert `const APP_DEBUG = false` wrapper at [`app.js:35`](../static/js/app.js#L35); zero-caller `handleApiResponse()` at [`workout-plan.js:94`](../static/js/modules/workout-plan.js#L94); `WORKOUT_PLAN_DEBUG` declared twice (module scope in `workout-plan-add-exercise.js:33`, function scope in `workout-plan.js:137`); and [`ui-hardening.spec.ts:541-546`](../e2e/ui-hardening.spec.ts#L541) still labels the now-green KI-005 tests "PRE-IMPLEMENTATION" and "expected to be RED." The E2E assertion at [`progression.spec.ts:98`](../e2e/progression.spec.ts#L98) is wrapped in `if (await debugInfo.isVisible())`, so deleting the template block does **not** red that test. | One bounded hygiene packet: remove the visible debug counter and simplify the now-dead E2E branch; remove or consistently gate the verbose logs; delete the zero-caller helper; consolidate the two inert debug wrappers; correct only the named KI-005 comment block. Run affected Vitest/pytest plus `e2e/progression.spec.ts` and Workout Plan smoke coverage. Ignore the copies under `build/` and `dist/` — regenerated output. | 1–3 h |
-| P1.5 | **Close KI-006 with honest modal keyboard tests** | Confirmed. [`accessibility.spec.ts:103-115`](../e2e/accessibility.spec.ts#L103-L115) presses Escape, waits 500 ms, and then **clicks the close button if the modal is still open** — the test passes whether or not Escape works. The whole block is guarded by `if (btnVisible)`. The focus-trap assertion checks only that the *first* Tab stays inside, which cannot prove wraparound. **v21 note:** these tests exercise Bootstrap 5.1.3 modal defaults — land this closeout *before* any Bootstrap upgrade decision (P1.6/#269), or the upgrade ships against tests that can't fail. | Add strict Escape and forward/backward wraparound assertions for the Plan and Log modals, without the fallback click and without the visibility guard. Fix production behavior only if those tests expose a failure; otherwise this is a test-only closeout and KI-006 can be marked resolved in [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md). | 2–4 h |
-| P1.6 | **Triage the dependency queue — including the Bootstrap policy gap** | **Recount with `gh pr list --state open` at execution time.** At the v22 recheck the open queue was six Dependabot PRs (#245, #249–#251, #261, #269) plus owner #271; #240/#243/#244/#246 had merged, as had #270. **#252 was CLOSED by policy** — #268 added a Dependabot ignore for stylelint *majors* after v17 changed warning semantics on identical CSS. **The remaining policy gap:** that ignore names only stylelint, and **#269 re-files bootstrap 5.1.3→5.3.8**; its isolated CI run confirms the SCSS build failure (`_functions.scss` undefined-variable), not merely the earlier grouped Bootstrap+Sass ambiguity. Bootstrap 5.1→5.3 is technically semver-minor, so the "majors are isolated" convention never catches it, and it will re-file weekly. Bootstrap 5.1.3 is load-bearing across `templates/base.html`, the SCSS build, KI-006 modal semantics, and both platform visual-baseline sets. Older heads may also predate current required contexts and remain `BLOCKED` until refreshed. | Three lanes: **(a)** refresh/rebase green low-risk updates and merge in small batches; **(b)** decide #269 the way #252 was decided — either extend the `dependabot.yml` ignore to bootstrap or authorize a deliberate Bootstrap-5.3 migration packet that fixes SCSS and then runs the modal + Windows/Linux visual gates; do not let it linger as a weekly re-filer; **(c)** review each remaining major (#249 node types and #251 TypeScript 7 at this snapshot) individually. The Actions-v7 queue is discharged at v22 but must be recounted rather than copied forward. Keep the `npm audit` severity/exception-policy decision separate. | 2–6 h |
+| P1.4 | **Delete the remaining small UI/debug scaffolding** | **All six confirmed in the live tree.** A user-visible `Available exercises: {{ exercises\|length }}` block at [`progression_plan.html:21`](../templates/progression_plan.html#L21); **17** unguarded `console.log` calls in [`progression-plan.js`](../static/js/modules/progression-plan.js); an inert `const APP_DEBUG = false` wrapper at [`app.js:35`](../static/js/app.js#L35); zero-caller `handleApiResponse()` at [`workout-plan.js:94`](../static/js/modules/workout-plan.js#L94); `WORKOUT_PLAN_DEBUG` declared twice (module scope in `workout-plan-add-exercise.js:33`, function scope in `workout-plan.js:137`); and [`ui-hardening.spec.ts:541-546`](../e2e/ui-hardening.spec.ts#L541) still labels the now-green KI-005 tests "PRE-IMPLEMENTATION" and "expected to be RED." The E2E assertion at [`progression.spec.ts:98`](../e2e/progression.spec.ts#L98) is wrapped in `if (await debugInfo.isVisible())`, so deleting the template block does **not** red that test. | One bounded hygiene packet: remove the visible debug counter and simplify the now-dead E2E branch; remove or consistently gate the verbose logs; delete the zero-caller helper; consolidate the two inert debug wrappers; correct only the named KI-005 comment block. Run affected Vitest/pytest plus `e2e/progression.spec.ts` and Workout Plan smoke coverage. Ignore the copies under `build/` and `dist/` — regenerated output. | 1–3 h |
+| P1.5 | **Close KI-006 with honest modal keyboard tests** | Confirmed. [`accessibility.spec.ts:103-115`](../e2e/accessibility.spec.ts#L103-L115) presses Escape, waits 500 ms, and then **clicks the close button if the modal is still open** — the test passes whether or not Escape works. The whole block is guarded by `if (btnVisible)`. The focus-trap assertion checks only that the *first* Tab stays inside, which cannot prove wraparound. **v23 escalation (N3): the hazard is no longer hypothetical.** Draft **#274** upgrades Bootstrap to 5.3.8 and lists among its validation "Chromium navigation/accessibility/UI sweep — **127 passed**" — a sweep that includes these very tests. A Bootstrap-5.3 modal regression in Escape handling or focus wraparound would pass that sweep silently. v22's wording ("before any Bootstrap *decision*, P1.6/#269") is both too weak and aimed at a PR that is now closed. | Add strict Escape and forward/backward wraparound assertions for the Plan and Log modals, without the fallback click and without the visibility guard. **Treat this as a merge prerequisite for #274, not a preference:** land P1.5, then re-run #274's accessibility/UI sweep against the strengthened tests before #274 leaves draft. Sequence against P1.4 (**N6** — both edit `e2e/ui-hardening.spec.ts`) and regenerate the test inventory last (**N5**). Fix production behavior only if the new tests expose a failure; otherwise this is a test-only closeout and KI-006 can be marked resolved in [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md). | 2–4 h |
+| P1.6 | **Triage the dependency queue — v23: the queue drained and the Bootstrap lane was decided** | **Recount with `gh pr list --state open` at execution time.** Since v22, #240/#243/#244/#246 (Actions v7), #249 (`@types/node` 26), #251 (**TypeScript 7**) and #261 (`sass`) all **merged**, and **#269 was CLOSED, not merged** (**N2**). Only two dependency PRs remain: **#245** (`playwright` 1.61, all checks green) and **#250** (`jsdom` 30, red on JS Unit). Two owner drafts now carry the hard work: **#274** — the deliberate Bootstrap 5.3.8 migration that replaces #269 (SCSS import graph, rebuilt bundle, CDN pin, version contract), and **#275** — Node 20 → Node 24 across 13 `setup-node` pins plus a version contract. **N4:** #250's red is fully explained — jsdom 30 requires Node `^22.22.2 \|\| ^24.15.0 \|\| >=26`, so #275 is its prerequisite and #275 deliberately excludes it. **#252/#268 policy note stands:** the stylelint-major ignore remains the precedent, but it is no longer the open question for bootstrap. | Four lanes: **(a)** merge **#245** now — it is green and independent; **(b)** land **#275**, then rebase and re-validate **#250** against Node 24 — do not investigate #250 on its own; **(c)** **#274 is blocked twice over** — by P2.3's stale Linux baselines (its own stated blocker) *and*, per **N3**, by P1.5: it must not leave draft until the modal tests can actually fail; **(d)** the Actions-v7/TypeScript-7 majors are discharged — verify `Type Check (tsc blocking …)` stayed green on `main` after #251 rather than assuming it. Keep the `npm audit` severity/exception-policy decision separate. | 1–3 h + #274/#275 gates |
 | P1.7 | **Close two repository-hygiene gaps** | Still present at this audit. (a) `.gitignore:29`'s `*.db` does not match SQLite sidecars, so `data/auto_backup/database_20260712_000549.db-shm` and `.db-wal` sit **untracked and unignored** — one `git add -A` from being committed. Their presence beside a July-12 snapshot also means a backup DB was opened read-write and not clean-closed. (b) `docs/requirements_dry_run/` is an empty leftover directory. | Add `*.db-shm` / `*.db-wal` to `.gitignore`, delete the two orphaned sidecars after confirming no process holds them, and remove the empty directory. No production change. | 15–30 min |
 | P1.8 | **Resolve the `.claude/SHARED_PLAN.md` ghost authority** — *new in v21* | Three **active** workflow docs claim to *implement* a tiered plan system whose source file does not exist: [`PARALLEL_WORKFLOW.md:3`](ai_workflow/PARALLEL_WORKFLOW.md) ("Implements `.claude/SHARED_PLAN.md` Tier 2.1"), [`PLAN_REVIEW_TEMPLATE.md:3`](ai_workflow/PLAN_REVIEW_TEMPLATE.md) ("Tier 2.2 Appendix A2.2"), and [`WORKSTREAM_OWNERSHIP.md:3,32`](ai_workflow/WORKSTREAM_OWNERSHIP.md) ("Appendix A2.1"). Only `INDEX.md` hedges ("optional… if present"). An agent told to consult the tier definitions has nowhere to go; the tier/appendix numbering is now meaningless. This survived every prior audit because no pass checked links in *workflow* docs. | **OWNER decision, then 30 min:** either restore/recreate a minimal `SHARED_PLAN.md` defining the tiers, or (simpler, recommended) strip the "Implements Tier …" claims and let each doc stand on its own authority. Update `INDEX.md:9` to match. Also fix or annotate the two historical broken links in `workout_cool_integration/` (deleted screenshots dir) and the six in `archive/MISSING_TESTS_PART2.md` only if touched for other reasons — archive docs are point-in-time records. | 30–60 min |
 
@@ -79,10 +156,12 @@ safety checks. There is no weaker "OWNER-lite" status.
 
 | ID | Activity | Real state / gate | Completion action | Effort |
 |---|---|---|---|---:|
-| P2.1 | **Fatigue *Phase 2* Stage 4 disposition** | **Disambiguation first (v21):** two "Stage 4"s exist. *Phase 1* Stage 4 was parked 2026-05-13 and **closed 2026-05-20** — [`STAGE4_PARKED_HANDOFF.md`](fatigue_meter/STAGE4_PARKED_HANDOFF.md) carries a proper SUPERSEDED banner. The open item is ***Phase 2*** Stage 4 ([`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md), window opened 2026-05-24). That window is inactive: every user table in `data/database.db` is empty (`workout_log=0`), the last observer log is 2026-05-30, no scheduled task is installed. Learned Calibration 2D-D depends on the same missing evidence. | **OWNER:** (a) restart real-use collection and keep Stage 4 open, or (b) close the inactive window as "no evidence / no threshold change," park 2D-D, and retire the no-longer-used observer tooling instructions **plus the generated artifacts committed under `docs/fatigue_meter/`** (`baseline-2026-04-30*.txt`, `generated-calibration-report.md`) per retention policy. Never tune thresholds or make 2D-D prescriptive without the documented evidence bar and fresh approval. | 15 min decision; weeks if restarted |
+| P2.1 | **Fatigue *Phase 2* Stage 4 disposition** | **Disambiguation first (v21):** two "Stage 4"s exist. *Phase 1* Stage 4 was parked 2026-05-13 and **closed 2026-05-20** — [`STAGE4_PARKED_HANDOFF.md`](fatigue_meter/STAGE4_PARKED_HANDOFF.md) carries a proper SUPERSEDED banner. The open item is ***Phase 2*** Stage 4 ([`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md), window opened 2026-05-24). That window is inactive: every user table in `data/database.db` is empty (`workout_log=0`), the last observer log is 2026-05-30, no scheduled task is installed. Learned Calibration 2D-D depends on the same missing evidence. | **OWNER:** (a) restart real-use collection and keep Stage 4 open, or (b) close the inactive window as "no evidence / no threshold change," park 2D-D, and retire the no-longer-used observer tooling instructions **plus the generated artifacts committed under `docs/fatigue_meter/`** (`baseline-2026-04-30*.txt`, `generated-calibration-report.md`) per retention policy. **v23 safety check on that cleanup:** `generated-calibration-report.md` is `DEFAULT_OUTPUT` of [`scripts/fatigue_calibration_report.py:32-36`](../scripts/fatigue_calibration_report.py) and is rewritten by `output.write_text(...)` at `:546` — it is regenerable script output, so deleting it loses no evidence. But `tests/test_fatigue_stage4_observer.py` and `tests/test_calibration_integration.py` both reference `docs/` paths, so confirm neither pins the files being retired before removing them (**N7**). Never tune thresholds or make 2D-D prescriptive without the documented evidence bar and fresh approval. | 15 min decision; weeks if restarted |
 | P2.2 | **Fatigue body heatmap** | Owner-requested and technically close to assembly, but [`HEATMAP_PLANNING.md`](fatigue_meter/HEATMAP_PLANNING.md) remains a draft with six owner decisions. Existing MuscleMap SVG, body-map coloring code, fatigue `muscle_rows`, band colors, and period reload behavior cover most of the implementation surface. | Resolve §8 decisions, sign the plan, implement a visualization-only slice with no formula/threshold/schema/API change, and close it. | 1–2 d after decisions |
-| P2.3 | **Visual-baseline debt: the Windows pair plus stale Linux baselines** | Two real Windows-only failures remain: the animated navbar logo in Workout Plan desktop dark, and `plan-desktop-light-advanced` in `visual-baseline-thumbnails.spec.ts` (**6,084 px** measured / 6,098 retry vs **6,262 px** baseline — [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) Windows ledger). New on `origin/main` via #273: the **Linux** baselines were last written before 57 later CSS/template commits and now produce at least 11 failures (57 pass, 16 do not run); this is separate from the Windows pair and blocks the signed D3 weekly deep-gate stopgap. [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) does not yet describe the full platform-specific state. | **OWNER action first:** run the Linux generate workflow, download and inspect all 84 PNGs by eye, commit only approved baselines, then confirm Linux compare is green before adding D3's weekly schedule. Separately stabilize the Windows animation/snapshot timing and diagnose the advanced-thumbnail delta; never blind-rebaseline or raise the global tolerance. Coordinate all of this with any Bootstrap #269 decision because that upgrade changes the same render surface. | 0.5–2 d + owner visual review |
+| P2.3 | **Visual-baseline debt: the Windows pair plus stale Linux baselines** | Two real Windows-only failures remain: the animated navbar logo in Workout Plan desktop dark, and `plan-desktop-light-advanced` in `visual-baseline-thumbnails.spec.ts` (**6,084 px** measured / 6,098 retry vs **6,262 px** baseline — [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) Windows ledger). New on `origin/main` via #273: the **Linux** baselines were last written before 57 later CSS/template commits and now produce at least 11 failures (57 pass, 16 do not run); this is separate from the Windows pair and blocks the signed D3 weekly deep-gate stopgap. [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) does not yet describe the full platform-specific state. | **OWNER action first:** run the Linux generate workflow, download and inspect all 84 PNGs by eye, commit only approved baselines, then confirm Linux compare is green before adding D3's weekly schedule. Separately stabilize the Windows animation/snapshot timing and diagnose the advanced-thumbnail delta; never blind-rebaseline or raise the global tolerance. **v23: the Bootstrap coordination target is now #274, not the closed #269** — and the dependency runs the other way: #274 names this stale-baseline debt as its *own* blocker, so the Linux regeneration is a prerequisite for the Bootstrap migration, not merely something to coordinate with it. | 0.5–2 d + owner visual review |
 | P2.4 | **Broader KI-005 manual-edit provenance staleness** | KI-005 itself is shipped and Gate-2 approved. Only the explicitly accepted limitation remains: arbitrary manual edits can leave estimate provenance/ancillary text stale. | Treat as a new UX packet only if this is visible or confusing in real use. Do not reopen the completed KI-005 implementation plan for cosmetic comment work. | OWNER / demand-gated |
+| P2.5 | **The CI visual gate certifies a broken-icon state — FontAwesome is CDN-only with no fallback** *(new 2026-08-02)* | [`base.html:16`](../templates/base.html) loads FontAwesome from `cdnjs.cloudflare.com` with **no local fallback** — unlike the Bootstrap stylesheet at `:15`, which falls back to jsdelivr. It does not resolve on the CI runner, so **every icon renders as a magenta placeholder square** in the committed Linux baselines. Confirmed identical in the pre- and post-regeneration sets during the #281 review, so it is **long-standing and did not block that recovery**. The consequence is what matters: the visual gate compares one broken-icon render against another, so **no icon regression can ever fail it**, and any future change that genuinely breaks icons passes silently. This is the same "a gate that cannot fail" class as the `occurrences <= 1` assertion and `measure.verify_blind_spots()`. | Ship FontAwesome as a **deterministic local asset**, or give it the same `onerror` fallback the Bootstrap link already has, then regenerate both platforms' baselines once so they encode a real icon render. **Do not fix this inside a baseline-recovery packet** — it is a rendering change and needs its own before/after. | 2–4 h + one baseline regeneration |
+| P2.6 | **`j_known_live_mutation.mjs` pins a raw-byte digest that cannot match on Linux** *(new 2026-08-02)* | [`scripts/css_audit/j_known_live_mutation.mjs`](../scripts/css_audit/j_known_live_mutation.mjs) reads `theme-dark.css` with `readFileSync` (an untranslated Buffer) and hashes the raw bytes, so its pinned `EXPECTED_INPUT = e54818bf…` is the **CRLF** digest. The repo is `core.autocrlf=true` with **no `.gitattributes`**, so the committed blob is LF and hashes to `3ab06083…` — exactly **574 bytes** smaller, one `CR` per line. The control therefore **runs on Windows and refuses to run on Linux**, where it would demand the very `--expect-sha` override its own docstring forbids using to silence it. Surfaced by P3-a0, which corrected its own evidence claim; **a0 hit the identical hazard in its contract file and CI caught it** (PR #280). Recorded as debt rather than fixed: it sits outside a0's owned paths and **P3 is terminated — this must not reopen it**. | Either normalize before hashing (read text and `replace("\r\n", "\n")`), or add a `.gitattributes` rule pinning the file's checked-out form and re-pin the constant deliberately. **Any future packet that re-pins that digest must state which line-ending form it pinned.** | 1–2 h |
 
 ### P3 — Valid proposals, not forgotten near-complete work
 
@@ -131,8 +210,14 @@ These items remain legitimate but should not displace the P1–P2 closeouts:
   evidence files at the `docs/` root: both arcs complete and merged; the scan
   tracker still points at a deleted worktree (`D:/development/HT-scan`). Archive
   candidates under [`DOC_RETENTION.md`](ai_workflow/DOC_RETENTION.md), but the
-  6-month criterion is unmet and `QUALITY_GATE.md` links several `CSS_PHASE4_*`
-  files directly. Revisit, do not act now.
+  6-month criterion is unmet. **v23 (N7): the CSS blocker is harder than a doc
+  link.** Six of these artifacts are asserted by pytest in
+  `tests/test_css_wp4_4_*.py` — `_D1_A11Y_`, `_D2_A11Y_`, `_E_LAYOUT_`,
+  `_H_COMPONENTS_DEAD_`, plus `CSS_PHASE4_WP4_4_A_BASELINE.json` and
+  `CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json` — so moving one reds the **required**
+  `Run Tests` context, not merely a documentation link. The seven orphan
+  `WP4_3I_*` files carry no test or CI reference and are the only genuinely
+  movable subset. Revisit, do not act now.
 
 ## 2. Findings that are already done, superseded, or no longer relevant
 
@@ -205,6 +290,16 @@ Do not resurrect these from unchecked boxes or old dated prose.
   `scripts/fatigue_stage4_observer.py`, `scripts/fatigue_calibration_report.py`,
   ~18 references in `.github/workflows/ci.yml`, and `deep-gate.yml` all hardcode
   `docs/` paths. Grep the whole repo, not just docs.
+- **v23 (N7) — `docs/` paths pinned by *tests*, which is the stricter class:**
+  `tests/test_css_wp4_4_*.py`, `tests/test_profile_estimator_contract.py`,
+  `tests/test_fatigue_stage4_observer.py`, `tests/test_calibration_integration.py`
+  and `tests/test_erase_data_guard.py` all reference `docs/` paths. A CI-workflow
+  reference reds an advisory job; a pytest reference reds the **required**
+  `Run Tests`. Check both before moving anything.
+- **v23 (N5) — generated-file contention.** `docs/test_inventory/TEST_INVENTORY.json`
+  and `.md` are now guarded by a **required** check and are edited by #274, #275,
+  and any packet that adds or removes a test (P1.4, P1.5). Regenerate as the last
+  step of a packet, never mid-branch, and expect conflicts if two land together.
 - Delete local/debug/generated command output instead of turning it into project
   memory. (`MASTER_HANDOVER.local.md` is gitignored, current, and operational —
   not a leftover.)
@@ -221,6 +316,45 @@ remain in `static/js/`.
 | [`utils/constants.py:19`](../utils/constants.py#L19) | Consider collapsing `Front-Shoulder` into anatomical deltoid naming. | **OWNER / taxonomy migration.** Cross-module string matching makes this a product/data migration, not a rename. |
 | [`utils/constants.py:100-101`](../utils/constants.py#L100-L101) | Decide whether `Mid/Upper Back` remains a dedicated grouping (duplicated on both casing aliases). | **OWNER / taxonomy decision.** Preserve current aliases until decided; resolve both lines together. |
 | [`utils/program_backup.py:18`](../utils/program_backup.py#L18) | `schema_version` is written but not consumed. | Testing Strategy decision D6: define/enforce compatibility or explicitly remove the unused contract. Do not silently implement a migration policy. |
+
+## 5a. Evidence added at v23
+
+Commands run read-only from an isolated worktree (`D:/development/HT-v23-audit`,
+detached at this commit); the shared checkout was never switched or edited.
+
+- **Reachability (N1):** `git ls-remote --heads origin` (no
+  `docs/status-reconciliation`), `git branch --contains 2b16474` (two local
+  branches only), `git branch -r --contains 2b16474` (empty),
+  `gh pr list --head docs/status-reconciliation --state all` → `[]`, and
+  `git show origin/main:docs/LEFTOVERS_BY_PRIORITY.md | tail` → *"Last updated:
+  2026-06-11 (v17 …)"*.
+- **Base currency (N-authority):** `git log --oneline 2b16474 -3` shows parent
+  `ac16e4c` = `origin/main`; `git rev-list --left-right --count` confirms 1/0.
+- **Dependency lane (N2, N4):** `gh pr view 269` → `state: CLOSED,
+  mergedAt: null, closedAt: 2026-08-02T00:45:22Z`; `gh pr view 274/275` file
+  lists and bodies; `gh pr checks 245` green, `gh pr checks 250` red on
+  `JS Unit (Vitest, non-required)`.
+- **Required contexts (N5):** branch-protection API returns 11 contexts
+  including `Test Inventory Drift`; #274 and #275 both list
+  `docs/test_inventory/TEST_INVENTORY.json` and `.md` in their changed files.
+- **Spec collision (N6):** `e2e/ui-hardening.spec.ts:538-546` read at source —
+  the KI-005 header still says "PRE-IMPLEMENTATION … expected to be RED".
+- **Retention pinning (N7):** `grep -rhn -oE "CSS_PHASE4[A-Za-z0-9_]*\.(md|json)"
+  tests/*.py` returns six artifacts; the seven `WP4_3I_*` orphans return nothing
+  from `tests/`, `scripts/`, or `.github/`.
+- **Cleanup executability (N8):** `guard-destructive-command.ps1:438-440`
+  (`worktree` → `ask`) and `:397` (`reset --hard` → `deny`); `git worktree list`
+  → 35 entries; per-worktree `git status --porcelain` → 3 dirty.
+- **Methodology re-validation:** the link sweep re-run on this tree gives 606
+  relative links / 12 broken, and the split matters — **4 are genuine active
+  authority defects** (all `SHARED_PLAN.md`, P1.8), **2 sit in active folders but
+  are historical** (`workout_cool_integration/*` pointing at a deleted generated
+  screenshots directory), and **6 are archive records** in
+  `archive/MISSING_TESTS_PART2.md`. Only the first group is work. The orphan
+  methodology is basename-frequency and therefore false-positive-prone: v22's
+  exclusion of `PROFILE_ESTIMATOR_CLUSTERS.md` is **confirmed correct**
+  (`tests/test_profile_estimator_contract.py`, `utils/profile_estimator.py`
+  reference it), and no remaining candidate is referenced from code or CI.
 
 ## 5. Evidence used for this revision
 
@@ -266,17 +400,34 @@ An item leaves this file only when one of these is true:
    present it as work; or
 4. disposable artifacts are removed after the safety checks above.
 
-The best short sequence is **preserve the dirty doc patch → fetch/reconcile it
-with current `main` (including #270/#272/#273 and #271 if landed) → commit the
-orchestration plan + INDEX row + this file together → P1.7 → P1.2 cleanup of
-only proven-clean/unprotected targets → P1.1 residue → READY packets P1.4/P1.5**.
-Then obtain the OWNER decisions for P1.3/P1.8, P1.6/#269, P2.3's visual-baseline
-work, and Fatigue Phase 2 Stage 4. Do not schedule D3 until the Linux compare is
-green. This clears the highest-value stale state before any new large proposal.
+**The sequence, corrected at v23.** v22's opener ("preserve the dirty doc patch
+→ fetch/reconcile → commit the orchestration plan + INDEX row + this file
+together") is **already done** — that is this commit. The live sequence is:
+
+**P1.0 publish this branch** (safe first packet: docs-only, based directly on
+`origin/main`, and the only thing standing between six revisions of audit work
+and a `git branch -D`) → **P1.7** (sidecar-scoped, no production change) →
+**merge #245** (green, independent) → **P1.5 then P1.4** in that order, one
+`ui-hardening.spec.ts` at a time, regenerating the inventory last → **P1.2**
+cleanup of only proven-clean, unprotected, recounted targets → **P1.1** residue.
+
+Gated behind owner decisions, in dependency order: **P2.3's Linux baseline
+regeneration** unblocks both the signed D3 stopgap **and** #274; **P1.5**
+unblocks #274's accessibility evidence; **#275** unblocks #250. Then P1.3, P1.8,
+P1.6's remaining lanes, and Fatigue Phase 2 Stage 4. Do not schedule D3 until the
+Linux compare is green, and do not take #274 out of draft until both its blockers
+clear. This clears the highest-value stale state before any new large proposal.
 
 ---
 
-*Last updated: 2026-08-02 (v22 — post-Fable execution-safety revision: live-state
-reconciliation, destructive-worktree safeguards, generated-count discipline,
-explicit status classification, KI-005 target precision, dependency recount,
-and D3/D5 + Linux-baseline updates; checked against `origin/main` @ `f178790`.)*
+*Last updated: 2026-08-02 (v23 — final adversarial audit on top of `2b16474`:
+found the arc unpublished and `origin` still serving v17, released P1.1's
+already-satisfied WAIT gate, replaced the closed #269 with the #274 migration,
+escalated P1.5 to a #274 merge prerequisite, recorded the #275→#250 chain, the
+required-check generated-file contention, the P1.4/P1.5 spec collision, the
+pytest-pinned retention constraint, and the guard-hook limits on cleanup
+commands; verified against `origin/main` @ `ac16e4c`.)*
+
+*Prior revisions retained above: v18 (Codex), v19–v20 (Opus), v21 (Fable 5
+deep scan), v22 (execution-safety). v23 adds findings **N1–N9** and changes no
+prior finding except where explicitly labelled a v23 correction.*

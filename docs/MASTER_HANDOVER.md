@@ -33,14 +33,13 @@
 > stands for all of them until someone takes it. With no P3-a1 to own a P3-local
 > register, the standalone route is now the only route.
 >
-> **Stale P3 lines survive elsewhere in this file, deliberately.** `## Open
-> Decisions` (*"P3 is the only one left and is planning-only — Gate 0 and Gate 1
-> are both unsigned"*) and `## Blockers` (*"P3 must not start before Gate 1, and
-> Gate 0 is unsigned too"*) both predate the sign-off and the termination. Under
-> the owner's final **D3** ruling a terminal packet may write **only** this lead
-> block and `## Next Safe Step`, so a0 left them untouched rather than exceed its
-> authority. **Read them as superseded by this entry**; correcting them is an owner
-> action.
+> **The stale P3 lines elsewhere in this file are now CORRECTED.** `## Open
+> Decisions` and `## Blockers` both predated the sign-off and the termination.
+> Under the owner's final **D3** ruling a terminal packet may write **only** this
+> lead block and `## Next Safe Step`, so `P3-a0` left them untouched rather than
+> exceed its authority and escalated them instead. The owner authorized a separate
+> documentation packet, which corrected both **2026-08-02**. No P3 claim in this
+> file now contradicts this entry.
 >
 > Full record: [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md)
 > and [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md).
@@ -1597,8 +1596,12 @@ behind the CSS it describes.
 
 - **Two of the three WP4.4 closeout proposals are discharged.** P1 merged as
   `d543a4b` (PR #223) and P2 as `4b0670b` (PR #222), both owner-approved.
-  **P3 is the only one left** and is planning-only — Gate 0 and Gate 1 are both
-  unsigned. See `## Next Safe Step`.
+  **P3 is also discharged, by termination.** Both gates were **signed 2026-08-02**;
+  **`P3-a0` shipped** (PR #280, squash `cd93480`); and the owner then **terminated
+  the arc at a0** the same day, after a0's nineteen-tool assessment priced `P3-a1`
+  at **nine** new tools against the small deletion yield already accepted at Q6.
+  **`P3-a1` … `P3-e` carry no residual authorization** — reopening requires a new
+  owner decision. **No WP4.4 closeout proposal is open.**
 - **The app.py review is CLOSED** (2026-08-01) — all five packets merged, and
   P4's gates were discharged post-merge in §7a. No decision is open on it; see
   [`APP_PY_REVIEW_PLAN.md`](APP_PY_REVIEW_PLAN.md) §7 and §7a. Separately, the
@@ -1627,12 +1630,12 @@ behind the CSS it describes.
   packet in it.
 - **P1 and P2 are approved and merged** — `d543a4b` (#223) and `4b0670b` (#222).
   Neither gates anything further.
-- **P3 must not start before Gate 1, and Gate 0 is unsigned too.** The
-  `theme-dark.css` `:where()` inertia finding is a new arc, not a closeout chore,
-  and the plan-stage routing table makes a shared-surface change **Large** —
-  which requires **both** gates. Plan v1 and the council review are at
-  [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md). The
-  P1-before-P3 precondition is already satisfied.
+- **No blocker is open for P3 — the arc is terminated.** Both gates were signed
+  2026-08-02, `P3-a0` shipped as `cd93480` (PR #280), and the owner terminated the
+  arc at a0. **`P3-a1` … `P3-e` are unauthorized**, so there is nothing left for a
+  gate to block. Reopening requires a new owner decision, which would re-enter at
+  the plan stage. Full record:
+  [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md).
 - The Packet-a layer-span work is **deferred, not blocking**: 235 declarations
   remain untouched for a separately certified future packet.
 
