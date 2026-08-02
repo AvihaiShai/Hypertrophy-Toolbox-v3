@@ -230,7 +230,7 @@
     "total_tests": 541
   },
   "pytest": {
-    "collected_deterministic": 2061,
+    "collected_deterministic": 2062,
     "deterministic_files": 99,
     "environment_dependent_files": [
       {
@@ -437,7 +437,7 @@
       },
       {
         "file": "tests/test_node_version_contract.py",
-        "tests": 2
+        "tests": 3
       },
       {
         "file": "tests/test_normalization.py",
