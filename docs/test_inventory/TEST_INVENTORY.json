@@ -230,7 +230,7 @@
     "total_tests": 541
   },
   "pytest": {
-    "collected_deterministic": 2100,
+    "collected_deterministic": 2102,
     "deterministic_files": 101,
     "environment_dependent_files": [
       {
@@ -313,7 +313,7 @@
       },
       {
         "file": "tests/test_css_wp4_4_layout_contracts.py",
-        "tests": 13
+        "tests": 15
       },
       {
         "file": "tests/test_css_wp4_4_motion_contracts.py",

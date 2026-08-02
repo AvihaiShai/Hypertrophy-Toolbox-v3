@@ -1024,8 +1024,16 @@ body:not(:has(#navbar)) .navbar,
   --tbl-cell-pad-y: clamp(0.5rem, 0.75vw, 0.75rem);
   --tbl-cell-pad-x: clamp(0.6rem, 1vw, 1rem);
 
-  /* Borders */
-  --tbl-border-color: #d0d0d0;
+  /* Borders.
+     Blue-grey from the --ink-3/--ink-2 neutral family rather than a plain grey,
+     so the separator sits in the same palette as the rest of the table chrome.
+     The value is contrast-bound, not decorative: in card mode this token draws
+     both the row-card outline and the only divider between label/value pairs
+     inside a card, and it has to clear 3:1 against the card fill (--surface-2)
+     AND the page behind it (--surface-0). #8a90a8 (--ink-3) clears the fill at
+     3.16:1 but only reaches 2.80:1 on the page, so this sits 20% toward
+     --ink-2. tests/test_css_wp4_4_layout_contracts.py enforces the floor. */
+  --tbl-border-color: #7d839d;
   --tbl-border-width: 1px;
 
   /* Header styling */
@@ -1055,7 +1063,10 @@ body:not(:has(#navbar)) .navbar,
 
 /* Dark mode overrides */
 [data-theme="dark"] {
-  --tbl-border-color: #374151;
+  /* --ink-3 for this theme. The previous #374151 reached only 1.81:1 against
+     the dark card fill, which here is also the page colour (--bs-body-bg
+     resolves to --surface-0), leaving the border as the sole row boundary. */
+  --tbl-border-color: #7a8099;
   --tbl-header-bg: #1f2937;
   --tbl-header-color: #f9fafb;
   --tbl-row-hover-bg: #374151;
