@@ -32,9 +32,10 @@ gated by full pytest alone.
 
 > **Scope note.** Under the owner's final **D3** ruling a terminal packet may write
 > **only** the lead block and the next-step section of the three status documents.
-> The *"Owner review status table"* at the end of this file still records P3 as
-> planning-only with unsigned gates; **a0 left it untouched rather than exceed its
-> authority. Read it as superseded by this update.**
+> The *"Owner review status table"* at the end of this file recorded P3 as
+> planning-only with unsigned gates; `P3-a0` left it untouched rather than exceed
+> its authority and escalated it instead. The owner authorized a separate
+> documentation packet, which **corrected both of its P3 rows 2026-08-02**.
 
 Record: [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md)
 and [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md).
@@ -1590,7 +1591,9 @@ Snapshot: **2026-08-01 (latest)**. **WP4.4 is complete and the arc is closed at
 and `k` (#217, `c521d3a`). **No packet in this arc is next.** Of the three
 closeout proposals, **P1 (#223, `d543a4b`) and P2 (#222, `4b0670b`) are
 owner-approved and merged**; **P3** (`theme-dark.css` `:where()` inertia) is
-**planning only** with Gate 0 and Gate 1 both unsigned — see
+**TERMINATED** — both gates signed 2026-08-02, `P3-a0` shipped (PR #280,
+`cd93480`), and the owner terminated the arc at a0. **`P3-a1` … `P3-e` carry no
+residual authorization.** See
 [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md). The older
 packet counts/status prose immediately below is retained as historical detail.
 
@@ -1651,4 +1654,4 @@ branch.
 | WP4.4-k — final integration | **Authorized after j merges** | Not started; docs/verification only. | N10 stays evidence-only; do not edit `QUALITY_GATE.md`. Corrective subpackets are limited by the continuation authority. |
 | Superset dark tint and `layout.css` dead `body.dark-mode` | **`body.dark-mode` RESOLVED by WP4.4-e; superset tint still deferred** | `body.dark-mode` was re-proved and **deleted** in PR #195. The rule was *functional* (all seven `--tbl-*` tokens changed in 11/22 contexts when the class was applied) but its selector was *never satisfied*: `<body>` never carries the class and `darkMode.js:64` sets `data-theme` on the root element. Deleted on **unreachability**, explicitly **not** the ordinary non-winner rule, which does not apply to custom properties. The seven tokens keep their live `[data-theme="dark"]` definitions, now contract-pinned. The missing live dark override for `--superset-bg-1..4` remains recorded and unchanged. | The superset tint belongs to `theme-dark.css` ownership (packet `j`), still gated. |
 | Continuous pyright baseline burn-down | **Ongoing — standing track only** | The track remains available for one file or one tightly coupled diagnostic family at a time; no active packet is identified by this snapshot. | It has no single phase-close packet. Each change must remain type-only, reduce the diagnostic multiset, and pass focused plus full pytest gates. |
-| Overall refactor plan | **Partially complete; WP4.4 closed at `k`; Track B closed** | Track A and Phases -1 through 3 are complete; **Track B is now complete — WPB.4, its last packet, shipped 2026-08-01**. WP4.4 is complete — every packet `a` through `k` is merged and the arc is closed, discharging the dated N4 authority. Of the three closeout proposals, P1 (#223, `d543a4b`) and P2 (#222, `4b0670b`) are owner-approved and merged; P3 is planning-only. | Remaining Workout Plan/Log cleanup stays paused. P3 must not start while Gate 0 and Gate 1 are unsigned. The 235 layer-pin declarations remain deferred. |
+| Overall refactor plan | **Partially complete; WP4.4 closed at `k`; Track B closed** | Track A and Phases -1 through 3 are complete; **Track B is now complete — WPB.4, its last packet, shipped 2026-08-01**. WP4.4 is complete — every packet `a` through `k` is merged and the arc is closed, discharging the dated N4 authority. **All three closeout proposals are now discharged**: P1 (#223, `d543a4b`) and P2 (#222, `4b0670b`) merged, and **P3 is TERMINATED** — both gates signed 2026-08-02, `P3-a0` shipped (#280, `cd93480`), arc terminated at a0. | Remaining Workout Plan/Log cleanup stays paused. **P3-a1 … P3-e carry no residual authorization; reopening P3 requires a new owner decision.** The 235 layer-pin declarations remain deferred. |
