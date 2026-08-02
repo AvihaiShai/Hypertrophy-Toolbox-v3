@@ -86,34 +86,33 @@ test.describe('Keyboard Navigation', () => {
     expect(page.url()).toContain('workout_plan');
   });
 
+  // KI-006: this used to open the modal behind an `isVisible()` guard, press Escape,
+  // and then *click the close button* if the modal was still open — so it passed whether
+  // or not Escape worked, and skipped silently if the trigger was not visible. Both
+  // escapes are removed: the trigger must be usable, and Escape alone must close it.
   test('escape key closes modals', async ({ page }) => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
 
-    // Open a modal
     const generateBtn = page.locator('#generate-plan-btn');
-    const btnVisible = await generateBtn.isVisible();
-    
-    if (btnVisible) {
-      await generateBtn.click();
+    await expect(generateBtn).toBeVisible();
+    await expect(generateBtn).toBeEnabled();
 
-      const modal = page.locator('#generatePlanModal');
-      await expect(modal).toBeVisible({ timeout: 5000 });
+    const shownPromise = waitForBootstrapModalEvent(page, '#generatePlanModal', 'shown.bs.modal');
+    await generateBtn.click();
+    await shownPromise;
 
-      // Press Escape to close
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
-      
-      // If Escape doesn't work, use close button
-      if (await modal.isVisible()) {
-        const closeBtn = modal.locator('.btn-close').first();
-        if (await closeBtn.count() > 0) {
-          await closeBtn.click();
-        }
-      }
-      
-      await expect(modal).not.toBeVisible({ timeout: 3000 });
-    }
+    const modal = page.locator('#generatePlanModal');
+    await expect(modal).toBeVisible();
+
+    // Escape is the only close path exercised here. No fallback click.
+    const hiddenPromise = waitForBootstrapModalEvent(page, '#generatePlanModal', 'hidden.bs.modal');
+    await page.keyboard.press('Escape');
+    await hiddenPromise;
+
+    await expect(modal).not.toBeVisible();
+    await expect(page.locator('.modal-backdrop')).toHaveCount(0);
+    await expect(page.locator('body.modal-open')).toHaveCount(0);
   });
 
   test('dropdown menus are keyboard accessible', async ({ page }) => {
