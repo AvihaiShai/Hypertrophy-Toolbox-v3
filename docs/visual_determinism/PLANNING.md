@@ -1,9 +1,54 @@
 # Visual-Capture Determinism Remediation
 
-Status: **implemented, Gate 2 not approved.** Code + tests only — baseline PNGs are
-regenerated in a separate, reviewed step (see §5 Migration notes).
+Status: **⛔ GATE 2 FAILED — determinism NOT achieved. Diagnosis continues in this PR.**
+Code + tests only; baseline PNGs are **not** regenerated here and neither manifest is
+touched.
 
 Branch `wt/visual-determinism`, based on `origin/main` = `4e9b7d0`.
+
+## ⚠️ Record correction (2026-08-03) — read before anything below
+
+An earlier revision of this document, and this PR's original title, claimed that **three
+causes of visual nondeterminism had been closed**. **That claim was wrong and is
+withdrawn.** Three fresh CI generation runs at SHA `40c2873` (runs `30769323238`,
+`30769329631`, `30769336223`) measured:
+
+> **78 of 86 regenerated screenshots byte-identical across all three runs; 8 still
+> differ.** Byte-identical output was **not** reached.
+
+**What the evidence actually supports, stated at its true strength:**
+
+| Claim | Status |
+|---|---|
+| The `youtube_video_id` startup race **exists** and is measured (1.6 s; 0 → 56 curated ids; 510 rows refreshed) | **PROVEN** |
+| That race **caused all plan-thumbnail instability** | **WITHDRAWN — false.** It is at most a **partial contributor** |
+| Cause 3 (16,384 px truncation) is closed | **HOLDS** — all four segments single-state across three runs, painted content restored through the document bottom |
+
+`plan-desktop-dark-advanced` still shows **three states with 33,796 hard pixels —
+numerically identical to its pre-remediation figures**, i.e. an *untouched* cause, not a
+partially-fixed one. Remediation did improve matters (unstable 11 → 8; genuine
+rendered-state changes 6 → 3; `workout-plan-desktop-{dark,light}` and both
+`plan-desktop-*-simple` became single-state), but the acceptance criterion is not met.
+
+**Eight images observed unstable across the three post-remediation runs:**
+
+| Image | States | Hard px | MaxΔ | Class |
+|---|---|---|---|---|
+| `plan-desktop-dark-advanced` | 3 | 33,796 | 221 | genuine |
+| `plan-desktop-light-advanced` | 3 | 22,802 | 255 | genuine |
+| `log-desktop-dark` | 2 | 323 | 202 | genuine |
+| `volume-splitter-mobile-dark` | 2 | 0 | 14 | low-delta |
+| `backup-mobile-dark` | 2 | 0 | 16 | low-delta |
+| `progression-mobile-dark` | 2 | 0 | 2 | low-delta |
+| `plan-mobile-dark-advanced` | 2 | 0 | 1 | low-delta |
+| `plan-mobile-light-advanced` | 2 | 0 | 1 | low-delta |
+
+The five low-delta cases are **still gate instability** and are not to be dismissed as
+harmless or masked with tolerance.
+
+`log-desktop-dark` was single-state across the three *pre*-remediation runs and flips
+now. **Whether it was introduced here or is pre-existing-but-unluckily-sampled cannot be
+inferred from two three-sample sets** and requires controlled A/B isolation.
 
 ---
 
@@ -16,7 +61,11 @@ CI job at the *identical* SHA, 11 of 84 baselines varied (73 observed stable). S
 genuine rendered-state changes, all on `plan-*` / `workout-plan-*`; five were
 sub-perceptual noise. One file showed three distinct states.
 
-Three independent causes, all pre-diagnosed and re-confirmed here from measurement:
+Three candidate causes were diagnosed and measured. **Only cause 3 is demonstrably
+closed.** Cause 1 is a proven race and a partial contributor — it did not account for the
+`plan-desktop-*-advanced` instability, which survives this remediation unchanged. Cause 2's
+measurements below are real, but its contribution to the residual instability is not
+established. Read this table as *measured mechanisms*, not as *closed causes*:
 
 | # | Cause | Measured evidence (this worktree) |
 |---|---|---|
