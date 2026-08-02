@@ -7,13 +7,15 @@
 `static/css/**` change, which that file's own `static/css/**` row declares *"Large at plan
 stage."* → **Gate 0 + Gate 1 both required.**
 
-**Gate status: ✅ BOTH GATES SIGNED — owner, 2026-08-02. Execution authorized through
-`P3-a0` ONLY; `P3-a1` needs a second dispatch decision.**
+**Gate status: ✅ BOTH GATES SIGNED — owner, 2026-08-02. 🛑 ARC TERMINATED AT `P3-a0` — owner,
+2026-08-02. `P3-a1` is NOT funded and `P3-b` … `P3-e` are NOT authorized. P3 ends when a0
+merges; reopening requires a new owner decision.**
 
 | Gate | State |
 |---|---|
 | **Gate 0** (requirements) | **✅ SIGNED 2026-08-02.** Q1 (split), Q3, Q4, Q5 (amended to the post-regeneration/post-#274 ledger), Q6, Q8, Q9 and **Q11** answered; **Q10 deferred to P3-a0** with a sizing obligation. Rulings in *Section 0 sign-off — GATE 0*. |
-| **Gate 1** (council-reviewed plan) | **✅ SIGNED 2026-08-02.** Plan v2 accepted whole; **P3-a split accepted (5 → 6 packets)**; **D1 yes · D2 yes · D3 P3-e sole writer · D4 no**; the standing self-certification risk explicitly accepted. **One item is OPEN, not blocking:** the abandonment hole under sole-writer — see the ⚠️ note in the D3 amendment. |
+| **Gate 1** (council-reviewed plan) | **✅ SIGNED 2026-08-02.** Plan v2 accepted whole; **P3-a split accepted (5 → 6 packets)**; **D1 yes · D2 yes · D3 final (P3-e sole writer; an owner-declared TERMINAL packet may update the lead block and `## Next Safe Step` only) · D4 no**; the standing self-certification risk explicitly accepted. **No open item remains.** |
+| **Arc outcome** | **🛑 TERMINATED at `P3-a0`, owner, 2026-08-02.** a0's tool assessment priced P3-a1 at **nine** new tools against the small deletion yield accepted at Q6; the owner ruled that does not clear the cost/risk bar. **P3-a1 is not funded; P3-b … P3-e are not authorized.** P3 ends when a0 merges. **a0 is the declared terminal packet** and holds the narrow D3 status-doc exception. **Reopening requires a new owner decision.** |
 
 **Base:** `main` @ **`4b0670b`** (the commit that merged proposal **P2**, PR #222 — the
 `static/css/**` gate row). *Re-pinned at council: Plan v1 read `d543a4b`, which is **P1**
@@ -23,9 +25,10 @@ recorded in the response matrix and applied throughout this document.*
 **Status of this document:** Section 0 (as amended at council), Plan v1 (historical), the three
 council reviews, the response matrix, **Plan v2**, and the **Plan v2 re-review**.
 **Review rounds are closed** — four reviewer passes, **41 findings, all dispositioned**, every
-verdict now `approve-with-changes`. **Both gates were signed by the owner on 2026-08-02, and
-execution is authorized for `P3-a0` only** — `P3-a1` onward requires a second dispatch
-decision once a0's evidence exists. See *Execution authority* in the Sign-off section.
+verdict now `approve-with-changes`. **Both gates were signed by the owner on 2026-08-02;
+`P3-a0` was executed; and the arc was then TERMINATED at a0 by the owner the same day.**
+`P3-a1` is not funded and `P3-b` … `P3-e` are not authorized. See *Execution authority* in the
+Sign-off section.
 
 > **Section 0 was amended after council and before owner presentation.** *(Historical note —
 > Gate 0 was unsigned when this was written; it was signed 2026-08-02.)* Section 0 was a draft
@@ -522,7 +525,7 @@ trail stays traceable.*
 | **Q8** *(new)* | **Is the `.frame-header` dark blur override at `theme-dark.css:100–105` still a guarantee you want held** — given this arc may prove it inert, and given that the assertion protecting it cannot detect its loss? | Ceiling 3, and the only one that is **double-locked**: `tests/test_css_cascade_contracts.py:1006–1007` pins it, and editing *that* file reds `test_the_contract_anchor_registry_is_exact` via `measure.CONTRACT_FILES`. `.frame-header` sits inside family **F2**, the main deletion family. Without a ruling, P3-c must exclude it. | **Exclude `.frame-header` from candidacy** unless the owner rules otherwise — the outcome is over-determined across all three readings of the authority question (see the adjudication of product-risk #2), so this does **not** wait on Q9. **Separately, and regardless of the answer: the assertion should be repaired.** `:1007` is a bare substring check satisfied by an unrelated line at `:144`, so it stays green when `:102` is deleted — it does not protect what its own comment at `:993–995` says it protects. Anchoring it to the `.frame-header` block is a strengthening, but it is inside the double lock, so it needs the owner's word rather than packet authority. |
 | **Q10** *(new, at re-review)* | **May P3-a1 repair the two shared WP4.4 registers and regenerate `docs/CSS_PHASE4_WP4_4_A_BASELINE.json`?** Specifically: add the eight unregistered neutralizers to `measure.BLIND_SPOT_REGISTER`, and optionally extend `measure.CONTRACT_FILES` beyond the two shared files. | Both are pinned to the committed baseline — `a_baseline_contracts.py:224` asserts `len(register) == len(measure.BLIND_SPOT_REGISTER)`, and `:297` pins the anchor registers. Changing either needs a baseline regeneration, which no packet has claimed, and which **Q1 does not cover**. | **Yes for the blind-spot register; optional for `CONTRACT_FILES`.** The blind-spot gap is a *live correctness defect* that `QUALITY_GATE.md:39` routes **every future CSS packet** into, and `A_BASELINE_EVIDENCE.md:181`'s claim that "the register cannot drift from the file it describes" is false in the only direction that matters. **This arc is safe either way** — P3-a1 owns complete P3-local registers regardless (see *Changes to the packets*), so a refusal costs nothing here and only leaves the shared defect standing for the next arc. That is the owner's call, not the packet's. |
 | **Q9** *(new)* | **Which WP4.4 constraints does this arc still carry?** `.claude/rules/verification.md:21–24` retires arc-specific constraints when the arc closes. WP4.4 is closed. The owner re-issued R4, N2, C8, G4 and the method rules; Plan v1 additionally self-bound to ~20 others. | An arc that invents its own authority is the failure mode this whole document exists to avoid. It also determines whether the token-block packet's M9 exclusion still binds. | **Accept the P-constraint restatement in Plan v2 (P-1 … P-8)** rather than re-issuing twenty WP4.4 numbers. Constraints with a durable home in `.claude/rules/verification.md` are cited there and need no owner action; the arc-specific remainder is restated under this arc's own numbering. |
-| **Q11** *(new, post-council — PR #274 ordering)* | **Where does draft PR #274 (Bootstrap 5.1.3 → 5.3.8) sit relative to this arc?** #274 regenerates `static/css/bootstrap.custom.min.css`, the **unlayered** base bundle that every `theme-dark.css` declaration is measured against. Measured on `wt/bootstrap-538-compat` vs its merge base `f178790`: bundle **100,272 → 123,810 bytes**; **`!important` 22 → 108 (+86)**; **`--bs-*` custom-property declarations 208 → 846 (+638)**; `@layer` **0 → 0** (unchanged). | **This is the cascade band that decides the arc's entire output.** Both bundles are unlayered, so `theme-dark.css`'s 124 `!important` declarations — all at (0,0,0) inside `:where()` — and Bootstrap's `!important` declarations sit in the *same* importance position, and **specificity alone decides**. Bootstrap's are at ≥(0,1,0), so all 108 beat `theme-dark.css` wherever they share an element and property. Adding 86 of them changes the answer to *"which declarations can never win"* — which is exactly and only what **P3-b** computes. | **Land #274 before P3-b, not after the arc.** P3-a0 and P3-a1 are unaffected and may proceed now. **P3-b may not start until #274 has either landed with its baselines settled, or been explicitly deferred past the whole arc.** Rebasing between a1 and b costs a re-run of a1's certification captures and nothing else; holding a 5.1.3→5.3.8 upgrade behind six packets is the worse trade, and dependabot #269 re-raises behind it. **Three findings that narrow the risk:** (a) the new bundle's 8 `data-bs-theme` selectors are **inert** — `darkMode.js` writes `data-theme` only and #274 does not touch it, and `test_css_cascade_contracts.py:1228` scopes its bundle assertion to `pages-workout-plan.css`, so nothing reds; (b) **`components.css` is a one-line comment change** (`"Bootstrap 5.1.3 handles"` → `"Bootstrap handles"`, 5,207 lines before and after) — **not** a cascade change, and C8 is not engaged; (c) **`templates/base.html` changes two lines, both CDN version pins** (the jsdelivr `onerror` fallback href and the Bootstrap JS bundle `src`) — the local `<link>` graph, its order and the `theme-dark.css` link are untouched, so **R4 is not in conflict**: R4 binds *this arc's packets*, not other PRs, and `theme_dark_contracts.py:32` stays green. The genuine coupling is the bundle and the baselines, not `base.html`. |
+| **Q11** *(new, post-council — PR #274 ordering)* | **Where does draft PR #274 (Bootstrap 5.1.3 → 5.3.8) sit relative to this arc?** #274 regenerates `static/css/bootstrap.custom.min.css`, the **unlayered** base bundle that every `theme-dark.css` declaration is measured against. Measured on `wt/bootstrap-538-compat` vs its merge base `f178790`: bundle **100,272 → 123,810 bytes**; **`!important` 22 → 108 (+86)**; **`--bs-*` custom-property declarations 208 → 846 (+638)**; `@layer` **0 → 0** (unchanged). | **This is the cascade band that decides the arc's entire output.** Both bundles are unlayered, so `theme-dark.css`'s 124 `!important` declarations — all at (0,0,0) inside `:where()` — and Bootstrap's `!important` declarations sit in the *same* importance position, and **specificity alone decides**. Bootstrap's are at ≥(0,1,0), so all 108 beat `theme-dark.css` wherever they share an element and property. Adding 86 of them changes the answer to *"which declarations can never win"* — which is exactly and only what **P3-b** computes. | **RESOLVED — see the event update below: #274 merged as `4435b04` on 2026-08-02, without baselines, and the arc is terminated at a0, so no packet this ruling gated will run.** *Original ruling, retained as the audit trail:* **Land #274 before P3-b, not after the arc.** P3-a0 and P3-a1 are unaffected and may proceed now. **P3-b may not start until #274 has either landed with its baselines settled, or been explicitly deferred past the whole arc.** Rebasing between a1 and b costs a re-run of a1's certification captures and nothing else; holding a 5.1.3→5.3.8 upgrade behind six packets is the worse trade, and dependabot #269 re-raises behind it. **Three findings that narrow the risk:** (a) the new bundle's 8 `data-bs-theme` selectors are **inert** — `darkMode.js` writes `data-theme` only and #274 does not touch it, and `test_css_cascade_contracts.py:1228` scopes its bundle assertion to `pages-workout-plan.css`, so nothing reds; (b) **`components.css` is a one-line comment change** (`"Bootstrap 5.1.3 handles"` → `"Bootstrap handles"`, 5,207 lines before and after) — **not** a cascade change, and C8 is not engaged; (c) **`templates/base.html` changes two lines, both CDN version pins** (the jsdelivr `onerror` fallback href and the Bootstrap JS bundle `src`) — the local `<link>` graph, its order and the `theme-dark.css` link are untouched, so **R4 is not in conflict**: R4 binds *this arc's packets*, not other PRs, and `theme_dark_contracts.py:32` stays green. The genuine coupling is the bundle and the baselines, not `base.html`. |
 
 #### Q11 — per-packet exposure to PR #274
 
@@ -559,12 +562,12 @@ arc is allowed to produce; Q4 and Q5 change how it is executed and recorded.
 | **Q1** | **YES, split.** The `:88` strengthening `<= 1` → `== 1` is granted **unconditionally and immediately**, independent of this arc — it is a live gate-that-cannot-fail in the working tree today. The `:45` custom-property re-pin is granted **scoped to P3-d**, and only if P3-d is funded. |
 | **Q3** | **OUT.** "Make the file win" is not in scope in any form. |
 | **Q4** | Flat `docs/CSS_THEME_DARK_P3_<PACKET>_EVIDENCE.md`. |
-| **Q5** | Run N8 at every packet that writes production CSS, plus integration; read-only packets do not dispatch. **Amended: reconcile against the POST-regeneration, POST-#274 ledger.** Because the regeneration now runs on `wt/bootstrap-538-compat` (see Q11), the replacement ledger is **post-5.3.8 by construction** — no packet may reconcile against today's schema-v2 11-red ledger. |
+| **Q5** | Run N8 at every packet that writes production CSS, plus integration; read-only packets do not dispatch. **Amended: reconcile against the POST-regeneration, POST-#274 ledger** — no packet may reconcile against the schema-v2 11-red ledger as it stands. **Status 2026-08-02:** #274 merged as `4435b04`, so any regeneration dispatched from `main` is post-5.3.8 by construction; the regeneration itself has not run, and is a **separate recovery packet**, not P3 work. **Moot for this arc** — no P3 packet that dispatches N8 is authorized. |
 | **Q6** | **OUT, declared up front.** The owner has read the yield arithmetic and **accepts that the realistic outcome is a small certified deletion plus a reusable instrument, not a gutted file.** |
 | **Q8** | **Exclude `.frame-header`** from candidacy. The repair of `cascade_contracts.py:1007` is **deferred to its own decision**. Note the standing consequence: that assertion is a bare substring check satisfied by an unrelated line at `:144`, so the exclusion rests on **this plan's discipline, not on the contract's protection**. |
 | **Q9** | **Accept** the P-1 … P-8 restatement. |
 | **Q10** | **DEFERRED** to P3-a0. a0 must size the shared blind-spot-register repair so it can ship standalone if the arc is abandoned. The arc is safe either way — P3-a1 owns P3-local registers regardless. |
-| **Q11** | **#274 lands before P3-b.** P3-a0 and P3-a1 may proceed regardless. See the sequencing amendment below. |
+| **Q11** | **#274 lands before P3-b.** *(Discharged and moot — #274 merged as `4435b04` on 2026-08-02 without baselines, and the arc is terminated at a0, so no gated packet will run.)* The **sole operative** baseline command is `--ref main -f run_visual=true -f visual_mode=generate`; the Bootstrap-branch route is fully superseded history. |
 
 #### Q11 — EVENT UPDATE: #274 HAS LANDED, WITHOUT ITS BASELINES (2026-08-02)
 
@@ -602,32 +605,44 @@ arc is allowed to produce; Q4 and Q5 change how it is executed and recorded.
 > (`2332242`), its pytest total, and its Stylelint anchor** — all three must be re-measured on
 > a rebase onto `95f603f` before a0 opens a pull request.
 
-#### Q11 sequencing — OWNER AMENDMENT, 2026-08-02 *(superseded in part by the event update above — the branch-side route is no longer available)*
+#### Q11 — the sole operative baseline command
 
-The Linux baselines are **not** regenerated on `main`. Baselines generated against Bootstrap
-5.1.3 would be invalidated the moment #274 lands, costing a second review of 84 PNGs. Instead
-the regeneration runs **on the Bootstrap branch**, and **#274 lands carrying its own
-baselines** — which also unblocks the Testing-Phase-4 stopgap (D3).
+**This is the only baseline-regeneration command this document authorizes.** Owner ruling,
+2026-08-02:
 
-**Verified before dispatch (2026-08-02):**
+```
+gh workflow run deep-gate.yml --ref main -f run_visual=true -f visual_mode=generate
+```
 
-- `deep-gate.yml` is `workflow_dispatch`-only and is **byte-identical** on `origin/main` and
-  `wt/bootstrap-538-compat`; the branch base `f178790` is an ancestor of `origin/main`, so the
-  branch runs the current workflow definition. Dispatching off a non-`main` ref works.
-- **The command in the owner's brief is insufficient as written.** `visual-linux` is gated
-  `if: ${{ inputs.run_visual }}` (`:343`) and `run_visual` **defaults to `false`**, so a bare
-  `gh workflow run deep-gate.yml --ref wt/bootstrap-538-compat` runs the deep gate with **no
-  visual job at all** and produces **no baselines** — a green run that generates nothing. Both
-  inputs must be passed:
+**Both inputs are mandatory.** `visual-linux` is gated `if: ${{ inputs.run_visual }}`
+(`deep-gate.yml:343`) and `run_visual` **defaults to `false`**, so a bare
+`gh workflow run deep-gate.yml --ref <ref>` runs the deep gate with **no visual job at all** and
+produces **no baselines** — a green run that generates nothing. Generate mode sets
+`--update-snapshots` (`:397`) and uploads the artifact **`visual-baselines-linux`**
+(`e2e/__screenshots__/linux/**`, 14-day retention, `:406–411`). CI never pushes; the owner
+downloads, reviews and commits.
 
-  ```
-  gh workflow run deep-gate.yml --ref wt/bootstrap-538-compat \
-    -f run_visual=true -f visual_mode=generate
-  ```
+**The regeneration is NOT part of P3.** It is a **separate recovery packet** branched from the
+exact current `main` SHA, and it must verify all **84** expected baselines are present —
+including the **16 thumbnail tests that have never executed on any recorded run** (see the N8
+reconciliation) — classify every changed, added and deleted PNG, and stop at a **draft** PR for
+owner review. Regenerated baselines are never silently accepted.
 
-- Generate mode sets `--update-snapshots` (`:397`) and uploads the artifact
-  **`visual-baselines-linux`** (`e2e/__screenshots__/linux/**`, 14-day retention, `:406–411`).
-  CI never pushes; the owner downloads, reviews and commits.
+> **⛔ FULLY SUPERSEDED HISTORY — the Bootstrap-branch route, 2026-08-02.**
+> *Retained only as the audit trail. **Do not execute anything in this block.***
+>
+> The original amendment directed that the Linux baselines **not** be regenerated on `main`,
+> and instead be generated on `wt/bootstrap-538-compat` so that **#274 would land carrying its
+> own baselines** — holding the cost to a single review of 84 PNGs and unblocking the
+> Testing-Phase-4 stopgap in the same move. The dispatch verified for that route was
+> `gh workflow run deep-gate.yml --ref wt/bootstrap-538-compat -f run_visual=true -f visual_mode=generate`,
+> against a `deep-gate.yml` confirmed byte-identical on `origin/main` and the branch.
+>
+> **That route no longer exists.** #274 merged as `4435b04` **carrying zero baseline PNGs**, so
+> the intended sequencing did not occur and the branch is gone. The debt is now the union of
+> two unrelated causes — the 57 pre-#274 CSS/template commits **and** the Bootstrap 5.1.3 →
+> 5.3.8 upgrade — and can no longer be discharged in one review on a branch. Every
+> `--ref wt/bootstrap-538-compat` instruction anywhere in this document is void.
 
 ---
 
@@ -1290,7 +1305,7 @@ that is the whole reason P3-a exists).
 
 Nothing in this arc may begin until Gate 0 and Gate 1 are both signed. **✅ Both were signed by
 the owner on 2026-08-02 — but execution is authorized for `P3-a0` ONLY.** `P3-a1` onward
-requires a second dispatch decision once a0's evidence exists. Rulings are recorded in
+is NOT funded — the arc is TERMINATED at a0 (owner, 2026-08-02). Rulings are recorded in
 *Section 0 sign-off — GATE 0*; the authority boundary is in *Execution authority* under
 *Sign-off*.
 
@@ -1495,19 +1510,24 @@ was about)*:
 >
 > ---
 >
-> **⚠️ OPEN — the abandonment hole, recorded not resolved.** Sole-writer has a gap the owner
-> identified while deciding D3, and the ruling above does **not** close it: **abandonment is a
-> pre-authorized outcome** (AC11, AB-1, AB-2) and, with execution funded only through
-> **P3-a0**, ending at a0 or a1 is the *likely* path rather than the exotic one. Under strict
-> sole-writer **P3-e never runs on that path**, so the arc can terminate with **no status
-> document ever recording that it stopped** — a stale *"P3 is authorized and pending"* left
-> standing indefinitely. That is the same drift class as WP4.4-k's, with the opposite sign.
+> **✅ FINAL RULING — owner, 2026-08-02. This supersedes every earlier D3 formulation in this
+> document, including the "interim escalate-don't-write" rule and the widened-exception
+> variant.** The abandonment hole is now **closed**, not merely recorded:
 >
-> **Interim rule until the owner rules otherwise:** a packet that terminates the arc **does not
-> write the status documents** — it **stops and escalates to the owner**, naming the three
-> paths and the exact lines that would need to change. The recording is then an owner action,
-> not a packet action. *A one-line owner ruling can convert this into the widened D3 exception
-> (terminating packet writes the lead block and `## Next Safe Step` at merge) at any time.*
+> > **`P3-e` is the sole writer while the arc continues. A packet that the owner has
+> > explicitly declared TERMINAL may update the lead block and `## Next Safe Step` — and
+> > nothing else — in `docs/MASTER_HANDOVER.md`, `docs/ACTIVE_DEVELOPMENT.md` and
+> > `docs/REFACTOR_PLAN.md`.**
+>
+> Two properties make this safe where routine per-packet appends were not. The exception is
+> **owner-triggered, not packet-triggered** — a packet cannot declare itself terminal and
+> thereby grant itself write authority. And it is **bounded to the two sections** that a new
+> session actually reads, which is where WP4.4-k's reconciliation failed; it confers no
+> authority over any trailing section.
+>
+> **`P3-a0` is declared TERMINAL by the owner (2026-08-02) and therefore holds this exception.**
+> P3 is terminated after a0 merges; **P3-a1 is not funded and P3-b … P3-e are not authorized.**
+> Reopening the arc requires a new owner decision.
 
 ### Expected gates per packet — the v2 table
 
@@ -1696,25 +1716,28 @@ with both `domPath` and `selector`, committed, with no `artifacts/` dependency.
       - [x] **D1 — YES.** P3-c stops for its own owner checkpoint before the first cut, with
             the P3-b intersection-and-exclusion table as the presented artifact.
       - [x] **D2 — YES.** Per-packet contract files, permanently, never consolidated.
-      - [x] **D3 — P3-e is SOLE WRITER.** No other packet names the three status documents and
-            no packet takes a per-packet append. **One item is OPEN and recorded, not blocking:**
-            under sole-writer, an arc that terminates at P3-a0 or P3-a1 — the likely path under
-            P3-a0-only funding — would never reach P3-e, so nothing would record that it
-            stopped. **Interim rule: a terminating packet stops and escalates to the owner
-            rather than writing the status docs.** See the ⚠️ note in the D3 amendment under
+      - [x] **D3 — FINAL: `P3-e` is sole writer while the arc continues; a packet the owner has
+            explicitly declared TERMINAL may update the lead block and `## Next Safe Step`, and
+            nothing else, in the three status documents.** The exception is owner-triggered, not
+            packet-triggered — no packet can declare itself terminal. **`P3-a0` is declared
+            terminal (2026-08-02) and holds it.** This closes the abandonment hole rather than
+            recording it; the earlier "interim escalate-don't-write" rule and the
+            widened-exception variant are both **superseded**. See the D3 amendment under
             *Changes to the packets*.
       - [x] **D4 — NO.** The existing `static/css/**` row in `QUALITY_GATE.md` already routes
             this arc; no arc-specific row or note is added.
       - [x] **The P3-a split — ACCEPTED.** The arc is **six** packets: P3-a0, P3-a1, P3-b,
             P3-c, P3-d, P3-e.
-- [ ] Ready to implement — **execution is authorized through P3-a0 ONLY.** See the execution
-      authority block below. Then `/unslop` or `/verify-and-polish` for the diff-time gate.
+- [x] **Implementation closed.** `P3-a0` was executed and is the arc's **only** implemented
+      packet. **The arc is TERMINATED at a0** (owner, 2026-08-02) — see the execution authority
+      block below.
 
 ### Execution authority — owner, 2026-08-02
 
-> **Authorized: P3-a0 only.** **P3-a1 requires a second, separate dispatch decision** once
-> a0's evidence exists. No packet from P3-a1 onward may be started on the strength of this
-> sign-off.
+> **🛑 FINAL: the arc is TERMINATED at `P3-a0` (owner, 2026-08-02).** a0 was executed and is the
+> only implemented packet. **`P3-a1` is not funded; `P3-b`, `P3-c`, `P3-d` and `P3-e` are not
+> authorized.** P3 ends when a0 merges, and **reopening it requires a new owner decision** —
+> this sign-off confers no residual authority over any later packet.
 >
 > **The owner's stated reasoning, recorded because it governs how a0 is judged:** the whole
 > proof burden of this arc sits on instruments the arc writes and certifies itself, and this
@@ -1728,8 +1751,14 @@ with both `domPath` and `selector`, committed, with no `artifacts/` dependency.
 > reported), which feeds the owner's in-flight baseline regeneration directly; the **ceiling
 > emitter**, which converts 14 prose assertions into a mechanical enumeration; and the
 > **nineteen-tool assessment**, which is the only thing that can price a1. Ending at a0 is a
-> pre-authorized, non-failure outcome — and under **D3** it is a packet that *terminates the
-> arc*, so a0 itself writes the lead block and `## Next Safe Step` in that case.
+> pre-authorized, non-failure outcome.
+>
+> **OUTCOME, 2026-08-02 — that is what happened.** a0's tool assessment priced P3-a1 at **nine**
+> new tools rather than the seven Plan v2 projected, against the realistically small deletion
+> yield the owner had already accepted at **Q6**. **The owner ruled that this does not clear the
+> cost/risk bar: P3-a1 is not funded, P3-b … P3-e are not authorized, and P3 is TERMINATED once
+> a0 merges.** a0 is declared **terminal** and holds the narrow D3 status-doc exception.
+> Reopening the arc requires a new owner decision.
 
 **Standing risk — ✅ ACCEPTED by the owner at Gate 1, 2026-08-02.** Deletion authority in this
 arc reduces to instruments **P3-a1** both writes and certifies, with no independent check — see
@@ -1739,7 +1768,7 @@ owner accepted this explicitly, and the P3-a0-only authorization above is the di
 consequence.
 
 **Review rounds are closed.** Four reviewer passes, 41 findings, all dispositioned. **Both
-gates are signed; the arc is authorized through P3-a0.**
+gates are signed; `P3-a0` was executed; the arc is TERMINATED at a0.**
 
 ---
 
