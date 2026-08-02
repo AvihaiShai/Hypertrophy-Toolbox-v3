@@ -5,8 +5,12 @@
 (flat `docs/CSS_THEME_DARK_P3_<PACKET>_EVIDENCE.md`).*
 
 **Authority.** Gate 0 and Gate 1 were both signed by the owner on 2026-08-02, and execution
-is authorized for **P3-a0 only**. `P3-a1` onward needs a separate dispatch decision. This
-packet stops at its own boundary.
+was authorized for **P3-a0 only**. **The owner then TERMINATED the arc at P3-a0 the same day**
+— a0's tool assessment (§6) priced P3-a1 at *nine* new tools against the small deletion yield
+accepted at Q6, and the owner ruled that does not clear the cost/risk bar. **`P3-a1` is not
+funded; `P3-b` … `P3-e` are not authorized. P3 ends when this packet merges, and reopening it
+requires a new owner decision.** **a0 is the owner-declared TERMINAL packet** and therefore
+holds the narrow D3 status-doc exception — see §12.
 
 **Nature.** Read-only. **Zero deleted lines by construction.** It writes three paths and
 nothing else:
@@ -29,55 +33,94 @@ nothing else:
   unconditionally at Gate 0; that is scope approval, not authorization to do unrelated work
   during this dispatch. `tests/test_css_wp4_4_theme_dark_contracts.py` is unmodified. §6.4
   records the repair as available and proves, by execution, that it is still needed.
-- No snapshot was regenerated; `--update-snapshots` was not run.
-- `docs/MASTER_HANDOVER.md`, `docs/ACTIVE_DEVELOPMENT.md` and `docs/REFACTOR_PLAN.md` were
-  **not** written. **D3 makes P3-e the sole writer.** This packet does not terminate the arc,
-  so the D3 interim escalation rule is not triggered; §12 records what would need to change
-  if the owner ends the arc here.
+- No snapshot was regenerated; `--update-snapshots` was not run, and `e2e/__screenshots__/**`
+  is byte-identical to `main`. The stale Linux baselines are a **separate recovery packet**,
+  explicitly not P3 work.
+
+**One thing changed at finalization, and only because the owner changed it.** The audit ran
+under *"`P3-e` is sole writer, and a terminating packet escalates rather than writes."* The
+owner then **superseded that with the final D3 ruling and declared a0 terminal**, which grants
+this packet a narrow, bounded exception:
+
+> `P3-e` is the sole writer *while the arc continues*. A packet the owner has **explicitly
+> declared TERMINAL** may update **the lead block and `## Next Safe Step` — and nothing else** —
+> in `docs/MASTER_HANDOVER.md`, `docs/ACTIVE_DEVELOPMENT.md` and `docs/REFACTOR_PLAN.md`.
+
+a0 exercised **exactly** that and no more: two locations in each of three files, recording that
+P3 is terminated at a0. No other section of any status document was touched, nothing was
+restructured, and no surrounding prose was tidied. §12 has the detail.
 
 ---
 
-## 1. The arc base — measured, not inherited
+## 1. The arc base — measured, not inherited, and **re-pinned at finalization**
 
 The plan pins the arc base at `4b0670b` (P2 / PR #222). `main` has since advanced. Per
 product-risk #6, this packet records **the SHA it actually measured** rather than inheriting
 one.
 
+> **RE-PINNED 2026-08-02.** a0's audit ran against `2332242` / merge base `ac16e4c`. **Five
+> pull requests landed on `main` while it ran and finalized** — `#274` Bootstrap 5.3.8
+> (`4435b04`), `#275` Node 24 (`95f603f`), `#276` docs (`489a7ce`), `#277` the P3 sign-off +
+> arc termination (`67280fb`) and `#279` the Node 24 engines floor (`4de6b62`) — so the branch
+> was rebased **twice** and **every figure in this document was re-measured, not carried
+> forward.** `#279` landed *during* finalization, after the first re-measurement; its figures
+> were re-taken rather than shipped stale, which is the whole point of this section. The old
+> pins are shown struck through rather than deleted, because the plan's Q11 event update names
+> the first of them explicitly as stale.
+
 | Item | Value |
 |---|---|
 | Branch | `wt/p3-a0-audit` |
-| **Commit measured (HEAD at measurement)** | `2332242` — `docs(p3): narrow D3 to plain sole-writer, record the abandonment hole` |
-| Merge base with `origin/main` | **`ac16e4c`** — `ci: correct the Test Inventory job summary to say blocking (#267 follow-up) (#271)` |
-| Plan-pinned base | `4b0670b` — an ancestor of HEAD, verified |
-| Base drift | **YES** — 22 commits between `4b0670b` and `ac16e4c` |
+| **Arc base — merge base with `origin/main`** | **`4de6b62`** — `chore(node): declare the Node 24 floor that CI already enforces (#279)` |
+| Packet commit measured | `3760e3e` — the rebased `audit(css-p3): …` commit *(originally `9d06136`)* |
+| ~~Superseded pins~~ | ~~`2332242` / merge base `ac16e4c`~~ (the audit run), then ~~merge base `67280fb`~~ (the first re-measurement) — both stale, both re-measured |
+| Plan-pinned base | `4b0670b` — still an ancestor of HEAD, verified |
+| Base drift vs the plan pin | **YES** — **50** commits between `4b0670b` and `4de6b62` (was 22 at `ac16e4c`) |
+
+`arc_base()` reads HEAD live from `git rev-parse`; nothing in the emitter hard-codes a SHA, and
+`test_the_arc_base_is_measured_from_the_repository_not_hardcoded` proves it against a synthetic
+repository. The value above is the **merge base**, which is the stable thing to cite — the
+branch tip advances with each finalization commit.
 
 ### The drift is real and, for every input this packet measures, immaterial
 
-Verified rather than assumed:
+Verified rather than assumed, and **re-verified at every one of the six commits** between the
+audit's base and the finalized base — `4435b04`, `95f603f`, `cc91c57`, `489a7ce`, `67280fb`,
+`4de6b62` — not merely at the endpoints:
 
-| Input | `4b0670b` → `ac16e4c` |
-|---|---|
-| `static/css/**` | **no change at all** (`git diff --stat` empty) |
-| `static/css/theme-dark.css` blob | `dffaa5824ed51b7c438092692286afb5685cf7f9` at `4b0670b`, at `ac16e4c` **and** in the working tree |
-| `tests/test_css_wp4_4_theme_dark_contracts.py` | unchanged |
-| `tests/test_css_cascade_contracts.py` | unchanged |
-| `tests/test_css_wp4_4_a_baseline_contracts.py` | unchanged |
-| `e2e/visual-helpers.ts` | unchanged |
-| `docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` | unchanged |
-| `scripts/css_audit/**` | unchanged |
-| `.github/workflows/deep-gate.yml` | **changed — 19 lines**, and it is one of the three N8 inputs |
+| Input | `4b0670b` → `ac16e4c` | `ac16e4c` → `4de6b62` (all six commits) |
+|---|---|---|
+| `static/css/theme-dark.css` blob | `dffaa58` | **`dffaa58` at every one of the six, and in the working tree** |
+| `tests/test_css_wp4_4_theme_dark_contracts.py` | unchanged | **unchanged — blob `794597a` at every one** |
+| `tests/test_css_cascade_contracts.py` | unchanged | **unchanged — blob `cd232f4` at every one** |
+| `tests/test_css_wp4_4_a_baseline_contracts.py` | unchanged | **unchanged — blob `878ee98` at every one** |
+| `scripts/css_audit/**` | unchanged | **unchanged — `git diff --stat` empty** |
+| `e2e/visual-helpers.ts` | unchanged | **unchanged — blob `515db4e` at every one** |
+| `docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json` | unchanged | **unchanged** |
+| `static/css/**` (whole tree) | no change at all | **changed once, by `#274`** — it rewrote `bootstrap.custom.min.css` + `.map` and made a one-line comment change in `components.css`. **No file this packet measures moved**, and `components.css`'s Stylelint count is identical (§3.3). |
+| `.github/workflows/deep-gate.yml` | **changed — 19 lines** | **changed — 4 lines**, `node-version: '20'→'24'` ×2 (`#275`); unchanged again through `#279` |
 
-The `deep-gate.yml` change is **only** `actions/checkout@v4→v7` (×7),
-`actions/setup-python@v5→v7` (×7), `actions/upload-artifact@v4→v7` (×3),
-`actions/setup-node@v4→v7` (×2). The `visual-linux` job's `if: inputs.run_visual` gate, its
-`visual_mode` handling and its
-`npx playwright test --project=chromium e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts`
-invocation are byte-identical. The N8 reconciliation in §8 is therefore unaffected by the
-drift.
+**Every input the ceiling table, the Ceiling-3 finding, the tool assessment, the N8
+reconciliation and the Q10 sizing rest on is byte-identical across all five merged pull
+requests.** The `4b0670b → ac16e4c` `deep-gate.yml` change is **only** `actions/checkout@v4→v7`
+(×7), `actions/setup-python@v5→v7` (×7), `actions/upload-artifact@v4→v7` (×3),
+`actions/setup-node@v4→v7` (×2); the `ac16e4c → 4de6b62` change is **only** the two
+`node-version` pins. Across all three refs the `visual-linux` job's `if: ${{ inputs.run_visual }}`
+gate (`:343`), its `visual_mode` / `--update-snapshots` handling (`:396–397`) and its
 
-**Consequence for later packets:** the 14-row ceiling table and every file figure below hold
-at `4b0670b` and at `ac16e4c` identically. P3-a1 may re-pin to `ac16e4c` without re-measuring
-the CSS; it may **not** inherit the `deep-gate.yml` line numbers.
+```
+npx playwright test --project=chromium \
+  e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts $UPDATE
+```
+
+invocation (`:399–400`) are **byte-identical**, and the `visual-baselines-linux` artifact still
+uploads `e2e/__screenshots__/linux/**` (`:409–410`). The N8 reconciliation in §8 is therefore
+unaffected by either drift.
+
+**Consequence, now that the arc is terminated:** the 14-row ceiling table and every file figure
+below hold at `4b0670b`, at `ac16e4c` **and** at `4de6b62` identically. There is no P3-a1 to
+inherit them. Any future packet that reopens this ground must re-measure the `deep-gate.yml`
+line numbers rather than quote the ones above.
 
 ---
 
@@ -86,12 +129,17 @@ the CSS; it may **not** inherit the `deep-gate.yml` line numbers.
 Derived from the **P3-a0** column of *Expected gates per packet — the v2 table*, and from
 the `static/css/**` row of [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md).
 
+**All figures below are the post-rebase re-run at arc base `4de6b62`.** Nothing is carried
+forward from the audit run, and nothing from the intermediate `67280fb` re-measurement either.
+
 | Gate | Required at a0 | Result |
 |---|---|---|
-| Full `pytest` (cascade contracts inside the total) | ✔ | **2,415 passed / 2 skipped** — see below |
-| Seven-surface Stylelint | anchor only | **recorded as the arc anchor** — §3.3 |
-| Production CSS diff empty | ✔ **asserted** | **empty**, asserted by contract |
-| No snapshot regenerated | ✔ | `git status e2e/__screenshots__/` empty; the committed digest assertion (`a_baseline_contracts.py:234-255`) passed inside the full run |
+| Full `pytest` (cascade contracts inside the total) | ✔ | **2,419 passed / 2 skipped, 0 failed** — see §2.1 |
+| **Test-inventory drift `--check`** | ✔ blocking since #267 | **PASS — "Test inventory is up to date."** §2.4 |
+| **`pyright` net-new (blocking in CI)** | ✔ | **PASS — 0 net-new** (baseline 175, current 175) |
+| Seven-surface Stylelint | anchor only | **2,751 total / `theme-dark.css` 230 — unchanged** §3.3 |
+| Production CSS diff empty | ✔ **asserted** | **empty**, asserted by contract **and** by `git diff origin/main HEAD -- static/css` §2.2 |
+| No snapshot regenerated | ✔ | `git diff origin/main HEAD -- e2e/__screenshots__` empty; the committed digest assertion (`a_baseline_contracts.py:234-255`) passed inside the full run |
 | Required nine Chromium specs | — | **not run** |
 | `visual.spec.ts` 66/platform | — | **not run** |
 | `visual-baseline-thumbnails.spec.ts` 18/platform | — | **not run** |
@@ -101,22 +149,36 @@ the `static/css/**` row of [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md).
 
 The four "not run" rows are not omissions. The plan is explicit: *"Read-only packets do not
 run the E2E or visual gates. Nothing changed, so a pass would carry no information — and a
-gate that cannot fail is worse than no gate."*
+gate that cannot fail is worse than no gate."* That reasoning is **strengthened** by the
+rebase, not weakened: `static/css/**` is byte-identical to `origin/main` (§2.2), so a visual
+run could only reproduce `main`'s own state.
 
 **One gate outside the a0 column was run anyway, and it caught something.** `ci.yml`'s
 `Type Check` job runs `pyright baseline diff (blocking)`, which fails on **net-new**
 diagnostics against `docs/ci_cd_phase3/pyright-baseline.json`. It is not in the plan's a0
-column, but it is blocking on every PR and this packet adds two Python files. First run over
-the two new files: **7 net-new errors**, all `dict[str, object]` indexing and `int()`
-narrowing. Fixed; re-run is **0 errors, 0 warnings**. Invocation:
+column, but it is blocking on every PR and this packet adds two Python files. The first
+pre-rebase run over the two new files found **7 net-new errors**, all `dict[str, object]`
+indexing and `int()` narrowing; they were fixed in the packet commit.
+
+**Re-run post-rebase over the whole repository — the shape CI actually runs — and it is still
+clean:**
 
 ```
-npx pyright@1.1.410 --pythonpath <main checkout>/.venv/Scripts/python.exe \
-  scripts/css_audit/p3_ceiling.py tests/test_css_theme_dark_p3_audit_contracts.py
+npx pyright@1.1.410 --pythonpath D:/development/Hypertrophy-Toolbox-v3-main/.venv/Scripts/python.exe \
+  --outputjson > artifacts/pyright.json
+python scripts/pyright_baseline_diff.py \
+  --current artifacts/pyright.json --baseline docs/ci_cd_phase3/pyright-baseline.json
 ```
 
-*(`--pythonpath` is needed because `pyrightconfig.json` pins `venv: ".venv"` and this worktree
-has none — see §12.)*
+```
+pyright baseline gate: PASS - 0 net-new diagnostics (baseline 175, current 175).
+```
+
+208 files analyzed, 175 errors, 0 warnings — **exactly the committed backlog, and `0`
+diagnostics of any severity in either of this packet's two Python files.** That the total
+lands on the baseline's own 175 is itself the check that `--pythonpath` resolved third-party
+imports the same way CI's `.venv` does. *(`--pythonpath` is needed because
+`pyrightconfig.json` pins `venv: ".venv"` and this worktree has none.)*
 
 ### 2.1 Full pytest
 
@@ -124,17 +186,32 @@ has none — see §12.)*
 D:/development/Hypertrophy-Toolbox-v3-main/.venv/Scripts/python.exe -m pytest tests/ -q
 ```
 
-| Measurement | Value |
-|---|---|
-| Collected **without** this packet's contract file | **2,380** |
-| Tests this packet adds | **37** |
-| Total collected | **2,417** |
-| Result | **2,415 passed, 2 skipped, 0 failed** |
+```
+2419 passed, 2 skipped in 416.86s (0:06:56)
+```
 
-The delta is exactly this packet's own file. No pre-existing test changed state. *(The
-recorded run of 2,413 passed / 2 skipped was taken at 35 contract tests; two further red-path
-contracts were added afterwards and the file re-ran green. The final full-suite figure above
-is the one to cite.)*
+| Measurement | Audit run (`ac16e4c`) | **Final (`4de6b62`)** |
+|---|---|---|
+| Collected **without** this packet's contract file | 2,380 | **2,384** |
+| Tests this packet adds | 37 | **37** |
+| Total collected | 2,417 | **2,421** |
+| Result | 2,415 passed / 2 skipped | **2,419 passed / 2 skipped / 0 failed** |
+
+**The +4 reconciles exactly, and none of it is this packet's:**
+
+| Landed | File | Tests |
+|---|---|---|
+| `#274` | `tests/test_bootstrap_version_contract.py` | **1** |
+| `#275` | `tests/test_node_version_contract.py` | **2** |
+| `#279` | *same file, one case added* — it extended `#275`'s contract rather than adding a second | **+1** (→ 3) |
+| | | **4** |
+
+2,380 + 4 = 2,384, and 2,384 + 37 = 2,421 = 2,419 passed + 2 skipped. **This packet's own
+delta is unchanged at exactly +37, and no pre-existing test changed state in any run.**
+
+*(The intermediate re-measurement at `67280fb`, before `#279` landed, read 2,418 passed /
+2 skipped over 2,420 collected. It is superseded by the figures above and is recorded only so
+the +1 is traceable.)*
 
 ### 2.2 Production CSS byte-identity — asserted, not assumed
 
@@ -146,22 +223,81 @@ to weaken another packet's assertion in order to ship. Its red path builds a thr
 repository, dirties `static/css/theme-dark.css` in it, and shows the same function reports
 `clean: False`.
 
-`git status --porcelain` for the whole worktree at the end of this packet:
+The contract's own emitted record at finalization:
+
+```json
+"productionCss": { "statusPorcelain": [], "unstaged": [], "staged": [], "clean": true }
+```
+
+**The working-tree assertion is the contract; the base-SHA comparison is the stronger claim
+this dispatch also requires, so both are shown.** Against `origin/main` (`4de6b62`):
 
 ```
-?? scripts/css_audit/p3_ceiling.py
-?? tests/test_css_theme_dark_p3_audit_contracts.py
+$ git diff --stat origin/main HEAD -- static/css             # (empty)
+$ git diff --stat origin/main HEAD -- e2e/__screenshots__    # (empty)
 ```
 
-### 2.3 Stylelint invocation note
+**`static/css/**` is byte-identical to `main` and no snapshot was touched.** The complete diff
+this branch carries against `origin/main` is **eight files, none of them production CSS and
+none of them a snapshot** — the five the packet owns plus the three status documents written
+under the terminal-packet exception (§12.4):
 
-This worktree has **no `node_modules`** (the symlink that would have shared the main
-checkout's failed). The anchor was measured by running the committed
-`scripts/css_audit/stylelint_surfaces.mjs` logic verbatim from a scratchpad copy that
-resolves the `stylelint` package from the main checkout by absolute path. Config, surface
-list, and aggregation are identical; the main checkout was read and not written; output went
-to the scratchpad only. **P3-a1 needs `npm ci` in its worktree** — this is a genuine
-precondition, recorded in §12.
+```
+ docs/ACTIVE_DEVELOPMENT.md                      | lead block only
+ docs/CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md     | this document
+ docs/MASTER_HANDOVER.md                         | lead block + Next Safe Step
+ docs/REFACTOR_PLAN.md                           | lead block only
+ docs/test_inventory/TEST_INVENTORY.json         | regenerated
+ docs/test_inventory/TEST_INVENTORY.md           | regenerated
+ scripts/css_audit/p3_ceiling.py                 | new, 1880
+ tests/test_css_theme_dark_p3_audit_contracts.py | new, 1055
+```
+
+`--update-snapshots` was never run, and `e2e/__screenshots__/**` was never opened for writing.
+
+### 2.3 Test-inventory drift — the blocking gate, regenerated
+
+`Test Inventory Drift` has been blocking since #267 (`5b7a4f1`). The committed inventory
+predated this packet's 37 tests, and a0 recorded that as its one merge blocker (§12). It is
+now discharged with the canonical workflow:
+
+```
+python scripts/generate_test_inventory.py
+  playwright: 541 tests / 30 specs (426 required-functional)
+  pytest:     2099 collected / 100 files (deterministic subset; 1 env-dependent file(s) excluded)
+  hard waits: 93 lines
+
+python scripts/generate_test_inventory.py --check
+Test inventory is up to date.
+```
+
+The whole committed diff is this packet's own file: `collected_deterministic` 2,062 → **2,099**
+(+37), `deterministic_files` 99 → **100**, `total_files` 100 → **101**, and one new per-file
+row at 37 tests. **Playwright is untouched** at 541 / 30 / 426, as are the 93 hard-wait lines.
+`npx playwright test --list` is a collection-only listing — **no browser was launched and no
+E2E test was executed at any point in this packet.**
+
+*(The `2,062` base is `#279`'s own regenerated figure. The first re-measurement, taken at
+`67280fb` before `#279` landed, produced 2,061 → 2,098; it was regenerated rather than
+rebased forward.)*
+
+### 2.4 Stylelint invocation note — the workaround is retired
+
+At audit time this worktree had **no `node_modules`**, so the anchor was measured by running
+the committed `scripts/css_audit/stylelint_surfaces.mjs` logic verbatim from a scratchpad copy
+that resolved the `stylelint` package from the main checkout by absolute path.
+
+**That workaround is no longer in use.** `npm ci` was run in this worktree at finalization,
+and the anchor in §3.3 is now produced by invoking the committed script directly and unmodified:
+
+```
+node scripts/css_audit/stylelint_surfaces.mjs artifacts/stylelint_seven_surfaces.json
+seven-surface stylelint warnings: 2751
+```
+
+**The two methods agree exactly**, on the total and on every per-surface and per-rule
+sub-count — which retrospectively validates the scratchpad measurement as well as the current
+one.
 
 ---
 
@@ -222,21 +358,27 @@ The emitter labels this `tokenBlockShadowNomination` and carries the warrant tex
 dependency graph *and* a removal-oracle result *and* a per-token split control. Nothing here
 supplies any of the three.
 
-### 3.3 Stylelint — the arc anchor
+### 3.3 Stylelint — the arc anchor, **re-measured at `4de6b62`**
 
-Anchored to **this arc's own base** (CSS byte-identical at `4b0670b`, `ac16e4c` and the
-working tree), never to the pinned WP4.1 baseline.
+Anchored to **this arc's own base**, never to the pinned WP4.1 baseline.
 
-| Surface | Warnings |
-|---|---|
-| `motion.css` | 10 |
-| `base.css` | 13 |
-| `layout.css` | 84 |
-| `components.css` | 1,930 |
-| `navbar.css` | 356 |
-| **`theme-dark.css`** | **230** |
-| `a11y.css` | 128 |
-| **Seven-surface total** | **2,751** |
+> **Re-measured twice, carried forward neither time.** `#274` rewrote
+> `bootstrap.custom.min.css` and touched `components.css`, so this anchor could not be
+> inherited across the rebase; it was then re-taken again after `#279`. **It is unchanged at
+> both — identical on the total, on every surface, and on every rule.**
+> `bootstrap.custom.min.css` is not one of the seven surfaces, and `#274`'s `components.css`
+> edit is a one-line comment change, which is exactly why its 1,930 does not move.
+
+| Surface | Warnings | Audit run (`ac16e4c`) | Moved? |
+|---|---|---|---|
+| `motion.css` | 10 | 10 | no |
+| `base.css` | 13 | 13 | no |
+| `layout.css` | 84 | 84 | no |
+| `components.css` | 1,930 | 1,930 | **no — despite `#274` editing the file** |
+| `navbar.css` | 356 | 356 | no |
+| **`theme-dark.css`** | **230** | 230 | no |
+| `a11y.css` | 128 | 128 | no |
+| **Seven-surface total** | **2,751** | 2,751 | **no** |
 
 `theme-dark.css` breakdown: `declaration-no-important` **124**,
 `declaration-property-value-disallowed-list` **82**, `selector-max-id` **24**.
@@ -245,7 +387,7 @@ working tree), never to the pinned WP4.1 baseline.
 
 | Candidate anchor | Total | `theme-dark.css` | Why it is wrong |
 |---|---|---|---|
-| **This arc's base** (`ac16e4c`) | **2,751** | **230** | correct — use this |
+| **This arc's base** (`4de6b62`) | **2,751** | **230** | correct — use this |
 | `CSS_PHASE4_WP4_4_A_BASELINE.json` (`46e340e`) | 2,883 | 264 | predates WP4.4-b…k; quoting it would book **−132** of someone else's reduction to P3 |
 | `CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json` (`9ee7638`) | 7,202 | — | different **scope entirely** — 21 files including `scss/**`; two arcs old |
 
@@ -475,7 +617,8 @@ curated; coverage is not.
   `test_no_committed_tool_is_claimed_to_be_a_removal_oracle` asserts this against the
   directory, with a red path that restores an `h_certify.mjs` and shows AB-1's premise fail —
   so a recovered harness forces the claim to be re-made rather than passing unnoticed.
-- **The nineteen-tool assessment reduces the new-tool count below Plan v1's seven.** Plan v1
+- **The hypothesis under test was that the nineteen-tool assessment would reduce the new-tool
+  count below Plan v1's seven. Measured, it RAISES it to nine.** Plan v1
   proposed `p3_census.mjs`, `p3_removal_oracle.mjs`, `p3_zero_winner_check.mjs`,
   `p3_ranges.mjs`, `p3_build_manifest.mjs`, `p3_apply.mjs`, `p3_family_controls.mjs`. On this
   assessment:
@@ -493,11 +636,18 @@ curated; coverage is not.
   | *(added at re-review)* `p3_seed_probe_db.py` | **new**; `i_seed_probe_db.py` may not be modified. |
 
   So the assessment does **not** shrink the build. It confirms nine new tools rather than
-  seven, and it removes ambiguity about which four committed instruments a1 may lean on
+  seven, and it removes ambiguity about which four committed instruments a1 would have leaned on
   (`j_theme_differential.mjs`, `j_diff_theme.mjs`, `runtime_probe.mjs`, `resolution_check.py`)
   and which one answers O12 (`i_element_pixel_diff.mjs`). **P3-a1 remains L, and the effort
   note in Plan v2 that "the nineteen-tool assessment may reduce the number of new tools" is
   not borne out.** That is the honest read and it is recorded rather than smoothed.
+
+  > **This is the finding that terminated the arc.** The owner weighed **nine new tools**
+  > against the deletion yield already accepted at **Q6** — *"a small certified deletion plus a
+  > reusable instrument, not a gutted file"* — and ruled on 2026-08-02 that it does not clear
+  > the cost/risk bar. **P3-a1 is not funded and P3-b … P3-e are not authorized.** The
+  > dispositions above are retained as the priced estimate a future owner decision would start
+  > from; **none of them is an action item.**
 
 ---
 
@@ -747,8 +897,13 @@ decision: a scoped array patch rather than a re-emit is what keeps it standalone
 **Recommendation, for the owner's decision and not taken here:** grant it, and ship it
 independently of P3. `QUALITY_GATE.md:39` routes **every future CSS packet** into the register,
 and `CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md:181`'s claim that *"the register cannot drift
-from the file it describes"* is false in the only direction that matters. The arc is safe
-either way — P3-a1 owns P3-local registers regardless.
+from the file it describes"* is false in the only direction that matters.
+
+**Now that the arc is terminated, the standalone route is the only route.** The original
+hedge — *"the arc is safe either way, since P3-a1 owns P3-local registers regardless"* — no
+longer applies: there is no a1 to own a P3-local register, so a refusal leaves the shared
+defect standing for every future CSS packet with nothing else covering it. The sizing above
+was commissioned for exactly this contingency and it holds unchanged.
 
 ---
 
@@ -767,7 +922,7 @@ that this arc is not authorized to change."*
 | 6 | `pinned_declarations()` is not surface-resolved; `background:` and `border-color:` appear as noise | §4.1 | **recorded.** O10b's manifest builder must resolve pins to surfaces, not just to literals |
 | 7 | The committed A-baseline cannot be regenerated in place; `isFamily` reds | §9.3 | **recorded.** Constrains Q10's implementation shape |
 | 8 | 16 thumbnail tests have never executed on any recorded N8 run; `totalCount: 11` is a floor | §8.5 | **recorded as a precondition on P3-c**, not on this packet |
-| 9 | `docs/test_inventory/TEST_INVENTORY.{json,md}` will drift — this packet adds 37 tests and `Test Inventory Drift` is blocking as of #267 | §12 | **recorded, not fixed** — outside this packet's three owned paths, and regenerating it requires `npx playwright test --list`, which is outside the skill guard |
+| 9 | `docs/test_inventory/TEST_INVENTORY.{json,md}` drift — this packet adds 37 tests and `Test Inventory Drift` is blocking as of #267 | §2.3 | **✅ RESOLVED at finalization.** Regenerated under a dispatch that authorized the collection-only `npx playwright test --list`; `--check` reports up to date. The whole diff is this packet's own 37 tests. |
 | 10 | The plan's gate table for read-only packets omits `pyright baseline diff`, which is blocking on every PR and did catch 7 net-new diagnostics here | §2 | **recorded.** Not a defect in the plan's reasoning — the a0 column derives from the `static/css/**` row, and pyright is a repository-wide gate. A future packet adding Python should run it regardless of its column. |
 
 ---
@@ -828,78 +983,105 @@ is that the emitter derives them correctly from whatever it is given.
 
 ---
 
-## 12. Unresolved blockers and preconditions
+## 12. Blockers — all merge blockers discharged; the rest are void or reassigned
 
-**Blocking a merge of this packet:**
+### 12.1 Blocking a merge of this packet — **none remain**
 
-1. **`docs/test_inventory/TEST_INVENTORY.json` / `.md` are stale.** This packet adds 37 tests,
-   and `Test Inventory Drift` became **blocking** on 2026-08-01 (#267 / `5b7a4f1`). The
-   regeneration command is `python scripts/generate_test_inventory.py`, and it requires
-   `npx playwright test --list` and therefore `npm ci` in the worktree. **Not done here:**
-   `docs/test_inventory/**` is outside this packet's three owned paths, and the Playwright
-   invocation is outside the dispatch's skill guard. **This is an owner or follow-up action
-   before the PR.** It is a pure regeneration; no judgement is involved.
+1. ~~`docs/test_inventory/TEST_INVENTORY.json` / `.md` are stale.~~ **✅ DISCHARGED.**
+   Regenerated and verified at finalization — §2.3. `npm ci` was run in this worktree, the
+   canonical two-step workflow was used, and `--check` reports *"Test inventory is up to
+   date."* The dispatch that finalized this packet explicitly authorized
+   `npx playwright test --list` as a collection-only listing. It was a pure regeneration, as
+   predicted; no judgement was involved.
 
-**Blocking P3-a1 (not this packet):**
+**This packet has no remaining merge blockers and no known reds.**
 
-2. **The a1 worktree needs `npm ci` and a `.venv`.** This worktree has neither, so
-   `scripts/css_audit/stylelint_surfaces.mjs` and every `.mjs` harness cannot run in it
-   directly, and `pyright` needs an explicit `--pythonpath` because `pyrightconfig.json` pins
-   `venv: ".venv"`. a1 builds `.mjs` tools and needs a working environment, not a workaround.
-3. **Q10 needs an answer** — §9. a1 is safe either way (it owns P3-local registers
-   regardless), but the shared defect stays standing for every future CSS packet if the answer
-   is no.
-4. **The dispatch decision itself.** a1 is not authorized by the Gate 0/Gate 1 sign-off.
+### 12.2 Blocking P3-a1 — **VOID: a1 is not funded**
 
-**Blocking P3-b:**
+The arc is terminated at a0. These are retained as the record of what a1 *would* have needed,
+should the owner ever reopen the ground with a new decision. **None of them is an action item.**
 
-5. **PR #274 (Bootstrap 5.1.3 → 5.3.8) lands first** — the Q11 ruling. Unchanged by anything
-   measured here; nothing in a0's inputs is touched by #274, and the 14-row ceiling table
-   survives it.
+2. ~~The a1 worktree needs `npm ci` and a `.venv`.~~ Half-discharged incidentally: `npm ci`
+   now works in this worktree and the Stylelint workaround is retired (§2.4). `pyright` still
+   needs an explicit `--pythonpath` here because `pyrightconfig.json` pins `venv: ".venv"`.
+3. **Q10 has not been answered, and the defect it names is now the arc's main survivor.**
+   §9 sizes the repair at **≈170–200 lines across two files plus one JSON array, gated by full
+   pytest alone**, and it ships **standalone** — it never depended on this arc. `QUALITY_GATE.md:39`
+   routes *every future CSS packet* into that register, so the defect stands for all of them
+   until someone fixes it. **This is the one thing in §12 that is still live, and it is now a
+   standalone proposal for the owner rather than a precondition on anything.**
+4. ~~The dispatch decision itself.~~ **Made, and it was NO.** a1 is not funded.
 
-**Blocking P3-c:**
+### 12.3 Blocking P3-b / P3-c / P3-d — **VOID: not authorized**
 
-6. **The N8 denominator's 16 unmeasured thumbnail tests** — §8.5. Either the regeneration
-   makes the thumbnail head green so all 18 execute, or the 16 are recorded as a counted
-   exclusion.
-7. **The replacement ledger.** Per the Q5 amendment, no packet may reconcile against today's
-   schema-v2 11-red ledger.
+5. ~~PR #274 lands before P3-b.~~ Discharged by events — #274 merged as `4435b04`, and the
+   packet it gated will not run. Its measured non-effect on a0 is re-verified in §1.
+6. ~~The N8 denominator's 16 unmeasured thumbnail tests.~~ **Reassigned, not void.** No P3
+   packet will consume it, but the finding itself is one of a0's three durable outputs (§13):
+   `totalCount: 11` is a **floor**, and the 16 tests have never executed on any recorded run.
+   **The owner's separate Linux-baseline recovery packet is the correct consumer** — it must
+   verify all **84** expected baselines, not the 68 the ledger describes.
+7. ~~The replacement ledger.~~ Void for P3; still true for the recovery packet.
 
-**If the owner ends the arc at P3-a0** — under **D3** this packet would then be the packet
-that terminates the arc, and the interim rule is *stop and escalate, naming the three paths
-and the exact lines*. Not triggered here, because a0 completed its scope and did not meet an
-abandonment criterion. Recorded so the boundary is explicit: the three paths are
-`docs/MASTER_HANDOVER.md`, `docs/ACTIVE_DEVELOPMENT.md` and `docs/REFACTOR_PLAN.md`, and the
-lines are each file's lead block and its `## Next Safe Step` section. **This packet wrote none
-of them.**
+### 12.4 The D3 status-doc boundary — exercised, and exactly to its limit
+
+The audit ran under the interim rule (*a terminating packet escalates rather than writes*) and
+wrote none of the three status documents. **The owner then superseded that rule, declared a0
+TERMINAL, and granted the bounded exception.** a0 therefore wrote, in each of
+`docs/MASTER_HANDOVER.md`, `docs/ACTIVE_DEVELOPMENT.md` and `docs/REFACTOR_PLAN.md`, **exactly
+two locations**:
+
+| Location | What was recorded |
+|---|---|
+| the lead block | P3 is terminated at a0; a0 is the only implemented packet |
+| `## Next Safe Step` | a1 is not funded, b–e are not authorized, reopening needs a new owner decision, and what a0 delivered that outlives the arc |
+
+**Nothing else in any of the three files was touched** — no other section, no restructuring, no
+tidying of surrounding prose. The exception is owner-triggered by construction: a packet cannot
+declare itself terminal and thereby grant itself write authority.
 
 ---
 
-## 13. What P3-a0 does not answer
+## 13. What P3-a0 does not answer — and why the arc stopped here
 
-Stated plainly, because the owner's recorded reasoning for funding a0 alone depends on it.
+Stated plainly, because the owner's reasoning for funding a0 alone, and then for terminating
+at it, depends on this being said without softening.
 
 - **a0 deletes nothing and certifies nothing.** It cannot say how much of `theme-dark.css` can
-  never win. That question needs the removal oracle a1 would build, and §6.4 confirms no
-  committed tool answers it.
+  never win. That question needs a removal oracle, and §6.4 confirms **no committed tool
+  answers it** — nine would have had to be written.
 - **a0 measures no computed value and renders no page.** Every figure here is static: file
   bytes, test ASTs, committed JSON, and one Stylelint pass.
-- **The standing risk is unchanged.** Deletion authority still reduces to instruments P3-a1
-  would both write and certify. a0 narrows it only in the sense that the apparatus assessment
-  and the ceiling now exist *before* any instrument does, so a1's tools can be measured
-  against something it did not produce.
+- **The standing risk was never narrowed, only made legible.** Deletion authority still reduces
+  to instruments the arc would have both written and certified. a0's contribution is that the
+  apparatus assessment and the ceiling now exist *before* any instrument does.
 
-**Three outputs survive total abandonment of the arc**, exactly as the owner's authorization
-anticipated:
+**That is precisely what ended the arc.** §6.4 was commissioned on the expectation that
+assessing nineteen committed tools would let a1 lean on some of them and **shrink** the build.
+Measured, it does the opposite: **nine new tools, not the seven Plan v1 proposed** — and the
+assessment is recorded that way rather than smoothed, because a smoothed number would have
+bought a1's funding on a false premise. Against the deletion yield the owner had already
+accepted at **Q6** — *"a small certified deletion plus a reusable instrument, not a gutted
+file"* — nine tools does not clear the cost/risk bar. **The owner terminated the arc at a0 on
+2026-08-02.** The audit paying for itself by *stopping* the work is the outcome the a0/a1 split
+was designed to make possible.
+
+**Three outputs survive the termination**, exactly as the owner's authorization anticipated:
 
 1. **The N8 denominator reconciliation** (§8) — it closes exactly, it reproduces all three
-   recorded runs, and it feeds the in-flight Linux baseline regeneration directly with a
-   consequence the ledger does not currently state: 11 is a floor.
+   recorded runs, and it feeds the owner's Linux baseline recovery packet directly with a
+   consequence the ledger does not state: **11 is a floor**, and 16 thumbnail tests have never
+   executed on any recorded run. That packet must verify **84** baselines, not 68.
 2. **The ceiling emitter** (`scripts/css_audit/p3_ceiling.py`) — 14 prose assertions converted
    into a mechanical enumeration, independent of the shared registers that cannot reach them,
-   plus a measured correction to the sharpest of them.
-3. **The nineteen-tool assessment** (§6) — the only thing that can price a1, and it prices it
-   honestly upward rather than down.
+   plus a measured correction to the sharpest of them: **`cascade_contracts.py:1007` protects
+   nothing it claims to protect** (§5.1). It runs on any future tree.
+3. **The nineteen-tool assessment** (§6) — the only thing that could price a1, and it priced it
+   honestly upward. **It is the artifact that terminated the arc.**
+
+A fourth, sized but not implemented and not tied to P3: **the Q10 blind-spot-register repair**
+(§9), ≈170–200 lines, standalone, gated by full pytest alone. It remains available and the
+defect it fixes affects every future CSS packet.
 
 ---
 
