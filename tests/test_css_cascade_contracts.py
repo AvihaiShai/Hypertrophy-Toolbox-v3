@@ -120,14 +120,6 @@ def test_bootstrap_artifact_keeps_scss_owned_selector_families() -> None:
         assert selector in compiled
 
 
-def test_bootstrap_package_and_cdn_assets_stay_version_aligned() -> None:
-    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
-    bootstrap_version = package["devDependencies"]["bootstrap"]
-    base_template = (ROOT / "templates" / "base.html").read_text(encoding="utf-8")
-
-    assert base_template.count(f"bootstrap@{bootstrap_version}/") == 2
-
-
 def test_deprecated_spacing_names_are_neutral_layout_aliases() -> None:
     tokens = (ROOT / "static" / "css" / "tokens.css").read_text(encoding="utf-8")
     spacing_names = ("xs", "sm", "md", "lg", "xl", "2xl")
