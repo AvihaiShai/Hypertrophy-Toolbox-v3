@@ -192,7 +192,11 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 12. **JS unit expansion with jsdom** for the highest-risk DOM modules (`exercises.js`, `workout-controls-persistence.js` — the KI-005 contract, `toast.js` — the KI-004 contract, `backup-center.js`), then **promote the Vitest job to required** once green for 2 weeks.
 
 ### Phase 4 — Release gate (fixes B8; the largest structural gap)
-13. **Precondition: make the visual job capable of being a green gate.** The current suite has a ledgered animated-logo failure above `maxDiffPixels: 800`; resolve it or encode a narrow, reviewable expected-difference oracle before requiring the job. Do not raise the global tolerance. Then define a tag/`workflow_dispatch` "release" pipeline that runs frozen-windows, first-install, old-db-migration, and visual compare as **blocking** steps, plus the 10-minute manual checklist below. Until then, add a weekly scheduled deep-gate run—but change `visual-linux` from `if: inputs.run_visual` to a condition that also runs on `schedule` (and release/tag events), because scheduled events supply no workflow-dispatch input and would otherwise silently skip visual comparison. Verify the scheduled run's required job set rather than treating an overall green workflow with skipped jobs as coverage.
+13. **Precondition: make the visual job capable of being a green gate.** *(Measured 2026-08-02: this
+    step's premise understates the problem. It is not one animated-logo failure — the **Linux**
+    baseline set reds on **at least eleven** tests because 57 CSS/template commits landed after the
+    baselines were frozen. Read [§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02)
+    before acting on this step.)* The current suite has a ledgered animated-logo failure above `maxDiffPixels: 800`; resolve it or encode a narrow, reviewable expected-difference oracle before requiring the job. Do not raise the global tolerance. Then define a tag/`workflow_dispatch` "release" pipeline that runs frozen-windows, first-install, old-db-migration, and visual compare as **blocking** steps, plus the 10-minute manual checklist below. Until then, add a weekly scheduled deep-gate run—but change `visual-linux` from `if: inputs.run_visual` to a condition that also runs on `schedule` (and release/tag events), because scheduled events supply no workflow-dispatch input and would otherwise silently skip visual comparison. Verify the scheduled run's required job set rather than treating an overall green workflow with skipped jobs as coverage.
 14. Decide the browser-matrix question **explicitly** (recommendation: stay Chromium-only for this single-user local tool, but record it as an ADR in `docs/DECISIONS.md` so it's a decision, not drift).
 
 ### Phase 5 — Periodic audits (not CI)
@@ -287,6 +291,22 @@ Before Phase 4 is marked complete:
 | **D3–D7** | **Not signed.** No work in this slice may act on them | — |
 
 Nothing beyond Phase 0 and Phase 1 is authorized by this sign-off. Phases 2–5 remain proposals.
+
+#### 8.1a Second sign-off (2026-08-02) — D3 and D5
+
+The 8.1 table above is the **first** sign-off and is left unedited as the historical record of what
+was authorized on 2026-08-01. This is the second.
+
+| Decision | Ruling | Scope authorized |
+|---|---|---|
+| **D3** — release process: full pipeline or weekly scheduled deep-gate as stopgap | **Signed as the stopgap only.** Add a weekly scheduled deep-gate now; **defer the full release/tag pipeline** until the next packaged release is planned | Phase 4, step 13 — *stopgap half only* |
+| **D5** — browser matrix | **Signed: stay Chromium-only, recorded as an ADR.** Shipped as [`DECISIONS.md`](DECISIONS.md) **ADR-004** | Phase 4, step 14 |
+| **D2** (`js-unit` half) | **Still not signed.** Reconsider only after the documented two-week stability window, with evidence | — |
+| **D4, D6, D7** | **Still not signed.** | — |
+
+**Phases 2, 3 and 5 are not authorized by this sign-off**, and Phase 4 is authorized only as the
+narrow stopgap above. **Phase 4 is not complete** — see [§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02),
+which records why the scheduled deep-gate could not ship with this slice.
 
 ### 8.2 The port-5000 single-runner rule
 
@@ -462,15 +482,88 @@ shape detects a cross-PR interaction before it reaches `main`.
 
 #### Still open
 
-- **The inventory drift check is measure-only.** §8.4's flip condition is now *partly* met — app.py
-  P1, P2 and P5 have merged — but **WPB.4 has not**. Flip only when it has: regenerate the
-  inventory, confirm it matches, change `exit 0` to `exit $STATUS`, drop `continue-on-error`.
+- ~~**The inventory drift check is measure-only.**~~ **Discharged 2026-08-01.** WPB.4 merged
+  (`9fe5dbd`, #256), completing §8.4's flip condition, and [#267](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/267)
+  `5b7a4f1` flipped the check to blocking and dropped its stale `(non-required)` suffix. The job
+  summary prose that still described measure-only behaviour is corrected by
+  [#271](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/271).
 - **The npm audit job is measure-only**, pending the severity/exception policy (Phase 0 step 3).
 - **No coverage ratchet exists.** Both numbers above are baselines, nothing more. Designing the
   baseline-diff (per `scripts/pyright_baseline_diff.py`) is future work; do not add a bare threshold.
-- **`js-unit` stays non-required.** D2's js-unit half is unsigned.
-- **D3–D7 remain unsigned.** Phases 2–5 remain proposals. Phase 2 step 8 was delivered by APP_PY
-  P1+P5 (§8.5).
+- **`js-unit` stays non-required.** D2's js-unit half is unsigned, and the 2026-08-02 sign-off
+  (§8.1a) explicitly kept it that way: reconsider only after the documented two-week stability
+  window, with evidence.
+- **D4, D6 and D7 remain unsigned.** Phases 2, 3 and 5 remain proposals. Phase 2 step 8 was
+  delivered by APP_PY P1+P5 (§8.5). D3 and D5 were signed on 2026-08-02 (§8.1a); D5 shipped as
+  ADR-004, D3's stopgap is blocked (§8.7).
+- **The Linux visual baseline set is stale, and it blocks the Phase 4 stopgap.** See §8.7.
+
+### 8.7 Phase 4 stopgap: the precondition is not met (2026-08-02)
+
+D3's stopgap was signed, then **not shipped**, because Phase 4 step 13's own precondition —
+*"make the visual job capable of being a green gate"* — is currently false. This section records the
+diagnosis so the next session does not re-derive it.
+
+**What was measured.** Deep-gate run
+[30722690389](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30722690389) on
+`44fe838`, and the prior run `30721970863` on `d49cc80`, both `workflow_dispatch` with
+`run_visual=true`, `visual_mode=compare`.
+
+| Deep-gate job | Result |
+|---|---|
+| Full E2E incl. accessibility (Chromium) | pass |
+| First install (catalog seed) smoke | pass |
+| Empty-schema initializer smoke | pass |
+| Old-DB migration compatibility | pass |
+| Frozen executable (real bootloader, Windows) | pass |
+| Dependency Health Check | pass |
+| **Visual regression (Linux baselines)** | **fail** |
+
+`visual-linux` is the **only** failing job, in both runs. Tally: **11 failed, 57 passed, 16 did not
+run** (the suite is serial; the 16 unrun tests mean 11 is a **floor**, not the true red count).
+
+**The failures are not the ledgered pair.** `MASTER_HANDOVER.md`'s *"Known Windows visual reds"*
+ledger describes **two** Windows reds. This is the **Linux** baseline set, and it reds on at least
+eleven tests spanning nearly every page:
+
+| Snapshot | Observed diff (px) |
+|---|---:|
+| `welcome-desktop-light` | 807 |
+| `workout-plan-desktop-light` | 989 → 93,671 across attempts |
+| `workout-plan-desktop-dark` | 821 → 55,531 |
+| `plan-desktop-light-advanced` | 6,539 → 25,673 |
+| plus `workout-log` light/dark, `weekly-summary`, `session-summary`, `progression`, `body-composition`, `volume-splitter` | above the 800 px oracle |
+
+**Root cause — stale baselines, not regressions.** The committed Linux baselines were last written by
+`46e340e` (2026-07-27, **WP4.4-a**, the *first* packet of the shared-bundle CSS arc). Since that
+commit, **57 commits have touched `scss/`, `static/css/` or `templates/`** — the entire remainder of
+the WP4.4 arc (b→k, P1, P2) landed *after* the baseline set was frozen. The 84 committed PNGs
+therefore describe a pre-CSS-arc rendering that no longer exists.
+
+**Why this slice did not ship the schedule.** Adding the weekly cron now would create a job that
+reds every week from its first run, which trains the owner to ignore it — the precise failure mode
+the plan's *"verify the scheduled run's required job set"* instruction exists to prevent. The
+alternative, scheduling the deep-gate with `visual-linux` still skipped, is the false-green that
+step 13 explicitly forbids.
+
+**The unblock is an owner action, by design.** It is a baseline regeneration
+(`workflow_dispatch` → `run_visual=true`, `visual_mode=generate`), followed by downloading the
+`visual-baselines-linux` artifact, **reviewing 84 PNGs by eye**, and committing them. The workflow
+is built so CI never pushes pixels: *"every pixel change is committed by a human after downloading
+and inspecting this artifact."* That review is also the only thing that can separate expected
+CSS-arc drift from a genuine regression hiding inside these eleven — a distinction this diagnosis
+**cannot** make from pixel counts alone, and deliberately does not claim to.
+
+Three things were considered and rejected as out of authorization: updating snapshots, rebaselining
+the known reds, and raising the global `maxDiffPixels: 800`.
+
+**Ordering, once baselines are refreshed.** Re-run compare and confirm green *first*; only then add
+the `schedule:` trigger, and in the same change fix `visual-linux`'s `if: ${{ inputs.run_visual }}`
+— a `schedule` event supplies no `inputs`, so the job would silently skip — and default
+`visual_mode` to `compare` so a scheduled run can never enter `generate` mode. Note also that
+`deep-gate.yml`'s header comment and `docs/archive/ci_cd/CI_CD_IMPROVEMENT_PLAN.md` §0 both state
+*"do not schedule cron jobs for this repo"*; D3 reverses that older decision, so the comment must be
+updated in the same PR or the workflow will contradict itself.
 - **Dependabot is now live** and opened ~14 pull requests on first run. The per-ecosystem limit is 5
   and npm/actions minor+patch are grouped, but the first sweep is unavoidably large because nothing
   had ever been updated. Expect the steady-state weekly volume to be far smaller.
