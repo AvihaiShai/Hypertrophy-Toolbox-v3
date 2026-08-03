@@ -432,6 +432,13 @@ independent `importantDeclarations` count. Two tools, two methods, same number.
   > precisely the override its docstring forbids using to silence it. **Recorded, not
   > repaired** — the tool is outside this packet's owned paths, and the arc is terminated. See
   > §10 row 11.
+  >
+  > **Repaired later, on 2026-08-04, as LEFTOVERS P2.6 — read this block as history, not as
+  > live state.** The tool hashes the LF-normalized text now and pins `3ab06083…`, so the
+  > claim holds on both platforms again. No measurement in this document moved:
+  > `theme-dark.css` was not touched, and §3.1's CRLF figures are still what a Windows
+  > worktree shows on disk. What changed is only *which representation the gate is defined
+  > over*.
 - **⚠️ "Assumed `selector-max-id: 24` measures syntax, not cascade weight."** Measured
   stronger than assumed: the file's selectors contain **82 ID tokens**, and **all 82 are
   inside a `:where()` argument**, contributing zero specificity. Stylelint's 24 is a *warning*
@@ -953,7 +960,7 @@ that this arc is not authorized to change."*
 | 8 | 16 thumbnail tests have never executed on any recorded N8 run; `totalCount: 11` is a floor | §8.5 | **recorded as a precondition on P3-c**, not on this packet |
 | 9 | `docs/test_inventory/TEST_INVENTORY.{json,md}` drift — this packet adds 37 tests and `Test Inventory Drift` is blocking as of #267 | §2.3 | **✅ RESOLVED at finalization.** Regenerated under a dispatch that authorized the collection-only `npx playwright test --list`; `--check` reports up to date. The whole diff is this packet's own 37 tests. |
 | 10 | The plan's gate table for read-only packets omits `pyright baseline diff`, which is blocking on every PR and did catch 7 net-new diagnostics here | §2 | **recorded.** Not a defect in the plan's reasoning — the a0 column derives from the `static/css/**` row, and pyright is a repository-wide gate. A future packet adding Python should run it regardless of its column. |
-| 11 | `j_known_live_mutation.mjs`'s `EXPECTED_INPUT` is the digest of the **CRLF** bytes, so j's known-live control **cannot run unmodified on a Linux checkout** — the file is LF there and hashes to `3ab06083…` | §3.4 | **recorded, not repaired.** Outside owned paths and the arc is terminated. The repo has **no `.gitattributes`** under `core.autocrlf=true`, so every raw-byte digest pinned against a working-tree file has this property. Any future packet re-pinning that constant must say which form it pinned. |
+| 11 | `j_known_live_mutation.mjs`'s `EXPECTED_INPUT` is the digest of the **CRLF** bytes, so j's known-live control **cannot run unmodified on a Linux checkout** — the file is LF there and hashes to `3ab06083…` | §3.4 | **recorded, not repaired.** Outside owned paths and the arc is terminated. The repo has **no `.gitattributes`** under `core.autocrlf=true`, so every raw-byte digest pinned against a working-tree file has this property. Any future packet re-pinning that constant must say which form it pinned. **→ REPAIRED 2026-08-04 as LEFTOVERS P2.6**, outside this arc and without touching the audited CSS: the tool now hashes the LF-normalized text and pins `3ab06083…`, which is the committed blob's own digest, so both checkouts agree. `tests/test_css_audit_digest_normalization_contracts.py` holds the contract. This row's *finding* stands as recorded — only its disposition changed. |
 
 ---
 

@@ -518,12 +518,24 @@ jobs:
       with:
         python-version-file: '.python-version'
         cache: 'pip'
-        
+
+    # tests/test_css_audit_digest_normalization_contracts.py runs
+    # scripts/css_audit/j_known_live_mutation.mjs as a subprocess and skips when
+    # `node` is absent. The runner image happens to ship one, but a contract that
+    # silently skips on the platform it was written for (LEFTOVERS P2.6: the
+    # control refused to run on Linux) is not a contract. Pinning the version
+    # here makes the run deterministic instead of image-dependent. No `npm ci` --
+    # the script imports only node builtins.
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '24'
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        
+
     # Phase 1 step 5 of docs/TESTING_STRATEGY_PLANNING.md, decision D1 (signed
     # 2026-08-01): coverage is NON-BLOCKING MEASUREMENT. There is deliberately no
     # --cov-fail-under and no threshold of any kind -- this job's verdict is still
