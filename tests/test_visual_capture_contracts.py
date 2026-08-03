@@ -179,7 +179,10 @@ def test_visual_chromium_serializes_the_compositor_pipeline():
     """Fresh browser processes must raster the same completed frame."""
     config = PLAYWRIGHT_CONFIG.read_text(encoding="utf-8")
     required = (
+        "'--font-render-hinting=none'",
+        "'--disable-skia-runtime-opts'",
         "'--run-all-compositor-stages-before-draw'",
+        "'--disable-threaded-compositing'",
         "'--disable-threaded-animation'",
         "'--disable-threaded-scrolling'",
         "'--disable-checker-imaging'",
@@ -192,16 +195,28 @@ def test_visual_chromium_serializes_the_compositor_pipeline():
 def test_oversized_element_captures_exclude_fixed_and_sticky_page_layers():
     """Table baselines must contain the table, not recomposited page chrome."""
     helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    common_prepare, element_prepare = helper.split(
+        "export async function prepareForElementScreenshot", maxsplit=1
+    )
     required = (
-        '[data-testid="exercise-table"] thead th',
-        '[data-testid="workout-log-table"] thead th',
         '.vp-drawer[aria-hidden="true"]',
         "html[data-theme='dark'] .summary-header",
-        "export async function prepareForElementScreenshot",
         "#navbar { visibility: hidden !important; }",
     )
     missing = [literal for literal in required if literal not in helper]
     assert not missing, f"Element-capture determinism controls missing: {missing}"
+    for selector in (
+        '[data-testid="exercise-table"] thead th',
+        '[data-testid="workout-log-table"] thead th',
+    ):
+        assert selector in common_prepare, (
+            f"{selector} must be flattened by prepareForScreenshot so full-page "
+            "and locator table captures share one compositor path."
+        )
+    assert "requestAnimationFrame(() => requestAnimationFrame" in element_prepare, (
+        "prepareForElementScreenshot must settle the paint invalidated by its "
+        "element-only style before Playwright auto-scrolls the locator."
+    )
 
 
 def test_font_awesome_is_local_and_complete_for_offline_visual_runs():
