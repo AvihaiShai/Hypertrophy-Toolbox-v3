@@ -21,7 +21,7 @@
     "jsdom": "30.0.1",
     "postcss-scss": "4.0.9",
     "sass": "1.102.0",
-    "stylelint": "16.11.0",
+    "stylelint": "16.26.1",
     "typescript": "7.0.2",
     "vitest": "4.1.10"
   },
