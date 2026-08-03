@@ -39,7 +39,6 @@ const deterministicChromiumArgs = [
   '--disable-gpu',
   '--disable-skia-runtime-opts',
   '--run-all-compositor-stages-before-draw',
-  '--disable-threaded-compositing',
   '--disable-threaded-animation',
   '--disable-threaded-scrolling',
   '--disable-checker-imaging',

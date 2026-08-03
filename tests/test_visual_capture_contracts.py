@@ -182,7 +182,6 @@ def test_visual_chromium_serializes_the_compositor_pipeline():
         "'--font-render-hinting=none'",
         "'--disable-skia-runtime-opts'",
         "'--run-all-compositor-stages-before-draw'",
-        "'--disable-threaded-compositing'",
         "'--disable-threaded-animation'",
         "'--disable-threaded-scrolling'",
         "'--disable-checker-imaging'",
