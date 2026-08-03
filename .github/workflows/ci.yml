@@ -251,6 +251,9 @@ jobs:
     # Deterministic functional/product specs only. Excluded by design (see
     # e2e/CLAUDE.md "CI inclusion contract"): visual + visual-baseline-thumbnails
     # (cross-OS rendering), and program-backup (runs isolated in e2e-backup).
+    # visual-field-separator IS included despite the prefix: it reads composited
+    # computed styles and asserts a numeric contrast ratio, so it has no pixel
+    # baseline and no cross-OS rendering dependency.
     # accessibility + fatigue-stage4-smokes +
     # volume-progress were promoted here in A10 after a 5x-repeat ubuntu stability
     # probe (225/225 green, zero flakes). nav-dropdown was promoted after the
@@ -280,6 +283,7 @@ jobs:
           e2e/ui-hardening.spec.ts \
           e2e/user-profile.spec.ts \
           e2e/validation-boundary.spec.ts \
+          e2e/visual-field-separator.spec.ts \
           e2e/volume-progress.spec.ts \
           e2e/volume-splitter.spec.ts \
           e2e/workout-log.spec.ts \

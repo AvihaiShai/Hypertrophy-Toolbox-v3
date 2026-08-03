@@ -314,3 +314,106 @@ def test_deleted_classes_are_not_resurrected_by_a_sibling_surface(surface: str) 
     assert offenders == [], (
         f"{surface} now styles classes WP4.4-e deleted from layout.css: {offenders}"
     )
+
+
+# --- Separator contrast -------------------------------------------------------
+#
+# `--tbl-border-color` is the only colour behind the card-mode row separator:
+# `.tbl--responsive tr` draws the row-card outline with it, and
+# `.tbl--responsive td` draws the divider between label/value pairs inside a
+# card with it. In that layout the intra-card divider has no gap, fill change
+# or shadow to fall back on, so if the token washes out the fields stop being
+# separable.
+#
+# This is not hypothetical. Until 2026-08-02 the separator rendered at
+# `currentColor` -- near-black on light, near-white on dark -- because a
+# higher-weight rule was supplying the paint. The WP4.4 cascade cleanup
+# (bracketed to 894d882..7685e2b) removed that accidental override, and the
+# declared token finally took effect at 1.54:1 / 1.21:1. The rendering became
+# correct and the contrast became inadequate in the same change, and nothing in
+# the suite noticed either. This contract is the missing half.
+
+TOKEN_SURFACES = ROOT / "static" / "css" / "tokens.css"
+MIN_CONTRAST = 3.0  # WCAG 2.2 SC 1.4.11, non-text contrast
+
+
+def _srgb_to_linear(channel: int) -> float:
+    c = channel / 255
+    return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def _relative_luminance(hex_colour: str) -> float:
+    h = hex_colour.lstrip("#")
+    r, g, b = (_srgb_to_linear(int(h[i : i + 2], 16)) for i in (0, 2, 4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contrast(a: str, b: str) -> float:
+    la, lb = _relative_luminance(a), _relative_luminance(b)
+    hi, lo = max(la, lb), min(la, lb)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def _declaration(blocks: list[str], name: str) -> str:
+    """The winning literal value of a custom property.
+
+    A selector can open more than once in a file, so every block is scanned and
+    the last declaration wins -- which is what the cascade does for rules of
+    equal specificity.
+    """
+    found = [
+        value
+        for block in blocks
+        for value in re.findall(rf"{re.escape(name)}\s*:\s*(#[0-9a-fA-F]{{6}})\s*;", block)
+    ]
+    assert found, f"{name} has no literal hex value in any matching block"
+    return found[-1]
+
+
+def _blocks(css: str, selector_pattern: str) -> list[str]:
+    found = re.findall(selector_pattern + r"\s*\{(.*?)\n\}", css, flags=re.S | re.M)
+    assert found, f"no rule block matched {selector_pattern!r}"
+    return found
+
+
+@pytest.mark.parametrize(
+    ("theme", "layout_selector", "tokens_selector"),
+    [
+        ("light", r"^:root", r"^:root"),
+        ("dark", r'^\[data-theme="dark"\]', r'^\[data-theme="dark"\]'),
+    ],
+)
+def test_table_separator_clears_non_text_contrast(
+    theme: str, layout_selector: str, tokens_selector: str
+) -> None:
+    """The card-mode separator must clear 3:1 against every surface it meets.
+
+    Both surfaces matter, not just the card fill. The row-card outline sits
+    between the fill (`--surface-2` on light) and the page behind it
+    (`--surface-0`), so the weaker of the two governs. On dark they are the same
+    colour, which is precisely why the border is the only row boundary there.
+
+    Red path: restoring `--tbl-border-color: #d0d0d0` (light) or `#374151`
+    (dark) fails at 1.54:1 and 1.81:1 respectively.
+    """
+    layout_css = _strip_comments(_css())
+    tokens_css = _strip_comments(TOKEN_SURFACES.read_text(encoding="utf-8"))
+
+    separator = _declaration(_blocks(layout_css, layout_selector), "--tbl-border-color")
+    surface_blocks = _blocks(tokens_css, tokens_selector)
+    surfaces = {
+        name: _declaration(surface_blocks, f"--{name}")
+        for name in ("surface-0", "surface-1", "surface-2")
+    }
+
+    failures = {
+        f"{name} ({value})": round(_contrast(separator, value), 2)
+        for name, value in surfaces.items()
+        if _contrast(separator, value) < MIN_CONTRAST
+    }
+    assert failures == {}, (
+        f"{theme} --tbl-border-color {separator} falls below "
+        f"{MIN_CONTRAST}:1 against {failures}. In card mode this token is the "
+        "only divider between label/value pairs inside a row card; weakening it "
+        "removes the sole cue that separates them."
+    )

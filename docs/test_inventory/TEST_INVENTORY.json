@@ -71,8 +71,8 @@
     "project": "chromium",
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
-      "spec_files": 24,
-      "tests": 432
+      "spec_files": 25,
+      "tests": 474
     },
     "specs": [
       {
@@ -201,6 +201,11 @@
         "tests": 18
       },
       {
+        "in_required_functional_set": true,
+        "spec": "visual-field-separator.spec.ts",
+        "tests": 42
+      },
+      {
         "in_required_functional_set": false,
         "spec": "visual.spec.ts",
         "tests": 66
@@ -226,12 +231,12 @@
         "tests": 35
       }
     ],
-    "total_spec_files": 30,
-    "total_tests": 547
+    "total_spec_files": 31,
+    "total_tests": 589
   },
   "pytest": {
-    "collected_deterministic": 2111,
-    "deterministic_files": 102,
+    "collected_deterministic": 2123,
+    "deterministic_files": 103,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -288,6 +293,10 @@
         "tests": 30
       },
       {
+        "file": "tests/test_css_field_separator_contracts.py",
+        "tests": 10
+      },
+      {
         "file": "tests/test_css_theme_dark_p3_audit_contracts.py",
         "tests": 37
       },
@@ -313,7 +322,7 @@
       },
       {
         "file": "tests/test_css_wp4_4_layout_contracts.py",
-        "tests": 13
+        "tests": 15
       },
       {
         "file": "tests/test_css_wp4_4_motion_contracts.py",
@@ -652,7 +661,7 @@
         "tests": 40
       }
     ],
-    "total_files": 103
+    "total_files": 104
   },
   "schema_version": 1
 }

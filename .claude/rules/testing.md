@@ -97,6 +97,7 @@ Per-spec counts are in [`docs/test_inventory/TEST_INVENTORY.md`](../../docs/test
 | `user-profile.spec.ts` | Profile, lifts, settings, body map, insights | None |
 | `visual.spec.ts` | Eleven-page × 3 viewport × 2 theme screenshot matrix | Visual seed |
 | `visual-baseline-thumbnails.spec.ts` | Plan/log thumbnail screenshot matrix | Visual seed |
+| `visual-field-separator.spec.ts` | Rendered separator/outline contrast, 7 surfaces × 3 viewports × 2 themes (computed styles, no screenshots — runs in the required functional gate) | None; injects its own rows |
 
 Support files:
 - `e2e/fixtures.ts` — shared fixtures, route constants, selectors, helpers
