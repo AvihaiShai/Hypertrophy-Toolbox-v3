@@ -326,18 +326,20 @@ is empty, the constant no longer matches, and the test forces its own deletion.
 Regenerating the baselines is a separate, reviewed change. It must do all four of these
 together, or CI goes red:
 
-1. Regenerate `e2e/__screenshots__/win32/visual.spec.ts-snapshots/` and the linux set:
-   delete `user-profile-mobile-{dark,light}.png`, add the four `-segment-N.png` files.
-   66 → 68 per platform.
+1. Regenerate each independently maintained platform set: delete
+   `user-profile-mobile-{dark,light}.png`, add the four `-segment-N.png` files,
+   and move that platform 66 → 68. PR #281 performs the Linux half; Windows
+   remains an owner-local follow-up.
 2. `tests/test_css_wp4_4_a_baseline_contracts.py::EXPECTED_SNAPSHOT_COUNTS` —
-   `win32/visual.spec.ts-snapshots` and `linux/visual.spec.ts-snapshots`: **66 → 68**.
+   move the regenerated platform's entry **66 → 68**.
    That test asserts the count, the exact sorted filename list, *and* a
    `nameAndSizeSha256` over names + file sizes, so it reds on the first regenerated PNG.
 3. `docs/CSS_PHASE4_WP4_4_A_BASELINE.json` → `snapshotManifest` — regenerate with
    `scripts/css_audit/emit_baseline.py`. **Deliberately not touched here** (off-limits
    for this branch); it is the reason step 2 cannot be done early either.
-4. `tests/test_visual_capture_contracts.py::AWAITING_SEGMENTED_REGENERATION` → empty set.
-   The contract fails until this is done.
+4. Remove the regenerated platform's relative paths from
+   `tests/test_visual_capture_contracts.py::AWAITING_SEGMENTED_REGENERATION`.
+   The set becomes empty after both platform workflows are complete.
 
 Also expected in that step: the plan-bearing baselines (`plan-*`, `workout-plan-*`,
 `workout-log-*`, and any page rendering the video button) move **once**, to the curated

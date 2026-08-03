@@ -57,18 +57,18 @@ POPULATED_MEDIA_SQL = (
     "WHERE media_path IS NOT NULL AND TRIM(media_path) <> ''"
 )
 
-# Baselines that the segmented user-profile capture retires but that this change
-# deliberately does not delete: regenerating baseline PNGs is a separate,
-# reviewed step, and this branch is code + tests only.
+# Baselines that the segmented user-profile capture retires but whose platform
+# has not yet been regenerated. Linux is regenerated and reviewed in #281;
+# Windows remains an independent owner-local baseline workflow.
 #
 # The assertion below is a strict *equality*, not an allowlist, and that is the
 # point. A new oversized baseline fails it, and so does a stale entry: once the
-# regeneration step replaces these two names with their ``-segment-N`` files,
-# the computed set becomes empty, this constant no longer matches, and the test
-# forces its own removal. Do not add anything here to silence a real capture.
+# regeneration step replaces a platform's two names with ``-segment-N`` files,
+# its relative paths disappear from this set. Once both platforms are current,
+# the set becomes empty. Do not add anything here to silence a real capture.
 AWAITING_SEGMENTED_REGENERATION = {
-    "user-profile-mobile-dark.png",
-    "user-profile-mobile-light.png",
+    "win32/visual.spec.ts-snapshots/user-profile-mobile-dark.png",
+    "win32/visual.spec.ts-snapshots/user-profile-mobile-light.png",
 }
 
 
@@ -141,32 +141,28 @@ def test_no_committed_visual_baseline_exceeds_the_chromium_surface_limit():
     for path in baselines:
         width, height = _png_size(path)
         if max(width, height) > MAX_CAPTURE_HEIGHT_PX:
-            oversized[path.name] = (width, height)
+            relative = path.relative_to(SCREENSHOT_ROOT).as_posix()
+            oversized[relative] = (width, height)
 
     assert set(oversized) == AWAITING_SEGMENTED_REGENERATION, (
         "Baselines over Chromium's "
         f"{MAX_CAPTURE_HEIGHT_PX}px capture surface: {oversized}. "
-        "Expected exactly the two names retired by the segmented user-profile "
-        "capture and awaiting regeneration."
+        "Expected exactly the platform-relative files still awaiting segmented "
+        "regeneration."
     )
 
 
-def test_the_retired_oversized_baselines_are_the_user_profile_mobile_pair():
+def test_the_retired_oversized_baselines_are_real_platform_relative_files():
     """Pin what the carve-out above is allowed to cover.
 
-    Both retired names must exist on every platform that carries baselines, so
-    the constant cannot quietly stop describing real files.
+    Every carve-out entry must still exist, so the constant cannot quietly stop
+    describing a real file after that platform is regenerated.
     """
-    platforms = sorted(p.name for p in SCREENSHOT_ROOT.iterdir() if p.is_dir())
-    assert platforms, "No platform baseline directories"
-
-    for platform in platforms:
-        snapshots = SCREENSHOT_ROOT / platform / "visual.spec.ts-snapshots"
-        for name in sorted(AWAITING_SEGMENTED_REGENERATION):
-            assert (snapshots / name).is_file(), (
-                f"{platform}/{name} is listed as awaiting regeneration but is "
-                "not present; drop it from AWAITING_SEGMENTED_REGENERATION."
-            )
+    for relative in sorted(AWAITING_SEGMENTED_REGENERATION):
+        assert (SCREENSHOT_ROOT / relative).is_file(), (
+            f"{relative} is listed as awaiting regeneration but is not present; "
+            "drop it from AWAITING_SEGMENTED_REGENERATION."
+        )
 
 
 def test_the_capture_helper_declares_the_same_surface_limit():
