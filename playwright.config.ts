@@ -36,6 +36,11 @@ const defaultViewport = { width: 1440, height: 900 };
 const deterministicChromiumArgs = [
   '--disable-font-subpixel-positioning',
   '--disable-gpu',
+  '--run-all-compositor-stages-before-draw',
+  '--disable-threaded-animation',
+  '--disable-threaded-scrolling',
+  '--disable-checker-imaging',
+  '--disable-image-animation-resync',
   '--force-color-profile=srgb',
 ];
 
