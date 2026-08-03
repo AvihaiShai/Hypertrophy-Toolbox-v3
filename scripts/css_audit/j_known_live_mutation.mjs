@@ -21,6 +21,29 @@
  * an already-mutated tree, and it pins its own output so a later edit to the
  * transformation cannot silently decouple the script from the recorded figure.
  *
+ * ## What the digests are digests *of*
+ *
+ * `EXPECTED_INPUT`, `--expect-sha` and `--expect-output-sha` are all sha256 over
+ * the **canonical representation**: the file decoded as UTF-8 with every `CRLF`
+ * rewritten to a single `LF`. They are deliberately **not** digests of the bytes
+ * on disk, and `sha256sum static/css/theme-dark.css` on a Windows checkout will
+ * not print them. What does print `EXPECTED_INPUT`, on either platform, is the
+ * committed blob — `git show HEAD:static/css/theme-dark.css | sha256sum` — for
+ * the reason below.
+ *
+ * The repository is `core.autocrlf=true` with no `.gitattributes`, so a single
+ * commit of `theme-dark.css` materializes as LF on Linux and CRLF on Windows —
+ * 22,018 bytes against 22,592, one `CR` per each of its 574 lines. Hashing the
+ * raw buffer therefore pinned the *Windows* form: the control ran here and
+ * refused to run in CI, where the only way past it was the `--expect-sha`
+ * override this docstring forbids using to silence it. Canonicalizing first
+ * makes both checkouts agree on `3ab06083…`, which is also the digest of the
+ * committed blob.
+ *
+ * Only content is pinned; line endings are not. The mutated file is written back
+ * with whatever ending it arrived with, so the bytes this produces in a Windows
+ * worktree are unchanged from before the normalization.
+ *
  * usage:
  *   node scripts/css_audit/j_known_live_mutation.mjs --root <checkout> \
  *     [--expect-sha <sha256>] [--expect-output-sha <sha256>]
@@ -35,8 +58,13 @@ const arg = (name, fallback = null) => {
   return i < 0 ? fallback : argv[i + 1];
 };
 
-/** The post-removal `theme-dark.css` this control is defined against. */
-const EXPECTED_INPUT = 'e54818bf790eb2c11474f68ecddc25d66304d9edf650cf698853276e419f2fca';
+/**
+ * The post-removal `theme-dark.css` this control is defined against, as the
+ * sha256 of its **LF-normalized** text — see "What the digests are digests of".
+ * Re-pinned from the CRLF digest `e54818bf…` (LEFTOVERS P2.6); the file itself
+ * is untouched.
+ */
+const EXPECTED_INPUT = '3ab06083c89eae0b5dd46d820dde4d2da1d59de1ffa6d825585aaca0ad17e14a';
 const TOKEN = '--bg-primary';
 /**
  * `--bg-primary` proves the instrument is live, but it only surfaces where no
@@ -57,20 +85,24 @@ const expectSha = arg('--expect-sha', EXPECTED_INPUT);
 const expectOutputSha = arg('--expect-output-sha');
 const cssPath = join(root, 'static/css/theme-dark.css');
 
-const sha = (buf) => createHash('sha256').update(buf).digest('hex');
+/** UTF-8 text with every CRLF collapsed to LF: the form every digest is taken over. */
+const canonical = (text) => text.replace(/\r\n/g, '\n');
+const sha = (text) => createHash('sha256').update(text, 'utf8').digest('hex');
 
-const original = readFileSync(cssPath);
-const actual = sha(original);
+const original = readFileSync(cssPath, 'utf8');
+const source = canonical(original);
+const actual = sha(source);
 if (actual !== expectSha) {
   throw new Error(
-    `${cssPath} hashes to ${actual} but this control is defined against ${expectSha}. `
-    + 'Point --root at the post-removal tree, or pass --expect-sha deliberately.'
+    `${cssPath} normalizes to ${actual} but this control is defined against ${expectSha} `
+    + '(sha256 of the LF-normalized text, not of the bytes on disk — line endings cannot '
+    + 'be the cause). Point --root at the post-removal tree, or pass --expect-sha deliberately.'
   );
 }
 
-const text = original.toString('utf8');
-const eol = text.includes('\r\n') ? '\r\n' : '\n';
-const lines = text.split(eol);
+/** Preserved for the write-back only; the line-offset math runs on the canonical form. */
+const eol = original.includes('\r\n') ? '\r\n' : '\n';
+const lines = source.split('\n');
 
 const touched = [];
 const mutated = lines.map((line, index) => {
@@ -88,14 +120,13 @@ const mutated = lines.map((line, index) => {
 
 if (touched.length === 0) throw new Error(`mode ${MODE} matched nothing; the control would be a no-op`);
 
-const output = Buffer.from(mutated.join(eol), 'utf8');
-const outputSha = sha(output);
+const outputSha = sha(mutated.join('\n'));
 if (expectOutputSha && outputSha !== expectOutputSha) {
   throw new Error(`the mutation produced ${outputSha} but the recorded control CSS is ${expectOutputSha}`);
 }
-writeFileSync(cssPath, output);
+writeFileSync(cssPath, mutated.join(eol), 'utf8');
 
 console.log(`re-pointed ${TOKEN} to ${SENTINEL} on ${touched.length} line(s): ${touched.map((t) => `${t.line} (was ${t.from})`).join(', ')}`);
-console.log(`before sha256: ${actual}`);
-console.log(`after  sha256: ${outputSha}`);
+console.log(`before sha256 (LF-normalized): ${actual}`);
+console.log(`after  sha256 (LF-normalized): ${outputSha}`);
 console.log(`revert with: git -C ${root} checkout -- static/css/theme-dark.css`);

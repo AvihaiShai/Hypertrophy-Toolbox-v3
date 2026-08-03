@@ -98,6 +98,13 @@ ordering plus the `!important` inversion.
 ## Windows scripting hazards
 These have each corrupted an analysis run:
 - Normalize CRLF before any line-offset or character-offset math.
+- **A digest pinned against a working-tree file must say which line-ending form
+  it hashes — and should hash the LF-normalized text, not the bytes on disk.**
+  The repo is `core.autocrlf=true` with no `.gitattributes`, so one commit is LF
+  in CI and CRLF here; a raw-byte pin is a Windows-only pin that reds on Linux
+  and invites the `--expect-sha` override it exists to prevent.
+  `scripts/css_audit/j_known_live_mutation.mjs` shipped with that defect and
+  `tests/test_css_audit_digest_normalization_contracts.py` now holds the repair.
 - Avoid bash heredocs; write the script to the scratchpad with `Write` and run
   the file.
 - Quote every PowerShell path; junctions and worktree paths break unquoted.
