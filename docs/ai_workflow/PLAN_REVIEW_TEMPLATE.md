@@ -1,6 +1,6 @@
 # Plan Review Template
 
-*Copy this file into the workstream's planning doc (e.g. `docs/<feature>/PLANNING.md`) and fill in each section. Used by [`.claude/commands/council-plan.md`](../../.claude/commands/council-plan.md). Implements [`.claude/SHARED_PLAN.md`](../../.claude/SHARED_PLAN.md) Tier 2.2 Appendix A2.2.*
+*Copy this file into the workstream's planning doc (e.g. `docs/<feature>/PLANNING.md`) and fill in each section. Used by [`.claude/commands/council-plan.md`](../../.claude/commands/council-plan.md). This file owns the artifact shell only; which planning gates a change actually needs is canonical in [QUALITY_GATE.md](QUALITY_GATE.md#plan-stage-routing).*
 
 ---
 

@@ -6,7 +6,17 @@
 - [Master Handover](../MASTER_HANDOVER.md) — canonical current state
 - root [CLAUDE.md](../../CLAUDE.md) — operational guidance
 - [`.claude/rules/`](../../.claude/rules/) — subsystem rules (auto-loaded by Claude Code on matching paths)
-- `.claude/SHARED_PLAN.md` — optional local planning/audit trail if present; Tier 1 artifacts here should stand on their own
+
+> **There is no shared plan file, and no tier or appendix numbering.** Workflow
+> authority is split by topic, and each of these is canonical for its own:
+> [QUALITY_GATE.md](QUALITY_GATE.md) (which tests and reviewers a change needs,
+> and which planning gates apply), [AUTONOMY.md](AUTONOMY.md) (roles, approval,
+> review boundaries), [PARALLEL_WORKFLOW.md](PARALLEL_WORKFLOW.md) (checkout and
+> DB isolation), [WORKSTREAM_OWNERSHIP.md](WORKSTREAM_OWNERSHIP.md) (path
+> claims). A retired `.claude/SHARED_PLAN.md` once claimed to define all four;
+> it is gitignored so that a local scratch copy can never become tracked truth
+> again. If a document tells you to consult a "Tier" or "Appendix", that
+> reference is stale — use this list instead.
 
 ## Active feature plans
 - [Agent workflow v2.2](../agent_roles/PLANNING.md) — manager, requirements,

@@ -235,8 +235,8 @@
     "total_tests": 589
   },
   "pytest": {
-    "collected_deterministic": 2123,
-    "deterministic_files": 103,
+    "collected_deterministic": 2198,
+    "deterministic_files": 104,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -244,6 +244,10 @@
       }
     ],
     "files": [
+      {
+        "file": "tests/test_agent_workflow_contracts.py",
+        "tests": 75
+      },
       {
         "file": "tests/test_auto_backup.py",
         "tests": 7
@@ -661,7 +665,7 @@
         "tests": 40
       }
     ],
-    "total_files": 104
+    "total_files": 105
   },
   "schema_version": 1
 }

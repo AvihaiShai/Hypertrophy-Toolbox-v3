@@ -1,6 +1,6 @@
 # Parallel Workflow
 
-*How to run more than one Claude (or any concurrent dev) on this repo without corrupting state. Implements [`.claude/SHARED_PLAN.md`](../../.claude/SHARED_PLAN.md) Tier 2.1.*
+*How to run more than one Claude (or any concurrent dev) on this repo without corrupting state. This file is the canonical authority for checkout and DB isolation — [AUTONOMY.md](AUTONOMY.md#workflow-roles) defers to it for the tracked-DB commit rule. Path claims live in [WORKSTREAM_OWNERSHIP.md](WORKSTREAM_OWNERSHIP.md).*
 
 ## Why this exists
 

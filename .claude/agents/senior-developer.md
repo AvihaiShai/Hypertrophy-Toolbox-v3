@@ -27,7 +27,7 @@ hooks:
     - matcher: "Skill"
       hooks:
         - type: command
-          command: 'powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-skill.ps1" -AllowedCsv run-tests,run-e2e,verify-suite,verify-and-polish,verify,run,build-css,run-hypertrophy-toolbox'
+          command: 'powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-skill.ps1" -AllowedCsv run-tests,run-e2e,verify-suite,verify-and-polish,verify,run,build-css,run-hypertrophy-toolbox,handover'
 ---
 
 You are the sole production-code writer for an approved feature.

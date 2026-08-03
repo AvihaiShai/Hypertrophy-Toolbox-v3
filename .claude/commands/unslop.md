@@ -2,7 +2,9 @@
 description: Quality gate — diff → targeted tests → code-reviewer → unslop-reviewer → handover update.
 ---
 
-Run the post-implementation polish gate per `.claude/SHARED_PLAN.md` Appendix A1.2.
+Run the post-implementation polish gate. Which tests and reviewers a change needs is
+canonical in [`docs/ai_workflow/QUALITY_GATE.md`](../../docs/ai_workflow/QUALITY_GATE.md);
+the Steps below only sequence it.
 
 ## Steps
 1. **Capture changed files**. Include staged, unstaged, and untracked files:
