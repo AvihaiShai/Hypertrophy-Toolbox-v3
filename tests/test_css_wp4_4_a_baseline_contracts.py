@@ -39,7 +39,7 @@ SCREENSHOT_ROOT = ROOT / "e2e" / "__screenshots__"
 EXPECTED_SNAPSHOT_COUNTS = {
     "win32/visual.spec.ts-snapshots": 66,
     "win32/visual-baseline-thumbnails.spec.ts-snapshots": 18,
-    "linux/visual.spec.ts-snapshots": 66,
+    "linux/visual.spec.ts-snapshots": 68,
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": 18,
 }
 
