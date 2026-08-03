@@ -23,6 +23,7 @@ import {
   elementScreenshotOptions,
   installDeterminism,
   prepareForElementScreenshot,
+  waitForVisualReady,
   type VisualTheme,
 } from './visual-helpers';
 
@@ -93,6 +94,11 @@ test.describe('§4 visual baseline — workout_plan thumbnails', () => {
             'exercise thumbnails must be decoded before the capture',
           ).toEqual([]);
 
+          // Decoded pixels do not mean a settled layout: the rows they land in
+          // can still be resizing. Geometry has to hold still too.
+          await waitForVisualReady(page, { name: 'plan-thumbnails' });
+
+
           const target = page.getByTestId('exercise-table');
           await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
 
@@ -143,6 +149,9 @@ test.describe('§4 visual baseline — workout_log thumbnails', () => {
           ),
           'exercise thumbnails must be decoded before the capture',
         ).toEqual([]);
+
+        await waitForVisualReady(page, { name: 'log-thumbnails' });
+
 
         const target = page.getByTestId('workout-log-table');
         await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());

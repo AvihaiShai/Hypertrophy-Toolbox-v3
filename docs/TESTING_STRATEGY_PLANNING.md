@@ -561,11 +561,43 @@ eleven tests spanning nearly every page:
 | `plan-desktop-light-advanced` | 6,539 → 25,673 |
 | plus `workout-log` light/dark, `weekly-summary`, `session-summary`, `progression`, `body-composition`, `volume-splitter` | above the 800 px oracle |
 
-**Root cause — stale baselines, not regressions.** The committed Linux baselines were last written by
-`46e340e` (2026-07-27, **WP4.4-a**, the *first* packet of the shared-bundle CSS arc). Since that
-commit, **57 commits have touched `scss/`, `static/css/` or `templates/`** — the entire remainder of
-the WP4.4 arc (b→k, P1, P2) landed *after* the baseline set was frozen. The 84 committed PNGs
-therefore describe a pre-CSS-arc rendering that no longer exists.
+**Root cause — corrected 2026-08-02 after a full review of all 74 differing images.** The first
+version of this paragraph said the baselines "were last written by `46e340e`" and attributed the
+reds to the CSS arc plus the later Bootstrap 5.3 upgrade. Both claims were wrong, and the
+measurement that corrects them is recorded here so the error is not re-derived.
+
+**Baseline provenance is mixed, not single-vintage.** Of the 84 committed PNGs, **66 date from
+`04b9819` (2026-06-06)**, 12 from `ab9dc7b` (2026-07-17) and 6 from `46e340e` (2026-07-27). The
+"last written by `46e340e`" claim holds for 6 files.
+
+**The Bootstrap upgrade is excluded as the cause.** Deep-gate visual was **green** on `894d882`
+(2026-07-27 17:10, run 30288077299) and **first red** on `7685e2b` (2026-07-31, run 30663355864),
+which failed on `visual-linux` alone with every other deep-gate job passing. Bootstrap 5.3 (#274,
+`4435b04`) landed 2026-08-02 — *after* the breakage. The first failure therefore originates inside
+the **`894d882..7685e2b`** bracket, which is WP4.4 cascade-cleanup work. Bootstrap and sass do
+change rendering broadly and stale the set further, but they did not start it.
+
+**Three distinct causes are mixed in the diffs**, and they carry different verdicts:
+
+| # | Cause | Images | Verdict |
+|---|---|---:|---|
+| a | Bootstrap 5.3 / sass restyling — navbar glyph metrics, `form-range` tracks, button fills, border-radius | 58 | expected |
+| b | `b5e837d` (#88) gives uncurated exercise rows a search icon instead of a play glyph; the 2026-06-06 baselines predate it | — | expected feature drift |
+| c | card-mode table separators moved from `currentColor` ink to the declared `--tbl-border-color` | 16 | **cascade correction, inadequate token** |
+
+**(c) is the one that mattered.** Sampling the separator on both themes shows the committed
+baselines painted it at `currentColor` — `#0f1220` on light, near-white on dark, i.e. the *text*
+colour — while the candidate paints the declared token exactly (`#d0d0d0` / `#374151`). No token,
+document or test ever sanctioned an ink-coloured separator; the WP4.4 cleanup removed the
+higher-weight rule that had been supplying that paint, so the rendering became **correct** by
+design intent. The contrast, however, fell from 18.6:1 / 11.0:1 to **1.54:1 / 1.21:1**, and in card
+mode that token is the only divider between label/value pairs inside a row card. So the cascade
+correction and a latent token-contrast defect surfaced in the same change, and nothing in the suite
+caught either. Corrected separately by raising `--tbl-border-color` to `#7d839d` (light) and
+`#7a8099` (dark) — both from the `--ink-3`/`--ink-2` neutral family — with
+`tests/test_css_wp4_4_layout_contracts.py::test_table_separator_clears_non_text_contrast` enforcing
+a 3:1 floor against every surface the separator meets. **No baselines may be approved from a run
+that predates that correction.**
 
 **Why this slice did not ship the schedule.** Adding the weekly cron now would create a job that
 reds every week from its first run, which trains the owner to ignore it — the precise failure mode

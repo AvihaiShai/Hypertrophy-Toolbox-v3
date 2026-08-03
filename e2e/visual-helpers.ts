@@ -404,3 +404,109 @@ export function elementScreenshotOptions(): {
     threshold: 0,
   };
 }
+
+/**
+ * Per-page terminal content marker.
+ *
+ * `waitForPageReady` only awaits `domcontentloaded` + `networkidle`, and
+ * networkidle fires 500ms after the last request — which says nothing about
+ * whether layout has settled. A full-page capture of a tall page can therefore
+ * stitch while content is still resolving. That is not hypothetical: the
+ * 2026-08-02 generation produced a `user-profile-mobile-light` baseline that
+ * ended 3,351px early, missing an entire muscle group, and nothing failed.
+ *
+ * Each entry names the last thing its page renders. If that marker is present
+ * and geometry has stopped moving, the page is complete by construction rather
+ * than by elapsed time. Pages without an entry still get the geometry and
+ * resource guards below.
+ */
+const TERMINAL_MARKERS: Record<string, string> = {
+  'user-profile': '[data-section="fatigue context"]',
+  progression: '.current-goals table tbody tr',
+  'body-composition': '.bc-table tbody tr',
+};
+
+export interface VisualReadyOptions {
+  /** Page name from the visual spec's page table. */
+  name: string;
+  /** Frames of unchanged geometry required before the page counts as settled. */
+  stableFrames?: number;
+  timeoutMs?: number;
+}
+
+/**
+ * Assert a page is completely rendered before it is captured.
+ *
+ * Two conditions, neither of them a sleep:
+ *  1. the page-specific terminal marker exists, where one is defined;
+ *  2. scrollHeight/scrollWidth hold steady across N consecutive animation
+ *     frames — the condition the truncated capture actually violated.
+ *
+ * Font and image settling is deliberately NOT repeated here: every call site
+ * runs `prepareForScreenshot` first, and that owns the stronger version of the
+ * wait (forces `loading="eager"`, awaits `decode()`, and fails with the pending
+ * list rather than racing a deadline). Decoded pixels are still not a settled
+ * layout, which is why the geometry gate below runs after it rather than
+ * instead of it.
+ *
+ * Failures carry the measured geometry series, so the diagnostic says what was
+ * still moving instead of only reporting a timeout.
+ */
+export async function waitForVisualReady(
+  page: Page,
+  { name, stableFrames = 5, timeoutMs = 8000 }: VisualReadyOptions,
+): Promise<void> {
+  const marker = TERMINAL_MARKERS[name];
+  if (marker) {
+    try {
+      await page.locator(marker).first().waitFor({ state: 'attached', timeout: timeoutMs });
+    } catch {
+      throw new Error(
+        '[visual-ready] ' + name + ': terminal marker ' + marker + ' never appeared within ' +
+          timeoutMs + 'ms. The page did not finish rendering, so capturing it would ' +
+          'freeze incomplete content into a baseline.',
+      );
+    }
+  }
+
+  const result = await page.evaluate(
+    async ({ stableFrames, timeoutMs }) => {
+      const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+      const geometry = () => {
+        const el = document.documentElement;
+        return el.scrollHeight + 'x' + el.scrollWidth;
+      };
+
+      const series: string[] = [];
+      const deadline = performance.now() + timeoutMs;
+      let last = geometry();
+      let stable = 0;
+      series.push(last);
+      while (performance.now() < deadline) {
+        await nextFrame();
+        const now = geometry();
+        if (now === last) {
+          stable += 1;
+          if (stable >= stableFrames) {
+            return { settled: true, series: series.slice(-8) };
+          }
+        } else {
+          stable = 0;
+          series.push(now);
+          last = now;
+        }
+      }
+      return { settled: false, series: series.slice(-8) };
+    },
+    { stableFrames, timeoutMs },
+  );
+
+  if (!result.settled) {
+    throw new Error(
+      '[visual-ready] ' + name + ': page geometry never held still for ' + stableFrames +
+        ' frames within ' + timeoutMs + 'ms. Observed sequence (most recent last): ' +
+        result.series.join(' -> ') + '. Capturing a page whose height is still moving ' +
+        'is how a truncated baseline gets committed.',
+    );
+  }
+}

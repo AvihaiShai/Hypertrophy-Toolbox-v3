@@ -67,7 +67,7 @@ jobs:
     # manual gate, so a human reads the report (known-red nav-dropdown may fail).
     - name: Run full suite (minus visual)
       run: |
-        SPECS=$(ls e2e/*.spec.ts | grep -vE 'visual' | tr '\n' ' ')
+        SPECS=$(ls e2e/*.spec.ts | grep -vE 'visual\.spec\.ts|visual-baseline-thumbnails\.spec\.ts' | tr '\n' ' ')
         echo "Running: $SPECS"
         npx playwright test --project=chromium $SPECS
 

@@ -4,6 +4,7 @@ import {
   installDeterminism,
   prepareForScreenshot,
   visualScreenshotOptions,
+  waitForVisualReady,
   type VisualTheme,
 } from './visual-helpers';
 
@@ -48,6 +49,11 @@ for (const appPage of pages) {
           await page.goto(appPage.route);
           await waitForPageReady(page);
           await prepareForScreenshot(page);
+          // Completeness gate. prepareForScreenshot freezes animation and
+          // settles images, but nothing before this asserted that the layout
+          // had stopped moving, which is how a truncated baseline was
+          // generated on 2026-08-02.
+          await waitForVisualReady(page, { name: appPage.name });
 
           // Segments only when the page is taller than Chromium can capture;
           // every other page keeps its single baseline and its existing name.
