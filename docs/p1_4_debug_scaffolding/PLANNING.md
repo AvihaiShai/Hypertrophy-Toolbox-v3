@@ -302,6 +302,23 @@ current render of `main` + this packet, and it is strictly better than leaving
 six known-stale PNGs committed — but it is recorded here explicitly so the
 re-baseline is never read as this packet alone having changed that much.
 
+**The re-baseline owes a manifest update.**
+`test_snapshot_manifest_makes_an_accidental_rebaseline_a_pytest_red`
+(`tests/test_css_wp4_4_a_baseline_contracts.py`) hashes filename + file size
+across each committed screenshot tree, so `--update-snapshots` turns *pytest*
+red rather than silently turning a Playwright failure green. Regenerating the
+six PNGs changed the `win32/visual.spec.ts-snapshots` digest, so
+`docs/CSS_PHASE4_WP4_4_A_BASELINE.json` was updated
+(`a6475677…` → `db6c2b42…`). Only that one digest changed — file count (66) and
+file names are identical, and `sourceCommit` is deliberately left at `46e340e`
+because sibling tests measure surfaces at *that* commit. This is the guard
+working exactly as designed: the escalation it demands is §Baselines above.
+
+**Process note for the next packet:** the first full pytest run was executed
+*before* the baselines were regenerated, so it could not observe this failure —
+CI caught it instead. **Re-run pytest after any `--update-snapshots`, not
+before.**
+
 **Linux baselines were deliberately not touched** (owner instruction) and remain
 for **#281**. Note for whoever reviews #281: its six Linux progression PNGs are
 regenerated at `4de6b62`, which predates #290, so they carry the same
@@ -311,7 +328,7 @@ empty-goals-table staleness plus this packet's removed line.
 
 | Gate | Result |
 |---|---|
-| `pytest tests/ -q` | **2443 passed, 2 skipped** (8m12s) |
+| `pytest tests/ -q` | **2443 passed, 2 skipped** (8m12s) — then re-run after the re-baseline + manifest update (see §Baselines) |
 | `npx vitest run` | **105 passed**, 9 suites |
 | Chromium `progression`, `smoke-navigation`, `empty-states`, `workout-plan`, `ui-hardening`, `exercise-interactions` | **145 passed**, 0 failed |
 | `visual.spec.ts -g "visual baseline: progression"` (win32) | 6 regenerated, reviewed image-by-image, re-run **6 passed** |
