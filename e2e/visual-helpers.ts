@@ -107,6 +107,14 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
         box-shadow: none !important;
         text-shadow: none !important;
       }
+      /* Summary filters use a translucent rounded surface whose fractional top
+         edge can round one channel differently across fresh Skia processes.
+         Flatten only the visual capture layer; labels and controls stay intact. */
+      html[data-theme='dark'] .summary-header {
+        background: var(--visual-surface-1) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
       /* Border geometry only, withheld from surfaces whose borders the product
          owns. Keyed on the inert [data-visual-preserve-border] hook rather than a
          class, because presentation classes are exactly what a CSS refactor churns
@@ -265,6 +273,35 @@ export async function waitForImagesSettled(
         image.decode().catch(() => undefined),
       ),
     );
+    await new Promise<void>((resolveFrame) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolveFrame()));
+    });
+    window.scrollTo(0, 0);
+  });
+}
+
+/**
+ * Prepare an oversized locator capture without fixed page chrome contaminating
+ * the table image when Playwright scrolls the locator into view.
+ */
+export async function prepareForElementScreenshot(page: Page): Promise<void> {
+  await prepareForScreenshot(page);
+  await page.addStyleTag({
+    content: `
+      /* Playwright scrolls oversized locator targets between comparison frames,
+         which makes sticky table layers recompose at different offsets. At the
+         capture origin static positioning preserves the same table content. */
+      [data-testid="exercise-table"] thead th,
+      [data-testid="exercise-table"] tr > :first-child,
+      [data-testid="workout-log-table"] thead th,
+      [data-testid="workout-log-table"] tr > :first-child {
+        position: static !important;
+      }
+      /* Fixed page chrome and closed offscreen overlays are not table content. */
+      #navbar { visibility: hidden !important; }
+      .vp-drawer[aria-hidden="true"],
+      .vp-backdrop[hidden] { display: none !important; }
+    `,
   });
 }
 

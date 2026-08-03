@@ -22,7 +22,7 @@ import {
   collectUnloadedImages,
   elementScreenshotOptions,
   installDeterminism,
-  prepareForScreenshot,
+  prepareForElementScreenshot,
   type VisualTheme,
 } from './visual-helpers';
 
@@ -79,7 +79,7 @@ test.describe('§4 visual baseline — workout_plan thumbnails', () => {
           expect(htmlTheme).toBe(theme);
 
           // Save screenshot artifact (full table only — keeps diff size sane).
-          await prepareForScreenshot(page);
+          await prepareForElementScreenshot(page);
 
           // The src assertions above pass the instant the markup exists. This
           // one is what the baseline actually depends on: decoded pixels. At
@@ -134,7 +134,7 @@ test.describe('§4 visual baseline — workout_log thumbnails', () => {
         const htmlTheme = await page.locator('html').getAttribute('data-theme');
         expect(htmlTheme).toBe(theme);
 
-        await prepareForScreenshot(page);
+        await prepareForElementScreenshot(page);
 
         expect(
           await collectUnloadedImages(

@@ -230,7 +230,7 @@
     "total_tests": 547
   },
   "pytest": {
-    "collected_deterministic": 2108,
+    "collected_deterministic": 2111,
     "deterministic_files": 102,
     "environment_dependent_files": [
       {
@@ -589,7 +589,7 @@
       },
       {
         "file": "tests/test_visual_capture_contracts.py",
-        "tests": 8
+        "tests": 11
       },
       {
         "file": "tests/test_visual_selector_contracts.py",

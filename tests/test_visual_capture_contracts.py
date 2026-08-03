@@ -40,6 +40,9 @@ VISUAL_SEED = REPO_ROOT / "e2e" / "fixtures" / "database.visual.seed.db"
 CATALOG_SEED = REPO_ROOT / "data" / "catalog.seed.db"
 PREPARE_VISUAL_DB = REPO_ROOT / "e2e" / "scripts" / "prepare_visual_db.py"
 PREPARE_E2E_DB = REPO_ROOT / "e2e" / "scripts" / "prepare_e2e_db.py"
+PLAYWRIGHT_CONFIG = REPO_ROOT / "playwright.config.ts"
+VISUAL_HELPER = REPO_ROOT / "e2e" / "visual-helpers.ts"
+FONT_AWESOME_ROOT = REPO_ROOT / "static" / "vendor" / "fontawesome"
 
 # Chromium cannot allocate a capture surface taller than this. Keep in step with
 # MAX_CAPTURE_HEIGHT_PX in e2e/visual-helpers.ts.
@@ -168,12 +171,60 @@ def test_the_retired_oversized_baselines_are_the_user_profile_mobile_pair():
 
 def test_the_capture_helper_declares_the_same_surface_limit():
     """The TypeScript capture path and this contract must agree on the number."""
-    helper = (REPO_ROOT / "e2e" / "visual-helpers.ts").read_text(encoding="utf-8")
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
     assert "MAX_CAPTURE_HEIGHT_PX = 16_384" in helper, (
         "e2e/visual-helpers.ts must export MAX_CAPTURE_HEIGHT_PX = 16_384 so a "
         "capture taller than Chromium's surface limit is segmented rather than "
         "silently truncated."
     )
+
+
+def test_visual_chromium_serializes_the_compositor_pipeline():
+    """Fresh browser processes must raster the same completed frame."""
+    config = PLAYWRIGHT_CONFIG.read_text(encoding="utf-8")
+    required = (
+        "'--run-all-compositor-stages-before-draw'",
+        "'--disable-threaded-animation'",
+        "'--disable-threaded-scrolling'",
+        "'--disable-checker-imaging'",
+        "'--disable-image-animation-resync'",
+    )
+    missing = [literal for literal in required if literal not in config]
+    assert not missing, f"Deterministic compositor controls missing: {missing}"
+
+
+def test_oversized_element_captures_exclude_fixed_and_sticky_page_layers():
+    """Table baselines must contain the table, not recomposited page chrome."""
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    required = (
+        '[data-testid="exercise-table"] thead th',
+        '[data-testid="workout-log-table"] thead th',
+        '.vp-drawer[aria-hidden="true"]',
+        "html[data-theme='dark'] .summary-header",
+        "export async function prepareForElementScreenshot",
+        "#navbar { visibility: hidden !important; }",
+    )
+    missing = [literal for literal in required if literal not in helper]
+    assert not missing, f"Element-capture determinism controls missing: {missing}"
+
+
+def test_font_awesome_is_local_and_complete_for_offline_visual_runs():
+    """Icon pixels must not depend on cdnjs availability or CORS headers."""
+    base = (REPO_ROOT / "templates" / "base.html").read_text(encoding="utf-8")
+    assert "vendor/fontawesome/css/all.min.css" in base
+    assert "cdnjs.cloudflare.com/ajax/libs/font-awesome" not in base
+
+    required = (
+        FONT_AWESOME_ROOT / "css" / "all.min.css",
+        FONT_AWESOME_ROOT / "webfonts" / "fa-solid-900.woff2",
+        FONT_AWESOME_ROOT / "webfonts" / "fa-regular-400.woff2",
+        FONT_AWESOME_ROOT / "webfonts" / "fa-brands-400.woff2",
+        FONT_AWESOME_ROOT / "LICENSE.txt",
+    )
+    missing = [str(path.relative_to(REPO_ROOT)) for path in required if not path.is_file()]
+    assert not missing, f"Vendored Font Awesome files missing: {missing}"
+    empty = [str(path.relative_to(REPO_ROOT)) for path in required if path.stat().st_size == 0]
+    assert not empty, f"Vendored Font Awesome files are empty: {empty}"
 
 
 # --------------------------------------------------------------------------
