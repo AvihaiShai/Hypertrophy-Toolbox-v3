@@ -32,13 +32,6 @@ import { initializePlanVolumePanel } from './modules/plan_volume_panel.js';
 import { notifyVolumeAffectingPlanChange } from './modules/workout-plan-events.js';
 import { api } from './modules/fetch-wrapper.js';
 
-const APP_DEBUG = false;
-const appDebugLog = (...args) => {
-    if (APP_DEBUG) {
-        console.log(...args);
-    }
-};
-
 // Make certain functions globally available
 window.removeExercise = removeExercise;
 window.clearWorkoutPlan = clearWorkoutPlan;
@@ -176,37 +169,15 @@ initializeNavbarEnhancements();
 initializeWorkoutDropdowns();
 
 // Page initializer functions
-function initializeHomePage() {
-    appDebugLog('Initializing Home page');
-    return {
-        cleanup: () => {
-            appDebugLog('Cleaning up Home page');
-        }
-    };
-}
-
 function initializeWeeklySummary() {
-    appDebugLog('Initializing Weekly Summary page');
     fetchWeeklySummary();
-    return {
-        cleanup: () => {
-            appDebugLog('Cleaning up Weekly Summary page');
-        }
-    };
 }
 
 function initializeSessionSummary() {
-    appDebugLog('Initializing Session Summary page');
     fetchSessionSummary();
-    return {
-        cleanup: () => {
-            appDebugLog('Cleaning up Session Summary page');
-        }
-    };
 }
 
 function initializeWorkoutPlan() {
-    appDebugLog('Initializing Workout Plan page');
     initializeFilters();
     initializeFilterKeyboardEvents();
     initializeAdvancedFilters();
@@ -217,30 +188,17 @@ function initializeWorkoutPlan() {
     initializePlanVolumePanel();
     initializeWorkoutControlsAnimation();
     // fetchWorkoutPlan is already called inside initializeWorkoutPlanHandlers
-    return {
-        cleanup: () => {
-            appDebugLog('Cleaning up Workout Plan page');
-        }
-    };
 }
 
 function initializeProgressionPage() {
-    appDebugLog('Initializing Progression Plan page');
     initializeProgressionPlan();
 }
 
 function initializeBackupPage() {
-    appDebugLog('Initializing Backup Center page');
     initializeBackupCenter();
-    return {
-        cleanup: () => {
-            appDebugLog('Cleaning up Backup Center page');
-        }
-    };
 }
 
 const pageInitializers = {
-    '/': initializeHomePage,
     '/workout_plan': initializeWorkoutPlan,
     '/workout_log': initializeWorkoutLog,
     '/weekly_summary': initializeWeeklySummary,
@@ -269,19 +227,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const initializer = pageInitializers[currentPath];
     if (initializer) {
         initializer();
-    } else {
-        appDebugLog(`No specific initialization for path: ${currentPath}`);
     }
 });
 
 function initializeModules() {
     const path = window.location.pathname;
-    appDebugLog(`Initializing modules for path: ${path}`);
 
     switch (path) {
         // ... other cases ...
         case '/progression':
-            appDebugLog('Initializing Progression Plan page');
             initializeProgressionPage();
             break;
     }

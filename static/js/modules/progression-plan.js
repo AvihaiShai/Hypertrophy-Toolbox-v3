@@ -97,29 +97,16 @@ export function initializeProgressionPlan() {
         });
     }
     
-    console.log('Initializing progression plan with elements:', {
-        exerciseSelect,
-        suggestionsContainer,
-        suggestionsList,
-        goalModal
-    });
-    
     if (!exerciseSelect) {
         console.error('exerciseSelect is null!');
         return;
     }
-    
-    // Add event listeners
-    exerciseSelect.addEventListener('click', () => {
-        console.log('Exercise select clicked');
-    });
-    
+
     exerciseSelect.addEventListener('change', handleExerciseChange);
     
     // Add event listener for goal setting buttons
     document.addEventListener('click', async function(e) {
         if (e.target.classList.contains('set-goal-btn')) {
-            console.log('Goal button clicked:', e.target);
             const rawGoalType = e.target.dataset.goalType;
             const exercise = e.target.dataset.exercise;
             const prefilledCurrentValue = e.target.dataset.currentValue;
@@ -137,9 +124,7 @@ export function initializeProgressionPlan() {
                 'technique': 'technique'
             };
             const goalType = goalTypeMapping[rawGoalType] || rawGoalType;
-            console.log('Goal type:', rawGoalType, '-> mapped to:', goalType, 'Exercise:', exercise);
-            console.log('Prefilled values - current:', prefilledCurrentValue, 'target:', prefilledTargetValue);
-            
+
             // Pre-fill current values based on goal type
             const currentValueInput = document.getElementById('currentValue');
             const targetValueInput = document.getElementById('targetValue');
@@ -159,28 +144,24 @@ export function initializeProgressionPlan() {
                 
                 if (hasValidCurrentValue && hasValidTargetValue) {
                     // Use the pre-calculated values from the suggestion
-                    console.log('Using prefilled values from suggestion');
                     currentValueInput.value = prefilledCurrentValue;
                     targetValueInput.value = prefilledTargetValue;
                 } else {
                     // Fallback: Fetch current value from workout history
                     try {
-                        console.log(`Fetching current value for ${exercise} (${goalType})`);
-                        const response = await api.post('/get_current_value', 
+                        const response = await api.post('/get_current_value',
                             { exercise, goal_type: goalType }, 
                             { showLoading: false, showErrorToast: false }
                         );
                         
                         const data = unwrapProgressionResponseData(response);
-                        console.log('Received current value data:', data);
-                        
+
                         if (data && typeof data === 'object' && data.error) {
                             throw new Error(data.error);
                         }
                         
                         // Ensure we're getting a number
                         const currentValue = parseFloat(data.current_value) || 0;
-                        console.log('Parsed current value:', currentValue);
                         currentValueInput.value = data.current_value;
                         
                         // Update target value based on current value using suggested increments
@@ -277,8 +258,6 @@ export function initializeProgressionPlan() {
                 throw new Error('Please enter current and target values');
             }
             
-            console.log('Saving goal:', formData);
-            
             const response = await api.post('/save_progression_goal', formData, { showErrorToast: false });
             
             goalModal.hide();
@@ -293,27 +272,20 @@ export function initializeProgressionPlan() {
     });
     
     async function handleExerciseChange() {
-        console.log('Exercise select changed');
         const exercise = this.value;
-        console.log('Selected exercise:', exercise);
-        
+
         if (!exercise) {
             suggestionsContainer.style.display = 'none';
             return;
         }
         
         try {
-            console.log('Sending request for exercise:', exercise);
-            
-            const response = await api.post('/get_exercise_suggestions', 
-                { exercise }, 
+            const response = await api.post('/get_exercise_suggestions',
+                { exercise },
                 { showLoading: false, showErrorToast: false }
             );
-            
-            console.log('Response received:', response);
-            
+
             const suggestions = unwrapProgressionResponseData(response);
-            console.log('Suggestions data:', suggestions);
 
             if (!Array.isArray(suggestions)) {
                 throw new Error('Invalid suggestions data received');
@@ -340,7 +312,6 @@ export function initializeProgressionPlan() {
     }
 
     function displaySuggestions(suggestions, exercise, fatigueContext) {
-        console.log('Displaying suggestions for:', exercise);
         suggestionsList.innerHTML = '';
 
         if (!suggestions || suggestions.length === 0) {
@@ -379,7 +350,6 @@ export function initializeProgressionPlan() {
                 </div>
             `;
             suggestionsList.appendChild(card);
-            console.log('Added suggestion card:', suggestion.type);
         });
 
         renderProgressionFatigueContext(fatigueContext);

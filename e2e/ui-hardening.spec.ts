@@ -739,12 +739,13 @@ test.describe('UI Hardening — Workout Log Modal Keyboard & Focus', () => {
 /* ========================================================================= *
  * KI-005 — Workout Controls persistence across reload
  *
- * PRE-IMPLEMENTATION ACCEPTANCE TESTS. Authored by `automation-qa` from the approved
- * acceptance criteria (docs/ki005_controls_persistence/PLANNING.md §0) and the four Gate 1
- * rulings — AR-3 (restored weight marks dirty), AR-4 (synchronous `input` capture, no
- * commit-on-blur), TS-7 (fallback = the six pinned defaults), OWNER-1 (hydration ordering).
- * They were written BEFORE any KI-005 implementation existed (Plan v2 Sequence Step 0,
- * blindness-by-sequencing) and are expected to be RED until it lands.
+ * GREEN REGRESSION LOCKS. KI-005 shipped 2026-07-13 (`2426c89`); these tests have
+ * been green since. Authored by `automation-qa` from the approved acceptance criteria
+ * (docs/ki005_controls_persistence/PLANNING.md §0) and the four Gate 1 rulings — AR-3
+ * (restored weight marks dirty), AR-4 (synchronous `input` capture, no commit-on-blur),
+ * TS-7 (fallback = the six pinned defaults), OWNER-1 (hydration ordering). They were
+ * written BEFORE any implementation existed (Plan v2 Sequence Step 0,
+ * blindness-by-sequencing), so they were RED by design until it landed.
  *
  * Criterion → test map:
  *   1 + 2  restore all six on reload ......... "full reload restores all six Workout Controls"

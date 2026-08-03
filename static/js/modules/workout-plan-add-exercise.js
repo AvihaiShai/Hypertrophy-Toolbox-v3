@@ -30,13 +30,6 @@ export function configureAddExercise(deps) {
     Object.assign(addExerciseDeps, deps);
 }
 
-const WORKOUT_PLAN_DEBUG = false;
-const workoutPlanDebugLog = (...args) => {
-    if (WORKOUT_PLAN_DEBUG) {
-        console.log(...args);
-    }
-};
-
 let isExerciseSubmissionPending = false;
 
 /**
@@ -228,8 +221,6 @@ export function handleAddExercise(e) {
 
     if (missingFields.length > 0) {
         const message = `Please fill in the following required fields: ${missingFields.join(', ')}`;
-            workoutPlanDebugLog('Validation failed:', message);
-            workoutPlanDebugLog('Current form values:', { exercise, routine, sets, minRepRange, maxRepRange, weight });
         showToast(message, true);
         return;
     }
@@ -237,7 +228,6 @@ export function handleAddExercise(e) {
     // Prepare exercise data
     const exerciseData = buildAddExercisePayload({ exercise, routine, sets, minRepRange, maxRepRange, rir, weight, rpe });
 
-    workoutPlanDebugLog('Sending exercise data:', exerciseData);
     void sendExerciseData(exerciseData);
 }
 
