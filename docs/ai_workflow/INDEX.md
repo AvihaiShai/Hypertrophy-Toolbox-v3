@@ -27,6 +27,11 @@
 - [Volume taxonomy audit](../archive/VOLUME_TAXONOMY_AUDIT.md)
 
 ## Workflow artifacts
+- [P1.6 dependency-queue closeout](../P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md) — CLOSED
+  2026-08-03. #287 (stylelint) and #288 (Playwright) closed, both frozen by
+  `dependabot.yml` ignore rules. Carries the **unblock condition** for the deferred
+  Playwright 1.62.1 upgrade: #281 merged **and** #286 resolved, then bump both
+  ecosystems and regenerate both platforms' baselines in one arc
 - [Cross-model orchestration proposal](CROSS_MODEL_ORCHESTRATION_PLAN.md) — proposed
   opt-in `$orchestrate` Codex-to-Opus workflow; Gate 0/Gate 1 pending and not
   implemented

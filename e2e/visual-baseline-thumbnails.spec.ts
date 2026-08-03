@@ -19,9 +19,10 @@
 import { test, expect, Page } from '@playwright/test';
 import { ROUTES } from './fixtures';
 import {
+  collectUnloadedImages,
   elementScreenshotOptions,
   installDeterminism,
-  prepareForScreenshot,
+  prepareForElementScreenshot,
   waitForVisualReady,
   type VisualTheme,
 } from './visual-helpers';
@@ -79,8 +80,25 @@ test.describe('§4 visual baseline — workout_plan thumbnails', () => {
           expect(htmlTheme).toBe(theme);
 
           // Save screenshot artifact (full table only — keeps diff size sane).
-          await prepareForScreenshot(page);
+          await prepareForElementScreenshot(page);
+
+          // The src assertions above pass the instant the markup exists. This
+          // one is what the baseline actually depends on: decoded pixels. At
+          // 375x667 all six thumbnails were still unloaded here before
+          // prepareForScreenshot learned to wait for them.
+          expect(
+            await collectUnloadedImages(
+              page,
+              '#workout_plan_table_body img.exercise-thumbnail',
+            ),
+            'exercise thumbnails must be decoded before the capture',
+          ).toEqual([]);
+
+          // Decoded pixels do not mean a settled layout: the rows they land in
+          // can still be resizing. Geometry has to hold still too.
           await waitForVisualReady(page, { name: 'plan-thumbnails' });
+
+
           const target = page.getByTestId('exercise-table');
           await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
 
@@ -122,8 +140,19 @@ test.describe('§4 visual baseline — workout_log thumbnails', () => {
         const htmlTheme = await page.locator('html').getAttribute('data-theme');
         expect(htmlTheme).toBe(theme);
 
-        await prepareForScreenshot(page);
+        await prepareForElementScreenshot(page);
+
+        expect(
+          await collectUnloadedImages(
+            page,
+            '#workout-log-table img.exercise-thumbnail',
+          ),
+          'exercise thumbnails must be decoded before the capture',
+        ).toEqual([]);
+
         await waitForVisualReady(page, { name: 'log-thumbnails' });
+
+
         const target = page.getByTestId('workout-log-table');
         await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
 
