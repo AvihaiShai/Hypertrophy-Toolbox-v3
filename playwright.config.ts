@@ -35,7 +35,9 @@ const seedDbCommand = `${pythonExecutable} ${path.join('e2e', 'scripts', seedScr
 const defaultViewport = { width: 1440, height: 900 };
 const deterministicChromiumArgs = [
   '--disable-font-subpixel-positioning',
+  '--font-render-hinting=none',
   '--disable-gpu',
+  '--disable-skia-runtime-opts',
   '--run-all-compositor-stages-before-draw',
   '--disable-threaded-animation',
   '--disable-threaded-scrolling',

@@ -169,6 +169,16 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
         border-color: transparent !important;
         color: transparent !important;
       }
+      /* Sticky table cells are promoted into compositor-managed layers. That is
+         useful while a person scrolls, but a baseline capture is always made at
+         the origin and gains nothing from the separate raster path. Keep every
+         table capture on the same static paint path, including full-page shots. */
+      [data-testid="exercise-table"] thead th,
+      [data-testid="exercise-table"] tr > :first-child,
+      [data-testid="workout-log-table"] thead th,
+      [data-testid="workout-log-table"] tr > :first-child {
+        position: static !important;
+      }
       input[type="number"]::-webkit-outer-spin-button,
       input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none !important;
@@ -288,20 +298,21 @@ export async function prepareForElementScreenshot(page: Page): Promise<void> {
   await prepareForScreenshot(page);
   await page.addStyleTag({
     content: `
-      /* Playwright scrolls oversized locator targets between comparison frames,
-         which makes sticky table layers recompose at different offsets. At the
-         capture origin static positioning preserves the same table content. */
-      [data-testid="exercise-table"] thead th,
-      [data-testid="exercise-table"] tr > :first-child,
-      [data-testid="workout-log-table"] thead th,
-      [data-testid="workout-log-table"] tr > :first-child {
-        position: static !important;
-      }
       /* Fixed page chrome and closed offscreen overlays are not table content. */
       #navbar { visibility: hidden !important; }
       .vp-drawer[aria-hidden="true"],
       .vp-backdrop[hidden] { display: none !important; }
     `,
+  });
+
+  // The element-only style above invalidates paint after the common readiness
+  // wait. Do not let locator auto-scrolling race that new frame.
+  await page.evaluate(async () => {
+    window.scrollTo(0, 0);
+    await new Promise<void>((resolveFrame) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolveFrame()));
+    });
+    window.scrollTo(0, 0);
   });
 }
 
