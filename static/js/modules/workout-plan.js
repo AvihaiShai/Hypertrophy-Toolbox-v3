@@ -85,25 +85,6 @@ configureAddExercise({ refreshPlan: fetchWorkoutPlan });
 // back into the feature module.
 configureSupersets({ refreshPlan: fetchWorkoutPlan });
 
-/**
- * Helper function to handle standardized API responses
- * @param {Response} response - Fetch response object
- * @returns {Promise<Object>} Extracted data or throws error
- * @deprecated Use api wrapper from fetch-wrapper.js instead
- */
-async function handleApiResponse(response) {
-    const data = await response.json();
-    
-    // Check if response is in standardized format
-    if (data.ok === false) {
-        const errorMsg = data.error?.message || data.error || 'An error occurred';
-        throw new Error(errorMsg);
-    }
-    
-    // If response.ok is true, return the data property, otherwise return the entire object (backward compatibility)
-    return data.ok === true ? (data.data !== undefined ? data.data : data) : data;
-}
-
 // Workout plan functionality
 export async function fetchWorkoutPlan() {
     try {
@@ -133,13 +114,6 @@ export async function fetchWorkoutPlan() {
         }
     }
 }
-
-    const WORKOUT_PLAN_DEBUG = false;
-    const workoutPlanDebugLog = (...args) => {
-        if (WORKOUT_PLAN_DEBUG) {
-            console.log(...args);
-        }
-    };
 
 export async function updateExerciseDetails(exercise) {
     if (!exercise) return;
@@ -312,7 +286,6 @@ export function handleRoutineSelection() {
 
             // If there are active filters, apply them to get filtered exercises
             if (Object.keys(filters).length > 0) {
-                    workoutPlanDebugLog('DEBUG: Applying filters after routine selection:', filters);
                 const { filterExercises } = await import('./filters.js');
                 // Preserve the currently selected exercise when reapplying filters
                 await filterExercises(true);

@@ -93,12 +93,6 @@ test.describe('Progression Plan Page', () => {
 
     // Should have at least the placeholder option
     expect(count).toBeGreaterThanOrEqual(1);
-
-    // Debug info should be present (shows exercise count)
-    const debugInfo = page.locator('.debug-info');
-    if (await debugInfo.isVisible()) {
-      await expect(debugInfo).toContainText('Available exercises');
-    }
   });
 
   test('selecting exercise shows suggestions container', async ({ page }) => {
