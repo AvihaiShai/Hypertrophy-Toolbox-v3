@@ -161,6 +161,10 @@ Severity, stated precisely:
   Landing the template deletion first makes #281's progression baselines stale
   *before* the owner finishes reviewing them, and the visual-determinism arc
   (#286, Gate 2 FAILED) is already open on the same surface.
+  → **Superseded at execution.** #281 merged as `864043f` on 2026-08-03, after
+  regenerating on top of #290. The collision resolved itself in the only way it
+  could: the owner review finished first, and this packet now stales the merged
+  set rather than a draft under review. See the execution record below.
 - Windows baselines can be regenerated locally; Linux baselines cannot be
   produced from this machine. Re-baselining here would be an **intentional**
   markup change, not a tolerance raise — but it must be an owner decision, not a
@@ -230,6 +234,13 @@ Sequencing facts, verified 2026-08-03 — recheck at execution:
 - No open PR touches any file in scope. #287/#288 are dependency bumps, #286 is
   visual determinism, and #281 touches only `e2e/__screenshots__/linux/**` — which
   is exactly the §5 overlap, and only if Q3 answers (b).
+  → **Rechecked after #281 merged (`864043f`).** The claim was too narrow: #281
+  also landed `e2e/visual-helpers.ts`, `playwright.config.ts`,
+  `tests/test_visual_capture_contracts.py` and the `linux/visual.spec.ts`
+  snapshot counts in `tests/test_css_wp4_4_a_baseline_contracts.py`. Merging it
+  into this branch produced **no conflict** — the two manifest edits sit in
+  different blocks of `docs/CSS_PHASE4_WP4_4_A_BASELINE.json` — and the gates
+  were re-run on the merge commit.
 - **N5 stands:** regenerate the test inventory as the final step, never mid-branch.
 
 ## Execution record
@@ -319,22 +330,71 @@ working exactly as designed: the escalation it demands is §Baselines above.
 CI caught it instead. **Re-run pytest after any `--update-snapshots`, not
 before.**
 
-**Linux baselines were deliberately not touched** (owner instruction) and remain
-for **#281**. Note for whoever reviews #281: its six Linux progression PNGs are
-regenerated at `4de6b62`, which predates #290, so they carry the same
-empty-goals-table staleness plus this packet's removed line.
+**Linux baselines were deliberately not touched** (owner instruction) and were
+left to **#281**, which merged as `864043f` on 2026-08-03 and has since been
+merged into this branch.
+
+**Correction — the earlier note here was wrong after #281 finished.** It said
+#281's six Linux progression PNGs were regenerated at `4de6b62`, "which predates
+#290, so they carry the same empty-goals-table staleness plus this packet's
+removed line." That described an intermediate state of `recovery/linux-visual-baselines`.
+#281 went on to merge `origin/main` @ #290 into itself (`620519d`) and
+regenerated *after* that, so the Linux set on `main` is **current with #290**,
+not stale against it. The committed evidence:
+
+| Baseline | Committed size | Reading |
+|---|---|---|
+| `linux/progression-mobile-{light,dark}.png` | **375×2132** | #290's populated goals table, counter line still present |
+| `linux/progression-tablet-{light,dark}.png` | **770×1024** | #290's 768→770px tablet overflow already encoded |
+| `win32/progression-mobile-{light,dark}.png` | **375×2113** | same render minus this packet's counter line |
+
+So the residual effect is smaller and cleaner than the note claimed: merging this
+packet stales exactly the six Linux `progression-*` PNGs, by exactly this
+packet's own 19px delta and nothing else. That is **intentional and disclosed**,
+not a defect — and it is a deep-gate concern only, since `visual.spec.ts` is
+excluded from required CI and `visual-linux` is manual-only
+([`deep-gate.yml:10-22`](../../.github/workflows/deep-gate.yml#L10-L22)).
+
+**Linux is deliberately still not regenerated in this PR.** It cannot be produced
+from this machine, and a runner-generated set needs the same owner eye-review
+#281 was held to. The Linux manifest digests and counts written by #281
+(`linux/visual.spec.ts` count **68**, `9c51f4a5…`; `linux/visual-baseline-thumbnails`
+`25b6f1cf…`) are preserved byte-for-byte through the merge, alongside this
+packet's win32 digest `db6c2b42…`.
 
 ### Verification evidence
 
+Two rounds are recorded: the original run at `828fb07`, and a **full re-run on the
+`864043f` merge commit** (`65f81df`). Every gate below is the re-run result.
+
 | Gate | Result |
 |---|---|
-| `pytest tests/ -q` | **2443 passed, 2 skipped** (8m12s) — then re-run after the re-baseline + manifest update (see §Baselines) |
+| `pytest tests/ -q` | **2443 passed, 2 skipped** (6m37s) on the merge commit — identical to the 828fb07 count. Original run 8m12s, re-run after the re-baseline + manifest update (see §Baselines) |
 | `npx vitest run` | **105 passed**, 9 suites |
-| Chromium `progression`, `smoke-navigation`, `empty-states`, `workout-plan`, `ui-hardening`, `exercise-interactions` | **145 passed**, 0 failed |
-| `visual.spec.ts -g "visual baseline: progression"` (win32) | 6 regenerated, reviewed image-by-image, re-run **6 passed** |
+| Chromium `progression`, `smoke-navigation`, `empty-states`, `workout-plan`, `ui-hardening`, `exercise-interactions` | Re-run **3×** on the merge commit: **145 passed** / **145 passed** / 144 passed + **1 flake**. See the flake note below. |
+| `visual.spec.ts -g "visual baseline: progression"` (win32) | 6 regenerated, reviewed image-by-image; re-run on the merge commit with `PW_VISUAL_SEED=1`: **6 passed**. #281's new Chromium flags did **not** stale them. |
+| Manifest contracts — `tests/test_css_wp4_4_a_baseline_contracts.py` + `tests/test_visual_capture_contracts.py` | **20 passed** on the merge commit |
 | `node --check` on all four edited JS modules | clean |
-| Residue grep (`APP_DEBUG`, `appDebugLog`, `WORKOUT_PLAN_DEBUG`, `workoutPlanDebugLog`, `handleApiResponse`, `debug-info`, `Available exercises`) outside `build/`+`dist/` | **0 hits** |
+| Residue grep (`APP_DEBUG`, `appDebugLog`, `WORKOUT_PLAN_DEBUG`, `workoutPlanDebugLog`, `handleApiResponse`, `debug-info`, `Available exercises`) across `*.js`/`*.ts`/`*.html`/`*.css` outside `build/`+`dist/`+`artifacts/` | **2 hits, both expected**: `#debug-info` / `#debug-info pre` at `static/css/pages-workout-log.css:613,621` — the **ID** selector, a different symbol from the removed `.debug-info` **class**, matching no element (out-of-scope item 2). Every other symbol **0 hits**. The earlier flat "0 hits" line here was imprecise about the CSS ID rules. |
 | `scripts/generate_test_inventory.py --check` | run last (**N5**): **"Test inventory is up to date"** — no drift, nothing to regenerate. This packet removes assertions *inside* an existing test but adds/removes no test, so the generated inventory is unchanged and the N5 contention with #274/#275 does not arise. |
+
+**Observed flake — recorded, not swept.** On the *first* of three post-merge batch
+runs, `e2e/ui-hardening.spec.ts:951` — KI-005 "criterion 3 (TS-3): the PRE-ADD user
+values survive a successful Add Exercise (Reading A)" — failed. It then passed in
+isolation (`-g "criterion 3 \(TS-3\)"`, 1 passed) and passed in both subsequent
+full batch runs, 145/145 each. Assessment:
+
+- **Not caused by this packet.** The branch's only edit to that file is the
+  comment header (item 6); `git diff 828fb07 HEAD -- e2e/ui-hardening.spec.ts`
+  is comment-only, so the failing test's code is byte-identical to `main`. The
+  JS this packet deleted from `workout-plan-add-exercise.js` is three
+  `workoutPlanDebugLog()` calls that were already no-ops behind a `false` const.
+- **Order- or state-dependent.** `playwright.config.ts` runs `workers: 1`,
+  `fullyParallel: false`, `retries: 0` locally, so this was a raw first-attempt
+  signal on a DB-mutating batch. CI sets `retries: 2`.
+- **Not silently accepted.** It is flagged here so a reviewer sees it. If it
+  recurs it belongs in its own investigation, not in a hygiene packet — this
+  packet must not be widened to chase it.
 
 ### Out-of-scope observations (not fixed here)
 
