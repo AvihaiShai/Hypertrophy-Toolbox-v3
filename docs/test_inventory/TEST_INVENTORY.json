@@ -230,8 +230,8 @@
     "total_tests": 547
   },
   "pytest": {
-    "collected_deterministic": 2100,
-    "deterministic_files": 101,
+    "collected_deterministic": 2111,
+    "deterministic_files": 102,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -588,6 +588,10 @@
         "tests": 22
       },
       {
+        "file": "tests/test_visual_capture_contracts.py",
+        "tests": 11
+      },
+      {
         "file": "tests/test_visual_selector_contracts.py",
         "tests": 5
       },
@@ -648,7 +652,7 @@
         "tests": 40
       }
     ],
-    "total_files": 102
+    "total_files": 103
   },
   "schema_version": 1
 }

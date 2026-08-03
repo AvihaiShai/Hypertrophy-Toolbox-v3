@@ -19,6 +19,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { ROUTES } from './fixtures';
 import {
+  collectUnloadedImages,
   elementScreenshotOptions,
   installDeterminism,
   prepareForElementScreenshot,
@@ -79,6 +80,19 @@ test.describe('§4 visual baseline — workout_plan thumbnails', () => {
 
           // Save screenshot artifact (full table only — keeps diff size sane).
           await prepareForElementScreenshot(page);
+
+          // The src assertions above pass the instant the markup exists. This
+          // one is what the baseline actually depends on: decoded pixels. At
+          // 375x667 all six thumbnails were still unloaded here before
+          // prepareForScreenshot learned to wait for them.
+          expect(
+            await collectUnloadedImages(
+              page,
+              '#workout_plan_table_body img.exercise-thumbnail',
+            ),
+            'exercise thumbnails must be decoded before the capture',
+          ).toEqual([]);
+
           const target = page.getByTestId('exercise-table');
           await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
 
@@ -121,6 +135,15 @@ test.describe('§4 visual baseline — workout_log thumbnails', () => {
         expect(htmlTheme).toBe(theme);
 
         await prepareForElementScreenshot(page);
+
+        expect(
+          await collectUnloadedImages(
+            page,
+            '#workout-log-table img.exercise-thumbnail',
+          ),
+          'exercise thumbnails must be decoded before the capture',
+        ).toEqual([]);
+
         const target = page.getByTestId('workout-log-table');
         await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
 
