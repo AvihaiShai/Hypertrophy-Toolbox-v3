@@ -14,7 +14,7 @@ Every test count in this repository's prose should link here rather than restate
 |---|---|
 | Playwright tests (chromium) | **589** |
 | Playwright spec files | **31** |
-| Required functional gate — `E2E Functional (Chromium)` | **432** tests across 24 specs |
+| Required functional gate — `E2E Functional (Chromium)` | **474** tests across 25 specs |
 | pytest collected nodes (deterministic subset) | **2112** across 102 files |
 | pytest test files (all) | **103** |
 | Hard waits (lines containing waitForTimeout) | **92** across 15 files |
@@ -50,7 +50,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `user-profile.spec.ts` | 24 | yes |
 | `validation-boundary.spec.ts` | 23 | yes |
 | `visual-baseline-thumbnails.spec.ts` | 18 | — |
-| `visual-field-separator.spec.ts` | 42 | — |
+| `visual-field-separator.spec.ts` | 42 | yes |
 | `visual.spec.ts` | 66 | — |
 | `volume-progress.spec.ts` | 16 | yes |
 | `volume-splitter.spec.ts` | 27 | yes |

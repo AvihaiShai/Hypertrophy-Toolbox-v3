@@ -17,9 +17,13 @@ import { ROUTES } from './fixtures';
  *     components.css rule.
  *
  * Rows are injected where a page renders none, so the contract holds for a
- * populated account even on surfaces the visual seed leaves empty. That gap is
+ * populated account even on surfaces the seed leaves empty. That gap is
  * exactly why this defect survived: with zero rows there is no separator to
  * photograph, so no baseline could ever have failed.
+ *
+ * Runs in the required functional gate on the wiped functional seed, where the
+ * summary pages render only an empty-state message row — see the injection note
+ * below for why that has to be topped up to two real data rows.
  */
 
 const MIN_CONTRAST = 3.0; // WCAG 2.2 SC 1.4.11, non-text contrast
@@ -54,25 +58,35 @@ for (const surface of SURFACES) {
           const tbl = document.querySelector(table);
           if (!tbl) return { missing: true as const };
 
-          // Guarantee a measurable row. A page that renders none in the test
-          // fixture still has to satisfy the contract for a real account.
+          // Guarantee TWO measurable data rows, and measure the first of them.
+          //
+          // Two, not one, because the last row's bottom border is suppressed on
+          // purpose (`tbody tr:last-child td { border-bottom-color: transparent }`
+          // in components.css) — the card outline draws that edge instead. A
+          // separator only exists *between* adjacent rows, so a single-row table
+          // has nothing to measure and measuring it asserts against design intent.
+          //
+          // A one-cell row is an empty-state message ("No data logged yet"), not a
+          // data row: it has no label/value pair to divide, and on the wiped
+          // functional seed it is the only row the summary pages render. Counting
+          // it as a row is what made this spec pass on the plan-bearing visual seed
+          // and fail on the functional one.
           const cols = tbl.querySelectorAll('thead th').length || 3;
-          let body = tbl.querySelector('tbody');
-          if (!body) body = tbl.appendChild(document.createElement('tbody'));
-          if (!body.querySelector('tr')) {
-            for (let r = 0; r < 2; r++) {
-              const tr = document.createElement('tr');
-              for (let c = 0; c < cols; c++) {
-                const td = document.createElement('td');
-                td.setAttribute('data-label', 'label ' + c);
-                td.textContent = 'value';
-                tr.appendChild(td);
-              }
-              body.appendChild(tr);
+          const body = tbl.querySelector('tbody') ?? tbl.appendChild(document.createElement('tbody'));
+          const dataRows = () =>
+            Array.from(body.querySelectorAll('tr')).filter((r) => r.querySelectorAll('td').length > 1);
+          while (dataRows().length < 2) {
+            const row = document.createElement('tr');
+            for (let c = 0; c < cols; c++) {
+              const td = document.createElement('td');
+              td.setAttribute('data-label', 'label ' + c);
+              td.textContent = 'value';
+              row.appendChild(td);
             }
+            body.appendChild(row);
           }
 
-          const tr = body.querySelector('tr') as HTMLElement;
+          const tr = dataRows()[0] as HTMLElement;
           const td = tr.querySelector('td') as HTMLElement;
           const parse = (s: string) => {
             const m = s.match(/rgba?\(([^)]+)\)/);

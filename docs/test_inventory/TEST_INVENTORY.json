@@ -71,8 +71,8 @@
     "project": "chromium",
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
-      "spec_files": 24,
-      "tests": 432
+      "spec_files": 25,
+      "tests": 474
     },
     "specs": [
       {
@@ -201,7 +201,7 @@
         "tests": 18
       },
       {
-        "in_required_functional_set": false,
+        "in_required_functional_set": true,
         "spec": "visual-field-separator.spec.ts",
         "tests": 42
       },
