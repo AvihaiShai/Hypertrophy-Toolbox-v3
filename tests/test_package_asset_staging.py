@@ -28,8 +28,8 @@ from scripts.stage_package_assets import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# One reviewed asset per packaged category. Fonts are absent on purpose: the
-# repository tracks no font files, so the manifest cannot ship one.
+# One reviewed asset per packaged category. Font Awesome is deliberately local
+# so packaged and visual runs do not depend on cross-origin CDN font requests.
 REQUIRED_ASSETS = {
     "template": "templates/base.html",
     "template partial": "templates/partials/_volume_controls.html",
@@ -44,6 +44,15 @@ REQUIRED_ASSETS = {
     "vendor license": "static/vendor/free-exercise-db/LICENSE",
     "vendor notice": "static/vendor/musclemap/NOTICE.md",
     "vendor version": "static/vendor/musclemap/VERSION",
+    "Font Awesome brands": (
+        "static/vendor/fontawesome/webfonts/fa-brands-400.woff2"
+    ),
+    "Font Awesome regular": (
+        "static/vendor/fontawesome/webfonts/fa-regular-400.woff2"
+    ),
+    "Font Awesome solid": (
+        "static/vendor/fontawesome/webfonts/fa-solid-900.woff2"
+    ),
     "exercise media": (
         "static/vendor/free-exercise-db/exercises/Barbell_Squat/0.jpg"
     ),
@@ -112,12 +121,17 @@ def test_manifest_covers_every_packaged_asset_category():
     }
     assert not missing
 
-    fonts = [
+    fonts = sorted(
         path
         for path in manifest
         if path.endswith((".woff", ".woff2", ".ttf", ".otf", ".eot"))
-    ]
-    assert fonts == []
+    )
+    expected_fonts = sorted(
+        path
+        for category, path in REQUIRED_ASSETS.items()
+        if category.startswith("Font Awesome")
+    )
+    assert fonts == expected_fonts
 
 
 def test_manifest_carries_no_repository_metadata():
