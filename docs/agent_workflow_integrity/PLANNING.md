@@ -64,7 +64,7 @@ expressed as prose.
 ### Verified premise (re-derived at `ed14bb3`, 2026-08-04)
 
 **P1.8 — the v23 row names three documents. There are eleven reference sites
-across eight files.** The row's own scoping ("three active workflow docs") is an
+across ten files.** The row's own scoping ("three active workflow docs") is an
 undercount, because no prior pass looked outside `docs/ai_workflow/`:
 
 | # | Site | Current text | Class |
@@ -81,10 +81,13 @@ undercount, because no prior pass looked outside `docs/ai_workflow/`:
 | 10 | [`ai_workflow/INDEX.md:9`](../ai_workflow/INDEX.md) | "optional local planning/audit trail if present; Tier 1 artifacts here should stand on their own" | hedged pointer |
 | 11 | [`.gitignore:91`](../../.gitignore) | "# AI workflow scratch (see .claude/SHARED_PLAN.md Appendix A1.1, A2.1)" | directive in a comment |
 
-Four of these carry a **relative Markdown link** to the absent file
-(`../../.claude/SHARED_PLAN.md`) — sites 3, 6, 7, 8, 9 — which is the "4 genuine
-active authority defects" the v23 link sweep counted. The other six are prose
-directives the link sweep could not see, which is why the row undercounts.
+Five of these carry a **relative Markdown link** to the absent file
+(`../../.claude/SHARED_PLAN.md`) — sites 3, 6, 7, 8, 9 — spread across **four**
+files, because `WORKSTREAM_OWNERSHIP.md` carries two. That four is the "4 genuine
+active authority defects" the v23 link sweep counted: the sweep reports files,
+not occurrences, so the two counts agree rather than conflict. The other six
+sites are prose directives no link sweep can see, which is why the row
+undercounts.
 
 **Orphaned numbering outside the SHARED_PLAN name.** The retired tier vocabulary
 also survives in [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) at three
@@ -301,10 +304,10 @@ Identical under `powershell` (5.1) and `pwsh` (7). The allowlist widened by
 exactly one entry and the guard still denies everything else — criteria 4 and 5.
 
 **(b) Link resolution.** Every relative Markdown link in the 15 changed
-documents: **180 resolve, 0 broken**, including the two anchors this packet
+documents: **181 resolve, 0 broken**, including the two anchors this packet
 introduces (`AUTONOMY.md#workflow-roles`, `QUALITY_GATE.md#plan-stage-routing`).
-Before the change, five of these files carried a link to a file that does not
-exist.
+Before the change, four of these files carried a link to a file that does not
+exist — five occurrences, since `WORKSTREAM_OWNERSHIP.md` carried two.
 
 **(c) Routing self-check.** `git status --short --untracked-files=all` against
 the production globs returns **nothing** — no `routes/`, `utils/`, `static/`,
