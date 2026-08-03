@@ -29,6 +29,16 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
+    # `playwright` is one half of a cross-ecosystem lockstep; the npm block below
+    # carries the full reasoning and the unblock condition. Dependabot cannot
+    # group pip and npm together, so leaving this side unignored just produces
+    # the same one-sided red from the other direction.
+    ignore:
+      - dependency-name: "playwright"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
 
   - package-ecosystem: "npm"
     directory: "/"
@@ -38,13 +48,67 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
-    # Stylelint is pinned as part of the committed CSS measurement baseline.
-    # Major upgrades require a deliberate re-baselining packet because changed
-    # rule semantics can alter warning counts even when the CSS is unchanged.
+    # Pins that are contracts, not preferences. Every entry below reds a required
+    # test the moment Dependabot moves it alone, so the rule exists to stop a
+    # weekly pull request that could only ever be closed.
+    #
+    # Only `version-update:` types are listed, deliberately. A security advisory
+    # against any of these still reaches us as a security update; what is
+    # suppressed is the routine version bump.
+    #
+    # NOT ignored, and deliberately so: `bootstrap` and `sass`. Bootstrap has a
+    # version contract too (tests/test_bootstrap_version_contract.py), but it is
+    # a *relative* one -- it reads whatever package.json declares and asserts
+    # base.html's two CDN URLs match. A bump reds it, and the fix is a two-line
+    # template edit, not a re-baselining packet. That is an upgrade worth seeing.
     ignore:
+      # Stylelint and its SCSS parser are the CSS measurement instrument, not
+      # ordinary tooling. tests/test_css_cascade_contracts.py pins both exactly
+      # and asserts the counters in docs/CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json
+      # (warningCount 7202 at sourceCommit 9ee7638). A changed rule or parser
+      # implementation moves that count on byte-identical CSS -- at which point
+      # the number stops measuring CSS debt and starts measuring tool churn.
+      #
+      # This rule covered majors only, the #268/#252 precedent written for
+      # stylelint 16 -> 17. But the contract asserts a *literal* version, so #287
+      # (16.11.0 -> 16.26.1, a minor) red it just as hard, and a patch would too.
+      # Widened to every version-update type on 2026-08-03. Moving either pin is
+      # a deliberate re-baselining packet that rewrites the committed JSON.
       - dependency-name: "stylelint"
         update-types:
           - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      - dependency-name: "postcss-scss"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+
+      # Playwright ships one browser build per release, and
+      # tests/test_playwright_version_contract.py (blindspot B9) requires
+      # package.json and requirements.txt to pin the identical literal version.
+      # Dependabot raises the two ecosystems as separate pull requests and cannot
+      # group across them, so every Playwright bump arrives one-sided and red --
+      # #288 (1.61.0 -> 1.62.1) was the first to prove it.
+      #
+      # The upgrade is not merely blocked on paperwork. 1.61.0 -> 1.62.1 moves
+      # Chromium 148.0.7778.96 -> 151.0.7922.34, and every committed visual
+      # baseline was rendered by 148. The visual specs run only in deep-gate.yml's
+      # manual, opt-in `visual-linux` job and are excluded from ci.yml, so the
+      # bump would invalidate all of them with nothing going red on the pull
+      # request -- the next deep-gate run inherits the wall of failures instead.
+      #
+      # UNBLOCK CONDITION: remove this entry and its pip twin once the
+      # visual-baseline arc has settled -- #281's Linux regeneration merged and
+      # #286's determinism work resolved -- then bump both ecosystems in a single
+      # branch and regenerate both platforms' baselines in the same arc.
+      # Rationale and evidence: docs/P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md.
+      - dependency-name: "@playwright/test"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
     # Grouping is by COMPATIBILITY, not by semver category.
     #
     # The first attempt grouped every npm package whose bump happened to be
