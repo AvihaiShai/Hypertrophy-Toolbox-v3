@@ -1,5 +1,19 @@
 # Plan Review — Documentation truth and compaction pass (LEFTOVERS P1.1)
 
+> ## ✅ SHIPPED — do not execute
+>
+> Merged **2026-08-04** as PR **#295**, squash **`4d5d8cc`**. All 15 acceptance
+> criteria were met at that commit; post-merge CI on `main` was green (17/17).
+> The **P1.1** row is retired from [`LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md)
+> and recorded in its §2, closing [LEFTOVERS §6](../LEFTOVERS_BY_PRIORITY.md) item 1.
+>
+> This document is **completion history**, not an active checklist. Do not re-run
+> the sweep from it. Three items were deliberately recorded rather than fixed and
+> remain open for a future audit revision — see §5 "Deferred, recorded rather than
+> fixed": Leftovers **N7**'s imprecise pytest-pin attribution, the stale pointers in
+> registry rows **9** and **13** (labelled as stale, not silently corrected), and
+> re-pinning the Linux inherited-reds ledger, which predates #281's regeneration.
+
 **Source item:** [`LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md) row **P1.1**, deep-scan revision v23.
 
 **Evidence snapshot:** 2026-08-04, `origin/main` @ **`db1bc5d`** (verified not advanced at execution time). Supersedes the original snapshot (`4e9b7d0` / `4a24773`, 2026-08-03), which predated **#291** (P1.4), **#293** (P2.6) and **#292** (P1.8+P1.3).
