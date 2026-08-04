@@ -179,6 +179,7 @@ def test_visual_chromium_serializes_the_compositor_pipeline():
     """Fresh browser processes must raster the same completed frame."""
     config = PLAYWRIGHT_CONFIG.read_text(encoding="utf-8")
     required = (
+        "'--disable-lcd-text'",
         "'--font-render-hinting=none'",
         "'--disable-skia-runtime-opts'",
         "'--run-all-compositor-stages-before-draw'",
@@ -215,28 +216,6 @@ def test_oversized_element_captures_exclude_fixed_and_sticky_page_layers():
     assert "requestAnimationFrame(() => requestAnimationFrame" in element_prepare, (
         "prepareForElementScreenshot must settle the paint invalidated by its "
         "element-only style before Playwright auto-scrolls the locator."
-    )
-
-
-def test_workout_table_captures_disable_production_layer_promotion():
-    """Linux table pixels must use one static paint path during capture."""
-    helper = VISUAL_HELPER.read_text(encoding="utf-8")
-    common_prepare, _ = helper.split(
-        "export async function prepareForElementScreenshot", maxsplit=1
-    )
-    required = (
-        '.tbl-wrap:has(> [data-testid="exercise-table"])',
-        '.tbl-wrap:has(> [data-testid="workout-log-table"])',
-        '-webkit-transform: none !important;',
-        'transform: none !important;',
-        '-webkit-backface-visibility: visible !important;',
-        'backface-visibility: visible !important;',
-        'will-change: auto !important;',
-    )
-    missing = [literal for literal in required if literal not in common_prepare]
-    assert not missing, (
-        "Workout table capture must neutralize the production translateZ(0), "
-        f"hidden-backface and will-change promotion hints: {missing}"
     )
 
 

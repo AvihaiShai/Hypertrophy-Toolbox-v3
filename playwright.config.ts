@@ -35,6 +35,10 @@ const seedDbCommand = `${pythonExecutable} ${path.join('e2e', 'scripts', seedScr
 const defaultViewport = { width: 1440, height: 900 };
 const deterministicChromiumArgs = [
   '--disable-font-subpixel-positioning',
+  // Force one grayscale-antialiasing path. Linux otherwise alternates between
+  // LCD subpixel and grayscale text when the workout table is composited,
+  // producing channel-fringed pixels at identical layout and data.
+  '--disable-lcd-text',
   '--font-render-hinting=none',
   '--disable-gpu',
   '--disable-skia-runtime-opts',
