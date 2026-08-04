@@ -2,7 +2,7 @@
 description: Plan-review council — Plan v1 → 3 reviewers in parallel (architecture / test-strategist / product-risk) → response matrix → Plan v2.
 ---
 
-Run the plan-review council from [`.claude/SHARED_PLAN.md`](../../.claude/SHARED_PLAN.md) Tier 2.2 before committing to a non-trivial implementation. Catches design-level mistakes **before** code is written, when revising is cheap.
+Run the plan-review council before committing to a non-trivial implementation. Catches design-level mistakes **before** code is written, when revising is cheap.
 
 Planning-size routing is canonical in
 [QUALITY_GATE.md](../../docs/ai_workflow/QUALITY_GATE.md#plan-stage-routing). When that

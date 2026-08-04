@@ -1,6 +1,6 @@
 # Quality Gate
 
-*Required gates per change type. Used by `/unslop` and `/verify-and-polish` to decide which tests and reviewers to run. This file is the canonical implemented version of the Tier 1 quality gate.*
+*Required gates per change type. Used by `/unslop` and `/verify-and-polish` to decide which tests and reviewers to run. This file is the canonical authority for both the change-type gates and the plan-stage routing below.*
 
 ## Plan-stage routing
 
@@ -34,7 +34,7 @@ suite.
 | AI workflow / agent config | `.claude/**`, `CLAUDE.md`, `*/CLAUDE.md`, `docs/ai_workflow/**` | manual dry-run/self-review; run tests only if source behavior changed | `code-reviewer` or careful self-review |
 | Product docs only | `docs/**`, `*.md` excluding AI workflow files above | none unless examples/scripts changed | none |
 
-> All three Tier 2 reviewers — `architecture-reviewer`, `test-strategist`, `product-risk-reviewer` — are live. Run them at the plan stage via [`/council-plan`](../../.claude/commands/council-plan.md). The table above also names `architecture-reviewer` and `product-risk-reviewer` as code-time reviewers when the relevant change types are touched; `test-strategist` runs at the plan stage only.
+> All three plan-review council reviewers — `architecture-reviewer`, `test-strategist`, `product-risk-reviewer` — are live. Run them at the plan stage via [`/council-plan`](../../.claude/commands/council-plan.md). The table above also names `architecture-reviewer` and `product-risk-reviewer` as code-time reviewers when the relevant change types are touched; `test-strategist` runs at the plan stage only.
 
 > **Notes on the `static/css/**` row.** Run the visual matrix with `PW_VISUAL_SEED=1`; without it 36 of the 66 tests fail on a page-*height* mismatch — missing plan rows, a data difference rather than a paint one — on unmodified CSS too. Run correctly, the Windows matrix still carries one inherited red (`workout-plan-desktop-dark`, the animated-logo band); never resolve it with `--update-snapshots`. Declarations covered by the oracle blind-spot register in [`CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](../CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md) §8 may not cite the pixel matrix as evidence at all and need a computed-style differential instead. The routing above is derived from the gates the WP4.4 packets actually ran — that document §12, plus [`_E_LAYOUT_`](../CSS_PHASE4_WP4_4_E_LAYOUT_EVIDENCE.md) §6, [`_D2_A11Y_`](../CSS_PHASE4_WP4_4_D2_A11Y_EVIDENCE.md) §5, [`_F2_NAVBAR_`](../CSS_PHASE4_WP4_4_F2_NAVBAR_EVIDENCE.md) §5–6, [`_H_COMPONENTS_DEAD_`](../CSS_PHASE4_WP4_4_H_COMPONENTS_DEAD_EVIDENCE.md) §10, [`_J_THEME_DARK_`](../CSS_PHASE4_WP4_4_J_THEME_DARK_EVIDENCE.md) §7 and the arc summary [`_K_INTEGRATION_`](../CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md) §7 — under ruling **N10** in [`docs/css_phase4_wp4_4/PLANNING.md`](../css_phase4_wp4_4/PLANNING.md), which closes finding F21.
 
@@ -48,7 +48,7 @@ git diff --name-only --cached
 git ls-files --others --exclude-standard
 ```
 
-If a feature branch has an upstream or known base, also include `git diff --name-only <merge-base>...HEAD`. De-duplicate the final list. Do not rely on plain `git diff --name-only`; it misses untracked Tier 1-style artifacts.
+If a feature branch has an upstream or known base, also include `git diff --name-only <merge-base>...HEAD`. De-duplicate the final list. Do not rely on plain `git diff --name-only`; it misses untracked planning and evidence artifacts.
 
 ## Targeted-test derivation
 

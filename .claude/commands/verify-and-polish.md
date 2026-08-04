@@ -4,6 +4,8 @@ description: Documented sequence — full /verify-suite, then code-reviewer, the
 
 This is a **sequence guide**, not a chained skill. Run each step, address findings, re-run if needed.
 
+> **Who runs which step.** Steps 2 and 3 spawn subagents, so a `senior-developer` — which sets `disallowedTools: Agent` precisely so developers do not approve their own work ([AUTONOMY.md](../../docs/ai_workflow/AUTONOMY.md#workflow-roles)) — cannot run them. In a manager-led session the manager or primary session runs steps 2–3; the implementing agent runs steps 1 and 4.
+
 ## Steps
 1. **`/verify-suite`** — full pytest + Chromium E2E gate. Must pass (modulo the known current red / historical flake in `e2e/CLAUDE.md` Gotchas) before continuing.
 2. **`code-reviewer` agent** — invoke on the staged diff. Cites SQL-injection, response-contract, DB-access, logging, blueprint-registration risks. Address every finding or document why deferred.

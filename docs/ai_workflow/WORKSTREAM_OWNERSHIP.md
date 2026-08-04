@@ -1,6 +1,6 @@
 # Workstream Ownership
 
-*Advisory path-claim rules for parallel Claude instances. Solo dev — claims are coordination hints, not enforced. Implements [`.claude/SHARED_PLAN.md`](../../.claude/SHARED_PLAN.md) Appendix A2.1.*
+*Advisory path-claim rules for parallel Claude instances. Solo dev — claims are coordination hints, not enforced. This file is the canonical authority for path claims; the checkout and DB isolation those claims assume live in [PARALLEL_WORKFLOW.md](PARALLEL_WORKFLOW.md).*
 
 ## Where live claims go
 
@@ -29,7 +29,7 @@ Copy this block into your local file, fill in the rows, delete rows when done.
 4. **Never-claimed shared paths** (coordinate per-edit, not via claims):
    - `app.py`
    - root [`CLAUDE.md`](../../CLAUDE.md) and any folder-level `CLAUDE.md`
-   - [`.claude/settings.json`](../../.claude/settings.json), [`.claude/SHARED_PLAN.md`](../../.claude/SHARED_PLAN.md)
+   - [`.claude/settings.json`](../../.claude/settings.json), and everything else under [`.claude/`](../../.claude/) — commands, agent charters, hooks, and skills
    - [`docs/MASTER_HANDOVER.md`](../MASTER_HANDOVER.md)
    - [`.gitignore`](../../.gitignore)
 5. **Per-worktree, never shared** (do not claim — they are isolated by construction):

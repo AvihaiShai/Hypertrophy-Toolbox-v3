@@ -2,7 +2,9 @@
 description: Update local handover scratch with current session state; optionally edit committed handover.
 ---
 
-Update the handover layers per `.claude/SHARED_PLAN.md` Appendix A1.1.
+Update the two handover layers: the gitignored `MASTER_HANDOVER.local.md` scratch,
+and the curated committed [`docs/MASTER_HANDOVER.md`](../../docs/MASTER_HANDOVER.md).
+The Steps below are the whole contract — there is no separate specification.
 
 ## Steps
 1. Capture current state:

@@ -88,9 +88,12 @@ static/bodymaps/GPT/
 /coverage-*.png
 /preview*.png
 
-# AI workflow scratch (see .claude/SHARED_PLAN.md Appendix A1.1, A2.1)
+# AI workflow scratch — local-only layers, never committed.
+# See docs/ai_workflow/INDEX.md for which document owns which rule.
 MASTER_HANDOVER.local.md
 WORKSTREAM_OWNERSHIP.local.md
+# Retired planning file. The rule below is deliberate: it keeps a local scratch
+# copy from ever becoming tracked truth again.
 .claude/SHARED_PLAN.md
 
 # Fatigue Stage 4 personal calibration labels (felt-band annotations)
