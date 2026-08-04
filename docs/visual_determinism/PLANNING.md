@@ -533,7 +533,21 @@ reds broadly, and `plan-desktop-light-advanced` alone differs by 541,849 px (29%
 Regenerating and reviewing `win32` remains the owner-local follow-up §5/§7 already track —
 this packet does not widen into it, and it changes no `win32` PNG.
 
-### 8.8 The open decision
+### 8.8 What the gate does on `main` today
+
+After #294 merged (`73c5c46`), three back-to-back `compare` runs on `main` `ac2923b`,
+same job, same SHA, no code between them:
+
+| Run | Result |
+|---|---|
+| [30932981910](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30932981910) | **84 passed** — zero `flaky`, zero `retry #`, zero failed attempts |
+| [30933376145](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30933376145) | **2 failed, 1 flaky, 67 passed** (14 skipped — a failure in a `serial` describe skips the rest) |
+| [30933393732](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30933393732) | **1 flaky, 83 passed** — green conclusion, reached by a retry |
+
+One run in three meets the bar. That is the number to quote: the gate is not red, and it
+is not green either — it is a coin flip, and a single green compare proves nothing.
+
+### 8.9 The open decision
 
 Six independent capture controls have been tried and measured (§8.5). None closes the
 gate. What is now known with confidence:
