@@ -234,6 +234,52 @@ def test_captures_take_every_element_off_its_own_compositor_layer():
     )
 
 
+def test_captures_pin_each_table_paint_origin_to_a_whole_device_pixel():
+    """Which device row a 1px rule lands on must not depend on the page above.
+
+    Every boundary inside the workout tables is fractional — the advanced plan
+    table's six row bottoms sit at 271.28125, 449.4375, 608.875, 768.3125,
+    927.75 and 1124.625 px below the table top — and Chromium decides the
+    device row from ``boundary + fraction(table top)``. The table top is
+    fractional too (1826.1875 px on the plan page) and its fraction is the sum
+    of everything above the table, none of which the capture even shows.
+
+    Three rasters of ``plan-desktop-dark-advanced`` at one SHA put the first two
+    row rules at 270/449, 270/448 and 271/449 — the values fractions of ~0,
+    ~0.19 and ~0.22 predict. Offsetting the table by its own fraction makes the
+    origin whole and the dependency disappears.
+    """
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    common_prepare, _, _ = helper.partition(
+        "export async function prepareForElementScreenshot"
+    )
+    assert "await snapTablesToWholeDevicePixels(page);" in common_prepare, (
+        "prepareForScreenshot must snap the table paint origins, so full-page "
+        "and locator captures share one rounding basis."
+    )
+    assert helper.index("await dropCompositingHints(page);") < helper.index(
+        "await snapTablesToWholeDevicePixels(page);"
+    ), (
+        "The snap must run after dropCompositingHints: measuring an offset "
+        "against a layer that is about to be removed pins the wrong number."
+    )
+
+    snap = helper.partition("export async function snapTablesToWholeDevicePixels")[2]
+    snap = snap.partition("\n/**")[0]
+    required = (
+        "top - Math.floor(top)",
+        "node.style.setProperty('top', `${-fraction}px`, 'important')",
+        "'position', 'relative', 'important'",
+    )
+    missing = [literal for literal in required if literal not in snap]
+    assert not missing, f"Paint-origin snap controls missing: {missing}"
+    assert "transform" not in snap, (
+        "The snap must not use a transform: a non-identity transform puts the "
+        "table back on its own compositor layer, which dropCompositingHints "
+        "just took it off."
+    )
+
+
 def test_oversized_element_captures_exclude_fixed_and_sticky_page_layers():
     """Table baselines must contain the table, not recomposited page chrome."""
     helper = VISUAL_HELPER.read_text(encoding="utf-8")
