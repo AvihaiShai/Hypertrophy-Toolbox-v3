@@ -482,9 +482,12 @@ driver file.
 
 ### Scope
 
-- **In** (unchanged, plus one file): `static/css/a11y.css` (deletion only);
+- **In** (unchanged, plus two files under `scripts/css_audit/`):
+  `static/css/a11y.css` (deletion only);
   `tests/test_css_wp4_4_a11y_contracts.py`; `docs/css_scale_btn_cleanup/**`;
-  **new** `scripts/css_audit/scale_btn_census.mjs`; conditionally
+  **new** `scripts/css_audit/scale_btn_census.mjs`; **one verdict row** in
+  `scripts/css_audit/p3_ceiling.py` — required by the coverage gate that reds on
+  any unassessed tool, data-only, and reopening no P3 packet; conditionally
   `docs/test_inventory/TEST_INVENTORY.{json,md}`.
 - **Out**: unchanged from v1. Explicitly still out: the `.scale-control` print rule (R2),
   the live compact generation, `accessibility.js` source, `theme-dark.css`, P3, tolerances
@@ -568,5 +571,7 @@ checked against the committed baseline count rather than a hardcoded number.
 - [x] Every finding has a disposition — 26 rows, 24 accepted, 2 rejected with rationale.
 - [x] Agent provenance complete — three real reviewer IDs; the `product-manager`
       deviation is recorded honestly in the Evidence gap, with no invented ID.
-- [ ] User approved Plan v2. — **GATE 1, pending.**
-- [ ] Ready to implement.
+- [x] User approved Plan v2. — **GATE 1 approved 2026-08-04**, with the
+      `TEST_INVENTORY` overlap resolved as "regenerate normally from the final
+      rebased branch state; treat it as a generated artifact".
+- [x] Ready to implement. — implemented; see [`EVIDENCE.md`](EVIDENCE.md).

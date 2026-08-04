@@ -9,14 +9,6 @@
  * gap and required "its own census and its own packet" (d1 evidence 3a). This
  * is that packet's instrument.
  *
- * It is a NEW sibling driver, in the style of the committed `i_*`, `j_*`,
- * `n4_*` and `visual_helper_band_proof` packet drivers. It modifies none of the
- * six shared packet-a tools (`measure.py`, `specificity.py`,
- * `resolution_check.py`, `runtime_probe.mjs`, `stylelint_surfaces.mjs`,
- * `emit_baseline.py`) that `.claude/rules/verification.md` reserves. It is
- * committed rather than left in `artifacts/` so the deletion's load-bearing
- * evidence is reproducible and reviewable.
- *
  * What it produces, in the order the evidence has to be believed:
  *
  *   1. oracle validity      known-live controls that MUST report live, a
@@ -257,7 +249,7 @@ const SUPPRESS_FN = `
       document.head.appendChild(tag);
     }
     for (const animation of document.getAnimations()) {
-      try { animation.finish(); } catch { try { animation.cancel(); } catch { /* already done */ } }
+      try { animation.finish(); } catch { animation.cancel(); }
     }
   }
 `;
@@ -345,13 +337,7 @@ async function applyScale(page, level) {
 async function naturalCensus(page) {
   return page.evaluate(
     ({ selectors, live, dead }) => {
-      const count = (sel) => {
-        try {
-          return document.querySelectorAll(sel).length;
-        } catch {
-          return -1; // invalid selector -- reported, never silently zero
-        }
-      };
+      const count = (sel) => document.querySelectorAll(sel).length;
       const out = { candidates: {}, live: {}, dead: 0 };
       for (const sel of selectors) out.candidates[sel] = count(sel);
       for (const sel of live) out.live[sel] = count(sel);
@@ -396,7 +382,7 @@ async function certifyMember(page, member) {
   }
   await page.evaluate(`(${SUPPRESS_FN})()`);
 
-  const setup = await page.evaluate(
+  await page.evaluate(
     ({ dataScale, dead, controlClass }) => {
       const make = (id, cls) => {
         const el = document.createElement('button');
@@ -420,7 +406,6 @@ async function certifyMember(page, member) {
       // silently hid member 9 (0.8rem == the inherited 12.8px) in the first run.
       const control = make('ht-control', controlClass || dead);
       if (dataScale) bearer.setAttribute('data-scale', dataScale);
-      return { bearerOk: !!bearer, controlOk: !!control };
     },
     { dataScale: member.dataScale ?? null, dead: DEAD_CONTROL, controlClass: member.controlClass ?? null },
   );
@@ -490,6 +475,14 @@ async function certifyMember(page, member) {
     reading &&
     member.props.some((p) => reading.values[p] !== reading.controlValues[p]);
 
+  // Where the member declares an absolute value, check the bearer actually
+  // landed on it. "Differs from its control" alone would accept a bearer that
+  // picked up the right rule for the wrong reason.
+  const expected = member.expect ?? null;
+  const expectationsMet = expected
+    ? Object.entries(expected).every(([prop, want]) => reading?.values[prop] === want)
+    : null;
+
   return {
     member: member.id,
     selector: member.selector,
@@ -497,12 +490,13 @@ async function certifyMember(page, member) {
     state: member.state,
     computedBlind: Boolean(member.computedBlind),
     note: member.note ?? null,
-    setup,
     reading,
     // "Took effect" = the bearer's value differs from a control that fails the
     // selector by exactly one compound. For `computedBlind` members this is
     // expected to be false and is NOT a failure -- CDP carries them.
     tookEffect: Boolean(differs),
+    expected,
+    expectationsMet,
     cdpRules: cdp,
     revertedToZeroBearers: reverted === 0,
   };
@@ -585,6 +579,11 @@ function diffRecords(before, after) {
 }
 
 async function run(outDir) {
+  // `--out` is fed straight to a recursive rmSync, so refuse anything outside
+  // the gitignored artifacts tree rather than trusting a typo.
+  if (!resolve(outDir).startsWith(resolve('artifacts'))) {
+    throw new Error(`--out must resolve under artifacts/ (got ${resolve(outDir)})`);
+  }
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
 
@@ -593,17 +592,28 @@ async function run(outDir) {
     args: ['--disable-font-subpixel-positioning', '--disable-gpu', '--force-color-profile=srgb'],
   });
 
+  try {
+    return await sweep(browser, outDir);
+  } finally {
+    // Without this, any throw mid-sweep orphans a headless Chromium AND a
+    // `python app.py` still holding the probe port, so the NEXT run fails in
+    // waitForServer() for an unrelated reason.
+    await browser.close().catch(() => {});
+    server.kill();
+  }
+}
+
+async function sweep(browser, outDir) {
   const report = {
     baseUrl: BASE_URL,
     generatedBy: 'scripts/css_audit/scale_btn_census.mjs',
     matrix: { routes: ROUTES.length, themes: THEMES.length, widths: WIDTHS.length, scales: SCALES.length },
-    census: { contexts: 0, candidates: {}, live: {}, deadControlNonZero: 0, invalidSelectors: [] },
+    census: { contexts: 0, candidates: {}, live: {}, deadControlNonZero: 0 },
     printContexts: 0,
     reducedMotionContexts: 0,
     certification: [],
     deadControlInjectionVisible: null,
     sameCssControl: null,
-    restState: null,
   };
   for (const sel of CENSUS_SELECTORS) report.census.candidates[sel] = { zero: 0, nonZero: 0, max: 0 };
   for (const sel of LIVE_CONTROLS) report.census.live[sel] = { zero: 0, nonZero: 0, max: 0 };
@@ -628,8 +638,7 @@ async function run(outDir) {
           const c = await naturalCensus(page);
           report.census.contexts += 1;
           for (const [sel, n] of Object.entries(c.candidates)) {
-            if (n < 0) report.census.invalidSelectors.push({ sel, route: route.name, theme, width, scale });
-            else if (n === 0) report.census.candidates[sel].zero += 1;
+            if (n === 0) report.census.candidates[sel].zero += 1;
             else {
               report.census.candidates[sel].nonZero += 1;
               report.census.candidates[sel].max = Math.max(report.census.candidates[sel].max, n);
@@ -709,10 +718,18 @@ async function run(outDir) {
   writeFileSync(resolve(outDir, 'report.json'), JSON.stringify(report, null, 2), 'utf8');
   writeFileSync(resolve(outDir, 'reststate.json'), JSON.stringify(restRecords), 'utf8');
 
-  await browser.close();
-  server.kill();
-
   summarize(report);
+
+  const deadLive = Object.entries(report.census.live).filter(([, v]) => v.nonZero === 0);
+  const controlsOk =
+    deadLive.length === 0 &&
+    report.census.deadControlNonZero === 0 &&
+    (report.deadControlInjectionVisible ?? 0) > 0 &&
+    (report.sameCssControl?.differingCount ?? 1) === 0;
+  console.log(`
+  oracle validity gate: ${controlsOk ? 'PASS' : '** FAIL — every candidate result from this run is void **'}`);
+  if (!controlsOk) process.exitCode = 1;
+
   return report;
 }
 
@@ -733,9 +750,6 @@ function summarize(report) {
   console.log('\n=== natural full-selector census (before any injection) ===');
   for (const [sel, s] of Object.entries(report.census.candidates)) {
     console.log(`  ${sel.padEnd(30)} zero ${s.zero}/${total}  nonZero ${s.nonZero}  max ${s.max}`);
-  }
-  if (report.census.invalidSelectors.length) {
-    console.log(`  !! invalid selectors: ${report.census.invalidSelectors.length}`);
   }
 
   console.log('\n=== per-member certification ===');
@@ -779,12 +793,17 @@ function diffRuns(beforeDir, afterDir) {
   }
 
   console.log('\n=== candidate-inventory flip, by source identity ===');
-  const beforeById = new Map(before.certification.map((c) => [c.member, c]));
-  const afterById = new Map(after.certification.map((c) => [c.member, c]));
+  const key = (c) => `${c.member}|${c.theme}`;
+  const beforeById = new Map(before.certification.map((c) => [key(c), c]));
+  const afterById = new Map(after.certification.map((c) => [key(c), c]));
+  const themes = [...new Set(before.certification.map((c) => c.theme))].sort();
   let flipped = 0;
+  let expectedFlips = 0;
   for (const member of MEMBERS) {
-    const b = beforeById.get(member.id);
-    const a = afterById.get(member.id);
+   for (const theme of themes) {
+    expectedFlips += 1;
+    const b = beforeById.get(`${member.id}|${theme}`);
+    const a = afterById.get(`${member.id}|${theme}`);
     const ownBefore = (b?.cdpRules?.rules ?? []).filter(
       (r) => r.selector.trim() === member.selector.trim() && (member.media ? r.media.join('|').includes('991.98') : r.media.length === 0),
     );
@@ -792,16 +811,34 @@ function diffRuns(beforeDir, afterDir) {
       (r) => r.selector.trim() === member.selector.trim() && (member.media ? r.media.join('|').includes('991.98') : r.media.length === 0),
     );
     const range = ownBefore[0]?.declarationBlock;
-    const ok = ownBefore.length > 0 && ownAfter.length === 0;
+    // A CDP failure also returns rules:[]. Scoring that as a flip is exactly
+    // the "the oracle stopped working" confusion this harness exists to
+    // prevent, so an errored side can never count as proof.
+    const oracleOk = b?.cdpRules?.error == null && a?.cdpRules?.error == null;
+    const ok = oracleOk && ownBefore.length > 0 && ownAfter.length === 0;
     if (ok) flipped += 1;
+    const why = !oracleOk ? '** ORACLE ERROR — NOT PROVEN **' : ok ? 'FLIPPED' : '** NOT PROVEN **';
     console.log(
-      `  member ${String(member.id).padStart(2)} ${member.selector.padEnd(28)} ` +
+      `  member ${String(member.id).padStart(2)} [${theme.padEnd(5)}] ${member.selector.padEnd(28)} ` +
         `before=${ownBefore.length}${range ? ` @lines ${range.startLine}-${range.endLine}` : ''} after=${ownAfter.length} ` +
-        `${ok ? 'FLIPPED' : '** NOT PROVEN **'}`,
+        `${why}`,
     );
+   }
   }
-  console.log(`\n  flipped ${flipped}/${MEMBERS.length}`);
-  return { compared, differingCount, flipped };
+  console.log(`\n  flipped ${flipped}/${expectedFlips} (members × themes)`);
+
+  // The after-run's own controls must still hold, or a flip means nothing.
+  const liveAfter = Object.entries(after.census?.live ?? {}).filter(([, v]) => v.nonZero === 0);
+  const controlsOk =
+    liveAfter.length === 0 &&
+    after.census?.deadControlNonZero === 0 &&
+    (after.deadControlInjectionVisible ?? 0) > 0 &&
+    (after.sameCssControl?.differingCount ?? 1) === 0;
+  console.log(`  after-run oracle validity : ${controlsOk ? 'PASS' : '** FAIL **'}`);
+  if (liveAfter.length) console.log(`    dead live-controls: ${liveAfter.map(([k]) => k).join(', ')}`);
+
+  if (!controlsOk || flipped !== expectedFlips || differingCount !== 0) process.exitCode = 1;
+  return { compared, differingCount, flipped, expectedFlips, controlsOk };
 }
 
 const diffPair = args.indexOf('--diff');

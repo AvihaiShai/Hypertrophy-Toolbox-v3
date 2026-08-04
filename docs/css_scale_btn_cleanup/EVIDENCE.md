@@ -113,6 +113,13 @@ smallest that does not.
 `data-scale` was set exactly as `accessibility.js:82`/`:89` set it — attribute plus the
 inline `zoom` from the same ladder — not approximated.
 
+**Read this table as one proof, not ten.** `querySelectorAll('.scale-btn:hover')` can only
+be non-zero while a real pointer sits over a matching element, and the natural census runs
+with no pointer, so the `:hover` and `:focus` rows are 0 partly by construction. The row
+that carries the claim is bare **`.scale-btn`** — and since every other member requires a
+`.scale-btn` bearer to exist before its own compound can match, that single row is
+sufficient. The per-member work in §4 is what separates the members from each other.
+
 ---
 
 ## 4. Per-member certification
@@ -244,15 +251,17 @@ it, because a zero differential is *consistent with* deadness but cannot prove i
 
 ## 7. Contracts, with executed adversarial red paths
 
-`tests/test_css_wp4_4_a11y_contracts.py` — **16 → 37 nodes.** Red paths were executed,
-not asserted in prose; the tree was restored after each and the whole file re-verified.
+`tests/test_css_wp4_4_a11y_contracts.py` — **22 → 36 nodes** (the file had 16
+*functions* before, two of them parametrized; the node count is the one the generated
+inventory tracks, and hand-counting functions is exactly the drift blindspot
+`docs/test_inventory/` exists to prevent). Red paths were executed, not asserted in
+prose; the tree was restored after each and the whole file re-verified.
 
 | Contract | What it locks | Adversarial red path |
 |---|---|---|
-| `test_bare_scale_btn_family_is_entirely_absent` | occurrence count is 0 | restore the **`@media` override alone** — not the base rule |
+| `test_legacy_scale_and_menu_generation_stays_deleted` | `scale-btn` added to `LEGACY_CLASSES`; the token is absent | restore the **`@media` override alone** — not the base rule |
 | `test_the_emptied_breakpoint_block_holds_no_style_rule` | the shell exists and stays empty | any rule reappearing inside the 991.98px query |
 | `test_accessibility_js_still_constructs_no_dom` | the deletion's premise | add `createElement` to `accessibility.js` |
-| `test_legacy_scale_and_menu_generation_stays_deleted` | `scale-btn` added to `LEGACY_CLASSES` | restore the base rule |
 | `test_legacy_generation_is_not_resurrected_by_a_sibling_surface` | widened from 5 hand-listed surfaces to a glob | add `.scale-btn {}` to **`motion.css`** — a surface the old tuple missed |
 | `test_every_targeted_data_scale_level_still_has_rules` | the `--ui-scale` token ladder | rename the `html[data-scale="4"]` token block |
 
@@ -313,8 +322,8 @@ work.
 
 | Gate | Result |
 |---|---|
-| `tests/test_css_wp4_4_a11y_contracts.py` | **37 passed** (16 before) |
-| Red-path proof | **6/6** go red under their own violation; tree restores to 37 passed |
+| `tests/test_css_wp4_4_a11y_contracts.py` | **36 passed** (22 before) |
+| Red-path proof | **6/6** go red under their own violation; tree restores to 36 passed |
 | Full `pytest tests/` | **2,538 passed, 2 skipped** (448s) |
 | Required Chromium specs + `visual-field-separator` | **174 passed, 1 failed** — pre-existing pollution, see §9b |
 | Full seeded `visual.spec.ts` | **58 failed / 8 passed — IDENTICAL to the unmodified-CSS control.** Gate blocked repository-wide, see §9c |

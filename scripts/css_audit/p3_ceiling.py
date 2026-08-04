@@ -1337,7 +1337,7 @@ def blind_spot_repair_sizing(helper_path: Path | None = None) -> dict[str, objec
 
 
 # ---------------------------------------------------------------------------
-# The nineteen committed tools
+# The committed tools
 # ---------------------------------------------------------------------------
 
 # Curated verdicts, cross-checked mechanically against the directory listing by
@@ -1545,7 +1545,7 @@ TOOL_ASSESSMENT: tuple[dict[str, str], ...] = (
 
 
 def tool_assessment(directory: Path | None = None) -> dict[str, object]:
-    """The nineteen committed tools, assessed, with coverage checked mechanically."""
+    """The committed tools, assessed, with coverage checked mechanically."""
     directory = directory or (ROOT / "scripts" / "css_audit")
 
     committed = sorted(

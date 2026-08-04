@@ -68,12 +68,10 @@ LEGACY_CLASSES = (
     "accessibility-section-title",
     "scale-labels",
     "scale-label",
-    # Added by the bare `.scale-btn` packet. d1 left this class styled because
-    # its static pass read `accessibility.js`'s querySelectorAll as proof of
-    # reachability; the follow-up census measured 0 matches in 1,804/1,804
-    # contexts and all eleven rules were deleted. The `(?![\w-])` boundary in
-    # every consumer below is what keeps the LIVE `.scale-btn-compact`
-    # generation out of these assertions -- see LIVE_GENERATION.
+    # Added by the bare `.scale-btn` packet, which deleted all eleven rules d1
+    # had left in place. The `(?![\w-])` boundary in every consumer below is
+    # what keeps the LIVE `.scale-btn-compact` generation out of these
+    # assertions -- see LIVE_GENERATION.
     "scale-btn",
 )
 
@@ -96,7 +94,9 @@ def test_legacy_scale_and_menu_generation_stays_deleted() -> None:
     offenders = [c for c in LEGACY_CLASSES if re.search(rf"\.{re.escape(c)}(?![\w-])", css)]
     assert offenders == [], (
         f"a11y.css again styles the superseded generation: {offenders}. If one "
-        "became reachable, re-run the census -- do not simply re-add the rule."
+        "became reachable, re-run the census -- do not simply re-add the rule. "
+        "For `scale-btn` the measured basis was 0 matches in 1,804/1,804 "
+        "contexts; see docs/css_scale_btn_cleanup/EVIDENCE.md."
     )
 
 
@@ -107,9 +107,9 @@ def test_legacy_classes_are_still_unreachable() -> None:
     reason a JavaScript *query* was never accepted as proof of reachability:
     `accessibility.js` queries `.accessibility-dropdown` and
     `.scale-btn[data-scale]`, and both resolve to empty sets at runtime.
-    d1 recorded that and stopped; the follow-up packet measured it -- 0 matches
-    in 1,804/1,804 contexts -- and deleted the eleven bare `.scale-btn` rules,
-    which is why that class now appears in LEGACY_CLASSES above.
+    d1 recorded that and stopped; the follow-up packet measured it and deleted
+    the eleven bare `.scale-btn` rules, which is why that class now appears in
+    LEGACY_CLASSES above.
 
     Red path: adding `class="accessibility-menu"` to a template, or
     `classList.add('scale-labels')` to a JS module, fails this test.
@@ -427,32 +427,6 @@ def test_every_targeted_data_scale_level_still_has_rules() -> None:
     )
 
 
-def test_bare_scale_btn_family_is_entirely_absent() -> None:
-    """All eleven bare `.scale-btn` rules are gone, counted not merely absent.
-
-    The family was: base, `:hover`, `:focus`, `.active`, `.active:hover`, five
-    `[data-scale="1".."5"]` rules, and one `@media (max-width: 991.98px)`
-    override whose selector text is BYTE-IDENTICAL to the base rule's. That
-    duplicate is why this is an occurrence count rather than a presence check:
-    `".scale-btn" in css` cannot tell "the base rule came back" from "the media
-    override came back", and `".scale-btn" not in css` would be broken by the
-    live `.scale-btn-compact` generation if the boundary were dropped.
-
-    Red path (adversarial): restoring the `@media` override ALONE -- not the
-    base rule -- must fail this test. Restoring the base rule proves nothing
-    about the assertion's ability to distinguish the two.
-    """
-    css = _strip_comments(_css())
-    found = re.findall(r"\.scale-btn(?![\w-])", css)
-    assert found == [], (
-        f"a11y.css again styles the bare .scale-btn family ({len(found)} "
-        "occurrences). Runtime census was 0 matches in 1,804/1,804 contexts and "
-        "all eleven rules flipped by source identity; if one became reachable, "
-        "re-run the census -- do not simply re-add the rule. See "
-        "docs/css_scale_btn_cleanup/EVIDENCE.md"
-    )
-
-
 def test_the_emptied_breakpoint_block_holds_no_style_rule() -> None:
     """The `max-width: 991.98px` shell is retained, and stays empty.
 
@@ -488,9 +462,6 @@ def test_accessibility_js_still_constructs_no_dom() -> None:
     module builds no DOM at all. If it ever gained a construction path, the
     deleted rules would become reachable and the census would be stale.
 
-    This READS the module; it does not modify it, so the packet's
-    "accessibility.js is evidence only" boundary holds.
-
     Note for whoever trips this: the JS handler surviving without its styling
     means a re-added scale button would announce `aria-pressed` to assistive
     technology with no visible pressed state. Re-run the census; do not
@@ -500,11 +471,17 @@ def test_accessibility_js_still_constructs_no_dom() -> None:
     fails this test.
     """
     source = (JS / "accessibility.js").read_text(encoding="utf-8")
-    builders = [
-        token
-        for token in ("createElement", "innerHTML", "insertAdjacentHTML", "outerHTML", "className =")
-        if token in source
-    ]
+    patterns = {
+        "createElement": r"createElement\s*\(",
+        "innerHTML": r"innerHTML\s*=",
+        "insertAdjacentHTML": r"insertAdjacentHTML\s*\(",
+        "insertAdjacentElement": r"insertAdjacentElement\s*\(",
+        "outerHTML": r"outerHTML\s*=",
+        "cloneNode": r"cloneNode\s*\(",
+        "className=": r"className\s*=",
+        "setAttribute(class)": r"""setAttribute\(\s*['\"]class['\"]""",
+    }
+    builders = [name for name, pattern in patterns.items() if re.search(pattern, source)]
     assert builders == [], (
         f"static/js/accessibility.js now constructs DOM ({builders}). The bare "
         ".scale-btn deletion rests on this module never creating an element "
@@ -547,6 +524,10 @@ def _sibling_surfaces() -> list[str]:
     silently omitted `motion.css`, `tokens.css` and all eleven `pages-*.css`
     route bundles -- so a resurrected rule in any of those went unnoticed.
     a11y.css itself is excluded because its own contracts above cover it.
+
+    Note the coupling: adding a CSS bundle changes this file's pytest node
+    count, so it also moves `docs/test_inventory/` and the blocking drift
+    gate. Regenerate the inventory in the same change.
     """
     return sorted(
         path.name
@@ -562,8 +543,6 @@ def test_legacy_generation_is_not_resurrected_by_a_sibling_surface(surface: str)
     Red path: adding `.accessibility-menu {}` to components.css fails.
     """
     path = ROOT / "static" / "css" / surface
-    if not path.exists():
-        pytest.skip(f"{surface} not present")
     css = _strip_comments(path.read_text(encoding="utf-8"))
     offenders = [c for c in LEGACY_CLASSES if re.search(rf"\.{re.escape(c)}(?![\w-])", css)]
     assert offenders == [], (

@@ -247,10 +247,7 @@ html[data-scale="8"] {
     /* Deliberately empty. This block's last rule was the bare scale-button
        breakpoint override, deleted with the rest of that family after all
        eleven members were certified unreachable; WP4.4-d1 had already removed
-       its siblings. (The class token is spelled out nowhere in this comment on
-       purpose, so the occurrence-count contract does not have to rely on
-       comment stripping to stay honest.) The shell is retained rather than
-       collapsed because
+       its siblings. The shell is retained rather than collapsed because
        removing an at-rule is structural work, not deletion of dead
        declarations — the same call WP4.3j-b made for its five empty media
        shells. Evidence: docs/css_scale_btn_cleanup/EVIDENCE.md */
