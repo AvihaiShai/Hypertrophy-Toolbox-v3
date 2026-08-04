@@ -195,10 +195,11 @@
 > true when written. It is false now.
 >
 > **Measured against unmodified `main` at `02e73c7`: `e2e/visual.spec.ts` fails 58 of 66
-> on Windows**, reproducibly — two runs of the identical unmodified tree gave the same
-> 58 failed / 8 passed. Nine of the eleven pages fail in **every** viewport and both
-> themes; only `progression` (6/6) and the two `user-profile` mobile captures pass. That
-> is the signature of a stale corpus, not of two localized defects.
+> on Windows**, reproducibly — repeat runs of the identical unmodified tree gave the same
+> 58 failed / 8 passed. **Nine of the eleven pages fail in every viewport and both
+> themes.** The eight that pass are `progression` × 6 and `workout-plan desktop
+> {light,dark}` × 2 — the latter only because #298 took those two captures off the byte
+> gate. That is the signature of a stale corpus, not of two localized defects.
 >
 > **Consequence: the Windows visual suite cannot serve as a merge gate today** — it
 > cannot separate a real regression from inherited staleness. A CSS packet must instead
@@ -223,6 +224,19 @@
 > **Scope of the correction:** it covers `visual.spec.ts` only (66 tests/platform). Entry
 > 2 lives in `visual-baseline-thumbnails.spec.ts` (18 tests), which was **not** exercised
 > by that measurement and is therefore neither confirmed nor cleared by it.
+>
+> **Trap that corrupts any two-run visual comparison — including the one that produced
+> these numbers.** Playwright **creates** a missing baseline instead of erroring, so on
+> Windows every `visual.spec.ts` run silently writes the four
+> `user-profile-mobile-{dark,light}-segment-{1,2}.png` files (`expectFullPageScreenshot`
+> segments that page, and only the **linux** set was regenerated in #281). Two
+> consequences, both measured here rather than theorised:
+> 1. run 1 *fails* those two tests while creating them and run 2 then *passes* them, so a
+>    control-then-candidate comparison silently measures **run order**. Delete the four
+>    files before each run, or the comparison is worthless.
+> 2. they land as untracked files, so a broad `git add` commits an accidental rebaseline.
+>    Check `git status --porcelain e2e/__screenshots__` after every visual run; the tree
+>    should stay at **160 tracked = 160 on disk** (170 before #298 removed ten).
 
 *Durable ledger of the WP4.0 pair. Neither is a regression; both predate the app.py review.
 **Never rebaseline either, and never gate on an exact pixel count — both are bands.***
