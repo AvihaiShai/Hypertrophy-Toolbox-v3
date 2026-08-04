@@ -36,11 +36,16 @@ SCREENSHOT_ROOT = ROOT / "e2e" / "__screenshots__"
 
 # Baselines committed at WP4.4-a, after N7 added the six `/fatigue` captures.
 # A packet that regenerates snapshots moves these numbers and fails here.
+# Both platforms drop the same five captures, which are exempt from byte
+# comparison and therefore have no baseline file at all: two from visual.spec.ts
+# (workout-plan-desktop-{light,dark}) and three from the thumbnails spec
+# (plan-desktop-{light,dark}-advanced, plan-desktop-dark-simple). See
+# BYTE_GATE_EXEMPT in e2e/visual-helpers.ts and PLANNING.md §8.10.
 EXPECTED_SNAPSHOT_COUNTS = {
-    "win32/visual.spec.ts-snapshots": 66,
-    "win32/visual-baseline-thumbnails.spec.ts-snapshots": 18,
-    "linux/visual.spec.ts-snapshots": 68,
-    "linux/visual-baseline-thumbnails.spec.ts-snapshots": 18,
+    "win32/visual.spec.ts-snapshots": 64,
+    "win32/visual-baseline-thumbnails.spec.ts-snapshots": 15,
+    "linux/visual.spec.ts-snapshots": 66,
+    "linux/visual-baseline-thumbnails.spec.ts-snapshots": 15,
 }
 
 SEVEN_SURFACES = (

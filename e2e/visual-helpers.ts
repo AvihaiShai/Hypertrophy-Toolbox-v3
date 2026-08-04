@@ -22,6 +22,66 @@ export const CAPTURE_SEGMENT_HEIGHT_PX = 10_000;
 /** Bound on the media wait. Long enough for a cold cache, short enough to fail. */
 export const IMAGE_SETTLE_TIMEOUT_MS = 15_000;
 
+/**
+ * Captures that are deliberately not byte-compared, by baseline stem.
+ *
+ * Chromium rasters these five nondeterministically on the ubuntu-24.04 runner.
+ * Measured across 8 independent experiment sets (21 generations at 6 different
+ * capture configurations), each flips between two states at *byte-identical
+ * layout* — a geometry probe compared document size, viewport, the captured
+ * table's rect, its first eight row rects and its whole ancestor chain to five
+ * decimal places across two runs and all 84 records matched while the PNGs did
+ * not. Six documented capture controls were tried; none closed it.
+ *
+ * They are the only captures in the corpus whose diffs exceed the 800px
+ * tolerance. `log-desktop-light` and `workout-plan-mobile-light` were each
+ * observed to flip once too, by 178px and 13px, so they stay on the gate.
+ *
+ * Their coverage moved to `e2e/workout-plan-desktop-contract.spec.ts`, which
+ * asserts the same properties through computed style, geometry and DOM
+ * structure. `docs/visual_determinism/PLANNING.md` §8.10 maps each file to its
+ * replacement; `tests/test_visual_capture_contracts.py` pins this set so it
+ * cannot grow silently.
+ *
+ * This is an exemption from *byte comparison only*. The tests still run, still
+ * render at 1440x900, and still fail on a console error.
+ */
+export const BYTE_GATE_EXEMPT = new Set([
+  'workout-plan-desktop-light',
+  'workout-plan-desktop-dark',
+  'plan-desktop-light-advanced',
+  'plan-desktop-dark-advanced',
+  'plan-desktop-dark-simple',
+]);
+
+export function isByteGateExempt(name: string): boolean {
+  return BYTE_GATE_EXEMPT.has(name.replace(/\.png$/i, ''));
+}
+
+/**
+ * Stand-in assertion for a capture that is exempt from byte comparison.
+ *
+ * Deliberately not a no-op and deliberately not a `skip`: the page is still
+ * built, still rendered at its real viewport, and the console-error fixture
+ * still applies. What it drops is the pixel diff, and only that.
+ */
+export async function expectRenderedWithoutByteComparison(
+  page: Page,
+  name: string,
+): Promise<void> {
+  const geometry = await page.evaluate(() => ({
+    width: document.documentElement.scrollWidth,
+    height: document.documentElement.scrollHeight,
+    painted: document.querySelectorAll('[data-visual-surface]').length,
+  }));
+  expect(geometry.width, `${name}: page has no width`).toBeGreaterThan(0);
+  expect(geometry.height, `${name}: page has no height`).toBeGreaterThan(0);
+  expect(
+    geometry.painted,
+    `${name}: no visual surface rendered, so the exempt capture covered nothing`,
+  ).toBeGreaterThan(0);
+}
+
 export interface VisualDeterminismOptions {
   theme: VisualTheme;
 }
@@ -361,6 +421,11 @@ export async function expectFullPageScreenshot(
     documentHeight: Math.ceil(document.documentElement.scrollHeight),
     documentWidth: Math.ceil(document.documentElement.clientWidth),
   }));
+
+  if (isByteGateExempt(name)) {
+    await expectRenderedWithoutByteComparison(page, name);
+    return;
+  }
 
   if (documentHeight <= MAX_CAPTURE_HEIGHT_PX) {
     assertCaptureFits(name, documentHeight);

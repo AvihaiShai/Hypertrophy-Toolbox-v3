@@ -226,16 +226,21 @@
         "tests": 23
       },
       {
+        "in_required_functional_set": false,
+        "spec": "workout-plan-desktop-contract.spec.ts",
+        "tests": 16
+      },
+      {
         "in_required_functional_set": true,
         "spec": "workout-plan.spec.ts",
         "tests": 35
       }
     ],
-    "total_spec_files": 31,
-    "total_tests": 589
+    "total_spec_files": 32,
+    "total_tests": 605
   },
   "pytest": {
-    "collected_deterministic": 2203,
+    "collected_deterministic": 2207,
     "deterministic_files": 105,
     "environment_dependent_files": [
       {
@@ -606,7 +611,7 @@
       },
       {
         "file": "tests/test_visual_capture_contracts.py",
-        "tests": 11
+        "tests": 15
       },
       {
         "file": "tests/test_visual_selector_contracts.py",

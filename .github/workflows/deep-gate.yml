@@ -65,9 +65,12 @@ jobs:
     # Windows-rendered and diff ~100% on ubuntu until Phase 4.2 lands a
     # Linux baseline set. Everything else runs, accessibility included; this is a
     # manual gate, so a human reads the report (known-red nav-dropdown may fail).
+    # workout-plan-desktop-contract.spec.ts is excluded for the same reason as
+    # the two snapshot specs: it needs the plan-bearing visual seed, and this
+    # job runs on the user-state-wiped functional one. It runs in visual-linux.
     - name: Run full suite (minus visual)
       run: |
-        SPECS=$(ls e2e/*.spec.ts | grep -vE 'visual\.spec\.ts|visual-baseline-thumbnails\.spec\.ts' | tr '\n' ' ')
+        SPECS=$(ls e2e/*.spec.ts | grep -vE 'visual\.spec\.ts|visual-baseline-thumbnails\.spec\.ts|workout-plan-desktop-contract\.spec\.ts' | tr '\n' ' ')
         echo "Running: $SPECS"
         npx playwright test --project=chromium $SPECS
 
@@ -397,7 +400,8 @@ jobs:
         UPDATE=""; [ "$MODE" = "generate" ] && UPDATE="--update-snapshots"
         echo "Visual mode: $MODE"
         npx playwright test --project=chromium \
-          e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts $UPDATE
+          e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts \
+          e2e/workout-plan-desktop-contract.spec.ts $UPDATE
 
     # generate → upload the freshly rendered Linux baselines for owner review+commit.
     # CI never pushes to main (branch-protected) — every pixel change is committed

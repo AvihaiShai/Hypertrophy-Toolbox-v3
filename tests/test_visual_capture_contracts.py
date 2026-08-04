@@ -24,6 +24,7 @@ been exercised in either theme.
 """
 from __future__ import annotations
 
+import re
 import shutil
 import sqlite3
 import struct
@@ -172,6 +173,94 @@ def test_the_capture_helper_declares_the_same_surface_limit():
         "e2e/visual-helpers.ts must export MAX_CAPTURE_HEIGHT_PX = 16_384 so a "
         "capture taller than Chromium's surface limit is segmented rather than "
         "silently truncated."
+    )
+
+
+# The five captures deliberately not byte-compared, and the spec that carries
+# their coverage instead. Kept here as a strict equality so the exemption cannot
+# grow without this test failing and someone justifying the addition.
+BYTE_GATE_EXEMPT = {
+    "workout-plan-desktop-light",
+    "workout-plan-desktop-dark",
+    "plan-desktop-light-advanced",
+    "plan-desktop-dark-advanced",
+    "plan-desktop-dark-simple",
+}
+REPLACEMENT_SPEC = REPO_ROOT / "e2e" / "workout-plan-desktop-contract.spec.ts"
+
+
+def test_the_byte_gate_exemption_is_exactly_the_five_measured_captures():
+    """The exemption list may not grow without this test being changed.
+
+    Each of these five was measured flipping between two rasters at
+    byte-identical layout across 8 independent experiment sets, and each
+    exceeds the 800px tolerance when it flips. Two other captures were seen to
+    flip once each — ``log-desktop-light`` by 178px and
+    ``workout-plan-mobile-light`` by 13px — and stay on the gate because they
+    cannot fail it.
+    """
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    declared, _, rest = helper.partition("export const BYTE_GATE_EXEMPT = new Set([")
+    assert rest, "e2e/visual-helpers.ts must declare BYTE_GATE_EXEMPT"
+    body = rest.partition("]);")[0]
+    names = set(re.findall(r"'([^']+)'", body))
+    assert names == BYTE_GATE_EXEMPT, (
+        f"BYTE_GATE_EXEMPT drifted from the measured set: {names ^ BYTE_GATE_EXEMPT}"
+    )
+
+
+def test_the_exempt_captures_have_no_baseline_on_either_platform():
+    """An exempt capture that still has a PNG is a baseline nothing compares.
+
+    It would also survive `--update-snapshots` as a permanently stale file, so
+    the absence is the contract, not an accident of deletion.
+    """
+    stray = [
+        path.relative_to(SCREENSHOT_ROOT).as_posix()
+        for path in _committed_baselines()
+        if path.stem in BYTE_GATE_EXEMPT
+    ]
+    assert stray == [], f"Exempt captures still have committed baselines: {stray}"
+
+
+def test_the_exempt_captures_route_through_the_non_pixel_assertion():
+    """Both capture paths must honour the exemption, not just the full-page one.
+
+    Two of the five are full-page captures and three are locator captures, so a
+    guard in only one path would leave the other three byte-compared.
+    """
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    thumbnails = (REPO_ROOT / "e2e" / "visual-baseline-thumbnails.spec.ts").read_text(
+        encoding="utf-8"
+    )
+    assert "if (isByteGateExempt(name)) {" in helper, (
+        "expectFullPageScreenshot must divert exempt captures before toHaveScreenshot"
+    )
+    assert "if (isByteGateExempt(label)) {" in thumbnails, (
+        "the thumbnails spec must divert exempt captures before toHaveScreenshot"
+    )
+
+
+def test_the_replacement_spec_covers_every_exempt_surface():
+    """The exemption is only defensible if the coverage actually moved."""
+    assert REPLACEMENT_SPEC.is_file(), (
+        "e2e/workout-plan-desktop-contract.spec.ts must exist: it is what the "
+        "five exempt captures were traded for."
+    )
+    spec = REPLACEMENT_SPEC.read_text(encoding="utf-8")
+    required = (
+        "page composition and section order",   # replaces the two full-page captures
+        "progressive column disclosure",        # replaces the advanced/simple element captures
+        "row media and controls",               # thumbnails, swap, curated media split
+        "theme surfaces and separator contrast",
+        "width: 1440",                          # the viewport must not be narrowed to dodge the defect
+    )
+    missing = [literal for literal in required if literal not in spec]
+    assert not missing, f"Replacement coverage missing: {missing}"
+
+    # No pixel comparison may sneak back into the replacement.
+    assert "toHaveScreenshot" not in spec, (
+        "the replacement spec must not screenshot; that is the whole point"
     )
 
 
