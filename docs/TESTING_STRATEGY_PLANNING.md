@@ -65,7 +65,7 @@
 
 | Layer | Reality | Runs on PR? |
 |---|---|---|
-| **Python unit + integration (pytest)** | 90 files, 1,716 test-function definitions, **2,288 currently collected nodes** (verified 2026-08-01 with `.venv/Scripts/python.exe -m pytest tests --collect-only -q`; 70 parametrize decorators). Last recorded full run: **2,271 passed / 1 skipped** (2026-07-30, WP4.4-f2 gate). Per-test tmp SQLite isolation via conftest fixture chain. | ✅ Required (`Run Tests`) |
+| **Python unit + integration (pytest)** | Dated evidence: 90 files, 1,716 test-function definitions, **2,288 collected nodes as of 2026-08-01**; last recorded full run **2,271 passed / 1 skipped** (2026-07-30, WP4.4-f2 gate). **Superseded — the current count is generated into [`TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md); do not quote the 2,288 as current.** Per-test tmp SQLite isolation via conftest fixture chain. | ✅ Required (`Run Tests`) |
 | **JS unit (Vitest)** | 9 files, 93 tests, pure helpers only (`environment: 'node'`). 8/49 modules covered (16%); 41 modules + 6 top-level scripts untested. | ⚠️ Runs, **non-required** |
 | **API contract (E2E)** | `api-integration.spec.ts` — 57 tests hitting real endpoints. | ✅ Required (functional shards) |
 | **Browser E2E (Playwright)** | 30 specs, **541 live tests**, Chromium only, serial, 1 worker, 2 retries on CI. 24 specs in the required functional shard set (recomputed: **426 tests**, not the documented 404). | ✅ Mostly required; `erase-flow`, `listener-cleanup`, visual specs are not |
@@ -430,7 +430,12 @@ hand-maintained counts drift.
 
 Every figure below was produced by CI on Linux unless noted. Regenerate rather than quote.
 
-| Metric | Value | Source |
+> **Historical snapshot — do not quote as current.** Every value in this table was
+> copied by hand and has since drifted. The live figures are generated into
+> [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md). Read them
+> there; do not transcribe a replacement here.
+
+| Metric | Value (snapshot, superseded) | Source |
 |---|---|---|
 | Playwright tests | **541** across 30 specs | `TEST_INVENTORY.json` |
 | Required functional gate | **426** across 24 specs | derived from `ci.yml` |

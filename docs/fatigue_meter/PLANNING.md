@@ -1,6 +1,6 @@
 # Fatigue Meter — PLANNING.md
 
-**Status:** draft plan, awaiting human sign-off on Stage 0.
+**Status:** **Phase 1 shipped** (2026-05-03, PR #7); **Phase 2 Path 1 shipped** (2026-05-23, PR #35 `d5b80bf`) with the Stage 3 verify-suite gate closed 2026-05-24. Stage 0 was signed 2026-05-23 via an owner decision walk — this document is completion history for Phases 1–2, not a draft awaiting sign-off. **Phase 2 Stage 4** is recorded **OPEN** in [`PHASE2_PLANNING.md`](PHASE2_PLANNING.md) (opened 2026-05-24) but its window is inactive for want of real-use evidence; the disposition is an owner decision tracked as **P2.1** in [`LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md). Phase 1 Stage 4 closed 2026-05-20 with no threshold changes. **Phase 3 remains a proposal.**
 **Source:** derived from `BRAINSTORM.md` §24.A–E (author recommendations after Codex 5.5 and Gemini 3.1 Pro reviews).
 **Date drafted:** 2026-04-30
 **Companion document:** `BRAINSTORM.md` (do not edit during implementation).
