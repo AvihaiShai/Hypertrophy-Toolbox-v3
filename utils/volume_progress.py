@@ -234,11 +234,11 @@ def _aggregate_blank_pst_row(
         if normalized in _BASIC_ONLY_TOKEN_TO_BASIC:
             basic_targets.append(_BASIC_ONLY_TOKEN_TO_BASIC[normalized])
             continue
-        advanced_targets = _record_token_resolution(
+        token_targets = _record_token_resolution(
             raw_token=token,
             diagnostics=diagnostics,
         )
-        for advanced in advanced_targets:
+        for advanced in token_targets:
             basic = taxonomy.ADVANCED_TO_BASIC.get(advanced)
             if basic:
                 basic_targets.append(basic)
