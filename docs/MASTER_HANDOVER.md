@@ -189,9 +189,43 @@
 
 ### Known Windows visual reds — the WP4.0 pair, both OPEN and deferred
 
-*Durable ledger. A correctly seeded Windows visual run (`PW_VISUAL_SEED=1`) reds on **exactly these
-two** tests and nothing else. Neither is a regression; both predate the app.py review. **Never
-rebaseline either, and never gate on an exact pixel count — both are bands.***
+> **⚠️ CORRECTED 2026-08-04 — the "exactly these two" claim below is STALE and is
+> withdrawn.** This section used to read *"A correctly seeded Windows visual run
+> (`PW_VISUAL_SEED=1`) reds on **exactly these two** tests and nothing else."* That was
+> true when written. It is false now.
+>
+> **Measured against unmodified `main` at `02e73c7`: `e2e/visual.spec.ts` fails 58 of 66
+> on Windows**, reproducibly — two runs of the identical unmodified tree gave the same
+> 58 failed / 8 passed. Nine of the eleven pages fail in **every** viewport and both
+> themes; only `progression` (6/6) and the two `user-profile` mobile captures pass. That
+> is the signature of a stale corpus, not of two localized defects.
+>
+> **Consequence: the Windows visual suite cannot serve as a merge gate today** — it
+> cannot separate a real regression from inherited staleness. A CSS packet must instead
+> demonstrate non-attribution with a same-CSS control run, comparing the **passing sets
+> by name** rather than by count.
+>
+> This is the Windows counterpart of the Linux staleness recorded in the next section,
+> and it has the same unblock: an owner-run `deep-gate.yml` regeneration plus a by-eye
+> review. Full evidence, reproduction and unblock steps: **issue #304**.
+>
+> **Per-PR CI never runs either visual suite.** `visual.spec.ts` and
+> `visual-baseline-thumbnails.spec.ts` live in `deep-gate.yml`, not `ci.yml`, so a PR
+> showing every check green is silent about visual state in **both** directions. Do not
+> read a green PR as evidence that pixels are fine, and do not read this section as a
+> reason to doubt an otherwise-green PR.
+>
+> The two WP4.0 entries below remain accurate as *history* — they are the two defects
+> that were known when the corpus was current — and their "never rebaseline, never gate
+> on an exact pixel count, both are bands" rules still bind. Read the table as a record
+> of those two, **not** as a complete list of what a Windows run reds on today.
+>
+> **Scope of the correction:** it covers `visual.spec.ts` only (66 tests/platform). Entry
+> 2 lives in `visual-baseline-thumbnails.spec.ts` (18 tests), which was **not** exercised
+> by that measurement and is therefore neither confirmed nor cleared by it.
+
+*Durable ledger of the WP4.0 pair. Neither is a regression; both predate the app.py review.
+**Never rebaseline either, and never gate on an exact pixel count — both are bands.***
 
 | # | Test | Spec | Observed | Historical | Status |
 |---|---|---|---:|---:|---|
