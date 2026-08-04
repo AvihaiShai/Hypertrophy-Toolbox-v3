@@ -1,8 +1,9 @@
 # E2E Testing
 
-Last updated: 2026-06-10
-
-This document tracks the current Playwright setup and spec inventory. Treat counts as an inventory snapshot, not a promise that every suite was rerun during this docs refresh.
+This document covers how to **run** Playwright here, and what each spec is *for*.
+Every test and spec **count** lives in
+[`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md), the generated
+single producer — do not add one here.
 
 ## How To Run
 
@@ -40,9 +41,7 @@ Validated from `package.json`, `playwright.config.ts`, and `scripts/run-playwrig
 - Default timeout: `30s`
 - Default full-suite script: runs all non-visual specs first, then prepares a visual DB and runs `visual.spec.ts`
 
-## Current Playwright Spec Inventory
-
-There are currently **28** Playwright spec files in `e2e/`:
+## What each spec covers
 
 | Spec file | Primary coverage |
 |-----------|------------------|
@@ -52,12 +51,14 @@ There are currently **28** Playwright spec files in `e2e/`:
 | `browser-navigation-state.spec.ts` | Stateless routine-cascade behavior |
 | `dark-mode.spec.ts` | Theme toggle and persistence |
 | `empty-states.spec.ts` | Empty plan/log/export flows |
+| `erase-flow.spec.ts` | Erase-data confirmation and the auto-backup banner |
 | `error-handling.spec.ts` | Server/network failure handling |
 | `exercise-interactions.spec.ts` | Delete, replace, superset, inline interactions |
 | `fatigue-context.spec.ts` | Fatigue context payload and per-muscle UI integration |
 | `fatigue-stage4-smokes.spec.ts` | Fatigue badge presence, band states, calm-glass styling |
 | `fatigue.spec.ts` | Fatigue meter rendering, drivers, and fatigue-related interactions |
 | `learned-calibration.spec.ts` | Learned calibration UI states and safety gates |
+| `listener-cleanup.spec.ts` | Detached picker/dropdown listener cleanup |
 | `nav-dropdown.spec.ts` | Navbar hover-dropdown, Backup Center, icon accent colors and motion |
 | `program-backup.spec.ts` | Backup Center and program snapshot flows |
 | `progression.spec.ts` | Progression page flows and goal interactions |
@@ -69,6 +70,7 @@ There are currently **28** Playwright spec files in `e2e/`:
 | `user-profile.spec.ts` | Profile questionnaire, insights card, coverage bodymap (workout-cool art), Body Composition snapshot display hooks |
 | `validation-boundary.spec.ts` | Invalid form and boundary-value behavior |
 | `visual-baseline-thumbnails.spec.ts` | §4.6 thumbnail inspection matrix (plan + log × viewport × theme × mode) |
+| `visual-field-separator.spec.ts` | Table field-separator contrast guard (both themes) |
 | `visual.spec.ts` | Deterministic visual snapshots across routes, themes, and viewports |
 | `volume-progress.spec.ts` | Plan-page volume progress drawer/panel and target progress |
 | `volume-splitter.spec.ts` | Volume splitter inputs, modes, and results |

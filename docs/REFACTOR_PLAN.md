@@ -467,6 +467,11 @@ Integrated `main` @ `f9bfb50`: pytest **1708 passed**; required Chromium functio
 shards **205 + 202**; smoke **10**, backup **20**, erase **2**, fatigue-context **6**;
 Playwright inventory **504 tests / 30 specs**.
 
+> **Historical — superseded 2026-08-01.** The block above is a dated 2026-07-07
+> snapshot, kept as written. **WPB.4 is no longer gated: it shipped** in PR #256
+> (`9fe5dbd`). Its counts are 2026-07-07 gate evidence, not current totals — those
+> are generated into [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md).
+
 ### WPB.1 (OD1) Allow plan weight 0 for bodyweight/assisted exercises
 
 - Fix the falsy-check family in `utils/exercise_manager.py`: weight `0` treated as

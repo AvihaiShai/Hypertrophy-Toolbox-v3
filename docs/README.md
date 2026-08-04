@@ -16,7 +16,7 @@ This directory keeps the current project docs. Completed execution plans and mig
 
 ### Runtime, UI, And Testing
 - **[CSS_OWNERSHIP_MAP.md](CSS_OWNERSHIP_MAP.md)** - Current CSS loading and ownership map
-- **[E2E_TESTING.md](E2E_TESTING.md)** - Current Playwright inventory and run commands
+- **[E2E_TESTING.md](E2E_TESTING.md)** - How to run Playwright, and what each spec covers. For counts see **[test_inventory/TEST_INVENTORY.md](test_inventory/TEST_INVENTORY.md)**, the generated single producer
 - **[UI_SCENARIOS_GAP_ANALYSIS.md](UI_SCENARIOS_GAP_ANALYSIS.md)** - UI risk status, deferred quality items, and Known Issues table (KI-001..)
 
 ### Feature Docs
@@ -42,4 +42,6 @@ These files are historical reference only. They should not be treated as active 
 
 The old Backup Center hardening plan, Calm Glass redesign plan/audit/mockup, seed-fix plan, and spring-cleanup Phase 4/5 execution plans were completed and superseded by the current source, changelog, CSS map, and Backup Center docs.
 
-Last updated: 2026-06-12 (archived the completed CI/CD plan + per-phase council docs under `archive/ci_cd/`; deleted the stale Puppeteer findings doc).
+This index is maintained by hand. It carries no dated freshness stamp on purpose — one
+was previously written here and went stale without anyone noticing. Check `git log` for
+this file if you need to know when it last changed.
