@@ -478,12 +478,24 @@ export async function expectFullPageScreenshot(
 ): Promise<void> {
   const { documentHeight, documentWidth } = await page.evaluate(() => ({
     documentHeight: Math.ceil(document.documentElement.scrollHeight),
-    documentWidth: Math.ceil(document.documentElement.clientWidth),
+    // scrollWidth, not clientWidth: the plan page's advanced table overflows the
+    // 1440px viewport, and the capture has always included that overflow. Using
+    // the layout width here would clip 166px of real table off the right edge.
+    documentWidth: Math.ceil(document.documentElement.scrollWidth),
   }));
 
   if (documentHeight <= MAX_CAPTURE_HEIGHT_PX) {
     assertCaptureFits(name, documentHeight);
-    await expect(page).toHaveScreenshot(name, options);
+    // Explicit document-covering clip rather than a bare `fullPage`. The two
+    // take different paths through Chromium's capture code, and the bare one is
+    // where the residual nondeterminism lived: with everything else pinned, the
+    // only images that still flipped across three ubuntu generations were the
+    // full-page captures of pages wider than the viewport, while the segmented
+    // captures — which have always passed a clip — never flipped once.
+    await expect(page).toHaveScreenshot(name, {
+      ...options,
+      clip: { x: 0, y: 0, width: documentWidth, height: documentHeight },
+    });
     return;
   }
 
