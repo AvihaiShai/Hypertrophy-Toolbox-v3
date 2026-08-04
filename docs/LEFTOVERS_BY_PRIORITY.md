@@ -216,6 +216,22 @@ These items remain legitimate but should not displace the P1–P2 closeouts:
   10 animation-dependent declarations, `.tbl-show-*`/`.tbl-hide-*` as a unit,
   dormant `.scale-btn[data-scale]`, and 155 uncertified navbar nominations.
   Explicitly deferred/owner-gated, not forgotten quick wins.
+- **Inert `d-flex` / `d-inline-block` consumers.** OD-2 (implemented and
+  owner-accepted in **draft PR #303**, unmerged) restored Bootstrap's `display`
+  utility but deliberately narrowed it to `values: none inline` — enough for
+  `d-none` and its indivisible `d-lg-inline` partner, and no further. `d-flex`
+  (15 call sites) and `d-inline-block` (1, `templates/fatigue.html:22`) are
+  therefore **still inert by design**, recorded in `KNOWN_INERT` and pinned by
+  `tests/test_css_display_utilities_contracts.py::test_the_deliberately_withheld_utilities_stay_withheld`,
+  so the narrowing cannot widen without updating the contract. Activating them is
+  a one-line SCSS change but **a rendering change, not a bug fix**: measured
+  against a same-machine baseline it moves **12 further visual captures** —
+  session-summary ×6 and weekly-summary ×6 at 120k–564k pixels each, because
+  those pages build `d-flex` rows in JS — plus the `/fatigue` period select from
+  `block` to `inline-block`. Needs its own packet with **dedicated
+  visual-baseline review and regeneration**; do not fold it into an unrelated
+  change. Measurement:
+  [`dnone_display_utilities/EVIDENCE.md`](dnone_display_utilities/EVIDENCE.md) §3, §7.
 - **Grounding-scan doc set** (`docs/scan/PHASE_02…22`, `SCAN_FINDINGS.md`,
   `SCAN_PROGRESS.md`, `SCAN_RECOMMENDATIONS.md`) and the ~56 `CSS_PHASE4_*`
   evidence files at the `docs/` root: both arcs complete and merged; the scan
