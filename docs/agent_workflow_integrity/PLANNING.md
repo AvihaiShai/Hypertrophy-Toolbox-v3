@@ -1,5 +1,17 @@
 # Agent-workflow integrity — LEFTOVERS P1.8 + P1.3
 
+> ## ✅ SHIPPED — do not execute
+>
+> Merged **2026-08-04** as PR **#292**, squash **`db1bc5d`**. All seven
+> acceptance criteria were met, the full post-rebase verification passed, and
+> the **P1.3** and **P1.8** rows are retired from
+> [`LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md) into its §2.
+>
+> This document is **completion history**, not an active checklist. The role
+> split described in §2 is intentional: the manager or primary session runs the
+> independent reviewer steps, while `senior-developer` runs verification and
+> handover without receiving the `Agent` tool.
+
 *One packet. Both source rows are the same defect class: the committed agent
 configuration disagrees with itself, and nothing in CI can see it because every
 file involved is Markdown.*
@@ -385,12 +397,9 @@ force-resolve.
 ## §6 — Definition of done
 
 Item 1 of the [LEFTOVERS §6](../LEFTOVERS_BY_PRIORITY.md) closure rule:
-implementation and proportional verification landed on `main`, the **P1.3** and
-**P1.8** rows retired from `LEFTOVERS_BY_PRIORITY.md`, and this document
-banner-flipped to SHIPPED with the merge SHA.
-
-Per the raw request the PR **stops merge-ready** — opened, green, and not merged.
-Row retirement therefore happens after the owner merges, not in this packet.
+**satisfied.** Implementation and proportional verification landed on `main` as
+PR **#292** (squash `db1bc5d`); the **P1.3** and **P1.8** rows are retired from
+`LEFTOVERS_BY_PRIORITY.md`, and this document now records the shipped state.
 
 ---
 
