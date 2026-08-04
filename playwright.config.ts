@@ -72,6 +72,17 @@ const linuxRasterDeterminismArgs = [
      stabilization could not see it and two whole runs could agree by luck.
      One raster thread removes the pool from the inputs entirely. */
   '--num-raster-threads=1',
+  /* Raster the captured layer in one pass instead of tiles. The residue after
+     everything above was confined to the workout tables, which are the only
+     content wider than the 1440px viewport, and every diff was the same rows
+     re-rounded at identical layout. Tiling is the remaining input that is
+     decided per process rather than per document: above these thresholds a
+     composited layer is split, and the split is what the capture was rounding
+     against. 20000 clears the tallest page in the corpus (user-profile mobile
+     at 19,785px) and the widest capture (1,635px), so nothing tiles.
+     `blink::switches::kMaxUntiledLayer{Width,Height}`. */
+  '--max-untiled-layer-width=20000',
+  '--max-untiled-layer-height=20000',
 ];
 
 const chromiumLaunchArgs = process.platform === 'linux'

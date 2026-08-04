@@ -264,6 +264,8 @@ def test_linux_pins_the_text_and_tile_raster_paths_without_touching_win32():
         "'--disable-lcd-text'",
         "'--disable-partial-raster'",
         "'--num-raster-threads=1'",
+        "'--max-untiled-layer-width=20000'",
+        "'--max-untiled-layer-height=20000'",
     ):
         assert config.count(literal) == 1, (
             f"{literal} must appear exactly once, in linuxRasterDeterminismArgs; "
