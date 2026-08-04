@@ -315,7 +315,9 @@ work.
 |---|---|
 | `tests/test_css_wp4_4_a11y_contracts.py` | **37 passed** (16 before) |
 | Red-path proof | **6/6** go red under their own violation; tree restores to 37 passed |
-| Full `pytest tests/` | see §9a |
+| Full `pytest tests/` | **2,538 passed, 2 skipped** (448s) |
+| Required Chromium specs + `visual-field-separator` | **174 passed, 1 failed** — pre-existing pollution, see §9b |
+| Full seeded `visual.spec.ts` | **58 failed / 8 passed — IDENTICAL to the unmodified-CSS control.** Gate blocked repository-wide, see §9c |
 | Seven-surface Stylelint | **2,759 → 2,752 (−7)**, **no category increased** |
 | `a11y.css` Stylelint | **128 → 121 (−7)**; every other surface **+0** |
 | Rest-state differential | **0 differing / 339,120** |
@@ -349,6 +351,59 @@ packet does not spend time diagnosing it.
 `scripts/css_audit/`, by design: *"a tool added without a verdict has to red rather than
 quietly widen the scope."* Its designed remedy is a verdict row, which this packet added
 for `scale_btn_census.mjs`. **No P3 packet is reopened; P3 remains terminated at a0.**
+
+### 9b. The one functional failure is pre-existing combined-run pollution
+
+The ten required Chromium specs returned **174 passed, 1 failed** —
+`ui-hardening.spec.ts:375 full reload restores all six Workout Controls`. It is not this
+packet's:
+
+- it **passes in isolation** (1 passed), and its own spec run whole is **37/37 passed**;
+- the same ten specs run against the **unmodified** `a11y.css` returned **170 passed, 5
+  failed** — five *different* tests, all in `summary-pages.spec.ts` (Pattern Coverage).
+
+Non-overlapping failure sets across two runs of identical-except-for-CSS trees is the
+signature of cross-spec DB-state pollution, which `QUALITY_GATE.md:124` already records
+for `program-backup.spec.ts:79`. The control failing **more** than the candidate settles
+the direction.
+
+### 9c. The Windows visual gate is blocked repository-wide, and it is not this packet
+
+Run with `PW_VISUAL_SEED=1`, comparing against the committed `e2e/__screenshots__/win32`
+baselines. **No snapshot was written; `--update-snapshots` was never passed; no
+tolerance, mask or retry was touched.**
+
+| Run | CSS | Result |
+|---|---|---|
+| control 1 | **unmodified** `a11y.css` | **58 failed / 8 passed** |
+| control 2 | **unmodified**, identical rerun | **58 failed / 8 passed** |
+| candidate | this packet's deletion | **58 failed / 8 passed** |
+
+The passing sets were compared by name, not merely by count:
+
+```
+control passing: 8   mine passing: 8
+passed in CONTROL but FAILED in mine: none
+passed in MINE  but failed in control: none
+```
+
+**The two sets are identical.** The Windows baseline corpus is broadly stale against
+current `main` — the same condition already documented for Linux in
+`MASTER_HANDOVER.md` §"Known LINUX visual reds", where 84 committed PNGs fell behind 57
+CSS/template commits. This packet neither caused it nor can fix it: rebaselining is an
+owner action requiring a by-eye review of the regenerated corpus, and
+`QUALITY_GATE.md` is explicit that a red is never resolved with `--update-snapshots`.
+
+**One honest correction worth recording:** the packet's *first* visual run reported 60
+failed / 6 passed, and it would have been easy to file that 2-test delta as a finding.
+It was not reproducible — the control is stable at 58/8 across reruns, and a clean
+candidate rerun matched it exactly. The first run of a fresh browser process differs
+from every later one, which `scripts/css_audit/runtime_probe.mjs` documents directly
+("capture 1 differed from capture 2, and captures 2..6 were byte-identical"). A single
+visual run is not evidence in either direction.
+
+The visual **merge** gate is therefore marked **BLOCKED**, with the blocker external to
+this packet and its non-attribution demonstrated by control rather than asserted.
 
 ---
 
