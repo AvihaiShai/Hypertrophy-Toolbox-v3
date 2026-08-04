@@ -169,10 +169,24 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
         border-color: transparent !important;
         color: transparent !important;
       }
-      /* Sticky table cells are promoted into compositor-managed layers. That is
-         useful while a person scrolls, but a baseline capture is always made at
-         the origin and gains nothing from the separate raster path. Keep every
-         table capture on the same static paint path, including full-page shots. */
+      /* Sticky cells and the production table scroll surface are promoted into
+         compositor-managed layers. The latter uses translateZ(0), hidden
+         backfaces and will-change: scroll-position. Those hints are useful while
+         a person scrolls, but Linux Skia can raster the promoted table in more
+         than one valid state across otherwise identical fresh browser processes.
+         A baseline capture is always made at the origin, so keep both the table
+         and its direct scroll wrapper on one static paint path. This applies to
+         full-page and locator captures alike. */
+      .tbl-wrap:has(> [data-testid="exercise-table"]),
+      .tbl-wrap:has(> [data-testid="workout-log-table"]),
+      [data-testid="exercise-table"],
+      [data-testid="workout-log-table"] {
+        -webkit-transform: none !important;
+        transform: none !important;
+        -webkit-backface-visibility: visible !important;
+        backface-visibility: visible !important;
+        will-change: auto !important;
+      }
       [data-testid="exercise-table"] thead th,
       [data-testid="exercise-table"] tr > :first-child,
       [data-testid="workout-log-table"] thead th,

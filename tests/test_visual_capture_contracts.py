@@ -218,6 +218,28 @@ def test_oversized_element_captures_exclude_fixed_and_sticky_page_layers():
     )
 
 
+def test_workout_table_captures_disable_production_layer_promotion():
+    """Linux table pixels must use one static paint path during capture."""
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    common_prepare, _ = helper.split(
+        "export async function prepareForElementScreenshot", maxsplit=1
+    )
+    required = (
+        '.tbl-wrap:has(> [data-testid="exercise-table"])',
+        '.tbl-wrap:has(> [data-testid="workout-log-table"])',
+        '-webkit-transform: none !important;',
+        'transform: none !important;',
+        '-webkit-backface-visibility: visible !important;',
+        'backface-visibility: visible !important;',
+        'will-change: auto !important;',
+    )
+    missing = [literal for literal in required if literal not in common_prepare]
+    assert not missing, (
+        "Workout table capture must neutralize the production translateZ(0), "
+        f"hidden-backface and will-change promotion hints: {missing}"
+    )
+
+
 def test_font_awesome_is_local_and_complete_for_offline_visual_runs():
     """Icon pixels must not depend on cdnjs availability or CORS headers."""
     base = (REPO_ROOT / "templates" / "base.html").read_text(encoding="utf-8")
