@@ -204,6 +204,77 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
   });
 
   await waitForImagesSettled(page);
+  await dropCompositingHints(page);
+}
+
+/**
+ * The two identity transforms Chromium reports for a pure promotion hint.
+ * `translateZ(0)` computes to the 3D form, `translate3d(0,0,0)` and
+ * `scale(1)` to whichever the property was authored in. Both are geometric
+ * no-ops: their only effect is to give the element its own compositor layer.
+ */
+const IDENTITY_TRANSFORMS = new Set([
+  'matrix(1, 0, 0, 1, 0, 0)',
+  'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)',
+]);
+
+/**
+ * Take every element off its own compositor layer before a capture.
+ *
+ * Chromium rounds an element's paint offset against the subpixel accumulation
+ * of the compositor layer it paints into, so the same fractional layout inside
+ * a promoted layer can land on either of two device pixels. On the ubuntu-24.04
+ * visual job that is not theoretical: within one job at one SHA, attempts 1 and
+ * 3 of `workout-plan desktop light` produced byte-identical PNGs and attempt 2
+ * produced a different one, and every differing cluster in it was the *same*
+ * pixels moved one row down — row rules, glyph runs and whole button pills, at
+ * unchanged colour values. `.tbl-wrap` and `.tbl` carry `translateZ(0)`,
+ * `backface-visibility: hidden` and `will-change: scroll-position` for scroll
+ * smoothness (`static/css/layout.css`); a baseline capture is always taken at
+ * the origin and never scrolls, so it gains nothing from them and inherits
+ * their rounding.
+ *
+ * Only *identity* transforms are cleared, which is what makes this safe to
+ * apply page-wide: an identity transform paints nothing, so removing it cannot
+ * move a pixel that a real transform was responsible for. This is keyed on
+ * computed values rather than on a selector list on purpose — the promotion
+ * hints live on presentation classes, which are exactly what a CSS refactor
+ * renames (`tests/test_visual_selector_contracts.py`).
+ */
+export async function dropCompositingHints(page: Page): Promise<number> {
+  return page.evaluate(async (identityTransforms: string[]) => {
+    const identity = new Set(identityTransforms);
+    let cleared = 0;
+
+    for (const element of Array.from(document.querySelectorAll('*'))) {
+      const node = element as HTMLElement;
+      if (!node.style) continue;
+      const computed = getComputedStyle(node);
+      let touched = false;
+
+      if (identity.has(computed.transform)) {
+        node.style.setProperty('transform', 'none', 'important');
+        touched = true;
+      }
+      if (computed.willChange !== 'auto') {
+        node.style.setProperty('will-change', 'auto', 'important');
+        touched = true;
+      }
+      if (computed.backfaceVisibility === 'hidden') {
+        node.style.setProperty('backface-visibility', 'visible', 'important');
+        touched = true;
+      }
+      if (touched) cleared += 1;
+    }
+
+    // Layerization changes invalidate paint. Let the new, unpromoted frame be
+    // produced before anything screenshots it.
+    await new Promise<void>((resolveFrame) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolveFrame()));
+    });
+    window.scrollTo(0, 0);
+    return cleared;
+  }, Array.from(IDENTITY_TRANSFORMS));
 }
 
 /**

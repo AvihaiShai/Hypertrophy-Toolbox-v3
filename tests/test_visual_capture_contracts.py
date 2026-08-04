@@ -24,7 +24,6 @@ been exercised in either theme.
 """
 from __future__ import annotations
 
-import re
 import shutil
 import sqlite3
 import struct
@@ -192,51 +191,46 @@ def test_visual_chromium_serializes_the_compositor_pipeline():
     assert not missing, f"Deterministic compositor controls missing: {missing}"
 
 
-def test_linux_pins_the_text_and_tile_raster_paths_without_touching_win32():
-    """Two raster controls the ubuntu runner needs, and win32 must not get.
+def test_captures_take_every_element_off_its_own_compositor_layer():
+    """Promotion hints decide which device pixel a fractional offset lands on.
 
-    Both defects were observed inside a single ubuntu-24.04 job at one SHA,
-    where the first and third attempts produced byte-identical PNGs and the
-    second produced a different one: every glyph in the workout table shifted
-    antialiasing path, and one row's rounded borders and box-shadows re-rastered
-    while the rest of the page matched exactly. ``--disable-lcd-text`` pins the
-    first, ``--disable-partial-raster`` the second.
+    Chromium rounds an element's paint offset against the subpixel accumulation
+    of the compositor layer it paints into. Inside one ubuntu-24.04 job at one
+    SHA, attempts 1 and 3 of ``workout-plan desktop light`` produced
+    byte-identical PNGs and attempt 2 produced a different one, and every
+    differing cluster in it resolved to a ``dy = 1`` shift of unchanged pixel
+    values. ``.tbl-wrap`` / ``.tbl`` carry ``translateZ(0)``,
+    ``backface-visibility: hidden`` and ``will-change: scroll-position`` for
+    scroll smoothness; a capture is taken at the origin and never scrolls.
 
-    They are deliberately *not* in the shared list. The two baseline sets are
-    maintained independently, only Linux showed the defect, and switching win32
-    would restate every committed win32 PNG. This asserts the scoping, because
-    an unconditional list would silently stale a set no CI job regenerates.
+    The clearing is keyed on *computed* values, and only on identity
+    transforms, because a selector list over presentation classes is what a CSS
+    refactor renames, and a non-identity transform paints real geometry.
     """
-    config = PLAYWRIGHT_CONFIG.read_text(encoding="utf-8")
-
-    shared, _, linux_only = config.partition("const linuxRasterDeterminismArgs")
-    assert linux_only, (
-        "playwright.config.ts must declare linuxRasterDeterminismArgs; the "
-        "Linux-only raster controls have no other home."
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    common_prepare, _, _ = helper.partition(
+        "export async function prepareForElementScreenshot"
+    )
+    assert "await dropCompositingHints(page);" in common_prepare, (
+        "prepareForScreenshot must run dropCompositingHints, so full-page and "
+        "locator captures share one unpromoted paint path."
     )
 
-    for literal in ("'--disable-lcd-text'", "'--disable-partial-raster'"):
-        assert config.count(literal) == 1, (
-            f"{literal} must appear exactly once, in linuxRasterDeterminismArgs; "
-            f"found {config.count(literal)} occurrences."
-        )
-        assert literal not in shared, (
-            f"{literal} is declared before linuxRasterDeterminismArgs, so it "
-            "applies to win32 too and stales that platform's baselines."
-        )
+    required = (
+        "'matrix(1, 0, 0, 1, 0, 0)'",
+        "'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)'",
+        "identity.has(computed.transform)",
+        "computed.willChange !== 'auto'",
+        "computed.backfaceVisibility === 'hidden'",
+    )
+    missing = [literal for literal in required if literal not in helper]
+    assert not missing, f"Compositing-hint controls missing: {missing}"
 
-    guarded = re.search(
-        r"process\.platform === 'linux'\s*\?\s*\[\s*\.\.\.deterministicChromiumArgs,"
-        r"\s*\.\.\.linuxRasterDeterminismArgs\s*\]",
-        config,
-    )
-    assert guarded, (
-        "The launch args must add linuxRasterDeterminismArgs only when "
-        "process.platform === 'linux'."
-    )
-    assert "args: chromiumLaunchArgs," in config, (
-        "The chromium project must launch with chromiumLaunchArgs, otherwise "
-        "the platform split above is computed and then discarded."
+    assert "requestAnimationFrame(() => requestAnimationFrame" in (
+        helper.partition("export async function dropCompositingHints")[2]
+    ), (
+        "dropCompositingHints must settle the paint its own layerization "
+        "change invalidates before the capture reads it."
     )
 
 
