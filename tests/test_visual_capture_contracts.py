@@ -24,6 +24,7 @@ been exercised in either theme.
 """
 from __future__ import annotations
 
+import re
 import shutil
 import sqlite3
 import struct
@@ -234,49 +235,53 @@ def test_captures_take_every_element_off_its_own_compositor_layer():
     )
 
 
-def test_captures_pin_each_table_paint_origin_to_a_whole_device_pixel():
-    """Which device row a 1px rule lands on must not depend on the page above.
+def test_linux_pins_the_text_and_tile_raster_paths_without_touching_win32():
+    """The two web-test switches Chromium has for same-layout raster drift.
 
-    Every boundary inside the workout tables is fractional — the advanced plan
-    table's six row bottoms sit at 271.28125, 449.4375, 608.875, 768.3125,
-    927.75 and 1124.625 px below the table top — and Chromium decides the
-    device row from ``boundary + fraction(table top)``. The table top is
-    fractional too (1826.1875 px on the plan page) and its fraction is the sum
-    of everything above the table, none of which the capture even shows.
+    The defect is in raster, not layout. A geometry probe over both visual
+    specs on two ubuntu-24.04 runs at one SHA compared document size, viewport,
+    the captured table's rect, its first eight row rects and its whole ancestor
+    chain to five decimal places: **all 84 records matched exactly**, while the
+    PNGs did not. ``--disable-partial-raster`` stops the renderer re-rastering
+    an invalidated sub-rect over previously rastered tile content, and
+    ``--disable-lcd-text`` pins one text-antialiasing path.
 
-    Three rasters of ``plan-desktop-dark-advanced`` at one SHA put the first two
-    row rules at 270/449, 270/448 and 271/449 — the values fractions of ~0,
-    ~0.19 and ~0.22 predict. Offsetting the table by its own fraction makes the
-    origin whole and the dependency disappears.
+    Deliberately *not* in the shared list. Linux is the platform CI generates
+    and the only one measured; ``e2e/__screenshots__/win32`` is an
+    independently maintained owner-local set that no job regenerates, so an
+    unconditional list would stale it for no evidence. This asserts the scoping
+    because that staling would be silent.
     """
-    helper = VISUAL_HELPER.read_text(encoding="utf-8")
-    common_prepare, _, _ = helper.partition(
-        "export async function prepareForElementScreenshot"
-    )
-    assert "await snapTablesToWholeDevicePixels(page);" in common_prepare, (
-        "prepareForScreenshot must snap the table paint origins, so full-page "
-        "and locator captures share one rounding basis."
-    )
-    assert helper.index("await dropCompositingHints(page);") < helper.index(
-        "await snapTablesToWholeDevicePixels(page);"
-    ), (
-        "The snap must run after dropCompositingHints: measuring an offset "
-        "against a layer that is about to be removed pins the wrong number."
+    config = PLAYWRIGHT_CONFIG.read_text(encoding="utf-8")
+
+    shared, _, linux_only = config.partition("const linuxRasterDeterminismArgs")
+    assert linux_only, (
+        "playwright.config.ts must declare linuxRasterDeterminismArgs; the "
+        "Linux-only raster controls have no other home."
     )
 
-    snap = helper.partition("export async function snapTablesToWholeDevicePixels")[2]
-    snap = snap.partition("\n/**")[0]
-    required = (
-        "top - Math.floor(top)",
-        "node.style.setProperty('top', `${-fraction}px`, 'important')",
-        "'position', 'relative', 'important'",
+    for literal in ("'--disable-lcd-text'", "'--disable-partial-raster'"):
+        assert config.count(literal) == 1, (
+            f"{literal} must appear exactly once, in linuxRasterDeterminismArgs; "
+            f"found {config.count(literal)} occurrences."
+        )
+        assert literal not in shared, (
+            f"{literal} is declared before linuxRasterDeterminismArgs, so it "
+            "applies to win32 too and stales that platform's baselines."
+        )
+
+    guarded = re.search(
+        r"process\.platform === 'linux'\s*\?\s*\[\s*\.\.\.deterministicChromiumArgs,"
+        r"\s*\.\.\.linuxRasterDeterminismArgs\s*\]",
+        config,
     )
-    missing = [literal for literal in required if literal not in snap]
-    assert not missing, f"Paint-origin snap controls missing: {missing}"
-    assert "transform" not in snap, (
-        "The snap must not use a transform: a non-identity transform puts the "
-        "table back on its own compositor layer, which dropCompositingHints "
-        "just took it off."
+    assert guarded, (
+        "The launch args must add linuxRasterDeterminismArgs only when "
+        "process.platform === 'linux'."
+    )
+    assert "args: chromiumLaunchArgs," in config, (
+        "The chromium project must launch with chromiumLaunchArgs, otherwise "
+        "the platform split above is computed and then discarded."
     )
 
 

@@ -33,6 +33,8 @@ const e2eDbPath = path.join(process.cwd(), 'artifacts', 'e2e', 'database.e2e.db'
 const seedScript = process.env.PW_VISUAL_SEED === '1' ? 'prepare_visual_db.py' : 'prepare_e2e_db.py';
 const seedDbCommand = `${pythonExecutable} ${path.join('e2e', 'scripts', seedScript)} --output "${e2eDbPath}"`;
 const defaultViewport = { width: 1440, height: 900 };
+/* Capture controls every platform shares. Locked by
+   tests/test_visual_capture_contracts.py. */
 const deterministicChromiumArgs = [
   '--disable-font-subpixel-positioning',
   '--font-render-hinting=none',
@@ -45,6 +47,29 @@ const deterministicChromiumArgs = [
   '--disable-image-animation-resync',
   '--force-color-profile=srgb',
 ];
+
+/* The last two members of Chromium's own web-test determinism switch set, which
+   the list above is otherwise a copy of. They are here because the defect is
+   provably in raster and not in layout: a geometry probe over both visual specs
+   on two ubuntu-24.04 runs at one SHA compared document size, viewport, the
+   captured table's rect, its first eight row rects and its whole ancestor chain
+   to five decimal places, and all 84 records matched exactly — while the PNGs
+   did not. Same layout in, different pixels out, is what these two address.
+   `--disable-partial-raster` stops the renderer re-rastering an invalidated
+   sub-rect over previously rastered tile content, and `--disable-lcd-text`
+   pins one text-antialiasing path.
+
+   Linux-only. It is the platform CI generates and the only one measured here;
+   e2e/__screenshots__/win32 is an independently maintained owner-local set that
+   no job regenerates, so widening this would stale it for no evidence. */
+const linuxRasterDeterminismArgs = [
+  '--disable-lcd-text',
+  '--disable-partial-raster',
+];
+
+const chromiumLaunchArgs = process.platform === 'linux'
+  ? [...deterministicChromiumArgs, ...linuxRasterDeterminismArgs]
+  : [...deterministicChromiumArgs];
 
 /**
  * Playwright configuration for Hypertrophy Toolbox E2E tests
@@ -97,7 +122,7 @@ export default defineConfig({
         viewport: defaultViewport,
         deviceScaleFactor: 1,
         launchOptions: {
-          args: deterministicChromiumArgs,
+          args: chromiumLaunchArgs,
         },
       },
     },

@@ -205,7 +205,6 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
 
   await waitForImagesSettled(page);
   await dropCompositingHints(page);
-  await snapTablesToWholeDevicePixels(page);
   await logOriginProbe(page);
 }
 
@@ -254,60 +253,6 @@ async function logOriginProbe(page: Page): Promise<void> {
   });
   // eslint-disable-next-line no-console
   console.log('[origin-probe] ' + JSON.stringify(data));
-}
-
-/** Capture targets whose paint origin is pinned by `snapTablesToWholeDevicePixels`. */
-export const SNAPPED_CAPTURE_TARGETS =
-  '[data-testid="exercise-table"], [data-testid="workout-log-table"]';
-
-/**
- * Pin each table's paint origin to a whole device pixel.
- *
- * Every boundary inside these tables is fractional — measured on the advanced
- * plan table, the six row bottoms sit at 271.28125, 449.4375, 608.875,
- * 768.3125, 927.75 and 1124.625 px below the table top. Chromium paints a 1px
- * rule by rounding that edge, so which device row a rule lands on is decided by
- * `boundary + fraction(table top)`, and the table top is fractional too
- * (1826.1875 px on the plan page). Nothing in the capture shows the content
- * above the table, but its height feeds that fraction, and on the ubuntu runner
- * it moved: three rasters of `plan-desktop-dark-advanced` at one SHA put the
- * row rules at 270/449, 270/448 and 271/449 — exactly the three values that
- * fractions of ~0, ~0.19 and ~0.22 predict.
- *
- * Offsetting by the fraction makes the origin whole, so every boundary rounds
- * from its own fraction alone and no longer depends on anything above the
- * table. `position: relative` + `top` is a paint-time offset: it reflows
- * nothing, and unlike a transform it does not put the table back on its own
- * compositor layer, which `dropCompositingHints` has just taken it off.
- */
-export async function snapTablesToWholeDevicePixels(page: Page): Promise<number[]> {
-  const fractions = await page.evaluate((selector: string) => {
-    const applied: number[] = [];
-    for (const element of Array.from(document.querySelectorAll(selector))) {
-      const node = element as HTMLElement;
-      const top = node.getBoundingClientRect().top;
-      const fraction = top - Math.floor(top);
-      if (fraction === 0) {
-        applied.push(0);
-        continue;
-      }
-      if (getComputedStyle(node).position === 'static') {
-        node.style.setProperty('position', 'relative', 'important');
-      }
-      node.style.setProperty('top', `${-fraction}px`, 'important');
-      applied.push(fraction);
-    }
-    return applied;
-  }, SNAPPED_CAPTURE_TARGETS);
-
-  await page.evaluate(async () => {
-    await new Promise<void>((resolveFrame) => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolveFrame()));
-    });
-    window.scrollTo(0, 0);
-  });
-
-  return fractions;
 }
 
 /**
