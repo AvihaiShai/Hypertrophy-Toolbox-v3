@@ -460,20 +460,51 @@ They were dropped. An earlier `translateZ(0)`-removal experiment was also called
 but it had only ever been run in *compare* mode against baselines generated **with**
 promotion, so it could not have shown success whatever it did.
 
-### 8.4 The control, and the fix
+### 8.4 The two capture controls
 
-`dropCompositingHints()` in `e2e/visual-helpers.ts` clears, at capture time only, every
-identity transform, every non-`auto` `will-change` and every hidden `backface-visibility`
-on the page, then settles a frame. Keyed on *computed* values rather than a selector list
-(presentation classes are what CSS refactors rename, per
-`tests/test_visual_selector_contracts.py`), and restricted to identity transforms, which
-paint nothing — removing one cannot move a pixel a real transform was responsible for.
-Production keeps every hint. `tests/test_visual_capture_contracts.py` locks it.
+**`dropCompositingHints()`** clears, at capture time only, every identity transform, every
+non-`auto` `will-change` and every hidden `backface-visibility` on the page, then settles a
+frame. Keyed on *computed* values rather than a selector list (presentation classes are
+what CSS refactors rename, per `tests/test_visual_selector_contracts.py`), and restricted
+to identity transforms, which paint nothing — removing one cannot move a pixel a real
+transform was responsible for.
 
-| Generation pair | Ref | Result |
+That took the four unstable images down to one, and the exact-head compare
+([30925912334](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30925912334))
+still red on `plan-desktop-dark-advanced`. A third raster of that image made the rest of
+the mechanism measurable. Row rules in the advanced plan table sit at
+
+```
+271.28125   449.4375   608.875   768.3125   927.75   1124.625
+```
+
+px below the table top, and the table top is fractional too — **1826.1875 px** on the plan
+page, the sum of every fractional height stacked above it. Chromium picks the device row
+for a 1px rule from `boundary + fraction(table top)`, so three rasters at one SHA put the
+first two rules at 270/449, 270/448 and 271/449 — exactly what fractions of ~0, ~0.19 and
+~0.22 predict. Nothing above the table appears in that capture, and it was steering the
+capture's pixels anyway.
+
+**`snapTablesToWholeDevicePixels()`** offsets each workout table by its own fraction, so
+the origin is whole and every boundary rounds from its own fraction alone. It uses
+`position: relative` + `top`, a paint-time offset that reflows nothing and — unlike a
+transform — does not hand the table back the compositor layer `dropCompositingHints` just
+took away. It runs *after* `dropCompositingHints` for the same reason: measuring an offset
+against a layer that is about to be removed pins the wrong number.
+
+Production keeps every hint and every fractional offset; both controls are capture-side.
+`tests/test_visual_capture_contracts.py` locks both.
+
+| Generation set | Ref | Result |
 |---|---|---|
 | [30924012196](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924012196) / [30924035696](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924035696) | `main` `4d5d8cc` (control) | **82/86 byte-identical — 4 differ**: `workout-plan-desktop-{dark,light}`, `plan-desktop-{dark,light}-advanced` |
-| [30924365380](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924365380) / [30924387552](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924387552) | `947ba57` (fix) | **86/86 byte-identical** |
+| [30924365380](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924365380) / [30924387552](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924387552) | `947ba57` (hints only) | 86/86 byte-identical, but the later compare still flipped one image — two samples were not enough |
+| GEN3_PLACEHOLDER | `14344f3` (both controls) | GEN3_RESULT_PLACEHOLDER |
+
+**Two generations agreeing is not proof.** The state is chosen once per browser context and
+holds for that context's lifetime, so `toHaveScreenshot`'s "two consecutive stable
+screenshots" cannot filter it and a pair of runs can agree by luck. Three independent
+generations plus two independent compares is the bar this section was closed at.
 
 ### 8.5 What moved in the baselines, and why
 
