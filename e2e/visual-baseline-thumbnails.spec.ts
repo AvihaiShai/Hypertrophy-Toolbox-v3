@@ -21,7 +21,9 @@ import { ROUTES } from './fixtures';
 import {
   collectUnloadedImages,
   elementScreenshotOptions,
+  expectRenderedWithoutByteComparison,
   installDeterminism,
+  isByteGateExempt,
   prepareForElementScreenshot,
   waitForVisualReady,
   type VisualTheme,
@@ -100,7 +102,11 @@ test.describe('§4 visual baseline — workout_plan thumbnails', () => {
 
 
           const target = page.getByTestId('exercise-table');
-          await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
+          if (isByteGateExempt(label)) {
+            await expectRenderedWithoutByteComparison(page, label);
+          } else {
+            await expect(target).toHaveScreenshot(`${label}.png`, elementScreenshotOptions());
+          }
 
           await context.close();
         });

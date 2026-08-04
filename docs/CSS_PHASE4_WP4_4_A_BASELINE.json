@@ -829,7 +829,7 @@
   },
   "snapshotManifest": {
     "win32/visual.spec.ts-snapshots": {
-      "count": 66,
+      "count": 64,
       "files": [
         "backup-desktop-dark.png",
         "backup-desktop-light.png",
@@ -891,17 +891,15 @@
         "workout-log-mobile-light.png",
         "workout-log-tablet-dark.png",
         "workout-log-tablet-light.png",
-        "workout-plan-desktop-dark.png",
-        "workout-plan-desktop-light.png",
         "workout-plan-mobile-dark.png",
         "workout-plan-mobile-light.png",
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "db6c2b4209fbd3c701cebf7631712c39a5860c673657de404c8ba49b53fc2612"
+      "nameAndSizeSha256": "ec36cb53620028dfda445ebbbc886702789ed1553dd82e9c52c0790fd7765f91"
     },
     "win32/visual-baseline-thumbnails.spec.ts-snapshots": {
-      "count": 18,
+      "count": 15,
       "files": [
         "log-desktop-dark.png",
         "log-desktop-light.png",
@@ -909,9 +907,6 @@
         "log-mobile-light.png",
         "log-tablet-dark.png",
         "log-tablet-light.png",
-        "plan-desktop-dark-advanced.png",
-        "plan-desktop-dark-simple.png",
-        "plan-desktop-light-advanced.png",
         "plan-desktop-light-simple.png",
         "plan-mobile-dark-advanced.png",
         "plan-mobile-dark-simple.png",
@@ -922,10 +917,10 @@
         "plan-tablet-light-advanced.png",
         "plan-tablet-light-simple.png"
       ],
-      "nameAndSizeSha256": "030d983bc22d4fc0a05d360086d1c891c4a1cb0535a70e1125bfa1b8982dfa84"
+      "nameAndSizeSha256": "48e9f28e7cfa5413386713b6ee6fc3be4ab13ce37900bc0411bf79ace19b29d4"
     },
     "linux/visual.spec.ts-snapshots": {
-      "count": 68,
+      "count": 66,
       "files": [
         "backup-desktop-dark.png",
         "backup-desktop-light.png",
@@ -989,17 +984,15 @@
         "workout-log-mobile-light.png",
         "workout-log-tablet-dark.png",
         "workout-log-tablet-light.png",
-        "workout-plan-desktop-dark.png",
-        "workout-plan-desktop-light.png",
         "workout-plan-mobile-dark.png",
         "workout-plan-mobile-light.png",
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "c16065aa392d57fcf63666e60b9c23e614e6fcfe51116ec28604552fe400c50c"
+      "nameAndSizeSha256": "e3c7b08a41cdd8b5745f0be5450e3229b44a164942fb02d31af01f811f98b7a6"
     },
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": {
-      "count": 18,
+      "count": 15,
       "files": [
         "log-desktop-dark.png",
         "log-desktop-light.png",
@@ -1007,9 +1000,6 @@
         "log-mobile-light.png",
         "log-tablet-dark.png",
         "log-tablet-light.png",
-        "plan-desktop-dark-advanced.png",
-        "plan-desktop-dark-simple.png",
-        "plan-desktop-light-advanced.png",
         "plan-desktop-light-simple.png",
         "plan-mobile-dark-advanced.png",
         "plan-mobile-dark-simple.png",
@@ -1020,7 +1010,7 @@
         "plan-tablet-light-advanced.png",
         "plan-tablet-light-simple.png"
       ],
-      "nameAndSizeSha256": "25b6f1cfffc33eaa895fd93f4392e88ef2c0bd11103d517cb04e2d5c67c6f242"
+      "nameAndSizeSha256": "25a67f051526a4abf6e44b8a4a4f75d08ef5878a1ce65aab312137282f948d0e"
     }
   },
   "fatigueBaselines": {

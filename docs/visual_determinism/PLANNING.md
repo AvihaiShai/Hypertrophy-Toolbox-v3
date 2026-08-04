@@ -1,6 +1,11 @@
 # Visual-Capture Determinism Remediation
 
-Status: **✅ GATE 2 PASSED — exact-byte determinism achieved.**
+Status: **PARTIAL — 81 of 86 captures byte-compared; five are exempt by measurement.**
+The Gate 2 claim below was reached on two-to-three samples and did not hold; §8 records
+the fourth cause, the six controls that failed to close it, and the five captures that
+moved to non-pixel assertions instead.
+
+Historical status line: **✅ GATE 2 PASSED — exact-byte determinism achieved.**
 Capture/test changes plus a local copy of the existing Font Awesome dependency; baseline
 PNGs are **not** regenerated here and neither manifest is touched.
 
@@ -400,3 +405,207 @@ new. Coverage was added (11 contracts) and migration notes are §5.
    `docs/ai_workflow/PARALLEL_WORKFLOW.md`. It was edited additively (one section) because
    leaving it asserting a 66-file inventory would be doc drift; the owner should be aware
    rather than surprised by a conflict.
+
+---
+
+## 8. Compositor-layer paint offsets (2026-08-04)
+
+A fourth cause, unaddressed by everything above. Recorded here in full because the Gate 2
+section reads as final and is not.
+
+### 8.1 What it looked like
+
+`workout-plan desktop light` failed on the ubuntu-24.04 `visual-linux` job at a SHA whose
+only content change was six stale progression PNGs. Across two deep-gate compares:
+
+| Run | Result |
+|---|---|
+| [30866727146](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30866727146) | `workout-plan desktop light` failed all 3 attempts; **1 failed / 83 passed** |
+| [30908183232](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30908183232) | **2 flaky / 82 passed** — `workout-plan desktop light` failed twice then passed, `plan-desktop-light-advanced` failed once then passed |
+
+A green conclusion reached through retries is not a pass, so neither run met the bar.
+
+### 8.2 What it actually was
+
+Run 30866727146 kept all three attempts' PNGs. Attempt 1 and retry 2 were **byte-identical**
+(`2fe65a80…`); retry 1 was different (`a5f4f8bb…`). Two rasters, one job, one SHA — so the
+variable was the renderer, not the page.
+
+Cluster-matching the two rasters resolves **197 differing clusters, essentially all of them
+a `dy = 1` shift of unchanged pixel values, most with residual 0**. Row rules, glyph runs
+and whole button pills were the same pixels one device row lower. That is paint-offset
+rounding, not antialiasing:
+
+```
+y=447  A=(23,27,48)     B=(23,27,48)
+y=448  A=(122,128,153)  B=(23,27,48)      <- separator in A
+y=449  A=(31,35,52)     B=(122,128,153)   <- separator in B, one row down
+y=452  A=(31,35,52)     B=(31,35,52)      <- re-synced
+```
+
+Chromium rounds an element's paint offset against the subpixel accumulation of the
+compositor layer it paints into. `static/css/layout.css` promotes `.tbl-wrap`
+(`translateZ(0)`, `backface-visibility: hidden`, `will-change: scroll-position`) and
+`.tbl` / `.tbl--responsive` (`translateZ(0)`, hidden backfaces) for scroll smoothness. A
+capture is taken at the origin and never scrolls, so it gains nothing from them and
+inherits their rounding.
+
+### 8.3 A falsified hypothesis, recorded so it is not retried
+
+`--disable-lcd-text` and `--disable-partial-raster` were proposed for a glyph-antialiasing
+flip. The cluster analysis above says no such flip occurred. Two generate runs carrying
+both switches ([30922971713](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30922971713) /
+[30923013576](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30923013576))
+still disagreed on 2 of 86 images, and moved **12 baselines that were never unstable**.
+They were dropped. An earlier `translateZ(0)`-removal experiment was also called falsified,
+but it had only ever been run in *compare* mode against baselines generated **with**
+promotion, so it could not have shown success whatever it did.
+
+### 8.4 Status: RESOLVED by exemption, not by a fix
+
+The defect is **not fixed**. Six independent capture controls were tried and none closed
+it (§8.5), so the five captures it affects were taken off byte comparison and their
+coverage rewritten as computed-style, geometry and DOM assertions. §8.10 is the exemption
+table; §8.9 is what the gate did before it.
+
+None of the controls in §8.5 shipped. They are recorded because they are measurements,
+and because the next attempt should not re-run them.
+
+### 8.5 The capture controls that were tried, and what each measured
+
+**`dropCompositingHints()`** clears, at capture time only, every identity transform, every
+non-`auto` `will-change` and every hidden `backface-visibility` on the page, then settles a
+frame. Keyed on *computed* values rather than a selector list (presentation classes are
+what CSS refactors rename, per `tests/test_visual_selector_contracts.py`), and restricted
+to identity transforms, which paint nothing — removing one cannot move a pixel a real
+transform was responsible for.
+
+That took the four unstable images down to one, and the exact-head compare
+([30925912334](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30925912334))
+still red on `plan-desktop-dark-advanced`. A third raster of that image made the rest of
+the mechanism measurable. Row rules in the advanced plan table sit at
+
+```
+271.28125   449.4375   608.875   768.3125   927.75   1124.625
+```
+
+px below the table top, and the table top is fractional too — **1826.1875 px** on the plan
+page, the sum of every fractional height stacked above it. Chromium picks the device row
+for a 1px rule from `boundary + fraction(table top)`, so three rasters at one SHA put the
+first two rules at 270/449, 270/448 and 271/449 — exactly what fractions of ~0, ~0.19 and
+~0.22 predict. Nothing above the table appears in that capture, and it was steering the
+capture's pixels anyway.
+
+A paint-origin snap was also tried, on the theory that the table's fractional document
+top was the varying quantity. **A geometry probe falsified that.** With `PW_ORIGIN_PROBE=1`
+every capture logged document size, viewport, the captured table's rect, its first eight
+row rects and its whole ancestor chain to five decimal places. Across two ubuntu-24.04
+runs at one SHA, **all 84 records matched exactly** while the PNGs did not. Layout is not
+the variable; raster is. The snap was removed rather than kept as a harmless extra.
+
+The remaining controls, all capture-side, all keeping production untouched:
+
+| Control | Where | Measured effect |
+|---|---|---|
+| `dropCompositingHints()` | `e2e/visual-helpers.ts` | 4/86 unstable → 0/86 over two runs; a later compare still flipped one image |
+| `--disable-lcd-text`, `--disable-partial-raster` | `playwright.config.ts` (Linux) | 7/86 → 2/86 over three runs |
+| `--num-raster-threads=1` | same | still 2/86, different pair |
+| `--max-untiled-layer-{width,height}=20000` | same | still 2/86 |
+| explicit document `clip` on full-page captures | `expectFullPageScreenshot` | still 3/86 |
+
+Every one of those controls moved baselines — the fullest set moved 53 of 86 — without
+buying determinism, which is why none of them shipped. Merging any of them would have
+traded one red gate for a much larger diff and the same red gate.
+
+### 8.6 Which captures flip, measured over every experiment
+
+8 independent sets, 21 generations, 6 capture configurations. A set is "unstable" for an
+image when that image is not byte-identical across every run in the set.
+
+| Capture | Sets flipped | Worst diff | Fails the 800px gate? |
+|---|---:|---:|---|
+| `workout-plan-desktop-dark` | 6/8 | 9,247 px | yes |
+| `plan-desktop-dark-advanced` | 5/8 | 24,615 px | yes |
+| `workout-plan-desktop-light` | 5/8 | 49,500 px | yes |
+| `plan-desktop-light-advanced` | 3/8 | 22,633 px | yes |
+| `plan-desktop-dark-simple` | 1/8 | 26,930 px | yes |
+| `log-desktop-light` | 1/8 | 178 px | **no** — under tolerance |
+| `workout-plan-mobile-light` | 1/8 | 13 px | **no** — under tolerance |
+
+The first five are the exemption. The last two stay on the byte gate: they were seen to
+flip, but by less than the 800px `maxDiffPixels` the suite already allows, so they cannot
+red it. `plan-desktop-light-simple` — same page, same width class, other theme — flipped
+in **0/8** and also stays.
+
+### 8.7 Windows
+
+`e2e/__screenshots__/win32` is a separately maintained owner-local set that no CI job
+regenerates, and it was already stale before any of this: against a pristine `main` tree
+at the pinned Playwright 1.61, a full local `win32` compare reds broadly, and
+`plan-desktop-light-advanced` alone differs from its committed baseline by 541,849 px
+(29%). Regenerating and reviewing it remains the follow-up §5/§7 already track.
+
+The exemption does touch `win32`, and must: the five captures no longer produce a PNG on
+*any* platform, so their `win32` files are deleted too. Nothing else in that set changes.
+
+### 8.8 What the gate did before the exemption
+
+After #294 merged (`73c5c46`), three back-to-back `compare` runs on `main` `ac2923b`,
+same job, same SHA, no code between them:
+
+| Run | Result |
+|---|---|
+| [30932981910](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30932981910) | **84 passed** — zero `flaky`, zero `retry #`, zero failed attempts |
+| [30933376145](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30933376145) | **2 failed, 1 flaky, 67 passed** (14 skipped — a failure in a `serial` describe skips the rest) |
+| [30933393732](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30933393732) | **1 flaky, 83 passed** — green conclusion, reached by a retry |
+
+One run in three meets the bar. That is the number to quote for the *pre-exemption* gate:
+it was not red, and it was not green either — it was a coin flip, and a single green
+compare proved nothing.
+
+### 8.9 What the exemption does and does not do
+
+It removes **byte comparison** from five captures. It does not skip them, delete them,
+narrow the viewport, raise a tolerance, add a retry, mask a region, or crop anything:
+
+- all five tests still run, at the same 1440×900 viewport, on the same seed;
+- all five still build the page, settle it, and fail on a console error;
+- all five still assert the page rendered (`expectRenderedWithoutByteComparison`);
+- the other 81 captures are byte-compared exactly as before, at `maxDiffPixels: 800`
+  and `threshold: 0`.
+
+The viewport is deliberately **not** narrowed. Narrowing it would make the raster defect
+go away by testing a different layout, which is not the same thing as covering the layout.
+
+### 8.10 The exemption table — what each capture covered, and what covers it now
+
+Replacements live in `e2e/workout-plan-desktop-contract.spec.ts`, which runs the same
+1440×900 matrix (2 themes × 2 view modes) in the `visual-linux` job beside the specs it
+replaces. `BYTE_GATE_EXEMPT` in `e2e/visual-helpers.ts` is the single source of truth;
+`tests/test_visual_capture_contracts.py` pins it as a strict equality, asserts the five
+have no committed PNG on either platform, asserts both capture paths honour the
+diversion, and asserts the replacement spec contains no `toHaveScreenshot`.
+
+| Removed capture | What the pixels covered | What covers it now |
+|---|---|---|
+| `workout-plan-desktop-light` | Whole plan page at 1440, light: section presence and order, navbar, table container, page width, light theme surfaces | `page composition and section order: light *` — the three `[data-section]` frames present, visible and in ascending vertical order; navbar, `.tbl-wrap` and the table visible; `[data-visual-surface]` count pinned at 14; no surface painted outside the document box; `clientWidth === 1440` and `scrollWidth > clientWidth`. Plus `theme surfaces and separator contrast: light *` — body background pinned to `rgb(238, 241, 246)` and table text ≥ 4.5:1 |
+| `workout-plan-desktop-dark` | Same, dark | Same assertions at `theme = dark`; body background pinned to `rgb(15, 18, 32)` |
+| `plan-desktop-light-advanced` | Exercise table at 1440, light, advanced view: the full 22-column disclosure, row content, per-row controls | `progressive column disclosure: light advanced` — the exact ordered list of 22 visible headers, `tbl--view-advanced` on the table, exactly the six `col--low` columns that simple hides, and one visible cell per visible column on all 6 rows |
+| `plan-desktop-dark-advanced` | Same, dark | Same, at `theme = dark` |
+| `plan-desktop-dark-simple` | Exercise table at 1440, dark, simple view: the reduced 16-column disclosure | `progressive column disclosure: dark simple` — the exact ordered list of 16 visible headers and the same per-row cell count check. `plan-desktop-light-simple` is unaffected and still byte-compared, so the simple view keeps a pixel baseline in one theme |
+
+Row-level coverage that all five shared is asserted once per theme/mode in
+`row media and controls`: six decoded thumbnails whose `src` stays inside
+`/static/vendor/free-exercise-db/exercises/`, six media buttons, six swap controls with a
+rendered box, six remove controls, and — the one the plan-bearing baselines were the only
+guard for — the **4 curated / 2 uncurated** media split, which moves if
+`upgrade_catalog_from_seed()` ever races first paint again (§0 cause 1).
+
+**What is genuinely lost.** Pixel-level appearance of the plan table in four of six
+theme/mode combinations: exact spacing, font rendering, badge and button styling,
+thumbnail cropping. Structure, disclosure, colour tokens, contrast and control presence
+are all still asserted, but a purely cosmetic regression inside those four captures that
+changes no computed value would now pass. That is the cost of the exemption and it is not
+hidden: `plan-desktop-light-simple`, every tablet and mobile plan capture, and the whole
+`workout-log` table matrix remain byte-compared, so the same components are still
+pixel-covered elsewhere in the corpus.

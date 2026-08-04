@@ -12,10 +12,10 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **589** |
-| Playwright spec files | **31** |
+| Playwright tests (chromium) | **605** |
+| Playwright spec files | **32** |
 | Required functional gate — `E2E Functional (Chromium)` | **474** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2203** across 105 files |
+| pytest collected nodes (deterministic subset) | **2207** across 105 files |
 | pytest test files (all) | **106** |
 | Hard waits (lines containing waitForTimeout) | **92** across 15 files |
 
@@ -55,6 +55,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `volume-progress.spec.ts` | 16 | yes |
 | `volume-splitter.spec.ts` | 27 | yes |
 | `workout-log.spec.ts` | 23 | yes |
+| `workout-plan-desktop-contract.spec.ts` | 16 | — |
 | `workout-plan.spec.ts` | 35 | yes |
 
 ## pytest files
@@ -155,7 +156,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_user_profile_routes.py` | 30 |
 | `tests/test_utils_package.py` | 1 |
 | `tests/test_version.py` | 22 |
-| `tests/test_visual_capture_contracts.py` | 11 |
+| `tests/test_visual_capture_contracts.py` | 15 |
 | `tests/test_visual_selector_contracts.py` | 5 |
 | `tests/test_volume_ai.py` | 26 |
 | `tests/test_volume_classifier.py` | 43 |
