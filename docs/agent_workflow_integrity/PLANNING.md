@@ -329,6 +329,28 @@ The 2 skips are pre-existing platform skips, not introduced here — one is
 bit"). The new file skips nothing on this host: both PowerShell hosts are
 installed, so all 8 hook nodes ran.
 
+### Re-verified on a moved base
+
+`main` advanced to `592ab6b` (**#293**, the P2.6 LF-normalization packet) while
+this PR's checks were running, which turned it `CONFLICTING`. `origin/main` was
+merged in rather than rebased — the branch is squash-merged, so the merge commit
+never reaches `main`, and a rebase would have needed a force-push that
+`guard-destructive-command.ps1` denies.
+
+Three files collided. `LEFTOVERS_BY_PRIORITY.md` auto-merged: #293 rewrote the
+**P2.6** row, this packet annotates **P1.3** and **P1.8**, and both survive. The
+two `docs/test_inventory/` artifacts conflicted for the expected reason — both
+packets add a test file — and were **regenerated rather than hand-merged**,
+because the generator is their single producer. The result carries both:
+`test_agent_workflow_contracts.py` (75) and
+`test_css_audit_digest_normalization_contracts.py` (5), for **2203 deterministic
+nodes across 105 files**.
+
+Full suite on the merged base: **2523 passed, 2 skipped** (449.49 s) — the +5 is
+exactly #293's new file. The guard contracts still hold against `main`'s new
+content, including the § Windows scripting hazards section #293 added to
+`.claude/rules/verification.md`, which is inside this packet's guarded surface.
+
 ### Two additions beyond the literal instruction, both flagged
 
 1. **The `/verify-and-polish` who-runs-which-step note** — reasoned in §2. Without
