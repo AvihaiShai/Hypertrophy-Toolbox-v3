@@ -140,6 +140,91 @@ test.describe('Volume Splitter Page', () => {
     await expect(basicRadio).toBeChecked();
   });
 
+  /**
+   * Regression coverage for the `.d-none` visibility defect.
+   *
+   * `scss/custom-bootstrap.scss` imported Bootstrap's `utilities` map but never
+   * `utilities/api`, so no `d-*` class was ever emitted. Both cards below carry
+   * `d-none` in the markup and rendered anyway -- measured at 461x144 and 461x70
+   * on a 1440px viewport, the Distribution card complete with live Export Volume
+   * Plan and Save & Activate buttons, before any split had been calculated.
+   *
+   * The test immediately below this block asserts `toHaveClass(/d-none/)`. That
+   * is class-token presence and it stayed green for the entire life of the
+   * defect. These assert VISIBILITY and the computed value instead, which is the
+   * thing the user experiences.
+   */
+  test('results and suggestions are actually hidden on first load, not merely class-tagged', async ({ page }) => {
+    const results = page.locator('.results-section');
+    const suggestions = page.locator('.ai-suggestions-section');
+
+    // Both exist in the DOM...
+    await expect(results).toHaveCount(1);
+    await expect(suggestions).toHaveCount(1);
+
+    // ...and both are genuinely not visible, which `toHaveClass` cannot tell us.
+    await expect(results).toBeHidden();
+    await expect(suggestions).toBeHidden();
+
+    // Pin the mechanism too: a future change that hides them some other way
+    // (inline style, zero height, visibility) would still be a silent
+    // regression of `.d-none` itself.
+    for (const locator of [results, suggestions]) {
+      const display = await locator.evaluate((el) => getComputedStyle(el).display);
+      expect(display).toBe('none');
+    }
+
+    // And the card must occupy no space -- the original defect was visible
+    // layout, not just a reachable element.
+    for (const locator of [results, suggestions]) {
+      expect(await locator.boundingBox()).toBeNull();
+    }
+  });
+
+  test('results become visible only through calculating a split', async ({ page }) => {
+    const results = page.locator('.results-section');
+    await expect(results).toBeHidden();
+
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+    await expect(results).toBeVisible();
+
+    const display = await results.evaluate((el) => getComputedStyle(el).display);
+    expect(display).not.toBe('none');
+
+    // Revealed with content, not an empty shell.
+    await expect(results.locator('table tbody tr').first()).toBeVisible();
+  });
+
+  test('.d-none is a real declaration in the loaded stylesheets', async ({ page }) => {
+    /* The defect was invisible to every gate because nothing ever asked whether
+     * the class resolves. Ask the browser directly. */
+    const rules = await page.evaluate(() => {
+      const found: Array<{ selector: string; display: string; priority: string }> = [];
+      for (const sheet of Array.from(document.styleSheets)) {
+        let cssRules: CSSRuleList;
+        try {
+          cssRules = sheet.cssRules;
+        } catch {
+          continue; // cross-origin sheet; cannot contain an app utility
+        }
+        for (const rule of Array.from(cssRules)) {
+          const styleRule = rule as CSSStyleRule;
+          if (styleRule.selectorText === '.d-none') {
+            found.push({
+              selector: styleRule.selectorText,
+              display: styleRule.style.getPropertyValue('display'),
+              priority: styleRule.style.getPropertyPriority('display'),
+            });
+          }
+        }
+      }
+      return found;
+    });
+
+    expect(rules.length).toBeGreaterThan(0);
+    expect(rules.some((r) => r.display === 'none' && r.priority === 'important')).toBe(true);
+  });
+
   test('calculate volume shows results section', async ({ page }) => {
     const calculateBtn = page.locator(SELECTORS.CALCULATE_VOLUME_BTN);
     const resultsSection = page.locator('.results-section');
