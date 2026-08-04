@@ -28,7 +28,7 @@ import {
 } from './visual-helpers';
 
 const VIEWPORTS = [
-  { name: 'desktop', width: 1440, height: 900 },
+  { name: 'desktop', width: 1700, height: 900 }, // EXPERIMENT: revert
   { name: 'tablet', width: 768, height: 1024 },
   { name: 'mobile', width: 375, height: 667 },
 ] as const;
