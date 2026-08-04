@@ -1586,53 +1586,6 @@ body:not(:has(#navbar)) .navbar,
    ============================================================ */
 
 
-/* ============================================================
-   RESPONSIVE BREAKPOINT HELPERS
-   ============================================================ */
-
-/* Show/hide specific content at breakpoints */
-.tbl-show-sm {
-  display: none;
-}
-
-.tbl-show-md {
-  display: none;
-}
-
-.tbl-show-lg {
-  display: none;
-}
-
-@media (max-width: 820px) {
-  .tbl-hide-sm {
-    display: none;
-  }
-
-  .tbl-show-sm {
-    display: block;
-  }
-}
-
-@media (min-width: 821px) and (max-width: 1200px) {
-  .tbl-hide-md {
-    display: none;
-  }
-
-  .tbl-show-md {
-    display: block;
-  }
-}
-
-@media (min-width: 1201px) {
-  .tbl-hide-lg {
-    display: none;
-  }
-
-  .tbl-show-lg {
-    display: block;
-  }
-}
-
 /* ==========================================================================
    Accessible table separators (WCAG 2.2 SC 1.4.11, non-text contrast)
    ==========================================================================
