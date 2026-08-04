@@ -507,7 +507,50 @@ per-finding record, and the inline `[… in v2 — F#]` markers show where each 
 | Any other diagnostic key or count | — | unchanged |
 | Runtime values, ordering, calculations, API, DB | — | unchanged |
 
-### 9.2 Sign-off
+### 9.2 Measured results
+
+| Gate | Result |
+|---|---|
+| Focused pyright on `utils/volume_progress.py`, before → after | 1 → **0** diagnostics |
+| Diff-shape gate (TS-F9) | **2 insertions / 2 deletions**, hunks only at 237 and 241 — conditional test obligation did not fire |
+| Net-new gate vs the **committed** baseline, before regenerating | PASS, 0 net-new, 175 → 174 |
+| Regenerated baseline | `_meta` 174 / 50; `git diff` = one record removed + two `_meta` counts, nothing else |
+| CI gate re-simulated on the committed tree | PASS, 174 == 174 |
+| Focused pytest (4 files) | 119 passed |
+| Full pytest | **2527 passed, 2 skipped** |
+| Test Inventory Drift | up to date (no regeneration needed) |
+| flake8 blocking set on the changed file | clean |
+| `code-reviewer` | clean on all five charter rules |
+| `unslop-reviewer` | production code clean |
+| CI on PR #299 | **17/17 checks pass**, including the blocking `Type Check` baseline gate |
+
+#### Full Chromium E2E — 81 failures, all attributed to inherited state
+
+The full local suite returned **507 passed / 81 failed**. Every failure was traced; none
+is caused by this packet.
+
+| Group | Count | Attribution |
+|---|---|---|
+| `visual.spec.ts` + `visual-baseline-thumbnails.spec.ts` | 65 | **Operator error**: the run omitted `PW_VISUAL_SEED=1`. `docs/ai_workflow/QUALITY_GATE.md:39` states that without it the matrix fails en masse on a page-height data difference "on unmodified CSS too". This packet changes no CSS, template, or JS. |
+| `workout-plan-desktop-contract.spec.ts` | 10 | **Inherited from `f8988f9`** (PR #298), the commit this branch rebased onto, which introduced the spec. Proven by control — see below. |
+| `volume-progress.spec.ts` (`:208`, `:479`) | 2 | **Serial-run DB pollution.** Re-run in isolation from a fresh seed: **16/16 passed.** |
+| `exercise-interactions`, `validation-boundary` ×2, `workout-log` | 4 | **Serial-run DB pollution.** Re-run in isolation from a fresh seed: all passed (73 passed across the group). |
+
+**The `workout-plan-desktop-contract` control.** Isolated runs of that spec alone, from
+an identically fresh-seeded DB, with only `utils/volume_progress.py` differing:
+
+| Tree state | Result |
+|---|---|
+| This packet's change present | **16 failed** |
+| This packet's change reverted to `f8988f9` (`git checkout f8988f9 -- utils/volume_progress.py`) | **16 failed** |
+
+Identical. The spec is red at main on this Windows machine independently of this packet.
+It is **not** this packet's to fix — the branch owns no `e2e/**`, template, CSS, or JS
+path — and it is recorded here rather than silently absorbed. CI's own E2E jobs
+(Functional shards 1/2 and 2/2, Smoke, Backup, Erase, Fatigue Context) are all green on
+PR #299, which is the gate that governs merge.
+
+### 9.3 Sign-off
 
 Gate 0 not applicable (requirements and non-goals fully specified by the owner).
 
