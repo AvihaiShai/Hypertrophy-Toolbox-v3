@@ -197,20 +197,37 @@ Not reported as "the rules went blind", which is indistinguishable from "the ora
 stopped working". Each member is named by the exact source range it occupied.
 
 ```
-member  1 .scale-btn                   before=1 @lines 128-143 after=0 FLIPPED
-member  2 .scale-btn:hover             before=1 @lines 145-148 after=0 FLIPPED
-member  3 .scale-btn:focus             before=1 @lines 150-153 after=0 FLIPPED
-member  4 .scale-btn.active            before=1 @lines 155-159 after=0 FLIPPED
-member  5 .scale-btn.active:hover      before=1 @lines 161-163 after=0 FLIPPED
-member  6 .scale-btn[data-scale="1"]   before=1 @lines 166-168 after=0 FLIPPED
-member  7 .scale-btn[data-scale="2"]   before=1 @lines 170-172 after=0 FLIPPED
-member  8 .scale-btn[data-scale="3"]   before=1 @lines 174-176 after=0 FLIPPED
-member  9 .scale-btn[data-scale="4"]   before=1 @lines 178-180 after=0 FLIPPED
-member 10 .scale-btn[data-scale="5"]   before=1 @lines 182-184 after=0 FLIPPED
-member 11 .scale-btn                   before=1 @lines 312-315 after=0 FLIPPED
+member  1 [dark ] .scale-btn                   before=1 @lines 128-143 after=0 FLIPPED
+member  1 [light] .scale-btn                   before=1 @lines 128-143 after=0 FLIPPED
+member  2 [dark ] .scale-btn:hover             before=1 @lines 145-148 after=0 FLIPPED
+member  2 [light] .scale-btn:hover             before=1 @lines 145-148 after=0 FLIPPED
+member  3 [dark ] .scale-btn:focus             before=1 @lines 150-153 after=0 FLIPPED
+member  3 [light] .scale-btn:focus             before=1 @lines 150-153 after=0 FLIPPED
+member  4 [dark ] .scale-btn.active            before=1 @lines 155-159 after=0 FLIPPED
+member  4 [light] .scale-btn.active            before=1 @lines 155-159 after=0 FLIPPED
+member  5 [dark ] .scale-btn.active:hover      before=1 @lines 161-163 after=0 FLIPPED
+member  5 [light] .scale-btn.active:hover      before=1 @lines 161-163 after=0 FLIPPED
+member  6 [dark ] .scale-btn[data-scale="1"]   before=1 @lines 166-168 after=0 FLIPPED
+member  6 [light] .scale-btn[data-scale="1"]   before=1 @lines 166-168 after=0 FLIPPED
+member  7 [dark ] .scale-btn[data-scale="2"]   before=1 @lines 170-172 after=0 FLIPPED
+member  7 [light] .scale-btn[data-scale="2"]   before=1 @lines 170-172 after=0 FLIPPED
+member  8 [dark ] .scale-btn[data-scale="3"]   before=1 @lines 174-176 after=0 FLIPPED
+member  8 [light] .scale-btn[data-scale="3"]   before=1 @lines 174-176 after=0 FLIPPED
+member  9 [dark ] .scale-btn[data-scale="4"]   before=1 @lines 178-180 after=0 FLIPPED
+member  9 [light] .scale-btn[data-scale="4"]   before=1 @lines 178-180 after=0 FLIPPED
+member 10 [dark ] .scale-btn[data-scale="5"]   before=1 @lines 182-184 after=0 FLIPPED
+member 10 [light] .scale-btn[data-scale="5"]   before=1 @lines 182-184 after=0 FLIPPED
+member 11 [dark ] .scale-btn                   before=1 @lines 312-315 after=0 FLIPPED
+member 11 [light] .scale-btn                   before=1 @lines 312-315 after=0 FLIPPED
 
-flipped 11/11
+flipped 22/22 (members × themes)
+after-run oracle validity : PASS
 ```
+
+Reported **per theme**, because an earlier revision of the harness keyed the flip
+records by member alone and the dark pass silently overwrote the light one — the verdict
+would have proved a single theme while this document claimed both. Caught in code review;
+the count is now members × themes and a CDP error can no longer be scored as a flip.
 
 Unlike `d1` — where `.scale-control` legitimately survived inside a retained print rule
 and the residual had to be attributed by declaration owner — **no residual exists here**.
