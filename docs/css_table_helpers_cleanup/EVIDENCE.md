@@ -437,7 +437,7 @@ constant had to drive it, and what that copy changes.
 |---|---|---|
 | `tests/test_css_wp4_4_layout_contracts.py` | 15 passed | **20 passed** (+5: C1–C5) |
 | Red-path proofs | — | **12 / 12**, tree byte-identical after each |
-| Full `pytest tests/` | **2,523 passed / 2 skipped** (447.96s) | §8a — one known blocker |
+| Full `pytest tests/` | **2,523 passed / 2 skipped** (447.96s) | **2,528 passed / 2 skipped** (506.46s) — +5 = C1–C5, zero failures |
 | Seven-surface Stylelint | **2,759** | **2,759 (+0)**, no category increased, 0 parse errors |
 | `layout.css` Stylelint | 92 | **92 (+0)** |
 | Windows visual (`visual.spec.ts` + `visual-baseline-thumbnails.spec.ts`) | **84 / 84 on three consecutive runs**, 86 images | §8b |
