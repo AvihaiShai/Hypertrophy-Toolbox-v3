@@ -65,6 +65,13 @@ const deterministicChromiumArgs = [
 const linuxRasterDeterminismArgs = [
   '--disable-lcd-text',
   '--disable-partial-raster',
+  /* Chromium sizes its raster worker pool from the cores it finds at process
+     start, and a shared CI runner does not offer the same number every time.
+     That is the shape the residue had: the state was picked once per browser
+     process and then held, so `toHaveScreenshot`'s two-consecutive-screenshots
+     stabilization could not see it and two whole runs could agree by luck.
+     One raster thread removes the pool from the inputs entirely. */
+  '--num-raster-threads=1',
 ];
 
 const chromiumLaunchArgs = process.platform === 'linux'

@@ -260,7 +260,11 @@ def test_linux_pins_the_text_and_tile_raster_paths_without_touching_win32():
         "Linux-only raster controls have no other home."
     )
 
-    for literal in ("'--disable-lcd-text'", "'--disable-partial-raster'"):
+    for literal in (
+        "'--disable-lcd-text'",
+        "'--disable-partial-raster'",
+        "'--num-raster-threads=1'",
+    ):
         assert config.count(literal) == 1, (
             f"{literal} must appear exactly once, in linuxRasterDeterminismArgs; "
             f"found {config.count(literal)} occurrences."
