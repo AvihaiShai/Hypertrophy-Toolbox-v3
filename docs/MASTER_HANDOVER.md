@@ -4,7 +4,69 @@
 
 ## Current State
 
-> **2026-08-02 (LATEST) — CSS closeout proposal P3 is TERMINATED at `P3-a0`.**
+> **2026-08-04 (LATEST) — the Linux visual gate is GREEN and the baseline recovery
+> packet is CLOSED.** `origin/main` = `02e73c7`.
+>
+> **What landed.**
+>
+> | PR | Merged as | What |
+> |---|---|---|
+> | #294 | `73c5c46` | The six Linux `progression-*` baselines left stale by #291 (the removed `Available exercises: 6` line and its 19px of page height). |
+> | #297 | `ac2923b` | Retires P1.0 / P1.1 from the LEFTOVERS queue. |
+> | #298 | `f8988f9` | Takes **five** plan-desktop captures off byte comparison and replaces their coverage with computed-style / geometry / DOM assertions. |
+> | #296 | **CLOSED, not merged** | The investigation behind #298. Its record was moved into `docs/visual_determinism/PLANNING.md` §8 first; none of the six capture controls it measured shipped, because none closed the defect and they moved 53 baselines while failing to. |
+>
+> **The gate now passes.** All **seven** deep-gate jobs are green, including
+> `visual-linux`, on three consecutive post-merge `compare` runs at `f8988f9`
+> ([30938024828](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30938024828),
+> [30938041808](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30938041808),
+> [30938059183](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30938059183)) —
+> **100 passed each, zero `retry #`, zero `flaky`, zero failed attempts**. Five
+> further consecutive compares on the PR head gave the same result: **eight clean
+> runs**. For contrast, three compares on `main` immediately *before* #298 gave 84
+> passed / 2 failed + 1 flaky / 1 flaky — one run in three.
+>
+> **The expected visual run is 100 tests, not 84.** 66 (`visual.spec.ts`) + 18
+> (`visual-baseline-thumbnails.spec.ts`) + **16** (`workout-plan-desktop-contract.spec.ts`,
+> new in #298). No visual test was removed.
+>
+> **81 of 86 captures are byte-compared. Five are exempt by measurement**, not by
+> convenience: `workout-plan-desktop-{light,dark}`, `plan-desktop-{light,dark}-advanced`,
+> `plan-desktop-dark-simple`. Chromium rasters exactly those five nondeterministically
+> on `ubuntu-24.04`; over 8 experiment sets / 21 generations they flip between two
+> states at *byte-identical layout*, and six documented capture controls failed to
+> close it. The exemption is from **byte comparison only** — all five still run at
+> 1440×900, still fail on a console error, and still assert the page rendered. No
+> tolerance, retry, mask or crop changed. **This is a measured exemption, not a
+> Chromium fix**, and it leaves a documented cosmetic-regression gap.
+>
+> **Detailed authority — do not re-derive from this file:**
+> [`docs/visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) **§8**
+> (evidence, three falsified theories, the per-capture replacement table at §8.10)
+> and [`e2e/CLAUDE.md`](../e2e/CLAUDE.md) (the operational contract).
+> `BYTE_GATE_EXEMPT` in `e2e/visual-helpers.ts` is the single source of truth for
+> the set and is pinned as a strict equality by
+> `tests/test_visual_capture_contracts.py`. **Do not add to it.**
+>
+> **D3's visual precondition is now SATISFIED, and that is all this entry says.**
+> The weekly scheduled deep gate is therefore *actionable* — it is **not**
+> authorized, not implemented, and no workflow change is made or implied here.
+> Adding the `schedule:` trigger remains a separate owner decision.
+>
+> **This entry supersedes, as current state:** the `Status: OPEN` line in *Known
+> LINUX visual reds* below; the `visual-linux is the single failing deep-gate job`
+> and `Do not add the weekly schedule:` claims in the **Testing strategy review**
+> row of `## Active Workstreams`; the **Linux visual-baseline recovery packet** row
+> in `## Next Safe Step`; and the *"must verify **84** baselines"* figure in the
+> 2026-08-02 P3 block below. Those blocks are left in place as the dated record of
+> what was true when written — read them as history, not as state.
+>
+> **Live collision boundary:** **#300** (`wt/css-tbl-helpers`, draft) is open and
+> touches `static/css/layout.css`, `tests/test_css_wp4_4_layout_contracts.py` and
+> the test inventory. **#299** (`wt/pyright-vp`) merged as `02e73c7`. Neither
+> touches this file.
+
+> **2026-08-02 — CSS closeout proposal P3 is TERMINATED at `P3-a0`.**
 > Owner decision, 2026-08-02. **`P3-a0` is the arc's only implemented packet.
 > `P3-a1` is NOT funded and `P3-b` … `P3-e` are NOT authorized. P3 ends when a0
 > merges, and reopening it requires a new owner decision.**
@@ -223,6 +285,15 @@ reds dozens of tests spuriously; that is a harness misconfiguration, not a produ
 
 ### Known LINUX visual reds — stale baselines after the WP4.4 CSS arc (2026-08-02)
 
+> **CLOSED 2026-08-04 — this ledger is history, not current state.** The Linux gate is
+> green: all seven deep-gate jobs pass, `visual-linux` included, across three consecutive
+> post-merge compares at `f8988f9` (100 passed each, zero retries, zero flaky). The
+> baselines were brought current by #294 (`73c5c46`) and #298 (`f8988f9`). The measured
+> scale, cause and diff figures below are retained as the dated record of the 2026-08-02
+> condition — **do not read them as today's state, and do not re-run the unblock
+> sequence.** Current state and authority: the 2026-08-04 lead block in `## Current State`,
+> then [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8.
+
 *Separate ledger, separate platform, separate cause. **Do not conflate these with the Windows pair
 above.*** The Windows ledger is two deferred defects. This is a whole baseline set that has fallen
 behind the CSS it describes.
@@ -239,14 +310,20 @@ behind the CSS it describes.
 - **Diffs range 807 px → 93,671 px** against a 800 px oracle, across `welcome`, `workout-plan`
   light+dark, `workout-log` light+dark, `weekly-summary`, `session-summary`, `progression`,
   `body-composition`, `volume-splitter` and `plan-desktop-light-advanced`.
-- **Status: OPEN — blocks the Phase 4 / D3 scheduled deep-gate.** The unblock is an **owner action**:
-  deep-gate `workflow_dispatch` with `run_visual=true, visual_mode=generate`, then download
-  `visual-baselines-linux`, **review 84 PNGs by eye**, and commit. The workflow is built so CI never
-  pushes pixels. That review is also the only thing that can tell expected CSS-arc drift apart from a
-  real regression hiding among the eleven — **pixel counts alone cannot**, and this entry does not
-  claim otherwise.
-- **Do not** raise `maxDiffPixels`, and do not add the weekly `schedule:` trigger until a compare run
-  is green. Full diagnosis: [`TESTING_STRATEGY_PLANNING.md` §8.7](TESTING_STRATEGY_PLANNING.md).
+- **Status (2026-08-02, as written): OPEN — blocks the Phase 4 / D3 scheduled deep-gate.** The
+  unblock is an **owner action**: deep-gate `workflow_dispatch` with
+  `run_visual=true, visual_mode=generate`, then download `visual-baselines-linux`, **review the
+  PNGs by eye**, and commit. The workflow is built so CI never pushes pixels. That review is also
+  the only thing that can tell expected CSS-arc drift apart from a real regression hiding among the
+  eleven — **pixel counts alone cannot**, and this entry does not claim otherwise.
+  **→ Status 2026-08-04: CLOSED.** That sequence was carried out and reviewed; the gate is green
+  and D3's visual precondition is satisfied. Nothing here is outstanding.
+- **Do not** raise `maxDiffPixels`. That prohibition still stands and was honoured — the oracle is
+  still 800 px with `threshold: 0`. The companion clause *"do not add the weekly `schedule:`
+  trigger until a compare run is green"* has had its condition met (eight consecutive clean
+  compares), so scheduling is now *actionable*; it is still **not authorized and not implemented**,
+  and remains a separate owner decision. Full diagnosis of the original condition:
+  [`TESTING_STRATEGY_PLANNING.md` §8.7](TESTING_STRATEGY_PLANNING.md).
 
 
 > **2026-07-29 — Owner-directed runtime alignment:** Python **3.14.6+** is now
@@ -1594,7 +1671,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan.** A correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else** — `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262). Both are pre-existing, both are OPEN and deferred, and both are ledgered in §"Known Windows visual reds" at the top of this file. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | **PROPOSED — needs revision.** Assesses the six-document suite (PRD / TDD / App Flow / Design Brief / Backend Schema / Engineering Plan) against the existing brownfield docs surface. Verdict: fill the real gaps rather than write six documents from scratch — **App Flow** and **Design Brief** are the genuine gaps; the Engineering Plan is already covered as a living process by `/council-plan`, per-feature `PLANNING.md` and `QUALITY_GATE.md`. Committed 2026-08-01 via PR #219. | None. Gate 0 approves requirements only; no packet may start until the revised plan completes council review and receives Gate 1 owner approval. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) |
-| Testing strategy review | **PHASES 0 + 1 COMPLETE 2026-08-01 — Phases 2–5 remain proposals.** Claims were verified against the live repository (configs read directly, Playwright `--list` and pytest collection executed, all 90 pytest files, both workflows, the backup subsystem and the E2E suite audited). Adjudicates two external AI reviews, records verified current state, and lists blindspots both models missed. Plan committed 2026-08-01 via PR #220; **eight PRs then executed Phases 0 and 1 the same day** (#229 `fe5917b`, #231 `037d98c`, #233 `99c5a36`, #237 `11cb732`, #248 `83958e5`, #253 `bb4858e`, #254 `70b8931`, #255 `20ede92` — full table in the execution ledger at the top of this file), plus follow-up #267 `5b7a4f1` flipping Test Inventory Drift to blocking (P0.1/P0.2). Owner sign-off covers **D1** (coverage as non-blocking measurement) and the `e2e-erase-flow` half of **D2**. **Second sign-off 2026-08-02 (§8.1a): D3 signed as the *stopgap only* — weekly scheduled deep-gate now, full release/tag pipeline deferred to the next planned packaged release — and D5 signed Chromium-only, shipped as `DECISIONS.md` **ADR-004**.** | **Phase 4 is NOT complete — only D5 shipped.** The D3 stopgap is **blocked on its own precondition**: `visual-linux` is the single failing deep-gate job on current `main` (**11 failed / 57 passed / 16 did not run**; every other deep-gate job passes), because the committed Linux baselines were last written by `46e340e` on 2026-07-27 and **57 CSS/template commits landed after them**. Diagnosis, evidence and the exact unblock sequence: [`TESTING_STRATEGY_PLANNING.md` §8.7](TESTING_STRATEGY_PLANNING.md). **The unblock is an owner action** — regenerate Linux baselines and review 84 PNGs by eye; CI never pushes pixels. Do not add the weekly `schedule:` until compare is green. **Still unsigned:** D4, D6, D7 and the `js-unit` half of D2 (reconsider only after the two-week stability window, with evidence). Phases 2, 3 and 5 remain proposals. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md) |
+| Testing strategy review | **PHASES 0 + 1 COMPLETE 2026-08-01 — Phases 2–5 remain proposals.** Claims were verified against the live repository (configs read directly, Playwright `--list` and pytest collection executed, all 90 pytest files, both workflows, the backup subsystem and the E2E suite audited). Adjudicates two external AI reviews, records verified current state, and lists blindspots both models missed. Plan committed 2026-08-01 via PR #220; **eight PRs then executed Phases 0 and 1 the same day** (#229 `fe5917b`, #231 `037d98c`, #233 `99c5a36`, #237 `11cb732`, #248 `83958e5`, #253 `bb4858e`, #254 `70b8931`, #255 `20ede92` — full table in the execution ledger at the top of this file), plus follow-up #267 `5b7a4f1` flipping Test Inventory Drift to blocking (P0.1/P0.2). Owner sign-off covers **D1** (coverage as non-blocking measurement) and the `e2e-erase-flow` half of **D2**. **Second sign-off 2026-08-02 (§8.1a): D3 signed as the *stopgap only* — weekly scheduled deep-gate now, full release/tag pipeline deferred to the next planned packaged release — and D5 signed Chromium-only, shipped as `DECISIONS.md` **ADR-004**.** | **Phase 4 is NOT complete — only D5 shipped.** **[CORRECTED 2026-08-04] D3's visual precondition is now SATISFIED and the stopgap is no longer blocked.** `visual-linux` passes: all seven deep-gate jobs are green across three consecutive post-merge compares at `f8988f9` (100 passed each, zero retries, zero flaky). The baselines were brought current by #294 (`73c5c46`) and #298 (`f8988f9`). Adding the weekly `schedule:` trigger is therefore **actionable but still unauthorized and unimplemented** — a separate owner decision, not a consequence of this correction. *Superseded text, retained for the record:* the row previously read that the stopgap was *"blocked on its own precondition — `visual-linux` is the single failing deep-gate job on current `main` (**11 failed / 57 passed / 16 did not run**)"* because the committed Linux baselines predated 57 CSS/template commits, and that the unblock was an owner action requiring a by-eye PNG review. That was true when written; the review happened. Original diagnosis: [`TESTING_STRATEGY_PLANNING.md` §8.7](TESTING_STRATEGY_PLANNING.md); current authority: [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8. **Still unsigned:** D4, D6, D7 and the `js-unit` half of D2 (reconsider only after the two-week stability window, with evidence). Phases 2, 3 and 5 remain proposals. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md) |
 
 ## Open Decisions
 
@@ -1660,7 +1737,7 @@ remain are both *outside* this arc and each needs its own owner decision:
 
 | Candidate | State |
 |---|---|
-| **The Linux visual-baseline recovery packet** | **Not P3 work**, explicitly. A separate packet branched from the current `main`. It must verify all **84** expected baselines — including the **16 thumbnail tests that have never executed on any recorded run** (P3-a0 §8) — classify every changed/added/deleted PNG, and stop at a **draft** PR for owner review. The only authorized dispatch is `gh workflow run deep-gate.yml --ref main -f run_visual=true -f visual_mode=generate`; **both inputs are mandatory**, since `run_visual` defaults to `false` and a bare dispatch generates nothing. |
+| ~~**The Linux visual-baseline recovery packet**~~ **— DONE 2026-08-04, no longer a candidate.** | Delivered by #294 (`73c5c46`) and #298 (`f8988f9`); the investigation branch #296 was closed without merging. All 84 visual tests execute — the 16 thumbnail tests that had never run on any recorded run now do — and the job runs **100** tests once the new `workout-plan-desktop-contract.spec.ts` is counted. **Do not start this packet.** The dispatch note stays useful for any *future* regeneration: `gh workflow run deep-gate.yml --ref main -f run_visual=true -f visual_mode=generate`; **both inputs are mandatory**, since `run_visual` defaults to `false` and a bare dispatch generates nothing. |
 | **The Q10 blind-spot-register repair** | Sized by P3-a0 (§9) at **≈170–200 lines**, standalone, **gated by full pytest alone** — `e2e/visual-helpers.ts` is read, never written, so no snapshot moves. It never depended on P3 and is available now. A whole-file `emit_baseline` regeneration is **not** the shape: it moves `isFamily` and reds `test_is_family_enumeration_is_complete_and_classified`. Patch **only** the `oracleBlindSpots` array. |
 
 **P3 — terminated, and what that forecloses.** `P3-a1` is **not funded**;
