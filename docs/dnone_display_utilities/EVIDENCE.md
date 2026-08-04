@@ -178,18 +178,29 @@ packet's change is uncommitted and a git restore would revert the fix mid-run.
 | `tests/test_css_display_utilities_contracts.py` | **7 passed** |
 | Red paths | **6 / 6** |
 | `e2e/volume-splitter.spec.ts` | **30 passed** (27 existing + 3 new) |
-| Chromium: `smoke-navigation`, `nav-dropdown`, `dark-mode`, `accessibility`, `summary-pages`, `volume-progress`, `ui-hardening` | **115 passed, 5 failed** — all five pre-existing, see below |
+| Chromium: `smoke-navigation`, `nav-dropdown`, `dark-mode`, `accessibility`, `summary-pages`, `volume-progress`, `ui-hardening` | **115 passed, 5 failed locally** — green in CI, see below |
 | Seven-surface Stylelint | **2,759 → 2,759 (+0)** — the seven surfaces exclude the generated Bootstrap artifact by design |
 | `tsc --noEmit` | clean |
 | Test inventory | regenerated, `--check` clean |
+| **CI on the pushed branch** | **17 / 17 green**, all required contexts |
 | Visual differential (same-machine, scratch snapshot path) | **6 of 66 moved, all `volume-splitter`** — the fix itself |
 
-### The five failures are pre-existing, proven by control
+### The five local failures are an environment artifact, not a regression
 
-All five are `summary-pages.spec.ts` "Pattern Coverage Analysis" API-structure tests.
-Every packet change was stashed and the same five were re-run against the pristine base:
-**5 failed, 1 passed** — identical. They are unrelated to this change and are not
-introduced by it.
+All five were `summary-pages.spec.ts` "Pattern Coverage Analysis" API-structure tests.
+Two independent checks place them outside this change:
+
+1. **Control run on the pristine base.** Every packet change was stashed and the same five
+   re-run with none of this work present: **5 failed, 1 passed** — identical. So they are
+   not caused by the fix.
+2. **CI is green on them.** `E2E Functional Shard 1/2`, `Shard 2/2` and the fan-in
+   `E2E Functional (Chromium)` all pass on this branch, and `summary-pages.spec.ts` runs
+   inside that gate. They do not reproduce on a clean runner.
+
+Taken together: a local-environment artifact of this developer machine's seeded data, not
+a pre-existing product failure and not something this change introduced. Recorded at that
+strength rather than the stronger "pre-existing defect" the local control alone would have
+supported.
 
 ### The `/volume_splitter` baselines will need regeneration
 
