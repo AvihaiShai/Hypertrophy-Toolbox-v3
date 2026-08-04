@@ -6,6 +6,10 @@ PNGs are **not** regenerated here and neither manifest is touched.
 
 Branch `wt/visual-determinism`, merged with `origin/main` = `616b3a6`.
 
+> **A fourth cause was found after this, and closed on 2026-08-04.** The Gate 2 evidence
+> below stands for the corpus it measured, but it did not cover compositor-layer paint
+> offsets. See [§8](#8-compositor-layer-paint-offsets-2026-08-04).
+
 ## Gate 2 closure (2026-08-03)
 
 The failed result recorded below was real at SHA `40c2873`, but it is superseded by the
@@ -400,3 +404,95 @@ new. Coverage was added (11 contracts) and migration notes are §5.
    `docs/ai_workflow/PARALLEL_WORKFLOW.md`. It was edited additively (one section) because
    leaving it asserting a 66-file inventory would be doc drift; the owner should be aware
    rather than surprised by a conflict.
+
+---
+
+## 8. Compositor-layer paint offsets (2026-08-04)
+
+A fourth cause, unaddressed by everything above. Recorded here in full because the Gate 2
+section reads as final and is not.
+
+### 8.1 What it looked like
+
+`workout-plan desktop light` failed on the ubuntu-24.04 `visual-linux` job at a SHA whose
+only content change was six stale progression PNGs. Across two deep-gate compares:
+
+| Run | Result |
+|---|---|
+| [30866727146](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30866727146) | `workout-plan desktop light` failed all 3 attempts; **1 failed / 83 passed** |
+| [30908183232](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30908183232) | **2 flaky / 82 passed** — `workout-plan desktop light` failed twice then passed, `plan-desktop-light-advanced` failed once then passed |
+
+A green conclusion reached through retries is not a pass, so neither run met the bar.
+
+### 8.2 What it actually was
+
+Run 30866727146 kept all three attempts' PNGs. Attempt 1 and retry 2 were **byte-identical**
+(`2fe65a80…`); retry 1 was different (`a5f4f8bb…`). Two rasters, one job, one SHA — so the
+variable was the renderer, not the page.
+
+Cluster-matching the two rasters resolves **197 differing clusters, essentially all of them
+a `dy = 1` shift of unchanged pixel values, most with residual 0**. Row rules, glyph runs
+and whole button pills were the same pixels one device row lower. That is paint-offset
+rounding, not antialiasing:
+
+```
+y=447  A=(23,27,48)     B=(23,27,48)
+y=448  A=(122,128,153)  B=(23,27,48)      <- separator in A
+y=449  A=(31,35,52)     B=(122,128,153)   <- separator in B, one row down
+y=452  A=(31,35,52)     B=(31,35,52)      <- re-synced
+```
+
+Chromium rounds an element's paint offset against the subpixel accumulation of the
+compositor layer it paints into. `static/css/layout.css` promotes `.tbl-wrap`
+(`translateZ(0)`, `backface-visibility: hidden`, `will-change: scroll-position`) and
+`.tbl` / `.tbl--responsive` (`translateZ(0)`, hidden backfaces) for scroll smoothness. A
+capture is taken at the origin and never scrolls, so it gains nothing from them and
+inherits their rounding.
+
+### 8.3 A falsified hypothesis, recorded so it is not retried
+
+`--disable-lcd-text` and `--disable-partial-raster` were proposed for a glyph-antialiasing
+flip. The cluster analysis above says no such flip occurred. Two generate runs carrying
+both switches ([30922971713](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30922971713) /
+[30923013576](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30923013576))
+still disagreed on 2 of 86 images, and moved **12 baselines that were never unstable**.
+They were dropped. An earlier `translateZ(0)`-removal experiment was also called falsified,
+but it had only ever been run in *compare* mode against baselines generated **with**
+promotion, so it could not have shown success whatever it did.
+
+### 8.4 The control, and the fix
+
+`dropCompositingHints()` in `e2e/visual-helpers.ts` clears, at capture time only, every
+identity transform, every non-`auto` `will-change` and every hidden `backface-visibility`
+on the page, then settles a frame. Keyed on *computed* values rather than a selector list
+(presentation classes are what CSS refactors rename, per
+`tests/test_visual_selector_contracts.py`), and restricted to identity transforms, which
+paint nothing — removing one cannot move a pixel a real transform was responsible for.
+Production keeps every hint. `tests/test_visual_capture_contracts.py` locks it.
+
+| Generation pair | Ref | Result |
+|---|---|---|
+| [30924012196](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924012196) / [30924035696](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924035696) | `main` `4d5d8cc` (control) | **82/86 byte-identical — 4 differ**: `workout-plan-desktop-{dark,light}`, `plan-desktop-{dark,light}-advanced` |
+| [30924365380](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924365380) / [30924387552](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924387552) | `947ba57` (fix) | **86/86 byte-identical** |
+
+### 8.5 What moved in the baselines, and why
+
+53 of 86 Linux baselines change. Six are the progression PNGs left stale by #291 (the
+`Available exercises: 6` line and its 19 px of page height), byte-identical to the packet
+PR #294 proposed. The other 47 carry **zero** pixels above delta 128; hard pixels
+(delta > 64) run 0–684 per image against 1–4 M total, and most resolve to a ±1 px shift.
+
+The largest residual is a real improvement, not a regression. On the volume-splitter empty
+state the committed baseline painted the table's last separator as neutral
+`rgb(208,208,208)`; the regenerated one paints `rgb(125,131,157)` — the accessible colour
+#290 gave it, and the value `getComputedStyle` reports for that `td`'s `border-bottom`.
+Captured locally at 1:1 with the hints promoted **and** cleared, the product renders
+`rgb(125,131,157)` in both. The promoted capture path had been washing that separator out.
+
+### 8.6 Windows
+
+`dropCompositingHints` is cross-platform. The `win32` set was already stale before it:
+against a pristine `main` tree at the pinned Playwright 1.61, a full local `win32` compare
+reds broadly, and `plan-desktop-light-advanced` alone differs by 541,849 px (29%).
+Regenerating and reviewing `win32` remains the owner-local follow-up §5/§7 already track —
+this packet does not widen into it, and it changes no `win32` PNG.
