@@ -6,9 +6,11 @@ PNGs are **not** regenerated here and neither manifest is touched.
 
 Branch `wt/visual-determinism`, merged with `origin/main` = `616b3a6`.
 
-> **A fourth cause was found after this, and closed on 2026-08-04.** The Gate 2 evidence
-> below stands for the corpus it measured, but it did not cover compositor-layer paint
-> offsets. See [§8](#8-compositor-layer-paint-offsets-2026-08-04).
+> **That status is not current.** A further cause was found on 2026-08-04 and is **still
+> open**: the ubuntu-24.04 job disagrees with itself on 2–3 of 86 images per three-run
+> sample, confined to the five workout-plan desktop captures. The Gate 2 evidence below
+> stands for the corpus and the runs it measured — it was three samples, and the residue
+> needs more than three to see. See [§8](#8-compositor-layer-paint-offsets-2026-08-04).
 
 ## Gate 2 closure (2026-08-03)
 
@@ -460,7 +462,14 @@ They were dropped. An earlier `translateZ(0)`-removal experiment was also called
 but it had only ever been run in *compare* mode against baselines generated **with**
 promotion, so it could not have shown success whatever it did.
 
-### 8.4 The two capture controls
+### 8.4 Status: OPEN — narrowed, not closed
+
+Everything below is measured. It does **not** add up to a fix: after six independent
+controls the ubuntu-24.04 job still disagrees with itself on 2–3 of 86 images per
+three-run sample, always among the five workout-plan desktop captures, always the same
+table rows re-rounded. The owner decision this now needs is in §8.8.
+
+### 8.5 The capture controls that were tried, and what each measured
 
 **`dropCompositingHints()`** clears, at capture time only, every identity transform, every
 non-`auto` `will-change` and every hidden `backface-visibility` on the page, then settles a
@@ -485,28 +494,24 @@ first two rules at 270/449, 270/448 and 271/449 — exactly what fractions of ~0
 ~0.22 predict. Nothing above the table appears in that capture, and it was steering the
 capture's pixels anyway.
 
-**`snapTablesToWholeDevicePixels()`** offsets each workout table by its own fraction, so
-the origin is whole and every boundary rounds from its own fraction alone. It uses
-`position: relative` + `top`, a paint-time offset that reflows nothing and — unlike a
-transform — does not hand the table back the compositor layer `dropCompositingHints` just
-took away. It runs *after* `dropCompositingHints` for the same reason: measuring an offset
-against a layer that is about to be removed pins the wrong number.
+A paint-origin snap was also tried, on the theory that the table's fractional document
+top was the varying quantity. **A geometry probe falsified that.** With `PW_ORIGIN_PROBE=1`
+every capture logged document size, viewport, the captured table's rect, its first eight
+row rects and its whole ancestor chain to five decimal places. Across two ubuntu-24.04
+runs at one SHA, **all 84 records matched exactly** while the PNGs did not. Layout is not
+the variable; raster is. The snap was removed rather than kept as a harmless extra.
 
-Production keeps every hint and every fractional offset; both controls are capture-side.
-`tests/test_visual_capture_contracts.py` locks both.
+The remaining controls, all capture-side, all keeping production untouched:
 
-| Generation set | Ref | Result |
+| Control | Where | Measured effect |
 |---|---|---|
-| [30924012196](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924012196) / [30924035696](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924035696) | `main` `4d5d8cc` (control) | **82/86 byte-identical — 4 differ**: `workout-plan-desktop-{dark,light}`, `plan-desktop-{dark,light}-advanced` |
-| [30924365380](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924365380) / [30924387552](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30924387552) | `947ba57` (hints only) | 86/86 byte-identical, but the later compare still flipped one image — two samples were not enough |
-| GEN3_PLACEHOLDER | `14344f3` (both controls) | GEN3_RESULT_PLACEHOLDER |
+| `dropCompositingHints()` | `e2e/visual-helpers.ts` | 4/86 unstable → 0/86 over two runs; a later compare still flipped one image |
+| `--disable-lcd-text`, `--disable-partial-raster` | `playwright.config.ts` (Linux) | 7/86 → 2/86 over three runs |
+| `--num-raster-threads=1` | same | still 2/86, different pair |
+| `--max-untiled-layer-{width,height}=20000` | same | still 2/86 |
+| explicit document `clip` on full-page captures | `expectFullPageScreenshot` | still 3/86 |
 
-**Two generations agreeing is not proof.** The state is chosen once per browser context and
-holds for that context's lifetime, so `toHaveScreenshot`'s "two consecutive stable
-screenshots" cannot filter it and a pair of runs can agree by luck. Three independent
-generations plus two independent compares is the bar this section was closed at.
-
-### 8.5 What moved in the baselines, and why
+### 8.6 What moved in the baselines, and why
 
 53 of 86 Linux baselines change. Six are the progression PNGs left stale by #291 (the
 `Available exercises: 6` line and its 19 px of page height), byte-identical to the packet
@@ -520,10 +525,45 @@ state the committed baseline painted the table's last separator as neutral
 Captured locally at 1:1 with the hints promoted **and** cleared, the product renders
 `rgb(125,131,157)` in both. The promoted capture path had been washing that separator out.
 
-### 8.6 Windows
+### 8.7 Windows
 
 `dropCompositingHints` is cross-platform. The `win32` set was already stale before it:
 against a pristine `main` tree at the pinned Playwright 1.61, a full local `win32` compare
 reds broadly, and `plan-desktop-light-advanced` alone differs by 541,849 px (29%).
 Regenerating and reviewing `win32` remains the owner-local follow-up §5/§7 already track —
 this packet does not widen into it, and it changes no `win32` PNG.
+
+### 8.8 The open decision
+
+Six independent capture controls have been tried and measured (§8.5). None closes the
+gate. What is now known with confidence:
+
+1. **Layout is not the variable.** 84/84 geometry records identical across two runs.
+2. **The variable is raster**, and it is decided **once per browser process** — which is
+   why the two-consecutive-screenshots stabilization in `toHaveScreenshot` cannot filter
+   it, and why two whole runs can agree by luck. Three samples is the minimum useful
+   test; every earlier "N/N byte-identical" claim in this document rests on two or three.
+3. **It scales with capture width.** At the 375px and 768px viewports nothing has ever
+   flipped. At 1440px only the five captures wider than the viewport flip. Widening the
+   desktop viewport to 1700px — run as a deliberate experiment — made **all 28** desktop
+   captures flip, so "wider than the viewport" is not the trigger; sheer width is.
+4. Every diff is the same table rows re-rounded by one device row, at unchanged colour
+   values and unchanged layout.
+
+Point 3 also kills the last mechanical fix, since widening the viewport was it. What
+remains are owner decisions, not technical ones:
+
+- **A — narrow the desktop matrix** so the plan page no longer needs a wide raster.
+  Cheapest; stops exercising the 1440px layout.
+- **B — take the five workout-plan desktop captures off the byte gate** and cover that
+  surface the way `visual-field-separator.spec.ts` already does, with computed-style
+  assertions. Keeps every other baseline strict; loses pixel coverage on the busiest
+  table.
+- **C — pin the runner harder**, e.g. a self-hosted or container-pinned runner, removing
+  the per-process variability a shared GitHub runner introduces. Highest cost.
+- **D — accept the deep gate red on these five** and gate on the other 81.
+
+Nothing in §8.5 should be merged on its own: the controls move 53 baselines without
+buying determinism, so they would trade one red gate for a larger diff and the same red
+gate. They are recorded here so the next attempt starts from measurement rather than from
+the antialiasing and paint-origin theories this one falsified.

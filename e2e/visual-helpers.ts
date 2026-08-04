@@ -205,54 +205,6 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
 
   await waitForImagesSettled(page);
   await dropCompositingHints(page);
-  await logOriginProbe(page);
-}
-
-/** TEMPORARY diagnostic — remove before merge. */
-async function logOriginProbe(page: Page): Promise<void> {
-  if (!process.env.PW_ORIGIN_PROBE) return;
-  const data = await page.evaluate(() => {
-    const doc = document.documentElement;
-    const pick = (el: Element | null) => {
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      return [r.top, r.left, r.width, r.height].map((v) => Number(v.toFixed(5)));
-    };
-    const table = document.querySelector('[data-testid="exercise-table"]')
-      ?? document.querySelector('[data-testid="workout-log-table"]');
-    const landmarks: Record<string, unknown> = {
-      scrollW: doc.scrollWidth, scrollH: doc.scrollHeight,
-      clientW: doc.clientWidth, clientH: doc.clientHeight,
-      innerW: window.innerWidth, innerH: window.innerHeight,
-      dpr: window.devicePixelRatio,
-      fonts: document.fonts.status,
-      body: pick(document.body),
-      navbar: pick(document.querySelector('#navbar')),
-      main: pick(document.querySelector('main')),
-      table: pick(table ?? null),
-      tableScrollY: window.scrollY,
-    };
-    if (table) {
-      landmarks.rows = Array.from(table.querySelectorAll('tbody tr'))
-        .slice(0, 8)
-        .map((r) => pick(r));
-      const cell = table.querySelector('tbody td');
-      if (cell) {
-        const cs = getComputedStyle(cell);
-        landmarks.cell = [cs.fontSize, cs.lineHeight, cs.paddingTop, cs.paddingBottom];
-      }
-    }
-    let node = table as HTMLElement | null;
-    const chain: unknown[] = [];
-    while (node && node !== document.body) {
-      chain.push([node.tagName + (node.id ? '#' + node.id : '') + '.' + (node.className || '').toString().split(' ')[0], pick(node)]);
-      node = node.parentElement;
-    }
-    landmarks.chain = chain;
-    return landmarks;
-  });
-  // eslint-disable-next-line no-console
-  console.log('[origin-probe] ' + JSON.stringify(data));
 }
 
 /**

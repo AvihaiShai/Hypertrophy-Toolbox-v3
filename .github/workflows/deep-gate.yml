@@ -392,9 +392,6 @@ jobs:
     - name: Run visual specs
       env:
         PW_VISUAL_SEED: '1'
-        # TEMPORARY diagnostic for the paint-origin investigation. Remove with
-        # logOriginProbe() in e2e/visual-helpers.ts before this branch merges.
-        PW_ORIGIN_PROBE: '1'
       run: |
         MODE="${{ inputs.visual_mode }}"
         UPDATE=""; [ "$MODE" = "generate" ] && UPDATE="--update-snapshots"
