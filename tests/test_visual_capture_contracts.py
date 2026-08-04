@@ -24,6 +24,7 @@ been exercised in either theme.
 """
 from __future__ import annotations
 
+import re
 import shutil
 import sqlite3
 import struct
@@ -179,7 +180,6 @@ def test_visual_chromium_serializes_the_compositor_pipeline():
     """Fresh browser processes must raster the same completed frame."""
     config = PLAYWRIGHT_CONFIG.read_text(encoding="utf-8")
     required = (
-        "'--disable-lcd-text'",
         "'--font-render-hinting=none'",
         "'--disable-skia-runtime-opts'",
         "'--run-all-compositor-stages-before-draw'",
@@ -190,6 +190,54 @@ def test_visual_chromium_serializes_the_compositor_pipeline():
     )
     missing = [literal for literal in required if literal not in config]
     assert not missing, f"Deterministic compositor controls missing: {missing}"
+
+
+def test_linux_pins_the_text_and_tile_raster_paths_without_touching_win32():
+    """Two raster controls the ubuntu runner needs, and win32 must not get.
+
+    Both defects were observed inside a single ubuntu-24.04 job at one SHA,
+    where the first and third attempts produced byte-identical PNGs and the
+    second produced a different one: every glyph in the workout table shifted
+    antialiasing path, and one row's rounded borders and box-shadows re-rastered
+    while the rest of the page matched exactly. ``--disable-lcd-text`` pins the
+    first, ``--disable-partial-raster`` the second.
+
+    They are deliberately *not* in the shared list. The two baseline sets are
+    maintained independently, only Linux showed the defect, and switching win32
+    would restate every committed win32 PNG. This asserts the scoping, because
+    an unconditional list would silently stale a set no CI job regenerates.
+    """
+    config = PLAYWRIGHT_CONFIG.read_text(encoding="utf-8")
+
+    shared, _, linux_only = config.partition("const linuxRasterDeterminismArgs")
+    assert linux_only, (
+        "playwright.config.ts must declare linuxRasterDeterminismArgs; the "
+        "Linux-only raster controls have no other home."
+    )
+
+    for literal in ("'--disable-lcd-text'", "'--disable-partial-raster'"):
+        assert config.count(literal) == 1, (
+            f"{literal} must appear exactly once, in linuxRasterDeterminismArgs; "
+            f"found {config.count(literal)} occurrences."
+        )
+        assert literal not in shared, (
+            f"{literal} is declared before linuxRasterDeterminismArgs, so it "
+            "applies to win32 too and stales that platform's baselines."
+        )
+
+    guarded = re.search(
+        r"process\.platform === 'linux'\s*\?\s*\[\s*\.\.\.deterministicChromiumArgs,"
+        r"\s*\.\.\.linuxRasterDeterminismArgs\s*\]",
+        config,
+    )
+    assert guarded, (
+        "The launch args must add linuxRasterDeterminismArgs only when "
+        "process.platform === 'linux'."
+    )
+    assert "args: chromiumLaunchArgs," in config, (
+        "The chromium project must launch with chromiumLaunchArgs, otherwise "
+        "the platform split above is computed and then discarded."
+    )
 
 
 def test_oversized_element_captures_exclude_fixed_and_sticky_page_layers():
