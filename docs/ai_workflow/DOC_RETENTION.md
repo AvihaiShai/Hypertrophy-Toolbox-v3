@@ -24,6 +24,47 @@ Archive a document only when all of these are true:
 3. No open follow-up in `docs/MASTER_HANDOVER.md` points at it.
 4. The active docs index or feature folder has a better current source of truth.
 
+## Recorded dispositions — orphan candidates (assessed 2026-08-04 at `db1bc5d`)
+
+These were nominated as orphans by the v21/v22 audits. Each is assessed here rather
+than moved: **every one fails archive criterion 2** (no meaningful edits for 6 months),
+so none is archivable yet. Re-assess after the stated date.
+
+Search for the **shorthand** form too. `MASTER_HANDOVER.md` cites this family as
+`` `_B`/`_C`/`_D`/`_E`/`_F`/`_G` `` after naming one file in full, so a grep for whole
+filenames alone reports a false zero.
+
+| Document | Genuine inbound refs | Last meaningful edit | Disposition |
+|---|---:|---|---|
+| `CSS_PHASE4_WP4_3I_B_EVIDENCE.md` | 1 (`MASTER_HANDOVER.md`, shorthand) | 2026-07-22 | **Not an orphan.** Keep; revisit only if the handover entry is archived |
+| `CSS_PHASE4_WP4_3I_C_EVIDENCE.md` | 1 (same) | 2026-07-22 | as above |
+| `CSS_PHASE4_WP4_3I_D_EVIDENCE.md` | 1 (same) | 2026-07-23 | as above |
+| `CSS_PHASE4_WP4_3I_E_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
+| `CSS_PHASE4_WP4_3I_F_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
+| `CSS_PHASE4_WP4_3I_G_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
+| `CSS_PHASE4_WP4_3I_H_EVIDENCE.md` | 0 | 2026-07-25 | **Archive candidate — hold until 2027-01-25** (fails criterion 2 today) |
+| `WP3_5_FETCH_INVENTORY.md` | 0 | 2026-07-12 | **Archive candidate — hold until 2027-01-12** |
+| `archive/CLEANUP_V2_DEAD_CODE_AUDIT.md` | 1 | 2026-06-12 | **Already in `archive/`.** No further action |
+| `user_profile/DUMBBELL_LOAD_BASIS_FIX.md` | 0 genuine | 2026-06-04 | **Archive candidate — hold until 2026-12-04.** Its only hit is the orphan-candidate list itself, which is not an index link |
+
+> **Two corrections to the v22 candidate list.**
+>
+> 1. It recorded `CSS_PHASE4_WP4_3I_D/_E/_F` as carrying **6 inbound references each**
+>    and `_B`/`_G`/`_H` as none. Re-derived: six of the seven carry exactly **one**
+>    (the shorthand handover citation above); only `_H` is unreferenced.
+> 2. The 5–7 reference counts it quoted belong to the similarly named
+>    **`CSS_PHASE4_WP4_4_*`** family — one character apart in the filename. Check which
+>    family you have before acting.
+>
+> **What is actually pytest-pinned, precisely.** The `WP4_4_*` **`.md`** files are only
+> *mentioned* in test docstrings and one assertion message; no test reads them, so moving
+> one does **not** red `Run Tests`. The real pins are the **JSON** siblings, which are
+> `read_text()` at `tests/test_css_wp4_4_a_baseline_contracts.py:34`
+> (`CSS_PHASE4_WP4_4_A_BASELINE.json`) and `tests/test_css_cascade_contracts.py:161`
+> (`CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json`). Those two must not move. Leftovers **N7**
+> states this pin against the `.md` files; that phrasing is imprecise and is recorded here
+> for the next audit revision rather than edited inside this packet.
+
 ## Archive Procedure
 
 1. Create `docs/archive/<year>/<feature>/` if it does not already exist.

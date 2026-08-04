@@ -2,6 +2,52 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - August 2026
+
+### User-visible
+
+- **Weekly summary: an `Unassigned` volume bucket.** Sets whose routine is blank
+  no longer vanish from the weekly view — they coalesce into one synthetic
+  `Unassigned` session, matching what the session summary already did. Such rows
+  come from restored backups, legacy data, or direct edits (#256).
+- **Accessible table field separators.** Separator borders in data tables now meet
+  the contrast floor in both themes, with a CI guard so the value cannot silently
+  regress (#290).
+- **Modal keyboard behavior on Workout Plan and Workout Log.** Escape now reliably
+  closes the dialogs and Tab/Shift+Tab wrap within them. Root cause was Bootstrap's
+  bounce-back focus trap failing when a dialog's last control was also the
+  document's last focusable element — not a Bootstrap version regression (#284).
+### Build, assets, and packaging
+
+- Long-lived static caching is now keyed on the running app version, so a deploy
+  cannot serve stale CSS/JS; 404s are no longer long-cached (#262, #266).
+- SQLite `-shm`/`-wal` sidecars are gitignored (#285).
+
+### CI and quality gates
+
+- `E2E Erase Flow` promoted to a required check (#248).
+- `Test Inventory Drift` flipped to blocking, returning a real exit code, and its
+  stale `(non-required)` suffix dropped (#267). Adding it to branch protection is a
+  separate API-side change and shipped in no PR; see `ai_workflow/QUALITY_GATE.md`
+  for the current required-context list and how to re-derive it.
+- Playwright bumped to 1.61.0 across both ecosystems with a lockstep guard (#283).
+- Visual baseline generation made deterministic (#286), and the Linux baseline set
+  regenerated and owner-accepted after eye review (#281).
+- The `css_audit` known-live control now hashes an LF-normalized digest, so it runs
+  on Windows and Linux from the same commit (#293).
+
+### Documentation and workflow
+
+- v23 adversarial audit of the leftovers queue published, along with the
+  cross-model orchestration draft (#278).
+- Theme-dark P3 audit emitted its ceiling, assessed 19 tools, and **terminated the
+  arc at `a0`** (#280); the three status documents record that termination (#282).
+- Remaining UI/debug scaffolding deleted — debug counter, verbose logs, a
+  zero-caller helper, and duplicated debug wrappers (#291).
+- The retired `.claude/SHARED_PLAN.md` tier system removed from every active
+  workflow document, and the `senior-developer` skill allowlist unblocked so
+  `/verify-and-polish` can reach its documented final step (#292).
+
 ## Unreleased - July 29, 2026
 
 ### Python 3.14.6 minimum runtime
