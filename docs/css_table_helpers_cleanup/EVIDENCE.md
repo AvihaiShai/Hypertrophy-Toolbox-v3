@@ -591,8 +591,48 @@ established that the state is picked once per browser process and that "three sa
 the minimum useful test"; eight clears that bar, and the pre-#298 coin-flip does not
 reproduce.
 
-**On this branch.** Recorded in §8d once dispatched, since the gate must be run on the
-tree that will actually land, not only on its base.
+**On this branch.** §8d.
+
+### 8d. The gate, run on this branch
+
+`QUALITY_GATE.md:32` requires the gate on the packet's own tree, not only on its base.
+Three consecutive `deep-gate.yml` dispatches at **`f2f0753`**, `run_visual=true`,
+`visual_mode=compare`, same job, same SHA, nothing between them:
+
+| Run | `Visual regression (Linux baselines)` | `retry #` | `Retry #` | `flaky` | `did not run` | `Screenshot comparison failed` |
+|---|---|---:|---:|---:|---:|---:|
+| [31015698251](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/31015698251) | `Running 100 tests using 1 worker` → **`100 passed (3.0m)`** | 0 | 0 | 0 | 0 | 0 |
+| [31015718631](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/31015718631) | **`100 passed (3.0m)`** | 0 | 0 | 0 | 0 | 0 |
+| [31015738810](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/31015738810) | **`100 passed (3.2m)`** | 0 | 0 | 0 | 0 | 0 |
+
+**Read from raw job logs, ~1.1 MB each, not from the workflow conclusion.** A
+case-insensitive `retry|flaky` grep returns **no line at all** in any of the three — not a
+zero on a summary line. The distinction is load-bearing here: #296's run
+[30933393732](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30933376145)
+carried a `success` conclusion reached **by a retry**, so a conclusion is not evidence.
+
+**A method note, because it silently produces false greens.** `gh run view --job=<id> --log`
+returns an **empty body and exit 0** while the parent run is still in progress — the
+`Full E2E` job in this workflow finishes ~15 minutes after the visual job does. Grepping
+that empty output yields "0 retries, 0 flaky" on a file with no content. The per-job REST
+endpoint `repos/:owner/:repo/actions/jobs/<id>/logs` works as soon as the *job* completes
+and needs `--allow-escape-sequences`. **A zero-byte log is a failure to measure, not a
+clean gate**, and every count in the table above is from a fetch whose byte size was
+checked first.
+
+**SHA note.** The three runs executed at `f2f0753`; this section is the commit after it.
+The delta is **this file only** — no CSS, no test, no spec, no config, no baseline — so
+the gate result transfers, on exactly the mechanical basis §"Measurement base" uses:
+
+```bash
+git diff --name-only f2f0753..HEAD
+# docs/css_table_helpers_cleanup/EVIDENCE.md
+```
+
+**Baselines were not touched.** `git status --porcelain e2e/__screenshots__` is empty
+after every local run in this packet, and the committed corpus is unchanged at
+**81 linux / 79 win32**. No tolerance, mask, crop, retry count, snapshot or config was
+modified anywhere in this branch — the gate was made to pass by #298, not by this packet.
 
 ---
 
