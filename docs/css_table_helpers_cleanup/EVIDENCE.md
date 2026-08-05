@@ -11,8 +11,30 @@ element can distinguish them: that is an inherent limit, not a fixable probe def
 has been measured and refuted. `_E_LAYOUT_` is left byte-unchanged as a closed packet's
 historical record; see deferral **D-1**.
 
-Base commit: `ac2923b`. Production ownership: `static/css/layout.css` only.
+**Base commit: `88b634c`** (PR #305) — the merge base after the 2026-08-05 rebase.
+Production ownership: `static/css/layout.css` only.
 Planning artifact: [`PLANNING.md`](PLANNING.md).
+
+**Measurement base, and why the measurements transfer.** Every runtime measurement in
+this document was taken at **`ac2923b`** (PR #297), the base this packet was built on.
+Four commits landed between `ac2923b` and `88b634c`: **#298** `f8988f9`, **#299**
+`02e73c7`, **#301** `001b166`, **#305** `88b634c`. The measurements were **not** re-run
+after the rebase, and that is stated here rather than glossed.
+
+They transfer because **not one CSS, SCSS, template or JS file changed across that
+range** — mechanically checkable, and the check is the argument:
+
+```bash
+git diff --name-only ac2923b..88b634c | grep -E '^(static/css/|scss/|templates/|static/js/)'
+# no output
+```
+
+The only production file touched in the range is `utils/volume_progress.py` (#299, a
+pyright annotation change with no rendering path). The 286-context applicability census,
+the CDP ownership resolution and the before/after flip all read computed style off live
+pages whose CSS, markup and scripts are byte-identical at both commits, so re-running
+them could not produce a different result. **What did change is the visual *corpus*, and
+those counts are corrected in place** — see §8b and §10.
 
 ---
 
@@ -437,10 +459,26 @@ constant had to drive it, and what that copy changes.
 |---|---|---|
 | `tests/test_css_wp4_4_layout_contracts.py` | 15 passed | **20 passed** (+5: C1–C5) |
 | Red-path proofs | — | **12 / 12**, tree byte-identical after each |
-| Full `pytest tests/` | **2,523 passed / 2 skipped** (447.96s) | **2,528 passed / 2 skipped** (506.46s) — +5 = C1–C5, zero failures |
+| Full `pytest tests/` @ `ac2923b` | **2,523 passed / 2 skipped** (447.96s) | **2,528 passed / 2 skipped** (506.46s) — +5 = C1–C5, zero failures |
+| Full `pytest tests/` @ `88b634c` *(re-run after the rebase, 2026-08-05)* | 2,527 derived | **2,532 passed / 2 skipped** (427.26s) — +5 = C1–C5, zero failures |
 | Seven-surface Stylelint | **2,759** | **2,759 (+0)**, no category increased, 0 parse errors |
 | `layout.css` Stylelint | 92 | **92 (+0)** |
-| Windows visual (`visual.spec.ts` + `visual-baseline-thumbnails.spec.ts`) | **84 / 84 on three consecutive runs**, 86 images | §8b |
+| Windows visual (`visual.spec.ts` + `visual-baseline-thumbnails.spec.ts`) | **84 / 84 on three consecutive runs**, 86 images — an `ac2923b` corpus; **79 / 81 at `88b634c`** | §8b |
+| Linux `visual-linux` deep gate | **3 / 3 runs, `100 passed`, zero `retry #`, zero `flaky`** | §8c |
+
+**The two pytest rows differ by exactly four, and the four are accounted for.** #298
+added four contracts to `tests/test_visual_capture_contracts.py`
+(`git diff ac2923b..f8988f9 -- tests/` — two files, four new `def test_`), so
+2,523 → 2,527 and 2,528 → 2,532 across the same base change. `f8988f9..88b634c`
+touches `tests/` **not at all**, so #299/#301/#305 contribute nothing. The packet's own
+delta is **+5** at both bases: `tests/test_css_wp4_4_layout_contracts.py` collects
+**15 → 20**, which is also what the committed test inventory pins and what CI's blocking
+`Test Inventory Drift` job verifies against a fresh Linux regeneration.
+
+**Stylelint re-measured at `88b634c`**, unchanged: **2,759** total across the seven
+surfaces, `layout.css` **92**, `declaration-no-important` **1,219**, `selector-max-id`
+**115**, `selector-max-specificity` **101**, `no-duplicate-selectors` **21**,
+`declaration-block-no-duplicate-properties` **1**, **0 parse errors** on every surface.
 
 **Stylelint moved by zero, and that is reported as zero.** None of the nine deleted
 declarations triggers a rule in this configuration — they are plain `display: none` /
@@ -499,11 +537,62 @@ Pre-change: **84 / 84 on three consecutive runs** (one generate + two compare), 
 partition on this host is therefore empty**, which raises rather than lowers the bar: no
 capture is excused in advance, so any post-change red is signal.
 
-This says nothing about the Linux runner. On `main` at `ac2923b`, three back-to-back
-`visual-linux` compare runs at one SHA produced 84-passed / (2 failed + 1 flaky) /
-(1 flaky + 83 passed) — one run in three meets the bar. That gate is a coin flip
-independently of this packet, PR #296 is investigating it, and a single green compare
-there proves nothing.
+**Those two numbers are `ac2923b` numbers and no longer describe the committed tree.**
+PR #298 (`f8988f9`) took five plan-desktop captures off the byte gate and deleted their
+PNGs on both platforms, so the corpus shrank by exactly five per platform:
+
+| | `ac2923b` (measured) | `88b634c` (committed) | Δ |
+|---|---:|---:|---:|
+| win32 `visual.spec.ts` baselines | 66 | **64** | −2 |
+| win32 `visual-baseline-thumbnails.spec.ts` baselines | 18 | **15** | −3 |
+| **win32 tests the differential runs** | **84** | **79** | **−5** |
+| linux `visual.spec.ts` baselines | 68 | **66** | −2 |
+| **images a scratch generate emits** | **86** | **81** | **−5** |
+
+The five are `workout-plan-desktop-{dark,light}` (in `visual.spec.ts`) and
+`plan-desktop-{dark-advanced,light-advanced,dark-simple}` (in the thumbnails spec) —
+#298's measured-unstable set, exactly. So the run recorded above as **84 / 84, 86 images**
+would today be **79 / 79, 81 images**, on a corpus that is a strict subset of the one
+measured. The differential's *conclusion* is unaffected: it compares this packet's CSS
+against the same harness on the same host, the five removed captures were removed for
+raster nondeterminism unrelated to `layout.css`, and no deleted rule ever applied to any
+element in any of them (§4, census 0 / 286).
+
+**The Linux runner: the blocker recorded here has been resolved and is withdrawn.**
+This section previously read *"On `main` at `ac2923b`, three back-to-back `visual-linux`
+compare runs at one SHA produced 84-passed / (2 failed + 1 flaky) / (1 flaky + 83 passed)
+— one run in three meets the bar … PR #296 is investigating it."* That was true at
+`ac2923b` and is **false at this packet's base**. `ac2923b` is the *parent* of `f8988f9`:
+the coin-flip was measured one commit before the fix, and **#298 is this packet's merge
+base**, so the fix was already contained here when the sentence was written. PR **#296**
+was closed 2026-08-04T18:18:43Z, 43 seconds after #298 merged, as superseded by it —
+#298 implements option **B** from #296's own decision list. Post-fix evidence is in §8c.
+
+### 8c. The Linux `visual-linux` deep gate — post-#298 evidence
+
+The gate `QUALITY_GATE.md:32` requires for a shared-surface `static/css/**` edit. Two
+independent bodies of evidence, both read from **raw job logs**, not from workflow
+conclusions — #296's run [30933393732](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30933393732)
+reported a `success` conclusion that was reached *by a retry*, so a conclusion alone
+proves nothing here.
+
+**On `main` at `f8988f9`** — the #298 merge commit, and this packet's original merge
+base. Three back-to-back dispatches, same job, same SHA:
+
+| Run | `Visual regression (Linux baselines)` | `retry #` / `flaky` |
+|---|---|---|
+| [30938024828](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30938024828) | `Running 100 tests using 1 worker` → **`100 passed`** | **0 / 0** |
+| [30938041808](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30938041808) | **`100 passed`** | **0 / 0** |
+| [30938059183](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/30938059183) | **`100 passed`** | **0 / 0** |
+
+Together with the five runs #298 recorded on its own branch at `6712383`, that is **eight
+consecutive clean runs** on post-#298 code, against **one-in-three** before it. #296
+established that the state is picked once per browser process and that "three samples is
+the minimum useful test"; eight clears that bar, and the pre-#298 coin-flip does not
+reproduce.
+
+**On this branch.** Recorded in §8d once dispatched, since the gate must be run on the
+tree that will actually land, not only on its base.
 
 ---
 
@@ -616,6 +705,10 @@ packet's write set, and `test_css_cascade_contracts.py` is run-always/edit-never
 against linux's **68**: PR #281 regenerated only the linux half of the segmented `user-profile-mobile`
 captures, and `docs/visual_determinism/PLANNING.md` §5/§7 tracks the Windows half as an
 open owner-local follow-up.
+
+*(Post-rebase, at `88b634c`, the same asymmetry stands at **64** win32 against linux's
+**66** — #298 removed two `visual.spec.ts` captures from each platform, so the gap of two
+is unchanged and the Windows follow-up remains open. Full reconciliation in §8b.)*
 
 Playwright **writes** an absent snapshot even without `--update-snapshots`. One compare
 run against the committed tree left **four untracked PNGs** —
