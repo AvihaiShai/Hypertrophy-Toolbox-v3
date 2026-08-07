@@ -232,6 +232,18 @@ These items remain legitimate but should not displace the P1–P2 closeouts:
   visual-baseline review and regeneration**; do not fold it into an unrelated
   change. Measurement:
   [`dnone_display_utilities/EVIDENCE.md`](dnone_display_utilities/EVIDENCE.md) §3, §7.
+- **Nothing ties the committed `bootstrap.custom.min.css` to its SCSS source.**
+  The bundle is tracked, but the pytest CI job deliberately does not run
+  `npm ci` / `npm run build:css`, so pytest asserts against the *committed*
+  artifact. Every E2E job does rebuild it, overwriting it at runtime. So editing
+  `scss/custom-bootstrap.scss` and forgetting `npm run build:css` leaves the
+  display-utility contracts green against a stale artifact while E2E silently
+  exercises different CSS. Pre-existing, but PR #303 is the first change to lean
+  on the artifact as a contract surface, which is what makes it worth closing.
+  Cheap fix: a CI step that runs `build:css` then fails on
+  `git diff --exit-code static/css/bootstrap.custom.min.css`. (Verified by hand
+  during #303 — the committed bundle *is* currently reproducible: a fresh
+  `npm run build:css` produced a byte-identical blob, `71c4046b`.)
 - **Six E2E specs hard-code `http://127.0.0.1:5000`, so none is port-portable.**
   `api-integration`, `exercise-interactions`, `progression`,
   `replace-exercise-errors`, `summary-pages` and `workout-plan` build absolute

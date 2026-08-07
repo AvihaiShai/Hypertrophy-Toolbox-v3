@@ -63,7 +63,18 @@ def _emitted_display_classes(css: str) -> dict[str, list[tuple[str, str]]]:
     """
     found: dict[str, list[tuple[str, str]]] = {}
     for head, body in re.findall(r"([^{}]*)\{([^{}]*)\}", _strip_comments(css)):
-        for cls in re.findall(r"\.(d-[a-z0-9-]+)(?![\w-])", head):
+        # A UTILITY is a bare `.d-*` selector. Token containment is not enough:
+        # `a11y.css` carries `#error-message-container.d-none{display:none!important}`,
+        # whose head contains `.d-none` and whose body sets `display` -- so a
+        # containment test credits `d-none` as emitted even on the pre-fix tree,
+        # where no utility existed. That blinds this module on the very class it
+        # exists to guard. An ID-scoped rule styles one element; it is not a utility.
+        classes = {
+            match.group(1)
+            for selector in head.split(",")
+            if (match := re.fullmatch(r"\s*\.(d-[a-z0-9-]+)\s*", selector))
+        }
+        for cls in classes:
             match = re.search(r"(?<![\w-])display\s*:\s*([^;!}]+)(\s*!important)?", body)
             if match:
                 found.setdefault(cls, []).append(
@@ -150,9 +161,16 @@ def test_the_responsive_partner_of_d_none_is_emitted() -> None:
     )
     assert ("inline", "important") in emitted["d-lg-inline"]
 
-    # And it must be inside the lg breakpoint, not unconditional.
-    lg_blocks = re.findall(r"@media[^{]*min-width:\s*992px[^{]*\{(.*?)\n?\}\s*(?=@|\Z)", css, flags=re.S)
-    assert any(".d-lg-inline" in block for block in lg_blocks), (
+    # And it must be inside the lg breakpoint, not unconditional. Assert the exact
+    # emitted shape rather than trying to slice out the media block: `(.*?)\}\s*(?=@|\Z)`
+    # is not a balanced-brace parser, so it runs past the block's real end to the next
+    # at-rule and can satisfy this by textual proximity -- the very thing being checked.
+    # `[^@{}]*` cannot cross into or out of a nested block, so this cannot over-reach.
+    assert re.search(
+        r"@media\s*\(min-width:\s*992px\)\s*\{[^@]*?\.d-lg-inline\s*\{[^{}]*?"
+        r"display\s*:\s*inline\s*!important",
+        css,
+    ), (
         ".d-lg-inline is emitted but not inside a (min-width: 992px) query, so the "
         "label would show below the lg breakpoint too"
     )

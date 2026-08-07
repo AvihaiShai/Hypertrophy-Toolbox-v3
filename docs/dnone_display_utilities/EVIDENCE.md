@@ -97,12 +97,14 @@ The extra twelve come from `d-flex` activating on pages whose JS builds `d-flex`
 way for the app's entire history; changing them is an owner-reviewed visual decision with
 its own baseline regeneration, not something a `.d-none` fix should carry silently.
 
-**Both diffs are pure additions**: 0 rule heads removed, and every added head is a `.d-*`
-selector — verified by parsing the built artifact before and after, not by reading the
-SCSS.
+**Both diffs are pure additions**: 0 rule heads removed — verified by parsing the built
+artifact before and after, not by reading the SCSS.
 
-Emitted by the shipped fix: `.d-none`, `.d-inline`, and their `sm/md/lg/xl/xxl/print`
-variants — 20 heads.
+Emitted by the shipped fix: **14 `.d-*` style rules**, wrapped by **6 `@media` at-rules**
+(20 heads in total, which is where the `+20` above comes from — it counts at-rule heads
+alongside selector rules). The 14 are `.d-none` and `.d-inline` unconditionally, plus a
+`none`/`inline` pair inside each of `sm`, `md`, `lg`, `xl`, `xxl` and `print`. Counted
+directly off the shipped bundle; `2 + 6×2 = 14`.
 
 ---
 
