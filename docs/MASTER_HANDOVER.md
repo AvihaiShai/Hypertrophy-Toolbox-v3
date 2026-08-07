@@ -251,9 +251,57 @@
 
 ### Known Windows visual reds — the WP4.0 pair, both OPEN and deferred
 
-*Durable ledger. A correctly seeded Windows visual run (`PW_VISUAL_SEED=1`) reds on **exactly these
-two** tests and nothing else. Neither is a regression; both predate the app.py review. **Never
-rebaseline either, and never gate on an exact pixel count — both are bands.***
+> **⚠️ CORRECTED 2026-08-04 — the "exactly these two" claim below is STALE and is
+> withdrawn.** This section used to read *"A correctly seeded Windows visual run
+> (`PW_VISUAL_SEED=1`) reds on **exactly these two** tests and nothing else."* That was
+> true when written. It is false now.
+>
+> **Measured against unmodified `main` at `02e73c7`: `e2e/visual.spec.ts` fails 58 of 66
+> on Windows**, reproducibly — repeat runs of the identical unmodified tree gave the same
+> 58 failed / 8 passed. **Nine of the eleven pages fail in every viewport and both
+> themes.** The eight that pass are `progression` × 6 and `workout-plan desktop
+> {light,dark}` × 2 — the latter only because #298 took those two captures off the byte
+> gate. That is the signature of a stale corpus, not of two localized defects.
+>
+> **Consequence: the Windows visual suite cannot serve as a merge gate today** — it
+> cannot separate a real regression from inherited staleness. A CSS packet must instead
+> demonstrate non-attribution with a same-CSS control run, comparing the **passing sets
+> by name** rather than by count.
+>
+> This is the Windows counterpart of the Linux staleness recorded in the next section,
+> and it has the same unblock: an owner-run `deep-gate.yml` regeneration plus a by-eye
+> review. Full evidence, reproduction and unblock steps: **issue #304**.
+>
+> **Per-PR CI never runs either visual suite.** `visual.spec.ts` and
+> `visual-baseline-thumbnails.spec.ts` live in `deep-gate.yml`, not `ci.yml`, so a PR
+> showing every check green is silent about visual state in **both** directions. Do not
+> read a green PR as evidence that pixels are fine, and do not read this section as a
+> reason to doubt an otherwise-green PR.
+>
+> The two WP4.0 entries below remain accurate as *history* — they are the two defects
+> that were known when the corpus was current — and their "never rebaseline, never gate
+> on an exact pixel count, both are bands" rules still bind. Read the table as a record
+> of those two, **not** as a complete list of what a Windows run reds on today.
+>
+> **Scope of the correction:** it covers `visual.spec.ts` only (66 tests/platform). Entry
+> 2 lives in `visual-baseline-thumbnails.spec.ts` (18 tests), which was **not** exercised
+> by that measurement and is therefore neither confirmed nor cleared by it.
+>
+> **Trap that corrupts any two-run visual comparison — including the one that produced
+> these numbers.** Playwright **creates** a missing baseline instead of erroring, so on
+> Windows every `visual.spec.ts` run silently writes the four
+> `user-profile-mobile-{dark,light}-segment-{1,2}.png` files (`expectFullPageScreenshot`
+> segments that page, and only the **linux** set was regenerated in #281). Two
+> consequences, both measured here rather than theorised:
+> 1. run 1 *fails* those two tests while creating them and run 2 then *passes* them, so a
+>    control-then-candidate comparison silently measures **run order**. Delete the four
+>    files before each run, or the comparison is worthless.
+> 2. they land as untracked files, so a broad `git add` commits an accidental rebaseline.
+>    Check `git status --porcelain e2e/__screenshots__` after every visual run; the tree
+>    should stay at **160 tracked = 160 on disk** (170 before #298 removed ten).
+
+*Durable ledger of the WP4.0 pair. Neither is a regression; both predate the app.py review.
+**Never rebaseline either, and never gate on an exact pixel count — both are bands.***
 
 | # | Test | Spec | Observed | Historical | Status |
 |---|---|---|---:|---:|---|
@@ -1669,7 +1717,7 @@ behind the CSS it describes.
 | Redesign post-P8 triage | ✅ complete — 10 of 11 shipped, #1 deferred by owner choice (keep nav Backup link) | none | local-only `debug/redesign_post_p8_issues_SESSION_STATE.md` (closed; annotated 2026-05-19) |
 | phase5_3i_plan | ✅ closed — accepted-as-shipped (owner decision 2026-05-19) | none | local-only `debug/phase5_3i_plan_SESSION_STATE.md` (closed banner added); planning doc shipped `c0da18e` 2026-04-15 and deleted `635fa3e` 2026-04-24; 5A–5H validation gates never ran but `12c90ac` refactors have held 5+ weeks under 1160-test baseline with no regression |
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
-| app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan.** A correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else** — `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262). Both are pre-existing, both are OPEN and deferred, and both are ledgered in §"Known Windows visual reds" at the top of this file. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
+| app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` fails **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **The Windows visual suite therefore cannot serve as a merge gate today**, and its remediation is tracked in **issue #304** — not here. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | **PROPOSED — needs revision.** Assesses the six-document suite (PRD / TDD / App Flow / Design Brief / Backend Schema / Engineering Plan) against the existing brownfield docs surface. Verdict: fill the real gaps rather than write six documents from scratch — **App Flow** and **Design Brief** are the genuine gaps; the Engineering Plan is already covered as a living process by `/council-plan`, per-feature `PLANNING.md` and `QUALITY_GATE.md`. Committed 2026-08-01 via PR #219. | None. Gate 0 approves requirements only; no packet may start until the revised plan completes council review and receives Gate 1 owner approval. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) |
 | Testing strategy review | **PHASES 0 + 1 COMPLETE 2026-08-01 — Phases 2–5 remain proposals.** Claims were verified against the live repository (configs read directly, Playwright `--list` and pytest collection executed, all 90 pytest files, both workflows, the backup subsystem and the E2E suite audited). Adjudicates two external AI reviews, records verified current state, and lists blindspots both models missed. Plan committed 2026-08-01 via PR #220; **eight PRs then executed Phases 0 and 1 the same day** (#229 `fe5917b`, #231 `037d98c`, #233 `99c5a36`, #237 `11cb732`, #248 `83958e5`, #253 `bb4858e`, #254 `70b8931`, #255 `20ede92` — full table in the execution ledger at the top of this file), plus follow-up #267 `5b7a4f1` flipping Test Inventory Drift to blocking (P0.1/P0.2). Owner sign-off covers **D1** (coverage as non-blocking measurement) and the `e2e-erase-flow` half of **D2**. **Second sign-off 2026-08-02 (§8.1a): D3 signed as the *stopgap only* — weekly scheduled deep-gate now, full release/tag pipeline deferred to the next planned packaged release — and D5 signed Chromium-only, shipped as `DECISIONS.md` **ADR-004**.** | **Phase 4 is NOT complete — only D5 shipped.** **[CORRECTED 2026-08-04] D3's visual precondition is now SATISFIED and the stopgap is no longer blocked.** `visual-linux` passes: all seven deep-gate jobs are green across three consecutive post-merge compares at `f8988f9` (100 passed each, zero retries, zero flaky). The baselines were brought current by #294 (`73c5c46`) and #298 (`f8988f9`). Adding the weekly `schedule:` trigger is therefore **actionable but still unauthorized and unimplemented** — a separate owner decision, not a consequence of this correction. *Superseded text, retained for the record:* the row previously read that the stopgap was *"blocked on its own precondition — `visual-linux` is the single failing deep-gate job on current `main` (**11 failed / 57 passed / 16 did not run**)"* because the committed Linux baselines predated 57 CSS/template commits, and that the unblock was an owner action requiring a by-eye PNG review. That was true when written; the review happened. Original diagnosis: [`TESTING_STRATEGY_PLANNING.md` §8.7](TESTING_STRATEGY_PLANNING.md); current authority: [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8. **Still unsigned:** D4, D6, D7 and the `js-unit` half of D2 (reconsider only after the two-week stability window, with evidence). Phases 2, 3 and 5 remain proposals. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md) |
 
