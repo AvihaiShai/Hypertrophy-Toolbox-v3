@@ -232,6 +232,19 @@ These items remain legitimate but should not displace the P1–P2 closeouts:
   visual-baseline review and regeneration**; do not fold it into an unrelated
   change. Measurement:
   [`dnone_display_utilities/EVIDENCE.md`](dnone_display_utilities/EVIDENCE.md) §3, §7.
+- **Six E2E specs hard-code `http://127.0.0.1:5000`, so none is port-portable.**
+  `api-integration`, `exercise-interactions`, `progression`,
+  `replace-exercise-errors`, `summary-pages` and `workout-plan` build absolute
+  request URLs against port 5000 instead of a `baseURL`-relative path — 12
+  references. Any run on another port fails them with `ECONNREFUSED` no matter
+  what the product does, which is exactly what happens to a packet that uses an
+  isolated port to avoid certifying against a concurrent worktree's checkout
+  (`playwright.config.ts` hard-codes 5000). CI never notices, because it runs the
+  default config on 5000 — so this is invisible to every gate and only bites
+  local parallel work. Found while verifying PR #303, whose five "local
+  failures" were entirely this. Low risk to fix — replace the absolute URLs with
+  relative paths so Playwright resolves them against `baseURL` — but it touches
+  six spec files, so it wants its own packet rather than a drive-by.
 - **Grounding-scan doc set** (`docs/scan/PHASE_02…22`, `SCAN_FINDINGS.md`,
   `SCAN_PROGRESS.md`, `SCAN_RECOMMENDATIONS.md`) and the ~56 `CSS_PHASE4_*`
   evidence files at the `docs/` root: both arcs complete and merged; the scan

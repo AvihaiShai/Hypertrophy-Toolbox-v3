@@ -178,29 +178,72 @@ packet's change is uncommitted and a git restore would revert the fix mid-run.
 | `tests/test_css_display_utilities_contracts.py` | **7 passed** |
 | Red paths | **6 / 6** |
 | `e2e/volume-splitter.spec.ts` | **30 passed** (27 existing + 3 new) |
-| Chromium: `smoke-navigation`, `nav-dropdown`, `dark-mode`, `accessibility`, `summary-pages`, `volume-progress`, `ui-hardening` | **115 passed, 5 failed locally** — green in CI, see below |
+| Chromium: `smoke-navigation`, `nav-dropdown`, `dark-mode`, `accessibility`, `summary-pages`, `volume-progress`, `ui-hardening` | **120 passed** — 115 on the scratch port plus the 5 port-bound `summary-pages` tests re-run on the default port, see below |
 | Seven-surface Stylelint | **2,759 → 2,759 (+0)** — the seven surfaces exclude the generated Bootstrap artifact by design |
 | `tsc --noEmit` | clean |
 | Test inventory | regenerated, `--check` clean |
 | **CI on the pushed branch** | **17 / 17 green**, all required contexts |
-| Visual differential (same-machine, scratch snapshot path) | **6 of 66 moved, all `volume-splitter`** — the fix itself |
+| Visual differential (same-machine, scratch snapshot path) | **6 of 66 attributable, all `volume-splitter`** — the fix itself. A 7th capture moved and was excluded by a same-CSS repeat control, see below |
 
-### The five local failures are an environment artifact, not a regression
+### The five local failures were a hard-coded port, and they are now green
 
-All five were `summary-pages.spec.ts` "Pattern Coverage Analysis" API-structure tests.
-Two independent checks place them outside this change:
+All five were `summary-pages.spec.ts` "Pattern Coverage Analysis" tests, and all five
+failed with `apiRequestContext.get: connect ECONNREFUSED 127.0.0.1:5000`.
 
-1. **Control run on the pristine base.** Every packet change was stashed and the same five
-   re-run with none of this work present: **5 failed, 1 passed** — identical. So they are
-   not caused by the fix.
-2. **CI is green on them.** `E2E Functional Shard 1/2`, `Shard 2/2` and the fan-in
-   `E2E Functional (Chromium)` all pass on this branch, and `summary-pages.spec.ts` runs
-   inside that gate. They do not reproduce on a clean runner.
+**They hard-code the port.** `summary-pages.spec.ts:297`, `:311`, `:333`, `:355`, `:372`
+each call `request.get('http://127.0.0.1:5000/api/pattern_coverage')` — an absolute URL —
+instead of a `baseURL`-relative path. Every local run in this packet used the scratch
+config on a non-5000 port (deliberately: `playwright.config.ts` hard-codes 5000 and a
+concurrent worktree owning it would certify this packet against another checkout's CSS).
+So nothing was listening on 5000 and the five could only fail. That is also why the
+earlier "control run on the pristine base" reproduced them exactly — the control ran on a
+scratch port too, so it was measuring the port, not the base.
 
-Taken together: a local-environment artifact of this developer machine's seeded data, not
-a pre-existing product failure and not something this change introduced. Recorded at that
-strength rather than the stronger "pre-existing defect" the local control alone would have
-supported.
+**Re-run on the default port they pass:** `npx playwright test e2e/summary-pages.spec.ts`
+→ **20 passed (28.0s)**, the five included. Combined with the 115 from the scratch-port
+run, the seven-spec set is **120 / 120**.
+
+CSS cannot reach these assertions in any case — they read `/api/pattern_coverage` JSON and
+never a computed style — so this change could not have moved them even had the port been
+right.
+
+**Pre-existing, out of scope, and worth its own packet.** Six specs hard-code
+`http://127.0.0.1:5000`, so none of them is port-portable; CI never notices because it
+runs the default config on 5000. Not fixed here, to keep this packet's scope narrow —
+queued in [`LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md), which is where a
+future packet-picker will actually look for it.
+
+### The differential moved 7 captures; a same-CSS control excluded one as noise
+
+Re-measured 2026-08-08 on the merged tree (win32, `PW_VISUAL_SEED=1`, scratch snapshot
+path under gitignored `artifacts/`, explicit port). Two full 66-capture sets were
+generated in one session differing **only** in the CSS bundle — control =
+`origin/main`'s bundle (`ede5a4c9…`), candidate = this branch's (`c9f83c1e…`) — and
+compared by SHA-256 per filename. A compare against the *committed* corpus would have
+proved nothing: the win32 baseline set is broadly stale (58 failed / 8 passed on
+unmodified `main`), so it cannot separate this change from inherited staleness.
+
+**Result: `MOVED=7`, not 6** — the six `volume-splitter` captures plus
+`progression-mobile-light`. That seventh does not have the shape of a CSS effect:
+`progression-mobile-**dark**` did not move, and no other `progression` or mobile capture
+moved.
+
+**A third run settles it.** Holding the CSS constant (candidate bundle both times) and
+regenerating:
+
+| | Result |
+|---|---|
+| `progression-mobile-light` | **moves with the CSS held constant** → renderer nondeterminism, **not attributable** |
+| all six `volume-splitter` captures | **stable under repeat**, and move only when the bundle changes → **attributable to this fix** |
+
+So the attributable set is exactly the six `volume-splitter` captures, and that conclusion
+now rests on a measured non-attribution control rather than on inspection.
+
+`progression-mobile-light` is a **newly recorded win32 nondeterministic capture**. It is
+*not* in `BYTE_GATE_EXEMPT` (that set is five `ubuntu-24.04` captures and this evidence
+does **not** propose adding to it — `tests/test_visual_capture_contracts.py` pins that set
+as a strict equality). Recorded here as a datum for whoever regenerates the win32 corpus:
+a single flipping capture there is expected, not a regression.
 
 ### The `/volume_splitter` baselines will need regeneration
 
