@@ -77,6 +77,11 @@ param(
     # partition exactly the same set of tests the serial reference ran.
     [string] $BaselineReport,
 
+    # Off by default so the default path stays exactly what produced the
+    # committed measurements. When set, a separate process samples TCP and
+    # system state alongside the run; measured cost is ~70ms every 3s.
+    [switch] $Telemetry,
+
     [switch] $KeepDatabases
 )
 
@@ -234,6 +239,25 @@ Write-Host ""
 
 $OverallStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
+$TelemetryStop = Join-Path $OutputRoot "telemetry.stop"
+$TelemetryProcess = $null
+if ($Telemetry) {
+    Remove-Item -LiteralPath $TelemetryStop -Force -ErrorAction SilentlyContinue
+    $TelemetryProcess = Start-Process `
+        -FilePath "powershell.exe" `
+        -ArgumentList @(
+            "-NoProfile", "-ExecutionPolicy", "Bypass",
+            "-File", (Join-Path $RepoRoot "scripts\shard_telemetry.ps1"),
+            "-RootPid", $PID,
+            "-ShardPorts", (($Plan.Port) -join ','),
+            "-OutFile", (Join-Path $OutputRoot "telemetry.jsonl"),
+            "-StopFile", $TelemetryStop
+        ) `
+        -NoNewWindow -PassThru
+    $null = $TelemetryProcess.Handle
+    Write-Host "Telemetry sampling to $(Join-Path $OutputRoot 'telemetry.jsonl')"
+}
+
 try {
     foreach ($shard in $Plan) {
         # Start-Process gives each child a snapshot of the environment as it
@@ -297,6 +321,14 @@ try {
     }
 }
 finally {
+    if ($TelemetryProcess) {
+        # Sentinel rather than a kill, so the sampler closes its writer and the
+        # last records are not lost on a Ctrl+C.
+        New-Item -ItemType File -Force -Path $TelemetryStop | Out-Null
+        if (-not $TelemetryProcess.WaitForExit(15000)) {
+            Stop-ProcessTree -ProcessId $TelemetryProcess.Id
+        }
+    }
     foreach ($shard in $Plan) {
         if ($null -ne $shard.Process -and -not $shard.Process.HasExited) {
             Write-Host "Cleaning up shard $($shard.Index) (pid $($shard.Process.Id))" -ForegroundColor Yellow

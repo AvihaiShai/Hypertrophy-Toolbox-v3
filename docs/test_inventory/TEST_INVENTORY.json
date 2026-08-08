@@ -240,7 +240,7 @@
     "total_tests": 608
   },
   "pytest": {
-    "collected_deterministic": 2281,
+    "collected_deterministic": 2285,
     "deterministic_files": 109,
     "environment_dependent_files": [
       {
@@ -503,7 +503,7 @@
       },
       {
         "file": "tests/test_playwright_shard_launcher_contracts.py",
-        "tests": 34
+        "tests": 38
       },
       {
         "file": "tests/test_playwright_url_contracts.py",

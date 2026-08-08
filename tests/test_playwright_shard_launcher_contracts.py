@@ -118,6 +118,53 @@ def test_launcher_refuses_reuse_and_the_visual_seed() -> None:
     assert "--update-snapshots" not in launcher
 
 
+def test_telemetry_is_opt_in() -> None:
+    """The measured configuration must stay reproducible after instrumenting it.
+
+    Telemetry was added after the N=1 baseline was recorded. If it ran by
+    default, the committed 719.0s reference would describe a launcher nobody can
+    run again.
+    """
+    launcher = read(LAUNCHER)
+    assert "[switch] $Telemetry" in launcher
+    assert "if ($Telemetry) {" in launcher
+
+
+def test_telemetry_stops_by_sentinel_not_by_kill() -> None:
+    """A killed sampler loses its buffered tail, which is the interesting part.
+
+    The samples nearest a failure are the ones the diagnosis needs, so the
+    sampler is asked to stop and given time to close its writer.
+    """
+    launcher = read(LAUNCHER)
+    assert "New-Item -ItemType File -Force -Path $TelemetryStop" in launcher
+    assert "$TelemetryProcess.WaitForExit(15000)" in launcher
+
+
+def test_clean_start_gate_requires_a_run_marker_not_just_a_path() -> None:
+    """A shell that cd'd into the worktree is not a leftover test process.
+
+    Without this the gate reported three of its own sibling shells as leftovers
+    and could never declare a clean start.
+    """
+    gate = read(REPO / "scripts" / "wait_for_clean_start.ps1")
+    assert "$RunMarker" in gate
+    assert "--shard=|app\\.py|prepare_e2e_db|prepare_visual_db" in gate
+    assert "$_.CommandLine -match $RunMarker" in gate
+
+
+def test_diagnostic_scripts_never_terminate_anything() -> None:
+    """Diagnosis observes. Only the launcher's own cleanup path may kill.
+
+    Scoping is by command line and ancestry, so an unrelated node/chromium/python
+    belonging to another worktree must never be reachable by these scripts.
+    """
+    for name in ("wait_for_clean_start.ps1", "shard_telemetry.ps1"):
+        text = read(REPO / "scripts" / name)
+        for forbidden in ("Stop-Process", "taskkill", "kill()"):
+            assert forbidden not in text, f"{name} can terminate processes"
+
+
 def test_launcher_never_writes_live_data() -> None:
     launcher = read(LAUNCHER)
     assert "would write the live database" in launcher
