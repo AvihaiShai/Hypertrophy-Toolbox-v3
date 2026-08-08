@@ -1,27 +1,45 @@
 <#
 .SYNOPSIS
     Run the CI-required functional Playwright set in N isolated processes.
-    EXPERIMENTAL: N greater than 1 is not supported. See the warning below.
+    Only -Shards 1 is supported. N>1 is REJECTED, not merely unproven.
 
 .DESCRIPTION
-    STATUS: -Shards 1 is measured and reliable. -Shards 2 and above are
-    EXPERIMENTAL and currently produce parallel-only failures on a single
-    machine. Do not use N>1 as a development lane, and do not treat a green N>1
-    run as evidence -- it is not reproducible yet.
+    STATUS: -Shards 1 is measured and reliable at 477/477 in 719.0s. Same-machine
+    N>1 is rejected by evidence and closed -- see docs/DECISIONS.md ADR-006. It
+    remains runnable so the diagnosis stays reproducible, but a green N>1 run is
+    NOT evidence: do not use it as a development lane, to select a shard count,
+    or to claim a local speedup.
 
     Measured on this repository, 25 required specs / 477 tests:
 
         N=1  719.0s  477 passed
-        N=2  390.8s  1 failed      <- not usable
-        N=3  401.4s  9 failed      <- not usable
-        N=4  341.4s  28 failed     <- not usable
+        N=2  390.8s  1 failed      <- not usable, and timings invalid (see below)
+        N=3  401.4s  9 failed      <- not usable, and timings invalid
+        N=4  341.4s  28 failed     <- not usable, and timings invalid
 
-    Failures scale with N and include `net::ERR_ADDRESS_IN_USE` on page.goto,
-    which is a client-side local-bind failure and therefore points at a
-    machine-wide resource that per-shard ports, databases, and artifact roots
-    cannot partition. The same 477 tests also take progressively longer
-    (711s of testcase time at N=1 against 1086s at N=4), so something is
-    contended; which resource is still under investigation.
+    Those N>1 timings are invalid as evidence: each configuration inherited the
+    previous one's TIME_WAIT backlog. A controlled re-run from a measured clean
+    start (gate waited 120.8s; leftovers 0, busy candidate ports 0, TIME_WAIT on
+    candidate ports 0, total TIME_WAIT 29) still failed 4/477 at N=2 in 407.2s,
+    with both shards exiting 1. Per the stop rule, N=3 and N=4 were not re-run.
+
+    ROOT CAUSE (confirmed, not a hypothesis). Werkzeug's WSGIRequestHandler
+    speaks HTTP/1.0 and closes the connection per request, so every request
+    holds an ephemeral port for the full 120s recycle interval. ~89.9% of the
+    suite's requests are static assets (30,752/34,253), and each fresh browser
+    context re-fetches a page's whole asset set per navigation. N=1 averaged
+    ~57 connections/s and ~6,840 steady-state ports; N=2 averaged ~85/s and
+    peaked at 16,318 of the 16,384-port dynamic range (99.6%). Sharding does not
+    reduce total connections, it compresses them into less wall-clock, raising
+    the rate against a fixed pool -- which is why failures scale with N. CPU,
+    processor queue, memory and disk were measured and were not limiting.
+
+    Every remedy is out of bounds: OS/TCP/registry/port/TIME_WAIT tuning makes
+    the suite a property of one machine; HTTP/1.1 keep-alive or asset
+    cache-policy changes alter what the suite exercises relative to production;
+    a new WSGI server adds a dependency to serve a benchmark; retries, timeout
+    inflation, shared browser contexts and reduced coverage buy the number by
+    weakening the gate.
 
     CI's two-shard split is unaffected by any of this: its shards run on
     separate runners, so they share none of the machine state implicated here.
@@ -44,9 +62,10 @@
     produces numbers that cannot be used to argue about the gate.
 
 .PARAMETER Shards
-    Number of isolated shard processes. 1 is the only supported value today and
-    is the clean serial reference. Values above 1 are experimental; see the
-    STATUS note above before believing any number they produce.
+    Number of isolated shard processes. 1 is the only supported value and the
+    default. Values above 1 are a rejected configuration retained for
+    reproducing the ADR-006 diagnosis; they warn at runtime and their results
+    are not evidence.
 
 .PARAMETER BasePort
     First port to allocate. Shard i gets BasePort + (i - 1).
@@ -61,12 +80,12 @@
     scored.
 
 .EXAMPLE
-    ./scripts/run-playwright-shards.ps1 -Shards 4
+    ./scripts/run-playwright-shards.ps1
 #>
 [CmdletBinding()]
 param(
     [ValidateRange(1, 8)]
-    [int] $Shards = 2,
+    [int] $Shards = 1,
 
     [ValidateRange(1024, 60000)]
     [int] $BasePort = 5300,
@@ -229,6 +248,10 @@ foreach ($shard in $Plan) {
 }
 
 $Npx = if ($env:OS -eq "Windows_NT") { "npx.cmd" } else { "npx" }
+
+if ($Shards -gt 1) {
+    Write-Warning "UNSUPPORTED CONFIGURATION: -Shards $Shards. Same-machine N>1 is rejected by evidence (docs/DECISIONS.md ADR-006): this host's 16,384 ephemeral ports are exhausted by Werkzeug's per-request connection close, and a controlled clean-start N=2 still failed 4/477. This run is a diagnostic reproduction; its pass/fail and its timings are not evidence."
+}
 
 Write-Host "Required functional set: $($RequiredSpecs.Count) specs across $Shards shard(s)"
 Write-Host "Ports: $(($Plan.Port) -join ', ')"

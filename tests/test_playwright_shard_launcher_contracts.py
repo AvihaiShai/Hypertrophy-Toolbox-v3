@@ -165,6 +165,32 @@ def test_diagnostic_scripts_never_terminate_anything() -> None:
             assert forbidden not in text, f"{name} can terminate processes"
 
 
+def test_launcher_defaults_to_the_only_supported_shard_count() -> None:
+    """N=1 is the supported lane; the default must not be a rejected configuration.
+
+    The launcher shipped with `$Shards = 2` while N>1 was still under
+    investigation, so running it with no arguments produced the unsupported
+    configuration. ADR-006 closed N>1 as rejected, which makes that default
+    actively wrong rather than merely optimistic.
+    """
+    assert re.search(r"\[int\]\s*\$Shards\s*=\s*1\b", read(LAUNCHER)), (
+        "run-playwright-shards.ps1 must default to -Shards 1 (docs/DECISIONS.md ADR-006)"
+    )
+
+
+def test_launcher_warns_at_runtime_that_n_above_one_is_rejected() -> None:
+    """A doc-comment warning is invisible to whoever passes -Shards 4.
+
+    N>1 stays runnable so the ADR-006 diagnosis is reproducible, so the guard
+    has to be on the run itself, naming the ADR rather than restating it.
+    """
+    launcher = read(LAUNCHER)
+    assert 'if ($Shards -gt 1) {' in launcher
+    warning = re.search(r"Write-Warning \"([^\"]*)\"", launcher)
+    assert warning is not None, "N>1 must warn at runtime, not only in the doc comment"
+    assert "ADR-006" in warning.group(1)
+
+
 def test_launcher_never_writes_live_data() -> None:
     launcher = read(LAUNCHER)
     assert "would write the live database" in launcher
