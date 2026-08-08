@@ -84,11 +84,20 @@
 > nothing else** — on a fresh `goto` it is a no-op, so converting a `beforeEach`
 > is really deleting `networkidle` and is only safe where the spec self-covers.
 >
-> **The suite-wide projection is revised down.** Two measured conversions give
-> 0.40s/call (`validation-boundary`) and 0.19s/call (`workout-plan`), because the
-> 500ms tail is only fully recoverable when nothing else needed that time. A
-> realistic total is **~85–175s, not the ~218s** finding 1 projected — measure
-> each rollout, do not extrapolate.
+> **Packet 5 rolled it into `ui-hardening.spec.ts`** — 26 of 27 sites / 71 of 75
+> runtime calls converted; control 77.7s → **59.1s** median (**18.6s, 23.9%**),
+> 37/37 × 5, assertions unchanged at 89, hard waits at 1. The one retained site
+> is the `/workout_log` block: the marker is workout-plan-scoped, so there it
+> would degrade to a bare `load` while real log fetches go unwaited.
+>
+> **Instrumentation beat the model here.** The static counter predicted 64 calls
+> / 31.4s; measuring found **75 / 40.7s (51.8% of the spec)** — it misses calls
+> made from helpers. Treat its per-spec figures as a floor.
+>
+> **The suite-wide projection is revised down.** Three measured conversions give
+> 0.40 / 0.19 / 0.26 s per call, because the 500ms tail is only fully recoverable
+> when nothing else needed that time. A realistic total is **~85–175s, not the
+> ~218s** finding 1 projected — measure each rollout, do not extrapolate.
 >
 > **Open and owner-gated:**
 > 1. **PRODUCT DEFECT — the Unlink button renders when it should be hidden.**
@@ -99,8 +108,8 @@
 > 2. **Should the superset selection clear on a routine-day change?** It does not
 >    today; the dropdown targets the Add form, not the plan table. The test was
 >    renamed to match reality.
-> 3. Rolling the readiness signal beyond `workout-plan.spec.ts`
->    (`ui-hardening.spec.ts`, 64 calls / ~31.4s, is next and untouched).
+> 3. Rolling the readiness signal beyond `ui-hardening.spec.ts` — the three
+>    converted specs now total **31.0s saved from 111 calls (0.28s/call)**.
 > 4. Finding 4's two production observations (four external CDN fetches per
 >    navigation; `/get_all_exercises` requested twice).
 >

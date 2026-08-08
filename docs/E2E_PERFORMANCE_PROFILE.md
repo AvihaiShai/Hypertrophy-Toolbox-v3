@@ -208,6 +208,8 @@ bound that properly:
 |---|---:|---:|---:|
 | `validation-boundary` | 23 | 9.1s | **0.40s** |
 | `workout-plan` | 17 | 3.3s | **0.19s** |
+| `ui-hardening` | 71 | 18.6s | **0.26s** |
+| **total** | **111** | **31.0s** | **0.28s** |
 
 The 500ms tail is only fully recoverable when nothing else needed that time.
 Where a test then waits on a real async condition — the body-map SVG, a modal, a
@@ -216,11 +218,70 @@ instead. **A realistic suite-wide figure is therefore ~85–175s, not ~218s**, a
 it is spec-dependent enough that each rollout must be measured rather than
 extrapolated.
 
-**Next, still owner-gated: `ui-hardening.spec.ts`** — 64 calls / ~31.4s, same
-page, so it needs no new marker. It should follow, not lead: it is the KI-005
-persistence suite with 18 `page.reload()` cycles and the most timing-sensitive
-assertions in the group, and its per-call yield could land at either end of the
-0.19–0.40s range. Untouched by this packet.
+Note also that the 435-call estimate the ~218s came from is itself a floor: the
+counting model misses helper-internal calls, and `ui-hardening` alone measured
+75 against a predicted 64. The true call total is higher, the per-call yield is
+lower, and the two errors partly cancel.
+
+### Rollout to `ui-hardening.spec.ts` — **DONE 2026-08-09 (packet 5)**
+
+**The static model was wrong about the size of this one.** It projected 64 calls
+/ ~31.4s. Instrumenting `waitForPageReady` and running the spec measured **75
+executions totalling 40.7s** (mean 542ms, p50 541, range 504–581) — **51.8% of
+the 78.6s spec**, not 39.9%. The model misses calls made from *helpers* rather
+than from a test body or `beforeEach`; `expectDisplayedValuesPersistAcrossReload()`
+alone accounts for 5. Treat the model's per-spec numbers as a floor.
+
+**Classification — all 27 static sites / 75 runtime calls:**
+
+| Describe | sites | runtime calls | verdict |
+|---|---:|---:|---|
+| Toast Stacking | 1 | 4 | Converted — touches only the server-rendered `#liveToast` |
+| Form State Persistence | 3 | 5 | Converted — reload-then-`expectControls`; restore is synchronous |
+| Modal Keyboard & Focus | 1 | 7 | Converted — its helper waits on Bootstrap's `shown.bs.modal` |
+| **Workout Log Modal Keyboard & Focus** | **1** | **4** | **RETAINED** |
+| Workout Controls Persistence (KI-005) | 13 | 33 | Converted |
+| Estimate actions persist (OWNER-9) | 3 | 15 | Converted |
+| Estimate state neutral (OWNER-10) | 2 | 4 | Converted |
+| AR-3 restored-weight | 3 | 3 | Converted |
+| **Total** | **27** | **75** | **26 sites / 71 calls converted, 1 site / 4 calls retained** |
+
+**Why the retained one is retained** (recorded inline at the site too): that block
+runs on `/workout_log`. `data-workout-controls-busy` is set by the workout-plan
+estimate module, so on the log page the marker never appears and
+`waitForWorkoutPlanReady()` would degrade to a bare `load`. The page fetches its
+log rows after load and no assertion there waits for them, so `networkidle` is
+carrying a real guarantee. Converting it would have meant inventing a second
+marker, which this packet deliberately does not do.
+
+**Why the rest are safe.** The KI-005 family is the timing-sensitive part, and
+the thing it depends on is synchronous: `initializeWorkoutPlanHandlers()` runs
+`beginHydration → initializeDefaultValues → restoreWorkoutControls → endHydration`
+inside the `DOMContentLoaded` handler, so it has completed by `load`. The only
+async writer of those six controls is the profile estimate, which fires on
+exercise *selection* — no selection happens on a bare `goto`/`reload`, and where
+a test does select, its own helper waits. `selectFullBodyRoutine`,
+`selectFirstExercise` and `clickAddExercise` each wait on a `waitForFunction`.
+
+**Measured, same server / DB / session (port 5334), wall clock. Control ran
+FIRST so the session's rising `TIME_WAIT` biases against the converted side:**
+
+| | runs | median | range | result |
+|---|---|---|---|---|
+| control | 3 | **77.7s** | 76.7–79.3s | 37/37 |
+| converted | 5 | **59.1s** | 55.1–63.3s | **37/37 × 5** |
+
+**18.6s saved (23.9%), zero retries, flakes or skips in all 8 runs. Assertion
+count unchanged at 89 `expect(` calls; hard waits unchanged at 1.** The converted
+runs drift upward across the five repeats (55.1 → 63.3s) purely from accumulating
+`TIME_WAIT`, which is the ADR-006 mechanism showing up as slope rather than
+failure.
+
+**Realized yield: 0.26s per converted call** — squarely inside the 0.19–0.40s
+band the previous two packets established, and the largest single-spec win so far.
+
+Running total across the three converted specs: **31.0s** of the local group,
+from 111 converted calls.
 
 ## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 

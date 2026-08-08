@@ -18,7 +18,15 @@
  * Failures here mean a change shifted the user-visible behavior described above.
  */
 import type { Page } from '@playwright/test';
-import { test, expect, ROUTES, SELECTORS, waitForPageReady, resetWorkoutPlan } from './fixtures';
+import {
+  test,
+  expect,
+  ROUTES,
+  SELECTORS,
+  waitForPageReady,
+  waitForWorkoutPlanReady,
+  resetWorkoutPlan,
+} from './fixtures';
 
 async function showToastViaModule(
   page: Page,
@@ -306,7 +314,7 @@ test.describe('UI Hardening — Toast Stacking', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -361,7 +369,7 @@ test.describe('UI Hardening — Form State Persistence', () => {
     await resetWorkoutPlan(page);
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -375,14 +383,14 @@ test.describe('UI Hardening — Form State Persistence', () => {
   test('full reload restores all six Workout Controls (criteria 1, 2)', async ({ page }) => {
     await page.evaluate(() => sessionStorage.clear());
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     // Mutate all six controls to values that differ from the template defaults
     await setAllControls(page, NON_DEFAULT_CONTROLS);
 
     // Hard reload — the new contract is that all six fields are restored
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     await expectControls(page, NON_DEFAULT_CONTROLS);
   });
@@ -598,7 +606,7 @@ test.describe('UI Hardening — Modal Keyboard & Focus', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -706,6 +714,11 @@ test.describe('UI Hardening — Workout Log Modal Keyboard & Focus', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_LOG);
+    // Deliberately still `waitForPageReady` — the only retained site in this file.
+    // `data-workout-controls-busy` is set by the workout-plan estimate module, so
+    // on /workout_log the marker never appears and the helper would degrade to a
+    // bare `load`. This page fetches its log rows after load and no assertion here
+    // waits for them, so `networkidle` is the guarantee, not dead time.
     await waitForPageReady(page);
   });
 
@@ -766,11 +779,11 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
     await resetWorkoutPlan(page);
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     // Start every case from an empty tab-scoped store so template defaults are what render.
     await page.evaluate(() => sessionStorage.clear());
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -795,7 +808,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
     expect(stillFocused, 'the mid-entry field must still be focused (no blur/commit)').toBe(true);
 
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     await expect(page.locator(CONTROL_IDS.weight)).toHaveValue('137.5');
   });
@@ -808,7 +821,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     await setAllControls(page, NON_DEFAULT_CONTROLS);
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     // ...and after reload the SAVED values must win over them.
     await expectControls(page, NON_DEFAULT_CONTROLS);
@@ -862,7 +875,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
       { key: STORAGE_KEY, value: payload }
     );
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     // 1. Restore beat default population in the DOM.
     await expectControls(page, NON_DEFAULT_CONTROLS);
@@ -883,7 +896,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     await corruptStoredControls(page, 'not-json');
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     await expectControls(page, PINNED_DEFAULTS);
   });
@@ -896,7 +909,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     await corruptStoredControls(page, 'non-numeric');
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     await expectControls(page, PINNED_DEFAULTS);
   });
@@ -918,7 +931,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     await corruptStoredControls(page, 'above-max');
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     await expectControls(page, {
       // No declared `max` → 999999 is NOT out of range → restores as stored (accepted trade-off).
@@ -937,7 +950,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     await corruptStoredControls(page, 'below-min');
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     await expectControls(page, PINNED_DEFAULTS);
   });
@@ -966,7 +979,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     // 3. And they are still there after a reload.
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await expectControls(page, NON_DEFAULT_CONTROLS);
   });
 
@@ -1016,7 +1029,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     // 3. And the reset survives a reload (nothing lingering to restore).
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await expectControls(page, PINNED_DEFAULTS);
   });
 
@@ -1030,7 +1043,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     // ...and still retained in storage (a reload proves they were not cleared).
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await expectControls(page, NON_DEFAULT_CONTROLS);
   });
 
@@ -1044,7 +1057,7 @@ test.describe('UI Hardening — Workout Controls Persistence (KI-005)', () => {
 
     // ...and the stored set must still be intact afterwards.
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await expectControls(page, NON_DEFAULT_CONTROLS);
   });
 });
@@ -1340,7 +1353,7 @@ async function expectDisplayedValuesPersistAcrossReload(page: Page): Promise<voi
 
   // 2. A reload restores the NEWLY DISPLAYED values.
   await page.reload();
-  await waitForPageReady(page);
+  await waitForWorkoutPlanReady(page);
   await expectControls(page, displayed);
 }
 
@@ -1357,10 +1370,10 @@ test.describe('UI Hardening — Estimate actions persist (KI-005 / OWNER-9)', ()
   /** Shared arrival: learned estimate mocked, clean tab-scoped store, plan page ready. */
   async function arriveOnWorkoutPlan(page: Page): Promise<void> {
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await page.evaluate(() => sessionStorage.clear());
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   }
 
   test('OWNER-9: Apply Suggestion → the applied values survive a reload', async ({ page }) => {
@@ -1511,10 +1524,10 @@ test.describe('UI Hardening — Estimate state is neutral, not falsely attribute
     await mockEstimate(page, () => LEARNED_ESTIMATE);
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await page.evaluate(() => sessionStorage.clear());
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -1587,10 +1600,10 @@ test.describe('UI Hardening — AR-3 restored-weight dirty-state regression (KI-
     await mockEstimate(page, () => LEARNED_ESTIMATE);
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await page.evaluate(() => sessionStorage.clear());
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -1609,7 +1622,7 @@ test.describe('UI Hardening — AR-3 restored-weight dirty-state regression (KI-
     // ...and is RESTORED on reload (criterion 8). Per the AR-3 ruling, restoring a valid saved
     // #weight must mark it user-dirty, so an unrelated estimate re-apply cannot overwrite it.
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await expect(page.locator(CONTROL_IDS.weight)).toHaveValue('137.5');
 
     // An UNRELATED estimate re-apply: point the estimate at an exercise WITHOUT a deliberate
