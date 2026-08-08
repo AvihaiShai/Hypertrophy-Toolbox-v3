@@ -26,9 +26,10 @@ test_db_path (function)         — unique tmp_path SQLite per test
 ```
 
 The `app` fixture **copies** `schema_template` rather than re-running
-`run_all_initializers()`. Rebuilding cost ~290ms × 787 setups; the copy is
-~0.4ms. Adding a table still only means registering its initializer in
-`utils/schema_registry.py` — the template picks it up automatically.
+`run_all_initializers()`, which commits (and so fsyncs) every DDL statement
+separately under the test pragma profile. Adding a table still only means
+registering its initializer in `utils/schema_registry.py` — the template picks
+it up automatically.
 
 ## Conventions
 - Patch DB path by **assignment**, not import: `import utils.config; utils.config.DB_FILE = test_db_path`. `DatabaseHandler.__init__` reads `utils.config.DB_FILE` at call time (`database.py:209`).

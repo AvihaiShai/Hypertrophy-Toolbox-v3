@@ -22,7 +22,7 @@ class _RecordingClock:
     ``_exec_many`` — so replacing the module-level name records the schedule
     instead of sleeping through it. The two locked-retry tests below drive a
     ``MagicMock`` database, so every second they spent was real wall clock for
-    no coverage: 8s of the suite between them.
+    no coverage.
 
     Swapping the name is deliberate in preference to patching ``time.sleep``,
     which would reach every other module for the duration of the test.

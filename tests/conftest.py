@@ -52,12 +52,11 @@ def _cleanup_database_files(database_path: str) -> None:
 def schema_template(tmp_path_factory):
     """Build the canonical empty schema once, to be copied per test.
 
-    ``run_all_initializers()`` costs ~290ms here. It commits each DDL statement
-    separately, and the pragma profile tests run under fsyncs every one of them:
-    ``utils/database.py`` defaults ``FLASK_DEBUG`` to ``'1'``, which selects
-    ``journal_mode = DELETE`` + ``synchronous = FULL``. Paid once per ``app``
-    fixture — 787 times per full run — that single call is the largest cost in
-    the suite. Copying the finished file instead costs ~0.4ms.
+    ``run_all_initializers()`` commits each DDL statement separately, and the
+    pragma profile tests run under fsyncs every one of them: ``utils/database.py``
+    defaults ``FLASK_DEBUG`` to ``'1'``, which selects ``journal_mode = DELETE``
+    + ``synchronous = FULL``. Paid once per ``app`` fixture, that was the largest
+    single cost in the suite. Copying the finished file is far cheaper.
 
     Two properties make the copy sound rather than merely fast, and both are
     asserted below because a silent regression in either yields a subtly empty

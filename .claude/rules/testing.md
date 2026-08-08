@@ -39,12 +39,13 @@ test_db_path (function)         — unique `tmp_path` SQLite file per test
 **Schema comes from a copy, not a rebuild.** `run_all_initializers()` commits
 each DDL statement separately, and the pragma profile tests run under fsyncs
 every one — `utils/database.py` defaults `FLASK_DEBUG` to `'1'`, selecting
-`journal_mode = DELETE` + `synchronous = FULL`. At ~290ms × 787 `app` setups
-that was the largest single cost in the suite, so `schema_template` builds it
-once per worker and `app` copies the file (~0.4ms). The copy is only sound
-because DELETE mode leaves no `-wal` sidecar; the fixture asserts that, since a
-switch to WAL would otherwise yield a silently partial schema. The erase-data
-route still calls the real initializers — that path is asserting they work.
+`journal_mode = DELETE` + `synchronous = FULL`. Rebuilding the schema for every
+`app` fixture therefore paid a per-statement fsync hundreds of times per run, so
+`schema_template` builds it once per worker and `app` copies the file. The copy
+is only sound because DELETE mode leaves no `-wal` sidecar; the fixture asserts
+that, since a switch to WAL would otherwise yield a silently partial schema. The
+erase-data route still calls the real initializers — that path is asserting they
+work.
 
 ## DB patching pattern — critical
 Tests swap DB by **assigning** `utils.config.DB_FILE` (never importing the value):
