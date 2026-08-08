@@ -204,12 +204,9 @@ post-load fetches. So each of the 7 sites was classified, not swept:
 Finding 1 projected ~218s from 435 calls at ~500ms each. Two real conversions now
 bound that properly:
 
-| Spec | calls converted | saved | per call |
-|---|---:|---:|---:|
-| `validation-boundary` | 23 | 9.1s | **0.40s** |
-| `workout-plan` | 17 | 3.3s | **0.19s** |
-| `ui-hardening` | 71 | 18.6s | **0.26s** |
-| **total** | **111** | **31.0s** | **0.28s** |
+Per-spec measurements live in one place — the **Cumulative** table at the end of
+this document. Do not restate them here; two tables of the same numbers is how
+this file would start contradicting itself.
 
 The 500ms tail is only fully recoverable when nothing else needed that time.
 Where a test then waits on a real async condition — the body-map SVG, a modal, a
@@ -280,8 +277,70 @@ failure.
 **Realized yield: 0.26s per converted call** — squarely inside the 0.19–0.40s
 band the previous two packets established, and the largest single-spec win so far.
 
-Running total across the three converted specs: **31.0s** of the local group,
-from 111 converted calls.
+### Rollout to `superset-edge-cases` + `exercise-interactions` — **DONE 2026-08-09 (packet 6)**
+
+Both specs live on `/workout_plan`, so the existing marker applies with no new
+mechanism. Measured first: **13 calls / 7.1s** in `superset-edge-cases` (the model
+was right here) and **23 calls / 12.6s** in `exercise-interactions` (model said 20
+— three more helper-internal ones). 36 calls, 19.7s.
+
+The classification split them almost completely:
+
+| Spec | sites | calls | converted | retained |
+|---|---:|---:|---:|---:|
+| `superset-edge-cases` | 7 | 13 | **7 sites / 13 calls** | 0 |
+| `exercise-interactions` | 8 | 23 | **1 site / 2 calls** | **7 sites / 21 calls** |
+| total | 15 | 36 | **8 sites / 15 calls** | **7 sites / 21 calls** |
+
+**Why `exercise-interactions` is almost entirely retained.** Six of its seven
+`beforeEach` blocks call `ensureRoutineHasExercises()`, which opens with an
+**unguarded** `rowLocator.count()` — and that read *decides whether the helper
+seeds the routine at all*. `fetchWorkoutPlan()` fills that table
+asynchronously, so `networkidle` in the preceding `beforeEach` is precisely what
+makes the read deterministic. The marker only tracks the profile-estimate write
+and cannot substitute. Converting those would turn seeding into a coin flip:
+sometimes early-return, sometimes add rows, with the row count differing per run.
+The seventh retained site is the helper's own post-reload wait, kept for the same
+reason. The reasoning is recorded at the helper and at the converted block.
+
+The one converted block, `Exercise Filter Application`, never touches the plan
+table: it reads the server-rendered filter dropdowns, and the test that uses the
+exercise dropdown waits for it with its own `waitForFunction`.
+
+`superset-edge-cases` converts cleanly because packet 3 already replaced its
+guards with waits — `selectExerciseCheckboxes()` asserts row counts,
+`linkSelectedExercises()` waits for the POST and the re-render, `addExercise()`
+waits on `waitForResponse` + `toHaveCount`, and every `beforeEach` is followed by
+`selectRoutine()`, which blocks on two dropdown round trips.
+
+**Measured, same server / DB / session (port 5335), control first:**
+
+| | runs | median | range | result |
+|---|---|---|---|---|
+| control | 3 | **90.1s** | 90.1–95.3s | 33/33 |
+| converted | 5 | **81.9s** | 79.0–88.9s | **33/33 × 5** |
+
+**8.2s (9.1%), zero retries, flakes or skips across all 8 runs. Assertion counts
+unchanged (44 and 24); hard waits unchanged (10 and 7).**
+
+**Realized yield: 0.55s per converted call — full recovery of the 544–550ms
+tail**, the top of the observed band and the first time a rollout recovered
+essentially all of it. That is the signature of calls whose following work never
+overlapped the tail: in `superset-edge-cases` the `beforeEach` tail was pure dead
+time before `selectRoutine()` started its own round trips.
+
+### Cumulative
+
+| Spec | calls | saved | per call |
+|---|---:|---:|---:|
+| `validation-boundary` | 23 | 9.1s | 0.40s |
+| `workout-plan` | 17 | 3.3s | 0.19s |
+| `ui-hardening` | 71 | 18.6s | 0.26s |
+| `superset-edge-cases` + `exercise-interactions` | 15 | 8.2s | 0.55s |
+| **total** | **126** | **39.2s** | **0.31s** |
+
+39.2s off a 711.3s local group — **5.5%** — with assertion counts, hard-wait
+counts and production behavior unchanged throughout.
 
 ## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 

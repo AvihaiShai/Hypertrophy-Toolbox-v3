@@ -9,7 +9,15 @@
  * - Inline editing (sets, reps, weight)
  * - Reorder exercises
  */
-import { test, expect, ROUTES, SELECTORS, waitForPageReady, expectToast } from './fixtures';
+import {
+  test,
+  expect,
+  ROUTES,
+  SELECTORS,
+  waitForPageReady,
+  waitForWorkoutPlanReady,
+  expectToast,
+} from './fixtures';
 
 const TEST_ROUTINE = 'GYM - Full Body - Workout A';
 
@@ -66,6 +74,17 @@ function extractDataRows(payload: unknown): unknown[] {
   return Array.isArray(candidate.data) ? candidate.data : [];
 }
 
+/**
+ * Seed the routine up to `minimumCount` rows, then hand back a loaded page.
+ *
+ * NOTE for the readiness rollout: the `rowLocator.count()` below is an
+ * UNGUARDED read of state that `fetchWorkoutPlan()` fills asynchronously, and
+ * its result decides whether this function seeds at all. Every caller therefore
+ * keeps `waitForPageReady` — `networkidle` is what makes that read
+ * deterministic, and the workout-plan readiness marker does not cover it
+ * (it only tracks the profile-estimate write). Converting those callers would
+ * make seeding a coin flip: sometimes early-return, sometimes add rows.
+ */
 async function ensureRoutineHasExercises(
   page: import('@playwright/test').Page,
   request: import('@playwright/test').APIRequestContext,
@@ -458,10 +477,13 @@ test.describe('Exercise Details Modal', () => {
 });
 
 test.describe('Exercise Filter Application', () => {
+  // The only converted block in this file: these two tests never touch the plan
+  // table. They read the server-rendered filter dropdowns, and the one that uses
+  // the exercise dropdown waits for it with its own `waitForFunction`.
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {

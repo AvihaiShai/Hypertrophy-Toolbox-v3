@@ -8,7 +8,15 @@
  * - Linking more than 2 exercises
  * - Superset state persistence
  */
-import { test, expect, ROUTES, SELECTORS, waitForPageReady, API_ENDPOINTS, resetWorkoutPlan } from './fixtures';
+import {
+  test,
+  expect,
+  ROUTES,
+  SELECTORS,
+  waitForWorkoutPlanReady,
+  API_ENDPOINTS,
+  resetWorkoutPlan,
+} from './fixtures';
 
 /**
  * Helper to select a complete routine
@@ -146,7 +154,7 @@ test.describe('Superset Linking Edge Cases', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
   });
 
@@ -214,7 +222,7 @@ test.describe('Delete Exercise in Superset', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
   });
 
@@ -272,7 +280,7 @@ test.describe('Unlink Superset Edge Cases', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
   });
 
@@ -362,7 +370,7 @@ test.describe('Replace Exercise in Superset', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
   });
 
@@ -415,7 +423,7 @@ test.describe('Superset State Persistence', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
   });
 
@@ -434,7 +442,7 @@ test.describe('Superset State Persistence', () => {
 
     // Refresh page
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     // Re-select routine to load table
     await selectRoutine(page);
@@ -485,7 +493,7 @@ test.describe('Superset Visual Indicators', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
   });
 

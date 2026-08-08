@@ -108,8 +108,14 @@
 > 2. **Should the superset selection clear on a routine-day change?** It does not
 >    today; the dropdown targets the Add form, not the plan table. The test was
 >    renamed to match reality.
-> 3. Rolling the readiness signal beyond `ui-hardening.spec.ts` — the three
->    converted specs now total **31.0s saved from 111 calls (0.28s/call)**.
+> 3. Rolling the readiness signal further. **Five specs converted: 39.2s saved
+>    from 126 calls (0.31s/call), 5.5% of the 711.3s local group.** Packet 6 added
+>    `superset-edge-cases` (7/7 sites) and `exercise-interactions` (1 of 8 sites
+>    — the other seven feed `ensureRoutineHasExercises()`, whose unguarded
+>    `rowLocator.count()` decides whether it seeds, so `networkidle` is
+>    load-bearing there and the marker cannot substitute). Remaining traffic is
+>    mostly on other pages, where going further needs a per-page marker — a
+>    production change and a separate owner decision.
 > 4. Finding 4's two production observations (four external CDN fetches per
 >    navigation; `/get_all_exercises` requested twice).
 >
