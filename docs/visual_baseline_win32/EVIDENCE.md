@@ -446,8 +446,32 @@ generated from the final resolved tree:
 26 sheets over 81 baselines. `artifacts/` is gitignored, so these are review
 material and are not committed.
 
-**Owner by-eye approval of the regenerated pixels remains the open gate.** Note in
-particular that the largest byte deltas in this corpus sit on captures whose
-*dimensions did not change* — `user-profile-desktop-{dark,light}` at roughly +72 KB
-each and `user-profile-tablet-*` at roughly +171 KB each. Nothing accounts for what
-moved inside those frames except the sheets, so they deserve the closest look.
+### 8.5 Owner by-eye approval — GIVEN
+
+**The owner reviewed all 26 final-tree sheets, covering all 81 win32 baselines, and
+approved them.** This closes the gate that §4 could not: the pass recorded there was
+the authoring agent's, against the superseded 2026-08-05 corpus.
+
+Findings, recorded here so this document — not a mutable pull-request body — is the
+durable record:
+
+- **No new clipping, truncation, unpainted tails, theme mismatch, or hidden
+  regression.**
+- **The large `user-profile` byte deltas are explained.** They sit on captures whose
+  *dimensions did not change* — `user-profile-desktop-{dark,light}` at roughly +72 KB
+  each, `user-profile-tablet-*` at roughly +171 KB each — and the cause is **exercise
+  thumbnails now rendering where the old captures held blank placeholders**. Layout
+  structure is stable. This was the one delta with no per-pixel accounting, resolvable
+  only by eye, and it is now resolved.
+- **`body-composition` height growth** (+760 px mobile, +160 px tablet) correctly
+  reflects the seeded **Snapshot History** records — §4.1.
+- **The six `volume-splitter` captures** correctly retain `main`'s post-#303 state,
+  which is the conflict resolution recorded in §8.1.
+
+**Accepted pre-existing legacy behaviour, explicitly not introduced or endorsed
+here:** the **Workout Plan / Workout Log mobile column-crush at 375 px** is visibly
+poor — label and button overlap — and is confirmed pre-existing and essentially
+unchanged; those captures moved by only −2 px. Recording these baselines captures
+what the app renders today; it does not endorse that layout. Improving it is separate
+work and out of scope for a baseline-recovery packet. See §5, which first recorded the
+characteristic.

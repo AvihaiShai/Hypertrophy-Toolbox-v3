@@ -75,8 +75,15 @@ cp -a <checkpoint>/tree/. .
 sha256sum -c <checkpoint>/SHA256SUMS.txt   # expect 158 OK
 ```
 
-This checkpoint lives in a session scratchpad, which is **not durable storage**. It removes the
-risk of losing the work to a stray command today; it does not replace a commit.
+**Which copy is which.** The authoritative checkpoint is the external one at
+`D:/development/_winregen-checkpoint-20260808/` — outside every repository, so no git operation in
+any worktree can reach it, and it survives a reboot. The session-scratchpad copy is a **non-durable
+duplicate** of it: convenient, but Storage Sense may clear it at any time, so never restore from the
+scratchpad when the external copy is available and never treat the scratchpad as the checkpoint.
+
+Neither copy replaces a commit. The checkpoint removes the risk of losing the work to a stray
+command; the commit is what makes it recoverable from git. Both now exist — the packet is committed
+as `b990412` and integrated as described in §8.
 
 ## 2a. Cleared: the contact-sheet tool's path
 
@@ -259,5 +266,16 @@ a corpus still holding the pre-#303 volume-splitter six.
 **Contact sheets were regenerated from the final resolved tree** — 26 sheets, 22 for
 `visual.spec.ts` and 4 for `visual-baseline-thumbnails.spec.ts`, under
 `artifacts/review_final/`. The earlier by-eye pass recorded in §4 of EVIDENCE was
-performed by the authoring agent and is **not** owner sign-off; owner approval of the
-regenerated pixels remains the open gate.
+performed by the authoring agent, against the superseded 2026-08-05 corpus, and was
+never owner sign-off.
+
+**Owner by-eye approval is GIVEN.** All 26 final-tree sheets, covering all 81 win32
+baselines, were reviewed and approved: no new clipping, truncation, unpainted tails,
+theme mismatch or hidden regression; the large `user-profile` byte deltas at unchanged
+dimensions are **exercise thumbnails rendering where the old captures held blank
+placeholders**, with layout structure stable; `body-composition` growth is the seeded
+Snapshot History; and the six `volume-splitter` captures correctly retain `main`'s
+post-#303 state. The **Workout Plan / Workout Log 375 px column-crush** is accepted
+**pre-existing legacy behaviour, not introduced or endorsed by this recovery** — those
+captures moved by only −2 px. Full findings: [`EVIDENCE.md`](EVIDENCE.md) §8.5, which
+is the durable record rather than the mutable pull-request body.

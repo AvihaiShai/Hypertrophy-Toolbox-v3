@@ -28,7 +28,7 @@
  */
 import { chromium } from '@playwright/test';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, relative, isAbsolute, sep } from 'node:path';
 
 const args = process.argv.slice(2);
 const getArg = (flag, fallback) => {
@@ -41,8 +41,21 @@ const outDir = resolve(getArg('--out', 'artifacts/review/sheets'));
 const BAND_H = Number(getArg('--band', 1000)); // display px per unrolled band
 const DISP_W = Number(getArg('--width', 340)); // display px per column
 
-if (!resolve(outDir).startsWith(resolve('artifacts'))) {
-  throw new Error(`--out must resolve under artifacts/ (got ${resolve(outDir)})`);
+/* Output containment: `--out` must be `artifacts/` itself or a true descendant.
+ *
+ * A prefix test on the resolved string is not containment -- `artifacts-other/`
+ * and `artifacts.bak/` both start with the same characters as `artifacts` and
+ * would have passed it. Compare path SEGMENTS instead: `relative()` returns ''
+ * for the directory itself; for anything outside it the result either leads with
+ * a '..' segment, or is absolute (which happens on Windows when the two paths sit
+ * on different drives and no relative path exists). Testing the first segment
+ * rather than a '..' string prefix keeps a legitimately-named child such as
+ * `artifacts/..cache` allowed. */
+const artifactsRoot = resolve('artifacts');
+const rel = relative(artifactsRoot, resolve(outDir));
+const contained = rel === '' || (!isAbsolute(rel) && rel.split(sep)[0] !== '..');
+if (!contained) {
+  throw new Error(`--out must resolve to artifacts/ or below (got ${resolve(outDir)})`);
 }
 
 /** PNG IHDR is fixed-offset; no decoder needed just for dimensions. */
