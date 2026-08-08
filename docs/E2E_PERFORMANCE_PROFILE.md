@@ -106,21 +106,71 @@ touched):
 | variant | `domcontentloaded` + `load` | **22 passed, 1 failed** | 50.3s | 0.0s |
 
 The variant is roughly 15s faster — consistent with the 12.4s of tail it removed
-— and breaks `Empty Value Validation › rejects empty
-sets field`, which asserts that clicking Add with an empty `#sets` sends no
-`/add_exercise` request. Without the tail, the click lands before the page's
-post-load initialization has settled and the request goes out. `networkidle` is
-accidentally serving as the app-ready signal, and the app exposes no explicit
-one. That is the whole risk in one test: the saving is real, and the naive form
-of the change is wrong.
+— and breaks `Empty Value Validation › rejects empty sets field`, which asserts
+that clicking Add with an empty `#sets` sends no `/add_exercise` request.
+`networkidle` was standing in for an app-ready signal that did not exist, so
+removing it removed a guarantee as well as the dead time. That is the whole risk
+in one test: the saving is real, and the naive form of the change is wrong. The
+section below identifies exactly which guarantee, and replaces it.
 
-**Smallest targeted next experiment.** Give one page an explicit readiness
-signal, convert `validation-boundary.spec.ts` alone to wait on it, and re-run
-that spec 5× (the repeat-probe precedent used for the A10 promotions) against
-the control numbers above. Only if that is green for all 23 tests on all 5
-repeats does converting a second spec become worth pricing. `waitForPageReady`
-is shared by 22 specs and the correct observable differs per page, so a
-suite-wide rewrite is not the unit of work.
+### The experiment was run — **PASSED 2026-08-08, scoped to one spec**
+
+**What `networkidle` was actually protecting was not page load.** Instrumenting
+`#sets`'s value setter through the failing test's exact step sequence found the
+writer: selecting an exercise fires `/api/user_profile/estimate`, and its
+response writes `#sets` via `setWorkoutControlValue()` in
+`workout-plan-estimates.js`. In the probe the response landed at 738ms and the
+test's fills at 755ms — it passed by 17ms. When the estimate lands after the
+fills instead, the field is repopulated, the form is valid, and
+`rejects empty sets field` fails. It is a race, not a fixed ordering, which is
+why one variant run showed it and the control never did.
+
+**The signal.** `data-workout-controls-busy` on `<html>`, present exactly while
+an estimate is in flight and may still write the six Workout Controls. Set
+**synchronously before the first `await`** (so a caller that has just dispatched
+the change event already observes it) and cleared in **`finally`** (so a rejected
+estimate cannot strand it). It is display-only and never read by application
+code — it makes existing internal state observable and changes no behavior.
+
+`waitForWorkoutPlanReady()` in `e2e/fixtures.ts` waits for `load` plus the
+absence of that attribute. `validation-boundary.spec.ts` uses it in all seven
+`beforeEach` hooks **and inside `selectExercise()`** — the load-time wait alone is
+not enough, because the race starts at exercise selection.
+
+**Measured, same server / DB / session (port 5332), wall clock:**
+
+| | runs | median | range | result |
+|---|---|---|---|---|
+| control (`networkidle`) | 3 | **55.8s** | 55.5–56.2s | 23/23 |
+| converted | 5 | **46.7s** | 44.9–53.0s | **23/23 × 5** |
+
+**9.1s saved (16.3%), 23/23 in all five repeats, zero retries, zero flakes, zero
+skips.** That is ~0.40s realized per call against the ~0.49–0.54s raw tail — the
+difference is the estimate wait, which is real work `networkidle` was also doing.
+
+The earlier 66s control in the table above was measured on a different, busier
+server; the 55.8s same-conditions control supersedes it for this calculation.
+
+**Regression surface checked**, because this changed production JS:
+`ui-hardening` 37/37 (the KI-005 controls/estimate suite), `workout-plan` 35/35,
+`fatigue-context` 6/6 (mocks this very endpoint), `learned-calibration` 8/8,
+vitest 105/105, pytest 2614 passed / 2 skipped.
+
+`tests/test_workout_controls_busy_signal_contracts.py` pins the three properties
+that fail silently — set-before-await, cleared-in-`finally`, and no `networkidle`
+fallback — plus the fact that `waitForPageReady` is left intact for the other 21
+specs. It was itself controlled: moving the `setAttribute` after the first
+`await` makes `test_marker_is_set_before_the_first_await` fail.
+
+**Not rolled out further, by instruction.** `waitForPageReady` still backs 21
+specs and the correct observable differs per page.
+
+**Proposed next spec: `workout-plan.spec.ts`** — 36 `waitForPageReady` calls
+(~17.6s), on the *same* page, so it reuses this signal with no new production
+marker; it tests whether the mechanism generalizes before any page needs its own.
+`ui-hardening.spec.ts` is the larger prize (64 calls, ~31.4s, also same page) but
+should follow, not lead: it is the persistence suite, with 18 `page.reload()`
+cycles and the most timing-sensitive assertions in the group.
 
 ## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 
@@ -253,4 +303,8 @@ Under `artifacts/` (gitignored), not in this document:
 | `artifacts/probe/variant_run.txt` | Same spec without `networkidle`, 22 passed / 1 failed |
 | `artifacts/probe/readiness_probe.mjs` | Per-strategy navigation timing probe |
 | `artifacts/probe/request_census.mjs` | Absolute-timeline request census |
+| `artifacts/packet1/before-*.txt`, `after-*.txt` | Finding 2: 3 control + 5 converted runs |
+| `artifacts/packet2/control-*.txt`, `run-*.txt` | Finding 1: 3 control + 5 converted runs |
+| `artifacts/packet2/diagnose_sets.mjs` | The `#sets` value-setter trace that found the estimate race |
+| `artifacts/packet2/affected-*.txt` | Regression runs for the production-JS change |
 | `artifacts/controlled/`, `artifacts/shards/20260808-213418-n2/` | ADR-006 sharding evidence |

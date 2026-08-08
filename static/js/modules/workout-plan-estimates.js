@@ -535,9 +535,28 @@ export function bindEstimateTraceToggle() {
     });
 }
 
+/**
+ * Readiness marker: present on <html> exactly while an estimate is in flight and
+ * may still write the six Workout Controls.
+ *
+ * It exists because selecting an exercise starts a fetch that overwrites those
+ * fields when it lands. A test that types into them straight after selecting an
+ * exercise is racing that response — which is real, not theoretical: it is why
+ * `validation-boundary.spec.ts › rejects empty sets field` failed the moment the
+ * suite stopped waiting for `networkidle`, since `networkidle` had been standing
+ * in for this signal by accident.
+ *
+ * Display-only and never read by application code, so it changes no behavior; it
+ * only makes an existing internal state observable. Set synchronously before the
+ * first await so a caller that has just dispatched the change event already sees
+ * it, and cleared in `finally` so a failed estimate cannot strand it.
+ */
+const CONTROLS_BUSY_ATTR = 'data-workout-controls-busy';
+
 export async function applyUserProfileEstimateForSelectedExercise() {
     const exerciseName = document.getElementById('exercise')?.value || '';
 
+    document.documentElement.setAttribute(CONTROLS_BUSY_ATTR, '1');
     try {
         const response = await api.get(
             `/api/user_profile/estimate?exercise=${encodeURIComponent(exerciseName)}`,
@@ -547,5 +566,7 @@ export async function applyUserProfileEstimateForSelectedExercise() {
     } catch (error) {
         console.warn('Unable to apply user profile estimate:', error);
         applyEstimateToWorkoutControls(null);
+    } finally {
+        document.documentElement.removeAttribute(CONTROLS_BUSY_ATTR);
     }
 }

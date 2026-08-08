@@ -49,11 +49,32 @@
 > oracle controls, and the raw-evidence index:
 > [`docs/E2E_PERFORMANCE_PROFILE.md`](E2E_PERFORMANCE_PROFILE.md).
 >
-> **Open and owner-gated:** whether to fund the readiness-signal work behind
-> finding 1, the `superset-edge-cases` wait conversion behind finding 2, and the
-> two production observations in finding 4 (four external CDN fetches per
-> navigation; `/get_all_exercises` requested twice per navigation). Nothing in
-> this arc changed production behavior, CI, or the live database.
+> **Findings 1 and 2 were then owner-approved and SHIPPED as two packets.**
+>
+> | Packet | Change | Control → after | Result |
+> |---|---|---|---|
+> | 2 (findings 2) | 7 `linkBtn.click()` + `waitForTimeout(1000)` → `waitForResponse(SUPERSET_LINK)` + row re-render | 66.8s → **60.7s** (−6.1s) | 12/12 × 8 runs |
+> | 1 (finding 1) | `data-workout-controls-busy` signal; `validation-boundary.spec.ts` off `networkidle` | 55.8s → **46.7s** (−9.1s, 16.3%) | **23/23 × 5 repeats** |
+>
+> **The readiness signal is the durable piece.** `networkidle` was not protecting
+> page load — it was accidentally waiting out the `/api/user_profile/estimate`
+> fetch that rewrites the six Workout Controls after an exercise is selected.
+> `data-workout-controls-busy` on `<html>` makes that state observable (set
+> synchronously before the first `await`, cleared in `finally`); it is
+> display-only and read by nothing in the app. `waitForWorkoutPlanReady()` waits
+> for `load` + its absence. **`waitForPageReady` is unchanged and still backs the
+> other 21 specs** — rolling the mechanism further is owner-gated, and the
+> proposed next spec is `workout-plan.spec.ts` (36 calls, ~17.6s, same page, so no
+> new marker), with `ui-hardening.spec.ts` (64 calls, ~31.4s) after it.
+>
+> **Open and owner-gated:** rolling the readiness signal to a second spec; the
+> **10-of-12 vacuous-pass finding** in `superset-edge-cases.spec.ts` (every
+> assertion inside a runtime conditional, plus four `.catch(() => …)` fallbacks
+> that resolve to the value the assertion wants) — a coverage question, not a
+> performance one; and the two production observations in finding 4 (four
+> external CDN fetches per navigation; `/get_all_exercises` requested twice).
+> Beyond the one readiness marker, nothing changed production behavior, CI, or
+> the live database.
 
 > **2026-08-04 — the Linux visual gate is GREEN and the baseline recovery
 > packet is CLOSED.** `origin/main` = `02e73c7`.

@@ -197,6 +197,30 @@ export async function waitForPageReady(page: Page): Promise<void> {
 }
 
 /**
+ * Workout-plan readiness without `networkidle`.
+ *
+ * `networkidle` costs a flat ~500ms per call because it is defined as half a
+ * second of silence *after* the last request, and the page's own post-load
+ * fetches finish about 12ms after `load`. So almost all of it is dead time —
+ * except that it also, by accident, waited out the profile-estimate fetch that
+ * rewrites the six Workout Controls. Dropping `networkidle` without replacing
+ * that guarantee reintroduces a real race (see docs/E2E_PERFORMANCE_PROFILE.md
+ * finding 1).
+ *
+ * This waits for the same two things explicitly: the document has loaded, and no
+ * estimate is in flight that could still overwrite the controls.
+ *
+ * Adopted by `validation-boundary.spec.ts` only. Every other spec still uses
+ * `waitForPageReady` — rolling this out further is a separate, owner-gated step.
+ */
+export async function waitForWorkoutPlanReady(page: Page): Promise<void> {
+  await page.waitForLoadState('load');
+  await page.waitForFunction(
+    () => !document.documentElement.hasAttribute('data-workout-controls-busy')
+  );
+}
+
+/**
  * Reset workout-plan state between tests to avoid cross-test duplication drift.
  */
 export async function resetWorkoutPlan(page: Page): Promise<void> {
