@@ -240,8 +240,8 @@
     "total_tests": 608
   },
   "pytest": {
-    "collected_deterministic": 2247,
-    "deterministic_files": 108,
+    "collected_deterministic": 2281,
+    "deterministic_files": 109,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -502,6 +502,10 @@
         "tests": 12
       },
       {
+        "file": "tests/test_playwright_shard_launcher_contracts.py",
+        "tests": 34
+      },
+      {
         "file": "tests/test_playwright_url_contracts.py",
         "tests": 14
       },
@@ -686,7 +690,7 @@
         "tests": 40
       }
     ],
-    "total_files": 109
+    "total_files": 110
   },
   "schema_version": 1
 }
