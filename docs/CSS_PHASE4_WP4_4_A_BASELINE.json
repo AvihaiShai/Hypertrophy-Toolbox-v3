@@ -829,7 +829,7 @@
   },
   "snapshotManifest": {
     "win32/visual.spec.ts-snapshots": {
-      "count": 64,
+      "count": 66,
       "files": [
         "backup-desktop-dark.png",
         "backup-desktop-light.png",
@@ -863,8 +863,10 @@
         "session-summary-tablet-light.png",
         "user-profile-desktop-dark.png",
         "user-profile-desktop-light.png",
-        "user-profile-mobile-dark.png",
-        "user-profile-mobile-light.png",
+        "user-profile-mobile-dark-segment-1.png",
+        "user-profile-mobile-dark-segment-2.png",
+        "user-profile-mobile-light-segment-1.png",
+        "user-profile-mobile-light-segment-2.png",
         "user-profile-tablet-dark.png",
         "user-profile-tablet-light.png",
         "volume-splitter-desktop-dark.png",
@@ -896,7 +898,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "ec36cb53620028dfda445ebbbc886702789ed1553dd82e9c52c0790fd7765f91"
+      "nameAndSizeSha256": "5779f353d4a18c8f979347a454bfb150da8dd2e2e67b72fa7972562b3211e24c"
     },
     "win32/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -917,7 +919,7 @@
         "plan-tablet-light-advanced.png",
         "plan-tablet-light-simple.png"
       ],
-      "nameAndSizeSha256": "48e9f28e7cfa5413386713b6ee6fc3be4ab13ce37900bc0411bf79ace19b29d4"
+      "nameAndSizeSha256": "5a1c69a8ccec4c208d1359921b1bed9964fb9cb03a00a7f6662e7543d991e9b7"
     },
     "linux/visual.spec.ts-snapshots": {
       "count": 66,

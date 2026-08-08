@@ -18,9 +18,9 @@ The fix is to finish the catalog upgrade *before* the server starts.
 
 **The Chromium surface limit.** A capture taller than 16,384 px does not fail —
 it silently truncates to a flat, unpainted tail. Two committed baselines
-(``user-profile-mobile-dark``/``-light``, 19,785 px and 19,742 px) truncate at
-row 16,392, so the bottom 3,393 px (17.1%) of the mobile Profile page has never
-been exercised in either theme.
+(``user-profile-mobile-dark``/``-light``, 19,785 px and 19,742 px) truncated at
+row 16,392, leaving the bottom 3,393 px (17.1%) of the mobile Profile page
+unexercised in either theme. That page is now captured in segments instead.
 """
 from __future__ import annotations
 
@@ -58,19 +58,14 @@ POPULATED_MEDIA_SQL = (
     "WHERE media_path IS NOT NULL AND TRIM(media_path) <> ''"
 )
 
-# Baselines that the segmented user-profile capture retires but whose platform
-# has not yet been regenerated. Linux is regenerated and reviewed in #281;
-# Windows remains an independent owner-local baseline workflow.
+# Empty, and deliberately kept rather than deleted. Both platforms have now been
+# regenerated with segmented user-profile captures -- linux in #281, win32 in
+# #304 -- so no committed baseline exceeds Chromium's capture surface any more.
 #
-# The assertion below is a strict *equality*, not an allowlist, and that is the
-# point. A new oversized baseline fails it, and so does a stale entry: once the
-# regeneration step replaces a platform's two names with ``-segment-N`` files,
-# its relative paths disappear from this set. Once both platforms are current,
-# the set becomes empty. Do not add anything here to silence a real capture.
-AWAITING_SEGMENTED_REGENERATION = {
-    "win32/visual.spec.ts-snapshots/user-profile-mobile-dark.png",
-    "win32/visual.spec.ts-snapshots/user-profile-mobile-light.png",
-}
+# The assertion below is a strict EQUALITY against the measured oversized set, so
+# an empty constant is not a dead check: it is now a plain "no oversized baseline
+# may be committed" guard.
+AWAITING_SEGMENTED_REGENERATION: set[str] = set()
 
 
 def _png_size(path: Path) -> tuple[int, int]:
