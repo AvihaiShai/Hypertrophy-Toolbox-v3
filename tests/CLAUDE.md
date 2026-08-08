@@ -6,17 +6,21 @@ Pytest suite covering routes, utils, and integration paths. Each test gets a uni
 ## Running
 
 ```bash
-# Serial — the default, and the form to use when diagnosing a failure.
-.venv/Scripts/python.exe -m pytest tests/ -q
-
-# Parallel. --dist loadfile is REQUIRED, not a tuning knob: module-scoped
-# fixtures mean a file's tests must stay on one worker.
+# Recommended local fast lane. --dist loadfile is REQUIRED, not a tuning knob:
+# module-scoped fixtures mean a file's tests must stay on one worker.
 .venv/Scripts/python.exe -m pytest tests/ -q -n 8 --dist loadfile
+
+# Serial — diagnostic mode, and the form to use when investigating a failure.
+.venv/Scripts/python.exe -m pytest tests/ -q
 ```
 
-Parallel is opt-in; without `-n` the plugin does nothing, and CI is unchanged.
-Keep using serial to diagnose a failure — worker output is interleaved, and a
-test that only fails in parallel is itself the finding.
+Measured locally: **serial median ≈195s, `-n 8 --dist loadfile` median ≈76s.**
+
+Parallel is opt-in; without `-n` the plugin does nothing, and **CI's pytest
+parallelism is unchanged and separately unmeasured** — these medians are this
+machine's, and a CI worker count must be derived from CI. Keep using serial to
+diagnose a failure — worker output is interleaved, and a test that only fails in
+parallel is itself the finding.
 
 **More workers stop helping early.** `loadfile` makes a file indivisible, so
 under this scheduler the slowest single file is the floor. Here that is
