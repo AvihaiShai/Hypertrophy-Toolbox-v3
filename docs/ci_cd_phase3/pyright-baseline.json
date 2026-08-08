@@ -2,8 +2,8 @@
   "_meta": {
     "tool": "pyright",
     "note": "Baseline-allowlist for the typecheck CI gate (leftovers A9). Generated under the committed pyrightconfig.json (pythonVersion 3.14, pythonPlatform Windows). Regenerate with scripts/pyright_baseline_diff.py --write-baseline. Do NOT edit by hand to silence a real regression.",
-    "total_diagnostics": 174,
-    "distinct_keys": 50
+    "total_diagnostics": 145,
+    "distinct_keys": 49
   },
   "diagnostics": [
     {
@@ -96,13 +96,6 @@
       "rule": "reportOperatorIssue",
       "message": "Operator \"-\" not supported for types \"date | None\" and \"date | None\"\n  Operator \"-\" not supported for types \"date\" and \"None\"\n  Operator \"-\" not supported for types \"None\" and \"date\"\n  Operator \"-\" not supported for types \"None\" and \"None\"",
       "count": 1
-    },
-    {
-      "file": "tests/test_fatigue_context.py",
-      "severity": "error",
-      "rule": "reportOptionalSubscript",
-      "message": "Object of type \"None\" is not subscriptable",
-      "count": 29
     },
     {
       "file": "tests/test_fatigue_stage4_observer.py",

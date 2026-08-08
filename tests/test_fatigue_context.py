@@ -136,6 +136,7 @@ def test_build_both_sources_agree(clean_db, exercise_factory, monkeypatch):
     )
 
     block = build_fatigue_context("Barbell Bench Press", db=clean_db)
+    assert block is not None
     assert block["enabled"] is True
     assert block["muscle"] == "Chest"
     assert block["has_landmarks"] is True
@@ -157,6 +158,7 @@ def test_build_both_sources_disagree_shows_both(clean_db, exercise_factory, monk
     )
 
     block = build_fatigue_context("Barbell Bench Press", db=clean_db)
+    assert block is not None
     assert block["disagree"] is True
     assert block["is_advisory_fallback"] is False
     assert "(planned)" in block["headline"]
@@ -175,6 +177,7 @@ def test_build_planned_source_only(clean_db, exercise_factory, monkeypatch):
     )
 
     block = build_fatigue_context("Barbell Bench Press", db=clean_db)
+    assert block is not None
     assert block["planned"]["band"] == "heavy"
     assert block["logged"] is None
     assert block["disagree"] is False
@@ -191,6 +194,7 @@ def test_build_logged_source_only(clean_db, exercise_factory, monkeypatch):
     )
 
     block = build_fatigue_context("Barbell Bench Press", db=clean_db)
+    assert block is not None
     assert block["planned"] is None
     assert block["logged"]["band"] == "light"
     assert block["headline"] == "Chest fatigue: light."
@@ -220,6 +224,7 @@ def test_build_unassigned_muscle_falls_back_to_advisory(clean_db, exercise_facto
     _patch_page(monkeypatch)
 
     block = build_fatigue_context("Mystery Move", db=clean_db)
+    assert block is not None
     assert block["muscle"] == "Unassigned"
     assert block["has_landmarks"] is False
     assert block["is_advisory_fallback"] is True
@@ -232,6 +237,7 @@ def test_build_ranked_muscle_without_data_falls_back(clean_db, exercise_factory,
     _patch_page(monkeypatch)
 
     block = build_fatigue_context("Barbell Bench Press", db=clean_db)
+    assert block is not None
     assert block["has_landmarks"] is True
     assert block["is_advisory_fallback"] is True
     assert block["planned"] is None
