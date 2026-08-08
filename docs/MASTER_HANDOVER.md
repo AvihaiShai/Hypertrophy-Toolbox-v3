@@ -4,7 +4,58 @@
 
 ## Current State
 
-> **2026-08-04 (LATEST) — the Linux visual gate is GREEN and the baseline recovery
+> **2026-08-08 (LATEST) — the test-runtime optimization arc is CLOSED on both
+> lanes.** Branch `wt/playwright-shards` (unpushed, no PR), based on
+> `perf/test-schema-template`.
+>
+> **Local pytest — shipped.** `-n 8 --dist loadfile` is the recommended fast
+> lane; serial is diagnostic. Measured **serial median ≈195s → N=8 median ≈76s**.
+> The root cause of the original 543s was `synchronous=FULL` + `journal_mode=DELETE`
+> fsyncing every DDL commit, fixed by a session-scoped schema template the `app`
+> fixture copies. **CI pytest parallelism is unchanged and separately unmeasured** —
+> do not derive a CI worker count from these numbers. The `loadfile` ceiling
+> belongs to the scheduler (`test_guard_destructive_command.py` is the indivisible
+> floor on Windows), not to the suite; xdist tuning and a `loadgroup` design were
+> deliberately deferred. Detail: [`tests/CLAUDE.md`](../tests/CLAUDE.md).
+>
+> **Local Playwright sharding — REJECTED by evidence, recorded as ADR-006.**
+> N=1 is the only supported configuration (477/477 in 719.0s). Same-machine N>1
+> fails because Werkzeug closes the connection per request, so all ~34k requests
+> (89.9% static assets) each hold an ephemeral port for the 120s recycle window;
+> N=2 peaked at 16,318 of 16,384 ports and **still failed 4/477 from a measured
+> clean start** (gate waited 120.8s; leftovers 0, TIME_WAIT on candidate ports 0).
+> The earlier N=2/N=3/N=4 matrix is invalid for timing — each inherited the
+> previous run's TIME_WAIT. Every remedy is forbidden or worse than the problem
+> (OS/TCP tuning, keep-alive, cache policy, a new WSGI server, retries, timeout
+> inflation, shared contexts, reduced coverage). **No remediation cycle was
+> consumed.** The launcher now defaults to `-Shards 1` and warns at runtime on
+> N>1, which stays runnable only so the diagnosis reproduces.
+>
+> **CI Playwright is unaffected and unchanged.** Each `e2e-functional-shard` leg
+> has its own runner, port pool, server and seeded DB, so it shares none of the
+> implicated machine state. Its N=2 design remains valid.
+>
+> **Phase 7C profiling — the ranked finding is `networkidle`, not hard waits.**
+> `waitForPageReady()` executes ~435×/run; its `networkidle` half costs a
+> near-constant ~490–538ms of *pure dead time* (the `domcontentloaded` half costs
+> 0.4ms). That is **213–234s, ~30% of the 711.3s suite** — roughly 3.5× ADR-005's
+> whole 61.3s hard-wait inventory, and invisible to it because the inventory
+> counts `waitForTimeout`. **It cannot simply be deleted**: a before/after on
+> `validation-boundary.spec.ts` ran 15.7s faster and broke one assertion, because
+> `networkidle` is accidentally the app-ready signal for the page's post-load
+> fetches. Second-ranked is `superset-edge-cases.spec.ts` (12.3s of runtime hard
+> waits, observable `waitForResponse` already available in the same file) — the
+> one place ADR-005's own replacement criterion is met. Full ranked list, both
+> oracle controls, and the raw-evidence index:
+> [`docs/E2E_PERFORMANCE_PROFILE.md`](E2E_PERFORMANCE_PROFILE.md).
+>
+> **Open and owner-gated:** whether to fund the readiness-signal work behind
+> finding 1, the `superset-edge-cases` wait conversion behind finding 2, and the
+> two production observations in finding 4 (four external CDN fetches per
+> navigation; `/get_all_exercises` requested twice per navigation). Nothing in
+> this arc changed production behavior, CI, or the live database.
+
+> **2026-08-04 — the Linux visual gate is GREEN and the baseline recovery
 > packet is CLOSED.** `origin/main` = `02e73c7`.
 >
 > **What landed.**
