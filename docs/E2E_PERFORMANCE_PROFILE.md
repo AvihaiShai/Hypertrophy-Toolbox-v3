@@ -200,26 +200,65 @@ used to continue and could still pass on a weak later assertion — it now fails
 the wait. That is strictly stronger, not weaker, but it is a change and is
 recorded here as one.
 
-### Guard inventory — reported, deliberately NOT changed
+### Guard inventory — **FIXED 2026-08-08 (packet 3)**
 
-The `if (await linkBtn.isEnabled())` guards were left exactly as they were, per
-the packet's scope. Inventorying them found the concern is much wider than those
-seven, so it is recorded here as its own finding rather than folded into a
-performance packet:
+The original finding: **27 runtime conditionals**, of which **10 of 12 tests
+placed every assertion inside one** (so each could report a pass having asserted
+nothing), plus **4 `.catch(() => …)` fallbacks** that resolved a failed query to
+the value the assertion wanted.
 
-- **27 runtime conditionals** in the file, 7 of them the `linkBtn.isEnabled()`
-  guards.
-- **10 of the 12 tests place every one of their assertions inside at least one
-  runtime conditional**, so each can report a pass having executed no assertion
-  at all. Only `successfully links exactly 2 exercises` and `deleting a linked
-  exercise clears the partner superset group` assert unconditionally.
-- **4 `.catch(() => …)` fallbacks resolve a failed query to the value the
-  assertion wants** — `linkBtn.isDisabled().catch(() => true)` twice, and the
-  `unlinkBtn` visible/enabled pair. A locator that breaks outright reads as a
-  pass.
+All are gone. Preconditions are now asserted rather than tested for
+(`selectExerciseCheckboxes()` asserts the row count; `linkSelectedExercises()`
+asserts the button is enabled), and the only remaining `if`s are inside
+`addExercise()`'s option picker, which already ends in an assertion. 12 tests,
+12 preserved. Hard waits unchanged at 10 — this packet removed no waits.
 
-This is a coverage question, not a performance one, and it needs its own owner
-decision: these tests can go green while verifying nothing.
+**Proof it mattered — two mutations, run against both versions of the spec:**
+
+| Mutation | Pre-packet-3 spec | Strengthened spec |
+|---|---|---|
+| **M1** `superset-checkbox` class renamed (no row is selectable at all) | **11 passed / 1 failed** | **12 failed** |
+| **M2** `unlink_partner_for_removal()` disabled (deleting a member leaves the partner linked) | test 4 **passed**, test 5 failed | **both fail** |
+
+M1 is the headline: with superset selection completely broken, the old suite
+reported eleven green tests. M2 isolates the weak assertion — test 4 checked
+`rows <= 1`, which a still-linked partner satisfies; it now asserts the link is
+gone. Both mutations were reverted and the spec re-verified.
+
+**Verified after:** 12/12 across 5 consecutive runs, median 56.3s (55.9–57.3s),
+zero retries, flakes or skips.
+
+### What strengthening surfaced
+
+Removing the guards exposed three things they had been hiding. Two were test
+defects, fixed here; one is a product defect, reported not fixed.
+
+1. **PRODUCT DEFECT — the Unlink button is visible when it should not be.**
+   `updateSupersetActionButtons()` correctly sets `display: none` inline for a
+   single non-superset selection, but three `!important` rules in
+   `components.css` (`button.btn…`, and two `.btn-calm-danger` rules) outrank the
+   inline style, so the computed display stays `inline-flex`. A user selecting one
+   ordinary exercise sees an Unlink button. It is cosmetic, not corrupting:
+   `handleUnlinkSuperset()` guards the action and refuses with a toast. The test
+   therefore asserts the app's own decision (the inline style) *and* that
+   invoking the button mutates nothing — `toBeHidden()` would fail today.
+   **Needs an owner decision.**
+2. **Test defect — the replace test used an unreplaceable exercise.** The
+   catalog's first unused options are stretch variations with no muscle-group or
+   equipment metadata, and `/replace_exercise` rejects those with `400
+   missing_metadata`. The old test hid this behind a "did the page crash" check.
+   It now adds named exercises (`bench`/`row`), gets a real `200 ok:true` swap,
+   and asserts the actual invariant: the pair is never left half-linked.
+   (Measured: the group survives a swap — 2 rows still linked.)
+3. **Test defect — the routine-change test never changed the routine.** Its
+   `differentDay` lookup matched the **`"Select Workout"` placeholder**, so it
+   re-selected a non-day. With a real day the selection still does not clear: the
+   routine dropdown chooses what the *Add Exercise* form targets and does not
+   filter the plan table. The old name described behavior the app has never had,
+   so the test was renamed to
+   `changing the routine day leaves the superset action unavailable` and asserts
+   that. **Whether the selection should clear on routine change is an open
+   product question for the owner.**
 
 ### What was predicted vs what happened
 

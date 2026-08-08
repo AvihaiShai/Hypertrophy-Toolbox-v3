@@ -67,12 +67,31 @@
 > proposed next spec is `workout-plan.spec.ts` (36 calls, ~17.6s, same page, so no
 > new marker), with `ui-hardening.spec.ts` (64 calls, ~31.4s) after it.
 >
-> **Open and owner-gated:** rolling the readiness signal to a second spec; the
-> **10-of-12 vacuous-pass finding** in `superset-edge-cases.spec.ts` (every
-> assertion inside a runtime conditional, plus four `.catch(() => …)` fallbacks
-> that resolve to the value the assertion wants) — a coverage question, not a
-> performance one; and the two production observations in finding 4 (four
-> external CDN fetches per navigation; `/get_all_exercises` requested twice).
+> **Packet 3 then fixed the vacuous assertions in `superset-edge-cases.spec.ts`.**
+> All 27 runtime conditionals that could bypass an assertion are gone, along with
+> the four `.catch(() => …)` fallbacks; 12 tests preserved, hard waits unchanged
+> at 10. Two mutations prove it: renaming the `superset-checkbox` class (nothing
+> is selectable at all) took the old spec to **11 passed / 1 failed** and the new
+> one to **12 failed**; disabling `unlink_partner_for_removal()` was passed by the
+> old test 4 and fails the new one. 12/12 over 5 runs, median 56.3s.
+>
+> **Packet 4 rolled the readiness signal into `workout-plan.spec.ts`** — see the
+> profile for its control/converted medians.
+>
+> **Open and owner-gated:**
+> 1. **PRODUCT DEFECT — the Unlink button renders when it should be hidden.**
+>    `updateSupersetActionButtons()` sets `display:none` inline, but three
+>    `!important` rules in `components.css` (`button.btn…`, two `.btn-calm-danger`)
+>    outrank it. Cosmetic only — `handleUnlinkSuperset()` refuses the action — but
+>    `toBeHidden()` cannot be asserted until it is fixed.
+> 2. **Should the superset selection clear on a routine-day change?** It does not
+>    today; the dropdown targets the Add form, not the plan table. The test was
+>    renamed to match reality.
+> 3. Rolling the readiness signal beyond `workout-plan.spec.ts`
+>    (`ui-hardening.spec.ts`, 64 calls / ~31.4s, is next and untouched).
+> 4. Finding 4's two production observations (four external CDN fetches per
+>    navigation; `/get_all_exercises` requested twice).
+>
 > Beyond the one readiness marker, nothing changed production behavior, CI, or
 > the live database.
 
