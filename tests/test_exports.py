@@ -629,11 +629,10 @@ def sample_workout_log(client):
     from utils.database import DatabaseHandler
     
     with DatabaseHandler() as db:
-        for i in range(10):
-            db.execute_query("""
-                INSERT INTO workout_log (routine, exercise, planned_sets, scored_weight, scored_max_reps)
-                VALUES ('A', 'Bench Press', 3, 100, 10)
-            """)
+        db.executemany("""
+            INSERT INTO workout_log (routine, exercise, planned_sets, scored_weight, scored_max_reps)
+            VALUES (?, ?, ?, ?, ?)
+        """, [('A', 'Bench Press', 3, 100, 10)] * 10)
     
     yield
     
@@ -648,12 +647,11 @@ def large_workout_log(client):
     from utils.database import DatabaseHandler
     
     with DatabaseHandler() as db:
-        # Insert 1000 records for testing
-        for i in range(1000):
-            db.execute_query("""
-                INSERT INTO workout_log (routine, exercise, planned_sets, scored_weight, scored_max_reps)
-                VALUES ('A', 'Bench Press', 3, ?, 10)
-            """, (100 + i % 50,))
+        # Insert 1000 records for testing, in one transaction rather than 1000.
+        db.executemany("""
+            INSERT INTO workout_log (routine, exercise, planned_sets, scored_weight, scored_max_reps)
+            VALUES ('A', 'Bench Press', 3, ?, 10)
+        """, [(100 + i % 50,) for i in range(1000)])
     
     yield
     
@@ -668,12 +666,13 @@ def database_with_rows(client):
     from utils.database import DatabaseHandler
     
     with DatabaseHandler() as db:
-        # Insert 5000 records
-        for i in range(5000):
-            db.execute_query("""
-                INSERT INTO workout_log (routine, exercise, planned_sets, scored_weight, scored_max_reps)
-                VALUES ('A', 'Exercise ' || ?, 3, ?, 10)
-            """, (i, 100 + i % 100))
+        # Insert 5000 records, in one transaction rather than 5000. The
+        # 'Exercise ' || ? concatenation stays in SQL so the stored names are
+        # byte-identical to what the per-row loop produced.
+        db.executemany("""
+            INSERT INTO workout_log (routine, exercise, planned_sets, scored_weight, scored_max_reps)
+            VALUES ('A', 'Exercise ' || ?, 3, ?, 10)
+        """, [(i, 100 + i % 100) for i in range(5000)])
     
     yield
     
