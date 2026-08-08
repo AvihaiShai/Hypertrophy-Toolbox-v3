@@ -3,6 +3,30 @@
 ## Purpose
 Pytest suite covering routes, utils, and integration paths. Each test gets a unique tmp SQLite DB via the `app` / `client` fixtures — never hits the live `data/database.db`.
 
+## Running
+
+```bash
+# Serial — the default, and the form to use when diagnosing a failure.
+.venv/Scripts/python.exe -m pytest tests/ -q
+
+# Parallel. --dist loadfile is REQUIRED, not a tuning knob: module-scoped
+# fixtures mean a file's tests must stay on one worker.
+.venv/Scripts/python.exe -m pytest tests/ -q -n 8 --dist loadfile
+```
+
+Parallel is opt-in; without `-n` the plugin does nothing, and CI is unchanged.
+Keep using serial to diagnose a failure — worker output is interleaved, and a
+test that only fails in parallel is itself the finding.
+
+**More workers stop helping early.** `loadfile` makes a file indivisible, so
+the slowest single file is the floor. Here that is
+`test_guard_destructive_command.py`, which is parametrized over the installed
+PowerShell hosts and dominates the suite on Windows, where both hosts exist.
+Past a handful of workers the run is bounded by that one file, and `-n 16`
+measured no better than `-n 8`. That floor is platform-dependent: the ubuntu
+runner has one host and collects far fewer of those nodes, so a CI worker count
+must be derived from CI, never from these numbers.
+
 ## Key files
 | File | Role |
 |---|---|
