@@ -153,6 +153,24 @@ def test_config_still_keys_seeding_on_pw_visual_seed() -> None:
     assert "prepare_e2e_db.py" in config
 
 
+def test_ci_timing_summary_reads_the_path_the_config_writes() -> None:
+    """The summary step swallows errors, so a path drift would be silent.
+
+    `|| true` keeps a reporting problem from reddening a passing shard, which
+    also means a wrong path produces an empty summary and no signal at all.
+    Pin the two ends together here instead.
+    """
+    ci = read(REPO / ".github" / "workflows" / "ci.yml")
+    script = REPO / "scripts" / "playwright_timing_report.py"
+    assert script.is_file()
+    assert "playwright_timing_report.py" in ci
+
+    # playwright.config.ts writes junit under its artifacts dir; the CI step
+    # must read that same file.
+    assert "'junit.xml'" in read(CONFIG)
+    assert "artifacts/playwright/junit.xml" in ci
+
+
 def test_functional_group_is_derived_by_exclusion() -> None:
     """A new spec must default into the functional group, not vanish.
 

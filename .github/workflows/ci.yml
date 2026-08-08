@@ -289,6 +289,19 @@ jobs:
           e2e/workout-log.spec.ts \
           e2e/workout-plan.spec.ts
 
+    # Timing visibility with no new status context and no rename. Reads the
+    # junit.xml that playwright.config.ts already emits under CI and writes a
+    # table to the job summary, so per-spec cost and the slowest-file shard
+    # floor are visible on every run instead of needing a local reproduction.
+    # `always()` so a red shard still reports where its time went; `|| true` so
+    # a summary problem can never turn a passing shard red.
+    - name: Summarize shard timing
+      if: always()
+      run: |
+        python scripts/playwright_timing_report.py \
+          --junit artifacts/playwright/junit.xml \
+          --shards 2 --top 12 --markdown >> "$GITHUB_STEP_SUMMARY" || true
+
     - name: Upload Playwright artifacts
       if: failure()
       uses: actions/upload-artifact@v7
