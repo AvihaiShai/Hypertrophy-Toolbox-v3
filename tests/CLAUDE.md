@@ -14,8 +14,9 @@ Pytest suite covering routes, utils, and integration paths. Each test gets a uni
 
 ## Fixture hierarchy (`conftest.py`)
 ```
+schema_template (session)       — empty schema built ONCE per worker
 test_db_path (function)         — unique tmp_path SQLite per test
-  app (function)                — Flask app + fresh schema, all blueprints
+  app (function)                — Flask app + copy of schema_template, all blueprints
     client (function)           — test client bound to the same DB
     db_handler (function)       — DatabaseHandler at the same DB
       clean_db (function)       — DELETEs rows, preserves tables
@@ -23,6 +24,11 @@ test_db_path (function)         — unique tmp_path SQLite per test
         workout_plan_factory    — needs exercise
         workout_log_factory     — needs plan
 ```
+
+The `app` fixture **copies** `schema_template` rather than re-running
+`run_all_initializers()`. Rebuilding cost ~290ms × 787 setups; the copy is
+~0.4ms. Adding a table still only means registering its initializer in
+`utils/schema_registry.py` — the template picks it up automatically.
 
 ## Conventions
 - Patch DB path by **assignment**, not import: `import utils.config; utils.config.DB_FILE = test_db_path`. `DatabaseHandler.__init__` reads `utils.config.DB_FILE` at call time (`database.py:209`).

@@ -48,6 +48,50 @@ def _cleanup_database_files(database_path: str) -> None:
             pass
 
 
+@pytest.fixture(scope='session')
+def schema_template(tmp_path_factory):
+    """Build the canonical empty schema once, to be copied per test.
+
+    ``run_all_initializers()`` costs ~290ms here. It commits each DDL statement
+    separately, and the pragma profile tests run under fsyncs every one of them:
+    ``utils/database.py`` defaults ``FLASK_DEBUG`` to ``'1'``, which selects
+    ``journal_mode = DELETE`` + ``synchronous = FULL``. Paid once per ``app``
+    fixture — 787 times per full run — that single call is the largest cost in
+    the suite. Copying the finished file instead costs ~0.4ms.
+
+    Two properties make the copy sound rather than merely fast, and both are
+    asserted below because a silent regression in either yields a subtly empty
+    schema rather than a failure:
+
+    * ``DELETE`` journal mode leaves no ``-wal``/``-shm`` sidecar, so the whole
+      database is the one file. Were the profile ever switched to WAL, copying
+      the ``.db`` alone would drop everything still in the log.
+    * ``get_db_connection()`` pools nothing, so the building connection is
+      genuinely closed by the time this returns and no write is still buffered.
+
+    Session-scoped on ``tmp_path_factory``, which xdist gives each worker its
+    own basetemp for — so this builds once per worker and is never shared
+    across processes.
+    """
+    template = tmp_path_factory.mktemp('schema_template') / 'template.db'
+    original_db_file = utils.config.DB_FILE
+    utils.config.DB_FILE = str(template)
+    try:
+        run_all_initializers(force_base=True)
+    finally:
+        utils.config.DB_FILE = original_db_file
+
+    assert template.exists(), "schema template was not created"
+    for suffix in ("-wal", "-shm", "-journal"):
+        sidecar = Path(f"{template}{suffix}")
+        assert not sidecar.exists(), (
+            f"schema template left a {suffix} sidecar; copying the .db alone "
+            "would lose part of the schema. Check the journal-mode pragma in "
+            "utils/database.py::_configure_connection."
+        )
+    return template
+
+
 @pytest.fixture(scope='module')
 def real_app_client(tmp_path_factory):
     """A client for ``app.py``'s own routes, on a scratch database.
@@ -156,7 +200,7 @@ def catalog_db_path(tmp_path):
 
 
 @pytest.fixture
-def app(test_db_path):
+def app(test_db_path, schema_template):
     """Create Flask app with test configuration."""
     original_db_file = utils.config.DB_FILE
     utils.config.DB_FILE = test_db_path
@@ -208,8 +252,11 @@ def app(test_db_path):
         except Exception:
             return error_response("INTERNAL_ERROR", "Failed to erase data", 500)
 
-    with app.app_context():
-        _initialize_test_database()
+    # Copy the prebuilt empty schema rather than re-running every initializer.
+    # Equivalent output, ~700x cheaper; see the schema_template fixture. The
+    # erase-data route above deliberately still calls the real initializers,
+    # since that path is asserting they work.
+    shutil.copyfile(schema_template, test_db_path)
 
     try:
         yield app
