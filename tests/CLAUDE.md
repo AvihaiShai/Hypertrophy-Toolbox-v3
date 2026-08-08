@@ -19,13 +19,19 @@ Keep using serial to diagnose a failure — worker output is interleaved, and a
 test that only fails in parallel is itself the finding.
 
 **More workers stop helping early.** `loadfile` makes a file indivisible, so
-the slowest single file is the floor. Here that is
+under this scheduler the slowest single file is the floor. Here that is
 `test_guard_destructive_command.py`, which is parametrized over the installed
 PowerShell hosts and dominates the suite on Windows, where both hosts exist.
 Past a handful of workers the run is bounded by that one file, and `-n 16`
 measured no better than `-n 8`. That floor is platform-dependent: the ubuntu
 runner has one host and collects far fewer of those nodes, so a CI worker count
 must be derived from CI, never from these numbers.
+
+That floor belongs to the scheduler, not to the suite. A `loadgroup` design
+could group only the modules that genuinely share state and let the independent
+tests inside this file spread across workers. Establishing which modules those
+are needs a suite-wide isolation audit, so it is separate work — not a
+prerequisite for the command above.
 
 ## Key files
 | File | Role |
