@@ -8,7 +8,15 @@
  * - Export actions
  */
 import type { Page } from '@playwright/test';
-import { test, expect, ROUTES, SELECTORS, waitForPageReady, resetWorkoutPlan } from './fixtures';
+import {
+  test,
+  expect,
+  ROUTES,
+  SELECTORS,
+  waitForPageReady,
+  waitForWorkoutPlanReady,
+  resetWorkoutPlan,
+} from './fixtures';
 
 /**
  * Toggle the muscle-naming mode. The `#muscleModeToggle` button lives in the
@@ -32,6 +40,11 @@ test.describe('Workout Plan Page', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
+    // Deliberately still `waitForPageReady`. The readiness marker covers the
+    // profile-estimate write and nothing else, and several tests in this block
+    // read the plan table without waiting for the `fetchWorkoutPlan()` that
+    // fills it. Here `networkidle` is doing real work, so dropping it would be
+    // removing a guarantee rather than replacing one.
     await waitForPageReady(page);
   });
 
@@ -374,13 +387,11 @@ test.describe('Workout Plan Page', () => {
     // the profile estimate to the Weight field.
     await exerciseSelect.selectOption(firstValue!);
 
-    // Wait for the estimate request to settle so the suggested value lands
-    // in the input before we type over it.
-    await page.waitForResponse(
-      (resp) =>
-        resp.url().includes('/api/user_profile/estimate') && resp.status() === 200,
-      { timeout: 5000 },
-    );
+    // Wait for the estimate to be *applied*, not merely answered. The marker is
+    // set synchronously inside the change handler, so unlike a `waitForResponse`
+    // registered after `selectOption` it cannot miss a fast response, and it
+    // clears only once the value has been written to the input.
+    await waitForWorkoutPlanReady(page);
 
     const weightInput = page.locator('#weight');
     await expect(weightInput).toHaveAttribute('type', 'number');
@@ -405,11 +416,7 @@ test.describe('Workout Plan Page', () => {
     // estimate — the manual value may now be replaced by the new estimate.
     if (secondValue && secondValue !== firstValue) {
       await exerciseSelect.selectOption(secondValue);
-      await page.waitForResponse(
-        (resp) =>
-          resp.url().includes('/api/user_profile/estimate') && resp.status() === 200,
-        { timeout: 5000 },
-      );
+      await waitForWorkoutPlanReady(page);
       // Weight should now be whatever the new estimate decided — just
       // assert it is a valid non-empty numeric value (not "17.5" frozen).
       const newValue = await weightInput.inputValue();
@@ -438,7 +445,7 @@ test.describe('Workout Plan Page', () => {
     });
 
     await page.reload();
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     await page.locator(SELECTORS.ROUTINE_ENV).selectOption('GYM');
     await page.waitForFunction(() => {
@@ -452,11 +459,8 @@ test.describe('Workout Plan Page', () => {
     });
     await page.locator(SELECTORS.ROUTINE_DAY).selectOption('Workout A');
 
-    const estimateResponse = page.waitForResponse(resp =>
-      resp.url().includes('/api/user_profile/estimate') && resp.status() === 200
-    );
     await page.locator(SELECTORS.EXERCISE_SEARCH).selectOption('Barbell Bench Press');
-    await estimateResponse;
+    await waitForWorkoutPlanReady(page);
 
     const toggle = page.locator('#workout-estimate-trace-toggle');
     const container = page.locator('#workout-estimate-trace');
@@ -504,7 +508,7 @@ test.describe('Plan Generator v1.5.0 Features', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -637,7 +641,7 @@ test.describe('Starter plan toast severity contract', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -702,7 +706,7 @@ test.describe('Muscle selector body map', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     await page.locator('#generate-plan-btn').click();
     await expect(page.locator('#generatePlanModal')).toBeVisible({ timeout: 5000 });
@@ -788,7 +792,7 @@ test.describe('Exercise reference video modal (workout-plan)', () => {
     );
 
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
 
     // Seed one exercise into the plan so a row renders with the play button.
     await page.locator(SELECTORS.ROUTINE_ENV).selectOption('GYM');
@@ -965,6 +969,10 @@ test.describe('§4 free-exercise-db thumbnails', () => {
     consoleErrors.startCollecting();
     await resetWorkoutPlan(page);
     await page.goto(ROUTES.WORKOUT_PLAN);
+    // Deliberately still `waitForPageReady`. These tests inject rows by calling
+    // `updateWorkoutPlanTable()` directly, so the page's own `fetchWorkoutPlan()`
+    // has to have landed first — otherwise it repaints over the mock. That is a
+    // network guarantee the readiness marker does not provide.
     await waitForPageReady(page);
   });
 

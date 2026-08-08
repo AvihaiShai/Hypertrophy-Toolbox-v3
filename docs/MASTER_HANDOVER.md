@@ -75,8 +75,20 @@
 > one to **12 failed**; disabling `unlink_partner_for_removal()` was passed by the
 > old test 4 and fails the new one. 12/12 over 5 runs, median 56.3s.
 >
-> **Packet 4 rolled the readiness signal into `workout-plan.spec.ts`** — see the
-> profile for its control/converted medians.
+> **Packet 4 rolled the readiness signal into `workout-plan.spec.ts`, partially
+> and on purpose.** 17 of 36 calls converted (control 50.7s → 47.4s median,
+> 35/35 × 5, assertion count unchanged at 158). Two sites deliberately keep
+> `networkidle`: `Workout Plan Page`, whose tests read the plan table without
+> waiting for `fetchWorkoutPlan()`, and `§4 thumbnails`, which injects rows that
+> the real fetch would repaint over. **The marker subsumes the estimate write and
+> nothing else** — on a fresh `goto` it is a no-op, so converting a `beforeEach`
+> is really deleting `networkidle` and is only safe where the spec self-covers.
+>
+> **The suite-wide projection is revised down.** Two measured conversions give
+> 0.40s/call (`validation-boundary`) and 0.19s/call (`workout-plan`), because the
+> 500ms tail is only fully recoverable when nothing else needed that time. A
+> realistic total is **~85–175s, not the ~218s** finding 1 projected — measure
+> each rollout, do not extrapolate.
 >
 > **Open and owner-gated:**
 > 1. **PRODUCT DEFECT — the Unlink button renders when it should be hidden.**

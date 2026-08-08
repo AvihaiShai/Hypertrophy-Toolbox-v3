@@ -165,12 +165,62 @@ specs. It was itself controlled: moving the `setAttribute` after the first
 **Not rolled out further, by instruction.** `waitForPageReady` still backs 21
 specs and the correct observable differs per page.
 
-**Proposed next spec: `workout-plan.spec.ts`** — 36 `waitForPageReady` calls
-(~17.6s), on the *same* page, so it reuses this signal with no new production
-marker; it tests whether the mechanism generalizes before any page needs its own.
-`ui-hardening.spec.ts` is the larger prize (64 calls, ~31.4s, also same page) but
-should follow, not lead: it is the persistence suite, with 18 `page.reload()`
-cycles and the most timing-sensitive assertions in the group.
+### Rollout to `workout-plan.spec.ts` — **DONE 2026-08-08 (packet 4)**
+
+Same marker, same helper, no new production mechanism. The rollout is **partial
+by design**, and the reason is the most useful thing this packet produced.
+
+**The marker subsumes exactly one thing: the estimate write.** On a fresh `goto`
+no estimate is in flight, so `waitForWorkoutPlanReady()` is a no-op there and
+converting a `beforeEach` is really just *deleting* `networkidle`. That is only
+safe where the spec already waits on its own observables for the page's other
+post-load fetches. So each of the 7 sites was classified, not swept:
+
+| Site | Verdict |
+|---|---|
+| 3 × estimate waits (`waitForResponse('/api/user_profile/estimate')`) | **Converted** — the marker subsumes these directly, and two of the three registered `waitForResponse` *after* `selectOption`, so they could miss a fast response. The marker is set synchronously in the change handler and clears only once the value is written. |
+| `page.reload()` in the Issue-#17 test | **Converted** — followed by cascade `waitForFunction`s |
+| `Plan Generator v1.5.0 Features` | **Converted** — server-rendered modal, auto-retrying assertions |
+| `Starter plan toast severity contract` | **Converted** — same |
+| `Muscle selector body map` | **Converted** — its `beforeEach` already waits for the SVG with `expect(...).toBeVisible()` |
+| `Exercise reference video modal` | **Converted** — cascade `waitForFunction`s |
+| `Workout Plan Page` (15 tests) | **KEPT on `networkidle`** — several tests read the plan table without waiting for the `fetchWorkoutPlan()` that fills it |
+| `§4 free-exercise-db thumbnails` (4 tests) | **KEPT on `networkidle`** — these inject rows via `updateWorkoutPlanTable()`, so the real fetch must have landed or it repaints over the mock |
+
+17 of 36 runtime calls converted; `networkidle` sites 7 → 2.
+
+**Measured, same server / DB / session (port 5333), wall clock:**
+
+| | runs | median | range | result |
+|---|---|---|---|---|
+| control | 3 | **50.7s** | 49.8–51.7s | 35/35 |
+| converted | 5 | **47.4s** | 46.8–48.3s | **35/35 × 5** |
+
+**3.3s (6.5%), zero retries, flakes or skips. Assertion count unchanged at 158
+`expect(` calls in both versions** — nothing was weakened to buy the time.
+
+### Revise the suite-wide projection downward
+
+Finding 1 projected ~218s from 435 calls at ~500ms each. Two real conversions now
+bound that properly:
+
+| Spec | calls converted | saved | per call |
+|---|---:|---:|---:|
+| `validation-boundary` | 23 | 9.1s | **0.40s** |
+| `workout-plan` | 17 | 3.3s | **0.19s** |
+
+The 500ms tail is only fully recoverable when nothing else needed that time.
+Where a test then waits on a real async condition — the body-map SVG, a modal, a
+cascade — part of the tail was overlapping work the new wait now performs
+instead. **A realistic suite-wide figure is therefore ~85–175s, not ~218s**, and
+it is spec-dependent enough that each rollout must be measured rather than
+extrapolated.
+
+**Next, still owner-gated: `ui-hardening.spec.ts`** — 64 calls / ~31.4s, same
+page, so it needs no new marker. It should follow, not lead: it is the KI-005
+persistence suite with 18 `page.reload()` cycles and the most timing-sensitive
+assertions in the group, and its per-call yield could land at either end of the
+0.19–0.40s range. Untouched by this packet.
 
 ## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 
