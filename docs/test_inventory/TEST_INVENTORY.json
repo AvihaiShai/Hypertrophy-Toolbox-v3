@@ -44,7 +44,7 @@
       },
       {
         "file": "e2e/superset-edge-cases.spec.ts",
-        "lines": 17
+        "lines": 10
       },
       {
         "file": "e2e/ui-hardening.spec.ts",
@@ -65,7 +65,7 @@
     ],
     "files_with_waits": 15,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 92
+    "total_lines": 85
   },
   "playwright": {
     "project": "chromium",

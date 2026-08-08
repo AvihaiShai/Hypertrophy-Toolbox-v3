@@ -122,40 +122,70 @@ repeats does converting a second spec become worth pricing. `waitForPageReady`
 is shared by 22 specs and the correct observable differs per page, so a
 suite-wide rewrite is not the unit of work.
 
-## Finding 2 — `superset-edge-cases.spec.ts` hard waits meet ADR-005's own bar
+## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 
-**Measured cost.** 66.4s over 12 tests — the highest per-test cost in the suite.
-**12.3s of that is runtime-executed `waitForTimeout` delay (18.5% of the spec)**,
-the largest single-file hard-wait concentration anywhere in the group. A further
-6.4s is `networkidle` (finding 1). The remaining ~48s is genuine UI work:
-`addExercise()` is called two or three times per test and is already written
-against observable conditions (`waitForFunction`, `waitForResponse`,
-`toHaveCount`) — it costs what the interaction costs.
+Owner-approved and implemented. Seven `linkBtn.click()` + `waitForTimeout(1000)`
+sites now call a `linkSelectedExercises()` helper that waits for
+`API_ENDPOINTS.SUPERSET_LINK` **and** for the resulting row re-render.
 
-**Causal mechanism.** The dominant pattern is a fixed sleep standing in for an
-API round trip:
+**Why the POST alone is not the observable.** `handleLinkSuperset()` in
+`static/js/modules/workout-plan-supersets.js` awaits `/api/superset/link` and
+*then* calls `refreshPlan()`, so the table re-renders on a second round trip.
+Waiting only for the POST would have raced that re-render — the 1000ms sleep was
+covering both hops, so the helper waits for both.
 
-```ts
-await linkBtn.click();
-await page.waitForTimeout(1000);   // ×5, plus 300ms/500ms/1500ms variants
-```
+**Measured, same isolated server and DB (port 5331), wall clock:**
 
-**Expected saving.** The link call is a local API round trip of tens of
-milliseconds, so roughly **8–10s of the 12.3s** is recoverable.
+| | runs | median | range |
+|---|---|---|---|
+| before | 3 | **66.8s** | 65.2–67.0s |
+| after | 5 | **60.7s** | 59.2–62.8s |
 
-**Coverage / determinism risk — low.** `page.waitForResponse(API_ENDPOINTS.SUPERSET_LINK)`
-is the direct observable, and `API_ENDPOINTS` is already imported and already
-used this way by `addExercise()` in the same file. This is precisely the case
-ADR-005 permits: profiling identifies the wait as material to a genuinely slow
-test, and an observable condition is available.
+**6.1s saved (9.2%), 12/12 passing in all eight runs, zero retries, zero flakes,
+zero skips.** The suite hard-wait total drops 92 → 85, and this file 17 → 10.
 
-One caution that is not a performance issue but bounds the refactor: several of
-these waits sit inside `if (await linkBtn.isEnabled())`, so when the condition is
-false the assertions inside are skipped silently. A rewrite must not widen that
-hole, and ideally should not preserve it either.
+**The one semantic delta, stated rather than buried.** A blind sleep never
+fails; an observable wait does. Where the link silently failed before, the test
+used to continue and could still pass on a weak later assertion — it now fails at
+the wait. That is strictly stronger, not weaker, but it is a change and is
+recorded here as one.
 
-**Smallest targeted experiment.** Convert the five `linkBtn.click()` sleeps only,
-leave the 1500ms replace-flow wait alone, and run the spec 5× before and after.
+### Guard inventory — reported, deliberately NOT changed
+
+The `if (await linkBtn.isEnabled())` guards were left exactly as they were, per
+the packet's scope. Inventorying them found the concern is much wider than those
+seven, so it is recorded here as its own finding rather than folded into a
+performance packet:
+
+- **27 runtime conditionals** in the file, 7 of them the `linkBtn.isEnabled()`
+  guards.
+- **10 of the 12 tests place every one of their assertions inside at least one
+  runtime conditional**, so each can report a pass having executed no assertion
+  at all. Only `successfully links exactly 2 exercises` and `deleting a linked
+  exercise clears the partner superset group` assert unconditionally.
+- **4 `.catch(() => …)` fallbacks resolve a failed query to the value the
+  assertion wants** — `linkBtn.isDisabled().catch(() => true)` twice, and the
+  `unlinkBtn` visible/enabled pair. A locator that breaks outright reads as a
+  pass.
+
+This is a coverage question, not a performance one, and it needs its own owner
+decision: these tests can go green while verifying nothing.
+
+### What was predicted vs what happened
+
+Kept because the gap is the useful part, not to preserve the original prose.
+
+| | predicted | actual |
+|---|---|---|
+| link-click sleeps | 5 | **7** (the analysis miscounted from a `-B1/-A1` grep) |
+| recoverable | 8–10s | **6.1s** |
+| observable needed | the POST | the POST **and** the `refreshPlan()` re-render |
+
+The saving came in under the estimate because the estimate priced the sleeps
+against a bare API round trip and ignored the second hop the helper must now
+wait for. The spec's other 5.3s of hard waits (300ms/500ms/1500ms, guarding
+checkbox, delete, unlink and replace flows) were out of this packet's scope and
+remain.
 
 ## Finding 3 — the rest of the hard-wait debt is already correctly ruled on
 

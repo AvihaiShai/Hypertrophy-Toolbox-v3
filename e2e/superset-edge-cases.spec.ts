@@ -88,6 +88,30 @@ async function waitForExercisesInTable(page: import('@playwright/test').Page, mi
   );
 }
 
+/**
+ * Click "Link Superset" for the two selected exercises and wait for the linked
+ * rows to be on screen.
+ *
+ * Waiting for the POST alone is not enough. `handleLinkSuperset()` awaits
+ * /api/superset/link and only then calls `refreshPlan()`, so the rows re-render
+ * on a *second* round trip; a test that continued at the POST would race that
+ * re-render. The fixed 1000ms sleep this replaces was covering both hops, so
+ * both are waited for here.
+ *
+ * Callers keep their own `if (await linkBtn.isEnabled())` guard — this helper
+ * deliberately does not change which tests reach the link at all.
+ */
+async function linkSelectedExercises(page: import('@playwright/test').Page) {
+  const linked = page.waitForResponse(response =>
+    response.url().endsWith(API_ENDPOINTS.SUPERSET_LINK) && response.request().method() === 'POST'
+  );
+  await page.locator('#link-superset-btn').click();
+  await linked;
+  await expect(
+    page.locator('#workout_plan_table_body tr[data-superset-group]:not([data-superset-group=""])')
+  ).toHaveCount(2);
+}
+
 test.beforeEach(async ({ page }) => {
   await resetWorkoutPlan(page);
 });
@@ -206,8 +230,7 @@ test.describe('Delete Exercise in Superset', () => {
       
       const linkBtn = page.locator('#link-superset-btn');
       if (await linkBtn.isEnabled()) {
-        await linkBtn.click();
-        await page.waitForTimeout(1000);
+        await linkSelectedExercises(page);
       }
       
       // Now delete one exercise
@@ -245,8 +268,7 @@ test.describe('Delete Exercise in Superset', () => {
       
       const linkBtn = page.locator('#link-superset-btn');
       if (await linkBtn.isEnabled()) {
-        await linkBtn.click();
-        await page.waitForTimeout(1000);
+        await linkSelectedExercises(page);
       }
     }
     
@@ -318,8 +340,7 @@ test.describe('Unlink Superset Edge Cases', () => {
       
       const linkBtn = page.locator('#link-superset-btn');
       if (await linkBtn.isEnabled()) {
-        await linkBtn.click();
-        await page.waitForTimeout(1000);
+        await linkSelectedExercises(page);
         
         // Now select one of the superset exercises
         await checkboxes.nth(0).click();
@@ -347,8 +368,7 @@ test.describe('Unlink Superset Edge Cases', () => {
       
       const linkBtn = page.locator('#link-superset-btn');
       if (await linkBtn.isEnabled()) {
-        await linkBtn.click();
-        await page.waitForTimeout(1000);
+        await linkSelectedExercises(page);
         
         // Select one superset exercise
         const refreshedCheckboxes = page.locator('#workout_plan_table_body .superset-checkbox');
@@ -398,8 +418,7 @@ test.describe('Replace Exercise in Superset', () => {
       
       const linkBtn = page.locator('#link-superset-btn');
       if (await linkBtn.isEnabled()) {
-        await linkBtn.click();
-        await page.waitForTimeout(1000);
+        await linkSelectedExercises(page);
         
         // Try to replace first exercise
         const replaceBtn = page.locator('#workout_plan_table_body tr').first()
@@ -451,8 +470,7 @@ test.describe('Superset State Persistence', () => {
       
       const linkBtn = page.locator('#link-superset-btn');
       if (await linkBtn.isEnabled()) {
-        await linkBtn.click();
-        await page.waitForTimeout(1000);
+        await linkSelectedExercises(page);
         
         // Refresh page
         await page.reload();
@@ -521,8 +539,7 @@ test.describe('Superset Visual Indicators', () => {
       
       const linkBtn = page.locator('#link-superset-btn');
       if (await linkBtn.isEnabled()) {
-        await linkBtn.click();
-        await page.waitForTimeout(1000);
+        await linkSelectedExercises(page);
         
         const firstRow = page.locator('#workout_plan_table_body tr').first();
         await expect(firstRow).toHaveAttribute('data-superset-group', /^SS-/);

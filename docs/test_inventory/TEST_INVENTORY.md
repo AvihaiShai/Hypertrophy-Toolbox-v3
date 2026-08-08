@@ -17,7 +17,7 @@ Every test count in this repository's prose should link here rather than restate
 | Required functional gate — `E2E Functional (Chromium)` | **477** tests across 25 specs |
 | pytest collected nodes (deterministic subset) | **2287** across 109 files |
 | pytest test files (all) | **110** |
-| Hard waits (lines containing waitForTimeout) | **92** across 15 files |
+| Hard waits (lines containing waitForTimeout) | **85** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
 
@@ -193,7 +193,7 @@ Flake-and-latency debt (blindspot B5). Phase 5 step 16 burns this down worst-fil
 | `e2e/listener-cleanup.spec.ts` | 1 |
 | `e2e/progression.spec.ts` | 7 |
 | `e2e/summary-pages.spec.ts` | 2 |
-| `e2e/superset-edge-cases.spec.ts` | 17 |
+| `e2e/superset-edge-cases.spec.ts` | 10 |
 | `e2e/ui-hardening.spec.ts` | 1 |
 | `e2e/validation-boundary.spec.ts` | 2 |
 | `e2e/volume-splitter.spec.ts` | 23 |
