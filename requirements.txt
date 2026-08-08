@@ -11,6 +11,11 @@ pytest==9.1.1
 # the plugin changes nothing unless a --cov flag is passed, so local runs and the
 # other sessions' workflows are unaffected.
 pytest-cov==7.1.0
+# Parallel pytest, opt-in only: adding the plugin changes nothing until -n is
+# passed, so serial stays the default and the committed CI invocation is
+# unaffected. Always pair with `--dist loadfile` -- several fixtures are
+# module-scoped and one file's tests must stay on one worker.
+pytest-xdist==3.8.0
 pytest-playwright==0.8.0
 # Keep in lockstep with @playwright/test in package.json. The E2E suite is
 # driven entirely by the npm package; this one arrives via pytest-playwright and
