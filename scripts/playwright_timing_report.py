@@ -10,6 +10,19 @@ spec file is the indivisible unit of `--shard`, so no shard count can finish
 sooner than the single slowest file. Adding shards below that point buys
 wall-clock; adding them past it buys nothing but runner cost.
 
+Two scope rules, because both are easy to get wrong and neither is visible in
+the output:
+
+* **Match the group to the decision.** The local default suite is every
+  non-visual spec; CI's required functional gate runs a smaller curated set
+  (the list in `ci.yml`, see e2e/CLAUDE.md's inclusion contract). A local
+  whole-group measurement must not be used to argue for a CI shard count —
+  only the required set can do that.
+* **Pass `--shards 1` when the input is already one shard's report.** Packing
+  a half-suite into N models a hypothetical re-split of that half, and reads
+  as a global balance it cannot describe. Real balance is the shards' totals
+  compared.
+
 Usage:
     python scripts/playwright_timing_report.py --junit artifacts/playwright/junit.xml
     python scripts/playwright_timing_report.py --json  artifacts/playwright/timing/functional.json
@@ -90,9 +103,23 @@ def main() -> int:
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--junit", type=pathlib.Path)
     source.add_argument("--json", type=pathlib.Path)
-    parser.add_argument("--shards", type=int, default=2)
+    parser.add_argument(
+        "--shards",
+        type=int,
+        default=2,
+        help=(
+            "Model a split of THIS report across N shards. Use 1 when the report "
+            "is already one shard's output -- packing a half-suite into 2 models a "
+            "hypothetical re-split, not the real global balance."
+        ),
+    )
     parser.add_argument("--top", type=int, default=10)
     parser.add_argument("--markdown", action="store_true", help="GitHub step-summary form")
+    parser.add_argument(
+        "--label",
+        default="",
+        help="Scope label for the heading, e.g. 'shard 1/2'. Names what the report covers.",
+    )
     args = parser.parse_args()
 
     path = args.junit or args.json
@@ -111,21 +138,32 @@ def main() -> int:
     out = print
 
     if args.markdown:
-        out("### Playwright timing")
+        scope = f" — {args.label}" if args.label else ""
+        out(f"### Playwright timing{scope}")
         out("")
         out(f"**{sum(counts.values())} tests / {len(per_spec)} specs / {total/1000:.1f}s**")
         out("")
-        out(f"Slowest file (shard floor): `{floor_spec}` at {floor/1000:.1f}s")
+        if args.shards <= 1:
+            # This report is one shard's own output. Its slowest file is the
+            # floor *within this shard*, and its total is half the story: the
+            # global balance is the two jobs' totals side by side, which no
+            # single job can see. Saying otherwise would invent a number.
+            out(f"Slowest file in this scope: `{floor_spec}` at {floor/1000:.1f}s")
+            out("")
+            out("_Scope is this job alone. Global shard balance is the two jobs' totals compared; it is not derivable here._")
+        else:
+            out(f"Slowest file (shard floor): `{floor_spec}` at {floor/1000:.1f}s")
         out("")
         out("| spec | tests | sec | % |")
         out("|---|---:|---:|---:|")
         for spec, ms in sorted(per_spec.items(), key=lambda kv: -kv[1])[: args.top]:
             out(f"| `{spec}` | {counts[spec]} | {ms/1000:.1f} | {100*ms/total:.1f}% |")
-        out("")
-        out("| shard | sec | specs |")
-        out("|---:|---:|---:|")
-        for index, seconds, count in balance(per_spec, args.shards):
-            out(f"| {index} | {seconds/1000:.1f} | {count} |")
+        if args.shards > 1:
+            out("")
+            out("| shard | sec | specs |")
+            out("|---:|---:|---:|")
+            for index, seconds, count in balance(per_spec, args.shards):
+                out(f"| {index} | {seconds/1000:.1f} | {count} |")
         return 0
 
     out(f"tests {sum(counts.values())} / specs {len(per_spec)} / total {total/1000:.1f}s")
