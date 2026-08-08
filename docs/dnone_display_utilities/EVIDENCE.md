@@ -137,6 +137,37 @@ the six generations run for this packet: `progression-mobile-light` and
 `workout-plan-mobile-light`. Recorded as data for whoever regenerates the win32 corpus;
 neither is a regression and neither is proposed for any exemption list.
 
+### The navbar pair changes no pixel on any page — measured
+
+`class="d-none d-lg-inline"` sits in `base.html`'s navbar, which renders on **every**
+page, so the obvious worry is that this fix moves every capture rather than the six on
+`/volume_splitter`. It does not, and the reason is specific.
+
+Computed-`display`-plus-geometry diff of the whole DOM, pre-fix bundle vs shipped bundle:
+
+| Page | Viewport | Elements | Differing |
+|---|---:|---:|---:|
+| `/workout_plan` | 1440 | 5,179 | **0** |
+| `/workout_log` | 1440 | 603 | **0** |
+| `/weekly_summary` | 1440 | 514 | **0** |
+| `/workout_plan` | 768 | — | **2** |
+| `/workout_plan` | 375 | — | **2** |
+| `/volume_splitter` | 1440 | 345 | 197 — *the fix* |
+
+At **1440px** nothing changes at all: `d-lg-inline` applies, so the labels are inline both
+before and after.
+
+At **768 and 375** exactly two elements change, and they are the two label spans — but
+their box is `0×0 at (0,0)` in **both** states, because their ancestor
+`nav.navbar-collapse` is `display: none` below the breakpoint
+(`static/css/navbar.css:704`, `#navbar nav.navbar-collapse:not(.show)`; Bootstrap's own
+`collapse` component is not compiled into this build). The computed value flips from
+`inline` to `none` on an element that paints nothing either way.
+
+So the pair is real but **unpainted at rest**, which is exactly what the 66-capture
+differential independently measured. The one place it would become visible is with the
+mobile menu **open** (`.show`) — no visual baseline captures that state.
+
 ---
 
 ## 4. Verification
@@ -278,12 +309,41 @@ does **not** propose adding to it — `tests/test_visual_capture_contracts.py` p
 as a strict equality). Recorded here as a datum for whoever regenerates the win32 corpus:
 a single flipping capture there is expected, not a regression.
 
-### The `/volume_splitter` baselines will need regeneration
+### The six `/volume_splitter` win32 baselines are regenerated and reviewed
 
 This fix changes what `/volume_splitter` renders, so its six committed captures per
-platform no longer match — **that is the fix working**, not a regression. Regenerating and
-reviewing them is an owner action; CI never pushes pixels. No snapshot, tolerance, mask or
-retry was changed here, and `git status --porcelain e2e/__screenshots__` is empty.
+platform no longer matched — **that is the fix working**, not a regression.
+
+**Owner-authorised 2026-08-08, and done for `win32` only.** Regenerated with
+`PW_VISUAL_SEED=1 npx playwright test e2e/visual.spec.ts -g "volume-splitter"
+--update-snapshots`, which runs exactly the six matching tests, so nothing else could be
+written. Verified after: `git status --porcelain e2e/__screenshots__` lists **exactly
+those six files as modified, zero created**, and the tree stays at **160 tracked = 160 on
+disk**. No tolerance, mask, retry or `BYTE_GATE_EXEMPT` entry was touched.
+
+The six regenerated PNGs are **byte-identical to the candidate set from the same-machine
+differential**, which was produced through a different config on a different port — an
+independent cross-check that they capture the intended render.
+
+| Capture | Before | After |
+|---|---:|---:|
+| `volume-splitter-desktop-{light,dark}` | 1440×1162 | 1440×1162 |
+| `volume-splitter-tablet-{light,dark}` | 768×1946 | 768×**1728** |
+| `volume-splitter-mobile-{light,dark}` | 375×3148 | 375×**2900** |
+
+Reviewed by eye: the Distribution card — empty table plus live **Export Volume Plan** and
+**Save & Activate** buttons — and the AI Suggestions card are gone from the first paint,
+and Volume History moves up into their place. Everything else on the page is unchanged.
+Desktop height is unchanged because that column was not the tallest; tablet and mobile
+lose the ~220–250px the two stacked cards occupied.
+
+**Two limits, stated rather than implied.** (1) The **`linux` set is NOT regenerated** —
+valid Linux baselines can only be produced by `deep-gate.yml` on pinned `ubuntu-24.04`, so
+those six remain stale and `visual-linux` will red on them until the owner dispatches a
+generate run. (2) The wider win32 corpus was already broadly stale (58 failed / 8 passed
+on unmodified `main`, issue #304); this is a **surgical six-file update, not a corpus
+refresh**, so the diff between an old committed PNG and its replacement also contains
+drift inherited from earlier CSS work — it is not all attributable to this fix.
 
 ---
 
