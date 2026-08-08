@@ -294,7 +294,7 @@ test.describe('Pattern Coverage Analysis (v1.5.0)', () => {
   });
 
   test('pattern coverage API returns valid structure', async ({ request }) => {
-    const response = await request.get('http://127.0.0.1:5000/api/pattern_coverage');
+    const response = await request.get('/api/pattern_coverage');
     expect(response.ok()).toBeTruthy();
 
     const data = await response.json();
@@ -308,7 +308,7 @@ test.describe('Pattern Coverage Analysis (v1.5.0)', () => {
   });
 
   test('pattern coverage warnings are actionable', async ({ request }) => {
-    const response = await request.get('http://127.0.0.1:5000/api/pattern_coverage');
+    const response = await request.get('/api/pattern_coverage');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -330,7 +330,7 @@ test.describe('Pattern Coverage Analysis (v1.5.0)', () => {
   });
 
   test('pattern coverage tracks movement patterns', async ({ request }) => {
-    const response = await request.get('http://127.0.0.1:5000/api/pattern_coverage');
+    const response = await request.get('/api/pattern_coverage');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -352,7 +352,7 @@ test.describe('Pattern Coverage Analysis (v1.5.0)', () => {
   });
 
   test('sets_per_routine reports session volume', async ({ request }) => {
-    const response = await request.get('http://127.0.0.1:5000/api/pattern_coverage');
+    const response = await request.get('/api/pattern_coverage');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -369,7 +369,7 @@ test.describe('Pattern Coverage Analysis (v1.5.0)', () => {
   });
 
   test('ideal_sets_range provides guidance', async ({ request }) => {
-    const response = await request.get('http://127.0.0.1:5000/api/pattern_coverage');
+    const response = await request.get('/api/pattern_coverage');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();

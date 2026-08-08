@@ -5,7 +5,6 @@
  */
 import { test, expect, ROUTES, SELECTORS, waitForPageReady, expectToast } from './fixtures';
 
-const BASE_URL = 'http://127.0.0.1:5000';
 const TEST_ROUTINE = 'GYM - Full Body - Workout A';
 const REPLACE_BUTTON_SELECTOR = 'button[data-action="replace"], .replace-btn, .btn-swap, [title*="Replace"]';
 
@@ -72,7 +71,7 @@ async function ensureRoutineHasExercises(
     return;
   }
 
-  const planResponse = await request.get(`${BASE_URL}/get_workout_plan`);
+  const planResponse = await request.get('/get_workout_plan');
   const planPayload = await planResponse.json().catch(() => ({}));
   const routineRows = extractDataRows(planPayload).filter(
     (row) => extractRoutineName(row) === TEST_ROUTINE
@@ -82,7 +81,7 @@ async function ensureRoutineHasExercises(
   );
   currentCount = routineRows.length;
 
-  const allResponse = await request.get(`${BASE_URL}/get_all_exercises`);
+  const allResponse = await request.get('/get_all_exercises');
   const allPayload = await allResponse.json().catch(() => ({}));
   const allRows = extractDataRows(allPayload);
 
@@ -95,7 +94,7 @@ async function ensureRoutineHasExercises(
     if (currentCount >= minimumCount) {
       break;
     }
-    const addResponse = await request.post(`${BASE_URL}/add_exercise`, {
+    const addResponse = await request.post('/add_exercise', {
       data: {
         routine: TEST_ROUTINE,
         exercise: exerciseName,

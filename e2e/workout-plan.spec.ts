@@ -575,7 +575,7 @@ test.describe('Plan Generator v1.5.0 Features', () => {
   });
 
   test('generator API returns priority muscles option', async ({ request }) => {
-    const response = await request.get('http://127.0.0.1:5000/get_generator_options');
+    const response = await request.get('/get_generator_options');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -588,7 +588,7 @@ test.describe('Plan Generator v1.5.0 Features', () => {
   });
 
   test('generator API returns time budget presets', async ({ request }) => {
-    const response = await request.get('http://127.0.0.1:5000/get_generator_options');
+    const response = await request.get('/get_generator_options');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -601,7 +601,7 @@ test.describe('Plan Generator v1.5.0 Features', () => {
 
   test('generator API validates priority muscles limit', async ({ request }) => {
     // Try to generate with too many priority muscles
-    const response = await request.post('http://127.0.0.1:5000/generate_starter_plan', {
+    const response = await request.post('/generate_starter_plan', {
       data: {
         training_days: 2,
         environment: 'gym',

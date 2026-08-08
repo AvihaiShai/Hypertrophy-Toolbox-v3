@@ -11,7 +11,6 @@
  */
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'http://127.0.0.1:5000';
 const JSON_HEADERS = {
   'Accept': 'application/json',
   'X-Requested-With': 'XMLHttpRequest',
@@ -48,12 +47,12 @@ function expectSuccessFlag(payload: Record<string, unknown>) {
 }
 
 async function clearWorkoutPlanState(request: import('@playwright/test').APIRequestContext) {
-  const response = await request.post(`${BASE_URL}/clear_workout_plan`);
+  const response = await request.post('/clear_workout_plan');
   expect(response.ok()).toBeTruthy();
 }
 
 async function getValidExerciseName(request: import('@playwright/test').APIRequestContext) {
-  const response = await request.get(`${BASE_URL}/get_all_exercises`);
+  const response = await request.get('/get_all_exercises');
   expect(response.ok()).toBeTruthy();
 
   const payload = await response.json();
@@ -76,7 +75,7 @@ async function seedWorkoutPlanExercise(
   overrides: Partial<typeof VALID_WORKOUT_PLAN_EXERCISE> & { exercise?: string } = {}
 ) {
   const exercise = overrides.exercise ?? await getValidExerciseName(request);
-  const response = await request.post(`${BASE_URL}/add_exercise`, {
+  const response = await request.post('/add_exercise', {
     data: {
       ...VALID_WORKOUT_PLAN_EXERCISE,
       exercise,
@@ -89,7 +88,7 @@ async function seedWorkoutPlanExercise(
 
 test.describe('Workout Plan API', () => {
   test('GET /get_workout_plan returns valid response', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/get_workout_plan`);
+    const response = await request.get('/get_workout_plan');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -99,7 +98,7 @@ test.describe('Workout Plan API', () => {
   });
 
   test('GET /api/pattern_coverage returns movement pattern analysis', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/pattern_coverage`);
+    const response = await request.get('/api/pattern_coverage');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -120,7 +119,7 @@ test.describe('Workout Plan API', () => {
   });
 
   test('GET /get_all_exercises returns exercises list', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/get_all_exercises`);
+    const response = await request.get('/get_all_exercises');
     // Accept 200 or 404 (route may not exist)
     if (response.ok()) {
       const data = await response.json();
@@ -131,7 +130,7 @@ test.describe('Workout Plan API', () => {
   });
 
   test('POST /add_exercise requires valid data', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/add_exercise`, {
+    const response = await request.post('/add_exercise', {
       data: {} // Empty data should fail
     });
     
@@ -144,7 +143,7 @@ test.describe('Workout Plan API', () => {
   });
 
   test('POST /remove_exercise requires exercise_id', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/remove_exercise`, {
+    const response = await request.post('/remove_exercise', {
       data: {}
     });
     
@@ -152,7 +151,7 @@ test.describe('Workout Plan API', () => {
   });
 
   test('POST /update_exercise requires valid data', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/update_exercise`, {
+    const response = await request.post('/update_exercise', {
       data: {}
     });
     
@@ -160,7 +159,7 @@ test.describe('Workout Plan API', () => {
   });
 
   test('GET /get_generator_options returns plan options with priority muscles', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/get_generator_options`);
+    const response = await request.get('/get_generator_options');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -180,7 +179,7 @@ test.describe('Workout Plan API', () => {
   });
 
   test('POST /replace_exercise requires exercise_id', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/replace_exercise`, {
+    const response = await request.post('/replace_exercise', {
       data: {}
     });
     
@@ -188,7 +187,7 @@ test.describe('Workout Plan API', () => {
   });
 
   test('GET /api/execution_style_options returns styles', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/execution_style_options`);
+    const response = await request.get('/api/execution_style_options');
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -198,7 +197,7 @@ test.describe('Workout Plan API', () => {
 
 test.describe('Superset API', () => {
   test('POST /api/superset/link requires exercise_ids', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/superset/link`, {
+    const response = await request.post('/api/superset/link', {
       data: {}
     });
     
@@ -206,7 +205,7 @@ test.describe('Superset API', () => {
   });
 
   test('POST /api/superset/unlink requires exercise_id', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/superset/unlink`, {
+    const response = await request.post('/api/superset/unlink', {
       data: {}
     });
     
@@ -214,14 +213,14 @@ test.describe('Superset API', () => {
   });
 
   test('GET /api/superset/suggest returns suggestions', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/superset/suggest`);
+    const response = await request.get('/api/superset/suggest');
     expect(response.ok()).toBeTruthy();
   });
 });
 
 test.describe('Plan Generator API (v1.5.0)', () => {
   test('POST /generate_starter_plan requires valid training_days', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/generate_starter_plan`, {
+    const response = await request.post('/generate_starter_plan', {
       data: { training_days: 10 } // Invalid: exceeds max of 5
     });
     
@@ -229,7 +228,7 @@ test.describe('Plan Generator API (v1.5.0)', () => {
   });
 
   test('POST /generate_starter_plan with valid data succeeds', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/generate_starter_plan`, {
+    const response = await request.post('/generate_starter_plan', {
       data: {
         training_days: 3,
         environment: 'gym',
@@ -248,7 +247,7 @@ test.describe('Plan Generator API (v1.5.0)', () => {
   });
 
   test('POST /generate_starter_plan with priority_muscles parameter', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/generate_starter_plan`, {
+    const response = await request.post('/generate_starter_plan', {
       data: {
         training_days: 2,
         environment: 'gym',
@@ -272,7 +271,7 @@ test.describe('Plan Generator API (v1.5.0)', () => {
   });
 
   test('POST /generate_starter_plan with time_budget optimization', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/generate_starter_plan`, {
+    const response = await request.post('/generate_starter_plan', {
       data: {
         training_days: 3,
         environment: 'gym',
@@ -290,7 +289,7 @@ test.describe('Plan Generator API (v1.5.0)', () => {
   });
 
   test('POST /generate_starter_plan rejects too many priority muscles', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/generate_starter_plan`, {
+    const response = await request.post('/generate_starter_plan', {
       data: {
         training_days: 2,
         environment: 'gym',
@@ -305,7 +304,7 @@ test.describe('Plan Generator API (v1.5.0)', () => {
   });
 
   test('POST /generate_starter_plan with merge_mode flag', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/generate_starter_plan`, {
+    const response = await request.post('/generate_starter_plan', {
       data: {
         training_days: 2,
         environment: 'gym',
@@ -323,7 +322,7 @@ test.describe('Plan Generator API (v1.5.0)', () => {
 
 test.describe('Double Progression API (v1.5.0)', () => {
   test('POST /get_exercise_suggestions returns suggestions from the live route', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/get_exercise_suggestions`, {
+    const response = await request.post('/get_exercise_suggestions', {
       data: {
         exercise: 'Bench Press (Barbell)'
       }
@@ -347,7 +346,7 @@ test.describe('Double Progression API (v1.5.0)', () => {
 
   test('POST /get_exercise_suggestions with is_novice parameter', async ({ request }) => {
     // Novice mode (conservative increments)
-    const noviceResponse = await request.post(`${BASE_URL}/get_exercise_suggestions`, {
+    const noviceResponse = await request.post('/get_exercise_suggestions', {
       data: {
         exercise: 'Squat (Barbell)',
         is_novice: true
@@ -362,7 +361,7 @@ test.describe('Double Progression API (v1.5.0)', () => {
     expect(Array.isArray(noviceData)).toBe(true);
     
     // Experienced mode (may suggest larger increments)
-    const expResponse = await request.post(`${BASE_URL}/get_exercise_suggestions`, {
+    const expResponse = await request.post('/get_exercise_suggestions', {
       data: {
         exercise: 'Squat (Barbell)',
         is_novice: false
@@ -378,7 +377,7 @@ test.describe('Double Progression API (v1.5.0)', () => {
   });
 
   test('POST /get_exercise_suggestions handles unknown exercise', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/get_exercise_suggestions`, {
+    const response = await request.post('/get_exercise_suggestions', {
       data: {
         exercise: 'NonExistent Exercise XYZ123'
       }
@@ -398,7 +397,7 @@ test.describe('Double Progression API (v1.5.0)', () => {
   });
 
   test('POST /get_exercise_suggestions without exercise returns error', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/get_exercise_suggestions`, {
+    const response = await request.post('/get_exercise_suggestions', {
       data: {}
     });
     
@@ -411,7 +410,7 @@ test.describe('Double Progression API (v1.5.0)', () => {
   });
 
   test('POST /get_current_value returns a current-value payload from the live route', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/get_current_value`, {
+    const response = await request.post('/get_current_value', {
       data: {
         exercise: 'Bench Press (Barbell)',
         goal_type: 'weight',
@@ -427,7 +426,7 @@ test.describe('Double Progression API (v1.5.0)', () => {
   });
 
   test('POST /save_progression_goal returns wrapped JSON for XHR callers', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/save_progression_goal`, {
+    const response = await request.post('/save_progression_goal', {
       headers: {
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
@@ -449,7 +448,7 @@ test.describe('Double Progression API (v1.5.0)', () => {
     expect(payload.data).toHaveProperty('goal_id');
 
     const goalId = payload.data.goal_id;
-    const cleanupResponse = await request.delete(`${BASE_URL}/delete_progression_goal/${goalId}`);
+    const cleanupResponse = await request.delete(`/delete_progression_goal/${goalId}`);
     expect(cleanupResponse.ok()).toBeTruthy();
     const cleanupPayload = await cleanupResponse.json();
     expect(cleanupPayload.ok).toBe(true);
@@ -458,7 +457,7 @@ test.describe('Double Progression API (v1.5.0)', () => {
   });
 
   test('POST /save_progression_goal returns validation error for invalid JSON', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/save_progression_goal`, {
+    const response = await request.post('/save_progression_goal', {
       headers: {
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
@@ -476,15 +475,15 @@ test.describe('Double Progression API (v1.5.0)', () => {
 
 test.describe('Workout Log API', () => {
   test('GET /workout_log page loads', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/workout_log`);
+    const response = await request.get('/workout_log');
     expect(response.ok()).toBeTruthy();
   });
 
   test('GET /get_workout_log returns logs', async ({ request }) => {
     // Try alternate route name
-    let response = await request.get(`${BASE_URL}/get_workout_log`);
+    let response = await request.get('/get_workout_log');
     if (response.status() === 404) {
-      response = await request.get(`${BASE_URL}/get_workout_logs`);
+      response = await request.get('/get_workout_logs');
     }
     
     // Accept 200 or 404
@@ -497,7 +496,7 @@ test.describe('Workout Log API', () => {
   });
 
   test('POST /update_workout_log requires valid data', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/update_workout_log`, {
+    const response = await request.post('/update_workout_log', {
       data: {}
     });
     
@@ -505,7 +504,7 @@ test.describe('Workout Log API', () => {
   });
 
   test('POST /delete_workout_log requires log_id', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/delete_workout_log`, {
+    const response = await request.post('/delete_workout_log', {
       data: {}
     });
     
@@ -514,7 +513,7 @@ test.describe('Workout Log API', () => {
 
   test('POST /clear_workout_log clears all logs', async ({ request }) => {
     // This is a destructive operation, so we just verify the endpoint exists
-    const response = await request.post(`${BASE_URL}/clear_workout_log`, {
+    const response = await request.post('/clear_workout_log', {
       data: { confirm: false } // Don't actually clear
     });
     
@@ -523,7 +522,7 @@ test.describe('Workout Log API', () => {
   });
 
   test('POST /import_from_plan imports exercises', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/import_from_plan`);
+    const response = await request.post('/import_from_plan');
     // Route may not exist or may require data
     expect([200, 400, 404]).toContain(response.status());
   });
@@ -531,7 +530,7 @@ test.describe('Workout Log API', () => {
 
 test.describe('Export API', () => {
   test('GET /export_to_excel returns Excel file', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/export_to_excel`);
+    const response = await request.get('/export_to_excel');
     expect(response.ok()).toBeTruthy();
     
     const contentType = response.headers()['content-type'];
@@ -542,19 +541,19 @@ test.describe('Export API', () => {
     await clearWorkoutPlanState(request);
     await seedWorkoutPlanExercise(request);
 
-    const response = await request.post(`${BASE_URL}/export_to_workout_log`);
+    const response = await request.post('/export_to_workout_log');
     expect(response.ok()).toBeTruthy();
   });
 });
 
 test.describe('Progression Plan API', () => {
   test('GET /progression page loads', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/progression`);
+    const response = await request.get('/progression');
     expect(response.ok()).toBeTruthy();
   });
 
   test('DELETE /delete_progression_goal/<id> returns a not-found response for a missing goal', async ({ request }) => {
-    const response = await request.delete(`${BASE_URL}/delete_progression_goal/999999`);
+    const response = await request.delete('/delete_progression_goal/999999');
 
     expect(response.status()).toBe(404);
     const payload = await response.json();
@@ -565,7 +564,7 @@ test.describe('Progression Plan API', () => {
   });
 
   test('POST /complete_progression_goal/<id> returns a not-found response for a missing goal', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/complete_progression_goal/999999`, {
+    const response = await request.post('/complete_progression_goal/999999', {
       data: {}
     });
 
@@ -580,13 +579,13 @@ test.describe('Progression Plan API', () => {
 
 test.describe('Weekly Summary API', () => {
   test('GET /weekly_summary page loads', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/weekly_summary`);
+    const response = await request.get('/weekly_summary');
     expect(response.ok()).toBeTruthy();
   });
 
   test('GET /weekly_summary returns live JSON summary data for explicit JSON callers', async ({ request }) => {
     const response = await request.get(
-      `${BASE_URL}/weekly_summary?counting_mode=effective&contribution_mode=total`,
+      '/weekly_summary?counting_mode=effective&contribution_mode=total',
       { headers: JSON_HEADERS }
     );
 
@@ -606,13 +605,13 @@ test.describe('Weekly Summary API', () => {
 
 test.describe('Session Summary API', () => {
   test('GET /session_summary page loads', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/session_summary`);
+    const response = await request.get('/session_summary');
     expect(response.ok()).toBeTruthy();
   });
 
   test('GET /session_summary returns live JSON summary data for explicit JSON callers', async ({ request }) => {
     const response = await request.get(
-      `${BASE_URL}/session_summary?counting_mode=effective&contribution_mode=total`,
+      '/session_summary?counting_mode=effective&contribution_mode=total',
       { headers: JSON_HEADERS }
     );
 
@@ -632,12 +631,12 @@ test.describe('Session Summary API', () => {
 
 test.describe('Volume Splitter API', () => {
   test('GET /volume_splitter page loads', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/volume_splitter`);
+    const response = await request.get('/volume_splitter');
     expect(response.ok()).toBeTruthy();
   });
 
   test('POST /api/calculate_volume returns the final wrapped contract', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/calculate_volume`, {
+    const response = await request.post('/api/calculate_volume', {
       data: {}
     });
 
@@ -653,7 +652,7 @@ test.describe('Volume Splitter API', () => {
   });
 
   test('POST /api/calculate_volume with valid data returns computed results', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/calculate_volume`, {
+    const response = await request.post('/api/calculate_volume', {
       data: {
         training_days: 2,
         mode: 'basic',
@@ -681,7 +680,7 @@ test.describe('Volume Splitter API', () => {
   });
 
   test('GET /api/volume_history returns a JSON object', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/volume_history`, {
+    const response = await request.get('/api/volume_history', {
       headers: JSON_HEADERS
     });
 
@@ -694,7 +693,7 @@ test.describe('Volume Splitter API', () => {
   });
 
   test('volume persistence routes save, list, load, and delete a plan', async ({ request }) => {
-    const saveResponse = await request.post(`${BASE_URL}/api/save_volume_plan`, {
+    const saveResponse = await request.post('/api/save_volume_plan', {
       headers: JSON_HEADERS,
       data: {
         mode: 'basic',
@@ -715,7 +714,7 @@ test.describe('Volume Splitter API', () => {
     const planId = savedPlan.plan_id as number;
     expect(typeof planId).toBe('number');
 
-    const historyResponse = await request.get(`${BASE_URL}/api/volume_history`, {
+    const historyResponse = await request.get('/api/volume_history', {
       headers: JSON_HEADERS
     });
     expect(historyResponse.ok()).toBeTruthy();
@@ -725,7 +724,7 @@ test.describe('Volume Splitter API', () => {
     const history = historyPayload.data as Record<string, Record<string, unknown>>;
     expect(history[String(planId)]).toBeTruthy();
 
-    const planResponse = await request.get(`${BASE_URL}/api/volume_plan/${planId}`, {
+    const planResponse = await request.get(`/api/volume_plan/${planId}`, {
       headers: JSON_HEADERS
     });
     expect(planResponse.ok()).toBeTruthy();
@@ -737,7 +736,7 @@ test.describe('Volume Splitter API', () => {
     expect(plan).toHaveProperty('created_at');
     expect(plan).toHaveProperty('volumes');
 
-    const deleteResponse = await request.delete(`${BASE_URL}/api/volume_plan/${planId}`, {
+    const deleteResponse = await request.delete(`/api/volume_plan/${planId}`, {
       headers: JSON_HEADERS
     });
     expect(deleteResponse.ok()).toBeTruthy();
@@ -747,7 +746,7 @@ test.describe('Volume Splitter API', () => {
     expect(deletePayload.message).toBe('Volume plan deleted successfully');
     expect(deletePayload.data).toBeUndefined();
 
-    const missingPlanResponse = await request.get(`${BASE_URL}/api/volume_plan/${planId}`, {
+    const missingPlanResponse = await request.get(`/api/volume_plan/${planId}`, {
       headers: JSON_HEADERS
     });
     expect(missingPlanResponse.status()).toBe(404);
@@ -761,7 +760,7 @@ test.describe('Volume Splitter API', () => {
 
 test.describe('Filters API', () => {
   test('GET /get_filter_options returns filter values', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/get_filter_options`);
+    const response = await request.get('/get_filter_options');
     // Route may not exist
     if (response.ok()) {
       const data = await response.json();
@@ -772,7 +771,7 @@ test.describe('Filters API', () => {
   });
 
   test('POST /apply_filters filters exercises', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/apply_filters`, {
+    const response = await request.post('/apply_filters', {
       data: {
         primary_muscle_group: 'Chest'
       }
@@ -790,12 +789,12 @@ test.describe('Filters API', () => {
 
 test.describe('Error Handling', () => {
   test('404 for non-existent route', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/non_existent_route_12345`);
+    const response = await request.get('/non_existent_route_12345');
     expect(response.status()).toBe(404);
   });
 
   test('POST with invalid JSON returns 400', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/add_exercise`, {
+    const response = await request.post('/add_exercise', {
       headers: { 'Content-Type': 'application/json' },
       data: 'invalid json{{'
     });
@@ -804,7 +803,7 @@ test.describe('Error Handling', () => {
   });
 
   test('POST with wrong content type handled gracefully', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/add_exercise`, {
+    const response = await request.post('/add_exercise', {
       headers: { 'Content-Type': 'text/plain' },
       data: 'plain text'
     });
@@ -822,7 +821,7 @@ test.describe('Response Format Consistency', () => {
     ];
 
     for (const endpoint of endpoints) {
-      const response = await request.get(`${BASE_URL}${endpoint.path}`, {
+      const response = await request.get(`${endpoint.path}`, {
         headers: endpoint.headers
       });
       
@@ -843,7 +842,7 @@ test.describe('Response Format Consistency', () => {
   });
 
   test('error responses have consistent format', async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/add_exercise`, {
+    const response = await request.post('/add_exercise', {
       data: {}
     });
     
@@ -867,7 +866,7 @@ test.describe('Rate Limiting and Performance', () => {
     const promises = [];
     
     for (let i = 0; i < 10; i++) {
-      promises.push(request.get(`${BASE_URL}/get_workout_plan`));
+      promises.push(request.get('/get_workout_plan'));
     }
 
     const responses = await Promise.all(promises);
@@ -880,7 +879,7 @@ test.describe('Rate Limiting and Performance', () => {
 
   test('response time is acceptable', async ({ request }) => {
     const start = Date.now();
-    await request.get(`${BASE_URL}/get_workout_plan`);
+    await request.get('/get_workout_plan');
     const elapsed = Date.now() - start;
 
     // Should respond within 5 seconds
@@ -890,14 +889,14 @@ test.describe('Rate Limiting and Performance', () => {
 
 test.describe('CORS and Headers', () => {
   test('JSON endpoints return correct content-type', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/get_workout_plan`);
+    const response = await request.get('/get_workout_plan');
     const contentType = response.headers()['content-type'];
     
     expect(contentType).toContain('application/json');
   });
 
   test('HTML pages return correct content-type', async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/workout_plan`);
+    const response = await request.get('/workout_plan');
     const contentType = response.headers()['content-type'];
     
     expect(contentType).toContain('text/html');
