@@ -5,6 +5,7 @@ Tests for utils/maintenance.py - Database maintenance and normalization.
 import pytest
 from unittest.mock import patch, MagicMock
 import sqlite3
+import utils.maintenance
 from utils.maintenance import (
     _exec_many,
     _normalize_existing_rows,
@@ -12,6 +13,26 @@ from utils.maintenance import (
     NORMALIZE_SQL,
     REBUILD_EIM_SQL,
 )
+
+
+class _RecordingClock:
+    """Stand-in for the ``time`` module inside ``utils.maintenance``.
+
+    That module uses ``time`` for exactly one thing — the retry backoff in
+    ``_exec_many`` — so replacing the module-level name records the schedule
+    instead of sleeping through it. The two locked-retry tests below drive a
+    ``MagicMock`` database, so every second they spent was real wall clock for
+    no coverage: 8s of the suite between them.
+
+    Swapping the name is deliberate in preference to patching ``time.sleep``,
+    which would reach every other module for the duration of the test.
+    """
+
+    def __init__(self) -> None:
+        self.slept: list[float] = []
+
+    def sleep(self, seconds: float) -> None:
+        self.slept.append(seconds)
 
 
 class TestNormalizeSqlConstants:
@@ -70,8 +91,10 @@ class TestExecMany:
         
         mock_db.connection.rollback.assert_called()
 
-    def test_retries_on_database_locked(self):
+    def test_retries_on_database_locked(self, monkeypatch):
         """Should retry up to 5 times on database locked error."""
+        clock = _RecordingClock()
+        monkeypatch.setattr(utils.maintenance, "time", clock)
         mock_db = MagicMock()
         locked_error = sqlite3.OperationalError("database is locked")
         # Fail 3 times, then succeed
@@ -81,24 +104,30 @@ class TestExecMany:
             locked_error,
             None,  # Success
         ]
-        
+
         _exec_many(mock_db, ["SELECT 1"])
-        
+
         # Should have tried 4 times (3 failures + 1 success)
         assert mock_db.execute_query.call_count == 4
+        # The backoff schedule used to be spent, not asserted. Pin it.
+        assert clock.slept == [0.5, 1.0, 1.5]
 
-    def test_raises_after_max_retries_on_locked(self):
+    def test_raises_after_max_retries_on_locked(self, monkeypatch):
         """Should raise after 5 retry attempts on locked database."""
+        clock = _RecordingClock()
+        monkeypatch.setattr(utils.maintenance, "time", clock)
         mock_db = MagicMock()
         locked_error = sqlite3.OperationalError("database is locked")
         mock_db.execute_query.side_effect = locked_error
-        
+
         with pytest.raises(sqlite3.OperationalError):
             _exec_many(mock_db, ["SELECT 1"])
-        
+
         # Should have tried 5 times
         assert mock_db.execute_query.call_count == 5
         mock_db.connection.rollback.assert_called()
+        # Four backoffs precede the fifth and final attempt, which re-raises.
+        assert clock.slept == [0.5, 1.0, 1.5, 2.0]
 
     def test_handles_empty_statements(self):
         """Should handle empty statement list."""
