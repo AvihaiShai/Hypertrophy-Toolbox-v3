@@ -106,6 +106,37 @@ alongside selector rules). The 14 are `.d-none` and `.d-inline` unconditionally,
 `none`/`inline` pair inside each of `sm`, `md`, `lg`, `xl`, `xxl` and `print`. Counted
 directly off the shipped bundle; `2 + 6×2 = 14`.
 
+### Value order is `inline none`, matching upstream
+
+`utilities/api` emits in list order, and between two utilities of equal specificity and
+equal `!important` the **last one wins**. Upstream Bootstrap orders `inline` before
+`none`, so stock `class="d-none d-inline"` resolves to `none`. This packet originally
+wrote `values: none inline`, which silently **inverted** that precedence. No call site
+pairs the two at the same infix, so it was latent — but it was a gratuitous divergence
+from upstream, and it is now `values: inline none`.
+
+**The swap is semantically inert, and that was measured rather than assumed.**
+
+| Check | Result |
+|---|---|
+| Bundle delta | 1,031 rules before and after; **0 rules added or removed**; exactly **14 positions reordered** |
+| Computed-style probe, `/workout_plan` @375px dark | **5,179 elements, 0 differences** in computed `display` or in geometry (`width/height/x/y`) |
+| Same-machine capture differential | 65 of 66 identical; **`workout-plan-mobile-dark` differs** |
+
+That one capture differs at **identical dimensions (375×9328) and a one-byte compressed
+delta**, with every element's computed `display` and box geometry identical. It is
+therefore a raster-level difference at byte-identical layout — the **same Chromium class**
+already documented for `BYTE_GATE_EXEMPT`, whose five captures "flip between two states at
+byte-identical layout". Unlike those, this one is *deterministic per bundle* (each side
+reproduced its own hash across two runs), which is why it shows up as attributable in a
+hash differential. **No `BYTE_GATE_EXEMPT` change is proposed** — that set is pinned as a
+strict equality by `tests/test_visual_capture_contracts.py`.
+
+**Two further win32 captures were observed flipping with the CSS held constant** across
+the six generations run for this packet: `progression-mobile-light` and
+`workout-plan-mobile-light`. Recorded as data for whoever regenerates the win32 corpus;
+neither is a regression and neither is proposed for any exemption list.
+
 ---
 
 ## 4. Verification

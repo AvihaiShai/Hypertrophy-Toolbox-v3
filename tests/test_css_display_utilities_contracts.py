@@ -1,23 +1,14 @@
 """Contracts for the Bootstrap display utilities (`d-*`).
 
-`scss/custom-bootstrap.scss` imported `bootstrap/scss/utilities`, which only
-DEFINES the `$utilities` map, and never `bootstrap/scss/utilities/api`, which
-emits the classes. Every `d-*` class in the templates was therefore inert for the
-app's whole history. The visible symptom was `/volume_splitter`: its Distribution
-and AI Suggestions cards carry `d-none`, so they rendered on first paint --
-461x144 and 461x70 at 1440px, complete with live Export and Save & Activate
-buttons.
+The build imported `bootstrap/scss/utilities` (which only DEFINES the
+`$utilities` map) and never `bootstrap/scss/utilities/api` (which emits the
+classes), so every `d-*` class was inert for the app's whole history.
 
-Nothing caught it. `e2e/volume-splitter.spec.ts` asserted `toHaveClass(/d-none/)`,
-which is class-token presence and stays green while the class does nothing, and
-`tests/test_css_cascade_contracts.py` pins the same markup as a hook. A class
-token is not a style.
+A class token is not a style: `toHaveClass(/d-none/)` stayed green throughout.
+These assert that the stylesheet really declares the utility, and that no
+template or module uses a `d-*` the build does not emit.
 
-These contracts assert the two halves that were missing:
-  * the emitted stylesheet really declares `display: none !important`; and
-  * no template or module uses a `d-*` utility the build does not emit.
-
-The second is the one that would have caught the original defect.
+Full record: docs/dnone_display_utilities/EVIDENCE.md.
 """
 
 from __future__ import annotations
@@ -34,12 +25,8 @@ CSS_DIR = ROOT / "static" / "css"
 TEMPLATES = ROOT / "templates"
 JS = ROOT / "static" / "js"
 
-# `d-*` utilities the app uses that the build deliberately does NOT emit, each
-# with the reason. Emitting them is a rendering change, not a bug fix: measured
-# against a same-machine baseline, adding the display utility's full value list
-# moved 18 of 66 visual captures -- volume-splitter x6 (the fix this file
-# guards), plus session-summary x6 and weekly-summary x6 at 120k-564k pixels
-# each, because those pages build `d-flex` rows in JS.
+# `d-*` utilities the app uses that the build deliberately does NOT emit.
+# Activating them is a rendering change, not a bug fix -- see the LEFTOVERS entry.
 #
 # This is an exact set, not an allowlist: a name that stops being used must come
 # out, and a name that starts being used must be emitted or added here on
@@ -51,7 +38,7 @@ KNOWN_INERT = {
 
 
 def _strip_comments(css: str) -> str:
-    """Length-preserving, so byte offsets stay valid after stripping."""
+    """Blank out comments so a commented-out rule cannot satisfy a contract."""
     return re.sub(r"/\*.*?\*/", lambda m: " " * len(m.group(0)), css, flags=re.S)
 
 
@@ -110,9 +97,6 @@ def _classes_used_by_the_app() -> dict[str, set[str]]:
 def test_the_build_emits_the_display_utility_api() -> None:
     """The SCSS imports the API that actually emits `d-*`, not just the map.
 
-    Importing `bootstrap/scss/utilities` alone defines `$utilities` and emits
-    nothing. That single missing import is the whole defect.
-
     Red path: delete the `utilities/api` import and this fails.
     """
     scss = SCSS.read_text(encoding="utf-8")
@@ -125,10 +109,6 @@ def test_the_build_emits_the_display_utility_api() -> None:
 
 def test_d_none_resolves_to_display_none_important() -> None:
     """`.d-none` is a real declaration in the built bundle, not just a token.
-
-    This is the assertion `e2e/volume-splitter.spec.ts` could not make: it
-    checked that the class was *present on the element*, which stayed true the
-    entire time the class had no effect.
 
     Red path: rebuild without the API import and this fails.
     """
@@ -179,10 +159,6 @@ def test_the_responsive_partner_of_d_none_is_emitted() -> None:
 def test_no_template_uses_a_display_utility_the_build_does_not_emit() -> None:
     """The contract that would have caught the original defect.
 
-    A `d-*` class in a template or module must either be emitted by a stylesheet
-    the app loads, or be listed in KNOWN_INERT with a reason. Adding a utility
-    class that nothing defines now fails pytest instead of rendering wrong.
-
     Red path: add `class="d-md-flex"` to any template and this fails.
     """
     emitted: set[str] = set()
@@ -205,9 +181,6 @@ def test_no_template_uses_a_display_utility_the_build_does_not_emit() -> None:
 
 def test_the_known_inert_list_has_no_stale_entries() -> None:
     """KNOWN_INERT is an exact set, so it cannot rot into a blanket exemption.
-
-    If a listed utility stops being used, or starts being emitted, the entry must
-    go -- otherwise the list quietly grows into permission to ship dead classes.
 
     Red path: add a name nothing uses to KNOWN_INERT and this fails.
     """

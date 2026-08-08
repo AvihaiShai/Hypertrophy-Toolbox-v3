@@ -143,16 +143,9 @@ test.describe('Volume Splitter Page', () => {
   /**
    * Regression coverage for the `.d-none` visibility defect.
    *
-   * `scss/custom-bootstrap.scss` imported Bootstrap's `utilities` map but never
-   * `utilities/api`, so no `d-*` class was ever emitted. Both cards below carry
-   * `d-none` in the markup and rendered anyway -- measured at 461x144 and 461x70
-   * on a 1440px viewport, the Distribution card complete with live Export Volume
-   * Plan and Save & Activate buttons, before any split had been calculated.
-   *
-   * The test immediately below this block asserts `toHaveClass(/d-none/)`. That
-   * is class-token presence and it stayed green for the entire life of the
-   * defect. These assert VISIBILITY and the computed value instead, which is the
-   * thing the user experiences.
+   * `calculate volume shows results section` below asserts `toHaveClass(/d-none/)`,
+   * which is class-token presence and stayed green for the entire life of the
+   * defect. These assert VISIBILITY and the computed value instead.
    */
   test('results and suggestions are actually hidden on first load, not merely class-tagged', async ({ page }) => {
     const results = page.locator('.results-section');

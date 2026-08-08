@@ -33,49 +33,36 @@
 @import "bootstrap/scss/helpers";
 @import "bootstrap/scss/utilities";
 
-// `bootstrap/scss/utilities` only DEFINES the `$utilities` map. The classes are
+// `bootstrap/scss/utilities` only DEFINES the `$utilities` map; the classes are
 // emitted by `bootstrap/scss/utilities/api`, which this build never imported --
-// so every `d-*` class in the templates has always been inert. Measured before
-// this change, at 1440px:
+// so every `d-*` class in the templates has always been inert.
+// Measurements: docs/dnone_display_utilities/EVIDENCE.md sections 1 and 3.
 //
-//   .d-none          1 rule, ID-scoped to #error-message-container -- so the two
-//                    /volume_splitter cards computed `display: block` and were
-//                    visible on first paint, 461x144 and 461x70, complete with
-//                    live Export Volume Plan and Save & Activate buttons
-//   .d-flex          0 rules setting `display` (the .action-frame rules set only
-//                    `gap`) -- 15 call sites computed `block`
-//   .d-inline-block  0 rules -- the /fatigue period <select> computed `block` and
-//                    stretched to 1331px instead of its intended auto width
-//   .d-lg-inline     0 rules
+// Emitting the full value list would also activate `d-flex` and
+// `d-inline-block`, which is a rendering change rather than a bug fix -- it
+// moves 12 further visual captures. Deferred to its own packet; see the
+// LEFTOVERS entry.
 //
-// SCOPE: the `display` utility, restricted to the `none` and `inline` values.
+// `d-none` and `d-lg-inline` must ship TOGETHER: `class="d-none d-lg-inline"` at
+// base.html:213,219 is indivisible, and emitting `d-none` alone would leave
+// those two navbar labels permanently hidden. Narrowing this to `none` would
+// reintroduce the defect in the opposite direction.
+
+// This REPLACES `$utilities` wholesale with a single-key map rather than merging
+// into it. `utilities/api` iterates whatever `$utilities` holds, so dropping the
+// other keys is the mechanism that limits emission to `display` -- not an
+// oversight. The inner `map-merge` keeps the display entry's own `class`,
+// `responsive` and `print` settings and replaces only `values`.
 //
-// Two narrowings, each measured rather than assumed.
-//
-// 1. Only the `display` utility. The full API also generates spacing, colour,
-//    border, flex, sizing and text utilities -- hundreds of `!important`
-//    selectors this app never asked for, each a chance to collide with the
-//    hand-written bundles.
-//
-// 2. Only `none` and `inline` from that utility. These are exactly what the
-//    reported defect needs: `d-none` (12 call sites) and the `d-lg-inline` half
-//    of the `class="d-none d-lg-inline"` pair at base.html:213,219 -- emitting
-//    `d-none` without `d-lg-inline` would leave those two labels permanently
-//    hidden, so the pair is indivisible.
-//
-//    Emitting the utility's full value list additionally activates `d-flex`
-//    (15 call sites) and `d-inline-block` (1). That is a rendering change, not a
-//    bug fix: measured against a same-machine baseline it moved 18 of 66 visual
-//    captures -- volume-splitter x6 (this fix), plus session-summary x6 and
-//    weekly-summary x6 at 120k-564k pixels each, because their JS builds
-//    `d-flex` rows. Those two pages have looked the way they look for the app's
-//    whole history; changing them is an owner-reviewed visual decision with its
-//    own baseline regeneration, not something a `.d-none` fix should smuggle in.
-//    Recorded as a follow-up with that measurement attached.
+// Value order is load-bearing: `utilities/api` emits in list order, so the LAST
+// value wins between two utilities of equal specificity and importance. Upstream
+// Bootstrap orders `inline` before `none`; keeping that order means
+// `class="d-none d-inline"` resolves to `none` exactly as it does in stock
+// Bootstrap. Writing `none inline` would silently invert that precedence.
 $utilities: (
   "display": map-merge(
     map-get($utilities, "display"),
-    (values: none inline)
+    (values: inline none)
   )
 );
 
