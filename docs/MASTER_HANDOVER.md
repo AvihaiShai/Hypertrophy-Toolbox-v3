@@ -4,7 +4,7 @@
 
 ## Current State
 
-> **2026-08-08 (LATEST) — the test-runtime optimization arc is CLOSED on both
+> **2026-08-09 (LATEST) — the test-runtime optimization arc is CLOSED on both
 > lanes.** Branch `wt/playwright-shards` (unpushed, no PR), based on
 > `perf/test-schema-template`.
 >
@@ -62,10 +62,11 @@
 > `data-workout-controls-busy` on `<html>` makes that state observable (set
 > synchronously before the first `await`, cleared in `finally`); it is
 > display-only and read by nothing in the app. `waitForWorkoutPlanReady()` waits
-> for `load` + its absence. **`waitForPageReady` is unchanged and still backs the
-> other 21 specs** — rolling the mechanism further is owner-gated, and the
-> proposed next spec is `workout-plan.spec.ts` (36 calls, ~17.6s, same page, so no
-> new marker), with `ui-hardening.spec.ts` (64 calls, ~31.4s) after it.
+> for `load` + its absence. **At the end of packet 1, `waitForPageReady` remained
+> unchanged and backed the other 21 specs.** The next measured candidates were
+> `workout-plan.spec.ts` (36 modeled calls, ~17.6s, same page, so no new marker)
+> and then `ui-hardening.spec.ts` (64 modeled calls, ~31.4s); packets 4 and 5
+> below record their completed, path-by-path rollouts.
 >
 > **Packet 3 then fixed the vacuous assertions in `superset-edge-cases.spec.ts`.**
 > All 27 runtime conditionals that could bypass an assertion are gone, along with
@@ -119,7 +120,7 @@
 > the helper's post-seed reload fires once per seeding event and the delete tests
 > remove rows. Per-spec call counts are not a fixed property of a file.
 >
-> **The workout-plan rollout is closed: six specs, 147 calls, 49.2s — 6.9% of the
+> **The workout-plan rollout is closed: five specs, 147 calls, 49.2s — 6.9% of the
 > 711.3s local group.** What still runs `networkidle` is retained deliberately
 > and documented: `workout-plan.spec.ts`'s two blocks (19 tests that read the
 > plan table directly — no shared helper to repair, so it is a different change)

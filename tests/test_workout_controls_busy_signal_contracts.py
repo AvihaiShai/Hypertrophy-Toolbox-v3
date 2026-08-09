@@ -2,8 +2,9 @@
 
 Selecting an exercise starts a profile-estimate fetch whose response overwrites
 the six Workout Controls. `networkidle` used to hide that race by waiting half a
-second after all traffic stopped; `validation-boundary.spec.ts` now waits for
-this signal instead, which is precise and ~500ms/navigation cheaper.
+second after all traffic stopped. Five workout-plan specs now use this signal
+on their verified paths instead, which is precise and avoids the fixed
+`networkidle` silence interval.
 
 The signal is only sound if three things hold, and each fails silently:
 
@@ -84,8 +85,8 @@ def test_waiter_uses_the_signal_and_not_networkidle() -> None:
     )
 
 
-def test_waitforpageready_is_unchanged_for_every_other_spec() -> None:
-    """This packet converts one spec. The shared helper stays as it was."""
+def test_waitforpageready_remains_available_for_unconverted_paths() -> None:
+    """Retained workout-plan paths and other pages still need the shared helper."""
     fixtures = read(FIXTURES)
     original = re.search(
         r"export async function waitForPageReady\(page: Page\): Promise<void> \{(.*?)\n\}",
@@ -94,8 +95,8 @@ def test_waitforpageready_is_unchanged_for_every_other_spec() -> None:
     )
     assert original is not None
     assert "networkidle" in original.group(1), (
-        "waitForPageReady still backs 21 unconverted specs; changing it here would "
-        "roll the mechanism out without the per-spec verification that gates it"
+        "waitForPageReady still backs retained and unconverted paths; changing it "
+        "would roll the mechanism out without the per-path verification that gates it"
     )
 
 

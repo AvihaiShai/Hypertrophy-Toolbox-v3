@@ -422,9 +422,10 @@ unchanged.
 | `exercise-interactions` (helper repair) | 21 | 10.0s | 0.48s |
 | **total** | **147** | **49.2s** | **0.33s** |
 
-49.2s off a 711.3s local group — **6.9%** — with test counts, hard-wait counts
-and production behavior unchanged throughout, and assertion counts either
-unchanged or higher.
+The independently measured per-spec savings sum to **49.2s**, equivalent to
+**6.9%** of the 711.3s pre-work local group. The full group has not been re-timed
+after the rollout. Test counts, hard-wait counts, and production behavior stayed
+unchanged throughout, and assertion counts were unchanged or higher.
 
 ### The workout-plan rollout is closed
 

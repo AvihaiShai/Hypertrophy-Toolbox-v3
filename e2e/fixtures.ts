@@ -210,8 +210,10 @@ export async function waitForPageReady(page: Page): Promise<void> {
  * This waits for the same two things explicitly: the document has loaded, and no
  * estimate is in flight that could still overwrite the controls.
  *
- * Adopted by `validation-boundary.spec.ts` only. Every other spec still uses
- * `waitForPageReady` — rolling this out further is a separate, owner-gated step.
+ * Adopted by the five workout-plan specs whose converted paths were measured:
+ * `validation-boundary`, `workout-plan`, `ui-hardening`,
+ * `superset-edge-cases`, and `exercise-interactions`. Rolling a readiness
+ * mechanism onto other pages requires a separate, owner-gated design.
  */
 export async function waitForWorkoutPlanReady(page: Page): Promise<void> {
   await page.waitForLoadState('load');

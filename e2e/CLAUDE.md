@@ -6,7 +6,7 @@ Playwright Chromium specs covering UI flows end-to-end. `playwright.config.ts` a
 ## Key files
 | File | Coverage |
 |---|---|
-| `fixtures.ts` | Shared `test` fixture (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `expectToast()` |
+| `fixtures.ts` | Shared `test` fixture (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `waitForWorkoutPlanReady()`, `expectToast()` |
 | `fixtures/database.visual.seed.db` | Seed DB used by visual specs (committed; whitelisted in `.gitignore`) |
 | `smoke-navigation.spec.ts` | Page loads + nav cycle (no fixtures) |
 | `dark-mode.spec.ts`, `nav-dropdown.spec.ts` | Theme + navbar |
