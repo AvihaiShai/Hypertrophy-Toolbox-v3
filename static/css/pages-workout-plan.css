@@ -3440,6 +3440,15 @@ select.filter-dropdown:focus {
   border: 1px solid var(--wp-border);
 }
 
+/* `hidden` must actually hide. The shared button rules in components.css set
+   `display: inline-flex !important` (on `button.btn` and twice on
+   `.btn-calm-danger`), which outranks both the UA `[hidden]` rule and a plain
+   inline `display: none` — so the Unlink button rendered for a non-superset
+   selection. An id-scoped important rule is the one weight that wins here. */
+#superset-actions .btn[hidden] {
+  display: none !important;
+}
+
 .superset-selection-info {
   font-size: 0.875rem;
   color: var(--wp-text-muted);

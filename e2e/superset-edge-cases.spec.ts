@@ -15,6 +15,7 @@ import {
   SELECTORS,
   waitForWorkoutPlanReady,
   API_ENDPOINTS,
+  expectToast,
   resetWorkoutPlan,
 } from './fixtures';
 
@@ -298,23 +299,29 @@ test.describe('Unlink Superset Edge Cases', () => {
 
     const unlinkBtn = page.locator('#unlink-superset-btn');
 
-    // The app's own decision: `updateSupersetActionButtons()` sets the unlink
-    // button to display:none unless the single selected row is in a superset.
-    expect(
-      await unlinkBtn.evaluate(el => el.style.display),
-      'the app should mark unlink hidden for a non-superset selection'
-    ).toBe('none');
+    // Rendered state, not the app's intent. Asserting `el.style.display` only
+    // proved `updateSupersetActionButtons()` had made the right decision; three
+    // `!important` display rules in components.css then outranked that inline
+    // style and the user saw the button anyway. `toBeHidden()` is the assertion
+    // that fails if the cascade wins again.
+    await expect(
+      unlinkBtn,
+      'unlink must not be rendered for a non-superset selection'
+    ).toBeHidden();
     await expect(page.locator('#superset-selection-info')).toContainText(
       'select 1 more to create superset'
     );
 
-    // KNOWN DEFECT, reported not fixed: three `!important` display rules in
-    // components.css (`.btn`, `.btn-calm-danger`) outrank that inline style, so
-    // the button is rendered anyway. `toBeHidden()` therefore fails today. What
-    // still holds — and is what protects the user — is that the action itself is
-    // guarded, so invoking it cannot put a non-superset row into a superset.
-    await unlinkBtn.click();
-    await page.waitForTimeout(500);
+    // Defence in depth: `handleUnlinkSuperset()` refuses a selection that is in
+    // no superset. Dispatched straight at the hidden button (a real click would
+    // fail actionability), it must post nothing and change nothing.
+    let unlinkRequests = 0;
+    page.on('request', request => {
+      if (request.url().endsWith(API_ENDPOINTS.SUPERSET_UNLINK)) unlinkRequests++;
+    });
+    await unlinkBtn.dispatchEvent('click');
+    await expectToast(page, 'Please select an exercise that is part of a superset');
+    expect(unlinkRequests, 'the guard must not reach the unlink endpoint').toBe(0);
     await expect(page.locator('#workout_plan_table_body tr')).toHaveCount(1);
     await expect(supersetRows(page)).toHaveCount(0);
   });
@@ -332,10 +339,13 @@ test.describe('Unlink Superset Edge Cases', () => {
     await checkboxes.nth(0).click();
     await page.waitForTimeout(300);
 
-    // Unlink should now be visible
+    // Unlink should now be visible, and Link — which this selection cannot use —
+    // hidden. Both directions of the same toggle, so a fix that hid everything
+    // would fail here.
     const unlinkBtn = page.locator('#unlink-superset-btn');
     await expect(unlinkBtn).toBeVisible();
     await expect(unlinkBtn).toBeEnabled();
+    await expect(page.locator('#link-superset-btn')).toBeHidden();
   });
 
   test('unlink clears both exercises from superset', async ({ page }) => {
