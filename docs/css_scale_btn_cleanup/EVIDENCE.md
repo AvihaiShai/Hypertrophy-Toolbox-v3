@@ -14,8 +14,27 @@ own packet."*
 **0 differing across 339,120 records**. Seven-surface Stylelint **2,759 → 2,752 (−7)**,
 no category increased, the entire delta attributable to `a11y.css`.
 
-Base: `origin/main` = `ac2923b`. Production ownership: `static/css/a11y.css` only.
+Base: merged onto `origin/main` = `8b5231a` (2026-08-10). Production ownership:
+`static/css/a11y.css` only.
 Plan and council record: [`PLANNING.md`](PLANNING.md), [`COUNCIL_FINDINGS.md`](COUNCIL_FINDINGS.md).
+
+> **2026-08-10 — re-verified after merging current `main`, and the visual gate is no
+> longer blocked.** PR #309 (`10ba89f`) regenerated the stale win32 baseline corpus that
+> issue #304 tracked, taking `visual.spec.ts-snapshots` from 64 to 66 and the tracked
+> corpus from 160 to 162. The full seeded matrix now returns **66 passed** on this
+> packet's tree, twice, with **zero snapshots written**.
+>
+> **This retires the one claim the packet previously could not make.** The earlier
+> revision recorded non-attribution as proven and regression-freedom as *"NOT PROVEN, and
+> not provable until #304 is completed"*, because 58 of 66 tests were already red and the
+> pixel oracle was running at roughly 12% of its discriminating power. That is now
+> discharged directly: the #309 baselines were generated on `main`, which does **not**
+> contain this deletion, so 66/66 byte-identical captures are a cross-tree pixel proof
+> that the deletion changes nothing rendered — not a self-consistency check.
+>
+> Everything re-measured below reproduced exactly (Stylelint −7, differential 0/339,120,
+> flip 22/22, oracle PASS both sides, contracts 36). The rows that moved are pytest,
+> the required Chromium set and the visual matrix; §9, §9b and §9c carry the detail.
 
 ---
 
@@ -337,18 +356,28 @@ work.
 
 ## 9. Gates
 
+All rows re-run on the merged tree (`main` = `8b5231a`) on 2026-08-10.
+
 | Gate | Result |
 |---|---|
 | `tests/test_css_wp4_4_a11y_contracts.py` | **36 passed** (22 before) |
-| Red-path proof | **6/6** go red under their own violation; tree restores to 36 passed |
-| Full `pytest tests/` | **2,538 passed, 2 skipped** (448s) |
-| Required Chromium specs + `visual-field-separator` | **174 passed, 1 failed** — pre-existing pollution, see §9b |
-| Full seeded `visual.spec.ts` | **58 failed / 8 passed — IDENTICAL to the unmodified-CSS control.** Gate blocked repository-wide, see §9c |
+| Red-path proof | **6/6** go red under their own violation; tree restores to 36 passed. The two the merge could reach were re-executed — see §9d |
+| Full `pytest tests/` | **2,630 passed, 2 skipped** (185s) |
+| Required Chromium specs + `visual-field-separator` | **175 / 175 passed**, twice; matched control also 175/175 twice — see §9b |
+| Full seeded `visual.spec.ts` | **66 passed**, twice, **0 snapshots written** — the gate is unblocked, see §9c |
+| `visual-baseline-thumbnails.spec.ts` | **18 passed**, 0 snapshots written |
 | Seven-surface Stylelint | **2,759 → 2,752 (−7)**, **no category increased** |
 | `a11y.css` Stylelint | **128 → 121 (−7)**; every other surface **+0** |
 | Rest-state differential | **0 differing / 339,120** |
 | Same-CSS control | **0 differing / 97,600**, both sides |
 | Oracle validity | **PASS** both sides — live controls 1760/1760 after deletion |
+| Flip by source identity | **22/22** (members × themes) |
+
+**What moved and what did not.** Stylelint, the differential, the flip, oracle validity
+and the contract count all reproduced to the digit. pytest rose **2,538 → 2,630** purely
+because `main` grew — this packet's own contribution to the node count is unchanged at
+**+14**, all in `tests/test_css_wp4_4_a11y_contracts.py`. The Chromium and visual rows
+improved, for the reasons in §9b and §9c.
 
 ### Stylelint attribution
 
@@ -378,26 +407,90 @@ packet does not spend time diagnosing it.
 quietly widen the scope."* Its designed remedy is a verdict row, which this packet added
 for `scale_btn_census.mjs`. **No P3 packet is reopened; P3 remains terminated at a0.**
 
-### 9b. The one functional failure is pre-existing combined-run pollution
+### 9b. The ten required specs are green, and the noise around them is host-side
 
-The ten required Chromium specs returned **174 passed, 1 failed** —
-`ui-hardening.spec.ts:375 full reload restores all six Workout Controls`. It is not this
-packet's:
+**Settled result: 175 / 175 passed, reproduced twice, with the matched control also at
+175/175 twice.** Both sides were run `--workers=1` on the merged tree, the only
+difference being `static/css/a11y.css`.
 
-- it **passes in isolation** (1 passed), and its own spec run whole is **37/37 passed**;
-- the same ten specs run against the **unmodified** `a11y.css` returned **170 passed, 5
-  failed** — five *different* tests, all in `summary-pages.spec.ts` (Pattern Coverage).
+| Run | CSS | Workers | Result |
+|---|---|---|---|
+| candidate | this packet | 1 | **175 / 175 passed** |
+| candidate, repeat | this packet | 1 | **175 / 175 passed** |
+| control | unmodified `a11y.css` | 1 | **175 / 175 passed** |
+| control, repeat | unmodified `a11y.css` | 1 | **175 / 175 passed** |
 
-Non-overlapping failure sets across two runs of identical-except-for-CSS trees is the
-signature of cross-spec DB-state pollution, which `QUALITY_GATE.md:124` already records
-for `program-backup.spec.ts:79`. The control failing **more** than the candidate settles
-the direction.
+**Getting there required discarding four earlier runs, and they are recorded rather than
+dropped**, because a reader who reruns this on a busy host will see them:
 
-### 9c. The Windows visual gate is blocked repository-wide, and it is not this packet
+| Run | CSS | Workers | Failures |
+|---|---|---|---|
+| candidate | this packet | default | 7 — `summary-pages` ×5, `ui-hardening` ×2 |
+| control | unmodified | default | 5 — `nav-dropdown` ×1, `ui-hardening` ×4, **all different tests** |
+| candidate | this packet | default | 18 — incl. `visual-field-separator`, `volume-progress` |
+| candidate | this packet | 1 | 10 — did **not** reproduce on two later serial runs |
 
-Run with `PW_VISUAL_SEED=1`, comparing against the committed `e2e/__screenshots__/win32`
-baselines. **No snapshot was written; `--update-snapshots` was never passed; no
-tolerance, mask or retry was touched.**
+**No failure reproduced on either side, and the failure sets are disjoint.** Every
+implicated spec passes whole in isolation on the candidate tree: `ui-hardening`
+**37/37**, `nav-dropdown` **7/7**, `visual-field-separator` **42/42**, and
+`summary-pages` **20/20** on three consecutive runs after two early flaky ones. The
+control's isolated `summary-pages` behaved identically — 3 failed once, then 20/20 twice.
+
+**The host explains it.** The machine was at **14,543 open TCP connections** against a
+~16,384 ephemeral port pool — the exact exhaustion condition ADR-006 records when it
+rejected same-machine Playwright sharding — and a concurrent worktree owned port 5000,
+so every run here was pinned with `PW_PORT=5057`. Both flaky specs
+(`summary-pages.spec.ts`, `ui-hardening.spec.ts`) were also **rewritten by `main` in
+#311's wait-strategy sweep** and are touched by neither this packet nor its CSS.
+
+The direction is settled the same way it was before: a control that fails at least as
+often as the candidate, on disjoint tests, none reproducing.
+
+### 9c. The Windows visual gate is UNBLOCKED, and the packet is pixel-clean on it
+
+> **Supersedes this section's previous content**, which recorded the gate as **BLOCKED**
+> at 58 failed / 8 passed on both sides, and stated that regression-freedom was *"NOT
+> PROVEN, and not provable until #304 is completed."* That was accurate on 2026-08-05 and
+> is now discharged. The non-attribution control it rested on is preserved below as the
+> historical record it is.
+
+**PR #309 (`10ba89f`, merged 2026-08-08) regenerated the win32 corpus** that issue #304
+tracked as broadly stale — `visual.spec.ts-snapshots` **64 → 66**, tracked corpus
+**160 → 162** — after the owner's by-eye review. That was this packet's single merge
+blocker.
+
+Run with `PW_VISUAL_SEED=1` against the committed `e2e/__screenshots__/win32` baselines.
+**No snapshot was written; `--update-snapshots` was never passed; no tolerance, mask or
+retry was touched.** `git status --porcelain e2e/__screenshots__` was empty after every
+run.
+
+| Run | CSS | Result |
+|---|---|---|
+| candidate | this packet's deletion | **66 passed / 0 failed** |
+| candidate, repeat | this packet's deletion | **66 passed / 0 failed** |
+| `visual-baseline-thumbnails.spec.ts` | this packet's deletion | **18 passed / 0 failed** |
+
+**Why this is a stronger proof than a matched control would be.** The #309 baselines were
+generated on `main`, which does **not** contain this deletion. The candidate reproducing
+all 66 byte-for-byte is therefore a *cross-tree* comparison — rendering with the eleven
+rules deleted is byte-identical to rendering with them present — rather than a
+self-consistency check. No same-tree control run is needed to make that claim, and none
+is cited.
+
+**What this retires.** The previous revision measured the pixel oracle at roughly **12%**
+of its discriminating power: with 58 of 66 already red, a regression landing on any
+already-failing test was undetectable, so the packet could prove only that it had not
+*caused* the 58 inherited failures. The oracle now runs at full resolution and returns
+clean, so the substitute instrument that carried the claim in the meantime — the
+339,120-record computed-style differential — is corroborated rather than relied upon.
+Both agree, and the pixel gate `QUALITY_GATE.md` requires for a shared surface is now
+satisfied on its own terms.
+
+---
+
+**The historical non-attribution control, preserved.** Before #309, three runs at
+`main` = `02e73c7`, with both sides facing identical baseline state, returned 58 failed /
+8 passed each — control, control rerun, and candidate.
 
 | Run | CSS | Result |
 |---|---|---|
@@ -413,12 +506,13 @@ passed in CONTROL but FAILED in mine: none
 passed in MINE  but failed in control: none
 ```
 
-**The two sets are identical.** The Windows baseline corpus is broadly stale against
-current `main` — the same condition already documented for Linux in
-`MASTER_HANDOVER.md` §"Known LINUX visual reds", where 84 committed PNGs fell behind 57
-CSS/template commits. This packet neither caused it nor can fix it: rebaselining is an
-owner action requiring a by-eye review of the regenerated corpus, and
-`QUALITY_GATE.md` is explicit that a red is never resolved with `--update-snapshots`.
+**The two sets were identical.** The Windows baseline corpus was then broadly stale
+against `main` — the same condition documented for Linux in `MASTER_HANDOVER.md`
+§"Known LINUX visual reds", where 84 committed PNGs fell behind 57 CSS/template commits.
+This packet neither caused it nor could fix it: rebaselining is an owner action requiring
+a by-eye review of the regenerated corpus, and `QUALITY_GATE.md` is explicit that a red
+is never resolved with `--update-snapshots`. #309 did exactly that, under owner review,
+which is why the section above supersedes this one.
 
 **One honest correction worth recording:** the packet's *first* visual run reported 60
 failed / 6 passed, and it would have been easy to file that 2-test delta as a finding.
@@ -426,10 +520,23 @@ It was not reproducible — the control is stable at 58/8 across reruns, and a c
 candidate rerun matched it exactly. The first run of a fresh browser process differs
 from every later one, which `scripts/css_audit/runtime_probe.mjs` documents directly
 ("capture 1 differed from capture 2, and captures 2..6 were byte-identical"). A single
-visual run is not evidence in either direction.
+visual run is not evidence in either direction — which is why the green result above is
+recorded as **two** runs, not one.
 
-The visual **merge** gate is therefore marked **BLOCKED**, with the blocker external to
-this packet and its non-attribution demonstrated by control rather than asserted.
+### 9d. Red paths, re-executed where the merge could reach them
+
+The six red paths were proven before the merge and neither `static/css/a11y.css` nor
+`tests/test_css_wp4_4_a11y_contracts.py` changed in it — both are byte-identical to
+`f61e3f4`, and `main` never touched either file. Two were re-executed anyway, because the
+merge *could* have reached them:
+
+| Red path | Why re-run | Result |
+|---|---|---|
+| Sibling-surface resurrection guard | `main` modified `layout.css`, which the guard reaches through its `static/css/*.css` glob | appending `.scale-btn` to the merged-in `layout.css` fails `test_legacy_generation_is_not_resurrected_by_a_sibling_surface[layout.css]`; **1 failed, 35 passed**; tree restores to **36 passed** |
+| **Member 11 restored alone** (the adversarial one) | it is the path that proves the contracts tell two byte-identical selectors apart | restoring only the `@media (max-width: 991.98px)` occurrence fails **both** `test_legacy_scale_and_menu_generation_stays_deleted` and `test_the_emptied_breakpoint_block_holds_no_style_rule`; **2 failed, 34 passed**; tree restores to **36 passed** |
+
+Restoring member 1 instead would prove nothing about that discrimination, which is why
+the adversarial form is the one kept.
 
 ---
 

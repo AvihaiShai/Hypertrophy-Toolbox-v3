@@ -370,10 +370,24 @@ Derived from the `QUALITY_GATE.md` **CSS (static bundles) → shared surfaces** 
    instruction — will mark the visual merge gate **blocked** rather than claim a single
    green compare as determinism, if the repository-wide blocker is still open at
    execution time.
+
+   > **Resolved 2026-08-10.** The blocker (issue #304) was open at first execution and the
+   > gate was marked **blocked** exactly as this clause required. PR #309 (`10ba89f`,
+   > merged 2026-08-08) regenerated the win32 corpus under owner review, and on the
+   > re-merged branch the seeded matrix returns **66 passed**, run twice, with zero
+   > snapshots written. The clause is discharged rather than waived, and the result is
+   > recorded as two runs precisely because one green compare is not determinism.
+   > See [`EVIDENCE.md`](EVIDENCE.md) §9c.
+
 3. **Windows vs Linux baseline asymmetry.** The Windows ledger carries two open deferred
    reds (`workout-plan desktop dark`, band 875/882 ∪ 1,039/1,046; and
    `plan-desktop-light-advanced`, band ~6,084–6,262). Both are pre-existing, both are
    bands not constants, and neither may be "fixed" by raising `maxDiffPixels`.
+
+   > **Superseded 2026-08-10 by #309.** Both entries were regenerated in that recovery and
+   > now pass: `visual.spec.ts` **66/66** and `visual-baseline-thumbnails.spec.ts`
+   > **18/18** on this branch. The standing prohibition on raising `maxDiffPixels` is
+   > unaffected and still binding.
 
 ---
 
