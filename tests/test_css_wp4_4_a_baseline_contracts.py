@@ -42,7 +42,7 @@ SCREENSHOT_ROOT = ROOT / "e2e" / "__screenshots__"
 # (plan-desktop-{light,dark}-advanced, plan-desktop-dark-simple). See
 # BYTE_GATE_EXEMPT in e2e/visual-helpers.ts and PLANNING.md §8.10.
 EXPECTED_SNAPSHOT_COUNTS = {
-    "win32/visual.spec.ts-snapshots": 64,
+    "win32/visual.spec.ts-snapshots": 66,
     "win32/visual-baseline-thumbnails.spec.ts-snapshots": 15,
     "linux/visual.spec.ts-snapshots": 66,
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": 15,
