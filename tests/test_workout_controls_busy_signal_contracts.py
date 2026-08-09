@@ -16,6 +16,16 @@ The signal is only sound if three things hold, and each fails silently:
 * the waiter must not quietly fall back to `networkidle`, which would restore
   the cost this replaced while still reporting success.
 
+A fourth property is pinned here for diagnosability rather than correctness: the
+waiter must name what it was waiting on when it times out. A bare
+`waitForFunction` timeout reads as a generic page hang and sends the reader to
+navigation instead of to the estimate.
+
+Scope, deliberately: the marker is a **boolean observable**, not a refcount and
+not a request generation. It is exact only while estimates are serialized, which
+is what the converted E2E paths do. Overlapping estimates would clear it on the
+first response to settle — a known limitation, not fixed here.
+
 Evidence and mechanism: `docs/E2E_PERFORMANCE_PROFILE.md` finding 1.
 """
 
@@ -41,6 +51,17 @@ def estimate_function() -> str:
     source = read(ESTIMATES)
     start = source.index("export async function applyUserProfileEstimateForSelectedExercise()")
     return source[start:]
+
+
+def waiter_body() -> str:
+    """The body of waitForWorkoutPlanReady(), up to its column-0 closing brace."""
+    match = re.search(
+        r"export async function waitForWorkoutPlanReady\(page: Page\): Promise<void> \{(.*?)\n\}",
+        read(FIXTURES),
+        re.DOTALL,
+    )
+    assert match is not None, "e2e/fixtures.ts no longer exports waitForWorkoutPlanReady"
+    return match.group(1)
 
 
 def test_attribute_name_is_declared_once_as_a_constant() -> None:
@@ -70,18 +91,46 @@ def test_marker_is_cleared_in_a_finally_block() -> None:
 
 
 def test_waiter_uses_the_signal_and_not_networkidle() -> None:
-    fixtures = read(FIXTURES)
-    waiter = re.search(
-        r"export async function waitForWorkoutPlanReady\(page: Page\): Promise<void> \{(.*?)\n\}",
-        fixtures,
-        re.DOTALL,
-    )
-    assert waiter is not None, "e2e/fixtures.ts no longer exports waitForWorkoutPlanReady"
-    body = waiter.group(1)
+    body = waiter_body()
     assert ATTR in body, "the waiter must wait on the readiness signal"
     assert "networkidle" not in body, (
         "waitForWorkoutPlanReady must not fall back to networkidle -- that is the "
         "~500ms/navigation cost it exists to remove"
+    )
+
+
+def test_waiter_timeout_names_the_signal_and_the_estimate_wait() -> None:
+    """A bare waitForFunction timeout names nothing and reads as a page hang.
+
+    Without this, the failure that matters most -- an estimate that never settles
+    or a stranded marker -- is indistinguishable from a slow navigation, and the
+    next reader debugs the wrong half of the helper.
+    """
+    body = waiter_body()
+    assert "catch" in body and "throw new Error(" in body, (
+        "the estimate wait must convert its timeout into a named error"
+    )
+
+    diagnostic = body[body.index("catch"):]
+    assert ATTR in diagnostic, (
+        f"the timeout message must name {ATTR}, or the failure reads as a generic hang"
+    )
+    assert "estimate-readiness" in diagnostic, (
+        "the timeout message must say which wait timed out, not just that one did"
+    )
+    assert "networkidle" not in diagnostic, (
+        "the failure path must stay a rethrow -- no networkidle fallback smuggled in"
+    )
+
+
+def test_waiter_preserves_the_readiness_condition_and_its_tolerated_wait() -> None:
+    """The diagnostic is message-only: same condition, same timeout budget."""
+    body = waiter_body()
+    assert "waitForLoadState('load')" in body, "the load half of the readiness wait must remain"
+    assert f"hasAttribute('{ATTR}')" in body, "the marker predicate must be unchanged"
+    assert "timeout" not in body.split("catch")[0], (
+        "no explicit timeout may be introduced -- the tolerated wait stays whatever "
+        "the Playwright default was before the diagnostic was added"
     )
 
 

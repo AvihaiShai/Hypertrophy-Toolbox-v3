@@ -125,12 +125,28 @@ fills instead, the field is repopulated, the form is valid, and
 `rejects empty sets field` fails. It is a race, not a fixed ordering, which is
 why one variant run showed it and the control never did.
 
-**The signal.** `data-workout-controls-busy` on `<html>`, present exactly while
-an estimate is in flight and may still write the six Workout Controls. Set
+**The signal.** `data-workout-controls-busy` on `<html>`, present while a profile
+estimate is in flight and may still write the six Workout Controls. Set
 **synchronously before the first `await`** (so a caller that has just dispatched
 the change event already observes it) and cleared in **`finally`** (so a rejected
 estimate cannot strand it). It is display-only and never read by application
 code — it makes existing internal state observable and changes no behavior.
+
+**It is a boolean, not a counter — and the distinction is a real limitation, not
+a quibble.** Set and clear are a plain `setAttribute` / `removeAttribute` pair,
+with no refcount and no request-generation token. If two estimates ever overlap,
+the first response to settle runs the `finally` and clears the marker while the
+second is still in flight, and a waiter would be released early. The signal is
+therefore **exact only for serialized estimates**, which is what the converted
+paths do: each drives at most one selection at a time and awaits it. Treat it as
+a sound observable for those paths, not as a general concurrency primitive.
+Overlapping estimates are a **latent limitation, recorded and deliberately not
+fixed here** — `applyUserProfileEstimateForSelectedExercise()` is dispatched
+un-awaited from the `#exercise` change handler (`workout-plan.js`), so a fast
+enough double selection could in principle overlap. Making the marker exact under
+concurrency means refcounting or request-generation plus cancellation, which is a
+production behavior change and a separate owner decision. Any future spec that
+deliberately fires concurrent estimates must not assume this marker covers it.
 
 `waitForWorkoutPlanReady()` in `e2e/fixtures.ts` waits for `load` plus the
 absence of that attribute. `validation-boundary.spec.ts` uses it in all seven
@@ -256,9 +272,27 @@ the thing it depends on is synchronous: `initializeWorkoutPlanHandlers()` runs
 `beginHydration → initializeDefaultValues → restoreWorkoutControls → endHydration`
 inside the `DOMContentLoaded` handler, so it has completed by `load`. The only
 async writer of those six controls is the profile estimate, which fires on
-exercise *selection* — no selection happens on a bare `goto`/`reload`, and where
-a test does select, its own helper waits. `selectFullBodyRoutine`,
-`selectFirstExercise` and `clickAddExercise` each wait on a `waitForFunction`.
+exercise *selection*.
+
+**The safety basis is the position of the converted sites, not the behavior of
+the selection helpers.** All 26 converted sites sit immediately after a
+`page.goto()` or a `page.reload()`, where no selection has happened and so no
+estimate is in flight. The packet is a strict 1:1 substitution at those sites —
+26 `waitForPageReady` lines removed, 26 `waitForWorkoutPlanReady` lines added,
+and no other `await` deleted — so **no post-selection wait was converted or
+removed anywhere in this spec.** Sites that do need the post-selection guarantee
+already had their own and still have it: `selectExerciseWithEstimate()` brackets
+the selection with `page.waitForResponse(ESTIMATE_API)`.
+
+**Out of scope: a pre-existing post-selection race.** `selectFirstExercise()`
+waits on a `waitForFunction` *before* selecting — for the `#exercise` dropdown to
+be populated — and returns as soon as `selectOption()` resolves. It does **not**
+wait for the estimate the selection fires. So the two TS-3/TS-4 tests that call
+`selectFirstExercise(page)` and then assert on or write the six controls are
+racing that response. That race predates this packet, is unchanged by it, and is
+not introduced or repaired here; closing it means adding a post-selection wait at
+those two call sites, which is a behavior change to the assertions and a separate
+packet.
 
 **Measured, same server / DB / session (port 5334), wall clock. Control ran
 FIRST so the session's rising `TIME_WAIT` biases against the converted side:**

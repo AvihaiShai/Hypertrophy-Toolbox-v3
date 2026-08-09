@@ -214,12 +214,32 @@ export async function waitForPageReady(page: Page): Promise<void> {
  * `validation-boundary`, `workout-plan`, `ui-hardening`,
  * `superset-edge-cases`, and `exercise-interactions`. Rolling a readiness
  * mechanism onto other pages requires a separate, owner-gated design.
+ *
+ * The marker is a boolean observable and is exact only for serialized estimates
+ * — see the SCOPE note on `CONTROLS_BUSY_ATTR` in
+ * `static/js/modules/workout-plan-estimates.js`.
+ *
+ * The wait itself is unchanged on timeout: the same condition and the same
+ * tolerated duration. Only the failure message is enriched, because the bare
+ * `waitForFunction` timeout names no attribute and reads as a generic page hang,
+ * which sends the next reader looking at navigation instead of at the estimate.
  */
 export async function waitForWorkoutPlanReady(page: Page): Promise<void> {
   await page.waitForLoadState('load');
-  await page.waitForFunction(
-    () => !document.documentElement.hasAttribute('data-workout-controls-busy')
-  );
+  try {
+    await page.waitForFunction(
+      () => !document.documentElement.hasAttribute('data-workout-controls-busy')
+    );
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      'waitForWorkoutPlanReady: the estimate-readiness wait timed out. ' +
+        '`data-workout-controls-busy` was still present on <html>, so a profile-estimate ' +
+        'fetch never settled or the marker was stranded (it is cleared in a `finally` in ' +
+        'static/js/modules/workout-plan-estimates.js). This is NOT a page-load timeout — ' +
+        `the 'load' state was already reached. Original: ${detail}`
+    );
+  }
 }
 
 /**

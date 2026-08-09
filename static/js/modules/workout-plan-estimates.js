@@ -536,8 +536,8 @@ export function bindEstimateTraceToggle() {
 }
 
 /**
- * Readiness marker: present on <html> exactly while an estimate is in flight and
- * may still write the six Workout Controls.
+ * Readiness marker: present on <html> while an estimate is in flight and may
+ * still write the six Workout Controls.
  *
  * It exists because selecting an exercise starts a fetch that overwrites those
  * fields when it lands. A test that types into them straight after selecting an
@@ -550,6 +550,15 @@ export function bindEstimateTraceToggle() {
  * only makes an existing internal state observable. Set synchronously before the
  * first await so a caller that has just dispatched the change event already sees
  * it, and cleared in `finally` so a failed estimate cannot strand it.
+ *
+ * SCOPE: this is a boolean observable, not a refcount and not a request
+ * generation. It is exact only while estimates are serialized, which is what the
+ * E2E paths that consume it do. If two estimates ever overlap, the first to
+ * settle clears the marker while the second is still in flight and a waiter is
+ * released early. That is a known limitation, deliberately not addressed here:
+ * making it exact under concurrency requires refcounting or generation tracking
+ * plus cancellation, which is a production behavior change. Do not rely on this
+ * attribute from a path that issues concurrent estimates.
  */
 const CONTROLS_BUSY_ATTR = 'data-workout-controls-busy';
 

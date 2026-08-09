@@ -240,7 +240,7 @@
     "total_tests": 608
   },
   "pytest": {
-    "collected_deterministic": 2294,
+    "collected_deterministic": 2296,
     "deterministic_files": 110,
     "environment_dependent_files": [
       {
@@ -671,7 +671,7 @@
       },
       {
         "file": "tests/test_workout_controls_busy_signal_contracts.py",
-        "tests": 7
+        "tests": 9
       },
       {
         "file": "tests/test_workout_log_calibration_route.py",
