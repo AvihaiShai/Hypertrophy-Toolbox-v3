@@ -4,8 +4,24 @@ Execution goal for [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) row **
 ("Remove obsolete worktrees and generated artifacts"), which has stood at 0% across
 six audit revisions because it was never converted from a warning into a procedure.
 
-Status: **READY** (v23 classified it WAIT; see §2 — the named condition is now satisfied).
-Owner gate required before Packet C and Packet D only.
+Status: **PARTIAL — WORKTREE REMOVAL COMPLETE; GENERATED-ARTIFACT PACKET NOT EXECUTED.**
+Owner gate remains required for artifact and preserved-worktree disposition decisions.
+
+> **Execution update — 2026-08-08, attempt 6.** A fresh 50-worktree / 305-PR /
+> `ls-remote` gate found all 40 candidates eligible and 10 KEEP rows. All 40 were removed
+> non-forced after an immediate per-path identity/cleanliness check; 0 skipped, 0 failed.
+> The final registry contains exactly the 10 KEEP rows recorded in §9, and prune dry-runs
+> were empty before and after the no-op prune. No branch was deleted. Twenty deregistered
+> paths retain only validated `.venv`/`node_modules` junctions into shared main; they were
+> deliberately not recursively or manually deleted. This update supersedes the dated §5
+> counts and completes the worktree half only; §6's artifact work remains open.
+
+> **Reconciliation — 2026-08-10, against `origin/main` `8b5231a`.** The removal held:
+> **0 of the 41 REMOVED paths in §9 are registered again**, `git worktree prune --dry-run`
+> is still empty, and 20 of them still carry the junction-only shells described above.
+> The registry has since moved on its own — it now reads **12**, not 10 — so the count is
+> not the invariant and §7's check has been reworded accordingly. Three registrations are
+> new work by other sessions, and one KEEP row was removed externally. Details in §9.1.
 
 ---
 
@@ -29,6 +45,14 @@ Return the machine to a defensible working state:
 4. No branch was deleted. Branch deletion is **out of scope** — see §7.
 5. `docs/LEFTOVERS_BY_PRIORITY.md` P1.2 updated to RETIRE with a pointer to the ledger.
 6. Working tree of the shared checkout is clean and still on `main`.
+
+> **Corrected 2026-08-10 by execution.** Two of these were written wrong.
+> **(1)** is not testable as stated: this is a live machine, and legitimate new worktrees
+> appear between any two commands — three did during this packet's own reconciliation. The
+> real invariant is *set-based, not count-based*: **no §9 REMOVED path is registered, and
+> every §9 KEEP path either is registered or has a recorded disposition in §9.1.**
+> **(5)** overreached: only the worktree half ran, so P1.2 goes to **PARTIAL**, not RETIRE.
+> RETIRE needs §6 as well. (2), (3), (4) and (6) are met.
 
 ### Out of scope / non-goals
 
@@ -252,9 +276,17 @@ prove nothing in the shared checkout moved:
 
 ```bash
 git -C D:/development/Hypertrophy-Toolbox-v3-main status --short   # must be empty
-git worktree list --porcelain | grep -c '^worktree '               # must equal 8
+git worktree list --porcelain                                      # compare as a SET, see below
 git worktree prune --dry-run                                       # must print nothing
 ```
+
+**Do not assert a worktree count.** An earlier revision of this block asserted `8`, and the
+execution update briefly replaced it with `10`; both were stale within two days, and during
+this packet's own reconciliation the registry grew from 10 to 12 between two consecutive
+commands. Other sessions create worktrees legitimately and continuously. Compare the
+porcelain output against §9 as a set instead: **no REMOVED path may appear, every KEEP path
+must appear or carry a §9.1 disposition, and anything else is new work belonging to another
+session — not this packet's residue and not evidence of failure.**
 
 Only if `artifacts/` deletions touched a path a test reads: `/run-tests`.
 
@@ -276,6 +308,82 @@ Only if `artifacts/` deletions touched a path a test reads: `/run-tests`.
 
 Populated during execution. One row per path, removed or retained.
 
+**51 rows = 41 REMOVED + 10 KEEP.** The 41 is not a contradiction of the "40 candidates"
+figure in the execution update: `…-pyright-fc` was already gone when attempt 6 derived its
+registry — the #307 session removed it — so it is carried here as **REMOVED EXTERNALLY**
+for continuity but was never one of the 40 this packet acted on. 50 registered = 40 + 10.
+
 | Path | Branch | HEAD | PR | Proof | Action | Date |
 |---|---|---|---|---|---|---|
-| _(pending execution)_ | | | | | | |
+| `…-v3-main` | `main` | `4025295` | — | Shared current checkout | **KEEP** | 2026-08-08 |
+| `D:/development/HT-v23-audit` | `docs/leftovers-v23-audit` | `9dc4eef` | #278 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `D:/development/HT-v3-winregen` | `fix/win32-visual-baseline-regen` | `b990412` | — | Unpublished, only copy | **KEEP** | 2026-08-08 |
+| `…-app-py-p1-handlers` | `wt/app-py-p3-cleanup` | `c485521` | #235 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-awi` | `wt/agent-workflow-integrity` | `2bddd98` | #292 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-bs538-rebuild` | `wt/playwright-lockstep` | `44976f4` | #283 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-bs538-spike` | `wt/bs538-spike` | `d72d00e` | — | 4 dirty entries | **KEEP** | 2026-08-08 |
+| `…-ci-inv-text` | `docs/ci-inventory-summary-text` | `a6e7843` | #271 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-dnone` | `wt/dnone-visibility` | `f93040e` | #303 open | Open draft; 3 local commits ahead | **KEEP** | 2026-08-08 |
+| `…-docs-status-row` | `rescue/p1-refinement-probe` | `57027ab` | — | Mandated preservation | **KEEP** | 2026-08-08 |
+| `…-invdrift` | `wt/inventory-drift-blocking` | `5ccb66d` | #267 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-ki006-modal-keyboard` | `wt/ki006-modal-keyboard` | `36f0c8a` | #284 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main/.claude/worktrees/agent-a079c616d5d9a5cb4` | `docs/wp4-4-p2-quality-gate-css-row` | `f20a85c` | #222 merged | Fresh §3 gate; nested harness row | **REMOVED** | 2026-08-08 |
+| `…-main/.claude/worktrees/agent-aa6ae3dc2a05b8161` | `docs/wp4-4-p1-linux-reds-ledger` | `5f52d82` | #223 merged | Fresh §3 gate; nested harness row | **REMOVED** | 2026-08-08 |
+| `…-main-bootstrap-538-compat` | `wt/bootstrap-538-compat` | `905950a` | #274 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-n4-checkpoint` | `wt/wp4-4-k-integration` | `81872c7` | #217 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-node24-ci` | `wt/node24-ci` | `95f51ca` | #275 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-p1-2-cleanup` | `wt/p1-2-cleanup` | `d53c800` | — | Assigned execution checkout | **KEEP** | 2026-08-08 |
+| `…-main-p1-6-deps-closeout` | `wt/p1-6-deps-closeout` | `88f6f96` | #289 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-p3-a0-audit` | `wt/p3-a0-audit` | `df0d0a5` | #280 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-stylelint17` | `probe/stylelint17` | `fb0e059` | — | Unpublished Stylelint 17 probe | **KEEP** | 2026-08-08 |
+| `…-main-visual-determinism` | `wt/visual-determinism` | `160b1a8` | #286 merged | HEAD contained in `origin/main` | **REMOVED** | 2026-08-08 |
+| `…-main-visual-helper` | `wt/wp4-4-visual-helper-band` | `3b74901` | #211 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-b-base` | `wt/wp4-4-b-base` | `62ac008` | #192 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-d1-a11y` | `wt/wp4-4-d1-a11y` | `b83c3eb` | #197 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-d2-a11y` | `docs/wp4-4-d2-evidence-corrections` | `0564716` | #204 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-e-layout` | `wt/wp4-4-e-layout` | `6b709c5` | #195 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-f1-navbar` | `wt/wp4-4-f1-navbar` | `96eb844` | #199 merged | 2 dirty junction entries | **KEEP** | 2026-08-08 |
+| `…-main-wp4-4-g-components-audit` | `wt/wp4-4-g-components-audit` | `0309043` | #207 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-g-terminology-correction` | `wt/wp4-4-g-terminology-correction` | `8ada8f6` | #209 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-h-components-dead` | `wt/wp4-4-h-components-dead` | `5503a23` | #208 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-i-is-repair` | `wt/wp4-4-i-oracle-provenance` | `f01e0b4` | #215 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-main-wp4-4-j` | `wt/wp4-4-j-theme-dark` | `ca6f127` | #216 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-p1-7-sidecars` | `chore/p1-7-sidecar-cleanup` | `edc61a8` | #285 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-p13-p18-closeout` | `wt/p13-p18-closeout` | `108c50d` | — | Unpublished docs closeout | **KEEP** | 2026-08-08 |
+| `…-p4-audit` | `docs/p4-verification-closeout` | `97754a4` | #257 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-p4stop` | `docs/phase4-stopgap-ledger` | `5b41464` | #273 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-p5fix` | `wt/app-py-p4-version-buster` | `c64a809` | #236 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-prep4` | detached | `99c5a36` | — | Proven ancestor of `origin/main` | **REMOVED** | 2026-08-08 |
+| `…-pyright-fc` | `wt/pyright-fatigue-context` | `93e54fb` | #307 merged | Removed by #307 session before attempt 6 | **REMOVED EXTERNALLY** | 2026-08-08 |
+| `…-scale-btn` | `wt/scale-btn-cleanup` | `f61e3f4` | #302 open | Open draft | **KEEP** | 2026-08-08 |
+| `…-sep` | `fix/tbl-separator-contrast` | `25d8ce9` | #290 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-tblhelpers` | `wt/css-tbl-helpers` | `fb78365` | #300 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-testing-phase01` | `wt/testing-execution-log` | `3ad0c0a` | #255 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-tsdrift` | `docs/testing-strategy-status-drift` | `bfc8039` | #270 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-vbl` | detached | `489a7ce` | — | Proven ancestor of `origin/main` | **REMOVED** | 2026-08-08 |
+| `…-verify` | `fix/post-merge-hardening` | `4a5c4e4` | #266 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-visual-recovery-update` | `recovery/linux-visual-baselines` | `50447d3` | #281 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-winvis` | `docs/windows-visual-staleness` | `ffbc1c9` | #305 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-wpb4` | `wt/wpb4-unassigned-bucket` | `b636a39` | #256 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+| `…-wpb4-plan` | `docs/closeout-stale-instructions` | `07a5ae4` | #265 merged | Fresh §3 gate | **REMOVED** | 2026-08-08 |
+
+### 9.1 Post-execution reconciliation — 2026-08-10
+
+Re-derived against `origin/main` `8b5231a`. **The removal held.** None of the 41 REMOVED
+paths is registered again, `prune --dry-run` is empty, and 20 still carry junction-only
+shells. Everything below is drift caused by other sessions after attempt 6, recorded here
+rather than by rewriting the table above — none of it is this packet's residue.
+
+| Change | Detail | Disposition |
+|---|---|---|
+| KEEP row removed externally | `D:/development/HT-v3-winregen` — worktree **and** branch `fix/win32-visual-baseline-regen` are gone. | **No loss.** Its commit `b990412` is contained in `recovery/win32-visual-baseline-corpus`, which shipped as **#309**. Verified with `git for-each-ref --contains b990412`. |
+| KEEP row re-pointed | `…-dnone` was `wt/dnone-visibility` @ `f93040e` (#303 open); it is now `recovery/win32-visual-baseline-corpus` @ `4001fbd`. | **Its KEEP basis has expired** — #303 and #309 are both merged and the tree is clean, so §4 now classifies it REMOVE. Deferred to the owner-gated Packet E; do not act on it here. Removing the worktree would not endanger `b990412` — the branch ref survives worktree removal. |
+| Shared checkout advanced | `…-v3-main` `4025295` → `8b5231a`. | Expected. Not drift. |
+| Three new registrations | `…-main-xdist`, `…-main-single-exercise-catalog-fetch`, `…-main-unlink-button-visibility`. | **Out of scope.** Active work owned by other sessions. Two appeared mid-reconciliation. |
+
+Still-valid KEEP rows: 8 of 10 unchanged (`…-v3-main` advanced, `…-dnone` re-pointed,
+`HT-v3-winregen` gone). `…-scale-btn` remains a genuine hold — **#302 is still open.**
+
+The "No branch was deleted" claim in §1 and the execution update is about *this packet's*
+actions and remains true. One branch has since been deleted by another session
+(`fix/win32-visual-baseline-regen`, above); that was not this packet.
