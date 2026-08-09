@@ -4,7 +4,6 @@ Tests for the Auto Starter Plan Generator.
 import pytest
 import os
 import sqlite3
-import tempfile
 
 # Set testing environment before imports
 os.environ['TESTING'] = '1'
@@ -401,14 +400,15 @@ class TestPlanGeneratorIntegration:
     """Integration tests for the plan generator (require database)."""
     
     @pytest.fixture
-    def test_db(self):
-        """Create a temporary test database."""
-        db_path = os.path.join(tempfile.gettempdir(), 'test_plan_generator.db')
-        
-        # Remove if exists
-        if os.path.exists(db_path):
-            os.remove(db_path)
-        
+    def test_db(self, tmp_path):
+        """Create a temporary test database.
+
+        Per-test path, not a fixed name under the system temp directory: a
+        fixed name is shared by every process on the machine, so two concurrent
+        pytest runs delete and recreate the same file underneath each other.
+        """
+        db_path = str(tmp_path / 'test_plan_generator.db')
+
         # Create test database with exercises
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
@@ -640,13 +640,13 @@ class TestExcludeExercises:
     """Tests for exercise exclusion functionality."""
     
     @pytest.fixture
-    def test_db_with_exercises(self):
-        """Create a test database with exercises."""
-        db_path = os.path.join(tempfile.gettempdir(), 'test_exclude.db')
-        
-        if os.path.exists(db_path):
-            os.remove(db_path)
-        
+    def test_db_with_exercises(self, tmp_path):
+        """Create a test database with exercises.
+
+        Per-test path for the same reason as ``test_db`` above.
+        """
+        db_path = str(tmp_path / 'test_exclude.db')
+
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         

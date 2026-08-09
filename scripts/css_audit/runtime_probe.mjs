@@ -34,7 +34,22 @@ import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { connect } from 'node:net';
 
-const BASE_URL = 'http://127.0.0.1:5000';
+/* This harness spawns its own Flask and then drives whatever answers on the
+   port. Hard-coding 5000 made that a silent hazard rather than a collision: if
+   another checkout already owned 5000, the readiness probe succeeded on the
+   FIRST poll, the spawned server was ignored, and the differential certified
+   the other worktree's CSS under this one's name.
+
+   PW_PORT is honoured so a probe can be pinned to a port it owns, and it is the
+   same variable playwright.config.ts reads, so one export moves both. The
+   default is unchanged. */
+const DEFAULT_HOST = '127.0.0.1';
+const DEFAULT_PORT = 5000;
+const PROBE_PORT = Number(process.env.PW_PORT || DEFAULT_PORT);
+if (!Number.isInteger(PROBE_PORT) || PROBE_PORT < 1 || PROBE_PORT > 65535) {
+  throw new Error(`PW_PORT must be an integer between 1 and 65535, got "${process.env.PW_PORT}".`);
+}
+const BASE_URL = process.env.PW_BASE_URL || `http://${DEFAULT_HOST}:${PROBE_PORT}`;
 
 // 11 rendered routes. `/fatigue` is included deliberately: templates/fatigue.html
 // links no page bundle at all, so it is painted 100% by the seven shared
@@ -571,7 +586,13 @@ async function main() {
 
   const python = process.platform === 'win32' ? '.venv/Scripts/python.exe' : '.venv/bin/python';
   const server = spawn(python, ['app.py'], {
-    env: { ...process.env, DB_FILE: dbPath, FLASK_DEBUG: '0', FLASK_USE_RELOADER: '0' },
+    env: {
+      ...process.env,
+      DB_FILE: dbPath,
+      HT_PORT: String(PROBE_PORT),
+      FLASK_DEBUG: '0',
+      FLASK_USE_RELOADER: '0',
+    },
     stdio: 'ignore',
   });
 
@@ -579,7 +600,7 @@ async function main() {
   // half-open socket Flask leaves behind while it is still binding.
   const portOpen = () =>
     new Promise((done) => {
-      const socket = connect({ host: '127.0.0.1', port: 5000 });
+      const socket = connect({ host: DEFAULT_HOST, port: PROBE_PORT });
       const settle = (value) => {
         socket.destroy();
         done(value);

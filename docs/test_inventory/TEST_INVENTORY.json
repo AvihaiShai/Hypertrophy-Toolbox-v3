@@ -44,7 +44,7 @@
       },
       {
         "file": "e2e/superset-edge-cases.spec.ts",
-        "lines": 17
+        "lines": 10
       },
       {
         "file": "e2e/ui-hardening.spec.ts",
@@ -65,7 +65,7 @@
     ],
     "files_with_waits": 15,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 92
+    "total_lines": 85
   },
   "playwright": {
     "project": "chromium",
@@ -240,8 +240,8 @@
     "total_tests": 608
   },
   "pytest": {
-    "collected_deterministic": 2233,
-    "deterministic_files": 107,
+    "collected_deterministic": 2296,
+    "deterministic_files": 110,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -502,6 +502,14 @@
         "tests": 12
       },
       {
+        "file": "tests/test_playwright_shard_launcher_contracts.py",
+        "tests": 40
+      },
+      {
+        "file": "tests/test_playwright_url_contracts.py",
+        "tests": 14
+      },
+      {
         "file": "tests/test_playwright_version_contract.py",
         "tests": 1
       },
@@ -662,6 +670,10 @@
         "tests": 20
       },
       {
+        "file": "tests/test_workout_controls_busy_signal_contracts.py",
+        "tests": 9
+      },
+      {
         "file": "tests/test_workout_log_calibration_route.py",
         "tests": 7
       },
@@ -682,7 +694,7 @@
         "tests": 40
       }
     ],
-    "total_files": 108
+    "total_files": 111
   },
   "schema_version": 1
 }

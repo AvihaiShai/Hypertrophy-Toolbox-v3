@@ -4,7 +4,150 @@
 
 ## Current State
 
-> **2026-08-04 (LATEST) — the Linux visual gate is GREEN and the baseline recovery
+> **2026-08-09 (LATEST) — the test-runtime optimization arc is CLOSED on both
+> lanes.** Branch `wt/playwright-shards` (unpushed, no PR), based on
+> `perf/test-schema-template`.
+>
+> **Local pytest — shipped.** `-n 8 --dist loadfile` is the recommended fast
+> lane; serial is diagnostic. Measured **serial median ≈195s → N=8 median ≈76s**.
+> The root cause of the original 543s was `synchronous=FULL` + `journal_mode=DELETE`
+> fsyncing every DDL commit, fixed by a session-scoped schema template the `app`
+> fixture copies. **CI pytest parallelism is unchanged and separately unmeasured** —
+> do not derive a CI worker count from these numbers. The `loadfile` ceiling
+> belongs to the scheduler (`test_guard_destructive_command.py` is the indivisible
+> floor on Windows), not to the suite; xdist tuning and a `loadgroup` design were
+> deliberately deferred. Detail: [`tests/CLAUDE.md`](../tests/CLAUDE.md).
+>
+> **Local Playwright sharding — REJECTED by evidence, recorded as ADR-006.**
+> N=1 is the only supported configuration (477/477 in 719.0s). Same-machine N>1
+> fails because Werkzeug closes the connection per request, so all ~34k requests
+> (89.9% static assets) each hold an ephemeral port for the 120s recycle window;
+> N=2 peaked at 16,318 of 16,384 ports and **still failed 4/477 from a measured
+> clean start** (gate waited 120.8s; leftovers 0, TIME_WAIT on candidate ports 0).
+> The earlier N=2/N=3/N=4 matrix is invalid for timing — each inherited the
+> previous run's TIME_WAIT. Every remedy is forbidden or worse than the problem
+> (OS/TCP tuning, keep-alive, cache policy, a new WSGI server, retries, timeout
+> inflation, shared contexts, reduced coverage). **No remediation cycle was
+> consumed.** The launcher now defaults to `-Shards 1` and warns at runtime on
+> N>1, which stays runnable only so the diagnosis reproduces.
+>
+> **CI Playwright is unaffected and unchanged.** Each `e2e-functional-shard` leg
+> has its own runner, port pool, server and seeded DB, so it shares none of the
+> implicated machine state. Its N=2 design remains valid.
+>
+> **Phase 7C profiling — the ranked finding is `networkidle`, not hard waits.**
+> `waitForPageReady()` executes ~435×/run; its `networkidle` half costs a
+> near-constant ~490–538ms of *pure dead time* (the `domcontentloaded` half costs
+> 0.4ms). That is **213–234s, ~30% of the 711.3s suite** — roughly 3.5× ADR-005's
+> whole 61.3s hard-wait inventory, and invisible to it because the inventory
+> counts `waitForTimeout`. **It cannot simply be deleted**: a before/after on
+> `validation-boundary.spec.ts` ran 15.7s faster and broke one assertion, because
+> `networkidle` is accidentally the app-ready signal for the page's post-load
+> fetches. Second-ranked is `superset-edge-cases.spec.ts` (12.3s of runtime hard
+> waits, observable `waitForResponse` already available in the same file) — the
+> one place ADR-005's own replacement criterion is met. Full ranked list, both
+> oracle controls, and the raw-evidence index:
+> [`docs/E2E_PERFORMANCE_PROFILE.md`](E2E_PERFORMANCE_PROFILE.md).
+>
+> **Findings 1 and 2 were then owner-approved and SHIPPED as two packets.**
+>
+> | Packet | Change | Control → after | Result |
+> |---|---|---|---|
+> | 2 (findings 2) | 7 `linkBtn.click()` + `waitForTimeout(1000)` → `waitForResponse(SUPERSET_LINK)` + row re-render | 66.8s → **60.7s** (−6.1s) | 12/12 × 8 runs |
+> | 1 (finding 1) | `data-workout-controls-busy` signal; `validation-boundary.spec.ts` off `networkidle` | 55.8s → **46.7s** (−9.1s, 16.3%) | **23/23 × 5 repeats** |
+>
+> **The readiness signal is the durable piece.** `networkidle` was not protecting
+> page load — it was accidentally waiting out the `/api/user_profile/estimate`
+> fetch that rewrites the six Workout Controls after an exercise is selected.
+> `data-workout-controls-busy` on `<html>` makes that state observable (set
+> synchronously before the first `await`, cleared in `finally`); it is
+> display-only and read by nothing in the app. `waitForWorkoutPlanReady()` waits
+> for `load` + its absence. **At the end of packet 1, `waitForPageReady` remained
+> unchanged and backed the other 21 specs.** The next measured candidates were
+> `workout-plan.spec.ts` (36 modeled calls, ~17.6s, same page, so no new marker)
+> and then `ui-hardening.spec.ts` (64 modeled calls, ~31.4s); packets 4 and 5
+> below record their completed, path-by-path rollouts.
+>
+> **Packet 3 then fixed the vacuous assertions in `superset-edge-cases.spec.ts`.**
+> All 27 runtime conditionals that could bypass an assertion are gone, along with
+> the four `.catch(() => …)` fallbacks; 12 tests preserved, hard waits unchanged
+> at 10. Two mutations prove it: renaming the `superset-checkbox` class (nothing
+> is selectable at all) took the old spec to **11 passed / 1 failed** and the new
+> one to **12 failed**; disabling `unlink_partner_for_removal()` was passed by the
+> old test 4 and fails the new one. 12/12 over 5 runs, median 56.3s.
+>
+> **Packet 4 rolled the readiness signal into `workout-plan.spec.ts`, partially
+> and on purpose.** 17 of 36 calls converted (control 50.7s → 47.4s median,
+> 35/35 × 5, assertion count unchanged at 158). Two sites deliberately keep
+> `networkidle`: `Workout Plan Page`, whose tests read the plan table without
+> waiting for `fetchWorkoutPlan()`, and `§4 thumbnails`, which injects rows that
+> the real fetch would repaint over. **The marker subsumes the estimate write and
+> nothing else** — on a fresh `goto` it is a no-op, so converting a `beforeEach`
+> is really deleting `networkidle` and is only safe where the spec self-covers.
+>
+> **Packet 5 rolled it into `ui-hardening.spec.ts`** — 26 of 27 sites / 71 of 75
+> runtime calls converted; control 77.7s → **59.1s** median (**18.6s, 23.9%**),
+> 37/37 × 5, assertions unchanged at 89, hard waits at 1. The one retained site
+> is the `/workout_log` block: the marker is workout-plan-scoped, so there it
+> would degrade to a bare `load` while real log fetches go unwaited.
+>
+> **Instrumentation beat the model here.** The static counter predicted 64 calls
+> / 31.4s; measuring found **75 / 40.7s (51.8% of the spec)** — it misses calls
+> made from helpers. Treat its per-spec figures as a floor.
+>
+> **The suite-wide projection is revised down.** Three measured conversions give
+> 0.40 / 0.19 / 0.26 s per call, because the 500ms tail is only fully recoverable
+> when nothing else needed that time. A realistic total is **~85–175s, not the
+> ~218s** finding 1 projected — measure each rollout, do not extrapolate.
+>
+> **Packet 6 converted `superset-edge-cases` (7/7 sites); packet 7 then removed
+> the thing that had blocked `exercise-interactions`.** It was never a property
+> of the page — it was an unguarded `rowLocator.count()` in
+> `ensureRoutineHasExercises()` that *decided whether the helper seeded*, read
+> from a table `fetchWorkoutPlan()` fills asynchronously. Packet 7 made both
+> halves explicit and awaited: the seeding decision now comes from
+> `/get_workout_plan`, and the helper polls until the browser has rendered
+> `minimumCount` rows of the test routine
+> (`tr[data-exercise-id][data-routine=…]`) before returning. **Test-only — no
+> production change, `waitForPageReady` untouched.** All 7 retained sites / 21
+> calls converted, `networkidle` in that spec 21 → 0; control 32.8s → **22.8s**
+> median (**10.0s, 30.5%**), 21/21 × 5, zero retries, flakes or skips, hard waits
+> unchanged at 7, assertions **up** 25 → 29 (setup only — a helper that used to
+> skip seeding silently now fails loudly).
+>
+> **Instrumentation beat the static model again, this time on variance.** The
+> realized count is 21 *or* 23 for the same spec depending on DB state, because
+> the helper's post-seed reload fires once per seeding event and the delete tests
+> remove rows. Per-spec call counts are not a fixed property of a file.
+>
+> **The workout-plan rollout is closed: five specs, 147 calls, 49.2s — 6.9% of the
+> 711.3s local group.** What still runs `networkidle` is retained deliberately
+> and documented: `workout-plan.spec.ts`'s two blocks (19 tests that read the
+> plan table directly — no shared helper to repair, so it is a different change)
+> and `ui-hardening`'s `/workout_log` block. Everything else is on other pages.
+>
+> **Open and owner-gated:**
+> 1. **PRODUCT DEFECT — the Unlink button renders when it should be hidden.**
+>    `updateSupersetActionButtons()` sets `display:none` inline, but three
+>    `!important` rules in `components.css` (`button.btn…`, two `.btn-calm-danger`)
+>    outrank it. Cosmetic only — `handleUnlinkSuperset()` refuses the action — but
+>    `toBeHidden()` cannot be asserted until it is fixed.
+> 2. **Should the superset selection clear on a routine-day change?** It does not
+>    today; the dropdown targets the Add form, not the plan table. The test was
+>    renamed to match reality.
+> 3. Rolling the readiness signal onto **other pages**. The workout-plan rollout
+>    itself is closed (above) — what is open is that every remaining
+>    `networkidle` call lives on a page with no observable of its own. That needs
+>    a per-page readiness design, which is a production change and a separate
+>    owner decision. **No such design is proposed here, and a page-specific
+>    observable must not be improvised inside a spec to avoid asking.**
+> 4. Finding 4's two production observations (four external CDN fetches per
+>    navigation; `/get_all_exercises` requested twice).
+>
+> Beyond the one readiness marker, nothing changed production behavior, CI, or
+> the live database.
+
+> **2026-08-04 — the Linux visual gate is GREEN and the baseline recovery
 > packet is CLOSED.** `origin/main` = `02e73c7`.
 >
 > **What landed.**

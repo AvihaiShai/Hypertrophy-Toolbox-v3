@@ -15,9 +15,9 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **608** |
 | Playwright spec files | **32** |
 | Required functional gate — `E2E Functional (Chromium)` | **477** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2233** across 107 files |
-| pytest test files (all) | **108** |
-| Hard waits (lines containing waitForTimeout) | **92** across 15 files |
+| pytest collected nodes (deterministic subset) | **2296** across 110 files |
+| pytest test files (all) | **111** |
+| Hard waits (lines containing waitForTimeout) | **85** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
 
@@ -129,6 +129,8 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_plan_generator.py` | 35 |
 | `tests/test_plan_generator_refactor_contracts.py` | 6 |
 | `tests/test_playwright_runner_contracts.py` | 12 |
+| `tests/test_playwright_shard_launcher_contracts.py` | 40 |
+| `tests/test_playwright_url_contracts.py` | 14 |
 | `tests/test_playwright_version_contract.py` | 1 |
 | `tests/test_priority0_api_contract.py` | 11 |
 | `tests/test_priority0_filters.py` | 16 |
@@ -169,6 +171,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_weekly_summary_golden.py` | 1 |
 | `tests/test_weekly_summary_routes.py` | 30 |
 | `tests/test_weekly_summary_unassigned.py` | 20 |
+| `tests/test_workout_controls_busy_signal_contracts.py` | 9 |
 | `tests/test_workout_log_calibration_route.py` | 7 |
 | `tests/test_workout_log_routes.py` | 58 |
 | `tests/test_workout_log_utils.py` | 30 |
@@ -191,7 +194,7 @@ Flake-and-latency debt (blindspot B5). Phase 5 step 16 burns this down worst-fil
 | `e2e/listener-cleanup.spec.ts` | 1 |
 | `e2e/progression.spec.ts` | 7 |
 | `e2e/summary-pages.spec.ts` | 2 |
-| `e2e/superset-edge-cases.spec.ts` | 17 |
+| `e2e/superset-edge-cases.spec.ts` | 10 |
 | `e2e/ui-hardening.spec.ts` | 1 |
 | `e2e/validation-boundary.spec.ts` | 2 |
 | `e2e/volume-splitter.spec.ts` | 23 |

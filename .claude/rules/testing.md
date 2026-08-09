@@ -71,7 +71,7 @@ npx playwright install       # one-time (downloads browsers)
 ```
 Config: `playwright.config.ts` — auto-starts Flask via `.venv/Scripts/python.exe app.py` on port 5000. Chromium only. Serial execution (`fullyParallel: false`). `PW_REUSE_SERVER=1` reuses a running server.
 
-Fixtures: `e2e/fixtures.ts` exports `test` (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `expectToast()`.
+Fixtures: `e2e/fixtures.ts` exports `test` (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `waitForWorkoutPlanReady()`, `expectToast()`.
 
 ## E2E test map
 

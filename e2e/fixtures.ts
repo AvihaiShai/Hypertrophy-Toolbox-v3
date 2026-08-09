@@ -197,6 +197,52 @@ export async function waitForPageReady(page: Page): Promise<void> {
 }
 
 /**
+ * Workout-plan readiness without `networkidle`.
+ *
+ * `networkidle` costs a flat ~500ms per call because it is defined as half a
+ * second of silence *after* the last request, and the page's own post-load
+ * fetches finish about 12ms after `load`. So almost all of it is dead time —
+ * except that it also, by accident, waited out the profile-estimate fetch that
+ * rewrites the six Workout Controls. Dropping `networkidle` without replacing
+ * that guarantee reintroduces a real race (see docs/E2E_PERFORMANCE_PROFILE.md
+ * finding 1).
+ *
+ * This waits for the same two things explicitly: the document has loaded, and no
+ * estimate is in flight that could still overwrite the controls.
+ *
+ * Adopted by the five workout-plan specs whose converted paths were measured:
+ * `validation-boundary`, `workout-plan`, `ui-hardening`,
+ * `superset-edge-cases`, and `exercise-interactions`. Rolling a readiness
+ * mechanism onto other pages requires a separate, owner-gated design.
+ *
+ * The marker is a boolean observable and is exact only for serialized estimates
+ * — see the SCOPE note on `CONTROLS_BUSY_ATTR` in
+ * `static/js/modules/workout-plan-estimates.js`.
+ *
+ * The wait itself is unchanged on timeout: the same condition and the same
+ * tolerated duration. Only the failure message is enriched, because the bare
+ * `waitForFunction` timeout names no attribute and reads as a generic page hang,
+ * which sends the next reader looking at navigation instead of at the estimate.
+ */
+export async function waitForWorkoutPlanReady(page: Page): Promise<void> {
+  await page.waitForLoadState('load');
+  try {
+    await page.waitForFunction(
+      () => !document.documentElement.hasAttribute('data-workout-controls-busy')
+    );
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      'waitForWorkoutPlanReady: the estimate-readiness wait timed out. ' +
+        '`data-workout-controls-busy` was still present on <html>, so a profile-estimate ' +
+        'fetch never settled or the marker was stranded (it is cleared in a `finally` in ' +
+        'static/js/modules/workout-plan-estimates.js). This is NOT a page-load timeout — ' +
+        `the 'load' state was already reached. Original: ${detail}`
+    );
+  }
+}
+
+/**
  * Reset workout-plan state between tests to avoid cross-test duplication drift.
  */
 export async function resetWorkoutPlan(page: Page): Promise<void> {

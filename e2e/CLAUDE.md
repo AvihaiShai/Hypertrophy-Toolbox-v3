@@ -6,7 +6,7 @@ Playwright Chromium specs covering UI flows end-to-end. `playwright.config.ts` a
 ## Key files
 | File | Coverage |
 |---|---|
-| `fixtures.ts` | Shared `test` fixture (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `expectToast()` |
+| `fixtures.ts` | Shared `test` fixture (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `waitForWorkoutPlanReady()`, `expectToast()` |
 | `fixtures/database.visual.seed.db` | Seed DB used by visual specs (committed; whitelisted in `.gitignore`) |
 | `smoke-navigation.spec.ts` | Page loads + nav cycle (no fixtures) |
 | `dark-mode.spec.ts`, `nav-dropdown.spec.ts` | Theme + navbar |
@@ -55,6 +55,32 @@ The GitHub Actions gate runs a curated, deterministic subset on **ubuntu/Chromiu
 - The functional/backup specs assert **current shipped behavior**. A future intentional behavior change (e.g. a fatigue Stage-4 threshold tweak) must update the spec deliberately — it should not be treated as "CI caught a regression."
 - **Sharded n=2 (leftovers A11).** The functional set runs as a 2-way matrix (`e2e-functional-shard`, `--shard=${{ matrix.shard }}/2`, `fail-fast: false`). Each matrix leg is its own runner with its own setup/server/freshly-seeded throwaway DB (seeded by the `webServer` command per server start), so cross-shard is clean by construction and within-shard serial order-safety (`fullyParallel: false` / `workers: 1`) is unchanged — `playwright.config.ts` is **not** modified for sharding. The **single branch-protection required check** stays the `e2e-functional` **fan-in gate** job, whose name `E2E Functional (Chromium)` must stay byte-for-byte (renaming it orphans the required check and blocks every PR). The per-shard contexts `E2E Functional Shard 1/2` / `E2E Functional Shard 2/2` are **not** required checks — do not add them to branch protection. The gate is `if: always()` + `needs: e2e-functional-shard` and is green iff `needs.e2e-functional-shard.result == 'success'` (i.e. both shards passed). Pre-A11 the single `E2E Functional (Chromium)` job ran ~13 min; the n=2 split runs the shards in parallel for roughly half the wall-clock at 2× runner cost.
 - **Artifact-upload privacy**: trace/screenshot/video/HTML-report uploads are safe *because* the suite runs only against the committed, user-state-wiped seed (`prepare_e2e_db.py`) — no real user data. CI must **never** upload the developer's live `data/database.db` or `data/auto_backup/`.
+
+## Local parallelism — N=1 only
+
+**The supported local lane is serial: 25 required specs / 477 tests / 719.0s.**
+`scripts/run-playwright-shards.ps1` defaults to `-Shards 1` and is the way to
+reproduce that reference.
+
+**Same-machine `-Shards` above 1 is rejected, not merely unproven** — see
+[`docs/DECISIONS.md`](../docs/DECISIONS.md) ADR-006. Werkzeug closes the
+connection per request, so every one of the suite's ~34k requests (89.9% static
+assets) holds an ephemeral port for the 120s recycle window; N=2 peaks at 16,318
+of this host's 16,384 ports and fails from a *measured clean start*. N>1 stays
+runnable for reproducing that diagnosis and warns at runtime; a green N>1 run is
+not evidence. Do not raise a timeout, add a retry, or tune the OS to make it
+pass.
+
+**None of that applies to CI.** The `e2e-functional-shard` matrix gives each leg
+its own runner, port pool, server and freshly seeded database, so it shares none
+of the machine state involved. Its N=2 design is valid and unchanged.
+
+Local wall-clock therefore improves only by making the work smaller. Where that
+time actually goes is profiled in
+[`docs/E2E_PERFORMANCE_PROFILE.md`](../docs/E2E_PERFORMANCE_PROFILE.md) —
+`networkidle` in `waitForPageReady()` is ~30% of the suite, most of it dead
+time, but deleting it breaks a real assertion. Read that before optimizing
+anything here, and read ADR-005 before proposing a change without timings.
 
 ## Visual spec contract (`visual.spec.ts`, `visual-baseline-thumbnails.spec.ts`)
 - **Manual deep gate only.** Visual specs never run on the PR path and are **never** a required status check. They run via the `visual-linux` job in `.github/workflows/deep-gate.yml`, opt-in behind the `run_visual` input (`workflow_dispatch`-only). An `if:`-gated, non-required job cannot block merge.

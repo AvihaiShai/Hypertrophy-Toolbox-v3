@@ -4,7 +4,6 @@ Test suite for Priority 7: Error Handling, UX Feedback & Observability
 import pytest
 import json
 import os
-import tempfile
 from flask import g
 
 # Set TESTING before importing app to redirect database
@@ -15,11 +14,19 @@ from utils.request_id import generate_request_id
 
 
 @pytest.fixture(scope='module')
-def error_app():
+def error_app(tmp_path_factory):
     """Create a fresh test app for error handling tests.
-    
+
     Creates a new Flask app instance to avoid interference with
     the shared app from conftest.py.
+
+    The database path comes from ``tmp_path_factory`` rather than a fixed name
+    under the system temp directory. A fixed name is shared by every process on
+    the machine: two concurrent pytest runs — separate worktrees, or xdist
+    workers — would open, delete and recreate the same file underneath each
+    other. `--dist loadfile` happens to keep one file's tests on one worker,
+    but that is a scheduling accident, not isolation, and it does nothing for
+    the two-checkouts case.
     """
     import utils.config
     from flask import Flask, abort
@@ -32,15 +39,11 @@ def error_app():
     from utils.errors import register_error_handlers, register_fallback_handlers
     from utils.request_id import add_request_id_middleware
     
-    # Use temp test database
-    test_db = os.path.join(tempfile.gettempdir(), 'test_error_handling.db')
+    # Module-unique temp database; see the fixture docstring.
+    test_db = str(tmp_path_factory.mktemp('error_handling') / 'test_error_handling.db')
     original_db = utils.config.DB_FILE
     utils.config.DB_FILE = test_db
-    
-    # Clean up any existing test database
-    if os.path.exists(test_db):
-        os.remove(test_db)
-    
+
     # Create fresh Flask app
     app = Flask(__name__)
     app.config['TESTING'] = True
