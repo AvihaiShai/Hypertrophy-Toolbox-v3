@@ -216,6 +216,47 @@ These items remain legitimate but should not displace the P1–P2 closeouts:
   10 animation-dependent declarations, `.tbl-show-*`/`.tbl-hide-*` as a unit,
   dormant `.scale-btn[data-scale]`, and 155 uncertified navbar nominations.
   Explicitly deferred/owner-gated, not forgotten quick wins.
+- **Inert `d-flex` / `d-inline-block` consumers.** OD-2 (implemented and
+  owner-accepted in **draft PR #303**, unmerged) restored Bootstrap's `display`
+  utility but deliberately narrowed it to `values: none inline` — enough for
+  `d-none` and its indivisible `d-lg-inline` partner, and no further. `d-flex`
+  (15 call sites) and `d-inline-block` (1, `templates/fatigue.html:22`) are
+  therefore **still inert by design**, recorded in `KNOWN_INERT` and pinned by
+  `tests/test_css_display_utilities_contracts.py::test_the_deliberately_withheld_utilities_stay_withheld`,
+  so the narrowing cannot widen without updating the contract. Activating them is
+  a one-line SCSS change but **a rendering change, not a bug fix**: measured
+  against a same-machine baseline it moves **12 further visual captures** —
+  session-summary ×6 and weekly-summary ×6 at 120k–564k pixels each, because
+  those pages build `d-flex` rows in JS — plus the `/fatigue` period select from
+  `block` to `inline-block`. Needs its own packet with **dedicated
+  visual-baseline review and regeneration**; do not fold it into an unrelated
+  change. Measurement:
+  [`dnone_display_utilities/EVIDENCE.md`](dnone_display_utilities/EVIDENCE.md) §3, §7.
+- **Nothing ties the committed `bootstrap.custom.min.css` to its SCSS source.**
+  The bundle is tracked, but the pytest CI job deliberately does not run
+  `npm ci` / `npm run build:css`, so pytest asserts against the *committed*
+  artifact. Every E2E job does rebuild it, overwriting it at runtime. So editing
+  `scss/custom-bootstrap.scss` and forgetting `npm run build:css` leaves the
+  display-utility contracts green against a stale artifact while E2E silently
+  exercises different CSS. Pre-existing, but PR #303 is the first change to lean
+  on the artifact as a contract surface, which is what makes it worth closing.
+  Cheap fix: a CI step that runs `build:css` then fails on
+  `git diff --exit-code static/css/bootstrap.custom.min.css`. (Verified by hand
+  during #303 — the committed bundle *is* currently reproducible: a fresh
+  `npm run build:css` produced a byte-identical blob, `71c4046b`.)
+- **Six E2E specs hard-code `http://127.0.0.1:5000`, so none is port-portable.**
+  `api-integration`, `exercise-interactions`, `progression`,
+  `replace-exercise-errors`, `summary-pages` and `workout-plan` build absolute
+  request URLs against port 5000 instead of a `baseURL`-relative path — 12
+  references. Any run on another port fails them with `ECONNREFUSED` no matter
+  what the product does, which is exactly what happens to a packet that uses an
+  isolated port to avoid certifying against a concurrent worktree's checkout
+  (`playwright.config.ts` hard-codes 5000). CI never notices, because it runs the
+  default config on 5000 — so this is invisible to every gate and only bites
+  local parallel work. Found while verifying PR #303, whose five "local
+  failures" were entirely this. Low risk to fix — replace the absolute URLs with
+  relative paths so Playwright resolves them against `baseURL` — but it touches
+  six spec files, so it wants its own packet rather than a drive-by.
 - **Grounding-scan doc set** (`docs/scan/PHASE_02…22`, `SCAN_FINDINGS.md`,
   `SCAN_PROGRESS.md`, `SCAN_RECOMMENDATIONS.md`) and the ~56 `CSS_PHASE4_*`
   evidence files at the `docs/` root: both arcs complete and merged; the scan

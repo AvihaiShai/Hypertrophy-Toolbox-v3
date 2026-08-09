@@ -25,8 +25,9 @@ Hand-maintained totals previously rotted into five contradictory numbers at once
 
 ## Fixture hierarchy (`tests/conftest.py`)
 ```
+schema_template (session)       — canonical empty schema, built once per worker
 test_db_path (function)         — unique `tmp_path` SQLite file per test
-  app (function)                — Flask app + fresh schema at that DB, all 13 blueprints + erase-data route
+  app (function)                — Flask app + a copy of schema_template, all 13 blueprints + erase-data route
     client (function)           — test client bound to the same isolated DB
     db_handler (function)       — DatabaseHandler at the same DB; verifies FK=ON
       clean_db (function)       — DELETEs all rows, preserves tables
@@ -34,6 +35,17 @@ test_db_path (function)         — unique `tmp_path` SQLite file per test
         workout_plan_factory    — INSERTs into user_selection (needs exercise)
         workout_log_factory     — INSERTs into workout_log (needs plan)
 ```
+
+**Schema comes from a copy, not a rebuild.** `run_all_initializers()` commits
+each DDL statement separately, and the pragma profile tests run under fsyncs
+every one — `utils/database.py` defaults `FLASK_DEBUG` to `'1'`, selecting
+`journal_mode = DELETE` + `synchronous = FULL`. Rebuilding the schema for every
+`app` fixture therefore paid a per-statement fsync hundreds of times per run, so
+`schema_template` builds it once per worker and `app` copies the file. The copy
+is only sound because DELETE mode leaves no `-wal` sidecar; the fixture asserts
+that, since a switch to WAL would otherwise yield a silently partial schema. The
+erase-data route still calls the real initializers — that path is asserting they
+work.
 
 ## DB patching pattern — critical
 Tests swap DB by **assigning** `utils.config.DB_FILE` (never importing the value):
@@ -59,7 +71,7 @@ npx playwright install       # one-time (downloads browsers)
 ```
 Config: `playwright.config.ts` — auto-starts Flask via `.venv/Scripts/python.exe app.py` on port 5000. Chromium only. Serial execution (`fullyParallel: false`). `PW_REUSE_SERVER=1` reuses a running server.
 
-Fixtures: `e2e/fixtures.ts` exports `test` (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `expectToast()`.
+Fixtures: `e2e/fixtures.ts` exports `test` (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `waitForWorkoutPlanReady()`, `expectToast()`.
 
 ## E2E test map
 

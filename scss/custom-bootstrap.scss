@@ -33,6 +33,41 @@
 @import "bootstrap/scss/helpers";
 @import "bootstrap/scss/utilities";
 
+// `bootstrap/scss/utilities` only DEFINES the `$utilities` map; the classes are
+// emitted by `bootstrap/scss/utilities/api`, which this build never imported --
+// so every `d-*` class in the templates has always been inert.
+// Measurements: docs/dnone_display_utilities/EVIDENCE.md sections 1 and 3.
+//
+// Emitting the full value list would also activate `d-flex` and
+// `d-inline-block`, which is a rendering change rather than a bug fix -- it
+// moves 12 further visual captures. Deferred to its own packet; see the
+// LEFTOVERS entry.
+//
+// `d-none` and `d-lg-inline` must ship TOGETHER: `class="d-none d-lg-inline"` at
+// base.html:213,219 is indivisible, and emitting `d-none` alone would leave
+// those two navbar labels permanently hidden. Narrowing this to `none` would
+// reintroduce the defect in the opposite direction.
+
+// This REPLACES `$utilities` wholesale with a single-key map rather than merging
+// into it. `utilities/api` iterates whatever `$utilities` holds, so dropping the
+// other keys is the mechanism that limits emission to `display` -- not an
+// oversight. The inner `map-merge` keeps the display entry's own `class`,
+// `responsive` and `print` settings and replaces only `values`.
+//
+// Value order is load-bearing: `utilities/api` emits in list order, so the LAST
+// value wins between two utilities of equal specificity and importance. Upstream
+// Bootstrap orders `inline` before `none`; keeping that order means
+// `class="d-none d-inline"` resolves to `none` exactly as it does in stock
+// Bootstrap. Writing `none inline` would silently invert that precedence.
+$utilities: (
+  "display": map-merge(
+    map-get($utilities, "display"),
+    (values: inline none)
+  )
+);
+
+@import "bootstrap/scss/utilities/api";
+
 // Components NOT included (unused, saves ~50KB):
 // - accordion
 // - breadcrumb

@@ -289,6 +289,27 @@ jobs:
           e2e/workout-log.spec.ts \
           e2e/workout-plan.spec.ts
 
+    # Timing visibility with no new status context and no rename. Reads the
+    # junit.xml that playwright.config.ts already emits under CI and writes a
+    # table to the job summary, so per-spec cost is visible on every run instead
+    # of needing a local reproduction.
+    #
+    # `--shards 1` is deliberate. This step runs inside one matrix leg, so its
+    # junit.xml holds that shard's half of the suite. Modelling a 2-way packing
+    # of it would report a hypothetical re-split of an already-split half and
+    # read as the global balance, which it is not. The real balance is the two
+    # jobs' totals compared, and no single job can see both.
+    #
+    # `always()` so a red shard still reports where its time went; `|| true` so
+    # a summary problem can never turn a passing shard red.
+    - name: Summarize shard timing
+      if: always()
+      run: |
+        python scripts/playwright_timing_report.py \
+          --junit artifacts/playwright/junit.xml \
+          --shards 1 --top 12 --markdown \
+          --label "shard ${{ matrix.shard }}/2 (required set)" >> "$GITHUB_STEP_SUMMARY" || true
+
     - name: Upload Playwright artifacts
       if: failure()
       uses: actions/upload-artifact@v7

@@ -12,12 +12,12 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **605** |
+| Playwright tests (chromium) | **608** |
 | Playwright spec files | **32** |
-| Required functional gate — `E2E Functional (Chromium)` | **474** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2221** across 105 files |
-| pytest test files (all) | **106** |
-| Hard waits (lines containing waitForTimeout) | **92** across 15 files |
+| Required functional gate — `E2E Functional (Chromium)` | **477** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **2310** across 110 files |
+| pytest test files (all) | **111** |
+| Hard waits (lines containing waitForTimeout) | **85** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
 
@@ -53,7 +53,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `visual-field-separator.spec.ts` | 42 | yes |
 | `visual.spec.ts` | 66 | — |
 | `volume-progress.spec.ts` | 16 | yes |
-| `volume-splitter.spec.ts` | 27 | yes |
+| `volume-splitter.spec.ts` | 30 | yes |
 | `workout-log.spec.ts` | 23 | yes |
 | `workout-plan-desktop-contract.spec.ts` | 16 | — |
 | `workout-plan.spec.ts` | 35 | yes |
@@ -66,7 +66,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 
 | File | Collected |
 |---|---:|
-| `tests/test_agent_workflow_contracts.py` | 75 |
+| `tests/test_agent_workflow_contracts.py` | 77 |
 | `tests/test_auto_backup.py` | 7 |
 | `tests/test_body_composition_routes.py` | 20 |
 | `tests/test_body_fat.py` | 43 |
@@ -80,6 +80,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_constants.py` | 45 |
 | `tests/test_css_audit_digest_normalization_contracts.py` | 5 |
 | `tests/test_css_cascade_contracts.py` | 30 |
+| `tests/test_css_display_utilities_contracts.py` | 7 |
 | `tests/test_css_field_separator_contracts.py` | 10 |
 | `tests/test_css_theme_dark_p3_audit_contracts.py` | 37 |
 | `tests/test_css_wp4_4_a11y_contracts.py` | 36 |
@@ -87,7 +88,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_css_wp4_4_base_contracts.py` | 8 |
 | `tests/test_css_wp4_4_components_contracts.py` | 9 |
 | `tests/test_css_wp4_4_i_is_repair_contracts.py` | 8 |
-| `tests/test_css_wp4_4_layout_contracts.py` | 15 |
+| `tests/test_css_wp4_4_layout_contracts.py` | 20 |
 | `tests/test_css_wp4_4_motion_contracts.py` | 5 |
 | `tests/test_css_wp4_4_navbar_contracts.py` | 19 |
 | `tests/test_css_wp4_4_theme_dark_contracts.py` | 7 |
@@ -127,6 +128,9 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_phase3_features.py` | 19 |
 | `tests/test_plan_generator.py` | 35 |
 | `tests/test_plan_generator_refactor_contracts.py` | 6 |
+| `tests/test_playwright_runner_contracts.py` | 12 |
+| `tests/test_playwright_shard_launcher_contracts.py` | 40 |
+| `tests/test_playwright_url_contracts.py` | 14 |
 | `tests/test_playwright_version_contract.py` | 1 |
 | `tests/test_priority0_api_contract.py` | 11 |
 | `tests/test_priority0_filters.py` | 16 |
@@ -167,6 +171,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_weekly_summary_golden.py` | 1 |
 | `tests/test_weekly_summary_routes.py` | 30 |
 | `tests/test_weekly_summary_unassigned.py` | 20 |
+| `tests/test_workout_controls_busy_signal_contracts.py` | 9 |
 | `tests/test_workout_log_calibration_route.py` | 7 |
 | `tests/test_workout_log_routes.py` | 58 |
 | `tests/test_workout_log_utils.py` | 30 |
@@ -189,7 +194,7 @@ Flake-and-latency debt (blindspot B5). Phase 5 step 16 burns this down worst-fil
 | `e2e/listener-cleanup.spec.ts` | 1 |
 | `e2e/progression.spec.ts` | 7 |
 | `e2e/summary-pages.spec.ts` | 2 |
-| `e2e/superset-edge-cases.spec.ts` | 17 |
+| `e2e/superset-edge-cases.spec.ts` | 10 |
 | `e2e/ui-hardening.spec.ts` | 1 |
 | `e2e/validation-boundary.spec.ts` | 2 |
 | `e2e/volume-splitter.spec.ts` | 23 |

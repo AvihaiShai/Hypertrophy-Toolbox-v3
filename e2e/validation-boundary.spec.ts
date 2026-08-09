@@ -8,7 +8,7 @@
  * - Zero and empty value handling
  * - Decimal/float handling
  */
-import { test, expect, ROUTES, SELECTORS, waitForPageReady, resetWorkoutPlan } from './fixtures';
+import { test, expect, ROUTES, SELECTORS, waitForWorkoutPlanReady, resetWorkoutPlan } from './fixtures';
 
 /**
  * Helper to select a complete routine
@@ -41,6 +41,10 @@ async function selectExercise(page: import('@playwright/test').Page) {
   const validExercise = options.find(opt => opt && opt.trim() !== '' && !opt.includes('Select'));
   if (validExercise) {
     await exerciseSelect.selectOption(validExercise);
+    // Selecting an exercise starts the profile-estimate fetch, and its response
+    // overwrites the six Workout Controls. Every test below types into those
+    // fields next, so it has to land first or it lands on top of the input.
+    await waitForWorkoutPlanReady(page);
   }
 }
 
@@ -75,7 +79,7 @@ test.describe('Negative Value Validation', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
     await selectExercise(page);
   });
@@ -125,7 +129,7 @@ test.describe('Rep Range Validation', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
     await selectExercise(page);
   });
@@ -175,7 +179,7 @@ test.describe('Zero Value Validation', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
     await selectExercise(page);
   });
@@ -216,7 +220,7 @@ test.describe('RIR/RPE Value Validation', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
     await selectExercise(page);
   });
@@ -286,7 +290,7 @@ test.describe('Decimal/Float Value Handling', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
     await selectExercise(page);
   });
@@ -327,7 +331,7 @@ test.describe('Empty Value Validation', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
   });
 
@@ -387,7 +391,7 @@ test.describe('Extreme Value Handling', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await selectRoutine(page);
     await selectExercise(page);
   });

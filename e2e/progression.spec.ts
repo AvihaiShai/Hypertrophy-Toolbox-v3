@@ -577,7 +577,7 @@ test.describe('Double Progression Logic (v1.5.0)', () => {
 
   test('API returns proper suggestion structure', async ({ page, request }) => {
     // Test the API directly using Playwright's request context
-    const response = await request.post('http://127.0.0.1:5000/get_exercise_suggestions', {
+    const response = await request.post('/get_exercise_suggestions', {
       data: {
         exercise: 'Bench Press (Barbell)',
         is_novice: true

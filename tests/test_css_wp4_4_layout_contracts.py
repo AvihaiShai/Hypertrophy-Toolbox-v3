@@ -1,12 +1,24 @@
-"""WP4.4-e cascade contracts for `static/css/layout.css`.
+"""Cascade contracts for `static/css/layout.css`.
 
-These lock the premises the packet's deletions rest on. Each test is written so
-that it fails under its own violation (F16) -- the red-path proofs are recorded
-in docs/CSS_PHASE4_WP4_4_E_LAYOUT_EVIDENCE.md.
+These lock the premises two packets' deletions rest on. Each test is written so
+that it fails under its own violation (F16); the red-path proofs are recorded in
+the evidence document that owns each group.
+
+Two packets share this file:
+
+* **WP4.4-e** deleted 34 unreachable rule blocks. Evidence:
+  docs/CSS_PHASE4_WP4_4_E_LAYOUT_EVIDENCE.md.
+* **The table-helper re-audit** deleted the nine `.tbl-show-*` / `.tbl-hide-*`
+  breakpoint helpers WP4.4-e deferred, and replaced their occurrence-count pin
+  with C1-C5. Evidence: docs/css_table_helpers_cleanup/EVIDENCE.md, which
+  supersedes `_E_LAYOUT_` section 4a -- that section's stated reason for the
+  deferral ("no control element can distinguish them ... an inherent limit, not
+  a fixable probe defect") was measured and refuted. See
+  BREAKPOINT_HELPER_CLASSES.
 
 This file is packet-owned. It never edits, and must not be confused with, the
-shared `tests/test_css_cascade_contracts.py`, which WP4.4-e runs but does not
-touch (Plan v2 section 4d -- only packet i may amend that file).
+shared `tests/test_css_cascade_contracts.py`, which both packets run but do not
+touch.
 """
 
 from __future__ import annotations
@@ -73,25 +85,84 @@ RETAINED_SNIPPETS = (
     ".tbl-controls,",
 )
 
-# The deferred breakpoint-helper family, pinned by exact occurrence count.
+# The breakpoint-helper family WP4.4-e deferred and the table-helper re-audit
+# deleted, as one indivisible unit.
 #
-# Substring presence is too weak a gate here: `.tbl-show-sm` appears twice (a
-# top-level rule and an @media override), so asserting "it is still mentioned"
-# stays green when one of the two is deleted. The red-path proof caught exactly
-# that. Counts pin the family member by member.
+# WP4.4-e deferred all nine on a stated measurement limit: three of them declare
+# `display: block`, and that packet's probe host was a bare `<div>` whose UA
+# initial `display` is already `block`, so those three could not be told apart
+# from their control. It recorded that as "an inherent limit, not a fixable probe
+# defect", and pinned the family by exact occurrence count so it could not be
+# eroded rule by rule.
 #
-# Deferred because three members (the @media overrides) declare `display: block`
-# -- a bare div's initial value -- so no control element can distinguish them
-# and the oracle is inherently blind. Deleting only the six observable members
-# would leave @media overrides targeting classes with no base rule.
-DEFERRED_HELPER_COUNTS = {
-    "tbl-show-sm": 2,
-    "tbl-show-md": 2,
-    "tbl-show-lg": 2,
-    "tbl-hide-sm": 1,
-    "tbl-hide-md": 1,
-    "tbl-hide-lg": 1,
-}
+# THAT LIMIT WAS A PROPERTY OF THE PROBE HOST, NOT OF THE RULES, and the re-audit
+# measured the refutation: hosts whose UA initial `display` is NOT `block` --
+# `<span>` (`inline`), `<li>` (`list-item`), `<td>` (`table-cell`) -- distinguish
+# all nine, with no injected author CSS.
+#
+# Full record, including every denominator: docs/css_table_helpers_cleanup/
+# EVIDENCE.md, which supersedes docs/CSS_PHASE4_WP4_4_E_LAYOUT_EVIDENCE.md
+# section 4a. The C1-C5 banner below states what replaced the pin and why.
+BREAKPOINT_HELPER_CLASSES = (
+    "tbl-show-sm",
+    "tbl-show-md",
+    "tbl-show-lg",
+    "tbl-hide-sm",
+    "tbl-hide-md",
+    "tbl-hide-lg",
+)
+
+
+def _rule_heads(css: str) -> list[tuple[tuple[str, ...], str]]:
+    """Every rule head in `css` as `(enclosing_preludes, head)`.
+
+    A "head" is whatever precedes a `{` -- a selector list, or an at-rule
+    prelude, or a selector list nested inside one. Scanning brace boundaries
+    finds a class wherever it can actually select: at any depth, inside `@media`,
+    and in any position within a compound or descendant chain.
+
+    The enclosing preludes are carried, not just a depth integer, because
+    "is it inside an `@media`" is a weaker question than "which `@media`". A
+    restoration that merged the family into two rules inside ONE query collapses
+    three breakpoint bands into one while still presenting three base rules and
+    six overrides; only the prelude tells them apart.
+
+    `_head_pattern` in tests/test_css_wp4_4_components_contracts.py matches a
+    selector only where it ends a selector-list entry. That is the right tool
+    there and the wrong one here -- it would not see `.foo.tbl-show-sm` or
+    `.tbl-show-sm .bar`, and this family's whole risk is that a member comes
+    back in some shape the pin did not anticipate.
+    """
+    heads: list[tuple[tuple[str, ...], str]] = []
+    stack: list[str] = []
+    buf: list[str] = []
+    for char in css:
+        if char == "{":
+            head = " ".join("".join(buf).split())
+            heads.append((tuple(stack), head))
+            stack.append(head)
+            buf = []
+        elif char == "}":
+            buf = []
+            # Clamping instead of raising would silently rebase every later head
+            # one level shallower, which flips the classification C2 is built
+            # from. Fail loudly, as the sibling walker in
+            # tests/test_css_wp4_4_components_contracts.py does.
+            assert stack, "unbalanced braces: a stray '}' in the stylesheet"
+            stack.pop()
+        elif char == ";":
+            # A top-level statement such as `@layer a, b, c;` is not a head and
+            # must not leak into the next one.
+            buf = []
+        else:
+            buf.append(char)
+    assert not stack, f"unbalanced braces: {len(stack)} block(s) left open"
+    return heads
+
+
+def _heads_carrying(css: str, cls: str) -> list[tuple[tuple[str, ...], str]]:
+    token = re.compile(rf"\.{re.escape(cls)}(?![\w-])")
+    return [(ancestors, head) for ancestors, head in _rule_heads(css) if token.search(head)]
 
 
 def test_deleted_rule_blocks_stay_deleted() -> None:
@@ -183,26 +254,16 @@ def test_retained_rules_are_still_present() -> None:
     """The rules WP4.4-e deliberately kept are still there.
 
     Red path: deleting the `[data-theme="dark"]` token block, or the print
-    `.tbl-controls, .tbl-toolbar` rule, or the deferred breakpoint helpers,
-    fails this test.
+    `.tbl-controls, .tbl-toolbar` rule, fails this test.
+
+    The breakpoint-helper half of this assertion is gone: that family was
+    certified and deleted by the table-helper re-audit, and its guarantee is now
+    carried by C1-C5 below at greater strength. See BREAKPOINT_HELPER_CLASSES.
     """
     css = _css()
     missing = [snippet for snippet in RETAINED_SNIPPETS if snippet not in css]
     assert missing == [], (
         f"layout.css lost rules WP4.4-e explicitly retained: {missing}"
-    )
-
-    stripped = _strip_comments(css)
-    wrong = {}
-    for cls, expected in DEFERRED_HELPER_COUNTS.items():
-        found = len(re.findall(rf"\.{re.escape(cls)}(?![\w-])", stripped))
-        if found != expected:
-            wrong[cls] = f"{found} (expected {expected})"
-    assert wrong == {}, (
-        "the deferred .tbl-show-*/.tbl-hide-* breakpoint-helper family changed: "
-        f"{wrong}. WP4.4-e deferred this family whole because three of its "
-        "members are invisible to any control element; it must be deleted as a "
-        "unit under fresh evidence, not eroded rule by rule."
     )
 
 
@@ -313,6 +374,231 @@ def test_deleted_classes_are_not_resurrected_by_a_sibling_surface(surface: str) 
     offenders = [c for c in scoped if re.search(rf"\.{re.escape(c)}(?![\w-])", css)]
     assert offenders == [], (
         f"{surface} now styles classes WP4.4-e deleted from layout.css: {offenders}"
+    )
+
+
+# --- Breakpoint-helper family: C1-C5 ------------------------------------------
+#
+# These replace DEFERRED_HELPER_COUNTS. Its three structural weaknesses, and
+# which contract closes each:
+#   W1 it pinned a NUMBER, not a state -- `2` could not express "gone"     -> C1
+#   W2 it pinned the STYLESHEET, not the app -- it said nothing about
+#      whether anything applies the class, which is the premise the whole
+#      deletion argument rests on                                          -> C3
+#   W3 it pinned ONE FILE -- a sibling bundle could define the class
+#      tomorrow and the assertion would stay green                         -> C4
+# C2 pins indivisibility, which the count pin only encoded by accident, and C5
+# forecloses a residue the count pin had no analogue for.
+
+
+def test_breakpoint_helper_family_is_absent_from_layout_css() -> None:
+    """C1 - no rule head in layout.css carries a breakpoint-helper class.
+
+    One test over all six classes rather than a parametrize: the collected node
+    count must not depend on how many classes the tuple happens to hold, because
+    `Test Inventory Drift` is a required branch-protection context.
+
+    Red path: re-adding `.tbl-show-md { display: none; }` fails, naming it.
+    """
+    css = _strip_comments(_css())
+    offenders = {
+        cls: heads
+        for cls in sorted(BREAKPOINT_HELPER_CLASSES)
+        if (heads := _heads_carrying(css, cls))
+    }
+    assert offenders == {}, (
+        "layout.css styles breakpoint-helper classes the table-helper re-audit "
+        f"certified unreachable and deleted: {offenders}. The family is "
+        "indivisible -- if one member became reachable, the deletion must be "
+        "revisited with a fresh census and the whole family reinstated, not one "
+        "rule re-added."
+    )
+
+
+def test_breakpoint_helper_family_is_all_or_nothing() -> None:
+    """C2 - the family is present in full or absent in full, never in part.
+
+    This is the contract the family's indivisibility actually needs, and it is
+    outcome-independent: it holds whether the family is deleted or retained. A
+    partial state in EITHER direction fails -- `@media` overrides left targeting
+    a class with no base rule, or base rules left with no overrides.
+
+    The shape is asserted PER CLASS and PER BAND, not as two totals. Totals are
+    too weak in two separate ways, and both were reachable:
+
+    * `(3 base, 6 nested)` is satisfied by three merged rules as readily as by
+      nine separate ones, so a restoration collapsing every member into two
+      selector lists inside ONE `@media` still summed correctly.
+    * Counting only "is it nested" cannot see WHICH query. The three bands are
+      the whole point of the family; a restoration that put all six overrides in
+      `(max-width: 820px)` would have passed while silently changing what every
+      class does at every breakpoint.
+
+    So: each `.tbl-show-*` must have exactly one base rule and one override;
+    each `.tbl-hide-*` exactly one override and no base rule; and the sm / md /
+    lg overrides must sit under three DISTINCT enclosing preludes.
+
+    Red path (deleted side): adding back only the `@media (max-width: 820px)`
+    override, with no base rule, fails here.
+    Red paths (present side, proven by restoring all nine): removing any single
+    one of the nine fails here, and so does a merged restoration that collapses
+    the three bands into one.
+    """
+    css = _strip_comments(_css())
+    shape = {}
+    bands: dict[str, set[tuple[str, ...]]] = {}
+    for cls in BREAKPOINT_HELPER_CLASSES:
+        carried = _heads_carrying(css, cls)
+        shape[cls] = (
+            sum(1 for ancestors, _ in carried if not ancestors),
+            sum(1 for ancestors, _ in carried if ancestors),
+        )
+        bands[cls] = {ancestors for ancestors, _ in carried if ancestors}
+
+    absent = {cls: (0, 0) for cls in BREAKPOINT_HELPER_CLASSES}
+    present = {
+        cls: ((1, 1) if cls.startswith("tbl-show-") else (0, 1))
+        for cls in BREAKPOINT_HELPER_CLASSES
+    }
+    assert shape in (absent, present), (
+        f"the breakpoint-helper family is in a PARTIAL state: {shape} is neither "
+        f"fully absent {absent} nor the complete family {present}. It must be all "
+        "nine or none -- a base rule without its override silently changes what "
+        "the class does at a breakpoint, and an override without its base rule "
+        "targets a class nothing else styles."
+    )
+
+    if shape == present:
+        per_suffix = {
+            suffix: bands[f"tbl-show-{suffix}"] | bands[f"tbl-hide-{suffix}"]
+            for suffix in ("sm", "md", "lg")
+        }
+        assert all(len(v) == 1 for v in per_suffix.values()), (
+            f"a breakpoint suffix spans more than one enclosing query: {per_suffix}"
+        )
+        distinct = {next(iter(v)) for v in per_suffix.values()}
+        assert len(distinct) == 3, (
+            "the sm / md / lg overrides do not sit in three distinct queries: "
+            f"{per_suffix}. Collapsing the bands changes what every member does "
+            "at every breakpoint while keeping the counts intact."
+        )
+
+
+def test_breakpoint_helper_classes_are_unreachable() -> None:
+    """C3 - nothing in the app applies a breakpoint-helper class.
+
+    This is the premise the deletion rests on, and the one the occurrence-count
+    pin never covered (W2). It converts a one-time census into a standing gate:
+    adopting one of these classes now fails pytest instead of silently relying
+    on a rule that no longer exists.
+
+    The detector is a bare-stem substring scan, and that is deliberately
+    *simpler* than `test_deleted_classes_are_still_unreachable`'s parser rather
+    than a wider version of it. That test enumerates syntactic forms --
+    `class="..."` attributes and `classList.add/toggle/replace` literals -- so it
+    cannot see `className =`, `setAttribute('class', ...)`, or a name assembled
+    at runtime. Enumerating more forms would only move the boundary. Matching
+    `tbl-show` / `tbl-hide` anywhere subsumes all of them at once, including
+    `'tbl-show-' + size` and `` `tbl-hide-${size}` ``, which produce a real class
+    name while containing no full class literal.
+
+    It can only over-fire, never under-fire, and over-firing is the safe
+    direction. Two narrow exemptions keep the over-firing honest rather than
+    obstructive, because both are legitimate mentions that apply nothing:
+    comments -- the likeliest is a note beside `table-responsiveness.js:112`
+    explaining why the family went -- and JS unit tests, which may assert the
+    absence of a class by name.
+
+    Red paths: three realistic application shapes were each executed and each
+    goes red -- `class="tbl-hide-lg"` in a template, `classList.add('tbl-show-sm')`
+    in a module, and `className = 'tbl-show-' + size`. They exercise three
+    *shapes*, not three detector branches; one mechanism catches all three, which
+    is the point.
+    """
+    stems = ("tbl-show", "tbl-hide")
+    line_comment = re.compile(r"(?<!:)//[^\n]*")
+    html_comment = re.compile(r"<!--.*?-->", re.S)
+
+    offenders: list[str] = []
+    for base, pattern in ((TEMPLATES, "**/*.html"), (JS, "**/*.js")):
+        for path in base.glob(pattern):
+            if "__tests__" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8")
+            text = _strip_comments(text)          # /* ... */
+            text = line_comment.sub("", text)     # // ...
+            text = html_comment.sub("", text)     # <!-- ... -->
+            for stem in stems:
+                if stem in text:
+                    offenders.append(f"{path.relative_to(ROOT)} mentions '{stem}'")
+    assert offenders == [], (
+        "the app now references a breakpoint-helper class name, but layout.css "
+        f"no longer styles any of them: {offenders}. Nothing will apply. Either "
+        "drop the reference or reinstate the whole family with fresh evidence -- "
+        "do not re-add a single rule to make one call site work."
+    )
+
+
+def test_breakpoint_helper_classes_have_no_definition_site_in_a_sibling_bundle() -> None:
+    """C4 - no other CSS bundle defines a breakpoint-helper class.
+
+    Closes W3. `layout.css` is excluded by name and is owned by C1 instead, at
+    the stronger rule-head granularity; that split is what lets this contract
+    hold unchanged whether the family is deleted or retained.
+
+    Globbing rather than a hard-coded surface list means a bundle added later is
+    covered automatically -- unlike
+    `test_deleted_classes_are_not_resurrected_by_a_sibling_surface`, whose five
+    surfaces are fixed. One test, not a parametrize over the glob, so the
+    collected node count cannot vary with the files present on the machine doing
+    the collecting.
+
+    The walk is RECURSIVE over `static/`, not just `static/css/`. The one-time
+    census covered `static/vendor/fontawesome/css/all.min.css` -- FontAwesome is
+    vendored locally and is a real loaded stylesheet -- so a gate confined to
+    `static/css/*.css` would guarantee less than the evidence claimed. `layout.css`
+    is excluded by resolved path rather than by bare filename, so a future
+    `vendor/**/layout.css` cannot slip through on its name.
+
+    Red path: adding `.tbl-show-sm {}` to components.css fails, naming it.
+    """
+    offenders: dict[str, list[str]] = {}
+    for path in sorted((ROOT / "static").rglob("*.css")):
+        if path.resolve() == LAYOUT.resolve():
+            continue
+        css = _strip_comments(path.read_text(encoding="utf-8"))
+        found = [
+            cls for cls in sorted(BREAKPOINT_HELPER_CLASSES) if _heads_carrying(css, cls)
+        ]
+        if found:
+            offenders[path.name] = found
+    assert offenders == {}, (
+        f"a sibling bundle now defines breakpoint-helper classes: {offenders}. "
+        "The re-audit certified them unreachable across every loaded stylesheet; "
+        "re-creating the family in another bundle reintroduces it without the "
+        "evidence."
+    )
+
+
+def test_layout_css_has_no_empty_media_block() -> None:
+    """C5 - no `@media` block in layout.css has a whitespace-only body.
+
+    Small, and it forecloses one specific sloppy deletion: removing the nine
+    rules while leaving three empty `@media` shells behind. That state passes C1
+    and leaves a residue a later reader takes for intentional.
+
+    Scoped to layout.css. A glob-all form would be red on arrival --
+    pages-workout-log.css already carries five whitespace-only `@media` blocks
+    that WP4.3j-b-dead kept deliberately, with an explanatory comment.
+
+    Red path: leaving `@media (min-width: 1201px) { }` behind fails.
+    """
+    css = _strip_comments(_css())
+    empty = re.findall(r"@media[^{]*\{\s*\}", css)
+    assert empty == [], (
+        f"layout.css has {len(empty)} empty @media block(s): "
+        f"{[' '.join(m.split()) for m in empty]}. An emptied media query is "
+        "deletion residue, not a rule."
     )
 
 

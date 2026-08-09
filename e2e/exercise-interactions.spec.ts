@@ -9,10 +9,26 @@
  * - Inline editing (sets, reps, weight)
  * - Reorder exercises
  */
-import { test, expect, ROUTES, SELECTORS, waitForPageReady, expectToast } from './fixtures';
+import {
+  test,
+  expect,
+  ROUTES,
+  SELECTORS,
+  waitForWorkoutPlanReady,
+  expectToast,
+} from './fixtures';
 
-const BASE_URL = 'http://127.0.0.1:5000';
 const TEST_ROUTINE = 'GYM - Full Body - Workout A';
+
+/**
+ * The rows the plan table renders for `TEST_ROUTINE`.
+ *
+ * `updateWorkoutPlanTable()` stamps both attributes on every row it builds from
+ * plan data, so this matches real exercise rows only — never a placeholder, and
+ * never a row another routine put there.
+ */
+const TEST_ROUTINE_ROWS =
+  `#workout_plan_table_body tr[data-exercise-id][data-routine="${TEST_ROUTINE}"]`;
 
 /**
  * Helper to select a complete routine
@@ -67,30 +83,38 @@ function extractDataRows(payload: unknown): unknown[] {
   return Array.isArray(candidate.data) ? candidate.data : [];
 }
 
-async function ensureRoutineHasExercises(
-  page: import('@playwright/test').Page,
+/**
+ * Add exercises to `TEST_ROUTINE` until it holds `minimumCount` of them, and
+ * report how many were added.
+ *
+ * The decision comes from `/get_workout_plan` rather than from the table,
+ * because an awaited HTTP response says the same thing however fast the browser
+ * is. Existing rows are counted first and their names excluded from the
+ * candidates, so a partially seeded routine is topped up rather than duplicated
+ * and an already-full one is left alone.
+ */
+async function seedRoutineToMinimum(
   request: import('@playwright/test').APIRequestContext,
   minimumCount: number
-) {
-  await selectRoutine(page);
-
-  const rowLocator = page.locator('#workout_plan_table_body tr');
-  let currentCount = await rowLocator.count();
-  if (currentCount >= minimumCount) {
-    return;
-  }
-
-  const planResponse = await request.get(`${BASE_URL}/get_workout_plan`);
+): Promise<number> {
+  const planResponse = await request.get('/get_workout_plan');
+  expect(planResponse.ok(), 'expected /get_workout_plan to succeed during E2E setup').toBeTruthy();
   const planPayload = await planResponse.json().catch(() => ({}));
   const routineRows = extractDataRows(planPayload).filter(
     (row) => extractRoutineName(row) === TEST_ROUTINE
   );
+
+  let currentCount = routineRows.length;
+  if (currentCount >= minimumCount) {
+    return 0;
+  }
+
   const existingNames = new Set(
     routineRows.map(extractExerciseName).filter((name): name is string => Boolean(name))
   );
-  currentCount = routineRows.length;
 
-  const allResponse = await request.get(`${BASE_URL}/get_all_exercises`);
+  const allResponse = await request.get('/get_all_exercises');
+  expect(allResponse.ok(), 'expected /get_all_exercises to succeed during E2E setup').toBeTruthy();
   const allPayload = await allResponse.json().catch(() => ({}));
   const allRows = extractDataRows(allPayload);
 
@@ -99,11 +123,12 @@ async function ensureRoutineHasExercises(
     .filter((name): name is string => Boolean(name))
     .filter((name) => !existingNames.has(name));
 
+  let addedCount = 0;
   for (const exerciseName of addCandidates) {
     if (currentCount >= minimumCount) {
       break;
     }
-    const addResponse = await request.post(`${BASE_URL}/add_exercise`, {
+    const addResponse = await request.post('/add_exercise', {
       data: {
         routine: TEST_ROUTINE,
         exercise: exerciseName,
@@ -116,20 +141,60 @@ async function ensureRoutineHasExercises(
     });
     if (addResponse.ok()) {
       currentCount += 1;
+      addedCount += 1;
       existingNames.add(exerciseName);
     }
   }
 
-  await page.reload();
-  await waitForPageReady(page);
+  expect(
+    currentCount,
+    `expected "${TEST_ROUTINE}" to hold at least ${minimumCount} exercise(s) after seeding`
+  ).toBeGreaterThanOrEqual(minimumCount);
+
+  return addedCount;
+}
+
+/**
+ * Leave the page showing at least `minimumCount` exercises in `TEST_ROUTINE`.
+ *
+ * Both halves are explicit, awaited observables, which is what lets every caller
+ * navigate with `waitForWorkoutPlanReady()` instead of `networkidle`.
+ * `seedRoutineToMinimum()` decides from a `/get_workout_plan` response, so the
+ * seeding decision cannot race the `fetchWorkoutPlan()` that fills the table;
+ * the poll below then waits for the browser to have actually rendered those
+ * rows, so callers receive a populated table rather than the promise of one.
+ * `networkidle` used to supply the second half by accident, and nothing else in
+ * this file depended on it — the readiness marker tracks only the
+ * profile-estimate write, which is why it could not substitute before.
+ *
+ * A reload is needed exactly when rows were added behind the loaded page's
+ * back; when the routine was already full the page's own fetch will render
+ * them and the poll waits for it.
+ */
+async function ensureRoutineHasExercises(
+  page: import('@playwright/test').Page,
+  request: import('@playwright/test').APIRequestContext,
+  minimumCount: number
+) {
+  const addedCount = await seedRoutineToMinimum(request, minimumCount);
+
+  if (addedCount > 0) {
+    await page.reload();
+    await waitForWorkoutPlanReady(page);
+  }
+
   await selectRoutine(page);
+
+  await expect.poll(() => page.locator(TEST_ROUTINE_ROWS).count(), {
+    message: `expected the plan table to render at least ${minimumCount} "${TEST_ROUTINE}" row(s)`,
+  }).toBeGreaterThanOrEqual(minimumCount);
 }
 
 test.describe('Exercise Delete Functionality', () => {
   test.beforeEach(async ({ page, request, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await ensureRoutineHasExercises(page, request, 1);
   });
 
@@ -199,7 +264,7 @@ test.describe('Replace Exercise Functionality', () => {
   test.beforeEach(async ({ page, request, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await ensureRoutineHasExercises(page, request, 1);
   });
 
@@ -250,7 +315,7 @@ test.describe('Superset Functionality', () => {
   test.beforeEach(async ({ page, request, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await ensureRoutineHasExercises(page, request, 2);
   });
 
@@ -350,7 +415,7 @@ test.describe('Exercise Inline Editing', () => {
   test.beforeEach(async ({ page, request, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await ensureRoutineHasExercises(page, request, 1);
   });
 
@@ -425,7 +490,7 @@ test.describe('Exercise Details Modal', () => {
   test.beforeEach(async ({ page, request, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await ensureRoutineHasExercises(page, request, 1);
   });
 
@@ -459,10 +524,13 @@ test.describe('Exercise Details Modal', () => {
 });
 
 test.describe('Exercise Filter Application', () => {
+  // The one block that seeds nothing: its two tests never touch the plan table.
+  // They read the server-rendered filter dropdowns, and the one that uses the
+  // exercise dropdown waits for it with its own `waitForFunction`.
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -532,7 +600,7 @@ test.describe('Routine Tab Navigation', () => {
   test.beforeEach(async ({ page, request, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.WORKOUT_PLAN);
-    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
     await ensureRoutineHasExercises(page, request, 1);
   });
 

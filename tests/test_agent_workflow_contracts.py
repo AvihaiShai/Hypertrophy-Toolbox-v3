@@ -35,6 +35,7 @@ import json
 import re
 import shutil
 import subprocess
+from collections.abc import Iterable
 from pathlib import Path
 
 import pytest
@@ -45,11 +46,42 @@ AGENTS = REPO / ".claude" / "agents"
 SKILLS = REPO / ".claude" / "skills"
 GUARD = REPO / ".claude" / "hooks" / "guard-skill.ps1"
 
+# Every authority document here has an optional gitignored local twin: the
+# `.local.md` layer that PARALLEL_WORKFLOW.md tells a developer to put live
+# workstream claims in, so claim churn stays out of git. `.gitignore` names
+# today's two individually (MASTER_HANDOVER.local.md,
+# WORKSTREAM_OWNERSHIP.local.md); the suffix is the convention behind both.
+#
+# Those files must not reach these contracts, for two separate reasons:
+#
+# * **Assertion scope.** This file asserts what the *committed* configuration
+#   says. One machine's uncommitted scratch is not configuration truth, and
+#   nothing it contains can be true of a fresh clone.
+# * **Collection determinism**, which is the sharper hazard. SURFACE is
+#   parametrized, so a filesystem glob makes this file's node count depend on
+#   whatever happens to sit in those directories. That count feeds the committed
+#   `docs/test_inventory/` artifact, so a purely local file reds
+#   `--check` against an artifact that is in fact correct -- and the tempting
+#   repair, regenerating, *corrupts* the artifact by baking the local file in.
+#
+# This is the same principle the HOSTS note below states: node count must not
+# depend on the machine. `ENVIRONMENT_DEPENDENT_PYTEST_FILES` in
+# scripts/generate_test_inventory.py exists to absorb variance that is genuinely
+# by design; this variance was an accident, so it is removed rather than
+# allowlisted.
+LOCAL_ONLY_SUFFIX = ".local.md"
+
+
+def committed_markdown(paths: Iterable[Path]) -> list[Path]:
+    """Sorted committed-configuration Markdown, minus local-only layers."""
+    return sorted(p for p in paths if not p.name.endswith(LOCAL_ONLY_SUFFIX))
+
+
 SURFACE = [
-    *sorted(COMMANDS.glob("*.md")),
-    *sorted(AGENTS.glob("*.md")),
-    *sorted((REPO / ".claude" / "rules").glob("*.md")),
-    *sorted(p for p in (REPO / "docs" / "ai_workflow").glob("*.md")),
+    *committed_markdown(COMMANDS.glob("*.md")),
+    *committed_markdown(AGENTS.glob("*.md")),
+    *committed_markdown((REPO / ".claude" / "rules").glob("*.md")),
+    *committed_markdown((REPO / "docs" / "ai_workflow").glob("*.md")),
     REPO / "CLAUDE.md",
 ]
 
@@ -77,7 +109,7 @@ def read(path: Path) -> str:
 
 def invocable_names() -> set[str]:
     skills = {d.name for d in SKILLS.iterdir() if (d / "SKILL.md").is_file()}
-    return skills | {p.stem for p in COMMANDS.glob("*.md")}
+    return skills | {p.stem for p in committed_markdown(COMMANDS.glob("*.md"))}
 
 
 def allowlist(charter: Path) -> list[str]:
@@ -88,7 +120,7 @@ def allowlist(charter: Path) -> list[str]:
 
 
 def guarded_charters() -> list[Path]:
-    return [p for p in sorted(AGENTS.glob("*.md")) if allowlist(p)]
+    return [p for p in committed_markdown(AGENTS.glob("*.md")) if allowlist(p)]
 
 
 def step_invocations(command: Path) -> set[str]:
@@ -149,6 +181,61 @@ def test_gitignore_still_blocks_a_tracked_shared_plan() -> None:
     """
     lines = [line.strip() for line in read(REPO / ".gitignore").splitlines()]
     assert ".claude/SHARED_PLAN.md" in lines
+
+
+def test_local_only_authority_layers_cannot_reach_these_contracts() -> None:
+    """A gitignored ``*.local.md`` twin must not enter the parametrized surface.
+
+    Asserted on the derivation rather than only on the result: checking SURFACE
+    alone would pass vacuously on any machine that happens to have no local
+    layer, which is every CI runner and so exactly the machine that cannot
+    catch the regression.
+    """
+    leaked = [p.name for p in SURFACE if p.name.endswith(LOCAL_ONLY_SUFFIX)]
+    assert not leaked, f"local-only layers reached SURFACE: {leaked}"
+
+    committed = Path("docs/ai_workflow/WORKSTREAM_OWNERSHIP.md")
+    local = Path("docs/ai_workflow/WORKSTREAM_OWNERSHIP.local.md")
+    assert committed_markdown([committed, local]) == [committed]
+
+    # The suffix rule reaches the other two derivations too, so a local twin can
+    # neither invent a slash command nor add an agent charter.
+    assert "WORKSTREAM_OWNERSHIP.local" not in invocable_names()
+
+
+def test_every_surface_file_is_tracked_by_git() -> None:
+    """Collection must not depend on any untracked file, local twin or not.
+
+    The suffix rule above covers the documented convention. This is the general
+    form: anything untracked in these directories changes this file's node
+    count, which drifts the committed ``docs/test_inventory/`` artifact on one
+    machine only. Failing here names the file; the fix is to commit it or to
+    give it the ``.local.md`` suffix, never to regenerate the inventory around
+    it.
+    """
+    if shutil.which("git") is None:
+        pytest.skip("git not on PATH")
+
+    listed = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    tracked = {entry for entry in listed.stdout.split("\0") if entry}
+
+    untracked = [
+        path.relative_to(REPO).as_posix()
+        for path in SURFACE
+        if path.relative_to(REPO).as_posix() not in tracked
+    ]
+    assert not untracked, (
+        "untracked files are being collected as configuration surface, so this "
+        "file's node count differs from a clean checkout: "
+        + ", ".join(untracked)
+        + ". Commit them, or name them *.local.md if they are local-only."
+    )
 
 
 @pytest.mark.parametrize(
