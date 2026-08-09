@@ -376,7 +376,7 @@ those 23 being the 21 converted here plus the 2 the `Exercise Filter
 Application` block already had.
 
 **Measured, same isolated server / DB / session (port 5336), same reporter and
-`workers=1`, control first:**
+`workers=1`, control first. Wall clock, as in every table above:**
 
 | | runs | median | range | result |
 |---|---|---|---|---|
@@ -387,6 +387,14 @@ Application` block already had.
 largest proportional win of the rollout, and the arithmetic closes: 11.6s of
 `networkidle` removed, 0.65s of marker waits and one extra `/get_workout_plan`
 round trip per invocation added back.
+
+*Basis, since the two numbers a reader can find will differ: these are
+launcher-process elapsed times, which run ~0.6–0.7s above the reporter's own
+`N passed (Xs)` line in the saved run logs (32.1–32.3s control, 21.9–22.4s
+converted) because the reporter starts counting after process and browser
+startup. Control and converted are measured the same way, so the comparison is
+on one consistent basis and the conclusion is unchanged: 10.0s on the launcher
+basis, 10.1s on the reporter's.*
 
 **Realized yield: 0.48s per converted call** — near the top of the 0.19–0.55s
 band, for the same reason packet 6's converted half was: the tail was dead time
