@@ -303,6 +303,10 @@ sometimes early-return, sometimes add rows, with the row count differing per run
 The seventh retained site is the helper's own post-reload wait, kept for the same
 reason. The reasoning is recorded at the helper and at the converted block.
 
+*(Superseded by packet 7 below, which repaired the helper instead of working
+around it. The diagnosis above stayed correct — the fix was simply out of that
+packet's scope.)*
+
 The one converted block, `Exercise Filter Application`, never touches the plan
 table: it reads the server-rendered filter dropdowns, and the test that uses the
 exercise dropdown waits for it with its own `waitForFunction`.
@@ -329,6 +333,84 @@ essentially all of it. That is the signature of calls whose following work never
 overlapped the tail: in `superset-edge-cases` the `beforeEach` tail was pure dead
 time before `selectRoutine()` started its own round trips.
 
+### The `exercise-interactions` helper repair — **DONE 2026-08-09 (packet 7)**
+
+Packet 6 retained seven sites here because of a **test-design defect, not a
+property of the page**: `ensureRoutineHasExercises()` opened with an unguarded
+`rowLocator.count()`, and that read decided whether the helper seeded. This
+packet repaired the helper instead of working around it. Test-only — no
+production JS, template, route or API touched, and `waitForPageReady` itself is
+unchanged for the specs that still use it.
+
+**What makes it deterministic now.** The helper has two halves, both awaited:
+
+1. `seedRoutineToMinimum()` decides from `/get_workout_plan` — an awaited HTTP
+   response says the same thing however fast the browser is. It counts the rows
+   already in the routine there, excludes their names from the add candidates,
+   and returns how many rows it actually added. So an empty routine is seeded
+   from zero, a partially seeded one is topped up rather than duplicated, and a
+   full one is left alone.
+2. The helper reloads **only** when it added rows — otherwise the loaded page's
+   own `fetchWorkoutPlan()` is already fetching what is there — and then polls
+   until the table has rendered at least `minimumCount` rows *of the test
+   routine*: `tr[data-exercise-id][data-routine="…"]`, both stamped by
+   `updateWorkoutPlanTable()` on every row it builds, so neither a placeholder
+   nor another routine's row can satisfy it.
+
+The seeding decision no longer reads asynchronous state at all, and the render
+`networkidle` had been covering by accident is now waited for explicitly and by
+name. Nothing else in the file depended on it, so **all seven retained sites /
+21 calls converted; `networkidle` executions in this spec go 21 → 0.**
+
+**Realized inventory, instrumented rather than counted — and it is DB-state
+dependent.** Packet 6 recorded 21 retained calls. Instrumenting
+`waitForPageReady` directly measured **21 executions (11.6s, mean 551ms) against
+the DB state the timing runs used, and 23 (13.0s, mean 564ms) against a freshly
+seeded one**. The difference is real, not noise: 19 calls come from the six
+`beforeEach` blocks and the rest from the helper's post-seed reload, which fires
+once per seeding event — and the delete tests remove rows, so how many seeding
+events a run needs depends on what the previous run left behind. The converted
+side measures **0** `waitForPageReady` executions and 23
+`waitForWorkoutPlanReady` executions costing **0.65s in total** (mean 28ms) —
+those 23 being the 21 converted here plus the 2 the `Exercise Filter
+Application` block already had.
+
+**Measured, same isolated server / DB / session (port 5336), same reporter and
+`workers=1`, control first:**
+
+| | runs | median | range | result |
+|---|---|---|---|---|
+| control (`fc54330`) | 3 | **32.8s** | 32.8–33.0s | 21/21 |
+| converted | 5 | **22.8s** | 22.6–23.0s | **21/21 × 5** |
+
+**10.0s saved (30.5%), zero retries, flakes or skips across all 8 runs.** The
+largest proportional win of the rollout, and the arithmetic closes: 11.6s of
+`networkidle` removed, 0.65s of marker waits and one extra `/get_workout_plan`
+round trip per invocation added back.
+
+**Realized yield: 0.48s per converted call** — near the top of the 0.19–0.55s
+band, for the same reason packet 6's converted half was: the tail was dead time
+that no following work overlapped.
+
+**Assertions went up, not down.** 25 → 29 assertion sites (+4), all of them in
+setup: `/get_workout_plan` and `/get_all_exercises` must succeed, seeding must
+reach the minimum, and the table must render it. Nothing was removed or
+weakened; 21 tests before and after; hard waits unchanged at **7 sites /
+5100ms**. A helper that used to silently skip seeding now fails loudly if its
+precondition cannot be met.
+
+**The one semantic delta, stated rather than buried.** The old early-return read
+`#workout_plan_table_body tr` — *every* row, whatever routine it belonged to —
+so in a full-suite run, where earlier specs leave rows behind, it could return
+having seeded nothing into the test routine and hand the tests another routine's
+rows. Both the new decision and the new wait are scoped to `TEST_ROUTINE`, so
+the helper now delivers what its name says. That is strictly stronger, and it
+can mean *more* seeding than before in a shared-DB run — which is why it was
+verified there and not only in isolation: the full functional gate (every spec
+bar the two snapshot specs and `workout-plan-desktop-contract`) passed
+**508/508**, with pytest at 2614 passed / 2 skipped and the test inventory
+unchanged.
+
 ### Cumulative
 
 | Spec | calls | saved | per call |
@@ -337,10 +419,28 @@ time before `selectRoutine()` started its own round trips.
 | `workout-plan` | 17 | 3.3s | 0.19s |
 | `ui-hardening` | 71 | 18.6s | 0.26s |
 | `superset-edge-cases` + `exercise-interactions` | 15 | 8.2s | 0.55s |
-| **total** | **126** | **39.2s** | **0.31s** |
+| `exercise-interactions` (helper repair) | 21 | 10.0s | 0.48s |
+| **total** | **147** | **49.2s** | **0.33s** |
 
-39.2s off a 711.3s local group — **5.5%** — with assertion counts, hard-wait
-counts and production behavior unchanged throughout.
+49.2s off a 711.3s local group — **6.9%** — with test counts, hard-wait counts
+and production behavior unchanged throughout, and assertion counts either
+unchanged or higher.
+
+### The workout-plan rollout is closed
+
+Every spec the marker was authorized for has now been converted and measured.
+What is still on `networkidle` is retained deliberately and recorded above:
+
+| Site | Why it stays |
+|---|---|
+| `workout-plan.spec.ts` › `Workout Plan Page` (15 tests) | Its tests read the plan table without waiting for the `fetchWorkoutPlan()` that fills it. The helper repair above is not transferable — there is no shared helper to fix, so this is 15 individual per-test waits, a different change. |
+| `workout-plan.spec.ts` › `§4 thumbnails` (4 tests) | They inject rows with `updateWorkoutPlanTable()`; the real fetch must have landed or it repaints over the mock. |
+| `ui-hardening.spec.ts` › `Workout Log Modal Keyboard & Focus` (4 calls) | Runs on `/workout_log`, where the workout-plan marker never appears. |
+
+The remaining `networkidle` traffic is on other pages. **Going further needs a
+per-page readiness design, which is a production change and a separate owner
+decision — this packet does not propose one**, and no page-specific observable
+should be invented ad hoc in a test to avoid asking.
 
 ## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 

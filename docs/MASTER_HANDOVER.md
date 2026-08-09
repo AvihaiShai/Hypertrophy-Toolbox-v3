@@ -99,6 +99,32 @@
 > when nothing else needed that time. A realistic total is **~85–175s, not the
 > ~218s** finding 1 projected — measure each rollout, do not extrapolate.
 >
+> **Packet 6 converted `superset-edge-cases` (7/7 sites); packet 7 then removed
+> the thing that had blocked `exercise-interactions`.** It was never a property
+> of the page — it was an unguarded `rowLocator.count()` in
+> `ensureRoutineHasExercises()` that *decided whether the helper seeded*, read
+> from a table `fetchWorkoutPlan()` fills asynchronously. Packet 7 made both
+> halves explicit and awaited: the seeding decision now comes from
+> `/get_workout_plan`, and the helper polls until the browser has rendered
+> `minimumCount` rows of the test routine
+> (`tr[data-exercise-id][data-routine=…]`) before returning. **Test-only — no
+> production change, `waitForPageReady` untouched.** All 7 retained sites / 21
+> calls converted, `networkidle` in that spec 21 → 0; control 32.8s → **22.8s**
+> median (**10.0s, 30.5%**), 21/21 × 5, zero retries, flakes or skips, hard waits
+> unchanged at 7, assertions **up** 25 → 29 (setup only — a helper that used to
+> skip seeding silently now fails loudly).
+>
+> **Instrumentation beat the static model again, this time on variance.** The
+> realized count is 21 *or* 23 for the same spec depending on DB state, because
+> the helper's post-seed reload fires once per seeding event and the delete tests
+> remove rows. Per-spec call counts are not a fixed property of a file.
+>
+> **The workout-plan rollout is closed: six specs, 147 calls, 49.2s — 6.9% of the
+> 711.3s local group.** What still runs `networkidle` is retained deliberately
+> and documented: `workout-plan.spec.ts`'s two blocks (19 tests that read the
+> plan table directly — no shared helper to repair, so it is a different change)
+> and `ui-hardening`'s `/workout_log` block. Everything else is on other pages.
+>
 > **Open and owner-gated:**
 > 1. **PRODUCT DEFECT — the Unlink button renders when it should be hidden.**
 >    `updateSupersetActionButtons()` sets `display:none` inline, but three
@@ -108,14 +134,12 @@
 > 2. **Should the superset selection clear on a routine-day change?** It does not
 >    today; the dropdown targets the Add form, not the plan table. The test was
 >    renamed to match reality.
-> 3. Rolling the readiness signal further. **Five specs converted: 39.2s saved
->    from 126 calls (0.31s/call), 5.5% of the 711.3s local group.** Packet 6 added
->    `superset-edge-cases` (7/7 sites) and `exercise-interactions` (1 of 8 sites
->    — the other seven feed `ensureRoutineHasExercises()`, whose unguarded
->    `rowLocator.count()` decides whether it seeds, so `networkidle` is
->    load-bearing there and the marker cannot substitute). Remaining traffic is
->    mostly on other pages, where going further needs a per-page marker — a
->    production change and a separate owner decision.
+> 3. Rolling the readiness signal onto **other pages**. The workout-plan rollout
+>    itself is closed (above) — what is open is that every remaining
+>    `networkidle` call lives on a page with no observable of its own. That needs
+>    a per-page readiness design, which is a production change and a separate
+>    owner decision. **No such design is proposed here, and a page-specific
+>    observable must not be improvised inside a spec to avoid asking.**
 > 4. Finding 4's two production observations (four external CDN fetches per
 >    navigation; `/get_all_exercises` requested twice).
 >
