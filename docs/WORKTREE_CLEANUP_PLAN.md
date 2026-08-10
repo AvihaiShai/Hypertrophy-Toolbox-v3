@@ -4,12 +4,11 @@ Execution goal for [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) row **
 ("Remove obsolete worktrees and generated artifacts"), which has stood at 0% across
 six audit revisions because it was never converted from a warning into a procedure.
 
-Status: **PARTIAL — WORKTREE REMOVAL COMPLETE; GENERATED-ARTIFACT PACKET NOT EXECUTED.**
-The owner gate is **discharged** — every disposition decision Packets D and E need was given
-in §9.2. Both remaining packets are blocked on *execution mechanism*, not on authorization:
-Packet E needs a permission mode that can render the guard's `ask` (13 attempts, §9.3);
-Packet D needs an owner decision on how to perform a recursive delete the guard hard-denies
-(§9.3). Commissioning either as "get owner approval and run it" will fail again.
+Status: **PARTIAL — PACKET E COMPLETE; PACKET D EXECUTED EXCEPT `visual_review*`.**
+The 2026-08-11 manual run removed all three §9.2 Packet E worktrees and the literal Packet D
+targets recorded in §9.3. No branch was deleted. The six `visual_review*` directories remain:
+§6 names the wildcard but gives a stale count of three, and a follow-up attempt to apply the
+wildcard to all six was hard-denied before execution. Protected and non-§6 paths remain intact.
 
 > **Execution update — 2026-08-08, attempt 6.** A fresh 50-worktree / 305-PR /
 > `ls-remote` gate found all 40 candidates eligible and 10 KEEP rows. All 40 were removed
@@ -395,21 +394,21 @@ actions and remains true. One branch has since been deleted by another session
 ### 9.2 Packet E owner decisions — 2026-08-10
 
 Three of the preserved worktrees were audited and their dispositions decided by the owner.
-**None of the three removals has executed.** This section records decisions and their
-execution state; it is not a removal record, and no row here may be read as done.
+**All three removals executed on 2026-08-11.** The decision evidence below remains the basis;
+the complete post-run verification is in §9.3.
 
 | Path | Branch | HEAD | Decision | State |
 |---|---|---|---|---|
-| `…-dnone` | `recovery/win32-visual-baseline-corpus` | `4001fbd` | **REMOVE** — worktree only | **NOT EXECUTED** |
-| `…-bs538-spike` | `wt/bs538-spike` | `d72d00e` | **REMOVE `--force`** — owner accepts destroying the 4 audited files | **NOT EXECUTED** |
-| `…-main-stylelint17` | `probe/stylelint17` | `fb0e059` | **REMOVE** — owner accepts discarding the refused bump | **NOT EXECUTED** |
+| `…-dnone` | `recovery/win32-visual-baseline-corpus` | `4001fbd` | **REMOVE** — worktree only | **REMOVED 2026-08-11** |
+| `…-bs538-spike` | `wt/bs538-spike` | `d72d00e` | **REMOVE `--force`** — owner accepts destroying the 4 audited files | **REMOVED 2026-08-11** |
+| `…-main-stylelint17` | `probe/stylelint17` | `fb0e059` | **REMOVE** — owner accepts discarding the refused bump | **REMOVED 2026-08-11** |
 
 **Branch retention is explicit: delete no branch.** `recovery/win32-visual-baseline-corpus`
 especially — it is the only ref containing `b990412`, and removing the *worktree* leaves the
 ref intact.
 
-**Blocker.** `git worktree remove` is decided `ask` by
-[`guard-destructive-command.ps1:438-441`](../.claude/hooks/guard-destructive-command.ps1),
+**Historical blocker, superseded by §9.3's manual execution.** `git worktree remove` is
+decided `ask` by [`guard-destructive-command.ps1:438-441`](../.claude/hooks/guard-destructive-command.ps1),
 and a `bypassPermissions` session cannot render an ask prompt, so the guard fails closed on
 every attempt. `--force` does **not** bypass it — verified again here. Re-run in a prompting
 permission mode. Do not disable the guard, and do not route around it.
@@ -427,7 +426,7 @@ Supersession evidence, all re-derived 2026-08-10 against `origin/main` `0c8681a`
 - **`…-dnone`** — PR **#309 MERGED**, and all three files touched by tip commit `4001fbd`
   are byte-identical to main, so the post-squash commit landed too.
 
-#### §6 artifact packet — deferred, not executed
+#### §6 artifact packet — partially executed 2026-08-11
 
 Both PR-based holds have **expired**: #281 and #286 both merged 2026-08-03. Only **#302** is
 open repo-wide and it has no artifact dependency — its sole `artifacts/` mention says the
@@ -448,9 +447,10 @@ holds `artifacts/playwright`, `artifacts/dev-server` and `logs/`. Terminating th
 the gate was explicitly out of scope. The packet needs a quiet machine, the same precondition
 that gated the worktree pass.
 
-**P1.2 therefore stays PARTIAL.** The artifact half has not run.
+**At this snapshot P1.2 therefore stayed PARTIAL.** §9.3 records the later execution and the
+remaining `visual_review*` boundary.
 
-### 9.3 Attempts 12–13 — the blockers are now measured, and one of them was misdiagnosed
+### 9.3 Attempts 12–13 and the 2026-08-11 manual execution
 
 Re-derived 2026-08-10 against the `main` **ref** `21df713` (see the shared-checkout caveat
 at the end of this section). §9.2's pre-flight was re-run in full and **all three Packet E
@@ -534,3 +534,50 @@ at `21df713` throughout and is what every derivation above used. §1's definitio
 6 ("clean and still on `main`") currently fails for that reason alone — another session's
 activity, not this packet's. This record was written from the assigned P1.2 worktree, not the
 shared checkout.
+
+#### Manual execution outcome — 2026-08-11
+
+The owner directed that the prepared manual runbook be handled without another handoff.
+Stage 1 passed before any destructive step: all three Packet E targets matched their audited
+branch, HEAD and dirty count (`0` / `0` / `4`), every listed Packet D target probed FREE,
+all protected paths were present, all three branch refs resolved, and `b990412` was reachable
+through `recovery/win32-visual-baseline-corpus`.
+
+**Packet E completed.** These worktrees were removed from the registry:
+
+| Path | Removed HEAD | Dirty content discarded | Branch after removal |
+|---|---|---|---|
+| `…-dnone` | `4001fbd` | none | `recovery/win32-visual-baseline-corpus` still resolves |
+| `…-main-stylelint17` | `fb0e059` | none | `probe/stylelint17` still resolves |
+| `…-bs538-spike` | `d72d00e` | the four owner-accepted audited files | `wt/bs538-spike` still resolves |
+
+`git worktree prune --dry-run --verbose` is empty. The `…-dnone` and `…-bs538-spike`
+filesystem paths still exist only as the expected junction shells; neither is registered.
+No branch was deleted, and `b990412` remains reachable through the recovery branch.
+
+**Packet D completed for the runbook's 15 literal targets**, reclaiming about **1.07 GB**:
+
+- removed `artifacts/playwright`, `_a2zip`, `_a3zip`, `pr281_owner_audit`, and
+  `vd_gen1` / `vd_gen2` / `vd_gen3`;
+- removed `dist`, `build`, and `debug`;
+- removed `logs/app.log.1` through `.5`, preserving live `logs/app.log` and tracked
+  `logs/.gitkeep`.
+
+Post-run verification reads every one of those paths **gone**. `artifacts/` is now
+**1.53 GB** and `logs/` **0.01 GB**. The protected set is intact: `wp4_4`,
+`environment-backups`, `e2e`, `dev-server`, `codex-pr309-review-7d03c7a`,
+`pr294-visual-diagnostics`, `vbl_check`, and both live log paths all read present.
+
+**`visual_review*` remains unresolved and present.** A fresh check established that all six
+directories date to 2026-08-02, total about 213 MB, probe FREE, and have no tracked reference
+outside this cleanup queue. §6 nevertheless says "(3 dirs)" while naming only the wildcard.
+The runbook conservatively excluded all six. A follow-up attempt to interpret the wildcard as
+all six was hard-denied by the destructive-command policy before any deletion occurred; it
+was not retried through an indirect command shape. The three non-§6 diagnostic sets
+(`codex-pr309-review-7d03c7a`, `pr294-visual-diagnostics`, `vbl_check`) were not attempted.
+The two open PRs at execution time (#320 and this docs-only #321) name none of these paths.
+
+The shared checkout was not touched: its HEAD remains `5636cd1` on
+`fix/get-routine-exercises-catalog`, while the `main` ref remains `21df713`. Accordingly,
+definition-of-done item 6 still reflects another session's active branch, and P1.2 remains
+**PARTIAL** rather than claiming the ambiguous `visual_review*` set was deleted.
