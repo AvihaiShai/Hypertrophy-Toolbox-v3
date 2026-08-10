@@ -429,11 +429,12 @@
 >
 > ### The win32 corpus can go stale silently — re-measure, do not assume
 >
-> **Neither win32 suite runs in required CI** (see "Per-PR CI never runs either visual
-> suite" below), so a CSS or template change can invalidate these baselines with **nothing
-> going red anywhere**. That is precisely how the condition #304 documented arose. Treat
-> any commit later than the pin as unmeasured until someone re-runs the two suites
-> locally.
+> **Neither win32 suite runs in required CI.** The non-required `visual-windows` job now
+> runs `visual.spec.ts` on every PR and push to `main`, so its 66 tests can red on drift.
+> `visual-baseline-thumbnails.spec.ts` remains outside CI because #322 proved one of its
+> captures is nondeterministic on `windows-2022`; those 18 baselines can still stale
+> silently. That is precisely how the broader condition #304 documented arose. Treat the
+> thumbnail corpus after the pin as unmeasured until it is re-run locally.
 >
 > **Equally, do not assume the reverse.** "A CSS/template change landed, therefore the
 > corpus is stale" is a hypothesis, not a finding, and it has already been wrong once:
@@ -457,15 +458,51 @@
 > the owner's by-eye approval in #309 attests that the *regenerated pixels* were reviewed,
 > not that every future diff is safe to accept.
 >
-> **Windows still has no CI path.** `deep-gate.yml`'s only visual job is `visual-linux` on
-> `ubuntu-24.04`; there is no `windows-latest` visual job, so `e2e/__screenshots__/win32`
-> is regenerated **locally** or not at all. Adding one is a separate owner decision.
+> **Windows now has a CI path for the stable primary suite.** `ci.yml` carries a
+> `visual-windows` job on **every PR and every push to `main`**, pinned to `windows-2022`,
+> running the 66-test `visual.spec.ts` suite with `PW_VISUAL_SEED=1`. A CSS or template
+> change that invalidates that suite's win32 corpus now reds a check instead of going
+> unnoticed.
 >
-> **Per-PR CI never runs either visual suite.** `visual.spec.ts` and
-> `visual-baseline-thumbnails.spec.ts` live in `deep-gate.yml`, not `ci.yml`, so a PR
-> showing every check green is silent about visual state in **both** directions. Do not
-> read a green PR as evidence that pixels are fine, and do not read this section as a
-> reason to doubt an otherwise-green PR.
+> **The long-standing assumption that this was impossible is disproven.** #304 argued a
+> Windows CI job was impractical because `e2e/__screenshots__/win32/` was generated on the
+> owner's **local** machine (#309) rather than by a workflow, so runner rendering "would"
+> differ — different Chromium build, font set, DirectWrite. **That was never measured.** It
+> was measured on 2026-08-10, deep-gate run
+> [31437353755](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31437353755)
+> on `windows-2022`: `Running 84 tests using 1 worker` → **`84 passed (2.8m)`**, a full byte
+> comparison of all 66 + 18 captures against the local corpus, zero failures. The 66
+> primary tests then passed on both #322 attempts. **The renderers agree for that primary
+> corpus, so it is portable between them.**
+>
+> **The thumbnail suite is not in this job.** #322's two CI attempts both failed
+> `plan-desktop-light-simple`; its diff varied within a single Playwright attempt
+> (including 40,504 → 13,067 → 27,688 pixels), which proves a rendering race rather than
+> a stale baseline. The other 17 tests did not run because the describe is serial. No
+> tolerance, retry, exemption or PNG was changed. Fix the race before widening the job to
+> `visual-baseline-thumbnails.spec.ts`; until then its 18 captures retain the silent-stale
+> window.
+>
+> **CI still cannot produce a baseline.** The job is compare-only — no generate mode,
+> `--update-snapshots` never passed, and a final step fails it if anything under
+> `e2e/__screenshots__` changed during the run, because Playwright *creates* a missing
+> baseline rather than failing. `e2e/__screenshots__/win32` still changes only through a
+> reviewed local run.
+>
+> **The pin is load-bearing.** The renderer agreement is a property of `windows-2022` plus
+> the Chromium pinned by `package.json`; `windows-latest` is a moving alias and an image
+> promotion would move fonts underneath the gate. If this job ever reds across many
+> unrelated captures at once, suspect the runner image or a Playwright bump before
+> suspecting the diff.
+>
+> **It is not yet a *required* context.** Adding it to branch protection is a separate owner
+> action — and note that check names are exact-match there, so the job's name must not be
+> edited casually once it is required.
+>
+> **Per-PR CI covers `visual.spec.ts`, not the thumbnail suite.** The 66 primary tests run
+> in `ci.yml`; `visual-baseline-thumbnails.spec.ts` remains an opt-in deep-gate/local
+> check. A green PR is therefore evidence about the primary win32 corpus only, not the 18
+> thumbnail captures.
 >
 > The two WP4.0 entries below remain accurate as *history* — they are the two defects
 > that were known when the corpus was current — and their "never rebaseline, never gate
