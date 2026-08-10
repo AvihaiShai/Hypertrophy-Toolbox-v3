@@ -12,10 +12,10 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **610** |
+| Playwright tests (chromium) | **611** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **477** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2310** across 110 files |
+| Required functional gate — `E2E Functional (Chromium)` | **478** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **2318** across 110 files |
 | pytest test files (all) | **111** |
 | Hard waits (lines containing waitForTimeout) | **84** across 15 files |
 
@@ -57,7 +57,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `volume-splitter.spec.ts` | 30 | yes |
 | `workout-log.spec.ts` | 23 | yes |
 | `workout-plan-desktop-contract.spec.ts` | 16 | — |
-| `workout-plan.spec.ts` | 35 | yes |
+| `workout-plan.spec.ts` | 36 | yes |
 
 ## pytest files
 
@@ -176,7 +176,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_workout_log_calibration_route.py` | 7 |
 | `tests/test_workout_log_routes.py` | 58 |
 | `tests/test_workout_log_utils.py` | 30 |
-| `tests/test_workout_plan_routes.py` | 67 |
+| `tests/test_workout_plan_routes.py` | 75 |
 | `tests/test_youtube_video_id.py` | 40 |
 
 ## Hard waits by file
