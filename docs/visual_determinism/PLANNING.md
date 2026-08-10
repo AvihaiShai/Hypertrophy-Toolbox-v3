@@ -543,7 +543,15 @@ in **0/8** and also stays.
 regenerates, and it was already stale before any of this: against a pristine `main` tree
 at the pinned Playwright 1.61, a full local `win32` compare reds broadly, and
 `plan-desktop-light-advanced` alone differs from its committed baseline by 541,849 px
-(29%). Regenerating and reviewing it remains the follow-up §5/§7 already track.
+(29%).
+
+> **Discharged 2026-08-08 by #309 (`10ba89f`).** The regeneration-and-review follow-up
+> this paragraph tracked is done: the win32 corpus was regenerated locally under owner
+> by-eye review, and a full local `win32` compare now returns **66 passed** for
+> `visual.spec.ts` and **18 passed** for `visual-baseline-thumbnails.spec.ts`. The first
+> sentence still holds — **no CI job regenerates win32**, so it stays owner-local and any
+> future regeneration is again a local run. The `plan-desktop-light-advanced` figure is
+> historical: that capture is byte-gate exempt and has no baseline on either platform.
 
 The exemption does touch `win32`, and must: the five captures no longer produce a PNG on
 *any* platform, so their `win32` files are deleted too. Nothing else in that set changes.
