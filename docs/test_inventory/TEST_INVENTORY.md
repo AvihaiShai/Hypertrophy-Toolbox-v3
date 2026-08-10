@@ -12,8 +12,8 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **608** |
-| Playwright spec files | **32** |
+| Playwright tests (chromium) | **610** |
+| Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **477** tests across 25 specs |
 | pytest collected nodes (deterministic subset) | **2296** across 110 files |
 | pytest test files (all) | **111** |
@@ -33,6 +33,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `empty-states.spec.ts` | 16 | yes |
 | `erase-flow.spec.ts` | 2 | — |
 | `error-handling.spec.ts` | 12 | yes |
+| `exercise-catalog-fetch.spec.ts` | 2 | — |
 | `exercise-interactions.spec.ts` | 21 | yes |
 | `fatigue-context.spec.ts` | 6 | — |
 | `fatigue-stage4-smokes.spec.ts` | 5 | yes |

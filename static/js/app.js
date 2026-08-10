@@ -1,5 +1,5 @@
 import { showToast } from './modules/toast.js';
-import { fetchWorkoutPlan, handleRoutineSelection, updateExerciseDetails, updateExerciseForm, handleAddExercise } from './modules/workout-plan.js';
+import { fetchWorkoutPlan, updateExerciseDetails, updateExerciseForm, handleAddExercise } from './modules/workout-plan.js';
 import { initializeWorkoutLog, deleteWorkoutLog, updateScoredValue, handleDateChange, importFromWorkoutPlan, confirmClearWorkoutLog } from './modules/workout-log.js';
 import { initializeFilters, initializeAdvancedFilters, initializeSearchFilter, initializeFilterKeyboardEvents } from './modules/filters.js';
 import { removeExercise, clearWorkoutPlan } from './modules/exercises.js';
@@ -183,11 +183,15 @@ function initializeWorkoutPlan() {
     initializeAdvancedFilters();
     initializeSearchFilter();
     initializeRoutineCascade(); // Initialize cascading routine selector
-    handleRoutineSelection();
     initializeWorkoutPlanHandlers();
     initializePlanVolumePanel();
     initializeWorkoutControlsAnimation();
-    // fetchWorkoutPlan is already called inside initializeWorkoutPlanHandlers
+    // fetchWorkoutPlan and handleRoutineSelection are both already called inside
+    // initializeWorkoutPlanHandlers. Calling handleRoutineSelection here too left
+    // two live `change` listeners on the hidden #routine field, so the routine
+    // cascade's stateless reset — which dispatches one empty-value change on
+    // pageshow — fanned out into two identical /get_all_exercises fetches per
+    // navigation. See e2e/exercise-catalog-fetch.spec.ts.
 }
 
 function initializeProgressionPage() {
