@@ -387,3 +387,61 @@ Still-valid KEEP rows: 8 of 10 unchanged (`…-v3-main` advanced, `…-dnone` re
 The "No branch was deleted" claim in §1 and the execution update is about *this packet's*
 actions and remains true. One branch has since been deleted by another session
 (`fix/win32-visual-baseline-regen`, above); that was not this packet.
+
+### 9.2 Packet E owner decisions — 2026-08-10
+
+Three of the preserved worktrees were audited and their dispositions decided by the owner.
+**None of the three removals has executed.** This section records decisions and their
+execution state; it is not a removal record, and no row here may be read as done.
+
+| Path | Branch | HEAD | Decision | State |
+|---|---|---|---|---|
+| `…-dnone` | `recovery/win32-visual-baseline-corpus` | `4001fbd` | **REMOVE** — worktree only | **NOT EXECUTED** |
+| `…-bs538-spike` | `wt/bs538-spike` | `d72d00e` | **REMOVE `--force`** — owner accepts destroying the 4 audited files | **NOT EXECUTED** |
+| `…-main-stylelint17` | `probe/stylelint17` | `fb0e059` | **REMOVE** — owner accepts discarding the refused bump | **NOT EXECUTED** |
+
+**Branch retention is explicit: delete no branch.** `recovery/win32-visual-baseline-corpus`
+especially — it is the only ref containing `b990412`, and removing the *worktree* leaves the
+ref intact.
+
+**Blocker.** `git worktree remove` is decided `ask` by
+[`guard-destructive-command.ps1:438-441`](../.claude/hooks/guard-destructive-command.ps1),
+and a `bypassPermissions` session cannot render an ask prompt, so the guard fails closed on
+every attempt. `--force` does **not** bypass it — verified again here. Re-run in a prompting
+permission mode. Do not disable the guard, and do not route around it.
+
+Supersession evidence, all re-derived 2026-08-10 against `origin/main` `0c8681a`:
+
+- **`…-bs538-spike`** — main already carries bootstrap `5.3.8` (#274, squash `4435b04`).
+  `git diff --numstat origin/main` gives `scss/custom-bootstrap.scss` **0 additions** / 35
+  deletions and `templates/base.html` 1 / 4 — and that single addition is the *old*
+  FontAwesome CDN link main replaced with a vendored copy. It holds nothing main lacks.
+- **`probe/stylelint17`** — PR **#252 CLOSED**; `.github/dependabot.yml` ignores stylelint at
+  major, minor *and* patch; [`test_css_cascade_contracts.py:166`](../tests/test_css_cascade_contracts.py)
+  asserts the literal `16.11.0`. Publishing would red the contract and reverse a written
+  policy decision.
+- **`…-dnone`** — PR **#309 MERGED**, and all three files touched by tip commit `4001fbd`
+  are byte-identical to main, so the post-squash commit landed too.
+
+#### §6 artifact packet — deferred, not executed
+
+Both PR-based holds have **expired**: #281 and #286 both merged 2026-08-03. Only **#302** is
+open repo-wide and it has no artifact dependency — its sole `artifacts/` mention says the
+census script was committed *rather than* left there. A `git grep` over tracked files on
+`origin/main` finds **zero** references to `pr281_owner_audit`, `vd_gen1`/`2`/`3`,
+`visual_review*`, `_a2zip`/`_a3zip`, `codex-pr309-review-7d03c7a` or
+`pr294-visual-diagnostics`; the lone hits on `environment-backups` and `vbl_check` are this
+queue listing them *as* deletion candidates, not citing them as evidence. About **1.5 GB** is
+therefore reference-free.
+
+**Owner reaffirmed as protected: `artifacts/wp4_4` (643 MB) and
+`artifacts/environment-backups` (460 MB) are not to be deleted.** `wp4_4` independently keeps
+its hold — 30 tracked `CSS_PHASE4_WP4_4_*_EVIDENCE.md` files cite it and theme-dark P3 is open.
+
+**Deferred on §6's own precondition** — "no running process references the path." At the
+decision point 15 `node.exe`, 6 `pwsh.exe` and 6 `python.exe` were live, which is exactly what
+holds `artifacts/playwright`, `artifacts/dev-server` and `logs/`. Terminating them to satisfy
+the gate was explicitly out of scope. The packet needs a quiet machine, the same precondition
+that gated the worktree pass.
+
+**P1.2 therefore stays PARTIAL.** The artifact half has not run.
