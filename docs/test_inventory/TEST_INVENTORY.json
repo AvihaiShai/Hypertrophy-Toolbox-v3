@@ -116,6 +116,11 @@
         "tests": 12
       },
       {
+        "in_required_functional_set": false,
+        "spec": "exercise-catalog-fetch.spec.ts",
+        "tests": 2
+      },
+      {
         "in_required_functional_set": true,
         "spec": "exercise-interactions.spec.ts",
         "tests": 21
@@ -236,8 +241,8 @@
         "tests": 35
       }
     ],
-    "total_spec_files": 32,
-    "total_tests": 608
+    "total_spec_files": 33,
+    "total_tests": 610
   },
   "pytest": {
     "collected_deterministic": 2296,
