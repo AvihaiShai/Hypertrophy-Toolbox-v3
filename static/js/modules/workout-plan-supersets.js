@@ -84,12 +84,12 @@ export function updateSupersetActionButtons() {
     if (selectedCount === 1) {
         if (hasExistingSuperset) {
             infoSpan.textContent = '1 exercise selected (in superset)';
-            unlinkBtn.style.display = 'inline-flex';
-            linkBtn.style.display = 'none';
+            unlinkBtn.hidden = false;
+            linkBtn.hidden = true;
         } else {
             infoSpan.textContent = '1 exercise selected - select 1 more to create superset';
-            unlinkBtn.style.display = 'none';
-            linkBtn.style.display = 'inline-flex';
+            unlinkBtn.hidden = true;
+            linkBtn.hidden = false;
             linkBtn.disabled = true;
         }
     } else if (selectedCount === 2) {
@@ -97,27 +97,27 @@ export function updateSupersetActionButtons() {
             infoSpan.textContent = '⚠️ Exercises must be in the same routine';
             infoSpan.style.color = 'var(--wp-bad)';
             linkBtn.disabled = true;
-            unlinkBtn.style.display = 'none';
-            linkBtn.style.display = 'inline-flex';
+            unlinkBtn.hidden = true;
+            linkBtn.hidden = false;
         } else if (hasExistingSuperset) {
             infoSpan.textContent = '⚠️ One or both exercises already in a superset';
             infoSpan.style.color = 'var(--wp-warn)';
             linkBtn.disabled = true;
-            unlinkBtn.style.display = 'inline-flex';
-            linkBtn.style.display = 'none';
+            unlinkBtn.hidden = false;
+            linkBtn.hidden = true;
         } else {
             infoSpan.textContent = '2 exercises selected - ready to link';
             infoSpan.style.color = 'var(--wp-good)';
             linkBtn.disabled = false;
-            unlinkBtn.style.display = 'none';
-            linkBtn.style.display = 'inline-flex';
+            unlinkBtn.hidden = true;
+            linkBtn.hidden = false;
         }
     } else {
         infoSpan.textContent = `${selectedCount} exercises selected - supersets can only have 2 exercises`;
         infoSpan.style.color = 'var(--wp-warn)';
         linkBtn.disabled = true;
-        unlinkBtn.style.display = 'none';
-        linkBtn.style.display = 'inline-flex';
+        unlinkBtn.hidden = true;
+        linkBtn.hidden = false;
     }
 }
 

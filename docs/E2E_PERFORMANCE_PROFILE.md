@@ -544,9 +544,9 @@ zero retries, flakes or skips.
 ### What strengthening surfaced
 
 Removing the guards exposed three things they had been hiding. Two were test
-defects, fixed here; one is a product defect, reported not fixed.
+defects, fixed here; one was a product defect, reported here and fixed later.
 
-1. **PRODUCT DEFECT — the Unlink button is visible when it should not be.**
+1. **PRODUCT DEFECT — the Unlink button is visible when it should not be. FIXED.**
    `updateSupersetActionButtons()` correctly sets `display: none` inline for a
    single non-superset selection, but three `!important` rules in
    `components.css` (`button.btn…`, and two `.btn-calm-danger` rules) outrank the
@@ -555,7 +555,14 @@ defects, fixed here; one is a product defect, reported not fixed.
    `handleUnlinkSuperset()` guards the action and refuses with a toast. The test
    therefore asserts the app's own decision (the inline style) *and* that
    invoking the button mutates nothing — `toBeHidden()` would fail today.
-   **Needs an owner decision.**
+
+   Fixed since: both buttons toggle the `hidden` attribute, and
+   `#superset-actions .btn[hidden] { display: none !important; }` in
+   `pages-workout-plan.css` outweighs all three component rules. The test now
+   asserts the rendered state (`toBeHidden()`) rather than the inline style —
+   asserting intent is exactly what let this through — and exercises the guard
+   with `dispatchEvent('click')`, since the button is no longer clickable. The
+   guard itself is unchanged.
 2. **Test defect — the replace test used an unreplaceable exercise.** The
    catalog's first unused options are stretch variations with no muscle-group or
    equipment metadata, and `/replace_exercise` rejects those with `400
