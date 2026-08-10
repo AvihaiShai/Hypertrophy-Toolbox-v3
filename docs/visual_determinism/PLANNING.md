@@ -560,17 +560,26 @@ at the pinned Playwright 1.61, a full local `win32` compare reds broadly, and
 > itself `display: none` in the rest state these suites capture. **Compare first; never
 > regenerate on the theory that a change "must" have moved pixels.**
 >
-> **"no CI job regenerates win32" still holds, but "no CI job runs win32" no longer does.**
-> `ci.yml` now carries a `visual-windows` job on every PR and every push to `main`, pinned
-> to `windows-2022`. It is **compare-only** — no generate mode, `--update-snapshots` never
+> **"no CI job regenerates win32" still holds, but `visual.spec.ts` now runs in CI.**
+> `ci.yml` carries a `visual-windows` job on every PR and every push to `main`, pinned to
+> `windows-2022`. It is **compare-only** — no generate mode, `--update-snapshots` never
 > passed, and it fails if anything under `e2e/__screenshots__` changes during the run — so
-> CI *measures* this corpus and still cannot *produce* it. Regeneration remains a reviewed
-> local run.
+> CI measures the 66-test primary corpus and still cannot produce it. Regeneration remains
+> a reviewed local run.
 >
 > **The premise of this section's first sentence is also disproven.** It reasoned that a
 > local corpus could not be compared on a runner. Measured on 2026-08-10 (deep-gate run
 > 31437353755, `windows-2022`): **84 passed**, a full byte comparison of all 66 + 18
-> captures, zero failures. The renderers agree.
+> captures, zero failures. The 66 primary tests then passed on both #322 CI attempts, so
+> that corpus is runner-portable.
+>
+> **The 18-test thumbnail suite is deliberately excluded from the per-PR job.** On both
+> #322 attempts, `plan-desktop-light-simple` failed and its pixel difference varied within
+> a single Playwright attempt (including 40,504 → 13,067 → 27,688 px). That is a rendering
+> race, not stale baseline drift, and it invalidates the earlier Linux-only 0/8 flip
+> measurement below for Windows CI. No tolerance, retry, `BYTE_GATE_EXEMPT` entry or PNG
+> changed. Fix the race before widening `visual-windows`; until then the thumbnail corpus
+> remains local/opt-in and can stale silently.
 >
 > The `plan-desktop-light-advanced` figure is historical: that capture is byte-gate exempt
 > and has no baseline on either platform. Full detail: `MASTER_HANDOVER.md` §"Known Windows

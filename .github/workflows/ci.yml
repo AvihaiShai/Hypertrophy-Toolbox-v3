@@ -522,10 +522,10 @@ jobs:
         retention-days: 7
 
   # The win32 baseline corpus had no CI path at all until this job. Nothing ran
-  # it, so a CSS or template change could invalidate 81 committed PNGs with
-  # every check green -- which is exactly how the broad staleness in #304 built
-  # up unnoticed. This closes that: the two snapshot suites now run on every PR
-  # and every push to main.
+  # it, so a CSS or template change could invalidate committed PNGs with every
+  # check green -- which is exactly how the broad staleness in #304 built up
+  # unnoticed. This closes that window for the stable 66-test primary visual
+  # suite on every PR and every push to main.
   #
   # Why this can byte-compare on a runner at all, stated because the opposite
   # was assumed for months. #304 argued a Windows CI job was impractical since
@@ -534,7 +534,11 @@ jobs:
   # measured. It was measured on 2026-08-10, deep-gate run 31437353755 on
   # windows-2022: `Running 84 tests using 1 worker` -> `84 passed (2.8m)`, a full
   # byte comparison of all 66 + 18 captures against the local corpus, zero
-  # failures. The renderers agree, so the corpus is portable between them.
+  # failures. The renderers agree for the primary suite: its 66 tests then
+  # passed twice more in this PR's CI. The thumbnail suite is deliberately not
+  # included here: this PR also proved plan-desktop-light-simple races on
+  # windows-2022, with the pixel diff changing within a single Playwright
+  # attempt. See #322; fix the race before widening this job.
   #
   # PINNED to windows-2022, NOT windows-latest (which frozen-windows uses): that
   # agreement is a property of one runner image plus the Chromium pinned by
@@ -596,12 +600,12 @@ jobs:
     #
     # NO --update-snapshots, here or anywhere in CI. Baselines are owner-local
     # and change only through a reviewed local run.
-    - name: Run Windows visual suites (compare only)
+    - name: Run Windows visual suite (compare only)
       env:
         PW_VISUAL_SEED: '1'
         PW_PORT: '5057'
         PW_DB_PATH: 'artifacts/e2e/database.visual-windows.db'
-      run: npx playwright test --project=chromium e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts
+      run: npx playwright test --project=chromium e2e/visual.spec.ts
       shell: pwsh
 
     # Playwright CREATES a missing baseline instead of failing, so "the specs
