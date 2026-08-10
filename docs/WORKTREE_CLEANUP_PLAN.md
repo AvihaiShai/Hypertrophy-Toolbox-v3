@@ -5,7 +5,11 @@ Execution goal for [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) row **
 six audit revisions because it was never converted from a warning into a procedure.
 
 Status: **PARTIAL — WORKTREE REMOVAL COMPLETE; GENERATED-ARTIFACT PACKET NOT EXECUTED.**
-Owner gate remains required for artifact and preserved-worktree disposition decisions.
+The owner gate is **discharged** — every disposition decision Packets D and E need was given
+in §9.2. Both remaining packets are blocked on *execution mechanism*, not on authorization:
+Packet E needs a permission mode that can render the guard's `ask` (13 attempts, §9.3);
+Packet D needs an owner decision on how to perform a recursive delete the guard hard-denies
+(§9.3). Commissioning either as "get owner approval and run it" will fail again.
 
 > **Execution update — 2026-08-08, attempt 6.** A fresh 50-worktree / 305-PR /
 > `ls-remote` gate found all 40 candidates eligible and 10 KEEP rows. All 40 were removed
@@ -445,3 +449,88 @@ the gate was explicitly out of scope. The packet needs a quiet machine, the same
 that gated the worktree pass.
 
 **P1.2 therefore stays PARTIAL.** The artifact half has not run.
+
+### 9.3 Attempts 12–13 — the blockers are now measured, and one of them was misdiagnosed
+
+Re-derived 2026-08-10 against the `main` **ref** `21df713` (see the shared-checkout caveat
+at the end of this section). §9.2's pre-flight was re-run in full and **all three Packet E
+targets still match their audited branch, HEAD and dirty state exactly** —
+`…-dnone` `4001fbd` clean, `…-main-stylelint17` `fb0e059` clean, `…-bs538-spike` `d72d00e`
+with exactly the four audited files and no untracked extras. The §9 set invariant holds and
+`prune --dry-run` is empty. **Nothing was removed and nothing was deleted in either attempt.**
+
+**Packet E — still blocked, same cause, now at 13 attempts.** Both sessions ran in
+`bypassPermissions`, so the guard's `ask` fails closed before a prompt can render. The
+practical consequence is worth stating plainly, because two sessions have now been
+commissioned against it: **owner authorization is not the blocker and cannot clear it.**
+The decisions in §9.2 are already given; what is missing is a *permission mode capable of
+rendering a prompt*. Re-run in prompting mode, or run the four commands by hand.
+
+**Packet D — §9.2's stated deferral reason is wrong, and the real blocker is different.**
+§9.2 deferred on "the packet needs a quiet machine," inferring from a live-process census
+that `artifacts/playwright`, `artifacts/dev-server` and `logs/` were held. That inference was
+never tested. It has now been tested per path, with a reversible rename probe (rename aside,
+rename back — a directory with any open handle or a process CWD inside it cannot be renamed
+on Windows):
+
+> **All 20 candidate paths probed FREE**, with 13 Playwright processes live at the time —
+> `artifacts/playwright`, `pr281_owner_audit`, `vd_gen1`/`2`/`3`, all six `visual_review*`,
+> `_a2zip`/`_a3zip`, `codex-pr309-review-7d03c7a`, `pr294-visual-diagnostics`, `vbl_check`,
+> `dev-server`, plus `dist/`, `build/`, `debug/` and all five `logs/app.log.N` rotations.
+
+A process being *live* is not a process *holding a path*. The Playwright test-server is an
+idle listener; it writes to `artifacts/playwright` only once a run starts. **A quiet machine
+was never the precondition — it was a proxy, and the proxy was false.** Do not spend another
+session waiting for one, and do not terminate anything to obtain one.
+
+The actual blocker is the guard, and it is unconditional:
+
+| Command shape | Guard decision | Source |
+|---|---|---|
+| `rm -rf`, `Remove-Item -Recurse -Force` | **`deny`** — hard, cannot be prompted past | [`guard-destructive-command.ps1:381`](../.claude/hooks/guard-destructive-command.ps1) |
+| `rm -r` (recursive, no force) | **`ask`** | `:383` |
+| non-recursive file delete | permitted | falls through at `:385` |
+
+Every §6 candidate is a directory tree, so every one of them lands on `deny` or `ask`.
+**Packet D cannot run unattended in any permission mode** — prompting mode clears the `ask`
+row but not the `deny` row. Tearing a tree down file-by-file to stay under the non-recursive
+threshold would be routing around the guard, which §3 rule 1 forbids; it is not a workaround,
+and `rd`/`rmdir` are classified inherently recursive at `:378` precisely to close that path.
+The one genuinely non-recursive item — §6's "drop the `logs/` rotations", five `app.log.N`
+files, ~52 MB — was attempted separately and **denied at the permission layer**, so it did
+not run either. `logs/.gitkeep` is the only tracked file under `logs/`; every log file is
+gitignored.
+
+**Packet D therefore needs an owner decision on mechanism, not on scope.** Scope is settled:
+holds expired, references re-verified, locks measured.
+
+Re-verified holds and references, against `21df713`:
+
+- **#319 is open** (docs-only, win32 visual pin) and its body contains **no `artifacts/`
+  path**. No new hold. It is the only open PR repo-wide.
+- The reference grep reproduces §9.2's result in its **qualified** form, which is the only
+  form that is true: every candidate returns hits, and *all* of them are
+  `WORKTREE_CLEANUP_PLAN.md` / `LEFTOVERS_BY_PRIORITY.md` listing the path **as a deletion
+  candidate**. Nothing cites one as evidence. Never restate this as a bare "zero references".
+- `wp4_4` returns **63** tracked citations — protected, unchanged.
+- `environment-backups` — protected, unchanged.
+- Measured today: `artifacts/` **2.39 GB**; `wp4_4` 642 MB and `environment-backups` 426 MB
+  excluded; `dist/` 87 MB, `build/` 71 MB, `logs/` 57 MB, `debug/` 0.1 MB.
+
+Two scope corrections for whoever runs this:
+
+- §6 says "`visual_review*` (3 dirs), 155 MB". There are now **six**, ~213 MB
+  (`visual_review`, `_000c797`, `_attempt2`, `_attempt3`, `_playwright_161`,
+  `_161_independent`). §9.2's glob covers them; the count in §6 does not. Re-enumerate.
+- `artifacts/e2e` holds the live throwaway E2E database
+  ([`playwright.config.ts:76`](../playwright.config.ts)) and `artifacts/dev-server` is not a
+  §6 candidate. **Neither is approved for deletion.** They probe FREE, which is exactly why
+  a lock probe must not be mistaken for an authorization.
+
+**Shared-checkout caveat — §3 rule 5 fired again during this pass.** Mid-audit the shared
+checkout left `main` for `fix/get-routine-exercises-catalog` `5636cd1` and committed there.
+`git rev-parse HEAD` in that directory is therefore **not** main's SHA; the `main` *ref* held
+at `21df713` throughout and is what every derivation above used. §1's definition-of-done item
+6 ("clean and still on `main`") currently fails for that reason alone — another session's
+activity, not this packet's. This record was written from the assigned P1.2 worktree, not the
+shared checkout.
