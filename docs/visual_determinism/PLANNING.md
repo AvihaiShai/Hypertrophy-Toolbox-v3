@@ -560,14 +560,20 @@ at the pinned Playwright 1.61, a full local `win32` compare reds broadly, and
 > itself `display: none` in the rest state these suites capture. **Compare first; never
 > regenerate on the theory that a change "must" have moved pixels.**
 >
-> The first sentence still holds — **no CI job regenerates win32**, so it stays owner-local
-> and any future regeneration is again a local run. That remains true after the
-> `visual-windows` job was added to `deep-gate.yml`: it is opt-in
-> (`run_visual_windows`), pinned to `windows-2022`, **compare-only with no generate mode**,
-> and it fails if anything under `e2e/__screenshots__` changes during the run. So CI can
-> now *measure* this corpus but still cannot *produce* it. The
-> `plan-desktop-light-advanced` figure is historical: that capture is byte-gate exempt and
-> has no baseline on either platform. Full detail: `MASTER_HANDOVER.md` §"Known Windows
+> **"no CI job regenerates win32" still holds, but "no CI job runs win32" no longer does.**
+> `ci.yml` now carries a `visual-windows` job on every PR and every push to `main`, pinned
+> to `windows-2022`. It is **compare-only** — no generate mode, `--update-snapshots` never
+> passed, and it fails if anything under `e2e/__screenshots__` changes during the run — so
+> CI *measures* this corpus and still cannot *produce* it. Regeneration remains a reviewed
+> local run.
+>
+> **The premise of this section's first sentence is also disproven.** It reasoned that a
+> local corpus could not be compared on a runner. Measured on 2026-08-10 (deep-gate run
+> 31437353755, `windows-2022`): **84 passed**, a full byte comparison of all 66 + 18
+> captures, zero failures. The renderers agree.
+>
+> The `plan-desktop-light-advanced` figure is historical: that capture is byte-gate exempt
+> and has no baseline on either platform. Full detail: `MASTER_HANDOVER.md` §"Known Windows
 > visual reds".
 
 The exemption does touch `win32`, and must: the five captures no longer produce a PNG on
