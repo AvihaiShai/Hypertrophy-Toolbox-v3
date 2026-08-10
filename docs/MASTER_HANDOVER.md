@@ -411,18 +411,45 @@
 > that follow it are kept as the record of the condition and of how it was measured; they
 > are **not** current state.
 >
-> | | Then (`02e73c7`) | Now |
+> | | Then (`02e73c7`) | Measured at `21df713` |
 > |---|---|---|
 > | `e2e/visual.spec.ts` (win32) | 58 failed / 8 passed | **66 passed** |
 > | `e2e/visual-baseline-thumbnails.spec.ts` (win32) | not exercised | **18 passed** |
 > | tracked corpus | 160 | **162** (`66 + 15` win32, `66 + 15` linux) |
 >
-> Re-measured on a branch based on current `main` with `PW_VISUAL_SEED=1`, twice, with
-> `git status --porcelain e2e/__screenshots__` empty after every run. **A CSS packet no
-> longer needs a same-CSS control run to demonstrate non-attribution on Windows** — the
-> byte gate can now separate a regression from inherited staleness on its own. Issue #304
+> **Every win32 figure here is pinned to a commit on purpose — read it as a measurement,
+> never as a standing property.** The 66/18 result was first taken after #309 and was
+> **re-verified at `21df713`** (2026-08-10), i.e. with #316, #317 and #318 included, using
+> `PW_VISUAL_SEED=1` and `git status --porcelain e2e/__screenshots__` empty after every
+> run. **A CSS packet no longer needs a same-CSS control run to demonstrate
+> non-attribution on Windows** — the byte gate can separate a regression from inherited
+> staleness on its own, *for as long as the pin above still describes `main`*. Issue #304
 > is **closed**; #309's full record is
 > [`docs/visual_baseline_win32/EVIDENCE.md`](visual_baseline_win32/EVIDENCE.md).
+>
+> ### The win32 corpus can go stale silently — re-measure, do not assume
+>
+> **Neither win32 suite runs in required CI** (see "Per-PR CI never runs either visual
+> suite" below), so a CSS or template change can invalidate these baselines with **nothing
+> going red anywhere**. That is precisely how the condition #304 documented arose. Treat
+> any commit later than the pin as unmeasured until someone re-runs the two suites
+> locally.
+>
+> **Equally, do not assume the reverse.** "A CSS/template change landed, therefore the
+> corpus is stale" is a hypothesis, not a finding, and it has already been wrong once:
+> **#317 was a genuine rendering fix** (`templates/workout_plan.html`
+> `style="display: none"` → `hidden`, plus `#superset-actions .btn[hidden]{display:none
+> !important}` so the Unlink button actually hides) that shipped with **zero baselines
+> regenerated** — and it moved **no capture at all**. The reason is mechanical and worth
+> keeping: the parent `#superset-actions` container is itself `display: none` in rest
+> state, so the fix changes visibility *inside an already-hidden container* and only
+> manifests after a user selects exercises. **The visual suites capture rest state**, so
+> interaction-state fixes are pixel-invisible to them. Verified by compare at `21df713`:
+> 66 + 18 passed, nothing written.
+>
+> The rule that follows: **run the compare before regenerating anything.** Regenerating
+> "because a rendering change landed" would have rewritten 81 reviewed PNGs here for no
+> pixel reason, and every regeneration costs an owner by-eye review.
 >
 > **What that green does not prove.** It is a byte comparison over the 66 + 15 captures
 > that still *have* baselines. The five captures in `BYTE_GATE_EXEMPT`
