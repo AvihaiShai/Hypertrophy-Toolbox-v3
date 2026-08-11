@@ -218,6 +218,22 @@ worktrees: 34 removable, 7 preserved, 1 current.
 > classification block above and the "Packet E remains" / "artifact half has not run" wording
 > in the historical table row below; full output and retained-set detail are in
 > [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.3.
+>
+> **Owner authorization + certification, 2026-08-12 — scope settled, execution still
+> blocked.** The owner named **exactly six** literal `visual_review*` paths for permanent
+> deletion, so the authority gap recorded above is **closed** and §6's stale count of three
+> no longer governs. The authorization is path-specific: it confers nothing over
+> `wp4_4`, `environment-backups`, or the three non-§6 diagnostic sets. All six then passed a
+> four-part pre-deletion certification — containment beneath `artifacts/` against a
+> separator-terminated anchor, ordinary-directory/no-reparse, unreferenced by tracked
+> evidence and by both open draft PRs (#325, #326), and **all six probe FREE**. **Attempt 14
+> then failed on the guard**, not on the decision: `git`-adjacent recursive delete is `ask`,
+> and `bypassPermissions` cannot render a prompt. It was not retried with `--force` (a hard
+> `deny`) or file-by-file (routing around the guard). Nothing was deleted; 694 files /
+> 217 MB remain. **P1.2 therefore stays PARTIAL** — definition-of-done item 5 needs the
+> deletion to have run. Item 6 now *passes*: the shared checkout is back on `main` and clean.
+> The certification does not need re-deriving; the exact command is in
+> [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.4.
 
 ## 1. Recommended execution order
 
