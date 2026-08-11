@@ -7,8 +7,10 @@ six audit revisions because it was never converted from a warning into a procedu
 Status: **PARTIAL — PACKET E COMPLETE; PACKET D EXECUTED EXCEPT `visual_review*`.**
 The 2026-08-11 manual run removed all three §9.2 Packet E worktrees and the literal Packet D
 targets recorded in §9.3. No branch was deleted. The six `visual_review*` directories remain:
-§6 names the wildcard but gives a stale count of three, and a follow-up attempt to apply the
-wildcard to all six was hard-denied before execution. Protected and non-§6 paths remain intact.
+§6 names the wildcard, gives a stale count of three, and names no directory, so no specific
+path is identifiably authorized; a follow-up attempt to apply the wildcard to all six was
+hard-denied before execution. Fixing that scope is an owner decision, not a recount.
+Protected and non-§6 paths remain intact.
 
 > **Execution update — 2026-08-08, attempt 6.** A fresh 50-worktree / 305-PR /
 > `ls-remote` gate found all 40 candidates eligible and 10 KEEP rows. All 40 were removed
@@ -521,7 +523,10 @@ Two scope corrections for whoever runs this:
 
 - §6 says "`visual_review*` (3 dirs), 155 MB". There are now **six**, ~213 MB
   (`visual_review`, `_000c797`, `_attempt2`, `_attempt3`, `_playwright_161`,
-  `_161_independent`). §9.2's glob covers them; the count in §6 does not. Re-enumerate.
+  `_161_independent`). The pattern *matches* all six; §6's count covers three and its
+  row names none of them, so **no individual directory is identifiably authorized** —
+  not even three of the six. **A pattern match is not an authorization.** Re-enumerate,
+  and take the scope back to the owner before deleting any of them.
 - `artifacts/e2e` holds the live throwaway E2E database
   ([`playwright.config.ts:76`](../playwright.config.ts)) and `artifacts/dev-server` is not a
   §6 candidate. **Neither is approved for deletion.** They probe FREE, which is exactly why
@@ -573,8 +578,14 @@ directories date to 2026-08-02, total about 213 MB, probe FREE, and have no trac
 outside this cleanup queue. §6 nevertheless says "(3 dirs)" while naming only the wildcard.
 The runbook conservatively excluded all six. A follow-up attempt to interpret the wildcard as
 all six was hard-denied by the destructive-command policy before any deletion occurred; it
-was not retried through an indirect command shape. The three non-§6 diagnostic sets
-(`codex-pr309-review-7d03c7a`, `pr294-visual-diagnostics`, `vbl_check`) were not attempted.
+was not retried through an indirect command shape. **The denial is not what puts this out of
+scope, and clearing the denial would not put it back in.** §6 authorizes a count with no
+directory names attached, so no `visual_review*` path is identifiably approved; the deciding
+question is which directories the owner intends, and it is unanswered. Do not resolve it by
+reading the wildcard as the authority, and do not treat "free, unreferenced and both PR holds
+expired" as a substitute — those clear §6's *precondition*, not its scope. The three non-§6
+diagnostic sets (`codex-pr309-review-7d03c7a`, `pr294-visual-diagnostics`, `vbl_check`)
+were not attempted.
 The two open PRs at execution time (#320 and this docs-only #321) name none of these paths.
 
 The shared checkout was not touched: its HEAD remains `5636cd1` on

@@ -209,11 +209,15 @@ worktrees: 34 removable, 7 preserved, 1 current.
 > accepted four-file discard in `bs538-spike`; all three branch refs survive and `b990412`
 > remains reachable. The 15 literal artifact/build/log targets in the runbook are gone,
 > reclaiming about **1.07 GB**; every protected and non-§6 path verified present. The six
-> `visual_review*` directories remain because §6 names a wildcard but records a stale count
-> of three, and the follow-up all-six deletion was hard-denied before execution. P1.2 remains
-> **PARTIAL** on that boundary. This paragraph supersedes the stale "Packet E remains" and
-> "artifact half has not run" wording in the historical table row below; full output and
-> retained-set detail are in [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.3.
+> `visual_review*` directories remain because §6 names a wildcard, records a stale count of
+> three, and names no directory — so **no individual one is identifiably authorized** — and
+> the follow-up all-six deletion was hard-denied before execution. **The denial is not the
+> boundary; the missing scope decision is.** P1.2 remains **PARTIAL** on it, and closing it
+> is an owner call on which directories are meant, not a recount and not a re-read of the
+> wildcard. This paragraph supersedes the stale "the artifact half has not" wording in the
+> classification block above and the "Packet E remains" / "artifact half has not run" wording
+> in the historical table row below; full output and retained-set detail are in
+> [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.3.
 
 ## 1. Recommended execution order
 
