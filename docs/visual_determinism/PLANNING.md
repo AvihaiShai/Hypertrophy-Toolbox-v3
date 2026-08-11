@@ -547,11 +547,43 @@ at the pinned Playwright 1.61, a full local `win32` compare reds broadly, and
 
 > **Discharged 2026-08-08 by #309 (`10ba89f`).** The regeneration-and-review follow-up
 > this paragraph tracked is done: the win32 corpus was regenerated locally under owner
-> by-eye review, and a full local `win32` compare now returns **66 passed** for
-> `visual.spec.ts` and **18 passed** for `visual-baseline-thumbnails.spec.ts`. The first
-> sentence still holds — **no CI job regenerates win32**, so it stays owner-local and any
-> future regeneration is again a local run. The `plan-desktop-light-advanced` figure is
-> historical: that capture is byte-gate exempt and has no baseline on either platform.
+> by-eye review, and a full local `win32` compare returns **66 passed** for
+> `visual.spec.ts` and **18 passed** for `visual-baseline-thumbnails.spec.ts`
+> — **measured at `21df713`** (2026-08-10, i.e. including #316/#317/#318), with
+> `git status --porcelain e2e/__screenshots__` empty after every run.
+>
+> **That figure is pinned to a commit deliberately.** Neither win32 suite runs in required
+> CI, so a later CSS or template change can stale these baselines with nothing going red;
+> treat any commit after the pin as unmeasured until the two suites are re-run locally.
+> The converse is also not safe to assume — #317 was a real rendering fix that moved **no**
+> capture, because it changes visibility inside the `#superset-actions` container, which is
+> itself `display: none` in the rest state these suites capture. **Compare first; never
+> regenerate on the theory that a change "must" have moved pixels.**
+>
+> **"no CI job regenerates win32" still holds, but `visual.spec.ts` now runs in CI.**
+> `ci.yml` carries a `visual-windows` job on every PR and every push to `main`, pinned to
+> `windows-2022`. It is **compare-only** — no generate mode, `--update-snapshots` never
+> passed, and it fails if anything under `e2e/__screenshots__` changes during the run — so
+> CI measures the 66-test primary corpus and still cannot produce it. Regeneration remains
+> a reviewed local run.
+>
+> **The premise of this section's first sentence is also disproven.** It reasoned that a
+> local corpus could not be compared on a runner. Measured on 2026-08-10 (deep-gate run
+> 31437353755, `windows-2022`): **84 passed**, a full byte comparison of all 66 + 18
+> captures, zero failures. The 66 primary tests then passed on both #322 CI attempts, so
+> that corpus is runner-portable.
+>
+> **The 18-test thumbnail suite is deliberately excluded from the per-PR job.** On both
+> #322 attempts, `plan-desktop-light-simple` failed and its pixel difference varied within
+> a single Playwright attempt (including 40,504 → 13,067 → 27,688 px). That is a rendering
+> race, not stale baseline drift, and it invalidates the earlier Linux-only 0/8 flip
+> measurement below for Windows CI. No tolerance, retry, `BYTE_GATE_EXEMPT` entry or PNG
+> changed. Fix the race before widening `visual-windows`; until then the thumbnail corpus
+> remains local/opt-in and can stale silently.
+>
+> The `plan-desktop-light-advanced` figure is historical: that capture is byte-gate exempt
+> and has no baseline on either platform. Full detail: `MASTER_HANDOVER.md` §"Known Windows
+> visual reds".
 
 The exemption does touch `win32`, and must: the five captures no longer produce a PNG on
 *any* platform, so their `win32` files are deleted too. Nothing else in that set changes.

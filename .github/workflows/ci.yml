@@ -521,6 +521,111 @@ jobs:
         path: artifacts/playwright
         retention-days: 7
 
+  # The win32 baseline corpus had no CI path at all until this job. Nothing ran
+  # it, so a CSS or template change could invalidate committed PNGs with every
+  # check green -- which is exactly how the broad staleness in #304 built up
+  # unnoticed. This closes that window for the stable 66-test primary visual
+  # suite on every PR and every push to main.
+  #
+  # Why this can byte-compare on a runner at all, stated because the opposite
+  # was assumed for months. #304 argued a Windows CI job was impractical since
+  # e2e/__screenshots__/win32/ was generated on the OWNER'S LOCAL machine (#309)
+  # rather than by a workflow, so runner rendering "would" differ. That was never
+  # measured. It was measured on 2026-08-10, deep-gate run 31437353755 on
+  # windows-2022: `Running 84 tests using 1 worker` -> `84 passed (2.8m)`, a full
+  # byte comparison of all 66 + 18 captures against the local corpus, zero
+  # failures. The renderers agree for the primary suite: its 66 tests then
+  # passed twice more in this PR's CI. The thumbnail suite is deliberately not
+  # included here: this PR also proved plan-desktop-light-simple races on
+  # windows-2022, with the pixel diff changing within a single Playwright
+  # attempt. See #322; fix the race before widening this job.
+  #
+  # PINNED to windows-2022, NOT windows-latest (which frozen-windows uses): that
+  # agreement is a property of one runner image plus the Chromium pinned by
+  # package.json, and a `latest` alias promotion would move fonts underneath the
+  # gate. Same reasoning visual-linux records for ubuntu-24.04. If this job ever
+  # reds across many unrelated captures at once, suspect the image or the
+  # Playwright bump before suspecting the diff.
+  visual-windows:
+    name: Visual Regression (Windows baselines)
+    runs-on: windows-2022
+    timeout-minutes: 25
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
+
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '24'
+        cache: 'npm'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install npm dependencies
+      run: npm ci
+
+    - name: Build Bootstrap-customized CSS
+      run: npm run build:css
+
+    - name: Install Playwright Chromium
+      run: npx playwright install --with-deps chromium
+
+    # Without the committed fixture, prepare_visual_db.py falls back to
+    # DEFAULT_SOURCE (data/database.db) and could render real data into a
+    # comparison. Fail in seconds rather than after a full browser install.
+    - name: Assert committed visual seed present
+      run: if (-not (Test-Path 'e2e/fixtures/database.visual.seed.db')) { throw 'visual seed fixture missing' }
+      shell: pwsh
+
+    # PW_DB_PATH is the repository's established isolation mechanism -- the same
+    # variable run-playwright-shards.ps1 gives each shard, asserted by
+    # tests/test_playwright_shard_launcher_contracts.py. It resolves under the
+    # gitignored artifacts/ tree, and prepare_visual_db.py refuses live-data
+    # paths, so data/database.db is never opened, let alone written.
+    #
+    # PW_PORT avoids 5060/5061: Chromium treats those as restricted (SIP) and
+    # fails every navigation with ERR_UNSAFE_PORT before a single pixel is
+    # captured -- measured 2026-08-10, 66/66 navigations failed that way on 5061.
+    #
+    # NO --update-snapshots, here or anywhere in CI. Baselines are owner-local
+    # and change only through a reviewed local run.
+    - name: Run Windows visual suite (compare only)
+      env:
+        PW_VISUAL_SEED: '1'
+        PW_PORT: '5057'
+        PW_DB_PATH: 'artifacts/e2e/database.visual-windows.db'
+      run: npx playwright test --project=chromium e2e/visual.spec.ts
+      shell: pwsh
+
+    # Playwright CREATES a missing baseline instead of failing, so "the specs
+    # passed" is not by itself proof that nothing was written. This makes the
+    # "CI never pushes pixels" rule mechanical rather than conventional.
+    - name: Assert no baseline was written
+      if: always()
+      run: |
+        $changed = git status --porcelain -- e2e/__screenshots__
+        if ($changed) { Write-Host $changed; throw 'CI wrote to e2e/__screenshots__; baselines are owner-local and must never be produced here' }
+      shell: pwsh
+
+    - name: Upload Playwright report + diffs
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: playwright-visual-windows
+        path: artifacts/playwright
+        retention-days: 7
+
   test:
     name: Run Tests
     runs-on: ubuntu-latest
