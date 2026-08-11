@@ -26,9 +26,10 @@ This single fact drives the entire design:
   protection.
 - Manual deep-gate runs on `main` or a PR branch are **not** prevention unless
   they are run before merge. They are for checks too slow or too
-  environment-sensitive to block every PR. Do **not** schedule cron jobs for
-  this repo; the owner wants deep checks triggered during development, not by
-  time-based automation.
+  environment-sensitive to block every PR. **Superseded 2026-08-11:** the
+  owner-approved D3 stopgap in `docs/TESTING_STRATEGY_PLANNING.md` now permits
+  one weekly scheduled deep-gate as a detection safety net; it does not replace
+  required pre-merge checks.
 - The Codex/earlier suggestion of a "CD / package / publish / rollback" phase
   does **not** apply as written — there is no artifact to publish. The "release
   event" is the merge itself. If distribution ever becomes a real need
@@ -295,7 +296,7 @@ deliberate, correct cost of `main` being trustworthy.
 
 ---
 
-### Phase 4 — Manual deep gate (`workflow_dispatch`, not scheduled)
+### Phase 4 — Manual deep gate (`workflow_dispatch`; weekly schedule added 2026-08-11)
 **Goal:** catch slow/env-sensitive regressions during development without
 running time-based jobs in the owner's work environment.
 
@@ -317,7 +318,10 @@ running time-based jobs in the owner's work environment.
 > `ci.yml`, required-check, or branch-protection change.
 
 - **Step 4.1 — Add a manually triggered workflow.**
-  Add `workflow_dispatch` only. Do **not** add `schedule` / `cron`. The workflow
+  Add `workflow_dispatch`. **Superseded 2026-08-11:** this step originally read
+  "Do **not** add `schedule` / `cron`". The D3 stopgap adds one weekly cron
+  beside the dispatch trigger; `workflow_dispatch` remains the only route to
+  `generate` mode. The workflow
   can be run against `main` or a PR branch when the owner wants a deeper pass
   during development or pre-merge review. It runs full E2E incl.
   `accessibility.spec.ts`, plus the items below.
