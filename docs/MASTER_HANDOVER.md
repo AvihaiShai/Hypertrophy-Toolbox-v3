@@ -4,7 +4,46 @@
 
 ## Current State
 
-> **2026-08-09 (LATEST) — the test-runtime optimization arc is CLOSED on both
+> **2026-08-11 (LATEST) — the Workout Plan bug queue below is empty. All three
+> items shipped, and two of them are still written up as open further down this
+> file.**
+>
+> | PR | Merged as | What |
+> |---|---|---|
+> | #316 | `9794676` | `/get_all_exercises` fetched twice per navigation — a duplicate `#routine` `change` registration in `static/js/app.js`. Pinned by `e2e/exercise-catalog-fetch.spec.ts`. |
+> | #317 | `19c47bb` | The Unlink button rendered when it should have been hidden. `superset-edge-cases.spec.ts` now asserts `toBeHidden()`. |
+> | #320 | `bcfac69` | `GET /get_routine_exercises/<routine>` dropped every exercise assigned only to a *different* routine, so an exercise used in Workout A could not be added to Workout B. |
+>
+> **This entry supersedes, as current state, items 1 and 4 of the *Open and
+> owner-gated* list in the 2026-08-09 block below.** Item 1 is closed outright by
+> #317. Item 4 is **half** closed: the `/get_all_exercises`-twice observation is
+> fixed by #316, while the external CDN fetches on `templates/base.html` are
+> unchanged and **remain open**. Items 2 and 3 are untouched and still open. Both
+> list entries are annotated in place; read them as history.
+>
+> **#320's shape, because the next reader will meet the same trap.** The endpoint
+> now returns the complete catalog via the `get_exercises()` helper the module
+> already imported — one line, which also deletes the route's raw SQL and its
+> empty-result fallback. The response envelope is unchanged
+> (`{"ok": true, "data": [str, …]}`); only its contents are now complete. **That
+> deleted fallback is why the bug survived so long: it fired whenever every
+> catalog exercise was already assigned somewhere, so a regression test that
+> seeds only assigned exercises passes against the broken code.** Seed at least
+> one unassigned exercise or the assertion cannot bite. Distinctness is
+> structural (`exercises.exercise_name` is the PRIMARY KEY, with no
+> `COLLATE NOCASE`, so SQLite's `ORDER BY … ASC` and Python's `sorted()` agree).
+> Duplicate protection is untouched — it lives in
+> `utils/exercise_manager.add_exercise` keyed on `(routine, exercise)`.
+>
+> No schema, no calculation, no CI and no JS-consumer change. #320 was
+> independently reviewed in an isolated worktree before merge: both regression
+> layers were re-run against the reverted route (**4 pytest failures**; the E2E
+> polling **23× against 0 elements**), a six-mutation battery confirmed no added
+> assertion is vacuous, and CI was re-required after `origin/main` was merged in
+> — **18/18**, including the `Visual Regression (Windows baselines)` job #322
+> added, at **66 passed** with `Assert no baseline was written` green.
+
+> **2026-08-09 — the test-runtime optimization arc is CLOSED on both
 > lanes.** Branch `wt/playwright-shards` (unpushed, no PR), based on
 > `perf/test-schema-template`.
 >
@@ -126,8 +165,11 @@
 > plan table directly — no shared helper to repair, so it is a different change)
 > and `ui-hardening`'s `/workout_log` block. Everything else is on other pages.
 >
-> **Open and owner-gated:**
-> 1. **PRODUCT DEFECT — the Unlink button renders when it should be hidden.**
+> **Open and owner-gated:** *(as written on 2026-08-09 — items 1 and 4 have since
+> been resolved; see the 2026-08-11 lead entry at the top of this file.)*
+> 1. ~~**PRODUCT DEFECT — the Unlink button renders when it should be hidden.**~~
+>    **CLOSED 2026-08-11 by #317 (`19c47bb`)** — `superset-edge-cases.spec.ts` now
+>    asserts `toBeHidden()`. Retained as history:
 >    `updateSupersetActionButtons()` sets `display:none` inline, but three
 >    `!important` rules in `components.css` (`button.btn…`, two `.btn-calm-danger`)
 >    outrank it. Cosmetic only — `handleUnlinkSuperset()` refuses the action — but
@@ -141,8 +183,11 @@
 >    a per-page readiness design, which is a production change and a separate
 >    owner decision. **No such design is proposed here, and a page-specific
 >    observable must not be improvised inside a spec to avoid asking.**
-> 4. Finding 4's two production observations (four external CDN fetches per
->    navigation; `/get_all_exercises` requested twice).
+> 4. Finding 4's two production observations. **Half closed 2026-08-11:**
+>    `/get_all_exercises` requested twice is **fixed by #316 (`9794676`)** and
+>    pinned by `e2e/exercise-catalog-fetch.spec.ts`; the **four external CDN
+>    fetches per navigation** (`templates/base.html`) are unchanged and **remain
+>    open**.
 >
 > Beyond the one readiness marker, nothing changed production behavior, CI, or
 > the live database.
