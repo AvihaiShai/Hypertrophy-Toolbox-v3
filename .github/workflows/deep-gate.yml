@@ -33,10 +33,27 @@ on:
         options: [compare, generate]
         default: compare
 
+# Every job below carries a `timeout-minutes`. Without one a job inherits the
+# 360-minute default, which mattered little while every run was launched and
+# watched by hand — but #323 made this workflow run unattended once a week, so a
+# hung job now burns six hours of runner time with nobody watching.
+#
+# These are HANG DETECTORS, not budgets. Each is far above the observed maximum
+# (measured over the 20 most recent completed runs, 2026-08-11) and matches the
+# value ci.yml already uses for the closest equivalent job, so a slow-but-healthy
+# run cannot red the weekly gate — the failure mode that trains an owner to
+# ignore it. Re-derive from real runs before tightening any of them.
+#
+#   job               observed max   this value   ci.yml precedent
+#   full-e2e             20.2 min        45       E2E Functional Shard (45)
+#   visual-linux          6.6 min        25       Visual Regression Windows (25)
+#   frozen-windows        2.3 min        45       packaged-smoke-windows (45)
+#   the four smokes      <1.2 min        15       the 15-minute floor
 jobs:
   full-e2e:
     name: Full E2E incl. accessibility (Chromium)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
     - name: Checkout code
@@ -93,6 +110,7 @@ jobs:
   first-install:
     name: First install (catalog seed) smoke
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Checkout code
@@ -149,6 +167,7 @@ jobs:
   empty-schema:
     name: Empty-schema initializer smoke
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Checkout code
@@ -201,6 +220,7 @@ jobs:
   old-db-migration:
     name: Old-DB migration compatibility
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Checkout code
@@ -305,6 +325,7 @@ jobs:
     # user actually double-clicks. Disabling Smart App Control locally is not
     # an option that was ever on the table.
     runs-on: windows-latest
+    timeout-minutes: 45
 
     steps:
     - name: Checkout code
@@ -358,6 +379,7 @@ jobs:
     # silently move fonts and red the gate. This MUST match the image used to
     # generate the committed e2e/__screenshots__/linux/ baselines.
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
 
     steps:
     - name: Checkout code
@@ -459,6 +481,7 @@ jobs:
   dependency-health:
     name: Dependency Health Check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     # Moved out of the required PR pipeline (Phase 4.5) — outdated/safety scans are
     # informational and don't belong on the critical merge path.
