@@ -4,15 +4,11 @@ Execution goal for [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) row **
 ("Remove obsolete worktrees and generated artifacts"), which has stood at 0% across
 six audit revisions because it was never converted from a warning into a procedure.
 
-Status: **PARTIAL — PACKET E COMPLETE; PACKET D EXECUTED EXCEPT `visual_review*`.**
+Status: **RETIRED — all approved P1.2 worktree and artifact actions completed.**
 The 2026-08-11 manual run removed all three §9.2 Packet E worktrees and the literal Packet D
-targets recorded in §9.3. No branch was deleted. The six `visual_review*` directories remain.
-**Their scope is now settled**: the owner named all six explicitly on 2026-08-12 (§9.4), so
-§6's stale count of three no longer governs and the authority gap is closed. They are also
-fully certified for deletion — containment, reparse, reference and lock checks all pass.
-**What blocks them is the guard, not the decision**: `ask` fails closed in
-`bypassPermissions`, so attempt 14 could not execute. Deleting them needs a prompting-mode
-session or a manual run. Protected and non-§6 paths remain intact.
+targets recorded in §9.3, without deleting a branch. The final six owner-authorized
+`visual_review*` directories were deleted on 2026-08-12 and independently verified absent;
+§9.5 records the exact result. Protected and non-§6 paths remain intact.
 
 > **Execution update — 2026-08-08, attempt 6.** A fresh 50-worktree / 305-PR /
 > `ls-remote` gate found all 40 candidates eligible and 10 KEEP rows. All 40 were removed
@@ -58,8 +54,8 @@ Return the machine to a defensible working state:
 > appear between any two commands — three did during this packet's own reconciliation. The
 > real invariant is *set-based, not count-based*: **no §9 REMOVED path is registered, and
 > every §9 KEEP path either is registered or has a recorded disposition in §9.1.**
-> **(5)** overreached: only the worktree half ran, so P1.2 goes to **PARTIAL**, not RETIRE.
-> RETIRE needs §6 as well. (2), (3), (4) and (6) are met.
+> **(5)** was pending only until §6 completed. It is met by the 2026-08-12 update in §9.5;
+> P1.2 is now **RETIRED**. Items (2), (3), (4) and (6) remain met.
 
 ### Out of scope / non-goals
 
@@ -675,3 +671,22 @@ row to read RETIRE against a completed ledger, and the deletion has not executed
 contrast, **now passes**: the shared checkout is back on `main` and clean, so §9.3's failure
 of that item has cleared on its own. When the six are gone, the only remaining work is to
 record the outcome here and flip the row.
+
+### 9.5 Final visual-review cleanup — 2026-08-12
+
+The six literal paths authorized and certified in §9.4 were deleted from the shared checkout:
+`visual_review`, `visual_review_000c797`, `visual_review_attempt2`,
+`visual_review_attempt3`, `visual_review_playwright_161`, and
+`visual_review_161_independent`. The removal first revalidated every target as a real,
+non-reparse directory directly beneath `artifacts/`; no wildcard or sibling path was used.
+
+Post-removal verification found **no remaining target directory**. The protected set remains
+present: `wp4_4`, `environment-backups`, `vbl_check`, `codex-pr309-review-7d03c7a`,
+`pr294-visual-diagnostics`, `e2e`, and `dev-server`. `data/database.db` remains 839,680 bytes
+with its pre-existing 2026-08-10 timestamp. The local, gitignored
+`artifacts/P1_2_WORKTREE_DISPOSITION_LEDGER.md` records this terminal disposition.
+
+**P1.2 is RETIRED.** Its recorded worktree dispositions remain intact, the authorized
+artifact set is complete, no branch was deleted, and the shared checkout is clean on `main`.
+This section supersedes the current-state conclusions in §9.4 while preserving that section's
+accurate historical record of the blocked attempt.

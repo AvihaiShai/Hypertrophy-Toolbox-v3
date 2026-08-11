@@ -134,10 +134,8 @@
 
 **Current classification (v23, superseding v22's):** **READY** — P1.5, P1.7
 (**P1.0 has since shipped as #278, and P1.4 as #291 — see §2**);
-**WAIT** — P1.2 (known dirty/open-PR
-worktrees must be excluded — **P1.2 has since gone WAIT → READY → PARTIAL: the worktree
-half executed 2026-08-08, the artifact half has not; see below**); **OWNER** — P2.1–P2.4;
-every item in P3 is a **PROPOSAL**.
+**RETIRED** — P1.2 (the 2026-08-12 final artifact action completed its recorded scope; see
+below); **OWNER** — P2.1–P2.4; every item in P3 is a **PROPOSAL**.
 
 **P1.6 is reclassified OWNER → RETIRE (2026-08-03).** Both of its owner decisions
 were taken and executed; see
@@ -234,6 +232,15 @@ worktrees: 34 removable, 7 preserved, 1 current.
 > deletion to have run. Item 6 now *passes*: the shared checkout is back on `main` and clean.
 > The certification does not need re-deriving; the exact command is in
 > [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.4.
+
+> **Final execution, 2026-08-12 — P1.2 RETIRED.** The six literal paths authorized in §9.4
+> were deleted after each was revalidated as a real non-reparse directory contained beneath
+> `artifacts/`. A post-delete check found none of them remaining. `wp4_4`,
+> `environment-backups`, `vbl_check`, `codex-pr309-review-7d03c7a`,
+> `pr294-visual-diagnostics`, `e2e`, and `dev-server` were all verified present; the database
+> remained 839,680 bytes with its existing timestamp. The local disposition ledger is now
+> complete at `artifacts/P1_2_WORKTREE_DISPOSITION_LEDGER.md`; the durable closeout evidence
+> is [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.5. No branch was deleted.
 
 ## 1. Recommended execution order
 
