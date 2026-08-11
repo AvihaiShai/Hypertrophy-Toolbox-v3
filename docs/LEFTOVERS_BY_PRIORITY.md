@@ -186,6 +186,38 @@ worktrees: 34 removable, 7 preserved, 1 current.
 > count-based; the plan's §7 has been corrected to say so. One KEEP row was removed by
 > another session with no content loss, and one had its hold expire. Both are recorded in
 > [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.1.
+>
+> **Attempts 12–13, 2026-08-10 — nothing removed, nothing deleted; both blockers now
+> measured.** Pre-flight was re-run in full and all three Packet E targets still match their
+> audited branch, HEAD and dirty state; the set invariant holds and the prune dry-run is
+> empty. **Stop commissioning either packet as "get owner approval and run it" — the owner
+> gate is discharged and is not what is blocking.** Packet E has failed 13 times for one
+> reason: `git worktree remove` is decided `ask`, and a `bypassPermissions` session cannot
+> render a prompt, so the guard fails closed. It needs a prompting-mode session or a manual
+> run — not another authorization. Packet D's recorded reason ("needs a quiet machine") was
+> **measured and found false**: a per-path reversible rename probe shows **all 20 candidate
+> paths FREE** with 13 Playwright processes live, because a live process is not a process
+> holding a path. Its real blocker is that the guard **hard-`deny`s** recursive force delete
+> and `ask`s on recursive delete, and every §6 candidate is a directory tree — so Packet D
+> cannot run unattended in *any* permission mode, and evading that file-by-file would be
+> routing around the guard. Full evidence, plus two scope corrections (`visual_review*` is
+> six dirs now, not three; `artifacts/e2e` and `artifacts/dev-server` are **not** approved
+> candidates) in [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.3.
+>
+> **Manual execution, 2026-08-11 — Packet E complete; Packet D complete except
+> `visual_review*`.** The three owner-dispositioned worktrees were removed, including the
+> accepted four-file discard in `bs538-spike`; all three branch refs survive and `b990412`
+> remains reachable. The 15 literal artifact/build/log targets in the runbook are gone,
+> reclaiming about **1.07 GB**; every protected and non-§6 path verified present. The six
+> `visual_review*` directories remain because §6 names a wildcard, records a stale count of
+> three, and names no directory — so **no individual one is identifiably authorized** — and
+> the follow-up all-six deletion was hard-denied before execution. **The denial is not the
+> boundary; the missing scope decision is.** P1.2 remains **PARTIAL** on it, and closing it
+> is an owner call on which directories are meant, not a recount and not a re-read of the
+> wildcard. This paragraph supersedes the stale "the artifact half has not" wording in the
+> classification block above and the "Packet E remains" / "artifact half has not run" wording
+> in the historical table row below; full output and retained-set detail are in
+> [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.3.
 
 ## 1. Recommended execution order
 
