@@ -7,6 +7,8 @@ superset handling, and plan generation with focus on:
 - Validation (invalid IDs, missing fields)
 - Error responses (404, 400, 500)
 """
+from urllib.parse import quote
+
 import pytest
 
 
@@ -398,16 +400,132 @@ class TestGetExerciseInfo:
 
 
 class TestGetRoutineExercises:
-    """Tests for GET /get_routine_exercises/<routine> endpoint."""
+    """Tests for GET /get_routine_exercises/<routine> endpoint.
 
-    def test_get_routine_exercises(self, client, clean_db, exercise_factory):
-        """Should return exercises for routine."""
-        exercise_factory("Bicep Curl")
-        
-        resp = client.get("/get_routine_exercises/Pull")
+    The endpoint feeds the *add an exercise* dropdown, so it returns the whole
+    catalog regardless of which routine already uses which exercise.
+    """
+
+    ROUTINE_A = "GYM - Full Body - Workout A"
+    ROUTINE_B = "GYM - Full Body - Workout B"
+
+    @staticmethod
+    def _catalog(client, routine):
+        """GET the endpoint for `routine`, asserting the response envelope."""
+        resp = client.get(f"/get_routine_exercises/{quote(routine)}")
         assert resp.status_code == 200
-        data = resp.get_json()
-        assert data["ok"] is True
+        payload = resp.get_json()
+        assert payload["ok"] is True
+        assert isinstance(payload["data"], list)
+        assert all(isinstance(name, str) for name in payload["data"])
+        return payload["data"]
+
+    def test_returns_exercise_already_used_by_another_routine(
+        self, client, clean_db, exercise_factory, workout_plan_factory
+    ):
+        """An exercise assigned to routine A stays offered for routine B.
+
+        `Deadlift` is seeded unassigned on purpose: with it present the payload
+        is non-empty either way, so the assertion cannot be satisfied by a
+        whole-catalog fallback that only fires when nothing at all matched.
+        """
+        exercise_factory("Bicep Curl")
+        exercise_factory("Deadlift")
+        workout_plan_factory(exercise_name="Bicep Curl", routine=self.ROUTINE_A)
+
+        assert "Bicep Curl" in self._catalog(client, self.ROUTINE_B)
+
+    def test_exercise_used_elsewhere_can_then_be_added_to_this_routine(
+        self, client, clean_db, exercise_factory, workout_plan_factory, db_handler
+    ):
+        """The offered exercise is actually addable to the second routine."""
+        exercise_factory("Bicep Curl")
+        exercise_factory("Deadlift")
+        workout_plan_factory(exercise_name="Bicep Curl", routine=self.ROUTINE_A)
+        assert "Bicep Curl" in self._catalog(client, self.ROUTINE_B)
+
+        resp = client.post("/add_exercise", json={
+            "routine": self.ROUTINE_B,
+            "exercise": "Bicep Curl",
+            "sets": 3,
+            "min_rep_range": 8,
+            "max_rep_range": 12,
+            "rir": 2,
+            "weight": 20.0,
+        })
+        assert resp.status_code == 200
+        assert resp.get_json()["ok"] is True
+
+        rows = db_handler.fetch_all(
+            "SELECT routine FROM user_selection WHERE exercise = ? ORDER BY routine",
+            ("Bicep Curl",),
+        )
+        assert [row["routine"] for row in rows] == [self.ROUTINE_A, self.ROUTINE_B]
+
+    def test_returns_exactly_the_catalog_names(
+        self, client, clean_db, exercise_factory, workout_plan_factory
+    ):
+        """Payload is the catalog — no extra names, none silently dropped."""
+        for name in ("Bicep Curl", "Deadlift", "Squat"):
+            exercise_factory(name)
+        workout_plan_factory(exercise_name="Squat", routine=self.ROUTINE_A)
+
+        assert self._catalog(client, self.ROUTINE_B) == ["Bicep Curl", "Deadlift", "Squat"]
+
+    def test_results_are_distinct_and_sorted_ascending(
+        self, client, clean_db, exercise_factory, workout_plan_factory
+    ):
+        """Two plan rows for one exercise must not duplicate it in the payload."""
+        for name in ("Squat", "Bicep Curl", "Deadlift"):
+            exercise_factory(name)
+        workout_plan_factory(exercise_name="Squat", routine=self.ROUTINE_A)
+        workout_plan_factory(exercise_name="Squat", routine=self.ROUTINE_B)
+
+        exercises = self._catalog(client, self.ROUTINE_A)
+        assert len(exercises) == len(set(exercises))
+        assert exercises == sorted(exercises)
+
+    def test_result_is_identical_across_routines(
+        self, client, clean_db, exercise_factory, workout_plan_factory
+    ):
+        """Assigned and unassigned exercises alike are routine-independent."""
+        for name in ("Bicep Curl", "Deadlift", "Squat"):
+            exercise_factory(name)
+        workout_plan_factory(exercise_name="Squat", routine=self.ROUTINE_A)
+
+        assert (
+            self._catalog(client, self.ROUTINE_A)
+            == self._catalog(client, self.ROUTINE_B)
+            == self._catalog(client, "Never Used By Anything")
+        )
+
+    def test_unknown_routine_returns_the_catalog(
+        self, client, clean_db, exercise_factory
+    ):
+        """A routine with no plan rows is not an error and is not empty."""
+        exercise_factory("Bicep Curl")
+
+        assert self._catalog(client, "Pull") == ["Bicep Curl"]
+
+    def test_empty_catalog_returns_empty_list(self, client, clean_db):
+        """No exercises seeded is a valid state, not a 500."""
+        assert self._catalog(client, "Pull") == []
+
+    def test_url_encoded_routine_with_spaces_and_dashes(
+        self, client, clean_db, exercise_factory
+    ):
+        """The real routine names contain spaces and dashes."""
+        exercise_factory("Bicep Curl")
+
+        resp = client.get(
+            "/get_routine_exercises/GYM%20-%20Full%20Body%20-%20Workout%20A"
+        )
+        assert resp.status_code == 200
+        assert resp.get_json()["data"] == ["Bicep Curl"]
+
+    def test_missing_routine_segment_is_not_routed(self, client, clean_db):
+        """The routine segment is required — no bare-path variant exists."""
+        assert client.get("/get_routine_exercises/").status_code == 404
 
 
 class TestUpdateExercise:

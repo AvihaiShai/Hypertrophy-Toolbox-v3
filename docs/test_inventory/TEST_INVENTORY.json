@@ -72,7 +72,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 477
+      "tests": 478
     },
     "specs": [
       {
@@ -238,14 +238,14 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-plan.spec.ts",
-        "tests": 35
+        "tests": 36
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 610
+    "total_tests": 611
   },
   "pytest": {
-    "collected_deterministic": 2310,
+    "collected_deterministic": 2318,
     "deterministic_files": 110,
     "environment_dependent_files": [
       {
@@ -692,7 +692,7 @@
       },
       {
         "file": "tests/test_workout_plan_routes.py",
-        "tests": 67
+        "tests": 75
       },
       {
         "file": "tests/test_youtube_video_id.py",

@@ -206,6 +206,64 @@ test.describe('Workout Plan Page', () => {
     expect(newRows > initialRows || toastVisible).toBe(true);
   });
 
+  test('add exercise: an exercise used by another routine stays offered and addable', async ({ page }) => {
+    // Regression: /get_routine_exercises used to LEFT JOIN user_selection and
+    // keep only rows matching the queried routine or unassigned, so an exercise
+    // already used by Workout A vanished from Workout B's dropdown.
+    await page.locator(SELECTORS.ROUTINE_ENV).selectOption('GYM');
+    await page.waitForFunction(() => {
+      const select = document.getElementById('routine-program') as HTMLSelectElement;
+      return select && select.options.length > 1;
+    });
+    await page.locator(SELECTORS.ROUTINE_PROGRAM).selectOption('Full Body');
+    await page.waitForFunction(() => {
+      const select = document.getElementById('routine-day') as HTMLSelectElement;
+      return select && select.options.length > 1;
+    });
+
+    const exerciseSelect = page.locator(SELECTORS.EXERCISE_SEARCH);
+    const addButton = page.locator(SELECTORS.ADD_EXERCISE_BTN);
+
+    /** Pick the routine day, then wait out the dropdown refetch it triggers. */
+    const selectDay = async (day: string): Promise<string> => {
+      const catalogLoaded = page.waitForResponse(
+        (response) => response.url().includes('/get_routine_exercises/') && response.status() === 200,
+      );
+      await page.locator(SELECTORS.ROUTINE_DAY).selectOption(day);
+      await catalogLoaded;
+      await page.waitForFunction(() => {
+        const select = document.getElementById('exercise') as HTMLSelectElement;
+        return select && select.options.length > 1;
+      });
+      return page.locator('#routine').inputValue();
+    };
+
+    /** The plan row for one exercise within one routine. */
+    const planRow = (routine: string, exercise: string) =>
+      page
+        .locator(`#workout_plan_table_body tr[data-routine="${routine}"]`)
+        .filter({ hasText: exercise });
+
+    const routineA = await selectDay('Workout A');
+
+    // Whichever exercise the catalog offers first is the one we reuse.
+    const sharedExercise = await exerciseSelect.locator('option').nth(1).getAttribute('value');
+    expect(sharedExercise).toBeTruthy();
+
+    await exerciseSelect.selectOption(sharedExercise!);
+    await addButton.click();
+    await expect(planRow(routineA, sharedExercise!)).toHaveCount(1);
+
+    // Same cascade, different day — the exercise must still be on offer.
+    const routineB = await selectDay('Workout B');
+    expect(routineB).not.toBe(routineA);
+    await expect(exerciseSelect.locator(`option[value="${sharedExercise}"]`)).toHaveCount(1);
+
+    await exerciseSelect.selectOption(sharedExercise!);
+    await addButton.click();
+    await expect(planRow(routineB, sharedExercise!)).toHaveCount(1);
+  });
+
   test('clear filters button resets all filter dropdowns', async ({ page }) => {
     // Find filter dropdowns and set some values
     const filterForm = page.locator('#filters-form');

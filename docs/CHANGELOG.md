@@ -6,6 +6,16 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ### User-visible
 
+- **An exercise used in one routine can now be added to another.** Picking a
+  routine day rebuilt the Add-Exercise dropdown from
+  `GET /get_routine_exercises/<routine>`, which returned that routine's exercises
+  plus the ones no routine used — so anything already assigned to a *different*
+  routine silently disappeared and became unselectable. The endpoint now always
+  returns the complete exercise catalog, sorted and distinct.
+  **No migration is required**: the response shape is unchanged
+  (`{"ok": true, "data": ["Exercise A", …]}`), only its contents are now complete.
+  The dropdown is an *add* control, so it never described the current routine's
+  contents in the first place — the plan table does that.
 - **Weekly summary: an `Unassigned` volume bucket.** Sets whose routine is blank
   no longer vanish from the weekly view — they coalesce into one synthetic
   `Unassigned` session, matching what the session summary already did. Such rows

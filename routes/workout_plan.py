@@ -342,31 +342,19 @@ def get_exercise_info(exercise_name):
 
 @workout_plan_bp.route("/get_routine_exercises/<routine>")
 def get_routine_exercises(routine):
-    """Get exercises for a specific routine."""
+    """List the exercises selectable for a routine — always the full catalog.
+
+    The dropdown this feeds is an *add* control, so every catalog exercise must
+    stay offered no matter which routine already uses it.
+    """
     try:
-        # First try to get exercises already in the routine
-        query = """
-        SELECT DISTINCT e.exercise_name
-        FROM exercises e
-        LEFT JOIN user_selection us ON e.exercise_name = us.exercise
-        WHERE us.routine = ? OR us.routine IS NULL
-        ORDER BY e.exercise_name ASC
-        """
-        
-        with DatabaseHandler() as db:
-            results = db.fetch_all(query, (routine,))
-            exercises = [row['exercise_name'] for row in results if row['exercise_name']]
-            
-            if not exercises:
-                # If no exercises found, get all available exercises
-                exercises = get_exercises()
-            
-            logger.debug(f"Found {len(exercises)} exercises for routine {routine}")
-            return jsonify(success_response(data=exercises))
-            
+        exercises = get_exercises()
+        logger.debug(f"Offering {len(exercises)} exercises for routine {routine}")
+        return jsonify(success_response(data=exercises))
+
     except Exception as e:
         logger.exception(f"Error fetching exercises for routine {routine}")
-        return error_response("INTERNAL_ERROR", "Failed to fetch exercises for routine", 500) 
+        return error_response("INTERNAL_ERROR", "Failed to fetch exercises for routine", 500)
 
 @workout_plan_bp.route("/update_exercise", methods=["POST"])
 def update_exercise():
