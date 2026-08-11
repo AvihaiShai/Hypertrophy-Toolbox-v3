@@ -94,10 +94,15 @@
 > `docs/archive/ci_cd/CI_CD_IMPROVEMENT_PLAN.md` carried **two** live no-cron
 > prohibitions — §0 *and* Step 4.1 — and #323 superseded both.
 >
-> **Open follow-up:** **#325** (draft, `wt/deep-gate-timeouts`) adds job-level
-> `timeout-minutes`. None of the seven jobs declares one, so each inherits
-> GitHub's 360-minute default — which mattered little while every run was
-> launched by hand and matters now that one runs unattended weekly. Owner-gated.
+> **Follow-up, now merged:** **#325** (`4d01698`) bounds all seven jobs with
+> `timeout-minutes`. None declared one, so each inherited GitHub's 360-minute
+> default — which mattered little while every run was launched by hand and
+> matters once one runs unattended weekly. Values are hang detectors, not
+> budgets: each is the number `ci.yml` already uses for the nearest equivalent
+> job (`full-e2e` 45, `visual-linux` 25, `frozen-windows` 45, the four smokes
+> 15), every one at ≥2× its worst observed run over 20 runs. Worst case drops
+> from 6 h to 45 min. **No `concurrency:` group was added** — that is the other
+> half of the B9 CI-hygiene finding and remains a separate decision.
 > Also worth knowing: **GitHub disables a scheduled workflow after 60 days with
 > no repository activity.** Not a risk at current cadence.
 
