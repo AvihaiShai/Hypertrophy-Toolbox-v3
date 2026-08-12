@@ -43,6 +43,69 @@
 > — **18/18**, including the `Visual Regression (Windows baselines)` job #322
 > added, at **66 passed** with `Assert no baseline was written` green.
 
+> **2026-08-11 — the D3 weekly scheduled deep gate is SHIPPED, and has
+> *(Same-day sibling of the Workout Plan entry above; unrelated work — that
+> one closes the bug queue, this one ships the weekly CI schedule.)*
+> not yet run.** Owner-approved 2026-08-11; PR **#323** squash-merged as
+> **`3b1160b`**, 18/18 checks green.
+>
+> **What landed.** `deep-gate.yml` gains `schedule: '17 3 * * 1'` — **Mondays
+> 03:17 UTC**, 06:17 Asia/Jerusalem in IDT — beside a byte-identical
+> `workflow_dispatch`. `visual-linux` was gated `if: ${{ inputs.run_visual }}`,
+> and a `schedule` event carries **no `inputs` context**, so on the weekly
+> trigger it would have skipped while the workflow still reported green. It now
+> runs on `schedule` as well as on an opt-in dispatch.
+>
+> **A scheduled run cannot generate baselines.** Four mechanisms: the
+> `inputs.visual_mode || 'compare'` fallback; a re-pin to compare on
+> `github.event_name == 'schedule'` (so it holds even if the input default is
+> ever flipped); `--update-snapshots` reachable from `MODE=generate` alone and
+> occurring exactly once in the file; and a new **`Assert compare mode wrote no
+> baseline`** step that fails the job if a non-generate run leaves anything in
+> `e2e/__screenshots__`. That last one is #322's idiom, adopted here because
+> Playwright *creates* a missing baseline instead of failing — a green compare
+> was never by itself proof that nothing was written, and an unattended run has
+> nobody to notice. The baseline-upload step now keys on the resolved mode, so
+> upload and generation cannot disagree. **`workflow_dispatch` remains the only
+> route to `generate`.**
+>
+> **What this does NOT establish — do not report it as validated.** *No
+> scheduled execution has occurred.* Everything verified so far is static
+> analysis of the five expressions, a local rehearsal of the shell logic, and a
+> local compare run (100 passed, nothing written). **The first authoritative
+> scheduled run is Monday 2026-08-17 03:17 UTC**, and the thing to check is the
+> **job set, not the overall green**: it must show **all seven jobs with
+> `visual-linux` executed rather than skipped**. Until that run is inspected,
+> the weekly gate is *implemented but unvalidated at runtime*.
+>
+> **Division of labour with #322, so nobody duplicates it:** `ci.yml`'s
+> `visual-windows` byte-compares the **win32** corpus on every PR and push to
+> `main`; `deep-gate.yml`'s `visual-linux` compares the **linux** corpus weekly
+> and on demand. Neither belongs in the other file.
+>
+> **This entry supersedes, as current state:** *"The weekly scheduled deep gate
+> is therefore actionable — it is **not** authorized, not implemented … Adding
+> the `schedule:` trigger remains a separate owner decision"* in the 2026-08-04
+> block below; the identical *"still **not authorized and not implemented**"*
+> clause in the **Known LINUX visual reds** ledger; and the *"actionable but
+> still unauthorized and unimplemented"* clause in the **Testing strategy
+> review** row of `## Active Workstreams`, which is corrected in place. Those
+> dated blocks stay as the record of what was true when written.
+> `docs/archive/ci_cd/CI_CD_IMPROVEMENT_PLAN.md` carried **two** live no-cron
+> prohibitions — §0 *and* Step 4.1 — and #323 superseded both.
+>
+> **Follow-up, now merged:** **#325** (`4d01698`) bounds all seven jobs with
+> `timeout-minutes`. None declared one, so each inherited GitHub's 360-minute
+> default — which mattered little while every run was launched by hand and
+> matters once one runs unattended weekly. Values are hang detectors, not
+> budgets: each is the number `ci.yml` already uses for the nearest equivalent
+> job (`full-e2e` 45, `visual-linux` 25, `frozen-windows` 45, the four smokes
+> 15), every one at ≥2× its worst observed run over 20 runs. Worst case drops
+> from 6 h to 45 min. **No `concurrency:` group was added** — that is the other
+> half of the B9 CI-hygiene finding and remains a separate decision.
+> Also worth knowing: **GitHub disables a scheduled workflow after 60 days with
+> no repository activity.** Not a risk at current cadence.
+
 > **2026-08-09 — the test-runtime optimization arc is CLOSED on both
 > lanes.** Branch `wt/playwright-shards` (unpushed, no PR), based on
 > `perf/test-schema-template`.
@@ -2009,7 +2072,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | **PROPOSED — needs revision.** Assesses the six-document suite (PRD / TDD / App Flow / Design Brief / Backend Schema / Engineering Plan) against the existing brownfield docs surface. Verdict: fill the real gaps rather than write six documents from scratch — **App Flow** and **Design Brief** are the genuine gaps; the Engineering Plan is already covered as a living process by `/council-plan`, per-feature `PLANNING.md` and `QUALITY_GATE.md`. Committed 2026-08-01 via PR #219. | None. Gate 0 approves requirements only; no packet may start until the revised plan completes council review and receives Gate 1 owner approval. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) |
-| Testing strategy review | **PHASES 0 + 1 COMPLETE 2026-08-01 — Phases 2–5 remain proposals.** Claims were verified against the live repository (configs read directly, Playwright `--list` and pytest collection executed, all 90 pytest files, both workflows, the backup subsystem and the E2E suite audited). Adjudicates two external AI reviews, records verified current state, and lists blindspots both models missed. Plan committed 2026-08-01 via PR #220; **eight PRs then executed Phases 0 and 1 the same day** (#229 `fe5917b`, #231 `037d98c`, #233 `99c5a36`, #237 `11cb732`, #248 `83958e5`, #253 `bb4858e`, #254 `70b8931`, #255 `20ede92` — full table in the execution ledger at the top of this file), plus follow-up #267 `5b7a4f1` flipping Test Inventory Drift to blocking (P0.1/P0.2). Owner sign-off covers **D1** (coverage as non-blocking measurement) and the `e2e-erase-flow` half of **D2**. **Second sign-off 2026-08-02 (§8.1a): D3 signed as the *stopgap only* — weekly scheduled deep-gate now, full release/tag pipeline deferred to the next planned packaged release — and D5 signed Chromium-only, shipped as `DECISIONS.md` **ADR-004**.** | **Phase 4 is NOT complete — only D5 shipped.** **[CORRECTED 2026-08-04] D3's visual precondition is now SATISFIED and the stopgap is no longer blocked.** `visual-linux` passes: all seven deep-gate jobs are green across three consecutive post-merge compares at `f8988f9` (100 passed each, zero retries, zero flaky). The baselines were brought current by #294 (`73c5c46`) and #298 (`f8988f9`). Adding the weekly `schedule:` trigger is therefore **actionable but still unauthorized and unimplemented** — a separate owner decision, not a consequence of this correction. *Superseded text, retained for the record:* the row previously read that the stopgap was *"blocked on its own precondition — `visual-linux` is the single failing deep-gate job on current `main` (**11 failed / 57 passed / 16 did not run**)"* because the committed Linux baselines predated 57 CSS/template commits, and that the unblock was an owner action requiring a by-eye PNG review. That was true when written; the review happened. Original diagnosis: [`TESTING_STRATEGY_PLANNING.md` §8.7](TESTING_STRATEGY_PLANNING.md); current authority: [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8. **Still unsigned:** D4, D6, D7 and the `js-unit` half of D2 (reconsider only after the two-week stability window, with evidence). Phases 2, 3 and 5 remain proposals. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md) |
+| Testing strategy review | **PHASES 0 + 1 COMPLETE 2026-08-01 — Phases 2–5 remain proposals.** Claims were verified against the live repository (configs read directly, Playwright `--list` and pytest collection executed, all 90 pytest files, both workflows, the backup subsystem and the E2E suite audited). Adjudicates two external AI reviews, records verified current state, and lists blindspots both models missed. Plan committed 2026-08-01 via PR #220; **eight PRs then executed Phases 0 and 1 the same day** (#229 `fe5917b`, #231 `037d98c`, #233 `99c5a36`, #237 `11cb732`, #248 `83958e5`, #253 `bb4858e`, #254 `70b8931`, #255 `20ede92` — full table in the execution ledger at the top of this file), plus follow-up #267 `5b7a4f1` flipping Test Inventory Drift to blocking (P0.1/P0.2). Owner sign-off covers **D1** (coverage as non-blocking measurement) and the `e2e-erase-flow` half of **D2**. **Second sign-off 2026-08-02 (§8.1a): D3 signed as the *stopgap only* — weekly scheduled deep-gate now, full release/tag pipeline deferred to the next planned packaged release — and D5 signed Chromium-only, shipped as `DECISIONS.md` **ADR-004**.** | **Phase 4 is NOT complete — only D5 shipped.** **[CORRECTED 2026-08-04] D3's visual precondition is now SATISFIED and the stopgap is no longer blocked.** `visual-linux` passes: all seven deep-gate jobs are green across three consecutive post-merge compares at `f8988f9` (100 passed each, zero retries, zero flaky). The baselines were brought current by #294 (`73c5c46`) and #298 (`f8988f9`). **[CORRECTED 2026-08-11] The weekly `schedule:` trigger is now AUTHORIZED, IMPLEMENTED and MERGED** — owner-approved 2026-08-11, PR #323 squash-merged as `3b1160b` (Mondays 03:17 UTC, compare-only on the schedule, with a mechanical guard that fails the job if a non-generate run writes a baseline). **No scheduled run has executed yet; the first authoritative one is Monday 2026-08-17 03:17 UTC and must show all seven jobs with `visual-linux` executed rather than skipped.** *Superseded text, retained for the record:* this cell previously read that adding the trigger was *"actionable but still unauthorized and unimplemented — a separate owner decision, not a consequence of this correction."* That was true when written on 2026-08-04. *Superseded text, retained for the record:* the row previously read that the stopgap was *"blocked on its own precondition — `visual-linux` is the single failing deep-gate job on current `main` (**11 failed / 57 passed / 16 did not run**)"* because the committed Linux baselines predated 57 CSS/template commits, and that the unblock was an owner action requiring a by-eye PNG review. That was true when written; the review happened. Original diagnosis: [`TESTING_STRATEGY_PLANNING.md` §8.7](TESTING_STRATEGY_PLANNING.md); current authority: [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8. **Still unsigned:** D4, D6, D7 and the `js-unit` half of D2 (reconsider only after the two-week stability window, with evidence). Phases 2, 3 and 5 remain proposals. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md) |
 
 ## Open Decisions
 

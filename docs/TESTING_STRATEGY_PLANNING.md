@@ -2,7 +2,7 @@
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
-> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D4, D6 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and that stopgap is blocked on the stale Linux baseline set ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02)). Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D4, D6 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *No scheduled run has executed yet — first authoritative one Monday 2026-08-17 03:17 UTC.* The **release/tag pipeline half of Phase 4 remains deferred**, so Phase 4 is still open. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
 
 ---
 
@@ -53,7 +53,7 @@
 | "Coverage should be non-blocking info first, then ratchet" | ✅ Adopted | §5, Phase 1. |
 | "Proposed properties may not be valid product rules" | ✅ Important | E.g. "volume after splitting always exactly equals input" must be checked against rounding/caps before becoming a test, and this repo's council workflow (Gate 0 + `product-risk-reviewer`) is the right vehicle — calculation-surface changes are explicitly owner-gated ([docs/ai_workflow/QUALITY_GATE.md](ai_workflow/QUALITY_GATE.md)). |
 | "E2E suite is Chromium-only; Firefox/WebKit commented out" | ✅ Verified | [playwright.config.ts:97-105](../playwright.config.ts#L97-L105); every CI invocation passes `--project=chromium`; Firefox/WebKit binaries are never even downloaded. |
-| "Deep-gate checks should become release gates" | ✅ Confirmed gap | Deep gate is `workflow_dispatch` **only** — explicitly "no cron / schedule" ([deep-gate.yml:3](../.github/workflows/deep-gate.yml#L3)). No release/tag workflow exists at all. |
+| "Deep-gate checks should become release gates" | ✅ Confirmed gap | Deep gate was `workflow_dispatch` **only** — explicitly "no cron / schedule". No release/tag workflow exists at all. **Partly closed 2026-08-11 (D3 stopgap, PR #323 → `3b1160b`):** a weekly `schedule:` now runs the deep gate, compare-only. The release/tag half of the gap stands. *The original line cited `deep-gate.yml:3` for the "no cron" comment; that line anchor no longer says it — do not re-add the citation, the file now documents the schedule.* |
 | "Expand Vitest coverage and promote the non-required job" | ✅ Confirmed gap | Vitest job is non-required ([ci.yml:586-590](../.github/workflows/ci.yml#L586-L590)); only **8 of 49 modules (16%)** have unit tests; `jsdom` is installed but zero test files opt into it, so every DOM-touching module is untested at unit level. |
 | Codex misses | — | The vacuous a11y assertions (B1), the `/erase-data` substitute-route gap (B2), the documentation drift itself (B3), the weakened console-error fixture (B4), CI hygiene issues (B9), and the prior art in `QUALITY_GATE.md` / `UI_SCENARIOS_GAP_ANALYSIS.md` (§2.3). |
 
@@ -193,7 +193,12 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 12. **JS unit expansion with jsdom** for the highest-risk DOM modules (`exercises.js`, `workout-controls-persistence.js` — the KI-005 contract, `toast.js` — the KI-004 contract, `backup-center.js`), then **promote the Vitest job to required** once green for 2 weeks. *(Fable 5, 2026-08-02: adopt jsdom via per-file `// @vitest-environment jsdom` pragmas, leaving the global `environment: 'node'` and the 9 existing files untouched — §9.2 F5-6.)*
 
 ### Phase 4 — Release gate (fixes B8; the largest structural gap)
-13. **Precondition: make the visual job capable of being a green gate.** *(Measured 2026-08-02: this
+13. **Precondition: make the visual job capable of being a green gate.** *(**Status 2026-08-11: the
+    weekly-deep-gate half of this step is DONE** — precondition satisfied 2026-08-04, schedule
+    shipped as PR #323 → `3b1160b`, with `visual-linux` executed rather than skipped on the
+    schedule and compare-only enforced four ways. **The release/tag pipeline half is NOT done**
+    and remains deferred to the next planned packaged release. No scheduled run has executed yet;
+    first authoritative one Monday 2026-08-17 03:17 UTC.)* *(Measured 2026-08-02: this
     step's premise understates the problem. It is not one animated-logo failure — the **Linux**
     baseline set reds on **at least eleven** tests because 57 CSS/template commits landed after the
     baselines were frozen. Read [§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02)
@@ -527,10 +532,22 @@ shape detects a cross-PR interaction before it reaches `main`.
   window, with evidence.
 - **D4, D6 and D7 remain unsigned.** Phases 2, 3 and 5 remain proposals. Phase 2 step 8 was
   delivered by APP_PY P1+P5 (§8.5). D3 and D5 were signed on 2026-08-02 (§8.1a); D5 shipped as
-  ADR-004, D3's stopgap is blocked (§8.7).
-- **The Linux visual baseline set is stale, and it blocks the Phase 4 stopgap.** See §8.7.
+  ADR-004, and **D3's stopgap shipped 2026-08-11 as PR #323 (`3b1160b`)**.
+- ~~**The Linux visual baseline set is stale, and it blocks the Phase 4 stopgap.**~~
+  **Resolved 2026-08-04** — regenerated, owner-reviewed, eight consecutive clean compares; the
+  stopgap then shipped 2026-08-11. §8.7 is retained as the diagnosis of the original condition.
 
 ### 8.7 Phase 4 stopgap: the precondition is not met (2026-08-02)
+
+> **CLOSED 2026-08-11 — this section is history, not current state.** The precondition was
+> satisfied 2026-08-04 (the Linux baselines were regenerated and reviewed; eight consecutive
+> clean compares). The owner approved the schedule on 2026-08-11 and **PR #323 shipped it,
+> squash-merged as `3b1160b`** — every clause of the *Ordering* paragraph at the end of this
+> section was discharged in that one change. **Do not re-run the unblock sequence, and do not
+> read the measurements below as today's state.** What is *not* yet established: no scheduled
+> execution has happened. The first authoritative one is **Monday 2026-08-17 03:17 UTC**, and
+> it must show **all seven jobs with `visual-linux` executed rather than skipped** — the job
+> set, not the overall green, is the thing to verify.
 
 D3's stopgap was signed, then **not shipped**, because Phase 4 step 13's own precondition —
 *"make the visual job capable of being a green gate"* — is currently false. This section records the
@@ -621,7 +638,10 @@ CSS-arc drift from a genuine regression hiding inside these eleven — a distinc
 Three things were considered and rejected as out of authorization: updating snapshots, rebaselining
 the known reds, and raising the global `maxDiffPixels: 800`.
 
-**Ordering, once baselines are refreshed.** Re-run compare and confirm green *first*; only then add
+**Ordering, once baselines are refreshed.** *(Discharged 2026-08-11 by PR #323 → `3b1160b`: the
+compare was confirmed green first, and the `schedule:` trigger, the `visual-linux` `if:` fix, the
+`compare` default and both prose corrections landed together in that change. Retained as the
+specification it was written to be.)* Re-run compare and confirm green *first*; only then add
 the `schedule:` trigger, and in the same change fix `visual-linux`'s `if: ${{ inputs.run_visual }}`
 — a `schedule` event supplies no `inputs`, so the job would silently skip — and default
 `visual_mode` to `compare` so a scheduled run can never enter `generate` mode. Note also that
@@ -785,6 +805,8 @@ stand as written.
 *"D3–D7 remain unsigned; Phases 2–5 remain proposals."* The first half is **superseded**:
 **D3 and D5 were signed on 2026-08-02** and are recorded in **§8.1a**, which governs. D5 shipped
 as `DECISIONS.md` **ADR-004** (Chromium-only); **D3 was signed as the stopgap half only**, and
-that stopgap is itself blocked on the stale Linux baseline set (**§8.7**). **D4, D6 and D7
+that stopgap was blocked on the stale Linux baseline set (**§8.7**) — *updated 2026-08-11: the
+baselines were regenerated and reviewed on 2026-08-04, and the stopgap **shipped** as PR #323
+(`3b1160b`); §8.7 is now history.* **D4, D6 and D7
 remain unsigned**, as does the js-unit half of D2. **Phases 2, 3 and 5 remain proposals, and
-Phase 4 is not complete.**
+Phase 4 is not complete** — its release/tag pipeline half is still deferred.
