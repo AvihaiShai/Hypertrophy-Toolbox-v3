@@ -503,6 +503,132 @@ class TestSessionLogAggregation:
             assert stats["effective_per_session"] == pytest.approx(2.55)
 
 
+WINDOW_ROUTINE = "Window Routine"
+WINDOW_EXERCISE = "Window Bench"
+WINDOW_SESSION_DATES = ("2026-03-01", "2026-03-05", "2026-03-10")
+
+
+def _seed_windowed_sessions(db_handler, exercise_factory, workout_plan_factory):
+    """Plan one exercise and log it on WINDOW_SESSION_DATES, one session each."""
+    exercise_name = exercise_factory(
+        WINDOW_EXERCISE,
+        primary_muscle_group="Chest",
+        secondary_muscle_group=None,
+        tertiary_muscle_group=None,
+    )
+    plan_id = workout_plan_factory(
+        exercise_name=exercise_name,
+        routine=WINDOW_ROUTINE,
+        sets=4,
+        min_rep_range=8,
+        max_rep_range=10,
+        rir=2,
+        weight=100.0,
+    )
+
+    for session_date in WINDOW_SESSION_DATES:
+        db_handler.execute_query(
+            """
+            INSERT INTO workout_log (
+                workout_plan_id, routine, exercise, planned_sets, planned_min_reps,
+                planned_max_reps, planned_rir, planned_rpe, planned_weight,
+                scored_weight, scored_min_reps, scored_max_reps, scored_rir,
+                scored_rpe, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                plan_id,
+                WINDOW_ROUTINE,
+                WINDOW_EXERCISE,
+                4, 8, 10, 2, 8.0, 100.0,
+                100.0, 8, 10, 2, 8.0,
+                f"{session_date} 09:00:00",
+            ),
+        )
+
+
+class TestTimeWindowFiltering:
+    """Characterizes all four date-window shapes accepted by time_window.
+
+    The window filters logged sessions only; planned volume is unaffected.
+    """
+
+    def test_no_window_includes_every_session(
+        self, app, exercise_factory, workout_plan_factory, db_handler
+    ):
+        """time_window=None applies neither bound."""
+        with app.app_context():
+            _seed_windowed_sessions(db_handler, exercise_factory, workout_plan_factory)
+
+            stats = calculate_session_summary(time_window=None)[WINDOW_ROUTINE]["Chest"]
+
+            assert stats["session_count"] == 3
+
+    def test_both_dates_apply_both_bounds(
+        self, app, exercise_factory, workout_plan_factory, db_handler
+    ):
+        """A fully specified window keeps only sessions inside it, inclusive."""
+        with app.app_context():
+            _seed_windowed_sessions(db_handler, exercise_factory, workout_plan_factory)
+
+            stats = calculate_session_summary(
+                time_window=("2026-03-03", "2026-03-07")
+            )[WINDOW_ROUTINE]["Chest"]
+
+            # Only 2026-03-05 falls inside; 03-01 and 03-10 are excluded.
+            assert stats["session_count"] == 1
+
+    def test_start_date_only_applies_lower_bound(
+        self, app, exercise_factory, workout_plan_factory, db_handler
+    ):
+        """A start-only window filters earlier sessions and leaves the upper end open."""
+        with app.app_context():
+            _seed_windowed_sessions(db_handler, exercise_factory, workout_plan_factory)
+
+            stats = calculate_session_summary(
+                time_window=("2026-03-05", None)
+            )[WINDOW_ROUTINE]["Chest"]
+
+            # 2026-03-05 and 2026-03-10 remain; 2026-03-01 is excluded.
+            assert stats["session_count"] == 2
+
+    def test_end_date_only_applies_upper_bound(
+        self, app, exercise_factory, workout_plan_factory, db_handler
+    ):
+        """An end-only window filters later sessions and leaves the lower end open."""
+        with app.app_context():
+            _seed_windowed_sessions(db_handler, exercise_factory, workout_plan_factory)
+
+            stats = calculate_session_summary(
+                time_window=(None, "2026-03-05")
+            )[WINDOW_ROUTINE]["Chest"]
+
+            # 2026-03-01 and 2026-03-05 remain; 2026-03-10 is excluded.
+            assert stats["session_count"] == 2
+
+    def test_window_never_changes_planned_volume(
+        self, app, exercise_factory, workout_plan_factory, db_handler
+    ):
+        """Every window shape reports identical planned totals — only sessions differ."""
+        with app.app_context():
+            _seed_windowed_sessions(db_handler, exercise_factory, workout_plan_factory)
+
+            windows = [
+                None,
+                ("2026-03-03", "2026-03-07"),
+                ("2026-03-05", None),
+                (None, "2026-03-05"),
+            ]
+            planned = [
+                calculate_session_summary(time_window=window)[WINDOW_ROUTINE]["Chest"]
+                for window in windows
+            ]
+
+            assert {stats["effective_sets"] for stats in planned} == {planned[0]["effective_sets"]}
+            assert {stats["raw_sets"] for stats in planned} == {planned[0]["raw_sets"]}
+            assert {stats["total_volume"] for stats in planned} == {planned[0]["total_volume"]}
+
+
 class TestVolumeClassification:
     """Tests for volume classification."""
     
