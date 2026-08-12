@@ -2,17 +2,10 @@
   "_meta": {
     "tool": "pyright",
     "note": "Baseline-allowlist for the typecheck CI gate (leftovers A9). Generated under the committed pyrightconfig.json (pythonVersion 3.14, pythonPlatform Windows). Regenerate with scripts/pyright_baseline_diff.py --write-baseline. Do NOT edit by hand to silence a real regression.",
-    "total_diagnostics": 141,
-    "distinct_keys": 47
+    "total_diagnostics": 140,
+    "distinct_keys": 46
   },
   "diagnostics": [
-    {
-      "file": "routes/progression_plan.py",
-      "severity": "error",
-      "rule": "reportPossiblyUnboundVariable",
-      "message": "\"query\" is possibly unbound",
-      "count": 1
-    },
     {
       "file": "routes/session_summary.py",
       "severity": "error",
