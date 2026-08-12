@@ -369,6 +369,11 @@ def pinned_declarations() -> list[dict[str, str]]:
 
 HELPER_RELATIVE = "e2e/visual-helpers.ts"
 HELPER_FUNCTION = "prepareForScreenshot"
+# The element-capture path calls `prepareForScreenshot()` and then layers a
+# second stylesheet of its own. That stylesheet is NOT part of the register — it
+# applies to locator captures only — but it is a neutralizing channel in the same
+# file, so it is enumerated and pinned rather than left undescribed.
+ELEMENT_HELPER_FUNCTION = "prepareForElementScreenshot"
 
 STYLESHEET_STAGE = "stylesheet"
 INLINE_STAGE = "inline"
@@ -407,6 +412,15 @@ class HelperParseError(RuntimeError):
 
 def helper_source() -> str:
     return (ROOT / HELPER_RELATIVE).read_text(encoding="utf-8")
+
+
+def _reject_unsupported_channels(body: str, function: str) -> None:
+    for pattern, description in _UNSUPPORTED_CHANNELS:
+        if pattern.search(body):
+            raise HelperParseError(
+                f"`{function}` uses {description}, a style channel this "
+                "extractor does not enumerate"
+            )
 
 
 def _normalize_newlines(text: str) -> str:
@@ -516,25 +530,25 @@ def _string_literal_arguments(arguments: str) -> list[str] | None:
     return values
 
 
-def _prepare_function_body(helper: str) -> str:
-    matches = list(re.finditer(rf"function\s+{HELPER_FUNCTION}\s*\(", helper))
+def _prepare_function_body(helper: str, function: str = HELPER_FUNCTION) -> str:
+    matches = list(re.finditer(rf"function\s+{function}\s*\(", helper))
     if len(matches) != 1:
         raise HelperParseError(
-            f"expected exactly one `{HELPER_FUNCTION}` definition in "
+            f"expected exactly one `{function}` definition in "
             f"{HELPER_RELATIVE}, found {len(matches)}"
         )
     _, after_parameters = specificity._read_balanced(helper, matches[0].end() - 1)
     brace = helper.find("{", after_parameters)
     if brace == -1:
-        raise HelperParseError(f"`{HELPER_FUNCTION}` has no body")
+        raise HelperParseError(f"`{function}` has no body")
     return helper[brace + 1 : _matching_brace(helper, brace)]
 
 
-def _injected_stylesheet(body: str) -> str:
+def _injected_stylesheet(body: str, function: str = HELPER_FUNCTION) -> str:
     calls = list(re.finditer(r"addStyleTag\s*\(", body))
     if len(calls) != 1:
         raise HelperParseError(
-            f"`{HELPER_FUNCTION}` makes {len(calls)} addStyleTag() call(s); the "
+            f"`{function}` makes {len(calls)} addStyleTag() call(s); the "
             "extractor enumerates exactly one, so a second injected stylesheet "
             "is an unenumerated neutralizer channel"
         )
@@ -561,12 +575,15 @@ def helper_rule_blocks(helper: str | None = None) -> list[dict[str, object]]:
     declarations are all custom properties is a support token, everything else
     neutralizes something the pixel oracle would otherwise have seen.
     """
-    css = _normalize_newlines(
+    return _rule_blocks(
         _injected_stylesheet(_prepare_function_body(
             _normalize_newlines(helper if helper is not None else helper_source())
         ))
     )
-    blanked = _blank_comments(css)
+
+
+def _rule_blocks(css: str) -> list[dict[str, object]]:
+    blanked = _blank_comments(_normalize_newlines(css))
 
     blocks: list[dict[str, object]] = []
     depth = 0
@@ -659,12 +676,7 @@ def helper_inline_blocks(helper: str | None = None) -> list[dict[str, object]]:
     body = _prepare_function_body(
         _normalize_newlines(helper if helper is not None else helper_source())
     )
-    for pattern, description in _UNSUPPORTED_CHANNELS:
-        if pattern.search(body):
-            raise HelperParseError(
-                f"`{HELPER_FUNCTION}` uses {description}, a style channel this "
-                "extractor does not enumerate"
-            )
+    _reject_unsupported_channels(body, HELPER_FUNCTION)
 
     expected = len(re.findall(r"setProperty\s*\(", body))
     blocks: list[dict[str, object]] = []
@@ -752,6 +764,36 @@ def helper_rules(helper: str | None = None) -> list[dict[str, object]]:
     """Every declaration `prepareForScreenshot()` applies, across both stages."""
     return _flatten(helper_rule_blocks(helper), STYLESHEET_STAGE) + _flatten(
         helper_inline_blocks(helper), INLINE_STAGE
+    )
+
+
+def element_capture_rules(helper: str | None = None) -> list[dict[str, object]]:
+    """The extra declarations `prepareForElementScreenshot()` layers on top.
+
+    Locator captures run `prepareForScreenshot()` first and then inject a second
+    stylesheet that hides fixed page chrome. Those declarations are outside
+    `BLIND_SPOT_REGISTER` by construction — the register describes the full-page
+    stage that every visual capture shares — but they are a neutralizing channel
+    in the same file, so leaving them underived would rebuild the blind spot Q10
+    exists to remove, one function further down.
+
+    Enumerated on the same terms: exactly one `addStyleTag()`, no inline stage
+    and no other style channel. Anything else raises rather than returning a
+    shorter list.
+    """
+    body = _prepare_function_body(
+        _normalize_newlines(helper if helper is not None else helper_source()),
+        ELEMENT_HELPER_FUNCTION,
+    )
+    _reject_unsupported_channels(body, ELEMENT_HELPER_FUNCTION)
+    if "setProperty" in body:
+        raise HelperParseError(
+            f"`{ELEMENT_HELPER_FUNCTION}` applies an inline setProperty() stage; "
+            "only its injected stylesheet is enumerated"
+        )
+    return _flatten(
+        _rule_blocks(_injected_stylesheet(body, ELEMENT_HELPER_FUNCTION)),
+        STYLESHEET_STAGE,
     )
 
 

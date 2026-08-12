@@ -216,19 +216,58 @@ rewriting a machine-verified value) are asserted to fail it.
 - It does not reopen P3, implement P3-a1, or touch any theme-dark cleanup.
 - It does not regenerate the WP4.4 baseline, edit `e2e/visual-helpers.ts`, or move a pixel. No
   Playwright, Stylelint or visual gate is engaged, because nothing they measure changed.
-- `CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md` §8 still prints the original six-row register table and is
-  now stale in its counts. Its adjacent claim — *"each entry is re-derived from `e2e/visual-helpers.ts`
-  on every emit, so the register cannot drift from the file it describes"* — was false when written and
-  is true as of this packet. Correcting that historical evidence document is outside this packet's
-  authorized write scope and is left as follow-up.
-- `p3_ceiling.blind_spot_repair_sizing()`'s docstring and its `verifyBlindSpotsDirection: "one-way"`
-  field still describe the pre-repair verifier. `scripts/css_audit/p3_ceiling.py` is read-only here; no
-  contract pins that string. Also follow-up.
+- It does not extend `BLIND_SPOT_REGISTER` to `prepareForElementScreenshot()`. That function runs
+  `prepareForScreenshot()` and then layers a second stylesheet used by locator captures only. The
+  register describes the full-page stage every capture shares, so those two declarations stay out of
+  it — but they are pinned on the same fail-closed terms by
+  `test_the_element_capture_stage_adds_no_unpinned_neutralizer`. See §8.
+
+---
+
+## 8. The element-capture stage
+
+`prepareForElementScreenshot()` is a second neutralizing channel in the same file, and nothing reached
+it: not the pre-repair verifier, not the repaired one, and no contract. Left as it was, it would have
+rebuilt the blind spot this packet removes, one function further down.
+
+`measure.element_capture_rules()` enumerates it on the extractor's existing terms — exactly one
+`addStyleTag()`, no inline stage, no other style channel — and the derived records are pinned exactly:
+
+| Selector | Declaration |
+|---|---|
+| `#navbar` | `visibility: hidden !important` |
+| `.vp-drawer[aria-hidden="true"], .vp-backdrop[hidden]` | `display: none !important` |
+
+Neither signature collides with a registered one, which is asserted rather than assumed. Five further
+mutations are pinned: a new block and an extra property must move the pin, and an inline
+`setProperty()` stage, a second `addStyleTag()` and a direct `element.style.<prop>` assignment must each
+raise `HelperParseError` naming `prepareForElementScreenshot`. All five leave `verify_blind_spots()`
+green — which is the measurement that establishes the gap was real.
+
+---
+
+## 9. Documentation reconciled
+
+Two documents described the pre-repair verifier and would have been left asserting it. Both are
+corrected here rather than deferred, because a stale claim about an oracle is the failure mode this
+packet is about.
+
+| Document | Was | Now |
+|---|---|---|
+| `CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md` §8 | a six-row register table, and *"each entry is re-derived from `e2e/visual-helpers.ts` on every emit, so the register cannot drift from the file it describes"* | the 22-entry / 52-declaration census with its per-channel breakdown, and the drift claim restated as what the one-way check actually gave versus what the bidirectional one enforces |
+| `p3_ceiling.blind_spot_repair_sizing()` | a docstring describing the one-way verifier as current, and `verifyBlindSpotsDirection: "one-way — register entry → helper text only"` | prose that dates the one-way state to a0's measurement and records why the substring matcher is kept deliberately, plus a direction field naming the repaired comparison |
+
+`p3_ceiling.py`'s `TOOL_ASSESSMENT` entry for `measure.py` carried the same stale clause and is corrected
+with it. No contract pinned any of these strings; the sizing instrument's own numbers are unchanged, and
+its partition contract still passes.
+
+The historical claims are preserved as history rather than deleted — the old verifier is described as
+what it was, not as something stronger.
 
 ---
 
 ## See also
 
 - [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md) §9 — the sizing this repair supersedes
-- [`CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md) §8 — the register as packet **a** shipped it
+- [`CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md) §8 — the register, corrected by this packet
 - `.claude/rules/verification.md` — "validate the oracle before trusting the oracle"

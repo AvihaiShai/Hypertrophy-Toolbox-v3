@@ -413,6 +413,118 @@ def test_a_helper_mutation_reds_the_blind_spot_contract(
     )
 
 
+# The element-capture stage, pinned exactly. These declarations are outside
+# `BLIND_SPOT_REGISTER` on purpose — the register describes the full-page stage
+# every capture shares, and these apply to locator captures only — but they are
+# neutralizers in the same file, so an unpinned one would be the same blind spot
+# one function further down.
+ELEMENT_CAPTURE_RULES = [
+    {
+        "stage": "stylesheet",
+        "selector": "#navbar",
+        "property": "visibility",
+        "value": "hidden",
+        "important": True,
+        "classification": "neutralizer",
+    },
+    {
+        "stage": "stylesheet",
+        "selector": '.vp-drawer[aria-hidden="true"], .vp-backdrop[hidden]',
+        "property": "display",
+        "value": "none",
+        "important": True,
+        "classification": "neutralizer",
+    },
+]
+
+
+def test_the_element_capture_stage_adds_no_unpinned_neutralizer() -> None:
+    """`prepareForElementScreenshot()` layers a second stylesheet of its own.
+
+    It runs `prepareForScreenshot()` and then hides fixed page chrome so an
+    oversized locator capture is not contaminated by it. Nothing in the register
+    reaches that stylesheet, so it is enumerated on the same terms and pinned
+    here: a neutralizer added to it has to be a deliberate edit to this list.
+    """
+    assert measure.element_capture_rules() == ELEMENT_CAPTURE_RULES
+
+    registered = {
+        (rule["stage"], rule["selector"], rule["property"])
+        for rule in measure.register_rules()
+    }
+    overlap = {
+        (rule["stage"], rule["selector"], rule["property"])
+        for rule in ELEMENT_CAPTURE_RULES
+    } & registered
+    assert not overlap, (
+        f"the element-capture stage restates a registered rule: {overlap}. One "
+        "machine identity cannot describe two stages."
+    )
+
+
+@pytest.mark.parametrize(
+    "old, new",
+    [
+        pytest.param(
+            "      #navbar { visibility: hidden !important; }",
+            "      #navbar { visibility: hidden !important; }\n"
+            "      .q10-element-extra { opacity: 0 !important; }",
+            id="a-new-block",
+        ),
+        pytest.param(
+            "      #navbar { visibility: hidden !important; }",
+            "      #navbar { visibility: hidden !important; transform: none !important; }",
+            id="an-extra-property",
+        ),
+    ],
+)
+def test_an_element_capture_addition_moves_its_pin(old: str, new: str) -> None:
+    """A neutralizer added to the element stage must not survive the pin."""
+    derived = measure.element_capture_rules(_mutated_helper(old, new))
+
+    assert derived != ELEMENT_CAPTURE_RULES, (
+        "the element-capture stage gained a declaration without moving its pin"
+    )
+
+
+# The one line unique to `prepareForElementScreenshot()`; anchoring on
+# `addStyleTag(` instead would land the mutation in `prepareForScreenshot()`,
+# which is a different function and a different contract.
+_ELEMENT_ANCHOR = "  await prepareForScreenshot(page);"
+
+
+@pytest.mark.parametrize(
+    "old, new, named",
+    [
+        pytest.param(
+            _ELEMENT_ANCHOR,
+            f"{_ELEMENT_ANCHOR}\n  await page.evaluate(() =>\n"
+            "    document.body.style.setProperty('zoom', '1', 'important'));",
+            "setProperty",
+            id="an-inline-stage",
+        ),
+        pytest.param(
+            _ELEMENT_ANCHOR,
+            f"{_ELEMENT_ANCHOR}\n  await page.addStyleTag({{ content: "
+            "`.q10-first { opacity: 0 !important; }` });",
+            "addStyleTag",
+            id="a-second-injected-stylesheet",
+        ),
+        pytest.param(
+            _ELEMENT_ANCHOR,
+            f"{_ELEMENT_ANCHOR}\n"
+            "  await page.evaluate(() => (document.body.style.zoom = '1'));",
+            "channel",
+            id="an-unenumerated-style-channel",
+        ),
+    ],
+)
+def test_an_element_capture_channel_fails_closed(old: str, new: str, named: str) -> None:
+    """A style channel the extractor cannot enumerate must raise, not be skipped."""
+    with pytest.raises(measure.HelperParseError, match=re.escape(named)):
+        measure.element_capture_rules(_mutated_helper(old, new))
+
+
 def test_an_unrelated_block_is_not_bound_to_the_form_control_entry() -> None:
     """The substring defect, stated as the property it violated.
 
