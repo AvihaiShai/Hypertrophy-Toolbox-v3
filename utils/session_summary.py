@@ -250,7 +250,7 @@ def _build_summary_output(
 
 def calculate_session_summary(
     routine: Optional[str] = None,
-    time_window: Optional[Tuple[str, str]] = None,
+    time_window: Optional[Tuple[Optional[str], Optional[str]]] = None,
     counting_mode: CountingMode = CountingMode.EFFECTIVE,
     contribution_mode: ContributionMode = ContributionMode.TOTAL,
 ) -> Dict[str, Dict[str, Dict[str, Any]]]:
@@ -263,7 +263,9 @@ def calculate_session_summary(
     
     Args:
         routine: Optional filter for specific routine.
-        time_window: Optional (start_date, end_date) tuple for filtering.
+        time_window: Optional (start_date, end_date) tuple for filtering logged
+            sessions. Either end may be None to leave that bound open, so a
+            start-only or end-only window filters on one side alone.
         counting_mode: RAW or EFFECTIVE set counting mode.
         contribution_mode: DIRECT_ONLY or TOTAL muscle contribution mode.
         
