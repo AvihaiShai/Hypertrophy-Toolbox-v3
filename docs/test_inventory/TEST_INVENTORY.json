@@ -245,7 +245,7 @@
     "total_tests": 611
   },
   "pytest": {
-    "collected_deterministic": 2322,
+    "collected_deterministic": 2329,
     "deterministic_files": 110,
     "environment_dependent_files": [
       {
@@ -584,11 +584,11 @@
       },
       {
         "file": "tests/test_session_summary.py",
-        "tests": 30
+        "tests": 35
       },
       {
         "file": "tests/test_session_summary_routes.py",
-        "tests": 31
+        "tests": 33
       },
       {
         "file": "tests/test_static_cache_policy.py",

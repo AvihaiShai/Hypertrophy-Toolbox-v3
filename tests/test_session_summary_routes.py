@@ -219,6 +219,40 @@ class TestSessionSummaryEndpoint:
     @patch('routes.session_summary.calculate_isolated_muscles_stats')
     @patch('routes.session_summary.calculate_exercise_categories')
     @patch('routes.session_summary.calculate_session_summary')
+    def test_start_date_only_passes_open_ended_window(self, mock_calc, mock_cats, mock_iso, client):
+        """start_date alone should pass a window with no upper bound."""
+        mock_calc.return_value = {}
+        mock_cats.return_value = []
+        mock_iso.return_value = {}
+
+        client.get(
+            '/session_summary?start_date=2024-01-01',
+            headers={'Accept': 'application/json'}
+        )
+
+        call_kwargs = mock_calc.call_args[1]
+        assert call_kwargs['time_window'] == ('2024-01-01', None)
+
+    @patch('routes.session_summary.calculate_isolated_muscles_stats')
+    @patch('routes.session_summary.calculate_exercise_categories')
+    @patch('routes.session_summary.calculate_session_summary')
+    def test_end_date_only_passes_open_started_window(self, mock_calc, mock_cats, mock_iso, client):
+        """end_date alone should pass a window with no lower bound."""
+        mock_calc.return_value = {}
+        mock_cats.return_value = []
+        mock_iso.return_value = {}
+
+        client.get(
+            '/session_summary?end_date=2024-01-31',
+            headers={'Accept': 'application/json'}
+        )
+
+        call_kwargs = mock_calc.call_args[1]
+        assert call_kwargs['time_window'] == (None, '2024-01-31')
+
+    @patch('routes.session_summary.calculate_isolated_muscles_stats')
+    @patch('routes.session_summary.calculate_exercise_categories')
+    @patch('routes.session_summary.calculate_session_summary')
     def test_no_date_filter_passes_none(self, mock_calc, mock_cats, mock_iso, client):
         """No date parameters should pass None for time_window."""
         mock_calc.return_value = {}
