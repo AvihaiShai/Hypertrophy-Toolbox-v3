@@ -11,7 +11,7 @@ from utils.plan_generator import (
     MUSCLE_TO_PATTERNS,
 )
 from utils.movement_patterns import MovementPattern, MovementSubpattern
-from utils.weekly_summary import calculate_pattern_coverage
+from utils.weekly_summary import _build_pattern_warnings, calculate_pattern_coverage
 
 
 class TestMuscleToPatterns:
@@ -227,15 +227,28 @@ class TestPatternCoverageWarnings:
     """Tests for pattern coverage warning generation."""
     
     def test_low_volume_warning_threshold(self):
-        """Should warn when sets per routine is under 15."""
-        # The function checks for sets < 15
-        # This is tested implicitly through integration tests
-        pass
-    
+        """Should warn at 14 sets per routine and stop warning at 15."""
+        below = _build_pattern_warnings({}, {"Push": 14})
+        at_min = _build_pattern_warnings({}, {"Push": 15})
+
+        low_below = [w for w in below if w["type"] == "low_volume"]
+        assert len(low_below) == 1
+        assert low_below[0]["level"] == "medium"
+        assert "Push" in low_below[0]["message"]
+
+        assert [w for w in at_min if w["type"] == "low_volume"] == []
+
     def test_high_volume_warning_threshold(self):
-        """Should warn when sets per routine exceeds 24."""
-        # The function checks for sets > 24
-        pass
+        """Should stay silent at 24 sets per routine and warn at 25."""
+        at_max = _build_pattern_warnings({}, {"Push": 24})
+        above = _build_pattern_warnings({}, {"Push": 25})
+
+        assert [w for w in at_max if w["type"] == "high_volume"] == []
+
+        high_above = [w for w in above if w["type"] == "high_volume"]
+        assert len(high_above) == 1
+        assert high_above[0]["level"] == "medium"
+        assert "Push" in high_above[0]["message"]
     
     def test_ideal_sets_range_returned(self, clean_db):
         """Should return ideal sets range (15-24)."""

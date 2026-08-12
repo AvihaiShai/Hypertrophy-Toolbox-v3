@@ -19,8 +19,10 @@ class TestMuscleSelectorJSStructure:
     
     @pytest.fixture
     def js_content(self):
-        if not MUSCLE_SELECTOR_JS.exists():
-            pytest.skip("muscle-selector.js not found")
+        assert MUSCLE_SELECTOR_JS.exists(), (
+            f"Tracked module missing: {MUSCLE_SELECTOR_JS}. "
+            "static/js/modules/muscle-selector.js is required by these tests."
+        )
         return MUSCLE_SELECTOR_JS.read_text(encoding='utf-8')
     
     def test_muscle_selector_class_exists(self, js_content):

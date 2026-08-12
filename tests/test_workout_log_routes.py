@@ -15,16 +15,14 @@ class TestWorkoutLogPageRender:
     """Tests for GET /workout_log page rendering."""
 
     def test_workout_log_page_loads(self, client, clean_db):
-        """Page request returns (200 with templates, 500 without)."""
+        """Page should render; conftest configures the repository template tree."""
         resp = client.get("/workout_log")
-        # Returns 500 in test env (no templates) or 200 in full env
-        assert resp.status_code in (200, 500)
+        assert resp.status_code == 200
 
     def test_workout_log_page_shows_entries(self, client, clean_db, workout_log_entry):
-        """Page request with data returns (200 with templates, 500 without)."""
+        """Page should render with logged data present."""
         resp = client.get("/workout_log")
-        # Returns 500 in test env (no templates) or 200 in full env
-        assert resp.status_code in (200, 500)
+        assert resp.status_code == 200
 
     def test_workout_log_page_renders_assisted_weight_indicator(
         self, client, clean_db, workout_plan_entry

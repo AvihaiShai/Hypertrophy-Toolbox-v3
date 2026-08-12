@@ -391,16 +391,13 @@ def _ensure_test_exercises(db_handler):
     ]
     
     for ex in exercises:
-        try:
-            db_handler.execute_query(
-                """INSERT OR IGNORE INTO exercises 
-                   (exercise_name, primary_muscle_group, secondary_muscle_group, tertiary_muscle_group,
-                    equipment, mechanic, utility, difficulty, movement_pattern, movement_subpattern)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                ex
-            )
-        except Exception:
-            pass  # Ignore if already exists
+        db_handler.execute_query(
+            """INSERT OR IGNORE INTO exercises
+               (exercise_name, primary_muscle_group, secondary_muscle_group, tertiary_muscle_group,
+                equipment, mechanic, utility, difficulty, movement_pattern, movement_subpattern)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            ex
+        )
 
 
 @pytest.fixture
