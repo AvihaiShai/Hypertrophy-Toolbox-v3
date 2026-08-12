@@ -52,9 +52,10 @@ def calculate_volume():
         data = request.get_json() or {}
         mode = (data.get('mode') or 'basic').lower()
 
-        training_days = int(data.get('training_days', 3))
-    except (TypeError, ValueError):
-        training_days = 3
+        try:
+            training_days = int(data.get('training_days', 3))
+        except (TypeError, ValueError):
+            training_days = 3
     except Exception as e:
         logger.exception('Error calculating volume: %s', e)
         return error_response('INTERNAL_ERROR', 'Failed to calculate volume', 500)
