@@ -1234,16 +1234,23 @@ def _helper_style_blocks(helper_text: str) -> list[dict[str, object]]:
 
 
 def blind_spot_repair_sizing(helper_path: Path | None = None) -> dict[str, object]:
-    """Q10 — size the SHARED blind-spot-register repair. **Sizing only.**
+    """Q10 — the sizing instrument, kept as an independent cross-check.
 
-    ``measure.verify_blind_spots()`` checks one direction: each register entry's
-    ``helperEvidence`` still appears in the helper.  Nothing checks the converse,
-    and ``tests/test_css_wp4_4_a_baseline_contracts.py:224`` then pins the
-    register's length against the committed baseline — so a neutralizer added to
-    the helper is invisible, and adding the missing entries moves that length.
+    Written while ``measure.verify_blind_spots()`` was still one-way: it searched
+    the helper for each register entry's ``helperEvidence`` substring and asked
+    nothing about what the helper applied that no entry described, so a
+    neutralizer *added* to ``prepareForScreenshot()`` was invisible.  This
+    function performed the converse derivation read-only, to price the repair.
 
-    This function performs the *converse* derivation read-only so the owner has a
-    number.  It writes nothing and modifies nothing.
+    The repair has since shipped in ``measure.py``: the comparison is
+    bidirectional and exact on ``(stage, selector, property)``, with value,
+    importance and classification compared, and the committed baseline must equal
+    the serialized register rather than merely match its length.  This function
+    is deliberately **not** rewritten to match — its substring matcher is the
+    defect that repair removed, and leaving it as written keeps a second,
+    independently-authored instrument pointed at the same helper.  It now reports
+    zero unmapped and zero partially mapped blocks.  It writes nothing and
+    modifies nothing.
     """
     helper_path = helper_path or (ROOT / VISUAL_HELPERS_RELATIVE)
     helper_text = helper_path.read_text(encoding="utf-8")
@@ -1317,13 +1324,18 @@ def blind_spot_repair_sizing(helper_path: Path | None = None) -> dict[str, objec
     return {
         "sizingOnly": True,
         "notImplemented": (
-            "Q10 was deferred to P3-a0 for SIZING. This packet does not add an "
-            "entry, does not edit scripts/css_audit/measure.py and does not "
-            "regenerate docs/CSS_PHASE4_WP4_4_A_BASELINE.json."
+            "Sizing only, and still so after the repair. This function adds no "
+            "register entry, does not edit scripts/css_audit/measure.py and does "
+            "not regenerate docs/CSS_PHASE4_WP4_4_A_BASELINE.json. The repair it "
+            "priced shipped separately in measure.py."
         ),
         "helper": VISUAL_HELPERS_RELATIVE,
         "registerEntriesToday": len(measure.BLIND_SPOT_REGISTER),
-        "verifyBlindSpotsDirection": "one-way — register entry → helper text only",
+        "verifyBlindSpotsDirection": (
+            "bidirectional and exact on (stage, selector, property) since Q10; "
+            "this instrument keeps the pre-repair substring matcher on purpose, "
+            "as an independently-authored cross-check"
+        ),
         "helperRuleBlocks": len(blocks),
         "fullyMappedBlocks": len(mapped_blocks),
         "tokenDefinitionBlocks": token_definition_blocks,
@@ -1352,8 +1364,9 @@ TOOL_ASSESSMENT: tuple[dict[str, str], ...] = (
         "why": "P3-a0 imports it solely for an independent recount cross-check. "
         "Its two ceiling registers iterate CONTRACT_FILES (the two shared "
         "files) and cannot enumerate the theme-dark ceiling; that is why "
-        "p3_ceiling.py exists. Its BLIND_SPOT_REGISTER is one-way verified "
-        "(Q10). Repairing either is P3-a1's question, not a0's.",
+        "p3_ceiling.py exists. Its BLIND_SPOT_REGISTER was one-way verified "
+        "when a0 measured it; Q10 has since made that check bidirectional and "
+        "exact. Repairing the ceiling registers remains P3-a1's question.",
     },
     {
         "tool": "specificity.py",

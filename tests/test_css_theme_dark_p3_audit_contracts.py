@@ -922,17 +922,19 @@ def test_the_blind_spot_sizing_partitions_every_helper_rule_block_red_path(
         _check_sizing_partition(dropped)
 
 
-def test_the_shared_blind_spot_verifier_is_one_way(tmp_path: Path) -> None:
-    """Q10's premise, executed: the shared verifier cannot see an addition.
+def test_the_shared_blind_spot_verifier_is_bidirectional() -> None:
+    """Q10's premise, repaired: the verifier now sees an addition too.
 
-    ``measure.verify_blind_spots()`` checks only that each register entry's
-    ``helperEvidence`` is still present in the helper. Re-running that same
-    predicate over a helper carrying a brand-new, unregistered neutralizer
-    returns clean — which is why "the register cannot drift from the file it
-    describes" is false in the only direction that matters.
+    P3-a0 measured ``measure.verify_blind_spots()`` as one-way — it searched the
+    helper for each register entry's ``helperEvidence`` and asked nothing about
+    what the helper contained that the register did not. A neutralizer *added*
+    to ``prepareForScreenshot()`` was therefore invisible, which is how the dark
+    ``.summary-header`` flattening and the sticky-table ``position: static``
+    demotion both shipped with the whole suite green.
 
-    This measures the *direction*, not the register's contents, so granting Q10
-    and adding the missing entries leaves it green.
+    Both directions are asserted here, and the previous shape of this test — one
+    that required the addition to go **unnoticed** — is what the repair
+    retired. The guarantee is unchanged; only its sign is.
     """
     helper = (ROOT / p3_ceiling.VISUAL_HELPERS_RELATIVE).read_text(encoding="utf-8")
     assert measure.verify_blind_spots() == []
@@ -943,60 +945,47 @@ def test_the_shared_blind_spot_verifier_is_one_way(tmp_path: Path) -> None:
         "      [data-visual-icon] {",
         1,
     )
-    still_clean = [
-        entry
-        for entry in measure.BLIND_SPOT_REGISTER
-        if str(entry["helperEvidence"]) not in added
-    ]
-    assert still_clean == [], (
-        "the shared verifier now reports a failure for a helper it should not "
-        "be able to judge; its direction has changed and Q10's premise needs "
-        "restating"
+    assert added != helper
+    addition = measure.verify_blind_spots(added)
+    assert any(".p3-unregistered" in line for line in addition), (
+        "a neutralizer added to the helper is still invisible to the shared "
+        f"verifier; Q10's repair has regressed. Got: {addition}"
     )
 
-    # The other direction — a register entry whose evidence leaves the helper —
-    # IS caught, which is the half that already works.
     removed = helper.replace("animation-duration: 0s !important;", "", 1)
-    caught = [
-        entry
-        for entry in measure.BLIND_SPOT_REGISTER
-        if str(entry["helperEvidence"]) not in removed
-    ]
-    assert caught, "the direction the shared verifier does have has stopped working"
+    assert removed != helper
+    removal = measure.verify_blind_spots(removed)
+    assert any("animation-duration" in line for line in removal), (
+        f"the direction the verifier always had has stopped working: {removal}"
+    )
 
 
-def test_the_blind_spot_evidence_string_for_backdrop_filter_is_substring_shadowed(
-    tmp_path: Path,
-) -> None:
-    """A second live O14 instance, inside the shared apparatus itself.
+def test_the_two_backdrop_filter_neutralizers_are_registered_independently() -> None:
+    """The O14 instance inside the shared apparatus itself, repaired.
 
-    ``BLIND_SPOT_REGISTER``'s backdrop-filter entry cites the evidence string
-    ``backdrop-filter: none !important;``, and the helper's own
-    ``-webkit-backdrop-filter: none !important;`` line *contains* it. So the one
-    direction ``verify_blind_spots()`` does check is satisfied by a line that is
-    not the one the entry describes — the identical defect as
-    ``tests/test_css_cascade_contracts.py:1007``.
+    P3-a0 recorded that the register's backdrop-filter entry cited
+    ``backdrop-filter: none !important;`` while the helper's own
+    ``-webkit-backdrop-filter: none !important;`` line *contains* that string —
+    so deleting the neutralizer the entry described left its evidence satisfied,
+    the identical defect as ``tests/test_css_cascade_contracts.py:1007``.
 
-    Recorded, not repaired: ``measure.py`` is outside P3-a0's owned paths.
+    Identity is now ``(stage, selector, property)``, and one property cannot
+    stand in for another. This asserts the repair on the case that named it.
     """
     helper = (ROOT / p3_ceiling.VISUAL_HELPERS_RELATIVE).read_text(encoding="utf-8")
-    entry = next(
-        item
-        for item in measure.BLIND_SPOT_REGISTER
-        if item["helperEvidence"] == "backdrop-filter: none !important;"
-    )
-    assert helper.count(str(entry["helperEvidence"])) == 2, (
-        "the unprefixed and -webkit- prefixed neutralizers no longer both "
-        "satisfy this evidence string"
-    )
 
     without_unprefixed = helper.replace(
         "        backdrop-filter: none !important;\n", "", 1
     )
-    assert str(entry["helperEvidence"]) in without_unprefixed, (
-        "deleting the neutralizer this entry describes now clears its evidence "
-        "string; the substring shadowing is repaired and this contract is "
-        "obsolete"
+    assert without_unprefixed != helper
+    assert "-webkit-backdrop-filter: none !important;" in without_unprefixed, (
+        "the prefixed line is gone too, so this no longer exercises shadowing"
+    )
+
+    failures = measure.verify_blind_spots(without_unprefixed)
+    assert any("{ backdrop-filter:" in line for line in failures), (
+        "the surviving -webkit- line still satisfies the unprefixed property's "
+        f"registration. Got: {failures}"
     )
 
 

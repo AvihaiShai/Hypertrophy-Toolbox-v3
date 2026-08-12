@@ -167,18 +167,53 @@ Weekly and Session Summary are the two routes where motion-carrying elements are
 
 ## 8. Oracle blind-spot register (F2)
 
-The `(selector, property)` pairs `prepareForScreenshot()` neutralizes before any screenshot. **A packet whose declarations fall inside this register may not cite the pixel matrix as evidence; it must supply a computed-style differential.**
+Every declaration `prepareForScreenshot()` applies before any pixel is captured. **A packet whose declarations fall inside this register may not cite the pixel matrix as evidence; it must supply a computed-style differential.**
 
-| Selector | Properties neutralized | Blinds |
+**22 entries, 52 declarations**, across the two channels the helper uses:
+
+| Channel | Rule blocks | Declarations |
 |---|---|---|
-| `*, *::before, *::after` | `animation-*`, `transition-duration`, `transition-delay` → `0s` | **c** |
-| `*, *::before, *::after` | `backdrop-filter`, `-webkit-backdrop-filter` → `none` | **h, i, j** |
-| `[data-visual-scale-control]` | `background`, `border-color`, `color` → `transparent` | **d** |
-| `[data-visual-icon]` | `visibility` → `hidden` | **b, f** |
-| `[data-visual-surface][data-visual-surface]` (dark only) | `background`, `background-image`, `border-color`, `border-radius`, `box-shadow`, `text-shadow` | **j** |
-| form controls | `border-radius`, `box-shadow`, `text-shadow` | **d, h, j** |
+| Injected `addStyleTag()` stylesheet — neutralizers | 18 | 45 |
+| Injected `addStyleTag()` stylesheet — `--visual-surface-*` support tokens | 2 | 4 |
+| Post-load inline `element.style.setProperty()` | 1 | 3 |
+| **Total** | **21** | **52** |
 
-Each entry is re-derived from `e2e/visual-helpers.ts` on every emit, so the register cannot drift from the file it describes.
+Machine identity is `(stage, selector, property)`. Twenty-one entries describe the stylesheet stage and one the inline stage; the `*, *::before, *::after` block is split across two entries — motion and `backdrop-filter` blind different packet families — which is why 22 entries span 21 blocks.
+
+| Stage | Helper selector | Declarations | Class | Blinds |
+|---|---|---|---|---|
+| stylesheet | `*, *::before, *::after` | `animation-delay: 0s !important`<br>`animation-duration: 0s !important`<br>`animation-iteration-count: 1 !important`<br>`transition-duration: 0s !important`<br>`transition-delay: 0s !important` | neutralizer | **c** |
+| stylesheet | `*, *::before, *::after` | `backdrop-filter: none !important`<br>`-webkit-backdrop-filter: none !important` | neutralizer | **h**, **i**, **j** |
+| stylesheet | `html` | `scroll-behavior: auto !important` | neutralizer | **e** |
+| stylesheet | `html` | `--visual-surface-0: #eef1f6`<br>`--visual-surface-1: #f7f9fc` | token | — |
+| stylesheet | `html[data-theme='dark']` | `--visual-surface-0: #090c16`<br>`--visual-surface-1: #0d101d` | token | — |
+| stylesheet | `html[data-theme] body, body` | `background: var(--visual-surface-0) !important`<br>`background-attachment: scroll !important` | neutralizer | **b**, **j** |
+| stylesheet | `html[data-theme='dark'] [data-visual-surface][data-visual-surface]` | `background: var(--visual-surface-1) !important`<br>`background-image: none !important`<br>`box-shadow: none !important`<br>`text-shadow: none !important` | neutralizer | **j** |
+| stylesheet | `html[data-theme='dark'] .summary-header` | `background: var(--visual-surface-1) !important`<br>`border-radius: 0 !important`<br>`box-shadow: none !important` | neutralizer | **j** |
+| stylesheet | `html[data-theme='dark'] [data-visual-surface][data-visual-surface]:where(:not([data-visual-preserve-border]))` | `border-color: #273145 !important`<br>`border-radius: 0 !important` | neutralizer | **j** |
+| stylesheet | `html[data-theme='dark'] [data-page="workout-plan"] [data-visual-header]::before` | `background: transparent !important` | neutralizer | **j** |
+| stylesheet | `html[data-theme='dark'] [data-page="workout-plan"] [data-visual-accent]` | `background: #4f8cff !important`<br>`border-radius: 0 !important`<br>`box-shadow: none !important`<br>`transform: none !important`<br>`transition: none !important` | neutralizer | **c**, **j** |
+| stylesheet | `input, textarea` | `caret-color: transparent !important` | neutralizer | — |
+| stylesheet | `select` | `appearance: none !important`<br>`-webkit-appearance: none !important`<br>`background-image: none !important` | neutralizer | **h**, **i** |
+| stylesheet | `[data-visual-control], input, textarea, select, input[type="number"]` | `border-radius: 0 !important`<br>`box-shadow: none !important`<br>`text-shadow: none !important` | neutralizer | **d**, **h**, **j** |
+| stylesheet | `[data-testid="navbar"] a::before, [data-testid="navbar"] button::before` | `background-color: transparent !important`<br>`border-radius: 0 !important`<br>`transform: none !important`<br>`transition: none !important` | neutralizer | **c**, **f** |
+| stylesheet | `[data-visual-dropdown-toggle]::after` | `border-color: transparent !important` | neutralizer | **f** |
+| stylesheet | `[data-visual-icon]` | `visibility: hidden !important` | neutralizer | **b**, **f** |
+| stylesheet | `[data-visual-scale-control]` | `background: transparent !important`<br>`border-color: transparent !important`<br>`color: transparent !important` | neutralizer | **d** |
+| stylesheet | `[data-testid="exercise-table"] thead th, [data-testid="exercise-table"] tr > :first-child, [data-testid="workout-log-table"] thead th, [data-testid="workout-log-table"] tr > :first-child` | `position: static !important` | neutralizer | **e** |
+| stylesheet | `input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button` | `-webkit-appearance: none !important`<br>`margin: 0 !important` | neutralizer | **h**, **i** |
+| stylesheet | `::-webkit-scrollbar` | `display: none` | neutralizer | **f**, **h**, **i** |
+| inline | `[data-visual-control], input, textarea, select` | `border-radius: 0 !important`<br>`box-shadow: none !important`<br>`text-shadow: none !important` | neutralizer | **d**, **h**, **j** |
+
+The two token blocks define the `--visual-surface-*` values the dark flatteners consume; they neutralize nothing themselves, so they blind no packet. Classification is derived rather than asserted — a block whose declarations are all custom properties is a support token — so a new custom-property-only block cannot classify itself out of the check.
+
+**The six-row table this replaces was a genuine undercount, not a summary.** The sixteen missing rows were applied by `prepareForScreenshot()` all along; they were absent from the register, not from the helper. Two of them were added to the helper *after* WP4.4-a shipped and reached the register only through Q10: the dark `.summary-header` paint flattening and the sticky-table `position: static` demotion.
+
+**Drift protection — what was claimed here, and what is true now.** This section used to assert that "each entry is re-derived from `e2e/visual-helpers.ts` on every emit, so the register cannot drift from the file it describes." That overstated a **one-way** check. `verify_blind_spots()` searched the helper's text for one `helperEvidence` substring per entry and asked nothing about what the helper applied that no entry described, so a neutralizer *added* to the helper was invisible — which is how both escapes above happened with full pytest green. The direction it did check was satisfiable by the wrong line: the `backdrop-filter: none !important;` citation was contained in the helper's `-webkit-backdrop-filter: none !important;` line, so deleting the property the entry described left it passing.
+
+Since Q10 the comparison is **bidirectional and exact**. Both channels are derived mechanically from `prepareForScreenshot()` and matched against the register on `(stage, selector, property)`, with `value`, `important` and `classification` compared on every match. An unregistered helper rule, a registered rule the helper no longer applies, a duplicate machine identity on either side, a `properties` mirror that has drifted from `declarations`, a missing evidence citation, and **any** construct the extractor cannot parse are all failures — unrecognised structure fails closed instead of being skipped. `docs/CSS_PHASE4_WP4_4_A_BASELINE.json` must equal the serialized live register exactly, not merely match its length. The original claim is therefore true as of Q10, and was not true when it was written.
+
+**Scope — the full-page stage.** `prepareForElementScreenshot()` runs `prepareForScreenshot()` and then layers a second stylesheet used by locator captures only: `#navbar { visibility: hidden !important; }` and `.vp-drawer[aria-hidden="true"], .vp-backdrop[hidden] { display: none !important; }`. Those two declarations are outside the register by construction, and are pinned separately — on the same fail-closed terms — by `test_the_element_capture_stage_adds_no_unpinned_neutralizer`.
 
 **Tolerances recorded (F3):** `maxDiffPixels: 800`, `threshold: 0`, `fullPage: true`. The animated-logo band (1,039 / 1,046 px) sits **above** 800 — it is a real snapshot failure of `workout-plan-desktop-dark`, not a diff the option absorbs. Nobody may "fix" it by raising `maxDiffPixels`.
 

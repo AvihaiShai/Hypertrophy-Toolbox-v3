@@ -2221,6 +2221,9 @@
   "oracleBlindSpots": [
     {
       "selector": "*, *::before, *::after",
+      "stage": "stylesheet",
+      "helperSelector": "*, *::before, *::after",
+      "classification": "neutralizer",
       "properties": [
         "animation-delay",
         "animation-duration",
@@ -2228,8 +2231,38 @@
         "transition-duration",
         "transition-delay"
       ],
+      "declarations": [
+        {
+          "property": "animation-delay",
+          "value": "0s",
+          "important": true
+        },
+        {
+          "property": "animation-duration",
+          "value": "0s",
+          "important": true
+        },
+        {
+          "property": "animation-iteration-count",
+          "value": "1",
+          "important": true
+        },
+        {
+          "property": "transition-duration",
+          "value": "0s",
+          "important": true
+        },
+        {
+          "property": "transition-delay",
+          "value": "0s",
+          "important": true
+        }
+      ],
       "neutralizedTo": "0s / 1",
       "helperEvidence": "animation-duration: 0s !important;",
+      "blindsSurfaces": [
+        "motion.css"
+      ],
       "blindsPackets": [
         "c"
       ],
@@ -2237,40 +2270,532 @@
     },
     {
       "selector": "*, *::before, *::after",
+      "stage": "stylesheet",
+      "helperSelector": "*, *::before, *::after",
+      "classification": "neutralizer",
       "properties": [
         "backdrop-filter",
         "-webkit-backdrop-filter"
       ],
+      "declarations": [
+        {
+          "property": "backdrop-filter",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "-webkit-backdrop-filter",
+          "value": "none",
+          "important": true
+        }
+      ],
       "neutralizedTo": "none",
-      "helperEvidence": "backdrop-filter: none !important;",
+      "helperEvidence": "-webkit-backdrop-filter: none !important;",
+      "blindsSurfaces": [
+        "components.css",
+        "theme-dark.css"
+      ],
       "blindsPackets": [
         "h",
         "i",
         "j"
       ],
-      "why": "F2 — the glass families in components.css and the theme-dark.css rule pinned by the cascade contract are the core surface of h/i/j."
+      "why": "F2 — the glass families in components.css and the theme-dark.css rule pinned by the cascade contract are the core surface of h/i/j. The prefixed and unprefixed properties are registered separately: citing only `backdrop-filter: none !important;` was satisfiable by the `-webkit-` line, so deleting the property this entry describes left the old one-way check green."
     },
     {
-      "selector": "[data-visual-scale-control]",
+      "selector": "html (scroll behaviour)",
+      "stage": "stylesheet",
+      "helperSelector": "html",
+      "classification": "neutralizer",
+      "properties": [
+        "scroll-behavior"
+      ],
+      "declarations": [
+        {
+          "property": "scroll-behavior",
+          "value": "auto",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "auto",
+      "helperEvidence": "html { scroll-behavior: auto !important; }",
+      "blindsSurfaces": [
+        "layout.css"
+      ],
+      "blindsPackets": [
+        "e"
+      ],
+      "why": "layout.css sets `scroll-behavior: smooth` on the scroll root. A capture is taken at the origin, so the oracle cannot distinguish smooth from auto and a packet changing it moves no pixel."
+    },
+    {
+      "selector": "html (light `--visual-surface-*` definitions)",
+      "stage": "stylesheet",
+      "helperSelector": "html",
+      "classification": "support-token",
+      "properties": [
+        "--visual-surface-0",
+        "--visual-surface-1"
+      ],
+      "declarations": [
+        {
+          "property": "--visual-surface-0",
+          "value": "#eef1f6",
+          "important": false
+        },
+        {
+          "property": "--visual-surface-1",
+          "value": "#f7f9fc",
+          "important": false
+        }
+      ],
+      "neutralizedTo": "n/a — defines the tokens the flatteners consume",
+      "helperEvidence": "--visual-surface-0: #eef1f6;",
+      "blindsSurfaces": [],
+      "blindsPackets": [],
+      "why": "Support token, registered explicitly rather than skipped as 'just a custom property'. It neutralizes nothing on its own; it supplies the flat values the registered dark flatteners paint."
+    },
+    {
+      "selector": "html[data-theme='dark'] (dark `--visual-surface-*` definitions)",
+      "stage": "stylesheet",
+      "helperSelector": "html[data-theme='dark']",
+      "classification": "support-token",
+      "properties": [
+        "--visual-surface-0",
+        "--visual-surface-1"
+      ],
+      "declarations": [
+        {
+          "property": "--visual-surface-0",
+          "value": "#090c16",
+          "important": false
+        },
+        {
+          "property": "--visual-surface-1",
+          "value": "#0d101d",
+          "important": false
+        }
+      ],
+      "neutralizedTo": "n/a — defines the tokens the flatteners consume",
+      "helperEvidence": "--visual-surface-0: #090c16;",
+      "blindsSurfaces": [],
+      "blindsPackets": [],
+      "why": "The dark half of the support pair. Separate from the light block because they are separate rules with different selectors; a register that treated the pair as one could not see either go."
+    },
+    {
+      "selector": "body (both themes)",
+      "stage": "stylesheet",
+      "helperSelector": "html[data-theme] body, body",
+      "classification": "neutralizer",
       "properties": [
         "background",
+        "background-attachment"
+      ],
+      "declarations": [
+        {
+          "property": "background",
+          "value": "var(--visual-surface-0)",
+          "important": true
+        },
+        {
+          "property": "background-attachment",
+          "value": "scroll",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "a flat token colour, unattached",
+      "helperEvidence": "background-attachment: scroll !important;",
+      "blindsSurfaces": [
+        "theme-dark.css",
+        "base.css"
+      ],
+      "blindsPackets": [
+        "b",
+        "j"
+      ],
+      "why": "The headline case. The whole page background is repainted flat in BOTH themes, so the multi-gradient dark `body` rule in theme-dark.css and the fixed attachment in base.css are invisible to every capture in the matrix."
+    },
+    {
+      "selector": "[data-visual-surface][data-visual-surface] (dark theme only)",
+      "stage": "stylesheet",
+      "helperSelector": "html[data-theme='dark'] [data-visual-surface][data-visual-surface]",
+      "classification": "neutralizer",
+      "properties": [
+        "background",
+        "background-image",
+        "box-shadow",
+        "text-shadow"
+      ],
+      "declarations": [
+        {
+          "property": "background",
+          "value": "var(--visual-surface-1)",
+          "important": true
+        },
+        {
+          "property": "background-image",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "box-shadow",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "text-shadow",
+          "value": "none",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "forced flat values",
+      "helperEvidence": "html[data-theme='dark'] [data-visual-surface][data-visual-surface] {",
+      "blindsSurfaces": [
+        "theme-dark.css"
+      ],
+      "blindsPackets": [
+        "j"
+      ],
+      "why": "F2 — the dark baseline is blind to surface paint on exactly the elements theme-dark.css exists to paint."
+    },
+    {
+      "selector": ".summary-header (dark theme only)",
+      "stage": "stylesheet",
+      "helperSelector": "html[data-theme='dark'] .summary-header",
+      "classification": "neutralizer",
+      "properties": [
+        "background",
+        "border-radius",
+        "box-shadow"
+      ],
+      "declarations": [
+        {
+          "property": "background",
+          "value": "var(--visual-surface-1)",
+          "important": true
+        },
+        {
+          "property": "border-radius",
+          "value": "0",
+          "important": true
+        },
+        {
+          "property": "box-shadow",
+          "value": "none",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "forced flat values",
+      "helperEvidence": "html[data-theme='dark'] .summary-header {",
+      "blindsSurfaces": [
+        "theme-dark.css",
+        "components.css"
+      ],
+      "blindsPackets": [
+        "j"
+      ],
+      "why": "Added to defeat a fractional-edge rounding flake on the summary filter bar. It reached the register only through Q10: the old one-way check could not see a block the helper gained, so the dark summary surface silently left the pixel oracle's reach."
+    },
+    {
+      "selector": "[data-visual-surface] border geometry (dark theme only)",
+      "stage": "stylesheet",
+      "helperSelector": "html[data-theme='dark'] [data-visual-surface][data-visual-surface]:where(:not([data-visual-preserve-border]))",
+      "classification": "neutralizer",
+      "properties": [
         "border-color",
-        "color"
+        "border-radius"
+      ],
+      "declarations": [
+        {
+          "property": "border-color",
+          "value": "#273145",
+          "important": true
+        },
+        {
+          "property": "border-radius",
+          "value": "0",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "one flat border colour, square corners",
+      "helperEvidence": ":where(:not([data-visual-preserve-border])) {",
+      "blindsSurfaces": [
+        "theme-dark.css"
+      ],
+      "blindsPackets": [
+        "j"
+      ],
+      "why": "Split out of the paint flattener above so a specificity change in the product could not silently hand these two properties to the capture layer. Registered as its own rule for the same reason it exists as its own rule."
+    },
+    {
+      "selector": "[data-visual-header]::before (dark Workout Plan only)",
+      "stage": "stylesheet",
+      "helperSelector": "html[data-theme='dark'] [data-page=\"workout-plan\"] [data-visual-header]::before",
+      "classification": "neutralizer",
+      "properties": [
+        "background"
+      ],
+      "declarations": [
+        {
+          "property": "background",
+          "value": "transparent",
+          "important": true
+        }
       ],
       "neutralizedTo": "transparent",
-      "helperEvidence": "[data-visual-scale-control]",
-      "blindsPackets": [
-        "d"
+      "helperEvidence": "[data-visual-header]::before {",
+      "blindsSurfaces": [
+        "theme-dark.css",
+        "pages-workout-plan.css"
       ],
-      "why": "F2 — WP4.4-d owns the data-scale UI scale system."
+      "blindsPackets": [
+        "j"
+      ],
+      "why": "The decorative header wash on the dark plan page is erased before capture, so nothing painted by that pseudo-element is compared."
+    },
+    {
+      "selector": "[data-visual-accent] (dark Workout Plan only)",
+      "stage": "stylesheet",
+      "helperSelector": "html[data-theme='dark'] [data-page=\"workout-plan\"] [data-visual-accent]",
+      "classification": "neutralizer",
+      "properties": [
+        "background",
+        "border-radius",
+        "box-shadow",
+        "transform",
+        "transition"
+      ],
+      "declarations": [
+        {
+          "property": "background",
+          "value": "#4f8cff",
+          "important": true
+        },
+        {
+          "property": "border-radius",
+          "value": "0",
+          "important": true
+        },
+        {
+          "property": "box-shadow",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "transform",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "transition",
+          "value": "none",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "one flat accent colour, no geometry, no motion",
+      "helperEvidence": "[data-visual-accent] {",
+      "blindsSurfaces": [
+        "theme-dark.css",
+        "components.css",
+        "motion.css"
+      ],
+      "blindsPackets": [
+        "c",
+        "j"
+      ],
+      "why": "Five properties, not one: the old register reached this block only because the form-control entry cited `box-shadow: none !important;` and that string happens to occur here too. background, transform and transition were never registered at all."
+    },
+    {
+      "selector": "input, textarea (caret)",
+      "stage": "stylesheet",
+      "helperSelector": "input, textarea",
+      "classification": "neutralizer",
+      "properties": [
+        "caret-color"
+      ],
+      "declarations": [
+        {
+          "property": "caret-color",
+          "value": "transparent",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "transparent",
+      "helperEvidence": "input, textarea { caret-color: transparent !important; }",
+      "blindsSurfaces": [],
+      "blindsPackets": [],
+      "why": "A capture-determinism control rather than a product blind spot — no shared surface declares caret-color. Registered anyway: the register's claim is that the injected stylesheet is enumerated completely, and an unlisted rule would break that claim whatever its motive."
+    },
+    {
+      "selector": "select (native affordance)",
+      "stage": "stylesheet",
+      "helperSelector": "select",
+      "classification": "neutralizer",
+      "properties": [
+        "appearance",
+        "-webkit-appearance",
+        "background-image"
+      ],
+      "declarations": [
+        {
+          "property": "appearance",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "-webkit-appearance",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "background-image",
+          "value": "none",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "none",
+      "helperEvidence": "select {",
+      "blindsSurfaces": [
+        "components.css"
+      ],
+      "blindsPackets": [
+        "h",
+        "i"
+      ],
+      "why": "components.css styles the select affordance through appearance and a background-image chevron; both are erased before capture, so the control's whole custom affordance is outside the oracle."
+    },
+    {
+      "selector": "form controls (injected stylesheet stage)",
+      "stage": "stylesheet",
+      "helperSelector": "[data-visual-control], input, textarea, select, input[type=\"number\"]",
+      "classification": "neutralizer",
+      "properties": [
+        "border-radius",
+        "box-shadow",
+        "text-shadow"
+      ],
+      "declarations": [
+        {
+          "property": "border-radius",
+          "value": "0",
+          "important": true
+        },
+        {
+          "property": "box-shadow",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "text-shadow",
+          "value": "none",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "0 / none",
+      "helperEvidence": "input[type=\"number\"] {",
+      "blindsSurfaces": [
+        "components.css",
+        "theme-dark.css",
+        "a11y.css"
+      ],
+      "blindsPackets": [
+        "d",
+        "h",
+        "j"
+      ],
+      "why": "F2 — the stylesheet half of the form-control neutralization. Its inline twin below re-applies the same three properties after load, and the two are registered separately because they are two distinct channels with two distinct selectors."
+    },
+    {
+      "selector": "navbar link/button ::before wash",
+      "stage": "stylesheet",
+      "helperSelector": "[data-testid=\"navbar\"] a::before, [data-testid=\"navbar\"] button::before",
+      "classification": "neutralizer",
+      "properties": [
+        "background-color",
+        "border-radius",
+        "transform",
+        "transition"
+      ],
+      "declarations": [
+        {
+          "property": "background-color",
+          "value": "transparent",
+          "important": true
+        },
+        {
+          "property": "border-radius",
+          "value": "0",
+          "important": true
+        },
+        {
+          "property": "transform",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "transition",
+          "value": "none",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "transparent, no geometry, no motion",
+      "helperEvidence": "[data-testid=\"navbar\"] a::before,",
+      "blindsSurfaces": [
+        "navbar.css",
+        "motion.css"
+      ],
+      "blindsPackets": [
+        "c",
+        "f"
+      ],
+      "why": "The navbar hover/active wash is a pseudo-element that the capture erases outright, so navbar.css's whole ::before treatment — colour, corner geometry and its transition — is unmeasurable by pixels."
+    },
+    {
+      "selector": "[data-visual-dropdown-toggle]::after (caret)",
+      "stage": "stylesheet",
+      "helperSelector": "[data-visual-dropdown-toggle]::after",
+      "classification": "neutralizer",
+      "properties": [
+        "border-color"
+      ],
+      "declarations": [
+        {
+          "property": "border-color",
+          "value": "transparent",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "transparent",
+      "helperEvidence": "[data-visual-dropdown-toggle]::after {",
+      "blindsSurfaces": [
+        "navbar.css"
+      ],
+      "blindsPackets": [
+        "f"
+      ],
+      "why": "The dropdown caret is drawn with borders; making them transparent removes the glyph from every capture."
     },
     {
       "selector": "[data-visual-icon]",
+      "stage": "stylesheet",
+      "helperSelector": "[data-visual-icon]",
+      "classification": "neutralizer",
       "properties": [
         "visibility"
       ],
+      "declarations": [
+        {
+          "property": "visibility",
+          "value": "hidden",
+          "important": true
+        }
+      ],
       "neutralizedTo": "hidden",
-      "helperEvidence": "[data-visual-icon]",
+      "helperEvidence": "[data-visual-icon] {",
+      "blindsSurfaces": [
+        "components.css",
+        "navbar.css",
+        "base.css"
+      ],
       "blindsPackets": [
         "b",
         "f"
@@ -2278,37 +2803,169 @@
       "why": "F2 — icon affordances are invisible to the oracle entirely."
     },
     {
-      "selector": "[data-visual-surface][data-visual-surface] (dark theme only)",
+      "selector": "[data-visual-scale-control]",
+      "stage": "stylesheet",
+      "helperSelector": "[data-visual-scale-control]",
+      "classification": "neutralizer",
       "properties": [
         "background",
-        "background-image",
         "border-color",
-        "border-radius",
-        "box-shadow",
-        "text-shadow"
+        "color"
       ],
-      "neutralizedTo": "forced flat values",
-      "helperEvidence": "[data-visual-surface][data-visual-surface]",
+      "declarations": [
+        {
+          "property": "background",
+          "value": "transparent",
+          "important": true
+        },
+        {
+          "property": "border-color",
+          "value": "transparent",
+          "important": true
+        },
+        {
+          "property": "color",
+          "value": "transparent",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "transparent",
+      "helperEvidence": "[data-visual-scale-control] {",
+      "blindsSurfaces": [
+        "components.css"
+      ],
       "blindsPackets": [
-        "j"
+        "d"
       ],
-      "why": "F2 — the dark baseline is blind to surface paint on exactly the elements theme-dark.css exists to paint."
+      "why": "F2 — WP4.4-d owns the data-scale UI scale system."
     },
     {
-      "selector": "form controls (input/select/textarea/button families)",
+      "selector": "sticky table headers and first columns",
+      "stage": "stylesheet",
+      "helperSelector": "[data-testid=\"exercise-table\"] thead th, [data-testid=\"exercise-table\"] tr > :first-child, [data-testid=\"workout-log-table\"] thead th, [data-testid=\"workout-log-table\"] tr > :first-child",
+      "classification": "neutralizer",
+      "properties": [
+        "position"
+      ],
+      "declarations": [
+        {
+          "property": "position",
+          "value": "static",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "static",
+      "helperEvidence": "position: static !important;",
+      "blindsSurfaces": [
+        "layout.css",
+        "pages-workout-log.css",
+        "pages-workout-plan.css"
+      ],
+      "blindsPackets": [
+        "e"
+      ],
+      "why": "Demotes the compositor-promoted sticky cells back onto the static paint path. The second neutralizer that escaped registration entirely: it changes `position`, which no register entry mentioned and which the old substring check had no way to notice."
+    },
+    {
+      "selector": "number-input spin buttons",
+      "stage": "stylesheet",
+      "helperSelector": "input[type=\"number\"]::-webkit-outer-spin-button, input[type=\"number\"]::-webkit-inner-spin-button",
+      "classification": "neutralizer",
+      "properties": [
+        "-webkit-appearance",
+        "margin"
+      ],
+      "declarations": [
+        {
+          "property": "-webkit-appearance",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "margin",
+          "value": "0",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "none / 0",
+      "helperEvidence": "input[type=\"number\"]::-webkit-outer-spin-button,",
+      "blindsSurfaces": [
+        "components.css"
+      ],
+      "blindsPackets": [
+        "h",
+        "i"
+      ],
+      "why": "components.css has its own spin-button treatment, including hover and active states. The capture removes the control, so none of it is comparable by pixels."
+    },
+    {
+      "selector": "::-webkit-scrollbar",
+      "stage": "stylesheet",
+      "helperSelector": "::-webkit-scrollbar",
+      "classification": "neutralizer",
+      "properties": [
+        "display"
+      ],
+      "declarations": [
+        {
+          "property": "display",
+          "value": "none",
+          "important": false
+        }
+      ],
+      "neutralizedTo": "none",
+      "helperEvidence": "::-webkit-scrollbar { display: none; }",
+      "blindsSurfaces": [
+        "components.css",
+        "navbar.css"
+      ],
+      "blindsPackets": [
+        "f",
+        "h",
+        "i"
+      ],
+      "why": "The one declaration in the injected stylesheet that is NOT `!important`, recorded as such: importance is part of the machine identity, so quietly adding it later would be a visible change. components.css and navbar.css both style scrollbars; nothing they declare survives to a capture."
+    },
+    {
+      "selector": "form controls (post-load inline re-application)",
+      "stage": "inline",
+      "helperSelector": "[data-visual-control], input, textarea, select",
+      "classification": "neutralizer",
       "properties": [
         "border-radius",
         "box-shadow",
         "text-shadow"
       ],
+      "declarations": [
+        {
+          "property": "border-radius",
+          "value": "0",
+          "important": true
+        },
+        {
+          "property": "box-shadow",
+          "value": "none",
+          "important": true
+        },
+        {
+          "property": "text-shadow",
+          "value": "none",
+          "important": true
+        }
+      ],
       "neutralizedTo": "0 / none",
-      "helperEvidence": "box-shadow: none !important;",
+      "helperEvidence": "element.style.setProperty('border-radius', '0', 'important');",
+      "blindsSurfaces": [
+        "components.css",
+        "theme-dark.css",
+        "a11y.css"
+      ],
       "blindsPackets": [
         "d",
         "h",
         "j"
       ],
-      "why": "F2 — re-applied inline after load, so even late overrides are hidden."
+      "why": "F2 — re-applied inline after load, so even late overrides are hidden. A second channel, not a restatement of the stylesheet entry: inline `!important` outranks every author rule, and a stylesheet-only extractor would not see it at all."
     }
   ],
   "screenshotTolerances": {

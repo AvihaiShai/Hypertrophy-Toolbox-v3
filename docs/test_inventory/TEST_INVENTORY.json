@@ -245,7 +245,7 @@
     "total_tests": 611
   },
   "pytest": {
-    "collected_deterministic": 2329,
+    "collected_deterministic": 2353,
     "deterministic_files": 110,
     "environment_dependent_files": [
       {
@@ -328,7 +328,7 @@
       },
       {
         "file": "tests/test_css_wp4_4_a_baseline_contracts.py",
-        "tests": 9
+        "tests": 33
       },
       {
         "file": "tests/test_css_wp4_4_base_contracts.py",
