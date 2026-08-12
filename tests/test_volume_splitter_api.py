@@ -83,6 +83,42 @@ def test_calculate_volume_sanitizes_ranges(client):
     assert chest_result["status"] == "low"
 
 
+def test_calculate_volume_non_numeric_training_days_keeps_the_rest_of_the_payload(client):
+    """A bad training_days falls back to 3 without discarding mode or volumes.
+
+    The fallback lives in its own narrow ``except (TypeError, ValueError)``; the
+    advanced-only muscle key proves ``mode`` survived it, and 12 / 3 == 4.0
+    proves the fallback value is the one that reached the calculation.
+    """
+    response = client.post(
+        "/api/calculate_volume",
+        json={
+            "mode": "advanced",
+            "training_days": "not-a-number",
+            "volumes": {"lats": 12},
+        },
+    )
+
+    assert response.status_code == 200
+    payload = assert_success_payload(response.get_json())
+    lats_result = payload["results"].get("lats")
+
+    assert lats_result is not None
+    assert lats_result["weekly_sets"] == 12.0
+    assert lats_result["sets_per_session"] == 4.0
+    assert "Chest" not in payload["results"]
+
+
+def test_calculate_volume_non_object_body_returns_the_internal_error_envelope(client):
+    """A JSON body that is not an object still returns the 500 error envelope."""
+    response = client.post("/api/calculate_volume", json=[1, 2, 3])
+
+    assert response.status_code == 500
+    assert_error_payload(
+        response.get_json(), "INTERNAL_ERROR", "Failed to calculate volume"
+    )
+
+
 @pytest.fixture
 def saved_volume_plan(clean_db):
     plan_id = export_volume_plan(
