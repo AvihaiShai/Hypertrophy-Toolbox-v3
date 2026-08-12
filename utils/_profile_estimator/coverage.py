@@ -10,7 +10,7 @@ cycle stays held by the facade's function-local lazy imports).
 """
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, TypeGuard
 
 from utils._profile_estimator.constants import (
     ACCURACY_MAJOR_MUSCLE_GROUPS,
@@ -30,11 +30,17 @@ from utils._profile_estimator.core_math import (
 # the user saves the Reference Lifts form via the Issue #17 JS handler).
 
 
-def _is_lift_filled(lift_row: Optional[dict[str, Any]]) -> bool:
+def _is_lift_filled(lift_row: Optional[dict[str, Any]]) -> TypeGuard[dict[str, Any]]:
     """A lift counts as filled when the user has saved both a weight (or zero
     for bodyweight slugs) AND a non-zero rep count. Matches the gate inside
     `_estimate_from_profile` — a lift with only one half stored can't seed
     a 1RM, so it shouldn't bump the accuracy band either.
+
+    Declared as a ``TypeGuard`` so callers that skip on a false result may
+    subscript the row afterwards without a further ``None`` check. It is
+    deliberately not a ``TypeIs``: a real ``dict`` still returns False when
+    reps or weight are missing, so the negative branch says nothing about
+    the argument's type.
     """
     if not lift_row:
         return False
