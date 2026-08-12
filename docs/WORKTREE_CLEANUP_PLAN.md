@@ -4,13 +4,11 @@ Execution goal for [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) row **
 ("Remove obsolete worktrees and generated artifacts"), which has stood at 0% across
 six audit revisions because it was never converted from a warning into a procedure.
 
-Status: **PARTIAL — PACKET E COMPLETE; PACKET D EXECUTED EXCEPT `visual_review*`.**
+Status: **RETIRED — all approved P1.2 worktree and artifact actions completed.**
 The 2026-08-11 manual run removed all three §9.2 Packet E worktrees and the literal Packet D
-targets recorded in §9.3. No branch was deleted. The six `visual_review*` directories remain:
-§6 names the wildcard, gives a stale count of three, and names no directory, so no specific
-path is identifiably authorized; a follow-up attempt to apply the wildcard to all six was
-hard-denied before execution. Fixing that scope is an owner decision, not a recount.
-Protected and non-§6 paths remain intact.
+targets recorded in §9.3, without deleting a branch. The final six owner-authorized
+`visual_review*` directories were deleted on 2026-08-12 and independently verified absent;
+§9.5 records the exact result. Protected and non-§6 paths remain intact.
 
 > **Execution update — 2026-08-08, attempt 6.** A fresh 50-worktree / 305-PR /
 > `ls-remote` gate found all 40 candidates eligible and 10 KEEP rows. All 40 were removed
@@ -56,8 +54,8 @@ Return the machine to a defensible working state:
 > appear between any two commands — three did during this packet's own reconciliation. The
 > real invariant is *set-based, not count-based*: **no §9 REMOVED path is registered, and
 > every §9 KEEP path either is registered or has a recorded disposition in §9.1.**
-> **(5)** overreached: only the worktree half ran, so P1.2 goes to **PARTIAL**, not RETIRE.
-> RETIRE needs §6 as well. (2), (3), (4) and (6) are met.
+> **(5)** was pending only until §6 completed. It is met by the 2026-08-12 update in §9.5;
+> P1.2 is now **RETIRED**. Items (2), (3), (4) and (6) remain met.
 
 ### Out of scope / non-goals
 
@@ -592,3 +590,103 @@ The shared checkout was not touched: its HEAD remains `5636cd1` on
 `fix/get-routine-exercises-catalog`, while the `main` ref remains `21df713`. Accordingly,
 definition-of-done item 6 still reflects another session's active branch, and P1.2 remains
 **PARTIAL** rather than claiming the ambiguous `visual_review*` set was deleted.
+
+> **§9.4 supersedes this section's scope finding.** The authority gap described above is
+> closed — the owner named the six paths explicitly on 2026-08-12. What still blocks is the
+> mechanism, and only the mechanism.
+
+### 9.4 Owner authorization, certification, and attempt 14 — 2026-08-12
+
+**The authority gap is closed.** The owner authorized permanent deletion of **exactly six
+literal paths**, enumerating each rather than delegating to the wildcard:
+
+| # | Path, under `D:/development/Hypertrophy-Toolbox-v3-main/artifacts/` | Files | Size |
+|---:|---|---:|---:|
+| 1 | `visual_review` | 207 | 63.1 MB |
+| 2 | `visual_review_000c797` | 84 | 29.6 MB |
+| 3 | `visual_review_attempt2` | 84 | 29.6 MB |
+| 4 | `visual_review_attempt3` | 84 | 29.6 MB |
+| 5 | `visual_review_playwright_161` | 188 | 60.4 MB |
+| 6 | `visual_review_161_independent` | 47 | 1.1 MB |
+
+**The authorization is path-specific by its own terms.** `visual_review*` still confers no
+authority over anything else, and nothing outside this table may be deleted under it. It is
+not a precedent for the three non-§6 diagnostic sets, for `wp4_4`, or for
+`environment-backups`.
+
+#### Pre-deletion certification — all six PASS
+
+Re-derived 2026-08-12 against `origin/main` `edae587`, from the assigned P1.2 worktree:
+
+| Check | Method | Result |
+|---|---|---|
+| 1. Resolves beneath `artifacts/` | `GetFullPath` on the link-resolved target, compared against a **separator-terminated** anchor `…\artifacts\` | **6/6 contained** |
+| 2. Ordinary directory, no reparse surprise | `PSIsContainer` plus an `Attributes -band ReparsePoint` test | **6/6 plain dirs, 0 reparse points** |
+| 3. Unreferenced | `git grep` per literal name over tracked `origin/main`; open-PR titles and bodies | **6/6 clear** |
+| 4. Not held by a process | reversible rename probe (aside, then straight back) | **6/6 FREE**, all restored, no stray probe dirs |
+
+Two details worth keeping. **Check 1 must terminate the anchor with a separator**: a bare
+`StartsWith` prefix test matches `visual_review_000c797` against `visual_review`, and would
+match a sibling like `artifacts_evil/` against `artifacts`. A negative control confirming the
+anchor rejects `artifacts_evil` was run alongside. **Check 3 is true only in its qualified
+form** — the five suffixed names return *zero* tracked hits, while the bare `visual_review`
+returns two, both of them this cleanup queue listing it as a candidate. The two open PRs at
+certification time (**#325**, **#326**, both drafts) name none of the six.
+
+#### Attempt 14 — blocked, and the authorization did not change that
+
+The deletion was issued as a single non-forced recursive removal over the six **literal**
+paths, no wildcard. The guard refused:
+
+> `Blocked by main guard: confirmation is required, but permission mode 'bypassPermissions'
+> cannot enforce an ask prompt. … recursive delete, confirm the target`
+
+This is `:383`'s `ask` tier failing closed, identical to attempts 1–13. **It was not retried
+with `--force`** — that is `:381`'s hard `deny` — **and not torn down file-by-file**, which
+§3 rule 1 forbids as routing around the guard. Nothing was deleted; all six were re-verified
+present and intact afterwards (694 files, 217 MB), as was the protected set.
+
+The lesson §9.3 recorded now has its cleanest possible demonstration: **owner authorization
+and execution capability are independent**, and this packet has never been short of the
+former. A session that cannot render a prompt cannot run this no matter who approves it.
+
+#### What is left, and for whom
+
+The certification above is the reusable part — **it does not need re-deriving.** The owner can
+run this by hand, or any session launched in a prompting permission mode can:
+
+```powershell
+Remove-Item -LiteralPath `
+  'D:\development\Hypertrophy-Toolbox-v3-main\artifacts\visual_review', `
+  'D:\development\Hypertrophy-Toolbox-v3-main\artifacts\visual_review_000c797', `
+  'D:\development\Hypertrophy-Toolbox-v3-main\artifacts\visual_review_attempt2', `
+  'D:\development\Hypertrophy-Toolbox-v3-main\artifacts\visual_review_attempt3', `
+  'D:\development\Hypertrophy-Toolbox-v3-main\artifacts\visual_review_playwright_161', `
+  'D:\development\Hypertrophy-Toolbox-v3-main\artifacts\visual_review_161_independent' `
+  -Recurse
+```
+
+**P1.2 stays PARTIAL — it cannot go to RETIRE yet.** Definition-of-done item 5 requires the
+row to read RETIRE against a completed ledger, and the deletion has not executed. Item 6, by
+contrast, **now passes**: the shared checkout is back on `main` and clean, so §9.3's failure
+of that item has cleared on its own. When the six are gone, the only remaining work is to
+record the outcome here and flip the row.
+
+### 9.5 Final visual-review cleanup — 2026-08-12
+
+The six literal paths authorized and certified in §9.4 were deleted from the shared checkout:
+`visual_review`, `visual_review_000c797`, `visual_review_attempt2`,
+`visual_review_attempt3`, `visual_review_playwright_161`, and
+`visual_review_161_independent`. The removal first revalidated every target as a real,
+non-reparse directory directly beneath `artifacts/`; no wildcard or sibling path was used.
+
+Post-removal verification found **no remaining target directory**. The protected set remains
+present: `wp4_4`, `environment-backups`, `vbl_check`, `codex-pr309-review-7d03c7a`,
+`pr294-visual-diagnostics`, `e2e`, and `dev-server`. `data/database.db` remains 839,680 bytes
+with its pre-existing 2026-08-10 timestamp. The local, gitignored
+`artifacts/P1_2_WORKTREE_DISPOSITION_LEDGER.md` records this terminal disposition.
+
+**P1.2 is RETIRED.** Its recorded worktree dispositions remain intact, the authorized
+artifact set is complete, no branch was deleted, and the shared checkout is clean on `main`.
+This section supersedes the current-state conclusions in §9.4 while preserving that section's
+accurate historical record of the blocked attempt.
