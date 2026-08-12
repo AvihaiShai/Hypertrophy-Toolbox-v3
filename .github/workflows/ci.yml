@@ -138,6 +138,16 @@ jobs:
           flake8_idiom.txt
         retention-days: 14
 
+  # This job also owns the compiled-SCSS drift gate (docs/LEFTOVERS_BY_PRIORITY.md,
+  # "Nothing ties the committed bootstrap.custom.min.css to its SCSS source").
+  #
+  # The bundle and its map are TRACKED, but the pytest job deliberately does not
+  # run npm, so every CSS contract in tests/test_css_*.py asserts against the
+  # COMMITTED artifact. Every E2E job, meanwhile, rebuilds it and exercises
+  # whatever the SCSS actually compiles to. Editing scss/ and forgetting
+  # `npm run build:css` therefore left the contracts green against a stale blob
+  # while the browser ran different CSS -- two sources of truth, no gate between
+  # them. This job already ran the real build; all it lacked was a verdict.
   frontend-build:
     name: Frontend Build (npm ci + SCSS)
     runs-on: ubuntu-latest
@@ -156,8 +166,68 @@ jobs:
     - name: Install npm dependencies
       run: npm ci
 
+    # Deleting the tracked output first is what makes the gate below prove
+    # PRODUCTION as well as equality. Building over the checked-out files can only
+    # ever detect a *changed* artifact: if the compiler stopped emitting one --
+    # `--no-source-map` added to the npm script is the realistic way -- the stale
+    # committed copy would simply survive on disk and diff clean, and the gate
+    # would report success over output nothing had regenerated. From an empty
+    # start, a file the build fails to recreate is a deletion in the working
+    # tree, and `git diff` reports deletions.
+    - name: Remove the tracked CSS build output before rebuilding
+      run: |
+        rm -f \
+          static/css/bootstrap.custom.min.css \
+          static/css/bootstrap.custom.min.css.map
+
     - name: Build Bootstrap-customized CSS
       run: npm run build:css
+
+    # BLOCKING. The step above rebuilt both artifacts from an empty start, so the
+    # working tree now holds freshly compiled output and the index still holds
+    # what the branch committed. A clean diff is the proof that the two agree.
+    #
+    # Both paths are named explicitly. The map is not decoration: it is the file
+    # that records which SCSS sources and which line offsets produced the bundle,
+    # so a source-only move (a rule relocated between partials, a renamed
+    # partial) can leave the minified CSS byte-identical and change only the map.
+    # Checking the bundle alone would call that "no drift".
+    #
+    # --stat, not a full diff: the bundle is one 127 KB line, and dumping it into
+    # the log on failure buries the verdict it is supposed to deliver. The
+    # exit code is the gate; --stat only decides what gets printed.
+    #
+    # The fix for a red here is never a workflow edit and never an edit to the
+    # compiled files: run `npm run build:css` and commit both regenerated
+    # artifacts in the PR that changed the SCSS.
+    - name: Fail on compiled-CSS drift
+      run: |
+        set +e
+        git diff --exit-code --stat -- \
+          static/css/bootstrap.custom.min.css \
+          static/css/bootstrap.custom.min.css.map
+        STATUS=$?
+        set -e
+        if [ "$STATUS" -ne 0 ]; then
+          echo "::error title=Compiled CSS drift::static/css/bootstrap.custom.min.css and/or its .map do not match a fresh 'npm run build:css'. Rebuild and commit both artifacts."
+          {
+            echo "### Compiled SCSS drift — blocking"
+            echo
+            echo 'The committed bundle does not match what `npm run build:css` produces from'
+            echo '`scss/custom-bootstrap.scss`. Run the build and commit **both** regenerated'
+            echo 'artifacts in the same PR that changed the SCSS:'
+            echo
+            echo '```'
+            echo 'npm run build:css'
+            echo 'git add static/css/bootstrap.custom.min.css static/css/bootstrap.custom.min.css.map'
+            echo '```'
+            echo
+            echo 'Do not edit the compiled files by hand, and do not relax this gate.'
+          } >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "::notice title=Compiled CSS::The committed bundle and map match a fresh 'npm run build:css'."
+        fi
+        exit $STATUS
 
   e2e-smoke:
     name: E2E Smoke (Chromium)
