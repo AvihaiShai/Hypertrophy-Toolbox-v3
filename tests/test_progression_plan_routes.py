@@ -171,10 +171,79 @@ def test_get_current_value_falls_back_to_plan_when_log_history_is_empty(
         assert payload["data"]["current_value"] == expected_value
 
 
+def test_get_current_value_reads_reps_and_sets_from_log_history(
+    client, clean_db, exercise_factory, workout_plan_factory, workout_log_factory
+):
+    """Pin the per-goal_type SQL: each branch must read its own workout_log column.
+
+    The plan values are deliberately different from the logged ones, so a branch
+    that ran the wrong query -- or fell through to the plan-defaults fallback --
+    would return the plan number instead of the logged one.
+    """
+    exercise_factory("Bench Press")
+    plan_id = workout_plan_factory(
+        exercise_name="Bench Press",
+        routine="Push",
+        sets=4,
+        min_rep_range=8,
+        max_rep_range=12,
+        weight=80.0,
+    )
+    workout_log_factory(
+        plan_id=plan_id,
+        routine="Push",
+        exercise="Bench Press",
+        planned_sets=7,
+        planned_weight=80.0,
+        scored_weight=82.5,
+        planned_min_reps=8,
+        planned_max_reps=12,
+        scored_min_reps=8,
+        scored_max_reps=10,
+    )
+
+    expected_values = {
+        "weight": 82.5,
+        "reps": 10,
+        "sets": 7,
+    }
+
+    for goal_type, expected_value in expected_values.items():
+        response = client.post(
+            "/get_current_value",
+            json={"exercise": "Bench Press", "goal_type": goal_type},
+            headers=XHR_HEADERS,
+        )
+
+        assert response.status_code == 200
+        payload = response.get_json()
+        assert_success_envelope(payload)
+        assert payload["data"]["current_value"] == expected_value
+
+
 def test_get_current_value_returns_wrapped_na_for_unsupported_goal_type(client, clean_db):
     response = client.post(
         "/get_current_value",
         json={"exercise": "Bench Press", "goal_type": "tempo"},
+        headers=XHR_HEADERS,
+    )
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert_success_envelope(payload)
+    assert payload["data"]["current_value"] == "N/A"
+
+
+def test_get_current_value_returns_wrapped_na_for_technique_goal_type(client, clean_db):
+    """`technique` is a valid *goal* type but carries no current value.
+
+    It is the one input that separates the two module constants: it is in
+    VALID_GOAL_TYPES but not in CURRENT_VALUE_GOAL_TYPES. Guarding the query
+    chain with the wrong constant would let it fall through to a real query.
+    """
+    response = client.post(
+        "/get_current_value",
+        json={"exercise": "Bench Press", "goal_type": "technique"},
         headers=XHR_HEADERS,
     )
 

@@ -345,7 +345,10 @@ def get_current_value():
                     FROM workout_log 
                     WHERE exercise = ?
                 """
-            elif goal_type == 'sets':
+            else:
+                # goal_type == 'sets'; the guard above admits only these three,
+                # so making this the else keeps the chain exhaustive and `query`
+                # bound on every path that reaches the fetch below.
                 # Get most recent sets count for this exercise
                 query = """
                     SELECT planned_sets as current_value 
