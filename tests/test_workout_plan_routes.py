@@ -16,17 +16,10 @@ class TestWorkoutPlanPage:
     """Tests for GET /workout_plan page rendering."""
 
     def test_workout_plan_page_loads(self, client, clean_db):
-        """Page request - tests templates availability (skipped in unit tests)."""
-        import pytest
-        from jinja2.exceptions import TemplateNotFound
-        
-        # In unit test env without templates, this raises TemplateNotFound
-        # In full integration env, it would return 200
-        try:
-            resp = client.get("/workout_plan")
-            assert resp.status_code in (200, 500)
-        except TemplateNotFound:
-            pytest.skip("Template not available in unit test environment")
+        """Page must render. The template tree is tracked, so a non-200 here is
+        a real defect, not an environment gap."""
+        resp = client.get("/workout_plan")
+        assert resp.status_code == 200
 
 
 class TestAddExercise:
