@@ -367,15 +367,412 @@ def pinned_declarations() -> list[dict[str, str]]:
 # Oracle blind-spot register (F2)
 # --------------------------------------------------------------------------
 
-# The (selector, property) pairs `prepareForScreenshot()` neutralizes before any
-# pixel is captured. Curated deliberately rather than parsed: the point is a
-# reviewable statement of what the pixel oracle CANNOT see, and a TS parser that
-# silently missed a rule would produce exactly the false confidence F2 names.
-# `verify_blind_spots()` re-derives each entry from the helper text, so the
-# register cannot drift away from the file it describes.
+HELPER_RELATIVE = "e2e/visual-helpers.ts"
+HELPER_FUNCTION = "prepareForScreenshot"
+
+STYLESHEET_STAGE = "stylesheet"
+INLINE_STAGE = "inline"
+STAGES = (STYLESHEET_STAGE, INLINE_STAGE)
+
+NEUTRALIZER = "neutralizer"
+SUPPORT_TOKEN = "support-token"
+CLASSIFICATIONS = (NEUTRALIZER, SUPPORT_TOKEN)
+
+_DECLARATION_RE = re.compile(r"^(-{0,2}[A-Za-z][-A-Za-z0-9_]*)\s*:\s*(.+)$", re.DOTALL)
+_IMPORTANT_SUFFIX_RE = re.compile(r"!\s*important\s*$", re.IGNORECASE)
+_STRING_LITERAL_RE = re.compile(r"^(['\"])(.*)\1$", re.DOTALL)
+
+# Every way `prepareForScreenshot()` could apply a style that this extractor does
+# NOT enumerate. Finding one is a parse failure, not a silent omission: a
+# register that quietly skips a channel reproduces the exact false confidence
+# Q10 exists to remove.
+_UNSUPPORTED_CHANNELS = (
+    (re.compile(r"\.style\.(?!setProperty\b)"), "direct element.style.<property> assignment"),
+    (re.compile(r"cssText"), "style.cssText"),
+    (re.compile(r"setAttribute\s*\("), "setAttribute()"),
+    (re.compile(r"insertRule\s*\("), "CSSOM insertRule()"),
+)
+
+
+class HelperParseError(RuntimeError):
+    """`prepareForScreenshot()` is not in a shape the extractor can enumerate.
+
+    Raised — never swallowed — so that an unrecognised construct fails the
+    contract closed. The alternative, skipping what the parser does not
+    understand, is how the two escaped neutralizers (`.summary-header` paint
+    flattening and sticky-table `position: static`) were added without moving a
+    single test.
+    """
+
+
+def helper_source() -> str:
+    return (ROOT / HELPER_RELATIVE).read_text(encoding="utf-8")
+
+
+def _normalize_newlines(text: str) -> str:
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def _collapse(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _normalize_selector(text: str) -> str:
+    """Formatting-independent selector identity.
+
+    Indentation, line breaks inside a selector list and comments all collapse
+    away; quote style and case do not, because changing either is a real edit to
+    the selector and Q10's whole point is that a real edit must be visible.
+    """
+    return re.sub(r"\s*,\s*", ", ", _collapse(text))
+
+
+def _skip_string(text: str, index: int) -> int:
+    """Index just past the string literal opening at ``index`` (any quote form)."""
+    quote = text[index]
+    index += 1
+    while index < len(text):
+        char = text[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == quote:
+            return index + 1
+        index += 1
+    raise HelperParseError(f"unterminated {quote} string literal in {HELPER_RELATIVE}")
+
+
+def _matching_brace(text: str, open_index: int) -> int:
+    """Index of the `}` closing the `{` at ``open_index``, skipping JS noise.
+
+    String literals — backticks included — and both comment forms are skipped
+    whole, so the braces of the injected CSS never enter the count and a brace
+    inside a comment cannot unbalance it.
+    """
+    depth = 0
+    index = open_index
+    while index < len(text):
+        char = text[index]
+        if char in "\"'`":
+            index = _skip_string(text, index)
+            continue
+        if char == "/" and index + 1 < len(text):
+            following = text[index + 1]
+            if following == "/":
+                newline = text.find("\n", index)
+                index = len(text) if newline == -1 else newline
+                continue
+            if following == "*":
+                close = text.find("*/", index + 2)
+                if close == -1:
+                    raise HelperParseError("unterminated block comment")
+                index = close + 2
+                continue
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return index
+        index += 1
+    raise HelperParseError(f"unbalanced braces in {HELPER_FUNCTION}()")
+
+
+def _split_top_level(text: str, separator: str) -> list[str]:
+    """Split on ``separator`` outside parentheses and string literals."""
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char in "\"'":
+            end = _skip_string(text, index)
+            current.append(text[index:end])
+            index = end
+            continue
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        if char == separator and depth == 0:
+            parts.append("".join(current))
+            current = []
+        else:
+            current.append(char)
+        index += 1
+    parts.append("".join(current))
+    return [part for part in (item.strip() for item in parts) if part]
+
+
+def _string_literal_arguments(arguments: str) -> list[str] | None:
+    """The argument list as plain strings, or ``None`` if any is not a literal."""
+    values: list[str] = []
+    for part in _split_top_level(arguments, ","):
+        match = _STRING_LITERAL_RE.match(part)
+        if not match:
+            return None
+        values.append(match.group(2))
+    return values
+
+
+def _prepare_function_body(helper: str) -> str:
+    matches = list(re.finditer(rf"function\s+{HELPER_FUNCTION}\s*\(", helper))
+    if len(matches) != 1:
+        raise HelperParseError(
+            f"expected exactly one `{HELPER_FUNCTION}` definition in "
+            f"{HELPER_RELATIVE}, found {len(matches)}"
+        )
+    _, after_parameters = specificity._read_balanced(helper, matches[0].end() - 1)
+    brace = helper.find("{", after_parameters)
+    if brace == -1:
+        raise HelperParseError(f"`{HELPER_FUNCTION}` has no body")
+    return helper[brace + 1 : _matching_brace(helper, brace)]
+
+
+def _injected_stylesheet(body: str) -> str:
+    calls = list(re.finditer(r"addStyleTag\s*\(", body))
+    if len(calls) != 1:
+        raise HelperParseError(
+            f"`{HELPER_FUNCTION}` makes {len(calls)} addStyleTag() call(s); the "
+            "extractor enumerates exactly one, so a second injected stylesheet "
+            "is an unenumerated neutralizer channel"
+        )
+    content = re.compile(r"content\s*:\s*`").search(body, calls[0].end())
+    if content is None:
+        raise HelperParseError(
+            "addStyleTag() is not called with a `content:` template literal"
+        )
+    open_backtick = content.end() - 1
+    css = body[open_backtick + 1 : _skip_string(body, open_backtick) - 1]
+    if "${" in css:
+        raise HelperParseError(
+            "the injected stylesheet interpolates a template expression, so its "
+            "text is not statically knowable"
+        )
+    return css
+
+
+def helper_rule_blocks(helper: str | None = None) -> list[dict[str, object]]:
+    """Every rule block of the stylesheet `prepareForScreenshot()` injects.
+
+    One record per block: its normalized selector, its declarations in source
+    order, and the classification the block's own contents imply — a block whose
+    declarations are all custom properties is a support token, everything else
+    neutralizes something the pixel oracle would otherwise have seen.
+    """
+    css = _normalize_newlines(
+        _injected_stylesheet(_prepare_function_body(
+            _normalize_newlines(helper if helper is not None else helper_source())
+        ))
+    )
+    blanked = _blank_comments(css)
+
+    blocks: list[dict[str, object]] = []
+    depth = 0
+    selector_start = 0
+    open_index = 0
+    last_close = -1
+    for index, char in enumerate(blanked):
+        if char == "{":
+            if depth == 0:
+                start = index
+                while start > 0 and blanked[start - 1] not in "{};":
+                    start -= 1
+                selector_start = start
+                open_index = index
+            depth += 1
+        elif char == "}":
+            if depth == 0:
+                raise HelperParseError("unbalanced `}` in the injected stylesheet")
+            depth -= 1
+            if depth == 0:
+                selector = _normalize_selector(blanked[selector_start:open_index])
+                if not selector:
+                    raise HelperParseError(f"rule block at offset {open_index} has no selector")
+                if selector.startswith("@"):
+                    raise HelperParseError(
+                        f"at-rule {selector!r} in the injected stylesheet: its "
+                        "declarations apply only under a condition this register "
+                        "does not model"
+                    )
+                declarations = _parse_declarations(
+                    blanked[open_index + 1 : index], selector
+                )
+                blocks.append(
+                    {
+                        "selector": selector,
+                        "declarations": declarations,
+                        "classification": (
+                            SUPPORT_TOKEN
+                            if all(
+                                str(item["property"]).startswith("--")
+                                for item in declarations
+                            )
+                            else NEUTRALIZER
+                        ),
+                    }
+                )
+                last_close = index
+    if depth:
+        raise HelperParseError("unbalanced `{` in the injected stylesheet")
+    if blanked[last_close + 1 :].strip():
+        raise HelperParseError(
+            "text outside every rule block in the injected stylesheet: "
+            f"{_collapse(blanked[last_close + 1 :])!r}"
+        )
+    return blocks
+
+
+def _parse_declarations(body: str, where: str) -> list[dict[str, object]]:
+    if "{" in body:
+        raise HelperParseError(
+            f"nested rule inside {where!r}; CSS nesting is not modelled"
+        )
+    declarations: list[dict[str, object]] = []
+    for segment in _split_top_level(body, ";"):
+        match = _DECLARATION_RE.match(segment)
+        if not match:
+            raise HelperParseError(f"cannot parse {segment!r} in {where!r} as a declaration")
+        value = match.group(2).strip()
+        important = bool(_IMPORTANT_SUFFIX_RE.search(value))
+        if important:
+            value = _IMPORTANT_SUFFIX_RE.sub("", value).strip()
+        value = _collapse(value)
+        if not value:
+            raise HelperParseError(f"declaration {segment!r} in {where!r} has no value")
+        declarations.append(
+            {"property": match.group(1), "value": value, "important": important}
+        )
+    if not declarations:
+        raise HelperParseError(f"rule block {where!r} declares nothing")
+    return declarations
+
+
+def helper_inline_blocks(helper: str | None = None) -> list[dict[str, object]]:
+    """The post-load `element.style.setProperty()` re-application stage.
+
+    A second neutralizing channel, and the one a stylesheet-only parser misses
+    entirely: these land as inline `!important`, above every author rule, after
+    the page has finished running its own scripts.
+    """
+    body = _prepare_function_body(
+        _normalize_newlines(helper if helper is not None else helper_source())
+    )
+    for pattern, description in _UNSUPPORTED_CHANNELS:
+        if pattern.search(body):
+            raise HelperParseError(
+                f"`{HELPER_FUNCTION}` uses {description}, a style channel this "
+                "extractor does not enumerate"
+            )
+
+    expected = len(re.findall(r"setProperty\s*\(", body))
+    blocks: list[dict[str, object]] = []
+    seen = 0
+
+    for match in re.finditer(r"querySelectorAll\s*(?:<[^>]*>)?\s*\(", body):
+        arguments, after = specificity._read_balanced(body, match.end() - 1)
+        literals = _string_literal_arguments(arguments)
+        if literals is None or len(literals) != 1:
+            raise HelperParseError(
+                f"querySelectorAll({_collapse(arguments)!r}) is not called with a "
+                "single string-literal selector"
+            )
+        chain = re.match(r"\s*\.\s*forEach\s*\(", body[after:])
+        if chain is None:
+            raise HelperParseError(
+                f"the querySelectorAll({literals[0]!r}) result is consumed by "
+                "something other than .forEach()"
+            )
+        brace = body.find("{", after + chain.end())
+        if brace == -1:
+            raise HelperParseError("the .forEach() callback has no body")
+        callback = body[brace + 1 : _matching_brace(body, brace)]
+
+        declarations: list[dict[str, object]] = []
+        for call in re.finditer(r"setProperty\s*\(", callback):
+            arguments, _ = specificity._read_balanced(callback, call.end() - 1)
+            values = _string_literal_arguments(arguments)
+            if values is None or len(values) not in (2, 3):
+                raise HelperParseError(
+                    f"setProperty({_collapse(arguments)!r}) does not take two or "
+                    "three string literals"
+                )
+            priority = values[2] if len(values) == 3 else ""
+            if priority.lower() not in ("", "important"):
+                raise HelperParseError(f"unknown setProperty priority {priority!r}")
+            seen += 1
+            declarations.append(
+                {
+                    "property": values[0],
+                    "value": _collapse(values[1]),
+                    "important": priority.lower() == "important",
+                }
+            )
+        if not declarations:
+            continue
+        blocks.append(
+            {
+                "selector": _normalize_selector(literals[0]),
+                "declarations": declarations,
+                "classification": (
+                    SUPPORT_TOKEN
+                    if all(
+                        str(item["property"]).startswith("--") for item in declarations
+                    )
+                    else NEUTRALIZER
+                ),
+            }
+        )
+
+    if seen != expected:
+        raise HelperParseError(
+            f"{expected} setProperty() call(s) in `{HELPER_FUNCTION}` but only "
+            f"{seen} reachable through an enumerated querySelectorAll().forEach()"
+        )
+    return blocks
+
+
+def _flatten(blocks: list[dict[str, object]], stage: str) -> list[dict[str, object]]:
+    return [
+        {
+            "stage": stage,
+            "selector": block["selector"],
+            "property": declaration["property"],
+            "value": declaration["value"],
+            "important": declaration["important"],
+            "classification": block["classification"],
+        }
+        for block in blocks
+        for declaration in block["declarations"]  # type: ignore[attr-defined]
+    ]
+
+
+def helper_rules(helper: str | None = None) -> list[dict[str, object]]:
+    """Every declaration `prepareForScreenshot()` applies, across both stages."""
+    return _flatten(helper_rule_blocks(helper), STYLESHEET_STAGE) + _flatten(
+        helper_inline_blocks(helper), INLINE_STAGE
+    )
+
+
+# The declarations `prepareForScreenshot()` applies before any pixel is
+# captured, curated into reviewable groups. The curated half — `why`,
+# `blindsPackets`, `context` — is the point of the register: a machine cannot
+# say which packet family a neutralizer blinds. The machine half — `stage`,
+# `selector`, `declarations`, `classification` — is compared against the helper
+# in BOTH directions by `verify_blind_spots()`, exactly, so neither an added
+# neutralizer nor a changed value nor a dropped property can pass unnoticed.
+#
+# One entry is one (stage, selector) group; a block whose declarations blind
+# different packet families is split into several entries over the same
+# selector, and `verify_blind_spots()` rejects any two entries that claim the
+# same (stage, selector, property).
 BLIND_SPOT_REGISTER: tuple[dict[str, object], ...] = (
     {
         "selector": "*, *::before, *::after",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "*, *::before, *::after",
+        "classification": NEUTRALIZER,
         "properties": [
             "animation-delay",
             "animation-duration",
@@ -383,73 +780,614 @@ BLIND_SPOT_REGISTER: tuple[dict[str, object], ...] = (
             "transition-duration",
             "transition-delay",
         ],
+        "declarations": [
+            {"property": "animation-delay", "value": "0s", "important": True},
+            {"property": "animation-duration", "value": "0s", "important": True},
+            {"property": "animation-iteration-count", "value": "1", "important": True},
+            {"property": "transition-duration", "value": "0s", "important": True},
+            {"property": "transition-delay", "value": "0s", "important": True},
+        ],
         "neutralizedTo": "0s / 1",
         "helperEvidence": "animation-duration: 0s !important;",
+        "blindsSurfaces": ["motion.css"],
         "blindsPackets": ["c"],
         "why": "F1 — motion.css's entire output is zeroed before capture, so a "
                "packet deleting the whole file yields a byte-identical matrix.",
     },
     {
         "selector": "*, *::before, *::after",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "*, *::before, *::after",
+        "classification": NEUTRALIZER,
         "properties": ["backdrop-filter", "-webkit-backdrop-filter"],
+        "declarations": [
+            {"property": "backdrop-filter", "value": "none", "important": True},
+            {"property": "-webkit-backdrop-filter", "value": "none", "important": True},
+        ],
         "neutralizedTo": "none",
-        "helperEvidence": "backdrop-filter: none !important;",
+        "helperEvidence": "-webkit-backdrop-filter: none !important;",
+        "blindsSurfaces": ["components.css", "theme-dark.css"],
         "blindsPackets": ["h", "i", "j"],
         "why": "F2 — the glass families in components.css and the theme-dark.css "
-               "rule pinned by the cascade contract are the core surface of h/i/j.",
+               "rule pinned by the cascade contract are the core surface of h/i/j. "
+               "The prefixed and unprefixed properties are registered separately: "
+               "citing only `backdrop-filter: none !important;` was satisfiable by "
+               "the `-webkit-` line, so deleting the property this entry describes "
+               "left the old one-way check green.",
     },
     {
-        "selector": "[data-visual-scale-control]",
-        "properties": ["background", "border-color", "color"],
-        "neutralizedTo": "transparent",
-        "helperEvidence": "[data-visual-scale-control]",
-        "blindsPackets": ["d"],
-        "why": "F2 — WP4.4-d owns the data-scale UI scale system.",
+        "selector": "html (scroll behaviour)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "html",
+        "classification": NEUTRALIZER,
+        "properties": ["scroll-behavior"],
+        "declarations": [
+            {"property": "scroll-behavior", "value": "auto", "important": True},
+        ],
+        "neutralizedTo": "auto",
+        "helperEvidence": "html { scroll-behavior: auto !important; }",
+        "blindsSurfaces": ["layout.css"],
+        "blindsPackets": ["e"],
+        "why": "layout.css sets `scroll-behavior: smooth` on the scroll root. A "
+               "capture is taken at the origin, so the oracle cannot distinguish "
+               "smooth from auto and a packet changing it moves no pixel.",
     },
     {
-        "selector": "[data-visual-icon]",
-        "properties": ["visibility"],
-        "neutralizedTo": "hidden",
-        "helperEvidence": "[data-visual-icon]",
-        "blindsPackets": ["b", "f"],
-        "why": "F2 — icon affordances are invisible to the oracle entirely.",
+        "selector": "html (light `--visual-surface-*` definitions)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "html",
+        "classification": SUPPORT_TOKEN,
+        "properties": ["--visual-surface-0", "--visual-surface-1"],
+        "declarations": [
+            {"property": "--visual-surface-0", "value": "#eef1f6", "important": False},
+            {"property": "--visual-surface-1", "value": "#f7f9fc", "important": False},
+        ],
+        "neutralizedTo": "n/a — defines the tokens the flatteners consume",
+        "helperEvidence": "--visual-surface-0: #eef1f6;",
+        "blindsSurfaces": [],
+        "blindsPackets": [],
+        "why": "Support token, registered explicitly rather than skipped as "
+               "'just a custom property'. It neutralizes nothing on its own; it "
+               "supplies the flat values the registered dark flatteners paint.",
+    },
+    {
+        "selector": "html[data-theme='dark'] (dark `--visual-surface-*` definitions)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "html[data-theme='dark']",
+        "classification": SUPPORT_TOKEN,
+        "properties": ["--visual-surface-0", "--visual-surface-1"],
+        "declarations": [
+            {"property": "--visual-surface-0", "value": "#090c16", "important": False},
+            {"property": "--visual-surface-1", "value": "#0d101d", "important": False},
+        ],
+        "neutralizedTo": "n/a — defines the tokens the flatteners consume",
+        "helperEvidence": "--visual-surface-0: #090c16;",
+        "blindsSurfaces": [],
+        "blindsPackets": [],
+        "why": "The dark half of the support pair. Separate from the light block "
+               "because they are separate rules with different selectors; a "
+               "register that treated the pair as one could not see either go.",
+    },
+    {
+        "selector": "body (both themes)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "html[data-theme] body, body",
+        "classification": NEUTRALIZER,
+        "properties": ["background", "background-attachment"],
+        "declarations": [
+            {
+                "property": "background",
+                "value": "var(--visual-surface-0)",
+                "important": True,
+            },
+            {"property": "background-attachment", "value": "scroll", "important": True},
+        ],
+        "neutralizedTo": "a flat token colour, unattached",
+        "helperEvidence": "background-attachment: scroll !important;",
+        "blindsSurfaces": ["theme-dark.css", "base.css"],
+        "blindsPackets": ["b", "j"],
+        "why": "The headline case. The whole page background is repainted flat in "
+               "BOTH themes, so the multi-gradient dark `body` rule in "
+               "theme-dark.css and the fixed attachment in base.css are invisible "
+               "to every capture in the matrix.",
     },
     {
         "selector": "[data-visual-surface][data-visual-surface] (dark theme only)",
-        "properties": [
-            "background",
-            "background-image",
-            "border-color",
-            "border-radius",
-            "box-shadow",
-            "text-shadow",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "html[data-theme='dark'] [data-visual-surface][data-visual-surface]"
+        ),
+        "classification": NEUTRALIZER,
+        "properties": ["background", "background-image", "box-shadow", "text-shadow"],
+        "declarations": [
+            {
+                "property": "background",
+                "value": "var(--visual-surface-1)",
+                "important": True,
+            },
+            {"property": "background-image", "value": "none", "important": True},
+            {"property": "box-shadow", "value": "none", "important": True},
+            {"property": "text-shadow", "value": "none", "important": True},
         ],
         "neutralizedTo": "forced flat values",
-        "helperEvidence": "[data-visual-surface][data-visual-surface]",
+        "helperEvidence": (
+            "html[data-theme='dark'] [data-visual-surface][data-visual-surface] {"
+        ),
+        "blindsSurfaces": ["theme-dark.css"],
         "blindsPackets": ["j"],
         "why": "F2 — the dark baseline is blind to surface paint on exactly the "
                "elements theme-dark.css exists to paint.",
     },
     {
-        "selector": "form controls (input/select/textarea/button families)",
+        "selector": ".summary-header (dark theme only)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "html[data-theme='dark'] .summary-header",
+        "classification": NEUTRALIZER,
+        "properties": ["background", "border-radius", "box-shadow"],
+        "declarations": [
+            {
+                "property": "background",
+                "value": "var(--visual-surface-1)",
+                "important": True,
+            },
+            {"property": "border-radius", "value": "0", "important": True},
+            {"property": "box-shadow", "value": "none", "important": True},
+        ],
+        "neutralizedTo": "forced flat values",
+        "helperEvidence": "html[data-theme='dark'] .summary-header {",
+        "blindsSurfaces": ["theme-dark.css", "components.css"],
+        "blindsPackets": ["j"],
+        "why": "Added to defeat a fractional-edge rounding flake on the summary "
+               "filter bar. It reached the register only through Q10: the old "
+               "one-way check could not see a block the helper gained, so the "
+               "dark summary surface silently left the pixel oracle's reach.",
+    },
+    {
+        "selector": "[data-visual-surface] border geometry (dark theme only)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "html[data-theme='dark'] [data-visual-surface][data-visual-surface]"
+            ":where(:not([data-visual-preserve-border]))"
+        ),
+        "classification": NEUTRALIZER,
+        "properties": ["border-color", "border-radius"],
+        "declarations": [
+            {"property": "border-color", "value": "#273145", "important": True},
+            {"property": "border-radius", "value": "0", "important": True},
+        ],
+        "neutralizedTo": "one flat border colour, square corners",
+        "helperEvidence": ":where(:not([data-visual-preserve-border])) {",
+        "blindsSurfaces": ["theme-dark.css"],
+        "blindsPackets": ["j"],
+        "why": "Split out of the paint flattener above so a specificity change in "
+               "the product could not silently hand these two properties to the "
+               "capture layer. Registered as its own rule for the same reason it "
+               "exists as its own rule.",
+    },
+    {
+        "selector": "[data-visual-header]::before (dark Workout Plan only)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "html[data-theme='dark'] [data-page=\"workout-plan\"] "
+            "[data-visual-header]::before"
+        ),
+        "classification": NEUTRALIZER,
+        "properties": ["background"],
+        "declarations": [
+            {"property": "background", "value": "transparent", "important": True},
+        ],
+        "neutralizedTo": "transparent",
+        "helperEvidence": "[data-visual-header]::before {",
+        "blindsSurfaces": ["theme-dark.css", "pages-workout-plan.css"],
+        "blindsPackets": ["j"],
+        "why": "The decorative header wash on the dark plan page is erased before "
+               "capture, so nothing painted by that pseudo-element is compared.",
+    },
+    {
+        "selector": "[data-visual-accent] (dark Workout Plan only)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "html[data-theme='dark'] [data-page=\"workout-plan\"] "
+            "[data-visual-accent]"
+        ),
+        "classification": NEUTRALIZER,
+        "properties": [
+            "background",
+            "border-radius",
+            "box-shadow",
+            "transform",
+            "transition",
+        ],
+        "declarations": [
+            {"property": "background", "value": "#4f8cff", "important": True},
+            {"property": "border-radius", "value": "0", "important": True},
+            {"property": "box-shadow", "value": "none", "important": True},
+            {"property": "transform", "value": "none", "important": True},
+            {"property": "transition", "value": "none", "important": True},
+        ],
+        "neutralizedTo": "one flat accent colour, no geometry, no motion",
+        "helperEvidence": "[data-visual-accent] {",
+        "blindsSurfaces": ["theme-dark.css", "components.css", "motion.css"],
+        "blindsPackets": ["c", "j"],
+        "why": "Five properties, not one: the old register reached this block only "
+               "because the form-control entry cited `box-shadow: none !important;` "
+               "and that string happens to occur here too. background, transform "
+               "and transition were never registered at all.",
+    },
+    {
+        "selector": "input, textarea (caret)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "input, textarea",
+        "classification": NEUTRALIZER,
+        "properties": ["caret-color"],
+        "declarations": [
+            {"property": "caret-color", "value": "transparent", "important": True},
+        ],
+        "neutralizedTo": "transparent",
+        "helperEvidence": "input, textarea { caret-color: transparent !important; }",
+        "blindsSurfaces": [],
+        "blindsPackets": [],
+        "why": "A capture-determinism control rather than a product blind spot — "
+               "no shared surface declares caret-color. Registered anyway: the "
+               "register's claim is that the injected stylesheet is enumerated "
+               "completely, and an unlisted rule would break that claim whatever "
+               "its motive.",
+    },
+    {
+        "selector": "select (native affordance)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "select",
+        "classification": NEUTRALIZER,
+        "properties": ["appearance", "-webkit-appearance", "background-image"],
+        "declarations": [
+            {"property": "appearance", "value": "none", "important": True},
+            {"property": "-webkit-appearance", "value": "none", "important": True},
+            {"property": "background-image", "value": "none", "important": True},
+        ],
+        "neutralizedTo": "none",
+        "helperEvidence": "select {",
+        "blindsSurfaces": ["components.css"],
+        "blindsPackets": ["h", "i"],
+        "why": "components.css styles the select affordance through appearance and "
+               "a background-image chevron; both are erased before capture, so the "
+               "control's whole custom affordance is outside the oracle.",
+    },
+    {
+        "selector": "form controls (injected stylesheet stage)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "[data-visual-control], input, textarea, select, input[type=\"number\"]"
+        ),
+        "classification": NEUTRALIZER,
         "properties": ["border-radius", "box-shadow", "text-shadow"],
+        "declarations": [
+            {"property": "border-radius", "value": "0", "important": True},
+            {"property": "box-shadow", "value": "none", "important": True},
+            {"property": "text-shadow", "value": "none", "important": True},
+        ],
         "neutralizedTo": "0 / none",
-        "helperEvidence": "box-shadow: none !important;",
+        "helperEvidence": "input[type=\"number\"] {",
+        "blindsSurfaces": ["components.css", "theme-dark.css", "a11y.css"],
         "blindsPackets": ["d", "h", "j"],
-        "why": "F2 — re-applied inline after load, so even late overrides are hidden.",
+        "why": "F2 — the stylesheet half of the form-control neutralization. Its "
+               "inline twin below re-applies the same three properties after load, "
+               "and the two are registered separately because they are two "
+               "distinct channels with two distinct selectors.",
+    },
+    {
+        "selector": "navbar link/button ::before wash",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "[data-testid=\"navbar\"] a::before, [data-testid=\"navbar\"] "
+            "button::before"
+        ),
+        "classification": NEUTRALIZER,
+        "properties": ["background-color", "border-radius", "transform", "transition"],
+        "declarations": [
+            {"property": "background-color", "value": "transparent", "important": True},
+            {"property": "border-radius", "value": "0", "important": True},
+            {"property": "transform", "value": "none", "important": True},
+            {"property": "transition", "value": "none", "important": True},
+        ],
+        "neutralizedTo": "transparent, no geometry, no motion",
+        "helperEvidence": "[data-testid=\"navbar\"] a::before,",
+        "blindsSurfaces": ["navbar.css", "motion.css"],
+        "blindsPackets": ["c", "f"],
+        "why": "The navbar hover/active wash is a pseudo-element that the capture "
+               "erases outright, so navbar.css's whole ::before treatment — colour, "
+               "corner geometry and its transition — is unmeasurable by pixels.",
+    },
+    {
+        "selector": "[data-visual-dropdown-toggle]::after (caret)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "[data-visual-dropdown-toggle]::after",
+        "classification": NEUTRALIZER,
+        "properties": ["border-color"],
+        "declarations": [
+            {"property": "border-color", "value": "transparent", "important": True},
+        ],
+        "neutralizedTo": "transparent",
+        "helperEvidence": "[data-visual-dropdown-toggle]::after {",
+        "blindsSurfaces": ["navbar.css"],
+        "blindsPackets": ["f"],
+        "why": "The dropdown caret is drawn with borders; making them transparent "
+               "removes the glyph from every capture.",
+    },
+    {
+        "selector": "[data-visual-icon]",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "[data-visual-icon]",
+        "classification": NEUTRALIZER,
+        "properties": ["visibility"],
+        "declarations": [
+            {"property": "visibility", "value": "hidden", "important": True},
+        ],
+        "neutralizedTo": "hidden",
+        "helperEvidence": "[data-visual-icon] {",
+        "blindsSurfaces": ["components.css", "navbar.css", "base.css"],
+        "blindsPackets": ["b", "f"],
+        "why": "F2 — icon affordances are invisible to the oracle entirely.",
+    },
+    {
+        "selector": "[data-visual-scale-control]",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "[data-visual-scale-control]",
+        "classification": NEUTRALIZER,
+        "properties": ["background", "border-color", "color"],
+        "declarations": [
+            {"property": "background", "value": "transparent", "important": True},
+            {"property": "border-color", "value": "transparent", "important": True},
+            {"property": "color", "value": "transparent", "important": True},
+        ],
+        "neutralizedTo": "transparent",
+        "helperEvidence": "[data-visual-scale-control] {",
+        "blindsSurfaces": ["components.css"],
+        "blindsPackets": ["d"],
+        "why": "F2 — WP4.4-d owns the data-scale UI scale system.",
+    },
+    {
+        "selector": "sticky table headers and first columns",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "[data-testid=\"exercise-table\"] thead th, "
+            "[data-testid=\"exercise-table\"] tr > :first-child, "
+            "[data-testid=\"workout-log-table\"] thead th, "
+            "[data-testid=\"workout-log-table\"] tr > :first-child"
+        ),
+        "classification": NEUTRALIZER,
+        "properties": ["position"],
+        "declarations": [
+            {"property": "position", "value": "static", "important": True},
+        ],
+        "neutralizedTo": "static",
+        "helperEvidence": "position: static !important;",
+        "blindsSurfaces": ["layout.css", "pages-workout-log.css", "pages-workout-plan.css"],
+        "blindsPackets": ["e"],
+        "why": "Demotes the compositor-promoted sticky cells back onto the static "
+               "paint path. The second neutralizer that escaped registration "
+               "entirely: it changes `position`, which no register entry mentioned "
+               "and which the old substring check had no way to notice.",
+    },
+    {
+        "selector": "number-input spin buttons",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "input[type=\"number\"]::-webkit-outer-spin-button, "
+            "input[type=\"number\"]::-webkit-inner-spin-button"
+        ),
+        "classification": NEUTRALIZER,
+        "properties": ["-webkit-appearance", "margin"],
+        "declarations": [
+            {"property": "-webkit-appearance", "value": "none", "important": True},
+            {"property": "margin", "value": "0", "important": True},
+        ],
+        "neutralizedTo": "none / 0",
+        "helperEvidence": "input[type=\"number\"]::-webkit-outer-spin-button,",
+        "blindsSurfaces": ["components.css"],
+        "blindsPackets": ["h", "i"],
+        "why": "components.css has its own spin-button treatment, including hover "
+               "and active states. The capture removes the control, so none of it "
+               "is comparable by pixels.",
+    },
+    {
+        "selector": "::-webkit-scrollbar",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": "::-webkit-scrollbar",
+        "classification": NEUTRALIZER,
+        "properties": ["display"],
+        "declarations": [
+            {"property": "display", "value": "none", "important": False},
+        ],
+        "neutralizedTo": "none",
+        "helperEvidence": "::-webkit-scrollbar { display: none; }",
+        "blindsSurfaces": ["components.css", "navbar.css"],
+        "blindsPackets": ["f", "h", "i"],
+        "why": "The one declaration in the injected stylesheet that is NOT "
+               "`!important`, recorded as such: importance is part of the machine "
+               "identity, so quietly adding it later would be a visible change. "
+               "components.css and navbar.css both style scrollbars; nothing they "
+               "declare survives to a capture.",
+    },
+    {
+        "selector": "form controls (post-load inline re-application)",
+        "stage": INLINE_STAGE,
+        "helperSelector": "[data-visual-control], input, textarea, select",
+        "classification": NEUTRALIZER,
+        "properties": ["border-radius", "box-shadow", "text-shadow"],
+        "declarations": [
+            {"property": "border-radius", "value": "0", "important": True},
+            {"property": "box-shadow", "value": "none", "important": True},
+            {"property": "text-shadow", "value": "none", "important": True},
+        ],
+        "neutralizedTo": "0 / none",
+        "helperEvidence": "element.style.setProperty('border-radius', '0', 'important');",
+        "blindsSurfaces": ["components.css", "theme-dark.css", "a11y.css"],
+        "blindsPackets": ["d", "h", "j"],
+        "why": "F2 — re-applied inline after load, so even late overrides are "
+               "hidden. A second channel, not a restatement of the stylesheet "
+               "entry: inline `!important` outranks every author rule, and a "
+               "stylesheet-only extractor would not see it at all.",
     },
 )
 
+_REQUIRED_ENTRY_KEYS = (
+    "selector",
+    "stage",
+    "helperSelector",
+    "classification",
+    "properties",
+    "declarations",
+    "neutralizedTo",
+    "helperEvidence",
+    "blindsSurfaces",
+    "blindsPackets",
+    "why",
+)
 
-def verify_blind_spots() -> list[str]:
-    """Confirm every register entry still corresponds to the live helper."""
-    helper = (ROOT / "e2e" / "visual-helpers.ts").read_text(encoding="utf-8")
-    failures = [
-        f"blind-spot register entry {entry['selector']!r} cites "
-        f"{entry['helperEvidence']!r}, absent from e2e/visual-helpers.ts"
+
+def register_rules() -> list[dict[str, object]]:
+    """The curated register, flattened to the same shape as `helper_rules()`."""
+    return [
+        {
+            "stage": entry["stage"],
+            "selector": entry["helperSelector"],
+            "property": declaration["property"],
+            "value": declaration["value"],
+            "important": declaration["important"],
+            "classification": entry["classification"],
+        }
         for entry in BLIND_SPOT_REGISTER
-        if str(entry["helperEvidence"]) not in helper
+        for declaration in entry["declarations"]  # type: ignore[attr-defined]
     ]
+
+
+def _register_shape_failures() -> list[str]:
+    """Internal consistency of the curated register, checked before comparison."""
+    failures: list[str] = []
+    for index, entry in enumerate(BLIND_SPOT_REGISTER):
+        label = f"register entry {index} ({entry.get('selector')!r})"
+        missing = [key for key in _REQUIRED_ENTRY_KEYS if key not in entry]
+        if missing:
+            failures.append(f"{label} is missing {missing}")
+            continue
+        if entry["stage"] not in STAGES:
+            failures.append(f"{label} has unknown stage {entry['stage']!r}")
+        if entry["classification"] not in CLASSIFICATIONS:
+            failures.append(
+                f"{label} has unknown classification {entry['classification']!r}"
+            )
+        declarations = list(entry["declarations"])  # type: ignore[call-overload]
+        if not declarations:
+            failures.append(f"{label} registers no declaration")
+        # `properties` is a human-readable mirror of `declarations`; keeping the
+        # two in lockstep is what stops the mirror from rotting into a claim of
+        # its own.
+        mirrored = [item["property"] for item in declarations]
+        if list(entry["properties"]) != mirrored:  # type: ignore[call-overload]
+            failures.append(
+                f"{label}: `properties` {list(entry['properties'])} does not "  # type: ignore[call-overload]
+                f"mirror `declarations` {mirrored}"
+            )
+        for item in declarations:
+            if set(item) != {"property", "value", "important"}:
+                failures.append(f"{label}: malformed declaration {item!r}")
+            elif not isinstance(item["important"], bool):
+                failures.append(
+                    f"{label}: declaration {item['property']!r} records "
+                    f"importance as {item['important']!r}, not a bool"
+                )
+    return failures
+
+
+def _by_signature(
+    rules: list[dict[str, object]], side: str
+) -> tuple[dict[tuple[str, str, str], dict[str, object]], list[str]]:
+    """Index rules by `(stage, selector, property)`, rejecting duplicates."""
+    indexed: dict[tuple[str, str, str], dict[str, object]] = {}
+    failures: list[str] = []
+    for rule in rules:
+        key = (str(rule["stage"]), str(rule["selector"]), str(rule["property"]))
+        if key in indexed:
+            failures.append(
+                f"duplicate {side} signature {key}: one machine identity cannot "
+                "describe two rules, so one of them would be unverifiable"
+            )
+            continue
+        indexed[key] = rule
+    return indexed, failures
+
+
+def _describe(rule: dict[str, object]) -> str:
+    bang = " !important" if rule["important"] else ""
+    return (
+        f"[{rule['stage']}] {rule['selector']} {{ {rule['property']}: "
+        f"{rule['value']}{bang}; }} ({rule['classification']})"
+    )
+
+
+def verify_blind_spots(helper: str | None = None) -> list[str]:
+    """Compare the curated register against the live helper, both directions.
+
+    The register is the reviewable statement of what the pixel oracle CANNOT
+    see, so it has to be curated — a machine cannot say which packet family a
+    neutralizer blinds. What it must not be is *unchecked*: the previous version
+    searched the helper text for one substring per entry and checked nothing in
+    the other direction, so two neutralizers (dark `.summary-header` paint
+    flattening, sticky-table `position: static`) were added to
+    `prepareForScreenshot()` with the whole suite green.
+
+    Every declaration the helper applies — in the injected stylesheet and in the
+    later inline `setProperty()` stage — is derived mechanically and matched
+    against the register on `(stage, selector, property)`, with value and
+    importance and classification compared on the matches. Anything the
+    extractor cannot parse is a failure, never a silent omission.
+    """
+    failures = _register_shape_failures()
+
+    try:
+        derived = helper_rules(helper)
+    except HelperParseError as error:
+        return failures + [
+            f"{HELPER_RELATIVE} could not be enumerated exactly, so the register "
+            f"cannot be verified against it: {error}"
+        ]
+
+    helper_text = _collapse(
+        _blank_comments(
+            _normalize_newlines(helper if helper is not None else helper_source())
+        )
+    )
+    failures += [
+        f"register entry {entry['selector']!r} cites {entry['helperEvidence']!r}, "
+        f"absent from {HELPER_RELATIVE}"
+        for entry in BLIND_SPOT_REGISTER
+        if _collapse(str(entry["helperEvidence"])) not in helper_text
+    ]
+
+    registered, register_duplicates = _by_signature(register_rules(), "register")
+    applied, helper_duplicates = _by_signature(derived, "helper")
+    failures += register_duplicates + helper_duplicates
+
+    for key in sorted(set(applied) - set(registered)):
+        failures.append(
+            f"{HELPER_RELATIVE} applies {_describe(applied[key])}, which no "
+            "register entry declares"
+        )
+    for key in sorted(set(registered) - set(applied)):
+        failures.append(
+            f"register declares {_describe(registered[key])}, which "
+            f"{HELPER_RELATIVE} does not apply"
+        )
+    for key in sorted(set(registered) & set(applied)):
+        expected, actual = registered[key], applied[key]
+        for field in ("value", "important", "classification"):
+            if expected[field] != actual[field]:
+                failures.append(
+                    f"{key[0]} rule `{key[1]}` property {key[2]!r}: register says "
+                    f"{field}={expected[field]!r}, {HELPER_RELATIVE} says "
+                    f"{field}={actual[field]!r}"
+                )
+
     return failures
 
 
