@@ -239,10 +239,8 @@ class TestPatternCoverageWarnings:
         assert len(below) == 1
         assert below[0]["level"] == "medium"
         assert below[0]["message"] == "Routine 'Push' has only 14 sets"
-        # Remediation arithmetic: 15 - 14 = 1 set short of the floor.
         assert "Consider adding 1 more sets" in below[0]["description"]
 
-        # Silent exactly at the floor and comfortably inside the band.
         assert self._volume_warnings({"Push": 15}, "low_volume") == []
         assert self._volume_warnings({"Push": 20}, "low_volume") == []
 
@@ -252,10 +250,8 @@ class TestPatternCoverageWarnings:
         assert len(above) == 1
         assert above[0]["level"] == "medium"
         assert above[0]["message"] == "Routine 'Push' has 25 sets"
-        # Remediation arithmetic: 25 - 24 = 1 set over the ceiling.
         assert "Consider reducing by 1 sets" in above[0]["description"]
 
-        # Silent exactly at the ceiling and comfortably inside the band.
         assert self._volume_warnings({"Push": 24}, "high_volume") == []
         assert self._volume_warnings({"Push": 20}, "high_volume") == []
 

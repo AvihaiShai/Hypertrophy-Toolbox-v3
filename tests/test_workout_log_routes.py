@@ -15,14 +15,12 @@ class TestWorkoutLogPageRender:
     """Tests for GET /workout_log page rendering."""
 
     def test_workout_log_page_loads(self, client, clean_db):
-        """Page must render. The template tree is tracked, so a non-200 here is
-        a real defect, not an environment gap."""
+        """Page must render."""
         resp = client.get("/workout_log")
         assert resp.status_code == 200
 
     def test_workout_log_page_shows_entries(self, client, clean_db, workout_log_entry):
-        """Page must render AND actually surface the seeded entry -- a 200 alone
-        would pass against an empty table, which is what this node is named for."""
+        """Page must render and surface the seeded entry."""
         resp = client.get("/workout_log")
         assert resp.status_code == 200
         body = resp.get_data(as_text=True)

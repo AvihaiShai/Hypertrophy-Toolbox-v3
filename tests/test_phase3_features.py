@@ -391,8 +391,8 @@ def _ensure_test_exercises(db_handler):
     ]
     
     for ex in exercises:
-        # INSERT OR IGNORE already absorbs the re-insert case; anything else
-        # reaching here is a fixture or schema failure and must surface.
+        # Unguarded on purpose: INSERT OR IGNORE covers the duplicate case, so
+        # anything that raises here is a real fixture or schema failure.
         db_handler.execute_query(
             """INSERT OR IGNORE INTO exercises
                (exercise_name, primary_muscle_group, secondary_muscle_group, tertiary_muscle_group,
