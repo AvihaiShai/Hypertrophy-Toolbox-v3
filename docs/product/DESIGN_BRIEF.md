@@ -3,7 +3,7 @@
 *The visual system that actually ships — tokens, theming, typography, motion, and accessibility,
 measured rather than assumed.*
 
-**Derived from:** the CSS bundles at revision `53af816`, plus computed styles read from a running
+**Derived from:** the CSS bundles at revision `d1efc93`, plus computed styles read from a running
 application across **11 pages × 2 themes × 3 viewports** (66 page loads, all HTTP 200), a
 reduced-motion pass, and a keyboard-focus pass. **On conflict, the code wins.**
 
@@ -55,8 +55,12 @@ bundle: `/progression` loads the vendored `flatpickr.min.css` there ahead of
 `pages-progression.css`.
 
 There are **10 page bundles for 11 page routes**: `templates/fatigue.html` declares no `page_css`
-block, so `/fatigue` renders on the global bundles alone. That is why its one local override —
-a 12px select radius where every other page uses 8px — lives elsewhere.
+block, so `/fatigue` loads only the global bundles — confirmed by reading the live document's
+stylesheet list. Its page-specific styling, including the body heatmap, lives in `scss/_fatigue.scss`,
+which is `@import`ed into `custom-bootstrap.scss` and therefore compiles into
+`bootstrap.custom.min.css`. That is the one page whose look is carried by the Bootstrap build
+artifact rather than by a route bundle, and it is why its local overrides — such as a 12px select
+radius where every other page uses 8px — are not findable in `static/css/pages-*.css`.
 
 The tail is load-bearing: **`motion.css` and `theme-dark.css` load after the page bundle**, which
 is how reduced-motion overrides and dark theming win over page-specific rules without needing

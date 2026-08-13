@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hypertrophy-toolbox.local/schemas/consult-request.json",
+  "title": "Cross-model consult request",
+  "description": "What a caller hands to the other model. artifact_paths carries canonical paths for the callee to read itself; it is deliberately not a place to paste file contents.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["objective", "question"],
+  "properties": {
+    "objective": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "Why this consult is being made — the outcome the caller is trying to reach."
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000,
+      "description": "The bounded question. One question, not a work package."
+    },
+    "artifact_paths": {
+      "type": "array",
+      "maxItems": 25,
+      "items": {"type": "string", "minLength": 1, "maxLength": 300},
+      "description": "Repo-relative paths the callee should read directly. Prefer this over pasting content: it keeps the handoff exact rather than paraphrased."
+    },
+    "constraints": {
+      "type": "array",
+      "maxItems": 25,
+      "items": {"type": "string", "maxLength": 500}
+    },
+    "expected": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "What shape of answer would be useful, e.g. 'rank the three options and name the failure mode of each'."
+    }
+  }
+}
