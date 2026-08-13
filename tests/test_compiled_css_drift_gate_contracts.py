@@ -9,14 +9,18 @@ against whatever the SCSS actually compiles to. Before the gate, a change to
 The gate is a clean-build-diff sequence in a workflow, which is exactly why it
 needs pinning: nothing about a half-disarmed version looks wrong. Dropping
 `.map` from a pathspec, skipping the pre-build delete so a no-longer-emitted
-artifact survives from the checkout, swapping `exit $STATUS` for `exit 0`, or
-adding `continue-on-error: true` all leave a step named "Fail on compiled-CSS
-drift" sitting in a green pipeline, checking nothing.
+artifact survives from the checkout, swapping `exit $STATUS` for `exit 0`,
+logging one line between the diff and `STATUS=$?` so the capture reads that
+line's 0, adding `continue-on-error: true`, or attaching an `if:` that never
+holds on a pull request all leave a step named "Fail on compiled-CSS drift"
+sitting in a green pipeline, checking nothing.
 
-Assertions here read parsed workflow fields, never raw substrings: the gate's
-own failure branch prints a `git add <bundle> <map>` hint and the job carries
-explanatory comments, so "is this string somewhere in the job" is true of a
-thoroughly disarmed gate.
+Assertions here read parsed workflow fields rather than raw substrings: the
+gate's own failure branch prints a `git add <bundle> <map>` hint and the job
+carries explanatory comments, so "is this string somewhere in the job" is true
+of a thoroughly disarmed gate. The one exception is the second-compiler scan,
+which has to span every job and so cannot use the one-job reader; it drops
+comment lines before matching, for the same reason.
 """
 
 from __future__ import annotations
@@ -39,6 +43,14 @@ BUILD_COMMAND = "npm run build:css"
 CLEAN_STEP = "Remove the tracked CSS build output before rebuilding"
 BUILD_STEP = "Build Bootstrap-customized CSS"
 DRIFT_STEP = "Fail on compiled-CSS drift"
+
+# `sass` in command position: bare, behind `npx` / `npm exec`, or reached
+# through a path. The previous form of this scan matched only `npx sass` and a
+# line-initial `sass`, so the most obvious version -- an inline `run: sass ...`
+# -- slipped straight past it.
+SASS_COMMAND = re.compile(
+    r"(?:^|[\s;&|(])(?:npx\s+|npm\s+exec\s+)?(?:[\w./-]*/)?sass(?:\.cmd)?(?:\s|$)"
+)
 
 STEP_START = re.compile(r"^    - name:\s*(.*)$")
 STEP_KEY = re.compile(r"^      ([a-z-]+):\s*(.*)$")
@@ -92,6 +104,18 @@ def parse_job(name: str) -> dict:
             job["steps"].append(step)
             continue
 
+        key = JOB_KEY.match(raw)
+        if key:
+            # A key back at job indentation closes the step list. YAML mappings
+            # are unordered, so `continue-on-error:` is as valid after `steps:`
+            # as before it, and GitHub honours it either way -- reading job keys
+            # only until the first step would miss the trailing placement.
+            step = None
+            if key.group(1) != "steps":
+                # `steps:` is the list being accumulated above, not a scalar.
+                job[key.group(1)] = key.group(2).strip()
+            continue
+
         if step is not None:
             key = STEP_KEY.match(raw)
             if key:
@@ -100,12 +124,6 @@ def parse_job(name: str) -> dict:
                     run_lines = []
                 else:
                     step[name_] = value
-            continue
-
-        key = JOB_KEY.match(raw)
-        if key and key.group(1) != "steps":
-            # `steps:` is the list being accumulated above, not a scalar to store.
-            job[key.group(1)] = key.group(2).strip()
 
     if run_lines is not None and step is not None:
         step["run"] = "\n".join(run_lines)
@@ -153,19 +171,29 @@ def build_output_paths() -> list[str]:
 def cleanup_paths(job: dict) -> list[str]:
     step = step_named(job, CLEAN_STEP)
     assert step is not None, f"the '{CLEAN_STEP}' step is gone from {JOB}"
+    commands = logical_commands(step["run"])
     command = command_starting_with(step["run"], "rm ")
     assert command is not None, f"the '{CLEAN_STEP}' step no longer removes anything"
+
+    # Nothing may follow the removal. A trailing `git checkout -- <map>` puts the
+    # committed artifact back before the build and silently restores the exact
+    # blind spot the delete exists to close, while still reporting both paths.
+    assert commands == [command], (
+        f"the '{CLEAN_STEP}' step must do nothing but remove the build output, got "
+        f"{commands}"
+    )
     return [token for token in command.split()[1:] if not token.startswith("-")]
 
 
-def gate_pathspec(job: dict) -> list[str]:
+def gate_diff(job: dict) -> tuple[list[str], list[str]]:
+    """The gate's `git diff`, split into its options and its pathspec."""
     step = step_named(job, DRIFT_STEP)
     assert step is not None, f"the '{DRIFT_STEP}' step is gone from {JOB}"
     command = command_starting_with(step["run"], "git diff --exit-code")
     assert command is not None, "the drift gate no longer runs `git diff --exit-code`"
-    parts = command.split(" -- ", 1)
-    assert len(parts) == 2, f"the gate's git diff has no `--` pathspec: {command}"
-    return parts[1].split()
+    left, separator, right = command.partition(" -- ")
+    assert separator, f"the gate's git diff has no `--` pathspec: {command}"
+    return left.split()[2:], right.split()
 
 
 def test_the_gate_covers_exactly_the_two_tracked_build_artifacts() -> None:
@@ -183,8 +211,9 @@ def test_the_gate_covers_exactly_the_two_tracked_build_artifacts() -> None:
     assert sorted(cleanup_paths(job)) == sorted(expected), (
         f"the pre-build cleanup removes {sorted(cleanup_paths(job))}, expected {sorted(expected)}"
     )
-    assert sorted(gate_pathspec(job)) == sorted(expected), (
-        f"the drift gate checks {sorted(gate_pathspec(job))}, expected {sorted(expected)}"
+    pathspec = gate_diff(job)[1]
+    assert sorted(pathspec) == sorted(expected), (
+        f"the drift gate checks {sorted(pathspec)}, expected {sorted(expected)}"
     )
 
     # `git diff` is silent about untracked paths. Adding either artifact to
@@ -205,34 +234,70 @@ def test_the_gate_covers_exactly_the_two_tracked_build_artifacts() -> None:
 def test_the_gate_can_actually_fail_the_required_job() -> None:
     """A gate that cannot turn the job red is decoration.
 
-    Four independent ways to disarm it without touching the diff itself: drop
-    `--exit-code`, discard the captured status by ending on `exit 0`, mark the
-    step or the job `continue-on-error`, or rename the job away from the context
-    branch protection actually requires.
+    Each assertion below is one way the diff itself survives intact while the
+    job loses the ability to report its failure.
     """
     job = parse_job(JOB)
     assert job.get("name") == JOB_DISPLAY_NAME, (
         f"'{JOB}' display name is {job.get('name')!r}; branch protection requires "
         f"{JOB_DISPLAY_NAME!r} byte-for-byte"
     )
-    assert job.get("continue-on-error") is None, (
-        "frontend-build must not set continue-on-error; it would swallow the gate"
-    )
+    # `continue-on-error` swallows the failure; `if` skips the job outright, and
+    # GitHub reports a skipped required check to branch protection as a success.
+    for key in ("continue-on-error", "if"):
+        assert job.get(key) is None, (
+            f"{JOB} must not set {key}: it lets the required context report success "
+            "without the gate having run"
+        )
 
     step = step_named(job, DRIFT_STEP)
     assert step is not None, f"the '{DRIFT_STEP}' step is gone from {JOB}"
-    assert step.get("continue-on-error") is None, (
-        f"the '{DRIFT_STEP}' step must not set continue-on-error"
+    # A plausible-looking `if: github.event_name == 'push'` skips this step on
+    # every pull request -- the only event where the gate has anything to block.
+    for key in ("continue-on-error", "if"):
+        assert step.get(key) is None, (
+            f"the '{DRIFT_STEP}' step must not set {key}; a tolerated or skipped "
+            "step cannot turn the job red"
+        )
+
+    # The comparison must stay working-tree-against-index. `--cached` (or
+    # `--staged`, or a revision argument) compares the index to HEAD, which
+    # `actions/checkout` makes identical by construction: exit 0 forever,
+    # whatever the build wrote. The pathspec test cannot see this -- it only
+    # reads what is right of the `--`.
+    options = gate_diff(job)[0]
+    assert options == ["--exit-code", "--stat"], (
+        f"the gate's diff options must be exactly ['--exit-code', '--stat'], got {options}"
     )
 
     commands = logical_commands(step["run"])
-    assert any(c.startswith("git diff --exit-code") for c in commands), (
-        "the gate's verdict must come from `git diff --exit-code`"
+    diff_at = next(
+        (i for i, c in enumerate(commands) if c.startswith("git diff --exit-code")), None
     )
-    assert "STATUS=$?" in commands, "the gate no longer captures the diff's exit status"
+    assert diff_at is not None, "the gate's verdict must come from `git diff --exit-code`"
+
+    # Adjacency, not presence. `$?` is the previous command's status, so anything
+    # slipped between the two -- a single added log line is enough -- captures
+    # that command's 0 instead and makes `exit $STATUS` unconditionally green.
+    assert commands[diff_at + 1 : diff_at + 2] == ["STATUS=$?"], (
+        "`STATUS=$?` must be the command immediately after the diff, not "
+        f"{commands[diff_at + 1 : diff_at + 2]}"
+    )
+
+    # Captured once and never rewritten. `STATUS=0` inside the reporting branch
+    # is the natural "make it non-blocking for now" edit, and it satisfies both
+    # the adjacency check above and the final-line check below.
+    assert [c for c in commands if c.startswith("STATUS=")] == ["STATUS=$?"], (
+        f"the gate must set STATUS exactly once, from the diff: {commands}"
+    )
+
     assert commands[-1] == "exit $STATUS", (
         f"the gate must end on `exit $STATUS`, not {commands[-1]!r}"
     )
+    # ...and reach it. A guarded `[ "$STATUS" -ne 0 ] && exit 0` earlier in the
+    # body leaves the final line untouched and still never fails the job.
+    early = [c for c in commands[:-1] if re.search(r"(?:^|[;&|]\s*)exit\b", c)]
+    assert not early, f"the gate must not exit before its final `exit $STATUS`: {early}"
 
 
 def test_the_job_cleans_then_builds_then_checks_with_one_compiler() -> None:
@@ -254,11 +319,28 @@ def test_the_job_cleans_then_builds_then_checks_with_one_compiler() -> None:
         f"expected cleanup -> build -> drift, got {names}"
     )
 
+    # Making the cleanup conditional is the same defect as moving it after the
+    # build: the diff still catches a *changed* artifact, so the gate stays
+    # plausibly green while the no-longer-emitted case goes back to invisible.
+    clean = step_named(job, CLEAN_STEP)
+    assert clean is not None and clean.get("if") is None, (
+        f"the '{CLEAN_STEP}' step must not be conditional; skipping it reopens the "
+        "blind spot it exists to close"
+    )
+
     # One compiler path, invoked through the npm script every other job uses. A
-    # direct `sass`/`npx sass` call could pass different flags and make the gate
-    # assert against a bundle nothing else in the pipeline builds.
+    # direct sass call could pass different flags and make the gate assert
+    # against a bundle nothing else in the pipeline builds.
     build = step_named(job, BUILD_STEP)
     assert build is not None and build.get("run") == BUILD_COMMAND, (
         f"the '{BUILD_STEP}' step runs {build and build.get('run')!r}, expected {BUILD_COMMAND!r}"
     )
-    assert not re.search(r"(npx |^\s*)sass ", ci_text(), re.MULTILINE)
+    offenders = [
+        line.strip()
+        for line in ci_text().split("\n")
+        if not line.lstrip().startswith("#") and SASS_COMMAND.search(line)
+    ]
+    assert not offenders, (
+        "every job must compile through `npm run build:css`; a direct sass call can "
+        f"pass different flags and build a bundle no gate ever checked: {offenders}"
+    )

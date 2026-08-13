@@ -148,6 +148,11 @@ jobs:
   # `npm run build:css` therefore left the contracts green against a stale blob
   # while the browser ran different CSS -- two sources of truth, no gate between
   # them. This job already ran the real build; all it lacked was a verdict.
+  #
+  # NOTE: the `name:` below is a branch-protection required status check — keep
+  # it byte-for-byte, same rule as `typecheck` and the two `(non-required)` E2E
+  # jobs (docs/ai_workflow/QUALITY_GATE.md, "CI job naming"). Renaming it orphans
+  # the context, and tests/test_compiled_css_drift_gate_contracts.py pins it.
   frontend-build:
     name: Frontend Build (npm ci + SCSS)
     runs-on: ubuntu-latest
