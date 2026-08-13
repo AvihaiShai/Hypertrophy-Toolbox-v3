@@ -79,8 +79,8 @@ def parse_job(name: str) -> dict:
     pytest has no YAML parser available (PyYAML is not in requirements.txt), and
     the contracts below must distinguish an executable key from prose in a
     comment. This reads only what they need: job-level keys, each step's name and
-    `run:` body, and `continue-on-error:` at both levels. Comment lines never
-    match the key patterns, so they drop out on their own.
+    `run:` body, and `continue-on-error:` / `if:` at both levels. Comment lines
+    never match the key patterns, so they drop out on their own.
     """
     job: dict = {"steps": []}
     step: dict | None = None
