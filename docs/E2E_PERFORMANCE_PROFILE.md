@@ -560,15 +560,29 @@ including its new readiness oracle runs at 8.28s median.
 
 **Two corrections this slice made to the pattern, both worth carrying:**
 
-1. **The blocked-request oracle's key assertion did not bite.** Slice 1 uses
-   `await expect.poll(() => readySettled).toBe(false)`. `expect.poll` succeeds
-   on its *first satisfying observation*, so it passes the moment it sees
-   `false` — which is also what it sees when the helper is about to resolve a
-   microtask later. A **no-op helper survives it**: replacing the helper body
-   with `await Promise.resolve()` left it green. This slice instead yields
-   across two full CDP round trips and then reads the flag once, synchronously.
-   *The same weakness is live in `e2e/volume-splitter.spec.ts` and is not
-   touched here — that is merged work — but it should be repaired.*
+1. **`expect.poll(() => readySettled).toBe(false)` proves nothing on its own.**
+   `expect.poll` succeeds on its *first satisfying observation*, so it passes
+   the moment it sees `false` — which is also what it sees when the helper is
+   one microtask from resolving. It cannot tell "blocked" from "not settled
+   yet". This slice instead yields across two full CDP round trips and then
+   reads the flag once, synchronously.
+
+   **Whether that makes the whole oracle vacuous depends on what comes after
+   it**, and the two slices differ — measured, not assumed:
+
+   | Oracle | no-op helper (`await Promise.resolve()`) |
+   |---|---|
+   | Slice 1, Volume Splitter (as merged) | **rejected** |
+   | Slice 2 first draft, Body Composition | **survived** |
+
+   Slice 1 is saved by a *non-retrying* `#history-body tr` count after
+   `await ready`: with a no-op helper the render has not happened, the count is
+   0, and the test fails. Slice 2's first draft put an auto-retrying
+   `toBeHidden()` first, which absorbed exactly that signal.
+
+   So the transferable rule is not "`expect.poll` makes a test vacuous" — it is
+   **put the non-retrying reads immediately after the wait, and never rely on
+   `expect.poll` as the thing that proves a wait blocked**.
 2. **Non-retrying reads must come first.** An auto-retrying matcher placed
    before them absorbs "the render completed shortly after the helper
    returned", which is the exact failure being tested.

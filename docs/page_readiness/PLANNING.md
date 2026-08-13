@@ -233,10 +233,13 @@ This slice yields across two full CDP round trips — giving a no-op every chanc
 to resolve — and then reads the flag once, synchronously. No hard wait is
 involved. With that change the same mutation is rejected.
 
-*The identical weakness is present in the merged slice-1 oracle
-(`e2e/volume-splitter.spec.ts`). It is **not** touched here — that is merged
-work and out of this slice's scope — but it should be repaired, and the fix is
-the four lines above.*
+**Correction, measured after that was written.** The slice-1 oracle carries the
+same weak `expect.poll` line, but it is **not** vacuous: a non-retrying
+`#history-body tr` count after `await ready` catches the no-op helper, because
+the render has not happened. Slice 2's first draft placed an auto-retrying
+`toBeHidden()` before its non-retrying read, which absorbed that signal — that
+ordering, not `expect.poll` alone, is what made it vacuous. Both are repaired;
+the rule to carry is "non-retrying reads first".
 
 **2. A source contract was satisfied by a comment.** The contract forbidding
 `expect.poll` matched the prose in the very comment explaining why the code
