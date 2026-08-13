@@ -105,10 +105,10 @@ directions**, and saying so plainly is the point of this note:
   for that invocation. The second is not partial containment; it is no containment, and
   it should be chosen deliberately or not at all.
 
-Layers 1, 3 and 4 are unaffected either way. A consult writes nothing to the checkout, so
-layer 3 has nothing to isolate, and it approves no gate, so layers 1 and 4 keep their full
-force. What a consult adds is egress: the question and everything the callee reads leave
-this machine.
+Layers 1, 3 and 4 are unaffected either way. A consult writes nothing outside gitignored
+`artifacts/` and creates no checkout, so layer 3 has nothing to isolate, and it approves no
+gate, so layers 1 and 4 keep their full force. What a consult adds is **egress**: the
+question, everything the callee reads, and the answer leave this machine.
 
 ---
 

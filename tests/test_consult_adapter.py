@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -180,6 +181,34 @@ def test_record_reports_the_model_that_answered_not_the_one_requested(tmp_path: 
     assert record["callee"]["model_answered"] == "fixture-model-that-answered"
 
 
+def test_a_rerun_cannot_return_the_previous_runs_answer(tmp_path: Path) -> None:
+    """The codex direction reads its result from a fixed file in the record dir.
+
+    Reusing a consult id against a child that writes nothing would otherwise
+    launder the previous run's answer into this run's record.
+    """
+    record_root = tmp_path / "records"
+    first, record = run_consult_cli(
+        "ask-codex",
+        write_request(tmp_path),
+        record_root,
+        env=fixture_env("codex", "success", tmp_path / "a.log"),
+    )
+    assert first == consult.EXIT_SUCCESS
+    assert record["result"]["summary"] == "The fixture answered."
+
+    # `not_json` makes the fixture print prose and write no last-message file.
+    second, rerun = run_consult_cli(
+        "ask-codex",
+        write_request(tmp_path),
+        record_root,
+        env=fixture_env("codex", "not_json", tmp_path / "b.log"),
+    )
+    assert second == consult.EXIT_ERROR
+    assert rerun["result"] is None
+    assert rerun["error"]["kind"] == "malformed_result"
+
+
 def test_result_carries_the_advisory_statement(tmp_path: Path) -> None:
     _, record = run_consult_cli(
         "ask-claude",
@@ -200,8 +229,12 @@ def test_claude_callee_is_confined_by_flags_not_prose() -> None:
         ["claude"], "prompt", model="m", profile="lean", max_budget_usd=0.5
     )
     assert argv[argv.index("--permission-mode") + 1] == "plan"
-    denied = argv[argv.index("--disallowedTools") + 1].split(",")
-    assert {"Write", "Edit", "NotebookEdit", "Bash", "PowerShell"} <= set(denied)
+    denied = set(argv[argv.index("--disallowedTools") + 1].split(","))
+    assert {"Write", "Edit", "NotebookEdit", "Bash", "PowerShell"} <= denied
+    # Plan mode bounds writes only. These three bound egress and delegation: a
+    # callee that read a hostile file could otherwise WebFetch a credential out,
+    # or spawn a Task subagent that never saw this denylist.
+    assert {"WebFetch", "WebSearch", "Task"} <= denied
     assert argv[argv.index("--max-budget-usd") + 1] == "0.5"
     # C-7 / criterion 17: a consult creates no checkout, ever.
     assert "--worktree" not in argv
@@ -218,16 +251,26 @@ def test_codex_callee_is_confined_by_the_read_only_sandbox(tmp_path: Path) -> No
     assert "--worktree" not in argv
 
 
-def test_lean_profile_suppresses_settings_and_mcp_servers() -> None:
+def test_the_profile_is_a_context_trade_never_a_capability_trade() -> None:
+    """`repo` loads repository settings. It must not hand the callee more power.
+
+    `.mcp.json` registers a remote HTTP server, so leaving MCP suppression
+    inside the lean branch would mean opting into context also opts into a
+    remote tool endpoint for a callee whose output this protocol calls untrusted.
+    """
     lean = consult.build_claude_argv(
         ["claude"], "p", model="m", profile="lean", max_budget_usd=1.0
     )
     repo = consult.build_claude_argv(
         ["claude"], "p", model="m", profile="repo", max_budget_usd=1.0
     )
-    assert "--strict-mcp-config" in lean
+    for argv in (lean, repo):
+        assert "--strict-mcp-config" in argv
+        assert argv[argv.index("--mcp-config") + 1] == '{"mcpServers":{}}'
+        assert argv[argv.index("--permission-mode") + 1] == "plan"
+    # The only difference is which settings are loaded.
     assert lean[lean.index("--setting-sources") + 1] == ""
-    assert "--strict-mcp-config" not in repo
+    assert "--setting-sources" not in repo
 
 
 # --------------------------------------------------------------------------
@@ -503,7 +546,9 @@ def test_artifact_paths_are_handed_over_as_paths_not_contents(tmp_path: Path) ->
     # The sentinel must live in a file the request actually names -- otherwise
     # an adapter that inlined every artifact would still pass, which is exactly
     # how this row failed its own mutation the first time it was written.
-    relative = "tests/fixtures/consult/sentinel_artifact.md"
+    # The pid suffix keeps two concurrent runs in one checkout from racing on
+    # create/unlink, and .gitignore covers an orphan left by a hard abort.
+    relative = f"tests/fixtures/consult/sentinel_{os.getpid()}.md"
     target = REPO / relative
     target.write_text(sentinel, encoding="utf-8")
     try:
@@ -538,6 +583,16 @@ def test_artifact_paths_are_handed_over_as_paths_not_contents(tmp_path: Path) ->
         ".env",
         ".git/config",
         "../Hypertrophy-Toolbox-v3-main/CLAUDE.md",
+        # The repository root passes every prefix and name rule, so allowing it
+        # would hand over the whole tree -- including everything above.
+        ".",
+        "docs/..",
+        # The prefix rules must be case-insensitive on Windows: `resolve()` only
+        # canonicalises casing for components that exist, and `artifacts/` is
+        # absent in a fresh clone.
+        "Artifacts/consult/consult-log.jsonl",
+        # A NUL byte satisfies the wire schema and raises ValueError, not OSError.
+        "\x00",
     ],
 )
 def test_denied_artifact_paths_are_refused_before_any_child_starts(
@@ -563,6 +618,127 @@ def test_an_allowed_path_still_passes() -> None:
     )
 
 
+@pytest.mark.parametrize("suffix", [".cmd", ".bat"])
+def test_a_batch_shim_is_refused_because_it_reintroduces_a_shell(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, suffix: str
+) -> None:
+    """The one configuration where "argument vector, no shell" stops being true.
+
+    Windows runs a batch target by re-invoking `cmd.exe /c` with the whole
+    command line, and `cmd.exe` does not honour Python's quoting. Since the
+    caller's question travels as one argv token, a batch shim would turn the
+    no-shell guarantee into a command-injection path. The metacharacter row
+    cannot reach this — it always runs against a real executable.
+    """
+    shim = tmp_path / f"claude{suffix}"
+    shim.write_text("@echo off\n", encoding="utf-8")
+    monkeypatch.setenv("CONSULT_CLAUDE_CLI", str(shim))
+    with pytest.raises(consult.ConsultError) as caught:
+        consult.resolve_executable("claude")
+    assert caught.value.kind == "cli_unavailable"
+    assert "cmd.exe" in caught.value.detail
+
+
+def test_cwd_is_pinned_to_the_repository_root(tmp_path: Path) -> None:
+    """Otherwise the denylist polices one tree and the callee reads another.
+
+    `--cwd <parent>` with a path that is harmless relative to the repo can name
+    something else entirely once the child resolves it from a different root.
+    """
+    completed = subprocess.run(
+        [
+            sys.executable, str(CONSULT_DIR / "consult.py"), "ask-claude",
+            "--request", str(write_request(tmp_path, artifact_paths=[".ssh/id_rsa"])),
+            "--record-root", str(tmp_path / "records"),
+            "--consult-id", "row",
+            "--cwd", str(tmp_path),
+        ],
+        capture_output=True,
+        text=True,
+        env={**os.environ, **fixture_env("claude", "success", tmp_path / "fixture.log")},
+        timeout=180,
+    )
+    assert completed.returncode == consult.EXIT_ERROR
+    assert json.loads(completed.stderr)["kind"] == "bad_request"
+    assert "--cwd" in json.loads(completed.stderr)["detail"]
+    assert not (tmp_path / "records").exists()
+
+
+def test_a_record_root_inside_the_repo_must_be_under_artifacts(tmp_path: Path) -> None:
+    """`--record-root docs` would make the protocol's write claim false."""
+    rejected = REPO / "docs"
+    strays = (rejected / "row", rejected / consult.CONSULT_LOG_NAME)
+
+    def clear() -> None:
+        for stray in strays:
+            if stray.is_dir():
+                shutil.rmtree(stray)
+            elif stray.exists():
+                stray.unlink()
+
+    # Before, because a run under a deliberately mutated adapter leaves exactly
+    # these files behind and inheriting them would make this row pass or fail
+    # for the wrong reason. After, because this row aims a real write at a
+    # tracked directory and must not dirty the tree if the guard regresses.
+    clear()
+    try:
+        code, record = run_consult_cli(
+            "ask-claude",
+            write_request(tmp_path),
+            rejected,
+            env=fixture_env("claude", "success", tmp_path / "fixture.log"),
+        )
+        assert code == consult.EXIT_ERROR
+        assert record == {}, "nothing may be written to the rejected root"
+        assert not (rejected / "row").exists()
+        assert not (rejected / consult.CONSULT_LOG_NAME).exists()
+    finally:
+        clear()
+
+
+def test_a_consult_id_that_is_not_a_plain_name_is_refused(tmp_path: Path) -> None:
+    code, _ = run_consult_cli(
+        "ask-claude",
+        write_request(tmp_path),
+        tmp_path / "records",
+        env=fixture_env("claude", "success", tmp_path / "fixture.log"),
+        extra=["--consult-id", "../escape"],
+    )
+    assert code == consult.EXIT_ERROR
+
+
+def test_the_validator_refuses_a_type_it_does_not_implement() -> None:
+    """Silence here would be the dangerous outcome.
+
+    An unimplemented `type` used to fall through every branch and accept
+    anything, so a future `{"type": "integer"}` property would have been
+    unenforced with every gate green.
+    """
+    with pytest.raises(consult.ConsultError) as caught:
+        consult._validate(7, {"type": "integer"})
+    assert caught.value.kind == "schema_violation"
+
+
+def test_an_object_subschema_without_an_explicit_type_is_still_enforced() -> None:
+    """Legal JSON Schema, and dispatching on `type` alone would ignore it."""
+    schema = {"properties": {"a": {"type": "string"}}, "required": ["a"],
+              "additionalProperties": False}
+    assert consult._validate({}, schema), "missing required property must be reported"
+    assert consult._validate({"a": "x", "b": 1}, schema), "extra property must be reported"
+    assert not consult._validate({"a": "x"}, schema)
+
+
+def test_result_bounds_survive_a_payload_the_schema_never_saw() -> None:
+    """`enforce_result_bounds` is the half that does not trust the answer, so it
+    must not assume the validator ran first."""
+    for payload in ({}, {"summary": 7, "findings": "nope", "questions": None},
+                    {"status": "needs_input"}):
+        try:
+            consult.enforce_result_bounds(payload)
+        except consult.ConsultError:
+            pass  # a typed rejection is fine; a TypeError or KeyError is not
+
+
 def test_path_containment_uses_a_separator_terminated_anchor(tmp_path: Path) -> None:
     """A sibling whose name merely starts with the root's name is not inside it."""
     root = tmp_path / "repo"
@@ -572,8 +748,30 @@ def test_path_containment_uses_a_separator_terminated_anchor(tmp_path: Path) -> 
     (sibling / "file.md").write_text("x", encoding="utf-8")
 
     consult.check_artifact_paths(["sub"], root)
-    with pytest.raises(consult.ConsultError):
+    with pytest.raises(consult.ConsultError) as caught:
         consult.check_artifact_paths([str(sibling / "file.md")], root)
+    # The exact reason matters: with a bare (non-separator-terminated) anchor the
+    # sibling passes containment and then trips a different error further down,
+    # so asserting only "it raised" would let that regression through.
+    assert "outside the repository" in caught.value.detail
+
+
+def test_denied_prefixes_match_regardless_of_case_when_the_directory_is_absent(
+    tmp_path: Path,
+) -> None:
+    """`Path.resolve()` only canonicalises casing for components that exist.
+
+    `artifacts/` is gitignored with no keepfile, so on a fresh clone and on the
+    CI runner it is absent — and that is exactly when a case variant would slip
+    past a case-sensitive prefix rule and reopen the re-ingestion loop.
+    """
+    root = tmp_path / "repo"
+    root.mkdir()
+    assert not (root / "artifacts").exists()
+    for variant in ("Artifacts/consult/record.json", "DATA/database.db", "Logs/app.log"):
+        with pytest.raises(consult.ConsultError) as caught:
+            consult.check_artifact_paths([variant], root)
+        assert "denied" in caught.value.detail
 
 
 # --------------------------------------------------------------------------
@@ -610,31 +808,60 @@ def test_each_child_keeps_only_its_own_vendor_credentials(
         assert env["HT_PLAIN_SETTING"] == "kept"
 
 
-def test_a_credential_in_the_child_output_never_reaches_the_record_or_the_log(
-    tmp_path: Path,
+FAKE_SECRET = "sk-ant-api03-FIXTURE-NOT-A-REAL-CREDENTIAL"
+
+
+@pytest.mark.parametrize("mode", ["credential_echo", "credential_stderr"])
+def test_a_callee_quoted_secret_reaches_the_evidence_but_never_the_session_log(
+    tmp_path: Path, mode: str
 ) -> None:
     """The adapter cannot stop a callee from quoting a secret at it.
 
-    What it can do is keep that text out of the structured evidence and the
-    session log, which are the two things a person reads and pastes. The raw
-    capture keeps it, deliberately, so the incident is investigable.
+    So this pins where such a secret actually goes rather than claiming it is
+    stopped. It **does** reach `record.json` and the raw capture — deliberately,
+    because an incident has to be investigable. It must **not** reach
+    `consult-log.jsonl`, which is the file the owner tails and pastes, and whose
+    fields are an explicit allowlist containing no callee free text.
     """
     record_root = tmp_path / "records"
     _, record = run_consult_cli(
         "ask-claude",
         write_request(tmp_path),
         record_root,
-        env=fixture_env("claude", "success", tmp_path / "fixture.log"),
+        env=fixture_env("claude", mode, tmp_path / "fixture.log"),
     )
     serialized = json.dumps(record)
     log_text = (record_root / consult.CONSULT_LOG_NAME).read_text(encoding="utf-8")
 
+    assert FAKE_SECRET in serialized, (
+        "the record is the investigable evidence; redacting it here would be a "
+        "different design, and the docs would have to say so"
+    )
+    assert FAKE_SECRET not in log_text
+
     # The prompt is elided from argv_shape rather than echoed back, so a long
     # argument cannot smuggle content into the record's own fields.
     assert any(re.fullmatch(r"<\d+ chars>", token) for token in record["argv_shape"])
-    for blob in (serialized, log_text):
-        assert "ANTHROPIC_API_KEY" not in blob
-        assert "sk-ant-" not in blob
+
+
+def test_the_adapters_own_environment_never_reaches_the_record_or_the_log(
+    tmp_path: Path,
+) -> None:
+    record_root = tmp_path / "records"
+    _, record = run_consult_cli(
+        "ask-claude",
+        write_request(tmp_path),
+        record_root,
+        env={
+            **fixture_env("claude", "success", tmp_path / "fixture.log"),
+            "ANTHROPIC_API_KEY": "sk-ant-THE-ADAPTERS-OWN-VALUE",
+        },
+    )
+    blob = json.dumps(record) + (record_root / consult.CONSULT_LOG_NAME).read_text(
+        encoding="utf-8"
+    )
+    assert "sk-ant-THE-ADAPTERS-OWN-VALUE" not in blob
+    assert "ANTHROPIC_API_KEY" not in blob
 
 
 # --------------------------------------------------------------------------
@@ -721,8 +948,10 @@ def test_a_consult_writes_only_inside_its_record_root(tmp_path: Path) -> None:
         env=fixture_env("claude", "success", tmp_path / "fixture.log"),
     )
     assert list(outside.iterdir()) == []
+    # Exact, not a subset: a stray extra write inside the record root is just as
+    # much a scope violation as one outside it.
     written = {p.name for p in (record_root / "row").iterdir()}
-    assert {"request.json", "prompt.txt", "raw.stdout", "record.json"} <= written
+    assert written == {"request.json", "prompt.txt", "raw.stdout", "raw.stderr", "record.json"}
     assert not any(p.suffix == ".db" for p in record_root.rglob("*"))
 
 

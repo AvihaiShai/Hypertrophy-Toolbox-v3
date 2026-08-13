@@ -1869,6 +1869,7 @@ credentials already present. Neither extracted, copied, or repurposed a credenti
 |---|---|---|
 | Claude → Codex | `consult.py ask-codex` | `success` in 160.6 s. The Codex callee read `AGENTS.md` and `AUTONOMY.md` under `-s read-only` and returned a schema-valid result with one `low` finding. |
 | Codex → Claude | `codex exec … "run consult.py ask-claude …"` | `success` in 11.9 s, $0.046. Codex spawned the adapter, which spawned Claude, which read both files and answered. `artifacts_read` confirms the path handoff. |
+| Claude callee, re-run **after** the diff-time hardening | `consult.py ask-claude` | `success`, $0.086, `artifacts_read` intact. Re-run because DR-1 through DR-8 changed the argv, the read denylist and the invocation-path checks; a green fixture matrix would not have caught a live regression in any of them. |
 
 The Codex→Claude smoke required `-s danger-full-access` (HR-12), because no containment
 mode on this host completes that direction inside `codex exec`. That is recorded here and
@@ -1900,6 +1901,82 @@ side would have shipped half-broken.
 - **Reviewers:** `code-reviewer` (the AI-workflow row), plus `architecture-reviewer` for the
   process-boundary and child-process-spawn surface. No `product-risk-reviewer` is required
   at diff time — the calculation surface is `none`, confirmed by the reviewer itself.
+
+---
+
+## Diff-time review — 2026-08-13
+
+[`QUALITY_GATE.md`](QUALITY_GATE.md)'s AI-workflow row requires `code-reviewer`; a
+security/architecture pass was added because this packet spawns child processes and
+handles untrusted cross-model output. Both ran against the staged diff. Both returned
+findings, and **two were exploitable**, so this round changed real code rather than
+prose.
+
+The `architecture-reviewer` independently re-verified all eleven of its own plan-stage
+findings as landed before looking for new ones.
+
+### The two that mattered most
+
+**DR-1 — the callee's tool surface was bounded on the write axis only.**
+`--permission-mode plan` plus a write denylist stops writes. It does not stop `WebFetch`,
+`WebSearch`, or a `Task` subagent — and a `Task` subagent does not inherit the parent's
+`--disallowedTools` at all. The packet's own threat model is a callee that read a hostile
+file; such a callee could read the *other* vendor's credential file and fetch it out to an
+allowed domain. This is the same blind spot the council found on the read-path axis
+(CR-12), reappearing one layer up on the tool axis, which is the more interesting fact
+about it. **Fixed:** `WebFetch,WebSearch,Task` added to the denylist, asserted, and
+mutation-tested (M2b).
+
+**DR-2 — a `.bat`/`.cmd` target silently reintroduces a shell.**
+Windows `CreateProcess` runs a batch target by re-invoking `cmd.exe /c` with the whole
+command line, and `cmd.exe` does not honour the MSVCRT quoting Python applies —
+`shell=False` does not prevent it (CVE-2024-24576). Since the caller's question travels as
+one argv token, a batch shim would have turned criterion 24's central guarantee into a
+command-injection path. On this host `codex` resolves to a real `.EXE`, so the defect was
+latent rather than live; an npm-installed CLI on another machine would have made it live.
+**Fixed:** batch targets are refused with a typed error, and `shutil.which` results must be
+absolute (it searches the current directory first on Windows). The metacharacter row could
+never have caught this — it always runs against a real executable — so a dedicated row was
+added (M2d).
+
+### Everything else, dispositioned
+
+| # | Finding | Reviewer | Disposition | Action |
+|---|---|---|---|---|
+| DR-3 | `artifact_paths: ["."]` — the repository root — passes every prefix and name rule, transitively granting `data/`, `logs/`, `.git/` | code | **accept, exploitable** | Rejected explicitly; rows for `"."` and `"docs/.."` added (M2g). |
+| DR-4 | `--cwd` decouples the denylist root from the root the callee resolves against | code, architecture | **accept, exploitable** | `--cwd` is now pinned to the repository root. The denylist's prefixes only mean anything relative to *this* repo, so pinning is the honest fix rather than a second check (M2e). |
+| DR-5 | Prefix rules were case-sensitive while name patterns were not; `artifacts/` is absent in a fresh clone, so `Artifacts/…` would slip through | code | **accept** | Case-folded on Windows. The test uses a temp root where the directory genuinely does not exist — otherwise `resolve()` canonicalises the casing and the row cannot fail (M2h2). |
+| DR-6 | A NUL byte in a path raises `ValueError`, not `OSError`, and escaped as a traceback | code | **accept** | Control characters are refused outright (M2i). |
+| DR-7 | `--record-root` could point at a tracked directory, making the protocol's write claim false | code | **accept** | A record root inside the repo must be under `artifacts/`. The row that proves it **demonstrated the defect live** — it wrote `docs/row/record.json` before the guard existed (M2f). |
+| DR-8 | The credential row was vacuous, and half its claim was false: a callee-quoted secret *does* reach `record.json` | code | **accept — the sharpest test finding** | Rewritten to pin where a secret actually goes: into the record and the raw capture **deliberately**, so an incident is investigable, and **never** into `consult-log.jsonl`, whose fields are an allowlist. Two fixture modes now plant a recognisable fake secret in `summary` and in stderr (M2l). |
+| DR-9 | `enforce_result_bounds` would `KeyError`/`TypeError` on a payload the schema never saw | code | **accept** | Made independently safe with `.get` + `isinstance`. It is the half that is supposed not to trust the answer; it must not assume the other half ran. |
+| DR-10 | The validator silently passes any unimplemented `type`, and ignores an object sub-schema with no explicit `"type"` | code | **accept** | Both closed; `enum` also reachable for object and array schemas now (M2j, M2k). |
+| DR-11 | `--profile repo` silently re-enabled a remote MCP tool surface for an untrusted callee | architecture | **accept** | `--strict-mcp-config` now applies in **both** profiles. The profile is a context trade, never a capability trade (M2c). |
+| DR-12 | `child_pid` was `None` on exactly the records that exist to prove a child was terminated | code | **accept** | The pid now travels on the error. |
+| DR-13 | Bytes drained during termination were discarded, contradicting the keep-the-raw-stream principle | code | **accept** | A timeout or cancel record now keeps whatever the child had produced. |
+| DR-14 | Re-running a consult id could return the previous run's codex answer | architecture | **accept** | The last-message file is cleared before the child starts (M6c2). |
+| DR-15 | `cli_version` and `model_answered` are unbounded child-controlled text reaching the session log | architecture | **accept** | Both capped. |
+| DR-16 | `run_child` took a `max_output_bytes` it never used; the protocol claimed a bound the code applied post hoc | code, architecture | **accept** | Parameter removed and the limits table corrected: the cap bounds what reaches the *caller's context*, not what the adapter buffers. |
+| DR-17 | Untyped `OSError` / `UnicodeDecodeError` / `RecursionError` / `KeyboardInterrupt` escaped as tracebacks with no record | code | **accept** | All typed; the entry point also degrades to the right exit code when it cannot write a record at all. |
+| DR-18 | `print()` of the record can `UnicodeEncodeError` on Windows, crashing *after* the record was safely written | code | **accept** | stdout and stderr are reconfigured to UTF-8. |
+| DR-19 | Pipes left open in the last-resort termination branch | code | **accept** | Closed explicitly. |
+| DR-20 | `_CREDENTIAL_NAME` misses `HTTPS_PROXY`, `DATABASE_URL`, `KUBECONFIG`, `NETRC`, `*_PAT` | code | **accept** | Extended. `_URL$`/`_URI$` over-drop some harmless variables; for a filter whose failure mode is a leaked secret that is the right direction, and neither CLI needs them. |
+| DR-21 | The cross-vendor credential guarantee is environment-axis only; both credential files remain readable off disk | architecture | **accept** | Stated in the limits table. The filter is not containment and the docs no longer read as though it were. |
+| DR-22 | Up to 500 bytes of child stderr reach `record.json` | architecture | **accept as a disclosed residual** | Named in the limits table and pinned by the `credential_stderr` fixture mode. |
+| DR-23 | The atomic-append claim is a POSIX guarantee asserted on a Windows-primary host | architecture | **accept** | Qualified in both documents, and `O_BINARY` added. CR-29 got the honest treatment for `terminate()`; this now matches. |
+| DR-24 | `AUTONOMY.md` still said "writes nothing to the checkout" after criterion 10 was restated | architecture | **accept** | Corrected. |
+| DR-25 | The adapter's module docstring reintroduced the retired tier vocabulary | architecture | **accept** | Reworded. Outside the contract's scan, but the contract exists for a reason. |
+| DR-26 | The sentinel test writes a fixed filename into the tracked tree | code, architecture | **accept the race fix, decline the `.gitignore` edit** | The filename is now pid-suffixed, so two concurrent runs cannot race, and it is removed in `finally`. `.gitignore` is a never-claimed shared path under [PARALLEL_WORKFLOW.md](PARALLEL_WORKFLOW.md); adding a line for a hard-abort edge case is not worth the coordination it requires. Recorded rather than done. |
+| DR-27 | `test_a_consult_writes_only_inside_its_record_root` used `<=`, so an extra write passed | code | **accept** | Exact set comparison. |
+| DR-28 | `--consult-id` was unvalidated and becomes a directory name | code | **accept** | Restricted to a plain name. |
+| DR-29 | The timeout row never asserts the owned child died | code | **defer** | Now unblocked by DR-12, but the cancellation row already asserts a real process is dead via the same code path, so a second assertion of the same property would add ceremony rather than coverage. Recorded. |
+| DR-30 | `direction` is derived from the subcommand rather than observed | architecture | **reject** | It is a label for which adapter entry point ran, which is exactly what the subcommand is. Observing it is not possible and not meaningful. |
+| DR-31 | Two brittle doc assertions (`"manager" in protocol`; frontmatter split) | code | **defer** | Both are weak but neither is wrong, and the charter assertion is pinned by a real mutation elsewhere. Not worth churn in this packet. |
+| DR-32 | `monkeypatch` would be tidier than manual patch/restore in the cancellation row | code | **reject** | The manual restore is in a `finally` and is correct; the assertion is on a real process, which the reviewer agreed is well constructed. |
+
+**Evidence after this round:** 59 tests (was 43), **34 named mutations, 34/34 rejected**
+(was 20/20). Two of the new rows were written specifically because the reviewers showed the
+old ones could not fail.
 
 ---
 

@@ -1,4 +1,4 @@
-"""Tier 1 cross-model consult adapter.
+"""Cross-model consult adapter.
 
 Asks the *other* vendor's CLI one bounded, read-only question and returns a
 schema-validated answer. Symmetric: `ask-claude` and `ask-codex` differ only in
@@ -29,6 +29,7 @@ Exit codes: 0 success, 1 error, 3 needs_input, 4 timeout, 5 cancelled.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
 import re
@@ -79,7 +80,16 @@ _EXIT_FOR_STATUS = {
 # business seeing. Each direction therefore keeps its own vendor prefix and
 # drops everything else that matches.
 _CREDENTIAL_NAME = re.compile(
-    r"(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH)", re.IGNORECASE
+    # Substring scan, not a classification. `PROXY`/`NETRC`/`KUBECONFIG`/`_PAT`
+    # and the URL forms are here because they routinely carry a secret in a
+    # name that contains none of the obvious words -- `HTTPS_PROXY` is commonly
+    # `http://user:password@host`, and `DATABASE_URL` puts credentials in the
+    # userinfo component. `_URL$`/`_URI$` over-drops some harmless variables;
+    # for a filter whose failure mode is a leaked secret, that is the right
+    # direction, and neither CLI needs them.
+    r"(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH|PROXY|NETRC|KUBECONFIG"
+    r"|_PAT$|_URI$|_URL$)",
+    re.IGNORECASE,
 )
 _VENDOR_PREFIXES = {
     "claude": ("ANTHROPIC_", "CLAUDE_"),
@@ -90,10 +100,21 @@ _VENDOR_PREFIXES = {
 class ConsultError(Exception):
     """A typed, terminal adapter failure. Never retried."""
 
-    def __init__(self, kind: str, detail: str) -> None:
+    def __init__(
+        self,
+        kind: str,
+        detail: str,
+        *,
+        pid: int | None = None,
+        drained: bytes = b"",
+    ) -> None:
         super().__init__(f"{kind}: {detail}")
         self.kind = kind
         self.detail = detail
+        # A timeout or cancel record exists to show which child was terminated
+        # and what it had produced. Both are only knowable here.
+        self.pid = pid
+        self.drained = drained
 
 
 # --------------------------------------------------------------------------
@@ -128,15 +149,45 @@ def check_artifact_paths(paths: list[str], repo_root: Path) -> None:
     # merely starts with the root's name would read as contained.
     anchor = str(root) + os.sep
     for raw in paths:
-        candidate = Path(raw)
-        resolved = (candidate if candidate.is_absolute() else root / candidate).resolve()
-        if str(resolved) != str(root) and not str(resolved).startswith(anchor):
+        if any(ord(ch) < 0x20 for ch in raw):
+            # A NUL or other control character satisfies the wire schema and
+            # behaves differently in `Path`, `resolve` and the child's own
+            # argument parsing. Nothing legitimate needs one.
+            raise ConsultError(
+                "bad_request", f"artifact path {raw!r} contains a control character"
+            )
+        try:
+            candidate = Path(raw)
+            resolved = (candidate if candidate.is_absolute() else root / candidate).resolve()
+            relative = None
+            if str(resolved) == str(root) or str(resolved).startswith(anchor):
+                relative = resolved.relative_to(root).as_posix()
+        except (OSError, ValueError) as exc:
+            # A NUL byte raises ValueError, not OSError, and satisfies the wire
+            # schema happily. Typed here rather than escaping as a traceback.
+            raise ConsultError(
+                "bad_request", f"artifact path {raw!r} cannot be resolved: {exc}"
+            ) from exc
+
+        if relative is None:
             raise ConsultError(
                 "bad_request", f"artifact path {raw!r} resolves outside the repository"
             )
-        relative = resolved.relative_to(root).as_posix()
+        if relative == ".":
+            # The root passes every prefix and name rule below, so allowing it
+            # would hand the callee the whole tree -- including the database
+            # this denylist exists to protect.
+            raise ConsultError(
+                "bad_request",
+                f"artifact path {raw!r} is the repository root; name files or "
+                "subdirectories, not the whole tree",
+            )
+        # The name patterns are already case-insensitive; the prefix rules must
+        # be too. `Path.resolve()` only canonicalises casing for path components
+        # that exist on disk, and `artifacts/` does not exist in a fresh clone.
+        probe = relative.lower() if os.name == "nt" else relative
         for prefix, why in _DENIED_PATH_RULES:
-            if relative == prefix.rstrip("/") or relative.startswith(prefix):
+            if probe == prefix.rstrip("/") or probe.startswith(prefix):
                 raise ConsultError(
                     "bad_request", f"artifact path {raw!r} is denied: {why}"
                 )
@@ -157,11 +208,26 @@ def check_artifact_paths(paths: list[str], repo_root: Path) -> None:
 # the validator rejects each construct it claims to enforce.
 
 
+_IMPLEMENTED_TYPES = ("object", "array", "string")
+
+
 def _validate(instance: Any, schema: dict[str, Any], path: str = "$") -> list[str]:
     errors: list[str] = []
 
     expected_type = schema.get("type")
-    if expected_type == "object":
+    if expected_type is not None and expected_type not in _IMPLEMENTED_TYPES:
+        # Silence here would be the dangerous outcome: an unimplemented type
+        # would fall through every branch below and accept anything.
+        raise ConsultError(
+            "schema_violation",
+            f"{path}: this validator does not implement type {expected_type!r}",
+        )
+    # A sub-schema that describes an object without saying `"type": "object"` is
+    # legal JSON Schema, and dispatching on `type` alone would ignore its
+    # `required` and `additionalProperties` entirely.
+    if expected_type == "object" or (
+        expected_type is None and ("properties" in schema or "required" in schema)
+    ):
         if not isinstance(instance, dict):
             return [f"{path}: expected object, got {type(instance).__name__}"]
         properties = schema.get("properties", {})
@@ -175,7 +241,7 @@ def _validate(instance: Any, schema: dict[str, Any], path: str = "$") -> list[st
         for name, value in instance.items():
             if name in properties:
                 errors.extend(_validate(value, properties[name], f"{path}.{name}"))
-        return errors
+        return errors + _enum_errors(instance, schema, path)
 
     if expected_type == "array":
         if not isinstance(instance, list):
@@ -187,7 +253,7 @@ def _validate(instance: Any, schema: dict[str, Any], path: str = "$") -> list[st
         if item_schema:
             for index, value in enumerate(instance):
                 errors.extend(_validate(value, item_schema, f"{path}[{index}]"))
-        return errors
+        return errors + _enum_errors(instance, schema, path)
 
     if expected_type == "string":
         if not isinstance(instance, str):
@@ -199,11 +265,14 @@ def _validate(instance: Any, schema: dict[str, Any], path: str = "$") -> list[st
         if max_length is not None and len(instance) > max_length:
             errors.append(f"{path}: length {len(instance)} exceeds maxLength {max_length}")
 
+    return errors + _enum_errors(instance, schema, path)
+
+
+def _enum_errors(instance: Any, schema: dict[str, Any], path: str) -> list[str]:
     enum = schema.get("enum")
     if enum is not None and instance not in enum:
-        errors.append(f"{path}: {instance!r} is not one of {enum}")
-
-    return errors
+        return [f"{path}: {instance!r} is not one of {enum}"]
+    return []
 
 
 def load_schema(path: Path) -> dict[str, Any]:
@@ -227,36 +296,55 @@ _MAX_QUESTIONS = 10
 _MAX_QUESTION = 500
 _MAX_ARTIFACTS_READ = 50
 _MAX_ARTIFACT_PATH = 300
+# `cli_version` and `model_answered` are verbatim child output presented as
+# adapter evidence, and they are the only free text that reaches the session log.
+_MAX_CALLEE_FIELD = 200
 
 
 def enforce_result_bounds(payload: dict[str, Any]) -> None:
-    """Re-check every size the wire schema is unable to express."""
+    """Re-check every size the wire schema is unable to express.
+
+    Independently safe: it is called one line after `validate_or_raise`, but it
+    is the half that is supposed not to trust the answer, so it must not assume
+    the other half ran. A wrong-typed field is already reported by the schema
+    validator; this function only judges sizes, and treats anything it cannot
+    measure as zero-length rather than raising.
+    """
     problems: list[str] = []
 
-    if len(payload["summary"]) > _MAX_SUMMARY:
-        problems.append(f"summary is {len(payload['summary'])} chars, cap is {_MAX_SUMMARY}")
+    def text(container: Any, key: str) -> str:
+        value = container.get(key) if isinstance(container, dict) else None
+        return value if isinstance(value, str) else ""
 
-    findings = payload["findings"]
+    def items(key: str) -> list[Any]:
+        value = payload.get(key)
+        return value if isinstance(value, list) else []
+
+    summary = text(payload, "summary")
+    if len(summary) > _MAX_SUMMARY:
+        problems.append(f"summary is {len(summary)} chars, cap is {_MAX_SUMMARY}")
+
+    findings = items("findings")
     if len(findings) > _MAX_FINDINGS:
         problems.append(f"{len(findings)} findings, cap is {_MAX_FINDINGS}")
     for index, finding in enumerate(findings[:_MAX_FINDINGS]):
-        if len(finding["claim"]) > _MAX_CLAIM:
+        if len(text(finding, "claim")) > _MAX_CLAIM:
             problems.append(f"findings[{index}].claim exceeds {_MAX_CLAIM} chars")
-        if len(finding["evidence"]) > _MAX_EVIDENCE:
+        if len(text(finding, "evidence")) > _MAX_EVIDENCE:
             problems.append(f"findings[{index}].evidence exceeds {_MAX_EVIDENCE} chars")
 
     for field_name, max_items, max_item in (
         ("questions", _MAX_QUESTIONS, _MAX_QUESTION),
         ("artifacts_read", _MAX_ARTIFACTS_READ, _MAX_ARTIFACT_PATH),
     ):
-        values = payload[field_name]
+        values = items(field_name)
         if len(values) > max_items:
             problems.append(f"{len(values)} {field_name}, cap is {max_items}")
         for index, value in enumerate(values[:max_items]):
-            if len(value) > max_item:
+            if isinstance(value, str) and len(value) > max_item:
                 problems.append(f"{field_name}[{index}] exceeds {max_item} chars")
 
-    if payload["status"] == "needs_input" and not payload["questions"]:
+    if payload.get("status") == "needs_input" and not items("questions"):
         problems.append("status is needs_input but questions[] is empty")
 
     if problems:
@@ -330,10 +418,13 @@ def write_record(record: ConsultRecord, record_dir: Path, log_root: Path) -> Pat
         "record": str(record_path),
     }
     # One append-only line is the only state two concurrent consults share.
-    # Encoding first and writing once keeps interleaving out of a line rather
-    # than relying on text-mode buffering to flush at a newline.
+    # Encoding first and writing once is the best available: single-write append
+    # atomicity is a POSIX guarantee, and the Windows CRT implements O_APPEND as
+    # seek-then-write, so on this host two truly simultaneous consults can still
+    # garble a line. O_BINARY keeps text-mode translation out of it either way.
     payload = (json.dumps(log_line, ensure_ascii=False) + "\n").encode("utf-8")
-    fd = os.open(log_root / CONSULT_LOG_NAME, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_BINARY", 0)
+    fd = os.open(log_root / CONSULT_LOG_NAME, flags, 0o644)
     try:
         os.write(fd, payload)
     finally:
@@ -383,6 +474,7 @@ def resolve_executable(vendor: str) -> list[str]:
                 "cli_unavailable",
                 f"CONSULT_{vendor.upper()}_CLI points at {override!r}, which does not exist",
             )
+        _reject_batch_target(override, vendor)
         if override.lower().endswith(".py"):
             return [sys.executable, override]
         return [override]
@@ -392,7 +484,32 @@ def resolve_executable(vendor: str) -> list[str]:
             "cli_unavailable",
             f"'{vendor}' is not on PATH and CONSULT_{vendor.upper()}_CLI is unset",
         )
+    if not Path(found).is_absolute():
+        # `shutil.which` searches the current directory first on Windows, so a
+        # binary dropped in the repo would outrank the real one.
+        raise ConsultError(
+            "cli_unavailable",
+            f"'{vendor}' resolved to the relative path {found!r}; refusing to run it",
+        )
+    _reject_batch_target(found, vendor)
     return [found]
+
+
+def _reject_batch_target(path: str, vendor: str) -> None:
+    """Refuse a `.bat`/`.cmd` target, because it silently reintroduces a shell.
+
+    Windows `CreateProcess` runs a batch target by re-invoking `cmd.exe /c` with
+    the whole command line, and `cmd.exe` does not honour the MSVCRT quoting
+    Python applies. `shell=False` does not prevent that. Since the prompt -- and
+    therefore the caller's untrusted question -- travels as one argv token, a
+    batch shim would turn the no-shell guarantee into a command-injection path.
+    """
+    if Path(path).suffix.lower() in (".bat", ".cmd"):
+        raise ConsultError(
+            "cli_unavailable",
+            f"{path!r} is a batch shim: Windows runs it through cmd.exe, which re-parses "
+            f"the argument vector. Point CONSULT_{vendor.upper()}_CLI at the real executable.",
+        )
 
 
 def read_cli_version(prefix: list[str], vendor: str) -> str:
@@ -414,7 +531,6 @@ def run_child(
     vendor: str,
     cwd: Path,
     timeout: int,
-    max_output_bytes: int,
 ) -> tuple[int, bytes, bytes, int]:
     """Spawn, bound, and own exactly one child process.
 
@@ -441,14 +557,21 @@ def run_child(
     try:
         stdout, stderr = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        _terminate_owned_child(proc)
+        drained, _ = _terminate_owned_child(proc)
         raise ConsultError(
             "timeout",
             f"child pid {pid} exceeded {timeout}s and was terminated",
+            pid=pid,
+            drained=drained,
         ) from None
     except KeyboardInterrupt:
-        _terminate_owned_child(proc)
-        raise ConsultError("cancelled", f"child pid {pid} cancelled by the caller") from None
+        drained, _ = _terminate_owned_child(proc)
+        raise ConsultError(
+            "cancelled",
+            f"child pid {pid} cancelled by the caller",
+            pid=pid,
+            drained=drained,
+        ) from None
 
     return proc.returncode, stdout, stderr, pid
 
@@ -463,6 +586,11 @@ def _terminate_owned_child(proc: subprocess.Popen[bytes]) -> tuple[bytes, bytes]
         try:
             return proc.communicate(timeout=TERMINATE_GRACE_SECONDS)
         except subprocess.TimeoutExpired:
+            # Last resort: close the pipes ourselves rather than leaving two
+            # descriptors open for the life of the process.
+            for stream in (proc.stdout, proc.stderr):
+                if stream is not None:
+                    stream.close()
             return b"", b""
 
 
@@ -517,16 +645,27 @@ def build_claude_argv(
         # Criterion 4: the capability boundary is a flag, not a sentence in a charter.
         "--permission-mode",
         "plan",
+        # Plan mode bounds *writes*. The three tools after the write group bound
+        # egress and delegation: WebFetch/WebSearch would let a callee that read
+        # a hostile file send bytes to a host of its own choosing, and a Task
+        # subagent would not inherit this denylist at all.
         "--disallowedTools",
-        "Write,Edit,NotebookEdit,Bash,PowerShell",
+        "Write,Edit,NotebookEdit,Bash,PowerShell,WebFetch,WebSearch,Task",
         "--max-budget-usd",
         str(max_budget_usd),
+        # In both profiles: `.mcp.json` registers a remote HTTP server, and a
+        # callee whose output this protocol calls untrusted has no business
+        # holding a remote tool endpoint. `repo` is a context/cost trade, not a
+        # capability trade.
+        "--strict-mcp-config",
+        "--mcp-config",
+        '{"mcpServers":{}}',
     ]
     if profile == "lean":
-        # Measured on this host: suppressing settings and MCP servers cuts a
-        # trivial consult from $0.3055 to $0.0800. The caller opts into "repo"
-        # when the question genuinely needs repository context loaded.
-        argv += ["--setting-sources", "", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}']
+        # Measured on this host: suppressing settings cuts a trivial consult
+        # from $0.3055 to $0.0800. The caller opts into "repo" when the question
+        # genuinely needs repository context loaded.
+        argv += ["--setting-sources", ""]
     return argv
 
 
@@ -571,7 +710,7 @@ def extract_claude_result(stdout: bytes) -> tuple[dict[str, Any], float | None, 
         raise ConsultError("malformed_result", "claude produced no stdout")
     try:
         envelope = json.loads(text)
-    except json.JSONDecodeError as exc:
+    except (json.JSONDecodeError, RecursionError) as exc:
         raise ConsultError("malformed_result", f"claude stdout is not JSON: {exc}") from exc
     if not isinstance(envelope, dict):
         raise ConsultError("malformed_result", "claude stdout is not a JSON object")
@@ -592,7 +731,7 @@ def extract_claude_result(stdout: bytes) -> tuple[dict[str, Any], float | None, 
             raise ConsultError("malformed_result", "claude returned no structured_output")
         try:
             payload = json.loads(raw)
-        except json.JSONDecodeError as exc:
+        except (json.JSONDecodeError, RecursionError) as exc:
             raise ConsultError(
                 "malformed_result", f"claude result is not JSON: {exc}"
             ) from exc
@@ -611,7 +750,7 @@ def extract_codex_result(
         raise ConsultError("malformed_result", "codex last-message file is empty")
     try:
         payload = json.loads(text)
-    except json.JSONDecodeError as exc:
+    except (json.JSONDecodeError, RecursionError) as exc:
         raise ConsultError("malformed_result", f"codex last message is not JSON: {exc}") from exc
     if not isinstance(payload, dict):
         raise ConsultError("malformed_result", "codex last message is not a JSON object")
@@ -657,10 +796,18 @@ def run_consult(
     def elapsed_ms() -> int:
         return int((time.monotonic() - started_monotonic) * 1000)
 
-    def fail(exc: ConsultError, *, callee: dict[str, Any], pid: int | None = None,
+    def fail(exc: ConsultError, *, callee: dict[str, Any],
              exit_code: int | None = None, executable: str | None = None,
              argv: list[str] | None = None) -> ConsultRecord:
         status = exc.kind if exc.kind in ("timeout", "cancelled") else "error"
+        drained_path: str | None = None
+        if exc.drained:
+            # Whatever the child managed to say before it was terminated. The
+            # principle that an unparseable answer still gets kept on disk
+            # applies here too.
+            partial = record_dir / "raw.stdout"
+            partial.write_bytes(exc.drained)
+            drained_path = str(partial)
         return ConsultRecord(
             consult_id=consult_id,
             direction=direction,
@@ -668,11 +815,12 @@ def run_consult(
             callee=callee,
             started_at=started_at,
             duration_ms=elapsed_ms(),
-            child_pid=pid,
+            child_pid=exc.pid,
             exit_code=exit_code,
             executable=executable,
             argv_shape=_argv_shape(argv or []),
             request_path=str(request_path),
+            raw_stdout_path=drained_path,
             error={"kind": exc.kind, "detail": exc.detail},
         )
 
@@ -689,8 +837,11 @@ def run_consult(
         return fail(exc, callee=callee)
 
     executable = prefix[-1]
-    callee["cli_version"] = read_cli_version(prefix, vendor)
+    callee["cli_version"] = read_cli_version(prefix, vendor)[:_MAX_CALLEE_FIELD]
     last_message_path = record_dir / "codex-last-message.json"
+    # Re-running with the same consult id against a child that writes nothing
+    # would otherwise return the previous run's answer as this run's result.
+    last_message_path.unlink(missing_ok=True)
 
     if vendor == "claude":
         argv = build_claude_argv(
@@ -703,11 +854,7 @@ def run_consult(
 
     try:
         exit_code, stdout, stderr, pid = run_child(
-            argv,
-            vendor=vendor,
-            cwd=cwd,
-            timeout=timeout,
-            max_output_bytes=max_output_bytes,
+            argv, vendor=vendor, cwd=cwd, timeout=timeout
         )
     except ConsultError as exc:
         return fail(exc, callee=callee, executable=executable, argv=argv)
@@ -761,7 +908,9 @@ def run_consult(
             payload, cost, answered = extract_claude_result(stdout)
         else:
             payload, cost, answered = extract_codex_result(last_message_path)
-        callee["model_answered"] = answered
+        # Child-controlled text landing in the record and the session log the
+        # owner tails. Capped for the same reason every result field is.
+        callee["model_answered"] = answered[:_MAX_CALLEE_FIELD] if answered else None
         validate_or_raise(payload, RESULT_SCHEMA_PATH, "schema_violation")
         enforce_result_bounds(payload)
     except ConsultError as exc:
@@ -795,10 +944,14 @@ def _argv_shape(argv: list[str]) -> list[str]:
 def load_request(path: Path, root: Path = REPO_ROOT) -> dict[str, Any]:
     try:
         request = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:
-        raise ConsultError("bad_request", f"request file not found: {path}") from exc
-    except json.JSONDecodeError as exc:
-        raise ConsultError("bad_request", f"request file is not JSON: {exc}") from exc
+    except OSError as exc:
+        # Covers FileNotFoundError, plus a directory or an unreadable file --
+        # both of which used to escape as a traceback with no record written.
+        raise ConsultError("bad_request", f"request file cannot be read: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise ConsultError("bad_request", f"request file is not UTF-8: {exc}") from exc
+    except (json.JSONDecodeError, RecursionError) as exc:
+        raise ConsultError("bad_request", f"request file is not usable JSON: {exc}") from exc
     validate_or_raise(request, REQUEST_SCHEMA_PATH, "bad_request")
     # Checked against the directory the callee will actually resolve relative
     # paths from. Checking against the repo root while handing the child a
@@ -862,6 +1015,14 @@ def main(argv: list[str] | None = None) -> int:
     consult_id = args.consult_id or new_consult_id()
 
     try:
+        # Before anything is written: a rejected record root must not receive
+        # the record that says it was rejected.
+        check_invocation_paths(args.cwd, args.record_root, consult_id)
+    except ConsultError as exc:
+        print(json.dumps({"kind": exc.kind, "detail": exc.detail}), file=sys.stderr)
+        return EXIT_ERROR
+
+    try:
         request = load_request(args.request, args.cwd)
     except ConsultError as exc:
         record = ConsultRecord(
@@ -893,5 +1054,59 @@ def main(argv: list[str] | None = None) -> int:
     return _EXIT_FOR_STATUS[record.status]
 
 
+def check_invocation_paths(cwd: Path, record_root: Path, consult_id: str) -> None:
+    """Pin the two path arguments that would otherwise undo the read denylist.
+
+    `--cwd` is what the callee resolves relative paths against. Checking the
+    denylist against one root while the child is rooted at another polices a
+    tree nobody reads. And the denylist's prefixes (`data/`, `logs/`,
+    `artifacts/`) only mean anything relative to *this* repository.
+
+    `--record-root` is bounded so the adapter cannot be pointed at a tracked
+    directory, which would make the protocol's "writes nothing outside
+    `artifacts/`" false. A root outside the repository stays allowed, because
+    that is how the tests use a temporary directory.
+    """
+    if cwd.resolve() != REPO_ROOT:
+        raise ConsultError(
+            "bad_request",
+            f"--cwd must be the repository root ({REPO_ROOT}); got {cwd}",
+        )
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", consult_id) or ".." in consult_id:
+        raise ConsultError(
+            "bad_request",
+            f"--consult-id {consult_id!r} must be a plain name; it becomes a directory",
+        )
+    resolved = record_root.resolve()
+    artifacts = (REPO_ROOT / "artifacts").resolve()
+    inside_repo = str(resolved).startswith(str(REPO_ROOT) + os.sep)
+    inside_artifacts = resolved == artifacts or str(resolved).startswith(str(artifacts) + os.sep)
+    if inside_repo and not inside_artifacts:
+        raise ConsultError(
+            "bad_request",
+            f"--record-root inside the repository must be under {artifacts}; got {record_root}",
+        )
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    # The record is JSON with `ensure_ascii=False`, and Windows defaults stdout
+    # to the locale encoding -- so a callee answering with an em-dash would
+    # crash the adapter *after* its record was safely on disk.
+    # The isinstance guard is real, not a type-checker appeasement: a harness
+    # can replace stdout with something that has no `reconfigure`.
+    for stream in (sys.stdout, sys.stderr):
+        if isinstance(stream, io.TextIOWrapper):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        # Ctrl-C outside the one seam that can record it. The exit code still
+        # tells the caller what happened.
+        sys.exit(EXIT_CANCELLED)
+    except ConsultError as exc:
+        print(json.dumps({"kind": exc.kind, "detail": exc.detail}), file=sys.stderr)
+        sys.exit(EXIT_ERROR)
+    except OSError as exc:
+        # An unwritable record root, most likely. Typed rather than a traceback.
+        print(json.dumps({"kind": "record_write_failed", "detail": str(exc)}), file=sys.stderr)
+        sys.exit(EXIT_ERROR)

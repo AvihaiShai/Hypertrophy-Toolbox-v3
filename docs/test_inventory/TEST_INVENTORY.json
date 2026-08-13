@@ -245,7 +245,7 @@
     "total_tests": 611
   },
   "pytest": {
-    "collected_deterministic": 2412,
+    "collected_deterministic": 2428,
     "deterministic_files": 112,
     "environment_dependent_files": [
       {
@@ -308,7 +308,7 @@
       },
       {
         "file": "tests/test_consult_adapter.py",
-        "tests": 43
+        "tests": 59
       },
       {
         "file": "tests/test_css_audit_digest_normalization_contracts.py",

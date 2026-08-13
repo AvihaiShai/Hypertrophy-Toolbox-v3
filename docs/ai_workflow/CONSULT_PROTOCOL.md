@@ -129,6 +129,15 @@ Every consult writes `artifacts/consult/<consult-id>/` — `request.json`, `prom
 `artifacts/consult/consult-log.jsonl`. `artifacts/` is gitignored; a consult record is
 never committed and never edited into a tracked planning artifact.
 
+**The record and the log are not the same kind of evidence.** The record holds the
+callee's verbatim answer, so an incident is investigable — and so a secret the callee
+quoted is in there. The log line is an allowlist of adapter-observed fields with no callee
+free text, which is why it is the one that is safe to tail, quote, and paste.
+
+Log-line appends are encoded once and written with a single `os.write` to an `O_APPEND`
+handle. That is atomic on POSIX; the Windows CRT implements append as seek-then-write, so
+two genuinely simultaneous consults on this host can still garble one line.
+
 Tail the log to watch an exchange you are no longer mediating:
 
 ```powershell
@@ -141,13 +150,15 @@ Get-Content artifacts\consult\consult-log.jsonl -Wait
 
 | Limit | Enforced by |
 |---|---|
-| Read-only callee | `-s read-only` (Codex) / `--permission-mode plan` + `--disallowedTools Write,Edit,NotebookEdit,Bash,PowerShell` (Claude) — flags, not prose |
+| Read-only callee | `-s read-only` (Codex) / `--permission-mode plan` + `--disallowedTools Write,Edit,NotebookEdit,Bash,PowerShell,WebFetch,WebSearch,Task` (Claude) — flags, not prose. Plan mode bounds *writes*; the last three entries bound **egress and delegation**, because a callee that read a hostile file could otherwise fetch a URL of its own choosing, or spawn a subagent that never saw this denylist |
+| Where the callee is rooted | `--cwd` is pinned to the repository root. The read denylist below is meaningless if it is checked against one tree while the child resolves paths from another |
+| Where the adapter writes | `--record-root` inside the repository must be under `artifacts/`, so a consult cannot be pointed at a tracked directory |
 | Wall clock | `--timeout`, default 300 s. On expiry only the adapter's own child is signalled: terminate, then kill after a grace period. **Two honest caveats.** The graceful attempt is real on POSIX; on Windows `terminate()` is `TerminateProcess`, which is a hard kill. And only the *direct* child is signalled — a real `claude` spawns node grandchildren, and one can outlive a timeout. Terminating the whole process group is a genuine improvement and is recorded as deferred work, not implemented here |
 | Spend | `--max-budget-usd`, default $1.00. **Claude only** — codex-cli 0.135.0 exposes no budget flag, so that side is bounded by the timeout and the read-only sandbox alone |
-| Output size | `--max-output-bytes`, default 1 MiB; the raw stream goes to a file, never into the caller's context |
+| Output size | `--max-output-bytes`, default 1 MiB. It bounds what reaches the **caller's context**, not what the adapter buffers — the child's stream is read in full and then judged, so a runaway child is bounded by the timeout, not by this |
 | Field sizes | The adapter re-checks every string and array bound after the callee returns. The wire schema cannot carry length keywords (see [Host limitations](#host-limitations)), so the bounds live in the adapter, which is the side that does not trust the answer |
 | Read scope | The path denylist below |
-| Credentials | The child inherits the environment **minus every other vendor's** credential-shaped variable. The adapter reads, decodes and persists none — each CLI finds its own. Two residuals it cannot prevent: the raw-stream capture on disk contains whatever the CLI printed, and a callee that can read a credential file can quote one into free text |
+| Credentials | The child inherits the environment **minus every other vendor's** credential-shaped variable. The adapter reads, decodes and persists none — each CLI finds its own. **This is an environment-axis filter, not containment**, and three residuals follow: the child still inherits `HOME`/`USERPROFILE`, so a read-capable callee can read the *other* vendor's credential file off disk; the raw-stream capture and up to 500 bytes of child stderr in `record.json` contain whatever the CLI printed; and a callee can quote a secret into `summary`, which lands in the record verbatim. What is guaranteed is that none of it reaches `consult-log.jsonl`, whose fields are an allowlist with no callee free text |
 
 ### What a consult may not read
 
