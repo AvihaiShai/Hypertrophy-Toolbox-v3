@@ -3,10 +3,6 @@
   "hard_waits": {
     "files": [
       {
-        "file": "e2e/accessibility.spec.ts",
-        "lines": 1
-      },
-      {
         "file": "e2e/dark-mode.spec.ts",
         "lines": 1
       },
@@ -63,9 +59,9 @@
         "lines": 7
       }
     ],
-    "files_with_waits": 15,
+    "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 84
+    "total_lines": 83
   },
   "playwright": {
     "project": "chromium",
