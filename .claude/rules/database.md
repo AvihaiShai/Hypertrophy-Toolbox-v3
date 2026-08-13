@@ -46,7 +46,9 @@ Slow queries (>100ms) auto-logged as WARNING (`database.py:250`).
 ## Adding a DB table — five places
 
 > **Steps 2–4 predate WP2.6 and no longer describe this repository.** `app.py` contains **zero**
-> `add_*_table()` calls — its only schema call is `run_all_initializers(force_base=False)` — and
+> `add_*_table()` calls — it reaches the schema only through `run_all_initializers()`, at
+> `app.py:95` on startup (`force_base=False`) and at `app.py:263` inside `erase_data()`
+> (`force_base=True`) — and
 > `tests/conftest.py` calls `run_all_initializers(force_base=True)` rather than registering each
 > table. Register a new table in `utils/schema_registry.py`: add its creation function to
 > `run_all_initializers()`, and add the table name to `OWNED_TABLES_DROP_ORDER` in FK-safe order
