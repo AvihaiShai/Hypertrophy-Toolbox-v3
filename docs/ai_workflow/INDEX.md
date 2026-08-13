@@ -21,7 +21,7 @@
 ## Active feature plans
 - [Agent workflow v2.2](../agent_roles/PLANNING.md) — manager, requirements,
   implementation, and independent-QA role rollout; Gate 0/Gate 1 approved 2026-07-11
-- [Fatigue meter](../fatigue_meter/PLANNING.md) — Phase 1 shipped; Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`). [Phase 2 Stage 4](../fatigue_meter/PHASE2_PLANNING.md) is recorded **OPEN** but its window is inactive; disposition is tracked as **P2.1** in [LEFTOVERS_BY_PRIORITY.md](../LEFTOVERS_BY_PRIORITY.md). Phase 1 Stage 4 closed 2026-05-20 with no threshold changes.
+- [Fatigue meter](../fatigue_meter/PLANNING.md) — Phase 1 shipped; Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`). [Phase 2 Stage 4](../fatigue_meter/PHASE2_PLANNING.md) **closed 2026-08-13** — owner decision, no real-use evidence, no threshold change; **P2.1** in [LEFTOVERS_BY_PRIORITY.md](../LEFTOVERS_BY_PRIORITY.md) is retired with it. Phase 1 Stage 4 closed separately, 2026-05-20, also with no threshold changes.
 - [workout.cool integration](../workout_cool_integration/PLANNING.md) — §3 + §3.6 + §4 + §4.6 + §5 all shipped (§3.6 Profile bodymap landed 2026-05-23, `18ad223`; §5 first curated batch landed 2026-05-22, `cf21191`)
 - [YouTube reference videos](../workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md) — closed 2026-05-23 (`cf21191` 36 rows + `ff244aa` +20 rows = **56 curated rows**); long tail uses the search fallback by design
 - [User profile](../user_profile/PLANNING.md) — questionnaire + bodymap + insights card + Body Composition display hooks (#17/#18) all shipped
