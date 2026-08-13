@@ -60,11 +60,26 @@ export function updateSupersetActionButtons() {
     const selectedCount = workoutPlanState.selectedExerciseIds.size;
 
     if (selectedCount === 0) {
+        // Return the bar to the rest state the template ships
+        // (templates/workout_plan.html: link disabled, unlink hidden, info
+        // empty) rather than only hiding it. Hiding alone leaves whatever the
+        // last non-zero branch wrote: an `unlinkBtn.hidden = false` parked
+        // inside a `display:none` container is the same shape as the defect
+        // #317 closed.
+        infoSpan.textContent = '';
+        infoSpan.style.color = '';
+        linkBtn.hidden = false;
+        linkBtn.disabled = true;
+        unlinkBtn.hidden = true;
         actionsContainer.style.display = 'none';
         return;
     }
 
     actionsContainer.style.display = 'flex';
+    // Every branch below writes textContent but only some write a colour, so
+    // without this a `--wp-warn` from a previous 2-row selection bleeds onto
+    // the next neutral message.
+    infoSpan.style.color = '';
 
     // Get selected exercises info
     const selectedCheckboxes = document.querySelectorAll('.superset-checkbox:checked');
@@ -122,6 +137,26 @@ export function updateSupersetActionButtons() {
 }
 
 /**
+ * Drop every trace of an in-progress superset selection. Transient UI state
+ * only — nothing here reaches the API or `refreshPlan()`.
+ *
+ * The row sweep must stay `classList.remove` and never a `className` write:
+ * `supersetRowClasses()` also puts `superset-group-N` and the first/last edge
+ * classes on those rows, so clobbering the attribute would make a persisted
+ * superset visually dissolve until the next render.
+ */
+export function clearSupersetSelection() {
+    workoutPlanState.selectedExerciseIds.clear();
+
+    document.querySelectorAll('#workout_plan_table_body .superset-checkbox:checked')
+        .forEach(checkbox => { checkbox.checked = false; });
+    document.querySelectorAll('#workout_plan_table_body tr.superset-selected')
+        .forEach(row => row.classList.remove('superset-selected'));
+
+    updateSupersetActionButtons();
+}
+
+/**
  * Initialize superset action button click handlers
  */
 export function initializeSupersetActions() {
@@ -154,11 +189,10 @@ async function handleLinkSuperset() {
         const data = await api.post('/api/superset/link', buildSupersetLinkPayload(exerciseIds), { showErrorToast: false });
 
         showToast(data.message || 'Superset created successfully');
-        // Clear selection and refresh table
-        workoutPlanState.selectedExerciseIds.clear();
-        document.querySelectorAll('.superset-checkbox:checked').forEach(cb => {
-            cb.checked = false;
-        });
+        // Routed through the shared reset so the action bar drops immediately
+        // instead of holding a stale "ready to link" message until the async
+        // refresh lands.
+        clearSupersetSelection();
         // Refresh the workout plan to show updated superset styling
         supersetDeps.refreshPlan();
     } catch (error) {
@@ -185,11 +219,7 @@ async function handleUnlinkSuperset() {
         const data = await api.post('/api/superset/unlink', buildSupersetUnlinkPayload(exerciseId), { showErrorToast: false });
 
         showToast(data.message || 'Superset unlinked successfully');
-        // Clear selection and refresh table
-        workoutPlanState.selectedExerciseIds.clear();
-        document.querySelectorAll('.superset-checkbox:checked').forEach(cb => {
-            cb.checked = false;
-        });
+        clearSupersetSelection();
         // Refresh the workout plan to show updated styling
         supersetDeps.refreshPlan();
     } catch (error) {
