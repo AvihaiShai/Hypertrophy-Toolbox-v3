@@ -3,7 +3,7 @@
 *What this application is, how each screen behaves, what the database actually contains, and
 what the shipped design system is.*
 
-**Derived from:** the source tree at revision `542df07`. **On conflict, the code wins** — every
+**Derived from:** the source tree at revision `53af816`. **On conflict, the code wins** — every
 document here is a description of the code, never a specification for it. If you find a
 disagreement, the code is right and the document is a bug.
 
@@ -92,16 +92,17 @@ requirement.
 
 ### Network behavior
 
-The application's own routes make **no outbound network calls and send no telemetry**. Nothing
-is uploaded, and there is no analytics of any kind.
+**Nothing in this application talks to the network** — not the server, and not the browser.
 
-That statement is about the server, and the flattering half alone would be misleading. The
-**browser** does reach third parties: `templates/base.html` loads the Inter web font from
-`fonts.googleapis.com` / `fonts.gstatic.com` and the Bootstrap JavaScript bundle from
-`cdn.jsdelivr.net` on **every** page, and three page templates each add their own CDN
-dependency. So the application is local-first in its data and not yet local-only in its assets.
-Exact hosts, per-page, are in
-[`APP_FLOW.md`](APP_FLOW.md#third-party-assets-the-browser-fetches).
+The routes make no outbound calls and send no telemetry; nothing is uploaded and there is no
+analytics of any kind. Every asset a page needs is served from the application's own origin:
+fonts, third-party JavaScript, and icons are all vendored under `static/vendor/` with their
+licenses and pinned versions. The application is therefore local-only in its assets as well as
+local-first in its data, and it behaves identically offline.
+
+The full vendored inventory is in
+[`APP_FLOW.md`](APP_FLOW.md#third-party-assets--all-served-locally). The only external URLs in
+the templates are two author links to LinkedIn, which are clicked rather than fetched.
 
 ### Security boundary
 

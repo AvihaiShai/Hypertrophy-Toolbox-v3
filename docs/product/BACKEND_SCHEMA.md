@@ -2,7 +2,7 @@
 
 *Every table, column, constraint, index, and relationship in the runtime SQLite database.*
 
-**Derived from:** a freshly built runtime database at revision `542df07`, read back with
+**Derived from:** a freshly built runtime database at revision `53af816`, read back with
 `PRAGMA table_info`, `table_xinfo`, `index_list`, `index_info`, and `foreign_key_list`.
 **On conflict, the code wins.** The DDL owners are `utils/db_initializer.py`,
 `utils/database.py`, `utils/program_backup.py`, `utils/catalog_upgrade.py`, and

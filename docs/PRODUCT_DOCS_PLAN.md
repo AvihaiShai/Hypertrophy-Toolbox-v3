@@ -605,3 +605,40 @@ the rebased tree:
 The cross-check then passed 8/8 against the rebased tree, so the pin was updated to the new base.
 It names a tree where every claim has actually been verified, not merely the tree the work started
 from.
+
+### 8.9 First drift correction — local-first assets
+
+The suite went stale **within the hour of merging**, and the way it happened is worth recording
+because it is the failure mode §2.1 predicts.
+
+PR #341 (`ddbec6a`, "serve every runtime asset locally") merged shortly *before* this suite did.
+It vendored Inter, Bootstrap's JavaScript bundle, Sortable, flatpickr, Popper, and Tippy under
+`static/vendor/` and removed every CDN reference from the templates. The suite had been written
+and reviewed against a tree where those five families were fetched from `fonts.googleapis.com`,
+`cdn.jsdelivr.net`, `unpkg.com`, and `cdnjs.cloudflare.com` — so it merged carrying a table of
+third-party hosts that no longer described the application.
+
+Nothing was wrong with either change. The two packets were in flight simultaneously, and #341's
+author could not have updated documents that did not yet exist. **This is exactly the gap the
+maintenance pointers added in §8.8.2 exist to close going forward**: `.claude/rules/frontend.md`
+now tells the next person editing assets that `DESIGN_BRIEF.md` describes them.
+
+Corrected in a follow-up, against `53af816`:
+
+| Document | Was | Now |
+|---|---|---|
+| `APP_FLOW.md` | "Third-party assets the browser fetches" — five CDN hosts, plus a degraded-offline paragraph | "Third-party assets — all served locally", with vendored versions and paths; offline behavior is complete |
+| `APP_FLOW.md` | three controls annotated "CDN-dependent" | named as vendored libraries |
+| `README.md` | "the browser does reach third parties … not yet local-only in its assets" | "nothing in this application talks to the network", server or browser |
+| `DESIGN_BRIEF.md` | load order beginning `css2 (Inter, remote)`; "Inter is loaded from Google Fonts" | begins `vendor/inter/inter.css`; Inter documented as vendored, seven `woff2` subsets, relative paths |
+| all four | pinned at `542df07` | pinned at `53af816` |
+
+**Evidence, not inference.** The claim that changed is "no external requests", so it was verified
+the way that claim deserves: a browser capture of **every** request issued across four pages —
+including the two that carry extra vendored libraries — returned an empty external-request list.
+Schema, routes, the reverse caller census, and the token census were all re-derived against the
+same tree and are unchanged; the six unbound routes are still six.
+
+One precision improvement fell out of the live capture: the `page_css` slot in the load-order
+diagram holds whatever the template declares, not only that page's own bundle — `/progression`
+loads the vendored `flatpickr.min.css` there ahead of `pages-progression.css`.
