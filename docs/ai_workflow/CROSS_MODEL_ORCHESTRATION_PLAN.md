@@ -3,8 +3,14 @@
 **Status — stated once, and the sign-off block at the foot of this document matches it:**
 Gate 0 signed 2026-08-13 by the owner (Session 8 pack), which also pre-approved Gate 1 for
 a consult-only, read-only, council-reviewed Plan v2. The council ran and returned three
-`REVISE` verdicts; Plan v2 reflects them. Implementation proceeded under that
-pre-approval and is complete. **Gate 2 — owner review of the resulting diff — is open.**
+`REVISE` verdicts; Plan v2 reflects them. Implementation proceeded under that pre-approval
+and merged as **`9906105`** (PR #344, 18/18 checks green).
+
+**Gate 2: ratified by the owner on 2026-08-13, *after* `9906105` merged.** The sequence
+matters and is stated plainly rather than smoothed over: the diff landed on the owner's
+pre-approval of Gates 0 and 1, and the owner reviewed and ratified it afterwards. This is
+**post-merge ratification**, not pre-merge approval, and nothing in this document should be
+read as claiming the owner saw the diff before it merged.
 
 - **Primary owner:** Repository owner
 - **Implemented scope:** the consult — either CLI asks the other model one bounded,
@@ -18,6 +24,12 @@ This proposal extends the existing AI workflow; it does not create a second set 
 quality gates. [`QUALITY_GATE.md`](QUALITY_GATE.md),
 [`AUTONOMY.md`](AUTONOMY.md), and
 [`PARALLEL_WORKFLOW.md`](PARALLEL_WORKFLOW.md) remain canonical.
+
+> **This plan is closed.** The consult shipped as `9906105` and Gate 2 was ratified
+> post-merge. What remains below the implementation is deferred scope with no
+> authorisation attached — see the
+> [decision packet](#standalone-candidates--decision-packet) for the five loose ends and
+> what each would need before anyone starts it.
 
 > **Reading order.** Section 0 below is the **v2 requirements brief**, redrafted
 > 2026-08-13 around the owner's G1–G3 goal clarification. The original 2026-08-01 brief
@@ -296,16 +308,24 @@ answer before implementation:
 - [x] Owner confirms the acceptance criteria match intent — Gate 0 approval for this
       redrafted Section 0 was given in the Session 8 prompt (2026-08-13), which also
       supplied D1–D7 and instructed that Q1–Q11 not be re-asked.
-- [ ] **Owner reviewed and accepted or corrected every assumption — NOT YET TRUE, and
-      deliberately left unchecked.** The `product-risk-reviewer` was right: the five ⚠️
-      assumptions above were written *after* the prompt that is cited as approval, so the
-      owner cannot have reviewed them, and self-certifying that box would be exactly the
-      "never approve your own workflow" failure the `manager` charter names. Three of the
-      five are load-bearing and are flagged here for explicit acknowledgement at Gate 2:
-      the **build order** (consult first, heavy mechanism deferred), the **callee model**
-      (`gpt-5.5` while `gpt-5.6-sol` cannot run non-interactively), and the **per-consult
-      spend** ($0.08 lean / $0.31 repo-loaded, measured in HR-9). None contradicts D1–D7,
-      and none is irreversible.
+- [x] **Owner reviewed and accepted or corrected every assumption — ratified 2026-08-13,
+      after `9906105` merged.** This box was deliberately left unchecked until then,
+      because the `product-risk-reviewer` was right that the five ⚠️ assumptions were
+      written *after* the prompt cited as Gate 0 approval, so self-certifying it would have
+      been the "never approve your own workflow" failure the `manager` charter names. The
+      owner has now accepted the three load-bearing ones explicitly:
+      - **Build order** — build the bounded consult first; `$orchestrate` and the PR-bus
+        stay deferred.
+      - **Callee model** — `gpt-5.5` as the **temporary** Codex callee while `gpt-5.6-sol`
+        returns 400 non-interactively. Temporary is the operative word: every record
+        carries the model that answered, so the day this stops being true it shows up in
+        the evidence.
+      - **Per-consult spend** — ~$0.08 lean / ~$0.31 repo-loaded, **with lean remaining the
+        default**.
+
+      The other two ⚠️ assumptions (Python as the adapter language; the Codex-side trigger
+      being documentation rather than a dispatch primitive) were not separately raised and
+      are accepted as part of the ratified diff.
 - [x] Blocking questions are answered — none remain open. Two items are *reported* rather
       than asked, below.
 
@@ -2054,19 +2074,92 @@ requires an approver and auto-declines in `codex exec`.
 For a heavier tier this is the right transport, and it also fixes the reviewability
 problem in one direction, since a Claude-side `.mcp.json` is a tracked, PR-reviewable file.
 
-### Standalone candidates needing their own owner decision
+### Standalone candidates — decision packet
 
-- **`QUALITY_GATE.md` gaps.** Two, both surfaced here and both out of scope under D7:
-  `Test Inventory Drift` and the pyright baseline gate are blocking CI gates absent from the
-  change-type table (C-8); and `scripts/**` has no row at all (CR-25).
-- **`council-plan.md` ⇄ `guard-planning-write.ps1`.** The command says the planning doc may
-  live "wherever the workstream's planning doc lives"; the guard permits only
-  `docs/<feature>/PLANNING.md`. One of the two should move.
-- **`.claude/settings.json` narrowing** (CR-18), if the owner wants the adapter to prompt.
-- **`AGENTS.md` has no mechanical coverage** (CR-27) — extending `SURFACE` would move node
-  counts and touch a contract file this packet does not own.
-- **`test-strategist`'s charter** lists a known red that `QUALITY_GATE.md:126` retired
-  (CR-30) — a one-line cleanup.
+Five loose ends were surfaced by this packet and deliberately not fixed inside it. Prepared
+for the owner 2026-08-13 at their request. **None of these is started.** The recommendation
+is that the five become **three packets plus one decline**, because two pairs of them share
+a file and a failure class, and splitting a shared file across two PRs buys a conflict.
+
+---
+
+**Packet A — `QUALITY_GATE.md` under-describes what actually blocks a PR.** *(C-8 + CR-25,
+combined.)*
+
+- **Recommended:** do it, as **one** packet. These are the same defect — the canonical
+  change-type table omits gates that really block — and both edits land in the same table,
+  so two PRs would conflict for no benefit.
+- **Rationale:** `Test Inventory Drift` and the pyright baseline gate block every packet
+  that adds a test or a `.py` file, and neither appears in the table an agent derives its
+  gates from. `scripts/**` has no row at all, which is why this packet's own "e2e: none"
+  had to be recorded as a *judgement* rather than a derivation. This session hit all three.
+- **Scope:** `docs/ai_workflow/QUALITY_GATE.md` only — one new `scripts/**` row, and the two
+  CI-only gates named in the derivation list. No CI change, no test change, no behaviour
+  change to the gates themselves.
+- **Dependencies:** none technically, but `QUALITY_GATE.md` is canonical for everyone's
+  routing — serialise against any in-flight packet that edits it.
+- **Own Gate 0?** **No.** The requirements are unambiguous: document gates that already
+  exist. **Gate 1 yes**, because it changes what future packets are *required* to run, and
+  that deserves an approved plan rather than a drive-by edit.
+
+---
+
+**Packet B — `council-plan.md` ⇄ `guard-planning-write.ps1` contradict each other.**
+
+- **Recommended:** do it, small — but the owner picks the direction first.
+- **Rationale:** [`council-plan.md`](../../.claude/commands/council-plan.md) step 1 says the
+  planning doc may live "or wherever the workstream's planning doc lives";
+  `guard-planning-write.ps1:4` permits only `docs/<feature>/PLANNING.md` and `exit 2`s
+  otherwise. Every council artifact outside that one shape therefore bypasses
+  `product-manager` — as this packet's own artifact did. Left alone, this packet is the
+  precedent that makes the bypass routine.
+- **Scope:** one line, in one of two places. **Recommendation: narrow the prose in
+  `council-plan.md`** to match the guard. Widening an enforcement hook to accept arbitrary
+  paths weakens the thing that actually holds; the guard is not the part that is wrong.
+- **Dependencies:** none.
+- **Own Gate 0?** **Not a full one, but it needs one owner answer up front** — "which
+  document is right?" — because the two directions have opposite effects on how much
+  `product-manager` owns. One question, then Gate 1.
+
+---
+
+**Packet C — charter and contract hygiene.** *(CR-27 + CR-30, combined.)*
+
+- **Recommended:** do it, low priority, as one small packet.
+- **Rationale:** two unrelated-looking items that touch the same surface and are both
+  actively misleading a live agent. `AGENTS.md` is the Codex entry point and now carries
+  the consult trigger, yet it is not in `SURFACE`, so no contract asserts it stays
+  consistent. And `test-strategist`'s charter still lists `nav-dropdown.spec.ts:117` as a
+  known red that `QUALITY_GATE.md:126` retired on 2026-06-11 — the reviewer noticed and
+  corrected for it *during this council*, which is exactly the wasted attention a stale
+  charter costs on every run.
+- **Scope:** add `AGENTS.md` to `SURFACE` in `tests/test_agent_workflow_contracts.py`;
+  delete one stale line from `.claude/agents/test-strategist.md`; regenerate the inventory.
+- **Dependencies:** adding a `SURFACE` file moves inventory node counts — serialise against
+  any packet adding or removing test nodes.
+- **Own Gate 0?** **No.** Trivial-to-Medium; Gate 1 optional.
+
+---
+
+**Packet D — narrowing `.claude/settings.json` so the adapter prompts.** *(CR-18.)*
+
+- **Recommended: decline, and record the decline.** Do not build this unless the owner
+  overrules.
+- **Rationale:** the existing `Bash(.venv/Scripts/python.exe:*)` allowance makes the adapter
+  promptless — a real consequence, already disclosed as criterion 28. But narrowing it
+  would prompt on *every* Python invocation in the repo: pytest, inventory regeneration,
+  the pyright baseline diff. That is daily friction for every session in exchange for a
+  control that does not stop a determined agent, which is the same reason the `HT_CONSULT=1`
+  opt-in was rejected — the agent that runs the adapter can also set the variable. What
+  actually bounds this risk shipped: the read denylist (criterion 27) and
+  `--max-budget-usd`.
+- **Scope if pursued anyway:** a `deny` entry for the bare adapter plus a distinct allowed
+  entry point.
+- **Dependencies:** `.claude/settings.json` is a never-claimed shared path under
+  [PARALLEL_WORKFLOW.md](PARALLEL_WORKFLOW.md); needs explicit coordination.
+- **Own Gate 0?** **Yes, if pursued.** It changes the permission posture for every session
+  in the repository, which is a requirements-level question and not an implementation
+  detail.
 
 ---
 
@@ -2090,6 +2183,12 @@ problem in one direction, since a Claude-side `.mcp.json` is a tracked, PR-revie
       Plan v2 that preserves the existing gates and adds no `$orchestrate` state machine.
       [Plan v2](#plan-v2--the-consult-mechanism) satisfies all three conditions.
 - [x] Implemented, with the dry-run matrix, the mutation harness, and both live smokes.
-- [ ] **Gate 2 — owner review of the diff. OPEN.** This is the remaining gate. Alongside
-      the diff, three assumptions want an explicit yes or no: build order, callee model,
-      and per-consult spend.
+      Merged as **`9906105`** (PR #344), 18/18 checks green on the head that merged.
+- [x] **Gate 2 — ratified by the owner 2026-08-13, after the merge.** The diff landed on
+      the Gate 0/Gate 1 pre-approval; the owner reviewed and ratified `9906105`
+      afterwards, and accepted the three previously-unchecked assumptions. Recorded as
+      **post-merge ratification** — this document does not claim the owner approved the
+      diff before it merged.
+
+**Nothing in this plan is open.** The deferred mechanisms below are not open work items on
+this packet; each needs its own authorisation before anyone starts it.
