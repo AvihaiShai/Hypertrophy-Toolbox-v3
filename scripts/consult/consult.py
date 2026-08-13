@@ -15,7 +15,14 @@ because they are load-bearing for the code below rather than for the prose:
 * **A result is data, never control flow.** Nothing read back from a child is
   executed, interpolated into a command, or used to decide what runs next. The
   child is spawned from an argument vector with no shell, so there is no layer
-  in which result text could become a command.
+  in which result text could become a command. The one way that guarantee could
+  quietly stop holding is a `.bat`/`.cmd` target, which Windows runs through
+  `cmd.exe` regardless of `shell=False` -- so those are refused outright.
+
+What this file bounds, and what it does not: it bounds what a consult *asks*
+for, not what a callee reads on its own initiative, and the credential filter
+is an environment-axis filter rather than containment. `CONSULT_PROTOCOL.md`
+states both residuals plainly; do not let this module's precision imply more.
 
 Usage:
     python scripts/consult/consult.py ask-codex  --request <file.json>
