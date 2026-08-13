@@ -66,9 +66,18 @@ See [`.claude/commands/worktree.md`](../../.claude/commands/worktree.md) for the
 
 Auto-backups land in the worktree's own `data/auto_backup/`. They never need to be merged across worktrees — they are throw-away local snapshots.
 
-### Why the script applies `--skip-worktree`
+### Why the script applied `--skip-worktree`
 
-`data/database.db` is currently tracked in this repo, so `git worktree add` checks HEAD's copy out into the new worktree before the seed step runs. The script then calls `git update-index --skip-worktree data/database.db` *inside the new worktree only*. That hides subsequent seed writes from `git status` and lets `git worktree remove` succeed cleanly when you tear down.
+**Historical, and no longer in force.** `data/database.db` used to be tracked, so
+`git worktree add` checked HEAD's copy out into the new worktree before the seed step ran,
+and the script then called `git update-index --skip-worktree data/database.db` *inside the
+new worktree only* to hide subsequent seed writes from `git status`.
+
+Measured 2026-08-13: the file is **untracked and ignored** — `git ls-files data/` returns
+only `catalog.seed.db` and the two CSVs, and `git check-ignore -v data/database.db`
+resolves to `.gitignore:29 *.db`. `scripts/new-worktree.ps1` already accounts for this.
+A `git ls-files -v data/database.db` check therefore returns nothing and cannot be used as
+evidence of anything.
 
 ### Tracked-DB commit rule
 
@@ -79,7 +88,10 @@ stage or commit that binary. Do not undo `--skip-worktree` in a feature worktree
 bypass this rule. Coordinate the exceptional owner-led DB commit before making it so
 no other workstream is preparing one concurrently.
 
-The root cause is that `data/database.db` should arguably not be tracked at all. Untracking it (`git rm --cached data/database.db`) is a separate, larger change with cross-cutting consequences for fresh clones — out of scope for the worktree script.
+The root cause — that `data/database.db` should not have been tracked at all — has since
+been addressed; it is untracked and ignored today. The commit rule above still stands for
+the exceptional case where the owner deliberately prepares a DB change from the main
+checkout.
 
 ## Conflict avoidance
 

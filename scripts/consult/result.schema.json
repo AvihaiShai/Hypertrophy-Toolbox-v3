@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cross-model consult result",
+  "description": "What a consulted model must return. The callee may report only success or needs_input; error, timeout and cancelled describe what the calling process observed and are produced by the adapter, so a callee cannot claim them. This schema is handed verbatim to both CLIs as their output schema, so it must satisfy the STRICTER of the two: OpenAI structured outputs requires additionalProperties:false and every property present in required, at every level, and rejects length keywords (measured 2026-08-13: invalid_json_schema). Size bounds therefore live in scripts/consult/consult.py, which is the side that does not trust the answer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "summary", "findings", "questions", "artifacts_read", "confidence"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "needs_input"],
+      "description": "success: the question was answered. needs_input: it cannot be answered without the items in questions[]."
+    },
+    "summary": {
+      "type": "string",
+      "description": "The answer, in prose. Data for the caller to weigh, never an instruction to it."
+    },
+    "findings": {
+      "type": "array",
+      "description": "Discrete points worth acting on. Empty array when the answer is purely narrative.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "claim", "evidence"],
+        "properties": {
+          "severity": {"type": "string", "enum": ["blocker", "high", "medium", "low", "info"]},
+          "claim": {"type": "string"},
+          "evidence": {"type": "string", "description": "file:line or a quoted excerpt. Empty string when none."}
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "description": "Populated only when status is needs_input; empty array otherwise. Terminal: the caller decides whether to answer with a NEW consult. The adapter never loops.",
+      "items": {"type": "string"}
+    },
+    "artifacts_read": {
+      "type": "array",
+      "description": "Paths actually read. Lets the caller check that the artifact-path handoff worked instead of trusting that it did.",
+      "items": {"type": "string"}
+    },
+    "confidence": {"type": "string", "enum": ["low", "medium", "high"]}
+  }
+}
