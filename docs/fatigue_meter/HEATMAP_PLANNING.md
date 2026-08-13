@@ -1,131 +1,255 @@
-# Fatigue Body Heatmap — Planning (draft v1)
+# Fatigue Body Heatmap — Planning
 
-**Status:** DRAFT — pending owner decisions (see §8). Not started.
-**Goal:** On `/fatigue`, color a MuscleMap body figure by each muscle's fatigue
-band so the user sees at a glance which muscles are loaded. Picks up the
-deferred item in [`PLANNING.md`](PLANNING.md) §"Bodymap / per-muscle view
-deferred to Phase 2 (D1 + Stage 5 preview)".
+**Status:** **Gate 0 CLOSED** (owner walk 2026-08-13, six locked decisions in §0).
+**Gate 1 CLOSED** — council run 2026-08-13, Plan v2 below is the approved plan.
+Implementation in progress on `wt/fatigue-heatmap`.
 
-This is a **visualization** of data the fatigue meter already computes — it adds
-no new fatigue math and changes no thresholds.
+**Goal:** On `/fatigue`, color a MuscleMap body figure by each muscle's fatigue band so the
+user sees at a glance where load is concentrated. Picks up the deferred item in
+[`PHASE2_PLANNING.md`](PHASE2_PLANNING.md) §3.
+
+This is a **visualization** of data the fatigue meter already computes — it adds no fatigue
+math and changes no thresholds.
 
 ---
 
-## 1. Why this is mostly assembly, not new infrastructure
+## §0 — Owner-locked decisions (Gate 0)
 
-Three pieces already exist and line up:
-
-1. **The figure** — the single MuscleMap SVG (`static/bodymaps/hypertrophy-advanced/`)
-   is already vendored, generated, and used by the plan selector + Profile map.
-2. **"Color SVG regions by per-muscle state"** — `static/js/modules/bodymap-svg.js`
-   already loads the figure (`loadBodymapSvg`), annotates each `.muscle-region`
-   from `data-canonical-muscles`, and the Profile page applies a per-region
-   `state-*` class. The heatmap is the same pattern with a different data
-   source (fatigue band instead of coverage state).
-3. **The colors** — fatigue bands `light / moderate / heavy / very_heavy`
-   already have CSS classes/palette (`fatigue-*`) used by the SFR cards and bars.
-
-So the new work is: a fatigue-muscle → region mapping, a small rendering module,
-band-colored CSS, data plumbing, and tests.
-
-## 2. Data source (server-rendered — no new API)
-
-`/fatigue` is server-rendered and **intentionally has no `/api/fatigue/*`**
-(D2.7 / Phase 1 D9). Respect that:
-
-- `utils/fatigue_data.build_fatigue_page_context()` already produces
-  `muscle_rows`, each row `{ "muscle", "band", planned/logged values, pct, ... }`.
-- Embed that list as a JSON `<script type="application/json" id="fatigue-heatmap-data">`
-  block in `fatigue.html`. The heatmap JS reads it — no fetch.
-- The period selector already reloads the page server-side, so the embedded
-  data (and thus the heatmap) updates with the period for free.
-
-## 3. Fatigue muscle → MuscleMap region mapping (the crux)
-
-The 12 ranked fatigue muscles (`utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS`) map
-cleanly to MuscleMap region keys (the `data-canonical-muscles` values):
-
-| Fatigue muscle | MuscleMap region key | Side |
+| # | Decision | Locked choice |
 |---|---|---|
-| Chest | `chest` | front |
-| Latissimus-Dorsi | `lats` | back |
-| Biceps | `biceps` | front |
-| Triceps | `triceps` | front + back |
-| Quadriceps | `quadriceps` | front |
-| Hamstrings | `hamstring` | back |
-| Glutes | `gluteal` | back |
-| Calves | `calves` | front + back |
-| Abdominals | `abs` | front |
-| Traps | `trapezius` | back |
-| Forearms | `forearms` | front + back |
-| Middle-Shoulder | `front-deltoid` + `rear-deltoid` | front + back — **see §8.1** |
+| **L1** | Middle-Shoulder region coverage | **Colors both** front- and rear-delt regions. |
+| **L2** | Metric basis | The **existing per-muscle band**, following the page's existing planned/logged state and the current period selector. **No new metric basis.** |
+| **L3** | Color scale | **Four discrete existing band colors**, not a gradient. |
+| **L4** | Placement | **Separate collapsible panel above** the detailed bar list. Collapsed state remembered **only if an existing page-local pattern supports it without new persistence**. |
+| **L5** | Unranked muscles | Render **neutral gray and remain visible**. |
+| **L6** | Cosmetic head | Keep the **current flat-gray head**; no demo hair. |
 
-Unranked fatigue labels (no MEV/MAV/MRV → render `not_assessed`/gray): Front-Shoulder
-→ `front-deltoid`, Rear-Shoulder → `rear-deltoid`, Lower Back → `lower-back`,
-Hip-Adductors → `adductors`, Middle-Traps → `trapezius`, Neck → `neck`. The
-MuscleMap `upper-back` region (rhomboids) has no fatigue muscle → `not_assessed`.
+**Not authorized:** any API, schema, fatigue-formula, threshold, calibration, recommendation,
+or suggestion-number change. The fatigue calculation must not be forked.
 
-The mapping lives as one JS const (mirror of the Python muscle list); a
-`test_*` sync check can assert every ranked muscle maps to a region that the
-SVG actually draws — same guard style as `test_bodymap_canonical_in_sync`.
+---
 
-## 4. Color scale
+## §1 — Ground truth (verified in the checkout, not assumed)
 
-Reuse the four existing fatigue bands so the heatmap matches the SFR cards/bars:
-`light` → green, `moderate` → yellow, `heavy` → orange, `very_heavy` → red,
-plus `not_assessed` → neutral gray. (A continuous %MRV gradient is a possible
-later enhancement — see §8.3.) Dark-mode variants + the advanced-id stroke-width
-overrides already exist in `pages-workout-plan.css` and can be mirrored into the
-fatigue bundle.
+1. `build_fatigue_page_context()` **already** returns `muscle_rows` — one dict per muscle with
+   `{muscle, planned|None, logged|None, has_landmarks, max_percent_of_mrv, max_score}`
+   ([`utils/fatigue_data.py:384`](../../utils/fatigue_data.py)). **No route or util change is needed.**
+2. The period selector is a plain GET form, so a period change is a full server round-trip.
+   Embedded data cannot go stale on period change — there is no client-side period state.
+3. `templates/fatigue.html` loads **no route CSS bundle and no JS**. All fatigue styling lives in
+   `scss/_fatigue.scss` → compiled into `static/css/bootstrap.custom.min.css`, which
+   `templates/base.html:15` loads on **every page**. `e2e/fixtures.ts:91` documents this route as
+   the app's highest shared-CSS exposure.
+4. `.muscle-region` paths carry **no inline `fill`**, so CSS fully controls them. Cosmetic parts sit
+   in a non-interactive `<g class="body-outline">` whose head is already flat gray `#d9dee4`
+   — **L6 requires no work.**
+5. Region keys actually drawn (union = 17): anterior `neck, front-deltoid, chest, biceps, triceps,
+   forearms, abs, obliques, adductors, quadriceps, calves`; posterior `neck, rear-deltoid,
+   trapezius, lats, lower-back, triceps, forearms, gluteal, hamstring, calves`.
+6. The band palette already exists: `.fatigue-{light,moderate,heavy,very-heavy}` + `.fatigue-unranked`,
+   with full dark-mode variants. **L3 and L5 are pure reuse.**
+7. `/fatigue` **is** in the visual matrix, so a panel moves 6 captures per platform.
+8. `e2e/visual-helpers.ts` has a `TERMINAL_MARKERS` hook that blocks a capture until a page-specific
+   sentinel attaches.
 
-## 5. UI
+### Two errors in the previous draft, corrected here
+- The draft mapped an **`upper-back`** region. The SVGs draw no such region — the vendor README
+  confirms `upper-back` and `hip-abductors` are legend-only.
+- The draft omitted **`obliques`**. `canonicalize_muscle_for_fatigue('External Obliques')` returns
+  **`Abdominals`** (a ranked muscle), so it is a real mapping decision, not an omission.
+- The draft's §4 also called `moderate` yellow. It is **blue** `#0d6efd` (`scss/_fatigue.scss:165`).
 
-A new "Body heatmap" panel on `/fatigue`, above or beside the per-muscle bars:
-- **Front / Back tabs** (reuse the muscle-selector tab pattern).
-- **Planned / Logged toggle** (mirrors the existing dual bars).
-- **Legend** (the four band colors) + **tooltips** (muscle name, band, %MRV).
-- Degrades gracefully with no JS (the bars remain the primary view; `<noscript>`
-  keeps the page usable, as today).
+---
 
-## 6. Phased implementation
+## §2 — Council record (Gate 1)
 
-1. **Mapping + data** — add the fatigue→region const (JS, optional Python
-   mirror); embed `muscle_rows` JSON in `fatigue.html`.
-2. **Rendering** — new `static/js/modules/fatigue-heatmap.js`: `loadBodymapSvg`,
-   annotate regions with their fatigue muscle, apply band class; front/back +
-   planned/logged toggles; tooltips.
-3. **Styling** — fatigue band heatmap CSS (reuse palette) + dark mode; new panel
-   layout in the fatigue route bundle.
-4. **Tests** — pytest (mapping coverage + Python/JS sync); `e2e/fatigue.spec.ts`
-   additions (panel renders, regions carry the right band class, toggles work,
-   period reload re-colors). Update visual baselines if a snapshot is added.
-5. **Docs + `/verify-suite`** — update `PLANNING.md` deferral line, this doc's
-   status, and the fatigue docs; full gate before done.
+Reviewers: **A** = `architecture-reviewer`, **T** = `test-strategist`, **P** = `product-risk-reviewer`,
+run in parallel on Plan v1, 2026-08-13. Per the owner's "concise" instruction, findings are recorded
+as matrix rows with dispositions rather than pasted transcripts; every finding has a row.
 
-## 7. Constraints & non-goals
+**Agent provenance:** three reviewers were run in parallel in-session on Plan v1; Plan v2 and this
+matrix were authored by the session that authored Plan v1 (no `product-manager` hand-off, so no
+resume was required). **Evidence gap:** internal agent identifiers are not surfaced into repository
+artifacts by this harness, so the provenance table's ID column is recorded as unavailable rather
+than invented. No ID was fabricated and no completed council work was rerun.
 
-- **No fatigue-math or threshold changes.** Pure visualization — does not touch
-  `MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`,
-  so it is compatible with the Stage-4 calibration-window freeze.
-- **No `/api/fatigue/*`** (D2.7) — server-rendered embedded data only.
-- Male figure only (matches the rest of the app). MuscleMap (MIT) — no new vendor.
-- Informational only; nothing here blocks a session.
+### Response matrix
 
-## 8. Open owner decisions (needed to finalize the plan)
+| # | Finding | Rev | Disposition | Action in v2 |
+|---|---|---|---|---|
+| 1 | Heatmap does not render at all in the required functional gate — `prepare_e2e_db.py` wipes plan+logs and `fatigue.spec.ts:66` erases mid-file | A,T | accept | New describe placed **above** the existing one, self-seeding via `POST /add_exercise`; also asserts the panel is absent on the empty state. |
+| 2 | Six stale Linux baselines red the weekly `visual-linux` cron | A | accept (scoped) | Explicit owner follow-up in PR body + handover. Does not block merge: `visual-linux` is schedule/dispatch-only and not one of the 11 required contexts. The 2026-08-17 deep-gate validation checks *job execution*, not greenness, so it is unaffected. |
+| 3 | `TERMINAL_MARKERS` on a conditionally-rendered element hard-fails instead of skipping | A,T | accept | `data-heatmap-state` moves to the **always-rendered** page `<section>` with values `ready`\|`empty`; marker registered as `[data-heatmap-state]`. |
+| 4 | Two figure columns → 4 duplicate DOM `id`s + 4 copies of the SVG's inline `<style>` | A | accept | Dissolved by the Q1 ruling — 2 SVGs, and anterior/posterior ids differ, so no duplicate exists. |
+| 5 | Per-region `role="img"`/`aria-label` are **inert**: the SVG root already has `role="img"`, making descendants presentational | A | accept | Per-region ARIA dropped. Root `<svg>` carries the channel/side label. Per-region `<title>` kept **only** as a sighted-user hover tooltip; no a11y claim is made for it. |
+| 6 | `fill: var(--fatigue-accent-strong)` with no fallback → black silhouette; the 727-viewBox `stroke-width` never reaches `/fatigue` | A | accept | `var(..., <neutral>)` fallback, explicit `stroke-width: 0.9`, and the JS always writes exactly one of five band classes. |
+| 7 | Any new `d-*` utility reds `test_css_display_utilities_contracts.py`; `fatigue.html:22` is pinned in `KNOWN_INERT` | A,T | accept | **No `d-*` class** in the new partial or module; line 22 untouched. |
+| 8 | `.text-muted`/`.text-center`/`.text-danger` in the new SCSS reds `test_css_wp4_4_base_contracts.py:149` | A | accept | Those names never appear in `_fatigue.scss`; asserted by a new test. |
+| 9 | Any literal `.css` substring (or `page_css`) in `fatigue.html` reds `test_visual_selector_contracts.py:134` | A | accept | Neither appears. Recorded as an implementer constraint. |
+| 10 | A bare `.muscle-region` rule in the globally-loaded bundle silently repaints two other pages | A | accept | All selectors scoped under `.fatigue-heatmap`, made **mechanical** by a new test asserting no `.muscle-region` in the bundle except immediately preceded by `.fatigue-heatmap `. |
+| 11 | Extend the `test_css_cascade_contracts.py` tuple with `.fatigue-heatmap` | A | **reject** | That file is amendable only by WP4.4 packet **i** (`test_css_wp4_4_a_baseline_contracts.py:675-704`). Equivalent guarantee obtained in the new test file instead. |
+| 12 | Must not call `annotateBodymapPolygons` (writes Profile-specific data from a different mapping) | A | accept | Module imports only `loadBodymapSvg`; asserted by a source-text test. |
+| 13 | Importing `bodymap-svg.js` places ~160 lines of Profile-only data on `/fatigue` | A | accept (documented) | Recorded as a known coupling; not refactored — splitting that module is out of scope. |
+| 14 | `docs/MASTER_HANDOVER.md` missing from the file list | A | **defer** | Owner instruction for this session forbids concurrent MASTER_HANDOVER edits. Recorded in `MASTER_HANDOVER.local.md`. |
+| 15 | `visual-windows` (`ci.yml:549`) runs on **every PR** and byte-compares all 66 win32 baselines on `windows-2022` | T | accept | Promoted to a first-class gate: after regenerating the six PNGs, confirm **Visual Regression (Windows baselines)** is green before treating them as accepted. A red is never answered with `--update-snapshots`. |
+| 16 | The module `<script>` must carry `?v={{ app_version }}` **outside** `url_for()` or `test_version.py` reds | T | accept | Exact markup pinned; the literal `random` must not appear. |
+| 17 | `test_version.py` node count moves 22 → 23 (new partial picked up by `rglob`) | T | accept | Handled by regenerating the test inventory. |
+| 18 | Never add a screenshot assertion to `fatigue.spec.ts` — `test_no_screenshot_spec_is_benchmarked` would red **pytest** | T | accept | Implementer constraint; visual coverage stays in `visual.spec.ts`. |
+| 19 | Module must be importable with zero DOM/fetch side effects (vitest runs in node env) | T | accept | Pure exports at top; mounting behind `initFatigueHeatmap()`, self-invoked on `DOMContentLoaded` only. |
+| 20 | Mutation-test the vitest cases: assert the returned **band**, not just the muscle | T | accept | Every case asserts the band; plus a nonsense-band passthrough case. |
+| 21 | flake8 `F401` and `tsc --noEmit` are blocking CI jobs | T | accept | Both in the local gate list. |
+| 22 | Seven-surface Stylelint does **not** apply (`bootstrap.custom.min.css` is excluded) | T | accept | Recorded so the gate is not over-escalated; `npm run lint:css` still covers `scss/**`. |
+| 23 | Compiled-CSS drift gate (PR #335) is **not** on `main`; rebuild is discipline, not a gate | T | accept | Rebuild + commit bundle **and** `.map`; repair the autocrlf phantom with `git checkout-index -f`. |
+| 24 | `prepareForScreenshot`'s inline stage never reaches a late-mounted SVG → recommend server-rendering | T | **reject (measured)** | The inline stage targets only `[data-visual-control], input, textarea, select` (`visual-helpers.ts:251-260`) — an SVG `<path>` matches none at any mount time. The `addStyleTag` stage uses `*` with `!important` (live CSS, reaches late nodes), and `prepareForScreenshot` opens with `waitForLoadState('networkidle')`, which already awaits the fetch. Server-rendering would also need a Jinja loader change (SVGs live outside the template root), destroying the zero-Python-change property. Mitigations 3 + 25 adopted instead. |
+| 25 | Flip the marker after paint, not after mount | T | accept | `ready` is set inside a `requestAnimationFrame` after the last band class; and `.fatigue-heatmap .muscle-region` declares only `fill`/`stroke`/`stroke-width` — nothing a neutralizer could miss. |
+| 26 | `git add` the new files or the packaged-smoke job fails | T | accept | Explicit step. |
+| 27 | Front-delt region can show a **false low** — `Front-Shoulder` has no landmarks and drives no region, so press volume is invisible while the delts show lateral-raise load | P | accept | L1 preserved. Mitigated by a per-region `<title>` naming the source muscle plus a panel note. |
+| 28 | Five mapped regions can never render `light`; `Abdominals` can never render `heavy` — cross-region color comparison is invalid | P | accept (verified) | Independently reproduced: `Glutes`/`Traps`/`Forearms` have `MEV = 0`; `Abdominals` is `(0, 6, 25, 25)` so `MAV_high == MRV`. **Every region's `<title>` carries the `%` of range**, so the number travels with the color. A characterization test records the reachable set. **No threshold change.** |
+| 29 | With an empty `workout_log` the whole Logged figure is gray, reading "you trained nothing" | P | accept | A channel's figure renders **only** when that channel has data; otherwise that channel's empty-state line renders in its place. |
+| 30 | One gray conflates "no reference range exists" with "no volume in this window" | P | accept | One swatch, differentiated in the `<title>`. |
+| 31 | Legend labels drift from shipped vocabulary ("Lighter", "Not assessed") | P | accept | Exactly `Light · Moderate · Heavy · Very heavy · No reading`; sentences use the `_BAND_LABELS` lowercase forms. |
+| 32 | `<summary>` and panel-note copy — the first strings every user reads — left unspecified | P | accept | Pinned verbatim in §4. |
+| 33 | Palette is not perceptually ordered (green → **blue** → amber → red) and the map makes color the sole encoding | P | accept | Colors unchanged (L3); legend is an explicitly ordered list with a `lower → higher` caption. |
+| 34 | Painted **area** is an implicit quantity encoding; two muscles each paint two regions | P | accept | Covered by 27/30 — identical source-muscle naming on both members of each shared pair. |
+| 35 | Stage-4 felt-band evidence before vs after ship is not cleanly comparable | P | accept (relocated) | Ship date recorded in §5 **here** rather than in `calibration-notes.md`, because a concurrent session holds uncommitted edits to that file. **No threshold change.** |
+| 36 | Migration notes not stated | P | accept | PR body states them explicitly. |
+| 37 | `row.muscle` is an arbitrary DB string — never `innerHTML` | A | accept | Implementer constraint + a pytest case using a `</script>` label. |
+| 38 | Draft §3 mapped a non-existent `upper-back` region and omitted `obliques` | — | accept | Corrected in §3; a both-directions set-equality test makes the error class unreproducible. |
+| 39 | Draft §4 called `moderate` yellow | P | accept | Corrected — it is blue `#0d6efd`. |
 
-1. **Middle-Shoulder** has no dedicated lateral-delt region in MuscleMap. Color
-   **both** front+rear delt regions for it, color **front only**, or leave the
-   delts driven only by the unranked Front/Rear-Shoulder labels?
-2. **Metric & basis** — confirm color is driven by the per-muscle **band** with a
-   **planned/logged toggle** (like the bars). Weekly basis, session basis, or both?
-3. **Banded vs gradient** — 4 discrete band colors (matches the bars, less work)
-   or a continuous %MRV gradient (richer, needs a new palette + legend)?
-4. **Placement** — separate collapsible panel, or integrated next to the bar list?
-5. **Unranked muscles** — show as gray "not assessed", or hide them entirely?
-6. **Cosmetic styling** — match the MuscleMap demo (dark hair) or keep the
-   current flat-gray head?
+### Q1 — adjudicated (the reviewers disagreed)
 
-## 9. Suggested next step
+**P** argued for two figure columns and against a channel control (a hidden channel risks reading
+planned intent as logged reality). **A** argued for one figure + a control on measured grounds:
+two columns mount 4 SVGs → 4 duplicate DOM `id`s, 4 copies of the SVG's inline `<style>`,
+~226 region nodes, and push the panel past the fold at 375×812.
 
-Once §8 is answered, run `/council-plan` on this draft to harden it
-(architecture / test-strategist / product-risk reviewers), then implement per §6.
+**Ruling: one channel at a time; front *and* back both visible side by side; a segmented
+Planned/Logged control; and a permanently visible caption naming the active channel.**
+
+- Smaller on every axis **A** raised — **2** SVGs, not 4. Anterior and posterior ids differ, so the
+  duplicate-`id` defect disappears rather than being patched around.
+- It also *removes* the front/back toggle the draft proposed, so the panel has **one** control.
+- **P**'s misreading risk is closed by the permanent caption: the active channel is always stated in
+  visible text beside the figure, not merely implied by a pressed state.
+- L2's literal wording — "follows the page's existing planned/logged **toggle**" — points here.
+- Per finding 29, when only one channel has data **no control renders at all**. With the live DB at
+  0 logged rows, that is today's actual state.
+
+**P**'s concern is recorded as *accepted-with-mitigation*, not rejected.
+
+### Q2 — `obliques` → `Abdominals`
+Confirmed by both **A** and **P**. `utils/volume_taxonomy.py:97` is literally
+`"External Obliques": "Abdominals"`, so the accumulator already folds oblique work into that bar;
+leaving the region gray would make the figure contradict the bar list in the more damaging
+direction. Condition: `abs` and `obliques` carry the **identical** `<title>`. Visual consequence
+recorded so it is not read as a bug: 16 oblique paths + 8 abs paths render one color.
+
+---
+
+## §3 — Canonical region → fatigue-muscle mapping
+
+Single-valued **region → muscle**, which makes rendering total and unambiguous.
+
+| Region key | Fatigue muscle | Note |
+|---|---|---|
+| `chest` | Chest | |
+| `lats` | Latissimus-Dorsi | |
+| `front-deltoid` | **Middle-Shoulder** | **L1** |
+| `rear-deltoid` | **Middle-Shoulder** | **L1** |
+| `biceps` | Biceps | |
+| `triceps` | Triceps | front + back |
+| `quadriceps` | Quadriceps | |
+| `hamstring` | Hamstrings | |
+| `gluteal` | Glutes | |
+| `calves` | Calves | front + back |
+| `abs` | Abdominals | |
+| `obliques` | Abdominals | External Obliques canonicalizes to Abdominals |
+| `trapezius` | Traps | |
+| `forearms` | Forearms | front + back |
+| `neck` | — | unmapped → neutral gray (**L5**) |
+| `adductors` | — | unmapped → neutral gray (**L5**) |
+| `lower-back` | — | unmapped → neutral gray (**L5**) |
+
+Consequence of **L1**: the unranked `Front-Shoulder` / `Rear-Shoulder` labels drive no region, and
+`Middle-Traps` likewise (Traps owns `trapezius`). Those muscles keep their existing bars — nothing
+is hidden, and the panel note says so.
+
+---
+
+## §4 — Pinned user-facing copy (D2.10: descriptive, no verbs, no MRV/MEV)
+
+- `<summary>`: **Body map**
+- Panel note: **Colors show each muscle's band for the selected period. Regions without a reading stay gray.**
+- Shoulder note: **Shoulder regions show Middle-Shoulder. Front-Shoulder and Rear-Shoulder are listed separately below.**
+- Legend caption: **Lower → higher**
+- Legend items: **Light · Moderate · Heavy · Very heavy · No reading**
+- Channel caption: **Showing: Planned** / **Showing: Logged**
+- Region `<title>`, mapped with data: **Chest — heavy · 78% of typical recoverable range**
+- Region `<title>`, mapped without data: **Chest — no volume in this window**
+- Region `<title>`, unmapped: **Neck — no typical range yet**
+
+The page-level "Descriptive only" line already exists at `templates/fatigue.html:10-12` and is not repeated.
+
+### Collapsed-state persistence (L4)
+**None.** The only in-repo collapse-persistence pattern is `plan_volume_panel.js`, which owns a
+`localStorage` key on the *workout-plan* page; reusing it would mean a **new** key, which L4's
+"without new persistence" clause forbids. The panel defaults to open. This is a deliberate reading
+of L4, not an oversight.
+
+---
+
+## §5 — Plan v2
+
+**Scope — In:** collapsible `<details open>` panel above `.fatigue-page__bars`, front + back figures
+side by side; segmented Planned/Logged control (only when both channels have data) plus a permanent
+active-channel caption; the §3 mapping; ordered textual legend; per-region hover `<title>` carrying
+muscle · band · % of range; dark mode and 375px layout by reusing existing tokens and the existing
+breakpoint.
+
+**Scope — Out:** no API, schema, route or util change; no fatigue math, threshold, landmark or
+`SCENARIOS` edit; no new CSS bundle, `<link>`, E2E spec file or required CI check; no persistence of
+the collapsed state; no Linux baseline regeneration (owner follow-up).
+
+**Artifacts**
+
+| Path | Change | Notes |
+|---|---|---|
+| `static/js/modules/fatigue-heatmap.js` | new | Pure exports at top; mounting behind `initFatigueHeatmap()`. Imports only `loadBodymapSvg`. |
+| `static/js/modules/__tests__/fatigue-heatmap.test.js` | new | vitest, node env. |
+| `templates/_fatigue_heatmap.html` | new | No `<main>`, no `role="main"`, no `d-*`. |
+| `tests/test_fatigue_heatmap_mapping.py` | new | Mapping / palette / plumbing contracts. |
+| `templates/fatigue.html` | modify | Partial include, embedded JSON, versioned module script, `data-heatmap-state`. No `.css` substring, no `page_css`, line 22 untouched. |
+| `scss/_fatigue.scss` | modify | `.fatigue-heatmap`-scoped block only. |
+| `static/css/bootstrap.custom.min.css` + `.map` | rebuilt | `npm run build:css`. |
+| `e2e/fatigue.spec.ts` | modify | New describe above the existing one, self-seeding. No screenshot assertion. |
+| `e2e/visual-helpers.ts` | modify | One `TERMINAL_MARKERS` entry. |
+| `e2e/__screenshots__/win32/visual.spec.ts-snapshots/fatigue-*.png` | regenerated ×6 | Scoped `-g`, never a blanket update. |
+| `docs/CSS_PHASE4_WP4_4_A_BASELINE.json` | modify | **One** value: the win32 `nameAndSizeSha256`. Never `emit_baseline.py`. |
+| `docs/test_inventory/TEST_INVENTORY.{md,json}` | regenerated | |
+| `docs/fatigue_meter/HEATMAP_PLANNING.md` | modify | This document. |
+
+**NOT touched** (regression flag if they move): `utils/fatigue.py`, `utils/_fatigue/**`,
+`utils/fatigue_data.py`, `routes/fatigue.py`, `app.py`, `tests/conftest.py`,
+`templates/_fatigue_muscle_bar.html`, `static/js/modules/bodymap-svg.js`, the SVG assets,
+`tests/test_css_cascade_contracts.py`, `docs/MASTER_HANDOVER.md`,
+`docs/fatigue_meter/PHASE2_PLANNING.md`, `docs/fatigue_meter/calibration-notes.md`
+(the last two are held by a concurrent session), and any threshold / landmark / scenario.
+**Known coupling:** importing `bodymap-svg.js` places its Profile-only constants on `/fatigue`.
+
+**Expected gates:** full pytest; `npm run test:js`; e2e `fatigue`, `visual` (win32,
+`PW_VISUAL_SEED=1`), `accessibility`, `dark-mode`, `smoke-navigation`; `npm run build:css`;
+`scripts/generate_test_inventory.py`; `npx tsc --noEmit`; flake8; `npm run lint:css`.
+CI watch: **Visual Regression (Windows baselines)** — non-required but runs on every PR.
+
+### Stage-4 interaction (finding 35)
+The heatmap changes no fatigue math, but it changes how salient the bands feel, which is the human
+input Stage-4 felt-band evidence depends on. **Felt-band rows collected before and after this
+ship are not cleanly comparable.** Ship date is recorded in the PR and in this section so post-ship
+calibration rows stay interpretable. No threshold, band or landmark change.
+
+### Owner follow-up
+**Linux visual baselines for `/fatigue` are stale after this ship.** Regenerate via the
+`visual-linux` deep-gate job (`run_visual=true`, `visual_mode=generate`) and commit the six PNGs;
+CI never pushes pixels. Until then the weekly `visual-linux` compare run reds on those six captures
+only.

@@ -17,6 +17,183 @@ async function gotoFatigue(page: Page, period?: string): Promise<void> {
   await page.waitForSelector('[data-testid="fatigue-page"]', { state: 'visible' });
 }
 
+/**
+ * Body heatmap.
+ *
+ * This block runs FIRST on purpose. The functional seed wipes plan and log
+ * rows, so `/fatigue` is in its empty state and the panel does not exist at
+ * all; every test here seeds its own plan. It also has to sit above the
+ * `empty-state copy` test below, which POSTs /erase-data and would otherwise
+ * leave the database wiped for everything after it in the file.
+ */
+const PLAN_ROW = {
+  routine: 'GYM - Full Body - Workout A',
+  sets: 3,
+  min_rep_range: 8,
+  max_rep_range: 12,
+  rir: 2,
+  weight: 100,
+};
+
+async function resetPlan(page: Page): Promise<void> {
+  // Earlier specs in the shard may have left rows behind, so start from a known
+  // state rather than inheriting one.
+  await page.request.post('/erase-data', {
+    data: { confirm: 'ERASE_ALL_DATA' },
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+async function seedExercise(page: Page, exercise: string): Promise<void> {
+  const response = await page.request.post('/add_exercise', {
+    data: { ...PLAN_ROW, exercise },
+  });
+  expect(response.ok()).toBeTruthy();
+}
+
+async function gotoHeatmap(page: Page, period?: string): Promise<void> {
+  await gotoFatigue(page, period);
+  await page.waitForSelector('[data-heatmap-state="ready"]');
+}
+
+test.describe('/fatigue body heatmap', () => {
+  test.beforeEach(async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+    await resetPlan(page);
+    await seedExercise(page, 'Bench Press');
+    await seedExercise(page, 'Dumbbell Lateral Raise');
+  });
+
+  test('panel renders above the bar list, open by default', async ({ page, consoleErrors }) => {
+    await gotoHeatmap(page);
+    const panel = page.locator('[data-testid="fatigue-heatmap"]');
+    await expect(panel).toBeVisible();
+    await expect(panel.locator('summary')).toHaveText('Body map');
+    expect(await panel.evaluate((el: HTMLDetailsElement) => el.open)).toBe(true);
+
+    // "Above the detailed bar list" is the locked placement, so assert order
+    // rather than mere presence.
+    const panelPrecedesBars = await page.evaluate(() => {
+      const heatmap = document.querySelector('[data-testid="fatigue-heatmap"]');
+      const bars = document.querySelector('[data-testid="fatigue-bar-list"]');
+      if (!heatmap || !bars) return false;
+      return Boolean(
+        heatmap.compareDocumentPosition(bars) & Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+    expect(panelPrecedesBars).toBe(true);
+    consoleErrors.assertNoErrors();
+  });
+
+  test('the panel collapses from the keyboard', async ({ page }) => {
+    await gotoHeatmap(page);
+    const panel = page.locator('[data-testid="fatigue-heatmap"]');
+    await panel.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    expect(await panel.evaluate((el: HTMLDetailsElement) => el.open)).toBe(false);
+    await expect(page.locator('[data-testid="fatigue-heatmap-figure-front"]')).toBeHidden();
+  });
+
+  test('both figures mount and carry an accessible name', async ({ page }) => {
+    await gotoHeatmap(page);
+    for (const side of ['front', 'back']) {
+      const svg = page.locator(`[data-testid="fatigue-heatmap-figure-${side}"] svg`);
+      await expect(svg).toBeVisible();
+      const label = await svg.getAttribute('aria-label');
+      expect(label).toContain(side);
+      expect(label).toContain('Planned');
+    }
+  });
+
+  test('Middle-Shoulder paints both deltoid regions identically', async ({ page }) => {
+    await gotoHeatmap(page);
+    const delts = await page.evaluate(() =>
+      ['front-deltoid', 'rear-deltoid'].map((key) => {
+        const el = document.querySelector(`.muscle-region[data-canonical-muscles="${key}"]`);
+        return {
+          muscle: (el as HTMLElement | null)?.dataset.heatmapMuscle ?? null,
+          band: (el as HTMLElement | null)?.dataset.heatmapBand ?? null,
+          title: el?.querySelector('title')?.textContent ?? null,
+        };
+      }),
+    );
+    expect(delts[0].muscle).toBe('Middle-Shoulder');
+    expect(delts[0]).toEqual(delts[1]);
+    expect(delts[0].title).toContain('Middle-Shoulder');
+  });
+
+  test('regions with no reference range stay visible and neutral', async ({ page }) => {
+    await gotoHeatmap(page);
+    for (const key of ['neck', 'adductors', 'lower-back']) {
+      const region = page.locator(`.muscle-region[data-canonical-muscles="${key}"]`).first();
+      await expect(region).toBeVisible();
+      await expect(region).toHaveClass(/fatigue-unranked/);
+      await expect(region.locator('title')).toHaveText(/no typical range yet/);
+    }
+  });
+
+  test('planned-only data hides the channel control and captions the channel', async ({ page }) => {
+    await gotoHeatmap(page);
+    // Nothing has been logged, so there is nothing to switch between.
+    await expect(page.locator('[data-heatmap-control]')).toBeHidden();
+    await expect(page.locator('[data-testid="fatigue-heatmap-caption"]'))
+      .toHaveText('Showing: Planned');
+  });
+
+  test('painted bands still agree with the embedded data after a period change', async ({ page }) => {
+    await gotoHeatmap(page);
+    const select = page.locator('[data-testid="fatigue-period-select"]');
+    await select.selectOption('last_4_weeks');
+    await page.waitForURL(/period=last_4_weeks/);
+    await page.waitForSelector('[data-heatmap-state="ready"]');
+
+    // Assert the invariant - painted class agrees with the row the server just
+    // sent - rather than a hard-coded expected colour, so this survives any
+    // data change.
+    const disagreements = await page.evaluate(() => {
+      const node = document.getElementById('fatigue-heatmap-data');
+      const rows = JSON.parse(node?.textContent ?? '[]');
+      const byMuscle = Object.fromEntries(rows.map((r: any) => [r.muscle, r]));
+      const channel = (document.querySelector('[data-heatmap-panel]') as HTMLElement)
+        .dataset.heatmapChannel;
+      const bad: string[] = [];
+      document.querySelectorAll('.muscle-region[data-canonical-muscles]').forEach((el) => {
+        const region = el as HTMLElement;
+        const muscle = region.dataset.heatmapMuscle;
+        const expected = muscle && byMuscle[muscle]?.[channel as string]
+          ? `fatigue-${byMuscle[muscle][channel as string].band.replace(/_/g, '-')}`
+          : 'fatigue-unranked';
+        if (!region.classList.contains(expected)) {
+          bad.push(`${region.dataset.canonicalMuscles}: expected ${expected}`);
+        }
+      });
+      return bad;
+    });
+    expect(disagreements).toEqual([]);
+  });
+
+  test('degrades quietly when the body map asset cannot load', async ({ page, consoleErrors }) => {
+    await page.route('**/bodymaps/**/*.svg', (route) => route.abort());
+    await gotoFatigue(page);
+    // The panel stays, the fallback copy stands in, and - the point of the test
+    // - no unhandled rejection reaches the console, which would otherwise fail
+    // every other test in this file through the shared fixture.
+    await expect(page.locator('[data-testid="fatigue-heatmap"]')).toBeVisible();
+    await expect(page.locator('[data-testid="fatigue-heatmap-figure-front"] svg')).toHaveCount(0);
+    consoleErrors.assertNoErrors();
+  });
+
+  test('375px viewport keeps the open panel free of horizontal overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await gotoHeatmap(page);
+    await expect(page.locator('[data-testid="fatigue-heatmap-figure-back"] svg')).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.body.scrollWidth > document.body.clientWidth + 1,
+    );
+    expect(overflow).toBe(false);
+  });
+});
+
 test.describe('/fatigue page', () => {
   test.beforeEach(async ({ consoleErrors }) => {
     consoleErrors.startCollecting();

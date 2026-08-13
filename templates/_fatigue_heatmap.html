@@ -1,0 +1,80 @@
+{#
+  Fatigue body heatmap panel.
+
+  Colors the MuscleMap figure by each muscle's already-computed band. No new
+  metric: the bands come from the same `muscle_rows` the bar list renders.
+
+  Rendered only where planned or logged data exists (the caller's {% else %}
+  branch), so the empty-state page emits no panel at all.
+
+  Progressive enhancement: with JS off the figures never mount and the note
+  below stands in for them. The bar list underneath is the primary view and is
+  unaffected.
+#}
+<details class="fatigue-heatmap" open data-heatmap-panel data-testid="fatigue-heatmap">
+    <summary class="fatigue-heatmap__summary">Body map</summary>
+
+    <p class="fatigue-heatmap__note">
+        Colors show each muscle&rsquo;s band for the selected period.
+        Regions without a reading stay gray.
+    </p>
+
+    <div class="fatigue-heatmap__controls">
+        <div class="fatigue-heatmap__channel"
+             data-heatmap-control
+             role="group"
+             aria-label="Which channel colors the body map"
+             hidden>
+            {% for key, label in [('planned', 'Planned'), ('logged', 'Logged')] %}
+                <button type="button"
+                        class="fatigue-heatmap__channel-btn"
+                        data-heatmap-channel="{{ key }}"
+                        data-testid="fatigue-heatmap-channel-{{ key }}"
+                        aria-pressed="false"
+                        hidden>{{ label }}</button>
+            {% endfor %}
+        </div>
+        <p class="fatigue-heatmap__caption"
+           data-heatmap-caption
+           data-testid="fatigue-heatmap-caption"></p>
+    </div>
+
+    <div class="fatigue-heatmap__figures">
+        {% for side, label in [('front', 'Front'), ('back', 'Back')] %}
+            <div class="fatigue-heatmap__figure"
+                 data-heatmap-figure="{{ side }}"
+                 data-testid="fatigue-heatmap-figure-{{ side }}">
+                <p class="fatigue-heatmap__fallback">{{ label }} view unavailable.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    {#
+      The legend is the non-color status channel: every state is named in text,
+      and the caption states the rank so it is not inferred from hue. The order
+      is deliberate - the shipped palette runs green, blue, amber, red, which is
+      not perceptually ordered on its own.
+    #}
+    <div class="fatigue-heatmap__legend" data-testid="fatigue-heatmap-legend">
+        <p class="fatigue-heatmap__legend-caption">Lower &rarr; higher</p>
+        <ul class="fatigue-heatmap__legend-list">
+            {% for band, label in [
+                ('light', 'Light'),
+                ('moderate', 'Moderate'),
+                ('heavy', 'Heavy'),
+                ('very-heavy', 'Very heavy'),
+                ('unranked', 'No reading'),
+            ] %}
+                <li class="fatigue-heatmap__legend-item">
+                    <span class="fatigue-heatmap__swatch fatigue-{{ band }}" aria-hidden="true"></span>
+                    {{ label }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <p class="fatigue-heatmap__note fatigue-heatmap__note--aside">
+        Shoulder regions show Middle-Shoulder.
+        Front-Shoulder and Rear-Shoulder are listed separately below.
+    </p>
+</details>

@@ -526,3 +526,188 @@
     font-size: 1.6rem;
   }
 }
+
+
+// =============================================================================
+// Fatigue body heatmap panel (/fatigue)
+// =============================================================================
+// Every selector here is scoped under `.fatigue-heatmap`. That is load-bearing,
+// not tidiness: this file compiles into bootstrap.custom.min.css, which
+// base.html loads on EVERY page, and two other consumers already style
+// `.muscle-region` (the plan-page selector and the profile coverage map). A
+// bare rule here would leak into both. tests/test_fatigue_heatmap_mapping.py
+// asserts the scoping mechanically.
+//
+// Region paint deliberately declares only fill/stroke/stroke-width - no
+// transition, filter or box-shadow. The visual harness neutralises animation
+// globally but its inline pass only reaches form controls, so a region that
+// animated would be the one thing on the page still moving under a screenshot.
+
+.fatigue-heatmap {
+  border: 1px solid var(--fatigue-row-border);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.fatigue-heatmap__summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  list-style-position: inside;
+
+  &:focus-visible {
+    outline: 2px solid var(--fatigue-accent, #6c757d);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.fatigue-heatmap__note {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(15, 23, 42, 0.68);
+}
+
+.fatigue-heatmap__note--aside {
+  margin-top: 0.75rem;
+}
+
+.fatigue-heatmap__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.fatigue-heatmap__channel {
+  display: inline-flex;
+  gap: 0.25rem;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.fatigue-heatmap__channel-btn {
+  border: 1px solid var(--fatigue-track-border);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+
+  &[hidden] {
+    display: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fatigue-accent, #6c757d);
+    outline-offset: 2px;
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--fatigue-track-bg);
+    border-color: var(--fatigue-row-border);
+  }
+}
+
+.fatigue-heatmap__caption {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fatigue-heatmap__figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-items: center;
+}
+
+.fatigue-heatmap__figure {
+  width: 100%;
+  max-width: 15rem;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
+.fatigue-heatmap__fallback {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+// The fallback element is replaced wholesale when a figure mounts, so a stale
+// copy can never sit behind a rendered body.
+.fatigue-heatmap .muscle-region {
+  fill: var(--fatigue-accent-strong, rgba(108, 117, 125, 0.55));
+  stroke: var(--fatigue-accent-border, rgba(108, 117, 125, 0.28));
+  // The MuscleMap viewBox is ~727 wide, so a 0.3 stroke renders ~2.7x too thin.
+  stroke-width: 0.9;
+}
+
+.fatigue-heatmap__legend {
+  margin-top: 0.75rem;
+}
+
+.fatigue-heatmap__legend-caption {
+  margin: 0 0 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.fatigue-heatmap__legend-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fatigue-heatmap__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+}
+
+.fatigue-heatmap__swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 3px;
+  background-color: var(--fatigue-accent-strong, rgba(108, 117, 125, 0.55));
+  border: 1px solid var(--fatigue-accent-border, rgba(108, 117, 125, 0.28));
+}
+
+[data-theme='dark'] .fatigue-heatmap__note,
+[data-theme='dark'] .fatigue-heatmap__fallback {
+  color: rgba(248, 250, 252, 0.62);
+}
+
+[data-theme='dark'] .fatigue-heatmap__legend-caption {
+  color: rgba(248, 250, 252, 0.6);
+}
+
+@media (max-width: 575.98px) {
+  .fatigue-heatmap__figures {
+    gap: 0.35rem;
+  }
+
+  .fatigue-heatmap__figure {
+    max-width: 100%;
+  }
+}

@@ -3,7 +3,18 @@
 {% block title %}Fatigue · Hypertrophy Toolbox{% endblock %}
 
 {% block content %}
-<section class="container fatigue-page py-4" data-testid="fatigue-page">
+{#
+  data-heatmap-state is a terminal-state marker for the visual capture harness.
+  It is rendered unconditionally so a seed change can never turn the six
+  /fatigue baselines into an opaque "marker never appeared" timeout:
+    empty   - no data, no panel, nothing to wait for;
+    pending - the panel is present and its figures have not been painted yet;
+    ready   - set by fatigue-heatmap.js one frame after the bands are applied.
+  e2e/visual-helpers.ts waits for the two terminal values only.
+#}
+<section class="container fatigue-page py-4"
+         data-testid="fatigue-page"
+         data-heatmap-state="{{ 'pending' if (planned_has_data or logged_has_data) else 'empty' }}">
     <header class="fatigue-page__header mb-4">
         <h1 class="fatigue-page__title h3 mb-1">Fatigue meter</h1>
         <p class="fatigue-page__subtitle text-muted mb-3">
@@ -81,6 +92,11 @@
                 to see per-muscle fatigue here.
             </p>
         {% else %}
+            {# The heatmap reads this; the period selector reloads the page, so
+               the embedded rows can never drift from the bars below. #}
+            <script type="application/json" id="fatigue-heatmap-data">{{ muscle_rows | tojson }}</script>
+            {% include '_fatigue_heatmap.html' with context %}
+
             <div class="fatigue-page__legend small text-muted mb-2">
                 Sorted by % of typical recoverable range (highest first).
                 Muscles without a typical range yet appear at the bottom
@@ -99,4 +115,7 @@
         {% endif %}
     </div>
 </section>
+
+<script type="module"
+        src="{{ url_for('static', filename='js/modules/fatigue-heatmap.js') }}?v={{ app_version }}"></script>
 {% endblock %}
