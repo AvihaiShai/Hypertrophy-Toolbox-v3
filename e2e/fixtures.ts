@@ -204,6 +204,36 @@ export async function waitForPageReady(page: Page): Promise<void> {
 }
 
 /**
+ * Volume Splitter readiness without the fixed `networkidle` silence window.
+ *
+ * The page fires one un-awaited initial `/api/volume_history` request from its
+ * DOMContentLoaded initializer. Production marks exactly that hydration on
+ * `<html>`; later save/delete/activate refreshes are intentionally outside this
+ * page-load lifecycle. The helper waits for document load and for the initial
+ * history render (or its handled error state) to settle.
+ *
+ * The default Playwright timeout is preserved. Only the failure message is
+ * enriched so a stranded production marker is not misdiagnosed as navigation.
+ */
+export async function waitForVolumeSplitterReady(page: Page): Promise<void> {
+  await page.waitForLoadState('load');
+  try {
+    await page.waitForFunction(
+      () => !document.documentElement.hasAttribute('data-volume-history-busy')
+    );
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      'waitForVolumeSplitterReady: the initial volume-history readiness wait timed out. ' +
+        '`data-volume-history-busy` was still present on <html>, so the initial fetch ' +
+        'never settled or its marker was stranded (it is cleared in a `finally` in ' +
+        'static/js/modules/volume-splitter.js). This is NOT a page-load timeout — ' +
+        `the 'load' state was already reached. Original: ${detail}`
+    );
+  }
+}
+
+/**
  * Workout-plan readiness without `networkidle`.
  *
  * `networkidle` costs a flat ~500ms per call because it is defined as half a
