@@ -204,6 +204,36 @@ export async function waitForPageReady(page: Page): Promise<void> {
 }
 
 /**
+ * Body Composition readiness without the fixed `networkidle` silence window.
+ *
+ * Same shape as `waitForVolumeSplitterReady` below: the page fires one
+ * un-awaited `/api/body_composition/snapshots` request from its initializer,
+ * and production marks exactly that hydration on `<html>`. The save and delete
+ * refreshes call the same loader and are deliberately unmarked — they are user
+ * actions with their own observables.
+ *
+ * The default Playwright timeout is preserved. Only the failure message is
+ * enriched so a stranded production marker is not misdiagnosed as navigation.
+ */
+export async function waitForBodyCompositionReady(page: Page): Promise<void> {
+  await page.waitForLoadState('load');
+  try {
+    await page.waitForFunction(
+      () => !document.documentElement.hasAttribute('data-body-composition-history-busy')
+    );
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      'waitForBodyCompositionReady: the initial snapshot-history readiness wait timed out. ' +
+        '`data-body-composition-history-busy` was still present on <html>, so the initial ' +
+        'fetch never settled or its marker was stranded (it is cleared in a `finally` in ' +
+        'static/js/modules/body-composition.js). This is NOT a page-load timeout — ' +
+        `the 'load' state was already reached. Original: ${detail}`
+    );
+  }
+}
+
+/**
  * Volume Splitter readiness without the fixed `networkidle` silence window.
  *
  * The page fires one un-awaited initial `/api/volume_history` request from its

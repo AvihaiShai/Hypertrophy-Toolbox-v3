@@ -11,6 +11,7 @@
 import { api, isHandledApiError } from './fetch-wrapper.js';
 import { showToast } from './toast.js';
 
+const HISTORY_BUSY_ATTR = 'data-body-composition-history-busy';
 const CIRCUMFERENCE_MIN_CM = 20.0;
 const CIRCUMFERENCE_MAX_CM = 250.0;
 const HEIGHT_MIN_CM = 100.0;
@@ -385,6 +386,26 @@ function bindForm(root) {
     form.addEventListener('input', refreshResults);
     refreshResults();
 
+    /**
+     * Expose only the page's initial history hydration as readiness state.
+     *
+     * `loadHistory()` also runs after a snapshot is saved and after one is
+     * deleted. Those are user actions with their own observables — a saved row
+     * is prepended, a deleted row is removed — and marking them would make page
+     * readiness describe user activity and go inexact if two ever overlap. The
+     * attribute is set synchronously before the first `await` so a waiter
+     * cannot slip through the gap between DOMContentLoaded and the request
+     * starting, and removed in `finally` so a rejected fetch cannot strand it.
+     */
+    async function loadInitialHistory() {
+        document.documentElement.setAttribute(HISTORY_BUSY_ATTR, '1');
+        try {
+            await loadHistory();
+        } finally {
+            document.documentElement.removeAttribute(HISTORY_BUSY_ATTR);
+        }
+    }
+
     async function loadHistory() {
         try {
             const res = await api.get('/api/body_composition/snapshots', { showErrorToast: false });
@@ -445,7 +466,7 @@ function bindForm(root) {
         });
     }
 
-    loadHistory();
+    void loadInitialHistory();
 }
 
 function prependHistoryRow(body, snap) {
