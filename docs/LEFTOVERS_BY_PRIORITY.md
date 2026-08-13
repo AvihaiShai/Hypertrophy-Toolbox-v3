@@ -122,7 +122,16 @@
 > describes the debug block. Fixed at v23 by escaping the pipe. Anything quoting
 > Jinja, shell pipes, or regex alternation inside these tables must escape `|`.
 
-> **v25 — P2.1 owner decision recorded, 2026-08-13. Docs-only; one item retired, nothing promoted.** The owner closed the Fatigue *Phase 2* Stage 4 calibration window as **no real-use evidence / no threshold change**, kept Learned Calibration **2D-D** parked, and authorised retiring only observer *instructions* or generated artifacts **proven regenerable and unpinned**. Evidence re-verified read-only that day — see [`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) §5 Stage 4. **No file was deleted:** both named artifact families failed the *proven-regenerable* half of the bar (measurement in §10 there), and the observer scripts plus their 26 tests were explicitly kept for a possible restart. **Consequence: OWNER-gated items drop from three to two (P2.2, P2.4).** Docs-only; the live database was read-only throughout.
+> **v26 — integration truth reconciliation, 2026-08-14.** Two more execution
+> items are retired: **P2.2** shipped as #339 (`ea82ef1`), and the compiled-CSS
+> drift proposal shipped as #335 (`542df07`) with the stronger bundle-plus-map
+> pathspec. Two broader bullets are corrected rather than falsely retired:
+> Testing Phase-2 Packet A shipped as #342, while Packets C/D remain queued; the
+> one-shot cross-model consult shipped as #344/#348, while heavy `$orchestrate`
+> remains deliberately unimplemented. Product docs remain retired. No proposal
+> is promoted by this reconciliation.
+
+> **v25 — P2.1 owner decision recorded, 2026-08-13. Docs-only; one item retired, nothing promoted.** The owner closed the Fatigue *Phase 2* Stage 4 calibration window as **no real-use evidence / no threshold change**, kept Learned Calibration **2D-D** parked, and authorised retiring only observer *instructions* or generated artifacts **proven regenerable and unpinned**. Evidence re-verified read-only that day — see [`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) §5 Stage 4. **No file was deleted:** both named artifact families failed the *proven-regenerable* half of the bar (measurement in §10 there), and the observer scripts plus their 26 tests were explicitly kept for a possible restart. **Consequence at v25: OWNER-gated items dropped from three to two (P2.2, P2.4).** Docs-only; the live database was read-only throughout.
 >
 > **v24 — truth-maintenance pass, 2026-08-13. Docs-only; no finding is new and no
 > item is promoted.** This revision does one thing: it stops the file presenting
@@ -151,10 +160,9 @@
 > *widening* it.
 >
 > **Consequence: P1 is fully discharged — there is no READY item left in this
-> file.** Everything that remains is OWNER-gated (P2.2, P2.4, the §4
-> taxonomy TODOs, and the `npm audit` severity/exception policy — P2.1 was
-> decided and retired on 2026-08-13, see the v25 note above) or a PROPOSAL
-> (all of P3). v24 promotes nothing: no proposal
+> file.** Everything that remains is OWNER-gated (P2.4, the §4 taxonomy TODOs,
+> and the `npm audit` severity/exception policy — P2.1 and P2.2 are retired) or
+> a PROPOSAL (the remaining P3 bullets). v26 promotes nothing: no proposal
 > became approved work, no owner gate was inferred as taken, and no production
 > TODO disposition changed. The recomputed queue is in §6.
 >
@@ -174,12 +182,13 @@
 | **PROPOSAL** | Valid future work, but not a forgotten activity or current commitment. |
 | **RETIRE** | Shipped, superseded, irrelevant, or disposable after the stated safety check. |
 
-**Current classification (v24 + v25, 2026-08-13, superseding v23's):** **no item in this
+**Current classification (v26, 2026-08-14, superseding v23–v25):** **no item in this
 file is READY.** **RETIRED** — all of P1 (P1.0 #278, P1.1 #295, P1.2 #327, P1.3+P1.8
 #292, P1.4 #291, P1.5 #284, P1.6 closeout doc, P1.7 #285), plus **P2.3** and **P2.5**
 (and P2.6, shipped 2026-08-04), plus **P2.1** (owner decision taken
-2026-08-13). **OWNER** — P2.2, P2.4. Every item in P3 is a
-**PROPOSAL**. See the v24/v25 blocks above for the per-item evidence and §6 for the queue.
+2026-08-13), plus **P2.2** (#339). **OWNER** — P2.4. Every remaining item in P3
+is a **PROPOSAL**. See the v24–v26 blocks above for the per-item evidence and §6
+for the queue.
 
 > *Superseded 2026-08-13.* This line previously read: *"READY — P1.5, P1.7
 > (P1.0 has since shipped as #278, and P1.4 as #291 — see §2); RETIRED — P1.2 (the
@@ -371,7 +380,7 @@ worktrees: 34 removable, 7 preserved, 1 current.
 | ID | Activity | Real state / gate | Completion action | Effort |
 |---|---|---|---|---:|
 | P2.1 | **RETIRED 2026-08-13 — the owner decision was taken: close the inactive window, no threshold change.** *Fatigue Phase 2 Stage 4 disposition* | **⚠️ SUPERSEDED — the owner decision this row was waiting for has been taken.** On **2026-08-13** the owner chose **option (b)**: close the inactive *Phase 2* Stage 4 window as *no real-use evidence, no threshold change*, keep Learned Calibration **2D-D** parked, and retire only what passes the retention tests. **Every premise the row asserted was re-verified read-only that day and all of it held** — evidence table in [`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) §5 Stage 4. One wording correction: *every* user table is not empty — `user_selection` holds **1** row; the rest are 0. The disambiguation the row leads with is correct and still worth keeping: *Phase 1* Stage 4 closed 2026-05-20, *Phase 2* Stage 4 closed 2026-08-13, and they are different closes on different evidence. *Original text:* **Disambiguation first (v21):** two "Stage 4"s exist. *Phase 1* Stage 4 was parked 2026-05-13 and **closed 2026-05-20** — [`STAGE4_PARKED_HANDOFF.md`](fatigue_meter/STAGE4_PARKED_HANDOFF.md) carries a proper SUPERSEDED banner. The open item is ***Phase 2*** Stage 4 ([`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md), window opened 2026-05-24). That window is inactive: every user table in `data/database.db` is empty (`workout_log=0`), the last observer log is 2026-05-30, no scheduled task is installed. Learned Calibration 2D-D depends on the same missing evidence. | **None — done, and nothing was deleted.** Shipped as a docs-only closeout: [`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) §5 Stage 4 now carries the close, the re-verified evidence table, and a three-part reopen bar (fresh written owner decision **plus** a representative multi-week `workout_log` **plus** ≥2 same-direction real-use disagreements); §10 marks the observer automation dormant and retires the standing run instructions; [`LEARNED_CALIBRATION_PLAN.md`](user_profile/LEARNED_CALIBRATION_PLAN.md) §2D-D records the re-verification and keeps 2D-D not-started, reopen-only on fresh owner approval **plus** new evidence. **⚠️ The v23 safety check below is half wrong and must not be reused as written.** Its *pin* half is right — no test or workflow reads either artifact. Its *regenerable* half was **measured and disproven**, so **nothing was deleted**: both artifact families are kept, as are the observer scripts and their 26 tests (measurement and reasoning in [`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) §10). The closing prohibition survives the retirement and still binds: **never tune thresholds or make 2D-D prescriptive without the documented evidence bar and fresh approval.** *Original text:* **OWNER:** (a) restart real-use collection and keep Stage 4 open, or (b) close the inactive window as "no evidence / no threshold change," park 2D-D, and retire the no-longer-used observer tooling instructions **plus the generated artifacts committed under `docs/fatigue_meter/`** (`baseline-2026-04-30*.txt`, `generated-calibration-report.md`) per retention policy. **v23 safety check on that cleanup:** `generated-calibration-report.md` is `DEFAULT_OUTPUT` of [`scripts/fatigue_calibration_report.py:32-36`](../scripts/fatigue_calibration_report.py) and is rewritten by `output.write_text(...)` at `:546` — it is regenerable script output, so deleting it loses no evidence. But `tests/test_fatigue_stage4_observer.py` and `tests/test_calibration_integration.py` both reference `docs/` paths, so confirm neither pins the files being retired before removing them (**N7**). Never tune thresholds or make 2D-D prescriptive without the documented evidence bar and fresh approval. | **RETIRED** |
-| P2.2 | **Fatigue body heatmap** | Owner-requested and technically close to assembly, but [`HEATMAP_PLANNING.md`](fatigue_meter/HEATMAP_PLANNING.md) remains a draft with six owner decisions. Existing MuscleMap SVG, body-map coloring code, fatigue `muscle_rows`, band colors, and period reload behavior cover most of the implementation surface. | Resolve §8 decisions, sign the plan, implement a visualization-only slice with no formula/threshold/schema/API change, and close it. | 1–2 d after decisions |
+| P2.2 | **RETIRED — Fatigue body heatmap shipped as #339 (`ea82ef1`), 2026-08-13.** | All six owner decisions were resolved and implemented: both delt regions map to Middle-Shoulder; existing planned/logged + period state drives four discrete fatigue bands; the separate panel is collapsible; unranked muscles stay visible and neutral; the head remains flat gray. No fatigue formula, threshold, schema or API changed. | None. Linux baseline follow-up #351 is a separate visual-corpus packet, not unfinished heatmap behavior. | **RETIRED** |
 | P2.3 | **RETIRED as an execution item 2026-08-13 — the baseline debt is discharged on both platforms.** *Visual-baseline debt: the Windows pair plus stale Linux baselines* | **⚠️ SUPERSEDED — the owner action this row asks for has been run, twice over.** **Linux:** #281 (`864043f`) accepted the deterministic set, #294 (`73c5c46`) the six progression captures stale from #291, and #298 (`f8988f9`) took five plan-desktop captures off the byte gate; the Linux ledger in [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) is annotated **CLOSED 2026-08-04** with three consecutive green `visual-linux` compares. **Windows:** #309 (`10ba89f`) regenerated the win32 corpus after owner by-eye review; a seeded win32 run passes **66 + 18**. 162 baselines are tracked, 81 per platform. **The D3 blocker in the cell below is also discharged** — the weekly deep gate merged as #323 (`3b1160b`) with #325 (`4d01698`) adding job timeouts. **What is NOT retired:** the two WP4.0 rendering observations (animated navbar logo; `plan-desktop-light-advanced`) stay **open and owner-deferred**, but they are `BYTE_GATE_EXEMPT` with no PNG on either platform, so they are **not baseline debt** and are **not owned by this file** — [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) § *Known Windows visual reds* owns them. *Original text:* Two real Windows-only failures remain: the animated navbar logo in Workout Plan desktop dark, and `plan-desktop-light-advanced` in `visual-baseline-thumbnails.spec.ts` (**6,084 px** measured / 6,098 retry vs **6,262 px** baseline — [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) Windows ledger). New on `origin/main` via #273: the **Linux** baselines were last written before 57 later CSS/template commits and now produce at least 11 failures (57 pass, 16 do not run); this is separate from the Windows pair and blocks the signed D3 weekly deep-gate stopgap. [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) does not yet describe the full platform-specific state. | **None — done. But every safety rule below survives the retirement and still binds any future baseline work:** **never blind-rebaseline**, never raise the global tolerance, never gate on an exact pixel count for a banded red, run the **compare before regenerating anything**, and treat an owner by-eye review as mandatory for each regeneration — it attests to the pixels reviewed, not to future diffs. Also still true: no CI path generates win32 baselines, so a win32 corpus can stale silently and must be re-measured rather than assumed. *Original text:* **OWNER action first:** run the Linux generate workflow, download and inspect all 84 PNGs by eye, commit only approved baselines, then confirm Linux compare is green before adding D3's weekly schedule. Separately stabilize the Windows animation/snapshot timing and diagnose the advanced-thumbnail delta; never blind-rebaseline or raise the global tolerance. **v23: the Bootstrap coordination target is now #274, not the closed #269** — and the dependency runs the other way: #274 names this stale-baseline debt as its *own* blocker, so the Linux regeneration is a prerequisite for the Bootstrap migration, not merely something to coordinate with it. *(That ordering was honoured and is spent: #274 merged 2026-08-02 and the baselines were brought current afterwards.)* | **RETIRED** |
 | P2.4 | **Broader KI-005 manual-edit provenance staleness** | KI-005 itself is shipped and Gate-2 approved. Only the explicitly accepted limitation remains: arbitrary manual edits can leave estimate provenance/ancillary text stale. | Treat as a new UX packet only if this is visible or confusing in real use. Do not reopen the completed KI-005 implementation plan for cosmetic comment work. | OWNER / demand-gated |
 | P2.5 | **RETIRED — SHIPPED through the visual-determinism arc, #286 (merge `9683f77`), 2026-08-02.** *The CI visual gate certifies a broken-icon state — FontAwesome is CDN-only with no fallback* *(finding raised 2026-08-02)* | **⚠️ SUPERSEDED — FontAwesome is no longer CDN-only.** [`base.html:16`](../templates/base.html) now loads `static/vendor/fontawesome/css/all.min.css`, and `static/vendor/fontawesome/` is tracked (three `webfonts/*.woff2` plus `LICENSE.txt`), pinned by `160b1a8` *"test(package): require vendored Font Awesome fonts"*. Icons therefore resolve offline and on a CI runner, so the "gate that cannot fail" consequence no longer holds, and both platforms' baselines were regenerated after the change. *Original text:* [`base.html:16`](../templates/base.html) loads FontAwesome from `cdnjs.cloudflare.com` with **no local fallback** — unlike the Bootstrap stylesheet at `:15`, which falls back to jsdelivr. It does not resolve on the CI runner, so **every icon renders as a magenta placeholder square** in the committed Linux baselines. Confirmed identical in the pre- and post-regeneration sets during the #281 review, so it is **long-standing and did not block that recovery**. The consequence is what matters: the visual gate compares one broken-icon render against another, so **no icon regression can ever fail it**, and any future change that genuinely breaks icons passes silently. This is the same "a gate that cannot fail" class as the `occurrences <= 1` assertion and `measure.verify_blind_spots()`. | **None — done; the first option was taken.** *Original text:* Ship FontAwesome as a **deterministic local asset**, or give it the same `onerror` fallback the Bootstrap link already has, then regenerate both platforms' baselines once so they encode a real icon render. **Do not fix this inside a baseline-recovery packet** — it is a rendering change and needs its own before/after. *(Honoured: it shipped in the determinism arc with its own before/after, not folded into #281's recovery.)* | **RETIRED** |
@@ -380,36 +389,33 @@ worktrees: 34 removable, 7 preserved, 1 current.
 ### P3 — Valid proposals, not forgotten near-complete work
 
 These items remain legitimate but should not displace the remaining owner
-decisions (P2.2, P2.4 and the §4 TODOs). **Every bullet below is still a
-PROPOSAL — v24 promoted none of them, and P1 being empty is not an argument for
+decisions (P2.4 and the §4 TODOs). **Every non-retired bullet below is still a
+PROPOSAL — v26 promoted none of them, and P1 being empty is not an argument for
 starting one.**
 
-- **Testing Strategy Phases 2–5 and remaining decisions** in
+- **Testing Strategy remaining packets and decisions** in
   [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md). Phases 0–1 are
-  complete; #270 corrected the handover and is merged. D1 and the
-  `e2e-erase-flow` half of D2 are signed; #272/#273 additionally signed **D5**
-  (Chromium-only, shipped as ADR-004) and the **D3 weekly deep-gate stopgap**.
-  D3 is authorized and **has since shipped** — the stale-Linux-baseline blocker
-  was discharged with P2.3, and the weekly compare-only deep gate merged as #323
-  (`3b1160b`) with #325 (`4d01698`) adding per-job timeouts. **D4, D6, D7
-  and the `js-unit` half of D2 remain unsigned** — shipping D3 signs none of them.
-  Python and JS coverage remain
-  measurement-only; Phases 2, 3 and 5 remain proposals, and Phase 4 is not
-  complete.
+  complete. Phase-2 Packet A shipped as #342 (`1438a14`), repairing nine
+  false-green accessibility assertions; **Packets C (strict console) and D
+  (axe) remain queued**, not shipped. D3's weekly compare-only stopgap shipped
+  as #323 (`3b1160b`) with #325 (`4d01698`) adding timeouts, but its first
+  scheduled run is still due 2026-08-17. D4, D6, D7 and the `js-unit` half of
+  D2 remain unsigned; Phases 3/5 and the release/tag half of Phase 4 remain
+  proposals.
 - ~~**Product documentation suite** in [`PRODUCT_DOCS_PLAN.md`](PRODUCT_DOCS_PLAN.md)~~
   — **EXECUTED.** Gate 0 answered, council run, Plan v2 recorded in §8; the
   owner-selected subset shipped as [`docs/product/**`](product/README.md).
   PRD and TECH_DESIGN were deliberately not built (§8.5). Not a leftover.
-- **Cross-model orchestration** in
-  [`ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md`](ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md):
-  a newly authored proposal (699 lines, Gate 0/Gate 1 pending) for an opt-in
-  `$orchestrate` Codex→Opus delegation flow. **v21 caution: the file is
-  currently untracked and its `INDEX.md` row uncommitted** — it exists only in
-  this checkout until committed; see P1.1's sequencing note. It is a proposal,
-  not a leftover.
+- **Cross-model orchestration beyond the shipped consult** in
+  [`ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md`](ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md).
+  The bounded, read-only one-shot consult shipped as #344 (`9906105`), and Gate
+  2 was ratified post-merge by #348 (`a459520`). The heavy `$orchestrate`
+  manager/state-machine remains planned and deliberately unimplemented; the
+  plan is tracked and indexed, so v21's untracked-file warning is retired.
 - **Theme-dark P3** in [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md):
-  fresh, council-reviewed planning with Gate 0 and Gate 1 unsigned. A large CSS
-  change, not a cleanup leftover.
+  both gates were signed, `P3-a0` shipped as #280 (`cd93480`), and the owner
+  terminated the arc at a0. No later P3 packet is authorized; this remains a
+  large CSS change, not a cleanup leftover.
 - **App-JS TypeScript checking:** `tsconfig.json` still covers E2E/config only.
   Expanding it across ~14.6k lines of untyped app JavaScript is a large
   migration, not the cheap A12 task the old plan implied.
@@ -449,18 +455,13 @@ starting one.**
   visual-baseline review and regeneration**; do not fold it into an unrelated
   change. Measurement:
   [`dnone_display_utilities/EVIDENCE.md`](dnone_display_utilities/EVIDENCE.md) §3, §7.
-- **Nothing ties the committed `bootstrap.custom.min.css` to its SCSS source.**
-  The bundle is tracked, but the pytest CI job deliberately does not run
-  `npm ci` / `npm run build:css`, so pytest asserts against the *committed*
-  artifact. Every E2E job does rebuild it, overwriting it at runtime. So editing
-  `scss/custom-bootstrap.scss` and forgetting `npm run build:css` leaves the
-  display-utility contracts green against a stale artifact while E2E silently
-  exercises different CSS. Pre-existing, but PR #303 is the first change to lean
-  on the artifact as a contract surface, which is what makes it worth closing.
-  Cheap fix: a CI step that runs `build:css` then fails on
-  `git diff --exit-code static/css/bootstrap.custom.min.css`. (Verified by hand
-  during #303 — the committed bundle *is* currently reproducible: a fresh
-  `npm run build:css` produced a byte-identical blob, `71c4046b`.)
+- ~~**Nothing ties the committed `bootstrap.custom.min.css` to its SCSS
+  source.**~~ **RETIRED by #335 (`542df07`).** The required frontend-build job
+  now deletes both generated artifacts, runs the real compiler once, and fails
+  on a diff across exactly the bundle **and its `.map`**. The map makes the gate
+  stronger than the original proposal: a compiler that silently stops emitting
+  it cannot pass. #339 was the first real SCSS/compiled-artifact traffic and
+  passed the gate with both regenerated outputs committed.
 - **Six E2E specs hard-code `http://127.0.0.1:5000`, so none is port-portable.**
   `api-integration`, `exercise-interactions`, `progression`,
   `replace-exercise-errors`, `summary-pages` and `workout-plan` build absolute
@@ -688,8 +689,8 @@ An item leaves this file only when one of these is true:
    present it as work; or
 4. disposable artifacts are removed after the safety checks above.
 
-**The sequence, recomputed at v24 (2026-08-13): there is no sequence left — P1 is
-empty.** Verified against `origin/main` at `af14036`. Every P1 item has landed:
+**The sequence, recomputed at v26 (2026-08-14): there is no sequence left — P1 is
+empty, and P2.1/P2.2 are retired.** Every P1 item has landed:
 P1.0 #278, P1.1 #295, P1.2 #327 (execution recorded in
 [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.5), P1.3 + P1.8 #292,
 P1.4 #291, P1.5 #284, P1.6 by owner decision (closeout doc), P1.7 #285. **No item
@@ -699,11 +700,10 @@ What genuinely remains, and it is all gated:
 
 | Remaining | Status | Who decides |
 |---|---|---|
-| **P2.2** Fatigue body heatmap | **OWNER** — [`HEATMAP_PLANNING.md`](fatigue_meter/HEATMAP_PLANNING.md) §8 has six unresolved decisions and the plan is unsigned | owner |
 | **P2.4** Broader KI-005 manual-edit provenance staleness | **OWNER / demand-gated** — a new UX packet only if it is visible in real use | owner |
 | **§4** three production `TODO` decisions | **OWNER** — two taxonomy questions (`utils/constants.py`) and `schema_version` (Testing Strategy D6) | owner |
 | The `npm audit` severity / exception policy | **OWNER** — held apart from P1.6 throughout and still undecided; [`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`](P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md) owns it | owner |
-| **All of P3** | **PROPOSAL** — legitimate future work, not forgotten activity | owner, at Gate 0 |
+| **Remaining P3 proposals** | Legitimate future work, not forgotten activity; completed or terminated P3 bullets stay closed | owner, at Gate 0 |
 
 **Two residuals are recorded here but owned elsewhere; do not schedule them from
 this file.** The two WP4.0 Windows rendering observations belong to
