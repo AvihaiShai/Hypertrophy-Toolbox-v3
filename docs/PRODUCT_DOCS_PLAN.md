@@ -642,3 +642,39 @@ same tree and are unchanged; the six unbound routes are still six.
 One precision improvement fell out of the live capture: the `page_css` slot in the load-order
 diagram holds whatever the template declares, not only that page's own bundle — `/progression`
 loads the vendored `flatpickr.min.css` there ahead of `pages-progression.css`.
+
+### 8.10 Second drift correction — the Fatigue body heatmap
+
+PR #339 (`ea82ef1`) added a body-heatmap panel to `/fatigue` and merged between this suite and its
+§8.9 correction. It invalidated three claims:
+
+| Claim | Why it broke |
+|---|---|
+| "`/fatigue` loads no page-specific JavaScript at all — it is entirely server-rendered" | the page now loads `fatigue-heatmap.js`, which imports `bodymap-svg.js` |
+| "`/fatigue` is the only page with neither an initializer nor a module" | it now has a module |
+| the Fatigue control table | did not list the panel, its channel toggle, the figures, or the legend |
+
+Corrected against the merged tree, and the per-page module table re-measured: **six** templates now
+load an extra module, and **18 of 51** files under `static/js/modules/` are unreachable from
+`app.js`. Fixing that also caught an error §8.9 had introduced — the claim that only
+`/workout_log` and `/progression` run on `app.js` alone. It is four pages: those two plus
+`/volume_splitter` and `/backup`.
+
+Verified live rather than read off the template. On a planned-only page the `Planned` channel
+button renders visible and pressed while `Logged` stays hidden, which is what the module's
+reveal-if-populated behavior is *for* — so the documented statement is the measured one, not the
+one the markup suggests. Both figures mount, the panel is open by default, and the select keeps its
+12px radius in both themes.
+
+One genuine improvement fell out of it. `/fatigue` still declares no `page_css` block, so the
+"10 page bundles for 11 page routes" claim holds — but its styling, heatmap included, lives in
+`scss/_fatigue.scss`, which is `@import`ed into `custom-bootstrap.scss` and compiles into
+`bootstrap.custom.min.css`. It is the one page whose look is carried by the Bootstrap build
+artifact rather than a route bundle, which is why its overrides are not findable in
+`static/css/pages-*.css`. The design brief now says so.
+
+**Two corrections within an hour of merging is the honest measure of this suite's maintenance
+cost**, and both came from packets that were in flight simultaneously and could not have updated
+documents that did not yet exist. The pointers added in §8.8.2 are the standing mechanism for the
+steady state; a burst of parallel feature work is what they cannot cover. Further drift from
+packets still in flight belongs to the integration session, not to this one.
