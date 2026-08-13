@@ -500,6 +500,12 @@ const TERMINAL_MARKERS: Record<string, string> = {
   'user-profile': '[data-section="fatigue context"]',
   progression: '.current-goals table tbody tr',
   'body-composition': '.bc-table tbody tr',
+  // The heatmap mounts its SVGs client-side, so the page can be laid out before
+  // any region is coloured. `data-heatmap-state` is rendered unconditionally and
+  // this matches only its two TERMINAL values: `empty` (no data, no panel) and
+  // `ready` (bands applied, one frame painted). The transient `pending` is
+  // deliberately absent - matching it would make the wait a no-op.
+  fatigue: '[data-heatmap-state="ready"], [data-heatmap-state="empty"]',
 };
 
 export interface VisualReadyOptions {

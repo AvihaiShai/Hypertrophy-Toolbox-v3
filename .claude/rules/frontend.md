@@ -8,6 +8,12 @@ paths:
 
 # Frontend guide
 
+> **Changing a token, a bundle, or the theming mechanism?** The shipped visual system is described
+> in [`docs/product/DESIGN_BRIEF.md`](../../docs/product/DESIGN_BRIEF.md) — token values with
+> measured live-consumer counts, light/dark computed styles, the responsive band system, motion,
+> and accessibility. Update it in the same change. This file owns the *how-to*; that one records
+> the *measured result*.
+
 ## CSS structure
 - Runtime CSS is capped at 18 app bundles: 8 global bundles in `templates/base.html` plus 10 route bundles loaded from child templates.
 - Global bundles: `tokens.css`, `motion.css`, `base.css`, `layout.css`, `components.css`, `navbar.css`, `theme-dark.css`, `a11y.css`.

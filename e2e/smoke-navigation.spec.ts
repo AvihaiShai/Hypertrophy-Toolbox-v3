@@ -186,4 +186,77 @@ test.describe('Global Smoke and Navigation', () => {
       await expect(page.locator('[role="main"]')).toHaveCount(0);
     }
   });
+
+  /**
+   * The acceptance proof for the local-first assets packet: navigating the whole
+   * app must not contact another origin.
+   *
+   * Three assertions, because an origin census alone is weak in two directions.
+   * A page whose vendored URLs all 404 requests nothing external and would pass
+   * — and nothing else would notice, because the console collector cannot see a
+   * failed load either (see `fixtures.ts`). And a listener registered after
+   * navigation records nothing and passes forever. So this also requires every
+   * same-origin response to be non-error, and requires the specific vendored
+   * payloads to have actually been fetched.
+   *
+   * What this cannot cover: `<link rel="preconnect">` opens a socket without
+   * requesting a resource, so no request event exists for it. That deletion is
+   * asserted in `tests/test_local_first_assets.py` instead.
+   */
+  test('no page loads an asset from another origin', async ({ page, baseURL }) => {
+    const origin = new URL(baseURL as string).origin;
+    const foreign: string[] = [];
+    const errored: string[] = [];
+    const vendored = new Set<string>();
+
+    page.on('request', (request) => {
+      const url = request.url();
+      // data:, blob: and about: are inline payloads, not network fetches.
+      if (!/^https?:/i.test(url)) return;
+      if (!url.startsWith(origin)) {
+        foreign.push(`${request.resourceType()} ${url}`);
+      }
+    });
+    page.on('response', (response) => {
+      const url = response.url();
+      if (!url.startsWith(origin)) return;
+      if (response.status() >= 400) {
+        errored.push(`${response.status()} ${new URL(url).pathname}`);
+      }
+      if (url.includes('/static/vendor/')) {
+        vendored.add(new URL(url).pathname);
+      }
+    });
+
+    for (const route of Object.values(ROUTES)) {
+      await page.goto(route);
+      await waitForPageReady(page);
+    }
+
+    expect(
+      foreign,
+      'The app is local-first and must load every asset from its own origin',
+    ).toEqual([]);
+    expect(
+      errored,
+      'A vendored asset that 404s makes the origin census pass vacuously',
+    ).toEqual([]);
+
+    // Every one of these is loaded unconditionally by a template, and each has
+    // a consumer that fails silently when the library is absent.
+    for (const required of [
+      '/static/vendor/inter/inter.css',
+      '/static/vendor/fontawesome/css/all.min.css',
+      '/static/vendor/bootstrap/js/bootstrap.bundle.min.js',
+      '/static/vendor/sortable/Sortable.min.js',
+      '/static/vendor/flatpickr/flatpickr.min.js',
+      '/static/vendor/popperjs/popper.min.js',
+      '/static/vendor/tippy/tippy-bundle.umd.min.js',
+    ]) {
+      expect(
+        [...vendored],
+        `${required} was never requested while walking every route`,
+      ).toContain(required);
+    }
+  });
 });

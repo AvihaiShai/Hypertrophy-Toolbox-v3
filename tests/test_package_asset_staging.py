@@ -28,8 +28,36 @@ from scripts.stage_package_assets import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# One reviewed asset per packaged category. Font Awesome is deliberately local
-# so packaged and visual runs do not depend on cross-origin CDN font requests.
+# Every font file the package ships, named individually rather than sampled.
+#
+# `test_manifest_covers_every_packaged_asset_category` asserts set *equality*
+# against this tuple, so it is a closed inventory: a new font cannot enter the
+# distribution without being declared here, and a declared one cannot silently
+# stop being tracked. That property is why the assertion is worth keeping — a
+# missing woff2 is invisible to every other gate, because Flask, the templates
+# and the filesystem-reading tests all still work while the frozen build, which
+# stages from `git ls-files`, quietly ships text in a fallback face.
+#
+# It used to derive the expected side from REQUIRED_ASSETS keys prefixed
+# "Font Awesome". The local-first assets packet added seven Inter subsets, and
+# filing those under a "Font Awesome" key to satisfy a string prefix would have
+# been a false label, so the derivation is explicit now.
+PACKAGED_FONTS = (
+    "static/vendor/fontawesome/webfonts/fa-brands-400.woff2",
+    "static/vendor/fontawesome/webfonts/fa-regular-400.woff2",
+    "static/vendor/fontawesome/webfonts/fa-solid-900.woff2",
+    "static/vendor/inter/fonts/inter-cyrillic-ext.woff2",
+    "static/vendor/inter/fonts/inter-cyrillic.woff2",
+    "static/vendor/inter/fonts/inter-greek-ext.woff2",
+    "static/vendor/inter/fonts/inter-greek.woff2",
+    "static/vendor/inter/fonts/inter-latin-ext.woff2",
+    "static/vendor/inter/fonts/inter-latin.woff2",
+    "static/vendor/inter/fonts/inter-vietnamese.woff2",
+)
+
+# One reviewed asset per packaged category. Font Awesome and Inter are
+# deliberately local so packaged and visual runs do not depend on cross-origin
+# CDN font requests.
 REQUIRED_ASSETS = {
     "template": "templates/base.html",
     "template partial": "templates/partials/_volume_controls.html",
@@ -44,6 +72,8 @@ REQUIRED_ASSETS = {
     "vendor license": "static/vendor/free-exercise-db/LICENSE",
     "vendor notice": "static/vendor/musclemap/NOTICE.md",
     "vendor version": "static/vendor/musclemap/VERSION",
+    "vendor runtime js": "static/vendor/bootstrap/js/bootstrap.bundle.min.js",
+    "vendor font stylesheet": "static/vendor/inter/inter.css",
     "Font Awesome brands": (
         "static/vendor/fontawesome/webfonts/fa-brands-400.woff2"
     ),
@@ -126,12 +156,7 @@ def test_manifest_covers_every_packaged_asset_category():
         for path in manifest
         if path.endswith((".woff", ".woff2", ".ttf", ".otf", ".eot"))
     )
-    expected_fonts = sorted(
-        path
-        for category, path in REQUIRED_ASSETS.items()
-        if category.startswith("Font Awesome")
-    )
-    assert fonts == expected_fonts
+    assert fonts == sorted(PACKAGED_FONTS)
 
 
 def test_manifest_carries_no_repository_metadata():

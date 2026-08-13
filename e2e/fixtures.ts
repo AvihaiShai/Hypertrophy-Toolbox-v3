@@ -48,7 +48,14 @@ export const test = base.extend<{ consoleErrors: ConsoleErrorCollector }>({
         });
         
         page.on('pageerror', (error) => {
-          // Ignore common non-critical page errors
+          // Ignore common non-critical page errors.
+          //
+          // NOTE FOR ANYONE RELYING ON THIS AS AN ORACLE: the filters below —
+          // `is not defined` in particular, and `404` / `Failed to load
+          // resource` above — mean a missing third-party global raises nothing
+          // this collector will report. A library that failed to load is
+          // therefore invisible here, and any spec that needs to know it
+          // loaded has to assert that directly.
           const msg = error.message;
           if (
             !msg.includes('classList') && // Null reference on classList
