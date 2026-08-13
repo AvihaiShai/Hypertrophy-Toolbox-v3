@@ -29,6 +29,7 @@ import {
     setFieldValidationState,
 } from './workout-plan-add-exercise.js';
 import {
+    clearSupersetSelection,
     configureSupersets,
     handleSupersetCheckboxChange,
     initializeSupersetActions,
@@ -256,6 +257,22 @@ export function handleRoutineSelection() {
     if (!routineSelect || !exerciseSelect) return;
 
     routineSelect.addEventListener('change', async (e) => {
+        // The Add form now targets a different routine, so any superset rows
+        // checked against the previous one are stale. Cleared synchronously,
+        // above the `try`, for two reasons: the user sees it immediately rather
+        // than after `/get_routine_exercises` settles, and a throw in here must
+        // not be swallowed by the catch below, which reports every failure as
+        // "Failed to load exercises for routine".
+        //
+        // Guarded on a non-empty value, following the KI-005 / OWNER-4 ruling
+        // recorded on the `#exercise` listener above: an empty value is not a
+        // deliberate choice. It is what Clear Filters writes
+        // (filters.js clearFilters()) and what the cascade's stateless
+        // `pageshow` reset writes, and neither is the user changing routine.
+        if (e.target.value) {
+            clearSupersetSelection();
+        }
+
         try {
             const selectedRoutine = e.target.value;
             

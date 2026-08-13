@@ -462,22 +462,62 @@ test.describe('Superset State Persistence', () => {
     await expect(supersetRows(page)).toHaveCount(2);
   });
 
-  // Renamed from 'superset checkbox selection clears on routine change'. The
-  // selection does NOT clear: the routine dropdown chooses what the *Add
-  // Exercise* form targets, it does not filter the plan table, so the row and
-  // its checkbox are still there afterwards. The old name described behavior the
-  // app has never had, and the old body never detected that — its `differentDay`
-  // lookup matched the "Select Workout" PLACEHOLDER, so it re-selected a
-  // non-day and asserted `checked < 2` against a single checkbox that was always
-  // going to be 1. Whether the selection *should* clear is an open product
-  // question; see docs/E2E_PERFORMANCE_PROFILE.md.
-  test('changing the routine day leaves the superset action unavailable', async ({ page }) => {
+  /**
+   * Renamed back: the selection clears by owner decision (2026-08-13). The
+   * routine dropdown still targets only the Add form, so the rows stay put and
+   * only the transient selection drops.
+   *
+   * Asserts `#superset-actions` rather than the link button's `disabled`: the
+   * template ships that button disabled, so asserting it passes on an untouched
+   * page, and it is *enabled* whenever the last selection was a linkable pair.
+   */
+  test('changing the routine day clears a transient superset selection', async ({ page }) => {
+    // Order matters: selectExerciseCheckboxes() asserts against *all* rows, so
+    // the pair has to be linked before the third row exists.
     await addExercise(page);
-    await waitForExercisesInTable(page, 1);
+    await addExercise(page);
+    await waitForExercisesInTable(page, 2);
+    await selectExerciseCheckboxes(page, 2);
+    await linkSelectedExercises(page);
 
-    const checkboxes = page.locator('#workout_plan_table_body .superset-checkbox');
-    await expect(checkboxes).toHaveCount(1);
-    await checkboxes.nth(0).check();
+    await addExercise(page);
+    await waitForExercisesInTable(page, 3);
+
+    const rowsBefore = await page.locator('#workout_plan_table_body tr').count();
+    const namesBefore = await page
+      .locator('#workout_plan_table_body .exercise-name')
+      .allInnerTexts();
+
+    // The transient selection lands on a row that IS part of the linked pair,
+    // deliberately. That is the case where the sweep could do damage: those rows
+    // also carry `superset-group-N` and the first/last edge classes, so a
+    // `className` clobber would strip a persisted superset's styling while
+    // leaving `data-superset-group` intact — invisible to an attribute-based
+    // assertion. It also drives the `hasExistingSuperset` branch, which is what
+    // leaves `unlinkBtn.hidden = false` behind for the reset to restore.
+    const linkedCheckbox = supersetRows(page).first().locator('.superset-checkbox');
+    await linkedCheckbox.click();
+
+    const actions = page.locator('#superset-actions');
+    const info = page.locator('#superset-selection-info');
+    const checked = page.locator('#workout_plan_table_body .superset-checkbox:checked');
+
+    // Pin the pre-state, or every post-assertion below is a tautology.
+    await expect(checked).toHaveCount(1);
+    await expect(actions).toBeVisible();
+    await expect(page.locator('#workout_plan_table_body tr.superset-selected')).toHaveCount(1);
+
+    // Nothing may reach the superset endpoints across the routine change.
+    let supersetRequests = 0;
+    page.on('request', request => {
+      const url = request.url();
+      if (
+        url.endsWith(API_ENDPOINTS.SUPERSET_LINK) ||
+        url.endsWith(API_ENDPOINTS.SUPERSET_UNLINK)
+      ) {
+        supersetRequests++;
+      }
+    });
 
     // A real second day, not the placeholder option.
     const daySelect = page.locator(SELECTORS.ROUTINE_DAY);
@@ -486,16 +526,210 @@ test.describe('Superset State Persistence', () => {
       opt => opt.trim() !== '' && opt !== 'Workout A' && !opt.includes('Select')
     );
     expect(differentDay, 'the routine needs a second real day to switch to').toBeTruthy();
-
     await daySelect.selectOption(differentDay!);
-    await page.waitForTimeout(500);
 
-    // One selected row can never be linked, whichever day the form now targets.
+    await expect(checked).toHaveCount(0);
+    // ...and not because the table emptied.
+    await expect(page.locator('#workout_plan_table_body .superset-checkbox')).toHaveCount(3);
+    await expect(page.locator('#workout_plan_table_body tr.superset-selected')).toHaveCount(0);
+    await expect(actions).toBeHidden();
+    await expect(info).toHaveText('');
+    expect(
+      await info.evaluate(element => (element as HTMLElement).style.color),
+      'the inline info colour must not survive the reset',
+    ).toBe('');
+
+    // The action bar is back at the template's rest state, not merely hidden:
+    // a not-hidden Unlink parked inside a display:none container is the shape
+    // of the defect #317 closed.
+    await expect(page.locator('#unlink-superset-btn')).toHaveAttribute('hidden', '');
     await expect(page.locator('#link-superset-btn')).toBeDisabled();
+
+    // The id Set really was cleared: a fresh click reads as the first, not the
+    // second, selection.
+    await linkedCheckbox.click();
+    await expect(info).toContainText('1 exercise selected');
+    await expect(actions).toBeVisible();
+
+    expect(supersetRequests, 'a UI reset must not call the superset API').toBe(0);
+    await expect(supersetRows(page)).toHaveCount(2);
+    // The colour/edge classes survive too: a `className` clobber would strip
+    // them and leave the data attribute intact.
+    await expect(supersetRows(page).first()).toHaveClass(/superset-group/);
+
+    // Which rows are displayed is unchanged — the other half of the owner lock.
+    await expect(page.locator('#workout_plan_table_body tr')).toHaveCount(rowsBefore);
+    expect(
+      await page.locator('#workout_plan_table_body .exercise-name').allInnerTexts(),
+    ).toEqual(namesBefore);
+
+    // Server state, not just the un-rerendered DOM: the routine change does not
+    // refetch the plan, so the attributes above would survive a covert unlink.
+    const plan = await page.request.get('/get_workout_plan');
+    expect(plan.ok()).toBeTruthy();
+    const payload = await plan.json();
+    const groups = (payload.data ?? payload)
+      .map((row: Record<string, unknown>) => row.superset_group)
+      .filter(Boolean);
+    expect(groups, 'the linked pair must still be linked on the server').toHaveLength(2);
+    expect(new Set(groups).size, 'both rows share one superset group').toBe(1);
+  });
+
+  test('an incomplete cascade keeps the selection; completing it clears', async ({ page }) => {
+    // The environment and program legs write an EMPTY composite routine
+    // (routine-cascade.js updateCompositeRoutineValue), and the reset is guarded
+    // on a non-empty value. So the selection survives a half-finished cascade
+    // and drops only once the Add form targets a real routine again. This pins
+    // the guard from both sides.
+    await addExercise(page);
+    await waitForExercisesInTable(page, 1);
+    await selectExerciseCheckboxes(page, 1);
+
+    const checked = page.locator('#workout_plan_table_body .superset-checkbox:checked');
+    await expect(checked).toHaveCount(1);
+
+    await page.locator(SELECTORS.ROUTINE_ENV).selectOption('Home Workout');
+    await page.waitForFunction(() => {
+      const select = document.getElementById('routine-program') as HTMLSelectElement;
+      return select && select.options.length > 1;
+    });
+    await expect(checked, 'an empty composite routine is not a routine change').toHaveCount(1);
+
+    await page.locator(SELECTORS.ROUTINE_PROGRAM).selectOption('Full Body');
+    await page.waitForFunction(() => {
+      const select = document.getElementById('routine-day') as HTMLSelectElement;
+      return select && select.options.length > 1;
+    });
+    await expect(checked).toHaveCount(1);
+
+    // Completing the cascade gives the Add form a real target, and now it clears.
+    await page.locator(SELECTORS.ROUTINE_DAY).selectOption('Workout A');
+
+    await expect(checked).toHaveCount(0);
+    await expect(page.locator('#superset-actions')).toBeHidden();
+    await expect(page.locator('#workout_plan_table_body .superset-checkbox')).toHaveCount(1);
+  });
+
+  test('the selection clears before the routine fetch settles', async ({ page }) => {
+    // "Immediately" is a design commitment, not a nicety: the reset runs
+    // synchronously above the listener's `try`, so it cannot wait on
+    // /get_routine_exercises. Every other assertion in this file auto-retries
+    // and would pass just as well if the reset had been moved below that await,
+    // so the request is stalled here to tell the two apart.
+    await addExercise(page);
+    await waitForExercisesInTable(page, 1);
+    await selectExerciseCheckboxes(page, 1);
+
+    const checked = page.locator('#workout_plan_table_body .superset-checkbox:checked');
+    await expect(checked).toHaveCount(1);
+
+    let release: () => void = () => {};
+    const stalled = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    // `times: 1` so only the change under test is held, and the continue is
+    // guarded because releasing races test teardown — by then the route may
+    // already have been discarded, which is not a failure of anything.
+    await page.route(
+      '**/get_routine_exercises/**',
+      async route => {
+        await stalled;
+        await route.continue().catch(() => {});
+      },
+      { times: 1 },
+    );
+
+    const daySelect = page.locator(SELECTORS.ROUTINE_DAY);
+    const options = await daySelect.locator('option').allInnerTexts();
+    const differentDay = options.find(
+      opt => opt.trim() !== '' && opt !== 'Workout A' && !opt.includes('Select')
+    );
+    expect(differentDay, 'the routine needs a second real day to switch to').toBeTruthy();
+    await daySelect.selectOption(differentDay!);
+
+    // Still in flight, and the selection is already gone.
+    await expect(checked).toHaveCount(0);
+    await expect(page.locator('#superset-actions')).toBeHidden();
+
+    // Await the released request rather than letting it race teardown: failing
+    // against a closing page logs "Error fetching routine exercises:", which is
+    // not on the collector's ignore list and would red the afterEach.
+    const settled = page.waitForResponse(response =>
+      response.url().includes('/get_routine_exercises/')
+    );
+    release();
+    await settled;
+  });
+
+  test('linking clears the action bar before the plan refresh lands', async ({ page }) => {
+    // Criterion 2: link and unlink use the same reset. Without this the change
+    // is untestable — `refreshPlan()` reaches `updateWorkoutPlanTable()`, which
+    // clears the id set and calls `updateSupersetActionButtons()` anyway, so
+    // deleting the reset from `handleLinkSuperset` is invisible once the
+    // refresh lands. Stalling that refresh is what separates the two.
+    await addExercise(page);
+    await addExercise(page);
+    await waitForExercisesInTable(page, 2);
+    await selectExerciseCheckboxes(page, 2);
+
+    const actions = page.locator('#superset-actions');
+    const info = page.locator('#superset-selection-info');
+    await expect(actions).toBeVisible();
+    await expect(info).toContainText('ready to link');
+
+    let release: () => void = () => {};
+    const stalled = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    await page.route(
+      `**${API_ENDPOINTS.GET_WORKOUT_PLAN}*`,
+      async route => {
+        await stalled;
+        await route.continue().catch(() => {});
+      },
+      { times: 1 },
+    );
+
+    const linked = page.waitForResponse(response =>
+      response.url().endsWith(API_ENDPOINTS.SUPERSET_LINK) && response.request().method() === 'POST'
+    );
+    await page.locator('#link-superset-btn').click();
+    await linked;
+
+    // The refresh is still in flight and the bar is already at rest.
+    await expect(actions).toBeHidden();
+    await expect(info).toHaveText('');
     await expect(
-      page.locator('#workout_plan_table_body .superset-checkbox:checked')
+      page.locator('#workout_plan_table_body .superset-checkbox:checked'),
+    ).toHaveCount(0);
+
+    const refreshed = page.waitForResponse(response =>
+      response.url().includes(API_ENDPOINTS.GET_WORKOUT_PLAN)
+    );
+    release();
+    await refreshed;
+    await expect(supersetRows(page)).toHaveCount(2);
+  });
+
+  test('Clear Filters does not clear a transient superset selection', async ({ page }) => {
+    // KI-005 / OWNER-4: clearing a dropdown is not a deliberate choice. Clear
+    // Filters writes an empty routine (filters.js clearFilters()), and the
+    // reset is guarded on a non-empty value precisely so this path is inert.
+    await addExercise(page);
+    await waitForExercisesInTable(page, 1);
+    await selectExerciseCheckboxes(page, 1);
+    await expect(page.locator('#superset-actions')).toBeVisible();
+
+    await page.locator(SELECTORS.CLEAR_FILTERS_BTN).click();
+    // Both assertions below are non-change, so they would pass against the
+    // pre-click state. The toast is the last thing clearFilters() does, after
+    // its own await, so waiting for it proves the handler actually ran.
+    await expectToast(page, 'Filters cleared successfully');
+
+    await expect(
+      page.locator('#workout_plan_table_body .superset-checkbox:checked'),
     ).toHaveCount(1);
-    await expect(supersetRows(page)).toHaveCount(0);
+    await expect(page.locator('#superset-actions')).toBeVisible();
   });
 });
 

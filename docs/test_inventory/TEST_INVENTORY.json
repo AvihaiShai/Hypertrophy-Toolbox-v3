@@ -40,7 +40,7 @@
       },
       {
         "file": "e2e/superset-edge-cases.spec.ts",
-        "lines": 9
+        "lines": 8
       },
       {
         "file": "e2e/ui-hardening.spec.ts",
@@ -61,14 +61,14 @@
     ],
     "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 83
+    "total_lines": 82
   },
   "playwright": {
     "project": "chromium",
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 493
+      "tests": 498
     },
     "specs": [
       {
@@ -179,7 +179,7 @@
       {
         "in_required_functional_set": true,
         "spec": "superset-edge-cases.spec.ts",
-        "tests": 12
+        "tests": 16
       },
       {
         "in_required_functional_set": true,
@@ -219,7 +219,7 @@
       {
         "in_required_functional_set": true,
         "spec": "volume-splitter.spec.ts",
-        "tests": 32
+        "tests": 33
       },
       {
         "in_required_functional_set": true,
@@ -238,11 +238,11 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 626
+    "total_tests": 631
   },
   "pytest": {
-    "collected_deterministic": 2491,
-    "deterministic_files": 114,
+    "collected_deterministic": 2500,
+    "deterministic_files": 115,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -659,6 +659,10 @@
         "tests": 43
       },
       {
+        "file": "tests/test_volume_history_busy_signal_contracts.py",
+        "tests": 9
+      },
+      {
         "file": "tests/test_volume_progress.py",
         "tests": 31
       },
@@ -711,7 +715,7 @@
         "tests": 40
       }
     ],
-    "total_files": 115
+    "total_files": 116
   },
   "schema_version": 1
 }
