@@ -367,8 +367,7 @@ def test_deleted_classes_are_not_resurrected_by_a_sibling_surface(surface: str) 
     Red path: adding `.tbl-toolbar {}` to components.css fails this test.
     """
     path = ROOT / "static" / "css" / surface
-    if not path.exists():
-        pytest.skip(f"{surface} not present")
+    assert path.exists(), f"required tracked CSS surface is missing: {path}"
     css = _strip_comments(path.read_text(encoding="utf-8"))
     scoped = [c for c in DELETED_CLASSES if c not in {"form-container", "input-frame"}]
     offenders = [c for c in scoped if re.search(rf"\.{re.escape(c)}(?![\w-])", css)]

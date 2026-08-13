@@ -11,7 +11,7 @@ from utils.plan_generator import (
     MUSCLE_TO_PATTERNS,
 )
 from utils.movement_patterns import MovementPattern, MovementSubpattern
-from utils.weekly_summary import calculate_pattern_coverage
+from utils.weekly_summary import _build_pattern_warnings, calculate_pattern_coverage
 
 
 class TestMuscleToPatterns:
@@ -226,17 +226,35 @@ class TestPatternCoverageAnalysis:
 class TestPatternCoverageWarnings:
     """Tests for pattern coverage warning generation."""
     
+    @staticmethod
+    def _volume_warnings(sets_per_routine, warning_type):
+        """Warnings of one volume type, isolated from the missing-pattern noise
+        an empty `total_patterns` necessarily produces."""
+        warnings = _build_pattern_warnings({}, sets_per_routine)
+        return [w for w in warnings if w["type"] == warning_type]
+
     def test_low_volume_warning_threshold(self):
-        """Should warn when sets per routine is under 15."""
-        # The function checks for sets < 15
-        # This is tested implicitly through integration tests
-        pass
-    
+        """Should warn when sets per routine is under 15, and not at 15."""
+        below = self._volume_warnings({"Push": 14}, "low_volume")
+        assert len(below) == 1
+        assert below[0]["level"] == "medium"
+        assert below[0]["message"] == "Routine 'Push' has only 14 sets"
+        assert "Consider adding 1 more sets" in below[0]["description"]
+
+        assert self._volume_warnings({"Push": 15}, "low_volume") == []
+        assert self._volume_warnings({"Push": 20}, "low_volume") == []
+
     def test_high_volume_warning_threshold(self):
-        """Should warn when sets per routine exceeds 24."""
-        # The function checks for sets > 24
-        pass
-    
+        """Should warn when sets per routine exceeds 24, and not at 24."""
+        above = self._volume_warnings({"Push": 25}, "high_volume")
+        assert len(above) == 1
+        assert above[0]["level"] == "medium"
+        assert above[0]["message"] == "Routine 'Push' has 25 sets"
+        assert "Consider reducing by 1 sets" in above[0]["description"]
+
+        assert self._volume_warnings({"Push": 24}, "high_volume") == []
+        assert self._volume_warnings({"Push": 20}, "high_volume") == []
+
     def test_ideal_sets_range_returned(self, clean_db):
         """Should return ideal sets range (15-24)."""
         coverage = calculate_pattern_coverage()
