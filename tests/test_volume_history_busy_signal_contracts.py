@@ -110,4 +110,3 @@ def test_volume_splitter_spec_is_exactly_converted() -> None:
     assert spec.count("await waitForVolumeSplitterReady(page);") == 3
     assert "waitForPageReady" not in spec
     assert "networkidle" not in spec
-
