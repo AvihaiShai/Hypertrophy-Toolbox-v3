@@ -6,11 +6,24 @@
 
 Keep active docs focused on current project truth. Archive completed plans when they stop helping daily work, and delete local/debug artifacts that should never become project memory.
 
+> **`docs/product/**` is Always active and is not a feature workstream.** The product reference
+> suite ([`../product/README.md`](../product/README.md)) describes the shipped application rather
+> than a piece of work in flight, so it never becomes archivable when a feature closes.
+>
+> Do not run the Archive Criteria against it. Two of them will always appear satisfied for the
+> wrong reason: the suite deliberately carries no status, so no handover follow-up will ever point
+> at it (criterion 3), and a correct document needs no edits, so it can sit untouched for years
+> (criterion 2). Neither is evidence of staleness here. Do not nominate it as an orphan candidate.
+>
+> No file inside it may be named `PLANNING.md` or `EXECUTION_LOG.md`; those names belong to the
+> Active workstream class below and to the `/status` sweep, and would contradict this
+> classification.
+
 ## Retention Classes
 
 | Class | Examples | Rule |
 |---|---|---|
-| Always active | `CLAUDE.md`, `docs/MASTER_HANDOVER.md`, `docs/ai_workflow/**`, `docs/DECISIONS.md`, `docs/CHANGELOG.md` | Keep in the active tree. Update when the workflow or durable project truth changes. |
+| Always active | `CLAUDE.md`, `docs/MASTER_HANDOVER.md`, `docs/ai_workflow/**`, `docs/product/**`, `docs/DECISIONS.md`, `docs/CHANGELOG.md` | Keep in the active tree. Update when the workflow or durable project truth changes. |
 | Active workstream | `docs/<feature>/PLANNING.md`, `docs/<feature>/EXECUTION_LOG.md`, feature research notes | Keep while the workstream is active, paused, or referenced from `docs/MASTER_HANDOVER.md`. |
 | Archive | Completed feature plans, old audits, superseded implementation notes | Move to `docs/archive/<year>/<feature>/` after all archive criteria are met. |
 | Delete | `debug/*`, `*.local.md`, generated scratch notes, local command output | Do not archive. These are local-only or transient artifacts. |

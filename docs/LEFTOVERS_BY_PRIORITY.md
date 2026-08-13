@@ -396,9 +396,10 @@ starting one.**
   Python and JS coverage remain
   measurement-only; Phases 2, 3 and 5 remain proposals, and Phase 4 is not
   complete.
-- **Product documentation suite** in [`PRODUCT_DOCS_PLAN.md`](PRODUCT_DOCS_PLAN.md):
-  a fresh proposal, not stale work. App Flow and Design Brief are the clearest
-  gaps; Gate 0/1 and revision are still required.
+- ~~**Product documentation suite** in [`PRODUCT_DOCS_PLAN.md`](PRODUCT_DOCS_PLAN.md)~~
+  — **EXECUTED.** Gate 0 answered, council run, Plan v2 recorded in §8; the
+  owner-selected subset shipped as [`docs/product/**`](product/README.md).
+  PRD and TECH_DESIGN were deliberately not built (§8.5). Not a leftover.
 - **Cross-model orchestration** in
   [`ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md`](ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md):
   a newly authored proposal (699 lines, Gate 0/Gate 1 pending) for an opt-in

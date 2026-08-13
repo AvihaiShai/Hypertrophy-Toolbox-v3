@@ -12,11 +12,11 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **620** |
+| Playwright tests (chromium) | **630** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **487** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2405** across 112 files |
-| pytest test files (all) | **113** |
+| Required functional gate — `E2E Functional (Chromium)` | **497** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **2428** across 113 files |
+| pytest test files (all) | **114** |
 | Hard waits (lines containing waitForTimeout) | **83** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -37,7 +37,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `exercise-interactions.spec.ts` | 21 | yes |
 | `fatigue-context.spec.ts` | 6 | — |
 | `fatigue-stage4-smokes.spec.ts` | 5 | yes |
-| `fatigue.spec.ts` | 8 | yes |
+| `fatigue.spec.ts` | 18 | yes |
 | `learned-calibration.spec.ts` | 8 | yes |
 | `listener-cleanup.spec.ts` | 3 | — |
 | `nav-dropdown.spec.ts` | 7 | yes |
@@ -110,6 +110,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_fatigue.py` | 134 |
 | `tests/test_fatigue_context.py` | 29 |
 | `tests/test_fatigue_golden.py` | 1 |
+| `tests/test_fatigue_heatmap_mapping.py` | 22 |
 | `tests/test_fatigue_routes.py` | 14 |
 | `tests/test_fatigue_stage4_observer.py` | 26 |
 | `tests/test_filter_predicates.py` | 39 |
@@ -162,7 +163,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_ui_flows.py` | 17 |
 | `tests/test_user_profile_routes.py` | 30 |
 | `tests/test_utils_package.py` | 1 |
-| `tests/test_version.py` | 22 |
+| `tests/test_version.py` | 23 |
 | `tests/test_visual_capture_contracts.py` | 15 |
 | `tests/test_visual_selector_contracts.py` | 5 |
 | `tests/test_volume_ai.py` | 26 |
