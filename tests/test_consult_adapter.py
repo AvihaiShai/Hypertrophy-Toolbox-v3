@@ -764,6 +764,10 @@ def test_denied_prefixes_match_regardless_of_case_when_the_directory_is_absent(
     `artifacts/` is gitignored with no keepfile, so on a fresh clone and on the
     CI runner it is absent — and that is exactly when a case variant would slip
     past a case-sensitive prefix rule and reopen the re-ingestion loop.
+
+    Asserted identically on every platform on purpose. The first version of the
+    denylist folded case only on Windows; this row passed locally and failed on
+    the Linux runner, which is the whole reason the fold is now unconditional.
     """
     root = tmp_path / "repo"
     root.mkdir()

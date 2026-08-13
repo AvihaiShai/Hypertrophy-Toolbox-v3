@@ -190,9 +190,17 @@ def check_artifact_paths(paths: list[str], repo_root: Path) -> None:
                 "subdirectories, not the whole tree",
             )
         # The name patterns are already case-insensitive; the prefix rules must
-        # be too. `Path.resolve()` only canonicalises casing for path components
-        # that exist on disk, and `artifacts/` does not exist in a fresh clone.
-        probe = relative.lower() if os.name == "nt" else relative
+        # be too. `Path.resolve()` only canonicalises casing for components that
+        # exist on disk, and `artifacts/` does not exist in a fresh clone.
+        #
+        # Folded on **every** platform, not just Windows. A denylist should fail
+        # closed, and a control that behaves differently on the dev machine and
+        # the CI runner is exactly the divergence that hides a hole -- this very
+        # line shipped Windows-only and went green locally while Linux CI proved
+        # `Artifacts/…` slipped through. The cost is that a genuinely distinct
+        # `Artifacts/` directory on a case-sensitive filesystem is also refused,
+        # which is the right trade for a path this list exists to protect.
+        probe = relative.lower()
         for prefix, why in _DENIED_PATH_RULES:
             if probe == prefix.rstrip("/") or probe.startswith(prefix):
                 raise ConsultError(
