@@ -745,7 +745,7 @@ workout.cool §4 (free-exercise-db thumbnails) is **fully shipped on `origin/mai
 
 - **Redesign post-P8 triage** — closed (10 of 11 shipped, #1 deferred by owner choice; verified 2026-05-19, PR #25).
 - **phase5_3i_plan** — closed (accepted-as-shipped 2026-05-19; planning doc shipped `c0da18e` and deleted `635fa3e`, 5A–5H validation never ran but `12c90ac` refactors have held 5+ weeks under the 1160-test baseline; PR #25).
-- **Fatigue meter** — Phase 1 shipped; Phase 1 Stage 4 closed 2026-05-20 (owner-approved felt-label review, no threshold changes — `calibration-notes.md` authoritative). **Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`)** (per-muscle accumulator, period selector, dedicated `/fatigue` route, dual planned + logged bars, two SFR cards, nav link, badge → page link; 91 new pytest cases for total 1442; 8/8 `e2e/fatigue.spec.ts` green). Stage 0 lock PR #33 (`24c6f46`), Stage 1 close PR #34 (`be22286`). **Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`)** — 13 + 17 reds on full Chromium match the pre-existing baseline exactly with zero new Stage-2 reds. **Phase 2 Stage 4 calibration window OPEN 2026-05-24**, earliest close 2026-06-07 (≥2 weeks real use). Source of truth: [`docs/fatigue_meter/PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md).
+- **Fatigue meter** — Phase 1 shipped; Phase 1 Stage 4 closed 2026-05-20 (owner-approved felt-label review, no threshold changes — `calibration-notes.md` authoritative). **Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`)** (per-muscle accumulator, period selector, dedicated `/fatigue` route, dual planned + logged bars, two SFR cards, nav link, badge → page link; 91 new pytest cases for total 1442; 8/8 `e2e/fatigue.spec.ts` green). Stage 0 lock PR #33 (`24c6f46`), Stage 1 close PR #34 (`be22286`). **Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`)** — 13 + 17 reds on full Chromium match the pre-existing baseline exactly with zero new Stage-2 reds. **Phase 2 Stage 4 calibration window opened 2026-05-24 and CLOSED 2026-08-13** — owner decision, no real-use evidence, no threshold change. Source of truth: [`docs/fatigue_meter/PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md).
   - 2026-05-20 history preserved: PR #26 (`2b34b50`) docs-only synthetic-override / coherence pass; PR #28 (`63c745d`) presentation-only badge restyle.
 
 Pick a new workstream from owner direction.
@@ -770,16 +770,13 @@ state before choosing what to do next.
    expand further without owner-vetted IDs. See
    [`docs/workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md`](workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md)
    "Curation Closed".
-4. **Fatigue Meter Phase 2 Stage 4 — TRACKING (window OPEN).** Phase 2 Path 1
-   shipped 2026-05-23 (PR #35 `d5b80bf`); Stage 3 verify-suite gate closed
-   2026-05-24 (`1a93f66`); Stage 4 calibration window open 2026-05-24, earliest
-   close 2026-06-07 (≥2 weeks real use). **No per-muscle threshold tuning
-   without ≥2 same-direction real-use disagreements** — synthetic-generator-only
-   mismatches do not justify changes (Phase 1 `hard_4d` precedent). Do not edit
-   `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` /
-   `WEEKLY_FATIGUE_BANDS`, do not edit `tests/test_fatigue.py` boundary tests,
-   do not tune `scripts/fatigue_calibration_report.py::SCENARIOS`. Source of
-   truth: [`docs/fatigue_meter/PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md)
+4. **Fatigue Meter Phase 2 Stage 4 — CLOSED 2026-08-13 (no evidence / no change).**
+   Phase 2 Path 1 shipped 2026-05-23 (PR #35 `d5b80bf`); Stage 3 verify-suite gate
+   closed 2026-05-24 (`1a93f66`); Stage 4 calibration window opened 2026-05-24 and
+   **closed 2026-08-13** by owner decision. Nothing to track here any more — but
+   **the guardrails survive the close**: see the "Live calibration guardrails"
+   block below, which binds any future tuning. Source of truth:
+   [`docs/fatigue_meter/PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md)
    Stage 4 + §10.
 5. **Worktree disposition — DONE.** Closed 2026-05-23 via `21859a1`. Both old
    worktree paths (`Hypertrophy-Toolbox-v3-visual-baseline-s4`,
@@ -921,17 +918,19 @@ All previously-tracked follow-ups have shipped:
 - §5 YouTube curation closed by diminishing returns at 56 rows (`cf21191` + `ff244aa`, 2026-05-23). Reopen only if owner supplies new vetted IDs — see [YOUTUBE_REFERENCE_VIDEOS.md "Curation Closed"](workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md).
 - Worktree disposition closed by inspection + branch cleanup in `21859a1` (2026-05-23). See [LEFTOVERS_BY_PRIORITY.md §6](LEFTOVERS_BY_PRIORITY.md).
 
-### Fatigue meter Phase 2 — Stage 4 calibration window OPEN (status updated 2026-05-24)
+### Fatigue meter Phase 2 — Stage 4 calibration window CLOSED (status updated 2026-08-13)
 
-Phase 1 shipped; Phase 1 Stage 4 closed 2026-05-20 (no threshold changes). **Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`); Phase 2 Stage 4 calibration window OPEN 2026-05-24, earliest close 2026-06-07** (≥2 weeks real use). Source of truth: [`docs/fatigue_meter/PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) Stage 4 + §10. `calibration-notes.md` remains the Phase 1 Stage 4 authority; STAGE4_PARKED_HANDOFF.md is superseded.
+Phase 1 shipped; Phase 1 Stage 4 closed 2026-05-20 (no threshold changes). **Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`); Phase 2 Stage 4 calibration window opened 2026-05-24 and CLOSED 2026-08-13 — owner decision, no real-use evidence, no threshold change.** Source of truth: [`docs/fatigue_meter/PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) Stage 4 + §10. `calibration-notes.md` remains the Phase 1 Stage 4 authority; STAGE4_PARKED_HANDOFF.md is superseded.
 
-**Live calibration guardrails** (do not, without an explicit new owner override):
+**Why it closed.** The window collected no real-use evidence in ~12 weeks; the measurement and the three-part reopen bar are in [`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) §5 Stage 4. The observer scripts and their 26 tests are kept for a possible restart; only the standing instruction to run them is retired.
+
+**Live calibration guardrails — unchanged by the close** (do not, without an explicit new owner override):
 
 - Edit `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` (per-muscle and global thresholds remain §24.B defaults + BRAINSTORM §5 verbatim for the 12 ranked muscles).
 - Edit `tests/test_fatigue.py` boundary-classification tests.
 - Tune `scripts/fatigue_calibration_report.py::SCENARIOS` (Hypothesis B retune of `hard_4d` is a documented-not-applied deferred follow-up).
 
-**Calibration evidence to collect during the window** (per [`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) Stage 4 / §10):
+**Calibration evidence that *would* have to be collected** — retained as the restart recipe, not as an open chore (per [`PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) Stage 4 / §10):
 
 - Per-muscle band disagreements recorded as `(muscle, period, engine band, felt label, direction)`. **Two same-direction disagreements = signal; one isolated disagreement = noise** (Phase 1 §4.2 rule).
 - Real-use only: `workout_log` data drives the signal. Synthetic generator mismatches do not justify threshold changes (Phase 1 `hard_4d` precedent — scenario under-shoot, not threshold drift).
@@ -961,7 +960,7 @@ Agents must not:
 
 - Reset, force-push, or otherwise discard working-tree state without owner approval.
 - Commit `data/database.db` (runtime; agents-must-not list in CLAUDE.md).
-- Edit `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` (per-muscle and global thresholds; gated by Phase 2 Stage 4 calibration — see DO NOT REOPEN block above).
+- Edit `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` (per-muscle and global thresholds; gated by the "Live calibration guardrails" block above — the Phase 2 Stage 4 close on 2026-08-13 did **not** discharge that gate).
 - Edit `tests/test_fatigue.py` boundary-classification tests.
 - Tune `scripts/fatigue_calibration_report.py::SCENARIOS`.
 - Touch unrelated dirty files unless the active task requires it.
