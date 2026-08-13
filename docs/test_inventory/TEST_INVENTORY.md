@@ -15,8 +15,8 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **616** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **483** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2393** across 111 files |
-| pytest test files (all) | **112** |
+| pytest collected nodes (deterministic subset) | **2405** across 112 files |
+| pytest test files (all) | **113** |
 | Hard waits (lines containing waitForTimeout) | **84** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -77,6 +77,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_catalog_seed.py` | 3 |
 | `tests/test_catalog_seed_bootstrap.py` | 10 |
 | `tests/test_catalog_upgrade.py` | 19 |
+| `tests/test_compiled_css_drift_gate_contracts.py` | 3 |
 | `tests/test_config.py` | 20 |
 | `tests/test_constants.py` | 45 |
 | `tests/test_css_audit_digest_normalization_contracts.py` | 5 |
@@ -138,7 +139,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_priority0_filters.py` | 16 |
 | `tests/test_priority0_fk_integrity.py` | 8 |
 | `tests/test_priority7_error_handling.py` | 28 |
-| `tests/test_profile_estimator.py` | 95 |
+| `tests/test_profile_estimator.py` | 104 |
 | `tests/test_profile_estimator_contract.py` | 6 |
 | `tests/test_program_backup.py` | 36 |
 | `tests/test_progression_plan_routes.py` | 20 |

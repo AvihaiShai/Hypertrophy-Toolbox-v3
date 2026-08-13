@@ -1248,6 +1248,90 @@ def test_coverage_donut_counts_filled_lifts():
     assert filled["percent"] > 0.0
 
 
+# Optional-narrowing boundaries in the cohort/coverage helpers.
+#
+# `_gender_label` returns a label only for "M"/"F", and `_is_lift_filled`
+# returns False for a missing row. Both facts are what let the callers below
+# format a label or subscript a row unconditionally. These tests pin the
+# behaviour at those two boundaries so the guards cannot be relaxed silently.
+
+
+@pytest.mark.parametrize(
+    "gender,expected_word",
+    [("M", "male"), ("F", "female")],
+)
+def test_cohort_ranges_labels_both_recognised_genders(gender, expected_word):
+    """"M" and "F" are the only codes that produce a cohort label, and both
+    reach the bodyweight and height tiles in lower case."""
+    from utils.profile_estimator import cohort_ranges
+
+    tiles = cohort_ranges(
+        {"gender": gender, "weight_kg": 75, "height_cm": 178,
+         "experience_years": 3}
+    )["tiles"]
+
+    assert expected_word in tiles["bodyweight"]["cohort_text"]
+    assert expected_word in tiles["height"]["cohort_text"]
+
+
+@pytest.mark.parametrize("gender", [None, "", "X", "male", "m"])
+def test_cohort_ranges_unrecognised_gender_falls_back(gender):
+    """Anything outside {"M", "F"} — including a plausible-looking string —
+    yields the explicit fallback rather than a label or an exception.
+
+    The bodyweight and height cohort ranges are gender-keyed, so an
+    unrecognised code must degrade to the prompt, and no `None` may leak
+    into the rendered text.
+    """
+    from utils.profile_estimator import cohort_ranges
+
+    result = cohort_ranges(
+        {"gender": gender, "weight_kg": 75, "height_cm": 178,
+         "experience_years": 3}
+    )
+    tiles = result["tiles"]
+
+    assert tiles["bodyweight"]["cohort_text"] == "Cohort range needs gender"
+    assert tiles["height"]["cohort_text"] == "Cohort range needs gender"
+    assert tiles["bodyweight"]["cohort_low"] is None
+    assert tiles["height"]["cohort_low"] is None
+    assert "None" not in tiles["bodyweight"]["cohort_text"]
+    # The summary is the one place an unrecognised code could still surface
+    # as a label, so pin that it degrades to the explicit "unknown" wording.
+    assert "unknown gender" in result["summary"]
+    assert "male" not in result["summary"]
+
+
+def test_is_lift_filled_rejects_missing_and_half_filled_rows():
+    """The filled-gate is what protects every later subscript of a lift row.
+
+    A missing row is rejected outright, and a row carrying only one half of
+    the (weight, reps) pair is rejected too — so callers that skip on a
+    false result never index a row that lacks the keys they read.
+    """
+    from utils._profile_estimator.coverage import _is_lift_filled
+
+    assert _is_lift_filled(None) is False
+    assert _is_lift_filled({}) is False
+    assert _is_lift_filled({"weight_kg": 100}) is False
+    assert _is_lift_filled({"reps": 5}) is False
+    assert _is_lift_filled({"weight_kg": 100, "reps": 0}) is False
+    assert _is_lift_filled({"weight_kg": 100, "reps": 5}) is True
+
+
+def test_cohort_bars_and_donut_skip_half_filled_lifts():
+    """A half-filled lift is skipped by both consumers of the filled-gate
+    rather than raising when the missing half is read."""
+    from utils.profile_estimator import cohort_bars, coverage_donut
+
+    half_filled = [{"lift_key": "barbell_bench_press", "weight_kg": 100}]
+
+    assert cohort_bars(
+        half_filled, {"gender": "M", "weight_kg": 75, "experience_years": 3}
+    ) == []
+    assert coverage_donut(half_filled)["filled_count"] == 0
+
+
 # Issue #19 — bodymap coverage state.
 
 

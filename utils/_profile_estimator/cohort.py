@@ -12,7 +12,7 @@ facade's function-local lazy imports).
 from __future__ import annotations
 
 import math
-from typing import Any, Optional
+from typing import Any, Literal, Optional, overload
 
 from utils._profile_estimator.constants import (
     ADVANCED_COHORT_REACH,
@@ -66,7 +66,16 @@ def _format_years(value: Optional[float]) -> str:
     return f"{value:g} yrs"
 
 
+@overload
+def _gender_label(gender: Literal["M", "F"]) -> str: ...
+@overload
+def _gender_label(gender: Optional[str]) -> Optional[str]: ...
 def _gender_label(gender: Optional[str]) -> Optional[str]:
+    """Overloaded so the two recognised codes are known to yield a label.
+
+    Every other input — including an unrecognised non-empty string — still
+    returns ``None``, which is why the fallback overload stays ``Optional``.
+    """
     if gender == "M":
         return "Male"
     if gender == "F":
@@ -99,7 +108,9 @@ def cohort_ranges(
     not yet load-bearing.
     """
     demos = demographics or {}
-    raw_gender = demos.get("gender") if demos.get("gender") in {"M", "F"} else None
+    raw_gender: Optional[Literal["M", "F"]] = (
+        demos.get("gender") if demos.get("gender") in {"M", "F"} else None
+    )
     bodyweight = _coerce_float(demos.get("weight_kg"))
     height = _coerce_float(demos.get("height_cm"))
     age = _coerce_float(demos.get("age"))
