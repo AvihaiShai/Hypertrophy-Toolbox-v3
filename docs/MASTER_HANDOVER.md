@@ -4,7 +4,75 @@
 
 ## Current State
 
-> **2026-08-11 (LATEST) — the Workout Plan bug queue below is empty. All three
+> **2026-08-13 (LATEST) — Q10, the CSS visual-oracle blind-spot register repair,
+> is SHIPPED.** PR **#331** squash-merged as **`5dd0b22`**, **18/18 checks green**
+> including `Visual Regression (Windows baselines)`. **The "sized but not
+> implemented" framing in the 2026-08-02 P3-termination block below, and the Q10
+> row under `## Next Safe Step`, are superseded as current state by this entry.**
+> Both are annotated in place; read them as history.
+>
+> **What the defect was.** `measure.verify_blind_spots()` compared the curated
+> register against `e2e/visual-helpers.ts` in **one direction only** — for each
+> register entry, does its `helperEvidence` substring still occur somewhere in the
+> file. Nothing asked what the helper applied that no entry described, and the
+> contract pinned only `len(register) == len(BLIND_SPOT_REGISTER)`, which an
+> addition does not move either. Two neutralizers had already escaped through that
+> gap with full pytest green: the dark `.summary-header` paint flattening and the
+> sticky-table `position: static` demotion.
+>
+> **What is true now.** The full-page register is **bidirectionally verified**, and
+> exact. Both channels `prepareForScreenshot()` uses are derived mechanically — the
+> injected `addStyleTag()` stylesheet and the post-load inline
+> `element.style.setProperty()` stage — then matched on `(stage, selector,
+> property)` with `value`, `important` and `classification` compared. Census:
+> **22 entries covering all 52 declarations**, spanning 21 rule blocks (20
+> stylesheet = 18 neutralizer + 2 `--visual-surface-*` support-token, plus 1
+> inline). Unmapped: **0**. Unparsable structure fails closed rather than being
+> skipped. **The P3-a0 §9.1 sizing (18 blocks / 19 unmapped declarations) is stale
+> — do not re-cite it.**
+>
+> **A second neutralizer channel exists, and it is NOT in the register.**
+> `prepareForElementScreenshot()` runs `prepareForScreenshot()` and then injects a
+> **second** stylesheet, used by locator captures only (`#navbar` visibility, the
+> closed-drawer / backdrop `display`). Nothing reached it — not the old verifier,
+> not the repaired one, and no contract. It was found during the pre-merge review,
+> not by the original packet. It stays **outside `BLIND_SPOT_REGISTER` by
+> construction**, because that register describes the full-page stage every capture
+> shares; it is derived and pinned independently by
+> `measure.element_capture_rules()` and
+> `test_the_element_capture_stage_adds_no_unpinned_neutralizer`. **Any future audit
+> of capture-time neutralizers must read BOTH functions.**
+>
+> **What the squash changed — including the baseline JSON.** Nine files: both
+> contract files, `scripts/css_audit/measure.py`, `scripts/css_audit/p3_ceiling.py`,
+> the Q10 and WP4.4-a evidence documents, the two test-inventory files, and
+> **`docs/CSS_PHASE4_WP4_4_A_BASELINE.json`, which did move** — in
+> `oracleBlindSpots` alone (6 → 22 entries), with every other top-level key
+> value-identical and key order unchanged. (The later corrective commit on the
+> branch left that JSON untouched; the squash as a whole did not.)
+> `emit_baseline.py` was **not** run in write mode, and must not be: a whole-file
+> regeneration moves `sourceCommit`, `surfaces`, `totals` and `isFamily`, and the
+> `isFamily` movement reds
+> `test_is_family_enumeration_is_complete_and_classified`. Patch **only** that
+> array.
+>
+> **No CSS, SCSS, template, `e2e/visual-helpers.ts`, screenshot or database file
+> changed** — no pixel moved and no rebaseline was involved.
+>
+> **Two documentation follow-ups were completed inside #331**, not deferred:
+> `CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md` §8's six-row table (a genuine
+> undercount — the missing sixteen rows were applied by `prepareForScreenshot()`
+> all along and were absent from the register, not from the helper) together with
+> its overstated *"the register cannot drift from the file it describes"* claim;
+> and `p3_ceiling.blind_spot_repair_sizing()`'s docstring plus its
+> `verifyBlindSpotsDirection: "one-way"` field. That instrument deliberately keeps
+> its pre-repair substring matcher as an independently-authored cross-check, and
+> now corroborates the repair at 20 blocks / 18 mapped / 2 token / 0 unmapped.
+>
+> Full record:
+> [`CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md`](CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md).
+
+> **2026-08-11 — the Workout Plan bug queue below is empty. All three
 > items shipped, and two of them are still written up as open further down this
 > file.**
 >
@@ -339,12 +407,20 @@
 > | The **nineteen-tool assessment** | evidence §6 | The only thing that could price a1, and **the artifact that terminated the arc.** |
 > | The **N8 denominator reconciliation** | evidence §8 | 11 failed + 57 passed + **16 that never ran** = 84. The 16 are serial-mode collateral in `visual-baseline-thumbnails.spec.ts`. **`totalCount: 11` is a FLOOR, not the inherited-red count** — the Linux baseline recovery packet must verify **84** baselines, not the 68 the ledger describes. |
 >
-> Sized but **not** implemented and **not** tied to P3: the **Q10 blind-spot-register
-> repair** (evidence §9) — ≈170–200 lines across two files plus one JSON array,
-> standalone, gated by full pytest alone. `QUALITY_GATE.md:39` routes *every future
-> CSS packet* into that register and it is one-way verified today, so the defect
-> stands for all of them until someone takes it. With no P3-a1 to own a P3-local
-> register, the standalone route is now the only route.
+> **SUPERSEDED 2026-08-13 — Q10 shipped. See the 2026-08-13 entry at the top of
+> `## Current State`.** The paragraph below records a0's position as of
+> **2026-08-02** and is kept as history; its "not implemented" and "one-way
+> verified today" statements are no longer true. Q10 was taken by the standalone
+> route it names, as PR **#331** / **`5dd0b22`**: the register is now
+> bidirectionally verified at **22 entries / 52 declarations**, so the defect no
+> longer stands for future CSS packets. Its sizing also under-read the work.
+>
+> > Sized but **not** implemented and **not** tied to P3: the **Q10 blind-spot-register
+> > repair** (evidence §9) — ≈170–200 lines across two files plus one JSON array,
+> > standalone, gated by full pytest alone. `QUALITY_GATE.md:39` routes *every future
+> > CSS packet* into that register and it is one-way verified today, so the defect
+> > stands for all of them until someone takes it. With no P3-a1 to own a P3-local
+> > register, the standalone route is now the only route.
 >
 > **The stale P3 lines elsewhere in this file are now CORRECTED.** `## Open
 > Decisions` and `## Blockers` both predated the sign-off and the termination.
@@ -2133,13 +2209,16 @@ behind the CSS it describes.
 P1 and P2 merged; P3 is TERMINATED at `P3-a0`. There is no next P3 packet — do
 not dispatch one.**
 
-**The next safe step is no longer P3 adjudication.** The two candidates that
-remain are both *outside* this arc and each needs its own owner decision:
+**The next safe step is no longer P3 adjudication.** The two candidates listed
+here were both *outside* this arc, and **both have now shipped** — the Linux
+visual-baseline recovery on 2026-08-04 and Q10 on 2026-08-13. **Neither is a
+candidate any more; the table below is kept for the dispatch notes inside it, not
+as a queue.** This section names no live next step for the WP4.4 arc.
 
 | Candidate | State |
 |---|---|
 | ~~**The Linux visual-baseline recovery packet**~~ **— DONE 2026-08-04, no longer a candidate.** | Delivered by #294 (`73c5c46`) and #298 (`f8988f9`); the investigation branch #296 was closed without merging. All 84 visual tests execute — the 16 thumbnail tests that had never run on any recorded run now do — and the job runs **100** tests once the new `workout-plan-desktop-contract.spec.ts` is counted. **Do not start this packet.** The dispatch note stays useful for any *future* regeneration: `gh workflow run deep-gate.yml --ref main -f run_visual=true -f visual_mode=generate`; **both inputs are mandatory**, since `run_visual` defaults to `false` and a bare dispatch generates nothing. |
-| **The Q10 blind-spot-register repair** | Sized by P3-a0 (§9) at **≈170–200 lines**, standalone, **gated by full pytest alone** — `e2e/visual-helpers.ts` is read, never written, so no snapshot moves. It never depended on P3 and is available now. A whole-file `emit_baseline` regeneration is **not** the shape: it moves `isFamily` and reds `test_is_family_enumeration_is_complete_and_classified`. Patch **only** the `oracleBlindSpots` array. |
+| ~~**The Q10 blind-spot-register repair**~~ **— DONE 2026-08-13, no longer a candidate.** | Delivered by **#331** (`5dd0b22`), 18/18 green. The register is now **bidirectionally verified** at **22 entries / 52 declarations**; `e2e/visual-helpers.ts` was read, never written, so no snapshot moved. **Do not start this packet.** Two notes stay useful. The `emit_baseline` warning held and still holds — a whole-file regeneration moves `isFamily` and reds `test_is_family_enumeration_is_complete_and_classified`, so patch **only** the `oracleBlindSpots` array (#331 did exactly that, 6 → 22 entries). And the register covers `prepareForScreenshot()` only: `prepareForElementScreenshot()`'s second stylesheet is pinned separately by `measure.element_capture_rules()`. Full detail in the 2026-08-13 entry at the top of `## Current State`. |
 
 **P3 — terminated, and what that forecloses.** `P3-a1` is **not funded**;
 `P3-b`, `P3-c`, `P3-d` and `P3-e` are **not authorized**. **Reopening requires a
