@@ -485,6 +485,19 @@ per-page readiness design, which is a production change and a separate owner
 decision — this packet does not propose one**, and no page-specific observable
 should be invented ad hoc in a test to avoid asking.
 
+> **That design was commissioned and measured on 2026-08-13, and it closed
+> without a conversion.** No other page qualifies: `/progression` and
+> `/workout_log` issue **zero** requests after `load`, so a busy/ready marker
+> would mark nothing; `/user_profile`'s last request is a lazy thumbnail 43ms
+> *after* its init fetch, so a marker there would be a strictly weaker wait than
+> `networkidle`; and on the three pages where a marker would be faithful
+> (`/backup`, `/body_composition`, `/volume_splitter`) removing `networkidle`
+> entirely breaks nothing across four runs — so the marker would have no
+> red-path proof and would be a gate that cannot fail.
+>
+> Full measurement, including the per-page dead-time table and the control /
+> variant runs: [`page_readiness_next/EVIDENCE.md`](page_readiness_next/EVIDENCE.md).
+
 ## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 
 Owner-approved and implemented. Seven `linkBtn.click()` + `waitForTimeout(1000)`
