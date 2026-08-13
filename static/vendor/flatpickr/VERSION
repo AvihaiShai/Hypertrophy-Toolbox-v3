@@ -1,0 +1,22 @@
+source: https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/
+upstream: https://github.com/flatpickr/flatpickr (tag v4.6.13)
+version: 4.6.13
+imported: 2026-08-13
+license: MIT (see LICENSE)
+
+vendored:
+  - flatpickr.min.js   dist/flatpickr.min.js
+  - flatpickr.min.css  dist/flatpickr.min.css (the default light theme)
+
+sha256:
+  1eeab1cb779471a0b0aaa93dd91c2eb1aa537d696f01ab05ea9dabc55e8525a1  flatpickr.min.js
+  1b34a42552c96f10e4dfaaa4a367276b03868aacff63c1ac42ffe331352bc754  flatpickr.min.css
+
+note: templates/progression_plan.html previously loaded flatpickr from two
+      *unpinned* URLs — https://cdn.jsdelivr.net/npm/flatpickr and
+      .../npm/flatpickr/dist/flatpickr.min.css — which resolve to whatever the
+      registry's latest release is at request time. Both digests above were
+      verified equal to those unpinned responses on the import date, so this is
+      a pin at the version production was already receiving, not an upgrade.
+      A future upstream release will no longer arrive silently; refresh
+      deliberately using the steps in NOTICE.md.

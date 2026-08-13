@@ -1,0 +1,22 @@
+source: node_modules/bootstrap (the pinned `bootstrap` devDependency in package.json)
+upstream: https://github.com/twbs/bootstrap
+version: 5.3.8
+imported: 2026-08-13
+license: MIT (see LICENSE)
+
+vendored:
+  - js/bootstrap.bundle.min.js      dist/js/bootstrap.bundle.min.js (Bootstrap + Popper)
+  - js/bootstrap.bundle.min.js.map  its source map, so devtools keeps resolving it
+
+sha256:
+  e4fd49181388c48ec5040bd3fe66f57c29c8e67fcd8502b3354b96ec7ab47cc7  js/bootstrap.bundle.min.js
+  c61123e58cc0a4b65d737ba070c485911b3dbec6d7b802bdf6628395abd9c08b  js/bootstrap.bundle.min.js.map
+
+note: the bundle digest above was verified equal to the response from
+      https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js
+      — the URL templates/base.html used before this was vendored. The runtime
+      receives the same bytes from a different origin.
+
+      static/css/bootstrap.custom.min.css is a *separate* artifact: it is
+      compiled from scss/custom-bootstrap.scss by `npm run build:css` against
+      the same pinned package, and is not vendored here.

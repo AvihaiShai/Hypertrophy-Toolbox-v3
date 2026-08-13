@@ -613,7 +613,23 @@ independently reproducing ADR-005's published 61.3s / 8.5%. Distribution after
 ADR-005's ruling stands: no blanket rewrite. Each of these is eligible only
 individually, on the same two conditions finding 2 satisfies.
 
-## Finding 4 — two observations that are out of bounds to act on
+## Finding 4 — two observations that were out of bounds to act on
+
+> **Both are now closed, and the first one undercounted.** `/get_all_exercises`
+> was fixed by **#316** (`9794676`). The external-CDN dependency was closed by
+> the local-first assets packet, which vendored every remaining runtime asset —
+> **but the census below found four resources across three hosts, and the real
+> figure was nine elements across five.** It measured `/workout_plan` and read
+> `base.html`; it never covered `/progression` (flatpickr, jsdelivr, on an
+> *unpinned* URL) or `/volume_splitter` (Popper and tippy.js, both on
+> `unpkg.com` — a host this finding does not name at all).
+>
+> Two consequences worth keeping: readiness timing no longer depends on
+> external latency at all, so `networkidle` settles earlier on every page; and
+> `scripts/css_audit/runtime_probe.mjs`'s network-pinning layer (its
+> `jsdelivrRequested` / `googleFontsOk` summary fields) is now a permanent
+> no-op — a future audit must not read `googleFontsOk: false` as a regression.
+> *Original text follows, as the record of what was measured on 2026-08-09.*
 
 Recorded because they were measured, not as proposals. Both are production
 behavior and would need an explicit owner decision.
