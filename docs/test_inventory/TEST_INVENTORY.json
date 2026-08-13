@@ -245,7 +245,7 @@
     "total_tests": 611
   },
   "pytest": {
-    "collected_deterministic": 2353,
+    "collected_deterministic": 2362,
     "deterministic_files": 110,
     "environment_dependent_files": [
       {
@@ -536,7 +536,7 @@
       },
       {
         "file": "tests/test_profile_estimator.py",
-        "tests": 95
+        "tests": 104
       },
       {
         "file": "tests/test_profile_estimator_contract.py",
