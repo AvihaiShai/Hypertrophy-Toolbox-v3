@@ -19,6 +19,18 @@ REQUIRED_ASSETS = {
     "static/images/favicon.ico",
     "static/js/modules/fetch-wrapper.js",
     "static/vendor/free-exercise-db/exercises.json",
+    # Each is loaded unconditionally by a template. Named individually rather
+    # than sampled because this is the only check that catches a *deletion*:
+    # test_local_first_assets asserts that what is on disk is tracked, which a
+    # removed file satisfies trivially.
+    "static/vendor/bootstrap/js/bootstrap.bundle.min.js",
+    "static/vendor/flatpickr/flatpickr.min.css",
+    "static/vendor/flatpickr/flatpickr.min.js",
+    "static/vendor/inter/inter.css",
+    "static/vendor/inter/fonts/inter-latin.woff2",
+    "static/vendor/popperjs/popper.min.js",
+    "static/vendor/sortable/Sortable.min.js",
+    "static/vendor/tippy/tippy-bundle.umd.min.js",
 }
 
 

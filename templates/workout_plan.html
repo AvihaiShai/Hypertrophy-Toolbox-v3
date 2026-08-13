@@ -555,7 +555,7 @@
     <div id="vpBackdrop" class="vp-backdrop" hidden></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/sortable/Sortable.min.js') }}?v={{ app_version }}"></script>
 <script src="{{ url_for('static', filename='js/modules/muscle-selector.js') }}?v={{ app_version }}"></script>
 
 <script type="module" src="{{ url_for('static', filename='js/modules/workout-plan-page.js') }}?v={{ app_version }}"></script>

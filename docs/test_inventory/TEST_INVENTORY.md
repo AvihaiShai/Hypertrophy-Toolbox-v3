@@ -12,11 +12,11 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **611** |
+| Playwright tests (chromium) | **616** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **478** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2353** across 110 files |
-| pytest test files (all) | **111** |
+| Required functional gate — `E2E Functional (Chromium)` | **483** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **2393** across 111 files |
+| pytest test files (all) | **112** |
 | Hard waits (lines containing waitForTimeout) | **84** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -42,9 +42,9 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `listener-cleanup.spec.ts` | 3 | — |
 | `nav-dropdown.spec.ts` | 7 | yes |
 | `program-backup.spec.ts` | 20 | — |
-| `progression.spec.ts` | 26 | yes |
+| `progression.spec.ts` | 27 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
-| `smoke-navigation.spec.ts` | 10 | yes |
+| `smoke-navigation.spec.ts` | 11 | yes |
 | `summary-pages.spec.ts` | 20 | yes |
 | `superset-edge-cases.spec.ts` | 12 | yes |
 | `ui-hardening.spec.ts` | 37 | yes |
@@ -54,10 +54,10 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `visual-field-separator.spec.ts` | 42 | yes |
 | `visual.spec.ts` | 66 | — |
 | `volume-progress.spec.ts` | 16 | yes |
-| `volume-splitter.spec.ts` | 30 | yes |
+| `volume-splitter.spec.ts` | 32 | yes |
 | `workout-log.spec.ts` | 23 | yes |
 | `workout-plan-desktop-contract.spec.ts` | 16 | — |
-| `workout-plan.spec.ts` | 36 | yes |
+| `workout-plan.spec.ts` | 37 | yes |
 
 ## pytest files
 
@@ -71,7 +71,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_auto_backup.py` | 7 |
 | `tests/test_body_composition_routes.py` | 20 |
 | `tests/test_body_fat.py` | 43 |
-| `tests/test_bootstrap_version_contract.py` | 1 |
+| `tests/test_bootstrap_version_contract.py` | 3 |
 | `tests/test_calibration_integration.py` | 28 |
 | `tests/test_catalog_invariants.py` | 2 |
 | `tests/test_catalog_seed.py` | 3 |
@@ -118,6 +118,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_guard_destructive_command.py` | env-dependent |
 | `tests/test_harness_isolation.py` | 3 |
 | `tests/test_lift_matching.py` | 3 |
+| `tests/test_local_first_assets.py` | 38 |
 | `tests/test_logger.py` | 14 |
 | `tests/test_maintenance.py` | 19 |
 | `tests/test_muscle_selector_mapping.py` | 15 |

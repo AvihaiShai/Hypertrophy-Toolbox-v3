@@ -72,7 +72,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 478
+      "tests": 483
     },
     "specs": [
       {
@@ -163,7 +163,7 @@
       {
         "in_required_functional_set": true,
         "spec": "progression.spec.ts",
-        "tests": 26
+        "tests": 27
       },
       {
         "in_required_functional_set": true,
@@ -173,7 +173,7 @@
       {
         "in_required_functional_set": true,
         "spec": "smoke-navigation.spec.ts",
-        "tests": 10
+        "tests": 11
       },
       {
         "in_required_functional_set": true,
@@ -223,7 +223,7 @@
       {
         "in_required_functional_set": true,
         "spec": "volume-splitter.spec.ts",
-        "tests": 30
+        "tests": 32
       },
       {
         "in_required_functional_set": true,
@@ -238,15 +238,15 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-plan.spec.ts",
-        "tests": 36
+        "tests": 37
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 611
+    "total_tests": 616
   },
   "pytest": {
-    "collected_deterministic": 2353,
-    "deterministic_files": 110,
+    "collected_deterministic": 2393,
+    "deterministic_files": 111,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -272,7 +272,7 @@
       },
       {
         "file": "tests/test_bootstrap_version_contract.py",
-        "tests": 1
+        "tests": 3
       },
       {
         "file": "tests/test_calibration_integration.py",
@@ -457,6 +457,10 @@
       {
         "file": "tests/test_lift_matching.py",
         "tests": 3
+      },
+      {
+        "file": "tests/test_local_first_assets.py",
+        "tests": 38
       },
       {
         "file": "tests/test_logger.py",
@@ -699,7 +703,7 @@
         "tests": 40
       }
     ],
-    "total_files": 111
+    "total_files": 112
   },
   "schema_version": 1
 }

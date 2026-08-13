@@ -59,6 +59,7 @@ PAGES = (
     "/weekly_summary",
     "/session_summary",
     "/progression",
+    "/volume_splitter",
 )
 ASSETS = {
     "/static/css/base.css": "text/css",
@@ -71,6 +72,23 @@ ASSETS = {
     "/static/vendor/free-exercise-db/LICENSE": None,
     "/static/vendor/musclemap/VERSION": None,
     "/static/vendor/free-exercise-db/exercises/Barbell_Squat/0.jpg": "image",
+    # Every runtime asset a page loads is vendored, so a packaged install needs
+    # no network at all. This is the only gate that proves it against a real
+    # bootloader -- the pytest equivalents run from a source checkout, where the
+    # files are present whether or not the staging manifest carried them.
+    #
+    # Content types are deliberately loose or None: Flask resolves static
+    # mimetypes through Python's `mimetypes`, which consults the Windows
+    # registry, so `.js` and `.woff2` are not reliably the same string across
+    # platforms. Reachability and a non-empty body are the claims being made.
+    "/static/vendor/bootstrap/js/bootstrap.bundle.min.js": "javascript",
+    "/static/vendor/inter/inter.css": "text/css",
+    "/static/vendor/inter/fonts/inter-latin.woff2": None,
+    "/static/vendor/sortable/Sortable.min.js": "javascript",
+    "/static/vendor/flatpickr/flatpickr.min.js": "javascript",
+    "/static/vendor/flatpickr/flatpickr.min.css": "text/css",
+    "/static/vendor/popperjs/popper.min.js": "javascript",
+    "/static/vendor/tippy/tippy-bundle.umd.min.js": "javascript",
 }
 
 
@@ -187,11 +205,24 @@ def _check_asset_version_policy(base_url: str, mode: str) -> None:
     """
     from utils.version import APP_VERSION
 
-    with _get(f"{base_url}/") as response:
-        html = response.read().decode("utf-8", "replace")
+    # Swept across the four routes that render a vendored asset, not just `/`.
+    # base.html carries three of them; Sortable, flatpickr and the two tooltip
+    # libraries are linked by their own page and are invisible from the home
+    # page alone.
+    links = []
+    for route in ("/", "/workout_plan", "/progression", "/volume_splitter"):
+        with _get(f"{base_url}{route}") as response:
+            html = response.read().decode("utf-8", "replace")
+        links.extend(
+            re.findall(r'(?:href|src)="(/static/(?:css|js|vendor)/[^"]+)"', html)
+        )
 
-    links = re.findall(r'(?:href|src)="(/static/(?:css|js)/[^"]+)"', html)
-    _check(bool(links), "the rendered page links first-party CSS/JS")
+    _check(bool(links), "the rendered pages link first-party CSS/JS/vendor assets")
+    vendored = {link for link in links if link.startswith("/static/vendor/")}
+    _check(
+        len(vendored) >= 7,
+        f"the rendered pages link {len(vendored)} distinct vendored assets",
+    )
     unversioned = [link for link in links if f"?v={APP_VERSION}" not in link]
     _check(
         not unversioned,
@@ -199,7 +230,12 @@ def _check_asset_version_policy(base_url: str, mode: str) -> None:
         + (f" (missing on {unversioned})" if unversioned else ""),
     )
 
-    probe = links[0].split("?")[0]
+    # Named rather than `links[0]`: that used to be tokens.css and is now
+    # whichever link base.html happens to put first, which is not a property
+    # this check should depend on.
+    probe = next(
+        link for link in links if link.startswith("/static/css/")
+    ).split("?")[0]
 
     # The long-cache branch is set under getattr(sys, 'frozen', False), which is
     # true for the bootloader and false for payload mode -- payload runs

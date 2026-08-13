@@ -721,3 +721,43 @@ test.describe('Progression Plan — fatigue context (Phase 2D-B)', () => {
     consoleErrors.assertNoErrors();
   });
 });
+
+/**
+ * `progression-plan.js` guards its initializer with
+ * `typeof flatpickr !== 'undefined'`, and the console collector cannot see a
+ * missing global either (see `fixtures.ts`), so a flatpickr that fails to load
+ * degrades `#goalDate` to a plain text input with every spec still green.
+ *
+ * `goal_date` is required and is read back from the picker's own
+ * `selectedDates`, so that failure blocks saving a goal, not just picking one.
+ */
+test.describe('Progression Plan date picker', () => {
+  test.beforeEach(async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+    await page.goto(ROUTES.PROGRESSION);
+    await waitForPageReady(page);
+  });
+
+  test.afterEach(async ({ consoleErrors }) => {
+    consoleErrors.assertNoErrors();
+  });
+
+  test('flatpickr loads locally and binds the goal-date input', async ({ page }) => {
+    // The library evaluated: a wrong path or a corrupt payload fails here.
+    expect(
+      await page.evaluate(() => typeof (window as unknown as Record<string, unknown>).flatpickr),
+    ).toBe('function');
+
+    // …and its initializer actually ran against the real input. flatpickr adds
+    // this class itself; the template does not.
+    await expect(page.locator('#goalDate')).toHaveClass(/flatpickr-input/);
+
+    // The vendored stylesheet is applied, not merely requested: flatpickr's own
+    // CSS is what positions the calendar out of flow.
+    const calendar = page.locator('.flatpickr-calendar');
+    await expect(calendar).toHaveCount(1);
+    expect(
+      await calendar.first().evaluate((element) => getComputedStyle(element).position),
+    ).toBe('absolute');
+  });
+});

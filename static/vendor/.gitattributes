@@ -1,0 +1,20 @@
+# Vendored third-party payloads are byte-pinned: each package's VERSION file
+# records a SHA-256 per file, and tests/test_local_first_assets.py checks it.
+#
+# This repository is `core.autocrlf=true` with no root .gitattributes, so a text
+# payload committed as LF materializes as CRLF in a Windows checkout and LF in a
+# Linux one. That is the same commit with two different digests, and it would
+# red the digest contract on whichever platform it was not pinned from. It would
+# also quietly falsify the packet's central claim — that the bytes we serve are
+# the bytes upstream published.
+#
+# Deliberately scoped to the packages this rule was written for. `fontawesome/`,
+# `free-exercise-db/` and `musclemap/` predate it and are left alone on purpose:
+# switching an already-checked-out tree to `-text` makes git report every one of
+# their text files as modified, which is a separate change with its own review.
+bootstrap/** -text
+flatpickr/** -text
+inter/** -text
+popperjs/** -text
+sortable/** -text
+tippy/** -text
