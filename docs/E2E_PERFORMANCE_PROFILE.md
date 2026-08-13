@@ -580,6 +580,12 @@ defects, fixed here; one was a product defect, reported here and fixed later.
    that. **Whether the selection should clear on routine change is an open
    product question for the owner.**
 
+   > **RESOLVED 2026-08-13 — the owner ruled that it clears, and it now does.**
+   > The test is renamed back to
+   > `changing the routine day clears a transient superset selection`. Read the
+   > paragraph above as the record of what was true when written.
+
+
 ### What was predicted vs what happened
 
 Kept because the gap is the useful part, not to preserve the original prose.
