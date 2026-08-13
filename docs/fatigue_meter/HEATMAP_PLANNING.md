@@ -2,7 +2,8 @@
 
 **Status:** **Gate 0 CLOSED** (owner walk 2026-08-13, six locked decisions in §0).
 **Gate 1 CLOSED** — council run 2026-08-13, Plan v2 below is the approved plan.
-Implementation in progress on `wt/fatigue-heatmap`.
+**Implemented** on `wt/fatigue-heatmap` (PR #339), reviewed a second time against the built
+code — see §6.
 
 **Goal:** On `/fatigue`, color a MuscleMap body figure by each muscle's fatigue band so the
 user sees at a glance where load is concentrated. Picks up the deferred item in
@@ -29,7 +30,7 @@ or suggestion-number change. The fatigue calculation must not be forked.
 
 ---
 
-## §1 — Ground truth (verified in the checkout, not assumed)
+## §1 — Ground truth
 
 1. `build_fatigue_page_context()` **already** returns `muscle_rows` — one dict per muscle with
    `{muscle, planned|None, logged|None, has_landmarks, max_percent_of_mrv, max_score}`
@@ -52,7 +53,7 @@ or suggestion-number change. The fatigue calculation must not be forked.
 8. `e2e/visual-helpers.ts` has a `TERMINAL_MARKERS` hook that blocks a capture until a page-specific
    sentinel attaches.
 
-### Two errors in the previous draft, corrected here
+### Errors in the pre-council draft
 - The draft mapped an **`upper-back`** region. The SVGs draw no such region — the vendor README
   confirms `upper-back` and `hip-abductors` are legend-only.
 - The draft omitted **`obliques`**. `canonicalize_muscle_for_fatigue('External Obliques')` returns
@@ -64,14 +65,9 @@ or suggestion-number change. The fatigue calculation must not be forked.
 ## §2 — Council record (Gate 1)
 
 Reviewers: **A** = `architecture-reviewer`, **T** = `test-strategist`, **P** = `product-risk-reviewer`,
-run in parallel on Plan v1, 2026-08-13. Per the owner's "concise" instruction, findings are recorded
-as matrix rows with dispositions rather than pasted transcripts; every finding has a row.
+run in parallel on Plan v1, 2026-08-13, then again on the implementation. Every finding has a row.
 
-**Agent provenance:** three reviewers were run in parallel in-session on Plan v1; Plan v2 and this
-matrix were authored by the session that authored Plan v1 (no `product-manager` hand-off, so no
-resume was required). **Evidence gap:** internal agent identifiers are not surfaced into repository
-artifacts by this harness, so the provenance table's ID column is recorded as unavailable rather
-than invented. No ID was fabricated and no completed council work was rerun.
+Agent identifiers are not surfaced into repository artifacts by this harness, so none are cited.
 
 ### Response matrix
 
@@ -136,8 +132,6 @@ Planned/Logged control; and a permanently visible caption naming the active chan
 - Per finding 29, when only one channel has data **no control renders at all**. With the live DB at
   0 logged rows, that is today's actual state.
 
-**P**'s concern is recorded as *accepted-with-mitigation*, not rejected.
-
 ### Q2 — `obliques` → `Abdominals`
 Confirmed by both **A** and **P**. `utils/volume_taxonomy.py:97` is literally
 `"External Obliques": "Abdominals"`, so the accumulator already folds oblique work into that bar;
@@ -149,7 +143,7 @@ recorded so it is not read as a bug: 16 oblique paths + 8 abs paths render one c
 
 ## §3 — Canonical region → fatigue-muscle mapping
 
-Single-valued **region → muscle**, which makes rendering total and unambiguous.
+Single-valued **region → muscle**.
 
 | Region key | Fatigue muscle | Note |
 |---|---|---|
@@ -194,8 +188,7 @@ The page-level "Descriptive only" line already exists at `templates/fatigue.html
 ### Collapsed-state persistence (L4)
 **None.** The only in-repo collapse-persistence pattern is `plan_volume_panel.js`, which owns a
 `localStorage` key on the *workout-plan* page; reusing it would mean a **new** key, which L4's
-"without new persistence" clause forbids. The panel defaults to open. This is a deliberate reading
-of L4, not an oversight.
+"without new persistence" clause forbids. The panel defaults to open.
 
 ---
 
@@ -242,11 +235,24 @@ the collapsed state; no Linux baseline regeneration (owner follow-up).
 `scripts/generate_test_inventory.py`; `npx tsc --noEmit`; flake8; `npm run lint:css`.
 CI watch: **Visual Regression (Windows baselines)** — non-required but runs on every PR.
 
-### Stage-4 interaction (finding 35)
-The heatmap changes no fatigue math, but it changes how salient the bands feel, which is the human
-input Stage-4 felt-band evidence depends on. **Felt-band rows collected before and after this
-ship are not cleanly comparable.** Ship date is recorded in the PR and in this section so post-ship
-calibration rows stay interpretable. No threshold, band or landmark change.
+### §6 - Post-implementation review (same three reviewers, on the built code)
+
+Three defects survived Plan v2 and were caught only by reviewing the shipped diff. All are fixed.
+
+| # | Finding | Rev | Fix |
+|---|---|---|---|
+| 40 | **The channel control could never appear.** The partial ships it `hidden`; the module only ever set `hidden = true`, and reboot's `[hidden]{display:none !important}` meant the container beat its children un-hiding. The two-channel path had zero coverage - the one E2E asserting it seeded planned data only and passed for the wrong reason. | A, unslop | Assign both ways. A new E2E seeds an exported **and scored** log (an unscored export produces no bar), then asserts the control appears, the caption flips, `aria-pressed` swaps, and exactly one band class survives the repaint. |
+| 41 | **`data-heatmap-state` could strand at `pending`.** The panel gates on raw row counts, the module on aggregated bars; a row whose sets resolve to 0 satisfies the first and not the second. The module returned early without flipping the marker, so all six visual captures would die on an opaque timeout - the exact failure the template comment claimed impossible. | A, P | Every exit is now terminal (double `requestAnimationFrame`, since one callback runs before that frame's paint). The zero-aggregate branch shows *"No set volume in this window."* rather than leaving the figure fallbacks blaming the asset loader. Covered by pytest; it is not reachable through the app's own endpoints, which the test records. |
+| 42 | **`trapezius` carries the same false low as the delts, and had no caveat.** `volume_taxonomy` routes the common `Upper Back` catalog label into the unranked `Middle-Traps` bucket, which paints no region, while the upper-back region shows `Traps`. The shipped copy named only the shoulders. | P | Caveat extended to name Middle-Traps, and **moved above the figures** - it has to reach the reader before the gray region it explains, and the per-region title is hover-only so touch users never see it. |
+
+Also applied: copy now says *"fatigue band"* and *"Lower → higher fatigue"* rather than the bare noun;
+dead code removed (an unused parameter, a write-only dataset attribute, an identity map, two
+`[hidden]` rules redundant against reboot); duplicated assertions cut from all three test layers.
+
+Confirmed clean by review: **no DOM-XSS path** (the database-derived muscle label never reaches the
+DOM - it is only ever a lookup key, and the one `innerHTML` takes a hardcoded same-origin asset), no
+contract drift, `paint()` cannot leave a stale or doubled band class, and the `<title>` insertion is
+correct for SVG and idempotent across repaints.
 
 ### Owner follow-up
 **Linux visual baselines for `/fatigue` are stale after this ship.** Regenerate via the

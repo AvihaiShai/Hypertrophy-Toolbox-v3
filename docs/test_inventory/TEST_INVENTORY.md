@@ -12,10 +12,10 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **620** |
+| Playwright tests (chromium) | **621** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **487** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2386** across 111 files |
+| Required functional gate — `E2E Functional (Chromium)` | **488** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **2385** across 111 files |
 | pytest test files (all) | **112** |
 | Hard waits (lines containing waitForTimeout) | **84** across 15 files |
 
@@ -37,7 +37,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `exercise-interactions.spec.ts` | 21 | yes |
 | `fatigue-context.spec.ts` | 6 | — |
 | `fatigue-stage4-smokes.spec.ts` | 5 | yes |
-| `fatigue.spec.ts` | 17 | yes |
+| `fatigue.spec.ts` | 18 | yes |
 | `learned-calibration.spec.ts` | 8 | yes |
 | `listener-cleanup.spec.ts` | 3 | — |
 | `nav-dropdown.spec.ts` | 7 | yes |
@@ -109,7 +109,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_fatigue.py` | 134 |
 | `tests/test_fatigue_context.py` | 29 |
 | `tests/test_fatigue_golden.py` | 1 |
-| `tests/test_fatigue_heatmap_mapping.py` | 23 |
+| `tests/test_fatigue_heatmap_mapping.py` | 22 |
 | `tests/test_fatigue_routes.py` | 14 |
 | `tests/test_fatigue_stage4_observer.py` | 26 |
 | `tests/test_filter_predicates.py` | 39 |

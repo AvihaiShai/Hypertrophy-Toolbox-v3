@@ -585,9 +585,6 @@
   display: inline-flex;
   gap: 0.25rem;
 
-  &[hidden] {
-    display: none;
-  }
 }
 
 .fatigue-heatmap__channel-btn {
@@ -600,9 +597,6 @@
   color: inherit;
   cursor: pointer;
 
-  &[hidden] {
-    display: none;
-  }
 
   &:focus-visible {
     outline: 2px solid var(--fatigue-accent, #6c757d);

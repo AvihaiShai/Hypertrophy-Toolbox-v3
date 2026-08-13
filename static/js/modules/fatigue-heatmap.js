@@ -67,7 +67,6 @@ const UNMAPPED_LABELS = {
 const SIDES = ['front', 'back'];
 const CHANNELS = ['planned', 'logged'];
 const CHANNEL_LABELS = { planned: 'Planned', logged: 'Logged' };
-const SIDE_LABELS = { front: 'front', back: 'back' };
 
 /**
  * Resolve which band should paint a region for one channel.
@@ -141,8 +140,7 @@ function readEmbeddedRows() {
     const node = document.getElementById('fatigue-heatmap-data');
     if (!node) return null;
     try {
-        const parsed = JSON.parse(node.textContent);
-        return Array.isArray(parsed) ? parsed : null;
+        return JSON.parse(node.textContent);
     } catch {
         return null;
     }
@@ -178,7 +176,7 @@ function labelFigures(panel, channel) {
         if (!svg) return;
         svg.setAttribute(
             'aria-label',
-            `${CHANNEL_LABELS[channel]} fatigue by muscle, ${SIDE_LABELS[side]} view`,
+            `${CHANNEL_LABELS[channel]} fatigue by muscle, ${side} view`,
         );
     });
 }
@@ -205,14 +203,11 @@ async function mountFigures(panel) {
     return results.every(Boolean);
 }
 
-function wireChannelControl(panel, rowsByMuscle, available, setChannel) {
-    panel.querySelectorAll('[data-heatmap-channel]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const next = button.dataset.heatmapChannel;
-            if (!available.includes(next)) return;
-            setChannel(next);
-        });
-    });
+function showNoData(panel) {
+    const figures = panel.querySelector('[data-heatmap-figures]');
+    if (figures) figures.hidden = true;
+    const message = panel.querySelector('[data-heatmap-nodata]');
+    if (message) message.hidden = false;
 }
 
 export async function initFatigueHeatmap() {
@@ -222,23 +217,38 @@ export async function initFatigueHeatmap() {
     const rows = readEmbeddedRows();
     if (!panel || !rows) return;
 
+    // Every exit below is terminal, so the marker has to flip on all of them.
+    // Leaving it at `pending` on any path strands the visual harness, which
+    // waits for `ready|empty` and reports the timeout as a render failure.
+    // Two frames because a single rAF callback runs before that frame's paint.
+    const markReady = () => requestAnimationFrame(() => requestAnimationFrame(() => {
+        page.dataset.heatmapState = 'ready';
+    }));
+
     const rowsByMuscle = indexRowsByMuscle(rows);
     const available = channelsWithData(rows);
-    if (available.length === 0) return;
+    if (available.length === 0) {
+        // The panel renders on raw row counts, but a row whose sets resolve to
+        // 0 - an unscored log row, most often - contributes no bar. Say that,
+        // rather than leaving the figure fallbacks blaming the asset loader.
+        showNoData(panel);
+        markReady();
+        return;
+    }
 
     const mounted = await mountFigures(panel);
     if (!mounted) {
-        // Leave the panel's server-rendered fallback copy in place rather than
-        // half a figure, and do not flip the ready marker.
-        panel.dataset.heatmapFigures = 'unavailable';
+        markReady();
         return;
     }
 
     // The control only makes sense when there is something to switch between.
-    // With the live database at zero logged rows this hides it entirely, and
-    // the caption alone states which channel is on screen.
+    // It ships hidden so it cannot flash before that is known, so this must
+    // assign both ways - setting only `true` leaves it permanently hidden, and
+    // reboot's `[hidden]{display:none !important}` means the container beats any
+    // un-hiding of its children.
     const control = panel.querySelector('[data-heatmap-control]');
-    if (control && available.length < 2) control.hidden = true;
+    if (control) control.hidden = available.length < 2;
     panel.querySelectorAll('[data-heatmap-channel]').forEach((button) => {
         button.hidden = !available.includes(button.dataset.heatmapChannel);
     });
@@ -259,19 +269,17 @@ export async function initFatigueHeatmap() {
         });
     };
 
-    wireChannelControl(panel, rowsByMuscle, available, (next) => {
-        channel = next;
-        render();
+    panel.querySelectorAll('[data-heatmap-channel]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const next = button.dataset.heatmapChannel;
+            if (!available.includes(next)) return;
+            channel = next;
+            render();
+        });
     });
 
     render();
-
-    // Flip the visual-capture marker only after the band classes have been
-    // written AND the browser has had a frame to paint them. Setting it at
-    // mount time would let a screenshot race the style pass.
-    requestAnimationFrame(() => {
-        page.dataset.heatmapState = 'ready';
-    });
+    markReady();
 }
 
 if (typeof document !== 'undefined') {

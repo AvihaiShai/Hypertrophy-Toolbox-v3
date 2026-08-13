@@ -15,8 +15,23 @@
     <summary class="fatigue-heatmap__summary">Body map</summary>
 
     <p class="fatigue-heatmap__note">
-        Colors show each muscle&rsquo;s band for the selected period.
+        Colors show each muscle&rsquo;s fatigue band for the selected period.
         Regions without a reading stay gray.
+    </p>
+
+    {#
+      This caveat sits ABOVE the figures on purpose: it has to reach the reader
+      before the gray region it explains, and the per-region title is hover-only
+      so touch users never see that at all.
+
+      Three labels have no region of their own. Front-Shoulder and Rear-Shoulder
+      lose theirs to Middle-Shoulder by owner decision; Middle-Traps loses the
+      upper back to Traps because volume_taxonomy routes the common `Upper Back`
+      catalog label into the Middle-Traps bucket. All three keep their bars.
+    #}
+    <p class="fatigue-heatmap__note fatigue-heatmap__note--aside">
+        Shoulder regions show Middle-Shoulder; the upper-back region shows Traps.
+        Front-Shoulder, Rear-Shoulder and Middle-Traps are listed separately below.
     </p>
 
     <div class="fatigue-heatmap__controls">
@@ -39,7 +54,14 @@
            data-testid="fatigue-heatmap-caption"></p>
     </div>
 
-    <div class="fatigue-heatmap__figures">
+    {# Shown when the panel rendered on raw row counts but nothing aggregated to
+       a bar - an unscored log row being the usual cause. #}
+    <p class="fatigue-heatmap__note"
+       data-heatmap-nodata
+       data-testid="fatigue-heatmap-nodata"
+       hidden>No set volume in this window.</p>
+
+    <div class="fatigue-heatmap__figures" data-heatmap-figures>
         {% for side, label in [('front', 'Front'), ('back', 'Back')] %}
             <div class="fatigue-heatmap__figure"
                  data-heatmap-figure="{{ side }}"
@@ -56,7 +78,7 @@
       not perceptually ordered on its own.
     #}
     <div class="fatigue-heatmap__legend" data-testid="fatigue-heatmap-legend">
-        <p class="fatigue-heatmap__legend-caption">Lower &rarr; higher</p>
+        <p class="fatigue-heatmap__legend-caption">Lower &rarr; higher fatigue</p>
         <ul class="fatigue-heatmap__legend-list">
             {% for band, label in [
                 ('light', 'Light'),

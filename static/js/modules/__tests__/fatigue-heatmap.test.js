@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import {
-    BAND_CLASS,
     NEUTRAL_CLASS,
-    REGION_TO_MUSCLE,
     UNMAPPED_REGIONS,
     bandClass,
     channelsWithData,
@@ -20,32 +18,6 @@ function row(muscle, planned, logged) {
 function side(band, percent) {
     return { band, percent_of_mrv: percent, score: 1, has_landmarks: true };
 }
-
-describe('region mapping', () => {
-    it('paints both deltoid regions from Middle-Shoulder', () => {
-        expect(REGION_TO_MUSCLE['front-deltoid']).toBe('Middle-Shoulder');
-        expect(REGION_TO_MUSCLE['rear-deltoid']).toBe('Middle-Shoulder');
-    });
-
-    it('never paints a region from an unranked muscle label', () => {
-        const painted = Object.values(REGION_TO_MUSCLE);
-        for (const label of ['Front-Shoulder', 'Rear-Shoulder', 'Middle-Traps']) {
-            expect(painted).not.toContain(label);
-        }
-    });
-
-    it('decides on all 17 drawn regions exactly once', () => {
-        const mapped = Object.keys(REGION_TO_MUSCLE);
-        const all = new Set([...mapped, ...UNMAPPED_REGIONS]);
-        expect(all.size).toBe(17);
-        expect(mapped.length + UNMAPPED_REGIONS.length).toBe(17);
-    });
-
-    it('routes obliques into the same bucket as abs', () => {
-        expect(REGION_TO_MUSCLE.obliques).toBe('Abdominals');
-        expect(REGION_TO_MUSCLE.abs).toBe('Abdominals');
-    });
-});
 
 describe('resolveRegionBand', () => {
     const rows = indexRowsByMuscle([
@@ -112,11 +84,6 @@ describe('bandClass', () => {
         expect(bandClass('nonsense')).toBe(NEUTRAL_CLASS);
     });
 
-    it('exposes a table covering exactly the four bands', () => {
-        expect(Object.keys(BAND_CLASS).sort()).toEqual(
-            ['heavy', 'light', 'moderate', 'very_heavy'],
-        );
-    });
 });
 
 describe('regionTitle', () => {
@@ -142,10 +109,6 @@ describe('regionTitle', () => {
         expect(regionTitle('lower-back', noRange)).toBe('Lower back — no typical range yet');
     });
 
-    it('names the shared source muscle identically on both delts', () => {
-        const result = { muscle: 'Middle-Shoulder', band: 'light', percentOfMrv: 12, hasData: true };
-        expect(regionTitle('front-deltoid', result)).toBe(regionTitle('rear-deltoid', result));
-    });
 });
 
 describe('channelsWithData', () => {

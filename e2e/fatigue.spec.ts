@@ -1,10 +1,10 @@
 /**
  * Fatigue Meter — Phase 2 Stage 2 dedicated page (/fatigue) E2E.
  *
- * Covers page load, period selector, per-muscle bar rendering, SFR cards,
- * empty-state copy, dark-mode parity, and the Unassigned-bucket invariant.
+ * Covers the body heatmap panel, page load, period selector, per-muscle bar
+ * rendering, SFR cards, empty-state copy, and dark-mode parity.
  *
- * Per-spec test count target: ~8. Chromium only.
+ * Chromium only. The heatmap block runs first - see the note above it.
  */
 import { test, expect } from './fixtures';
 import { Page } from '@playwright/test';
@@ -49,6 +49,33 @@ async function seedExercise(page: Page, exercise: string): Promise<void> {
     data: { ...PLAN_ROW, exercise },
   });
   expect(response.ok()).toBeTruthy();
+}
+
+/**
+ * Give the logged channel a reading in the current window.
+ *
+ * Exporting the plan alone is not enough: the accumulator only counts a logged
+ * row once it carries scored values, so an unscored export leaves the logged
+ * channel empty and the two-channel path untested.
+ */
+async function seedLoggedSession(page: Page): Promise<void> {
+  const exported = await page.request.post('/export_to_workout_log');
+  expect(exported.ok()).toBeTruthy();
+
+  const listed = await page.request.get('/get_workout_logs');
+  expect(listed.ok()).toBeTruthy();
+  const logs = (await listed.json()).data ?? [];
+  expect(logs.length).toBeGreaterThan(0);
+
+  for (const log of logs) {
+    const scored = await page.request.post('/update_workout_log', {
+      data: {
+        id: log.id,
+        updates: { scored_min_reps: 8, scored_max_reps: 10, scored_rir: 1, scored_weight: 60 },
+      },
+    });
+    expect(scored.ok()).toBeTruthy();
+  }
 }
 
 async function gotoHeatmap(page: Page, period?: string): Promise<void> {
@@ -140,6 +167,34 @@ test.describe('/fatigue body heatmap', () => {
       .toHaveText('Showing: Planned');
   });
 
+  // The control ships hidden, so the test above passes just as happily against
+  // a build that can never show it. This is the one that proves it un-hides.
+  test('both channels populated shows the control and switches the painting', async ({ page }) => {
+    await seedLoggedSession(page);
+    await gotoHeatmap(page);
+
+    await expect(page.locator('[data-heatmap-control]')).toBeVisible();
+    const logged = page.locator('[data-testid="fatigue-heatmap-channel-logged"]');
+    await expect(logged).toBeVisible();
+    await expect(page.locator('[data-testid="fatigue-heatmap-caption"]'))
+      .toHaveText('Showing: Planned');
+
+    await logged.click();
+    await expect(page.locator('[data-testid="fatigue-heatmap-caption"]'))
+      .toHaveText('Showing: Logged');
+    await expect(logged).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-testid="fatigue-heatmap-channel-planned"]'))
+      .toHaveAttribute('aria-pressed', 'false');
+
+    // Switching channel must actually repaint, and must leave exactly one band
+    // class behind rather than accumulating them.
+    const after = await page.locator('.muscle-region[data-canonical-muscles="chest"]')
+      .first().getAttribute('class');
+    const bandCount = (after ?? '').split(/\s+/)
+      .filter((c) => c.startsWith('fatigue-')).length;
+    expect(bandCount).toBe(1);
+  });
+
   test('painted bands still agree with the embedded data after a period change', async ({ page }) => {
     await gotoHeatmap(page);
     const select = page.locator('[data-testid="fatigue-period-select"]');
@@ -174,7 +229,7 @@ test.describe('/fatigue body heatmap', () => {
 
   test('degrades quietly when the body map asset cannot load', async ({ page, consoleErrors }) => {
     await page.route('**/bodymaps/**/*.svg', (route) => route.abort());
-    await gotoFatigue(page);
+    await gotoHeatmap(page);
     // The panel stays, the fallback copy stands in, and - the point of the test
     // - no unhandled rejection reaches the console, which would otherwise fail
     // every other test in this file through the shared fixture.

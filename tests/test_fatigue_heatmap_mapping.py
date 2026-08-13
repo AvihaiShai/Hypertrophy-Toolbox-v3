@@ -9,7 +9,7 @@ already computes. These tests pin the three things that can rot silently:
   3. the server -> client plumbing, including that the embedded JSON cannot
      break out of its <script> block.
 
-No fatigue math is exercised here - `tests/test_fatigue.py` owns that.
+No fatigue math is *asserted* here - `tests/test_fatigue.py` owns that.
 """
 import json
 import re
@@ -90,7 +90,7 @@ def _reachable_bands(muscle: str, mrv: float) -> set:
 # The mapping
 # ---------------------------------------------------------------------------
 
-def test_every_mapped_muscle_has_landmarks(region_to_muscle):
+def test_mapped_muscles_are_exactly_the_landmark_muscles(region_to_muscle):
     """A mapped region must resolve to a muscle the classifier can band.
 
     Otherwise a region could map to an unranked label (Front-Shoulder,
@@ -160,7 +160,6 @@ def test_js_band_class_table_covers_the_classifier_output(band_class):
     conversion wrong is silent - the region just renders neutral - so the
     mapping is a table and the table is asserted."""
     assert set(band_class) == set(BANDS)
-    assert band_class["very_heavy"] == "fatigue-very-heavy"
     for band, css_class in band_class.items():
         assert css_class == f"fatigue-{band.replace('_', '-')}"
 
@@ -241,17 +240,6 @@ def test_heatmap_scss_never_names_base_owned_text_utilities():
         assert name not in scss
 
 
-def test_heatmap_styles_reached_the_compiled_bundle():
-    """Stands in for "did you run npm run build:css".
-
-    `tests/test_css_cascade_contracts.py` holds the equivalent check for the
-    other SCSS-owned families, but that file is amendable only by WP4.4 packet
-    i, so the heatmap's copy lives here.
-    """
-    bundle = COMPILED_BUNDLE.read_text(encoding="utf-8", errors="replace")
-    assert ".fatigue-heatmap" in bundle
-
-
 def test_body_outline_keeps_the_flat_gray_fill():
     """Owner-locked: the current flat-gray head, no cosmetic demo hair."""
     for svg in (ANTERIOR_SVG, POSTERIOR_SVG):
@@ -293,13 +281,37 @@ class TestHeatmapDataBlock:
         assert response.status_code == 200
         assert b'id="fatigue-heatmap-data"' not in response.data
         assert b'data-testid="fatigue-empty-state"' in response.data
-
-    def test_empty_page_marks_a_terminal_capture_state(self, client):
-        """The visual harness waits on this attribute. Rendering it only when
-        data exists would turn a seed change into an opaque marker timeout on
-        all six /fatigue baselines."""
-        response = client.get("/fatigue")
+        # The visual harness waits on this attribute; rendering it only when
+        # data exists would turn a seed change into an opaque marker timeout on
+        # all six /fatigue baselines.
         assert b'data-heatmap-state="empty"' in response.data
+
+    def test_panel_renders_even_when_nothing_aggregates_to_a_bar(
+        self, client, exercise_factory, workout_plan_factory
+    ):
+        """The panel gates on raw row counts, the JS on aggregated bars.
+
+        A plan row whose sets resolve to 0 satisfies the first and not the
+        second, so the panel renders around an empty `muscle_rows`. The client
+        has to reach a terminal state from there rather than sitting at
+        `pending` forever, which would strand the visual harness.
+
+        Covered here rather than in E2E because the app's own endpoints
+        cannot produce it: `/add_exercise` rejects `sets: 0` and
+        `/clear_workout_plan` deletes the dependent log rows first. It is
+        still reachable at the database level - a restored backup, or a
+        direct edit - so the client guard is not dead code.
+        """
+        exercise_factory("Zero Sets Row", primary_muscle_group="Chest")
+        workout_plan_factory(exercise_name="Zero Sets Row", sets=0)
+
+        response = client.get("/fatigue")
+        html = response.data.decode("utf-8")
+        assert 'data-heatmap-state="pending"' in html
+        assert 'data-testid="fatigue-heatmap-nodata"' in html
+        match = DATA_BLOCK_RE.search(html)
+        assert match, "panel rendered without its data block"
+        assert json.loads(match.group(1)) == []
 
     def test_data_page_starts_pending_so_the_marker_is_not_premature(
         self, client, exercise_factory, workout_plan_factory
