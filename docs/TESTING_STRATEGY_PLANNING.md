@@ -1,5 +1,16 @@
 # Testing Strategy Review & Plan
 
+> **Status update 2026-08-14:** the Phase-2 truth refresh has started but is not
+> complete. **Packet A shipped as #342 (`1438a14`)**, repairing nine
+> accessibility assertions that could not fail while adding/removing no test
+> node. Step 8's real `/erase-data` coverage was already shipped and remains
+> retired. **Packet C** (per-spec strict console handling) and **Packet D**
+> (standards-based axe coverage) remain queued in
+> [`testing_phase2/PLANNING.md`](testing_phase2/PLANNING.md); do not report them
+> as delivered. Phases 3 and 5 and the release/tag half of Phase 4 remain
+> proposals. The D3 weekly compare-only stopgap is shipped, but its first
+> scheduled execution is still due 2026-08-17 03:17 UTC.
+
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
 > **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D4, D6 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *No scheduled run has executed yet — first authoritative one Monday 2026-08-17 03:17 UTC.* The **release/tag pipeline half of Phase 4 remains deferred**, so Phase 4 is still open. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.

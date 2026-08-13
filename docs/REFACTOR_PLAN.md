@@ -1,5 +1,13 @@
 # Deep Refactor Plan — v3 (2026-07-04, full-scan grounded)
 
+**Status update (2026-08-14, supersedes every status line below):** the
+continuous Pyright burn-down advanced through #336 (`01d890d`). The bounded
+profile-estimator family removed seven diagnostics and three keys, moving the
+baseline from **139 diagnostics / 45 keys to 132 / 42**, with zero added keys
+and instruction-identical runtime bodies. The standing track remains available
+only one file or tightly coupled family at a time; this update does not name or
+authorize a next packet. The CSS/P3 termination below remains unchanged.
+
 **Status update (2026-08-02, supersedes every status line below, including the
 2026-08-01 update):** **CSS closeout proposal P3 is TERMINATED at `P3-a0`.**
 Owner decision, 2026-08-02. All three WP4.4 closeout proposals are now settled:
@@ -1590,7 +1598,7 @@ decisions are silently outstanding; either resolve them or leave them explicitly
 > the detailed work-packet requirements above and wait for explicit owner
 > direction wherever the plan requires it.
 
-Snapshot: **2026-08-01 (latest)**. **WP4.4 is complete and the arc is closed at
+Snapshot: **2026-08-01**. **WP4.4 is complete and the arc is closed at
 `k`.** Every packet `a` through `k` is merged — the tail being `i` (#212,
 `5f7b5ac`) with its oracle corrective (#215, `666471e`), `j` (#216, `47c7687`)
 and `k` (#217, `c521d3a`). **No packet in this arc is next.** Of the three
@@ -1658,5 +1666,5 @@ branch.
 | WP4.4-j — `theme-dark.css` triage | **Authorized after i resolves** | Not started; arrange its isolated checkout from merged post-i main through the external worktree workflow. | Preservation-only: retain uncertified/custom-property/JS-state work, accept a no-op, no rebaseline or visible change. |
 | WP4.4-k — final integration | **Authorized after j merges** | Not started; docs/verification only. | N10 stays evidence-only; do not edit `QUALITY_GATE.md`. Corrective subpackets are limited by the continuation authority. |
 | Superset dark tint and `layout.css` dead `body.dark-mode` | **`body.dark-mode` RESOLVED by WP4.4-e; superset tint still deferred** | `body.dark-mode` was re-proved and **deleted** in PR #195. The rule was *functional* (all seven `--tbl-*` tokens changed in 11/22 contexts when the class was applied) but its selector was *never satisfied*: `<body>` never carries the class and `darkMode.js:64` sets `data-theme` on the root element. Deleted on **unreachability**, explicitly **not** the ordinary non-winner rule, which does not apply to custom properties. The seven tokens keep their live `[data-theme="dark"]` definitions, now contract-pinned. The missing live dark override for `--superset-bg-1..4` remains recorded and unchanged. | The superset tint belongs to `theme-dark.css` ownership (packet `j`), still gated. |
-| Continuous pyright baseline burn-down | **Ongoing — standing track only** | The track remains available for one file or one tightly coupled diagnostic family at a time; no active packet is identified by this snapshot. | It has no single phase-close packet. Each change must remain type-only, reduce the diagnostic multiset, and pass focused plus full pytest gates. |
+| Continuous pyright baseline burn-down | **Ongoing — standing track only; #336 shipped 2026-08-13** | The profile-estimator slice reduced the baseline **139/45 → 132/42** with no runtime-body change. No active next packet is identified by this snapshot. | It has no single phase-close packet. Each change must remain type-only, reduce the diagnostic multiset, and pass focused plus full pytest gates. |
 | Overall refactor plan | **Partially complete; WP4.4 closed at `k`; Track B closed** | Track A and Phases -1 through 3 are complete; **Track B is now complete — WPB.4, its last packet, shipped 2026-08-01**. WP4.4 is complete — every packet `a` through `k` is merged and the arc is closed, discharging the dated N4 authority. **All three closeout proposals are now discharged**: P1 (#223, `d543a4b`) and P2 (#222, `4b0670b`) merged, and **P3 is TERMINATED** — both gates signed 2026-08-02, `P3-a0` shipped (#280, `cd93480`), arc terminated at a0. | Remaining Workout Plan/Log cleanup stays paused. **P3-a1 … P3-e carry no residual authorization; reopening P3 requires a new owner decision.** The 235 layer-pin declarations remain deferred. |
