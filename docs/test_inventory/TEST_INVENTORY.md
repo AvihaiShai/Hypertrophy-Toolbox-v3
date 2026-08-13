@@ -12,11 +12,11 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **630** |
+| Playwright tests (chromium) | **631** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **497** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2491** across 114 files |
-| pytest test files (all) | **115** |
+| Required functional gate — `E2E Functional (Chromium)` | **498** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **2500** across 115 files |
+| pytest test files (all) | **116** |
 | Hard waits (lines containing waitForTimeout) | **83** across 15 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -54,7 +54,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `visual-field-separator.spec.ts` | 42 | yes |
 | `visual.spec.ts` | 66 | — |
 | `volume-progress.spec.ts` | 16 | yes |
-| `volume-splitter.spec.ts` | 32 | yes |
+| `volume-splitter.spec.ts` | 33 | yes |
 | `workout-log.spec.ts` | 23 | yes |
 | `workout-plan-desktop-contract.spec.ts` | 16 | — |
 | `workout-plan.spec.ts` | 37 | yes |
@@ -169,6 +169,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_visual_selector_contracts.py` | 5 |
 | `tests/test_volume_ai.py` | 26 |
 | `tests/test_volume_classifier.py` | 43 |
+| `tests/test_volume_history_busy_signal_contracts.py` | 9 |
 | `tests/test_volume_progress.py` | 31 |
 | `tests/test_volume_splitter_api.py` | 14 |
 | `tests/test_volume_taxonomy.py` | 8 |

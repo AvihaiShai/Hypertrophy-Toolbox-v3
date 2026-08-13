@@ -14,6 +14,7 @@ const modeRangeState = {
 };
 
 const DEFAULT_SLIDER_MAX = 60;
+const VOLUME_HISTORY_BUSY_ATTR = 'data-volume-history-busy';
 const JSON_REQUEST_HEADERS = {
     'Accept': 'application/json',
     'X-Requested-With': 'XMLHttpRequest'
@@ -93,7 +94,7 @@ export function initializeVolumeSplitter() {
     renderSliders();
     modeVolumeState[currentMode] = collectVolumes();
     modeRangeState[currentMode] = collectRanges();
-    loadVolumeHistory();
+    void loadInitialVolumeHistory();
 }
 
 function initializePageTooltips() {
@@ -344,6 +345,24 @@ function displaySuggestions(suggestions) {
     });
 
     section.classList.remove('d-none');
+}
+
+/**
+ * Expose only the page's initial history hydration as readiness state.
+ *
+ * `loadVolumeHistory()` is also called by save/delete/activate actions. Those
+ * user-action refreshes have their own observables and may overlap, so the
+ * boolean page-readiness marker must not be toggled inside that shared loader.
+ * Set synchronously before the first await so a waiter cannot observe a false
+ * idle gap between DOMContentLoaded and the request starting.
+ */
+async function loadInitialVolumeHistory() {
+    document.documentElement.setAttribute(VOLUME_HISTORY_BUSY_ATTR, '1');
+    try {
+        await loadVolumeHistory();
+    } finally {
+        document.documentElement.removeAttribute(VOLUME_HISTORY_BUSY_ATTR);
+    }
 }
 
 function loadVolumeHistory() {

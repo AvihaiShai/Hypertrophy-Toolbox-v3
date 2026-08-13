@@ -485,18 +485,58 @@ per-page readiness design, which is a production change and a separate owner
 decision — this packet does not propose one**, and no page-specific observable
 should be invented ad hoc in a test to avoid asking.
 
-> **That design was commissioned and measured on 2026-08-13, and it closed
-> without a conversion.** No other page qualifies: `/progression` and
-> `/workout_log` issue **zero** requests after `load`, so a busy/ready marker
-> would mark nothing; `/user_profile`'s last request is a lazy thumbnail 43ms
-> *after* its init fetch, so a marker there would be a strictly weaker wait than
-> `networkidle`; and on the three pages where a marker would be faithful
-> (`/backup`, `/body_composition`, `/volume_splitter`) removing `networkidle`
-> entirely breaks nothing across four runs — so the marker would have no
-> red-path proof and would be a gate that cannot fail.
->
-> Full measurement, including the per-page dead-time table and the control /
-> variant runs: [`page_readiness_next/EVIDENCE.md`](page_readiness_next/EVIDENCE.md).
+### Rollout to Volume Splitter — **Packet C, measured 2026-08-13**
+
+The separate owner decision was granted for a measurement-first, one-page
+packet. A post-local-first census found two eligible non-Workout-Plan pages with
+one un-awaited initialization fetch. Volume Splitter was the clear first slice:
+**32 runtime waits / 16.27–16.33s of instrumented `networkidle` tail per spec
+run**, versus Body Composition's 9 relevant waits / about 4.63s.
+
+`initializeVolumeSplitter()` now wraps only its initial
+`GET /api/volume_history` hydration with `data-volume-history-busy` on `<html>`:
+set synchronously before the request is awaited and removed in `finally` after
+the existing renderer (or handled error state) completes.
+`waitForVolumeSplitterReady()` waits for `load` plus absence of that attribute.
+The shared `waitForPageReady()` is unchanged.
+
+**Initialization-only is load-bearing scope, not naming polish.** The shared
+`loadVolumeHistory()` also runs after save, delete, and active-plan actions.
+Putting the boolean marker there would make page readiness describe user
+actions and become inexact if refreshes overlap. Those later calls remain
+unmarked and keep their existing response/DOM observables.
+
+Measured on the same fresh post-Packet-A worktree, same Chromium project and
+isolated E2E seed; control first, then converted. The comparison excludes the
+new blocked-request oracle from the converted timing so both sides run the same
+original 32 tests:
+
+| | runs | launcher median | range | result |
+|---|---:|---:|---:|---:|
+| control (`networkidle`) | 3 | **41.06s** | 40.89–41.26s | 32/32 |
+| converted (exact same 32 tests) | 5 | **30.35s** | 29.82–31.18s | **32/32 × 5** |
+
+**10.70s saved (26.1%), 0.33s per converted call.** The precise helper itself
+spent only **0.37–0.40s total** across all 32 calls (mean 11.6–12.4ms), compared
+with the control's 16.27–16.33s inside `networkidle`; the rest of that removed
+tail had overlapped useful test work, which is why launcher savings are smaller
+than the raw wait total.
+
+The complete 33-test spec, including a live oracle that stalls
+`/api/volume_history`, observes the marker while the request is in flight,
+releases it, and requires history rows to be rendered when the helper returns,
+passed **33/33 × 5** (launcher
+30.51–32.27s), with zero retries, flakes, or skips. Nine source contracts pin
+attribute identity, set-before-await, `finally`, the initialization call edge,
+action-refresh exclusion, helper predicate/diagnostic/no-`networkidle`, generic
+helper preservation, and exact three-site conversion. An **8/8 mutation
+battery** rejected each silent-failure variant.
+
+Only `volume-splitter.spec.ts`'s three static sites / 32 measured calls are
+converted. Generic multi-route loops, the deliberate direct waits, visual
+capture readiness, and Body Composition remain untouched. Full requirements,
+council dispositions, and raw-evidence routing:
+[`page_readiness/PLANNING.md`](page_readiness/PLANNING.md).
 
 ## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 

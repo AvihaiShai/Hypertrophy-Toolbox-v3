@@ -10,7 +10,14 @@
  * - Export to Excel
  */
 import type { Page } from '@playwright/test';
-import { test, expect, ROUTES, SELECTORS, waitForPageReady, expectToast } from './fixtures';
+import {
+  test,
+  expect,
+  ROUTES,
+  SELECTORS,
+  waitForVolumeSplitterReady,
+  expectToast,
+} from './fixtures';
 
 async function setVolumeSlider(page: Page, muscle: string, value: number) {
   const slider = page.locator(`#sliders input.volume-slider[data-muscle="${muscle}"]`);
@@ -35,7 +42,7 @@ test.describe('Volume Splitter Page', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.VOLUME_SPLITTER);
-    await waitForPageReady(page);
+    await waitForVolumeSplitterReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -543,12 +550,53 @@ test.describe('Volume Splitter Page', () => {
   });
 });
 
+test.describe('Volume Splitter initial readiness', () => {
+  test('exposes the initial history fetch until it has rendered', async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+
+    let markRequestStarted!: () => void;
+    const requestStarted = new Promise<void>((resolve) => {
+      markRequestStarted = resolve;
+    });
+    let releaseHistory!: () => void;
+    const historyRelease = new Promise<void>((resolve) => {
+      releaseHistory = resolve;
+    });
+
+    await page.route('**/api/volume_history', async (route) => {
+      markRequestStarted();
+      await historyRelease;
+      await route.continue();
+    });
+
+    await page.goto(ROUTES.VOLUME_SPLITTER);
+    await requestStarted;
+
+    const root = page.locator('html');
+    await expect(root).toHaveAttribute('data-volume-history-busy', '1');
+
+    let readySettled = false;
+    const ready = waitForVolumeSplitterReady(page).then(() => {
+      readySettled = true;
+    });
+    await expect.poll(() => readySettled).toBe(false);
+
+    releaseHistory();
+    await ready;
+
+    await expect(root).not.toHaveAttribute('data-volume-history-busy', '1');
+    const renderedHistoryRows = await page.locator('#history-body tr').count();
+    expect(renderedHistoryRows).toBeGreaterThan(0);
+    consoleErrors.assertNoErrors();
+  });
+});
+
 test.describe('Volume Splitter Mobile Responsive', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(ROUTES.VOLUME_SPLITTER);
-    await waitForPageReady(page);
+    await waitForVolumeSplitterReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
@@ -602,7 +650,7 @@ test.describe('Volume Splitter tooltips', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
     await page.goto(ROUTES.VOLUME_SPLITTER);
-    await waitForPageReady(page);
+    await waitForVolumeSplitterReady(page);
   });
 
   test.afterEach(async ({ consoleErrors }) => {
