@@ -170,6 +170,8 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/@popperjs/core@2"></script>
-<script src="https://unpkg.com/tippy.js@6"></script>
+{# Popper must load before tippy.js: the tippy bundle resolves `Popper` as a
+   global at evaluation time. #}
+<script src="{{ url_for('static', filename='vendor/popperjs/popper.min.js') }}?v={{ app_version }}"></script>
+<script src="{{ url_for('static', filename='vendor/tippy/tippy-bundle.umd.min.js') }}?v={{ app_version }}"></script>
 {% endblock %}

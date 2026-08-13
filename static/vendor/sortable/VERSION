@@ -1,0 +1,17 @@
+source: https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
+upstream: https://github.com/SortableJS/Sortable (tag 1.14.0)
+version: 1.14.0
+imported: 2026-08-13
+license: MIT (see LICENSE)
+
+vendored:
+  - Sortable.min.js  the UMD production build
+
+sha256:
+  0ea5a6fbfbf5434b606878533cb7a66bcf700f0f08afe908335d0978fb63ad94  Sortable.min.js
+
+note: the digest above was verified equal across two independent distributions
+      of the same version — the cdnjs URL templates/workout_plan.html used
+      before this was vendored, and
+      https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js.
+      The runtime receives the same bytes from a different origin.
