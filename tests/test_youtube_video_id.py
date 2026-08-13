@@ -400,12 +400,7 @@ class TestPageRender:
 
     def test_modal_partial_present_on_log_page(self, client, clean_db):
         resp = client.get("/workout_log")
-        # Pytest env may surface 500 if the template tree fails to resolve.
-        if resp.status_code != 200:
-            pytest.skip(
-                f"workout_log returned {resp.status_code}; template tree may "
-                "not be available in this pytest env."
-            )
+        assert resp.status_code == 200
         body = resp.get_data(as_text=True)
         assert "exerciseVideoModal" in body
         assert "exerciseVideoIframe" in body
@@ -423,11 +418,7 @@ class TestPageRender:
         workout_log_factory(plan_id=plan_id, exercise="Bench Press")
 
         resp = client.get("/workout_log")
-        if resp.status_code != 200:
-            pytest.skip(
-                f"workout_log returned {resp.status_code}; template tree may "
-                "not be available in this pytest env."
-            )
+        assert resp.status_code == 200
         body = resp.get_data(as_text=True)
         assert "log-play-video-btn" in body
         # No curated id seeded → button should ship with empty data-video-id.
@@ -455,11 +446,7 @@ class TestPageRender:
             )
 
         resp = client.get("/workout_log")
-        if resp.status_code != 200:
-            pytest.skip(
-                f"workout_log returned {resp.status_code}; template tree may "
-                "not be available in this pytest env."
-            )
+        assert resp.status_code == 200
         body = resp.get_data(as_text=True)
         assert 'data-video-id="dQw4w9WgXcQ"' in body
         # Curated row → play-variant icon + accessible name (Option 2 UX).
