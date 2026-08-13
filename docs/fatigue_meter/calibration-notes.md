@@ -1,7 +1,10 @@
 # Fatigue Meter — Calibration Notes
 
-**Status:** **Stage 4 closed by owner-approved felt-label review, 2026-05-20 — no
-threshold changes.** Owner reviewed 5 anchors (1 real logged week + 4 generated
+**Status:** **Phase 1 Stage 4 closed by owner-approved felt-label review,
+2026-05-20 — no threshold changes.** (*Phase 2* Stage 4 is a separate window and
+closed separately, 2026-08-13, as no-evidence / no-change — see
+[`PHASE2_PLANNING.md`](PHASE2_PLANNING.md) §5.)
+Owner reviewed 5 anchors (1 real logged week + 4 generated
 scenarios), 4 of 5 felt labels agreed with the computed band, the lone
 disagreement was on the `hard_4d` synthetic scenario (a single data point on a
 generator scenario, not on the real production case). Per PLANNING.md §4.2's
@@ -433,6 +436,11 @@ future synthetic pass surfaces the same mismatch again.
   `/fatigue` page, no API endpoints, no SFR, no multi-channel fatigue, no
   user-calibrated thresholds. Phase 2 entry still requires a separate
   owner decision per PLANNING.md Stage 5.
+  *(Overtaken by events, annotated 2026-08-13: this was true on 2026-05-20.
+  Phase 2 Path 1 shipped 2026-05-23 via PR #35 — the `/fatigue` page, the
+  per-muscle bars, and the SFR cards all exist, and Phase 2's own Stage 4
+  window has since closed; see [`PHASE2_PLANNING.md`](PHASE2_PLANNING.md) §5.
+  The 2026-05-20 close above is unaffected.)*
 
 ### Invariants honored by this close
 
@@ -449,6 +457,16 @@ future synthetic pass surfaces the same mismatch again.
 
 ---
 
+## 2026-08-13 — Phase 2 Stage 4 closed; the W20 rows are gone from the database
+
+**This file's Phase 1 Stage 4 close (2026-05-20) is unchanged and still authoritative.** Nothing below reopens it.
+
+**1. The *Phase 2* Stage 4 window closed on 2026-08-13 with no evidence and no threshold change.** That is a different close on different evidence from the Phase 1 one above; the measurement and the reopen bar live in [`PHASE2_PLANNING.md`](PHASE2_PLANNING.md) §5 Stage 4.
+
+**2. The real W20 anchor no longer exists in the live database — this file is now its only record.** The "2026-05-20 — workout_log first-data audit (partial unblock)" section above describes **21 logged rows** across routines A/B/C on 2026-05-20, and those rows produced the single most consequential data point in the 2026-05-20 review: the real logged week that **agreed** with the engine's `moderate` band. `workout_log` is empty today, so those rows have since been cleared. The scores, bands, set counts, and RIR distributions recorded above are therefore **not re-derivable from the database** — do not attempt to re-query them, and do not read an empty `workout_log` as evidence that the W20 anchor never existed. Treat the tables above as the primary source.
+
+---
+
 ## Browser smoke status
 
 Stage 3 §3.5 owner-required smoke items 4 and 5 are complete as of 2026-05-10:
@@ -459,6 +477,6 @@ real calibration data or Phase 2 planning exists.
 
 ---
 
-*End of calibration-notes.md. Stage 4 is closed (owner-approved no-change,
-2026-05-20). Update this file in place if future logged-week data prompts
-a re-review.*
+*End of calibration-notes.md. Phase 1 Stage 4 is closed (owner-approved
+no-change, 2026-05-20). Update this file in place if future logged-week data
+prompts a re-review.*

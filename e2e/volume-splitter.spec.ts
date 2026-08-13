@@ -588,3 +588,54 @@ test.describe('Volume Splitter Mobile Responsive', () => {
     await expect(resultsTable).toBeVisible();
   });
 });
+
+/**
+ * `initializePageTooltips()` returns early on `typeof tippy !== 'function'`,
+ * and the console collector cannot see a missing global either (see
+ * `fixtures.ts`), so a tippy that fails to load removes every tooltip on this
+ * page silently.
+ *
+ * Load order is part of the contract: the tippy bundle resolves `Popper` as a
+ * global when it evaluates, so Popper must come first.
+ */
+test.describe('Volume Splitter tooltips', () => {
+  test.beforeEach(async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+    await page.goto(ROUTES.VOLUME_SPLITTER);
+    await waitForPageReady(page);
+  });
+
+  test.afterEach(async ({ consoleErrors }) => {
+    consoleErrors.assertNoErrors();
+  });
+
+  test('tippy and Popper load locally, in order, and bind the frequency select', async ({ page }) => {
+    const globals = await page.evaluate(() => {
+      const scoped = window as unknown as Record<string, unknown>;
+      return {
+        tippy: typeof scoped.tippy,
+        popper: typeof scoped.Popper,
+        bound: Boolean(
+          (document.querySelector('#training-days') as unknown as Record<string, unknown>)?._tippy,
+        ),
+      };
+    });
+
+    expect(globals.popper).toBe('object');
+    expect(globals.tippy).toBe('function');
+    // This is the order oracle, not the two above: tippy's UMD factory captures
+    // `global.Popper` when it evaluates, so an instance can only exist if Popper
+    // was already there. Presence at assertion time proves nothing about order.
+    expect(globals.bound, '#training-days has no tippy instance').toBe(true);
+  });
+
+  test('hovering the frequency select shows a styled tooltip', async ({ page }) => {
+    await page.locator('#training-days').hover();
+
+    // The bundle build injects tippy's own CSS; a non-bundle build would leave
+    // the box unstyled and this transform-positioned root absent.
+    const tooltip = page.locator('[data-tippy-root] .tippy-box');
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toContainText('realistic frequency');
+  });
+});

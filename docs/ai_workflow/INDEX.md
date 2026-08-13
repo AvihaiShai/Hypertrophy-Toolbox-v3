@@ -21,7 +21,7 @@
 ## Active feature plans
 - [Agent workflow v2.2](../agent_roles/PLANNING.md) — manager, requirements,
   implementation, and independent-QA role rollout; Gate 0/Gate 1 approved 2026-07-11
-- [Fatigue meter](../fatigue_meter/PLANNING.md) — Phase 1 shipped; Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`). [Phase 2 Stage 4](../fatigue_meter/PHASE2_PLANNING.md) is recorded **OPEN** but its window is inactive; disposition is tracked as **P2.1** in [LEFTOVERS_BY_PRIORITY.md](../LEFTOVERS_BY_PRIORITY.md). Phase 1 Stage 4 closed 2026-05-20 with no threshold changes.
+- [Fatigue meter](../fatigue_meter/PLANNING.md) — Phase 1 shipped; Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`). [Phase 2 Stage 4](../fatigue_meter/PHASE2_PLANNING.md) **closed 2026-08-13** — owner decision, no real-use evidence, no threshold change; **P2.1** in [LEFTOVERS_BY_PRIORITY.md](../LEFTOVERS_BY_PRIORITY.md) is retired with it. Phase 1 Stage 4 closed separately, 2026-05-20, also with no threshold changes.
 - [workout.cool integration](../workout_cool_integration/PLANNING.md) — §3 + §3.6 + §4 + §4.6 + §5 all shipped (§3.6 Profile bodymap landed 2026-05-23, `18ad223`; §5 first curated batch landed 2026-05-22, `cf21191`)
 - [YouTube reference videos](../workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md) — closed 2026-05-23 (`cf21191` 36 rows + `ff244aa` +20 rows = **56 curated rows**); long tail uses the search fallback by design
 - [User profile](../user_profile/PLANNING.md) — questionnaire + bodymap + insights card + Body Composition display hooks (#17/#18) all shipped
@@ -29,7 +29,7 @@
 - [Testing strategy](../TESTING_STRATEGY_PLANNING.md) — Phases 0–1 shipped; D1, the `e2e-erase-flow` half of D2, D5 (ADR-004) and the D3 weekly deep-gate stopgap are signed; **D4, D6, D7 and the `js-unit` half of D2 remain unsigned**, and Phases 2/3/5 are proposals
 - [Theme-dark P3](../css_theme_dark_p3/PLANNING.md) — council-reviewed CSS planning; **Gate 0 and Gate 1 unsigned**, and the arc was terminated at `a0` (PR #280). A large CSS change, not a cleanup leftover
 - [app.py review](../APP_PY_REVIEW_PLAN.md) — P1–P5 all merged 2026-08-01, including packaged-smoke permanence and #266's post-merge hardening. Completion history; do not reopen
-- [Product documentation suite](../PRODUCT_DOCS_PLAN.md) — proposal for App Flow and Design Brief; **Gate 0/Gate 1 and revision still required**
+- [Product documentation suite](../PRODUCT_DOCS_PLAN.md) — **executed**; the owner-selected subset shipped as [`docs/product/**`](../product/README.md) (App Flow, Backend Schema, Design Brief, plus the suite README). PRD and TECH_DESIGN were deliberately not built — see §8.5. Completion history; do not reopen
 
 ## History & decisions
 - [CHANGELOG](../CHANGELOG.md)
@@ -72,7 +72,7 @@
   ownership — the entire active `docs/<feature>/PLANNING.md`, including Plan v1, the
   response matrix, and Plan v2 when the read-only `manager` delegates them during
   `/council-plan` — is documented in [AUTONOMY.md](AUTONOMY.md#workflow-roles).
-- Slash commands: `/handover`, `/unslop`, `/verify-and-polish`, `/council-plan` (in `.claude/commands/`)
+- Slash commands: `/handover`, `/unslop`, `/verify-and-polish`, `/council-plan`, `/consult` (in `.claude/commands/`)
 - Agents (diff-time): `code-reviewer`, `unslop-reviewer` (in `.claude/agents/`)
 - Agents (plan-time, council): `architecture-reviewer`, `test-strategist`, `product-risk-reviewer` (in `.claude/agents/`)
 - Active workflow roles: `manager`, `product-manager`, `senior-developer`,

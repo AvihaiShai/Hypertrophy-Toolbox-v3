@@ -1167,3 +1167,44 @@ test.describe('§4 free-exercise-db thumbnails', () => {
     expect(result.encodesSpace).toBe('/static/vendor/free-exercise-db/exercises/weird%20name/0.jpg');
   });
 });
+
+/**
+ * `workout-plan-desktop-contract.spec.ts` asserts the drag-handle *column*
+ * exists, but that is server-rendered markup that renders with or without
+ * SortableJS.
+ *
+ * `Sortable.create()` in `static/js/modules/workout-plan-table.js` is unguarded,
+ * so a missing library throws — and the collector cannot see that either (see
+ * `fixtures.ts`). The throw aborts `populateWorkoutPlanTable()` before
+ * `initializeSupersetActions()`, so it takes the superset action bar down too.
+ */
+test.describe('Workout Plan drag-and-drop library', () => {
+  test.beforeEach(async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+    await page.goto(ROUTES.WORKOUT_PLAN);
+    await waitForPageReady(page);
+  });
+
+  test.afterEach(async ({ consoleErrors }) => {
+    consoleErrors.assertNoErrors();
+  });
+
+  test('SortableJS loads locally and is usable by the plan table', async ({ page }) => {
+    const sortable = await page.evaluate(() => {
+      const scoped = (window as unknown as Record<string, unknown>).Sortable as
+        | Record<string, unknown>
+        | undefined;
+      return {
+        type: typeof scoped,
+        create: typeof scoped?.create,
+        // Proves the payload is the real library rather than any object that
+        // happens to answer to the name.
+        version: typeof scoped?.version === 'string' ? scoped.version : null,
+      };
+    });
+
+    expect(sortable.type).toBe('function');
+    expect(sortable.create).toBe('function');
+    expect(sortable.version).toBe('1.14.0');
+  });
+});

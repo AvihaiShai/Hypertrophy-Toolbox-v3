@@ -1,0 +1,17 @@
+source: https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js
+upstream: https://github.com/atomiks/tippyjs (tag v6.3.7)
+version: 6.3.7
+imported: 2026-08-13
+license: MIT (see LICENSE)
+
+vendored:
+  - tippy-bundle.umd.min.js  dist/tippy-bundle.umd.min.js
+
+sha256:
+  3f0fe70eb26ccf28f6887a192e29d38dd7ef7c2f079a73304ad42ddc7bed37de  tippy-bundle.umd.min.js
+
+note: templates/volume_splitter.html previously loaded this from the
+      major-pinned URL https://unpkg.com/tippy.js@6, which resolves to the
+      latest 6.x at request time. The digest above was verified equal to that
+      URL's response on the import date, so this is a pin at the version
+      production was already receiving, not an upgrade.

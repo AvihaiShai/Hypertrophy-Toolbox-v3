@@ -5,6 +5,12 @@ paths:
 
 # Routes guide
 
+> **Changing a route's behavior or outcomes?** Its user-facing description lives in
+> [`docs/product/APP_FLOW.md`](../../docs/product/APP_FLOW.md) — per-page control tables mapping
+> each control to its endpoint, method, and success / no-result / failure outcome. Update the
+> matching row in the same change. This file owns the *pattern*; that one describes the *shipped
+> behavior*.
+
 ## Response contract (`utils/errors.py`)
 ```python
 # Success (line 33):  {"ok": True, "status": "success", "data": ..., "message": ..., "requestId": ...}

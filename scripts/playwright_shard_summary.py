@@ -152,7 +152,11 @@ def main() -> int:
         type=pathlib.Path,
         help="an N=1 report.json defining the expected test-id set",
     )
-    parser.add_argument("--expect-tests", type=int, default=477)
+    # The live size of the required functional set. Bump it whenever a test is
+    # added to or removed from one of those specs, so the mismatch warning keeps
+    # meaning "a shard dropped tests" rather than "this number is stale".
+    # ADR-006's 477/719.0s is a dated N=1 measurement and is not this number.
+    parser.add_argument("--expect-tests", type=int, default=483)
     args = parser.parse_args()
 
     manifest = json.loads(args.manifest.read_text(encoding="utf-8-sig"))
