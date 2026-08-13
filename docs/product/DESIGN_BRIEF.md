@@ -3,7 +3,7 @@
 *The visual system that actually ships — tokens, theming, typography, motion, and accessibility,
 measured rather than assumed.*
 
-**Derived from:** the CSS bundles at revision `542df07`, plus computed styles read from a running
+**Derived from:** the CSS bundles at revision `53af816`, plus computed styles read from a running
 application across **11 pages × 2 themes × 3 viewports** (66 page loads, all HTTP 200), a
 reduced-motion pass, and a keyboard-focus pass. **On conflict, the code wins.**
 
@@ -39,11 +39,20 @@ removed under `prefers-reduced-motion`.
 Eighteen application bundles plus the Bootstrap build artifact. Verified from the live document:
 
 ```
-css2 (Inter, remote) → tokens.css → bootstrap.custom.min.css → vendor/fontawesome/all.min.css
+vendor/inter/inter.css → tokens.css → bootstrap.custom.min.css → vendor/fontawesome/all.min.css
   → base.css → layout.css → components.css → navbar.css → a11y.css
-  → pages-<route>.css        ← this route's page bundle, if it has one
+  → {% block page_css %}      ← this route's page bundle, if it has one
   → motion.css → theme-dark.css
 ```
+
+Every one of those is served from the application's own origin — the Inter `@font-face` sheet and
+Font Awesome are vendored under `static/vendor/`, not fetched from a font service or a CDN. A page
+load makes **zero** requests to any external host; verified by capturing every request the browser
+issued across four pages, including the two that carry extra vendored libraries.
+
+The `page_css` slot holds whatever that template declares, which is not always just its own
+bundle: `/progression` loads the vendored `flatpickr.min.css` there ahead of
+`pages-progression.css`.
 
 There are **10 page bundles for 11 page routes**: `templates/fatigue.html` declares no `page_css`
 block, so `/fatigue` renders on the global bundles alone. That is why its one local override —
@@ -51,8 +60,7 @@ a 12px select radius where every other page uses 8px — lives elsewhere.
 
 The tail is load-bearing: **`motion.css` and `theme-dark.css` load after the page bundle**, which
 is how reduced-motion overrides and dark theming win over page-specific rules without needing
-`!important`. `tokens.css` loads first so everything downstream can consume it, and FontAwesome
-5.15.4 is served **locally** from `static/vendor/`, not from a CDN.
+`!important`. `tokens.css` loads first so everything downstream can consume it.
 
 | Bundle | Lines | Role |
 |---|---:|---|
@@ -145,8 +153,11 @@ on Home: `body` computes to `Inter, Arial, sans-serif` while `h1` computes to
 Every `var(--font-sans)` reference also carries the full stack as an inline fallback, so the token
 failing to resolve changes nothing.
 
-Inter is loaded from Google Fonts at weights 400/500/600/700 with `display=swap`. Offline, every
-stack falls through to its next entry.
+Inter is **vendored**, not fetched: `static/vendor/inter/inter.css` declares weights
+400/500/600/700 at `font-display: swap`, pointing at seven `woff2` subsets — latin, latin-ext,
+greek, greek-ext, cyrillic, cyrillic-ext, vietnamese — by relative path in the same directory. It
+therefore resolves offline, so the fallback entries in the stacks above are a genuine fallback
+rather than the normal offline state.
 
 ### Type scale
 

@@ -3,7 +3,7 @@
 *What each screen is for, what the user can do on it, and what actually happens — including
 when it fails.*
 
-**Derived from:** the source tree at revision `542df07` — every rendered template and its loaded
+**Derived from:** the source tree at revision `53af816` — every rendered template and its loaded
 JavaScript dependency graph, every frontend network call site, every route handler, and a live
 HTTP probe of the running application. **On conflict, the code wins.**
 
@@ -59,25 +59,34 @@ Three consequences that shape everything below:
 reach them. That is why several controls below have no listener registration you can grep for —
 the binding is the `onclick` attribute itself.
 
-## Third-party assets the browser fetches
+## Third-party assets — all served locally
 
-The server makes no outbound calls. The **browser** does, on every page load:
+**The application makes no network request outside itself.** The server has no outbound calls, and
+the browser fetches every asset from the application's own origin. Nothing is loaded from a CDN,
+a font service, or any other third party.
 
-| Asset | Host | Loaded by |
-|---|---|---|
-| Inter web font stylesheet + font files | `fonts.googleapis.com`, `fonts.gstatic.com` | `templates/base.html` — every page |
-| Bootstrap 5.3.8 JavaScript bundle | `cdn.jsdelivr.net` | `templates/base.html` — every page |
-| Sortable 1.14.0 | `cdnjs.cloudflare.com` | `templates/workout_plan.html` |
-| flatpickr (CSS + JS) | `cdn.jsdelivr.net` | `templates/progression_plan.html` |
-| Popper 2 and Tippy 6 | `unpkg.com` | `templates/volume_splitter.html` |
+Third-party code is vendored under `static/vendor/`, each directory carrying its upstream license,
+a `NOTICE.md`, and a `VERSION` file recording the exact source it was taken from:
 
-The Bootstrap **CSS** is served locally from `static/css/bootstrap.custom.min.css`; the CDN
-appears only as an `onerror` fallback on that `<link>`, so it is fetched only if the local file
-fails to load. Everything in the table above is fetched unconditionally.
+| Asset | Version | Vendored at | Loaded by |
+|---|---|---|---|
+| Inter web font + `@font-face` CSS | Google Fonts v20 | `static/vendor/inter/` | `templates/base.html` — every page |
+| Bootstrap JavaScript bundle | 5.3.8 | `static/vendor/bootstrap/` | `templates/base.html` — every page |
+| Font Awesome | 5.15.4 | `static/vendor/fontawesome/` | `templates/base.html` — every page |
+| Sortable | 1.14.0 | `static/vendor/sortable/` | `templates/workout_plan.html` |
+| flatpickr | 4.6.13 | `static/vendor/flatpickr/` | `templates/progression_plan.html` |
+| Popper | 2.11.8 | `static/vendor/popperjs/` | `templates/volume_splitter.html` |
+| Tippy | 6.3.7 | `static/vendor/tippy/` | `templates/volume_splitter.html` |
 
-Offline, the application still runs and all data operations work, but the Inter font falls back
-to the next stack entry and any page depending on a CDN script loses that behavior — drag-and-drop
-reordering on the plan, the date picker on progression, tooltips on the splitter.
+The Inter stylesheet references `woff2` files by relative path under the same vendor directory, so
+the font resolves offline too.
+
+**Offline behavior is therefore complete**: every page renders exactly as it does online, with its
+typography and every interaction intact — drag-to-reorder on the plan, the date picker on
+progression, tooltips on the splitter. There is no degraded mode.
+
+The only external URLs anywhere in the templates are two author links to LinkedIn, in the navbar
+and on Home. Both are ordinary links the user must click; neither is fetched on page load.
 
 ## Route surface
 
@@ -269,7 +278,7 @@ live.
 |---|---|---|
 | Table load / refresh | API | `GET /get_workout_plan` returns every plan row with its exercise metadata. Called on load and after any mutation |
 | Inline field edit | API | `POST /update_exercise` with `{id, updates}`. Server-side bounds: weight 0–1000 kg, RIR 0–10, min ≤ max; violations are `VALIDATION_ERROR` 400 |
-| Drag to reorder | API | `POST /update_exercise_order` (Sortable). CDN-dependent |
+| Drag to reorder | API | `POST /update_exercise_order`, using the vendored Sortable library |
 | Remove row | API | `POST /remove_exercise`. A non-numeric id is `VALIDATION_ERROR` 400 — verified live |
 | Replace exercise | API | `POST /replace_exercise` — **see the three-outcome table above** |
 | Link superset | API | `POST /api/superset/link` with exactly two ids; one id is `VALIDATION_ERROR` 400 — verified live |
@@ -448,7 +457,7 @@ logged sets, and it ignores the Counting Mode toggle.
 | Exercise `<select>` | API | `POST /get_exercise_suggestions` |
 | Current value lookup | API | `POST /get_current_value` with `{exercise, goal_type}` |
 | Goal form (type, current, target, date) | API | `POST /save_progression_goal`. An empty body is `VALIDATION_ERROR` 400 — verified live |
-| Date field | Presentation | flatpickr picker — CDN-dependent |
+| Date field | Presentation | flatpickr picker, vendored locally |
 | Complete goal | API | `POST /complete_progression_goal/<id>` |
 | Delete goal | Presentation → API | Modal, then `DELETE /delete_progression_goal/<id>` |
 
@@ -490,7 +499,7 @@ and optionally activate the result.
 | Export volume | Download | `POST /api/export_volume_excel`, saved as a blob |
 | Export to Excel | Download | `GET /export_to_excel` — the plan export |
 | Active-plan summary | Presentation | Expands the current active plan |
-| Tooltips | Presentation | Popper/Tippy — CDN-dependent |
+| Tooltips | Presentation | Popper and Tippy, vendored locally |
 
 Only one plan can be active at a time, and that is enforced by the **database**: a partial unique
 index over `is_active WHERE is_active = 1`.
