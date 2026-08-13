@@ -1978,6 +1978,29 @@ added (M2d).
 (was 20/20). Two of the new rows were written specifically because the reviewers showed the
 old ones could not fail.
 
+### DR-33 — Linux CI caught a hole that no local run could
+
+The fix for DR-5 folded the denylist's prefix case under `os.name == "nt"`. That is
+defensible reasoning — Windows filesystems are case-insensitive, Linux ones are not — and
+it was **wrong**, because it made a security control behave differently on the machine
+that develops and the machine that gates the merge. `Artifacts/consult/…` was refused
+locally and **allowed on the runner**, which is the re-ingestion loop CR-15 claims to
+close, open on exactly the platform that matters.
+
+Full pytest passed on Windows. The row failed on Linux — because it had been written to
+assert the platform-*independent* behaviour, which is precisely what the `test-strategist`
+demanded when it said a passing row must mean the same thing on `ubuntu-latest` as on this
+host. A row written to match the implementation would have gone green on both and shipped
+the hole.
+
+**Fixed:** the fold is unconditional. A denylist fails closed; a genuinely distinct
+`Artifacts/` directory on a case-sensitive filesystem being refused too is the right trade
+for a path this list exists to protect.
+
+The general rule, worth more than the fix: **a platform conditional inside a security
+control is a bug until proven otherwise.** Correctness that varies by host is untestable on
+any single host.
+
 ---
 
 ## Deferred mechanisms — planned, not implemented
