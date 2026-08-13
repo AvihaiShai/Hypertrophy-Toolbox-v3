@@ -2,8 +2,8 @@
   "_meta": {
     "tool": "pyright",
     "note": "Baseline-allowlist for the typecheck CI gate (leftovers A9). Generated under the committed pyrightconfig.json (pythonVersion 3.14, pythonPlatform Windows). Regenerate with scripts/pyright_baseline_diff.py --write-baseline. Do NOT edit by hand to silence a real regression.",
-    "total_diagnostics": 139,
-    "distinct_keys": 45
+    "total_diagnostics": 132,
+    "distinct_keys": 42
   },
   "diagnostics": [
     {
@@ -187,27 +187,6 @@
       "rule": "reportOptionalSubscript",
       "message": "Object of type \"None\" is not subscriptable",
       "count": 4
-    },
-    {
-      "file": "utils/_profile_estimator/cohort.py",
-      "severity": "error",
-      "rule": "reportOptionalMemberAccess",
-      "message": "\"get\" is not a known attribute of \"None\"",
-      "count": 2
-    },
-    {
-      "file": "utils/_profile_estimator/cohort.py",
-      "severity": "error",
-      "rule": "reportOptionalMemberAccess",
-      "message": "\"lower\" is not a known attribute of \"None\"",
-      "count": 3
-    },
-    {
-      "file": "utils/_profile_estimator/coverage.py",
-      "severity": "error",
-      "rule": "reportOptionalMemberAccess",
-      "message": "\"get\" is not a known attribute of \"None\"",
-      "count": 2
     },
     {
       "file": "utils/database.py",
