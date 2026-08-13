@@ -46,9 +46,14 @@
   `dependabot.yml` ignore rules. Carries the **unblock condition** for the deferred
   Playwright 1.62.1 upgrade: #281 merged **and** #286 resolved, then bump both
   ecosystems and regenerate both platforms' baselines in one arc
-- [Cross-model orchestration proposal](CROSS_MODEL_ORCHESTRATION_PLAN.md) — proposed
-  opt-in `$orchestrate` Codex-to-Opus workflow; Gate 0/Gate 1 pending and not
-  implemented
+- [Cross-model consult protocol](CONSULT_PROTOCOL.md) — canonical for the opt-in,
+  read-only, one-shot consult in which either CLI asks the other model one bounded
+  question. Shipped 2026-08-13. Read its first section before the first consult of a
+  session: a consult sends text off this machine, and it answers no gate
+- [Cross-model orchestration plan](CROSS_MODEL_ORCHESTRATION_PLAN.md) — the design
+  record behind the protocol above: measured host evidence, the disposition of all
+  thirty pre-council findings, the council review, and the heavier `$orchestrate`
+  mechanism that remains **planned and deliberately unimplemented**
 - [Quality Gate](QUALITY_GATE.md) — change-type → required tests/reviewers map
 - [Autonomy Model](AUTONOMY.md) — Codex/Claude approval, sandbox, worktree, and review boundaries
 - [Parallel Workflow](PARALLEL_WORKFLOW.md) — one manager-led feature per checkout,
@@ -67,7 +72,7 @@
   ownership — the entire active `docs/<feature>/PLANNING.md`, including Plan v1, the
   response matrix, and Plan v2 when the read-only `manager` delegates them during
   `/council-plan` — is documented in [AUTONOMY.md](AUTONOMY.md#workflow-roles).
-- Slash commands: `/handover`, `/unslop`, `/verify-and-polish`, `/council-plan` (in `.claude/commands/`)
+- Slash commands: `/handover`, `/unslop`, `/verify-and-polish`, `/council-plan`, `/consult` (in `.claude/commands/`)
 - Agents (diff-time): `code-reviewer`, `unslop-reviewer` (in `.claude/agents/`)
 - Agents (plan-time, council): `architecture-reviewer`, `test-strategist`, `product-risk-reviewer` (in `.claude/agents/`)
 - Active workflow roles: `manager`, `product-manager`, `senior-developer`,

@@ -22,7 +22,7 @@ This only applies within the approved scope. Anything outside that scope (new ta
 | Layer | Artifact | What it protects against |
 |---|---|---|
 | **1. Requirements + plan approval gates** | Gate 0 `/requirements` → Gate 1 `/council-plan` → [PLAN_REVIEW_TEMPLATE.md](PLAN_REVIEW_TEMPLATE.md) | Wrong scope, calculation-semantics drift, missing tests, API-contract breaks — caught before a line of code is written |
-| **2. Workspace-write sandbox** | User-level `C:\Users\<user>\.codex\config.toml`: `sandbox_mode = "workspace-write"`, `approval_policy = "never"`, and `[sandbox_workspace_write] network_access = false` | Writes confined to the workspace; no outbound network |
+| **2. Workspace-write sandbox** | User-level `C:\Users\<user>\.codex\config.toml`: `sandbox_mode = "workspace-write"` and `[sandbox_workspace_write] network_access = false`. **`approval_policy` is `"on-request"`**, measured 2026-08-13 — this row said `"never"` until then, and `AGENTS.md` carried the same drift | Writes confined to the workspace; no outbound network |
 | **3. Worktree isolation** | `scripts/new-worktree.ps1` + [PARALLEL_WORKFLOW.md](PARALLEL_WORKFLOW.md) | Parallel work that may touch the DB, dev server, or tests gets its own `data/database.db`; SQLite WAL corruption on the main checkout is prevented |
 | **4. Post-work review gate** | `/unslop` → `/verify-suite` | AI slop, test regressions, response-contract drift caught after implementation, before any commit lands |
 
@@ -86,6 +86,29 @@ quality gate calls for exploration. Non-runtime changes keep their existing
 [QUALITY_GATE.md](QUALITY_GATE.md) evidence and do not invent a browser gate.
 
 Codex config is separate from Claude Code's permission allowlist; see "Claude Code side" below.
+
+### What layer 2 is during a cross-model consult
+
+[CONSULT_PROTOCOL.md](CONSULT_PROTOCOL.md) lets either CLI ask the other model one
+bounded, read-only question. The containment during that call is **not the same in both
+directions**, and saying so plainly is the point of this note:
+
+- **Claude asks Codex.** The child runs under `codex exec -s read-only`. Layer 2 is
+  intact and, for that child, stronger than usual: the sandbox permits reads and refuses
+  anything it cannot classify as one.
+- **Codex asks Claude.** Measured 2026-08-13, this direction does not complete inside
+  `codex exec` under the containment above — `-s workspace-write` cannot spawn any
+  process on this host, `-s read-only` refuses to spawn `claude` at the execpolicy layer,
+  and an MCP tool call auto-declines with no approver present. Its two working entry
+  points are the **interactive** Codex session, where `approval_policy = "on-request"`
+  puts the call in front of the owner, and `-s danger-full-access`, which removes layer 2
+  for that invocation. The second is not partial containment; it is no containment, and
+  it should be chosen deliberately or not at all.
+
+Layers 1, 3 and 4 are unaffected either way. A consult writes nothing outside gitignored
+`artifacts/` and creates no checkout, so layer 3 has nothing to isolate, and it approves no
+gate, so layers 1 and 4 keep their full force. What a consult adds is **egress**: the
+question, everything the callee reads, and the answer leave this machine.
 
 ---
 
