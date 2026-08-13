@@ -3,7 +3,7 @@
 *What this application is, how each screen behaves, what the database actually contains, and
 what the shipped design system is.*
 
-**Derived from:** the source tree at revision `53af816`. **On conflict, the code wins** — every
+**Derived from:** the source tree at revision `d1efc93`. **On conflict, the code wins** — every
 document here is a description of the code, never a specification for it. If you find a
 disagreement, the code is right and the document is a bug.
 

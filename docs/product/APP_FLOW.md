@@ -3,7 +3,7 @@
 *What each screen is for, what the user can do on it, and what actually happens — including
 when it fails.*
 
-**Derived from:** the source tree at revision `53af816` — every rendered template and its loaded
+**Derived from:** the source tree at revision `d1efc93` — every rendered template and its loaded
 JavaScript dependency graph, every frontend network call site, every route handler, and a live
 HTTP probe of the running application. **On conflict, the code wins.**
 
@@ -33,8 +33,8 @@ const pageInitializers = {
 
 Three consequences that shape everything below:
 
-1. **`app.js` is a shared bundle, but the JS cost is not identical per page.** Five templates load
-   an additional page module on top of it, and 17 of the 50 files in `static/js/modules/` are not
+1. **`app.js` is a shared bundle, but the JS cost is not identical per page.** Six templates load
+   an additional page module on top of it, and 18 of the 51 files in `static/js/modules/` are not
    reachable from `app.js` at all:
 
    | Page | Extra module | Files it adds |
@@ -43,6 +43,7 @@ Three consequences that shape everything below:
    | `/session_summary` | `session-summary.js` | 3 |
    | `/weekly_summary` | `weekly-summary.js` | 2 |
    | `/workout_plan` | `workout-plan-page.js` + `muscle-selector.js` | 2 |
+   | `/fatigue` | `fatigue-heatmap.js` | 2 |
    | `/body_composition` | `body-composition.js` | 1 |
    | `/` | `welcome.js` | 1 |
 
@@ -52,8 +53,9 @@ Three consequences that shape everything below:
 2. **Membership in `pageInitializers` is not the same as having page JavaScript.** `/weekly_summary`,
    `/session_summary`, and `/workout_plan` appear in the map *and* load their own module; the
    live render path for the two summaries is the page module, not `app.js`. Conversely
-   `/user_profile` and `/body_composition` are absent from the map and load a module anyway.
-   `/fatigue` is the only page with neither — it is entirely server-rendered.
+   `/user_profile`, `/body_composition`, and `/fatigue` are absent from the map and load a module
+   anyway. Only four pages run on `app.js` alone — `/workout_log`, `/progression`,
+   `/volume_splitter`, and `/backup` — and all four reach it through the map.
 
 `app.js` also assigns 20 functions onto `window` so inline `onclick=` attributes in templates can
 reach them. That is why several controls below have no listener registration you can grep for —
@@ -402,13 +404,35 @@ The same two-stage effective-set arithmetic and the same informational-only rule
 
 ## Fatigue — `/fatigue`
 
-**Purpose.** A per-muscle fatigue readout over a selectable period. Entirely server-rendered —
-no page-specific JavaScript, and the only control is a form that reloads the page.
+**Purpose.** A per-muscle fatigue readout over a selectable period — a body heatmap above a
+detailed bar list. **This page makes no API calls at all.** Everything is server-rendered, and the
+one module it loads reads its data from a `<script type="application/json">` block the server
+embeds rather than fetching anything.
 
 | Control | Action type | Behavior |
 |---|---|---|
 | Period `<select>` | Navigation | Auto-submits its form on change — `GET /fatigue?period=…`, a real navigation and full page reload. There is no Apply button; a submit button exists only inside `<noscript>`, labelled "Update" |
+| Body map panel | Presentation | A `<details>` element, open by default. Collapsing it is browser-native; no state is persisted |
+| Planned / Logged channel buttons | Presentation | Recolor the figures from the already-rendered data. Each button renders `hidden` and is revealed only if that channel actually has data — measured on a planned-only page, `Planned` is visible and pressed while `Logged` stays hidden, so no dead toggle is ever shown |
+| Body map figures | Presentation | Two SVGs, front and back, colored by each muscle's existing fatigue band. Regions with no reading stay gray |
+| Legend | Presentation | Band swatches with text labels |
 | Link to Plan | Navigation | → `/workout_plan` |
+
+### The body map is a second view of the same numbers
+
+It introduces no metric. The colors come from the same `muscle_rows` the bar list below renders,
+so the map and the list can never disagree.
+
+Three details that would otherwise read as bugs, all stated in the page's own copy:
+
+- **Three muscles have no region of their own.** Front-Shoulder and Rear-Shoulder are represented
+  by the Middle-Shoulder region; Middle-Traps is represented by the upper-back region, which the
+  taxonomy routes to Traps. All three still get their own bar in the list below.
+- **Unread regions stay gray**, and the caveat explaining that sits *above* the figures, because
+  the per-region detail is hover-only and a touch user never sees it.
+- **The panel is progressive enhancement.** With JavaScript off the figures never mount and a note
+  stands in for them; the bar list is the primary view and is unaffected. On a page with no
+  planned or logged data the panel is not rendered at all.
 
 ### What the numbers are, and are not
 
