@@ -4,6 +4,16 @@ This directory keeps the current project docs. Completed execution plans and mig
 
 ## Active Docs
 
+### Product Reference
+
+The [`product/`](product/) suite describes the shipped application — behavior, schema, and design.
+It is descriptive and carries no status; anything time-sensitive stays in `MASTER_HANDOVER.md`.
+
+- **[product/README.md](product/README.md)** - Suite index, canonical-source map, conflict rules, terminology, and how work gets planned
+- **[product/APP_FLOW.md](product/APP_FLOW.md)** - Every screen: purpose, controls, action types, and success / no-result / failure outcomes
+- **[product/BACKEND_SCHEMA.md](product/BACKEND_SCHEMA.md)** - Every table, column, constraint, index, and relationship, with an ER diagram
+- **[product/DESIGN_BRIEF.md](product/DESIGN_BRIEF.md)** - The shipped design system: tokens with measured consumers, theming, typography, motion, accessibility
+
 ### Project State
 - **[MASTER_HANDOVER.md](MASTER_HANDOVER.md)** - Canonical current state; the file new agents read first
 - **[ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md)** - Execution source of truth for autonomous sessions

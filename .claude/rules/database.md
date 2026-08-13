@@ -2,6 +2,8 @@
 paths:
   - "utils/database.py"
   - "utils/db_initializer.py"
+  - "utils/schema_registry.py"
+  - "utils/catalog_upgrade.py"
   - "utils/config.py"
   - "utils/program_backup.py"
   - "utils/auto_backup.py"
@@ -10,6 +12,15 @@ paths:
 # Database guide
 
 ## Schema (from `utils/db_initializer.py`)
+
+> **This table is a quick reference, not the inventory.** The full runtime schema is **19 tables**.
+> Four modules create them — `utils/db_initializer.py`, `utils/database.py`,
+> `utils/program_backup.py`, `utils/catalog_upgrade.py` — and `utils/schema_registry.py` adds one
+> column by `ALTER TABLE`. Field-level detail (every column, type, nullability, default, unique
+> constraint, index, CHECK, and the enforced-versus-by-convention relationship split) is in
+> [`docs/product/BACKEND_SCHEMA.md`](../../docs/product/BACKEND_SCHEMA.md), derived by PRAGMA from
+> a freshly built database. Read that before concluding a table or column does not exist.
+
 | Table | PK | Key FK | Created in |
 |---|---|---|---|
 | `exercises` | `exercise_name TEXT` | — | `db_initializer.py:34` |
@@ -33,6 +44,15 @@ with DatabaseHandler() as db:
 Slow queries (>100ms) auto-logged as WARNING (`database.py:250`).
 
 ## Adding a DB table — five places
+
+> **Steps 2–4 predate WP2.6 and no longer describe this repository.** `app.py` contains **zero**
+> `add_*_table()` calls — its only schema call is `run_all_initializers(force_base=False)` — and
+> `tests/conftest.py` calls `run_all_initializers(force_base=True)` rather than registering each
+> table. Register a new table in `utils/schema_registry.py`: add its creation function to
+> `run_all_initializers()`, and add the table name to `OWNED_TABLES_DROP_ORDER` in FK-safe order
+> if it holds user state. Root `CLAUDE.md` §2 states the current model; step 1 and step 5's
+> FK-ordering advice still hold.
+
 1. Write creation function in `utils/database.py`:
 ```python
 def add_myfeature_table() -> None:
