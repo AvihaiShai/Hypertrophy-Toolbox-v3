@@ -227,6 +227,37 @@
 > `visual-linux` executed rather than skipped**. Until that run is inspected,
 > the weekly gate is *implemented but unvalidated at runtime*.
 >
+> **Runbook — run this on or after 2026-08-17 03:17 UTC.** The schedule itself
+> needs no further setup: `deep-gate.yml` already carries `cron: '17 3 * * 1'`
+> and 2026-08-17 is a Monday. What remains is **inspection**, which nothing in
+> the repository can perform for itself.
+>
+> ```bash
+> # 1. Find the scheduled run. --event=schedule is NOT optional: without it a
+> #    manual workflow_dispatch is indistinguishable from the cron run, and
+> #    every deep-gate run to date has been a dispatch.
+> gh run list --workflow=deep-gate.yml --event=schedule --limit 5 \
+>   --json databaseId,createdAt,conclusion
+>
+> # 2. Inspect the JOB SET of that run id. Seven jobs must appear and
+> #    `visual-linux` must read success or failure -- never "skipped".
+> gh run view <id> --json jobs --jq '.jobs[]|"\(.name): \(.conclusion)"'
+>
+> # 3. Confirm it really compared rather than regenerated. In a compare run the
+> #    guard step RUNS; in a generate run it is skipped and the job passes
+> #    trivially, proving nothing.
+> gh api repos/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/<id>/jobs \
+>   --jq '.jobs[]|select(.name|test("Visual regression"))|.id'
+> gh api repos/AvihaiShai/Hypertrophy-Toolbox-v3/actions/jobs/<jobid> \
+>   --jq '.steps[]|"\(.conclusion)  \(.name)"'
+> #    Expect: "success  Assert compare mode wrote no baseline"
+> #    A "skipped" there means the run generated baselines and validated nothing.
+> ```
+>
+> **The pass condition is the job set, not the overall conclusion** — seven jobs
+> present with `visual-linux` executed. A red `visual-linux` still validates the
+> *gate*; it would then be a separate baseline question.
+>
 > **Division of labour with #322, so nobody duplicates it:** `ci.yml`'s
 > `visual-windows` byte-compares the **win32** corpus on every PR and push to
 > `main`; `deep-gate.yml`'s `visual-linux` compares the **linux** corpus weekly

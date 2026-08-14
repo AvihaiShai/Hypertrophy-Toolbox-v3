@@ -898,7 +898,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "d393633d9b4b2d302b036b71ffee98d7f17bc31994c60e0f49ced5ff1db349aa"
+      "nameAndSizeSha256": "650732f19c25107e2142a3db35131cbbeb8ce7f94d78929d5c297693304b68a4"
     },
     "win32/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -991,7 +991,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "e509191cda0451b303c8e0893fcbd8fa6af51dc76d4c777b9ad6e2d6013dadee"
+      "nameAndSizeSha256": "96c68bcbac181da495694761e9f05fa799e0bbdc2e4538e2f6d2aa5e56caf6d7"
     },
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
