@@ -575,17 +575,34 @@ test.describe('Volume Splitter initial readiness', () => {
     const root = page.locator('html');
     await expect(root).toHaveAttribute('data-volume-history-busy', '1');
 
+    // Deliberately NOT `expect.poll(() => readySettled).toBe(false)`. `poll`
+    // succeeds on its first satisfying observation, so it passes the instant it
+    // sees `false` — which is also what it sees when the helper is one
+    // microtask from resolving. It cannot tell "blocked" from "not settled
+    // yet", and a no-op helper survives it. Yielding across two full CDP round
+    // trips gives a no-op every chance to resolve, then the flag is read once,
+    // synchronously. No hard wait is involved.
     let readySettled = false;
     const ready = waitForVolumeSplitterReady(page).then(() => {
       readySettled = true;
     });
-    await expect.poll(() => readySettled).toBe(false);
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    expect(
+      readySettled,
+      'the helper resolved while the history fetch was still blocked',
+    ).toBe(false);
 
     releaseHistory();
     await ready;
 
-    await expect(root).not.toHaveAttribute('data-volume-history-busy', '1');
+    // Non-retrying reads first: an auto-retrying matcher here would absorb "the
+    // render finished shortly after the helper returned", which is the failure
+    // being tested. Absence, not `not.toHaveAttribute(…, '1')`, so a marker set
+    // to another value cannot pass.
+    const busyAfter = await root.getAttribute('data-volume-history-busy');
     const renderedHistoryRows = await page.locator('#history-body tr').count();
+    expect(busyAfter, 'the marker must be removed, not set to another value').toBeNull();
     expect(renderedHistoryRows).toBeGreaterThan(0);
     consoleErrors.assertNoErrors();
   });
