@@ -4,7 +4,30 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-02 (LATEST) — CSS closeout proposal P3 is TERMINATED at `P3-a0`. There
+**2026-08-14 (LATEST) — the August integration pack is at its verified
+feature-PR checkpoint; canonical truth is being reconciled.** Sessions 1–9 have
+terminal outcomes through #350 (`d93a3dd`). The shipped set includes test
+honesty, the profile-estimator Pyright slice, the compiled-CSS drift gate,
+Fatigue Stage-4 closeout and heatmap, the product-reference suite, local-first
+assets, cross-model consult, the routine-change superset reset, and two
+page-readiness slices.
+
+This is not a claim that every proposal in those source plans shipped. Testing
+Phase-2 Packet A landed as #342; strict-console Packet C and axe Packet D remain
+queued. The heavy `$orchestrate` mechanism remains deliberately unimplemented.
+The release/tag pipeline remains deferred, and the first scheduled deep-gate
+run is still due 2026-08-17 03:17 UTC. Linux fatigue baseline follow-up #351 is
+an open clean/green draft owned by its existing session.
+
+No pack feature branch, worktree, local evidence artifact, or database is a
+cleanup target. Session 10 owns only the docs reconciliation and must leave all
+of them in place.
+
+> **Superseded 2026-08-14.** The P3 termination block below remains binding for
+> P3, but stopped being the repository-wide latest objective once the August
+> integration pack shipped.
+
+**2026-08-02 — CSS closeout proposal P3 is TERMINATED at `P3-a0`. There
 is no active P3 packet and none may be dispatched.**
 
 Owner decision, 2026-08-02. **`P3-a0` is the arc's only implemented packet.
@@ -521,6 +544,17 @@ synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
 intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
+
+**Current (2026-08-14):** complete the docs-only integration PR, then take no
+automatic feature action from this file. Existing authorized work keeps its own
+boundary: #351 stays with its visual-baseline owner; Testing Phase-2 Packets C/D
+remain queued in `docs/testing_phase2/PLANNING.md`; the first scheduled deep-gate
+run is inspected only after 2026-08-17 03:17 UTC. Do not revive P3, add another
+readiness marker, or treat the unimplemented heavy orchestration design as
+shipped.
+
+> **Superseded 2026-08-14.** The instruction below to resume WP4.4-i is retained
+> as historical execution evidence; i, j and k have all shipped.
 
 **Resume the existing WP4.4-i worktree from the live execution handoff.** The
 fresh N4 decision authorizes sequential i → j → k and pre-answers routine

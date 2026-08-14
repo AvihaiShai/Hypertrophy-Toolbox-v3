@@ -3,10 +3,6 @@
   "hard_waits": {
     "files": [
       {
-        "file": "e2e/accessibility.spec.ts",
-        "lines": 1
-      },
-      {
         "file": "e2e/dark-mode.spec.ts",
         "lines": 1
       },
@@ -63,16 +59,16 @@
         "lines": 7
       }
     ],
-    "files_with_waits": 15,
+    "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 83
+    "total_lines": 82
   },
   "playwright": {
     "project": "chromium",
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 498
+      "tests": 499
     },
     "specs": [
       {
@@ -88,7 +84,7 @@
       {
         "in_required_functional_set": true,
         "spec": "body-composition.spec.ts",
-        "tests": 9
+        "tests": 10
       },
       {
         "in_required_functional_set": true,
@@ -242,11 +238,11 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 631
+    "total_tests": 632
   },
   "pytest": {
-    "collected_deterministic": 2500,
-    "deterministic_files": 115,
+    "collected_deterministic": 2513,
+    "deterministic_files": 116,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -261,6 +257,10 @@
       {
         "file": "tests/test_auto_backup.py",
         "tests": 7
+      },
+      {
+        "file": "tests/test_body_composition_history_busy_signal_contracts.py",
+        "tests": 13
       },
       {
         "file": "tests/test_body_composition_routes.py",
@@ -719,7 +719,7 @@
         "tests": 40
       }
     ],
-    "total_files": 116
+    "total_files": 117
   },
   "schema_version": 1
 }

@@ -63,7 +63,7 @@ therefore scopes itself to that page only. Raw logs live under the gitignored
 - No conversion of generic multi-route loops merely because they sometimes
   visit `/volume_splitter`.
 - Body Composition is recorded as the next smaller candidate, not bundled into
-  this one-page packet.
+  this one-page packet. **It shipped as its own slice; see §5.**
 
 ---
 
@@ -162,3 +162,104 @@ contents — and the exact combined order then passed **49/49**. The isolated
 five-repeat result used a stricter empty-seed assertion, so the readiness
 lifecycle itself was exercised on every repetition; the integrated order is
 the control that proved the final assertion is state-independent.
+
+---
+
+## Section 5 — Slice 2: Body Composition
+
+The census in §2 named two eligible non-Workout-Plan pages. Volume Splitter was
+the larger and shipped first (#347). This is the smaller one, taken as its own
+slice because the owner requires one page/flow at a time.
+
+### Revalidated eligibility
+
+Re-measured on `main` at `c97c865`, cold context, 1440×900, E2E seed:
+
+| | |
+|---|---|
+| Requests after `load` | **1** — `GET /api/body_composition/snapshots` at `load + 1ms` |
+| Anything after it | none; it is the last request of the navigation |
+| `networkidle` resolves | `load + 519ms` |
+| Converted sites | 6 of 7 |
+
+The one site left generic is the navbar test's `page.goto('/')`: the home page
+has no readiness signal, and forcing that navigation onto a Body Composition
+marker would make the helper describe a page it knows nothing about.
+
+`/user_profile` was re-checked at the same time and remains ineligible for the
+reason recorded in §2 — its init fetch is *not* the last request. Thirty asset
+requests follow it, the last at `load + 53ms`, so a marker there would release
+before them and be a strictly weaker wait than `networkidle`.
+
+### Implementation
+
+`data-body-composition-history-busy` on `<html>`, set synchronously before the
+first `await` in a new `loadInitialHistory()` wrapper and removed in `finally`.
+`waitForBodyCompositionReady()` waits for `load` plus the absence of that
+attribute. `waitForPageReady()` is untouched.
+
+**Initialization-only, for the same load-bearing reason as slice 1.**
+`loadHistory()` also runs after a snapshot is saved and after one is deleted.
+Both are user actions with their own observables — a prepended row, a removed
+row — and marking them would make page readiness describe user activity and go
+inexact if two ever overlapped.
+
+### Timing
+
+Same launcher, project and seed; control first, then converted.
+
+| | runs | launcher median | range | result |
+|---|---:|---:|---:|---:|
+| control (`networkidle`) | 3 | **11.83s** | 11.71–11.84s | 9/9 |
+| converted, identical 9 tests | 5 | **8.16s** | 8.14–8.18s | **9/9 × 5** |
+
+**3.67s saved (31.0%)**, zero retries, flakes or skips across five repeats.
+Like-for-like: the control ran 9 tests, so the converted spec is compared
+with its new readiness oracle excluded. The full 10-test spec runs at 8.28s
+median. Slice 1 reported its 32 -> 33 node asymmetry the same way only
+implicitly; stating it makes both figures conservative rather than flattering.
+
+### Two corrections this slice made to the pattern
+
+**1. The blocked-request oracle's key assertion did not bite.** Slice 1 asserts
+`await expect.poll(() => readySettled).toBe(false)`. `expect.poll` succeeds on
+its *first satisfying observation*, so it passes the instant it sees `false` —
+which is also what it observes when the helper is about to resolve a microtask
+later. It cannot distinguish "blocked" from "not settled yet", and a **no-op
+helper survives it**: replacing the helper's `waitForFunction` with
+`await Promise.resolve()` left the oracle green.
+
+This slice yields across two full CDP round trips — giving a no-op every chance
+to resolve — and then reads the flag once, synchronously. No hard wait is
+involved. With that change the same mutation is rejected.
+
+*The identical weakness is present in the merged slice-1 oracle
+(`e2e/volume-splitter.spec.ts`). It is **not** touched here — that is merged
+work and out of this slice's scope — but it should be repaired, and the fix is
+the four lines above.*
+
+**2. A source contract was satisfied by a comment.** The contract forbidding
+`expect.poll` matched the prose in the very comment explaining why the code
+avoids it. `code_only()` now strips comments before the substring checks — the
+same trap as the pinned CSS literal that a longer property merely contained.
+
+### Gates
+
+| Gate | Result |
+|---|---|
+| Source contracts | **13 passed** |
+| Body Composition E2E | **10 passed** (9 converted + the readiness oracle) |
+| Mutation battery | **12/12 rejected**, source restored byte-identically |
+| Matched timing | 11.83s → **8.28s**, −3.55s / −30.0% |
+| Stability | **9/9 × 5**, zero flakes |
+| Full pytest | **2,833 passed / 2 skipped** |
+| Combined-order E2E | **109 passed** (`body-composition`, `user-profile`, `visual-field-separator`, `volume-splitter`) |
+| `tsc --noEmit` | green |
+| Generated inventory | regenerated; hard waits unchanged |
+
+**Mutation attribution matters here.** The lost-wakeup mutation (marker set
+after a real `await`) is owned by the *source-order contract*, not by the
+oracle: the oracle synchronises on the request starting, and `toHaveAttribute`
+auto-retries, so a marker appearing a tick late still satisfies it. Pointing
+that mutation at the oracle produced a false "absorbed" result until it was
+attributed to the gate that actually catches it.

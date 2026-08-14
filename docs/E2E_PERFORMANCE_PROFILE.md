@@ -538,6 +538,54 @@ capture readiness, and Body Composition remain untouched. Full requirements,
 council dispositions, and raw-evidence routing:
 [`page_readiness/PLANNING.md`](page_readiness/PLANNING.md).
 
+### Rollout to Body Composition — **the census's second and last candidate**
+
+The other eligible page from the same census, taken as its own slice because
+the owner requires one page/flow at a time. `data-body-composition-history-busy`
+wraps only the initial `GET /api/body_composition/snapshots`; the save and
+delete refreshes call the same loader and stay unmarked.
+
+Six of seven sites converted. The seventh is the navbar test's `page.goto('/')`
+— the home page has no readiness signal, so it keeps `waitForPageReady()`, and
+a source contract pins *which* site that is, because the counts alone cannot
+tell a correct split from a swapped one.
+
+| | runs | launcher median | range | result |
+|---|---|---:|---:|---:|
+| control (`networkidle`) | 3 | **11.83s** | 11.71–11.84s | 9/9 |
+| converted, identical 9 tests | 5 | **8.16s** | 8.14–8.18s | **9/9 × 5** |
+
+**3.67s saved (31.0%)**, zero retries, flakes or skips. The full converted spec
+including its new readiness oracle runs at 8.28s median.
+
+**Two corrections this slice made to the pattern, both worth carrying:**
+
+1. **The blocked-request oracle's key assertion did not bite.** Slice 1 uses
+   `await expect.poll(() => readySettled).toBe(false)`. `expect.poll` succeeds
+   on its *first satisfying observation*, so it passes the moment it sees
+   `false` — which is also what it sees when the helper is about to resolve a
+   microtask later. A **no-op helper survives it**: replacing the helper body
+   with `await Promise.resolve()` left it green. This slice instead yields
+   across two full CDP round trips and then reads the flag once, synchronously.
+   *The same weakness is live in `e2e/volume-splitter.spec.ts` and is not
+   touched here — that is merged work — but it should be repaired.*
+2. **Non-retrying reads must come first.** An auto-retrying matcher placed
+   before them absorbs "the render completed shortly after the helper
+   returned", which is the exact failure being tested.
+
+**Mutation attribution matters.** The lost-wakeup mutation is owned by the
+*source-order contract*, not the oracle: the oracle synchronises on the request
+starting and `toHaveAttribute` auto-retries, so a marker appearing a tick late
+still satisfies it. **12/12** mutations rejected once each was pointed at the
+gate that actually owns it.
+
+**Packet C is now exhausted.** `/progression` and `/workout_log` issue zero
+requests after `load` — there is nothing for a marker to represent.
+`/user_profile`'s init fetch is not the last request: thirty asset requests
+follow it, the last at `load + 53ms`, so a marker there would release early and
+be strictly weaker than `networkidle`. Everything else is a deliberate wait, a
+capture wait, or the generic helper.
+
 ## Finding 2 — `superset-edge-cases.spec.ts` hard waits — **SHIPPED 2026-08-08**
 
 Owner-approved and implemented. Seven `linkBtn.click()` + `waitForTimeout(1000)`
