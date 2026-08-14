@@ -12,11 +12,11 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **632** |
+| Playwright tests (chromium) | **646** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **499** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2527** across 117 files |
-| pytest test files (all) | **118** |
+| Required functional gate — `E2E Functional (Chromium)` | **513** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **2534** across 118 files |
+| pytest test files (all) | **119** |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -25,7 +25,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 
 | Spec | Tests | In required functional set |
 |---|---:|:---:|
-| `accessibility.spec.ts` | 24 | yes |
+| `accessibility.spec.ts` | 38 | yes |
 | `api-integration.spec.ts` | 57 | yes |
 | `body-composition.spec.ts` | 10 | yes |
 | `browser-navigation-state.spec.ts` | 3 | yes |
@@ -69,6 +69,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 |---|---:|
 | `tests/test_agent_workflow_contracts.py` | 83 |
 | `tests/test_auto_backup.py` | 7 |
+| `tests/test_axe_contracts.py` | 7 |
 | `tests/test_body_composition_history_busy_signal_contracts.py` | 13 |
 | `tests/test_body_composition_routes.py` | 20 |
 | `tests/test_body_fat.py` | 43 |

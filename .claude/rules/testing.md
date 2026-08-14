@@ -93,7 +93,7 @@ Per-spec counts are in [`docs/test_inventory/TEST_INVENTORY.md`](../../docs/test
 | `program-backup.spec.ts` | Backup Center CRUD, restore, confirmations, API | Plan data |
 | `erase-flow.spec.ts` | Erase confirmation and auto-backup banner | None |
 | `exercise-interactions.spec.ts` | Delete, replace, superset, inline edit, details | Exercises in plan |
-| `accessibility.spec.ts` | Keyboard, ARIA, focus, skip links, contrast | None |
+| `accessibility.spec.ts` | Keyboard, ARIA, focus, skip links, contrast, plus a standards-based `@axe-core/playwright` WCAG scan over 11 routes × 2 themes and 3 deterministic states | None; injects its own rows for the populated-table state |
 | `api-integration.spec.ts` | API contracts across core workflows | Varies |
 | `empty-states.spec.ts` | Empty plan/log/filters/summaries | None |
 | `error-handling.spec.ts` | Server 500/503, malformed JSON, double-click | None (mocked) |

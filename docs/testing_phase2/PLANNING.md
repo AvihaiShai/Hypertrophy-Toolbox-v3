@@ -64,7 +64,7 @@ fixture would certify pages whose JavaScript had crashed mid-render.
 |---|---|---|
 | **A** | Repair the a11y assertions that cannot fail | shipped — see §5 |
 | **C** | `e2e/console-guard.ts` + migrate `smoke-navigation`, `workout-plan`, `accessibility` | shipped — see §5 |
-| **D** | `@axe-core/playwright` on 11 routes × 2 themes + 3 deterministic states | queued |
+| **D** | `@axe-core/playwright` on 11 routes × 2 themes + 3 deterministic states | shipped — see §5 |
 
 Packet C's allowlist is a Playwright **option fixture** declared on the narrowest describe that
 provokes the error — never module state. With `workers: 1` and `fullyParallel: false`, a
@@ -100,3 +100,91 @@ pytest gate.
 |---|---|
 | **A** | **Merged as `1438a14`** (PR #342, 18/18 CI green). Repaired nine assertions in `e2e/accessibility.spec.ts` — eight found by re-audit, the ninth by code review. No test node added or removed; no production file changed. Seven red-path rounds each proved the repair fails under a seeded violation **and** that the pre-repair spec passed under the identical violation. Gates: full pytest 2811 · required set 478 passed · spec ×3 at `--retries=0`, zero flakes · `tsc` clean · inventory `--check` clean. The only inventory movement was the hard-wait row, from the one removed sleep. |
 | **C** | `e2e/console-guard.ts` added; `smoke-navigation`, `workout-plan` and `accessibility` migrated onto it; `strict-fixtures.ts` narrowed to a re-export; `tests/test_console_guard_contracts.py` added to bind the narrowing. `smoke-navigation` and `accessibility` needed **zero** allowlist entries; `workout-plan` needed four, scoped to the one describe that mocks a 400. No production file changed, and no Playwright test node added or removed. Four red-path rounds — the decisive one injects a null dereference and shows a migrated spec red while a spec still on `fixtures.ts` passes green. The source contract was itself mutation-tested. Gates: full pytest 2820 · required set 498 passed, zero guard trips · migrated three + both non-visual strict importers 121 passed · `tsc` clean. |
+| **D** | See §6 for the runtime measurement and the deep-gate threshold. `@axe-core/playwright` pinned exactly at **4.13.0**; 14 test nodes added to `e2e/accessibility.spec.ts` (11 routes × 2 themes in one page load each, plus three light-only states) — no new spec file, so no CI spec-count contract moved. The deliverable is `AXE_REGISTER`: **exact equality** against every WCAG violation the app produces today, so a new violation, a grown one *and* a silently-fixed one are all red. `tests/test_axe_contracts.py` binds the pin, the single-`playwright-core` resolution, matrix completeness, and the rule ↔ `A11Y_EXCEPTIONS.md` write-up. **No production file changed.** Findings: 7 distinct WCAG rules across every route — all recorded as rows X7–X14 and none fixed here (decision 4). Five red-path rounds, both directions: fixing `#exerciseSelect` goes red ("no longer reported"), a new `image-alt` goes red on the surface registered as clean, a typo'd key goes red on the missing-entry guard, a broken table selector goes red before scanning, and a bogus `headers` attribute proves axe's structural table rules genuinely evaluate the injected rows. The contract test was mutation-tested 5/5. Stability: `--repeat-each=3 --retries=0`, 42/42, zero count drift. Gates: full pytest **2854 passed, 2 skipped** · required set **513 passed** from a drained port pool · `tsc --noEmit` clean · inventory regenerated and `--check` clean. |
+
+## 6. Packet D runtime, and when axe should leave the required gate
+
+### Measured
+
+`e2e/accessibility.spec.ts` runs in the **required** `e2e-functional` gate, so all of this cost lands
+on the PR path. Measured locally, win32 Chromium, `--retries=0`, same machine, back to back:
+
+| | Tests | Wall clock |
+|---|---|---|
+| `accessibility.spec.ts` before | 24 | 28.4 s |
+| `accessibility.spec.ts` after | 38 | 59.6 s |
+| **Added** | **+14** | **+31.2 s** |
+
+That is 25 axe scans (22 route-theme + 3 states) at a **marginal ~1.25 s per scan**; the rest is 14
+page loads and 22 theme settles. The required functional set moves **499 → 513** tests.
+
+### Why the cost lands where it does
+
+`playwright.config.ts` runs `fullyParallel: false` with `workers: 1`, so a spec is never split across
+the two CI legs — the whole +31.2 s lands on whichever `e2e-functional-shard` leg owns
+`accessibility.spec.ts`. The required check is the `e2e-functional` **fan-in** gate, green only when
+both shards pass, so its wall clock has a floor equal to the longest single spec on the slower leg.
+Against the ADR-006 reference of 719 s serial for the required set, each CI leg carries roughly 360 s,
+and axe is therefore about **8 % of one leg** today — real, but well inside the existing variance
+between the two legs.
+
+### Recommendation
+
+> **Keep axe in the required gate while it adds less than ~60 s to `accessibility.spec.ts`. Above
+> that, move it to the deep gate.**
+
+Three things pin that number:
+
+1. **Headroom, quantified.** 60 s ÷ 1.25 s ≈ **48 scans**, against 25 today. That is enough to widen
+   the three states to both themes (row X14, +3 scans) and add several routes without reopening this
+   decision — but not enough to absorb a third theme or a viewport axis, which are the changes that
+   *should* be re-argued.
+2. **Shard balance is the real constraint.** At +60 s the spec runs ~90 s, roughly a quarter of a
+   leg's ~360 s budget, making it the largest single item in the required set and the gate's floor.
+   Past that the cheaper fix is n=3 sharding, not a faster scan.
+3. **Crossing it is already an owner decision.** Re-sharding is a four-file contract change
+   (`ci.yml`, the `RequiredSpecs` array and shard plan in `scripts/run-playwright-shards.ps1`, the
+   pinned spec count in `tests/test_playwright_shard_launcher_contracts.py`, and the ADR-006
+   reference counts). The threshold exists so that cost is weighed deliberately rather than absorbed.
+
+**If it moves to the deep gate**, the deep gate needs no edit — its "full suite (minus visual)" step
+globs `e2e/*.spec.ts`. What would be needed is a split of the axe describes into their own spec so
+they can be excluded from the required list, which *is* a spec-count contract change. That is the
+argument for keeping the scan inside `accessibility.spec.ts` until the threshold is actually crossed.
+
+### The other cost: ephemeral ports on the local lane
+
+Wall clock is not the only budget axe spends. Measured over the full required set:
+
+| Run | Tests | Wall clock | Result |
+|---|---|---|---|
+| Required set, axe excluded (`--grep-invert axe`) | 499 | 9.7 min | 499 passed |
+| Required set, first attempt with axe | 513 | 10.8 min | **7 failed** — `EADDRINUSE` / `ERR_ADDRESS_IN_USE` |
+| Required set with axe, from a drained port pool | 513 | 10.5 min | **513 passed**, zero `EADDRINUSE` |
+
+The seven failures were all in `user-profile.spec.ts`, all client-side connect failures, and none of
+them an assertion about the app. This is the ADR-006 hazard: Werkzeug closes the connection per
+request, so every one of the suite's ~44,500 requests holds an ephemeral port for the 120 s recycle
+window. The clean re-run started at **TIME_WAIT = 13** and peaked at **7,998** of this host's
+**16,384** ports — the serial local lane already consumes about half the pool on its own.
+
+Attribution, because the first result invites the wrong conclusion: axe is **not** what exhausted the
+pool. Request volume was effectively unchanged (44,520 with axe and seven tests aborted early, versus
+44,793 without), putting axe's marginal cost at roughly **1,300 requests, ~2.9 %**. What differed was
+the starting state — the first attempt followed a burst of ad-hoc spec batches whose ports had not
+recycled. Re-running the identical set from a drained pool passes.
+
+Two consequences worth keeping:
+
+- **A local full-set run needs a quiet port pool.** Below roughly 8,400 already-held ports it fits;
+  above that it does not, whatever the diff. Drain (or wait 120 s) before treating a local
+  `EADDRINUSE` as a regression.
+- **None of this applies to CI.** `e2e-functional-shard` gives each leg its own runner, port pool and
+  server, and each leg carries about 250 tests rather than 513.
+
+### Residual risk
+
+Every registered count was measured on **win32** Chromium; CI is ubuntu. `color-contrast` is computed
+from CSS values rather than rasterised glyphs, so it should be platform-stable, and the structural
+ARIA rules read the DOM. If a Linux count nonetheless differs, the fix is a **platform-keyed
+register** — the same split the visual baselines already use — and never a loosened assertion.
