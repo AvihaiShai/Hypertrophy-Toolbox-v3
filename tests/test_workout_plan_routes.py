@@ -642,21 +642,42 @@ class TestSupersetLink:
         assert data["ok"] is True
 
     def test_superset_link_same_exercise(self, client, clean_db, workout_plan_fixture):
-        """Should return error when linking exercise to itself."""
+        """Should reject linking an exercise to itself and persist no superset group."""
+        exercise_id = workout_plan_fixture["id"]
+
         resp = client.post("/api/superset/link", json={
-            "exercise_a_id": workout_plan_fixture["id"],
-            "exercise_b_id": workout_plan_fixture["id"]
+            "exercise_ids": [exercise_id, exercise_id]
         })
-        # Should fail - can't superset with itself
-        assert resp.status_code in (400, 500)
+
+        assert resp.status_code == 404
+        body = resp.get_json()
+        assert body["ok"] is False
+        assert body["error"]["code"] == "NOT_FOUND"
+
+        row = clean_db.fetch_one(
+            "SELECT superset_group FROM user_selection WHERE id = ?",
+            (exercise_id,),
+        )
+        assert row["superset_group"] is None
 
     def test_superset_link_nonexistent(self, client, clean_db, workout_plan_fixture):
-        """Should return error when exercise doesn't exist."""
+        """Should reject a link naming a missing exercise and leave the valid row unlinked."""
+        exercise_id = workout_plan_fixture["id"]
+
         resp = client.post("/api/superset/link", json={
-            "exercise_a_id": workout_plan_fixture["id"],
-            "exercise_b_id": 99999
+            "exercise_ids": [exercise_id, 99999]
         })
-        assert resp.status_code in (400, 404, 500)
+
+        assert resp.status_code == 404
+        body = resp.get_json()
+        assert body["ok"] is False
+        assert body["error"]["code"] == "NOT_FOUND"
+
+        row = clean_db.fetch_one(
+            "SELECT superset_group FROM user_selection WHERE id = ?",
+            (exercise_id,),
+        )
+        assert row["superset_group"] is None
 
 
 class TestSupersetUnlink:
@@ -676,19 +697,31 @@ class TestGenerateStarterPlan:
     """Tests for POST /generate_starter_plan endpoint."""
 
     def test_generate_starter_plan_basic(self, client, clean_db, exercise_factory):
-        """Should generate starter plan with basic options."""
-        # Create some exercises for the generator
+        """Should generate and persist a starter plan, and reject an unknown experience level."""
+        from utils.plan_generator import get_generator_routine_names
+
         exercise_factory("Bench Press")
         exercise_factory("Squat")
         exercise_factory("Deadlift")
-        
+
         resp = client.post("/generate_starter_plan", json={
-            "split": "Full Body",
-            "days_per_week": 3,
+            "training_days": 3,
+            "environment": "gym",
+            "experience_level": "novice"
+        })
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["ok"] is True
+        assert list(data["data"]["routines"].keys()) == get_generator_routine_names(3, "gym")
+        assert sum(data["data"]["inserted_counts"].values()) > 0
+
+        rejected = client.post("/generate_starter_plan", json={
+            "training_days": 3,
+            "environment": "gym",
             "experience_level": "beginner"
         })
-        # May succeed or fail depending on available exercises
-        assert resp.status_code in (200, 400, 500)
+        assert rejected.status_code == 400
+        assert rejected.get_json()["error"]["code"] == "VALIDATION_ERROR"
 
     def test_generate_starter_plan_overwrite_replaces_legacy_routine_names(
         self, client, clean_db, exercise_factory
