@@ -6,6 +6,13 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ### User-visible
 
+- **The Fatigue body map no longer repeats its shoulder caveat.** The panel
+  stated the merged-region caveat twice: a complete version above the figures,
+  where it has to reach the reader before the gray region it explains, and an
+  abbreviated copy at the foot of the panel that named only the shoulders and
+  silently omitted the upper-back/Middle-Traps half. The trailing copy is gone
+  and the complete one is unchanged; a mapping test now pins that both delt
+  regions resolve to Middle-Shoulder (#351).
 - **Fatigue body heatmap.** `/fatigue` now has an accessible, collapsible
   MuscleMap panel driven by the existing planned/logged channel, period selector
   and four fatigue bands; unranked muscles remain visible and neutral (#339).
@@ -47,6 +54,23 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ### CI and quality gates
 
+- Console errors and page errors now fail the Playwright tests that provoke
+  them. `e2e/console-guard.ts` replaces a substring suppressor that silently
+  swallowed genuine null-dereference crashes and was opt-in per describe, so a
+  block that never opted in had no console oracle at all. A block that
+  legitimately provokes an error must declare that exact error: allowlist
+  patterns are required to be anchored, `m`-flag-free and wildcard-free, checked
+  at setup rather than left to convention (#362).
+- The six Linux fatigue visual baselines left stale by the heatmap were
+  regenerated together with their six win32 twins, so both platforms are current
+  ahead of the first scheduled deep-gate run (#351).
+- A consult test hard-coded a checkout directory name as its "escapes the repo
+  root" case, so it failed **only** in the canonical `Hypertrophy-Toolbox-v3-main`
+  checkout — where `..` and back in resolves to the repository root — and passed
+  in every worktree and on CI. No gate could see it. The path is now derived from
+  the checkout (#354, #357).
+- The Volume Splitter readiness oracle was strengthened so it can no longer pass
+  against a page that has not finished its initial history load (#355).
 - The required frontend-build job now deletes, rebuilds and byte-diffs both
   `bootstrap.custom.min.css` and its source map, preventing committed SCSS/CSS
   drift (#335).
@@ -68,6 +92,21 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ### Documentation and workflow
 
+- The fatigue threshold guardrails now name the modules where the constants are
+  actually defined — `utils/_fatigue/per_muscle.py` and `utils/_fatigue/core.py`
+  — instead of the `utils/fatigue.py` re-export facade, which a literal reading
+  could satisfy while editing the real values. The one guardrail that lives in
+  code, printed by the Stage-4 observer at the moment it reports tuning is
+  eligible, was corrected with them (#359).
+- An executable runbook for validating the first scheduled deep-gate run,
+  including why `--event=schedule` is not optional and why a green `visual-linux`
+  proves nothing if the run was in generate mode (#360).
+- `AGENTS.md`, Codex's repository entry point, added to the committed
+  agent-workflow contract surface; a known-red retired in June dropped from the
+  test-strategist charter (#361).
+- The quality gate now routes `scripts/**` and names its blocking gates (#356),
+  and the canonical council plan path is pinned so the workflow docs agree on it
+  (#358).
 - Fatigue Phase-2 Stage 4 closed as no real-use evidence/no threshold change;
   Learned Calibration 2D-D remains parked and the observer machinery was kept
   for a possible evidence-backed restart (#338).
