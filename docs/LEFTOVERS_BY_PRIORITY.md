@@ -130,8 +130,10 @@
 > (`e84d19c`), which derives the escape path from `REPO.name`. **One v26
 > statement is corrected rather than retired:** v26 said *"Testing Phase-2 Packet
 > A shipped as #342, while Packets C/D remain queued"* — **Packet C (strict
-> console) shipped as #362** (`52331bf`); **only Packet D (axe) is still
-> queued**, and with no open PR its completion is not predicted here.
+> console) shipped as #362** (`52331bf`). **[UPDATED 2026-08-14 — the clause that
+> followed, "only Packet D (axe) is still queued", is now false: Packet D shipped as
+> #366 (`f627161`), Packets E and F as #364/#365, and Testing Strategy Phase 2 is
+> COMPLETE. Its residual accessibility debt is X7–X13 and X15, all owner-deferred.]**
 > Separately, **#361** (`a224b39`) discharged the *cross-model* plan's Packet C
 > (charter and contract hygiene), which is a different packet series from Testing
 > Phase-2's and does not touch the `$orchestrate` bullet below. **Consequence at
@@ -417,8 +419,14 @@ starting one.**
   false-green accessibility assertions. **[UPDATED 2026-08-14 — this bullet
   previously read "Packets C (strict console) and D (axe) remain queued".]**
   **Packet C shipped as #362** (`52331bf`): `e2e/console-guard.ts` plus three
-  migrated specs. **Only Packet D (axe) remains queued**, with no open PR at
-  this reconciliation. D3's weekly compare-only stopgap shipped
+  migrated specs, extended by #368 (`9be1a3f`). **[UPDATED again 2026-08-14 —
+  the clause that followed, "Only Packet D (axe) remains queued", is now false.]**
+  **Testing Strategy Phase 2 is COMPLETE**: Packets **E** (#364, `ebfa716`) and
+  **F** (#365, `a49da8d`) closed register rows X1 and X6, #367 (`a64ea76`)
+  recorded the X1/X2/X6 decisions with **X2 declined**, and **Packet D shipped as
+  #366** (`f627161`) on the owner's explicit-exception path. Residual
+  accessibility debt is **X7–X13 and X15, all owner-deferred** — pinned at exact
+  axe node counts, not suppressed. D3's weekly compare-only stopgap shipped
   as #323 (`3b1160b`) with #325 (`4d01698`) adding timeouts, but its first
   scheduled run is still due 2026-08-17. D4, D7 and the `js-unit` half of
   D2 remain unsigned (D6 signed 2026-08-14, ADR-007); Phases 3/5 and the release/tag half of Phase 4 remain

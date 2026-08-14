@@ -1,15 +1,22 @@
 # Testing Strategy Review & Plan
 
-> **Status update 2026-08-14:** the Phase-2 truth refresh has started but is not
-> complete. **Packet A shipped as #342 (`1438a14`)**, repairing nine
-> accessibility assertions that could not fail while adding/removing no test
-> node. Step 8's real `/erase-data` coverage was already shipped and remains
-> retired. **Packet C** (per-spec strict console handling) and **Packet D**
-> (standards-based axe coverage) remain queued in
-> [`testing_phase2/PLANNING.md`](testing_phase2/PLANNING.md); do not report them
-> as delivered. Phases 3 and 5 and the release/tag half of Phase 4 remain
-> proposals. The D3 weekly compare-only stopgap is shipped, but its first
-> scheduled execution is still due 2026-08-17 03:17 UTC.
+> **Status update 2026-08-14 (superseding the earlier same-day entry):
+> Phase 2 is COMPLETE.** Every packet is on `origin/main`. **A** shipped as #342
+> (`1438a14`), **C** as #362 (`52331bf`) with #368 (`9be1a3f`) extending it,
+> **E** as #364 (`ebfa716`), **F** as #365 (`a49da8d`), and **D** as #366
+> (`f627161`). Step 8's real `/erase-data` coverage was already shipped and
+> remains retired. The earlier wording of this banner — *"Packet C … and Packet D
+> … remain queued; do not report them as delivered"* — is now false and is
+> corrected here rather than deleted.
+>
+> Packet D shipped on the owner's **explicit-exception path**: axe executes every
+> WCAG rule, and each existing violation is pinned by surface, rule id and exact
+> node count in `AXE_REGISTER`. The remaining accessibility debt is **X7–X13 and
+> X15, owner-deferred** — see
+> [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
+> Phases 3 and 5 and the release/tag half of Phase 4 remain proposals. The D3
+> weekly compare-only stopgap is shipped, but its first scheduled execution is
+> still due 2026-08-17 03:17 UTC.
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
@@ -41,7 +48,7 @@
 | "Round-trip + fuzz on program backups… truncated/reordered/type-corrupted backup **files**" | ❌ Wrong interface | There is **no backup file**. Backups live in two internal SQLite tables (`program_backups`, `program_backup_items` — [utils/program_backup.py:38-68](../utils/program_backup.py#L38-L68)); `restore_backup(backup_id: int)` takes a row id ([utils/program_backup.py:389](../utils/program_backup.py#L389)); the route takes `<int:backup_id>` only ([routes/program_backup.py:144](../routes/program_backup.py#L144)); zero `request.files` anywhere in the app. Round-trip fidelity is **already tested** row-for-row ([tests/test_program_backup.py:852](../tests/test_program_backup.py#L852)), as are mid-restore fault-injection rollback ([:226](../tests/test_program_backup.py#L226)), create-rollback ([:94](../tests/test_program_backup.py#L94)), single-commit ([:316](../tests/test_program_backup.py#L316)), missing-exercise skip ([:277](../tests/test_program_backup.py#L277)), and pre-`exercise_order` schema drift ([:912](../tests/test_program_backup.py#L912)). |
 | "Fresh-install / seed-integrity test" | ❌ Already exists | [tests/test_catalog_seed_bootstrap.py](../tests/test_catalog_seed_bootstrap.py) (10 tests incl. frozen `_MEIPASS` seed resolution), [tests/test_catalog_upgrade.py](../tests/test_catalog_upgrade.py) (19 tests incl. corrupt/missing/shrunk seed), [tests/test_runtime_migration.py](../tests/test_runtime_migration.py) (21 tests incl. corrupted + truncated legacy DB), plus three deep-gate jobs (`first-install`, `empty-schema`, `old-db-migration`). |
 | "Visual regression via `toHaveScreenshot()`" | ❌ Already exists | 66-case full-page matrix ([e2e/visual.spec.ts](../e2e/visual.spec.ts): 11 pages × 3 viewports × 2 themes — arithmetic verified against code, `--list`, and disk) + 18 element-scoped thumbnail cases ([e2e/visual-baseline-thumbnails.spec.ts](../e2e/visual-baseline-thumbnails.spec.ts)) = 84 per platform, **168 committed baseline PNGs** (win32 + linux). |
-| "Accessibility: axe-core, one assertion per page" | ⚠️ Half right | 24 hand-written a11y tests exist ([e2e/accessibility.spec.ts](../e2e/accessibility.spec.ts)); axe is genuinely absent (no `@axe-core/playwright` in [package.json](../package.json), zero code references). But "one assertion per page" is the wrong prescription, and the existing suite has a deeper problem Opus couldn't see (§4, B1). |
+| "Accessibility: axe-core, one assertion per page" | ⚠️ Half right | 24 hand-written a11y tests exist ([e2e/accessibility.spec.ts](../e2e/accessibility.spec.ts)); axe was genuinely absent when this was audited (no `@axe-core/playwright` in [package.json](../package.json), zero code references); **Packet D closed that gap on 2026-08-14 via #366**. But "one assertion per page" is the wrong prescription, and the existing suite has a deeper problem Opus couldn't see (§4, B1). |
 | "Build smoke test — catches PyInstaller didn't bundle templates" | ❌ Already exists | [deep-gate.yml:287-336](../.github/workflows/deep-gate.yml#L287-L336): `windows-latest`, real `pyinstaller --clean --noconfirm`, then `scripts/smoke_packaged_app.py --mode bootloader` (real bootloader, explicitly not weakened to payload mode). Plus 27 source-level packaging contract tests in pytest. The *real* gap is that it never runs on a PR (§4, B8). |
 | "Supply chain: pip-audit + npm audit + Dependabot + bandit" | ⚠️ Half right | `pip-audit` is already a **blocking required check** on every PR ([ci.yml:31-38](../.github/workflows/ci.yml#L31-L38)). `npm audit`, Dependabot, bandit, semgrep, CodeQL: all genuinely absent — the JS dependency surface has zero automated vulnerability scanning. |
 | "Mutation testing, quarterly" | ✅ Valid gap | `mutmut` absent; no mutation testing anywhere. And §4 B1 shows exactly why this repo needs it. |

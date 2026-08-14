@@ -4,7 +4,52 @@
 
 ## Current State
 
-> **2026-08-14 (LATEST) — the pack's docs-only tail has landed; canonical status
+> **2026-08-14 (LATEST) — TESTING STRATEGY PHASE 2 IS COMPLETE.** All packets
+> are on `origin/main` at `f627161`. Five further PRs merged after `fbb76f5`:
+>
+> | PR | Terminal result |
+> |---|---|
+> | **#364** | `ebfa716` — **Packet E.** Register row **X1** closed. `aria-invalid` is now set and cleared on invalid required controls; on `#exercise` it lands on the `.wpdd-button`, because the native select it replaces is `aria-hidden="true"`. Shipped under a **named Decision-4 carve-out**: the defect was established by inspection, since no honest test can demand an attribute that does not yet exist. Coverage extended an existing node, so the inventory did not move. |
+> | **#365** | `a49da8d` — **Packet F.** Register row **X6** closed. The `.theme-animating` transition suppression was a **regression**, not unbuilt behavior: `ee82643` deleted the rule from the retired `static/css/styles.css` and left `darkMode.js` intact, so for four months the class matched nothing. Restored into `motion.css`; both halves of the CSS/JS pair are contract-pinned. Its recorded R1 blocker was **false** and is corrected in the register. |
+> | **#367** | `a64ea76` — the X1/X2/X6 owner decisions recorded. **X2 DECLINED, do not re-propose** (Bootstrap's `.is-invalid` adds an icon *and* `padding-right: 4.125rem`, so unifying the classes is a restyle, not a rename). Register rules gained "resolved rows stay" and "**do not cite R1 without checking it**". |
+> | **#368** | `9be1a3f` — four more specs migrated onto the strict console guard. |
+> | **#366** | `f627161` — **Packet D (axe) SHIPPED**, closing Phase 2. `@axe-core/playwright` pinned at 4.13.0; 14 nodes added to the required `accessibility.spec.ts` over 11 routes × 2 themes plus three deterministic states. |
+>
+> **Packet D took the owner's explicit-exception path.** axe **executes every
+> WCAG rule**; each existing violation is pinned by surface, rule id and exact
+> node count, so a new rule, a changed count *and* a silently-fixed one are all
+> red. It is not `disableRules()`, impact filtering, broad suppression, or a
+> global `color-contrast` exemption. **No production file, stylesheet,
+> screenshot, snapshot manifest or baseline changed** across E, F or D;
+> baselines stay at **81 win32 / 81 linux**.
+>
+> **The registered accessibility debt is X7–X13 and X15, all OWNER-DEFERRED on
+> 2026-08-14** — measured and pinned, neither blocking Phase 2 nor permanently
+> declined. It covers `color-contrast` (worst surface `/user_profile` at 84
+> light / 80 dark), `aria-allowed-attr`, `aria-hidden-focus`, `select-name`,
+> `label` and `aria-prohibited-attr`. The colour/token rewrite and the
+> two-platform visual re-baseline are **out of scope for this arc** by owner
+> decision. Full rows: [`docs/testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
+>
+> **Two measurement corrections are worth carrying forward.** X10 had attributed
+> all fourteen `aria-hidden-focus` nodes to `.wpdd-native`; a direct probe found
+> **13** such selects plus **`#vpDrawer`**, a different element with a different
+> fix, now split out as **X15**. And the dark `color-contrast` counts are
+> sensitive to *when* the scan runs: a body-only theme-settle helper can return
+> while descendants are still cross-fading, which inflated two surfaces. The
+> helper now holds a **document-wide computed-paint signature** (including
+> pseudo-elements) stable, and a required source contract pins that scope.
+>
+> **Still not complete**, unchanged by this entry: the release/tag half of
+> Testing Phase 4, the heavier `$orchestrate` mechanism, and D4/D6/D7 plus the
+> `js-unit` half of D2. The first scheduled deep-gate run is still due
+> **2026-08-17 03:17 UTC**.
+
+> **Superseded 2026-08-14 on one claim.** The block below states that Packet D
+> remains queued with no work in flight. That was true when written and is now
+> false: Packet D shipped as **#366** (`f627161`). Everything else in it stands.
+
+> **2026-08-14 — the pack's docs-only tail has landed; canonical status
 > is reconciled against `origin/main` at `fbb76f5`.** **Eleven** further PRs
 > merged after `7e4c1e9` (#352), the pack reconciliation that recorded the
 > feature-PR checkpoint in the block below. All were squash-merged with every
@@ -60,7 +105,7 @@
 > | 3 — compiled CSS drift | **#335** → `542df07`; the required frontend-build job now clean-builds and byte-diffs both the bundle and `.map`. |
 > | 4 — Fatigue Stage 4 | **#338** → `700b5da`; Phase-2 Stage 4 closed for no real-use evidence/no threshold change; 2D-D remains parked and no evidence file was deleted. |
 > | 5 — Fatigue heatmap | **#339** → `ea82ef1`; visualization only, with no fatigue formula, threshold, schema or API change. |
-> | 6 — Testing Phase 2 refresh | **Packet A #342** → `1438a14`; nine false-green accessibility assertions repaired with no test-node change. Packets C (strict console) and D (axe) remain queued, not shipped. |
+> | 6 — Testing Phase 2 refresh | **Packet A #342** → `1438a14`; nine false-green accessibility assertions repaired with no test-node change. Packets C (strict console) and D (axe) have since shipped as #362 and #366; Phase 2 is complete. |
 > | 7 — product docs | **#340** → `53af816`, corrected by **#343** → `d1efc93` and **#345** → `18c7916`; the focused handover **#349** → `d5bd466`. |
 > | 8 — cross-model consult | **#344** → `9906105`; Gate 2 was ratified after merge in **#348** → `a459520`. The heavier `$orchestrate` mechanism remains planned and deliberately unimplemented. |
 > | 9 — product residuals | Local-first assets **#341** → `ddbec6a`; routine-change superset reset **#346** → `538919a`; readiness slices **#347** → `c97c865` and **#350** → `d93a3dd`. |
@@ -2326,7 +2371,9 @@ behind the CSS it describes.
 - **Testing strategy is partially advanced, not closed.** Phase-2 Packet A
   shipped as #342 and **Packet C (strict console) shipped as #362** (`52331bf`).
   **[UPDATED 2026-08-14 — this bullet previously read "Packets C … and D … remain
-  queued".]** Only **Packet D (axe) remains queued** under the approved Plan v2;
+  queued".]** **[UPDATED again 2026-08-14 — Packet D (axe) shipped as #366 (`f627161`),
+  and Packets E and F closed register rows X1 and X6; Testing Strategy Phase 2 is
+  COMPLETE.]** The bullet previously read "Only **Packet D (axe) remains queued**" under the approved Plan v2;
   it had no open PR at the 2026-08-14 reconciliation. D4, D7 and the
   `js-unit` half of D2 remain unsigned (D6 signed 2026-08-14 as retain-informational,
   recorded as ADR-007); Phases 3 and 5 and the release/tag half

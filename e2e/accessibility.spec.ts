@@ -9,8 +9,17 @@
  * - Screen reader support
  * - Color contrast (manual checks noted)
  */
+import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './console-guard';
-import { expectToast, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
+import {
+  expectToast,
+  ROUTES,
+  SELECTORS,
+  waitForBodyCompositionReady,
+  waitForPageReady,
+  waitForVolumeSplitterReady,
+  waitForWorkoutPlanReady,
+} from './fixtures';
 import type { Page } from '@playwright/test';
 
 /** WCAG 2.1 SC 1.4.3 floor for normal-size body text. */
@@ -93,14 +102,15 @@ async function textContrast(
 }
 
 /**
- * Switch theme through the real toggle, assert it took, then wait for `body`'s
- * paint to settle.
+ * Switch theme through the real toggle, assert it took, then wait for the
+ * document's computed paint to settle.
  *
  * `data-theme` flips before the colours finish transitioning (`theme-dark.css`
  * puts an unconditional 0.3s transition on `body`), so sampling on the attribute
  * alone reads intermediate values and scores a paint the user never sees.
  *
- * Only `body` is sampled, which is what both callers measure.
+ * Waiting on `body` alone is insufficient for axe: it can reach its final
+ * colour while a descendant such as a form label is still cross-fading.
  */
 async function setThemeAndSettle(page: Page, theme: 'light' | 'dark'): Promise<void> {
   const current = await page.locator('html').getAttribute('data-theme');
@@ -114,27 +124,51 @@ async function setThemeAndSettle(page: Page, theme: 'light' | 'dark'): Promise<v
 
   await page.evaluate(async () => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-    const sample = () => {
-      const style = getComputedStyle(document.body);
-      return `${style.color}|${style.backgroundColor}`;
+    const root = document.documentElement;
+    const elements = [root, document.body, ...Array.from(document.body.querySelectorAll('*'))];
+    const paintProperties = [
+      'color',
+      'background-color',
+      'border-top-color',
+      'border-right-color',
+      'border-bottom-color',
+      'border-left-color',
+      'outline-color',
+      'text-decoration-color',
+      'opacity',
+      'visibility',
+    ];
+    const styleSignature = (element: Element, pseudo?: '::before' | '::after') => {
+      const style = getComputedStyle(element, pseudo);
+      return paintProperties.map((property) => style.getPropertyValue(property)).join(',');
     };
-    // Bounded by frames and by wall clock: a throttled renderer stops producing
-    // frames altogether, which would otherwise hang until the test timeout and
-    // report as a generic 30s failure instead of this message.
+    const sample = () =>
+      elements
+        .map(
+          (element) =>
+            `${styleSignature(element)};${styleSignature(element, '::before')};${styleSignature(element, '::after')}`
+        )
+        .join('|');
+
+    // Bounded by frames and by wall clock: a throttled renderer can stop
+    // producing frames altogether, which would otherwise hang until the test
+    // timeout and report as a generic 30s failure instead of this message.
     const deadline = performance.now() + 5000;
-    let previous = sample();
-    let stable = 0;
+    let previous: string | null = null;
+    let stableSince = performance.now();
     while (performance.now() < deadline) {
       await frame();
-      const now = sample();
-      if (now === previous) {
-        if (++stable >= 12) return;
-      } else {
-        stable = 0;
+      if (root.classList.contains('theme-animating')) {
+        previous = null;
+        stableSince = performance.now();
+        continue;
       }
+      const now = sample();
+      if (now !== previous) stableSince = performance.now();
+      if (now === previous && performance.now() - stableSince >= 400) return;
       previous = now;
     }
-    throw new Error(`setThemeAndSettle: body colours never settled (last ${previous})`);
+    throw new Error('setThemeAndSettle: document paint never settled');
   });
 }
 
@@ -698,7 +732,7 @@ test.describe('Screen Reader Support', () => {
 
     const h1 = page.locator('h1');
     const h2 = page.locator('h2');
-    
+
     // Should have h1
     const h1Count = await h1.count();
     expect(h1Count).toBeGreaterThanOrEqual(1);
@@ -708,5 +742,379 @@ test.describe('Screen Reader Support', () => {
     if (h2Count > 0) {
       expect(h1Count).toBeGreaterThanOrEqual(1);
     }
+  });
+});
+
+/* ========================================================================== *
+ *  Standards-based axe scan
+ * ========================================================================== */
+
+/**
+ * Only the WCAG conformance tags. axe's `best-practice` tag is deliberately
+ * excluded: those rules encode axe's house style, not a standard, so failing a
+ * required gate on them would assert opinion. Everything registered below is a
+ * genuine WCAG failure.
+ */
+const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+
+/**
+ * Pinned in `package.json` at `@axe-core/playwright` 4.13.0, which pins
+ * `axe-core` to `~4.13.0`. Asserted at runtime because the registered node
+ * counts below are a function of the engine's rule set: a floating engine that
+ * added or retired a rule would silently move every count, and the register
+ * would then be recording the engine rather than the app.
+ */
+const AXE_ENGINE_MAJOR_MINOR = '4.13';
+
+interface AxeFinding {
+  rule: string;
+  nodes: number;
+}
+
+/**
+ * Every WCAG violation the shipped app produces today, per surface.
+ *
+ * This is a register, not a suppression list. The assertion is **exact
+ * equality**, so it fails three ways: a new rule fires, a registered rule stops
+ * firing, or a registered rule's node count moves in either direction. A defect
+ * therefore cannot be added silently, and a fixed defect cannot rot here
+ * unnoticed — both are red until someone edits this table on purpose.
+ *
+ * Nothing here is authorised to be fixed by this packet. Owner decision 4 in
+ * `docs/testing_phase2/PLANNING.md` allows a production change only for a
+ * defect a new honest test exposes, and then only as its own packet with
+ * migration notes. Every rule below is written up in
+ * `docs/testing_phase2/A11Y_EXCEPTIONS.md` (rows X7–X14) with the owner-gated
+ * packet it belongs to. The contrast rows are additionally bound by standing
+ * rule R1: a token fix stales 66 win32 + 66 linux captures with CI green.
+ *
+ * Counts were measured, not predicted. To move one, run the spec, read the
+ * drift message, and edit deliberately — never to make a red go away.
+ */
+const AXE_REGISTER: Record<string, AxeFinding[]> = {
+  // X7. Token contrast debt, everywhere. `.stat-label` is #94a3b8 on #ffffff
+  // (2.56:1); dark multiplies it because `theme-dark.css` keeps link and tag
+  // colours that were chosen against a light backdrop.
+  'home:light': [{ rule: 'color-contrast', nodes: 8 }],
+  'home:dark': [{ rule: 'color-contrast', nodes: 26 }],
+
+  // X9 + X10 are both `workout-dropdowns.js`: `aria-activedescendant` on a
+  // `.wpdd-button` that never takes `role="combobox"`, and the `.wpdd-native`
+  // select left `aria-hidden` while still tabbable. One component, two rules,
+  // one owner-gated fix.
+  'workout_plan:light': [
+    { rule: 'aria-allowed-attr', nodes: 5 },
+    { rule: 'aria-hidden-focus', nodes: 14 },
+    { rule: 'color-contrast', nodes: 6 },
+  ],
+  'workout_plan:dark': [
+    { rule: 'aria-allowed-attr', nodes: 5 },
+    { rule: 'aria-hidden-focus', nodes: 14 },
+    { rule: 'color-contrast', nodes: 7 },
+  ],
+
+  // X13: one `.btn-group` div carries `aria-label` with no role to hang it on.
+  'workout_log:light': [
+    { rule: 'aria-prohibited-attr', nodes: 1 },
+    { rule: 'color-contrast', nodes: 2 },
+  ],
+  'workout_log:dark': [
+    { rule: 'aria-prohibited-attr', nodes: 1 },
+    { rule: 'color-contrast', nodes: 3 },
+  ],
+
+  // Dark scores *better* than light on both summaries: the muted greys that
+  // fail on white clear the bar on the dark surface.
+  'weekly_summary:light': [{ rule: 'color-contrast', nodes: 4 }],
+  'weekly_summary:dark': [{ rule: 'color-contrast', nodes: 1 }],
+  'session_summary:light': [{ rule: 'color-contrast', nodes: 4 }],
+  'session_summary:dark': [{ rule: 'color-contrast', nodes: 1 }],
+
+  // X11: `#exerciseSelect` — the control the whole page is driven by — has no
+  // accessible name in either theme.
+  'progression:light': [{ rule: 'select-name', nodes: 1 }],
+  'progression:dark': [{ rule: 'select-name', nodes: 1 }],
+
+  'body_composition:light': [{ rule: 'color-contrast', nodes: 2 }],
+  'body_composition:dark': [{ rule: 'color-contrast', nodes: 4 }],
+
+  // X12: all 18 muscle sliders are unlabelled, so the page is unusable by
+  // screen reader even though it is entirely a form.
+  'volume_splitter:light': [
+    { rule: 'color-contrast', nodes: 2 },
+    { rule: 'label', nodes: 18 },
+  ],
+  // Final dark paint is 2. A merge-time correction raised this to 3 after #365,
+  // but that reading still came from the body-only settlement helper and the
+  // extra node was transition paint, not a final-state violation. Holding the
+  // whole document's computed paint stable produced 2 in every stress repeat.
+  'volume_splitter:dark': [
+    { rule: 'color-contrast', nodes: 2 },
+    { rule: 'label', nodes: 18 },
+  ],
+
+  'backup:light': [{ rule: 'color-contrast', nodes: 2 }],
+  'backup:dark': [{ rule: 'color-contrast', nodes: 2 }],
+
+  // The worst surface in the app by a wide margin — one failing insights-tile
+  // label colour, repeated across every tile.
+  'user_profile:light': [{ rule: 'color-contrast', nodes: 84 }],
+  'user_profile:dark': [{ rule: 'color-contrast', nodes: 80 }],
+
+  // X8. `/fatigue` links no page bundle at all, so this row is a direct reading
+  // of the shared bundles: light is clean, final dark paint fails four times.
+  // The briefly registered six included transitional `h1` and `#fatigue-period`
+  // paint; document-wide settlement excludes those non-final readings.
+  'fatigue:light': [],
+  'fatigue:dark': [{ rule: 'color-contrast', nodes: 4 }],
+
+  // `aria-hidden-focus` is absent here and that is not a fix. axe's
+  // `focusable-modal-open` check returns `undefined` — not `false` — once a
+  // modal is open (`focusableModalOpenEvaluate` in axe-core), so the fourteen
+  // still-tabbable `aria-hidden` selects move from `violations` to
+  // `incomplete`, which this register does not read. The defect is unchanged;
+  // axe declines to rule on it. `state:validation-error` below scans the same
+  // page with no modal open and still reports all fourteen.
+  'state:modal-open': [
+    { rule: 'aria-allowed-attr', nodes: 5 },
+    { rule: 'color-contrast', nodes: 7 },
+  ],
+  'state:validation-error': [
+    { rule: 'aria-allowed-attr', nodes: 5 },
+    { rule: 'aria-hidden-focus', nodes: 14 },
+    { rule: 'color-contrast', nodes: 5 },
+  ],
+
+  // Four, the same as the route scan: the injected data cells add no violation
+  // of their own, so production `<thead>` markup clears axe's structural table
+  // rules and the cell text clears 4.5:1 once a row exists to paint. This state
+  // deliberately does not render production's `.volume-badge`; in particular,
+  // `.medium-volume` (white on #fd7e14) remains outside this scan.
+  'state:populated-table': [{ rule: 'color-contrast', nodes: 4 }],
+};
+
+function formatFindings(findings: AxeFinding[]): string {
+  if (findings.length === 0) return '(no violations)';
+  return findings.map((f) => `${f.rule}×${f.nodes}`).join(', ');
+}
+
+function driftMessage(
+  key: string,
+  observed: AxeFinding[],
+  registered: AxeFinding[],
+  targetsByRule: Map<string, string[]>
+): string {
+  const registeredCounts = new Map(registered.map((f) => [f.rule, f.nodes]));
+  const detail: string[] = [];
+  for (const finding of observed) {
+    const before = registeredCounts.get(finding.rule);
+    if (before === finding.nodes) continue;
+    const targets = (targetsByRule.get(finding.rule) ?? []).slice(0, 5);
+    detail.push(
+      `  ${finding.rule}: registered ${before ?? 'nothing'}, observed ${finding.nodes}` +
+        (targets.length ? `\n      ${targets.join('\n      ')}` : '')
+    );
+  }
+  for (const finding of registered) {
+    if (observed.some((o) => o.rule === finding.rule)) continue;
+    detail.push(`  ${finding.rule}: registered ${finding.nodes}, no longer reported`);
+  }
+
+  return (
+    `axe register drift on "${key}".\n` +
+    `  registered: ${formatFindings(registered)}\n` +
+    `  observed:   ${formatFindings(observed)}\n` +
+    (detail.length ? `${detail.join('\n')}\n` : '') +
+    'A new or grown violation is a production defect, not a baseline to refresh — ' +
+    'report it as an owner-gated packet (PLANNING.md decision 4). A violation that ' +
+    'stopped firing means AXE_REGISTER and A11Y_EXCEPTIONS.md are now stale and must ' +
+    'both be updated in the same change.'
+  );
+}
+
+/**
+ * Run axe over the page as it currently stands and hold it to the register.
+ *
+ * Soft, so a route checked in both themes reports both rather than stopping at
+ * the first one.
+ */
+async function expectRegisteredAxeViolations(page: Page, key: string): Promise<void> {
+  const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
+
+  const engine = results.testEngine.version;
+  expect
+    .soft(
+      engine.startsWith(`${AXE_ENGINE_MAJOR_MINOR}.`),
+      `axe-core ${engine} is running, but the registered counts were measured on ` +
+        `${AXE_ENGINE_MAJOR_MINOR}.x. Re-measure the register before repinning the engine.`
+    )
+    .toBe(true);
+
+  // A scan that matched nothing at all would satisfy an empty register while
+  // proving nothing ran. Passes are the evidence that rules were evaluated
+  // against this DOM.
+  expect
+    .soft(results.passes.length, `axe evaluated no passing rule on "${key}"; the scan did not run`)
+    .toBeGreaterThan(0);
+
+  // Without this, a renamed route or a typo'd key falls through to `[]` and
+  // quietly asserts "this surface is clean" — the one way a register like this
+  // turns into the silent pass it exists to prevent.
+  expect
+    .soft(
+      Object.prototype.hasOwnProperty.call(AXE_REGISTER, key),
+      `"${key}" has no AXE_REGISTER entry. A surface with no registered violations ` +
+        'must still be listed, with an empty array, so that "clean" is a recorded ' +
+        'claim rather than a missing key.'
+    )
+    .toBe(true);
+
+  const byRule = (a: AxeFinding, b: AxeFinding) => a.rule.localeCompare(b.rule);
+  const observed = results.violations
+    .map((violation) => ({ rule: violation.id, nodes: violation.nodes.length }))
+    .sort(byRule);
+  const targetsByRule = new Map(
+    results.violations.map((violation) => [
+      violation.id,
+      violation.nodes.map((node) => node.target.join(' ')),
+    ])
+  );
+  const registered = [...(AXE_REGISTER[key] ?? [])].sort(byRule);
+
+  expect.soft(observed, driftMessage(key, observed, registered, targetsByRule)).toEqual(registered);
+}
+
+/**
+ * Extra readiness beyond `waitForPageReady` for the three routes that mark an
+ * in-flight hydration on `<html>`. The register pins exact node counts, so a
+ * scan that raced a late DOM rewrite would not fail once — it would flake.
+ */
+const EXTRA_READY: Partial<Record<string, (page: Page) => Promise<void>>> = {
+  WORKOUT_PLAN: waitForWorkoutPlanReady,
+  VOLUME_SPLITTER: waitForVolumeSplitterReady,
+  BODY_COMPOSITION: waitForBodyCompositionReady,
+};
+
+test.describe('Axe — WCAG scan', () => {
+  for (const [name, route] of Object.entries(ROUTES)) {
+    const key = name.toLowerCase();
+
+    test(`axe: ${key} (light and dark)`, async ({ page }) => {
+      await page.goto(route);
+      await waitForPageReady(page);
+      await EXTRA_READY[name]?.(page);
+
+      // Both themes in one page load. The theme is real — set through the
+      // toggle and settled — because contrast is scored from composited
+      // computed colour, and `data-theme` flips before the paint does.
+      for (const theme of ['light', 'dark'] as const) {
+        await setThemeAndSettle(page, theme);
+        await expectRegisteredAxeViolations(page, `${key}:${theme}`);
+      }
+    });
+  }
+});
+
+/**
+ * Three states the routes above cannot reach.
+ *
+ * Each is scanned in light only, which is what the plan approved ("11 routes ×
+ * 2 themes + 3 deterministic states"). Dark-theme contrast for these same
+ * surfaces is scored by the route scans above; what is *not* covered is
+ * dark-theme contrast of the state-specific chrome, and that gap is recorded as
+ * register row X14 rather than implied to be covered.
+ */
+test.describe('Axe — deterministic states', () => {
+  test('axe state: modal open', async ({ page }) => {
+    await page.goto(ROUTES.WORKOUT_PLAN);
+    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
+
+    const generateBtn = page.locator('#generate-plan-btn');
+    await expect(generateBtn).toBeVisible();
+    await expect(generateBtn).toBeEnabled();
+
+    const shownPromise = waitForBootstrapModalEvent(page, '#generatePlanModal', 'shown.bs.modal');
+    await generateBtn.click();
+    await shownPromise;
+    await expect(page.locator('#generatePlanModal')).toBeVisible();
+
+    await expectRegisteredAxeViolations(page, 'state:modal-open');
+  });
+
+  test('axe state: required-field validation error', async ({ page }) => {
+    await page.goto(ROUTES.WORKOUT_PLAN);
+    await waitForPageReady(page);
+    await waitForWorkoutPlanReady(page);
+
+    // Submitting with nothing selected returns before any network call
+    // (workout-plan-add-exercise.js), so this writes nothing to the DB.
+    await page.locator(SELECTORS.ADD_EXERCISE_BTN).click();
+    await expectToast(page, /please select/i);
+    await expect(page.locator('.is-invalid-required:visible').first()).toBeVisible();
+
+    await expectRegisteredAxeViolations(page, 'state:validation-error');
+
+    // The toast auto-dismisses on a timer. If it expired mid-scan the live
+    // region was not in the DOM axe saw, and the registered count would be
+    // recording a race. Fail loudly instead of drifting.
+    await expect(
+      page.locator(SELECTORS.TOAST),
+      'the validation toast dismissed before the axe scan finished, so the scanned DOM ' +
+        'was not the state this test claims to cover'
+    ).toBeVisible();
+  });
+
+  test('axe state: populated data table', async ({ page }) => {
+    await page.goto(ROUTES.WEEKLY_SUMMARY);
+    await waitForPageReady(page);
+
+    // Runtime DOM injection, never a write: axe's table rules are structural
+    // (`th-has-data-cells` and `td-has-header` both need data cells, and
+    // `td-has-header` needs a table larger than 3×3), and the functional seed
+    // wipes user state, so every summary table ships to this gate with nothing
+    // but an empty-state message row. With zero data rows those rules are
+    // unreachable — the same blind spot that let the field-separator defect
+    // survive a full screenshot matrix.
+    //
+    // The cells are synthetic but the *colours* are not: they inherit the
+    // production `td` and backdrop, so scoring their contrast measures shipped
+    // tokens against real table-cell text, which no other check reaches on a
+    // wiped seed. They deliberately stay plain text rather than reproducing the
+    // last column's production `.volume-badge`; that badge, including the
+    // medium-orange variant, is outside this structural-table scan.
+    const injected = await page.evaluate(() => {
+      const table = document.querySelector('table.tbl--responsive');
+      if (!table) return { headers: 0, rows: 0 };
+
+      const headers = Array.from(table.querySelectorAll('thead th'));
+      const body = table.querySelector('tbody') ?? table.appendChild(document.createElement('tbody'));
+      const dataRows = () =>
+        Array.from(body.querySelectorAll('tr')).filter((r) => r.querySelectorAll('td').length > 1);
+
+      // Three, so the table clears `td-has-header`'s "larger than 3 by 3" gate
+      // with the header row counted.
+      while (dataRows().length < 3) {
+        const row = document.createElement('tr');
+        for (const header of headers) {
+          const cell = document.createElement('td');
+          // Production renders this attribute; the responsive card layout reads
+          // it, so omitting it would scan a table this app never paints.
+          cell.setAttribute('data-label', (header.textContent || '').trim());
+          cell.textContent = '1.0';
+          row.appendChild(cell);
+        }
+        body.appendChild(row);
+      }
+      return { headers: headers.length, rows: dataRows().length };
+    });
+
+    // A missing table would leave nothing injected and the scan would pass
+    // against the empty page it was written to avoid.
+    expect(injected.headers, 'no table.tbl--responsive on /weekly_summary to populate')
+      .toBeGreaterThanOrEqual(3);
+    expect(injected.rows, 'fewer than three data rows were injected').toBe(3);
+
+    await expectRegisteredAxeViolations(page, 'state:populated-table');
   });
 });

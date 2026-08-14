@@ -45,7 +45,7 @@ Validated from `package.json`, `playwright.config.ts`, and `scripts/run-playwrig
 
 | Spec file | Primary coverage |
 |-----------|------------------|
-| `accessibility.spec.ts` | Keyboard nav, ARIA, focus behavior, touch targets |
+| `accessibility.spec.ts` | Keyboard nav, ARIA, focus behavior, touch targets, and a standards-based axe WCAG scan held to a registered set of known violations (`docs/testing_phase2/A11Y_EXCEPTIONS.md`) |
 | `api-integration.spec.ts` | Direct endpoint and response-shape checks |
 | `body-composition.spec.ts` | `/body_composition` page, snapshot save/delete flow, BMI fallback, JS↔Python parity |
 | `browser-navigation-state.spec.ts` | Stateless routine-cascade behavior |
