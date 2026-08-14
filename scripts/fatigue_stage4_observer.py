@@ -262,7 +262,8 @@ def analyze(csv_path: Path) -> int:
     if signals:
         print(f"{len(signals)} muscle/direction pair(s) reached the signal bar.")
         print("Threshold tuning is *eligible* but still requires a fresh owner")
-        print("go-ahead before editing utils/fatigue.py landmarks/bands.")
+        print("go-ahead before editing utils/_fatigue/per_muscle.py landmarks"
+              " / utils/_fatigue/core.py bands.")
     else:
         print("No threshold change warranted. Keep observing.")
     return len(signals)
