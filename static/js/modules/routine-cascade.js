@@ -369,6 +369,7 @@ function clearCascadeValidation(fieldId) {
     if (!field) return;
     
     field.classList.remove('is-invalid-required');
+    field.removeAttribute('aria-invalid');
     const container = field.closest('.cascade-dropdown-wrapper');
     if (container) {
         container.classList.remove('has-validation-error');
