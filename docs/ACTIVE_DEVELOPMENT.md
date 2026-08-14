@@ -26,13 +26,21 @@ discharged; `52c5a78` (#354) recorded P2.7, which #357 then closed; `710ef61`
 (#355) Volume Splitter readiness oracle strengthened; `5177176` (#356)
 `scripts/**` routed in the quality gate.
 
-**Still open, measured at this reconciliation.** Testing Phase-2 **Packet D
-(axe) remains queued** — the repository had **zero open PRs** when this was
-written, so no Packet D work is in flight and no completion is predicted here.
-The heavy `$orchestrate` mechanism stays deliberately unimplemented, the
-release/tag pipeline stays deferred, and the first scheduled deep-gate run is
-still due 2026-08-17 03:17 UTC — now comparing against #351's regenerated Linux
-captures.
+**Testing Strategy Phase 2 is COMPLETE (2026-08-14).** Packet **E** shipped as
+#364 (`ebfa716`) and Packet **F** as #365 (`a49da8d`), closing register rows X1
+and X6; #367 (`a64ea76`) recorded the X1/X2/X6 decisions, with **X2 declined**;
+#368 (`9be1a3f`) migrated four more specs onto the strict console guard; and
+**Packet D (axe) shipped as #366 (`f627161`)**, which closes the phase. Packet D
+took the owner's **explicit-exception path** — axe executes every WCAG rule and
+each existing violation is pinned by surface, rule id and exact node count, not
+suppressed. No production or visual-baseline file changed across E, F or D.
+Remaining accessibility debt is **X7–X13 and X15, all owner-deferred**; see
+[`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
+
+**Still open, unchanged by that.** The heavy `$orchestrate` mechanism stays
+deliberately unimplemented, the release/tag pipeline stays deferred, and the
+first scheduled deep-gate run is still due 2026-08-17 03:17 UTC — now comparing
+against #351's regenerated Linux captures.
 
 No pack feature branch, worktree, local evidence artifact, or database is a
 cleanup target.
