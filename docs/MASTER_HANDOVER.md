@@ -171,13 +171,22 @@
 > | 8 — cross-model consult | **#344** → `9906105`; Gate 2 was ratified after merge in **#348** → `a459520`. The heavier `$orchestrate` mechanism remains planned and deliberately unimplemented. |
 > | 9 — product residuals | Local-first assets **#341** → `ddbec6a`; routine-change superset reset **#346** → `538919a`; readiness slices **#347** → `c97c865` and **#350** → `d93a3dd`. |
 >
-> **What is deliberately not called complete.** Testing Phase-2 Packets C/D
-> still have implementation work; the release/tag half of Testing Phase 4 and
+> **What is deliberately not called complete.** ~~Testing Phase-2 Packets C/D
+> still have implementation work; the release/tag half of Testing Phase 4~~ and
 > the heavier orchestration mechanism remain proposals; and the first scheduled
-> deep-gate execution is still due **2026-08-17 03:17 UTC**. Visual follow-up
-> **#351** is open as a clean, green draft at `2e53e63`: it contains the six
+> deep-gate execution is still due **2026-08-17 03:17 UTC**. ~~Visual follow-up
+> **#351** is open as a clean, green draft at `2e53e63`~~: it contains the six
 > reviewed Linux fatigue baselines left stale by #339 plus a database-guide
-> correction. Until it merges, the stale-Linux consequence remains real.
+> correction. ~~Until it merges, the stale-Linux consequence remains real.~~
+>
+> **[UPDATED 2026-08-15 — three of this paragraph's claims have been overtaken,
+> patched in place the same way the Session-6 row four lines above already was.]**
+> Packets C and D shipped as **#362** (`52331bf`) and **#366** (`f627161`), closed
+> by **#372** (`385ce52`); the release/tag half shipped as **#374** (`5222db2`) with
+> **#375** (`d3c3436`); and **#351** merged as `5a03d47`, so the stale-Linux
+> consequence is discharged. **Only the heavier orchestration mechanism is still a
+> proposal.** The deep-gate sentence is unchanged and still correct: that run has
+> **not** happened.
 >
 > **The live-gate proof from this pack.** #339 was the sole post-#335 merge that
 > changed SCSS and both compiled artifacts. Its Linux CI run reproduced the
@@ -2437,8 +2446,14 @@ behind the CSS it describes.
   COMPLETE.]** The bullet previously read "Only **Packet D (axe) remains queued**" under the approved Plan v2;
   it had no open PR at the 2026-08-14 reconciliation. D4, D7 and the
   `js-unit` half of D2 remain unsigned (D6 signed 2026-08-14 as retain-informational,
-  recorded as ADR-008); Phases 3 and 5 and the release/tag half
-  of Phase 4 remain proposals.
+  recorded as ADR-008); Phases 3 and 5 remain proposals.
+  **[UPDATED 2026-08-15 — this bullet's tail previously read "Phases 3 and 5 **and the
+  release/tag half of Phase 4** remain proposals". Only the "Phases 3 and 5" half is
+  still true: the release/tag half **SHIPPED** as Packet R1, #374 (`5222db2`), with
+  #375 (`d3c3436`) recording its passing post-merge dry run. Phase 4 itself stays
+  **open** — its `push: tags` trigger has never fired and §7.3 entry criteria 2 and 3
+  are unmet. The clause survived #376, #377 and #381 because it is split across two
+  source lines, so a grep for "release/tag half of Phase 4" never matched it.]**
 
 > **Superseded 2026-08-01.** The note below read *"None blocking"* and described
 > a working tree and `origin/main` parity measured on **2026-05-29**. Retained
