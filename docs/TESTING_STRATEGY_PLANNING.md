@@ -14,13 +14,17 @@
 > node count in `AXE_REGISTER`. The remaining accessibility debt is **X7–X13 and
 > X15, owner-deferred** — see
 > [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
-> Phases 3 and 5 and the release/tag half of Phase 4 remain proposals. The D3
-> weekly compare-only stopgap is shipped, but its first scheduled execution is
+> Phases 3 and 5 remain proposals. **The release/tag half of Phase 4 shipped
+> 2026-08-14 as Packet R1**
+> ([`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)) — this corrects
+> the "remain proposals" wording that covered it — **but Phase 4 is still open**:
+> §7.3 entry criteria 2 and 3 are unmet, and R1's tag trigger has never fired. The
+> D3 weekly compare-only stopgap is shipped, but its first scheduled execution is
 > still due 2026-08-17 03:17 UTC.
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
-> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D4, D6 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *No scheduled run has executed yet — first authoritative one Monday 2026-08-17 03:17 UTC.* The **release/tag pipeline half of Phase 4 remains deferred**, so Phase 4 is still open. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D4, D6 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *No scheduled run has executed yet — first authoritative one Monday 2026-08-17 03:17 UTC.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
 
 ---
 
@@ -214,9 +218,31 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 13. **Precondition: make the visual job capable of being a green gate.** *(**Status 2026-08-11: the
     weekly-deep-gate half of this step is DONE** — precondition satisfied 2026-08-04, schedule
     shipped as PR #323 → `3b1160b`, with `visual-linux` executed rather than skipped on the
-    schedule and compare-only enforced four ways. **The release/tag pipeline half is NOT done**
-    and remains deferred to the next planned packaged release. No scheduled run has executed yet;
-    first authoritative one Monday 2026-08-17 03:17 UTC.)* *(Measured 2026-08-02: this
+    schedule and compare-only enforced four ways. No scheduled run has executed yet;
+    first authoritative one Monday 2026-08-17 03:17 UTC.)*
+
+    > **Status 2026-08-14 — the release/tag pipeline half SHIPPED as Packet R1**
+    > ([`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), owner Gate 0 at
+    > [§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline),
+    > [`DECISIONS.md`](DECISIONS.md) ADR-007). `release.yml` runs `version-guard`,
+    > `ci-provenance`, the frozen Windows build via a `workflow_call` reusable workflow
+    > shared with `ci.yml`, the first-install and old-DB-migration smokes, and a fan-in
+    > gate — all blocking. The build+smoke was extracted rather than copied, as F5-8
+    > required; `deep-gate.yml` keeps its own copy until Packet R2, deliberately, because
+    > editing it before 2026-08-17 would invalidate the first scheduled run.
+    >
+    > **Its tag trigger is unproven.** The only validation route is `workflow_dispatch`
+    > with `dry_run: true` (owner option (c)), and because `workflow_dispatch` requires
+    > the file to be on the default branch, that dispatch runs *after* the packet merges.
+    > The first genuine release tag is also the first execution of the trigger path —
+    > [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) step 1 is the only compensation, and
+    > it is a human one.
+    >
+    > **Phase 4 remains open.** §7.3 entry criteria 2 and 3 are **not** satisfied by
+    > Packet R1: no visual job executes in the release gate (R1-D2 reuses the comparison
+    > by provenance, R1-D3 keeps `visual-linux` out), and the fan-in behavior is proven by
+    > static contract test rather than by a release dry run deliberately reddened. Both
+    > remain to be discharged before Phase 4 can be marked complete. *(Measured 2026-08-02: this
     step's premise understates the problem. It is not one animated-logo failure — the **Linux**
     baseline set reds on **at least eleven** tests because 57 CSS/template commits landed after the
     baselines were frozen. Read [§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02)
@@ -351,6 +377,25 @@ was authorized on 2026-08-01. This is the second.
 **Phases 2, 3 and 5 are not authorized by this sign-off**, and Phase 4 is authorized only as the
 narrow stopgap above. **Phase 4 is not complete** — see [§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02),
 which records why the scheduled deep-gate could not ship with this slice.
+
+#### 8.1b Third sign-off (2026-08-14) — the release/tag pipeline
+
+This section's D3 row above defers "the full release/tag pipeline until the next packaged
+release is planned". **That deferral is superseded by an owner Gate 0 sign-off on 2026-08-14**,
+recorded in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) Section 0. §8.1a's
+own text is left unedited per its rule; this section is the supersession record.
+
+Six decisions were signed, namespaced **R1-D1 … R1-D6** to avoid collision with this
+document's D1–D7, and written up as [`DECISIONS.md`](DECISIONS.md) **ADR-007**. The blocking
+question — how to prove the tag trigger without weakening the exact-tag invariant — was
+answered **option (c)**: create no rehearsal tag, validate through `workflow_dispatch` with
+`dry_run: true`, and leave the real tag path explicitly unproven until the first genuine
+release.
+
+**What this does NOT establish.** *No release tag has been pushed and none will be by this
+packet.* The `push: tags` trigger in `release.yml` has never fired; what was validated is the
+dispatch path and the guard logic beneath it. Nothing here bears on the weekly scheduled deep
+gate, whose first scheduled execution is still due 2026-08-17 03:17 UTC.
 
 ### 8.2 The port-5000 single-runner rule
 
@@ -827,4 +872,6 @@ that stopgap was blocked on the stale Linux baseline set (**§8.7**) — *update
 baselines were regenerated and reviewed on 2026-08-04, and the stopgap **shipped** as PR #323
 (`3b1160b`); §8.7 is now history.* **D4, D6 and D7
 remain unsigned**, as does the js-unit half of D2. **Phases 2, 3 and 5 remain proposals, and
-Phase 4 is not complete** — its release/tag pipeline half is still deferred.
+Phase 4 is not complete** — *updated 2026-08-14: its release/tag pipeline half **shipped** as
+Packet R1 (§8.1b), but Phase 4 stays open because §7.3 entry criteria 2 and 3 are unmet and
+R1's tag trigger has never fired.*

@@ -1,0 +1,728 @@
+# Plan Review — Release/tag pipeline, Packet R1
+
+*Planning size: **Large / new workflow** under [QUALITY_GATE.md](../ai_workflow/QUALITY_GATE.md#plan-stage-routing) — a new CI workflow with new trigger surfaces. Gate 0 + Gate 1 both required, both signed.*
+
+---
+
+## Section 0 — Requirements Brief
+
+**Raw request** (verbatim)
+
+> Proceed with Packet R1 only and write Section 0 of
+> docs/release_pipeline/PLANNING.md. Stop at Gate 0. Do not edit implementation
+> files.
+>
+> Owner decisions:
+> - D1: (a) — release tags are exact `v<APP_VERSION>` tags on main; version is
+>   bumped manually in utils/version.py and package.json in the release PR.
+> - D2: (a) — reuse the successful Windows visual comparison through provenance.
+> - D3: (a) — keep visual-linux out of the release gate. Revisit only after the
+>   2026-08-17 run and at least 3 consecutive green scheduled runs.
+> - D4: (b) — consider Packaged Smoke for branch protection after exactly 10
+>   consecutive green runs using its final composite check name.
+> - D5: (b) — frozen × historical-schema coverage is a separate follow-up packet.
+> - D6: (a) — `release-${{ github.ref }}`, `cancel-in-progress: false`.
+>
+> Before drafting Section 0, reconcile these issues explicitly:
+>
+> 1. The proposed acceptance test uses `v3.0.1-rc0`, but an exact
+>    tag/version guard cannot accept that while APP_VERSION is `3.0.1`.
+>    Do not weaken the production invariant silently. Define a coherent RC/dry-run
+>    testing scheme and distinguish it from a publishable release tag.
+>
+> 2. The diagram mentions `workflow_dispatch (ref, dry_run)`, but the proposed
+>    scope does not define those inputs or their semantics. Specify:
+>    - how the target SHA is resolved;
+>    - how version validation behaves in dry-run mode;
+>    - whether a tag must exist;
+>    - which ref is used in the concurrency group;
+>    - which SHA the provenance query examines.
+>
+> 3. Define duplicate check-run handling. A stale successful run on the same SHA
+>    must not mask a newer failed run with the same context name. Specify the
+>    GitHub API filtering, pagination, selection rule, polling deadline, and
+>    failure diagnostics.
+>
+> 4. Include the required workflow permissions, especially `checks: read` and
+>    `contents: read`, in the contract.
+>
+> Preserve all previously stated Packet R1 constraints, especially:
+> - do not touch `.github/workflows/deep-gate.yml`;
+> - do not rename or convert any of the 11 required jobs to `uses:`;
+> - no `--update-snapshots`;
+> - no port 5000 in new jobs;
+> - do not claim the scheduled deep gate is runtime-validated.
+>
+> In Section 0, turn the decisions and the reconciled behavior into testable
+> requirements and acceptance criteria. Surface any remaining genuinely
+> owner-blocking question, but do not begin implementation.
+
+**Problem**
+
+There is no release process. `ci.yml` triggers on `push: [main, develop]` and
+`pull_request` only, so **a tag push runs nothing at all** — no build, no smoke, no
+check of any kind. The frozen Windows executable that an end user actually
+double-clicks is validated in two places (`ci.yml`'s `packaged-smoke-windows` and
+`deep-gate.yml`'s `frozen-windows`), neither of which is tied to shipping, and the
+build definition is duplicated between them. Nothing establishes, at the moment a
+version is declared shippable, that the declared version matches the code, that the
+shipped commit ever passed the pipeline, or that the packaged artifact starts.
+
+The failure this must prevent is not a red gate. It is a **green gate that proves
+nothing** — a release marked good because a job silently skipped, because a stale
+successful check-run on the same commit masked a newer failed one, or because the
+workflow never triggered and therefore never reported.
+
+**Calculation surface**
+
+`none`. This packet touches no module under `utils/` that participates in Effective
+Sets, RIR/RPE, weekly/session summary, progression, fatigue, or volume distribution.
+The only Python added is a CI provenance query script that reads the GitHub API and
+writes no repository state.
+
+---
+
+### Reconciliation 1 — RC tags and the exact-version invariant
+
+The prior draft's `v3.0.1-rc0` acceptance test is **withdrawn**. It cannot coexist with
+D1 without weakening the guard, and the guard is the invariant.
+
+The reconciled scheme introduces **no RC tag class at all**:
+
+| Tag / event | Classification | Version-guard behavior |
+|---|---|---|
+| `v<MAJOR>.<MINOR>.<PATCH>`, strict `^v\d+\.\d+\.\d+$` | **Publishable release tag** | Strict: tag literal must equal `v` + `APP_VERSION` **and** `v` + `package.json` version |
+| Any other tag matching `v*` (e.g. `v3.0.1-rc0`, `v3.0.1rc`, `vNEXT`) | **Unsupported** | Fails with an explicit message naming `workflow_dispatch` + `dry_run` as the rehearsal route |
+| `workflow_dispatch`, `dry_run: true`, dispatched against a branch | **Rehearsal** | No tag identity to check; asserts internal parity and that `v<APP_VERSION>` does **not** already exist |
+
+Rehearsal is a **dispatch**, not a tag. That is the whole reconciliation: the exact-tag
+invariant is never relaxed because nothing is ever tagged for rehearsal.
+
+The trigger pattern deliberately stays the broad `v*` rather than a narrow semver
+filter. A narrow filter makes a malformed tag **silent** — nothing triggers, nothing
+reports, nobody notices — which is the single failure mode this pipeline cannot detect
+from inside itself. A broad trigger with a strict guard makes the same mistake **loud**.
+
+The one thing a dispatch cannot exercise is the tag trigger itself. That is covered by
+one deliberate push of a **real, strictly-valid** tag (see the blocking question below),
+not by inventing a tag class the guard has to tolerate.
+
+### Reconciliation 2 — dispatch inputs and SHA resolution
+
+The prior draft's `ref` input is **withdrawn**. A custom `ref` input creates a
+divergence hazard with no compensating benefit: the workflow *body* that executes is
+always the one at the dispatched ref, so a separate `ref` input would let the pipeline
+run version-guard logic from commit A against commit B. `workflow_dispatch` already
+carries a built-in ref selector, and that is the resolution mechanism.
+
+`dry_run` is the only input. Resolved behavior:
+
+| Aspect | tag push (`refs/tags/v3.0.1`) | dispatch, branch ref, `dry_run: true` | dispatch, tag ref (any `dry_run`) |
+|---|---|---|---|
+| Target SHA | `github.sha` | `github.sha` | `github.sha` |
+| Must a tag exist | yes — it is the trigger | **no** | yes |
+| Tag-identity assertion | enforced | not applicable | **enforced** — `dry_run` is not a bypass |
+| Parity assertion (`APP_VERSION` == `package.json`) | enforced | enforced | enforced |
+| Additional dry-run assertion | — | `v<APP_VERSION>` must not already exist | — |
+| Concurrency group | `release-refs/tags/v3.0.1` | `release-refs/heads/main` | `release-refs/tags/v3.0.1` |
+| Provenance query SHA | `github.sha` | `github.sha` | `github.sha` |
+| Packaged smoke, startup smokes, fan-in | run, blocking | run, blocking | run, blocking |
+
+`dry_run` relaxes **exactly one** assertion — tag identity, and only where no tag
+exists to assert against. It has no effect on any other job, and no effect at all on a
+`push` event (a tag push carries no inputs and must resolve to release mode).
+
+### Reconciliation 3 — duplicate check-run selection
+
+A commit can carry several check-runs with the same name: a re-run creates a new
+check-run, and a new check-suite can be created for the same SHA. Selecting the wrong
+one lets a **stale success mask a newer failure**, which would make provenance worse
+than no gate at all.
+
+Required behavior:
+
+- **Endpoint** `GET /repos/{owner}/{repo}/commits/{sha}/check-runs`, queried with
+  `filter=all`. The API's default `latest` is **not** to be relied on — its dedupe is
+  per check-suite, so it does not remove cross-suite duplicates.
+- **Pagination** `per_page=100`, paging until the number of collected `check_runs`
+  equals the envelope's `total_count`. The endpoint returns a wrapped object, not a
+  bare array, so naive concatenation is wrong.
+- **Provenance filter** only check-runs whose producing app is GitHub Actions are
+  eligible. A third-party app can create a check-run with any name.
+- **Selection** group eligible runs by `name`; within a group select the maximum by
+  `(started_at, id)`, `id` breaking ties as the monotonic key. Exactly one run per
+  expected name is then evaluated.
+- **Pending** a selected run with `status != "completed"`, or an expected name with no
+  run at all, counts as *pending* — never as pass and never as immediate failure.
+- **Deadline** poll at 30-second intervals for up to **45 minutes**, inside a
+  50-minute job timeout. *(This supersedes the 10-minute figure in the design memo,
+  which was wrong: tagging immediately after a merge means `ci.yml`'s own E2E jobs may
+  still be running, and an 8-minute deadline would red a healthy release.)*
+- **Verdict** pass only when every expected name has a selected run with
+  `conclusion == "success"`.
+- **Diagnostics** on any failure or deadline, print one row per **expected** name —
+  name, status, conclusion, id, `started_at`, `html_url` — plus, for every name that
+  had more than one eligible run, the count and the id selected, plus a separate list
+  of unexpected extra names as information only.
+
+### Reconciliation 4 — permissions
+
+Least privilege, declared explicitly rather than inherited:
+
+| Scope | Permissions |
+|---|---|
+| `release.yml` workflow default | `contents: read` |
+| `ci-provenance` job | `contents: read`, `checks: read` |
+| `_packaged-windows.yml` reusable workflow | `contents: read` |
+
+No job in either new file receives any `write` permission. This pipeline **gates; it
+does not publish** — it creates no GitHub Release, uploads no release asset, and
+pushes nothing. That is what keeps `contents: read` honest, and it is also why the
+rehearsal tag in the blocking question below can be deleted without retracting
+anything.
+
+---
+
+**Acceptance criteria**
+
+*Version and tag identity (D1, Reconciliation 1)*
+
+1. Given `APP_VERSION` is `3.0.1` and `package.json` is `3.0.1`, when tag `v3.0.1` is
+   pushed, then `version-guard` passes.
+2. Given `APP_VERSION` is `3.0.1`, when tag `v3.0.2` is pushed, then `version-guard`
+   fails and its output names both the tag and the two version sources it compared.
+3. Given `APP_VERSION` and `package.json` disagree, when any release run starts, then
+   `version-guard` fails — independently of the tag, so the failure is attributable.
+4. Given tag `v3.0.1-rc0` is pushed, when the workflow triggers, then it **does**
+   trigger (it is not silently filtered out) and `version-guard` fails with a message
+   directing the reader to `workflow_dispatch` with `dry_run`.
+5. Given `version-guard` fails, when the run continues, then every other job still
+   executes and reports — no `needs` short-circuit hides the rest of the gate.
+
+*Dispatch semantics (Reconciliation 2)*
+
+6. Given a dispatch against `main` with `dry_run: true`, when `version-guard` runs,
+   then it asserts `APP_VERSION == package.json` and asserts that tag `v<APP_VERSION>`
+   does not already exist, and it does not require any tag to exist.
+7. Given a dispatch against a **tag** ref with `dry_run: true`, when `version-guard`
+   runs, then tag identity is enforced exactly as on a tag push — `dry_run` is not a
+   bypass.
+8. Given a tag push (no inputs supplied), when `dry_run` is evaluated, then it resolves
+   to release mode.
+9. Given any event, when provenance runs, then the SHA it queries is `github.sha`, and
+   no input can point it at a different commit.
+10. Given a dispatch against `main` and a concurrent tag push, when both run, then their
+    concurrency groups differ (`release-refs/heads/main` vs `release-refs/tags/…`) and
+    neither cancels the other.
+11. Given `dry_run: true`, when the run completes, then no job other than
+    `version-guard` behaves differently from a release run — asserted by a contract
+    test that no `dry_run` expression appears outside the `version-guard` job.
+
+*Provenance (D2, Reconciliation 3)*
+
+12. Given a SHA whose 12 expected check-runs all concluded `success`, when provenance
+    runs, then it passes and lists all 12 with their ids.
+13. Given a SHA where one expected name is absent, when the deadline expires, then
+    provenance fails and the diagnostic names the missing check by its exact context
+    string.
+14. Given a SHA carrying two check-runs named `Run Tests` — an older `success` and a
+    newer `failure` — when provenance runs, then it selects the newer one and **fails**.
+15. Given the reverse (older `failure`, newer `success` from a re-run), when provenance
+    runs, then it selects the newer one and passes. *(Run both directions; a rule that
+    only catches one is indistinguishable from an unconditional one.)*
+16. Given more than 100 check-runs on the SHA, when provenance queries, then it
+    paginates to `total_count` and does not truncate.
+17. Given a check-run with an expected name produced by an app other than GitHub
+    Actions, when provenance selects, then that run is ineligible.
+18. Given an expected check-run still `in_progress`, when provenance polls, then it
+    keeps polling and never treats a non-`completed` status as a pass.
+19. Given the tagged SHA never ran `ci.yml` at all, when the 45-minute deadline
+    expires, then provenance fails listing all 12 as never reported.
+20. Given the expected-name list, when a contract test compares it to the 11 branch
+    protection contexts plus `Visual Regression (Windows baselines)`, then they match
+    exactly — deleting a name from the workflow reds pytest before it can red a release.
+
+*Anti-false-green (fan-in)*
+
+21. Given any job in the release workflow concludes anything other than `success`
+    (including `skipped` and `cancelled`), when `release-gate` runs under
+    `if: always()`, then it fails and names the offending job.
+22. Given a job id is removed from `release-gate`'s `needs`, when the contract test
+    compares the key set of `toJSON(needs)` against the other job ids in the file, then
+    the test fails. The same test fails when a phantom name is added to the expected set.
+23. Given a guard step inside any job is skipped, when its job completes, then the job
+    fails — every guard step carries an `id` and `if: always()`, and its job asserts
+    `steps.<id>.outcome == 'success'`.
+
+*Reuse, ports, and preserved contracts*
+
+24. Given the packet is complete, when the frozen Windows build+smoke definitions are
+    counted across all workflow files, then there are exactly **two**
+    (`_packaged-windows.yml` and `deep-gate.yml`'s untouched `frozen-windows`) — never
+    three.
+25. Given `ci.yml` after the edit, when its `packaged-smoke-windows` job `name:` is
+    read, then it is byte-identical to `Packaged Smoke (Windows bootloader, non-required)`.
+26. Given `ci.yml` after the edit, when every job whose `name:` appears in the 11
+    required contexts is inspected, then each still uses `steps:` and none uses `uses:`.
+27. Given every job in the two new files, when timeouts are inspected, then each
+    declares `timeout-minutes`, or — for a `uses:` job, which cannot declare one — passes
+    it as an input to a reusable workflow that does.
+28. Given every new or edited job, when its port configuration is read, then no value is
+    `5000`; the packaged smoke uses `5123` and the two startup smokes use distinct
+    non-5000 ports via `HT_PORT`.
+29. Given all workflow files, when searched for `--update-snapshots`, then there are zero
+    occurrences.
+30. Given `deep-gate.yml`, when the packet's diff is inspected, then that file is
+    unchanged.
+31. Given `release.yml`, when its `concurrency` block is read, then the group contains
+    `github.ref` and `cancel-in-progress` is `false`.
+32. Given both new files, when every `permissions:` block is read, then no scope is
+    granted `write`, and `ci-provenance` declares `contents: read` and `checks: read`.
+33. Given the packet adds test files, when `scripts/generate_test_inventory.py --check`
+    runs, then it passes against a regenerated, committed `docs/test_inventory/`.
+
+**In scope**
+
+- `.github/workflows/_packaged-windows.yml` — new `workflow_call` reusable workflow
+  holding the frozen build + bootloader smoke, with `port` (default `5123`), `runner`,
+  and `timeout-minutes` (default `45`) inputs. Body lifted from the existing
+  `packaged-smoke-windows` job, comments included.
+- `.github/workflows/release.yml` — new. Triggers `push: tags: ['v*']` and
+  `workflow_dispatch` (`dry_run` only). Jobs: `version-guard`, `ci-provenance`,
+  `packaged-windows` (calls the reusable workflow), `startup-smokes` (matrix:
+  first-install, old-db-migration), `release-gate` (fan-in).
+- `.github/workflows/ci.yml` — modify **only** the `packaged-smoke-windows` job body to
+  call the reusable workflow. Its `name:` is untouched.
+- `scripts/check_release_provenance.py` — new; the pagination, eligibility, selection,
+  polling and diagnostics logic of Reconciliation 3, in Python so it is unit-testable
+  rather than inline shell.
+- `tests/test_release_workflow_contracts.py` — new; static YAML contracts (criteria
+  20, 22, 24–32).
+- `tests/test_release_provenance.py` — new; unit tests over the selection rule against
+  fixture payloads (criteria 12–19), run in both directions.
+- `docs/RELEASE_CHECKLIST.md` — new; the 10-minute manual layer
+  (plan → log → summary → progression → backup/restore → erase) that
+  `TESTING_STRATEGY_PLANNING.md` §5 has owed since 2026-08-01. Its **first** step is
+  "confirm a run exists for this tag", the only available defense against a trigger that
+  never fires. It also records that `main` must be green before tagging.
+- `docs/test_inventory/TEST_INVENTORY.json` + `.md` — regenerated, never hand-edited.
+- `docs/DECISIONS.md` — ADR recording D1, D6, and the three tag classes.
+- `docs/TESTING_STRATEGY_PLANNING.md` — Phase 4 step 13 status only.
+- `docs/ai_workflow/QUALITY_GATE.md` — one rule: converting a job to `uses:` renames its
+  check to `parent / child`; never do it to a job in branch protection.
+- This file.
+
+**Out of scope / non-goals**
+
+- `.github/workflows/deep-gate.yml` — **not touched under any circumstance.** A
+  scheduled workflow executes the default branch's HEAD copy, so merging any edit before
+  2026-08-17 03:17 UTC would mean the first scheduled run validates a different file than
+  the one that shipped. Converting `frozen-windows` to the reusable workflow, and the B9
+  `concurrency:` decision, are Packet R2.
+- `visual-linux` in the release gate (D3) — revisit only after the 2026-08-17 run and
+  ≥3 consecutive green scheduled runs.
+- Frozen × historical-schema coverage (D5) — separate follow-up packet; it needs a
+  `--legacy-db` argument on `scripts/smoke_packaged_app.py` and its own tests.
+- Any branch-protection API change. D4's promotion of `Packaged Smoke` happens after 10
+  consecutive green runs under its **composite** name, as a separate deliberate step.
+- Creating a GitHub Release, uploading the built executable as a release asset, changelog
+  generation, code signing, or any form of publishing or distribution.
+- Adding a tag trigger to `ci.yml`.
+- Re-running the 11 required contexts on the tag. D2 reuses the runs; that is the point.
+
+**Assumptions made**
+
+- ⚠️ The 11 required contexts were read live on 2026-08-14 from
+  `gh api …/branches/main/protection/required_status_checks`. Branch protection can
+  change outside this packet; the contract test pins the list as the packet's
+  understanding, and a future change to protection will red that test deliberately.
+- ⚠️ All 12 expected contexts are produced as GitHub **check-runs** (Actions jobs), not
+  legacy commit statuses. If any were a commit status, the check-runs endpoint would not
+  see it and provenance would report it missing. Believed true because all 12 are
+  Actions jobs, but not separately verified against a live SHA.
+- ⚠️ `filter=latest` on the check-runs endpoint dedupes per check-suite rather than
+  globally. The design **avoids depending on this** by using `filter=all` with an explicit
+  selection rule, so the assumption is defused rather than relied on.
+- ⚠️ `github.sha` on an annotated-tag push resolves to the tagged **commit**, not the tag
+  object, so the check-runs query finds the commit's checks.
+- ⚠️ The 45-minute provenance deadline is derived from `ci.yml`'s slowest job timeout
+  (`E2E Functional Shard`, 45 min), not from measured tag-push-after-merge latency. It is
+  a hang detector, not a budget, following the #325 precedent.
+- ⚠️ A `uses:` job accepts only `name`, `needs`, `if`, `permissions`, `with`, `secrets`,
+  `strategy`, `concurrency` — not `timeout-minutes`, `runs-on`, `env`, or
+  `continue-on-error`. Neither converted job uses `continue-on-error` today, so nothing is
+  lost, but this shapes the reusable workflow's input list.
+- ⚠️ Converting `packaged-smoke-windows` to `uses:` changes its check name to
+  `Packaged Smoke (Windows bootloader, non-required) / <called job name>`. Safe **only**
+  because that job is not in branch protection — verified against the live list. D4's
+  10-run count therefore starts at the composite name, not before.
+- ⚠️ Adding `scripts/check_release_provenance.py` routes this packet through
+  QUALITY_GATE's `scripts/**` row, whose stem search will find the new test file and so
+  produce a **non-empty** union — which suppresses the `/verify-suite` fallback. This
+  packet nonetheless requires a full `/verify-suite`, because it edits `ci.yml` and
+  changes the committed test inventory. Stated here so it is a decision, not an accident.
+- ⚠️ The weekly scheduled deep gate is **implemented but not runtime-validated**. No
+  scheduled execution has occurred; the first is due 2026-08-17 03:17 UTC. Nothing in this
+  packet depends on it, and nothing in this packet may be read as validating it.
+
+**Open questions for the user**
+
+1. **Blocking — how is the tag trigger itself proven, and with which tag?**
+   `APP_VERSION` is `3.0.1` and no release tag exists, so under D1 the only tag the guard
+   can currently accept is `v3.0.1`. Acceptance criteria 1 and 4 require pushing a real tag
+   to the repository — an outward-facing action this packet will not take unattended.
+   Three routes:
+   - **(a)** Push `v3.0.1` on a `main` SHA as the rehearsal, inspect the run, then delete
+     the tag. Safe under this design because the pipeline publishes nothing, but it does
+     mean the first real `3.0.1` release re-pushes a previously-deleted tag.
+   - **(b)** Bump to `3.0.2` in the release PR and reserve `v3.0.1` purely as the
+     throwaway rehearsal tag.
+   - **(c)** Accept that the tag-trigger path stays unproven until the first genuine
+     release, and validate everything else by `workflow_dispatch` dry-run.
+
+   All other reconciliations are settled; this is the only decision the packet cannot make
+   for itself.
+
+### Section 0 sign-off — GATE 0
+- [x] User confirms the acceptance criteria match intent.
+- [x] User reviewed the assumptions and corrected or accepted each one.
+- [x] Blocking questions are answered.
+
+**GATE 0 APPROVED — 2026-08-14, owner.** The blocking question is answered with
+**option (c)**:
+
+> Do not create or delete a rehearsal tag. Validate through `workflow_dispatch` with
+> `dry_run: true`. Leave the real tag-trigger path explicitly unproven until the first
+> genuine release. Do not weaken the exact `v<APP_VERSION>` production invariant.
+
+**Consequence for the acceptance criteria.** Criteria 1, 2 and 4 assert behavior on a
+tag push. Under (c) no tag is pushed, so they are **not executable in this packet**.
+They are not deleted and not weakened: they are re-classified as *deferred-to-first-release*
+and each gains a **static** counterpart that is executable now — the guard logic is
+exercised directly through its unit tests (the same code the workflow calls), and the
+workflow's trigger block is asserted by a contract test. This preserves the invariant
+while being honest that the GitHub-side trigger wiring is unproven. See the residual
+register in Plan v2.
+
+---
+
+## Live re-verification (2026-08-14, before planning)
+
+The owner required GitHub-dependent assumptions to be re-verified rather than trusted.
+Executed against the live repository:
+
+| Assumption | Command | Result |
+|---|---|---|
+| 11 required contexts, exact strings | `gh api …/branches/main/protection/required_status_checks --jq '.contexts[]'` | **Confirmed, 11**, byte-identical to Section 0's list |
+| The 12 expected names all exist as check-runs on a completed `main` SHA | `gh api …/commits/5a03d47/check-runs?filter=all` | **Confirmed** — 18 check-runs, all `success`, all 12 expected names present |
+| All are produced by GitHub Actions | `… --jq '[.check_runs[].app.slug]|unique'` | `["github-actions"]` — the app-eligibility filter is meaningful, not theoretical |
+| The response is a wrapped envelope needing pagination | same | `{total_count, check_runs[]}` confirmed; 17–18 runs per SHA today, under one page |
+| `filter=latest` vs `filter=all` | both, on three completed SHAs | **Identical counts (18/18) on every SHA sampled** — no live duplicate exists to distinguish them |
+
+**Two findings that changed the plan:**
+
+1. **`E2E Functional (Chromium)` materializes late.** On the in-flight SHA `a64ea76`,
+   `filter=all` returned 17 check-runs and that name was **absent** — only
+   `E2E Functional Shard 1/2` and `2/2` existed, still `in_progress`. The fan-in gate is
+   a job with `needs:`, so its check-run is not created until its dependencies finish.
+   This is live proof that *"expected name absent"* must mean **pending**, never
+   **failure** — a design that failed fast on a missing name would red every release
+   tagged promptly after a merge. Section 0 criterion 13 already required this; the
+   evidence promotes it from prudence to necessity.
+2. **The duplicate scenario cannot be reproduced live.** No sampled SHA carries two
+   check-runs with one name, so `filter=all` and `filter=latest` are empirically
+   indistinguishable here. The selection rule is therefore justified *by construction*
+   and can only be tested against synthetic fixtures. Recorded as a residual: this packet
+   asserts the rule's behavior, not that GitHub produces the shape it defends against.
+
+---
+
+## Plan v1
+
+**Goal**: A tag push or dispatch of `release.yml` either proves — on the exact commit
+being shipped — that the version is coherent, that commit passed the full PR pipeline,
+the frozen Windows executable builds and starts, and a fresh and an upgraded database
+both boot; or it goes red. It cannot go green with a job skipped, a stale check-run, or
+a missing report.
+
+**Scope**
+
+- **In**: the twelve artifacts in the table below; Packet R1 as approved at Gate 0.
+- **Out**: `deep-gate.yml` (Packet R2); `visual-linux` on release (D3); frozen ×
+  historical-schema (D5); any branch-protection change (D4); tag creation/deletion;
+  GitHub Releases, asset upload, publishing, signing; a tag trigger on `ci.yml`;
+  re-running the 11 required contexts on the tag.
+
+**Artifacts**
+
+| Path | Change | Notes |
+|---|---|---|
+| `.github/workflows/_packaged-windows.yml` | new | `workflow_call`; inputs `port` (5123), `runner` (`windows-latest`), `timeout-minutes` (45); `permissions: contents: read`; body lifted from `packaged-smoke-windows` with its comments |
+| `.github/workflows/release.yml` | new | `push: tags: ['v*']` + `workflow_dispatch` (`dry_run` only); 5 jobs; `concurrency: release-${{ github.ref }}`, `cancel-in-progress: false` |
+| `.github/workflows/ci.yml` | modify | `packaged-smoke-windows` body → `uses:`. `name:` byte-identical. No other job touched. |
+| `scripts/release_gate.py` | new | Two subcommands, `version` and `provenance` — the whole gate's decision logic in tested Python rather than untested inline shell |
+| `tests/test_release_gate.py` | new | Unit tests over both subcommands, including both directions of the duplicate-selection rule |
+| `tests/test_release_workflow_contracts.py` | new | Static YAML contracts (Section 0 criteria 11, 20, 22, 24–32) |
+| `docs/RELEASE_CHECKLIST.md` | new | The 10-minute manual layer; step 1 is "confirm a run exists for this tag" |
+| `docs/test_inventory/TEST_INVENTORY.json` / `.md` | regen | Two new test files change node counts |
+| `docs/DECISIONS.md` | modify | ADR: D1, D6, the three tag classes, and option (c) |
+| `docs/TESTING_STRATEGY_PLANNING.md` | modify | Phase 4 step 13 status only |
+| `docs/ai_workflow/QUALITY_GATE.md` | modify | One rule: `uses:` renames a check to `parent / child`; never for a protected job |
+| `docs/release_pipeline/PLANNING.md` | this file | Section 0, council record, Plan v2 |
+
+**Job design**
+
+| Job | Runner | timeout | Purpose |
+|---|---|---|---|
+| `version-guard` | ubuntu-latest | 10 | `release_gate.py version` — parity + tag identity per the Reconciliation-2 matrix |
+| `ci-provenance` | ubuntu-latest | 50 | `release_gate.py provenance` — 45-min poll deadline, 30s interval; `permissions: contents: read, checks: read` |
+| `packaged-windows` | via reusable | 45 (input) | frozen build + `--mode bootloader --port 5123` |
+| `startup-smokes` | ubuntu-latest, matrix ×2 | 15 | `first-install` (`HT_PORT=5124`), `old-db-migration` (`HT_PORT=5125`) |
+| `release-gate` | ubuntu-latest | 5 | fan-in: literal expected `needs` key set + every result `success` |
+
+**Sequence**
+
+1. `_packaged-windows.yml`, then convert `ci.yml`'s job to call it. Verify by contract test that the required-context jobs are untouched.
+2. `scripts/release_gate.py` + `tests/test_release_gate.py` — logic and its tests before the workflow that calls it.
+3. `release.yml` wiring all five jobs.
+4. `tests/test_release_workflow_contracts.py` against the finished YAML; run its mutations in both directions.
+5. `docs/RELEASE_CHECKLIST.md`, then the three doc updates.
+6. Regenerate the test inventory last, after every test file exists.
+
+**Effort**: M · **Owner**: this session · **Depends on**: nothing. Explicitly *not* blocked by the 2026-08-17 scheduled run, because no artifact in this packet touches `deep-gate.yml`.
+
+**Expected gates** (to be confirmed by `test-strategist`)
+- pytest: `tests/test_release_gate.py`, `tests/test_release_workflow_contracts.py`, plus full `pytest` because the committed test inventory changes.
+- e2e: **proposed none** — this packet changes no route, template, JS, CSS, or `utils/` module. Open for the council to overrule.
+- other: `python scripts/generate_test_inventory.py` then `--check`.
+
+**Open design questions carried into the council**
+
+- **Q1** One `scripts/release_gate.py` with subcommands, or two single-purpose scripts?
+- **Q2** Should the two startup smokes be extracted into a second reusable workflow now (making Packet R2 a six-line change), or stay inline in `release.yml` (smallest R1)?
+- **Q3** Is a full `/verify-suite` including Chromium E2E warranted for a packet that touches no application code, or is full `pytest` + the contract tests the honest gate?
+- **Q4** Does the fan-in job's expected-key-set literal belong in shell+`jq` inside the YAML, or should it too move into `release_gate.py`?
+
+---
+
+## Council response matrix — Gate 1
+
+Three reviewers ran in parallel against this worktree. Every finding is answered.
+**A / R / D** = Adopted / Revised-then-adopted / Declined.
+
+### Architecture reviewer (`ac1dd79ac8a5ef591`)
+
+| # | Finding | A/R/D | Response |
+|---|---|---|---|
+| A-B1 | `workflow_dispatch` cannot fire before the file is on the default branch, so `release.yml` gets **zero** runtime evidence pre-merge | **A** | Verified correct. The owner execution order already mandates a post-merge dispatch, so this is sequencing, not a defect. Added as sequence step 8 and residual **R-3**. The PR does not close the packet; the post-merge dry-run does. |
+| A-B2 | Criterion 20 is literal-vs-literal and cannot catch a `ci.yml` job rename | **A** | Adopted in test-strategist's stronger form: derive one side from `ci.yml` job `name:` values. |
+| A-B3 | The dry-run's only added assertion is a guaranteed false green — `checkout@v7` fetches no tags, so `git tag -l` is always empty | **A** | Verified. Replaced with `GET /git/matching-refs/tags/<tag>`, no checkout dependency. **A second defect was found here that the reviewer did not raise**: that endpoint is a *prefix* match, so an existing `v3.0.10` would satisfy a `v3.0.1` query. The implementation filters for exact `refs/tags/<tag>` equality and a unit test pins the prefix-collision case. |
+| A-N1 | PyYAML unavailable; regex-over-YAML has a false-pass history here | **A** | Confirmed: absent from `requirements.txt`, `import yaml` fails in the venv. Using an indentation parser modelled on `tests/test_compiled_css_drift_gate_contracts.py:56-130`, generalized to take a path. PyYAML is **not** added. |
+| A-N2 | The reusable workflow child job id is unpinned but becomes branch-protection-load-bearing under R1-D4 | **A** | Pinned as `build-and-smoke`; composite name recorded in the ADR, criterion 25 and the QUALITY_GATE rule. |
+| A-N3 | Startup smokes are a rewrite, not a lift, with no duplication ceiling | **A** | Criterion 36 + cross-reference comments. See Q2. |
+| A-N4 | Lifted comments carry three claims that become false in the new home | **A** | The `--mode bootloader` and non-5000-port paragraphs are kept verbatim; the "keep the two in step" and "non-required on purpose" sentences are rewritten for the reusable workflow perspective. |
+| A-N5 | QUALITY_GATE has no `.github/workflows/**` row at all | **A** | Added in the edit the packet already makes to that file. |
+| A-N6 | The two runtime-pin contracts parametrize over exactly two workflows | **A** | Adopted **with test-strategist's correction**: add both new files to the *python* list only. The node contract asserts `setup_count > 0` and neither new file uses `setup-node`. Verified by reading both. |
+| A-N7 | Two rehearsal dispatches against `main` share a concurrency group | **R** | Group prefixed with `${{ github.workflow }}` to match the ci.yml convention. Same-ref supersession is **accepted and recorded** in the ADR — R1-D6 fixes `cancel-in-progress: false` and reshaping the key further would exceed it. |
+| A-N8 | The pyright baseline diff is missing from expected gates | **A** | Added. |
+| A-NIT1 | Section 0 names `check_release_provenance.py`; Plan v1 renamed it silently | **A** | Supersession recorded below. |
+| A-NIT2 | Ban `github.event.inputs.dry_run`, mandate `inputs.dry_run` | **A** | Contract test asserts the ban. |
+| A-NIT3 | `MASTER_HANDOVER.md` missing from the artifact table | **A** | Added. |
+| A-NIT4 | Mixed `dry_run` / `timeout-minutes` input naming | **D** | Declined. `timeout-minutes` mirrors the GitHub key it feeds; `dry_run` follows this repo's own workflow inputs (`run_visual`, `visual_mode` in `deep-gate.yml`). Each convention is load-bearing in its own direction. |
+
+### Test strategist (`a8a63e31cc3a5ff40`)
+
+| # | Finding | A/R/D | Response |
+|---|---|---|---|
+| T-Q3 | Full pytest mandatory; the Chromium E2E half of `/verify-suite` is **not derivable** from any changed path | **A** | Nine pre-existing test files assert against the changed artifacts while the `scripts/**` stem union resolves to two files this packet writes itself. Local gate = full pytest + inventory regen/`--check` + pyright baseline diff + `tsc`. The E2E half is supplied by CI's own jobs, which still gate the merge — **no test is relaxed and no contract is weakened**. Residual **R-6**. |
+| T-Q2 | Only the `e2e-functional-shard` spec list or a rename of that job trips the workflow-derived inventory surface | **A** | Confirmed against `scripts/generate_test_inventory.py:125-156`. Regeneration sequenced last. |
+| T-B1 | The YAML contract file can go **entirely vacuous** if the parser stops matching | **A** | Vacuity floor: assert 5 jobs in `release.yml`, 1 in `_packaged-windows.yml`, >=17 in `ci.yml` **before** any other assertion. Highest-value finding of the council. |
+| T-B2 | Criterion 28 as a negative `"5000" not in text` scan is **inverted** — deleting `HT_PORT` makes it pass more easily | **A** | Replaced with a positive assertion: each smoke leg must *set* `HT_PORT` to its named non-5000 value and its probe URL must use that same port. |
+| T-B3 | Criterion 32 as `": write" not in text` passes when `permissions:` is deleted | **A** | Replaced with a positive assertion: every job in both new files declares a `permissions:` block and every scope is `read`. |
+| T-B4 | Both new workflows are invisible to every runtime-pin contract | **A** | See A-N6. |
+| T-fixtures | A/B are jointly insufficient — need C (id/time disagree), D (equal timestamps), E (array order), G1/G2 (eligibility), and a page-2-decisive pagination fixture | **A** | All adopted. Clock and deadline injected so the **poll loop itself** is the unit under test, not a pure helper the workflow never calls. |
+| T-gap | **A genuine gap in the 33 criteria**: nothing covers a provenance verdict on `cancelled` / `skipped` / `neutral` / `timed_out` | **A** | New criterion **34**, parametrized. `conclusion == "success"` is the only pass. |
+| T-Q5 #7 | Criterion 11 is satisfied maximally by dropping `dry_run` entirely | **A** | Paired with the positive: `dry_run` must appear inside `version-guard` and reach the script as an argument. |
+| T-Q5 #8 | Criterion 21 must assert the `!= 'success'` operator, not the presence of `if: always()` | **A** | Adopted. |
+| T-Q5 #9 | Criterion 24 counted by filename passes with "two definitions, zero callers" | **A** | Counted by command shape (`pyinstaller --clean --noconfirm` and `smoke_packaged_app.py` each exactly 2 across all workflow files) **plus** both callers asserted present. |
+| T-Q5 #10 | Criterion 3 must not re-derive `tests/test_version.py` | **A** | The unit under test is fed two literal strings. |
+| T-Q5 #11 | Criterion 23 must bind both halves | **A** | For every step declaring an `id:`, a later step in the same job must reference `steps.<id>.outcome`. |
+| T-Q5 #12 | Criterion 29 over two files is vacuous by construction | **A** | Scans all four workflow files. |
+| T-NIT13 | The empty-string `dry_run` a push event produces is the highest-value untested input | **A** | Explicit unit test. |
+| T-static | Static substitutes for deferred criteria 1/2/4, incl. pinning the anchored `^v\d+\.\d+\.\d+$` regex and asserting the trigger is **not** semver-narrowed | **A** | Adopted; stronger than what Section 0 had. |
+| T-30 | Criterion 30 substitute via the `test_consult_adapter.py:1066-1077` precedent | **A** | Assert `deep-gate.yml` still contains its five load-bearing strings **and** contains no `uses: ./.github/workflows/_packaged-windows.yml`. That negative catches R2 creep. |
+| T-collect | Neither new test file may make its **collection** host-dependent | **A** | No `importorskip`, no glob-parametrization over `.github/workflows/*.yml`; explicit literal lists only. |
+
+### Product-risk reviewer (`af59ffce656209012`)
+
+| # | Finding | A/R/D | Response |
+|---|---|---|---|
+| P-B1 | The residual register is a dangling forward reference | **A** | Written below, six rows. |
+| P-B2 | The Plan v1 Goal asserts a tag path that never ran, and implies the *frozen* build is proven against a historical schema when it is not | **A** | Goal rewritten. A real overstatement; the correction is material. |
+| P-B3 | The TESTING_STRATEGY edit is under-scoped; four locations claim deferral and §7.3 entry criteria 2 and 3 stay unmet | **A** | All four locations updated plus a new §8.1b. Step 13 states verbatim that Phase 4 **remains open**. The "no scheduled run has executed yet" sentences are preserved **verbatim**. |
+| P-B4 | The checklist erase step destroys the owner's live training data and every in-DB backup | **A** | Highest-severity finding. `HT_RUNTIME_DIR` isolation is mandatory step 0, and the checklist records that erase drops the backup tables so backup/restore is re-verified after it. |
+| P-B5 | The checklist covers 5 of 7 core workflows; `/user_profile` has zero coverage in the frozen artifact *and* the manual layer | **A** | Extended to all seven using CLAUDE.md canonical vocabulary. |
+| P-B6 | The criterion-20 assumption claims a defense that cannot exist offline | **A** | Reworded to claim only in-repository drift, plus a checklist step to re-read live protection before tagging. |
+| P-B7 | No criterion pins the smoke **argv** across the lift — adding `--skip-upgrade` would pass all 33 criteria while deleting the only automated upgrade proof | **A** | New criterion **35**. |
+| P-B8 | The startup smokes are the only place `program_backups` survival after a schema upgrade is asserted | **A** | New criterion **36**: the release copy required-table/column sets must be a **superset** of deep-gate's, both parsed from source. |
+| P-B9 | `MASTER_HANDOVER.md` missing | **A** | Added. |
+| P-N1 | The calculation-surface rationale sentence is stale against the renamed script | **A** | Rewritten. Verdict `none` unchanged and independently confirmed. |
+| P-N2 | This packet's D1-D6 collide with TESTING_STRATEGY's own D1-D7 | **A** | Namespaced **R1-D1 … R1-D6** everywhere. |
+| P-N3 | §8.1a signed the deferral; the supersession has no recorded home | **A** | §8.1b names §8.1a explicitly. |
+| P-N4 | The ADR omits R1-D2 and R1-D3 | **A** | Both added with their residuals. |
+| P-N5 | Q3 reopens a question Section 0 already decided | **A** | Resolved as a recorded supersession, not a silent change. |
+| P-N6 | Artifact renames diverge from Gate-0 scope without a note | **A** | Recorded below. |
+| P-N7 | The `runner` input is unused and would let a non-Windows runner produce a passing smoke of a different artifact | **A** | **Input dropped**; `runs-on: windows-latest` hard-coded. |
+| P-D2 | D2's real trade is undisclosed: a re-run-to-green counts, and `Visual Regression` is not a protected context so `main` can merge with it red | **A** | Residual **R-4**. "Green before tagging" is defined as **all 12** expected contexts, not the 11 required. |
+| P-(c) | Option (c) is under-disclosed in the three places a reader actually reaches | **A** | Header comment in `release.yml`, reason-carrying step 1 in the checklist, and the step-13 wording — all three adopted close to verbatim. |
+| P-NIT | Name both summary pages; assert the Effective/Raw side-by-side contract; use canonical vocabulary | **A** | Adopted. |
+
+### Open questions — resolved
+
+- **Q1 → one `scripts/release_gate.py` with subcommands.** Unanimous. The expected-context list must be a single importable constant shared by the runtime and the contract test; splitting duplicates that literal. `QUALITY_GATE.md:102` routes `scripts/**` by file stem, so one stem is unambiguous where three give three chances for the union to go shallow.
+- **Q2 → startup smokes stay inline in `release.yml`.** Extraction does **not** reduce R1's duplication count (a one-caller reusable workflow plus deep-gate's untouched pair is still two semantic copies) while adding a second `workflow_call` contract and permissions surface. Paired with criterion 36 and cross-reference comments.
+- **Q3 → full pytest; no locally-derived E2E.** See T-Q3.
+- **Q4 → the fan-in assertion moves into `release_gate.py`.** `toJSON(needs)` interpolated into YAML shell is a quoting hazard and forces the contract test to regex shell-inside-YAML. `needs` JSON is passed via `env:` to a `fan-in` subcommand whose expected job-id set is a module constant the contract test imports and compares against job ids parsed from `release.yml` — a two-source cross-check.
+
+### Supersessions of the Gate-0-approved Section 0
+
+Recorded so the diff is not read as scope creep. None expands the packet.
+
+1. `scripts/check_release_provenance.py` → **`scripts/release_gate.py`** (three subcommands); `tests/test_release_provenance.py` → **`tests/test_release_gate.py`**.
+2. Section 0's assumption that a full `/verify-suite` including Chromium E2E is required is **superseded** by T-Q3. Its reasoning (ci.yml edit + inventory change) survives and is exactly why *full* pytest rather than a targeted subset is required.
+3. Criteria 1, 2 and 4 are deferred by owner option (c) with static substitutes. Criteria **34, 35, 36** added by the council.
+4. `_packaged-windows.yml` has **no inputs at all**. The `runner` input was dropped at
+   council (P-N7); `port` and `timeout-minutes` were dropped during the post-implementation
+   unslop review once measurement showed no caller varies either — `deep-gate.yml`'s
+   `frozen-windows` also uses 45 minutes and passes no `--port`. Both values are now
+   literals inside the reusable workflow.
+5. Section 0's `startup-smokes` matrix (two legs) shipped as **two discrete jobs**,
+   `first-install` and `old-db-migration`. A matrix would have needed a per-step `if:`
+   to select the leg's body, and a conditional step is exactly what the anti-skip
+   contract forbids. This is why `RELEASE_JOB_IDS` has five entries and the fan-in
+   expects five rather than four.
+6. Section 0 criterion 23 (`every guard step carries an id and if: always()`) is
+   **replaced**, not merely extended. No step in either new workflow declares an `id:`,
+   which would have made that contract vacuous. The executable form is the stronger
+   inverse: *no step may carry a skip-capable `if:` at all* — only `failure()`
+   diagnostics may be conditional.
+
+---
+
+## Plan v2 — approved for implementation
+
+**Goal** (rewritten per P-B2). A **dispatch** of `release.yml` proves, on the exact commit
+under test, that the two version sources agree, that this commit's 12 expected CI
+check-runs all concluded success, that the frozen Windows executable builds and starts
+from a fresh runtime, and that a source checkout boots both a freshly-seeded database
+and a historical-schema one. A **tag push** is expected to do the same, but **that
+trigger path has never executed** (owner option (c)). The frozen executable is proven
+to build and start; it is **not** booted against a historical schema — that is R1-D5,
+deferred.
+
+**Artifacts** (14; supersedes the Plan v1 table)
+
+| Path | Change |
+|---|---|
+| `.github/workflows/_packaged-windows.yml` | new — `workflow_call`, inputs `port` (5123) and `timeout-minutes` (45), no `runner` input, `runs-on: windows-latest`, job id `build-and-smoke`, `permissions: contents: read` |
+| `.github/workflows/release.yml` | new — 5 jobs, option-(c) header comment, `concurrency: ${{ github.workflow }}-release-${{ github.ref }}` / `cancel-in-progress: false` |
+| `.github/workflows/ci.yml` | modify — `packaged-smoke-windows` body → `uses:`; `name:` byte-identical; no other job touched |
+| `scripts/release_gate.py` | new — subcommands `version`, `provenance`, `fan-in`; stdlib HTTP only; injectable clock |
+| `tests/test_release_gate.py` | new — unit tests incl. all council fixtures, both directions |
+| `tests/test_release_workflow_contracts.py` | new — structural contracts with a vacuity floor |
+| `tests/test_python_version_contract.py` | modify — add the two new workflows to the *python* parametrize list only |
+| `docs/RELEASE_CHECKLIST.md` | new — 7 workflows, mandatory `HT_RUNTIME_DIR` step 0, live-protection re-read |
+| `docs/DECISIONS.md` | modify — ADR for R1-D1…R1-D6, tag classes, option (c) |
+| `docs/TESTING_STRATEGY_PLANNING.md` | modify — four locations + new §8.1b; Phase 4 stays open |
+| `docs/ai_workflow/QUALITY_GATE.md` | modify — `.github/workflows/**` row + the `uses:` composite-rename rule |
+| `docs/MASTER_HANDOVER.md` | modify — what landed and what it does not establish |
+| `docs/test_inventory/TEST_INVENTORY.json` / `.md` | regenerate, last |
+| `docs/release_pipeline/PLANNING.md` | this file |
+
+**Added acceptance criteria**
+
+34. Given an expected check-run whose selected conclusion is `cancelled`, `skipped`,
+    `neutral` or `timed_out`, when provenance evaluates it, then it **fails** —
+    `success` is the only passing conclusion.
+35. Given the reusable workflow, when its smoke step command is read, then it invokes
+    `scripts/smoke_packaged_app.py` with `--mode bootloader` and **without**
+    `--skip-upgrade` or `--skip-runtime`, so the upgrade-migration proof survives the lift.
+36. Given `release.yml`'s `old-db-migration` leg, when its required-table and
+    required-column sets are parsed and compared with `deep-gate.yml`'s, then the release
+    copy is a **superset** of deep-gate's — `program_backups` and `program_backup_items`
+    included.
+
+**Sequence**
+
+1. `_packaged-windows.yml`; convert `ci.yml`'s job to call it.
+2. `scripts/release_gate.py`, then `tests/test_release_gate.py`.
+3. `release.yml`.
+4. `tests/test_release_workflow_contracts.py`; run every mutation in both directions.
+5. `tests/test_python_version_contract.py` parametrize edit.
+6. `docs/RELEASE_CHECKLIST.md`, then the four doc updates.
+7. Regenerate the inventory; full pytest; pyright baseline diff; `tsc`.
+8. **Post-merge**: dispatch `release.yml` against `main` with `dry_run: true` and inspect
+   the whole job set. A-B1 makes this impossible before merge, so the packet is not
+   complete at merge.
+
+**Gates**: full `pytest`; `python scripts/generate_test_inventory.py` then `--check`;
+`scripts/pyright_baseline_diff.py`; `npx tsc --noEmit`; the 15-mutation harness. No
+locally-derived E2E; CI supplies it.
+
+### Residual register
+
+| # | Residual | Why accepted |
+|---|---|---|
+| **R-1** | The `push: tags` trigger has **never fired**. Its wiring is unproven. | Owner option (c). Disclosed in `release.yml`'s header, checklist step 1, and TESTING_STRATEGY step 13. |
+| **R-2** | The duplicate-check-run selection rule is justified **by construction**; no live duplicate exists to test against. | `filter=latest` and `filter=all` returned identical counts on every sampled SHA. Synthetic fixtures assert the rule's behavior, not that GitHub produces the shape. |
+| **R-3** | `release.yml` cannot execute at all before merge. | `workflow_dispatch` requires the file on the default branch. Compensated by the post-merge dry-run. |
+| **R-4** | **R1-D2**: the release gate credits the visual comparison that already ran on the SHA and never runs an independent second one. A red-then-re-run-to-green counts. | Deliberate. `Visual Regression (Windows baselines)` is **not** a protected context, so `main` can merge with it red — "green before tagging" therefore means all **12** expected contexts, not the 11 required. |
+| **R-5** | Branch-protection drift is **not detectable offline**. The contract test pins in-repository drift only. | Compensated by a checklist step that re-reads the live contexts before tagging. |
+| **R-6** | No locally-derived Chromium E2E. | No changed path reaches a browser; CI's E2E jobs still gate the merge. |
+| **R-7** | **R1-D5**: the frozen executable is never booted against a historical-schema database. | Deferred to a follow-up packet by owner decision. |
+
+---
+
+## Post-implementation review round
+
+Two reviewers ran against the staged diff. `unslop-reviewer` returned 11 findings;
+`code-reviewer` died on a session limit mid-run and was relaunched to completion.
+
+### code-reviewer (`ae1d6047e9359b032`) — one blocking false green
+
+| # | Finding | Response |
+|---|---|---|
+| **B1** | `[ "$root" = "200" ] && [ "$plan" = "200" ]` in `old-db-migration` **cannot fail the step**. Under `set -e` bash exempts every command in an `&&` list except the last, so a failing first test falls through to the schema assertions, which say nothing about HTTP. | **Confirmed empirically** before fixing: the `&&` form exits 0 and continues; the standalone form exits 1. A build serving **500 on `/`** would have passed every schema assertion and gated the release green. Split into two standalone commands, and pinned by a new contract test (`test_no_assertion_hides_inside_an_and_list`) so the shape cannot return. `deep-gate.yml` carries the identical defect — recorded for Packet R2, which owns that file. |
+| N2 | Paging on `total_count` fails **open**: a response missing the key defaults the total to 0 and stops after page 1, so a newer failure on page 2 is never read. | Switched to paging until a short page; the envelope is no longer trusted. New test drives a two-page fixture with **no** `total_count` and the decisive failure on page 2. |
+| N3 | The rehearsal path never checks that `APP_VERSION` can *produce* a valid tag. Under option (c) that is the only path that runs before a real release, so an `APP_VERSION` of `3.0` would rehearse green and red at tag time — after the version-bump PR had merged. | Adopted. The format check now runs on both paths, parametrized over four unreleasable versions. |
+| N4 | A run with no `started_at` sorts *lowest* on the primary tuple element, so a newer untimestamped run loses to an older success — the exact masking `select_runs` exists to prevent. | Adopted; a missing timestamp now sorts highest, so the run is selected and `classify` judges it on its status. |
+| N5 | R1-D1 says "on `main`" and **nothing enforced it**. `github.ref` carries the tag name, not what it points at, and provenance is satisfied by a green feature-branch head. | Enforced rather than struck: this is the owner's decision verbatim, so leaving it unenforced would under-deliver R1-D1. `commit_is_on_main()` compares against `main` and accepts only `identical`/`behind` — an unmerged descendant reports `ahead` and is rejected. Rehearsals are exempt by design and that exemption is tested. |
+| N6 | `urllib.error` imported and never used; it advertises error handling that does not exist. | Import deleted. Confirmed no path swallows an API error into a pass — `_api_get` lets `HTTPError`/`URLError` propagate, so a 403 or rate-limit fails the gate **closed**. Retry-on-transient was considered and declined as scope; recorded as **R-8**. |
+| N7 | Two "shipped" claims about #362/#366 need a measurement, not a PR body. | Measured: `gh pr view` reports #362 MERGED `52331bf`, #366 MERGED `f627161`, #368 MERGED `9be1a3f`. The claims stand on the measurement. |
+| NITs | empty `expected` passes vacuously; `sorted` crashes on a null name; `kill` without `wait`; `\|\| echo 000` doubling curl's own `000`; bare `1897` literal; stale fixture docstring | All adopted. |
+| ADR numbering | `docs/backup_schema_version/` (untracked, unlanded) also targets ADR-007 | R1 takes ADR-007; that packet already carries a renumber instruction and must move to ADR-008. Flagged in the PR body, not silently resolved here. |
+
+### Residual register additions
+
+| # | Residual | Why accepted |
+|---|---|---|
+| **R-8** | A transient GitHub API error (502, rate-limit) aborts `ci-provenance` outright; there is no retry across the ~90 requests it may make over 45 minutes. | Fails **closed**, so it costs a re-run rather than a bad release. Retry logic was declined as scope creep in R1. |
+| **R-9** | `deep-gate.yml` carries the same `&&`-chained HTTP assertion that B1 fixed here. | That file may not be edited before the 2026-08-17 scheduled run. Packet R2 owns it. |
+
+### Gate 1 assessment
+
+Plan v2 stays entirely within Packet R1: no artifact touches `deep-gate.yml`, no
+branch-protection change, no tag, no publish. Every blocking council finding is resolved
+above. No hard constraint is weakened — the two changes that reduce work
+(no local E2E; no rehearsal tag) both follow from evidence or from an explicit owner
+decision, and each is compensated and recorded. **Gate 1 is therefore satisfied under the
+owner's conditional authorization.**
+
+### Agent provenance
+
+| Role | Agent ID | Notes |
+|---|---|---|
+| Plan v1 + matrix + Plan v2 | this session (manager-less run under owner delegation) | The owner authorized direct execution; no `product-manager` agent was dispatched. |
+| `architecture-reviewer` | `ac1dd79ac8a5ef591` | 3 blocking, 8 non-blocking, 4 nits. |
+| `test-strategist` | `a8a63e31cc3a5ff40` | 4 blocking, 9 non-blocking, 2 nits. |
+| `product-risk-reviewer` | `af59ffce656209012` | 9 blocking, 7 non-blocking, 3 nits. |

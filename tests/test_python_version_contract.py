@@ -51,7 +51,12 @@ def test_pyright_excludes_generated_and_environment_roots():
 
 @pytest.mark.parametrize(
     "workflow",
-    [".github/workflows/ci.yml", ".github/workflows/deep-gate.yml"],
+    [
+        ".github/workflows/ci.yml",
+        ".github/workflows/deep-gate.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/_packaged-windows.yml",
+    ],
 )
 def test_github_workflows_use_the_canonical_version_file(workflow):
     source = (REPO_ROOT / workflow).read_text(encoding="utf-8")
