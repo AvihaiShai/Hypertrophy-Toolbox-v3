@@ -5,7 +5,9 @@ only has to supply felt labels. It reuses ``utils.fatigue_data
 .build_fatigue_page_context`` verbatim, so every band it prints is byte-identical
 to what ``GET /fatigue`` renders. It is strictly read-only against
 ``data/database.db`` and never edits thresholds, scenarios, or tests (the Stage 4
-guardrails in ``docs/fatigue_meter/PHASE2_PLANNING.md`` §10 / ``CLAUDE.md``).
+guardrails in ``docs/ACTIVE_DEVELOPMENT.md`` "Live calibration guardrails" and
+``docs/fatigue_meter/PHASE2_PLANNING.md`` §5; ``CLAUDE.md`` carries none, and §10
+is the parking lot).
 
 Two modes:
 
