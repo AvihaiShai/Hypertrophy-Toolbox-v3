@@ -175,7 +175,7 @@ is hidden, and the panel note says so.
 
 - `<summary>`: **Body map**
 - Panel note: **Colors show each muscle's band for the selected period. Regions without a reading stay gray.**
-- Shoulder note: **Shoulder regions show Middle-Shoulder. Front-Shoulder and Rear-Shoulder are listed separately below.**
+- Shoulder note: **Shoulder regions show Middle-Shoulder; the upper-back region shows Traps. Front-Shoulder, Rear-Shoulder and Middle-Traps are listed separately below.** *(Corrected to the shipped copy. §6 finding #42 widened this note to cover Traps/Middle-Traps and moved it above the figures; a stale second copy of the older sentence survived at the foot of the panel until it was removed. Until this correction, §4 was the last place in the repository asserting the deleted sentence was current — which invited its reintroduction. `tests/test_fatigue_heatmap_mapping.py` now asserts the note renders exactly once.)*
 - Legend caption: **Lower → higher**
 - Legend items: **Light · Moderate · Heavy · Very heavy · No reading**
 - Channel caption: **Showing: Planned** / **Showing: Logged**
