@@ -18,7 +18,7 @@ You are the product-risk reviewer for the Hypertrophy Toolbox Flask app. Your jo
    - `utils/session_summary.py` (per-session, per-routine grouping)
    - `utils/progression_plan.py` (double-progression decision)
    - `utils/volume_*.py` (taxonomy, splitter, classifier)
-   - `utils/fatigue.py`, `utils/fatigue_data.py` (fatigue meter — currently parked per memory)
+   - `utils/_fatigue/**` (fatigue meter — where the values actually live: `MUSCLE_VOLUME_LANDMARKS` in `per_muscle.py`, `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` in `core.py`), plus `utils/fatigue.py` (the re-export facade — an edit under `utils/_fatigue/` is a threshold change even though this file shows no diff) and `utils/fatigue_data.py`. Phase-2 Stage 4 **closed 2026-08-13** as no-evidence / no-change; tuning still needs ≥2 same-direction real-use disagreements **plus** fresh owner approval.
 
    For each: the plan must (a) name the function/constant being changed, (b) describe the before/after for at least one worked example, (c) state which test enshrines the new behavior. Cite [CLAUDE.md](../../CLAUDE.md) §1 "Refactor invariant" — silent calculation changes are not allowed.
 
