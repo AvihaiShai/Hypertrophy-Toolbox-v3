@@ -6,6 +6,15 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ### User-visible
 
+- **Fatigue body heatmap.** `/fatigue` now has an accessible, collapsible
+  MuscleMap panel driven by the existing planned/logged channel, period selector
+  and four fatigue bands; unranked muscles remain visible and neutral (#339).
+- **Routine changes clear transient superset selection.** Choosing a completed
+  routine/day no longer leaves the action bar describing rows selected under the
+  previous target; Clear Filters still preserves the selection (#346).
+- **Faster deterministic page readiness.** Volume Splitter and Body Composition
+  tests now wait on their real initial-history lifecycle rather than a global
+  network-idle tail, without changing user-visible rendered state (#347, #350).
 - **An exercise used in one routine can now be added to another.** Picking a
   routine day rebuilt the Add-Exercise dropdown from
   `GET /get_routine_exercises/<routine>`, which returned that routine's exercises
@@ -29,12 +38,23 @@ All notable changes to Hypertrophy Toolbox v3.
   document's last focusable element — not a Bootstrap version regression (#284).
 ### Build, assets, and packaging
 
+- All runtime fonts and JavaScript libraries are served locally, restoring
+  offline drag/superset controls, progression date picking, tooltips and Inter
+  typography while removing every runtime CDN dependency (#341).
 - Long-lived static caching is now keyed on the running app version, so a deploy
   cannot serve stale CSS/JS; 404s are no longer long-cached (#262, #266).
 - SQLite `-shm`/`-wal` sidecars are gitignored (#285).
 
 ### CI and quality gates
 
+- The required frontend-build job now deletes, rebuilds and byte-diffs both
+  `bootstrap.custom.min.css` and its source map, preventing committed SCSS/CSS
+  drift (#335).
+- Eleven false-green test escape hatches were closed across seven pytest modules;
+  a duplicate weaker PR was closed unmerged (#334, #337).
+- The profile-estimator Pyright baseline shrank without changing runtime
+  expressions, and nine accessibility assertions that could not fail were
+  repaired without adding test nodes (#336, #342).
 - `E2E Erase Flow` promoted to a required check (#248).
 - `Test Inventory Drift` flipped to blocking, returning a real exit code, and its
   stale `(non-required)` suffix dropped (#267). Adding it to branch protection is a
@@ -48,6 +68,15 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ### Documentation and workflow
 
+- Fatigue Phase-2 Stage 4 closed as no real-use evidence/no threshold change;
+  Learned Calibration 2D-D remains parked and the observer machinery was kept
+  for a possible evidence-backed restart (#338).
+- Added the canonical App Flow, Backend Schema and Design Brief product-reference
+  suite, then corrected it for local-first assets and the Fatigue heatmap
+  (#340, #343, #345).
+- Either CLI can now request one bounded, read-only cross-model consult through
+  a schema-validated protocol; Gate 2 was ratified after merge. The heavier
+  orchestration mechanism remains unimplemented (#344, #348).
 - v23 adversarial audit of the leftovers queue published, along with the
   cross-model orchestration draft (#278).
 - Theme-dark P3 audit emitted its ceiling, assessed 19 tools, and **terminated the
