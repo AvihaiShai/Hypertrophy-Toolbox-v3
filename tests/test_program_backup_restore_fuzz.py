@@ -25,7 +25,19 @@ Expected churn
 --------------
 When restore-path validation eventually lands, the five parametrized nodes of
 ``test_restore_accepts_rows_the_plan_route_rejects`` must be REWRITTEN TO ASSERT REJECTION, not
-preserved. They pin today's permissive behavior, not a guarantee.
+preserved. They pin today's permissive behavior, not a guarantee. Which rewrite depends on an
+owner decision this packet does not make (``docs/testing_phase3/PLANNING.md`` §3.4 / PR7): a
+*refusing* restore fails the request, while a *skipping* restore returns 200 with
+``restored_count == 0`` -- under the skip shape the node's name is wrong too, not just its
+assertions.
+
+Incidental contract pin
+-----------------------
+The four exact ``utils/workout_validation.py`` messages asserted below are pinned in this file and
+nowhere else in the repository. They are asserted verbatim on purpose -- the exact string is what
+distinguishes the bounds-rejection branch from the duplicate-row ``VALIDATION_ERROR`` branch -- so
+editing that user-facing copy reds five nodes here. That is intended, but it means this
+characterization file is also the sole guard on those strings.
 """
 from __future__ import annotations
 
@@ -288,7 +300,11 @@ def test_known_defect_weekly_summary_500_after_restoring_non_numeric_rep_range(
     assert tb is not None
 
     innermost = traceback.extract_tb(tb)[-1]
-    assert os.path.basename(innermost.filename) == "weekly_summary.py"
+    # Two files are named weekly_summary.py (utils/ and routes/), so the basename alone does not
+    # discriminate -- pin the parent directory too rather than leaning on the function name.
+    innermost_path = os.path.normpath(innermost.filename)
+    assert os.path.basename(innermost_path) == "weekly_summary.py"
+    assert os.path.basename(os.path.dirname(innermost_path)) == "utils"
     assert innermost.name == "_aggregate_weekly_volumes"
 
 

@@ -43,10 +43,18 @@ it is marked **SUPERSEDED** and points at §6.4 rather than being rewritten in t
 
 ### 2.1 The thesis — verified by reading, not inferred
 
-`restore_backup()` (`utils/program_backup.py:389`, item loop `:451-548`) applies **no** bounds
-validation. It reads ten columns at `:423` and passes them into the `INSERT INTO user_selection` at
-`:464-547`; nine of the ten go through `item.get(...)` unexamined, and the only filter on the tenth
-is the catalog-membership check at `:455` (`exercise_name not in valid_exercise_names` → skip).
+> **Line-citation drift, re-measured 2026-08-15 at `94f0d8c`.** Every
+> `utils/program_backup.py` line number in this document was measured at `f627161`. #373 (D6 /
+> ADR-008) added a 13-line contract comment at the top of that module, shifting everything below
+> it by **+10**. The anchors in this paragraph are re-pinned to the current base; **elsewhere in
+> this document, add 10** — e.g. §3.4's `:451` is now `:461`, and §7's `:445-446` is now
+> `:455-456`. Verified current anchors: `restore_backup()` **`:399`**, item `SELECT`
+> **`:433-438`**, deletes **`:455-456`**, catalog skip **`:465`**.
+
+`restore_backup()` (`utils/program_backup.py:399`, item loop `:461-558`) applies **no** bounds
+validation. It reads ten columns at `:433-438` and passes them into the `INSERT INTO user_selection`
+at `:474-557`; nine of the ten go through `item.get(...)` unexamined, and the only filter on the
+tenth is the catalog-membership check at `:465` (`exercise_name not in valid_exercise_names` → skip).
 
 So a persisted backup item can carry values that `POST /add_exercise` and `POST /update_exercise`
 reject at the boundary. Restoring such a backup writes those values into `user_selection` and returns
@@ -658,12 +666,22 @@ execution caught it. Reading the mutation is not evidence that the mutation reds
 
 ### 7.3 Gate results
 
-> **Re-verified at integration, 2026-08-15, on `94f0d8c`** — six commits past the `f627161` the
-> table below was measured on, including #373 (D6 / ADR-008), #374/#375 (release pipeline R1) and
-> #376 (status reconciliation). **FINDING-1 still reproduces**: the file is **7 passed**, so the
-> known-defect node has not been overtaken by an intervening fix. Full suite **2967 passed, 2
-> skipped**. Inventory regenerated on the new base; delta is exactly this file at **7** nodes
-> (`2640 → 2647`, `121 → 122` deterministic files). Nothing else moved.
+> **RE-RUN AT INTEGRATION, 2026-08-15, on `94f0d8c`.** The table below was measured at `f627161`
+> and **its numbers do not certify this base** — six commits landed in between, including #373
+> (D6 / ADR-008), #374/#375 (release pipeline R1) and #376 (status reconciliation). Every blocking
+> gate was re-run here; these figures supersede the table for the shipped commit:
+>
+> | Gate | Result at `94f0d8c` |
+> |---|---|
+> | targeted (`..._restore_fuzz.py` + `test_program_backup.py`) | **47 passed** |
+> | full `pytest tests/ -q` | **2967 passed, 2 skipped** (was 2866/2 at `f627161`) |
+> | **FINDING-1 still reproduces** | yes — the known-defect node has **not** been overtaken by an intervening fix |
+> | `flake8` (exact CI select + exclude list) | **0**, exit 0 |
+> | `pyright_baseline_diff.py` | **PASS — 0 net-new** (baseline 132, current 132) |
+> | inventory delta | exactly this file at **7** nodes (`2640 → 2647`, `121 → 122` deterministic files); nothing else moved |
+>
+> Deliberately **not** re-run: the `2538 + 322` cross-check recorded in §7.4, which belongs to the
+> `f627161` measurement and is left as the historical record rather than restated.
 
 | Gate | Result |
 |---|---|
