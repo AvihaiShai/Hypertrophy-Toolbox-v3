@@ -4,7 +4,48 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-14 (LATEST) — the August integration pack is at its verified
+**2026-08-14 (LATEST) — the pack's docs-only tail has landed and canonical truth
+is reconciled against `origin/main` at `fbb76f5`.** **Eleven** PRs merged after
+`7e4c1e9` (#352), the pack reconciliation that recorded the checkpoint described
+below — every one squash-merged on green required checks.
+
+Terminal outcomes for the set this reconciliation was asked to record:
+
+| PR | Commit | Terminal result |
+|---|---|---|
+| #351 | `5a03d47` | Duplicated body-map caveat removed from `templates/_fatigue_heatmap.html`, mapping test added, and **all twelve** fatigue visual captures regenerated (six Linux, six win32). The stale-Linux consequence is discharged. |
+| #357 | `e84d19c` | **P2.7 closed** — `tests/test_consult_adapter.py` derives its escape path from `REPO.name`, so the node passes in the canonical main checkout as well as in worktrees and on CI. |
+| #358 | `a83a452` | Canonical council plan path pinned. |
+| #359 | `fbb76f5` | Seven fatigue guardrails repointed from the `utils/fatigue.py` facade to `utils/_fatigue/per_muscle.py` / `utils/_fatigue/core.py`. **The owner widened it past documentation-only**, so `scripts/fatigue_stage4_observer.py:265` — the one code-side guardrail, printed on the `--analyze` signal path — was corrected in the same PR. **Nothing about it is left pending.** |
+| #360 | `56316c5` | Executable runbook for validating the first scheduled deep-gate run. |
+| #361 | `a224b39` | Root `AGENTS.md` added to the agent-workflow contract surface; retired known-red dropped from the test-strategist charter. Discharges the cross-model plan's Packet C. |
+| #362 | `52331bf` | **Testing Phase-2 Packet C (strict console) SHIPPED** — `e2e/console-guard.ts` fails on every console error and page error, with anti-catch-all allowlist rules enforced at setup; three specs migrated. No production file, no test-node change. |
+
+Recorded for completeness, same run: `7f8549c` (#353) product-docs caveat
+discharged; `52c5a78` (#354) recorded P2.7, which #357 then closed; `710ef61`
+(#355) Volume Splitter readiness oracle strengthened; `5177176` (#356)
+`scripts/**` routed in the quality gate.
+
+**Still open, measured at this reconciliation.** Testing Phase-2 **Packet D
+(axe) remains queued** — the repository had **zero open PRs** when this was
+written, so no Packet D work is in flight and no completion is predicted here.
+The heavy `$orchestrate` mechanism stays deliberately unimplemented, the
+release/tag pipeline stays deferred, and the first scheduled deep-gate run is
+still due 2026-08-17 03:17 UTC — now comparing against #351's regenerated Linux
+captures.
+
+No pack feature branch, worktree, local evidence artifact, or database is a
+cleanup target.
+
+> **Superseded 2026-08-14, later the same day, on three claims only.** The block
+> below is the feature-PR checkpoint record and is otherwise accurate. Three of
+> its statements have been overtaken and are corrected above: *"strict-console
+> Packet C and axe Packet D remain queued"* — Packet C shipped as #362;
+> *"Linux fatigue baseline follow-up #351 is an open clean/green draft"* — #351
+> merged as `5a03d47`; and *"Sessions 1–9 have terminal outcomes through #350"* —
+> the run continued through #362.
+
+**2026-08-14 — the August integration pack is at its verified
 feature-PR checkpoint; canonical truth is being reconciled.** Sessions 1–9 have
 terminal outcomes through #350 (`d93a3dd`). The shipped set includes test
 honesty, the profile-estimator Pyright slice, the compiled-CSS drift gate,
@@ -544,6 +585,22 @@ synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
 intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
+
+**Current (2026-08-14, after the docs-only tail merged):** take no automatic
+feature action from this file. The pack is closed out; what remains keeps its
+own authority and none of it is dispatched from here. **Testing Phase-2 Packet D
+(axe) is the only queued packet of that pair** — Packet C shipped as #362 — and
+it stays queued in `docs/testing_phase2/PLANNING.md` with no open PR; the first
+scheduled deep-gate run is inspected only after 2026-08-17 03:17 UTC, at job
+level. Do not revive P3, add another readiness marker, or treat the
+unimplemented heavy orchestration design as shipped.
+
+> **Superseded 2026-08-14, later the same day.** The instruction below was
+> written before the docs-only tail merged. Its *"complete the docs-only
+> integration PR"* is discharged, and two of its boundary statements are stale:
+> **#351 merged** (`5a03d47`), so it no longer sits with a separate
+> visual-baseline owner, and **Packet C shipped** as #362, so only Packet D is
+> queued. Retained as the dated record of what the objective was.
 
 **Current (2026-08-14):** complete the docs-only integration PR, then take no
 automatic feature action from this file. Existing authorized work keeps its own

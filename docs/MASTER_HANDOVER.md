@@ -4,7 +4,49 @@
 
 ## Current State
 
-> **2026-08-14 (LATEST) — the ten-session 2026-08-13 integration pack has
+> **2026-08-14 (LATEST) — the pack's docs-only tail has landed; canonical status
+> is reconciled against `origin/main` at `fbb76f5`.** **Eleven** further PRs
+> merged after `7e4c1e9` (#352), the pack reconciliation that recorded the
+> feature-PR checkpoint in the block below. All were squash-merged with every
+> required check green. This entry is their terminal record.
+>
+> | PR | Terminal result |
+> |---|---|
+> | **#351** | `5a03d47` — removed the duplicated body-map caveat from `templates/_fatigue_heatmap.html`, added a mapping test, and regenerated **all twelve** fatigue visual captures (six Linux, six win32). **The stale-Linux consequence is discharged**, and #339's platform asymmetry with it. |
+> | **#357** | `e84d19c` — **P2.7 closed.** `tests/test_consult_adapter.py` now derives its escape path from `REPO.name` instead of the literal `Hypertrophy-Toolbox-v3-main`, so the node passes in the canonical main checkout as well as in every worktree and on CI. |
+> | **#358** | `a83a452` — pinned the canonical council plan path in the agent-workflow contract surface. |
+> | **#359** | `fbb76f5` — seven live fatigue guardrails now name `utils/_fatigue/per_muscle.py::MUSCLE_VOLUME_LANDMARKS` and `utils/_fatigue/core.py::SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` instead of the `utils/fatigue.py` re-export facade. **It did not merge documentation-only, as its own PR body predicted it would:** the owner widened scope by one line so `scripts/fatigue_stage4_observer.py:265` — the highest-consequence guardrail, printed on the `--analyze` signal path at the moment an agent is told tuning is eligible — names the leaves too. That was the only code-side site; the correction is **complete**, not pending an owner decision. |
+> | **#360** | `56316c5` — the executable runbook for validating the first scheduled deep-gate run, at the point where the obligation was already stated. |
+> | **#361** | `a224b39` — root `AGENTS.md` added to the committed agent-workflow contract surface; a retired known-red dropped from the test-strategist charter. This discharges the cross-model plan's **Packet C** (charter and contract hygiene). |
+> | **#362** | `52331bf` — **Testing Phase-2 Packet C (strict console) SHIPPED.** `e2e/console-guard.ts` fails on every console error and page error, with anti-catch-all allowlist rules enforced at setup rather than by convention; `accessibility`, `smoke-navigation` and `workout-plan` migrated onto it. No production file touched, no Playwright test node added, removed or renamed. |
+>
+> **#353–#356 landed in the same run** and are recorded here so the ledger has no
+> hole: `7f8549c` (#353) discharged the product-docs entry's own stale caveat;
+> `52c5a78` (#354) recorded the consult failure as P2.7, which #357 then closed;
+> `710ef61` (#355) strengthened the Volume Splitter readiness oracle and
+> corrected its record; `5177176` (#356) routed `scripts/**` and named the
+> blocking gates in the quality gate.
+>
+> **What is still not complete, measured at this reconciliation.** Testing
+> Phase-2 **Packet D (axe) remains queued** — the repository had **zero open
+> PRs** when this was written, so no Packet D work is in flight and no
+> completion date is predicted for it here. The release/tag half of Testing
+> Phase 4, the heavier `$orchestrate` mechanism, and D4/D6/D7 plus the `js-unit`
+> half of D2 remain exactly where their source plans leave them. The first
+> scheduled deep-gate run is still due **2026-08-17 03:17 UTC**, and #351's
+> Linux regeneration is what that run will now compare against.
+
+> **Superseded 2026-08-14, later the same day, on three claims only.** The block
+> below is the feature-PR checkpoint record and is otherwise accurate; read its
+> sessions 1–9 table as current. Three of its statements have since been
+> overtaken and are corrected in the entry above: **(1)** *"Packets C (strict
+> console) and D (axe) remain queued, not shipped"* — Packet C shipped as #362;
+> **(2)** *"#351 is open as a clean, green draft at `2e53e63` … Until it merges,
+> the stale-Linux consequence remains real"* — #351 merged as `5a03d47`;
+> **(3)** *"the canonical reconciliation is the remaining pack-owned write"* —
+> that write is this reconciliation, and **eleven** further PRs preceded it.
+
+> **2026-08-14 — the ten-session 2026-08-13 integration pack has
 > reached its verified feature-PR checkpoint.** Prompts 1–9 have terminal
 > outcomes; the canonical reconciliation is the remaining pack-owned write.
 > Every merged feature PR below completed all 18 CI checks green on its final
@@ -2252,14 +2294,14 @@ behind the CSS it describes.
 | Workstream | Status | Next safe step | Docs |
 |---|---|---|---|
 | Avi Lewis AI workflow refit | complete through Tier 2 + T3.1 | Use [docs/ai_workflow/INDEX.md](ai_workflow/INDEX.md) + this handover as active truth; treat `.claude/SHARED_PLAN.md` as local audit history only | [docs/ai_workflow/INDEX.md](ai_workflow/INDEX.md) |
-| Fatigue meter | Phase 1 and Phase-2 Path 1 shipped. **Phase-2 Stage 4 closed 2026-08-13 via #338 (`700b5da`) as no real-use evidence / no threshold change**; observer code and evidence were retained, and Learned Calibration 2D-D remains parked. **The per-muscle body heatmap shipped via #339 (`ea82ef1`)** with the six owner-locked choices and no formula, threshold, schema or API change. | No threshold tuning without the documented real-use bar plus fresh owner approval. Six unranked labels and later Phase-3 ideas remain deferred. Linux fatigue baselines are the separate open green draft #351 until it merges. **The W20 anchor rows are absent from the live database** — the 21 rows logged 2026-05-20 behind the one real calibration anchor, the week that *agreed* with the engine's `moderate` band, are no longer present, so [calibration-notes.md](fatigue_meter/calibration-notes.md) is the surviving evidence and they are not re-derivable from the DB. An empty `workout_log` is **not** proof the anchor never existed; do not reconstruct those rows. | [docs/fatigue_meter/PHASE2_PLANNING.md](fatigue_meter/PHASE2_PLANNING.md), [docs/fatigue_meter/HEATMAP_PLANNING.md](fatigue_meter/HEATMAP_PLANNING.md), [docs/fatigue_meter/PLANNING.md](fatigue_meter/PLANNING.md) |
+| Fatigue meter | Phase 1 and Phase-2 Path 1 shipped. **Phase-2 Stage 4 closed 2026-08-13 via #338 (`700b5da`) as no real-use evidence / no threshold change**; observer code and evidence were retained, and Learned Calibration 2D-D remains parked. **The per-muscle body heatmap shipped via #339 (`ea82ef1`)** with the six owner-locked choices and no formula, threshold, schema or API change. | No threshold tuning without the documented real-use bar plus fresh owner approval. Six unranked labels and later Phase-3 ideas remain deferred. **[UPDATED 2026-08-14]** The Linux fatigue baselines are no longer a separate open draft: **#351 merged as `5a03d47`**, regenerating all twelve fatigue captures (six Linux, six win32) and removing the duplicated body-map caveat from `templates/_fatigue_heatmap.html`. **The W20 anchor rows are absent from the live database** — the 21 rows logged 2026-05-20 behind the one real calibration anchor, the week that *agreed* with the engine's `moderate` band, are no longer present, so [calibration-notes.md](fatigue_meter/calibration-notes.md) is the surviving evidence and they are not re-derivable from the DB. An empty `workout_log` is **not** proof the anchor never existed; do not reconstruct those rows. | [docs/fatigue_meter/PHASE2_PLANNING.md](fatigue_meter/PHASE2_PLANNING.md), [docs/fatigue_meter/HEATMAP_PLANNING.md](fatigue_meter/HEATMAP_PLANNING.md), [docs/fatigue_meter/PLANNING.md](fatigue_meter/PLANNING.md) |
 | workout.cool integration | **§3 / §3.6 body maps SUPERSEDED 2026-06-13** — the workout-cool *and* react-body-highlighter body art (plan-modal Simple/Advanced + Profile coverage) were retired and unified on a single **MuscleMap (MIT)** figure with no Simple/Advanced toggle; see [docs/muscle_selector_vendor.md](muscle_selector_vendor.md). The §4/§5 **exercise media** features below remain live. §4 + §4.6 + §5 all shipped. §5 curation closed 2026-05-23 at **56 curated rows** (`cf21191` 36 rows + `ff244aa` +20 rows); long-tail rows use the search fallback by design. §3.6 Profile coverage bodymap shipped locally 2026-05-23 (`18ad223`) — lifts the previously "deferred indefinitely" status. §4.6 pixel baselines locked 2026-05-23 via `toHaveScreenshot()` (`b5b8c7a`). Origin refs: §4 squash-merge `8b348a5` (PR #20), post-§4 follow-up `bfd9087` (PR #23), §4.6 visual baseline `631b5f8` (PR #22). | None. All §5 curation, §4.6 pixel baselines, and §3.6 bodymap work has shipped. Worktree disposition for the §4.6 visual-baseline worktree closed 2026-05-23 (`21859a1`); both worktree paths were already absent from disk and the related branch refs deleted — see [LEFTOVERS_BY_PRIORITY.md §6](LEFTOVERS_BY_PRIORITY.md). Reopen the curation only if the owner supplies new vetted YouTube IDs (see YOUTUBE_REFERENCE_VIDEOS.md "Curation Closed"). | [docs/workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md](workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md), [docs/workout_cool_integration/PLANNING.md](workout_cool_integration/PLANNING.md), [docs/workout_cool_integration/EXECUTION_LOG.md](workout_cool_integration/EXECUTION_LOG.md) |
 | Redesign post-P8 triage | ✅ complete — 10 of 11 shipped, #1 deferred by owner choice (keep nav Backup link) | none | local-only `debug/redesign_post_p8_issues_SESSION_STATE.md` (closed; annotated 2026-05-19) |
 | phase5_3i_plan | ✅ closed — accepted-as-shipped (owner decision 2026-05-19) | none | local-only `debug/phase5_3i_plan_SESSION_STATE.md` (closed banner added); planning doc shipped `c0da18e` 2026-04-15 and deleted `635fa3e` 2026-04-24; 5A–5H validation gates never ran but `12c90ac` refactors have held 5+ weeks under 1160-test baseline with no regression |
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
-| Testing strategy review | **Phases 0–1 complete; Phase-2 truth refresh is partially executed.** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **Packets C (per-spec strict console handling) and D (axe coverage) remain queued under the approved Plan v2; they are not shipped.** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), but its first scheduled run is still due 2026-08-17 03:17 UTC; the release/tag half of Phase 4 remains deferred. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
+| Testing strategy review | **Phases 0–1 complete; Phase-2 truth refresh is partially executed.** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **Packet D (axe coverage) remains queued** under the approved Plan v2 and had no open PR at the 2026-08-14 reconciliation. Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), but its first scheduled run is still due 2026-08-17 03:17 UTC; the release/tag half of Phase 4 remains deferred. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
 
 ## Open Decisions
 
@@ -2282,9 +2324,12 @@ behind the CSS it describes.
   the council found no requirement that needed them; completing a six-document
   set is not leftover work.
 - **Testing strategy is partially advanced, not closed.** Phase-2 Packet A
-  shipped as #342. Packets C (strict console) and D (axe) remain queued under
-  the approved Plan v2. D4, D6, D7 and the `js-unit` half of D2 remain unsigned;
-  Phases 3 and 5 and the release/tag half of Phase 4 remain proposals.
+  shipped as #342 and **Packet C (strict console) shipped as #362** (`52331bf`).
+  **[UPDATED 2026-08-14 — this bullet previously read "Packets C … and D … remain
+  queued".]** Only **Packet D (axe) remains queued** under the approved Plan v2;
+  it had no open PR at the 2026-08-14 reconciliation. D4, D6, D7 and the
+  `js-unit` half of D2 remain unsigned; Phases 3 and 5 and the release/tag half
+  of Phase 4 remain proposals.
 
 > **Superseded 2026-08-01.** The note below read *"None blocking"* and described
 > a working tree and `origin/main` parity measured on **2026-05-29**. Retained
@@ -2319,10 +2364,14 @@ behind the CSS it describes.
 **Current (2026-08-14, latest): the ten-session pack has no automatic next
 feature packet.** Finish only work that already has its own authority:
 
-- visual-baseline follow-up **#351** is an open, clean, green draft owned by its
-  existing session; do not duplicate or absorb it into a docs packet;
-- Testing Phase-2 Packets C/D are queued in
-  [`testing_phase2/PLANNING.md`](testing_phase2/PLANNING.md), but are not shipped;
+- **[UPDATED 2026-08-14]** visual-baseline follow-up **#351 has merged**
+  (`5a03d47`); it is no longer an open draft and no longer needs holding clear
+  of a docs packet. Its regenerated Linux captures are what the 2026-08-17
+  deep-gate compare will run against;
+- **[UPDATED 2026-08-14]** Testing Phase-2 **Packet C shipped as #362**
+  (`52331bf`). Only **Packet D (axe)** is still queued in
+  [`testing_phase2/PLANNING.md`](testing_phase2/PLANNING.md), with no open PR at
+  this reconciliation;
 - the first scheduled deep-gate run must be inspected after
   **2026-08-17 03:17 UTC**, at job level, with `visual-linux` executed rather
   than skipped and compare mode writing no baselines;
