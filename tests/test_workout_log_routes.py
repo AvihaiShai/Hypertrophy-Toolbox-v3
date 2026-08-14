@@ -473,10 +473,15 @@ class TestExportWorkoutLog:
         assert resp.status_code == 404
 
     def test_export_workout_log_returns_excel(self, client, clean_db, workout_log_entry):
-        """Should return an Excel file."""
+        """Should return an xlsx content type and an attachment disposition."""
         resp = client.get("/export_workout_log")
         assert resp.status_code == 200
-        assert "spreadsheetml" in resp.content_type or resp.status_code == 200
+        assert resp.headers["Content-Type"] == (
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        disposition = resp.headers["Content-Disposition"]
+        assert disposition.startswith('attachment; filename="workout_log_')
+        assert disposition.endswith('.xlsx"')
 
     def test_export_workout_log_response_is_valid_xlsx(self, client, clean_db, workout_log_entry):
         """Response body must be a valid xlsx (ZIP archive — starts with PK magic bytes)."""
