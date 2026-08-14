@@ -241,8 +241,8 @@
     "total_tests": 632
   },
   "pytest": {
-    "collected_deterministic": 2513,
-    "deterministic_files": 116,
+    "collected_deterministic": 2524,
+    "deterministic_files": 117,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -301,6 +301,10 @@
       {
         "file": "tests/test_config.py",
         "tests": 20
+      },
+      {
+        "file": "tests/test_console_guard_contracts.py",
+        "tests": 11
       },
       {
         "file": "tests/test_constants.py",
@@ -719,7 +723,7 @@
         "tests": 40
       }
     ],
-    "total_files": 117
+    "total_files": 118
   },
   "schema_version": 1
 }

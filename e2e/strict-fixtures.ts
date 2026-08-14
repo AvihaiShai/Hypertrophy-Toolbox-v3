@@ -20,14 +20,14 @@ import {
 } from './fixtures';
 
 /**
- * The shared guard, with the `consoleAllowlist` option removed from its type.
+ * The shared guard from `console-guard.ts`, with the `consoleAllowlist` option
+ * removed from its type so these specs keep a zero-allowance gate. See that
+ * module for the mechanism; `tests/test_console_guard_contracts.py` binds it.
  *
- * The behaviour these specs had is unchanged: every console error and every
- * page error fails the test, except the same three infrastructure fragments
- * (`favicon`, `Source map`, `[HMR]`). The narrowed type is what keeps it that
- * way — a `test.use({ consoleAllowlist: [...] })` line in any importer of this
- * module is a compile error, so the zero-allowance gate cannot be relaxed
- * locally.
+ * Pass/fail is unchanged from the fixture this replaced. Two details did change:
+ * a page error now reports `error.stack || error.message` through a shared code
+ * path, and the console assertion is skipped when the test has already failed
+ * for another reason, so a real failure is not buried under an error report.
  */
 export const test = strictTest;
 

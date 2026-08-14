@@ -80,7 +80,8 @@ Validated from `package.json`, `playwright.config.ts`, and `scripts/run-playwrig
 ## Supporting E2E Files
 
 - `e2e/fixtures.ts` - shared selectors and helpers
-- `e2e/strict-fixtures.ts` - stricter page-error gate for visual/redesign checks
+- `e2e/console-guard.ts` - strict console/page-error guard with a per-block allowlist
+- `e2e/strict-fixtures.ts` - re-exports that guard with the allowlist removed from its type, for visual/redesign checks
 - `e2e/visual-helpers.ts` - visual-test helpers
 - `e2e/scripts/prepare_visual_db.py` - prepares the deterministic visual DB
 - `e2e/fixtures/database.visual.seed.db` - committed visual-test seed database

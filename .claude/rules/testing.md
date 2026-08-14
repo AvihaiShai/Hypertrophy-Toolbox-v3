@@ -71,7 +71,9 @@ npx playwright install       # one-time (downloads browsers)
 ```
 Config: `playwright.config.ts` — auto-starts Flask via `.venv/Scripts/python.exe app.py` on port 5000. Chromium only. Serial execution (`fullyParallel: false`). `PW_REUSE_SERVER=1` reuses a running server.
 
-Fixtures: `e2e/fixtures.ts` exports `test` (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `waitForWorkoutPlanReady()`, `expectToast()`.
+Fixtures: `e2e/fixtures.ts` exports `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, `waitForWorkoutPlanReady()`, `expectToast()` — plus a **legacy** `test` whose console collector substring-suppresses real null-dereference crashes and is opt-in per describe.
+
+**New and migrated specs take `test` from `e2e/console-guard.ts` instead**, which fails on every console and page error and takes a per-block allowlist of anchored, wildcard-free patterns. `e2e/strict-fixtures.ts` re-exports the same guard with the allowlist removed from its type for the zero-allowance visual/redesign specs. The split is described in `e2e/CLAUDE.md` and bound by `tests/test_console_guard_contracts.py`.
 
 ## E2E test map
 
@@ -112,7 +114,9 @@ Per-spec counts are in [`docs/test_inventory/TEST_INVENTORY.md`](../../docs/test
 | `visual-field-separator.spec.ts` | Rendered separator/outline contrast, 7 surfaces × 3 viewports × 2 themes (computed styles, no screenshots — runs in the required functional gate) | None; injects its own rows |
 
 Support files:
-- `e2e/fixtures.ts` — shared fixtures, route constants, selectors, helpers
+- `e2e/fixtures.ts` — route constants, selectors, helpers, and the legacy console collector
+- `e2e/console-guard.ts` — strict console/page-error guard with a per-block allowlist
+- `e2e/strict-fixtures.ts` — the same guard, narrowed to zero allowance
 - `e2e/puppeteer_mcp_summary_regression.py` — Python-based Puppeteer regression (not Playwright)
 - `e2e/run_puppeteer_summary_regression.ps1` — PowerShell runner for above
 - `e2e/scripts/seed_summary_regression_db.py` — DB seeder for regression testing
