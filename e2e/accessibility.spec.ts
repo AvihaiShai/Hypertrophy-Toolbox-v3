@@ -584,6 +584,23 @@ test.describe('Color and Contrast', () => {
       return !!active && active.classList.contains('is-invalid-required');
     });
     expect(invalidIsFocused, 'focus did not move to the invalid control').toBe(true);
+
+    // Register row X1. The marking has to reach the accessibility tree too — a
+    // red border a screen reader cannot perceive is colour-only again, one
+    // layer down. The focused control is the one the user lands on, so it is
+    // the one that has to carry the state.
+    const ariaInvalid = await page.evaluate(() => document.activeElement?.getAttribute('aria-invalid'));
+    expect(ariaInvalid, 'the focused invalid control exposes no aria-invalid="true"').toBe('true');
+
+    // And it has to clear on correction. A stuck aria-invalid is worse than a
+    // missing one: it reports a corrected control as still wrong. This is the
+    // handleEnvironmentChange -> clearCascadeValidation path in
+    // routine-cascade.js, which is synchronous and issues no request.
+    await page.selectOption('#routine-env', 'GYM');
+    await expect(
+      page.locator('#routine-env'),
+      'aria-invalid survived the correction, so a corrected control still reports invalid'
+    ).not.toHaveAttribute('aria-invalid', 'true');
   });
 });
 

@@ -33,6 +33,26 @@ export function configureAddExercise(deps) {
 let isExerciseSubmissionPending = false;
 
 /**
+ * Points `aria-invalid` at the element assistive tech actually reaches.
+ *
+ * An enhanced dropdown hides its native <select> behind `aria-hidden="true"`
+ * (workout-dropdowns.js), so the attribute would be unreadable there and has to
+ * land on the `.wpdd-button` standing in for it. Clearing removes the attribute
+ * rather than writing "false" — absent already means valid.
+ * @param {Element|null|undefined} target
+ * @param {boolean} isInvalid
+ */
+function setAriaInvalid(target, isInvalid) {
+    if (!target) return;
+
+    if (isInvalid) {
+        target.setAttribute('aria-invalid', 'true');
+    } else {
+        target.removeAttribute('aria-invalid');
+    }
+}
+
+/**
  * Highlights a required field with validation error styling
  * @param {string} fieldId - The ID of the field to highlight
  * @param {boolean} isInvalid - Whether to add or remove the invalid state
@@ -63,6 +83,8 @@ export function setFieldValidationState(fieldId, isInvalid) {
                 wpddContainer.classList.add('is-invalid-required');
             }
 
+            setAriaInvalid(wpddContainer?.querySelector('.wpdd-button') || field, true);
+
             // Highlight the parent container/label
             if (container) {
                 container.classList.add('has-validation-error');
@@ -80,6 +102,8 @@ export function setFieldValidationState(fieldId, isInvalid) {
                 wpddContainer.classList.remove('is-invalid-required');
             }
 
+            setAriaInvalid(wpddContainer?.querySelector('.wpdd-button') || field, false);
+
             if (container) {
                 container.classList.remove('has-validation-error');
             }
@@ -95,17 +119,22 @@ function highlightIncompleteCascadeDropdowns() {
     const programSelect = document.getElementById('routine-program');
     const routineSelect = document.getElementById('routine-day');
 
-    // Check which dropdowns are incomplete and highlight them
+    // Check which dropdowns are incomplete and highlight them. These three keep
+    // their native <select> — the enhancement in workout-dropdowns.js does not
+    // match .cascade-dropdown — so each carries aria-invalid directly.
     if (envSelect && !envSelect.value) {
         envSelect.classList.add('is-invalid-required');
+        setAriaInvalid(envSelect, true);
         envSelect.closest('.cascade-dropdown-wrapper')?.classList.add('has-validation-error');
         envSelect.focus();
     } else if (programSelect && !programSelect.value) {
         programSelect.classList.add('is-invalid-required');
+        setAriaInvalid(programSelect, true);
         programSelect.closest('.cascade-dropdown-wrapper')?.classList.add('has-validation-error');
         programSelect.focus();
     } else if (routineSelect && !routineSelect.value) {
         routineSelect.classList.add('is-invalid-required');
+        setAriaInvalid(routineSelect, true);
         routineSelect.closest('.cascade-dropdown-wrapper')?.classList.add('has-validation-error');
         routineSelect.focus();
     }
@@ -120,6 +149,7 @@ function clearCascadeDropdownValidation() {
         const dropdown = document.getElementById(id);
         if (dropdown) {
             dropdown.classList.remove('is-invalid-required');
+            setAriaInvalid(dropdown, false);
             dropdown.closest('.cascade-dropdown-wrapper')?.classList.remove('has-validation-error');
         }
     });
