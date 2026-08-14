@@ -38,20 +38,26 @@ Remaining accessibility debt is **X7–X13 and X15, all owner-deferred**; see
 [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
 
 **Still open, unchanged by that.** The heavy `$orchestrate` mechanism stays
-deliberately unimplemented, the release/tag pipeline stays deferred, and the
+deliberately unimplemented, ~~the release/tag pipeline stays deferred,~~ and the
 first scheduled deep-gate run is still due 2026-08-17 03:17 UTC — now comparing
 against #351's regenerated Linux captures.
+**[UPDATED 2026-08-15 — the struck clause is false: the release/tag pipeline
+SHIPPED as #374 (`5222db2`), with #375 (`d3c3436`) recording the post-merge
+dry-run. The other two remain open.]**
 
 No pack feature branch, worktree, local evidence artifact, or database is a
 cleanup target.
 
-> **Superseded 2026-08-14, later the same day, on three claims only.** The block
-> below is the feature-PR checkpoint record and is otherwise accurate. Three of
-> its statements have been overtaken and are corrected above: *"strict-console
-> Packet C and axe Packet D remain queued"* — Packet C shipped as #362;
+> **Superseded 2026-08-14, later the same day, on three claims only — a fourth
+> added 2026-08-15.** The block below is the feature-PR checkpoint record and is
+> otherwise accurate. Four of its statements have been overtaken and are corrected
+> above: *"strict-console Packet C and axe Packet D remain queued"* — Packet C
+> shipped as #362 and Packet D as #366 (`f627161`);
 > *"Linux fatigue baseline follow-up #351 is an open clean/green draft"* — #351
-> merged as `5a03d47`; and *"Sessions 1–9 have terminal outcomes through #350"* —
-> the run continued through #362.
+> merged as `5a03d47`; *"Sessions 1–9 have terminal outcomes through #350"* —
+> the run continued through #362; and **[added 2026-08-15]** *"The release/tag
+> pipeline remains deferred"* — it SHIPPED as #374 (`5222db2`), with #375
+> (`d3c3436`) recording the post-merge dry-run.
 
 **2026-08-14 — the August integration pack is at its verified
 feature-PR checkpoint; canonical truth is being reconciled.** Sessions 1–9 have
@@ -594,10 +600,10 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
-**Current (2026-08-15, after #369/#372/#373/#374/#375) — Testing Strategy Phase 2
+**Current (2026-08-15, after #366/#369/#370/#372/#373/#374/#375) — Testing Strategy Phase 2
 is COMPLETE and the release/tag pipeline has SHIPPED. There is still no automatic
 feature action dispatched from this file.** Verified against `origin/main` at
-`5a48e89`:
+`ebe6390`:
 
 - **Packet D (axe) shipped as #366 (`f627161`)**, and #372 (`385ce52`) recorded
   the phase closed. No Testing Phase-2 packet remains queued.
@@ -607,6 +613,10 @@ feature action dispatched from this file.** Verified against `origin/main` at
   label — #373 (`bae49ce`), ADR-008.
 - **#369 (`5a48e89`)** pinned the four residual false-green contracts #334 had
   recorded and deliberately left; that residual set is now empty.
+- **#370 (`ebe6390`)** re-pinned the fatigue observer guardrail pointer after #359
+  shifted the line it named. Docs-only; no status claim changes.
+- **#376 (`94f0d8c`)** merged this reconciliation itself; the anchor above is
+  deliberately its pre-merge tip.
 - Unchanged: the first scheduled deep-gate run is inspected only after
   **2026-08-17 03:17 UTC**, at job level; the heavy `$orchestrate` design stays
   unimplemented; do not revive P3 or add another readiness marker.
