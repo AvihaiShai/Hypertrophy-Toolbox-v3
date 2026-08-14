@@ -4,7 +4,8 @@
  * Tests that dark mode toggle works correctly and
  * persists across page reloads.
  */
-import { test, expect, ROUTES, SELECTORS, waitForPageReady, getDarkModeState, getStoredDarkMode } from './fixtures';
+import { test, expect } from './console-guard';
+import { ROUTES, SELECTORS, waitForPageReady, getDarkModeState, getStoredDarkMode } from './fixtures';
 import { Page } from '@playwright/test';
 
 /**
@@ -20,15 +21,10 @@ async function clickDarkModeToggle(page: Page): Promise<void> {
 }
 
 test.describe('Dark Mode Persistence', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
     // Clear localStorage before each test to ensure clean state
     await page.goto(ROUTES.HOME);
     await page.evaluate(() => localStorage.clear());
-  });
-
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
   });
 
   test('dark mode toggle changes theme from light to dark', async ({ page }) => {

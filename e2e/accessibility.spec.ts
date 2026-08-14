@@ -102,14 +102,15 @@ async function textContrast(
 }
 
 /**
- * Switch theme through the real toggle, assert it took, then wait for `body`'s
- * paint to settle.
+ * Switch theme through the real toggle, assert it took, then wait for the
+ * document's computed paint to settle.
  *
  * `data-theme` flips before the colours finish transitioning (`theme-dark.css`
  * puts an unconditional 0.3s transition on `body`), so sampling on the attribute
  * alone reads intermediate values and scores a paint the user never sees.
  *
- * Only `body` is sampled, which is what both callers measure.
+ * Waiting on `body` alone is insufficient for axe: it can reach its final
+ * colour while a descendant such as a form label is still cross-fading.
  */
 async function setThemeAndSettle(page: Page, theme: 'light' | 'dark'): Promise<void> {
   const current = await page.locator('html').getAttribute('data-theme');
@@ -123,27 +124,51 @@ async function setThemeAndSettle(page: Page, theme: 'light' | 'dark'): Promise<v
 
   await page.evaluate(async () => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-    const sample = () => {
-      const style = getComputedStyle(document.body);
-      return `${style.color}|${style.backgroundColor}`;
+    const root = document.documentElement;
+    const elements = [root, document.body, ...Array.from(document.body.querySelectorAll('*'))];
+    const paintProperties = [
+      'color',
+      'background-color',
+      'border-top-color',
+      'border-right-color',
+      'border-bottom-color',
+      'border-left-color',
+      'outline-color',
+      'text-decoration-color',
+      'opacity',
+      'visibility',
+    ];
+    const styleSignature = (element: Element, pseudo?: '::before' | '::after') => {
+      const style = getComputedStyle(element, pseudo);
+      return paintProperties.map((property) => style.getPropertyValue(property)).join(',');
     };
-    // Bounded by frames and by wall clock: a throttled renderer stops producing
-    // frames altogether, which would otherwise hang until the test timeout and
-    // report as a generic 30s failure instead of this message.
+    const sample = () =>
+      elements
+        .map(
+          (element) =>
+            `${styleSignature(element)};${styleSignature(element, '::before')};${styleSignature(element, '::after')}`
+        )
+        .join('|');
+
+    // Bounded by frames and by wall clock: a throttled renderer can stop
+    // producing frames altogether, which would otherwise hang until the test
+    // timeout and report as a generic 30s failure instead of this message.
     const deadline = performance.now() + 5000;
-    let previous = sample();
-    let stable = 0;
+    let previous: string | null = null;
+    let stableSince = performance.now();
     while (performance.now() < deadline) {
       await frame();
-      const now = sample();
-      if (now === previous) {
-        if (++stable >= 12) return;
-      } else {
-        stable = 0;
+      if (root.classList.contains('theme-animating')) {
+        previous = null;
+        stableSince = performance.now();
+        continue;
       }
+      const now = sample();
+      if (now !== previous) stableSince = performance.now();
+      if (now === previous && performance.now() - stableSince >= 400) return;
       previous = now;
     }
-    throw new Error(`setThemeAndSettle: body colours never settled (last ${previous})`);
+    throw new Error('setThemeAndSettle: document paint never settled');
   });
 }
 
@@ -819,14 +844,12 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
     { rule: 'color-contrast', nodes: 2 },
     { rule: 'label', nodes: 18 },
   ],
-  // Dark is 3, not the 2 this register first recorded. The original number was
-  // measured before #365 restored the theme-switch transition suppression, when
-  // `setThemeAndSettle` — which samples `body` alone — returned while slower
-  // elements were still cross-fading, so axe scored partly-transitioned colour.
-  // Proven: reverting #365 puts this back to 2, and with it in place the count
-  // is 3 on every repeat. See PLANNING.md §5, Packet D.
+  // Final dark paint is 2. A merge-time correction raised this to 3 after #365,
+  // but that reading still came from the body-only settlement helper and the
+  // extra node was transition paint, not a final-state violation. Holding the
+  // whole document's computed paint stable produced 2 in every stress repeat.
   'volume_splitter:dark': [
-    { rule: 'color-contrast', nodes: 3 },
+    { rule: 'color-contrast', nodes: 2 },
     { rule: 'label', nodes: 18 },
   ],
 
@@ -838,13 +861,12 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   'user_profile:light': [{ rule: 'color-contrast', nodes: 84 }],
   'user_profile:dark': [{ rule: 'color-contrast', nodes: 80 }],
 
-  // X8. `/fatigue` links no page bundle at all, so this row is a direct
-  // reading of the shared bundles: light is clean, dark fails six times.
-  // Six, not the four first recorded, for the same reason as
-  // `volume_splitter:dark` above — the original was measured mid-cross-fade,
-  // before #365. `h1` and `#fatigue-period` are the two that were being missed.
+  // X8. `/fatigue` links no page bundle at all, so this row is a direct reading
+  // of the shared bundles: light is clean, final dark paint fails four times.
+  // The briefly registered six included transitional `h1` and `#fatigue-period`
+  // paint; document-wide settlement excludes those non-final readings.
   'fatigue:light': [],
-  'fatigue:dark': [{ rule: 'color-contrast', nodes: 6 }],
+  'fatigue:dark': [{ rule: 'color-contrast', nodes: 4 }],
 
   // `aria-hidden-focus` is absent here and that is not a fix. axe's
   // `focusable-modal-open` check returns `undefined` — not `false` — once a

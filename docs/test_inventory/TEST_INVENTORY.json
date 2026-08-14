@@ -241,7 +241,7 @@
     "total_tests": 647
   },
   "pytest": {
-    "collected_deterministic": 2538,
+    "collected_deterministic": 2539,
     "deterministic_files": 119,
     "environment_dependent_files": [
       {
@@ -260,7 +260,7 @@
       },
       {
         "file": "tests/test_axe_contracts.py",
-        "tests": 7
+        "tests": 8
       },
       {
         "file": "tests/test_body_composition_history_busy_signal_contracts.py",

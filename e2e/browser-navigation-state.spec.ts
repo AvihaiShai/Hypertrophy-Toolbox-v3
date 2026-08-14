@@ -6,7 +6,8 @@
  * - Deep-link query for routine is ignored.
  */
 import type { Page } from '@playwright/test';
-import { test, expect, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
+import { test, expect } from './console-guard';
+import { ROUTES, SELECTORS, waitForPageReady } from './fixtures';
 
 type RoutineState = {
   env: string;

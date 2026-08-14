@@ -15,7 +15,8 @@
  *
  * One-shot. Folded into the suite or deleted after Stage 4 entry closes.
  */
-import { test, expect, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
+import { test, expect } from './console-guard';
+import { ROUTES, SELECTORS, waitForPageReady } from './fixtures';
 import { Page } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';

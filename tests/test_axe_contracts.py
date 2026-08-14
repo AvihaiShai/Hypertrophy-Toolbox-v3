@@ -1,6 +1,6 @@
 """Source contracts for the standards-based axe scan in `e2e/accessibility.spec.ts`.
 
-Two things bind the scan, and neither can be enforced from inside Playwright.
+Three things bind the scan, and none can be enforced from inside Playwright.
 
 The first is the dependency graph. `@axe-core/playwright` declares
 `peerDependencies: {"playwright-core": ">= 1.0.0"}` -- a range wide enough that
@@ -16,6 +16,12 @@ app produces today and asserts exact equality against them, which only stays
 honest while every registered rule is also written up in
 `docs/testing_phase2/A11Y_EXCEPTIONS.md`. Nothing in the TypeScript can check
 that, so it is checked here, in the required pytest gate.
+
+The third is theme settlement. Axe scores composited colour across the whole
+document, so waiting for `body` alone can return while a descendant transition
+is still running and make exact node counts intermittent. The helper must hold
+a document-wide computed-paint signature stable, not trust one representative
+element or a transition API that can report empty before transitions start.
 """
 from __future__ import annotations
 
@@ -204,3 +210,22 @@ def test_every_registered_rule_is_written_up_in_the_exception_register() -> None
         f"{undocumented} are tolerated by AXE_REGISTER but appear nowhere in "
         f"{EXCEPTIONS.relative_to(REPO_ROOT).as_posix()}. Add the row, or fix the defect."
     )
+
+
+def test_theme_settlement_samples_document_wide_computed_paint() -> None:
+    """Exact contrast counts must never be sampled from `body` alone."""
+    source = SPEC.read_text(encoding="utf-8")
+    match = re.search(
+        r"async function setThemeAndSettle\(.*?\n\}(?=\n\nasync function waitForBootstrapModalEvent)",
+        source,
+        re.S,
+    )
+    assert match is not None, "setThemeAndSettle is missing or no longer source-auditable"
+    helper = match.group(0)
+
+    assert "document.body.querySelectorAll('*')" in helper
+    assert "styleSignature(element, '::before')" in helper
+    assert "styleSignature(element, '::after')" in helper
+    assert "paintProperties" in helper
+    assert "root.classList.contains('theme-animating')" in helper
+    assert "getComputedStyle(document.body)" not in helper
