@@ -77,12 +77,13 @@
 > keeping: *structural checks confirm a thing exists; they do not confirm the
 > sentence about it is true.*
 >
-> **Not reconciled by this entry.** Several packets merged the same day and are
-> **not** recorded in this handover yet: **#339** (fatigue heatmap), **#341**
-> (local-first assets), **#344** (cross-model consult), **#346** (superset
-> selection on routine change), **#347** (Volume Splitter readiness waits). This
-> entry is scoped to the documentation suite only. Treat those five as unrecorded
-> shipped work, not as unshipped.
+> **Scope of this entry — and its since-closed caveat.** This entry covers the
+> documentation suite only. It originally warned that five same-day packets were
+> not yet recorded here: **#339** (fatigue heatmap), **#341** (local-first
+> assets), **#344** (cross-model consult), **#346** (superset selection on
+> routine change), **#347** (Volume Splitter readiness waits). **That warning is
+> discharged** — the August integration pack (**#352**, `7e4c1e9`) recorded all
+> five, in this file and in `CHANGELOG.md`. Nothing from that list is outstanding.
 
 > **2026-08-13 — Q10, the CSS visual-oracle blind-spot register repair,
 > is SHIPPED.** PR **#331** squash-merged as **`5dd0b22`**, **18/18 checks green**
