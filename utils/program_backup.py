@@ -15,9 +15,19 @@ from utils.logger import get_logger
 
 logger = get_logger()
 
-# TODO: schema_version is written but not yet consumed. First consumer should
-# read it in restore_backup to trigger field migration. Until then it is purely
-# informational.
+# Reserved informational label for a backup's payload shape (Testing Strategy D6,
+# ADR-007). It is persisted to program_backups.schema_version and returned by the
+# API, but nothing reads it to make a decision: restore_backup() is deliberately
+# version-blind, and structural compatibility is handled instead by
+# _check_column_exists() probing the destination columns at restore time.
+#
+# Changing the program_backup_items payload shape requires all three of:
+#   1. bump this constant;
+#   2. add an ALTER-based migration in initialize_backup_tables() -- the
+#      superset_group block below is the reference shape;
+#   3. add the matching branch in restore_backup().
+# Commit 6b99535 added superset_group with (2) and (3) but without the bump,
+# which is why version 1 does not identify a payload shape today.
 BACKUP_SCHEMA_VERSION = 1
 
 

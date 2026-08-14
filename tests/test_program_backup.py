@@ -52,8 +52,18 @@ class TestProgramBackup:
         assert backup['name'] == "Test Backup"
         assert backup['note'] == "Test note"
         assert backup['backup_type'] == "manual"
-        assert backup['schema_version'] == BACKUP_SCHEMA_VERSION
         assert backup['item_count'] == 3  # Three exercises
+
+        # Read the persisted row, not the dict create_backup built from the constant.
+        # Still satisfiable by the column's NOT NULL DEFAULT 1 -- the non-vacuous
+        # check is test_schema_version_persists_the_constant.
+        with DatabaseHandler() as db:
+            persisted = db.fetch_one(
+                "SELECT schema_version FROM program_backups WHERE id = ?",
+                (backup['id'],),
+            )
+        assert persisted is not None
+        assert persisted['schema_version'] == BACKUP_SCHEMA_VERSION
         
         # Verify backup items match expected fields
         details = get_backup_details(backup['id'])
@@ -444,6 +454,63 @@ class TestProgramBackup:
         # Should be the most recent auto-backup (Auto 2)
         assert latest['name'] == "Auto 2"
 
+    # -------------------------------------------------------------------------
+    # Test 6: schema_version is a reserved informational label
+    # (Testing Strategy D6 / ADR-007)
+    # -------------------------------------------------------------------------
+
+    def test_schema_version_persists_the_constant(self, clean_db, monkeypatch):
+        """create_backup writes the constant itself, not the column default.
+
+        The constant is patched to a value the ``NOT NULL DEFAULT 1`` column cannot
+        supply on its own, so dropping ``schema_version`` from the INSERT fails this
+        test instead of passing on the default.
+        """
+        monkeypatch.setattr("utils.program_backup.BACKUP_SCHEMA_VERSION", 7)
+
+        backup = create_backup(name="Version Probe")
+
+        with DatabaseHandler() as db:
+            row = db.fetch_one(
+                "SELECT schema_version FROM program_backups WHERE id = ?",
+                (backup['id'],),
+            )
+
+        assert row is not None
+        assert row['schema_version'] == 7
+
+    @pytest.mark.parametrize("foreign_version", [0, 2])
+    def test_restore_ignores_foreign_schema_version(
+        self, clean_db, exercise_factory, workout_plan_factory, foreign_version
+    ):
+        """Restore is version-blind by decision, not by omission.
+
+        0 and 2 are the representative foreign values -- one below the known version
+        and one above. NULL is not covered because the column is ``NOT NULL``, so no
+        supported path can produce it.
+        """
+        exercise_factory("Bench Press", primary_muscle_group="Chest")
+        workout_plan_factory(
+            exercise_name="Bench Press", routine="Workout A",
+            sets=3, min_rep_range=6, max_rep_range=8, weight=100.0,
+        )
+        backup = create_backup(name=f"Foreign v{foreign_version}")
+
+        with DatabaseHandler() as db:
+            db.execute_query(
+                "UPDATE program_backups SET schema_version = ? WHERE id = ?",
+                (foreign_version, backup['id']),
+            )
+
+        result = restore_backup(backup['id'])
+
+        assert result['restored_count'] == 1
+        assert result['skipped'] == []
+
+        with DatabaseHandler() as db:
+            rows = db.fetch_all("SELECT exercise FROM user_selection")
+        assert [row['exercise'] for row in rows] == ["Bench Press"]
+
 
 class TestProgramBackupAPI:
     """Test suite for program backup API endpoints."""
@@ -472,7 +539,34 @@ class TestProgramBackupAPI:
         assert data['ok'] is True
         assert len(data['data']) == 1
         assert data['data'][0]['name'] == "API Test Backup"
-    
+
+    def test_api_responses_carry_schema_version(
+        self, client, clean_db, exercise_factory, workout_plan_factory
+    ):
+        """schema_version stays part of all four response shapes that carry it.
+
+        It is informational (Testing Strategy D6 / ADR-007), but it is shipped, so
+        removing it from any of these payloads is a response-contract change and must
+        fail here first.
+        """
+        exercise_factory("Test Exercise")
+        workout_plan_factory(exercise_name="Test Exercise")
+
+        created = client.post('/api/backups', json={'name': 'Contract Backup'}).get_json()
+        assert 'schema_version' in created['data']
+        backup_id = created['data']['id']
+
+        listed = client.get('/api/backups').get_json()
+        assert 'schema_version' in listed['data'][0]
+
+        detail = client.get(f'/api/backups/{backup_id}').get_json()
+        assert 'schema_version' in detail['data']
+
+        patched = client.patch(
+            f'/api/backups/{backup_id}', json={'name': 'Renamed Backup'}
+        ).get_json()
+        assert 'schema_version' in patched['data']
+
     def test_api_create_backup(self, client, clean_db, exercise_factory, workout_plan_factory):
         """Test POST /api/backups creates a backup."""
         exercise_factory("Test Exercise")

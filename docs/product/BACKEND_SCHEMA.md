@@ -616,6 +616,13 @@ Owned by `utils/program_backup.py`. **These are the first two entries in
 **PK** `id`. **UNIQUE** `(name, created_at)`.
 **Indexes**: `idx_backups_created_at` on `created_at DESC`; `idx_backups_type`.
 
+`schema_version` is a **reserved informational label**, not an enforced compatibility contract:
+it is written and returned but never read to make a decision, and `restore_backup()` is
+deliberately version-blind. See [ADR-007](../DECISIONS.md) and
+[`program_backups.md`](../program_backups.md). It is the column the *Constraint enforcement*
+section above flags as unrelated to SQLite's `user_version`. Being `NOT NULL`, it also has no
+reachable `NULL` state.
+
 #### `program_backup_items`
 
 | Column | Type | Null | Default |
