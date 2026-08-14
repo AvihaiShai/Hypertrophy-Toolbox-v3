@@ -865,7 +865,9 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
 
   // Four, the same as the route scan: the injected data cells add no violation
   // of their own, so production `<thead>` markup clears axe's structural table
-  // rules and the cell text clears 4.5:1 once a row exists to paint.
+  // rules and the cell text clears 4.5:1 once a row exists to paint. This state
+  // deliberately does not render production's `.volume-badge`; in particular,
+  // `.medium-volume` (white on #fd7e14) remains outside this scan.
   'state:populated-table': [{ rule: 'color-contrast', nodes: 4 }],
 };
 
@@ -1056,7 +1058,9 @@ test.describe('Axe — deterministic states', () => {
     // The cells are synthetic but the *colours* are not: they inherit the
     // production `td` and backdrop, so scoring their contrast measures shipped
     // tokens against real table-cell text, which no other check reaches on a
-    // wiped seed.
+    // wiped seed. They deliberately stay plain text rather than reproducing the
+    // last column's production `.volume-badge`; that badge, including the
+    // medium-orange variant, is outside this structural-table scan.
     const injected = await page.evaluate(() => {
       const table = document.querySelector('table.tbl--responsive');
       if (!table) return { headers: 0, rows: 0 };
