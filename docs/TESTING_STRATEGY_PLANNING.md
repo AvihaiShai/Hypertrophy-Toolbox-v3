@@ -24,7 +24,7 @@
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
-> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D4, D6 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *No scheduled run has executed yet — first authoritative one Monday 2026-08-17 03:17 UTC.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D4 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *No scheduled run has executed yet — first authoritative one Monday 2026-08-17 03:17 UTC.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
 
 ---
 
@@ -180,7 +180,7 @@ no `timeout-minutes` on any of the 20 jobs (hangs burn up to 6h of runner); no `
 
 **B10 — JS supply chain fully unscanned.** No npm audit, no Dependabot, no lockfile scanning; `bootstrap` pinned at 5.1.3 (2021-era) and consumed by the SCSS build.
 
-**B11 — Backup subsystem residue:** `BACKUP_SCHEMA_VERSION` is written but never consumed (TODO at [utils/program_backup.py:18-21](../utils/program_backup.py#L18-L21)) — the versioning escape hatch doesn't actually exist yet; `prune_auto_backups()` has zero tests; no test feeds corrupted/type-confused **rows** to `restore_backup()` (Codex's refined fuzz target, still open); the file-level auto-backup snapshots have no restore tooling (documented as intentional — but that means disaster recovery is "user copies a file by hand" and is itself untested).
+**B11 — Backup subsystem residue:** `BACKUP_SCHEMA_VERSION` is written but never consumed — *resolved 2026-08-14 as a decision rather than a defect: the value is a **reserved informational label** and restore is deliberately version-blind (D6, [§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008). The TODO is gone and the contract, including the bump-and-branch rule for the next payload change, is stated at the definition site.* `prune_auto_backups()` has zero tests; no test feeds corrupted/type-confused **rows** to `restore_backup()` (Codex's refined fuzz target, still open); the file-level auto-backup snapshots have no restore tooling (documented as intentional — but that means disaster recovery is "user copies a file by hand" and is itself untested).
 
 **B12 — Suite hermeticity is per-run, not per-test.** All 541 E2E tests share one mutable SQLite DB serially; isolation is DIY per-spec cleanup calls. This is a deliberate, workable trade-off, but it is why `program-backup.spec.ts` has a documented pollution flake and its own isolated CI job — worth knowing before ever enabling `PW_WORKERS > 1`.
 
@@ -211,7 +211,7 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 
 ### Phase 3 — New test types where they pay (the valid half of Opus)
 10. **Hypothesis on the calculation core** — `effective_sets`, `double_progression`, volume splitter, plan generator. **Every invariant must be owner-confirmed first** (Gate 0 + `product-risk-reviewer`): candidate invariants like "suggested weight never decreases when reps hit ceiling" or "split volume sums to input" must survive rounding/caps/config review before they become tests. Remember the module's own product rule: effective sets are informational-only. *(Fable 5, 2026-08-02: two operational preconditions before any property test lands — point Hypothesis's `.hypothesis/` example database under `artifacts/` (ADR-002) and register a CI profile with `derandomize=True`/`deadline=None`, because `Run Tests` is a required check with no retry — §9.2 F5-3.)*
-11. **Backup-row fuzzing (Codex's corrected version):** feed `restore_backup()` type-confused/NULL/out-of-range `program_backup_items` rows; assert a clean error + intact live program (the rollback machinery is already tested for injected faults — this extends it to malformed persisted data). Treat `schema_version` as a compatibility-policy decision first: it is persisted, tested, and returned by the API, so deleting it is a DB/API contract change requiring migration notes and consumer review. If retained, define supported/unsupported-version behavior and test it; do not fuzz a value that restore still ignores. `prune_auto_backups()` currently has no production caller—decide whether to remove that dead surface before adding tests that would entrench it.
+11. **Backup-row fuzzing (Codex's corrected version):** feed `restore_backup()` type-confused/NULL/out-of-range `program_backup_items` rows; assert a clean error + intact live program (the rollback machinery is already tested for injected faults — this extends it to malformed persisted data). **The `schema_version` precondition is discharged (2026-08-14, D6 → ADR-008): it is retained as a reserved informational label and restore stays version-blind, so the fuzz target is the `program_backup_items` rows and never the version itself** — fuzzing a value restore ignores would prove nothing. Version-blindness is already pinned by `test_restore_ignores_foreign_schema_version`, so step 11 need not re-cover it. *(Original wording, superseded: "Treat `schema_version` as a compatibility-policy decision first … If retained, define supported/unsupported-version behavior and test it; do not fuzz a value that restore still ignores.")* `prune_auto_backups()` currently has no production caller—decide whether to remove that dead surface before adding tests that would entrench it.
 12. **JS unit expansion with jsdom** for the highest-risk DOM modules (`exercises.js`, `workout-controls-persistence.js` — the KI-005 contract, `toast.js` — the KI-004 contract, `backup-center.js`), then **promote the Vitest job to required** once green for 2 weeks. *(Fable 5, 2026-08-02: adopt jsdom via per-file `// @vitest-environment jsdom` pragmas, leaving the global `environment: 'node'` and the 9 existing files untouched — §9.2 F5-6.)*
 
 ### Phase 4 — Release gate (fixes B8; the largest structural gap)
@@ -289,11 +289,13 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 | D3 | Release process: full pipeline or weekly scheduled deep-gate as stopgap? | Stopgap now, pipeline when the next packaged release is planned |
 | D4 | Hypothesis invariants for calculation modules | Owner review required per invariant (Gate 0) before any property test lands |
 | D5 | Browser matrix | Stay Chromium-only; record as ADR |
-| D6 | `BACKUP_SCHEMA_VERSION` | Prefer defining and enforcing a compatibility policy. Removal is only acceptable as an explicit DB/API contract migration, not a testing cleanup |
+| D6 | `BACKUP_SCHEMA_VERSION` | *Recommendation (unchanged, for the record):* prefer defining and enforcing a compatibility policy; removal is only acceptable as an explicit DB/API contract migration, not a testing cleanup. **Owner decision 2026-08-14: retain-informational instead** — a reserved label, version-blind restore, bump-and-branch rule for the next payload change. Reason for the departure and the evidence behind it: [§8.1c](#81c-fourth-sign-off-2026-08-14--d6); recorded as ADR-008 |
 | D7 | Auto-backup file snapshots: keep "no in-app restore" stance? | Keep, but document the manual recovery procedure in the README |
 
-**Sign-off state (2026-08-01):** D1 is signed as non-blocking measurement, and D2 is signed for
-`e2e-erase-flow` only. **D3–D7 are unsigned** and no work may act on them. See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
+**Sign-off state (updated 2026-08-14):** D1 is signed as non-blocking measurement; D2 is signed for
+`e2e-erase-flow` only; D3 is signed as the stopgap half and D5 as Chromium-only ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5));
+D6 is signed as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6)). **D4 and D7
+remain unsigned** and no work may act on them. See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
 
 ---
 
@@ -396,6 +398,31 @@ release.
 packet.* The `push: tags` trigger in `release.yml` has never fired; what was validated is the
 dispatch path and the guard logic beneath it. Nothing here bears on the weekly scheduled deep
 gate, whose first scheduled execution is still due 2026-08-17 03:17 UTC.
+
+#### 8.1c Fourth sign-off (2026-08-14) — D6
+
+The three sign-offs above are left unedited as the historical record. This is the fourth. It
+is independent of §8.1b — that section covers the release/tag pipeline, and its **R1-D6** is a
+namespaced local label, not this document's D6.
+
+| Decision | Ruling | Scope authorized |
+|---|---|---|
+| **D6** — `BACKUP_SCHEMA_VERSION` | **Signed as retain-informational.** The value is a reserved label; `restore_backup()` stays deliberately version-blind; structural compatibility remains owned by destination-column probing. Recorded as [`DECISIONS.md`](DECISIONS.md) **ADR-008** | Phase 3, step 11 — precondition only |
+| **D4, D7** | **Still not signed.** | — |
+| **D2** (`js-unit` half) | **Still not signed.** | — |
+
+**This departs from §6's stated recommendation of A** (define and enforce a compatibility policy).
+The reason is evidence that postdates the recommendation: the label had already failed to track a
+real payload change — `superset_group` was added to `program_backup_items` in `6b99535`
+(2026-02-05) with an `ALTER` migration but **without** bumping the constant introduced two days
+earlier in `720cb0e`, and `create_backup()` writes absent columns as `NULL`, so rows labelled
+version `1` already differ in shape. Enforcing a range over a label that was never maintained
+enforces nothing, and the guard would sit on the disaster-recovery path where a false refusal is
+worse than the silent mis-restore it prevents. Full analysis and the requirements brief:
+[`backup_schema_version/PLANNING.md`](backup_schema_version/PLANNING.md).
+
+**This authorizes the D6 precondition only.** Step 11's fuzzing work is not authorized by this
+sign-off; it remains a separate packet.
 
 ### 8.2 The port-5000 single-runner rule
 
@@ -593,7 +620,7 @@ shape detects a cross-PR interaction before it reaches `main`.
 - **`js-unit` stays non-required.** D2's js-unit half is unsigned, and the 2026-08-02 sign-off
   (§8.1a) explicitly kept it that way: reconsider only after the documented two-week stability
   window, with evidence.
-- **D4, D6 and D7 remain unsigned.** Phases 2, 3 and 5 remain proposals. Phase 2 step 8 was
+- **D4 and D7 remain unsigned** (D6 signed 2026-08-14, §8.1c). Phases 2, 3 and 5 remain proposals. Phase 2 step 8 was
   delivered by APP_PY P1+P5 (§8.5). D3 and D5 were signed on 2026-08-02 (§8.1a); D5 shipped as
   ADR-004, and **D3's stopgap shipped 2026-08-11 as PR #323 (`3b1160b`)**.
 - ~~**The Linux visual baseline set is stale, and it blocks the Phase 4 stopgap.**~~
@@ -870,7 +897,7 @@ stand as written.
 as `DECISIONS.md` **ADR-004** (Chromium-only); **D3 was signed as the stopgap half only**, and
 that stopgap was blocked on the stale Linux baseline set (**§8.7**) — *updated 2026-08-11: the
 baselines were regenerated and reviewed on 2026-08-04, and the stopgap **shipped** as PR #323
-(`3b1160b`); §8.7 is now history.* **D4, D6 and D7
+(`3b1160b`); §8.7 is now history.* *(updated 2026-08-14: D6 signed as retain-informational, §8.1c.)* **D4 and D7
 remain unsigned**, as does the js-unit half of D2. **Phases 2, 3 and 5 remain proposals, and
 Phase 4 is not complete** — *updated 2026-08-14: its release/tag pipeline half **shipped** as
 Packet R1 (§8.1b), but Phase 4 stays open because §7.3 entry criteria 2 and 3 are unmet and

@@ -120,7 +120,7 @@
 > Phase-2 **Packet D (axe) remains queued** — the repository had **zero open
 > PRs** when this was written, so no Packet D work is in flight and no
 > completion date is predicted for it here. The release/tag half of Testing
-> Phase 4, the heavier `$orchestrate` mechanism, and D4/D6/D7 plus the `js-unit`
+> Phase 4, the heavier `$orchestrate` mechanism, and D4/D7 plus the `js-unit`
 > half of D2 remain exactly where their source plans leave them. The first
 > scheduled deep-gate run is still due **2026-08-17 03:17 UTC**, and #351's
 > Linux regeneration is what that run will now compare against.
@@ -2418,8 +2418,9 @@ behind the CSS it describes.
   queued".]** **[UPDATED again 2026-08-14 — Packet D (axe) shipped as #366 (`f627161`),
   and Packets E and F closed register rows X1 and X6; Testing Strategy Phase 2 is
   COMPLETE.]** The bullet previously read "Only **Packet D (axe) remains queued**" under the approved Plan v2;
-  it had no open PR at the 2026-08-14 reconciliation. D4, D6, D7 and the
-  `js-unit` half of D2 remain unsigned; Phases 3 and 5 and the release/tag half
+  it had no open PR at the 2026-08-14 reconciliation. D4, D7 and the
+  `js-unit` half of D2 remain unsigned (D6 signed 2026-08-14 as retain-informational,
+  recorded as ADR-008); Phases 3 and 5 and the release/tag half
   of Phase 4 remain proposals.
 
 > **Superseded 2026-08-01.** The note below read *"None blocking"* and described

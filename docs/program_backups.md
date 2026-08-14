@@ -1,6 +1,6 @@
 # Program Backup / Backup Center
 
-Last updated: 2026-04-24
+Last updated: 2026-08-14
 
 ## Overview
 
@@ -25,6 +25,22 @@ Backups live in two SQLite tables separate from the active program:
 | `program_backup_items` | Snapshot rows for routine, exercise, sets, rep range, RIR, RPE, weight, order, and `superset_group` |
 
 Backups survive normal erase/reset flows because they are not stored in `user_selection`.
+
+### `schema_version` — a reserved label, not an enforced contract
+
+`program_backups.schema_version` records `BACKUP_SCHEMA_VERSION` (currently `1`) and is returned
+by the API, but nothing reads it to make a decision. `restore_backup()` is **deliberately
+version-blind**: it never selects the column, and structural compatibility is handled instead by
+probing the destination columns on `user_selection` at restore time. This is Testing Strategy
+decision **D6**, recorded as [ADR-008](DECISIONS.md).
+
+Version `1` does not identify a payload shape — rows labelled `1` already differ in shape. ADR-008
+has the history.
+
+**Changing the `program_backup_items` payload shape requires all three of:** bumping
+`BACKUP_SCHEMA_VERSION`; adding an `ALTER`-based migration in `initialize_backup_tables()`; and
+adding the matching branch in `restore_backup()`. Skipping the bump is what made the label
+meaningless the first time.
 
 ## API
 

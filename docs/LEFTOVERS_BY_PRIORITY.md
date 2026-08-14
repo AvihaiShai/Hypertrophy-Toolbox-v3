@@ -428,8 +428,8 @@ starting one.**
   accessibility debt is **X7–X13 and X15, all owner-deferred** — pinned at exact
   axe node counts, not suppressed. D3's weekly compare-only stopgap shipped
   as #323 (`3b1160b`) with #325 (`4d01698`) adding timeouts, but its first
-  scheduled run is still due 2026-08-17. D4, D6, D7 and the `js-unit` half of
-  D2 remain unsigned; Phases 3/5 and the release/tag half of Phase 4 remain
+  scheduled run is still due 2026-08-17. D4, D7 and the `js-unit` half of
+  D2 remain unsigned (D6 signed 2026-08-14, ADR-008); Phases 3/5 and the release/tag half of Phase 4 remain
   proposals.
 - ~~**Product documentation suite** in [`PRODUCT_DOCS_PLAN.md`](PRODUCT_DOCS_PLAN.md)~~
   — **EXECUTED.** Gate 0 answered, council run, Plan v2 recorded in §8; the
@@ -634,7 +634,7 @@ Do not resurrect these from unchecked boxes or old dated prose.
 
 ## 4. Remaining source TODOs
 
-Four `TODO` markers remain in production Python, covering three decisions
+Three `TODO` markers remain in production Python, covering two decisions
 (`constants.py` carries the same question on two adjacent alias lines). None is a
 quick implementation task without an owner decision. No `TODO`/`FIXME` markers
 remain in `static/js/`.
@@ -643,7 +643,7 @@ remain in `static/js/`.
 |---|---|---|
 | [`utils/constants.py:19`](../utils/constants.py#L19) | Consider collapsing `Front-Shoulder` into anatomical deltoid naming. | **OWNER / taxonomy migration.** Cross-module string matching makes this a product/data migration, not a rename. |
 | [`utils/constants.py:100-101`](../utils/constants.py#L100-L101) | Decide whether `Mid/Upper Back` remains a dedicated grouping (duplicated on both casing aliases). | **OWNER / taxonomy decision.** Preserve current aliases until decided; resolve both lines together. |
-| [`utils/program_backup.py:18`](../utils/program_backup.py#L18) | `schema_version` is written but not consumed. | Testing Strategy decision D6: define/enforce compatibility or explicitly remove the unused contract. Do not silently implement a migration policy. |
+| ~~[`utils/program_backup.py:18`](../utils/program_backup.py#L18)~~ | ~~`schema_version` is written but not consumed.~~ | **RESOLVED 2026-08-14** — Testing Strategy D6 decided as retain-informational, recorded as [ADR-008](DECISIONS.md). The TODO is replaced by a stated contract at the definition site. |
 
 ## 5a. Evidence added at v23
 
@@ -740,7 +740,7 @@ What genuinely remains, and it is all gated:
 | Remaining | Status | Who decides |
 |---|---|---|
 | **P2.4** Broader KI-005 manual-edit provenance staleness | **OWNER / demand-gated** — a new UX packet only if it is visible in real use | owner |
-| **§4** three production `TODO` decisions | **OWNER** — two taxonomy questions (`utils/constants.py`) and `schema_version` (Testing Strategy D6) | owner |
+| **§4** two production `TODO` decisions | **OWNER** — two taxonomy questions (`utils/constants.py`). The third, `schema_version`, was resolved 2026-08-14 by Testing Strategy D6 / [ADR-008](DECISIONS.md) | owner |
 | The `npm audit` severity / exception policy | **OWNER** — held apart from P1.6 throughout and still undecided; [`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`](P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md) owns it | owner |
 | **Remaining P3 proposals** | Legitimate future work, not forgotten activity; completed or terminated P3 bullets stay closed | owner, at Gate 0 |
 

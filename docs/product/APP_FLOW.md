@@ -600,6 +600,7 @@ the column nullability encodes.
 | Backup list | API | `GET /api/backups` |
 | Search / sort | Presentation | Filters and orders the loaded list client-side |
 | Open a backup | API | `GET /api/backups/<id>` → `NOT_FOUND` 404 for an unknown id — verified live |
+| Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Always reads `1` today |
 | Rename / edit note | API | `PATCH /api/backups/<id>` |
 | **Restore** | Presentation → API | Confirmation, then `POST /api/backups/<id>/restore`. The confirmation text states plainly that the current plan and all logged sessions will be cleared |
 | Save current plan first | API | Offered inside the restore confirmation only; snapshots the present state before restoring |
