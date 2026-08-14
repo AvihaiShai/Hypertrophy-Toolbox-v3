@@ -432,9 +432,15 @@ starting one.**
   The bounded, read-only one-shot consult shipped as #344 (`9906105`), and Gate
   2 was ratified post-merge by #348 (`a459520`). **[UPDATED 2026-08-14]** That
   plan's own **Packet C** (charter and contract hygiene) shipped as **#361**
-  (`a224b39`) — a different packet series from Testing Phase-2's C/D above; its
-  **Packet D** (narrowing `.claude/settings.json` so the adapter prompts)
-  remains unshipped with no open PR. The heavy `$orchestrate`
+  (`a224b39`) — a different packet series from Testing Phase-2's C/D above, and
+  the two must not be conflated. Its **Packet D** (narrowing
+  `.claude/settings.json` so the adapter prompts, CR-18) is **declined at plan
+  level, not queued**: the recorded disposition is *"accept the disclosure,
+  decline the mitigation"*, because narrowing that allowance would prompt on
+  every Python invocation in the repository while still not stopping an agent
+  that can set the variable itself. What bounds the risk instead is the read
+  denylist plus `--max-budget-usd`. Pursuing it anyway would need its own
+  Gate 0. The heavy `$orchestrate`
   manager/state-machine remains planned and deliberately unimplemented; the
   plan is tracked and indexed, so v21's untracked-file warning is retired.
 - **Theme-dark P3** in [`css_theme_dark_p3/PLANNING.md`](css_theme_dark_p3/PLANNING.md):
