@@ -132,6 +132,57 @@ test.describe('Dark Mode Persistence', () => {
     expect(await getDarkModeState(page)).toBe('dark');
   });
 
+  // Register row X6. darkMode.js suppresses transitions for the two frames
+  // around a switch so the swap is instant. The CSS half of that pair was
+  // deleted by ee82643 and the class matched nothing for four months, so this
+  // asserts the suppression reaches the element — not merely that the class is
+  // applied, which stayed true throughout the regression.
+  test('theme toggle suppresses transitions while switching', async ({ page }) => {
+    await page.goto(ROUTES.HOME);
+    await waitForPageReady(page);
+    await expect(page.locator(SELECTORS.DARK_MODE_TOGGLE)).toBeVisible();
+
+    const observed = await page.evaluate(() => new Promise<{
+      classDuringSwitch: boolean;
+      bodyTransitionDuringSwitch: string;
+      classAfterSwitch: boolean;
+    }>((resolve) => {
+      const root = document.documentElement;
+      (document.querySelector('#darkModeToggle') as HTMLElement).click();
+
+      // Still inside the click handler's task: applyTheme() has added the class
+      // and has not yet reached its double-rAF removal, so this is the only
+      // moment at which the suppression is observable.
+      const classDuringSwitch = root.classList.contains('theme-animating');
+      const bodyTransitionDuringSwitch = getComputedStyle(document.body).transitionDuration;
+
+      // applyTheme queues its removal for the second frame. Ours is queued
+      // behind it, so by the third callback the removal has already run.
+      requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+        resolve({
+          classDuringSwitch,
+          bodyTransitionDuringSwitch,
+          classAfterSwitch: root.classList.contains('theme-animating'),
+        });
+      })));
+    }));
+
+    expect(
+      observed.classDuringSwitch,
+      'darkMode.js did not apply .theme-animating, so there is nothing for the rule to match'
+    ).toBe(true);
+
+    expect(
+      observed.bodyTransitionDuringSwitch,
+      `body still transitions (${observed.bodyTransitionDuringSwitch}) while .theme-animating is applied, so the suppression rule is not reaching it`
+    ).toBe('0s');
+
+    expect(
+      observed.classAfterSwitch,
+      '.theme-animating was never removed, which would leave transitions dead for the rest of the session'
+    ).toBe(false);
+  });
+
   test('toggle icon changes correctly with theme', async ({ page }) => {
     await page.goto(ROUTES.HOME);
     await waitForPageReady(page);
