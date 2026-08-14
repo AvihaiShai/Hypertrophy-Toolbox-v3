@@ -122,6 +122,20 @@
 > describes the debug block. Fixed at v23 by escaping the pipe. Anything quoting
 > Jinja, shell pipes, or regex alternation inside these tables must escape `|`.
 
+> **v28 — post-#368 status reconciliation, 2026-08-14. Docs-only; nothing
+> promoted.** Verified against `origin/main` at **`9be1a3f`**. Testing Phase-2
+> advanced through Packet E #364 (`ebfa716`), Packet F #365 (`a49da8d`), the
+> owner-decision/blocker record #367 (`a64ea76`), and console wave C2 #368
+> (`9be1a3f`). **Packet D (axe) is no longer queued and is not shipped:** open,
+> non-draft #366 at `9352519` implements the owner-selected explicit-exception
+> register, but is DIRTY and has no checks reported yet for that fresh head. Its
+> immediate predecessor `a8fd2b4` red because Ubuntu observed
+> `volume_splitter:dark` `color-contrast×2` where the register expected `×3`, on
+> the initial attempt and both retries; Functional Shard 1/2 and its fan-in
+> failed while the other 16 checks passed. The existing PR owner must reconcile
+> that exact-count mismatch; this file neither duplicates the packet nor
+> promotes another proposal.
+
 > **v27 — post-#359 canonical reconciliation, 2026-08-14 (later the same day as
 > v26). Docs-only; one item retired, nothing promoted.** Verified against
 > `origin/main` at **`fbb76f5`** with **zero open PRs** on the repository.
@@ -416,9 +430,12 @@ starting one.**
   complete. Phase-2 Packet A shipped as #342 (`1438a14`), repairing nine
   false-green accessibility assertions. **[UPDATED 2026-08-14 — this bullet
   previously read "Packets C (strict console) and D (axe) remain queued".]**
-  **Packet C shipped as #362** (`52331bf`): `e2e/console-guard.ts` plus three
-  migrated specs. **Only Packet D (axe) remains queued**, with no open PR at
-  this reconciliation. D3's weekly compare-only stopgap shipped
+  **Packet C shipped as #362** (`52331bf`), followed by Packet E #364, Packet F
+  #365, and console wave C2 #368. **[UPDATED 2026-08-14, after #368] Packet D
+  (axe) is in flight as open non-draft #366, not queued or shipped.** It is
+  currently DIRTY with fresh checks not yet reported; its prior head red on an
+  Ubuntu exact-count mismatch. Do not dispatch a duplicate. D3's weekly
+  compare-only stopgap shipped
   as #323 (`3b1160b`) with #325 (`4d01698`) adding timeouts, but its first
   scheduled run is still due 2026-08-17. D4, D6, D7 and the `js-unit` half of
   D2 remain unsigned; Phases 3/5 and the release/tag half of Phase 4 remain

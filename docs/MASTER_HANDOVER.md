@@ -4,6 +4,39 @@
 
 ## Current State
 
+> **2026-08-14 (LATEST, after #368) — Testing Phase-2 advanced through console
+> wave C2, while Packet D is in flight but not mergeable.** Four PRs landed
+> after the `fbb76f5` reconciliation below:
+>
+> | PR | Terminal result |
+> |---|---|
+> | **#364** | `ebfa716` — Packet E shipped `aria-invalid` set/clear behavior for invalid required controls, with no test-node or baseline movement. |
+> | **#365** | `a49da8d` — Packet F restored the four-branch `html.theme-animating` suppression in `motion.css`; the CSS/JS pair is contract-pinned. |
+> | **#367** | `a64ea76` — recorded the X1/X2/X6 owner decisions and the measured axe pre-flight blocker on `main`. |
+> | **#368** | `9be1a3f` — console wave C2 migrated `dark-mode`, `browser-navigation-state`, `fatigue-stage4-smokes` and `erase-flow` onto the strict guard, with zero allowlist entries. |
+>
+> **Packet D is no longer merely queued, and it is not shipped.** Open,
+> non-draft **#366** at `9352519` implements the owner-selected
+> explicit-exception path: axe still runs every WCAG rule, while existing debt
+> is pinned by surface, rule and exact node count. At this measurement the PR is
+> **DIRTY** after #368, and no checks are yet reported for the new `9352519`
+> head. Its immediate predecessor `a8fd2b4` was red: Ubuntu observed
+> `volume_splitter:dark` `color-contrast×2` where the register expected `×3`,
+> identically on the initial attempt and both retries. Functional Shard 1/2 and
+> its fan-in failed; the other 16 checks passed. The mismatch must be reconciled
+> without weakening the exact register before Packet D can merge.
+>
+> The release/tag half of Testing Phase 4, the heavier `$orchestrate`
+> mechanism, and D4/D6/D7 plus the `js-unit` half of D2 remain where their
+> source plans leave them. The first scheduled deep-gate run is still due
+> **2026-08-17 03:17 UTC**.
+
+> **Superseded 2026-08-14, after #368, on Packet D and the reconciliation pin.**
+> The entry below remains the terminal record through #362. Its `origin/main`
+> pin at `fbb76f5`, zero-open-PR measurement, and “Packet D remains queued”
+> conclusion were overtaken by #364–#368 and open PR #366; current truth is the
+> entry above.
+
 > **2026-08-14 (LATEST) — the pack's docs-only tail has landed; canonical status
 > is reconciled against `origin/main` at `fbb76f5`.** **Eleven** further PRs
 > merged after `7e4c1e9` (#352), the pack reconciliation that recorded the
@@ -2301,7 +2334,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
-| Testing strategy review | **Phases 0–1 complete; Phase-2 truth refresh is partially executed.** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **Packet D (axe coverage) remains queued** under the approved Plan v2 and had no open PR at the 2026-08-14 reconciliation. Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), but its first scheduled run is still due 2026-08-17 03:17 UTC; the release/tag half of Phase 4 remains deferred. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
+| Testing strategy review | **Phases 0–1 complete; Phase-2 truth refresh is partially executed.** Packet A shipped as #342 (`1438a14`); Packet C shipped as #362 (`52331bf`); Packet E as #364 (`ebfa716`); Packet F as #365 (`a49da8d`); and console wave C2 as #368 (`9be1a3f`). The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14, after #368] Packet D (axe) is in flight, not queued or shipped.** Open non-draft #366 at `9352519` implements the explicit-exception register and is DIRTY against `main`; no checks are yet reported for that head. Its `a8fd2b4` predecessor was red on an Ubuntu exact-count mismatch (`volume_splitter:dark` contrast 2 observed vs 3 registered). Resolve that mismatch without weakening the register, then restore required CI green. Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), but its first scheduled run is still due 2026-08-17 03:17 UTC; the release/tag half of Phase 4 remains deferred. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
 
 ## Open Decisions
 
@@ -2324,12 +2357,14 @@ behind the CSS it describes.
   the council found no requirement that needed them; completing a six-document
   set is not leftover work.
 - **Testing strategy is partially advanced, not closed.** Phase-2 Packet A
-  shipped as #342 and **Packet C (strict console) shipped as #362** (`52331bf`).
-  **[UPDATED 2026-08-14 — this bullet previously read "Packets C … and D … remain
-  queued".]** Only **Packet D (axe) remains queued** under the approved Plan v2;
-  it had no open PR at the 2026-08-14 reconciliation. D4, D6, D7 and the
-  `js-unit` half of D2 remain unsigned; Phases 3 and 5 and the release/tag half
-  of Phase 4 remain proposals.
+  shipped as #342, Packet C as #362, Packet E as #364, Packet F as #365, and
+  console wave C2 as #368. **[UPDATED 2026-08-14, after #368] Packet D (axe) is
+  now in flight as open non-draft #366 at `9352519`, not queued or shipped.**
+  The PR is DIRTY against `main`, with fresh checks not yet reported; its
+  `a8fd2b4` predecessor was red on Ubuntu (`volume_splitter:dark` contrast 2
+  observed vs 3 registered).
+  D4, D6, D7 and the `js-unit` half of D2 remain unsigned; Phases 3 and 5 and
+  the release/tag half of Phase 4 remain proposals.
 
 > **Superseded 2026-08-01.** The note below read *"None blocking"* and described
 > a working tree and `origin/main` parity measured on **2026-05-29**. Retained
@@ -2368,10 +2403,11 @@ feature packet.** Finish only work that already has its own authority:
   (`5a03d47`); it is no longer an open draft and no longer needs holding clear
   of a docs packet. Its regenerated Linux captures are what the 2026-08-17
   deep-gate compare will run against;
-- **[UPDATED 2026-08-14]** Testing Phase-2 **Packet C shipped as #362**
-  (`52331bf`). Only **Packet D (axe)** is still queued in
-  [`testing_phase2/PLANNING.md`](testing_phase2/PLANNING.md), with no open PR at
-  this reconciliation;
+- **[UPDATED 2026-08-14, after #368]** Testing Phase-2 Packet C shipped as #362,
+  Packet E as #364, Packet F as #365, and console wave C2 as #368. **Packet D
+  (axe) is in flight as #366**, currently DIRTY with fresh checks not yet
+  reported; its prior head red on an Ubuntu exact-count mismatch. Do not
+  dispatch a duplicate or report it shipped;
 - the first scheduled deep-gate run must be inspected after
   **2026-08-17 03:17 UTC**, at job level, with `visual-linux` executed rather
   than skipped and compare mode writing no baselines;

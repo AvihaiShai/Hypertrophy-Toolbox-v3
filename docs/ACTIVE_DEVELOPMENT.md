@@ -4,6 +4,34 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
+**2026-08-14 (LATEST, after #368) — Testing Phase-2 Packet D is no longer
+queued, but it is not shipped.** Four follow-ups landed after the reconciliation
+below: #364 (`ebfa716`) shipped Packet E (`aria-invalid`), #365 (`a49da8d`)
+shipped Packet F (the `.theme-animating` suppression), #367 (`a64ea76`)
+recorded the X1/X2/X6 owner decisions and the measured axe pre-flight blocker,
+and #368 (`9be1a3f`) shipped console wave C2 across four more specs.
+
+Packet D now has an open, non-draft implementation PR: **#366** at `9352519`.
+It takes the owner-selected explicit-exception path and pins existing violations
+by surface, rule and exact node count; it does not fix or suppress the debt.
+Measured after #368, the PR is **DIRTY, not mergeable**. No checks were yet
+reported for the new `9352519` head. Its immediate predecessor `a8fd2b4` was
+red: Ubuntu reported `volume_splitter:dark` as `color-contrast×2` while the
+register expected `×3` on the initial attempt and both retries. That one test
+failure red the Functional Shard 1/2 and its fan-in while the other 16 checks
+passed. Packet D therefore remains in flight with its own owner, and no
+completion is predicted here.
+
+The heavy `$orchestrate` mechanism stays deliberately unimplemented, the
+release/tag pipeline stays deferred, and the first scheduled deep-gate run is
+still due 2026-08-17 03:17 UTC.
+
+> **Superseded 2026-08-14, after #368, on Packet D and the reconciliation pin.**
+> The block below remains the terminal record through #362, but its
+> `origin/main` pin at `fbb76f5`, zero-open-PR measurement, and “Packet D remains
+> queued” conclusion were overtaken by #364–#368 and open PR #366. The current
+> state is recorded above.
+
 **2026-08-14 (LATEST) — the pack's docs-only tail has landed and canonical truth
 is reconciled against `origin/main` at `fbb76f5`.** **Eleven** PRs merged after
 `7e4c1e9` (#352), the pack reconciliation that recorded the checkpoint described
@@ -585,6 +613,21 @@ synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
 intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
+
+**Current (2026-08-14, after #368):** do not dispatch another Packet D. Follow
+the existing **#366** owner: reconcile it with `9be1a3f`, resolve the prior
+cross-platform `volume_splitter:dark` axe-count mismatch without weakening the
+exact register, and restore reported required checks on the current head. Until
+that PR is green and merged, Packet D is in flight rather than queued or shipped.
+The first scheduled deep-gate run is still inspected only after 2026-08-17
+03:17 UTC, at job level.
+Do not revive P3, add another readiness marker, or treat the unimplemented heavy
+orchestration design as shipped.
+
+> **Superseded 2026-08-14, after #368.** The instruction below said Packet D was
+> queued with no open PR. #366 is now its open non-draft implementation and is
+> currently DIRTY with fresh checks not yet reported; the instruction above
+> owns the live boundary.
 
 **Current (2026-08-14, after the docs-only tail merged):** take no automatic
 feature action from this file. The pack is closed out; what remains keeps its
