@@ -22,11 +22,22 @@
 > `workflow_call` reusable workflow that `ci.yml` now calls — one definition, two
 > callers, per F5-8.
 >
+> **Merged as #374 → `5222db2`; the post-merge dry-run PASSED.** Main's CI on that
+> SHA settled at 18 check-runs all `success`, and `release.yml` was then dispatched
+> against `main` with `dry_run: true` —
+> [run 31840756293](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31840756293),
+> conclusion `success`, all six jobs green. The logs were **read, not trusted**:
+> provenance reported `all 12 expected check-runs succeeded` with a per-name table of
+> ids and URLs, version-guard reported `versions agree at 3.0.1, tag v3.0.1 not yet
+> published`, the fan-in named all five job ids, both smokes returned real 200s, and
+> the provenance job's token banner showed `Checks: read, Contents: read,
+> Metadata: read` and nothing more.
+>
 > **What this does NOT establish — do not report it as validated.** *No release tag
 > has been created and none will be by this packet.* The `push: tags` trigger has
-> **never fired**; the only validation route is `workflow_dispatch` with
-> `dry_run: true` (owner option (c)), and since `workflow_dispatch` requires the file
-> to be on the default branch, that dispatch runs *after* this packet merges. The
+> **never fired**; what ran was a `workflow_dispatch` against a branch (owner option
+> (c)). The tag path, the tag-identity comparison and the on-`main` ancestry check
+> are all still unexecuted. The
 > first genuine release tag is also the first execution of the trigger path, and
 > `RELEASE_CHECKLIST.md` step 1 — confirm a run exists — is the only compensation,
 > because a trigger that never fires reports nothing and no
