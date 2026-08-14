@@ -456,7 +456,7 @@ class TestProgramBackup:
 
     # -------------------------------------------------------------------------
     # Test 6: schema_version is a reserved informational label
-    # (Testing Strategy D6 / ADR-007)
+    # (Testing Strategy D6 / ADR-008)
     # -------------------------------------------------------------------------
 
     def test_schema_version_persists_the_constant(self, clean_db, monkeypatch):
@@ -545,7 +545,7 @@ class TestProgramBackupAPI:
     ):
         """schema_version stays part of all four response shapes that carry it.
 
-        It is informational (Testing Strategy D6 / ADR-007), but it is shipped, so
+        It is informational (Testing Strategy D6 / ADR-008), but it is shipped, so
         removing it from any of these payloads is a response-contract change and must
         fail here first.
         """

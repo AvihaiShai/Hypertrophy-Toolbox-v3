@@ -2376,7 +2376,7 @@ behind the CSS it describes.
   COMPLETE.]** The bullet previously read "Only **Packet D (axe) remains queued**" under the approved Plan v2;
   it had no open PR at the 2026-08-14 reconciliation. D4, D7 and the
   `js-unit` half of D2 remain unsigned (D6 signed 2026-08-14 as retain-informational,
-  recorded as ADR-007); Phases 3 and 5 and the release/tag half
+  recorded as ADR-008); Phases 3 and 5 and the release/tag half
   of Phase 4 remain proposals.
 
 > **Superseded 2026-08-01.** The note below read *"None blocking"* and described

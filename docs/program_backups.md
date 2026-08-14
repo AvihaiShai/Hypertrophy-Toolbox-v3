@@ -32,9 +32,9 @@ Backups survive normal erase/reset flows because they are not stored in `user_se
 by the API, but nothing reads it to make a decision. `restore_backup()` is **deliberately
 version-blind**: it never selects the column, and structural compatibility is handled instead by
 probing the destination columns on `user_selection` at restore time. This is Testing Strategy
-decision **D6**, recorded as [ADR-007](DECISIONS.md).
+decision **D6**, recorded as [ADR-008](DECISIONS.md).
 
-Version `1` does not identify a payload shape — rows labelled `1` already differ in shape. ADR-007
+Version `1` does not identify a payload shape — rows labelled `1` already differ in shape. ADR-008
 has the history.
 
 **Changing the `program_backup_items` payload shape requires all three of:** bumping

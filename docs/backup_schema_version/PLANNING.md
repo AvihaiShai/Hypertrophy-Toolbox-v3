@@ -84,7 +84,7 @@ Confirmed by direct read on 2026-08-14. Re-verify before relying on any line num
    - [`docs/TESTING_STRATEGY_PLANNING.md:259`](../TESTING_STRATEGY_PLANNING.md#L259) — D6 row records the decision as **B**, noting it departs from the doc's own recommendation of A and why; [`:172`](../TESTING_STRATEGY_PLANNING.md#L172) (B11) drops the "escape hatch doesn't exist yet" framing for the settled contract; the sign-off state line and a new §8.1b move D6 out of the unsigned set, leaving the §8.1 and §8.1a tables frozen as historical record per their own stated convention.
    - [`docs/product/APP_FLOW.md`](../product/APP_FLOW.md) — **the identified gap**: the Backup Center control table ([`:594`](../product/APP_FLOW.md#L594) onward) has no row for the Schema stat tile. A row is added describing it as presentation-only, sourced from `schema_version` on the detail payload, always reading `1` today.
 
-9. **D6 is closed by ADR.** Given [`docs/DECISIONS.md`](../DECISIONS.md), when the packet lands, then **ADR-007** exists in the log (ADR-001 through ADR-006 are taken; template at [`:95`](../DECISIONS.md#L95)), status `accepted`, dated, following the established Context / Decision / Consequences shape. Context carries the two load-bearing facts — the `6b99535` non-bump and the absence of any import path. Decision states the reserved-label contract, version-blind restore, and the bump-and-branch obligation. Consequences state what is knowingly accepted: a future v2 payload read by a build predating the bump would be restored without a guard, bounded by the fact that the only route to that state is an app downgrade on the same machine.
+9. **D6 is closed by ADR.** Given [`docs/DECISIONS.md`](../DECISIONS.md), when the packet lands, then **ADR-008** exists in the log (ADR-001 through ADR-006 are taken; template at [`:95`](../DECISIONS.md#L95)), status `accepted`, dated, following the established Context / Decision / Consequences shape. Context carries the two load-bearing facts — the `6b99535` non-bump and the absence of any import path. Decision states the reserved-label contract, version-blind restore, and the bump-and-branch obligation. Consequences state what is knowingly accepted: a future v2 payload read by a build predating the bump would be restored without a guard, bounded by the fact that the only route to that state is an app downgrade on the same machine.
 
 10. **Phase 3 step 11 is released with the correct target.** Given [`docs/TESTING_STRATEGY_PLANNING.md:203`](../TESTING_STRATEGY_PLANNING.md#L203), when the packet lands, then that step records that its D6 precondition is **discharged** and that its fuzz target is **type-confused / NULL / out-of-range `program_backup_items` rows** — not `schema_version`, which decision B leaves deliberately unread. The step's own instruction "do not fuzz a value that restore still ignores" is satisfied by naming the row-level target explicitly.
 
@@ -103,7 +103,7 @@ No function in the calculation surface defined by [`QUALITY_GATE.md`](../ai_work
 ### In scope
 
 - The contract statement replacing the TODO at the definition site (AC 1) and the bump-and-branch rule (AC 2).
-- ADR-007 in [`docs/DECISIONS.md`](../DECISIONS.md) and the D6 sign-off reconciliation in [`docs/TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md) (AC 8, AC 9).
+- ADR-008 in [`docs/DECISIONS.md`](../DECISIONS.md) and the D6 sign-off reconciliation in [`docs/TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md) (AC 8, AC 9).
 - Test changes in [`tests/test_program_backup.py`](../../tests/test_program_backup.py) only: replace the tautological assertion (AC 3–4), add foreign-version restore pinning (AC 5), add the API-field presence assertion (AC 6).
 - The two-arm mutation evidence required by AC 4, recorded in the PR description.
 - All seven documentation edits enumerated in AC 8, including the new `APP_FLOW.md` Schema-tile row.
@@ -124,7 +124,7 @@ No function in the calculation surface defined by [`QUALITY_GATE.md`](../ai_work
 ### Assumptions made
 
 - ⚠️ **The `NOT NULL DEFAULT 1` mask is real but unproven by execution.** AC 4's requirement is derived by reading the DDL at [`:44`](../../utils/program_backup.py#L44) and the `INSERT` at [`:197-200`](../../utils/program_backup.py#L197-L200); no mutation was run during this read-only analysis. If implementation finds the default does **not** satisfy a column-dropped `INSERT`, AC 4 simplifies — but the two-arm evidence is still required, because the point is to prove the test is honest rather than to predict which arm fails.
-- ⚠️ **`ADR-007` is the next free number.** Verified against the current [`docs/DECISIONS.md`](../DECISIONS.md) log (001–006 present, `ADR-NNN` template at [`:95`](../DECISIONS.md#L95)). A concurrent packet claiming 007 first would force a renumber.
+- ⚠️ **`ADR-008` is the next free number.** Verified against the current [`docs/DECISIONS.md`](../DECISIONS.md) log (001–006 present, `ADR-NNN` template at [`:95`](../DECISIONS.md#L95)). A concurrent packet claiming 007 first would force a renumber.
 - ⚠️ **`docs/product/APP_FLOW.md` has uncommitted working-tree changes** at the start of this session, and it is one of this packet's edit targets. Implementation must run in its own worktree and must not `git add -A`; the APP_FLOW row may need rebasing onto whatever lands first.
 - ⚠️ **The Schema tile is assumed absent from every visual baseline** because `#backup-detail-panel` is `hidden` at rest ([`backup.html:145`](../../templates/backup.html#L145)). This packet changes no markup, so the assumption is not load-bearing here — but it must not be inherited as established fact by a later packet that does touch the tile.
 - ⚠️ **No JS unit test is proposed** for [`backup-center.js:550`](../../static/js/modules/backup-center.js#L550). Under B the branch is a pass-through with a `?? 1` fallback and no behavior to pin; the module has no existing test file, so adding one would open a jsdom-harness question disproportionate to this packet. Recorded as knowingly not covered, not as an oversight.
@@ -141,7 +141,7 @@ No function in the calculation surface defined by [`QUALITY_GATE.md`](../ai_work
 - [x] Owner confirms the acceptance criteria match intent — **approved 2026-08-14 with one required correction**: AC 5 drops `NULL` and pins version-blind restore with the representative foreign integers `0` and `2`. `schema_version` is `NOT NULL`, so a `NULL` row is unreachable without manufacturing a malformed schema, which is prohibited. Correction applied above.
 - [x] Owner reviewed the assumptions and corrected or accepted each one — **all six accepted 2026-08-14**, with these standing instructions:
   1. Retain the patched constant ≠ 1 and **both** mutation arms even if runtime verification confirms the default-mask analysis.
-  2. Re-check that `ADR-007` is free **immediately before editing** `docs/DECISIONS.md`.
+  2. Re-check that `ADR-008` is free **immediately before editing** `docs/DECISIONS.md`.
   3. Use an isolated worktree; preserve the existing `docs/product/APP_FLOW.md` changes; never `git add -A`.
   4. The visual-baseline assumption is accepted as explicitly non-load-bearing.
   5. **No JavaScript unit-test harness is introduced in this packet.**
@@ -166,7 +166,7 @@ Note the distinction the packet must not blur: AC 6 **pins** an existing API fie
 
 **In**
 - The reserved-label contract replacing the TODO at [`utils/program_backup.py:18-21`](../../utils/program_backup.py#L18-L21), carrying the bump-and-branch rule.
-- `ADR-007` in [`docs/DECISIONS.md`](../DECISIONS.md), plus the D6 sign-off reconciliation in [`docs/TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md).
+- `ADR-008` in [`docs/DECISIONS.md`](../DECISIONS.md), plus the D6 sign-off reconciliation in [`docs/TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md).
 - Three test changes in [`tests/test_program_backup.py`](../../tests/test_program_backup.py) and nowhere else.
 - Two-arm mutation evidence for AC 4, recorded in the PR description.
 - Seven documentation edits (AC 8), including the new `APP_FLOW.md` Schema-tile row.
@@ -186,11 +186,11 @@ Note the distinction the packet must not blur: AC 6 **pins** an existing API fie
 |---|---|---|
 | [`utils/program_backup.py`](../../utils/program_backup.py) | modify | Replace the TODO at `:18-21` with the contract + bump-and-branch rule. **Comment text only — no executable line changes.** |
 | [`tests/test_program_backup.py`](../../tests/test_program_backup.py) | modify | Replace the tautological assertion at `:55` (AC 3–4); add foreign-version restore pinning for `0` and `2` (AC 5); add the API-field presence assertion (AC 6). |
-| [`docs/DECISIONS.md`](../DECISIONS.md) | modify | `ADR-007`, status `accepted`. Renumber if a concurrent packet claims it first. |
+| [`docs/DECISIONS.md`](../DECISIONS.md) | modify | `ADR-008`, status `accepted`. Renumber if a concurrent packet claims it first. |
 | [`docs/program_backups.md`](../program_backups.md) | modify | Storage-table row `:24` + the bump-and-branch rule. Line 27 untouched. |
 | [`docs/product/BACKEND_SCHEMA.md`](../product/BACKEND_SCHEMA.md) | modify | `:612` column row notes the label semantics; cross-reference the existing `:74` note. |
 | [`docs/product/APP_FLOW.md`](../product/APP_FLOW.md) | modify | **New** Schema-tile row in the Backup Center control table (`:594`+). Preserve the concurrent working-tree edits. |
-| [`docs/LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md) | modify | `:608` disposition → resolved, citing `ADR-007`. |
+| [`docs/LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md) | modify | `:608` disposition → resolved, citing `ADR-008`. |
 | [`docs/TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md) | modify | D6 row `:259` (both A and B, with the reason); B11 `:172`; sign-off `:262-263` + §8.1; step 11 `:203` precondition discharged. |
 | [`docs/test_inventory/TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) | regenerate | Script output only — never hand-edited. |
 | [`docs/backup_schema_version/PLANNING.md`](PLANNING.md) | modify | Evidence section + sign-off history. |
@@ -200,12 +200,12 @@ Note the distinction the packet must not blur: AC 6 **pins** an existing API fie
 ### Sequence
 
 1. **Create an isolated worktree** and `git merge --ff-only origin/main` inside it — `new-worktree.ps1` branches from main's stale HEAD. Never `git add -A`; stage by explicit path.
-2. **Re-check `ADR-007` is still free** (owner instruction 2). `docs/release_pipeline/PLANNING.md:309` plans an ADR of its own; if it landed first, take the next number and update every cross-reference in one pass.
+2. **Re-check `ADR-008` is still free** (owner instruction 2). `docs/release_pipeline/PLANNING.md:309` plans an ADR of its own; if it landed first, take the next number and update every cross-reference in one pass.
 3. **Write the contract** in `utils/program_backup.py`, replacing the TODO. Verify by `git diff` that no executable line moved.
 4. **Test AC 3–4 first** — the persisted assertion with the patched constant ≠ 1. Run it green.
 5. **Prove it non-vacuous**: apply the mutation (drop `schema_version` from the `INSERT` column list), confirm the test **reds**, revert, confirm it greens. Record both arms verbatim. If the mutation does **not** red, the test is wrong — fix the test, not the mutation, and re-run both arms.
 6. **Tests AC 5 and AC 6**: foreign-version restore pinning (`0`, `2`) and the API-field presence assertion.
-7. **Documentation** — the seven locations, `ADR-007` last so it can cite the final state. Re-read each neighbouring paragraph before saving: the failure mode on docs packets here is an edit that falsifies untouched adjacent prose.
+7. **Documentation** — the seven locations, `ADR-008` last so it can cite the final state. Re-read each neighbouring paragraph before saving: the failure mode on docs packets here is an edit that falsifies untouched adjacent prose.
 8. **Regenerate the test inventory** and confirm the drift check passes locally.
 9. **Verification** — targeted pytest, then the full suite, then `code-reviewer` and `unslop-reviewer` (both; they catch disjoint failure modes on docs packets).
 
@@ -305,14 +305,14 @@ unsigned" claims existed outside the six locations the brief listed —
 against a measured three markers and two decisions. All corrected. The §8.1 and §8.1a tables were
 left frozen, which their own text requires. `MASTER_HANDOVER.md` and `ai_workflow/INDEX.md` were
 outside the declared artifact list and were added rather than deferred: leaving the canonical
-current-state doc asserting D6 is unsigned while `DECISIONS.md` records ADR-007 as accepted is the
+current-state doc asserting D6 is unsigned while `DECISIONS.md` records ADR-008 as accepted is the
 same falsified-neighbouring-prose failure the packet was warned about.
 
 Also applied: trimmed the duplicated history retelling in `program_backups.md` and the disposition
 cell in `LEFTOVERS_BY_PRIORITY.md`; named the correct section in the `BACKEND_SCHEMA.md`
 back-pointer (the *Constraint enforcement* section — my earlier in-flight correction was still
 wrong); qualified the two test-file `D6` references as *Testing Strategy* D6 per this packet's own
-collision note; corrected ADR-007's "Two tests" to three; refreshed `program_backups.md`'s date
+collision note; corrected ADR-008's "Two tests" to three; refreshed `program_backups.md`'s date
 stamp.
 
 **Declined:** removing the persisted assertion from `test_create_backup_saves_active_program_data`.

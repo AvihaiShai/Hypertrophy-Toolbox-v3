@@ -16,7 +16,7 @@ from utils.logger import get_logger
 logger = get_logger()
 
 # Reserved informational label for a backup's payload shape (Testing Strategy D6,
-# ADR-007). It is persisted to program_backups.schema_version and returned by the
+# ADR-008). It is persisted to program_backups.schema_version and returned by the
 # API, but nothing reads it to make a decision: restore_backup() is deliberately
 # version-blind, and structural compatibility is handled instead by
 # _check_column_exists() probing the destination columns at restore time.
