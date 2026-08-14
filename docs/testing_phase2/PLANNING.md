@@ -19,6 +19,12 @@
 Out of scope by instruction: promoting `js-unit`, editing branch protection, editing
 `MASTER_HANDOVER.md`.
 
+> **The `MASTER_HANDOVER.md` exclusion was lifted by the owner on 2026-08-14, for the Phase-2
+> closeout only.** Canonical status surfaces still described Packet D as queued once it had
+> shipped, and a handover that contradicts `origin/main` is worse than one edited out of a
+> packet's original scope. The authorization covers the minimum truthful reconciliation and
+> nothing else; the other two exclusions stand.
+
 ## 2. Reconciliation — what was already shipped
 
 ### Step 8 (real `/erase-data`) — **RETIRED, delivered**
