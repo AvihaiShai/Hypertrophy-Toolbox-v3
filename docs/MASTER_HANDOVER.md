@@ -4,7 +4,50 @@
 
 ## Current State
 
-> **2026-08-14 (LATEST) — TESTING STRATEGY PHASE 2 IS COMPLETE.** All packets
+> **2026-08-14 (LATEST) — the release/tag pipeline SHIPPED as Packet R1.** This
+> supersedes, as current state, every claim below that "the release/tag half of
+> Testing Phase 4" remains deferred. Design record, council and residuals:
+> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md); owner decisions:
+> [`DECISIONS.md`](DECISIONS.md) **ADR-007** (R1-D1 … R1-D6); manual layer:
+> [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
+>
+> **What landed.** `.github/workflows/release.yml` — `push: tags: ['v*']` plus a
+> `workflow_dispatch` carrying one `dry_run` input — runs five blocking jobs and a
+> fan-in gate: `version-guard` (exact `v<APP_VERSION>`, both version sources),
+> `ci-provenance` (the 11 protected contexts **plus** `Visual Regression (Windows
+> baselines)` must already have concluded success on the tagged SHA),
+> `packaged-windows`, `first-install` and `old-db-migration`. The decision logic
+> lives in `scripts/release_gate.py` rather than inline shell so it can be unit
+> tested. The frozen build moved into `.github/workflows/_packaged-windows.yml`, a
+> `workflow_call` reusable workflow that `ci.yml` now calls — one definition, two
+> callers, per F5-8.
+>
+> **What this does NOT establish — do not report it as validated.** *No release tag
+> has been created and none will be by this packet.* The `push: tags` trigger has
+> **never fired**; the only validation route is `workflow_dispatch` with
+> `dry_run: true` (owner option (c)), and since `workflow_dispatch` requires the file
+> to be on the default branch, that dispatch runs *after* this packet merges. The
+> first genuine release tag is also the first execution of the trigger path, and
+> `RELEASE_CHECKLIST.md` step 1 — confirm a run exists — is the only compensation,
+> because a trigger that never fires reports nothing and no
+> gate can detect its own absence. **Testing Phase 4 remains OPEN**: §7.3 entry
+> criteria 2 and 3 are unmet (no visual job executes in the release gate; the fan-in
+> is proven by contract test, not by a deliberately reddened dry run).
+>
+> **Nothing here bears on the weekly scheduled deep gate.** `deep-gate.yml` was not
+> touched, deliberately — a scheduled workflow runs the default branch's HEAD copy of
+> its own file, so an edit before **2026-08-17 03:17 UTC** would mean that run
+> validates something other than what shipped. Converting its `frozen-windows` job to
+> the reusable workflow is **Packet R2, not started**. The deep gate remains
+> *implemented but not runtime-validated*; its runbook below is unchanged.
+>
+> **Also deferred, unchanged:** R1-D3 (`visual-linux` in the release gate — revisit
+> after 2026-08-17 plus three consecutive green scheduled runs), R1-D4 (promoting
+> `Packaged Smoke (Windows bootloader, non-required) / Build and smoke` after 10 green
+> runs under that **composite** name), R1-D5 (booting the frozen executable against a
+> historical-schema database).
+
+> **2026-08-14 — TESTING STRATEGY PHASE 2 IS COMPLETE.** All packets
 > are on `origin/main` at `f627161`. Five further PRs merged after `fbb76f5`:
 >
 > | PR | Terminal result |
@@ -40,10 +83,11 @@
 > helper now holds a **document-wide computed-paint signature** (including
 > pseudo-elements) stable, and a required source contract pins that scope.
 >
-> **Still not complete**, unchanged by this entry: the release/tag half of
-> Testing Phase 4, the heavier `$orchestrate` mechanism, and D4/D6/D7 plus the
-> `js-unit` half of D2. The first scheduled deep-gate run is still due
-> **2026-08-17 03:17 UTC**.
+> **Still not complete**, unchanged by this entry: the heavier `$orchestrate`
+> mechanism, and D4/D6/D7 plus the `js-unit` half of D2. The first scheduled
+> deep-gate run is still due **2026-08-17 03:17 UTC**. *(The release/tag half of
+> Testing Phase 4 shipped later the same day as Packet R1 — see the block above.
+> Phase 4 itself remains open.)*
 
 > **Superseded 2026-08-14 on one claim.** The block below states that Packet D
 > remains queued with no work in flight. That was true when written and is now

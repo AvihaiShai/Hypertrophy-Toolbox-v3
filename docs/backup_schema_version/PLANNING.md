@@ -124,7 +124,7 @@ No function in the calculation surface defined by [`QUALITY_GATE.md`](../ai_work
 ### Assumptions made
 
 - ⚠️ **The `NOT NULL DEFAULT 1` mask is real but unproven by execution.** AC 4's requirement is derived by reading the DDL at [`:44`](../../utils/program_backup.py#L44) and the `INSERT` at [`:197-200`](../../utils/program_backup.py#L197-L200); no mutation was run during this read-only analysis. If implementation finds the default does **not** satisfy a column-dropped `INSERT`, AC 4 simplifies — but the two-arm evidence is still required, because the point is to prove the test is honest rather than to predict which arm fails.
-- ⚠️ **`ADR-008` is the next free number.** Verified against the current [`docs/DECISIONS.md`](../DECISIONS.md) log (001–006 present, `ADR-NNN` template at [`:95`](../DECISIONS.md#L95)). A concurrent packet claiming 007 first would force a renumber.
+- ⚠️ **`ADR-007` is the next free number.** *(Resolved — this assumption failed, exactly as written. #374 landed while this packet's CI was running and took ADR-007 for the release-tag decision. Renumbered to **ADR-008** across all 29 references before merging, while every occurrence in this branch was still unambiguously ours. #374 also introduced its own **§8.1b**, so this packet's sign-off section became **§8.1c**. See Evidence.)*
 - ⚠️ **`docs/product/APP_FLOW.md` has uncommitted working-tree changes** at the start of this session, and it is one of this packet's edit targets. Implementation must run in its own worktree and must not `git add -A`; the APP_FLOW row may need rebasing onto whatever lands first.
 - ⚠️ **The Schema tile is assumed absent from every visual baseline** because `#backup-detail-panel` is `hidden` at rest ([`backup.html:145`](../../templates/backup.html#L145)). This packet changes no markup, so the assumption is not load-bearing here — but it must not be inherited as established fact by a later packet that does touch the tile.
 - ⚠️ **No JS unit test is proposed** for [`backup-center.js:550`](../../static/js/modules/backup-center.js#L550). Under B the branch is a pass-through with a `?? 1` fallback and no behavior to pin; the module has no existing test file, so adding one would open a jsdom-harness question disproportionate to this packet. Recorded as knowingly not covered, not as an oversight.
@@ -320,6 +320,24 @@ stamp.
 assertion still pins that the row exists and is readable. Its comment was shortened and states
 plainly that the non-vacuous check lives elsewhere.
 
+### The predicted ADR collision happened
+
+Plan v1 recorded two ⚠️ collisions with the untracked `docs/release_pipeline/` packet. **Both
+materialised**, while this PR's CI was green and running:
+
+- **#374 took `ADR-007`** for the release-tag decision. This packet renumbered to **`ADR-008`**
+  across all **29** references. The renumber was done **before** merging `origin/main`, while every
+  `ADR-007` string in the branch was still unambiguously ours — after the merge, the number is
+  legitimately ambiguous and a blind rename would have corrupted #374's references.
+- **#374 also created its own `§8.1b`** in `TESTING_STRATEGY_PLANNING.md`. This packet's sign-off
+  section became **`§8.1c` (Fourth sign-off)**, with its anchors retargeted and a sentence stating
+  it is independent of §8.1b.
+- The "two unrelated D6 labels" hazard also materialised and #374 handled it the same way this
+  packet asked for: it namespaced its own decisions **R1-D1 … R1-D6**. §8.1c says so explicitly so
+  the two never merge in a reader's head.
+
+The order matters and is the transferable lesson: **renumber before merging, not after.**
+
 ### Newly discovered during implementation
 
 ⚠️ **Phase 3 step 11 is already being implemented** in worktree `wt/packet-e-restore-fuzz`
@@ -327,7 +345,7 @@ plainly that the non-vacuous check lives elsewhere.
 which began before D6 was signed. Inspected read-only: it does **not** fuzz `schema_version` — it
 deliberately builds every header through production `create_backup()` so it stays independent of
 the header schema, and its own docstring says so. It is therefore consistent with decision B, and
-this packet's §8.1b discharges the precondition it was already relying on. Two consequences: the
+this packet's §8.1c discharges the precondition it was already relying on. Two consequences: the
 two packets both regenerate `TEST_INVENTORY.json`, so whichever lands second must regenerate again;
 and one of its tests is named `test_known_defect_weekly_summary_500_after_restoring_non_numeric_rep_range`,
 i.e. it appears to have found a real defect — **not this packet's scope**, flagged only so it is

@@ -1,0 +1,90 @@
+name: Packaged Windows build and bootloader smoke
+
+# The frozen build plus the real-bootloader smoke, in one definition callable from
+# more than one trigger. Extracted from ci.yml's `packaged-smoke-windows` job under
+# Packet R1 (docs/release_pipeline/PLANNING.md), answering
+# docs/TESTING_STRATEGY_PLANNING.md section 9.2 F5-8: a release pipeline written as a
+# third copy of this build would triple the sync burden that job's comment already
+# warned about.
+#
+# deep-gate.yml's `frozen-windows` job still carries its own copy. Converting it is
+# Packet R2, deliberately deferred: a scheduled workflow runs the default branch's
+# HEAD copy of its own file, and the first authoritative scheduled deep-gate run is
+# due 2026-08-17 03:17 UTC. Editing that file beforehand would mean the run validates
+# something other than what shipped. Until R2 lands there are two definitions of this
+# build -- here and in deep-gate.yml -- and a change to either belongs in both.
+
+on:
+  workflow_call:
+
+# `contents: read` is all a build needs. This workflow uploads nothing to a release,
+# creates nothing, and pushes nothing; a called workflow can only narrow the token it
+# is handed, so this holds from either caller.
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke:
+    # This job id is load-bearing. A `uses:` job reports its status as
+    # "<caller job name> / <this job name>", so `Packaged Smoke (Windows bootloader,
+    # non-required) / Build and smoke` is the string that would enter branch
+    # protection under R1-D4. Renaming either half orphans that context once it is
+    # promoted -- the rule in docs/ai_workflow/QUALITY_GATE.md applies to BOTH halves.
+    name: Build and smoke
+    runs-on: windows-latest
+    # A hang detector, not a budget. Matches deep-gate.yml's frozen-windows, which
+    # runs the same build. A `uses:` job cannot declare its own timeout, so this is
+    # the only place either caller gets one.
+    timeout-minutes: 45
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
+
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    - name: Install runtime and pinned build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-build.txt
+        python -c "import PyInstaller; print('PyInstaller ' + PyInstaller.__version__)"
+
+    # Staging is what the spec calls too; running it first fails a broken
+    # manifest in seconds instead of after a full build, and writes the
+    # manifest.sha256 the smoke verifies the built tree against.
+    - name: Stage tracked package assets
+      run: python scripts/stage_package_assets.py
+
+    - name: Build via the canonical spec
+      run: pyinstaller --clean --noconfirm Hypertrophy-Toolbox.spec
+
+    # --mode bootloader is the entire point. Do not weaken it to payload mode to
+    # make a red run green: a payload pass says nothing about whether the
+    # executable starts.
+    #
+    # --port is deliberately NOT 5000. Both launch paths used to hardcode 5000
+    # while this script polled --port, so any non-default port silently failed;
+    # serving on a non-default port is what proves that wiring works. The smoke
+    # refuses to run when the port is already owned, so a passing run cannot be some
+    # other process answering.
+    #
+    # No --skip-upgrade and no --skip-runtime, ever. The default run also plants a
+    # legacy database beside the packaged assets and asserts it moves to the runtime
+    # root, keeps its plan rows, and leaves the original byte-identical
+    # (check_upgrade_migration in scripts/smoke_packaged_app.py). That is the only
+    # automated proof of upgrade safety anywhere in CI; a flag that skips it would
+    # save a minute and delete the guarantee.
+    - name: Smoke the real bootloader
+      run: python scripts/smoke_packaged_app.py --mode bootloader --port 5123
+
+    - name: Upload distribution inventory on failure
+      if: failure()
+      run: |
+        Get-ChildItem -Recurse dist/Hypertrophy-Toolbox/_internal/data |
+          Select-Object FullName, Length | Format-Table -AutoSize
+      shell: pwsh

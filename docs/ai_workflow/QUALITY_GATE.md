@@ -32,6 +32,7 @@ suite.
 | CSS (static bundles) | `static/css/**`, excluding the generated `bootstrap.custom.min.css*` (see the `scss/**` row) | **Shared surfaces** (`base`, `layout`, `components`, `navbar`, `a11y`, `motion`, `theme-dark`, `tokens`): full `pytest` — the cascade contracts (`tests/test_css_cascade_contracts.py`, `tests/test_visual_selector_contracts.py`) run inside that total; any edit to them must be explicitly scoped, justified, and must not weaken an existing guarantee — + Chromium `smoke-navigation`, `nav-dropdown`, `accessibility`, `dark-mode`, `summary-pages`, `volume-progress`, `fatigue`, `fatigue-stage4-smokes`, `ui-hardening` + the full `visual.spec.ts` matrix (66 tests per platform over 11 pages) + seven-surface Stylelint (`node scripts/css_audit/stylelint_surfaces.mjs`), no category may rise without a recorded owner exception + the Linux `visual-linux` deep gate reconciled against `docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`. **Page bundles** (`pages-*.css`): that page's specs from the feature map below + its `visual.spec.ts` variants + Stylelint on the edited file | none required; a shared-surface change is **Large** at plan stage |
 | E2E spec | `e2e/**` | run the spec; intentionally re-baseline if visual | none required |
 | Tooling / scripts | `scripts/**` at the repository root only — `e2e/scripts/**` stays with the **E2E spec** row above; when two rows match a path, the more specific glob wins | The union from the stem + directory-token search under Targeted-test derivation. If it is empty, `/verify-suite`. **`/verify-suite` regardless of what the search returns** when the changed script writes the `exercises` catalog (`fatigue_stage1_cleanup.py`, `fatigue_movement_pattern_cleanup.py`, `apply_free_exercise_db_mapping.py`, `apply_youtube_curated.py`), writes a committed baseline (`css_audit/emit_baseline.py`), sits on the packaged-artifact path (`stage_package_assets.py`, imported by `Hypertrophy-Toolbox.spec`), or implements one of the two blocking gates below (`generate_test_inventory.py`, `pyright_baseline_diff.py`). Adding or removing a `.py` or `.mjs` file other than `__init__.py` or `p3_*` under `scripts/css_audit/` also requires `tests/test_css_theme_dark_p3_audit_contracts.py` | `code-reviewer`; + `product-risk-reviewer` if the script writes the `exercises` catalog |
+| CI workflows | `.github/workflows/**` | full `pytest` — seven test files parse `ci.yml` (`test_playwright_shard_launcher_contracts`, `test_playwright_runner_contracts`, `test_python_version_contract`, `test_node_version_contract`, `test_css_cascade_contracts`, `test_compiled_css_drift_gate_contracts`, `test_release_workflow_contracts`) and no path glob routes to them + regenerate `docs/test_inventory/` if the `e2e-functional-shard` spec list changed | `code-reviewer` + `architecture-reviewer` if a job is added, removed, or converted to `uses:` |
 | AI workflow / agent config | `.claude/**`, `CLAUDE.md`, `*/CLAUDE.md`, `docs/ai_workflow/**` | manual dry-run/self-review; run tests only if source behavior changed | `code-reviewer` or careful self-review |
 | Product docs only | `docs/**`, `*.md` excluding AI workflow files above | none unless examples/scripts changed | none |
 
@@ -149,9 +150,25 @@ The rule that follows:
 
 | Situation | Action |
 |---|---|
-| Job is **in** branch protection | Never rename it alone. A rename is only safe when paired with a branch-protection context update in the same change. |
+| Job is **in** branch protection | Never rename it alone. A rename is only safe when paired with a branch-protection context update in the same change. **Never convert it to `uses:` either** — see below. |
 | Job is **not** in branch protection | Rename freely — and drop a stale `(non-required)` suffix when its meaning changes. |
 | Promoting a job to blocking | Removing `continue-on-error` and returning a real exit code makes the **job** fail. It does **not** make the merge block until the context is added to branch protection — those are two separate changes. |
+
+### Converting a job to `uses:` renames its check
+
+A job that calls a reusable workflow reports its status as **`<caller job name> / <called
+job name>`**, not as the caller's name alone. Converting a job to `uses:` is therefore a
+rename by side effect, and it orphans the context if that job sits in branch protection —
+the same failure as an outright rename, with none of the visual warning.
+
+Both halves are load-bearing once a composite context is protected. `packaged-smoke-windows`
+was converted in Packet R1 precisely because it is **not** protected; its composite name is
+`Packaged Smoke (Windows bootloader, non-required) / Build and smoke`, and that whole string
+is what R1-D4 would promote after 10 green runs. Renaming the child job in
+`_packaged-windows.yml` after promotion breaks the gate exactly as renaming the parent would.
+
+`tests/test_release_workflow_contracts.py` asserts that no job whose `name:` appears in the
+required-context list uses `uses:`.
 
 `Test Inventory Drift` was renamed under the second row when it became blocking on
 2026-08-01, while it was still unprotected. **That second, deliberate step has since
