@@ -7,14 +7,14 @@
  * to `showAutoBackupBanner()` so the user sees where the recoverable copy
  * landed. This spec fails without the wiring: the banner never appears.
  */
-import { test, expect, ROUTES, waitForPageReady } from './fixtures';
+import { test, expect } from './console-guard';
+import { ROUTES, waitForPageReady } from './fixtures';
 
 const AUTO_BACKUP_BANNER = '[data-testid="auto-backup-banner"]';
 const SNAPSHOT_FILENAME_PATTERN = /database_\d{8}_\d{6}\.db/;
 
 test.describe('Erase flow — auto-backup banner', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
     await page.goto(ROUTES.HOME);
     await waitForPageReady(page);
   });
