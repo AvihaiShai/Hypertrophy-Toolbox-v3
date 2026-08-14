@@ -819,8 +819,14 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
     { rule: 'color-contrast', nodes: 2 },
     { rule: 'label', nodes: 18 },
   ],
+  // Dark is 3, not the 2 this register first recorded. The original number was
+  // measured before #365 restored the theme-switch transition suppression, when
+  // `setThemeAndSettle` — which samples `body` alone — returned while slower
+  // elements were still cross-fading, so axe scored partly-transitioned colour.
+  // Proven: reverting #365 puts this back to 2, and with it in place the count
+  // is 3 on every repeat. See PLANNING.md §5, Packet D.
   'volume_splitter:dark': [
-    { rule: 'color-contrast', nodes: 2 },
+    { rule: 'color-contrast', nodes: 3 },
     { rule: 'label', nodes: 18 },
   ],
 
@@ -833,9 +839,12 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   'user_profile:dark': [{ rule: 'color-contrast', nodes: 80 }],
 
   // X8. `/fatigue` links no page bundle at all, so this row is a direct
-  // reading of the shared bundles: light is clean, dark fails four times.
+  // reading of the shared bundles: light is clean, dark fails six times.
+  // Six, not the four first recorded, for the same reason as
+  // `volume_splitter:dark` above — the original was measured mid-cross-fade,
+  // before #365. `h1` and `#fatigue-period` are the two that were being missed.
   'fatigue:light': [],
-  'fatigue:dark': [{ rule: 'color-contrast', nodes: 4 }],
+  'fatigue:dark': [{ rule: 'color-contrast', nodes: 6 }],
 
   // `aria-hidden-focus` is absent here and that is not a fix. axe's
   // `focusable-modal-open` check returns `undefined` — not `false` — once a

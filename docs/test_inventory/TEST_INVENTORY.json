@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 513
+      "tests": 514
     },
     "specs": [
       {
@@ -94,7 +94,7 @@
       {
         "in_required_functional_set": true,
         "spec": "dark-mode.spec.ts",
-        "tests": 6
+        "tests": 7
       },
       {
         "in_required_functional_set": true,
@@ -238,11 +238,11 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 646
+    "total_tests": 647
   },
   "pytest": {
-    "collected_deterministic": 2534,
-    "deterministic_files": 118,
+    "collected_deterministic": 2538,
+    "deterministic_files": 119,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -333,6 +333,10 @@
       {
         "file": "tests/test_css_field_separator_contracts.py",
         "tests": 10
+      },
+      {
+        "file": "tests/test_css_theme_animating_contracts.py",
+        "tests": 4
       },
       {
         "file": "tests/test_css_theme_dark_p3_audit_contracts.py",
@@ -727,7 +731,7 @@
         "tests": 40
       }
     ],
-    "total_files": 119
+    "total_files": 120
   },
   "schema_version": 1
 }

@@ -21,6 +21,24 @@
   }
 }
 
+/* Instant theme switch. `darkMode.js` adds `.theme-animating` to <html> for the
+   two frames around a toggle so the swap does not cross-fade; theme-dark.css
+   puts an unconditional `transition: all 0.3s` on body, .navbar, .card, .table,
+   .form-control and .btn, and a 0.2s !important one on dark form controls.
+
+   This rule was deleted from the retired static/css/styles.css by ee82643
+   ("chore(redesign): P10 remove legacy CSS sources") without touching the JS,
+   so the suppression was a no-op and the toggle cross-faded for ~300ms against
+   the module's stated intent. Restored here rather than in theme-dark.css,
+   which is pinned by a digest, or a11y.css, whose !important count is pinned. */
+html.theme-animating,
+html.theme-animating *,
+html.theme-animating *::before,
+html.theme-animating *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
 /* 1. Wire page-enter to main content wrapper */
 body > .container-fluid.mt-4 {
   animation: page-enter var(--dur-slow, 360ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both;

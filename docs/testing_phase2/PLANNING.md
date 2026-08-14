@@ -64,7 +64,34 @@ fixture would certify pages whose JavaScript had crashed mid-render.
 |---|---|---|
 | **A** | Repair the a11y assertions that cannot fail | shipped — see §5 |
 | **C** | `e2e/console-guard.ts` + migrate `smoke-navigation`, `workout-plan`, `accessibility` | shipped — see §5 |
+| **E** | Register row X1 — `aria-invalid` on invalid required controls | shipped — see §5 |
+| **F** | Register row X6 — restore the `.theme-animating` transition suppression | shipped — see §5 |
 | **D** | `@axe-core/playwright` on 11 routes × 2 themes + 3 deterministic states | shipped — see §5 |
+
+E and F are register closures, not part of the repairs → console → axe spine. Both were owner-gated
+on 2026-08-14: E under a **named Decision-4 carve-out** (defect established by inspection, because
+no honest test can demand an attribute that does not yet exist), F on the finding that its recorded
+R1 blocker was false. Rows X1, X2 and X6 in
+[`A11Y_EXCEPTIONS.md`](A11Y_EXCEPTIONS.md) carry the decisions.
+
+### 3a. Why Packet D ships as an exception register
+
+A pre-flight axe run, taken before D was written, established that the app produces real WCAG
+violations on every route — most consequentially `color-contrast`, which is a colour/token surface
+and therefore bound by **R1**: no required check measures visual output, so a token fix would stale
+66 win32 + 66 linux captures with CI green. That made the packet's shape an owner question rather
+than an implementer's.
+
+The owner decided on **2026-08-14** to take the **explicit-exception path**. Packet D ships as a scan
+that still executes every WCAG rule, with each existing violation pinned by surface, rule id and
+exact node count. It is deliberately **not** `disableRules()`, impact filtering, broad suppression,
+or a global `color-contrast` exemption — each was ruled out by name. The colour/token rewrite and the
+two-platform visual re-baseline are out of scope for this arc, and the production corrections for
+X7–X13 and X15 are **owner-deferred**: recorded, measured and pinned, but neither blocking Phase 2
+nor permanently declined.
+
+The measurements themselves live in [`A11Y_EXCEPTIONS.md`](A11Y_EXCEPTIONS.md) and are not restated
+here, so the two files cannot drift apart.
 
 Packet C's allowlist is a Playwright **option fixture** declared on the narrowest describe that
 provokes the error — never module state. With `workers: 1` and `fullyParallel: false`, a
@@ -100,7 +127,9 @@ pytest gate.
 |---|---|
 | **A** | **Merged as `1438a14`** (PR #342, 18/18 CI green). Repaired nine assertions in `e2e/accessibility.spec.ts` — eight found by re-audit, the ninth by code review. No test node added or removed; no production file changed. Seven red-path rounds each proved the repair fails under a seeded violation **and** that the pre-repair spec passed under the identical violation. Gates: full pytest 2811 · required set 478 passed · spec ×3 at `--retries=0`, zero flakes · `tsc` clean · inventory `--check` clean. The only inventory movement was the hard-wait row, from the one removed sleep. |
 | **C** | `e2e/console-guard.ts` added; `smoke-navigation`, `workout-plan` and `accessibility` migrated onto it; `strict-fixtures.ts` narrowed to a re-export; `tests/test_console_guard_contracts.py` added to bind the narrowing. `smoke-navigation` and `accessibility` needed **zero** allowlist entries; `workout-plan` needed four, scoped to the one describe that mocks a 400. No production file changed, and no Playwright test node added or removed. Four red-path rounds — the decisive one injects a null dereference and shows a migrated spec red while a spec still on `fixtures.ts` passes green. The source contract was itself mutation-tested. Gates: full pytest 2820 · required set 498 passed, zero guard trips · migrated three + both non-visual strict importers 121 passed · `tsc` clean. |
-| **D** | See §6 for the runtime measurement and the deep-gate threshold. `@axe-core/playwright` pinned exactly at **4.13.0**; 14 test nodes added to `e2e/accessibility.spec.ts` (11 routes × 2 themes in one page load each, plus three light-only states) — no new spec file, so no CI spec-count contract moved. The deliverable is `AXE_REGISTER`: **exact equality** against every WCAG violation the app produces today, so a new violation, a grown one *and* a silently-fixed one are all red. `tests/test_axe_contracts.py` binds the pin, the single-`playwright-core` resolution, matrix completeness, and the rule ↔ `A11Y_EXCEPTIONS.md` write-up. **No production file changed.** Findings: 7 distinct WCAG rules across every route — all recorded as rows X7–X14 and none fixed here (decision 4). Five red-path rounds, both directions: fixing `#exerciseSelect` goes red ("no longer reported"), a new `image-alt` goes red on the surface registered as clean, a typo'd key goes red on the missing-entry guard, a broken table selector goes red before scanning, and a bogus `headers` attribute proves axe's structural table rules genuinely evaluate the injected rows. The contract test was mutation-tested 5/5. Stability: `--repeat-each=3 --retries=0`, 42/42, zero count drift. Gates: full pytest **2854 passed, 2 skipped** · required set **513 passed** from a drained port pool · `tsc --noEmit` clean · inventory regenerated and `--check` clean · **PR #366 CI 18/18 green**, which is also what proved the win32-measured counts reproduce on ubuntu. |
+| **E** | **Merged as `ebfa716`** (PR #364, 18/18 CI green). Register row X1. `aria-invalid` set and cleared at the six sites owning `.is-invalid-required`, across `workout-plan-add-exercise.js` and `routine-cascade.js`. On `#exercise` it lands on the `.wpdd-button`, because `workout-dropdowns.js` marks the native select `aria-hidden="true"`; the three cascade selects are unenhanced and carry it directly. Coverage extended the **existing** "error states are not color-only" node, so the inventory did not move (24 nodes before and after). Red path run **both directions**: production reverted fails the mark assertion (`null`), and clear-path-only removal fails the correction assertion with `aria-invalid="true"` stuck on a corrected select — a mark-only fix and a suite blind to the clear path are otherwise indistinguishable. Gates: full pytest 2847 · accessibility 24 passed · inventory `--check` clean · zero CSS touched, so zero baseline exposure (`aria-invalid` matches no selector in any file under `static/css/`, `bootstrap.custom.min.css` included). |
+| **F** | **Merged as `a49da8d`** (PR #365, 18/18 CI green). Register row X6. Restored the four-branch `html.theme-animating` suppression into `motion.css` — not `theme-dark.css`, which is digest-pinned, nor `a11y.css`, whose `!important` count is pinned at 50. No JS change. The defect was measured, not inferred: `body` reports `transitionDuration` **`0.3s`** with the rule absent and **`0s`** with it restored. Contracts pin **both halves** of the CSS/JS pair, because the failure mode was the two drifting apart — `ee82643` deleted the CSS and left the JS. Red path: the two CSS-pinning contract nodes fail with the rule removed while the JS-half nodes correctly still pass, and the E2E node fails at `0.3s`, proving the `0s` assertion is not vacuous. Gates: full pytest 2851 · dark-mode 7 / accessibility 24 / nav-dropdown 7 passed · inventory regenerated and `--check` clean · baselines unchanged at 81 win32 / 81 linux, none regenerated. **Note for future CSS work:** `test_css_theme_dark_p3_audit_contracts.py::test_this_packet_wrote_no_production_css` reds on any *uncommitted* `static/css` change by design (working-tree-scoped) and clears once committed. |
+| **D** | See §6 for the runtime measurement and the deep-gate threshold. `@axe-core/playwright` pinned exactly at **4.13.0**; 14 test nodes added to `e2e/accessibility.spec.ts` (11 routes × 2 themes in one page load each, plus three light-only states) — no new spec file, so no CI spec-count contract moved. The deliverable is `AXE_REGISTER`: **exact equality** against every WCAG violation the app produces today, so a new violation, a grown one *and* a silently-fixed one are all red. `tests/test_axe_contracts.py` binds the pin, the single-`playwright-core` resolution, matrix completeness, and the rule ↔ `A11Y_EXCEPTIONS.md` write-up. **No production file changed.** Findings: 7 distinct WCAG rules across every route — recorded as rows X7–X15, all **owner-deferred** on 2026-08-14 under the explicit-exception decision in §3a, none fixed here. **Rebased onto `a64ea76` and fully re-verified.** Two things changed in that rebase and both are recorded rather than absorbed: (1) X10 had attributed all fourteen `aria-hidden-focus` nodes to `.wpdd-native`, which a direct probe disproved — there are exactly 13 such selects and the fourteenth is `#vpDrawer`, now split out as **X15**; (2) `volume_splitter:dark` (2 → **3**) and `fatigue:dark` (4 → **6**) drifted, and the register caught it. The cause was proven, not assumed: those counts were first measured before #365 restored the theme-switch transition suppression, so axe was scoring partly-transitioned colour — reverting #365 puts both back to the old numbers, and with it in place three consecutive repeats show zero drift. Four red-path rounds this pass, covering each way the register must fail: a new `image-alt` reds a surface registered as an explicit empty list; labelling `#exerciseSelect` reds with "no longer reported"; a typo'd key reds the missing-entry guard at runtime *and* independently reds `test_axe_contracts.py`. The count-drift mode needed no seeding — it fired for real on the two surfaces above. Stability: `--repeat-each=3 --retries=0`, **114/114**, zero count drift. Gates: full pytest **2858 passed, 2 skipped** · `accessibility.spec.ts` **38 passed** · `tsc --noEmit` clean · inventory regenerated (**647** Playwright / **514** required / **2538** pytest) and `--check` clean · no production or visual-baseline file touched. |
 
 ## 6. Packet D runtime, and when axe should leave the required gate
 
@@ -117,6 +146,11 @@ on the PR path. Measured locally, win32 Chromium, `--retries=0`, same machine, b
 
 That is 25 axe scans (22 route-theme + 3 states) at a **marginal ~1.25 s per scan**; the rest is 14
 page loads and 22 theme settles. The required functional set moves **499 → 513** tests.
+
+> **Baseline note.** Every figure in this section was measured before #365 (Packet F) merged. That
+> packet added one `dark-mode` node, so on the shipped base the same +14 reads **500 → 514**, which
+> is what `docs/test_inventory/` records. The runtimes and the port-exhaustion findings below are
+> unaffected and are left as measured rather than rescaled.
 
 ### Why the cost lands where it does
 
