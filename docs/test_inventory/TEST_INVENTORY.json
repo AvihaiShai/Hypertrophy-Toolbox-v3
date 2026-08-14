@@ -241,7 +241,7 @@
     "total_tests": 647
   },
   "pytest": {
-    "collected_deterministic": 2647,
+    "collected_deterministic": 2648,
     "deterministic_files": 122,
     "environment_dependent_files": [
       {
@@ -604,7 +604,7 @@
       },
       {
         "file": "tests/test_release_workflow_contracts.py",
-        "tests": 35
+        "tests": 36
       },
       {
         "file": "tests/test_replace_exercise.py",

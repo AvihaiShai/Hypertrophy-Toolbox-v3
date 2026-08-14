@@ -46,11 +46,20 @@
 > is proven by contract test, not by a deliberately reddened dry run).
 >
 > **Nothing here bears on the weekly scheduled deep gate.** `deep-gate.yml` was not
-> touched, deliberately — a scheduled workflow runs the default branch's HEAD copy of
-> its own file, so an edit before **2026-08-17 03:17 UTC** would mean that run
-> validates something other than what shipped. Converting its `frozen-windows` job to
-> the reusable workflow is **Packet R2, not started**. The deep gate remains
+> touched by R1, deliberately — a scheduled workflow runs the default branch's HEAD copy
+> of its own file, so an edit before **2026-08-17 03:17 UTC** would mean that run
+> validates something other than what shipped. The deep gate remains
 > *implemented but not runtime-validated*; its runbook below is unchanged.
+>
+> **[UPDATED 2026-08-15 — one narrow exception was taken.]** **Packet R2-a** split the
+> `old-db-migration` HTTP assertion in `deep-gate.yml` under an explicit owner exception
+> to that freeze: in the combined `[ ... ] && [ ... ]` form a non-200 on `/` fell through
+> to the schema assertions and the job reported success, so the first authoritative
+> scheduled run would have executed a job that could not fail on a broken landing page.
+> **Only that assertion and an adjacent comment changed** — no job composition, runner,
+> step order, schedule, `visual-linux` or compare-mode behavior, and no baseline.
+> Converting `frozen-windows` to the reusable workflow is **Packet R2-b, still not
+> started**. The scheduled run itself has still **never executed**.
 >
 > **Also deferred, unchanged:** R1-D3 (`visual-linux` in the release gate — revisit
 > after 2026-08-17 plus three consecutive green scheduled runs), R1-D4 (promoting

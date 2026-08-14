@@ -340,7 +340,9 @@ def test_no_step_carries_a_condition_that_could_skip_it_silently(path):
                 assert found.group(1).strip() == "failure()", f"{job_id} / {name}"
 
 
-@pytest.mark.parametrize("path", NEW_WORKFLOWS, ids=lambda p: p.name)
+@pytest.mark.parametrize(
+    "path", (*NEW_WORKFLOWS, DEEP_GATE), ids=lambda p: p.name
+)
 def test_no_assertion_hides_inside_an_and_list(path):
     """`[ "$a" = "200" ] && [ "$b" = "200" ]` does NOT fail a `set -e` step when the
     FIRST test fails: bash exempts every command in an && list except the last, so
@@ -349,7 +351,13 @@ def test_no_assertion_hides_inside_an_and_list(path):
 
     `[ ... ] && break` inside the readiness loop is fine and stays allowed: it is
     flow control, and the loop's outcome is asserted separately afterwards. What is
-    forbidden is one test guarding another."""
+    forbidden is one test guarding another.
+
+    `deep-gate.yml` is not one of the two new workflows this file was written for,
+    but it is covered here: it carried this exact defect at its `old-db-migration`
+    HTTP assertion until R2-a split it, and it is the only workflow in the repository
+    with a `schedule:` trigger, so its jobs run unattended with nothing else gating
+    them."""
     chained = re.compile(r"^\[ .+ \] &&\s*\[")
     for job_id, block in jobs(path).items():
         for name, raw in steps(block):
