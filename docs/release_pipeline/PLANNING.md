@@ -675,7 +675,7 @@ locally-derived E2E; CI supplies it.
 |---|---|---|
 | **R-1** | The `push: tags` trigger has **never fired**. Its wiring is unproven. | Owner option (c). Disclosed in `release.yml`'s header, checklist step 1, and TESTING_STRATEGY step 13. |
 | **R-2** | The duplicate-check-run selection rule is justified **by construction**; no live duplicate exists to test against. | `filter=latest` and `filter=all` returned identical counts on every sampled SHA. Synthetic fixtures assert the rule's behavior, not that GitHub produces the shape. |
-| **R-3** | `release.yml` cannot execute at all before merge. | `workflow_dispatch` requires the file on the default branch. Compensated by the post-merge dry-run. |
+| **R-3** | ~~`release.yml` cannot execute at all before merge.~~ **DISCHARGED 2026-08-14** — the post-merge dry-run ran and passed. See the evidence section below. |
 | **R-4** | **R1-D2**: the release gate credits the visual comparison that already ran on the SHA and never runs an independent second one. A red-then-re-run-to-green counts. | Deliberate. `Visual Regression (Windows baselines)` is **not** a protected context, so `main` can merge with it red — "green before tagging" therefore means all **12** expected contexts, not the 11 required. |
 | **R-5** | Branch-protection drift is **not detectable offline**. The contract test pins in-repository drift only. | Compensated by a checklist step that re-reads the live contexts before tagging. |
 | **R-6** | No locally-derived Chromium E2E. | No changed path reaches a browser; CI's E2E jobs still gate the merge. |
@@ -726,3 +726,56 @@ owner's conditional authorization.**
 | `architecture-reviewer` | `ac1dd79ac8a5ef591` | 3 blocking, 8 non-blocking, 4 nits. |
 | `test-strategist` | `a8a63e31cc3a5ff40` | 4 blocking, 9 non-blocking, 2 nits. |
 | `product-risk-reviewer` | `af59ffce656209012` | 9 blocking, 7 non-blocking, 3 nits. |
+| `code-reviewer` | `ae1d6047e9359b032` | Post-implementation. 1 blocking (the `&&` false green), 6 non-blocking, 7 nits. An earlier run died on a session limit and was relaunched. |
+| `unslop-reviewer` | `a34b7ec7152edeba8` | Post-implementation. 11 findings, 10 adopted. |
+
+---
+
+## Post-merge dry-run evidence — 2026-08-14
+
+Packet R1 merged as **#374** → `5222db2`. Main's own CI on that SHA settled at **18
+check-runs, all `success`** — including all 12 the release gate expects. The check
+count grew 17 → 18 mid-run as `E2E Functional (Chromium)` materialized after its
+shards, the behavior the provenance poller was built around.
+
+`release.yml` was then dispatched against `main` with `dry_run: true`
+([run 31840756293](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31840756293)).
+**Run conclusion: `success`, all six jobs green:**
+
+| Job | Result |
+|---|---|
+| `Version and tag identity` | success |
+| `CI provenance on this commit` | success |
+| `Frozen Windows executable / Build and smoke` | success |
+| `First install (catalog seed) smoke` | success |
+| `Old-DB migration compatibility` | success |
+| `Release Gate` | success |
+
+**The run was inspected rather than trusted.** A green fan-in is exactly what this
+packet exists to distrust, so the logs were read for evidence that each job proved
+something:
+
+- `[release-gate] all 12 expected check-runs succeeded on 5222db2fc0e3c8a1...` — with
+  a per-name table carrying each run's id, `started_at` and URL, so the count is
+  backed by identified runs rather than asserted.
+- `[release-gate] rehearsal on refs/heads/main: versions agree at 3.0.1, tag v3.0.1
+  not yet published` — the parity check and the API-based tag-existence check both
+  executed.
+- `[release-gate] all 5 release jobs succeeded: ['ci-provenance', 'first-install',
+  'old-db-migration', 'packaged-windows', 'version-guard']` — the fan-in saw exactly
+  the expected job-id set.
+- `first install: GET / -> 200` and `old-DB migration: GET / -> 200 ; GET
+  /workout_plan -> 200` — real HTTP responses, from the assertions that the `&&` bug
+  had previously made unable to fail.
+- The `ci-provenance` job's runner banner reports its token as **`Checks: read`,
+  `Contents: read`, `Metadata: read`** and nothing else — the least-privilege design
+  confirmed at runtime, not just in the YAML.
+- The informational extras list rendered correctly, naming the non-expected
+  check-runs present on the SHA (including the composite `Packaged Smoke (Windows
+  bootloader, non-required) / Build and smoke`).
+
+**What this does and does not discharge.** Residual **R-3** is discharged: the
+workflow executes and its jobs pass. **R-1 stands unchanged — the `push: tags`
+trigger has still never fired.** What ran was `workflow_dispatch` against a branch;
+the tag path, the tag-identity comparison and the on-`main` ancestry check are still
+unexecuted, and the first genuine release tag remains their first execution.
