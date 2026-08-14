@@ -649,6 +649,35 @@ remain in `static/js/`.
 | [`utils/constants.py:100-101`](../utils/constants.py#L100-L101) | Decide whether `Mid/Upper Back` remains a dedicated grouping (duplicated on both casing aliases). | **OWNER / taxonomy decision.** Preserve current aliases until decided; resolve both lines together. |
 | ~~[`utils/program_backup.py:18`](../utils/program_backup.py#L18)~~ | ~~`schema_version` is written but not consumed.~~ | **RESOLVED 2026-08-14** — Testing Strategy D6 decided as retain-informational, recorded as [ADR-008](DECISIONS.md). The TODO is replaced by a stated contract at the definition site. |
 
+### 4a. FINDING-1 — a restored non-numeric rep range breaks analysis (OWNER-gated)
+
+Found by Testing Strategy Phase 3 Packet E and pinned as a **known-defect test**, not fixed.
+`restore_backup()` applies no bounds validation, so a `program_backup_items` row whose
+`min_rep_range` holds non-numeric text restores with HTTP 200 and then breaks the analysis
+surfaces. Reachable without hand-editing the database: a backup taken before
+`validate_workout_bounds` gated that field, or one taken from a `user_selection` row written
+through a route that still does not validate it.
+
+| Site | Location | Symptom |
+|---|---|---|
+| 1 | `utils/weekly_summary.py::_aggregate_weekly_volumes` | `GET /weekly_summary` → **HTTP 500** |
+| 2 | `utils/effective_sets.py::get_rep_range_factor` | **second, independent** 500 — a site-1-only guard does **not** fix it |
+| 3 | `utils/_fatigue/core.py` | degrades **silently** to a "Projected fatigue unavailable" badge, and keeps doing so after 1+2 are fixed |
+| 4 | `utils/session_summary.py` | byte-identical arithmetic off the same `user_selection` join |
+
+**Why it is not fixed yet.** Site 2 is a calculation surface, so a fix is **Large** under
+[`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) — Gate 0 + council + `product-risk-reviewer`. It is
+also a *semantic* choice, not a null check: treating a non-numeric rep range as missing yields
+`DEFAULT_MULTIPLIER = 1.0` and `avg_reps = 0.0`, i.e. **silently different volume numbers**, versus
+rejecting or repairing at restore. That is the partial-vs-refusing owner decision recorded in
+[`testing_phase3/PLANNING.md`](testing_phase3/PLANNING.md) §3.4.
+
+**Reopen condition / what to do first.** Decide skip-vs-refuse for the restore path, then fix all
+four sites in one packet with migration notes. When the defect is fixed,
+`test_known_defect_weekly_summary_500_after_restoring_non_numeric_rep_range` **reds by design** —
+invert or delete it in that same packet, and rewrite the five parametrized nodes of
+`test_restore_accepts_rows_the_plan_route_rejects` to assert rejection rather than preserving them.
+
 ## 5a. Evidence added at v23
 
 Commands run read-only from an isolated worktree (`D:/development/HT-v23-audit`,
