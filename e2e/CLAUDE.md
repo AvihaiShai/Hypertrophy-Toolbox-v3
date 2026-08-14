@@ -7,6 +7,7 @@ Playwright Chromium specs covering UI flows end-to-end. `playwright.config.ts` a
 | File | Coverage |
 |---|---|
 | `fixtures.ts` | Shared `test` fixture (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, the page-specific `waitForWorkoutPlanReady()` / `waitForVolumeSplitterReady()` / `waitForBodyCompositionReady()`, `expectToast()` |
+| `console-guard.ts` | Strict console/page-error guard with a per-block allowlist; `strict-fixtures.ts` re-exports it with the allowlist removed from its type |
 | `fixtures/database.visual.seed.db` | Seed DB used by visual specs (committed; whitelisted in `.gitignore`) |
 | `smoke-navigation.spec.ts` | Page loads + nav cycle (no fixtures) |
 | `dark-mode.spec.ts`, `nav-dropdown.spec.ts` | Theme + navbar |
@@ -23,7 +24,13 @@ Playwright Chromium specs covering UI flows end-to-end. `playwright.config.ts` a
 Full per-spec test count map: `.claude/rules/testing.md`.
 
 ## Conventions
-- Reuse the `test` fixture from `fixtures.ts` — it fails specs that emit console errors.
+- **Console-error handling is mid-migration. Three `test` fixtures exist; pick deliberately.**
+  | Module | Behaviour | Who uses it |
+  |---|---|---|
+  | `console-guard.ts` | Fails on **every** console error and page error. Per-block allowlist via `test.use({ consoleAllowlist: { expected: [...] } })`, each entry an exact string or an anchored, wildcard-free regex plus a reason. Preferred for new and migrated specs. | grep the importers |
+  | `strict-fixtures.ts` | The same guard with the allowlist option removed from its type, so these specs cannot weaken themselves. The four importers are pinned by `tests/test_console_guard_contracts.py`. | the zero-allowance visual/redesign specs |
+  | `fixtures.ts` | **Legacy.** Substring-suppresses both channels — including `Cannot read properties of null`/`undefined`, `classList` and `is not defined` — so real null-dereference crashes pass silently. Collection is also opt-in per describe, so a describe that never opts in has no console oracle at all. Do not adopt it for new specs. | everything not listed above |
+- Migrating a spec is not an import swap: `console-guard.ts` has no `consoleErrors` fixture, so every `startCollecting()`/`assertNoErrors()` call is deleted, and helpers keep coming from `./fixtures`.
 - Reference routes via `ROUTES.X`, selectors via `SELECTORS.X` — keeps locators centralized.
 - `npx playwright test --project=chromium --reporter=line` — Chromium only; Firefox/WebKit are not configured.
 - `PW_REUSE_SERVER=1` reuses an already-running Flask process.

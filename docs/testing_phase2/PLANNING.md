@@ -62,15 +62,17 @@ fixture would certify pages whose JavaScript had crashed mid-render.
 
 | Packet | Scope | State |
 |---|---|---|
-| **A** | Repaired eight assertions in `e2e/accessibility.spec.ts`; no test node added or removed. Six red-path rounds proved every repair fails under a seeded violation *and* that the pre-repair spec passed under the identical violation. The only inventory movement is the hard-wait row, from the one removed sleep. No production file changed. |
-| **C** | `e2e/console-guard.ts` + migrate `smoke-navigation`, `workout-plan`, `accessibility` | queued |
+| **A** | Repair the a11y assertions that cannot fail | shipped — see §5 |
+| **C** | `e2e/console-guard.ts` + migrate `smoke-navigation`, `workout-plan`, `accessibility` | shipped — see §5 |
 | **D** | `@axe-core/playwright` on 11 routes × 2 themes + 3 deterministic states | queued |
 
-Packet C's allowlist is a Playwright **option fixture** consumed per file via `test.use({...})` —
-never module state. With `workers: 1` and `fullyParallel: false`, a module-level allowlist would
-leak across spec files in the same worker and silently weaken the visual/redesign gates.
-`strict-fixtures.ts` will re-export a **narrowed** `test` whose type omits the option, so its four
-existing importers cannot weaken their gate.
+Packet C's allowlist is a Playwright **option fixture** declared on the narrowest describe that
+provokes the error — never module state. With `workers: 1` and `fullyParallel: false`, a
+module-level allowlist would leak across spec files in the same worker and silently weaken the
+visual/redesign gates. `strict-fixtures.ts` re-exports a **narrowed** `test` whose type omits the
+option; because a type alone cannot stop a spec importing the wide guard directly,
+`tests/test_console_guard_contracts.py` binds the four zero-allowance importers in the required
+pytest gate.
 
 ## 4. Standing rules
 
@@ -96,4 +98,5 @@ existing importers cannot weaken their gate.
 
 | Packet | Result |
 |---|---|
-| **A** | Repaired 8 assertions in `e2e/accessibility.spec.ts`. Test node count unchanged (24). Six red-path rounds proved every repair fails under a seeded violation *and* that the pre-repair spec passed under the identical violation. Inventory moved only in the hard-wait row (84 → 83). No production file changed. |
+| **A** | **Merged as `1438a14`** (PR #342, 18/18 CI green). Repaired nine assertions in `e2e/accessibility.spec.ts` — eight found by re-audit, the ninth by code review. No test node added or removed; no production file changed. Seven red-path rounds each proved the repair fails under a seeded violation **and** that the pre-repair spec passed under the identical violation. Gates: full pytest 2811 · required set 478 passed · spec ×3 at `--retries=0`, zero flakes · `tsc` clean · inventory `--check` clean. The only inventory movement was the hard-wait row, from the one removed sleep. |
+| **C** | `e2e/console-guard.ts` added; `smoke-navigation`, `workout-plan` and `accessibility` migrated onto it; `strict-fixtures.ts` narrowed to a re-export; `tests/test_console_guard_contracts.py` added to bind the narrowing. `smoke-navigation` and `accessibility` needed **zero** allowlist entries; `workout-plan` needed four, scoped to the one describe that mocks a 400. No production file changed, and no Playwright test node added or removed. Four red-path rounds — the decisive one injects a null dereference and shows a migrated spec red while a spec still on `fixtures.ts` passes green. The source contract was itself mutation-tested. Gates: full pytest 2820 · required set 498 passed, zero guard trips · migrated three + both non-visual strict importers 121 passed · `tsc` clean. |
