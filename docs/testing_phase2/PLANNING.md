@@ -64,7 +64,35 @@ fixture would certify pages whose JavaScript had crashed mid-render.
 |---|---|---|
 | **A** | Repair the a11y assertions that cannot fail | shipped — see §5 |
 | **C** | `e2e/console-guard.ts` + migrate `smoke-navigation`, `workout-plan`, `accessibility` | shipped — see §5 |
-| **D** | `@axe-core/playwright` on 11 routes × 2 themes + 3 deterministic states | queued |
+| **E** | Register row X1 — `aria-invalid` on invalid required controls | shipped — see §5 |
+| **F** | Register row X6 — restore the `.theme-animating` transition suppression | shipped — see §5 |
+| **D** | `@axe-core/playwright` on 11 routes × 2 themes + 3 deterministic states | queued — **blocked, see §3a** |
+
+E and F are register closures, not part of the repairs → console → axe spine. Both were owner-gated
+on 2026-08-14: E under a **named Decision-4 carve-out** (defect established by inspection, because
+no honest test can demand an attribute that does not yet exist), F on the finding that its recorded
+R1 blocker was false. Rows X1, X2 and X6 in
+[`A11Y_EXCEPTIONS.md`](A11Y_EXCEPTIONS.md) carry the decisions.
+
+### 3a. Packet D is blocked — measured, not predicted
+
+A pre-flight run of **axe-core 4.13.0** against a live server (4 routes × 2 themes, scratchpad
+install so neither the repo nor the junctioned `node_modules` was touched) found violations that
+Packet D would inherit on day one:
+
+| Rule | Impact | Nodes on `/workout_plan` | Cause |
+|---|---|---|---|
+| `aria-allowed-attr` | **critical** | 5 | `aria-activedescendant` on the `.wpdd-button`, a bare `<button>` with no `role`. Not permitted on `role=button`. |
+| `aria-hidden-focus` | serious | 14 | 13 `.wpdd-native` selects are `aria-hidden="true"` yet still focusable (`opacity: 0`, no `tabindex="-1"`; an explicit focus test reports `FOCUSABLE`). The 14th is `#vpDrawer`, an unrelated offender. |
+| `color-contrast` | serious | 6 here; **84 light / 80 dark on `/user_profile`**, 26 on `/` | Token-level. |
+
+The first two have small corrections — `tabindex="-1"` beside the existing `aria-hidden` for the
+selects, and `role="combobox"` for the buttons, though the latter changes the announced role and is
+therefore an owner decision rather than a one-liner. **`color-contrast` is the one that reshapes the
+packet**: it is a colour/token surface, so under R1 any fix leaves Packet D and becomes an
+owner-gated packet carrying the two-platform re-baseline. Packet D cannot go green as scoped
+without either that re-baseline or explicit per-rule allowlists, and choosing between those is an
+owner decision that belongs before D starts, not during it.
 
 Packet C's allowlist is a Playwright **option fixture** declared on the narrowest describe that
 provokes the error — never module state. With `workers: 1` and `fullyParallel: false`, a
@@ -100,3 +128,5 @@ pytest gate.
 |---|---|
 | **A** | **Merged as `1438a14`** (PR #342, 18/18 CI green). Repaired nine assertions in `e2e/accessibility.spec.ts` — eight found by re-audit, the ninth by code review. No test node added or removed; no production file changed. Seven red-path rounds each proved the repair fails under a seeded violation **and** that the pre-repair spec passed under the identical violation. Gates: full pytest 2811 · required set 478 passed · spec ×3 at `--retries=0`, zero flakes · `tsc` clean · inventory `--check` clean. The only inventory movement was the hard-wait row, from the one removed sleep. |
 | **C** | `e2e/console-guard.ts` added; `smoke-navigation`, `workout-plan` and `accessibility` migrated onto it; `strict-fixtures.ts` narrowed to a re-export; `tests/test_console_guard_contracts.py` added to bind the narrowing. `smoke-navigation` and `accessibility` needed **zero** allowlist entries; `workout-plan` needed four, scoped to the one describe that mocks a 400. No production file changed, and no Playwright test node added or removed. Four red-path rounds — the decisive one injects a null dereference and shows a migrated spec red while a spec still on `fixtures.ts` passes green. The source contract was itself mutation-tested. Gates: full pytest 2820 · required set 498 passed, zero guard trips · migrated three + both non-visual strict importers 121 passed · `tsc` clean. |
+| **E** | **Merged as `ebfa716`** (PR #364, 18/18 CI green). Register row X1. `aria-invalid` set and cleared at the six sites owning `.is-invalid-required`, across `workout-plan-add-exercise.js` and `routine-cascade.js`. On `#exercise` it lands on the `.wpdd-button`, because `workout-dropdowns.js` marks the native select `aria-hidden="true"`; the three cascade selects are unenhanced and carry it directly. Coverage extended the **existing** "error states are not color-only" node, so the inventory did not move (24 nodes before and after). Red path run **both directions**: production reverted fails the mark assertion (`null`), and clear-path-only removal fails the correction assertion with `aria-invalid="true"` stuck on a corrected select — a mark-only fix and a suite blind to the clear path are otherwise indistinguishable. Gates: full pytest 2847 · accessibility 24 passed · inventory `--check` clean · zero CSS touched, so zero baseline exposure (`aria-invalid` matches no selector in any file under `static/css/`, `bootstrap.custom.min.css` included). |
+| **F** | **Merged as `a49da8d`** (PR #365, 18/18 CI green). Register row X6. Restored the four-branch `html.theme-animating` suppression into `motion.css` — not `theme-dark.css`, which is digest-pinned, nor `a11y.css`, whose `!important` count is pinned at 50. No JS change. The defect was measured, not inferred: `body` reports `transitionDuration` **`0.3s`** with the rule absent and **`0s`** with it restored. Contracts pin **both halves** of the CSS/JS pair, because the failure mode was the two drifting apart — `ee82643` deleted the CSS and left the JS. Red path: the two CSS-pinning contract nodes fail with the rule removed while the JS-half nodes correctly still pass, and the E2E node fails at `0.3s`, proving the `0s` assertion is not vacuous. Gates: full pytest 2851 · dark-mode 7 / accessibility 24 / nav-dropdown 7 passed · inventory regenerated and `--check` clean · baselines unchanged at 81 win32 / 81 linux, none regenerated. **Note for future CSS work:** `test_css_theme_dark_p3_audit_contracts.py::test_this_packet_wrote_no_production_css` reds on any *uncommitted* `static/css` change by design (working-tree-scoped) and clears once committed. |
