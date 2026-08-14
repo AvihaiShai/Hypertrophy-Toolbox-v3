@@ -582,7 +582,14 @@ def test_artifact_paths_are_handed_over_as_paths_not_contents(tmp_path: Path) ->
         "artifacts/consult/consult-log.jsonl",
         ".env",
         ".git/config",
-        "../Hypertrophy-Toolbox-v3-main/CLAUDE.md",
+        # Derived from the checkout, never hard-coded: a literal directory name
+        # is only "outside the repo" until someone clones into a directory with
+        # that name. `Hypertrophy-Toolbox-v3-main` was such a literal, and in the
+        # checkout actually called that, `..` and back in resolves to the repo
+        # root -- so the path was correctly *accepted* and this case failed there
+        # while passing in every worktree and on CI. Appending a suffix to the
+        # real directory name is outside the root in any checkout (LEFTOVERS P2.7).
+        f"../{REPO.name}-not-a-real-sibling/CLAUDE.md",
         # The repository root passes every prefix and name rule, so allowing it
         # would hand over the whole tree -- including everything above.
         ".",
