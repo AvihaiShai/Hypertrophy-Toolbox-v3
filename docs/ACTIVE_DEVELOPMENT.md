@@ -604,7 +604,7 @@ intentional review of the exact golden diff before any behavior change.
 **Current (2026-08-15, after #369/#372/#373/#374/#375) — Testing Strategy Phase 2
 is COMPLETE and the release/tag pipeline has SHIPPED. There is still no automatic
 feature action dispatched from this file.** Verified against `origin/main` at
-`5a48e89`:
+`aec309d`:
 
 - **Packet D (axe) shipped as #366 (`f627161`)**, and #372 (`385ce52`) recorded
   the phase closed. No Testing Phase-2 packet remains queued.
@@ -614,6 +614,10 @@ feature action dispatched from this file.** Verified against `origin/main` at
   label — #373 (`bae49ce`), ADR-008.
 - **#369 (`5a48e89`)** pinned the four residual false-green contracts #334 had
   recorded and deliberately left; that residual set is now empty.
+- **#370 (`ebe6390`)** re-pinned the fatigue observer guardrail pointer after #359
+  shifted the line it named. Docs-only.
+- **#376 (`94f0d8c`)** wrote this block; **#377 (`aec309d`)** corrected the two
+  claims it left live.
 - Unchanged: the first scheduled deep-gate run is inspected only after
   **2026-08-17 03:17 UTC**, at job level; the heavy `$orchestrate` design stays
   unimplemented; do not revive P3 or add another readiness marker.
