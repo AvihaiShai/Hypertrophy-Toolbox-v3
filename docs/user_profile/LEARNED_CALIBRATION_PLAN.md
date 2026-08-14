@@ -401,7 +401,7 @@ Recommended answers below are **defaults to review, not decisions** — bias is 
 
 ### Fatigue-threshold tuning gate
 
-Phase 2D must **not** retune `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`, must not edit `tests/test_fatigue.py` boundary tests, and must not tune `scripts/fatigue_calibration_report.py::SCENARIOS` — unless the existing Fatigue Meter Phase 2 **Stage 4 real-use evidence gate** is satisfied (≥2 same-direction real-use disagreements) **and** the owner gives a fresh go-ahead. Phase 2D consuming the shipped bands as a read-only label does not trip this gate.
+Phase 2D must **not** retune `utils/_fatigue/per_muscle.py::MUSCLE_VOLUME_LANDMARKS` / `utils/_fatigue/core.py::SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`, must not edit `tests/test_fatigue.py` boundary tests, and must not tune `scripts/fatigue_calibration_report.py::SCENARIOS` — unless the existing Fatigue Meter Phase 2 **Stage 4 real-use evidence gate** is satisfied (≥2 same-direction real-use disagreements) **and** the owner gives a fresh go-ahead. Phase 2D consuming the shipped bands as a read-only label does not trip this gate.
 
 ## Phase 2D Recommended Implementation Split
 
@@ -436,7 +436,7 @@ Implementation-ready preflight for **2D-A — Advisory Fatigue Context Foundatio
 5. **Attach after `estimate_for_exercise()` returns**, from the route/decorator layer (`routes/user_profile.py` `get_user_profile_estimate`), so the estimator's six early-return paths and the priority chain stay **byte-for-byte unchanged**. Do not edit `utils/profile_estimator.py` return logic.
 6. **Omit/null the block when disabled** (and when no muscle resolves). Disabled → response identical to today.
 7. **No suggested weight/reps/sets changes. No estimator-priority change.**
-8. **No fatigue-threshold or volume-landmark tuning** — no edits to `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`, no `tests/test_fatigue.py` boundary edits, no `scripts/fatigue_calibration_report.py::SCENARIOS` tuning (the existing Stage 4 gate still applies; consuming shipped bands as a read-only label does not trip it).
+8. **No fatigue-threshold or volume-landmark tuning** — no edits to `utils/_fatigue/per_muscle.py::MUSCLE_VOLUME_LANDMARKS` / `utils/_fatigue/core.py::SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`, no `tests/test_fatigue.py` boundary edits, no `scripts/fatigue_calibration_report.py::SCENARIOS` tuning (the existing Stage 4 gate still applies; consuming shipped bands as a read-only label does not trip it).
 9. **Reuse existing fatigue data/helpers** (`utils.fatigue_data.build_fatigue_page_context` and the `utils.fatigue` band/period helpers); do not invent new fatigue math.
 10. **Backend contract tests and focused Chromium E2E ship in the same (first) implementation PR.**
 
@@ -609,7 +609,7 @@ If and only if every unblock criterion above is met, the minimum viable 2D-D to 
 
 ### Guardrails (hold for this review and any future 2D-D work)
 
-No implementation without explicit owner approval after this review · no auto-apply · no estimator-priority change · no fatigue-threshold/band/landmark tuning (no edits to `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`) · no volume-landmark changes · no calibration/e1RM-formula changes · no plan-row / `workout_log` / `user_profile_lifts` writes · `utils/fatigue.py` untouched · `data/database.db` not staged or committed.
+No implementation without explicit owner approval after this review · no auto-apply · no estimator-priority change · no fatigue-threshold/band/landmark tuning (no edits to `utils/_fatigue/per_muscle.py::MUSCLE_VOLUME_LANDMARKS` / `utils/_fatigue/core.py::SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS`) · no volume-landmark changes · no calibration/e1RM-formula changes · no plan-row / `workout_log` / `user_profile_lifts` writes · the `utils/_fatigue/` leaves untouched · `data/database.db` not staged or committed.
 
 ## Phase 2A Related-Exercise Transfer Plan
 

@@ -459,6 +459,8 @@ future synthetic pass surfaces the same mismatch again.
 
 ## 2026-08-13 — Phase 2 Stage 4 closed; the W20 rows are gone from the database
 
+> **Pointer note, added 2026-08-13.** Three references above locate the band constants at `utils/fatigue.py:SESSION_FATIGUE_BANDS` / `:WEEKLY_FATIGUE_BANDS` (in the 2026-05-04 "Why this file exists" section and in Hypothesis A of the 2026-05-20 override pass, including its *Scope* line). Those were **correct when written** and are left as written. The WP2.4 package split on **2026-07-10** (`3e809cb`, PR #139) moved the definitions: `SESSION_FATIGUE_BANDS` and `WEEKLY_FATIGUE_BANDS` now live in `utils/_fatigue/core.py`, and `MUSCLE_VOLUME_LANDMARKS` in `utils/_fatigue/per_muscle.py`; `utils/fatigue.py` only re-exports them. If Hypothesis A is ever picked up, its "one-line edit" lands in `utils/_fatigue/core.py`. The band *values* quoted above (session 20 / 50 / 80, weekly 80 / 200 / 320) are unchanged and still match the source.
+
 **This file's Phase 1 Stage 4 close (2026-05-20) is unchanged and still authoritative.** Nothing below reopens it.
 
 **1. The *Phase 2* Stage 4 window closed on 2026-08-13 with no evidence and no threshold change.** That is a different close on different evidence from the Phase 1 one above; the measurement and the reopen bar live in [`PHASE2_PLANNING.md`](PHASE2_PLANNING.md) §5 Stage 4.

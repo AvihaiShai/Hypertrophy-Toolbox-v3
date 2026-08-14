@@ -926,7 +926,9 @@ Phase 1 shipped; Phase 1 Stage 4 closed 2026-05-20 (no threshold changes). **Pha
 
 **Live calibration guardrails — unchanged by the close** (do not, without an explicit new owner override):
 
-- Edit `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` (per-muscle and global thresholds remain §24.B defaults + BRAINSTORM §5 verbatim for the 12 ranked muscles).
+> **These guardrails bind the definitions, not the re-export.** `utils/fatigue.py` is a facade and remains the correct *import* path for code, but editing a leaf module under `utils/_fatigue/` is a threshold change even though `utils/fatigue.py` shows no diff.
+
+- Edit `utils/_fatigue/per_muscle.py::MUSCLE_VOLUME_LANDMARKS` / `utils/_fatigue/core.py::SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` (per-muscle and global thresholds remain §24.B defaults + BRAINSTORM §5 verbatim for the 12 ranked muscles).
 - Edit `tests/test_fatigue.py` boundary-classification tests.
 - Tune `scripts/fatigue_calibration_report.py::SCENARIOS` (Hypothesis B retune of `hard_4d` is a documented-not-applied deferred follow-up).
 
@@ -960,7 +962,7 @@ Agents must not:
 
 - Reset, force-push, or otherwise discard working-tree state without owner approval.
 - Commit `data/database.db` (runtime; agents-must-not list in CLAUDE.md).
-- Edit `utils/fatigue.py::MUSCLE_VOLUME_LANDMARKS` / `SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` (per-muscle and global thresholds; gated by the "Live calibration guardrails" block above — the Phase 2 Stage 4 close on 2026-08-13 did **not** discharge that gate).
+- Edit `utils/_fatigue/per_muscle.py::MUSCLE_VOLUME_LANDMARKS` / `utils/_fatigue/core.py::SESSION_FATIGUE_BANDS` / `WEEKLY_FATIGUE_BANDS` (per-muscle and global thresholds; gated by the "Live calibration guardrails" block above — the Phase 2 Stage 4 close on 2026-08-13 did **not** discharge that gate).
 - Edit `tests/test_fatigue.py` boundary-classification tests.
 - Tune `scripts/fatigue_calibration_report.py::SCENARIOS`.
 - Touch unrelated dirty files unless the active task requires it.
