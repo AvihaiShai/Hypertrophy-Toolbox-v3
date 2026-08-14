@@ -429,8 +429,12 @@ starting one.**
   axe node counts, not suppressed. D3's weekly compare-only stopgap shipped
   as #323 (`3b1160b`) with #325 (`4d01698`) adding timeouts, but its first
   scheduled run is still due 2026-08-17. D4, D7 and the `js-unit` half of
-  D2 remain unsigned (D6 signed 2026-08-14, ADR-008); Phases 3/5 and the release/tag half of Phase 4 remain
-  proposals.
+  D2 remain unsigned (D6 signed 2026-08-14, ADR-008). **[UPDATED 2026-08-15] The
+  release/tag half of Phase 4 is no longer a proposal — it SHIPPED** as #374
+  (`5222db2`), with #375 (`d3c3436`) recording the passing post-merge dry-run and
+  discharging R-3; design record in
+  [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), owner decisions
+  in [`DECISIONS.md`](DECISIONS.md) ADR-007. **Phases 3 and 5 remain proposals.**
 - ~~**Product documentation suite** in [`PRODUCT_DOCS_PLAN.md`](PRODUCT_DOCS_PLAN.md)~~
   — **EXECUTED.** Gate 0 answered, council run, Plan v2 recorded in §8; the
   owner-selected subset shipped as [`docs/product/**`](product/README.md).

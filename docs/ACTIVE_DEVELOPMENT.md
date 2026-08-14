@@ -594,6 +594,30 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
+**Current (2026-08-15, after #369/#372/#373/#374/#375) — Testing Strategy Phase 2
+is COMPLETE and the release/tag pipeline has SHIPPED. There is still no automatic
+feature action dispatched from this file.** Verified against `origin/main` at
+`5a48e89`:
+
+- **Packet D (axe) shipped as #366 (`f627161`)**, and #372 (`385ce52`) recorded
+  the phase closed. No Testing Phase-2 packet remains queued.
+- **The release/tag half of Testing Phase 4 shipped** as #374 (`5222db2`), with
+  #375 (`d3c3436`) recording the post-merge dry-run and discharging R-3.
+- **Testing Strategy D6 closed** as a reserved informational `schema_version`
+  label — #373 (`bae49ce`), ADR-008.
+- **#369 (`5a48e89`)** pinned the four residual false-green contracts #334 had
+  recorded and deliberately left; that residual set is now empty.
+- Unchanged: the first scheduled deep-gate run is inspected only after
+  **2026-08-17 03:17 UTC**, at job level; the heavy `$orchestrate` design stays
+  unimplemented; do not revive P3 or add another readiness marker.
+
+> **Superseded 2026-08-15.** The instruction below said *"Testing Phase-2 Packet D
+> (axe) is the only queued packet of that pair … it stays queued … with no open
+> PR"*. Packet D shipped as **#366** (`f627161`) and the phase was recorded closed
+> by **#372** (`385ce52`), so that boundary statement no longer holds. The rest of
+> its guidance — take no automatic feature action, do not revive P3, do not treat
+> the heavy orchestration design as shipped — is carried forward above unchanged.
+
 **Current (2026-08-14, after the docs-only tail merged):** take no automatic
 feature action from this file. The pack is closed out; what remains keeps its
 own authority and none of it is dispatched from here. **Testing Phase-2 Packet D

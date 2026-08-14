@@ -2464,7 +2464,34 @@ behind the CSS it describes.
 
 ## Next Safe Step
 
-**Current (2026-08-14, latest): the ten-session pack has no automatic next
+**Current (2026-08-15, latest): Testing Strategy Phase 2 is COMPLETE, the
+release/tag pipeline has SHIPPED, and there is still no automatic next feature
+packet.** Verified against `origin/main` at `5a48e89`:
+
+- **Testing Phase-2 is closed.** Packet D (axe) shipped as **#366** (`f627161`)
+  on the owner's explicit-exception path; **#372** (`385ce52`) recorded the phase
+  complete across five status surfaces. No Phase-2 packet remains queued.
+  Residual accessibility debt stays **X7–X13 and X15, owner-deferred**, pinned at
+  exact axe node counts rather than suppressed.
+- **The release/tag half of Testing Phase 4 shipped** as **#374** (`5222db2`);
+  **#375** (`d3c3436`) recorded the passing post-merge dry-run and discharged R-3.
+- **Testing Strategy D6 closed** as a reserved informational `schema_version`
+  label — **#373** (`bae49ce`), **ADR-008**.
+- **#369** (`5a48e89`) pinned the four residual false-green contracts that #334
+  recorded and deliberately left out of scope; that residual set is now empty.
+- **Unchanged and still owner-gated:** the first scheduled deep-gate run is
+  inspected only after **2026-08-17 03:17 UTC**, at job level, with
+  `visual-linux` executed rather than skipped and compare mode writing no
+  baselines; the heavier `$orchestrate` design and the remaining CSS/refactor
+  tails stay gated where their source plans leave them.
+
+> **Superseded 2026-08-15.** The block below said *"Only **Packet D (axe)** is
+> still queued … with no open PR at this reconciliation"*. Packet D shipped as
+> **#366** (`f627161`); the phase was recorded closed by **#372** (`385ce52`).
+> Its #351 and Packet-C statements remain accurate and are retained as the dated
+> record.
+
+**Current (2026-08-14): the ten-session pack has no automatic next
 feature packet.** Finish only work that already has its own authority:
 
 - **[UPDATED 2026-08-14]** visual-baseline follow-up **#351 has merged**
