@@ -241,7 +241,7 @@
     "total_tests": 632
   },
   "pytest": {
-    "collected_deterministic": 2513,
+    "collected_deterministic": 2514,
     "deterministic_files": 116,
     "environment_dependent_files": [
       {
@@ -432,7 +432,7 @@
       },
       {
         "file": "tests/test_fatigue_heatmap_mapping.py",
-        "tests": 22
+        "tests": 23
       },
       {
         "file": "tests/test_fatigue_routes.py",

@@ -322,6 +322,19 @@ class TestHeatmapDataBlock:
         assert b'data-heatmap-state="pending"' in response.data
         assert b'data-testid="fatigue-heatmap"' in response.data
 
+    def test_region_caveat_renders_once_and_includes_middle_traps(
+        self, client, exercise_factory, workout_plan_factory
+    ):
+        exercise_factory("Bench Press", primary_muscle_group="Chest")
+        workout_plan_factory(exercise_name="Bench Press", sets=4)
+
+        response = client.get("/fatigue")
+        html = response.data.decode("utf-8")
+
+        assert html.count("Shoulder regions show Middle-Shoulder") == 1
+        assert "the upper-back region shows Traps" in html
+        assert "Front-Shoulder, Rear-Shoulder and Middle-Traps" in html
+
     def test_embedded_json_matches_the_context_muscle_rows(
         self, client, exercise_factory, workout_plan_factory
     ):
