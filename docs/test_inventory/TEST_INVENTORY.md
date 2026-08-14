@@ -12,11 +12,11 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **632** |
+| Playwright tests (chromium) | **633** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **499** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2527** across 117 files |
-| pytest test files (all) | **118** |
+| Required functional gate — `E2E Functional (Chromium)` | **500** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **2531** across 118 files |
+| pytest test files (all) | **119** |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -29,7 +29,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `api-integration.spec.ts` | 57 | yes |
 | `body-composition.spec.ts` | 10 | yes |
 | `browser-navigation-state.spec.ts` | 3 | yes |
-| `dark-mode.spec.ts` | 6 | yes |
+| `dark-mode.spec.ts` | 7 | yes |
 | `empty-states.spec.ts` | 16 | yes |
 | `erase-flow.spec.ts` | 2 | — |
 | `error-handling.spec.ts` | 12 | yes |
@@ -87,6 +87,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_css_cascade_contracts.py` | 30 |
 | `tests/test_css_display_utilities_contracts.py` | 7 |
 | `tests/test_css_field_separator_contracts.py` | 10 |
+| `tests/test_css_theme_animating_contracts.py` | 4 |
 | `tests/test_css_theme_dark_p3_audit_contracts.py` | 37 |
 | `tests/test_css_wp4_4_a11y_contracts.py` | 36 |
 | `tests/test_css_wp4_4_a_baseline_contracts.py` | 33 |
