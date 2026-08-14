@@ -37,21 +37,28 @@ suppressed. No production or visual-baseline file changed across E, F or D.
 Remaining accessibility debt is **X7–X13 and X15, all owner-deferred**; see
 [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
 
+**Shipped later the same day.** The **release/tag pipeline is no longer
+deferred**: it shipped as Packet **R1** — #374 (`5222db2`), whose post-merge
+dry-run evidence was recorded in #375 (`d3c3436`) — under
+[`DECISIONS.md`](DECISIONS.md) **ADR-007**. Its `push: tags` trigger has still
+never fired, and §7.3 entry criteria 2 and 3 are unmet, so Testing Phase 4 stays
+open — a first real tag would not close it.
+
 **Still open, unchanged by that.** The heavy `$orchestrate` mechanism stays
-deliberately unimplemented, the release/tag pipeline stays deferred, and the
-first scheduled deep-gate run is still due 2026-08-17 03:17 UTC — now comparing
-against #351's regenerated Linux captures.
+deliberately unimplemented, and the first scheduled deep-gate run is still due
+2026-08-17 03:17 UTC — now comparing against #351's regenerated Linux captures.
 
 No pack feature branch, worktree, local evidence artifact, or database is a
 cleanup target.
 
-> **Superseded 2026-08-14, later the same day, on three claims only.** The block
-> below is the feature-PR checkpoint record and is otherwise accurate. Three of
+> **Superseded 2026-08-14, later the same day, on four claims.** The block
+> below is the feature-PR checkpoint record and is otherwise accurate. Four of
 > its statements have been overtaken and are corrected above: *"strict-console
-> Packet C and axe Packet D remain queued"* — Packet C shipped as #362;
-> *"Linux fatigue baseline follow-up #351 is an open clean/green draft"* — #351
-> merged as `5a03d47`; and *"Sessions 1–9 have terminal outcomes through #350"* —
-> the run continued through #362.
+> Packet C and axe Packet D remain queued"* — Packet C shipped as #362 and
+> Packet D as #366; *"Linux fatigue baseline follow-up #351 is an open
+> clean/green draft"* — #351 merged as `5a03d47`; *"Sessions 1–9 have terminal
+> outcomes through #350"* — the run continued through #362; and *"The release/tag
+> pipeline remains deferred"* — it shipped as #374 (`5222db2`).
 
 **2026-08-14 — the August integration pack is at its verified
 feature-PR checkpoint; canonical truth is being reconciled.** Sessions 1–9 have
