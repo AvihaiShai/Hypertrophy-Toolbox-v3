@@ -8,9 +8,8 @@
  * - Export actions
  */
 import type { Page } from '@playwright/test';
+import { test, expect } from './console-guard';
 import {
-  test,
-  expect,
   ROUTES,
   SELECTORS,
   waitForPageReady,
@@ -37,8 +36,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('Workout Plan Page', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     // Deliberately still `waitForPageReady`. The readiness marker covers the
     // profile-estimate write and nothing else, and several tests in this block
@@ -48,9 +46,6 @@ test.describe('Workout Plan Page', () => {
     await waitForPageReady(page);
   });
 
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
 
   test('page loads with all controls visible', async ({ page }) => {
     // Page is workout plan
@@ -563,15 +558,11 @@ test.describe('Workout Plan Page', () => {
 });
 
 test.describe('Plan Generator v1.5.0 Features', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForWorkoutPlanReady(page);
   });
 
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
 
   test('generate plan modal has priority muscles option', async ({ page }) => {
     // Open the generate plan modal
@@ -696,15 +687,41 @@ test.describe('Plan Generator v1.5.0 Features', () => {
 // ============================================================================
 
 test.describe('Starter plan toast severity contract', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  // Scoped to this describe, not the file: only the server-rejected test below
+  // provokes these, and a file-wide allowance would let any other test in this
+  // spec emit them unnoticed.
+  //
+  // `server-rejected generation ...` fulfils /generate_starter_plan with a 400
+  // on purpose, so the four errors below are the assertion's own stimulus, not a
+  // defect. Each is anchored; the request id is the only wildcard.
+  test.use({
+    consoleAllowlist: {
+      expected: [
+        {
+          match: /^Failed to load resource: the server responded with a status of 400 \(Bad Request\)$/,
+          reason: 'Chromium reports the deliberately-mocked 400 from /generate_starter_plan',
+        },
+        {
+          match: /^\[req_[0-9a-z_]+\] API Error: \{url: \/generate_starter_plan, method: POST, status: 400, error: Object\}$/,
+          reason: 'fetch-wrapper.js logs the non-2xx it was given by the route mock',
+        },
+        {
+          match: /^\[req_[0-9a-z_]+\] API Error \(final\): \{url: \/generate_starter_plan, method: POST, error: Object\}$/,
+          reason: 'fetch-wrapper.js logs once more after exhausting retries on the mocked 400',
+        },
+        {
+          match: /^Error generating plan: \{code: UNKNOWN_ERROR, message: No exercises available for the selected filters\., requestId: req_[0-9a-z_]+\}$/,
+          reason: 'app.js generateStarterPlan() logs the rejection whose toast this test asserts',
+        },
+      ],
+    },
+  });
+
+  test.beforeEach(async ({ page }) => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForWorkoutPlanReady(page);
   });
 
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
 
   test('no-equipment-selected guard renders a warning toast, not success', async ({ page }) => {
     await page.locator('#generate-plan-btn').click();
@@ -761,8 +778,7 @@ test.describe('Starter plan toast severity contract', () => {
 // ============================================================================
 
 test.describe('Muscle selector body map', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForWorkoutPlanReady(page);
 
@@ -774,9 +790,6 @@ test.describe('Muscle selector body map', () => {
     ).toBeVisible({ timeout: 5000 });
   });
 
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
 
   test('mounts the MuscleMap figure with no Simple/Advanced toggle', async ({ page }) => {
     const svg = page.locator('#muscle-selector-container #svg-container svg');
@@ -836,8 +849,7 @@ test.describe('Muscle selector body map', () => {
 // ============================================================================
 
 test.describe('Exercise reference video modal (workout-plan)', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
 
     // Block the real YouTube embed network. These specs assert the iframe `src`
     // attribute + link wiring, not playback; loading the real embed pulls in
@@ -877,9 +889,6 @@ test.describe('Exercise reference video modal (workout-plan)', () => {
     await page.waitForSelector('#workout_plan_table_body tr');
   });
 
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
 
   test('every row has an accessible play button next to Swap', async ({ page }) => {
     const rows = page.locator('#workout_plan_table_body tr');
@@ -1023,8 +1032,7 @@ test.describe('Exercise reference video modal (workout-plan)', () => {
 });
 
 test.describe('§4 free-exercise-db thumbnails', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
     await resetWorkoutPlan(page);
     await page.goto(ROUTES.WORKOUT_PLAN);
     // Deliberately still `waitForPageReady`. These tests inject rows by calling
@@ -1034,9 +1042,6 @@ test.describe('§4 free-exercise-db thumbnails', () => {
     await waitForPageReady(page);
   });
 
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
 
   // Render a mocked row directly via the module's `updateWorkoutPlanTable`
   // entry point so the assertions don't depend on the live DB carrying a
@@ -1179,15 +1184,11 @@ test.describe('§4 free-exercise-db thumbnails', () => {
  * `initializeSupersetActions()`, so it takes the superset action bar down too.
  */
 test.describe('Workout Plan drag-and-drop library', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
   });
 
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
 
   test('SortableJS loads locally and is usable by the plan table', async ({ page }) => {
     const sortable = await page.evaluate(() => {

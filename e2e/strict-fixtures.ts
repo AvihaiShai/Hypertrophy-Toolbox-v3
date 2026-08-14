@@ -5,8 +5,9 @@
  * errors for older E2E coverage. Redesign specs should fail on those errors so
  * broken selectors cannot hide behind screenshot diffs.
  */
-import { test as base, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
 
+import { strictTest } from './console-guard';
 import {
   API_ENDPOINTS,
   ROUTES,
@@ -18,36 +19,17 @@ import {
   waitForPageReady,
 } from './fixtures';
 
-function isNonCriticalConsoleError(text: string): boolean {
-  return (
-    text.includes('favicon') ||
-    text.includes('Source map') ||
-    text.includes('[HMR]')
-  );
-}
-
-export const test = base.extend({
-  page: async ({ page }, use) => {
-    const errors: string[] = [];
-
-    page.on('console', (msg) => {
-      if (msg.type() !== 'error') return;
-
-      const text = msg.text();
-      if (!isNonCriticalConsoleError(text)) {
-        errors.push(`Console Error: ${text}`);
-      }
-    });
-
-    page.on('pageerror', (error) => {
-      errors.push(`Page Error: ${error.stack || error.message}`);
-    });
-
-    await use(page);
-
-    expect(errors, 'unexpected browser errors').toEqual([]);
-  },
-});
+/**
+ * The shared guard, with the `consoleAllowlist` option removed from its type.
+ *
+ * The behaviour these specs had is unchanged: every console error and every
+ * page error fails the test, except the same three infrastructure fragments
+ * (`favicon`, `Source map`, `[HMR]`). The narrowed type is what keeps it that
+ * way — a `test.use({ consoleAllowlist: [...] })` line in any importer of this
+ * module is a compile error, so the zero-allowance gate cannot be relaxed
+ * locally.
+ */
+export const test = strictTest;
 
 export {
   API_ENDPOINTS,

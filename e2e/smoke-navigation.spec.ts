@@ -5,7 +5,8 @@
  * as expected across all main routes.
  */
 import type { Page } from '@playwright/test';
-import { test, expect, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
+import { test, expect } from './console-guard';
+import { ROUTES, SELECTORS, waitForPageReady } from './fixtures';
 
 const ANALYZE_TOGGLE = '#navbar .dropdown-toggle:has-text("Analyze")';
 
@@ -17,14 +18,6 @@ async function openAnalyzeDropdown(page: Page): Promise<void> {
 }
 
 test.describe('Global Smoke and Navigation', () => {
-  test.beforeEach(async ({ consoleErrors }) => {
-    consoleErrors.startCollecting();
-  });
-
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
-
   test('home page loads with navbar and key links visible', async ({ page }) => {
     await page.goto(ROUTES.HOME);
     await waitForPageReady(page);

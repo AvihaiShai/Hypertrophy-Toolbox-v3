@@ -23,7 +23,13 @@ Playwright Chromium specs covering UI flows end-to-end. `playwright.config.ts` a
 Full per-spec test count map: `.claude/rules/testing.md`.
 
 ## Conventions
-- Reuse the `test` fixture from `fixtures.ts` — it fails specs that emit console errors.
+- **Console-error handling is mid-migration. Three `test` fixtures exist; pick deliberately.**
+  | Module | Behaviour | Who uses it |
+  |---|---|---|
+  | `console-guard.ts` | Fails on **every** console error and page error. Per-block allowlist via `test.use({ consoleAllowlist: { expected: [...] } })`, each entry an exact string or an **anchored** regex plus a reason. Preferred for new and migrated specs. | `smoke-navigation`, `workout-plan`, `accessibility` |
+  | `strict-fixtures.ts` | The same guard with the allowlist option removed from its type, so these specs cannot weaken themselves. | `visual`, `nav-dropdown`, `visual-field-separator`, `workout-plan-desktop-contract` |
+  | `fixtures.ts` | **Legacy.** Suppresses 11 console substrings and 5 page-error substrings — including `Cannot read properties of null`/`undefined`, `classList` and `is not defined` — so real null-dereference crashes pass silently. Collection is also opt-in per describe. Do not adopt it for new specs. | the remaining specs |
+- Migrating a spec is not an import swap: `console-guard.ts` has no `consoleErrors` fixture, so every `startCollecting()`/`assertNoErrors()` call is deleted, and helpers keep coming from `./fixtures`.
 - Reference routes via `ROUTES.X`, selectors via `SELECTORS.X` — keeps locators centralized.
 - `npx playwright test --project=chromium --reporter=line` — Chromium only; Firefox/WebKit are not configured.
 - `PW_REUSE_SERVER=1` reuses an already-running Flask process.

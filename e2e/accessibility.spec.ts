@@ -9,7 +9,8 @@
  * - Screen reader support
  * - Color contrast (manual checks noted)
  */
-import { test, expect, expectToast, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
+import { test, expect } from './console-guard';
+import { expectToast, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
 import type { Page } from '@playwright/test';
 
 /** WCAG 2.1 SC 1.4.3 floor for normal-size body text. */
@@ -160,14 +161,9 @@ async function waitForBootstrapModalEvent(page: Page, selector: string, eventNam
 }
 
 test.describe('Keyboard Navigation', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
+  test.beforeEach(async ({ page }) => {
     await page.goto(ROUTES.HOME);
     await waitForPageReady(page);
-  });
-
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
   });
 
   test('can tab through navigation links', async ({ page }) => {

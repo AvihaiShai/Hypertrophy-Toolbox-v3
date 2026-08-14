@@ -62,7 +62,8 @@ fixture would certify pages whose JavaScript had crashed mid-render.
 
 | Packet | Scope | State |
 |---|---|---|
-| **A** | Repaired eight assertions in `e2e/accessibility.spec.ts`; no test node added or removed. Six red-path rounds proved every repair fails under a seeded violation *and* that the pre-repair spec passed under the identical violation. The only inventory movement is the hard-wait row, from the one removed sleep. No production file changed. |
+| **A** | **Merged as `1438a14` (PR #342, 18/18 green).** Repaired nine assertions in `e2e/accessibility.spec.ts` — eight found by re-audit, a ninth by code review; no test node added or removed. Seven red-path rounds proved every repair fails under a seeded violation *and* that the pre-repair spec passed under the identical violation. The only inventory movement is the hard-wait row, from the one removed sleep. No production file changed. |
+| **C** | `e2e/console-guard.ts` added; `smoke-navigation`, `workout-plan` and `accessibility` migrated onto it. `strict-fixtures.ts` now re-exports the same guard with the allowlist option removed from its type. One allowlist exists, scoped to a single describe. Four red-path rounds, including the decisive one: an injected null-dereference makes a migrated spec fail while a spec still on `fixtures.ts` passes green. No production file changed; no test node added or removed. |
 | **C** | `e2e/console-guard.ts` + migrate `smoke-navigation`, `workout-plan`, `accessibility` | queued |
 | **D** | `@axe-core/playwright` on 11 routes × 2 themes + 3 deterministic states | queued |
 
