@@ -319,6 +319,9 @@ anything.
   2026-08-17 03:17 UTC would mean the first scheduled run validates a different file than
   the one that shipped. Converting `frozen-windows` to the reusable workflow, and the B9
   `concurrency:` decision, are Packet R2.
+  *(Scoped to R1. One narrow exception was taken later by **Packet R2-a**, 2026-08-15,
+  for the `&&` assertion only — see residual **R-9**. The `frozen-windows` conversion
+  and the B9 decision remain **R2-b, not started**.)*
 - `visual-linux` in the release gate (D3) — revisit only after the 2026-08-17 run and
   ≥3 consecutive green scheduled runs.
 - Frozen × historical-schema coverage (D5) — separate follow-up packet; it needs a
@@ -692,7 +695,7 @@ Two reviewers ran against the staged diff. `unslop-reviewer` returned 11 finding
 
 | # | Finding | Response |
 |---|---|---|
-| **B1** | `[ "$root" = "200" ] && [ "$plan" = "200" ]` in `old-db-migration` **cannot fail the step**. Under `set -e` bash exempts every command in an `&&` list except the last, so a failing first test falls through to the schema assertions, which say nothing about HTTP. | **Confirmed empirically** before fixing: the `&&` form exits 0 and continues; the standalone form exits 1. A build serving **500 on `/`** would have passed every schema assertion and gated the release green. Split into two standalone commands, and pinned by a new contract test (`test_no_assertion_hides_inside_an_and_list`) so the shape cannot return. `deep-gate.yml` carries the identical defect — recorded for Packet R2, which owns that file. |
+| **B1** | `[ "$root" = "200" ] && [ "$plan" = "200" ]` in `old-db-migration` **cannot fail the step**. Under `set -e` bash exempts every command in an `&&` list except the last, so a failing first test falls through to the schema assertions, which say nothing about HTTP. | **Confirmed empirically** before fixing: the `&&` form exits 0 and continues; the standalone form exits 1. A build serving **500 on `/`** would have passed every schema assertion and gated the release green. Split into two standalone commands, and pinned by a new contract test (`test_no_assertion_hides_inside_an_and_list`) so the shape cannot return. `deep-gate.yml` carried the identical defect — discharged 2026-08-15 by Packet R2-a; see **R-9**. |
 | N2 | Paging on `total_count` fails **open**: a response missing the key defaults the total to 0 and stops after page 1, so a newer failure on page 2 is never read. | Switched to paging until a short page; the envelope is no longer trusted. New test drives a two-page fixture with **no** `total_count` and the decisive failure on page 2. |
 | N3 | The rehearsal path never checks that `APP_VERSION` can *produce* a valid tag. Under option (c) that is the only path that runs before a real release, so an `APP_VERSION` of `3.0` would rehearse green and red at tag time — after the version-bump PR had merged. | Adopted. The format check now runs on both paths, parametrized over four unreleasable versions. |
 | N4 | A run with no `started_at` sorts *lowest* on the primary tuple element, so a newer untimestamped run loses to an older success — the exact masking `select_runs` exists to prevent. | Adopted; a missing timestamp now sorts highest, so the run is selected and `classify` judges it on its status. |
@@ -707,7 +710,7 @@ Two reviewers ran against the staged diff. `unslop-reviewer` returned 11 finding
 | # | Residual | Why accepted |
 |---|---|---|
 | **R-8** | A transient GitHub API error (502, rate-limit) aborts `ci-provenance` outright; there is no retry across the ~90 requests it may make over 45 minutes. | Fails **closed**, so it costs a re-run rather than a bad release. Retry logic was declined as scope creep in R1. |
-| **R-9** | `deep-gate.yml` carries the same `&&`-chained HTTP assertion that B1 fixed here. | That file may not be edited before the 2026-08-17 scheduled run. Packet R2 owns it. |
+| **R-9** | ~~`deep-gate.yml` carries the same `&&`-chained HTTP assertion that B1 fixed here.~~ **DISCHARGED 2026-08-15 by Packet R2-a**, under a narrow owner exception to the pre-2026-08-17 freeze. The assertion is split into two standalone commands and `deep-gate.yml` is now covered by `test_no_assertion_hides_inside_an_and_list`. Measured before the edit under `bash -e`: the combined form exits **0** on `root=500` and falls through to the schema assertions; the split form exits **1**. The exception was taken because the defect meant `old-db-migration` could not fail on a broken landing page during the first authoritative scheduled run. **Only that assertion and an adjacent rationale comment changed** — no job composition, runner, step order, schedule, `visual-linux` or compare-mode behavior, and no baseline. The `_packaged-windows.yml` extraction remains **R2-b, not started**. |
 
 ### Gate 1 assessment
 

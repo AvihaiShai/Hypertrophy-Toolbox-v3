@@ -255,7 +255,24 @@ jobs:
         plan=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:5000/workout_plan || echo 000)
         kill "$APP_PID" 2>/dev/null || true
         echo "old-DB migration: GET / -> $root ; GET /workout_plan -> $plan"
-        [ "$root" = "200" ] && [ "$plan" = "200" ]
+        # Two standalone commands, NOT `[ ... ] && [ ... ]`. This block declares no
+        # `shell:` key, so it runs under GitHub's default `bash -e {0}` -- and errexit
+        # exempts every command in an && list except the last. In the combined form a
+        # non-200 on / therefore did NOT stop the script: it fell straight through to
+        # the python block below, which asserts columns, tables and the legacy row and
+        # says nothing about HTTP, and the step then exited with THAT block's status.
+        # A build serving 500 on the landing page reported success.
+        #
+        # Measured under `set -e`: combined with `root=500` and a succeeding command
+        # after it -> falls through, exit 0; split -> exit 1. (In isolation, with the
+        # list as the script's last command, the combined form does exit 1 -- which is
+        # why this was invisible to a quick check and why `plan=500` always failed
+        # correctly: the second test is the final command of the list.)
+        #
+        # `[ ... ] && break` in the readiness loops above is flow control, not an
+        # assertion, and is deliberately left alone.
+        [ "$root" = "200" ]
+        [ "$plan" = "200" ]
         python - <<'PY'
         import os
         import sqlite3

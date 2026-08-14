@@ -224,8 +224,9 @@ jobs:
         # exempts every command in an && list except the last, so the && form does
         # not exit when the FIRST test fails -- it falls straight through to the
         # schema assertions below, which say nothing about HTTP. A build serving 500
-        # on / would have reported success. deep-gate.yml carries the same defect and
-        # is fixed in Packet R2, which may not touch that file before 2026-08-17.
+        # on / would have reported success. deep-gate.yml carried the same defect at
+        # its own old-db-migration assertion; Packet R2-a split it the same way under
+        # a narrow owner exception to the pre-2026-08-17 freeze.
         [ "$root" = "200" ]
         [ "$plan" = "200" ]
         python - <<'PY'
