@@ -83,6 +83,7 @@ SURFACE = [
     *committed_markdown((REPO / ".claude" / "rules").glob("*.md")),
     *committed_markdown((REPO / "docs" / "ai_workflow").glob("*.md")),
     REPO / "CLAUDE.md",
+    REPO / "AGENTS.md",
 ]
 
 # The one file permitted to name the retired plan file, and only to say it is
