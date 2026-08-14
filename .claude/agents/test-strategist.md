@@ -28,7 +28,6 @@ For every changed (or to-be-changed) path:
    - **CSS** (`/build-css` + `e2e/visual.spec.ts` if visual surface changes) — anything in `scss/**`.
    - **Manual dry-run / self-review** — `.claude/**`, root `CLAUDE.md`, folder `CLAUDE.md`, `docs/ai_workflow/**`. Run tests only if source behavior changed; otherwise rely on careful self-review.
 4. **Re-baseline / known-red awareness** — if the plan touches a surface with a documented known-red, name it. Current entries (per [docs/ai_workflow/QUALITY_GATE.md](../../docs/ai_workflow/QUALITY_GATE.md) "Known exceptions"):
-   - `e2e/nav-dropdown.spec.ts:117` — dark-mode toggle off-viewport at 1440 width.
    - `e2e/program-backup.spec.ts:79` — historical DB-pollution flake.
 5. **Fixture impact** — any new blueprint/table requires updating `tests/conftest.py` (`app` fixture and possibly `erase_data()`). Flag it. See [tests/CLAUDE.md](../../tests/CLAUDE.md).
 

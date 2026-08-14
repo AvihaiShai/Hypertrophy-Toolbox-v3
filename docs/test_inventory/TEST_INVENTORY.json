@@ -241,7 +241,7 @@
     "total_tests": 632
   },
   "pytest": {
-    "collected_deterministic": 2513,
+    "collected_deterministic": 2515,
     "deterministic_files": 116,
     "environment_dependent_files": [
       {
@@ -252,7 +252,7 @@
     "files": [
       {
         "file": "tests/test_agent_workflow_contracts.py",
-        "tests": 81
+        "tests": 83
       },
       {
         "file": "tests/test_auto_backup.py",
