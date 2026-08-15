@@ -12,10 +12,10 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **647** |
+| Playwright tests (chromium) | **649** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **514** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2648** across 122 files |
+| pytest collected nodes (deterministic subset) | **2656** across 122 files |
 | pytest test files (all) | **123** |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
@@ -41,7 +41,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `learned-calibration.spec.ts` | 8 | yes |
 | `listener-cleanup.spec.ts` | 3 | — |
 | `nav-dropdown.spec.ts` | 7 | yes |
-| `program-backup.spec.ts` | 20 | — |
+| `program-backup.spec.ts` | 22 | — |
 | `progression.spec.ts` | 27 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
 | `smoke-navigation.spec.ts` | 11 | yes |
@@ -148,7 +148,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_profile_estimator.py` | 104 |
 | `tests/test_profile_estimator_contract.py` | 6 |
 | `tests/test_program_backup.py` | 40 |
-| `tests/test_program_backup_restore_fuzz.py` | 7 |
+| `tests/test_program_backup_restore_fuzz.py` | 15 |
 | `tests/test_progression_plan_routes.py` | 20 |
 | `tests/test_progression_plan_utils.py` | 46 |
 | `tests/test_pyright_baseline_diff.py` | 13 |

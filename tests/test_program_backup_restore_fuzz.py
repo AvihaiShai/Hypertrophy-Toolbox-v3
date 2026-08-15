@@ -1,9 +1,10 @@
-"""Characterization of restore-path row robustness: program_backup_items -> user_selection.
+"""Restore-path row robustness: program_backup_items -> user_selection.
 
-``restore_backup()`` (``utils/program_backup.py``) applies no bounds validation, so a persisted
-backup item can carry values that ``POST /add_exercise`` rejects at the boundary, and restoring
-places them in ``user_selection`` with HTTP 200. For one shape -- non-numeric text in a rep-range
-column -- the restored row then makes ``GET /weekly_summary`` return 500.
+``restore_backup()`` validates every backup item against the canonical
+``validate_workout_bounds`` contract before inserting it, so a persisted backup item carrying a
+value ``POST /add_exercise`` rejects is skipped per row and reported, rather than written into
+``user_selection``. FINDING-1 -- a non-numeric rep range reaching the analysis surfaces -- is
+closed at that boundary.
 
 Harness non-claim
 -----------------
@@ -14,45 +15,43 @@ current plan routes reject -- reachable in production either by a backup taken b
 ``validate_workout_bounds`` gated that field, or by a backup taken from a ``user_selection`` row
 written through a route that does not validate that field today.
 
-Known defect (FINDING-1)
-------------------------
-The node whose name contains ``known_defect`` asserts a DEFECT: restoring a backup item whose
-``min_rep_range`` holds non-numeric text makes ``GET /weekly_summary`` return 500. If that node
-reds, the defect was FIXED -- invert or delete it in the same packet that fixes it, and update
-``docs/testing_phase3/PLANNING.md``. Do not "repair" it.
+Where the fix is, and is not
+----------------------------
+The fix is at the restore boundary only. **No calculation site was changed** --
+``utils/effective_sets.py``, ``utils/weekly_summary.py``, ``utils/session_summary.py``,
+``utils/progression_plan.py`` and ``utils/_fatigue/**`` are untouched, because mapping a
+non-numeric rep range onto a number is a semantic choice that would silently alter displayed
+volume. Rows already poisoned by a restore that predates this packet still reach those sites and
+still raise; that is a separately scoped follow-up recorded in
+``docs/LEFTOVERS_BY_PRIORITY.md`` §4a, not a gap here.
 
-Expected churn
---------------
-When restore-path validation eventually lands, the five parametrized nodes of
-``test_restore_accepts_rows_the_plan_route_rejects`` must be REWRITTEN TO ASSERT REJECTION, not
-preserved. They pin today's permissive behavior, not a guarantee. Which rewrite depends on an
-owner decision this packet does not make (``docs/testing_phase3/PLANNING.md`` §3.4 / PR7): a
-*refusing* restore fails the request, while a *skipping* restore returns 200 with
-``restored_count == 0`` -- under the skip shape the node's name is wrong too, not just its
-assertions.
+Nullability
+-----------
+``program_backup_items`` declares ``weight``, ``min_rep_range`` and ``max_rep_range`` NOT NULL and
+only ``rir``/``rpe`` nullable. ``validate_workout_bounds`` has a single ``allow_null`` flag
+covering all four bounded fields, which cannot express that split, and it additionally maps ``""``
+onto null. The restore path therefore never sets the flag: it omits ``rir`` -- leaving it UNSET --
+when and only when it is exactly ``None``, so NULL rir restores while a blank is rejected on every
+column.
 
 Incidental contract pin
 -----------------------
-The four exact ``utils/workout_validation.py`` messages asserted below are pinned in this file and
+The exact ``utils/workout_validation.py`` messages asserted below are pinned in this file and
 nowhere else in the repository. They are asserted verbatim on purpose -- the exact string is what
-distinguishes the bounds-rejection branch from the duplicate-row ``VALIDATION_ERROR`` branch -- so
-editing that user-facing copy reds five nodes here. That is intended, but it means this
-characterization file is also the sole guard on those strings.
+distinguishes the bounds-rejection branch from the duplicate-row ``VALIDATION_ERROR`` branch, and
+it is now also the user-facing ``reason`` the restore response returns -- so editing that copy
+reds several nodes here. That is intended, but it means this file is also the sole guard on those
+strings.
 """
 from __future__ import annotations
 
 import logging
-import os
-import traceback
 from typing import Any, Dict, Mapping
 
 import pytest
 
-from utils.constants import MAX_RIR
 from utils.database import DatabaseHandler
-from utils.effective_sets import get_effort_factor, get_rep_range_factor
 from utils.program_backup import create_backup
-from utils.weekly_summary import calculate_weekly_summary
 
 
 _ROUTINE = "GYM - Full Body - Workout A"
@@ -174,7 +173,7 @@ _OUT_OF_BOUNDS_CASES = [
     [case[1:] for case in _OUT_OF_BOUNDS_CASES],
     ids=[case[0] for case in _OUT_OF_BOUNDS_CASES],
 )
-def test_restore_accepts_rows_the_plan_route_rejects(
+def test_restore_rejects_rows_the_plan_route_rejects(
     client,
     clean_db,
     exercise_factory,
@@ -183,11 +182,11 @@ def test_restore_accepts_rows_the_plan_route_rejects(
     expected_typeof,
     expected_message,
 ):
-    """A backup item the plan route would reject at the boundary restores with HTTP 200.
+    """A backup item the plan route rejects is also rejected, per row, by the restore path.
 
     The same value is asserted twice: once as the 400 the write path returns for it, and once as
-    the row the restore path persists verbatim into ``user_selection``. The gap between those two
-    assertions is the characterized behavior.
+    the row the restore path refuses to persist. The two now agree; the gap this file was written
+    to characterize is closed.
     """
     exercise_name = exercise_factory("Fuzz Bench Press", primary_muscle_group="Chest")
     backup_id = _seed_tampered_backup(
@@ -213,7 +212,8 @@ def test_restore_accepts_rows_the_plan_route_rejects(
     assert error_payload["error"]["code"] == "VALIDATION_ERROR"
     assert error_payload["error"]["message"] == expected_message
 
-    # (c) RESTORE -- the same value goes through the restore path unchallenged.
+    # (c) RESTORE -- the restore path now applies the same contract, per row. The request still
+    # succeeds (replace mode is not abandoned over one bad row); the row is reported, not written.
     restore_response = client.post(
         f"/api/backups/{backup_id}/restore",
         content_type="application/json",
@@ -221,34 +221,39 @@ def test_restore_accepts_rows_the_plan_route_rejects(
     assert restore_response.status_code == 200
     restore_payload = restore_response.get_json()
     assert restore_payload["ok"] is True
-    assert restore_payload["data"]["restored_count"] == 1
+    assert restore_payload["data"]["restored_count"] == 0
 
-    # (d) PERSISTED -- verbatim, storage class included. For min_rep_non_numeric this is the
-    # load-bearing assertion: text survives a `min_rep_range INTEGER NOT NULL` column.
+    invalid = restore_payload["data"]["invalid"]
+    assert len(invalid) == 1
+    assert invalid[0]["exercise"] == exercise_name
+    assert invalid[0]["reason"] == expected_message
+    assert invalid[0]["routine"]
+
+    # The catalog channel stays empty -- the row was rejected for its bounds, not its exercise.
+    assert restore_payload["data"]["skipped"] == []
+
+    # (d) NOT PERSISTED -- the whole point of the packet. No row, in any storage class.
     with DatabaseHandler() as db:
-        for column, value in updates.items():
-            stored = db.fetch_one(
-                f"SELECT {column} AS value, typeof({column}) AS value_type "
-                "FROM user_selection WHERE exercise = ?",
-                (exercise_name,),
-            )
-            assert stored is not None
-            assert stored["value"] == value
-            assert stored["value_type"] == expected_typeof[column]
+        stored = db.fetch_one(
+            "SELECT COUNT(*) AS row_count FROM user_selection WHERE exercise = ?",
+            (exercise_name,),
+        )
+        assert stored is not None
+        assert stored["row_count"] == 0
 
 
-def test_known_defect_weekly_summary_500_after_restoring_non_numeric_rep_range(
+def test_weekly_summary_200_after_restore_skips_non_numeric_rep_range(
     client,
     clean_db,
     exercise_factory,
     workout_plan_factory,
     caplog,
 ):
-    """FINDING-1: a restored non-numeric ``min_rep_range`` makes ``GET /weekly_summary`` 500.
+    """FINDING-1 closed: the poisoned row never reaches the analysis surfaces.
 
-    This node asserts a DEFECT. Restore returns 200 and persists the row; the analysis page then
-    raises ``TypeError`` while averaging the rep range. If this node reds, the defect was fixed --
-    see the module docstring before changing anything here.
+    This node is the inversion of the former ``known_defect`` node, which asserted the 500. The
+    fix is at the restore boundary, so the assertion that matters is that nothing was written --
+    not that the calculators tolerate the value. No calculation site was changed.
     """
     exercise_name = exercise_factory("Fuzz Incline Press", primary_muscle_group="Chest")
     backup_id = _seed_tampered_backup(
@@ -265,60 +270,42 @@ def test_known_defect_weekly_summary_500_after_restoring_non_numeric_rep_range(
     assert restore_response.status_code == 200
     restore_payload = restore_response.get_json()
     assert restore_payload["ok"] is True
-    assert restore_payload["data"]["restored_count"] == 1
+    assert restore_payload["data"]["restored_count"] == 0
+    assert restore_payload["data"]["invalid"] == [
+        {
+            "routine": _ROUTINE,
+            "exercise": exercise_name,
+            "reason": "Minimum reps must be a finite number.",
+        }
+    ]
 
-    # No headers at all: utils/errors.py treats either X-Requested-With: XMLHttpRequest or an
-    # Accept containing application/json as XHR and would answer with JSON instead of the page.
     with caplog.at_level(logging.ERROR):
         response = client.get("/weekly_summary")
 
-    assert response.status_code == 500
+    assert response.status_code == 200
 
-    # Byte markers proven by tests/test_error_page_contract.py -- a 500 from an unrelated cause
-    # must not satisfy this node.
-    assert b"<title>Server Error - Hypertrophy Toolbox</title>" in response.data
-    assert b'<h1 class="error-status-code">500</h1>' in response.data
-    assert b'<h2 class="error-title">Server Error</h2>' in response.data
-    assert b"Unable to load weekly summary." in response.data
-
-    # FRAME ORACLE. Status alone cannot distinguish the failure sites: guarding only the
-    # rep-range average in utils/weekly_summary.py still produces a 500 from a second site
-    # (the rep-range factor in utils/effective_sets.py). Pin the innermost frame instead.
+    # The former defect surfaced as a logged TypeError from utils/weekly_summary.py. Its absence
+    # is what proves the row never entered the arithmetic, rather than the calculator absorbing it.
     type_error_records = [
         record
         for record in caplog.records
         if record.exc_info is not None and record.exc_info[0] is TypeError
     ]
-    assert len(type_error_records) == 1, (
-        "Expected exactly one logged TypeError from the weekly summary request, got "
-        f"{len(type_error_records)}"
-    )
-
-    exc_info = type_error_records[0].exc_info
-    assert exc_info is not None
-    tb = exc_info[2]
-    assert tb is not None
-
-    innermost = traceback.extract_tb(tb)[-1]
-    # Two files are named weekly_summary.py (utils/ and routes/), so the basename alone does not
-    # discriminate -- pin the parent directory too rather than leaning on the function name.
-    innermost_path = os.path.normpath(innermost.filename)
-    assert os.path.basename(innermost_path) == "weekly_summary.py"
-    assert os.path.basename(os.path.dirname(innermost_path)) == "utils"
-    assert innermost.name == "_aggregate_weekly_volumes"
+    assert type_error_records == []
 
 
-def test_weekly_summary_returns_200_without_validating_restored_out_of_range_numerics(
+def test_restore_skips_out_of_range_numerics_instead_of_persisting_them(
     client,
     clean_db,
     exercise_factory,
     workout_plan_factory,
 ):
-    """Out-of-range numerics restore, render, and enter the arithmetic with no user-visible signal.
+    """Out-of-range numerics are now skipped per row rather than restored unvalidated.
 
-    "Returns 200" means only that nothing raised. The values are NOT validated, corrected, or
-    flagged: they propagate into the displayed Effective sets, Raw sets and total volume exactly
-    as stored.
+    This node previously asserted that these values restored, rendered, and entered the
+    arithmetic with no user-visible signal. Under the full canonical contract they are rejected
+    at the boundary, so the surviving assertion is that nothing was written and the reason names
+    the first failing field.
     """
     exercise_name = exercise_factory(
         "Fuzz Chest Press",
@@ -327,9 +314,6 @@ def test_weekly_summary_returns_200_without_validating_restored_out_of_range_num
         tertiary_muscle_group=None,
     )
 
-    # One item only. user_selection carries a composite UNIQUE that program_backup_items does not,
-    # so cloning items from one plan row would collide, roll the restore back, and make the
-    # assertions below pass vacuously.
     updates: Dict[str, Any] = {
         "sets": 3,
         "min_rep_range": 20,
@@ -352,69 +336,297 @@ def test_weekly_summary_returns_200_without_validating_restored_out_of_range_num
         },
     )
 
-    # 1. RESTORE GUARD -- a rolled-back restore would leave an empty program and pass vacuously.
     restore_response = client.post(
         f"/api/backups/{backup_id}/restore",
         content_type="application/json",
     )
     assert restore_response.status_code == 200
     restore_payload = restore_response.get_json()
-    assert restore_payload["ok"] is True
-    assert restore_payload["data"]["restored_count"] == 1
+    assert restore_payload["data"]["restored_count"] == 0
+    assert len(restore_payload["data"]["invalid"]) == 1
+    # Weight is checked before RIR and the rep relation, so it is the reported reason.
+    assert restore_payload["data"]["invalid"][0]["reason"] == (
+        "Weight must be between 0 and 1000 kg."
+    )
 
-    # 2. The out-of-range values are what landed in the active program.
     with DatabaseHandler() as db:
-        row = db.fetch_one(
-            "SELECT sets, min_rep_range, max_rep_range, rir, weight "
-            "FROM user_selection WHERE exercise = ?",
+        stored = db.fetch_one(
+            "SELECT COUNT(*) AS row_count FROM user_selection WHERE exercise = ?",
             (exercise_name,),
         )
-        assert row is not None
-        assert row["sets"] == 3
-        assert row["min_rep_range"] == 20
-        assert row["max_rep_range"] == 5
-        assert row["rir"] == 99
-        assert row["weight"] == 99999.0
+        assert stored is not None
+        assert stored["row_count"] == 0
 
-    # 3. Accept: application/json on purpose -- the JSON branch is the one with proven pytest
-    # coverage on this route. N2 deliberately sends the opposite (no headers at all) because it
-    # asserts the HTML error page; see utils/errors.py:52-63 for the XHR triggers.
-    response = client.get("/weekly_summary", headers={"Accept": "application/json"})
-    assert response.status_code == 200
+    assert client.get("/weekly_summary").status_code == 200
 
-    # 4. ARITHMETIC -- the values are consumed, not dropped or clamped.
-    summary = calculate_weekly_summary()
-    chest = summary["Chest"]
 
-    # 3 raw sets * avg_reps 12.5. Rules out min-only (60.0), max-only (15.0), and a dropped row
-    # (0.0) -- the inverted range is averaged exactly as a valid one would be.
-    assert chest["raw_total_reps"] == 37.5
-    # 37.5 reps * 99999.0 kg: the out-of-range load survived and entered the arithmetic.
-    assert chest["raw_total_volume"] == 3749962.5
+def test_restore_preserves_a_null_rir(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+):
+    """``rir`` is the only nullable bounded column, so NULL must restore, not be rejected.
 
-    # Relational on purpose: the effort factor is a product-tunable in EFFORT_FACTOR_BUCKETS,
-    # so hard-coding its value here would pin a tuning decision this packet does not own.
-    expected_effective = round(
-        3 * get_effort_factor(rir=int(MAX_RIR)) * get_rep_range_factor(20, 5), 2
+    The validator has a single ``allow_null`` flag covering all four fields, which cannot express
+    "rir nullable, the rest not". The restore path therefore omits ``rir`` -- leaving it UNSET --
+    when and only when it is exactly ``None``.
+    """
+    exercise_name = exercise_factory("Fuzz Null Rir Row", primary_muscle_group="Chest")
+    backup_id = _seed_tampered_backup(
+        workout_plan_factory,
+        exercise_name,
+        {"rir": None},
+        {"rir": "null"},
     )
-    assert chest["effective_weekly_sets"] == expected_effective
 
-    # The clamp itself, also relational: RIR 99 is silently treated as the maximum valid RIR.
-    assert get_effort_factor(rir=99) == get_effort_factor(rir=int(MAX_RIR))
+    restore_response = client.post(
+        f"/api/backups/{backup_id}/restore",
+        content_type="application/json",
+    )
+    assert restore_response.status_code == 200
+    restore_payload = restore_response.get_json()
+    assert restore_payload["data"]["restored_count"] == 1
+    assert restore_payload["data"]["invalid"] == []
 
-    # The rep-range factor has its OWN averaging, separate from the one behind raw_total_reps
-    # above, and the relational assertion cannot pin it: get_rep_range_factor appears on both
-    # sides of `expected_effective`, so a change to its averaging moves both sides together and
-    # cancels out. Pin it by symmetry instead -- an inverted range is treated as its midpoint,
-    # so reversing the arguments must not change the factor. Replacing the average with either
-    # endpoint breaks this equality while leaving `expected_effective` untouched.
-    #
-    # Accidental behavior, not a designed contract: 12.5 falls in a gap between the (6, 12) and
-    # (13, 20) buckets, so this factor is the DEFAULT_MULTIPLIER fall-through -- a path whose own
-    # comment reads "shouldn't happen with current buckets". A bounds-fix packet may legitimately
-    # change this, and must then update this assertion.
-    assert get_rep_range_factor(20, 5) == get_rep_range_factor(5, 20)
+    with DatabaseHandler() as db:
+        stored = db.fetch_one(
+            "SELECT rir, typeof(rir) AS rir_type FROM user_selection WHERE exercise = ?",
+            (exercise_name,),
+        )
+        assert stored is not None
+        assert stored["rir"] is None
+        assert stored["rir_type"] == "null"
 
-    # Deliberately NOT asserted: total_reps. The effective rep total is 1.65 * 12.5, which lands
-    # on a float boundary (20.625000000000004) where round()'s half-to-even rule makes any pinned
-    # literal a footgun rather than a characterization.
+
+@pytest.mark.parametrize(
+    "column,blank_typeof,expected_reason",
+    [
+        ("rir", "text", "RIR must be a finite number."),
+        ("weight", "text", "Weight must be a finite number."),
+        ("min_rep_range", "text", "Minimum reps must be a finite number."),
+        ("max_rep_range", "text", "Maximum reps must be a finite number."),
+    ],
+    ids=["rir_blank", "weight_blank", "min_rep_blank", "max_rep_blank"],
+)
+def test_restore_rejects_blank_bounded_values(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+    column,
+    blank_typeof,
+    expected_reason,
+):
+    """An empty string must not reach the insert on any bounded column, nullable or not.
+
+    ``validate_workout_bounds(allow_null=True)`` maps ``""`` onto null, which would clear the
+    bounds check and then land a blank in a NOT NULL column under SQLite's type affinity. The
+    restore path never sets that flag, so a blank stays present and is rejected -- including for
+    ``rir``, where NULL itself is legitimate.
+    """
+    exercise_name = exercise_factory(f"Fuzz Blank {column}", primary_muscle_group="Chest")
+    backup_id = _seed_tampered_backup(
+        workout_plan_factory,
+        exercise_name,
+        {column: ""},
+        {column: blank_typeof},
+    )
+
+    restore_response = client.post(
+        f"/api/backups/{backup_id}/restore",
+        content_type="application/json",
+    )
+    assert restore_response.status_code == 200
+    restore_payload = restore_response.get_json()
+    assert restore_payload["data"]["restored_count"] == 0
+    assert len(restore_payload["data"]["invalid"]) == 1
+    assert restore_payload["data"]["invalid"][0]["reason"] == expected_reason
+
+    with DatabaseHandler() as db:
+        stored = db.fetch_one(
+            "SELECT COUNT(*) AS row_count FROM user_selection WHERE exercise = ?",
+            (exercise_name,),
+        )
+        assert stored is not None
+        assert stored["row_count"] == 0
+
+
+def _seed_backup_with_rows(
+    workout_plan_factory: Any,
+    exercise_names: list[str],
+    tamper: Mapping[str, Mapping[str, Any]],
+) -> int:
+    """Back up several valid plan rows, then rewrite named items in place.
+
+    ``tamper`` maps an exercise name to the column updates applied to its backup item, so a batch
+    can carry good and bad rows at once.
+    """
+    for name in exercise_names:
+        workout_plan_factory(exercise_name=name, routine=_ROUTINE)
+
+    backup_id = create_backup(name=_BACKUP_NAME)["id"]
+
+    with DatabaseHandler() as db:
+        for name, updates in tamper.items():
+            assignments = ", ".join(f"{column} = ?" for column in updates)
+            params = tuple(updates.values()) + (backup_id, name)
+            rowcount = db.execute_query(
+                f"UPDATE program_backup_items SET {assignments} "
+                "WHERE backup_id = ? AND exercise = ?",
+                params,
+            )
+            assert rowcount == 1, f"Expected one row for {name!r}, got {rowcount}"
+
+        count_row = db.fetch_one(
+            "SELECT COUNT(*) AS cnt FROM program_backup_items WHERE backup_id = ?",
+            (backup_id,),
+        )
+        assert count_row is not None
+        assert count_row["cnt"] == len(exercise_names)
+
+    return backup_id
+
+
+def test_restore_mixed_batch_keeps_valid_rows_and_skips_the_invalid_one(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+):
+    """One bad row must not cost the user the rest of the backup.
+
+    There is no backup-item editor in this app, so refusing the whole restore would make a legacy
+    backup permanently unrestorable. The valid rows are asserted present and byte-correct, not
+    merely counted.
+    """
+    good_one = exercise_factory("Fuzz Batch Good One", primary_muscle_group="Chest")
+    good_two = exercise_factory("Fuzz Batch Good Two", primary_muscle_group="Back")
+    bad = exercise_factory("Fuzz Batch Bad", primary_muscle_group="Quads")
+
+    backup_id = _seed_backup_with_rows(
+        workout_plan_factory,
+        [good_one, good_two, bad],
+        {bad: {"min_rep_range": "abc"}},
+    )
+
+    restore_response = client.post(
+        f"/api/backups/{backup_id}/restore",
+        content_type="application/json",
+    )
+    assert restore_response.status_code == 200
+    data = restore_response.get_json()["data"]
+
+    assert data["restored_count"] == 2
+    assert data["skipped"] == []
+    assert len(data["invalid"]) == 1
+    assert data["invalid"][0]["exercise"] == bad
+
+    with DatabaseHandler() as db:
+        present = {
+            row["exercise"]
+            for row in db.fetch_all("SELECT exercise FROM user_selection")
+        }
+        assert present == {good_one, good_two}
+
+        # Byte-correct, not just present: the surviving rows keep their seeded values.
+        stored = db.fetch_one(
+            "SELECT min_rep_range, max_rep_range, weight FROM user_selection WHERE exercise = ?",
+            (good_one,),
+        )
+        assert stored is not None
+        assert stored["min_rep_range"] == 6
+        assert stored["max_rep_range"] == 8
+        assert stored["weight"] == 50.0
+
+    assert client.get("/weekly_summary").status_code == 200
+
+
+def test_restore_reports_catalog_and_invalid_rows_on_separate_channels(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+):
+    """The two skip reasons must not contaminate each other.
+
+    ``skipped`` carries catalog misses only -- the UI copy for it says the exercise is no longer
+    in the catalog, which would be a false statement about a bounds failure.
+    """
+    good = exercise_factory("Fuzz Channels Good", primary_muscle_group="Chest")
+    bad_bounds = exercise_factory("Fuzz Channels Bad Bounds", primary_muscle_group="Back")
+    dropped = exercise_factory("Fuzz Channels Dropped", primary_muscle_group="Quads")
+
+    backup_id = _seed_backup_with_rows(
+        workout_plan_factory,
+        [good, bad_bounds, dropped],
+        {bad_bounds: {"weight": 99999.0}},
+    )
+
+    # Remove one exercise from the catalog after the backup, so its item restores as a catalog miss.
+    with DatabaseHandler() as db:
+        db.execute_query("DELETE FROM user_selection WHERE exercise = ?", (dropped,))
+        db.execute_query("DELETE FROM exercises WHERE exercise_name = ?", (dropped,))
+
+    restore_response = client.post(
+        f"/api/backups/{backup_id}/restore",
+        content_type="application/json",
+    )
+    assert restore_response.status_code == 200
+    data = restore_response.get_json()["data"]
+
+    assert data["restored_count"] == 1
+    assert data["skipped"] == [dropped]
+    assert [entry["exercise"] for entry in data["invalid"]] == [bad_bounds]
+    assert data["invalid"][0]["reason"] == "Weight must be between 0 and 1000 kg."
+
+
+def test_restore_stays_replace_mode_while_skipping_an_invalid_row(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+):
+    """Skipping a row must not turn the restore into a rollback of the whole request.
+
+    Replace mode is unchanged: the previous active program and its logs are still cleared before
+    the valid rows are committed. "No partial write" means the invalid backup row is never
+    inserted -- not that the previous program survives.
+    """
+    previous = exercise_factory("Fuzz Replace Previous", primary_muscle_group="Chest")
+    good = exercise_factory("Fuzz Replace Good", primary_muscle_group="Back")
+    bad = exercise_factory("Fuzz Replace Bad", primary_muscle_group="Quads")
+
+    backup_id = _seed_backup_with_rows(
+        workout_plan_factory,
+        [good, bad],
+        {bad: {"min_rep_range": "abc"}},
+    )
+
+    # A pre-existing active program that replace mode must clear.
+    workout_plan_factory(exercise_name=previous, routine=_ROUTINE)
+    with DatabaseHandler() as db:
+        before = db.fetch_one(
+            "SELECT COUNT(*) AS cnt FROM user_selection WHERE exercise = ?",
+            (previous,),
+        )
+        assert before is not None
+        assert before["cnt"] == 1
+
+    restore_response = client.post(
+        f"/api/backups/{backup_id}/restore",
+        content_type="application/json",
+    )
+    assert restore_response.status_code == 200
+    assert restore_response.get_json()["data"]["restored_count"] == 1
+
+    with DatabaseHandler() as db:
+        present = {
+            row["exercise"]
+            for row in db.fetch_all("SELECT exercise FROM user_selection")
+        }
+        assert present == {good}, "replace mode must clear the previous program"
+
+        logs = db.fetch_one("SELECT COUNT(*) AS cnt FROM workout_log")
+        assert logs is not None
+        assert logs["cnt"] == 0

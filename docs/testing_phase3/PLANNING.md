@@ -389,6 +389,25 @@ battery** (§7) rather than predicted:
 | 2 | `utils/effective_sets.py:192` — `(min_reps + max_reps) / 2.0` via `get_rep_range_factor` | Independent `TypeError` → HTTP 500. Surfaces only once site 1 is guarded. | **Arm B, measured**: the innermost frame moved from `weekly_summary.py`/`_aggregate_weekly_volumes` to `effective_sets.py` |
 | 3 | `utils/_fatigue/core.py:124` — `min_reps > 0` via `routes/weekly_summary.py:91` | `TypeError: '>' not supported between instances of 'str' and 'int'` — **SWALLOWED** at `routes/weekly_summary.py:95` into the "Projected fatigue unavailable" empty-state badge. No 500, no user-visible error. | **Arm A, measured**: the log line appears while the route returns 200 |
 | 4 | `utils/session_summary.py:100` — `(min_rep + max_rep) / 2.0` | Byte-identical arithmetic off the same `user_selection` join; `routes/session_summary.py:142-151` renders 500 the same way. Not exercised by Packet E. | **Read, not executed** |
+| **5** | **`utils/progression_plan.py:312`** — `target_reps = current_reps + 2` | **HTTP 500 on `/progression`** when `max_rep_range` is the poisoned column. Restore empties `workout_log`, so `/progression` takes the plan-defaults branch and `current_reps` is `planned_max_reps`. `_get_progression_status` at `:89/:91` has the same exposure via `decide_progression_target`. | **Read, 2026-08-15** |
+| **6** | **`utils/export_service.py:490`** — `export_plan_to_workout_log()` | **One bad row blocks the whole plan→log export** with `VALIDATION_ERROR` naming no routine or exercise. Distinct in kind: a pre-existing whole-batch refusal, not a raise. | **Read, 2026-08-15** |
+
+**[UPDATED 2026-08-15] The site count is SIX.** v2 recorded four. Sites 5 and 6 extend the blast
+radius past Analyze into **Progress** and **Log**, which the four-site framing missed entirely.
+
+A seventh surface does **not** raise and is therefore absent from the remediation table above:
+`utils/weekly_summary.py:323` (`calculate_isolated_muscles_stats`) does the same average **in SQL**,
+where SQLite coerces unparseable text to 0. For the modelled fixture — `min_rep_range` poisoned,
+`max_rep_range` still 8 — it returns **4.0** against an intended 7.0. A plausible wrong number
+rather than a detectable sentinel, reaching `/weekly_summary`, `/session_summary`, and the Excel
+export at `utils/export_service.py:362`. This is the strongest argument against the
+"guard the calculation sites" option: it would trade a loud 500 for a quiet miscount.
+
+**RESOLVED at the ingress 2026-08-15.** The owner selected **skip at restore, per row**.
+`restore_backup()` applies the canonical `validate_workout_bounds` contract per item and skips
+failures. **None of the six sites was modified**, `utils/_fatigue/**` included. Rows already
+poisoned by a pre-fix restore still reach them; that residual, and the Min Rep → Max Rep repair
+order it requires, are recorded in `docs/LEFTOVERS_BY_PRIORITY.md` §4a.
 
 **A remediation packet that guards only site 1 ships a fix that does not fix the 500** — Arm B
 measured exactly that, with the status still 500 and only the frame moved. **Sites 1 and 2 must BOTH
