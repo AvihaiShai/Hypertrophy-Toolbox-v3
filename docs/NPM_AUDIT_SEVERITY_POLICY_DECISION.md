@@ -1,9 +1,12 @@
 # npm audit — severity and exception policy: owner decision packet
 
-*Status: **DECISION PACKET — nothing is enforced by this document.** No dependency was
+*Status: **DECIDED 2026-08-15 — see §6.1. Nothing is enforced by this document.** The
+owner accepted every recommendation in §6, including **D-7: remediate first, then
+enforce**. This file records the decisions and the evidence behind them; the
+remediation and the enforcement flip are separate pull requests. No dependency was
 updated, no pin moved, no allowlist created, and `.github/workflows/ci.yml` is
-unchanged. Measured 2026-08-15 against `origin/main` @ `c404a06` in an isolated
-docs-only worktree.*
+unchanged **by this PR**. Measured 2026-08-15 against `origin/main` @ `c404a06` in an
+isolated docs-only worktree.*
 
 Source row: [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) line 808 —
 *"The `npm audit` severity / exception policy — **OWNER**, held apart from P1.6
@@ -43,7 +46,36 @@ framing suggests:
    advisory IDs is stale before it merges.
 
 **Recommendation: R2 (§7) — remediate first, then flip with an empty allowlist.**
-Six owner decisions are needed before either half proceeds; they are in §6.
+**Accepted by the owner on 2026-08-15, together with every other recommendation in §6.**
+
+### 0.1 Findings of record
+
+The four statements this packet exists to put on the record, each with the section
+that carries its evidence:
+
+1. **All nine advisory IDs are currently remediable inside the parent ranges already
+   declared in the committed `package-lock.json`.** No direct-dependency bump, no
+   `package.json` edit, and no semver-major move is required for any of them. Every
+   fixed version was confirmed to exist on the registry *and* to satisfy every
+   declaring parent's range. — **§3**, table.
+2. **The accepted-debt allowlist is therefore empty.** There is no advisory in the
+   graph today that lacks an in-range fix, and none of the five affected packages is
+   frozen by a repository contract pin. An exception file written now would contain
+   zero entries, and that is the correct content, not an omission. — **§3**, bucket
+   table.
+3. **Dependabot alerts are disabled on this repository**, which invalidates the stated
+   premise in [`.github/dependabot.yml`](../.github/dependabot.yml) — *"a security
+   advisory against any of these still reaches us as a security update"* — and the
+   identical premise in [`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`](P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md)
+   §3.3. Both sentences describe a mechanism that is not running. Until D-6 is
+   executed, `js-supply-chain` is the repository's only JS vulnerability signal, and
+   it is measure-only. — **§2.4**, four read-only API probes.
+4. **Advisory IDs are the policy key — not package names, and not counts.** The
+   advisory set turned over inside a fortnight (`immutable` gone, `js-yaml` and
+   `nanoid` new) while the count moved *non-monotonically*, 4 → 3 → 5, with no change
+   to what this repository ships. A package-keyed or count-keyed policy is stale
+   before it merges; a `GHSA-*` ID is immutable and is what the advisory database is
+   keyed on. — **§2.3**, six sampled CI annotations.
 
 ---
 
@@ -188,8 +220,10 @@ Two consequences, both material to this decision:
 - **Dependabot churn is entirely `version-update` churn.** §4.5's design does not need
   to reason about security-update PRs unless the owner enables alerts (decision **D-6**).
 
-This is reported as measured, not endorsed as a finding to act on inside this packet —
-enabling alerts is a repository-settings change and is listed as an owner decision.
+This is reported as measured. Enabling alerts is a repository-settings change rather
+than a code change, so it is carried as decision **D-6** — ruled *enable alerts, leave
+automated fixes off* on 2026-08-15 (§6.1), and **not performed by this pull request or
+by either of the two that follow it**.
 
 ---
 
@@ -468,8 +502,10 @@ gate enforcing an empty allowlist.
 
 ## 6. Owner decisions required
 
-Nothing in §4 or §5 may be built until these are answered. **D-1, D-2 and D-4 must be
-answered before any allowlist file is created; D-5 and D-6 before the gate is enforced.**
+Nothing in §4 or §5 may be built until these are answered. **All seven were answered on
+2026-08-15 — the ruling is in §6.1.** The table below is retained as written, with its
+recommendation column intact, so the ruling can be read against what was actually put
+to the owner rather than against a summary of it.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
@@ -481,11 +517,35 @@ answered before any allowlist file is created; D-5 and D-6 before the gate is en
 | **D-6** | **Enable Dependabot alerts and automated security fixes?** (repository settings; outside this packet) | (a) **enable alerts, leave automated fixes off**; (b) enable both; (c) leave both off | **(a)**. It restores the premise the `dependabot.yml` ignore blocks are written on and gives a second signal. Automated fixes off, so a lockfile change stays a reviewed PR. Note: whichever is chosen, the `dependabot.yml` comment and `P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md` §3.3 need correcting — under (c) they are simply wrong, and under (a)/(b) they become true only from the date of the change. |
 | **D-7** | **Sequencing** — remediate first (R2), or allowlist first (R1)? | See §7 | **R2.** |
 
+### 6.1 Owner ruling, 2026-08-15
+
+**Every recommendation above was accepted as written.** Restated so no later reader has
+to reconstruct it from a column heading:
+
+| # | Ruling |
+|---|---|
+| **D-1** | Severity floor is **`high` and above**, read per-advisory. |
+| **D-2** | The gate applies to the **whole graph**; exceptions are per advisory ID. There is no standing dev-only carve-out. |
+| **D-3** | `MAX_TTL` is **90 days**. |
+| **D-4** | An unavailable registry or unparseable audit **fails the job**. Fail-closed. |
+| **D-5** | A stale allowlist entry — one whose advisory is no longer in the audit — **fails the job**; the entry must be deleted. §4.6's friction is accepted knowingly. |
+| **D-6** | **Enable Dependabot alerts; leave automated security fixes off.** |
+| **D-7** | **R2 — remediate first, then enforce.** |
+
+**None of these is executed by this pull request**, which stays documentation-only.
+What each ruling now authorizes, and where it lands:
+
+| Ruling | Lands in |
+|---|---|
+| D-7 | The remediation PR — lockfile-only, §5.2 **M1** |
+| D-1 – D-5 | The enforcement PR — §5.2 **M2 + M3**, allowlist committed with `"allow": []` |
+| D-6 | A **repository-settings** change, not a code change. It is not performed by any of these pull requests, and it does not gate them. The two stale sentences named in §0.1 finding 3 stay wrong until it is done, and correcting them is part of the same follow-up. |
+
 ---
 
 ## 7. Recommendation
 
-**R2 — remediate first, then flip the gate with an empty allowlist.**
+**R2 — remediate first, then flip the gate with an empty allowlist.** *(Accepted, D-7.)*
 
 | | R1: allowlist the five, then flip | **R2: remediate, then flip empty** | R3: stay measure-only |
 |---|---|---|---|
@@ -526,16 +586,19 @@ Recorded explicitly so a later reader does not mistake absence for oversight:
   committed lockfile's declared ranges, not from npm's resolver.
 - No dependency added, removed, or re-pinned.
 - No `.github/workflows/ci.yml` edit. `exit 0` and `continue-on-error: true` stand.
-- No allowlist file created. §4 is a design for approval.
+- No allowlist file created. §4 is a design, approved under D-1 – D-5 and built in the
+  enforcement PR, not here.
 - No check context added, removed, renamed, or weakened. The `js-supply-chain` job name
   is byte-identical to the string pinned at
   `tests/test_release_workflow_contracts.py:44`.
-- No repository setting changed; the §2.4 probes are read-only `GET`s.
+- No repository setting changed, **D-6 included**; the §2.4 probes are read-only `GET`s.
+  The ruling authorizes enabling Dependabot alerts. This PR does not perform it.
 - No `dependabot.yml` edit, including the §2.4 comment that measurement shows to be
   currently false — correcting it is part of **D-6**, not of this packet.
-- `docs/LEFTOVERS_BY_PRIORITY.md` line 808 is **not** updated. The row stays OWNER until
-  the §6 decisions are made; this document is the packet the row was waiting for, not
-  its closure.
+- `docs/LEFTOVERS_BY_PRIORITY.md` line 808 is **not** updated. The §6 decisions are now
+  made, but the row tracks the *policy*, and the policy is not in force until the
+  enforcement PR lands. Closing that row belongs to the PR that flips the gate, so that
+  the row and the gate become true on the same commit.
 
 ---
 
