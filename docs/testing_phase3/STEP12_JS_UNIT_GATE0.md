@@ -7,17 +7,21 @@
 > and the **unsigned `js-unit` half of D2** (§6, §8.1 row 2, reaffirmed unsigned in §8.1a and §8.1c).
 > **Gate 0**: **PARTIALLY CLOSED 2026-08-15** — **Q1 and Q2 are signed** and Q3 is ruled (§0.1).
 > Packets A → B → C are authorized as **test-only** expansion. **Promotion of `js-unit` to required
-> is NOT authorized**, and is gated behind a restarted qualification window **and** Packet E.
+> is NOT authorized**, and is gated behind a restarted qualification window **and** Packet F.
 > Q4–Q6 remain open (§8). Implementation of any packet still **STOPS** at its own Gate 1 plan.
 > **Sibling packet**: [`PLANNING.md`](PLANNING.md) in this directory owns Phase 3 **step 11**
 > (restore-path fuzz). This file owns step 12 only; the two share no file.
 >
-> ⚠️ **Label collision, deliberate and disambiguated.** `PLANNING.md` in *this same directory* calls
-> its step-11 work **"Packet E (restore-path fuzz characterization)"**. The **Packet E** defined in
-> **§2.5 of this file** is a *different, unrelated* packet (Vitest inventory enforcement) under
-> step 12's own A–E lettering. Neither renames the other. **Always qualify the letter with its step**
-> — "step-11 Packet E" vs "step-12 Packet E" — and never grep the bare string `Packet E` inside
-> `docs/testing_phase3/` expecting one result.
+> ✅ **Label collision RESOLVED 2026-08-15 — administrative relabel, owner-directed.** The Vitest
+> inventory/drift packet defined in **§2.5 of this file** was introduced as "Packet E" and is now
+> **Packet F**. `PLANNING.md` in this same directory keeps **"Packet E (restore-path fuzz
+> characterization)"** for **step 11**, unchanged and untouched. The letter **E is not reused
+> anywhere in step 12** — step 12's sequence runs **A → B → C → F**, with **D dropped** (§2.4) and
+> **E deliberately vacant** so the two packets can never be confused again.
+>
+> **This relabel changed nothing but the label.** Packet F's scope, contents, rationale, and its
+> position *after* Packet C and *before* D2 are unchanged from when it was Packet E.
+> No ordering, authorization, or gate condition moved. Full record in §2.6.
 
 ---
 
@@ -33,12 +37,12 @@ as the record of what was asked, annotated with each ruling.
 | **Q1** | **AUTHORIZED — Phase 3 test expansion only.** `js-unit` is **not** promoted to required yet. | Packets A, B, C (§2.1–§2.3) as **test-only** work. No production JS, no `package.json`, no `vitest.config.js`, no CI, no branch protection. |
 | **Q2** | **YES — the window restarts.** The strict **14-day** qualification window runs **from the first successful `JS Unit (Vitest, non-required)` run on `main` after the final expansion packet lands.** | Defines the D2 precondition. The 331-run streak measured in §6 **does not** count toward it. |
 | **Q3** | **DROP `backup-center.js` from step 12.** Its required production seam extraction is out of scope. | Packet D is **closed unstarted** (§2.4). |
-| **Q5** | **Promoted to a required predecessor**, as **Packet E** (§2.5). | Extend `generate_test_inventory.py` with Vitest inventory + drift enforcement **before** promotion. |
+| **Q5** | **Promoted to a required predecessor**, as **Packet F** (§2.5). | Extend `generate_test_inventory.py` with Vitest inventory + drift enforcement **before** promotion. |
 
 **Revised gate — every condition must hold before D2 may be signed:**
 
 1. Packets **A → B → C** merged, in that order.
-2. **Packet E** merged — Vitest node counts pinned and drift-enforced.
+2. **Packet F** merged — Vitest node counts pinned and drift-enforced.
 3. **14 consecutive days** with no `js-unit` failure, counted from the **first successful run on
    `main` after the final expansion packet lands** (Q2).
 4. A **separate** owner signature on D2 itself. Q1 explicitly does not grant it.
@@ -66,7 +70,7 @@ Two independent things were both true, and neither alone settled D2:
 A required check over a suite that asserts almost nothing buys process cost without buying
 protection. The value of promotion is created by the expansion, not by the clock.
 
-**Authorized order**: **A → B → C**, then **E**, then a fresh 14-day window per Q2, then D2.
+**Authorized order**: **A → B → C**, then **F**, then a fresh 14-day window per Q2, then D2.
 
 ---
 
@@ -144,8 +148,8 @@ file per packet.** Each packet is independently shippable and owns its test file
 owns a production file.
 
 **Owner-ratified sequence (Q1):** **A → B → C**, strictly in that order, each merged before the next
-begins. **D is dropped** (Q3). **E** (§2.5) follows C and is a **required predecessor to promotion**,
-not to the expansion itself.
+begins. **D is dropped** (Q3). **F** (§2.5) follows C and is a **required predecessor to promotion**,
+not to the expansion itself. **The letter E is deliberately vacant in step 12** — see §2.6.
 
 ### 2.1 Packet A — `workout-controls-persistence.js` *(AUTHORIZED — first)*
 
@@ -208,7 +212,7 @@ test-only scope and outside anything D2 authorizes. **The owner ruled that extra
 - Reviving this needs its **own** Gate 0 and its own plan — it is not a follow-up any step-12 packet
   may absorb, and Packets A–C must not grow a `backup-center` test "while they are in there".
 
-### 2.5 Packet E — Vitest inventory + drift enforcement *(AUTHORIZED — required before promotion)*
+### 2.5 Packet F — Vitest inventory + drift enforcement *(AUTHORIZED — required before promotion)*
 
 Promoted from question **Q5** to a **blocking predecessor of D2** by the owner on 2026-08-15.
 
@@ -222,7 +226,7 @@ Promoted from question **Q5** to a **blocking predecessor of D2** by the owner o
   **nothing pins**, so deleting or `.skip`-ing every new case added by Packets A–C would leave the
   check green and CI silent. Requiring a check whose contents can be emptied without detection is a
   false green by construction — the exact failure class the false-green hardening arc exists to
-  prevent. **Packet E closes that hole before, not after, the check starts blocking merges.**
+  prevent. **Packet F closes that hole before, not after, the check starts blocking merges.**
 - **Scope**: extend the generator to collect Vitest nodes (`vitest list` or equivalent, pinned to the
   same deterministic-output discipline as the pytest and Playwright collectors), emit per-file case
   counts into the committed artifact, and let the existing `--check` drift gate cover them. **No new
@@ -234,6 +238,33 @@ Promoted from question **Q5** to a **blocking predecessor of D2** by the owner o
 - **Ordering caution.** Packets A–C add Vitest cases that the artifact does **not** yet track (§5),
   so they require no regeneration. Once E lands, **every later JS test change does** — a reversal of
   the rule stated in §5, and the reason E must come last rather than first.
+
+---
+
+### 2.6 Relabel record — step-12 "Packet E" → "Packet F" (2026-08-15)
+
+**Administrative only. Owner-directed. No scope or ordering change.**
+
+| | Before | After |
+|---|---|---|
+| Step-12 Vitest inventory/drift packet | Packet E | **Packet F** |
+| Step-11 restore-path fuzz packet (`PLANNING.md`) | Packet E | **Packet E — unchanged, untouched** |
+| Step-12 sequence | A → B → C, D dropped, then E | **A → B → C → F**, D dropped |
+| Step-12 letter E | in use | **deliberately vacant** |
+
+**What did not change**: Packet F's scope, its contents, its rationale, its position after Packet C
+and before D2, and its status as a required predecessor to promotion. The revised gate in §0.1 has
+the same four conditions it had before the relabel; only condition 2's letter differs.
+
+**Why the letter is left vacant rather than reused.** Reusing E for some later step-12 packet would
+recreate exactly the ambiguity this relabel removes — two "Packet E"s in one directory, one of them
+newer than the collision note that warns about it. A vacant letter costs nothing and cannot be
+misread.
+
+**Done while it was still cheap.** Nothing outside this document referenced step-12 Packet E — the
+packet had not been started, and PR #387 was still draft. The relabel therefore touches one file and
+zero commits of implementation work. Renaming after Packet F had merged, or after other documents
+cited it, would have meant chasing references across the repository.
 
 ---
 
@@ -313,15 +344,21 @@ record, not to work around silently.
   [`templates/workout_plan.html`](../../templates/workout_plan.html) lines 88-100, the four
   attribute-bearing controls are:
 
-  | Input | `min` | `max` |
-  |---|---|---|
-  | `weight` | `0` | *(none — deliberate, OWNER-5)* |
-  | `sets` | `1` | *(none — deliberate)* |
-  | `rir` | `0` | `10` |
-  | `rpe` | `1` | `10` |
+  | Input | `min` | `max` | `step` | `value` |
+  |---|---|---|---|---|
+  | `weight` | `0` | *(none — deliberate, OWNER-5)* | `any` | `25` |
+  | `sets` | `1` | *(none — deliberate)* | — | `3` |
+  | `rir` | `0` | `10` | — | `3` |
+  | `rpe` | `1` | `10` | `0.5` | `7` |
+  | `min_rep` | `1` | *(none — deliberate)* | — | `6` |
+  | `max_rep_range` | `1` | *(none — deliberate)* | — | `8` |
 
-  A test asserting an upper-bound rejection on `weight` or `sets` would be asserting a rule the
-  product does not have, and must not be written.
+  **Four of the six have no upper bound** — `weight`, `sets`, `min_rep`, `max_rep_range`. Only `rir`
+  and `rpe` cap, both at `10`. A test asserting an upper-bound rejection on any of the four would be
+  asserting a rule the product does not have, and must not be written.
+
+  The template's `value` attributes are **identical** to `WORKOUT_CONTROL_DEFAULTS`
+  (`25/3/3/7/6/8`), which is what makes "fall back to the pinned template default" coherent.
 - Fixture markup is **copied from the live template**, not invented, and the template path is cited
   in a comment so drift is greppable.
 - `sessionStorage.clear()` / `localStorage.clear()` in `beforeEach`; jsdom shares them across tests
@@ -376,16 +413,16 @@ required by any packet in §2**, and none may be committed as if it were.
 **This document itself** lands under `docs/testing_phase3/` — also not a pinned surface, and under
 QUALITY_GATE's *Product docs only* row, which requires no tests.
 
-> **The gap this reveals — now owned by Packet E.** JS unit nodes are the **only** test tier with no
+> **The gap this reveals — now owned by Packet F.** JS unit nodes are the **only** test tier with no
 > drift pin. A silently deleted or `.skip`-ed Vitest case is invisible to CI in a way the equivalent
 > pytest or Playwright deletion is not — and that gap widens with every packet added. It becomes
 > materially more serious **if** `js-unit` is promoted, because a required check would then be
 > guarding a node count nothing pins.
 >
 > **Owner ruling Q5 (2026-08-15): closing this is now a required predecessor to promotion**, carried
-> as **Packet E** (§2.5). It runs **after** Packet C and **before** D2 may be signed.
+> as **Packet F** (§2.5). It runs **after** Packet C and **before** D2 may be signed.
 
-> **The statement above expires when Packet E lands.** "No inventory regeneration is required" is
+> **The statement above expires when Packet F lands.** "No inventory regeneration is required" is
 > true for Packets A–C **only**. Once E pins Vitest nodes, every subsequent JS test add, remove, or
 > rename **will** trip `Test Inventory Drift` and **will** require a regenerated artifact — the same
 > discipline `tests/**` and `e2e/**` already carry. Anyone reading this section after E has merged
@@ -483,7 +520,7 @@ Consequences, stated so no later session re-reads §6.3 as a promotion credit:
   longer exist.
 - The clock starts on **`main`**, not on a PR branch, and on a **successful** run — a cancelled run
   (§6.2 records two) neither starts nor advances it.
-- "Final expansion packet" means the last of **A, B, C** to merge. **Packet E** is a separate
+- "Final expansion packet" means the last of **A, B, C** to merge. **Packet F** is a separate
   required predecessor (§2.5) and may land inside the window; it does not restart it.
 - Any `js-unit` failure during the window **resets it to zero**, with the same attribution discipline
   §6.2 applies — an attributable, resolved, externally-caused red should be argued on the record, not
@@ -564,7 +601,7 @@ with each answer.
 | **Q2** | Does the two-week window restart on the **post-expansion** suite (§6.4b), or does the existing 331-run streak count toward D2? | **SIGNED — restarts.** From the first successful `JS Unit (Vitest, non-required)` run on `main` after the final expansion packet lands. See §6.5. |
 | **Q3** | `backup-center.js` (Packet D): **skip**, test through the full-DOM `initializeBackupCenter()` surface, or authorize a **production** seam extraction? | **RULED — dropped from step 12.** The required production seam extraction is out of scope. §2.4. |
 | **Q4** | Drop the `(non-required)` suffix from the job name **in the change before** promotion? | **OPEN.** Not yet needed — promotion is not authorized. But the window closes permanently once the context is protected (§7.3), so decide it **with** D2 and never after. |
-| **Q5** | Extend `generate_test_inventory.py` to pin Vitest node counts? | **RULED — required before promotion.** Carried as **Packet E** (§2.5), sequenced after Packet C. |
+| **Q5** | Extend `generate_test_inventory.py` to pin Vitest node counts? | **RULED — required before promotion.** Carried as **Packet F** (§2.5), sequenced after Packet C. |
 | **Q6** | Correct the stale coverage/jsdom claims in `TESTING_STRATEGY_PLANNING.md` (lines 79, 172, 540-541) and `vitest.config.js`'s comment (§1.1, §1.2)? | **OPEN.** Recommendation unchanged: a **separate docs-only packet**. `vitest.config.js` is a config file, so it cannot ride along inside a test packet. |
 
 ### STOP — still in force
@@ -588,7 +625,264 @@ created or modified.
 
 ---
 
-## 9. Provenance
+## 9. Packet A — scoped plan (`workout-controls-persistence.js`)
+
+> **PLANNING ONLY — NOT AUTHORIZED TO EXECUTE.** This section specifies what the packet would build.
+> **No test file has been created**, no production or config file has been modified, and **no
+> mutation has been run** — §9.8's matrix is a *prediction* to be verified during implementation, not
+> a record of anything measured. Implementation begins only on explicit owner authorization of this
+> section.
+
+### 9.1 Ownership and boundaries
+
+| | |
+|---|---|
+| **Creates** | `static/js/modules/__tests__/workout-controls-persistence.test.js` — one new file |
+| **Modifies** | **nothing** |
+| **Must not touch** | `vitest.config.js`, `package.json`, any file under `static/js/modules/` other than the new test, `.github/workflows/**`, `docs/test_inventory/**`, branch protection |
+| **Environment** | `// @vitest-environment jsdom` — line 1, per §3.2 |
+| **Collaborator mocks** | **none.** The module imports nothing (§2.1); a `vi.mock` in this file would be a sign the plan drifted |
+
+### 9.2 The nine exports and the rulings each carries
+
+Every export gets coverage. The middle column is the contract source, quoted from the module header
+and [`ki005_controls_persistence/PLANNING.md`](../ki005_controls_persistence/PLANNING.md).
+
+| # | Export | Ruling / criterion | Test IDs |
+|---|---|---|---|
+| 1 | `WORKOUT_CONTROL_IDS` | criterion 2 — *exactly* these six, no others | A1 |
+| 2 | `WORKOUT_CONTROL_DEFAULTS` | TS-7 — the pinned template defaults, one source of truth | A2 |
+| 3 | `beginHydration()` | OWNER-1 — arms the guard | A3 |
+| 4 | `endHydration()` | OWNER-1 — disarms the guard | A4 |
+| 5 | `withHydrationSuppressed(fn)` | OWNER-1 — restores the *previous* flag, not `false` | A5, A6, A7 |
+| 6 | `saveWorkoutControls()` | OWNER-1 (no-op while hydrating), OWNER-3 (one versioned key, `sessionStorage` only) | A8–A13 |
+| 7 | `applyWorkoutControlDefaults()` | PR-1 — plain value writes, no estimate, no recompute | A14, A15 |
+| 8 | `restoreWorkoutControls()` | criterion 8 (saved-wins), criterion 9 + TS-7 (per-field fallback), OWNER-5 (declared bounds only), OWNER-1.1/.2 (never writes) | A16–A28 |
+| 9 | `clearWorkoutControls()` | OWNER-1.4 — key left **absent** | A29, A30 |
+
+**Case list.**
+
+| ID | Case | Asserts |
+|---|---|---|
+| A1 | `WORKOUT_CONTROL_IDS` equals `['weight','sets','rir','rpe','min_rep','max_rep_range']` | Exact array, exact order. Deep equality — not `toContain`, which would pass if a seventh control were added |
+| A2 | `WORKOUT_CONTROL_DEFAULTS` equals `{weight:'25',sets:'3',rir:'3',rpe:'7',min_rep:'6',max_rep_range:'8'}` | Exact object, and every value a **string** |
+| A3 | `beginHydration()` then `saveWorkoutControls()` | Storage untouched — key absent |
+| A4 | `beginHydration()` → `endHydration()` → `saveWorkoutControls()` | Record now written |
+| A5 | `withHydrationSuppressed(fn)` returns `fn`'s return value | Return is passed through |
+| A6 | `withHydrationSuppressed` while **already** hydrating leaves hydration **on** afterward | The `previous` restore — the nesting bug this guards |
+| A7 | `withHydrationSuppressed` whose `fn` **throws** still restores the flag, and rethrows | `finally` correctness; use `expect(...).toThrow()` |
+| A8 | `saveWorkoutControls()` writes **one** key, named `hypertrophy_workout_controls_v1` | `sessionStorage.length === 1`; key name exact (OWNER-3) |
+| A9 | The stored value parses to an object with exactly the six ids | No extra fields; JSON round-trip |
+| A10 | Values are read from the **live DOM**, not from defaults | Set inputs to non-default values first, assert those persist |
+| A11 | Nothing is written to `localStorage` | `localStorage.length === 0` (criterion 6) |
+| A12 | With **no** control inputs in the DOM, nothing is written | The `found` guard — key stays absent |
+| A13 | With **some** inputs present, only those are recorded | Partial DOM does not fabricate fields |
+| A14 | `applyWorkoutControlDefaults()` sets all six inputs to `WORKOUT_CONTROL_DEFAULTS` | Per-field value equality |
+| A15 | `applyWorkoutControlDefaults()` does **not** write to storage | Key absent afterward |
+| A16 | Valid stored record restores all six; `restored` lists all six ids | Saved-wins (criterion 8) |
+| A17 | **Absent** key → all six get defaults; `restored` is `[]` | TS-7 |
+| A18 | **Malformed JSON** → all six get defaults; `restored` is `[]` | The `catch` returning `{}` |
+| A19 | Stored **array** (not object) → treated as empty; `restored` is `[]` | The `!Array.isArray` guard |
+| A20 | Stored **`null`** JSON → defaults; `restored` is `[]` | The `parsed && typeof` guard |
+| A21 | Field with **non-numeric** string (`'abc'`) → that field defaults, others restore | Per-field, not all-or-nothing |
+| A22 | Field with **empty / whitespace** string → that field defaults | The `text === ''` guard |
+| A23 | Field with a **boolean / object** value → that field defaults | The `typeof` guard |
+| A24 | `rir` stored as `11` → defaults to `'3'` | Upper bound from `max="10"` (OWNER-5) |
+| A25 | `rpe` stored as `10.5` → defaults to `'7'` | Upper bound from `max="10"` |
+| A26 | `weight` stored as `-1` → defaults to `'25'`; `sets` as `0` → defaults to `'3'` | Lower bounds from `min` |
+| A27 | Numeric (non-string) stored values are accepted and applied as strings | `typeof stored === 'number'` branch |
+| A28 | `restoreWorkoutControls()` writes **nothing** to storage | OWNER-1.1/.2 — the pre-existing record survives init |
+| A29 | `clearWorkoutControls()` leaves the key **absent**, not empty-string | `getItem(...) === null` **and** `sessionStorage.length === 0` (OWNER-1.4) |
+| A30 | `clearWorkoutControls()` on already-empty storage is a no-op and does not throw | Idempotence |
+
+**Mixed-validity case, called out because it is the one most likely to be written weakly**: A21
+seeds a record where `weight` is valid and `rir` is `'abc'`, then asserts **both** that `weight`
+took the stored value **and** that `rir` shows `'3'` **and** that `restored` is exactly
+`['weight']`. Asserting only the fallback would pass against an implementation that discards the
+whole record.
+
+### 9.3 Fixture structure
+
+Built in `beforeEach` via `document.body.innerHTML`, copied from
+[`templates/workout_plan.html`](../../templates/workout_plan.html) **lines 88-108** with that path
+and line range in a comment above it so drift is greppable (§4.2).
+
+**The `min`/`max` attributes are load-bearing** — `declaredRange()` reads them off the elements, so a
+fixture without them makes every bounds case (A24–A26) pass vacuously. Exact values as measured:
+
+| `id` | `type` | `min` | `max` | `step` | `value` |
+|---|---|---|---|---|---|
+| `weight` | `number` | `0` | *(absent)* | `any` | `25` |
+| `sets` | `number` | `1` | *(absent)* | — | `3` |
+| `rir` | `number` | `0` | `10` | — | `3` |
+| `rpe` | `number` | `1` | `10` | `0.5` | `7` |
+| `min_rep` | `number` | `1` | *(absent)* | — | `6` |
+| `max_rep_range` | `number` | `1` | *(absent)* | — | `8` |
+
+`class`, `name`, `placeholder`, and `aria-label` are **omitted** — the module never reads them, and
+copying them in invites a reader to think they matter.
+
+**A31 — a fixture self-check**, so the fixture cannot silently rot into a vacuous one: assert that
+`#rir` and `#rpe` each report `max === '10'`, and that `#weight`, `#sets`, `#min_rep`,
+`#max_rep_range` each report `getAttribute('max') === null`. If a future edit strips the attributes,
+A31 reds immediately instead of A24–A26 quietly passing for the wrong reason.
+
+Cases that need a **partial** or **empty** DOM (A12, A13) set their own `innerHTML` inside the test,
+after the shared `beforeEach`.
+
+### 9.4 Isolation and reset — module-level `hydrating`
+
+`hydrating` is a module-level `let` (line 39). It is **not** reset by `vi.restoreAllMocks()`, and a
+test that leaves it `true` would make every later `saveWorkoutControls()` case in the file pass for
+the wrong reason — a false green that looks like a pass (§4.1).
+
+**Strategy — belt and braces, both cheap:**
+
+1. **`endHydration()` in `beforeEach`**, unconditionally, as the primary reset. It is an exported
+   part of the contract, so this uses the module's own API rather than reaching into its internals.
+2. **`endHydration()` in `afterEach`** as well, so a test that throws mid-way cannot poison the next.
+
+`vi.resetModules()` is **deliberately not used**: it would force a dynamic re-import in every case
+and buys nothing here, since `endHydration()` fully restores the only mutable state the module has.
+**If a case is ever added that `endHydration()` cannot reset, that is a finding to record, not to
+paper over** (§4.1).
+
+**A32 — a leak detector**: the last case in the file asserts that a fresh `saveWorkoutControls()`
+writes, proving hydration was left disarmed by everything before it.
+
+### 9.5 `sessionStorage` — setup, teardown, and throwing-storage
+
+jsdom provides a real `sessionStorage` shared across cases in a file (§4.2).
+
+- **Setup**: `sessionStorage.clear()` **and** `localStorage.clear()` in `beforeEach`. `localStorage`
+  is cleared so A11's "nothing leaked to localStorage" cannot pass on a stale-empty accident.
+- **Seeding**: cases seed via `sessionStorage.setItem('hypertrophy_workout_controls_v1', <json>)`
+  directly — testing `restoreWorkoutControls()` through `saveWorkoutControls()` would couple the two
+  and hide a bug present in both.
+- **Teardown**: `sessionStorage.clear()` in `afterEach`, plus `vi.restoreAllMocks()` to undo the
+  throwing-storage spies below.
+
+**Throwing-storage simulations** — the module has three independent `try`/`catch` sites, and each
+gets its own case:
+
+| ID | Simulation | Expected |
+|---|---|---|
+| A33 | `vi.spyOn(Storage.prototype,'setItem').mockImplementation(() => { throw new DOMException('QuotaExceededError') })`, then `saveWorkoutControls()` | Does **not** throw; degrades silently |
+| A34 | `vi.spyOn(Storage.prototype,'getItem').mockImplementation(() => { throw new Error('denied') })`, then `restoreWorkoutControls()` | Does **not** throw; returns `{restored: []}`; all six fall back to defaults |
+| A35 | `vi.spyOn(Storage.prototype,'removeItem').mockImplementation(() => { throw new Error('denied') })`, then `clearWorkoutControls()` | Does **not** throw |
+
+**`getStore()`'s own `try`/`catch`** (a `window.sessionStorage` *access* that throws — the private-mode
+case) is **not** simulated: making a property access throw in jsdom requires redefining `window`,
+which is more fragile than the branch is worth. **Recorded as a deliberate, named coverage gap**
+rather than left as an unexplained blank — the honest disclosure §4.5 and the no-silent-caps rule
+both require.
+
+### 9.6 Fallback and `restored[]` assertions
+
+- **Fallback**: asserted as the **literal expected string**, never `WORKOUT_CONTROL_DEFAULTS[field]`.
+  Reading the expectation from the same constant the implementation reads makes the assertion
+  tautological — it would pass even if the constant were wrong. A2 pins the constant once; every
+  other case hard-codes (`expect(el('rir').value).toBe('3')`).
+- **`restored[]`**: asserted with **exact deep equality on the whole array**, including order —
+  `expect(result.restored).toEqual(['weight','sets','rir','rpe','min_rep','max_rep_range'])`. Never
+  `toContain`, never `.length`. `toContain` would pass on a superset, and length alone would pass on
+  the wrong fields. Iteration order follows `WORKOUT_CONTROL_IDS`, so order is part of the contract.
+- **Empty case**: `expect(result.restored).toEqual([])` — distinct from `toBeFalsy()`, which an
+  accidental `undefined` return would also satisfy.
+
+### 9.7 Explicit confirmation — no upper-bound rejection tests
+
+> **Confirmed. No case in Packet A asserts that `weight` or `sets` rejects a large value, and none
+> may be added.**
+
+Extended to what the template actually says: **four** of the six controls have **no `max`
+attribute** — `weight`, `sets`, `min_rep`, and `max_rep_range` (§9.3). Under OWNER-5, "out of range"
+means *the input's own declared bounds and only those*. Asserting an upper-bound rejection on any of
+the four would invent a product rule, and inventing one here would make a reload non-transparent —
+the exact failure OWNER-5 exists to prevent. Server-side, `utils/workout_validation.py:65-71` still
+rejects an absurd value at add time, exactly as it would if the user had typed it without reloading.
+
+Bounds cases are therefore **only**: A24/A25 (`rir`, `rpe` upper, from `max="10"`) and A26 (lower
+bounds, from `min`). **A31** pins the *absence* of the four `max` attributes so this stays true.
+
+### 9.8 Mutation matrix (§4.5) — prediction, not yet run
+
+Each row is a deliberate one-line break in `workout-controls-persistence.js`, applied in a scratch
+copy, expected to red **at least** the named cases, then reverted. **A row that fails to red is a
+finding about the test, not about the mutation** — the test gets strengthened before the packet ships.
+
+| # | Deliberate break | Must red |
+|---|---|---|
+| M1 | `saveWorkoutControls`: delete `if (hydrating) return;` | A3 |
+| M2 | `withHydrationSuppressed`: `hydrating = false` in `finally` instead of `= previous` | A6 |
+| M3 | `withHydrationSuppressed`: drop the `try`/`finally`, call `fn()` bare | A7 |
+| M4 | `STORAGE_KEY` → `'hypertrophy_workout_controls'` (drop `_v1`) | A8 |
+| M5 | `getStore()` returns `window.localStorage` | A11 |
+| M6 | `saveWorkoutControls`: delete `if (!found) return;` | A12 |
+| M7 | `validateStoredValue`: `return text` before the range checks | A24, A25, A26 |
+| M8 | `declaredRange`: return `{min: undefined, max: undefined}` | A24, A25, A26 |
+| M9 | `declaredRange`: read `max` where `min` is read (swap) | A26 |
+| M10 | `restoreWorkoutControls`: on invalid, `continue` instead of applying the default | A17, A21 |
+| M11 | `restoreWorkoutControls`: `restored.push(field)` for every field, valid or not | A17, A21 |
+| M12 | `readRecord`: `catch` returns `null` instead of `{}` | A18 |
+| M13 | `readRecord`: drop the `!Array.isArray(parsed)` guard | A19 |
+| M14 | `clearWorkoutControls`: `setItem(STORAGE_KEY, '')` instead of `removeItem` | A29 |
+| M15 | `validateStoredValue`: drop `if (text === '') return null;` | A22 |
+| M16 | `restoreWorkoutControls`: add a `store.setItem(...)` call | A28 |
+| M17 | `saveWorkoutControls`: remove the `try`/`catch` around `setItem` | A33 |
+| M18 | `WORKOUT_CONTROL_IDS`: append a seventh id | A1 |
+| M19 | Fixture: strip `max="10"` from `#rir` | **A31** (proves the fixture self-check works) |
+
+M19 is the anti-vacuity check: it breaks the *fixture* rather than the module, and A31 is the only
+case that should notice.
+
+### 9.9 Gate
+
+| Gate | Command | Expected |
+|---|---|---|
+| JS unit | `npm run test:js` | All files green. **120 existing cases unchanged**, plus Packet A's ~35 |
+| Mutation | §9.8, manual, scratch copy, reverted | Every row reds its named cases |
+| Inventory | **none — see §9.10** | — |
+
+Full `/verify-suite` is **not** required: a new file under `static/js/modules/__tests__/` matches
+QUALITY_GATE's *Frontend (JS)* row only in path, and adds no production behavior for an E2E spec to
+cover. The existing E2E specs are unaffected and are not re-run for this packet.
+
+The 120-case count is itself an assertion: if it moves, Packet A touched an existing test, which it
+must not.
+
+### 9.10 Inventory regeneration — deferred, confirmed
+
+> **Confirmed: Packet A requires NO test-inventory regeneration, and none may be committed with it.**
+
+Measured in §5 — `scripts/generate_test_inventory.py` has **zero** references to `vitest`, `test:js`,
+`static/js`, or `*.test.js`, and none of the five pinned surfaces covers JS unit tests. Adding
+`workout-controls-persistence.test.js` therefore cannot trip `Test Inventory Drift`.
+
+**This holds for Packets A, B, and C, and expires when Packet F lands** (§2.5). Once F pins Vitest
+nodes, every later JS test change will require a regenerated artifact. A regenerated
+`docs/test_inventory/` appearing in Packet A's diff is a **defect in the packet** — most likely the
+symptom of an untracked `.md` in a globbed surface directory, not a real drift.
+
+### 9.11 Residual risks
+
+| Risk | Handling |
+|---|---|
+| `getStore()`'s access-level `try`/`catch` is unreachable in jsdom | Named gap, §9.5 — disclosed, not hidden |
+| Fixture drifts from the template | A31 + the cited line range; a template change that moves bounds should red A31 |
+| Later cases inherit poisoned `hydrating` | Double reset (§9.4) + A32 leak detector |
+| `restored[]` order treated as incidental | Asserted with exact deep equality (§9.6); iteration order is contract |
+| Assertions written against the constant rather than literals | Explicit rule in §9.6; a reviewer check, not automatable |
+
+### 9.12 STOP
+
+**This plan is not authorization to write it.** Awaiting explicit owner approval of §9. On approval,
+Packet A is implemented as specified, the §9.8 matrix is *run* and its measured results recorded
+(replacing the predictions), and the packet ships as one commit on its own branch.
+
+---
+
+## 10. Provenance
 
 | Item | Value |
 |---|---|
