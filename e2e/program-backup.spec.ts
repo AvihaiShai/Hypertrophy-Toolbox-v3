@@ -314,7 +314,9 @@ test.describe('Backup Center Page', () => {
     await page.locator('#backup-action-confirm-btn').click();
 
     await expect(page.locator('#backup-restore-result')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#backup-restore-result-title')).toContainText('1 exercises restored');
+    // Singular: the count is 1, so the noun must agree.
+    await expect(page.locator('#backup-restore-result-title')).toContainText('1 exercise restored');
+    await expect(page.locator('#backup-restore-result-title')).not.toContainText('1 exercises');
 
     // Two labelled groups, each a nested list under its own <li>.
     const groups = page.locator('#backup-restore-result-list > li');

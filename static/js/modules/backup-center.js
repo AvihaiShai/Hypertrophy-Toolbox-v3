@@ -430,15 +430,15 @@ function renderRestoreResult(result) {
             titleEl.textContent = 'Nothing was restored - every exercise had an invalid value.';
             container.classList.add('is-warning');
         } else {
-            titleEl.textContent = `${restoredCount} exercises restored. ${invalid.length} skipped because of invalid values:`;
+            titleEl.textContent = `${restoredCount} ${exerciseNoun(restoredCount)} restored. ${invalid.length} skipped because of invalid values:`;
         }
         listEl.innerHTML = invalid.map(renderInvalidRestoreItem).join('');
     } else {
         if (restoredCount === 0) {
-            titleEl.textContent = `Nothing was restored. ${skipped.length} exercises are missing from the catalog and ${invalid.length} had invalid values.`;
+            titleEl.textContent = `Nothing was restored. ${skipped.length} skipped as no longer in the catalog; ${invalid.length} skipped for invalid values:`;
             container.classList.add('is-warning');
         } else {
-            titleEl.textContent = `${restoredCount} exercises restored. ${skipped.length} skipped as no longer in the catalog; ${invalid.length} skipped for invalid values:`;
+            titleEl.textContent = `${restoredCount} ${exerciseNoun(restoredCount)} restored. ${skipped.length} skipped as no longer in the catalog; ${invalid.length} skipped for invalid values:`;
         }
         listEl.innerHTML = [
             renderRestoreGroup(
@@ -453,6 +453,12 @@ function renderRestoreResult(result) {
     }
 
     container.hidden = false;
+}
+
+// Only the invalid/mixed copy added with the `invalid` channel is plural-aware; the
+// catalog-only wording is preserved verbatim from before that channel existed.
+function exerciseNoun(count) {
+    return count === 1 ? 'exercise' : 'exercises';
 }
 
 function renderInvalidRestoreItem(entry) {
@@ -841,12 +847,12 @@ async function handleConfirmAction() {
                 if (restoredCount === 0) {
                     message = 'Nothing was restored. Every exercise from this backup had an invalid value.';
                 } else {
-                    message = `Restored ${restoredCount} exercises from "${result.backup_name}". ${invalidCount} exercises were skipped because of invalid values.`;
+                    message = `Restored ${restoredCount} ${exerciseNoun(restoredCount)} from "${result.backup_name}". ${invalidCount} ${exerciseNoun(invalidCount)} skipped because of invalid values.`;
                 }
             } else if (restoredCount === 0) {
-                message = `Nothing was restored. ${skippedCount} exercises are missing from the catalog and ${invalidCount} had invalid values.`;
+                message = `Nothing was restored. ${skippedCount} skipped as no longer in the catalog, ${invalidCount} for invalid values.`;
             } else {
-                message = `Restored ${restoredCount} exercises from "${result.backup_name}". ${skippedCount} exercises were skipped because they no longer exist in the catalog, and ${invalidCount} because of invalid values.`;
+                message = `Restored ${restoredCount} ${exerciseNoun(restoredCount)} from "${result.backup_name}". ${skippedCount} skipped as no longer in the catalog, ${invalidCount} for invalid values.`;
             }
 
             showToast(toastLevel, message);

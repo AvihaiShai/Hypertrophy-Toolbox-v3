@@ -495,7 +495,8 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
 
                 # A backup predating validate_workout_bounds can carry values the plan
                 # routes reject. Skip that row rather than writing it: a non-numeric rep
-                # range reaches six analysis sites, two of which raise (FINDING-1).
+                # range reaches six downstream sites, where it can cause failures and
+                # silent miscalculation (FINDING-1).
                 bounds_error = _validate_restore_item(item)
                 if bounds_error:
                     invalid.append({
