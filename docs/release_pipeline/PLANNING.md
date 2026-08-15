@@ -837,15 +837,16 @@ ready for review until every row below is done.
 | Item | Evidence |
 |---|---|
 | Base before | `c404a06` (five commits stale) |
-| Merged in | `origin/main` @ **`8baddd2`** — #385 `15498ab`, #389 `729eb4a`, #387 `9e5997a`, #386 `81df507`, #390 `8baddd2` |
-| Merge commit | **`a11f89b`**, 2026-08-15T15:46Z. `origin/main` confirmed an ancestor of `HEAD`. |
+| Merged in | `origin/main` @ **`8baddd2`** — #385 `15498ab`, #389 `729eb4a`, #387 `9e5997a`, #386 `81df507`, #390 `8baddd2`; then **`d583225`** (#391) in a second merge |
+| Merge commits | **`a11f89b`** 2026-08-15T15:46Z, then **`7f93e03`** 2026-08-15T18:0xZ. `origin/main` confirmed an ancestor of `HEAD` after each. **`main` advanced roughly hourly on 2026-08-15, so re-merge and re-run the gates immediately before merging rather than trusting this row.** The second merge was clean; #391's `ci.yml` edit was comment-only and the `R2-B-PENDING-EVIDENCE` marker survived the `MASTER_HANDOVER.md` auto-merge (both re-asserted by grep). |
 | Conflicts | `docs/test_inventory/TEST_INVENTORY.{json,md}` **only** — exactly as row 6 predicted. Resolved by re-running the generator; zero conflict markers survive; `--check` clean. |
 | Node counts | pytest **2660 → 2667** (this branch's +4 contract nodes ∪ main's +3). Playwright unchanged at **649 / 33**, enumerated against the merged tree. |
 | `node_modules` | Deliberately **not** reinstalled. #390 is an in-range lockfile bump, Playwright still enumerates 649/33, and this worktree junctions into the shared main checkout — `npm ci` here mutates that shared install and breaks every other worktree. |
-| Full `pytest` | **2987 passed, 2 skipped** (213s) |
-| `npx tsc --noEmit` | exit **0** |
-| `pyright_baseline_diff.py` | **PASS**, 0 net-new (baseline 132, current 132) |
-| 26-mutation harness | **26/26 red**, tree restored green (40 contract nodes) |
+| Full `pytest` | **2987 passed, 2 skipped** — re-run after the second merge, same result |
+| `npx tsc --noEmit` | exit **0** (both merges) |
+| `pyright_baseline_diff.py` | **PASS**, 0 net-new (baseline 132, current 132) — both merges |
+| 26-mutation harness | **26/26 red**, tree restored green (40 contract nodes) — both merges |
+| PR checks | 18/18 SUCCESS, polled to **zero pending**, on `b50ef6f`; re-polled on `7f93e03` |
 
 **Rows 1 and 2 remain OPEN.** Measured 2026-08-15T13:45Z and again before this merge:
 `gh run list --workflow=deep-gate.yml --event=schedule`, the repo-wide `--event=schedule`
