@@ -58,8 +58,28 @@
 > scheduled run would have executed a job that could not fail on a broken landing page.
 > **Only that assertion and an adjacent comment changed** — no job composition, runner,
 > step order, schedule, `visual-linux` or compare-mode behavior, and no baseline.
-> Converting `frozen-windows` to the reusable workflow is **Packet R2-b, still not
-> started**. The scheduled run itself has still **never executed**.
+> Converting `frozen-windows` to the reusable workflow is **Packet R2-b**, implemented
+> 2026-08-15 as PR **#388** and **held from merge**: `deep-gate.yml`'s `frozen-windows`
+> becomes `uses: ./.github/workflows/_packaged-windows.yml`, giving that build one
+> definition and three callers (`ci.yml`, `release.yml`, `deep-gate.yml`) with no copy
+> left. The hold exists for the reason in the paragraph above, and its six-row merge
+> checklist is in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)
+> § Packet R2-b — that file, not this one, is the live status surface while the hold
+> stands. **The scheduled run itself has still never executed.**
+>
+> <!-- R2-B-PENDING-EVIDENCE: rows 1-2 of the R2-b checklist are open. Before #388
+> merges, replace this block with the shipped wording plus the scheduled run's URL, id,
+> SHA, UTC timestamps, seven job conclusions and the compare-mode proof. Do not merge
+> #388 while this marker is present. -->
+>
+> **Three things R2-b will not establish even once it merges.** The converted job has
+> never executed *as a `uses:` job* (**R-10**) — `workflow_dispatch` needs the file on the
+> default branch, so the first post-merge dispatch is its first execution, and with
+> default inputs that dispatch **skips `visual-linux`** and says nothing about the weekly
+> gate. The B9 `concurrency:` decision for `deep-gate.yml` is untouched (**R-11**).
+> `_packaged-windows.yml` uploads no build artifact, so all three callers discard `dist/`
+> (**R-12**). Separately, the deep-gate smoke moves from the script's default port **5000**
+> to **`--port 5123`** — a deliberate change, not preserved behavior.
 >
 > **Also deferred, unchanged:** R1-D3 (`visual-linux` in the release gate — revisit
 > after 2026-08-17 plus three consecutive green scheduled runs), R1-D4 (promoting

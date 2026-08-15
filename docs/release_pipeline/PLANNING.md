@@ -828,9 +828,31 @@ ready for review until every row below is done.
 | 1 | A scheduled run exists after 2026-08-17 03:17 UTC | `gh run list --workflow=deep-gate.yml --event=schedule` |
 | 2 | All **7** jobs inspected individually, `visual-linux` executed and not skipped | `gh run view <id>` per job — **never the overall green**. The packaged job is reported under its **pre-composite** name, `Frozen executable (real bootloader, Windows)`; the composite `… / Build and smoke` form only appears from the first run *after* this merges. |
 | 3 | The inspection is written down | A "Hold discharged" subsection appended to this R2-b section, **and** the deep-gate block in [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) |
-| 4 | `docs/MASTER_HANDOVER.md` corrected | Its R1 block still reads "Converting `frozen-windows` to the reusable workflow is **Packet R2-b, still not started**", which is false the moment this merges. Deliberately left untouched in the implementation branch; it is a required companion commit at merge, not an optional follow-up. |
-| 5 | `docs/DECISIONS.md` ADR-007 corrected | Done in this packet — its Consequences said "one definition with **two** callers". |
-| 6 | Full `pytest` re-run against a freshly merged `origin/main` | `main` currently asserts the exact negation of this branch's contracts, so any other branch touching `deep-gate.yml` or `_packaged-windows.yml` reds depending on merge order. Regenerate `docs/test_inventory/` if a count moved — never hand-merge it; `Test Inventory Drift` is a required context. |
+| 4 | `docs/MASTER_HANDOVER.md` corrected | **PARTIAL.** Its R1 block read "Packet R2-b, still not started", which was already false. Corrected to implemented-and-held, with R-10/R-11/R-12 and the 5000→5123 change stated. It still carries an `R2-B-PENDING-EVIDENCE` marker because the shipped wording needs the scheduled run's evidence, which does not exist yet. **Row 4 closes when that marker is replaced.** |
+| 5 | `docs/DECISIONS.md` ADR-007 corrected | **CLOSED.** Its Consequences said "one definition with **two** callers"; superseded in place. |
+| 6 | Full `pytest` re-run against a freshly merged `origin/main` | **CLOSED** — see the execution log below. Regenerate `docs/test_inventory/` if a count moved; never hand-merge it, because `Test Inventory Drift` is a required context. |
+
+#### Execution log — rows 3, 4, 6 (2026-08-15, owner-authorized)
+
+| Item | Evidence |
+|---|---|
+| Base before | `c404a06` (five commits stale) |
+| Merged in | `origin/main` @ **`8baddd2`** — #385 `15498ab`, #389 `729eb4a`, #387 `9e5997a`, #386 `81df507`, #390 `8baddd2` |
+| Merge commit | **`a11f89b`**, 2026-08-15T15:46Z. `origin/main` confirmed an ancestor of `HEAD`. |
+| Conflicts | `docs/test_inventory/TEST_INVENTORY.{json,md}` **only** — exactly as row 6 predicted. Resolved by re-running the generator; zero conflict markers survive; `--check` clean. |
+| Node counts | pytest **2660 → 2667** (this branch's +4 contract nodes ∪ main's +3). Playwright unchanged at **649 / 33**, enumerated against the merged tree. |
+| `node_modules` | Deliberately **not** reinstalled. #390 is an in-range lockfile bump, Playwright still enumerates 649/33, and this worktree junctions into the shared main checkout — `npm ci` here mutates that shared install and breaks every other worktree. |
+| Full `pytest` | **2987 passed, 2 skipped** (213s) |
+| `npx tsc --noEmit` | exit **0** |
+| `pyright_baseline_diff.py` | **PASS**, 0 net-new (baseline 132, current 132) |
+| 26-mutation harness | **26/26 red**, tree restored green (40 contract nodes) |
+
+**Rows 1 and 2 remain OPEN.** Measured 2026-08-15T13:45Z and again before this merge:
+`gh run list --workflow=deep-gate.yml --event=schedule`, the repo-wide `--event=schedule`
+list, and the REST API `total_count` for workflow `290121548` all return **empty / 0**. No
+`schedule`-event run has ever occurred; every one of the 105 deep-gate runs is a
+`workflow_dispatch`, which is **never** row-1 evidence. The one-shot routine
+`trig_01Dy1dDmAgPFCSzXg2nmanJo` is armed and unfired for **2026-08-17T03:30:00Z**.
 
 R2-a took a narrow exception to the same freeze for the `&&` assertion (R-9) because
 that defect would have made `old-db-migration` unable to fail during the very run being
