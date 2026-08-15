@@ -966,7 +966,308 @@ sites; the access-level one is the fourth and is not covered.
 
 ---
 
-## 10. Provenance
+## 10. Packet B — scoped plan (`toast.js`) — **GATE 1 OPEN**
+
+> **PLANNING ONLY — NOT AUTHORIZED TO EXECUTE.** `toast.test.js` has **not** been created and no
+> mutation has been run. §10.5's matrix is a **prediction**. Implementation begins only on explicit
+> owner approval of this section. Q4 and Q6 are **not** touched, and Packets C and F are **not**
+> started.
+> **Base**: `origin/main` @ `81df507` (Packet A merged as `9e5997a`), isolated worktree
+> `wt/phase3-packet-b-toast`.
+
+### 10.1 Ownership and containment
+
+| | |
+|---|---|
+| **Implementation creates** | `static/js/modules/__tests__/toast.test.js` — one new file, nothing else |
+| **This packet may modify** | `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md` (this plan + its later execution record) |
+| **Must not touch** | `static/js/modules/toast.js` or any production JS; any existing test file; `package.json`; `vitest.config.js`; `.github/workflows/**`; `docs/test_inventory/**`; branch protection |
+| **Must not do** | Promote `js-unit`; act on **Q4** or **Q6**; begin **Packet C** or **Packet F** |
+| **Environment** | `// @vitest-environment jsdom` on **line 1** (§3.2) — third jsdom file in the suite |
+| **Collaborator mocks** | none. `toast.js` imports nothing; its only external dependency is the **global** `bootstrap` (§10.4) |
+
+### 10.2 What was measured before planning
+
+| Finding | Evidence |
+|---|---|
+| **KI-004 is a real, documented contract** | [`UI_SCENARIOS_GAP_ANALYSIS.md:99`](../UI_SCENARIOS_GAP_ANALYSIS.md) — single shared `#liveToast`, last-message-wins, mitigated by disposing the prior instance |
+| **KI-004 already has deliberate E2E coverage** | `e2e/ui-hardening.spec.ts:324-338` asserts one `#liveToast` exists, last message wins, and stale `bg-*` is cleared |
+| **The legacy signature is live production code** | ≥8 call sites pass a bare message string as `type` (e.g. `'Filters cleared successfully'`, `'Failed to update exercise'`), plus `exercises.js:12,36` passing `(message, true)` |
+| **The `action` option is live, not dead** | Exactly one caller: [`volume-splitter.js:302-305`](../../static/js/modules/volume-splitter.js) uses `label`, `ariaLabel` **and** `onClick`. Testing it does not entrench dead code — the §7.1 P2 hazard does not apply |
+| **Toast markup** | [`templates/base.html`](../../templates/base.html) **lines 236-263** |
+| **`#liveToast` carries no `bg-*` class at rest** | Its class list is `toast align-items-center text-white border-0` — load-bearing for B42 |
+
+**Consequence for scope.** Because `ui-hardening.spec.ts` already owns last-message-wins at the
+integration level, Packet B deliberately targets what E2E **cannot** reach: legacy dispatch, the
+request-ID gate, default copy, string coercion, action-button wiring, and **call ordering**. It does
+not re-litigate KI-004's end-to-end behavior.
+
+### 10.3 Case matrix — B1–B42
+
+| ID | Case | Asserts |
+|---|---|---|
+| **Modern signatures** | | |
+| B1 | `showToast('success','Saved')` | `bg-success` added; body text `Saved` |
+| B2 | `showToast('error','Nope')` | `bg-danger` |
+| B3 | `showToast('warning','Careful')` | `bg-warning` |
+| B4 | `showToast('info','FYI')` | `bg-info` |
+| **Legacy signature** | | |
+| B5 | `showToast('Bare message')` | Treated as legacy → `success`/`bg-success`; body text is the message, **not** the word "success" |
+| B6 | `showToast('Broke', true)` | → `error`, `bg-danger` |
+| B7 | `showToast('Fine', false)` | → `success` |
+| B8 | `showToast('Msg', 'not-a-boolean')` | Non-boolean 2nd arg → `legacyIsError` false → `success` |
+| B9 | `showToast('Broke', true, {requestId:'R1'})` | Object 3rd arg survives; `error` + request-ID suffix |
+| **Numeric options, both signatures** | | |
+| B10 | `showToast('success','m',5000)` | Constructor receives `{delay: 5000}` |
+| B11 | `showToast('m', false, 5000)` | Legacy numeric duration → `{delay: 5000}` |
+| **Default copy, split by type** | | |
+| B12 | `showToast('error', null)` | `An unexpected error occurred.` |
+| B13 | `showToast('error', undefined)` | Same |
+| B14 | `showToast('success', null)` | `Action completed successfully.` |
+| B15 | `showToast('warning', null)` and `showToast('info', null)` | Non-error copy for **every** non-error type |
+| **Coercion** | | |
+| B16 | `showToast('success', 42)` | Body text `'42'` |
+| B17 | `showToast('success', {a:1})` | Body text `'[object Object]'` |
+| B18 | `showToast('success','<b>x</b>')` | Rendered via `textContent`: text is the literal string and `toastBody.querySelector('b')` is **null** |
+| **Request-ID gate** | | |
+| B19 | `error` + `requestId:'R1'` | Suffix ` (Request ID: R1)` present |
+| B20 | `success` + `requestId:'R1'` | Suffix **absent** |
+| B21 | `warning` + `requestId:'R1'` | Suffix **absent** |
+| B22 | `info` + `requestId:'R1'` | Suffix **absent** |
+| B23 | `error` + `requestId:''` | Falsy id → suffix **absent** |
+| **Class handling** | | |
+| B24 | Element pre-set to `bg-danger`, then `showToast('success',…)` | `bg-danger` removed, `bg-success` present |
+| B25 | Element pre-set to **all four** `bg-*`, then `showToast('info',…)` | Only `bg-info` remains |
+| B26 | Two successive calls | `toastBody.innerHTML=''` clears: exactly **one** `<span>`, showing the second message |
+| **Dispose / construct / show** | | |
+| B27 | An existing instance is present | Ordered log is `getInstance → dispose → construct → show` |
+| B28 | No existing instance | **No** `dispose`; still `construct → show` |
+| B29 | Default options | Constructor called with `(toastElement, {delay: 3000})`, then `show()` once |
+| **Action button construction** | | |
+| B30 | Valid action | A `<button>` is appended; `type === 'button'`; `textContent === label` |
+| B31 | `action.ariaLabel` provided | `aria-label` attribute set to it |
+| B32 | No `ariaLabel` | `hasAttribute('aria-label')` is **false** |
+| B33 | `action.onClick` not a function | **No** button appended |
+| B34 | `action.label` falsy (`''`) | **No** button appended |
+| B35 | `action.label` is `5` | `textContent === '5'` (String coercion) |
+| **Action click behavior** | | |
+| B36 | Click with an existing instance | Ordered log shows `hide` **before** `onClick` |
+| B37 | Click with **no** existing instance | `onClick` still runs; no `hide` |
+| B38 | `onClick` throws | Exception **caught**; `console.error` called with `'Toast action handler failed:'`; click does not throw |
+| **Missing-DOM early returns** | | |
+| B39 | `#toast-body` absent | `console.error('Error: toast-body not found in the DOM!')`; returns; **Bootstrap never touched** (`getInstance` and the constructor uncalled) |
+| B40 | `#liveToast` absent, body present | `console.error('Error: liveToast not found in the DOM!')`; returns; **Bootstrap never touched** |
+| B41 | **Both** absent | Only the **toast-body** error fires — proves lookup order |
+| **Anti-vacuity** | | |
+| B42 | Fixture self-check | `#liveToast` and `#toast-body` exist, and `#liveToast` carries **no** `bg-*` class at rest — so B1–B4 cannot pass on a pre-existing class |
+
+**Predicted count: 42 cases.**
+
+### 10.4 The first-in-suite global `bootstrap` fake
+
+No test in this repository fakes the `bootstrap` global today (§1.2). This is the one genuinely new
+mechanic in step 12, and Packet C will reuse it for `bootstrap.Modal`.
+
+**Installation and teardown**
+
+```js
+let calls;               // the single ordered log, shared by every fake object
+let currentInstance;     // what Toast.getInstance() returns; null by default
+
+beforeEach(() => {
+    calls = [];
+    currentInstance = null;
+    document.body.innerHTML = TOAST_FIXTURE;
+    globalThis.bootstrap = { Toast: FakeToast };
+});
+
+afterEach(() => {
+    delete globalThis.bootstrap;     // never leak the global into another file
+    vi.restoreAllMocks();            // undoes the console.error spy
+    document.body.innerHTML = '';
+});
+```
+
+**How cross-object ordering is recorded without importing real Bootstrap.** Every fake method pushes
+a label onto **one shared `calls` array** rather than onto per-object counters. Because the *old*
+instance's `dispose()` and the *new* instance's `constructor`/`show()` append to the same array, the
+relative order of events **across two different objects** is directly readable:
+
+```js
+class FakeToast {
+    constructor(element, options) {
+        calls.push('construct');
+        this.element = element;
+        this.options = options;
+        FakeToast.constructed.push(this);
+    }
+    show()    { calls.push('show'); }
+    hide()    { calls.push('hide'); }
+    dispose() { calls.push('dispose'); }
+}
+FakeToast.getInstance = (el) => { calls.push('getInstance'); return currentInstance; };
+```
+
+B27 then asserts `calls` equals `['getInstance','dispose','construct','show']` — a single deep-equality
+check that pins *both* "dispose happened" and "it happened before construction". B36 asserts
+`['hide','onClick']` within the click handler by having the test's `onClick` push its own label onto
+the same array. **This is the only technique in the plan that could not be expressed as independent
+per-method spies**, and it is why a hand-written class is used rather than `vi.fn()` objects alone.
+
+Only the surface `toast.js` actually calls is faked: `Toast.getInstance`, the `Toast` constructor,
+`show`, `hide`, `dispose`. Nothing else. **Real Bootstrap is never imported** — that would make these
+tests a Bootstrap-upgrade problem, which the visual and E2E tiers already own (§3.3).
+
+**Console spies.** `console.error` is spied with `vi.spyOn(console,'error').mockImplementation(()=>{})`
+so B38/B39/B40 can assert on it without polluting output; `vi.restoreAllMocks()` in `afterEach`
+restores it.
+
+**Fixture**, copied from [`templates/base.html`](../../templates/base.html) **lines 236-263**, with
+that citation in a comment. Only the parts `toast.js` reads are kept — the outer container, `#liveToast`
+with its **exact** at-rest class list, `#toast-body`, and the close button:
+
+```html
+<div class="position-fixed toast-container">
+  <div id="liveToast" class="toast align-items-center text-white border-0"
+       role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toast-body"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+```
+
+The **absence** of any `bg-*` class here is load-bearing and is pinned by **B42**: if a future edit
+added one, B1–B4 would pass without the module ever adding a class.
+
+### 10.5 Mutation matrix — prediction (N1–N28)
+
+Harness requirements, carried forward from §9.13-D3 and extended:
+
+- **Normalise line endings** — convert `\n` in every pattern to the target file's dominant EOL. This
+  is not optional; it silently voided 8 of 19 rows on the first Packet A run.
+- **Require every mutation to match exactly once**, and report `NOT APPLIED` otherwise. A mutation
+  that fails to apply must never be recorded as "no tests red".
+- **Run the full Vitest suite per mutation**, not just `toast.test.js`.
+- **Restore every changed byte** and assert byte-identity against the pristine copies afterward.
+- **Distinguish equivalent mutants from genuine survivors** — a survivor is only equivalent once a
+  *reason* is demonstrated (as M13 was). An unexplained survivor is a test weakness and must be fixed.
+
+| # | Deliberate break | Predicted to red |
+|---|---|---|
+| N1 | Delete the whole legacy branch (`if (!validTypes.has(type)) {…}`) | B5, B6, B7, B8, B9, B11 |
+| N2 | `legacyIsError` → always `false` | B6, B9 |
+| N3 | Legacy `type = legacyIsError ? 'success' : 'error'` (swap) | B6, B7, B8, B9 |
+| N4 | Delete the modern `else if (typeof options === 'number')` branch | B10 |
+| N5 | Delete `if (legacyDuration !== undefined) options.duration = …` | B11 |
+| N6 | Default `duration = 3000` → `5000` | B29 |
+| N7 | Error default copy → the success copy | B12, B13 |
+| N8 | Default-copy gate `type === 'error'` → `type !== 'error'` | B12, B13, B14, B15 |
+| N9 | Request-ID gate: drop `&& type === 'error'` | B20, B21, B22 |
+| N10 | Request-ID gate: drop the `requestId &&` truthiness check | B23 |
+| N11 | Delete the `classList.remove(...)` call | B24, B25 |
+| N12 | `typeToClass.error` → `'bg-warning'` | B2 |
+| N13 | `typeToClass[type] \|\| 'bg-success'` → `typeToClass[type]` | **(none) — predicted EQUIVALENT, see §10.7-R1** |
+| N14 | Delete `if (existingToast) existingToast.dispose();` | B27 |
+| N15 | Move the dispose **after** `new bootstrap.Toast(...)` | B27 |
+| N16 | Delete `toast.show()` | B27, B28, B29 |
+| N17 | Constructor options `{delay: duration}` → `{}` | B10, B11, B29 |
+| N18 | Action guard: drop `&& action.label` | B34 |
+| N19 | Action guard: drop `typeof action.onClick === 'function'` | B33 |
+| N20 | Delete `button.type = 'button'` | B30 |
+| N21 | Set `aria-label` unconditionally | B32 |
+| N22 | Click handler: call `action.onClick()` **before** `instance.hide()` | B36 |
+| N23 | Click handler: remove the `try`/`catch` | B38 |
+| N24 | Click handler: delete the `if (instance) instance.hide();` | B36 |
+| N25 | Delete the `return` after the toast-body `console.error` | B39 |
+| N26 | Delete the `return` after the liveToast `console.error` | B40 |
+| N27 | Look up `#liveToast` before `#toast-body` | B41 |
+| N28 | Delete `toastBody.innerHTML = '';` | B26 |
+| N29 | `messageSpan.textContent` → `.innerHTML` | B18 |
+| **N30** | **Fixture**: add `bg-success` to `#liveToast`'s at-rest class list | **B42** — anti-vacuity |
+
+**N13 is a deliberate equivalence probe**, not padding. After the legacy branch normalises `type`, it
+is always one of the four valid keys, so `typeToClass[type]` can never be `undefined` and the
+`|| 'bg-success'` fallback is unreachable. If N13 survives *and* that reasoning is demonstrated, it is
+recorded as an equivalent mutant exactly as M13 was — **not** chased with a contorted test.
+
+**N30 is the anti-vacuity check** and mirrors M19: it breaks the *fixture* rather than the module.
+
+### 10.6 Gates and predicted deltas
+
+**Baseline — measured, not assumed.** The instruction to treat 11 files / 155 cases as a hypothesis
+was correct discipline; it has now been **measured** on `origin/main` @ `81df507` in a clean worktree:
+
+```
+Test Files  11 passed (11)
+     Tests  155 passed (155)
+```
+
+| Gate | Command | Expectation |
+|---|---|---|
+| Baseline | `npm run test:js` | **11 files / 155 cases** — measured fact |
+| With Packet B | `npm run test:js` | **12 files / 197 cases** — exactly **+42**. Any other delta means an existing test moved, which is a defect |
+| Coverage | `npm run test:js -- --coverage` | Record measured movement. Current `main` statements **6.7 %** (branches 9.2 %, functions 7.1 %, lines 6.4 %), from the `js-unit` job of the PR-#387 head run `31889768992`. `toast.js` is 111 lines at **0 % executed** today, so a rise is expected — the number is **recorded, never gated** (D1 is signed as non-blocking measurement) |
+| Mutation | §10.5, full suite per row, restored | Every row reds its predicted cases; survivors explained or fixed |
+| Inventory | `.venv/Scripts/python.exe scripts/generate_test_inventory.py --check` | **"Test inventory is up to date"**, exit 0. **Do not regenerate** — Packet F has not landed, so Vitest nodes are still unpinned (§9.10) |
+| CI | all required contexts green | `js-unit` stays **non-required** |
+
+**Why no Playwright or `/verify-suite` gate is required — derived, not assumed.**
+
+QUALITY_GATE's *Frontend (JS)* row globs `static/js/**`, which a literal reading matches, since the
+new file lives at `static/js/modules/__tests__/toast.test.js`. Three things resolve it:
+
+1. **The row's requirement is "matching Chromium specs … + manual smoke if interactive."** A test-only
+   file adds **no production behavior** for a Chromium spec to exercise and nothing interactive to
+   smoke. Its *targeted* gate is the runner that executes it — `npm run test:js`.
+2. **The feature map has no `toast` row**, so the row's own derivation yields no spec. The nearest
+   entries (`validation`, `error`, `empty state`) are routed by the *production* change that provokes
+   a toast, not by a unit test of the emitter.
+3. **It is enforced regardless.** `ci.yml` has **no `paths:` or `paths-ignore:` filter at all** —
+   verified by grep — so every PR runs every job, including the full Chromium matrix. Packet A is the
+   precedent: it merged with **18/18 green**, the complete E2E suite included, without a local
+   Playwright run.
+
+So the question is only about *local pre-push* effort, and the answer is that CI runs the stronger
+gate unconditionally. **If Packet B's diff ever grows beyond the one test file, this derivation is
+void and the Frontend (JS) row applies for real.**
+
+### 10.7 Risks and behavioral ambiguities
+
+| # | Risk / ambiguity | Disposition |
+|---|---|---|
+| **R1** | `\|\| 'bg-success'` is unreachable once `type` is normalised | Predicted **equivalent mutant** (N13). Will be recorded as a finding about the module, not chased. Mirrors §9.13-D2 |
+| **R2** | The global `bootstrap` could leak between test files and silently satisfy another file's expectations | `delete globalThis.bootstrap` in `afterEach`; no other test file references it today, and the full suite is run per mutation so a leak would surface |
+| **R3** | `showToast('success')` with **no** message is ambiguous: `'success'` is a valid type, so `message` is `undefined` → default copy. A reader could expect `'success'` as the body text | Covered implicitly by B14's shape. **Called out here as a genuine API sharp edge**, not a defect to fix in this packet |
+| **R4** | B26 asserts `innerHTML=''` clears prior content; if a future action button is appended the span count changes | B26 asserts exactly one `<span>` after two **action-free** calls, isolating the clearing behavior |
+| **R5** | Ordered-log assertions are stricter than behavior strictly requires — a refactor preserving semantics but reordering `getInstance` could red B27 | Accepted deliberately: the dispose-before-construct order **is** the KI-004 mitigation, so pinning it is the point. Documented so a future red is read as "confirm intent", not "flaky test" |
+| **R6** | Packet A's harness bug (CRLF) could recur | §10.5 makes normalisation and match-exactly-once explicit harness requirements |
+| **R7** | `toast.js` has no `role`/`aria-live` manipulation, so a11y assertions are **out of scope** here | Owned by `e2e/accessibility.spec.ts` and the axe register; not duplicated at unit level |
+
+### 10.8 Gate 1 checklist
+
+- [ ] Scope confirmed: **one** new file, `static/js/modules/__tests__/toast.test.js`
+- [ ] Case matrix B1–B42 accepted, or amendments named
+- [ ] The global `bootstrap` fake approach (§10.4), including the shared ordered-call log, accepted
+- [ ] Fixture derived from `base.html:236-263`, with B42 pinning the at-rest class list
+- [ ] Mutation matrix N1–N30 accepted, including N13 as a declared equivalence probe and N30 as the
+      anti-vacuity check
+- [ ] Harness rules accepted: CRLF normalisation, match-exactly-once, full suite per row, byte-restore
+- [ ] Gate set accepted: `npm run test:js`, `--coverage` recorded not gated, inventory `--check`
+      **without** regeneration, CI green, `js-unit` still non-required
+- [ ] Predicted delta accepted: **155 → 197** cases, 11 → 12 files
+- [ ] Confirmed still out of scope: production JS, Q4, Q6, Packet C, Packet F, promotion
+
+### 10.9 STOP
+
+**This plan is not authorization to write it.** No test file exists; no mutation has been run.
+Awaiting explicit owner approval of Gate 1 (§10.8).
+
+---
+
+## 11. Provenance
 
 | Item | Value |
 |---|---|
