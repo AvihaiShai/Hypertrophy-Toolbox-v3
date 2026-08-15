@@ -406,24 +406,72 @@ function renderRestoreResult(result) {
 
     const restoredCount = Number(result?.restored_count) || 0;
     const skipped = Array.isArray(result?.skipped) ? result.skipped : [];
+    const invalid = Array.isArray(result?.invalid) ? result.invalid : [];
     const backupName = result?.backup_name || 'this backup';
 
     titleEl.textContent = '';
     listEl.innerHTML = '';
     container.classList.remove('is-warning');
 
-    if (restoredCount === 0) {
-        titleEl.textContent = 'Nothing was restored - every exercise is missing from the catalog.';
-        container.classList.add('is-warning');
-        listEl.innerHTML = skipped.map((name) => `<li>${escapeHtml(name)}</li>`).join('');
-    } else if (skipped.length > 0) {
-        titleEl.textContent = `${restoredCount} exercises restored. ${skipped.length} skipped because they are no longer in the catalog:`;
-        listEl.innerHTML = skipped.map((name) => `<li>${escapeHtml(name)}</li>`).join('');
+    if (invalid.length === 0) {
+        // Catalog-only and clean restores keep their original wording and flat list.
+        if (restoredCount === 0) {
+            titleEl.textContent = 'Nothing was restored - every exercise is missing from the catalog.';
+            container.classList.add('is-warning');
+            listEl.innerHTML = skipped.map((name) => `<li>${escapeHtml(name)}</li>`).join('');
+        } else if (skipped.length > 0) {
+            titleEl.textContent = `${restoredCount} exercises restored. ${skipped.length} skipped because they are no longer in the catalog:`;
+            listEl.innerHTML = skipped.map((name) => `<li>${escapeHtml(name)}</li>`).join('');
+        } else {
+            titleEl.textContent = `Restored ${restoredCount} exercises from "${backupName}".`;
+        }
+    } else if (skipped.length === 0) {
+        if (restoredCount === 0) {
+            titleEl.textContent = 'Nothing was restored - every exercise had an invalid value.';
+            container.classList.add('is-warning');
+        } else {
+            titleEl.textContent = `${restoredCount} ${exerciseNoun(restoredCount)} restored. ${invalid.length} skipped because of invalid values:`;
+        }
+        listEl.innerHTML = invalid.map(renderInvalidRestoreItem).join('');
     } else {
-        titleEl.textContent = `Restored ${restoredCount} exercises from "${backupName}".`;
+        if (restoredCount === 0) {
+            titleEl.textContent = `Nothing was restored. ${skipped.length} skipped as no longer in the catalog; ${invalid.length} skipped for invalid values:`;
+            container.classList.add('is-warning');
+        } else {
+            titleEl.textContent = `${restoredCount} ${exerciseNoun(restoredCount)} restored. ${skipped.length} skipped as no longer in the catalog; ${invalid.length} skipped for invalid values:`;
+        }
+        listEl.innerHTML = [
+            renderRestoreGroup(
+                'Missing from the catalog',
+                skipped.map((name) => `<li>${escapeHtml(name)}</li>`).join(''),
+            ),
+            renderRestoreGroup(
+                'Invalid values',
+                invalid.map(renderInvalidRestoreItem).join(''),
+            ),
+        ].join('');
     }
 
     container.hidden = false;
+}
+
+// Only the invalid/mixed copy added with the `invalid` channel is plural-aware; the
+// catalog-only wording is preserved verbatim from before that channel existed.
+function exerciseNoun(count) {
+    return count === 1 ? 'exercise' : 'exercises';
+}
+
+function renderInvalidRestoreItem(entry) {
+    const exercise = escapeHtml(entry?.exercise || 'Unknown exercise');
+    const routine = entry?.routine ? ` (${escapeHtml(entry.routine)})` : '';
+    const reason = entry?.reason ? ` - ${escapeHtml(entry.reason)}` : '';
+    return `<li>${exercise}${routine}${reason}</li>`;
+}
+
+// Nested lists keep the two reasons as one labelled group each, which stays valid
+// inside the existing <ul> and reads as a grouped list to assistive technology.
+function renderRestoreGroup(label, itemsHtml) {
+    return `<li>${escapeHtml(label)}:<ul>${itemsHtml}</ul></li>`;
 }
 
 function renderLibraryState(iconClass, message) {
@@ -781,14 +829,30 @@ async function handleConfirmAction() {
 
             renderRestoreResult(result);
 
-            const toastLevel = Number(result.restored_count) === 0 ? 'warning' : 'success';
+            const restoredCount = Number(result.restored_count) || 0;
+            const skippedCount = Array.isArray(result.skipped) ? result.skipped.length : 0;
+            const invalidCount = Array.isArray(result.invalid) ? result.invalid.length : 0;
+            const toastLevel = restoredCount === 0 ? 'warning' : 'success';
             let message;
-            if (Number(result.restored_count) === 0) {
-                message = 'Nothing was restored. Every exercise from this backup is missing from the catalog.';
-            } else if (Array.isArray(result.skipped) && result.skipped.length > 0) {
-                message = `Restored ${result.restored_count} exercises from "${result.backup_name}". ${result.skipped.length} exercises were skipped because they no longer exist in the catalog.`;
+            if (invalidCount === 0) {
+                // Catalog-only and clean restores keep their original wording.
+                if (restoredCount === 0) {
+                    message = 'Nothing was restored. Every exercise from this backup is missing from the catalog.';
+                } else if (skippedCount > 0) {
+                    message = `Restored ${restoredCount} exercises from "${result.backup_name}". ${skippedCount} exercises were skipped because they no longer exist in the catalog.`;
+                } else {
+                    message = `Restored ${restoredCount} exercises from "${result.backup_name}".`;
+                }
+            } else if (skippedCount === 0) {
+                if (restoredCount === 0) {
+                    message = 'Nothing was restored. Every exercise from this backup had an invalid value.';
+                } else {
+                    message = `Restored ${restoredCount} ${exerciseNoun(restoredCount)} from "${result.backup_name}". ${invalidCount} ${exerciseNoun(invalidCount)} skipped because of invalid values.`;
+                }
+            } else if (restoredCount === 0) {
+                message = `Nothing was restored. ${skippedCount} skipped as no longer in the catalog, ${invalidCount} for invalid values.`;
             } else {
-                message = `Restored ${result.restored_count} exercises from "${result.backup_name}".`;
+                message = `Restored ${restoredCount} ${exerciseNoun(restoredCount)} from "${result.backup_name}". ${skippedCount} skipped as no longer in the catalog, ${invalidCount} for invalid values.`;
             }
 
             showToast(toastLevel, message);

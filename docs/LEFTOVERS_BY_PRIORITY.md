@@ -658,12 +658,23 @@ surfaces. Reachable without hand-editing the database: a backup taken before
 `validate_workout_bounds` gated that field, or one taken from a `user_selection` row written
 through a route that still does not validate it.
 
+**[UPDATED 2026-08-15] The affected-site count is SIX, not four**, and site 3's symptom was
+described wrongly. Corrected table:
+
 | Site | Location | Symptom |
 |---|---|---|
 | 1 | `utils/weekly_summary.py::_aggregate_weekly_volumes` | `GET /weekly_summary` → **HTTP 500** |
 | 2 | `utils/effective_sets.py::get_rep_range_factor` | **second, independent** 500 — a site-1-only guard does **not** fix it |
-| 3 | `utils/_fatigue/core.py` | degrades **silently** to a "Projected fatigue unavailable" badge, and keeps doing so after 1+2 are fixed |
+| 3 | `utils/_fatigue/core.py:124` | `'abc' > 0` **raises**; the "Projected fatigue unavailable" badge is the *route-level catch-all* at `routes/weekly_summary.py:94-96`, **not** a designed fallback — and it is invisible today because the page 500s at `:50` first |
 | 4 | `utils/session_summary.py` | byte-identical arithmetic off the same `user_selection` join |
+| **5** | **`utils/progression_plan.py:312`** | **`GET /progression` → HTTP 500** when `max_rep_range` is the poisoned column (`target_reps = current_reps + 2`) |
+| **6** | **`utils/export_service.py:490`** | **one bad row blocks the entire plan→log export** with a message naming no exercise |
+
+A seventh, non-raising surface: the SQL twin at `utils/weekly_summary.py:323`
+(`calculate_isolated_muscles_stats`) does **not** raise — SQLite coerces the unparseable text to 0,
+so `('abc' + 8)/2.0` yields **4.0** rather than the intended 7.0. That is a plausible wrong number,
+not a detectable sentinel, and it reaches `/weekly_summary`, `/session_summary` and the Excel
+export at `utils/export_service.py:362`.
 
 **Why it is not fixed yet.** Site 2 is a calculation surface, so a fix is **Large** under
 [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) — Gate 0 + council + `product-risk-reviewer`. It is
@@ -672,11 +683,31 @@ also a *semantic* choice, not a null check: treating a non-numeric rep range as 
 rejecting or repairing at restore. That is the partial-vs-refusing owner decision recorded in
 [`testing_phase3/PLANNING.md`](testing_phase3/PLANNING.md) §3.4.
 
-**Reopen condition / what to do first.** Decide skip-vs-refuse for the restore path, then fix all
-four sites in one packet with migration notes. When the defect is fixed,
-`test_known_defect_weekly_summary_500_after_restoring_non_numeric_rep_range` **reds by design** —
-invert or delete it in that same packet, and rewrite the five parametrized nodes of
-`test_restore_accepts_rows_the_plan_route_rejects` to assert rejection rather than preserving them.
+> **Superseded 2026-08-15 — the owner decided skip, and the restore boundary is fixed.** The
+> paragraph above remains the accurate record of *why* the calculation sites were not touched, and
+> that reasoning still governs: they are still not touched. What changed is the input gate.
+
+**RESOLVED at the boundary 2026-08-15 — the ingress is closed; the six sites are unchanged.**
+The owner selected **skip at restore, per row** (Option B). `restore_backup()` now validates every
+item against the canonical `validate_workout_bounds` contract and skips failures instead of
+inserting them, so no conformant database can present a non-numeric rep range to any calculator.
+**No calculation file, and no `utils/_fatigue/**` file, was modified** — mapping the value onto a
+number stays the rejected option, for exactly the reason recorded above.
+
+Nullability detail: `program_backup_items` declares `weight`, `min_rep_range` and `max_rep_range`
+NOT NULL with only `rir`/`rpe` nullable, while `validate_workout_bounds` has one `allow_null` flag
+for all four fields *and* maps `""` onto null. The restore path therefore never sets that flag; it
+omits `rir` — leaving it UNSET — when and only when it is exactly `None`. A blank is rejected on
+every column, including `rir`.
+
+**Still open, separately scoped: rows already poisoned by a pre-fix restore.** Runtime behavior for
+them is deliberately unchanged — they still reach the six sites and still raise. Repair is possible
+today through the Plan editor, but **only in the order Min Rep → Max Rep**:
+`routes/workout_plan.py:390-401` re-reads the untouched sibling rep column and feeds it to the
+validator, so editing Max Rep first returns a 400 naming *Minimum reps*, a field the user did not
+touch. A user-facing diagnostic naming the routine and exercise instead of a bare 500 is the
+follow-up; it is **not** in the ingress packet because every candidate fix at those sites is a
+calculation-semantics change requiring its own Gate 0.
 
 ## 5a. Evidence added at v23
 

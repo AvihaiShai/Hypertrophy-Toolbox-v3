@@ -228,6 +228,105 @@ test.describe('Backup Center Page', () => {
     await expect(page.locator('#backup-restore-result-list li').nth(1)).toContainText('Missing Exercise B');
   });
 
+  test('restore with invalid rows names the routine, exercise and reason', async ({ page }) => {
+    const backupName = `Invalid Restore E2E ${Date.now()}`;
+
+    await page.locator('#backup-center-name').fill(backupName);
+    await page.locator('#backup-center-save-submit').click();
+    await expectToast(page, backupName);
+
+    await page.locator('#backup-search').fill(backupName);
+    await page.locator('[data-role="backup-record"]').filter({ hasText: backupName }).first().click();
+
+    await page.locator('#backup-detail-restore').click();
+    await page.route('**/api/backups/*/restore', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          status: 'success',
+          data: {
+            backup_id: 1,
+            backup_name: backupName,
+            restored_count: 2,
+            skipped: [],
+            invalid: [
+              {
+                routine: 'GYM - Full Body - Workout A',
+                exercise: 'Incline Press',
+                reason: 'Minimum reps must be a finite number.',
+              },
+            ],
+          },
+        }),
+      });
+    });
+    await page.locator('#backup-action-confirm-btn').click();
+
+    await expect(page.locator('#backup-restore-result')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#backup-restore-result-title')).toContainText('2 exercises restored');
+    await expect(page.locator('#backup-restore-result-title')).toContainText('invalid values');
+    // The catalog wording must not appear when the catalog is not the reason.
+    await expect(page.locator('#backup-restore-result-title')).not.toContainText('catalog');
+
+    const item = page.locator('#backup-restore-result-list li');
+    await expect(item).toHaveCount(1);
+    await expect(item).toContainText('Incline Press');
+    await expect(item).toContainText('GYM - Full Body - Workout A');
+    await expect(item).toContainText('Minimum reps must be a finite number.');
+  });
+
+  test('restore with both skip reasons renders two labelled groups', async ({ page }) => {
+    const backupName = `Mixed Restore E2E ${Date.now()}`;
+
+    await page.locator('#backup-center-name').fill(backupName);
+    await page.locator('#backup-center-save-submit').click();
+    await expectToast(page, backupName);
+
+    await page.locator('#backup-search').fill(backupName);
+    await page.locator('[data-role="backup-record"]').filter({ hasText: backupName }).first().click();
+
+    await page.locator('#backup-detail-restore').click();
+    await page.route('**/api/backups/*/restore', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          status: 'success',
+          data: {
+            backup_id: 1,
+            backup_name: backupName,
+            restored_count: 1,
+            skipped: ['Retired Exercise'],
+            invalid: [
+              {
+                routine: 'GYM - Full Body - Workout A',
+                exercise: 'Incline Press',
+                reason: 'Weight must be between 0 and 1000 kg.',
+              },
+            ],
+          },
+        }),
+      });
+    });
+    await page.locator('#backup-action-confirm-btn').click();
+
+    await expect(page.locator('#backup-restore-result')).toBeVisible({ timeout: 10000 });
+    // Singular: the count is 1, so the noun must agree.
+    await expect(page.locator('#backup-restore-result-title')).toContainText('1 exercise restored');
+    await expect(page.locator('#backup-restore-result-title')).not.toContainText('1 exercises');
+
+    // Two labelled groups, each a nested list under its own <li>.
+    const groups = page.locator('#backup-restore-result-list > li');
+    await expect(groups).toHaveCount(2);
+    await expect(groups.nth(0)).toContainText('Missing from the catalog');
+    await expect(groups.nth(0).locator('ul > li')).toHaveText(['Retired Exercise']);
+    await expect(groups.nth(1)).toContainText('Invalid values');
+    await expect(groups.nth(1).locator('ul > li')).toContainText('Incline Press');
+  });
+
   test('sort by Name A-Z reorders the library', async ({ page }) => {
     const zebra = `Zebra ${Date.now()}`;
     const apple = `Apple ${Date.now()}`;

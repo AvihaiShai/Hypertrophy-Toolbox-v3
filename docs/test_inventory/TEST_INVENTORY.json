@@ -154,7 +154,7 @@
       {
         "in_required_functional_set": false,
         "spec": "program-backup.spec.ts",
-        "tests": 20
+        "tests": 22
       },
       {
         "in_required_functional_set": true,
@@ -238,10 +238,10 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 647
+    "total_tests": 649
   },
   "pytest": {
-    "collected_deterministic": 2648,
+    "collected_deterministic": 2656,
     "deterministic_files": 122,
     "environment_dependent_files": [
       {
@@ -576,7 +576,7 @@
       },
       {
         "file": "tests/test_program_backup_restore_fuzz.py",
-        "tests": 7
+        "tests": 15
       },
       {
         "file": "tests/test_progression_plan_routes.py",

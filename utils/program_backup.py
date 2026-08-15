@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from utils.database import DatabaseHandler
 from utils.logger import get_logger
+from utils.workout_validation import validate_workout_bounds
 
 logger = get_logger()
 
@@ -396,6 +397,28 @@ def get_backup_details(backup_id: int) -> Optional[Dict[str, Any]]:
         return result
 
 
+def _validate_restore_item(item: Dict[str, Any]) -> Optional[str]:
+    """Return a user-facing reason a backup item cannot be restored, or ``None``.
+
+    Applies the canonical ``validate_workout_bounds`` contract to the four bounded
+    columns. ``rir`` is the only nullable one in program_backup_items, so it is
+    omitted -- left UNSET -- when and only when it is exactly ``None``; an empty
+    string stays present and is rejected. ``allow_null`` is deliberately not used:
+    it maps ``""`` onto null, which would let a blank pass the bounds check and
+    then land in a NOT NULL column under SQLite's type affinity.
+    """
+    fields: Dict[str, Any] = {
+        'weight': item.get('weight'),
+        'min_reps': item.get('min_rep_range'),
+        'max_reps': item.get('max_rep_range'),
+    }
+    rir = item.get('rir')
+    if rir is not None:
+        fields['rir'] = rir
+
+    return validate_workout_bounds(**fields, allow_null=False)
+
+
 def restore_backup(backup_id: int) -> Dict[str, Any]:
     """
     Restore a backup to the active program (replace mode).
@@ -457,6 +480,7 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
 
             restored_count = 0
             skipped = []
+            invalid = []
 
             for item in items:
                 exercise_name = item.get('exercise')
@@ -466,6 +490,23 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
                     skipped.append(exercise_name)
                     logger.warning(
                         f"Skipping exercise during restore: '{exercise_name}' not in catalog"
+                    )
+                    continue
+
+                # A backup predating validate_workout_bounds can carry values the plan
+                # routes reject. Skip that row rather than writing it: a non-numeric rep
+                # range reaches six downstream sites, where it can cause failures and
+                # silent miscalculation (FINDING-1).
+                bounds_error = _validate_restore_item(item)
+                if bounds_error:
+                    invalid.append({
+                        'routine': item.get('routine'),
+                        'exercise': exercise_name,
+                        'reason': bounds_error,
+                    })
+                    logger.warning(
+                        "Skipping exercise during restore: invalid bounds",
+                        extra={'exercise': exercise_name, 'reason': bounds_error},
                     )
                     continue
 
@@ -570,15 +611,17 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
                 'backup_id': backup_id,
                 'backup_name': backup_name,
                 'restored_count': restored_count,
-                'skipped_count': len(skipped_unique)
+                'skipped_count': len(skipped_unique),
+                'invalid_count': len(invalid)
             }
         )
-        
+
         return {
             'backup_id': backup_id,
             'backup_name': backup_name,
             'restored_count': restored_count,
-            'skipped': skipped_unique
+            'skipped': skipped_unique,
+            'invalid': invalid
         }
 
 
