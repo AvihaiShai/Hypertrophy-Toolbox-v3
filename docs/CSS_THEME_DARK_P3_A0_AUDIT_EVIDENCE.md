@@ -139,7 +139,7 @@ forward from the audit run, and nothing from the intermediate `67280fb` re-measu
 | **`pyright` net-new (blocking in CI)** | ✔ | **PASS — 0 net-new** (baseline 175, current 175) |
 | Seven-surface Stylelint | anchor only | **2,751 total / `theme-dark.css` 230 — unchanged** §3.3 |
 | Production CSS diff empty | ✔ **asserted** | **empty**, asserted by contract **and** by `git diff origin/main HEAD -- static/css` §2.2 |
-| No snapshot regenerated | ✔ | `git diff origin/main HEAD -- e2e/__screenshots__` empty; the committed digest assertion (`a_baseline_contracts.py:234-255`) passed inside the full run |
+| No snapshot regenerated | ✔ | `git diff origin/main HEAD -- e2e/__screenshots__` empty; the committed digest assertion (`a_baseline_contracts.py::test_snapshot_manifest_makes_an_accidental_rebaseline_a_pytest_red`) passed inside the full run |
 | Required nine Chromium specs | — | **not run** |
 | `visual.spec.ts` 66/platform | — | **not run** |
 | `visual-baseline-thumbnails.spec.ts` 18/platform | — | **not run** |
@@ -465,7 +465,8 @@ Measured by `shared_register_reach()`:
 - `CONTRACT_FILES` covers `tests/test_css_wp4_4_theme_dark_contracts.py`: **no**.
 
 One correction to how the register's coverage claim should be read.
-`tests/test_css_wp4_4_a_baseline_contracts.py:301` asserts `theme-dark.css` is among the
+`tests/test_css_wp4_4_a_baseline_contracts.py::test_contract_anchor_register_covers_every_shared_surface`
+asserts `theme-dark.css` is among the
 register's bound surfaces, and it **is** — but `contract_anchors()` records a surface as
 `touched` when the test's *source text* mentions the filename, and **9** of the anchor entries
 bind `theme-dark.css` only through a `base.index("css/theme-dark.css")` link-order assertion.
@@ -474,8 +475,9 @@ ceiling. `pinned_declarations()` is likewise not surface-resolved: filtered to s
 also occur in `theme-dark.css` it returns `background:` and `border-color:` as noise
 alongside the two real `.frame-header` pins.
 
-**The double lock is confirmed.** `tests/test_css_wp4_4_a_baseline_contracts.py:297-298`
-asserts both registers equal the committed `CSS_PHASE4_WP4_4_A_BASELINE.json` exactly, so
+**The double lock is confirmed.** The same test's two register assertions
+(`anchors == measure.contract_anchors()`, `pins == measure.pinned_declarations()`)
+assert both registers equal the committed `CSS_PHASE4_WP4_4_A_BASELINE.json` exactly, so
 editing `tests/test_css_cascade_contracts.py` **at all** — including to strengthen a pin —
 moves `startLine` / `endLine` / `assertionLines` and reds that contract too.
 
@@ -483,6 +485,20 @@ moves `startLine` / `endLine` / `assertionLines` and reds that contract too.
 
 Content class = constrains the file's bytes. Link class = constrains the `<link>` (R4).
 Headroom = how much may be removed before the assertion reds.
+
+The emitter keys each row `<file>:<line>`. That is a *measurement at the recorded commit*, not
+a citation to follow later — an unrelated edit above an assertion moves it, and row 12's
+number had already drifted from `:128` to `:135` by 2026-08-15. Row 12 is therefore written as
+its owning test, so the one row whose file this document also cites in prose stays durable;
+re-derive the rest by re-running the emitter rather than by trusting the numbers below.
+
+**§5's `Ceiling row set (14) … identical set` verdict is the same arc-base measurement and no
+longer reproduces.** Re-running `plan_discrepancies()` on 2026-08-15 reports `agrees: False`
+for that row: `a_baseline_contracts.py` has moved to `:135`, and
+`tests/test_css_audit_digest_normalization_contracts.py` — created by **LEFTOVERS P2.6**,
+after this packet — is a new working-tree reader the walk now reaches. Neither is a change to
+the ceiling this packet measured; both are ordinary post-a0 drift in a terminated arc's
+snapshot. Read §5 as the comparison a0 ran, not as a live one.
 
 | # | Row | Class | Shape | Current | Bound | Headroom | Ceiling |
 |---|---|---|---|---|---|---|---|
@@ -497,7 +513,7 @@ Headroom = how much may be removed before the assertion reds.
 | 9 | `theme_dark_contracts.py:68` | content | substring-absence | — | — | — | G4 back-door half; satisfied by deletion |
 | 10 | `theme_dark_contracts.py:88` | content | count-ceiling | — | 1 | — | **passes at zero — O14** |
 | 11 | `theme_dark_contracts.py:98` | content | substring-absence | — | — | — | N2 premise; forbids the "make it win" shape |
-| 12 | `a_baseline_contracts.py:128` | content | substring-presence | — | — | — | the literal `Zero !important. */` stays; occurs **once** |
+| 12 | `a_baseline_contracts.py` · `test_important_is_counted_in_reconcilable_units` | content | substring-presence | — | — | — | the literal `Zero !important. */` stays; occurs **once** |
 | 13 | `cascade_contracts.py:1006` | content | substring-presence | — | — | — | the `.frame-header` rule head may not be deleted or reformatted; occurs **once** |
 | 14 | `cascade_contracts.py:1007` | content | substring-presence | — | — | — | **satisfied by 4 lines, not 2 — O14, worse than recorded.** §5.1 |
 
@@ -721,25 +737,49 @@ recovery including the adjacency note, with a red path that strips one `domPath`
 ## 8. N8 denominator — the reconciliation, and it closes exactly
 
 **No deep gate was dispatched.** This is a desk exercise over `.github/workflows/deep-gate.yml`,
-the ledger's `scopeNote` (`:177`) and the 66 + 18 baseline pins at
-`tests/test_css_wp4_4_a_baseline_contracts.py:39-44`.
+the ledger's `scopeNote` (`:177`) and the two spec matrices — 66 + 18 **tests**.
 
 ### 8.1 The gap
 
+The denominator is a *test* count, read off the spec matrices. It is **not** the committed
+baseline count, and the two differ:
+
 | | |
 |---|---|
-| Committed baselines, `visual.spec.ts` | **66** per platform |
-| Committed baselines, `visual-baseline-thumbnails.spec.ts` | **18** per platform |
+| Tests, `visual.spec.ts` | **66** (11 pages × 3 viewports × 2 themes) |
+| Tests, `visual-baseline-thumbnails.spec.ts` | **18** (12 plan + 6 log) |
 | Expected N8 total | **84** |
 | Reported in all three recorded runs | **68** |
 | Unaccounted | **16** |
+
+**The committed corpus is `66 + 15` per platform, not `66 + 18`** — pinned by
+`EXPECTED_SNAPSHOT_COUNTS` in `tests/test_css_wp4_4_a_baseline_contracts.py` and asserted by
+`test_snapshot_manifest_makes_an_accidental_rebaseline_a_pytest_red`. `MASTER_HANDOVER.md`'s
+win32 ledger records the same `66 + 15`.
+
+**Neither column is an identity with its spec's test count**, and the thumbnail side is only
+the visible half. `BYTE_GATE_EXEMPT` in `e2e/visual-helpers.ts` holds **five** names, and all
+five lack a committed PNG on both platforms:
+
+| Spec | Tests | Exempt | Extra files | Baselines |
+|---|---|---|---|---|
+| `visual.spec.ts` | 66 | 2 — `workout-plan-desktop-{light,dark}` | +2, the two `user-profile` mobile tests each write `…-segment-{1,2}.png` | **66** |
+| `visual-baseline-thumbnails.spec.ts` | 18 | 3 — `plan-desktop-{light-advanced,dark-advanced,dark-simple}` | — | **15** |
+
+So `visual.spec.ts`'s `66 = 66` is a **coincidence**, not an identity — reading it as one is
+how a baseline count came to be quoted as a test count in the first place. Exempt captures
+still execute and still count toward the denominator; what they skip is the pixel diff.
+`p3_ceiling.committed_baseline_pins()` now counts these trees rather than transcribing them,
+reports `snapshotRootExists` so an unreadable tree cannot pass as a confident zero, and
+`test_the_emitted_baseline_pins_are_measured_not_transcribed` holds the result to
+`EXPECTED_SNAPSHOT_COUNTS`.
 
 The workflow does run both specs together — confirmed in `deep-gate.yml`, and the
 `scopeNote` says so.
 
 ### 8.2 The 16 are serial-mode collateral, and the arithmetic is exact
 
-`e2e/visual-baseline-thumbnails.spec.ts:45` sets
+`e2e/visual-baseline-thumbnails.spec.ts` sets
 `test.describe.configure({ mode: 'serial' })` **at file scope**. In serial mode the first
 failure stops the remainder of the group from running.
 
@@ -834,10 +874,18 @@ abandoned. It is sized here and NOT implemented.** `measure.py` is untouched;
 
 `measure.verify_blind_spots()` checks one direction only: each register entry's
 `helperEvidence` is still present in `e2e/visual-helpers.ts`. Nothing checks the converse, and
-`tests/test_css_wp4_4_a_baseline_contracts.py:224` then pins
-`len(register) == len(measure.BLIND_SPOT_REGISTER)` against the committed baseline. So a
-neutralizer *added* to the helper is invisible, and adding the missing entries moves that
+`tests/test_css_wp4_4_a_baseline_contracts.py::test_oracle_blind_spot_register_matches_the_live_helper`
+then pins `len(register) == len(measure.BLIND_SPOT_REGISTER)` against the committed baseline.
+So a neutralizer *added* to the helper is invisible, and adding the missing entries moves that
 length.
+
+*Citation note, added 2026-08-15 — a repair to the citation only, not to this section.* That
+test no longer pins a length: the standalone **Q10** packet (#331, `5dd0b22`) replaced the
+comparison with exact equality against the serialized live register and made
+`verify_blind_spots()` bidirectional. The quoted assertion is what a0 measured and is left
+verbatim; **the rest of §9 and its rows in §10 are a0's record and are not amended here.**
+[`CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md`](CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md) is the
+live account of what the repair actually measured.
 
 `blind_spot_repair_sizing()` runs the converse read-only. Every rule block in
 `prepareForScreenshot()`'s injected stylesheet is classified:
@@ -911,7 +959,7 @@ constant. Four top-level keys move:
 The `isFamily` movement is **WP4.4-i's own `:is()` repair**: the committed baseline describes
 the tree at `46e340e`, before i split the family. A regeneration at HEAD therefore **reds**
 `test_is_family_enumeration_is_complete_and_classified`
-(`a_baseline_contracts.py:157-198`), which pins `fourBranchTokens == 13`,
+(in `a_baseline_contracts.py`), which pins `fourBranchTokens == 13`,
 `fourBranchRules == 12`, `threeBranchRules == 1`, `len(leaking) == 14` and the
 `ruleLine == 4433` reduced-motion record. Closing that would require editing
 `a_baseline_contracts.py` — a "run always, edited never" file — which Q10 does not authorize
@@ -922,7 +970,7 @@ and Q1 does not cover.
 | Step | Cost |
 |---|---|
 | 1. Add the missing entries to `measure.BLIND_SPOT_REGISTER` | ~9–10 entries × ~10 lines ≈ **90–110 lines** in `measure.py` |
-| 2. Replace `verify_blind_spots()` with a bidirectional derivation | ~**40–60 lines**; must still return `[]` at the repaired state so `a_baseline_contracts.py:223` stays green. `blind_spot_repair_sizing()` in `p3_ceiling.py` is a working prototype of the converse half |
+| 2. Replace `verify_blind_spots()` with a bidirectional derivation | ~**40–60 lines**; must still return `[]` at the repaired state so `a_baseline_contracts.py`'s `test_oracle_blind_spot_register_matches_the_live_helper` stays green. `blind_spot_repair_sizing()` in `p3_ceiling.py` is a working prototype of the converse half |
 | 3. Fix the substring-shadowed evidence string (§5.3) | ~**1 line** — the backdrop-filter entry's evidence must not be satisfiable by the `-webkit-` line |
 | 4. Patch **only** `oracleBlindSpots` in `docs/CSS_PHASE4_WP4_4_A_BASELINE.json` | array replacement; leaves `sourceCommit` and every other key alone, so `test_wp4_4_baseline_is_pinned_and_matches_its_source_commit` and `test_is_family_enumeration_is_complete_and_classified` both stay green |
 | 5. A red-path test: add a neutralizer to the helper, pytest goes red | ~**30 lines** |
@@ -956,7 +1004,7 @@ that this arc is not authorized to change."*
 | 2 | `measure.BLIND_SPOT_REGISTER`'s backdrop-filter `helperEvidence` is substring-shadowed by the `-webkit-` line | §5.3 | **recorded.** Outside owned paths. Folded into the Q10 sizing as step 3 |
 | 3 | `measure.py:81` still cites `theme-dark.css:595` for the `Zero !important.` comment, which now sits at **`:548`** | `measure.py:81` | **recorded.** The plan already routes this to P3-a1 "only if Q10 is granted; otherwise record it". Recorded. |
 | 4 | `measure.surface_counts()` reports LF-normalized bytes (22,018) for a CRLF file that is 22,592 bytes on disk | §3.1 | **recorded.** Not a defect in `measure.py` — a unit that a1's offset math must not inherit |
-| 5 | `contract_anchors()` binds a surface on a source-text mention, so 9 of its `theme-dark.css` entries are link-order tests | §4.1 | **recorded.** `a_baseline_contracts.py:301` is true and does not mean what a reader may take it to mean |
+| 5 | `contract_anchors()` binds a surface on a source-text mention, so 9 of its `theme-dark.css` entries are link-order tests | §4.1 | **recorded.** `a_baseline_contracts.py`'s `test_contract_anchor_register_covers_every_shared_surface` is true and does not mean what a reader may take it to mean |
 | 6 | `pinned_declarations()` is not surface-resolved; `background:` and `border-color:` appear as noise | §4.1 | **recorded.** O10b's manifest builder must resolve pins to surfaces, not just to literals |
 | 7 | The committed A-baseline cannot be regenerated in place; `isFamily` reds | §9.3 | **recorded.** Constrains Q10's implementation shape |
 | 8 | 16 thumbnail tests have never executed on any recorded N8 run; `totalCount: 11` is a floor | §8.5 | **recorded as a precondition on P3-c**, not on this packet |
@@ -968,8 +1016,14 @@ that this arc is not authorized to change."*
 
 ## 11. Contracts — the O14 / O15 discipline
 
-`tests/test_css_theme_dark_p3_audit_contracts.py`, **37 tests**, all green **on both line-ending
-forms**.
+`tests/test_css_theme_dark_p3_audit_contracts.py`, **37 tests** as this packet shipped it, all
+green **on both line-ending forms**.
+
+> **Amended 2026-08-15.** A later citation-repair packet added **7** contracts to this file —
+> §10a, covering the shape rules described at §4.2 and §8.1 — so its live count is no longer
+> 37. Every "37" in this document, here and at §2.1 / §2.3 / §10 row 9, is a0's own
+> measurement and is left as one. Per `docs/test_inventory/TEST_INVENTORY.md`, the current
+> figure belongs there and not in prose; that artifact was regenerated in the same packet.
 
 ### 11.0 A line-ending defect in this file, found by CI and repaired
 
@@ -1019,7 +1073,7 @@ string constant in the module found only two containing a `CR`, and both are cor
 | Site | Construct | Why it is not the defect |
 |---|---|---|
 | `p3_ceiling.py:299` | `"lineEnding": "CRLF" if "\r\n" in text else "LF"` | A **detector**, not a matcher. It is *supposed* to report whichever form is on disk, and it is the figure §3.1 quotes. |
-| `p3_ceiling.py:1214` | `blanked[selector_start] in " \t\r\n"` | A single-character whitespace-class test. `\r` simply never occurs in LF input; `\n` still matches. |
+| `p3_ceiling.py`, `_helper_style_blocks()` | `blanked[selector_start] in " \t\r\n"` | A single-character whitespace-class test. `\r` simply never occurs in LF input; `\n` still matches. |
 
 The one deliberate non-translating read is `raw_bytes = path.read_bytes()` in
 `measure_theme_dark()` (`:224`), which produces `bytesOnDisk`, `sha256OfBytesOnDisk` and
@@ -1054,6 +1108,10 @@ pass by doing nothing. Nothing is described in markdown and asserted nowhere.
 | no removal oracle | `h_certify.mjs` restored → AB-1's premise fails |
 | C7 recovery | one `domPath` stripped from the ledger |
 | N8 reconciliation | the ledgered red moved to the last test → derivation predicts 73 passed, recorded says 57 |
+| baseline pins are measured (§10a) | a root with no `e2e/__screenshots__` → `snapshotRootExists` false, counts are zeros, the check fails rather than reporting a confident 0 |
+| citation shape, emitted record (§10a) | the anchor-register citation put back in its pre-repair line-number form |
+| citation shape, this document (§10a) | the snapshot-digest citation put back in its pre-repair line-number form |
+| citation shape is not satisfiable by absence (§10a) | a text citing the contract nowhere → fails on the presence half |
 | Q10 sizing partition | a bucket count reduced by one → the partition drops a block |
 | shared registers reach 2 | `CONTRACT_FILES` extended **via `monkeypatch`** → reach exceeds 2 |
 | plan comparison runs | a fully-agreeing row list → "no disagreement at all" fails |
