@@ -241,7 +241,7 @@
     "total_tests": 649
   },
   "pytest": {
-    "collected_deterministic": 2660,
+    "collected_deterministic": 2667,
     "deterministic_files": 122,
     "environment_dependent_files": [
       {
@@ -340,7 +340,7 @@
       },
       {
         "file": "tests/test_css_theme_dark_p3_audit_contracts.py",
-        "tests": 37
+        "tests": 44
       },
       {
         "file": "tests/test_css_wp4_4_a11y_contracts.py",

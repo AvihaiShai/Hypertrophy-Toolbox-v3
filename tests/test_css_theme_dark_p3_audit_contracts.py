@@ -30,15 +30,18 @@ import json
 import re
 import shutil
 import subprocess
+from functools import lru_cache
 from pathlib import Path
 
 import pytest
 
 from scripts.css_audit import measure, p3_ceiling
+from tests.test_css_wp4_4_a_baseline_contracts import EXPECTED_SNAPSHOT_COUNTS
 
 
 ROOT = Path(__file__).resolve().parents[1]
 THEME_DARK = ROOT / "static" / "css" / "theme-dark.css"
+EVIDENCE_RELATIVE = "docs/CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md"
 
 # The reader modules the walk must reach. Named rather than globbed so a module
 # that stops reading the file is a red, not a silently smaller table.
@@ -803,7 +806,7 @@ def _synthetic_root(tmp_path: Path, ledger: dict) -> Path:
     (root / p3_ceiling.LEDGER_RELATIVE).write_text(
         json.dumps(ledger), encoding="utf-8"
     )
-    for name in ("visual.spec.ts", "visual-baseline-thumbnails.spec.ts"):
+    for name in ("visual.spec.ts", "visual-baseline-thumbnails.spec.ts", "visual-helpers.ts"):
         shutil.copy2(ROOT / "e2e" / name, root / "e2e" / name)
     shutil.copy2(
         ROOT / ".github" / "workflows" / "deep-gate.yml",
@@ -856,6 +859,169 @@ def test_the_n8_denominator_reconciles_against_the_recorded_runs_red_path(
     assert record["derivationMatchesEveryRecordedRun"] is False
     with pytest.raises(AssertionError):
         _check_n8(record)
+
+
+# ---------------------------------------------------------------------------
+# 10a. Citation hygiene against the shared WP4.4-a contract
+# ---------------------------------------------------------------------------
+#
+# Added after the arc closed, because the emitter and the evidence document had
+# both drifted: they cited `tests/test_css_wp4_4_a_baseline_contracts.py` by
+# line number in nine places, and one of those citations carried a transcribed
+# `18` where the pin it named reads 15. Nothing could red on either, so both
+# rules below are enforced on *shape* rather than on a number.
+
+WIN32_THUMBNAILS = "win32/visual-baseline-thumbnails.spec.ts-snapshots"
+
+# The alias form, which is what `_row_key()` produces and what the prose uses.
+# Matching only the full path would miss every alias-form citation, and the
+# alias form is the one the module already writes by hand.
+_LINE_CITATION = re.compile(r"a_baseline_contracts\.py:\d+")
+
+# Introduced by the repair, in the emitted record and in the document alike.
+# Its presence is the positive half: a text that cites nothing at all must not
+# satisfy a contract phrased as "no line citations".
+_SYMBOL_CITATION = "test_contract_anchor_register_covers_every_shared_surface"
+
+
+def _check_baseline_pins(pins: dict[str, object], matrices: dict[str, object]) -> None:
+    """The pin agrees with the shared contract, and the shortfall is explained."""
+    assert pins["snapshotRootExists"] is True, (
+        "the snapshot tree is absent, so every count below is a silent zero "
+        "rather than a measurement"
+    )
+    assert pins["counts"] == EXPECTED_SNAPSHOT_COUNTS
+
+    # The thumbnail spec's tests, less its exempt captures, is its baseline
+    # count. Both sides derive from the spec matrix, so neither is a literal.
+    exempt = {name for name in pins["byteGateExempt"] if name.startswith("plan-")}  # type: ignore[union-attr]
+    thumbnails = matrices["visual-baseline-thumbnails.spec.ts"]  # type: ignore[index]
+    assert pins["counts"][WIN32_THUMBNAILS] == thumbnails["tests"] - len(exempt)  # type: ignore[index]
+
+
+def _check_no_line_citation(text: str, allowed: set[str]) -> None:
+    """No hand-written `<file>:<line>` citation, and the symbol form is present."""
+    assert _SYMBOL_CITATION in text, (
+        "the text cites the shared contract nowhere, so 'it carries no line "
+        "citation' is satisfied by absence rather than by repair"
+    )
+    found = set(_LINE_CITATION.findall(text))
+    assert not found - allowed, (
+        f"line citations into the shared WP4.4-a contract: {sorted(found - allowed)}. "
+        "Cite the test, not the line — an unrelated edit above an assertion "
+        "moves the number and nothing reds."
+    )
+
+
+@lru_cache(maxsize=1)
+def _report() -> dict[str, object]:
+    """The whole emitted record, built once for the two shape contracts.
+
+    `report()` walks every module under `tests/` several times, so a per-test
+    call would cost ~3s twice. Neither caller mutates it.
+    """
+    return p3_ceiling.report()
+
+
+def _emitted_allowances(record: dict[str, object]) -> set[str]:
+    """The two `<file>:<line>` forms that legitimately reach the record.
+
+    `_row_key()` ceiling-table keys are measurements at the running commit and
+    are *meant* to move; the `PLAN_CLAIMS` transcription quotes the plan
+    verbatim so `plan_discrepancies()` can report its drift.
+    """
+    allowed = {p3_ceiling._row_key(row) for row in record["ceilingTable"]}  # type: ignore[union-attr]
+    return allowed | set(p3_ceiling.PLAN_CLAIMS["ceilingRows"])  # type: ignore[arg-type]
+
+
+def test_the_emitted_baseline_pins_are_measured_not_transcribed() -> None:
+    """The pin is counted on disk, not transcribed, and must match its source."""
+    _check_baseline_pins(
+        p3_ceiling.committed_baseline_pins(),
+        p3_ceiling.n8_denominator()["specMatrices"],  # type: ignore[arg-type]
+    )
+
+
+def test_the_emitted_baseline_pins_are_measured_not_transcribed_red_path(
+    tmp_path: Path,
+) -> None:
+    """A tree the emitter cannot read must not report a confident zero.
+
+    This is the shape the old transcription hid behind: a static `18` beside a
+    count nothing measured. `glob()` on a missing directory returns no error,
+    so absence has to be reported rather than counted.
+    """
+    (tmp_path / "e2e").mkdir()
+    shutil.copy2(
+        ROOT / "e2e" / "visual-helpers.ts", tmp_path / "e2e" / "visual-helpers.ts"
+    )
+
+    pins = p3_ceiling.committed_baseline_pins(tmp_path)
+
+    assert pins["snapshotRootExists"] is False
+    assert pins["counts"][WIN32_THUMBNAILS] == 0  # type: ignore[index]
+    with pytest.raises(AssertionError):
+        _check_baseline_pins(pins, p3_ceiling.n8_denominator()["specMatrices"])  # type: ignore[arg-type]
+
+
+def test_the_emitted_record_cites_the_shared_contract_by_symbol_not_by_line() -> None:
+    """A line citation into someone else's test file goes stale silently."""
+    record = _report()
+
+    _check_no_line_citation(
+        json.dumps(record, ensure_ascii=False), _emitted_allowances(record)
+    )
+
+
+def test_the_evidence_document_cites_the_shared_contract_by_symbol_not_by_line() -> None:
+    """The same rule on the document half of the same packet."""
+    evidence = (ROOT / EVIDENCE_RELATIVE).read_text(encoding="utf-8")
+
+    _check_no_line_citation(evidence, set(p3_ceiling.PLAN_CLAIMS["ceilingRows"]))  # type: ignore[arg-type]
+
+
+def _regress(text: str, old: str, new: str) -> str:
+    """One citation put back in its stale form, refusing to be a no-op."""
+    regressed = text.replace(old, new, 1)
+    assert regressed != text, f"mutation is a no-op: {old!r} is not in the text"
+    return regressed
+
+
+def test_the_emitted_record_cites_the_shared_contract_by_symbol_not_by_line_red_path() -> None:
+    """Put one emitted citation back in its stale form and the check fails.
+
+    The allowance set is the live one, so the red is attributable to the
+    reintroduced citation and not to the measured row keys the record carries
+    legitimately.
+    """
+    record = _report()
+    regressed = _regress(
+        json.dumps(record, ensure_ascii=False),
+        f"tests/test_css_wp4_4_a_baseline_contracts.py::{_SYMBOL_CITATION}",
+        "tests/test_css_wp4_4_a_baseline_contracts.py:297-298",
+    )
+
+    with pytest.raises(AssertionError, match="297"):
+        _check_no_line_citation(regressed, _emitted_allowances(record))
+
+
+def test_the_evidence_document_cites_the_shared_contract_by_symbol_not_by_line_red_path() -> None:
+    """The same, on the document: restore the pre-repair snapshot-digest citation."""
+    regressed = _regress(
+        (ROOT / EVIDENCE_RELATIVE).read_text(encoding="utf-8"),
+        "`a_baseline_contracts.py::test_snapshot_manifest_makes_an_accidental_"
+        "rebaseline_a_pytest_red`",
+        "`a_baseline_contracts.py:234-255`",
+    )
+
+    with pytest.raises(AssertionError, match="234"):
+        _check_no_line_citation(regressed, set(p3_ceiling.PLAN_CLAIMS["ceilingRows"]))  # type: ignore[arg-type]
+
+
+def test_a_text_that_cites_nothing_does_not_satisfy_the_shape_contract() -> None:
+    """O14 — the ban is satisfiable by deletion unless presence is asserted too."""
+    with pytest.raises(AssertionError, match="satisfied by absence"):
+        _check_no_line_citation("this text mentions no contract at all", set())
 
 
 # ---------------------------------------------------------------------------
