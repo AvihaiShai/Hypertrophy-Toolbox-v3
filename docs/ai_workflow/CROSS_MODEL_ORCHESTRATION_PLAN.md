@@ -27,9 +27,14 @@ quality gates. [`QUALITY_GATE.md`](QUALITY_GATE.md),
 
 > **This plan is closed.** The consult shipped as `9906105` and Gate 2 was ratified
 > post-merge. What remains below the implementation is deferred scope with no
-> authorisation attached — see the
-> [decision packet](#standalone-candidates--decision-packet) for the five loose ends and
-> what each would need before anyone starts it.
+> authorisation attached. The [decision packet](#standalone-candidates--decision-packet)'s
+> five loose ends have since been resolved — packets **A, B and C shipped** and **D was
+> declined** — so the scope still deferred is the `$orchestrate` mechanism, the PR-bus
+> loop, and the MCP transport a heavier tier would use. A read-only re-probe on
+> **2026-08-14** found the preconditions behind the three host blockers that defer
+> `$orchestrate` unchanged, so all three are **inferred to still hold — from unchanged
+> preconditions, not re-measured**; see
+> [Host-readiness re-probe — 2026-08-14](#host-readiness-re-probe--2026-08-14-read-only).
 
 > **Reading order.** Section 0 below is the **v2 requirements brief**, redrafted
 > 2026-08-13 around the owner's G1–G3 goal clarification. The original 2026-08-01 brief
@@ -301,7 +306,11 @@ answer before implementation:
   (HR-12). This is recorded in the containment note rather than described as partial
   containment.
 - Upgrading codex-cli from 0.135.0 to 0.146.0 would very likely change HR-2, HR-3 and
-  HR-7. Tier 1 does not depend on the upgrade; Tier 3 does.
+  HR-7. Tier 1 does not depend on the upgrade; Tier 3 does. **Re-probed read-only
+  2026-08-14: no upgrade has happened, so all three are inferred to still hold — from
+  unchanged preconditions, not re-measured.** The upgrade is now
+  recorded as the explicit *trigger* for revisiting Tier 3, not merely as a likely fix —
+  see [Host-readiness re-probe — 2026-08-14](#host-readiness-re-probe--2026-08-14-read-only).
 
 ### Section 0 sign-off — GATE 0
 
@@ -374,6 +383,158 @@ they **changed the design**. Raw transcripts are under the gitignored
    full containment or `--dangerously-bypass-approvals-and-sandbox`. There are three
    modes with three different behaviours (HR-3, HR-4, HR-12), and the middle one —
    `read-only` — is exactly what a consult callee needs.
+
+---
+
+## Host-readiness re-probe — 2026-08-14 (read-only)
+
+C-4 said every host finding here has a short shelf life, so the three blockers that defer
+`$orchestrate` — **HR-2, HR-3 and HR-7** — were re-checked one day after the table above.
+This pass was deliberately bounded to **free, local, non-destructive** probes: no upgrade,
+no live or model-billed call, no MCP server, no adapter change, no worktree. The
+2026-08-13 table is left exactly as it was; this section records what a later, cheaper
+pass could and could not establish.
+
+**Version and configuration stamp — nothing moved.**
+
+| Fact | Observed 2026-08-14 |
+|---|---|
+| `codex --version` | `codex-cli 0.135.0`; `codex.exe` mtime **2026-05-28**, so the binary was never replaced |
+| `claude --version` | `2.1.220 (Claude Code)` |
+| `~/.codex/config.toml` | mtime **2026-08-12 15:42** — *older than the 2026-08-13 probe pass*, so no setting changed after it was measured |
+| `model` / `sandbox_mode` / `approval_policy` | `gpt-5.6-sol` / `workspace-write` / `on-request`, plus `[windows] sandbox = "elevated"`. `AGENTS.md` records the same `approval_policy` and `[windows]` block as *measured* values and the same `sandbox_mode` as an *intended* setting; **it records no model at all**, so this row's cross-check covers only those three. `CONSULT_PROTOCOL.md` does name `gpt-5.6-sol`, but from the same 2026-08-13 pass — it corroborates the transcription, not the value |
+| `codex mcp list` | `No MCP servers configured yet` — HR-6/HR-7's server was ad-hoc via `-c mcp_servers.…` and was never persisted |
+| `~/.codex/rules/default.rules` | exactly two allows: `["git","status"]` and `["Get-Content"]` |
+| Adapter surface | `scripts/consult/consult.py`, `request.schema.json`, `result.schema.json` all present and unmodified |
+| CLI flags the adapter depends on | all still present — `--output-schema`, `-o`, `-s {read-only,workspace-write,danger-full-access}` on Codex; `--json-schema`, `--output-format`, `--permission-mode`, `--disallowedTools`, `--setting-sources`, `--strict-mcp-config` on Claude |
+| `pytest tests/test_consult_adapter.py` | **59 passed in 6.97 s**, fixture CLIs only, no live call |
+
+### HR-2's mechanism, established locally for the first time
+
+The 2026-08-13 pass recorded HR-2 as an *observed* HTTP 400 — `"The 'gpt-5.6-sol' model
+requires a newer version of Codex."` — without a local explanation. `~/.codex/models_cache.json`
+supplies a candidate one, and since Codex rewrote that cache the same day it is not a stale
+snapshot from the era of the original 400:
+
+| Cached model | `tool_mode` | `multi_agent_version` |
+|---|---|---|
+| `gpt-5.6-sol` *(the configured model)* | `code_mode_only` | `v2` |
+| `gpt-5.6-sol-wm`, `gpt-5.6-terra` | `code_mode_only` | `v2` |
+| `gpt-5.6-luna`, `codex-auto-review` | `code_mode_only` | `v1` |
+| **`gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`** | **absent** | **absent** |
+
+`codex features list` on 0.135.0 reports `code_mode` and `code_mode_only` as
+**`under development`, `false`**, and `multi_agent_v2` likewise. The entire `gpt-5.6`
+family requires a tool mode this build does not implement; the three older models require
+neither.
+
+**How much this proves.** It is a specific, checkable requirement gap whose wording matches
+the 400's, which is considerably better than the bare symptom recorded on 2026-08-13 — but
+it is strong circumstantial evidence, not a server-confirmed cause. The server was never
+asked. Its practical value is that it gives **P1** something free to falsify: if a later
+build reports `code_mode_only` as supported and the 400 still happens, this explanation is
+wrong and HR-2 needs a different one.
+
+It also confirms that the adapter's existing `-m gpt-5.5` pin selects **one of the cached
+models this build satisfies**, rather than being an arbitrary workaround. It is not the
+only such model — `gpt-5.4` and `gpt-5.4-mini` carry neither requirement either, so if
+`gpt-5.5` ever became unavailable the pin has somewhere to fall back to without waiting on
+an upgrade.
+
+### Status of the three blockers
+
+| Blocker | Status 2026-08-14 — **inferred, not re-measured** | Basis |
+|---|---|---|
+| **HR-2** — configured model 400s non-interactively | **Inferred to hold** | Both inputs unchanged (0.135.0, `model = "gpt-5.6-sol"`), *and* the candidate mechanism above supplies a requirement gap matching the 400's wording — circumstantial, not server-confirmed |
+| **HR-3** — `workspace-write` cannot spawn any process | **Inferred to hold** | Same binary, same config, config file older than the measurement. The recorded correlate is also intact: config requests `[windows] sandbox = "elevated"` while the build reports `elevated_windows_sandbox` **and** `experimental_windows_sandbox` as `removed`, and HR-3's error names the `windows sandbox` subsystem. That match is suggestive, not proof — `AGENTS.md` records the same mismatch "as observed, not endorsed" |
+| **HR-7** — MCP `tools/call` auto-declines unattended | **Inferred to hold** | No approver mechanism has appeared: `guardian_approval` still `stable` (and HR-7 already showed `--disable guardian_approval` does not change the outcome), `exec_permission_approvals` still `under development`/`false`. `tool_call_mcp_elicitation` is `stable`/`true`, but elicitation *requests* a human rather than substituting for one, so it cannot close HR-7 inside `codex exec` |
+
+On unchanged inputs none is obsolete, and none is "likely changed but needs a live probe".
+
+> **Evidence caveat, stated because it changes how much weight these rows carry.** All
+> three were sustained through **unchanged preconditions, not re-execution.** No
+> `codex exec` ran in this pass, so none of the three was re-measured. They are also not
+> equally well supported, and collapsing them into one confidence level would be the
+> mistake this note exists to prevent:
+>
+> - **HR-2** is the strongest — preconditions unchanged *and* a specific requirement gap
+>   whose wording matches the 400, though the server was never asked to confirm it.
+> - **HR-3** rests on unchanged preconditions plus a suggestive subsystem-name match. The
+>   mechanism is plausible and undisturbed, but it was inferred here, not demonstrated.
+> - **HR-7** is the weakest — the argument is only that the same build cannot have a
+>   different code path. That is sound reasoning, but it is not evidence about behaviour.
+>
+> Anyone who needs a *measured* HR-7 must run P5 below and pay for it; a measured HR-3
+> needs P3. Neither is worth doing before the upgrade that would change the answer.
+
+### Post-upgrade probe matrix — P1 to P5
+
+These are the **exact minimal** probes that would re-decide the three blockers. They are
+worth running **only after** an owner-approved codex-cli upgrade; on 0.135.0 they spend
+money to re-confirm what the evidence above already establishes.
+
+| # | Probe | Cost | Authority required |
+|---|---|---|---|
+| **P1** | `codex --version`, then re-dump the `tool_mode` column of `models_cache.json` | **$0** | none |
+| **P2** | `codex exec -m gpt-5.6-sol -s read-only "reply ok"` — has HR-2's 400 cleared? | ~$0 (a 400 bills no tokens) | none |
+| **P3** | `codex exec -m <working model> -s workspace-write` running **`git status`** — HR-3 | ~$0.01–0.05 | none; layer 2 intact |
+| **P4** | The same as P3 but running `git rev-parse` | ~$0.01–0.05 | none; layer 2 intact |
+| **P5** | Register an ad-hoc stdio server via `-c mcp_servers.…` and issue one `tools/call` under `codex exec` — HR-7 | ~$0.01–0.05 | **owner** — starts a new local server process, which Tier 1 lists as a non-goal |
+
+**Ordering is load-bearing, and P3 must not reuse HR-3's original command.** What isolates
+the **sandbox spawn layer** from the **execpolicy layer** is using a command execpolicy
+already allows, and `~/.codex/rules/default.rules` allows exactly two: `git status` and
+`Get-Content`. Either would serve; `git status` is the one specified here because it keeps
+HR-3's original `git` command shape and changes only the subcommand. HR-3's own
+`git rev-parse` is **not** among those two allows, so a post-upgrade run of it could not be
+attributed to the sandbox layer with confidence. Whether execpolicy refuses `git rev-parse`
+under `workspace-write` was never measured: HR-3's recorded failure is a *sandbox* error,
+and the only measured execpolicy refusal — HR-5 — used a different command under
+`read-only`. That is an inference from the allow-list, not an observation, and it is why
+reusing HR-3's command could not distinguish "HR-3 still broken" from "HR-3 fixed, the
+execpolicy layer still applies".
+
+Run **P1 → P2 → P3 → P4 → P5** in order: P1 is free and may end the exercise on its own,
+and P3 passing while P4 fails means HR-3 cleared and the execpolicy layer still blocking
+non-allowlisted commands — which would be that layer's first measurement under
+`workspace-write`, since HR-5 measured it only under `read-only`.
+
+Total cost to re-decide all three is **well under $0.25**. Cost is not the constraint here;
+authority is. P1–P4 need no new authority because `read-only` and `workspace-write` are the
+containment [AUTONOMY.md](AUTONOMY.md) layer 2 already documents. P5 does. And any
+**Codex→Claude live transport** probe still requires `-s danger-full-access`, which removes
+layer 2 for that invocation — the genuine authority gate, and the reason
+[CONSULT_PROTOCOL.md](CONSULT_PROTOCOL.md) says it should be chosen deliberately or not
+at all.
+
+### The trigger for revisiting
+
+**Revisit only after an owner-approved Codex CLI upgrade.** Elapsed time is not a trigger,
+and neither is a re-probe: the first step of any reopening is the upgrade itself, which is
+an owner decision because it changes the host software and the sandbox and model surface
+all three blockers sit on. Until it lands, a probe pass can only reconfirm the current
+answer. When it does land, run P1 first — if the `tool_mode` gap closes, P2–P4 become
+worth their few cents, and *only then* is there a Gate 0 conversation about `$orchestrate`.
+
+### Gate routing for a future adapter change
+
+This is a consequence of packet A shipping, and it is recorded here because it did not
+hold when Plan v2 was written. [`QUALITY_GATE.md`](QUALITY_GATE.md) now carries a
+`Tooling / scripts` row. `scripts/consult/consult.py` is **not** in that row's always-run
+carve-out, and the stem plus directory-token derivation on `consult` returns a non-empty
+union, so the `/verify-suite` fallback will **not** fire. Derived 2026-08-14, that search
+names two files — `tests/test_consult_adapter.py` and `tests/fixtures/consult/fake_cli.py`
+— of which only the first is a test module; the second is the fixture CLI those tests
+drive. A future packet touching the adapter therefore routes to
+**`tests/test_consult_adapter.py` plus `code-reviewer`**, and also to the two blocking CI
+gates the same packet documented — which fire on *different* triggers.
+`scripts/pyright_baseline_diff.py`'s net-new diagnostic check, reported under the required
+context `Type Check (tsc blocking + pyright measure-only)`, fires because `consult.py` is a
+`.py` and that check is repo-wide. `Test Inventory Drift` fires on a test-node change only,
+so a `scripts/` edit does not trip it on its own. The same change would have pulled the
+full suite before `5177176`. Re-derive the union rather than copying this
+result; a non-empty union suppressing the fallback is exactly the shallow-coverage hazard
+that packet A's own carve-out exists to bound.
 
 ---
 
@@ -2049,6 +2210,17 @@ process (HR-3), the configured model cannot run non-interactively (HR-2), and an
 call cannot complete unattended (HR-7). Upgrading codex-cli 0.135.0 → 0.146.0 would very
 likely move all three and is the first step of any future attempt.
 
+**Re-checked 2026-08-14 by a read-only probe pass: no upgrade has happened, and all three
+are inferred to still hold — from unchanged preconditions, not re-measured.**
+HR-2 now has a candidate local explanation — the whole `gpt-5.6` family
+requires a `code_mode_only` tool mode that 0.135.0 does not implement. Reopening this
+mechanism is **not** currently justified, and the trigger is the owner-approved CLI
+upgrade rather than elapsed time or another probe. The exact minimal probe matrix that
+would re-decide it, with its ordering and authority constraints, is
+[P1–P5](#post-upgrade-probe-matrix--p1-to-p5). See
+[Host-readiness re-probe — 2026-08-14](#host-readiness-re-probe--2026-08-14-read-only)
+for the evidence and its stated caveat.
+
 **Obligations it inherits, each from a finding dispositioned `defer` above:**
 
 | From | Obligation |
@@ -2074,18 +2246,38 @@ requires an approver and auto-declines in `codex exec`.
 For a heavier tier this is the right transport, and it also fixes the reviewability
 problem in one direction, since a Claude-side `.mcp.json` is a tracked, PR-reviewable file.
 
+**HR-7 inferred to still hold 2026-08-14** — from unchanged preconditions, not
+re-measured: no approver mechanism has appeared on this build, and `codex mcp list`
+reports no persisted server, so HR-6/HR-7's server remains an ad-hoc `-c mcp_servers.…`
+registration that exists only inside a probe. A *measured* HR-7 needs probe
+[P5](#post-upgrade-probe-matrix--p1-to-p5), which starts a local server process and
+therefore needs owner authorisation.
+
 ### Standalone candidates — decision packet
 
 Five loose ends were surfaced by this packet and deliberately not fixed inside it. Prepared
-for the owner 2026-08-13 at their request. **None of these is started.** The recommendation
-is that the five become **three packets plus one decline**, because two pairs of them share
-a file and a failure class, and splitting a shared file across two PRs buys a conflict.
+for the owner 2026-08-13 at their request. The recommendation was that the five become
+**three packets plus one decline**, because two pairs of them share a file and a failure
+class, and splitting a shared file across two PRs buys a conflict.
+
+> **Outcome — this decision packet is CLOSED, verified 2026-08-14.** The owner took the
+> recommendation and all four dispositions are discharged: **A** merged as `5177176`
+> (PR #356), **B** as `a83a452` (PR #358), **C** as `a224b39` (PR #361), and **D** stands
+> **declined**. Each packet's own entry below records its status. The text of each entry
+> is otherwise preserved as written on 2026-08-13, because the reasoning is what makes the
+> dispositions auditable. Nothing in this section is open work.
 
 ---
 
 **Packet A — `QUALITY_GATE.md` under-describes what actually blocks a PR.** *(C-8 + CR-25,
-combined.)*
+combined.)* — **SHIPPED, merged as `5177176` (PR #356).**
 
+- **Outcome:** done as one packet, as recommended. `QUALITY_GATE.md` now carries the
+  `Tooling / scripts` row with an always-run carve-out for catalog writers, baseline
+  writers, the packaged-artifact path, and the two scripts implementing the gates being
+  documented. One consequence lands on this document's own subject matter and is recorded
+  under [Gate routing for a future adapter
+  change](#gate-routing-for-a-future-adapter-change).
 - **Recommended:** do it, as **one** packet. These are the same defect — the canonical
   change-type table omits gates that really block — and both edits land in the same table,
   so two PRs would conflict for no benefit.
@@ -2104,8 +2296,13 @@ combined.)*
 
 ---
 
-**Packet B — `council-plan.md` ⇄ `guard-planning-write.ps1` contradict each other.**
+**Packet B — `council-plan.md` ⇄ `guard-planning-write.ps1` contradict each other.** —
+**SHIPPED, merged as `a83a452` (PR #358).**
 
+- **Outcome:** done in the recommended direction — the prose in `council-plan.md` was
+  narrowed to the guard rather than the guard being widened, so
+  `docs/<feature>/PLANNING.md` is the canonical writable council artifact and existing
+  artifacts outside it are legacy.
 - **Recommended:** do it, small — but the owner picks the direction first.
 - **Rationale:** [`council-plan.md`](../../.claude/commands/council-plan.md) step 1 says the
   planning doc may live "or wherever the workstream's planning doc lives";
@@ -2123,8 +2320,13 @@ combined.)*
 
 ---
 
-**Packet C — charter and contract hygiene.** *(CR-27 + CR-30, combined.)*
+**Packet C — charter and contract hygiene.** *(CR-27 + CR-30, combined.)* — **SHIPPED,
+merged as `a224b39` (PR #361).**
 
+- **Outcome:** done as one packet. `AGENTS.md` is now in `SURFACE`
+  (`tests/test_agent_workflow_contracts.py:86`), so the Codex entry point is contract-
+  covered, and the stale `nav-dropdown.spec.ts:117` line is gone from
+  `.claude/agents/test-strategist.md`.
 - **Recommended:** do it, low priority, as one small packet.
 - **Rationale:** two unrelated-looking items that touch the same surface and are both
   actively misleading a live agent. `AGENTS.md` is the Codex entry point and now carries
@@ -2141,8 +2343,12 @@ combined.)*
 
 ---
 
-**Packet D — narrowing `.claude/settings.json` so the adapter prompts.** *(CR-18.)*
+**Packet D — narrowing `.claude/settings.json` so the adapter prompts.** *(CR-18.)* —
+**DECLINED, and the decline stands as of 2026-08-14.**
 
+- **Outcome:** the owner did not overrule the recommendation. `.claude/settings.json` was
+  not narrowed and no work was started. Do not propose this again without a new owner
+  decision; the decline is the disposition, not a deferral.
 - **Recommended: decline, and record the decline.** Do not build this unless the owner
   overrules.
 - **Rationale:** the existing `Bash(.venv/Scripts/python.exe:*)` allowance makes the adapter
@@ -2169,6 +2375,13 @@ combined.)*
       [Host-readiness re-probe](#host-readiness-re-probe--2026-08-13). "Passed" here means
       *executed and recorded*, and two of its three original pass conditions still **fail**
       (HR-2, HR-3). That is why the heavy mechanism is deferred and the consult is not.
+- [x] **Host-readiness re-probed 2026-08-14, read-only** — HR-2, HR-3 and HR-7 are all
+      **inferred to still hold** and the deferral of `$orchestrate` is unchanged, with a
+      candidate local explanation now recorded for HR-2. Sustained through unchanged
+      preconditions, **not** re-measurement, and the three are **not** equally well
+      supported; see
+      [Host-readiness re-probe — 2026-08-14](#host-readiness-re-probe--2026-08-14-read-only)
+      and its [P1–P5 matrix](#post-upgrade-probe-matrix--p1-to-p5).
 - [x] **Gate 0 complete** — signed by the owner in the Session 8 prompt, with one box
       deliberately left unchecked and its reason stated in the
       [Section 0 sign-off](#section-0-sign-off--gate-0).
@@ -2191,4 +2404,8 @@ combined.)*
       diff before it merged.
 
 **Nothing in this plan is open.** The deferred mechanisms below are not open work items on
-this packet; each needs its own authorisation before anyone starts it.
+this packet; each needs its own authorisation before anyone starts it. The decision
+packet's five loose ends are likewise discharged — A, B and C shipped, D declined — so what
+remains deferred is `$orchestrate`, the PR-bus loop, and the MCP transport a heavier tier
+would use. Reopening `$orchestrate` is **not** justified on the 2026-08-14 evidence; its
+trigger is an owner-approved Codex CLI upgrade.
