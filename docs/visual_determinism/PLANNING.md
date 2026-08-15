@@ -569,9 +569,12 @@ at the pinned Playwright 1.61, a full local `win32` compare reds broadly, and
 >
 > **The premise of this section's first sentence is also disproven.** It reasoned that a
 > local corpus could not be compared on a runner. Measured on 2026-08-10 (deep-gate run
-> 31437353755, `windows-2022`): **84 passed**, a full byte comparison of all 66 + 18
-> captures, zero failures. The 66 primary tests then passed on both #322 CI attempts, so
-> that corpus is runner-portable.
+> 31437353755, `windows-2022`): **84 passed**. Five of those tests are byte-gate-exempt
+> (§8.10) and capture nothing, so the run wrote **81** captures — 66 of them from
+> `visual.spec.ts`, 15 from the thumbnails spec — and all 81 matched byte for byte, zero
+> failures. §3.4's **86** is the pre-exemption inventory measured on 2026-08-03, before
+> §8.4; it is not what this run wrote. The 66 primary tests then passed on both #322 CI
+> attempts, so that corpus is runner-portable.
 >
 > **The 18-test thumbnail suite is deliberately excluded from the per-PR job.** On both
 > #322 attempts, `plan-desktop-light-simple` failed and its pixel difference varied within

@@ -893,9 +893,10 @@
 > **Neither win32 suite runs in required CI.** The non-required `visual-windows` job now
 > runs `visual.spec.ts` on every PR and push to `main`, so its 66 tests can red on drift.
 > `visual-baseline-thumbnails.spec.ts` remains outside CI because #322 proved one of its
-> captures is nondeterministic on `windows-2022`; those 18 baselines can still stale
-> silently. That is precisely how the broader condition #304 documented arose. Treat the
-> thumbnail corpus after the pin as unmeasured until it is re-run locally.
+> captures is nondeterministic on `windows-2022`; its 15 baselines can still stale silently.
+> The other three of its 18 captures are `BYTE_GATE_EXEMPT` and have no PNG. That is
+> precisely how the broader condition #304 documented arose. Treat the thumbnail corpus
+> after the pin as unmeasured until it is re-run locally.
 >
 > **Equally, do not assume the reverse.** "A CSS/template change landed, therefore the
 > corpus is stale" is a hypothesis, not a finding, and it has already been wrong once:
@@ -931,8 +932,12 @@
 > differ — different Chromium build, font set, DirectWrite. **That was never measured.** It
 > was measured on 2026-08-10, deep-gate run
 > [31437353755](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31437353755)
-> on `windows-2022`: `Running 84 tests using 1 worker` → **`84 passed (2.8m)`**, a full byte
-> comparison of all 66 + 18 captures against the local corpus, zero failures. The 66
+> on `windows-2022`: `Running 84 tests using 1 worker` → **`84 passed (2.8m)`**. Five of
+> those tests are `BYTE_GATE_EXEMPT` and capture nothing, so the run wrote **81** captures —
+> 66 from `visual.spec.ts`, 15 from `visual-baseline-thumbnails.spec.ts` — and every one
+> matched the local corpus byte for byte, zero failures. (`visual.spec.ts` has 66 tests
+> *and* 66 captures: its two segmented `user-profile-mobile` tests add two files and its two
+> exemptions remove two. The counts coincide; they are not the same quantity.) The 66
 > primary tests then passed on both #322 attempts. **The renderers agree for that primary
 > corpus, so it is portable between them.**
 >
@@ -941,8 +946,8 @@
 > (including 40,504 → 13,067 → 27,688 pixels), which proves a rendering race rather than
 > a stale baseline. The other 17 tests did not run because the describe is serial. No
 > tolerance, retry, exemption or PNG was changed. Fix the race before widening the job to
-> `visual-baseline-thumbnails.spec.ts`; until then its 18 captures retain the silent-stale
-> window.
+> `visual-baseline-thumbnails.spec.ts`; until then its **15** baseline-backed captures
+> retain the silent-stale window.
 >
 > **CI still cannot produce a baseline.** The job is compare-only — no generate mode,
 > `--update-snapshots` never passed, and a final step fails it if anything under
