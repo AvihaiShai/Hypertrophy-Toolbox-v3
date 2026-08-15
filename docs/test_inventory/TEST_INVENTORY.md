@@ -15,7 +15,7 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **649** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **514** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2656** across 122 files |
+| pytest collected nodes (deterministic subset) | **2663** across 122 files |
 | pytest test files (all) | **123** |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
@@ -89,7 +89,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_css_display_utilities_contracts.py` | 7 |
 | `tests/test_css_field_separator_contracts.py` | 10 |
 | `tests/test_css_theme_animating_contracts.py` | 4 |
-| `tests/test_css_theme_dark_p3_audit_contracts.py` | 37 |
+| `tests/test_css_theme_dark_p3_audit_contracts.py` | 44 |
 | `tests/test_css_wp4_4_a11y_contracts.py` | 36 |
 | `tests/test_css_wp4_4_a_baseline_contracts.py` | 33 |
 | `tests/test_css_wp4_4_base_contracts.py` | 8 |

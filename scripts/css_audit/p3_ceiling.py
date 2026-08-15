@@ -827,7 +827,8 @@ def shared_register_reach(root: Path = ROOT) -> dict[str, object]:
     registers ``measure.contract_anchors()`` / ``measure.pinned_declarations()``
     iterate ``measure.CONTRACT_FILES``, and this reports exactly which
     theme-dark rows that reaches.  It also records the double lock —
-    ``tests/test_css_wp4_4_a_baseline_contracts.py:297-298`` asserts both
+    ``tests/test_css_wp4_4_a_baseline_contracts.py``'s
+    ``test_contract_anchor_register_covers_every_shared_surface`` asserts both
     registers equal the committed baseline byte-for-byte, so extending
     ``CONTRACT_FILES`` reds a contract the arc may not edit.
     """
@@ -877,9 +878,11 @@ def shared_register_reach(root: Path = ROOT) -> dict[str, object]:
             "SOURCE TEXT mentions the filename, so most of these bind "
             "theme-dark.css only through a `base.index(\"css/theme-dark.css\")` "
             "link-order assertion. "
-            "tests/test_css_wp4_4_a_baseline_contracts.py:301 asserting "
-            "theme-dark.css is among the bound surfaces is therefore true and "
-            "does NOT mean the register enumerates this file's content ceiling."
+            "tests/test_css_wp4_4_a_baseline_contracts.py::"
+            "test_contract_anchor_register_covers_every_shared_surface "
+            "asserting theme-dark.css is among the bound surfaces is therefore "
+            "true and does NOT mean the register enumerates this file's "
+            "content ceiling."
         ),
         "pinnedDeclarationsNote": (
             "pinned_declarations() is not surface-resolved: a pin recorded for "
@@ -888,7 +891,8 @@ def shared_register_reach(root: Path = ROOT) -> dict[str, object]:
             "only the two `.frame-header` pins are real ceilings."
         ),
         "doubleLock": (
-            "tests/test_css_wp4_4_a_baseline_contracts.py:297-298 asserts "
+            "tests/test_css_wp4_4_a_baseline_contracts.py::"
+            "test_contract_anchor_register_covers_every_shared_surface asserts "
             "contract_anchors() and pinned_declarations() equal the committed "
             "CSS_PHASE4_WP4_4_A_BASELINE.json exactly, so editing "
             "tests/test_css_cascade_contracts.py at all — even to strengthen a "
@@ -1035,8 +1039,70 @@ def _count_playwright_tests(spec: Path) -> dict[str, object]:
     }
 
 
+BYTE_GATE_EXEMPT_ANCHOR = "BYTE_GATE_EXEMPT = new Set(["
+
+
+def _byte_gate_exempt_block(root: Path) -> str:
+    """The literal body of ``BYTE_GATE_EXEMPT`` in ``e2e/visual-helpers.ts``.
+
+    Anchored on the declaration rather than on the bare name, so a later
+    mention of the symbol in a comment cannot silently shorten the list.
+    """
+    helper = (root / VISUAL_HELPERS_RELATIVE).read_text(encoding="utf-8")
+    start = helper.index(BYTE_GATE_EXEMPT_ANCHOR) + len(BYTE_GATE_EXEMPT_ANCHOR)
+    return helper[start : helper.index("]", start)]
+
+
+def committed_baseline_pins(root: Path = ROOT) -> dict[str, object]:
+    """The committed PNG corpus, counted on disk rather than transcribed.
+
+    These are baseline *files*, not tests — the distinction the stale
+    ``66 + 18`` transcription this replaces had collapsed.
+    """
+    snapshots = root / "e2e" / "__screenshots__"
+    counts = {
+        f"{platform}/{spec}-snapshots": len(
+            list((snapshots / platform / f"{spec}-snapshots").glob("*.png"))
+        )
+        for platform in ("win32", "linux")
+        for spec in ("visual.spec.ts", "visual-baseline-thumbnails.spec.ts")
+    }
+    exempt = sorted(re.findall(r"""['"]([^'"]+)['"]""", _byte_gate_exempt_block(root)))
+    return {
+        # `glob()` reports no error for a directory that is not there, so a
+        # count of zero is ambiguous between "empty" and "unreadable" unless
+        # the tree is reported separately. A confident zero beside a
+        # transcribed claim is the exact shape this record was repaired to lose.
+        "snapshotRootExists": snapshots.is_dir(),
+        "counts": counts,
+        "pinnedAt": (
+            "tests/test_css_wp4_4_a_baseline_contracts.py::"
+            "EXPECTED_SNAPSHOT_COUNTS, asserted by "
+            "test_snapshot_manifest_makes_an_accidental_rebaseline_a_pytest_red"
+        ),
+        "byteGateExempt": exempt,
+        "note": (
+            "Baseline FILES per platform, not tests, and neither column is an "
+            "identity with its spec's test count. Three exempt captures leave "
+            "the thumbnail spec fewer baselines than tests; on visual.spec.ts "
+            "two further exemptions are offset by the two user-profile mobile "
+            "tests, which each write two segment files, so its two numbers "
+            "coincide by accident. The N8 denominator is the TEST count from "
+            "the spec matrices and is never derived from this pin."
+        ),
+    }
+
+
 def n8_denominator(root: Path = ROOT) -> dict[str, object]:
-    """Reconcile 66 + 18 = 84 expected against the 68 reported in every run.
+    """Reconcile 66 + 18 = 84 expected **tests** against the 68 reported.
+
+    The denominator is a *test* count, read off the two spec matrices — not a
+    baseline-file count.  The two are not the same number and conflating them
+    is the defect this reconciliation was once written on top of: the committed
+    corpus is ``66 + 15`` because three thumbnail captures are
+    ``BYTE_GATE_EXEMPT`` and have no PNG at all, so the thumbnail spec runs 18
+    tests against 15 baselines.  ``committedBaselinePins`` below is measured
+    from the committed trees rather than transcribed, so it cannot drift again.
 
     The gap is **serial-mode collateral**, and it closes exactly.
     ``e2e/visual-baseline-thumbnails.spec.ts`` sets
@@ -1118,17 +1184,14 @@ def n8_denominator(root: Path = ROOT) -> dict[str, object]:
         and all(bool(run["derivationMatches"]) for run in recorded),
         "dispatched": False,
         "method": "documentary — deep-gate.yml, the ledger scopeNote, and the "
-        "66 + 18 baseline pins; no CI dispatch is authorized at P3-a0",
+        "two spec matrices (66 + 18 tests); no CI dispatch is authorized at "
+        "P3-a0",
         "workflow": ".github/workflows/deep-gate.yml",
         "workflowRunsBothSpecsTogether": "e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts"
         in (root / ".github" / "workflows" / "deep-gate.yml").read_text(
             encoding="utf-8"
         ),
-        "committedBaselinePins": {
-            "visual.spec.ts": 66,
-            "visual-baseline-thumbnails.spec.ts": 18,
-            "pinnedAt": "tests/test_css_wp4_4_a_baseline_contracts.py:39-44",
-        },
+        "committedBaselinePins": committed_baseline_pins(root),
         "specMatrices": {
             "visual.spec.ts": {
                 "pages": 11,
@@ -1637,6 +1700,10 @@ PLAN_CLAIMS: dict[str, object] = {
         "theme_dark_contracts.py:68",
         "theme_dark_contracts.py:88",
         "theme_dark_contracts.py:98",
+        # Quoted from the plan verbatim, line number included. This is the one
+        # `<file>:<line>` string in this module that must NOT be repaired into a
+        # symbol: it is the claim under comparison, and `plan_discrepancies()`
+        # reports its drift from the emitted row rather than hiding it.
         "a_baseline_contracts.py:128",
         "cascade_contracts.py:1006",
         "cascade_contracts.py:1007",
