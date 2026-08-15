@@ -33,10 +33,13 @@ on:
         options: [compare, generate]
         default: compare
 
-# Every job below carries a `timeout-minutes`. Without one a job inherits the
-# 360-minute default, which mattered little while every run was launched and
-# watched by hand — but #323 made this workflow run unattended once a week, so a
-# hung job now burns six hours of runner time with nobody watching.
+# Every job below is bounded by a `timeout-minutes` — declared in place, except
+# for `frozen-windows`, which is a `uses:` job and therefore cannot declare one;
+# its bound lives in the workflow it calls, at the same 45 minutes. Without a
+# timeout a job inherits the 360-minute default, which mattered little while
+# every run was launched and watched by hand — but #323 made this workflow run
+# unattended once a week, so a hung job now burns six hours of runner time with
+# nobody watching.
 #
 # These are HANG DETECTORS, not budgets. Each is far above the observed maximum
 # (measured over the 20 most recent completed runs, 2026-08-11) and matches the
@@ -44,11 +47,11 @@ on:
 # run cannot red the weekly gate — the failure mode that trains an owner to
 # ignore it. Re-derive from real runs before tightening any of them.
 #
-#   job               observed max   this value   ci.yml precedent
-#   full-e2e             20.2 min        45       E2E Functional Shard (45)
-#   visual-linux          6.6 min        25       Visual Regression Windows (25)
-#   frozen-windows        2.3 min        45       packaged-smoke-windows (45)
-#   the four smokes      <1.2 min        15       the 15-minute floor
+#   job               observed max   bound   declared in
+#   full-e2e             20.2 min       45    here, per ci.yml's E2E Functional Shard
+#   visual-linux          6.6 min       25    here, per ci.yml's Visual Regression Windows
+#   frozen-windows        2.3 min       45    _packaged-windows.yml (a `uses:` job)
+#   the four smokes      <1.2 min       15    here, the 15-minute floor
 jobs:
   full-e2e:
     name: Full E2E incl. accessibility (Chromium)
@@ -341,48 +344,35 @@ jobs:
     # enforce Smart App Control, so this job launches the executable an end
     # user actually double-clicks. Disabling Smart App Control locally is not
     # an option that was ever on the table.
-    runs-on: windows-latest
-    timeout-minutes: 45
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v7
-
-    - name: Set up Python
-      uses: actions/setup-python@v7
-      with:
-        python-version-file: '.python-version'
-        cache: 'pip'
-
-    - name: Install runtime and pinned build dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-build.txt
-        python -c "import PyInstaller; print('PyInstaller ' + PyInstaller.__version__)"
-
-    # Staging is what the spec calls too; running it first fails a broken
-    # manifest in seconds instead of after a full build, and writes the
-    # manifest.sha256 the smoke verifies the built tree against.
-    - name: Stage tracked package assets
-      run: python scripts/stage_package_assets.py
-
-    - name: Build via the canonical spec
-      run: pyinstaller --clean --noconfirm Hypertrophy-Toolbox.spec
-
-    # --mode bootloader is the entire point of this job. Do not weaken it to
-    # payload mode to make a red run green: a payload pass says nothing about
-    # whether the executable starts.
-    - name: Smoke the real bootloader
-      run: |
-        python scripts/smoke_packaged_app.py --mode bootloader
-
-    - name: Upload distribution inventory on failure
-      if: failure()
-      run: |
-        Get-ChildItem -Recurse dist/Hypertrophy-Toolbox/_internal/data |
-          Select-Object FullName, Length | Format-Table -AutoSize
-      shell: pwsh
+    #
+    # Packet R2-b moved this job's body into the reusable workflow ci.yml and
+    # release.yml already shared, so the repository now holds ONE definition of
+    # the frozen Windows build instead of two. R1 deliberately left the copy
+    # here: a scheduled workflow runs the default branch's HEAD copy of its own
+    # file, and editing it before the first authoritative scheduled run would
+    # have meant that run validated something other than what shipped.
+    #
+    # `runs-on: windows-latest` and `timeout-minutes: 45` now live in the called
+    # workflow -- a `uses:` job may declare neither. Both carry the same values
+    # this job declared, and tests/test_release_workflow_contracts.py pins them
+    # there so the lift cannot quietly change either.
+    #
+    # Two deliberate differences from the copy this replaces, neither of which
+    # weakens the job:
+    #   * the smoke serves on --port 5123 rather than the script's default 5000.
+    #     smoke_packaged_app.py refuses to start when the port is already owned,
+    #     so a pass still cannot be some other process answering.
+    #   * the called workflow declares `permissions: contents: read`, where this
+    #     job previously inherited the repository default. A build that checks
+    #     out, compiles and smokes needs nothing more.
+    #
+    # The check this job reports is now
+    # `Frozen executable (real bootloader, Windows) / Build and smoke`, because a
+    # `uses:` job reports as `<caller job name> / <called job name>`. That rename
+    # is safe here and only here: deep-gate.yml runs on the weekly schedule and
+    # on workflow_dispatch, and none of its jobs is a branch-protection context.
+    # See docs/ai_workflow/QUALITY_GATE.md before converting any other job.
+    uses: ./.github/workflows/_packaged-windows.yml
 
   visual-linux:
     name: Visual regression (Linux baselines)

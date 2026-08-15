@@ -228,8 +228,17 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
     > `ci-provenance`, the frozen Windows build via a `workflow_call` reusable workflow
     > shared with `ci.yml`, the first-install and old-DB-migration smokes, and a fan-in
     > gate — all blocking. The build+smoke was extracted rather than copied, as F5-8
-    > required; `deep-gate.yml` keeps its own copy until Packet R2, deliberately, because
+    > required; `deep-gate.yml` kept its own copy through R1, deliberately, because
     > editing it before 2026-08-17 would invalidate the first scheduled run.
+    >
+    > **Packet R2-b converts that copy** to the same `workflow_call` workflow, so F5-8 is
+    > satisfied in full: one definition, three triggers (PR, release, schedule). It is
+    > **implemented and held from merge** until a scheduled run after 2026-08-17 03:17 UTC
+    > has been inspected under the pre-R2-b workflow, for the reason above — a scheduled
+    > workflow executes the default branch's HEAD copy of its own file. **No scheduled run
+    > has executed at the time of writing.** Design record, preserved/changed behavior and
+    > residuals R-10/R-11: [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md),
+    > Packet R2-b section.
     >
     > **Its tag trigger is unproven.** The only validation route is `workflow_dispatch`
     > with `dry_run: true` (owner option (c)), and because `workflow_dispatch` requires

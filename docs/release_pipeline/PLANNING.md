@@ -259,7 +259,10 @@ anything.
 24. Given the packet is complete, when the frozen Windows build+smoke definitions are
     counted across all workflow files, then there are exactly **two**
     (`_packaged-windows.yml` and `deep-gate.yml`'s untouched `frozen-windows`) — never
-    three.
+    three. *(**Superseded by Packet R2-b**, which converted `frozen-windows` and moved
+    the count to exactly **one** definition with **three** callers. The criterion's
+    intent — never a third copy — is unchanged and now enforced more strictly; see the
+    R2-b section at the end of this file.)*
 25. Given `ci.yml` after the edit, when its `packaged-smoke-windows` job `name:` is
     read, then it is byte-identical to `Packaged Smoke (Windows bootloader, non-required)`.
 26. Given `ci.yml` after the edit, when every job whose `name:` appears in the 11
@@ -321,7 +324,9 @@ anything.
   `concurrency:` decision, are Packet R2.
   *(Scoped to R1. One narrow exception was taken later by **Packet R2-a**, 2026-08-15,
   for the `&&` assertion only — see residual **R-9**. The `frozen-windows` conversion
-  and the B9 decision remain **R2-b, not started**.)*
+  is **Packet R2-b**, implemented 2026-08-15 and **held from merge** until the first
+  scheduled run has been inspected — see the R2-b section at the end of this file. The
+  B9 `concurrency:` decision is still **not started**.)*
 - `visual-linux` in the release gate (D3) — revisit only after the 2026-08-17 run and
   ≥3 consecutive green scheduled runs.
 - Frozen × historical-schema coverage (D5) — separate follow-up packet; it needs a
@@ -553,7 +558,7 @@ Three reviewers ran in parallel against this worktree. Every finding is answered
 | T-Q5 #12 | Criterion 29 over two files is vacuous by construction | **A** | Scans all four workflow files. |
 | T-NIT13 | The empty-string `dry_run` a push event produces is the highest-value untested input | **A** | Explicit unit test. |
 | T-static | Static substitutes for deferred criteria 1/2/4, incl. pinning the anchored `^v\d+\.\d+\.\d+$` regex and asserting the trigger is **not** semver-narrowed | **A** | Adopted; stronger than what Section 0 had. |
-| T-30 | Criterion 30 substitute via the `test_consult_adapter.py:1066-1077` precedent | **A** | Assert `deep-gate.yml` still contains its five load-bearing strings **and** contains no `uses: ./.github/workflows/_packaged-windows.yml`. That negative catches R2 creep. |
+| T-30 | Criterion 30 substitute via the `test_consult_adapter.py:1066-1077` precedent | **A** | Assert `deep-gate.yml` still contains its five load-bearing strings **and** contains no `uses: ./.github/workflows/_packaged-windows.yml`. That negative catches R2 creep. *(**Both tests deleted by Packet R2-b**, which is the R2 they were guarding against — the negative had done its job. The underlying intent, that deep-gate's packaged-artifact guarantee is pinned somewhere, is discharged instead by `PACKAGED_CALLERS` and `test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows`.)* |
 | T-collect | Neither new test file may make its **collection** host-dependent | **A** | No `importorskip`, no glob-parametrization over `.github/workflows/*.yml`; explicit literal lists only. |
 
 ### Product-risk reviewer (`af59ffce656209012`)
@@ -598,7 +603,11 @@ Recorded so the diff is not read as scope creep. None expands the packet.
    council (P-N7); `port` and `timeout-minutes` were dropped during the post-implementation
    unslop review once measurement showed no caller varies either — `deep-gate.yml`'s
    `frozen-windows` also uses 45 minutes and passes no `--port`. Both values are now
-   literals inside the reusable workflow.
+   literals inside the reusable workflow. *(**Partly superseded by Packet R2-b.** "No
+   caller varies either" was true of the timeout and false of the port: passing no
+   `--port` means the script's default **5000**, not the literal **5123** in the reusable
+   workflow. Dropping the input was still right, but the consequence is that R2-b's
+   conversion changes deep-gate's smoke port. See the R2-b difference table below.)*
 5. Section 0's `startup-smokes` matrix (two legs) shipped as **two discrete jobs**,
    `first-install` and `old-db-migration`. A matrix would have needed a per-step `if:`
    to select the leg's body, and a conditional step is exactly what the anti-skip
@@ -710,7 +719,7 @@ Two reviewers ran against the staged diff. `unslop-reviewer` returned 11 finding
 | # | Residual | Why accepted |
 |---|---|---|
 | **R-8** | A transient GitHub API error (502, rate-limit) aborts `ci-provenance` outright; there is no retry across the ~90 requests it may make over 45 minutes. | Fails **closed**, so it costs a re-run rather than a bad release. Retry logic was declined as scope creep in R1. |
-| **R-9** | ~~`deep-gate.yml` carries the same `&&`-chained HTTP assertion that B1 fixed here.~~ **DISCHARGED 2026-08-15 by Packet R2-a**, under a narrow owner exception to the pre-2026-08-17 freeze. The assertion is split into two standalone commands and `deep-gate.yml` is now covered by `test_no_assertion_hides_inside_an_and_list`. Measured before the edit under `bash -e`: the combined form exits **0** on `root=500` and falls through to the schema assertions; the split form exits **1**. The exception was taken because the defect meant `old-db-migration` could not fail on a broken landing page during the first authoritative scheduled run. **Only that assertion and an adjacent rationale comment changed** — no job composition, runner, step order, schedule, `visual-linux` or compare-mode behavior, and no baseline. The `_packaged-windows.yml` extraction remains **R2-b, not started**. |
+| **R-9** | ~~`deep-gate.yml` carries the same `&&`-chained HTTP assertion that B1 fixed here.~~ **DISCHARGED 2026-08-15 by Packet R2-a**, under a narrow owner exception to the pre-2026-08-17 freeze. The assertion is split into two standalone commands and `deep-gate.yml` is now covered by `test_no_assertion_hides_inside_an_and_list`. Measured before the edit under `bash -e`: the combined form exits **0** on `root=500` and falls through to the schema assertions; the split form exits **1**. The exception was taken because the defect meant `old-db-migration` could not fail on a broken landing page during the first authoritative scheduled run. **Only that assertion and an adjacent rationale comment changed** — no job composition, runner, step order, schedule, `visual-linux` or compare-mode behavior, and no baseline. The `_packaged-windows.yml` conversion is **Packet R2-b**, implemented and held; see the section below. |
 
 ### Gate 1 assessment
 
@@ -782,3 +791,110 @@ workflow executes and its jobs pass. **R-1 stands unchanged — the `push: tags`
 trigger has still never fired.** What ran was `workflow_dispatch` against a branch;
 the tag path, the tag-identity comparison and the on-`main` ancestry check are still
 unexecuted, and the first genuine release tag remains their first execution.
+
+---
+
+## Packet R2-b — `deep-gate.yml`'s `frozen-windows` → the reusable workflow
+
+*Implemented 2026-08-15. **Held from merge**; see the hold condition below.*
+
+R1 shipped `_packaged-windows.yml` and pointed `ci.yml` and `release.yml` at it, but
+left `deep-gate.yml`'s `frozen-windows` as a second copy of the same build. R2-b
+converts that job to `uses: ./.github/workflows/_packaged-windows.yml`, which takes the
+repository from **two definitions / two callers** to **one definition / three callers**.
+
+### Hold condition
+
+`deep-gate.yml` executes the **default branch's HEAD copy of its own file** on a
+schedule. The first authoritative scheduled run is due **2026-08-17 03:17 UTC**, and
+that run must exercise the workflow as it shipped. Merging R2-b before it would
+substitute a different file and destroy the evidence the D3 stopgap exists to produce.
+
+**This packet may not merge until a scheduled run after 2026-08-17 03:17 UTC has been
+inspected under the pre-R2-b workflow, and that inspection has been recorded.** As of
+this packet's implementation, **no scheduled deep-gate run has occurred** and nothing
+here may be read as evidence that one has.
+
+The hold is stated here but **enforced in the merge mechanism**, because this repository's
+standing convention is auto-merge on green CI and this branch is green by construction —
+its contract tests are written against the post-conversion state, so CI cannot express the
+hold. The PR is therefore opened as a **draft** with the hold in its title. Do not mark it
+ready for review until every row below is done.
+
+#### Merge checklist — all rows required
+
+| # | Obligation | How it is discharged |
+|---|---|---|
+| 1 | A scheduled run exists after 2026-08-17 03:17 UTC | `gh run list --workflow=deep-gate.yml --event=schedule` |
+| 2 | All **7** jobs inspected individually, `visual-linux` executed and not skipped | `gh run view <id>` per job — **never the overall green**. The packaged job is reported under its **pre-composite** name, `Frozen executable (real bootloader, Windows)`; the composite `… / Build and smoke` form only appears from the first run *after* this merges. |
+| 3 | The inspection is written down | A "Hold discharged" subsection appended to this R2-b section, **and** the deep-gate block in [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) |
+| 4 | `docs/MASTER_HANDOVER.md` corrected | Its R1 block still reads "Converting `frozen-windows` to the reusable workflow is **Packet R2-b, still not started**", which is false the moment this merges. Deliberately left untouched in the implementation branch; it is a required companion commit at merge, not an optional follow-up. |
+| 5 | `docs/DECISIONS.md` ADR-007 corrected | Done in this packet — its Consequences said "one definition with **two** callers". |
+| 6 | Full `pytest` re-run against a freshly merged `origin/main` | `main` currently asserts the exact negation of this branch's contracts, so any other branch touching `deep-gate.yml` or `_packaged-windows.yml` reds depending on merge order. Regenerate `docs/test_inventory/` if a count moved — never hand-merge it; `Test Inventory Drift` is a required context. |
+
+R2-a took a narrow exception to the same freeze for the `&&` assertion (R-9) because
+that defect would have made `old-db-migration` unable to fail during the very run being
+protected. **No comparable argument applies here**: the duplicate build is a maintenance
+cost, not a false green, so the freeze is honoured in full.
+
+### What was preserved, and how it is proven
+
+The build body moved unchanged. Everything the inline job guaranteed is now stated once,
+in `_packaged-windows.yml`, and pinned there by `tests/test_release_workflow_contracts.py`:
+runner (`windows-latest`), timeout (45), the six-step build sequence in order, the
+`--mode bootloader` smoke without `--skip-upgrade` / `--skip-runtime`, and the
+`if: failure()` distribution-inventory dump. The job id, the job `name:`, the schedule,
+`visual-linux`, compare mode and every baseline are untouched.
+
+### Three deliberate differences
+
+| # | Before (inline) | After (via the reusable workflow) | Why it is not a weakening |
+|---|---|---|---|
+| 1 | check reported as `Frozen executable (real bootloader, Windows)` | `Frozen executable (real bootloader, Windows) / Build and smoke` | A `uses:` job reports as `<caller> / <callee>`. Safe **only** because `deep-gate.yml` produces no branch-protection context — it triggers on `schedule` and `workflow_dispatch`, never `pull_request`. A contract test asserts that trigger set, so the premise cannot rot silently. |
+| 2 | smoke on the script's default port **5000** | `--port 5123` | `smoke_packaged_app.py` refuses to start when the port is already owned, so neither value can let another process answer for the build. 5123 is the value the other two callers already use, and R1 records serving off-default as the thing that proves the `HT_PORT` wiring. |
+| 3 | no `permissions:` block → repository-default token | `contents: read` from the called workflow | A strict narrowing. The job checks out, builds, and smokes; it uploads nothing and pushes nothing. |
+
+Difference 2 is the only one R1's own supersession note (#4, "`deep-gate.yml`'s
+`frozen-windows` … passes no `--port`") glossed over when it dropped the `port` input.
+Dropping the input was still right — a per-caller knob is how one definition starts
+producing three behaviors — but the consequence is that this conversion changes
+deep-gate's port, and that is recorded here rather than discovered later.
+
+### Bidirectional caller contract
+
+`PACKAGED_CALLERS` in `tests/test_release_workflow_contracts.py` declares the three
+`(workflow file, job id, job name)` triples and is compared against the set **measured**
+from the workflow files:
+
+- **Forward** — a declared caller that stops calling, re-inlines steps, grows a
+  `runs-on:`, or reintroduces `pyinstaller` / `smoke_packaged_app.py` fails.
+- **Reverse** — a caller that appears without being declared fails, because it mints a
+  new composite check name that `docs/ai_workflow/QUALITY_GATE.md` requires to be a
+  deliberate act.
+- **Neither side can vary the build** — the reusable workflow declares no `inputs:` and
+  no caller passes `with:`; both halves are asserted, since either alone passes once the
+  other is deleted.
+- **The claim is scoped to the repository, not to a literal.** Every contract here
+  iterates a hardcoded four-file list, so a *new* workflow file would have been invisible
+  to all of them — it could inline its own PyInstaller build, or mint a fourth composite
+  check name, with the whole file green. A directory contract asserts that
+  `.github/workflows/` holds exactly the files this test reads, which is what makes "the
+  only definition in the repository" a true sentence rather than a hopeful one.
+
+**26 mutations, each applied and reverted individually, all 26 red** — including
+re-inlining the build, dropping the job, renaming either half of a composite name,
+adding a fourth caller, moving the runner off Windows, unbounding the timeout, deleting,
+reordering **or gutting the body of** the staging step, weakening the smoke to payload
+mode, adding `--skip-upgrade`, returning to port 5000, making the shared smoke
+`continue-on-error` (which would turn a red build green for all three callers at once),
+adding a `pull_request:` trigger to `deep-gate.yml`, blinding the parser (the vacuity
+floor), and **adding a whole new workflow file** that either inlines the build or calls
+the reusable one undeclared.
+
+### Residual register additions
+
+| # | Residual | Why accepted |
+|---|---|---|
+| **R-10** | The converted job has **never executed as a `uses:` job**. `deep-gate.yml` runs only on its schedule and on `workflow_dispatch`, and `workflow_dispatch` requires the file to be on the default branch — so, exactly as with `release.yml` under A-B1, there is **zero runtime evidence available before merge**. Everything above is static. | The same sequencing R1 accepted, with the same compensation: the first post-merge action is a `workflow_dispatch` of `deep-gate.yml` whose `frozen-windows` result is inspected. R2-b is not complete at merge. **This dispatch is not the held inspection and does not discharge the hold** — with default inputs it skips `visual-linux`, so it validates the conversion and says nothing about the weekly gate. The two obligations are separate; the hold is checklist rows 1–3 above. |
+| **R-11** | The B9 `concurrency:` decision for `deep-gate.yml` — the other half of the original Packet R2 — is **still not started**. | Out of scope for this packet by the owner's framing; it is a separate decision, not a consequence of the conversion. |
+| **R-12** | `_packaged-windows.yml` uploads no build artifact and declares no `outputs:`, so all three callers discard `dist/`. A future packet that attaches the executable to a release needs both per-caller distinction and `contents: write`, and the no-`inputs`/no-`with:` contract plus the read-only-token contract forbid the second. | Pre-existing, not introduced here, and the cheapest correct answer does not need a relaxation: upload `dist/` unconditionally with a short retention and let a separate job in `release.yml`, which already carries its own `permissions:` blocks, download and publish. R1-D5's `--legacy-db` work needs no relaxation at all — the argv contract forbids *removals*, not additions, and `PACKAGED_STEP_SEQUENCE` pins a prefix. |
