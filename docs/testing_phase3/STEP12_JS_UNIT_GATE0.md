@@ -1,7 +1,9 @@
 # Testing Strategy Phase 3 — Step 12 (JS unit expansion with jsdom) — Gate 0 decision packet
 
-> **Scope**: a decision packet only. **No test, production JS, `package.json`, Vitest config, CI, or
-> branch-protection change is made or authorized by this document.**
+> **Scope**: the step-12 decision packet, **plus Packet A as implemented** (§9). Packet A adds
+> **one new test file** and nothing else. **No production JS, `package.json`, Vitest config, CI, or
+> branch-protection change is made or authorized by this document**, and `js-unit` stays
+> **non-required**.
 > **Base**: `origin/main` @ `c404a06`, branch `wt/phase3-jsunit-gate0`, isolated docs-only worktree.
 > **Covers**: [`TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md) §5 Phase 3 **step 12**,
 > and the **unsigned `js-unit` half of D2** (§6, §8.1 row 2, reaffirmed unsigned in §8.1a and §8.1c).
@@ -627,11 +629,11 @@ created or modified.
 
 ## 9. Packet A — scoped plan (`workout-controls-persistence.js`)
 
-> **PLANNING ONLY — NOT AUTHORIZED TO EXECUTE.** This section specifies what the packet would build.
-> **No test file has been created**, no production or config file has been modified, and **no
-> mutation has been run** — §9.8's matrix is a *prediction* to be verified during implementation, not
-> a record of anything measured. Implementation begins only on explicit owner authorization of this
-> section.
+> **AUTHORIZED AND IMPLEMENTED 2026-08-15.** This section is now both the specification and the
+> execution record. §9.8's matrix has been **run**, and its measured results replace the earlier
+> predictions. §9.12 records what shipped; **§9.13 records four evidence-driven deviations**,
+> including a defect this section itself contained (D1) and a proven equivalent mutant (D2).
+> **`js-unit` remains non-required** — nothing here promotes it.
 
 ### 9.1 Ownership and boundaries
 
@@ -680,7 +682,7 @@ and [`ki005_controls_persistence/PLANNING.md`](../ki005_controls_persistence/PLA
 | A14 | `applyWorkoutControlDefaults()` sets all six inputs to `WORKOUT_CONTROL_DEFAULTS` | Per-field value equality |
 | A15 | `applyWorkoutControlDefaults()` does **not** write to storage | Key absent afterward |
 | A16 | Valid stored record restores all six; `restored` lists all six ids | Saved-wins (criterion 8) |
-| A17 | **Absent** key → all six get defaults; `restored` is `[]` | TS-7 |
+| A17 | **Absent** key → fields left **untouched**; `restored` is `[]` | TS-7 — **corrected during implementation, see §9.13-D1** |
 | A18 | **Malformed JSON** → all six get defaults; `restored` is `[]` | The `catch` returning `{}` |
 | A19 | Stored **array** (not object) → treated as empty; `restored` is `[]` | The `!Array.isArray` guard |
 | A20 | Stored **`null`** JSON → defaults; `restored` is `[]` | The `parsed && typeof` guard |
@@ -768,7 +770,7 @@ gets its own case:
 | ID | Simulation | Expected |
 |---|---|---|
 | A33 | `vi.spyOn(Storage.prototype,'setItem').mockImplementation(() => { throw new DOMException('QuotaExceededError') })`, then `saveWorkoutControls()` | Does **not** throw; degrades silently |
-| A34 | `vi.spyOn(Storage.prototype,'getItem').mockImplementation(() => { throw new Error('denied') })`, then `restoreWorkoutControls()` | Does **not** throw; returns `{restored: []}`; all six fall back to defaults |
+| A34 | `vi.spyOn(Storage.prototype,'getItem').mockImplementation(() => { throw new Error('denied') })`, then `restoreWorkoutControls()` | Does **not** throw; returns `{restored: []}`; fields left **untouched** (**corrected — §9.13-D1**) |
 | A35 | `vi.spyOn(Storage.prototype,'removeItem').mockImplementation(() => { throw new Error('denied') })`, then `clearWorkoutControls()` | Does **not** throw |
 
 **`getStore()`'s own `try`/`catch`** (a `window.sessionStorage` *access* that throws — the private-mode
@@ -805,44 +807,57 @@ rejects an absurd value at add time, exactly as it would if the user had typed i
 Bounds cases are therefore **only**: A24/A25 (`rir`, `rpe` upper, from `max="10"`) and A26 (lower
 bounds, from `min`). **A31** pins the *absence* of the four `max` attributes so this stays true.
 
-### 9.8 Mutation matrix (§4.5) — prediction, not yet run
+### 9.8 Mutation matrix (§4.5) — **EXECUTED 2026-08-15, measured results**
 
-Each row is a deliberate one-line break in `workout-controls-persistence.js`, applied in a scratch
-copy, expected to red **at least** the named cases, then reverted. **A row that fails to red is a
-finding about the test, not about the mutation** — the test gets strengthened before the packet ships.
+All 19 rows were run. Each applies a deliberate break, runs the **full** Vitest suite, records which
+case IDs red, then restores the file. The harness asserts each mutation matches **exactly once**
+before running — a mutation that silently fails to apply is otherwise indistinguishable from one the
+tests failed to catch. The module and test file are asserted byte-identical to their pristine state
+afterward.
 
-| # | Deliberate break | Must red |
-|---|---|---|
-| M1 | `saveWorkoutControls`: delete `if (hydrating) return;` | A3 |
-| M2 | `withHydrationSuppressed`: `hydrating = false` in `finally` instead of `= previous` | A6 |
-| M3 | `withHydrationSuppressed`: drop the `try`/`finally`, call `fn()` bare | A7 |
-| M4 | `STORAGE_KEY` → `'hypertrophy_workout_controls'` (drop `_v1`) | A8 |
-| M5 | `getStore()` returns `window.localStorage` | A11 |
-| M6 | `saveWorkoutControls`: delete `if (!found) return;` | A12 |
-| M7 | `validateStoredValue`: `return text` before the range checks | A24, A25, A26 |
-| M8 | `declaredRange`: return `{min: undefined, max: undefined}` | A24, A25, A26 |
-| M9 | `declaredRange`: read `max` where `min` is read (swap) | A26 |
-| M10 | `restoreWorkoutControls`: on invalid, `continue` instead of applying the default | A17, A21 |
-| M11 | `restoreWorkoutControls`: `restored.push(field)` for every field, valid or not | A17, A21 |
-| M12 | `readRecord`: `catch` returns `null` instead of `{}` | A18 |
-| M13 | `readRecord`: drop the `!Array.isArray(parsed)` guard | A19 |
-| M14 | `clearWorkoutControls`: `setItem(STORAGE_KEY, '')` instead of `removeItem` | A29 |
-| M15 | `validateStoredValue`: drop `if (text === '') return null;` | A22 |
-| M16 | `restoreWorkoutControls`: add a `store.setItem(...)` call | A28 |
-| M17 | `saveWorkoutControls`: remove the `try`/`catch` around `setItem` | A33 |
-| M18 | `WORKOUT_CONTROL_IDS`: append a seventh id | A1 |
-| M19 | Fixture: strip `max="10"` from `#rir` | **A31** (proves the fixture self-check works) |
+**Result: 18 of 19 killed. 1 survivor, analysed below and confirmed an equivalent mutant.**
 
-M19 is the anti-vacuity check: it breaks the *fixture* rather than the module, and A31 is the only
-case that should notice.
+| # | Deliberate break | Predicted | **Measured** | Verdict |
+|---|---|---|---|---|
+| M1 | `saveWorkoutControls`: delete `if (hydrating) return;` | A3 | A3, A6 | ✅ killed |
+| M2 | `withHydrationSuppressed`: `hydrating = false` in `finally` instead of `= previous` | A6 | A6 | ✅ killed |
+| M3 | `withHydrationSuppressed`: drop the `try`/`finally`, call `fn()` bare | A7 | A7 | ✅ killed |
+| M4 | `STORAGE_KEY` → drop `_v1` | A8 | A8 + 17 others | ✅ killed |
+| M5 | `getStore()` returns `window.localStorage` | A11 | A11 + 19 others | ✅ killed |
+| M6 | `saveWorkoutControls`: delete `if (!found) return;` | A12 | A12 | ✅ killed |
+| M7 | `validateStoredValue`: `return text` before the range checks | A24, A25, A26 | A24, A25, A26 | ✅ killed |
+| M8 | `declaredRange`: return `{min: undefined, max: undefined}` | A24, A25, A26 | A24, A25, A26 | ✅ killed |
+| M9 | `declaredRange`: read `max` where `min` is read | A26 | A16, A26 | ✅ killed |
+| M10 | `restoreWorkoutControls`: `continue` instead of applying the default | A18, A21 | A18–A26 (9 cases) | ✅ killed |
+| M11 | `restoreWorkoutControls`: push every field, valid or not | A18, A21 | A18–A27 (10 cases) | ✅ killed |
+| M12 | `readRecord`: `catch` returns `null` instead of `{}` | A18 | A18 | ✅ killed |
+| M13 | `readRecord`: drop the `!Array.isArray(parsed)` guard | A19 | **(none red)** | ⚠️ **SURVIVED — equivalent mutant, §9.13-D2** |
+| M14 | `clearWorkoutControls`: `setItem(STORAGE_KEY, '')` instead of `removeItem` | A29 | A29, A30 | ✅ killed |
+| M15 | `validateStoredValue`: drop `if (text === '') return null;` | A22 | A22 | ✅ killed |
+| M16 | `restoreWorkoutControls`: save before returning | A28 | A28 | ✅ killed |
+| M17 | `saveWorkoutControls`: remove the `try`/`catch` around `setItem` | A33 | A33 | ✅ killed |
+| M18 | `WORKOUT_CONTROL_IDS`: append a seventh id | A1 | A1 | ✅ killed |
+| M19 | **Fixture**: strip `max="10"` from `#rir` | A31 | A24, A31 | ✅ killed |
+
+**Every prediction was a subset of what actually red** — no row killed *fewer* cases than predicted.
+M4, M5, M10 and M11 red far more than predicted because they break a shared path; over-detection is
+not a defect.
+
+**M19 is the anti-vacuity check** and it worked: it breaks the *fixture* rather than the module, and
+A31 caught it. A24 also red, confirming the mechanism — without `max="10"` on `#rir`, the stored `11`
+is accepted, which is exactly the vacuous pass A31 exists to prevent.
 
 ### 9.9 Gate
 
-| Gate | Command | Expected |
-|---|---|---|
-| JS unit | `npm run test:js` | All files green. **120 existing cases unchanged**, plus Packet A's ~35 |
-| Mutation | §9.8, manual, scratch copy, reverted | Every row reds its named cases |
-| Inventory | **none — see §9.10** | — |
+| Gate | Command | Expected | **Measured 2026-08-15** |
+|---|---|---|---|
+| JS unit — baseline | `npm run test:js` | 10 files / 120 cases | **10 files / 120 passed** ✅ (matches CI run `31856035853` exactly) |
+| JS unit — with Packet A | `npm run test:js` | 11 files, 120 + ~35 | **11 files / 155 passed**, 793 ms ✅ — exactly **+35**, so no existing test was touched |
+| Mutation | §9.8, full suite per row, reverted | Every row reds its named cases | **18/19 killed**; 1 equivalent mutant (§9.13-D2) ✅ |
+| Inventory | **none — see §9.10** | no drift | **`--check` → "Test inventory is up to date", exit 0** ✅ |
+
+The **+35 delta is itself the assertion** that Packet A touched no existing test: 155 − 120 = 35, the
+exact case count in §9.2.
 
 Full `/verify-suite` is **not** required: a new file under `static/js/modules/__tests__/` matches
 QUALITY_GATE's *Frontend (JS)* row only in path, and adds no production behavior for an E2E spec to
@@ -859,6 +874,10 @@ Measured in §5 — `scripts/generate_test_inventory.py` has **zero** references
 `static/js`, or `*.test.js`, and none of the five pinned surfaces covers JS unit tests. Adding
 `workout-controls-persistence.test.js` therefore cannot trip `Test Inventory Drift`.
 
+> **Confirmed empirically, not only by reading the generator.** With the new test file present,
+> `python scripts/generate_test_inventory.py --check` prints **"Test inventory is up to date"** and
+> exits **0**. The claim is now measured from both directions.
+
 **This holds for Packets A, B, and C, and expires when Packet F lands** (§2.5). Once F pins Vitest
 nodes, every later JS test change will require a regenerated artifact. A regenerated
 `docs/test_inventory/` appearing in Packet A's diff is a **defect in the packet** — most likely the
@@ -866,19 +885,84 @@ symptom of an untracked `.md` in a globbed surface directory, not a real drift.
 
 ### 9.11 Residual risks
 
-| Risk | Handling |
-|---|---|
-| `getStore()`'s access-level `try`/`catch` is unreachable in jsdom | Named gap, §9.5 — disclosed, not hidden |
-| Fixture drifts from the template | A31 + the cited line range; a template change that moves bounds should red A31 |
-| Later cases inherit poisoned `hydrating` | Double reset (§9.4) + A32 leak detector |
-| `restored[]` order treated as incidental | Asserted with exact deep equality (§9.6); iteration order is contract |
-| Assertions written against the constant rather than literals | Explicit rule in §9.6; a reviewer check, not automatable |
+| Risk | Handling | Status after execution |
+|---|---|---|
+| `getStore()`'s access-level `try`/`catch` is unreachable in jsdom | Named gap, §9.5 — disclosed, not hidden | **Open, accepted** (§9.13-D5) |
+| `!Array.isArray` guard is behaviorally unobservable | Equivalent mutant, proven not assumed | **Open, accepted** (§9.13-D2) — a finding about the module |
+| Fixture drifts from the template | A31 + the cited line range | **Closed** — M19 proved A31 catches it |
+| Later cases inherit poisoned `hydrating` | Double reset (§9.4) + A32 leak detector | **Closed** — M1/M2 killed, A32 green |
+| `restored[]` order treated as incidental | Exact deep equality (§9.6) | **Closed** — M11 killed by 10 cases |
+| Assertions written against the constant rather than literals | Explicit rule in §9.6 | **Closed** — M18 killed by A1; every fallback assertion is a literal |
+| A mutation silently failing to apply | Match-exactly-once assertion in the harness | **Closed** — it fired on 8 rows (§9.13-D3) |
 
-### 9.12 STOP
+### 9.12 Execution record
 
-**This plan is not authorization to write it.** Awaiting explicit owner approval of §9. On approval,
-Packet A is implemented as specified, the §9.8 matrix is *run* and its measured results recorded
-(replacing the predictions), and the packet ships as one commit on its own branch.
+**Authorized and IMPLEMENTED 2026-08-15.** Scope held exactly: one new file,
+`static/js/modules/__tests__/workout-controls-persistence.test.js`, 35 cases. **No production,
+config, CI, or branch-protection file was modified** — `git status` shows the test file as the only
+addition, and the module under test is byte-identical to `origin/main` after the mutation run.
+
+`js-unit` remains **non-required**. Q4 and Q6 were **not** acted on, per instruction.
+
+### 9.13 Evidence-driven deviations and findings
+
+**D1 — the plan conflated two distinct fallback classes. Corrected; the module is right.**
+
+§9.2 predicted that an **absent** stored record makes "all six get defaults", and §9.5 predicted the
+same for a **throwing `getItem`**. Reading the implementation while writing the cases showed both are
+wrong, because `readRecord()` has **two** failure returns, not one:
+
+| Condition | `readRecord()` | `restoreWorkoutControls()` behavior |
+|---|---|---|
+| Key absent, empty, or `getItem` throws | `null` | **Early-returns; touches no field.** The rendered values stand. |
+| Malformed JSON, JSON `null`, or a JSON array | `{}` | Iterates; **every field falls back** to its pinned default. |
+
+Both are correct product behavior — an absent record must be a no-op, while a *present but unusable*
+one must reset. The plan's prose flattened them. **A17 and A34 now assert the untouched behavior**
+(by pre-setting the controls to non-defaults first), and A18/A19/A20 assert the defaults behavior the
+same way. The distinction is load-bearing: it is exactly what **M12** kills, and M12 would have
+passed against the plan's original wording.
+
+This is a defect in the plan, found by implementation. No production code changed.
+
+**D2 — M13 is an equivalent mutant, not a test weakness.**
+
+Dropping `!Array.isArray(parsed)` from `readRecord()` red **nothing**. Verified rather than assumed:
+a JSON array is `typeof 'object'` and truthy, so the mutant returns the array as the record — but
+**every one of the six control ids is `undefined` on a JSON array**, so each field falls back exactly
+as it would from `{}`. The two paths are observationally identical through the module's public API.
+
+Measured directly:
+
+```
+typeof: object | truthy: true
+every control id on a JSON array is undefined => true
+```
+
+**A19 was not weakened or strengthened in response.** No test can distinguish these without asserting
+something unobservable, and contorting one to chase a 19/19 score would be exactly the false-rigour
+§4.5 exists to prevent. The `!Array.isArray` guard is **defensive but behaviorally unreachable**
+through this API — recorded as a finding about the production module, not about the tests.
+
+**D3 — the mutation harness had to be CRLF-aware.**
+
+The first full run reported **8 of 19 "NOT APPLIED"**. Cause: the module is CRLF on disk (`autocrlf`)
+while the patterns were authored with `\n`, so every multi-line pattern matched zero times. **The
+match-exactly-once assertion is what surfaced this** — without it, those 8 rows would have been
+silently recorded as "no tests red", producing a fabricated 8-survivor result and a false conclusion
+that the suite was weak. Re-run with newline normalisation: 18 killed, 1 equivalent.
+
+Recorded because it generalises: **any mutation harness in this repository must normalise line
+endings**, and any harness reporting a surprising number of survivors should be suspected of not
+applying its mutations before the tests are blamed.
+
+**D4 — case count landed exactly as planned.** 35 cases, suite 120 → 155. The `+35` delta doubles as
+proof that no existing test was modified.
+
+**D5 — the `getStore()` access-level gap stands as disclosed.** §9.5 declared it out of scope
+(forcing `window.sessionStorage` *access* to throw needs `window` redefinition). It remains
+uncovered, deliberately and on the record. A33/A34/A35 cover the three method-level `try`/`catch`
+sites; the access-level one is the fourth and is not covered.
 
 ---
 
