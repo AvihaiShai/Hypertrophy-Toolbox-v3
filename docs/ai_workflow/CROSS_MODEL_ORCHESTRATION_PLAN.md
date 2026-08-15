@@ -31,7 +31,9 @@ quality gates. [`QUALITY_GATE.md`](QUALITY_GATE.md),
 > five loose ends have since been resolved — packets **A, B and C shipped** and **D was
 > declined** — so the scope still deferred is the `$orchestrate` mechanism, the PR-bus
 > loop, and the MCP transport a heavier tier would use. A read-only re-probe on
-> **2026-08-14** found the three host blockers that defer `$orchestrate` unchanged; see
+> **2026-08-14** found the preconditions behind the three host blockers that defer
+> `$orchestrate` unchanged, so all three are **inferred to still hold — from unchanged
+> preconditions, not re-measured**; see
 > [Host-readiness re-probe — 2026-08-14](#host-readiness-re-probe--2026-08-14-read-only).
 
 > **Reading order.** Section 0 below is the **v2 requirements brief**, redrafted
@@ -305,7 +307,8 @@ answer before implementation:
   containment.
 - Upgrading codex-cli from 0.135.0 to 0.146.0 would very likely change HR-2, HR-3 and
   HR-7. Tier 1 does not depend on the upgrade; Tier 3 does. **Re-probed read-only
-  2026-08-14: no upgrade has happened and all three still hold.** The upgrade is now
+  2026-08-14: no upgrade has happened, so all three are inferred to still hold — from
+  unchanged preconditions, not re-measured.** The upgrade is now
   recorded as the explicit *trigger* for revisiting Tier 3, not merely as a likely fix —
   see [Host-readiness re-probe — 2026-08-14](#host-readiness-re-probe--2026-08-14-read-only).
 
@@ -399,7 +402,7 @@ pass could and could not establish.
 | `codex --version` | `codex-cli 0.135.0`; `codex.exe` mtime **2026-05-28**, so the binary was never replaced |
 | `claude --version` | `2.1.220 (Claude Code)` |
 | `~/.codex/config.toml` | mtime **2026-08-12 15:42** — *older than the 2026-08-13 probe pass*, so no setting changed after it was measured |
-| `model` / `sandbox_mode` / `approval_policy` | `gpt-5.6-sol` / `workspace-write` / `on-request`, plus `[windows] sandbox = "elevated"` — identical to what `AGENTS.md` records |
+| `model` / `sandbox_mode` / `approval_policy` | `gpt-5.6-sol` / `workspace-write` / `on-request`, plus `[windows] sandbox = "elevated"`. `AGENTS.md` records the same `approval_policy` and `[windows]` block as *measured* values and the same `sandbox_mode` as an *intended* setting; **it records no model at all**, so this row's cross-check covers only those three. `CONSULT_PROTOCOL.md` does name `gpt-5.6-sol`, but from the same 2026-08-13 pass — it corroborates the transcription, not the value |
 | `codex mcp list` | `No MCP servers configured yet` — HR-6/HR-7's server was ad-hoc via `-c mcp_servers.…` and was never persisted |
 | `~/.codex/rules/default.rules` | exactly two allows: `["git","status"]` and `["Get-Content"]` |
 | Adapter surface | `scripts/consult/consult.py`, `request.schema.json`, `result.schema.json` all present and unmodified |
@@ -440,13 +443,13 @@ an upgrade.
 
 ### Status of the three blockers
 
-| Blocker | Status 2026-08-14 | Basis |
+| Blocker | Status 2026-08-14 — **inferred, not re-measured** | Basis |
 |---|---|---|
-| **HR-2** — configured model 400s non-interactively | **Still proven** | Both inputs unchanged (0.135.0, `model = "gpt-5.6-sol"`), *and* the candidate mechanism above supplies a requirement gap matching the 400's wording — circumstantial, not server-confirmed |
-| **HR-3** — `workspace-write` cannot spawn any process | **Still proven** | Same binary, same config, config file older than the measurement. The recorded correlate is also intact: config requests `[windows] sandbox = "elevated"` while the build reports `elevated_windows_sandbox` **and** `experimental_windows_sandbox` as `removed`, and HR-3's error names the `windows sandbox` subsystem. That match is suggestive, not proof — `AGENTS.md` records the same mismatch "as observed, not endorsed" |
-| **HR-7** — MCP `tools/call` auto-declines unattended | **Still proven** | No approver mechanism has appeared: `guardian_approval` still `stable` (and HR-7 already showed `--disable guardian_approval` does not change the outcome), `exec_permission_approvals` still `under development`/`false`. `tool_call_mcp_elicitation` is `stable`/`true`, but elicitation *requests* a human rather than substituting for one, so it cannot close HR-7 inside `codex exec` |
+| **HR-2** — configured model 400s non-interactively | **Inferred to hold** | Both inputs unchanged (0.135.0, `model = "gpt-5.6-sol"`), *and* the candidate mechanism above supplies a requirement gap matching the 400's wording — circumstantial, not server-confirmed |
+| **HR-3** — `workspace-write` cannot spawn any process | **Inferred to hold** | Same binary, same config, config file older than the measurement. The recorded correlate is also intact: config requests `[windows] sandbox = "elevated"` while the build reports `elevated_windows_sandbox` **and** `experimental_windows_sandbox` as `removed`, and HR-3's error names the `windows sandbox` subsystem. That match is suggestive, not proof — `AGENTS.md` records the same mismatch "as observed, not endorsed" |
+| **HR-7** — MCP `tools/call` auto-declines unattended | **Inferred to hold** | No approver mechanism has appeared: `guardian_approval` still `stable` (and HR-7 already showed `--disable guardian_approval` does not change the outcome), `exec_permission_approvals` still `under development`/`false`. `tool_call_mcp_elicitation` is `stable`/`true`, but elicitation *requests* a human rather than substituting for one, so it cannot close HR-7 inside `codex exec` |
 
-None is obsolete, and none is "likely changed but needs a live probe".
+On unchanged inputs none is obsolete, and none is "likely changed but needs a live probe".
 
 > **Evidence caveat, stated because it changes how much weight these rows carry.** All
 > three were sustained through **unchanged preconditions, not re-execution.** No
@@ -483,10 +486,18 @@ the **sandbox spawn layer** from the **execpolicy layer** is using a command exe
 already allows, and `~/.codex/rules/default.rules` allows exactly two: `git status` and
 `Get-Content`. Either would serve; `git status` is the one specified here because it keeps
 HR-3's original `git` command shape and changes only the subcommand. HR-3's own
-`git rev-parse` is refused by execpolicy independently of the sandbox, so a post-upgrade
-run of it cannot distinguish "HR-3 still broken" from "HR-3 fixed, HR-5 still applies".
+`git rev-parse` is **not** among those two allows, so a post-upgrade run of it could not be
+attributed to the sandbox layer with confidence. Whether execpolicy refuses `git rev-parse`
+under `workspace-write` was never measured: HR-3's recorded failure is a *sandbox* error,
+and the only measured execpolicy refusal — HR-5 — used a different command under
+`read-only`. That is an inference from the allow-list, not an observation, and it is why
+reusing HR-3's command could not distinguish "HR-3 still broken" from "HR-3 fixed, the
+execpolicy layer still applies".
+
 Run **P1 → P2 → P3 → P4 → P5** in order: P1 is free and may end the exercise on its own,
-and P3 passing while P4 fails means HR-3 cleared and only HR-5 remains.
+and P3 passing while P4 fails means HR-3 cleared and the execpolicy layer still blocking
+non-allowlisted commands — which would be that layer's first measurement under
+`workspace-write`, since HR-5 measured it only under `read-only`.
 
 Total cost to re-decide all three is **well under $0.25**. Cost is not the constraint here;
 authority is. P1–P4 need no new authority because `read-only` and `workspace-write` are the
@@ -515,8 +526,13 @@ union, so the `/verify-suite` fallback will **not** fire. Derived 2026-08-14, th
 names two files — `tests/test_consult_adapter.py` and `tests/fixtures/consult/fake_cli.py`
 — of which only the first is a test module; the second is the fixture CLI those tests
 drive. A future packet touching the adapter therefore routes to
-**`tests/test_consult_adapter.py` plus `code-reviewer`**, where the same change would have
-pulled the full suite before `5177176`. Re-derive the union rather than copying this
+**`tests/test_consult_adapter.py` plus `code-reviewer`**, and also to the two blocking CI
+gates the same packet documented — which fire on *different* triggers.
+`scripts/pyright_baseline_diff.py`'s net-new diagnostic check, reported under the required
+context `Type Check (tsc blocking + pyright measure-only)`, fires because `consult.py` is a
+`.py` and that check is repo-wide. `Test Inventory Drift` fires on a test-node change only,
+so a `scripts/` edit does not trip it on its own. The same change would have pulled the
+full suite before `5177176`. Re-derive the union rather than copying this
 result; a non-empty union suppressing the fallback is exactly the shallow-coverage hazard
 that packet A's own carve-out exists to bound.
 
@@ -2194,8 +2210,9 @@ process (HR-3), the configured model cannot run non-interactively (HR-2), and an
 call cannot complete unattended (HR-7). Upgrading codex-cli 0.135.0 → 0.146.0 would very
 likely move all three and is the first step of any future attempt.
 
-**Re-confirmed 2026-08-14 by a read-only probe pass: all three still hold, and no upgrade
-has happened.** HR-2 now has a candidate local explanation — the whole `gpt-5.6` family
+**Re-checked 2026-08-14 by a read-only probe pass: no upgrade has happened, and all three
+are inferred to still hold — from unchanged preconditions, not re-measured.**
+HR-2 now has a candidate local explanation — the whole `gpt-5.6` family
 requires a `code_mode_only` tool mode that 0.135.0 does not implement. Reopening this
 mechanism is **not** currently justified, and the trigger is the owner-approved CLI
 upgrade rather than elapsed time or another probe. The exact minimal probe matrix that
@@ -2229,8 +2246,8 @@ requires an approver and auto-declines in `codex exec`.
 For a heavier tier this is the right transport, and it also fixes the reviewability
 problem in one direction, since a Claude-side `.mcp.json` is a tracked, PR-reviewable file.
 
-**HR-7 re-affirmed 2026-08-14**, though by unchanged preconditions rather than by
-re-execution: no approver mechanism has appeared on this build, and `codex mcp list`
+**HR-7 inferred to still hold 2026-08-14** — from unchanged preconditions, not
+re-measured: no approver mechanism has appeared on this build, and `codex mcp list`
 reports no persisted server, so HR-6/HR-7's server remains an ad-hoc `-c mcp_servers.…`
 registration that exists only inside a probe. A *measured* HR-7 needs probe
 [P5](#post-upgrade-probe-matrix--p1-to-p5), which starts a local server process and
@@ -2358,10 +2375,11 @@ merged as `a224b39` (PR #361).**
       [Host-readiness re-probe](#host-readiness-re-probe--2026-08-13). "Passed" here means
       *executed and recorded*, and two of its three original pass conditions still **fail**
       (HR-2, HR-3). That is why the heavy mechanism is deferred and the consult is not.
-- [x] **Host-readiness re-probed 2026-08-14, read-only** — HR-2, HR-3 and HR-7 all still
-      hold and the deferral of `$orchestrate` is unchanged, with a candidate local
-      explanation now recorded for HR-2. Sustained through unchanged preconditions,
-      **not** re-execution, and the three are **not** equally well supported; see
+- [x] **Host-readiness re-probed 2026-08-14, read-only** — HR-2, HR-3 and HR-7 are all
+      **inferred to still hold** and the deferral of `$orchestrate` is unchanged, with a
+      candidate local explanation now recorded for HR-2. Sustained through unchanged
+      preconditions, **not** re-measurement, and the three are **not** equally well
+      supported; see
       [Host-readiness re-probe — 2026-08-14](#host-readiness-re-probe--2026-08-14-read-only)
       and its [P1–P5 matrix](#post-upgrade-probe-matrix--p1-to-p5).
 - [x] **Gate 0 complete** — signed by the owner in the Session 8 prompt, with one box
