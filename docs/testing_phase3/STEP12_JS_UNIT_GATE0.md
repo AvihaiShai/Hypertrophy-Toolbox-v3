@@ -5,24 +5,58 @@
 > **Base**: `origin/main` @ `c404a06`, branch `wt/phase3-jsunit-gate0`, isolated docs-only worktree.
 > **Covers**: [`TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md) §5 Phase 3 **step 12**,
 > and the **unsigned `js-unit` half of D2** (§6, §8.1 row 2, reaffirmed unsigned in §8.1a and §8.1c).
-> **Gate 0**: **OPEN**. §8 lists the questions. Implementation **STOPS** until they are answered.
+> **Gate 0**: **PARTIALLY CLOSED 2026-08-15** — **Q1 and Q2 are signed** and Q3 is ruled (§0.1).
+> Packets A → B → C are authorized as **test-only** expansion. **Promotion of `js-unit` to required
+> is NOT authorized**, and is gated behind a restarted qualification window **and** Packet E.
+> Q4–Q6 remain open (§8). Implementation of any packet still **STOPS** at its own Gate 1 plan.
 > **Sibling packet**: [`PLANNING.md`](PLANNING.md) in this directory owns Phase 3 **step 11**
 > (restore-path fuzz). This file owns step 12 only; the two share no file.
+>
+> ⚠️ **Label collision, deliberate and disambiguated.** `PLANNING.md` in *this same directory* calls
+> its step-11 work **"Packet E (restore-path fuzz characterization)"**. The **Packet E** defined in
+> **§2.5 of this file** is a *different, unrelated* packet (Vitest inventory enforcement) under
+> step 12's own A–E lettering. Neither renames the other. **Always qualify the letter with its step**
+> — "step-11 Packet E" vs "step-12 Packet E" — and never grep the bare string `Packet E` inside
+> `docs/testing_phase3/` expecting one result.
 
 ---
 
-## 0. Summary and recommendation
+## 0. Summary and revised gate
 
-**Recommendation: expand first, promote later — and do not treat the current green streak as the
-promotion window.**
+### 0.1 Owner sign-off (2026-08-15)
 
-The `js-unit` job is genuinely stable: **331 consecutive successful runs** with zero failures over
-**13 d 5 h 57 m** (§6). But that stability was earned by a suite that contains **none** of the four
-modules step 12 exists to cover. Step 12's own sequence is *expand, **then** two weeks green* —
-so the streak measured today is evidence about a **different suite** than the one promotion would
-gate. Promotion readiness cannot be inherited across the expansion that changes what the job runs.
+The §8 questions were put to the owner and answered. **This section is the authority**; §8 is left
+as the record of what was asked, annotated with each ruling.
 
-Two independent things are therefore both true, and neither alone settles D2:
+| # | Ruling | Scope authorized |
+|---|---|---|
+| **Q1** | **AUTHORIZED — Phase 3 test expansion only.** `js-unit` is **not** promoted to required yet. | Packets A, B, C (§2.1–§2.3) as **test-only** work. No production JS, no `package.json`, no `vitest.config.js`, no CI, no branch protection. |
+| **Q2** | **YES — the window restarts.** The strict **14-day** qualification window runs **from the first successful `JS Unit (Vitest, non-required)` run on `main` after the final expansion packet lands.** | Defines the D2 precondition. The 331-run streak measured in §6 **does not** count toward it. |
+| **Q3** | **DROP `backup-center.js` from step 12.** Its required production seam extraction is out of scope. | Packet D is **closed unstarted** (§2.4). |
+| **Q5** | **Promoted to a required predecessor**, as **Packet E** (§2.5). | Extend `generate_test_inventory.py` with Vitest inventory + drift enforcement **before** promotion. |
+
+**Revised gate — every condition must hold before D2 may be signed:**
+
+1. Packets **A → B → C** merged, in that order.
+2. **Packet E** merged — Vitest node counts pinned and drift-enforced.
+3. **14 consecutive days** with no `js-unit` failure, counted from the **first successful run on
+   `main` after the final expansion packet lands** (Q2).
+4. A **separate** owner signature on D2 itself. Q1 explicitly does not grant it.
+
+### 0.2 Why the clock could not simply be inherited
+
+The `js-unit` job is genuinely stable: **331 consecutive successful runs**, zero failures, over
+**13 d 5 h 57 m** (§6). That stability is real — and it is **evidence about the wrong suite**.
+
+> **The 331-run streak validates the existing 120-case suite only. It cannot qualify the expanded
+> suite, and no part of it carries over.** Every one of those runs executed a suite at 5.6 %
+> statement coverage that touches **none** of the modules Packets A–C will add. The jsdom
+> environment, DOM fixtures, and the `bootstrap` global fake (§3.3) are precisely the machinery most
+> likely to introduce a flake that a pre-expansion record cannot predict. Promotion readiness does
+> not survive the expansion that changes what the job runs — which is why Q2 restarts the clock
+> rather than extending it.
+
+Two independent things were both true, and neither alone settled D2:
 
 | Question | Measured answer |
 |---|---|
@@ -32,9 +66,7 @@ Two independent things are therefore both true, and neither alone settles D2:
 A required check over a suite that asserts almost nothing buys process cost without buying
 protection. The value of promotion is created by the expansion, not by the clock.
 
-**Proposed order**: Packets A → B → C (§2), then a fresh two-week window measured on the
-post-expansion suite, then D2. **Packet D (`backup-center.js`) is not recommended for step 12 at
-all** — see §2.4 and question Q3.
+**Authorized order**: **A → B → C**, then **E**, then a fresh 14-day window per Q2, then D2.
 
 ---
 
@@ -62,7 +94,7 @@ Read from the `JS Unit (Vitest, non-required)` job of run
 > ever wrong when written — recorded so the next session does not re-derive them. They are **not**
 > corrected in those files by this packet; that is question **Q6**.
 
-### 1.2 The jsdom claim is already stale — the migration path is proven in-tree
+### 1.2 RECORDED FINDING — the jsdom claim is stale; the migration path is proven in-tree
 
 `TESTING_STRATEGY_PLANNING.md` line 79 states *"`jsdom` is installed but **zero test files opt into
 it**"*, and line 172 repeats *"`jsdom` installed but unused"*. **Both are false as of `c404a06`.**
@@ -80,9 +112,15 @@ fake** (§3.3), for which there is no precedent anywhere in the suite.
 
 ### 1.3 The four target modules — untested high-risk behaviors
 
-**None of the four is executed by any current unit test.** `toast.js` is referenced twice, but only
-as `vi.mock('../toast.js', () => ({ showToast: vi.fn() }))` — it is **stubbed, never run**, so its
-0 % is invisible to a reader who greps for the filename.
+> **RECORDED FINDING — `toast.js` is at 0 % *executed* coverage despite two tests naming it.**
+> `exports.test.js` and `fetch-wrapper.test.js` both declare
+> `vi.mock('../toast.js', () => ({ showToast: vi.fn() }))`. The module is **stubbed, never run**, so
+> a filename grep reports coverage that the coverage collector does not. Any future claim that
+> `toast.js` "has tests" must be checked against the collector, not against a grep. This is the
+> concrete reason Packet B is worth doing at all, and the reason `all: true` in the coverage config
+> is load-bearing.
+
+**None of the four is executed by any current unit test**, for the reason recorded above.
 
 | Module | LOC | Exports | E2E specs touching it | Untested high-risk behavior |
 |---|---:|---:|---:|---|
@@ -105,7 +143,11 @@ Ordering principle: **highest contract density per line, lowest collaborator cou
 file per packet.** Each packet is independently shippable and owns its test file exclusively; none
 owns a production file.
 
-### 2.1 Packet A — `workout-controls-persistence.js` *(recommended first)*
+**Owner-ratified sequence (Q1):** **A → B → C**, strictly in that order, each merged before the next
+begins. **D is dropped** (Q3). **E** (§2.5) follows C and is a **required predecessor to promotion**,
+not to the expansion itself.
+
+### 2.1 Packet A — `workout-controls-persistence.js` *(AUTHORIZED — first)*
 
 - **Owns**: `static/js/modules/__tests__/workout-controls-persistence.test.js` (new). No production file.
 - **Why first**: the best risk-to-cost ratio in the set. **Zero module imports** — no `vi.mock` at
@@ -119,7 +161,7 @@ owns a production file.
   silent degradation when `getStore()`/`setItem` throws.
 - **Caution**: module-level `hydrating` persists across tests in a file — see §4.1.
 
-### 2.2 Packet B — `toast.js`
+### 2.2 Packet B — `toast.js` *(AUTHORIZED — second)*
 
 - **Owns**: `static/js/modules/__tests__/toast.test.js` (new). No production file.
 - **Why second**: most-imported module in the app at **0 % executed** coverage, and its legacy-
@@ -130,7 +172,7 @@ owns a production file.
   hide-then-invoke order, `onClick` throwing being caught); both missing-DOM early returns.
 - **New work**: this is the first test in the repo to need a **`bootstrap` global fake** (§3.3).
 
-### 2.3 Packet C — `exercises.js`
+### 2.3 Packet C — `exercises.js` *(AUTHORIZED — third)*
 
 - **Owns**: `static/js/modules/__tests__/exercises.test.js` (new). No production file.
 - **Why third**: heavily E2E-covered already, so unit value is narrower — but the double-delete
@@ -142,18 +184,56 @@ owns a production file.
 - **Collaborators to mock**: `toast.js`, `workout-plan.js`, `workout-plan-events.js`,
   `fetch-wrapper.js` — four, versus zero for Packet A. Plus a `bootstrap.Modal` fake.
 
-### 2.4 Packet D — `backup-center.js` *(NOT recommended for step 12)*
+### 2.4 Packet D — `backup-center.js` — **DROPPED from step 12 (owner ruling Q3, 2026-08-15)**
 
-`backup-center.js` is 1069 lines behind a **single** export, `initializeBackupCenter()`, with eight
-module-level mutable variables. Unit-testing its named risks at the exported surface means standing
-up the entire Backup Center DOM and driving listeners — an integration test wearing a unit test's
-clothing, and the most expensive and most brittle of the four by a wide margin.
+> **CLOSED UNSTARTED.** `backup-center.js` is **not** covered by step 12. No test file for it may be
+> written under this packet, and its 0 % coverage is an **accepted, recorded** gap for the duration
+> of step 12 — not an oversight to quietly close later.
 
-The alternative — extracting `detailRequestSequence` and the `pendingAction` state machine into
-testable seams — is a **production change**, which is outside step 12's test-only scope and outside
-anything D2 authorizes. That makes it an owner decision, not an implementer's: **question Q3**.
+The reasoning behind the ruling, retained: `backup-center.js` is 1069 lines behind a **single**
+export, `initializeBackupCenter()`, with eight module-level mutable variables. Unit-testing its named
+risks at the exported surface means standing up the entire Backup Center DOM and driving listeners —
+an integration test wearing a unit test's clothing, and the most expensive and most brittle of the
+four by a wide margin.
 
-Recorded so the next session does not silently pick the expensive path by default.
+The only route that would make it genuinely unit-testable — extracting `detailRequestSequence` and
+the `pendingAction` state machine into seams — is a **production change**, outside step 12's
+test-only scope and outside anything D2 authorizes. **The owner ruled that extraction out of scope.**
+
+**Consequences to carry forward:**
+
+- The module keeps its existing coverage: one E2E spec (`program-backup.spec.ts`) and nothing at unit
+  level. That spec is now the **sole** guard on the stale-response race guard and the confirm/cancel
+  state machine.
+- Reviving this needs its **own** Gate 0 and its own plan — it is not a follow-up any step-12 packet
+  may absorb, and Packets A–C must not grow a `backup-center` test "while they are in there".
+
+### 2.5 Packet E — Vitest inventory + drift enforcement *(AUTHORIZED — required before promotion)*
+
+Promoted from question **Q5** to a **blocking predecessor of D2** by the owner on 2026-08-15.
+
+- **Owns**: [`scripts/generate_test_inventory.py`](../../scripts/generate_test_inventory.py) and the
+  regenerated [`docs/test_inventory/`](../test_inventory/) artifact.
+- **Runs**: after Packet C, so it pins the **post-expansion** node set rather than a count that is
+  about to change three times.
+- **Why it blocks promotion.** §5 measures that the generator has **zero** vitest references, so JS
+  unit is the **only** test tier with no drift pin. Today that is a tolerable gap. The moment
+  `js-unit` becomes required it stops being tolerable: a required check would guard a node count that
+  **nothing pins**, so deleting or `.skip`-ing every new case added by Packets A–C would leave the
+  check green and CI silent. Requiring a check whose contents can be emptied without detection is a
+  false green by construction — the exact failure class the false-green hardening arc exists to
+  prevent. **Packet E closes that hole before, not after, the check starts blocking merges.**
+- **Scope**: extend the generator to collect Vitest nodes (`vitest list` or equivalent, pinned to the
+  same deterministic-output discipline as the pytest and Playwright collectors), emit per-file case
+  counts into the committed artifact, and let the existing `--check` drift gate cover them. **No new
+  required context is added by this packet** — `Test Inventory Drift` is already required, so the new
+  surface inherits enforcement without a branch-protection change.
+- **Note it will trip its own gate, once and deliberately.** Adding a pinned surface changes the
+  artifact, so this packet regenerates and commits it in the same change. That is the documented
+  repair path, not a workaround.
+- **Ordering caution.** Packets A–C add Vitest cases that the artifact does **not** yet track (§5),
+  so they require no regeneration. Once E lands, **every later JS test change does** — a reversal of
+  the rule stated in §5, and the reason E must come last rather than first.
 
 ---
 
@@ -296,12 +376,20 @@ required by any packet in §2**, and none may be committed as if it were.
 **This document itself** lands under `docs/testing_phase3/` — also not a pinned surface, and under
 QUALITY_GATE's *Product docs only* row, which requires no tests.
 
-> **The gap this reveals, recorded not fixed.** JS unit nodes are the **only** test tier with no
+> **The gap this reveals — now owned by Packet E.** JS unit nodes are the **only** test tier with no
 > drift pin. A silently deleted or `.skip`-ed Vitest case is invisible to CI in a way the equivalent
 > pytest or Playwright deletion is not — and that gap widens with every packet added. It becomes
 > materially more serious **if** `js-unit` is promoted, because a required check would then be
-> guarding a node count nothing pins. Extending the inventory to Vitest is **not** proposed here and
-> is not in step 12's scope; it is raised as **question Q5**.
+> guarding a node count nothing pins.
+>
+> **Owner ruling Q5 (2026-08-15): closing this is now a required predecessor to promotion**, carried
+> as **Packet E** (§2.5). It runs **after** Packet C and **before** D2 may be signed.
+
+> **The statement above expires when Packet E lands.** "No inventory regeneration is required" is
+> true for Packets A–C **only**. Once E pins Vitest nodes, every subsequent JS test add, remove, or
+> rename **will** trip `Test Inventory Drift` and **will** require a regenerated artifact — the same
+> discipline `tests/**` and `e2e/**` already carry. Anyone reading this section after E has merged
+> should read §2.5 first.
 
 ---
 
@@ -381,8 +469,25 @@ machinery most likely to introduce a flake the current record cannot predict.
 **A required check is only worth its process cost if it would have caught something.** Today's suite
 would not have. That is an argument for doing Packets A–C, not an argument against D2.
 
-**Proposed reading of the two-week window**: it starts when the **last** step-12 packet merges, and
-is measured on the suite that includes it.
+### 6.5 The qualification window, as ratified (owner ruling Q2, 2026-08-15)
+
+> **The strict 14-day window RESTARTS. It runs from the first successful
+> `JS Unit (Vitest, non-required)` run on `main` after the final expansion packet lands.**
+
+Consequences, stated so no later session re-reads §6.3 as a promotion credit:
+
+- **The 331-run streak in §6.3 validates the existing 120-case suite only.** It is preserved below as
+  the measurement it is, and it **cannot qualify the expanded suite**. **Zero** of it carries over.
+- The 2026-08-15T19:58:50Z 14-day mark in §6.3 is now **irrelevant to D2**. It marks only when the
+  *pre-expansion* suite would have completed a clean fortnight — a fact about a suite that will no
+  longer exist.
+- The clock starts on **`main`**, not on a PR branch, and on a **successful** run — a cancelled run
+  (§6.2 records two) neither starts nor advances it.
+- "Final expansion packet" means the last of **A, B, C** to merge. **Packet E** is a separate
+  required predecessor (§2.5) and may land inside the window; it does not restart it.
+- Any `js-unit` failure during the window **resets it to zero**, with the same attribution discipline
+  §6.2 applies — an attributable, resolved, externally-caused red should be argued on the record, not
+  silently discounted.
 
 ---
 
@@ -448,24 +553,38 @@ mismatched name blocks every PR silently.
 
 ---
 
-## 8. Gate 0 — questions for the owner
+## 8. Gate 0 — questions and rulings
 
-**No implementation may begin until these are answered.** Q1 and Q2 are blocking; Q3–Q6 shape scope.
+**§0.1 is the authority on what was decided.** This table is the record of what was asked, annotated
+with each answer.
 
-| # | Question | Why it needs the owner | Recommendation |
-|---|---|---|---|
-| **Q1** | Is step 12's expansion authorized at all? Phase 3 is still a **proposal** — §8.1a and §8.1c both state Phases 2, 3 and 5 are not authorized, and D6's signing covered step 11 *"precondition only"*. | Authorization for Packets A–C does not exist today under any recorded sign-off. | Authorize **A and B**; hold C. |
-| **Q2** | Does the two-week window restart on the **post-expansion** suite (§6.4b), or does the existing 331-run streak count toward D2? | Decides whether D2 could be signed tonight or only ~2 weeks after the last packet merges. This is the packet's central judgment. | **Restart.** The current streak is evidence about a suite that does not contain the code in question. |
-| **Q3** | `backup-center.js` (Packet D): **skip**, test through the full-DOM `initializeBackupCenter()` surface, or authorize a **production** seam extraction? | Seam extraction is a production change — outside step 12's test-only scope and outside D2. §2.4. | **Skip for step 12.** Revisit as its own packet with its own Gate 0. |
-| **Q4** | Drop the `(non-required)` suffix from the job name **in the change before** promotion? | The window closes permanently once the context is protected (§7.3). | **Yes, rename first** — the only sequence that avoids a third misleading name. |
-| **Q5** | Extend `generate_test_inventory.py` to pin Vitest node counts? | JS unit is the only tier with no drift pin (§5); the gap matters much more once the job is required. | Not in step 12. Worth its own packet **before** D2 is signed. |
-| **Q6** | Correct the stale coverage/jsdom claims in `TESTING_STRATEGY_PLANNING.md` (lines 79, 172, 540-541) and `vitest.config.js`'s comment (§1.1, §1.2)? | `vitest.config.js` is a **config file** this session is barred from touching; the doc lines are a different owner's text. | Yes, as a **separate docs-only packet** — do not fold it into a test packet. |
+| # | Question | Ruling (2026-08-15) |
+|---|---|---|
+| **Q1** | Is step 12's expansion authorized at all? Phase 3 is still a **proposal** — §8.1a and §8.1c both state Phases 2, 3 and 5 are not authorized, and D6's signing covered step 11 *"precondition only"*. | **SIGNED — authorized, Phase 3 test expansion only.** Packets A, B, C. `js-unit` is **not** promoted to required yet. |
+| **Q2** | Does the two-week window restart on the **post-expansion** suite (§6.4b), or does the existing 331-run streak count toward D2? | **SIGNED — restarts.** From the first successful `JS Unit (Vitest, non-required)` run on `main` after the final expansion packet lands. See §6.5. |
+| **Q3** | `backup-center.js` (Packet D): **skip**, test through the full-DOM `initializeBackupCenter()` surface, or authorize a **production** seam extraction? | **RULED — dropped from step 12.** The required production seam extraction is out of scope. §2.4. |
+| **Q4** | Drop the `(non-required)` suffix from the job name **in the change before** promotion? | **OPEN.** Not yet needed — promotion is not authorized. But the window closes permanently once the context is protected (§7.3), so decide it **with** D2 and never after. |
+| **Q5** | Extend `generate_test_inventory.py` to pin Vitest node counts? | **RULED — required before promotion.** Carried as **Packet E** (§2.5), sequenced after Packet C. |
+| **Q6** | Correct the stale coverage/jsdom claims in `TESTING_STRATEGY_PLANNING.md` (lines 79, 172, 540-541) and `vitest.config.js`'s comment (§1.1, §1.2)? | **OPEN.** Recommendation unchanged: a **separate docs-only packet**. `vitest.config.js` is a config file, so it cannot ride along inside a test packet. |
 
-### STOP
+### STOP — still in force
 
-**This packet ends here.** No test file, no production JS, no `package.json`, no `vitest.config.js`,
-no CI workflow, and no branch-protection setting has been created or modified, and none may be until
-Q1 and Q2 are answered. The recommendation in §0 is a recommendation, not a decision.
+**No implementation begins in this packet.** Q1 authorizes Packets A–C to be *planned and then
+built*; it does not make this document their plan, and it does not authorize code written from it
+directly. Each packet needs its own scoped plan first.
+
+As of this commit **nothing has been implemented**: no test file, no production JS, no
+`package.json`, no `vitest.config.js`, no CI workflow, and no branch-protection setting has been
+created or modified.
+
+**Explicitly still unauthorized:**
+
+- **Promoting `js-unit` to required**, or any branch-protection edit (§7). D2 needs its own signature;
+  Q1 does not grant it.
+- Any **production JS** change, including the `backup-center.js` seam extraction (§2.4).
+- Any `vitest.config.js` or `package.json` edit — §3.1 is a plan to **not** change them.
+- Any test for `backup-center.js` under step 12, including one added incidentally to another packet.
+- Any `.skip`, tolerance, or threshold that would let an expansion packet land amber (§4.5).
 
 ---
 
@@ -479,6 +598,7 @@ Q1 and Q2 are answered. The recommendation in §0 is a recommendation, not a dec
 | Files read, not modified | `AGENTS.md`, `CLAUDE.md`, `docs/MASTER_HANDOVER.md`, `docs/TESTING_STRATEGY_PLANNING.md`, `docs/ai_workflow/QUALITY_GATE.md`, `package.json`, `vitest.config.js`, the 10 files under `static/js/modules/__tests__/`, the four target modules, `.github/workflows/ci.yml`, `scripts/generate_test_inventory.py` |
 | Live measurements | 515 `ci.yml` runs resolved at job level (§6); branch protection read via API (§7.1); coverage and test counts read from run `31856035853` (§1.1) |
 | Measured on | 2026-08-15 |
+| Owner sign-off | Q1, Q2 signed and Q3, Q5 ruled 2026-08-15 — recorded verbatim in §0.1; §8 annotated |
 
 > **Every number in §1.1, §6 and §7.1 is a live measurement taken this session, not a figure copied
 > from another document.** Where a measurement contradicted a source document, the contradiction is
