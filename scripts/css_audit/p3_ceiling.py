@@ -1172,8 +1172,14 @@ def n8_denominator(root: Path = ROOT) -> dict[str, object]:
             "rest of the file executes, or record the unmeasured set explicitly."
         ),
         "priorArtInRepository": [
-            "docs/MASTER_HANDOVER.md:173-178 — the serial-mode explanation",
-            "docs/MASTER_HANDOVER.md:187 — '11 failed, 57 passed, 16 did not run'",
+            (
+                "docs/MASTER_HANDOVER.md § Known Windows visual reds — "
+                "the serial-mode explanation"
+            ),
+            (
+                "docs/MASTER_HANDOVER.md § Known LINUX visual reds — "
+                "'11 failed, 57 passed, 16 did not run'"
+            ),
             "docs/TESTING_STRATEGY_PLANNING.md §8.7",
         ],
     }

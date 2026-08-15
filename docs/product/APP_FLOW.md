@@ -5,7 +5,8 @@ when it fails.*
 
 **Derived from:** the source tree at revision `d1efc93` — every rendered template and its loaded
 JavaScript dependency graph, every frontend network call site, every route handler, and a live
-HTTP probe of the running application. **On conflict, the code wins.**
+HTTP probe of the running application. Plan routine-cascade behavior was re-verified at revision
+`538919a`. **On conflict, the code wins.**
 
 Two rules governed how this document was written, and they are worth stating because they
 changed several conclusions:
@@ -265,7 +266,7 @@ the volume panel, and the controls animation. It deliberately does **not** call
 | Filter form (muscle, equipment, difficulty, …) | API | `POST /filter_exercises` → filtered names. Column names are whitelist-validated server-side; an unknown column is `VALIDATION_ERROR` 400 |
 | Search field | Presentation | Narrows already-loaded options client-side |
 | Clear filters | Presentation → API | Resets the form, then `GET /get_all_exercises` |
-| Routine cascade — environment → program → day | Presentation → API | Three dependent `<select>`s compose the hidden `#routine` value; selecting a day issues `GET /get_routine_exercises/<routine>`. **That endpoint ignores the routine and returns the full catalog** — deliberately: the dropdown it feeds is an *add* control, so every exercise must stay offered no matter which routine already uses it |
+| Routine cascade — environment → program → day | Presentation → API | Three dependent `<select>`s compose the hidden `#routine` value. Completing the cascade with a real day synchronously clears transient superset checkbox, row-highlight, and action-bar state, then issues `GET /get_routine_exercises/<routine>`. Empty intermediate values — including Clear Filters and the stateless page reset — do not clear that selection. The reset never unlinks a persisted superset or changes the plan rows on display. **The endpoint ignores the routine and returns the full catalog** — deliberately: the dropdown it feeds is an *add* control, so every exercise must stay offered no matter which routine already uses it |
 | Exercise `<select>` | API | On change, `GET /get_exercise_info/<name>` for metadata; `GET /api/user_profile/estimate?exercise=…` for the suggested numbers |
 | Weight / sets / RIR / RPE / min-rep / max-rep | Presentation | Local inputs. Bounds are enforced on submit by the server, not by the browser attributes |
 | Estimate trace toggle | Presentation | Expands the derivation behind the suggested numbers |

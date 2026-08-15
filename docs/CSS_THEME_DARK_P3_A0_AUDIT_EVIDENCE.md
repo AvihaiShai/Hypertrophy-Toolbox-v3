@@ -786,11 +786,13 @@ the derivation predicts `11 failed / 73 passed`, and the recorded `57 passed` st
 
 The explanation already exists in two places and neither is cited by the plan or the ledger:
 
-- `docs/MASTER_HANDOVER.md:173-178` — *"A failure inside `visual-baseline-thumbnails.spec.ts`
-  skips the remainder of that spec … The resulting 'N did not run' is serial-mode collateral,
-  never a documented tail."*
-- `docs/MASTER_HANDOVER.md:187` — *"**11 failed, 57 passed, 16 did not run**"* on deep-gate run
-  `30722690389` (`44fe838`), reproduced on `30721970863` (`d49cc80`).
+- `docs/MASTER_HANDOVER.md` § *Known Windows visual reds — the WP4.0 pair, both OPEN and
+  deferred* — *"A failure inside `visual-baseline-thumbnails.spec.ts` skips the remainder of
+  that spec … The resulting 'N did not run' is serial-mode collateral, never a documented
+  tail."*
+- `docs/MASTER_HANDOVER.md` § *Known LINUX visual reds — stale baselines after the WP4.4 CSS
+  arc* — *"**11 failed, 57 passed, 16 did not run**"* on deep-gate run `30722690389`
+  (`44fe838`), reproduced on `30721970863` (`d49cc80`).
 - `docs/TESTING_STRATEGY_PLANNING.md` §8.7.
 
 What was missing is that **the ledger itself records only `11 failed / 57 passed`** and its
@@ -805,8 +807,8 @@ denominator. That is the defect, and it is a documentation defect, not a measure
 Sixteen thumbnail tests have **never executed** on any recorded N8 run. The ledger cannot
 certify them as inherited **or** as clean, and the ledger's own rule — *"A red on a file NOT
 in this ledger is a real finding and a rollback trigger"* — cannot be applied to a test that
-never ran. `MASTER_HANDOVER.md:189` says exactly this: *"Because the suite is serial, **11 is
-a floor, not the count**."*
+never ran. `MASTER_HANDOVER.md` § *Known LINUX visual reds — stale baselines after the WP4.4
+CSS arc* says exactly this: *"Because the suite is serial, **11 is a floor, not the count**."*
 
 **Precondition on P3-c** (not on this packet):
 
