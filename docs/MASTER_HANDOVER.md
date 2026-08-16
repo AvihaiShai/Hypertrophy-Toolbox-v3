@@ -52,7 +52,9 @@
 > touched by R1, deliberately — a scheduled workflow runs the default branch's HEAD copy
 > of its own file, so an edit before **2026-08-17 03:17 UTC** would mean that run
 > validates something other than what shipped. The deep gate remains
-> *implemented but not runtime-validated*; its runbook below is unchanged.
+> *implemented but not runtime-validated*; its runbook below is unchanged **except for a
+> superseding warning added 2026-08-16** — the `gh` commands themselves are byte-identical,
+> but the target Monday moved from 2026-08-17 to 2026-08-24. Read that warning first.
 >
 > **[UPDATED 2026-08-15 — one narrow exception was taken.]** **Packet R2-a** split the
 > `old-db-migration` HTTP assertion in `deep-gate.yml` under an explicit owner exception
@@ -430,9 +432,10 @@
 > **What this does NOT establish — do not report it as validated.** *No
 > scheduled execution has occurred.* Everything verified so far is static
 > analysis of the five expressions, a local rehearsal of the shell logic, and a
-> local compare run (100 passed, nothing written). The thing to check is the
+> local compare run (100 passed, nothing written). **The first authoritative
+> scheduled run is Monday 2026-08-17 03:17 UTC**, and the thing to check is the
 > **job set, not the overall green**: it must show **all seven jobs with
-> `visual-linux` executed rather than skipped**. Until such a run is inspected,
+> `visual-linux` executed rather than skipped**. Until that run is inspected,
 > the weekly gate is *implemented but unvalidated at runtime*.
 >
 > > ⚠️ **The 2026-08-17 target below is superseded — read this before running the
@@ -443,17 +446,25 @@
 > > written to validate. It is **contaminated**: a green there does not validate
 > > what was held, and a red there is **ambiguous** between "the scheduled gate
 > > never worked" and "R2-b broke it". **The first uncontaminated schedule-event
-> > evidence is 2026-08-24.** Two changes to the commands below: the packaged job
-> > now reports as `Frozen executable (real bootloader, Windows) / Build and smoke`
-> > — expecting the bare name will read as a missing job — and step 3's
-> > compare-mode proof is unchanged and still mandatory. See
+> > evidence is 2026-08-24.**
+> >
+> > **Which Monday to run this on.** Run the full runbook on **2026-08-24** — that
+> > is the evidence run. You may still run it on 2026-08-17, but only to answer one
+> > question: *did the `schedule` trigger fire at all?* Record that as a
+> > trigger-fired / did-not-fire observation and nothing more; do **not** record
+> > 2026-08-17 as validating the weekly gate whatever its jobs report.
+> >
+> > **One change to the commands below:** the packaged job now reports as
+> > `Frozen executable (real bootloader, Windows) / Build and smoke`, so step 2's
+> > job list will show the composite name — expecting the bare name will read as a
+> > missing job. Step 3's compare-mode proof is unchanged and still mandatory. See
 > > [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b →
 > > *Hold discharged by owner override* and *Next clean checkpoint*.
 >
-> **Runbook — run this on or after the target date.** The schedule itself
+> **Runbook — run this on or after 2026-08-17 03:17 UTC.** The schedule itself
 > needs no further setup: `deep-gate.yml` already carries `cron: '17 3 * * 1'`
-> and both 2026-08-17 and 2026-08-24 are Mondays. What remains is **inspection**,
-> which nothing in the repository can perform for itself.
+> and 2026-08-17 is a Monday. What remains is **inspection**, which nothing in
+> the repository can perform for itself.
 >
 > ```bash
 > # 1. Find the scheduled run. --event=schedule is NOT optional: without it a
@@ -2489,7 +2500,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
-| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and its first scheduled run is still due 2026-08-17 03:17 UTC; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
+| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **no scheduled run has ever executed** and the 2026-08-17 03:17 UTC run is contaminated by the #388 merge — the first clean schedule-event checkpoint is **2026-08-24**; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
 
 ## Open Decisions
 

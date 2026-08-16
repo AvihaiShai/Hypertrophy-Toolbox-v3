@@ -45,8 +45,16 @@ never fired, and §7.3 entry criteria 2 and 3 are unmet, so Testing Phase 4 stay
 open — a first real tag would not close it.
 
 **Still open, unchanged by that.** The heavy `$orchestrate` mechanism stays
-deliberately unimplemented, and the first scheduled deep-gate run is still due
-2026-08-17 03:17 UTC — now comparing against #351's regenerated Linux captures.
+deliberately unimplemented, and **no scheduled deep-gate run has ever executed**
+(measured 2026-08-16T22:41Z: zero `schedule`-event runs repo-wide). The cron is due
+03:17 UTC each Monday and compares against #351's regenerated Linux captures.
+**2026-08-17 is no longer the checkpoint:** #388 (Packet R2-b) merged 2026-08-16, and a
+scheduled workflow runs the default branch's HEAD copy of its own file, so that run
+exercises R2-b's file and is contaminated — a green does not validate what was held, and
+a red is ambiguous. **The first uncontaminated schedule-event evidence is 2026-08-24**,
+judged at job level with `visual-linux` executed. Note the packaged job now reports as
+`Frozen executable (real bootloader, Windows) / Build and smoke`. Full record:
+[`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b.
 
 No pack feature branch, worktree, local evidence artifact, or database is a
 cleanup target.
@@ -72,7 +80,8 @@ This is not a claim that every proposal in those source plans shipped. Testing
 Phase-2 Packet A landed as #342; strict-console Packet C and axe Packet D remain
 queued. The heavy `$orchestrate` mechanism remains deliberately unimplemented.
 The release/tag pipeline remains deferred, and the first scheduled deep-gate
-run is still due 2026-08-17 03:17 UTC. Linux fatigue baseline follow-up #351 is
+run has **never executed**; post-#388 the 2026-08-17 run is contaminated and the first
+clean checkpoint is **2026-08-24**. Linux fatigue baseline follow-up #351 is
 an open clean/green draft owned by its existing session.
 
 No pack feature branch, worktree, local evidence artifact, or database is a
