@@ -88,11 +88,18 @@
 > judged at job level with `visual-linux` confirmed executed — never off the overall
 > green.
 >
-> **Three things R2-b will not establish even once it merges.** The converted job has
-> never executed *as a `uses:` job* (**R-10**) — `workflow_dispatch` needs the file on the
-> default branch, so the first post-merge dispatch is its first execution, and with
-> default inputs that dispatch **skips `visual-linux`** and says nothing about the weekly
-> gate. The B9 `concurrency:` decision for `deep-gate.yml` is untouched (**R-11**).
+> **R-10 is now DISCHARGED.** It said the converted job had never executed *as a `uses:`
+> job*, since `workflow_dispatch` needs the file on the default branch. That first
+> post-merge dispatch has now run:
+> [31972476567](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31972476567)
+> on `main` @ `949b15e`, **7/7 jobs success**, the packaged job reported under its composite
+> name `Frozen executable (real bootloader, Windows) / Build and smoke` and running the real
+> `--mode bootloader` smoke. It was dispatched with `run_visual=true visual_mode=compare`,
+> so `visual-linux` executed too and wrote no baseline. **It remains a dispatch and proves
+> nothing about the `schedule` trigger.**
+>
+> **Two things R2-b still does not establish.** The B9 `concurrency:` decision for
+> `deep-gate.yml` is untouched (**R-11**).
 > `_packaged-windows.yml` uploads no build artifact, so all three callers discard `dist/`
 > (**R-12**). Separately, the deep-gate smoke moves from the script's default port **5000**
 > to **`--port 5123`** — a deliberate change, not preserved behavior.
@@ -423,16 +430,30 @@
 > **What this does NOT establish — do not report it as validated.** *No
 > scheduled execution has occurred.* Everything verified so far is static
 > analysis of the five expressions, a local rehearsal of the shell logic, and a
-> local compare run (100 passed, nothing written). **The first authoritative
-> scheduled run is Monday 2026-08-17 03:17 UTC**, and the thing to check is the
+> local compare run (100 passed, nothing written). The thing to check is the
 > **job set, not the overall green**: it must show **all seven jobs with
-> `visual-linux` executed rather than skipped**. Until that run is inspected,
+> `visual-linux` executed rather than skipped**. Until such a run is inspected,
 > the weekly gate is *implemented but unvalidated at runtime*.
 >
-> **Runbook — run this on or after 2026-08-17 03:17 UTC.** The schedule itself
+> > ⚠️ **The 2026-08-17 target below is superseded — read this before running the
+> > runbook.** This block was written when 2026-08-17 03:17 UTC was the first
+> > authoritative scheduled run. **#388 (Packet R2-b) merged 2026-08-16**, and a
+> > scheduled workflow executes the default branch's HEAD copy of its own file, so
+> > the 2026-08-17 run exercises **R2-b's** file rather than the one this block was
+> > written to validate. It is **contaminated**: a green there does not validate
+> > what was held, and a red there is **ambiguous** between "the scheduled gate
+> > never worked" and "R2-b broke it". **The first uncontaminated schedule-event
+> > evidence is 2026-08-24.** Two changes to the commands below: the packaged job
+> > now reports as `Frozen executable (real bootloader, Windows) / Build and smoke`
+> > — expecting the bare name will read as a missing job — and step 3's
+> > compare-mode proof is unchanged and still mandatory. See
+> > [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b →
+> > *Hold discharged by owner override* and *Next clean checkpoint*.
+>
+> **Runbook — run this on or after the target date.** The schedule itself
 > needs no further setup: `deep-gate.yml` already carries `cron: '17 3 * * 1'`
-> and 2026-08-17 is a Monday. What remains is **inspection**, which nothing in
-> the repository can perform for itself.
+> and both 2026-08-17 and 2026-08-24 are Mondays. What remains is **inspection**,
+> which nothing in the repository can perform for itself.
 >
 > ```bash
 > # 1. Find the scheduled run. --event=schedule is NOT optional: without it a
