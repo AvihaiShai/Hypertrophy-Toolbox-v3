@@ -253,13 +253,22 @@
     </div>
 </div>
 
-<!-- Empty placeholder, kept deliberately: as `display: inline-flex` it still
-     generates a line box, so deleting it shortens all six full-page
-     `workout-log-*` captures in e2e/visual.spec.ts by 21px (measured
-     1440x1095 -> 1440x1074). Removing it is therefore a 12-capture
-     two-platform re-baseline and belongs to its own packet. See
-     A11Y_EXCEPTIONS row X13. -->
-<div class="btn-group" role="group" aria-label="Export controls">
+<!-- Empty placeholder for an export control that was never built: GET
+     /export_workout_log exists and is tested, but no UI binds to it (recorded in
+     docs/product/APP_FLOW.md, Known discrepancies).
+
+     It carried aria-label="Export controls" on a role-less div, so the name was
+     discarded outright (A11Y_EXCEPTIONS row X13). The name is gone rather than
+     given a role: naming an empty group announces controls that do not exist,
+     and the honest fix is to bind the export button, not to describe a
+     container holding nothing.
+
+     The element itself stays. As `display: inline-flex` it still generates a
+     line box, so deleting it shortens all six full-page `workout-log-*`
+     captures in e2e/visual.spec.ts by 21px (measured 1440x1095 -> 1440x1074) —
+     a 12-capture two-platform re-baseline, which belongs with whatever change
+     next moves these captures. -->
+<div class="btn-group">
     <!-- Other buttons in the group -->
 </div>
 
