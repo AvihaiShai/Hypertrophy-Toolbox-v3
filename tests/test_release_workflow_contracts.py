@@ -176,8 +176,8 @@ def test_the_workflow_directory_holds_exactly_the_files_this_file_reads():
     A workflow file outside that list is invisible to all of them -- including "the
     frozen build has exactly one definition" and "no undeclared caller exists". Without
     this, a new `.github/workflows/nightly-package.yml` could inline its own PyInstaller
-    build, or mint a fourth `<name> / Build and smoke` composite check, with all 39
-    tests still green. The prose in `_packaged-windows.yml` and QUALITY_GATE.md claims
+    build, or mint a fourth `<name> / Build and smoke` composite check, with every
+    other contract in this file still green. The prose in `_packaged-windows.yml` and QUALITY_GATE.md claims
     those guarantees over the repository, so the repository is what has to be measured.
 
     Globbing inside a test body is not the collection-time globbing the R1 council
@@ -373,7 +373,8 @@ def test_the_single_definition_keeps_the_shape_both_lifted_jobs_had():
     # A `uses:` job may not declare `continue-on-error`, so a step here is the only
     # place the build can be made non-blocking for all three callers at once -- turning
     # a red bootloader smoke green on the PR path, in the release gate and in the weekly
-    # gate simultaneously. ci.yml uses the key legitimately in seven places and records
+    # gate simultaneously. ci.yml uses the key legitimately in seven places (plus one
+    # explicit `continue-on-error: false`, eight occurrences in all) and records
     # this exact trap in its own comments; it has no business in the shared definition.
     assert "continue-on-error" not in executable(PACKAGED)
 
@@ -406,7 +407,20 @@ def test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows():
     Asserted through the call rather than inside deep-gate.yml, because that is where
     the guarantee now lives: the caller, the callee, and the argv in between.
     """
-    assert REUSABLE_CALL in strip_comments(jobs(DEEP_GATE)["frozen-windows"])
+    frozen = strip_comments(jobs(DEEP_GATE)["frozen-windows"])
+    assert REUSABLE_CALL in frozen
+
+    # The lift shrank this job to a single `uses:` line, so a one-line `if:` above it
+    # would skip the weekly gate's ONLY packaged-artifact check and still report the
+    # run green. The step-level guard below is no help: it iterates NEW_WORKFLOWS, and
+    # a `uses:` job has no steps to iterate. deep-gate.yml already carries the
+    # precedent on `visual-linux`, and MASTER_HANDOVER makes "executed, not skipped"
+    # the pass condition of this gate -- so the shape has to be barred by name here.
+    assert not re.search(r"^    if:", frozen, re.MULTILINE), (
+        "`frozen-windows` must stay unconditional; a `uses:` job with an `if:` "
+        "skips silently and leaves the weekly gate green with no bootloader smoke"
+    )
+
     called = jobs(PACKAGED)["build-and-smoke"]
     assert "runs-on: windows-latest" in called
     assert "--mode bootloader" in dict(steps(called))["Smoke the real bootloader"]
