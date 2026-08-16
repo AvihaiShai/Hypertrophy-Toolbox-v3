@@ -48,8 +48,16 @@ never fired, and §7.3 entry criteria 2 and 3 are unmet, so Testing Phase 4 stay
 open — a first real tag would not close it.
 
 **Still open, unchanged by that.** The heavy `$orchestrate` mechanism stays
-deliberately unimplemented, and the first scheduled deep-gate run is still due
-2026-08-17 03:17 UTC — now comparing against #351's regenerated Linux captures.
+deliberately unimplemented, and **no scheduled deep-gate run has ever executed**
+(measured 2026-08-16T22:41Z: zero `schedule`-event runs repo-wide). The cron is due
+03:17 UTC each Monday and compares against #351's regenerated Linux captures.
+**2026-08-17 is no longer the checkpoint:** #388 (Packet R2-b) merged 2026-08-16, and a
+scheduled workflow runs the default branch's HEAD copy of its own file, so that run
+exercises R2-b's file and is contaminated — a green does not validate what was held, and
+a red is ambiguous. **The first uncontaminated schedule-event evidence is 2026-08-24**,
+judged at job level with `visual-linux` executed. Note the packaged job now reports as
+`Frozen executable (real bootloader, Windows) / Build and smoke`. Full record:
+[`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b.
 
 No pack feature branch, worktree, local evidence artifact, or database is a
 cleanup target.
@@ -621,9 +629,11 @@ feature action dispatched from this file.** Verified against `origin/main` at
   shifted the line it named. Docs-only.
 - **#376 (`94f0d8c`)** wrote this block; **#377 (`aec309d`)** corrected the two
   claims it left live.
-- Unchanged: the first scheduled deep-gate run is inspected only after
-  **2026-08-17 03:17 UTC**, at job level; the heavy `$orchestrate` design stays
-  unimplemented; do not revive P3 or add another readiness marker.
+- Unchanged: the first scheduled deep-gate run is inspected at job level; the
+  heavy `$orchestrate` design stays unimplemented; do not revive P3 or add
+  another readiness marker. **[UPDATED 2026-08-16 — this clause read "only
+  after 2026-08-17 03:17 UTC". Post-#388 that run executes R2-b's file and is
+  contaminated; the first clean checkpoint is 2026-08-24.]**
 
 > **Superseded 2026-08-15.** The instruction below said *"Testing Phase-2 Packet D
 > (axe) is the only queued packet of that pair … it stays queued … with no open
