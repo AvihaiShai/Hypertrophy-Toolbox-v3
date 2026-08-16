@@ -259,7 +259,10 @@ anything.
 24. Given the packet is complete, when the frozen Windows build+smoke definitions are
     counted across all workflow files, then there are exactly **two**
     (`_packaged-windows.yml` and `deep-gate.yml`'s untouched `frozen-windows`) — never
-    three.
+    three. *(**Superseded by Packet R2-b**, which converted `frozen-windows` and moved
+    the count to exactly **one** definition with **three** callers. The criterion's
+    intent — never a third copy — is unchanged and now enforced more strictly; see the
+    R2-b section at the end of this file.)*
 25. Given `ci.yml` after the edit, when its `packaged-smoke-windows` job `name:` is
     read, then it is byte-identical to `Packaged Smoke (Windows bootloader, non-required)`.
 26. Given `ci.yml` after the edit, when every job whose `name:` appears in the 11
@@ -321,7 +324,9 @@ anything.
   `concurrency:` decision, are Packet R2.
   *(Scoped to R1. One narrow exception was taken later by **Packet R2-a**, 2026-08-15,
   for the `&&` assertion only — see residual **R-9**. The `frozen-windows` conversion
-  and the B9 decision remain **R2-b, not started**.)*
+  is **Packet R2-b**, implemented 2026-08-15 and **held from merge** until the first
+  scheduled run has been inspected — see the R2-b section at the end of this file. The
+  B9 `concurrency:` decision is still **not started**.)*
 - `visual-linux` in the release gate (D3) — revisit only after the 2026-08-17 run and
   ≥3 consecutive green scheduled runs.
 - Frozen × historical-schema coverage (D5) — separate follow-up packet; it needs a
@@ -539,7 +544,7 @@ Three reviewers ran in parallel against this worktree. Every finding is answered
 |---|---|---|---|
 | T-Q3 | Full pytest mandatory; the Chromium E2E half of `/verify-suite` is **not derivable** from any changed path | **A** | Nine pre-existing test files assert against the changed artifacts while the `scripts/**` stem union resolves to two files this packet writes itself. Local gate = full pytest + inventory regen/`--check` + pyright baseline diff + `tsc`. The E2E half is supplied by CI's own jobs, which still gate the merge — **no test is relaxed and no contract is weakened**. Residual **R-6**. |
 | T-Q2 | Only the `e2e-functional-shard` spec list or a rename of that job trips the workflow-derived inventory surface | **A** | Confirmed against `scripts/generate_test_inventory.py:125-156`. Regeneration sequenced last. |
-| T-B1 | The YAML contract file can go **entirely vacuous** if the parser stops matching | **A** | Vacuity floor: assert 5 jobs in `release.yml`, 1 in `_packaged-windows.yml`, >=17 in `ci.yml` **before** any other assertion. Highest-value finding of the council. |
+| T-B1 | The YAML contract file can go **entirely vacuous** if the parser stops matching | **A** | Vacuity floor: assert the job count in `release.yml`, 1 in `_packaged-windows.yml`, >=17 in `ci.yml` **before** any other assertion. Highest-value finding of the council. *(The `release.yml` figure as shipped is **6**, not the 5 this row originally wrote; Packet R2-b additionally pinned **7** in `deep-gate.yml`, since the floor now has to cover that file too. Read the counts off `test_the_parser_still_finds_every_job`, not off this row.)* |
 | T-B2 | Criterion 28 as a negative `"5000" not in text` scan is **inverted** — deleting `HT_PORT` makes it pass more easily | **A** | Replaced with a positive assertion: each smoke leg must *set* `HT_PORT` to its named non-5000 value and its probe URL must use that same port. |
 | T-B3 | Criterion 32 as `": write" not in text` passes when `permissions:` is deleted | **A** | Replaced with a positive assertion: every job in both new files declares a `permissions:` block and every scope is `read`. |
 | T-B4 | Both new workflows are invisible to every runtime-pin contract | **A** | See A-N6. |
@@ -547,13 +552,13 @@ Three reviewers ran in parallel against this worktree. Every finding is answered
 | T-gap | **A genuine gap in the 33 criteria**: nothing covers a provenance verdict on `cancelled` / `skipped` / `neutral` / `timed_out` | **A** | New criterion **34**, parametrized. `conclusion == "success"` is the only pass. |
 | T-Q5 #7 | Criterion 11 is satisfied maximally by dropping `dry_run` entirely | **A** | Paired with the positive: `dry_run` must appear inside `version-guard` and reach the script as an argument. |
 | T-Q5 #8 | Criterion 21 must assert the `!= 'success'` operator, not the presence of `if: always()` | **A** | Adopted. |
-| T-Q5 #9 | Criterion 24 counted by filename passes with "two definitions, zero callers" | **A** | Counted by command shape (`pyinstaller --clean --noconfirm` and `smoke_packaged_app.py` each exactly 2 across all workflow files) **plus** both callers asserted present. |
+| T-Q5 #9 | Criterion 24 counted by filename passes with "two definitions, zero callers" | **A** | Counted by command shape (`pyinstaller --clean --noconfirm` and `smoke_packaged_app.py` each exactly 2 across all workflow files) **plus** both callers asserted present. *(**Superseded by Packet R2-b**: with the inline `deep-gate.yml` copy gone the expected count is now **1** each, and the caller set is the **three** entries in `PACKAGED_CALLERS`, asserted in both directions. The counting *method* — by command shape, not by filename — is what T-Q5 #9 won, and it is unchanged.)* |
 | T-Q5 #10 | Criterion 3 must not re-derive `tests/test_version.py` | **A** | The unit under test is fed two literal strings. |
 | T-Q5 #11 | Criterion 23 must bind both halves | **A** | For every step declaring an `id:`, a later step in the same job must reference `steps.<id>.outcome`. |
 | T-Q5 #12 | Criterion 29 over two files is vacuous by construction | **A** | Scans all four workflow files. |
 | T-NIT13 | The empty-string `dry_run` a push event produces is the highest-value untested input | **A** | Explicit unit test. |
 | T-static | Static substitutes for deferred criteria 1/2/4, incl. pinning the anchored `^v\d+\.\d+\.\d+$` regex and asserting the trigger is **not** semver-narrowed | **A** | Adopted; stronger than what Section 0 had. |
-| T-30 | Criterion 30 substitute via the `test_consult_adapter.py:1066-1077` precedent | **A** | Assert `deep-gate.yml` still contains its five load-bearing strings **and** contains no `uses: ./.github/workflows/_packaged-windows.yml`. That negative catches R2 creep. |
+| T-30 | Criterion 30 substitute via the `test_consult_adapter.py:1066-1077` precedent | **A** | Assert `deep-gate.yml` still contains its five load-bearing strings **and** contains no `uses: ./.github/workflows/_packaged-windows.yml`. That negative catches R2 creep. *(**Both tests deleted by Packet R2-b**, which is the R2 they were guarding against — the negative had done its job. The underlying intent, that deep-gate's packaged-artifact guarantee is pinned somewhere, is discharged instead by `PACKAGED_CALLERS` and `test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows`.)* |
 | T-collect | Neither new test file may make its **collection** host-dependent | **A** | No `importorskip`, no glob-parametrization over `.github/workflows/*.yml`; explicit literal lists only. |
 
 ### Product-risk reviewer (`af59ffce656209012`)
@@ -598,7 +603,11 @@ Recorded so the diff is not read as scope creep. None expands the packet.
    council (P-N7); `port` and `timeout-minutes` were dropped during the post-implementation
    unslop review once measurement showed no caller varies either — `deep-gate.yml`'s
    `frozen-windows` also uses 45 minutes and passes no `--port`. Both values are now
-   literals inside the reusable workflow.
+   literals inside the reusable workflow. *(**Partly superseded by Packet R2-b.** "No
+   caller varies either" was true of the timeout and false of the port: passing no
+   `--port` means the script's default **5000**, not the literal **5123** in the reusable
+   workflow. Dropping the input was still right, but the consequence is that R2-b's
+   conversion changes deep-gate's smoke port. See the R2-b difference table below.)*
 5. Section 0's `startup-smokes` matrix (two legs) shipped as **two discrete jobs**,
    `first-install` and `old-db-migration`. A matrix would have needed a per-step `if:`
    to select the leg's body, and a conditional step is exactly what the anti-skip
@@ -710,7 +719,7 @@ Two reviewers ran against the staged diff. `unslop-reviewer` returned 11 finding
 | # | Residual | Why accepted |
 |---|---|---|
 | **R-8** | A transient GitHub API error (502, rate-limit) aborts `ci-provenance` outright; there is no retry across the ~90 requests it may make over 45 minutes. | Fails **closed**, so it costs a re-run rather than a bad release. Retry logic was declined as scope creep in R1. |
-| **R-9** | ~~`deep-gate.yml` carries the same `&&`-chained HTTP assertion that B1 fixed here.~~ **DISCHARGED 2026-08-15 by Packet R2-a**, under a narrow owner exception to the pre-2026-08-17 freeze. The assertion is split into two standalone commands and `deep-gate.yml` is now covered by `test_no_assertion_hides_inside_an_and_list`. Measured before the edit under `bash -e`: the combined form exits **0** on `root=500` and falls through to the schema assertions; the split form exits **1**. The exception was taken because the defect meant `old-db-migration` could not fail on a broken landing page during the first authoritative scheduled run. **Only that assertion and an adjacent rationale comment changed** — no job composition, runner, step order, schedule, `visual-linux` or compare-mode behavior, and no baseline. The `_packaged-windows.yml` extraction remains **R2-b, not started**. |
+| **R-9** | ~~`deep-gate.yml` carries the same `&&`-chained HTTP assertion that B1 fixed here.~~ **DISCHARGED 2026-08-15 by Packet R2-a**, under a narrow owner exception to the pre-2026-08-17 freeze. The assertion is split into two standalone commands and `deep-gate.yml` is now covered by `test_no_assertion_hides_inside_an_and_list`. Measured before the edit under `bash -e`: the combined form exits **0** on `root=500` and falls through to the schema assertions; the split form exits **1**. The exception was taken because the defect meant `old-db-migration` could not fail on a broken landing page during the first authoritative scheduled run. **Only that assertion and an adjacent rationale comment changed** — no job composition, runner, step order, schedule, `visual-linux` or compare-mode behavior, and no baseline. The `_packaged-windows.yml` conversion is **Packet R2-b**, implemented and held; see the section below. |
 
 ### Gate 1 assessment
 
@@ -782,3 +791,240 @@ workflow executes and its jobs pass. **R-1 stands unchanged — the `push: tags`
 trigger has still never fired.** What ran was `workflow_dispatch` against a branch;
 the tag path, the tag-identity comparison and the on-`main` ancestry check are still
 unexecuted, and the first genuine release tag remains their first execution.
+
+---
+
+## Packet R2-b — `deep-gate.yml`'s `frozen-windows` → the reusable workflow
+
+*Implemented 2026-08-15. **Held from merge**; see the hold condition below.*
+
+R1 shipped `_packaged-windows.yml` and pointed `ci.yml` and `release.yml` at it, but
+left `deep-gate.yml`'s `frozen-windows` as a second copy of the same build. R2-b
+converts that job to `uses: ./.github/workflows/_packaged-windows.yml`, which takes the
+repository from **two definitions / two callers** to **one definition / three callers**.
+
+### Hold condition
+
+`deep-gate.yml` executes the **default branch's HEAD copy of its own file** on a
+schedule. The first authoritative scheduled run is due **2026-08-17 03:17 UTC**, and
+that run must exercise the workflow as it shipped. Merging R2-b before it would
+substitute a different file and destroy the evidence the D3 stopgap exists to produce.
+
+**This packet may not merge until a scheduled run after 2026-08-17 03:17 UTC has been
+inspected under the pre-R2-b workflow, and that inspection has been recorded.** As of
+this packet's implementation, **no scheduled deep-gate run has occurred** and nothing
+here may be read as evidence that one has.
+
+> ⚠️ **The hold above was WAIVED by explicit owner override on 2026-08-16**, and #388
+> merged ahead of the scheduled run. The hold condition and the checklist are preserved
+> as written because they state the obligation correctly; **none of rows 1–3 was ever
+> satisfied on its own terms**. What the waiver costs, and the substitute evidence that
+> does *not* cover the `schedule` trigger, are recorded in
+> *Hold discharged by owner override — 2026-08-16* at the end of this section. Read that
+> before citing anything below as evidence.
+
+The hold is stated here but **enforced in the merge mechanism**, because this repository's
+standing convention is auto-merge on green CI and this branch is green by construction —
+its contract tests are written against the post-conversion state, so CI cannot express the
+hold. The PR is therefore opened as a **draft** with the hold in its title. Do not mark it
+ready for review until every row below is done. *(Superseded by the 2026-08-16 override:
+#388 was marked ready and merged with rows 1–3 unsatisfied. The draft-plus-title mechanism
+did its job — it held the packet until an owner made an explicit, recorded decision to
+spend the evidence, rather than letting green CI merge it silently.)*
+
+#### Merge checklist — all rows required
+
+| # | Obligation | How it is discharged |
+|---|---|---|
+| 1 | A scheduled run exists after 2026-08-17 03:17 UTC | `gh run list --workflow=deep-gate.yml --event=schedule` |
+| 2 | All **7** jobs inspected individually, `visual-linux` executed and not skipped | `gh run view <id>` per job — **never the overall green**. The packaged job is reported under its **pre-composite** name, `Frozen executable (real bootloader, Windows)`; the composite `… / Build and smoke` form only appears from the first run *after* this merges. |
+| 3 | The inspection is written down | A "Hold discharged" subsection appended to this R2-b section, **and** the deep-gate block in [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) |
+| 4 | `docs/MASTER_HANDOVER.md` corrected | **CLOSED 2026-08-16.** Its R1 block read "Packet R2-b, still not started", which was already false; corrected to implemented, with R-10/R-11/R-12 and the 5000→5123 change stated. The `R2-B-PENDING-EVIDENCE` marker it carried has been **replaced** — not with the scheduled run's evidence, which does not exist, but with the override record: what the waiver forfeits, the substitute dispatch, and the 2026-08-24 checkpoint. |
+| 5 | `docs/DECISIONS.md` ADR-007 corrected | **CLOSED.** Its Consequences said "one definition with **two** callers"; superseded in place. |
+| 6 | Full `pytest` re-run against a freshly merged `origin/main` | **CLOSED** — see the execution log below. Regenerate `docs/test_inventory/` if a count moved; never hand-merge it, because `Test Inventory Drift` is a required context. |
+
+#### Execution log — rows 3, 4, 6 (2026-08-15, owner-authorized)
+
+| Item | Evidence |
+|---|---|
+| Base before | `c404a06` (five commits stale) |
+| Merged in | `origin/main` @ **`8baddd2`** — #385 `15498ab`, #389 `729eb4a`, #387 `9e5997a`, #386 `81df507`, #390 `8baddd2`; then **`d583225`** (#391) in a second merge |
+| Merge commits | **`a11f89b`** 2026-08-15T15:46Z, then **`7f93e03`** 2026-08-15T18:0xZ. `origin/main` confirmed an ancestor of `HEAD` after each. **`main` advanced roughly hourly on 2026-08-15, so re-merge and re-run the gates immediately before merging rather than trusting this row.** The second merge was clean; #391's `ci.yml` edit was comment-only and the `R2-B-PENDING-EVIDENCE` marker survived the `MASTER_HANDOVER.md` auto-merge (both re-asserted by grep). |
+| Conflicts | `docs/test_inventory/TEST_INVENTORY.{json,md}` **only** — exactly as row 6 predicted. Resolved by re-running the generator; zero conflict markers survive; `--check` clean. |
+| Node counts | pytest **2660 → 2667** (this branch's +4 contract nodes ∪ main's +3). Playwright unchanged at **649 / 33**, enumerated against the merged tree. |
+| `node_modules` | Deliberately **not** reinstalled. #390 is an in-range lockfile bump, Playwright still enumerates 649/33, and this worktree junctions into the shared main checkout — `npm ci` here mutates that shared install and breaks every other worktree. |
+| Full `pytest` | **2987 passed, 2 skipped** — re-run after the second merge, same result |
+| `npx tsc --noEmit` | exit **0** (both merges) |
+| `pyright_baseline_diff.py` | **PASS**, 0 net-new (baseline 132, current 132) — both merges |
+| 26-mutation harness | **26/26 red**, tree restored green (40 contract nodes) — both merges |
+| PR checks | 18/18 SUCCESS, polled to **zero pending**, on `b50ef6f`; re-polled on `7f93e03` |
+
+**Rows 1 and 2 remain OPEN — and were WAIVED, not closed, by the 2026-08-16 override.**
+Re-measured **2026-08-16T20:53Z**, immediately before the merge — `--event=schedule` for
+`deep-gate.yml`, the repo-wide `--event=schedule` list, and the REST `total_count` for
+workflow `290121548` all still return **empty / 0**. Measured
+2026-08-15T13:45Z and again before this merge:
+`gh run list --workflow=deep-gate.yml --event=schedule`, the repo-wide `--event=schedule`
+list, and the REST API `total_count` for workflow `290121548` all return **empty / 0**. No
+`schedule`-event run has ever occurred; every one of the 105 deep-gate runs is a
+`workflow_dispatch`, which is **never** row-1 evidence. The one-shot routine
+`trig_01Dy1dDmAgPFCSzXg2nmanJo` is armed and unfired for **2026-08-17T03:30:00Z**.
+
+R2-a took a narrow exception to the same freeze for the `&&` assertion (R-9) because
+that defect would have made `old-db-migration` unable to fail during the very run being
+protected. **No comparable argument applies here**: the duplicate build is a maintenance
+cost, not a false green, so the freeze is honoured in full.
+
+### What was preserved, and how it is proven
+
+The build body moved unchanged. Everything the inline job guaranteed is now stated once,
+in `_packaged-windows.yml`, and pinned there by `tests/test_release_workflow_contracts.py`:
+runner (`windows-latest`), timeout (45), the six-step build sequence in order, the
+`--mode bootloader` smoke without `--skip-upgrade` / `--skip-runtime`, and the
+`if: failure()` distribution-inventory dump. The job id, the job `name:`, the schedule,
+`visual-linux`, compare mode and every baseline are untouched.
+
+### Three deliberate differences
+
+| # | Before (inline) | After (via the reusable workflow) | Why it is not a weakening |
+|---|---|---|---|
+| 1 | check reported as `Frozen executable (real bootloader, Windows)` | `Frozen executable (real bootloader, Windows) / Build and smoke` | A `uses:` job reports as `<caller> / <callee>`. Safe **only** because `deep-gate.yml` produces no branch-protection context — it triggers on `schedule` and `workflow_dispatch`, never `pull_request`. A contract test asserts that trigger set, so the premise cannot rot silently. |
+| 2 | smoke on the script's default port **5000** | `--port 5123` | `smoke_packaged_app.py` refuses to start when the port is already owned, so neither value can let another process answer for the build. 5123 is the value the other two callers already use, and R1 records serving off-default as the thing that proves the `HT_PORT` wiring. |
+| 3 | no `permissions:` block → repository-default token | `contents: read` from the called workflow | A strict narrowing. The job checks out, builds, and smokes; it uploads nothing and pushes nothing. |
+
+Difference 2 is the only one R1's own supersession note (#4, "`deep-gate.yml`'s
+`frozen-windows` … passes no `--port`") glossed over when it dropped the `port` input.
+Dropping the input was still right — a per-caller knob is how one definition starts
+producing three behaviors — but the consequence is that this conversion changes
+deep-gate's port, and that is recorded here rather than discovered later.
+
+### Bidirectional caller contract
+
+`PACKAGED_CALLERS` in `tests/test_release_workflow_contracts.py` declares the three
+`(workflow file, job id, job name)` triples and is compared against the set **measured**
+from the workflow files:
+
+- **Forward** — a declared caller that stops calling, re-inlines steps, grows a
+  `runs-on:`, or reintroduces `pyinstaller` / `smoke_packaged_app.py` fails.
+- **Reverse** — a caller that appears without being declared fails, because it mints a
+  new composite check name that `docs/ai_workflow/QUALITY_GATE.md` requires to be a
+  deliberate act.
+- **Neither side can vary the build** — the reusable workflow declares no `inputs:` and
+  no caller passes `with:`; both halves are asserted, since either alone passes once the
+  other is deleted.
+- **The claim is scoped to the repository, not to a literal.** Every contract here
+  iterates a hardcoded four-file list, so a *new* workflow file would have been invisible
+  to all of them — it could inline its own PyInstaller build, or mint a fourth composite
+  check name, with the whole file green. A directory contract asserts that
+  `.github/workflows/` holds exactly the files this test reads, which is what makes "the
+  only definition in the repository" a true sentence rather than a hopeful one.
+
+**26 mutations, each applied and reverted individually, all 26 red** — including
+re-inlining the build, dropping the job, renaming either half of a composite name,
+adding a fourth caller, moving the runner off Windows, unbounding the timeout, deleting,
+reordering **or gutting the body of** the staging step, weakening the smoke to payload
+mode, adding `--skip-upgrade`, returning to port 5000, making the shared smoke
+`continue-on-error` (which would turn a red build green for all three callers at once),
+adding a `pull_request:` trigger to `deep-gate.yml`, blinding the parser (the vacuity
+floor), and **adding a whole new workflow file** that either inlines the build or calls
+the reusable one undeclared.
+
+### Residual register additions
+
+| # | Residual | Why accepted |
+|---|---|---|
+| **R-10** | The converted job has **never executed as a `uses:` job**. `deep-gate.yml` runs only on its schedule and on `workflow_dispatch`, and `workflow_dispatch` requires the file to be on the default branch — so, exactly as with `release.yml` under A-B1, there is **zero runtime evidence available before merge**. Everything above is static. | The same sequencing R1 accepted, with the same compensation: the first post-merge action is a `workflow_dispatch` of `deep-gate.yml` whose `frozen-windows` result is inspected. R2-b is not complete at merge. **This dispatch is not the held inspection and does not discharge the hold** — with default inputs it skips `visual-linux`, so it validates the conversion and says nothing about the weekly gate. The two obligations are separate; the hold is checklist rows 1–3 above. |
+| **R-11** | The B9 `concurrency:` decision for `deep-gate.yml` — the other half of the original Packet R2 — is **still not started**. | Out of scope for this packet by the owner's framing; it is a separate decision, not a consequence of the conversion. |
+| **R-13** | `test_the_workflow_directory_holds_exactly_the_files_this_file_reads` measures `.github/workflows/` against the `ALL_WORKFLOWS` literal, so **adding or deleting any workflow file now reds the full pytest suite** — and `Run Tests` is a required branch-protection context. Creating a workflow therefore blocks its own PR until the literal is updated in the same commit. | **Deliberate, and the point of the test.** Every other contract in the file iterates that hardcoded literal, so before this a new workflow file was invisible to all of them — it could inline a second PyInstaller build or mint a fourth `<name> / Build and smoke` composite check with every contract still green. Coupling the two is what makes "one definition, three callers" a claim about the repository rather than about four named files. The assertion message names the literal to update, so the fix is one line and self-describing. Recorded here because the cost lands on an unrelated future packet that adds a workflow, not on this one. |
+| **R-12** | `_packaged-windows.yml` uploads no build artifact and declares no `outputs:`, so all three callers discard `dist/`. A future packet that attaches the executable to a release needs both per-caller distinction and `contents: write`, and the no-`inputs`/no-`with:` contract plus the read-only-token contract forbid the second. | Pre-existing, not introduced here, and the cheapest correct answer does not need a relaxation: upload `dist/` unconditionally with a short retention and let a separate job in `release.yml`, which already carries its own `permissions:` blocks, download and publish. R1-D5's `--legacy-db` work needs no relaxation at all — the argv contract forbids *removals*, not additions, and `PACKAGED_STEP_SEQUENCE` pins a prefix. |
+
+### Hold discharged by owner override — 2026-08-16
+
+Rows 1–3 of the merge checklist above were **never satisfied on their own terms**. They
+are **waived by explicit owner authorization on 2026-08-16**, which permitted this packet
+to merge ahead of the 2026-08-17 scheduled run. This subsection records what that costs,
+so that no later reader mistakes the waiver for the evidence it replaced. **Nothing below
+is scheduled-run evidence.**
+
+#### What is knowingly forfeited
+
+The scheduled run due **2026-08-17 03:17 UTC** was the single opportunity to observe the
+deep gate fire *on its own trigger* while running *the file that had actually shipped*.
+Merging R2-b today spends it. `deep-gate.yml` executes the default branch's HEAD copy of
+itself, so Monday's run will exercise **R2-b's** file, not the pre-R2-b one.
+
+**The 2026-08-17 run is therefore forfeited as clean first-execution evidence of the
+shipped deep gate — permanently, and by choice.** No re-run recovers it: the only way to
+obtain that particular evidence was to let Monday arrive with the old file on `main`.
+
+#### The substitute: dispatch 31970872927
+
+Before this merge, the **currently shipped** (pre-R2-b) `deep-gate.yml` was dispatched on
+`main` and inspected at job level:
+
+| | |
+|---|---|
+| Run | [31970872927](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31970872927) |
+| Event | **`workflow_dispatch` — NOT `schedule`** |
+| Ref / SHA | `main` @ **`d583225`** — the shipped, pre-R2-b file |
+| Inputs | `run_visual=true`, `visual_mode=compare` (both required: `run_visual` defaults to **false**, so a bare dispatch runs the deep gate with no visual job at all) |
+| Window | 2026-08-16T20:33:14Z → 20:51:03Z |
+| Result | **7 / 7 jobs `success`**, each read individually — never off the overall green |
+
+| Job | Conclusion |
+|---|---|
+| Full E2E incl. accessibility (Chromium) | success |
+| First install (catalog seed) smoke | success |
+| Empty-schema initializer smoke | success |
+| Old-DB migration compatibility | success |
+| Frozen executable (real bootloader, Windows) | success — inline body: stage assets → canonical spec → `--mode bootloader` |
+| Visual regression (Linux baselines) | success — **executed, not skipped** |
+| Dependency Health Check | success |
+
+`visual-linux` was verified at **step** level, not job level: `Assert compare mode wrote
+no baseline` **passed** and `Upload generated Linux baselines` was **skipped**, which
+together prove the run compared rather than generated and wrote nothing to
+`e2e/__screenshots__`. No baseline was regenerated, and none needed to be — there was no
+red to make go away.
+
+**What this dispatch establishes:** that all seven job *bodies* run green against `main`
+as shipped, `visual-linux` included. **What it does not establish:** anything whatsoever
+about the `schedule` trigger. A trigger that has never fired reports nothing, and a
+`workflow_dispatch` is never evidence for it — the same lesson `release.yml`'s
+`push: tags` still teaches, having never fired either.
+
+#### Correction to an earlier framing
+
+Statements that the deep gate's *job bodies* had never executed were wrong and are
+withdrawn. Dispatch [31851213502](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31851213502)
+(2026-08-14, `main`) already ran all seven jobs green with `visual-linux` executed. The
+accurate and much narrower claim — the one this file made correctly elsewhere — is that
+**no `schedule`-event run has ever occurred**, repo-wide. The unproven thing was always
+the trigger, never the job bodies.
+
+#### The `schedule` trigger is still unvalidated, and remains so after Monday
+
+The 2026-08-24 checkpoint below exists because Monday cannot close this. Monday's run, if
+it fires, executes **R2-b's** file, so it is contaminated as evidence of the deep gate as
+shipped and held. Specifically:
+
+- A **green** Monday does not retroactively validate the gate that was held for it.
+- A **red** Monday is **ambiguous** between "the scheduled deep gate never worked" and
+  "R2-b broke it" — precisely the ambiguity the hold existed to prevent, now accepted
+  knowingly rather than avoided.
+
+Do not record the `schedule` trigger path as validated on the strength of the 2026-08-17
+run, whatever it reports.
+
+#### Next clean checkpoint — 2026-08-24 03:17 UTC
+
+The **2026-08-24** scheduled run is the first uncontaminated `schedule`-event evidence:
+by then R2-b's file will have been on `main` since before the preceding run, so the file
+under test and the trigger under test finally agree.
+
+It must still be **judged at job level** — all seven jobs read individually, with
+`visual-linux` confirmed **executed and not skipped**. The overall green is not coverage;
+`visual-linux` is `if:`-gated and a skip leaves the run green. Confirm the event with
+`gh run list --workflow=deep-gate.yml --event=schedule` before treating any run as
+qualifying, and note that from this merge onward the packaged job reports under its
+composite name, `Frozen executable (real bootloader, Windows) / Build and smoke`.

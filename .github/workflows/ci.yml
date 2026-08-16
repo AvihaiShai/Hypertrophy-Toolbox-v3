@@ -1291,12 +1291,12 @@ jobs:
     # policy is therefore unobservable outside a packaged run, which is why P4
     # shipped without this gate ever running.
     #
-    # The build and smoke themselves now live in _packaged-windows.yml, so this
-    # job and release.yml's blocking `packaged-windows` job run one definition
-    # rather than two divergent copies (Packet R1; F5-8 in
-    # docs/TESTING_STRATEGY_PLANNING.md section 9.2). deep-gate.yml's
-    # `frozen-windows` still carries its own copy -- converting it is Packet R2,
-    # deferred until after the 2026-08-17 scheduled run.
+    # The build and smoke themselves live in _packaged-windows.yml (Packet R1;
+    # F5-8 in docs/TESTING_STRATEGY_PLANNING.md section 9.2). Since Packet R2-b
+    # folded deep-gate.yml's `frozen-windows` in as the third caller, that file
+    # is the repository's only definition of the frozen Windows build -- this
+    # job, release.yml's blocking `packaged-windows`, and the weekly deep gate
+    # all run it, and none of them can drift from the others.
     #
     # This job `name:` is NOT in branch protection, which is what makes the
     # conversion safe: a `uses:` job reports as "<this name> / Build and smoke",

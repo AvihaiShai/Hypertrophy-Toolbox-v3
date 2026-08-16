@@ -53,7 +53,7 @@
 | "Fresh-install / seed-integrity test" | ❌ Already exists | [tests/test_catalog_seed_bootstrap.py](../tests/test_catalog_seed_bootstrap.py) (10 tests incl. frozen `_MEIPASS` seed resolution), [tests/test_catalog_upgrade.py](../tests/test_catalog_upgrade.py) (19 tests incl. corrupt/missing/shrunk seed), [tests/test_runtime_migration.py](../tests/test_runtime_migration.py) (21 tests incl. corrupted + truncated legacy DB), plus three deep-gate jobs (`first-install`, `empty-schema`, `old-db-migration`). |
 | "Visual regression via `toHaveScreenshot()`" | ❌ Already exists | 66-case full-page matrix ([e2e/visual.spec.ts](../e2e/visual.spec.ts): 11 pages × 3 viewports × 2 themes — arithmetic verified against code, `--list`, and disk) + 18 element-scoped thumbnail cases ([e2e/visual-baseline-thumbnails.spec.ts](../e2e/visual-baseline-thumbnails.spec.ts)) = 84 per platform, **168 committed baseline PNGs** (win32 + linux). |
 | "Accessibility: axe-core, one assertion per page" | ⚠️ Half right | 24 hand-written a11y tests exist ([e2e/accessibility.spec.ts](../e2e/accessibility.spec.ts)); axe was genuinely absent when this was audited (no `@axe-core/playwright` in [package.json](../package.json), zero code references); **Packet D closed that gap on 2026-08-14 via #366**. But "one assertion per page" is the wrong prescription, and the existing suite has a deeper problem Opus couldn't see (§4, B1). |
-| "Build smoke test — catches PyInstaller didn't bundle templates" | ❌ Already exists | [deep-gate.yml:287-336](../.github/workflows/deep-gate.yml#L287-L336): `windows-latest`, real `pyinstaller --clean --noconfirm`, then `scripts/smoke_packaged_app.py --mode bootloader` (real bootloader, explicitly not weakened to payload mode). Plus 27 source-level packaging contract tests in pytest. The *real* gap is that it never runs on a PR (§4, B8). |
+| "Build smoke test — catches PyInstaller didn't bundle templates" | ❌ Already exists | `deep-gate.yml`'s `frozen-windows` job: `windows-latest`, real `pyinstaller --clean --noconfirm`, then `scripts/smoke_packaged_app.py --mode bootloader` (real bootloader, explicitly not weakened to payload mode). Plus 27 source-level packaging contract tests in pytest. The *real* gap is that it never runs on a PR (§4, B8). *Audited against an inline copy in `deep-gate.yml`; **Packet R2-b** lifted that body into [`_packaged-windows.yml`](../.github/workflows/_packaged-windows.yml), which is now the only place those three commands appear. The job and its guarantee are unchanged — only the file holding them moved. The original `deep-gate.yml:287-336` anchor was already stale before the lift; do not re-add a line citation.* |
 | "Supply chain: pip-audit + npm audit + Dependabot + bandit" | ⚠️ Half right | `pip-audit` is already a **blocking required check** on every PR ([ci.yml:31-38](../.github/workflows/ci.yml#L31-L38)). `npm audit`, Dependabot, bandit, semgrep, CodeQL: all genuinely absent — the JS dependency surface has zero automated vulnerability scanning. |
 | "Mutation testing, quarterly" | ✅ Valid gap | `mutmut` absent; no mutation testing anywhere. And §4 B1 shows exactly why this repo needs it. |
 | "Skip load testing" | ✅ Correct call | Nothing to add for concurrent users. (Two inline latency assertions already exist — see §4 B13.) |
@@ -69,7 +69,7 @@
 | "Accessibility tests covering keyboard, focus, ARIA, contrast, responsive" | ⚠️ Overstated | The tests exist, but several are tautological or vacuous — including every "contrast" test (§4 B1). Codex correctly said axe is missing but did not detect that some existing assertions cannot fail. |
 | "Row-for-row backup/restore round-trip and rollback tests" | ✅ Verified | See Opus row above. |
 | "Fresh-install, existing-DB preservation, migration, corrupted-DB tests" | ✅ Verified | See Opus row above. Nuance: corruption tests cover the *legacy DB migration* and *catalog seed* paths; no test feeds corrupted **backup rows** to `restore_backup()` — which matches Codex's own refined fuzzing proposal. |
-| "Windows PyInstaller build + real bootloader smoke" | ✅ Verified | [deep-gate.yml:287-336](../.github/workflows/deep-gate.yml#L287-L336). |
+| "Windows PyInstaller build + real bootloader smoke" | ✅ Verified | `deep-gate.yml`'s `frozen-windows` job, whose body **Packet R2-b** lifted into [`_packaged-windows.yml`](../.github/workflows/_packaged-windows.yml) — see the "Build smoke test" row above. |
 | "Required pip-audit security scanning" | ✅ Verified | Blocking, `continue-on-error: false`, required branch-protection check. |
 | "The application does not restore an uploaded backup file; backups are internal SQLite tables" | ✅ Verified | Zero `request.files` / upload / import surface repo-wide. A *separate* file-level mechanism exists (`utils/auto_backup.py` writes whole-DB snapshots to `data/auto_backup/`), but it has **no restore path by documented design** ([docs/program_backups.md:66](program_backups.md#L66)). |
 | "Coverage should be non-blocking info first, then ratchet" | ✅ Adopted | §5, Phase 1. |
@@ -228,8 +228,17 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
     > `ci-provenance`, the frozen Windows build via a `workflow_call` reusable workflow
     > shared with `ci.yml`, the first-install and old-DB-migration smokes, and a fan-in
     > gate — all blocking. The build+smoke was extracted rather than copied, as F5-8
-    > required; `deep-gate.yml` keeps its own copy until Packet R2, deliberately, because
+    > required; `deep-gate.yml` kept its own copy through R1, deliberately, because
     > editing it before 2026-08-17 would invalidate the first scheduled run.
+    >
+    > **Packet R2-b converts that copy** to the same `workflow_call` workflow, so F5-8 is
+    > satisfied in full: one definition, three triggers (PR, release, schedule). It is
+    > **implemented and held from merge** until a scheduled run after 2026-08-17 03:17 UTC
+    > has been inspected under the pre-R2-b workflow, for the reason above — a scheduled
+    > workflow executes the default branch's HEAD copy of its own file. **No scheduled run
+    > has executed at the time of writing.** Design record, preserved/changed behavior and
+    > residuals R-10/R-11: [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md),
+    > Packet R2-b section.
     >
     > **Its tag trigger is unproven.** The only validation route is `workflow_dispatch`
     > with `dry_run: true` (owner option (c)), and because `workflow_dispatch` requires

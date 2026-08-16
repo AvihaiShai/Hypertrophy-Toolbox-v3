@@ -20,7 +20,10 @@
 > lives in `scripts/release_gate.py` rather than inline shell so it can be unit
 > tested. The frozen build moved into `.github/workflows/_packaged-windows.yml`, a
 > `workflow_call` reusable workflow that `ci.yml` now calls — one definition, two
-> callers, per F5-8.
+> callers, per F5-8. *(**Superseded by Packet R2-b**, which added `deep-gate.yml`'s
+> `frozen-windows` as the third caller: one definition, **three** callers, and no
+> inline copy left anywhere. The R1-era count above is kept as the record of what
+> R1 itself shipped.)*
 >
 > **Merged as #374 → `5222db2`; the post-merge dry-run PASSED.** Main's CI on that
 > SHA settled at 18 check-runs all `success`, and `release.yml` was then dispatched
@@ -58,8 +61,41 @@
 > scheduled run would have executed a job that could not fail on a broken landing page.
 > **Only that assertion and an adjacent comment changed** — no job composition, runner,
 > step order, schedule, `visual-linux` or compare-mode behavior, and no baseline.
-> Converting `frozen-windows` to the reusable workflow is **Packet R2-b, still not
-> started**. The scheduled run itself has still **never executed**.
+> Converting `frozen-windows` to the reusable workflow is **Packet R2-b**, implemented
+> 2026-08-15 as PR **#388**: `deep-gate.yml`'s `frozen-windows`
+> becomes `uses: ./.github/workflows/_packaged-windows.yml`, giving that build one
+> definition and three callers (`ci.yml`, `release.yml`, `deep-gate.yml`) with no copy
+> left. It was **held from merge** for the reason in the paragraph above; that hold was
+> **waived by explicit owner override on 2026-08-16** and #388 merged ahead of the
+> scheduled run. The six-row checklist and the full cost of the waiver are in
+> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b →
+> *Hold discharged by owner override*. **No `schedule`-event deep-gate run has ever
+> executed.**
+>
+> **What the override forfeited, in one line:** the 2026-08-17 03:17 UTC scheduled run is
+> permanently spent as clean first-execution evidence of the *shipped* deep gate, because
+> a scheduled workflow runs the default branch's HEAD copy of itself and that copy is now
+> R2-b's. The substitute is `workflow_dispatch`
+> [31970872927](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31970872927)
+> on `main` @ `d583225`, `run_visual=true visual_mode=compare`, 2026-08-16T20:33:14Z →
+> 20:51:03Z: **7/7 jobs success**, read individually, `visual-linux` **executed not
+> skipped**, with `Assert compare mode wrote no baseline` passing and the generate-upload
+> step skipped. That validates the seven job **bodies** and says **nothing** about the
+> `schedule` trigger — a dispatch never can. Monday 2026-08-17 will not close it either,
+> since it runs R2-b's file: a green there does not validate what was held, and a red
+> there is ambiguous between "the scheduled gate never worked" and "R2-b broke it".
+> **The first uncontaminated schedule-event evidence is 2026-08-24**, and it must be
+> judged at job level with `visual-linux` confirmed executed — never off the overall
+> green.
+>
+> **Three things R2-b will not establish even once it merges.** The converted job has
+> never executed *as a `uses:` job* (**R-10**) — `workflow_dispatch` needs the file on the
+> default branch, so the first post-merge dispatch is its first execution, and with
+> default inputs that dispatch **skips `visual-linux`** and says nothing about the weekly
+> gate. The B9 `concurrency:` decision for `deep-gate.yml` is untouched (**R-11**).
+> `_packaged-windows.yml` uploads no build artifact, so all three callers discard `dist/`
+> (**R-12**). Separately, the deep-gate smoke moves from the script's default port **5000**
+> to **`--port 5123`** — a deliberate change, not preserved behavior.
 >
 > **Also deferred, unchanged:** R1-D3 (`visual-linux` in the release gate — revisit
 > after 2026-08-17 plus three consecutive green scheduled runs), R1-D4 (promoting
@@ -447,7 +483,9 @@
 > budgets: each is the number `ci.yml` already uses for the nearest equivalent
 > job (`full-e2e` 45, `visual-linux` 25, `frozen-windows` 45, the four smokes
 > 15), every one at ≥2× its worst observed run over 20 runs. Worst case drops
-> from 6 h to 45 min. **No `concurrency:` group was added** — that is the other
+> from 6 h to 45 min. *(Still seven bounded jobs after Packet R2-b, but
+> `frozen-windows` no longer declares its own: a `uses:` job may not, so its 45
+> is declared in `_packaged-windows.yml` instead.)* **No `concurrency:` group was added** — that is the other
 > half of the B9 CI-hygiene finding and remains a separate decision.
 > Also worth knowing: **GitHub disables a scheduled workflow after 60 days with
 > no repository activity.** Not a risk at current cadence.
