@@ -737,3 +737,64 @@ def broken_database(client, monkeypatch):
     
     # Restore
     monkeypatch.setattr(DatabaseHandler, 'fetch_all', original_fetch_all)
+
+
+class TestExportDiagnosticsNameTheOffendingRow:
+    """A pre-#384 poisoned rep range must be locatable from the error alone.
+
+    The direct UPDATE builds a persisted state a restore could have written; it
+    is not a modelled user action.
+    """
+
+    ROUTINE = "GYM - Full Body - Workout A"
+    EXERCISE = "Export Diagnostic Press"
+
+    @pytest.fixture
+    def poisoned_plan(self, clean_db, exercise_factory, workout_plan_factory):
+        exercise_factory(self.EXERCISE, primary_muscle_group="Chest")
+        plan_id = workout_plan_factory(
+            exercise_name=self.EXERCISE, routine=self.ROUTINE
+        )
+        clean_db.execute_query(
+            "UPDATE user_selection SET min_rep_range = ? WHERE id = ?", ("abc", plan_id)
+        )
+        return plan_id
+
+    def test_excel_export_500_names_routine_and_exercise(self, client, poisoned_plan):
+        response = client.get('/export_to_excel')
+
+        assert response.status_code == 500
+        payload = json.loads(response.data)
+        assert payload['error']['code'] == 'EXPORT_FAILED'
+        assert self.ROUTINE in payload['message']
+        assert self.EXERCISE in payload['message']
+
+    def test_plan_to_log_stays_400_and_names_the_row(self, client, poisoned_plan):
+        """The bounds rejection is a 400, not a 500 — the status must not move."""
+        response = client.post('/export_to_workout_log')
+
+        assert response.status_code == 400
+        payload = json.loads(response.data)
+        assert payload['error']['code'] == 'VALIDATION_ERROR'
+        assert payload['message'].startswith("Minimum reps must be a finite number.")
+        assert self.ROUTINE in payload['message']
+        assert self.EXERCISE in payload['message']
+
+    def test_empty_plan_no_data_message_is_untouched(self, client, clean_db):
+        """An empty plan is conformant, not poisoned.
+
+        NO_DATA must keep its exact message: enriching it would mean running a
+        scan on a database that has nothing wrong with it.
+        """
+        response = client.post('/export_to_workout_log')
+
+        assert response.status_code == 400
+        payload = json.loads(response.data)
+        assert payload['error']['code'] == 'NO_DATA'
+        assert payload['message'] == "No exercises to export"
+
+    def test_clean_plan_export_is_unaffected(self, client, sample_workout_plan):
+        response = client.post('/export_to_workout_log')
+
+        assert response.status_code == 200
+        assert "Fix these in the Workout Plan editor." not in response.data.decode()

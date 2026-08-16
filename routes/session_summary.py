@@ -22,6 +22,7 @@ from utils.fatigue_data import (
     compute_session_fatigue_for_routine,
 )
 from utils.logger import get_logger
+from utils.rep_range_integrity import annotate, scan_rep_ranges, suppressed_for
 from utils.errors import error_response, is_xhr_request, success_response
 
 session_summary_bp = Blueprint('session_summary', __name__)
@@ -141,11 +142,18 @@ def session_summary():
         )
     except Exception as e:
         logger.exception("Error in session_summary: %s", e)
+        # Scoped to the same routine the failing calculation was scoped to, so
+        # the named rows are the ones this request actually read.
+        invalid_rows = [] if suppressed_for(e) else scan_rep_ranges(routine)
         if is_xhr_request():
-            return error_response("INTERNAL_ERROR", "Unable to fetch session summary", 500)
+            return error_response(
+                "INTERNAL_ERROR",
+                annotate("Unable to fetch session summary", invalid_rows),
+                500,
+            )
         return render_template(
             "error.html",
             error_title="Server Error",
             error_code=500,
-            error_message="Unable to load session summary.",
+            error_message=annotate("Unable to load session summary.", invalid_rows),
         ), 500
