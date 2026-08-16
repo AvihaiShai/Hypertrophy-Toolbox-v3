@@ -559,7 +559,7 @@ The scanner uses the literal `'Unassigned'` rather than importing `UNASSIGNED_RO
 | `routes/progression_plan.py` | modify | `:200-205` only, filtered by the request's `exercise` (A2). The `ValueError` arm at `:191-199` is **deliberately left unenriched** — `current_reps + 2` raises `TypeError`, so no poisoned shape reaches it (A6). The `/progression` page handler at `:131-138` is not touched. |
 | `routes/workout_plan.py` | modify | `:389-401`. Stored sibling passed only when `_accepts_in_isolation` accepts it, else `UNSET`. |
 | `tests/test_rep_range_integrity.py` | **new** | Unit: clean → `[]`; poisoned min / max / both; `''`, `None`, `'nan'`, `'inf'`; `allow_null` True vs False divergence; row shape; falsy routine → `Unassigned`; cap retains the causal row; empty scan returns the original string unchanged; swallow path. |
-| `tests/test_weekly_summary_routes.py` | modify | **As built:** the `app` fixture now pins `DB_FILE` to a per-test temp path. These tests build a bare Flask app with no DB patching, so once the error handler ran the diagnostic they would have read — and created — the checkout's real `data/database.db`. `assert_error_payload`'s strict equality is preserved untouched (N1), and is what pins the clean-path message byte-for-byte. |
+| `tests/test_weekly_summary_routes.py` | modify | **As built:** the `app` fixture now pins `DB_FILE` to a per-test temp path. These tests build a bare Flask app with no DB patching, so once the error handler ran the diagnostic they would have read — and created — the checkout's real `data/database.db`. `assert_error_payload`'s strict equality is preserved untouched (N1). **It is a weaker oracle here than it looks**, and the record should not claim otherwise: the tmp path has no schema copied, so in these two files the scan always raises `no such table` and is swallowed to `[]`. The assertion still pins the string, but it is green under both "scan found nothing" and "scan could not read". The real clean-path oracle is `tests/test_error_page_contract.py`'s paired negative on the schema-backed conftest client, plus the identity assertion `annotate(original, []) is original`. |
 | `tests/test_session_summary_routes.py` | modify | Same fixture change, same reason. |
 | `tests/test_exports.py` | modify | Excel 500 + named row; plan→log **400** + named row; **empty plan still returns the untouched `NO_DATA` 400 with zero scans** (A1). |
 | `tests/test_progression_plan_routes.py` | modify | Poisoned `max_rep_range` → 500 naming *that* exercise; poisoned `min_rep_range` → still **200**; a second poisoned exercise must **not** appear in the message (A2). No node may depend on the `/progression` success page rendering (N8). |
@@ -689,54 +689,98 @@ The scanner uses the literal `'Unassigned'` rather than importing `UNASSIGNED_RO
 
 ### DRAFT — pending D7 signature, not landed
 
-> **Status.** This is a **draft only**. `docs/TESTING_STRATEGY_PLANNING.md` §6 states verbatim: *"**D4 and D7 remain unsigned** and no work may act on them"* (`:297-298`, `:623`). Landing this text in `README.md` **is** the D7 action, so `README.md` is deliberately unmodified on this branch and D7 is **not** recorded as signed by this packet. Committing the draft here, labeled, is not a D7 action — it is the reviewable artifact the owner signs against. A follow-up packet lands it once D7 is signed.
+> **Status.** A **draft only**. `docs/TESTING_STRATEGY_PLANNING.md` §6 states verbatim: *"**D4 and D7 remain unsigned** and no work may act on them"* (`:297-298`, `:623`). Landing this text in `README.md` **is** the D7 action, so `README.md` is deliberately unmodified on this branch and D7 is **not** recorded as signed by this packet. Committing the draft here, labeled, is not a D7 action — it is the reviewable artifact the owner signs against.
 >
-> **Correction to the brief carried into this draft:** the auto-backup producer is **`utils/auto_backup.py`**, not `utils/program_backup.py`. The latter is the in-DB Backup Center (`program_backups` / `program_backup_items`, `/api/backups`) — a different feature that stores backups *inside* the same database file and therefore does **not** protect against that file being lost or corrupted.
+> **Correction to the brief carried into this draft:** the auto-backup producer is **`utils/auto_backup.py`**, not `utils/program_backup.py`. The latter is the in-DB Backup Center (`program_backups` / `program_backup_items`, `/api/backups`) — a different feature that stores its backups *inside* the same database file and therefore cannot protect against that file being lost or corrupted.
+>
+> **Revised after `product-risk-reviewer` (agent `ab29bb4b8f96c0ac6`) found three data-destroying defects in the first draft.** All three were verified against the code before rewriting — see *Review corrections* at the end of this section. The reviewer's verdict was **sign the stance, amend the text**.
 
 ---
 
-#### 💾 Recovering from a lost or corrupted database
+## 💾 Recovering Data from an Automatic Snapshot
 
-The app writes an automatic snapshot of your database each time it starts. There is **no in-app restore** for these snapshots — recovery is a deliberate, manual file operation, so that nothing can overwrite your live data by accident. Follow the steps in order.
+The app keeps two independent backups. **Only the first can be restored from inside the app.**
 
-> **⚠️ Read this first.** Only the **7 most recent** snapshots are kept, and the oldest is deleted **every time the app starts**. If you keep restarting the app while troubleshooting, you will silently destroy your older snapshots — starting with the one most likely to predate the problem. **Copy the whole snapshot folder somewhere safe before you restart anything.**
+| | Backup Center | Startup database snapshots |
+|---|---|---|
+| What it saves | Your workout plan | The entire database file |
+| Where it lives | Inside `database.db` | `auto_backup\database_<timestamp>.db` |
+| Survives a lost or corrupted `database.db`? | **No** — it lives inside that file | **Yes** — separate files |
+| How to restore | In the app — Backup Center → Restore | **By hand — steps below** |
 
-**1. Stop the app.** Close the app window, or press `Ctrl+C` in its console. Make sure no `python` or `Hypertrophy-Toolbox` process is still running — a running app holds the database open.
+Startup snapshots are disaster recovery. They are never listed in the Backup Center, and there is deliberately no in-app restore button for them — recovering one means copying a file yourself.
 
-**2. Find your snapshot folder.**
+> ### ⚠️ Before you restart the app, read this
+>
+> The app keeps only the **7 most recent** snapshots and deletes the oldest each time it takes a new one — which is every normal start. It takes one **even when your data is already gone**, because the check that skips it counts the built-in exercise library, not your workouts, and that library is always present.
+>
+> So from the **very first restart after a problem appears**, each launch destroys one real snapshot, oldest first — the one most likely to predate the problem. Seven restarts and every genuine snapshot is gone.
+>
+> **Close the app and copy the whole `auto_backup` folder somewhere safe — your Desktop is fine — before you restart anything or try any fix.** Everything below works on that copy.
 
-| How you run the app | Snapshot folder |
+### When a snapshot is taken
+
+- Every time the app starts, except the very first launch of a brand-new install.
+- Immediately before **Erase All Data** wipes everything, so a full erase stays recoverable. The confirmation message names the file it just wrote.
+
+### Where the snapshots are
+
+The folder sits beside whichever database the app is using. **Start the app normally with `START.bat`? Use the first row. Running the standalone `.exe`? Use the last row.** The middle two apply only if you set those variables yourself.
+
+| How you run it | Snapshot folder |
 |---|---|
-| From a source checkout | `<repo>\data\auto_backup\` |
+| `START.bat` from a source checkout | `<repo>\data\auto_backup\` |
 | With `HT_RUNTIME_DIR` set | `<HT_RUNTIME_DIR>\data\auto_backup\` |
-| With `DB_FILE` set | an `auto_backup\` folder **beside that file** (no `data\` segment) |
-| Standalone Windows executable | `%LOCALAPPDATA%\HypertrophyToolbox\data\auto_backup\` |
+| With `DB_FILE` set | an `auto_backup\` folder beside that file |
+| Standalone executable (Windows) | `%LOCALAPPDATA%\HypertrophyToolbox\data\auto_backup\` |
 
-It contains files named `database_YYYYMMDD_HHMMSS.db` — the timestamp is the local time the app started.
+If none of those has what you expect, the app records the exact path every time it writes one. Open `logs\app.log` and search for `Auto-backup written to`.
 
-**3. Copy the entire `auto_backup` folder somewhere outside the app's folders** — your Desktop, another drive, anywhere. **Do this before you start the app again.** This is the step that protects you: from here on, work from your copy.
+If you upgraded from an older version, an older set may still sit in the `data\auto_backup\` folder next to the app itself. Copy that folder out too.
 
-**4. Choose a snapshot.** Pick the newest one from **before** the problem started. If you are unsure, start with the newest and work backwards; you can retry as often as you like because you copied the folder out in step 3.
+Files are named `database_<YYYYMMDD>_<HHMMSS>.db`, stamped in local time.
 
-**5. Rename — do not delete — the current database.** In the folder that holds `database.db`, rename it to `database.broken.db`. Keep it: if the recovery goes wrong, it is your only copy of the most recent state.
+### Restoring one by hand
 
-**6. Delete the leftover sidecar files.** In that same folder, delete `database.db-wal` and `database.db-shm` if they exist. These belong to the old database file and will corrupt the snapshot you are about to put in place if left behind.
+> Do this with the app **closed**, on the copy you made above.
 
-**7. Copy your chosen snapshot in.** Copy it from your safe copy into the folder from step 5 and rename it to exactly `database.db`.
+1. **Stop the app.** Close the console window, or quit the executable.
+2. **Pick a snapshot** — the newest one timestamped *before* the problem appeared.
+3. **Rename the current database out of the way — do not delete anything.** In the folder holding `database.db`, rename **every** file whose name starts with `database.db` to start with `database.broken.db` instead, keeping the rest of the name exactly:
+   - `database.db` → `database.broken.db`
+   - `database.db-wal` → `database.broken.db-wal` *(if present)*
+   - `database.db-shm` → `database.broken.db-shm` *(if present)*
+   - `database.db-journal` → `database.broken.db-journal` *(if present)*
 
-**8. Start the app and check your data.** If you picked the wrong snapshot, stop the app and repeat from step 4 using your safe copy.
+   Those extra files are not junk — they hold your most recent changes, and they belong to the database they are named after. Renaming them together keeps the broken copy intact and, just as importantly, stops them being applied to the snapshot you are about to put in their place.
+4. **Check the folder.** Nothing named `database.db` or `database.db-…` should be left.
+5. **Copy the snapshot into place.** Copy — do not move — your chosen `database_<timestamp>.db` into that folder and rename the copy to `database.db`. Copying keeps the snapshot intact if you picked the wrong one.
+6. **Start the app and check.** Open Workout Plan and Weekly Summary and confirm the data is the version you expected. If it is not, stop the app and repeat from step 3 with a different snapshot — your `database.broken.db` and your copied folder are both still there.
 
-##### Good to know
+Once you are satisfied, delete the `database.broken.db*` files yourself; nothing removes them for you.
 
-- **Snapshots are taken at startup, not continuously.** Anything logged after the last startup is not in a snapshot. One is also taken immediately before the "erase all data" action.
-- **The first launch does not create a snapshot.** A brand-new installation starts from the bundled catalog, which is already a pristine source.
-- **A snapshot is skipped when the database looks empty** (fewer than 100 exercises). This means that if your data is *already* gone, restarting the app will **not** create a protective snapshot of the empty database — but it will still rotate an old one out. Another reason to do step 3 first.
-- **The app does not restore your data automatically.** If it detects a corrupted database at startup, it renames the bad file to `database.db.corrupted_<timestamp>` and starts with a **fresh, empty** database. Your data is not recovered by that process — the procedure above is the only way to get it back.
-- **The in-app Backup Center is a different feature.** It snapshots *programs* inside the database and is the right tool for "I want my old routine back". It cannot help when the database file itself is lost or corrupted, because it lives inside that same file.
+### Good to know
+
+- **If the database is corrupted, the app does not recover your data for you.** It renames the damaged file to `database.db.corrupted_<timestamp>` and starts with an empty database. That file is worth keeping too.
+- **A Backup Center restore replaces your whole current plan and deletes your workout log.** Do not reach for it while you are investigating a lost or corrupted database — finish the file steps above first.
+- The Backup Center also has its own **"Auto"** entries. Those are a different thing with a different limit, stored inside the database, and unrelated to the snapshot files described here.
 
 ---
 
-*End of draft. Source facts verified against `utils/auto_backup.py:14-16,19-34,37-87`, `app.py:106-108,256`, `utils/database.py:208-237`, `utils/config.py`, `utils/runtime_paths.py`, and the live `data/auto_backup/` folder (exactly 7 files).*
+### Review corrections applied to this draft
+
+Recorded so the next reader knows the first version was wrong, and why.
+
+| # | Defect in the first draft | Verified by |
+|---|---|---|
+| **F1** | Step 6 told the user to **delete** `-wal` / `-shm`. That destroys the most recent state of the very copy the previous step told them to keep, and it names the wrong file: `FLASK_DEBUG` defaults to `'1'` inside `utils/database.py:88`, and neither `START.bat` nor `RUN_APP.bat` sets it, so a real user runs `journal_mode = DELETE` and has a **`database.db-journal`** the draft never mentioned. An orphaned journal beside a swapped-in snapshot is exactly the corruption the step existed to prevent, because SQLite pairs a journal to a database **by filename**. Now a lossless rename of all four, with a check instead of a deletion. | `utils/database.py:88-93`; no `FLASK_DEBUG` in either launcher; `utils/runtime_migration.py:42` already treats `-journal` as state-carrying |
+| **F2** | The draft said a restart "will not create a protective snapshot of the empty database — but it will still rotate an old one out." **Both halves were false, in the dangerous direction.** `create_startup_backup()` returns at `utils/auto_backup.py:66`, *before* `_rotate()` at `:80`, so a skipped snapshot rotates nothing. And the `< 100` guard counts the **catalog** (`:55`), which `erase-data` never drops (`exercises` is absent from `OWNED_TABLES_DROP_ORDER`) and which `upgrade_catalog_from_seed()` refills before the check runs (`app.py:102-108`). So the app **does** snapshot the emptied database and **does** delete a real one — from the first restart onward. The warning is now front-loaded and states the true mechanism. | `utils/auto_backup.py:55,59-66,80`; `utils/schema_registry.py` `OWNED_TABLES_DROP_ORDER`; `app.py:94,102-108` |
+| **F3** | The draft recommended Backup Center as "the right tool for *I want my old routine back*" with no caveat, in a section read during a data-loss panic. `restore_backup()` runs `DELETE FROM workout_log` inside its transaction and backup items carry only `user_selection` columns — **the workout log is deleted and never restored.** | `utils/program_backup.py:474-479`, `:456-461` |
+| **F4–F7** | Added the legacy `data\auto_backup\` location left behind by `utils/runtime_migration.py:175-204`; made the folder table usable by a non-technical user and gave them the `app.log` fallback (`utils/auto_backup.py:81-83`); separated "startup database snapshots" from Backup Center's own **"Auto"** entries, which have a different retention (`prune_auto_backups(keep_count=10)`); made the rotation sentence precise. | as cited |
+
+### Out of scope for D7, and worth its own decision
+
+The reviewer identified a real gap that this README cannot close: **nothing in the app tells a user that a quarantine happened, that snapshots exist, or where they are.** After a corruption the app simply looks brand new, and the rotation clock is already running against them. A README only helps someone who thinks to read it *before* restarting. Candidates — a read-only in-app surface pointing at the snapshot folder, and/or not rotating when the snapshot contains no user rows — but the second changes `create_startup_backup()` and is therefore a Backup-contract change needing migration notes and tests. **Do not widen D7 to cover this**; open it separately.
 
 ---
 
@@ -755,7 +799,9 @@ Both reviewers ran without Bash and reconstructed the diff by reading the worktr
 
 **The corruption-quarantine mitigation shipped only half.** The module docstring stated the rule ("never call in from a handler that already caught a `sqlite3.DatabaseError`") but no call site enforced it, and all four are bare `except Exception`, which catches exactly that. `utils/database.py:271-276` routes a `DatabaseError` into `_attempt_database_recovery`, which renames the live database to `<name>.corrupted_<timestamp>` — so a read-only diagnostic could have been the call that quarantined a user's database. The module's own `except` swallow cannot cover it, because the rename happens inside the connect.
 
-This was prescribed as a two-part fix by finding **A4** at plan stage; only the docstring half was implemented. Now closed with `suppressed_for()` and a guard at each of the four sites, pinned by `TestACorruptionErrorIsNeverDescribed` — three nodes red when the predicate is stubbed to `False`.
+This was prescribed as a two-part fix by finding **A4** at plan stage; only the docstring half was implemented. Now closed with `suppressed_for()` and a guard at each of the four sites.
+
+**The first fix was itself half-pinned, and a second review round caught that too.** `TestACorruptionErrorIsNeverDescribed` originally parametrized over `/weekly_summary` and `/session_summary` only, so deleting the guard from `routes/exports.py` or `routes/progression_plan.py` left the whole suite green. Stubbing the shared predicate to `False` reds three nodes, but that is a module-level mutation and is equally consistent with the guard existing at two sites or at four — it cannot distinguish them, so it was never evidence for the four-site claim. Both remaining sites are now pinned, and each mutation reds independently.
 
 The exposure was narrow, and saying so is part of the record: `_RECOVERY_ATTEMPTS` (`utils/database.py:204-211`) is a process-lifetime latch, so if the original failure was a connect-time corruption error, recovery had already run and the diagnostic could not have triggered it. The reachable window is an execute-time `DatabaseError` on a connection that opened cleanly.
 

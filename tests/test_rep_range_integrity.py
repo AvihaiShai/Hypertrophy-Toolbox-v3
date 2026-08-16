@@ -440,3 +440,62 @@ class TestACorruptionErrorIsNeverDescribed:
         # The poisoned row is present and would otherwise be named; the guard,
         # not an empty database, is what keeps the scan from running.
         assert calls == []
+
+    def test_excel_export_does_not_scan_after_a_database_error(
+        self, client, clean_db, exercise_factory, workout_plan_factory, monkeypatch
+    ):
+        exercise_factory("Corruption Excel", primary_muscle_group="Chest")
+        plan_id = workout_plan_factory(
+            exercise_name="Corruption Excel", routine=ROUTINE
+        )
+        clean_db.execute_query(
+            "UPDATE user_selection SET min_rep_range = ? WHERE id = ?", ("abc", plan_id)
+        )
+
+        def _corrupt(*args, **kwargs):
+            raise sqlite3.DatabaseError("database disk image is malformed")
+
+        calls = []
+        monkeypatch.setattr(exports_route, "collect_excel_sheets", _corrupt)
+        monkeypatch.setattr(
+            exports_route, "scan_rep_ranges", lambda *a, **k: calls.append(a) or []
+        )
+
+        response = client.get("/export_to_excel")
+
+        assert response.status_code == 500
+        assert (
+            response.get_json()["message"]
+            == "Failed to export data to Excel. Please try again."
+        )
+        assert calls == []
+
+    def test_suggestions_do_not_scan_after_a_database_error(
+        self, client, clean_db, exercise_factory, workout_plan_factory, monkeypatch
+    ):
+        exercise_factory("Corruption Suggest", primary_muscle_group="Chest")
+        plan_id = workout_plan_factory(
+            exercise_name="Corruption Suggest", routine=ROUTINE
+        )
+        clean_db.execute_query(
+            "UPDATE user_selection SET max_rep_range = ? WHERE id = ?", ("abc", plan_id)
+        )
+
+        def _corrupt(*args, **kwargs):
+            raise sqlite3.DatabaseError("database disk image is malformed")
+
+        calls = []
+        monkeypatch.setattr(progression_route, "get_exercise_history", _corrupt)
+        monkeypatch.setattr(
+            progression_route,
+            "scan_exercise_plan_default",
+            lambda *a, **k: calls.append(a) or [],
+        )
+
+        response = client.post(
+            "/get_exercise_suggestions", json={"exercise": "Corruption Suggest"}
+        )
+
+        assert response.status_code == 500
+        assert response.get_json()["message"] == "Failed to get exercise suggestions"
+        assert calls == []
