@@ -80,8 +80,7 @@ This is not a claim that every proposal in those source plans shipped. Testing
 Phase-2 Packet A landed as #342; strict-console Packet C and axe Packet D remain
 queued. The heavy `$orchestrate` mechanism remains deliberately unimplemented.
 The release/tag pipeline remains deferred, and the first scheduled deep-gate
-run has **never executed**; post-#388 the 2026-08-17 run is contaminated and the first
-clean checkpoint is **2026-08-24**. Linux fatigue baseline follow-up #351 is
+run is still due 2026-08-17 03:17 UTC. Linux fatigue baseline follow-up #351 is
 an open clean/green draft owned by its existing session.
 
 No pack feature branch, worktree, local evidence artifact, or database is a
@@ -627,9 +626,11 @@ feature action dispatched from this file.** Verified against `origin/main` at
   shifted the line it named. Docs-only.
 - **#376 (`94f0d8c`)** wrote this block; **#377 (`aec309d`)** corrected the two
   claims it left live.
-- Unchanged: the first scheduled deep-gate run is inspected only after
-  **2026-08-17 03:17 UTC**, at job level; the heavy `$orchestrate` design stays
-  unimplemented; do not revive P3 or add another readiness marker.
+- Unchanged: the first scheduled deep-gate run is inspected at job level; the
+  heavy `$orchestrate` design stays unimplemented; do not revive P3 or add
+  another readiness marker. **[UPDATED 2026-08-16 — this clause read "only
+  after 2026-08-17 03:17 UTC". Post-#388 that run executes R2-b's file and is
+  contaminated; the first clean checkpoint is 2026-08-24.]**
 
 > **Superseded 2026-08-15.** The instruction below said *"Testing Phase-2 Packet D
 > (axe) is the only queued packet of that pair … it stays queued … with no open

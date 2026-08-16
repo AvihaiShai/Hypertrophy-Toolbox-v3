@@ -107,7 +107,9 @@
 > to **`--port 5123`** — a deliberate change, not preserved behavior.
 >
 > **Also deferred, unchanged:** R1-D3 (`visual-linux` in the release gate — revisit
-> after 2026-08-17 plus three consecutive green scheduled runs), R1-D4 (promoting
+> after three consecutive green **scheduled** runs, of which zero exist; the
+> 2026-08-17 run is contaminated and does not count toward them, per ADR-007),
+> R1-D4 (promoting
 > `Packaged Smoke (Windows bootloader, non-required) / Build and smoke` after 10 green
 > runs under that **composite** name), R1-D5 (booting the frozen executable against a
 > historical-schema database).
@@ -2591,7 +2593,9 @@ packet.** Verified against `origin/main` at `aec309d`:
   pipeline and Packet D — across the superseding notes and the Active
   Workstreams row. Recorded so this ledger has no hole.
 - **Unchanged and still owner-gated:** the first scheduled deep-gate run is
-  inspected only after **2026-08-17 03:17 UTC**, at job level, with
+  inspected at job level **[UPDATED 2026-08-16 — this read "only after
+  2026-08-17 03:17 UTC"; post-#388 that run is contaminated, first clean
+  checkpoint 2026-08-24]**, with
   `visual-linux` executed rather than skipped and compare mode writing no
   baselines; the heavier `$orchestrate` design and the remaining CSS/refactor
   tails stay gated where their source plans leave them.
