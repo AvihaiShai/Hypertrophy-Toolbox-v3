@@ -440,8 +440,10 @@
 > `visual-linux` executed rather than skipped**. Until that run is inspected,
 > the weekly gate is *implemented but unvalidated at runtime*.
 >
-> > ⚠️ **The 2026-08-17 target below is superseded — read this before running the
-> > runbook.** This block was written when 2026-08-17 03:17 UTC was the first
+> > ⚠️ **The 2026-08-17 targets above and below are superseded — read this before
+> > running the runbook.** The sentence above and the runbook heading below both
+> > still name 2026-08-17; they are preserved verbatim as the dated record, and
+> > this warning overrides both. This block was written when 2026-08-17 03:17 UTC was the first
 > > authoritative scheduled run. **#388 (Packet R2-b) merged 2026-08-16**, and a
 > > scheduled workflow executes the default branch's HEAD copy of its own file, so
 > > the 2026-08-17 run exercises **R2-b's** file rather than the one this block was
