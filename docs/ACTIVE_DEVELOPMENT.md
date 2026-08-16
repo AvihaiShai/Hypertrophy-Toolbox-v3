@@ -36,6 +36,9 @@ each existing violation is pinned by surface, rule id and exact node count, not
 suppressed. No production or visual-baseline file changed across E, F or D.
 Remaining accessibility debt is **X7–X13 and X15, all owner-deferred**; see
 [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
+**[UPDATED 2026-08-17 — the debt set has shrunk.]** X11, X12 and X13 were taken
+up and shipped in #392 as attribute-only WCAG 4.1.2 naming fixes, leaving
+**X7–X10 and X15**.
 
 **Shipped later the same day.** The **release/tag pipeline is no longer
 deferred**: it shipped as Packet **R1** — #374 (`5222db2`), whose post-merge

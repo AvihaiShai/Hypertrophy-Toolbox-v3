@@ -253,7 +253,13 @@
     </div>
 </div>
 
-<div class="btn-group" aria-label="Export controls">
+<!-- Empty placeholder, kept deliberately: as `display: inline-flex` it still
+     generates a line box, so deleting it shortens all six full-page
+     `workout-log-*` captures in e2e/visual.spec.ts by 21px (measured
+     1440x1095 -> 1440x1074). Removing it is therefore a 12-capture
+     two-platform re-baseline and belongs to its own packet. See
+     A11Y_EXCEPTIONS row X13. -->
+<div class="btn-group" role="group" aria-label="Export controls">
     <!-- Other buttons in the group -->
 </div>
 
