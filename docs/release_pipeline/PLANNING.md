@@ -998,7 +998,10 @@ red to make go away.
 as shipped, `visual-linux` included. **What it does not establish:** anything whatsoever
 about the `schedule` trigger. A trigger that has never fired reports nothing, and a
 `workflow_dispatch` is never evidence for it — the same lesson `release.yml`'s
-`push: tags` still teaches, having never fired either.
+`push: tags` still teaches, having never fired either. *(The `schedule` half of that
+sentence was resolved on 2026-08-17: the cron fired for the first time. See
+**The first `schedule`-event run** below. `push: tags` is unaffected and has still
+never fired.)*
 
 #### Correction to an earlier framing
 
@@ -1006,10 +1009,17 @@ Statements that the deep gate's *job bodies* had never executed were wrong and a
 withdrawn. Dispatch [31851213502](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31851213502)
 (2026-08-14, `main`) already ran all seven jobs green with `visual-linux` executed. The
 accurate and much narrower claim — the one this file made correctly elsewhere — is that
-**no `schedule`-event run has ever occurred**, repo-wide. The unproven thing was always
-the trigger, never the job bodies.
+**no `schedule`-event run had ever occurred**, repo-wide, as of 2026-08-16T23:32Z. The
+unproven thing was always the trigger, never the job bodies — and that trigger fired for
+the first time hours later; see **The first `schedule`-event run** below.
 
 #### The `schedule` trigger is still unvalidated, and remains so after Monday
+
+> ⚠️ **Resolved by events, 2026-08-17.** The prediction below was written before the
+> cron fired. It fired, and it came back green. The section is preserved because its
+> *reasoning* was sound and its second bullet describes a risk that was accepted, not
+> avoided — but the heading is no longer true. Read
+> **The first `schedule`-event run** below for what actually happened.
 
 The 2026-08-24 checkpoint below exists because Monday cannot close this. Monday's run, if
 it fires, executes **R2-b's** file, so it is contaminated as evidence of the deep gate as
@@ -1023,11 +1033,16 @@ shipped and held. Specifically:
 Do not record the `schedule` trigger path as validated on the strength of the 2026-08-17
 run, whatever it reports.
 
-#### Next clean checkpoint — 2026-08-24 03:17 UTC
+#### Next checkpoint — 2026-08-24 03:17 UTC
 
-The **2026-08-24** scheduled run is the first uncontaminated `schedule`-event evidence:
+~~The **2026-08-24** scheduled run is the first uncontaminated `schedule`-event evidence:
 by then R2-b's file will have been on `main` since before the preceding run, so the file
-under test and the trigger under test finally agree.
+under test and the trigger under test finally agree.~~
+
+**Superseded 2026-08-17.** The 2026-08-17 run turned out to be usable evidence after all
+— see below — so 2026-08-24 is not "the first clean run". Its remaining value is that it
+is the **second consecutive** green scheduled run, which is what R1-D3's *three
+consecutive green scheduled runs* clock actually needs.
 
 It must still be **judged at job level** — all seven jobs read individually, with
 `visual-linux` confirmed **executed and not skipped**. The overall green is not coverage;
@@ -1035,3 +1050,64 @@ It must still be **judged at job level** — all seven jobs read individually, w
 `gh run list --workflow=deep-gate.yml --event=schedule` before treating any run as
 qualifying, and note that from this merge onward the packaged job reports under its
 composite name, `Frozen executable (real bootloader, Windows) / Build and smoke`.
+
+---
+
+## The first `schedule`-event run — 2026-08-17
+
+*The cron fired for the first time in the repository's history. Every earlier statement
+that no `schedule`-event run had occurred was true when written and is now history.*
+
+| | |
+|---|---|
+| Run | [31993105305](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31993105305) |
+| Event | **`schedule`** — the first ever, repo-wide |
+| SHA | **`63b206e`** — R2-b's file, i.e. the post-#388 deep gate |
+| Due / actual | 03:17:00Z scheduled, **started 04:02:52Z** — a **~46 minute** scheduler delay |
+| Window | 2026-08-17T04:02:52Z → 04:20:46Z |
+| Result | **7 / 7 jobs `success`**, read individually — never off the overall green |
+
+| Job | Conclusion |
+|---|---|
+| Full E2E incl. accessibility (Chromium) | success |
+| First install (catalog seed) smoke | success |
+| Empty-schema initializer smoke | success |
+| Old-DB migration compatibility | success |
+| `Frozen executable (real bootloader, Windows) / Build and smoke` | success — the **composite** name, under a real scheduled event |
+| Visual regression (Linux baselines) | success — **executed, not skipped** |
+| Dependency Health Check | success |
+
+Step-level proof, as *Next checkpoint* requires: `Assert compare mode wrote no baseline`
+**passed** and `Upload generated Linux baselines` was **skipped**, so the run compared and
+wrote nothing. `frozen-windows` ran Stage tracked package assets → Build via the canonical
+spec → Smoke the real bootloader. No baseline was regenerated and none needed to be.
+
+### What this establishes — first time for every item
+
+- **The `schedule` trigger fires.** Previously zero evidence, and a trigger that never
+  fires reports nothing. This is the D3 stopgap's whole premise, and it is now measured.
+- **`visual-linux` runs on a schedule.** A `schedule` event carries **no `inputs` at all**,
+  so `if: github.event_name == 'schedule' || inputs.run_visual` resolved down the
+  *schedule* disjunct — a different code path from every dispatch that preceded it, and
+  one that had never executed.
+- **Compare mode holds when `inputs` is absent.** `MODE="${{ inputs.visual_mode || 'compare' }}"`
+  plus the re-pin on the event name had also never run under a real schedule event.
+- **R2-b's converted `uses:` job works on the schedule**, reporting under its composite name.
+
+### What it does not establish
+
+- **Nothing about the pre-R2-b file.** That evidence was forfeited by the 2026-08-16
+  override and is unrecoverable. It is also now moot: that file no longer exists on `main`.
+- **Nothing about `release.yml`'s `push: tags` trigger**, which is a separate trigger on a
+  separate workflow and has **still never fired** (residual **R-1**).
+- **Nothing about stability.** One green run is one green run; R1-D3 wants three.
+
+### An honest note on the contamination call
+
+The override record predicted this run would be *contaminated*, and that a red here would
+be **ambiguous** between "the scheduled gate never worked" and "R2-b broke it". It came
+back green, so that ambiguity never materialised. **That is an outcome, not a vindication.**
+The risk was real when it was accepted, and a red would have cost exactly what was
+predicted. What changed the picture is narrower than it looks: the run is unusable as
+evidence about the *held* file, but it is perfectly good evidence about the deep gate as it
+now exists — which is the only version that will ever run again.

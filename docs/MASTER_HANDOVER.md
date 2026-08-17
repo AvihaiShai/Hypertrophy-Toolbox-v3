@@ -83,12 +83,20 @@
 > 20:51:03Z: **7/7 jobs success**, read individually, `visual-linux` **executed not
 > skipped**, with `Assert compare mode wrote no baseline` passing and the generate-upload
 > step skipped. That validates the seven job **bodies** and says **nothing** about the
-> `schedule` trigger — a dispatch never can. Monday 2026-08-17 will not close it either,
-> since it runs R2-b's file: a green there does not validate what was held, and a red
-> there is ambiguous between "the scheduled gate never worked" and "R2-b broke it".
-> **The first uncontaminated schedule-event evidence is 2026-08-24**, and it must be
-> judged at job level with `visual-linux` confirmed executed — never off the overall
-> green.
+> `schedule` trigger — a dispatch never can.
+>
+> **RESOLVED 2026-08-17: the cron fired, for the first time ever.** Run
+> [31993105305](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31993105305),
+> event `schedule`, SHA `63b206e`, **7/7 jobs success** read individually, `visual-linux`
+> **executed** with compare proven at step level. It ran R2-b's file, so it is still not
+> evidence about the *held* file — that is forfeited for good — but it does establish the
+> `schedule` trigger, and the deep gate as it now exists. **The weekly gate is no longer
+> "unvalidated at runtime".** Scheduler delay was **~46 min** (due 03:17Z, started
+> 04:02:52Z) — do not read a late run as a missed one. 2026-08-24 is now simply the
+> **second** consecutive green scheduled run, which is what R1-D3's three-run clock needs.
+> Judge it at job level with `visual-linux` confirmed executed — never off the overall
+> green. Full record: [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)
+> § The first `schedule`-event run.
 >
 > **R-10 is now DISCHARGED.** It said the converted job had never executed *as a `uses:`
 > job*, since `workflow_dispatch` needs the file on the default branch. That first
@@ -447,16 +455,18 @@
 > > authoritative scheduled run. **#388 (Packet R2-b) merged 2026-08-16**, and a
 > > scheduled workflow executes the default branch's HEAD copy of its own file, so
 > > the 2026-08-17 run exercises **R2-b's** file rather than the one this block was
-> > written to validate. It is **contaminated**: a green there does not validate
-> > what was held, and a red there is **ambiguous** between "the scheduled gate
-> > never worked" and "R2-b broke it". **The first uncontaminated schedule-event
-> > evidence is 2026-08-24.**
+> > written to validate. It is **contaminated as evidence about the held file**: a green
+> > there does not validate what was held, and a red would have been **ambiguous**
+> > between "the scheduled gate never worked" and "R2-b broke it". *(It ran green, so
+> > that ambiguity never arose — an outcome, not a vindication. The run is still not
+> > evidence about the pre-#388 file, which stays permanently forfeited.)*
 > >
-> > **Which Monday to run this on.** Run the full runbook on **2026-08-24** — that
-> > is the evidence run. You may still run it on 2026-08-17, but only to answer one
-> > question: *did the `schedule` trigger fire at all?* Record that as a
-> > trigger-fired / did-not-fire observation and nothing more; do **not** record
-> > 2026-08-17 as validating the weekly gate whatever its jobs report.
+> > **Which Monday to run this on.** ✅ **2026-08-17 has been run and inspected.** The
+> > question it was set — *did the `schedule` trigger fire at all?* — is answered **yes**:
+> > run 31993105305, 7/7 green, `visual-linux` executed, compare proven at step level.
+> > Next scheduled run is **2026-08-24**; inspect it the same way, as the second of the
+> > three consecutive green runs R1-D3 requires. Expect a scheduler delay of up to an
+> > hour: the first real run started 04:02:52Z against a 03:17Z cron.
 > >
 > > **One change to the commands below:** the packaged job now reports as
 > > `Frozen executable (real bootloader, Windows) / Build and smoke`, so step 2's
