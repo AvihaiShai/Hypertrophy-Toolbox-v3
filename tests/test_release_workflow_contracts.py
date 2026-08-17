@@ -324,6 +324,40 @@ def test_each_declared_caller_delegates_the_entire_build(file_name):
     # `with:` block here could only be a knob someone added -- which is how one
     # definition starts producing three behaviors without becoming three copies.
     assert "with:" not in body, job_id
+    # `secrets:` is the second way a caller can pass something. The no-`inputs:`
+    # contract below does not cover it, and `_packaged-windows.yml` claims in prose
+    # that NO caller passes anything -- so the prose was ahead of the tests.
+    assert "secrets:" not in body, f"{file_name}:{job_id} passes secrets"
+    # A matrix mutates the composite check into `<parent> (x) / <child>`. Both halves
+    # are pinned above, but GitHub injects that segment BETWEEN them, so the one
+    # rename QUALITY_GATE.md says must never happen silently is the one a matrix
+    # performs silently.
+    assert "strategy:" not in body, f"{file_name}:{job_id} would rename its own check"
+    # `needs:` makes the build conditional on another job succeeding; a skipped
+    # dependency skips this job and leaves the run green.
+    assert "needs:" not in body, f"{file_name}:{job_id} gated the build behind a job"
+    # A `uses:` job whose whole body is one line is one line away from being skipped
+    # entirely. `frozen-windows` is guarded by name elsewhere; this covers all three.
+    assert not re.search(r"^    if:", body, re.MULTILINE), (
+        f"{file_name}:{job_id} must stay unconditional -- a `uses:` job with an `if:` "
+        "skips silently and the run still reports green"
+    )
+
+
+def test_the_weekly_schedule_still_fires_weekly():
+    """`triggers()` reads trigger NAMES, so `schedule:` staying present says nothing
+    about whether the cron can ever fire. Changing `'17 3 * * 1'` to a date that
+    effectively never comes -- or deleting the `- cron:` line while keeping the
+    `schedule:` key -- silently kills the D3 safety net and reds nothing. Nothing
+    else in the repository mentions `cron` at all.
+
+    Pinned to the exact expression because the cadence IS the decision: the weekly
+    gate is what the 2026-08-17 first run and the R1-D3 three-run clock are measured
+    against.
+    """
+    assert "schedule" in triggers(DEEP_GATE)
+    crons = re.findall(r"^    - cron: '([^']+)'", DEEP_GATE.read_text(encoding="utf-8"), re.MULTILINE)
+    assert crons == ["17 3 * * 1"], crons
 
 
 def test_the_reusable_build_accepts_nothing_from_its_callers():
@@ -331,6 +365,36 @@ def test_the_reusable_build_accepts_nothing_from_its_callers():
     pass nothing passes just as well once an input exists and one caller sets it."""
     assert triggers(PACKAGED) == {"workflow_call"}
     assert "inputs:" not in executable(PACKAGED)
+    assert "secrets:" not in executable(PACKAGED)
+
+
+def test_the_shared_build_cannot_be_skipped_or_serialised_for_every_caller_at_once():
+    """The widest single false green in this surface.
+
+    `build-and-smoke` is the ONE definition behind three checks. A job-level `if:`
+    here skips the frozen Windows build on the PR path, in the release gate and in
+    the weekly gate simultaneously, and every other contract in this file stays green
+    because the build steps are all still present -- they just never run.
+
+    The step-level guard cannot see this: `steps()` splits on `^    - name: ` and
+    discards `parts[0]`, which is the job header, and it matches a SIX-space step
+    indent where a job-level key sits at four.
+
+    `concurrency:` is barred for a different reason: the three callers deliberately
+    hold three different policies (ci.yml cancels in-progress, release.yml must never
+    kill a running release, deep-gate declares none). A group declared here would
+    override all three from one place, and R1-D6's no-cancel guarantee is asserted
+    against release.yml only.
+    """
+    body = strip_comments(jobs(PACKAGED)["build-and-smoke"])
+    assert not re.search(r"^    if:", body, re.MULTILINE), (
+        "`build-and-smoke` must stay unconditional; skipping it silently disarms the "
+        "frozen Windows build for all three callers at once"
+    )
+    assert "concurrency:" not in executable(PACKAGED), (
+        "a concurrency group here would apply to all three callers, overriding "
+        "release.yml's cancel-in-progress: false guarantee"
+    )
 
 
 def test_the_packaged_smoke_job_name_and_its_child_are_pinned():
