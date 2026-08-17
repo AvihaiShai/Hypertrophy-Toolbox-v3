@@ -689,7 +689,7 @@ The scanner uses the literal `'Unassigned'` rather than importing `UNASSIGNED_RO
 
 ### DRAFT — pending D7 signature, not landed
 
-> **Status.** A **draft only**. `docs/TESTING_STRATEGY_PLANNING.md` §6 states verbatim: *"**D4 and D7 remain unsigned** and no work may act on them"* (`:297-298`, `:623`). Landing this text in `README.md` **is** the D7 action, so `README.md` is deliberately unmodified on this branch and D7 is **not** recorded as signed by this packet. Committing the draft here, labeled, is not a D7 action — it is the reviewable artifact the owner signs against.
+> **Status.** A **draft only**. `docs/TESTING_STRATEGY_PLANNING.md` §6 states verbatim: *"**D4 and D7 remain unsigned** and no work may act on them"* — re-verified against `origin/main` `63b206e` at `:316` and `:642`. (The verbatim reviewer findings above cite `:297-298` and `:623`; those were correct when written and drifted when #392 edited that file. The quote itself is unchanged, and **D7 is still unsigned upstream** — which is the fact this packet depends on.) Landing this text in `README.md` **is** the D7 action, so `README.md` is deliberately unmodified on this branch and D7 is **not** recorded as signed by this packet. Committing the draft here, labeled, is not a D7 action — it is the reviewable artifact the owner signs against.
 >
 > **Correction to the brief carried into this draft:** the auto-backup producer is **`utils/auto_backup.py`**, not `utils/program_backup.py`. The latter is the in-DB Backup Center (`program_backups` / `program_backup_items`, `/api/backups`) — a different feature that stores its backups *inside* the same database file and therefore cannot protect against that file being lost or corrupted.
 >
