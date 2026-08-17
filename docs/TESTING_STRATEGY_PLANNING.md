@@ -19,8 +19,8 @@
 > ([`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)) — this corrects
 > the "remain proposals" wording that covered it — **but Phase 4 is still open**:
 > §7.3 entry criteria 2 and 3 are unmet, and R1's tag trigger has never fired. The
-> D3 weekly compare-only stopgap is shipped and, as of **2026-08-17**, is **runtime
-> validated**: the cron fired for the first time ever (run 31993105305, `schedule`,
+> D3 weekly compare-only stopgap is shipped and, as of **2026-08-17**, **has executed at
+> runtime**: the cron fired for the first time ever (run 31993105305, `schedule`,
 > **7/7 jobs green**, `visual-linux` executed, compare proven at step level). It ran
 > R2-b's file, so it says nothing about the pre-#388 file — forfeited — but it does
 > establish the trigger. Next run **2026-08-24**, the second of the three consecutive

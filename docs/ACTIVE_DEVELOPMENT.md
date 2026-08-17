@@ -45,15 +45,11 @@ never fired, and §7.3 entry criteria 2 and 3 are unmet, so Testing Phase 4 stay
 open — a first real tag would not close it.
 
 **Still open, unchanged by that.** The heavy `$orchestrate` mechanism stays
-deliberately unimplemented. **The scheduled deep-gate run executed for the first time on
-2026-08-17** — run 31993105305, event `schedule`, SHA `63b206e`, **7/7 jobs green**,
-`visual-linux` executed and compare proven at step level, comparing against #351's
-regenerated Linux captures. The trigger is proven; because it ran R2-b's file it is not
-evidence about the pre-#388 file, which the 2026-08-16 override forfeited for good.
-**Next scheduled run 2026-08-24** — the second of the three consecutive green runs
-R1-D3 wants — judged at job level with `visual-linux` executed. The packaged job reports
-as `Frozen executable (real bootloader, Windows) / Build and smoke`, and the cron can run
-up to ~46 min late. Full record:
+deliberately unimplemented. **The weekly deep-gate cron fired for the first time on
+2026-08-17 and was green.** It ran R2-b's file, so it is not evidence about the pre-#388
+file, which the 2026-08-16 override forfeited for good. Next scheduled run **2026-08-24**,
+judged at job level with `visual-linux` executed. Run id, SHA, timings, step-level compare
+proof and the scheduler-delay note live in one place — do not restate them here:
 [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § The first
 `schedule`-event run.
 
@@ -631,7 +627,8 @@ feature action dispatched from this file.** Verified against `origin/main` at
   heavy `$orchestrate` design stays unimplemented; do not revive P3 or add
   another readiness marker. **[UPDATED 2026-08-16 — this clause read "only
   after 2026-08-17 03:17 UTC". Post-#388 that run executes R2-b's file and is
-  contaminated; the first clean checkpoint is 2026-08-24.]**
+  contaminated.] [UPDATED 2026-08-17 — the cron fired that day, 7/7 green, run
+  31993105305; the next scheduled run is 2026-08-24.]**
 
 > **Superseded 2026-08-15.** The instruction below said *"Testing Phase-2 Packet D
 > (axe) is the only queued packet of that pair … it stays queued … with no open

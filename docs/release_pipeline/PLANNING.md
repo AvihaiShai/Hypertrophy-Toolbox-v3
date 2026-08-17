@@ -329,8 +329,9 @@ anything.
   B9 `concurrency:` decision is still **not started**.)*
 - `visual-linux` in the release gate (D3) — revisit only after the 2026-08-17 run and
   ≥3 consecutive green scheduled runs. *(The binding clause is the three green scheduled
-  runs, of which **zero** exist — no `schedule`-event run has ever fired. Post-#388 the
-  2026-08-17 run is contaminated and does not count toward the three; see the R2-b section
+  runs. **One has now occurred** — 2026-08-17, green (run 31993105305). Whether it counts
+  toward the three is an **open owner question**: it ran R2-b's file, not the pre-#388
+  one. Measure the count rather than reading it here; see the R2-b section
   → *Next clean checkpoint*.)*
 - Frozen × historical-schema coverage (D5) — separate follow-up packet; it needs a
   `--legacy-db` argument on `scripts/smoke_packaged_app.py` and its own tests.
@@ -841,7 +842,7 @@ spend the evidence, rather than letting green CI merge it silently.)*
 
 | # | Obligation | How it is discharged |
 |---|---|---|
-| 1 | A scheduled run exists after **2026-08-24 03:17 UTC** | `gh run list --workflow=deep-gate.yml --event=schedule`. ⚠️ **Amended 2026-08-16.** As written this row said *after 2026-08-17 03:17 UTC*, which the very next cron satisfies — but #388 merged first, so that run executes R2-b's file and cannot be the clean evidence this row exists to demand. See *Next clean checkpoint* at the end of this section. |
+| 1 | ✅ **Satisfied 2026-08-17** by run 31993105305 (green), though it ran R2-b's file rather than the pre-#388 one this row was written to demand — that evidence is forfeited, not obtained. Originally: a scheduled run after **2026-08-24 03:17 UTC** | `gh run list --workflow=deep-gate.yml --event=schedule`. ⚠️ **Amended 2026-08-16.** As written this row said *after 2026-08-17 03:17 UTC*, which the very next cron satisfies — but #388 merged first, so that run executes R2-b's file and cannot be the clean evidence this row exists to demand. See *Next clean checkpoint* at the end of this section. |
 | 2 | All **7** jobs inspected individually, `visual-linux` executed and not skipped | `gh run view <id>` per job — **never the overall green**. ⚠️ **Inverted by the 2026-08-16 merge, and this row read the other way before it.** Row 1 requires a scheduled run *after* **2026-08-24 03:17 UTC** (it read 2026-08-17 before the same 2026-08-16 amendment), and every scheduled run from 2026-08-17 onward is post-merge, so the packaged job will **always** report under its **composite** name, `Frozen executable (real bootloader, Windows) / Build and smoke`. On `main` the pre-composite name appears only in runs at or before `d583225` (a `workflow_dispatch` against a stale branch still carrying the inline job would also report it) — e.g. the pre-merge rehearsal 31970872927. An inspector expecting the bare name will conclude the packaged job is missing when it is present. |
 | 3 | The inspection is written down | A "Hold discharged" subsection appended to this R2-b section, **and** the deep-gate block in [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) |
 | 4 | `docs/MASTER_HANDOVER.md` corrected | **CLOSED 2026-08-16.** Its R1 block read "Packet R2-b, still not started", which was already false; corrected to implemented, with R-10/R-11/R-12 and the 5000→5123 change stated. The `R2-B-PENDING-EVIDENCE` marker it carried has been **replaced** — not with the scheduled run's evidence, which does not exist, but with the override record: what the waiver forfeits, the substitute dispatch, and the 2026-08-24 checkpoint. |
@@ -870,9 +871,10 @@ Re-measured **2026-08-16T20:53Z**, immediately before the merge — `--event=sch
 workflow `290121548` all still return **empty / 0**. Measured
 2026-08-15T13:45Z and again before this merge:
 `gh run list --workflow=deep-gate.yml --event=schedule`, the repo-wide `--event=schedule`
-list, and the REST API `total_count` for workflow `290121548` all return **empty / 0**. No
-`schedule`-event run has ever occurred; every one of the 105 deep-gate runs is a
-`workflow_dispatch`, which is **never** row-1 evidence. The one-shot routine
+list, and the REST API `total_count` for workflow `290121548` all returned **empty / 0**
+**as of 2026-08-16T23:32Z**. No `schedule`-event run had occurred by then; every one of the
+105 deep-gate runs was a `workflow_dispatch`, which is **never** row-1 evidence. *(The
+cron fired the next morning — see* **The first `schedule`-event run** *below.)* The one-shot routine
 `trig_01Dy1dDmAgPFCSzXg2nmanJo` is armed and unfired for **2026-08-17T03:30:00Z**.
 
 R2-a took a narrow exception to the same freeze for the `&&` assertion (R-9) because
@@ -1030,10 +1032,12 @@ shipped and held. Specifically:
   "R2-b broke it" — precisely the ambiguity the hold existed to prevent, now accepted
   knowingly rather than avoided.
 
-Do not record the `schedule` trigger path as validated on the strength of the 2026-08-17
-run, whatever it reports.
+~~Do not record the `schedule` trigger path as validated on the strength of the 2026-08-17
+run, whatever it reports.~~ **Superseded 2026-08-17.** The run happened and was green; the
+trigger *is* validated. What it does not validate is the pre-#388 file — that distinction,
+not the blanket prohibition, is what survives.
 
-#### Next checkpoint — 2026-08-24 03:17 UTC
+#### Next clean checkpoint — 2026-08-24 03:17 UTC
 
 ~~The **2026-08-24** scheduled run is the first uncontaminated `schedule`-event evidence:
 by then R2-b's file will have been on `main` since before the preceding run, so the file
@@ -1077,9 +1081,12 @@ that no `schedule`-event run had occurred was true when written and is now histo
 | Visual regression (Linux baselines) | success — **executed, not skipped** |
 | Dependency Health Check | success |
 
-Step-level proof, as *Next checkpoint* requires: `Assert compare mode wrote no baseline`
-**passed** and `Upload generated Linux baselines` was **skipped**, so the run compared and
-wrote nothing. `frozen-windows` ran Stage tracked package assets → Build via the canonical
+Step-level proof: `Assert compare mode wrote no baseline` **passed**. That is the
+load-bearing step — it is `always()`-guarded and greps `git status --porcelain` over
+`e2e/__screenshots__`, so it runs and reports even on a failing job. `Upload generated
+Linux baselines` was **skipped**, which corroborates the mode but proves nothing on its
+own: its `if:` is `steps.visual.outputs.mode == 'generate'`, so a skip merely restates
+that the mode was compare. `frozen-windows` ran Stage tracked package assets → Build via the canonical
 spec → Smoke the real bootloader. No baseline was regenerated and none needed to be.
 
 ### What this establishes — first time for every item
@@ -1101,6 +1108,10 @@ spec → Smoke the real bootloader. No baseline was regenerated and none needed 
 - **Nothing about `release.yml`'s `push: tags` trigger**, which is a separate trigger on a
   separate workflow and has **still never fired** (residual **R-1**).
 - **Nothing about stability.** One green run is one green run; R1-D3 wants three.
+- **Nothing about the gate's ability to go RED.** The Linux corpus was in sync, so
+  `Assert compare mode wrote no baseline` passing shows nothing *was* written — not that
+  real drift would have been caught. A gate that has only ever passed is not yet a gate
+  known to fail correctly.
 
 ### An honest note on the contamination call
 
