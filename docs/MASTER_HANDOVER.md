@@ -51,7 +51,7 @@
 > **Nothing here bears on the weekly scheduled deep gate.** `deep-gate.yml` was not
 > touched by R1, deliberately — a scheduled workflow runs the default branch's HEAD copy
 > of its own file, so an edit before **2026-08-17 03:17 UTC** would mean that run
-> validates something other than what shipped. The deep gate remains
+> validates something other than what shipped. **[UPDATED 2026-08-17 — the cron fired; run 31993105305, 7/7 green]** The deep gate remains
 > *implemented but not runtime-validated*; its runbook below is unchanged **except for a
 > superseding warning added 2026-08-16** — the `gh` commands themselves are byte-identical,
 > but the target Monday moved from 2026-08-17 to 2026-08-24. Read that warning first.
@@ -71,8 +71,9 @@
 > **waived by explicit owner override on 2026-08-16** and #388 merged ahead of the
 > scheduled run. The six-row checklist and the full cost of the waiver are in
 > [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b →
-> *Hold discharged by owner override*. **No `schedule`-event deep-gate run has ever
-> executed.**
+> *Hold discharged by owner override*. **No `schedule`-event deep-gate run had ever
+> executed as of the 2026-08-16 merge** — the first one fired 2026-08-17; see the
+> RESOLVED paragraph below.
 >
 > **What the override forfeited, in one line:** the 2026-08-17 03:17 UTC scheduled run is
 > permanently spent as clean first-execution evidence of the *shipped* deep gate, because
@@ -83,12 +84,21 @@
 > 20:51:03Z: **7/7 jobs success**, read individually, `visual-linux` **executed not
 > skipped**, with `Assert compare mode wrote no baseline` passing and the generate-upload
 > step skipped. That validates the seven job **bodies** and says **nothing** about the
-> `schedule` trigger — a dispatch never can. Monday 2026-08-17 will not close it either,
-> since it runs R2-b's file: a green there does not validate what was held, and a red
-> there is ambiguous between "the scheduled gate never worked" and "R2-b broke it".
-> **The first uncontaminated schedule-event evidence is 2026-08-24**, and it must be
-> judged at job level with `visual-linux` confirmed executed — never off the overall
-> green.
+> `schedule` trigger — a dispatch never can.
+>
+> **RESOLVED 2026-08-17: the cron fired, for the first time ever.** Run
+> [31993105305](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31993105305),
+> event `schedule`, SHA `63b206e`, **7/7 jobs success** read individually, `visual-linux`
+> **executed** with compare proven at step level. It ran R2-b's file, so it is still not
+> evidence about the *held* file — that is forfeited for good — but it does establish the
+> `schedule` trigger, and the deep gate as it now exists. **The weekly gate is no longer
+> "unvalidated at runtime".** That one run started **45m52s** after its 03:17Z cron
+> (04:02:52Z) — a single observation, not a bound; GitHub gives scheduled workflows no
+> delivery guarantee. Do not read a late run as a missed one. 2026-08-24 is now simply the
+> **second** consecutive green scheduled run, which is what R1-D3's three-run clock needs.
+> Judge it at job level with `visual-linux` confirmed executed — never off the overall
+> green. Full record: [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)
+> § The first `schedule`-event run.
 >
 > **R-10 is now DISCHARGED.** It said the converted job had never executed *as a `uses:`
 > job*, since `workflow_dispatch` needs the file on the default branch. That first
@@ -107,8 +117,10 @@
 > to **`--port 5123`** — a deliberate change, not preserved behavior.
 >
 > **Also deferred, unchanged:** R1-D3 (`visual-linux` in the release gate — revisit
-> after three consecutive green **scheduled** runs, of which zero exist; the
-> 2026-08-17 run is contaminated and does not count toward them, per ADR-007),
+> after three consecutive green **scheduled** runs; **one has now occurred**
+> (2026-08-17, green). Whether it counts toward the three is an **open owner
+> question** — it ran R2-b's file rather than the pre-#388 one. Measure the count,
+> per ADR-007),
 > R1-D4 (promoting
 > `Packaged Smoke (Windows bootloader, non-required) / Build and smoke` after 10 green
 > runs under that **composite** name), R1-D5 (booting the frozen executable against a
@@ -241,8 +253,8 @@
 > by **#372** (`385ce52`); the release/tag half shipped as **#374** (`5222db2`) with
 > **#375** (`d3c3436`); and **#351** merged as `5a03d47`, so the stale-Linux
 > consequence is discharged. **Only the heavier orchestration mechanism is still a
-> proposal.** The deep-gate sentence is unchanged and still correct: that run has
-> **not** happened.
+> proposal.** The deep-gate sentence was correct when written: that run had **not**
+> happened. **[UPDATED 2026-08-17 — the cron fired; run 31993105305, 7/7 green]**
 >
 > **The live-gate proof from this pack.** #339 was the sole post-#335 merge that
 > changed SCSS and both compiled artifacts. Its Linux CI run reproduced the
@@ -447,16 +459,18 @@
 > > authoritative scheduled run. **#388 (Packet R2-b) merged 2026-08-16**, and a
 > > scheduled workflow executes the default branch's HEAD copy of its own file, so
 > > the 2026-08-17 run exercises **R2-b's** file rather than the one this block was
-> > written to validate. It is **contaminated**: a green there does not validate
-> > what was held, and a red there is **ambiguous** between "the scheduled gate
-> > never worked" and "R2-b broke it". **The first uncontaminated schedule-event
-> > evidence is 2026-08-24.**
+> > written to validate. It is **contaminated as evidence about the held file**: a green
+> > there does not validate what was held, and a red would have been **ambiguous**
+> > between "the scheduled gate never worked" and "R2-b broke it". *(It ran green, so
+> > that ambiguity never arose — an outcome, not a vindication. The run is still not
+> > evidence about the pre-#388 file, which stays permanently forfeited.)*
 > >
-> > **Which Monday to run this on.** Run the full runbook on **2026-08-24** — that
-> > is the evidence run. You may still run it on 2026-08-17, but only to answer one
-> > question: *did the `schedule` trigger fire at all?* Record that as a
-> > trigger-fired / did-not-fire observation and nothing more; do **not** record
-> > 2026-08-17 as validating the weekly gate whatever its jobs report.
+> > **Which Monday to run this on.** ✅ **2026-08-17 has been run and inspected.** The
+> > question it was set — *did the `schedule` trigger fire at all?* — is answered **yes**:
+> > run 31993105305, 7/7 green, `visual-linux` executed, compare proven at step level.
+> > Next scheduled run is **2026-08-24**; inspect it the same way, as the second of the
+> > three consecutive green runs R1-D3 requires. Expect a scheduler delay of up to an
+> > hour: the first real run started 04:02:52Z against a 03:17Z cron.
 > >
 > > **One change to the commands below:** the packaged job now reports as
 > > `Frozen executable (real bootloader, Windows) / Build and smoke`, so step 2's
@@ -2504,7 +2518,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
-| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **no scheduled run has ever executed** and the 2026-08-17 03:17 UTC run is contaminated by the #388 merge — the first clean schedule-event checkpoint is **2026-08-24**; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
+| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
 
 ## Open Decisions
 
@@ -2596,8 +2610,8 @@ packet.** Verified against `origin/main` at `aec309d`:
   Workstreams row. Recorded so this ledger has no hole.
 - **Unchanged and still owner-gated:** the first scheduled deep-gate run is
   inspected at job level **[UPDATED 2026-08-16 — this read "only after
-  2026-08-17 03:17 UTC"; post-#388 that run is contaminated, first clean
-  checkpoint 2026-08-24]**, with
+  2026-08-17 03:17 UTC"; post-#388 that run is contaminated] [UPDATED 2026-08-17 —
+  the cron fired that day, 7/7 green, run 31993105305; next run 2026-08-24]**, with
   `visual-linux` executed rather than skipped and compare mode writing no
   baselines; the heavier `$orchestrate` design and the remaining CSS/refactor
   tails stay gated where their source plans leave them.
@@ -2621,7 +2635,7 @@ feature packet.** Finish only work that already has its own authority:
   this reconciliation;
 - the first scheduled deep-gate run must be inspected after
   **2026-08-17 03:17 UTC**, at job level, with `visual-linux` executed rather
-  than skipped and compare mode writing no baselines;
+  than skipped and compare mode writing no baselines **[UPDATED 2026-08-17 — the cron fired; run 31993105305, 7/7 green]**;
 - the heavier `$orchestrate` design and the remaining CSS/refactor tails stay
   gated exactly where their source plans leave them.
 

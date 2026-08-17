@@ -428,8 +428,11 @@ starting one.**
   accessibility debt is **X7–X13 and X15, all owner-deferred** — pinned at exact
   axe node counts, not suppressed. D3's weekly compare-only stopgap shipped
   as #323 (`3b1160b`) with #325 (`4d01698`) adding timeouts, but its first
-  scheduled run has **never executed** **[UPDATED 2026-08-16 — this clause previously read "its first scheduled run is still due 2026-08-17"]**; post-#388 that run is contaminated
-  and the first clean checkpoint is **2026-08-24**. D4, D7 and the `js-unit` half of
+  scheduled run **executed 2026-08-17, 7/7 green** (run 31993105305); it ran
+  R2-b's file, so the pre-#388 evidence stays forfeited and 2026-08-24 is simply
+  the next scheduled run. **[UPDATED 2026-08-16 — previously "its first scheduled
+  run is still due 2026-08-17"] [UPDATED 2026-08-17 — previously "has never
+  executed"; the cron fired.]** D4, D7 and the `js-unit` half of
   D2 remain unsigned (D6 signed 2026-08-14, ADR-008). **[UPDATED 2026-08-15] The
   release/tag half of Phase 4 is no longer a proposal — it SHIPPED** as #374
   (`5222db2`), with #375 (`d3c3436`) recording the passing post-merge dry-run and

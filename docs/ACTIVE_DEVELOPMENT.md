@@ -45,16 +45,13 @@ never fired, and §7.3 entry criteria 2 and 3 are unmet, so Testing Phase 4 stay
 open — a first real tag would not close it.
 
 **Still open, unchanged by that.** The heavy `$orchestrate` mechanism stays
-deliberately unimplemented, and **no scheduled deep-gate run has ever executed**
-(measured 2026-08-16T22:41Z: zero `schedule`-event runs repo-wide). The cron is due
-03:17 UTC each Monday and compares against #351's regenerated Linux captures.
-**2026-08-17 is no longer the checkpoint:** #388 (Packet R2-b) merged 2026-08-16, and a
-scheduled workflow runs the default branch's HEAD copy of its own file, so that run
-exercises R2-b's file and is contaminated — a green does not validate what was held, and
-a red is ambiguous. **The first uncontaminated schedule-event evidence is 2026-08-24**,
-judged at job level with `visual-linux` executed. Note the packaged job now reports as
-`Frozen executable (real bootloader, Windows) / Build and smoke`. Full record:
-[`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b.
+deliberately unimplemented. **The weekly deep-gate cron fired for the first time on
+2026-08-17 and was green.** It ran R2-b's file, so it is not evidence about the pre-#388
+file, which the 2026-08-16 override forfeited for good. Next scheduled run **2026-08-24**,
+judged at job level with `visual-linux` executed. Run id, SHA, timings, step-level compare
+proof and the scheduler-delay note live in one place — do not restate them here:
+[`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § The first
+`schedule`-event run.
 
 No pack feature branch, worktree, local evidence artifact, or database is a
 cleanup target.
@@ -630,7 +627,8 @@ feature action dispatched from this file.** Verified against `origin/main` at
   heavy `$orchestrate` design stays unimplemented; do not revive P3 or add
   another readiness marker. **[UPDATED 2026-08-16 — this clause read "only
   after 2026-08-17 03:17 UTC". Post-#388 that run executes R2-b's file and is
-  contaminated; the first clean checkpoint is 2026-08-24.]**
+  contaminated.] [UPDATED 2026-08-17 — the cron fired that day, 7/7 green, run
+  31993105305; the next scheduled run is 2026-08-24.]**
 
 > **Superseded 2026-08-15.** The instruction below said *"Testing Phase-2 Packet D
 > (axe) is the only queued packet of that pair … it stays queued … with no open

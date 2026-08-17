@@ -19,16 +19,18 @@
 > ([`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)) — this corrects
 > the "remain proposals" wording that covered it — **but Phase 4 is still open**:
 > §7.3 entry criteria 2 and 3 are unmet, and R1's tag trigger has never fired. The
-> D3 weekly compare-only stopgap is shipped, but **no scheduled execution has ever
-> occurred** (measured 2026-08-16T22:41Z: zero `schedule`-event runs repo-wide; re-measure
-> before relying on it, the cron is due 03:17 UTC each Monday). The 2026-08-17 run is
-> contaminated by the #388 merge (it runs R2-b's file); the first uncontaminated
-> schedule-event checkpoint is **2026-08-24** — see
-> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b.
+> D3 weekly compare-only stopgap is shipped and, as of **2026-08-17**, **has executed at
+> runtime**: the cron fired for the first time ever (run 31993105305, `schedule`,
+> **7/7 jobs green**, `visual-linux` executed, compare proven at step level). It ran
+> R2-b's file, so it says nothing about the pre-#388 file — forfeited — but it does
+> establish the trigger. Next run **2026-08-24**, the second of the three consecutive
+> green scheduled runs R1-D3 wants. See
+> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § The first
+> `schedule`-event run.
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
-> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D4 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *No scheduled run has ever executed (measured 2026-08-16T22:41Z: zero `schedule`-event runs repo-wide). 2026-08-17 03:17 UTC was to be the first authoritative one, but the #388 merge of 2026-08-16 means that run executes R2-b's file and is **contaminated**; the first uncontaminated schedule-event checkpoint is **2026-08-24**.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D4 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *The first scheduled run executed **2026-08-17** (run 31993105305, 7/7 green, `visual-linux` executed) — the trigger is proven. It ran R2-b's file, so it is not evidence about the pre-#388 file, which the 2026-08-16 override forfeited permanently. Next scheduled run 2026-08-24.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
 
 ---
 
@@ -222,9 +224,9 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 13. **Precondition: make the visual job capable of being a green gate.** *(**Status 2026-08-11: the
     weekly-deep-gate half of this step is DONE** — precondition satisfied 2026-08-04, schedule
     shipped as PR #323 → `3b1160b`, with `visual-linux` executed rather than skipped on the
-    schedule and compare-only enforced four ways. No scheduled run has executed yet;
-    the 2026-08-17 target was forfeited by the #388 merge and the first clean
-    schedule-event checkpoint is Monday 2026-08-24.)*
+    schedule and compare-only enforced four ways. **First scheduled run executed
+    2026-08-17, 7/7 green** — the trigger is proven; it ran R2-b's file, so the
+    pre-#388 evidence the override forfeited stays forfeited.)*
 
     > **Status 2026-08-14 — the release/tag pipeline half SHIPPED as Packet R1**
     > ([`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), owner Gate 0 at
@@ -243,9 +245,9 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
     > workflow — a scheduled workflow executes the default branch's HEAD copy of its own
     > file — but that hold was **waived by explicit owner override on 2026-08-16, not
     > satisfied**: checklist rows 1–3 were never met. Consequently the 2026-08-17 run
-    > executes R2-b's file and is **forfeited as clean evidence**; the first uncontaminated
-    > schedule-event checkpoint is **2026-08-24**. **No scheduled run has executed at any
-    > point — the `schedule` trigger has still never fired.** Design record,
+    > executes R2-b's file and is **forfeited as evidence about the pre-#388 file**.
+    > **The trigger itself is now proven: it fired 2026-08-17 and the run was 7/7 green**
+    > (run 31993105305); 2026-08-24 is simply the next one. Design record,
     > preserved/changed behavior, residuals R-10 (discharged 2026-08-16 by dispatch
     > 31972476567)/R-11/R-12/R-13, and the full cost of the waiver:
     > [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), Packet R2-b section.
@@ -654,9 +656,10 @@ shape detects a cross-PR interaction before it reaches `main`.
 > squash-merged as `3b1160b`** — every clause of the *Ordering* paragraph at the end of this
 > section was discharged in that one change. **Do not re-run the unblock sequence, and do not
 > read the measurements below as today's state.** What is *not* yet established: no scheduled
-> execution has happened. *(Written when the first authoritative run was **2026-08-17
-> 03:17 UTC**. Superseded by the #388 merge of 2026-08-16: that run now executes R2-b's
-> file and is contaminated, so the first uncontaminated checkpoint is **2026-08-24**.)* It
+> execution has happened. *(Written 2026-08-11. **Overtaken 2026-08-17**: the first
+> scheduled run executed that day, 7/7 green — run 31993105305 — so "no scheduled
+> execution has happened" is now history. It ran R2-b's file rather than the pre-#388 one
+> the 2026-08-16 override forfeited.)* Any scheduled run
 > must show **all seven jobs with `visual-linux` executed rather than skipped** — the job
 > set, not the overall green, is the thing to verify.
 
