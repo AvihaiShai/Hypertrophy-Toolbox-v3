@@ -67,6 +67,15 @@ PACKAGED_STEP_SEQUENCE = (
 )
 PACKAGED_FAILURE_STEP = "Upload distribution inventory on failure"
 
+# The two ways `deep-gate.yml`'s `visual-linux` job is allowed to start, as the exact
+# disjuncts of its job-level `if:`. The weekly schedule is what makes the Linux visual
+# comparison run at all; the input is the manual opt-in. Neither is optional, and
+# nothing else may be added -- a third disjunct is a third way to enter a job whose
+# every later step branches on which of these fired.
+VISUAL_LINUX_DISJUNCTS = frozenset(
+    {"github.event_name == 'schedule'", "inputs.run_visual"}
+)
+
 # ci.yml job names that exist and are deliberately NOT part of the expected set.
 UNEXPECTED_CI_JOB_NAMES = (
     "E2E Functional Shard ${{ matrix.shard }}/2",
@@ -79,6 +88,15 @@ UNEXPECTED_CI_JOB_NAMES = (
 JOB_ID = re.compile(r"^  ([A-Za-z0-9_-]+):[ \t]*$", re.MULTILINE)
 STEP_SPLIT = re.compile(r"^    - name: ", re.MULTILINE)
 NAME_KEY = re.compile(r"^    name: (.+)$", re.MULTILINE)
+STEPS_KEY = re.compile(r"^    steps:[ \t]*$", re.MULTILINE)
+# The same sequence entries as STEP_SPLIT, but blind to how far they are indented.
+# YAML lets a block sequence sit at its key's column or any column deeper, so
+# `      - name:` is the same document as `    - name:` -- and STEP_SPLIT matches only
+# the second. Counting both is what turns a reindent into a failure instead of an
+# empty list. A `- name:` line inside a `run: |` block scalar would be counted here
+# too; none exists today, and one appearing should red this rather than quietly
+# change what "a step" means to a parser that cannot tell the difference.
+ANY_STEP_ENTRY = re.compile(r"^ *- name: ", re.MULTILINE)
 
 
 def text(path):
@@ -129,9 +147,44 @@ def job_name(block):
 
 
 def steps(block):
-    """(step name, raw step text) for each step in a job block."""
+    """(step name, raw step text) for each step in a job block.
+
+    An empty list is never a valid answer for a job that declares `steps:`, but it was
+    the answer this gave for any equivalent reindent of the sequence. Moving every step
+    from four spaces to six is the same YAML document and matches STEP_SPLIT nowhere,
+    so `for name, raw in steps(block)` became a loop over nothing and every contract
+    built on one passed while saying nothing about a workflow the parser could no
+    longer read. Measured on deep-gate.yml: all seven jobs parsed to zero steps and the
+    file's whole contract set stayed green.
+
+    So the parse is cross-checked against ANY_STEP_ENTRY, which counts the same entries
+    without pinning their indent. A job declaring `steps:` must yield at least one, and
+    the two counts must agree -- which also catches a partial reindent, where some steps
+    still match and the loss is smaller but no louder.
+    """
     parts = STEP_SPLIT.split(block)
-    return [(part.split("\n", 1)[0].strip(), part) for part in parts[1:]]
+    parsed = [(part.split("\n", 1)[0].strip(), part) for part in parts[1:]]
+    entries = len(ANY_STEP_ENTRY.findall(block))
+
+    if STEPS_KEY.search(block) is None:
+        # A `uses:` job legitimately has none; anything else here is a block this
+        # parser is misreading.
+        assert not entries, (
+            f"a job with no `steps:` key holds {entries} `- name:` entries; the job "
+            "parser is misreading this block"
+        )
+        return parsed
+
+    assert parsed, (
+        f"a job declaring `steps:` parsed to zero steps while {entries} `- name:` "
+        "entries are present -- STEP_SPLIT pins a four-space sequence indent and this "
+        "job's is not four. Every contract iterating steps() would now be vacuous."
+    )
+    assert len(parsed) == entries, (
+        f"steps() read {len(parsed)} four-space steps but the block holds {entries} "
+        "`- name:` entries; the difference is invisible to every contract below"
+    )
+    return parsed
 
 
 def _scopes(source, indent):
@@ -216,6 +269,28 @@ def test_the_parser_still_finds_every_job():
     for path in ALL_WORKFLOWS:
         for job_id, block in jobs(path).items():
             assert job_name(block) or "uses:" in block, f"{path.name}:{job_id}"
+
+
+def test_the_step_parser_reads_every_job_that_declares_steps():
+    """The second vacuity floor: shape before content, one level down.
+
+    The floor above proves the parser still finds the JOBS. It says nothing about
+    whether it can still read their steps, and #399's own commit message records why
+    that gap was invisible: `steps()` discards `parts[0]`, so a job whose sequence sits
+    at six spaces instead of four returns an empty list rather than an error.
+
+    `steps()` now refuses to answer that way. This calls it over every job in every
+    workflow so the refusal does not depend on some other test happening to iterate
+    that file -- nothing else in this file iterates ci.yml's steps at all, so a
+    reindent there would otherwise still be unmeasured.
+    """
+    for path in ALL_WORKFLOWS:
+        for job_id, block in jobs(path).items():
+            declares_steps = STEPS_KEY.search(block) is not None
+            assert bool(steps(block)) == declares_steps, (
+                f"{path.name}:{job_id}: `steps:` key present={declares_steps} but the "
+                "step parse disagrees"
+            )
 
 
 # ------------------------------------------------- the expected-context list is real
@@ -488,6 +563,43 @@ def test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows():
     called = jobs(PACKAGED)["build-and-smoke"]
     assert "runs-on: windows-latest" in called
     assert "--mode bootloader" in dict(steps(called))["Smoke the real bootloader"]
+
+
+def test_the_weekly_visual_comparison_cannot_be_reduced_to_a_manual_opt_in():
+    """`visual-linux` is the one job in this repository that may carry a job-level
+    `if:`, and the contracts that bar the shape elsewhere therefore had nothing to say
+    about what its condition contains.
+
+    Both disjuncts are load-bearing, and the schedule one is the fragile half. A
+    `schedule` event carries no `inputs` at all, so `inputs.run_visual` alone resolves
+    false: dropping `github.event_name == 'schedule' ||` leaves a workflow whose weekly
+    run skips its visual comparison entirely and still reports green -- the exact
+    "executed, not skipped" failure the comment above the condition says it exists to
+    prevent, and the one this workflow's own prose claims is impossible. Measured: that
+    one-line deletion left all 42 contracts in this file passing.
+
+    Pinned as a set of disjuncts rather than as a string so the message names what
+    changed, and `&&` is barred by name because it reads as a near-identical edit while
+    inverting the meaning -- a scheduled run would then also need an input it can never
+    have.
+    """
+    block = strip_comments(jobs(DEEP_GATE)["visual-linux"])
+    found = re.search(r"^    if: \$\{\{ (.+) \}\}$", block, re.MULTILINE)
+    assert found is not None, (
+        "`visual-linux` lost its job-level `if:`; the weekly/manual split is the "
+        "whole reason this job is allowed to carry one"
+    )
+
+    condition = found.group(1).strip()
+    assert "&&" not in condition, (
+        f"`visual-linux` gates its run on a conjunction: {condition!r} -- a scheduled "
+        "run carries no inputs, so this never runs weekly"
+    )
+    disjuncts = {part.strip() for part in condition.split("||")}
+    assert disjuncts == VISUAL_LINUX_DISJUNCTS, (
+        f"`visual-linux` must run on the weekly schedule AND on an opted-in manual "
+        f"dispatch, and on nothing else; found {sorted(disjuncts)}"
+    )
 
 
 def test_the_deep_gate_produces_no_branch_protection_context():
