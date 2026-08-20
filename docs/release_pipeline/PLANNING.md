@@ -1122,3 +1122,107 @@ The risk was real when it was accepted, and a red would have cost exactly what w
 predicted. What changed the picture is narrower than it looks: the run is unusable as
 evidence about the *held* file, but it is perfectly good evidence about the deep gate as it
 now exists — which is the only version that will ever run again.
+
+## Contract hardening after the first scheduled run — #399 and #400
+
+*Both are **tests-only**. `.github/workflows/**` is byte-identical to `origin/main`
+across both packets — every mutation was applied inside an isolated worktree and
+reverted with `git checkout --`. No production behavior, schema, calculation or
+API contract is involved.*
+
+The automation-QA review of #398 found that Packet R2-b's hardening was **one
+level too shallow**: the `if:` bar covered the deep-gate *caller* only, while the
+callee and the other two callers were unguarded, and several adjacent shapes were
+unguarded entirely.
+
+### #399 (`280c211`) — seven shapes, 13 mutation arms, all 13 missed beforehand
+
+| # | Shape | Blast radius |
+|---|---|---|
+| 1 | `if:` on `_packaged-windows.yml`'s own `build-and-smoke` | Kills the frozen build for **all three callers at once** — PR path, release gate, weekly gate — while every "one definition / three callers" contract stays green |
+| 2 | `if:` on the `ci.yml` / `release.yml` caller jobs | Per-caller kill |
+| 3 | `needs:` on a caller | A skipped dependency skips the build and the run stays green |
+| 4 | `strategy:`/matrix on a caller | Mutates the composite check to `<parent> (x) / <child>` — GitHub injects the matrix segment *between* two halves that were both already pinned |
+| 5 | `secrets:` at either end | Contradicts the callee's own "No caller passes anything" comment, which the tests enforced for `with:`/`inputs:` only |
+| 6 | `concurrency:` in the callee | Overrides all three callers' deliberately different policies from one place |
+| 7 | The cron expression | `triggers()` reads trigger *names*, so `schedule:` staying present said nothing about whether the cron can fire. `grep -rn cron tests/ scripts/ e2e/` returned **zero** hits repo-wide |
+
+**Why the step-level guard could not see the `if:`, for two independent reasons:**
+`steps()` splits on `^    - name: ` and discards `parts[0]` — the job header — and
+it matches a **six**-space step indent where a job-level key sits at **four**.
+
+> **A note on that commit's subject line.** It reads *"close **five**
+> mutation-proven false greens"*. The packet grew past five during the work and
+> the subject was never rewritten; its own body enumerates **seven** and reports
+> 13 mutation arms. **Read the body, not the subject.** History is not being
+> rewritten to repair it, and there is no committed register of "five shapes"
+> anywhere in this repository — the automation-QA review that prompted the packet
+> was never committed.
+
+### #400 (`81771d1`) — the two shapes #399 named and did not reach
+
+1. **`visual-linux`'s `schedule` disjunct was unprotected.**
+   `if: ${{ github.event_name == 'schedule' || inputs.run_visual }}` is the only
+   job-level `if:` this repository deliberately allows, so every contract that
+   *bars* the shape elsewhere had nothing to say about what this one contains. **A
+   `schedule` event carries no `inputs` at all**, so deleting
+   `github.event_name == 'schedule' ||` leaves a weekly run that skips its visual
+   comparison entirely and still reports green — the exact opposite of the
+   "executed, not skipped" pass condition
+   [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) states for this gate. The
+   condition is now pinned as an exact **set of disjuncts**, not as a string, and
+   `&&` is barred by name because it reads as a near-identical edit while
+   inverting the meaning.
+2. **`steps()` answered a 4→6-space reindent with `[]` instead of an error.** YAML
+   lets a block sequence sit at its key's column or deeper, so the reindent is the
+   **same document** — and matched nothing. Measured on `deep-gate.yml`: all seven
+   jobs parsed to zero steps and **all 42 contracts stayed green**. Fixed at the
+   root: `steps()` now cross-checks against an indentation-blind count of the same
+   `- name:` entries, so a job declaring `steps:` must yield at least one, the two
+   counts must agree (catching a *partial* reindent), and a `uses:` job stays
+   legal. A second vacuity floor runs `steps()` over every job in all four
+   workflows, because nothing in that file iterated `ci.yml`'s steps at all.
+
+**The durable lesson.** A whole-file reindent is a **semantic no-op that silently
+empties an indentation-pinned parser**. Three of the four workflows stayed fully
+green under it; the fourth was caught only by dict-lookup `KeyError`s in four
+tests, while the three contracts that actually *iterate* its steps passed
+vacuously.
+
+### What is still open — five jobs, not six
+
+`deep-gate.yml` declares **seven** jobs: `full-e2e`, `first-install`,
+`empty-schema`, `old-db-migration`, `frozen-windows`, `visual-linux` and
+`dependency-health`. Exactly **two** are pinned against a job-level `if:` —
+`frozen-windows` (#399) and `visual-linux` (#400). The remaining **five** —
+`full-e2e`, `first-install`, `empty-schema`, `old-db-migration` and
+`dependency-health` — still accept a job-level `if:` unmeasured.
+
+> **#400's own body says "the other six". That is wrong; it is five.**
+> Re-derived 2026-08-20 against `origin/main` at `81771d1` by listing the job keys
+> in `deep-gate.yml` and grepping `tests/test_release_workflow_contracts.py` for
+> each name: `full-e2e`, `empty-schema` and `dependency-health` appear nowhere in
+> that file, and `first-install` / `old-db-migration` appear only in the port and
+> required-set contracts, neither of which constrains a job-level `if:`.
+
+Pinning them is a **future packet and is not authorized**. It is a *newly
+identified* gap — **not** a leftover from the shape set #399 and #400 closed, and
+it must not be reported as one.
+
+### Inventory
+
+`tests/test_release_workflow_contracts.py` moved **42 → 44** across the two
+packets; deterministic collected nodes are **2740** across **123** files, with
+**124** pytest files in total. Read those from
+[`test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md) rather
+than restating them. No test file was added or removed by either packet.
+
+### What neither packet establishes
+
+Nothing about **R1-D3's three-consecutive-green-scheduled-runs clock**, which
+still stands at **one** (run 31993105305, 2026-08-17); nothing about
+`release.yml`'s `push: tags` trigger, which has **still never fired** (residual
+**R-1**); and nothing about the gate's ability to go **red**. These are contract
+tests over the workflow *text* — they prove the file cannot silently lose a
+guarantee, not that the guarantee holds at runtime. The next scheduled run is
+still **2026-08-24**.

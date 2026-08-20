@@ -134,6 +134,10 @@
 > followed, "only Packet D (axe) is still queued", is now false: Packet D shipped as
 > #366 (`f627161`), Packets E and F as #364/#365, and Testing Strategy Phase 2 is
 > COMPLETE. Its residual accessibility debt is X7–X13 and X15, all owner-deferred.]**
+> **[UPDATED 2026-08-20 — that debt set is stale. **#393** (`eff4362`) took up
+> X11, X12 and X13 as attribute-only WCAG 4.1.2 naming fixes, so the
+> owner-deferred set is now X7–X10 and X15; the same packet recorded a new
+> row X16, documented and deliberately not registered.]**
 > Separately, **#361** (`a224b39`) discharged the *cross-model* plan's Packet C
 > (charter and contract hygiene), which is a different packet series from Testing
 > Phase-2's and does not touch the `$orchestrate` bullet below. **Consequence at
@@ -426,7 +430,10 @@ starting one.**
   recorded the X1/X2/X6 decisions with **X2 declined**, and **Packet D shipped as
   #366** (`f627161`) on the owner's explicit-exception path. Residual
   accessibility debt is **X7–X13 and X15, all owner-deferred** — pinned at exact
-  axe node counts, not suppressed. D3's weekly compare-only stopgap shipped
+  axe node counts, not suppressed. **[UPDATED 2026-08-20 — X11, X12 and X13
+  shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15,
+  and new row X16 is documented but deliberately unregistered. The "pinned,
+  not suppressed" half is unchanged.]** D3's weekly compare-only stopgap shipped
   as #323 (`3b1160b`) with #325 (`4d01698`) adding timeouts, but its first
   scheduled run **executed 2026-08-17, 7/7 green** (run 31993105305); it ran
   R2-b's file, so the pre-#388 evidence stays forfeited and 2026-08-24 is simply
@@ -671,8 +678,8 @@ described wrongly. Corrected table:
 | 2 | `utils/effective_sets.py::get_rep_range_factor` | **second, independent** 500 — a site-1-only guard does **not** fix it |
 | 3 | `utils/_fatigue/core.py:124` | `'abc' > 0` **raises**; the "Projected fatigue unavailable" badge is the *route-level catch-all* at `routes/weekly_summary.py:94-96`, **not** a designed fallback — and it is invisible today because the page 500s at `:50` first |
 | 4 | `utils/session_summary.py` | byte-identical arithmetic off the same `user_selection` join |
-| **5** | **`utils/progression_plan.py:312`** | **`GET /progression` → HTTP 500** when `max_rep_range` is the poisoned column (`target_reps = current_reps + 2`) |
-| **6** | **`utils/export_service.py:490`** | **one bad row blocks the entire plan→log export** with a message naming no exercise |
+| **5** | **`utils/progression_plan.py:312`** | **`GET /progression` → HTTP 500** when `max_rep_range` is the poisoned column (`target_reps = current_reps + 2`). **[CORRECTED 2026-08-20 — the route is `POST /get_exercise_suggestions`, not `GET /progression`; see the update note at the end of this section.]** |
+| **6** | **`utils/export_service.py:490`** | **one bad row blocks the entire plan→log export** with a message naming no exercise. **[CORRECTED 2026-08-20 — this surface returns 400, not 500, and since #394 its message does name the routine and exercise; see the update note at the end of this section.]** |
 
 A seventh, non-raising surface: the SQL twin at `utils/weekly_summary.py:323`
 (`calculate_isolated_muscles_stats`) does **not** raise — SQLite coerces the unparseable text to 0,
@@ -706,12 +713,67 @@ every column, including `rir`.
 
 **Still open, separately scoped: rows already poisoned by a pre-fix restore.** Runtime behavior for
 them is deliberately unchanged — they still reach the six sites and still raise. Repair is possible
-today through the Plan editor, but **only in the order Min Rep → Max Rep**:
+today through the Plan editor, but **only in the order Min Rep → Max Rep** **[CORRECTED 2026-08-20 — the rule was "edit the poisoned column first", and #394 removed the constraint entirely; see the update note below]**:
 `routes/workout_plan.py:390-401` re-reads the untouched sibling rep column and feeds it to the
 validator, so editing Max Rep first returns a 400 naming *Minimum reps*, a field the user did not
 touch. A user-facing diagnostic naming the routine and exercise instead of a bare 500 is the
 follow-up; it is **not** in the ingress packet because every candidate fix at those sites is a
 calculation-semantics change requiring its own Gate 0.
+
+> **[UPDATED 2026-08-20 — the residual described immediately above is CLOSED, and
+> five statements in this §4a are corrected.]** **#394** (`c208745`) shipped both
+> halves of that follow-up without touching a calculation file. The measured
+> corrections were recorded only in
+> [`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md) because §4a was
+> read-only for that packet; they are folded in here, which is what that document
+> asked a later packet to do.
+>
+> 1. **The diagnostic shipped.** New read-only `utils/rep_range_integrity.py`
+>    names the routine and exercise on all five failing surfaces —
+>    `GET /weekly_summary`, `GET /session_summary`, `GET /export_to_excel`,
+>    `POST /export_to_workout_log` and `POST /get_exercise_suggestions` — wired
+>    in from four route modules. It runs
+>    **only inside a handler whose failure has already happened**, so a conformant
+>    database never reaches it. **HTTP status codes and the `error_response` JSON
+>    envelope are unchanged**; this is message text only.
+> 2. **The edit-order trap is CLOSED, and the rule it documented was wrong twice.**
+>    §4a says repair works "only in the order Min Rep → Max Rep". The measured
+>    2×2 matrix was symmetric: editing the *poisoned* column always worked and
+>    editing the *other* one always 400'd, so the real rule was **"edit the
+>    poisoned column first"**, not "Min before Max". #394 then removed the trap
+>    entirely — the stored sibling is passed to the cross-field comparison only
+>    when the validator accepts it in isolation, so **either column may now be
+>    repaired first**. User-supplied values are still validated in full and a
+>    numeric stored sibling behaves byte-identically.
+> 3. **Site 5 is misattributed.** `GET /progression` renders fine — it runs only a
+>    `DISTINCT exercise, routine` select. The real surface at
+>    `utils/progression_plan.py:312` is **`POST /get_exercise_suggestions`**, and
+>    it fires **only when `max_rep_range`** is the poisoned column, because that
+>    is the column it reads. (An early probe that showed `/progression` 500ing was
+>    a test-fixture artifact: `app.py:133` registers a `datetime` Jinja filter and
+>    `tests/conftest.py` does not, so the template raises under the test client
+>    only. Not a FINDING-1 symptom.)
+> 4. **Site 6 returns 400, not 500.** Its message is the canonical validator
+>    string, which names the *field* but never the routine or exercise — which is
+>    exactly what correction 1 fixed.
+> 5. **Site 7's reachability is overstated above.** On all three surfaces this
+>    section claims the 4.0 "reaches", an **unfiltered** calculation raises first
+>    and the request 500s before anything renders: `routes/weekly_summary.py:50`
+>    before `:81`, `routes/session_summary.py:54` before `:91`, and
+>    `utils/export_service.py:317` before `:362`. It renders only through a
+>    hand-typed `?routine=` request, which the shipped UI never sends. **Site 7
+>    stays unfixed and that remains correct** — correcting it means editing
+>    `utils/weekly_summary.py:323`, the explicitly rejected option. This
+>    correction is recorded because a later owner reading the un-annotated §4a
+>    could otherwise authorize a **Large** `utils/weekly_summary.py` council
+>    against a path the UI cannot reach.
+>
+> **Two residuals #394 states plainly and did not take.** The Excel diagnostic
+> reaches the JSON body and `app.log` but never the user's screen —
+> `static/js/modules/exports.js:88` discards the server message for a hardcoded
+> toast, and `static/**` was out of scope. And the `ValueError` arm of
+> `get_suggestions` is deliberately unenriched, because a non-numeric rep range
+> raises `TypeError` and no poisoned shape lands there.
 
 ## 5a. Evidence added at v23
 

@@ -409,6 +409,28 @@ failures. **None of the six sites was modified**, `utils/_fatigue/**` included. 
 poisoned by a pre-fix restore still reach them; that residual, and the Min Rep → Max Rep repair
 order it requires, are recorded in `docs/LEFTOVERS_BY_PRIORITY.md` §4a.
 
+> **[UPDATED 2026-08-20 — that residual is CLOSED, and two statements above are
+> corrected.]** **#394** (`c208745`) shipped the diagnostic and the repair fix
+> without touching a calculation file. The full corrections are folded into
+> [`LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md) §4a; the two that bear
+> on the table above are:
+>
+> - **Site 5's route is wrong.** `GET /progression` renders fine — it runs only a
+>   `DISTINCT exercise, routine` select, measured 200/200. The surface at
+>   `utils/progression_plan.py:312` is **`POST /get_exercise_suggestions`**, and
+>   only when `max_rep_range` is the poisoned column.
+> - **The repair order was never "Min Rep → Max Rep".** The measured 2×2 matrix
+>   was symmetric — the rule was "edit the *poisoned* column first" — and #394
+>   removed the constraint entirely, so either column may now be repaired first.
+>
+> **None of the six sites is modified and none of this changes §3.7's argument.**
+> The sites still raise, the "guard the calculation sites" option is still
+> rejected, and site 7's silent 4.0 is still unfixed — with the added measured
+> qualifier that it is **unreachable through the shipped UI**, because an
+> unfiltered calculation raises first on all three surfaces named above. That
+> qualifier matters here: a later owner could otherwise authorize a **Large**
+> `utils/weekly_summary.py` council against a path the UI cannot reach.
+
 **A remediation packet that guards only site 1 ships a fix that does not fix the 500** — Arm B
 measured exactly that, with the status still 500 and only the frame moved. **Sites 1 and 2 must BOTH
 be guarded to reach 200** (Arm A, measured). **Site 3 is the quieter hazard**: it degrades silently
