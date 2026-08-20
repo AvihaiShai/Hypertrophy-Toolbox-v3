@@ -758,8 +758,8 @@ calculation-semantics change requiring its own Gate 0.
 >    exactly what correction 1 fixed.
 > 5. **Site 7's reachability is overstated above.** On all three surfaces this
 >    section claims the 4.0 "reaches", an **unfiltered** calculation raises first
->    and the request 500s before anything renders: `routes/weekly_summary.py:50`
->    before `:81`, `routes/session_summary.py:54` before `:91`, and
+>    and the request 500s before anything renders: `routes/weekly_summary.py:51`
+>    before `:82`, `routes/session_summary.py:55` before `:92`, and
 >    `utils/export_service.py:317` before `:362`. It renders only through a
 >    hand-typed `?routine=` request, which the shipped UI never sends. **Site 7
 >    stays unfixed and that remains correct** — correcting it means editing

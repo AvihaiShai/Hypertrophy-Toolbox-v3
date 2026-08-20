@@ -1211,11 +1211,12 @@ it must not be reported as one.
 
 ### Inventory
 
-`tests/test_release_workflow_contracts.py` moved **42 → 44** across the two
-packets; deterministic collected nodes are **2740** across **123** files, with
-**124** pytest files in total. Read those from
-[`test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md) rather
-than restating them. No test file was added or removed by either packet.
+`tests/test_release_workflow_contracts.py` moved **40 → 44** across the two
+packets (**40 → 42** in #399, then **42 → 44** in #400); deterministic
+collected nodes are **2740** across **123** files, with **124** pytest files
+in total. Read those from
+[`test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md)
+rather than restating them. No test file was added or removed by either packet.
 
 ### What neither packet establishes
 
