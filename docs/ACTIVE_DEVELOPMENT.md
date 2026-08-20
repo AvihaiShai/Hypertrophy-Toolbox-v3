@@ -4,7 +4,25 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-14 (LATEST) — the pack's docs-only tail has landed and canonical truth
+**2026-08-20 (LATEST) — four PRs merged on `origin/main` at `81771d1` and no
+status surface recorded them. This pass is the record.** All 18 checks are green
+on that commit. Take no automatic feature action from this file.
+
+| PR | Commit | Terminal result |
+|---|---|---|
+| **#393** | `eff4362` | Register rows **X11, X12 and X13** RESOLVED — attribute-only WCAG 4.1.2 naming fixes on `/progression`, `/volume_splitter` and `/workout_log`. No `color-contrast` count moved; no baseline regenerated. New row **X16** recorded as documented-but-deliberately-unregistered. Owner-deferred set is now **X7–X10 and X15**. |
+| **#394** | `c208745` | The **FINDING-1 residual** is closed at both user-visible surfaces: a poisoned rep range now names the routine and exercise to repair, and Plan-editor repair works whichever rep column is edited first. No calculation file, schema, status code or JSON envelope key changed. |
+| **#399** | `280c211` | Tests only. Seven false-green shapes closed in the deep-gate / release workflow contract (13 mutation arms, all 13 missed beforehand). Its squash subject says "five" — the packet outgrew that count and the subject was never rewritten. |
+| **#400** | `81771d1` | Tests only. Closed the two shapes #399 named and did not reach: `visual-linux`'s `schedule` disjunct, and `steps()` returning `[]` on a 4→6-space reindent. |
+
+**Preserved as future packets, none authorized:** job-level `if:` protection for
+the **five** unpinned `deep-gate.yml` jobs (`full-e2e`, `first-install`,
+`empty-schema`, `old-db-migration`, `dependency-health` — #400's body says "six",
+which is wrong); the `scan_export_bounds()` numeric `min > max` behavior
+decision; and the related `utils/rep_range_integrity.py` docstring correction.
+**D4 and D7 remain unsigned and `README.md` remains untouched.**
+
+**2026-08-14 — the pack's docs-only tail has landed and canonical truth
 is reconciled against `origin/main` at `fbb76f5`.** **Eleven** PRs merged after
 `7e4c1e9` (#352), the pack reconciliation that recorded the checkpoint described
 below — every one squash-merged on green required checks.
@@ -38,7 +56,12 @@ Remaining accessibility debt is **X7–X13 and X15, all owner-deferred**; see
 [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
 **[UPDATED 2026-08-17 — the debt set has shrunk.]** X11, X12 and X13 were taken
 up and shipped in #393 as attribute-only WCAG 4.1.2 naming fixes, leaving
-**X7–X10 and X15**.
+**X7–X10 and X15**. **[UPDATED 2026-08-20 — one row is missing from that
+sentence.]** The same packet recorded a new row **X16** — the post-Calculate
+`/volume_splitter` results wrapper, WCAG 2.1.1 — documented and **deliberately
+not registered**, because an `AXE_REGISTER` entry pins the whole findings list
+and would drag in data- and viewport-dependent contrast nodes. It is outstanding
+accessibility debt without being part of the owner-deferred set.
 
 **Shipped later the same day.** The **release/tag pipeline is no longer
 deferred**: it shipped as Packet **R1** — #374 (`5222db2`), whose post-merge
@@ -608,6 +631,14 @@ synthetic `Unassigned` session, an explicit unresolved-denominator decision, and
 intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
+
+**Current (2026-08-20, after #393/#394/#399/#400) — take no automatic feature
+action from this file.** Verified against `origin/main` at `81771d1`, 18/18
+green. The four merges are recorded in Current Objective above; the three
+packets they deliberately left open (the five unpinned `deep-gate.yml` jobs, the
+`scan_export_bounds()` decision, and the `utils/rep_range_integrity.py`
+docstring) each need their own authorization. D4 and D7 stay unsigned; the next
+scheduled deep-gate run is **2026-08-24**.
 
 **Current (2026-08-15, after #369/#372/#373/#374/#375) — Testing Strategy Phase 2
 is COMPLETE and the release/tag pipeline has SHIPPED. There is still no automatic

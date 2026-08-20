@@ -14,6 +14,15 @@
 > node count in `AXE_REGISTER`. The remaining accessibility debt is **X7–X13 and
 > X15, owner-deferred** — see
 > [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
+> **[UPDATED 2026-08-20 — that set has shrunk.]** **#393** (`eff4362`) took up
+> **X11, X12 and X13** as attribute-only WCAG 4.1.2 naming fixes, so the
+> owner-deferred set is now **X7–X10 and X15**, and `select-name`, `label` and
+> `aria-prohibited-attr` appear nowhere in `AXE_REGISTER`. **No `color-contrast`
+> count moved and no baseline was regenerated.** The same packet recorded a new
+> row **X16** — the post-Calculate `/volume_splitter` results wrapper —
+> documented and deliberately **not** registered, with its fix and its coverage
+> reserved for one owner-gated packet. Phase 2 stays COMPLETE; this is register
+> movement inside it, not a reopening.
 > Phases 3 and 5 remain proposals. **The release/tag half of Phase 4 shipped
 > 2026-08-14 as Packet R1**
 > ([`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)) — this corrects
