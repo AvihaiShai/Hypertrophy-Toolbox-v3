@@ -15,8 +15,8 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **649** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **514** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2667** across 122 files |
-| pytest test files (all) | **123** |
+| pytest collected nodes (deterministic subset) | **2736** across 123 files |
+| pytest test files (all) | **124** |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -106,12 +106,12 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_downstream_normalization.py` | 5 |
 | `tests/test_effective_sets.py` | 42 |
 | `tests/test_erase_data_guard.py` | 10 |
-| `tests/test_error_page_contract.py` | 7 |
+| `tests/test_error_page_contract.py` | 11 |
 | `tests/test_errors_utils.py` | 31 |
 | `tests/test_exercise_manager.py` | 37 |
 | `tests/test_exercise_media.py` | 6 |
 | `tests/test_export_weekly_summary_sheet.py` | 4 |
-| `tests/test_exports.py` | 52 |
+| `tests/test_exports.py` | 56 |
 | `tests/test_fatigue.py` | 134 |
 | `tests/test_fatigue_context.py` | 29 |
 | `tests/test_fatigue_golden.py` | 1 |
@@ -149,13 +149,14 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_profile_estimator_contract.py` | 6 |
 | `tests/test_program_backup.py` | 40 |
 | `tests/test_program_backup_restore_fuzz.py` | 15 |
-| `tests/test_progression_plan_routes.py` | 20 |
+| `tests/test_progression_plan_routes.py` | 23 |
 | `tests/test_progression_plan_utils.py` | 46 |
 | `tests/test_pyright_baseline_diff.py` | 13 |
 | `tests/test_python_version_contract.py` | 15 |
 | `tests/test_real_app_db_isolation.py` | 5 |
 | `tests/test_release_gate.py` | 60 |
 | `tests/test_release_workflow_contracts.py` | 40 |
+| `tests/test_rep_range_integrity.py` | 48 |
 | `tests/test_replace_exercise.py` | 17 |
 | `tests/test_runtime_migration.py` | 24 |
 | `tests/test_runtime_paths.py` | 22 |
@@ -188,7 +189,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_workout_log_calibration_route.py` | 7 |
 | `tests/test_workout_log_routes.py` | 58 |
 | `tests/test_workout_log_utils.py` | 30 |
-| `tests/test_workout_plan_routes.py` | 75 |
+| `tests/test_workout_plan_routes.py` | 85 |
 | `tests/test_youtube_video_id.py` | 40 |
 
 ## Hard waits by file

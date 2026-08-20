@@ -7,17 +7,31 @@ Mirrors test_session_summary_routes.py for the /weekly_summary endpoint.
 import pytest
 from unittest.mock import patch
 from flask import Flask
+
+import utils.config
 from routes.weekly_summary import weekly_summary_bp, _parse_counting_mode, _parse_contribution_mode
 from utils.effective_sets import CountingMode, ContributionMode
 
 
 @pytest.fixture
-def app():
-    """Create test Flask application."""
+def app(tmp_path):
+    """Create test Flask application.
+
+    ``DB_FILE`` is pinned to a per-test temporary path. These tests drive the
+    route in isolation with the calculator mocked, but the error handler also
+    runs the rep-range diagnostic, which opens a database — without this the
+    diagnostic would read (and create) the checkout's real ``data/database.db``.
+    """
+    original_db_file = utils.config.DB_FILE
+    utils.config.DB_FILE = str(tmp_path / "test_weekly_summary_routes.db")
+
     app = Flask(__name__)
     app.config['TESTING'] = True
     app.register_blueprint(weekly_summary_bp)
-    return app
+    try:
+        yield app
+    finally:
+        utils.config.DB_FILE = original_db_file
 
 
 @pytest.fixture

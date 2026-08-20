@@ -20,6 +20,7 @@ from utils.effective_sets import (
 )
 from utils.fatigue_data import compute_weekly_fatigue
 from utils.logger import get_logger
+from utils.rep_range_integrity import annotate, scan_rep_ranges, suppressed_for
 from utils.errors import error_response, is_xhr_request, success_response
 
 weekly_summary_bp = Blueprint('weekly_summary', __name__)
@@ -124,13 +125,20 @@ def weekly_summary():
         )
     except Exception as e:
         logger.exception("Error in weekly_summary: %s", e)
+        # Runs only on this already-failed path, and returns the message
+        # unchanged when it finds nothing.
+        invalid_rows = [] if suppressed_for(e) else scan_rep_ranges()
         if is_xhr_request():
-            return error_response("INTERNAL_ERROR", "Unable to fetch weekly summary", 500)
+            return error_response(
+                "INTERNAL_ERROR",
+                annotate("Unable to fetch weekly summary", invalid_rows),
+                500,
+            )
         return render_template(
             "error.html",
             error_title="Server Error",
             error_code=500,
-            error_message="Unable to load weekly summary.",
+            error_message=annotate("Unable to load weekly summary.", invalid_rows),
         ), 500
 
 
