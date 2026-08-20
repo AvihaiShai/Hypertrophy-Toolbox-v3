@@ -76,6 +76,35 @@ VISUAL_LINUX_DISJUNCTS = frozenset(
     {"github.event_name == 'schedule'", "inputs.run_visual"}
 )
 
+# Every `deep-gate.yml` job, split by whether it may carry a job-level `if:` at all.
+#
+# GitHub counts a SKIPPED job as a success, and the weekly run is unattended and
+# reports one conclusion for the whole workflow -- so `if: ${{ false }}` on any job
+# below silently removes that job's evidence from the gate while the run still says
+# green. Nothing else in this file notices: the steps are all still present, they
+# just never execute. Measured on the unprotected set, one `if:` line added after
+# each job's `name:` in turn and then all five at once -- every arm left every
+# contract this file held before this packet passing.
+#
+# `visual-linux` is the one job deliberately allowed one, and what its condition may
+# contain is pinned by VISUAL_LINUX_DISJUNCTS above. A job may only join it with its
+# condition pinned that way: otherwise moving one across is a two-word edit that
+# drops an arm from the parametrized contract below and constrains nothing in its
+# place, so the census test measures every member against the file for an `if:` it
+# actually carries. `frozen-windows` is barred from carrying one by the
+# PACKAGED_CALLERS contracts, which is why it is in neither set here and is read back
+# out of that mapping rather than repeated.
+DEEP_GATE_UNCONDITIONAL_JOBS = frozenset(
+    {
+        "full-e2e",
+        "first-install",
+        "empty-schema",
+        "old-db-migration",
+        "dependency-health",
+    }
+)
+DEEP_GATE_CONDITIONAL_JOBS = frozenset({"visual-linux"})
+
 # ci.yml job names that exist and are deliberately NOT part of the expected set.
 UNEXPECTED_CI_JOB_NAMES = (
     "E2E Functional Shard ${{ matrix.shard }}/2",
@@ -599,6 +628,92 @@ def test_the_weekly_visual_comparison_cannot_be_reduced_to_a_manual_opt_in():
     assert disjuncts == VISUAL_LINUX_DISJUNCTS, (
         f"`visual-linux` must run on the weekly schedule AND on an opted-in manual "
         f"dispatch, and on nothing else; found {sorted(disjuncts)}"
+    )
+
+
+def test_every_deep_gate_job_is_classified_as_conditional_or_not():
+    """The completeness half, and the reason the per-job contract below is not
+    vacuous.
+
+    That contract can only speak about the job ids it is handed. The vacuity floor
+    above counts deep-gate's jobs, so a job simply ADDED already reds there -- but a
+    count says nothing about WHICH jobs, and a rename, or an add paired with a
+    removal, keeps it at seven while moving a job out of the protected set entirely.
+    This pins the ids, so the failure names the job that stopped being classified
+    instead of reporting a number that no longer matches.
+    """
+    frozen_id, _ = PACKAGED_CALLERS[DEEP_GATE.name]
+    classified = DEEP_GATE_UNCONDITIONAL_JOBS | DEEP_GATE_CONDITIONAL_JOBS | {frozen_id}
+    assert set(jobs(DEEP_GATE)) == classified, (
+        "deep-gate.yml's jobs no longer match the conditional/unconditional split. An "
+        "unclassified job can carry `if: ${{ false }}` and skip out of the unattended "
+        "weekly gate while the run still reports green"
+    )
+
+    # The conditional set is the escape hatch, so it is measured against the file
+    # rather than trusted. Moving an unconditional job into it silently deletes that
+    # job's arm from the parametrized contract below and the census above stays green,
+    # because the union is unchanged -- but a job that was unconditional has no `if:`
+    # to find, which is what this catches.
+    unpinned = sorted(
+        job_id
+        for job_id in DEEP_GATE_CONDITIONAL_JOBS
+        if not re.search(
+            r"^    if:", strip_comments(jobs(DEEP_GATE)[job_id]), re.MULTILINE
+        )
+    )
+    assert not unpinned, (
+        f"{unpinned} are listed as deliberately conditional but carry no job-level "
+        "`if:`; a job only belongs here with its condition pinned, or it has left the "
+        "unconditional contract with nothing taking its place"
+    )
+    # The check above is satisfied by moving a job across AND skipping it in the same
+    # change, which then shows up only as one fewer parametrize arm. `visual-linux` is
+    # the only job whose condition anything pins, so widening the exception has to be
+    # a deliberate edit here, against a message saying what it costs.
+    assert DEEP_GATE_CONDITIONAL_JOBS == {"visual-linux"}, (
+        "`visual-linux` is the only deep-gate job with a pinned condition "
+        "(VISUAL_LINUX_DISJUNCTS). Adding another removes it from the unconditional "
+        "contract without pinning what its condition may contain"
+    )
+
+
+@pytest.mark.parametrize("job_id", sorted(DEEP_GATE_UNCONDITIONAL_JOBS))
+def test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run(job_id):
+    """The five jobs that must run every week.
+
+    `visual-linux` is allowed a job-level `if:` and `frozen-windows` is barred from
+    one by name, so the shape was pinned for exactly two of seven jobs and unmeasured
+    for the rest. A skipped job is a successful job to GitHub, and this workflow's
+    conclusion is the only thing an unattended weekly run reports -- so one `if:` line
+    here deletes the full E2E suite, a cold-start smoke, the empty-schema smoke or the
+    old-DB migration proof from the gate without reddening anything, in the workflow
+    whose whole purpose is to run the checks the PR pipeline deliberately does not.
+
+    `dependency-health` is the one job here that reports rather than gates -- both its
+    scan steps are `continue-on-error: true` -- so skipping it costs the weekly output,
+    not a signal. It is held to the same shape anyway: it is the repository's only
+    scheduled Python vulnerability scan, and a job that silently stops running is how
+    that becomes nobody's job.
+
+    Read against the block with comments stripped, like every other contract here that
+    BARS an `if:`, so prose about conditions is not mistaken for one. The value is
+    captured only for the message: the key alone is the violation, because
+    `    if:\n      ${{ false }}` and a tab after the colon are both the same skip, and
+    a pattern demanding `if: ` plus a value passes on either.
+
+    Standing on the second vacuity floor, not asserting it: all five jobs declare
+    `steps:` at four spaces, so a 4->6 job reindent would leave every arm here green
+    with the parser unable to read the block at all. What reds there is
+    `test_the_step_parser_reads_every_job_that_declares_steps`.
+    """
+    body = strip_comments(jobs(DEEP_GATE)[job_id])
+    found = re.search(r"^    if:(.*)$", body, re.MULTILINE)
+    condition = found.group(1).strip() if found else None
+    assert found is None, (
+        f"deep-gate.yml:{job_id} carries a job-level `if: {condition}`. A skipped job "
+        "counts as success, so this drops the job's evidence from the weekly gate "
+        "while the run still reports green; only `visual-linux` may be conditional here"
     )
 
 
