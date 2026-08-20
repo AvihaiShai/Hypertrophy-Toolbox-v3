@@ -780,13 +780,13 @@ interface AxeFinding {
  * therefore cannot be added silently, and a fixed defect cannot rot here
  * unnoticed — both are red until someone edits this table on purpose.
  *
- * Nothing here is authorised to be fixed by this packet. Owner decision 4 in
- * `docs/testing_phase2/PLANNING.md` allows a production change only for a
- * defect a new honest test exposes, and then only as its own packet with
- * migration notes. Every rule below is written up in
- * `docs/testing_phase2/A11Y_EXCEPTIONS.md` (rows X7–X14) with the owner-gated
- * packet it belongs to. The contrast rows are additionally bound by standing
- * rule R1: a token fix stales 66 win32 + 66 linux captures with CI green.
+ * Every rule below is written up in `docs/testing_phase2/A11Y_EXCEPTIONS.md`
+ * (rows X7–X10 and X15) with the owner-gated packet it belongs to. Fixing one
+ * is its own packet with migration notes, per owner decision 4 in
+ * `docs/testing_phase2/PLANNING.md` — which is how X11, X12 and X13 left this
+ * table; their rows stay in the register file, marked resolved. The contrast
+ * rows are additionally bound by standing rule R1: a token fix stales 66 win32
+ * + 66 linux captures with CI green.
  *
  * Counts were measured, not predicted. To move one, run the spec, read the
  * drift message, and edit deliberately — never to make a red go away.
@@ -813,15 +813,8 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
     { rule: 'color-contrast', nodes: 7 },
   ],
 
-  // X13: one `.btn-group` div carries `aria-label` with no role to hang it on.
-  'workout_log:light': [
-    { rule: 'aria-prohibited-attr', nodes: 1 },
-    { rule: 'color-contrast', nodes: 2 },
-  ],
-  'workout_log:dark': [
-    { rule: 'aria-prohibited-attr', nodes: 1 },
-    { rule: 'color-contrast', nodes: 3 },
-  ],
+  'workout_log:light': [{ rule: 'color-contrast', nodes: 2 }],
+  'workout_log:dark': [{ rule: 'color-contrast', nodes: 3 }],
 
   // Dark scores *better* than light on both summaries: the muted greys that
   // fail on white clear the bar on the dark surface.
@@ -830,28 +823,20 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   'session_summary:light': [{ rule: 'color-contrast', nodes: 4 }],
   'session_summary:dark': [{ rule: 'color-contrast', nodes: 1 }],
 
-  // X11: `#exerciseSelect` — the control the whole page is driven by — has no
-  // accessible name in either theme.
-  'progression:light': [{ rule: 'select-name', nodes: 1 }],
-  'progression:dark': [{ rule: 'select-name', nodes: 1 }],
+  // Clean since X11 closed: `#exerciseSelect` takes its name from the `<h4>`
+  // above it, and nothing else on the route fails.
+  'progression:light': [],
+  'progression:dark': [],
 
   'body_composition:light': [{ rule: 'color-contrast', nodes: 2 }],
   'body_composition:dark': [{ rule: 'color-contrast', nodes: 4 }],
 
-  // X12: all 18 muscle sliders are unlabelled, so the page is unusable by
-  // screen reader even though it is entirely a form.
-  'volume_splitter:light': [
-    { rule: 'color-contrast', nodes: 2 },
-    { rule: 'label', nodes: 18 },
-  ],
+  'volume_splitter:light': [{ rule: 'color-contrast', nodes: 2 }],
   // Final dark paint is 2. A merge-time correction raised this to 3 after #365,
   // but that reading still came from the body-only settlement helper and the
   // extra node was transition paint, not a final-state violation. Holding the
   // whole document's computed paint stable produced 2 in every stress repeat.
-  'volume_splitter:dark': [
-    { rule: 'color-contrast', nodes: 2 },
-    { rule: 'label', nodes: 18 },
-  ],
+  'volume_splitter:dark': [{ rule: 'color-contrast', nodes: 2 }],
 
   'backup:light': [{ rule: 'color-contrast', nodes: 2 }],
   'backup:dark': [{ rule: 'color-contrast', nodes: 2 }],
