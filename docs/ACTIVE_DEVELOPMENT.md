@@ -4,9 +4,43 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-20 (LATEST) — four PRs merged on `origin/main` at `81771d1` and no
-status surface recorded them. This pass is the record.** All 18 checks are green
-on that commit. Take no automatic feature action from this file.
+**2026-08-21 (LATEST) — #402 merged; `origin/main` is at `1f9c05a`.** All 18
+checks are green on that commit. Take no automatic feature action from this file.
+
+| PR | Commit | Terminal result |
+|---|---|---|
+| **#401** | `96b3ef2` | Docs only — the post-#400 reconciliation, i.e. the 2026-08-20 block below. |
+| **#402** | `1f9c05a` | Tests only, shipped as squash `1f9c05a`. Changed `tests/test_release_workflow_contracts.py` and the two generated inventory files, nothing else. The **five** `deep-gate.yml` jobs `full-e2e`, `first-install`, `empty-schema`, `old-db-migration` and `dependency-health` are now contract-pinned against **any** job-level `if:` key — the key alone is the violation, so a next-line value or a tab after the colon is caught too — plus a census test pinning the job **ids**, which a `== 7` count floor cannot do against a rename. |
+
+`visual-linux` is untouched and remains the **deliberately conditional
+exception**: its condition stays pinned by #400 as the exact disjunct set
+`{github.event_name == 'schedule', inputs.run_visual}`, with `&&` barred by name.
+`frozen-windows` retains its prior unconditional protection from the
+`PACKAGED_CALLERS` delegation contract; #402 reads its id back out of that mapping
+rather than repeating it.
+
+**#402 changed no workflow file and no runtime behavior** — `.github/workflows/`
+is byte-identical to the commit before it. Inventory moved by six collected
+nodes: that contract file **44 → 50**, deterministic total **2740 → 2746**, file
+counts unchanged at **123**/**124**. The five representative mutations
+(`if: ${{ false }}` after each job's `name:`) were **false greens before the
+packet** and are each killed individually now.
+
+**Named by #402, unmeasured, not authorized:** `needs:` and a job-level
+`continue-on-error:` are two further shapes that could stop one of these five jobs
+from gating. Neither is a demonstrated false green and neither is an authorized
+packet — each requires its own mutation proof first.
+
+**Still open and unauthorized:** the `scan_export_bounds()` numeric `min > max`
+behavior decision, and the related `utils/rep_range_integrity.py` docstring
+correction. **D4 and D7 remain unsigned and `README.md` remains untouched.**
+
+**2026-08-20 — four PRs merged on `origin/main` at `81771d1` and no
+status surface recorded them. This pass is the record.** All 18 checks were green
+on that commit. **[UPDATED 2026-08-21 — this block shipped as #401 (`96b3ef2`);
+`origin/main` has since moved to `1f9c05a` (#402), recorded in the block above.
+Nothing below is edited except the annotation marked `[UPDATED 2026-08-21]`.]**
+Take no automatic feature action from this file.
 
 | PR | Commit | Terminal result |
 |---|---|---|
@@ -21,6 +55,11 @@ the **five** unpinned `deep-gate.yml` jobs (`full-e2e`, `first-install`,
 which is wrong); the `scan_export_bounds()` numeric `min > max` behavior
 decision; and the related `utils/rep_range_integrity.py` docstring correction.
 **D4 and D7 remain unsigned and `README.md` remains untouched.**
+**[UPDATED 2026-08-21 — the first of those three SHIPPED as #402 (`1f9c05a`); the
+count of five, and the reason it is five and not six, were correct and are what
+#402 implemented. The `scan_export_bounds()` decision and the
+`utils/rep_range_integrity.py` docstring correction are still open and still
+unauthorized, and D4/D7 are still unsigned.]**
 
 **2026-08-14 — the pack's docs-only tail has landed and canonical truth
 is reconciled against `origin/main` at `fbb76f5`.** **Eleven** PRs merged after
@@ -632,6 +671,17 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
+**Current (2026-08-21, after #401/#402) — take no automatic feature action from
+this file.** Verified against `origin/main` at `1f9c05a`, 18/18 green. #402 is
+tests-only and closed the first of the three preserved packets: the five
+`deep-gate.yml` jobs are now barred from any job-level `if:` key, with
+`visual-linux` still the pinned conditional exception and `frozen-windows` still
+unconditionally protected as before. **Two remain open and unauthorized** — the
+`scan_export_bounds()` decision and the `utils/rep_range_integrity.py` docstring.
+`needs:` and job-level `continue-on-error:` were named by #402 as possible further
+gating shapes; both are **unmeasured** and neither is authorized work. D4 and D7
+stay unsigned; the next scheduled deep-gate run is **2026-08-24**.
+
 **Current (2026-08-20, after #393/#394/#399/#400) — take no automatic feature
 action from this file.** Verified against `origin/main` at `81771d1`, 18/18
 green. The four merges are recorded in Current Objective above; the three
@@ -639,6 +689,9 @@ packets they deliberately left open (the five unpinned `deep-gate.yml` jobs, the
 `scan_export_bounds()` decision, and the `utils/rep_range_integrity.py`
 docstring) each need their own authorization. D4 and D7 stay unsigned; the next
 scheduled deep-gate run is **2026-08-24**.
+**[UPDATED 2026-08-21 — superseded by the block above: the five-job packet
+shipped as #402 (`1f9c05a`) and `origin/main` has moved off `81771d1`. The other
+two packets, and D4/D7, are unchanged.]**
 
 **Current (2026-08-15, after #369/#372/#373/#374/#375) — Testing Strategy Phase 2
 is COMPLETE and the release/tag pipeline has SHIPPED. There is still no automatic

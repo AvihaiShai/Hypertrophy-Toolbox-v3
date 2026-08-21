@@ -1123,12 +1123,13 @@ predicted. What changed the picture is narrower than it looks: the run is unusab
 evidence about the *held* file, but it is perfectly good evidence about the deep gate as it
 now exists — which is the only version that will ever run again.
 
-## Contract hardening after the first scheduled run — #399 and #400
+## Contract hardening after the first scheduled run — #399, #400 and #402
 
-*Both are **tests-only**. `.github/workflows/**` is byte-identical to `origin/main`
-across both packets — every mutation was applied inside an isolated worktree and
-reverted with `git checkout --`. No production behavior, schema, calculation or
-API contract is involved.*
+*All three are **tests-only**. `.github/workflows/**` is byte-identical to
+`origin/main` across every packet — each mutation was applied inside an isolated
+worktree and reverted with `git checkout --`. No production behavior, schema,
+calculation or API contract is involved. **[#402 added 2026-08-21; the heading and
+this paragraph previously named #399 and #400 only.]***
 
 The automation-QA review of #398 found that Packet R2-b's hardening was **one
 level too shallow**: the `if:` bar covered the deep-gate *caller* only, while the
@@ -1191,6 +1192,11 @@ vacuously.
 
 ### What is still open — five jobs, not six
 
+> **[CLOSED 2026-08-21 by #402 (`1f9c05a`)]** — this heading and the paragraphs
+> under it describe the state between #400 and #402 and are kept as written. The
+> count of five, and the reason it is five and not six, were correct — they are
+> exactly what #402 implemented. The subsection after this one is the record.
+
 `deep-gate.yml` declares **seven** jobs: `full-e2e`, `first-install`,
 `empty-schema`, `old-db-migration`, `frozen-windows`, `visual-linux` and
 `dependency-health`. Exactly **two** are pinned against a job-level `if:` —
@@ -1209,6 +1215,78 @@ Pinning them is a **future packet and is not authorized**. It is a *newly
 identified* gap — **not** a leftover from the shape set #399 and #400 closed, and
 it must not be reported as one.
 
+> **[SUPERSEDED 2026-08-21]** — the authorization sentence above is no longer live:
+> the packet was authorized and merged as **#402** (`1f9c05a`). The sentence is
+> kept because it was true when written and because it records that this work
+> was *not* silently overtaken by a merge — #402's own body listed this line as an
+> authorization claim needing explicit owner reconciliation, which is what this
+> note is.
+
+### #402 (`1f9c05a`) — the five jobs, pinned
+
+*Tests only, shipped as squash **`1f9c05a`**. The PR changed
+`tests/test_release_workflow_contracts.py` and the two generated inventory files
+and nothing else. `.github/workflows/**` is byte-identical to the commit before
+it — `deep-gate.yml` was mutated only inside an isolated worktree and restored —
+so **no workflow behavior, runtime behavior, schema, API or response contract
+changed**.*
+
+**What is now pinned.** `full-e2e`, `first-install`, `empty-schema`,
+`old-db-migration` and `dependency-health` are barred from carrying **any**
+job-level `if:` key. The key alone is the violation: the contract matches
+`^    if:` against the comment-stripped job block and captures the value only for
+the failure message, so `if:` with its value on the following line, and `if:`
+followed by a tab, are caught alongside the ordinary `if: ${{ false }}`. A first
+draft that demanded `if: ` plus a value passed vacuously on both of those and was
+replaced — **a new contract can be strictly weaker than the siblings it imitates**.
+
+**Why a per-job contract, and not just the count floor.** The pre-existing
+vacuity floor asserts `deep-gate.yml` declares seven jobs, so a job simply
+*added* already redded there. It says nothing about *which* jobs: a **rename**,
+or an add paired with a removal, holds the count at seven while moving a job out
+of the protected set. `test_every_deep_gate_job_is_classified_as_conditional_or_not`
+pins the job ids for that reason, and measures the exception set against the file
+rather than trusting it — moving a job into the exception set is otherwise a
+two-word edit that drops a parametrize arm and constrains nothing in its place.
+
+**The two jobs #402 did not change.**
+
+- **`visual-linux` remains the one deliberately conditional job.** Its condition
+  is still pinned by #400 as the exact set of disjuncts
+  `{github.event_name == 'schedule', inputs.run_visual}` — matched as
+  `if: ${{ … }}`, split on `||`, with `&&` barred by name because a `schedule`
+  event carries no inputs. #402 additionally asserts that the exception set is
+  exactly `{visual-linux}`, so widening it has to be a deliberate edit.
+- **`frozen-windows` retains its prior unconditional protection**, from
+  `test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows` and the
+  `PACKAGED_CALLERS` delegation contract, which bars `if:`, `needs:`, `with:`,
+  `secrets:` and `strategy:` on all three callers. #402 reads its job id back out
+  of `PACKAGED_CALLERS` rather than repeating it, so the two classifications
+  cannot drift apart.
+
+**Mutation evidence.** `if: ${{ false }}` inserted immediately after each job's
+`name:` key, run in both directions and restored between arms: all five arms —
+and all five applied at once — were **green before the packet** against every
+contract the file then held, and each is **killed individually now** by its own
+parametrized arm, so the failing node id names the offending job. The
+completeness half was measured separately: a job simply *added* was already
+caught by the `== 7` floor, while the **rename** that holds the count at seven
+was the arm that was green. The three deliberately preserved arms (dropping
+`visual-linux`'s `schedule` disjunct, removing its `if:` entirely, and growing an
+`if:` on `frozen-windows`) red both before and after — **this packet adds a
+contract and weakens none**.
+
+**Deliberately left open, and not established as defects.** `needs:` and a
+job-level `continue-on-error:` are two further shapes that could stop one of these
+five jobs from gating. Neither is barred, and **neither has been measured** —
+they are recorded here so they are not lost, *not* as known false greens and
+*not* as authorized work. Each requires its own mutation proof and its own
+separately authorized packet before anything is claimed about it. Note in passing
+that `dependency-health` already reports rather than gates — both its scan steps
+are `continue-on-error: true` — so it is held to the `if:` shape because it is
+the repository's only scheduled Python vulnerability scan, not because skipping
+it would lose a blocking signal.
+
 ### Inventory
 
 `tests/test_release_workflow_contracts.py` moved **40 → 44** across the two
@@ -1218,7 +1296,18 @@ in total. Read those from
 [`test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md)
 rather than restating them. No test file was added or removed by either packet.
 
-### What neither packet establishes
+> **[UPDATED 2026-08-21]** — #402 added six collected nodes on top of the figures
+> above. That contract file is **44 → 50** (one census test plus five
+> parametrized arms) and the deterministic total is **2740 → 2746**; file counts
+> are unchanged at **123** deterministic files and **124** pytest files, because
+> #402 added no test file either. The inventory was regenerated by the generator,
+> never hand-edited. Read the live figures from
+> [`test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md).
+
+### What none of these packets establishes
+
+*(Previously "What neither packet establishes"; #402 is in scope here too and
+establishes nothing further on any of these points.)*
 
 Nothing about **R1-D3's three-consecutive-green-scheduled-runs clock**, which
 still stands at **one** (run 31993105305, 2026-08-17); nothing about
