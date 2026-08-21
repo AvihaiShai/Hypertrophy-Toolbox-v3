@@ -39,7 +39,7 @@
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
-> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D4 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *The first scheduled run executed **2026-08-17** (run 31993105305, 7/7 green, `visual-linux` executed) — the trigger is proven. It ran R2-b's file, so it is not evidence about the pre-#388 file, which the 2026-08-16 override forfeited permanently. Next scheduled run 2026-08-24.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D7 was signed 2026-08-21** as keep-the-stance-and-document, and the manual auto-backup recovery procedure now lives in [`README.md`](../README.md) ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)); **D4 remains unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *The first scheduled run executed **2026-08-17** (run 31993105305, 7/7 green, `visual-linux` executed) — the trigger is proven. It ran R2-b's file, so it is not evidence about the pre-#388 file, which the 2026-08-16 override forfeited permanently. Next scheduled run 2026-08-24.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
 
 ---
 
@@ -320,12 +320,13 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 | D4 | Hypothesis invariants for calculation modules | Owner review required per invariant (Gate 0) before any property test lands |
 | D5 | Browser matrix | Stay Chromium-only; record as ADR |
 | D6 | `BACKUP_SCHEMA_VERSION` | *Recommendation (unchanged, for the record):* prefer defining and enforcing a compatibility policy; removal is only acceptable as an explicit DB/API contract migration, not a testing cleanup. **Owner decision 2026-08-14: retain-informational instead** — a reserved label, version-blind restore, bump-and-branch rule for the next payload change. Reason for the departure and the evidence behind it: [§8.1c](#81c-fourth-sign-off-2026-08-14--d6); recorded as ADR-008 |
-| D7 | Auto-backup file snapshots: keep "no in-app restore" stance? | Keep, but document the manual recovery procedure in the README |
+| D7 | Auto-backup file snapshots: keep "no in-app restore" stance? | Keep, but document the manual recovery procedure in the README. **Owner decision 2026-08-21: signed exactly as recommended** — the "no in-app restore" stance is retained and the reviewed manual recovery procedure shipped to [`README.md`](../README.md). Ruling and scope: [§8.1d](#81d-fifth-sign-off-2026-08-21--d7) |
 
-**Sign-off state (updated 2026-08-14):** D1 is signed as non-blocking measurement; D2 is signed for
+**Sign-off state (updated 2026-08-21):** D1 is signed as non-blocking measurement; D2 is signed for
 `e2e-erase-flow` only; D3 is signed as the stopgap half and D5 as Chromium-only ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5));
-D6 is signed as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6)). **D4 and D7
-remain unsigned** and no work may act on them. See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
+D6 is signed as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6)); **D7 is signed as
+keep-the-stance-and-document** ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)). **D4 remains unsigned**
+and no work may act on it. See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
 
 ---
 
@@ -453,6 +454,44 @@ worse than the silent mis-restore it prevents. Full analysis and the requirement
 
 **This authorizes the D6 precondition only.** Step 11's fuzzing work is not authorized by this
 sign-off; it remains a separate packet.
+
+#### 8.1d Fifth sign-off (2026-08-21) — D7
+
+The four sign-offs above are left unedited as the historical record. This is the fifth.
+
+| Decision | Ruling | Scope authorized |
+|---|---|---|
+| **D7** — auto-backup file snapshots | **Signed exactly as recommended.** The "no in-app restore" stance is **retained** — recovering a startup snapshot stays a manual file copy and no restore surface is added to the app — and the already-reviewed manual recovery procedure is **published in [`README.md`](../README.md)** | Documentation only |
+| **D4** | **Still not signed.** | — |
+| **D2** (`js-unit` half) | **Still not signed.** | — |
+
+**What the signature authorized, and what it did not.** The owner's authorization was explicitly
+documentation-only. It does **not** authorize an in-app restore feature, any change to backup or
+runtime behavior, D4, `scan_export_bounds()`, the `utils/rep_range_integrity.py` docstring
+follow-up, `needs:`/`continue-on-error:` deep-gate work, or the Dependabot PRs #395–#397.
+
+**The text that landed is the reviewed draft**, written and revised under
+[`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md) § *Item 2*, where the
+`product-risk-reviewer` pass found and corrected three data-destroying defects (F1–F3) plus four
+accuracy gaps (F4–F7). Every instruction was re-verified against `utils/auto_backup.py`,
+`utils/database.py`, `utils/runtime_paths.py`, `utils/config.py`, `utils/runtime_migration.py`,
+`utils/program_backup.py`, `utils/schema_registry.py` and `app.py` before landing. Three
+refinements were applied at that re-verification and are the only wording deltas from the reviewed
+draft: the Backup Center's restore control is named exactly (**Restore To Current Plan**); its own
+generated entries are named by the label the page actually shows (**Auto Recovery**); and the
+`DB_FILE`-over-`HT_RUNTIME_DIR` precedence is stated, because both appear as rows in the folder
+table. One verified fact was added — the corruption path unlinks the `-wal`/`-shm` sidecars
+*before* it renames the database to `database.db.corrupted_<timestamp>`
+(`utils/database.py:217-231`), which is a further reason to copy the folder out before restarting.
+
+**Deliberately still open, and not widened into by this signature.** Nothing in the app tells a
+user that a quarantine happened, that snapshots exist, or where they are; the rotation clock runs
+against them from the first restart either way, and a README only helps someone who reads it
+*before* restarting. That gap is recorded in
+[`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md) § *Out of scope for D7* and needs
+its own decision — the candidate that stops rotating an empty snapshot changes
+`create_startup_backup()` and is therefore a Backup-contract change requiring migration notes and
+tests.
 
 ### 8.2 The port-5000 single-runner rule
 
@@ -650,7 +689,7 @@ shape detects a cross-PR interaction before it reaches `main`.
 - **`js-unit` stays non-required.** D2's js-unit half is unsigned, and the 2026-08-02 sign-off
   (§8.1a) explicitly kept it that way: reconsider only after the documented two-week stability
   window, with evidence.
-- **D4 and D7 remain unsigned** (D6 signed 2026-08-14, §8.1c). Phases 2, 3 and 5 remain proposals. Phase 2 step 8 was
+- **D4 remains unsigned** (D6 signed 2026-08-14, §8.1c; D7 signed 2026-08-21 as keep-the-stance-and-document, §8.1d). Phases 2, 3 and 5 remain proposals. Phase 2 step 8 was
   delivered by APP_PY P1+P5 (§8.5). D3 and D5 were signed on 2026-08-02 (§8.1a); D5 shipped as
   ADR-004, and **D3's stopgap shipped 2026-08-11 as PR #323 (`3b1160b`)**.
 - ~~**The Linux visual baseline set is stale, and it blocks the Phase 4 stopgap.**~~
@@ -931,7 +970,7 @@ as `DECISIONS.md` **ADR-004** (Chromium-only); **D3 was signed as the stopgap ha
 that stopgap was blocked on the stale Linux baseline set (**§8.7**) — *updated 2026-08-11: the
 baselines were regenerated and reviewed on 2026-08-04, and the stopgap **shipped** as PR #323
 (`3b1160b`); §8.7 is now history.* *(updated 2026-08-14: D6 signed as retain-informational, §8.1c.)* **D4 and D7
-remain unsigned**, as does the js-unit half of D2. **Phases 2, 3 and 5 remain proposals, and
+remain unsigned**, as does the js-unit half of D2. *(updated 2026-08-21: **D7 is now signed** as keep-the-stance-and-document, §8.1d, and the recovery procedure is in `README.md`. D4 and the js-unit half of D2 are unchanged.)* **Phases 2, 3 and 5 remain proposals, and
 Phase 4 is not complete** — *updated 2026-08-14: its release/tag pipeline half **shipped** as
 Packet R1 (§8.1b), but Phase 4 stays open because §7.3 entry criteria 2 and 3 are unmet and
 R1's tag trigger has never fired.*

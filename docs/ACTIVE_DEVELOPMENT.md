@@ -4,7 +4,44 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-21 (LATEST) — #402 merged; `origin/main` is at `1f9c05a`.** All 18
+**2026-08-21 (LATEST) — Testing Strategy D7 is SIGNED; the auto-backup recovery
+procedure is now in `README.md`.** `origin/main` is at **`4d53487`** (PR #403,
+merged 2026-08-21), 18/18 checks green on that commit. Take no automatic feature
+action from this file.
+
+The owner signed D7 **exactly as recommended**: retain the "no in-app restore"
+stance for startup database snapshots, and publish the already-reviewed manual
+recovery procedure in `README.md`. The ruling and the scope it authorized are
+[`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) **§8.1d**; the
+reviewed draft and its F1–F7 correction history stay in
+[`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md), annotated in
+place rather than rewritten.
+
+Every recovery instruction was re-verified against `utils/auto_backup.py`,
+`utils/database.py`, `utils/runtime_paths.py`, `utils/config.py`,
+`utils/runtime_migration.py`, `utils/program_backup.py`,
+`utils/schema_registry.py` and `app.py` before landing — the earlier review was
+not treated as sufficient evidence on its own. The safety ordering the draft was
+rewritten around is preserved intact: stop the app, copy the whole `auto_backup`
+folder out **before any restart** (rotation keeps 7 and the `< 100` skip counts
+the catalog, so an emptied database still snapshots and still deletes a real
+one), rename the current database rather than overwrite it, carry the
+`-wal`/`-shm`/`-journal` sidecars with it, and restore one snapshot at a time.
+
+**Documentation only.** No Python, JavaScript, workflow, schema, test, inventory,
+dependency or generated file changed. The test inventory is byte-identical.
+
+**Explicitly NOT authorized by this signature and NOT taken here:** an in-app
+restore feature, any backup or runtime behavior change, **D4**,
+`scan_export_bounds()`, the `utils/rep_range_integrity.py` docstring follow-up,
+`needs:`/`continue-on-error:` deep-gate work, and Dependabot PRs **#395–#397**.
+D4 and the `js-unit` half of D2 stay unsigned; the next scheduled deep-gate run
+is still **2026-08-24**.
+
+**2026-08-21 — #402 merged; `origin/main` is at `1f9c05a`.**
+**[UPDATED 2026-08-21 — this block carried the `(LATEST)` marker until the
+block above was written; `origin/main` has since moved to `4d53487` (#403).
+Nothing below is edited except the annotations marked `[UPDATED 2026-08-21]`.]** All 18
 checks are green on that commit. Take no automatic feature action from this file.
 
 | PR | Commit | Terminal result |
@@ -34,6 +71,9 @@ packet — each requires its own mutation proof first.
 **Still open and unauthorized:** the `scan_export_bounds()` numeric `min > max`
 behavior decision, and the related `utils/rep_range_integrity.py` docstring
 correction. **D4 and D7 remain unsigned and `README.md` remains untouched.**
+**[UPDATED 2026-08-21 — D7 is now SIGNED and the recovery section landed in
+`README.md`; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 and the two
+still-open packets are unchanged.]**
 
 **2026-08-20 — four PRs merged on `origin/main` at `81771d1` and no
 status surface recorded them. This pass is the record.** All 18 checks were green
@@ -60,6 +100,10 @@ count of five, and the reason it is five and not six, were correct and are what
 #402 implemented. The `scan_export_bounds()` decision and the
 `utils/rep_range_integrity.py` docstring correction are still open and still
 unauthorized, and D4/D7 are still unsigned.]**
+**[CORRECTED later on 2026-08-21 — D7 was signed that same day (§8.1d) and the
+recovery section landed in `README.md`, so both this annotation and the sentence
+above it are stale on D7. Only D4 is still unsigned; the two open packets are
+unchanged.]**
 
 **2026-08-14 — the pack's docs-only tail has landed and canonical truth
 is reconciled against `origin/main` at `fbb76f5`.** **Eleven** PRs merged after
@@ -671,6 +715,22 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
+**Current (2026-08-21, after #403 and the D7 signature) — take no automatic
+feature action from this file.** Verified against `origin/main` at **`4d53487`**,
+18/18 green. Testing Strategy **D7 is signed** (keep the "no in-app restore"
+stance; publish the manual recovery procedure) and the reviewed procedure now
+lives in `README.md` — ruling and authorized scope in
+[`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) §8.1d. The
+signature was documentation-only and widened nothing.
+
+**Still open and still unauthorized:** **D4** and the `js-unit` half of **D2**;
+the `scan_export_bounds()` numeric `min > max` behavior decision; the
+`utils/rep_range_integrity.py` docstring correction; `needs:` and job-level
+`continue-on-error:` on the deep gate (both **unmeasured**); Dependabot PRs
+**#395–#397**; and the separately-recorded gap that nothing in the app tells a
+user a quarantine happened or that snapshots exist. The next scheduled deep-gate
+run is **2026-08-24**.
+
 **Current (2026-08-21, after #401/#402) — take no automatic feature action from
 this file.** Verified against `origin/main` at `1f9c05a`, 18/18 green. #402 is
 tests-only and closed the first of the three preserved packets: the five
@@ -681,6 +741,9 @@ unconditionally protected as before. **Two remain open and unauthorized** — th
 `needs:` and job-level `continue-on-error:` were named by #402 as possible further
 gating shapes; both are **unmeasured** and neither is authorized work. D4 and D7
 stay unsigned; the next scheduled deep-gate run is **2026-08-24**.
+**[UPDATED 2026-08-21 — superseded by the block above: D7 was signed later the
+same day (§8.1d) and the recovery section landed in `README.md`. D4, the two
+open packets and the 2026-08-24 run are unchanged.]**
 
 **Current (2026-08-20, after #393/#394/#399/#400) — take no automatic feature
 action from this file.** Verified against `origin/main` at `81771d1`, 18/18
@@ -692,6 +755,9 @@ scheduled deep-gate run is **2026-08-24**.
 **[UPDATED 2026-08-21 — superseded by the block above: the five-job packet
 shipped as #402 (`1f9c05a`) and `origin/main` has moved off `81771d1`. The other
 two packets, and D4/D7, are unchanged.]**
+**[CORRECTED later on 2026-08-21 — D7 was signed that same day (§8.1d) and the
+recovery section landed in `README.md`, so this annotation and the sentence above
+it are both stale on D7. The two packets and D4 are unchanged.]**
 
 **Current (2026-08-15, after #369/#372/#373/#374/#375) — Testing Strategy Phase 2
 is COMPLETE and the release/tag pipeline has SHIPPED. There is still no automatic

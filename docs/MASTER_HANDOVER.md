@@ -4,7 +4,61 @@
 
 ## Current State
 
-> **2026-08-21 (LATEST) — post-merge reconciliation through PR #402.**
+> **2026-08-21 (LATEST) — Testing Strategy D7 is SIGNED and the auto-backup
+> recovery procedure is published in [`README.md`](../README.md).**
+> `origin/main` is at **`4d53487`** (PR #403, merged 2026-08-21), with all **18**
+> checks green on that commit. The block below was written as #403's own head and
+> therefore names `1f9c05a` as `origin/main`; that was true when it was written
+> and became false the moment it merged.
+>
+> **The owner signed D7 exactly as recommended:** retain the "no in-app restore"
+> stance for the startup database snapshots, and publish the already-reviewed
+> manual recovery procedure in `README.md`. The ruling, the scope it authorized,
+> and the three wording deltas from the reviewed draft are recorded in
+> [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) **§8.1d**.
+>
+> **This closes the "`README.md` is untouched" claim that every status block
+> below repeats.** The draft had been committed, labelled, inside
+> [`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md) precisely
+> because landing it *was* the D7 action; the signature is what released it. That
+> planning document is annotated in place rather than rewritten — its
+> "not landed" statements were correct when written.
+>
+> **Every recovery instruction was re-verified against the implementation before
+> landing**, not carried over on the strength of the earlier review:
+> `utils/auto_backup.py` (`AUTO_BACKUP_KEEP = 7`; the `< 100` skip counts
+> `exercises` and returns at `:66`, *before* `_rotate()` at `:80`, so a skipped
+> snapshot rotates nothing), `utils/database.py` (`FLASK_DEBUG` defaults to `'1'`
+> at `:88`, so a real launcher run is `journal_mode = DELETE` and has a
+> `-journal` sidecar; the corruption path unlinks `-wal`/`-shm` *before* renaming
+> to `database.db.corrupted_<timestamp>`), `utils/runtime_paths.py` +
+> `utils/config.py` (all four snapshot-folder rows, and `DB_FILE` outranking
+> `HT_RUNTIME_DIR`), `utils/runtime_migration.py` (the legacy `data\auto_backup\`
+> set is copied, never moved), `utils/program_backup.py` (`restore_backup()`
+> runs `DELETE FROM workout_log`), `utils/schema_registry.py` (`exercises` is
+> absent from `OWNED_TABLES_DROP_ORDER`) and `app.py` (`create_startup_backup()`
+> runs before the erase, and is skipped only on a freshly seeded first launch).
+>
+> **Documentation only.** No Python, JavaScript, workflow, schema, test,
+> inventory, dependency or generated file changed; the test inventory is
+> byte-identical and `scripts/generate_test_inventory.py --check` is clean.
+>
+> **What this did NOT change.** Testing Strategy **D4 remains unsigned**, as does
+> the `js-unit` half of **D2**. Testing Phase 4 stays **open**, `release.yml`'s
+> `push: tags` trigger has **still never fired**, and the next scheduled
+> deep-gate run is still **2026-08-24**. The `scan_export_bounds()` numeric
+> `min > max` behavior decision and the `utils/rep_range_integrity.py` docstring
+> correction are both still open and still unauthorized. `needs:` and job-level
+> `continue-on-error:` remain **unmeasured** and unauthorized. Dependabot PRs
+> **#395–#397** were not touched. The in-app "nothing tells the user a quarantine
+> happened" gap is recorded as needing its own decision and was deliberately
+> **not** folded into D7.
+
+> **2026-08-21 — post-merge reconciliation through PR #402.**
+> **[This block carried the `(LATEST)` marker until later on 2026-08-21; the
+> block above is now the latest. It shipped as #403 (`4d53487`), so its own
+> `origin/main is at 1f9c05a` became stale on merge. Nothing in it is edited
+> except the annotations marked `[UPDATED 2026-08-21]`.]**
 > `origin/main` is at **`1f9c05a`**, with all **18** checks green on that commit.
 > Two PRs merged after the block below was written; that block *is* #401, so it
 > could not record either of them.
@@ -59,7 +113,10 @@
 > authorized packet before anything is claimed about it.
 >
 > **Unchanged by #402.** Testing Strategy **D4 and D7 remain unsigned**,
-> `README.md` is still untouched, Testing Phase 4 stays **open**, `release.yml`'s
+> `README.md` is still untouched,
+> **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the
+> recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 and the rest
+> of this sentence are unchanged.]** Testing Phase 4 stays **open**, `release.yml`'s
 > `push: tags` trigger has **still never fired**, the next scheduled deep-gate run
 > is still **2026-08-24**, and the `schedule` trigger itself remains the one
 > unproven part of this workflow. The `scan_export_bounds()` numeric `min > max`
@@ -110,7 +167,10 @@
 > [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md).
 >
 > **What these four did NOT change.** Testing Strategy **D4 and D7 remain
-> unsigned** and **`README.md` is untouched**: #394 states in its own body that
+> unsigned** and **`README.md` is untouched**
+> **[UPDATED 2026-08-21 — both halves are now false: D7 is SIGNED and the
+> recovery section landed in `README.md`, `TESTING_STRATEGY_PLANNING.md`
+> §8.1d. True as written for #393/#394/#399/#400.]**: #394 states in its own body that
 > landing the recovery section *is* the D7 action, so it deliberately left both
 > alone and committed the procedure as a labelled draft inside
 > [`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md). Testing
@@ -292,7 +352,9 @@
 > pseudo-elements) stable, and a required source contract pins that scope.
 >
 > **Still not complete**, unchanged by this entry: the heavier `$orchestrate`
-> mechanism, and D4/D7 plus the `js-unit` half of D2. The first scheduled
+> mechanism, and D4/D7 plus the `js-unit` half of D2.
+> **[UPDATED 2026-08-21 — D7 left this list: signed as
+> keep-the-stance-and-document, §8.1d. True as written on 2026-08-14.]** The first scheduled
 > deep-gate run is still due **2026-08-17 03:17 UTC**. *(The release/tag half of
 > Testing Phase 4 shipped later the same day as Packet R1 — see the block above.
 > Phase 4 itself remains open. D6 left this list the same day too: signed as
@@ -333,7 +395,9 @@
 > PRs** when this was written, so no Packet D work is in flight and no
 > completion date is predicted for it here. The release/tag half of Testing
 > Phase 4, the heavier `$orchestrate` mechanism, and D4/D7 plus the `js-unit`
-> half of D2 remain exactly where their source plans leave them. The first
+> half of D2 remain exactly where their source plans leave them.
+> **[UPDATED 2026-08-21 — D7 has since moved: signed as
+> keep-the-stance-and-document, §8.1d. True as written on 2026-08-14.]** The first
 > scheduled deep-gate run is still due **2026-08-17 03:17 UTC**, and #351's
 > Linux regeneration is what that run will now compare against.
 
@@ -968,7 +1032,8 @@
 > **This closes Phase 0 and Phase 1 of [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) only.**
 > Owner sign-off covered **D1** (coverage as non-blocking measurement) and the
 > `e2e-erase-flow` half of **D2**. **D3-D7 remain unsigned and untouched; Phases 2-5 remain
-> proposals.** Do not dispatch Phase 2+ work from this block.
+> proposals.** **[UPDATED 2026-08-21 — true as written on 2026-08-01. D3 and D5 were
+> signed 2026-08-02, D6 on 2026-08-14 and D7 on 2026-08-21; only D4 is still unsigned.]** Do not dispatch Phase 2+ work from this block.
 >
 > | PR | What | Squash |
 > |---|---|---|
@@ -2678,6 +2743,7 @@ behind the CSS it describes.
   it had no open PR at the 2026-08-14 reconciliation. D4, D7 and the
   `js-unit` half of D2 remain unsigned (D6 signed 2026-08-14 as retain-informational,
   recorded as ADR-008); Phases 3 and 5 remain proposals.
+  **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 is unchanged.]**
   **[UPDATED 2026-08-15 — this bullet's tail previously read "Phases 3 and 5 **and the
   release/tag half of Phase 4** remain proposals". Only the "Phases 3 and 5" half is
   still true: the release/tag half **SHIPPED** as Packet R1, #374 (`5222db2`), with
@@ -2741,6 +2807,7 @@ green on that commit:
 - **Unchanged:** D4 and D7 stay **unsigned**, `README.md` stays untouched, Testing
   Phase 4 stays open, `release.yml`'s `push: tags` trigger has still never fired,
   and the next scheduled deep-gate run is **2026-08-24**.
+  **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 is unchanged.]**
 
 **Current (2026-08-20): four PRs merged and there is still no automatic
 next feature packet.** Verified against `origin/main` at **`81771d1`**, 18/18
@@ -2768,6 +2835,7 @@ above; `origin/main` is now `1f9c05a`]**:
 - **Unchanged:** D4 and D7 stay **unsigned**, `README.md` stays untouched,
   Testing Phase 4 stays open, `release.yml`'s `push: tags` trigger has still
   never fired, and the next scheduled deep-gate run is **2026-08-24**.
+  **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 is unchanged.]**
 
 **Current (2026-08-15): Testing Strategy Phase 2 is COMPLETE, the
 release/tag pipeline has SHIPPED, and there is still no automatic next feature
