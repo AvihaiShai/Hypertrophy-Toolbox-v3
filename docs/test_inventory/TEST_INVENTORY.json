@@ -241,8 +241,8 @@
     "total_tests": 649
   },
   "pytest": {
-    "collected_deterministic": 2663,
-    "deterministic_files": 122,
+    "collected_deterministic": 2746,
+    "deterministic_files": 123,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -408,7 +408,7 @@
       },
       {
         "file": "tests/test_error_page_contract.py",
-        "tests": 7
+        "tests": 11
       },
       {
         "file": "tests/test_errors_utils.py",
@@ -428,7 +428,7 @@
       },
       {
         "file": "tests/test_exports.py",
-        "tests": 52
+        "tests": 56
       },
       {
         "file": "tests/test_fatigue.py",
@@ -580,7 +580,7 @@
       },
       {
         "file": "tests/test_progression_plan_routes.py",
-        "tests": 20
+        "tests": 23
       },
       {
         "file": "tests/test_progression_plan_utils.py",
@@ -604,7 +604,11 @@
       },
       {
         "file": "tests/test_release_workflow_contracts.py",
-        "tests": 36
+        "tests": 50
+      },
+      {
+        "file": "tests/test_rep_range_integrity.py",
+        "tests": 48
       },
       {
         "file": "tests/test_replace_exercise.py",
@@ -736,14 +740,14 @@
       },
       {
         "file": "tests/test_workout_plan_routes.py",
-        "tests": 75
+        "tests": 85
       },
       {
         "file": "tests/test_youtube_video_id.py",
         "tests": 40
       }
     ],
-    "total_files": 123
+    "total_files": 124
   },
   "schema_version": 1
 }

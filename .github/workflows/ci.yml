@@ -607,13 +607,15 @@ jobs:
   # e2e/__screenshots__/win32/ was generated on the OWNER'S LOCAL machine (#309)
   # rather than by a workflow, so runner rendering "would" differ. That was never
   # measured. It was measured on 2026-08-10, deep-gate run 31437353755 on
-  # windows-2022: `Running 84 tests using 1 worker` -> `84 passed (2.8m)`, a full
-  # byte comparison of all 66 + 18 captures against the local corpus, zero
-  # failures. The renderers agree for the primary suite: its 66 tests then
-  # passed twice more in this PR's CI. The thumbnail suite is deliberately not
-  # included here: this PR also proved plan-desktop-light-simple races on
-  # windows-2022, with the pixel diff changing within a single Playwright
-  # attempt. See #322; fix the race before widening this job.
+  # windows-2022: `Running 84 tests using 1 worker` -> `84 passed (2.8m)`. Five
+  # of those tests are BYTE_GATE_EXEMPT and capture nothing, so the run wrote 81
+  # captures -- 66 from visual.spec.ts, 15 from the thumbnails spec -- and every
+  # one matched the local corpus byte for byte, zero failures. The renderers
+  # agree for the primary suite: its 66 tests then passed twice more in this
+  # PR's CI. The thumbnail suite is deliberately not included here: this PR
+  # also proved plan-desktop-light-simple races on windows-2022, with the pixel
+  # diff changing within a single Playwright attempt. See #322; fix the race
+  # before widening this job.
   #
   # PINNED to windows-2022, NOT windows-latest (which frozen-windows uses): that
   # agreement is a property of one runner image plus the Chromium pinned by
@@ -1289,12 +1291,12 @@ jobs:
     # policy is therefore unobservable outside a packaged run, which is why P4
     # shipped without this gate ever running.
     #
-    # The build and smoke themselves now live in _packaged-windows.yml, so this
-    # job and release.yml's blocking `packaged-windows` job run one definition
-    # rather than two divergent copies (Packet R1; F5-8 in
-    # docs/TESTING_STRATEGY_PLANNING.md section 9.2). deep-gate.yml's
-    # `frozen-windows` still carries its own copy -- converting it is Packet R2,
-    # deferred until after the 2026-08-17 scheduled run.
+    # The build and smoke themselves live in _packaged-windows.yml (Packet R1;
+    # F5-8 in docs/TESTING_STRATEGY_PLANNING.md section 9.2). Since Packet R2-b
+    # folded deep-gate.yml's `frozen-windows` in as the third caller, that file
+    # is the repository's only definition of the frozen Windows build -- this
+    # job, release.yml's blocking `packaged-windows`, and the weekly deep gate
+    # all run it, and none of them can drift from the others.
     #
     # This job `name:` is NOT in branch protection, which is what makes the
     # conversion safe: a `uses:` job reports as "<this name> / Build and smoke",

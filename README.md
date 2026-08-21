@@ -90,6 +90,76 @@ This will automatically:
 | `app_launcher.py` | Wrapper script for executable build |
 | `QUICK_START.md` | Feature walkthrough (starter generator, progression, pattern coverage) and troubleshooting |
 
+## 💾 Recovering Data from an Automatic Snapshot
+
+The app keeps two independent backups. **Only the first can be restored from inside the app.**
+
+| | Backup Center | Startup database snapshots |
+|---|---|---|
+| What it saves | Your workout plan | The entire database file |
+| Where it lives | Inside `database.db` | `auto_backup\database_<timestamp>.db` |
+| Survives a lost or corrupted `database.db`? | **No** — it lives inside that file | **Yes** — separate files |
+| How to restore | In the app — Backup Center → **Restore To Current Plan** | **By hand — steps below** |
+
+Startup snapshots are disaster recovery. They are never listed in the Backup Center, and there is deliberately no in-app restore button for them — recovering one means copying a file yourself.
+
+> ### ⚠️ Before you restart the app, read this
+>
+> The app keeps only the **7 most recent** snapshots and deletes the oldest each time it takes a new one — which is every normal start. It takes one **even when your data is already gone**, because the check that skips it counts the built-in exercise library, not your workouts, and that library is always present.
+>
+> So from the **very first restart after a problem appears**, each launch destroys one real snapshot, oldest first — the one most likely to predate the problem. Seven restarts and every genuine snapshot is gone.
+>
+> **Close the app and copy the whole `auto_backup` folder somewhere safe — your Desktop is fine — before you restart anything or try any fix.** Everything below works on that copy.
+
+### When a snapshot is taken
+
+- Every time the app starts, except the very first launch of a brand-new install.
+- Immediately before **Erase All Data** wipes everything, so a full erase stays recoverable. The confirmation message names the file it just wrote.
+
+### Where the snapshots are
+
+The folder sits beside whichever database the app is using. **Start the app normally with `START.bat`? Use the first row. Running the standalone `.exe`? Use the last row.** The middle two apply only if you set those variables yourself.
+
+| How you run it | Snapshot folder |
+|---|---|
+| `START.bat` from a source checkout | `<repo>\data\auto_backup\` |
+| With `HT_RUNTIME_DIR` set | `<HT_RUNTIME_DIR>\data\auto_backup\` |
+| With `DB_FILE` set | an `auto_backup\` folder beside that file |
+| Standalone executable (Windows) | `%LOCALAPPDATA%\HypertrophyToolbox\data\auto_backup\` |
+
+If you set both variables, `DB_FILE` wins — it decides the database path outright, and the folder follows the database.
+
+If none of those has what you expect, the app records the exact path every time it writes one. Open `logs\app.log` and search for `Auto-backup written to`.
+
+If you upgraded from an older version, an older set may still sit in the `data\auto_backup\` folder next to the app itself. Copy that folder out too.
+
+Files are named `database_<YYYYMMDD>_<HHMMSS>.db`, stamped in local time.
+
+### Restoring one by hand
+
+> Do this with the app **closed**, on the copy you made above.
+
+1. **Stop the app.** Close the console window, or quit the executable.
+2. **Pick a snapshot** — the newest one timestamped *before* the problem appeared.
+3. **Rename the current database out of the way — do not delete anything.** In the folder holding `database.db`, rename **every** file whose name starts with `database.db` to start with `database.broken.db` instead, keeping the rest of the name exactly:
+   - `database.db` → `database.broken.db`
+   - `database.db-wal` → `database.broken.db-wal` *(if present)*
+   - `database.db-shm` → `database.broken.db-shm` *(if present)*
+   - `database.db-journal` → `database.broken.db-journal` *(if present)*
+
+   Those extra files are not junk — they hold your most recent changes, and they belong to the database they are named after. Renaming them together keeps the broken copy intact and, just as importantly, stops them being applied to the snapshot you are about to put in their place.
+4. **Check the folder.** Nothing named `database.db` or `database.db-…` should be left.
+5. **Copy the snapshot into place.** Copy — do not move — your chosen `database_<timestamp>.db` into that folder and rename the copy to `database.db`. Copying keeps the snapshot intact if you picked the wrong one.
+6. **Start the app and check.** Open Workout Plan and Weekly Summary and confirm the data is the version you expected. If it is not, stop the app and repeat from step 3 with a different snapshot — your `database.broken.db` and your copied folder are both still there.
+
+Once you are satisfied, delete the `database.broken.db*` files yourself; nothing removes them for you.
+
+### Good to know
+
+- **If the database is corrupted, the app does not recover your data for you.** It renames the damaged file to `database.db.corrupted_<timestamp>` and starts with an empty database. That file is worth keeping too — but note it deletes the `-wal` and `-shm` files first, so the quarantined copy loses whatever was still only in them. One more reason to copy things out before you restart.
+- **A Backup Center restore replaces your whole current plan and deletes your workout log.** Do not reach for it while you are investigating a lost or corrupted database — finish the file steps above first.
+- The Backup Center also has its own entries under **Auto Recovery**. Those are a different thing with a different limit, stored inside the database, and unrelated to the snapshot files described here.
+
 ## 📦 Building the Standalone Executable (For Developers)
 
 To create the standalone `.exe` package for distribution to end users:

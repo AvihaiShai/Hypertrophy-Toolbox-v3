@@ -31,10 +31,79 @@ PACKAGED = WORKFLOWS / "_packaged-windows.yml"
 
 ALL_WORKFLOWS = (CI, DEEP_GATE, RELEASE, PACKAGED)
 NEW_WORKFLOWS = (RELEASE, PACKAGED)
+WORKFLOW_PATHS = {path.name: path for path in ALL_WORKFLOWS}
 
 REUSABLE_CALL = "uses: ./.github/workflows/_packaged-windows.yml"
 PACKAGED_SMOKE_JOB_NAME = "Packaged Smoke (Windows bootloader, non-required)"
 PACKAGED_CHILD_JOB_NAME = "Build and smoke"
+
+# Every job in the repository that calls the reusable Windows build, and the `name:`
+# each one reports under. Packet R2-b folded `deep-gate.yml`'s `frozen-windows` in, so
+# `_packaged-windows.yml` is now the only definition of that build anywhere and this
+# mapping is the entire coupling between the PR pipeline, the release gate and the
+# weekly deep gate.
+#
+# It is measured against the workflow files in BOTH directions below: a caller that
+# stops calling reds, and a caller that appears without being declared here reds too.
+# The second direction is the one that matters for a name -- a `uses:` job reports as
+# `<caller name> / Build and smoke`, so adding a caller mints a new composite check
+# name, and docs/ai_workflow/QUALITY_GATE.md requires that to be a deliberate act.
+PACKAGED_CALLERS = {
+    "ci.yml": ("packaged-smoke-windows", PACKAGED_SMOKE_JOB_NAME),
+    "release.yml": ("packaged-windows", "Frozen Windows executable"),
+    "deep-gate.yml": ("frozen-windows", "Frozen executable (real bootloader, Windows)"),
+}
+
+# The build's shape, stated once because it is now stored once. Order is load-bearing:
+# staging writes the manifest.sha256 that the smoke verifies the built tree against, so
+# it has to run before the build, and the build before the smoke.
+PACKAGED_STEP_SEQUENCE = (
+    "Checkout code",
+    "Set up Python",
+    "Install runtime and pinned build dependencies",
+    "Stage tracked package assets",
+    "Build via the canonical spec",
+    "Smoke the real bootloader",
+)
+PACKAGED_FAILURE_STEP = "Upload distribution inventory on failure"
+
+# The two ways `deep-gate.yml`'s `visual-linux` job is allowed to start, as the exact
+# disjuncts of its job-level `if:`. The weekly schedule is what makes the Linux visual
+# comparison run at all; the input is the manual opt-in. Neither is optional, and
+# nothing else may be added -- a third disjunct is a third way to enter a job whose
+# every later step branches on which of these fired.
+VISUAL_LINUX_DISJUNCTS = frozenset(
+    {"github.event_name == 'schedule'", "inputs.run_visual"}
+)
+
+# Every `deep-gate.yml` job, split by whether it may carry a job-level `if:` at all.
+#
+# GitHub counts a SKIPPED job as a success, and the weekly run is unattended and
+# reports one conclusion for the whole workflow -- so `if: ${{ false }}` on any job
+# below silently removes that job's evidence from the gate while the run still says
+# green. Nothing else in this file notices: the steps are all still present, they
+# just never execute. Measured on the unprotected set, one `if:` line added after
+# each job's `name:` in turn and then all five at once -- every arm left every
+# contract this file held before this packet passing.
+#
+# `visual-linux` is the one job deliberately allowed one, and what its condition may
+# contain is pinned by VISUAL_LINUX_DISJUNCTS above. A job may only join it with its
+# condition pinned that way: otherwise moving one across is a two-word edit that
+# drops an arm from the parametrized contract below and constrains nothing in its
+# place, so the census test measures every member against the file for an `if:` it
+# actually carries. `frozen-windows` is barred from carrying one by the
+# PACKAGED_CALLERS contracts, which is why it is in neither set here and is read back
+# out of that mapping rather than repeated.
+DEEP_GATE_UNCONDITIONAL_JOBS = frozenset(
+    {
+        "full-e2e",
+        "first-install",
+        "empty-schema",
+        "old-db-migration",
+        "dependency-health",
+    }
+)
+DEEP_GATE_CONDITIONAL_JOBS = frozenset({"visual-linux"})
 
 # ci.yml job names that exist and are deliberately NOT part of the expected set.
 UNEXPECTED_CI_JOB_NAMES = (
@@ -48,23 +117,38 @@ UNEXPECTED_CI_JOB_NAMES = (
 JOB_ID = re.compile(r"^  ([A-Za-z0-9_-]+):[ \t]*$", re.MULTILINE)
 STEP_SPLIT = re.compile(r"^    - name: ", re.MULTILINE)
 NAME_KEY = re.compile(r"^    name: (.+)$", re.MULTILINE)
+STEPS_KEY = re.compile(r"^    steps:[ \t]*$", re.MULTILINE)
+# The same sequence entries as STEP_SPLIT, but blind to how far they are indented.
+# YAML lets a block sequence sit at its key's column or any column deeper, so
+# `      - name:` is the same document as `    - name:` -- and STEP_SPLIT matches only
+# the second. Counting both is what turns a reindent into a failure instead of an
+# empty list. A `- name:` line inside a `run: |` block scalar would be counted here
+# too; none exists today, and one appearing should red this rather than quietly
+# change what "a step" means to a parser that cannot tell the difference.
+ANY_STEP_ENTRY = re.compile(r"^ *- name: ", re.MULTILINE)
 
 
 def text(path):
     return path.read_text(encoding="utf-8")
 
 
-def executable(path):
-    """The file with whole-line comments removed.
+def strip_comments(source):
+    """`source` with whole-line comments removed.
 
     Every "this string must not appear" contract below has to read code rather than
     prose, or the comment explaining why a thing is forbidden becomes the reason the
     test reds. ci.yml says "NO --update-snapshots, here or anywhere in CI" in a
-    comment; that sentence is the guarantee, not a violation of it.
+    comment; that sentence is the guarantee, not a violation of it. The same applies
+    per job block: `frozen-windows` is a two-line `uses:` job whose comment explains
+    the smoke it no longer runs.
     """
     return "\n".join(
-        line for line in text(path).splitlines() if not line.lstrip().startswith("#")
+        line for line in source.splitlines() if not line.lstrip().startswith("#")
     )
+
+
+def executable(path):
+    return strip_comments(text(path))
 
 
 def jobs(path):
@@ -92,9 +176,44 @@ def job_name(block):
 
 
 def steps(block):
-    """(step name, raw step text) for each step in a job block."""
+    """(step name, raw step text) for each step in a job block.
+
+    An empty list is never a valid answer for a job that declares `steps:`, but it was
+    the answer this gave for any equivalent reindent of the sequence. Moving every step
+    from four spaces to six is the same YAML document and matches STEP_SPLIT nowhere,
+    so `for name, raw in steps(block)` became a loop over nothing and every contract
+    built on one passed while saying nothing about a workflow the parser could no
+    longer read. Measured on deep-gate.yml: all seven jobs parsed to zero steps and the
+    file's whole contract set stayed green.
+
+    So the parse is cross-checked against ANY_STEP_ENTRY, which counts the same entries
+    without pinning their indent. A job declaring `steps:` must yield at least one, and
+    the two counts must agree -- which also catches a partial reindent, where some steps
+    still match and the loss is smaller but no louder.
+    """
     parts = STEP_SPLIT.split(block)
-    return [(part.split("\n", 1)[0].strip(), part) for part in parts[1:]]
+    parsed = [(part.split("\n", 1)[0].strip(), part) for part in parts[1:]]
+    entries = len(ANY_STEP_ENTRY.findall(block))
+
+    if STEPS_KEY.search(block) is None:
+        # A `uses:` job legitimately has none; anything else here is a block this
+        # parser is misreading.
+        assert not entries, (
+            f"a job with no `steps:` key holds {entries} `- name:` entries; the job "
+            "parser is misreading this block"
+        )
+        return parsed
+
+    assert parsed, (
+        f"a job declaring `steps:` parsed to zero steps while {entries} `- name:` "
+        "entries are present -- STEP_SPLIT pins a four-space sequence indent and this "
+        "job's is not four. Every contract iterating steps() would now be vacuous."
+    )
+    assert len(parsed) == entries, (
+        f"steps() read {len(parsed)} four-space steps but the block holds {entries} "
+        "`- name:` entries; the difference is invisible to every contract below"
+    )
+    return parsed
 
 
 def _scopes(source, indent):
@@ -117,7 +236,44 @@ def permissions(block):
     return _scopes(block, "    ")
 
 
+def triggers(path):
+    """The trigger names under `on:`, read from that block rather than the whole file.
+
+    Scanning the raw file for a forbidden trigger name is fail-closed but also forbids
+    a workflow from *naming*, in a comment, the trigger it must never have -- which is
+    exactly what deep-gate.yml's conversion rationale needs to do.
+    """
+    source = strip_comments(text(path))
+    match = re.search(r"^on:[ \t]*\n(.*?)(?=^\S)", source, re.MULTILINE | re.DOTALL)
+    assert match is not None, f"{path.name} has no on: block"
+    return set(re.findall(r"^  ([a-z_]+):", match.group(1), re.MULTILINE))
+
+
 # --------------------------------------------------------------- the vacuity floor
+
+
+def test_the_workflow_directory_holds_exactly_the_files_this_file_reads():
+    """`ALL_WORKFLOWS` is a literal, and every contract below iterates only it.
+
+    A workflow file outside that list is invisible to all of them -- including "the
+    frozen build has exactly one definition" and "no undeclared caller exists". Without
+    this, a new `.github/workflows/nightly-package.yml` could inline its own PyInstaller
+    build, or mint a fourth `<name> / Build and smoke` composite check, with every
+    other contract in this file still green. The prose in `_packaged-windows.yml` and QUALITY_GATE.md claims
+    those guarantees over the repository, so the repository is what has to be measured.
+
+    Globbing inside a test body is not the collection-time globbing the R1 council
+    forbade (`T-collect`): this file's node set stays fixed regardless of what is on
+    disk, so a new workflow reds an assertion rather than silently adding a test.
+    """
+    on_disk = {
+        path.name for path in WORKFLOWS.iterdir() if path.suffix in {".yml", ".yaml"}
+    }
+    assert on_disk == set(WORKFLOW_PATHS), (
+        "a workflow file appeared or vanished; add it to ALL_WORKFLOWS (and to "
+        "PACKAGED_CALLERS if it calls the reusable build) or these contracts do not "
+        "cover it"
+    )
 
 
 def test_the_parser_still_finds_every_job():
@@ -130,12 +286,40 @@ def test_the_parser_still_finds_every_job():
 
     ci_jobs = jobs(CI)
     assert len(ci_jobs) >= 17
-    assert "packaged-smoke-windows" in ci_jobs
-    assert len(jobs(DEEP_GATE)) == 7
+
+    deep_gate_jobs = jobs(DEEP_GATE)
+    assert len(deep_gate_jobs) == 7
+
+    # Every declared caller must at least be a job the parser can see. Without this,
+    # "no caller kept its own build steps" would be a statement about missing blocks.
+    for file_name, (job_id, _) in PACKAGED_CALLERS.items():
+        assert job_id in jobs(WORKFLOW_PATHS[file_name]), f"{file_name}:{job_id}"
 
     for path in ALL_WORKFLOWS:
         for job_id, block in jobs(path).items():
             assert job_name(block) or "uses:" in block, f"{path.name}:{job_id}"
+
+
+def test_the_step_parser_reads_every_job_that_declares_steps():
+    """The second vacuity floor: shape before content, one level down.
+
+    The floor above proves the parser still finds the JOBS. It says nothing about
+    whether it can still read their steps, and #399's own commit message records why
+    that gap was invisible: `steps()` discards `parts[0]`, so a job whose sequence sits
+    at six spaces instead of four returns an empty list rather than an error.
+
+    `steps()` now refuses to answer that way. This calls it over every job in every
+    workflow so the refusal does not depend on some other test happening to iterate
+    that file -- nothing else in this file iterates ci.yml's steps at all, so a
+    reindent there would otherwise still be unmeasured.
+    """
+    for path in ALL_WORKFLOWS:
+        for job_id, block in jobs(path).items():
+            declares_steps = STEPS_KEY.search(block) is not None
+            assert bool(steps(block)) == declares_steps, (
+                f"{path.name}:{job_id}: `steps:` key present={declares_steps} but the "
+                "step parse disagrees"
+            )
 
 
 # ------------------------------------------------- the expected-context list is real
@@ -167,18 +351,32 @@ def test_no_required_context_job_was_converted_to_a_reusable_call():
             assert "uses: ./" not in block, job_id
 
 
-def test_the_packaged_smoke_job_name_is_unchanged_and_its_child_is_pinned():
-    block = jobs(CI)["packaged-smoke-windows"]
-    assert job_name(block) == PACKAGED_SMOKE_JOB_NAME
-    assert REUSABLE_CALL in block
-    assert job_name(jobs(PACKAGED)["build-and-smoke"]) == PACKAGED_CHILD_JOB_NAME
+# --------------------------------------------------------- one build, three callers
 
 
-# ----------------------------------------------------------- one build, two callers
+def caller_jobs():
+    """{(workflow file name, job id)} for every job that calls the reusable build.
+
+    Measured from the files. Both directions of the caller contract compare against
+    this, so neither can be satisfied by a literal that agrees only with itself.
+    """
+    return {
+        (path.name, job_id)
+        for path in ALL_WORKFLOWS
+        for job_id, block in jobs(path).items()
+        if REUSABLE_CALL in strip_comments(block)
+    }
 
 
-def test_the_frozen_build_has_exactly_two_definitions_and_both_callers():
-    """Counted by command shape. Counting the filename scores green on zero callers."""
+def test_the_frozen_build_has_exactly_one_definition():
+    """Counted by command shape. Counting the filename scores green on zero callers.
+
+    R1 left this at two -- here and deep-gate.yml's inline copy -- because a scheduled
+    workflow runs the default branch's HEAD copy of its own file, so editing it ahead
+    of the first authoritative scheduled run would have meant that run validated a
+    different file than the one that shipped. R2-b closed it: one build, three
+    triggers, nothing left to keep in step by hand.
+    """
     builds = sum(
         executable(path).count("pyinstaller --clean --noconfirm Hypertrophy-Toolbox.spec")
         for path in ALL_WORKFLOWS
@@ -187,10 +385,166 @@ def test_the_frozen_build_has_exactly_two_definitions_and_both_callers():
         executable(path).count("python scripts/smoke_packaged_app.py")
         for path in ALL_WORKFLOWS
     )
-    assert builds == 2, "expected _packaged-windows.yml and deep-gate.yml only"
-    assert smokes == 2
-    assert REUSABLE_CALL in executable(CI)
-    assert REUSABLE_CALL in executable(RELEASE)
+    assert builds == 1, "the frozen Windows build lives in _packaged-windows.yml only"
+    assert smokes == 1
+    assert (
+        executable(PACKAGED).count(
+            "pyinstaller --clean --noconfirm Hypertrophy-Toolbox.spec"
+        )
+        == 1
+    ), "the one definition is not the reusable workflow"
+
+
+def test_exactly_the_declared_jobs_call_the_reusable_build():
+    """The reverse half of the caller contract, and the one that catches drift.
+
+    An undeclared caller is not a harmless addition: it mints a new composite check
+    name (`<its name> / Build and smoke`), and if that job ever sits in branch
+    protection both halves become frozen. Whoever adds one has to say so here.
+    """
+    declared = {(name, job_id) for name, (job_id, _) in PACKAGED_CALLERS.items()}
+    assert caller_jobs() == declared
+
+
+@pytest.mark.parametrize("file_name", sorted(PACKAGED_CALLERS))
+def test_each_declared_caller_delegates_the_entire_build(file_name):
+    """The forward half, per caller.
+
+    A caller that quietly grows its own build steps back -- the exact regression R2-b
+    exists to make impossible -- still contains `uses:` and would satisfy a bare
+    "does it call the workflow" check. So this asserts what the caller must NOT have
+    kept, against the block with comments stripped: `frozen-windows` is a two-line
+    delegation whose comment necessarily discusses the build it no longer runs.
+    """
+    job_id, expected_name = PACKAGED_CALLERS[file_name]
+    block = jobs(WORKFLOW_PATHS[file_name])[job_id]
+    body = strip_comments(block)
+
+    assert job_name(block) == expected_name, "composite check names are exact-match"
+    assert REUSABLE_CALL in body
+    for kept in ("steps:", "runs-on:", "pyinstaller", "smoke_packaged_app.py"):
+        assert kept not in body, f"{file_name}:{job_id} kept `{kept}` after the lift"
+    # No caller varies the build. The reusable workflow declares no `inputs:`, so a
+    # `with:` block here could only be a knob someone added -- which is how one
+    # definition starts producing three behaviors without becoming three copies.
+    assert "with:" not in body, job_id
+    # `secrets:` is the second way a caller can pass something. The no-`inputs:`
+    # contract below does not cover it, and `_packaged-windows.yml` claims in prose
+    # that NO caller passes anything -- so the prose was ahead of the tests.
+    assert "secrets:" not in body, f"{file_name}:{job_id} passes secrets"
+    # A matrix mutates the composite check into `<parent> (x) / <child>`. Both halves
+    # are pinned above, but GitHub injects that segment BETWEEN them, so the one
+    # rename QUALITY_GATE.md says must never happen silently is the one a matrix
+    # performs silently.
+    assert "strategy:" not in body, f"{file_name}:{job_id} would rename its own check"
+    # `needs:` makes the build conditional on another job succeeding; a skipped
+    # dependency skips this job and leaves the run green.
+    assert "needs:" not in body, f"{file_name}:{job_id} gated the build behind a job"
+    # A `uses:` job whose whole body is one line is one line away from being skipped
+    # entirely. `frozen-windows` is guarded by name elsewhere; this covers all three.
+    assert not re.search(r"^    if:", body, re.MULTILINE), (
+        f"{file_name}:{job_id} must stay unconditional -- a `uses:` job with an `if:` "
+        "skips silently and the run still reports green"
+    )
+
+
+def test_the_weekly_schedule_still_fires_weekly():
+    """`triggers()` reads trigger NAMES, so `schedule:` staying present says nothing
+    about whether the cron can ever fire. Changing `'17 3 * * 1'` to a date that
+    effectively never comes -- or deleting the `- cron:` line while keeping the
+    `schedule:` key -- silently kills the D3 safety net and reds nothing. Nothing
+    else in the repository mentions `cron` at all.
+
+    Pinned to the exact expression because the cadence IS the decision: the weekly
+    gate is what the 2026-08-17 first run and the R1-D3 three-run clock are measured
+    against.
+    """
+    assert "schedule" in triggers(DEEP_GATE)
+    crons = re.findall(r"^    - cron: '([^']+)'", DEEP_GATE.read_text(encoding="utf-8"), re.MULTILINE)
+    assert crons == ["17 3 * * 1"], crons
+
+
+def test_the_reusable_build_accepts_nothing_from_its_callers():
+    """The other half of the no-`with:` assertion above. Asserting only that callers
+    pass nothing passes just as well once an input exists and one caller sets it."""
+    assert triggers(PACKAGED) == {"workflow_call"}
+    assert "inputs:" not in executable(PACKAGED)
+    assert "secrets:" not in executable(PACKAGED)
+
+
+def test_the_shared_build_cannot_be_skipped_or_serialised_for_every_caller_at_once():
+    """The widest single false green in this surface.
+
+    `build-and-smoke` is the ONE definition behind three checks. A job-level `if:`
+    here skips the frozen Windows build on the PR path, in the release gate and in
+    the weekly gate simultaneously, and every other contract in this file stays green
+    because the build steps are all still present -- they just never run.
+
+    The step-level guard cannot see this: `steps()` splits on `^    - name: ` and
+    discards `parts[0]`, which is the job header, and it matches a SIX-space step
+    indent where a job-level key sits at four.
+
+    `concurrency:` is barred for a different reason: the three callers deliberately
+    hold three different policies (ci.yml cancels in-progress, release.yml must never
+    kill a running release, deep-gate declares none). A group declared here would
+    override all three from one place, and R1-D6's no-cancel guarantee is asserted
+    against release.yml only.
+    """
+    body = strip_comments(jobs(PACKAGED)["build-and-smoke"])
+    assert not re.search(r"^    if:", body, re.MULTILINE), (
+        "`build-and-smoke` must stay unconditional; skipping it silently disarms the "
+        "frozen Windows build for all three callers at once"
+    )
+    assert "concurrency:" not in executable(PACKAGED), (
+        "a concurrency group here would apply to all three callers, overriding "
+        "release.yml's cancel-in-progress: false guarantee"
+    )
+
+
+def test_the_packaged_smoke_job_name_and_its_child_are_pinned():
+    """R1-D4 would promote `<parent> / Build and smoke` into branch protection after
+    10 consecutive green runs. Both halves are load-bearing from that point on, and
+    the child half is now shared by all three callers."""
+    block = jobs(CI)["packaged-smoke-windows"]
+    assert job_name(block) == PACKAGED_SMOKE_JOB_NAME
+    assert job_name(jobs(PACKAGED)["build-and-smoke"]) == PACKAGED_CHILD_JOB_NAME
+
+
+# ------------------------------------------- what the single definition must carry
+
+
+def test_the_single_definition_keeps_the_shape_both_lifted_jobs_had():
+    """After R2-b this file is the only place any of these is stated.
+
+    `runs-on` and `timeout-minutes` are asserted here rather than in the callers
+    because a `uses:` job may declare neither. deep-gate.yml's `frozen-windows`
+    declared both inline until R2-b, at exactly these values.
+    """
+    block = jobs(PACKAGED)["build-and-smoke"]
+    assert re.search(r"^    runs-on: windows-latest$", block, re.MULTILINE)
+    assert re.search(r"^    timeout-minutes: 45$", block, re.MULTILINE)
+
+    names = [name for name, _ in steps(block)]
+    assert tuple(names[: len(PACKAGED_STEP_SEQUENCE)]) == PACKAGED_STEP_SEQUENCE
+    assert PACKAGED_FAILURE_STEP in names
+
+    # Staging is the one pinned step whose body can be gutted silently. The spec stages
+    # again during the build, so `run: echo skip` here still produces a green smoke --
+    # and quietly deletes the fast-fail-on-broken-manifest property that is the entire
+    # reason this step runs first, and the entire reason the order above is pinned.
+    bodies = dict(steps(block))
+    assert (
+        "python scripts/stage_package_assets.py"
+        in bodies["Stage tracked package assets"]
+    )
+
+    # A `uses:` job may not declare `continue-on-error`, so a step here is the only
+    # place the build can be made non-blocking for all three callers at once -- turning
+    # a red bootloader smoke green on the PR path, in the release gate and in the weekly
+    # gate simultaneously. ci.yml uses the key legitimately in seven places (plus one
+    # explicit `continue-on-error: false`, eight occurrences in all) and records
+    # this exact trap in its own comments; it has no business in the shared definition.
+    assert "continue-on-error" not in executable(PACKAGED)
 
 
 def test_the_smoke_keeps_the_upgrade_migration_run():
@@ -203,27 +557,177 @@ def test_the_smoke_keeps_the_upgrade_migration_run():
     assert "--mode payload" not in command
 
 
-# ------------------------------------------------------------------- deep-gate stays put
+def test_the_failure_diagnostic_survived_the_lift():
+    """Both lifted jobs dumped the packaged data tree when the smoke failed. Losing it
+    costs nothing visible until the day a run goes red and says only "it failed"."""
+    raw = dict(steps(jobs(PACKAGED)["build-and-smoke"]))[PACKAGED_FAILURE_STEP]
+    assert re.search(r"^      if: failure\(\)$", raw, re.MULTILINE)
+    assert "dist/Hypertrophy-Toolbox/_internal/data" in raw
+    assert "shell: pwsh" in raw
 
 
-@pytest.mark.parametrize(
-    "fragment",
-    [
-        "  frozen-windows:",
-        "name: Frozen executable (real bootloader, Windows)",
-        "runs-on: windows-latest",
-        "pyinstaller --clean --noconfirm Hypertrophy-Toolbox.spec",
-        "--mode bootloader",
-    ],
-)
-def test_deep_gate_still_carries_its_own_frozen_build(fragment):
-    """Packet R2 converts this file; R1 must not."""
-    assert fragment in text(DEEP_GATE)
+# --------------------------------------------- the deep gate after the conversion
 
 
-def test_deep_gate_does_not_call_the_reusable_workflow():
-    """The negative that actually catches R2 creep."""
-    assert REUSABLE_CALL not in text(DEEP_GATE)
+def test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows():
+    """The lift must not have cost the weekly gate its one packaged-artifact check.
+
+    Asserted through the call rather than inside deep-gate.yml, because that is where
+    the guarantee now lives: the caller, the callee, and the argv in between.
+    """
+    frozen = strip_comments(jobs(DEEP_GATE)["frozen-windows"])
+    assert REUSABLE_CALL in frozen
+
+    # The lift shrank this job to a single `uses:` line, so a one-line `if:` above it
+    # would skip the weekly gate's ONLY packaged-artifact check and still report the
+    # run green. The step-level guard below is no help: it iterates NEW_WORKFLOWS, and
+    # a `uses:` job has no steps to iterate. deep-gate.yml already carries the
+    # precedent on `visual-linux`, and MASTER_HANDOVER makes "executed, not skipped"
+    # the pass condition of this gate -- so the shape has to be barred by name here.
+    assert not re.search(r"^    if:", frozen, re.MULTILINE), (
+        "`frozen-windows` must stay unconditional; a `uses:` job with an `if:` "
+        "skips silently and leaves the weekly gate green with no bootloader smoke"
+    )
+
+    called = jobs(PACKAGED)["build-and-smoke"]
+    assert "runs-on: windows-latest" in called
+    assert "--mode bootloader" in dict(steps(called))["Smoke the real bootloader"]
+
+
+def test_the_weekly_visual_comparison_cannot_be_reduced_to_a_manual_opt_in():
+    """`visual-linux` is the one job in this repository that may carry a job-level
+    `if:`, and the contracts that bar the shape elsewhere therefore had nothing to say
+    about what its condition contains.
+
+    Both disjuncts are load-bearing, and the schedule one is the fragile half. A
+    `schedule` event carries no `inputs` at all, so `inputs.run_visual` alone resolves
+    false: dropping `github.event_name == 'schedule' ||` leaves a workflow whose weekly
+    run skips its visual comparison entirely and still reports green -- the exact
+    "executed, not skipped" failure the comment above the condition says it exists to
+    prevent, and the one this workflow's own prose claims is impossible. Measured: that
+    one-line deletion left all 42 contracts in this file passing.
+
+    Pinned as a set of disjuncts rather than as a string so the message names what
+    changed, and `&&` is barred by name because it reads as a near-identical edit while
+    inverting the meaning -- a scheduled run would then also need an input it can never
+    have.
+    """
+    block = strip_comments(jobs(DEEP_GATE)["visual-linux"])
+    found = re.search(r"^    if: \$\{\{ (.+) \}\}$", block, re.MULTILINE)
+    assert found is not None, (
+        "`visual-linux` lost its job-level `if:`; the weekly/manual split is the "
+        "whole reason this job is allowed to carry one"
+    )
+
+    condition = found.group(1).strip()
+    assert "&&" not in condition, (
+        f"`visual-linux` gates its run on a conjunction: {condition!r} -- a scheduled "
+        "run carries no inputs, so this never runs weekly"
+    )
+    disjuncts = {part.strip() for part in condition.split("||")}
+    assert disjuncts == VISUAL_LINUX_DISJUNCTS, (
+        f"`visual-linux` must run on the weekly schedule AND on an opted-in manual "
+        f"dispatch, and on nothing else; found {sorted(disjuncts)}"
+    )
+
+
+def test_every_deep_gate_job_is_classified_as_conditional_or_not():
+    """The completeness half, and the reason the per-job contract below is not
+    vacuous.
+
+    That contract can only speak about the job ids it is handed. The vacuity floor
+    above counts deep-gate's jobs, so a job simply ADDED already reds there -- but a
+    count says nothing about WHICH jobs, and a rename, or an add paired with a
+    removal, keeps it at seven while moving a job out of the protected set entirely.
+    This pins the ids, so the failure names the job that stopped being classified
+    instead of reporting a number that no longer matches.
+    """
+    frozen_id, _ = PACKAGED_CALLERS[DEEP_GATE.name]
+    classified = DEEP_GATE_UNCONDITIONAL_JOBS | DEEP_GATE_CONDITIONAL_JOBS | {frozen_id}
+    assert set(jobs(DEEP_GATE)) == classified, (
+        "deep-gate.yml's jobs no longer match the conditional/unconditional split. An "
+        "unclassified job can carry `if: ${{ false }}` and skip out of the unattended "
+        "weekly gate while the run still reports green"
+    )
+
+    # The conditional set is the escape hatch, so it is measured against the file
+    # rather than trusted. Moving an unconditional job into it silently deletes that
+    # job's arm from the parametrized contract below and the census above stays green,
+    # because the union is unchanged -- but a job that was unconditional has no `if:`
+    # to find, which is what this catches.
+    unpinned = sorted(
+        job_id
+        for job_id in DEEP_GATE_CONDITIONAL_JOBS
+        if not re.search(
+            r"^    if:", strip_comments(jobs(DEEP_GATE)[job_id]), re.MULTILINE
+        )
+    )
+    assert not unpinned, (
+        f"{unpinned} are listed as deliberately conditional but carry no job-level "
+        "`if:`; a job only belongs here with its condition pinned, or it has left the "
+        "unconditional contract with nothing taking its place"
+    )
+    # The check above is satisfied by moving a job across AND skipping it in the same
+    # change, which then shows up only as one fewer parametrize arm. `visual-linux` is
+    # the only job whose condition anything pins, so widening the exception has to be
+    # a deliberate edit here, against a message saying what it costs.
+    assert DEEP_GATE_CONDITIONAL_JOBS == {"visual-linux"}, (
+        "`visual-linux` is the only deep-gate job with a pinned condition "
+        "(VISUAL_LINUX_DISJUNCTS). Adding another removes it from the unconditional "
+        "contract without pinning what its condition may contain"
+    )
+
+
+@pytest.mark.parametrize("job_id", sorted(DEEP_GATE_UNCONDITIONAL_JOBS))
+def test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run(job_id):
+    """The five jobs that must run every week.
+
+    `visual-linux` is allowed a job-level `if:` and `frozen-windows` is barred from
+    one by name, so the shape was pinned for exactly two of seven jobs and unmeasured
+    for the rest. A skipped job is a successful job to GitHub, and this workflow's
+    conclusion is the only thing an unattended weekly run reports -- so one `if:` line
+    here deletes the full E2E suite, a cold-start smoke, the empty-schema smoke or the
+    old-DB migration proof from the gate without reddening anything, in the workflow
+    whose whole purpose is to run the checks the PR pipeline deliberately does not.
+
+    `dependency-health` is the one job here that reports rather than gates -- both its
+    scan steps are `continue-on-error: true` -- so skipping it costs the weekly output,
+    not a signal. It is held to the same shape anyway: it is the repository's only
+    scheduled Python vulnerability scan, and a job that silently stops running is how
+    that becomes nobody's job.
+
+    Read against the block with comments stripped, like every other contract here that
+    BARS an `if:`, so prose about conditions is not mistaken for one. The value is
+    captured only for the message: the key alone is the violation, because
+    `    if:\n      ${{ false }}` and a tab after the colon are both the same skip, and
+    a pattern demanding `if: ` plus a value passes on either.
+
+    Standing on the second vacuity floor, not asserting it: all five jobs declare
+    `steps:` at four spaces, so a 4->6 job reindent would leave every arm here green
+    with the parser unable to read the block at all. What reds there is
+    `test_the_step_parser_reads_every_job_that_declares_steps`.
+    """
+    body = strip_comments(jobs(DEEP_GATE)[job_id])
+    found = re.search(r"^    if:(.*)$", body, re.MULTILINE)
+    condition = found.group(1).strip() if found else None
+    assert found is None, (
+        f"deep-gate.yml:{job_id} carries a job-level `if: {condition}`. A skipped job "
+        "counts as success, so this drops the job's evidence from the weekly gate "
+        "while the run still reports green; only `visual-linux` may be conditional here"
+    )
+
+
+def test_the_deep_gate_produces_no_branch_protection_context():
+    """Converting `frozen-windows` renamed its check to `<name> / Build and smoke`.
+    That rename is safe only because nothing in this workflow is a required context --
+    it runs on the weekly schedule and on workflow_dispatch, never on a pull request.
+    Add a `pull_request:` trigger here and the safety argument stops holding, so this
+    asserts the trigger set positively -- exactly these two, nothing else -- rather than
+    trusting the job names alone or scanning the file for a forbidden word.
+    """
+    names = {job_name(block) for block in jobs(DEEP_GATE).values()}
+    assert not names & set(REQUIRED_CONTEXTS)
+    assert triggers(DEEP_GATE) == {"schedule", "workflow_dispatch"}
 
 
 # ------------------------------------------------------------------ triggers and inputs

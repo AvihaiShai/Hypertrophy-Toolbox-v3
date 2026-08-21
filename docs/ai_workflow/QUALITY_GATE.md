@@ -167,6 +167,27 @@ was converted in Packet R1 precisely because it is **not** protected; its compos
 is what R1-D4 would promote after 10 green runs. Renaming the child job in
 `_packaged-windows.yml` after promotion breaks the gate exactly as renaming the parent would.
 
+Three jobs now call that workflow — `ci.yml`'s `packaged-smoke-windows`, `release.yml`'s
+`packaged-windows`, and `deep-gate.yml`'s `frozen-windows` (Packet R2-b). **The child name is
+therefore shared by three composite checks**, so renaming it is three renames at once. Adding
+a fourth caller mints a fourth composite name and must be a deliberate act: declare it in
+`PACKAGED_CALLERS` in `tests/test_release_workflow_contracts.py`, which compares that
+declaration against the callers measured from the workflow files in both directions.
+
+`deep-gate.yml`'s conversion was safe because that workflow triggers only on `schedule` and
+`workflow_dispatch` and so produces no branch-protection context at all. A contract test
+asserts that trigger set rather than the job names alone — adding a `pull_request:` trigger
+there would invalidate the premise, and it reds.
+
+**The body is now shared as widely as the name.** `_packaged-windows.yml` sits on the PR path
+through `ci.yml`, gates a release through `release.yml`, and is the weekly gate's only
+packaged-artifact evidence. Once R1-D4 promotes the composite context it is also a *required*
+check. Treat any edit to that file as an edit to the critical merge path, whatever prompted it
+— including one made for the weekly gate's benefit. Its contract tests deliberately forbid
+`inputs:` there and `with:` at every caller, so all three callers run one identical build; if a
+future packet genuinely needs per-caller variation, change the declaration and the test
+together rather than adding an input with a default.
+
 `tests/test_release_workflow_contracts.py` asserts that no job whose `name:` appears in the
 required-context list uses `uses:`.
 

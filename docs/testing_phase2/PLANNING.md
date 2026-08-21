@@ -97,6 +97,9 @@ two-platform visual re-baseline are out of scope for this arc, and the productio
 X7–X13 and X15 are **owner-deferred**: recorded, measured and pinned, but neither blocking Phase 2
 nor permanently declined.
 
+**[UPDATED — three of those deferrals were taken up in #393.]** X11, X12 and X13 shipped as the
+accessibility labelling packet; the still-deferred set is **X7–X10 and X15**.
+
 The measurements themselves live in [`A11Y_EXCEPTIONS.md`](A11Y_EXCEPTIONS.md) and are not restated
 here, so the two files cannot drift apart.
 

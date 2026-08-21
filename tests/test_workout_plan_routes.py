@@ -848,3 +848,120 @@ def superset_pair_fixture(clean_db, two_exercises_fixture):
     ex_b["superset_group"] = superset_group
     
     return (ex_a, ex_b)
+
+
+class TestUpdateExerciseWithAnUnusableStoredSibling:
+    """Repairing a poisoned rep range must work whichever column is edited first.
+
+    ``update_exercise`` re-reads the untouched sibling rep column so the
+    validator can compare min against max. When that stored sibling is itself
+    not a number -- the state a pre-#384 restore could leave -- feeding it back
+    rejected the edit and named a field the user never touched, so the row was
+    repairable only by editing the poisoned column first.
+
+    The direct UPDATE below is a harness device for building that persisted
+    state, not a modelled user action.
+    """
+
+    ROUTINE = "GYM - Full Body - Workout A"
+
+    @pytest.fixture
+    def poisoned(self, clean_db, exercise_factory, workout_plan_factory):
+        def _poisoned(column, value="abc"):
+            name = "Edit Order Press"
+            exercise_factory(name, primary_muscle_group="Chest")
+            plan_id = workout_plan_factory(exercise_name=name, routine=self.ROUTINE)
+            clean_db.execute_query(
+                f"UPDATE user_selection SET {column} = ? WHERE id = ?", (value, plan_id)
+            )
+            return plan_id
+
+        return _poisoned
+
+    @pytest.mark.parametrize(
+        ("poisoned_column", "edited_column"),
+        [
+            ("min_rep_range", "min_rep_range"),
+            ("min_rep_range", "max_rep_range"),
+            ("max_rep_range", "max_rep_range"),
+            ("max_rep_range", "min_rep_range"),
+        ],
+    )
+    def test_either_column_can_be_repaired_first(
+        self, client, poisoned, poisoned_column, edited_column
+    ):
+        """All four cells of the matrix must succeed.
+
+        Two of them -- editing the poisoned column itself -- already passed
+        before this fix; the two cross cells returned 400 naming the untouched
+        field, which is why the cells are asserted individually.
+        """
+        plan_id = poisoned(poisoned_column)
+
+        resp = client.post("/update_exercise", json={
+            "id": plan_id, "updates": {edited_column: 7},
+        })
+
+        assert resp.status_code == 200, resp.get_json()
+
+    def test_the_edit_is_actually_persisted(self, client, poisoned, clean_db):
+        """A 200 that wrote nothing would satisfy the matrix above vacuously."""
+        plan_id = poisoned("min_rep_range")
+
+        client.post("/update_exercise", json={
+            "id": plan_id, "updates": {"max_rep_range": 9},
+        })
+
+        row = clean_db.fetch_one(
+            "SELECT min_rep_range, max_rep_range FROM user_selection WHERE id = ?",
+            (plan_id,),
+        )
+        assert row["max_rep_range"] == 9
+        # The poisoned column is left exactly as it was: this packet repairs
+        # nothing on the user's behalf and coerces nothing onto a number.
+        assert row["min_rep_range"] == "abc"
+
+    @pytest.mark.parametrize("stored", ["nan", "inf", ""])
+    def test_other_unusable_stored_values_also_stop_blocking(
+        self, client, poisoned, stored
+    ):
+        """'nan' and 'inf' parse as floats but the validator still rejects them.
+
+        A bare float() predicate would pass them through and leave the trap open
+        for exactly these values.
+        """
+        plan_id = poisoned("min_rep_range", stored)
+
+        resp = client.post("/update_exercise", json={
+            "id": plan_id, "updates": {"max_rep_range": 7},
+        })
+
+        assert resp.status_code == 200, resp.get_json()
+
+    def test_a_numeric_sibling_still_enforces_min_not_above_max(
+        self, client, clean_db, exercise_factory, workout_plan_factory
+    ):
+        """The cross-field guard is relaxed only for an unusable sibling."""
+        exercise_factory("Guarded Press", primary_muscle_group="Chest")
+        plan_id = workout_plan_factory(
+            exercise_name="Guarded Press", routine=self.ROUTINE,
+            min_rep_range=8, max_rep_range=12,
+        )
+
+        resp = client.post("/update_exercise", json={
+            "id": plan_id, "updates": {"max_rep_range": 5},
+        })
+
+        assert resp.status_code == 400
+        assert resp.get_json()["message"] == "Minimum reps cannot exceed maximum reps."
+
+    def test_user_supplied_garbage_is_still_rejected(self, client, poisoned):
+        """Nothing about the user's own input is loosened."""
+        plan_id = poisoned("min_rep_range")
+
+        resp = client.post("/update_exercise", json={
+            "id": plan_id, "updates": {"max_rep_range": "also not a number"},
+        })
+
+        assert resp.status_code == 400
+        assert resp.get_json()["message"] == "Maximum reps must be a finite number."

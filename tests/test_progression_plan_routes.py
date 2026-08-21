@@ -471,3 +471,70 @@ def test_suggestions_fatigue_context_unranked_fallback(client, clean_db, exercis
     payload = _suggestions(client, "Neck Curl")
     assert payload["fatigue_context"]["is_advisory_fallback"] is True
     assert "isn't ranked" in payload["fatigue_context"]["headline"]
+
+
+ROUTINE_A = "GYM - Full Body - Workout A"
+ROUTINE_B = "GYM - Full Body - Workout B"
+
+
+def _poison(clean_db, exercise_factory, workout_plan_factory, name, routine, column):
+    """Persist a plan row whose stored *column* is not a number.
+
+    Harness device for a state a pre-#384 restore could leave, not a modelled
+    user action.
+    """
+    exercise_factory(name, primary_muscle_group="Chest")
+    plan_id = workout_plan_factory(exercise_name=name, routine=routine)
+    clean_db.execute_query(
+        f"UPDATE user_selection SET {column} = ? WHERE id = ?", ("abc", plan_id)
+    )
+    return plan_id
+
+
+def test_suggestions_500_names_the_offending_routine_and_exercise(
+    client, clean_db, exercise_factory, workout_plan_factory
+):
+    """max_rep_range feeds `current_reps + 2`, so poisoning it raises."""
+    _poison(clean_db, exercise_factory, workout_plan_factory,
+            "Suggestion Press", ROUTINE_A, "max_rep_range")
+
+    response = client.post("/get_exercise_suggestions", json={"exercise": "Suggestion Press"})
+
+    assert response.status_code == 500
+    payload = response.get_json()
+    assert payload["error"]["code"] == "INTERNAL_ERROR"
+    assert ROUTINE_A in payload["message"]
+    assert "Suggestion Press" in payload["message"]
+    assert "Maximum reps must be a finite number." in payload["message"]
+
+
+def test_suggestions_do_not_blame_a_different_exercises_poisoned_row(
+    client, clean_db, exercise_factory, workout_plan_factory
+):
+    """The diagnostic is scoped to the row this request actually read.
+
+    Naming an unrelated row would be worse than naming none — it sends the user
+    to repair something that did not cause the failure.
+    """
+    _poison(clean_db, exercise_factory, workout_plan_factory,
+            "Suggestion Press", ROUTINE_A, "max_rep_range")
+    _poison(clean_db, exercise_factory, workout_plan_factory,
+            "Unrelated Row", ROUTINE_B, "max_rep_range")
+
+    response = client.post("/get_exercise_suggestions", json={"exercise": "Suggestion Press"})
+
+    assert response.status_code == 500
+    assert "Unrelated Row" not in response.get_json()["message"]
+    assert ROUTINE_B not in response.get_json()["message"]
+
+
+def test_poisoned_min_rep_range_still_succeeds(
+    client, clean_db, exercise_factory, workout_plan_factory
+):
+    """Only max_rep_range is read here, so a poisoned min must not fail it."""
+    _poison(clean_db, exercise_factory, workout_plan_factory,
+            "Min Poisoned Press", ROUTINE_A, "min_rep_range")
+
+    response = client.post("/get_exercise_suggestions", json={"exercise": "Min Poisoned Press"})
+
+    assert response.status_code == 200

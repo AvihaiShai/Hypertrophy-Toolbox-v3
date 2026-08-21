@@ -7,34 +7,58 @@ name: Packaged Windows build and bootloader smoke
 # third copy of this build would triple the sync burden that job's comment already
 # warned about.
 #
-# deep-gate.yml's `frozen-windows` job still carries its own copy. Converting it is
-# Packet R2, deliberately deferred: a scheduled workflow runs the default branch's
-# HEAD copy of its own file, and the first authoritative scheduled deep-gate run is
-# due 2026-08-17 03:17 UTC. Editing that file beforehand would mean the run validates
-# something other than what shipped. Until R2 lands there are two definitions of this
-# build -- here and in deep-gate.yml -- and a change to either belongs in both.
+# Packet R2-b folded deep-gate.yml's `frozen-windows` in as the third caller, so this
+# is now the ONLY definition of the frozen Windows build in the repository. The three
+# callers, and what each one exists to catch:
+#
+#   ci.yml         packaged-smoke-windows   every PR and push to main/develop
+#   release.yml    packaged-windows         a release tag, or a dispatch
+#   deep-gate.yml  frozen-windows           the weekly schedule, or a dispatch
+#
+# That first row puts this file on the PR path, and under R1-D4 it may become a
+# REQUIRED context. Treat an edit here as an edit to the critical merge path even when
+# the reason for it came from the weekly gate: one file now decides whether PRs merge,
+# whether a release is publishable, and whether the weekly run means anything.
+#
+# **No caller passes anything.** This workflow declares no `inputs:` on purpose, so
+# all three triggers build and smoke the identical artifact the identical way; a
+# per-caller knob is how the two copies would come back in a subtler form.
+# tests/test_release_workflow_contracts.py asserts that caller set in both directions
+# -- a caller that stops calling reds, and a fourth caller that appears reds -- and
+# pins the runner, the timeout and the smoke argv here, because after the lift this
+# file is the only place any of them is stated.
 
 on:
   workflow_call:
 
 # `contents: read` is all a build needs. This workflow uploads nothing to a release,
 # creates nothing, and pushes nothing; a called workflow can only narrow the token it
-# is handed, so this holds from either caller.
+# is handed, so this holds from every caller. For deep-gate.yml's `frozen-windows`,
+# which declared no `permissions:` of its own and so inherited the repository default,
+# routing through here narrows the token it runs under.
 permissions:
   contents: read
 
 jobs:
   build-and-smoke:
-    # This job id is load-bearing. A `uses:` job reports its status as
-    # "<caller job name> / <this job name>", so `Packaged Smoke (Windows bootloader,
-    # non-required) / Build and smoke` is the string that would enter branch
-    # protection under R1-D4. Renaming either half orphans that context once it is
-    # promoted -- the rule in docs/ai_workflow/QUALITY_GATE.md applies to BOTH halves.
+    # This job id is load-bearing, and now for three checks rather than one. A `uses:`
+    # job reports its status as "<caller job name> / <this job name>", so renaming this
+    # half renames every caller's check at once:
+    #
+    #   Packaged Smoke (Windows bootloader, non-required) / Build and smoke
+    #   Frozen Windows executable / Build and smoke
+    #   Frozen executable (real bootloader, Windows) / Build and smoke
+    #
+    # The first is the string that would enter branch protection under R1-D4; renaming
+    # either half orphans that context once it is promoted -- the rule in
+    # docs/ai_workflow/QUALITY_GATE.md applies to BOTH halves.
     name: Build and smoke
+    # windows-latest is not a preference. The artifact under test is a Windows .exe,
+    # and a smoke on any other runner would be a passing test of a different build.
     runs-on: windows-latest
-    # A hang detector, not a budget. Matches deep-gate.yml's frozen-windows, which
-    # runs the same build. A `uses:` job cannot declare its own timeout, so this is
-    # the only place either caller gets one.
+    # A hang detector, not a budget. 45 minutes is the value both lifted jobs already
+    # carried. A `uses:` job cannot declare its own timeout, so this is the only place
+    # any of the three callers gets one.
     timeout-minutes: 45
 
     steps:

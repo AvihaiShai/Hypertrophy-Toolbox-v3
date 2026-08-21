@@ -544,10 +544,10 @@ function renderSliders(prefillVolumes = {}) {
     const ranges = getCurrentRanges();
     container.innerHTML = '';
 
-    muscles.forEach(muscle => {
+    muscles.forEach((muscle, index) => {
         const value = prefillVolumes[muscle] ?? 0;
         const range = ranges[muscle] || toNumericRange();
-        const row = createSliderRow(muscle, range, value);
+        const row = createSliderRow(muscle, range, value, index);
         container.appendChild(row);
     });
 
@@ -577,16 +577,24 @@ function getCurrentRanges() {
     return ranges;
 }
 
-function createSliderRow(muscle, range, value) {
+function createSliderRow(muscle, range, value, index) {
     const row = document.createElement('div');
     row.className = 'muscle-row mb-3';
     row.dataset.muscle = muscle;
 
     const initialValue = Number.isFinite(value) ? Math.max(0, Number(value)) : 0;
 
+    // The slider's accessible name comes from the muscle-name span, not from a
+    // `for=` on the wrapping label: that label also contains the live value
+    // pill below, so associating it would make the name "Neck 12" and mutate it
+    // on every drag. Keyed on the render index rather than a slug of `muscle`
+    // because renderSliders() clears the container before each rebuild, so the
+    // index is unique by construction and needs no escaping.
+    const labelId = `volume-slider-label-${index}`;
+
     row.innerHTML = `
         <label class="form-label d-flex justify-content-between align-items-center">
-            <span class="muscle-name">${muscle}</span>
+            <span class="muscle-name" id="${labelId}">${muscle}</span>
             <span class="current-value volume-value-pill" data-muscle="${muscle}">${initialValue}</span>
         </label>
         <div class="d-flex flex-column flex-md-row gap-3 align-items-stretch align-items-md-center">
@@ -597,7 +605,8 @@ function createSliderRow(muscle, range, value) {
                        max="${DEFAULT_SLIDER_MAX}"
                        step="1"
                        value="${initialValue}"
-                       data-muscle="${muscle}" />
+                       data-muscle="${muscle}"
+                       aria-labelledby="${labelId}" />
             </div>
         </div>
     `;

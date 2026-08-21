@@ -4,7 +4,108 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-14 (LATEST) — the pack's docs-only tail has landed and canonical truth
+**2026-08-21 (LATEST) — Testing Strategy D7 is SIGNED; the auto-backup recovery
+procedure is now in `README.md`.** `origin/main` is at **`4d53487`** (PR #403,
+merged 2026-08-21), 18/18 checks green on that commit. Take no automatic feature
+action from this file.
+
+The owner signed D7 **exactly as recommended**: retain the "no in-app restore"
+stance for startup database snapshots, and publish the already-reviewed manual
+recovery procedure in `README.md`. The ruling and the scope it authorized are
+[`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) **§8.1d**; the
+reviewed draft and its F1–F7 correction history stay in
+[`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md), annotated in
+place rather than rewritten.
+
+Every recovery instruction was re-verified against `utils/auto_backup.py`,
+`utils/database.py`, `utils/runtime_paths.py`, `utils/config.py`,
+`utils/runtime_migration.py`, `utils/program_backup.py`,
+`utils/schema_registry.py` and `app.py` before landing — the earlier review was
+not treated as sufficient evidence on its own. The safety ordering the draft was
+rewritten around is preserved intact: stop the app, copy the whole `auto_backup`
+folder out **before any restart** (rotation keeps 7 and the `< 100` skip counts
+the catalog, so an emptied database still snapshots and still deletes a real
+one), rename the current database rather than overwrite it, carry the
+`-wal`/`-shm`/`-journal` sidecars with it, and restore one snapshot at a time.
+
+**Documentation only.** No Python, JavaScript, workflow, schema, test, inventory,
+dependency or generated file changed. The test inventory is byte-identical.
+
+**Explicitly NOT authorized by this signature and NOT taken here:** an in-app
+restore feature, any backup or runtime behavior change, **D4**,
+`scan_export_bounds()`, the `utils/rep_range_integrity.py` docstring follow-up,
+`needs:`/`continue-on-error:` deep-gate work, and Dependabot PRs **#395–#397**.
+D4 and the `js-unit` half of D2 stay unsigned; the next scheduled deep-gate run
+is still **2026-08-24**.
+
+**2026-08-21 — #402 merged; `origin/main` is at `1f9c05a`.**
+**[UPDATED 2026-08-21 — this block carried the `(LATEST)` marker until the
+block above was written; `origin/main` has since moved to `4d53487` (#403).
+Nothing below is edited except the annotations marked `[UPDATED 2026-08-21]`.]** All 18
+checks are green on that commit. Take no automatic feature action from this file.
+
+| PR | Commit | Terminal result |
+|---|---|---|
+| **#401** | `96b3ef2` | Docs only — the post-#400 reconciliation, i.e. the 2026-08-20 block below. |
+| **#402** | `1f9c05a` | Tests only, shipped as squash `1f9c05a`. Changed `tests/test_release_workflow_contracts.py` and the two generated inventory files, nothing else. The **five** `deep-gate.yml` jobs `full-e2e`, `first-install`, `empty-schema`, `old-db-migration` and `dependency-health` are now contract-pinned against **any** job-level `if:` key — the key alone is the violation, so a next-line value or a tab after the colon is caught too — plus a census test pinning the job **ids**, which a `== 7` count floor cannot do against a rename. |
+
+`visual-linux` is untouched and remains the **deliberately conditional
+exception**: its condition stays pinned by #400 as the exact disjunct set
+`{github.event_name == 'schedule', inputs.run_visual}`, with `&&` barred by name.
+`frozen-windows` retains its prior unconditional protection from the
+`PACKAGED_CALLERS` delegation contract; #402 reads its id back out of that mapping
+rather than repeating it.
+
+**#402 changed no workflow file and no runtime behavior** — `.github/workflows/`
+is byte-identical to the commit before it. Inventory moved by six collected
+nodes: that contract file **44 → 50**, deterministic total **2740 → 2746**, file
+counts unchanged at **123**/**124**. The five representative mutations
+(`if: ${{ false }}` after each job's `name:`) were **false greens before the
+packet** and are each killed individually now.
+
+**Named by #402, unmeasured, not authorized:** `needs:` and a job-level
+`continue-on-error:` are two further shapes that could stop one of these five jobs
+from gating. Neither is a demonstrated false green and neither is an authorized
+packet — each requires its own mutation proof first.
+
+**Still open and unauthorized:** the `scan_export_bounds()` numeric `min > max`
+behavior decision, and the related `utils/rep_range_integrity.py` docstring
+correction. **D4 and D7 remain unsigned and `README.md` remains untouched.**
+**[UPDATED 2026-08-21 — D7 is now SIGNED and the recovery section landed in
+`README.md`; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 and the two
+still-open packets are unchanged.]**
+
+**2026-08-20 — four PRs merged on `origin/main` at `81771d1` and no
+status surface recorded them. This pass is the record.** All 18 checks were green
+on that commit. **[UPDATED 2026-08-21 — this block shipped as #401 (`96b3ef2`);
+`origin/main` has since moved to `1f9c05a` (#402), recorded in the block above.
+Nothing below is edited except the annotation marked `[UPDATED 2026-08-21]`.]**
+Take no automatic feature action from this file.
+
+| PR | Commit | Terminal result |
+|---|---|---|
+| **#393** | `eff4362` | Register rows **X11, X12 and X13** RESOLVED — attribute-only WCAG 4.1.2 naming fixes on `/progression`, `/volume_splitter` and `/workout_log`. No `color-contrast` count moved; no baseline regenerated. New row **X16** recorded as documented-but-deliberately-unregistered. Owner-deferred set is now **X7–X10 and X15**. |
+| **#394** | `c208745` | The **FINDING-1 residual** is closed at both user-visible surfaces: a poisoned rep range now names the routine and exercise to repair, and Plan-editor repair works whichever rep column is edited first. No calculation file, schema, status code or JSON envelope key changed. |
+| **#399** | `280c211` | Tests only. Seven false-green shapes closed in the deep-gate / release workflow contract (13 mutation arms, all 13 missed beforehand). Its squash subject says "five" — the packet outgrew that count and the subject was never rewritten. |
+| **#400** | `81771d1` | Tests only. Closed the two shapes #399 named and did not reach: `visual-linux`'s `schedule` disjunct, and `steps()` returning `[]` on a 4→6-space reindent. |
+
+**Preserved as future packets, none authorized:** job-level `if:` protection for
+the **five** unpinned `deep-gate.yml` jobs (`full-e2e`, `first-install`,
+`empty-schema`, `old-db-migration`, `dependency-health` — #400's body says "six",
+which is wrong); the `scan_export_bounds()` numeric `min > max` behavior
+decision; and the related `utils/rep_range_integrity.py` docstring correction.
+**D4 and D7 remain unsigned and `README.md` remains untouched.**
+**[UPDATED 2026-08-21 — the first of those three SHIPPED as #402 (`1f9c05a`); the
+count of five, and the reason it is five and not six, were correct and are what
+#402 implemented. The `scan_export_bounds()` decision and the
+`utils/rep_range_integrity.py` docstring correction are still open and still
+unauthorized, and D4/D7 are still unsigned.]**
+**[CORRECTED later on 2026-08-21 — D7 was signed that same day (§8.1d) and the
+recovery section landed in `README.md`, so both this annotation and the sentence
+above it are stale on D7. Only D4 is still unsigned; the two open packets are
+unchanged.]**
+
+**2026-08-14 — the pack's docs-only tail has landed and canonical truth
 is reconciled against `origin/main` at `fbb76f5`.** **Eleven** PRs merged after
 `7e4c1e9` (#352), the pack reconciliation that recorded the checkpoint described
 below — every one squash-merged on green required checks.
@@ -36,6 +137,14 @@ each existing violation is pinned by surface, rule id and exact node count, not
 suppressed. No production or visual-baseline file changed across E, F or D.
 Remaining accessibility debt is **X7–X13 and X15, all owner-deferred**; see
 [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
+**[UPDATED 2026-08-17 — the debt set has shrunk.]** X11, X12 and X13 were taken
+up and shipped in #393 as attribute-only WCAG 4.1.2 naming fixes, leaving
+**X7–X10 and X15**. **[UPDATED 2026-08-20 — one row is missing from that
+sentence.]** The same packet recorded a new row **X16** — the post-Calculate
+`/volume_splitter` results wrapper, WCAG 2.1.1 — documented and **deliberately
+not registered**, because an `AXE_REGISTER` entry pins the whole findings list
+and would drag in data- and viewport-dependent contrast nodes. It is outstanding
+accessibility debt without being part of the owner-deferred set.
 
 **Shipped later the same day.** The **release/tag pipeline is no longer
 deferred**: it shipped as Packet **R1** — #374 (`5222db2`), whose post-merge
@@ -45,8 +154,13 @@ never fired, and §7.3 entry criteria 2 and 3 are unmet, so Testing Phase 4 stay
 open — a first real tag would not close it.
 
 **Still open, unchanged by that.** The heavy `$orchestrate` mechanism stays
-deliberately unimplemented, and the first scheduled deep-gate run is still due
-2026-08-17 03:17 UTC — now comparing against #351's regenerated Linux captures.
+deliberately unimplemented. **The weekly deep-gate cron fired for the first time on
+2026-08-17 and was green.** It ran R2-b's file, so it is not evidence about the pre-#388
+file, which the 2026-08-16 override forfeited for good. Next scheduled run **2026-08-24**,
+judged at job level with `visual-linux` executed. Run id, SHA, timings, step-level compare
+proof and the scheduler-delay note live in one place — do not restate them here:
+[`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § The first
+`schedule`-event run.
 
 No pack feature branch, worktree, local evidence artifact, or database is a
 cleanup target.
@@ -601,6 +715,50 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
+**Current (2026-08-21, after #403 and the D7 signature) — take no automatic
+feature action from this file.** Verified against `origin/main` at **`4d53487`**,
+18/18 green. Testing Strategy **D7 is signed** (keep the "no in-app restore"
+stance; publish the manual recovery procedure) and the reviewed procedure now
+lives in `README.md` — ruling and authorized scope in
+[`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) §8.1d. The
+signature was documentation-only and widened nothing.
+
+**Still open and still unauthorized:** **D4** and the `js-unit` half of **D2**;
+the `scan_export_bounds()` numeric `min > max` behavior decision; the
+`utils/rep_range_integrity.py` docstring correction; `needs:` and job-level
+`continue-on-error:` on the deep gate (both **unmeasured**); Dependabot PRs
+**#395–#397**; and the separately-recorded gap that nothing in the app tells a
+user a quarantine happened or that snapshots exist. The next scheduled deep-gate
+run is **2026-08-24**.
+
+**Current (2026-08-21, after #401/#402) — take no automatic feature action from
+this file.** Verified against `origin/main` at `1f9c05a`, 18/18 green. #402 is
+tests-only and closed the first of the three preserved packets: the five
+`deep-gate.yml` jobs are now barred from any job-level `if:` key, with
+`visual-linux` still the pinned conditional exception and `frozen-windows` still
+unconditionally protected as before. **Two remain open and unauthorized** — the
+`scan_export_bounds()` decision and the `utils/rep_range_integrity.py` docstring.
+`needs:` and job-level `continue-on-error:` were named by #402 as possible further
+gating shapes; both are **unmeasured** and neither is authorized work. D4 and D7
+stay unsigned; the next scheduled deep-gate run is **2026-08-24**.
+**[UPDATED 2026-08-21 — superseded by the block above: D7 was signed later the
+same day (§8.1d) and the recovery section landed in `README.md`. D4, the two
+open packets and the 2026-08-24 run are unchanged.]**
+
+**Current (2026-08-20, after #393/#394/#399/#400) — take no automatic feature
+action from this file.** Verified against `origin/main` at `81771d1`, 18/18
+green. The four merges are recorded in Current Objective above; the three
+packets they deliberately left open (the five unpinned `deep-gate.yml` jobs, the
+`scan_export_bounds()` decision, and the `utils/rep_range_integrity.py`
+docstring) each need their own authorization. D4 and D7 stay unsigned; the next
+scheduled deep-gate run is **2026-08-24**.
+**[UPDATED 2026-08-21 — superseded by the block above: the five-job packet
+shipped as #402 (`1f9c05a`) and `origin/main` has moved off `81771d1`. The other
+two packets, and D4/D7, are unchanged.]**
+**[CORRECTED later on 2026-08-21 — D7 was signed that same day (§8.1d) and the
+recovery section landed in `README.md`, so this annotation and the sentence above
+it are both stale on D7. The two packets and D4 are unchanged.]**
+
 **Current (2026-08-15, after #369/#372/#373/#374/#375) — Testing Strategy Phase 2
 is COMPLETE and the release/tag pipeline has SHIPPED. There is still no automatic
 feature action dispatched from this file.** Verified against `origin/main` at
@@ -618,9 +776,12 @@ feature action dispatched from this file.** Verified against `origin/main` at
   shifted the line it named. Docs-only.
 - **#376 (`94f0d8c`)** wrote this block; **#377 (`aec309d`)** corrected the two
   claims it left live.
-- Unchanged: the first scheduled deep-gate run is inspected only after
-  **2026-08-17 03:17 UTC**, at job level; the heavy `$orchestrate` design stays
-  unimplemented; do not revive P3 or add another readiness marker.
+- Unchanged: the first scheduled deep-gate run is inspected at job level; the
+  heavy `$orchestrate` design stays unimplemented; do not revive P3 or add
+  another readiness marker. **[UPDATED 2026-08-16 — this clause read "only
+  after 2026-08-17 03:17 UTC". Post-#388 that run executes R2-b's file and is
+  contaminated.] [UPDATED 2026-08-17 — the cron fired that day, 7/7 green, run
+  31993105305; the next scheduled run is 2026-08-24.]**
 
 > **Superseded 2026-08-15.** The instruction below said *"Testing Phase-2 Packet D
 > (axe) is the only queued packet of that pair … it stays queued … with no open

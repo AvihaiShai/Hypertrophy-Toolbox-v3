@@ -450,7 +450,10 @@ real-bootloader smoke on every PR, serving on port 5123 to prove the `HT_PORT` w
 paths previously ignored. The gate this section reports as "never ran" is therefore now permanent
 rather than manually discharged — its first run passed 36/36, including `all 18 rendered
 first-party links carry ?v=3.0.1` and the four unversionable shapes revalidating.
-`deep-gate.yml`'s `frozen-windows` job remains the manual twin.
+`deep-gate.yml`'s `frozen-windows` job remained the manual twin until Packet R2-b (PR #388,
+implemented 2026-08-15) folded it into the same reusable `_packaged-windows.yml` workflow, so
+the twin pair is gone: one definition with three callers (`ci.yml`, `release.yml`,
+`deep-gate.yml`).
 
 **The audit lesson.** This closeout verified P4 against *its own checklist* — version constant,
 link count, buster removal, contracts — and every one of those passed. It did not verify that the

@@ -4,7 +4,182 @@
 
 ## Current State
 
-> **2026-08-14 (LATEST) — the release/tag pipeline SHIPPED as Packet R1.** This
+> **2026-08-21 (LATEST) — Testing Strategy D7 is SIGNED and the auto-backup
+> recovery procedure is published in [`README.md`](../README.md).**
+> `origin/main` is at **`4d53487`** (PR #403, merged 2026-08-21), with all **18**
+> checks green on that commit. The block below was written as #403's own head and
+> therefore names `1f9c05a` as `origin/main`; that was true when it was written
+> and became false the moment it merged.
+>
+> **The owner signed D7 exactly as recommended:** retain the "no in-app restore"
+> stance for the startup database snapshots, and publish the already-reviewed
+> manual recovery procedure in `README.md`. The ruling, the scope it authorized,
+> and the three wording deltas from the reviewed draft are recorded in
+> [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) **§8.1d**.
+>
+> **This closes the "`README.md` is untouched" claim that every status block
+> below repeats.** The draft had been committed, labelled, inside
+> [`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md) precisely
+> because landing it *was* the D7 action; the signature is what released it. That
+> planning document is annotated in place rather than rewritten — its
+> "not landed" statements were correct when written.
+>
+> **Every recovery instruction was re-verified against the implementation before
+> landing**, not carried over on the strength of the earlier review:
+> `utils/auto_backup.py` (`AUTO_BACKUP_KEEP = 7`; the `< 100` skip counts
+> `exercises` and returns at `:66`, *before* `_rotate()` at `:80`, so a skipped
+> snapshot rotates nothing), `utils/database.py` (`FLASK_DEBUG` defaults to `'1'`
+> at `:88`, so a real launcher run is `journal_mode = DELETE` and has a
+> `-journal` sidecar; the corruption path unlinks `-wal`/`-shm` *before* renaming
+> to `database.db.corrupted_<timestamp>`), `utils/runtime_paths.py` +
+> `utils/config.py` (all four snapshot-folder rows, and `DB_FILE` outranking
+> `HT_RUNTIME_DIR`), `utils/runtime_migration.py` (the legacy `data\auto_backup\`
+> set is copied, never moved), `utils/program_backup.py` (`restore_backup()`
+> runs `DELETE FROM workout_log`), `utils/schema_registry.py` (`exercises` is
+> absent from `OWNED_TABLES_DROP_ORDER`) and `app.py` (`create_startup_backup()`
+> runs before the erase, and is skipped only on a freshly seeded first launch).
+>
+> **Documentation only.** No Python, JavaScript, workflow, schema, test,
+> inventory, dependency or generated file changed; the test inventory is
+> byte-identical and `scripts/generate_test_inventory.py --check` is clean.
+>
+> **What this did NOT change.** Testing Strategy **D4 remains unsigned**, as does
+> the `js-unit` half of **D2**. Testing Phase 4 stays **open**, `release.yml`'s
+> `push: tags` trigger has **still never fired**, and the next scheduled
+> deep-gate run is still **2026-08-24**. The `scan_export_bounds()` numeric
+> `min > max` behavior decision and the `utils/rep_range_integrity.py` docstring
+> correction are both still open and still unauthorized. `needs:` and job-level
+> `continue-on-error:` remain **unmeasured** and unauthorized. Dependabot PRs
+> **#395–#397** were not touched. The in-app "nothing tells the user a quarantine
+> happened" gap is recorded as needing its own decision and was deliberately
+> **not** folded into D7.
+
+> **2026-08-21 — post-merge reconciliation through PR #402.**
+> **[This block carried the `(LATEST)` marker until later on 2026-08-21; the
+> block above is now the latest. It shipped as #403 (`4d53487`), so its own
+> `origin/main is at 1f9c05a` became stale on merge. Nothing in it is edited
+> except the annotations marked `[UPDATED 2026-08-21]`.]**
+> `origin/main` is at **`1f9c05a`**, with all **18** checks green on that commit.
+> Two PRs merged after the block below was written; that block *is* #401, so it
+> could not record either of them.
+>
+> | PR | Commit | Terminal result |
+> |---|---|---|
+> | **#401** | `96b3ef2` | Docs only — the post-#400 reconciliation, which is the block immediately below. |
+> | **#402** | `1f9c05a` | Tests only, shipped as squash **`1f9c05a`**. Bars a job-level `if:` on the five `deep-gate.yml` jobs that accepted one unmeasured. Changed `tests/test_release_workflow_contracts.py` plus the two generated inventory files and nothing else. |
+>
+> **The five-job gap the block below records as open is CLOSED.** `full-e2e`,
+> `first-install`, `empty-schema`, `old-db-migration` and `dependency-health` are
+> now contract-pinned against **any** job-level `if:` key. The key alone is the
+> violation — `^    if:` matched against the comment-stripped job block, so a
+> value on the next line, or a tab after the colon, is caught as well as the
+> ordinary `if: ${{ false }}`; the value is captured only for the failure
+> message. A companion census test pins the job **ids**, because the pre-existing
+> `== 7` vacuity floor reds on a job *added* but stays green on one *renamed*.
+>
+> **`visual-linux` remains the one deliberately conditional job**, unchanged by
+> #402. Its condition is still pinned by #400 as the exact set of disjuncts
+> `{github.event_name == 'schedule', inputs.run_visual}` — matched as
+> `if: ${{ … }}`, split on `||`, with `&&` barred by name because a scheduled
+> event carries no inputs. **`frozen-windows` keeps its prior unconditional
+> protection** from the `PACKAGED_CALLERS` delegation contract and
+> `test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows`; #402 reads its
+> job id back out of `PACKAGED_CALLERS` rather than repeating it, so the two
+> classifications cannot drift apart.
+>
+> **#402 changed no workflow and no runtime behavior.**
+> `.github/workflows/` is byte-identical to the commit before it; `deep-gate.yml`
+> was mutated only inside an isolated worktree and restored. No production file,
+> schema, API shape, response contract or calculation is involved.
+>
+> **Inventory after #402:** six collected nodes added —
+> `tests/test_release_workflow_contracts.py` **44 → 50**, deterministic total
+> **2740 → 2746**; file counts unchanged at **123** deterministic files and
+> **124** pytest files. Regenerated by the generator, never hand-edited. Do not
+> restate these anywhere — read them from
+> [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md).
+>
+> **Mutation evidence.** `if: ${{ false }}` inserted after each of the five jobs'
+> `name:` key was a **false green before this packet** — all five arms, and all
+> five applied at once, left every contract the file then held passing. Each is
+> now killed individually by its own parametrized arm, so the failing node id
+> names the offending job.
+>
+> **Identified during #402, not established as defects and not authorized.**
+> `needs:` and a job-level `continue-on-error:` are two further shapes that could
+> stop one of these five jobs from gating. Neither is barred, **and neither has
+> been measured** — they are named so they are not lost, not recorded as known
+> false greens. Each needs its own mutation proof and its own separately
+> authorized packet before anything is claimed about it.
+>
+> **Unchanged by #402.** Testing Strategy **D4 and D7 remain unsigned**,
+> `README.md` is still untouched,
+> **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the
+> recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 and the rest
+> of this sentence are unchanged.]** Testing Phase 4 stays **open**, `release.yml`'s
+> `push: tags` trigger has **still never fired**, the next scheduled deep-gate run
+> is still **2026-08-24**, and the `schedule` trigger itself remains the one
+> unproven part of this workflow. The `scan_export_bounds()` numeric `min > max`
+> behavior decision and the `utils/rep_range_integrity.py` docstring correction
+> are both still open and still unauthorized; #402 took neither.
+
+> **2026-08-20 — post-merge reconciliation through PR #400.**
+> **[This block carried the `(LATEST)` marker until 2026-08-21; the block above
+> is now the latest. Nothing in it is edited except the annotations marked
+> `[UPDATED 2026-08-21]`.]** Four PRs
+> merged on 2026-08-20 and no status surface recorded any of them; this block is
+> that record, and the claims they falsified are annotated in place below rather
+> than deleted. `origin/main` is at **`81771d1`**, with all **18** checks green on
+> that commit. **[UPDATED 2026-08-21 — this block shipped as #401 (`96b3ef2`),
+> and `origin/main` has since moved to `1f9c05a` (#402). The SHA above was
+> correct when written and is kept as written.]**
+>
+> | PR | Commit | Terminal result |
+> |---|---|---|
+> | **#393** | `eff4362` | **Register rows X11, X12 and X13 are RESOLVED.** Three WCAG 4.1.2 Name/Role/Value defects, all fixed by attribute alone: `/progression`'s `#exerciseSelect` is named from its visible `<h4>`, all 18 `/volume_splitter` muscle sliders from their `.muscle-name` span, and the prohibited `aria-label` was dropped from `/workout_log`'s role-less `.btn-group`. `select-name`, `label` and `aria-prohibited-attr` no longer appear in `AXE_REGISTER` at all. **No `color-contrast` count moved and no baseline was regenerated.** One new row, **X16**, was recorded in the same packet — the post-Calculate `/volume_splitter` results wrapper, documented and **deliberately not registered**. |
+> | **#394** | `c208745` | **The FINDING-1 residual is closed at both of its user-visible surfaces.** A poisoned rep range now names the routine and exercise that must be repaired instead of producing a bare 500, and repair through the Plan editor works whichever rep column is edited first. New read-only `utils/rep_range_integrity.py`, wired into four routes plus the `update_exercise` sibling read. **No calculation file, schema, HTTP status code or JSON envelope key changed** — the six raising sites still raise, and site 7's silent wrong number is still unfixed. |
+> | **#399** | `280c211` | Tests only. Closed **seven** false-green shapes in the deep-gate / release workflow contract surface, proven by **13 mutation arms — all 13 missed before the change**. Its squash subject says "five"; the packet grew past that count during the work and the subject was never rewritten, so read the enumerated list in that commit's own body, which is seven. History is not being rewritten to fix it. |
+> | **#400** | `81771d1` | Tests only. Closed the **two** shapes #399 named and did not reach: `visual-linux`'s `schedule` disjunct (a `schedule` event carries **no `inputs` at all**, so deleting that disjunct leaves a weekly run that skips its visual comparison and still reports green), and `steps()` answering a 4→6-space reindent with `[]` instead of an error. **A whole-file reindent is a semantic no-op that silently empties an indentation-pinned parser** — three of the four workflows stayed fully green under it, and the fourth was caught only by dict-lookup `KeyError`s, never by the loops. |
+>
+> **Deep-gate contract status, stated precisely, because the numbers disagree.**
+> `deep-gate.yml` declares **seven** jobs. Exactly **two** are pinned against a
+> job-level `if:` — `frozen-windows` (#399) and `visual-linux` (#400, which pins
+> the exact *set of disjuncts* rather than a string). The other **five** —
+> `full-e2e`, `first-install`, `empty-schema`, `old-db-migration` and
+> `dependency-health` — still accept a job-level `if:` unmeasured. **That is
+> five, not the "six" #400's own body states**; re-derived 2026-08-20 by listing
+> the file's job keys and grepping `tests/test_release_workflow_contracts.py` for
+> each name. Pinning them is a **future packet, deliberately not taken here**, and
+> it is a *newly identified* gap — not a leftover from the shape set #399 and #400
+> closed.
+> **[UPDATED 2026-08-21 — the "future packet" sentence is SUPERSEDED. #402
+> (`1f9c05a`) pinned all five against any job-level `if:` key. The count of five,
+> and the reason it is five rather than six, were correct and are what #402
+> implemented. See the `(LATEST)` block above.]**
+>
+> **Inventory after #400:** **2740** deterministic pytest nodes across **123**
+> files, **124** pytest files in total; `tests/test_release_workflow_contracts.py`
+> is **44** and the new `tests/test_rep_range_integrity.py` is **48**.
+> **[UPDATED 2026-08-21]** — superseded by #402: **2746** nodes and **50** in that
+> contract file; **123**/**124** and the `test_rep_range_integrity.py` figure are
+> unchanged. Do not
+> restate these anywhere — read them from
+> [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md).
+>
+> **What these four did NOT change.** Testing Strategy **D4 and D7 remain
+> unsigned** and **`README.md` is untouched**
+> **[UPDATED 2026-08-21 — both halves are now false: D7 is SIGNED and the
+> recovery section landed in `README.md`, `TESTING_STRATEGY_PLANNING.md`
+> §8.1d. True as written for #393/#394/#399/#400.]**: #394 states in its own body that
+> landing the recovery section *is* the D7 action, so it deliberately left both
+> alone and committed the procedure as a labelled draft inside
+> [`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md). Testing
+> Phase 4 stays **open**, `release.yml`'s `push: tags` trigger has **still never
+> fired**, and the next scheduled deep-gate run is still **2026-08-24**.
+
+> **2026-08-14 — the release/tag pipeline SHIPPED as Packet R1.**
+> **[This block carried the `(LATEST)` marker until 2026-08-20; the block above
+> is now the latest. Nothing else in it is edited.]** This
 > supersedes, as current state, every claim below that "the release/tag half of
 > Testing Phase 4" remains deferred. Design record, council and residuals:
 > [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md); owner decisions:
@@ -20,7 +195,10 @@
 > lives in `scripts/release_gate.py` rather than inline shell so it can be unit
 > tested. The frozen build moved into `.github/workflows/_packaged-windows.yml`, a
 > `workflow_call` reusable workflow that `ci.yml` now calls — one definition, two
-> callers, per F5-8.
+> callers, per F5-8. *(**Superseded by Packet R2-b**, which added `deep-gate.yml`'s
+> `frozen-windows` as the third caller: one definition, **three** callers, and no
+> inline copy left anywhere. The R1-era count above is kept as the record of what
+> R1 itself shipped.)*
 >
 > **Merged as #374 → `5222db2`; the post-merge dry-run PASSED.** Main's CI on that
 > SHA settled at 18 check-runs all `success`, and `release.yml` was then dispatched
@@ -48,8 +226,10 @@
 > **Nothing here bears on the weekly scheduled deep gate.** `deep-gate.yml` was not
 > touched by R1, deliberately — a scheduled workflow runs the default branch's HEAD copy
 > of its own file, so an edit before **2026-08-17 03:17 UTC** would mean that run
-> validates something other than what shipped. The deep gate remains
-> *implemented but not runtime-validated*; its runbook below is unchanged.
+> validates something other than what shipped. **[UPDATED 2026-08-17 — the cron fired; run 31993105305, 7/7 green]** The deep gate remains
+> *implemented but not runtime-validated*; its runbook below is unchanged **except for a
+> superseding warning added 2026-08-16** — the `gh` commands themselves are byte-identical,
+> but the target Monday moved from 2026-08-17 to 2026-08-24. Read that warning first.
 >
 > **[UPDATED 2026-08-15 — one narrow exception was taken.]** **Packet R2-a** split the
 > `old-db-migration` HTTP assertion in `deep-gate.yml` under an explicit owner exception
@@ -58,11 +238,65 @@
 > scheduled run would have executed a job that could not fail on a broken landing page.
 > **Only that assertion and an adjacent comment changed** — no job composition, runner,
 > step order, schedule, `visual-linux` or compare-mode behavior, and no baseline.
-> Converting `frozen-windows` to the reusable workflow is **Packet R2-b, still not
-> started**. The scheduled run itself has still **never executed**.
+> Converting `frozen-windows` to the reusable workflow is **Packet R2-b**, implemented
+> 2026-08-15 as PR **#388**: `deep-gate.yml`'s `frozen-windows`
+> becomes `uses: ./.github/workflows/_packaged-windows.yml`, giving that build one
+> definition and three callers (`ci.yml`, `release.yml`, `deep-gate.yml`) with no copy
+> left. It was **held from merge** for the reason in the paragraph above; that hold was
+> **waived by explicit owner override on 2026-08-16** and #388 merged ahead of the
+> scheduled run. The six-row checklist and the full cost of the waiver are in
+> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b →
+> *Hold discharged by owner override*. **No `schedule`-event deep-gate run had ever
+> executed as of the 2026-08-16 merge** — the first one fired 2026-08-17; see the
+> RESOLVED paragraph below.
+>
+> **What the override forfeited, in one line:** the 2026-08-17 03:17 UTC scheduled run is
+> permanently spent as clean first-execution evidence of the *shipped* deep gate, because
+> a scheduled workflow runs the default branch's HEAD copy of itself and that copy is now
+> R2-b's. The substitute is `workflow_dispatch`
+> [31970872927](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31970872927)
+> on `main` @ `d583225`, `run_visual=true visual_mode=compare`, 2026-08-16T20:33:14Z →
+> 20:51:03Z: **7/7 jobs success**, read individually, `visual-linux` **executed not
+> skipped**, with `Assert compare mode wrote no baseline` passing and the generate-upload
+> step skipped. That validates the seven job **bodies** and says **nothing** about the
+> `schedule` trigger — a dispatch never can.
+>
+> **RESOLVED 2026-08-17: the cron fired, for the first time ever.** Run
+> [31993105305](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31993105305),
+> event `schedule`, SHA `63b206e`, **7/7 jobs success** read individually, `visual-linux`
+> **executed** with compare proven at step level. It ran R2-b's file, so it is still not
+> evidence about the *held* file — that is forfeited for good — but it does establish the
+> `schedule` trigger, and the deep gate as it now exists. **The weekly gate is no longer
+> "unvalidated at runtime".** That one run started **45m52s** after its 03:17Z cron
+> (04:02:52Z) — a single observation, not a bound; GitHub gives scheduled workflows no
+> delivery guarantee. Do not read a late run as a missed one. 2026-08-24 is now simply the
+> **second** consecutive green scheduled run, which is what R1-D3's three-run clock needs.
+> Judge it at job level with `visual-linux` confirmed executed — never off the overall
+> green. Full record: [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)
+> § The first `schedule`-event run.
+>
+> **R-10 is now DISCHARGED.** It said the converted job had never executed *as a `uses:`
+> job*, since `workflow_dispatch` needs the file on the default branch. That first
+> post-merge dispatch has now run:
+> [31972476567](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31972476567)
+> on `main` @ `949b15e`, **7/7 jobs success**, the packaged job reported under its composite
+> name `Frozen executable (real bootloader, Windows) / Build and smoke` and running the real
+> `--mode bootloader` smoke. It was dispatched with `run_visual=true visual_mode=compare`,
+> so `visual-linux` executed too and wrote no baseline. **It remains a dispatch and proves
+> nothing about the `schedule` trigger.**
+>
+> **Two things R2-b still does not establish.** The B9 `concurrency:` decision for
+> `deep-gate.yml` is untouched (**R-11**).
+> `_packaged-windows.yml` uploads no build artifact, so all three callers discard `dist/`
+> (**R-12**). Separately, the deep-gate smoke moves from the script's default port **5000**
+> to **`--port 5123`** — a deliberate change, not preserved behavior.
 >
 > **Also deferred, unchanged:** R1-D3 (`visual-linux` in the release gate — revisit
-> after 2026-08-17 plus three consecutive green scheduled runs), R1-D4 (promoting
+> after three consecutive green **scheduled** runs; **one has now occurred**
+> (2026-08-17, green). Whether it counts toward the three is an **open owner
+> question** — it ran R2-b's file rather than the pre-#388 one. Measure the count,
+> per ADR-007),
+> R1-D4 (promoting
 > `Packaged Smoke (Windows bootloader, non-required) / Build and smoke` after 10 green
 > runs under that **composite** name), R1-D5 (booting the frozen executable against a
 > historical-schema database).
@@ -94,6 +328,20 @@
 > two-platform visual re-baseline are **out of scope for this arc** by owner
 > decision. Full rows: [`docs/testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
 >
+> **[UPDATED 2026-08-20 — three of those rows are closed and the rule-id list
+> above is stale.]** **#393** (`eff4362`) took up X11, X12 and X13 as
+> attribute-only WCAG 4.1.2 naming fixes, so the owner-deferred set is now
+> **X7–X10 and X15**, and `select-name`, `label` and `aria-prohibited-attr`
+> appear nowhere in `AXE_REGISTER` — the rules still covered are
+> `color-contrast`, `aria-allowed-attr` and `aria-hidden-focus`. The 84-light /
+> 80-dark `/user_profile` contrast reading is unchanged: **no `color-contrast`
+> count moved**. Separately, #393 recorded a new row **X16** (the post-Calculate
+> `/volume_splitter` results wrapper), documented and **deliberately not
+> registered** — an `AXE_REGISTER` entry pins the whole findings list, so
+> registering it would drag in data- and viewport-dependent contrast nodes. Its
+> fix plus coverage is one owner-gated packet. The register file itself was
+> updated by #393 and is correct; this block was not.
+>
 > **Two measurement corrections are worth carrying forward.** X10 had attributed
 > all fourteen `aria-hidden-focus` nodes to `.wpdd-native`; a direct probe found
 > **13** such selects plus **`#vpDrawer`**, a different element with a different
@@ -104,7 +352,9 @@
 > pseudo-elements) stable, and a required source contract pins that scope.
 >
 > **Still not complete**, unchanged by this entry: the heavier `$orchestrate`
-> mechanism, and D4/D7 plus the `js-unit` half of D2. The first scheduled
+> mechanism, and D4/D7 plus the `js-unit` half of D2.
+> **[UPDATED 2026-08-21 — D7 left this list: signed as
+> keep-the-stance-and-document, §8.1d. True as written on 2026-08-14.]** The first scheduled
 > deep-gate run is still due **2026-08-17 03:17 UTC**. *(The release/tag half of
 > Testing Phase 4 shipped later the same day as Packet R1 — see the block above.
 > Phase 4 itself remains open. D6 left this list the same day too: signed as
@@ -145,7 +395,9 @@
 > PRs** when this was written, so no Packet D work is in flight and no
 > completion date is predicted for it here. The release/tag half of Testing
 > Phase 4, the heavier `$orchestrate` mechanism, and D4/D7 plus the `js-unit`
-> half of D2 remain exactly where their source plans leave them. The first
+> half of D2 remain exactly where their source plans leave them.
+> **[UPDATED 2026-08-21 — D7 has since moved: signed as
+> keep-the-stance-and-document, §8.1d. True as written on 2026-08-14.]** The first
 > scheduled deep-gate run is still due **2026-08-17 03:17 UTC**, and #351's
 > Linux regeneration is what that run will now compare against.
 
@@ -194,8 +446,8 @@
 > by **#372** (`385ce52`); the release/tag half shipped as **#374** (`5222db2`) with
 > **#375** (`d3c3436`); and **#351** merged as `5a03d47`, so the stale-Linux
 > consequence is discharged. **Only the heavier orchestration mechanism is still a
-> proposal.** The deep-gate sentence is unchanged and still correct: that run has
-> **not** happened.
+> proposal.** The deep-gate sentence was correct when written: that run had **not**
+> happened. **[UPDATED 2026-08-17 — the cron fired; run 31993105305, 7/7 green]**
 >
 > **The live-gate proof from this pack.** #339 was the sole post-#335 merge that
 > changed SCSS and both compiled artifacts. Its Linux CI run reproduced the
@@ -393,6 +645,33 @@
 > `visual-linux` executed rather than skipped**. Until that run is inspected,
 > the weekly gate is *implemented but unvalidated at runtime*.
 >
+> > ⚠️ **The 2026-08-17 targets above and below are superseded — read this before
+> > running the runbook.** The sentence above and the runbook heading below both
+> > still name 2026-08-17; they are preserved verbatim as the dated record, and
+> > this warning overrides both. This block was written when 2026-08-17 03:17 UTC was the first
+> > authoritative scheduled run. **#388 (Packet R2-b) merged 2026-08-16**, and a
+> > scheduled workflow executes the default branch's HEAD copy of its own file, so
+> > the 2026-08-17 run exercises **R2-b's** file rather than the one this block was
+> > written to validate. It is **contaminated as evidence about the held file**: a green
+> > there does not validate what was held, and a red would have been **ambiguous**
+> > between "the scheduled gate never worked" and "R2-b broke it". *(It ran green, so
+> > that ambiguity never arose — an outcome, not a vindication. The run is still not
+> > evidence about the pre-#388 file, which stays permanently forfeited.)*
+> >
+> > **Which Monday to run this on.** ✅ **2026-08-17 has been run and inspected.** The
+> > question it was set — *did the `schedule` trigger fire at all?* — is answered **yes**:
+> > run 31993105305, 7/7 green, `visual-linux` executed, compare proven at step level.
+> > Next scheduled run is **2026-08-24**; inspect it the same way, as the second of the
+> > three consecutive green runs R1-D3 requires. Expect a scheduler delay of up to an
+> > hour: the first real run started 04:02:52Z against a 03:17Z cron.
+> >
+> > **One change to the commands below:** the packaged job now reports as
+> > `Frozen executable (real bootloader, Windows) / Build and smoke`, so step 2's
+> > job list will show the composite name — expecting the bare name will read as a
+> > missing job. Step 3's compare-mode proof is unchanged and still mandatory. See
+> > [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b →
+> > *Hold discharged by owner override* and *Next clean checkpoint*.
+>
 > **Runbook — run this on or after 2026-08-17 03:17 UTC.** The schedule itself
 > needs no further setup: `deep-gate.yml` already carries `cron: '17 3 * * 1'`
 > and 2026-08-17 is a Monday. What remains is **inspection**, which nothing in
@@ -447,7 +726,9 @@
 > budgets: each is the number `ci.yml` already uses for the nearest equivalent
 > job (`full-e2e` 45, `visual-linux` 25, `frozen-windows` 45, the four smokes
 > 15), every one at ≥2× its worst observed run over 20 runs. Worst case drops
-> from 6 h to 45 min. **No `concurrency:` group was added** — that is the other
+> from 6 h to 45 min. *(Still seven bounded jobs after Packet R2-b, but
+> `frozen-windows` no longer declares its own: a `uses:` job may not, so its 45
+> is declared in `_packaged-windows.yml` instead.)* **No `concurrency:` group was added** — that is the other
 > half of the B9 CI-hygiene finding and remains a separate decision.
 > Also worth knowing: **GitHub disables a scheduled workflow after 60 days with
 > no repository activity.** Not a risk at current cadence.
@@ -751,7 +1032,8 @@
 > **This closes Phase 0 and Phase 1 of [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) only.**
 > Owner sign-off covered **D1** (coverage as non-blocking measurement) and the
 > `e2e-erase-flow` half of **D2**. **D3-D7 remain unsigned and untouched; Phases 2-5 remain
-> proposals.** Do not dispatch Phase 2+ work from this block.
+> proposals.** **[UPDATED 2026-08-21 — true as written on 2026-08-01. D3 and D5 were
+> signed 2026-08-02, D6 on 2026-08-14 and D7 on 2026-08-21; only D4 is still unsigned.]** Do not dispatch Phase 2+ work from this block.
 >
 > | PR | What | Squash |
 > |---|---|---|
@@ -893,9 +1175,10 @@
 > **Neither win32 suite runs in required CI.** The non-required `visual-windows` job now
 > runs `visual.spec.ts` on every PR and push to `main`, so its 66 tests can red on drift.
 > `visual-baseline-thumbnails.spec.ts` remains outside CI because #322 proved one of its
-> captures is nondeterministic on `windows-2022`; those 18 baselines can still stale
-> silently. That is precisely how the broader condition #304 documented arose. Treat the
-> thumbnail corpus after the pin as unmeasured until it is re-run locally.
+> captures is nondeterministic on `windows-2022`; its 15 baselines can still stale silently.
+> The other three of its 18 captures are `BYTE_GATE_EXEMPT` and have no PNG. That is
+> precisely how the broader condition #304 documented arose. Treat the thumbnail corpus
+> after the pin as unmeasured until it is re-run locally.
 >
 > **Equally, do not assume the reverse.** "A CSS/template change landed, therefore the
 > corpus is stale" is a hypothesis, not a finding, and it has already been wrong once:
@@ -931,8 +1214,12 @@
 > differ — different Chromium build, font set, DirectWrite. **That was never measured.** It
 > was measured on 2026-08-10, deep-gate run
 > [31437353755](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31437353755)
-> on `windows-2022`: `Running 84 tests using 1 worker` → **`84 passed (2.8m)`**, a full byte
-> comparison of all 66 + 18 captures against the local corpus, zero failures. The 66
+> on `windows-2022`: `Running 84 tests using 1 worker` → **`84 passed (2.8m)`**. Five of
+> those tests are `BYTE_GATE_EXEMPT` and capture nothing, so the run wrote **81** captures —
+> 66 from `visual.spec.ts`, 15 from `visual-baseline-thumbnails.spec.ts` — and every one
+> matched the local corpus byte for byte, zero failures. (`visual.spec.ts` has 66 tests
+> *and* 66 captures: its two segmented `user-profile-mobile` tests add two files and its two
+> exemptions remove two. The counts coincide; they are not the same quantity.) The 66
 > primary tests then passed on both #322 attempts. **The renderers agree for that primary
 > corpus, so it is portable between them.**
 >
@@ -941,8 +1228,8 @@
 > (including 40,504 → 13,067 → 27,688 pixels), which proves a rendering race rather than
 > a stale baseline. The other 17 tests did not run because the describe is serial. No
 > tolerance, retry, exemption or PNG was changed. Fix the race before widening the job to
-> `visual-baseline-thumbnails.spec.ts`; until then its 18 captures retain the silent-stale
-> window.
+> `visual-baseline-thumbnails.spec.ts`; until then its **15** baseline-backed captures
+> retain the silent-stale window.
 >
 > **CI still cannot produce a baseline.** The job is compare-only — no generate mode,
 > `--update-snapshots` never passed, and a final step fails it if anything under
@@ -2425,7 +2712,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
-| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and its first scheduled run is still due 2026-08-17 03:17 UTC; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
+| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. **[UPDATED 2026-08-20 — X11, X12 and X13 shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15, plus the newly recorded, deliberately unregistered X16.]** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
 
 ## Open Decisions
 
@@ -2456,6 +2743,7 @@ behind the CSS it describes.
   it had no open PR at the 2026-08-14 reconciliation. D4, D7 and the
   `js-unit` half of D2 remain unsigned (D6 signed 2026-08-14 as retain-informational,
   recorded as ADR-008); Phases 3 and 5 remain proposals.
+  **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 is unchanged.]**
   **[UPDATED 2026-08-15 — this bullet's tail previously read "Phases 3 and 5 **and the
   release/tag half of Phase 4** remain proposals". Only the "Phases 3 and 5" half is
   still true: the release/tag half **SHIPPED** as Packet R1, #374 (`5222db2`), with
@@ -2494,7 +2782,62 @@ behind the CSS it describes.
 
 ## Next Safe Step
 
-**Current (2026-08-15, latest): Testing Strategy Phase 2 is COMPLETE, the
+**Current (2026-08-21, latest): #402 merged and there is still no automatic next
+feature packet.** Verified against `origin/main` at **`1f9c05a`**, 18/18 checks
+green on that commit:
+
+- **#402** (`1f9c05a`) is tests-only. It closed the first of the three packets the
+  block below preserved: the **five** unpinned `deep-gate.yml` jobs — `full-e2e`,
+  `first-install`, `empty-schema`, `old-db-migration` and `dependency-health` —
+  are now barred from carrying **any** job-level `if:` key, each killed by its own
+  parametrized arm after all five were measured as false greens beforehand.
+  `visual-linux` stays the deliberate exception with its disjunct set pinned;
+  `frozen-windows` keeps its prior unconditional protection. No workflow or
+  runtime behavior changed; the inventory moved **2740 → 2746** with that contract
+  file at **44 → 50**. #401 (`96b3ef2`) is the docs-only reconciliation that wrote
+  the block below.
+- **Two of those three packets remain open and unauthorized:** the
+  `scan_export_bounds()` numeric `min > max` behavior decision, and the related
+  `utils/rep_range_integrity.py` docstring correction. Both still need their own
+  authorization.
+- **Named by #402, unmeasured, not authorized:** `needs:` and a job-level
+  `continue-on-error:` are two further shapes that could stop one of the five jobs
+  from gating. Neither is a demonstrated false green — each needs its own mutation
+  proof and its own packet.
+- **Unchanged:** D4 and D7 stay **unsigned**, `README.md` stays untouched, Testing
+  Phase 4 stays open, `release.yml`'s `push: tags` trigger has still never fired,
+  and the next scheduled deep-gate run is **2026-08-24**.
+  **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 is unchanged.]**
+
+**Current (2026-08-20): four PRs merged and there is still no automatic
+next feature packet.** Verified against `origin/main` at **`81771d1`**, 18/18
+checks green on that commit **[UPDATED 2026-08-21 — superseded by the block
+above; `origin/main` is now `1f9c05a`]**:
+
+- **#393** (`eff4362`) closed register rows **X11, X12 and X13**; the
+  owner-deferred accessibility set is now **X7–X10 and X15**, and **X16** was
+  recorded as documented-but-deliberately-unregistered.
+- **#394** (`c208745`) closed the FINDING-1 residual's two user-visible
+  problems. `docs/LEFTOVERS_BY_PRIORITY.md` §4a is corrected in this pass.
+- **#399** (`280c211`) and **#400** (`81771d1`) are tests-only deep-gate
+  contract hardening. Together they closed nine mutation-proven false-green
+  shapes — seven in #399, and the two it named and did not reach in #400.
+- **Three future packets are deliberately preserved, none authorized here:**
+  (1) job-level `if:` protection for the **five** unpinned `deep-gate.yml` jobs
+  (`full-e2e`, `first-install`, `empty-schema`, `old-db-migration`,
+  `dependency-health`) **[UPDATED 2026-08-21 — item (1) SHIPPED as #402
+  (`1f9c05a`); items (2) and (3) are still open and still unauthorized]**;
+  (2) the `scan_export_bounds()` numeric `min > max`
+  behavior decision; (3) the related `utils/rep_range_integrity.py` docstring
+  correction. #393 additionally raised, and did not take, the X16 fix, the X13
+  element deletion plus its 12-capture re-baseline, and the missing
+  `/workout_log` export button.
+- **Unchanged:** D4 and D7 stay **unsigned**, `README.md` stays untouched,
+  Testing Phase 4 stays open, `release.yml`'s `push: tags` trigger has still
+  never fired, and the next scheduled deep-gate run is **2026-08-24**.
+  **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 is unchanged.]**
+
+**Current (2026-08-15): Testing Strategy Phase 2 is COMPLETE, the
 release/tag pipeline has SHIPPED, and there is still no automatic next feature
 packet.** Verified against `origin/main` at `aec309d`:
 
@@ -2502,7 +2845,11 @@ packet.** Verified against `origin/main` at `aec309d`:
   on the owner's explicit-exception path; **#372** (`385ce52`) recorded the phase
   complete across five status surfaces. No Phase-2 packet remains queued.
   Residual accessibility debt stays **X7–X13 and X15, owner-deferred**, pinned at
-  exact axe node counts rather than suppressed.
+  exact axe node counts rather than suppressed. **[UPDATED 2026-08-20 — X11,
+  X12 and X13 shipped in #393 (`eff4362`), so the owner-deferred set is now
+  X7–X10 and X15; X16 was recorded alongside them as documented but
+  deliberately unregistered. The "pinned at exact node counts" half is
+  unchanged.]**
 - **The release/tag half of Testing Phase 4 shipped** as **#374** (`5222db2`);
   **#375** (`d3c3436`) recorded the passing post-merge dry-run and discharged R-3.
 - **Testing Strategy D6 closed** as a reserved informational `schema_version`
@@ -2516,7 +2863,9 @@ packet.** Verified against `origin/main` at `aec309d`:
   pipeline and Packet D — across the superseding notes and the Active
   Workstreams row. Recorded so this ledger has no hole.
 - **Unchanged and still owner-gated:** the first scheduled deep-gate run is
-  inspected only after **2026-08-17 03:17 UTC**, at job level, with
+  inspected at job level **[UPDATED 2026-08-16 — this read "only after
+  2026-08-17 03:17 UTC"; post-#388 that run is contaminated] [UPDATED 2026-08-17 —
+  the cron fired that day, 7/7 green, run 31993105305; next run 2026-08-24]**, with
   `visual-linux` executed rather than skipped and compare mode writing no
   baselines; the heavier `$orchestrate` design and the remaining CSS/refactor
   tails stay gated where their source plans leave them.
@@ -2540,7 +2889,7 @@ feature packet.** Finish only work that already has its own authority:
   this reconciliation;
 - the first scheduled deep-gate run must be inspected after
   **2026-08-17 03:17 UTC**, at job level, with `visual-linux` executed rather
-  than skipped and compare mode writing no baselines;
+  than skipped and compare mode writing no baselines **[UPDATED 2026-08-17 — the cron fired; run 31993105305, 7/7 green]**;
 - the heavier `$orchestrate` design and the remaining CSS/refactor tails stay
   gated exactly where their source plans leave them.
 

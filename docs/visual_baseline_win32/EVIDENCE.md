@@ -13,8 +13,9 @@ snapshot manifest.
 ## 1. Why CI could not do this
 
 `deep-gate.yml`'s visual job is **Linux-only** — `name: Visual regression (Linux baselines)`,
-`runs-on: ubuntu-24.04`, artifact `visual-baselines-linux`. The only `windows-latest` job in that
-workflow is `frozen-windows` (packaged smoke). There is no Windows visual job anywhere in CI, so
+`runs-on: ubuntu-24.04`, artifact `visual-baselines-linux`. The only Windows job in that
+workflow is `frozen-windows` (packaged smoke), which since Packet R2-b gets its
+`windows-latest` runner from `_packaged-windows.yml` rather than declaring it inline. There is no Windows visual job anywhere in CI, so
 `gh workflow run deep-gate.yml -f run_visual=true -f visual_mode=generate` regenerates **Linux
 only**.
 
