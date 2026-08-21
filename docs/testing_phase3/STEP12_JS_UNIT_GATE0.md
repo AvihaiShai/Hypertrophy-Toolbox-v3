@@ -4,8 +4,17 @@
 > implemented** (§10, Gate 1 approved with one owner amendment and executed 2026-08-22 — §10.11,
 > §10.12). Each adds **one new test file** and nothing else. **No production JS, `package.json`,
 > Vitest config, CI, or branch-protection change is made or authorized by this document**, and
-> `js-unit` stays **non-required**. **Packet B's PR is open; merging it is NOT authorized** (§10.13).
-> **Base**: `origin/main` @ `c404a06`, branch `wt/phase3-jsunit-gate0`, isolated docs-only worktree.
+> `js-unit` stays **non-required**. **Packet B is MERGED** — PR
+> [#406](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/406), squash **`987588a`**, merged
+> **2026-08-22** local (`2026-08-21T23:10:23Z`), **18/18** green on that commit (post-merge run
+> `32535888704`). §10.13's merge STOP is **DISCHARGED** and annotated in place; of the items it
+> listed, only the **KI-010 / KI-011** follow-up has moved — it is implemented in this commit,
+> as a docs-only packet separate from Packet B, in
+> [`UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md). **Packet C**,
+> **Packet F**, **Q4**/**D2** promotion and **Q6** are untouched and still unauthorized.
+> **Base**: `origin/main` @ `c404a06`, branch `wt/phase3-jsunit-gate0`, isolated docs-only worktree
+> — this is the **Gate 0 origin** of the document, not a base for any packet. Packet A built on
+> `9e5997a`’s base, Packet B rebased onto `0984d2e` (§10.12), and Packet B merged as `987588a`.
 > **Covers**: [`TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md) §5 Phase 3 **step 12**,
 > and the **unsigned `js-unit` half of D2** (§6, §8.1 row 2, reaffirmed unsigned in §8.1a and §8.1c).
 > **Gate 0**: **PARTIALLY CLOSED 2026-08-15** — **Q1 and Q2 are signed** and Q3 is ruled (§0.1).
@@ -168,7 +177,7 @@ not to the expansion itself. **The letter E is deliberately vacant in step 12** 
   silent degradation when `getStore()`/`setItem` throws.
 - **Caution**: module-level `hydrating` persists across tests in a file — see §4.1.
 
-### 2.2 Packet B — `toast.js` *(BUILT — Gate 1 approved and executed 2026-08-22; §10.11, §10.12. PR open, **merge not authorized**)*
+### 2.2 Packet B — `toast.js` *(**SHIPPED** — Gate 1 approved and executed 2026-08-22, **MERGED as PR #406** / squash `987588a`; §10.11, §10.12, §10.13)*
 
 - **Owns**: `static/js/modules/__tests__/toast.test.js` (new). No production file.
 - **Why second**: most-imported module in the app at **0 % executed** coverage, and its legacy-
@@ -615,7 +624,8 @@ with each answer.
 > rather than rewritten so the sequence stays legible. **Two test files now exist**, each built from
 > its own scoped plan after its own gate: **Packet A** (§9, `workout-controls-persistence.test.js`,
 > merged as `9e5997a` / PR #387) and **Packet B** (§10, `toast.test.js`, built 2026-08-22 under the
-> Gate 1 ruling in §10.11). **Everything in the "explicitly still unauthorized" list below remains
+> Gate 1 ruling in §10.11, and **merged 2026-08-22 as `987588a` / PR #406**).
+> **Everything in the "explicitly still unauthorized" list below remains
 > unauthorized and untouched** — no production JS, no `package.json`, no `vitest.config.js`, no CI
 > workflow, no branch-protection change, no `backup-center.js` test, and no `.skip` anywhere.
 
@@ -977,12 +987,18 @@ sites; the access-level one is the fourth and is not covered.
 
 ---
 
-## 10. Packet B — scoped plan (`toast.js`) — **GATE 1 APPROVED, EXECUTED 2026-08-22**
+## 10. Packet B — scoped plan (`toast.js`) — **GATE 1 APPROVED, EXECUTED AND MERGED 2026-08-22**
 
-> **STATUS: Gate 1 approved with one owner amendment, and the packet is BUILT.** The owner's rulings
+> **STATUS: SHIPPED. Gate 1 approved with one owner amendment, built, and MERGED.** The owner's rulings
 > are recorded verbatim in **§10.11**, the amendment is folded into §10.3, §10.7-R10 and §10.8 below,
 > and the measured execution record is **§10.12**. §10.10's STOP is discharged and annotated in place.
-> **Merge is NOT authorized.**
+> **Terminal result:** PR
+> [#406](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/406) merged as squash
+> `987588a612ff29b8f52fc5ad1ea96707316eb66f`; the post-merge CI run `32535888704` on that
+> commit passed **18/18**. `static/js/modules/toast.js` is **unchanged** by the packet — blob
+> `42863b4664b7f87a2519556b7f9db8af2cb36e64` on both sides. §10.13's merge STOP is
+> **DISCHARGED**; every other item it listed stays unauthorized except the **KI-010 / KI-011**
+> follow-up, now implemented in its own docs-only packet.
 > **Base**: `origin/main` @ **`0984d2e`** — re-verified 2026-08-22. Packet A is merged as `9e5997a`
 > (PR #387). Isolated worktree `wt/phase3-packet-b-toast`, rebased onto `0984d2e` at execution time.
 > **PLAN v2 — 2026-08-22** (record in §10.9). Written on 2026-08-15 against `origin/main` @
@@ -1619,7 +1635,21 @@ behavior**. **Reachability, measured**: **8** live call sites have the collision
 `showToast(error.message || '<fallback>', true)` shape (§10.2), so this is **one server-copy change
 away** from firing — but it is **not reachable today**, because `utils/errors.py` never sets a message
 to one of the four type words. Fixing it is production code and out of scope for a test-only packet;
-§10.9 routes it to the owner as a candidate KI row.
+
+§10.9 routes it to the owner as a candidate KI row, and it was **accepted there as KI-010**
+(§10.11 ruling 2) — registered in [`UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md)
+by the separate follow-up packet, still **Open** and still unfixed.
+
+> **ANNOTATION 2026-08-22 (KI follow-up) — the conclusion holds, the attribution was imprecise.**
+> `utils/errors.py` does not *set* the message at all: `error_response(code, message, …)` and
+> `success_response(message=…)` forward whatever their caller supplies (`:36-37`, `:94-97`), and
+> `fetch-wrapper.js:61` passes that envelope message through to `error.message`. The guarantee
+> therefore belongs to the **call sites**, not to `errors.py`. Re-measured 2026-08-22: **0** of
+> **234** `error_response()` / `success_response()` call sites across `routes/`, `utils/` and
+> `app.py` pass a bare type word, so "not reachable today" is still correct — but a future auditor
+> must re-check the call sites, not this one module. The same phrasing survives in the comment at
+> `toast.test.js:563`, which this docs-only packet may not edit. KI-010 in
+> [`UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md) carries the corrected wording.
 
 #### R7 — what a11y scope actually is (this row was inaccurate as written)
 
@@ -1819,7 +1849,8 @@ were asked**; the answers live in §10.11 so a reader can see both halves.
    If the owner expects the button to be relocated so it survives a body clear, those rows are
    pre-committing to a shape that is about to change.
 5. **The rebase and the PR** — *(the git state below was true when the question was asked and is now
-   superseded: the branch was rebased to `543311c` on `0984d2e` and a PR is open — §10.12.)*
+   superseded: the branch was rebased to `543311c` on `0984d2e`, a PR was opened, and it has
+   since **merged** as `987588a` / #406 — §10.12, §10.13.)*
    `55161b8` is still based on `81df507`, and the branch has **no PR**.
    Rebasing onto `0984d2e` and opening a PR are **both still unauthorized**.
 6. **Q4 and Q6** — unchanged and still open (§8). Nothing in Plan v2 touches either.
@@ -1839,7 +1870,8 @@ Awaiting explicit owner approval of Gate 1 (§10.8) and rulings on the six quest
 rebase, the implementation and the PR (§10.11). `static/js/modules/__tests__/toast.test.js` now
 exists, all 32 mutations have run, and `toast.js` is still identical to `origin/main` — the
 containment claim above held through execution and is re-asserted with evidence in §10.12.
-**A NEW STOP replaces this one: merge is NOT authorized.** See §10.13.
+**A NEW STOP replaced this one: merge was NOT authorized.** See §10.13 — *and that STOP is
+itself **DISCHARGED** as of the 2026-08-22 merge of PR #406 (`987588a`).*
 
 ### 10.11 Owner ruling at Gate 1 (2026-08-22) — **APPROVED WITH ONE AMENDMENT**
 
@@ -1851,6 +1883,11 @@ containment claim above held through execution and is re-asserted with evidence 
 | **4** | Is the action button's placement inside `#toast-body` accepted as pinned? | **NO — AMENDED.** Do **not** pin the exact parent: it is the implementation detail implicated in the measured wipe defect. B30–B35 must require the button to exist **within `#liveToast`** and enforce its **type, label, `aria-label`, guard and coercion** behavior while **remaining neutral about its direct parent** — locating and asserting through `#liveToast`. **Case count stays 47**; affected mutation expectations re-derived, though none was expected to depend on the parent |
 | **5** | The rebase and the PR | **AUTHORIZED** — preserve the uncommitted Plan v2 work; fetch and rebase onto latest `origin/main`; `--force-with-lease` if a history-rewriting push is required; **stop and report** if relevant toast/config/test drift has occurred; implement, verify, commit, push, open the PR. **Merge is NOT authorized** |
 | **6** | Q4 and Q6 | **UNTOUCHED** — still open (§8) |
+
+> **ANNOTATION 2026-08-22 (later).** Ruling 5's closing *"Merge is NOT authorized"* is the ruling as
+> given at Gate 1 and is preserved verbatim. It was **discharged by a separate owner confirmation**
+> naming PR #406; the PR merged as `987588a` with 18/18 green (§10.13). Rulings 1–4 and 6 are
+> unchanged.
 
 **Where ruling 4 landed in this document**, so a reader is not left to hunt: the §10.3 *Action button
 construction* header and rows **B30, B33, B34**; the new placement-neutral-locator block in **§10.4**;
@@ -1979,12 +2016,17 @@ the working rules call out by name:
 Nothing outside this file was touched.
 
 **Not done, deliberately:** no production JS changed; `UI_SCENARIOS_GAP_ANALYSIS.md` untouched (KI-010,
-KI-011 and the `base.html:228` → `:236` correction are a separate follow-up); no inventory
+KI-011 and the `base.html:228` → `:236` correction are a separate follow-up — *which has since been
+implemented; see the §10.13 annotation*); no inventory
 regeneration; **Q4 and Q6 untouched**; Packets C and F not begun; `js-unit` still **non-required**; no
 `/verify-suite` run locally, on the §10.6 conscious override, which holds because the diff is exactly
 the two files its scope permits.
 
-### 10.13 STOP — merge
+### 10.13 STOP — merge — **DISCHARGED 2026-08-22**
+
+> **This section is kept as written and annotated, not rewritten.** The paragraph below was true from
+> the moment the PR opened until the owner's merge confirmation; the annotation after it records what
+> changed and what did not.
 
 The PR is open and CI-verified. **Merging it is not authorized.** Per the standing PR protocol, a merge
 requires a separate, explicit owner confirmation that names the PR and says "merge"; green CI is not
@@ -1993,6 +2035,25 @@ that confirmation, and neither is a selection among options.
 Also still not authorized, and not blocked on the same confirmation — each needs its own: **Packet C**,
 **Packet F**, promotion of `js-unit` (**Q4**/**D2**), **Q6**, and the **KI-010 / KI-011** follow-up in
 `UI_SCENARIOS_GAP_ANALYSIS.md`.
+
+**DISCHARGED 2026-08-22.** The merge went ahead under owner direction, which is what the
+paragraph above reserved it for. PR [#406](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/406) is
+**MERGED**, squash `987588a612ff29b8f52fc5ad1ea96707316eb66f` (`2026-08-21T23:10:23Z`), and
+the **post-merge** CI run `32535888704` on that commit passed **18/18**. Packet B's terminal
+shape is what §10.12 measured: **47 new cases**, full Vitest suite **12 files / 202 cases**,
+and `static/js/modules/toast.js` **unchanged** at blob `42863b46`.
+
+**Of the five items the paragraph above listed, exactly one moved.** The **KI-010 / KI-011**
+follow-up in [`UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md) was authorized
+and **implemented as its own docs-only packet**: **KI-010** (the type-word collision,
+§10.7-R3) and **KI-011** (the action-button wipe, §10.7-R10) are now registered rows, **both
+`Open`, neither mitigated nor fixed**, and KI-004's stale `templates/base.html:228` citation
+is corrected to `:236`. That packet changed **documentation only** — no production, test,
+config, workflow or inventory file — so it neither fixes nor mitigates either defect, and
+B45 and B30–B35 are untouched.
+
+**Still not authorized and still unstarted, each needing its own confirmation:** **Packet C**,
+**Packet F**, promotion of `js-unit` (**Q4** / **D2**), and **Q6**.
 
 ---
 
