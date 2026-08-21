@@ -392,8 +392,9 @@ e2e/__screenshots__` is empty.
 | Packaged smoke | **`PASS via real bootloader`**, 36/36 checks, exit 0 |
 
 **Packaged smoke detail.** Built from tracked `main` content in a dedicated build venv via the
-canonical pinned process — Python **3.14.6** (`.python-version`), PyInstaller **6.21.0**
-(`requirements-build.txt`) — then `stage_package_assets.py` → `pyinstaller --clean --noconfirm
+canonical pinned process — Python **3.14.6** (`.python-version`), PyInstaller **6.21.0**, the
+version `requirements-build.txt` pinned when this run was made — then
+`stage_package_assets.py` → `pyinstaller --clean --noconfirm
 Hypertrophy-Toolbox.spec` → `smoke_packaged_app.py --mode bootloader`. Smart App Control did **not**
 raise `WinError 4551` on this host, so payload mode was never used: this is a real bootloader pass,
 not payload evidence. It covered fresh-install first launch, static asset MIME types,
