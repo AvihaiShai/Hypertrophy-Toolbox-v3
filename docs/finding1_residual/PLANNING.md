@@ -6,6 +6,34 @@ Worktree: `D:\development\Hypertrophy-Toolbox-v3-main-finding1-d7` · branch `wt
 
 ---
 
+> ## D7 SIGNED 2026-08-21 — the Item 2 draft has LANDED in `README.md`
+>
+> **Read this before anything below.** Every "D7 is unsigned", "`README.md` is
+> not modified", "drafted-but-not-committable" and
+> `DRAFT — pending D7 signature, not landed` statement in this document was
+> **correct when written** and is now **historical**. The owner signed D7 on
+> **2026-08-21**, exactly as recommended — retain the "no in-app restore" stance
+> for startup database snapshots, and publish the reviewed manual recovery
+> procedure in `README.md`. That procedure is now a live `README.md` section.
+>
+> The ruling, the scope it authorized, and what it deliberately did **not**
+> authorize are recorded in
+> [`../TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md) **§8.1d**.
+> Nothing below is rewritten: this document is the reviewable artifact the owner
+> signed against, and its F1–F7 correction history is why the landed text is
+> trusted. Only annotations were added.
+>
+> **Three wording deltas** were applied when the text was re-verified against the
+> implementation at landing time, and are the only differences from the draft
+> below: the Backup Center's restore control is named exactly (**Restore To
+> Current Plan**); its own generated entries are named by the label the page
+> actually shows (**Auto Recovery**); and `DB_FILE`'s precedence over
+> `HT_RUNTIME_DIR` is stated. One verified fact was added — the corruption path
+> unlinks the `-wal`/`-shm` sidecars *before* renaming the database to
+> `database.db.corrupted_<timestamp>` (`utils/database.py:217-231`).
+
+---
+
 ## Section 0 — Requirements Brief
 
 **Raw request** (verbatim)
@@ -573,8 +601,8 @@ The scanner uses the literal `'Unassigned'` rather than importing `UNASSIGNED_RO
 | `tests/conftest.py` | **no change** | N7: all five blueprints already registered at `:218-230`. |
 | `docs/test_inventory/TEST_INVENTORY.json` + `.md` | regenerate | Last step. `total_files` 123→124, `deterministic_files` 122→123. Never hand-edit; check for untracked/gitignored `.md` in globbed surface dirs first. |
 | `docs/finding1_residual/PLANNING.md` | this file | Council record, the four §4a corrections, and the Item 2 draft. Does **not** move the inventory (B5). |
-| `README.md` | **no change** | Draft lives in this document under `DRAFT — pending D7 signature, not landed`. |
-| `docs/TESTING_STRATEGY_PLANNING.md` | **no change** | D7 is not recorded as signed by this packet (P8). |
+| `README.md` | **no change** | Draft lives in this document under `DRAFT — pending D7 signature, not landed`. **[UPDATED 2026-08-21 — the owner signed D7 and the draft LANDED in `README.md` in a separate, later packet. This row was correct for the #394 packet.]** |
+| `docs/TESTING_STRATEGY_PLANNING.md` | **no change** | D7 is not recorded as signed by this packet (P8). **[UPDATED 2026-08-21 — a later packet recorded D7 as signed in §8.1d. Still true of the #394 packet.]** |
 | `docs/LEFTOVERS_BY_PRIORITY.md` | **no change** | Read-only; the four corrections live in Section 0. |
 
 **Effort**: **M** · **Owner**: implementation agent (this worktree) · **Depends on**: Gate 1 approval of this Plan v2; Item 2's *landing* depends on an owner D7 signature this packet must not manufacture.
@@ -688,6 +716,8 @@ The scanner uses the literal `'Unassigned'` rather than importing `UNASSIGNED_RO
 ## Item 2 — README auto-backup recovery section
 
 ### DRAFT — pending D7 signature, not landed
+
+> **[SUPERSEDED 2026-08-21 — this heading is historical. D7 was signed and this text, with the three wording deltas listed in the banner at the top of this document, is now a live section of `README.md`. Read `README.md` for the authoritative wording; this copy is retained as the reviewed artifact, not as a second source of truth.]**
 
 > **Status.** A **draft only**. `docs/TESTING_STRATEGY_PLANNING.md` §6 states verbatim: *"**D4 and D7 remain unsigned** and no work may act on them"* — re-verified against `origin/main` `63b206e` at `:316` and `:642`. (The verbatim reviewer findings above cite `:297-298` and `:623`; those were correct when written and drifted when #392 edited that file. The quote itself is unchanged, and **D7 is still unsigned upstream** — which is the fact this packet depends on.) Landing this text in `README.md` **is** the D7 action, so `README.md` is deliberately unmodified on this branch and D7 is **not** recorded as signed by this packet. Committing the draft here, labeled, is not a D7 action — it is the reviewable artifact the owner signs against.
 >

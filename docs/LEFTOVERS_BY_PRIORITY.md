@@ -440,7 +440,10 @@ starting one.**
   the next scheduled run. **[UPDATED 2026-08-16 — previously "its first scheduled
   run is still due 2026-08-17"] [UPDATED 2026-08-17 — previously "has never
   executed"; the cron fired.]** D4, D7 and the `js-unit` half of
-  D2 remain unsigned (D6 signed 2026-08-14, ADR-008). **[UPDATED 2026-08-15] The
+  D2 remain unsigned (D6 signed 2026-08-14, ADR-008). **[UPDATED 2026-08-21 — D7 is
+  now SIGNED as keep-the-stance-and-document (§8.1d) and the manual auto-backup
+  recovery procedure landed in `README.md`. D4 and the `js-unit` half of D2 are
+  unchanged.]** **[UPDATED 2026-08-15] The
   release/tag half of Phase 4 is no longer a proposal — it SHIPPED** as #374
   (`5222db2`), with #375 (`d3c3436`) recording the passing post-merge dry-run and
   discharging R-3; design record in
