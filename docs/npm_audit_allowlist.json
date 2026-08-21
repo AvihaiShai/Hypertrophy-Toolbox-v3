@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "note": "Accepted exceptions to the js-supply-chain gate (scripts/npm_audit_gate.mjs). Policy, entry format and the rules behind every field: docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md sections 4 and 6.1. An empty list is written as \"allow\": [] and never as a missing file. Adding an entry requires an owner decision; every field is required, the id is a GHSA id, and expiresOn may be at most 90 days after approvedOn (D-3). An entry whose advisory has left the audit fails the gate and must be deleted (D-5).",
+  "allow": []
+}

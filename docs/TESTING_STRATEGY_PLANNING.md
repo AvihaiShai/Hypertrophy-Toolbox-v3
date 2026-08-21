@@ -657,7 +657,7 @@ Weakest overall: `routes/filters.py` **49%**, `utils/python_version.py` 60%, `ut
 |---|---|
 | The drift check reports via `::warning` and exits 0, rather than relying on `continue-on-error` alone | `continue-on-error` keeps a job from *blocking* but still paints a red ✗, which reads as failure to the other sessions — precisely the noise §8.4 promised not to create. "Measure-only" now means genuinely green. Flipping to blocking is `exit 0` → `exit $STATUS` |
 | `cancel-in-progress` restricted to `pull_request` events | Tighter than asked. Superseded PR runs are cancelled (the B9 complaint), but a push to `main`/`develop` is never cancelled, so a merge always gets a complete pipeline |
-| The npm audit job is also measure-only | Phase 0 step 3 requires a documented severity/exception policy before blocking, and that policy is not in this slice. All four current findings are transitive devDependencies of the build/test toolchain, so blocking today would halt every merge over code that never reaches a user |
+| The npm audit job is also measure-only | Phase 0 step 3 requires a documented severity/exception policy before blocking, and that policy is not in this slice. All four current findings are transitive devDependencies of the build/test toolchain, so blocking today would halt every merge over code that never reaches a user. *(Both halves resolved since: the policy was signed 2026-08-15 and the findings were driven to zero by #390, so the flip blocked nothing. See "Still open" below.)* |
 | PR-4 verified on its own pull request rather than a throwaway | Protection was applied *after* #248 was green, then #248 was re-queried: `MERGEABLE` / `CLEAN` with the new context passing. That satisfies §7.3 criterion 3 on a real PR without extra noise |
 
 #### Cross-session incident, 2026-08-01
@@ -683,7 +683,14 @@ shape detects a cross-PR interaction before it reaches `main`.
   [#271](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/271).
   *(See [§9.1](#91-ground-truth-deltas--the-doc-rotted-within-hours) for what this closure —
   landing hours after the log was written — teaches about §8.6 as a hand-maintained ledger.)*
-- **The npm audit job is measure-only**, pending the severity/exception policy (Phase 0 step 3).
+- ~~**The npm audit job is measure-only**, pending the severity/exception policy (Phase 0 step 3).~~
+  **Discharged 2026-08-21.** Phase 0 step 3's policy was decided 2026-08-15
+  ([`NPM_AUDIT_SEVERITY_POLICY_DECISION.md`](NPM_AUDIT_SEVERITY_POLICY_DECISION.md) §6.1)
+  and is now in force: the remediation drove the graph to zero advisories (#390), and
+  the enforcement PR added `scripts/npm_audit_gate.mjs` plus an empty
+  `docs/npm_audit_allowlist.json` and took levers L1 + L2. The job fails at `high` and
+  above, read per advisory, over the whole graph. It is still **not** in branch
+  protection — that is lever L3, and it is undecided.
 - **No coverage ratchet exists.** Both numbers above are baselines, nothing more. Designing the
   baseline-diff (per `scripts/pyright_baseline_diff.py`) is future work; do not add a bare threshold.
 - **`js-unit` stays non-required.** D2's js-unit half is unsigned, and the 2026-08-02 sign-off

@@ -52,9 +52,20 @@ updates:
     # test the moment Dependabot moves it alone, so the rule exists to stop a
     # weekly pull request that could only ever be closed.
     #
-    # Only `version-update:` types are listed, deliberately. A security advisory
-    # against any of these still reaches us as a security update; what is
-    # suppressed is the routine version bump.
+    # Only `version-update:` types are listed, deliberately. What is suppressed
+    # is the routine version bump, and only that: a security advisory against any
+    # of these still surfaces, as a Dependabot ALERT and as a red
+    # `js-supply-chain` run.
+    #
+    # It does NOT arrive as a Dependabot SECURITY UPDATE -- an earlier version
+    # of this comment said it did, and that was wrong twice over. Security
+    # updates are opened by "automated security fixes", which decision D-6
+    # (docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md section 6.1, signed
+    # 2026-08-15) deliberately leaves OFF so that every lockfile change stays a
+    # reviewed pull request; and when the comment was written, alerts were off
+    # too, so nothing surfaced at all. Alerts were enabled per that ruling
+    # (`GET /repos/{owner}/{repo}/vulnerability-alerts` -> 204, re-probed
+    # 2026-08-21, zero open). Acting on an alert is a human opening the bump.
     #
     # NOT ignored, and deliberately so: `bootstrap` and `sass`. Bootstrap has a
     # version contract too (tests/test_bootstrap_version_contract.py), but it is

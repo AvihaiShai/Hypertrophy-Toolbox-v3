@@ -99,8 +99,16 @@ the identical one-sided red from the pip side:
 - **npm** — `@playwright/test`, all three `version-update:semver-*` types.
 - **pip** — `playwright`, all three `version-update:semver-*` types.
 
-Only `version-update:` types are listed. A security advisory against Playwright
-still reaches us as a security update; what is suppressed is the routine bump.
+Only `version-update:` types are listed; what is suppressed is the routine bump.
+A security advisory against Playwright still surfaces — as a **Dependabot alert**
+and as a red `js-supply-chain` run — but **not** as a Dependabot *security
+update*. This paragraph claimed it did until 2026-08-21, and that was wrong on
+both counts at the time of writing: Dependabot alerts were disabled outright
+(measured in [`NPM_AUDIT_SEVERITY_POLICY_DECISION.md`](NPM_AUDIT_SEVERITY_POLICY_DECISION.md)
+§2.4), and security updates are opened by "automated security fixes", which
+decision **D-6** deliberately leaves off so a lockfile change stays a reviewed
+pull request. Alerts are now on per that ruling; acting on one means a human
+opens the bump.
 
 ### 3.4 Unblock condition
 
