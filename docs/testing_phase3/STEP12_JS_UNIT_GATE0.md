@@ -3628,6 +3628,13 @@ contorted test.
 | `scripts/generate_test_inventory.py --check` | **"Test inventory is up to date."**, exit **0**. **Nothing regenerated** |
 | The four pytest contract tests globbing `static/js/**/*.js` (§11.10's sixth surface) | **40 passed.** The two that do **not** exclude `__tests__` read the new file and found none of `data-visual-preserve-border`, `loading-spinner`, `fade-enter` |
 | Targeted Chromium E2E — the mapped three **plus `ui-hardening.spec.ts`** (owner ruling 3) | **111 passed**, exit **0**, ~3.0 min. Port-5000 mutex respected: the port was verified free first, Playwright started its own server, **`PW_REUSE_SERVER` was never set** and no other session's server was touched |
+| **PR CI** — [#410](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/410), head **`5cf2a04`** | **18/18 pass, zero pending**, run **32581336508**. **`JS Unit (Vitest, non-required)` kept its exact name and stayed non-required**, passing in 26 s. The check count grew **17 → 18** mid-run — `E2E Functional (Chromium)` is the aggregating job and appears only once both shards report, which is why a run must be polled to **zero pending** rather than judged on a first listing |
+
+> **This CI row records the run for `5cf2a04`, the commit that carried the work — and the commit that
+> ADDS this row is necessarily covered by a later run.** The regress is stopped here deliberately: the
+> evidence that matters is the run over the test file and the mutation-verified state, and a docs-only
+> follow-up commit on the same branch cannot change what that run measured. **The head SHA at merge
+> time is what the merge confirmation should name**, not this one.
 
 **FIVE STATUS ANNOTATIONS were made at execution time — three outside §11 and two inside it — and
 they are NOT corrections.** The §11.2 *Corrections applied* table counts **four** edits that repair
