@@ -135,15 +135,17 @@ Both end with `/handover` to record what shipped.
 sits in the required-contexts list orphans that context: the gate silently stops being
 enforced and the PR blocks on a check that will never report again.
 
-Two jobs carry a `(non-required)` suffix while being **genuinely required** in branch
+Three jobs carry a `(non-required)` suffix while being **genuinely required** in branch
 protection today:
 
 - `E2E Fatigue Context (Chromium, non-required)`
 - `E2E Erase Flow (Chromium, isolated, non-required)`
+- `JS Supply Chain (npm audit, non-required)` — promoted 2026-08-22 (npm-audit M4 /
+  lever L3). This list said "two jobs" until then.
 
-**Treat their suffix as historical and leave both names byte-for-byte alone.** They were
-promoted into branch protection without a matching rename, and correcting the label now
-would cost more than the inaccuracy does. The same reasoning already keeps
+**Treat their suffix as historical and leave all three names byte-for-byte alone.** They
+were promoted into branch protection without a matching rename, and correcting the label
+now would cost more than the inaccuracy does. The same reasoning already keeps
 `Type Check (tsc blocking + pyright measure-only)` frozen.
 
 The rule that follows:
@@ -194,9 +196,19 @@ required-context list uses `uses:`.
 `Test Inventory Drift` was renamed under the second row when it became blocking on
 2026-08-01, while it was still unprotected. **That second, deliberate step has since
 been taken.** Re-derived 2026-08-04 from
-`gh api repos/:owner/:repo/branches/main/protection`, branch protection requires
-**11** contexts and `Test Inventory Drift` is one of them — so it now sits under the
+`gh api repos/:owner/:repo/branches/main/protection`, branch protection required
+**11** contexts and `Test Inventory Drift` was one of them — so it now sits under the
 *first* row above and must never be renamed alone.
+
+**Re-derived 2026-08-22 from the same command: branch protection now requires
+12 contexts.** `JS Supply Chain (npm audit, non-required)` was promoted that day
+(npm-audit step M4 / lever L3,
+[`NPM_AUDIT_SEVERITY_POLICY_DECISION.md`](../NPM_AUDIT_SEVERITY_POLICY_DECISION.md)
+§5.2), which is the same second-row-to-first-row move `Test Inventory Drift` made, and
+the count in the 2026-08-04 sentence above is left as the measurement it was.
+`REQUIRED_CONTEXTS` in [`scripts/release_gate.py`](../../scripts/release_gate.py) is the
+in-repo copy of the list; pytest cannot see branch protection, so that copy is the thing
+to keep true.
 
 ## Known exceptions to treat as pre-existing
 

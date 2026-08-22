@@ -106,13 +106,23 @@ DEEP_GATE_UNCONDITIONAL_JOBS = frozenset(
 DEEP_GATE_CONDITIONAL_JOBS = frozenset({"visual-linux"})
 
 # ci.yml job names that exist and are deliberately NOT part of the expected set.
+#
+# `JS Supply Chain (npm audit, non-required)` left this tuple on 2026-08-22 when
+# lever L3 promoted it into branch protection (M4,
+# docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md section 5.2). Deleting it from here
+# only stops asserting that it is excluded, which is a green-by-silence move, so
+# the promotion is contracted positively below instead.
 UNEXPECTED_CI_JOB_NAMES = (
     "E2E Functional Shard ${{ matrix.shard }}/2",
     "JS Unit (Vitest, non-required)",
     "CSS Stylelint Measurement (non-required)",
-    "JS Supply Chain (npm audit, non-required)",
     PACKAGED_SMOKE_JOB_NAME,
 )
+
+# Promoted by M4. The suffix is deliberately unchanged: renaming a protected
+# context orphans it (docs/ai_workflow/QUALITY_GATE.md, "the `(non-required)`
+# suffix is not a status claim").
+NPM_AUDIT_JOB_NAME = "JS Supply Chain (npm audit, non-required)"
 
 JOB_ID = re.compile(r"^  ([A-Za-z0-9_-]+):[ \t]*$", re.MULTILINE)
 STEP_SPLIT = re.compile(r"^    - name: ", re.MULTILINE)
@@ -328,8 +338,8 @@ def test_the_step_parser_reads_every_job_that_declares_steps():
 def test_every_expected_context_is_a_real_ci_job_name():
     """Derived, not hand-copied.
 
-    A rename of any of the twelve in ci.yml reds here instead of burning the release
-    gate's 45-minute deadline on a name that will never report.
+    A rename of any of the thirteen in ci.yml reds here instead of burning the
+    release gate's 45-minute deadline on a name that will never report.
     """
     names = {job_name(block) for block in jobs(CI).values()}
     missing = sorted(set(EXPECTED_CONTEXTS) - names)
@@ -341,6 +351,23 @@ def test_the_deliberately_excluded_ci_jobs_exist_and_stay_excluded():
     for name in UNEXPECTED_CI_JOB_NAMES:
         assert name in names, name
         assert name not in EXPECTED_CONTEXTS, name
+
+
+def test_the_npm_audit_job_is_required_and_keeps_its_name_byte_for_byte():
+    """M4 / lever L3, asserted positively in both directions.
+
+    The excluded-jobs test above scored green on this name until 2026-08-22 by
+    asserting it was *not* required. Simply dropping it there would have left the
+    promotion asserted by nothing at all -- a name can go missing from a tuple
+    without any test noticing. So: the job still exists in `ci.yml` under exactly
+    this string, and that string is a required context. Renaming the job in
+    `ci.yml` alone reds the first half; dropping it from `REQUIRED_CONTEXTS`
+    alone reds the second.
+    """
+    names = {job_name(block) for block in jobs(CI).values()}
+    assert NPM_AUDIT_JOB_NAME in names, NPM_AUDIT_JOB_NAME
+    assert NPM_AUDIT_JOB_NAME in REQUIRED_CONTEXTS, NPM_AUDIT_JOB_NAME
+    assert NPM_AUDIT_JOB_NAME not in UNEXPECTED_CI_JOB_NAMES
 
 
 def test_no_required_context_job_was_converted_to_a_reusable_call():

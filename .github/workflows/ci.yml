@@ -1231,10 +1231,17 @@ jobs:
   # carries no continue-on-error. Either alone leaves the gate open. Restoring
   # both is the documented rollback (section 5.3, row M3).
   #
-  # Still non-required: this job's name is NOT in branch protection, so a red here
-  # marks the run rather than blocking the merge. Promoting it is lever L3 /
-  # step M4, which drags scripts/release_gate.py and
-  # tests/test_release_workflow_contracts.py with it and is not done here.
+  # REQUIRED since 2026-08-22. This job's name IS in branch protection, so a red
+  # here blocks the merge. That promotion is lever L3 / step M4; it dragged
+  # scripts/release_gate.py (REQUIRED_CONTEXTS) and
+  # tests/test_release_workflow_contracts.py with it, and both moved in the same
+  # PR. This comment read "Still non-required ... not done here" until then.
+  #
+  # DO NOT RENAME THIS JOB. The (non-required) suffix is now false and stays
+  # anyway: renaming a protected context orphans it and every PR then waits
+  # forever on a check that will never report. docs/ai_workflow/QUALITY_GATE.md,
+  # "the (non-required) suffix is not a status claim", lists the three names this
+  # rule now covers.
   js-supply-chain:
     name: JS Supply Chain (npm audit, non-required)
     runs-on: ubuntu-latest

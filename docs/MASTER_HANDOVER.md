@@ -1160,7 +1160,11 @@
 >   (`docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md` §6.1) and the four findings — five by the
 >   time they were measured — were cleared by #390, so `js-supply-chain` now **enforces**
 >   against `scripts/npm_audit_gate.mjs` and an empty `docs/npm_audit_allowlist.json`.
->   It stays out of branch protection; promoting it is lever L3, still undecided.
+>   ~~It stays out of branch protection; promoting it is lever L3, still undecided.~~
+>   **Superseded 2026-08-22: lever L3 / step M4 was authorized by the owner and taken.**
+>   `JS Supply Chain (npm audit, non-required)` is now a **required** context —
+>   branch protection went **11 → 12**, the job name unchanged byte-for-byte, and
+>   `REQUIRED_CONTEXTS` in `scripts/release_gate.py` moved with it.
 >
 > **Both flips have now been taken** — inventory drift in #267, npm audit in the enforcement
 > PR — and neither was the one-token change this line claimed. Each is **two** edits: the

@@ -241,7 +241,7 @@
     "total_tests": 649
   },
   "pytest": {
-    "collected_deterministic": 2808,
+    "collected_deterministic": 2809,
     "deterministic_files": 124,
     "environment_dependent_files": [
       {
@@ -608,7 +608,7 @@
       },
       {
         "file": "tests/test_release_workflow_contracts.py",
-        "tests": 50
+        "tests": 51
       },
       {
         "file": "tests/test_rep_range_integrity.py",
