@@ -4,8 +4,54 @@
 
 ## Current State
 
-> **2026-08-21 (LATEST) — Testing Strategy D7 is SIGNED and the auto-backup
+> **2026-08-22 (LATEST) — Phase 3 step 12 Packet B is MERGED; two toast defects are now
+> registered as open Known Issues.**
+> `origin/main` is at **`987588a`** (PR
+> [#406](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/406), merged 2026-08-22
+> local — `2026-08-21T23:10:23Z`, which is how GitHub lists it),
+> with all **18** checks green on that commit (post-merge run `32535888704`).
+>
+> **Packet B shipped as a pure characterization packet.** It added exactly one file,
+> `static/js/modules/__tests__/toast.test.js`, with **47 cases (B1–B45)**, taking the Vitest
+> suite from **11 files / 155 cases to 12 files / 202**. **No production JavaScript changed** —
+> `static/js/modules/toast.js` is identical across the merge by git object id (`42863b46` on
+> both sides — asserted through git’s normalisation, never a raw byte compare, per §10.12).
+> `package.json`, `vitest.config.js`, the CI workflow and the test inventory are untouched,
+> and the job is still
+> named `JS Unit (Vitest, non-required)`, so `js-unit` remains **non-required**. The full
+> execution record — the 47-case matrix, the 32-row mutation run, the coverage movement and
+> the three harness defects found along the way — is
+> [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §10, and is **not**
+> duplicated here.
+>
+> **Two real production defects were measured, pinned, and left OPEN.** Characterization is not
+> mitigation, so both are now rows in
+> [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md) §0:
+>
+> | Row | Defect | Status |
+> |---|---|---|
+> | **KI-010** | `showToast('error', true)` — a legacy two-argument call whose message equals a type word renders body text `"true"` and swallows the intended message. **8** live two-argument call sites carry the collision-capable shape, plus **5** in the one-argument form; one server-copy change from reachable. | **Open** — `B45` pins the *defective* output, so a fix must invert it |
+> | **KI-011** | Any later toast clears `toastBody.innerHTML` and removes the still-live "Activate for Plan tab" action button. Reachable when the immediate history refresh in `volume-splitter.js` fails and emits an error toast. | **Open** — `B30–B35` are deliberately placement-neutral, so they neither fix nor mitigate it; no fixed-behavior regression test exists yet |
+>
+> KI-004's stale `templates/base.html:228` citation is corrected to `:236` in the same
+> documentation-only follow-up.
+>
+> **What this did NOT change.** **Packet C**, **Packet F**, promotion of `js-unit`
+> (**Q4** / **D2**) and **Q6** are all still unstarted and each still needs its own owner
+> confirmation. **D4** and the `js-unit` half of **D2** remain unsigned. Neither toast defect is
+> fixed. **This KI follow-up** — a packet separate from Packet B — changed **documentation only**:
+> [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md),
+> [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) and this file, and nothing
+> else. Packet B itself added the one test file named above.
+
+> **2026-08-21 — Testing Strategy D7 is SIGNED and the auto-backup
 > recovery procedure is published in [`README.md`](../README.md).**
+> **[This block carried the `(LATEST)` marker until 2026-08-22; the block above is now the
+> latest. Its *"`origin/main` is at `4d53487`"* went stale two commits later — #404
+> (`0984d2e`) first, then #406 (`987588a`). Nothing in it is edited. Two of its "what this
+> did NOT change" items were re-checked when the block above was written and are still true:
+> D4 and the `js-unit` half of D2 remain unsigned. The rest of that list was not re-measured
+> here and is left as written.]**
 > `origin/main` is at **`4d53487`** (PR #403, merged 2026-08-21), with all **18**
 > checks green on that commit. The block below was written as #403's own head and
 > therefore names `1f9c05a` as `origin/main`; that was true when it was written
