@@ -27,7 +27,7 @@ suite.
 | DB / schema | `utils/db_initializer.py`, `utils/database.py`, `utils/program_backup.py`, `utils/auto_backup.py` | full `pytest` + manual backup/restore smoke | `code-reviewer` + `architecture-reviewer` |
 | Business logic | `utils/**.py` (non-DB) | `pytest tests/test_<module>.py` | `code-reviewer`; + `product-risk-reviewer` if `effective_sets` / `weekly_summary` / `session_summary` / `progression` / `fatigue` touched |
 | Frontend (template) | `templates/**` | matching Chromium specs from the feature map below | none required |
-| Frontend (JS) | `static/js/**` | matching Chromium specs from the feature map below + manual smoke if interactive | none required |
+| Frontend (JS) | `static/js/**` | matching Chromium specs from the feature map below + manual smoke if interactive + **regenerate `docs/test_inventory/` whenever a `*.test.js` case is added, removed or renamed** — the Vitest row below makes that a required-check trip, the same gap the parametrized-configuration note calls out | none required |
 | CSS | `scss/**` | `/build-css` + `e2e/visual.spec.ts` if visual surface changes | none required |
 | CSS (static bundles) | `static/css/**`, excluding the generated `bootstrap.custom.min.css*` (see the `scss/**` row) | **Shared surfaces** (`base`, `layout`, `components`, `navbar`, `a11y`, `motion`, `theme-dark`, `tokens`): full `pytest` — the cascade contracts (`tests/test_css_cascade_contracts.py`, `tests/test_visual_selector_contracts.py`) run inside that total; any edit to them must be explicitly scoped, justified, and must not weaken an existing guarantee — + Chromium `smoke-navigation`, `nav-dropdown`, `accessibility`, `dark-mode`, `summary-pages`, `volume-progress`, `fatigue`, `fatigue-stage4-smokes`, `ui-hardening` + the full `visual.spec.ts` matrix (66 tests per platform over 11 pages) + seven-surface Stylelint (`node scripts/css_audit/stylelint_surfaces.mjs`), no category may rise without a recorded owner exception + the Linux `visual-linux` deep gate reconciled against `docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`. **Page bundles** (`pages-*.css`): that page's specs from the feature map below + its `visual.spec.ts` variants + Stylelint on the edited file | none required; a shared-surface change is **Large** at plan stage |
 | E2E spec | `e2e/**` | run the spec; intentionally re-baseline if visual | none required |
@@ -51,17 +51,25 @@ they are named here once rather than duplicated into every row.
 | `Test Inventory Drift` | `scripts/generate_test_inventory.py --check` against the committed `docs/test_inventory/`. The job has been red-on-drift since 2026-08-01; it entered branch protection later, re-derived 2026-08-04. The check is a whole-file text diff, so *any* difference reds. | Run `python scripts/generate_test_inventory.py` and commit the regenerated artifact. Never hand-edit it. Never edit the workflow. **And never regenerate while an untracked or gitignored `.md` sits in a globbed surface directory** — that reds `--check` locally while CI is green, and regenerating bakes the local file into the committed artifact. Commit that file or give it a `.local.md` suffix first. |
 | `Type Check (tsc blocking + pyright measure-only)` | **Two** blocking steps, despite the name. `tsc --noEmit` must report zero errors. Separately, `scripts/pyright_baseline_diff.py` fails on net-new pyright diagnostics against `docs/ci_cd_phase3/pyright-baseline.json`. Only the pyright *count* step is measure-only; the baseline diff beside it is not. | Fix the net-new diagnostic. Re-baselining to make it pass is an owner decision, not a repair. |
 
-**What trips `Test Inventory Drift`.** The artifact pins five change surfaces, not one:
+**What trips `Test Inventory Drift`.** The artifact pins six change surfaces, not one:
 
 | Pinned surface | Changed path that trips it |
 |---|---|
 | Per-file pytest node counts | `tests/**` — add, remove, rename, or move a test between files |
 | Per-spec Playwright counts | `e2e/**/*.spec.ts` — add, remove, or rename any test |
+| Per-file Vitest case counts **and every case's identity** | `static/js/**/*.test.js` — add, remove, **rename**, `.skip` or `.todo` any case; and `static/js/**/*.js`, because a production module that throws while being imported breaks collection |
 | `waitForTimeout` lines per file | `e2e/**/*.ts` — add or delete a single hard wait |
 | Required functional spec set, derived from the workflow | `.github/workflows/ci.yml` — the `e2e-functional-shard` spec list, or a rename of that job |
 | Parametrized configuration surface | **adding or deleting any file under `.claude/commands/`, `.claude/agents/`, `.claude/rules/`, or `docs/ai_workflow/`** |
 
-That last row is a genuine gap in the routing above: the `AI workflow / agent config`
+The Vitest row is the only one that pins **identities** rather than counts alone, because a
+renamed case leaves every count untouched. It is collected with `vitest list`, which never runs
+a test — the `JS Unit (Vitest, non-required)` job's pass/fail still gates nothing. Two
+consequences worth knowing before you see the red: a `.skip`-ed case is indistinguishable here
+from a deleted one, and a collection failure is **not drift** — regenerating is the wrong repair
+and the generator's own message says so.
+
+The parametrized-configuration row is a genuine gap in the routing above: the `AI workflow / agent config`
 row says "run tests only if source behavior changed", but *adding or deleting* a file
 in those directories changes a parametrized node count and reds a required check even
 though no source behavior moved. Editing an existing file in place does not.
