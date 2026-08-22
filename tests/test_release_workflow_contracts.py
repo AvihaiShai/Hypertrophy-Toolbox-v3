@@ -541,9 +541,12 @@ def test_the_single_definition_keeps_the_shape_both_lifted_jobs_had():
     # A `uses:` job may not declare `continue-on-error`, so a step here is the only
     # place the build can be made non-blocking for all three callers at once -- turning
     # a red bootloader smoke green on the PR path, in the release gate and in the weekly
-    # gate simultaneously. ci.yml uses the key legitimately in seven places (plus one
-    # explicit `continue-on-error: false`, eight occurrences in all) and records
+    # gate simultaneously. ci.yml uses the key legitimately in six places (plus one
+    # explicit `continue-on-error: false`, seven occurrences in all) and records
     # this exact trap in its own comments; it has no business in the shared definition.
+    # The count was seven-plus-one until the npm-audit enforcement flip removed
+    # `js-supply-chain`'s -- see docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md section
+    # 5.2, lever L2.
     assert "continue-on-error" not in executable(PACKAGED)
 
 

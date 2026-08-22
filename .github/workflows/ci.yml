@@ -1206,25 +1206,39 @@ jobs:
   # graph had no vulnerability scanning at all.
   #
   # NEVER add --omit=dev. This is the sol5.6 P1 finding and it is not theoretical
-  # here: `npm audit --json` reports dependencies {prod: 1, dev: 246}, so omitting
-  # dev scans ONE package out of 246 and prints "found 0 vulnerabilities" while
-  # four high-severity advisories sit in the graph the build actually uses. That
-  # false green is worse than no scan, because it looks like a closed gap.
+  # here: `npm audit --json` reports dependencies {prod: 1, dev: 283}, so omitting
+  # dev scans ONE package out of 283 and prints "found 0 vulnerabilities" over a
+  # graph the build actually uses. That false green is worse than no scan, because
+  # it looks like a closed gap. The clause that used to end this paragraph --
+  # "four high-severity advisories sit in the graph the build actually uses" --
+  # was true when this job was written and was driven to zero by the M1
+  # remediation (PR #390). The reachability argument it illustrated is unchanged:
+  # one prod dependency out of 283 is what --omit=dev would leave you looking at,
+  # whatever today's count happens to be.
   #
-  # MEASURE-ONLY: the audit's verdict is a ::warning plus a job summary, never a
-  # failed step -- same idiom as css-stylelint-measure and test-inventory. Making
-  # it blocking needs a documented severity/exception policy first (Phase 0 step 3),
-  # which is not in this signed slice: every finding today is a transitive
-  # devDependency of the build/test toolchain, so a blocking gate would stop all
-  # merges over something that never reaches a user's machine. Swap `exit 0` for
-  # `exit $STATUS` once that policy exists.
+  # ENFORCING as of docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md section 5.2 steps
+  # M2 + M3 (levers L1 + L2). The verdict is scripts/npm_audit_gate.mjs read
+  # against the committed docs/npm_audit_allowlist.json, under the rulings signed
+  # 2026-08-15: fail at `high` and above read per advisory (D-1), whole graph with
+  # per-advisory exceptions (D-2), a 90-day exception TTL (D-3), an unavailable
+  # registry or an unparseable report FAILS (D-4), and a stale exception FAILS
+  # (D-5). The allowlist ships empty, which is the correct content and not an
+  # omission -- section 3 measured the accepted-debt bucket as empty once M1
+  # landed, which is what made "flip with an empty allowlist" (R2) possible.
   #
-  # NEW and non-required; renames no existing branch-protection context.
+  # The flip was TWO edits, not one, the same way test-inventory's is: the step
+  # now ends in the gate's own exit status instead of `exit 0`, AND the job
+  # carries no continue-on-error. Either alone leaves the gate open. Restoring
+  # both is the documented rollback (section 5.3, row M3).
+  #
+  # Still non-required: this job's name is NOT in branch protection, so a red here
+  # marks the run rather than blocking the merge. Promoting it is lever L3 /
+  # step M4, which drags scripts/release_gate.py and
+  # tests/test_release_workflow_contracts.py with it and is not done here.
   js-supply-chain:
     name: JS Supply Chain (npm audit, non-required)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    continue-on-error: true
 
     steps:
     - name: Checkout code
@@ -1237,43 +1251,28 @@ jobs:
         cache: 'npm'
 
     # No `npm ci`: `npm audit` resolves the committed package-lock.json against
-    # the advisory database directly, so installing first buys nothing.
+    # the advisory database directly, so installing first buys nothing. The gate
+    # script imports only node builtins, so it needs no install either.
     - name: Audit the full dependency graph (including devDependencies)
       run: |
         mkdir -p artifacts/npm-audit
         set +e
         npm audit --json > artifacts/npm-audit/npm-audit.json 2>artifacts/npm-audit/npm-audit.err
-        STATUS=$?
+        AUDIT_STATUS=$?
         npm audit > artifacts/npm-audit/npm-audit.txt 2>&1
         set -e
         cat artifacts/npm-audit/npm-audit.txt
-        node -e "
-          const fs = require('fs');
-          let r;
-          try { r = JSON.parse(fs.readFileSync('artifacts/npm-audit/npm-audit.json', 'utf8')); }
-          catch (e) {
-            console.log('::warning title=npm audit::Could not parse npm audit JSON: ' + e.message);
-            process.exit(0);
-          }
-          const v = r.metadata.vulnerabilities;
-          const d = r.metadata.dependencies;
-          const sev = ['critical', 'high', 'moderate', 'low', 'info'];
-          const line = sev.map(s => s + '=' + v[s]).join(' ');
-          console.log('::notice title=npm audit (measure-only)::' + line + ' total=' + v.total);
-          if (v.total > 0) {
-            console.log('::warning title=npm audit (measure-only)::' + v.total + ' advisories in the full dependency graph (' + line + '). Not blocking: a severity/exception policy is required first, see TESTING_STRATEGY_PLANNING.md Phase 0 step 3.');
-          }
-          const rows = sev.map(s => '| ' + s + ' | ' + v[s] + ' |').join('\n');
-          const names = Object.keys(r.vulnerabilities || {}).sort();
-          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-            '### npm audit — full graph, measure-only\n\n' +
-            '| Severity | Count |\n|---|---:|\n' + rows + '\n| **total** | **' + v.total + '** |\n\n' +
-            'Scanned **' + d.total + '** dependencies (prod ' + d.prod + ', dev ' + d.dev + ', optional ' + d.optional + ').\n\n' +
-            (names.length ? 'Affected packages: ' + names.map(n => '\`' + n + '\`').join(', ') + '\n\n' : '') +
-            '\`--omit=dev\` is deliberately NOT used: it would scan ' + d.prod + ' of ' + d.total +
-            ' packages and report a false clean bill of health.\n');
-        "
-        exit 0
+        # The step's status is this command's status -- there is deliberately no
+        # `exit 0` after it. `npm audit`'s own exit code is handed over as data
+        # rather than used directly: npm exits 1 for ANY advisory including an
+        # allowlisted one, so trusting it would make the allowlist inert
+        # (section 4.5). The gate tells "1 with a readable report" apart from
+        # "the audit could not run", and fails closed on the second.
+        node scripts/npm_audit_gate.mjs \
+          --audit artifacts/npm-audit/npm-audit.json \
+          --allowlist docs/npm_audit_allowlist.json \
+          --audit-stderr artifacts/npm-audit/npm-audit.err \
+          --audit-exit-status "$AUDIT_STATUS"
 
     - name: Upload npm audit report
       if: always()

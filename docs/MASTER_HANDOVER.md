@@ -1154,10 +1154,18 @@
 >   the owner's call. *Corrected 2026-08-01: this previously read "app.py P1/P2/P5 have merged — but
 >   **WPB.4 has not** (in flight as #256)", which implied P3/P4 were outstanding and that the flip
 >   was still gated. Both were true when written and are false now.*
-> - **`npm audit`** is measure-only pending a documented severity/exception policy (Phase 0 step 3).
->   All four current findings are transitive devDependencies of the build/test toolchain.
+> - ~~**`npm audit`** is measure-only pending a documented severity/exception policy (Phase 0 step 3).
+>   All four current findings are transitive devDependencies of the build/test toolchain.~~
+>   **Flipped 2026-08-21.** The policy was signed 2026-08-15
+>   (`docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md` §6.1) and the four findings — five by the
+>   time they were measured — were cleared by #390, so `js-supply-chain` now **enforces**
+>   against `scripts/npm_audit_gate.mjs` and an empty `docs/npm_audit_allowlist.json`.
+>   It stays out of branch protection; promoting it is lever L3, still undecided.
 >
-> Both flips are a one-token change (`exit 0` → `exit $STATUS`) beside the condition in `ci.yml`.
+> **Both flips have now been taken** — inventory drift in #267, npm audit in the enforcement
+> PR — and neither was the one-token change this line claimed. Each is **two** edits: the
+> step must stop ending in `exit 0` *and* the job must lose `continue-on-error`, or the gate
+> stays half-open. `ci.yml` records that beside each condition.
 >
 > ### Operational lesson worth keeping
 >

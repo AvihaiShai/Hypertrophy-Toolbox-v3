@@ -1,16 +1,37 @@
 # npm audit — severity and exception policy: owner decision packet
 
-*Status: **DECIDED 2026-08-15 — see §6.1. Nothing is enforced by this document.** The
-owner accepted every recommendation in §6, including **D-7: remediate first, then
-enforce**. This file records the decisions and the evidence behind them; the
-remediation and the enforcement flip are separate pull requests. No dependency was
-updated, no pin moved, no allowlist created, and `.github/workflows/ci.yml` is
-unchanged **by this PR**. Measured 2026-08-15 against `origin/main` @ `c404a06` in an
-isolated docs-only worktree.*
+*Status: **DECIDED 2026-08-15 (§6.1) and now EXECUTED.** The owner accepted every
+recommendation in §6, including **D-7: remediate first, then enforce**. Everything
+those seven rulings authorize has since landed — the remediation (M1) and the
+enforcement flip (M2 + M3) — and `js-supply-chain` blocks on a `high` advisory today.
+**M4 is deliberately not taken**: promoting the job into branch protection is lever L3,
+which no ruling on this page authorizes. §5.4 is the ledger. This file records the
+decisions and the evidence behind them.*
 
-Source row: [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) line 808 —
-*"The `npm audit` severity / exception policy — **OWNER**, held apart from P1.6
-throughout and still undecided"*. Owning document:
+> **Every measurement below is dated 2026-08-15 and several are now superseded.**
+> They are kept as written, because a decision has to be readable against the evidence
+> that was actually in front of the owner. Where a later measurement contradicts one,
+> the contradiction is annotated in place and marked **SUPERSEDED** — the original
+> number is never edited to match today. The three that moved:
+>
+> | Measured 2026-08-15 | True as of 2026-08-21 | Where |
+> |---|---|---|
+> | Five high-severity advisories, nine advisory IDs, five packages | **Zero advisories of any severity** — cleared by M1 (#390) | §2.1, §3 |
+> | Dependabot alerts **disabled** (403 / 404) | **Enabled**, zero open (200 / 204) — D-6's setting half | §2.4 |
+> | `js-supply-chain` is **measure-only** | **Enforcing** — M2 + M3 | §5.2 |
+>
+> The one thing D-6 did *not* make true is the sentence that prompted it. See §2.4a.
+
+*Original measurement: 2026-08-15 against `origin/main` @ `c404a06` in an isolated
+docs-only worktree. No dependency was updated, no pin moved, no allowlist created, and
+`.github/workflows/ci.yml` was unchanged **by the PR that created this file**.*
+
+Source row: the *"npm audit severity / exception policy"* row in
+[`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md), which read *"**OWNER**, held
+apart from P1.6 throughout and still undecided"* and is **now closed** by the
+enforcement PR. (This citation said "line 808" until 2026-08-21; the row had already
+moved to line 877 by then, which is why it is now named rather than numbered.) Owning
+document:
 [`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`](P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md) §6.
 Design prompt: [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) §9.2
 **F5-7** — *"the npm-audit flip mechanism is undesigned, and Dependabot changes the
@@ -39,6 +60,9 @@ framing suggests:
    any of these still reaches us as a security update"* — does not hold today. The
    `js-supply-chain` job is the **only** JS vulnerability signal that exists, and it is
    measure-only, so today the repository has no enforced JS supply-chain signal at all.
+   — **Both halves SUPERSEDED (§2.4a).** Alerts are on, and the job enforces. The
+   `dependabot.yml` sentence is *still* wrong, for a different reason, and has been
+   rewritten rather than re-dated.
 2. **The documented baseline is stale.** §8.6 of `TESTING_STRATEGY_PLANNING.md` records
    *"4 high — `immutable`, `picomatch`, `postcss`, `fast-uri`"*. `immutable` is gone and
    `js-yaml` and `nanoid` are new. The set moved 4 → 3 → 5 in two weeks with no change
@@ -58,11 +82,16 @@ that carries its evidence:
    `package.json` edit, and no semver-major move is required for any of them. Every
    fixed version was confirmed to exist on the registry *and* to satisfy every
    declaring parent's range. — **§3**, table.
+   **Confirmed by execution:** M1 (#390) took all nine as in-range lockfile-only
+   bumps, exactly as the table predicted.
 2. **The accepted-debt allowlist is therefore empty.** There is no advisory in the
    graph today that lacks an in-range fix, and none of the five affected packages is
    frozen by a repository contract pin. An exception file written now would contain
    zero entries, and that is the correct content, not an omission. — **§3**, bucket
    table.
+   **Confirmed by execution:** [`npm_audit_allowlist.json`](npm_audit_allowlist.json)
+   shipped with `"allow": []`, and `tests/test_npm_audit_gate_contracts.py` pins that
+   emptiness so an entry cannot appear without an owner decision.
 3. **Dependabot alerts are disabled on this repository**, which invalidates the stated
    premise in [`.github/dependabot.yml`](../.github/dependabot.yml) — *"a security
    advisory against any of these still reaches us as a security update"* — and the
@@ -70,6 +99,13 @@ that carries its evidence:
    §3.3. Both sentences describe a mechanism that is not running. Until D-6 is
    executed, `js-supply-chain` is the repository's only JS vulnerability signal, and
    it is measure-only. — **§2.4**, four read-only API probes.
+   **SUPERSEDED as to the alerts, upheld as to the sentences.** Alerts were enabled
+   under D-6 and `js-supply-chain` now enforces, so neither premise of the first
+   clause still holds. But **both sentences remain wrong**, and enabling alerts did
+   not fix them: a Dependabot *security update* is a pull request opened by
+   **automated security fixes**, which ruling (a) leaves off on purpose. Advisories
+   arrive as **alerts**, which a human acts on. Both sentences have been rewritten,
+   not re-dated. — **§2.4a**.
 4. **Advisory IDs are the policy key — not package names, and not counts.** The
    advisory set turned over inside a fortnight (`immutable` gone, `js-yaml` and
    `nanoid` new) while the count moved *non-monotonically*, 4 → 3 → 5, with no change
@@ -193,6 +229,10 @@ key.** This is F5-7's claim, now with the measurement behind it.
 
 ### 2.4 Dependabot alerts are disabled — the ignore-block premise does not hold
 
+> **SUPERSEDED 2026-08-21 by §2.4a.** Alerts are now enabled under D-6. Everything
+> below is the 2026-08-15 measurement, kept unedited because it is the evidence the
+> ruling was made on.
+
 Measured against the repository API:
 
 | Probe | Result |
@@ -225,9 +265,56 @@ than a code change, so it is carried as decision **D-6** — ruled *enable alert
 automated fixes off* on 2026-08-15 (§6.1), and **not performed by this pull request or
 by either of the two that follow it**.
 
+### 2.4a D-6 executed — and the sentence it was meant to repair is still wrong
+
+Re-probed 2026-08-21, against the same four endpoints, read-only:
+
+| Probe | 2026-08-15 | 2026-08-21 |
+|---|---|---|
+| `GET /repos/{owner}/{repo}/vulnerability-alerts` | **404** — not enabled | **204** — enabled |
+| `GET /repos/{owner}/{repo}/automated-security-fixes` | `{"enabled": false, "paused": false}` | `{"enabled": false, "paused": false}` — unchanged, per ruling (a) |
+| `GET /repos/{owner}/{repo}/dependabot/alerts?state=open` | **403** — *"Dependabot alerts are disabled"* | **200** — `[]`, zero open |
+| `GET /repos/{owner}/{repo}` → `security_and_analysis.dependabot_security_updates` | *(not probed)* | `disabled` — per ruling (a) |
+
+That is **exactly ruling (a)**: alerts on, automated security fixes off.
+
+**But D-6's own note is wrong for (a).** It reads: *"under (a)/(b) they become true
+only from the date of the change."* Under **(b)** that holds. Under **(a)** those two
+sentences never become true, at any date, because they do not describe alerts:
+
+> *"A security advisory against any of these still reaches us as a **security
+> update**."*
+
+A Dependabot **security update** is a pull request opened by *automated security
+fixes* — the setting ruling (a) deliberately leaves off, so that a lockfile change
+stays a reviewed PR. What alerts restore is a **notification**, which a human then
+acts on by opening the bump. Alert ≠ update, and enabling one does not produce the
+other.
+
+So the repair is a **rewording**, not a re-dating, and it is made in the enforcement
+PR alongside the flip:
+
+- [`.github/dependabot.yml`](../.github/dependabot.yml), the npm `ignore` preamble.
+- [`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`](P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md) §3.3.
+
+Both now say what is true under (a): the advisory surfaces as an **alert** and as a
+red `js-supply-chain` run; what the `ignore` block suppresses is the routine version
+bump, and nothing else.
+
+The second consequence in §2.4 is also superseded, and in the direction the packet
+argued for: `js-supply-chain` is no longer the *only* JS vulnerability signal, and it
+is no longer measure-only. There are now two, one of which blocks.
+
 ---
 
 ## 3. Actionable vulnerabilities vs accepted toolchain debt
+
+> **Snapshot, 2026-08-15. All nine advisories below are GONE** — M1 (#390) took every
+> row of the fix table. Re-measured 2026-08-21 on `origin/main` and inside the
+> enforcement worktree: `{"critical":0,"high":0,"moderate":0,"low":0,"info":0,"total":0}`
+> over 283 dependencies (prod 1). The table stands as the prediction the remediation
+> was authorized on, and it held: every fix was in range, none needed a
+> direct-dependency bump, and `warningCount` did not move.
 
 The separation F5-7 asks for turns out to be **degenerate in the useful direction**: on
 today's graph, the "accepted debt" bucket is empty because everything in it is fixable
@@ -380,7 +467,7 @@ YAML, and a script file is testable from pytest the way `scripts/release_gate.py
 | **`npm audit` exit code 1 with a valid report** | Not itself a failure. Exit status is computed from the report against the allowlist. | npm exits 1 for *any* advisory including allowlisted ones; using its exit code directly makes the allowlist inert. |
 | **Dependabot `version-update` PR churn** | Same rules; no special case. | The gate reads the branch's own lockfile. A bump that re-resolves `postcss` clears its advisories on that branch and the gate goes green there before it goes green on `main`. |
 | **A Dependabot PR that introduces a new advisory** | **Fail on that PR.** | This is the case the gate is most valuable for and needs no exception. |
-| **Dependabot security-update PR** | Same rules. | Not reachable today — §2.4, alerts are disabled. |
+| **Dependabot security-update PR** | Same rules. | Still not reachable: alerts are on since D-6, but *automated security fixes* — the setting that opens a security-update PR — stay off by ruling (a). See §2.4a. |
 
 ### 4.6 The stale-entry rule is the one to argue about
 
@@ -442,11 +529,19 @@ gh api repos/{owner}/{repo}/check-runs/<JOB_ID>/annotations \
 Flipping this gate is not one change. Conflating the three is how a required context
 gets orphaned.
 
-| Lever | Edit | Effect | Renames a context? |
-|---|---|---|---|
-| **L1** | `exit 0` → `exit $STATUS` at [`ci.yml:1274`](../.github/workflows/ci.yml#L1274) | The **step** fails | No |
-| **L2** | Remove `continue-on-error: true` at [`ci.yml:1225`](../.github/workflows/ci.yml#L1225) | The **job** reports red instead of neutral-success | No |
-| **L3** | Add `JS Supply Chain (npm audit, non-required)` to branch protection | A red job **blocks merge** | No — but see below |
+| Lever | Edit | Effect | Renames a context? | State |
+|---|---|---|---|---|
+| **L1** | Drop the step's trailing `exit 0`; the step now ends in the gate's own status — [`ci.yml:1271-1275`](../.github/workflows/ci.yml#L1271-L1275) | The **step** fails | No | **Taken** |
+| **L2** | Remove `continue-on-error: true` from the job — the key is simply absent at [`ci.yml:1238-1241`](../.github/workflows/ci.yml#L1238-L1241) | The **job** reports red instead of neutral-success | No | **Taken** |
+| **L3** | Add `JS Supply Chain (npm audit, non-required)` to branch protection | A red job **blocks merge** | No — but see below | **Not taken** (step M4) |
+
+*Two notes on those citations. The pre-flip line numbers this table used to carry —
+`ci.yml:1274` for L1 and `ci.yml:1225` for L2 — were **both off by two**; the lines
+were 1276 and 1227. And L1's edit is not the `exit 0` → `exit $STATUS` the row
+originally described: the inline `node -e` block that computed `STATUS` was replaced
+wholesale by [`scripts/npm_audit_gate.mjs`](../scripts/npm_audit_gate.mjs), so the
+step's status is now the script's exit code with no shell arithmetic in between. The
+effect is the one L1 specified.*
 
 L1 and L2 are safe in either order and neither touches a check name. L3 is the one with
 teeth, and it drags two source files with it:
@@ -469,7 +564,7 @@ suffix is not a status claim": two currently-required contexts already carry a f
 every PR then waits forever on a check that will never report. The `pyright` job is the
 documented precedent — *"Correct the understanding here; do not correct the label."*
 
-Suggested sequencing, one reviewable PR each:
+Suggested sequencing:
 
 | Step | Change | Gate |
 |---|---|---|
@@ -479,24 +574,54 @@ Suggested sequencing, one reviewable PR each:
 | **M3** | L1 + L2 in `ci.yml` | Full `pytest` — seven test files parse `ci.yml`; `code-reviewer` + `architecture-reviewer` per the CI-workflows row |
 | **M4** | L3, with `release_gate.py` and `test_release_workflow_contracts.py` in the same PR | Full `pytest`; verify the context appears on a real PR **before** adding it to protection |
 
+> **Packaging note.** This table read *"one reviewable PR each"* until 2026-08-21,
+> which contradicted §6.1's "Lands in" row and §8, both of which say **"the enforcement
+> PR — §5.2 M2 + M3"**, singular. Nothing outside this file broke the tie. The owner
+> ruled for the combined reading on 2026-08-21: **M2 and M3 ship as one PR**, and the
+> per-row phrasing above is superseded. M1 and M4 remain separate — M1 because §7 wants
+> the `warningCount` risk isolated, M4 because it is the only lever that touches branch
+> protection. The gates in the M2 and M3 rows are cumulative, not alternatives.
+
 M2's validator must be mutation-tested in **both** directions before it is trusted:
 corrupt the JSON, drop a required field, forge an expired entry, forge a stale entry, and
 confirm each reds — then confirm a clean file greens. A validator that only ever sees
 valid input is indistinguishable from one that parses nothing, which is precisely the
 `test_compiled_scss_drift_gate` failure mode.
 
+**Done, and recorded.** [`tests/test_npm_audit_gate_contracts.py`](../tests/test_npm_audit_gate_contracts.py)
+runs the real script over both directions — every rule in §4.3 and §4.5 red-cased, and
+the nine cases that must **not** fail green-cased, including the four that are one
+flipped comparison away from a red one: an advisory below the floor, a severity that
+*fell* rather than rose, an entry expiring tomorrow, and npm's own exit code 1 over a
+report that parses. The red set is generated over `REQUIRED_FIELDS` read out of the
+script rather than hand-listed, so a field added to the format cannot outrun its test.
+The suite was itself checked by mutating the script ten ways — including reinstating the
+`catch { console.log('::warning'); process.exit(0); }` on unparseable audit JSON that
+the old inline block carried, which is the third false-green path §5.2 did not name —
+and all ten red it.
+
 ### 5.3 Rollback
 
 | From | Revert | Blast radius |
 |---|---|---|
 | **M4** | Remove the context from branch protection **first**, then revert the commit | Leaving protection pointing at a removed context blocks every PR. Protection first, always. |
-| **M3** | Restore `exit 0` and `continue-on-error: true` | Job returns to measure-only; no context changes |
-| **M2** | Revert the commit; regenerate `docs/test_inventory/` | Removing a test file moves node counts and reds `Test Inventory Drift` if not regenerated |
+| **M3** | Restore `continue-on-error: true` on the job **and** a trailing `exit 0` on the step | Job returns to measure-only; no context changes. Both, or the gate stays half-open — and `tests/test_npm_audit_gate_contracts.py` asserts both are absent, so a partial rollback reds pytest rather than passing quietly |
+| **M2** | Revert the commit; regenerate `docs/test_inventory/` | Removing a test file moves node counts and reds `Test Inventory Drift` if not regenerated. M2 and M3 shipped as one PR, so this row and the one above are one revert |
 | **M1** | `git revert` the lockfile commit | Restores byte-identical `package-lock.json`; re-run `npm ci` locally. Note the worktree hazard: a lockfile change on `main` means every worktree junctioned to `main`'s `node_modules` is on the wrong install state — `npm ci` in the main checkout is the repair |
 
 M1 through M4 are independent reverts in any order, which is the point of splitting
 them. M1 alone leaves a strictly better graph with no policy attached; M3 alone leaves a
 gate enforcing an empty allowlist.
+
+### 5.4 Execution ledger
+
+| Step | Landed as | State |
+|---|---|---|
+| **M0** | #386 (`81df507`) | Merged — this document |
+| **M1** | #390 (`8baddd2`) | Merged — nine advisories cleared with in-range lockfile-only bumps; `warningCount` did not move |
+| **D-6** | *(a repository setting, no PR)* | Setting done — alerts on, automated fixes off (§2.4a). Its **prose** half landed with M2 + M3 |
+| **M2 + M3** | the enforcement PR | Allowlist, gate script, contract test, L1 + L2 — one PR, per the 2026-08-21 packaging ruling |
+| **M4** | — | **Not done, and not authorized by any ruling on this page.** D-1 – D-5 authorize M2 + M3; lever L3 needs its own decision, and §5.2's precondition first: see the context report on a real PR *before* adding it to protection |
 
 ---
 
@@ -532,14 +657,19 @@ to reconstruct it from a column heading:
 | **D-6** | **Enable Dependabot alerts; leave automated security fixes off.** |
 | **D-7** | **R2 — remediate first, then enforce.** |
 
-**None of these is executed by this pull request**, which stays documentation-only.
-What each ruling now authorizes, and where it lands:
+**None of these was executed by the pull request that recorded them** (#386), which
+stayed documentation-only. What each ruling authorizes, where it lands, and where it
+has since landed:
 
-| Ruling | Lands in |
-|---|---|
-| D-7 | The remediation PR — lockfile-only, §5.2 **M1** |
-| D-1 – D-5 | The enforcement PR — §5.2 **M2 + M3**, allowlist committed with `"allow": []` |
-| D-6 | A **repository-settings** change, not a code change. It is not performed by any of these pull requests, and it does not gate them. The two stale sentences named in §0.1 finding 3 stay wrong until it is done, and correcting them is part of the same follow-up. |
+| Ruling | Lands in | Landed |
+|---|---|---|
+| D-7 | The remediation PR — lockfile-only, §5.2 **M1** | #390 |
+| D-1 – D-5 | The enforcement PR — §5.2 **M2 + M3**, allowlist committed with `"allow": []` | the enforcement PR (§5.4) |
+| D-6 | A **repository-settings** change, not a code change. It is not performed by any of these pull requests, and it does not gate them. The two stale sentences named in §0.1 finding 3 stay wrong until it is done, and correcting them is part of the same follow-up. | Setting done; sentences reworded with M2 + M3 — but **not** because the setting made them true. See §2.4a. |
+
+Note that "the enforcement PR" is written **singular** here and in §8, while §5.2's
+sequencing table said *"one reviewable PR each"*. That contradiction was ruled on
+2026-08-21 in favour of the singular reading; §5.2 carries the note.
 
 ---
 
@@ -575,11 +705,18 @@ R3 is not recommended, and §2.4 is why: with Dependabot alerts disabled, measur
 not "we watch but do not block" — it is **no enforced JS supply-chain signal at all**,
 which is the state B10 was opened to close.
 
+*(Both premises of that paragraph have since changed — alerts are on and the job
+enforces, §2.4a — which is R2 having been carried out rather than R3's case improving.
+It is left as written because it is the argument the ruling was made on.)*
+
 ---
 
 ## 8. What this packet did not do
 
-Recorded explicitly so a later reader does not mistake absence for oversight:
+Recorded explicitly so a later reader does not mistake absence for oversight. **"This
+packet" means the docs-only PR that created this file (#386)** — every bullet below is
+a statement about that commit, not about the repository today. §5.4 is where to look
+for what has since been done.
 
 - No `npm audit fix`, not even `--dry-run`. `package-lock.json` and `package.json` are
   byte-unchanged; the §3 fix table was derived from registry version lists and the
@@ -595,10 +732,10 @@ Recorded explicitly so a later reader does not mistake absence for oversight:
   The ruling authorizes enabling Dependabot alerts. This PR does not perform it.
 - No `dependabot.yml` edit, including the §2.4 comment that measurement shows to be
   currently false — correcting it is part of **D-6**, not of this packet.
-- `docs/LEFTOVERS_BY_PRIORITY.md` line 808 is **not** updated. The §6 decisions are now
+- `docs/LEFTOVERS_BY_PRIORITY.md`'s npm-audit-policy row is **not** updated. The §6 decisions are now
   made, but the row tracks the *policy*, and the policy is not in force until the
   enforcement PR lands. Closing that row belongs to the PR that flips the gate, so that
-  the row and the gate become true on the same commit.
+  the row and the gate become true on the same commit. — **Done there.**
 
 ---
 
