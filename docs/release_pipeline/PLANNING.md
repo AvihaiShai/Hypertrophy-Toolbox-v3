@@ -329,8 +329,9 @@ anything.
   B9 `concurrency:` decision is still **not started**.)*
 - `visual-linux` in the release gate (D3) — revisit only after the 2026-08-17 run and
   ≥3 consecutive green scheduled runs. *(The binding clause is the three green scheduled
-  runs, of which **zero** exist — no `schedule`-event run has ever fired. Post-#388 the
-  2026-08-17 run is contaminated and does not count toward the three; see the R2-b section
+  runs. **One has now occurred** — 2026-08-17, green (run 31993105305). Whether it counts
+  toward the three is an **open owner question**: it ran R2-b's file, not the pre-#388
+  one. Measure the count rather than reading it here; see the R2-b section
   → *Next clean checkpoint*.)*
 - Frozen × historical-schema coverage (D5) — separate follow-up packet; it needs a
   `--legacy-db` argument on `scripts/smoke_packaged_app.py` and its own tests.
@@ -841,7 +842,7 @@ spend the evidence, rather than letting green CI merge it silently.)*
 
 | # | Obligation | How it is discharged |
 |---|---|---|
-| 1 | A scheduled run exists after **2026-08-24 03:17 UTC** | `gh run list --workflow=deep-gate.yml --event=schedule`. ⚠️ **Amended 2026-08-16.** As written this row said *after 2026-08-17 03:17 UTC*, which the very next cron satisfies — but #388 merged first, so that run executes R2-b's file and cannot be the clean evidence this row exists to demand. See *Next clean checkpoint* at the end of this section. |
+| 1 | ✅ **Satisfied 2026-08-17** by run 31993105305 (green), though it ran R2-b's file rather than the pre-#388 one this row was written to demand — that evidence is forfeited, not obtained. Originally: a scheduled run after **2026-08-24 03:17 UTC** | `gh run list --workflow=deep-gate.yml --event=schedule`. ⚠️ **Amended 2026-08-16.** As written this row said *after 2026-08-17 03:17 UTC*, which the very next cron satisfies — but #388 merged first, so that run executes R2-b's file and cannot be the clean evidence this row exists to demand. See *Next clean checkpoint* at the end of this section. |
 | 2 | All **7** jobs inspected individually, `visual-linux` executed and not skipped | `gh run view <id>` per job — **never the overall green**. ⚠️ **Inverted by the 2026-08-16 merge, and this row read the other way before it.** Row 1 requires a scheduled run *after* **2026-08-24 03:17 UTC** (it read 2026-08-17 before the same 2026-08-16 amendment), and every scheduled run from 2026-08-17 onward is post-merge, so the packaged job will **always** report under its **composite** name, `Frozen executable (real bootloader, Windows) / Build and smoke`. On `main` the pre-composite name appears only in runs at or before `d583225` (a `workflow_dispatch` against a stale branch still carrying the inline job would also report it) — e.g. the pre-merge rehearsal 31970872927. An inspector expecting the bare name will conclude the packaged job is missing when it is present. |
 | 3 | The inspection is written down | A "Hold discharged" subsection appended to this R2-b section, **and** the deep-gate block in [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) |
 | 4 | `docs/MASTER_HANDOVER.md` corrected | **CLOSED 2026-08-16.** Its R1 block read "Packet R2-b, still not started", which was already false; corrected to implemented, with R-10/R-11/R-12 and the 5000→5123 change stated. The `R2-B-PENDING-EVIDENCE` marker it carried has been **replaced** — not with the scheduled run's evidence, which does not exist, but with the override record: what the waiver forfeits, the substitute dispatch, and the 2026-08-24 checkpoint. |
@@ -870,9 +871,10 @@ Re-measured **2026-08-16T20:53Z**, immediately before the merge — `--event=sch
 workflow `290121548` all still return **empty / 0**. Measured
 2026-08-15T13:45Z and again before this merge:
 `gh run list --workflow=deep-gate.yml --event=schedule`, the repo-wide `--event=schedule`
-list, and the REST API `total_count` for workflow `290121548` all return **empty / 0**. No
-`schedule`-event run has ever occurred; every one of the 105 deep-gate runs is a
-`workflow_dispatch`, which is **never** row-1 evidence. The one-shot routine
+list, and the REST API `total_count` for workflow `290121548` all returned **empty / 0**
+**as of 2026-08-16T23:32Z**. No `schedule`-event run had occurred by then; every one of the
+105 deep-gate runs was a `workflow_dispatch`, which is **never** row-1 evidence. *(The
+cron fired the next morning — see* **The first `schedule`-event run** *below.)* The one-shot routine
 `trig_01Dy1dDmAgPFCSzXg2nmanJo` is armed and unfired for **2026-08-17T03:30:00Z**.
 
 R2-a took a narrow exception to the same freeze for the `&&` assertion (R-9) because
@@ -998,7 +1000,10 @@ red to make go away.
 as shipped, `visual-linux` included. **What it does not establish:** anything whatsoever
 about the `schedule` trigger. A trigger that has never fired reports nothing, and a
 `workflow_dispatch` is never evidence for it — the same lesson `release.yml`'s
-`push: tags` still teaches, having never fired either.
+`push: tags` still teaches, having never fired either. *(The `schedule` half of that
+sentence was resolved on 2026-08-17: the cron fired for the first time. See
+**The first `schedule`-event run** below. `push: tags` is unaffected and has still
+never fired.)*
 
 #### Correction to an earlier framing
 
@@ -1006,10 +1011,17 @@ Statements that the deep gate's *job bodies* had never executed were wrong and a
 withdrawn. Dispatch [31851213502](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31851213502)
 (2026-08-14, `main`) already ran all seven jobs green with `visual-linux` executed. The
 accurate and much narrower claim — the one this file made correctly elsewhere — is that
-**no `schedule`-event run has ever occurred**, repo-wide. The unproven thing was always
-the trigger, never the job bodies.
+**no `schedule`-event run had ever occurred**, repo-wide, as of 2026-08-16T23:32Z. The
+unproven thing was always the trigger, never the job bodies — and that trigger fired for
+the first time hours later; see **The first `schedule`-event run** below.
 
 #### The `schedule` trigger is still unvalidated, and remains so after Monday
+
+> ⚠️ **Resolved by events, 2026-08-17.** The prediction below was written before the
+> cron fired. It fired, and it came back green. The section is preserved because its
+> *reasoning* was sound and its second bullet describes a risk that was accepted, not
+> avoided — but the heading is no longer true. Read
+> **The first `schedule`-event run** below for what actually happened.
 
 The 2026-08-24 checkpoint below exists because Monday cannot close this. Monday's run, if
 it fires, executes **R2-b's** file, so it is contaminated as evidence of the deep gate as
@@ -1020,14 +1032,21 @@ shipped and held. Specifically:
   "R2-b broke it" — precisely the ambiguity the hold existed to prevent, now accepted
   knowingly rather than avoided.
 
-Do not record the `schedule` trigger path as validated on the strength of the 2026-08-17
-run, whatever it reports.
+~~Do not record the `schedule` trigger path as validated on the strength of the 2026-08-17
+run, whatever it reports.~~ **Superseded 2026-08-17.** The run happened and was green; the
+trigger *is* validated. What it does not validate is the pre-#388 file — that distinction,
+not the blanket prohibition, is what survives.
 
 #### Next clean checkpoint — 2026-08-24 03:17 UTC
 
-The **2026-08-24** scheduled run is the first uncontaminated `schedule`-event evidence:
+~~The **2026-08-24** scheduled run is the first uncontaminated `schedule`-event evidence:
 by then R2-b's file will have been on `main` since before the preceding run, so the file
-under test and the trigger under test finally agree.
+under test and the trigger under test finally agree.~~
+
+**Superseded 2026-08-17.** The 2026-08-17 run turned out to be usable evidence after all
+— see below — so 2026-08-24 is not "the first clean run". Its remaining value is that it
+is the **second consecutive** green scheduled run, which is what R1-D3's *three
+consecutive green scheduled runs* clock actually needs.
 
 It must still be **judged at job level** — all seven jobs read individually, with
 `visual-linux` confirmed **executed and not skipped**. The overall green is not coverage;
@@ -1035,3 +1054,265 @@ It must still be **judged at job level** — all seven jobs read individually, w
 `gh run list --workflow=deep-gate.yml --event=schedule` before treating any run as
 qualifying, and note that from this merge onward the packaged job reports under its
 composite name, `Frozen executable (real bootloader, Windows) / Build and smoke`.
+
+---
+
+## The first `schedule`-event run — 2026-08-17
+
+*The cron fired for the first time in the repository's history. Every earlier statement
+that no `schedule`-event run had occurred was true when written and is now history.*
+
+| | |
+|---|---|
+| Run | [31993105305](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/31993105305) |
+| Event | **`schedule`** — the first ever, repo-wide |
+| SHA | **`63b206e`** — R2-b's file, i.e. the post-#388 deep gate |
+| Due / actual | 03:17:00Z scheduled, **started 04:02:52Z** — a **~46 minute** scheduler delay |
+| Window | 2026-08-17T04:02:52Z → 04:20:46Z |
+| Result | **7 / 7 jobs `success`**, read individually — never off the overall green |
+
+| Job | Conclusion |
+|---|---|
+| Full E2E incl. accessibility (Chromium) | success |
+| First install (catalog seed) smoke | success |
+| Empty-schema initializer smoke | success |
+| Old-DB migration compatibility | success |
+| `Frozen executable (real bootloader, Windows) / Build and smoke` | success — the **composite** name, under a real scheduled event |
+| Visual regression (Linux baselines) | success — **executed, not skipped** |
+| Dependency Health Check | success |
+
+Step-level proof: `Assert compare mode wrote no baseline` **passed**. That is the
+load-bearing step — it is `always()`-guarded and greps `git status --porcelain` over
+`e2e/__screenshots__`, so it runs and reports even on a failing job. `Upload generated
+Linux baselines` was **skipped**, which corroborates the mode but proves nothing on its
+own: its `if:` is `steps.visual.outputs.mode == 'generate'`, so a skip merely restates
+that the mode was compare. `frozen-windows` ran Stage tracked package assets → Build via the canonical
+spec → Smoke the real bootloader. No baseline was regenerated and none needed to be.
+
+### What this establishes — first time for every item
+
+- **The `schedule` trigger fires.** Previously zero evidence, and a trigger that never
+  fires reports nothing. This is the D3 stopgap's whole premise, and it is now measured.
+- **`visual-linux` runs on a schedule.** A `schedule` event carries **no `inputs` at all**,
+  so `if: github.event_name == 'schedule' || inputs.run_visual` resolved down the
+  *schedule* disjunct — a different code path from every dispatch that preceded it, and
+  one that had never executed.
+- **Compare mode holds when `inputs` is absent.** `MODE="${{ inputs.visual_mode || 'compare' }}"`
+  plus the re-pin on the event name had also never run under a real schedule event.
+- **R2-b's converted `uses:` job works on the schedule**, reporting under its composite name.
+
+### What it does not establish
+
+- **Nothing about the pre-R2-b file.** That evidence was forfeited by the 2026-08-16
+  override and is unrecoverable. It is also now moot: that file no longer exists on `main`.
+- **Nothing about `release.yml`'s `push: tags` trigger**, which is a separate trigger on a
+  separate workflow and has **still never fired** (residual **R-1**).
+- **Nothing about stability.** One green run is one green run; R1-D3 wants three.
+- **Nothing about the gate's ability to go RED.** The Linux corpus was in sync, so
+  `Assert compare mode wrote no baseline` passing shows nothing *was* written — not that
+  real drift would have been caught. A gate that has only ever passed is not yet a gate
+  known to fail correctly.
+
+### An honest note on the contamination call
+
+The override record predicted this run would be *contaminated*, and that a red here would
+be **ambiguous** between "the scheduled gate never worked" and "R2-b broke it". It came
+back green, so that ambiguity never materialised. **That is an outcome, not a vindication.**
+The risk was real when it was accepted, and a red would have cost exactly what was
+predicted. What changed the picture is narrower than it looks: the run is unusable as
+evidence about the *held* file, but it is perfectly good evidence about the deep gate as it
+now exists — which is the only version that will ever run again.
+
+## Contract hardening after the first scheduled run — #399, #400 and #402
+
+*All three are **tests-only**. `.github/workflows/**` is byte-identical to
+`origin/main` across every packet — each mutation was applied inside an isolated
+worktree and reverted with `git checkout --`. No production behavior, schema,
+calculation or API contract is involved. **[#402 added 2026-08-21; the heading and
+this paragraph previously named #399 and #400 only.]***
+
+The automation-QA review of #398 found that Packet R2-b's hardening was **one
+level too shallow**: the `if:` bar covered the deep-gate *caller* only, while the
+callee and the other two callers were unguarded, and several adjacent shapes were
+unguarded entirely.
+
+### #399 (`280c211`) — seven shapes, 13 mutation arms, all 13 missed beforehand
+
+| # | Shape | Blast radius |
+|---|---|---|
+| 1 | `if:` on `_packaged-windows.yml`'s own `build-and-smoke` | Kills the frozen build for **all three callers at once** — PR path, release gate, weekly gate — while every "one definition / three callers" contract stays green |
+| 2 | `if:` on the `ci.yml` / `release.yml` caller jobs | Per-caller kill |
+| 3 | `needs:` on a caller | A skipped dependency skips the build and the run stays green |
+| 4 | `strategy:`/matrix on a caller | Mutates the composite check to `<parent> (x) / <child>` — GitHub injects the matrix segment *between* two halves that were both already pinned |
+| 5 | `secrets:` at either end | Contradicts the callee's own "No caller passes anything" comment, which the tests enforced for `with:`/`inputs:` only |
+| 6 | `concurrency:` in the callee | Overrides all three callers' deliberately different policies from one place |
+| 7 | The cron expression | `triggers()` reads trigger *names*, so `schedule:` staying present said nothing about whether the cron can fire. `grep -rn cron tests/ scripts/ e2e/` returned **zero** hits repo-wide |
+
+**Why the step-level guard could not see the `if:`, for two independent reasons:**
+`steps()` splits on `^    - name: ` and discards `parts[0]` — the job header — and
+it matches a **six**-space step indent where a job-level key sits at **four**.
+
+> **A note on that commit's subject line.** It reads *"close **five**
+> mutation-proven false greens"*. The packet grew past five during the work and
+> the subject was never rewritten; its own body enumerates **seven** and reports
+> 13 mutation arms. **Read the body, not the subject.** History is not being
+> rewritten to repair it, and there is no committed register of "five shapes"
+> anywhere in this repository — the automation-QA review that prompted the packet
+> was never committed.
+
+### #400 (`81771d1`) — the two shapes #399 named and did not reach
+
+1. **`visual-linux`'s `schedule` disjunct was unprotected.**
+   `if: ${{ github.event_name == 'schedule' || inputs.run_visual }}` is the only
+   job-level `if:` this repository deliberately allows, so every contract that
+   *bars* the shape elsewhere had nothing to say about what this one contains. **A
+   `schedule` event carries no `inputs` at all**, so deleting
+   `github.event_name == 'schedule' ||` leaves a weekly run that skips its visual
+   comparison entirely and still reports green — the exact opposite of the
+   "executed, not skipped" pass condition
+   [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) states for this gate. The
+   condition is now pinned as an exact **set of disjuncts**, not as a string, and
+   `&&` is barred by name because it reads as a near-identical edit while
+   inverting the meaning.
+2. **`steps()` answered a 4→6-space reindent with `[]` instead of an error.** YAML
+   lets a block sequence sit at its key's column or deeper, so the reindent is the
+   **same document** — and matched nothing. Measured on `deep-gate.yml`: all seven
+   jobs parsed to zero steps and **all 42 contracts stayed green**. Fixed at the
+   root: `steps()` now cross-checks against an indentation-blind count of the same
+   `- name:` entries, so a job declaring `steps:` must yield at least one, the two
+   counts must agree (catching a *partial* reindent), and a `uses:` job stays
+   legal. A second vacuity floor runs `steps()` over every job in all four
+   workflows, because nothing in that file iterated `ci.yml`'s steps at all.
+
+**The durable lesson.** A whole-file reindent is a **semantic no-op that silently
+empties an indentation-pinned parser**. Three of the four workflows stayed fully
+green under it; the fourth was caught only by dict-lookup `KeyError`s in four
+tests, while the three contracts that actually *iterate* its steps passed
+vacuously.
+
+### What is still open — five jobs, not six
+
+> **[CLOSED 2026-08-21 by #402 (`1f9c05a`)]** — this heading and the paragraphs
+> under it describe the state between #400 and #402 and are kept as written. The
+> count of five, and the reason it is five and not six, were correct — they are
+> exactly what #402 implemented. The subsection after this one is the record.
+
+`deep-gate.yml` declares **seven** jobs: `full-e2e`, `first-install`,
+`empty-schema`, `old-db-migration`, `frozen-windows`, `visual-linux` and
+`dependency-health`. Exactly **two** are pinned against a job-level `if:` —
+`frozen-windows` (#399) and `visual-linux` (#400). The remaining **five** —
+`full-e2e`, `first-install`, `empty-schema`, `old-db-migration` and
+`dependency-health` — still accept a job-level `if:` unmeasured.
+
+> **#400's own body says "the other six". That is wrong; it is five.**
+> Re-derived 2026-08-20 against `origin/main` at `81771d1` by listing the job keys
+> in `deep-gate.yml` and grepping `tests/test_release_workflow_contracts.py` for
+> each name: `full-e2e`, `empty-schema` and `dependency-health` appear nowhere in
+> that file, and `first-install` / `old-db-migration` appear only in the port and
+> required-set contracts, neither of which constrains a job-level `if:`.
+
+Pinning them is a **future packet and is not authorized**. It is a *newly
+identified* gap — **not** a leftover from the shape set #399 and #400 closed, and
+it must not be reported as one.
+
+> **[SUPERSEDED 2026-08-21]** — the authorization sentence above is no longer live:
+> the packet was authorized and merged as **#402** (`1f9c05a`). The sentence is
+> kept because it was true when written and because it records that this work
+> was *not* silently overtaken by a merge — #402's own body listed this line as an
+> authorization claim needing explicit owner reconciliation, which is what this
+> note is.
+
+### #402 (`1f9c05a`) — the five jobs, pinned
+
+*Tests only, shipped as squash **`1f9c05a`**. The PR changed
+`tests/test_release_workflow_contracts.py` and the two generated inventory files
+and nothing else. `.github/workflows/**` is byte-identical to the commit before
+it — `deep-gate.yml` was mutated only inside an isolated worktree and restored —
+so **no workflow behavior, runtime behavior, schema, API or response contract
+changed**.*
+
+**What is now pinned.** `full-e2e`, `first-install`, `empty-schema`,
+`old-db-migration` and `dependency-health` are barred from carrying **any**
+job-level `if:` key. The key alone is the violation: the contract matches
+`^    if:` against the comment-stripped job block and captures the value only for
+the failure message, so `if:` with its value on the following line, and `if:`
+followed by a tab, are caught alongside the ordinary `if: ${{ false }}`. A first
+draft that demanded `if: ` plus a value passed vacuously on both of those and was
+replaced — **a new contract can be strictly weaker than the siblings it imitates**.
+
+**Why a per-job contract, and not just the count floor.** The pre-existing
+vacuity floor asserts `deep-gate.yml` declares seven jobs, so a job simply
+*added* already redded there. It says nothing about *which* jobs: a **rename**,
+or an add paired with a removal, holds the count at seven while moving a job out
+of the protected set. `test_every_deep_gate_job_is_classified_as_conditional_or_not`
+pins the job ids for that reason, and measures the exception set against the file
+rather than trusting it — moving a job into the exception set is otherwise a
+two-word edit that drops a parametrize arm and constrains nothing in its place.
+
+**The two jobs #402 did not change.**
+
+- **`visual-linux` remains the one deliberately conditional job.** Its condition
+  is still pinned by #400 as the exact set of disjuncts
+  `{github.event_name == 'schedule', inputs.run_visual}` — matched as
+  `if: ${{ … }}`, split on `||`, with `&&` barred by name because a `schedule`
+  event carries no inputs. #402 additionally asserts that the exception set is
+  exactly `{visual-linux}`, so widening it has to be a deliberate edit.
+- **`frozen-windows` retains its prior unconditional protection**, from
+  `test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows` and the
+  `PACKAGED_CALLERS` delegation contract, which bars `if:`, `needs:`, `with:`,
+  `secrets:` and `strategy:` on all three callers. #402 reads its job id back out
+  of `PACKAGED_CALLERS` rather than repeating it, so the two classifications
+  cannot drift apart.
+
+**Mutation evidence.** `if: ${{ false }}` inserted immediately after each job's
+`name:` key, run in both directions and restored between arms: all five arms —
+and all five applied at once — were **green before the packet** against every
+contract the file then held, and each is **killed individually now** by its own
+parametrized arm, so the failing node id names the offending job. The
+completeness half was measured separately: a job simply *added* was already
+caught by the `== 7` floor, while the **rename** that holds the count at seven
+was the arm that was green. The three deliberately preserved arms (dropping
+`visual-linux`'s `schedule` disjunct, removing its `if:` entirely, and growing an
+`if:` on `frozen-windows`) red both before and after — **this packet adds a
+contract and weakens none**.
+
+**Deliberately left open, and not established as defects.** `needs:` and a
+job-level `continue-on-error:` are two further shapes that could stop one of these
+five jobs from gating. Neither is barred, and **neither has been measured** —
+they are recorded here so they are not lost, *not* as known false greens and
+*not* as authorized work. Each requires its own mutation proof and its own
+separately authorized packet before anything is claimed about it. Note in passing
+that `dependency-health` already reports rather than gates — both its scan steps
+are `continue-on-error: true` — so it is held to the `if:` shape because it is
+the repository's only scheduled Python vulnerability scan, not because skipping
+it would lose a blocking signal.
+
+### Inventory
+
+`tests/test_release_workflow_contracts.py` moved **40 → 44** across the two
+packets (**40 → 42** in #399, then **42 → 44** in #400); deterministic
+collected nodes are **2740** across **123** files, with **124** pytest files
+in total. Read those from
+[`test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md)
+rather than restating them. No test file was added or removed by either packet.
+
+> **[UPDATED 2026-08-21]** — #402 added six collected nodes on top of the figures
+> above. That contract file is **44 → 50** (one census test plus five
+> parametrized arms) and the deterministic total is **2740 → 2746**; file counts
+> are unchanged at **123** deterministic files and **124** pytest files, because
+> #402 added no test file either. The inventory was regenerated by the generator,
+> never hand-edited. Read the live figures from
+> [`test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md).
+
+### What none of these packets establishes
+
+*(Previously "What neither packet establishes"; #402 is in scope here too and
+establishes nothing further on any of these points.)*
+
+Nothing about **R1-D3's three-consecutive-green-scheduled-runs clock**, which
+still stands at **one** (run 31993105305, 2026-08-17); nothing about
+`release.yml`'s `push: tags` trigger, which has **still never fired** (residual
+**R-1**); and nothing about the gate's ability to go **red**. These are contract
+tests over the workflow *text* — they prove the file cannot silently lose a
+guarantee, not that the guarantee holds at runtime. The next scheduled run is
+still **2026-08-24**.

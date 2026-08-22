@@ -134,6 +134,10 @@
 > followed, "only Packet D (axe) is still queued", is now false: Packet D shipped as
 > #366 (`f627161`), Packets E and F as #364/#365, and Testing Strategy Phase 2 is
 > COMPLETE. Its residual accessibility debt is X7–X13 and X15, all owner-deferred.]**
+> **[UPDATED 2026-08-20 — that debt set is stale. **#393** (`eff4362`) took up
+> X11, X12 and X13 as attribute-only WCAG 4.1.2 naming fixes, so the
+> owner-deferred set is now X7–X10 and X15; the same packet recorded a new
+> row X16, documented and deliberately not registered.]**
 > Separately, **#361** (`a224b39`) discharged the *cross-model* plan's Packet C
 > (charter and contract hygiene), which is a different packet series from Testing
 > Phase-2's and does not touch the `$orchestrate` bullet below. **Consequence at
@@ -179,11 +183,13 @@
 > *widening* it.
 >
 > **Consequence: P1 is fully discharged — there is no READY item left in this
-> file.** Everything that remains is OWNER-gated (P2.4, the §4 taxonomy TODOs,
-> and the `npm audit` severity/exception policy — P2.1 and P2.2 are retired) or
-> a PROPOSAL (the remaining P3 bullets). v26 promotes nothing: no proposal
-> became approved work, no owner gate was inferred as taken, and no production
-> TODO disposition changed. The recomputed queue is in §6.
+> file.** Everything that remains is OWNER-gated (P2.4 and the §4 taxonomy
+> TODOs — P2.1 and P2.2 are retired; the `npm audit` severity/exception policy
+> was listed here too until it was **decided 2026-08-15 and enforced 2026-08-21**,
+> and its row in §6 is now closed) or a PROPOSAL (the remaining P3 bullets).
+> v26 promotes nothing: no proposal became approved work, no owner gate was
+> inferred as taken, and no production TODO disposition changed. The recomputed
+> queue is in §6.
 >
 > **Method note, carried forward.** Dated blocks below are kept as written and
 > annotated in place rather than rewritten — the same rule v23 applied to N1 and
@@ -391,7 +397,7 @@ worktrees: 34 removable, 7 preserved, 1 current.
 |---|---|---|---|---:|
 | P1.2 | **RETIRED 2026-08-12 — do not execute this row.** *Remove obsolete worktrees and generated artifacts* — *2026-08-03: WAIT → READY, goal written: [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md); 2026-08-08: → PARTIAL, worktree half executed and re-verified 2026-08-10; **2026-08-12: → RETIRED**, both halves complete, recorded in #327 (`ae37365`) and [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9.5* | **⚠️ SUPERSEDED — the whole cell below is the v23/2026-08-08 evidence snapshot, retained for method only. The artifact half has since run.** All 40 candidate worktrees were removed, the 15 literal artifact/build/log targets were deleted manually on 2026-08-11 (≈1.07 GB), and the six owner-named `visual_review*` directories were deleted on 2026-08-12 after a four-part certification. Nothing here is a live count, a live hold, or a live command. *Original text:* **Only the artifact half of this row is still open** — 40 of 40 candidate worktrees were removed, and the per-path disposition is [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9 with its 2026-08-10 reconciliation in §9.1. What remains is §6 (generated artifacts, owner-gated on `environment-backups` and the held `wp4_4`/#281/#286 paths) and §7's Packet E (the preserved worktrees). *The v23 evidence below is historical and was superseded by the execution; it is kept for continuity — do not re-derive from it.* **The registered-worktree count is unstable — 24 at v19, 25 at v20, 29 at v21, 30 at v22, and 35 at the v23 recheck.** Recount with `git worktree list --porcelain` at execution time. **v23 additions (N8):** three worktrees are dirty right now — the shared checkout, `…-bs538-spike` (4 files; the #274 source), and `…-wp4-4-f1-navbar` (2). New since v22: `…-bs538-rebuild`, `…-node24-ci` (#275), `…-tsdrift`, and the read-only audit worktree `D:/development/HT-v23-audit` created for this revision (detached at this commit — **exclude it, and remove it only after P1.0 has published the branch**). The shared checkout **switched branch during this audit** (`docs/testing-strategy-reconciliation` → `docs/p3-gate-signoff`), so any branch/path fact here is evidence, never an execution input. **Command executability:** `git worktree remove` is intercepted by [`guard-destructive-command.ps1:438-440`](../.claude/hooks/guard-destructive-command.ps1) with decision **`ask`** — an unattended agent run stalls instead of proceeding — and `git reset --hard` is **denied** at `:397`, so no recovery path may rely on it. Known holds otherwise unchanged: any worktree associated with an open PR (now #245, #250, #274, #275) is protected. A local worktree branch name may differ from the GitHub PR head, so branch-name lookup alone is not proof. Generated output remains approximately: `artifacts/` 1.7 GB (`wp4_4` 643 MB held, `playwright` 522 MB, `environment-backups` 460 MB, `vbl_check` 21 MB), `build/` 76 MB, `dist/` 92 MB, `logs/` 63 MB, `debug/` 1 MB. | **None — done.** The completion action below was carried out; [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md) §9–§9.5 is the durable record and this cell is retained only for the procedure it describes. **The `wp4_4` (643 MB) and `environment-backups` (460 MB) holds were never authorized and were never touched — they remain held, and deleting either is a separate owner decision, not P1.2 residue.** *Original text:* **Execute [`WORKTREE_CLEANUP_PLAN.md`](WORKTREE_CLEANUP_PLAN.md)** — it converts this cell into packets with a per-path disposition table and a 2026-08-03 recount (**42** worktrees, not 35). The procedure below is its §4 and remains authoritative. For **every** non-current worktree, record path/branch/HEAD and run `git status --short --untracked-files=all`; any output means **skip and preserve**. Query `gh pr list --state all --head <branch>`, but treat it only as one signal: also compare the worktree HEAD OID with PR commits and use Git patch-equivalence/diff checks because squash merges and alternate local branch names defeat ancestry/name tests. Remove only a clean worktree with no unique patch and no open-PR association, through `git worktree remove <exact-path>`, then `git worktree prune`; do not recursively delete a registered worktree and do not delete its branch unless separately proven disposable. Delete transient artifacts only after confirming no active investigation/process references them; retain the protected `wp4_4` bundle pending its explicit decision. | **RETIRED** |
 | P1.5 | **RETIRED — SHIPPED as #284 (`4e9b7d0`), 2026-08-02.** *Close KI-006 with honest modal keyboard tests* | **⚠️ SUPERSEDED — the cell below describes the pre-#284 tests and no longer describes any file on `main`.** The fallback click, the `if (btnVisible)` guard and the single-Tab focus assertion are gone; strict Escape plus forward **and** backward wraparound are asserted on the Plan and Log modals, and the closeout required a product fix (`static/js/modules/modal-focus-trap.js`). See the P1.5 retirement note above and the §2 row. *Original text:* Confirmed. [`accessibility.spec.ts:103-115`](../e2e/accessibility.spec.ts#L103-L115) presses Escape, waits 500 ms, and then **clicks the close button if the modal is still open** — the test passes whether or not Escape works. The whole block is guarded by `if (btnVisible)`. The focus-trap assertion checks only that the *first* Tab stays inside, which cannot prove wraparound. **v23 escalation (N3): the hazard is no longer hypothetical.** Draft **#274** upgrades Bootstrap to 5.3.8 and lists among its validation "Chromium navigation/accessibility/UI sweep — **127 passed**" — a sweep that includes these very tests. A Bootstrap-5.3 modal regression in Escape handling or focus wraparound would pass that sweep silently. v22's wording ("before any Bootstrap *decision*, P1.6/#269") is both too weak and aimed at a PR that is now closed. | **None — done, and the implementation and its tests must not be altered.** The completion action below was carried out and is now the shipped contract. Two of its instructions were overtaken by events and must not be re-read as tasks: the "#274 merge prerequisite" is moot (#274 merged 2026-08-02, and the strengthened sweep is what `main` runs), and the P1.4 spec collision resolved itself (P1.4 shipped as #291). *Original text:* Add strict Escape and forward/backward wraparound assertions for the Plan and Log modals, without the fallback click and without the visibility guard. **Treat this as a merge prerequisite for #274, not a preference:** land P1.5, then re-run #274's accessibility/UI sweep against the strengthened tests before #274 leaves draft. Sequence against P1.4 (**N6** — both edit `e2e/ui-hardening.spec.ts`) and regenerate the test inventory last (**N5**). Fix production behavior only if the new tests expose a failure; otherwise this is a test-only closeout and KI-006 can be marked resolved in [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md). *(As executed it was **not** test-only — the new tests exposed a real containment failure on `/workout_log` and the product fix landed with them.)* | **RETIRED** |
-| P1.6 | **CLOSED 2026-08-03 — disposition in [`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`](P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md).** All four v23 lanes discharged (#283 superseded #245; #274, #275, #250 merged 2026-08-02), and the two dependency PRs that opened afterwards were closed by owner decision: **#288** (`@playwright/test` 1.62.1) deferred — the bump moves Chromium 148 → 151 and would silently stale every visual baseline, since the visual specs run only in `deep-gate.yml`'s manual `visual-linux` job; **#287** (`stylelint` 16.26.1) refused — the pin is the CSS measurement instrument. Both are now `dependabot.yml` ignore rules, with the Playwright unblock condition (#281 merged **and** #286 resolved, then bump both ecosystems and regenerate both platforms' baselines in one arc) recorded on the rule itself. *Historical v23 record follows.* **Triage the dependency queue — v23: the queue drained and the Bootstrap lane was decided** | **Recount with `gh pr list --state open` at execution time.** Since v22, #240/#243/#244/#246 (Actions v7), #249 (`@types/node` 26), #251 (**TypeScript 7**) and #261 (`sass`) all **merged**, and **#269 was CLOSED, not merged** (**N2**). Only two dependency PRs remain: **#245** (`playwright` 1.61, all checks green) and **#250** (`jsdom` 30, red on JS Unit). Two owner drafts now carry the hard work: **#274** — the deliberate Bootstrap 5.3.8 migration that replaces #269 (SCSS import graph, rebuilt bundle, CDN pin, version contract), and **#275** — Node 20 → Node 24 across 13 `setup-node` pins plus a version contract. **N4:** #250's red is fully explained — jsdom 30 requires Node `^22.22.2 \|\| ^24.15.0 \|\| >=26`, so #275 is its prerequisite and #275 deliberately excludes it. **#252/#268 policy note stands:** the stylelint-major ignore remains the precedent, but it is no longer the open question for bootstrap. | Four lanes: **(a)** merge **#245** now — it is green and independent; **(b)** land **#275**, then rebase and re-validate **#250** against Node 24 — do not investigate #250 on its own; **(c)** **#274 is blocked twice over** — by P2.3's stale Linux baselines (its own stated blocker) *and*, per **N3**, by P1.5: it must not leave draft until the modal tests can actually fail; **(d)** the Actions-v7/TypeScript-7 majors are discharged — verify `Type Check (tsc blocking …)` stayed green on `main` after #251 rather than assuming it. Keep the `npm audit` severity/exception-policy decision separate. | **DONE 2026-08-03.** `npm audit` policy remains the one open, separate decision. |
+| P1.6 | **CLOSED 2026-08-03 — disposition in [`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`](P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md).** All four v23 lanes discharged (#283 superseded #245; #274, #275, #250 merged 2026-08-02), and the two dependency PRs that opened afterwards were closed by owner decision: **#288** (`@playwright/test` 1.62.1) deferred — the bump moves Chromium 148 → 151 and would silently stale every visual baseline, since the visual specs run only in `deep-gate.yml`'s manual `visual-linux` job; **#287** (`stylelint` 16.26.1) refused — the pin is the CSS measurement instrument. Both are now `dependabot.yml` ignore rules, with the Playwright unblock condition (#281 merged **and** #286 resolved, then bump both ecosystems and regenerate both platforms' baselines in one arc) recorded on the rule itself. *Historical v23 record follows.* **Triage the dependency queue — v23: the queue drained and the Bootstrap lane was decided** | **Recount with `gh pr list --state open` at execution time.** Since v22, #240/#243/#244/#246 (Actions v7), #249 (`@types/node` 26), #251 (**TypeScript 7**) and #261 (`sass`) all **merged**, and **#269 was CLOSED, not merged** (**N2**). Only two dependency PRs remain: **#245** (`playwright` 1.61, all checks green) and **#250** (`jsdom` 30, red on JS Unit). Two owner drafts now carry the hard work: **#274** — the deliberate Bootstrap 5.3.8 migration that replaces #269 (SCSS import graph, rebuilt bundle, CDN pin, version contract), and **#275** — Node 20 → Node 24 across 13 `setup-node` pins plus a version contract. **N4:** #250's red is fully explained — jsdom 30 requires Node `^22.22.2 \|\| ^24.15.0 \|\| >=26`, so #275 is its prerequisite and #275 deliberately excludes it. **#252/#268 policy note stands:** the stylelint-major ignore remains the precedent, but it is no longer the open question for bootstrap. | Four lanes: **(a)** merge **#245** now — it is green and independent; **(b)** land **#275**, then rebase and re-validate **#250** against Node 24 — do not investigate #250 on its own; **(c)** **#274 is blocked twice over** — by P2.3's stale Linux baselines (its own stated blocker) *and*, per **N3**, by P1.5: it must not leave draft until the modal tests can actually fail; **(d)** the Actions-v7/TypeScript-7 majors are discharged — verify `Type Check (tsc blocking …)` stayed green on `main` after #251 rather than assuming it. Keep the `npm audit` severity/exception-policy decision separate. | **DONE 2026-08-03.** `npm audit` policy remains the one open, separate decision. *(Closed since — decided 2026-08-15 and enforced 2026-08-21; see the row in §6.)* |
 | P1.7 | **RETIRED — SHIPPED as #285 (`4a24773`), 2026-08-02.** *Close two repository-hygiene gaps* | **⚠️ SUPERSEDED — neither gap exists on `main`.** `.gitignore` now carries `*.db-shm` (`:30`) and `*.db-wal` (`:31`); both orphan sidecars and `docs/requirements_dry_run/` are absent; `git status --porcelain --untracked-files=all data/ docs/` is empty. *Original text:* Still present at this audit. (a) `.gitignore:29`'s `*.db` does not match SQLite sidecars, so `data/auto_backup/database_20260712_000549.db-shm` and `.db-wal` sit **untracked and unignored** — one `git add -A` from being committed. Their presence beside a July-12 snapshot also means a backup DB was opened read-write and not clean-closed. (b) `docs/requirements_dry_run/` is an empty leftover directory. | **None — done.** *Original text:* Add `*.db-shm` / `*.db-wal` to `.gitignore`, delete the two orphaned sidecars after confirming no process holds them, and remove the empty directory. No production change. | **RETIRED** |
 
 ### P2 — Product/workflow activities that can be explicitly closed or advanced
@@ -426,11 +432,20 @@ starting one.**
   recorded the X1/X2/X6 decisions with **X2 declined**, and **Packet D shipped as
   #366** (`f627161`) on the owner's explicit-exception path. Residual
   accessibility debt is **X7–X13 and X15, all owner-deferred** — pinned at exact
-  axe node counts, not suppressed. D3's weekly compare-only stopgap shipped
+  axe node counts, not suppressed. **[UPDATED 2026-08-20 — X11, X12 and X13
+  shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15,
+  and new row X16 is documented but deliberately unregistered. The "pinned,
+  not suppressed" half is unchanged.]** D3's weekly compare-only stopgap shipped
   as #323 (`3b1160b`) with #325 (`4d01698`) adding timeouts, but its first
-  scheduled run has **never executed** **[UPDATED 2026-08-16 — this clause previously read "its first scheduled run is still due 2026-08-17"]**; post-#388 that run is contaminated
-  and the first clean checkpoint is **2026-08-24**. D4, D7 and the `js-unit` half of
-  D2 remain unsigned (D6 signed 2026-08-14, ADR-008). **[UPDATED 2026-08-15] The
+  scheduled run **executed 2026-08-17, 7/7 green** (run 31993105305); it ran
+  R2-b's file, so the pre-#388 evidence stays forfeited and 2026-08-24 is simply
+  the next scheduled run. **[UPDATED 2026-08-16 — previously "its first scheduled
+  run is still due 2026-08-17"] [UPDATED 2026-08-17 — previously "has never
+  executed"; the cron fired.]** D4, D7 and the `js-unit` half of
+  D2 remain unsigned (D6 signed 2026-08-14, ADR-008). **[UPDATED 2026-08-21 — D7 is
+  now SIGNED as keep-the-stance-and-document (§8.1d) and the manual auto-backup
+  recovery procedure landed in `README.md`. D4 and the `js-unit` half of D2 are
+  unchanged.]** **[UPDATED 2026-08-15] The
   release/tag half of Phase 4 is no longer a proposal — it SHIPPED** as #374
   (`5222db2`), with #375 (`d3c3436`) recording the passing post-merge dry-run and
   discharging R-3; design record in
@@ -668,8 +683,8 @@ described wrongly. Corrected table:
 | 2 | `utils/effective_sets.py::get_rep_range_factor` | **second, independent** 500 — a site-1-only guard does **not** fix it |
 | 3 | `utils/_fatigue/core.py:124` | `'abc' > 0` **raises**; the "Projected fatigue unavailable" badge is the *route-level catch-all* at `routes/weekly_summary.py:94-96`, **not** a designed fallback — and it is invisible today because the page 500s at `:50` first |
 | 4 | `utils/session_summary.py` | byte-identical arithmetic off the same `user_selection` join |
-| **5** | **`utils/progression_plan.py:312`** | **`GET /progression` → HTTP 500** when `max_rep_range` is the poisoned column (`target_reps = current_reps + 2`) |
-| **6** | **`utils/export_service.py:490`** | **one bad row blocks the entire plan→log export** with a message naming no exercise |
+| **5** | **`utils/progression_plan.py:312`** | **`GET /progression` → HTTP 500** when `max_rep_range` is the poisoned column (`target_reps = current_reps + 2`). **[CORRECTED 2026-08-20 — the route is `POST /get_exercise_suggestions`, not `GET /progression`; see the update note at the end of this section.]** |
+| **6** | **`utils/export_service.py:490`** | **one bad row blocks the entire plan→log export** with a message naming no exercise. **[CORRECTED 2026-08-20 — this surface returns 400, not 500, and since #394 its message does name the routine and exercise; see the update note at the end of this section.]** |
 
 A seventh, non-raising surface: the SQL twin at `utils/weekly_summary.py:323`
 (`calculate_isolated_muscles_stats`) does **not** raise — SQLite coerces the unparseable text to 0,
@@ -703,12 +718,67 @@ every column, including `rir`.
 
 **Still open, separately scoped: rows already poisoned by a pre-fix restore.** Runtime behavior for
 them is deliberately unchanged — they still reach the six sites and still raise. Repair is possible
-today through the Plan editor, but **only in the order Min Rep → Max Rep**:
+today through the Plan editor, but **only in the order Min Rep → Max Rep** **[CORRECTED 2026-08-20 — the rule was "edit the poisoned column first", and #394 removed the constraint entirely; see the update note below]**:
 `routes/workout_plan.py:390-401` re-reads the untouched sibling rep column and feeds it to the
 validator, so editing Max Rep first returns a 400 naming *Minimum reps*, a field the user did not
 touch. A user-facing diagnostic naming the routine and exercise instead of a bare 500 is the
 follow-up; it is **not** in the ingress packet because every candidate fix at those sites is a
 calculation-semantics change requiring its own Gate 0.
+
+> **[UPDATED 2026-08-20 — the residual described immediately above is CLOSED, and
+> five statements in this §4a are corrected.]** **#394** (`c208745`) shipped both
+> halves of that follow-up without touching a calculation file. The measured
+> corrections were recorded only in
+> [`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md) because §4a was
+> read-only for that packet; they are folded in here, which is what that document
+> asked a later packet to do.
+>
+> 1. **The diagnostic shipped.** New read-only `utils/rep_range_integrity.py`
+>    names the routine and exercise on all five failing surfaces —
+>    `GET /weekly_summary`, `GET /session_summary`, `GET /export_to_excel`,
+>    `POST /export_to_workout_log` and `POST /get_exercise_suggestions` — wired
+>    in from four route modules. It runs
+>    **only inside a handler whose failure has already happened**, so a conformant
+>    database never reaches it. **HTTP status codes and the `error_response` JSON
+>    envelope are unchanged**; this is message text only.
+> 2. **The edit-order trap is CLOSED, and the rule it documented was wrong twice.**
+>    §4a says repair works "only in the order Min Rep → Max Rep". The measured
+>    2×2 matrix was symmetric: editing the *poisoned* column always worked and
+>    editing the *other* one always 400'd, so the real rule was **"edit the
+>    poisoned column first"**, not "Min before Max". #394 then removed the trap
+>    entirely — the stored sibling is passed to the cross-field comparison only
+>    when the validator accepts it in isolation, so **either column may now be
+>    repaired first**. User-supplied values are still validated in full and a
+>    numeric stored sibling behaves byte-identically.
+> 3. **Site 5 is misattributed.** `GET /progression` renders fine — it runs only a
+>    `DISTINCT exercise, routine` select. The real surface at
+>    `utils/progression_plan.py:312` is **`POST /get_exercise_suggestions`**, and
+>    it fires **only when `max_rep_range`** is the poisoned column, because that
+>    is the column it reads. (An early probe that showed `/progression` 500ing was
+>    a test-fixture artifact: `app.py:133` registers a `datetime` Jinja filter and
+>    `tests/conftest.py` does not, so the template raises under the test client
+>    only. Not a FINDING-1 symptom.)
+> 4. **Site 6 returns 400, not 500.** Its message is the canonical validator
+>    string, which names the *field* but never the routine or exercise — which is
+>    exactly what correction 1 fixed.
+> 5. **Site 7's reachability is overstated above.** On all three surfaces this
+>    section claims the 4.0 "reaches", an **unfiltered** calculation raises first
+>    and the request 500s before anything renders: `routes/weekly_summary.py:51`
+>    before `:82`, `routes/session_summary.py:55` before `:92`, and
+>    `utils/export_service.py:317` before `:362`. It renders only through a
+>    hand-typed `?routine=` request, which the shipped UI never sends. **Site 7
+>    stays unfixed and that remains correct** — correcting it means editing
+>    `utils/weekly_summary.py:323`, the explicitly rejected option. This
+>    correction is recorded because a later owner reading the un-annotated §4a
+>    could otherwise authorize a **Large** `utils/weekly_summary.py` council
+>    against a path the UI cannot reach.
+>
+> **Two residuals #394 states plainly and did not take.** The Excel diagnostic
+> reaches the JSON body and `app.log` but never the user's screen —
+> `static/js/modules/exports.js:88` discards the server message for a hardcoded
+> toast, and `static/**` was out of scope. And the `ValueError` arm of
+> `get_suggestions` is deliberately unenriched, because a non-numeric rep range
+> raises `TypeError` and no poisoned shape lands there.
 
 ## 5a. Evidence added at v23
 
@@ -806,7 +876,7 @@ What genuinely remains, and it is all gated:
 |---|---|---|
 | **P2.4** Broader KI-005 manual-edit provenance staleness | **OWNER / demand-gated** — a new UX packet only if it is visible in real use | owner |
 | **§4** two production `TODO` decisions | **OWNER** — two taxonomy questions (`utils/constants.py`). The third, `schema_version`, was resolved 2026-08-14 by Testing Strategy D6 / [ADR-008](DECISIONS.md) | owner |
-| The `npm audit` severity / exception policy | **OWNER** — held apart from P1.6 throughout and still undecided; [`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`](P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md) owns it | owner |
+| ~~The `npm audit` severity / exception policy~~ | **CLOSED.** Decided 2026-08-15 (all seven rulings D-1 – D-7 accepted as written) and now in force: [`NPM_AUDIT_SEVERITY_POLICY_DECISION.md`](NPM_AUDIT_SEVERITY_POLICY_DECISION.md) §6.1 carries the rulings, §5.4 the execution ledger. Remediation landed as #390, the gate flipped to enforcing with `scripts/npm_audit_gate.mjs` and an empty [`npm_audit_allowlist.json`](npm_audit_allowlist.json). The row and the gate become true on the same commit, which is what §8 of that document held it open for. **Still open, and deliberately: lever L3 / step M4** — promoting `JS Supply Chain` into branch protection — which needs its own owner decision. | — |
 | **Remaining P3 proposals** | Legitimate future work, not forgotten activity; completed or terminated P3 bullets stay closed | owner, at Gate 0 |
 
 **Two residuals are recorded here but owned elsewhere; do not schedule them from

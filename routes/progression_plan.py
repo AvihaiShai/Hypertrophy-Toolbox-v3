@@ -5,6 +5,11 @@ from utils.database import DatabaseHandler
 from utils.errors import error_response, is_xhr_request, success_response
 from utils.fatigue_context import build_fatigue_context_batch
 from utils.logger import get_logger
+from utils.rep_range_integrity import (
+    annotate,
+    scan_exercise_plan_default,
+    suppressed_for,
+)
 from utils.progression_plan import (
     get_exercise_history,
     get_exercise_plan_defaults,
@@ -197,12 +202,23 @@ def get_suggestions():
             },
         )
         return error_response("VALIDATION_ERROR", str(exc), 400)
-    except Exception:
-        logger.exception(
-            "Error in get_suggestions",
-            extra={"exercise": data.get("exercise") if isinstance(data, dict) else None},
+    except Exception as exc:
+        requested = data.get("exercise") if isinstance(data, dict) else None
+        logger.exception("Error in get_suggestions", extra={"exercise": requested})
+        # Scoped to the one plan row get_exercise_plan_defaults reads, so a
+        # different exercise's poisoned row is never blamed for this failure.
+        # The ValueError arm above stays unenriched on purpose: a non-numeric
+        # rep range reaches arithmetic and raises TypeError, never landing there.
+        invalid_rows = (
+            scan_exercise_plan_default(requested)
+            if requested and not suppressed_for(exc)
+            else []
         )
-        return error_response("INTERNAL_ERROR", "Failed to get exercise suggestions", 500)
+        return error_response(
+            "INTERNAL_ERROR",
+            annotate("Failed to get exercise suggestions", invalid_rows),
+            500,
+        )
 
 
 @progression_plan_bp.route("/save_progression_goal", methods=["POST"])

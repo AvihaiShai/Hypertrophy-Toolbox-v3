@@ -14,6 +14,7 @@ from utils.logger import get_logger
 from utils.filter_values import fetch_filter_values
 from utils.plan_generator import GENERATOR_ROUTINE_PROGRAMS, generate_starter_plan
 from utils import schema_registry
+from utils.rep_range_integrity import accepts_in_isolation
 from utils.volume_progress import get_volume_progress
 from utils.workout_validation import UNSET, validate_workout_bounds
 
@@ -356,6 +357,18 @@ def get_routine_exercises(routine):
         logger.exception(f"Error fetching exercises for routine {routine}")
         return error_response("INTERNAL_ERROR", "Failed to fetch exercises for routine", 500)
 
+def _bounded_or_stored(bounded_updates, column, keyword, current):
+    """The value to hand the validator for one rep column."""
+    if column in bounded_updates:
+        return bounded_updates[column]
+    if not current:
+        return UNSET
+    stored = current.get(column, UNSET)
+    if stored is UNSET or not accepts_in_isolation(keyword, stored):
+        return UNSET
+    return stored
+
+
 @workout_plan_bp.route("/update_exercise", methods=["POST"])
 def update_exercise():
     """Update exercise details in the workout plan."""
@@ -393,12 +406,14 @@ def update_exercise():
                     "SELECT min_rep_range, max_rep_range FROM user_selection WHERE id = ?",
                     (exercise_id,),
                 )
-            min_reps = bounded_updates.get(
-                'min_rep_range', current.get('min_rep_range', UNSET) if current else UNSET
-            )
-            max_reps = bounded_updates.get(
-                'max_rep_range', current.get('max_rep_range', UNSET) if current else UNSET
-            )
+            # The stored sibling is read for one reason only: the min <= max
+            # comparison. Feeding it back when it is itself unusable rejected an
+            # edit to the *other* column, naming a field the user never touched
+            # -- which made a row poisoned by a pre-#384 restore repairable only
+            # by editing the poisoned column first. An unusable sibling is left
+            # UNSET so the comparison is skipped rather than the edit refused.
+            min_reps = _bounded_or_stored(bounded_updates, 'min_rep_range', 'min_reps', current)
+            max_reps = _bounded_or_stored(bounded_updates, 'max_rep_range', 'max_reps', current)
         bounds_error = validate_workout_bounds(
             weight=bounded_updates.get('weight', UNSET),
             rir=bounded_updates.get('rir', UNSET),

@@ -14,6 +14,13 @@ from utils.export_service import (
 )
 from utils.errors import error_response, success_response
 from utils.logger import get_logger
+from utils.rep_range_integrity import (
+    PLAN_VALUE_LABEL,
+    annotate,
+    scan_export_bounds,
+    scan_rep_ranges,
+    suppressed_for,
+)
 
 exports_bp = Blueprint('exports', __name__)
 logger = get_logger()
@@ -80,10 +87,13 @@ def export_to_excel():
 
     except Exception as e:
         logger.exception(f"Error exporting to Excel: {e}")
-        # Return JSON error response properly
+        # The named rows reach this JSON body and the log only: the caller in
+        # static/js/modules/exports.js shows a hardcoded toast rather than the
+        # server message, and static/** is outside this packet.
+        invalid_rows = [] if suppressed_for(e) else scan_rep_ranges()
         return error_response(
             "EXPORT_FAILED",
-            "Failed to export data to Excel. Please try again.",
+            annotate("Failed to export data to Excel. Please try again.", invalid_rows),
             500
         )
 
@@ -96,9 +106,15 @@ def export_to_workout_log():
 
         result = export_plan_to_workout_log()
         if not result.ok:
+            message = result.message
+            # Only the bounds rejection is worth explaining, and only it is a
+            # failure. NO_DATA is an empty but perfectly valid plan, so scanning
+            # there would put a query on a conformant path.
+            if result.code == "VALIDATION_ERROR":
+                message = annotate(message, scan_export_bounds(), PLAN_VALUE_LABEL)
             return error_response(
                 cast(str, result.code),
-                result.message,
+                message,
                 result.status_code,
             )
 

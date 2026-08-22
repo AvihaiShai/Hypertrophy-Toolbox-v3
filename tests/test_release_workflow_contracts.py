@@ -67,6 +67,44 @@ PACKAGED_STEP_SEQUENCE = (
 )
 PACKAGED_FAILURE_STEP = "Upload distribution inventory on failure"
 
+# The two ways `deep-gate.yml`'s `visual-linux` job is allowed to start, as the exact
+# disjuncts of its job-level `if:`. The weekly schedule is what makes the Linux visual
+# comparison run at all; the input is the manual opt-in. Neither is optional, and
+# nothing else may be added -- a third disjunct is a third way to enter a job whose
+# every later step branches on which of these fired.
+VISUAL_LINUX_DISJUNCTS = frozenset(
+    {"github.event_name == 'schedule'", "inputs.run_visual"}
+)
+
+# Every `deep-gate.yml` job, split by whether it may carry a job-level `if:` at all.
+#
+# GitHub counts a SKIPPED job as a success, and the weekly run is unattended and
+# reports one conclusion for the whole workflow -- so `if: ${{ false }}` on any job
+# below silently removes that job's evidence from the gate while the run still says
+# green. Nothing else in this file notices: the steps are all still present, they
+# just never execute. Measured on the unprotected set, one `if:` line added after
+# each job's `name:` in turn and then all five at once -- every arm left every
+# contract this file held before this packet passing.
+#
+# `visual-linux` is the one job deliberately allowed one, and what its condition may
+# contain is pinned by VISUAL_LINUX_DISJUNCTS above. A job may only join it with its
+# condition pinned that way: otherwise moving one across is a two-word edit that
+# drops an arm from the parametrized contract below and constrains nothing in its
+# place, so the census test measures every member against the file for an `if:` it
+# actually carries. `frozen-windows` is barred from carrying one by the
+# PACKAGED_CALLERS contracts, which is why it is in neither set here and is read back
+# out of that mapping rather than repeated.
+DEEP_GATE_UNCONDITIONAL_JOBS = frozenset(
+    {
+        "full-e2e",
+        "first-install",
+        "empty-schema",
+        "old-db-migration",
+        "dependency-health",
+    }
+)
+DEEP_GATE_CONDITIONAL_JOBS = frozenset({"visual-linux"})
+
 # ci.yml job names that exist and are deliberately NOT part of the expected set.
 UNEXPECTED_CI_JOB_NAMES = (
     "E2E Functional Shard ${{ matrix.shard }}/2",
@@ -79,6 +117,15 @@ UNEXPECTED_CI_JOB_NAMES = (
 JOB_ID = re.compile(r"^  ([A-Za-z0-9_-]+):[ \t]*$", re.MULTILINE)
 STEP_SPLIT = re.compile(r"^    - name: ", re.MULTILINE)
 NAME_KEY = re.compile(r"^    name: (.+)$", re.MULTILINE)
+STEPS_KEY = re.compile(r"^    steps:[ \t]*$", re.MULTILINE)
+# The same sequence entries as STEP_SPLIT, but blind to how far they are indented.
+# YAML lets a block sequence sit at its key's column or any column deeper, so
+# `      - name:` is the same document as `    - name:` -- and STEP_SPLIT matches only
+# the second. Counting both is what turns a reindent into a failure instead of an
+# empty list. A `- name:` line inside a `run: |` block scalar would be counted here
+# too; none exists today, and one appearing should red this rather than quietly
+# change what "a step" means to a parser that cannot tell the difference.
+ANY_STEP_ENTRY = re.compile(r"^ *- name: ", re.MULTILINE)
 
 
 def text(path):
@@ -129,9 +176,44 @@ def job_name(block):
 
 
 def steps(block):
-    """(step name, raw step text) for each step in a job block."""
+    """(step name, raw step text) for each step in a job block.
+
+    An empty list is never a valid answer for a job that declares `steps:`, but it was
+    the answer this gave for any equivalent reindent of the sequence. Moving every step
+    from four spaces to six is the same YAML document and matches STEP_SPLIT nowhere,
+    so `for name, raw in steps(block)` became a loop over nothing and every contract
+    built on one passed while saying nothing about a workflow the parser could no
+    longer read. Measured on deep-gate.yml: all seven jobs parsed to zero steps and the
+    file's whole contract set stayed green.
+
+    So the parse is cross-checked against ANY_STEP_ENTRY, which counts the same entries
+    without pinning their indent. A job declaring `steps:` must yield at least one, and
+    the two counts must agree -- which also catches a partial reindent, where some steps
+    still match and the loss is smaller but no louder.
+    """
     parts = STEP_SPLIT.split(block)
-    return [(part.split("\n", 1)[0].strip(), part) for part in parts[1:]]
+    parsed = [(part.split("\n", 1)[0].strip(), part) for part in parts[1:]]
+    entries = len(ANY_STEP_ENTRY.findall(block))
+
+    if STEPS_KEY.search(block) is None:
+        # A `uses:` job legitimately has none; anything else here is a block this
+        # parser is misreading.
+        assert not entries, (
+            f"a job with no `steps:` key holds {entries} `- name:` entries; the job "
+            "parser is misreading this block"
+        )
+        return parsed
+
+    assert parsed, (
+        f"a job declaring `steps:` parsed to zero steps while {entries} `- name:` "
+        "entries are present -- STEP_SPLIT pins a four-space sequence indent and this "
+        "job's is not four. Every contract iterating steps() would now be vacuous."
+    )
+    assert len(parsed) == entries, (
+        f"steps() read {len(parsed)} four-space steps but the block holds {entries} "
+        "`- name:` entries; the difference is invisible to every contract below"
+    )
+    return parsed
 
 
 def _scopes(source, indent):
@@ -216,6 +298,28 @@ def test_the_parser_still_finds_every_job():
     for path in ALL_WORKFLOWS:
         for job_id, block in jobs(path).items():
             assert job_name(block) or "uses:" in block, f"{path.name}:{job_id}"
+
+
+def test_the_step_parser_reads_every_job_that_declares_steps():
+    """The second vacuity floor: shape before content, one level down.
+
+    The floor above proves the parser still finds the JOBS. It says nothing about
+    whether it can still read their steps, and #399's own commit message records why
+    that gap was invisible: `steps()` discards `parts[0]`, so a job whose sequence sits
+    at six spaces instead of four returns an empty list rather than an error.
+
+    `steps()` now refuses to answer that way. This calls it over every job in every
+    workflow so the refusal does not depend on some other test happening to iterate
+    that file -- nothing else in this file iterates ci.yml's steps at all, so a
+    reindent there would otherwise still be unmeasured.
+    """
+    for path in ALL_WORKFLOWS:
+        for job_id, block in jobs(path).items():
+            declares_steps = STEPS_KEY.search(block) is not None
+            assert bool(steps(block)) == declares_steps, (
+                f"{path.name}:{job_id}: `steps:` key present={declares_steps} but the "
+                "step parse disagrees"
+            )
 
 
 # ------------------------------------------------- the expected-context list is real
@@ -324,6 +428,40 @@ def test_each_declared_caller_delegates_the_entire_build(file_name):
     # `with:` block here could only be a knob someone added -- which is how one
     # definition starts producing three behaviors without becoming three copies.
     assert "with:" not in body, job_id
+    # `secrets:` is the second way a caller can pass something. The no-`inputs:`
+    # contract below does not cover it, and `_packaged-windows.yml` claims in prose
+    # that NO caller passes anything -- so the prose was ahead of the tests.
+    assert "secrets:" not in body, f"{file_name}:{job_id} passes secrets"
+    # A matrix mutates the composite check into `<parent> (x) / <child>`. Both halves
+    # are pinned above, but GitHub injects that segment BETWEEN them, so the one
+    # rename QUALITY_GATE.md says must never happen silently is the one a matrix
+    # performs silently.
+    assert "strategy:" not in body, f"{file_name}:{job_id} would rename its own check"
+    # `needs:` makes the build conditional on another job succeeding; a skipped
+    # dependency skips this job and leaves the run green.
+    assert "needs:" not in body, f"{file_name}:{job_id} gated the build behind a job"
+    # A `uses:` job whose whole body is one line is one line away from being skipped
+    # entirely. `frozen-windows` is guarded by name elsewhere; this covers all three.
+    assert not re.search(r"^    if:", body, re.MULTILINE), (
+        f"{file_name}:{job_id} must stay unconditional -- a `uses:` job with an `if:` "
+        "skips silently and the run still reports green"
+    )
+
+
+def test_the_weekly_schedule_still_fires_weekly():
+    """`triggers()` reads trigger NAMES, so `schedule:` staying present says nothing
+    about whether the cron can ever fire. Changing `'17 3 * * 1'` to a date that
+    effectively never comes -- or deleting the `- cron:` line while keeping the
+    `schedule:` key -- silently kills the D3 safety net and reds nothing. Nothing
+    else in the repository mentions `cron` at all.
+
+    Pinned to the exact expression because the cadence IS the decision: the weekly
+    gate is what the 2026-08-17 first run and the R1-D3 three-run clock are measured
+    against.
+    """
+    assert "schedule" in triggers(DEEP_GATE)
+    crons = re.findall(r"^    - cron: '([^']+)'", DEEP_GATE.read_text(encoding="utf-8"), re.MULTILINE)
+    assert crons == ["17 3 * * 1"], crons
 
 
 def test_the_reusable_build_accepts_nothing_from_its_callers():
@@ -331,6 +469,36 @@ def test_the_reusable_build_accepts_nothing_from_its_callers():
     pass nothing passes just as well once an input exists and one caller sets it."""
     assert triggers(PACKAGED) == {"workflow_call"}
     assert "inputs:" not in executable(PACKAGED)
+    assert "secrets:" not in executable(PACKAGED)
+
+
+def test_the_shared_build_cannot_be_skipped_or_serialised_for_every_caller_at_once():
+    """The widest single false green in this surface.
+
+    `build-and-smoke` is the ONE definition behind three checks. A job-level `if:`
+    here skips the frozen Windows build on the PR path, in the release gate and in
+    the weekly gate simultaneously, and every other contract in this file stays green
+    because the build steps are all still present -- they just never run.
+
+    The step-level guard cannot see this: `steps()` splits on `^    - name: ` and
+    discards `parts[0]`, which is the job header, and it matches a SIX-space step
+    indent where a job-level key sits at four.
+
+    `concurrency:` is barred for a different reason: the three callers deliberately
+    hold three different policies (ci.yml cancels in-progress, release.yml must never
+    kill a running release, deep-gate declares none). A group declared here would
+    override all three from one place, and R1-D6's no-cancel guarantee is asserted
+    against release.yml only.
+    """
+    body = strip_comments(jobs(PACKAGED)["build-and-smoke"])
+    assert not re.search(r"^    if:", body, re.MULTILINE), (
+        "`build-and-smoke` must stay unconditional; skipping it silently disarms the "
+        "frozen Windows build for all three callers at once"
+    )
+    assert "concurrency:" not in executable(PACKAGED), (
+        "a concurrency group here would apply to all three callers, overriding "
+        "release.yml's cancel-in-progress: false guarantee"
+    )
 
 
 def test_the_packaged_smoke_job_name_and_its_child_are_pinned():
@@ -373,9 +541,12 @@ def test_the_single_definition_keeps_the_shape_both_lifted_jobs_had():
     # A `uses:` job may not declare `continue-on-error`, so a step here is the only
     # place the build can be made non-blocking for all three callers at once -- turning
     # a red bootloader smoke green on the PR path, in the release gate and in the weekly
-    # gate simultaneously. ci.yml uses the key legitimately in seven places (plus one
-    # explicit `continue-on-error: false`, eight occurrences in all) and records
+    # gate simultaneously. ci.yml uses the key legitimately in six places (plus one
+    # explicit `continue-on-error: false`, seven occurrences in all) and records
     # this exact trap in its own comments; it has no business in the shared definition.
+    # The count was seven-plus-one until the npm-audit enforcement flip removed
+    # `js-supply-chain`'s -- see docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md section
+    # 5.2, lever L2.
     assert "continue-on-error" not in executable(PACKAGED)
 
 
@@ -424,6 +595,129 @@ def test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows():
     called = jobs(PACKAGED)["build-and-smoke"]
     assert "runs-on: windows-latest" in called
     assert "--mode bootloader" in dict(steps(called))["Smoke the real bootloader"]
+
+
+def test_the_weekly_visual_comparison_cannot_be_reduced_to_a_manual_opt_in():
+    """`visual-linux` is the one job in this repository that may carry a job-level
+    `if:`, and the contracts that bar the shape elsewhere therefore had nothing to say
+    about what its condition contains.
+
+    Both disjuncts are load-bearing, and the schedule one is the fragile half. A
+    `schedule` event carries no `inputs` at all, so `inputs.run_visual` alone resolves
+    false: dropping `github.event_name == 'schedule' ||` leaves a workflow whose weekly
+    run skips its visual comparison entirely and still reports green -- the exact
+    "executed, not skipped" failure the comment above the condition says it exists to
+    prevent, and the one this workflow's own prose claims is impossible. Measured: that
+    one-line deletion left all 42 contracts in this file passing.
+
+    Pinned as a set of disjuncts rather than as a string so the message names what
+    changed, and `&&` is barred by name because it reads as a near-identical edit while
+    inverting the meaning -- a scheduled run would then also need an input it can never
+    have.
+    """
+    block = strip_comments(jobs(DEEP_GATE)["visual-linux"])
+    found = re.search(r"^    if: \$\{\{ (.+) \}\}$", block, re.MULTILINE)
+    assert found is not None, (
+        "`visual-linux` lost its job-level `if:`; the weekly/manual split is the "
+        "whole reason this job is allowed to carry one"
+    )
+
+    condition = found.group(1).strip()
+    assert "&&" not in condition, (
+        f"`visual-linux` gates its run on a conjunction: {condition!r} -- a scheduled "
+        "run carries no inputs, so this never runs weekly"
+    )
+    disjuncts = {part.strip() for part in condition.split("||")}
+    assert disjuncts == VISUAL_LINUX_DISJUNCTS, (
+        f"`visual-linux` must run on the weekly schedule AND on an opted-in manual "
+        f"dispatch, and on nothing else; found {sorted(disjuncts)}"
+    )
+
+
+def test_every_deep_gate_job_is_classified_as_conditional_or_not():
+    """The completeness half, and the reason the per-job contract below is not
+    vacuous.
+
+    That contract can only speak about the job ids it is handed. The vacuity floor
+    above counts deep-gate's jobs, so a job simply ADDED already reds there -- but a
+    count says nothing about WHICH jobs, and a rename, or an add paired with a
+    removal, keeps it at seven while moving a job out of the protected set entirely.
+    This pins the ids, so the failure names the job that stopped being classified
+    instead of reporting a number that no longer matches.
+    """
+    frozen_id, _ = PACKAGED_CALLERS[DEEP_GATE.name]
+    classified = DEEP_GATE_UNCONDITIONAL_JOBS | DEEP_GATE_CONDITIONAL_JOBS | {frozen_id}
+    assert set(jobs(DEEP_GATE)) == classified, (
+        "deep-gate.yml's jobs no longer match the conditional/unconditional split. An "
+        "unclassified job can carry `if: ${{ false }}` and skip out of the unattended "
+        "weekly gate while the run still reports green"
+    )
+
+    # The conditional set is the escape hatch, so it is measured against the file
+    # rather than trusted. Moving an unconditional job into it silently deletes that
+    # job's arm from the parametrized contract below and the census above stays green,
+    # because the union is unchanged -- but a job that was unconditional has no `if:`
+    # to find, which is what this catches.
+    unpinned = sorted(
+        job_id
+        for job_id in DEEP_GATE_CONDITIONAL_JOBS
+        if not re.search(
+            r"^    if:", strip_comments(jobs(DEEP_GATE)[job_id]), re.MULTILINE
+        )
+    )
+    assert not unpinned, (
+        f"{unpinned} are listed as deliberately conditional but carry no job-level "
+        "`if:`; a job only belongs here with its condition pinned, or it has left the "
+        "unconditional contract with nothing taking its place"
+    )
+    # The check above is satisfied by moving a job across AND skipping it in the same
+    # change, which then shows up only as one fewer parametrize arm. `visual-linux` is
+    # the only job whose condition anything pins, so widening the exception has to be
+    # a deliberate edit here, against a message saying what it costs.
+    assert DEEP_GATE_CONDITIONAL_JOBS == {"visual-linux"}, (
+        "`visual-linux` is the only deep-gate job with a pinned condition "
+        "(VISUAL_LINUX_DISJUNCTS). Adding another removes it from the unconditional "
+        "contract without pinning what its condition may contain"
+    )
+
+
+@pytest.mark.parametrize("job_id", sorted(DEEP_GATE_UNCONDITIONAL_JOBS))
+def test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run(job_id):
+    """The five jobs that must run every week.
+
+    `visual-linux` is allowed a job-level `if:` and `frozen-windows` is barred from
+    one by name, so the shape was pinned for exactly two of seven jobs and unmeasured
+    for the rest. A skipped job is a successful job to GitHub, and this workflow's
+    conclusion is the only thing an unattended weekly run reports -- so one `if:` line
+    here deletes the full E2E suite, a cold-start smoke, the empty-schema smoke or the
+    old-DB migration proof from the gate without reddening anything, in the workflow
+    whose whole purpose is to run the checks the PR pipeline deliberately does not.
+
+    `dependency-health` is the one job here that reports rather than gates -- both its
+    scan steps are `continue-on-error: true` -- so skipping it costs the weekly output,
+    not a signal. It is held to the same shape anyway: it is the repository's only
+    scheduled Python vulnerability scan, and a job that silently stops running is how
+    that becomes nobody's job.
+
+    Read against the block with comments stripped, like every other contract here that
+    BARS an `if:`, so prose about conditions is not mistaken for one. The value is
+    captured only for the message: the key alone is the violation, because
+    `    if:\n      ${{ false }}` and a tab after the colon are both the same skip, and
+    a pattern demanding `if: ` plus a value passes on either.
+
+    Standing on the second vacuity floor, not asserting it: all five jobs declare
+    `steps:` at four spaces, so a 4->6 job reindent would leave every arm here green
+    with the parser unable to read the block at all. What reds there is
+    `test_the_step_parser_reads_every_job_that_declares_steps`.
+    """
+    body = strip_comments(jobs(DEEP_GATE)[job_id])
+    found = re.search(r"^    if:(.*)$", body, re.MULTILINE)
+    condition = found.group(1).strip() if found else None
+    assert found is None, (
+        f"deep-gate.yml:{job_id} carries a job-level `if: {condition}`. A skipped job "
+        "counts as success, so this drops the job's evidence from the weekly gate "
+        "while the run still reports green; only `visual-linux` may be conditional here"
+    )
 
 
 def test_the_deep_gate_produces_no_branch_protection_context():

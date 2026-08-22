@@ -14,21 +14,32 @@
 > node count in `AXE_REGISTER`. The remaining accessibility debt is **X7–X13 and
 > X15, owner-deferred** — see
 > [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
+> **[UPDATED 2026-08-20 — that set has shrunk.]** **#393** (`eff4362`) took up
+> **X11, X12 and X13** as attribute-only WCAG 4.1.2 naming fixes, so the
+> owner-deferred set is now **X7–X10 and X15**, and `select-name`, `label` and
+> `aria-prohibited-attr` appear nowhere in `AXE_REGISTER`. **No `color-contrast`
+> count moved and no baseline was regenerated.** The same packet recorded a new
+> row **X16** — the post-Calculate `/volume_splitter` results wrapper —
+> documented and deliberately **not** registered, with its fix and its coverage
+> reserved for one owner-gated packet. Phase 2 stays COMPLETE; this is register
+> movement inside it, not a reopening.
 > Phases 3 and 5 remain proposals. **The release/tag half of Phase 4 shipped
 > 2026-08-14 as Packet R1**
 > ([`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)) — this corrects
 > the "remain proposals" wording that covered it — **but Phase 4 is still open**:
 > §7.3 entry criteria 2 and 3 are unmet, and R1's tag trigger has never fired. The
-> D3 weekly compare-only stopgap is shipped, but **no scheduled execution has ever
-> occurred** (measured 2026-08-16T22:41Z: zero `schedule`-event runs repo-wide; re-measure
-> before relying on it, the cron is due 03:17 UTC each Monday). The 2026-08-17 run is
-> contaminated by the #388 merge (it runs R2-b's file); the first uncontaminated
-> schedule-event checkpoint is **2026-08-24** — see
-> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § Packet R2-b.
+> D3 weekly compare-only stopgap is shipped and, as of **2026-08-17**, **has executed at
+> runtime**: the cron fired for the first time ever (run 31993105305, `schedule`,
+> **7/7 jobs green**, `visual-linux` executed, compare proven at step level). It ran
+> R2-b's file, so it says nothing about the pre-#388 file — forfeited — but it does
+> establish the trigger. Next run **2026-08-24**, the second of the three consecutive
+> green scheduled runs R1-D3 wants. See
+> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § The first
+> `schedule`-event run.
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
-> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D4 and D7 remain unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *No scheduled run has ever executed (measured 2026-08-16T22:41Z: zero `schedule`-event runs repo-wide). 2026-08-17 03:17 UTC was to be the first authoritative one, but the #388 merge of 2026-08-16 means that run executes R2-b's file and is **contaminated**; the first uncontaminated schedule-event checkpoint is **2026-08-24**.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D7 was signed 2026-08-21** as keep-the-stance-and-document, and the manual auto-backup recovery procedure now lives in [`README.md`](../README.md) ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)); **D4 remains unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *The first scheduled run executed **2026-08-17** (run 31993105305, 7/7 green, `visual-linux` executed) — the trigger is proven. It ran R2-b's file, so it is not evidence about the pre-#388 file, which the 2026-08-16 override forfeited permanently. Next scheduled run 2026-08-24.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
 
 ---
 
@@ -222,9 +233,9 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 13. **Precondition: make the visual job capable of being a green gate.** *(**Status 2026-08-11: the
     weekly-deep-gate half of this step is DONE** — precondition satisfied 2026-08-04, schedule
     shipped as PR #323 → `3b1160b`, with `visual-linux` executed rather than skipped on the
-    schedule and compare-only enforced four ways. No scheduled run has executed yet;
-    the 2026-08-17 target was forfeited by the #388 merge and the first clean
-    schedule-event checkpoint is Monday 2026-08-24.)*
+    schedule and compare-only enforced four ways. **First scheduled run executed
+    2026-08-17, 7/7 green** — the trigger is proven; it ran R2-b's file, so the
+    pre-#388 evidence the override forfeited stays forfeited.)*
 
     > **Status 2026-08-14 — the release/tag pipeline half SHIPPED as Packet R1**
     > ([`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), owner Gate 0 at
@@ -243,9 +254,9 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
     > workflow — a scheduled workflow executes the default branch's HEAD copy of its own
     > file — but that hold was **waived by explicit owner override on 2026-08-16, not
     > satisfied**: checklist rows 1–3 were never met. Consequently the 2026-08-17 run
-    > executes R2-b's file and is **forfeited as clean evidence**; the first uncontaminated
-    > schedule-event checkpoint is **2026-08-24**. **No scheduled run has executed at any
-    > point — the `schedule` trigger has still never fired.** Design record,
+    > executes R2-b's file and is **forfeited as evidence about the pre-#388 file**.
+    > **The trigger itself is now proven: it fired 2026-08-17 and the run was 7/7 green**
+    > (run 31993105305); 2026-08-24 is simply the next one. Design record,
     > preserved/changed behavior, residuals R-10 (discharged 2026-08-16 by dispatch
     > 31972476567)/R-11/R-12/R-13, and the full cost of the waiver:
     > [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), Packet R2-b section.
@@ -309,12 +320,13 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 | D4 | Hypothesis invariants for calculation modules | Owner review required per invariant (Gate 0) before any property test lands |
 | D5 | Browser matrix | Stay Chromium-only; record as ADR |
 | D6 | `BACKUP_SCHEMA_VERSION` | *Recommendation (unchanged, for the record):* prefer defining and enforcing a compatibility policy; removal is only acceptable as an explicit DB/API contract migration, not a testing cleanup. **Owner decision 2026-08-14: retain-informational instead** — a reserved label, version-blind restore, bump-and-branch rule for the next payload change. Reason for the departure and the evidence behind it: [§8.1c](#81c-fourth-sign-off-2026-08-14--d6); recorded as ADR-008 |
-| D7 | Auto-backup file snapshots: keep "no in-app restore" stance? | Keep, but document the manual recovery procedure in the README |
+| D7 | Auto-backup file snapshots: keep "no in-app restore" stance? | Keep, but document the manual recovery procedure in the README. **Owner decision 2026-08-21: signed exactly as recommended** — the "no in-app restore" stance is retained and the reviewed manual recovery procedure shipped to [`README.md`](../README.md). Ruling and scope: [§8.1d](#81d-fifth-sign-off-2026-08-21--d7) |
 
-**Sign-off state (updated 2026-08-14):** D1 is signed as non-blocking measurement; D2 is signed for
+**Sign-off state (updated 2026-08-21):** D1 is signed as non-blocking measurement; D2 is signed for
 `e2e-erase-flow` only; D3 is signed as the stopgap half and D5 as Chromium-only ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5));
-D6 is signed as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6)). **D4 and D7
-remain unsigned** and no work may act on them. See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
+D6 is signed as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6)); **D7 is signed as
+keep-the-stance-and-document** ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)). **D4 remains unsigned**
+and no work may act on it. See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
 
 ---
 
@@ -442,6 +454,44 @@ worse than the silent mis-restore it prevents. Full analysis and the requirement
 
 **This authorizes the D6 precondition only.** Step 11's fuzzing work is not authorized by this
 sign-off; it remains a separate packet.
+
+#### 8.1d Fifth sign-off (2026-08-21) — D7
+
+The four sign-offs above are left unedited as the historical record. This is the fifth.
+
+| Decision | Ruling | Scope authorized |
+|---|---|---|
+| **D7** — auto-backup file snapshots | **Signed exactly as recommended.** The "no in-app restore" stance is **retained** — recovering a startup snapshot stays a manual file copy and no restore surface is added to the app — and the already-reviewed manual recovery procedure is **published in [`README.md`](../README.md)** | Documentation only |
+| **D4** | **Still not signed.** | — |
+| **D2** (`js-unit` half) | **Still not signed.** | — |
+
+**What the signature authorized, and what it did not.** The owner's authorization was explicitly
+documentation-only. It does **not** authorize an in-app restore feature, any change to backup or
+runtime behavior, D4, `scan_export_bounds()`, the `utils/rep_range_integrity.py` docstring
+follow-up, `needs:`/`continue-on-error:` deep-gate work, or the Dependabot PRs #395–#397.
+
+**The text that landed is the reviewed draft**, written and revised under
+[`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md) § *Item 2*, where the
+`product-risk-reviewer` pass found and corrected three data-destroying defects (F1–F3) plus four
+accuracy gaps (F4–F7). Every instruction was re-verified against `utils/auto_backup.py`,
+`utils/database.py`, `utils/runtime_paths.py`, `utils/config.py`, `utils/runtime_migration.py`,
+`utils/program_backup.py`, `utils/schema_registry.py` and `app.py` before landing. Three
+refinements were applied at that re-verification and are the only wording deltas from the reviewed
+draft: the Backup Center's restore control is named exactly (**Restore To Current Plan**); its own
+generated entries are named by the label the page actually shows (**Auto Recovery**); and the
+`DB_FILE`-over-`HT_RUNTIME_DIR` precedence is stated, because both appear as rows in the folder
+table. One verified fact was added — the corruption path unlinks the `-wal`/`-shm` sidecars
+*before* it renames the database to `database.db.corrupted_<timestamp>`
+(`utils/database.py:217-231`), which is a further reason to copy the folder out before restarting.
+
+**Deliberately still open, and not widened into by this signature.** Nothing in the app tells a
+user that a quarantine happened, that snapshots exist, or where they are; the rotation clock runs
+against them from the first restart either way, and a README only helps someone who reads it
+*before* restarting. That gap is recorded in
+[`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md) § *Out of scope for D7* and needs
+its own decision — the candidate that stops rotating an empty snapshot changes
+`create_startup_backup()` and is therefore a Backup-contract change requiring migration notes and
+tests.
 
 ### 8.2 The port-5000 single-runner rule
 
@@ -607,7 +657,7 @@ Weakest overall: `routes/filters.py` **49%**, `utils/python_version.py` 60%, `ut
 |---|---|
 | The drift check reports via `::warning` and exits 0, rather than relying on `continue-on-error` alone | `continue-on-error` keeps a job from *blocking* but still paints a red ✗, which reads as failure to the other sessions — precisely the noise §8.4 promised not to create. "Measure-only" now means genuinely green. Flipping to blocking is `exit 0` → `exit $STATUS` |
 | `cancel-in-progress` restricted to `pull_request` events | Tighter than asked. Superseded PR runs are cancelled (the B9 complaint), but a push to `main`/`develop` is never cancelled, so a merge always gets a complete pipeline |
-| The npm audit job is also measure-only | Phase 0 step 3 requires a documented severity/exception policy before blocking, and that policy is not in this slice. All four current findings are transitive devDependencies of the build/test toolchain, so blocking today would halt every merge over code that never reaches a user |
+| The npm audit job is also measure-only | Phase 0 step 3 requires a documented severity/exception policy before blocking, and that policy is not in this slice. All four current findings are transitive devDependencies of the build/test toolchain, so blocking today would halt every merge over code that never reaches a user. *(Both halves resolved since: the policy was signed 2026-08-15 and the findings were driven to zero by #390, so the flip blocked nothing. See "Still open" below.)* |
 | PR-4 verified on its own pull request rather than a throwaway | Protection was applied *after* #248 was green, then #248 was re-queried: `MERGEABLE` / `CLEAN` with the new context passing. That satisfies §7.3 criterion 3 on a real PR without extra noise |
 
 #### Cross-session incident, 2026-08-01
@@ -633,13 +683,20 @@ shape detects a cross-PR interaction before it reaches `main`.
   [#271](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/pull/271).
   *(See [§9.1](#91-ground-truth-deltas--the-doc-rotted-within-hours) for what this closure —
   landing hours after the log was written — teaches about §8.6 as a hand-maintained ledger.)*
-- **The npm audit job is measure-only**, pending the severity/exception policy (Phase 0 step 3).
+- ~~**The npm audit job is measure-only**, pending the severity/exception policy (Phase 0 step 3).~~
+  **Discharged 2026-08-21.** Phase 0 step 3's policy was decided 2026-08-15
+  ([`NPM_AUDIT_SEVERITY_POLICY_DECISION.md`](NPM_AUDIT_SEVERITY_POLICY_DECISION.md) §6.1)
+  and is now in force: the remediation drove the graph to zero advisories (#390), and
+  the enforcement PR added `scripts/npm_audit_gate.mjs` plus an empty
+  `docs/npm_audit_allowlist.json` and took levers L1 + L2. The job fails at `high` and
+  above, read per advisory, over the whole graph. It is still **not** in branch
+  protection — that is lever L3, and it is undecided.
 - **No coverage ratchet exists.** Both numbers above are baselines, nothing more. Designing the
   baseline-diff (per `scripts/pyright_baseline_diff.py`) is future work; do not add a bare threshold.
 - **`js-unit` stays non-required.** D2's js-unit half is unsigned, and the 2026-08-02 sign-off
   (§8.1a) explicitly kept it that way: reconsider only after the documented two-week stability
   window, with evidence.
-- **D4 and D7 remain unsigned** (D6 signed 2026-08-14, §8.1c). Phases 2, 3 and 5 remain proposals. Phase 2 step 8 was
+- **D4 remains unsigned** (D6 signed 2026-08-14, §8.1c; D7 signed 2026-08-21 as keep-the-stance-and-document, §8.1d). Phases 2, 3 and 5 remain proposals. Phase 2 step 8 was
   delivered by APP_PY P1+P5 (§8.5). D3 and D5 were signed on 2026-08-02 (§8.1a); D5 shipped as
   ADR-004, and **D3's stopgap shipped 2026-08-11 as PR #323 (`3b1160b`)**.
 - ~~**The Linux visual baseline set is stale, and it blocks the Phase 4 stopgap.**~~
@@ -654,9 +711,10 @@ shape detects a cross-PR interaction before it reaches `main`.
 > squash-merged as `3b1160b`** — every clause of the *Ordering* paragraph at the end of this
 > section was discharged in that one change. **Do not re-run the unblock sequence, and do not
 > read the measurements below as today's state.** What is *not* yet established: no scheduled
-> execution has happened. *(Written when the first authoritative run was **2026-08-17
-> 03:17 UTC**. Superseded by the #388 merge of 2026-08-16: that run now executes R2-b's
-> file and is contaminated, so the first uncontaminated checkpoint is **2026-08-24**.)* It
+> execution has happened. *(Written 2026-08-11. **Overtaken 2026-08-17**: the first
+> scheduled run executed that day, 7/7 green — run 31993105305 — so "no scheduled
+> execution has happened" is now history. It ran R2-b's file rather than the pre-#388 one
+> the 2026-08-16 override forfeited.)* Any scheduled run
 > must show **all seven jobs with `visual-linux` executed rather than skipped** — the job
 > set, not the overall green, is the thing to verify.
 
@@ -919,7 +977,7 @@ as `DECISIONS.md` **ADR-004** (Chromium-only); **D3 was signed as the stopgap ha
 that stopgap was blocked on the stale Linux baseline set (**§8.7**) — *updated 2026-08-11: the
 baselines were regenerated and reviewed on 2026-08-04, and the stopgap **shipped** as PR #323
 (`3b1160b`); §8.7 is now history.* *(updated 2026-08-14: D6 signed as retain-informational, §8.1c.)* **D4 and D7
-remain unsigned**, as does the js-unit half of D2. **Phases 2, 3 and 5 remain proposals, and
+remain unsigned**, as does the js-unit half of D2. *(updated 2026-08-21: **D7 is now signed** as keep-the-stance-and-document, §8.1d, and the recovery procedure is in `README.md`. D4 and the js-unit half of D2 are unchanged.)* **Phases 2, 3 and 5 remain proposals, and
 Phase 4 is not complete** — *updated 2026-08-14: its release/tag pipeline half **shipped** as
 Packet R1 (§8.1b), but Phase 4 stays open because §7.3 entry criteria 2 and 3 are unmet and
 R1's tag trigger has never fired.*
