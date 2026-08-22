@@ -159,7 +159,7 @@ fake** (§3.3), for which there is no precedent anywhere in the suite.
 | [`exercises.js`](../../static/js/modules/exercises.js) | 70 | 2 | **3** — *corrected from **9** 2026-08-22; see the note under this table* | The module-level `deletingExercises` **double-delete guard** and its `finally` cleanup — the one behavior here that is genuinely hard to reach from E2E; and, in `clearWorkoutPlan()`, that `resetWorkoutControlsToDefaults()` runs **only after the server clear succeeds** and **never on the error path** (KI-005 criterion 4) — *corrected 2026-08-22; see the second note under this table* |
 | [`backup-center.js`](../../static/js/modules/backup-center.js) | 1069 | **1** | 1 (`program-backup`) | `detailRequestSequence` **stale-response race guard** (checked twice per fetch); `pendingAction` confirm/cancel state machine; `SORT_PREF_KEY` `localStorage` round-trip; ~15 listener bindings — **all of it behind one exported `initializeBackupCenter()`** |
 
-> **CORRECTION 1 of 2, 2026-08-22 (`b52df68`) — the `exercises.js` E2E count was an over-count:
+> **CORRECTION 1 of 3, 2026-08-22 (`b52df68`) — the `exercises.js` E2E count was an over-count:
 > 9 → 3.** The **9** was a filename count. The corrected figure is derived from a **stated grep**, and
 > every file that grep returns is dispositioned below, so the arithmetic reconciles to 9 rather than
 > asking a reader to trust a phrase.
@@ -190,7 +190,7 @@ fake** (§3.3), for which there is no precedent anywhere in the suite.
 > Only this one cell is corrected. The full disposition, and the list of behaviors with **zero** E2E
 > coverage at any tier, is **§11.2** — and that list, not the count, is Packet C's case for existing.
 
-> **CORRECTION 2 of 2, 2026-08-22 — the KI-005 criterion-4 claim in this row was an over-read, and it
+> **CORRECTION 2 of 3, 2026-08-22 — the KI-005 criterion-4 claim in this row was an over-read, and it
 > has been in this document since 2026-08-15.** The row previously said the module carries *"the
 > ordering contract in `clearWorkoutPlan()` where `resetWorkoutControlsToDefaults()` must run **after**
 > the refresh (KI-005 criterion 4)"*. **Criterion 4 does not say that.**
@@ -207,11 +207,33 @@ fake** (§3.3), for which there is no precedent anywhere in the suite.
 > assertion Packet C still makes is **characterization**, and is labelled as such at §11.3-C19,
 > §11.8-P33 and §11.11-R8.
 
-**The cross-module contract worth pinning first.** `exercises.js:12` and `:36` call
-`showToast(message, true)` — the **legacy** signature. `toast.js:15` routes it through the
-backward-compatibility branch. Nothing currently asserts that this pairing works; a well-meant
+**The cross-module contract worth pinning first.** `exercises.js:12`, `:36` **and `:68`** call
+`showToast(message, true)` — the **legacy two-argument** signature — while `:31` and `:59` call
+`showToast(message)`, the legacy **one-argument** form. **Three two-argument and two one-argument
+calls, five sites in total** (measured, §11.2). `toast.js:15` routes the two-argument form through
+the backward-compatibility branch. Nothing currently asserts that this pairing works; a well-meant
 cleanup of either side breaks the other silently, and every E2E spec would still pass as long as
 *some* toast appears.
+
+> **CORRECTION 3 of 3, 2026-08-22 (owner-authorized after the execution record) — the paragraph
+> above named `:12` and `:36` only and OMITTED `:68`.** It has read that way since 2026-08-15, and it
+> is the **same undercount** the owner authorized correction 4 to repair at §2.3. `unslop-reviewer`
+> raised it at execution; §11.17 **routed it to the owner rather than fixing it**, because repairing
+> it would be a **fifth** correction outside §11 and the Gate 1 ruling had covered four. **The owner
+> authorized that fifth correction explicitly on 2026-08-22**, after the execution record was written.
+> It is applied here and recorded as **row 5** of §11.2's *Corrections applied* table.
+>
+> The measured split it now states — two-argument `:12`, `:36`, `:68`; one-argument `:31`, `:59` — is
+> **§11.2's table unchanged**; this edit brings §1.3's prose into line with a measurement the document
+> already held, and invents no new one. **No test, production, workflow or configuration file changes**,
+> so every measured result recorded in §11.17 — 29 cases, 202 → 231, the 42-row mutation matrix, the
+> coverage and E2E figures — **stands unaffected**.
+>
+> **This block also moves §1.3's own denominator from 2 to 3.** The two blocks above it were written
+> as *"1 of 2"* and *"2 of 2"* when §1.3 carried exactly two corrections; they are renumbered *of 3*
+> here because §1.3 now carries three. That is **not** the renumbering §11.17 declined — that one
+> proposed re-scoping these ordinals onto §11's counter, which they still do not follow. Their
+> **order and content are untouched**.
 
 ---
 
@@ -264,7 +286,7 @@ not to the expansion itself. **The letter E is deliberately vacant in step 12** 
 - **Collaborators to mock**: `toast.js`, `workout-plan.js`, `workout-plan-events.js`,
   `fetch-wrapper.js` — four, versus zero for Packet A. Plus a `bootstrap.Modal` fake.
 
-> **CORRECTED 2026-08-22 (Gate 1 owner ruling, correction 4 of 4 outside §11; plan-hygiene correction
+> **CORRECTED 2026-08-22 (Gate 1 owner ruling, correction 4 of 5 outside §11; plan-hygiene correction
 > 3 of 4).** Two claims in the coverage-targets bullet were false as measured, and both were the
 > *source* wording that §11 had to argue against rather than inherit:
 >
@@ -2408,10 +2430,12 @@ to 3** (see correction note 1 under §1.3's table).
 
 #### Corrections applied to earlier sections
 
-**FOUR** edits are made outside §11 — **one** by Plan v1, **two more** by Plan v2, and **one more by
-the Gate 1 owner ruling of 2026-08-22** — and all four are listed here so nothing in the diff is a
-surprise. *(Plan v1 said "exactly one"; council C-1(d) and C-13 each added one, and the owner's §2.3
-ruling added the fourth, so that sentence has now been corrected twice.)*
+**FIVE** edits are made outside §11 — **one** by Plan v1, **two more** by Plan v2, **one more by
+the Gate 1 owner ruling of 2026-08-22**, and **one more by the owner's separate authorization of
+2026-08-22, after the execution record was written** — and all five are listed here so nothing in the
+diff is a surprise. *(Plan v1 said "exactly one"; council C-1(d) and C-13 each added one, the owner's
+§2.3 ruling added the fourth, and the post-execution authorization added the fifth, so that sentence
+has now been corrected three times.)*
 
 | # | Where | Change | Why it was narrowly necessary |
 |---|---|---|---|
@@ -2419,11 +2443,15 @@ ruling added the fourth, so that sentence has now been corrected twice.)*
 | **2** *(Plan v2, council C-1)* | **§1.3**, the same row's *"untested high-risk behavior"* cell, plus a second note block | *"the ordering contract … must run **after** the refresh (KI-005 criterion 4)"* → **"runs only after the server clear succeeds and never on the error path"** | The old wording is a **false attribution to a named criterion**, present since 2026-08-15, and it is the **source** of the over-read that Plan v1 then built C19 and P33 on. `ki005_controls_persistence/PLANNING.md:448` says the reset is called *after the successful server clear* and that its "LAST" is **internal to the helper** (`workout-plan.js:408-413`), not a position relative to the refresh. Leaving it would leave the document arguing against itself, since §11.3-C19 now labels the call order as characterization |
 | **3** *(Plan v2, council C-13)* | The document's opening **Scope** block, lines 13-14 | Annotated in place: *"Packet C now has a Gate 1 plan at §11; still unauthorized"* | The block says **Packet C** is *"untouched and still unauthorized"*. §11 falsifies the first half. This is the standard §10.12 discipline — *"this commit falsified prose that was true before it"* — and Packet B annotated **four** such places. The block is **annotated, not rewritten**, so the original sequence stays legible |
 | **4** *(Gate 1 owner ruling, 2026-08-22)* | **§2.3**, the *Coverage targets* bullet, plus a note block under it | *"`showToast` receiving the **legacy** two-argument shape"* → **both** legacy arities, **3 two-argument** and **2 one-argument**, as measured; and *"the KI-005 criterion-4 ordering"* → **"runs only after the server clear succeeds and never on the error path"**, with contract and characterization separated explicitly | Both claims are **false as measured**, and §2.3 is the *source* wording — the same false criterion-4 attribution corrected at §1.3 (row 2) survives here, so a reader who starts at §2.3 re-derives exactly the over-read §11.15-C-1 unwound. The *"Why third"* framing is **not** touched: it is superseded in §11.2 above, where the measurement lives |
+| **5** *(owner authorization, 2026-08-22, after the execution record)* | **§1.3**, the *"cross-module contract worth pinning first"* paragraph, plus a third note block under it | *"`exercises.js:12` and `:36` call `showToast(message, true)`"* → **`:12`, `:36` and `:68`** as the two-argument sites, with `:31` and `:59` named as the one-argument form and the total stated as **three plus two** | The sentence named **2 of the 3** two-argument sites — the **same undercount** corrected at §2.3 by row 4, surviving in the earlier section that a reader reaches first. `unslop-reviewer` raised it at execution and §11.17 **routed it to the owner unfixed**, because it would have been a fifth correction against a ruling that covered four. The owner authorized it separately. It is **prose only** — §11.2's measured table, the test file and every measured result in §11.17 are unchanged — and it removes item 4 from §11.18's follow-up list |
 
 Nothing else in §0–§10 is modified, and no file outside
 `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md` is modified. **§2.3's *Coverage targets* bullet IS now
 edited** (row 4 above, added by the Gate 1 owner ruling — this supersedes Plan v2's *"§2.3 is still not
-edited"*, and its *"Why third"* framing remains untouched and superseded in place). Neither
+edited"*, and its *"Why third"* framing remains untouched and superseded in place). **§1.3's
+cross-module-contract paragraph is now edited too** (row 5, added by the owner's post-execution
+authorization); §1.3's own correction blocks are renumbered *of 2* → *of 3* to match, with their order
+and content untouched. Neither
 `UI_SCENARIOS_GAP_ANALYSIS.md`, `QUALITY_GATE.md`, nor `ki005_controls_persistence/PLANNING.md` is
 touched — the last two are **read** for the corrections above and nothing more.
 
@@ -3220,7 +3248,9 @@ questions below are left as asked so each ruling can be read against the questio
 > **Plan v2 grew this list from six questions to seven** and rewrote two of them. **Question 5 is new**
 > (council C-4 — the copy-ownership protocol Packet B was forced to answer and Plan v1 omitted), and
 > what was question 5 is now **question 6**, covering **three** corrections outside §11 rather than one.
-> *(At the Gate 1 ruling the owner authorized a **fourth**, in §2.3 — question 6 is annotated below.)*
+> *(At the Gate 1 ruling the owner authorized a **fourth**, in §2.3 — question 6 is annotated below.
+> A **fifth**, in §1.3, was authorized separately on 2026-08-22 after the execution record; the running
+> total outside §11 is now **five**, and §11.2's table is the ledger.)*
 
 1. **Is Packet C authorized to proceed past Gate 1 at all?** §0.1's Q1 authorizes Packets A → B → C as
    test-only expansion, and §10.13 lists **Packet C** among the items *"still not authorized and still
@@ -3263,7 +3293,9 @@ questions below are left as asked so each ruling can be read against the questio
    user-visible message changing. Note also **§11.11-R17**: C5's and C22's strings are the *fallback*
    copy, which the real routes never render.
 6. **Do the corrections outside §11 stand as applied? There are now FOUR, not one.** *(§11.2,
-   "Corrections applied".)* **(a)** §1.3's E2E count **9 → 3**, with the grep stated and all nine files
+   "Corrections applied".)* — ***as posed at Gate 1; a FIFTH was authorized separately on 2026-08-22,
+   after execution (§11.2 row 5), and the question text is left as it was asked.***
+   **(a)** §1.3's E2E count **9 → 3**, with the grep stated and all nine files
    dispositioned. **(b)** §1.3's **KI-005 criterion-4 attribution**, corrected from *"must run after the
    refresh"* to *"only after the server clear succeeds, never on the error path"* — a false attribution
    present since 2026-08-15 and the source of the over-read Plan v1 built C19 and P33 on. **(c)** The
@@ -3381,7 +3413,7 @@ conclusion by different routes, the claim is materially stronger than a single r
 | **C-10** | C5/C22 pin fallback copy production never renders, undisclosed | `product-risk` (3) | **ACCEPTED.** `routes/workout_plan.py:299` returns `message="Exercise removed successfully"` and `:320` `message="Workout plan cleared successfully"`; `utils/errors.py:36-37` sets `response["message"]` whenever truthy — so `result.message` is always present, the `\|\|` fallbacks at `:31`/`:59` are **unreachable through the real routes**, and the fallback strings differ from the server's **by a trailing `!`**. Same class Packet B disclosed for B15a/B15b. Disclosed on both rows and as **§11.11-R17** |
 | **C-11** | FINDING-C-E2E's enumeration does not support "read every hit"; two reason strings and several citations are wrong | **all three** | **ACCEPTED — the conclusion survives, the evidence does not.** All three independently re-derived **3**, so the corrected §1.3 figure stands; but 3 + 4 named false positives = **7**, not the **9** being corrected, and no grep was stated. Repaired in **both** places (§1.3's note and §11.2's table): the **exact pattern** is stated; **every** file it returns is dispositioned, including the four unmentioned extras (`progression.spec.ts:671,677`, `program-backup.spec.ts:45,368`, `workout-log.spec.ts`, `volume-progress.spec.ts`) and `fixtures.ts:315-316`, all route-level `page.request.post`; the arithmetic **reconciles to 9 = 3 + 6**; `accessibility.spec.ts`'s reason changed from *"a filename hit only"* to **"no hit invokes either export"** (it has content hits at `:589`, `:598`, `:826`, `:1037`); `api-integration.spec.ts` re-cited to the calls at **`:50`/`:146`**; and two ranges fixed — superset **256-277** and ui-hardening **996-1034** |
 | **C-12** | The `ui-hardening.spec.ts` disposition understates what that spec asserts | `product-risk` (5) | **ACCEPTED.** It also asserts the modal actually closes — `:1018`, `not.toHaveClass(/show/)`. The **order-blindness claim is unaffected**, but **P24 is therefore not unit-only**, and §11.13 q3 was being argued about a spec described incompletely. Added to the row, to P24, and to q3 — where it **strengthens** the recommendation to run that spec too |
-| **C-13** | The document's Scope block is falsified by §11 and is not annotated | `architecture` (5) | **ACCEPTED.** Lines 13-14 said *"**Packet C** … untouched and still unauthorized"*; Packet C is no longer untouched. Packet B set the standard: §10.12 annotated **four** places outside §10 *"because this commit falsified prose that was true before it"*. The block is **annotated, not rewritten**, and recorded as **correction 3 of 4** *(3 of 3 when Plan v2 was written; the Gate 1 owner ruling added a fourth, in §2.3)* — so §11.2's "exactly one edit outside §11" is itself corrected |
+| **C-13** | The document's Scope block is falsified by §11 and is not annotated | `architecture` (5) | **ACCEPTED.** Lines 13-14 said *"**Packet C** … untouched and still unauthorized"*; Packet C is no longer untouched. Packet B set the standard: §10.12 annotated **four** places outside §10 *"because this commit falsified prose that was true before it"*. The block is **annotated, not rewritten**, and recorded as **correction 3 of 5** *(3 of 3 when Plan v2 was written; the Gate 1 owner ruling added a fourth, in §2.3; the owner's post-execution authorization of 2026-08-22 added a fifth, in §1.3)* — so §11.2's "exactly one edit outside §11" is itself corrected |
 | **C-14** | §11.2's "all five call sites use the **legacy signature**" contradicts C26 | `architecture` (6) | **ACCEPTED.** `toast.js:15` takes the **modern** branch whenever `result.message` is a type word — precisely the KI-010 collision C26 documents. Changed to *"all five use a legacy call **shape**; `:31`/`:59` route to the modern branch when the message is a type word — see C26"*. Harmless for the tests (toast is mocked, arities unaffected), but two claims in one document must not disagree |
 | **C-15** | Two of the four coverage movements round the wrong way | `architecture` (8) **+** `test-strategist` (9), same figures | **ACCEPTED.** Branches is **+0.26 pp** (10.2282 → 10.4867), not +0.27; lines is **+0.43 pp** (7.1697 → 7.6015), not +0.44. Both were computed from the *displayed* two-decimal percentages instead of the counts — a derived-figure error class distinct from a wrong measurement, and the one nobody re-checks. Statements **+0.40** and functions **+0.18** were correct, and **all four predicted values (7.81 / 10.49 / 7.48 / 7.60 %) were and remain correct**. Both reviewers also independently confirmed **12/12 branch coverage is achievable** and that `try`/`catch`/`finally` contribute **no** branch under this provider |
 | **C-16** | C13's arrange is internally inconsistent | `product-risk` (12) **+** `test-strategist` (12) | **ACCEPTED.** As written both post-repoint calls resolve, which does not produce the stated oracle. C13 now specifies **`mockRejectedValueOnce(...)` then `mockResolvedValue(...)`, two sequential awaited calls** |
@@ -3446,14 +3478,16 @@ reviewer saying *"this is unmeasured"* is to measure it, not to argue it.
 Plan v2 changed **§11** and **two places elsewhere in this same file**, so a reviewer is not surprised
 by them in the diff: **§1.3's `exercises.js` row** (its KI-005 cell, per C-1(d), plus a rebuilt E2E note
 per C-11) and **the opening Scope block** (annotated, per C-13). Both are recorded in §11.2's
-*Corrections applied* table, which carried **three** rows at Plan v2 and carries **four** after the
-Gate 1 owner ruling added the §2.3 correction. **Nothing outside
+*Corrections applied* table, which carried **three** rows at Plan v2, **four** after the Gate 1 owner
+ruling added the §2.3 correction, and **five** after the owner's post-execution authorization of
+2026-08-22 added the §1.3 one. **Nothing outside
 `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md` was touched**, no test file was created, no production JS
 was changed, no mutation harness was built, and nothing was committed or pushed.
 
 **Counts after Plan v2:** cases **29** (unchanged), suite delta **202 → 231** (unchanged), files
 **12 → 13** (unchanged), mutations **40 → 42**, EOL-risk rows **10 → 13**, corrections outside §11
-**1 → 3** *(→ **4** at the Gate 1 owner ruling)*, owner questions **6 → 7**, risk rows
+**1 → 3** *(→ **4** at the Gate 1 owner ruling; → **5** at the owner's post-execution authorization of
+2026-08-22)*, owner questions **6 → 7**, risk rows
 **R1–R14 → R1–R18** (R1 withdrawn in place).
 
 ### 11.16 Owner ruling at Gate 1 (2026-08-22) — **APPROVED, WITH FOUR PLAN-HYGIENE CORRECTIONS**
@@ -3472,7 +3506,7 @@ remains a separate confirmation naming the PR (§11.18).
 | **3** | The targeted-test gate, and the feature-map gap | **RUN ALL FOUR** Chromium specs locally: `workout-plan.spec.ts`, `exercise-interactions.spec.ts`, `superset-edge-cases.spec.ts`, **`ui-hardening.spec.ts`**. The missing `ui-hardening.spec.ts` routing is recorded as a **separate follow-up**; **`QUALITY_GATE.md` is NOT edited in Packet C** |
 | **4** | KI rows and the stale citation | **NO KI ROW** for the `Set` key type-sensitivity now — **C14 is retained as clearly labelled characterization**, because no in-app caller passes a string ID. The **vacuous `if (count > 0)`** at `exercise-interactions.spec.ts:218` is a separate **test-honesty follow-up**; the stale **`UI_SCENARIOS_GAP_ANALYSIS.md:100`** citation is a separate **documentation follow-up**. **Neither affected file is edited in Packet C** |
 | **5** | The copy-ownership protocol | **ADOPTED, identical to Packet B's.** `exercises.test.js` becomes the guard for the five user-visible copy strings. **A deliberate copy change updates the corresponding tests in the SAME PR; the resulting red is an intended review signal, not justification to loosen the assertions.** Recorded in the test file's header comment |
-| **6** | The corrections outside §11 | **ALL THREE STAND**, and a **fourth is authorized** in **§2.3**: replace the false *"KI-005 criterion-4 ordering"* wording with the actual contract (reset only after a successful server clear, never on the error path); describe the measured toast call shapes accurately (**three two-argument** and **two one-argument** legacy-shaped calls); and distinguish contractual behavior from characterization of the current refresh / reset / notification order. Applied — §11.2's *Corrections applied* table now carries **four** rows |
+| **6** | The corrections outside §11 | **ALL THREE STAND**, and a **fourth is authorized** in **§2.3**: replace the false *"KI-005 criterion-4 ordering"* wording with the actual contract (reset only after a successful server clear, never on the error path); describe the measured toast call shapes accurately (**three two-argument** and **two one-argument** legacy-shaped calls); and distinguish contractual behavior from characterization of the current refresh / reset / notification order. Applied — §11.2's *Corrections applied* table carried **four** rows at this ruling. **ANNOTATED 2026-08-22 (after execution): the owner authorized a FIFTH correction, in §1.3, repairing the same two-argument `showToast` undercount that this ruling repaired at §2.3; the table now carries FIVE rows.** This ruling itself is unchanged — it covered four, and the fifth is a separate authorization, not a re-reading of this one |
 | **7** | Q4, Q6, D2, Packet F | **CONFIRMED out of scope and unauthorized.** None is drawn in by approving Packet C |
 
 **Four plan-hygiene corrections, ordered before implementation and applied — plus a post-correction
@@ -3637,7 +3671,7 @@ contorted test.
 > time is what the merge confirmation should name**, not this one.
 
 **FIVE STATUS ANNOTATIONS were made at execution time — three outside §11 and two inside it — and
-they are NOT corrections.** The §11.2 *Corrections applied* table counts **four** edits that repair
+they are NOT corrections.** The §11.2 *Corrections applied* table counts **five** edits that repair
 claims measured to be **false**; these five are a different thing — prose that was **true when written**
 and that this commit falsified, annotated in place under the §10.12 discipline rather than rewritten.
 
@@ -3736,12 +3770,27 @@ explicit instruction:**
 | Drop C1/C2's `expect(h.post).not.toHaveBeenCalled()` as subsumed by the following deep equality | §11.3's C1 oracle prescribes **both** — *"**then** `api.post` **not** called **and** `calls` is `['showToast']`"*. The negative does not stand alone, so authoring rule 1 is satisfied; deleting a prescribed assertion is a deviation from a ratified matrix, not a cleanup |
 | Drop C28's `expect(vi.isMockFunction(handle)).toBe(true)` as a tautology | §11.3's C28 oracle prescribes it explicitly — *"are **`vi.fn()`s at call count 0**"*. Same reason |
 | Inline the single-caller `rejectPostOnce` helper | It is one of **three parallel helpers for one mock**, and the trio is what keeps every `api.post` arrangement logging identically. Collapsing one of three is a smaller file and a less symmetric one |
-| Renumber §1.3's *"CORRECTION 1 of 2 / 2 of 2"*, a third numbering scheme | Those ordinals are **scoped to §1.3's own two corrections** and are correct as written. Renumbering ratified prose to serve a different section's counter is the failure this document already fought once (§2.6) |
+| Renumber §1.3's *"CORRECTION 1 of 2 / 2 of 2"*, a third numbering scheme | **Declined, and the decline still stands on its stated ground:** those ordinals are **scoped to §1.3's own corrections**, and renumbering ratified prose to serve a *different section's* counter is the failure this document already fought once (§2.6). **ANNOTATED 2026-08-22 (after execution): the denominator has since moved to *of 3* — not to follow §11's counter, but because the owner's fifth authorized correction gave §1.3 a THIRD correction of its own.** *"Correct as written"* was true when written and this later edit falsified it; the ordinals' order and content are untouched |
 
-**One finding is ROUTED TO THE OWNER, not fixed:** §1.3's prose names `exercises.js:12` and `:36` as the
-legacy two-argument sites and **omits `:68`** — the same undercount the owner authorized correction 4 to
-repair at §2.3. **It is not repaired here**, because that would be a **fifth** correction outside §11
-and the owner ruled on four. It joins §11.18's follow-up list.
+**One finding was ROUTED TO THE OWNER rather than fixed — and has since been AUTHORIZED and FIXED:**
+§1.3's prose named `exercises.js:12` and `:36` as the legacy two-argument sites and **omitted `:68`** —
+the same undercount the owner authorized correction 4 to repair at §2.3. **It was not repaired at
+execution**, because that would have been a **fifth** correction outside §11 and the Gate 1 ruling
+covered four; it was recorded instead as item 4 of §11.18's follow-up list.
+
+> **RESOLVED 2026-08-22 — the owner authorized the fifth correction explicitly, after this execution
+> record was written.** §1.3's paragraph now names **`:12`, `:36` and `:68`** as the two-argument sites
+> and **`:31` and `:59`** as the one-argument form, three plus two, five in total. The correction is
+> **prose only**, in **one tracked file** — `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md`. It is recorded
+> as **row 5** of §11.2's *Corrections applied* table and **removed from §11.18's follow-up list**, which
+> is three items again.
+>
+> **Every measured result above stands**, because neither production nor test code changed: 29 cases,
+> **202 → 231**, the **42-row** mutation matrix (41 killed, P40 the declared survivor), the coverage
+> figures, the four local Chromium specs, and the `5cf2a04` CI run. **The 42-row local mutation matrix
+> was deliberately NOT re-run for this documentation correction** — the discipline that a test-file
+> change invalidates every measured row (see the two deleted assertions above) applies to *test-file*
+> changes, and this is not one.
 
 ### 11.18 STOP — merge
 
@@ -3771,10 +3820,14 @@ its own authorization, and each touches a file Packet C may not edit):
    not one.
 3. **`docs/UI_SCENARIOS_GAP_ANALYSIS.md:100` cites `exercises.js:47`** for KI-005 behavior that lives at
    **`:65`** (§11.15-C-21) — a documentation follow-up.
-4. *(new, raised by `unslop-reviewer` at execution)* **§1.3's prose names `exercises.js:12` and `:36` as
-   the legacy two-argument `showToast` sites and omits `:68`** — the same undercount the owner
-   authorized correction 4 to repair at §2.3. **Not repaired here**: it would be a **fifth** correction
-   outside §11, and the ruling covered four.
+
+> **A FOURTH item stood here and is now CLOSED, not dropped.** Raised by `unslop-reviewer` at execution:
+> *"§1.3's prose names `exercises.js:12` and `:36` as the legacy two-argument `showToast` sites and omits
+> `:68`"* — left unrepaired at execution because it would have been a **fifth** correction outside §11
+> and the Gate 1 ruling covered four. **The owner authorized that fifth correction on 2026-08-22 and it
+> is applied** (§11.2 row 5, §1.3's *CORRECTION 3 of 3*, §11.17's RESOLVED block). It is removed from
+> the numbered list above because it is no longer open; the list is **three** again, matching its own
+> heading. The three items above are untouched and still open.
 
 **T0 is NOT established by this packet.** It begins only after a separately authorized Packet C merge
 **and** the first successful post-merge `main` `JS Unit (Vitest, non-required)` run.
