@@ -241,8 +241,8 @@
     "total_tests": 649
   },
   "pytest": {
-    "collected_deterministic": 2809,
-    "deterministic_files": 124,
+    "collected_deterministic": 2855,
+    "deterministic_files": 125,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -687,6 +687,10 @@
         "tests": 5
       },
       {
+        "file": "tests/test_vitest_inventory_contracts.py",
+        "tests": 46
+      },
+      {
         "file": "tests/test_volume_ai.py",
         "tests": 26
       },
@@ -751,7 +755,992 @@
         "tests": 40
       }
     ],
-    "total_files": 125
+    "total_files": 126
   },
-  "schema_version": 1
+  "schema_version": 2,
+  "vitest": {
+    "cases": [
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "escapeHtml > coerces non-string values via String()"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "escapeHtml > escapes ampersands before other entities (no double-escaping)"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "escapeHtml > escapes each of the five HTML-sensitive characters"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "escapeHtml > leaves already-safe text untouched"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "escapeHtml > returns empty string for null and undefined"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "escapeHtml > returns empty string unchanged"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > accepts every allowed extension, case-insensitively"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > percent-encodes each path segment while preserving slashes"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > prefixes the vendor base URL for a valid relative path"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > rejects absolute paths (leading slash or backslash)"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > rejects backslashes and drive-letter colons anywhere"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > rejects dot and dot-dot traversal and empty segments"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > rejects empty strings"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > rejects missing or disallowed extensions"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js",
+        "name": "resolveExerciseMediaSrc > rejects non-string input"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "anti-vacuity > C28: the handles this file asserts on are the handles the module receives"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "anti-vacuity > C29: the fixture and the bootstrap global are actually installed"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "characterization tie-ins > C26: a server message equal to a toast type word is passed through unmodified"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "characterization tie-ins > C27: fetchWorkoutPlan() is not awaited"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - error path > C24: records the rejection and interpolates its message into the toast"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - error path > C25: the controls reset never runs on the error path"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - success path > C20: posts the exact argument triple, with a null body"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - success path > C21: result.message is passed through verbatim, one argument"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - success path > C22: a result with no message falls back to the default copy"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - success path > C23: notifies with exactly the reason \"clear-workout-plan\""
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - the three modal branches > C17: the modal element is absent"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - the three modal branches > C18: the modal is present but has no Bootstrap instance"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "clearWorkoutPlan - the three modal branches > C19: the modal is present with an instance, and the full call order holds"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - error path > C8: records the rejection and interpolates its message into the toast"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - error path > C9: nothing downstream runs on failure"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - isolation and DOM independence > C15: ANTI-VACUITY - a fresh module instance gets a fresh guard"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - isolation and DOM independence > C16: removeExercise reads no DOM at all"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - missing-ID early return > C1: undefined is refused before any work"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - missing-ID early return > C2: 0 - the plausible-but-invalid falsy value - is refused too"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - success path > C3: posts the exact argument triple"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - success path > C4: result.message is passed through verbatim, one argument"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - success path > C5: a result with no message falls back to the default copy"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - success path > C6: notifies with exactly the reason \"remove-exercise\""
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - success path > C7: success call order"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - the concurrent-delete guard > C10: a concurrent second call for the same id is refused"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - the concurrent-delete guard > C11: a concurrent call for a different id is not blocked"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - the concurrent-delete guard > C12: the guard is released on success"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - the concurrent-delete guard > C13: the guard is released on failure"
+      },
+      {
+        "file": "static/js/modules/__tests__/exercises.test.js",
+        "name": "removeExercise - the concurrent-delete guard > C14: CHARACTERIZATION - Set keys are type-sensitive, so 1 and \"1\" both proceed"
+      },
+      {
+        "file": "static/js/modules/__tests__/exports.test.js",
+        "name": "raw blob export transport > keeps the public summary export helper on raw blob transport and its filename"
+      },
+      {
+        "file": "static/js/modules/__tests__/exports.test.js",
+        "name": "raw blob export transport > keeps workout-plan export on raw blob transport and the server filename"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "bandClass > falls back to the neutral class for null and unknown bands"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "bandClass > maps each classifier band to its palette class"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "channelsWithData > reports both when both sides are populated"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "channelsWithData > reports none when the rows carry no readings"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "channelsWithData > reports only the channels that actually carry a reading"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "regionTitle > carries the percentage so colour is not the only signal"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "regionTitle > distinguishes \"no volume yet\" from \"no reference range exists\""
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "regionTitle > says \"very heavy\", matching the shipped band vocabulary"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "resolveRegionBand > is channel-independent: an empty logged side does not blank planned"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "resolveRegionBand > paints both delts identically from the one Middle-Shoulder row"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "resolveRegionBand > passes the server band through verbatim and never re-derives it"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "resolveRegionBand > returns no band for a region no fatigue muscle covers"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "resolveRegionBand > returns no band when the muscle has no row at all"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "resolveRegionBand > returns the band for a mapped region with data"
+      },
+      {
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js",
+        "name": "resolveRegionBand > returns the requested channel when the two differ"
+      },
+      {
+        "file": "static/js/modules/__tests__/fetch-wrapper.test.js",
+        "name": "apiFetch request compatibility options > can preserve an existing caller header set exactly"
+      },
+      {
+        "file": "static/js/modules/__tests__/fetch-wrapper.test.js",
+        "name": "apiFetch request compatibility options > preserves a top-level message from a non-standard JSON error response"
+      },
+      {
+        "file": "static/js/modules/__tests__/fetch-wrapper.test.js",
+        "name": "apiFetch request compatibility options > retains the existing NETWORK_ERROR classification for rejected fetches"
+      },
+      {
+        "file": "static/js/modules/__tests__/session-summary-helpers.test.js",
+        "name": "getSessionWarningBadge > falls back to the no-data badge for an unknown warning level"
+      },
+      {
+        "file": "static/js/modules/__tests__/session-summary-helpers.test.js",
+        "name": "getSessionWarningBadge > falls back to the no-data badge when effectivePerSession is null"
+      },
+      {
+        "file": "static/js/modules/__tests__/session-summary-helpers.test.js",
+        "name": "getSessionWarningBadge > falls back to the no-data badge when effectivePerSession is undefined"
+      },
+      {
+        "file": "static/js/modules/__tests__/session-summary-helpers.test.js",
+        "name": "getSessionWarningBadge > returns the borderline badge with per-session load appended"
+      },
+      {
+        "file": "static/js/modules/__tests__/session-summary-helpers.test.js",
+        "name": "getSessionWarningBadge > returns the excessive badge with per-session load appended"
+      },
+      {
+        "file": "static/js/modules/__tests__/session-summary-helpers.test.js",
+        "name": "getSessionWarningBadge > returns the no-data badge for the no_data level without appending load"
+      },
+      {
+        "file": "static/js/modules/__tests__/session-summary-helpers.test.js",
+        "name": "getSessionWarningBadge > returns the ok badge with per-session load appended"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "formatPatternName > maps known patterns to their display names"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "formatPatternName > title-cases a single unknown word"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "formatPatternName > title-cases unknown snake_case patterns"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getApiErrorMessage > falls back to a non-blank message field"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getApiErrorMessage > falls back to a string error field"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getApiErrorMessage > prefers a nested error.message string"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getApiErrorMessage > returns the fallback for non-objects or empty payloads"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getCategoryTooltip > returns empty string for unknown categories"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getCategoryTooltip > returns tooltips for known categories"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getSubcategoryTooltip > returns empty string for unknown pairs"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getSubcategoryTooltip > returns tooltips for known category/subcategory pairs"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getVolumeDetails > classifies 10 to 19 as medium volume"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getVolumeDetails > classifies 20 to 29 as high volume"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getVolumeDetails > classifies 30 and above as excessive volume"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getVolumeDetails > classifies below 10 as low volume"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "getVolumeDetails > uses the boundary values (<10, <20, <30) inclusively on the upper side"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "isApiFailure > recognizes explicit failure flags"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "isApiFailure > returns false for success or non-objects"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "isWrappedApiResponse > recognizes a success-wrapped envelope"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "isWrappedApiResponse > rejects payloads without a data key or success flag"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "unwrapApiPayload > returns the payload unchanged when not wrapped"
+      },
+      {
+        "file": "static/js/modules/__tests__/summary-helpers.test.js",
+        "name": "unwrapApiPayload > unwraps a wrapped envelope to its data"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button click behavior > B36: the click hides the live instance BEFORE running onClick"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button click behavior > B37: with no live instance the click still runs onClick and hides nothing"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button click behavior > B38: a throwing onClick is caught and logged"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button construction > B30: a valid action appends a button inside #liveToast"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button construction > B31: action.ariaLabel becomes the accessible name"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button construction > B32: with no ariaLabel the attribute is absent, not \"undefined\""
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button construction > B33: a non-function onClick appends no button"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button construction > B34: a falsy label appends no button"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - action button construction > B35: a numeric label is stringified"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B42: the fixture carries no bg-* class at rest"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B43: a single-argument call renders the default copy, not the type word"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B44: a falsy-but-defined message is rendered, not replaced"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B45: a legacy call whose message IS a type word swallows the message"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - background class handling > B24: a stale background class is removed"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - background class handling > B25: all four stale classes are removed before info is added"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - background class handling > B25b: all four stale classes are removed before success is added"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - background class handling > B26: a second toast clears the first message"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - default copy, one case per type > B12: error + null message uses the error copy"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - default copy, one case per type > B13: error + undefined message uses the error copy"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - default copy, one case per type > B14: success + null message uses the non-error copy"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - default copy, one case per type > B15a: warning + null message uses the non-error copy"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - default copy, one case per type > B15b: info + null message uses the non-error copy"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - dispose, construct, show ordering > B27: an existing instance is disposed BEFORE the new one is constructed"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - dispose, construct, show ordering > B28: with no existing instance there is no dispose"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - dispose, construct, show ordering > B29: the constructor receives the element and the default delay"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - legacy signature > B5: a bare message dispatches to success and renders that message"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - legacy signature > B6: (message, true) dispatches to error"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - legacy signature > B7: (message, false) dispatches to success"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - legacy signature > B8: a non-boolean second argument is not an error flag"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - legacy signature > B9: an object third argument survives legacy normalisation"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - message coercion > B16: a numeric message is stringified"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - message coercion > B17: an object message renders as [object Object]"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - message coercion > B18: markup in a message is rendered as text, never as HTML"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - missing-DOM early returns > B39: an unresolvable #toast-body logs and returns"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - missing-DOM early returns > B40: an unresolvable #liveToast logs and returns"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - missing-DOM early returns > B41: with both unresolvable only the toast-body error fires"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - modern signatures > B1: success adds bg-success and renders the message"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - modern signatures > B2: error adds bg-danger"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - modern signatures > B3: warning adds bg-warning"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - modern signatures > B4: info adds bg-info"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - numeric options, both signatures > B10: modern numeric third argument becomes the delay"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - numeric options, both signatures > B11: legacy numeric third argument becomes the delay"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - request-ID gate > B19: error + a request ID appends the suffix"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - request-ID gate > B20: success + a request ID does not"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - request-ID gate > B21: warning + a request ID does not"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - request-ID gate > B22: info + a request ID does not"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - request-ID gate > B23: error + an empty request ID does not"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > caps Epley inputs at 12 reps and rejects non-positive inputs"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > classifies -1 years as novice"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > classifies 0 years as novice"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > classifies 1 years as novice"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > classifies 1.01 years as intermediate"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > classifies 3 years as intermediate"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > classifies 3.01 years as advanced"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > classifies null years as novice"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > keeps accuracy-band labels stable"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > keeps cold-start estimates tied to gender, bodyweight, and experience"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > preserves bodyweight and external-load completion rules"
+      },
+      {
+        "file": "static/js/modules/__tests__/user-profile-data.test.js",
+        "name": "user-profile estimator seams > preserves tier and next-tier multipliers"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A1-A2 exported constants > A1: WORKOUT_CONTROL_IDS is exactly the six controls, in order"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A1-A2 exported constants > A2: WORKOUT_CONTROL_DEFAULTS is the pinned template defaults, all strings"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A14-A15 applyWorkoutControlDefaults (PR-1) > A14: writes the pinned defaults to all six inputs"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A14-A15 applyWorkoutControlDefaults (PR-1) > A15: does not write to storage"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A16: a fully valid record restores all six, saved-wins over the rendered values"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A17: an ABSENT record leaves the rendered values untouched and restores nothing"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A18: a MALFORMED record falls every field back to its pinned default"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A19: a stored ARRAY is treated as an unusable record, every field defaults"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A20: a stored JSON null is treated as an unusable record, every field defaults"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A21: fallback is PER FIELD - a valid field survives an invalid sibling"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A22: an empty or whitespace-only stored value falls back"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A23: a boolean or object stored value falls back"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A24: rir above its declared max=10 falls back (OWNER-5)"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A25: rpe above its declared max=10 falls back (OWNER-5)"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A26: values below a declared min fall back"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A27: numeric (non-string) stored values are accepted and applied as strings"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A16-A28 restoreWorkoutControls (criteria 8/9, TS-7, OWNER-5, OWNER-1.1/.2) > A28: restore never writes to storage (OWNER-1.1/.2)"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A29-A30 clearWorkoutControls (OWNER-1.4) > A29: leaves the key ABSENT, not empty"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A29-A30 clearWorkoutControls (OWNER-1.4) > A30: is a no-op on already-empty storage and does not throw"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A3-A7 hydration guard (OWNER-1) > A3: saveWorkoutControls is a no-op while hydrating"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A3-A7 hydration guard (OWNER-1) > A4: endHydration re-arms saving"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A3-A7 hydration guard (OWNER-1) > A5: withHydrationSuppressed passes through the callback return value"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A3-A7 hydration guard (OWNER-1) > A6: withHydrationSuppressed restores the PREVIOUS flag, not false"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A3-A7 hydration guard (OWNER-1) > A7: withHydrationSuppressed restores the flag when the callback throws, and rethrows"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A31 fixture self-check > A31: the fixture carries the exact declared bounds the module reads"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A32 hydration leak detector > A32: hydration is disarmed after the whole suite has run"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A33-A35 storage failures degrade silently > A33: a throwing setItem does not propagate out of saveWorkoutControls"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A33-A35 storage failures degrade silently > A34: a throwing getItem leaves the rendered values untouched and restores nothing"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A33-A35 storage failures degrade silently > A35: a throwing removeItem does not propagate out of clearWorkoutControls"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A8-A13 saveWorkoutControls (OWNER-3) > A10: values are read from the live DOM, not from the defaults"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A8-A13 saveWorkoutControls (OWNER-3) > A11: nothing is written to localStorage (criterion 6)"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A8-A13 saveWorkoutControls (OWNER-3) > A12: with no control inputs present, nothing is written"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A8-A13 saveWorkoutControls (OWNER-3) > A13: with only some inputs present, only those are recorded"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A8-A13 saveWorkoutControls (OWNER-3) > A8: writes exactly one key, named hypertrophy_workout_controls_v1"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
+        "name": "A8-A13 saveWorkoutControls (OWNER-3) > A9: the stored record holds exactly the six control ids"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "equipmentForEnvironment > returns the full gym equipment list for gym"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "equipmentForEnvironment > returns the reduced home equipment list for non-gym"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "equipmentForEnvironment > treats any non-gym value as home"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "planPreviewData > defaults to full body / hypertrophy rep range"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "planPreviewData > maps each training-day split"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "planPreviewData > maps goal to rep range"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "planPreviewData > scales base sets by the volume factor and rounds"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "volumeColorClass > falls through to red for non-numeric input (NaN comparisons are false)"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "volumeColorClass > returns blue at or below 0.8"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "volumeColorClass > returns green above 0.8 up to 1.1"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "volumeColorClass > returns orange above 1.5 up to 1.7"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "volumeColorClass > returns red above 1.7"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js",
+        "name": "volumeColorClass > returns yellow above 1.1 up to 1.5"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "add-exercise validation seams > clamps against present bounds and treats null/empty attributes as infinite"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "add-exercise validation seams > collects detailed missing fields in UI order and preserves truthiness rules"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "add-exercise validation seams > collects required selections in UI order"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > builds fatigue titles with headline/advisory fallbacks"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > describes learned samples for zero, one, and many logs"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > describes related learned samples and source fallbacks"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > formats trace values, units, factors, and empty steps"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > hides the learned badge for non-learned sources"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > maps estimate provenance and falls back to default"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > maps every trace headline and falls back to default"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > nudges up/down, chooses a base for NaN, clamps, and rounds to two decimals"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > resolves profile defaults and lets estimates override them"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "estimate rendering data seams > resolves valid steps/minimums and their fallbacks"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "execution style seams > builds standard, AMRAP, and EMOM payloads with falsy fallbacks"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "execution style seams > renders standard, AMRAP, and EMOM badge branches"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "payload builders > builds field, replacement, superset, and ordering payloads"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "payload builders > coerces add-exercise fields and applies RIR/RPE empty semantics"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "replacement and superset seams > adds connector classes only to adjacent first/last rows"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "replacement and superset seams > cycles superset colors from 0 through 4 and back to 1"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "replacement and superset seams > maps duplicate to its toast decision"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "replacement and superset seams > maps missing_metadata to its toast decision"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "replacement and superset seams > maps no_candidates to its toast decision"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "replacement and superset seams > maps not_found to its toast decision"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "replacement and superset seams > maps unknown to its toast decision"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "routine formatting seams > compares environment, then program, then workout"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "routine formatting seams > formats display routines and escapes each part"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "routine formatting seams > formats tab routines, including blank parsed parts and escaping"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "routine formatting seams > parses empty, complete, and missing routine parts"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "routine formatting seams > returns the original list for all and filters an exact routine"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-state.test.js",
+        "name": "workoutPlanState > has the characterized initial shape"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-state.test.js",
+        "name": "workoutPlanState > is the same singleton across imports"
+      }
+    ],
+    "collector": "vitest list --json=<path>",
+    "files": [
+      {
+        "cases": 15,
+        "file": "static/js/modules/__tests__/exercise-helpers.test.js"
+      },
+      {
+        "cases": 29,
+        "file": "static/js/modules/__tests__/exercises.test.js"
+      },
+      {
+        "cases": 2,
+        "file": "static/js/modules/__tests__/exports.test.js"
+      },
+      {
+        "cases": 15,
+        "file": "static/js/modules/__tests__/fatigue-heatmap.test.js"
+      },
+      {
+        "cases": 3,
+        "file": "static/js/modules/__tests__/fetch-wrapper.test.js"
+      },
+      {
+        "cases": 7,
+        "file": "static/js/modules/__tests__/session-summary-helpers.test.js"
+      },
+      {
+        "cases": 22,
+        "file": "static/js/modules/__tests__/summary-helpers.test.js"
+      },
+      {
+        "cases": 47,
+        "file": "static/js/modules/__tests__/toast.test.js"
+      },
+      {
+        "cases": 12,
+        "file": "static/js/modules/__tests__/user-profile-data.test.js"
+      },
+      {
+        "cases": 35,
+        "file": "static/js/modules/__tests__/workout-controls-persistence.test.js"
+      },
+      {
+        "cases": 13,
+        "file": "static/js/modules/__tests__/workout-plan-helpers.test.js"
+      },
+      {
+        "cases": 29,
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js"
+      },
+      {
+        "cases": 2,
+        "file": "static/js/modules/__tests__/workout-plan-state.test.js"
+      }
+    ],
+    "total_cases": 231,
+    "total_files": 13
+  }
 }
