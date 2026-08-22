@@ -2,6 +2,7 @@
 paths:
   - "tests/**"
   - "e2e/**"
+  - "static/js/**/*.test.js"
   - "tests/conftest.py"
   - "playwright.config.ts"
 ---
@@ -12,14 +13,14 @@ paths:
 
 Every test total lives in the generated inventory, not in prose:
 
-**[`docs/test_inventory/TEST_INVENTORY.md`](../../docs/test_inventory/TEST_INVENTORY.md)** — per-spec and per-file counts, the required-functional-gate size, and the hard-wait tally. Machine-readable twin: `TEST_INVENTORY.json`.
+**[`docs/test_inventory/TEST_INVENTORY.md`](../../docs/test_inventory/TEST_INVENTORY.md)** — per-spec and per-file counts, the required-functional-gate size, per-file Vitest case counts, and the hard-wait tally. Machine-readable twin: `TEST_INVENTORY.json`, which additionally carries the full sorted list of Vitest case identities under `vitest.cases` — that is what catches a JS case being *renamed*, which no count can see.
 
 ```bash
 .venv/Scripts/python.exe scripts/generate_test_inventory.py            # regenerate
 .venv/Scripts/python.exe scripts/generate_test_inventory.py --check    # diff vs committed
 ```
 
-CI regenerates and diffs it on every PR (`Test Inventory Drift (non-required)`). When your change moves a count, regenerate and commit the artifact in the same PR.
+CI regenerates and diffs it on every PR (`Test Inventory Drift` — a **required** branch-protection context; the job name carries no suffix). When your change moves a count, regenerate and commit the artifact in the same PR.
 
 Hand-maintained totals previously rotted into five contradictory numbers at once — the counts that used to sit here were among them. See blindspot B3 in [`docs/TESTING_STRATEGY_PLANNING.md`](../../docs/TESTING_STRATEGY_PLANNING.md). Don't reintroduce one.
 

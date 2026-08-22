@@ -26,6 +26,31 @@
 > confirmation (§11.18). **Packet F, Q4/D2 promotion and Q6 remain untouched and unauthorized**, which
 > is the one clause both annotations leave standing. This annotation follows the standard §10.12 set: when a commit falsifies prose
 > that was true before it, the prose is annotated in place and the live block carries the truth.
+>
+> ⚠️ **THIRD ANNOTATION — 2026-08-22, after the two above. Both are now falsified on the two clauses
+> they had left standing, and are annotated rather than rewritten.** **This document necessarily
+> predates its own merge**: every sentence above was written on the branch and could not describe what
+> happened to it. **The live truth is §13.0.**
+>
+> - **Packet C is MERGED.** PR [#410](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/410),
+>   squash **`9cb6cdc`**, merged **`2026-08-22T17:59:03Z`**. §11's "NOT MERGED" heading and §11.18's
+>   "T0 is NOT established by this packet" are annotated in place at each site.
+> - **T0 IS established: `2026-08-22T17:59:26Z`** — job `97070630453`
+>   (`JS Unit (Vitest, non-required)`) of post-merge `main` run
+>   [`32589375849`](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/32589375849),
+>   which was **18/18 green** on `9cb6cdc`. The strict 14-day mark is **`2026-09-05T17:59:26Z`**.
+>   Full ledger at §13.0.
+> - **Packet F planning HAS BEGUN and Packet F implementation remains UNAUTHORIZED.** The scoped plan
+>   and its Gate 1 council record are §13. **No generator, inventory artifact, JS test, workflow or
+>   branch-protection change is made or authorized by that section.**
+>   > ⚠️ **FOURTH ANNOTATION 2026-08-22 — the bullet above is SUPERSEDED.** The owner signed
+>   > **Gate 0 and Gate 1** at **§13.16** and authorized implementation, mutation execution,
+>   > commit, push and a ready-for-review PR. **Packet F is IMPLEMENTED and its PR is OPEN and
+>   > NOT MERGED** (§13.17). A generator change, both inventory artifacts, one new pytest file
+>   > and three documentation surfaces *were* changed — by that ruling, not by §13.
+>   > **No JS test, workflow, dependency, Vitest-config, branch-protection or repository-setting
+>   > change was made, and merging is still unauthorized.**
+> - **Q4, Q6 and D2 are still untouched and still unauthorized**, exactly as all three annotations say.
 > **Base**: `origin/main` @ `c404a06`, branch `wt/phase3-jsunit-gate0`, isolated docs-only worktree
 > — this is the **Gate 0 origin** of the document, not a base for any packet. Packet A built on
 > `9e5997a`’s base, Packet B rebased onto `0984d2e` (§10.12), and Packet B merged as `987588a`.
@@ -518,6 +543,19 @@ from the false-green hardening arc, and the reason `all: true` is set in the cov
 
 ## 5. Test-node inventory consequences
 
+> ⚠️ **ANNOTATION 2026-08-22 — §5 EXPIRES WHEN PACKET F MERGES, and is annotated, not rewritten.**
+> **Packet F's PR is open and NOT merged** (§13.18), so every statement below is still literally
+> true of `main` today. It stops being true the moment the PR lands.
+> Everything below was measured and true for Packets A–C, and **the five-row table is now
+> five-of-six**: Packet F added a **sixth** pinned surface — per-file Vitest case counts **and the
+> full sorted list of case identities** — so the "Adding `static/js/modules/__tests__/*.test.js`
+> touches none of them" sentence becomes **false the moment Packet F merges**. Every later JS test
+> add, remove or **rename** will then trip `Test Inventory Drift` and must ship a regenerated
+> artifact in the same PR.
+> §5's own closing note predicted exactly this. The live surface list is
+> [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)'s six-row table; the implementation record is
+> **§13.17**.
+
 **Measured: none. Packets A–C cannot trip `Test Inventory Drift`.**
 
 `scripts/generate_test_inventory.py` contains **zero** references to `vitest`, `test:js`,
@@ -652,6 +690,12 @@ Consequences, stated so no later session re-reads §6.3 as a promotion credit:
   §6.2 applies — an attributable, resolved, externally-caused red should be argued on the record, not
   silently discounted.
 
+> ✅ **THE WINDOW IS NOW RUNNING — annotation 2026-08-22.** The conditions this subsection describes in
+> the future tense have been met. **The final expansion packet (Packet C) landed as `9cb6cdc`**, and
+> **T0 = `2026-08-22T17:59:26Z`** (job `97070630453` of run `32589375849`). **The strict 14-day mark is
+> `2026-09-05T17:59:26Z`.** The live ledger, and the rule that Packet F may land inside the window
+> without restarting it, are at **§13.0**.
+
 ---
 
 ## 7. The exact branch-protection change, if the owner later signs D2
@@ -660,6 +704,15 @@ Recorded so it is unambiguous when the time comes. **Nothing in this section is 
 packet.**
 
 ### 7.1 Measured current state
+
+> ⚠️ **ANNOTATION 2026-08-22 — the 2026-08-15 reading below is SUPERSEDED and is annotated, not
+> rewritten.** Branch protection now carries **12** required contexts, not 11:
+> `JS Supply Chain (npm audit, non-required)` was promoted by PR #409 (`a937116`) on 2026-08-22.
+> **What has not changed, and is the load-bearing half for Packet F:** `Test Inventory Drift` is
+> still required, and **`JS Unit (Vitest, non-required)` is still absent.** Consequently the
+> promotion in §7.2 would add a **13th** context, not a 12th, and the whole `checks` array it must
+> resend has **12** entries. **Packet F changed no branch-protection setting** — it pinned the Vitest
+> surface *inside* the already-required `Test Inventory Drift` context, which is §2.5's whole design.
 
 `GET /repos/avihay1989/Hypertrophy-Toolbox-v3/branches/main/protection`, read 2026-08-15:
 
@@ -674,6 +727,11 @@ The 11 are: `Run Tests`, `E2E Functional (Chromium)`, `E2E Backup (Chromium, iso
 `E2E Erase Flow (Chromium, isolated, non-required)`, `Test Inventory Drift`.
 
 ### 7.2 The change
+
+> ⚠️ **ANNOTATION 2026-08-22 — read "12th" as "13th" and "11 existing entries" as "12".** See §7.1's
+> annotation: the live count moved to 12 with PR #409, and the count below is preserved as the
+> 2026-08-15 measurement it was. **Re-measure before executing this section** — it has now been wrong
+> once, and its failure mode is silently un-protecting a context by omitting it from the resent array.
 
 Add a **12th** context. The name must match the workflow's `name:` **byte for byte**:
 
@@ -1008,6 +1066,9 @@ must not.
 Measured in §5 — `scripts/generate_test_inventory.py` has **zero** references to `vitest`, `test:js`,
 `static/js`, or `*.test.js`, and none of the five pinned surfaces covers JS unit tests. Adding
 `workout-controls-persistence.test.js` therefore cannot trip `Test Inventory Drift`.
+
+> ⚠️ **ANNOTATION 2026-08-22 — true for Packet A, and Packet F ends it.** There are **six** pinned
+> surfaces once Packet F merges, and the sixth is exactly the one described as missing here.
 
 > **Confirmed empirically, not only by reading the generator.** With the new test file present,
 > `python scripts/generate_test_inventory.py --check` prints **"Test inventory is up to date"** and
@@ -2175,10 +2236,24 @@ B45 and B30–B35 are untouched.
 > open as a ready-for-review PR** (§11.17). It is **NOT merged** — that is a separate confirmation
 > (§11.18). **Packet F, Q4/D2 promotion and Q6 are still unauthorized and still unstarted**, exactly as
 > written.
+>
+> ⚠️ **ANNOTATION 2026-08-22 — falsified for Packet F ONLY, and annotated rather than rewritten.**
+> **Packet F is no longer "unstarted": planning has begun at §13**, and Packet C has since **merged**
+> (`9cb6cdc`). **Packet F implementation remains UNAUTHORIZED**, and **Q4, Q6 and D2 remain untouched
+> and unauthorized** — that half of the clause still stands exactly as written.
+>
+> ⚠️ **FURTHER ANNOTATION 2026-08-22 — "implementation remains UNAUTHORIZED" is now FALSE.**
+> Gate 0 and Gate 1 were signed at **§13.16**; Packet F is implemented, with an open, unmerged
+> PR (§13.17). **Q4, Q6 and D2 remain untouched and unauthorized** — that half still stands.
 
 ---
 
 ## 11. Packet C — scoped plan (`exercises.js`) — **PLAN v2; GATE 1 APPROVED AND EXECUTED 2026-08-22, NOT MERGED** *(the heading read "GATE 1 NOT YET APPROVED" until the ruling at §11.16)*
+
+> ⚠️ **ANNOTATION 2026-08-22 — "NOT MERGED" in the heading above is FALSIFIED and is annotated, not
+> rewritten.** **Packet C MERGED** as PR #410, squash **`9cb6cdc`**, at **`2026-08-22T17:59:03Z`**.
+> The heading records what was true when the section was written on the branch; §13.0 carries the
+> live state and the T0 ledger it started.
 
 > ⚠️ **SUPERSEDED 2026-08-22 — the STATUS line below described this section before Gate 1, and is
 > annotated rather than rewritten so the planning-time state stays legible.** **Gate 1 is APPROVED**
@@ -3103,7 +3178,9 @@ move a pinned count.** This statement expires the moment Packet F merges (§5's 
 runs every job. Whatever is decided locally, **the full Chromium matrix runs in CI regardless.**
 
 **A SIXTH surface, unwalked by Plan v1 and by Packet B's precedent: pytest contract tests that glob
-`static/js/**/*.js`** (council C-19). These are not part of QUALITY_GATE's five pinned surfaces, so
+`static/js/**/*.js`** (council C-19). These are not part of QUALITY_GATE's five pinned surfaces
+(**six** once Packet F merges — and its new sixth surface is a *different* mechanism from the one
+described here: it trips the inventory gate, not the full-pytest gate), so
 inheriting Packet B's derivation silently would have skipped them — and they run inside the **required**
 full-pytest gate, where a hit is a red, not a warning.
 
@@ -3307,6 +3384,11 @@ questions below are left as asked so each ruling can be read against the questio
    reverted and recorded only inside §11 — in which case §1.3 and §2.3 keep claims measured to be false.
 7. **Q4, Q6 and Packet F** — untouched and still open (§8, §2.5). Nothing in this plan touches any of
    them, and confirmation is sought only that none is drawn in by approving Packet C.
+   > ⚠️ **ANNOTATION 2026-08-22 — "untouched" is falsified for Packet F only.** Packet F **planning**
+   > has begun at §13; **implementation remains UNAUTHORIZED**. **Q4 and Q6 remain untouched.** The
+   > question itself was answered as written at the time it was put.
+   > **FURTHER ANNOTATION, same day:** implementation was subsequently **authorized and executed**
+   > (§13.16, §13.17). **Q4 and Q6 are still untouched.**
 
 *(Not owner questions, recorded here so they are not mistaken for any: the mutation-ID prefix is
 **`P`**, not `M`, because `M1`–`M19` belong to Packet A and `N1`–`N32` to Packet B — reasoning in §11.8;
@@ -3320,6 +3402,10 @@ and the mutation count moving 40 → 42 is a council-driven completeness fix, no
 > confirmation naming the PR (§11.18). **Packet F, Q4/D2 promotion and Q6 are still untouched and
 > still unauthorized**, exactly as this block says. The block below is **annotated, not rewritten**, so
 > the pre-authorization state stays legible — the §10.12 discipline.
+>
+> ⚠️ **FURTHER ANNOTATION 2026-08-22 — "Packet F ... still untouched" is now FALSE.** Packet F was
+> authorized at §13.16 and executed at §13.17; its PR is open and unmerged. **Q4 / D2 promotion /
+> Q6 remain untouched and unauthorized.**
 
 > **This plan is not authorization to write it.**
 
@@ -3686,6 +3772,19 @@ and that this commit falsified, annotated in place under the §10.12 discipline 
 The one clause every annotation leaves untouched, because it is still true: **Packet F, Q4/D2 promotion
 and Q6 remain untouched and unauthorized.**
 
+> ⚠️ **ANNOTATION 2026-08-22 — this is a META-claim about the annotations, and it is now falsified in
+> its own terms.** A **fourth** annotation round exists (the header's THIRD ANNOTATION, §6.5, §11
+> and §11.18) and it does **not** leave the clause untouched: **Packet F planning has begun at §13**,
+> so "untouched" is no longer true of Packet F. **The surviving clause, restated exactly:**
+> **Packet F implementation remains UNAUTHORIZED, and Q4 / D2 promotion / Q6 remain untouched and
+> unauthorized.** Recorded here rather than rewritten, because a sentence whose subject is the
+> annotation record must itself be annotated when the record grows.
+>
+> ⚠️ **AND THE RECORD GREW AGAIN, 2026-08-22.** By its own rule this sentence is annotated a
+> second time: **Packet F implementation is no longer unauthorized** — Gate 0 and Gate 1 were
+> signed at **§13.16** and executed at **§13.17**, with **merge** still requiring its own
+> confirmation. **Q4 / D2 / Q6 remain untouched and unauthorized.**
+
 **Authoring decisions worth recording, because a later reader would otherwise re-derive them:**
 
 - **The rejection fixtures are `Object.freeze`d.** §11.3 rule 2 fixes the *shape*; freezing additionally
@@ -3832,6 +3931,25 @@ its own authorization, and each touches a file Packet C may not edit):
 **T0 is NOT established by this packet.** It begins only after a separately authorized Packet C merge
 **and** the first successful post-merge `main` `JS Unit (Vitest, non-required)` run.
 
+> ⚠️ **ANNOTATION 2026-08-22 — the paragraph immediately above is FALSIFIED and is annotated, not
+> rewritten.** It was correct as a statement about *this packet*: Packet C did not establish T0, and
+> could not. **Both of its two conditions have since been met.** The owner authorized the merge
+> separately; PR #410 merged as **`9cb6cdc`** at **`2026-08-22T17:59:03Z`**; the first successful
+> post-merge `main` `JS Unit (Vitest, non-required)` run is job **`97070630453`** of run
+> **`32589375849`**, completed **`2026-08-22T17:59:26Z`**. **T0 = `2026-08-22T17:59:26Z`.**
+>
+> The **STOP above still stands as written for everything it lists except the Packet C merge**, which
+> the owner has since authorized and which has happened. **Packet F remains unauthorized for
+> implementation** — §13 is planning and a Gate 1 council record only, and it makes no generator,
+> inventory, JS-test, workflow or branch-protection change. **Q4 / D2 / Q6 are untouched.**
+>
+> ⚠️ **FURTHER ANNOTATION 2026-08-22 — the "Packet F remains unauthorized" sentence is now FALSE.**
+> Gate 0 and Gate 1 were signed at §13.16 and Packet F is implemented (§13.17): the generator and
+> both inventory artifacts DID change. **No JS-test, workflow or branch-protection change was
+> made, merge is still unauthorized, and Q4 / D2 / Q6 are still untouched.** *(Found by review:
+> §11.18 carries TWO such sentences and the first pass annotated only one — a partially-annotated
+> record is its own defect, and the packet had already listed §11.18 as done.)*
+
 ---
 
 ## 12. Provenance
@@ -3856,3 +3974,1533 @@ its own authorization, and each touches a file Packet C may not edit):
 > **Every number in §1.1, §6 and §7.1 is a live measurement taken this session, not a figure copied
 > from another document.** Where a measurement contradicted a source document, the contradiction is
 > recorded in place (§1.1, §1.2) rather than silently reconciled.
+
+---
+
+## 13. Packet F — scoped plan (Vitest inventory + drift enforcement) — PLAN v2; **GATE 0 AND GATE 1 APPROVED AND EXECUTED 2026-08-22, NOT MERGED** *(the heading read "GATE 1 NOT YET APPROVED" until the ruling at §13.16)*
+
+**This section is appended AFTER §12 Provenance on purpose, and the ordering is not a mistake to be
+fixed.** Renumbering §12 a second time is a known hazard here — Packet C already renumbered
+§11 → §12 once and had to verify twice that nothing cited a "§11 Provenance" (§12's own note,
+§11.15-C-20) — and **nothing outside this file cites a section number in it**, so appending costs
+nothing while renumbering risks orphaning a cross-reference for a second time. §12 remains the Gate 0
+provenance record; Packet F's provenance is §13.0 and §13.2.
+
+**Council status, stated so the "PLAN v2" label in the heading is not over-read.** The label is the one
+this section was created under. **No Gate 1 council record for Packet F exists in this document** —
+§11.15 is *Packet C's* council record and belongs to it. If a council runs against §13, its response
+matrix belongs in a new subsection and the label is earned there; until then the heading's "PLAN v2"
+describes the drafting round, not a reviewed-and-dispositioned round. **The launching session supplied
+no agent ID to the writer of this section**, so no agent-provenance stamp is made here rather than an
+invented one.
+
+**Evidence rule for this whole section.** Every number below comes from a **live measurement dossier
+taken 2026-08-22 in this worktree** (`D:\development\Hypertrophy-Toolbox-v3-main-phase3-packet-f-inventory`,
+branch `wt/phase3-packet-f-inventory`, base `9cb6cdc`, with `npm ci` run **inside** the worktree).
+That dossier is a **session scratchpad and is not committed to the repository**, which is why §13.2
+restates its content rather than linking to it, and why its identifiers (**M0–M8**, **P1–P14**) are
+quoted on every claim that rests on them. **Where the dossier lacks a fact, this section says
+`MEASUREMENT NOT TAKEN` or `OPEN QUESTION` instead of supplying one** (§13.2's second table, and
+§13.12). Nothing in §13.8 has been executed.
+
+> ⚠️ **ANNOTATION 2026-08-22 — the last sentence is now FALSE and is annotated, not rewritten.**
+> **The whole of §13.8 has since been executed**, with the revisions §13.15 requires. Measured
+> results, deviations and every survivor are at **§13.17**; §13.8 remains the **prediction** it
+> was written as, so that prediction and outcome can still be compared. The `MEASUREMENT NOT
+> TAKEN` rows are also partly closed there — though **NT-4 is NOT among them**: Linux behaviour of
+> `vitest list --json` is measured by the PR's ubuntu `Test Inventory Drift` run and by nothing
+> before it.
+
+### 13.0 Packet C merge, T0, and the live qualification-window ledger
+
+**Three annotation blocks elsewhere in this document point forward to this subsection** — the header's
+THIRD ANNOTATION, §6.5's "THE WINDOW IS NOW RUNNING" block, and §11.18's T0 annotation. This is the
+live block they defer to.
+
+**Packet C merged.** *(M0)*
+
+| Item | Measured value |
+|---|---|
+| PR | [#410](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/410), head `wt/phase3-packet-c-exercises` |
+| State | **`MERGED`** |
+| Squash commit | **`9cb6cdc`** (`9cb6cdc70fde23e3a2b6428084a5672b6b6700c3`) — this is `origin/main` |
+| Merged at | **`2026-08-22T17:59:03Z`** |
+| Post-merge `main` run | [`32589375849`](https://github.com/avihay1989/Hypertrophy-Toolbox-v3/actions/runs/32589375849) — workflow `CI/CD Pipeline`, event `push`, headSha `9cb6cdc`, conclusion **success**, **18 jobs, all 18 `success`** |
+| Open PRs at planning time | **0** |
+
+**T0 is established, and it is a job-level fact, not a workflow-level one** — §6.1's discipline, which
+resolves every window measurement to the exact context string rather than to the run's overall
+conclusion.
+
+| Item | Measured value |
+|---|---|
+| T0 job | **`97070630453`** — `JS Unit (Vitest, non-required)`, conclusion **`success`** |
+| **T0** | **`2026-08-22T17:59:26Z`** (job `completedAt`) |
+| **Strict 14-day mark** | **`2026-09-05T17:59:26Z`** |
+
+**The ledger — every `main` `JS Unit (Vitest, non-required)` result from T0 onward.** *(M0)*
+
+| # | `main` run | Job | Conclusion | Completed (UTC) |
+|---|---|---|---|---|
+| **1 — T0** | `32589375849` (`push`, `9cb6cdc`, 18/18 `success`) | `97070630453` | **`success`** | **`2026-08-22T17:59:26Z`** |
+| — | **No `main` run has occurred after T0.** T0's run is the newest `main` run at planning time | — | — | — |
+
+| Ledger tally, at planning time | Value |
+|---|---:|
+| Green `main` `JS Unit` results since and including T0 | **1** |
+| **Red** results | **0** |
+| **Missing** results (a `main` run with no `js-unit` job) | **0** |
+| **Cancelled** results | **0** |
+| `main` runs after T0 of any kind | **0** |
+
+**No red, missing or cancelled result exists in the window.** The window opened on the day this section
+was written (**2026-08-22**), so the ledger is one row long by arithmetic, not by omission — and it must
+be **extended, never restated from memory**, at every later session until `2026-09-05T17:59:26Z`.
+
+**The standing rule, from §6.5, and why Packet F satisfies it.**
+
+> **"Final expansion packet" means the last of A, B, C to merge. Packet F is a separate required
+> predecessor (§2.5) and may land inside the window; it does not restart it.**
+
+**Packet F qualifies because it changes no JS test case.** Its diff (§13.1) touches the generator, the
+generated inventory artifacts, one **pytest** file and this document — **zero files under
+`static/js/**`**, and **zero** existing Vitest tests. The suite the window is qualifying —
+**13 files / 231 cases** (M4) — is byte-identical before and after Packet F, so the run that the window
+counts is measuring exactly the same thing on either side of the merge. Had Packet F added, removed or
+renamed a single JS case, Q2's restart clause would engage on its own terms and this paragraph would be
+wrong; §13.10 therefore makes **"13 files / 231 cases unchanged"** a gate, not a nicety.
+
+**Status, stated exactly, because three annotations depend on this clause holding:**
+
+> **Packet F planning has begun. Packet F implementation remains UNAUTHORIZED.**
+>
+> ⚠️ **ANNOTATION 2026-08-22 — SUPERSEDED by §13.16.** Gate 0 and Gate 1 are signed and
+> implementation is complete (§13.17). **Q4, Q6 and D2 are still untouched**, and **merge is
+> still unauthorized**. The three annotations that depend on this clause are each annotated in
+> place rather than left to be re-derived from here.
+
+This section is a plan and nothing else. **No generator change, no regenerated artifact, no pytest file,
+no JS test, no workflow edit and no branch-protection change is made or authorized by it.** **Q4, Q6 and
+D2 are untouched.** §13.13 restates the stop in full.
+
+### 13.1 Ownership, containment, and the must-not-touch list
+
+| | |
+|---|---|
+| **Implementation modifies** | [`scripts/generate_test_inventory.py`](../../scripts/generate_test_inventory.py) — extended with **one** new collector and **one** new inventory block |
+| **Implementation regenerates** | [`docs/test_inventory/TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) and [`docs/test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md) — **regenerated by the script, never hand-edited** ([`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md), *"Never hand-edit it"*) |
+| **Implementation creates** | **Exactly one** new pytest contract file (name and justification: §13.7) |
+| **This packet may modify** | `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md` (this plan and its later execution record) |
+| **Total files in the diff** | **five**. A **sixth file voids §13.10's gate derivation** and the gate set must be re-derived before anything is committed — the §11.12 rule, restated because Packet F's diff is larger than any previous step-12 packet's. ⚠️ **ANNOTATION 2026-08-22: the ceiling is SEVEN, by owner ruling QF5** (§13.16), which moved [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) and [`.claude/rules/testing.md`](../../.claude/rules/testing.md) in-scope. **The gate set was re-derived and did not change** — the *Tooling / scripts* row forces `/verify-suite` regardless, and `docs/**` plus an in-place edit under `.claude/rules/` add no gate. **Eight files is still a stop condition.** |
+
+**Must not touch — each row has a reason, not just a prohibition:**
+
+| Path / surface | Why it is off-limits |
+|---|---|
+| `static/js/modules/**` (production **and** `__tests__/**`) | Touching a JS test would move the 231-case suite and re-engage Q2's restart clause (§13.0). **This is the single most load-bearing containment rule in the packet.** |
+| Any existing test file, JS or pytest | Same class; and an existing pytest file's node count moving would confound M8's second inventory move with a real change |
+| `package.json`, `package-lock.json` | A dependency change is not a test-inventory change; and the shared `main` checkout is already at vitest **4.1.10** against a lockfile pinning **4.1.11** (M4) — a lockfile edit would make that divergence worse, not better |
+| [`vitest.config.js`](../../vitest.config.js) | §11.1's ruling stands: the `configLoader: 'native'` warning (P11, §11.2) is **pre-existing** and Packet F must not "fix" it. Editing the config would convert a tooling packet into a config change and move the collector's own inputs |
+| [`.github/workflows/**`](../../.github/workflows/ci.yml) | **No workflow edit is needed**: the `test-inventory` job already runs `npm ci` and already runs `--check` as its blocking step (M6). The job's stale *"not in branch protection"* comment is **known-stale and deliberately not fixed** ([`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)); Packet F does not own it |
+| `scripts/release_gate.py` | Holds `REQUIRED_CONTEXTS`, the in-repo copy of the protected-context list. **`Test Inventory Drift` is already required (M1)** so no context is added or renamed by this packet, and that file must not move |
+| Branch protection / repository settings | **No new required context.** `Test Inventory Drift` is context #11 of the **12** measured live (M1); the new surface inherits enforcement, which is §2.5's whole design |
+| Production Python / Flask behavior (`routes/**`, `utils/**`, `app.py`, `templates/**`) | Out of scope entirely. Packet F is a tooling packet |
+| `e2e/**` | Packet F **runs** the Chromium suite (§13.10) and adds, removes and renames **no** spec — which is what keeps two of the five pinned surfaces still *(six after this packet; the two E2E ones are unaffected either way)* |
+| `.claude/settings.json`, any harness or permission configuration | **A permission failure during execution is a blocker to report, not authority to change configuration** (§11.12's rule, restated verbatim) |
+| Shared canonical documents — `docs/MASTER_HANDOVER.md`, `docs/TESTING_STRATEGY_PLANNING.md`, `docs/UI_SCENARIOS_GAP_ANALYSIS.md`, [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) | Read-only here. **Two of them are made incomplete by this packet and the repair is routed to the owner, not taken** — §13.11-RF3 and §13.12-QF5 |
+| §5 and §7 **of this document** | §5's expiry note and §7.1's context count both move when Packet F lands, and **both are recorded as observed drift in §13.11 rather than edited**. M1 is explicit: *"Record this as an observed drift; do NOT edit §7 — Packet F does not own it."* |
+
+**Must not do**: promote `js-unit`; act on **Q4**, **Q6** or **D2**; begin any other packet; edit
+`QUALITY_GATE.md`'s pinned-surface table even though this packet makes it a five-of-six list; or run
+any mutation against the real `static/js` suite.
+
+> ⚠️ **ANNOTATION 2026-08-22 — one clause above is SUPERSEDED; the rest stands.** Owner ruling
+> **QF5** (§13.16) moved [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)'s pinned-surface table
+> **and** [`.claude/rules/testing.md`](../../.claude/rules/testing.md) **in-scope**, and both were
+> edited; §5 and §7.1/§7.2 were **annotated** under the same ruling, superseding the
+> *"recorded as observed drift, not fixed"* disposition in the two rows above. **Everything else
+> here held**: `js-unit` was not promoted, Q4/Q6/D2 were not acted on, no other packet was begun,
+> and **no mutation ran against the real `static/js` suite** — R1 deleted those arms and the
+> executed matrix confirms it (§13.17 Part 4).
+
+### 13.2 What was measured before planning
+
+**Every row is measured in this worktree on `9cb6cdc`, 2026-08-22, with `npm ci` run inside the
+worktree.** §11.15 Part 1 established the discipline this subsection imitates: **measured and reasoned
+are separated explicitly, and reasoning is never presented as measurement.**
+
+**Part 1 — MEASURED.**
+
+| ID | Measurement | Result | What it settles |
+|---|---|---|---|
+| **M0** | Ground truth | `origin/main` = **`9cb6cdc`**; PR #410 **MERGED** `2026-08-22T17:59:03Z`; post-merge run `32589375849` **18/18 success**; T0 job `97070630453` at **`2026-08-22T17:59:26Z`**; **0** `main` runs after T0; **0** open PRs; **no** pre-existing Packet F branch, worktree or PR (the only `packet.f` branch match is `wt/theme-animating-packet-f`, an unrelated historical CSS branch); worktree clean | §13.0's ledger, and that Packet F starts from nothing |
+| **M1** | Branch protection, read live | **12** required contexts. **`Test Inventory Drift` IS required.** `JS Unit (Vitest, non-required)` is **absent** | **Packet F needs no branch-protection edit** — §2.5's central claim, now measured rather than assumed |
+| **M2** | The generator at `9cb6cdc` | 461 lines; top-level JSON keys are exactly **`schema_version`, `generator`, `playwright`, `pytest`, `hard_waits`**; `SCHEMA_VERSION = 1`; `render_json` = `json.dumps(indent=2, sort_keys=True) + "\n"`; `_write(newline="\n")`; `_normalize()` collapses CRLF/CR; `_check()` prints **up to 200** unified-diff lines. **Zero Vitest references** in the generator or in either committed artifact. **Baseline `--check` is CLEAN** (`Test inventory is up to date.`, exit 0) | The extension point, the fail-closed idioms to **match not reinvent**, and a clean baseline to mutate from |
+| **M3** | Consumer inventory (exhaustive grep over `*.py`, `*.yml`, `*.js`, `*.ts`, excluding `node_modules`, `.venv`, `artifacts/`) | The `ci.yml` *"Report totals"* step **indexes named keys only and never enumerates**, so a new sibling key is invisible to it. **No consumer parses the Markdown. No consumer enumerates top-level keys, validates a schema, or branches on `schema_version`.** The only *asserted* `schema_version` in the repo belongs to the unrelated program-backup feature. **No pytest file tests `scripts/generate_test_inventory.py` at all** | §13.5's `schema_version` ruling, and §13.7's "no overlap, because there is nothing to overlap with" |
+| **M4** | Vitest baseline | **vitest 4.1.11** in this worktree (`vitest/4.1.11 win32-x64 node-v24.19.0`), lockfile-matching. **`npx vitest run` → 13 files passed (13), 231 tests passed (231), real exit 0.** Per-file counts: 15 / 29 / 2 / 15 / 3 / 7 / 22 / 47 / 12 / 35 / 13 / 29 / 2 = **231 across 13 files**. **231 unique `(file, name)` identities — zero collisions.** `vitest.config.js` `include` = `['static/js/**/*.test.js']`, environment `node` | The pin Packet F must reproduce, and §13.10's unchanged-suite gate |
+| **M4-w** | The shared checkout | **The shared `main` checkout's `node_modules` has vitest 4.1.10** — behind the lockfile | **Any measurement taken in the shared checkout is against the wrong runner.** Implementation must `npm ci` inside its own worktree |
+| **P1** | `vitest list`, human form | 231 stdout lines, `<repo-relative posix path> > <suite> > … > <case>`, exit 0 | Paths are already relative here — but see P3 |
+| **P2** | `vitest list --json`, stdout form | A JSON **array**; each element has **exactly two keys**, `name` and `file`. `file` is **ABSOLUTE** with forward slashes. **No status, no `title`, no `ancestorTitles`** | §13.4's element-shape validation and the relativization requirement |
+| **P3** | Determinism of listing order | **Three consecutive runs on an unchanged tree produced three different md5 sums.** After mapping to `(relative_file, name)` and **sorting**, all three are **byte-identical, 231 rows** | **Sorting is mandatory, not stylistic** — an unsorted pin reds a *required* gate at random |
+| **P4** | `.skip` / `.todo` / `describe.skip` | **OMITTED entirely.** A 9-case probe listed **6** | Cuts both ways: drift **is** detectable (the row disappears), and **status is NOT reportable** — §13.3's price |
+| **P5** | `test.each` | `test.each([1,2,3])` lists as **three separate rows** | Parameter-array shrinkage is detectable by count **and** identity |
+| **P6** | `.only` | Collapses the file to its single `only` case; probe total went **231 → 232** instead of 231 + 9 | **A `.only` anywhere is a massive, unmissable identity change** |
+| **P7** | `CI=true` | With `CI=true` **and** an `.only`, `vitest list --json` **exits 1 while still printing complete, parseable JSON**. With `CI=true` and no `.only`, exit **0** and the listing is the normal 231/13 | **The exit code must be checked; parseable output is not proof of success.** And the Linux CI job and a local Windows run agree on the clean tree |
+| **P8** | A syntactically broken test file | Exit **1**, **0 bytes** of stdout | Collection failure is loud, not silent |
+| **P9** | stdout contamination | A module-level `process.stdout.write('RAW STDOUT WRITE\n')` prefixed the JSON; parsing the captured stdout failed with `Unexpected token 'R'`, **exit code 0** — the exit code did **not** catch it. `console.log` was intercepted and did not leak | **Capturing stdout is an unsafe channel** |
+| **P10** | `--json=<path>` | Wrote clean, fully parseable JSON to the file **while the same noise went to stdout and was discarded**. Exit-code semantics unchanged | **This is the robust capture channel** — §13.3's choice |
+| **P11** | stderr | **Every** invocation writes ~385 bytes of `configLoader: 'native'` warning to stderr | **stderr can never be a health signal**, and merging it into the capture channel would contaminate **every** run |
+| **P12** | Delimiter ambiguity | `name with > angle` + `has > inside name` → `name with > angle > has > inside name`. The join is **not invertible** | Acceptable **only** if the joined string is used whole and never re-split. **Measured today: 231 rows, 231 unique identities, zero collisions** |
+| **P13** | The alternative collector, `vitest run --reporter=json` | Strictly richer — `status` (`passed`/`skipped`/`todo`), `ancestorTitles` as an **array**, `duration`. Reported **240** on the probe tree | **Disqualified. §13.3 treats this as a stop-condition, not a trade-off** |
+| **P14** | Path relativization on Windows | `Path('D:/…/exercise-helpers.test.js').relative_to(REPO_ROOT).as_posix()` → `static/js/modules/__tests__/exercise-helpers.test.js`, **including with a lower-case drive letter** (`WindowsPath` comparison is case-insensitive). **No custom normalization needed** beyond `relative_to` + `as_posix()` | §13.4's relativization, with no hand-rolled path munging |
+| **M6** | The `test-inventory` CI job | `runs-on: ubuntu-latest`, timeout 20 min; **`npm ci` already runs in this job**; the blocking `--check` step captures `$STATUS` and `exit $STATUS`; installs **no browsers** and starts **no Flask server** | **A Vitest collector needs no new step, no new dependency and no workflow edit** — and `vitest list` needs neither a browser nor a server, so that property is preserved |
+| **M7** | Gate routing for Packet F's own diff | [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)'s **Tooling / scripts** row requires **`/verify-suite` regardless of what the targeted-test search returns** for a script that *"implements one of the two blocking gates (`generate_test_inventory.py`, `pyright_baseline_diff.py`)"*. `/verify-suite` = **full pytest + full Chromium E2E**. Reviewer: `code-reviewer`. `product-risk-reviewer` is **not** triggered — this script does not write the `exercises` catalog. `docs/**` edits fall under *Product docs only*: no tests required | §13.10's gate set is **forced**, not chosen |
+| **M8** | The self-tripping regeneration | Packet F moves the inventory **twice**: (1) the new Vitest surface appears for the first time; (2) **adding a new pytest file under `tests/`** changes per-file pytest node counts and `total_files` / `deterministic_files`. Both must land in the **same commit** | §13.11-RF1, and §13.10's regenerate-last ordering |
+
+**Part 2 — REASONED, not measured.** Every one of these is derived by reading source or documents. It is
+recorded separately so no later session promotes an inference to a measurement:
+
+| Claim | Basis |
+|---|---|
+| **A new top-level `vitest` key breaks no consumer** | Reasoned from M3's *behavior* of the `ci.yml` step (named-key indexing). **No one ran the modified step.** The proof is the CI run in §13.10, not this table |
+| **The `&` in `_check(JSON) & _check(MD)` is non-short-circuiting, so a Markdown-only staleness is always reported** | Read from the generator source (`main()`), not executed |
+| **Windows and Linux will agree on the sorted identity list** | Reasoned from P14 (relativization) + P3 (sorting) + P7 (CI=true agrees on a clean tree). **No Linux run was performed** — see the `MEASUREMENT NOT TAKEN` table |
+| **Every mutation row's kill prediction (§13.8)** | Derived by reading the generator and the dossier. **Nothing in §13.8 has been executed** — ⚠️ **ANNOTATION 2026-08-22: all of it has now been executed; the measured results are §13.17, and three predictions were wrong.** |
+| **`schema_version` should increment** | A judgement about what the field is *for*, resting on M3's finding that nothing reads it. **Flagged for the owner** (§13.12-QF2) |
+
+**Part 3 — MEASUREMENT NOT TAKEN.** These facts are needed by the plan and the dossier does not contain
+them. **None is guessed.**
+
+| # | Missing fact | Why it matters | When it must be taken |
+|---|---|---|---|
+| **NT-1** | The **pytest baseline node count / file count** on `9cb6cdc` | M8's second inventory move is a pytest-count move, and §13.10 wants a before/after | At execution, **before** the new contract file is written |
+| **NT-2** | Whether the **`Run Tests` (pytest) CI job installs `node_modules`** | Decides whether a pytest contract test may shell out to `vitest` at all. **M6 measured only the `test-inventory` job.** §13.7 designs around this by forbidding the subprocess in the contract test, so the answer changes nothing — but the plan must not *assume* it | Before any contract test is written that would need it |
+| **NT-3** | Whether any **`VITEST_*` environment variable** redirects or alters `--json=<path>` output | `collect_playwright()` pops three `PLAYWRIGHT_JSON_OUTPUT_*` vars for exactly this reason; the Vitest analogue is unprobed | At implementation, before the subprocess call is finalized |
+| **NT-4** | **Linux behavior of `vitest list --json`** | Every probe P1–P14 ran on **win32-x64 / node v24.19.0**. Cross-platform agreement is *reasoned*, and its only proof is the first ubuntu `--check` | The PR's first `test-inventory` CI run (§13.10) |
+| **NT-5** | The **size** of the regenerated artifacts (added JSON/Markdown lines) | Bears on NT-6 and on review cost | At regeneration |
+| **NT-6** | Whether a whole-surface drift **exceeds `_check()`'s 200-line diff cap** | With a 231-row identity list, a surface-wide drift could be truncated in the CI report — the gate still **reds**, but the operator sees a truncated diff | At the first deliberate red (§13.10 step 4) |
+| **NT-7** | Whether **`describe.each`** expands in `vitest list` the way `test.each` does (P5 measured `test.each` only) | Only matters if a future JS test uses it; today none is known to | Before any future packet adds one |
+| **NT-8** | The **wall-clock cost** of `vitest list` inside the `test-inventory` job (20-minute timeout, M6) | A collector that materially lengthens a required job is a cost the owner should see | The PR's first CI run |
+| **NT-9** | `vitest list --filesOnly` output shape | Documented in `--help` (M5) but **not probed**. Named only so a later reader does not think it was evaluated and rejected on evidence | Only if the file-level-only design is ever revisited |
+
+### 13.3 Collector design — `vitest list --json=<path>` CHOSEN; `vitest run --reporter=json` REJECTED
+
+**The rejection is a stop-condition that was triggered and resolved by design, not a preference
+balanced against others.**
+
+| Candidate | Verdict | Basis |
+|---|---|---|
+| **`vitest list --json=<path>`** | **CHOSEN** | P10 — writes clean, fully parseable JSON to a file **while stdout noise is discarded**. P2 gives a two-key element shape that is trivially validated. P7/P8 keep the exit code meaningful |
+| `vitest list --json` to **stdout** | Rejected | **P9** — a single module-level `process.stdout.write` prefixes the payload, `JSON.parse` fails with `Unexpected token 'R'`, **and the exit code is 0**. The failure is silent in exactly the channel the design would depend on |
+| `vitest list` **human form** | Rejected | P1's paths are already relative and POSIX, which is tempting — but the output is a `>`-joined line format with **no structure**, and P12's join is non-invertible, so a parser would be guessing where the path ends and the suite begins |
+| `vitest list --filesOnly` | Rejected | File-level only: it cannot see a deleted, renamed, `.skip`-ed or `.todo`-ed **case**, which is the entire requirement in §2.5. **Its exact output shape is NT-9, unprobed** — it is rejected on *what it reports*, not on measured behavior |
+| **`vitest run --reporter=json --outputFile=<path>`** | **REJECTED — stop-condition** | See below |
+
+**Why `vitest run --reporter=json` is a stop-condition.** P13 measured that it is **strictly richer**:
+`status` (`passed`/`skipped`/`todo`), `ancestorTitles` as an **array** (no delimiter ambiguity at all),
+`fullName`, `numTotalTests`. On the probe tree it reported **240** total — 231 plus **all 9** probe cases
+including the skipped and todo ones. Everything §13.3 gives up, that reporter provides.
+
+**It is still disqualified, on two grounds, and the second one alone ends the discussion:**
+
+1. **It runs the tests.** `duration` is in the payload, so the collector's output becomes a function of
+   machine speed. The determinism contract in the generator's own module docstring — *"no timestamps, no
+   absolute paths, no host or tool versions"* — is violated at the source, and the inventory would have
+   to strip the very fields that make the reporter richer.
+2. **It couples a REQUIRED context to JS test OUTCOMES.** `Test Inventory Drift` **is required** (M1).
+   If the generator shells out to `vitest run`, then **a single failing or flaky JS test reds a required
+   check** — which is **de-facto promotion of `js-unit` to required**, the exact decision **D2 reserves
+   for the owner** and which §0.1's revised gate places **after** a 14-day window that is still running
+   (§13.0). **A packet whose stated purpose is to *precede* promotion cannot implement promotion as a
+   side effect of a collector choice.**
+
+> **This is recorded as a stop-condition already triggered and resolved.** The condition — *"the design
+> would make `js-unit` outcomes block merges before D2 is signed"* — was reached during design, and the
+> resolution is the collector choice itself. Had `vitest list` not existed, the correct action would have
+> been to **stop and ask the owner**, not to adopt `vitest run` and note the coupling in a risk table.
+
+**The price paid, stated plainly rather than minimized.** Per **P4**, `vitest list` **omits `.skip`,
+`.todo` and `describe.skip` cases entirely** — a 9-case probe listed 6. Therefore:
+
+- **The collector cannot report a `run` / `skip` / `todo` status. It cannot distinguish a skipped case
+  from a deleted one.**
+- **The schema must not claim to store status** (§13.5), and §13.7's contract test asserts the
+  **absence** of any `status` key in the Vitest block, so the limitation is enforced rather than merely
+  documented. A negative that nothing asserts is asserted by nothing.
+- **The requirement in §2.5 is still met**: marking a case `.skip` or `.todo` **removes its row**, which
+  moves both the count and the identity list, which reds the drift gate. The gate cannot stay green when
+  a case is silently disabled — which is what §2.5 asked for. What is lost is *honest reporting of why*,
+  not *detection*.
+
+### 13.4 Parser and subprocess design
+
+**Shape, matching `collect_playwright()` and `collect_pytest()` rather than inventing a third idiom
+(M2).** The new function is `collect_vitest() -> tuple[dict[str, int], list[tuple[str, str]]]` —
+per-file counts **and** the sorted identity list, returned together so the two can never be derived from
+different runs.
+
+**Exact argv:**
+
+```python
+[_npx(), "vitest", "list", f"--json={output_path}"]
+```
+
+- **`_npx()` is reused, not re-implemented.** It already raises `SystemExit` when `npx` is missing, with
+  a message that names `npm ci` — the exact failure a fresh worktree hits. Matching M2's idiom.
+- **`cwd=REPO_ROOT`**, as both existing collectors do, so `vitest.config.js` resolves and the emitted
+  absolute paths are inside the repository (P14's precondition).
+- **`capture_output=True, text=True, encoding="utf-8", errors="replace"`** — identical to the existing
+  collectors. stdout is captured **only to be quoted in an error message**, never parsed (P9).
+- **`env`**: the existing `collect_playwright()` pops three `PLAYWRIGHT_JSON_OUTPUT_*` variables so an
+  ambient setting cannot redirect the report. **The Vitest analogue is `NT-3` — unmeasured.** The plan's
+  instruction is to **probe it before finalizing**, and if any such variable exists, pop it by the same
+  pattern. **Do not add speculative pops for names nobody measured.**
+- **`CI` is neither set nor unset.** P7 measured both directions: on a clean tree `CI=true` gives exit 0
+  and the normal 231/13, so the ubuntu job and a local Windows run agree; with an `.only` present,
+  `CI=true` gives **exit 1 with parseable output** — which the exit-code check (below) turns into a loud
+  failure, and which is the **desired** behavior for a stray `.only`.
+
+**The temporary file — created outside the repository, on purpose.**
+
+| Decision | Reason |
+|---|---|
+| Use `tempfile.mkdtemp()` in the **OS temp directory**, and write `<dir>/vitest-list.json` | P10 requires a file channel. Putting that file **inside** the repository risks two known traps: the *parametrized configuration surface* trips on **adding or deleting any file** under `.claude/commands/`, `.claude/agents/`, `.claude/rules/` or `docs/ai_workflow/` ([`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)), and that same document warns to **"never regenerate while an untracked or gitignored `.md` sits in a globbed surface directory"**. A transient file the generator itself creates during `--check` is precisely the shape of that trap. Keeping it out of the tree removes the class |
+| Create the **directory**, let **Vitest** create the file | On Windows, holding an open Python handle on a path a child process is about to write is a locking hazard. Nothing needs the file until the child exits |
+| Remove the whole temp directory in a **`finally`** | The generator runs in CI and locally; a leaked temp directory per invocation is a slow leak, and cleanup in `finally` survives the `SystemExit` paths below |
+| **Never** write it under `artifacts/` or the repository root | Repository-root policy (ADR-002, [`CLAUDE.md`](../../CLAUDE.md) §3). `artifacts/` would also be *acceptable* by that policy — it is rejected only because the OS temp dir cannot interact with any globbed surface at all |
+
+**Order of operations — the exit-code check comes BEFORE the parse, and that ordering is load-bearing:**
+
+1. **Run** the subprocess.
+2. **Check `result.returncode != 0` → `SystemExit`**, quoting truncated stdout **and** stderr, in the
+   format `collect_playwright()` already uses. **P7 is the reason this is step 2 and not step 5**: a
+   nonzero exit can accompany complete, parseable JSON, and a parser that reads the file first will
+   produce a perfectly valid inventory from a run the runner considered failed. **P8 is the reason it
+   cannot be skipped**: a broken test file exits 1 with 0 bytes, and the error message must say so rather
+   than surfacing as a `FileNotFoundError`.
+3. **Check the output file exists and is non-empty** → `SystemExit` naming the path.
+4. **`json.loads`** the file's text. A `json.JSONDecodeError` is caught and re-raised as `SystemExit`
+   with the first ~2000 bytes quoted — a truncated write must not surface as a traceback.
+5. **Validate the top-level is a `list`** and that it is **non-empty** → `SystemExit`
+   (*"refusing to write an empty inventory"*, matching `collect_playwright()`'s wording).
+6. **Validate every element's shape**: a `dict` whose key set is **exactly `{"name", "file"}`** (P2).
+   **Exactly**, not "at least" — a superset means the tool's output format changed, which is precisely
+   what `collect_pytest()`'s parser-drift check exists to catch. Message: *"the output format changed;
+   fix the parser rather than committing a wrong number."*
+7. **Relativize**: `Path(element["file"]).relative_to(REPO_ROOT).as_posix()` (**P14** — no custom
+   normalization, and it is measured to work with a lower-case drive letter). A `ValueError` from
+   `relative_to` means Vitest listed a file outside the repository → `SystemExit`, never a silently
+   dropped row.
+8. **Sort** (**P3** — mandatory): identities sorted by `(relative_file, name)`; the per-file dict is
+   emitted through `sorted()` at render time, as both existing collectors do.
+9. **Cross-check** (below).
+
+**The cross-check, in the spirit of `collect_pytest()`'s parsed-vs-reported assertion — and an honest
+statement of what it cannot do.**
+
+`collect_pytest()` can reconcile against a number **the tool itself prints** (`"N tests collected"`).
+**`vitest list --json` prints no summary line at all** (P2), so **no parsed-vs-reported check of that
+exact kind is available.** Proposing one anyway would be the strongest-sounding and least honest choice
+in this plan. What is proposed instead:
+
+| Check | Fails closed on | What it **cannot** catch |
+|---|---|---|
+| `sum(per_file.values()) == len(identities)` | An internal inconsistency between the two returned structures — the one defect that would let the count and the identity list disagree in the committed artifact | Anything where both are wrong the same way |
+| **`len(identities) == len(set(identities))`** — duplicate `(file, name)` pairs are a **hard failure**, not a silent de-duplication | **P12's collision hazard.** Measured today: 231 rows, **231 unique identities, zero collisions** (M4). The moment two cases join on the same `>`-string, a set-based implementation would under-count **and stay green** | Nothing — but it is a *policy* choice: it converts a future naming collision into a red that a human must resolve by renaming a test |
+| Every relativized path matches `static/js/**/*.test.js` — the config's own `include` (M4) | A collector that started listing files from outside the configured surface | A file inside the surface that stopped being collected |
+| Non-empty overall, and **every listed file has ≥ 1 case** | An empty or half-collected listing that still parses | — |
+
+**What none of them can catch, stated because it is the real hole:** a **well-formed but truncated**
+listing — Vitest exits 0 and reports, say, 12 files instead of 13. Nothing in the payload declares an
+expected total, so no self-consistency check can see it. **Two things do:** P8's measured fail-closed
+behavior (a file that fails to collect exits 1 with empty stdout), and — decisively — **the committed
+artifact itself**. The pin *is* the missing "reported total": a truncated listing produces a different
+sorted identity list, and `--check` reds. **That is the strongest argument for committing the full
+identity list rather than counts alone** (§13.5).
+
+### 13.5 The proposed JSON schema addition
+
+**A single new top-level key, sibling to `playwright` / `pytest` / `hard_waits`.** Literal shape
+(`render_json` uses `sort_keys=True`, so key order in the file is alphabetical regardless; **array order
+is the generator's responsibility**, which is why §13.4 sorts):
+
+```json
+"vitest": {
+  "collector": "vitest list --json",
+  "config_include": "static/js/**/*.test.js",
+  "total_cases": 231,
+  "total_files": 13,
+  "files": [
+    { "file": "static/js/modules/__tests__/exercise-helpers.test.js", "cases": 15 },
+    { "file": "static/js/modules/__tests__/exercises.test.js", "cases": 29 }
+  ],
+  "cases": [
+    { "file": "static/js/modules/__tests__/exercise-helpers.test.js", "name": "<suite> > … > <case title>" },
+    { "file": "static/js/modules/__tests__/exercises.test.js", "name": "<suite> > … > <case title>" }
+  ]
+}
+```
+
+*(`files` and `cases` are shown truncated to two rows each; the real artifact carries **13** and **231**
+respectively — M4.)*
+
+**Every element, decided and justified:**
+
+| Element | Decision | Justification |
+|---|---|---|
+| **Per-file counts** (`files[]`) | **Include** | Mirrors `pytest.files[]` and `playwright.specs[]` exactly, so the Markdown table and the human review experience match the tiers beside it. It is also the only surface that survives the 200-line diff cap legibly (NT-6) |
+| **The sorted node-identity list** (`cases[]`) | **Include — this is the load-bearing element** | **Counts alone cannot detect a RENAME.** Renaming a case leaves 231/13 untouched and would pass a count-only pin silently, which is the same false-green class §2.5 exists to close. It is also the substitute for the reported-total cross-check the tool does not provide (§13.4). Cost: **231 rows** — the size in lines is **NT-5**. **Flagged to the owner as QF3** because it is the packet's largest artifact-size decision |
+| **Totals** (`total_cases`, `total_files`) | **Include** | The `ci.yml` *"Report totals"* step indexes **named keys only** (M3), so a headline pair is what a future step-summary line would read. Names chosen as `total_cases` / `total_files`: "cases" is this document's own unit (§11.3) and Vitest's; no consumer enumerates keys, so nothing collides |
+| **`collector`, `config_include`** | **Include** | Both are **fixed literals in the generator**, not host- or version-derived, so they cost no determinism. They record *how* the numbers were produced — the same role `playwright.project: "chromium"` plays. A future reader who finds 231 wrong needs to know it came from `list`, not `run` |
+| **Any `status` field** | **FORBIDDEN, and asserted absent** | **P4**: `vitest list` cannot report status, and a schema field implying otherwise would be a lie in a generated artifact. §13.7's contract test asserts **no `status` key appears anywhere in the `vitest` block** |
+| **Durations, tool version, absolute paths, timestamps** | **FORBIDDEN** | The generator's own determinism contract. This is also the second reason `vitest run` is rejected (§13.3) |
+| **An `environment_dependent_*` allowlist for Vitest** | **Not added** | The pytest analogue exists for a **measured** host dependence (`shutil.which` over PowerShell hosts). **No Vitest file is measured to be host-dependent.** Adding an empty allowlist would create a suppression mechanism ahead of any evidence — and M2 records that the generator already fails closed when an allowlist entry goes stale. If ubuntu disagrees with Windows (NT-4), **that is a finding to investigate, never a row to add** |
+
+**`schema_version` — RECOMMENDATION: increment `SCHEMA_VERSION` from `1` to `2`, and pin the new value
+in the contract test.**
+
+*Reasoning, based on M3's consumer inventory:*
+
+- **Nothing in the repository reads it.** M3's exhaustive grep found **no consumer that branches on
+  `schema_version`**, and the only *asserted* `schema_version` symbol belongs to the unrelated
+  program-backup feature. **So incrementing breaks nothing and not incrementing breaks nothing** —
+  the compatibility argument is empty in both directions, and cannot decide it.
+- **What decides it is what the field is for.** A version field that does not move when a **new
+  top-level surface** is added is a field that asserts nothing — the same "asserted by nothing" class
+  this repository's false-green work keeps finding. Adding a sixth pinned surface is the largest schema
+  change the artifact has had since it was created.
+- **The bump only acquires meaning if something pins it.** §13.7's contract test therefore asserts
+  `schema_version == 2` **exactly**. Without that assertion the increment is decoration.
+- **The honest counter-argument, stated rather than hidden:** the change is **purely additive** — M3
+  shows the `ci.yml` step is invisible to a new sibling key — and an integer version has no minor
+  channel, so a bump to `2` signals "breaking" to a future consumer when nothing broke. A reader could
+  reasonably rule "leave it at 1 and document that additive keys do not bump it."
+
+> **This is genuinely contestable and is routed to the owner as §13.12-QF2**, with the packet's
+> recommendation being **`2`**. Whichever value is chosen, **the contract test must pin it**, and the
+> rule that produced the choice must be written into the generator as a comment so the next additive
+> change is not decided again from scratch.
+
+### 13.6 The Markdown surface
+
+**Rows added to [`TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md):**
+
+| Where | Added content |
+|---|---|
+| `## Totals` table | One row: `\| JS unit cases (Vitest) \| **231** across 13 files \|` — placed beside the existing Playwright and pytest total rows, in the same bold-number style `render_markdown()` already uses |
+| A new `## Vitest test files` section | The `\| File \| Cases \|` table, **13** rows, right-aligned counts, matching the `## pytest files` and `## Playwright specs` sections' shape |
+| A disclosure sentence under that heading | That the collector is `vitest list`, that **`.skip` / `.todo` cases do not appear at all** (P4), and that **status is deliberately not recorded** — so a human reading a count of 231 knows what 231 means |
+| A pointer sentence | That the **per-case identity list lives in the JSON only** |
+
+**The 231-row identity list is deliberately NOT rendered into the Markdown.** The `.md` is the
+human-facing twin — `.claude/rules/testing.md` points prose at it — and 231 rows of `suite > case`
+strings would bury the four tables that make it useful. The JSON carries the identities; the Markdown
+carries the counts.
+
+**Why the Markdown must be pinned INDEPENDENTLY of the JSON:**
+
+1. **The generator already checks them separately, and the check is non-short-circuiting.** `main()`
+   evaluates `_check(JSON_PATH, json_text) & _check(MARKDOWN_PATH, markdown_text)` — a **bitwise `&`**,
+   so **both** are always evaluated and a Markdown-only staleness is reported in its own right. The
+   design must not undo that by making the Markdown a projection nothing verifies.
+2. **No consumer parses the Markdown at all** (M3). That is exactly why it needs its own pin: if
+   `render_markdown()` silently omitted the Vitest section, **nothing anywhere would notice** — no test,
+   no CI step, no reader who was not looking for it. The **byte diff is the only oracle the Markdown
+   has**, and the only way that oracle can fire is if the numbers are actually restated there.
+3. **The two failure directions are different defects.** A stale JSON is a collector or regeneration
+   failure; a stale Markdown is a **renderer** failure — a `render_markdown()` that was not updated when
+   `build_inventory()` was. §13.8 gives each its own mutation row (**F22**, **F23**) for precisely this
+   reason.
+
+### 13.7 The pytest contract file — name and justification
+
+**Chosen filename: [`tests/test_vitest_inventory_contracts.py`](../../tests/test_vitest_inventory_contracts.py).**
+
+**Idiom survey, done before choosing.** `tests/` carries **both** naming idioms:
+
+| Idiom | Examples | When it is used |
+|---|---|---|
+| `test_<subject>_contracts.py` (**plural**) | `test_release_workflow_contracts.py`, `test_npm_audit_gate_contracts.py`, `test_playwright_runner_contracts.py`, `test_playwright_shard_launcher_contracts.py`, `test_agent_workflow_contracts.py`, `test_visual_selector_contracts.py` | A file pinning **several** related invariants about one subsystem |
+| `test_<subject>_contract.py` (**singular**) | `test_node_version_contract.py`, `test_python_version_contract.py`, `test_packaging_contract.py`, `test_error_page_contract.py`, `test_bootstrap_version_contract.py` | A file pinning **one** fact |
+
+*(The exact file census is not in the dossier and is not needed for the ruling — the idiom, not its
+frequency, is what decides the name. Recorded so no later reader thinks a count was measured.)*
+
+Packet F pins **many** invariants — the surface's presence, the totals, per-file counts, the identity
+list's sortedness and uniqueness, the absence of a `status` key, `schema_version`, and the collector's
+argv shape — so the **plural** form applies.
+
+**Why `vitest_inventory` and not `inventory` or `test_inventory`:**
+
+| Candidate | Verdict |
+|---|---|
+| **`test_vitest_inventory_contracts.py`** | **Chosen.** Names exactly what it pins: **the Vitest surface of the inventory** |
+| `test_test_inventory_contracts.py` | Rejected — the doubled `test_test` reads as a typo and is hostile to grep |
+| `test_inventory_contracts.py` | Rejected — **it over-promises.** It reads as "contracts for the inventory", but the other four pinned surfaces would still have **no test at all**, and a filename that claims coverage the file does not provide is the shallow-coverage failure class this repository has already recorded once (QUALITY_GATE `scripts/**` routing arc) |
+| `test_generate_test_inventory_contracts.py` | Rejected — names the *script* rather than the *surface*, and would imply the file tests the whole 461-line generator |
+
+**Overlap check — there is nothing to overlap with.** **M3 is explicit: no existing pytest file tests
+`scripts/generate_test_inventory.py` at all.** `grep -rln "generate_test_inventory" tests/` returns only
+files that mention it **in comments** — `tests/test_agent_workflow_contracts.py` (`:63`, `:69`, `:103`,
+`:212`) and `tests/test_css_wp4_4_a11y_contracts.py:529`. **Packet F creates the first test of this
+generator in the repository's history.** That is a notable fact about a script that implements a
+**required blocking gate**, and it is recorded here rather than buried.
+
+**Two authoring rules the new file must obey:**
+
+1. **It must NOT shell out to `npx vitest`.** Its collection count and runtime would then depend on
+   `node_modules` being present in the `Run Tests` job, which is **NT-2 — unmeasured**. The file asserts
+   against the **committed artifact** and against the **generator's own structure**, with any subprocess
+   behavior exercised through injected/faked results, never a real run. This keeps a **required** gate
+   free of a dependency nobody has measured.
+2. **Its collected node count must be identical on Windows and Linux.** No `shutil.which`-style
+   parametrization, no environment-derived parametrize list. `ENVIRONMENT_DEPENDENT_PYTEST_FILES` exists
+   because one file legitimately violates this (M2), and **Packet F must not add a second**. A
+   `skipif`-marked test is still *collected*, so conditional skipping is safe; a conditional
+   `parametrize` list is not.
+
+**And it moves the inventory.** Adding this file changes per-file pytest counts, `total_files` and
+`deterministic_files` — **M8's second move** — so §13.10 regenerates **after** the file exists, not
+before.
+
+### 13.8 Mutation matrix — F1–F27 (**PREDICTION**)
+
+> **EVERY ROW BELOW IS A PREDICTION. NOTHING IN THIS MATRIX HAS BEEN EXECUTED.** No mutation has been
+> applied to any file, real or copied, and no runner has judged any row. §10.7-R9's standing rule
+> governs: a discrepancy at execution is **investigated**, never edited away to match what happened.
+>
+> ⚠️ **ANNOTATION 2026-08-22 — EXECUTED. This table is left as the PREDICTION it was**, which is the
+> only way prediction and outcome can be compared. The measured matrix — with §13.15's repairs
+> applied (F1–F5 on `T` only, F15 replaced, F25 split, F28 and F29 added) — is **§13.17**. **Three
+> rows behaved differently from the prediction and are investigated there, not edited away here.**
+
+**ID prefix — a recorded deviation.** `M1`–`M19` belong to Packet A, `N1`–`N32` to Packet B, `P1`–`P42`
+to Packet C — **and in this section `M#` and `P#` additionally denote the measurement dossier's rows**,
+which are cited throughout §13.2–§13.7. Reusing either letter would be doubly ambiguous. Packet F
+therefore uses **`F`**, which is unused. **Throughout §13, `M#`/`P#` always mean the dossier; `F#`
+always means a mutation row.**
+
+**The four substrates. Every row names exactly one, and no row runs against the real JS suite:**
+
+| Key | Substrate | Restore |
+|---|---|---|
+| **T** | A **temp fixture tree in the OS temp directory** — a minimal Vitest project (its own `vitest.config.js` and 2–3 tiny `.test.js` files with known counts), **never** `static/js`. Proves what the **collector** does | Delete the tree. Nothing in the repository was written |
+| **G** | A **copy of the generator** plus a **copy of the committed artifacts** in a scratch directory, pointed at **T** | Delete the scratch directory |
+| **W** | The **isolated worktree's real tracked files**, mutated in place and restored by **`git checkout -- <path>`**. Proves what the **committed pin** does — which **T can never prove** | `git checkout -- <path>`, then assert `git status --porcelain` is empty **and** `--check` is green again |
+| **C** | A **copy of the new contract file** run under its own path, or the real one on **W** with git restore | As W |
+
+**Harness rules, carried from §9.13-D3, §10.5, §10.12 and §11.8. All mandatory:**
+
+- **Judge every row by the process EXIT CODE**, never by a parsed failure count. Packet B measured Vitest
+  exiting 1 while printing zero failures; **P7 measures the mirror image for `vitest list`** — exit 1
+  with complete, valid JSON.
+- **Every pytest row must report the expected collected node count**, or be recorded as a loud
+  **`BAD RUN`**, never a survivor (§10.12 defect 2: *a green run of the wrong suite is
+  indistinguishable from a survivor if you only look at the exit code*).
+- **Apply every mutation exactly once**; report **`NOT APPLIED`** otherwise.
+- **Both directions where a row has one** — the false-green hardening arc's standing rule. F26 is F22's
+  reverse direction and is not optional.
+- **Compare each row's predicted killer against the runner's actual failure IDs**, not merely
+  "went red / stayed green".
+- **An unexplained survivor is a test weakness and must be fixed.** Only F27's survival is predicted, and
+  it is **declared in advance** as a disclosed detection hole, not discovered as a mystery.
+- **A `W` row must end with `git status --porcelain` empty.** If any `W` row leaves the tree dirty,
+  **stop immediately** — that is a containment failure, and §10.12 defect 3's lesson applies: assert
+  through git's own normalization, never a raw byte compare.
+
+**Group A — the JS test surface. These are the rows §2.5 exists for.**
+
+| # | Exact mutation | Substrate | Predicted killer | Anti-vacuity check | Apply / restore | Equivalence handling |
+|---|---|---|---|---|---|---|
+| **F1** | **Delete a whole `*.test.js` file** (in T: one fixture file; in W: temporarily `git rm --cached`-free rename of one real test file) | **T** then **W** | **PRED —** `--check` reds: `total_files` 13→12, `total_cases` drops by that file's count, and every one of its identity rows disappears. The new contract test also reds on `total_files` | Confirm the **pre-mutation** `--check` is green (M2's clean baseline) and that the diff names the deleted file, not just a number | T: delete the fixture file. W: `git mv` the file aside, then `git checkout .` + restore | Not equivalent under any implementation that pins per-file counts |
+| **F2** | **Delete one `it(...)` case** from a Vitest file | **T** then **W** | **PRED —** `--check` reds on `total_cases` 231→230, the file's `cases` count, and one missing identity row | The diff must show **the removed identity string**, not only the count — a count-only red would also fire for F3 and would not distinguish them | T: edit the fixture. W: delete the case, then `git checkout --` | Not equivalent |
+| **F3** | **Rename one case** (`it('a')` → `it('a renamed')`), leaving counts untouched | **T** then **W** | **PRED —** **only** the `cases[]` identity list reds. **`total_cases`, `total_files` and every per-file count are unchanged** | **This is the row that justifies committing the identity list at all** (§13.5). If F3 survives, the identity list is not doing its job and the schema decision must be revisited before merge | As F2 | Not equivalent — and if a count-only schema were adopted, F3 would become a **genuine equivalence**, i.e. an undetectable rename. That is the outcome the schema choice avoids |
+| **F4** | **`it(...)` → `it.skip(...)`** on one case | **T** then **W** | **PRED —** identical signature to **F2** (P4: the row vanishes) | Must confirm the diff is **indistinguishable from a deletion** — that is P4's measured limitation, and the run must demonstrate it rather than the plan merely asserting it | As F2 | Not equivalent to green; **is** observationally equivalent to F2, which is disclosed, not hidden |
+| **F5** | **`it(...)` → `it.todo('name')`** | **T** | **PRED —** same as F4 (P4) | Same as F4 | Edit the fixture | Same as F4 |
+| **F6** | **Add `.only`** to one case (`it.only`) | **T** (both with and without `CI=true`) | **PRED —** **two distinct kills.** Without `CI`: exit 0, but the file **collapses to one row** (P6) → massive identity drift → `--check` reds. With `CI=true`: **exit 1** (P7) → the generator's step-2 exit check raises `SystemExit` **before parsing** | **Run both env states.** A harness that runs only one cannot tell which mechanism killed it, and P7's whole lesson is that the two are different | Edit the fixture; unset/set `CI` per arm | Not equivalent |
+| **F7** | **Shrink a parameterized array**: `test.each([1,2,3])` → `test.each([1,2])` | **T** | **PRED —** count −1 and **one identity row (`param case 3`) disappears** (P5) | Assert the *specific* missing identity, not just the count — otherwise this row is indistinguishable from F2 and proves nothing about `each` expansion | Edit the fixture | Not equivalent |
+| **F8** | **Add a new `*.test.js` file** with 1 case (the inverse direction of F1) | **T** | **PRED —** `total_files` +1, `total_cases` +1, one new identity row | **Both directions, per the harness rule.** A pin that reds on removal but not addition would let a new untracked test file drift in silently | Create then delete the fixture file | Not equivalent |
+| **F9** | **Force an identity collision**: two cases in one file whose joined `suite > case` strings are byte-identical (P12's non-invertible join) | **T** | **PRED —** the collector's **uniqueness cross-check** (§13.4) raises `SystemExit` naming the duplicate | **Verify the failure is the uniqueness check, not a count mismatch.** If a set-based implementation slipped in, this row silently under-counts and **stays green** — which is exactly the defect the check exists to prevent | Edit the fixture | Not equivalent. Today's tree has **231 unique identities, zero collisions** (M4), so this row can only be exercised on T |
+
+**Group B — the collector, parser and subprocess. Every row is a mutation of a COPY of the generator.**
+
+| # | Exact mutation | Substrate | Predicted killer | Anti-vacuity check | Apply / restore | Equivalence handling |
+|---|---|---|---|---|---|---|
+| **F10** | **`collect_vitest()` returns empty structures** (`{}`, `[]`) with the fail-closed guard removed | **G** | **PRED —** with the guard removed, the generator **writes an empty surface and exits 0** — so the killer is the **non-empty guard itself** (§13.4 step 5). With the guard present: `SystemExit`, *"refusing to write an empty inventory"* | **Run both arms.** Guard-removed must be shown to produce a **green run with a hollow artifact** — that is the false green being prevented, and asserting it is the only way to know the guard is load-bearing | Edit the generator copy; delete the copy | Not equivalent |
+| **F11** | **Move the exit-code check AFTER the parse** (or delete it), then run against a tree with an `.only` and `CI=true` | **G** + **T** | **PRED —** mutated: the run **succeeds** and commits a listing from a failed invocation. Unmutated: `SystemExit` on exit 1 **before** the file is read | **This row's value is entirely in the mutated arm** — P7 measured that the output is *complete and parseable*, so nothing downstream will notice. If the mutated arm also reds, the check under test is not the one doing the work | Edit the generator copy | Not equivalent |
+| **F12** | **Delete the "output file exists / non-empty" check**, then run against a tree with a **syntax-broken** test file (P8: exit 1, 0 bytes) | **G** + **T** | **PRED —** the **exit-code check (F11's) fires first**, so this row is expected to be **co-killed** and may not isolate | **Declared in advance as a probable non-isolating row.** To isolate it, run a second arm with the exit-code check stubbed to always pass — then a missing file must produce a **named `SystemExit`**, never a `FileNotFoundError` traceback | Edit the generator copy | If it does not isolate even with the second arm, record as **co-killed with F11**, not as equivalent |
+| **F13** | **Truncate the JSON output file** mid-array before the parse (simulate a partial write) | **G** | **PRED —** `json.JSONDecodeError` → converted to `SystemExit` with the payload's first bytes quoted | Assert the message quotes the payload. A bare traceback is a *failure*, but not the fail-closed behavior the generator's other collectors provide | Write a truncated file into the temp path in a harness fake | Not equivalent |
+| **F14** | **Switch the capture channel from `--json=<path>` back to stdout**, then run against a tree whose test module does a top-level `process.stdout.write('RAW STDOUT WRITE\n')` | **G** + **T** | **PRED —** mutated: **`JSON.parse` fails with `Unexpected token 'R'` while the exit code is 0** (P9) — i.e. the failure the file channel removes. Unmutated (`--json=<path>`): **clean parse, noise discarded** (P10) | The unmutated arm is the anti-vacuity half: it must be shown to **succeed on the same contaminated tree**. Without it, the row proves only that a broken parser breaks | Edit the generator copy | Not equivalent |
+| **F15** | **Merge stderr into the capture channel** (`stderr=subprocess.STDOUT`, or read stderr as the payload) | **G** | **PRED —** fails on **every** run, on a clean tree, because P11 measured **~385 bytes of `configLoader` warning on every single invocation** | This row must be run on an **unmodified tree** — its point is that the mutation cannot survive even one clean run. If it survives, the warning is not being produced and P11 must be re-measured | Edit the generator copy | Not equivalent |
+| **F16** | **Delete the relativization** — commit `element["file"]` as emitted (absolute) | **G** + **W** | **PRED —** the artifact gains **absolute paths containing the checkout directory name**, which differ between this worktree, the shared checkout and the ubuntu runner → `--check` reds on **any** other machine. The contract test reds on the "every path is repo-relative POSIX" assertion | **Must be judged by the contract test, not by `--check` on the same machine** — locally the regenerated and committed files would agree, and `--check` would be **green**. That is the trap: this defect is invisible to the drift gate on the machine that created it | Edit the generator copy | Not equivalent |
+| **F17** | **Drop `.as_posix()`** (use `str(Path(...))`) | **G** + **W** | **PRED —** backslash separators on Windows, forward on Linux → contract test reds on the separator assertion; CI `--check` reds against a Windows-generated artifact | Same trap as F16: **the local `--check` may be green**. The contract test must assert `"\\" not in path` explicitly, not merely that the path "looks right" | Edit the generator copy | **Genuinely equivalent on Linux only.** On a Linux-only run this row cannot be killed at all; it is a **platform-conditional** row and must be executed on Windows. Recorded, not skipped |
+| **F18** | **Delete the sort** — emit rows in Vitest's own order | **G**, repeated **≥3 times** | **PRED —** three consecutive regenerations produce **three different artifacts** (P3 measured three different md5 sums), so `--check` reds **at random** — and, crucially, may pass once | **A single run of this row proves nothing.** It must be run **at least three times** and judged on *any* disagreement. This is the one row where "it went green" is not evidence of survival | Edit the generator copy | Not equivalent — but **flaky by construction**, which is precisely the defect |
+| **F19** | **Delete the element-shape validation**, then feed an element missing `file` (or carrying a third key) | **G** | **PRED —** mutated: a `KeyError` traceback, **or** — worse — a silently skipped row if the implementation used `.get()`. Unmutated: `SystemExit` naming the format change | **Assert the unmutated arm fails on a SUPERSET key too**, not only on a missing key. P2 measured **exactly two keys**; an "at least these keys" check would pass a changed format and is the vacuous version of this validation | Feed a doctored payload through the harness | Not equivalent |
+| **F20** | **Delete the `sum(per_file) == len(identities)` and uniqueness cross-checks** | **G** | **PRED —** **survives on a clean tree** — and is killed **only** in combination with **F9** (collision) or a doctored payload where the two structures disagree | **Declared in advance as a conditionally-killed row.** Its honest statement is: the cross-check has **no killer on today's tree**, because today's tree is internally consistent (M4: 231 rows, 231 unique). Its value is entirely prospective | Edit the generator copy | **Not** filed as an equivalence — it is a row whose kill requires a paired mutation, and the pairing is stated |
+| **F21** | **Swap the collector to `vitest run --reporter=json --outputFile=<path>`** — the rejected design (P13) | **G** | **PRED —** killed by a **contract-test assertion on the generator's argv**: the constructed command must contain `list` and must **never** contain `run` or `--reporter` | **This is a design mutation, and its killer must be a real assertion, not a comment.** Without it, §13.3's stop-condition is a prose commitment that a later session can undo without any gate noticing. Also assert the artifact contains no `duration` and no `status` key | Edit the generator copy | Not equivalent — the two collectors produce different totals (P13 measured **240** vs 231 on the probe tree) |
+
+**Group C — the artifact, the renderer, and the pipeline.**
+
+| # | Exact mutation | Substrate | Predicted killer | Anti-vacuity check | Apply / restore | Equivalence handling |
+|---|---|---|---|---|---|---|
+| **F22** | **Stale JSON alone** — hand-edit **one number** in the committed `TEST_INVENTORY.json` Vitest block (e.g. `total_cases` 231 → 230) and leave the `.md` untouched | **W** | **PRED —** `--check` reds with `DRIFT: docs/test_inventory/TEST_INVENTORY.json differs…` **and** the Markdown check passes — the `&` is non-short-circuiting, so both are evaluated and exactly one reports. The new contract test also reds | **Confirm the Markdown check reports NOTHING in this arm.** If both files red, the two surfaces are not independent and §13.6's argument is wrong | `git checkout -- docs/test_inventory/TEST_INVENTORY.json`; assert `git status --porcelain` empty and `--check` green | Not equivalent |
+| **F23** | **Stale Markdown alone** — delete the `## Vitest test files` table from the committed `.md`, leaving the JSON untouched | **W** | **PRED —** `--check` reds on the **Markdown only**. **No consumer parses the Markdown (M3), so the byte diff is the ONLY oracle this surface has** | **The row's real purpose is to prove that oracle exists.** If `--check` stays green, `render_markdown()` is not emitting the section it is supposed to, and §13.6 is unimplemented | `git checkout --`; assert clean and green | Not equivalent |
+| **F24** | **`build_inventory()` omits the whole `vitest` key** (delete the block from the returned dict) | **G** + **W** | **PRED —** `--check` reds against the committed artifact **with a very large diff — possibly truncated at `_check()`'s 200-line cap** (NT-6). The contract test reds on `"vitest" in inventory` | **The contract test must assert the KEY'S PRESENCE, not merely that the numbers are right when present.** A test written as "if the key exists, its total is 231" is satisfied by deletion — the exact "a citation-shape contract must assert the symbol is **present**, or deletion satisfies it" failure recorded in the CSS citation-repair arc | Edit the generator copy / restore via git | Not equivalent |
+| **F25** | **Schema/consumer mismatch** — rename the emitted key `vitest` → `js_unit` (or leave `schema_version` at `1` if the owner rules `2`) without updating the contract test | **G** + **C** | **PRED —** the contract test reds on the key name **and** on the pinned `schema_version`. **The `ci.yml` "Report totals" step does NOT red** — M3 measured that it indexes named keys only and never enumerates, so it is blind to both the addition and the rename of a sibling | **Assert the CI-step blindness explicitly rather than assuming it** — this is a *reasoned* claim (§13.2 Part 2), and the PR's own CI run is where it becomes measured | Edit the generator copy | Not equivalent |
+| **F26** | **The reverse direction of F22** — leave the artifact correct and mutate the **contract test's pinned number** (231 → 999) | **C** | **PRED —** the contract test reds. `--check` stays **green** | **This is what proves the contract test's numbers are load-bearing rather than decorative.** If the contract test stays green with a wrong pinned number, it is not reading the artifact at all | Edit the contract-test copy | Not equivalent |
+| **F27** | **A deliberately vacuous contract test** — replace a pinned assertion with a tautology, e.g. `assert isinstance(inventory["vitest"], dict)` in place of the exact-count assertion | **C** | **PRED — NO KILLER. THIS ROW IS PREDICTED TO SURVIVE, AND ITS SURVIVAL IS THE FINDING.** Full pytest passes, `--check` passes, CI is 18/18 green, and the surface is no longer pinned by the test at all | **There is no automated anti-vacuity check for this row, and inventing one would be dishonest.** The only detections are: (a) **F26** run in the opposite direction on the *same* assertion — a tautology cannot red when the artifact is wrong; and (b) a human reading the diff. Both are named as the mitigation | Edit the contract-test copy; discard | **Not an equivalence** — it is a **disclosed detection hole**. Filing it as "equivalent" would be the mistake: an equivalent mutant changes no behavior, whereas this one **removes protection while changing no observable outcome**. It is recorded here so a reviewer knows the matrix has a floor, and §13.12-QF7 asks whether the owner wants a stronger structural guard |
+
+**Row count: 27 (F1–F27)** — **9** on the JS test surface (Group A), **12** on the collector/parser
+(Group B), **6** on the artifact/pipeline (Group C). **Zero declared equivalences.** **One row (F27) is
+predicted to survive as a disclosed detection hole**, **one (F17) is platform-conditional**, and **two
+(F12, F20) are predicted to be co-killed or conditionally killed** — all three classes declared **in
+advance**, per §11.8's rule that an unexplained survivor is a test weakness while a declared one is a
+finding.
+
+### 13.9 Determinism and cross-platform strategy
+
+| Property | Mechanism | Evidence |
+|---|---|---|
+| **Stable order** | Identities sorted by `(relative_file, name)`; per-file dict rendered through `sorted()` | **P3 — mandatory, not stylistic.** Three consecutive unsorted runs produced three different md5 sums; after mapping and sorting, all three were **byte-identical, 231 rows** |
+| **POSIX separators** | `Path(...).relative_to(REPO_ROOT).as_posix()` — no hand-rolled normalization | **P14**, measured on Windows including a **lower-case drive letter** |
+| **No absolute paths** | Same, plus a contract assertion that every path starts with `static/js/` | P2 measured the raw form is absolute; **F16** is the mutation row |
+| **LF newlines** | `_write(..., newline="\n")` — the existing writer, reused unchanged | M2 |
+| **CRLF tolerance on `--check`** | `_normalize()` collapses CRLF/CR before diffing — reused unchanged | M2. This is why a CRLF checkout does not report phantom drift |
+| **No timestamps, durations, host or tool versions** | Only `collector` — a **fixed literal in the generator**. ⚠️ **`config_include` was DROPPED** by the owner's design ruling (§13.16, R6): a literal claiming to record a config the generator never reads is a hand-maintained count in disguise | The generator's own determinism contract; and the second disqualifier for `vitest run` (P13's `duration`) |
+| **No status field** | Forbidden by §13.5 and **asserted absent** by the contract test | **P4** |
+
+**How Windows and Linux are proven to agree — and it is a proof, not an assertion:**
+
+1. **The inputs are platform-independent.** A case identity is `(repo-relative POSIX path, joined case
+   title)`. Both are functions of file contents. The **only** platform-varying element in the raw payload
+   is the absolute path prefix (P2), and relativization removes it (P14).
+2. **`CI=true` does not change the listing.** P7 measured that with `CI=true` and no `.only`, exit is
+   **0** and the listing is the normal **231/13** — *"so the Linux CI job and a local Windows run
+   agree"*. The env difference between the two hosts is therefore not a source of divergence on a clean
+   tree.
+3. **The proof is the CI run itself, and it is free.** The `test-inventory` job runs `--check` on
+   **ubuntu-latest** after `npm ci` (M6) against an artifact regenerated on **Windows**. A whole-file
+   text diff on a foreign platform is exactly the cross-platform oracle; if Linux disagrees by one byte,
+   the **required** context reds. **This is `NT-4`, and the PR's first CI run is when it is taken.**
+4. **If they disagree, the repair is investigation, not an allowlist.** No
+   `ENVIRONMENT_DEPENDENT_*` entry may be added for a Vitest file (§13.5). The one existing entry exists
+   for a *measured, designed* host dependence; a Vitest divergence would be an unexplained finding, and
+   suppressing it would convert the new pin into decoration on the exact day it was created.
+
+**One residual, disclosed:** **node/Vitest versions are not pinned into the artifact by design**, so a
+lockfile bump that changes `list --json` output would move a **required** gate. That is **RF5** in
+§13.11, and §13.12-QF6 asks whether the owner accepts it.
+
+### 13.10 Verification plan
+
+**M7 forces the gate set.** [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)'s **Tooling / scripts**
+row requires **`/verify-suite` regardless of what the targeted-test search returns** when the changed
+script *"implements one of the two blocking gates (`generate_test_inventory.py`, …)"*. **`/verify-suite`
+= full pytest + the full Chromium E2E suite.** No targeted-union argument, and no override, is available
+here — unlike Packet B's empty-union reasoning or Packet C's mapped-union resolution. **Required
+reviewer: `code-reviewer`.** `product-risk-reviewer` is **not** triggered (M7).
+
+**Ordering matters and is not free-form. The steps run in this order:**
+
+| # | Step | Command | Expected outcome |
+|---|---|---|---|
+| **0** | **Record the baselines FIRST** | `npx vitest run`; `.venv/Scripts/python.exe -m pytest tests/ -q`; `.venv/Scripts/python.exe scripts/generate_test_inventory.py --check` | **13 files / 231 tests, exit 0** (M4); the pytest node/file totals — **`NT-1`, currently unmeasured, must be recorded here**; **`Test inventory is up to date.`, exit 0** (M2). A baseline that does not match M4 is a **stop condition** |
+| **1** | Extend the generator | — | — |
+| **2** | **Observe the gate go RED on purpose** | `.venv/Scripts/python.exe scripts/generate_test_inventory.py --check` | **MUST report `DRIFT` and exit 1.** **This step is not a formality — it is the packet's own anti-vacuity check.** §2.5 predicts *"it will trip its own gate, once and deliberately"*; if `--check` stays **green** after the collector is added, **the new surface is not actually pinned** and the packet has shipped nothing. **Capture the output** |
+| **3** | Write the pytest contract file (§13.7) | — | The inventory is now **doubly** stale — M8's two moves: the Vitest surface **and** this file's own pytest node count |
+| **4** | **Regenerate — LAST, after the contract file exists** | `.venv/Scripts/python.exe scripts/generate_test_inventory.py` | Writes both artifacts; the console summary prints the playwright/pytest/hard-wait totals. **Regenerating before step 3 would produce an artifact that is stale the moment the test file lands** |
+| **5** | Focused contract tests | `.venv/Scripts/python.exe -m pytest tests/test_vitest_inventory_contracts.py -q` | All pass. **Judge by exit code**, and confirm the collected count for this file |
+| **6** | **`--check` green again** | `.venv/Scripts/python.exe scripts/generate_test_inventory.py --check` | **`Test inventory is up to date.`, exit 0** |
+| **7** | **Determinism — regenerate a SECOND time and compare bytes** | Run step 4 again, then `git status --porcelain docs/test_inventory/` | **Empty output.** A byte-identical second regeneration is the local proof that **P3's sorting** is in place. **Repeat a third time** — F18's lesson is that a single agreement is not evidence when the underlying order is genuinely random |
+| **8** | **The JS suite is UNCHANGED** | `npx vitest run` | **13 files passed (13), 231 tests passed (231), exit 0** — identical to step 0 and to M4. **This is the gate that keeps §13.0's window intact**; any movement here means Packet F touched a JS test and Q2's restart clause engages |
+| **9** | **FULL pytest** | `/run-tests` (or `.venv/Scripts/python.exe -m pytest tests/ -q`) | Green, with **exactly one new file's worth of nodes** above the step-0 baseline (NT-1). A larger delta means an existing file moved |
+| **10** | **FULL Chromium E2E** | `/run-e2e` (`npx playwright test --project=chromium --reporter=line`) | Exit 0, zero failures. **Judge by exit code and zero failures, not by the "17 did not run" line** — the visual specs are excluded by default by design ⚠️ **ANNOTATION 2026-08-22: the second half is MEASURED FALSE.** `playwright.config.ts` has no `testIgnore` and no `grepInvert`, and neither spec self-skips — `PW_VISUAL_SEED` selects the **seed script**, not the spec set. A default run executes all 649 and reds 63 of them, so *"zero failures on a default run"* is a criterion that cannot be met. The suite needs **two** invocations; §13.17 Part 1 records both |
+| **11** | The mutation matrix | §13.8, F1–F27, on substrates **T / G / W / C** | Every row behaves as predicted; **F27 survives as a declared detection hole**; every other survivor is a defect and is fixed. **F18 is run ≥3 times; F6 in both `CI` states; F17 on Windows** |
+| **12** | PR CI | — | **All 18 jobs green** on the head commit — the same 18/18 shape measured on `9cb6cdc` (M0). **`Test Inventory Drift` green is the load-bearing one**, and its ubuntu run is where **NT-4** is finally taken |
+| **13** | **Window monitoring, continuing** | §13.0's ledger | **Every `main` `JS Unit (Vitest, non-required)` result from T0 through `2026-09-05T17:59:26Z`** is appended to §13.0, at job level (§6.1's discipline), including any red, missing or cancelled result. **A cancelled run neither starts nor advances the clock** (§6.5) |
+
+**`/verify-suite` may be run as the single command covering steps 9–10**; it is written out here so the
+two halves and their pass criteria are explicit.
+
+### 13.11 Risks, ambiguities, and the self-tripping regeneration
+
+| # | Risk / ambiguity | Disposition |
+|---|---|---|
+| **RF1** | **The packet trips its own gate TWICE** (M8): once for the new Vitest surface, once because **adding a file under `tests/`** moves per-file pytest counts and `total_files` / `deterministic_files` — the **first** pinned surface in QUALITY_GATE's trip table | **Both moves land in the same commit**, and §13.10 orders the steps so regeneration happens **after** the contract file exists. §2.5 anticipates move 1 (*"it will trip its own gate, once and deliberately"*); move 2 is the **ordinary `tests/**` rule**. **Neither is a workaround** — the repair path is the documented one. The failure mode to avoid is regenerating at step 2 and shipping an artifact already stale by one pytest file |
+| **RF2** | **§5 of this document expires the moment Packet F lands.** Its own note says so: *"Once F pins Vitest nodes, every subsequent JS test add, remove, or rename will trip `Test Inventory Drift`"* | **Recorded, not edited.** §5 already carries its own expiry note pointing readers to §2.5. Packet F's execution record — if authorized — is the right place to annotate it in the §10.12 style, **not** this plan |
+| **RF3** | **Two documents Packet F does not own become incomplete**: [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) says the artifact pins **five** change surfaces and lists five rows — there would be **six** — and **§7.1 of this file records 11 required contexts when M1 measured 12** (`JS Supply Chain (npm audit, non-required)` was promoted by PR #409, `a937116`), so **§7.2's "add a 12th context" becomes "add a 13th"** | **Both recorded as observed drift; neither is fixed here.** The dossier is explicit: *"Record this as an observed drift; do NOT edit §7 — Packet F does not own it."* `QUALITY_GATE.md` is a shared canonical document on the do-not-touch row (§13.1). **Routed to the owner as QF5**, exactly as Packet C routed its feature-map gap rather than fixing it |
+| **RF4** | **After Packet F, every JS test change requires a regenerated artifact** — friction that did not exist for Packets A–C | This is the **intended** outcome, and it is the same discipline `tests/**` and `e2e/**` already carry. Recorded so a future JS packet's author is not surprised by a red on a test-only change |
+| **RF5** | **NEW COUPLING: a dependabot Vitest bump can red a REQUIRED context.** If a future version changes `list --json`'s element shape (P2 measured exactly `{name, file}` on **4.1.11**), the shape validation fails closed and `Test Inventory Drift` reds on a dependency PR | **Deliberate — failing closed is the design.** But it is a **new** way for a required check to red on a change that touches no test, and the owner should see it before it happens (**QF6**). The §6.2 precedent is directly on point: the only three `js-unit` reds ever measured were a **dependabot** engine incompatibility |
+| **RF6** | **The shared `main` checkout has vitest 4.1.10 against a lockfile pinning 4.1.11** (M4) | **Any measurement or regeneration performed in the shared checkout is against the wrong runner.** Implementation must run `npm ci` **inside its own worktree**, per the standing worktree rule that a junction inherits main's install state |
+| **RF7** | **A whole-surface drift may exceed `_check()`'s 200-line diff cap** (M2), truncating the CI report | **The gate still reds** — only the operator's view is truncated. **NT-6** takes the measurement at §13.10 step 2, which produces exactly that diff. If it truncates badly, the repair is a **follow-up on the generator's reporting**, not a smaller pin |
+| **RF8** | **P4's honesty limit**: the artifact cannot distinguish a `.skip`-ed case from a deleted one | **Disclosed in the Markdown surface itself** (§13.6) and enforced by the no-`status` assertion (§13.5). **Detection is unaffected** — both change the pin — and §2.5's requirement is about detection. **QF4** asks the owner to accept it explicitly rather than letting it be discovered later |
+| **RF9** | **P12's collision hazard**: two cases could in principle join to the same identity string | **Zero collisions today** (M4: 231 rows, 231 unique). The collector treats a duplicate as a **hard failure** rather than de-duplicating (§13.4), so a future collision becomes a red a human resolves by renaming — not a silent under-count. **F9** is the mutation row |
+| **RF10** | **The new contract test could itself be vacuous**, and §13.8-**F27** predicts **no automated killer** for that | **Disclosed, not solved.** Mitigations are F26 (reverse direction on the same assertion) and human review of the diff. **QF7** asks whether the owner wants a stronger structural guard. Claiming this hole is closed would be the single most damaging false claim this plan could make |
+| **RF11** | **NT-2 is unmeasured** — whether the `Run Tests` job has `node_modules` | **Designed around**: §13.7 forbids the contract test from shelling out to `npx`. The risk is therefore *not* taken; it is recorded so nobody later "improves" the test by adding a real collector invocation |
+| **RF12** | **Cross-platform agreement (NT-4) is reasoned, not measured** | §13.9 states the reasoning and names the CI run as the measurement. **It must not be written up as measured until that run exists** |
+
+### 13.12 Owner questions for Gate 1
+
+**These are decisions the packet cannot take for itself.** They are separate from acceptance of the work
+specified above.
+
+1. **QF1 — Is Packet F authorized to proceed past Gate 1 at all?** §0.1's Q5 makes Packet F a **required
+   predecessor** to D2, and §11.18's STOP lists **Packet F** among the items *"still not authorized,
+   each needing its own confirmation."* **Gate 1 approval is that confirmation.** If granted, please
+   state **separately** whether **committing, pushing and opening a PR** are authorized. **Merge is NOT
+   requested** and, per the standing protocol, requires its own later confirmation naming the PR —
+   **green CI is not that confirmation, and neither is a selection among options.**
+2. **QF2 — `schema_version`: increment to `2`, or leave at `1`?** **M3 measured that nothing reads it**,
+   so compatibility cannot decide it. The packet **recommends `2`**, because a version that does not move
+   when a new top-level surface is added asserts nothing — and because the contract test will pin
+   whichever value is chosen, which is what gives the field any force. **The counter-argument is real**:
+   the change is purely additive, and an integer version has no minor channel, so `2` signals "breaking"
+   when nothing broke. **This is genuinely contestable; the packet will not self-resolve it.**
+3. **QF3 — Does the committed JSON carry the full sorted identity list (231 rows), or per-file counts
+   only?** The identity list is **the only thing that detects a case RENAME** (F3 — counts are unchanged
+   by a rename) and it substitutes for the reported-total cross-check `vitest list` does not provide
+   (§13.4). Its cost is artifact size, which is **NT-5, unmeasured**. **The packet recommends including
+   it.** Ruling "counts only" is coherent — it accepts that renames are invisible — but it should be
+   ruled, not defaulted into.
+4. **QF4 — Is P4's limitation accepted on the record?** `vitest list` **cannot distinguish a `.skip`-ed
+   case from a deleted one and cannot report status at all**. Detection is unaffected; **honest
+   reporting is**. The alternative collector that *does* report status is `vitest run`, which §13.3
+   rejects as a **stop-condition** because it would couple a required context to JS test outcomes ahead
+   of D2. Confirm the trade as described, or direct otherwise — noting that "otherwise" is a promotion
+   decision in disguise.
+5. **QF5 — The two documents Packet F makes incomplete: follow-up, or in-scope?** (a)
+   [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)'s *"pins five change surfaces"* table would have
+   **six**; (b) **§7.1 of this file records 11 required contexts where M1 measured 12**, so §7.2's *"add
+   a 12th"* is now *"add a 13th"*. **The packet recommends a separate follow-up for both** — the first is
+   a shared canonical document, the second is a section Packet F does not own, and the dossier's
+   instruction is explicit that §7 must not be edited here. Confirm, or authorize either edit in this
+   packet.
+6. **QF6 — Is the new dependabot coupling accepted?** After Packet F, a Vitest version bump that changes
+   `list --json`'s output shape reds the **required** `Test Inventory Drift` context on a dependency PR
+   that touches no test (**RF5**). Failing closed is the design; the §6.2 precedent — the **only** three
+   `js-unit` reds ever measured were a dependabot engine incompatibility — makes this a realistic
+   scenario rather than a theoretical one.
+7. **QF7 — Does the owner want a structural guard against a vacuous contract test?** §13.8-**F27** is
+   predicted to **survive with no automated killer**: a tautological assertion leaves full pytest,
+   `--check` and CI all green while the surface is unpinned. The packet's mitigations are **F26's reverse
+   direction** and **human review**. A stronger guard (for example, a meta-test asserting that the
+   contract file contains the literal pinned counts) is possible but is **additional scope**, and the
+   packet will not adopt it unilaterally.
+8. **QF8 — Confirmation only: Packet F lands inside the qualification window and does not restart it.**
+   §6.5 already rules this — *"Packet F … may land inside the window; it does not restart it"* — and
+   §13.0 records why Packet F satisfies the condition: **it changes no JS test case**, so the suite the
+   window qualifies is byte-identical either side of the merge. Confirmation is sought that approving
+   Packet F draws in **none** of **Q4**, **Q6** or **D2**.
+
+*(Not owner questions, recorded so they are not mistaken for any: the mutation-ID prefix is **`F`**
+because `M`/`N`/`P` are taken by Packets A/B/C **and** because `M#`/`P#` denote the measurement dossier
+throughout §13; and the choice of `tests/test_vitest_inventory_contracts.py` is a naming decision the
+packet takes for itself under the surveyed idiom, §13.7.)*
+
+### 13.13 STOP — **DISCHARGED FOR IMPLEMENTATION 2026-08-22; THE MERGE HALF STANDS**
+
+> ⚠️ **ANNOTATION 2026-08-22 — the STOP below is superseded in part and is annotated, not
+> rewritten.** The owner signed **Gate 0 and Gate 1** at **§13.16** and separately authorized local
+> implementation, mutation execution, commit, push and a **ready-for-review** PR. The bullets below
+> covering the generator, the artifacts, the contract file, the §13.8 mutations, and committing /
+> pushing / opening a PR are **discharged**; the execution record is **§13.17**.
+>
+> **What is NOT discharged, and is unchanged in force:** **merging** — a separate confirmation
+> naming the PR, which **green CI is not** and **a multi-choice selection is not**; **Q4**, **Q6**
+> and **D2**; every branch-protection or repository-settings change; every edit to
+> `.github/workflows/**`, `scripts/release_gate.py`, `package.json`, `package-lock.json`,
+> `vitest.config.js`, `static/js/**` and any existing test; and any `.claude/settings.json` or
+> permission change. **The two shared canonical documents this STOP forbade —
+> [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) and `.claude/rules/testing.md` — were moved
+> IN-SCOPE by ruling QF5**, and by nothing else.
+
+> **This section is a plan. It is not authorization to implement it.**
+
+**Nothing has been executed.** No generator change exists, no inventory has been regenerated, no pytest
+file has been written, **no mutation in §13.8 has been applied to anything**, no branch has been pushed
+and no PR has been opened. The only work performed is **measurement** — the dossier summarized in §13.2,
+taken read-only in this worktree — plus the writing of this section.
+
+**Every number in §13.8, §13.9 and §13.10's expectations is a PREDICTION.** §10.7-R9's standing rule
+governs all of them: a discrepancy at execution is **investigated**, never edited away.
+
+**Explicitly unauthorized, each needing its own confirmation:**
+
+- **Modifying [`scripts/generate_test_inventory.py`](../../scripts/generate_test_inventory.py)**, in any
+  way, including "harmless" ones.
+- **Regenerating or hand-editing [`docs/test_inventory/`](../test_inventory/)**.
+- **Creating `tests/test_vitest_inventory_contracts.py`** or any other test file.
+- **Running any mutation from §13.8**, including on a copy or a temp fixture.
+- **Committing, pushing, opening a PR** — and **merging**, which is a **separate confirmation again,
+  naming the PR**, per the standing protocol.
+- **Promotion of `js-unit` (Q4 / D2)**, **Q6**, and any branch-protection or repository-settings change.
+- **Any edit to `.github/workflows/**`, `scripts/release_gate.py`, `package.json`,
+  `package-lock.json`, `vitest.config.js`, `static/js/**`, any existing test, or any shared canonical
+  document** — including [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md), whose five-surface table
+  this packet makes incomplete and **still may not repair** (QF5).
+- **Any `.claude/settings.json` or permission change.** A permission failure during execution is a
+  **blocker to report, not authority to change configuration.**
+- **The promotion packet itself.** Packet F is a **predecessor** to D2, not a step of it.
+
+**Awaiting explicit owner approval of Gate 1 and rulings on the eight questions in §13.12.**
+
+> ⚠️ **ANNOTATION 2026-08-22 — the line above is superseded by the council and is annotated, not
+> rewritten.** The **Gate 1 council has since run** (§13.14) and returned **42 findings, 3 of them
+> BLOCKER**, with all three reviewers independently reaching **NEEDS REVISION**. Two consequences:
+>
+> - **The questions are now NINE, not eight.** **QF9 — plan-stage size** was added because two
+>   reviewers read Packet F as **Large** under `QUALITY_GATE.md`'s plan-stage routing (Gate 0 **+**
+>   council), while §13.12-QF1 requests Gate 1 alone. **The packet does not decide it.**
+> - **Approval must be given against the REVISED plan, not this one.** §13.15 records the **29 binding
+>   revisions** — four of them blocking — that separate the drafted plan (§13.1–§13.13) from the
+>   reviewed one. **Nothing in §13.15 has been implemented either.** ⚠️ **ANNOTATION 2026-08-22:
+>   §13.15 has since been implemented in full — see §13.16 for the approval and §13.17 for the
+>   record of how each of R1–R29 was discharged.**
+>
+> **The STOP above stands in full and is discharged by nothing.**
+
+### 13.14 Plan v2 record — Gate 1 council (2026-08-22)
+
+**The council ran.** Three reviewers — `architecture-reviewer`, `test-strategist`, `product-risk-reviewer`
+— were launched in parallel against §13 as drafted (lines 3903–4626 at the time), each given the same
+live measurement dossier and each told to re-derive rather than trust it. **42 findings** were returned:
+**3 BLOCKER**, **14 MAJOR**, **19 MINOR**, **6 NIT**.
+
+**This subsection is what earns the "PLAN v2" label in §13's heading.** §13's preamble was correct when
+written that no council record existed; it exists now, and the preamble is annotated at the end of this
+subsection rather than rewritten.
+
+**Verdict of the council: NEEDS REVISION — Gate 1 should not pass on §13 as drafted.** All three
+reviewers reached that conclusion independently, and all three named the **same** blocking defect.
+
+---
+
+#### Part 1 — what was MEASURED at council time, and what remains reasoned
+
+Six findings were checked against the code by the launching session before disposition, because a
+reviewer claim is not evidence either. **Every one held.**
+
+| Check | Result |
+|---|---|
+| §13.1 forbids *"run any mutation against the real `static/js` suite"* while F1–F4 name substrate **W** | **CONFIRMED** — the contradiction is literal, at `:4025` against `:4411–4414` |
+| Packet C already ruled on this exact technique | **CONFIRMED** — §11.1: *"In-place mutation with byte-restore is **not** an alternative — §10.1's reasoning transfers verbatim"* |
+| Four sites still assert Packet F is "untouched"/"unstarted" un-annotated | **CONFIRMED** at lines 2200, 3337, 3716 (line 2193 was already covered by its own following annotation) |
+| No required gate covers production `static/js/**` today | **CONFIRMED** — `tsconfig.json` `include` is `["e2e/**/*.ts", "playwright.config.ts"]` with no `allowJs`/`checkJs`; `Code Linting` is flake8-only |
+| `subprocess.run(capture_output=True, stderr=subprocess.STDOUT)` raises | **CONFIRMED** — `ValueError: stdout and stderr arguments may not be used with capture_output`. **F15 is not merely equivalent; it is unrunnable as written** |
+| The parser-seam precedent exists and has the claimed shape | **CONFIRMED** — [`tests/test_pyright_baseline_diff.py`](../../tests/test_pyright_baseline_diff.py) imports pure functions, feeds in-test fixtures, and tests repo-relative POSIX normalization against a **fake absolute root** (`REPO = Path("/repo").resolve()`), with no subprocess and no `node_modules` |
+
+**Two new measurements were taken at council time**, and both change the plan:
+
+- **S1 — the `T` substrate CANNOT live in the OS temp directory.** A fixture Vitest project built under
+  the scratchpad failed with **`ERR_MODULE_NOT_FOUND`** on `vitest` itself: `--root` moves module
+  resolution outside the worktree's `node_modules`. The same fixture placed under the **gitignored
+  `artifacts/`** collected correctly (exit 0, 1 case listed). **§13.8's substrate table is wrong on
+  this point and must be corrected** — `T` belongs under `artifacts/`, which is also where Packet C put
+  its harness (§11.1) and which keeps it out of every globbed surface. *(This does not affect §13.4's
+  temp-file decision: the collector's `--json=<path>` **output** file has no module-resolution needs and
+  correctly stays in the OS temp dir.)*
+- **S2 — the throwing-import coupling is MEASURED, not inferred.** A fixture whose test file imports a
+  production module that throws at module scope made `vitest list --json` **exit 1 and produce no JSON
+  file at all**; the same fixture with the throw removed exited **0** and listed its case. `architecture`
+  filed this as INFERRED; **it is now measured**, and it upgrades finding AR3 from a reasoned risk to a
+  demonstrated one.
+
+**Reasoned, not measured, and still so after the council:** cross-platform agreement (**NT-4** — every
+probe was win32; the first ubuntu `test-inventory` run is the measurement), `describe.each` expansion
+(**NT-7**), and the behavior of `--allowOnly=false` with an `.only` present.
+
+**A dossier error the council surfaced, corrected here:** the dossier's M2 recorded the generator as
+**461 lines**; it is **469**. §13.2-M2 and §13.7 quoted the wrong figure, and §13's own evidence rule
+makes it load-bearing because it appears inside a rejection rationale.
+
+---
+
+#### Part 2 — the three BLOCKERs, and the dispositions that change the deliverable
+
+| # | Finding | Raised by | Disposition |
+|---|---|---|---|
+| **B1** | **F1–F4 mutate the real JS suite**, which §13.1 calls the packet's most load-bearing prohibition and §13.8's own preamble denies doing (*"no row runs against the real JS suite"*). F1's restore recipe is also broken twice over: `git checkout .` does not undo a staged `git mv`, and `git checkout .` is **repo-wide**, so it would discard unrelated uncommitted work | **all three** | **ACCEPTED IN FULL.** The `W` arms are **deleted** from F1–F5; those rows run on **`T` only**. The committed-pin claim they were reaching for is already proven by **F22/F24**, which mutate artifacts Packet F owns. `git checkout .` is **banned outright** from every row; restores are `git checkout -- <named path>`. **This was the right call for a reason beyond tidiness:** a `W` row abandoned mid-flight leaves a modified JS test in a worktree whose next commit is *expected* to move the inventory — the one circumstance in which a stray `static/js` diff is least likely to be caught, and its cost is a two-week T0 restart |
+| **B2** | **Step ordering leaves the tree-clean and suite-unchanged gates BEFORE the only steps that dirty the tree.** §13.10 runs the "13 files / 231 cases" gate at step 8 and the mutation matrix at step 11, with nothing after it | `test-strategist` | **ACCEPTED IN FULL.** Steps **11a–11c** are added after the matrix and are blocking: `git status --porcelain` empty; `--check` green; `npx vitest run` = 13 files / 231 tests, exit 0. A non-empty `git status` at 11a is a **stop condition, not a cleanup task.** This is the gate that actually protects §13.0's window, and it was being taken at the wrong moment |
+| **B3** | **No parser seam.** `collect_vitest()` was specified as one function doing subprocess + validate + relativize + sort + cross-check, while §13.7 correctly forbids the contract test from running a runner. The consequence: the entire validation layer of a **required-gate script** is proved once by hand and pinned by nothing thereafter | `test-strategist` | **ACCEPTED IN FULL — this is the single most valuable finding of the council.** The collector is split into `_vitest_list_argv(path) -> list[str]`, `_run_vitest_list(path)`, and a **pure** `parse_vitest_listing(payload, repo_root)` carrying validation, relativization, sort and both cross-checks. **The precedent is not hypothetical**: [`tests/test_pyright_baseline_diff.py`](../../tests/test_pyright_baseline_diff.py) — the test for **the other** blocking-gate script named in the same QUALITY_GATE row — already does exactly this, including the fake-absolute-root technique that makes F16/F17 platform-independent. §13.7's overlap survey missed it. With the seam, **F9, F13, F16, F17, F18, F19, F20, F21 and F28 all gain permanent, isolating, runner-free killers**, and F18 stops needing its ≥3-run lottery |
+
+---
+
+#### Part 3 — the disposition table
+
+**ACCEPTED (28).** Folded into the plan as revisions; the plan is not re-drafted here, and §13.15 records
+the revision list that must be applied before implementation is requested.
+
+| Finding | Raised by | Disposition |
+|---|---|---|
+| **Markdown emitted but pinned by nothing that survives regeneration** — `--check` compares committed vs regenerated, so a renderer that never emits the Vitest section against a committed `.md` that never contains it is **green forever**. F23 kills a *stale* artifact, not an *under-emitting* renderer | `architecture` | **ACCEPTED.** This is the registration-analogue defect in its exact repository-native form. §13.7's contract test must assert the **committed `.md`** contains the literal `## Vitest test files` heading and the totals row; a new Group-C row covers *"delete the section from `render_markdown()` **and regenerate**"* |
+| **F21 and F25 are vacuous by construction** — both name substrate `G` (a copy) but predict killers that read the **real** module or the **committed** artifact | `test-strategist` | **ACCEPTED.** Both get explicit `W` arms on files Packet F owns. **F25 is split** — a row carrying two mutations (key rename *and* `schema_version`) cannot isolate either |
+| **F15 is an undeclared equivalent mutant and is literally unrunnable** | `test-strategist` | **ACCEPTED, and verified in Part 1.** Replaced by the single unambiguous mutation *"parse `result.stderr` as the payload"*, predicting `JSONDecodeError` on P11's warning bytes |
+| **F11 has no isolating killer and this was not declared** — every measured nonzero-exit scenario (P6/P7/P8) also changes the payload, so the artifact oracle reds in both arms | `test-strategist` | **ACCEPTED.** Declared non-isolating; with B3's seam it becomes directly assertable at the parser boundary. **This is the finding class the launching session cares most about**: four non-isolating rows had been *asserted* clean rather than *derived* |
+| **F28 missing** — §13.4 names "a well-formed but short listing" as the real hole and no row exercises it | `test-strategist` | **ACCEPTED.** Added: inject a payload with one file's rows removed, tree unchanged |
+| **`CI` unset makes the documented repair path produce a corrupt artifact** — locally an `.only` gives exit 0 and a collapsed listing; the developer follows the tool's own printed instruction, commits it, local `--check` goes green, and ubuntu hard-fails | `architecture` | **ACCEPTED.** `collect_vitest()` sets **`env["CI"] = "true"`** (or passes `--allowOnly=false`) so behavior is a function of the tree alone. **Independently reached by the launching session's own M9.6 measurement** — `--allowOnly` defaults to `!process.env.CI`, confirmed in `--help` — which makes this a two-source finding, not one reviewer's opinion |
+| **`config_include` is a hardcoded literal mirroring `vitest.config.js`**, which the packet forbids itself from touching — and it contradicts the generator's own "derive, never type" idiom (`required_functional_specs()` derives the spec list from `ci.yml` *precisely* so it cannot disagree) | `architecture` | **ACCEPTED.** Either derive `include` from `vitest.config.js` or **drop the field and its cross-check**. Committing a literal that claims to record a config it never read is the same class as a hand-maintained count |
+| **The pyright baseline diff is omitted from §13.10** — repo-wide, triggered by any `.py`, blocking inside a required context, and re-baselining is an owner decision, not a repair | `test-strategist` | **ACCEPTED.** Added as a step with "zero net-new diagnostics" as the criterion and a stop condition if red |
+| **A new coupling: production `static/js` can red a required context** — a module that throws at import breaks collection. RF4 covers only *test* changes | `architecture` | **ACCEPTED, and UPGRADED to measured (S2).** New RF row, folded into **QF6**. It matters because **nothing required covers production JS today** (verified in Part 1), so this is a genuinely new gate, not an increment |
+| **M9 staleness** — NT-1/NT-2/NT-8/NT-9 filed as unmeasured when the dossier had measured them | **all three** | **ACCEPTED.** Moved into Part 1 with values; Part 3 reduces to NT-3/NT-4/NT-5/NT-6/NT-7 — and NT-3, NT-5, NT-6 are **also now closed** (below), leaving **NT-4 and NT-7** |
+| **RF11 understates NT-2** — the prohibition is a measured hard constraint, not a precaution. Node 24 *is* on the `Run Tests` PATH, so `shutil.which("npx")` **succeeds** and `_npx()` will not raise its helpful error; `npx` with no local vitest may attempt a registry fetch inside a required job | `architecture` + `test-strategist` | **ACCEPTED, with the sharpening kept.** This is the most consequential half of the M9 finding: it removes the affordance for a later session to "measure NT-2 and relax the rule" |
+| **No `skipif` on node/npx availability**, and no contract-test path may reach `_npx()` | `test-strategist` | **ACCEPTED** as a third authoring rule in §13.7, citing the repository's own recorded scar |
+| **F18 has a deterministic killer the plan does not use** | `test-strategist` | **ACCEPTED.** The sortedness assertion on a `W`-regenerated artifact is the primary killer; the ≥3 repetitions stay as secondary |
+| **F4/F5's "anti-vacuity check" is a characterization**, not a demonstration that the check can fail | `test-strategist` | **ACCEPTED.** Given F1's pre-mutation-green form; the "indistinguishable from deletion" line moves to the equivalence column, where it belongs |
+| **F10's arms are mode-ambiguous**; the false green exists only in regenerate mode, and the guard's reachability is unproven | `test-strategist` | **ACCEPTED.** Mode stated per arm; the empty case is reached through the parser seam |
+| **"Zero declared equivalences" is false** — F4 (observational) and F17 (Linux-only) qualify it | `product-risk` + `test-strategist` | **ACCEPTED.** Restated as *"no row is filed as a true equivalence; two carry conditional equivalence, both declared in advance."* A summary line that a later grep quotes without its table is a known local failure mode |
+| **Group B's header contradicts its own `G + W` rows**; **§13.8's "every row names exactly one substrate"** is false for ~7 rows | `architecture` + `test-strategist` | **ACCEPTED.** Both reworded |
+| **Two annotations claim a Gate 1 council record that §13's preamble denies** | `product-risk` | **ACCEPTED — and discharged by construction.** The claim was forward-looking when written; **this subsection makes it true.** The preamble is annotated at the end of this subsection rather than rewritten |
+| **Four un-annotated "untouched"/"unstarted" sites**, the worst being §11.17's **meta-claim about the annotations themselves** | `product-risk` | **ACCEPTED AND ALREADY APPLIED.** Annotations added at lines 2200, 3337 and 3716; line 2193 was already covered. The meta-claim got the fullest treatment — a sentence whose subject is the annotation record must itself be annotated when the record grows |
+| **RF3 undercounts the documents made incomplete** — `.claude/rules/testing.md:15` enumerates the artifact's contents as a four-item list that becomes five, and §5's own five-row table becomes five-of-six | `architecture` + `test-strategist` | **ACCEPTED.** Both added to RF3 and to **QF5** as items (c) and (d). Noted for the owner: *editing* a file under `.claude/rules/` does **not** trip the parametrized surface (add/delete only), so (c) is a real in-packet option |
+| **`.claude/**` missing from must-not-touch** — the obvious place someone would "helpfully" add a Vitest line, and add/delete there trips a pinned surface | `architecture` | **ACCEPTED.** Added as a row with that reason |
+| **QF5 offers an option that voids the packet's own gate derivation** — option (a) is a sixth file | `product-risk` | **ACCEPTED, with a correction the reviewer did not make.** QF5 now flags the sixth-file consequence — **but** `test-strategist` is right that the gate *set* would not actually change, since `/verify-suite` is already forced. Both facts are stated so the owner is not over-warned |
+| **NT-5/NT-6 were answerable without execution** | `product-risk` + `architecture` + `test-strategist` | **ACCEPTED, and MEASURED rather than derived.** See Part 4 — the numbers are larger than any reviewer estimated, and they change **QF3** |
+| **Two truncation caps, not one** — `_check()`'s 200 lines *and* `ci.yml`'s `head -c 8000` | `test-strategist` | **ACCEPTED.** Both named in RF7 |
+| **Known-red E2E exception omitted from step 10**, and ad-hoc E2E batches are nondeterministic | `test-strategist` | **ACCEPTED.** `e2e/program-backup.spec.ts:79` cited with the isolation re-run as its disposition, plus the standing stash-and-rerun rule before attributing any failure to this diff |
+| **Reviewer set under-specified** — `unslop-reviewer` omitted, and roughly half this packet's diff is prose in a document that has already produced three falsified-neighbour cases | `test-strategist` | **ACCEPTED.** `code-reviewer` **+ `unslop-reviewer`** at code time; the council named separately |
+| **Generated-file contention is not re-checked before regenerating** | `architecture` | **ACCEPTED.** §13.10 step 4 re-checks `gh pr list` immediately before regenerating. §13.0 already imposes exactly this "never restate from memory" discipline on the T0 ledger |
+| **Dossier ID `M5` cited but absent from §13.2's table; "461 lines" wrong; `collector` literal disagrees with the actual argv** | `product-risk` + `test-strategist` | **ACCEPTED.** M5 row added; **469** corrected; the `collector` value must match the command actually run |
+
+**ACCEPTED WITH AMENDMENT (2).**
+
+| Finding | Disposition |
+|---|---|
+| **`test-strategist`: F3 (rename) is only PARTIAL — conditional on QF3.** If the owner rules "counts only", the rename shape becomes **NOT COVERED** and F3 becomes a true equivalence | **ACCEPTED, and escalated.** The reviewer is right that a required drift shape is currently hostage to an unruled question. **Amendment:** this is no longer presented as a balanced choice. **QF3 now carries a recommendation the packet will not soften** — rule "include", or accept on the record that the most common JS-test edit there is becomes invisible to the gate |
+| **`architecture`: the `ci.yml` failure annotation will mis-diagnose the new failure class** and §13.1 forbids fixing it | **ACCEPTED as the constraint; AMENDED on the remedy.** No workflow edit. **Instead, `collect_vitest()`'s `SystemExit` messages must open with a line that visibly contradicts the annotation** — e.g. `COLLECTION FAILURE — this is not drift; do not regenerate.` This puts the correction in the file Packet F owns |
+
+**NOTED, NOT ACTIONED (3).**
+
+| Finding | Why not actioned |
+|---|---|
+| **`test-strategist`: `describe.each` (NT-7) has no row** | **Genuine gap, recorded not closed.** No JS test uses `describe.each` today, so a row would exercise a shape the suite does not contain. Recorded in §13.11 so it is added the day one appears |
+| **`architecture` + `test-strategist`: plan-stage size is never derived; both read it as Large (Gate 0 + council), while QF1 requests Gate 1 only** | **ROUTED TO THE OWNER as QF9**, not decided. Both reviewers concede "schema" in that table plainly means the DB/API surface, not a generated doc artifact — and this session's authorization is explicitly *"Packet F scoped planning … and Gate 1 council review"*. **Deciding it either way would be the packet grading its own gate**, so it is asked instead |
+| **`test-strategist`: §13.7's naming rejection is refuted by its closest precedent** (`tests/test_pyright_baseline_diff.py` names the script) | **The name stands; the RATIONALE is replaced.** `tests/test_vitest_inventory_contracts.py` is kept, rested on scope rather than on a rule the sibling script disproves |
+
+**DISAGREEMENT — one, settled by routing rather than by the packet (1).**
+
+`architecture` **disputes the packet's QF2 recommendation.** The plan recommends bumping
+`schema_version` to `2`; `architecture` would **leave it at `1`** and argues the remedy for "asserts
+nothing" is to assert the **top-level key set** — `set(inventory) == {…, "vitest"}` — which catches both
+the rename F25 mutates and the deletion F24 removes, **in one assertion that never needs editing for an
+additive change**, whereas a pinned `schema_version == 2` catches neither.
+
+**The launching session's assessment: `architecture` has the better argument on the mechanism, and its
+key-set assertion is adopted regardless of how QF2 is ruled** — it is strictly stronger than what §13.7
+listed and costs nothing. It also raises a placement problem the packet had not seen: `schema_version`
+is a **whole-artifact** field, and pinning it inside a file deliberately named for the Vitest surface
+means a future sixth surface bumping to `3` reds a Vitest-named test, whose tempting repair is to edit
+the number.
+
+**QF2 is therefore re-put to the owner with the packet's recommendation WEAKENED from "increment to 2"
+to "no recommendation", the two arguments stated side by side, and the key-set assertion adopted either
+way.** The packet does not get to settle a question it raised and then lost the argument on.
+
+---
+
+#### Part 4 — measurements taken at council time that change an owner question
+
+**NT-5 and NT-6 are now measured, and they are larger than the reviewers' estimates.**
+
+The proposed `vitest` block was built in memory from the real listing and serialized with the
+generator's own `json.dumps(indent=2, sort_keys=True)` shape. **Nothing was written into the repository.**
+
+| Quantity | Measured |
+|---|---|
+| `vitest` block **with** the full 231-row `cases[]` | **988 lines / 45,741 bytes** |
+| Current `TEST_INVENTORY.json` | **758 lines / 18,507 bytes** |
+| Projected `TEST_INVENTORY.json` after Packet F | **≈1,740 lines / ≈64 KB** |
+| The counts-only alternative | **13 rows, ≈55 lines** |
+
+**This changes QF3 materially.** The `cases[]` array alone is **larger than the entire current
+artifact**: the identity list roughly **triples the JSON by bytes** and grows it **2.3× by lines**. The
+whole cost of detecting a **rename** is about **930 committed lines**. The owner should rule QF3 with
+those numbers in hand, not with "NT-5, unmeasured".
+
+**NT-6 resolves as: yes, it truncates — twice, and harmlessly.** A ~988-line first-landing diff against
+`_check()`'s 200-line cap truncates ~5×, and `ci.yml`'s `head -c 8000` truncates again. **The gate still
+reds correctly** — truncation affects only what the operator sees. `architecture` adds the reassuring
+half: `sort_keys=True` places `vitest` **last** alphabetically, so its hunk cannot crowd out the other
+four surfaces' diffs, and `_check()` is called once per file so JSON and Markdown each get their own
+200 lines. **§13.10 step 2's pass criterion is therefore "reports `DRIFT` and exits 1", never "shows the
+complete diff".**
+
+**NT-3 is closed.** Every `process.env.*` read in `node_modules/vitest/dist/**` was enumerated: there is
+**no Vitest analogue of `PLAYWRIGHT_JSON_OUTPUT_NAME`**. The defensive `env.pop()` §13.4 left as an open
+instruction **has no counterpart to perform**, and no speculative pop should be added. Two variables do
+matter — `CI` (the `--allowOnly` default, the subject of the accepted finding above) and
+`GITHUB_ACTIONS` (reporter selection, irrelevant under the file channel).
+
+**Remaining unmeasured after the council: NT-4** (Linux behavior — every probe was win32; the first
+ubuntu `test-inventory` run is the measurement) and **NT-7** (`describe.each`).
+
+---
+
+#### Part 5 — what the council did NOT dislodge
+
+Recorded because a later reader should know which parts survived three adversarial passes:
+
+- **§13.3's rejection of `vitest run --reporter=json`.** All three reviewers examined it; `architecture`
+  probed hardest and narrowed the claim (S2's indirect path) **without reversing the decision**, calling
+  it *"the strongest thing in the section"*. Framing it as a **stop-condition** rather than a trade-off
+  is correct and **should not be revisited.**
+- **§13.4's order of operations** — exit-code check before parse, before file-existence, before shape
+  validation — is the right reading of P7 against P8.
+- **The mandatory sort (P3) and `relative_to().as_posix()` (P14)** as load-bearing rather than stylistic.
+- **M3's consumer inventory**, re-derived independently by `architecture` over a wider file set plus
+  `.claude/**` and `docs/**`: the only code consumers are `ci.yml`'s exit-code check and its named-key
+  indexing, which never enumerates. **A new top-level key breaks no consumer.**
+- **`Test Inventory Drift` is required (context #11 of 12), so no branch-protection edit is needed** —
+  §2.5's whole design holds.
+- **§13.0's ledger is honest** — one green result, zero red, zero missing, zero cancelled, zero runs
+  after T0, and it claims **no** elapsed window progress.
+- **§7 was not quietly fixed.** All three confirmed §7.1 still records 11 contexts and §7.2 still says
+  "12th", with the drift routed to the owner rather than edited. Same for `QUALITY_GATE.md`'s
+  five-surface table.
+- **No calculation-surface, non-goal, or local-first violation**, checked rather than assumed: no
+  `routes/`, `utils/`, `app.py`, or template; no Effective/Raw surface; no `CountingMode` /
+  `ContributionMode`; the parked fatigue workstream is not resumed.
+- **F27's disclosure as a detection hole rather than an equivalence** is the honest call and
+  **should not be "fixed" by inventing a killer.**
+
+---
+
+#### Part 6 — annotation of §13's own preamble
+
+> ⚠️ **ANNOTATION — §13's preamble (the "Council status" paragraph) is now superseded and is annotated,
+> not rewritten.** It states *"No Gate 1 council record for Packet F exists in this document"* and that
+> the "PLAN v2" label *"describes the drafting round, not a reviewed-and-dispositioned round."* **Both
+> were true when written and are now false: this subsection is that record.** The label is earned.
+> **What has NOT changed: Gate 1 is still NOT APPROVED.** A council record is the input to the owner's
+> ruling, not the ruling. §13.15's revisions must be applied and the nine questions in §13.12 answered
+> before implementation may be requested.
+
+### 13.15 Revisions required before implementation may be requested
+
+**§13.1–§13.13 are the plan as DRAFTED. §13.14 is the council. This subsection is the binding
+difference between them.** It is written as a checklist rather than folded into the prose above, for
+the reason §13's preamble already gives: **a drafted section that is silently rewritten to match its
+review loses the evidence of what the review changed.** The sections above are left as the drafting
+round; **where they and this subsection disagree, this subsection wins.**
+
+**None of these has been applied to any code. All are plan-text revisions plus design commitments that
+bind the implementation if and when it is authorized.**
+
+#### Blocking — the plan is not implementable until these are applied
+
+| # | Revision | Source |
+|---|---|---|
+| **R1** | **Delete the `W` arms from F1–F5.** Those rows run on **`T` only**. F22/F24 carry the committed-pin claim. **`git checkout .` is banned from every row** — restores are `git checkout -- <named path>`, never repo-wide, never after a `git mv`. §13.8's preamble sentence *"no row runs against the real JS suite"* becomes true | B1 |
+| **R2** | **Correct the `T` substrate location.** `T` lives under the **gitignored `artifacts/`**, not the OS temp directory — measured (S1): a fixture in the temp dir cannot resolve `vitest` (`ERR_MODULE_NOT_FOUND`). §13.4's temp-file decision for the collector's `--json=<path>` **output** is unaffected and stands | S1 |
+| **R3** | **Add steps 11a–11c after the mutation matrix**, blocking: `git status --porcelain` empty; `--check` green; `npx vitest run` = 13 files / 231 tests, exit 0. **A non-empty `git status` at 11a is a stop condition, not a cleanup task** | B2 |
+| **R4** | **Split the collector at a parser seam**: `_vitest_list_argv(path)`, `_run_vitest_list(path)`, and a **pure** `parse_vitest_listing(payload, repo_root)` holding validation, relativization, sort and both cross-checks. Model it on [`tests/test_pyright_baseline_diff.py`](../../tests/test_pyright_baseline_diff.py), including its **fake absolute root** technique, which makes F16/F17 platform-independent | B3 |
+
+#### Design commitments — settled by the council, binding on implementation
+
+| # | Revision | Source |
+|---|---|---|
+| **R5** | **`collect_vitest()` sets `env["CI"] = "true"`** (or passes `--allowOnly=false`) so a stray `.only` fails closed **identically on Windows and ubuntu**. Without it, the repair path the tooling itself prints produces a corrupt artifact | AR4 + M9.6 |
+| **R6** | **Resolve `config_include`**: derive `include` from `vitest.config.js`, or **drop the field and its path-prefix cross-check**. Do not commit a literal claiming to record a config it never read | AR5 |
+| **R7** | **Pin the Markdown surface in the contract test** — assert the **committed** `.md` contains the literal `## Vitest test files` heading and the totals row. Add a Group-C row for *"delete the section from `render_markdown()` **and regenerate**"*. `--check` alone cannot see an under-emitting renderer | AR2 |
+| **R8** | **Adopt the top-level key-set assertion** — `set(inventory) == {"schema_version","generator","playwright","pytest","hard_waits","vitest"}` — **regardless of how QF2 is ruled.** It is strictly stronger than the drafted list and catches both F24's deletion and F25's rename in one assertion | AR disagreement |
+| **R9** | **`collect_vitest()`'s `SystemExit` messages open with a line that contradicts the workflow's fixed annotation** — e.g. `COLLECTION FAILURE — this is not drift; do not regenerate.` **No workflow edit** | AR7 |
+| **R10** | **Third authoring rule in §13.7**: no `skipif` on node/npx availability, and **no contract-test path may reach `_npx()`**. Node *is* on the `Run Tests` PATH, so `shutil.which("npx")` succeeds and `_npx()` will **not** raise its helpful error — a shelling test would attempt a registry fetch inside a required job rather than failing fast | TS20 + AR6 |
+
+#### Mutation-matrix repairs
+
+| # | Revision | Source |
+|---|---|---|
+| **R11** | **F21 and F25 get `W` arms** (real generator, real regeneration, real contract test, restore by named-path checkout). **F25 splits in two** — key rename and `schema_version` are separate mutations | TS5 |
+| **R12** | **F15 is replaced** by *"parse `result.stderr` as the payload"*, predicting `JSONDecodeError` on P11's warning bytes. The `stderr=STDOUT` form is **unrunnable** (`ValueError`, verified) | TS6 |
+| **R13** | **Add F28** — inject a payload with one file's rows removed, tree unchanged. This is the one hole §13.4 names and no row exercised | TS9 |
+| **R14** | **Declare F11 non-isolating**, and judge it at the parser seam rather than by the artifact oracle | TS7 |
+| **R15** | **F18's primary killer becomes the sortedness assertion** on a `W`-regenerated artifact; the ≥3 repetitions stay secondary | TS11 |
+| **R16** | **F4/F5 get F1's pre-mutation-green anti-vacuity form**; "indistinguishable from deletion" moves to the equivalence column | TS12 |
+| **R17** | **F10's mode is stated per arm**; the empty case is reached through the parser seam, not the runner | TS10 |
+| **R18** | **Correct two false summary lines**: "Zero declared equivalences" → *"no true equivalence; two conditional, both declared"*; and "every row names exactly one substrate" / Group B's "every row mutates a copy", both false for ~7 rows | PR5 + TS6 + TS17 + AR13 |
+
+#### Gate-set and evidence repairs
+
+| # | Revision | Source |
+|---|---|---|
+| **R19** | **Add the pyright baseline diff** to §13.10 — repo-wide, blocking inside a required context, "zero net-new diagnostics", stop condition if red. Re-baselining is an owner decision, not a repair | TS3 |
+| **R20** | **Reviewers: `code-reviewer` + `unslop-reviewer`** at code time, council named separately. Roughly half this diff is prose in a document that has already produced three falsified-neighbour cases | TS13 |
+| **R21** | **Cite the known-red** `e2e/program-backup.spec.ts:79` in step 10 with the isolation re-run as its disposition, plus the standing rule that an ad-hoc E2E batch is nondeterministic — stash and re-run the identical batch before blaming the diff | TS14 |
+| **R22** | **Re-check `gh pr list` immediately before step 4's regeneration.** §13.0 already imposes this "never restate from memory" discipline on the T0 ledger | AR12 |
+| **R23** | **Move NT-1/NT-2/NT-8/NT-9 into §13.2 Part 1 with their values**; close **NT-3, NT-5, NT-6**; Part 3 reduces to **NT-4 and NT-7**. Restate **RF11** as a measured constraint. Put `2809 / 124 / 125` into step 0 with a mismatch as a stop condition | all three |
+| **R24** | **Add the S2 coupling as an RF row and fold it into QF6** — a production `static/js` change that breaks module-scope evaluation reds a required context, and **nothing required covers production JS today** | AR3 + S2 |
+| **R25** | **Extend RF3/QF5** to four documents: `QUALITY_GATE.md`, §7.1 of this file, **`.claude/rules/testing.md:15`**, and **§5's five-row table**. Note that *editing* under `.claude/rules/` does not trip the parametrized surface | AR9 + TS15 + PR9 |
+| **R26** | **Add `.claude/**` to must-not-touch**, citing the parametrized-configuration surface | AR9 |
+| **R27** | **Correct 461 → 469 lines**; add the missing **M5** row; make the `collector` literal match the argv actually run; flag QF5(a)'s sixth-file consequence **while noting the gate set would not actually change** | PR8 + TS18 + AR13 + PR6 |
+| **R28** | **QF3 carries the measured cost** (988 lines / 45.7 KB; ≈3× the current JSON) and an unsoftened recommendation to include. **QF2's recommendation is withdrawn to neutral** with both arguments side by side | Part 4 + AR disagreement |
+| **R29** | **Add QF9 — plan-stage size.** Two reviewers read Packet F as **Large** (Gate 0 + council), while QF1 requests Gate 1 only. Routed, not decided: the packet may not grade its own gate | AR11 + TS13 |
+
+---
+
+**Nothing in §13.15 has been implemented.** No generator change, no artifact, no test file, no mutation
+run. The revisions bind the implementation **if and when the owner authorizes it**; they are recorded
+here so that authorization is given against the reviewed plan rather than the drafted one.
+
+> ⚠️ **ANNOTATION 2026-08-22 — the paragraph above is SUPERSEDED and is annotated, not rewritten.**
+> The owner authorized implementation at **§13.16**, and **all of R1–R29 have been applied**. The
+> per-revision discharge table is **§13.17**. The sentence stands as the record of what was true
+> when the revisions were written.
+
+### 13.16 Owner ruling at Gate 0 and Gate 1 (2026-08-22) — **APPROVED, WITH NINE RULINGS AND ONE DESIGN RULING**
+
+**Both gates are now signed, and the §13.13 STOP is discharged for implementation only.** The owner
+classified Packet F as **Large / new workflow** under
+[`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)'s plan-stage routing — which settles **QF9**,
+the one question §13.14 Part 3 explicitly refused to decide on the packet's own behalf — and ruled
+that **Gate 0 is required and approved by the ruling itself**, with the completed three-reviewer
+council (§13.14) satisfying the council half after its **29 revisions** are applied.
+
+**Gate 1 is approved against §13.1–§13.13 as the drafting record, §13.14 as the council, all of
+R1–R29 in §13.15, and the rulings below.** Where the drafted plan and §13.15 or these rulings
+disagree, **§13.15 and these rulings govern** — the same precedence §13.15 already declared for
+itself. **A second council is not required** if the revisions are applied faithfully; the standing
+instruction is to **stop and return to Gate 1** if implementation changes the approved schema shape,
+collection mechanism, owned files, T0 premise or required-gate behavior. *(It did not: §13.17 records
+five deviations, all of them below that line, each stated rather than folded in.)*
+
+#### The twelve Gate 0 requirements, as approved
+
+Restated because they are the acceptance criteria §13.17 is judged against, and because a
+requirement list that lives only in a prompt is a requirement list nothing can be checked against
+later:
+
+| # | Requirement |
+|---|---|
+| 1 | Extend the required Test Inventory Drift gate to inventory Vitest **without executing the JS tests** as its collection mechanism |
+| 2 | Use `vitest list --json=<path>` and the **file** output channel — not stdout, not `vitest run --reporter=json` |
+| 3 | Remain deterministic across Windows and Linux through **explicit sorting** and **POSIX-relative paths** |
+| 4 | Fail closed on runner failure, missing output, malformed output, empty output, duplicates, path escape and partial listings |
+| 5 | Keep subprocess execution separate from a **pure parser seam** |
+| 6 | Required pytest contract tests must never invoke `npx`, depend on `node_modules`, skip themselves when Node is unavailable, or attempt network access |
+| 7 | Pin per-file counts and full stable case identities strongly enough to detect **file deletion, case deletion and case rename** |
+| 8 | Change **no** JavaScript test, production JavaScript, workflow, dependency, Vitest configuration, branch protection or repository setting |
+| 9 | Preserve the **13-file / 231-case** JS suite byte-for-byte, and therefore preserve **T0** |
+| 10 | Keep the existing required `Test Inventory Drift` context as the enforcement mechanism; **add no new context** |
+| 11 | Provide mutation evidence, deterministic regeneration evidence, full verification and code-time review |
+| 12 | Update the live documentation surfaces made inaccurate by Packet F |
+
+**These may not be widened without a new owner ruling.**
+
+#### Rulings QF1–QF9
+
+| # | Question | Ruling |
+|---|---|---|
+| **QF1** | Proceed past Gate 1? | **YES.** Local implementation, **mutation execution under the approved containment rules**, commit, push, and a **ready-for-review** PR titled `test(inventory): Packet F — pin Vitest nodes` are each authorized. **Merge is NOT authorized** and remains a separate confirmation naming the PR |
+| **QF2** | `schema_version` | **Increment `1` → `2`.** Adding the required `vitest` top-level surface is a material artifact-schema revision even though it is backward-compatible for current consumers. **R8's exact top-level key-set assertion is adopted as well — the version assertion does not replace it.** Schema-version coverage stays in the **general artifact-contract** portion of the test, so a future surface change is not misleadingly treated as Vitest-only behavior. *(This resolves §13.14's disagreement by taking both halves: `architecture` won the argument that the key-set assertion is the stronger mechanism, and it is adopted; the bump is ruled in on its own grounds.)* |
+| **QF3** | Full identity list, or counts only? | **Include the complete sorted identity list.** The measured cost — **≈988 lines / 45.7 KB for 231 identities** — **is accepted**: detecting a rename is worth that committed size. **Counts-only is rejected** because it leaves case renames invisible. **Do not render the identities into Markdown** — the `.md` carries the summary and per-file counts and points at the JSON |
+| **QF4** | P4's skip/todo limitation | **Accepted.** `vitest list` omits `.skip` and `.todo`, so the inventory **honestly cannot** distinguish either from deletion. Detection still occurs because the identity disappears. **Do not add a `status` field and do not claim status visibility. Do not switch to `vitest run`** — that would couple a required context to JS test outcomes before D2 |
+| **QF5** | The documents Packet F makes incomplete | **All four are handled in Packet F** rather than knowingly landing stale live guidance: (a) live `QUALITY_GATE.md` five → **six** pinned surfaces, with the Vitest surface described accurately; (b) live `.claude/rules/testing.md` inventory description includes Vitest; (c) §7.1/§7.2 **annotated** with the current 12-context state and the eventual promotion being a **13th**; (d) §5 **annotated** for the sixth surface. **Preserve dated historical statements through annotations; update current live rules directly.** **Do not edit** `MASTER_HANDOVER.md`, `ACTIVE_DEVELOPMENT.md`, `TESTING_STRATEGY_PLANNING.md` or `UI_SCENARIOS_GAP_ANALYSIS.md` in this packet |
+| **QF6** | The new coupling | **Accepted, and must be documented plainly:** a future Vitest bump changing `list --json`'s shape can red the required inventory gate, and **production JS throwing during module-scope collection can also red it** (§13.14's S2). Both are **deliberate fail-closed outcomes**. Collection-failure messages must open with wording such as `COLLECTION FAILURE — this is not drift; do not regenerate.` **Do not weaken validation or edit the workflow annotation to conceal the coupling** |
+| **QF7** | A structural guard against a vacuous contract test | **No.** Do not add a source-text meta-test or a literal-count meta-test. **F27 is recorded as an accepted detection hole common to contract tests** — a deliberately tautological assertion may survive. The controls are F26's reverse direction, the pure-parser tests, the exact artifact assertions, the mutation evidence, `code-reviewer` and `unslop-reviewer`. **Do not claim this generic residual is eliminated** |
+| **QF8** | T0 | **Confirmed.** Packet F may land inside the qualification window and **does not restart T0**, provided no file under `static/js/**` changes, the suite remains exactly 13 files / 231 cases, and no skipped, todo, filtered or `.only` state appears. **T0 remains `2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.** **Q4, Q6 and D2 remain unauthorized** |
+| **QF9** | Plan-stage size | **Large / new workflow.** Gate 0 required and approved; the completed council satisfies the council review after R1–R29 are applied |
+
+#### The additional design ruling — `config_include`
+
+**Drop `config_include` from the artifact** rather than parsing or duplicating `vitest.config.js`.
+**The actual successful listing is the source of truth**, and a hand-maintained copy of a
+configuration the generator never reads is the class of defect §13.14-AR5 raised. This takes the
+**second** of R6's two options; the path-prefix cross-check that belonged to the field goes with it,
+and the repo-relative-POSIX assertions that kill F16 and F17 move to the contract test, where
+§13.14-B3's fake-root technique makes them platform-independent.
+
+#### Authorized tracked files — **seven, and a stop condition at eight**
+
+1. [`scripts/generate_test_inventory.py`](../../scripts/generate_test_inventory.py)
+2. [`tests/test_vitest_inventory_contracts.py`](../../tests/test_vitest_inventory_contracts.py)
+3. [`docs/test_inventory/TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json)
+4. [`docs/test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md)
+5. `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md` (this file)
+6. [`docs/ai_workflow/QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)
+7. [`.claude/rules/testing.md`](../../.claude/rules/testing.md)
+
+**Any need for another tracked path is a stop condition requiring owner approval.** Note that the
+drafted §13.1 said **five** files and called a sixth a gate-re-derivation trigger; the ruling raises
+the ceiling to **seven** by moving QF5(a) and QF5(b) in-scope. §13.14 Part 3 already recorded the
+resolution of that tension: `/verify-suite` is forced by the **Tooling / scripts** row regardless, so
+the **gate set does not change** — only the file count does. `.claude/rules/testing.md` is **edited,
+never added or deleted**, so the parametrized configuration surface is not tripped.
+
+#### What is still forbidden
+
+Unchanged from §13.13 and restated because approval of implementation is not approval of anything
+adjacent to it: **merging this PR**, **Q4**, **Q6**, **D2**, any branch-protection or
+repository-settings change, any edit to `.github/workflows/**`, `scripts/release_gate.py`,
+`package.json`, `package-lock.json`, `vitest.config.js`, `static/js/**`, any existing test, or
+`.claude/settings.json`. **A permission failure during execution remains a blocker to report, not
+authority to change configuration.**
+
+### 13.17 Execution record — 2026-08-22
+
+**Packet F is implemented.** Base `origin/main` **`9cb6cdc`**, worktree
+`D:\development\Hypertrophy-Toolbox-v3-main-phase3-packet-f-inventory`, branch
+`wt/phase3-packet-f-inventory`, with `npm ci` run **inside** the worktree (vitest **4.1.11**,
+lockfile-matching — RF6's hazard avoided rather than merely noted).
+
+**Everything below is MEASURED.** Where a §13.8 prediction and an observed result disagree, the
+disagreement is recorded and investigated under §10.7-R9, never edited away — **three did**, and each
+one is written up in full at the end of this subsection. **Two of the three turned out to be defects
+in this packet's own work, not in the plan**, which is the outcome that rule exists to produce.
+
+#### Part 1 — the gates, measured
+
+| # | Gate | Result |
+|---|---|---|
+| **0a** | JS suite **before** | **13 files / 231 tests, exit 0** — matches M4 |
+| **0b** | pytest inventory baseline (**NT-1**, taken here) | `collected_deterministic` **2809** / `deterministic_files` **124** / `total_files` **125** — the values R23 required in step 0, confirmed rather than assumed |
+| **0c** | Baseline `--check` | `Test inventory is up to date.`, **exit 0** |
+| **2** | **Deliberate red** — generator extended, artifacts stale | **exit 1.** **Both** surfaces reported independently: `DRIFT: docs/test_inventory/TEST_INVENTORY.json` **and** `DRIFT: docs/test_inventory/TEST_INVENTORY.md`. **This is the packet's own anti-vacuity check** — a green here would have meant the new surface was not pinned at all. **NT-6 closes as predicted:** the JSON hunk truncated at `_check()`'s 200-line cap and the gate still red correctly |
+| **4** | Regeneration | JSON **757 → 1746** lines (**63,545** bytes LF); Markdown **215 → 239** lines. **NT-5 closes at 985 lines / 45,697 bytes** for the `vitest` block as it sits in the artifact (lines 761–1745), of which **926 lines** are `cases[]` alone; the file itself grew by **989** lines. The council projected 988/45,741 for a standalone dump of the same block — **3 lines out, and the difference is the two wrapping braces a standalone dump adds**, not a measurement error in either |
+| **5** | Focused contracts | **46 passed**, exit 0 |
+| **6** | `--check` green again | `Test inventory is up to date.`, exit 0 |
+| **7** | **Determinism** | **Three** consecutive regenerations, byte-identical: JSON `0b8a8fb4f937e806316f6e78a9a9f8cb`, Markdown `2aee5cca02eca10ffb0e7275c6651c24`. Re-run on the **final** generator, not only the first draft |
+| **8** | **JS suite after** | **13 files / 231 tests, exit 0** — byte-identical to step 0. **§13.0's window is intact and T0 is not restarted** |
+| **9** | **Full pytest** | **3175 passed, 2 skipped**, exit 0, 221.1s. Delta is **exactly 46** — the new file's own nodes and nothing else (3131 baseline = 2809 deterministic + 322 from the one env-dependent file on a Windows host) |
+| **9b** | **Pyright baseline diff (R19)** | **PASS — 0 net-new diagnostics** (baseline 132, current 132). Nothing re-baselined |
+| **10** | **Chromium E2E** | **649 / 649 pass, in two invocations.** See the E2E note below — it corrects a standing repository belief |
+| **11** | **Mutation matrix** | **58 recorded arms, 0 disagreements** on the final run — 52 mutation arms, 1 pre-mutation baseline, 5 containment gates. Part 4 |
+| **11a–c** (R3) | **Post-matrix containment** | `git status --porcelain` **empty**; `--check` **green**; JS suite **13 / 231**; and all **seven** tracked blob hashes **identical** to the checkpoint |
+
+**The E2E result, stated precisely, because the naive reading is wrong.**
+
+`npx playwright test --project=chromium` — the command `CLAUDE.md` and the `/run-e2e` skill both
+document — returned **569 passed, 63 failed, 17 did not run**. All 63 failures were in
+`visual.spec.ts` (52), `workout-plan-desktop-contract.spec.ts` (10) and
+`visual-baseline-thumbnails.spec.ts` (1), and the first failure is **behavioural, not visual**:
+`expect(rowCount).toBeGreaterThanOrEqual(4)` received **1**. That is a **seeding** fact — without
+`PW_VISUAL_SEED=1` the throwaway DB is built by `prepare_e2e_db.py`, which wipes the user state those
+specs need.
+
+| Batch | Result |
+|---|---|
+| The **549** non-visual tests, functional seed | **549 passed**, exit 0 |
+| The **100** visual tests, `PW_VISUAL_SEED=1` | **100 passed**, exit 0 |
+
+**A standing belief is corrected here, on measurement.** The repository's working assumption has been
+that the visual specs are *excluded* from a default local run and that a default run should therefore
+show zero failures. **They are not excluded**: `playwright.config.ts` has no `testIgnore`, no
+`grepInvert`, and neither spec carries a self-skip — `PW_VISUAL_SEED` selects only the **seed script**.
+The full local suite needs **two** invocations, and "judge a default local run by zero failures" is
+not a criterion that can ever be met. **`e2e/program-backup.spec.ts:79` — the known-red R21 names —
+did not fire in either batch.**
+
+**Attribution, since the rule is to stash-and-rerun before blaming a diff:** the seeded re-run passing
+100/100 on the *same* working tree settles it, and the diff contains **no** file any browser or Flask
+process can observe — no `e2e/`, `static/`, `templates/`, `routes/`, `utils/`, `app.py`.
+
+#### Part 2 — the twelve Gate 0 requirements
+
+| # | Requirement | Discharged by |
+|---|---|---|
+| 1 | Inventory Vitest without executing the JS tests | `vitest list`; **F21/F21-W** assert the argv can never become `vitest run` |
+| 2 | `--json=<path>`, file channel | `_vitest_list_argv()`; **F14** proves the stdout channel fails on a contaminated tree where the file channel succeeds |
+| 3 | Deterministic across Windows and Linux | mandatory `identities.sort()` + `relative_to().as_posix()`; three byte-identical regenerations; **F16/F17/F18** |
+| 4 | Fail closed on runner failure, missing output, malformed output, empty output, duplicates, path escape, partial listings | Six of the seven are hard `SystemExit`s with **F10, F12, F13, F19, F9** and two path tests as killers. **The seventh is honest:** a well-formed but SHORT listing is internally consistent and **no payload check can see it** — **F28** demonstrates the parser accepting one. The oracle is the committed identity list, which is the strongest argument for QF3's ruling |
+| 5 | Subprocess separate from a pure parser seam | `_vitest_list_argv` / `_run_vitest_list` / `parse_vitest_listing`; **17 of the 43 test functions** (46 collected nodes) exercise the pure parser |
+| 6 | No `npx`, no `node_modules`, no self-skip, no network in the required pytest tests | `_vitest_list_argv(path, npx="npx")` takes the executable as a defaulted parameter, so **no test path reaches `_npx()`**; the file has **zero** `skipif` and **zero** subprocess calls |
+| 7 | Detect file deletion, case deletion, case rename | **F1**, **F2**, **F3**. F3 is the one that matters: **counts are byte-identical under a rename** and only `cases[]` moves |
+| 8 | No JS, production, workflow, dependency, config, protection or settings change | `git diff --stat` is **seven files**, listed in Part 6 |
+| 9 | 13 files / 231 cases preserved; T0 preserved | measured before, after implementation, and again after the entire mutation matrix |
+| 10 | No new required context | branch protection untouched; the surface lands inside the already-required `Test Inventory Drift` |
+| 11 | Mutation, determinism, verification and review evidence | Parts 1, 4, 5 |
+| 12 | Update the live documentation surfaces | Part 6 |
+
+#### Part 3 — how R1–R29 were discharged
+
+| # | Discharge |
+|---|---|
+| **R1** | F1–F5 ran on **`T` only**. No `W` arm exists for them, and **`git checkout .` appears nowhere** — every restore is `git checkout -- <named path>`, and `restore()` raises `CONTAINMENT FAILURE` if the tree is not clean afterwards. It fired once, correctly (Finding 3) |
+| **R2** | `T` lives at `artifacts/packetf-fixture/` (gitignored), where `vitest` resolves by walking up. Collector output still goes to `tempfile.mkdtemp()` |
+| **R3** | Steps 11a–11c run and pass; the hash comparison against the checkpoint was added on top |
+| **R4** | The three-function seam exists, modelled on `tests/test_pyright_baseline_diff.py` including its **fake absolute root** (`Path("/repo").resolve()`), which is what makes F16/F17 assertable on either platform |
+| **R5** | `_run_vitest_list()` sets `env["CI"] = "true"`. **F6 mutates that pin directly** and shows the corrupt-artifact path it prevents |
+| **R6** | **`config_include` dropped** (owner's design ruling), and the include-derived cross-check with it. The path assertions moved to the contract test, where they have a fake root and no config to duplicate |
+| **R7** | Four contract tests read the **committed** `.md`. **F29** — the council's addition — proves they are the only oracle: an under-emitting renderer plus a regeneration leaves `--check` **green** |
+| **R8** | `test_top_level_key_set_is_exact` adopted. **F24 and F25a** both die on it |
+| **R9** | Every `SystemExit` on the collection path opens with `COLLECTION FAILURE - this is not drift; do not regenerate.` No workflow edit |
+| **R10** | Third authoring rule written into the module docstring; the `npx` parameter makes it structural rather than a promise |
+| **R11** | F21 gained its `W` arm; **F25 split** into F25a (key name) and F25b (`schema_version`). Both were **repaired further at execution** — see Finding 4 |
+| **R12** | F15 is *"parse `result.stderr` as the payload"*; it dies on a **clean** tree, on P11's warning bytes |
+| **R13** | **F28 added** |
+| **R14** | **F11 declared non-isolating** and judged at the seam |
+| **R15** | F18's primary killer is the sortedness assertion; the ≥3 live repetitions are secondary and produced **2 distinct orderings in 3 runs** — flaky by construction, as declared |
+| **R16** | F4/F5 carry F1's pre-mutation-green form (row **F0**); "indistinguishable from deletion" is stated as the equivalence it is |
+| **R17** | F10's arms are mode-explicit and the empty case is reached **through the parser seam**, not the runner |
+| **R18** | Corrected in this record: **no row is a true equivalence; two are conditional** — F4/F5 (observational, vs deletion) and F17 (Linux-only) |
+| **R19** | Pyright baseline diff run: **0 net-new** |
+| **R20** | `code-reviewer` **and** `unslop-reviewer`, Part 5 |
+| **R21** | Known-red cited and checked: it did not fire. The E2E note above goes further and corrects the criterion itself |
+| **R22** | `gh pr list` re-checked immediately before **each** regeneration: **0 open PRs** both times |
+| **R23** | NT-1 taken (**2809 / 124 / 125**) and matched. **NT-3, NT-5, NT-6 closed**; **NT-4** closes on the PR's ubuntu run |
+| **R24** | Folded into QF6 and into the live `QUALITY_GATE.md` row, which now names **`static/js/**/*.js`** as a tripping path |
+| **R25** | All four surfaces handled — QF5 moved (a) and (b) in-scope and (c)/(d) are annotated |
+| **R26** | `.claude/**` add/delete remains off-limits; `.claude/rules/testing.md` was **edited in place**, which does not trip the parametrized surface. `--check` green after the edit confirms it |
+| **R27** | The `collector` literal is `VITEST_COLLECTOR`, pinned equal to the argv shape by `test_collector_string_matches_the_argv_actually_run`. The seven-file ceiling and the unchanged gate set are recorded at §13.16 |
+| **R28** | QF3 ruled with the measured cost in hand. The block occupies **985** lines of the artifact |
+| **R29** | QF9 answered by the owner: **Large / new workflow** |
+
+#### Part 4 — the mutation matrix, measured
+
+**58 recorded arms across 30 rows — 52 of them mutation arms. Final run: 0 disagreements.** Every row proved application (an exact-match
+patcher raises **`NOT APPLIED`** rather than counting a silent no-op as a survivor), expected
+behaviour, and restoration. **No row touched `static/js/**`, any pre-existing test, or any file
+outside the seven authorized paths.**
+
+**Group A — the JS test surface (substrate `T`, a 3-file / 6-case fixture under `artifacts/`).**
+
+| Row | Measured |
+|---|---|
+| **F0** | Pre-mutation: 3 files / 6 cases, sorted. The anti-vacuity floor for every row below |
+| **F1** | Delete a file → 2 files / 5 cases, its identities gone |
+| **F2** | Delete one case → 3 files / **5** cases, `alpha > b` gone by name |
+| **F3** | **Rename** one case → **counts byte-identical**, identity list moved. **This row is the entire argument for QF3** |
+| **F4 / F5** | `.skip` / `.todo` → **identity-for-identity indistinguishable from F2's deletion.** P4's limitation *demonstrated*, not asserted |
+| **F6** | **Repaired at execution — Finding 1.** Arm 1 (real generator, ambient `CI` unset): `SystemExit`. Arm 2 (**CI pin removed**, ambient unset): **exit 0 with the file collapsed to 1 case** — the corrupt artifact a developer would commit and only ubuntu would reject. Arm 3 (pin removed, ambient `CI=true`): `SystemExit`. **R5 is what makes arms 2 and 3 differ, so R5 is what the row now measures** |
+| **F7** | `test.each([1,2,3]) → [1,2]` → `param case 3` specifically absent |
+| **F8** | Add a file → 4 files / 7 cases. Both directions covered |
+| **F9** | Two cases joining to the same `>`-string → `SystemExit` **naming the duplicate**, not a silent de-duplication |
+
+**Group B — collector, parser and subprocess (substrate `G`, mutated copies).**
+
+| Row | Measured |
+|---|---|
+| **F10** | Guard present on `[]` → `SystemExit`. **Guard removed → returns `({}, [])` and exits 0** — the hollow surface the guard exists to prevent |
+| **F11** | Check present → `SystemExit` **before the file is read**. Check deleted → **succeeds, committing a listing from a run the runner rejected.** **Declared non-isolating** and judged at the seam |
+| **F12** | Three arms. All checks present → `SystemExit` (co-killed by F11's). Exit check stubbed → **named** `SystemExit`. **Both deleted → a raw `FileNotFoundError` traceback**, which is exactly what the named check replaces. **The second arm isolates it, as the plan required** |
+| **F13** | Truncated payload → `SystemExit` quoting the payload |
+| **F14** | File channel on a `process.stdout.write`-contaminated tree → **clean parse**. Stdout channel on the same tree → parse fails. The unmutated arm is the anti-vacuity half |
+| **F15** | stderr as payload, **clean** tree → fails. Cannot survive one clean run |
+| **F16** | No relativization → the **absolute** path is emitted. Local `--check` would be **green**; the contract assertion is the killer |
+| **F17** | No `.as_posix()` → `'static\\js\\a.test.js'` on win32. **Conditionally equivalent on Linux — declared, not skipped** |
+| **F18** | Seam: returns listing order, sortedness assertion reds (**primary**). Live: **2 distinct orderings in 3 runs** (secondary) |
+| **F19** | Missing key **and superset key** → `SystemExit`. Validation deleted → `KeyError` on the former and, on the latter, **silent acceptance of a changed output format** |
+| **F20** | Cross-checks deleted, clean tree → **SURVIVES, declared in advance.** Paired with F9's payload it accepts a collision; with the checks present the same payload dies. **Its kill requires the pairing, and the pairing is stated** |
+| **F21** | Collector swapped to `vitest run --reporter=json` → the argv assertions red |
+| **F28** | A well-formed **partial** listing → **the parser accepts it.** Nothing in the payload could catch it; `--check` and the pinned counts do |
+
+**Group C — the committed pin (substrate `W`/`C`, Packet F-owned tracked files only).**
+
+| Row | Measured |
+|---|---|
+| **F21-W** | Real generator, argv swapped → **3** contract tests red, including `test_argv_lists_and_never_runs`. §13.3's stop-condition is now an assertion, not prose |
+| **F22** | One number changed in the committed JSON → `--check` **exit 1**, `json_drift=True`, **`md_drift=False`**. The two surfaces are independent and the non-short-circuiting `&` is confirmed by observation |
+| **F23** | Vitest table deleted from the committed `.md` → `--check` **exit 1**, **`md_drift=True`, `json_drift=False`** |
+| **F24** | **Repaired at execution — Finding 4.** Artifact arm: the `vitest` key absent → **13** contract tests red including `test_top_level_key_set_is_exact`. Generator arm: **fails closed EARLIER than predicted** — `render_markdown()` raises `KeyError` before any diff is produced, so `--check` exits 1 with **zero** `DRIFT:` lines |
+| **F25a** | Key renamed in the artifact → **13** red, on the key set. **And measured, not reasoned:** `ci.yml`'s *Report totals* step, replayed against the doctored artifact, **still succeeds** — it indexes named keys and never enumerates |
+| **F25b** | `SCHEMA_VERSION` back to `1` → `test_schema_version_is_pinned` reds, alone |
+| **F26** | Pinned `231 → 999` **in the test** → the test reds; `--check` stays **green**. The two oracles are independent, and the pinned numbers are read rather than decorative |
+| **F27** | Exact counts replaced by `assert isinstance(block, dict)` → **46 passed. SURVIVES, as declared.** The disclosed detection hole, unchanged by anything in this packet |
+| **F29** | Renderer stops emitting the section **and the artifact is regenerated** → `--check` **GREEN**, and **four** contract tests red. **This is the row `--check` is structurally blind to**, and the council's most valuable addition after the parser seam |
+
+**Equivalence accounting, corrected per R18:** **no row is a true equivalence.** **Two are
+conditional** — F4/F5 (observationally identical to F2, disclosed) and F17 (unkillable on Linux). **One
+row survives by design** (F27) and **one has no killer on today's tree** (F20). All four were declared
+before execution.
+
+#### Part 5 — findings, including two defects in this packet's own work
+
+**Finding 1 — F6's two arms could not have distinguished anything as drafted.** The plan's arms were
+ambient `CI` unset vs `CI=true`. **R5 makes the ambient value irrelevant** — `_run_vitest_list()` sets
+it — so both arms hit the same code path. Repaired by making the **CI pin itself** the mutation. The
+mechanisms P6 and P7 measured are both still exercised; what varies is now the thing the plan
+committed to.
+
+**Finding 2 — the fail-closed path could destroy its own diagnostic. A REAL DEFECT, found by a
+mismatch and fixed.** F12's first arm disagreed with its prediction. The investigation: `vitest`
+writes **U+276F** into its stack frames, `_run_vitest_list()` quotes the child's stderr verbatim into
+the `SystemExit` message, and on a **cp1252** console Python raises `UnicodeEncodeError` **while
+printing that message** — so the operator gets a traceback *about the diagnostic* instead of the
+diagnostic. On the one path whose entire job is to say what went wrong. Fixed by `_console_safe()`,
+which substitutes unencodable characters against the interpreter's stderr encoding and takes that
+encoding as a parameter so **the substitution is pinned identically on Windows and Linux**
+(`test_quoted_child_output_survives_a_non_utf8_console`). **This is why `COLLECTION_FAILURE` itself is
+ASCII** — the owner's ruling quotes it with an em dash and permits "wording such as", and an em dash
+on a fail-closed stderr path is the same hazard in miniature.
+
+**Finding 3 — a same-length revert can leave the MUTATION live in the next row.** In the first `W`
+run, F26 reported an extra failing test and F27 appeared **killed**. Neither was real. `SCHEMA_VERSION
+= 2` → `1` → restore is a **same-length** edit, and CPython invalidates `.pyc` on `(mtime, size)`; a
+restore inside one mtime tick reuses the **mutated** bytecode in the next row's process. Confirmed by
+re-running F27 in isolation — it passed clean. Both harnesses now set `PYTHONDONTWRITEBYTECODE=1`, and
+the final matrix was re-run in full under it. **Recorded because the failure shape is indistinguishable
+from a real kill**, and a mutation harness that produces phantom kills is worse than none.
+
+**Finding 4 — F24 and F25a were vacuous as drafted, in the same way F21/F25 already were.** Both
+mutated `build_inventory()`, but the contract test reads the **committed** artifact, which a
+generator-only mutation does not touch — so both rows would have "passed" while proving nothing about
+key absence. The council caught this shape for F21 and F25 (TS5) and **missed it for F24 and F25a**.
+Each row is now split: an **artifact** arm that actually tests the contract, and a **generator** arm —
+kept, because it produced a genuine finding: deleting the key fails closed **earlier** than predicted,
+in `render_markdown()`, before `--check` can produce a diff.
+
+**Finding 5 — the autocrlf phantom is real on this path.** F29's restore initially left
+`TEST_INVENTORY.json` "modified" with an **empty** content diff: `_write()` emits LF, the checkout
+holds CRLF. The tree-clean gate caught it, which is what the gate is for. The restore now names the
+JSON explicitly.
+
+**Deviations from the approved plan, stated rather than folded in.** None touches the approved schema
+shape, collection mechanism, owned files, T0 premise or required-gate behaviour, so none is a
+stop-and-return condition:
+
+| # | Deviation | Why |
+|---|---|---|
+| **D-1** | `COLLECTION_FAILURE` uses an ASCII hyphen, not the em dash the ruling quotes | R9 says "wording such as". Finding 2 is the reason: this string reaches stderr on the fail-closed path, and a non-UTF-8 console would replace the diagnostic with an encoding traceback |
+| **D-2** | `_vitest_list_argv(path, npx="npx")` takes a second, defaulted parameter | The approved call shape `_vitest_list_argv(path)` still works. Without it, R4's signature and R10's "no contract-test path may reach `_npx()`" cannot both hold |
+| **D-3** | `config_include` and its path-prefix cross-check are **absent** | The owner's design ruling, taking the second of R6's two options |
+| **D-4** | The `sum(per_file) == len(identities)` check is an **independent-accumulation** check, not a restatement | Counts and identities accumulate separately in one pass, so the check can actually fail (a `counts[relative] = 1` mutation kills it). Building counts *from* the identity list would have made it a tautology — F27's own class |
+| **D-5** | No *"every listed file has ≥ 1 case"* check | It is true by construction of `counts`, and an assertion that cannot fail is decoration. Recorded rather than quietly dropped |
+| **D-6** | Rows F6, F24, F25a repaired at execution | Findings 1 and 4 |
+
+**Still open. NT-4** — Linux behaviour of `vitest list --json` — is **not** closed by anything above.
+Every probe ran on win32/node 24.19.0. **NT-7** (`describe.each`) remains unexercised because no JS
+test uses it.
+
+#### Part 6 — the diff
+
+**Seven tracked files, the ceiling §13.16 set. No eighth.**
+
+| File | Change |
+|---|---|
+| `scripts/generate_test_inventory.py` | +1 collector (three seams), `SCHEMA_VERSION` 1→2, one JSON block, one Markdown section, one console line |
+| `tests/test_vitest_inventory_contracts.py` | **new** — 43 test functions, **46 collected nodes**. The **first test of this generator in the repository's history**, for a script that implements a blocking gate |
+| `docs/test_inventory/TEST_INVENTORY.json` | regenerated: 757 → 1746 lines |
+| `docs/test_inventory/TEST_INVENTORY.md` | regenerated: 215 → 239 lines |
+| `docs/ai_workflow/QUALITY_GATE.md` | five → **six** pinned surfaces, with the `.skip`/collection-failure consequences named (QF5a, R24) |
+| `.claude/rules/testing.md` | inventory description includes Vitest and `vitest.cases` (QF5b). **Edited in place** — no add/delete, so the parametrized surface is not tripped |
+| `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md` | §13.16, §13.17, §13.18, and the annotations enumerated below |
+
+**Zero** files under `static/js/**`, `.github/workflows/**`, `routes/**`, `utils/**`, `templates/**`,
+`e2e/**`, `scripts/release_gate.py`, `package.json`, `package-lock.json`, `vitest.config.js` or
+`.claude/settings.json`. **No branch-protection or repository-setting change.** No permission or
+harness configuration was altered at any point.
+
+**The annotation sites are enumerated rather than counted**, because "annotate, never rewrite" is only
+a discipline if the coverage is complete — and a numeral is the part of that claim most likely to rot:
+
+> the header's bullet (FOURTH ANNOTATION); **§5**; **§7.1**; **§7.2**; **§9.10**; **§11.10**;
+> **§11.13**; **§11.14**; **§11.17**; **§11.18 — BOTH of its false sentences**; §13's preamble;
+> §13.0's status clause; §13.1's file-count row, its `e2e/**` row and its *Must not do* paragraph;
+> §13.2 Part 2's prediction row; §13.8's preamble; §13.9's `config_include` cell; §13.10's step 10;
+> §13.13's annotation; and §13.15's closing paragraph.
+
+**Six of those were added only after review** (§11.10, §11.14, §11.18's second sentence, §13.1's
+*Must not do*, §13.9's cell, §13.10's step 10), and **§9.10 and §5's wording were corrected in the same
+pass**. The first attempt claimed eleven sites and listed §11.18 among them while having annotated only
+one of that section's two false sentences — **a partially-annotated record that then asserted its own
+completeness**, which is the failure this enumeration exists to prevent.
+
+#### Part 7 — the qualification-window ledger, extended
+
+**Read live, not from memory**, per §13.0's standing rule.
+
+| # | `main` run | Job | Conclusion | Completed (UTC) |
+|---|---|---|---|---|
+| **1 — T0** | `32589375849` (`push`, `9cb6cdc`, 18/18 `success`) | `97070630453` | **`success`** | **`2026-08-22T17:59:26Z`** |
+
+| Tally at execution time | Value |
+|---|---:|
+| Green `main` `JS Unit` results since and including T0 | **1** |
+| **Red** / **missing** / **cancelled** | **0** / **0** / **0** |
+| `main` runs after T0 of any kind | **0** |
+
+**No red, missing or cancelled result exists in the window.** T0 remains `2026-08-22T17:59:26Z`; the
+strict mark remains `2026-09-05T17:59:26Z`. Packet F's own PR runs are **not** `main` runs and do not
+enter this ledger.
+
+#### Part 8 — code-time review (R20), and what it changed
+
+**`code-reviewer` and `unslop-reviewer` ran in parallel against the seven-file diff.** Between them
+they returned **8 + 15 findings**. **Nineteen were accepted and applied**, **three were routed to
+follow-up as out of scope**, and **one was refuted by measurement**. The two reviewers overlapped on
+exactly two findings (the `.claude/rules/testing.md` pair) and were otherwise disjoint — the same
+result the standing rule about running both predicts.
+
+**REFUTED — the one finding that did not survive checking.**
+
+`code-reviewer` F1 argued from the vitest source (`cac.uFydS1Z4.js:2372-2378`, `cli-api.CnMVyzaz.js:14664`)
+that the dominant collection-failure mode is **exit 0 with no file written**, and that the comment
+above the exit-code check was therefore backwards. **Measured on vitest 4.1.11 in this worktree:**
+
+| Shape | Exit | Output file |
+|---|---:|---|
+| Module-scope `throw` | **1** | none |
+| Unresolvable import | **1** | none |
+| No file matches `include` | **0** | writes `[]` |
+
+**Two of the three collection failures exit 1**, which is what P8, §13.14's S2 and F12 all measured
+independently. The reviewer's exit-0 path is real but reaches a **different** shape — an empty include —
+and that one **does** write a file, so `exists()` is not its detector either; the **non-empty guard** is.
+**The finding is recorded as refuted, and the comment was still rewritten**, because the *caution*
+underneath it was sound: it now names all three measured shapes, states that none subsumes another, and
+records that `exists()` is meaningful only because `collect_vitest()` hands in a path inside a fresh
+`mkdtemp`. *(This is the third time in this document a reviewer prescription has been checked by
+running it rather than accepted — and the second time the check changed the disposition.)*
+
+**ACCEPTED AND APPLIED (19).**
+
+| Finding | Applied |
+|---|---|
+| **CR-F2** — `parse_vitest_listing` validated key NAMES but not value TYPES: a `null` name survived to `identities.sort()` (TypeError) and a non-string `file` raised out of `Path()`, neither carrying `COLLECTION_FAILURE` | Value types added to the shape check; **4 parametrized cases** pin it |
+| **CR-F3** — `_console_safe`'s **production** branch was untested. Every call site omits the encoding, so `codec = encoding or "utf-8"` would restore the original bug **with both existing tests green** | A third case pins the default branch through a monkeypatched `sys.stderr` |
+| **CR-F8** — the argv pins bound the **helper**, not the call site: inlining `vitest run` into `_run_vitest_list` left all three argv tests green | A call-site test with `_npx` and `subprocess.run` **replaced** (never invoked — R10 holds), which also pins **R5's `CI=true`** and `cwd=REPO_ROOT`, neither of which had a contract test before |
+| **CR-F5 / UR-C3** — `.claude/rules/testing.md` called the gate `Test Inventory Drift (non-required)`. **Measured: the job name carries no suffix and it IS 1 of the 12 required contexts** | Corrected, with the required status stated |
+| **CR-F6 / UR-C4** — that rule file's frontmatter globs `tests/**` and `e2e/**`, so **the guidance about JS-case renames never loaded for `static/js/**`** | `static/js/**/*.test.js` added to `paths:` — an in-place edit, so the parametrized surface stays untripped |
+| **UR-C1** — the inserted Vitest paragraph broke the referent of an untouched sentence: *"That last row"* no longer pointed at the parametrized-configuration row | Referent named explicitly |
+| **UR-C2** — `QUALITY_GATE.md`'s **Frontend (JS)** row still required no inventory regeneration, though `static/js/**` now trips a required check | Regeneration requirement added to the row |
+| **UR-A1** — the §13 preamble annotation claimed **NT-4 had been taken**, contradicting three other places in the same diff | Corrected; NT-4 is open until the ubuntu run |
+| **UR-A2** — the `vitest` block was recorded as **987 lines**; in the artifact it is **985** | Corrected here and in R28. The 987 was a standalone `json.dumps` of the block, whose wrapping braces the artifact does not have — **a real measurement of the wrong object** |
+| **UR-A3** — "18 of the 40 contract tests exercise the pure parser" was a grep count including the docstring | **17 of 43 functions / 46 nodes** |
+| **UR-A4** — §5's annotation said Packet F **"LANDED"**; it is not merged | Rewritten to the conditional, matching §13.18 |
+| **UR-B1** — **§11.18 carries TWO false sentences and only one was annotated**, while Part 6 listed §11.18 as done | Second annotation added; Part 6 now **enumerates** sites instead of counting them |
+| **UR-B2** — §11.14's STOP un-annotated | Annotated |
+| **UR-B3** — §13.1's *Must not do* forbade editing `QUALITY_GATE.md`'s table, which QF5 authorized and this packet did | Annotated, with the clauses that still hold restated |
+| **UR-B4** — §13.10 step 10 states the E2E belief §13.17 Part 1 demolishes | Annotated as measured-false |
+| **UR-B5** — four surviving *"five pinned surfaces"* claims (§9.10, §11.10, §13.1) and §13.9's `config_include` cell | All four annotated |
+| **UR-D1 / D2** — two docstrings restating their own signatures | Deleted |
+| **UR-D3** — the duplicate scan relied on `set.add()` returning `None` inside a comprehension, on the cold path of a blocking gate | `Counter` |
+| **CR-F4 (partial)** — `_console_safe` sat under the `# Vitest` banner while being general | Moved to a **Shared helpers** section, with a comment recording that the siblings are deliberately not retrofitted |
+
+**ROUTED TO FOLLOW-UP — out of Packet F's authorized scope (3).**
+
+| Finding | Why not done here |
+|---|---|
+| **CR-F4 (main)** — `collect_playwright()` and `collect_pytest()` interpolate raw child output the same way and carry the **identical** UnicodeEncodeError hazard; neither prefixes `COLLECTION_FAILURE`. Playwright's stderr carries `✘` and `›` on failure, so it is the **likeliest** of the three to hit it | Retrofitting changes the failure output of two collectors this packet does not own. Requirement 12 covers documentation surfaces, not sibling behaviour, and the ruling says the requirements may not be widened without a new ruling. **Recorded in the code, at `_console_safe`'s docstring, so the next reader finds it where it matters** |
+| **CR-F7** — `ci.yml:1106-1108`'s "no browser, no server" rationale no longer enumerates `vitest list`, and the job's `$GITHUB_STEP_SUMMARY` table does not report the surface it now gates | **`.github/workflows/**` is an explicit stop condition.** Not touched, not negotiated |
+| **CR-F8 residual** — a `inspect.getsource` meta-test would close the last of it | **Ruling QF7 forbids a source-text meta-test.** The call-site test above closes the substantive half without one; the residual is disclosed alongside F27 |
+
+**One new residual, disclosed.** `test_vitest_block_records_no_status_and_no_duration` is a substring
+scan, so a Vitest case literally named `status` would red it. **False-red only** — it cannot hide a
+missing pin, and the exact key-set assertions cover the real risk. Recorded rather than "fixed",
+because tightening it would trade a harmless false red for a real blind spot.
+
+### 13.18 STOP — merge
+
+> **The PR is open and ready for review. It is NOT merged, and merging is not authorized by anything
+> in this document, by green CI, or by a selection among options.**
+
+**Merge requires its own explicit confirmation naming the PR and saying "merge"** — the standing
+protocol, restated because it has been broken once in this repository's history and the correction is
+the reason the rule is written this way.
+
+**Also still unauthorized, each needing its own confirmation:**
+
+- **Q4**, **Q6**, and **D2** — including the `js-unit` promotion Packet F is a *predecessor* to, not a
+  step of. §7's branch-protection change is **recorded, not executed**, and its counts are now known to
+  have been wrong once (§7.1's annotation): **re-measure before executing it.**
+- Any **branch-protection or repository-settings** change.
+- Any edit to `.github/workflows/**`, `scripts/release_gate.py`, `package.json`,
+  `package-lock.json`, `vitest.config.js`, `static/js/**`, or any pre-existing test.
+- Any `.claude/settings.json` or permission change.
+
+**Two obligations survive this packet and belong to whoever picks it up next:**
+
+1. **NT-4 is closed only by the PR's ubuntu `Test Inventory Drift` run.** Until that job is green, the
+   claim that Windows and Linux agree on the sorted identity list is **reasoned, not measured** — and
+   it must not be written up as measured before then.
+2. **The qualification-window ledger (§13.0, extended at §13.17 Part 7) must be extended, never
+   restated from memory**, at every session until `2026-09-05T17:59:26Z`, at **job** level, including
+   any red, missing or cancelled result.
