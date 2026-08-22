@@ -136,7 +136,8 @@ All notable changes to Hypertrophy Toolbox v3.
   `build_exe.bat`, `app.py`, and `app_launcher.py` reject older interpreters;
   retained `venv` environments must also meet the minimum.
 - All pinned runtime and build dependencies resolve on CPython 3.14.6.
-  PyInstaller remains pinned to 6.21.0, which supports Python 3.14.
+  PyInstaller was pinned to 6.21.0 for this change, which supports Python 3.14.
+  (The pin has moved since; `requirements-build.txt` is the current one.)
 - Pyright excludes generated output and both virtual-environment roots, and its
   committed allowlist is regenerated under the Python 3.14 analysis target.
 
@@ -167,7 +168,7 @@ catalog content changed.
 
 **Repository hygiene**
 
-- `data/database.db` is no longer tracked. The build environment is pinned (`requirements-build.txt`, `pyinstaller==6.21.0`) and `build_exe.bat` now invokes the committed spec instead of reconstructing a second configuration.
+- `data/database.db` is no longer tracked. The build environment was pinned (`requirements-build.txt`, `pyinstaller==6.21.0` at the time of this entry) and `build_exe.bat` now invokes the committed spec instead of reconstructing a second configuration. The pin itself is not frozen — read `requirements-build.txt` for the current version; what this entry established is that one exists.
 
 ## Unreleased - May 23, 2026
 
