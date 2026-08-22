@@ -1,12 +1,13 @@
 # npm audit — severity and exception policy: owner decision packet
 
-*Status: **DECIDED 2026-08-15 (§6.1) and now EXECUTED.** The owner accepted every
+*Status: **DECIDED 2026-08-15 (§6.1) and now FULLY EXECUTED.** The owner accepted every
 recommendation in §6, including **D-7: remediate first, then enforce**. Everything
 those seven rulings authorize has since landed — the remediation (M1) and the
 enforcement flip (M2 + M3) — and `js-supply-chain` blocks on a `high` advisory today.
-**M4 is deliberately not taken**: promoting the job into branch protection is lever L3,
-which no ruling on this page authorizes. §5.4 is the ledger. This file records the
-decisions and the evidence behind them.*
+**M4 / lever L3 was then authorized separately by the owner on 2026-08-22 and is now
+taken**: `JS Supply Chain (npm audit, non-required)` is a required branch-protection
+context, and branch protection went from 11 required contexts to 12. §5.4 is the
+ledger. This file records the decisions and the evidence behind them.*
 
 > **Every measurement below is dated 2026-08-15 and several are now superseded.**
 > They are kept as written, because a decision has to be readable against the evidence
@@ -14,11 +15,11 @@ decisions and the evidence behind them.*
 > the contradiction is annotated in place and marked **SUPERSEDED** — the original
 > number is never edited to match today. The three that moved:
 >
-> | Measured 2026-08-15 | True as of 2026-08-21 | Where |
+> | Measured 2026-08-15 | True as of 2026-08-22 | Where |
 > |---|---|---|
 > | Five high-severity advisories, nine advisory IDs, five packages | **Zero advisories of any severity** — cleared by M1 (#390) | §2.1, §3 |
 > | Dependabot alerts **disabled** (403 / 404) | **Enabled**, zero open (200 / 204) — D-6's setting half | §2.4 |
-> | `js-supply-chain` is **measure-only** | **Enforcing** — M2 + M3 | §5.2 |
+> | `js-supply-chain` is **measure-only** | **Enforcing** — M2 + M3 (2026-08-21) — and **branch-protected** since 2026-08-22 (M4 / L3) | §5.2 |
 >
 > The one thing D-6 did *not* make true is the sentence that prompted it. See §2.4a.
 
@@ -533,7 +534,7 @@ gets orphaned.
 |---|---|---|---|---|
 | **L1** | Drop the step's trailing `exit 0`; the step now ends in the gate's own status — [`ci.yml:1271-1275`](../.github/workflows/ci.yml#L1271-L1275) | The **step** fails | No | **Taken** |
 | **L2** | Remove `continue-on-error: true` from the job — the key is simply absent at [`ci.yml:1238-1241`](../.github/workflows/ci.yml#L1238-L1241) | The **job** reports red instead of neutral-success | No | **Taken** |
-| **L3** | Add `JS Supply Chain (npm audit, non-required)` to branch protection | A red job **blocks merge** | No — but see below | **Not taken** (step M4) |
+| **L3** | Add `JS Supply Chain (npm audit, non-required)` to branch protection | A red job **blocks merge** | No — but see below | **Taken** 2026-08-22 (step M4) |
 
 *Two notes on those citations. The pre-flip line numbers this table used to carry —
 `ci.yml:1274` for L1 and `ci.yml:1225` for L2 — were **both off by two**; the lines
@@ -544,25 +545,35 @@ step's status is now the script's exit code with no shell arithmetic in between.
 effect is the one L1 specified.*
 
 L1 and L2 are safe in either order and neither touches a check name. L3 is the one with
-teeth, and it drags two source files with it:
+teeth, and it drags two source files with it. Both moved with it on 2026-08-22 —
+described below in the present tense, as they now stand:
 
-- [`scripts/release_gate.py:39-58`](../scripts/release_gate.py#L39-L58) — `REQUIRED_CONTEXTS`
-  and the derived `EXPECTED_CONTEXTS`. The release gate's *"main is green"* means these
-  twelve contexts; a thirteenth required context that the gate does not wait for is a
-  gate that certifies less than branch protection enforces.
-- [`tests/test_release_workflow_contracts.py:40-46, 157-159`](../tests/test_release_workflow_contracts.py#L40-L46) —
+- [`scripts/release_gate.py`](../scripts/release_gate.py) — `REQUIRED_CONTEXTS` and the
+  derived `EXPECTED_CONTEXTS`. A required context the gate does not wait for is a gate
+  that certifies less than branch protection enforces, so the promoted context was added
+  to `REQUIRED_CONTEXTS`: **12 required contexts, and `EXPECTED_CONTEXTS` is those 12
+  plus `Visual Regression (Windows baselines)` = 13.** *(This bullet read "these twelve
+  contexts; a thirteenth required context…" while it was forecasting the move; the
+  counts below it are the post-M4 measurement, not a rewrite of a dated one.)*
+- [`tests/test_release_workflow_contracts.py`](../tests/test_release_workflow_contracts.py) —
   `UNEXPECTED_CI_JOB_NAMES` asserts both `name in names` (the job exists in `ci.yml`
-  under exactly that string) **and** `name not in EXPECTED_CONTEXTS`. Promoting the job
-  without editing this tuple reds the test; editing the tuple without editing
-  `release_gate.py` reds it the other way. They move together or not at all.
+  under exactly that string) **and** `name not in EXPECTED_CONTEXTS`, so the promoted
+  job had to leave that tuple. Deleting a name from a tuple is asserted by nothing,
+  which is why M4 also added `test_the_npm_audit_job_is_required_and_keeps_its_name_byte_for_byte`
+  — the same two directions, stated positively. Editing either file without the other
+  still reds: dropping the context from `release_gate.py` reds the new test, and
+  renaming the job in `ci.yml` reds it and `test_every_expected_context_is_a_real_ci_job_name`
+  together. Both mutations were run before this paragraph was written.
 
-**The job name does not change under any of the three levers.** The `(non-required)`
-suffix stays even if L3 is taken, under the rule in
+**The job name did not change under any of the three levers.** The `(non-required)`
+suffix stayed when L3 was taken, under the rule in
 [`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) §"CI job naming — the `(non-required)`
-suffix is not a status claim": two currently-required contexts already carry a false
+suffix is not a status claim": required contexts already carried a false
 `(non-required)` suffix on purpose, because renaming a protected context orphans it and
 every PR then waits forever on a check that will never report. The `pyright` job is the
 documented precedent — *"Correct the understanding here; do not correct the label."*
+**This job is now the third such name** — the count in `QUALITY_GATE.md` moved from two
+to three on 2026-08-22 for exactly this reason.
 
 Suggested sequencing:
 
@@ -620,8 +631,8 @@ gate enforcing an empty allowlist.
 | **M0** | #386 (`81df507`) | Merged — this document |
 | **M1** | #390 (`8baddd2`) | Merged — nine advisories cleared with in-range lockfile-only bumps; `warningCount` did not move |
 | **D-6** | *(a repository setting, no PR)* | Setting done — alerts on, automated fixes off (§2.4a). Its **prose** half landed with M2 + M3 |
-| **M2 + M3** | the enforcement PR | Allowlist, gate script, contract test, L1 + L2 — one PR, per the 2026-08-21 packaging ruling |
-| **M4** | — | **Not done, and not authorized by any ruling on this page.** D-1 – D-5 authorize M2 + M3; lever L3 needs its own decision, and §5.2's precondition first: see the context report on a real PR *before* adding it to protection |
+| **M2 + M3** | #405 (`f252f5f`) | Merged 2026-08-22 — allowlist, gate script, contract test, L1 + L2 — one PR, per the 2026-08-21 packaging ruling |
+| **M4** | the L3 PR | **Done 2026-08-22.** Authorized by the owner separately from D-1 – D-7, which cover M2 + M3 only. §5.2's precondition was met first: `JS Supply Chain (npm audit, non-required)` reported `success` as a real check-run on #405 and again on #395 (`444efe4`, run `32570331187`, job `97024789393` — `node scripts/npm_audit_gate.mjs` → `npm_audit_gate: PASSED.`) **before** the context was added to protection. Branch protection: **11 → 12** required contexts, one added, nothing else changed |
 
 ---
 
@@ -726,8 +737,11 @@ for what has since been done.
 - No allowlist file created. §4 is a design, approved under D-1 – D-5 and built in the
   enforcement PR, not here.
 - No check context added, removed, renamed, or weakened. The `js-supply-chain` job name
-  is byte-identical to the string pinned at
-  `tests/test_release_workflow_contracts.py:44`.
+  is byte-identical to the string pinned in `UNEXPECTED_CI_JOB_NAMES` in
+  `tests/test_release_workflow_contracts.py`. *(True of #386, and the name is still
+  byte-identical today — but M4 moved it out of that tuple on 2026-08-22, so the string
+  is now pinned by `NPM_AUDIT_JOB_NAME` in the same file. The original citation named
+  line 44, which had already drifted.)*
 - No repository setting changed, **D-6 included**; the §2.4 probes are read-only `GET`s.
   The ruling authorizes enabling Dependabot alerts. This PR does not perform it.
 - No `dependabot.yml` edit, including the §2.4 comment that measurement shows to be

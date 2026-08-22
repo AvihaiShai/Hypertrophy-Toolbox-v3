@@ -32,10 +32,13 @@ sys.path.insert(0, str(REPO_ROOT))
 
 GITHUB_API = "https://api.github.com"
 
-# The 11 branch-protection contexts, read live from
+# The 12 branch-protection contexts, read live from
 # `gh api repos/{owner}/{repo}/branches/main/protection/required_status_checks`
-# on 2026-08-14. Byte-for-byte, parentheticals included -- two of these say
-# "non-required" and are required anyway (docs/ai_workflow/QUALITY_GATE.md).
+# on 2026-08-22, after the npm-audit gate's promotion (M4 / lever L3,
+# docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md section 5.2). It was 11 when this
+# list was first read on 2026-08-14. Byte-for-byte, parentheticals included --
+# three of these say "non-required" and are required anyway
+# (docs/ai_workflow/QUALITY_GATE.md).
 REQUIRED_CONTEXTS = (
     "Code Linting",
     "E2E Backup (Chromium, isolated)",
@@ -44,6 +47,7 @@ REQUIRED_CONTEXTS = (
     "E2E Functional (Chromium)",
     "E2E Smoke (Chromium)",
     "Frontend Build (npm ci + SCSS)",
+    "JS Supply Chain (npm audit, non-required)",
     "Run Tests",
     "Security Audit",
     "Test Inventory Drift",
@@ -52,7 +56,7 @@ REQUIRED_CONTEXTS = (
 
 # R1-D2: the release gate credits the Windows visual comparison that already ran on
 # this commit instead of running a second one. It is not a protected context, so it
-# has to be named here explicitly -- "main is green" means these 12, not the 11.
+# has to be named here explicitly -- "main is green" means these 13, not the 12.
 VISUAL_CONTEXT = "Visual Regression (Windows baselines)"
 
 EXPECTED_CONTEXTS = tuple(sorted(REQUIRED_CONTEXTS + (VISUAL_CONTEXT,)))

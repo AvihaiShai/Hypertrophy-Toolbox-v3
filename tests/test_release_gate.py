@@ -117,11 +117,12 @@ def version(
 # ------------------------------------------------------------------ the constants
 
 
-def test_expected_contexts_is_the_eleven_required_plus_the_visual_one():
-    assert len(REQUIRED_CONTEXTS) == 11
+def test_expected_contexts_is_the_twelve_required_plus_the_visual_one():
+    assert len(REQUIRED_CONTEXTS) == 12
+    assert "JS Supply Chain (npm audit, non-required)" in REQUIRED_CONTEXTS
     assert VISUAL_CONTEXT not in REQUIRED_CONTEXTS
     assert set(EXPECTED_CONTEXTS) == set(REQUIRED_CONTEXTS) | {VISUAL_CONTEXT}
-    assert len(EXPECTED_CONTEXTS) == 12
+    assert len(EXPECTED_CONTEXTS) == 13
 
 
 def test_the_release_tag_pattern_is_anchored():

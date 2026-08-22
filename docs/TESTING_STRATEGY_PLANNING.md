@@ -689,8 +689,10 @@ shape detects a cross-PR interaction before it reaches `main`.
   and is now in force: the remediation drove the graph to zero advisories (#390), and
   the enforcement PR added `scripts/npm_audit_gate.mjs` plus an empty
   `docs/npm_audit_allowlist.json` and took levers L1 + L2. The job fails at `high` and
-  above, read per advisory, over the whole graph. It is still **not** in branch
-  protection — that is lever L3, and it is undecided.
+  above, read per advisory, over the whole graph. ~~It is still **not** in branch
+  protection — that is lever L3, and it is undecided.~~ **Lever L3 / step M4 was
+  authorized and taken 2026-08-22**: `JS Supply Chain (npm audit, non-required)` is a
+  required context, branch protection **11 → 12**, the job name unchanged.
 - **No coverage ratchet exists.** Both numbers above are baselines, nothing more. Designing the
   baseline-diff (per `scripts/pyright_baseline_diff.py`) is future work; do not add a bare threshold.
 - **`js-unit` stays non-required.** D2's js-unit half is unsigned, and the 2026-08-02 sign-off

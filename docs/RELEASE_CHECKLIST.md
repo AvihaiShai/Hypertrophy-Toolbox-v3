@@ -48,7 +48,9 @@ Compare against `REQUIRED_CONTEXTS` in [`scripts/release_gate.py`](../scripts/re
 pytest runs offline and cannot see branch protection, so drift there is invisible to
 every automated check in the repository — this read is the only thing that catches it.
 
-**"`main` is green" means all 12 expected contexts, not the 11 required ones.**
+**"`main` is green" means all 13 expected contexts, not the 12 required ones.**
+*(11 and 12 until 2026-08-22, when npm-audit M4 / lever L3 promoted
+`JS Supply Chain (npm audit, non-required)` into branch protection.)*
 `Visual Regression (Windows baselines)` is *not* branch-protected, so `main` can merge
 with it red; the release gate will then fail at tag time, after the version-bump PR has
 already landed.
