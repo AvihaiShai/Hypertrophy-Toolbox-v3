@@ -51,6 +51,42 @@
 >   > **No JS test, workflow, dependency, Vitest-config, branch-protection or repository-setting
 >   > change was made, and merging is still unauthorized.**
 > - **Q4, Q6 and D2 are still untouched and still unauthorized**, exactly as all three annotations say.
+>
+> ⚠️ **FIFTH ANNOTATION — 2026-08-23, post-merge reconciliation. Packet F is MERGED, and every
+> "NOT MERGED" clause above is falsified. Annotated, not rewritten.** This document, like all four
+> annotations before it, was written on a branch and could not describe what happened to it.
+>
+> - **Packet F is MERGED.** PR [#411](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/411),
+>   squash **`2c95bae`**, merged **`2026-08-22T21:52:14Z`**, head `wt/phase3-packet-f-inventory`
+>   @ `d7494e2`. `origin/main` is **`2c95bae`**. The post-merge `main` run
+>   [`32600832091`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32600832091)
+>   (`push`, `2c95bae`) is **18 jobs, all 18 `success`** — read at job level, never off the overall
+>   conclusion. **§13.18's merge STOP is DISCHARGED** and annotated at its own site, as is §11.18's.
+> - **NT-4 is MEASURED and CLOSED.** The PR's ubuntu `Test Inventory Drift` job —
+>   **`97094899990`** on run
+>   [`32599231895`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32599231895)
+>   (`pull_request`, head `d7494e2`), runner label **`ubuntu-latest`**, conclusion **`success`**,
+>   completed **`2026-08-22T21:19:58Z`** — ran step 7, *"Check committed inventory against a fresh
+>   Linux regeneration"*, to `success` against a Windows-generated artifact. Cross-platform
+>   agreement on the sorted identity list is now **measured, not reasoned**. That whole PR run was
+>   **18/18 green**. Annotated at §13.2's NT-4 row, §13.10 step 12, and §13's own preamble.
+> - **T0 and the strict mark are UNCHANGED.** T0 remains **`2026-08-22T17:59:26Z`**; the strict
+>   14-day mark remains **`2026-09-05T17:59:26Z`**. **Packet F changed no JS test case**, so Q2's
+>   restart clause never engaged — §13.10 step 8 gated exactly that, and §13.0's rule says a
+>   required predecessor may land inside the window without restarting it. **The window did not
+>   restart, and #411's own `mergedAt` is NOT T0.**
+> - **The ledger is EXTENDED, at job level, in §13.0.** Two `main` `JS Unit (Vitest, non-required)`
+>   results exist from T0 through **`2026-08-23T10:11:56Z`**; **both green**, with **zero** red,
+>   missing, skipped or cancelled. It must keep being extended, never restated.
+> - **Q4, Q6 and D2 are STILL untouched and still unauthorized**, and **D4** and the `js-unit`
+>   half of **D2** are still unsigned. `js-unit` is still **non-required**: branch protection
+>   carries **12** required contexts, re-read live 2026-08-23, and
+>   `JS Unit (Vitest, non-required)` is **absent** from them. **§7.2 would still add a 13th.**
+> - **Packet D stays DROPPED (Q3) and the letter E stays deliberately vacant** (§2.4, §2.6). The
+>   step-12 sequence **A → B → C → F is now complete on `main`**; §0.1's revised-gate conditions 1
+>   and 2 are satisfied, condition 3 (the 14-day window) is **running**, and condition 4 (a separate
+>   owner signature on D2) is **unmet**.
+>
 > **Base**: `origin/main` @ `c404a06`, branch `wt/phase3-jsunit-gate0`, isolated docs-only worktree
 > — this is the **Gate 0 origin** of the document, not a base for any packet. Packet A built on
 > `9e5997a`’s base, Packet B rebased onto `0984d2e` (§10.12), and Packet B merged as `987588a`.
@@ -299,6 +335,13 @@ not to the expansion itself. **The letter E is deliberately vacant in step 12** 
 
 ### 2.3 Packet C — `exercises.js` *(AUTHORIZED — third; **Gate 1 approved and executed 2026-08-22**, PR open and **NOT merged** — §11.16, §11.17, §11.18)*
 
+> ⚠️ **ANNOTATION 2026-08-23 — the heading's "PR open and NOT merged" is FALSE and is annotated, not
+> rewritten.** **Packet C is MERGED**: PR
+> [#410](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/410), squash **`9cb6cdc`**, merged
+> **`2026-08-22T17:59:03Z`**, post-merge `main` run `32589375849` **18/18 green** at job level. It
+> established **T0 = `2026-08-22T17:59:26Z`** (§13.0). §11.18's merge STOP is discharged at its own
+> site.
+
 - **Owns**: `static/js/modules/__tests__/exercises.test.js` (new). No production file.
 - **Why third**: heavily E2E-covered already, so unit value is narrower — but the double-delete
   guard and the legacy-signature pairing are real and currently unpinned.
@@ -364,6 +407,17 @@ test-only scope and outside anything D2 authorizes. **The owner ruled that extra
   may absorb, and Packets A–C must not grow a `backup-center` test "while they are in there".
 
 ### 2.5 Packet F — Vitest inventory + drift enforcement *(AUTHORIZED — required before promotion)*
+
+> ⚠️ **ANNOTATION 2026-08-23 — Packet F is MERGED, so this subsection is now the record of a shipped
+> packet rather than a forward plan. Annotated, not rewritten.** PR
+> [#411](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/411), squash **`2c95bae`**, merged
+> **`2026-08-22T21:52:14Z`**; post-merge `main` run `32600832091` **18/18 green** at job level.
+> **§0.1's revised-gate condition 2 is satisfied.** The *"Note it will trip its own gate, once and
+> deliberately"* bullet below is now a measured fact (§13.10 step 2, §13.17); the *"Ordering caution"*
+> bullet's reversal is **in force on `main` from `2c95bae` onward** — every later JS test add, remove
+> or **rename** must ship a regenerated `docs/test_inventory/` artifact in the same PR. **What Packet F
+> did NOT do:** it added no required context, changed no branch-protection setting, and promoted
+> nothing. `js-unit` is still non-required and **D2 is still unsigned**.
 
 Promoted from question **Q5** to a **blocking predecessor of D2** by the owner on 2026-08-15.
 
@@ -555,6 +609,17 @@ from the false-green hardening arc, and the reason `all: true` is set in the cov
 > §5's own closing note predicted exactly this. The live surface list is
 > [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md)'s six-row table; the implementation record is
 > **§13.17**.
+>
+> ⚠️ **FOLLOW-ON ANNOTATION 2026-08-23 — §5 HAS NOW EXPIRED. The condition the annotation above states
+> in the future tense has occurred.** Packet F merged as **`2c95bae`** (PR
+> [#411](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/411),
+> `2026-08-22T21:52:14Z`). **Everything below this banner is now HISTORY, not a description of `main`.**
+> Specifically: *"`scripts/generate_test_inventory.py` contains **zero** references to `vitest`"* is
+> **false on `main`**; the five-row table below is **five of six**; and *"Adding
+> `static/js/modules/__tests__/*.test.js` touches none of them"* is **false** — it now trips the
+> **required** `Test Inventory Drift` context, whose ubuntu run also closed **NT-4**. The
+> **"No inventory regeneration is required"** sentence was true for Packets A–C **only** and must not
+> be read forward. The section is left standing as the pre-Packet-F measurement it was.
 
 **Measured: none. Packets A–C cannot trip `Test Inventory Drift`.**
 
@@ -2250,6 +2315,12 @@ B45 and B30–B35 are untouched.
 
 ## 11. Packet C — scoped plan (`exercises.js`) — **PLAN v2; GATE 1 APPROVED AND EXECUTED 2026-08-22, NOT MERGED** *(the heading read "GATE 1 NOT YET APPROVED" until the ruling at §11.16)*
 
+> ⚠️ **ANNOTATION 2026-08-23 — the heading's "NOT MERGED" is FALSE and is annotated, not rewritten.**
+> **Packet C MERGED** as PR [#410](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/410),
+> squash **`9cb6cdc`**, at **`2026-08-22T17:59:03Z`**; post-merge `main` run `32589375849` was
+> **18/18 green** at job level, and its `JS Unit (Vitest, non-required)` job **`97070630453`**
+> established **T0**. §11.18's merge STOP is discharged below.
+
 > ⚠️ **ANNOTATION 2026-08-22 — "NOT MERGED" in the heading above is FALSIFIED and is annotated, not
 > rewritten.** **Packet C MERGED** as PR #410, squash **`9cb6cdc`**, at **`2026-08-22T17:59:03Z`**.
 > The heading records what was true when the section was written on the branch; §13.0 carries the
@@ -3891,7 +3962,15 @@ covered four; it was recorded instead as item 4 of §11.18's follow-up list.
 > change invalidates every measured row (see the two deleted assertions above) applies to *test-file*
 > changes, and this is not one.
 
-### 11.18 STOP — merge
+### 11.18 STOP — merge — **DISCHARGED 2026-08-22 (recorded 2026-08-23)**
+
+> ✅ **DISCHARGE 2026-08-23.** The STOP below was honoured: the PR was left ready-for-review, the
+> owner gave the separate explicit confirmation the protocol requires, and **PR #410 merged as
+> `9cb6cdc` at `2026-08-22T17:59:03Z`**. Everything the STOP lists **other than the Packet C merge**
+> still stood at the moment of discharge; **Packet F has since been separately authorized and merged**
+> (`2c95bae`, PR #411 — §13.16, §13.18), and **Q4, Q6 and D2 remain unauthorized and untouched**.
+> The three numbered follow-ups below are **still open and still unauthorized**; none was taken by
+> Packet F or by this reconciliation. The section is annotated, not rewritten.
 
 > **This record is not authorization to merge.**
 
@@ -3979,6 +4058,14 @@ its own authorization, and each touches a file Packet C may not edit):
 
 ## 13. Packet F — scoped plan (Vitest inventory + drift enforcement) — PLAN v2; **GATE 0 AND GATE 1 APPROVED AND EXECUTED 2026-08-22, NOT MERGED** *(the heading read "GATE 1 NOT YET APPROVED" until the ruling at §13.16)*
 
+> ⚠️ **ANNOTATION 2026-08-23 — the heading's "NOT MERGED" is FALSE and is annotated, not rewritten.**
+> **Packet F MERGED** as PR [#411](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/411),
+> squash **`2c95bae`**, at **`2026-08-22T21:52:14Z`**; post-merge `main` run `32600832091` was
+> **18/18 green** at job level. §13.18's merge STOP is discharged at its own site, and the first of
+> its two surviving obligations — **NT-4** — is **closed by measurement** on the PR's ubuntu
+> `Test Inventory Drift` job `97094899990`. The second — the qualification-window ledger — is
+> **still running**, extended at §13.0.
+
 **This section is appended AFTER §12 Provenance on purpose, and the ordering is not a mistake to be
 fixed.** Renumbering §12 a second time is a known hazard here — Packet C already renumbered
 §11 → §12 once and had to verify twice that nothing cited a "§11 Provenance" (§12's own note,
@@ -4010,6 +4097,15 @@ quoted on every claim that rests on them. **Where the dossier lacks a fact, this
 > TAKEN` rows are also partly closed there — though **NT-4 is NOT among them**: Linux behaviour of
 > `vitest list --json` is measured by the PR's ubuntu `Test Inventory Drift` run and by nothing
 > before it.
+>
+> ⚠️ **FOLLOW-ON ANNOTATION 2026-08-23 — that run has now happened and NT-4 IS CLOSED.** Job
+> **`97094899990`**, `Test Inventory Drift`, runner label **`ubuntu-latest`**, on run
+> [`32599231895`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32599231895)
+> (`pull_request`, head `d7494e2`): conclusion **`success`**, completed **`2026-08-22T21:19:58Z`**,
+> with step 7 — *"Check committed inventory against a fresh Linux regeneration"* — **`success`**.
+> A Linux regeneration matched the Windows-generated artifact byte for byte, so cross-platform
+> agreement on the sorted identity list is **measured, not reasoned**. **NT-7 (`describe.each`)
+> remains open and unexercised**; nothing here closes it.
 
 ### 13.0 Packet C merge, T0, and the live qualification-window ledger
 
@@ -4057,6 +4153,62 @@ conclusion.
 was written (**2026-08-22**), so the ledger is one row long by arithmetic, not by omission — and it must
 be **extended, never restated from memory**, at every later session until `2026-09-05T17:59:26Z`.
 
+---
+
+#### LIVE LEDGER — extended 2026-08-23, read from the API, not from the tables above
+
+> **This block is the live one.** The two tables above are the **planning-time** reading of
+> 2026-08-22 and are left as that record; §13.17 Part 7 is the **execution-time** reading of the same
+> day. Neither is restated here — this block is a fresh job-level read, and it is what a later
+> session extends.
+
+**Read at `2026-08-23T10:11:56Z`** (UTC now, taken from the GitHub API response `Date` header, not
+from the host clock). Method: `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`,
+filtered to `created_at >= 2026-08-22T17:00:00Z` — deliberately **earlier** than T0, so the filter is a
+superset and cannot hide a run — across **every** workflow, not just `CI/CD Pipeline`. Each returned
+run's `/jobs` was then enumerated in full and matched on the exact context string
+`JS Unit (Vitest, non-required)`. **No run's overall conclusion was used as a proxy for its `js-unit`
+result** — §6.1's discipline.
+
+| # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
+|---|---|---|---|---|---|---|
+| **1 — T0** | [`32589375849`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32589375849) | `push` / `9cb6cdc` (PR #410, Packet C) | `success`, **18/18** | `97070630453` | **`success`** | **`2026-08-22T17:59:26Z`** |
+| **2** | [`32600832091`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32600832091) | `push` / `2c95bae` (PR #411, Packet F) | `success`, **18/18** | **`97098730892`** | **`success`** | **`2026-08-22T21:52:42Z`** |
+
+| Ledger tally, at `2026-08-23T10:11:56Z` | Value |
+|---|---:|
+| Green `main` `JS Unit` results since and including T0 | **2** |
+| **Red** results | **0** |
+| **Missing** results (a `main` run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after T0 | **2** — both `CI/CD Pipeline`, both `push` |
+| Elapsed since T0 | **≈ 16 h 12 m** of the required **14 d** |
+
+**Nothing is inferred.** Both rows were resolved by enumerating the run's jobs and reading each job's
+own `conclusion` and `completed_at`. There is **no** `main` run in this window whose `js-unit` result is
+red, missing, skipped or cancelled — and there is **no** `main` run in this window that this ledger
+omits: the superset query returned exactly **two** `main` runs of any workflow in that span, and both
+are listed. *(Row 1's run was **created** at `2026-08-22T17:59:06Z`, twenty seconds before T0 — the
+ledger indexes `js-unit` **results** at or after T0, not runs, and that job's `completed_at` **is** T0.)*
+**No `schedule`-event run has occurred in the window**; the next deep-gate cron is **2026-08-24**, and
+`deep-gate.yml` carries no `js-unit` job in any case, so it can only ever add a row here by not adding
+one.
+
+**Packet F's own PR runs are not `main` runs and do not enter this ledger** — including run
+`32599231895`, whose `JS Unit (Vitest, non-required)` job `97094899981` passed. That run is evidence
+about **NT-4** (§13.2), not about the window.
+
+**T0 did NOT move when Packet F merged.** T0 is still **`2026-08-22T17:59:26Z`** and the strict mark is
+still **`2026-09-05T17:59:26Z`**. Packet F changed **no JS test case** — the suite is **13 files / 231
+cases** on both sides of `2c95bae` (§13.10 step 8 gated exactly this) — so Q2's restart clause never
+engaged. **#411's `mergedAt` (`2026-08-22T21:52:14Z`) is not T0 and must never be recorded as one.**
+
+**Still to do, and owed by whoever picks this up:** extend this ledger at **every** later session until
+`2026-09-05T17:59:26Z`, at **job** level, appending any red, missing, skipped or cancelled result
+rather than summarising it. **A red resets the window to zero** (§6.5), with §6.2's attribution
+discipline argued on the record and never applied silently.
+
 **The standing rule, from §6.5, and why Packet F satisfies it.**
 
 > **"Final expansion packet" means the last of A, B, C to merge. Packet F is a separate required
@@ -4078,6 +4230,12 @@ wrong; §13.10 therefore makes **"13 files / 231 cases unchanged"** a gate, not 
 > implementation is complete (§13.17). **Q4, Q6 and D2 are still untouched**, and **merge is
 > still unauthorized**. The three annotations that depend on this clause are each annotated in
 > place rather than left to be re-derived from here.
+>
+> ⚠️ **FOLLOW-ON ANNOTATION 2026-08-23 — the "merge is still unauthorized" half is now spent.** The
+> owner gave the separate merge confirmation and **Packet F merged as `2c95bae`** (PR #411,
+> `2026-08-22T21:52:14Z`), post-merge `main` run `32600832091` **18/18 green** at job level.
+> **Q4, Q6 and D2 are STILL untouched and still unauthorized** — that clause survives every
+> annotation on this section, which is the whole reason it is stated separately.
 
 This section is a plan and nothing else. **No generator change, no regenerated artifact, no pytest file,
 no JS test, no workflow edit and no branch-protection change is made or authorized by it.** **Q4, Q6 and
@@ -4176,7 +4334,7 @@ them. **None is guessed.**
 | **NT-1** | The **pytest baseline node count / file count** on `9cb6cdc` | M8's second inventory move is a pytest-count move, and §13.10 wants a before/after | At execution, **before** the new contract file is written |
 | **NT-2** | Whether the **`Run Tests` (pytest) CI job installs `node_modules`** | Decides whether a pytest contract test may shell out to `vitest` at all. **M6 measured only the `test-inventory` job.** §13.7 designs around this by forbidding the subprocess in the contract test, so the answer changes nothing — but the plan must not *assume* it | Before any contract test is written that would need it |
 | **NT-3** | Whether any **`VITEST_*` environment variable** redirects or alters `--json=<path>` output | `collect_playwright()` pops three `PLAYWRIGHT_JSON_OUTPUT_*` vars for exactly this reason; the Vitest analogue is unprobed | At implementation, before the subprocess call is finalized |
-| **NT-4** | **Linux behavior of `vitest list --json`** | Every probe P1–P14 ran on **win32-x64 / node v24.19.0**. Cross-platform agreement is *reasoned*, and its only proof is the first ubuntu `--check` | The PR's first `test-inventory` CI run (§13.10) |
+| **NT-4** | **Linux behavior of `vitest list --json`** | Every probe P1–P14 ran on **win32-x64 / node v24.19.0**. Cross-platform agreement is *reasoned*, and its only proof is the first ubuntu `--check` | ✅ **TAKEN AND CLOSED 2026-08-22** — job `97094899990` (`Test Inventory Drift`, `ubuntu-latest`) on PR run `32599231895`, conclusion **`success`**, completed `2026-08-22T21:19:58Z`, step *"Check committed inventory against a fresh Linux regeneration"* **`success`**. Agreement is now **measured** |
 | **NT-5** | The **size** of the regenerated artifacts (added JSON/Markdown lines) | Bears on NT-6 and on review cost | At regeneration |
 | **NT-6** | Whether a whole-surface drift **exceeds `_check()`'s 200-line diff cap** | With a 231-row identity list, a surface-wide drift could be truncated in the CI report — the gate still **reds**, but the operator sees a truncated diff | At the first deliberate red (§13.10 step 4) |
 | **NT-7** | Whether **`describe.each`** expands in `vitest list` the way `test.each` does (P5 measured `test.each` only) | Only matters if a future JS test uses it; today none is known to | Before any future packet adds one |
@@ -4616,7 +4774,7 @@ reviewer: `code-reviewer`.** `product-risk-reviewer` is **not** triggered (M7).
 | **9** | **FULL pytest** | `/run-tests` (or `.venv/Scripts/python.exe -m pytest tests/ -q`) | Green, with **exactly one new file's worth of nodes** above the step-0 baseline (NT-1). A larger delta means an existing file moved |
 | **10** | **FULL Chromium E2E** | `/run-e2e` (`npx playwright test --project=chromium --reporter=line`) | Exit 0, zero failures. **Judge by exit code and zero failures, not by the "17 did not run" line** — the visual specs are excluded by default by design ⚠️ **ANNOTATION 2026-08-22: the second half is MEASURED FALSE.** `playwright.config.ts` has no `testIgnore` and no `grepInvert`, and neither spec self-skips — `PW_VISUAL_SEED` selects the **seed script**, not the spec set. A default run executes all 649 and reds 63 of them, so *"zero failures on a default run"* is a criterion that cannot be met. The suite needs **two** invocations; §13.17 Part 1 records both |
 | **11** | The mutation matrix | §13.8, F1–F27, on substrates **T / G / W / C** | Every row behaves as predicted; **F27 survives as a declared detection hole**; every other survivor is a defect and is fixed. **F18 is run ≥3 times; F6 in both `CI` states; F17 on Windows** |
-| **12** | PR CI | — | **All 18 jobs green** on the head commit — the same 18/18 shape measured on `9cb6cdc` (M0). **`Test Inventory Drift` green is the load-bearing one**, and its ubuntu run is where **NT-4** is finally taken |
+| **12** | PR CI | — | **All 18 jobs green** on the head commit — the same 18/18 shape measured on `9cb6cdc` (M0). **`Test Inventory Drift` green is the load-bearing one**, and its ubuntu run is where **NT-4** is finally taken ✅ **MEASURED 2026-08-22:** run `32599231895` on head `d7494e2` — **18 jobs, all 18 `success`**, enumerated at job level. `Test Inventory Drift` = job `97094899990`, `ubuntu-latest`, `success`. **NT-4 taken and closed** |
 | **13** | **Window monitoring, continuing** | §13.0's ledger | **Every `main` `JS Unit (Vitest, non-required)` result from T0 through `2026-09-05T17:59:26Z`** is appended to §13.0, at job level (§6.1's discipline), including any red, missing or cancelled result. **A cancelled run neither starts nor advances the clock** (§6.5) |
 
 **`/verify-suite` may be run as the single command covering steps 9–10**; it is written out here so the
@@ -5477,7 +5635,36 @@ scan, so a Vitest case literally named `status` would red it. **False-red only**
 missing pin, and the exact key-set assertions cover the real risk. Recorded rather than "fixed",
 because tightening it would trade a harmless false red for a real blind spot.
 
-### 13.18 STOP — merge
+### 13.18 STOP — merge — **DISCHARGED 2026-08-22 (recorded 2026-08-23)**
+
+> ✅ **DISCHARGE 2026-08-23.** The STOP below was honoured exactly as written: the PR was left
+> ready-for-review, green CI was **not** treated as the go-ahead, and the owner gave a separate
+> explicit confirmation naming the PR. **PR #411 merged as `2c95bae` at `2026-08-22T21:52:14Z`**;
+> post-merge `main` run `32600832091` is **18/18 green**, read at job level.
+>
+> **Everything else the STOP lists is UNCHANGED and still unauthorized** — **Q4**, **Q6**, **D2**
+> (including the `js-unit` promotion), any branch-protection or repository-settings change, any edit
+> to `.github/workflows/**`, `scripts/release_gate.py`, `package.json`, `package-lock.json`,
+> `vitest.config.js`, `static/js/**` or any pre-existing test, and any `.claude/settings.json` or
+> permission change. **§7's branch-protection change is still recorded, not executed**, and its
+> "re-measure before executing" warning has been re-confirmed rather than discharged: branch
+> protection was re-read live on **2026-08-23** and carries **12** required contexts with
+> `JS Unit (Vitest, non-required)` **absent**, so §7.2 would add a **13th**.
+>
+> **The two surviving obligations, both re-checked here:**
+>
+> 1. ✅ **NT-4 is CLOSED — and it was closed by measurement, not by argument.** The PR's ubuntu
+>    `Test Inventory Drift` job **`97094899990`** (run `32599231895`, `ubuntu-latest`) concluded
+>    **`success`** at `2026-08-22T21:19:58Z`, with its *"Check committed inventory against a fresh
+>    Linux regeneration"* step green. The claim that Windows and Linux agree on the sorted identity
+>    list **may now be written up as measured**, and is, at §13.2's NT-4 row and §13.10 step 12.
+>    **NT-7 is untouched and still open.**
+> 2. ⏳ **The qualification-window ledger is STILL RUNNING and still owed.** It is extended at
+>    **§13.0's LIVE LEDGER block** through `2026-08-23T10:11:56Z`: **two** `main` `js-unit` results,
+>    both green, **zero** red / missing / skipped / cancelled. **T0 is unchanged** at
+>    `2026-08-22T17:59:26Z` — Packet F changed no JS case, so Q2's restart clause never engaged.
+>    Keep extending it at job level, never restating it from memory, until
+>    **`2026-09-05T17:59:26Z`**.
 
 > **The PR is open and ready for review. It is NOT merged, and merging is not authorized by anything
 > in this document, by green CI, or by a selection among options.**
