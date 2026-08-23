@@ -2310,6 +2310,14 @@ B45 and B30–B35 are untouched.
 > ⚠️ **FURTHER ANNOTATION 2026-08-22 — "implementation remains UNAUTHORIZED" is now FALSE.**
 > Gate 0 and Gate 1 were signed at **§13.16**; Packet F is implemented, with an open, unmerged
 > PR (§13.17). **Q4, Q6 and D2 remain untouched and unauthorized** — that half still stands.
+>
+> ⚠️ **THIRD FURTHER ANNOTATION 2026-08-23 — "an open, unmerged PR" is now FALSE too.**
+> **Packet F MERGED** as PR #411, squash **`2c95bae`**, at **`2026-08-22T21:52:14Z`**; post-merge
+> `main` run `32600832091` is **18/18 green** at job level. **Three of the five items this section
+> listed have now moved** — the KI-010/KI-011 follow-up, Packet C, and Packet F. **Two have not, and
+> they are the surviving clause, restated exactly: promotion of `js-unit` (Q4 / D2) and Q6 remain
+> untouched and unauthorized.** **KI-010 and KI-011 are still `Open`** — that item moved by being
+> *registered*, which is not the same as being fixed or mitigated, and neither is.
 
 ---
 
@@ -3855,6 +3863,11 @@ and Q6 remain untouched and unauthorized.**
 > second time: **Packet F implementation is no longer unauthorized** — Gate 0 and Gate 1 were
 > signed at **§13.16** and executed at **§13.17**, with **merge** still requiring its own
 > confirmation. **Q4 / D2 / Q6 remain untouched and unauthorized.**
+>
+> ⚠️ **AND AGAIN, 2026-08-23 — by the same self-imposed rule.** The merge confirmation was
+> given and **Packet F merged as `2c95bae`** (PR #411). **The clause that survives every round of
+> this chain, and is the only one left: Q4 / D2 promotion and Q6 remain untouched and
+> unauthorized.**
 
 **Authoring decisions worth recording, because a later reader would otherwise re-derive them:**
 
