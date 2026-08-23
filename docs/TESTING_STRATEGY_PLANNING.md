@@ -122,7 +122,7 @@
 | "Proposed properties may not be valid product rules" | ✅ Important | E.g. "volume after splitting always exactly equals input" must be checked against rounding/caps before becoming a test, and this repo's council workflow (Gate 0 + `product-risk-reviewer`) is the right vehicle — calculation-surface changes are explicitly owner-gated ([docs/ai_workflow/QUALITY_GATE.md](ai_workflow/QUALITY_GATE.md)). |
 | "E2E suite is Chromium-only; Firefox/WebKit commented out" | ✅ Verified | [playwright.config.ts:97-105](../playwright.config.ts#L97-L105); every CI invocation passes `--project=chromium`; Firefox/WebKit binaries are never even downloaded. |
 | "Deep-gate checks should become release gates" | ✅ Confirmed gap | Deep gate was `workflow_dispatch` **only** — explicitly "no cron / schedule". No release/tag workflow exists at all. **Partly closed 2026-08-11 (D3 stopgap, PR #323 → `3b1160b`):** a weekly `schedule:` now runs the deep gate, compare-only. The release/tag half of the gap stands. *The original line cited `deep-gate.yml:3` for the "no cron" comment; that line anchor no longer says it — do not re-add the citation, the file now documents the schedule.* |
-| "Expand Vitest coverage and promote the non-required job" | ✅ Confirmed gap | Vitest job is non-required ([ci.yml:586-590](../.github/workflows/ci.yml#L586-L590)); only **8 of 49 modules (16%)** have unit tests; `jsdom` is installed but zero test files opt into it, so every DOM-touching module is untested at unit level. |
+| "Expand Vitest coverage and promote the non-required job" | ✅ Confirmed gap | Vitest job is non-required ([ci.yml:586-590](../.github/workflows/ci.yml#L586-L590)); only **8 of 49 modules (16%)** have unit tests; `jsdom` is installed but zero test files opt into it, so every DOM-touching module is untested at unit level. ⚠️ **Both figures are the 2026-08-01 adjudication reading and are now stale; the verdict is not.** The job is still non-required, but the module ratio has moved and `jsdom` **is** opted into by five test files. Re-measured figures: **§2.1a**. The row is left as written because it is the record of what was adjudicated, not a live claim. |
 | Codex misses | — | The vacuous a11y assertions (B1), the `/erase-data` substitute-route gap (B2), the documentation drift itself (B3), the weakened console-error fixture (B4), CI hygiene issues (B9), and the prior art in `QUALITY_GATE.md` / `UI_SCENARIOS_GAP_ANALYSIS.md` (§2.3). |
 
 ---
@@ -134,7 +134,7 @@
 | Layer | Reality | Runs on PR? |
 |---|---|---|
 | **Python unit + integration (pytest)** | Dated evidence: 90 files, 1,716 test-function definitions, **2,288 collected nodes as of 2026-08-01**; last recorded full run **2,271 passed / 1 skipped** (2026-07-30, WP4.4-f2 gate). **Superseded — the current count is generated into [`TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md); do not quote the 2,288 as current.** Per-test tmp SQLite isolation via conftest fixture chain. | ✅ Required (`Run Tests`) |
-| **JS unit (Vitest)** | 9 files, 93 tests, pure helpers only (`environment: 'node'`). 8/49 modules covered (16%); 41 modules + 6 top-level scripts untested. | ⚠️ Runs, **non-required** |
+| **JS unit (Vitest)** | *(2026-08-01 reading, superseded — see **§2.1a**.)* 9 files, 93 tests, pure helpers only (`environment: 'node'`). 8/49 modules covered (16%); 41 modules + 6 top-level scripts untested. | ⚠️ Runs, **non-required** |
 | **API contract (E2E)** | `api-integration.spec.ts` — 57 tests hitting real endpoints. | ✅ Required (functional shards) |
 | **Browser E2E (Playwright)** | 30 specs, **541 live tests**, Chromium only, serial, 1 worker, 2 retries on CI. 24 specs in the required functional shard set (recomputed: **426 tests**, not the documented 404). | ✅ Mostly required; `erase-flow`, `listener-cleanup`, visual specs are not |
 | **Visual regression** | 84 cases/platform, 168 committed PNGs, deterministic helpers (frozen Date, animation flattener), `maxDiffPixels: 800, threshold: 0`. | ❌ Manual deep-gate only (`run_visual` input) |
@@ -144,6 +144,61 @@
 | **Static analysis** | flake8 (blocking subset), tsc (blocking; e2e/ + config only — app JS not typechecked), pyright (blocking baseline-diff vs allowlist), stylelint (measure-only), vulture (dead code, `min_confidence=100`). | ✅ Mostly |
 | **Security / supply chain** | `pip-audit` blocking on every PR; `safety` informational in deep gate. **No npm audit, no Dependabot, no bandit, no semgrep, no CodeQL.** | ⚠️ Python yes, JS no |
 | **Golden / snapshot** | `tests/goldens/` — weekly-summary + fatigue golden JSON pins. | ✅ Required |
+
+### 2.1a JS-unit surface — re-measured 2026-08-23 (question **Q6**)
+
+> **Why this subsection exists.** §2.1's table is the **2026-08-01** ground-truth reading and is
+> preserved as that record. Its JS-unit row, the §1.2 Opus row, and blindspot **B7** each carry
+> "8 of 49 modules (16%)" and a "`jsdom` installed but unused" claim that read as *live* rather
+> than dated. [`testing_phase3/STEP12_JS_UNIT_GATE0.md` §1.1](testing_phase3/STEP12_JS_UNIT_GATE0.md)
+> logged that drift and deferred the correction to **Q6**; this is that correction. The originals
+> are annotated in place, never rewritten — they were not wrong when written.
+
+**Provenance.** Read from the `JS Unit (Vitest, non-required)` job
+[`97193944527`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162) of
+`main` run `32639359162` (`push` / `ca28ec0`, 18/18 `success`), conclusion **`success`**, completed
+**`2026-08-23T12:26:02Z`**. Reproduced byte-identically in a clean `ca28ec0` worktree with
+`npx vitest run --coverage` — local and CI agree on every figure below, so none of them is a
+Linux-only or Windows-only artifact.
+
+| Metric | Value (2026-08-23) | Superseded value |
+|---|---|---|
+| Test files | **13 passed (13)** | 9 |
+| Test cases | **231 passed (231)** | 93 |
+| Statements | **7.8 %** (582 / 7,453) | 5.14 % (375 / 7,293) — §8.6 |
+| Branches | **10.48 %** (487 / 4,644) | — |
+| Functions | **7.47 %** (83 / 1,110) | — |
+| Lines | **7.6 %** (528 / 6,946) | — |
+| Files under `static/js` excluding `*.test.js` | **57** — **51** in `modules/`, **6** top-level | 55 |
+| Files with **any** statement coverage | **13** | 8 |
+| Files at **exactly 0 %** | **44** | 47 |
+| Modules imported directly by a test file (static or dynamic) | **14** — 4 of them `vi.mock`ed in at least one test | — |
+| Test files carrying `// @vitest-environment jsdom` | **5 of 13** | **0** |
+
+The five jsdom files are `exercises`, `exports`, `fetch-wrapper`, `toast` and
+`workout-controls-persistence` — all under
+[`static/js/modules/__tests__/`](../static/js/modules/__tests__). **"`jsdom` installed but unused"
+is therefore false**, and has been since well before this reading; the global
+`environment: 'node'` is untouched, exactly as the F5-6 amendment (§9.2) prescribed.
+
+**Two figures moved in opposite directions and neither is a regression.** Covered files rose 8 → 13
+and statements rose 5.14 % → 7.8 % because Packets A/B/C added tests; the denominator rose 55 → 57
+because `static/js` grew at the same time. **Files at exactly 0 % fell 47 → 44 even though the
+denominator grew** — that is the honest shape of the number, and it is why §8.6 fences its snapshot
+instead of ratcheting it.
+
+**Do not hand-maintain these counts anywhere else.** Every value above is regenerable in under two
+seconds by `npx vitest run --coverage`; `vitest.config.js` deliberately quotes no module counts for
+this reason. The Vitest **node identities** (13 files / 231 cases) are separately pinned by Packet F
+in [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md), which is generated — but
+that artifact carries **no coverage percentages**, so it cannot answer the §8.6 rows on its own.
+
+**Nothing here changes any gate.** `js-unit` remains **non-required**, the coverage block remains
+**report-only** (no `thresholds` key), decision **D2**'s js-unit half remains **unsigned**, and the
+strict 14-day qualification window is unaffected: **T0 = `2026-08-22T17:59:26Z`**, strict mark
+**`2026-09-05T17:59:26Z`**, ledgered at job level in
+[`STEP12_JS_UNIT_GATE0.md` §13.0](testing_phase3/STEP12_JS_UNIT_GATE0.md). **Q4 and D2 stay
+untouched.**
 
 ### 2.2 What is genuinely absent (all verified by exhaustive sweep)
 
@@ -215,6 +270,7 @@ Live suite: **541 tests / 30 specs**. Documented totals: 501 ([.claude/rules/tes
 `maxDiffPixels: 800` with `threshold: 0` means any change touching ≤800 pixels per route × viewport × theme passes silently — already documented as a known weakness in the WP4.4 planning file, plus a standing "animated-logo" red whose diff (875/882 px) *exceeds* the tolerance and is ledgered rather than fixed. Visual specs also apply theme via `addInitScript`, so they never exercise the actual dark-mode toggle path (functional specs cover that separately).
 
 **B7 — JS is the least-protected layer of the stack.**
+*(2026-08-01 reading. ⚠️ **Two clauses are stale as of 2026-08-23 — see §2.1a.** "16% module unit coverage" is now 13 of 57 files with any coverage / **7.8 %** of statements, and "`jsdom` installed but unused" is **false**: five test files carry the `// @vitest-environment jsdom` pragma. The blindspot itself still stands — JS remains the least-protected layer, and the `tsc` and non-required clauses below are unchanged.)*
 16% module unit coverage; `jsdom` installed but unused; `tsc` typechecks only `e2e/**` and the Playwright config — **application JS under `static/js/` is neither typechecked nor mostly unit-tested**; the Vitest CI job is non-required. Combined with B4, a runtime TypeError in a module like `exercises.js` can only be caught by an E2E test that happens to traverse it *and* doesn't match a suppression substring.
 
 **B8 — The shipping artifact is never tested on the PR path.**
@@ -629,6 +685,13 @@ Every figure below was produced by CI on Linux unless noted. Regenerate rather t
 > copied by hand and has since drifted. The live figures are generated into
 > [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md). Read them
 > there; do not transcribe a replacement here.
+>
+> **Exception, recorded 2026-08-23 (Q6): the two JS-coverage rows.** That generated
+> inventory pins Vitest **node identities**, not coverage percentages, so it cannot
+> answer them — the redirect above is right for every other row and wrong for these
+> two. Their live source is `npx vitest run --coverage`, and the dated reading is
+> **§2.1a**. The 2026-08-23 values are appended as an italic row below rather than
+> overwriting the PR #254 snapshot, which stays as the PR #254 record.
 
 | Metric | Value (snapshot, superseded) | Source |
 |---|---|---|
@@ -639,6 +702,7 @@ Every figure below was produced by CI on Linux unless noted. Regenerate rather t
 | **Python coverage** (`utils` + `routes`) | **87%** — 7,801 statements, 1,040 missed | `Run Tests`, PR #253 |
 | **JS coverage** (statements) | **5.14%** — 375 / 7,293 | `js-unit`, PR #254 |
 | JS modules at exactly 0% | **47 of 55** | `js-unit`, PR #254 |
+| *↑ both JS rows, re-measured 2026-08-23* | ***7.8%** — 582 / 7,453; **44 of 57** at 0% — see **§2.1a*** | *`js-unit` job `97193944527`* |
 | npm audit, full graph | **4 high** — `immutable`, `picomatch`, `postcss`, `fast-uri` | `js-supply-chain` |
 
 **Python per-module**, for the future baseline-diff ratchet:
