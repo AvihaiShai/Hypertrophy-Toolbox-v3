@@ -93,7 +93,7 @@
 >
 > - **"Two `main` `JS Unit` results exist from T0 through `2026-08-23T10:11:56Z`" is superseded.**
 >   There are now **three**, all green, read at job level at **`2026-08-23T14:01:12Z`**: row 3 is
->   job **`97193944527`** of run
+>   job [**`97193944527`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162/job/97193944527) of run
 >   [`32639359162`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162)
 >   (`push` / `ca28ec0`, PR #412, 18/18), completed **`2026-08-23T12:26:02Z`**. **§13.0's LIVE LEDGER
 >   is the only place that count lives** — do not read it off this bullet at a later session.
@@ -108,6 +108,33 @@
 >   setting.
 > - **Nothing is claimed about the 2026-08-24 deep-gate cron.** At this read time it has not
 >   executed, and this document asserts nothing about it.
+>
+> ⚠️ **SIXTH ANNOTATION — 2026-08-23, after the Q6 packet MERGED. Exactly one clause of the
+> fifth annotation is now spent; every other clause it asserts still stands verbatim.**
+>
+> - **The Q6 packet is MERGED.** PR
+>   [#413](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/413), squash **`b0aa393`**,
+>   merged **`2026-08-23T18:03:43Z`**. Its diff is **exactly three** tracked files:
+>   [`TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md), **this document**, and
+>   [`vitest.config.js`](../../vitest.config.js) — **comment-only in that file, no executable
+>   configuration changed**. **Zero** files under `static/js/**`. Post-merge `main` run
+>   [`32656837264`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32656837264),
+>   **18 jobs, all 18 `success`**, read at job level.
+> - **The fifth annotation's *“the `main` run it produces on merge will mint row 4, and whoever
+>   lands it owes that row”* is DISCHARGED.** Row 4 is job
+>   [`97236769067`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32656837264/job/97236769067),
+>   **`success`**, completed **`2026-08-23T18:04:10Z`**, and it is written into §13.0's
+>   *LIVE LEDGER* — which remains **the only place any ledger count lives**. **Do not read a
+>   count off this bullet at a later session.**
+> - **T0 is UNCHANGED at `2026-08-22T17:59:26Z`** and the strict mark is UNCHANGED at
+>   **`2026-09-05T17:59:26Z`**: #413 changed **no JS test case**, so Q2's restart clause did
+>   not engage.
+> - **Everything else still stands verbatim.** **Q4 and D2 remain untouched and unauthorized**,
+>   **D4** and the `js-unit` half of **D2** remain **unsigned**, `js-unit` remains
+>   **non-required** (branch protection re-read live 2026-08-23: **12** required contexts,
+>   `JS Unit (Vitest, non-required)` **absent**), and **KI-010 / KI-011 remain OPEN**.
+> - **Still nothing is claimed about the 2026-08-24 deep-gate cron.** At this read time it has
+>   not executed either.
 >
 > **Base**: `origin/main` @ `c404a06`, branch `wt/phase3-jsunit-gate0`, isolated docs-only worktree
 > — this is the **Gate 0 origin** of the document, not a base for any packet. Packet A built on
@@ -213,7 +240,8 @@ Read from the `JS Unit (Vitest, non-required)` job of run
 > **§2.1a** carrying the live reading, and `vitest.config.js`'s comment now quotes **no** module
 > counts at all. **The `9 of 57` / `5.6 %` above is the 2026-08-15 reading of run `31856035853`
 > and is preserved as that record — do not quote it as current either.** Re-measured
-> **2026-08-23** from job `97193944527` (run `32639359162`, `push` / `ca28ec0`) and reproduced
+> **2026-08-23** from job [`97193944527`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162/job/97193944527) (run `32639359162`, `push` /
+> `ca28ec0`) and reproduced
 > locally: **13 files / 231 cases**, statements **7.8 %** (582 / 7,453), **57** files under
 > `static/js` excluding `*.test.js`, **13** with any coverage, **44** at exactly 0 %, and **5** test
 > files carrying the jsdom pragma. That packet was **documentation- and comment-only**: no
@@ -893,7 +921,7 @@ with each answer.
 | **Q3** | `backup-center.js` (Packet D): **skip**, test through the full-DOM `initializeBackupCenter()` surface, or authorize a **production** seam extraction? | **RULED — dropped from step 12.** The required production seam extraction is out of scope. §2.4. |
 | **Q4** | Drop the `(non-required)` suffix from the job name **in the change before** promotion? | **OPEN.** Not yet needed — promotion is not authorized. But the window closes permanently once the context is protected (§7.3), so decide it **with** D2 and never after. |
 | **Q5** | Extend `generate_test_inventory.py` to pin Vitest node counts? | **RULED — required before promotion.** Carried as **Packet F** (§2.5), sequenced after Packet C. |
-| **Q6** | Correct the stale coverage/jsdom claims in `TESTING_STRATEGY_PLANNING.md` (lines 79, 172, 540-541) and `vitest.config.js`'s comment (§1.1, §1.2)? | **DISCHARGED 2026-08-23**, as the recommended **separate docs-only packet** — based on `main` @ `ca28ec0`, in its own isolated worktree. All figures were **re-measured**, not carried over: job `97193944527` gives **13 files / 231 cases**, statements **7.8 %** (582 / 7,453), **57** files under `static/js` excluding `*.test.js`, **13** with any coverage, **44** at exactly 0 %, **5** test files carrying the jsdom pragma. The three prose sites (now lines **125**, **137**, **218** — the line numbers in this cell moved, which is why they are a poor anchor) and the §8.6 rows are **annotated in place**, with the live reading in a new **§2.1a**; `vitest.config.js`'s comment now quotes **no** module counts, so it cannot rot again. **Comment-only in that file — no executable configuration changed.** Q4 and D2 were **not** drawn in. |
+| **Q6** | Correct the stale coverage/jsdom claims in `TESTING_STRATEGY_PLANNING.md` (lines 79, 172, 540-541) and `vitest.config.js`'s comment (§1.1, §1.2)? | **DISCHARGED 2026-08-23**, as the recommended **separate docs-only packet** — based on `main` @ `ca28ec0`, in its own isolated worktree. All figures were **re-measured**, not carried over: job [`97193944527`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162/job/97193944527) gives **13 files / 231 cases**, statements **7.8 %** (582 / 7,453), **57** files under `static/js` excluding `*.test.js`, **13** with any coverage, **44** at exactly 0 %, **5** test files carrying the jsdom pragma. The three prose sites (now lines **125**, **137**, **218** — the line numbers in this cell moved, which is why they are a poor anchor) and the §8.6 rows are **annotated in place**, with the live reading in a new **§2.1a**; `vitest.config.js`'s comment now quotes **no** module counts, so it cannot rot again. **Comment-only in that file — no executable configuration changed.** Q4 and D2 were **not** drawn in. |
 
 ### STOP — the Gate 0 STOP, **partly superseded**
 
@@ -4216,6 +4244,12 @@ be **extended, never restated from memory**, at every later session until `2026-
 > 2026-08-22 and are left as that record; §13.17 Part 7 is the **execution-time** reading of the same
 > day. Neither is restated here — this block is a fresh job-level read, and it is what a later
 > session extends.
+>
+> ⚠️ **ANNOTATION 2026-08-23 — this block is SUPERSEDED by the *post-#413* LIVE LEDGER further
+> down this subsection**, which is a fresh **four**-row job-level read taken after PR #413
+> merged. This block is left exactly as the `2026-08-23T14:01:12Z` **three**-row reading and is
+> **not** restated there. Its three rows are unchanged and still correct as of that moment; only
+> its *count* and its “newest `main` run” are spent.
 
 **Read at `2026-08-23T14:01:12Z`** (UTC now, taken from the GitHub API response `Date` header, not
 from the host clock). *(This block supersedes its own `2026-08-23T10:11:56Z` reading, which recorded
@@ -4232,7 +4266,7 @@ result** — §6.1's discipline.
 |---|---|---|---|---|---|---|
 | **1 — T0** | [`32589375849`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32589375849) | `push` / `9cb6cdc` (PR #410, Packet C) | `success`, **18/18** | `97070630453` | **`success`** | **`2026-08-22T17:59:26Z`** |
 | **2** | [`32600832091`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32600832091) | `push` / `2c95bae` (PR #411, Packet F) | `success`, **18/18** | **`97098730892`** | **`success`** | **`2026-08-22T21:52:42Z`** |
-| **3** | [`32639359162`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162) | `push` / `ca28ec0` (PR #412, post-#411 status reconciliation) | `success`, **18/18** | **`97193944527`** | **`success`** | **`2026-08-23T12:26:02Z`** |
+| **3** | [`32639359162`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162) | `push` / `ca28ec0` (PR #412, post-#411 status reconciliation) | `success`, **18/18** | [**`97193944527`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162/job/97193944527) | **`success`** | **`2026-08-23T12:26:02Z`** |
 
 | Ledger tally, at `2026-08-23T14:01:12Z` | Value |
 |---|---:|
@@ -4278,6 +4312,75 @@ engaged. **#411's `mergedAt` (`2026-08-22T21:52:14Z`) is not T0 and must never b
 `2026-09-05T17:59:26Z`, at **job** level, appending any red, missing, skipped or cancelled result
 rather than summarising it. **A red resets the window to zero** (§6.5), with §6.2's attribution
 discipline argued on the record and never applied silently.
+
+---
+
+#### LIVE LEDGER — extended 2026-08-23 after PR #413 merged (post-#413 read)
+
+> **This block is now the live one.** It supersedes the `2026-08-23T14:01:12Z` block above,
+> which recorded **three** rows and is left standing as that record — it is **not** restated
+> here. Everything below is a fresh job-level read of the API, not an extension of the page.
+
+**Read at `2026-08-23T18:50:52Z`** (UTC now, taken from the GitHub API response `Date` header, not
+from the host clock), after PR [#413](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/413)
+merged (squash `b0aa393`, `2026-08-23T18:03:43Z`).** Method, deliberately identical to the block
+above: `gh run list --branch main` plus
+`gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to
+`created_at >= 2026-08-22T17:00:00Z` — deliberately **earlier** than T0, so the filter is a
+superset and cannot hide a run — across **every** workflow, not just `CI/CD Pipeline`. Each
+returned run's `/jobs` was then enumerated in full and matched on the exact context string
+`JS Unit (Vitest, non-required)`. **No run's overall conclusion was used as a proxy for its
+`js-unit` result** — §6.1's discipline. The superset returned exactly **four** `main` runs of any
+workflow in that span, and all four are listed below.
+
+| # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
+|---|---|---|---|---|---|---|
+| **1 — T0** | [`32589375849`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32589375849) | `push` / `9cb6cdc` (PR #410, Packet C) | `success`, **18/18** | [`97070630453`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32589375849/job/97070630453) | **`success`** | **`2026-08-22T17:59:26Z`** |
+| **2** | [`32600832091`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32600832091) | `push` / `2c95bae` (PR #411, Packet F) | `success`, **18/18** | [`97098730892`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32600832091/job/97098730892) | **`success`** | **`2026-08-22T21:52:42Z`** |
+| **3** | [`32639359162`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162) | `push` / `ca28ec0` (PR #412, post-#411 status reconciliation) | `success`, **18/18** | [`97193944527`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162/job/97193944527) | **`success`** | **`2026-08-23T12:26:02Z`** |
+| **4** | [`32656837264`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32656837264) | `push` / `b0aa393` (PR #413, the Q6 documentation correction) | `success`, **18/18** | [**`97236769067`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32656837264/job/97236769067) | **`success`** | **`2026-08-23T18:04:10Z`** |
+
+| Ledger tally, at `2026-08-23T18:50:52Z` | Value |
+|---|---:|
+| Green `main` `JS Unit` results since and including T0 | **4** |
+| **Red** results | **0** |
+| **Missing** results (a `main` run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after T0 | **4** — all four `CI/CD Pipeline`, all four `push`, all four 18/18 |
+| **`schedule`-event runs in the window** | **0** |
+| Elapsed since T0 | **≈ 24 h 51 m** of the required **14 d** |
+
+**Nothing is inferred, and nothing is omitted.** All four rows were resolved by enumerating the
+run's jobs and reading each job's own `conclusion` and `completed_at`; each run's `/jobs`
+reported `total_count = 18` with every job `success`. There is **no** `main` run in this window
+whose `js-unit` result is red, missing, skipped or cancelled, and **no** `main` run this ledger
+omits. *(Row 1's run was **created** at `2026-08-22T17:59:06Z`, twenty seconds **before** T0 —
+the ledger indexes `js-unit` **results** at or after T0, not runs, and that job's `completed_at`
+**is** T0. A run created before T0 can still be row 1.)*
+
+**Row 4 did not restart the window, and #413's `mergedAt` is not T0.** PR #413 touched **exactly
+three** files — [`TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md), this
+document, and [`vitest.config.js`](../../vitest.config.js), whose change is **comment-only** (no
+executable configuration) — and **zero** files under `static/js/**`. The suite the window is
+qualifying is therefore still **13 files / 231 cases**, byte-identical across
+`ca28ec0 → b0aa393`, and Q2's restart clause did not engage. **T0 remains
+`2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.** The same already held
+for row 3 (#412, documentation-only).
+
+**No `schedule`-event run has occurred in the window** — all four rows are `push`. The next
+deep-gate cron is **2026-08-24**; it has **not executed at this read time and nothing about it
+is claimed here**, and `deep-gate.yml` carries no `js-unit` job in any case, so it can only ever
+add a row here by not adding one.
+
+**Still to do, and owed by whoever picks this up:** extend **this** block — not the superseded
+one above — at **every** later session until `2026-09-05T17:59:26Z`, at **job** level, appending
+any red, missing, skipped or cancelled result rather than summarising it, and re-deriving the
+whole ledger from the API rather than extending it from the page. **A red resets the window to
+zero** (§6.5), with §6.2's attribution discipline argued on the record and never applied
+silently.
+
+---
 
 **The standing rule, from §6.5, and why Packet F satisfies it.**
 

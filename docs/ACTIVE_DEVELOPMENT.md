@@ -4,12 +4,83 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-23 (LATEST) — Phase 3 step 12's expansion sequence is COMPLETE on
+**2026-08-23 (LATEST) — repository state reconciled through PR #413; `js-unit`
+is still NOT promoted.** `origin/main` is at **`b0aa393`**
+(PR [#413](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/413), the Q6
+documentation correction, merged `2026-08-23T18:03:43Z`), with all 18 checks green
+on that commit — post-merge run `32656837264`, **read at job level**, 18 jobs and
+18 `success`. The repository has **zero open PRs**. Take no automatic feature
+action from this file.
+
+**Two PRs merged after `2c95bae`, and both are documentation-only.**
+
+| PR | Commit | Terminal result |
+|---|---|---|
+| **#412** | `ca28ec0` | Post-#411 status reconciliation. Four documentation files: `ACTIVE_DEVELOPMENT.md`, `MASTER_HANDOVER.md`, `TESTING_STRATEGY_PLANNING.md` and `testing_phase3/STEP12_JS_UNIT_GATE0.md`. Post-merge run `32639359162`, 18/18 green. |
+| **#413** | `b0aa393` | **Q6 — the stale JS-unit coverage/jsdom claims, corrected.** Exactly **three** tracked files: `docs/TESTING_STRATEGY_PLANNING.md` (new **§2.1a** carrying the live reading), `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md`, and **`vitest.config.js` — comment-only, no executable configuration changed**. **Zero** files under `static/js/**`; no workflow, dependency, inventory, generated or branch-protection change. Post-merge run `32656837264`, 18/18 green. |
+
+**Q6 is DISCHARGED.** Every figure was re-measured rather than carried over:
+**13 files / 231 cases**, statements **7.8 %** (582 / 7,453), **57** files under
+`static/js` excluding `*.test.js`, **13** with any coverage, **44** at exactly
+**0 %**, and **5** test files carrying the jsdom pragma. The superseded
+**`9 of 57` / `5.6 %`** figure is the 2026-08-15 reading of run `31856035853` and
+is preserved as that record — do not quote it as current.
+
+**T0 is UNCHANGED at `2026-08-22T17:59:26Z`** — job `97070630453`
+(`JS Unit (Vitest, non-required)`) on `main` run `32589375849`, the **Packet C**
+post-merge run — and the strict 14-day mark is still **`2026-09-05T17:59:26Z`**.
+Neither #412 nor #413 restarted the window: both are documentation-only and
+changed no JS test case (13 files / 231 cases, unchanged across
+`2c95bae → ca28ec0 → b0aa393`), so owner ruling Q2's restart clause never engaged.
+**No PR's `mergedAt` is T0.** The ledger is kept at **job** level in exactly one
+authoritative place —
+[`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md)
+**§13.0**, *LIVE LEDGER* (its post-#413 block) — and read live on 2026-08-23 after
+#413 it holds **four** green `main` results with **zero** red, missing, skipped or
+cancelled, and **no `schedule`-event run**. Do not restate its rows here, and do
+not read a count off this paragraph at a later session.
+
+**Explicitly NOT authorized and NOT taken:** promotion of `js-unit` (**Q4** /
+**D2**) — branch protection carries **12** required contexts, re-read live
+2026-08-23, and `JS Unit (Vitest, non-required)` is **absent**; **D4**; fixes for
+**KI-010** or **KI-011**; and any branch-protection or repository-settings change.
+**D4 and the `js-unit` half of D2 stay unsigned**, and **Q4 and D2 stay
+undecided and unauthorized, pending a separate owner decision.** **NT-4 stays closed, NT-7 stays open**, and `Test Inventory Drift`
+still pins six surfaces. `release.yml`'s `push: tags` trigger has **still never
+fired**.
+
+**Next actions, in order:** (1) **inspect the 2026-08-24 scheduled deep gate only
+after it executes** — at job level, with `visual-linux` confirmed *executed*
+rather than skipped, never read off the overall green; expect a scheduler delay of
+up to an hour, and claim **nothing** about it until it has run; (2) **continue the
+qualification ledger** in §13.0 until `2026-09-05T17:59:26Z`, at job level,
+recording any red, missing, skipped or cancelled result — a red **resets the
+window to zero**; (3) **leave Q4 and D2 unsigned pending a separate owner
+decision** — the expansion packets confer no signature.
+
+**This reconciliation changed documentation only** — exactly three files
+(`docs/testing_phase3/STEP12_JS_UNIT_GATE0.md`, `docs/MASTER_HANDOVER.md` and this
+file). No production, test, workflow, dependency, inventory, generated, config or
+repository-settings change.
+
+**2026-08-23 — Phase 3 step 12's expansion sequence is COMPLETE on
 `main`; `js-unit` is still NOT promoted.** `origin/main` is at **`2c95bae`**
 (PR [#411](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/411), Packet F,
 merged `2026-08-22T21:52:14Z`), with all 18 checks green on that commit — post-merge
 run `32600832091`, **read at job level**. The repository has **zero open PRs**. Take
 no automatic feature action from this file.
+**[UPDATED 2026-08-23 — this block carried the `(LATEST)` marker until the block
+above was written; `origin/main` has since moved **two** commits to `b0aa393`
+(#412 `ca28ec0`, then #413 `b0aa393`). Nothing below is edited except this
+annotation. **Two** of its claims are spent, and both are corrected above rather
+than here: its **two**-row ledger reading of `2026-08-23T10:11:56Z` — there are
+now **four** rows, and §13.0 is the only place that count lives — and its listing
+of **Q6** among the things not authorized, which is **DISCHARGED** by #413.
+Everything else it asserts — T0 and the strict mark, the A → B → C → F shape,
+Packet D dropped and the letter E vacant, NT-4 closed and NT-7 open, the six
+pinned surfaces, **12** required contexts with `js-unit` absent, Q4 / D2 / D4
+unsigned, KI-010 and KI-011 open, and the 2026-08-24 deep gate — was re-checked
+on 2026-08-23 and still stands.]**
 
 **Eleven PRs merged after `4d53487` and this file recorded none of them.** The
 block below carried the `(LATEST)` marker through all of them; this block is the
