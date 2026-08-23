@@ -4,8 +4,104 @@
 
 ## Current State
 
-> **2026-08-22 (LATEST) — Phase 3 step 12 Packet B is MERGED; two toast defects are now
+> **2026-08-23 (LATEST) — Phase 3 step 12's expansion sequence is COMPLETE on `main`: Packets
+> A, B, C and F are all MERGED. `js-unit` is still NOT promoted, and the 14-day qualification
+> window is running.**
+> `origin/main` is at **`2c95bae`** (PR
+> [#411](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/411), Packet F, merged
+> **`2026-08-22T21:52:14Z`**), with all **18** checks green on that commit — post-merge run
+> [`32600832091`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32600832091),
+> **read at job level**, 18 jobs and 18 `success`. The repository has **zero open PRs**.
+>
+> **Nine commits landed after the block below, and this block records all of them.** Only **two**
+> are step-12 packets; the other seven are the Packet-B KI follow-up (#407, `f3b9313`), the two
+> npm-audit enforcement steps (#405 `f252f5f`, and **#409 `a937116`, which took required contexts
+> 11 → 12**), and four Dependabot bumps (#395 `d6da70b`, #396 `f972373`, #397 `924e363`,
+> #408 `b52df68`). None is left unrecorded. The two that matter here:
+>
+> | PR | Commit | Merged (UTC) | Terminal result |
+> |---|---|---|---|
+> | **#410** | `9cb6cdc` | `2026-08-22T17:59:03Z` | **Packet C — `exercises.js`.** Test-only: one new file, `static/js/modules/__tests__/exercises.test.js`. Post-merge run `32589375849`, **18/18 green** at job level. This was the **final expansion packet**, so it — not #411 — started the qualification clock. |
+> | **#411** | `2c95bae` | `2026-08-22T21:52:14Z` | **Packet F — Vitest inventory + drift enforcement.** Seven tracked files: `scripts/generate_test_inventory.py` (+1 collector, `SCHEMA_VERSION` 1→2), a new `tests/test_vitest_inventory_contracts.py`, both regenerated `docs/test_inventory/` artifacts, `docs/ai_workflow/QUALITY_GATE.md`, `.claude/rules/testing.md`, and the step-12 packet document. **Zero** files under `static/js/**`, `.github/workflows/**` or `scripts/release_gate.py`; **no branch-protection or repository-setting change**. Post-merge run `32600832091`, **18/18 green** at job level. |
+>
+> **The step-12 sequence, stated so the shape is not re-derived.** It is **A → B → C → F**, and all
+> four are now on `main` — **A** (shipped inside the Gate 0 PR
+> [#387](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/387), `9e5997a`), **B** (#406,
+> `987588a`), **C** (#410, `9cb6cdc`), **F** (#411, `2c95bae`).
+> **Packet D is DROPPED**, closed unstarted by owner ruling Q3 (`backup-center.js` is not covered by
+> step 12, and its 0 % coverage is an accepted recorded gap). **The letter E is deliberately vacant
+> in step 12** — `testing_phase3/PLANNING.md` keeps "Packet E" for step 11's restore-path fuzz, and
+> reusing the letter would recreate the collision the 2026-08-15 relabel removed. Neither is leftover
+> work; do not queue either.
+>
+> **T0 is established and it did NOT move when Packet F merged.**
+> **T0 = `2026-08-22T17:59:26Z`** — the `completed_at` of job **`97070630453`**
+> (`JS Unit (Vitest, non-required)`) on `main` run `32589375849`, the post-merge run for **Packet C**.
+> The **strict 14-day mark is `2026-09-05T17:59:26Z`**. Packet F changed **no JS test case** — the
+> Vitest suite is **13 files / 231 cases** on both sides of `2c95bae` — so owner ruling Q2's restart
+> clause never engaged, and a required predecessor is explicitly allowed to land inside the window.
+> **#411's own `mergedAt` is not T0**, and neither is any workflow-level timestamp.
+>
+> **The qualification-window ledger, at job level, read `2026-08-23T10:11:56Z`:** **two** `main`
+> `JS Unit (Vitest, non-required)` results since and including T0 — `97070630453` (`success`) and
+> `97098730892` (`success`, `2026-08-22T21:52:42Z`) — with **zero** red, **zero** missing, **zero**
+> skipped and **zero** cancelled. A superset query — every workflow on `main` from
+> `2026-08-22T17:00:00Z`, deliberately earlier than T0 — returned exactly those two runs, so the
+> ledger omits nothing.
+> The ledger lives in **one place** and is **extended, never restated from memory**:
+> [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) **§13.0**, *LIVE LEDGER*. Do not
+> duplicate its rows here.
+>
+> **NT-4 is CLOSED, by measurement.** Packet F's one remaining unmeasured cross-platform assumption —
+> that Linux and Windows agree on `vitest list --json`'s sorted identity list — was taken by the PR's
+> ubuntu `Test Inventory Drift` job **`97094899990`** (run `32599231895`, runner label
+> `ubuntu-latest`, conclusion `success`, `2026-08-22T21:19:58Z`), whose *"Check committed inventory
+> against a fresh Linux regeneration"* step passed against a Windows-generated artifact. It may now be
+> written up as measured. **NT-7 (`describe.each`) remains open and unexercised.**
+>
+> **`Test Inventory Drift` now pins SIX surfaces, not five.** The sixth is per-file Vitest case counts
+> **plus every case's identity** — the only surface pinning identities rather than counts, because a
+> renamed case moves no count. The practical consequence, which reverses the rule Packets A–C ran
+> under: **from `2c95bae` onward, adding, removing, renaming, `.skip`-ing or `.todo`-ing any
+> `static/js/**/*.test.js` case trips a required check and must ship a regenerated
+> `docs/test_inventory/` artifact in the same PR.** `js-unit`'s own pass/fail still gates nothing.
+>
+> **What this did NOT change.** **`js-unit` is still non-required** — branch protection was re-read
+> live on 2026-08-23 and carries **12** required contexts, with `JS Unit (Vitest, non-required)`
+> **absent**; promoting it would add a **13th**, and no repository setting was touched by either
+> packet. **Q4** (the `(non-required)` rename that must happen *before* promotion or be consciously
+> forgone), **Q6**, and **D2** are all still untouched and unauthorized; **D4** and the `js-unit`
+> half of **D2** are still **unsigned**. **KI-010 and KI-011 remain OPEN** — neither packet fixed
+> either. Testing Phase 4 stays **open**, `release.yml`'s `push: tags` trigger has **still never
+> fired**, and the next scheduled deep-gate run is still **2026-08-24**.
+>
+> **The current next action, stated explicitly, because none of it starts itself:**
+>
+> 1. **Q6 is a separate correction packet** — the stale coverage/jsdom prose in
+>    `STEP12_JS_UNIT_GATE0.md` §1. It is **not** folded into any reconciliation and needs its own
+>    authorization.
+> 2. **Inspect the 2026-08-24 scheduled deep gate after it executes** — at **job** level, with
+>    `visual-linux` confirmed *executed* rather than skipped, never off the overall green. Expect a
+>    scheduler delay of up to an hour; the 2026-08-17 run started 45m52s late. It is the **second**
+>    consecutive green scheduled run, and whether the first counts toward R1-D3's three remains an
+>    **open owner question**.
+> 3. **Continue the qualification ledger until `2026-09-05T17:59:26Z`**, in §13.0, at job level,
+>    recording any red, missing, skipped or cancelled result. A red **resets the window to zero**.
+> 4. **Q4 and D2 remain unsigned until then**, and D2 needs its own separate owner signature even
+>    once the window closes — the expansion packets confer none.
+>
+> **This reconciliation changed documentation only.** No production, test, workflow, package,
+> Vitest-config, inventory-generator, generated-inventory, branch-protection or repository-settings
+> file was touched.
+
+> **2026-08-22 — Phase 3 step 12 Packet B is MERGED; two toast defects are now
 > registered as open Known Issues.**
+> **[This block carried the `(LATEST)` marker until 2026-08-23; the block above is now the latest.
+> Its *"`origin/main` is at `987588a`"* went stale as **nine** further commits landed — #407
+> (`f3b9313`), #405 (`f252f5f`), Dependabot #395 (`d6da70b`), #409 (`a937116`), #396 (`f972373`),
+> #397 (`924e363`), #408 (`b52df68`), then #410 (`9cb6cdc`) and #411 (`2c95bae`). Nothing in it is
+> edited except the annotation below. Its Packet-B facts, its KI-010/KI-011 rows and its
+> `toast.js`-unchanged proof are all still accurate and are not re-derived above.]**
 > `origin/main` is at **`987588a`** (PR
 > [#406](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/406), merged 2026-08-22
 > local — `2026-08-21T23:10:23Z`, which is how GitHub lists it),
@@ -38,7 +134,14 @@
 >
 > **What this did NOT change.** **Packet C**, **Packet F**, promotion of `js-unit`
 > (**Q4** / **D2**) and **Q6** are all still unstarted and each still needs its own owner
-> confirmation. **D4** and the `js-unit` half of **D2** remain unsigned. Neither toast defect is
+> confirmation.
+> **[UPDATED 2026-08-23 — the first half of that sentence is now FALSE and is annotated, not
+> rewritten. **Packet C MERGED** as #410 (`9cb6cdc`) and **Packet F MERGED** as #411 (`2c95bae`),
+> each on its own separate owner confirmation, exactly as this sentence required. **The second half
+> stands unchanged: `js-unit` promotion (Q4 / D2) and Q6 are still unstarted and still need their
+> own owner confirmation**, and D4 plus the `js-unit` half of D2 are still unsigned. True as written
+> on 2026-08-22.]**
+> **D4** and the `js-unit` half of **D2** remain unsigned. Neither toast defect is
 > fixed. **This KI follow-up** — a packet separate from Packet B — changed **documentation only**:
 > [`UI_SCENARIOS_GAP_ANALYSIS.md`](UI_SCENARIOS_GAP_ANALYSIS.md),
 > [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) and this file, and nothing
@@ -2770,7 +2873,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
-| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. **[UPDATED 2026-08-20 — X11, X12 and X13 shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15, plus the newly recorded, deliberately unregistered X16.]** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md) |
+| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. **[UPDATED 2026-08-20 — X11, X12 and X13 shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15, plus the newly recorded, deliberately unregistered X16.]** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. **[UPDATED 2026-08-23 — "Phases 3 and 5 remain proposals" is now stale for Phase 3.]** **Phase 3 step 12 is in execution and its expansion sequence is COMPLETE on `main`**: Packets **A → B → C → F** all merged — B #406 (`987588a`), C #410 (`9cb6cdc`), F #411 (`2c95bae`) — with **Packet D dropped** (owner ruling Q3) and **the letter E deliberately vacant**. **`js-unit` is still NOT promoted**: the 14-day qualification window is running from **T0 `2026-08-22T17:59:26Z`** to **`2026-09-05T17:59:26Z`**, ledgered at job level in [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, and **Q4 / D2 stay unsigned** — a separate owner signature is required even once the window closes. Phase 3 **step 11** and **Phase 5** are unchanged. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md), [docs/testing_phase3/STEP12_JS_UNIT_GATE0.md](testing_phase3/STEP12_JS_UNIT_GATE0.md) |
 
 ## Open Decisions
 
@@ -2802,6 +2905,13 @@ behind the CSS it describes.
   `js-unit` half of D2 remain unsigned (D6 signed 2026-08-14 as retain-informational,
   recorded as ADR-008); Phases 3 and 5 remain proposals.
   **[UPDATED 2026-08-21 — D7 is now SIGNED and `README.md` now carries the recovery section; see `TESTING_STRATEGY_PLANNING.md` §8.1d. D4 is unchanged.]**
+  **[UPDATED 2026-08-23 — "Phases 3 and 5 remain proposals" is stale for Phase 3.
+  Phase 3 **step 12 is in execution**, and its expansion sequence A → B → C → F is
+  **complete on `main`** (#406 `987588a`, #410 `9cb6cdc`, #411 `2c95bae`; D dropped,
+  E vacant). **The `js-unit` half of D2 is still unsigned and `js-unit` is still
+  non-required** — that clause is unchanged, and the 14-day window running to
+  `2026-09-05T17:59:26Z` does not by itself sign it. **D4** is unchanged. Phase 3
+  step 11 and Phase 5 are unchanged.]**
   **[UPDATED 2026-08-15 — this bullet's tail previously read "Phases 3 and 5 **and the
   release/tag half of Phase 4** remain proposals". Only the "Phases 3 and 5" half is
   still true: the release/tag half **SHIPPED** as Packet R1, #374 (`5222db2`), with
@@ -2840,9 +2950,45 @@ behind the CSS it describes.
 
 ## Next Safe Step
 
-**Current (2026-08-21, latest): #402 merged and there is still no automatic next
+**Current (2026-08-23, latest): Phase 3 step 12's expansion sequence is COMPLETE
+on `main` and there is still no automatic next feature packet.** Verified against
+`origin/main` at **`2c95bae`** (#411), 18/18 checks green on that commit at job
+level, with **zero open PRs**:
+
+- **Packets A → B → C → F are all merged**: A inside the Gate 0 PR #387 (`9e5997a`),
+  B as #406 (`987588a`), C as #410 (`9cb6cdc`), F as #411 (`2c95bae`). **Packet D stays DROPPED** (owner ruling Q3,
+  closed unstarted) and **the letter E stays deliberately vacant** in step 12.
+  Neither is leftover work; do not queue either.
+- **The four next actions, each needing its own authorization:**
+  1. **Q6 is a separate correction packet** — the stale coverage / jsdom prose in
+     `STEP12_JS_UNIT_GATE0.md` §1. It is deliberately **not** folded into any
+     status reconciliation.
+  2. **Inspect the 2026-08-24 scheduled deep gate after it executes**, at **job**
+     level, with `visual-linux` confirmed *executed* rather than skipped — never
+     off the overall green. Allow up to an hour of scheduler delay.
+  3. **Continue the qualification-window ledger until `2026-09-05T17:59:26Z`**,
+     at job level, in
+     [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0 —
+     extended, never restated, and recording any red, missing, skipped or
+     cancelled result. A red resets the window to zero.
+  4. **Q4 and D2 remain unsigned until then**, and D2 needs its own separate owner
+     signature even after the window closes.
+- **`js-unit` is still non-required.** Branch protection carries **12** required
+  contexts, re-read live 2026-08-23; `JS Unit (Vitest, non-required)` is absent
+  and promoting it would add a **13th**. Neither packet touched a repository
+  setting.
+- **Unchanged and still open:** **D4** stays unsigned; the `scan_export_bounds()`
+  numeric `min > max` behavior decision and the `utils/rep_range_integrity.py`
+  docstring correction are both still open and still unauthorized; `needs:` and
+  job-level `continue-on-error:` on the deep gate remain **unmeasured**;
+  **KI-010** and **KI-011** are still open; Testing Phase 4 stays open; and
+  `release.yml`'s `push: tags` trigger has **still never fired**.
+
+**Current (2026-08-21): #402 merged and there is still no automatic next
 feature packet.** Verified against `origin/main` at **`1f9c05a`**, 18/18 checks
-green on that commit:
+green on that commit **[UPDATED 2026-08-23 — superseded by the block above;
+`origin/main` is now `2c95bae` (#411), twelve commits later, and D7 has since been
+signed. Nothing else below is edited]**:
 
 - **#402** (`1f9c05a`) is tests-only. It closed the first of the three packets the
   block below preserved: the **five** unpinned `deep-gate.yml` jobs — `full-e2e`,

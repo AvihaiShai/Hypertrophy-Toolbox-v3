@@ -4,10 +4,75 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-21 (LATEST) — Testing Strategy D7 is SIGNED; the auto-backup recovery
+**2026-08-23 (LATEST) — Phase 3 step 12's expansion sequence is COMPLETE on
+`main`; `js-unit` is still NOT promoted.** `origin/main` is at **`2c95bae`**
+(PR [#411](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/411), Packet F,
+merged `2026-08-22T21:52:14Z`), with all 18 checks green on that commit — post-merge
+run `32600832091`, **read at job level**. The repository has **zero open PRs**. Take
+no automatic feature action from this file.
+
+**Eleven PRs merged after `4d53487` and this file recorded none of them.** The
+block below carried the `(LATEST)` marker through all of them; this block is the
+record.
+
+| PR | Commit | Terminal result |
+|---|---|---|
+| **#404** | `0984d2e` | Docs only — the auto-backup recovery procedure landed in `README.md` and D7 was recorded as signed. This is the change the block below describes; it merged **after** that block was written. |
+| **#406** | `987588a` | **Phase 3 step 12 Packet B — `toast.js`.** Test-only: one new file, 47 jsdom cases. Two real production defects were measured, pinned and left **OPEN** as **KI-010** and **KI-011**. |
+| **#407** | `f3b9313` | Docs only — registered KI-010 / KI-011 and reconciled Packet B to its merged state. |
+| **#405** | `f252f5f` | npm-audit **M2 + M3** enforcement — `scripts/npm_audit_gate.mjs` plus an empty allowlist; levers L1 + L2. |
+| **#409** | `a937116` | npm-audit **M4 / lever L3** — `JS Supply Chain (npm audit, non-required)` promoted into branch protection. **Required contexts 11 → 12; the job name is unchanged and must not be "fixed".** |
+| **#410** | `9cb6cdc` | **Packet C — `exercises.js`.** Test-only, one new file. **This was the final expansion packet**, so it started the qualification clock. Post-merge run `32589375849`, 18/18 green. |
+| **#411** | `2c95bae` | **Packet F — Vitest inventory + drift enforcement.** Seven tracked files: the generator, a new pytest contract file, both regenerated `docs/test_inventory/` artifacts, `QUALITY_GATE.md`, `.claude/rules/testing.md` and the step-12 packet doc. **Zero** files under `static/js/**` or `.github/workflows/**`; **no branch-protection change**. Post-merge run `32600832091`, 18/18 green. |
+| **#395 / #396 / #397 / #408** | `d6da70b` / `f972373` / `924e363` / `b52df68` | Dependabot: pyinstaller 6.21→6.22, pytest-playwright 0.8→0.9, `@types/node` 26.1.2→26.2.0, and the vitest group. Recorded so the ledger has no hole. |
+
+**The step-12 sequence is A → B → C → F, and all four are on `main`** — **A** shipped
+inside the Gate 0 PR #387 (`9e5997a`), then #406, #410 and #411 above. **Packet D
+is DROPPED** (owner ruling Q3, closed unstarted — `backup-center.js` is not covered
+by step 12 and its 0 % coverage is an accepted recorded gap), and **the letter E is
+deliberately vacant** in step 12, because `testing_phase3/PLANNING.md` keeps "Packet
+E" for step 11's restore-path fuzz. Neither is leftover work; do not queue either.
+
+**T0 is `2026-08-22T17:59:26Z`** — job `97070630453` (`JS Unit (Vitest,
+non-required)`) on `main` run `32589375849`, the **Packet C** post-merge run — and
+the strict 14-day mark is **`2026-09-05T17:59:26Z`**. **Packet F did not restart
+the window**: it changed no JS test case (13 files / 231 cases, byte-identical
+either side of `2c95bae`), so owner ruling Q2's restart clause never engaged.
+**#411's `mergedAt` is not T0.** The ledger is kept at **job** level in exactly one
+place — [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md)
+**§13.0**, *LIVE LEDGER* — and read `2026-08-23T10:11:56Z` it holds **two** green
+`main` results with **zero** red, missing, skipped or cancelled. Do not restate its
+rows here.
+
+**NT-4 is closed by measurement**: the PR's ubuntu `Test Inventory Drift` job
+`97094899990` (run `32599231895`, `ubuntu-latest`, `success`) checked the committed
+inventory against a fresh **Linux** regeneration and passed against a
+Windows-generated artifact. **NT-7 remains open.**
+
+**`Test Inventory Drift` now pins six surfaces, not five.** From `2c95bae` onward,
+adding, removing, **renaming**, `.skip`-ing or `.todo`-ing any
+`static/js/**/*.test.js` case trips a **required** check and must ship a regenerated
+`docs/test_inventory/` artifact in the same PR — a reversal of the rule Packets A–C
+ran under.
+
+**Explicitly NOT authorized and NOT taken:** promotion of `js-unit` (**Q4** /
+**D2**) — branch protection carries **12** required contexts, re-read live
+2026-08-23, and `JS Unit (Vitest, non-required)` is **absent**; **Q6**'s stale
+coverage/jsdom prose correction; **D4**; fixes for **KI-010** or **KI-011**; and
+any branch-protection or repository-settings change. **D4 and the `js-unit` half of
+D2 stay unsigned.** The next scheduled deep-gate run is still **2026-08-24**, and
+`release.yml`'s `push: tags` trigger has **still never fired**.
+
+**2026-08-21 — Testing Strategy D7 is SIGNED; the auto-backup recovery
 procedure is now in `README.md`.** `origin/main` is at **`4d53487`** (PR #403,
 merged 2026-08-21), 18/18 checks green on that commit. Take no automatic feature
 action from this file.
+**[UPDATED 2026-08-23 — this block carried the `(LATEST)` marker until the block
+above was written; `origin/main` has since moved **eleven** commits to `2c95bae`
+(#411). Nothing below is edited except this annotation. Its D7 facts remain
+accurate; its *"the next scheduled deep-gate run is still 2026-08-24"* is still
+true, and its *"D4 and the `js-unit` half of D2 stay unsigned"* was re-checked on
+2026-08-23 and is still true.]**
 
 The owner signed D7 **exactly as recommended**: retain the "no in-app restore"
 stance for startup database snapshots, and publish the already-reviewed manual
@@ -715,9 +780,39 @@ intentional review of the exact golden diff before any behavior change.
 
 ## Next Action
 
+**Current (2026-08-23, after #410 and #411) — take no automatic feature action
+from this file.** Verified against `origin/main` at **`2c95bae`**, 18/18 green at
+job level, **zero open PRs**. Phase 3 step 12's expansion sequence **A → B → C → F**
+is complete on `main`; **D is dropped and E is deliberately vacant**.
+
+**The four next actions, each needing its own authorization:**
+
+1. **Q6 is a separate correction packet** — the stale coverage / jsdom prose in
+   `STEP12_JS_UNIT_GATE0.md` §1. Deliberately **not** folded into any status
+   reconciliation.
+2. **Inspect the 2026-08-24 scheduled deep gate after it executes**, at **job**
+   level, with `visual-linux` confirmed *executed* rather than skipped — never off
+   the overall green. Allow up to an hour of scheduler delay.
+3. **Continue the qualification-window ledger until `2026-09-05T17:59:26Z`**, at
+   job level, in
+   [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md)
+   §13.0 — extended, never restated from memory, recording any red, missing,
+   skipped or cancelled result. A red resets the window to zero.
+4. **Q4 and D2 remain unsigned until then**, and D2 needs its own separate owner
+   signature even after the window closes.
+
+**Still open and still unauthorized:** **D4**; the `scan_export_bounds()` numeric
+`min > max` behavior decision; the `utils/rep_range_integrity.py` docstring
+correction; `needs:` and job-level `continue-on-error:` on the deep gate (both
+**unmeasured**); **KI-010** and **KI-011**; and the gap that nothing in the app
+tells a user a quarantine happened or that snapshots exist.
+
 **Current (2026-08-21, after #403 and the D7 signature) — take no automatic
 feature action from this file.** Verified against `origin/main` at **`4d53487`**,
-18/18 green. Testing Strategy **D7 is signed** (keep the "no in-app restore"
+18/18 green.
+**[UPDATED 2026-08-23 — superseded by the block above; `origin/main` is now
+`2c95bae` (#411). Its D7 statement and its 2026-08-24 deep-gate date are both still
+true and are carried forward unchanged.]** Testing Strategy **D7 is signed** (keep the "no in-app restore"
 stance; publish the manual recovery procedure) and the reviewed procedure now
 lives in `README.md` — ruling and authorized scope in
 [`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) §8.1d. The
