@@ -566,7 +566,7 @@ This plan is complete when:
 
 ---
 
-## 11. Evidence log — 2026-08-24 (Claude session; revised after Codex review, reconciled after #417 merged, corrected at 21:36Z)
+## 11. Evidence log — 2026-08-24 (Claude session; revised after Codex review, reconciled after #417 merged, corrected twice — at `21:36Z` and `22:14Z`)
 
 **This section is a dated evidence log, not a status layer.** The amendments it once proposed
 have been **applied** to §4, §8 and §10, which now describe R0 as merged and carry the ADR-007
@@ -575,20 +575,33 @@ and this section could ever be read as disagreeing, **§4/§8/§10 govern** — 
 sources they cite (ADR-007, `STEP12_JS_UNIT_GATE0.md` §13.0, `pyright-baseline.json`) govern over
 both.
 
-**Provenance — this section carries three measurement times, not one.** An earlier draft
-stamped the whole section `2026-08-24T17:03:00Z`, which was wrong the moment §11.1 recorded a
-`20:50:48Z` merge: a blanket timestamp cannot cover facts that did not exist when it was taken.
+**Provenance — five events on 2026-08-24, and provenance here is per claim, not per section.**
+The first draft stamped the whole section `2026-08-24T17:03:00Z`. A first correction replaced that
+with three readings, but still attributed the *range* **"§11.2–§11.7"** — explicitly including
+*"ADR-007 **as merged**"* — to the 17:03Z read. **That was still chronologically impossible**: the
+ruling was not committed until `19:02:37Z` and did not reach `main` until `20:50:48Z`. **A section
+range cannot be a provenance unit**, because a single subsection mixes readings taken hours apart —
+§11.3 holds both a 17:03Z run count and a 19:02Z ruling, and §11.4 holds two measurements four
+hours apart. The table below is therefore keyed to **events**, and each row names the **claims**
+that rest on it.
 
-| Reading | Measured at | What it covers |
-|---|---|---|
-| **R0's evidence read** | API `Date` header **`2026-08-24T17:03:00Z`** | §11.2–§11.7 — the deep-gate run, ADR-007 as merged, the pyright baseline figures, the R3 and V1 datapoints, and the JS-unit ledger **as it stood at five rows** |
-| **#417's merge and its immediate aftermath** | merge **`2026-08-24T20:50:48Z`**; the `main` run it started, `20:50:51Z → 21:00:32Z` | §11.1's merge facts, the three-commit distinction, and the run that became ledger row 6 |
-| **This amendment's re-measurement** | API `Date` header **`2026-08-24T21:36:40Z`** | §11.10 — the live ledger at **six** rows, and the live state of #415, #416 and #418 |
+| # | When (UTC) | Event | The claims in §11 that rest on it |
+|---:|---|---|---|
+| **1** | **`17:03:00Z`** — API `Date` header | **R0's evidence pass.** The only reading taken before every event below | §11.1's deep-gate table — run `32688747703`, 7/7 `success`, `visual-linux` job `97318476983` executed — and its **five-row** ledger reading · §11.3's run counts (`schedule` = **2**, `workflow_dispatch` = **108**) · §11.7's V1 clean-compare datapoint and R3's `release.yml` event totals · §11.5's pyright figures, which are a **working-tree** read from the same pass and are **not** stamped by that API header |
+| **2** | **`19:02:37Z`** — commit `da8b765` | **The ADR-007 R1-D3 ruling is written** — **two hours after** event 1, on a branch | §11.3's *"Resolved"*, the quoted ruling text, and every citation of ADR-007 as **signed** · the homing of the follow-on into §4 R2 decision 4 and §10 criterion 5 |
+| **3** | **`20:50:48Z`** — #417 squash-merged as `5111a7f` | **The ruling and the post-#414 ledger reach `main`**, and the merge starts run [`32776201165`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32776201165) (`20:50:51Z → 21:00:32Z`; `js-unit` job `97587721956` green at `20:51:38Z`) | §11.1's merge facts and three-commit table · §11.2's *"the settled text is now on `main`"* · §11.7's and §11.8's *"re-verified at `5111a7f`"* readings, which **could not have been taken against a commit that did not yet exist** · the run that became **ledger row 6** |
+| **4** | **`21:36:40Z`** — API `Date` header | **This PR's ledger and PR-state re-measurement** | §11.10's six-row ledger, re-derived from the API · §11.4's **second** measurement of #415 and #416 · the live state of #418 |
+| **5** | **`22:14:51Z`** — API `Date` header | **This second correction pass**, which repaired event 1's own over-broad attribution | §11.11's third defect · the re-check that #415, #416 and #418 are all still `OPEN`, `MERGEABLE`/`CLEAN` · `da8b765`'s commit timestamp, read from git rather than assumed |
 
-**Nothing measured at 17:03Z knew about the merge**, which followed it by nearly four hours. No
-figure attributed to that read may be quoted as though it included post-merge evidence — the
-ledger count above all, which was **5** at that read and is **6** now. Where I repeat a figure
-another document asserts without re-measuring it, I say so.
+**The commits this PR is made of sit between those events, and are not themselves measurements:**
+`acfd558` at **`21:02:45Z`** (the reconciliation) and `c66b808` at **`21:49:54Z`** (the first
+correction). §11.8's bold-parity measurement belongs to the second of those — **event 4's pass**,
+not event 1's.
+
+**Nothing measured at 17:03Z knew about the ruling, the merge, or row 6.** No figure attributed to
+that read may be quoted as though it included later evidence — the ledger count above all, which
+was **5** at that read and is **6** now. Where I repeat a figure another document asserts without
+re-measuring it, I say so.
 
 > **Revision note.** A Codex review of the first version of this section found **one factual
 > error and two provenance defects**, all three correct. The pyright figures are fixed in
@@ -650,7 +663,8 @@ inspection, not a continuation of R0 — the discipline is per-run.
 
 ### 11.2 Ledger semantics — settled, and the settled text is now on `main`
 
-**This is no longer an open question.** PR #417 merged as `5111a7f`, so its wording is the
+**This is no longer an open question.** PR #417 merged as `5111a7f` at **`20:50:48Z`**
+(**event 3** — *after* the 17:03Z evidence pass, not part of it), so its wording is the
 canonical ledger semantics: non-`ci.yml` `main` runs are recorded in a **separate non-attempt
 classification table**, and the `Missing` row is rescoped to *"a `main` **`ci.yml`** run with no
 `js-unit` job"* (still **0**). That change came from an explicit written owner instruction in the
@@ -678,9 +692,12 @@ the deep gate. Under the un-rescoped wording they would have produced **four pha
 ### 11.3 R1-D3's clock — resolved by a signed ADR-007 ruling, and now homed in R2
 
 **Resolved.** The recommendation this section made — convert the unsourced interpretation into a
-signed decision recorded where the question was posed — was **enacted** as commit `da8b765` and
-merged with #417. ADR-007 in [`DECISIONS.md`](DECISIONS.md) now carries a **2026-08-24 owner
-ruling** that explicitly settles the question it had held open since 2026-08-17:
+signed decision recorded where the question was posed — was **enacted** as commit `da8b765`,
+committed **`2026-08-24T19:02:37Z`** (**event 2**), and reached `main` inside #417's squash at
+**`20:50:48Z`** (**event 3**). **Neither had happened when this section's evidence was read at
+`17:03:00Z`**, so no part of the ruling may be attributed to that pass. ADR-007 in
+[`DECISIONS.md`](DECISIONS.md) now carries a **2026-08-24 owner ruling** that explicitly settles
+the question it had held open since 2026-08-17:
 
 > the **2026-08-17 run counts** toward the three · the clock **stands at 2 of 3** · the third
 > qualifying run is due **2026-08-31 03:17 UTC** · **the R1-D3 decision itself is unchanged, and
@@ -694,7 +711,7 @@ prompted the question concerned the **pre-#388 file**, which has not existed on 
 feeds, and §10 did not list it. Both now do — the follow-on decision is **R2 decision 4** (§4)
 and **§10 criterion 5**.
 
-**Measured 2026-08-24, and never in dispute:** `gh run list --workflow=deep-gate.yml
+**Measured at `17:03:00Z` (event 1), and never in dispute:** `gh run list --workflow=deep-gate.yml
 --event=schedule` returns exactly **two** runs repo-wide, both `success` — `31993105305`
 (2026-08-17) and `32688747703` (2026-08-24). REST `total_count`: `event=schedule` = **2**,
 `event=workflow_dispatch` = **108**, none of the 108 qualifying. Measure the count with that
@@ -709,11 +726,13 @@ authorization.
 
 ### 11.4 Two open Dependabot PRs, and "zero open PRs" was stale everywhere
 
-**Re-measured 2026-08-24 after #417 merged, before retaining any of this wording:** **#415**
-(`pyinstaller` 6.22.0 → 6.22.2) and **#416** (`sass` 1.102.0 → 1.103.1) — both opened
-`2026-08-24T00:25Z`, **both still `OPEN` and unmerged**. Merging #417 did not close or affect
-either. The PR-specific wording here is retained because that second measurement supports it, not
-because the first one did.
+**Measured three times on 2026-08-24, and the wording rests on the latest:** first in the
+`17:03:00Z` evidence pass (event 1), again after #417 merged (event 3), and again at `22:14:51Z`
+(event 5). **#415** (`pyinstaller` 6.22.0 → 6.22.2) and **#416** (`sass` 1.102.0 → 1.103.1) — both
+opened `2026-08-24T00:25Z` — are **still `OPEN`, `MERGEABLE`/`CLEAN` and unmerged** at the latest
+of those. Merging #417 did not close or affect either. **The PR-specific wording here is retained
+on the last measurement, not the first**, which is the whole reason the count of measurements is
+recorded rather than the wording simply being left alone.
 
 Every status document had asserted **zero** open PRs; #417 corrected the live wording on `main`.
 
@@ -789,7 +808,11 @@ the instruction to close a hypothesis rather than add a speculative rule. Two de
   rejection in a `.catch` that only calls `console.error` (lines 136–137). **Both** must be
   addressed — removing the silent catch alone leaves the shared toast still suppressed by the
   option. §4 Packet U1 now carries both sites, the five neighbouring `showErrorToast: false`
-  call sites, and the requirement that a regression exist for each suppression.
+  call sites, and the requirement that a regression exist for each suppression. *(§4 U1 states
+  these line numbers as re-verified against `5111a7f` — that check belongs to **event 3 or later**,
+  since `5111a7f` did not exist at `17:03:00Z`. The file itself is unchanged by #417, which touched
+  no `static/js/**` path, so the reading holds either way; the **provenance**, not the number, is
+  what the earlier attribution got wrong.)*
 - **V1's "81 of 86" matches the repository's own record** (`visual_determinism/PLANNING.md:3`,
   `MASTER_HANDOVER.md:1289`). I did not independently re-count the captures.
 - **A V1 datapoint, with its limit stated:** the 2026-08-24 `visual-linux` compare was clean
@@ -816,7 +839,8 @@ not touch it** — that block is "left standing as that record", and repairing i
 separately-scoped edit; neither the post-#414 block nor the post-#417 block this PR adds
 replicates the pattern.
 
-**Re-measured `2026-08-24` on this PR's head, and the count §11.8 originally implied is too low.**
+**Re-measured on this PR's head during event 4's pass — not at `17:03:00Z` — and the count
+§11.8 originally implied is too low.**
 A paragraph-scoped check over the whole file, run identically against `5111a7f` and against this
 PR's head, reports the **same four** flagged paragraphs both times — **this PR introduces none**.
 Of those four, two survive a stricter strip and two do not:
@@ -837,7 +861,7 @@ it strips only line-scoped code spans. Strip fenced blocks, then double-backtick
 single-backtick spans **allowing newlines**, and only then count. Two of the four flags above came
 from getting exactly that last step wrong.*
 
-### 11.9 Amendments to §4, §8 and §10 — applied 2026-08-24
+### 11.9 Amendments to §4, §8 and §10 — applied in `acfd558` (`2026-08-24T21:02:45Z`)
 
 The proposal list this section carried has been **applied and removed**; what remains is the
 audit trail of where each amendment landed, so a reader can check the normative sections against
@@ -938,6 +962,16 @@ Both were in the first version of this PR, and both are repaired in this second 
 - **§11 carried a blanket measurement timestamp that its own contents falsified.** The preamble
   claimed every fact in the section was measured at `2026-08-24T17:03:00Z`, while §11.1 recorded a
   `20:50:48Z` merge and the run that followed it. The blanket line is replaced by the
-  three-reading provenance table at the head of this section. **The 17:03Z read is still cited,
-  and still owns exactly what it measured** — it is not backdated to cover later evidence, and
-  §11.1's five-row ledger reading is deliberately left as the five-row reading it was.
+  provenance table at the head of this section. **The 17:03Z read is still cited, and still owns
+  exactly what it measured** — it is not backdated to cover later evidence, and §11.1's five-row
+  ledger reading is deliberately left as the five-row reading it was.
+- **The first repair of that timestamp was itself still wrong, and this is the third defect.** It
+  replaced the blanket line with three readings but kept a **section-range** attribution, handing
+  the 17:03Z read *"§11.2–§11.7 … ADR-007 **as merged**"*. The ruling was committed at
+  `19:02:37Z` and merged at `20:50:48Z`; §11.4 already carried a `21:36:40Z` re-measurement. **A
+  range that spans subsections cannot carry one timestamp** when a single subsection mixes
+  readings hours apart — §11.3 holds a 17:03Z run count beside a 19:02Z ruling. Provenance is now
+  keyed to **five dated events** and to the **specific claims** resting on each, and §§11.2, 11.3,
+  11.4, 11.7, 11.8 and 11.9 carry inline stamps naming which event they belong to. **Correcting a
+  provenance defect with a narrower but still-wrong attribution is the failure worth remembering:
+  the fix has to be checked against the same clock the defect was.**
