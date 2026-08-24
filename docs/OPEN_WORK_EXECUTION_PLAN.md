@@ -5,6 +5,10 @@
 **Revised:** 2026-08-24, after PR [#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)
 merged as squash commit `5111a7f`. The amendments §11.9 previously *proposed* are now folded into
 §4, §8 and §10; §11 is a dated evidence log and no longer carries a competing status layer.  
+**Corrected:** 2026-08-24 later the same day, in a second pass on the same PR — the JS-unit
+ledger reconciled to **six** rows after #417's own merge minted one (§11.10), §10 criterion 3's
+misstatement of U2's gate repaired, and §11's blanket measurement timestamp replaced with
+per-reading provenance (§11.11).  
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
 ## 1. Purpose
@@ -78,8 +82,10 @@ the pre-#417 one.
   verification.
 - Repair the unmatched `**` recorded in §11.8 — `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md`
   line 4371 (re-verified at `5111a7f`), inside a superseded ledger block #417 deliberately left
-  standing. Scope any parity check to a paragraph with code spans and fences stripped first; a
-  per-line check floods with false positives.
+  standing. Scope any parity check to a paragraph with fences and code spans stripped first; a
+  per-line check floods with false positives. **Re-derive the full set rather than assuming it is
+  one site** — a stricter run measured during this PR's correction pass leaves **two** odd
+  paragraphs, not one (§11.8).
 
 **Acceptance criteria**
 
@@ -88,8 +94,9 @@ the pre-#417 one.
   from remaining work.
 - The CSS ownership map either matches current load topology or records measured corrections.
 - Searching active planning documents does not present completed Track A/Track B work as open.
-- The `STEP12_JS_UNIT_GATE0.md` bold span renders closed, and the superseded ledger block it sits
-  in is otherwise unchanged.
+- Every unmatched `**` T0 re-derives renders closed — **at minimum** the line-4371 span §11.8
+  names — and the superseded ledger blocks they sit in are otherwise unchanged. A count is recorded,
+  not assumed.
 - Documentation-only checks required by [`ai_workflow/QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md)
   pass.
 
@@ -205,11 +212,14 @@ is settled at U3's own Gate 0 and reviewed at U3's own Gate 1.
 - The inverted characterization test cites the signed contract that replaced the pinned defect,
   so a later reader can tell a deliberate inversion from a regression.
 
-> **U1, U2 and U3 are gated individually.** There is no roadmap-level Gate 1 covering the three
-> together, and this document does not create one. They share a theme, not a contract: U1 changes
-> one page's error surface, U2 changes a confirmation flow's state handling, and U3 changes a
-> shared dispatcher every page uses. A single approval spanning all three would put the widest
-> blast radius through the narrowest review.
+> **U1, U2 and U3 are gated individually, and they do not owe the same gates.** **U1: its own
+> Gate 0 and Gate 1. U2: its own Gate 1 only. U3: its own Gate 0 and Gate 1, per defect.** There
+> is no roadmap-level **Gate 0 or Gate 1** covering the three together, and this document does not
+> create one. They share a theme, not a contract: U1 changes one page's error surface, U2 changes
+> a confirmation flow's state handling, and U3 changes a shared dispatcher every page uses. A
+> single approval spanning all three would put the widest blast radius through the narrowest
+> review — and **U2's lighter requirement is U2's alone**, not a precedent U1 or U3 may borrow to
+> skip Gate 0.
 
 ### Packet R0 — Refresh external release and testing evidence
 
@@ -227,6 +237,14 @@ scheduled deep-gate run was inspected at job level (7/7 `success`, `visual-linux
 not skipped), the JS-unit ledger gained row 5 without moving T0, and live branch protection was
 re-read at 12 contexts. §11.1 holds the measured detail.
 
+**The ledger has advanced past R0's reading, and that does not reopen R0.** #417's own merge
+started a `main` `ci.yml` run that minted **row 6** — a run that had not happened when R0's
+evidence was read, and that no R0 measurement could have included (§11.10). R0's criterion was to
+refresh the ledger *through its inspection date*, which it did. **The qualification window is a
+separate, continuing observation**, carried by R2 decision 3 and running to
+`2026-09-05T17:59:26Z`; it will keep minting rows after every packet in this plan is finished, and
+R0 does not stay open to absorb them.
+
 **Work** *(completed)*
 
 - Inspect the scheduled deep-gate run expected on 2026-08-24 at job level.
@@ -243,8 +261,11 @@ re-read at 12 contexts. §11.1 holds the measured detail.
 - The JS-unit ledger reflects observed runs through the inspection date.
 - Any next engineering packet is based on a demonstrated residual, not an anticipated one.
 
-**Residual after R0.** One, and it is a calendar item rather than engineering: the 2026-08-31
-run. Nothing R0 measured produced a new engineering packet.
+**Residual after R0.** Calendar items only — no engineering. Two of them: the **2026-08-31**
+cron run, and the standing obligation to extend the JS-unit ledger after **every** `main` `ci.yml`
+run until `2026-09-05T17:59:26Z`. Neither is an R0 deliverable: the first is inspected as its own
+run, and the second belongs to the qualification window (R2 decision 3). **Nothing R0 measured
+produced a new engineering packet.**
 
 ### Packet R1 — Deep-gate mutation probes
 
@@ -389,10 +410,11 @@ real per-diagnostic rate; do not treat 8–16 days as validated by anything othe
 **Estimate:** minutes per PR; escalates only when a bump lands on a gated path
 
 Dependabot PRs had no home in this plan, and every status document asserted zero open PRs while
-two were open. Re-measured **2026-08-24, after #417 merged**: **#415** (`pyinstaller`
-6.22.0 → 6.22.2) and **#416** (`sass` 1.102.0 → 1.103.1) are **both still open and unmerged**.
-The `#415`/`#416` wording below is retained because that measurement, not the earlier one,
-supports it; re-measure again before reusing these numbers.
+two were open. Re-measured **twice on 2026-08-24** — once after #417 merged, and again at
+`21:36:40Z` during this document's correction pass: **#415** (`pyinstaller` 6.22.0 → 6.22.2) and
+**#416** (`sass` 1.102.0 → 1.103.1) are **both still open and unmerged**, both `MERGEABLE`/`CLEAN`.
+The `#415`/`#416` wording below is retained because the *later* measurement supports it;
+re-measure again before reusing these numbers.
 
 **Rules**
 
@@ -402,7 +424,11 @@ supports it; re-measure again before reusing these numbers.
   [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) records dependency bumps here that were
   not.
 - Their CI runs execute on **PR branches**, so they never enter the JS-unit ledger. **If either
-  merges, its post-merge `main` run mints ledger row 6, and whoever lands it owes that row.**
+  merges, its post-merge `main` run mints the next sequential ledger row, and whoever lands it
+  owes that row.** **Do not write a fixed row number into this rule.** The ledger stood at
+  **six** rows at `2026-08-24T21:36:40Z` (§11.10) and advances on every merge to `main` —
+  including this plan's own PR — so the row a given dependency PR receives depends on what
+  merged before it.
 - Landing one is a merge decision like any other and needs the same explicit authorization.
 
 ## 5. Parked work — do not place in the active queue
@@ -475,8 +501,10 @@ portions of R1/R2 — R0's quarter-day is already spent and is no longer part of
 Visual race repair and the complete pyright burn-down are separate investments and should not be
 silently included in that commitment.
 
-**Nothing in this table is an approval.** The Gate column records *which* gate each packet owes,
-not that any has been passed, and there is **no roadmap-level Gate 1 covering U1–U3 jointly**.
+**Nothing in this table is an approval.** The Gate column records *which* gates each packet owes,
+not that any has been passed — and the three `U` rows deliberately differ: **U1 and U3 owe Gate 0
+and Gate 1; U2 owes Gate 1 only.** There is **no roadmap-level Gate 0 or Gate 1 covering U1–U3
+jointly**.
 
 ## 9. Start checklist for every packet
 
@@ -488,8 +516,8 @@ not that any has been passed, and there is **no roadmap-level Gate 1 covering U1
 - [ ] Route the change through `ai_workflow/QUALITY_GATE.md`.
 - [ ] Keep unrelated dirty-worktree changes untouched.
 - [ ] Update the owning plan, current handover, and generated inventories only when required.
-- [ ] Pass the packet's **own** Gate 0 / Gate 1 as recorded in §4 and §8. A gate satisfied by a
-      sibling packet does not carry over.
+- [ ] Pass the gates that packet **itself** owes, as recorded in §4 and §8 — **not every packet
+      owes both**; U2 owes Gate 1 only. A gate satisfied by a sibling packet does not carry over.
 - [ ] Record a closed, parked, or rejected outcome so the item does not remain ambiguously open.
 
 ## 10. Completion criteria for this execution plan
@@ -500,8 +528,20 @@ This plan is complete when:
    squash `5111a7f`. The 2026-08-31 cron is the next checkpoint and is inspected as its own run,
    not as R0 reopening.
 2. T0 is merged and the active status layer no longer contradicts current code.
-3. U1–U3 are fixed or explicitly rejected with rationale, **each through its own Gate 0 / Gate 1**
-   — no joint approval.
+3. U1, U2 and U3 are each fixed or explicitly rejected with rationale, **through the gates that
+   packet actually owes** — which are not the same for all three, and §4 and §8 are the record:
+
+   | Packet | Gates it owes | Why |
+   |---|---|---|
+   | **U1** | its **own Gate 0 and Gate 1** | the intended error state is a user-facing behavior change that must be signed as a contract before code moves |
+   | **U2** | its **own Gate 1 only** | the defect, mechanism and affected interaction are already stated concretely enough to review a plan against, so it needs no separate requirements round (§4 Packet U2) |
+   | **U3** | its **own Gate 0 and Gate 1, per defect** | KI-010 inverts a characterization test that pins the defective output, and both defects change a shared repository-wide dispatcher |
+
+   **No joint approval satisfies any of them.** A gate passed by one packet does not carry to a
+   sibling, and **there is no roadmap-level Gate 0 or Gate 1 spanning the three** — this document
+   does not create one, and an approval that named "U1–U3" together would put U3's shared-dispatcher
+   blast radius through the narrowest of the three reviews. **U2's readiness is U2's alone**; it is
+   not evidence that U1 or U3 may skip Gate 0.
 4. The deep-gate hypotheses, export-bounds behavior, JS-unit promotion, and release-tag proof each
    have a recorded result or explicit owner deferral.
 5. **The R1-D3 clock question stays settled where it was settled, and the action it feeds is
@@ -526,7 +566,7 @@ This plan is complete when:
 
 ---
 
-## 11. Evidence log — 2026-08-24 (Claude session, revised after Codex review, reconciled after #417 merged)
+## 11. Evidence log — 2026-08-24 (Claude session; revised after Codex review, reconciled after #417 merged, corrected at 21:36Z)
 
 **This section is a dated evidence log, not a status layer.** The amendments it once proposed
 have been **applied** to §4, §8 and §10, which now describe R0 as merged and carry the ADR-007
@@ -535,9 +575,20 @@ and this section could ever be read as disagreeing, **§4/§8/§10 govern** — 
 sources they cite (ADR-007, `STEP12_JS_UNIT_GATE0.md` §13.0, `pyright-baseline.json`) govern over
 both.
 
-*All GitHub and working-tree facts here were measured live on **2026-08-24** (API `Date`
-header `2026-08-24T17:03:00Z`). Where I repeat a figure another document asserts without
-re-measuring it, I say so.*
+**Provenance — this section carries three measurement times, not one.** An earlier draft
+stamped the whole section `2026-08-24T17:03:00Z`, which was wrong the moment §11.1 recorded a
+`20:50:48Z` merge: a blanket timestamp cannot cover facts that did not exist when it was taken.
+
+| Reading | Measured at | What it covers |
+|---|---|---|
+| **R0's evidence read** | API `Date` header **`2026-08-24T17:03:00Z`** | §11.2–§11.7 — the deep-gate run, ADR-007 as merged, the pyright baseline figures, the R3 and V1 datapoints, and the JS-unit ledger **as it stood at five rows** |
+| **#417's merge and its immediate aftermath** | merge **`2026-08-24T20:50:48Z`**; the `main` run it started, `20:50:51Z → 21:00:32Z` | §11.1's merge facts, the three-commit distinction, and the run that became ledger row 6 |
+| **This amendment's re-measurement** | API `Date` header **`2026-08-24T21:36:40Z`** | §11.10 — the live ledger at **six** rows, and the live state of #415, #416 and #418 |
+
+**Nothing measured at 17:03Z knew about the merge**, which followed it by nearly four hours. No
+figure attributed to that read may be quoted as though it included post-merge evidence — the
+ledger count above all, which was **5** at that read and is **6** now. Where I repeat a figure
+another document asserts without re-measuring it, I say so.
 
 > **Revision note.** A Codex review of the first version of this section found **one factual
 > error and two provenance defects**, all three correct. The pyright figures are fixed in
@@ -588,6 +639,11 @@ JS-unit ledger refreshed **without moving T0**: row 5 = job `97247194117` of run
 `2026-08-22T17:59:26Z`; the strict mark stays `2026-09-05T17:59:26Z`** — matching this plan's
 "window ends on 2026-09-05". Branch protection re-read live: **12** contexts,
 `JS Unit (Vitest, non-required)` **absent**.
+
+**That paragraph is R0's reading, and it is left as one.** It was measured at `17:03:00Z`, before
+#417 merged, so **five rows is where R0's evidence stops** — correctly, and it is not rewritten
+here to look as though it saw further. The current ledger is **six** rows; #417's own merge minted
+row 6, and §11.10 records it against a fresh `21:36:40Z` read.
 
 The next external-evidence checkpoint is the **2026-08-31** cron. It is a separate
 inspection, not a continuation of R0 — the discipline is per-run.
@@ -666,8 +722,10 @@ and §10 criterion 10 keeps it from being silently dropped. Two caveats survive 
 **`sass` sits on the CSS build path**, and the `stylelint` / `@playwright/test` ignore-rule
 precedent in [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) shows dependency bumps here
 are not always routine. Their CI runs execute on **PR branches**, so they never enter the JS-unit
-ledger; if either merges, its post-merge `main` run mints **ledger row 6**, and **whoever lands it
-owes that row**.
+ledger; if either merges, its post-merge `main` run mints **the next sequential ledger row**, and
+**whoever lands it owes that row**. *(An earlier draft of this sentence named "row 6" as that
+future row. It is no longer available: #417's own merge took it — see §11.10. Naming a fixed
+future row is the error, not the particular number.)*
 
 *Any later reader: re-run the measurement. These two numbers are the fastest-rotting facts in this
 document.*
@@ -755,9 +813,29 @@ the instruction to close a hypothesis rather than add a speculative rule. Two de
 **line 4371 re-verified on `main` at `5111a7f`**):
 `` `2026-08-23T18:03:43Z`).** ``, inside a superseded ledger block. **#417 deliberately did
 not touch it** — that block is "left standing as that record", and repairing it is a
-separately-scoped edit; the new post-#414 block does not replicate the pattern. *Detection
-note: a per-line `**` parity check floods with false positives because bold spans legitimately
-wrap lines. Scope the check to a paragraph, with code spans and fences stripped first.*
+separately-scoped edit; neither the post-#414 block nor the post-#417 block this PR adds
+replicates the pattern.
+
+**Re-measured `2026-08-24` on this PR's head, and the count §11.8 originally implied is too low.**
+A paragraph-scoped check over the whole file, run identically against `5111a7f` and against this
+PR's head, reports the **same four** flagged paragraphs both times — **this PR introduces none**.
+Of those four, two survive a stricter strip and two do not:
+
+| Paragraph at line | Verdict | Why |
+|---:|---|---|
+| **1830** | **Checker artifact** | Balances once *multi-line* single-backtick spans are stripped; the flag came from a code span wrapping a line |
+| **2931** | **Checker artifact** | Same cause |
+| **3517** | **Real candidate — not previously recorded** | Odd under every strip tried, inside a 60-line numbered-list block. **T0 owns re-deriving it**; this PR measures it and does not repair it |
+| **4369** | **Real — the item §11.8 names** | Contains line 4371, `` `2026-08-23T18:03:43Z`).** `` |
+
+Line numbers are stable between `5111a7f` and this PR's head because every line this PR adds to
+that file falls **below** line 4430.
+
+*Detection note, corrected by the above: a per-line `**` parity check floods with false positives
+because bold spans legitimately wrap lines — but a paragraph-scoped check still false-positives if
+it strips only line-scoped code spans. Strip fenced blocks, then double-backtick spans, then
+single-backtick spans **allowing newlines**, and only then count. Two of the four flags above came
+from getting exactly that last step wrong.*
 
 ### 11.9 Amendments to §4, §8 and §10 — applied 2026-08-24
 
@@ -789,3 +867,77 @@ their own gates, and no packet below R0 has been started.
 **Decision status, re-derived rather than carried forward:** **R1-D3's counting question is
 signed** (ADR-007, 2026-08-24) while the `visual-linux` release-gate action it feeds is not.
 **Q4, D2 and D4 remain unsigned.** Q6 was discharged by PR #413.
+
+### 11.10 JS-unit ledger — #417's own merge minted row 6
+
+**Re-derived from the GitHub API at `2026-08-24T21:36:40Z`** (response `Date` header), not
+extended from any page. Method identical to the ledger's own standing rule: a superset query for
+**every** `main` run created at or after `2026-08-22T17:00:00Z` — deliberately earlier than T0 —
+followed by full `/jobs` enumeration on each, matched on the exact context string
+`JS Unit (Vitest, non-required)`. All six rows, including the five R0 had already recorded, came
+back byte-identical to the API.
+
+| | Measured |
+|---|---|
+| Run | [`32776201165`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32776201165) — `CI/CD Pipeline` (`.github/workflows/ci.yml`) |
+| Event / head | **`push`** / **`5111a7f`** — the squash commit of PR #417 |
+| Window | `2026-08-24T20:50:51Z → 21:00:32Z` |
+| Jobs | **18 / 18 `success`**, each read individually |
+| `js-unit` job | **`97587721956`**, conclusion **`success`**, completed **`2026-08-24T20:51:38Z`** |
+| Ledger position | **Row 6** |
+
+| Ledger state at `2026-08-24T21:36:40Z` | Value |
+|---|---:|
+| Qualification attempts (`main` `ci.yml` runs at or after T0) | **6** |
+| Green `js-unit` results | **6** |
+| Red / missing / skipped / cancelled | **0 / 0 / 0 / 0** |
+| `main` runs of any workflow (completeness check, **not** a tally) | **10** — the 6 above plus the same 4 non-attempt runs #417 classified |
+| **T0** | **`2026-08-22T17:59:26Z`** — unmoved |
+| **Strict 14-day mark** | **`2026-09-05T17:59:26Z`** — unmoved |
+| Elapsed | **≈ 2 d 3 h 37 m** of **14 d** |
+
+**Row 6 did not restart the window.** #417 touched six files, all under `docs/**`, and **zero**
+under `static/js/**` — no workflow, no dependency, no generated inventory, no `vitest.config.js`.
+The suite the window qualifies is still **13 files / 231 cases**, byte-identical across
+`31659a5 → 5111a7f`, so Q2's restart clause did not engage.
+
+The full job-level record lives in
+[`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0's
+**post-#417 LIVE LEDGER** block, added by this PR. That document is the durable source; this
+subsection cites it and does not compete with it.
+
+**Why row 6 could not have been recorded before it existed — and what that obliges next.** A
+ledger block is carried onto `main` by a merge, and that merge is what starts the run the *next*
+row records. **No block can ever record its own merge's run.** #417's post-#414 block therefore
+ended by owing row 6 to whoever landed it; that debt is discharged here. **The same debt is now
+open against this PR.** Merging **#418** will start another `main` `ci.yml` qualification attempt
+that **cannot be recorded before the merge**, and **whoever merges #418 owes its post-merge
+`js-unit` result in the next ledger refresh.** #418 changes only `docs/**` files, so it cannot
+restart the window — but that is a prediction about the restart clause, **not** about the run's
+result, which must be measured after it exists rather than assumed green.
+
+**This does not reopen R0.** R0's evidence packet is complete: it inspected the 2026-08-24 cron at
+job level, refreshed the ledger through its own inspection date, and re-read branch protection.
+The qualification window is a **different obligation** — a continuing observation carried by R2
+decision 3, running to `2026-09-05T17:59:26Z`, which will take rows 7, 8 and beyond regardless of
+what R0 did. Treating every new row as an R0 residual would make a closed packet permanently open.
+
+### 11.11 Two defects in this document's own text, corrected here
+
+Both were in the first version of this PR, and both are repaired in this second pass.
+
+- **§10 criterion 3 contradicted §4 and §8 on U2's gate.** §4 Packet U2 and §8's Gate column both
+  say U2 enters its **own Gate 1** and needs no separate requirements round; criterion 3 said
+  "U1–U3 … each through its own Gate 0 / Gate 1", which silently imposed a Gate 0 on U2 that no
+  other statement in the document requires. Criterion 3 now states the three packet-specific
+  requirements exactly — **U1: Gate 0 + Gate 1 · U2: Gate 1 only · U3: Gate 0 + Gate 1 per
+  defect** — while still rejecting any joint roadmap-level approval, which was the clause worth
+  keeping. §9's checklist carried the same "Gate 0 / Gate 1" shorthand and is corrected too.
+  **A summary that tightens a requirement is as wrong as one that loosens it**; here it would have
+  sent U2 back for a requirements round the document had already ruled unnecessary.
+- **§11 carried a blanket measurement timestamp that its own contents falsified.** The preamble
+  claimed every fact in the section was measured at `2026-08-24T17:03:00Z`, while §11.1 recorded a
+  `20:50:48Z` merge and the run that followed it. The blanket line is replaced by the
+  three-reading provenance table at the head of this section. **The 17:03Z read is still cited,
+  and still owns exactly what it measured** — it is not backdated to cover later evidence, and
+  §11.1's five-row ledger reading is deliberately left as the five-row reading it was.
