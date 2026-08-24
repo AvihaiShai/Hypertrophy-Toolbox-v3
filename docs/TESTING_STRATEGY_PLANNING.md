@@ -14,11 +14,13 @@
 >
 > **The clock stands at 2 of 3, and the third qualifying run is due 2026-08-31 03:17 UTC.**
 > The *"whether the 2026-08-17 run counts is an open owner question"* wording that several
-> documents carried is **retired as live guidance**: no later owner ruling on it exists
-> anywhere in `docs/**`, and in the absence of one the binding text is R1-D3 as the release
-> plan's Section 0 records it, which names the 2026-08-17 run and nowhere excludes it. An
-> owner may still overrule and discount that run — that would make the clock 1 of 3 with the
-> third due 2026-09-07. **Either way D3 is unchanged**: `visual-linux` stays out of the release
+> documents carried is **retired**, and the question is **SETTLED by an owner ruling dated
+> 2026-08-24, recorded in [`DECISIONS.md`](DECISIONS.md) ADR-007 under R1-D3: the 2026-08-17
+> run COUNTS.** **ADR-007 is the authority for that reading.** It was recorded rather than
+> inferred because no ruling on it existed anywhere in `docs/**`; the reasoning it rests on
+> is R1-D3 as the release plan's Section 0 records it, which names the 2026-08-17 run and
+> nowhere excludes it. Only a fresh owner ruling superseding the 2026-08-24 one could move
+> the count — discounting that run would make it 1 of 3 with the third due 2026-09-07. **Either way D3 is unchanged**: `visual-linux` stays out of the release
 > gate, **Phase 4 stays open** on §7.3 entry criteria 2 and 3, and closing a clock is not the
 > same as taking the decision it gates. Every *"next run 2026-08-24"* sentence below is now
 > spent; each is the reading of its own moment and is left standing as that record.

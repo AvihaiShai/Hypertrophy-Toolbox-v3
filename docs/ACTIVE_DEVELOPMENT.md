@@ -40,23 +40,24 @@ baselines* and *Upload Playwright report + diffs* were both **skipped**, which
 corroborates compare mode without proving it. **No baseline was regenerated and
 none was needed.**
 
-**2 — R1-D3's clock is 2 of 3, and the "open owner question" wording is retired as
-live guidance.** Searched repository-wide on 2026-08-24: the question is *raised*
-in three places — [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md),
-ADR-007 in [`DECISIONS.md`](DECISIONS.md), and
-[`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) — and **answered nowhere**. No later
-owner ruling exists. The binding text is R1-D3 as the release plan's Section 0
+**2 — R1-D3's clock is 2 of 3, settled by an owner ruling.** The question
+*"does the 2026-08-17 run count?"* is **SETTLED by an owner ruling dated
+2026-08-24, recorded in [`DECISIONS.md`](DECISIONS.md) ADR-007 under R1-D3: it
+COUNTS.** **ADR-007 is the authority — read it, do not re-derive this.** It was
+recorded rather than inferred because a repository-wide search that day found the
+question *raised* in three places —
+[`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), ADR-007 itself,
+and [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) — and **answered nowhere**. The
+reasoning behind it, kept for the reader: R1-D3 as the release plan's Section 0
 records it verbatim — *"Revisit only after the 2026-08-17 run and at least 3
-consecutive green scheduled runs"* — which names the 2026-08-17 run and nowhere
-excludes it, plus that plan's own 2026-08-17 supersession, which already read
-2026-08-24 as **the second** consecutive green run. **Measured, not inferred:**
+consecutive green scheduled runs"* — names the 2026-08-17 run and nowhere
+excludes it. **Measured, not inferred:**
 `gh run list --workflow=deep-gate.yml --event=schedule` returns exactly **two**
 runs repo-wide, **both `success`** — `31993105305` and `32688747703`. **The clock
-stands at 2 of 3; the third is due 2026-08-31 03:17 UTC.** An owner may still
-overrule and discount the first run, putting the clock at **1 of 3** with the
-third due 2026-09-07. **Either way D3 stays deferred — nothing here puts
-`visual-linux` into the release gate, and closing a clock is not the same as
-acting on it.** `release.yml`'s `push: tags` trigger has **still never fired**.
+stands at 2 of 3; the third is due 2026-08-31 03:17 UTC**, and only a fresh owner
+ruling superseding the 2026-08-24 one could move it. **D3 itself stays deferred
+regardless — nothing here puts `visual-linux` into the release gate, and closing
+a clock is not the same as acting on it.** `release.yml`'s `push: tags` trigger has **still never fired**.
 
 **3 — The qualification ledger now holds FIVE rows.** Read live at job level at
 `2026-08-24T17:03:00Z`: **five** green `main` `JS Unit (Vitest, non-required)`

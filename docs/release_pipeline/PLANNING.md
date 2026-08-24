@@ -335,11 +335,14 @@ anything.
   → *Next clean checkpoint*.)*
   ⚠️ **UPDATED 2026-08-24 — the "open owner question" clause above is RETIRED as live
   guidance, and the clock is recorded at 2 of 3.** The sentence is kept because it was
-  written in good faith on 2026-08-17, but it must not be acted on. **No later owner ruling
-  on the question exists**: searched repository-wide across `docs/**` on 2026-08-24, the
-  question is *raised* in exactly three places — this bullet, **ADR-007** in
-  [`DECISIONS.md`](../DECISIONS.md), and [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md)'s R1
-  block — and **answered nowhere**. In the absence of a ruling the binding text is the
+  written in good faith on 2026-08-17, but it must not be acted on. **The question is now
+  SETTLED by an owner ruling dated 2026-08-24, recorded in
+  [`DECISIONS.md`](../DECISIONS.md) ADR-007 under R1-D3: the 2026-08-17 run COUNTS.** That
+  ADR is the authority for this reading; do not re-derive it from the paragraphs below.
+  Until that ruling the question had been *raised* in exactly three places — this bullet,
+  ADR-007, and [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md)'s R1 block — and **answered
+  nowhere**, which is why it was recorded rather than inferred. The reasoning behind it,
+  kept for the reader and not as the authority: the binding text is the
   owner's D3 exactly as Section 0 of this file records it — *"Revisit only after the
   2026-08-17 run and at least 3 consecutive green scheduled runs"* — which **names** the
   2026-08-17 run as a milestone and nowhere excludes it from the count; and this file's own
@@ -349,11 +352,11 @@ anything.
   was never an objection to counting the run. **Measured 2026-08-24, not inferred:**
   `gh run list --workflow=deep-gate.yml --event=schedule` returns exactly **two** runs
   repo-wide, **both `success`** — `31993105305` (2026-08-17) and `32688747703`
-  (2026-08-24). **The clock stands at 2 of 3; the third is due 2026-08-31 03:17 UTC.** An
-  owner may still overrule this and discount the first run, which would put the clock at
-  **1 of 3** with the third due 2026-09-07 — that override is the only thing that moves it.
-  **Either way D3 stays deferred: nothing here puts `visual-linux` into the release gate,
-  and closing the clock is not the same as acting on it.** Full job-level record: § *The
+  (2026-08-24). **The clock stands at 2 of 3; the third is due 2026-08-31 03:17 UTC.**
+  Only a fresh owner ruling superseding the 2026-08-24 one could move that — discounting
+  the first run would put the clock at **1 of 3** with the third due 2026-09-07.
+  **D3 itself stays deferred regardless: nothing here puts `visual-linux` into the release
+  gate, and closing the clock is not the same as acting on it.** Full job-level record: § *The
   second `schedule`-event run — 2026-08-24* at the end of this file.
 - Frozen × historical-schema coverage (D5) — separate follow-up packet; it needs a
   `--legacy-db` argument on `scripts/smoke_packaged_app.py` and its own tests.

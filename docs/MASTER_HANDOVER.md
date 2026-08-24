@@ -46,10 +46,13 @@
 > 2026-08-24.
 >
 > **2 — R1-D3's clock is 2 of 3, and the "open owner question" is retired as live guidance.**
-> A repository-wide search on 2026-08-24 found the question *raised* in three places —
-> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), **ADR-007** in
-> [`DECISIONS.md`](DECISIONS.md), and this file's R1 block — and **answered nowhere**. **No
-> later owner ruling exists.** In the absence of one the binding text is R1-D3 as the release
+> **The question is SETTLED by an owner ruling dated 2026-08-24, recorded in
+> [`DECISIONS.md`](DECISIONS.md) ADR-007 under R1-D3: the 2026-08-17 run COUNTS.** ADR-007 is
+> the authority; this block is a reading of it, not a substitute for it. It was recorded
+> rather than inferred because a repository-wide search that day found the question *raised*
+> in three places — [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), ADR-007
+> itself, and this file's R1 block — and **answered nowhere**. The reasoning behind the
+> ruling, kept for the reader: the binding text is R1-D3 as the release
 > plan's Section 0 records it verbatim — *"Revisit only after the 2026-08-17 run and at least
 > 3 consecutive green scheduled runs"* — which **names** the 2026-08-17 run and nowhere
 > excludes it from the count; and that plan's own 2026-08-17 supersession already reads
@@ -58,11 +61,11 @@
 > 2026-08-16; it was never an objection to counting the run. **Measured, not inferred:**
 > `gh run list --workflow=deep-gate.yml --event=schedule` returns exactly **two** runs
 > repo-wide, **both `success`** — `31993105305` (2026-08-17) and `32688747703` (2026-08-24).
-> **The clock stands at 2 of 3; the third is due 2026-08-31 03:17 UTC.** An owner may still
-> overrule and discount the first run, which would put the clock at **1 of 3** with the third
-> due 2026-09-07 — that override is the only thing that moves it. **Either way D3 stays
-> deferred: nothing here puts `visual-linux` into the release gate, and closing a clock is not
-> the same as taking the decision it gates.** `release.yml`'s `push: tags` trigger has **still
+> **The clock stands at 2 of 3; the third is due 2026-08-31 03:17 UTC.** Only a fresh owner
+> ruling superseding the 2026-08-24 one could move that — discounting the first run would put
+> the clock at **1 of 3** with the third due 2026-09-07. **D3 itself stays deferred
+> regardless: nothing here puts `visual-linux` into the release gate, and closing a clock is
+> not the same as taking the decision it gates.** `release.yml`'s `push: tags` trigger has **still
 > never fired**, and no run green or otherwise has yet shown this gate is **able to go red**.
 >
 > **Item 1 of the block below is corrected, not deleted.** It said a green 2026-08-24 *"would
