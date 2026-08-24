@@ -1,5 +1,38 @@
 # Testing Strategy Review & Plan
 
+> **Status update 2026-08-24 — THE 2026-08-24 SCHEDULED DEEP GATE EXECUTED AND WAS
+> GREEN, and R1-D3's three-consecutive-green-scheduled-runs clock is recorded at 2 of 3.**
+> Run [`32688747703`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32688747703),
+> event **`schedule`**, head `31659a5`, `04:05:58Z → 04:24:03Z` — **7/7 jobs `success` read
+> individually**, with **Visual regression (Linux baselines)** (job `97318476983`) **executed
+> and not skipped** and *Assert compare mode wrote no baseline* passing at step level. That is
+> exactly the pass condition §8.7 states for a scheduled run, and it is met. Its 03:17:00Z cron
+> delivered **48 m 58 s** late — a second scheduler-drift observation after 2026-08-17's
+> 45 m 52 s, and **not** a missed run. The full job- and step-level record is
+> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § *The second
+> `schedule`-event run — 2026-08-24*.
+>
+> **The clock stands at 2 of 3, and the third qualifying run is due 2026-08-31 03:17 UTC.**
+> The *"whether the 2026-08-17 run counts is an open owner question"* wording that several
+> documents carried is **retired as live guidance**: no later owner ruling on it exists
+> anywhere in `docs/**`, and in the absence of one the binding text is R1-D3 as the release
+> plan's Section 0 records it, which names the 2026-08-17 run and nowhere excludes it. An
+> owner may still overrule and discount that run — that would make the clock 1 of 3 with the
+> third due 2026-09-07. **Either way D3 is unchanged**: `visual-linux` stays out of the release
+> gate, **Phase 4 stays open** on §7.3 entry criteria 2 and 3, and closing a clock is not the
+> same as taking the decision it gates. Every *"next run 2026-08-24"* sentence below is now
+> spent; each is the reading of its own moment and is left standing as that record.
+>
+> **Nothing in the `js-unit` track moved.** `deep-gate.yml` declares no `js-unit` job, so the
+> scheduled run added no ledger row. **T0 is still `2026-08-22T17:59:26Z`** and the strict mark
+> is still **`2026-09-05T17:59:26Z`**; the ledger now holds **five** rows, all green, and it
+> lives only in
+> [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0's
+> **post-#414** *LIVE LEDGER* block. **The `js-unit` half of D2 is STILL UNSIGNED, `js-unit` is
+> STILL NON-REQUIRED** (branch protection re-read live 2026-08-24: **12** required contexts,
+> `JS Unit (Vitest, non-required)` **absent**), **Q4 is still untouched**, and **D4 remains
+> unsigned**. `release.yml`'s `push: tags` trigger has **still never fired**.
+
 > **Status update 2026-08-23 — PHASE 3 IS NO LONGER A PROPOSAL. Step 12 is in
 > execution and its expansion sequence is COMPLETE on `main`.** Every "Phases 3 and
 > 5 remain proposals" sentence in this document is stale **for Phase 3** and is
@@ -67,10 +100,17 @@
 > green scheduled runs R1-D3 wants. See
 > [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § The first
 > `schedule`-event run.
+>
+> **[UPDATED 2026-08-24 — that run has executed and this sentence's tense is spent; its
+> substance was right.]** Run `32688747703`, event `schedule`, head `31659a5`, **7/7 green**
+> at job level with `visual-linux` **executed**. It **is** the second of the three, so the
+> clock stands at **2 of 3** and the third is due **2026-08-31**. See
+> [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § The second
+> `schedule`-event run — 2026-08-24, and the banner at the top of this file.
 
 > **Date**: 2026-08-01
 > **Provenance**: Claims below were checked against the live repository (configs read directly; `npx playwright test --list --project=chromium` and pytest collection executed; all 90 pytest files, both workflows, the backup subsystem, and the E2E suite audited). This document adjudicates two external AI reviews (Opus 5's testing-gap analysis and Codex's critique of it), records the verified current state, lists blindspots **both** models missed, and proposes a risk-ranked plan. A second-pass implementation review by **sol5.6** is incorporated into the phases and recorded in §7. A third-pass, post-execution review by **Fable 5** (2026-08-02) is recorded in §9; its inline amendments are marked *(Fable 5, 2026-08-02: …)*.
-> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. *(Updated 2026-08-23: **stale for Phase 3**. Phase 3 **step 12 is in execution** and its expansion sequence **A → B → C → F is complete on `main`** — #406 `987588a`, #410 `9cb6cdc`, #411 `2c95bae`; D dropped, E vacant. **Phase 2 is COMPLETE**, as the banner at the top of this file records. The `js-unit` half of D2 is **still unsigned** and `js-unit` is **still non-required**; the restarted 14-day window runs to `2026-09-05T17:59:26Z`, ledgered at job level in [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0. Phase 3 step 11 and Phase 5 are unchanged.)* **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D7 was signed 2026-08-21** as keep-the-stance-and-document, and the manual auto-backup recovery procedure now lives in [`README.md`](../README.md) ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)); **D4 remains unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *The first scheduled run executed **2026-08-17** (run 31993105305, 7/7 green, `visual-linux` executed) — the trigger is proven. It ran R2-b's file, so it is not evidence about the pre-#388 file, which the 2026-08-16 override forfeited permanently. Next scheduled run 2026-08-24.* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
+> **Status**: **Phase 0 + Phase 1 COMPLETE, shipped 2026-08-01** (owner sign-off on D1 and the `e2e-erase-flow` half of D2 — recorded in [§8.1](#81-owner-sign-off-recorded-2026-08-01), execution log in [§8.6](#86-execution-log)). **Phases 2, 3 and 5 remain PLANNING** — proposals awaiting owner selection. *(Updated 2026-08-23: **stale for Phase 3**. Phase 3 **step 12 is in execution** and its expansion sequence **A → B → C → F is complete on `main`** — #406 `987588a`, #410 `9cb6cdc`, #411 `2c95bae`; D dropped, E vacant. **Phase 2 is COMPLETE**, as the banner at the top of this file records. The `js-unit` half of D2 is **still unsigned** and `js-unit` is **still non-required**; the restarted 14-day window runs to `2026-09-05T17:59:26Z`, ledgered at job level in [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0. Phase 3 step 11 and Phase 5 are unchanged.)* **D3 and D5 were signed 2026-08-02** ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5)); **D6 was signed 2026-08-14** as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6), ADR-008); **D7 was signed 2026-08-21** as keep-the-stance-and-document, and the manual auto-backup recovery procedure now lives in [`README.md`](../README.md) ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)); **D4 remains unsigned**, as does the js-unit half of D2. Phase 4 is not complete — D3 was signed as the **stopgap half only**, and **that stopgap SHIPPED 2026-08-11 as PR #323 (`3b1160b`)**: the deep gate now runs weekly, compare-only, with `visual-linux` executed rather than skipped on the schedule. *The first scheduled run executed **2026-08-17** (run 31993105305, 7/7 green, `visual-linux` executed) — the trigger is proven. It ran R2-b's file, so it is not evidence about the pre-#388 file, which the 2026-08-16 override forfeited permanently. Next scheduled run 2026-08-24.* *(Updated 2026-08-24: that run executed — `32688747703`, `schedule`, `31659a5`, **7/7 green** at job level, `visual-linux` **executed and not skipped**. It is the **second** consecutive green scheduled run, so R1-D3's clock stands at **2 of 3** and the third is due **2026-08-31**. Phase 4 is still open and D3 is still deferred.)* The **release/tag pipeline half of Phase 4 shipped 2026-08-14 as Packet R1** ([§8.1b](#81b-third-sign-off-2026-08-14--the-releasetag-pipeline), design record in [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)), **but Phase 4 is still open**: §7.3 entry criteria 2 and 3 are not satisfied by R1, and R1's tag trigger has never executed. ([§8.7](#87-phase-4-stopgap-the-precondition-is-not-met-2026-08-02) is now history — its blocked-on-stale-baselines diagnosis was resolved 2026-08-04.) Read [§8 Parallel-execution constraints](#8-parallel-execution-constraints) before executing anything from this document, and [§9](#9-fable-5-review-2026-08-02) for what had already drifted by 2026-08-02 plus the preconditions Phases 2–5 still need.
 
 ---
 
