@@ -82,10 +82,13 @@ the pre-#417 one.
   verification.
 - Repair the unmatched `**` recorded in §11.8 — `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md`
   line 4371 (re-verified at `5111a7f`), inside a superseded ledger block #417 deliberately left
-  standing. Scope any parity check to a paragraph with fences and code spans stripped first; a
-  per-line check floods with false positives. **Re-derive the full set rather than assuming it is
-  one site** — a stricter run measured during this PR's correction pass leaves **two** odd
-  paragraphs, not one (§11.8).
+  standing. **Re-derive the count rather than carrying one forward, and record both the count and
+  the strip method that produced it.** Scope the parity check to a paragraph, stripping fenced
+  blocks — **including blockquoted ones** — then double-backtick spans, then single-backtick
+  spans allowing newlines; a per-line check floods with false positives, and a weaker strip
+  invents sites. Under that strict method §11.8 measures **one** genuine odd paragraph, at line
+  4369. **Line 3517 is a checker artifact, not a repair target** — its only unbalanced `**` is
+  the glob `` `e2e/**` `` sitting inside a single-backtick code span.
 
 **Acceptance criteria**
 
@@ -95,8 +98,8 @@ the pre-#417 one.
 - The CSS ownership map either matches current load topology or records measured corrections.
 - Searching active planning documents does not present completed Track A/Track B work as open.
 - Every unmatched `**` T0 re-derives renders closed — **at minimum** the line-4371 span §11.8
-  names — and the superseded ledger blocks they sit in are otherwise unchanged. A count is recorded,
-  not assumed.
+  names — and the superseded ledger blocks they sit in are otherwise unchanged. A count **and the
+  strip method that produced it** are recorded, not assumed.
 - Documentation-only checks required by [`ai_workflow/QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md)
   pass.
 
@@ -410,11 +413,13 @@ real per-diagnostic rate; do not treat 8–16 days as validated by anything othe
 **Estimate:** minutes per PR; escalates only when a bump lands on a gated path
 
 Dependabot PRs had no home in this plan, and every status document asserted zero open PRs while
-two were open. Re-measured **twice on 2026-08-24** — once after #417 merged, and again at
-`21:36:40Z` during this document's correction pass: **#415** (`pyinstaller` 6.22.0 → 6.22.2) and
-**#416** (`sass` 1.102.0 → 1.103.1) are **both still open and unmerged**, both `MERGEABLE`/`CLEAN`.
-The `#415`/`#416` wording below is retained because the *later* measurement supports it;
-re-measure again before reusing these numbers.
+two were open. Re-measured **three times on 2026-08-24** — in the `17:03:00Z` evidence pass,
+again at `21:36:40Z` after #417 merged, and again at `22:14:51Z` during this document's
+correction pass:
+**#415** (`pyinstaller` 6.22.0 → 6.22.2) and **#416** (`sass` 1.102.0 → 1.103.1) are **both
+still open and unmerged**, both `MERGEABLE`/`CLEAN`, at the **latest** of those. The
+`#415`/`#416` wording below is retained because the *last* measurement supports it; re-measure
+again before reusing these numbers.
 
 **Rules**
 
@@ -566,7 +571,7 @@ This plan is complete when:
 
 ---
 
-## 11. Evidence log — 2026-08-24 (Claude session; revised after Codex review, reconciled after #417 merged, corrected twice — at `21:36Z` and `22:14Z`)
+## 11. Evidence log — 2026-08-24 (Claude session; revised after Codex review, reconciled after #417 merged, corrected twice — `21:36Z`, `22:14Z` — then once editorially, no new reading)
 
 **This section is a dated evidence log, not a status layer.** The amendments it once proposed
 have been **applied** to §4, §8 and §10, which now describe R0 as merged and carry the ADR-007
@@ -590,7 +595,7 @@ that rest on it.
 | **1** | **`17:03:00Z`** — API `Date` header | **R0's evidence pass.** The only reading taken before every event below | §11.1's deep-gate table — run `32688747703`, 7/7 `success`, `visual-linux` job `97318476983` executed — and its **five-row** ledger reading · §11.3's run counts (`schedule` = **2**, `workflow_dispatch` = **108**) · §11.7's V1 clean-compare datapoint and R3's `release.yml` event totals · §11.5's pyright figures, which are a **working-tree** read from the same pass and are **not** stamped by that API header |
 | **2** | **`19:02:37Z`** — commit `da8b765` | **The ADR-007 R1-D3 ruling is written** — **two hours after** event 1, on a branch | §11.3's *"Resolved"*, the quoted ruling text, and every citation of ADR-007 as **signed** · the homing of the follow-on into §4 R2 decision 4 and §10 criterion 5 |
 | **3** | **`20:50:48Z`** — #417 squash-merged as `5111a7f` | **The ruling and the post-#414 ledger reach `main`**, and the merge starts run [`32776201165`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32776201165) (`20:50:51Z → 21:00:32Z`; `js-unit` job `97587721956` green at `20:51:38Z`) | §11.1's merge facts and three-commit table · §11.2's *"the settled text is now on `main`"* · §11.7's and §11.8's *"re-verified at `5111a7f`"* readings, which **could not have been taken against a commit that did not yet exist** · the run that became **ledger row 6** |
-| **4** | **`21:36:40Z`** — API `Date` header | **This PR's ledger and PR-state re-measurement** | §11.10's six-row ledger, re-derived from the API · §11.4's **second** measurement of #415 and #416 · the live state of #418 |
+| **4** | **`21:36:40Z`** — API `Date` header | **This PR's ledger and PR-state re-measurement** | §11.10's six-row ledger, re-derived from the API · §11.10's **PR-state table** for **#415**, **#416** and **#418**, which is also §11.4's **second** measurement |
 | **5** | **`22:14:51Z`** — API `Date` header | **This second correction pass**, which repaired event 1's own over-broad attribution | §11.11's third defect · the re-check that #415, #416 and #418 are all still `OPEN`, `MERGEABLE`/`CLEAN` · `da8b765`'s commit timestamp, read from git rather than assumed |
 
 **The commits this PR is made of sit between those events, and are not themselves measurements:**
@@ -727,12 +732,13 @@ authorization.
 ### 11.4 Two open Dependabot PRs, and "zero open PRs" was stale everywhere
 
 **Measured three times on 2026-08-24, and the wording rests on the latest:** first in the
-`17:03:00Z` evidence pass (event 1), again after #417 merged (event 3), and again at `22:14:51Z`
-(event 5). **#415** (`pyinstaller` 6.22.0 → 6.22.2) and **#416** (`sass` 1.102.0 → 1.103.1) — both
-opened `2026-08-24T00:25Z` — are **still `OPEN`, `MERGEABLE`/`CLEAN` and unmerged** at the latest
-of those. Merging #417 did not close or affect either. **The PR-specific wording here is retained
-on the last measurement, not the first**, which is the whole reason the count of measurements is
-recorded rather than the wording simply being left alone.
+`17:03:00Z` evidence pass (event 1), again at `21:36:40Z` after #417 merged — the reading
+§11.10 tabulates (event 4) — and again at `22:14:51Z` (event 5). **#415** (`pyinstaller` 6.22.0
+→ 6.22.2) and **#416** (`sass` 1.102.0 → 1.103.1) — both opened `2026-08-24T00:25Z` — are
+**still `OPEN`, `MERGEABLE`/`CLEAN` and unmerged** at the latest of those. Merging #417 did not
+close or affect either. **The PR-specific wording here is retained on the last measurement, not
+the first**, which is the whole reason the count of measurements is recorded rather than the
+wording simply being left alone.
 
 Every status document had asserted **zero** open PRs; #417 corrected the live wording on `main`.
 
@@ -839,27 +845,37 @@ not touch it** — that block is "left standing as that record", and repairing i
 separately-scoped edit; neither the post-#414 block nor the post-#417 block this PR adds
 replicates the pattern.
 
-**Re-measured on this PR's head during event 4's pass — not at `17:03:00Z` — and the count
-§11.8 originally implied is too low.**
+**Re-measured on this PR's head during event 4's pass — not at `17:03:00Z` — and then
+re-classified here under a stricter strip.** That re-classification is a **correction to the
+computation, not a new reading of the repository**: the file's bytes are unchanged, and the same
+strict check run against `5111a7f` returns the same answer.
 A paragraph-scoped check over the whole file, run identically against `5111a7f` and against this
 PR's head, reports the **same four** flagged paragraphs both times — **this PR introduces none**.
-Of those four, two survive a stricter strip and two do not:
+Under the strict strip only **one** of the four survives:
 
 | Paragraph at line | Verdict | Why |
 |---:|---|---|
 | **1830** | **Checker artifact** | Balances once *multi-line* single-backtick spans are stripped; the flag came from a code span wrapping a line |
 | **2931** | **Checker artifact** | Same cause |
-| **3517** | **Real candidate — not previously recorded** | Odd under every strip tried, inside a 60-line numbered-list block. **T0 owns re-deriving it**; this PR measures it and does not repair it |
+| **3517** | **Checker artifact** | The 60-line numbered-list block's only unbalanced `**` sits inside a single-backtick code span — the glob `` `e2e/**` `` at line 3546. Stripping single-backtick spans takes the paragraph from **125** occurrences to **124**. **Not a repair target** |
 | **4369** | **Real — the item §11.8 names** | Contains line 4371, `` `2026-08-23T18:03:43Z`).** `` |
+
+**The strict paragraph-scoped check therefore leaves exactly one genuine odd paragraph in the
+file: 4369, carrying the unmatched span at line 4371** — the site §11.8 has named from the start.
+The earlier "two odd paragraphs, not one" reading is superseded; under a better strip the count
+went **down**, not up.
 
 Line numbers are stable between `5111a7f` and this PR's head because every line this PR adds to
 that file falls **below** line 4430.
 
 *Detection note, corrected by the above: a per-line `**` parity check floods with false positives
 because bold spans legitimately wrap lines — but a paragraph-scoped check still false-positives if
-it strips only line-scoped code spans. Strip fenced blocks, then double-backtick spans, then
-single-backtick spans **allowing newlines**, and only then count. Two of the four flags above came
-from getting exactly that last step wrong.*
+it strips only line-scoped code spans — and it false-positives again if it misses **blockquoted**
+fenced blocks, whose stray backticks mis-pair every code span after them. Strip fenced blocks
+**including blockquoted ones**, then double-backtick spans, then single-backtick spans **allowing
+newlines**, and only then count. Three of the four flags above came from getting those steps
+wrong. 3517 is the instructive one: a glob written `` `e2e/**` `` is indistinguishable from an
+unmatched bold opener to any checker that has not already stripped the code span around it.*
 
 ### 11.9 Amendments to §4, §8 and §10 — applied in `acfd558` (`2026-08-24T21:02:45Z`)
 
@@ -920,6 +936,19 @@ back byte-identical to the API.
 | **Strict 14-day mark** | **`2026-09-05T17:59:26Z`** — unmoved |
 | Elapsed | **≈ 2 d 3 h 37 m** of **14 d** |
 
+**PR state read in the same `21:36:40Z` pass**, from `gh pr view` rather than carried forward.
+This is the table provenance event 4 names, and it is §11.4's **second** measurement of the two
+Dependabot PRs:
+
+| PR | Subject | State at `21:36:40Z` |
+|---:|---|---|
+| **#415** | `pyinstaller` 6.22.0 → 6.22.2 | `OPEN`, `MERGEABLE`/`CLEAN`, unmerged |
+| **#416** | `sass` 1.102.0 → 1.103.1 | `OPEN`, `MERGEABLE`/`CLEAN`, unmerged |
+| **#418** | this PR | `OPEN`, `MERGEABLE`/`CLEAN` |
+
+All three were re-checked unchanged at `22:14:51Z` (event 5), and §11.4 rests its wording on that
+later reading rather than on this one.
+
 **Row 6 did not restart the window.** #417 touched six files, all under `docs/**`, and **zero**
 under `static/js/**` — no workflow, no dependency, no generated inventory, no `vitest.config.js`.
 The suite the window qualifies is still **13 files / 231 cases**, byte-identical across
@@ -946,9 +975,11 @@ The qualification window is a **different obligation** — a continuing observat
 decision 3, running to `2026-09-05T17:59:26Z`, which will take rows 7, 8 and beyond regardless of
 what R0 did. Treating every new row as an R0 residual would make a closed packet permanently open.
 
-### 11.11 Two defects in this document's own text, corrected here
+### 11.11 Three defects in this document's own text, corrected here
 
-Both were in the first version of this PR, and both are repaired in this second pass.
+The first two were in this PR's first version (`acfd558`) and were repaired by the first
+correction (`c66b808`); that correction introduced the third, repaired by the second
+(`1c8c5a6`). None of the three is still live.
 
 - **§10 criterion 3 contradicted §4 and §8 on U2's gate.** §4 Packet U2 and §8's Gate column both
   say U2 enters its **own Gate 1** and needs no separate requirements round; criterion 3 said
