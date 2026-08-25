@@ -1,6 +1,6 @@
 # CSS Ownership Map
 
-Last updated: 2026-08-25 (re-measured against `templates/base.html` at `5ca4191`; the 2026-05-23 revision is superseded on load order **and** on which templates inject a route bundle — its ownership assignments were re-checked and are unchanged)
+Last updated: 2026-08-25 (re-measured against `templates/base.html` and the route templates at `5ca4191`. The 2026-05-23 revision is **superseded on load order** — that genuinely drifted; see item 6. Item 2's route-bundle statement was **imprecise when written, not overtaken**: the template set is unchanged since `d5b80bf`, where `error.html` already declared an empty block and `fatigue.html` already declared none. Ownership assignments were re-checked and are unchanged.)
 
 This document reflects the active CSS loading model after the Calm Glass redesign cleanup, the Backup Center page, the Profile page, and the Body Composition page.
 
@@ -17,7 +17,7 @@ This document reflects the active CSS loading model after the Calm Glass redesig
 
 These styles are linked directly from `templates/base.html` and should be treated as shared app-wide CSS:
 
-Listed in measured link order. Line numbers skip `:11` and `:14`, which are the two `static/vendor/` links (Inter, Font Awesome); everything below is a `static/css/` link. The italicised row is the page bundle's injection point, not a global file — and one route injects a **third** vendor sheet there: `templates/progression_plan.html:7` loads `static/vendor/flatpickr/flatpickr.min.css` ahead of its own bundle at `:8`, so `:24` is not exclusively a `static/css/` slot.
+Listed in measured link order. Line numbers skip `:11` and `:14`, which are the two `static/vendor/` links (Inter, Font Awesome); everything below is a `static/css/` link. The italicised row is the page bundle's injection point, not a global file.
 
 | Load | File | Ownership / purpose |
 |---|------|----------------------|
@@ -43,7 +43,7 @@ The per-page loading strategy is implemented in the templates below.
 | `workout_log.html` | `pages-workout-log.css` |
 | `weekly_summary.html` | `pages-weekly-summary.css` |
 | `session_summary.html` | `pages-session-summary.css` |
-| `progression_plan.html` | `pages-progression.css` |
+| `progression_plan.html` | `pages-progression.css` — preceded at `:7` by `static/vendor/flatpickr/flatpickr.min.css`, the only vendor sheet any route injects, so the `:24` slot is not exclusively a `static/css/` one |
 | `user_profile.html` | `pages-user-profile.css` |
 | `body_composition.html` | `pages-body-composition.css` |
 | `volume_splitter.html` | `pages-volume-splitter.css` |

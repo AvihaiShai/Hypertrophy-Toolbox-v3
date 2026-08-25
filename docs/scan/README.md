@@ -49,9 +49,10 @@ name the source document.
 
 If one of these files is ever archived, use the criteria and procedure in
 [`../ai_workflow/DOC_RETENTION.md`](../ai_workflow/DOC_RETENTION.md). That document records
-**no disposition for this directory** — its assessed orphan list and its pytest-pin
-note both concern the `CSS_PHASE4_WP4_4_*` family — so a scan file needs its own assessment
-rather than an inherited one. Do not delete these files to reduce a file count. Nothing here
+**no disposition for this directory** — its assessed orphan list covers the
+`CSS_PHASE4_WP4_3I_*` family plus three unrelated documents, and its pytest-pin note covers
+the `CSS_PHASE4_WP4_4_*` family, two names one character apart that it explicitly warns
+against conflating. A scan file needs its own assessment rather than an inherited one. Do not delete these files to reduce a file count. Nothing here
 is pytest-pinned: this set has no JSON siblings, and the only test citation is
 `tests/test_css_wp4_4_base_contracts.py:24,122,137`, which names `PHASE_20.md` inside
 docstrings only — so moving one reds nothing.
