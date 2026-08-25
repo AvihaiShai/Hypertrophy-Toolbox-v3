@@ -4368,7 +4368,7 @@ discipline argued on the record and never applied silently.
 
 **Read at `2026-08-23T18:50:52Z`** (UTC now, taken from the GitHub API response `Date` header, not
 from the host clock), after PR [#413](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/413)
-merged (squash `b0aa393`, `2026-08-23T18:03:43Z`).** Method, deliberately identical to the block
+merged (squash `b0aa393`, `2026-08-23T18:03:43Z`). Method, deliberately identical to the block
 above: `gh run list --branch main` plus
 `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to
 `created_at >= 2026-08-22T17:00:00Z` — deliberately **earlier** than T0, so the filter is a
