@@ -4433,6 +4433,18 @@ silently.
 > which recorded **four** rows and is left standing as that record — it is **not** restated
 > here. Everything below is a fresh job-level read of the API, not an extension of the page.
 >
+> ⚠️ **ANNOTATION 2026-08-24 — this block is SUPERSEDED by the *post-#417* LIVE LEDGER
+> further down this subsection**, which is a fresh **six**-row job-level read taken after PR
+> #417 — the PR that carried *this* block onto `main` — merged as squash commit `5111a7f`.
+> This block is left exactly as the `2026-08-24T17:03:00Z` **five**-row reading and is **not**
+> restated there. Its five rows are unchanged and still correct. **Three** of its clauses are
+> spent as live statements while remaining accurate as the dated reading they were: its
+> *count* (**5**), its completeness-check figure (*"**9** — the 5 above plus the 4 classified
+> below"*), and its closing *"extend **this** block"* instruction, which now points at the
+> post-#417 block instead. **A ledger block can never record the `main` run its own merge
+> produces** — that run does not exist until after the merge — which is exactly why this
+> block ends by owing the next row to whoever lands it. That debt is discharged below.
+>
 > **A scope correction travels with this block, and it is why the tally below has a new row.**
 > Both earlier blocks tallied *"`main` runs of **any** workflow at or after T0"* and, in the
 > same breath, defined a **Missing** result as *"a `main` run with no `js-unit` job"*. Through
@@ -4532,6 +4544,116 @@ red, missing, skipped or cancelled result rather than summarising it, and re-der
 ledger from the API rather than extending it from the page. **Classify, do not tally, any `main` run
 that is not a `ci.yml` run.** **A red resets the window to zero** (§6.5), with §6.2's attribution
 discipline argued on the record and never applied silently.
+
+---
+
+#### LIVE LEDGER — extended 2026-08-24 after PR #417 merged (post-#417 read)
+
+> **This block is now the live one.** It supersedes the `2026-08-24T17:03:00Z` block above,
+> which recorded **five** rows and is left standing as that record — it is **not** restated
+> here. Everything below is a fresh job-level read of the API, not an extension of the page.
+>
+> **The merge that minted this block is the merge of the block above.** PR #417 carried the
+> post-#414 reading onto `main` as squash commit `5111a7f`, and that push started a `main`
+> `ci.yml` run of its own. **No ledger block can record the run its own merge produces**, so
+> every block necessarily ends one row short of the state that exists a minute after it lands.
+> That is a property of the mechanism, not an omission, and the post-#414 block named it
+> correctly: *"whoever lands it owes that row."* **Row 6 is that row.**
+
+**Read at `2026-08-24T21:36:40Z`** (UTC now, taken from the GitHub API response `Date` header, not
+from the host clock), after PR [#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)
+merged (squash `5111a7f`, `2026-08-24T20:50:48Z`). Method, deliberately identical to the three
+blocks above: `gh run list --branch main` plus
+`gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to
+`created_at >= 2026-08-22T17:00:00Z` — deliberately **earlier** than T0, so the filter is a
+superset and cannot hide a run — across **every** workflow, not just `CI/CD Pipeline`. Each
+returned run's `/jobs` was then enumerated in full and matched on the exact context string
+`JS Unit (Vitest, non-required)`. **No run's overall conclusion was used as a proxy for its
+`js-unit` result** — §6.1's discipline. The superset returned **ten** `main` runs of any workflow
+in that span: **six** `CI/CD Pipeline` runs, which are the qualification attempts and are the six
+rows below, and **four** runs of other workflows, classified in the table after the tally. The
+five rows the post-#414 block carried were **re-derived from the API, not copied from the page**,
+and all five came back byte-identical.
+
+| # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
+|---|---|---|---|---|---|---|
+| **1 — T0** | [`32589375849`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32589375849) | `push` / `9cb6cdc` (PR #410, Packet C) | `success`, **18/18** | [`97070630453`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32589375849/job/97070630453) | **`success`** | **`2026-08-22T17:59:26Z`** |
+| **2** | [`32600832091`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32600832091) | `push` / `2c95bae` (PR #411, Packet F) | `success`, **18/18** | [`97098730892`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32600832091/job/97098730892) | **`success`** | **`2026-08-22T21:52:42Z`** |
+| **3** | [`32639359162`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162) | `push` / `ca28ec0` (PR #412, post-#411 status reconciliation) | `success`, **18/18** | [`97193944527`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162/job/97193944527) | **`success`** | **`2026-08-23T12:26:02Z`** |
+| **4** | [`32656837264`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32656837264) | `push` / `b0aa393` (PR #413, the Q6 documentation correction) | `success`, **18/18** | [`97236769067`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32656837264/job/97236769067) | **`success`** | **`2026-08-23T18:04:10Z`** |
+| **5** | [`32661056527`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32661056527) | `push` / `31659a5` (PR #414, post-#413 status reconciliation) | `success`, **18/18** | [`97247194117`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32661056527/job/97247194117) | **`success`** | **`2026-08-23T19:23:22Z`** |
+| **6** | [`32776201165`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32776201165) | `push` / `5111a7f` (PR #417, post-#414 evidence reconciliation) | `success`, **18/18** | [**`97587721956`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32776201165/job/97587721956) | **`success`** | **`2026-08-24T20:51:38Z`** |
+
+| Ledger tally, at `2026-08-24T21:36:40Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **6** — all six `push`, all six 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **6** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **10** — the 6 above plus the 4 classified below |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
+| Elapsed since T0 | **≈ 2 d 3 h 37 m** of the required **14 d** |
+
+**The four `main` runs in the window that are NOT qualification attempts.** Unchanged from the
+post-#414 block, and **re-enumerated rather than carried forward** — each was resolved the same
+way as the rows above, by enumerating its `/jobs`. No fifth non-attempt run has landed.
+
+| `main` run | Workflow / path | Event | Jobs | Why it cannot mint a ledger row |
+|---|---|---|---|---|
+| [`32676594582`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32676594582) | `pip in /. - Update #1537135558` — `dynamic/dependabot/dependabot-updates` | `dynamic` | **1** — `Dependabot`, `success` | Not `ci.yml`. Dependabot's update runner declares one job and **no** `js-unit`. It opened PR **#415**. |
+| [`32676594619`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32676594619) | `npm_and_yarn in /. - Update #1537135574` — same path | `dynamic` | **1** — `Dependabot`, `success` | As above. It opened PR **#416**. |
+| [`32676594928`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32676594928) | `github_actions in /. - Update #1537135595` — same path | `dynamic` | **1** — `Dependabot`, `success` | As above. It opened no PR. |
+| [`32688747703`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32688747703) | `Deep Gate (manual + weekly)` — `.github/workflows/deep-gate.yml` | **`schedule`** | **7** — all `success` | Not `ci.yml`. `deep-gate.yml` contains **zero** occurrences of `js-unit` / `JS Unit`. Its own evidential value is R1-D3's, not this window's — see [`release_pipeline/PLANNING.md`](../release_pipeline/PLANNING.md) § *The second `schedule`-event run*. |
+
+**Nothing is inferred, and nothing is omitted.** All six ledger rows were resolved by enumerating
+the run's jobs and reading each job's own `conclusion` and `completed_at`; each run's `/jobs`
+reported `total_count = 18` with every job `success`. There is **no** `main` `ci.yml` run in this
+window whose `js-unit` result is red, missing, skipped or cancelled, and **no** qualification
+attempt this ledger omits. *(Row 1's run was **created** at `2026-08-22T17:59:06Z`, twenty seconds
+**before** T0 — the ledger indexes `js-unit` **results** at or after T0, not runs, and that job's
+`completed_at` **is** T0. A run created before T0 can still be row 1.)*
+
+**Row 6 did not restart the window, and #417's `mergedAt` is not T0.** PR #417 touched **exactly
+six** files — [`ACTIVE_DEVELOPMENT.md`](../ACTIVE_DEVELOPMENT.md),
+[`DECISIONS.md`](../DECISIONS.md), [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md),
+[`TESTING_STRATEGY_PLANNING.md`](../TESTING_STRATEGY_PLANNING.md),
+[`release_pipeline/PLANNING.md`](../release_pipeline/PLANNING.md) and **this document** — and
+**zero** files under `static/js/**`, no workflow, no dependency, no generated inventory and no
+`vitest.config.js`. The suite the window is qualifying is therefore still **13 files / 231 cases**,
+byte-identical across `31659a5 → 5111a7f`, and Q2's restart clause did not engage. **T0 remains
+`2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.** The same already held for
+rows 3, 4 and 5.
+
+**Three PRs are open at this read time, and none of them is in this ledger.** Re-measured live,
+not carried forward:
+
+| PR | Head | State | Why it is not a ledger row |
+|---|---|---|---|
+| [#415](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/415) | `dependabot/pip/pyinstaller-6.22.2` (`pyinstaller` 6.22.0 → 6.22.2) | **`OPEN`**, `MERGEABLE`/`CLEAN`, unmerged | Its `ci.yml` runs execute on a **PR branch**, not on `main` — outside §6.5's *"the clock starts on `main`"* rule, the same reason Packet F's own PR run `32599231895` was excluded |
+| [#416](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/416) | `dependabot/npm_and_yarn/sass-1.103.1` (`sass` 1.102.0 → 1.103.1) | **`OPEN`**, `MERGEABLE`/`CLEAN`, unmerged | As above |
+| [#418](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/418) | `docs/open-work-plan-post417` — the PR carrying **this block** | **`OPEN`**, unmerged | As above |
+
+**Merging any of them mints the next sequential ledger row.** Do not write a fixed row number into
+a forward-looking sentence: whichever lands first takes row 7, and the row a given PR receives
+depends on what merged before it.
+
+**#418 is the block's own carrier, and its merge is already owed.** This block is added by PR #418,
+so merging #418 will start a `main` `ci.yml` run that **cannot be recorded here before the merge** —
+the same mechanism that made row 6 owed rather than recorded by the post-#414 block. **Whoever
+merges #418 owes its post-merge `js-unit` result in the next ledger refresh.** #418 changes
+[`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md), [`README.md`](../README.md) and
+this document — **zero** files under `static/js/**` — so it cannot restart the window either, but
+that is a prediction about the restart clause, **not** a prediction about the run's result, which
+must be measured after it exists.
+
+**Still to do, and owed by whoever picks this up:** extend **this** block — not any of the three
+superseded ones above — at **every** later session until `2026-09-05T17:59:26Z`, at **job** level,
+appending any red, missing, skipped or cancelled result rather than summarising it, and re-deriving
+the whole ledger from the API rather than extending it from the page. **Classify, do not tally, any
+`main` run that is not a `ci.yml` run.** **A red resets the window to zero** (§6.5), with §6.2's
+attribution discipline argued on the record and never applied silently.
 
 ---
 
