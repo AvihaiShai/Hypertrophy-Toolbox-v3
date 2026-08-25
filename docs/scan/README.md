@@ -22,7 +22,9 @@ at the time.
    the hard way. Its §2 re-measured `PHASE_20.md`'s nominations for one file and found **two**
    of them false, both now pinned by contract — including a `@keyframes` rule the scan called
    dead that is in fact animated live from a different file, which would have broken had the
-   nomination been acted on.
+   nomination been acted on. (§2's own prose says *three*; its table carries three rows but
+   the third states no scan claim at all — it is an M9 custom-property retention. Two is the
+   count of falsified nominations.)
 2. **Re-measure against current code before acting on anything here.** The scan's own citations
    have moved. Measured at `5ca4191`, the file lengths `PHASE_14.md` records in its opening
    paragraph are already wrong: `backup-center.js` is **1069** lines, not 1005;
@@ -45,8 +47,11 @@ name the source document.
 
 ## Retention
 
-Archive candidates under [`../ai_workflow/DOC_RETENTION.md`](../ai_workflow/DOC_RETENTION.md),
-which also records what is actually pytest-pinned. Do not delete these files to reduce a
-file count. No test *reads* the Markdown — `tests/test_css_wp4_4_base_contracts.py:24,122,137`
-cites `PHASE_20.md` in docstrings only, and the real pins are the JSON siblings — so moving
-one reds nothing.
+If one of these files is ever archived, use the criteria and procedure in
+[`../ai_workflow/DOC_RETENTION.md`](../ai_workflow/DOC_RETENTION.md). That document records
+**no disposition for this directory** — its assessed orphan list and its pytest-pin
+note both concern the `CSS_PHASE4_WP4_4_*` family — so a scan file needs its own assessment
+rather than an inherited one. Do not delete these files to reduce a file count. Nothing here
+is pytest-pinned: this set has no JSON siblings, and the only test citation is
+`tests/test_css_wp4_4_base_contracts.py:24,122,137`, which names `PHASE_20.md` inside
+docstrings only — so moving one reds nothing.

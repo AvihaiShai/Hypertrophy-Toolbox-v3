@@ -1,6 +1,6 @@
 # CSS Ownership Map
 
-Last updated: 2026-08-25 (load order re-measured against `templates/base.html` at `5ca4191`; the 2026-05-23 revision is superseded only on load order — its ownership assignments were re-checked and are unchanged)
+Last updated: 2026-08-25 (re-measured against `templates/base.html` at `5ca4191`; the 2026-05-23 revision is superseded on load order **and** on which templates inject a route bundle — its ownership assignments were re-checked and are unchanged)
 
 This document reflects the active CSS loading model after the Calm Glass redesign cleanup, the Backup Center page, the Profile page, and the Body Composition page.
 
@@ -17,7 +17,7 @@ This document reflects the active CSS loading model after the Calm Glass redesig
 
 These styles are linked directly from `templates/base.html` and should be treated as shared app-wide CSS:
 
-Listed in measured link order. Line numbers skip `:11` and `:14`, which are the two `static/vendor/` links (Inter, Font Awesome); everything below is a `static/css/` link. The italicised row is the page bundle's injection point, not a global file.
+Listed in measured link order. Line numbers skip `:11` and `:14`, which are the two `static/vendor/` links (Inter, Font Awesome); everything below is a `static/css/` link. The italicised row is the page bundle's injection point, not a global file — and one route injects a **third** vendor sheet there: `templates/progression_plan.html:7` loads `static/vendor/flatpickr/flatpickr.min.css` ahead of its own bundle at `:8`, so `:24` is not exclusively a `static/css/` slot.
 
 | Load | File | Ownership / purpose |
 |---|------|----------------------|
