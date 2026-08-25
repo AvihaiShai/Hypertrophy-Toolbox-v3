@@ -4787,7 +4787,9 @@ was. It was discharged on 2026-08-25: #421 merged as `b4d6b13`, and its post-mer
 result is **row 10**.
 
 **The same mechanism now applies to the PR carrying THIS extension.** Row 10 is recorded by the
-`docs/u1-gate1-plan` PR, which also carries Packet U1's Gate 1 council-reviewed plan.
+`docs/u1-gate1-plan` PR, which also carries Packet U1's Gate 1 council-reviewed plan **and,
+added to that PR on 2026-08-26, the owner's Gate 1 sign-off of it**. That signature moves no
+JS test case.
 **Whoever merges it owes the next sequential ledger row**, by the *Merging either of them mints
 the next sequential ledger row* rule stated above. That PR changes this document and
 [`volume_failure_feedback/PLANNING.md`](../volume_failure_feedback/PLANNING.md) and nothing else

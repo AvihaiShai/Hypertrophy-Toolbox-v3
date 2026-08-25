@@ -1,6 +1,6 @@
 # Plan Review — Packet U1: Volume calculation failure feedback
 
-*Both gates are represented here. Section 0 is Gate 0 work and is **signed**; Plan v1, the three council reviews verbatim, the response matrix and Plan v2 are Gate 1 work and are now **present** — see [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4, whose closing blockquote records that U2's lighter requirement is not a precedent U1 may borrow to skip Gate 0, and §8, which records that U1 owes both gates and that no roadmap-level approval covers U1–U3 jointly. **Gate 1 is NOT signed.** Plan v2 awaits owner approval at the sign-off block at the end of this document, and no implementation is authorized until it is given.*
+*Both gates are represented here. Section 0 is Gate 0 work and is **signed**; Plan v1, the three council reviews verbatim, the response matrix and Plan v2 are Gate 1 work and are now **present** — see [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4, whose closing blockquote records that U2's lighter requirement is not a precedent U1 may borrow to skip Gate 0, and §8, which records which gates U1 owed and that no roadmap-level approval covers U1–U3 jointly. **Gate 1 is SIGNED — 2026-08-26.** The owner approved Plan v2 at the sign-off block at the end of this document, deciding **OD-1**, **OD-3** and **OD-4** there and ratifying **OD-2**'s recommended reading. **Implementation becomes authorized only after this signed planning PR merges successfully** — signing alone authorizes nothing.*
 
 Gate 0 was signed by the owner on 2026-08-25; the answers are recorded under **Owner decisions**
 below.
@@ -109,6 +109,7 @@ Measured, not assumed. Five of the six pair the suppressed shared toast with a l
 4. Given a failure on the mode-switch or load-plan path, when the sliders have already been rebuilt for the new mode, then the results and suggestions computed for the previous mode are cleared by criterion 3 rather than left sitting under the new mode's sliders.
 5. Given a failure, when the user activates either the Calculate button — which stays usable throughout — or the Retry action carried by the failure feedback, then a fresh `POST /api/calculate_volume` is issued from the input values as they stand at that moment and, on success, the page returns to its normal successful state with all failure feedback removed. **No automatic `POST` retry is introduced.**
 6. Given a sustained server fault, when the user drags a slider and the debounced calculation fails repeatedly, then the page holds **one** logical failure state: the inline region is updated or replaced rather than duplicated and persists until the next successful calculation, and each further toast replaces or updates the standing one rather than stacking beneath it.
+   ⚠️ **ANNOTATED 2026-08-26 (Gate 1, OD-3) — no signed word above is rewritten.** The owner granted a **scoped amendment** at Gate 1, in these terms: *"The inline failure region persists until the next successful calculation **or until the user resets**."* The amendment is scoped to the **persistence clause**; the rest of criterion 6 stands unchanged, including its toast half — whose non-stacking is structurally guaranteed by [`toast.js`](../../static/js/modules/toast.js) rather than measured (§v2.5), and whose repeat-announcement suppression is carried by arm `a6` and mutation `M8`. See **OD-3** in §v2.13, and §v2.2 (G) for the single line that implements it.
 7. Given the first calculation after a page load fails, when no calculation has ever succeeded on that load, then the failure feedback is shown anyway, and the empty results and suggestions sections are still **not** revealed.
 8. Given a successful `POST /api/calculate_volume`, when the response is rendered, then the results table, suggestions, per-muscle status classes, value-pill modifiers, server-supplied ranges and slider track paint are what they are today, and the success path gains **no** permanently present element, class, attribute, message or other observable state — every failure-only affordance is created or activated only on failure and is fully removed or reset once a calculation succeeds.
 9. Given any slider interaction, when the user drags, releases, switches mode, resets, or loads a saved plan, then the debounce interval, the request payload and the call sequence are unchanged from today.
@@ -163,6 +164,7 @@ Each blocking question is reproduced as it was put to the owner, with the answer
   **Decision: both.** The existing Calculate button stays usable, and the failure feedback also carries a Retry action. **No automatic `POST` retries are added**, so `retries` stays `0` for this call ([`fetch-wrapper.js:140`](../../static/js/modules/fetch-wrapper.js#L140)) and request behavior on the success path is untouched. **Consequence:** criterion 5 names both paths.
 - **Q4 — repeated failures: deduplicate or repeat?** During a slider drag against a down server, the debounced path can fail every 300 ms. Options: (a) one notification that persists until the next success, replacing rather than stacking; (b) a fresh notification per failure; (c) suppress subsequent notifications for a cooldown window.
   **Decision: (a) — replace rather than stack.** One logical failure state is maintained across repeated failures: the inline message persists until the next successful calculation, and repeated toast notifications replace or update rather than stack. **Consequence:** criterion 6 is now a deduplication requirement.
+  ⚠️ **ANNOTATED 2026-08-26 (Gate 1, OD-3) — no signed word above is rewritten.** Criterion 6's persistence clause was amended in scope, and by the governing rule above the same amendment reaches this wording: it now reads *"…persists until the next successful calculation **or until the user resets**."* The dedup requirement itself is untouched. See **OD-3** in §v2.13.
 - **Q5 — how literally should "unchanged success path" in criterion 8 be read?** The strict reading is that no new element, class or attribute appears on the success path at all; the weaker reading is that nothing user-perceivable changes, which would permit a permanently-present region that is empty on success.
   **Decision: strict.** The successful path must not gain a permanently present element, class, attribute, message or other observable state. Any failure-only UI is created or activated only on failure and is fully removed or reset after a success. **Consequence:** criterion 8 is the strict reading, and it constrains how Gate 1 may build both Q2 surfaces and the Q3 Retry action.
 - **Q6 — does U1 own the first-load case?** If the very first calculation of a page load fails, should the user be told, or should U1 stay silent when nothing has ever been calculated?
@@ -190,6 +192,8 @@ holds: **Gate 1 is NOT signed**, Plan v2 has **not** been approved, and **no imp
 authoring and no change to [`volume-splitter.js`](../../static/js/modules/volume-splitter.js) is
 authorized.** The council ran on 2026-08-25; this annotation was added the following day, when the
 document was reconciled against itself.
+
+⚠️ **ANNOTATION 2026-08-26 (second, added at signing) — the annotation immediately above is now SPENT in its turn.** Its surviving clauses — that Gate 1 is not signed, that Plan v2 is not approved, and that no implementation, test authoring or change to [`volume-splitter.js`](../../static/js/modules/volume-splitter.js) is authorized — were accurate when written and are superseded by the owner's Gate 1 approval of 2026-08-26 at the sign-off block below. **Authorization still does not begin at signing — it begins when this signed planning PR merges.** Section 0's only additions are the two OD-3 pointers, under criterion 6 and under Q4's decision.
 
 ---
 
@@ -894,6 +898,8 @@ Criteria 1, 2, 3, 4, 9, 10 and 12 are satisfied as drafted. Criteria 5, 6, 7, 8 
 
 Every finding gets a row.
 
+**This matrix is the council-response record as written on 2026-08-25, before the owner decided OD-1 to OD-4.** Where a row speaks of a decision as still open — **R21** most visibly — **§v2.13 governs**.
+
 **30 rows. Nothing is deferred.** Every finding is accepted; **one** carries a rejected sub-point (**R4**, restated inline at §v2.2 (F)) and **one** is accepted but re-routed out of the council's authority to the owner (**R21**, now OD-3).
 
 **Where two reviewers reached the same finding from different charters, the row records both.** **Five** rows are convergences: **R1** (architecture + product-risk), **R5** and **R27** (each test-strategist + architecture), **R14** (test-strategist + product-risk), and **R22** — the `:158` anchor — which is **three-way**, both reviewers plus the manager's own independent check.
@@ -941,7 +947,7 @@ Every finding gets a row.
 
 **Goal**: When `POST /api/calculate_volume` fails on `/volume_splitter`, the page tells the user so on both signed surfaces, clears every output that could be mistaken for the failed calculation's result, offers a Retry that uses the inputs as they stand, never lets a stale response overwrite a newer one, and leaves the success path observably identical to today.
 
-### v2.0 Gate 0 reopening assessment — unchanged, and still one conditional trigger
+### v2.0 Gate 0 reopening assessment — unchanged, and its one conditional trigger is now spent
 
 Re-checked after the council. **No unconditional Gate 0 reopening trigger was found.**
 
@@ -950,11 +956,11 @@ Re-checked after the council. **No unconditional Gate 0 reopening trigger was fo
 - **No calculation behavior changes.** Section 0's Calculation surface stays `none`. The `product-risk-reviewer` re-verified this against every calculation module and found no drift.
 - **No CSS changes.** The region uses `alert alert-danger`, present in the shipped bundle and already an in-repo idiom. See **R29** for the escalation that giving it an SCSS rule would trigger.
 
-**The one conditional trigger is unchanged and still live: OD-4**, whose row in §v2.13 states the trigger, the three grounds for the recommended reading, and what the owner is accepting if they take it. The council strengthened that case but did not and could not resolve it.
+**The one conditional trigger was OD-4, and it is now DECIDED — it did not fire.** The owner accepted Plan v2's non-literal reading of criterion 11 on 2026-08-26, so **Gate 0 does NOT reopen**. Its row in §v2.13 states the trigger, the three grounds for that reading, and — recorded on the owner's instruction rather than waived — exactly what taking it costs.
 
-### v2.1 Blocking open decision — U1's coverage arms vs. the live JS-unit qualification window
+### v2.1 OD-1 — U1's coverage arms vs. the live JS-unit qualification window, DECIDED
 
-**Still blocking. Still unresolved. The council does not decide this; the owner does.** Every artifact and gate line below is written for option (i).
+**DECIDED by the owner on 2026-08-26 — option (i) now, with option (iii) as the REQUIRED follow-up.** Every artifact and gate line below is written for option (i). The measurement and the reasoning that produced the recommendation are left below exactly as the council left them.
 
 [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §6.5 ([`:844-868`](../testing_phase3/STEP12_JS_UNIT_GATE0.md#L844-L868)) is running a live strict 14-day qualification window: **T0 = `2026-08-22T17:59:26Z`**, strict mark **`2026-09-05T17:59:26Z`**, qualifying the suite pinned at **13 files / 231 cases**.
 
@@ -968,11 +974,11 @@ The operative test is **"changed no JS test case."** The §6.5 carve-out at [`:8
 
 | Option | What U1 ships | Cost, stated honestly |
 |---|---|---|
-| **(i) E2E-only coverage now** | Every arm lives in [`e2e/volume-splitter.spec.ts`](../../e2e/volume-splitter.spec.ts). Zero Vitest files, zero Vitest cases. | The window is untouched — the suite stays at 13 files / 231 cases and the strict mark stays `2026-09-05T17:59:26Z`. Cost: the new helpers get no unit-level coverage, so a pure-logic regression is caught only through a browser. Playwright per-spec counts and `waitForTimeout` lines move, which is an ordinary inventory regeneration and reds nothing. |
-| **(ii) Add Vitest coverage now** | A new `static/js/modules/__tests__/volume-splitter.test.js`. | **Hardened per R13: this restarts the window — not "arguably".** On the rule the document has applied three consecutive times, adding a Vitest file changes a JS test case and engages Q2's restart clause. The days already accumulated are discarded and the strict mark moves to roughly U1's merge plus fourteen days, delaying **D2**. D2 is not U1's to spend. |
-| **(iii) Defer Vitest coverage past the strict mark** | Option (i) now, plus a follow-up packet adding the Vitest file after `2026-09-05T17:59:26Z`. | The window is untouched and the unit coverage is eventually written. Cost: a second PR and a second review cycle. **R13's outstanding requirement is met in §v2.14, which gives the obligation a named, committed home** rather than leaving it as a sentence that will be forgotten. |
+| **(i) E2E-only coverage now** — **CHOSEN** | Every arm lives in [`e2e/volume-splitter.spec.ts`](../../e2e/volume-splitter.spec.ts). Zero Vitest files, zero Vitest cases. | The window is untouched — the suite stays at 13 files / 231 cases and the strict mark stays `2026-09-05T17:59:26Z`. Cost: the new helpers get no unit-level coverage, so a pure-logic regression is caught only through a browser. Playwright per-spec counts and `waitForTimeout` lines move, which is an ordinary inventory regeneration and reds nothing. |
+| **(ii) Add Vitest coverage now** — **NOT CHOSEN** | A new `static/js/modules/__tests__/volume-splitter.test.js`. | **Hardened per R13: this restarts the window — not "arguably".** On the rule the document has applied three consecutive times, adding a Vitest file changes a JS test case and engages Q2's restart clause. The days already accumulated are discarded and the strict mark moves to roughly U1's merge plus fourteen days, delaying **D2**. D2 is not U1's to spend. |
+| **(iii) Defer Vitest coverage past the strict mark** — **REQUIRED FOLLOW-UP** | Option (i) now, plus a follow-up packet adding the Vitest file after `2026-09-05T17:59:26Z`. | The window is untouched and the unit coverage is eventually written. Cost: a second PR and a second review cycle. **R13's outstanding requirement is met in §v2.14, which gives the obligation a named, committed home** rather than leaving it as a sentence that will be forgotten. |
 
-**Plan v2 recommends (i), with (iii) as the named follow-up** — for the reason the `test-strategist` independently endorsed: all three Gate 0 arms are DOM-and-announcement failure behaviors (a live-region announcement, `document.activeElement` under a real focus model, a Bootstrap toast lifecycle) that jsdom approximates rather than measures. **This is a recommendation. The owner decides.**
+**Plan v2 recommends (i), with (iii) as the named follow-up** — for the reason the `test-strategist` independently endorsed: all three Gate 0 arms are DOM-and-announcement failure behaviors (a live-region announcement, `document.activeElement` under a real focus model, a Bootstrap toast lifecycle) that jsdom approximates rather than measures. **This was a recommendation; the owner granted exactly it on 2026-08-26.** The binding consequences are recorded in **OD-1** at §v2.13.
 
 ### Scope
 
@@ -997,7 +1003,7 @@ The operative test is **"changed no JS test case."** The §6.5 carve-out at [`:8
 | [`e2e/accessibility.spec.ts`](../../e2e/accessibility.spec.ts) | **not modified** | Run, not edited — §v2.10 `s5`. |
 | `static/js/modules/__tests__/volume-splitter.test.js` | **not created under option (i)** | Listed so the omission stays deliberate and visible. See **OD-1** and §v2.14. |
 
-**Effort**: M · **Owner**: implementation agent, after Gate 1 sign-off · **Depends on**: **OD-1** answered; **OD-3** answered by the owner (**R21**); Plan v2 approved.
+**Effort**: M · **Owner**: implementation agent, after this signed planning PR merges · **Depends on**: nothing further from the owner — **OD-1**, **OD-3** and **OD-4** are decided and **OD-2**'s reading is ratified (§v2.13), and Plan v2 is approved at the sign-off block below. The single remaining precondition is that this signed planning PR merges successfully.
 
 ### v2.2 Exact production change — files, symbols, current lines, shape
 
@@ -1051,7 +1057,7 @@ All in [`static/js/modules/volume-splitter.js`](../../static/js/modules/volume-s
 **(G) `resetValues()`** — [`:178-185`](../../static/js/modules/volume-splitter.js#L178-L185). Two additions after the existing `clearResults()` at [`:184`](../../static/js/modules/volume-splitter.js#L184):
 
 - `calculateRequestSeq += 1;` — **R1.** Reset invalidates any in-flight calculation, so a failure that resolves after the user has zeroed the sliders cannot repaint a failure region over a deliberately blanked page.
-- `exitCalculateFailureState();` — **conditional on OD-3, which R21 correctly re-routed to the owner.** If the owner grants the scoped amendment to criterion 6, this line ships. If the owner declines, **this single line is dropped and nothing else in the plan changes** — the sequence bump above stays either way, because it is R1's fix rather than OD-3's.
+- `exitCalculateFailureState();` — **OD-3 was GRANTED by the owner on 2026-08-26, so this line SHIPS** (§v2.13). The sequence bump above is **independent of OD-3 and required regardless**, because it is R1's race fix rather than OD-3's.
 
 **(H) The two suppressing call sites.** Both pass `{ forceAnnounce: false }`:
 
@@ -1084,7 +1090,7 @@ The page does not calculate on load: `init()` ends at [`:94-97`](../../static/js
 | **T5** | **Retry** | The toast's Retry action, the region's Retry button, or the Calculate button, which stays enabled throughout | A fresh `POST` from the inputs as they stand. All three default `forceAnnounce` to `true`, so a retry that fails again always produces fresh feedback rather than appearing to do nothing. **Criterion 5.** |
 | **T6** | **Repeated failure during a sustained fault** | Debounced `scheduleCalculate()` every 300 ms during a drag, or repeated arrow keypresses | Exactly **one** region, not replaced and not rewritten, and **no** repeat toast — both suppressing call sites pass `forceAnnounce: false` (**R20** covers the keyboard path). Measured by **`a3`** (region identity, via the `data-probe` stamp) and **`a6`** (toast silence past the 3000 ms life). **Criterion 6.** |
 | **T7** | **The later success that clears everything** | Any successful `POST` **whose sequence is current** | `exitCalculateFailureState()` removes the region from the DOM and dismisses a still-standing calculate-failure toast; `handleCalculateResponse()` repaints exactly as today. **Criteria 5 and 8.** |
-| **T8** | **Reset while a failure stands** | Reset button → `resetValues()` [`:178`](../../static/js/modules/volume-splitter.js#L178) | Sliders zeroed, results cleared, **the in-flight sequence invalidated**, and — *if the owner grants OD-3* — the region removed. No request is issued. |
+| **T8** | **Reset while a failure stands** | Reset button → `resetValues()` [`:178`](../../static/js/modules/volume-splitter.js#L178) | Sliders zeroed, results cleared, **the in-flight sequence invalidated**, and — **OD-3 granted** — the region removed. No request is issued. |
 | **T9** | **A second calculation is in flight (NEW — R1)** | Any overlap. Guaranteed at every drag release: the `input` listener has armed the 300 ms timer at [`:627`](../../static/js/modules/volume-splitter.js#L627) → [`:867`](../../static/js/modules/volume-splitter.js#L867) while the `change` listener at [`:633`](../../static/js/modules/volume-splitter.js#L633) fires immediately without cancelling it — `clearTimeout` lives only inside `scheduleCalculate()` at [`:864-865`](../../static/js/modules/volume-splitter.js#L864-L865). Two POSTs, ~300 ms apart. | **Only the newest request may paint.** A stale failure resolving after a fresh success is discarded by the sequence guard, so it cannot call `clearResults()` and wipe valid current results; a stale success resolving after a newer failure is likewise discarded, so it cannot paint old numbers with no failure signal. Measured by **`s6`**, killed by **`M9`**. |
 
 ### v2.4 Clearing and reset, surface by surface
@@ -1117,7 +1123,7 @@ Three surfaces are deliberately **outside** the stale set, each with a reason a 
 | **Replace** | Not applicable — the node is never replaced while a failure stands, which satisfies criterion 6's "updated or replaced rather than duplicated" by the strongest available reading: **not duplicated and not churned**. Measured by `a3`'s `data-probe` stamp. | Structurally guaranteed: a single `#liveToast`, body cleared at [`:60-63`](../../static/js/modules/toast.js#L60-L63), any live instance disposed and a new one constructed at [`:101-109`](../../static/js/modules/toast.js#L101-L109). **Toasts replace; they cannot stack.** Read and confirmed — but note `test-strategist`'s point that *this* half of criterion 6 cannot fail and is therefore not evidence of anything U1 does. The half that can fail is the dedup guard, and `a6` plus `M8` measure it. |
 | **Remove** | `exitCalculateFailureState()` calls `.remove()`. **Not `d-none`.** After any success the DOM contains no `#volume-calculate-error` at all. Killed by **M5**. | `hide()` via `dismissCalculateFailureToast()`, plus the inherited 3000 ms auto-dismiss. Time-bounded assertion in `s3`, killed by **M7**. |
 
-**Q5 strict, restated as the property the code must have**: `#volume-calculate-error` exists **if and only if** the last completed calculation failed. Never on load, never after a success, never as a hidden shell.
+**Q5 strict, restated as the property the code must have**: `#volume-calculate-error` exists **if and only if** the last completed calculation failed **and the user has not since reset**. Never on load, never after a success, never as a hidden shell. **The reset clause is OD-3's**, granted 2026-08-26 — before it, the biconditional had no exception, and §v2.2 (G)'s call in `resetValues()` would have falsified it.
 
 **Two corrections the council forced:**
 
@@ -1197,12 +1203,12 @@ Narrow to a single arm by replacing the `-g` pattern with that test's title.
 | **M5** | Change `exitCalculateFailureState()` to `classList.add('d-none')` instead of `.remove()`. | Measures the reviewer. | `s2` **RED**. Proves Q5 strict is enforced by a DOM-absence assertion, not by a visibility assertion a hidden shell would satisfy. |
 | **M6** | Delete the early-return guard in `renderCalculateFailureRegion()` so every failure rebuilds the node. | Measures the reviewer. | `a3` **RED** on the `data-probe` survival check. |
 | **M7** | **NEW (R4).** Delete the `dismissCalculateFailureToast()` call from `exitCalculateFailureState()`. | The helper that had no mutation at all in Plan v1. | `s3` **RED** — but only because `s3` is now time-bounded. Under Plan v1's `s3` this mutation was invisible, which is exactly why it was a blocking finding. |
-| **M8** | **NEW (R7).** Replace `if (forceAnnounce \|\| !standing \|\| !ourToastContentStands())` with an unconditional `showToast(...)`. | The dedup guard OD-2 asks the owner to ratify. | `a6` **RED**. |
+| **M8** | **NEW (R7).** Replace `if (forceAnnounce \|\| !standing \|\| !ourToastContentStands())` with an unconditional `showToast(...)`. | The dedup guard, under the OD-2 reading the owner ratified. | `a6` **RED**. |
 | **M9** | **NEW (R1).** Delete `if (seq !== calculateRequestSeq) { return; }` from both tails. | The request-sequence guard. | `s6` **RED**. Proves the out-of-order protection is measured rather than asserted in prose. |
 
 **M1 and M2 together discharge §0.2's closing obligation**: the regression reds if either suppression is restored *in isolation*, and each arm fails for its own class only. The `test-strategist` independently traced both against the real control flow and confirmed the isolation is genuine in both directions. **M3–M9 exist because an arm that cannot be made to fail is not evidence** — and M7, M8 and M9 were all added because the council found three places where Plan v1 had exactly that problem.
 
-**Note on M1's framing** — see **OD-4**. `showErrorToast: false` at [`:131`](../../static/js/modules/volume-splitter.js#L131) is retained deliberately, so "restoring the request-failure suppression" means restoring the `console.error`-only handler, which reproduces today's silence exactly. Re-adding the flag is not available as a mutation because the flag is never removed — **and R19 established what that costs, which OD-4 now states on the record.**
+**Note on M1's framing** — see **OD-4**. `showErrorToast: false` at [`:131`](../../static/js/modules/volume-splitter.js#L131) is retained deliberately, so "restoring the request-failure suppression" means restoring the `console.error`-only handler, which reproduces today's silence exactly. Re-adding the flag is not available as a mutation because the flag is never removed — **and what that costs is stated in OD-4**.
 
 ### v2.10 Success-path invariants — proving Q5 strict held
 
@@ -1256,28 +1262,30 @@ Run in this order:
 - **BR-3** — the `waitForTimeout` count for `e2e/volume-splitter.spec.ts` in the regenerated inventory is unchanged from its committed value.
 - **BR-4** — **criterion 10, moved here from the arm table per R12.** `git diff` shows no change at [`:191`](../../static/js/modules/volume-splitter.js#L191), [`:251`](../../static/js/modules/volume-splitter.js#L251), [`:288`](../../static/js/modules/volume-splitter.js#L288), [`:372`](../../static/js/modules/volume-splitter.js#L372) or [`:828`](../../static/js/modules/volume-splitter.js#L828), or in their `.catch` bodies. **This is an inspection, not a test, and the behavioral backstop is not uniform.** The existing tests at [`volume-splitter.spec.ts:289-386`](../../e2e/volume-splitter.spec.ts#L289-L386) cover site 4 (save), site 2 (load plan) and site 3 (delete). **Site 5's error row and site 6's activate/deactivate have no behavioral coverage at all** — for those two, criterion 10 rests on this `git diff` check alone. Stated rather than implied.
 
-### v2.13 Open decisions for the owner
+### v2.13 Owner decisions — all four settled at Gate 1, 2026-08-26
 
-| ID | Decision | Recommendation | Blocking? |
+The `Council recommendation and evidence` column is left as the council wrote it, so the basis of each decision stays readable; the `Owner decision` column is what governs.
+
+| ID | Decision | Council recommendation and evidence | Owner decision — 2026-08-26 |
 |---|---|---|---|
-| **OD-1** | Coverage routing versus the live JS-unit qualification window — options (i), (ii), (iii) in §v2.1. | **(i)** now, **(iii)** as the follow-up registered in §v2.14. | **Yes.** Implementation cannot start until this is answered; the Artifacts table and §v2.11 both assume (i). Unchanged by the council. |
-| **OD-2** | Q4 interpretation. The plan suppresses the repeat toast while a region stands **and** the attempt came from a slider (debounced or `change`), while always announcing on an explicit user command and whenever our toast content no longer stands. The owner chose (a) "replace rather than stack" and explicitly did not choose (c) "cooldown". Is this within (a)? | **Yes, keep it.** The alternative re-announces assertively about three times a second during a drag — and, per **R20**, on **every arrow keypress** for a keyboard user, which is where it hurts most. `a6` measures the behavior and `M8` kills it. | No. |
-| **OD-3** | **Owner-decided — re-routed by R21.** May criterion 6 be amended in scope, from "the inline region persists until the next successful calculation" to "…until the next successful calculation **or until the user resets**"? Plan v1 treated this as a plan-level judgement call; it is not. **A council cannot narrow a criterion the owner signed.** | **Recommend granting the amendment.** Reset's contract is a blank page, and a stale "could not calculate" banner over freshly zeroed sliders reproduces exactly the input-output mismatch U1 exists to remove. But the decision is the owner's. **Implementation is not blocked either way**: if declined, the single `exitCalculateFailureState()` line in `resetValues()` is dropped and nothing else changes. The `calculateRequestSeq` bump in the same function stays regardless — it belongs to **R1**, not to OD-3. | **Owner-only.** |
-| **OD-4** | Criterion 11's mutation reading (§v2.0). Restore the `console.error`-only handler, or literally re-add `showErrorToast: false`? | **The former**, now on three grounds rather than one. (1) The wrapper's toast cannot carry a Retry action — [`fetch-wrapper.js:212-214`](../../static/js/modules/fetch-wrapper.js#L212-L214) passes only `{ requestId }` — so the literal reading collides with **Q3**. (2) **R18**: with the flag flipped, a request failure fires the wrapper's toast at [`:213`](../../static/js/modules/fetch-wrapper.js#L213) **and then** the page's own, i.e. two notifications per failure, which is not one logical failure state — it collides with **criterion 6** too. (3) **R18**: the literal reading cannot serve **criterion 12** at all, because the flag is never consulted on the post-2xx path. **And what the owner is accepting, stated per R19:** under this reading `showErrorToast: false` ships with **zero regression pressure**. If a later edit removed it, the wrapper's toast and the page's toast would both fire and the page's would win the single `#liveToast`, producing **no user-visible difference** — so `a1`, `a2`, `c1` and every other arm stay green. §0.2 measured that flag as the single load-bearing cause of user-visible silence, and nothing will guard it. The alternative was priced: a `MutationObserver` on `#toast-body` installed via `addInitScript`, asserting the flag by observing that only one body-write occurs per failure. **Declined** — it pins an implementation detail of a shared module U1 does not own, it would break the moment KI-011 is fixed and the button relocates, and it is the kind of oracle that outlives its own accuracy. **Recorded as accepted, not as coverage-neutral.** | **Conditionally.** If the owner requires the literal reading, Q3 and criterion 11 cannot both hold and **Gate 0 must be reopened.** |
+| **OD-1** | Coverage routing versus the live JS-unit qualification window — options (i), (ii), (iii) in §v2.1. | **(i)** now, **(iii)** as the follow-up registered in §v2.14. The Artifacts table and §v2.11 are both written for (i). Unchanged by the council. | **GRANTED — option (i) now, with option (iii) as the REQUIRED follow-up.** U1 uses E2E coverage only during the live JS-unit qualification window. **No Vitest file or case is added or changed**, and the qualifying suite is preserved at exactly **13 files / 231 cases**. **T0** and the strict mark are preserved unless the documented restart condition genuinely occurs. **U1-FOLLOWUP-1 is retained in §v2.14**, which the owner accepts as the authoritative record of the follow-up for now; [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) is **not** edited by this PR. The implementation PR body **must link §v2.14 explicitly**. |
+| **OD-2** | Q4 interpretation. The plan suppresses the repeat toast while a region stands **and** the attempt came from a slider (debounced or `change`), while always announcing on an explicit user command and whenever our toast content no longer stands. The owner chose (a) "replace rather than stack" and explicitly did not choose (c) "cooldown". Is this within (a)? | **Yes, keep it.** The alternative re-announces assertively about three times a second during a drag — and, per **R20**, on **every arrow keypress** for a keyboard user, which is where it hurts most. `a6` measures the behavior and `M8` kills it. | **RATIFIED as recommended — no separate owner ruling was required.** Repeat **slider-originated** announcements are suppressed while the same failure region **and** U1-owned toast content stand; **explicit user commands always announce**, and so does any failure at a moment when U1's toast no longer stands. That is within Q4's answer (a). |
+| **OD-3** | **Owner-decided — re-routed by R21.** May criterion 6 be amended in scope, from "the inline region persists until the next successful calculation" to "…until the next successful calculation **or until the user resets**"? Plan v1 treated this as a plan-level judgement call; it is not. **A council cannot narrow a criterion the owner signed.** | **Recommend granting the amendment.** Reset's contract is a blank page, and a stale "could not calculate" banner over freshly zeroed sliders reproduces exactly the input-output mismatch U1 exists to remove. But the decision is the owner's. **Implementation is not blocked either way**: if declined, the single `exitCalculateFailureState()` line in `resetValues()` is dropped and nothing else changes. The `calculateRequestSeq` bump in the same function stays regardless — it belongs to **R1**, not to OD-3. | **GRANTED — the scoped amendment to criterion 6 stands.** Criterion 6 now reads *"The inline failure region persists until the next successful calculation **or until the user resets**."* The `exitCalculateFailureState()` call proposed for `resetValues()` in §v2.2 (G) is therefore **approved and ships**. The request-sequence increment in the same function **remains required independently**, for R1's race fix, and does not depend on this amendment. |
+| **OD-4** | Criterion 11's mutation reading (§v2.0). Restore the `console.error`-only handler, or literally re-add `showErrorToast: false`? | **The former**, now on three grounds rather than one. (1) The wrapper's toast cannot carry a Retry action — [`fetch-wrapper.js:212-214`](../../static/js/modules/fetch-wrapper.js#L212-L214) passes only `{ requestId }` — so the literal reading collides with **Q3**. (2) **R18**: with the flag flipped, a request failure fires the wrapper's toast at [`:213`](../../static/js/modules/fetch-wrapper.js#L213) **and then** the page's own, i.e. two notifications per failure, which is not one logical failure state — it collides with **criterion 6** too. (3) **R18**: the literal reading cannot serve **criterion 12** at all, because the flag is never consulted on the post-2xx path. **And what the owner is accepting, stated per R19:** under this reading `showErrorToast: false` ships with **zero regression pressure**. If a later edit removed it, the wrapper's toast and the page's toast would both fire and the page's would win the single `#liveToast`, producing **no user-visible difference** — so `a1`, `a2`, `c1` and every other arm stay green. §0.2 measured that flag as the single load-bearing cause of user-visible silence, and nothing will guard it. The alternative was priced: a `MutationObserver` on `#toast-body` installed via `addInitScript`, asserting the flag by observing that only one body-write occurs per failure. **Declined** — it pins an implementation detail of a shared module U1 does not own, it would break the moment KI-011 is fixed and the button relocates, and it is the kind of oracle that outlives its own accuracy. **Recorded as accepted, not as coverage-neutral.** *(The council recorded one conditional Gate 0 reopening trigger against this row: had the owner required the literal reading, Q3 and criterion 11 could not both hold and Gate 0 would have had to be reopened. **It did not fire** — see the decision beside it.)* | **DECIDED — Plan v2's non-literal reading is ACCEPTED, and Gate 0 does NOT reopen.** Criterion 11 is satisfied by restoring the prior `console.error`-only request-failure handler (**M1**) and proving that the request-failure arm goes red. `showErrorToast: false` is **not** to be literally removed or re-added as the criterion-11 mutation, and it **stays in production**, so the page-specific toast can carry Retry and one failure does not produce two competing notifications. The owner **explicitly accepts the documented tradeoff**: that flag ships without direct regression pressure. The **rejected `MutationObserver` oracle stays rejected** and must not be added. |
 
-### v2.14 Follow-up obligation — recorded here, filing owed
+### v2.14 Follow-up obligation — U1-FOLLOWUP-1, OPEN and recorded here by owner decision
 
-R13's outstanding point, actioned:
+R13's outstanding point, actioned — and **OD-1 made this subsection the obligation's authoritative record**:
 
-> **U1-FOLLOWUP-1 — Vitest unit coverage for the calculate failure helpers.** If **OD-1** resolves to option (i) or (iii), the **five** helpers added by §v2.2 (C)–(F) and (J) ship with **browser-level coverage only**. A follow-up packet must add `static/js/modules/__tests__/volume-splitter.test.js` covering the region's idempotence, the `forceAnnounce || !standing || !ourToastContentStands()` condition, the sequence guard, and the shared probe. **It must not land before `2026-09-05T17:59:26Z`**, the strict mark in [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §6.5, because doing so restarts the qualification window under the operative "changed no JS test case" rule (§v2.1). **Status: OPEN. Owner action owed** — file it as its own packet in [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 or §7, which **U1 is not authorized to edit**, or accept that it is tracked only here.
+> **U1-FOLLOWUP-1 — Vitest unit coverage for the calculate failure helpers.** **OD-1 resolved to option (i), with (iii) as the required follow-up** (owner, 2026-08-26), so the **five** helpers added by §v2.2 (C)–(F) and (J) ship with **browser-level coverage only**. A follow-up packet must add `static/js/modules/__tests__/volume-splitter.test.js` covering the region's idempotence, the `forceAnnounce || !standing || !ourToastContentStands()` condition, the sequence guard, and the shared probe. **It must not land before `2026-09-05T17:59:26Z`**, the strict mark in [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §6.5, because doing so restarts the qualification window under the operative "changed no JS test case" rule (§v2.1). **Status: OPEN.** The owner **accepts this subsection as the authoritative record** of the obligation for now, so [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) is not edited here (**OD-1**). Filing it there as its own packet in §4 or §7 remains an open owner option, not a precondition.
 
-The implementation PR body must link this subsection, so the obligation is discoverable from the merge commit rather than only from a planning document nobody re-opens.
+The implementation PR body **must link §v2.14 explicitly**, so the obligation is discoverable from the merge commit rather than only from a planning document nobody re-opens.
 
 ### Sequence
 
-1. **Answer OD-1 and OD-3.** Do not start until both are answered. OD-4 must be answered before the mutation matrix is run; if it resolves the literal way, its §v2.13 row says what happens instead of proceeding.
+1. **Confirm that this signed planning PR has merged.** OD-1, OD-3 and OD-4 are decided and OD-2's reading is ratified (§v2.13), and Gate 1 is signed — but implementation is authorized only once this document is on `main`. Re-read §v2.13 before step 8: the mutation matrix runs under OD-4's accepted non-literal reading, and `showErrorToast: false` is never the mutation.
 2. Add the three module-private symbols; rewrite the promise tail of `calculateVolume()` with the sequence guard and the two independent failure sites, retaining a diagnostic `console.error` at each.
-3. Add the five helpers, including the shared `ourToastContentStands()` probe (§v2.2 (J)); add the `resetValues()` lines (the `exitCalculateFailureState()` one only if OD-3 was granted); pass `forceAnnounce: false` from `scheduleCalculate()` and from the slider `change` listener.
+3. Add the five helpers, including the shared `ourToastContentStands()` probe (§v2.2 (J)); add **both** `resetValues()` lines — the `exitCalculateFailureState()` one ships, because **OD-3 was granted**; pass `forceAnnounce: false` from `scheduleCalculate()` and from the slider `change` listener.
 4. Bump the count pin at [`test_volume_history_busy_signal_contracts.py:110`](../../tests/test_volume_history_busy_signal_contracts.py#L110) from `3` to `4`.
 5. Add the new `test.describe` block: `a1`–`a6`, `b1`, `c1`–`c2`, `s1`–`s3`, `s6`, with the allow-one console posture, the specified assertion ordering and `waitForResponse` pacing.
 6. Add the `KI-012` row to [`UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md).
@@ -1303,20 +1311,52 @@ The implementation PR body must link this subsection, so the obligation is disco
 - [x] Gate 0 complete when required by planning size; otherwise marked not applicable. **Gate 0 SIGNED 2026-08-25 — see the Section 0 sign-off above.**
 - [x] Every finding has a disposition. **See the response matrix — 30 rows, none deferred.**
 - [x] Agent provenance complete — both `product-manager` IDs, same-PM-resumed yes/no, the three reviewer IDs, and an evidence-gap line (or `none`). **All five IDs stamped as supplied; same PM resumed = `yes`; evidence gap = `none`.**
-- [ ] User approved Plan v2.
-- [ ] Ready to implement — proceed to code, then `/unslop` or `/verify-and-polish` for the diff-time gate.
+- [x] User approved Plan v2.
+- [x] Ready to implement — **but not yet authorized: proceed to code only once this PR is on `main`**, then `/unslop` or `/verify-and-polish` for the diff-time gate. See the GATE 1 block below.
 
-**GATE 1 IS NOT SIGNED, AND THIS DOCUMENT STOPS HERE.** The council has run and Plan v2 is written, but the
-last two boxes are the owner's and they are deliberately unchecked. **No production code, no test code, no change
-to [`volume-splitter.js`](../../static/js/modules/volume-splitter.js), and no edit to
+### GATE 1 — SIGNED 2026-08-26
+
+**The owner approved Plan v2 on 2026-08-26.** All four decisions are settled in §v2.13; the dispositions
+are restated here so the signature reads without the table:
+
+- **OD-1 — GRANTED: option (i) now, with option (iii) as the REQUIRED follow-up.** U1 uses E2E coverage only
+  during the live JS-unit qualification window. **No Vitest file or case is added or changed**, the qualifying
+  suite is preserved at exactly **13 files / 231 cases**, and **T0** and the strict mark are preserved unless the
+  documented restart condition genuinely occurs. **U1-FOLLOWUP-1 stays open in §v2.14**, which the owner accepts
+  as its authoritative record for now, and the implementation PR body **must link §v2.14 explicitly**.
+- **OD-2 — RATIFIED as Plan v2 recommended**, with no separate ruling required. Repeat slider-originated
+  announcements are suppressed while the same failure region **and** U1-owned toast content stand; explicit user
+  commands always announce, and so does any failure at a moment when U1's toast no longer stands.
+- **OD-3 — GRANTED.** Criterion 6 is amended in scope to *"The inline failure region persists until the next
+  successful calculation **or until the user resets**."* The `exitCalculateFailureState()` call in `resetValues()`
+  ships. The request-sequence increment in the same function remains required **independently**, for R1's race fix.
+- **OD-4 — DECIDED: Plan v2's non-literal mutation reading is ACCEPTED, and Gate 0 does NOT reopen.** Criterion 11
+  is satisfied by restoring the prior `console.error`-only request-failure handler and proving the request-failure
+  arm goes red. `showErrorToast: false` is not removed or re-added as the criterion-11 mutation and **stays in
+  production**, so the page-specific toast can carry Retry and one failure does not raise two competing
+  notifications. The owner **explicitly accepts** that this flag ships without direct regression pressure, and the
+  **rejected `MutationObserver` oracle stays rejected**.
+
+**Implementation becomes authorized only after this signed planning PR merges successfully.** Signing is not the
+authorization; the merge is. Until `docs/u1-gate1-plan` is on `main`, no production code, no test code, no change
+to [`volume-splitter.js`](../../static/js/modules/volume-splitter.js) and no edit to
 [`test_volume_history_busy_signal_contracts.py`](../../tests/test_volume_history_busy_signal_contracts.py) is
-authorized until the owner approves Plan v2 above.**
+authorized. Once that merge lands, what is authorized is exactly Plan v2 — the six changed paths in the Artifacts
+table, the gate set in §v2.11, the nine-row mutation matrix in §v2.9 run in both directions, and nothing else.
 
-Three things are owed from the owner before implementation, and none of them was resolved by the council:
-
-- **OD-1** — the coverage-routing decision against the live JS-unit qualification window (§v2.1). Blocking.
-- **OD-3** — the scoped amendment to signed criterion 6 (§v2.13). Owner-only; a council may not narrow a signed criterion. Implementation is not blocked either way, but the answer changes one line.
-- **OD-4** — criterion 11's mutation reading. Its §v2.13 row carries the decision, the recommendation and the **conditional Gate 0 reopening trigger** in full.
+**What this signing leaves stale elsewhere.**
+[`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4's `**Status:** Execute — needs its own Gate 0
+and Gate 1` line at [`:109`](../OPEN_WORK_EXECUTION_PLAN.md#L109) lost its first half when Gate 0 was signed and
+loses its second half now, so the whole line is stale; §4's premise sentence stays falsified by §0.1. **A third
+thing is stale that Section 0 could not foresee**: its *Out of scope* bullet prescribes the repair *"reduce the
+§4 Status line to 'needs its own Gate 1'"*, and writing that today would put a fresh falsehood on `main` — U1 now
+owes neither gate. **None of the three is repaired here.** The first two live in a file this PR is directed
+not to edit, and it did not. The third sits inside signed Section 0, which this signing may not rewrite — its
+only permitted additions were the two OD-3 pointers — so the spent prescription is recorded here instead of
+annotated there. All three remain owner action owed. §8's Gate column at
+[`:509-512`](../OPEN_WORK_EXECUTION_PLAN.md#L509-L512) and §10's *Gates it owes* table at
+[`:539-541`](../OPEN_WORK_EXECUTION_PLAN.md#L539-L541) survive untouched, because both are framed as the gates a
+packet *owes* rather than gates it has passed.
 
 ---
 
