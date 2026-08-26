@@ -1,7 +1,7 @@
 # Plan Review — Packet U2: Backup "save first" confirmation continuity
 
 **Packet**: U2, from [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 ([`:152-181`](../OPEN_WORK_EXECUTION_PLAN.md#L152-L181))
-**Priority**: P1 · **Status**: Gate 1 candidate, **UNSIGNED**
+**Priority**: P1 · **Status**: **Gate 1 SIGNED — 2026-08-26.** Plan v2 is an approved plan; the owner's four decisions are recorded in §v2.1 and restated in *Sign-off*. **Implementation becomes authorized only after this signed planning PR merges** — signing alone authorizes nothing.
 **Base**: `origin/main` at **`06a3f419fd658403b2659ac2e2053d332254b3e2`** (PR #423, Packet U1 implementation), **plus this PR's own two edits** — this document and the [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) ledger row 12 recorded in the *Operational rider* below. Every line citation in §0 was read from the **base commit's** content of the file it cites; the ledger file is the one exception and is treated separately.
 **Branch**: `docs/u2-gate1-plan`
 
@@ -11,16 +11,20 @@
 > saw it — including its errors — because a response matrix that answers a rewritten plan proves
 > nothing. **Plan v2 governs.**
 
-> **This document authorizes nothing.** It is a planning artifact. No production file, no test file
-> and no configuration file is changed by the PR that carries it. Implementation begins only after
-> the owner signs Gate 1 below **and** this planning PR merges.
+> **This document changes no code.** It is a planning artifact. No production file, no test file
+> and no configuration file is changed by the PR that carries it — and the Gate 1 signature below
+> did not change that. **Gate 1 is now SIGNED**, so this document records an approved plan rather
+> than a candidate; but **the signature is not the authorization, the merge is.** Implementation
+> begins only once this planning PR is on `main`.
 
 > **Gate 0 is deliberately absent, by owner authorization.** The owner authorized this packet as
 > "Gate 1 planning only" and stated that "U2 requires no separate Gate 0". §0 below therefore carries
 > the requirements brief inline rather than as a separately-signed gate. **That waiver is specific to
 > U2's own requirements.** It does **not** automatically dispose of every other
 > gate this packet touches; §0.4 records one such collision — owner ruling **Q3** — which the owner
-> may grant or overrule, and which **§v2.1 OD-1** puts to them.
+> may grant or overrule, and which **§v2.1 OD-1** put to them. **Settled at Gate 1: the owner chose
+> OD-1 (i), E2E-only.** No Gate 0 was requested and none was granted, so Q3 is neither crossed nor
+> spent, and its recorded gap stays recorded.
 
 ---
 
@@ -174,7 +178,7 @@ not generated:
 [`:201`](../../templates/backup.html#L201) carries `role="status"`; `#backup-action-confirm` at
 [`:187`](../../templates/backup.html#L187) carries none, and neither does `#backup-action-title`. A
 sighted user sees the panel appear; a screen-reader user is told nothing. That is **true today, before
-U2**. ⚠️ **CORRECTED (P-B3).** Plan v1 recorded this as pre-existing and declined to touch it. **That disposition was withdrawn**: U2 turns an un-announced *disarmed* state into an un-announced *armed destructive* one, which is not the same risk, and the repair costs **no template edit** — `showPendingAction()` can set the attribute from JS. **§v2.1 OD-6** now puts it to the owner.
+U2**. ⚠️ **CORRECTED (P-B3).** Plan v1 recorded this as pre-existing and declined to touch it. **That disposition was withdrawn**: U2 turns an un-announced *disarmed* state into an un-announced *armed destructive* one, which is not the same risk, and the repair costs **no template edit** — `showPendingAction()` can set the attribute from JS. **§v2.1 OD-6** put it to the owner. **Settled at Gate 1: OD-6 (a) — announce, and place focus on Cancel.**
 
 ### 0.2 Reproduction — measured live, not derived from the source
 
@@ -266,7 +270,7 @@ Two clauses of that ruling reach U2, and they reach it differently:
 - **The Vitest prohibition binds U2's *test* tier.** Q3's "no test file for it may be written" is
   scoped to step 12, and U2 is authorized by a different document. But the sentence that follows —
   *"reviving this needs its own Gate 0"* — is not step-12-scoped; it is a statement about what
-  authorizing `backup-center.js` unit coverage requires. ⚠️ **CORRECTED (A-N5).** Plan v1 argued here that *because* U2 has no Gate 0, U2 therefore **cannot** be the vehicle that revives `backup-center.js` unit coverage. **That syllogism does not hold.** [`OPEN_WORK_EXECUTION_PLAN.md:158-160`](../OPEN_WORK_EXECUTION_PLAN.md#L158-L160) says U2's *requirements* are settled — a statement about what U2 need not re-derive, not a rule about what U2 may do. **The owner can simply grant the Gate 0 Q3 asks for.** Q3's substantive point still stands on its own (unit-testing this module at its single export means standing up the whole Backup Center DOM), but the **decisive** obstacle is the live qualification window, not Q3. **§v2.1 OD-1** is restructured accordingly.
+  authorizing `backup-center.js` unit coverage requires. ⚠️ **CORRECTED (A-N5).** Plan v1 argued here that *because* U2 has no Gate 0, U2 therefore **cannot** be the vehicle that revives `backup-center.js` unit coverage. **That syllogism does not hold.** [`OPEN_WORK_EXECUTION_PLAN.md:158-160`](../OPEN_WORK_EXECUTION_PLAN.md#L158-L160) says U2's *requirements* are settled — a statement about what U2 need not re-derive, not a rule about what U2 may do. **The owner can simply grant the Gate 0 Q3 asks for.** Q3's substantive point still stands on its own (unit-testing this module at its single export means standing up the whole Backup Center DOM), but the **decisive** obstacle is the live qualification window, not Q3. **§v2.1 OD-1** is restructured accordingly. **Settled at Gate 1: OD-1 (i)** — the owner neither requested nor granted the Gate 0 this paragraph shows they *could* have.
 - **The seam-extraction prohibition is *not* binding on U2, and must not be mistaken for a licence.**
   Q3 says extracting "`detailRequestSequence` and the `pendingAction` state machine into seams" is a
   production change "outside step 12's test-only scope", and that "the owner ruled that extraction out
@@ -441,7 +445,8 @@ snapshot does not contain logged sessions; the restore deletes them.**
 
 U2 does not create this. **U2 makes it more available**: today the affordance vanishes the instant it
 is used, and U2's entire purpose is to keep it on screen afterwards. It is therefore U2's to surface,
-and it is **OD-5** in Plan v2 — not the implementer's to word.
+and it is **OD-5** in Plan v2 — not the implementer's to word. **Settled at Gate 1: OD-5 (a)**, in the
+owner's exact words — `Saves the current workout plan only — logged sessions are not included in this snapshot.`
 ## Plan v1 — FROZEN as reviewed
 
 > **Plan v1 is left exactly as the three council reviewers saw it, errors included.** It is
@@ -926,12 +931,33 @@ its *test design* did not survive.**
 ### v2.1 Owner decisions
 
 Four. Each is genuinely the owner's: two are product behavior, one is user-facing copy on a
-destructive flow, one spends a shared resource that is not U2's. **Plan v2 recommends on each and
-decides none. Every artifact and gate line below is written for the recommended option.**
+destructive flow, one spends a shared resource that is not U2's.
+
+⚠️ **ALL FOUR ARE DECIDED — 2026-08-26.** Each decision is recorded in its own subsection below under a
+**DECIDED** line, and each selects the option Plan v2 recommended. **Plan v2's recommendations and
+their arguments are left standing as written**, so the decision can be read against the reasoning that
+produced it rather than replacing it.
+
+**Every artifact, gate, count and risk below has been re-derived against the decisions rather than
+against the recommendations.** They coincide here, and that coincidence is not a licence to skip the
+derivation — two restatements were falsified rather than merely confirmed by it, and both are marked
+⚠️ where they live (§v2.8's `u1` assertion row, and §v2.8's oracle rationale).
 
 ---
 
 #### OD-1 — Coverage tier: E2E-only, or a Vitest file for `backup-center.js`?
+
+> **DECIDED — 2026-08-26: (i) E2E-only.** The owner further directed: **do not add or schedule a
+> Vitest follow-up.** Option **(iii) is declined, not deferred** — U2 books **no** follow-up
+> obligation, **no** tracked rider and **no** successor packet against `backup-center.js` unit
+> coverage. If that coverage is ever wanted, it must be opened as its own packet with its own Gate 0,
+> by a future decision that this one does not pre-commit.
+>
+> **Derived consequences.** Zero Vitest files and zero Vitest cases ship. The qualifying suite stays
+> at **13 files / 231 cases**; **T0 stays `2026-08-22T17:59:26Z`** and the strict mark stays
+> **`2026-09-05T17:59:26Z`**; Q2's restart clause does not engage; **D2 is not spent**. The generation
+> counter and the re-assert guard get **E2E coverage only**, and `backup-center.js` keeps 0 % unit
+> coverage as an accepted, recorded gap — §v2.12 residual 2, now decided rather than pending.
 
 ⚠️ **Restructured per A-N5.** The decisive obstacle is the qualification window; owner ruling Q3 is an
 argument, not a barrier, because the owner can grant the Gate 0 it asks for.
@@ -976,6 +1002,23 @@ deleted**, so a later reader does not re-raise it.
 
 #### OD-3 — After a successful save-first, may the user save again?
 
+> **DECIDED — 2026-08-26: (b) disable and relabel**, with the exact string **`Current plan saved`**.
+> **The sub-question is answered NO**: the snapshot stamp does **not** gain sub-second resolution. It
+> stays second-resolution at [`:1037`](../../static/js/modules/backup-center.js#L1037) and U2 changes
+> not one character of it.
+>
+> **Derived consequences.** §v2.3 clause **(D)** becomes unconditional, and the label lives in **one
+> module constant** (A-N4) — a seventh *writer* of that button, not a seventh scattered literal.
+> Option (a)'s indistinguishable-duplicate-rows hazard is **largely averted**, which is exactly why
+> the sub-second stamp is unnecessary; it is **not eliminated**, because (b)'s first honest limit
+> stands — the `disabled` state is not durable, so a cancel / re-open cycle re-enables the button and
+> a second snapshot stays reachable (§v2.12 residual 7).
+>
+> ⚠️ **This decision falsifies a Plan v2 assertion rather than merely confirming it.** §v2.8's `u1`
+> row, following **T-NB7**, asserted *both* spinner-locked buttons `toBeEnabled()` with their correct
+> labels. Under (b) the save-first button ends **disabled** and relabelled. That assertion is
+> **inverted for that button** in §v2.8, and §v2.8's oracle rationale is narrowed with it.
+
 Today unanswerable (the button is torn down). Once the panel is restored it must be answered.
 
 | Option | Behavior | Consequence — ⚠️ measured, per P-N1 and P-N2 |
@@ -1001,6 +1044,30 @@ reviewer argues for it, it is a **separate packet with a different size class**.
 ---
 
 #### OD-5 — NEW. Must the save-first affordance say that logged sessions are not included?
+
+> **DECIDED — 2026-08-26: (a) state the limit**, in the owner's exact words:
+>
+> ```
+> Saves the current workout plan only — logged sessions are not included in this snapshot.
+> ```
+>
+> **The bundled second string is decided with it** — the state-6 warning toast, in the owner's exact
+> words:
+>
+> ```
+> The backup you were restoring is no longer available. Please choose it again.
+> ```
+>
+> **Neither string is the implementer's to reword.** Both are signed criteria.
+>
+> **Derived consequences.** §v2.3 gains a new clause **(F)**: the note is rendered **from JS** by
+> `showPendingAction()`, in the **`restore` branch only**, so
+> [`templates/backup.html`](../../templates/backup.html) stays **unmodified** and the `templates/**`
+> gate row and the visual matrix stay out of the gate set — exactly as OD-3(b) and OD-6(a) already
+> do. §v2.3(B) condition 4's toast text is **pinned** to the string above instead of left as `…`.
+> §v2.12 residual 6 is **closed**. The note lives inside `#backup-action-confirm`, which is `hidden`
+> at rest, so `accessibility.spec.ts`'s at-rest axe pins cannot move — a property of the panel's rest
+> state, which §v2.10 step 6 now proves rather than assumes.
 
 **The measured fact (§0.8)**, which no clause of the requirement mentions: `create_backup()` reads
 **`user_selection` only** ([`program_backup.py:201`](../../utils/program_backup.py#L201)), while the
@@ -1030,6 +1097,16 @@ worse after U2 than before. Plan v2 requires a `showToast('warning', …)` on th
 ---
 
 #### OD-6 — NEW. Is the re-asserted confirmation announced, and where does focus go?
+
+> **DECIDED — 2026-08-26: (a) announce, and place focus on Cancel.**
+>
+> **Derived consequences.** §v2.3 clause **(E)** becomes unconditional. Arm **`u11`** becomes
+> **mandatory**, taking the appended block to **eleven** arms (`u1`–`u11`) and collapsing every
+> conditional "(or 33)" figure in §v2.14 to a single derived value. §v2.10 step 6
+> (`accessibility.spec.ts`) becomes **required** rather than discretionary. §v2.12 residual 5 is
+> **closed**. Focus goes to `#backup-action-cancel` — the safe control — and **never** to
+> `#backup-action-confirm-btn`. Still **zero template edits**: both the `role` and the focus move are
+> applied from JS.
 
 ⚠️ **P-B3 withdrew Plan v1's claim that U2 "does not make this worse".** Measured: `#backup-action-confirm`
 ([`backup.html:187`](../../templates/backup.html#L187)) has **no role and no `aria-live`**, while the
@@ -1113,7 +1190,7 @@ It re-asserts **only if all four hold**, and reports the failure rather than swa
 1. `pendingActionGeneration === capturedGeneration` — **the authorization check.** Any user gesture during the flight moves it, so a mid-flight Cancel, Delete, Restore or list-click **blocks the re-assert**. This is the guard that closes A-B1 / T-B4 / P-B1, measured in §0.7(c).
 2. `Number(selectedBackupId) === Number(capturedBackupId)` — `selectedBackupId` moves **synchronously** at [`:645`](../../static/js/modules/backup-center.js#L645), so this closes the list-click case that a details-object check cannot (A-B2, measured in §0.7(d)).
 3. `selectedBackupDetails && Number(selectedBackupDetails.id) === Number(capturedBackupId)` — closes the case where the refresh landed on a *different* backup because the target vanished ([`:687-688`](../../static/js/modules/backup-center.js#L687-L688)). Conditions 2 and 3 are **both** required precisely because the two variables diverge.
-4. On failure of **condition 3 specifically** — the target is gone — `showToast('warning', …)` per **P-N3** and **OD-5**. Failures of 1 and 2 are user-initiated and are **silent by design**: the user did something, and the app honouring it needs no announcement.
+4. On failure of **condition 3 specifically** — the target is gone — `showToast('warning', 'The backup you were restoring is no longer available. Please choose it again.')` per **P-N3** and **OD-5**. ⚠️ **The string is the owner's, pinned at Gate 1, and is not the implementer's to reword.** Failures of 1 and 2 are user-initiated and are **silent by design**: the user did something, and the app honouring it needs no announcement.
 
 **Note (T-N5):** `showPendingAction()` also calls `clearInlineEditState()` at
 [`:710`](../../static/js/modules/backup-center.js#L710), so a re-assert also tears down any inline
@@ -1141,15 +1218,36 @@ click silently discarded, which is a worse interaction than refusing the click. 
 - `clearPendingAction()` does **not** reset `#backup-action-cancel`'s `disabled` — compare [`:157-169`](../../static/js/modules/backup-center.js#L157-L169), where cancel is absent. **The handler owns that unlock.** Forgetting it leaves Cancel permanently dead; arm `u3` catches exactly that (T-N1).
 - `:635` re-enables the confirm and save-first buttons mid-lock at [`:159`](../../static/js/modules/backup-center.js#L159) and [`:165`](../../static/js/modules/backup-center.js#L165). Harmless — `pendingAction` is `null` in that sliver and step 6 re-establishes the correct state — but it means the lock is not monotonic and must not be assumed so.
 
-**(D) Under OD-3(b) only**: after `showPendingAction()` has rebuilt the button, set it to the
+**(D) Per OD-3(b), decided**: after `showPendingAction()` has rebuilt the button, set it to the
 `disabled` relabelled state. **Order matters** — `showPendingAction()` sets `disabled = false` at
 [`:727`](../../static/js/modules/backup-center.js#L727) and rewrites `innerHTML` at
 [`:728`](../../static/js/modules/backup-center.js#L728), so the "saved" state must be applied
 **after**, never before. Per **A-N4** the label lives in **one module constant**, making it a seventh
-writer of that button rather than a seventh scattered literal.
+writer of that button rather than a seventh scattered literal. **The constant's value is the owner's
+exact string**, pinned at Gate 1:
 
-**(E) Under OD-6(a) only**: `showPendingAction()` sets `role="alert"` on `#backup-action-confirm` and
-moves focus to `#backup-action-cancel`. **Zero template edits.**
+```
+const SAVE_FIRST_SAVED_LABEL = '<i class="fas fa-check" aria-hidden="true"></i> Current plan saved';
+```
+
+**(E) Per OD-6(a), decided**: `showPendingAction()` sets `role="alert"` on `#backup-action-confirm`
+and moves focus to `#backup-action-cancel` — the **safe** control, never `#backup-action-confirm-btn`.
+**Zero template edits.**
+
+**(F) Per OD-5(a), decided** — ⚠️ **a new clause. Plan v2 as reviewed had none**, because the copy was
+still undecided when it was written; the decision, not a reviewer, creates the production work.
+`showPendingAction()` renders the snapshot-coverage note **from JS**, inside `#backup-action-confirm`
+and **below** the warning paragraph `#backup-action-text`, in the **`restore` branch only** — the
+`delete` branch has no save-first affordance and must not show it. The exact string is the owner's:
+
+```
+Saves the current workout plan only — logged sessions are not included in this snapshot.
+```
+
+Two constraints, stated because neither is obvious:
+
+- **The node must be created idempotently.** `showPendingAction()` runs on every Restore click *and* on every re-assert, so an unguarded `insertAdjacentHTML` stacks a second and a third copy of the note on the same panel. Create-or-reuse by id, and set `textContent`.
+- **[`templates/backup.html`](../../templates/backup.html) stays unmodified**, exactly as under (D) and (E). All three decided user-facing changes are applied from JS, which is what keeps the `templates/**` gate row and the visual matrix out of §v2.10.
 
 **Nothing else changes.** `clearPendingAction()` and all **six** of its call sites are byte-identical
 before and after. `showPendingAction()` gains one counter increment (plus (E) if chosen).
@@ -1210,15 +1308,15 @@ and by the counter — except row 10, which the lock does not reach and the coun
 
 ⚠️ **Two PRs, two diffs — never summed** (A-B3, sharpened by the diff-stage review). Rows **1–7** are the **implementation** PR's diff, which does not exist yet. Row **8** is **this planning PR's**, already written. So:
 
-- **This planning PR: 2 files** — row 7 (this document) and row 8 (the ledger rider). No production file, no test file, no configuration file.
-- **The implementation PR: 7 files** — rows 1–7, plus **ledger row 14**, which its own merge mints.
+- **This planning PR: 2 files** — row 7 (this document) and row 8 (the ledger rider). No production file, no test file, no configuration file. **The Gate 1 signature did not move this count**: signing edits row 7 again, it does not add a row.
+- **The implementation PR: 7 files** — rows 1–7, plus **ledger row 14**, which its own merge mints. ⚠️ **Re-derived against the four decisions, and still 7.** OD-3(b), OD-5(a) and OD-6(a) are each applied from JS inside row 1, and OD-1(i) creates nothing — so no decision adds an eighth path, and in particular none of them adds [`templates/backup.html`](../../templates/backup.html).
 
 Row 7 appears in both, because both PRs edit this document. §v2.11's blast radius is the implementation PR's alone.
 
 | # | Path | Change | Notes |
 |---|---|---|---|
 | 1 | [`static/js/modules/backup-center.js`](../../static/js/modules/backup-center.js) | modify | The whole production change: one counter, two increments, one helper, a rewritten save-first tail with lock/unlock. §v2.3. |
-| 2 | [`e2e/program-backup.spec.ts`](../../e2e/program-backup.spec.ts) | modify | One `test.describe` appended (`u1`–`u11`), plus the mandatory `:155` deletion. **Not** in `ci.yml`'s 25-spec list ([`:341-365`](../../.github/workflows/ci.yml#L341-L365)); it runs in its own **required** job, so extending it never approaches the `== 25` pin. |
+| 2 | [`e2e/program-backup.spec.ts`](../../e2e/program-backup.spec.ts) | modify | One `test.describe` appended (`u1`–`u11`), plus the mandatory `:155` deletion. **All eleven arms are mandatory** — `u11` stopped being conditional when the owner chose **OD-6(a)**. **Not** in `ci.yml`'s 25-spec list ([`:341-365`](../../.github/workflows/ci.yml#L341-L365)); it runs in its own **required** job, so extending it never approaches the `== 25` pin. |
 | 3 | [`docs/UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md) | modify | Add **`KI-013`** — next after `KI-012` at [`:107`](../UI_SCENARIOS_GAP_ANALYSIS.md#L107) — per the file's rule at [`:109-112`](../UI_SCENARIOS_GAP_ANALYSIS.md#L109-L112). |
 | 4 | [`docs/DUPLICATION_REGISTRY.md`](../DUPLICATION_REGISTRY.md) | modify | Row 10 ([`:49`](../DUPLICATION_REGISTRY.md#L49)) names its live residual as *"the refresh/confirm race, owned by **Packet U2**"*. Discharging it falsifies that present tense. **All five of its `backup-center.js` anchors — `:148-170`, `:172-183`, `:400-456`, `:580-637` and `:635` — were re-verified at `06a3f41` and are exact** — re-anchor by measuring after the diff, never by applying one drift figure. |
 | 5 | [`docs/test_inventory/TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) | regenerate | Per-spec Playwright counts move. |
@@ -1226,14 +1324,14 @@ Row 7 appears in both, because both PRs edit this document. §v2.11's blast radi
 | 7 | [`docs/backup_confirmation_continuity/PLANNING.md`](PLANNING.md) | modify | This document — the implementation record. |
 | 8 | [`docs/testing_phase3/STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) | **already modified by THIS PR — not by the implementation PR** | ⚠️ **A-B3.** Ledger row 12, the sole authorized operational-documentation exception. See the *Operational rider*. **This planning PR's merge mints row 13**, which the implementation PR will carry as a rider; the implementation PR's own merge then mints **row 14**. |
 | — | [`static/js/modules/program-backup.js`](../../static/js/modules/program-backup.js) | **not modified** | §0.6 — this is what makes clause 5's `showAutoBackupBanner()` guarantee structural. |
-| — | [`templates/backup.html`](../../templates/backup.html) | **not modified** | Even under **OD-6(a)** and **OD-3(b)** — both are applied from JS. Keeps `templates/**` and the visual matrix out of the gate set. |
+| — | [`templates/backup.html`](../../templates/backup.html) | **not modified** | ⚠️ **Re-derived against the decisions, and it holds.** All **three** decided user-facing changes — **OD-3(b)**'s relabel, **OD-5(a)**'s note and **OD-6(a)**'s `role` plus focus move — are applied from JS (§v2.3 D, F, E). Keeps `templates/**` and the visual matrix out of the gate set. |
 | — | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | **not modified** | No new spec file. |
 | — | [`e2e/fixtures.ts`](../../e2e/fixtures.ts) | **not modified** | Raw selectors are deliberate for a single-spec block. |
-| — | `static/js/modules/__tests__/backup-center.test.js` | **not created** | Listed so the omission stays deliberate and visible. **OD-1**, §0.4. |
+| — | `static/js/modules/__tests__/backup-center.test.js` | **not created** | Listed so the omission stays deliberate and visible. **Decided at Gate 1 — OD-1 (i)**, with no follow-up packet or rider booked. §0.4. |
 
 **Effort**: **M** — Plan v1 said S; the lock, the counter, five new states and five new arms move it.
 **Owner**: implementation agent, after Gate 1 sign-off **and** after this planning PR merges.
-**Depends on**: **OD-1**, **OD-3**, **OD-5**, **OD-6** answered.
+**Depends on**: **OD-1**, **OD-3**, **OD-5**, **OD-6** — **all four answered on 2026-08-26**. The only remaining precondition is this planning PR's merge.
 
 ---
 
@@ -1249,8 +1347,10 @@ workflow (backup/restore):
 5. **The `preferredSelectionId` substitution considered and rejected** (P-N4), and why.
 6. **Why no `.py` and no route changed** — a client-state fix; the server was never involved.
 7. **The `KI-013` and `DUPLICATION_REGISTRY` row-10 edits**, scoped and justified.
-8. **The OD-1 omission**: no Vitest file, by owner decision, citing Q3 and the window.
+8. **The OD-1 omission**: no Vitest file, by owner decision — **OD-1 (i), 2026-08-26** — citing Q3 and the window. State also that **no follow-up packet and no rider is booked**, which the owner directed explicitly, so a later reader does not read the omission as an oversight.
 9. **Ledger row 13** — minted by the *planning* PR's merge and carried here as a rider. This PR's own merge then mints **row 14**, owed by whoever lands it.
+10. ⚠️ **Three new user-facing strings on a destructive flow**, each pinned by the owner at Gate 1 and **none of them the implementer's to reword**: the `Current plan saved` relabel (**OD-3(b)**), the snapshot-coverage note (**OD-5(a)**), and the state-6 warning toast (**OD-5**, bundled). Quote all three verbatim in the PR body, and say that the snapshot-coverage note discloses a pre-existing asymmetry (§0.8) rather than repairing it.
+11. ⚠️ **The OD-6(a) announcement and focus move** — `role="alert"` on `#backup-action-confirm`, and focus placed on `#backup-action-cancel`. This is a deliberate focus change on a destructive confirmation, chosen so the keyboard user lands on the **safe** control; it must not be described as incidental.
 
 ---
 
@@ -1268,6 +1368,15 @@ state after `expectToast`. **That cannot work**: `expectToast` resolves at
 re-asserts. Worse, `showPendingAction()` rebuilds the panel **byte-identically**, so under OD-3(a)
 **no DOM state distinguishes "never torn down" from "torn down and rebuilt"**.
 
+⚠️ **Re-derived against OD-3(b), and the oracle is KEPT — but its second argument is withdrawn.** The
+decision *does* create a discriminating end state: after a re-assert the save-first button is
+`disabled` and reads `Current plan saved`, which a never-torn-down panel would not. So the
+byte-identical sentence above no longer holds under the decided design. **That does not rescue the
+state sample**, because the *first* defect is independent of it — `expectToast` resolves two round
+trips early, so a sample taken there reads the panel before the M1 mutant has finished doing nothing,
+and passes. Only a transition oracle observes the **ordering**. The `Current plan saved` end state is
+asserted too, in `u1`, as an **assertion** rather than as the oracle.
+
 **Arms `u1`, `u2`, `u7`, `u8` therefore use a transition oracle, not a state sample:**
 
 ```
@@ -1284,7 +1393,7 @@ Per **T-NB2**, `tsconfig.json`'s `strict: true` over `e2e/**/*.ts` requires a
 
 | Arm | Drives | Asserts | Kills |
 |---|---|---|---|
-| **`u1`** | restore → save-first, transition oracle installed first | recorded sequence `[true, false]`; title `Confirm restore`; text contains `logged sessions will be cleared`; confirm button contains `Confirm Restore`; **and (T-NB7)** both buttons `toBeEnabled()` with their correct labels | **M1** — by timeout, since only `[true]` is ever recorded |
+| **`u1`** | restore → save-first, transition oracle installed first | recorded sequence `[true, false]`; title `Confirm restore`; text contains `logged sessions will be cleared`; confirm button contains `Confirm Restore`; **the OD-5(a) note reads** `Saves the current workout plan only — logged sessions are not included in this snapshot.`; **and (T-NB7)** the two spinner-locked buttons in their **decided** end states — ⚠️ **inverted for save-first by OD-3(b)**: `#backup-action-confirm-btn` `toBeEnabled()` and labelled `Confirm Restore`, `#backup-restore-save-first` **`toBeDisabled()`** and labelled `Current plan saved` (**not** `toBeEnabled()`, as this row read before the decision) | **M1** — by timeout, since only `[true]` is ever recorded |
 | **`u2`** | `u1`, then click **Confirm Restore** | the restore executes: success toast, `#backup-restore-result` populated | a cosmetic fix that shows the panel but leaves `pendingAction` null, so [`:809`](../../static/js/modules/backup-center.js#L809) early-returns. **`u1` alone cannot see this** |
 | **`u3`** | `u1`, then **Cancel** | panel hidden | **not vacuous under Plan v2** (T-N1): the lock disables `#backup-action-cancel` and `clearPendingAction()` never resets that button's `disabled`, so a forgotten unlock leaves Cancel dead. `u3` catches it |
 | **`u4`** | restore pending (settled) → change `#backup-sort` | panel hidden; **selection unchanged** | Design 0; a mis-scoped guard. §0.3 arm C |
@@ -1294,7 +1403,7 @@ Per **T-NB2**, `tsconfig.json`'s `strict: true` over `e2e/**/*.ts` requires a
 | **`u8`** ⚠️ NEW | same hold; **press Cancel while held**; release | panel **stays hidden** | **state 7 — the destructive-resurrection defect.** A-B1 · T-B4 · P-B1 |
 | **`u9`** ⚠️ NEW | `page.route` fulfils `GET /api/backups` **omitting the captured id** | panel **not** visible; `#backup-detail-name` shows the fallback backup; the **warning toast** appears | **M2** — ⚠️ **T-B3**: Plan v1 called this unkillable; `page.route` is used 4× in this file already |
 | **`u10`** ⚠️ NEW | `route.fulfill` a **500** on `POST /api/backups` | panel still visible; both buttons re-enabled and re-labelled from `originalSaveFirstHtml` / `originalConfirmHtml`; **lock released** | ⚠️ **T-NB6**: the only guard on §v2.3's "nothing else changes" — an implementer who moves the capture inside the `try` breaks the untouched `catch` and nothing else notices |
-| **`u11`** ⚠️ NEW, **only under OD-6(a)** | `u1`, then read `document.activeElement` | focus is on `#backup-action-cancel`; `#backup-action-confirm` has `role="alert"` | **P-B3** — clause 3 for a keyboard user *is* focus continuity |
+| **`u11`** ⚠️ NEW, **mandatory per OD-6(a)** | `u1`, then read `document.activeElement` | focus is on `#backup-action-cancel`; `#backup-action-confirm` has `role="alert"` | **P-B3** — clause 3 for a keyboard user *is* focus continuity |
 
 **The [`:155`](../../e2e/program-backup.spec.ts#L155) disposition — MANDATORY.** Its enclosing test
 keeps its subject (save-first creates a snapshot) and `:155` is **deleted**. ⚠️ **Plan v1's
@@ -1351,7 +1460,7 @@ derivation step — which Plan v1 skipped by reasoning "no `.py` is touched".
 3. `npx tsc --noEmit` ⚠️ **NEW** — required and derived.
 4. `npx playwright test e2e/program-backup.spec.ts --project=chromium` — the exact command the **required** `E2E Backup (Chromium, isolated)` job runs ([`ci.yml:465`](../../.github/workflows/ci.yml#L465)).
 5. `npx playwright test e2e/erase-flow.spec.ts --project=chromium` — ⚠️ **relabelled per T-NB4**: a **discretionary clause-5 control**, not table-derived. Kept because "the file was not edited" and "the behavior did not change" are different claims. Its context, `E2E Erase Flow (Chromium, isolated, non-required)`, **is required in branch protection despite the suffix** — one of the two deliberate false "(non-required)" labels.
-6. `npx playwright test e2e/accessibility.spec.ts --project=chromium` — ⚠️ **relabelled per T-NB4**: a **discretionary tripwire**. The fix changes nothing at rest, so the axe pins at [`:841-842`](../../e2e/accessibility.spec.ts#L841-L842) (`backup:light` / `backup:dark`, `color-contrast`, `nodes: 2` each) **cannot** move — which is exactly what makes it a useful tripwire if the implementation drifts into `backup.html`. **Required under OD-6(a)**, which adds a `role`.
+6. `npx playwright test e2e/accessibility.spec.ts --project=chromium` — ⚠️ **relabelled per T-NB4**: a **discretionary tripwire**. The fix changes nothing at rest, so the axe pins at [`:841-842`](../../e2e/accessibility.spec.ts#L841-L842) (`backup:light` / `backup:dark`, `color-contrast`, `nodes: 2` each) **cannot** move — which is exactly what makes it a useful tripwire if the implementation drifts into `backup.html`. ⚠️ **Now REQUIRED, not discretionary**: **OD-6(a)** is decided and adds a `role`, and **OD-5(a)** adds a copy node. Both live inside `#backup-action-confirm`, which is `hidden` at rest, so the pins are still predicted **unmoved** — and this arm's job is now to **prove** that rather than to assume it.
 7. **Full `pytest` — NOT required**, and this is now derived rather than asserted: no `routes/**`, `app.py`, DB/schema file, `utils/**`, `templates/**`, `scss/**`, `static/css/**`, `scripts/**`, `.github/workflows/**` or `tests/conftest.py`; no new blueprint and no new table. One targeted pytest file, per step 2.
 8. `npm run build:css` — **not run, and must not be.** No `scss/**` or `static/css/**` edit; running it locally is the documented cause of the phantom-modification red.
 9. **Manual interactive smoke** — ⚠️ **extended per P-NIT**: §0.2's procedure **cannot reach any in-flight state**, so it may not simply be inherited. It must additionally exercise Cancel, Delete, a list click and a sort change **during** the snapshot request (throttled network or a paused route).
@@ -1384,21 +1493,23 @@ after.
 7. Any of the **22** surviving pre-existing tests in `program-backup.spec.ts` reds — `:155` is an *assertion*, not a test, so deleting it removes no test — ⚠️ **carve-out (T-B5): [`program-backup.spec.ts:79`](../../e2e/program-backup.spec.ts#L79) is a documented known-red** ([`QUALITY_GATE.md:224`](../ai_workflow/QUALITY_GATE.md)). If it reds, re-run it **in isolation** and record the result; it does not trigger rollback. **The citation survives this edit**: `:155` is deleted (shifting only lines > 155) and the new block is appended, so `:79` stays `:79`.
 
 **Revert mechanics**: `git revert` of the **implementation** PR's squash commit restores all seven of its files. It does **not** reach ledger row 12, which belongs to this planning PR's commit — and must not be reverted with it in any case: a ledger row records a `main` run that happened and stays true regardless of what the code does afterwards. No DB
-migration, no schema change, no persisted state, no server change. **One caveat (P-N-related):** under
-**OD-3(a)**, duplicate `Pre-restore snapshot` rows created before a revert **persist through it** —
-they are user data, not code.
+migration, no schema change, no persisted state, no server change. ⚠️ **The OD-3(a) caveat is
+discharged by the decision**: the owner chose **(b)**, so U2 does not make duplicate
+`Pre-restore snapshot` rows an expected outcome of the flow. The general point survives in a smaller
+form — any snapshot a user did create is **user data** and **persists through a revert**, as every
+backup always has.
 
 ---
 
 ### v2.12 Residual risks
 
 1. ⚠️ **DELETED.** Plan v1's "state 6 has no automated arm" is closed by arm `u9` (T-B3).
-2. **The `pendingAction` machine keeps 0 % unit coverage** — owner ruling Q3 (§0.4), pending **OD-1**.
+2. **The `pendingAction` machine keeps 0 % unit coverage** — owner ruling Q3 (§0.4). ⚠️ **Decided, not pending: OD-1 (i)**, and with **no follow-up packet and no rider booked**, by explicit owner direction. The generation counter and the re-assert guard ship with E2E coverage only, and reviving this module's unit coverage would need a future packet with its own Gate 0.
 3. **The mid-flight lock is a real interaction change.** For the duration of the snapshot request, seven controls and the library list are inert. On a slow connection that is a visible freeze. It is the price of not re-arming a destructive confirmation, and §v2.7 requires it in the migration notes rather than shipping it quietly.
 4. **`#backup-sort` and `#backup-search` are outside the lock** (§0.7(b)) and are covered by the generation counter alone. Deliberate: adding them to `setDetailActionDisabled()` would change a shared helper used by other paths, widening the blast radius for no additional safety.
-5. **Accessibility**, pending **OD-6**. Under (c) a destructive confirmation is re-armed with no announcement and no focus target — recorded here in those terms so that is what gets signed.
-6. **The copy/coverage mismatch**, pending **OD-5**. Under (b) the affordance keeps claiming more protection than it delivers, now on screen for longer.
-7. **Pre-existing and NOT repaired here (P-N1):** the snapshot stamp is **UTC** ([`:1037`](../../static/js/modules/backup-center.js#L1037)) while `formatDate()` renders **local** time ([`:47`](../../static/js/modules/backup-center.js#L47)), so for any non-UTC user the name and the rendered date disagree. U2 does not introduce this; under **OD-3(a)** U2 makes the name the sole discriminator between duplicate rows, which is why it is recorded.
+5. ⚠️ **CLOSED by OD-6(a).** The confirmation is announced (`role="alert"`, set from JS in `showPendingAction()`) and focus lands on `#backup-action-cancel`, the safe control. **One narrower limit is recorded rather than dropped**: the `role` is applied by JS, not by [`backup.html`](../../templates/backup.html), so it exists only from the moment `showPendingAction()` first runs — the panel's own markup stays un-annotated, and annotating it is a template edit U2 deliberately does not make.
+6. ⚠️ **CLOSED by OD-5(a).** The affordance now states its own limit on screen, in the owner's words. **The underlying asymmetry is disclosed, not repaired, and is not U2's to repair**: `create_backup()` still covers `user_selection` only while the restore it guards deletes `workout_log` too (§0.8).
+7. **Pre-existing and NOT repaired here (P-N1):** the snapshot stamp is **UTC** ([`:1037`](../../static/js/modules/backup-center.js#L1037)) while `formatDate()` renders **local** time ([`:47`](../../static/js/modules/backup-center.js#L47)), so for any non-UTC user the name and the rendered date disagree. U2 does not introduce this and, per **OD-3**'s sub-question, does **not** add sub-second resolution either. ⚠️ **Re-derived against OD-3(b)**: the duplicate-row case that made this sharp is now the exception rather than the flow's expected outcome — but it is not gone, because (b)'s `disabled` state is not durable and a cancel / re-open cycle re-enables the button. Recorded for that residual case.
 8. **`program-backup.spec.ts` is not in the 25-spec required functional shard.** It is guarded by its own required job — stronger for this packet — but a reader checking the shard list will not find it.
 
 ---
@@ -1416,16 +1527,25 @@ they are user data, not code.
 
 ⚠️ Per **T-NB5**, stated as arithmetic so a later arm addition does not read as a broken prediction.
 
-- `program-backup.spec.ts`: **22** today − **0** deleted tests (`:155` is an *assertion*, not a test) + **10** arms (`u1`–`u10`) = **32**; **33** if **OD-6(a)** adds `u11`.
-- `playwright.total_tests`: **662** → **672** (or **673** with `u11`).
-- `playwright.total_spec_files`: **33**, unchanged.
-- `hard_waits.total_lines`: **82** across **14** files, **unchanged** — no arm uses `waitForTimeout`.
-- `vitest.total_files` / `total_cases`: **13 / 231**, **unchanged** — the **OD-1** evidence.
-- `Required functional gate`: **527** across **25** specs, unchanged — this spec is not in that shard.
+⚠️ **RE-DERIVED AT GATE 1.** Every base figure below was **re-read from
+[`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) at `06a3f41` in the signing session**,
+not carried forward from Plan v2's pre-decision text. **OD-6(a) makes `u11` mandatory**, so the
+conditional "(or 33)" form is gone and each line now carries **one** derived figure.
+
+- `program-backup.spec.ts`: **22** today − **0** deleted tests (`:155` is an *assertion*, not a test) + **11** arms (`u1`–`u11`) = **33**. *(The base was measured two independent ways and they agree: `specs[16].tests = 22` in the inventory, and **22** `test(` declarations in the spec file.)*
+- `playwright.total_tests`: **662** → **673**. *(662 re-read from the inventory.)*
+- `playwright.total_spec_files`: **33**, unchanged — no new spec file.
+- `hard_waits.total_lines`: **82** across **14** files, **unchanged** — no arm uses `waitForTimeout`, and this spec contributes **0** today (measured).
+- `vitest.total_files` / `total_cases`: **13 / 231**, **unchanged** — the **OD-1 (i)** evidence.
+- `Required functional gate`: **527** across **25** specs, unchanged — the inventory records `in_required_functional_set: false` for this spec.
+
+**The three decided strings and the focus move add no spec file and no arm.** They are asserted inside
+arms this count already contains: `u1` carries the two panel strings, `u9` the warning toast, `u11`
+the announcement and the focus target.
 
 | Gate | Expectation |
 |---|---|
-| `E2E Backup (Chromium, isolated)` | green, **22 → 32** (or 33) |
+| `E2E Backup (Chromium, isolated)` | green, **22 → 33** |
 | `Test Inventory Drift` | green after regeneration |
 | `E2E Erase Flow` | green, unchanged |
 | `E2E Functional (Chromium)` | green, unchanged |
@@ -1437,9 +1557,9 @@ they are user data, not code.
 
 ### Sequence
 
-1. Owner answers **OD-1**, **OD-3**, **OD-5**, **OD-6**. (OD-2 retired, OD-4 demoted — neither needs an answer.)
-2. Plan v2 is amended against those answers. ⚠️ **Amending a criterion falsifies every restatement of it** — grep this document for restatements before considering the amendment done.
-3. Owner signs Gate 1; this planning PR merges.
+1. ✅ **DONE — 2026-08-26.** Owner answered **OD-1 (i)**, **OD-3 (b)**, **OD-5 (a)** and **OD-6 (a)**. (OD-2 retired, OD-4 demoted — neither needed an answer.)
+2. ✅ **DONE — 2026-08-26.** Plan v2 amended against those answers, and every restatement re-derived. ⚠️ **Amending a criterion falsifies every restatement of it**, so this document was grepped for restatements before the amendment was called done. **Two were falsified rather than merely confirmed**, and both are marked ⚠️ where they live: `u1`'s "both buttons `toBeEnabled()`" (T-NB7, inverted for save-first by OD-3(b)), and §v2.8's "no DOM state distinguishes" oracle rationale (narrowed by the same decision). A third consequence had no restatement to amend at all — **OD-5(a) needed a production clause Plan v2 did not have**, which is why §v2.3 gains **(F)**.
+3. ✅ **Gate 1 SIGNED — 2026-08-26** (*Sign-off*). ⚠️ **This planning PR has NOT merged**, and that merge is the one remaining precondition. Steps 4 onward are unstarted.
 4. Fresh worktree on `main` as it stands at that time.
 5. Arms `u1`–`u11` written **first** and observed: `u1`, `u2`, `u7`, `u8`, `u9`, `u10` must **red** against unchanged code; `u3`–`u6` must be **green** (they encode existing behavior).
 6. §v2.13 obligation 1 — the 20-run `:155` measurement — **before** the deletion.
@@ -1453,31 +1573,69 @@ they are user data, not code.
 
 ## Sign-off
 
-### GATE 1 — **NOT SIGNED**
+### GATE 1 — SIGNED 2026-08-26
 
-**Status: awaiting owner decision.** Plan v2 is a candidate, not an approved plan. **No production
-file, no test file and no configuration file has been changed by this PR** — its entire diff is this
-planning document plus the ledger row recorded below.
+**The owner approved Plan v2 on 2026-08-26**, deciding all four open questions and directing that the
+plan be amended against them with **no further amendments**. **No production file, no test file and no
+configuration file has been changed by this PR** — its entire diff is this planning document plus the
+ledger row recorded below, and the signature did not change that.
 
-**Four decisions are open**: **OD-1** (coverage tier), **OD-3** (save-again behavior and its copy),
-**OD-5** (the snapshot-coverage copy), **OD-6** (announcement and focus). **OD-2** is retired by
-measurement and **OD-4** is demoted; neither needs an answer.
+**All four decisions selected the option Plan v2 recommended.** That is recorded because it is
+evidence about the *plan*, not a reason to have skipped the derivation: every count, gate, risk and
+conditional branch below was re-derived against the **decisions**, and two restatements came back
+falsified.
 
-**Implementation remains unauthorized** until the owner signs here **and** this planning PR merges.
+| Decision | Answer | Exact copy pinned by the owner |
+|---|---|---|
+| **OD-1** — coverage tier | **(i) E2E-only.** ⚠️ **No Vitest follow-up is added and none is scheduled** — (iii) is **declined, not deferred**. | — |
+| **OD-3** — save again after save-first | **(b) disable and relabel.** Sub-second stamp resolution: **NO**. | `Current plan saved` |
+| **OD-5** — snapshot-coverage copy | **(a) state the limit.** | `Saves the current workout plan only — logged sessions are not included in this snapshot.` |
+| **OD-5** — state-6 warning toast (bundled) | **Required**, wording pinned. | `The backup you were restoring is no longer available. Please choose it again.` |
+| **OD-6** — announcement and focus | **(a) announce, and place focus on Cancel.** | — |
+
+**OD-2** is retired by measurement and **OD-4** is demoted; neither needed an answer.
+
+**The three strings and the focus target are signed criteria, not implementation choices.** An
+implementer who rewords any of them, or who focuses `#backup-action-confirm-btn` instead of
+`#backup-action-cancel`, is changing a signed criterion.
+
+**What is authorized is exactly Plan v2 as amended here** — the **seven** changed paths in §v2.6's
+Artifacts table, the **eleven** arms in §v2.8, the **eleven-row** mutation matrix in §v2.9, the gate
+set in §v2.10 with `accessibility.spec.ts` now required, and the four evidence obligations in §v2.13.
+Nothing else.
+
+**Implementation becomes authorized only after this signed planning PR merges successfully.** Signing
+is not the authorization; the merge is. Until `docs/u2-gate1-plan` is on `main`, no production code,
+no test code, no edit to [`backup-center.js`](../../static/js/modules/backup-center.js) and no edit to
+[`program-backup.spec.ts`](../../e2e/program-backup.spec.ts) is authorized.
 
 ```
 GATE 1 — Packet U2 — Backup "save first" confirmation continuity
-Owner: ______________________     Date: ______________
+Owner: Yaakov Avihai Shai            Date: 2026-08-26
 
-OD-1  [ ] (i) E2E-only   [ ] (ii) Vitest now   [ ] (iii) separate deferred packet
-OD-3  [ ] (a) leave enabled   [ ] (b) disable + relabel: "______________________"
-      [ ] (c) hide       sub-second stamp? [ ] yes  [ ] no
-OD-5  [ ] (a) state the limit: "______________________"   [ ] (b) ship without
-      [ ] (c) rename the button
-OD-6  [ ] (a) announce + focus Cancel   [ ] (b) announce only   [ ] (c) neither
+OD-1  [x] (i) E2E-only   [ ] (ii) Vitest now   [ ] (iii) separate deferred packet
+      -> and no Vitest follow-up is added or scheduled
+OD-3  [ ] (a) leave enabled   [x] (b) disable + relabel: "Current plan saved"
+      [ ] (c) hide       sub-second stamp? [ ] yes  [x] no
+OD-5  [x] (a) state the limit:
+          "Saves the current workout plan only — logged sessions are not included in this snapshot."
+      [ ] (b) ship without      [ ] (c) rename the button
+      state-6 warning toast (bundled, required):
+          "The backup you were restoring is no longer available. Please choose it again."
+OD-6  [x] (a) announce + focus Cancel   [ ] (b) announce only   [ ] (c) neither
 
-Plan v2 approved as written / as amended above:  [ ] yes   [ ] no
+Plan v2 approved as written / as amended above:  [x] yes   [ ] no
 ```
+
+**What this signing leaves stale elsewhere — flagged, not edited.** This signing session was
+authorized to modify **this file only**, so nothing below is repaired here.
+[`OPEN_WORK_EXECUTION_PLAN.md:155`](../OPEN_WORK_EXECUTION_PLAN.md#L155) reads
+`**Status:** Execute — ready to enter its **own** Gate 1`. U2 has now entered that gate **and passed
+it**, so the line is stale from this moment — not from U2 shipping, which is how the
+*Flagged, not edited* section below had it before this signing. §4's per-packet gating blockquote at
+[`:218-225`](../OPEN_WORK_EXECUTION_PLAN.md#L218-L225) is **not** stale: it is framed as the gates each
+packet *owes*, and a "gates it owes" framing survives a gate being passed. Repairing the `Status:`
+line belongs to a status-reconciliation packet, and it is **owner action owed**.
 
 ---
 
@@ -1555,10 +1713,11 @@ instruction they are **flagged and left untouched**:
 lives in exactly one place"* — means each of these is a restatement that should not exist, and
 repairing them is a scoped decision the owner should make deliberately.
 
-Two other documents that name U2 will need updating **when U2 ships**, and are likewise not touched
-here: [`DUPLICATION_REGISTRY.md:49`](../DUPLICATION_REGISTRY.md) (row 10's live residual, which the
-implementation PR owns — §v2.6) and [`OPEN_WORK_EXECUTION_PLAN.md:152-181`](../OPEN_WORK_EXECUTION_PLAN.md#L152-L181)
-(Packet U2's `Status: Execute` line, which a status packet owns).
+Two other documents that name U2 are likewise not touched here, and ⚠️ **the Gate 1 signature moved
+one of them from "when U2 ships" to "now"**:
+
+- [`DUPLICATION_REGISTRY.md:49`](../DUPLICATION_REGISTRY.md) — row 10's live residual. Still falsified only **when U2 ships**, and the implementation PR owns it (§v2.6 row 4).
+- [`OPEN_WORK_EXECUTION_PLAN.md:155`](../OPEN_WORK_EXECUTION_PLAN.md#L155) — Packet U2's `**Status:** Execute — ready to enter its **own** Gate 1` line. ⚠️ **Stale from 2026-08-26**, because U2 has now entered that gate and passed it. A status packet owns the repair; see the closing paragraph of *Sign-off*.
 
 ---
 
