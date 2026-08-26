@@ -2,10 +2,12 @@
 
 > ⚠️ **ANNOTATION 2026-08-27 — the status line below is SUPERSEDED and is annotated, not rewritten.**
 > **GATE 0 IS SIGNED** (§1). The owner ruled on all ten `OQ` rows, ruled on sequencing, and authorized
-> **Gate 1 planning only**. **Gate 1 is NOT signed and implementation is NOT authorized.** Gate 1 planning is COMPLETE:
+> **Gate 1 planning only**. **Gate 1 is NOT signed and implementation is NOT authorized.** Gate 1 planning is CLOSED at §6:
 > Plan v1 (§2), the three-reviewer council and response matrix (§3), and **Plan v2 (§4)** are
-> written; **four owner decisions (OD-11..OD-14) and one unrun mutation (N9) block the signature**
-> (§5).
+> written, and **OD-11..OD-14 are RULED** (§6.1). **N8, N9 and N10 are all KILLED both directions**
+> (§6.3-§6.5). **One blocker remains and no signature is requested**: arm `t9`'s drive is unreliable
+> and the ANNOUNCE half of the OD-2 amendment has no mutation row (§6.9). The proposed signature
+> block is §6.11, offered for approval and NOT applied.
 > §0.9's recommendations are superseded by §1's rulings wherever the two differ; §0.9 stays in place as
 > the evidence that produced them. This document necessarily predates its own sign-off, so the
 > pre-signature text is preserved rather than edited.
@@ -1538,6 +1540,11 @@ Replacing items 6 and 8, and adding 9–11:
 
 ### 4.9 Owner decisions outstanding — the Gate 1 boundary
 
+> ⚠️ **ANNOTATION 2026-08-27 — all four rows are now RULED. Annotated, not rewritten.**
+> **OD-11 APPROVED**, **OD-12 (a)**, **OD-13 ACCEPTED**, **OD-14 APPROVED** — the governing text is
+> **§6.1**, and §6.2 records what the rulings changed in the design. The table below is the question
+> as it was put, preserved so the answer can be read against it.
+
 | ID | Decision | Status |
 |---|---|---|
 | **OD-11** | `OQ-6(i)` offered *"**Inside `#toast-body`** (needs `:60` to become selective) **or** in a sibling action slot inside `#liveToast`"*, and the ruling used **the second phrase**. Plan v2's slot is a child of **`#toast-body`** — the **first** branch. And the recommendation the owner signed argued for relocation because *"the clear stays unconditional and total, which keeps `I2`, `I4` and B26 trivially true"* — **§4.2(C) discards exactly that**, replacing the clear with a targeted `textContent` write. | **OPEN.** §4.2(B)/(C) are **provisional**. Measured basis: the alternative reading reds `e2e/volume-splitter.spec.ts:340` (mutation **N6**, killed by `k6`), because `expectToast` scopes to `#toast-body`. A plan may not narrow a signed criterion, so this is confirmed, not assumed |
@@ -1548,6 +1555,11 @@ Replacing items 6 and 8, and adding 9–11:
 ---
 
 ## 5. Gate 1 checklist and STOP
+
+> ⚠️ **ANNOTATION 2026-08-27 — SUPERSEDED by §6.10. Annotated, not rewritten.** Both items this
+> section lists as blocking are **discharged**: OD-11..OD-14 are ruled (§6.1) and **N9 has been run
+> and KILLED** (§6.4). **A different blocker replaced them** — see §6.9. The live checklist is §6.10
+> and the live boundary is the end of §6.
 
 **Ready, and evidenced:** the browser reproduction with its pre-fix prediction recorded; the
 contained byte-identity-guarded matrix at **8 rows / 11 arms**, both directions, **7 KILLED and one
@@ -1601,3 +1613,278 @@ without a fetch, and a reconciliation is only true at the moment it was measured
 - The entire harness lives in the gitignored `artifacts/probe/` and is **not** in the PR.
 - **KI-011 implementation is not authorized, must not begin, and must not run concurrently with
   KI-010 implementation. PR #426 stays draft.**
+
+---
+
+## 6. Gate 1 closure — owner rulings OD-11…OD-14 and the closing evidence
+
+> **Gate 1 is NOT signed.** This section records the owner's four rulings of 2026-08-27, the
+> measurements they required, and **one unresolved oracle discrepancy that blocks the signature**.
+> §6.11 holds the proposed signature block, offered for approval and **not self-applied**.
+
+### 6.1 Owner rulings, recorded as the governing text
+
+| ID | **RULING** |
+|---|---|
+| **OD-11** | **APPROVED — Plan v2's measured placement.** `OQ-6(i)` is **amended**: the action slot is the **last child of `#toast-body`**, sibling to `span.toast-message`, as `<div class="toast-action-slot d-inline">`. The selective `textContent` message update in §4.2(C) is **approved**. This **supersedes** the earlier ambiguous *"sibling slot inside `#liveToast`"* wording. **The existing `expectToast` oracle must not be weakened or relocated** to accommodate the rejected layout |
+| **OD-12** | **(a) — FIX F-NEW-1 IN U3b.** The dispose-mid-transition `TypeError` is a **correctness dependency**. Keep `t12` as a dedicated, **unfiltered** `pageerror` oracle and add the corresponding mutation row. **Re-run N8 both directions against the corrected candidate; N8 must be KILLED.** If it survives, **do not waive it** — remove the non-load-bearing check or revise the design and re-measure |
+| **OD-13** | **ACCEPTED — the bounded re-announcement tradeoff.** `OQ-6(ii)` is **amended**: while a valid action stands, **a later message may be announced together with the standing action label**. **Do not** change the global `aria-atomic` contract in `base.html` or its `ui-hardening.spec.ts` pin in this packet. **Do not claim `aria-live="off"` excludes the slot from the atomic ancestor**; record the tradeoff accurately |
+| **OD-14** | **APPROVED — bare preservation.** A later toast with no action preserves the standing action **without contextual copy**. The owner **explicitly accepts the temporary message/action mismatch** during the action's original validity window, **because losing the actionable offer is worse**. A **malformed** supplied action is treated the same as no valid replacement: render the new message, **preserve the still-valid standing action**, handle the malformed action per the existing contract, and **never render two actions**. **The malformed-action inheritance tradeoff is recorded explicitly** |
+
+**§4.2(B) and §4.2(C) are no longer provisional** — OD-11 settles them.
+**§4.2(G) stands corrected under OD-13**: the slot's `aria-live="off"` governs only changes *within*
+the slot; it does **not** remove the slot from what the atomic ancestor presents. **While an action
+stands, every later message is announced as "&lt;new message&gt; &lt;action label&gt;", and the owner has
+accepted that.** `base.html:238`/`:247` and `e2e/ui-hardening.spec.ts:361-363` are **untouched**.
+
+**OD-14's accepted tradeoffs, stated so neither is discovered later.**
+(i) On the very route this packet fixes, the toast reads
+**`Failed to load saved volume plans. Please try again.Activate for Plan tab`** for the remainder of
+the action's window. (ii) **Malformed-action inheritance**: a caller that *intended* to offer action
+X but passed a malformed action renders its message beside an **unrelated** standing action Y. No
+live caller does this today — the rule is written for all 112 — and B33/B34 continue to require that
+a malformed action render **no** button and raise **no** error.
+
+### 6.2 What the rulings changed in the design
+
+**OD-12(a) — F-NEW-1 repaired.** `disposeExisting()` now **flushes the pending Bootstrap transition
+callback synchronously** before disposing: when `#liveToast` carries `showing` or `hiding`, it
+dispatches a `transitionend` `Event` so Bootstrap's `executeAfterTransition()` runs its completion
+handler **while the instance is still live**, and only then calls `dispose()`. Public DOM API only,
+no Bootstrap private touched, and **B27's dispose-before-construct order is preserved**.
+
+| gap between the two `showToast()` calls | **production** | **candidate** |
+|---:|---:|---:|
+| **0 ms** | **2 uncaught `TypeError`s** | **0** |
+| 100 / 200 / 400 / 600 / 1000 ms | 0 | 0 |
+
+**And the dispose block moved AHEAD of the content write.** This was not cosmetic — it is the
+second half of the same repair, and it was found by measurement, not review. With the dispose left
+late, the flush can fire `hidden.bs.toast` *after* the new action button already exists, and the
+dismissal listener then clears **the brand-new action**:
+
+| Drive | `hidden.bs.toast` fires with | final standing action |
+|---|---|---|
+| close → **+40 ms** → new action toast | `standingLabel: "Activate for Plan tab"` (the outgoing one) | **`"Retry"`** — survives |
+| close → new action toast in the **SAME synchronous turn** | `standingLabel: **"Retry"**` — the **incoming** one | **`null`** — wiped |
+| auto-hide expiring under a new action toast | `standingLabel: null` | `"Retry"` — survives |
+
+Disposing **first** means the flush can only ever clear the **outgoing** action, which is exactly
+what OQ-7 asks for.
+
+**The generation check was REMOVED, per OD-12's instruction.** Plan v2 §4.2(F) proposed a generation
+counter stamped on `#liveToast` and captured on the button. **Measurement showed it cannot
+discriminate:** when the flush fires inside a single `showToast()` call, the outgoing and incoming
+buttons **carry the same generation** (`buttonGen: "2"`, `elementGen: "2"` in the same-turn drive
+above), so the check passes and the new button is cleared anyway. The owner's ruling was explicit —
+*"do not waive it: remove the non-load-bearing generation check or revise the design and
+re-measure"* — so **the check is deleted and the ordering is the repair.** `data-toast-generation`
+does not appear in the design.
+
+**Consequently N8 was re-derived.** Its original form (*remove the generation check*) is an
+**equivalent mutation** and is not retained as such; **N8 is now the ORDERING mutation** — *dispose
+runs after the content write* — which is the defect the generation check was trying and failing to
+guard. **`k11` was rewritten to the same-turn construction**, because the 40 ms form measurably
+never reaches the race and would have held on a broken build.
+
+### 6.3 N8 — exact results, both directions
+
+| Stage | Mutation under test | `k11` on mutant | `k11` on pristine | Verdict |
+|---|---|---|---|---|
+| Plan v2 as written, **pre-OD-12** | `noGenerationCheck` | **true** | true | **SURVIVED** |
+| After the F-NEW-1 fix, **check still present, `k11` at 40 ms** | `noGenerationCheck` | **true** | true | **SURVIVED** |
+| **Final** — check removed, ordering is the repair, `k11` same-turn | **`disposeAfterContent`** | **false** | **true** | **KILLED** ×3 |
+
+**N8 is KILLED**, three consecutive runs, both directions. The two survivals are recorded rather
+than deleted: they are the evidence that produced the redesign, and they are the reason the
+generation check is not in the shipped design.
+
+### 6.4 N9 — exact results, both directions
+
+`N9` needed a **second** intercepted module. `artifacts/probe/volume-splitter.candidate.js` is
+generated from the shipped file (blob `552a7baa2dfe050951ad97c3a99007254b211756`) by applying **only**
+§4.3's four amendments, and is served by route interception exactly as `toast.js` is. **The
+repository file is never written**, and the harness now asserts **both** production blobs before,
+between and after every row.
+
+`k12` (spec arm **t10**) drives: successful calculation → forced calculate failure (U1's Retry toast
++ inline region) → an unrelated toast replaces the message while the KI-011 fix preserves the button
+→ a **successful** calculation. It asserts the unrelated toast is **still visible and still showing
+its own message** — plus a **paired positive** that U1's failure toast genuinely stood first, so the
+arm cannot pass on a build where the failure path never ran.
+
+| Mutation | `k12` on mutant | `k12` on pristine | Verdict |
+|---|---|---|---|
+| **`noMessageGuardOnDismiss`** — `dismissCalculateFailureToast()` keeps the button-only guard | **false** | **true** | **KILLED** ×3 |
+
+Without the `ourMessageStands()` conjunct, the button probe alone answers *"ours"* — because the fix
+preserved the Retry button — and `hide()` **dismisses a stranger's toast**. That is a new
+user-visible defect the fix would otherwise have introduced, and it is now locked.
+
+### 6.5 N10 — the F-NEW-1 mutation OD-12 required
+
+| Mutation | `k13` on mutant | `k13` on pristine | Verdict |
+|---|---|---|---|
+| **`noFNew1Fix`** — the transition flush is removed, `dispose()` runs mid-transition again | **false** | **true** | **KILLED** ×3 |
+
+`k13` is spec arm **t12**: a **dedicated collector that filters nothing**, because
+`e2e/fixtures.ts:42` drops `'Global error caught'` and `:61-62` drops `'classList'` and
+`'Cannot read properties of null'`. It carries a **paired positive** — the route's own network
+diagnostics must be present — so it cannot pass on a drive that never happened.
+
+### 6.6 Corrected mutation totals
+
+**10 rows, 13 arms, both directions on every row, 3 consecutive full runs with identical verdicts.**
+
+| Row | Mutation | Verdict | Killed by | Survived on |
+|---|---|---|---|---|
+| **N1** | restore `toast.js:60`'s wholesale clear | **KILLED** | k1, k8 | k6 *(placement arm; correct)* |
+| **N2** | a standing action outranks a new one (OQ-3) | **KILLED** | k2 | — |
+| **N3** | the later call's duration wins outright (OQ-4) | **KILLED** | k3 | — |
+| **N4** | a standing action never expires | **KILLED** | k9 | k4 *(non-isolating)* |
+| **N5** | dismissal does not invalidate (OQ-7) | **KILLED** | k5 | — |
+| **N6** | slot placed outside `#toast-body` | **KILLED** | k6 | — |
+| **N7** | no eager expiry timer (OQ-1) | **KILLED** | k10 | — |
+| **N8** | **dispose runs after the content write** | **KILLED** | k11 | — |
+| **N9** | **the dismiss guard keeps the button-only probe** | **KILLED** | k12 | — |
+| **N10** | **the F-NEW-1 transition flush is removed** | **KILLED** | k13 | — |
+
+**10 of 10 KILLED. No survivors. No `BAD ROW`.** An arm that **threw** scores `BAD ROW`, never a
+kill; a row is `KILLED` only on `mutant === false && pristine === true`.
+
+**Re-verified against the final candidate:** the real 47-case `toast.test.js` is **green, unmodified**
+(mirrored layout, 49/49 including the two state-bleed cases); the expired action is **inert**
+(`onClick` does not fire); the surviving closure activates the **original** plan
+(`/api/volume_plan/50/activate`); and the F-NEW-1 gap sweep is **clean at every gap**.
+
+### 6.7 Production blob checks
+
+Asserted by the harness before the first row, **between every row**, and after the last, and
+re-verified by hand at the end of the session:
+
+| Path | Blob | Expected |
+|---|---|---|
+| `static/js/modules/toast.js` | `42863b4664b7f87a2519556b7f9db8af2cb36e64` | unchanged ✓ |
+| `static/js/modules/volume-splitter.js` | `552a7baa2dfe050951ad97c3a99007254b211756` | unchanged ✓ |
+| `static/js/modules/__tests__/toast.test.js` | `9b10e473a284b2968444916f266fd2da56518d6f` | unchanged ✓ |
+| `e2e/volume-splitter.spec.ts` | `8cffe041a37f91c429d852043510a1e8b2b8091c` | unchanged ✓ |
+
+`git status --porcelain` shows **only** `docs/toast_action_continuity/PLANNING.md`.
+`npm run test:js` → **13 files / 231 cases** green. `generate_test_inventory.py --check` → **exit 0**.
+
+### 6.8 Live-`main` reconciliation, re-read immediately before recording
+
+`origin/main` moved **twice** during this session and was re-read each time, never assumed.
+
+| Read | `origin/main` | What landed |
+|---|---|---|
+| Session start | `52c44c4` | — |
+| Mid-session | `7a64d2e` | **#415** — Dependabot `pyinstaller`, one line in `requirements-build.txt` |
+| **Final** | **`db6c34b`** | **#425 — U3a's KI-010 Gate 0 planning, docs-only, one new file** |
+
+**Every blob this packet anchors on is byte-identical at `db6c34b`** — `toast.js` `42863b4`,
+`volume-splitter.js` `552a7ba`, `toast.test.js` `9b10e47`, `e2e/volume-splitter.spec.ts` `8cffe04`,
+`e2e/fixtures.ts` `63b4af0`, `vitest.config.js` `c16ca42`, `templates/base.html` `a2cb027`. **No
+citation in this document needs re-anchoring and no measured figure moves.**
+
+**Sequencing, as it actually stands:**
+
+- **U3a's Gate 0 planning is MERGED** (`db6c34b`). That is **planning only** — KI-010's
+  implementation remains unauthorized, and the owner's ruling that **U3b lands before U3a** is
+  unaffected. **No KI-010 implementation has begun and none is started here.**
+- **U2's implementation PR [#427](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/427) is
+  OPEN and ready-for-review** (not draft). **Its merge order is not assumed and is not decided
+  here.** U3b is **not** rebased around it.
+- This branch remains based on `52c44c4`. **Rebase onto whatever `main` is at implementation time**,
+  and **re-read all of the above then** — the shared ref store advances without a fetch.
+
+### 6.9 Remaining blocker — one unresolved oracle
+
+**The two mutation obligations the owner set are satisfied: N8 and N9 are both KILLED, both
+directions, three runs each.** One item is **not** settled, and it is reported rather than resolved
+by assertion.
+
+**The OD-2 amendment's re-announcement behaviour has two contradictory, deterministic
+measurements**, taken against the *same* candidate pair, each repeated and each stable:
+
+| Probe | Drive | Measured `#toast-body` writes | Verdict |
+|---|---|---|---|
+| `predicate-check.mjs` | failure → unrelated toast → **+300 ms**, then the second slider failure | `t≈560` U1's message · `t≈2560` unrelated · **`t≈2880` U1's message again** | **RE-ANNOUNCES** (4/4 runs) |
+| `u1-interaction.mjs` | failure → unrelated toast → **+400 ms**, then the second slider failure | `t≈555` U1's message · `t≈2550` unrelated · `t≈3553` **the same unrelated message, `retry=false`** (the expiry timer removing the button, **not** a new toast) | **DOES NOT re-announce** (3/3 runs) |
+
+Both use a `MutationObserver` transition log, so **neither is a sampling artifact**. Instrumenting
+the decision point directly showed `enterCalculateFailureState()`'s announce branch **never
+evaluated** in the second drive — the second slider failure did not reach the failure state machine
+at all — while `toastMessageText()` measured `"Backup created successfully."` and
+`ourMessageStands()` would have been `false`, i.e. the amended condition **would** have announced had
+it been reached.
+
+**What this does and does not mean.** It is **not** evidence that the amendment is wrong; every
+direct evaluation of the predicate returns the designed answer. It **is** evidence that **arm `t9`'s
+drive sequence is not yet reliable** — a 100 ms difference in when the second slider change is
+issued decides whether U1's debounce/sequence machinery dispatches a second failing calculation at
+all. An arm that silently fails to drive the behaviour it claims to test is the exact false-green
+class this packet has been disciplined about elsewhere.
+
+**Required before Gate 1 can be signed** — and deliberately **not** attempted here, because it is
+implementation-shaped work:
+
+1. Determine why the second slider-originated failure is dispatched in one drive and not the other —
+   `scheduleCalculate()`'s debounce, the `change` listener, and `calculateRequestSeq` are the three
+   candidates.
+2. Re-specify `t9` (and `t11`, which shares the shape) around a **response-count oracle** —
+   `waitForResponse` on the second `POST /api/calculate_volume` — so the arm cannot pass without the
+   failure it is testing having actually occurred.
+3. Add the matching mutation row for the announce half of §4.3 (revert the condition to
+   `!ourToastContentStands()`) and run it **both directions**. Only `N9`, the *dismiss* half, is
+   locked today.
+
+### 6.10 Final Gate 1 checklist
+
+- [x] **OD-11…OD-14 recorded** as governing text (§6.1); §4.2(B)/(C) no longer provisional
+- [x] **OD-12(a): F-NEW-1 fixed** and measured clean at every gap (§6.2)
+- [x] **The generation check removed** as measured non-load-bearing, per OD-12's explicit instruction
+- [x] **N8 KILLED** both directions, ×3, after the redesign (§6.3)
+- [x] **N9 KILLED** both directions, ×3, with a paired positive (§6.4)
+- [x] **N10 added and KILLED** both directions, ×3, with an unfiltered oracle (§6.5)
+- [x] **10 rows / 13 arms / 10 KILLED / 0 survivors / 0 BAD ROW**, 3 identical full runs (§6.6)
+- [x] **Both production blobs asserted** before, between and after every row (§6.7)
+- [x] **The 47-case contract green against the final candidate, file unmodified**
+- [x] **Live-`main` reconciled twice, sequencing re-read, nothing assumed** (§6.8)
+- [x] Containment: **one file modified**, harness gitignored, PR **draft**
+- [ ] **BLOCKED — `t9`/`t11`'s drive is unreliable and the announce half of §4.3 has no mutation row**
+      (§6.9)
+
+**Gate 1 is therefore NOT ready for signature, and none is requested.** The block is narrow and
+named: the *dismiss* half of the OD-2 amendment is locked; the *announce* half is not.
+
+### 6.11 Proposed Gate 1 owner-signature block — **for approval, not applied**
+
+Offered verbatim so it can be pasted once §6.9 is discharged. **It is deliberately conditional; do
+not read it as a claim that the condition is met.**
+
+> **GATE 1 — SIGNED, 2026-__-__.**
+>
+> I approve **Plan v2 (§4)** as amended by my rulings **OD-11…OD-14 (§6.1)** and by the design
+> changes those rulings produced (§6.2): the action slot as `<div class="toast-action-slot
+> d-inline">`, last child of `#toast-body`; the selective `textContent` message update; eager
+> expiry; the F-NEW-1 transition flush with the dispose ahead of the content write; **no**
+> generation check; and the U1 amendments of §4.3 **without** a rename.
+>
+> I accept the recorded tradeoffs: **OD-13**'s bounded re-announcement of a standing action label,
+> and **OD-14**'s message/action mismatch and malformed-action inheritance.
+>
+> I have read §6.9's discharge — the second slider-originated failure's dispatch is explained,
+> **`t9` and `t11` are re-specified around a `waitForResponse` oracle**, and the **announce** half of
+> §4.3 carries a mutation row run **both directions** — and I accept the mutation matrix at
+> **11 rows / 10+ arms, all KILLED**.
+>
+> **Implementation of KI-011 is AUTHORIZED**, on these standing conditions:
+> the regression is **E2E-only** (`toast.test.js` stays at 47; the Vitest corpus stays at
+> **13 files / 231 cases**; **T0 remains `2026-08-22T17:59:26Z`**); the gate set of **§4.5**
+> including **`tsc --noEmit`** and the **post-squash window measurement** is run in full;
+> **§4.6**'s migration notes and **§4.8**'s ownership claim are discharged before code is written;
+> **U3b lands before U3a**, whose implementation **must not run concurrently**; and the branch is
+> **rebased onto live `main` and re-reconciled** first — **PR #427 (U2) merge order is not assumed**.
+>
+> **Merging remains a separate confirmation.**
