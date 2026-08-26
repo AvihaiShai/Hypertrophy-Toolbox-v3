@@ -1389,10 +1389,13 @@ blob `c16ca428f7478708d8dd96a20ebcb86f98a8b935` and leaves the collection mechan
 `npm run test:js` still reports **13 files / 231 cases**. **T0 stays `2026-08-22T17:59:26Z` and the
 strict mark stays `2026-09-05T17:59:26Z`.**
 
-**The §v2.9 mutation matrix ran in both directions, all nine rows, against the shipped file.** The
-file was restored with `git checkout --` after every row and verified byte-identical to the
-checkpoint before the next one — never restored by retyping. **Every predicted red was observed.**
-Two rows red *more* arms than predicted; both are recorded below with the measured cause:
+**The §v2.9 mutation matrix ran in both directions, all nine rows, against the shipped file.**
+Checkpoint `a659fff`, `volume-splitter.js` sha256 `8ecac9eb…`; the file was restored with
+`git checkout --` after every row and verified byte-identical to that sha before the next one —
+never restored by retyping. The matrix ran **three times** in total, at each of the three
+checkpoints this branch passed through, with identical results every time. **Every predicted red
+was observed.** Two rows red *more* arms than predicted; both are recorded below with the measured
+cause:
 
 | Row | Predicted red | Observed red | Note |
 |---|---|---|---|
