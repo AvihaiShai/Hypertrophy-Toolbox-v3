@@ -706,12 +706,7 @@ test.describe('Volume Splitter tooltips', () => {
 });
 
 /**
- * Packet U1 — Volume Splitter calculation-failure feedback.
- *
- * Plan: `docs/volume_failure_feedback/PLANNING.md` §v2.8 (arms) and §v2.10
- * (success-path invariants). Every arm here lives in this spec deliberately:
- * OD-1 chose E2E-only coverage while the JS-unit qualification window is live,
- * so no Vitest file or case is added. See §v2.14 / U1-FOLLOWUP-1.
+ * Volume Splitter calculation-failure feedback.
  *
  * Console posture is **allow-one**, not fixture-less: the block collects
  * console errors and asserts in `afterEach` that every entry carries the
@@ -1061,22 +1056,28 @@ test.describe('Volume Splitter calculation failure feedback', () => {
 
   test('s3 dismisses the standing failure toast when the next calculation succeeds', async ({ page }) => {
     await routeCalculateServerError(page);
-    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+    // Prove the interception fired before unrouting. `page.unroute` mutates the
+    // route list synchronously, so unrouting first can let the POST fall through
+    // to the real server, succeed, and red this arm for an unrelated reason.
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes('/api/calculate_volume') && response.status() === 500),
+      page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click(),
+    ]);
 
-    // Precondition, asserted immediately before the success is driven rather
-    // than before the unroute. Without it "the button is hidden" is vacuously
-    // true under a mutation that deletes the toast-creating path, and this arm
-    // passes for the wrong reason; asserting it after the unroute also means a
-    // slow unroute cannot let the toast's own 3000 ms life expire unnoticed and
-    // retire the mutation that covers dismissCalculateFailureToast().
+    // Precondition. Without it "the button is hidden" is vacuously true under a
+    // mutation that deletes the toast-creating path, and this arm passes for the
+    // wrong reason. Asserted after the unroute rather than before it, so a slow
+    // unroute cannot let the toast's own 3000 ms life expire unnoticed and
+    // silently retire the mutation covering dismissCalculateFailureToast().
     const toastRetry = page.locator(TOAST_RETRY);
     await page.unroute(CALCULATE_ROUTE);
     await expect(toastRetry).toBeVisible();
 
-    await dispatchSliderEvents(page, 'Chest', 12, ['change']);
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
 
     // Bootstrap's hide transition is ~150 ms; an un-dismissed toast stays
-    // visible for the remainder of its 3000 ms, so 1 s discriminates.
+    // visible for the remainder of its 3000 ms, so 1 s from the click
+    // discriminates.
     await expect(toastRetry).toBeHidden({ timeout: 1000 });
     await expect(page.locator('.results-section')).not.toHaveClass(/d-none/);
     await expect(page.locator('#results-body tr')).not.toHaveCount(0);

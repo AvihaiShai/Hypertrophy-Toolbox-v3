@@ -168,7 +168,7 @@ function calculateVolume({ forceAnnounce = true } = {}) {
                 return;
             }
             // Request-failure class: non-2xx and transport failures, both of
-            // which the wrapper reports silently under `showErrorToast: false`.
+            // which the shared wrapper reports silently for this call.
             console.error('Volume calculation: request failed', error);
             enterCalculateFailureState({ forceAnnounce });
         });
@@ -218,9 +218,9 @@ function renderCalculateFailureRegion() {
     retry.type = 'button';
     // Deliberately NOT a `btn btn-*` button. components.css paints `.alert-danger`
     // as a red gradient, and every Bootstrap button variant resolves to danger-red
-    // text inside it -- measured at 1.58:1 against that gradient, which no class
-    // swap fixes. The plain control inherits the UA button surface and measures
-    // 18.4:1. Plan v2 (D) specifies no class here; these were added and removed.
+    // text inside it -- measured at 1.58:1 there, which no class swap fixes. The
+    // plain control inherits the UA button surface and measures 18.4:1. Plan v2
+    // (D) specifies no Bootstrap button variant here; the spacing utility stays.
     retry.className = 'ms-2';
     retry.dataset.testid = 'volume-calculate-retry';
     retry.setAttribute('aria-label', 'Retry volume calculation');
@@ -245,12 +245,8 @@ function dismissCalculateFailureToast() {
         return;
     }
 
-    // The `typeof` guard is this file's own idiom for the bootstrap global
-    // (initDeleteModal()). It matters more here than there: this helper runs
-    // inside the success `.then`, so a throw would reach the outer `.catch` and
-    // paint the failure region over results that had just rendered.
     const toastElement = document.getElementById('liveToast');
-    if (toastElement && typeof bootstrap !== 'undefined') {
+    if (toastElement) {
         bootstrap.Toast.getInstance(toastElement)?.hide();
     }
 }
@@ -759,9 +755,8 @@ function attachSliderListeners() {
         slider.addEventListener('change', () => {
             modeVolumeState[currentMode] = { ...collectVolumes() };
             updateSliderTrack(slider, getRangeForMuscle(slider.dataset.muscle));
-            // Not silent: the first failure of a run still announces via the
-            // `|| !standing` fallthrough. Keyboard arrow keys fire `change` on
-            // every keypress, which is where re-announcing hurts most.
+            // Not silent: the `|| !standing` fallthrough still announces the
+            // first failure. Arrow keys fire `change` on every keypress.
             calculateVolume({ forceAnnounce: false });
         });
     });
@@ -996,8 +991,7 @@ function scheduleCalculate() {
     if (calculateDebounceId) {
         clearTimeout(calculateDebounceId);
     }
-    // Not silent: the first failure of a drag still announces via the
-    // `|| !standing` fallthrough.
+    // Not silent: the `|| !standing` fallthrough still announces the first failure.
     calculateDebounceId = window.setTimeout(() => calculateVolume({ forceAnnounce: false }), 300);
 }
 

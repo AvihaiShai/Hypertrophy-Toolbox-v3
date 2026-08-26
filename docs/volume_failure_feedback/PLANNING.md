@@ -1367,8 +1367,7 @@ packet *owes* rather than gates it has passed.
 code”* paragraph beside it are both **SPENT**. Nothing above is rewritten; the four owner
 decisions govern exactly as recorded in §v2.13.
 
-**The implementation diff carries SEVEN artifact paths / EIGHT files, and the eighth is not
-scope creep.** §v2.1's Artifacts table and §v2.12's **BR-1** both say six artifacts / seven files,
+**The implementation diff carries SEVEN artifact paths / EIGHT files.** §v2.1's Artifacts table and §v2.12's **BR-1** both say six artifacts / seven files,
 and that count still governs the **functional** blast radius — it is what BR-1 is checked against
 and it did not move. The extra path is
 [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md), added under a
@@ -1379,8 +1378,7 @@ plus the one counter annotation that block itself planted in the superseded post
 it — the same in-place repair its three earlier extensions each made. **Nothing outside §13.0 is
 edited**, which is a statement about the diff and **not** a claim that nothing outside §13.0 is
 left stale; what is left stale is listed under *Debt this diff creates* below. A ledger-only PR
-was rejected because it would mint a twelfth row and owe a thirteenth without end. **No ninth file
-is authorized.**
+would mint a twelfth row and owe a thirteenth without end. **No ninth file is authorized.**
 
 **The qualification window is untouched, and that was measured rather than assumed.** U1 changes
 the production JS tree — `static/js`'s tree hash moves off
@@ -1391,17 +1389,16 @@ blob `c16ca428f7478708d8dd96a20ebcb86f98a8b935` and leaves the collection mechan
 `npm run test:js` still reports **13 files / 231 cases**. **T0 stays `2026-08-22T17:59:26Z` and the
 strict mark stays `2026-09-05T17:59:26Z`.**
 
-**The §v2.9 mutation matrix ran in both directions, all nine rows.** Checkpoint commit
-`cb52edd`; `volume-splitter.js` sha256 `ed6563c2…` before and after every row, restored with
-`git checkout --` and never by retyping. **Every predicted red was observed.** Two rows red
-*more* arms than predicted, which is over-detection rather than a defect in an arm, and both are
-explained rather than waved through:
+**The §v2.9 mutation matrix ran in both directions, all nine rows, against the shipped file.** The
+file was restored with `git checkout --` after every row and verified byte-identical to the
+checkpoint before the next one — never restored by retyping. **Every predicted red was observed.**
+Two rows red *more* arms than predicted; both are recorded below with the measured cause:
 
 | Row | Predicted red | Observed red | Note |
 |---|---|---|---|
 | **M1** | `a1`–`a6`, `c1`, `c2`, `s2`, `s3`; `s6` mirror case only | `a1`–`a6`, `c1`, `c2`, `s2`, `s3`, `s6` | As predicted. `b1` and `s1` stayed **green**, so the isolation claim rests on `b1` alone exactly as §v2.9 says. `s6` is one test carrying both cases, so its mirror failing reds the whole test. |
 | **M2** | `b1` | `b1` | Isolation in the other direction; every other arm green. |
-| **M3** | `a1`, `a2`, `a5`, `b1` | `a1`, `a2`, `a5`, `b1`, **`s6`** | `s6`'s mirror asserts `#results-body tr` count 0 after the fast failure, which `clearResults()` is what delivers. |
+| **M3** | `a1`, `a2`, `a5`, `b1` | `a1`, `a2`, `a5`, `b1`, **`s6`** | `s6`'s mirror asserts `#results-body tr` count 0 after the fast failure, which `clearResults()` delivers. |
 | **M4** | `c2` | `c2` | |
 | **M5** | `s2` | `s2` | |
 | **M6** | `a3` | `a3`, **`a6`** | Measured, not inferred: deleting the early return `prepend`s a **second** `#volume-calculate-error` rather than replacing the first, so `a6`'s closing `expect(region).toBeVisible()` resolves to two nodes and fails on the ambiguous match. |
@@ -1461,7 +1458,7 @@ them:
    success hide `#liveToast` unconditionally and nothing reds, so **R4**'s "never dismiss an
    unrelated toast" property is prose-only too.
 
-**Two structural notes, neither a deviation.** (a) §v2.2 (G)'s claim that the sequence bump means a
+**Two structural notes.** (a) §v2.2 (G)'s claim that the sequence bump means a
 failure "cannot repaint a failure region over a deliberately blanked page" holds for requests
 already **in flight**; a debounce timer armed immediately before Reset still fires ~300 ms later
 with a fresh, current sequence. Cancelling it would change the debounce and call sequence, which
@@ -1471,18 +1468,32 @@ double-fire edge; the symmetric edge exists on the success side, where a throw f
 paint failure over fresh results. The only global that helper touches is `bootstrap`, now guarded
 with the `typeof` form this file already uses in `initDeleteModal()`.
 
-**Debt this diff creates in files it is not authorized to touch, recorded not repaired.** U1
-shifts every `volume-splitter.js` line anchor by **+119** (and by +122 past the slider comment) and
-adds a second caller of `toast.js`'s action button. That falsifies, in files outside the eight:
+**Debt this diff creates in files it is not authorized to touch, recorded not repaired.** U1 moves
+`volume-splitter.js` line anchors and adds a second caller of `toast.js`'s action button. **The
+shift is not one number** — measured against the shipped file, it is **+121** through
+`displayResults()`/`resetValues()`, **+125** from `loadPlan()` through `attachSliderListeners()`
+(the band holding all five deliberate suppression sites and all four KI-011 anchors), **+127** past
+the slider-listener comment, and **+128** past the `scheduleCalculate()` comment. Anchors above
+`calculateVolume()` move by +11/+15. **Re-anchor by measuring, never by applying a single drift
+figure** — this paragraph carried "+119" until diff review, because the figure was computed before
+three later edits changed it again.
+
+That falsifies, in files outside the eight:
 [`DUPLICATION_REGISTRY.md`](../DUPLICATION_REGISTRY.md) row 9, whose *"silently swallows"* symptom
 and `:131` / `:136-137` anchors are both spent — already booked under §v2.1 *Out*;
 [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4's `:131` / `:136` anchors —
 also already booked; and, inside
-[`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md), **§10.7-R10**'s
-*"Reachable inside its own only caller"* with three moved anchors, and **§10.11**'s
-*"Still exactly **one** caller repo-wide"*, which is now two. The STEP12 exception this PR uses is
-scoped to §13.0's LIVE ledger block, so neither STEP12 site is edited here. **All four remain owner
-action owed.**
+[`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md), **§10.7-R10**
+([`:2028-2030`](../testing_phase3/STEP12_JS_UNIT_GATE0.md#L2028-L2030))'s *"Reachable inside its own
+only caller"* with three moved anchors, and **§10.2**
+([`:1383`](../testing_phase3/STEP12_JS_UNIT_GATE0.md#L1383))'s *"Still exactly **one** caller
+repo-wide"* — now two — which also carries a moved `:301-306` anchor. The STEP12 exception this PR
+uses is scoped to §13.0's LIVE ledger block, so neither STEP12 site is edited here. **All four
+remain owner action owed.**
+
+Dated scan records under [`docs/scan/`](../scan/) and closed-packet planning documents also carry
+`volume-splitter.js` anchors this diff moves. They are **preserved readings, not live claims**, and
+are deliberately not re-anchored.
 
 **U1-FOLLOWUP-1 (§v2.14) remains OPEN**, and the implementation PR body links this subsection and
 §v2.14 explicitly, as **OD-1** requires.
