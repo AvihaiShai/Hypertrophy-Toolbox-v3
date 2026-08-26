@@ -333,6 +333,31 @@ anything.
   toward the three is an **open owner question**: it ran R2-b's file, not the pre-#388
   one. Measure the count rather than reading it here; see the R2-b section
   → *Next clean checkpoint*.)*
+  ⚠️ **UPDATED 2026-08-24 — the "open owner question" clause above is RETIRED as live
+  guidance, and the clock is recorded at 2 of 3.** The sentence is kept because it was
+  written in good faith on 2026-08-17, but it must not be acted on. **The question is now
+  SETTLED by an owner ruling dated 2026-08-24, recorded in
+  [`DECISIONS.md`](../DECISIONS.md) ADR-007 under R1-D3: the 2026-08-17 run COUNTS.** That
+  ADR is the authority for this reading; do not re-derive it from the paragraphs below.
+  Until that ruling the question had been *raised* in exactly three places — this bullet,
+  ADR-007, and [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md)'s R1 block — and **answered
+  nowhere**, which is why it was recorded rather than inferred. The reasoning behind it,
+  kept for the reader and not as the authority: the binding text is the
+  owner's D3 exactly as Section 0 of this file records it — *"Revisit only after the
+  2026-08-17 run and at least 3 consecutive green scheduled runs"* — which **names** the
+  2026-08-17 run as a milestone and nowhere excludes it from the count; and this file's own
+  **2026-08-17 supersession** (*Next clean checkpoint*, below) already reads 2026-08-24 as
+  **the second** consecutive green scheduled run. The contamination that prompted the
+  question was an objection about the *pre-#388 file*, which no longer exists on `main`; it
+  was never an objection to counting the run. **Measured 2026-08-24, not inferred:**
+  `gh run list --workflow=deep-gate.yml --event=schedule` returns exactly **two** runs
+  repo-wide, **both `success`** — `31993105305` (2026-08-17) and `32688747703`
+  (2026-08-24). **The clock stands at 2 of 3; the third is due 2026-08-31 03:17 UTC.**
+  Only a fresh owner ruling superseding the 2026-08-24 one could move that — discounting
+  the first run would put the clock at **1 of 3** with the third due 2026-09-07.
+  **D3 itself stays deferred regardless: nothing here puts `visual-linux` into the release
+  gate, and closing the clock is not the same as acting on it.** Full job-level record: § *The
+  second `schedule`-event run — 2026-08-24* at the end of this file.
 - Frozen × historical-schema coverage (D5) — separate follow-up packet; it needs a
   `--legacy-db` argument on `scripts/smoke_packaged_app.py` and its own tests.
 - Any branch-protection API change. D4's promotion of `Packaged Smoke` happens after 10
@@ -1039,6 +1064,15 @@ not the blanket prohibition, is what survives.
 
 #### Next clean checkpoint — 2026-08-24 03:17 UTC
 
+> ✅ **EXECUTED 2026-08-24, and inspected as this subsection demands.** Run
+> [`32688747703`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32688747703),
+> event `schedule`, head `31659a5`: **7/7 jobs `success` read individually**, `visual-linux`
+> **executed and not skipped**, compare mode proven at step level. Every requirement stated
+> below was met, including the composite-name warning. It **is** the second consecutive green
+> scheduled run, so **R1-D3's clock stands at 2 of 3** and the third is due **2026-08-31
+> 03:17 UTC**. The full job- and step-level record is § *The second `schedule`-event run —
+> 2026-08-24* at the end of this file; the tense below is left as written.
+
 ~~The **2026-08-24** scheduled run is the first uncontaminated `schedule`-event evidence:
 by then R2-b's file will have been on `main` since before the preceding run, so the file
 under test and the trigger under test finally agree.~~
@@ -1122,6 +1156,98 @@ The risk was real when it was accepted, and a red would have cost exactly what w
 predicted. What changed the picture is narrower than it looks: the run is unusable as
 evidence about the *held* file, but it is perfectly good evidence about the deep gate as it
 now exists — which is the only version that will ever run again.
+
+## The second `schedule`-event run — 2026-08-24
+
+*The cron fired a second time, on schedule and unattended. This section is the job- and
+step-level record the* Next clean checkpoint *subsection above demanded, and it is what
+R1-D3's clock is counted from. Nothing here promotes `visual-linux` into the release gate.*
+
+*Placement note: the* Contract hardening after the first scheduled run *section that follows
+is dated 2026-08-20/21 and therefore predates this run — it sits after this one because it
+closed the file before this section was added, not because it responded to anything here. Its
+own closing paragraph carries a 2026-08-24 annotation pointing back to this section.*
+
+| | |
+|---|---|
+| Run | [`32688747703`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32688747703) |
+| Workflow | `Deep Gate (manual + weekly)` — `.github/workflows/deep-gate.yml` |
+| Event | **`schedule`** — confirmed with `gh run list --workflow=deep-gate.yml --event=schedule`, not read off the run page |
+| SHA | **`31659a5`** — `origin/main` after PR #414 |
+| Due / actual | 03:17:00Z scheduled (`cron: '17 3 * * 1'`), **started 04:05:58Z** — a **48 m 58 s** scheduler delay |
+| Window | `2026-08-24T04:05:58Z` → `2026-08-24T04:24:03Z`, attempt **1** |
+| Result | **7 / 7 jobs `success`**, read individually — never off the overall green |
+
+| Job | Job id | Conclusion |
+|---|---|---|
+| Full E2E incl. accessibility (Chromium) | `97318476914` | `success` |
+| First install (catalog seed) smoke | `97318476932` | `success` |
+| Empty-schema initializer smoke | `97318476965` | `success` |
+| Old-DB migration compatibility | `97318476896` | `success` |
+| `Frozen executable (real bootloader, Windows) / Build and smoke` | `97318476906` | `success` — the **composite** name, as the checklist's row 2 warned to expect |
+| **Visual regression (Linux baselines)** | **`97318476983`** | `success` — **executed, not skipped** |
+| Dependency Health Check | `97318476761` | `success` |
+
+**Step-level proof on `visual-linux`, because the job's green alone is not the pass
+condition.** `visual-linux` is the one deliberately conditional job in this workflow, and a
+skip leaves the run green:
+
+| Step | Status |
+|---|---|
+| Assert committed visual seed present | **`success`** |
+| **Run visual specs** | **`success`** |
+| **Assert compare mode wrote no baseline** | **`success`** |
+| Upload generated Linux baselines | `skipped` |
+| Upload Playwright report + diffs | `skipped` |
+
+*Assert compare mode wrote no baseline* is the load-bearing one — it is `always()`-guarded
+and greps `git status --porcelain` over `e2e/__screenshots__`, so it runs and reports even on
+a failing job. *Upload generated Linux baselines* being skipped **corroborates** compare mode
+and proves nothing on its own: its `if:` is `steps.visual.outputs.mode == 'generate'`, so a
+skip merely restates that the mode was compare. **No baseline was regenerated and none was
+needed** — the Linux corpus was in sync against `31659a5`.
+
+### What this establishes, and what it does not
+
+**Establishes.**
+
+- **The `schedule` trigger fires repeatedly and unattended.** 2026-08-17 proved it can fire
+  once; a single delivery is not a schedule. Two deliveries a week apart, both unattended,
+  are.
+- **The `schedule` disjunct of `visual-linux`'s `if:` resolved a second time.** A `schedule`
+  event carries no `inputs` at all, so `github.event_name == 'schedule'` is the only branch
+  that can run this job on a cron — the exact shape #400 pinned as a set of disjuncts.
+- **A second, independent scheduler-delay observation: 48 m 58 s**, against 45 m 52 s on
+  2026-08-17. Two points are still not a bound, and GitHub gives scheduled workflows no
+  delivery guarantee. **Do not read a late run as a missed one.** Plan for up to an hour.
+- **R1-D3's clock reaches 2 of 3** under the reading recorded in the *Out of scope* bullet in
+  Section 0. The third qualifying run is due **2026-08-31 03:17 UTC**.
+
+**Does not establish.**
+
+- **Nothing about the gate's ability to go RED.** The Linux corpus was in sync, so *Assert
+  compare mode wrote no baseline* passing shows nothing *was* written — not that real drift
+  would have been caught. **A gate that has only ever passed is not yet a gate known to fail
+  correctly**, and two green runs make that objection older, not weaker.
+- **Nothing about `release.yml`'s `push: tags` trigger**, a separate trigger on a separate
+  workflow, which has **still never fired** (residual **R-1**).
+- **Nothing that authorizes acting on the clock.** Closing a clock is not the same as taking
+  the decision it gates: putting `visual-linux` into the release gate is a fresh owner
+  decision under D3, and reaching 3 of 3 confers no signature.
+- **Nothing about the pre-#388 file**, which stays permanently forfeited and is now doubly
+  moot — that file has not existed on `main` for eight days.
+
+### Where the count lives
+
+**Measure it; do not read it from prose.**
+`gh run list --workflow=deep-gate.yml --event=schedule` is the only authority, and on
+2026-08-24 it returned exactly two runs, both `success`. Every narrative surface in this
+repository — including this section — is a dated reading, and a `workflow_dispatch` run never
+counts however green it is. Measured the same day from the REST `total_count`:
+`…/workflows/deep-gate.yml/runs?event=workflow_dispatch` reports **108** and
+`?event=schedule` reports **2** — and **not one of the 108 is a qualifying run**.
+
+---
 
 ## Contract hardening after the first scheduled run — #399, #400 and #402
 
@@ -1316,3 +1442,15 @@ still stands at **one** (run 31993105305, 2026-08-17); nothing about
 tests over the workflow *text* — they prove the file cannot silently lose a
 guarantee, not that the guarantee holds at runtime. The next scheduled run is
 still **2026-08-24**.
+
+> ⚠️ **UPDATED 2026-08-24 — two of the readings above are dated and have moved; the
+> paragraph is kept as written because what it *establishes* is unchanged.** The clock no
+> longer *"stands at one"*: the 2026-08-24 cron fired and was green at job level, so it
+> **stands at 2 of 3** and the third is due **2026-08-31 03:17 UTC** — see § *The second
+> `schedule`-event run — 2026-08-24* above, and measure the count with
+> `gh run list --workflow=deep-gate.yml --event=schedule` rather than reading it here or
+> there. *"The next scheduled run is still 2026-08-24"* is likewise spent. **Everything the
+> paragraph actually asserts still stands verbatim**: these are contract tests over the
+> workflow *text*, they establish nothing about the clock, `push: tags` has **still never
+> fired**, and nothing about the gate's ability to go **red** has been established by any
+> run, green or otherwise.
