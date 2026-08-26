@@ -4439,9 +4439,11 @@ silently.
 > ⚠️ **ANNOTATION 2026-08-25 — the *six-row* description just above is the dated size of
 > the post-#417 block on 2026-08-24, and is left standing as that reading, not restated.** That
 > block was
-> **extended in place** three times on 2026-08-25 and now carries **ten** rows: the seventh is
+> **extended in place** three times on 2026-08-25 and a fourth time on 2026-08-26, and now carries
+> **eleven** rows: the seventh is
 > the `main` run minted by PR #418's own merge, the eighth PR #419's (`5ca4191`), the ninth PR
-> #420's (`77f4adf`) and the tenth PR #421's (`b4d6b13`). The pointer is otherwise unchanged and
+> #420's (`77f4adf`), the tenth PR #421's (`b4d6b13`) and the eleventh PR #422's (`1243728`).
+> The pointer is otherwise unchanged and
 > still resolves —
 > the post-#417 block is still the live one, and it was **not** superseded by a new block.
 > This block is left exactly as the `2026-08-24T17:03:00Z` **five**-row reading and is **not**
@@ -4555,7 +4557,7 @@ discipline argued on the record and never applied silently.
 
 ---
 
-#### LIVE LEDGER — extended 2026-08-24 after PR #417 merged (post-#417 read), extended again 2026-08-25 after PR #418 merged (post-#418 read), extended a third time 2026-08-25 after PR #419 and PR #420 merged (post-#420 read), extended a fourth time 2026-08-25 after PR #421 merged (post-#421 read)
+#### LIVE LEDGER — extended 2026-08-24 after PR #417 merged (post-#417 read), extended again 2026-08-25 after PR #418 merged (post-#418 read), extended a third time 2026-08-25 after PR #419 and PR #420 merged (post-#420 read), extended a fourth time 2026-08-25 after PR #421 merged (post-#421 read), extended a fifth time 2026-08-26 after PR #422 merged (post-#422 read)
 
 > **This block is now the live one.** It supersedes the `2026-08-24T17:03:00Z` block above,
 > which recorded **five** rows and is left standing as that record — it is **not** restated
@@ -4627,25 +4629,54 @@ discipline argued on the record and never applied silently.
 > mechanism rather than an omission.** A merge mints its row only after the diff that could have
 > carried it is already sealed, so #421 left the row owed rather than written; the measurement
 > itself is row 10 below. **This extension discharges it.**
+>
+> ⚠️ **EXTENDED A FOURTH TIME 2026-08-26 — this block is STILL THE LIVE ONE, and it is still
+> extended IN PLACE.** This is the fourth of this block's in-place extensions and the fifth
+> reading in the heading's count; the two series number differently for the reason the third
+> extension gives — the heading counts the block's creation as its first reading. PR
+> [#422](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/422) — the PR that carried the
+> row-10 extension onto `main`, together with Packet U1's Gate 1 council-reviewed plan and the
+> owner's sign-off of it — merged as squash commit `1243728`, and **row 11 is the `main` run that
+> push started**. Everything from *Read at* onward is a fresh job-level read of the API at
+> `2026-08-26T00:25:41Z`, not an extension of the page.
+>
+> **Six of the `2026-08-25T20:53:02Z` extension's own clauses are spent by this one, and each is
+> corrected where it stands rather than left for a later session to re-derive:** its *Read at*
+> timestamp and its ten-row tally, its completeness figure (*“**14** — the 10 above plus the 4
+> classified below”*), its open-PR paragraph, its *“whoever merges it owes the next sequential
+> ledger row”* clause written against the `docs/u1-gate1-plan` carrier, the *“now carries **ten**
+> rows”* annotation it planted in the superseded post-#414 block further up this subsection —
+> **which is where that phrase actually lives; the clause list this one replaces mislocated it in
+> this block's own read paragraph, and the third extension had located the analogous phrase
+> correctly** — and its *“as the **three** 2026-08-25 extensions did”*
+> instruction in the *Still to do* paragraph at the end of this subsection, which was true when
+> all three extensions were made on 2026-08-25 and is corrected in place now that a fourth has
+> been made on 2026-08-26.
+>
+> **Row 11 could not have been written by the PR that produced it either.** #422 left the row
+> owed rather than written, exactly as #421 left row 10; the measurement itself is row 11 below.
+> **This extension discharges it**, and it is carried by the Packet U1 **implementation** PR
+> rather than by a ledger-only PR — a recursive ledger-only PR would mint a twelfth row and owe
+> a thirteenth, without end.
 
-**Read at `2026-08-25T20:53:02Z`** (UTC now, taken from the GitHub API response `Date` header, not
+**Read at `2026-08-26T00:25:41Z`** (UTC now, taken from the GitHub API response `Date` header, not
 from the host clock), after PR
-[#421](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/421) merged (squash `b4d6b13`,
-`2026-08-25T16:54:29Z`, final PR head `c44f610`). **This read supersedes this block's own
-`2026-08-25T14:50:55Z` nine-row reading**, which is not restated. Method, deliberately identical to the three blocks
-above and to this block's three earlier reads: `gh run list --branch main` plus
+[#422](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/422) merged (squash `1243728`,
+`2026-08-25T23:33:33Z`, final PR head `814aee6`). **This read supersedes this block's own
+`2026-08-25T20:53:02Z` ten-row reading**, which is not restated. Method, deliberately identical to the three blocks
+above and to this block's four earlier reads: `gh run list --branch main` plus
 `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to
 `created_at >= 2026-08-22T17:00:00Z` — deliberately **earlier** than T0, so the filter is a
 superset and cannot hide a run — across **every** workflow, not just `CI/CD Pipeline`. Each
 returned run's `/jobs` was then enumerated in full and matched on the exact context string
 `JS Unit (Vitest, non-required)`. **No run's overall conclusion was used as a proxy for its
-`js-unit` result** — §6.1's discipline: row 10's job object was fetched from
-`/actions/runs/32874746454/jobs`, and its `status`, `conclusion` and `completed_at` were read off
+`js-unit` result** — §6.1's discipline: row 11's job object was fetched from
+`/actions/runs/32911310086/jobs`, and its `status`, `conclusion` and `completed_at` were read off
 **that job**, not off its run. The superset
-returned **fourteen** `main` runs of any workflow in that span: **ten** `CI/CD Pipeline` runs,
-which are the qualification attempts and are the ten rows below, and **four** runs of other
-workflows, classified in the table after the tally. The nine rows this block previously carried
-were **re-derived from the API, not copied from the page**, and all nine came back byte-identical.
+returned **fifteen** `main` runs of any workflow in that span: **eleven** `CI/CD Pipeline` runs,
+which are the qualification attempts and are the eleven rows below, and **four** runs of other
+workflows, classified in the table after the tally. The ten rows this block previously carried
+were **re-derived from the API, not copied from the page**, and all ten came back byte-identical.
 
 | # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
 |---|---|---|---|---|---|---|
@@ -4659,25 +4690,26 @@ were **re-derived from the API, not copied from the page**, and all nine came ba
 | **8** | [`32842991664`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32842991664) | `push` / `5ca4191` (PR #419, the row-7 ledger extension) | `success`, **18/18** | [**`97786392022`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32842991664/job/97786392022) | **`success`** | **`2026-08-25T11:34:34Z`** |
 | **9** | [`32851276626`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32851276626) | `push` / `77f4adf` (PR #420, Packet T0) | `success`, **18/18** | [**`97812537880`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32851276626/job/97812537880) | **`success`** | **`2026-08-25T13:05:57Z`** |
 | **10** | [`32874746454`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32874746454) | `push` / `b4d6b13` (PR #421, Packet U1 Gate 0 plus rows 8–9) | `success`, **18/18** | [**`97889882928`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32874746454/job/97889882928) | **`success`** | **`2026-08-25T16:55:12Z`** |
+| **11** | [`32911310086`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32911310086) | `push` / `1243728` (PR #422, Packet U1 Gate 1 sign-off plus row 10) | `success`, **18/18** | [**`98005892825`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32911310086/job/98005892825) | **`success`** | **`2026-08-25T23:34:05Z`** |
 
-| Ledger tally, at `2026-08-25T20:53:02Z` | Value |
+| Ledger tally, at `2026-08-26T00:25:41Z` | Value |
 |---|---:|
-| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **10** — all ten `push`, all ten 18/18 |
-| Green `main` `JS Unit` results since and including T0 | **10** |
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **11** — all eleven `push`, all eleven 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **11** |
 | **Red** results | **0** |
 | **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
 | **Skipped** results | **0** |
 | **Cancelled** results | **0** |
-| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **14** — the 10 above plus the 4 classified below |
+| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **15** — the 11 above plus the 4 classified below |
 | **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
-| Elapsed since T0 | **≈ 3 d 2 h 53 m** of the required **14 d** |
-| Remaining to the strict mark | **≈ 10 d 21 h 6 m** |
+| Elapsed since T0 | **≈ 3 d 6 h 26 m** of the required **14 d** |
+| Remaining to the strict mark | **≈ 10 d 17 h 34 m** |
 
 **The four `main` runs in the window that are NOT qualification attempts.** Unchanged at the
-`2026-08-25T20:53:02Z` read, and **re-enumerated rather than carried forward** — each was resolved
+`2026-08-26T00:25:41Z` read, and **re-enumerated rather than carried forward** — each was resolved
 the same way as the rows above, by enumerating its `/jobs` and matching the exact context string.
 All four returned **zero** `JS Unit (Vitest, non-required)` jobs. **No fifth non-attempt run has
-landed**, so the fourteen-run superset is 10 attempts + 4 classified, with nothing unaccounted for.
+landed**, so the fifteen-run superset is 11 attempts + 4 classified, with nothing unaccounted for.
 
 | `main` run | Workflow / path | Event | Jobs | Why it cannot mint a ledger row |
 |---|---|---|---|---|
@@ -4749,12 +4781,27 @@ window is qualifying is therefore still **13 files / 231 cases**, re-read from
 (`total_files = 13`, `total_cases = 231`), and Q2's restart clause did not engage. **T0 remains
 `2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.**
 
+**Row 11 did not restart the window either, and #422's `mergedAt` is not T0.** By the stronger of
+the two available checks first: `git rev-parse b4d6b13:static/js` and
+`git rev-parse 1243728:static/js` return the **same** tree hash,
+`815ca75c109c93c0f914f36d0de24ba46a89bc3d` — the value rows 7 through 10 also carry, so the entire
+JS tree is byte-identical across all five of those merges. `git rev-parse b4d6b13:vitest.config.js`
+and `git rev-parse 1243728:vitest.config.js` likewise both return
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935`. The file list agrees: PR #422 touched **exactly two**
+files — **this document** and
+[`volume_failure_feedback/PLANNING.md`](../volume_failure_feedback/PLANNING.md) — with **zero**
+files under `static/js/**`, no workflow, no dependency and no generated inventory. The suite the
+window is qualifying is therefore still **13 files / 231 cases**, re-read from
+[`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) at `1243728`
+(`total_files = 13`, `total_cases = 231`), and Q2's restart clause did not engage. **T0 remains
+`2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.**
+
 **Two PRs are open at this read time, and neither is in this ledger.** Re-measured live at
-`2026-08-25T20:53:02Z`, not carried forward: both are still `OPEN`, `MERGEABLE`/`CLEAN` and
-unmerged, and they are the same two Dependabot PRs the previous three reads found. **#421 never
-appeared in this table** — it was opened and merged between the `14:50:55Z` read and this one, so
-it is row 10 above rather than a table entry here. **The carrier of this extension is absent for
-the same reason #421 was**: it did not exist at the read time. It is accounted for in
+`2026-08-26T00:25:41Z`, not carried forward: both are still `OPEN` and unmerged, and they are the
+same two Dependabot PRs the previous four reads found. **#422 never
+appeared in this table** — it was opened and merged between the `20:53:02Z` read and this one, so
+it is row 11 above rather than a table entry here. **The carrier of this extension is absent for
+the same reason #422 was**: it did not exist at the read time. It is accounted for in
 the carrier paragraph below instead:
 
 | PR | Head | State | Why it is not a ledger row |
@@ -4786,18 +4833,43 @@ rows 8 and 9 — is spent as a live statement while remaining accurate as the da
 was. It was discharged on 2026-08-25: #421 merged as `b4d6b13`, and its post-merge `js-unit`
 result is **row 10**.
 
-**The same mechanism now applies to the PR carrying THIS extension.** Row 10 is recorded by the
-`docs/u1-gate1-plan` PR, which also carries Packet U1's Gate 1 council-reviewed plan **and,
-added to that PR on 2026-08-26, the owner's Gate 1 sign-off of it**. That signature moves no
-JS test case.
-**Whoever merges it owes the next sequential ledger row**, by the *Merging either of them mints
-the next sequential ledger row* rule stated above. That PR changes this document and
-[`volume_failure_feedback/PLANNING.md`](../volume_failure_feedback/PLANNING.md) and nothing else
-— **zero** files under `static/js/**` — so it cannot restart the window either, but that is a
-statement about the restart clause, **not** a prediction about the run's result.
+**#422's debt is DISCHARGED too.** The clause the `2026-08-25T20:53:02Z` extension left here —
+*“whoever merges it owes the next sequential ledger row”*, written against the
+`docs/u1-gate1-plan` PR that carried row 10 and Packet U1's Gate 1 sign-off — is spent as a live
+statement while remaining accurate as the dated prediction it was. It was discharged on
+2026-08-25: #422 merged as `1243728`, and its post-merge `js-unit` result is **row 11**. The same
+extension's prediction about the restart clause also held, and was measured rather than assumed:
+the file list and both tree hashes are in the *Row 11 did not restart the window* paragraph above.
+
+**The same mechanism now applies to the PR carrying THIS extension.** Row 11 is recorded by the
+Packet U1 **implementation** PR — the first carrier in this block's history that is not itself a
+documentation PR. **Whoever merges it owes the next sequential ledger row**, by the *Merging
+either of them mints the next sequential ledger row* rule stated above.
+
+**That carrier changes the production JS tree, and it still cannot restart the window.** This is
+the first row-carrying PR since T0 for which `static/js` moves, so the reasoning is spelled out
+rather than reused. The operative rule is the one this document has applied at rows 2, 3, 4, 5, 6,
+7, 8, 9, 10 and 11 — **“changed no JS test case”** — not “changed no JS”. The U1 implementation PR
+edits [`volume-splitter.js`](../../static/js/modules/volume-splitter.js), which moves
+`static/js`'s tree hash off `815ca75c109c93c0f914f36d0de24ba46a89bc3d`; it adds **no** file under
+`static/js/modules/__tests__/`, changes **no** existing Vitest case, and leaves
+`vitest.config.js` at `c16ca428f7478708d8dd96a20ebcb86f98a8b935` and the collection mechanism
+untouched, so the qualifying suite stays at **13 files / 231 cases**. That omission is deliberate
+and owner-decided: **OD-1** granted option (i) — E2E coverage only while this window is live — and
+registered the Vitest file as **U1-FOLLOWUP-1**, which must not land before the strict mark. See
+[`volume_failure_feedback/PLANNING.md`](../volume_failure_feedback/PLANNING.md) §v2.1, §v2.13 and
+§v2.14. **Q2's restart clause therefore does not engage, T0 stays `2026-08-22T17:59:26Z` and the
+strict mark stays `2026-09-05T17:59:26Z`** — but that is a statement about the restart clause,
+**not** a prediction about the run's result.
+
+**Row 11 rides an implementation PR on purpose, and the alternative was rejected.** Opening a
+ledger-only PR to record row 11 would mint a twelfth row and owe a thirteenth, and so on without
+end; every row in this block from 6 onward exists because some later PR carried the extension as a
+rider. The U1 implementation PR is the next PR to merge, so it is the rider — which is why this
+document appears in a diff otherwise scoped to Packet U1's six functional artifacts.
 
 **Still to do, and owed by whoever picks this up:** extend **this** block — not any of the three
-superseded ones above, and **in place, as the three 2026-08-25 extensions did**, rather than by minting a
+superseded ones above, and **in place, as the three 2026-08-25 extensions and the 2026-08-26 one did**, rather than by minting a
 fourth superseding block — at **every** later session until `2026-09-05T17:59:26Z`, at **job** level,
 appending any red, missing, skipped or cancelled result rather than summarising it, and re-deriving
 the whole ledger from the API rather than extending it from the page. **Classify, do not tally, any

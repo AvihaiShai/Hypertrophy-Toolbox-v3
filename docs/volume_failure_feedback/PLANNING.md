@@ -1358,6 +1358,149 @@ annotated there. All three remain owner action owed. §8's Gate column at
 [`:539-541`](../OPEN_WORK_EXECUTION_PLAN.md#L539-L541) survive untouched, because both are framed as the gates a
 packet *owes* rather than gates it has passed.
 
+### Implementation status — 2026-08-26
+
+**Plan v2 is IMPLEMENTED as written.** The signed planning PR
+[#422](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/422) merged as squash commit
+`1243728` on 2026-08-25, which is the precondition the Gate 1 block above names, so the
+*“Ready to implement — but not yet authorized”* checkbox and the *“no production code, no test
+code”* paragraph beside it are both **SPENT**. Nothing above is rewritten; the four owner
+decisions govern exactly as recorded in §v2.13.
+
+**The implementation diff carries SEVEN artifact paths / EIGHT files.** §v2.1's Artifacts table and §v2.12's **BR-1** both say six artifacts / seven files,
+and that count still governs the **functional** blast radius — it is what BR-1 is checked against
+and it did not move. The extra path is
+[`testing_phase3/STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md), added under a
+separately authorized operational-documentation exception to carry **ledger row 11** — the
+`main` `js-unit` result that #422's own merge produced and could not record. §13.0's LIVE block is
+extended **in place** with row 11, its counters, its spent clauses and its carrier-debt wording,
+plus the one counter annotation that block itself planted in the superseded post-#414 block above
+it — the same in-place repair its three earlier extensions each made. **Nothing outside §13.0 is
+edited**, which is a statement about the diff and **not** a claim that nothing outside §13.0 is
+left stale; what is left stale is listed under *Debt this diff creates* below. A ledger-only PR
+would mint a twelfth row and owe a thirteenth without end. **No ninth file is authorized.**
+
+**The qualification window is untouched, and that was measured rather than assumed.** U1 changes
+the production JS tree — `static/js`'s tree hash moves off
+`815ca75c109c93c0f914f36d0de24ba46a89bc3d` — but the operative restart rule is §v2.1's
+*“changed no JS test case”*, not *“changed no JS”*. Under **OD-1** option (i) this PR adds no file
+under `static/js/modules/__tests__/`, changes no existing Vitest case, leaves `vitest.config.js` at
+blob `c16ca428f7478708d8dd96a20ebcb86f98a8b935` and leaves the collection mechanism alone, so
+`npm run test:js` still reports **13 files / 231 cases**. **T0 stays `2026-08-22T17:59:26Z` and the
+strict mark stays `2026-09-05T17:59:26Z`.**
+
+**The §v2.9 mutation matrix ran in both directions, all nine rows, against the shipped file.**
+Checkpoint `a659fff`, `volume-splitter.js` sha256 `8ecac9eb…`; the file was restored with
+`git checkout --` after every row and verified byte-identical to that sha before the next one —
+never restored by retyping. The matrix ran **three times** in total, at each of the three
+checkpoints this branch passed through, with identical results every time. **Every predicted red
+was observed.** Two rows red *more* arms than predicted; both are recorded below with the measured
+cause:
+
+| Row | Predicted red | Observed red | Note |
+|---|---|---|---|
+| **M1** | `a1`–`a6`, `c1`, `c2`, `s2`, `s3`; `s6` mirror case only | `a1`–`a6`, `c1`, `c2`, `s2`, `s3`, `s6` | As predicted. `b1` and `s1` stayed **green**, so the isolation claim rests on `b1` alone exactly as §v2.9 says. `s6` is one test carrying both cases, so its mirror failing reds the whole test. |
+| **M2** | `b1` | `b1` | Isolation in the other direction; every other arm green. |
+| **M3** | `a1`, `a2`, `a5`, `b1` | `a1`, `a2`, `a5`, `b1`, **`s6`** | `s6`'s mirror asserts `#results-body tr` count 0 after the fast failure, which `clearResults()` delivers. |
+| **M4** | `c2` | `c2` | |
+| **M5** | `s2` | `s2` | |
+| **M6** | `a3` | `a3`, **`a6`** | Measured, not inferred: deleting the early return `prepend`s a **second** `#volume-calculate-error` rather than replacing the first, so `a6`'s closing `expect(region).toBeVisible()` resolves to two nodes and fails on the ambiguous match. |
+| **M7** | `s3` | `s3` | |
+| **M8** | `a6` | `a6` | |
+| **M9** | `s6` | `s6` | |
+
+**§v2.11 step 8's dual-theme reading was taken, and it falsified §v2.7's prediction in one place
+and found a defect this packet introduced in another.** §v2.7 predicted *"Stock `alert-danger` sets
+its own background and foreground, so a contrast violation is not expected, but nothing measures
+it."* Measured against the running app (WCAG 2.x ratios, computed by alpha-compositing every
+layer, because this app paints `.alert-danger` through a `background` **gradient** — `backgroundColor`
+reads `rgba(0,0,0,0)` and any reading taken from it is invalid):
+
+| Surface | Light theme | Dark theme | AA 4.5 |
+|---|---|---|---|
+| Region message, white 17.6 px on the composited gradient (`rgb(234,150,144)` → `rgb(200,136,132)` light; `rgb(134,50,47)` → `rgb(100,36,35)` dark) | **2.26 / 2.44 / 2.87** | **8.38 / 11.16 / 11.60** | light **FAILS**, dark passes |
+| Region Retry button, as shipped (`ms-2`, UA button surface `rgb(240,240,240)`) | **18.43** | **18.43** | passes |
+| Region Retry button, as first written (`btn btn-sm btn-outline-danger`) | **1.58 / 1.85 / 2.00** | — | **FAILED** |
+
+**The Retry button was a defect this packet introduced, and it is FIXED.** No existing site puts a
+button inside `.alert-danger`, so the red-on-red reading was new. **No class swap fixes it** —
+`btn-light`, `btn-outline-light`, `btn-danger` and `btn-outline-danger` all resolve to the same
+danger-red 10.88 px text there, measured. The repair needed no stylesheet, because **§v2.2 (D)
+specifies no `class` on that button at all**: the `btn btn-sm btn-outline-danger ms-2` string was
+added on implementer initiative and is removed, leaving `ms-2`. That moves the button **towards**
+Plan v2, not away from it, and R29 still holds — no rule for `volume-calculate-error` exists in any
+stylesheet.
+
+**The message-text failure in light theme is PRE-EXISTING and shared, not U1's.** A control probe —
+a bare `<div class="alert alert-danger">`, exactly what
+[`progression-plan.js:305`](../../static/js/modules/progression-plan.js#L305) and
+[`muscle-selector.js:293`](../../static/js/modules/muscle-selector.js#L293) already render on
+shipped surfaces — measured **identically**, 2.26 / 2.44 / 2.87 light and 8.38 / 11.16 / 11.60 dark.
+The cause is [`components.css`](../../static/css/components.css)'s `.alert-danger`, which pairs
+`color: white` with a **semi-transparent** red gradient that composites light over a light page.
+U1 adds no rule and changes no existing one; it inherits the component. **Fixing it means editing a
+shared `static/css/**` surface**, which escalates to `/build-css` plus the full `visual.spec.ts`
+matrix under [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) and is **not authorized here**.
+**Recorded as owner action owed**, with the measurement above as the evidence, and noted as
+affecting two already-shipped surfaces besides this one.
+
+**Three coverage gaps are recorded rather than closed, because closing any of them would add an
+arm or a mutation row beyond the ones §v2.8 and §v2.9 enumerate.** They were found by
+`code-reviewer` at diff time and are stated here so a later session does not have to re-derive
+them:
+
+1. **`resetValues()`'s two added lines have no arm and no mutation row.** Deleting both
+   `calculateRequestSeq += 1;` and `exitCalculateFailureState();` leaves all thirteen arms green.
+   **OD-3** is the one criterion the owner amended at Gate 1, and the behaviour it authorises is
+   therefore unmeasured; R1's reset-race bump likewise. An arm would be four lines — drive a 500,
+   assert the region, click `#reset-volume`, assert count 0.
+2. **The third disjunct `|| !ourToastContentStands()` is unmeasured.** **M8** replaces the whole
+   condition, so `a6` reds; deleting only that disjunct keeps every arm green, because no arm puts
+   an unrelated toast over a standing region. **R16**'s KI-011 extension is prose-only.
+3. **The early return in `dismissCalculateFailureToast()` is unmeasured.** Removing it makes every
+   success hide `#liveToast` unconditionally and nothing reds, so **R4**'s "never dismiss an
+   unrelated toast" property is prose-only too.
+
+**Two structural notes.** (a) §v2.2 (G)'s claim that the sequence bump means a
+failure "cannot repaint a failure region over a deliberately blanked page" holds for requests
+already **in flight**; a debounce timer armed immediately before Reset still fires ~300 ms later
+with a fresh, current sequence. Cancelling it would change the debounce and call sequence, which
+criterion 9 forbids, so the behaviour is left as-is. (b) §v2.2 (B) records the inner-catch
+double-fire edge; the symmetric edge exists on the success side, where a throw from
+`exitCalculateFailureState()` would reach the outer `.catch` with a still-current sequence and
+paint failure over fresh results. The only global that helper touches is `bootstrap`, now guarded
+with the `typeof` form this file already uses in `initDeleteModal()`.
+
+**Debt this diff creates in files it is not authorized to touch, recorded not repaired.** U1 moves
+`volume-splitter.js` line anchors and adds a second caller of `toast.js`'s action button. **The
+shift is not one number** — measured against the shipped file, it is **+121** through
+`displayResults()`/`resetValues()`, **+125** from `loadPlan()` through `attachSliderListeners()`
+(the band holding all five deliberate suppression sites and all four KI-011 anchors), **+127** past
+the slider-listener comment, and **+128** past the `scheduleCalculate()` comment. Anchors above
+`calculateVolume()` move by +11/+15. **Re-anchor by measuring, never by applying a single drift
+figure** — this paragraph carried "+119" until diff review, because the figure was computed before
+three later edits changed it again.
+
+That falsifies, in files outside the eight:
+[`DUPLICATION_REGISTRY.md`](../DUPLICATION_REGISTRY.md) row 9, whose *"silently swallows"* symptom
+and `:131` / `:136-137` anchors are both spent — already booked under §v2.1 *Out*;
+[`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4's `:131` / `:136` anchors —
+also already booked; and, inside
+[`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md), **§10.7-R10**
+([`:2028-2030`](../testing_phase3/STEP12_JS_UNIT_GATE0.md#L2028-L2030))'s *"Reachable inside its own
+only caller"* with three moved anchors, and **§10.2**
+([`:1383`](../testing_phase3/STEP12_JS_UNIT_GATE0.md#L1383))'s *"Still exactly **one** caller
+repo-wide"* — now two — which also carries a moved `:301-306` anchor. The STEP12 exception this PR
+uses is scoped to §13.0's LIVE ledger block, so neither STEP12 site is edited here. **All four
+remain owner action owed.**
+
+Dated scan records under [`docs/scan/`](../scan/) and closed-packet planning documents also carry
+`volume-splitter.js` anchors this diff moves. They are **preserved readings, not live claims**, and
+are deliberately not re-anchored.
+
+**U1-FOLLOWUP-1 (§v2.14) remains OPEN**, and the implementation PR body links this subsection and
+§v2.14 explicitly, as **OD-1** requires.
+
 ---
 
 ## See also
