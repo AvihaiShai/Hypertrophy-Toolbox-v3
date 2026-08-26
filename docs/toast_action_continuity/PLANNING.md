@@ -1563,6 +1563,33 @@ v2; migration notes and sequencing.
    acceptance `OQ-2`'s own text requires be explicit.
 2. **N9 has not been run.** The narrowed dismiss guard is the one §4.3 edit with no evidence.
 
+### 5.1 Live reconciliation against `main`, re-read after Plan v2 was written
+
+`origin/main` **moved while this packet was being written**, from `52c44c4` to **`7a64d2e`** —
+PR [#415](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/415), the Dependabot
+`pyinstaller 6.22.0 → 6.22.2` bump, **one line in `requirements-build.txt`**. Re-read rather than
+assumed, because §1's sequencing ruling requires reconciling against live `main` and not assuming
+**U2**'s merge order.
+
+**Nothing this packet depends on moved.** Every blob it anchors on is byte-identical at
+`7a64d2e`:
+
+| Path | Blob at `52c44c4` and at `7a64d2e` |
+|---|---|
+| `static/js/modules/toast.js` | `42863b4664b7f87a2519556b7f9db8af2cb36e64` |
+| `static/js/modules/volume-splitter.js` | `552a7baa2dfe050951ad97c3a99007254b211756` |
+| `static/js/modules/__tests__/toast.test.js` | `9b10e473a284b2968444916f266fd2da56518d6f` |
+| `e2e/volume-splitter.spec.ts` | `8cffe041a37f91c429d852043510a1e8b2b8091c` |
+
+**No line citation in this document needs re-anchoring**, and every measured figure in §2.1 and
+§4.1 still stands at `7a64d2e`. **Neither U2 nor U3a has landed**: U3a's Gate 0 planning PR
+[#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425) is open and draft, and U2 has
+no open PR. **Merge order among U2, U3a and U3b remains unresolved and is not decided here.** This
+branch is deliberately **not** rebased.
+
+**Re-read all of this again immediately before implementation** — the shared ref store advances
+without a fetch, and a reconciliation is only true at the moment it was measured.
+
 **STOP — Gate 1 owner-signature boundary.**
 
 - No production line changed. `static/js/modules/toast.js` is blob
