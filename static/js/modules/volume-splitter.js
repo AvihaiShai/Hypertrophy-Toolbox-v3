@@ -216,7 +216,12 @@ function renderCalculateFailureRegion() {
 
     const retry = document.createElement('button');
     retry.type = 'button';
-    retry.className = 'btn btn-sm btn-outline-danger ms-2';
+    // Deliberately NOT a `btn btn-*` button. components.css paints `.alert-danger`
+    // as a red gradient, and every Bootstrap button variant resolves to danger-red
+    // text inside it -- measured at 1.58:1 against that gradient, which no class
+    // swap fixes. The plain control inherits the UA button surface and measures
+    // 18.4:1. Plan v2 (D) specifies no class here; these were added and removed.
+    retry.className = 'ms-2';
     retry.dataset.testid = 'volume-calculate-retry';
     retry.setAttribute('aria-label', 'Retry volume calculation');
     retry.textContent = 'Retry';

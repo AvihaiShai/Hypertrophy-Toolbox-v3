@@ -1409,6 +1409,41 @@ explained rather than waved through:
 | **M8** | `a6` | `a6` | |
 | **M9** | `s6` | `s6` | |
 
+**§v2.11 step 8's dual-theme reading was taken, and it falsified §v2.7's prediction in one place
+and found a defect this packet introduced in another.** §v2.7 predicted *"Stock `alert-danger` sets
+its own background and foreground, so a contrast violation is not expected, but nothing measures
+it."* Measured against the running app (WCAG 2.x ratios, computed by alpha-compositing every
+layer, because this app paints `.alert-danger` through a `background` **gradient** — `backgroundColor`
+reads `rgba(0,0,0,0)` and any reading taken from it is invalid):
+
+| Surface | Light theme | Dark theme | AA 4.5 |
+|---|---|---|---|
+| Region message, white 17.6 px on the composited gradient (`rgb(234,150,144)` → `rgb(200,136,132)` light; `rgb(134,50,47)` → `rgb(100,36,35)` dark) | **2.26 / 2.44 / 2.87** | **8.38 / 11.16 / 11.60** | light **FAILS**, dark passes |
+| Region Retry button, as shipped (`ms-2`, UA button surface `rgb(240,240,240)`) | **18.43** | **18.43** | passes |
+| Region Retry button, as first written (`btn btn-sm btn-outline-danger`) | **1.58 / 1.85 / 2.00** | — | **FAILED** |
+
+**The Retry button was a defect this packet introduced, and it is FIXED.** No existing site puts a
+button inside `.alert-danger`, so the red-on-red reading was new. **No class swap fixes it** —
+`btn-light`, `btn-outline-light`, `btn-danger` and `btn-outline-danger` all resolve to the same
+danger-red 10.88 px text there, measured. The repair needed no stylesheet, because **§v2.2 (D)
+specifies no `class` on that button at all**: the `btn btn-sm btn-outline-danger ms-2` string was
+added on implementer initiative and is removed, leaving `ms-2`. That moves the button **towards**
+Plan v2, not away from it, and R29 still holds — no rule for `volume-calculate-error` exists in any
+stylesheet.
+
+**The message-text failure in light theme is PRE-EXISTING and shared, not U1's.** A control probe —
+a bare `<div class="alert alert-danger">`, exactly what
+[`progression-plan.js:305`](../../static/js/modules/progression-plan.js#L305) and
+[`muscle-selector.js:293`](../../static/js/modules/muscle-selector.js#L293) already render on
+shipped surfaces — measured **identically**, 2.26 / 2.44 / 2.87 light and 8.38 / 11.16 / 11.60 dark.
+The cause is [`components.css`](../../static/css/components.css)'s `.alert-danger`, which pairs
+`color: white` with a **semi-transparent** red gradient that composites light over a light page.
+U1 adds no rule and changes no existing one; it inherits the component. **Fixing it means editing a
+shared `static/css/**` surface**, which escalates to `/build-css` plus the full `visual.spec.ts`
+matrix under [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) and is **not authorized here**.
+**Recorded as owner action owed**, with the measurement above as the evidence, and noted as
+affecting two already-shipped surfaces besides this one.
+
 **Three coverage gaps are recorded rather than closed, because closing any of them would add an
 arm or a mutation row beyond the ones §v2.8 and §v2.9 enumerate.** They were found by
 `code-reviewer` at diff time and are stated here so a later session does not have to re-derive
