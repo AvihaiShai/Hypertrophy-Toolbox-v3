@@ -21,6 +21,7 @@ It is descriptive and carries no status; anything time-sensitive stays in `MASTE
 - **[DECISIONS.md](DECISIONS.md)** - Durable project decisions and lightweight ADRs
 - **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Current architecture debt snapshot
 - **[LEFTOVERS_BY_PRIORITY.md](LEFTOVERS_BY_PRIORITY.md)** - Prioritized punch list of unfinished / parked / deferred items
+- **[OPEN_WORK_EXECUTION_PLAN.md](OPEN_WORK_EXECUTION_PLAN.md)** - Reconciled order of work, estimates, decision gates, and explicit closed/parked boundaries
 - **[ai_workflow/INDEX.md](ai_workflow/INDEX.md)** - AI workflow navigation spine
 - **[ai_workflow/DOC_RETENTION.md](ai_workflow/DOC_RETENTION.md)** - Rules for keeping, archiving, or deleting docs
 

@@ -4,6 +4,120 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
+**2026-08-24 (LATEST) — the 2026-08-24 scheduled deep gate EXECUTED and was green
+at job level; R1-D3's clock is recorded at 2 of 3; the qualification ledger gains
+row 5. `js-unit` is still NOT promoted and T0 is unmoved.** `origin/main` is at
+**`31659a5`** (PR [#414](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/414),
+the post-#413 status reconciliation, merged `2026-08-23T19:22:55Z`), with all 18
+checks green on that commit — post-merge run `32661056527`, **read at job level**,
+18 jobs and 18 `success`. **The repository has TWO open PRs**, both Dependabot and
+both unmerged: **#415** (`pyinstaller` 6.22.0 → 6.22.2) and **#416** (`sass`
+1.102.0 → 1.103.1), opened `2026-08-24T00:25Z`. Take no automatic feature action
+from this file.
+
+**1 — The scheduled deep gate ran, and it is the second consecutive green
+`schedule`-event run.** Run `32688747703`, event **`schedule`**, head `31659a5`,
+`2026-08-24T04:05:58Z → 04:24:03Z`. Its 03:17:00Z cron delivered **48 m 58 s**
+late — a second drift observation after 2026-08-17's 45 m 52 s, not a missed run.
+**All seven jobs were read individually and all seven are `success`:**
+
+| Job | Job id | Conclusion |
+|---|---|---|
+| Full E2E incl. accessibility (Chromium) | `97318476914` | `success` |
+| First install (catalog seed) smoke | `97318476932` | `success` |
+| Empty-schema initializer smoke | `97318476965` | `success` |
+| Old-DB migration compatibility | `97318476896` | `success` |
+| `Frozen executable (real bootloader, Windows) / Build and smoke` | `97318476906` | `success` — the **composite** name |
+| **Visual regression (Linux baselines)** | **`97318476983`** | `success` — **executed, not skipped** |
+| Dependency Health Check | `97318476761` | `success` |
+
+**Proven at step level, because the job's green alone is not the pass condition.**
+On job `97318476983`: *Assert committed visual seed present* **passed**, *Run
+visual specs* **passed**, and *Assert compare mode wrote no baseline* **passed** —
+that last step is the load-bearing one, `always()`-guarded and grepping
+`git status --porcelain` over `e2e/__screenshots__`. *Upload generated Linux
+baselines* and *Upload Playwright report + diffs* were both **skipped**, which
+corroborates compare mode without proving it. **No baseline was regenerated and
+none was needed.**
+
+**2 — R1-D3's clock is 2 of 3, settled by an owner ruling.** The question
+*"does the 2026-08-17 run count?"* is **SETTLED by an owner ruling dated
+2026-08-24, recorded in [`DECISIONS.md`](DECISIONS.md) ADR-007 under R1-D3: it
+COUNTS.** **ADR-007 is the authority — read it, do not re-derive this.** It was
+recorded rather than inferred because a repository-wide search that day found the
+question *raised* in three places —
+[`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), ADR-007 itself,
+and [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) — and **answered nowhere**. The
+reasoning behind it, kept for the reader: R1-D3 as the release plan's Section 0
+records it verbatim — *"Revisit only after the 2026-08-17 run and at least 3
+consecutive green scheduled runs"* — names the 2026-08-17 run and nowhere
+excludes it. **Measured, not inferred:**
+`gh run list --workflow=deep-gate.yml --event=schedule` returns exactly **two**
+runs repo-wide, **both `success`** — `31993105305` and `32688747703`. **The clock
+stands at 2 of 3; the third is due 2026-08-31 03:17 UTC**, and only a fresh owner
+ruling superseding the 2026-08-24 one could move it. **D3 itself stays deferred
+regardless — nothing here puts `visual-linux` into the release gate, and closing
+a clock is not the same as acting on it.** `release.yml`'s `push: tags` trigger has **still never fired**.
+
+**3 — The qualification ledger now holds FIVE rows.** Read live at job level at
+`2026-08-24T17:03:00Z`: **five** green `main` `JS Unit (Vitest, non-required)`
+results since and including T0, with **zero** red, missing, skipped or cancelled.
+Row 5 is job `97247194117` of run `32661056527` (`push` / `31659a5`, PR #414,
+18/18), completed `2026-08-23T19:23:22Z`. The ledger is kept at **job** level in
+exactly one authoritative place —
+[`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md)
+**§13.0**, *LIVE LEDGER* (its **post-#414** block). Do not restate its rows here,
+and do not read a count off this paragraph at a later session.
+
+**The ledger's qualification SCOPE is now stated, because 2026-08-24 is the first
+day the broad query and the narrow one disagree.** §6.1 fixes qualification at
+**`ci.yml` (`CI/CD Pipeline`)**. Four `main` runs in the window belong to other
+workflows — three Dependabot `dynamic` update runs (`32676594582`, `32676594619`,
+`32676594928`, path `dynamic/dependabot/dependabot-updates`, one `Dependabot` job
+each) and the deep gate above (`32688747703`, `deep-gate.yml`, seven jobs).
+**None is a qualification attempt and none may be recorded as a `js-unit` job
+"missing"** — neither workflow declares that job at all, and `deep-gate.yml`
+contains zero occurrences of `js-unit` / `JS Unit`. **The broad every-workflow API
+query is kept** as the completeness check that no attempt is hidden; only its
+result is classified rather than tallied into the *Missing* row. #415 and #416
+will produce `ci.yml` runs on their **PR branches**, which are not `main` runs and
+never enter the ledger.
+
+**T0 is UNCHANGED at `2026-08-22T17:59:26Z`** — job `97070630453` on `main` run
+`32589375849`, the **Packet C** post-merge run — and the strict 14-day mark is
+still **`2026-09-05T17:59:26Z`**. #414 was documentation-only (three files:
+`ACTIVE_DEVELOPMENT.md`, `MASTER_HANDOVER.md`, `testing_phase3/STEP12_JS_UNIT_GATE0.md`)
+and changed no JS test case — 13 files / 231 cases, unchanged across
+`b0aa393 → 31659a5` — so owner ruling Q2's restart clause never engaged. **No
+PR's `mergedAt` is T0.**
+
+**Explicitly NOT authorized and NOT taken:** promotion of `js-unit` (**Q4** /
+**D2**) — branch protection carries **12** required contexts, re-read live
+2026-08-24, and `JS Unit (Vitest, non-required)` is **absent**; **D4**; fixes for
+**KI-010** or **KI-011**; any branch-protection or repository-settings change; and
+any action on R1-D3 beyond recording the count. **D4 and the `js-unit` half of D2
+stay unsigned**, and **Q4 and D2 stay undecided and unauthorized, pending a
+separate owner decision.** **NT-4 stays closed, NT-7 stays open**, and
+`Test Inventory Drift` still pins six surfaces.
+
+**Next actions, in order:** (1) **inspect the 2026-08-31 scheduled deep gate only
+after it executes** — at job level, with `visual-linux` confirmed *executed*
+rather than skipped, never off the overall green; a green there is the **third**
+consecutive green run and closes R1-D3's clock under the reading above, but
+**acting on a closed clock is still a separate owner decision**; expect drift of
+up to an hour; (2) **continue the qualification ledger** in §13.0 until
+`2026-09-05T17:59:26Z`, at job level, recording any red, missing, skipped or
+cancelled **`ci.yml`** result — a red **resets the window to zero**; (3) **leave
+Q4 and D2 unsigned pending a separate owner decision**; (4) **#415 and #416 are
+unreviewed and unmerged** — nothing here touches them.
+
+**This reconciliation changed documentation only** — exactly six files
+(`docs/release_pipeline/PLANNING.md`,
+`docs/testing_phase3/STEP12_JS_UNIT_GATE0.md`,
+`docs/TESTING_STRATEGY_PLANNING.md`, `docs/DECISIONS.md`,
+`docs/MASTER_HANDOVER.md` and this file). No production, test, workflow,
+dependency, inventory, generated, config or repository-settings change.
+
 **2026-08-23 (LATEST) — repository state reconciled through PR #413; `js-unit`
 is still NOT promoted.** `origin/main` is at **`b0aa393`**
 (PR [#413](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/413), the Q6
@@ -11,6 +125,20 @@ documentation correction, merged `2026-08-23T18:03:43Z`), with all 18 checks gre
 on that commit — post-merge run `32656837264`, **read at job level**, 18 jobs and
 18 `success`. The repository has **zero open PRs**. Take no automatic feature
 action from this file.
+**[UPDATED 2026-08-24 — this block carried the `(LATEST)` marker until the block
+above was written; `origin/main` has since moved **one** commit to `31659a5`
+(#414). Nothing below is edited except this annotation. **Three** of its claims
+are spent, and all three are corrected above rather than here: its
+*"`origin/main` is at `b0aa393`"*; its *"zero open PRs"* — there are now **two**,
+Dependabot #415 and #416; and its **four**-row ledger reading — there are now
+**five** rows, and §13.0's post-#414 block is the only place that count lives.
+Its next-action item **(1)**, *"claim nothing about the 2026-08-24 deep gate until
+it has run"*, is **DISCHARGED**: it ran, 7/7 green at job level, and the record is
+above. Everything else it asserts — T0 and the strict mark, the A → B → C → F
+shape, Packet D dropped and the letter E vacant, NT-4 closed and NT-7 open, the
+six pinned surfaces, **12** required contexts with `js-unit` absent, Q4 / D2 / D4
+unsigned, KI-010 and KI-011 open, and `push: tags` never fired — was re-checked on
+2026-08-24 and still stands.]**
 
 **Two PRs merged after `2c95bae`, and both are documentation-only.**
 

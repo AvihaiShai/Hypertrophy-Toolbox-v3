@@ -20,6 +20,17 @@ const JSON_REQUEST_HEADERS = {
     'X-Requested-With': 'XMLHttpRequest'
 };
 
+const CALCULATE_ERROR_ID = 'volume-calculate-error';
+// States what is on screen now, not what happened to it. Event phrasing such as
+// "your previous results were cleared" is false on the first failure of a page
+// load, where nothing was ever shown.
+const CALCULATE_ERROR_MESSAGE = 'Volume calculation failed, so no results are shown. Please try again.';
+
+// Monotonic request counter. The failure state machine is keyed on request
+// order, not response arrival order, so a stale response cannot repaint over a
+// newer one.
+let calculateRequestSeq = 0;
+
 const deepClone = (value) => JSON.parse(JSON.stringify(value || {}));
 
 const toNumericRange = (range) => {
@@ -108,7 +119,12 @@ function initializePageTooltips() {
     });
 }
 
-function calculateVolume() {
+// `forceAnnounce` selects whether to raise a toast even when a failure region
+// already stands. It does not mean "never announce": the announce condition in
+// enterCalculateFailureState() still fires on the first failure of a run and
+// whenever our toast content has been replaced.
+function calculateVolume({ forceAnnounce = true } = {}) {
+    const seq = ++calculateRequestSeq;
     const trainingSelect = document.getElementById('training-days');
     const trainingDays = Math.max(parseInt(trainingSelect?.value, 10) || 3, 1);
     const volumes = collectVolumes();
@@ -132,10 +148,115 @@ function calculateVolume() {
         useDefaultHeaders: false
     })
         .then(response => response.data)
-        .then(handleCalculateResponse)
+        .then(data => {
+            if (seq !== calculateRequestSeq) {
+                return;
+            }
+            try {
+                handleCalculateResponse(data);
+            } catch (error) {
+                // Post-2xx response-handling failures never reach the shared
+                // wrapper's error branch, so this is their only handler.
+                console.error('Volume calculation: response handling failed', error);
+                enterCalculateFailureState({ forceAnnounce });
+                return;
+            }
+            exitCalculateFailureState();
+        })
         .catch(error => {
-            console.error('Error calculating volume:', error);
+            if (seq !== calculateRequestSeq) {
+                return;
+            }
+            // Request-failure class: non-2xx and transport failures, both of
+            // which the shared wrapper reports silently for this call.
+            console.error('Volume calculation: request failed', error);
+            enterCalculateFailureState({ forceAnnounce });
         });
+}
+
+function enterCalculateFailureState({ forceAnnounce }) {
+    clearResults();
+
+    const standing = Boolean(document.getElementById(CALCULATE_ERROR_ID));
+    renderCalculateFailureRegion();
+
+    if (forceAnnounce || !standing || !ourToastContentStands()) {
+        showToast('error', CALCULATE_ERROR_MESSAGE, {
+            action: {
+                label: 'Retry',
+                ariaLabel: 'Retry volume calculation',
+                onClick: () => calculateVolume()
+            }
+        });
+    }
+}
+
+function renderCalculateFailureRegion() {
+    // Idempotent by contract: a repeat failure must not rebuild the node or
+    // rewrite identical text, both of which are DOM churn under one state.
+    if (document.getElementById(CALCULATE_ERROR_ID)) {
+        return;
+    }
+
+    const panel = document.querySelector('.volume-insights-panel');
+    if (!panel) {
+        return;
+    }
+
+    const region = document.createElement('div');
+    region.id = CALCULATE_ERROR_ID;
+    region.className = 'volume-calculate-error alert alert-danger';
+    region.dataset.testid = CALCULATE_ERROR_ID;
+
+    // Deliberately not a live region: the toast already announces assertively,
+    // and a second one would double-announce every failure.
+    const message = document.createElement('span');
+    message.textContent = CALCULATE_ERROR_MESSAGE;
+    region.appendChild(message);
+
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    // Deliberately NOT a `btn btn-*` button. components.css paints `.alert-danger`
+    // as a red gradient, and every Bootstrap button variant resolves to danger-red
+    // text inside it -- measured at 1.58:1 there, which no class swap fixes. The
+    // plain control inherits the UA button surface and measures 18.4:1. Plan v2
+    // (D) specifies no Bootstrap button variant here; the spacing utility stays.
+    retry.className = 'ms-2';
+    retry.dataset.testid = 'volume-calculate-retry';
+    retry.setAttribute('aria-label', 'Retry volume calculation');
+    retry.textContent = 'Retry';
+    retry.addEventListener('click', () => calculateVolume());
+    region.appendChild(retry);
+
+    panel.prepend(region);
+}
+
+function exitCalculateFailureState() {
+    // `.remove()`, never a hidden retained node: the success path may not carry
+    // a permanently present element.
+    document.getElementById(CALCULATE_ERROR_ID)?.remove();
+    dismissCalculateFailureToast();
+}
+
+function dismissCalculateFailureToast() {
+    // A success arriving inside the toast's 3000 ms life would otherwise leave
+    // an error toast standing over fresh results.
+    if (!ourToastContentStands()) {
+        return;
+    }
+
+    const toastElement = document.getElementById('liveToast');
+    if (toastElement) {
+        bootstrap.Toast.getInstance(toastElement)?.hide();
+    }
+}
+
+// The single shared probe for "our content still stands in the toast body".
+// Scoped to `#liveToast`, never `#toast-body`: the wider scope survives the
+// node relocation a KI-011 fix would require. Deliberately blind to
+// visibility: it returns true for a toast that has already dismissed itself.
+function ourToastContentStands() {
+    return Boolean(document.querySelector('#liveToast button[aria-label="Retry volume calculation"]'));
 }
 
 function displayResults(results) {
@@ -182,6 +303,10 @@ function resetValues() {
     });
     modeVolumeState[currentMode] = collectVolumes();
     clearResults();
+    // Invalidate any in-flight calculation so a failure that resolves after the
+    // user has zeroed the sliders cannot repaint over a deliberately blank page.
+    calculateRequestSeq += 1;
+    exitCalculateFailureState();
 }
 
 function loadPlan(planId) {
@@ -630,7 +755,9 @@ function attachSliderListeners() {
         slider.addEventListener('change', () => {
             modeVolumeState[currentMode] = { ...collectVolumes() };
             updateSliderTrack(slider, getRangeForMuscle(slider.dataset.muscle));
-            calculateVolume();
+            // Not silent: the `|| !standing` fallthrough still announces the
+            // first failure. Arrow keys fire `change` on every keypress.
+            calculateVolume({ forceAnnounce: false });
         });
     });
 }
@@ -864,7 +991,8 @@ function scheduleCalculate() {
     if (calculateDebounceId) {
         clearTimeout(calculateDebounceId);
     }
-    calculateDebounceId = window.setTimeout(() => calculateVolume(), 300);
+    // Not silent: the `|| !standing` fallthrough still announces the first failure.
+    calculateDebounceId = window.setTimeout(() => calculateVolume({ forceAnnounce: false }), 300);
 }
 
 function clearResults() {
