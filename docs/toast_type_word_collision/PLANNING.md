@@ -90,12 +90,22 @@ class faked exactly as [`toast.test.js`](../../static/js/modules/__tests__/toast
 | `showToast('success', true)` | `"true"` | `bg-success` | red toast saying `success` |
 | `showToast('info', true)` | `"true"` | `bg-info` | red toast saying `info` |
 | `showToast('error', false)` | `"false"` | `bg-danger` | **green** toast saying `error` |
-| `showToast('error')` | `"An unexpected error occurred."` | `bg-danger` | red toast saying `error` |
+| `showToast('error')` | `"An unexpected error occurred."` | `bg-danger` | **green** toast saying `error` ⚠️ |
 | `showToast('warning')` | `"Action completed successfully."` | `bg-warning` | green toast saying `warning` |
 | `showToast('success')` | `"Action completed successfully."` | `bg-success` | green toast saying `success` |
 | `showToast('info')` | `"Action completed successfully."` | `bg-info` | green toast saying `info` |
 
 **All four type words reproduce in both arities. Nine defective outcomes, not one.**
+
+> ⚠️ **CORRECTED 2026-08-27 by owner ruling OD-8.** Row 6's *Caller's intent* cell read *"red toast
+> saying `error`"* when this table was signed. **That cell was wrong.** The legacy one-argument
+> contract is fixed by **B5** ([`toast.test.js:169`](../../static/js/modules/__tests__/toast.test.js#L169)):
+> `showToast('Bare message')` renders that message on **`bg-success`**. A legacy caller writing
+> `showToast('error')` therefore intends a **green** toast whose body is the word `error` — which is
+> exactly what **AC-2** and **OD-2** deliver. **The cell is corrected in place, not rewritten
+> silently**, and the correction is the owner's, not this packet's. **Rows 1–5 and 7–9 were and
+> remain correct**; only row 6 moved. The product-risk reviewer surfaced the contradiction and read
+> it as AC-2 being wrong; measurement showed the table was.
 
 **Three findings that were measured here and are recorded in no existing document:**
 
@@ -370,8 +380,14 @@ Gate 1 can derive tests from them rather than the reverse.
 - **Packet U1's residue** — U1-FOLLOWUP-1, U1's AA/contrast debt, `volume-splitter.js`.
 - **Decisions Q4, D2 and D4**, and any branch-protection change. U3a *affects* the D2 timeline
   (§0.7); it does not decide D2.
-- **The `STEP12_JS_UNIT_GATE0.md` ledger.** U3a's own PRs will mint ledger rows, and those rows
-  are owed — but by the packet that owns that document, not by this one.
+- ~~**The `STEP12_JS_UNIT_GATE0.md` ledger.** U3a's own PRs will mint ledger rows, and those rows
+  are owed — but by the packet that owns that document, not by this one.~~
+  ⚠️ **AMENDED 2026-08-27, RATIFIED by owner ruling OD-9.** The owner authorised U3a to *"edit
+  planning/ledger documentation"* and to *"record each still-unclaimed result once, in actual
+  merge order"*. **U3a therefore appends rows to §13.0 and the bullet above no longer binds.**
+  The crossing is recorded openly rather than left implicit — see §v2.0. **What still binds:**
+  U3a records only results **no open PR claims**, never restates an existing row, and never
+  renumbers one.
 - **KI-004** (single-toast reuse), the `requestId` suffix rule, the default-copy strings
   themselves, and the `bg-*` mapping.
 - Any change to `utils/errors.py`, `fetch-wrapper.js`, or server-side response copy. §0.4 shows
@@ -592,6 +608,21 @@ owner sets it.
    must choose between them on the record**, because they differ on a case an existing test
    pins. §0.14 OD-2 carries the measurement. **Plan v1 may not present the wording above as
    settled.**
+
+   ✅ **AMENDED AGAIN 2026-08-27 by owner ruling OD-6 — AND THE CONDITION'S OWN WORDING IS
+   AMENDED WITH IT.** The spelling is **S2**: `arguments.length < 2`. The addendum above is
+   therefore **superseded** — read *"and argument 2 was actually supplied"*, **not** *"and
+   argument 2 is not `undefined`"*. An **explicitly supplied `undefined` remains a modern call**.
+
+   **This condition previously required the rule *"as a total function of the argument types"*.**
+   `arguments.length` is not a type, so S2 could not satisfy that wording — the architecture
+   reviewer's finding A2. **The owner amended the condition on the record rather than
+   reinterpreting it silently:**
+
+   > **Condition 5, as amended 2026-08-27:** the disambiguation rule must be stated as a **total
+   > function of the argument types AND the call shape/arity**, not as a patch.
+
+   §v2.3 states it in that form. **No other clause of §0.13 is amended.**
 
    Measured properties of that rule, for the council to verify rather than accept:
 
@@ -1153,6 +1184,9 @@ may be regenerated without owner sign-off); branch-protection changes (D2 is not
 - **OD-7 (proposed): under S1, is B13 parametrised over all four type words** (60 / 244) **or left as
   one inverted case** (57 / 241)? Moot under S2.
 
+> ⚠️ **SPENT 2026-08-27.** Both proposals above are now **ruled**: OD-6 = **S2**, OD-7 = **N/A**.
+> The wording is left as the Plan-v1 record it was; the rulings are at the Gate 1 sign-off block.
+
 ---
 
 ## Council record — Gate 1, 2026-08-27
@@ -1272,10 +1306,10 @@ isModern   := isTypeWord AND (NOT isFlag) AND (NOT isAbsent)
 
 - **S1 is a total function of the argument values.** Every `(type, message, options)` triple lands in
   exactly one branch.
-- **S2 is a total function of the call shape and the argument values.** `argc` is **not** a type, so
-  §0.13 condition 5's wording — *"a total function of the argument **types**"* — **does not cover
-  S2**. Choosing S2 requires the owner to amend that condition. **This is a consequence of the
-  ruling, not an argument against it**, and it is carried into the sign-off block.
+- **S2 — RULED, and this is the shipping contract.** A total function of the **call shape and the
+  argument values**. `argc` is not a type, so §0.13 condition 5's original wording did not cover
+  it; **the owner amended that condition on 2026-08-27** (see §0.13) so the contract may depend on
+  argument types **and** call shape/arity. The amendment is recorded there, not assumed here.
 - **`null` is explicitly modern.** `showToast(T, null)` renders the default copy, under both
   spellings, before and after. **CI-9's survival depends entirely on this** and it was unstated in
   Plan v1.
@@ -1312,7 +1346,25 @@ diverge on one *class* of input — **not one input**, as Plan v1 claimed (findi
 | Predicted `toast.test.js` / suite | **57 / 241** (B13 single) or **60 / 244** (B13 parametrised — OD-7) | **57 / 241** |
 | Mutation consequence | B13 and B43 detect the **same** conjunct — an equivalence class needing disclosure | B13's **only** kill is the rival-spelling arm; B43 gains its **first independent kill** |
 
-**PLAN v2 REVERSES PLAN v1 AND RECOMMENDS S2.**
+> ## ✅ **OD-6 RULED 2026-08-27 — S2.**
+>
+> **`isAbsent := arguments.length < 2`.** An **explicitly supplied `undefined` remains modern-call
+> behaviour** and must not trigger the legacy green-toast path. **S1 is not adopted.**
+>
+> Consequences, all binding on implementation:
+>
+> - **B13 is untouched.** `showToast('error', undefined)` keeps rendering
+>   `"An unexpected error occurred."` on `bg-danger`, and B13 stays green in every arm.
+> - **The characterization set is exactly {B43, B45}** — two inverted cases, not three.
+> - **§0.13 condition 5 is amended** (see the amendment block at §0.13). The contract may depend on
+>   argument types **and call shape/arity**.
+> - **The durability caveat is now a live obligation, not a footnote:** a future refactor of
+>   `showToast` to `(...args) =>` silently reverts the one-argument fix. §v2.6 pins arity
+>   explicitly so that refactor reds.
+> - **The S1-only risk is closed by construction** — no runtime-`undefined` message can reach the
+>   legacy branch, so the severity inversion the council found cannot occur.
+
+**PLAN v2 REVERSED PLAN v1 AND RECOMMENDED S2; the owner ruled S2 on 2026-08-27.**
 
 The reason is single and measured: **S1 converts a red error toast into a green one for any modern
 call whose message expression evaluates to `undefined` at runtime, and the inverted B13 would assert
@@ -1330,6 +1382,11 @@ that condition is amendable and A2 shows it must be touched either way; (2) "no 
 **The honest case for S1 remains A12: it propagates through indirection and S2 does not.** If the
 owner weighs future forwarding wrappers above the severity-inversion risk, S1 is the correct ruling
 and this recommendation should be overridden. **Plan v2 does not choose.**
+
+> ✅ **RESOLVED 2026-08-27 — the owner ruled S2**, i.e. granted Plan v2's recommendation and declined
+> the A12 counter-argument above. The paragraph is left standing as the honest case it was: **A12 is
+> a real property of S2 and it did not go away by being outvoted.** Its live consequence is the
+> durability obligation now carried by B13's comment (§v2.6) and by mutation arm **5f** (§v2.8).
 
 ### v2.5 Exact production change (findings A4, A6)
 
@@ -1355,7 +1412,8 @@ B45a–d, B46a–d, B43a–d as in §v1.6, **plus**:
 | Case family | Shape | Why |
 |---|---|---|
 | **B47a–d** | `showToast(T, <bool>, { requestId: 'R1' })` | **Measured new behaviour, pinned by nothing today:** `showToast('error', false, {requestId:'R1'})` renders `"false (Request ID: R1)"` / `bg-danger` before and **`"error"` / `bg-success` with the suffix SILENTLY DROPPED** after — under both spellings. Disposition is **OD-11** |
-| **B13** | `showToast(T, undefined)` | Spelling-dependent, exactly as §v1.6: **inverted and retitled under S1; untouched under S2.** Its only mutation kill is §v2.8 step 4 |
+| **B13** | `showToast('error', undefined)` | ✅ **ASSERTIONS UNTOUCHED — OD-6 ruled S2.** It keeps asserting `"An unexpected error occurred."` on `bg-danger` and **must stay green in every arm**. Under OD-7 the S1-only parametrisation is **not** added. B13 is now the case that pins *"an explicitly supplied `undefined` is still a modern call"*, and its **only** mutation kill is the rival-spelling arm (§v2.8 step 4) — which is therefore mandatory. **Its COMMENT must be rewritten** to state the arity dependence explicitly — that the distinction rests on `arguments.length`, and that a refactor of `showToast` to `(...args) =>` must carry `args.length` with it. That is the discharge of OD-6's durability obligation (see the withdrawn B48 row below for why it is a comment and not a case) |
+| ~~**B48**~~ | ~~an arity-pinning case~~ | ❌ **PROPOSED, THEN MEASURED, THEN WITHDRAWN — 2026-08-27.** Plan v2 proposed a new case to guard OD-6's named durability risk, claiming a rest-parameter rewrite would red *"exactly B48"*. **The claim was measured and is false** (harness `artifacts/probe/b48_probe.mjs`). Two results: a **faithful** rewrite keeping `args.length < 2` **preserves the behaviour entirely** — the refactor is not inherently breaking; and a **careless** rewrite that drops the conjunct (because `arguments` is unavailable in an arrow function) makes `showToast('error')` modern again, which **B43a–d already kill**. So B48 would have had **no independent mutation kill**, and adding it would have been test bloat dressed as a guard. **The obligation is discharged by documentation instead** — see the B13 row above. *Recorded rather than quietly dropped, because a proposal that fails its own measurement is evidence, not an embarrassment.* |
 
 **Mandatory disclosure, in the file, in the B15a/B15b idiom** (finding T-S2): **nine of the twelve
 new cases — B45b/c/d, B46b/c/d, B43b/c/d — have no independent mutation kill**, because the
@@ -1365,10 +1423,15 @@ membership entirely — removing `'warning'` from `:12` leaves B45b green.
 
 ### v2.7 Inventory arithmetic
 
-`47 − 2 + 12 = 57` (+ B47's four = **61** if OD-11 pins them); suite `231 + 10 = 241` (or **245**).
-`EXPECTED_TOTAL_FILES` stays **13**. **Two literals are edited (`:57`, `:67`); `:58` is
-re-confirmed, not edited** (finding T-N1). **None of these numbers is signed** — OD-4 refuses a case
-count and the implementation measures it.
+**Under the rulings (S2; OD-11 pins B47; OD-7 adds nothing; B48 withdrawn on measurement):**
+`47 − 2 (B43, B45 removed) + 12 (B43a–d, B45a–d, B46a–d) + 4 (B47a–d) = **61**` for
+`toast.test.js`, and `231 + 14 = **245**` for the suite. `EXPECTED_TOTAL_FILES` stays **13**.
+**Two literals are edited (`:57`, `:67`); `:58` is re-confirmed, not edited** (finding T-N1).
+
+> **This is arithmetic on a design, not a signed count.** OD-4 refuses to sign a case count and
+> that refusal stands. **The implementation measures `vitest list` and sets the literals from the
+> measurement**; if the measured figure differs from 62 / 246, the *measurement* wins and the
+> discrepancy is investigated before the literals are touched.
 
 ### v2.8 Mutation and negative-control procedure — every arm with an exact oracle
 
@@ -1383,17 +1446,18 @@ through the same glob — a probe inside it would double-collect and red gates 1
 | Step | Arm | Exact required outcome |
 |---:|---|---|
 | **0** | Pre-flight, pristine | exit **0**, **`47 passed (47)`**. Any other collected count is **BAD RUN** |
-| **1** | Fix + pristine tests | exit **1**, collected **47**, reds **exactly** `{B43, B45}` (S2) or `{B13, B43, B45}` (S1) — **measured** |
+| **1** | Fix + pristine tests | exit **1**, collected **47**, reds **exactly** `{B43, B45}` — **measured under the ruled S2 spelling** |
 | **1b** | **Full `npm run test:js`** with fix + pristine tests | exit **1**, collected **231**, same red set. **This is the arm that makes AC-7's "nothing else" a claim about the real suite** |
 | **2** | Pristine + new tests | exit **1**, reds **exactly** the new and inverted cases |
 | **3** | The pair | exit **0**, collected = the measured §v2.7 figure |
-| **4** | **Rival spelling**, both directions | reds **exactly B13** (or B13a–d under OD-7) |
-| **5a** | drop `isFlag` | reds **exactly** `{B43}` (S2) / `{B13, B43}` (S1) against pristine tests — **measured** |
-| **5b** | drop `isAbsent` | reds **exactly** `{B45}` — **measured, both spellings** |
+| **4** | **Rival spelling** (S1 as the rival), both directions | reds **exactly `{B13}`** — **measured**. This is B13's only kill, so the arm is mandatory, not optional |
+| **5a** | drop `isFlag` | reds **exactly** `{B43}` against pristine tests — **measured** |
+| **5b** | drop `isAbsent` (`arguments.length < 2`) | reds **exactly** `{B45}` — **measured** |
 | **5c** | **NARROW `isFlag` → `message === true`** | **MEASURED: indistinguishable from correct against all 47 current cases** — identical red sets. **B46a–d exist to kill this and nothing else.** Must also be run as `message === false` |
-| **5d** | S1 only: `== undefined` | reds `{B12, B14, B15a, B15b, B13, B43, B45}` — **measured**; existing cases already kill it, so no new case is needed |
-| **5e** | S2 only: `argc !== 2` | reds **nine**: `{B19–B23, B33, B34, B43, B45}` — **measured**. **B10 is blind to it**, and B10 is CI-2's sole pin |
-| **6** | drop `isTypeWord` | reds **exactly** `{B8, B43, B45}` (+`B13` under S1) — **measured**. Replaces §v1.8's *"must red broadly"*, which had no oracle |
+| **5d** | ~~S1 only: `== undefined`~~ | **DROPPED — OD-6 ruled S2**, so this arm mutates a conjunct the shipped code does not contain. Its measurement (`{B12, B14, B15a, B15b, B13, B43, B45}`) is retained above as the evidence it was |
+| **5e** | **`argc !== 2`** — the off-by-one on the ruled conjunct | reds **nine**: `{B19–B23, B33, B34, B43, B45}` — **measured**. **B10 is blind to it**, and B10 is CI-2's sole pin. **Now a required arm, not an optional one** |
+| **5f** | **drop the `arguments.length` conjunct entirely** — the careless `(...args) =>` rewrite | reds **exactly** `{B43a–d}` — **measured**, and this is the corrected oracle: Plan v2 first predicted a dedicated case would be needed and the measurement showed **B43a–d already cover it**. A *faithful* rewrite carrying `args.length < 2` changes nothing and must stay **green** — run both directions |
+| **6** | drop `isTypeWord` | reds **exactly** `{B8, B43, B45}` — **measured**. Replaces §v1.8's *"must red broadly"*, which had no oracle |
 
 **Judging rules.** Judge by exit code **and** collected count together — a run that exits 1 with
 **zero** collected is a **BAD RUN**, hit for real while producing this table by passing an
@@ -1463,10 +1527,12 @@ and `Run Tests` both stay **green**, and the only red is `JS Unit (Vitest, non-r
 ### v2.12 Sequencing (finding A7)
 
 1. **#427 merges first** (owner ruling). Not authorized here.
-2. **#426's disposition is resolved before U3a measures its inventory literals.** It is a concurrent
-   lane on `toast.js`/`toast.test.js`; if it moves any case, U3a's literals and regenerated inventory
-   go stale and **two green sibling PRs red `main`** — this repository's own recorded failure. Gates
-   2–5 re-run after any rebase.
+2. **#426 is RESOLVED BY MEASUREMENT, not by waiting.** Measured `2026-08-26T23:50:36Z`:
+   `gh pr diff 426 --name-only` returns **exactly one file**,
+   `docs/toast_action_continuity/PLANNING.md` — a docs-only Gate 0 candidate that touches **no**
+   `static/js` path and therefore **cannot move a Vitest case**. The finding A7 hazard is real in
+   general and **does not apply to #426 as it currently stands**. **This must be re-measured, not
+   assumed, if #426 gains a commit**; gates 2–5 re-run after any rebase regardless.
 3. This Gate 1 planning PR merges once Gate 1 is signed **and** `gh pr view 427 --json state` reports
    `MERGED` — the row-14/15 precondition.
 4. Implementation begins.
@@ -1476,82 +1542,71 @@ and `Run Tests` both stay **green**, and the only red is `JS Unit (Vitest, non-r
 
 | | Decision | Plan v2 position |
 |---|---|---|
-| **OD-6** | **S1 or S2** | **Recommends S2** (§v2.4). **Left to the owner.** |
-| **OD-7** | Under S1 only: parametrise B13 over four type words (60/244) or leave it single (57/241)? | Moot under S2 |
-| **OD-8** | **§0.3 row 6's intent cell is wrong** — it says `showToast('error')` means a *red* toast; B5 fixes the legacy one-argument contract as **green**. Correct the signed cell? | Recommends correcting it, annotated in place. **A signed table is not edited without a ruling.** |
-| **OD-9** | Ratify the §0.9 ledger-scope amendment (§v2.0) | Recommends ratification |
-| **OD-10** | `STEP12_JS_UNIT_GATE0.md` §10.3/§10.5 go stale — the 47-case arithmetic, B43/B45's present-tense rows, N8/N10/N12's kill sets, and **two signed Gate 1 checkboxes** at `:2054`/`:2067`. Re-derive in the implementation PR, or land a dated stale-pointer annotation? | Recommends a **dated annotation**; re-deriving §10.5 is a packet of its own |
-| **OD-11** | The **requestId suffix drop** on `showToast(T, false, {requestId})` — pin it with B47a–d, or accept it unpinned? | Recommends pinning |
+| **OD-6** | **S1 or S2** | ✅ **RULED 2026-08-27 — S2.** `arguments.length < 2`; an explicit `undefined` stays modern. §0.13 condition 5 amended. |
+| **OD-7** | Under S1 only: parametrise B13 over four type words (60/244) or leave it single (57/241)? | ✅ **RULED N/A 2026-08-27.** S2 was chosen, so B13 is never inverted. **The S1-only parametrisation must NOT be added.** |
+| **OD-8** | **§0.3 row 6's intent cell is wrong** — it says `showToast('error')` means a *red* toast; B5 fixes the legacy one-argument contract as **green**. Correct the signed cell? | ✅ **RULED 2026-08-27 — CORRECT IT.** Applied at §0.3, annotated in place. |
+| **OD-9** | Ratify the §0.9 ledger-scope amendment (§v2.0) | ✅ **RATIFIED 2026-08-27.** Applied at §0.9. |
+| **OD-10** | `STEP12_JS_UNIT_GATE0.md` §10.3/§10.5 go stale — the 47-case arithmetic, B43/B45's present-tense rows, N8/N10/N12's kill sets, and **two signed Gate 1 checkboxes** at `:2054`/`:2067`. Re-derive in the implementation PR, or land a dated stale-pointer annotation? | ✅ **RULED 2026-08-27 — Plan v2's proposal ACCEPTED.** A **dated stale-pointer annotation** lands in the implementation PR; §10.5 is **not** re-derived here. |
+| **OD-11** | The **requestId suffix drop** on `showToast(T, false, {requestId})` — pin it with B47a–d, or accept it unpinned? | ✅ **RULED 2026-08-27 — PIN IT.** B47a–d ship. |
 
 
 ---
 
-### Gate 1 sign-off — **NOT SIGNED. PROPOSED, awaiting the owner.**
+### Gate 1 sign-off — **SIGNED 2026-08-27**
 
-**Nothing below is approved.** Gate 1 planning is complete; Gate 1 **approval** is not given, and
-this packet does not sign it on the owner's behalf.
+**Gate 1 is SIGNED.** All six open decisions were ruled by the owner on 2026-08-27 and the plan of
+record is **Plan v2 as amended by those rulings**.
 
-#### What the owner is asked to rule on
+| | Decision | Ruling |
+|---|---|---|
+| **OD-6** | S1 or S2 | ✅ **S2** — `arguments.length < 2`. An **explicitly supplied `undefined` remains modern-call behaviour** and must not trigger the legacy green-toast path. **§0.13 condition 5 amended on the record** so the contract may depend on argument types **and call shape/arity** |
+| **OD-7** | B13 parametrisation | ✅ **N/A under S2.** The S1-only inverted parametrisation is **not** added |
+| **OD-8** | §0.3 row 6's intent cell | ✅ **Corrected** — B5 fixes the legacy one-argument contract as **green**. Applied at §0.3, annotated in place |
+| **OD-9** | §0.9 ledger-scope amendment | ✅ **Ratified.** Applied at §0.9 |
+| **OD-10** | §10.3 / §10.5 staleness | ✅ **Plan v2's proposal accepted** — a dated stale-pointer annotation in the implementation PR; §10.5 is not re-derived |
+| **OD-11** | requestId-suffix drop | ✅ **Pinned** — B47a–d ship |
 
-- [ ] **OD-6 — S1 or S2.** *(BLOCKING — every artifact below is written for whichever wins, and the
-      choice is a small localised edit either way.)*
-      **Plan v2 recommends S2**, reversing Plan v1, on one measured ground: under S1 a modern call
-      whose message evaluates to `undefined` at runtime renders **the type word on a green toast** —
-      a severity inversion — and the inverted **B13 would assert that as the contract**. S2 leaves
-      that input exactly as it behaves today.
-      **The honest case for S1**, which the owner may prefer: S1 is a *value* test and propagates
-      through forwarding wrappers, `apply` and spread; **S2 is a call-shape test and does not**.
-      **Consequence of ruling S2:** `argc` is not a type, so signed **§0.13 condition 5** —
-      *"a total function of the argument **types**"* — **must be amended on the record**. Ruling S2
-      without that amendment leaves a signed entry condition silently reinterpreted.
-- [ ] **OD-7** — under S1 only: parametrise **B13** over four type words (**60 / 244**) or leave it
-      as one inverted case (**57 / 241**)? Moot under S2.
-- [ ] **OD-8** — **§0.3 row 6's intent cell is wrong.** It records the caller's intent for
-      `showToast('error')` as *"red toast saying `error`"*; **B5** fixes the legacy one-argument
-      contract as **success / green**, so the correct intent is green — which is what AC-2 and OD-2
-      deliver. Rows 1–5 and 7–9 are correct. **Correct the signed cell, annotated in place?**
-      *(This packet does not edit a signed table without a ruling.)*
-- [ ] **OD-9** — ratify the **§0.9 ledger-scope amendment** at §v2.0: the owner's 2026-08-27
-      authorisation to record ledger rows crossed a signed §0.9 boundary, and this packet recorded
-      the crossing openly rather than silently.
-- [ ] **OD-10** — `STEP12_JS_UNIT_GATE0.md` **§10.3 / §10.5 go stale** on implementation: the 47-case
-      arithmetic, B43's and B45's present-tense rows, N8/N10/N12's mutation kill sets, and **two
-      signed Gate 1 checkboxes** at `:2054` / `:2067`. **Re-derive in the implementation PR, or land
-      a dated stale-pointer annotation?** *(Plan v2 recommends the annotation; re-deriving §10.5 is
-      a packet of its own.)*
-- [ ] **OD-11** — the **requestId suffix drop**: `showToast(T, false, {requestId})` renders
-      `"false (Request ID: R1)"` today and **`"error"` on `bg-success` with the suffix silently
-      dropped** after the fix, under both spellings. **Pin it with B47a–d, or accept it unpinned?**
-      *(Plan v2 recommends pinning.)*
-- [ ] Owner accepts, or amends, **Plan v2** as the plan of record — including the user-facing
-      limitations at **§v2.10**, which are stated rather than softened: the fix restores **fidelity,
-      not quality**; a legacy `showToast('success', true)` becomes a **red** toast reading
-      `"success"`; the assertive live region now announces a single context-free word; and
-      `new Boolean(true)` / `1` / `0` remain **uncovered** while CI-6/B8 keeps them contract-legal.
+**One Plan v2 proposal did not survive its own measurement and was withdrawn before signing.** Plan
+v2 proposed a new case **B48** to guard OD-6's named durability risk. The claim that a
+rest-parameter rewrite would red *"exactly B48"* was **measured and is false**: a faithful rewrite
+preserves the behaviour, and a careless one is already killed by **B43a–d**. B48 is withdrawn, the
+obligation is discharged by rewriting **B13's comment** instead, and the case count falls from the
+proposed 62 to **61**. The withdrawal is recorded at §v2.6 rather than quietly dropped.
 
-#### What signing Gate 1 would and would not do
+#### What the signature authorises
 
-**Would:** authorise implementation to begin against Plan v2, in the ruled spelling, once **#427 has
-merged** and **#426's disposition is resolved** (§v2.12).
+**Implementation may begin**, against Plan v2 as amended, in the **S2** spelling.
 
-**Would NOT:**
+#### What the signature does NOT authorise — unchanged and still binding
 
-- **It would not authorise a merge.** **OD-1 remains binding: no U3a implementation PR may merge
-  before `2026-09-05T17:59:26Z`, and passing that instant is neither implementation authorization
-  nor merge authorization.**
-- It would not authorise merging **#427**, **#426**, or this planning PR.
-- It would not close **KI-011**, which is a separate packet with its own Gate 0.
-- It would not close OD-1's **open residual**: for the remainder of the window, any new
+- **It is not merge authorisation for anything.** **OD-1 remains binding: no U3a implementation PR
+  may merge before `2026-09-05T17:59:26Z`, and passing that instant is neither implementation
+  authorization nor merge authorization.**
+- **It does not authorise merging this planning PR**, PR **#427**, or PR **#426**.
+- **The ledger row numbers stay conditional.** Measured `2026-08-26T23:50:36Z`: **#427 is `OPEN` and
+  unmerged**. Rows **14 / 15 / 16** hold only if #427 lands row 13 first. `gh pr view 427 --json
+  state` must report `MERGED`, and the numbers must be re-confirmed against §13.0's then-current
+  last row, immediately before this PR merges.
+- **It does not close KI-011**, a separate packet with its own Gate 0 (PR #426).
+- **It does not close OD-1's open residual**: for the remainder of the window, any new
   `error_response('error', …)` makes KI-010 live, and the owner declined to rule that out.
 
-#### Council disposition, for the record
+#### The contract being implemented, in one place
 
-Three reviewers, all **"needs revision"**, nine BLOCKING findings — every one dispositioned in the
-matrix above and **independently re-verified by measurement**, which corrected three of them on
-detail. The council did not dislodge the mechanism, the caller inventory, the pinning layers, OD-1,
-OD-3, OD-4, OD-5, or the production change itself. **What it dislodged was Plan v1's
-recommendation**, by catching that a syntactic measurement had been used to support a runtime
-safety property.
+```
+VALID      = {'success','error','warning','info'}
+isTypeWord = VALID.has(type)
+isFlag     = typeof message === 'boolean'      // null and new Boolean() are NOT flags
+isAbsent   = arguments.length < 2              // an explicit `undefined` is NOT absent
+isModern   = isTypeWord && !isFlag && !isAbsent
+```
 
-**No production code, no JS test, no generated inventory, no inventory contract and no KI-010
-gap-analysis status was modified by this packet.** Its diff is two documentation files.
+**Production diff: one predicate in `toast.js`, plus the JSDoc dispatch table. No other production
+file may change** (AC-10, tightened by OD-5).
+
+#### Standing limitations the signature accepts
+
+§v2.10 in full, and specifically: the fix restores **fidelity, not quality** — a legacy
+`showToast('success', true)` becomes a **red** toast reading `"success"`; the assertive live region
+now announces a single context-free word; and `new Boolean(true)` / `1` / `0` remain **uncovered**
+while CI-6/B8 keeps them contract-legal.
