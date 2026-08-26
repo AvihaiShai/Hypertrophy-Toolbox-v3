@@ -107,6 +107,6 @@ def test_generic_waiter_remains_for_unconverted_pages() -> None:
 def test_volume_splitter_spec_is_exactly_converted() -> None:
     spec = read(SPEC)
     assert "waitForVolumeSplitterReady" in spec
-    assert spec.count("await waitForVolumeSplitterReady(page);") == 3
+    assert spec.count("await waitForVolumeSplitterReady(page);") == 4
     assert "waitForPageReady" not in spec
     assert "networkidle" not in spec

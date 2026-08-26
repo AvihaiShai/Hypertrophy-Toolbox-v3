@@ -704,3 +704,450 @@ test.describe('Volume Splitter tooltips', () => {
     await expect(tooltip).toContainText('realistic frequency');
   });
 });
+
+/**
+ * Packet U1 — Volume Splitter calculation-failure feedback.
+ *
+ * Plan: `docs/volume_failure_feedback/PLANNING.md` §v2.8 (arms) and §v2.10
+ * (success-path invariants). Every arm here lives in this spec deliberately:
+ * OD-1 chose E2E-only coverage while the JS-unit qualification window is live,
+ * so no Vitest file or case is added. See §v2.14 / U1-FOLLOWUP-1.
+ *
+ * Console posture is **allow-one**, not fixture-less: the block collects
+ * console errors and asserts in `afterEach` that every entry carries the
+ * deliberate diagnostic marker, so the intended `console.error` passes and
+ * anything else reds. `error-handling.spec.ts:56-64` takes the same fixture but
+ * leaves `afterEach` empty, which is a *weaker* posture than this one.
+ *
+ * Pacing is `page.waitForResponse`, never a hard wait — a hard wait here would
+ * move the inventory's hard-wait-lines-per-file surface for this spec.
+ */
+const CALCULATE_ROUTE = '**/api/calculate_volume';
+const CALCULATE_ERROR_REGION = '#volume-calculate-error';
+const CALCULATE_ERROR_TESTID = '[data-testid="volume-calculate-error"]';
+const TOAST_RETRY = '#liveToast button[aria-label="Retry volume calculation"]';
+const CALCULATE_FAILURE_MESSAGE =
+  'Volume calculation failed, so no results are shown. Please try again.';
+
+/**
+ * Both production diagnostics start with this. The shared fetch wrapper's own
+ * `API Error` logs are already filtered by the fixture allow-list; a
+ * page-specific message is not, which is what makes the allow-one posture work.
+ */
+const U1_DIAGNOSTIC_MARKER = 'Volume calculation:';
+
+const SERVER_ERROR_BODY = JSON.stringify({
+  ok: false,
+  status: 'error',
+  message: 'Failed to calculate volume',
+  error: { code: 'INTERNAL_ERROR', message: 'Failed to calculate volume' },
+});
+
+async function routeCalculateServerError(page: Page) {
+  await page.route(CALCULATE_ROUTE, async route => {
+    await route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: SERVER_ERROR_BODY,
+    });
+  });
+}
+
+/**
+ * Dispatch a chosen subset of the slider's events. `change` alone drives the
+ * immediate call site; `input` alone drives the 300 ms debounced one. The
+ * shared `setVolumeSlider` helper fires both, which would put two calculations
+ * in flight and make the failure arms race against their own setup.
+ */
+async function dispatchSliderEvents(
+  page: Page,
+  muscle: string,
+  value: number,
+  events: string[],
+) {
+  const slider = page.locator(`#sliders input.volume-slider[data-muscle="${muscle}"]`);
+  await expect(slider).toBeVisible();
+  await slider.evaluate((element: Element, payload: { value: number; events: string[] }) => {
+    const input = element as HTMLInputElement;
+    input.value = String(payload.value);
+    payload.events.forEach(name => input.dispatchEvent(new Event(name, { bubbles: true })));
+  }, { value, events });
+}
+
+async function calculateSuccessfully(page: Page) {
+  await Promise.all([
+    page.waitForResponse(CALCULATE_ROUTE),
+    dispatchSliderEvents(page, 'Chest', 12, ['change']),
+  ]);
+  await expect(page.locator('.results-section')).not.toHaveClass(/d-none/);
+  await expect(page.locator('#results-body tr')).not.toHaveCount(0);
+}
+
+/**
+ * Criterion 3's enumerated stale surfaces, plus criterion 5's "the Calculate
+ * button stays usable". Assert the toast *before* calling this — it lives
+ * 3000 ms and preceding locator work can consume that window.
+ */
+async function expectCalculateFailureState(page: Page) {
+  const region = page.locator(CALCULATE_ERROR_REGION);
+  await expect(region).toBeVisible();
+  await expect(region).toHaveCount(1);
+  await expect(page.locator('#results-body tr')).toHaveCount(0);
+  await expect(page.locator('.results-section')).toHaveClass(/d-none/);
+  await expect(page.locator('.ai-suggestions-section')).toHaveClass(/d-none/);
+  await expect(page.locator('.muscle-row[class*="status-"]')).toHaveCount(0);
+  await expect(page.locator('.current-value[class*="volume-value-pill--"]')).toHaveCount(0);
+  await expect(page.locator(SELECTORS.CALCULATE_VOLUME_BTN)).toBeEnabled();
+}
+
+test.describe('Volume Splitter calculation failure feedback', () => {
+  test.beforeEach(async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+    await page.goto(ROUTES.VOLUME_SPLITTER);
+    await waitForVolumeSplitterReady(page);
+  });
+
+  test.afterEach(async ({ consoleErrors }) => {
+    for (const entry of consoleErrors.errors) {
+      expect(
+        entry,
+        'this block tolerates exactly the U1 calculate diagnostics; anything else is a real console error',
+      ).toContain(U1_DIAGNOSTIC_MARKER);
+    }
+  });
+
+  test('a1 surfaces a non-2xx calculate failure and clears the previous results', async ({ page }) => {
+    await calculateSuccessfully(page);
+    await routeCalculateServerError(page);
+
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+
+    await expectToast(page, CALCULATE_FAILURE_MESSAGE);
+    await expectCalculateFailureState(page);
+  });
+
+  test('a2 surfaces a transport failure and clears the previous results', async ({ page }) => {
+    await calculateSuccessfully(page);
+    await page.route(CALCULATE_ROUTE, async route => {
+      await route.abort('failed');
+    });
+
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+
+    await expectToast(page, CALCULATE_FAILURE_MESSAGE);
+    await expectCalculateFailureState(page);
+  });
+
+  test('a3 holds one failure region across a sustained fault without rebuilding it', async ({ page }) => {
+    await routeCalculateServerError(page);
+
+    await Promise.all([
+      page.waitForResponse(CALCULATE_ROUTE),
+      dispatchSliderEvents(page, 'Chest', 4, ['input']),
+    ]);
+
+    const region = page.locator(CALCULATE_ERROR_REGION);
+    await expect(region).toBeVisible();
+    // Stamp the live node. A bare count of 1 cannot tell a surviving region
+    // from a rebuilt one; the stamp can.
+    await region.evaluate(element => element.setAttribute('data-probe', '1'));
+
+    for (const value of [5, 6, 7]) {
+      await Promise.all([
+        page.waitForResponse(CALCULATE_ROUTE),
+        dispatchSliderEvents(page, 'Chest', value, ['input']),
+      ]);
+    }
+
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toHaveCount(1);
+    await expect(page.locator(`${CALCULATE_ERROR_REGION}[data-probe="1"]`)).toHaveCount(1);
+  });
+
+  test('a4 tells the user about a first-load failure without revealing empty sections', async ({ page }) => {
+    await routeCalculateServerError(page);
+
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+
+    await expectToast(page, CALCULATE_FAILURE_MESSAGE);
+    const region = page.locator(CALCULATE_ERROR_REGION);
+    await expect(region).toBeVisible();
+    await expect(region).toHaveCount(1);
+    await expect(page.locator('.results-section')).toHaveClass(/d-none/);
+    await expect(page.locator('.ai-suggestions-section')).toHaveClass(/d-none/);
+    await expect(page.locator('#results-body tr')).toHaveCount(0);
+  });
+
+  test('a5 clears the previous mode results when the mode-switch calculation fails', async ({ page }) => {
+    await calculateSuccessfully(page);
+    await routeCalculateServerError(page);
+
+    await page.locator('label[for="mode-advanced"]').click();
+
+    await expectToast(page, CALCULATE_FAILURE_MESSAGE);
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toBeVisible();
+    await expect(page.locator('#results-body tr')).toHaveCount(0);
+    await expect(page.locator('.results-section')).toHaveClass(/d-none/);
+  });
+
+  test('a6 does not re-announce slider-driven failures while the same failure state stands', async ({ page }) => {
+    test.slow();
+    await routeCalculateServerError(page);
+
+    let next = 4;
+    const driveOneFailure = async () => {
+      await Promise.all([
+        page.waitForResponse(CALCULATE_ROUTE),
+        dispatchSliderEvents(page, 'Chest', (next % 40) + 1, ['input']),
+      ]);
+      next += 1;
+    };
+
+    await driveOneFailure();
+    const toast = page.locator(SELECTORS.TOAST);
+    await expect(toast).toBeVisible();
+    const region = page.locator(CALCULATE_ERROR_REGION);
+    await expect(region).toBeVisible();
+
+    // Keep failing past the toast's own 3000 ms life. Under an unconditional
+    // showToast the element re-shows on every failure and never gets there.
+    const deadline = Date.now() + 4500;
+    while (Date.now() < deadline) {
+      await driveOneFailure();
+    }
+    await expect(toast).toBeHidden({ timeout: 1000 });
+
+    for (let i = 0; i < 4; i += 1) {
+      await driveOneFailure();
+      await expect(toast).toBeHidden({ timeout: 1000 });
+    }
+    await expect(region).toBeVisible();
+  });
+
+  test('b1 surfaces a post-2xx response-handling failure and clears the previous results', async ({ page }) => {
+    await calculateSuccessfully(page);
+
+    // A 200 the response handler cannot render: `displayResults()` dereferences
+    // the null entry at `const statusLabel = (data.status || 'optimal');`. The
+    // throw lands inside `.then(handleCalculateResponse)`, where the shared
+    // wrapper's error branch is never reached.
+    await page.route(CALCULATE_ROUTE, async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            results: { Chest: null },
+            ranges: { Chest: { min: 1, max: 2 } },
+            suggestions: [],
+          },
+        }),
+      });
+    });
+
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+
+    await expectToast(page, CALCULATE_FAILURE_MESSAGE);
+    await expectCalculateFailureState(page);
+
+    // `applyServerRanges()` runs before the throw, so the injected range is
+    // already painted onto the Chest track when the response is declared a
+    // failure. That residue is an accepted disposition (§v2.4) and is pinned
+    // here so reverting it becomes a deliberate decision rather than a silent
+    // one.
+    const track = await page.evaluate(() => {
+      const slider = document.querySelector(
+        '#sliders input.volume-slider[data-muscle="Chest"]',
+      ) as HTMLInputElement | null;
+      if (!slider) {
+        return null;
+      }
+      return { background: slider.style.background, sliderMax: Number(slider.max) || 60 };
+    });
+    expect(track).not.toBeNull();
+    const stops = [...track!.background.matchAll(/([\d.]+)%/g)].map(match => Number(match[1]));
+    expect(stops.length).toBeGreaterThanOrEqual(6);
+    expect(stops[1]).toBeCloseTo((1 / track!.sliderMax) * 100, 3);
+    expect(stops[3]).toBeCloseTo((2 / track!.sliderMax) * 100, 3);
+  });
+
+  test('c1 announces the failure through the live region', async ({ page }) => {
+    await routeCalculateServerError(page);
+
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+
+    const toast = page.locator(SELECTORS.TOAST);
+    await expect(toast).toBeVisible({ timeout: 5000 });
+    await expect(toast).toHaveAttribute('role', 'alert');
+    await expect(toast).toHaveAttribute('aria-live', 'assertive');
+    await expect(page.locator('[data-testid="toast-container"]')).toHaveAttribute('aria-live', 'polite');
+    await expect(page.locator(SELECTORS.TOAST_BODY)).toContainText(CALCULATE_FAILURE_MESSAGE);
+    // Pins the exact selector `dismissCalculateFailureToast()` depends on.
+    await expect(page.locator(TOAST_RETRY)).toHaveCount(1);
+  });
+
+  test('c2 leaves focus where the user put it', async ({ page }) => {
+    await routeCalculateServerError(page);
+
+    const slider = page.locator('#sliders input.volume-slider[data-muscle="Chest"]');
+    await slider.focus();
+    await Promise.all([
+      page.waitForResponse(CALCULATE_ROUTE),
+      dispatchSliderEvents(page, 'Chest', 7, ['input']),
+    ]);
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toBeVisible();
+
+    const midDrag = await page.evaluate(() => {
+      const active = document.activeElement as HTMLElement | null;
+      return {
+        tag: active?.tagName ?? null,
+        muscle: active?.getAttribute('data-muscle') ?? null,
+        value: (active as HTMLInputElement | null)?.value ?? null,
+        insideFailureSurface: active ? Boolean(active.closest('#volume-calculate-error')) : false,
+      };
+    });
+    expect(midDrag.tag).toBe('INPUT');
+    expect(midDrag.muscle).toBe('Chest');
+    expect(midDrag.value).toBe('7');
+    expect(midDrag.insideFailureSurface).toBe(false);
+
+    const calculateButton = page.locator(SELECTORS.CALCULATE_VOLUME_BTN);
+    await Promise.all([
+      page.waitForResponse(CALCULATE_ROUTE),
+      calculateButton.click(),
+    ]);
+    const buttonPath = await page.evaluate(() => {
+      const active = document.activeElement as HTMLElement | null;
+      return {
+        id: active?.id ?? null,
+        insideFailureSurface: active ? Boolean(active.closest('#volume-calculate-error')) : false,
+      };
+    });
+    expect(buttonPath.id).toBe('calculate-volume');
+    expect(buttonPath.insideFailureSurface).toBe(false);
+  });
+
+  test('s1 leaves the success path observably identical', async ({ page }) => {
+    const regionByTestId = page.locator(CALCULATE_ERROR_TESTID);
+    await expect(regionByTestId).toHaveCount(0);
+
+    await calculateSuccessfully(page);
+
+    // Absence from the DOM, not a hidden shell.
+    await expect(regionByTestId).toHaveCount(0);
+    await expect(page.locator('.results-section')).not.toHaveClass(/d-none/);
+    await expect(page.locator('#results-body tr')).not.toHaveCount(0);
+    await expect(page.locator('.muscle-row[class*="status-"]')).not.toHaveCount(0);
+    await expect(page.locator('.current-value[class*="volume-value-pill--"]')).not.toHaveCount(0);
+  });
+
+  test('s2 removes the failure region on the next success', async ({ page }) => {
+    await routeCalculateServerError(page);
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toBeVisible();
+
+    await page.unroute(CALCULATE_ROUTE);
+    await Promise.all([
+      page.waitForResponse(CALCULATE_ROUTE),
+      dispatchSliderEvents(page, 'Chest', 12, ['change']),
+    ]);
+
+    // Removed, not hidden.
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toHaveCount(0);
+    await expect(page.locator(CALCULATE_ERROR_TESTID)).toHaveCount(0);
+    await expect(page.locator('.results-section')).not.toHaveClass(/d-none/);
+    await expect(page.locator('#results-body tr')).not.toHaveCount(0);
+  });
+
+  test('s3 dismisses the standing failure toast when the next calculation succeeds', async ({ page }) => {
+    await routeCalculateServerError(page);
+    await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
+
+    // Precondition. Without it "the button is hidden" is vacuously true under a
+    // mutation that deletes the toast-creating path, and this arm passes for
+    // the wrong reason.
+    const toastRetry = page.locator(TOAST_RETRY);
+    await expect(toastRetry).toBeVisible();
+
+    await page.unroute(CALCULATE_ROUTE);
+    await dispatchSliderEvents(page, 'Chest', 12, ['change']);
+
+    // Bootstrap's hide transition is ~150 ms; an un-dismissed toast stays
+    // visible for the remainder of its 3000 ms, so 1 s discriminates.
+    await expect(toastRetry).toBeHidden({ timeout: 1000 });
+    await expect(page.locator('.results-section')).not.toHaveClass(/d-none/);
+    await expect(page.locator('#results-body tr')).not.toHaveCount(0);
+  });
+
+  test('s6 lets only the newest calculation paint', async ({ page }) => {
+    const calculateButton = page.locator(SELECTORS.CALCULATE_VOLUME_BTN);
+    const region = page.locator(CALCULATE_ERROR_REGION);
+    const results = page.locator('#results-body tr');
+
+    // --- Primary: a slow failure issued first, a fast success issued second.
+    let releaseStaleFailure: () => void = () => {};
+    const staleFailureGate = new Promise<void>(resolve => { releaseStaleFailure = resolve; });
+    let primaryCalls = 0;
+    await page.route(CALCULATE_ROUTE, async route => {
+      primaryCalls += 1;
+      if (primaryCalls === 1) {
+        await staleFailureGate;
+        await route.fulfill({ status: 500, contentType: 'application/json', body: SERVER_ERROR_BODY });
+        return;
+      }
+      await route.continue();
+    });
+
+    await calculateButton.click();
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes('/api/calculate_volume') && response.status() === 200),
+      calculateButton.click(),
+    ]);
+    await expect(page.locator('.results-section')).not.toHaveClass(/d-none/);
+    await expect(results).not.toHaveCount(0);
+
+    // The wrapper logs its final diagnostic synchronously in the same catch the
+    // production `.catch` is chained to, so once it has fired one round trip to
+    // the page is enough to drain the microtasks behind it.
+    const staleFailureLogged = page.waitForEvent('console', message => message.text().includes('API Error (final)'));
+    releaseStaleFailure();
+    await staleFailureLogged;
+    await page.evaluate(() => undefined);
+
+    await expect(region).toHaveCount(0);
+    await expect(results).not.toHaveCount(0);
+    await expect(page.locator(SELECTORS.TOAST)).toBeHidden();
+
+    // --- Mirror: a slow success issued first, a fast failure issued second.
+    await page.unroute(CALCULATE_ROUTE);
+    let releaseStaleSuccess: () => void = () => {};
+    const staleSuccessGate = new Promise<void>(resolve => { releaseStaleSuccess = resolve; });
+    let mirrorCalls = 0;
+    await page.route(CALCULATE_ROUTE, async route => {
+      mirrorCalls += 1;
+      if (mirrorCalls === 1) {
+        await staleSuccessGate;
+        await route.continue();
+        return;
+      }
+      await route.fulfill({ status: 500, contentType: 'application/json', body: SERVER_ERROR_BODY });
+    });
+
+    await calculateButton.click();
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes('/api/calculate_volume') && response.status() === 500),
+      calculateButton.click(),
+    ]);
+    await expect(region).toBeVisible();
+    await expect(results).toHaveCount(0);
+
+    const staleSuccessLogged = page.waitForEvent('console', message => message.text().includes('API Success'));
+    releaseStaleSuccess();
+    await staleSuccessLogged;
+    await page.evaluate(() => undefined);
+
+    await expect(region).toBeVisible();
+    await expect(results).toHaveCount(0);
+    await expect(page.locator('.results-section')).toHaveClass(/d-none/);
+  });
+});

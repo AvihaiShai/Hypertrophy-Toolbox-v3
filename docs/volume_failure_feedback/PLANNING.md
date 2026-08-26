@@ -1358,6 +1358,38 @@ annotated there. All three remain owner action owed. §8's Gate column at
 [`:539-541`](../OPEN_WORK_EXECUTION_PLAN.md#L539-L541) survive untouched, because both are framed as the gates a
 packet *owes* rather than gates it has passed.
 
+### Implementation status — 2026-08-26
+
+**Plan v2 is IMPLEMENTED as written.** The signed planning PR
+[#422](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/422) merged as squash commit
+`1243728` on 2026-08-25, which is the precondition the Gate 1 block above names, so the
+*“Ready to implement — but not yet authorized”* checkbox and the *“no production code, no test
+code”* paragraph beside it are both **SPENT**. Nothing above is rewritten; the four owner
+decisions govern exactly as recorded in §v2.13.
+
+**The implementation diff carries SEVEN artifact paths / EIGHT files, and the eighth is not
+scope creep.** §v2.1's Artifacts table and §v2.12's **BR-1** both say six artifacts / seven files,
+and that count still governs the **functional** blast radius — it is what BR-1 is checked against
+and it did not move. The extra path is
+[`testing_phase3/STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md), added under a
+separately authorized operational-documentation exception to carry **ledger row 11** — the
+`main` `js-unit` result that #422's own merge produced and could not record. §13.0's LIVE block is
+extended **in place** with row 11, its counters, its spent clauses and its carrier-debt wording,
+and nothing else in that document changes. A ledger-only PR was rejected because it would mint a
+twelfth row and owe a thirteenth without end. **No ninth file is authorized.**
+
+**The qualification window is untouched, and that was measured rather than assumed.** U1 changes
+the production JS tree — `static/js`'s tree hash moves off
+`815ca75c109c93c0f914f36d0de24ba46a89bc3d` — but the operative restart rule is §v2.1's
+*“changed no JS test case”*, not *“changed no JS”*. Under **OD-1** option (i) this PR adds no file
+under `static/js/modules/__tests__/`, changes no existing Vitest case, leaves `vitest.config.js` at
+blob `c16ca428f7478708d8dd96a20ebcb86f98a8b935` and leaves the collection mechanism alone, so
+`npm run test:js` still reports **13 files / 231 cases**. **T0 stays `2026-08-22T17:59:26Z` and the
+strict mark stays `2026-09-05T17:59:26Z`.**
+
+**U1-FOLLOWUP-1 (§v2.14) remains OPEN**, and the implementation PR body links this subsection and
+§v2.14 explicitly, as **OD-1** requires.
+
 ---
 
 ## See also
