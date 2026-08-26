@@ -2,13 +2,13 @@
 
 > ⚠️ **ANNOTATION 2026-08-27 — the status line below is SUPERSEDED and is annotated, not rewritten.**
 > **GATE 0 IS SIGNED** (§1). The owner ruled on all ten `OQ` rows, ruled on sequencing, and authorized
-> **Gate 1 planning only**. **Gate 1 is NOT signed and implementation is NOT authorized.** Gate 1 planning is CLOSED at §6:
+> **Gate 1 planning only**. **GATE 1 IS SIGNED (2026-08-27, §6.11) and KI-011 implementation is AUTHORIZED** under the standing conditions in that block. Gate 1 planning is CLOSED at §6:
 > Plan v1 (§2), the three-reviewer council and response matrix (§3), and **Plan v2 (§4)** are
 > written, and **OD-11..OD-14 are RULED** (§6.1). **N8, N9 and N10 are all KILLED both directions**
 > (§6.3-§6.5). **§6.9's blocker is DISCHARGED at §7**: the disagreement was a harness defect, `t9`/`t11` are
 > re-specified and implemented, and **N11** locks the ANNOUNCE half. **Mutation matrix: 11 rows,
 > 15 arms, 11 KILLED, 0 survivors, 0 BAD ROW, three identical runs.** The proposed signature
-> block is §6.11 — still **NOT applied**, and signature is presented separately.
+> block at §6.11 is **APPLIED**: the owner approved the corrected wording on 2026-08-27.
 > §0.9's recommendations are superseded by §1's rulings wherever the two differ; §0.9 stays in place as
 > the evidence that produced them. This document necessarily predates its own sign-off, so the
 > pre-signature text is preserved rather than edited.
@@ -1871,34 +1871,62 @@ implementation-shaped work:
 **Gate 1 is therefore NOT ready for signature, and none is requested.** The block is narrow and
 named: the *dismiss* half of the OD-2 amendment is locked; the *announce* half is not.
 
-### 6.11 Proposed Gate 1 owner-signature block — **for approval, not applied**
+### 6.11 GATE 1 — **SIGNED**, 2026-08-27
 
-Offered verbatim so it can be pasted once §6.9 is discharged. **It is deliberately conditional; do
-not read it as a claim that the condition is met.**
+> ⚠️ **The heading above was *"Proposed Gate 1 owner-signature block — for approval, not
+> applied"* until 2026-08-27, and the block below was deliberately conditional. The owner reviewed
+> the corrections reconciling it with §7 — the route-handler counter rather than a
+> `waitForResponse` oracle, the exact matrix figures, and the true root cause of the reported
+> disagreement — and **approved the corrected block exactly as presented**. It is now applied.**
 
-> **GATE 1 — SIGNED, 2026-__-__.**
+> **GATE 1 — SIGNED, 2026-08-27.**
+>
+> **Evidence record: commit `321a847`** on `wt/u3-ki011-gate0`, PR #426 (draft), against live `main`
+> `b733c14`.
 >
 > I approve **Plan v2 (§4)** as amended by my rulings **OD-11…OD-14 (§6.1)** and by the design
-> changes those rulings produced (§6.2): the action slot as `<div class="toast-action-slot
-> d-inline">`, last child of `#toast-body`; the selective `textContent` message update; eager
-> expiry; the F-NEW-1 transition flush with the dispose ahead of the content write; **no**
-> generation check; and the U1 amendments of §4.3 **without** a rename.
+> changes those rulings produced (§6.2 and §7): the action slot as
+> `<div class="toast-action-slot d-inline">`, **last child of `#toast-body`**, sibling to
+> `span.toast-message`; the selective `textContent` message update; **eager** expiry via a timer
+> handle stamped on the DOM node; the **F-NEW-1 transition flush with the dispose ahead of the
+> content write**; **no** generation check — removed as measured non-load-bearing, per my OD-12
+> instruction; and the U1 amendments of **§4.3 without a rename**, `ourToastContentStands()`
+> retained with a live caller in the narrowed dismiss conjunction.
 >
 > I accept the recorded tradeoffs: **OD-13**'s bounded re-announcement of a standing action label,
 > and **OD-14**'s message/action mismatch and malformed-action inheritance.
 >
-> I have read §6.9's discharge — the second slider-originated failure's dispatch is explained,
-> **`t9` and `t11` are re-specified around a `waitForResponse` oracle**, and the **announce** half of
-> §4.3 carries a mutation row run **both directions** — and I accept the mutation matrix at
-> **11 rows / 10+ arms, all KILLED**.
+> **I have read §7 and accept it as the discharge of §6.9.** I accept that the reported
+> disagreement was **not behavioural**: `artifacts/probe/u1-interaction.mjs` never intercepted
+> `volume-splitter.js`, because a patch anchor did not match and the replace silently did nothing,
+> so that probe was measuring the **shipped, unamended** module throughout. I accept the documented
+> dispatch mechanics — a slider change fires both the debounced `input` and the immediate `change`
+> listener and therefore issues **two** `POST /api/calculate_volume` requests, the first announcing
+> and the second correctly suppressed.
 >
-> **Implementation of KI-011 is AUTHORIZED**, on these standing conditions:
-> the regression is **E2E-only** (`toast.test.js` stays at 47; the Vitest corpus stays at
-> **13 files / 231 cases**; **T0 remains `2026-08-22T17:59:26Z`**); the gate set of **§4.5**
-> including **`tsc --noEmit`** and the **post-squash window measurement** is run in full;
-> **§4.6**'s migration notes and **§4.8**'s ownership claim are discharged before code is written;
-> **U3b lands before U3a**, whose implementation **must not run concurrently**; and the branch is
-> **rebased onto live `main` and re-reconciled** first — **PR #427 (U2) merge order is not assumed**.
+> I accept the re-specified **`t9`/`t11`** (implemented as `k14`/`k15`): every action is
+> synchronised on a **route-handler counter incremented only when the handler itself fulfils a
+> `500` for a `POST /api/calculate_volume`** — request identity **and** expected outcome —
+> advancing by the named `FAILURES_PER_SLIDER_CHANGE = 2`; **`waitForResponse` is used only for the
+> baseline, and only for a `200`**. No arm relies on elapsed time, unrelated toast text, or the
+> absence of a transition. Each carries **three paired positives**, with proof-of-arrival being
+> **`clearResults()` having run** — `.results-section` carrying `d-none` — and bounded,
+> event-driven `waitForFunction` oracles.
+>
+> I accept the mutation matrix at **11 rows · 15 arms · 11 KILLED · 0 survivors · 0 BAD ROW**,
+> **three identical complete runs** with **all 15 pristine arms holding in every run**, an `ERROR`
+> on either leg scoring `BAD ROW` rather than a kill, and both production blobs asserted before,
+> between and after every row. **Both halves of the OD-2 amendment are locked** — the dismiss half
+> by **N9**, the announce half by **N11**, each killed both directions three times.
+>
+> **Implementation of KI-011 is AUTHORIZED**, on these standing conditions: the regression is
+> **E2E-only** (`toast.test.js` stays at **47**; the Vitest corpus stays at **13 files / 231
+> cases**; **T0 remains `2026-08-22T17:59:26Z`**); the gate set of **§4.5** — including
+> **`tsc --noEmit`** and the **post-squash window measurement** of the `static/js/modules/__tests__`
+> tree hash and `vitest.config.js` identity — is run in full; **§4.6**'s migration notes and
+> **§4.8**'s ownership claim are discharged **before** code is written; **U3b lands before U3a**,
+> whose implementation **must not run concurrently**; and the branch is **rebased onto live `main`
+> and re-reconciled** first — **PR #427 (U2) merge order is not assumed**.
 >
 > **Merging remains a separate confirmation.**
 
