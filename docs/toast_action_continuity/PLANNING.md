@@ -1,6 +1,16 @@
 # Packet U3b — KI-011, toast action continuity — **Gate 0 candidate**
 
-> **STATUS: GATE 0 CANDIDATE. NOT SIGNED. NOT AUTHORIZED.**
+> ⚠️ **ANNOTATION 2026-08-27 — the status line below is SUPERSEDED and is annotated, not rewritten.**
+> **GATE 0 IS SIGNED** (§1). The owner ruled on all ten `OQ` rows, ruled on sequencing, and authorized
+> **Gate 1 planning only**. **Gate 1 is NOT signed and implementation is NOT authorized.** Gate 1 planning is COMPLETE:
+> Plan v1 (§2), the three-reviewer council and response matrix (§3), and **Plan v2 (§4)** are
+> written; **four owner decisions (OD-11..OD-14) and one unrun mutation (N9) block the signature**
+> (§5).
+> §0.9's recommendations are superseded by §1's rulings wherever the two differ; §0.9 stays in place as
+> the evidence that produced them. This document necessarily predates its own sign-off, so the
+> pre-signature text is preserved rather than edited.
+>
+> > **STATUS: GATE 0 CANDIDATE. NOT SIGNED. NOT AUTHORIZED.**
 > This document is **requirements discovery only**. No production file, test file, inventory
 > artifact, ledger or status document is edited by the PR that carries it, and none may be.
 > **Gate 1 does not begin, and implementation does not begin, until the owner signs §0.9 below.**
@@ -653,6 +663,12 @@ Gate 0 rather than discovered later.
 
 ## 0.12 STOP — Gate 0 owner-decision boundary
 
+> ⚠️ **ANNOTATION 2026-08-27 — partially SUPERSEDED, annotated in place.** Gate 0 is now **SIGNED** (§1)
+> and **Gate 1 planning is COMPLETE** (§2–§4). The live boundary is §5. Every other clause below still stands: no production line
+> changed, no test file created or modified, the suite is still **13 files / 231 cases**, no inventory
+> artifact / ledger row / status document touched, and **KI-011 implementation is still unauthorized**
+> and must not run concurrently with KI-010 implementation.
+
 **Nothing below this line has been done, and nothing below it is authorized.**
 
 - No production line changed. `static/js/modules/toast.js` is blob
@@ -666,3 +682,895 @@ Gate 0 rather than discovered later.
   concurrently with KI-010 implementation.
 
 **This document's PR carries exactly one new file and merges nothing else.**
+
+---
+
+## 1. GATE 0 — SIGNED. Owner rulings, 2026-08-27
+
+**The owner signed Gate 0 on 2026-08-27 and authorized Gate 1 planning only.** Implementation
+remains unauthorized. The rulings below are the governing text; §0.9's recommendations are
+superseded by them wherever the two differ, and §0.9 is left in place as the evidence that produced
+them rather than rewritten.
+
+| ID | Question (§0.9) | **RULING** |
+|---|---|---|
+| **OQ-1** | What makes an action "still valid"? | **Validity is scoped to the raising toast's ORIGINAL duration, ending early on activation or dismissal.** |
+| **OQ-2** | Later toast with no action | **Preserves** the standing action. |
+| **OQ-3** | Later toast with its own action | **Replaces** the standing action. **Never two actions.** |
+| **OQ-4** | Duration precedence | A standing action **extends** the toast through the **later applicable deadline**. |
+| **OQ-5** | Last-message-wins | **Preserved.** The action **is not part of the message contract**. |
+| **OQ-6** | Placement, announcement, focus | **Relocate the action to a sibling slot inside `#liveToast`**, **exclude it from atomic message re-announcement**, and **explicitly preserve focus across message replacement**. |
+| **OQ-7** | Invalidation | **Activation, dismissal, or validity-window expiry.** Stale **caller-owned** state remains the **caller's** responsibility; **document that boundary**. |
+| **OQ-8** | U1 / OD-2 | **Re-sign OD-2 with the amended announcement condition**, and **narrow `dismissCalculateFailureToast()`** so it may dismiss **only U1's own matching failure message** — not an unrelated replacement toast. |
+| **OQ-9** | Backward compatibility | **No `showToast()` signature change and no caller migration.** |
+| **OQ-10** | Test tier and timing | **E2E-only fixed-behavior regression**, so U3b can land **before** the strict qualification mark **without changing the Vitest corpus or restarting T0**. |
+
+**Sequencing ruling.** **KI-011 / U3b lands BEFORE KI-010 / U3a.** U3a remains **deferred until
+after the strict mark** and **rebases after U3b**. **Their implementations must not run
+concurrently.** Packet **U2** must not be disturbed and its merge order must not be assumed;
+reconcile against live `main` and the ownership registry before any eventual implementation.
+
+**What Gate 0's signature does and does not authorize.** It authorizes **Gate 1 planning only** —
+this section, §2, §3 and §4 — and the contained measurement in §2.1. It authorizes **no**
+production line, **no** test line, **no** inventory regeneration, **no** ledger row, **no**
+repository setting, and **no** merge.
+
+---
+
+## 2. PLAN v1 — Gate 1 entry work
+
+> ⚠️ **ANNOTATION — SUPERSEDED IN PART by §4 (Plan v2), and annotated rather than rewritten.**
+> The Gate 1 council reviewed **this text**, so it is preserved as reviewed. **§4 governs wherever the
+> two differ**, and §3 records every finding and its disposition. Four claims in §2 were measured
+> **false** and are corrected in §4: §2.4's console-posture collision (the fixture is **blind** to
+> F-NEW-1, not blocked by it), §2.2(F)'s lazy expiry (it does **not** implement the signed **OQ-1**),
+> §2.4's pinned-surface bullet (wrong pin cited, and a moving surface declared static), and §2.1g's
+> closing sentence (the amendment fixes step 3, **not** the step-2 pairing). §2.1's measurement rows
+> otherwise stand and all three reviewers asked that they be preserved verbatim.
+
+
+> Everything in §2.1 was **measured on `52c44c4`**, in this worktree, against a Flask instance
+> serving **this checkout** on port **5311** (`curl` md5 of the served
+> `static/js/modules/toast.js` equals the worktree file's md5 — the "relative launch serves the
+> other checkout's static" trap was checked, not assumed). **`static/js/modules/toast.js` is blob
+> `42863b4664b7f87a2519556b7f9db8af2cb36e64` before, between and after every row**, asserted by the
+> harness itself and re-verified after the last run.
+
+### 2.1 Measured evidence
+
+#### 2.1a — Browser-level reproduction of the §0.3.1 route (Gate 1 entry item 1)
+
+`artifacts/probe/browser-repro.mjs`. Real Chromium, real Flask, the real
+`volume-splitter.js`, `GET /api/volume_history` intercepted and aborted **only after the save**, so
+the page's initial hydration is genuine. **The oracle is a `MutationObserver` TRANSITION log on
+`#liveToast`, not a state sample** — the two toasts are milliseconds apart and any post-hoc sample
+can miss the button entirely and read as a false green.
+
+**Predicted before the run, and recorded here as the pre-fix prediction: the action is
+DESTROYED.** Measured, 3 consecutive runs, identical:
+
+| Arm | Prediction | Measured |
+|---|---|---|
+| **D1** the Activate action was raised at all | true | **true** — snapshot 1 carries `Activate for Plan tab`, `aria-label="Activate volume plan N"`, `parentIsToastBody: true` |
+| **D2** the history-failure toast replaced the body | true | **true** — final body `"Failed to load saved volume plans. Please try again."`, `bg-danger` |
+| **D3** the Activate action survives | **false (destroyed)** | **false — DESTROYED.** Final `actions: []` |
+| **D4** the failure toast landed after the action toast | true | **true** — first-Activate index 1, first-failure index 2 |
+
+**Control arm** (same script, history refresh allowed to succeed): `actions:` still carries
+`Activate for Plan tab` at the end, `bg-success`, **zero console errors**. The destruction is
+caused by the replacement, not by the save.
+
+#### 2.1b — F-NEW-1: an uncaught Bootstrap `TypeError` on the replacement path
+
+The failure arm emits, deterministically (3/3), an error the control arm never produces:
+
+```
+Global error caught: {message: Cannot read properties of null (reading 'classList'),
+ filename: .../static/vendor/bootstrap/js/bootstrap.bundle.min.js, line 6, column 78585,
+ error: TypeError: Cannot read properties of null (reading 'classList')}
+```
+
+`artifacts/probe/dispose-race.mjs` characterises it by varying **only** the gap between the two
+`showToast()` calls, driven through the same module seam `e2e/ui-hardening.spec.ts` uses:
+
+| gap between calls | Bootstrap `TypeError`s | all console errors |
+|---:|---:|---:|
+| **0 ms** | **2** | 2 |
+| 100 ms | 0 | 0 |
+| 200 ms | 0 | 0 |
+| 400 ms | 0 | 0 |
+| 600 ms | 0 | 0 |
+| 1000 ms | 0 | 0 |
+
+**It is a dispose-mid-transition race.** `toast.js:103-106` disposes the live instance while its
+show transition is still running; Bootstrap's transition-end callback then dereferences a nulled
+`_element`. The §0.3.1 route lands at gap ≈ 0 — the next statement plus one aborted fetch — which
+is why the reproduction shows it every time.
+
+**Three consequences, and they are not cosmetic.**
+
+1. **It is a defect KI-011 did not know it had.** Nothing in the KI-011 row, `STEP12` §10.7-R10, or
+   any test at any tier records it.
+2. **It blocks the naive E2E plan.** `e2e/volume-splitter.spec.ts` runs `consoleErrors.assertNoErrors()`
+   in `afterEach`. A regression arm that drives the §0.3.1 route **fails on the console posture**
+   before it ever asserts anything about the button.
+3. **The candidate does NOT fix it** — measured. Preserving the action changes nothing about the
+   dispose/construct churn. **See `OD-12` in §2.9.**
+
+#### 2.1c — Mutation matrix (Gate 1 entry item 2)
+
+`artifacts/probe/mutation-matrix.mjs`, against `artifacts/probe/toast.candidate.js` — a
+**reference implementation that exists only in the sandbox** and reaches the browser by **Playwright
+route interception**. No repository file is written at any point, and
+`assertProductionUntouched()` re-reads `git hash-object static/js/modules/toast.js` **before the
+first row, between every row, and after the last**.
+
+**Both directions on every row.** A row is `KILLED` only when the arm **fails on the mutant** *and*
+**passes on pristine**. A mutation that reds an already-red arm proves nothing and is reported as
+`BAD ROW`.
+
+**Nine arms**, each shaped like the E2E regression it stands in for:
+
+| Arm | What it holds |
+|---|---|
+| **k1** | The KI-011 core, on the **real** save-without-activating route with the history GET aborted |
+| **k2** | OQ-3 — a later action replaces; exactly one, and it is the newer |
+| **k3** | OQ-4 — a 6000 ms action survives a 500 ms message; the toast is still shown at 2000 ms |
+| **k4** | OQ-1/OQ-7 — a 400 ms action is gone 1200 ms later. **Non-isolating; see N4** |
+| **k5** | OQ-7 — the close button invalidates the standing action |
+| **k6** | **K9** — `#toast-body`'s text still matches `/Plan #\d+ saved\.\s*Activate for Plan tab/i` |
+| **k7** | **B26** — exactly one `span` in `#toast-body`, carrying the latest message |
+| **k8** | OQ-6 focus — `document.activeElement` is still the action button after a replacement |
+| **k9** | OQ-1 expiry **isolated from** dismissal: a 400 ms action inside a toast extended to 6000 ms |
+
+**Result: pristine holds all nine; six of six rows KILLED, both directions.**
+
+| Row | Mutation | Killed by | Survived on |
+|---|---|---|---|
+| **N1** | restore `toast.js:60`'s wholesale `toastBody.innerHTML = ''` | **k1, k8** | k6 |
+| **N2** | OQ-3 violated: a standing action outranks a newly supplied one | **k2** | — |
+| **N3** | OQ-4 dropped: the later call's duration wins outright | **k3** | — |
+| **N4** | OQ-1/OQ-7 dropped: a standing action never expires | **k9** | **k4** |
+| **N5** | OQ-7 dropped: dismissal does not invalidate | **k5** | — |
+| **N6** | slot placed **outside** `#toast-body` | **k6** | — |
+
+**Two rows carry a finding, and both are recorded rather than smoothed over.**
+
+- **N4 survived `k4` and is killed only by `k9`.** `k4` cannot tell expiry from dismissal:
+  Bootstrap's autohide fires `hidden.bs.toast` at the toast's own delay, so the dismissal path
+  removes the action before the expiry path ever runs. **`k9` is the isolating killer** — it
+  extends the toast to 6000 ms (OQ-4) so the action's 400 ms deadline passes **while the toast is
+  still shown** and `hidden.bs.toast` has not fired. Without `k9`, OQ-1's expiry clause would be
+  **unexercised code that no arm can distinguish from its absence**.
+- **N1 survived `k6`, correctly.** `k6` raises a single toast, so a wholesale clear has nothing to
+  destroy. It is a **placement** arm, not a **preservation** arm; N1 is killed by `k1` and `k8`.
+
+#### 2.1d — The 47-case contract, run against the candidate
+
+Packet C's **mirrored-layout** technique: `artifacts/probe/mirror/static/js/modules/` holds the
+candidate beside a **verbatim copy of the real `toast.test.js`**, collected by a probe-scoped Vitest
+config that cannot reach the real suite.
+
+| Run | Result |
+|---|---|
+| **Pre-flight** — mirror loaded with the **pristine production** `toast.js` | **1 file / 47 passed** — proves the mirrored layout resolves and the run is interpretable |
+| **Candidate** — same 47 cases, **file unmodified** | **1 file / 47 passed** |
+
+**Criterion C2's Vitest half is therefore measured, not predicted:** the design leaves all 47 cases
+green **without touching the file**, which is what makes OQ-10's E2E-only route possible.
+
+#### 2.1e — F-NEW-2: a false green the candidate created, measured and then designed out
+
+**Revision 1 of the candidate held the standing action in a module-level `let`.** That falsifies the
+premise recorded in `toast.test.js`'s own header:
+
+> *"toast.js has NO module-level mutable state (every binding in it is function-local, including
+> `validTypes`), so there is deliberately no `vi.resetModules()` and no per-test re-import. §4.1 is
+> discharged for this module by that fact, not by omission."*
+
+All 47 cases still passed under revision 1 — **and that pass was luck.** A two-case probe measured
+the bleed directly:
+
+```
+S1: a case raising a 6000 ms action toast          -> passes
+S2: THE NEXT CASE, a plain default toast
+    expect(constructed[0].delay).toBe(3000)        -> AssertionError: expected 5998 to be 3000
+```
+
+`5998` is the previous case's deadline leaking across the `beforeEach`. **That is B29's assertion
+shape**, and the real suite escapes it only because B29 (line 365) happens to run **before** the
+action cases (line 392). Any reordering, or any new case placed after B30–B38, would red on stale
+state — including **the case KI-010 must add or invert in the same file**.
+
+**Revision 2 holds no module state at all.** The standing action lives entirely in the DOM: the slot
+node, the button, and a deadline stamped on the button as a data attribute; the dismissal listener
+records "already wired" as an **attribute on `#liveToast`**, not a module flag. A fresh
+`document.body.innerHTML` resets everything for free. Re-measured: **49/49 green** — the real 47
+**plus** S1 and S2, which now both pass. **`toast.test.js`'s stated premise survives the fix
+intact, and no `vi.resetModules()` is required.**
+
+#### 2.1f — F-NEW-3: OQ-6's "sibling slot" is ambiguous, and one reading is measurably wrong
+
+`e2e/fixtures.ts`'s `expectToast()` asserts against **`SELECTORS.TOAST_BODY` = `#toast-body`**, and
+`e2e/volume-splitter.spec.ts:340` uses it for `/Plan #\d+ saved\.\s*Activate for Plan tab/i`.
+**A slot that is a sibling of `#toast-body` therefore reds an existing E2E test** — that is exactly
+mutation **N6**, and it is `KILLED` by `k6`.
+
+Both readings of "a sibling slot inside `#liveToast`" are literally satisfiable:
+
+| Reading | Sibling of | B26 | B30–B35 | `volume-splitter.spec.ts:340` |
+|---|---|---|---|---|
+| **(γ)** slot is a `<div>` child of `#toast-body`, **sibling of the message `<span>`** | the message | **green** (1 span) | **green** (inside `#liveToast`) | **green** — measured, `k6` |
+| **(α)** slot is a child of `.d-flex`, **sibling of `#toast-body`** | `#toast-body` | green | green | **RED** — measured, `N6`/`k6` |
+
+**Plan v1 selects (γ)** and flags the ambiguity as **`OD-11`** in §2.9 rather than choosing
+silently. (α) remains available if the owner prefers it, at the price of editing
+`e2e/volume-splitter.spec.ts:340` and `expectToast`'s scope — an E2E-only edit that does not move
+Vitest, but a change to an assertion neither packet set out to touch.
+
+#### 2.1g — F-NEW-4: the OQ-8 regression, measured against the real `volume-splitter.js`
+
+`artifacts/probe/u1-interaction.mjs`. **Only `toast.js` is swapped**, by route interception;
+`volume-splitter.js` is the shipped file. Scenario: a slider-originated calculation fails, an
+unrelated toast replaces the message, a second slider-originated calculation fails.
+
+| Step | **Production `toast.js`** | **Candidate `toast.js`** |
+|---|---|---|
+| 1. after the first slider failure | Retry in toast **true**, region **true**, body = U1's message | Retry **true**, region **true**, body = U1's message |
+| 2. after an unrelated toast | Retry **false**, body = `"Backup created successfully."` | Retry **true**, body = `"Backup created successfully.Retry"` |
+| 3. after the second slider failure | Retry **true**, body = **U1's message** | Retry **true**, body = **`"Backup created successfully.Retry"`** |
+| **OD-2 outcome** | **RE-ANNOUNCED** | **DID NOT re-announce** |
+
+**Under the fix, and with no amendment, the user whose calculation just failed is left looking at
+`"Backup created successfully."` with a `Retry` button beside it.** That is not a subtle
+degradation — it is a success message standing over a failure, which is **strictly worse than the
+defect KI-011 describes**. U1's durable inline region is present throughout in both columns, so the
+user is not uninformed; but the toast — the assertive live region — is actively misleading.
+
+**This is the measurement that makes OQ-8's amendment mandatory rather than tidy**, and it shows the
+exact shape of the fix: the announce probe must key on U1's **message**, not on the button's
+presence. Step 2's own snapshot proves the two probes diverge — `retryInToast = true` while the body
+contains no part of `CALCULATE_ERROR_MESSAGE`.
+
+### 2.2 Implementation design (Gate 1 entry item 3)
+
+Normative. `artifacts/probe/toast.candidate.js` (revision 2) is the **reference**, not the
+deliverable; the implementer writes `static/js/modules/toast.js` from this section.
+
+**(A) No module state — binding, not stylistic.** Every binding in `toast.js` stays
+**function-local**. The standing action is read from the DOM on each call. **§2.1e is the reason**,
+and the rule is load-bearing for KI-010, which must add or invert a case in the same file.
+
+**(B) The slot.** A `<div class="toast-action-slot" aria-live="off">`, created lazily as the **last
+child of `#toast-body`**, sibling of the message `<span class="toast-message">`. **A `div`, never a
+`span`** (B26 counts `#toast-body span` and must stay at 1). **Inside `#toast-body`** (§2.1f).
+
+**(C) Message rendering replaces `:60`.** `toastBody.innerHTML = ''` is **deleted**. On first
+render into a body that has no managed message node, call `replaceChildren()` **once** to drop the
+template's comment and indentation, then install the message `<span>`. Every later call sets
+`messageSpan.textContent` — a targeted replacement. `textContent`, **never** `innerHTML` (invariant
+**I4**, B18).
+
+**(D) Action resolution.**
+- Well-formed action supplied → `clearStanding()` then append a fresh button (**OQ-3**).
+- No action supplied → leave the standing action untouched (**OQ-2**).
+- Malformed action (non-function `onClick`, falsy label) → **no button, and the standing action is
+  left alone** — B33/B34 require the message to render and nothing to error.
+
+**(E) Deadlines (OQ-1, OQ-4).** The button carries `data-action-deadline = Date.now() + duration`
+**of the call that raised it**. The Bootstrap delay for any call is
+`max(thisCall.duration, standingDeadline - Date.now())`. Bootstrap exposes no "extend the timer"
+API, so the existing dispose/construct pair stays — see **`OD-12`**.
+
+**(F) Invalidation (OQ-7).** Three paths, no more: **activation** (`button.remove()` inside the
+click handler, after `hide()` and before `onClick()` — B36's order is preserved); **dismissal** (one
+`hidden.bs.toast` listener, guarded by a `data-action-dismiss-wired` **attribute on `#liveToast`**,
+never a module flag); **expiry** (checked at the top of every `showToast()`).
+**Documented boundary, per OQ-7:** `toast.js` cannot know that plan *N* was deleted or already
+activated. **A stale `onClick` is the CALLER's responsibility.** The fix makes actions live
+**longer**, and therefore makes them **more** exposed to caller-owned staleness, not less. That
+sentence belongs in the module docstring.
+
+**(G) Announcement (OQ-6).** The slot carries `aria-live="off"`. **No `toast.js` write to
+`#liveToast`'s `role`, `aria-live` or `aria-atomic`** — invariant **A-I2** stands. If `base.html`'s
+`aria-atomic` boundary must move for a screen reader to honour the exclusion, that is a **template
+change** and is called out as **`OD-13`**; nothing at any tier currently pins `#liveToast`'s
+`aria-atomic` (`e2e/ui-hardening.spec.ts:358-364` asserts the **container**'s).
+
+**(H) Focus (OQ-6).** In the pristine path the button is never detached, so focus survives with no
+code. The capture/restore pair is retained anyway: it costs two lines, it is what **k8** kills **N1**
+with, and it is the seam any future re-rendering variant needs.
+
+### 2.3 The U1 amendments (OQ-8)
+
+Both in `volume-splitter.js`. **They are part of the KI-011 implementation PR** — U1's planning
+document is **not** edited by U3b, and OD-2's re-signature is recorded **here**.
+
+1. **Split the probe in two.** `ourActionStands()` keeps today's exact selector
+   `#liveToast button[aria-label="Retry volume calculation"]`, still scoped to **`#liveToast`, never
+   `#toast-body`** — U1 makes that scoping binding and it is not reversed. **Add**
+   `ourMessageStands()`, which asserts `#toast-body`'s **message node** text equals
+   `CALCULATE_ERROR_MESSAGE`.
+2. **Amended announce condition (OD-2, re-signed).**
+   `forceAnnounce || !standing || !ourMessageStands()`. §2.1g measures why: after the fix,
+   `ourActionStands()` is `true` while the visible message belongs to someone else.
+3. **Narrowed `dismissCalculateFailureToast()`.** `if (!ourMessageStands()) return;` before the
+   `hide()`. Today's button-only probe would dismiss an **unrelated** toast once the button
+   survives replacement.
+4. **OD-2's re-signed wording**, for the record: *"Repeat slider-originated announcements are
+   suppressed while the same failure region **and U1's own toast MESSAGE** stand; explicit user
+   commands always announce, and so does any failure at a moment when U1's **message** no longer
+   stands."* The only change is **content → message**; the rest is OD-2 verbatim.
+
+### 2.4 The E2E-only regression plan (Gate 1 entry item 4)
+
+**All arms land in `e2e/volume-splitter.spec.ts`. No Vitest file is created or edited. No case is
+added, removed or renamed under `static/js/**/*.test.js`.**
+
+| Arm | Drives | Asserts | Killed mutation |
+|---|---|---|---|
+| **t1** | Save without activating; `GET /api/volume_history` fails | The Activate action is **still in `#liveToast`** and **still carries `aria-label="Activate volume plan N"`**, while `#toast-body` shows the history-failure message | **N1** |
+| **t2** | `t1`, then **click** the surviving action | `POST /api/volume_plan/N/activate` is issued **with the original N**, and the history row for N shows active. **The closure, not merely the node** | **N1** |
+| **t3** | An action toast, then a toast **with its own action** | Exactly **one** action button; its label is the newer one | **N2** |
+| **t4** | A 6000 ms action toast, then a 500 ms message | The toast is **still shown** ~2000 ms later | **N3** |
+| **t5** | A 400 ms action toast inside a toast extended to 6000 ms | The toast is **still shown** and **no** action button remains — expiry, isolated from dismissal | **N4** |
+| **t6** | An action toast, then the close button, then an unrelated toast | **No** action button | **N5** |
+| **t7** | The save toast alone | `#toast-body` still matches `/Plan #\d+ saved\.\s*Activate for Plan tab/i` — the existing `:340` contract, restated as a guard | **N6** |
+| **t8** | Focus the action, then replace the message | `document.activeElement` is still the action button | **N1** |
+| **t9** | U1: slider failure → unrelated toast → slider failure | The second failure **re-announces** — `#toast-body` carries `CALCULATE_ERROR_MESSAGE` again | the OD-2 amendment (§2.3) |
+
+**Counts and artifacts.**
+
+- `static/js/modules/__tests__/toast.test.js` stays at **47 cases**, byte-identical.
+- The Vitest corpus stays at **13 files / 231 cases**, so
+  `git rev-parse <sha>:static/js/modules/__tests__` is **unchanged across the merge** and Q2's
+  restart clause **does not engage**. **T0 remains `2026-08-22T17:59:26Z`; the strict mark remains
+  `2026-09-05T17:59:26Z`.**
+- `tests/test_vitest_inventory_contracts.py` is **not edited** — its `231` / `13` /
+  `toast.test.js: 47` literals all still hold.
+- **Both inventory artifacts ARE regenerated**, because `playwright.total_tests` moves by the
+  number of arms added and per-spec Playwright counts are a pinned surface
+  (`QUALITY_GATE.md` line 59). **This is the same move #423 made** (649 → 662) without engaging Q2.
+- `e2e/volume-splitter.spec.ts` is **already** in `ci.yml`'s required functional set
+  (`ci.yml:363`), so **no spec is added to that list** and the `required_functional_set` pin at
+  `ci.yml:1173` is untouched. *(Adding a spec to that list reds pytest through a pinned count — a
+  trap this plan does not go near.)*
+- Any `page.waitForTimeout` added moves the **`hard_waits`** surface. `t4` and `t5` are
+  duration-shaped and are the likely sites; prefer `expect(...).toBeVisible({timeout})` /
+  `toBeHidden({timeout})` **time-bounded positives** over hard waits, exactly as U1's `s3` was
+  reworked to.
+
+**The console posture is a blocking dependency, not a detail.** Arms `t1`, `t2` and `t8` drive the
+gap-0 sequence that produces **F-NEW-1**. `e2e/volume-splitter.spec.ts`'s `afterEach` runs
+`consoleErrors.assertNoErrors()`. Either **`OD-12` resolves to fixing F-NEW-1**, or those arms need
+U1's allow-one posture with the Bootstrap `TypeError` named explicitly. **A silent allow-list here
+would hide a real defect**, so if the allow-list is chosen it must name the exact message.
+
+### 2.5 Verification gates (Gate 1 entry item 5)
+
+Path-derived from `QUALITY_GATE.md`. The diff touches `static/js/**` (production JS) and `e2e/**`.
+
+| Gate | Why it is in the set | Pass condition |
+|---|---|---|
+| **Full pytest** | `static/js/**` routes to it; `tests/test_vitest_inventory_contracts.py` and the CSS/inventory contracts live there | green, and the three Vitest literals **unchanged** |
+| **Full Chromium E2E** | `static/js/**` + `e2e/**`; `toast.js` is reached by **112 call sites in 20 modules**, so a narrowed batch cannot cover the blast radius | see the two-invocation comparison below |
+| **`scripts/generate_test_inventory.py --check`** | per-spec Playwright counts moved | regenerated **in the same commit**, `--check` exits 0 |
+| **`npm run test:js`** | the corpus must be provably unmoved | **13 files / 231 cases**, and `toast.test.js` byte-identical |
+| **Visual specs** | `toast.js` renders into a shared surface | no new baseline. A visual red is **REAL** and is not fixed with `emit_baseline` |
+| **Manual smoke** | `QUALITY_GATE.md` requires it for interactive `static/js/**` | the §0.3.1 route driven by hand, plus one toast on a second page |
+| **`/verify-suite`** | **required** | green |
+
+**`/verify-suite` is required and Packet B's override does not transfer.** That override was argued
+for a **docs-and-tests-only** diff. U3b changes production JS on the most-imported module in the
+application; the override is void by its own terms.
+
+**The two-invocation comparison, stated because "zero failures" is unmeetable.** The default E2E
+invocation is **not** clean — measured **569 passed / 63 failed / 17 did not run** on 2026-08-23,
+because visual specs are **not** excluded by default (`PW_VISUAL_SEED` selects the seed script, not
+the spec set). The gate is therefore **two invocations and a comparison**, never an absolute:
+
+1. **Non-visual functional run** (549 tests) on the branch **and** on its merge-base, same machine,
+   same session. **Pass condition: the failure set is identical apart from the new arms passing.**
+2. **Seeded visual run** (100 tests) on both. **Pass condition: identical, and no new baseline.**
+
+Ad-hoc batches are **nondeterministic**: before attributing any red to the diff, **stash and re-run
+the identical batch**. Verification runs on a base **rebased onto live `main`**, since U2 may land
+first.
+
+### 2.6 Migration notes (Gate 1 entry item 7)
+
+Required by the refactor invariant — this changes shared user-facing behavior.
+
+1. **`showToast()`'s signature is unchanged.** All **112** call sites keep working with no edit.
+   **No caller migration.** (OQ-9)
+2. **New observable DOM.** `#toast-body` gains two managed children: `span.toast-message` and
+   `div.toast-action-slot`. Anything selecting `#toast-body > span` by position, or reading
+   `#toast-body.innerHTML`, sees a new shape. **Audited: `expectToast` and
+   `volume-splitter.spec.ts:340` read `textContent` and are unaffected — measured as `k6`.**
+3. **`toast.js:60`'s wholesale clear is deleted.** That is the behavioral change. **Last-message-wins
+   is unchanged** (OQ-5), verified by **k7** against B26's exact assertions.
+4. **An action can now outlive the message that raised it.** Bounded by OQ-1/OQ-7. **A stale
+   `onClick` is the caller's problem** and the module says so (§2.2 F).
+5. **A toast can now stay visible longer than its own `duration`** when a standing action's deadline
+   is later (OQ-4). Anything asserting a toast is **gone** must be re-read. **Audited across `e2e/**`:
+   exactly one such assertion exists** — [`e2e/volume-splitter.spec.ts:1123`](../../e2e/volume-splitter.spec.ts#L1123),
+   `await expect(page.locator(SELECTORS.TOAST)).toBeHidden()`, inside U1's stale-response arm. **It is
+   unaffected, and the reason is specific rather than reassuring:** in that scenario the stale `500`
+   is discarded by U1's `calculateRequestSeq` guard, so `enterCalculateFailureState()` never runs and
+   **no action toast is ever raised** — there is no standing deadline to extend. **This is the only
+   place the OQ-4 extension could have surfaced as a red, and it must be re-checked by MEASUREMENT at
+   implementation time, not by re-reading this note.** No `#toast-body` assertion is at risk: every
+   one of them (`empty-states.spec.ts:70`, `:85`, `:144`; `workout-plan.spec.ts:713`, `:772`; and
+   `expectToast` itself) uses `toContainText`, which is substring-based on `textContent` and is blind
+   to the slot's added whitespace — measured as `k6`.
+6. **`volume-splitter.js` gains `ourMessageStands()`; `ourToastContentStands()` is renamed
+   `ourActionStands()`.** OD-2 is **re-signed** with content → message (§2.3). **U1's planning
+   document is not edited by U3b** — the re-signature lives in §1 and §2.3 of this document.
+7. **`toast.test.js` is not edited and stays at 47 cases** — measured green against the design
+   (§2.1d). **The "no module-level mutable state" premise in its header remains TRUE** after the
+   fix (§2.1e), and that is a deliberate design constraint, not an accident.
+8. **`UI_SCENARIOS_GAP_ANALYSIS.md`'s KI-011 row flips to Mitigated** and links `t1`, `t2` and `t8`,
+   per that file's own rule at `:109-112`. **That edit belongs to the implementation PR, not to
+   #426.**
+
+### 2.7 Sequencing and rebase requirements (Gate 1 entry item 7)
+
+- **U3b lands before U3a.** Owner ruling, §1. **Their implementations must not run concurrently.**
+- **U3a rebases onto U3b**, after the strict mark. KI-010 must **invert or update B45** and
+  re-check **B43**, which **does** change a Vitest case and **does** restart the window — the
+  reason it is deferred past `2026-09-05T17:59:26Z`.
+- **U3a inherits §2.1e as a hard constraint**: `toast.js` must still hold no module-level mutable
+  state when KI-010 adds its case, or the B45 inversion lands on a file whose premise has silently
+  become false.
+- **U2 is not disturbed and its merge order is not assumed.** Before implementation: re-fetch, re-read
+  `gh pr view --json state`, re-read `WORKSTREAM_OWNERSHIP.local.md`, and rebase onto whatever
+  `main` actually is. If U2 has landed and touched `backup-center.js`, **nothing in this plan
+  conflicts** — U2 adds a plain `showToast('warning', …)` with **no** action button.
+- **A squash merge means the SHA CI verified is never the SHA on the trunk.** Re-verify after
+  landing by **blob SHA**, not by "the PR was green".
+
+### 2.8 Open items carried into Gate 1 review
+
+| ID | Item | Why it is the owner's, not the plan's |
+|---|---|---|
+| **OD-11** | "**Sibling slot inside `#liveToast`**" — sibling of the **message** (γ) or of **`#toast-body`** (α)? | Plan v1 selects **(γ)**. (α) is **measurably** incompatible with `e2e/volume-splitter.spec.ts:340` unless that test's scope is changed (§2.1f, N6/k6). **A plan may not narrow a criterion the owner signed**, so the reading is confirmed, not assumed |
+| **OD-12** | **F-NEW-1** — fix the dispose-mid-transition `TypeError` in this packet, or file it as **KI-013** and allow-list it in the new arms? | It is a **new defect**, outside KI-011's signed scope, **and** it blocks `t1`/`t2`/`t8`'s console posture (§2.1b, §2.4). Both options are real; the choice is a scope decision |
+| **OD-13** | Does the atomic-announcement exclusion require moving `aria-atomic` in **`base.html`**? | `aria-live="off"` on the slot handles the slot's **own** changes. Whether a screen reader honours the exclusion when the **message** changes depends on nested-`aria-atomic` support. **Nothing at any tier pins `#liveToast`'s `aria-atomic`**, so the change is available — but it is a template edit OQ-6 did not name |
+
+---
+
+## 3. Gate 1 council and response matrix
+
+Three reviewers ran in parallel against **Plan v1 as written in §2**, each told that §1's rulings
+were not open for relitigation but that a **silent narrowing** of one must be flagged. All three
+returned **"needs revision"**. **Every finding is accepted**, in whole or with a stated
+modification; **none is rejected**. Where a finding is accepted with a different remedy than the
+reviewer proposed, the reason is measured, not argued.
+
+**Reviewer keys:** `A` = architecture-reviewer · `T` = test-strategist · `P` = product-risk-reviewer.
+`S` = found by this session's own measurement, not by a reviewer.
+
+### 3.1 The four findings that falsified a claim Plan v1 made about itself
+
+These are recorded first because each is a case of the plan being **wrong**, not merely incomplete.
+
+| # | Finding | Disposition |
+|---|---|---|
+| **T3** | **§2.4's console-posture collision does not exist.** Plan v1 said arms `t1`/`t2`/`t8` *"fail on the console posture before it ever asserts anything about the button"*. **Measured false on both channels:** `e2e/fixtures.ts:42` drops any console text containing `'Global error caught'` — the exact prefix `static/js/global-error-handler.js:22` emits — and `:61-62` drops any `pageerror` containing `'classList'` **or** `'Cannot read properties of null'`. F-NEW-1's message is `Cannot read properties of null (reading 'classList')`. **Filtered twice over.** | **ACCEPTED, and it inverts the conclusion.** The fixture is **blind** to F-NEW-1, not blocked by it — so **OD-12 option (b), "allow-list it", is already the silent status quo on `main`**, which is worse than the collision Plan v1 imagined. Worse still: under option **(a)** the fixture could not tell you whether the fix worked. §4 adopts the reviewer's third option — a **dedicated, unfiltered `pageerror` collector** used as F-NEW-1's own oracle — and rewrites OD-12's option set around it |
+| **T2 / A7 / P6** | **OQ-1 is not implemented as signed.** §2.2(F) makes expiry lazy — checked only at the top of `showToast()`. **Measured on the reference implementation:** an action **2273 ms past its deadline** was still rendered, `tabIndex >= 0`, and **its `onClick` fired on click**, while the toast was still shown. The owner signed *"validity is scoped to the raising toast's ORIGINAL duration"* | **ACCEPTED, with the remedy that satisfies the ruling instead of amending it.** T2 offered (a) eager expiry or (b) accept lazy expiry and take it back to the owner. **§4 takes (a)**: a `setTimeout` armed at the deadline, its handle stamped on the button as `data-action-timer` and cancelled on removal — so §2.2(A)'s no-module-state rule holds. **Re-measured: the action is gone at +2500 ms with the toast still shown, and `onClick` does not fire.** The owner is not asked to weaken a ruling that can simply be met. New mutation **N7** and new arms `t5b` / `k10` |
+| **T6** | **Wrong pin cited, and a moving surface declared static.** `ci.yml:1173` is `req = pw["required_functional_set"]` inside a job-summary print — it asserts nothing. **The real pin is `tests/test_playwright_shard_launcher_contracts.py:67`, `assert len(set(ci_required_specs())) == 25`**, which counts **specs**. And `required_functional_set.tests` **does** move | **ACCEPTED.** Verified: the `== 25` assertion is at that line and counts specs, so it is genuinely untouched. Verified from `TEST_INVENTORY.json`: `playwright.total_tests` **662**, `required_functional_set` `{spec_files: 25, tests: 527}`, `volume-splitter.spec.ts` **46** tests, `hard_waits.total_lines` **82**. §4.6 replaces the bullet with the measured values and the correct pin. **Both sibling packets cited this correctly; Plan v1 regressed a citation they got right** |
+| **P1** | **§2.1g's closing sentence is misleading.** *"Under the fix, **and with no amendment**, the user … is left looking at `"Backup created successfully."` with a `Retry` button beside it"* — the qualifier is false. The amendment acts at **step 3** (announcement); **step 2's pairing is unchanged by it** | **ACCEPTED.** §4.1 restates it: the amendment restores the second failure's announcement and **leaves the message/action pairing in place**. The pairing becomes its own owner item, **OD-14** (P2) |
+
+### 3.2 Findings that changed the design
+
+| # | Finding | Disposition |
+|---|---|---|
+| **A1 / S** | The slot is block-level; `.toast .toast-body` is `text-align: center`, so the action drops to its own line. **The packet's own harness had measured this and §2 reported no result.** Also: `resolveSlot()` ran **unconditionally**, so all 112 sites injected a node | **ACCEPTED in full.** Measured and published as **§4.1's F-NEW-5 table**: block slot = 350×**142** with the action on a second line; **`d-inline` = 350×118, identical to production in every rect**. `.d-inline` already ships in `bootstrap.custom.min.css`, so **no SCSS edit, no bundle drift, and the CSS gate stays out of the gate set**. Slot creation moved **inside** the well-formed branch — re-measured, a no-action toast now creates **no slot at all** and is pixel-identical to production |
+| **A2 / P5** | The rename orphans `ourActionStands()` (both call sites move to the message probe), **and** it falsifies text in two files — `volume_failure_feedback/PLANNING.md:1280` (**U1-FOLLOWUP-1**, an OPEN obligation naming `ourToastContentStands()` and the exact condition) and the **KI-012** row at `UI_SCENARIOS_GAP_ANALYSIS.md:107`, which the implementation PR edits anyway. `OQ-8` authorized re-signing OD-2 and narrowing the dismiss guard — **not** a rename | **ACCEPTED; the rename is DROPPED.** §4.3 keeps `ourToastContentStands()` with its binding comment untouched, adds `ourMessageStands()`, and gives the original probe a **live caller** by making the dismiss guard a **conjunction**: `if (!ourToastContentStands() \|\| !ourMessageStands()) return;`. Strictly narrower than today, no orphan, no rename. New **K13** row records that U1-FOLLOWUP-1's quoted condition still goes stale, and §4.6 adds the KI-012 restatement to the same commit |
+| **A3** | §2.3 described `ourMessageStands()` in prose. The literal reading (`#toast-body`'s `textContent`) is **measurably never true** once the slot lives inside `#toast-body` — §2.1g measured `"Backup created successfully.Retry"`. `a6` and `s3` would both red | **ACCEPTED.** §4.3 writes the selector normatively rather than describing it |
+| **A4** | `span.toast-message` would become an **unpinned cross-module DOM contract**, invented by `toast.js` and depended on by `volume-splitter.js`, with `toast.js` handed to U3a next. A rename there breaks it silently, surfacing only as two U1 arms a KI-010 implementer would misattribute | **ACCEPTED.** `toast.js` **exports `toastMessageText()`**; `volume-splitter.js` imports it instead of querying. An addition, not a signature change, so **OQ-9 holds**. Implemented in the reference and re-measured green |
+| **A5** | Bootstrap fires `hidden.bs.toast` on **auto-hide**, not only on the close button, so a button-presence probe stops being *"blind to visibility"* — the property `volume-splitter.js:257` documents | **ACCEPTED, and measured.** After a 700 ms auto-hide: the **button** probe reads `false`, the **message** probe reads `true`. This is a **second, independent reason the OD-2 amendment is mandatory**, unrelated to §2.1g's replacement scenario. Published as **§4.1's A5 row** and covered by arm `t11` |
+| **A6** | The single `hidden.bs.toast` listener has **no identity check**. If OD-12 fixes the dispose race, a hide transition completing after the next toast is shown would clear the **new** action | **ACCEPTED as a design requirement, and reported honestly as currently unkillable.** A generation counter is stamped on `#liveToast` and captured on the button; the listener clears only on a match. **Mutation N8 removes that check — and N8 SURVIVED (`k11` holds both ways).** Measured reason: **F-NEW-1 masks it.** The dispose throws inside Bootstrap's queued transition, so the stale `hidden` never fires. **N8 is an equivalent mutation whose equivalence is caused by another open defect.** §4.7 makes it binding: **if OD-12 resolves to (a), N8 must be re-run and must then be KILLED** |
+| **P3** | `aria-live="off"` on the slot does **not** exclude it from an **atomic ancestor's** re-announcement. The nearest ancestor with `aria-atomic` is `#liveToast` (`base.html:247`), so every later message is announced as *"&lt;new message&gt; Activate for Plan tab"* — **A-I4 unmitigated**. And OD-13's escape hatch is illusory: removing `aria-atomic` from `#liveToast` promotes the **container** at `:238`, which **is** pinned by `e2e/ui-hardening.spec.ts:361-363` | **ACCEPTED — verified line by line.** This is the most consequential a11y finding in the round. §4.2(G) no longer claims the exclusion; OD-13 is rewritten as the real binary: **accept per-message re-announcement of the action label, or change the container's `aria-atomic` and the spec that pins it.** `OQ-6(ii)` cannot be delivered as the plan assumed |
+| **P4** | *"The only change is content → message"* is inaccurate: OD-2's clause 2 substitutes **`toast → message`**, and that is the load-bearing clause | **ACCEPTED.** §4.3 quotes OD-2 verbatim and marks **both** substitutions. The "the rest is verbatim" claim is withdrawn |
+
+### 3.3 Findings that changed the regression plan or the gates
+
+| # | Finding | Disposition |
+|---|---|---|
+| **T1** | `t5` describes **two** calls; `k9` needs **three** — the third triggers the lazy sweep. As written `t5` fails on the *correct* implementation | **MOOT for the stated reason, ACCEPTED for a better one.** §4's eager expiry removes the dependence on a third call entirely: the action is now gone on a **timer**. `t5` is rewritten around the timer, and the sequence is stated in full so a later tidy-up cannot delete a load-bearing step |
+| **T4** | §2.3's **narrowed dismiss guard has no arm and no mutation row**. `s3` exercises only the positive direction and stays green with or without it | **ACCEPTED.** New arm **`t10`** and mutation **`N9`** in §4.4/§4.7, both specified. §4.7 makes running `N9` both directions a **Gate 1 exit condition** |
+| **T5** | The tree-hash claim is **inferred from counts**, which runs backwards — a body edit or a name swap preserves 13/231 and moves the tree. And **`vitest.config.js` is never mentioned**, though the rule measures it | **ACCEPTED.** §4.5 adds a gate row that measures the operative rule **directly and after the squash lands**: `git rev-parse <merge-base>:static/js/modules/__tests__` == the post-merge value, `git hash-object vitest.config.js` equal on both, and the three literals at `tests/test_vitest_inventory_contracts.py:57,58,67` unchanged |
+| **T7** | **`tsc --noEmit` is missing from §2.5.** `tsconfig.json:13` includes `e2e/**/*.ts`; the `tsc` half of `Type Check` is required and blocking. Nine new arms in a `.spec.ts` route straight to it | **ACCEPTED — verified.** Added to §4.5. pyright correctly stays out: the diff touches no `.py` |
+| **T8** | The two-invocation comparison is **not executable**: counts are stale (569/63/17 sums to 649; live `total_tests` is **662**), the 549/100 split is not derivable, there are no commands or artifacts, and the pass condition contradicts the plan's own nondeterminism note | **ACCEPTED in full.** §4.5 restates it as **set containment on emitted JSON**: split by **spec glob** not by count, `--reporter=json` to `artifacts/e2e-base.json` and `artifacts/e2e-branch.json`, reduce to `(file, title)` non-passing sets, require `branch_failures \ base_failures == {}`, and **stash-and-re-run the identical batch** before attributing any element of that difference. Visual half's oracle is `git status --porcelain` clean under `e2e/**-snapshots/` |
+| **T9** | `t2`'s second clause is **unreachable on `t1`'s route** — the history GET is still aborted, so the row cannot appear. §0.3.2 makes this exact point | **ACCEPTED.** The history-row clause is dropped. The load-bearing assertion is the `waitForRequest` on `/api/volume_plan/${N}/activate` with the original `N` — **already measured end to end**: production issues **zero** activate requests, the reference issues exactly `/api/volume_plan/21/activate` for saved plan **21** |
+| **T10** | The implementation PR **owes a §13.0 ledger row**, and U3b is the highest-risk merge in the window — a `js-unit` red on that `main` run **resets T0 to zero** and voids OQ-10's premise | **ACCEPTED.** §4.6 and §4.8 record the obligation, including that the row is read at **job level** (`js-unit` `conclusion` + `completed_at`, never the run's overall conclusion) and that landing is proved **by blob SHA** |
+| **T11** | Unpaired negatives in `t5`/`t6`, and in the harness arms `k4`/`k5` — `k5` clicks a close button that exists in `base.html` regardless | **ACCEPTED and already applied to the harness.** `k4` and `k5` now assert the action **was raised** before driving the invalidating event; `k10` and `k11` were written with the pairing from the start. Re-run: all rows still resolve, `N7` KILLED |
+| **T12** | §2.4's own hard-wait advice would make `t4` **vacuous** — `toBeVisible({timeout:2000})` resolves at t≈0 and passes on N3 | **ACCEPTED.** §4.4 specifies a page-side `hidden.bs.toast` **event log** with a `__t0` stamp for `t4`/`t5`, read in a single `page.evaluate`, plus `test.slow()`. The general hard-wait preference is retained but explicitly **does not apply to the two duration arms** |
+| **T13** | Three citation slips: the spec's constant is **`CALCULATE_FAILURE_MESSAGE`** (`e2e/volume-splitter.spec.ts:724`), not the module's `CALCULATE_ERROR_MESSAGE`; §2.4 never says which `describe` block the arms join; `showToastViaModule` is **file-local to `ui-hardening.spec.ts:31-43`**, not exported | **ACCEPTED — all three verified.** §4.4 fixes the identifier, names the block, and rules on the seam: **duplicate the helper into `volume-splitter.spec.ts`** rather than promote it, because promoting it also edits `ui-hardening.spec.ts` and widens the diff for no gain |
+| **T14** | The matrix scores an arm that **threw** as a kill, so a mutant-side timeout is indistinguishable from a real kill | **ACCEPTED and already applied.** The verdict logic now requires `mutant[a] === false`; any `ERROR` on either leg makes the row **BAD ROW**. Re-run under the stricter logic: unchanged verdicts |
+| **A8** | The implementation PR's **shared-path claims are undeclared** — §0.1 claims only the planning directory | **ACCEPTED.** §4.8 requires a live claim on the exact implementation path set before any code is written |
+| **P2** | `OQ-2`'s ruling word *"Preserves"* is common to option **(a)** and option **(c)**; Plan v1 implements (a) normatively and never records the acceptance `OQ-2`'s own text demanded. On the fixed route the toast reads **`Failed to load saved volume plans. Please try again.Activate for Plan tab`** | **ACCEPTED.** New owner item **OD-14**, with the reachable `/volume_splitter` pairings enumerated in §4.9. The malformed-action sub-case (a caller that *tried* to offer action X inherits unrelated action Y) is folded into the same row |
+| **P7** | OD-11 under-describes what the owner is re-reading: `OQ-6(i)` offered *"inside `#toast-body`"* **versus** *"a sibling action slot inside `#liveToast`"*, and the ruling used the second phrase. **(γ) is the branch the wording was chosen against** — and the recommendation the owner signed argued the relocation was better because *"the clear stays unconditional and total"*, which §2.2(C) **discards** | **ACCEPTED.** §4.9's OD-11 quotes `OQ-6(i)` verbatim, states that (γ) is the `#toast-body` branch, states that §4.2(C) reverses the stated rationale, and marks §4.2(B)/(C) **provisional** until OD-11 is answered |
+| **P8** | §2.6 item 8 flips KI-011 to **Mitigated** with no obligation to file **KI-013**, so under OD-12(b) the registry would read "Mitigated" against a route that still throws deterministically | **ACCEPTED.** §4.6 requires that, under OD-12(b), the same PR files **KI-013** and the KI-011 row's Mitigated note names it and the allow-listed message string |
+| **S** | Plan v1's migration note 5 claimed *"no assertion that a toast is gone exists today"*. **False** — `e2e/volume-splitter.spec.ts:1123` is exactly that | **Self-corrected before the council reported.** The note now names it, states the specific reason it is unaffected (the stale `500` is discarded by `calculateRequestSeq`, so no action toast is ever raised), and requires re-checking **by measurement** at implementation time |
+
+### 3.4 What all three reviewers agreed was sound
+
+Recorded so the revisions above are read in proportion.
+
+- **§2.1's measurement layer** — all three called it strong and told me to preserve it verbatim.
+  The test-strategist independently re-derived **§2.1c's N4/k4/k9 analysis** from the harness and
+  confirmed the non-isolation is real; **§2.1d's pre-flight-plus-candidate pair** was called a
+  genuine anti-vacuity control; **§2.1e's state-bleed measurement** was accepted as a real finding
+  that produced a better design rather than a waiver; **§2.1g** was called *"the strongest row in
+  the packet"* for swapping only `toast.js` while running the shipped `volume-splitter.js`.
+- **Containment** — `assertProductionUntouched()` before, between and after every row was called
+  exemplary.
+- **The call-site audit is clean.** The architecture reviewer checked all 112 independently:
+  `fetch-wrapper.js:213`/`:246` pass only `{ requestId }` and become *preservers*, which is `OQ-2`
+  as signed; `backup-center.js:778→:798` and `:1039→:1041` are the same success-then-refresh-failure
+  shape but raise **no action**; `workout-plan-replacement.js:78,88` pass a severity from
+  `resolveSwapErrorToast()` that is only ever `'warning'` or `'error'`, so it never reaches the
+  legacy branch. **No missed call site.**
+- **Early returns, the legacy branch, and B39/B40/B41** hold — the new work sits after both
+  `getElementById` guards.
+- **No cross-page coupling.** Multi-page Flask, fresh `#liveToast` per navigation, all state
+  DOM-resident. **No local-first or non-goal violation:** no storage, no server round-trip, no
+  timer outliving a page.
+- **U1's shipped contract is respected** where it matters — the durable region,
+  `renderCalculateFailureRegion()`'s idempotence, `clearResults()`, the if-and-only-if property,
+  and **OD-4's accepted tradeoff**. The `MutationObserver` on `#toast-body` that OD-4 explicitly
+  **rejected** is not reintroduced by any arm; it appears only in the gitignored probe.
+- **`OQ-10` / OD-1 window discipline is exact**, and `ci.yml`'s required-list claim is correct.
+- **Scope is disciplined** — nothing absorbs KI-010, U2 or U1's residue.
+
+---
+
+## 4. PLAN v2 — the normative plan
+
+> **Plan v2 supersedes §2 wherever the two differ.** §2 is preserved as the text the council
+> reviewed; it is not rewritten, so a reader can see what changed and why. §2.1's measurement rows
+> stand unchanged except where §4.1 adds to them. **Gate 1 is NOT signed.**
+
+### 4.1 Evidence added after Plan v1
+
+All measured on `52c44c4`, same worktree, same Flask instance on port 5311.
+**`static/js/modules/toast.js` re-verified as blob `42863b4664b7f87a2519556b7f9db8af2cb36e64`
+after every run.**
+
+#### F-NEW-5 — the slot changes the toast's rendered layout, and a utility class fixes it (A1, S)
+
+`components.css:2787` paints `.toast .toast-body { text-align: center }`, and today's button is an
+**inline** sibling of the message text. `artifacts/probe/layout-check.mjs`, three variants, one page,
+one viewport:
+
+| Variant | `#liveToast` | `#toast-body` | message | button | slot `display` | same line? |
+|---|---|---|---|---|---|---|
+| **production** | 350 × **118** | 316 × 50 | x 1096, y 773 | x 1224, y 771 | *(none)* | **yes** |
+| block slot | 350 × **142** | 316 × **75** | x 1168, y 745 | x 1163, y 771 | `block` | **no** |
+| **slot + `d-inline`** | 350 × **118** | 316 × 50 | x 1096, y 773 | x 1224, y 771 | `inline` | **yes** |
+
+**With `d-inline` the geometry is identical to production in every measured rect** — the same
+numbers, not merely close. `.d-inline{display:inline !important}` is **already in
+`static/css/bootstrap.custom.min.css`**, so there is **no SCSS edit, no `npm run build:css`, no
+compiled-bundle byte change**, and the CSS gate, the compiled-SCSS drift gate and the bundle-size
+pin stay **out of this packet's gate set**.
+
+**And the slot is now created only when a button is about to go in it.** Re-measured for a
+**no-action** toast — the shape **110 of the 112 call sites** use: production and the reference are
+**350 × 108, body 316 × 41, message at x 1168 y 779, `(no slot)`** in both. Nothing is injected.
+
+#### The lazy-expiry window, and its repair (T2 / A7 / P6)
+
+`artifacts/probe/expiry-window.mjs`. A 400 ms action, then a 6000 ms message (OQ-4 extends the
+toast), sampled at +2500 ms with no third call:
+
+| | **lazy expiry (Plan v1)** | **eager expiry (Plan v2)** |
+|---|---|---|
+| toast still shown | true | true |
+| expired action still in DOM | **true** | **false** |
+| past its deadline by | **2273 ms** | — |
+| focusable (`tabIndex >= 0`) | **true** | — |
+| **`onClick` fired on click** | **TRUE — the stale action ran** | **false** |
+
+**Plan v1 did not implement the ruling the owner signed.** Plan v2 does, without asking for an
+amendment.
+
+#### A5 — auto-hide alone flips the button probe (A)
+
+`artifacts/probe/hidden-race.mjs`. A 700 ms action toast, sampled either side of its own auto-hide:
+
+| Sample | button probe | message probe | `.show` |
+|---|---|---|---|
+| +300 ms | `true` | `true` | `true` |
+| **+1700 ms (auto-hidden)** | **`false`** | **`true`** | `false` |
+
+`volume-splitter.js:257` documents the probe as *"deliberately blind to visibility: it returns true
+for a toast that has already dismissed itself."* Once OQ-7 wires invalidation to
+`hidden.bs.toast` — which Bootstrap fires on **auto-hide**, not only on the close button — **that
+property is gone for the button probe and survives only for the message probe.** This is a
+**second, independent reason the OD-2 amendment is mandatory**, unrelated to §2.1g's scenario.
+
+#### t2's closure evidence, measured end to end (T9)
+
+`artifacts/probe/closure-survives.mjs`, on the real save-without-activating route with the history
+GET aborted:
+
+| | production | reference |
+|---|---|---|
+| surviving action buttons | **0** | **1** (`aria-label="Activate volume plan 21"`) |
+| activate requests issued | **`[]`** | **`["/api/volume_plan/21/activate"]"`** for saved plan **21** |
+
+**The closure survives, not merely the node.** A fix that re-rendered the button from stale data
+would keep every node-shaped assertion green and fail this one.
+
+#### The expanded mutation matrix — 8 rows, 11 arms, both directions
+
+Verdict logic hardened per **T14**: a row is `KILLED` only when `mutant === false` **and**
+`pristine === true`; **any `ERROR` on either leg is `BAD ROW`, never a kill.** `k4` and `k5` gained
+the paired positives **T11** required. Production blob asserted before, between and after every row.
+
+| Row | Mutation | Verdict | Killed by | Survived on |
+|---|---|---|---|---|
+| **N1** | restore `toast.js:60`'s wholesale clear | **KILLED** | k1, k8 | k6 *(a placement arm; correct)* |
+| **N2** | a standing action outranks a new one (OQ-3) | **KILLED** | k2 | — |
+| **N3** | the later call's duration wins outright (OQ-4) | **KILLED** | k3 | — |
+| **N4** | a standing action never expires | **KILLED** | **k9** | k4 *(non-isolating; see §2.1c)* |
+| **N5** | dismissal does not invalidate (OQ-7) | **KILLED** | k5 | — |
+| **N6** | slot placed outside `#toast-body` | **KILLED** | k6 | — |
+| **N7** | **no eager expiry timer** — OQ-1 honoured only at call boundaries | **KILLED** | **k10** | — |
+| **N8** | **no generation check** on the `hidden.bs.toast` listener | **SURVIVED** | — | k11 |
+
+**N8 survived, and the reason is a finding rather than a gap.** The generation check is
+**unkillable while F-NEW-1 stands**: the dispose throws inside Bootstrap's queued transition, so the
+stale instance's `hidden.bs.toast` never fires and there is nothing for the check to guard against.
+Measured directly — with the check removed, a new action raised 40 ms after a close click **survived
+anyway**. **N8 is an equivalent mutation whose equivalence is caused by another open defect.** It is
+retained, not deleted, and §4.7 makes the consequence binding.
+
+### 4.2 Implementation design — normative
+
+Supersedes §2.2. `artifacts/probe/toast.candidate.js` (revision 3) is the **reference**, not the
+deliverable.
+
+**(A) No module state.** Unchanged and still binding — §2.1e is the reason, and it now also covers
+the expiry timer handle and the generation counter, both of which live on DOM nodes.
+
+**(B) The slot.** `<div class="toast-action-slot d-inline" aria-live="off">`, created **only when a
+well-formed action is about to be appended**, as the last child of `#toast-body`, sibling of
+`span.toast-message`. **A `div`, never a `span`** (B26). **`d-inline`, never a bespoke CSS rule**
+(§4.1). **Provisional until OD-11 is answered.**
+
+**(C) Message rendering.** `toastBody.innerHTML = ''` is deleted; on first render into an unmanaged
+body, `replaceChildren()` once, then install `span.toast-message`; thereafter set `.textContent`.
+`textContent`, never `innerHTML`. **Provisional until OD-11 is answered** — this reverses the
+rationale the owner's `OQ-6` recommendation was argued on.
+
+**(D) Action resolution.** Unchanged from §2.2(D): well-formed replaces; absent preserves; malformed
+renders nothing and leaves the standing action alone — **the last clause is subject to OD-14**.
+
+**(E) Deadlines.** `data-action-deadline = Date.now() + duration` of the raising call; Bootstrap
+delay = `max(thisCall.duration, standingDeadline - Date.now())`.
+
+**(F) Invalidation — three paths, and expiry is EAGER.**
+- **Activation** — `button.remove()` after `hide()`, before `onClick()` (B36's order preserved).
+- **Dismissal** — one `hidden.bs.toast` listener, guarded by `data-action-dismiss-wired` on
+  `#liveToast`, and **generation-aware**: `#liveToast` carries `data-toast-generation`, incremented
+  on every render; the button captures the value it was built under; the listener clears **only on a
+  match**. See **N8** and §4.7.
+- **Expiry** — a `setTimeout` armed at the deadline, its handle stamped as `data-action-timer` and
+  `clearTimeout`-ed whenever the button is removed. The lazy sweep at the top of `showToast()` is
+  **retained as a belt-and-braces check**, not as the mechanism.
+- **Documented boundary (OQ-7):** `toast.js` cannot know plan *N* was deleted or already activated.
+  **A stale `onClick` is the caller's responsibility**, and the fix makes actions live **longer**,
+  so it increases that exposure rather than reducing it. This belongs in the module docstring.
+
+**(G) Announcement — the claim is withdrawn.** `aria-live="off"` on the slot governs changes
+**within** the slot. It does **not** remove the slot from what an **atomic ancestor** presents: the
+nearest ancestor with `aria-atomic` is `#liveToast` (`base.html:247`), so **every later message is
+announced as "&lt;new message&gt; &lt;action label&gt;"** while an action stands. **`OQ-6(ii)` cannot be
+delivered by the slot attribute alone.** `toast.js` still writes none of `#liveToast`'s live-region
+attributes (**A-I2** holds). The real choice is **OD-13**.
+
+**(H) Focus.** Unchanged; the button is never detached, and the capture/restore pair stays as `k8`'s
+kill for **N1**.
+
+**(I) Exported predicate (A4).** `toast.js` exports `toastMessageText()`, returning
+`document.querySelector('#toast-body span.toast-message')?.textContent ?? null`. Callers ask the
+module rather than querying its DOM shape, so a KI-010 rename cannot break `volume-splitter.js`
+silently. **An addition, not a signature change — OQ-9 holds.**
+
+### 4.3 The U1 amendments — no rename
+
+Supersedes §2.3.
+
+1. **`ourToastContentStands()` is KEPT, unrenamed**, with its binding `#liveToast`-scoping comment
+   untouched.
+2. **Add `ourMessageStands()`** — `toastMessageText() === CALCULATE_ERROR_MESSAGE`, using the
+   module's exported predicate, **not** a query on `#toast-body` and **not** `#toast-body`'s own
+   `textContent`, which can never equal the message once a button lives inside it (A3).
+3. **Announce condition (OD-2, re-signed):**
+   `forceAnnounce || !standing || !ourMessageStands()`.
+4. **Dismiss guard, narrowed to a conjunction:**
+   `if (!ourToastContentStands() || !ourMessageStands()) return;` before the `hide()`. Strictly
+   narrower than today, and it keeps the original probe live so nothing is orphaned (A2).
+5. **OD-2's re-signature, with both substitutions marked.** Ratified text
+   (`volume_failure_feedback/PLANNING.md:1272`):
+   > *"Repeat slider-originated announcements are suppressed while the same failure region **and
+   > U1-owned toast content** stand; explicit user commands always announce, and so does any failure
+   > at a moment when **U1's toast** no longer stands."*
+
+   Re-signed:
+   > *"Repeat slider-originated announcements are suppressed while the same failure region **and
+   > U1's own toast MESSAGE** stand; explicit user commands always announce, and so does any failure
+   > at a moment when **U1's MESSAGE** no longer stands."*
+
+   **Two substitutions, not one:** clause 1 `toast content → toast message`; clause 2
+   **`toast → message`** — and clause 2 is the load-bearing one. Pre-fix the two probes were
+   provably co-extensive (`:60` destroyed message and button together); post-fix they diverge, for
+   **two** independent reasons — replacement (§2.1g) and **auto-hide** (§4.1, A5).
+
+### 4.4 The E2E-only regression plan
+
+Supersedes §2.4. **All arms in `e2e/volume-splitter.spec.ts`, in a new `test.describe` block using
+the file's standard `assertNoErrors()` posture** — not U1's allow-one block. **`showToastViaModule`
+is duplicated into this file** rather than promoted from `ui-hardening.spec.ts:31-43`, so the diff
+does not widen (T13). The spec's constant is **`CALCULATE_FAILURE_MESSAGE`** (`:724`).
+
+| Arm | Drives | Asserts | Kills |
+|---|---|---|---|
+| **t1** | Save without activating; history GET fails | Action still in `#liveToast` with its `aria-label`, while `#toast-body` shows the history-failure message | N1 |
+| **t2** | `t1`, then **click** the action | `waitForRequest` on `/api/volume_plan/${N}/activate` with the **original** N. **No history-row clause** — unreachable while the GET is aborted (T9) | N1 |
+| **t3** | Action toast, then a toast with its own action | Exactly one action; label is the newer | N2 |
+| **t4** | 6000 ms action toast, then a 500 ms message | **Page-side `hidden.bs.toast` event log** with a `__t0` stamp: `__hideAt` undefined or `> 1500`. **Not `toBeVisible({timeout})`, which resolves at t≈0 and is vacuous** (T12). `test.slow()` | N3 |
+| **t5** | 400 ms action toast, then a 6000 ms message | Paired positive first (**the action was raised**), then in **one** `page.evaluate`: toast still shown **and** zero actions. Eager expiry is the mechanism; no third call needed | N4 |
+| **t5b** | `t5`, then **click where the button was** | The original `onClick` **did not fire** | **N7** |
+| **t6** | Action toast → close button → unrelated toast | Paired positive first, then no action | N5 |
+| **t7** | The save toast alone | `#toast-body` still matches `/Plan #\d+ saved\.\s*Activate for Plan tab/i` | N6 |
+| **t8** | Focus the action, then replace the message | `document.activeElement` is still the action button | N1 |
+| **t9** | Slider failure → unrelated toast → slider failure | The second failure **re-announces** | OD-2 amendment |
+| **t10** | Calculate failure (Retry stands) → unrelated 6000 ms toast → **successful** calculation | `#liveToast` is **still visible** and still shows the unrelated message — the narrowed dismiss guard did **not** hide a stranger's toast | **N9** |
+| **t11** | Action toast, let it **auto-hide**, then a slider failure | The failure **re-announces** — the auto-hide path, independent of t9's replacement path | OD-2 amendment (A5) |
+| **t12** | The §0.3.1 route with a **dedicated, unfiltered `pageerror` collector** | Under **OD-12(a)**: no `Cannot read properties of null (reading 'classList')`. Under **OD-12(b)**: exactly that error, **named**, as a characterization arm | F-NEW-1 |
+
+**Every negative is paired with a positive proving the call ran** (T11) — the rule
+`toast.test.js` states in its own header, applied here.
+
+**Counts and artifacts, measured from `TEST_INVENTORY.json` at `52c44c4`** (T6):
+
+- `toast.test.js` stays at **47**, byte-identical. Vitest corpus stays **13 files / 231 cases**.
+  `tests/test_vitest_inventory_contracts.py` **not edited** — its `231` / `13` / `47` literals hold.
+- **These artifact values DO move** and must be regenerated in the same commit:
+  `playwright.total_tests` **662 → 674**, `specs[volume-splitter.spec.ts].tests` **46 → 58**,
+  `required_functional_set.tests` **527 → 539**, and `hard_waits.total_lines` (**82** today) if any
+  wait is added. **`required_functional_set.spec_files` stays 25.**
+- **The pin is `tests/test_playwright_shard_launcher_contracts.py:67`** —
+  `assert len(set(ci_required_specs())) == 25`, which counts **specs** and is untouched because no
+  spec is added. **`ci.yml:1173` is not a pin**; it is a job-summary print.
+- **F-NEW-1 is invisible to the shared fixture, not blocked by it** (T3): `e2e/fixtures.ts:42` drops
+  `'Global error caught'`; `:61-62` drops `'classList'` and `'Cannot read properties of null'`.
+  Arm **t12** exists because of that — the shared collector **cannot** serve as F-NEW-1's oracle in
+  either OD-12 direction.
+
+### 4.5 Verification gates
+
+Supersedes §2.5.
+
+| Gate | Pass condition |
+|---|---|
+| **Full pytest** | green; the three Vitest literals unchanged |
+| **`npx tsc --noEmit`** | **zero errors.** `tsconfig.json:13` includes `e2e/**/*.ts`; the `tsc` half of `Type Check` is required and blocking (T7). pyright is out — no `.py` in the diff |
+| **Full Chromium E2E** | the two-invocation comparison below |
+| **`scripts/generate_test_inventory.py --check`** | regenerated in the same commit; exits 0 |
+| **`npm run test:js`** | 13 files / 231 cases; `toast.test.js` byte-identical |
+| **Window rule, measured directly and AFTER the squash** (T5) | `git rev-parse <merge-base>:static/js/modules/__tests__` == the post-merge `main` value; `git hash-object vitest.config.js` equal on both; the three literals at `tests/test_vitest_inventory_contracts.py:57,58,67` unchanged. **Counts are downstream of the tree and are not evidence for it** |
+| **Visual specs** | no new baseline; **oracle: `git status --porcelain` clean under `e2e/**-snapshots/`**. A visual red is REAL and is never repaired with `emit_baseline` |
+| **Manual smoke** | the §0.3.1 route by hand, plus one toast on a second page |
+| **`/verify-suite`** | green. **Packet B's no-`/verify-suite` override does not transfer** — it was argued for a docs-and-tests-only diff |
+
+**The two-invocation comparison, made executable** (T8). The default E2E invocation is **not**
+clean, and the 569/63/17 figures quoted in §2.5 are **stale** — they sum to 649, while
+`playwright.total_tests` is **662** today. **Re-derive every count from `TEST_INVENTORY.json` at
+implementation time, and split by spec glob, never by count.**
+
+1. Run branch and merge-base on the same machine, same session, `--reporter=json` to
+   `artifacts/e2e-branch.json` and `artifacts/e2e-base.json`.
+2. Reduce each to the set of `(file, title)` with a non-passing outcome.
+3. **Pass condition: `branch_failures \ base_failures` is empty**, and the new arms appear in
+   neither set.
+4. **Any element of that difference is stash-and-re-run on the identical batch before it is
+   attributed to the diff** — ad-hoc batches are nondeterministic.
+5. Visual half: same procedure; plus the `git status --porcelain` oracle above.
+
+Verification runs on a base **rebased onto live `main`**.
+
+### 4.6 Migration notes
+
+Supersedes §2.6. Items 1–5 and 7 stand as written there, with note 5's correction already applied.
+Replacing items 6 and 8, and adding 9–11:
+
+6. **`volume-splitter.js` gains `ourMessageStands()` and imports `toastMessageText()` from
+   `toast.js`. `ourToastContentStands()` is NOT renamed** and keeps a live caller in the narrowed
+   dismiss guard. OD-2 is **re-signed** with the two substitutions marked in §4.3.
+8. **`UI_SCENARIOS_GAP_ANALYSIS.md`'s KI-011 row flips to Mitigated**, linking `t1`, `t2`, `t8`.
+   **In the same commit:** correct the **KI-012** row's OD-2 restatement at `:107`, which this diff
+   falsifies (P5); and **under OD-12(b), file KI-013** for the dispose-race `TypeError`, with the
+   KI-011 Mitigated note naming it and the allow-listed message string (P8).
+9. **`volume_failure_feedback/PLANNING.md` §v2.14 (U1-FOLLOWUP-1) goes STALE** — it names
+   `ourToastContentStands()` and the exact condition `forceAnnounce || !standing ||
+   !ourToastContentStands()`, and the condition changes. **Recorded as K13, not repaired by U3b**:
+   U1's planning document is not U3b's to edit. Whoever discharges U1-FOLLOWUP-1 re-reads it first.
+10. **`STEP12_JS_UNIT_GATE0.md` §10.7-R10 remains stale** (K10) and is still not repaired here.
+11. **The implementation PR owes ledger row N in `STEP12_JS_UNIT_GATE0.md` §13.0** (T10), read at
+    **job level** — the `js-unit` job's `conclusion` and `completed_at`, **never** the run's overall
+    conclusion — and must prove what landed **by blob SHA**. **A `js-unit` red on that `main` run
+    resets T0 to zero and voids OQ-10's premise**, which is the single largest schedule risk in the
+    packet.
+
+### 4.7 Mutation obligations carried into implementation
+
+- Run **N1–N9** both directions, against a copy under `artifacts/probe/`, with the production blob
+  asserted before, between and after every row.
+- **N9** (drop the `ourMessageStands()` conjunct from the dismiss guard) is **new and not yet run** —
+  it needs `volume-splitter.js` intercepted the same way `toast.js` is. **Running it both directions
+  is a Gate 1 exit condition** (T4).
+- **N8 currently SURVIVES and must be re-run if OD-12 resolves to (a).** With the dispose race
+  fixed, the stale `hidden.bs.toast` fires and the generation check becomes load-bearing; **N8 must
+  then be KILLED by `k11`**. If it still survives, the generation check is genuinely dead and should
+  be removed rather than shipped as unexercised code.
+- Re-run the **timing-shaped rows** (`N3`, `N4`, `N7`) at **n ≥ 3** and record the count (T14).
+- `ERROR` on either leg is **BAD ROW**, never a kill.
+
+### 4.8 Sequencing, ownership and rebase
+
+§2.7 stands, plus:
+
+- **Claim the implementation path set before writing any code** (A8), in
+  `WORKSTREAM_OWNERSHIP.local.md`: `static/js/modules/toast.js`,
+  `static/js/modules/volume-splitter.js`, `e2e/volume-splitter.spec.ts`,
+  `docs/test_inventory/**`, `docs/UI_SCENARIOS_GAP_ANALYSIS.md`,
+  `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md` (for the §13.0 row), and
+  `docs/toast_action_continuity/**`. Three of those are other packets' surfaces.
+- **U3a inherits two hard constraints**, not one: `toast.js` must still hold **no module-level
+  mutable state** (§2.1e), and `span.toast-message` must keep its name or `toastMessageText()` must
+  be updated with it (A4).
+
+### 4.9 Owner decisions outstanding — the Gate 1 boundary
+
+| ID | Decision | Status |
+|---|---|---|
+| **OD-11** | `OQ-6(i)` offered *"**Inside `#toast-body`** (needs `:60` to become selective) **or** in a sibling action slot inside `#liveToast`"*, and the ruling used **the second phrase**. Plan v2's slot is a child of **`#toast-body`** — the **first** branch. And the recommendation the owner signed argued for relocation because *"the clear stays unconditional and total, which keeps `I2`, `I4` and B26 trivially true"* — **§4.2(C) discards exactly that**, replacing the clear with a targeted `textContent` write. | **OPEN.** §4.2(B)/(C) are **provisional**. Measured basis: the alternative reading reds `e2e/volume-splitter.spec.ts:340` (mutation **N6**, killed by `k6`), because `expectToast` scopes to `#toast-body`. A plan may not narrow a signed criterion, so this is confirmed, not assumed |
+| **OD-12** | **F-NEW-1**, the dispose-mid-transition `TypeError`. **(a)** fix it here, with arm `t12` as an unfiltered oracle and a new mutation row; or **(b)** file **KI-013** and ship a **named** characterization arm. | **OPEN, and it is now a correctness dependency, not only scope.** The shared fixture is **blind** to F-NEW-1 (T3), so (b) is already the silent status quo and (a) would otherwise ship unverified. **N8's verdict depends on this row** (§4.7) |
+| **OD-13** | The atomic-announcement exclusion. `aria-live="off"` **does not** deliver it (P3). The real binary: **accept that every later message is announced as "&lt;new message&gt; &lt;action label&gt;"** while an action stands, **or** change the **container's** `aria-atomic` at `base.html:238` **and** `e2e/ui-hardening.spec.ts:361-363`, which pins it to `'true'`. | **OPEN.** `OQ-6(ii)` as signed cannot be delivered by the slot attribute alone |
+| **OD-14** | `OQ-2`'s ruling word *"Preserves"* is common to option **(a)** bare-preserve and option **(c)** preserve-with-standing-context. §4.2(D) implements (a). `OQ-2`'s own text says the pairing risk *"must be accepted explicitly, not hand-waved."* | **OPEN.** Reachable pairings on `/volume_splitter`, all inside A1's 6000 ms window: `Failed to load saved volume plans. Please try again.` + `Activate for Plan tab` (the very route this packet fixes), plus the delete (`:382`, `:388`), export (`:599`), calculate (`:184`) and either `fetch-wrapper.js` site (`:213`, `:246`). Sub-case in the same row: **a caller whose own action is malformed inherits an unrelated one** — no live caller does this, but §4.2(D) writes the rule for all 112 |
+
+---
+
+## 5. Gate 1 checklist and STOP
+
+**Ready, and evidenced:** the browser reproduction with its pre-fix prediction recorded; the
+contained byte-identity-guarded matrix at **8 rows / 11 arms**, both directions, **7 KILLED and one
+honestly-reported conditional survivor**; the 47-case contract green against the design without
+touching the file; the design; the E2E-only regression plan with its measured artifact deltas; the
+full gate set including the two gates Plan v1 omitted; the council, this response matrix, and Plan
+v2; migration notes and sequencing.
+
+**Not ready, and blocking Gate 1 signature:**
+
+1. **OD-11, OD-12, OD-13 and OD-14 are unanswered.** OD-12 gates **N8**; OD-11 makes §4.2(B)/(C)
+   provisional; OD-13 is an accessibility contract `OQ-6(ii)` cannot deliver as signed; OD-14 is an
+   acceptance `OQ-2`'s own text requires be explicit.
+2. **N9 has not been run.** The narrowed dismiss guard is the one §4.3 edit with no evidence.
+
+**STOP — Gate 1 owner-signature boundary.**
+
+- No production line changed. `static/js/modules/toast.js` is blob
+  `42863b4664b7f87a2519556b7f9db8af2cb36e64`; `toast.test.js` and `volume-splitter.js` are
+  untouched.
+- No test file created or modified. The suite is **13 files / 231 cases**, re-measured green.
+- No inventory artifact, ledger row, status document, repository setting, or U1 / U2 / U3a artifact
+  touched. `generate_test_inventory.py --check` exits 0.
+- The entire harness lives in the gitignored `artifacts/probe/` and is **not** in the PR.
+- **KI-011 implementation is not authorized, must not begin, and must not run concurrently with
+  KI-010 implementation. PR #426 stays draft.**
