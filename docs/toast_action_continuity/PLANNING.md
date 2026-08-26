@@ -5,9 +5,10 @@
 > **Gate 1 planning only**. **Gate 1 is NOT signed and implementation is NOT authorized.** Gate 1 planning is CLOSED at §6:
 > Plan v1 (§2), the three-reviewer council and response matrix (§3), and **Plan v2 (§4)** are
 > written, and **OD-11..OD-14 are RULED** (§6.1). **N8, N9 and N10 are all KILLED both directions**
-> (§6.3-§6.5). **One blocker remains and no signature is requested**: arm `t9`'s drive is unreliable
-> and the ANNOUNCE half of the OD-2 amendment has no mutation row (§6.9). The proposed signature
-> block is §6.11, offered for approval and NOT applied.
+> (§6.3-§6.5). **§6.9's blocker is DISCHARGED at §7**: the disagreement was a harness defect, `t9`/`t11` are
+> re-specified and implemented, and **N11** locks the ANNOUNCE half. **Mutation matrix: 11 rows,
+> 15 arms, 11 KILLED, 0 survivors, 0 BAD ROW, three identical runs.** The proposed signature
+> block is §6.11 — still **NOT applied**, and signature is presented separately.
 > §0.9's recommendations are superseded by §1's rulings wherever the two differ; §0.9 stays in place as
 > the evidence that produced them. This document necessarily predates its own sign-off, so the
 > pre-signature text is preserved rather than edited.
@@ -1800,6 +1801,15 @@ citation in this document needs re-anchoring and no measured figure moves.**
 
 ### 6.9 Remaining blocker — one unresolved oracle
 
+> ⚠️ **ANNOTATION — DISCHARGED at §7. Annotated, not rewritten.** The discrepancy this
+> subsection reports was **not behavioural**: `artifacts/probe/u1-interaction.mjs` never intercepted
+> `volume-splitter.js` at all, because the edit that was supposed to add its override was a string
+> replace whose anchor did not match, and it silently did nothing while reporting success.
+> **Every `VS_OVERRIDE=…` run of that probe used the shipped, unamended module**, so it was
+> correctly reporting production's behaviour. Root cause, the real dispatch mechanics, the
+> re-specified `t9`/`t11`, and the new **N11** announce mutation are at **§7**. The text below is
+> preserved as the honest report it was at the time.
+
 **The two mutation obligations the owner set are satisfied: N8 and N9 are both KILLED, both
 directions, three runs each.** One item is **not** settled, and it is reported rather than resolved
 by assertion.
@@ -1852,8 +1862,11 @@ implementation-shaped work:
 - [x] **The 47-case contract green against the final candidate, file unmodified**
 - [x] **Live-`main` reconciled twice, sequencing re-read, nothing assumed** (§6.8)
 - [x] Containment: **one file modified**, harness gitignored, PR **draft**
-- [ ] **BLOCKED — `t9`/`t11`'s drive is unreliable and the announce half of §4.3 has no mutation row**
-      (§6.9)
+- [x] **DISCHARGED at §7** — the item below was true when written. `t9`/`t11` are re-specified and
+      implemented as `k14`/`k15`, and the announce half now carries **N11**, killed both
+      directions three times.
+  - [x] ~~**BLOCKED — `t9`/`t11`'s drive is unreliable and the announce half of §4.3 has no mutation row**~~
+        (§6.9)
 
 **Gate 1 is therefore NOT ready for signature, and none is requested.** The block is narrow and
 named: the *dismiss* half of the OD-2 amendment is locked; the *announce* half is not.
@@ -1888,3 +1901,213 @@ not read it as a claim that the condition is met.**
 > **rebased onto live `main` and re-reconciled** first — **PR #427 (U2) merge order is not assumed**.
 >
 > **Merging remains a separate confirmation.**
+
+---
+
+## 7. §6.9 discharged — the dispatch root cause, the re-specified arms, and the announce mutation
+
+> **Gate 1 is still NOT signed and no signature is requested in this section.** §6.11's block remains
+> unapplied. This section discharges the blocker §6.9 named and nothing else.
+
+### 7.1 Root cause of the dispatch difference
+
+**There was never a behavioural difference. The two probes were running different code, because a
+patch to one of them silently did nothing.**
+
+`artifacts/probe/u1-interaction.mjs` was supposed to intercept **both** modules. The edit that added
+its `VS_OVERRIDE` block was a string replace whose anchor did not match the file — the probe writes
+`route.fulfill(...)` with the parameter named `route`, the patch searched for `r.fulfill(...)` — and
+the replace returned the input unchanged while the script printed `ok`. **Measured: `grep -c
+VS_OVERRIDE artifacts/probe/u1-interaction.mjs` → `0`.** Its own file header still said *"Only
+`toast.js` is swapped"*, which was the truth the whole time.
+
+**So every `VS_OVERRIDE=…` run of that probe used the shipped, unamended `volume-splitter.js`.** It
+was correctly reporting that **production** does not re-announce — which is the defect. It was never
+in contradiction with `predicate-check.mjs`; the two were measuring different modules.
+
+The decisive check was that the instrumented build emitted **zero** `KI011-TRACE` lines under that
+probe, including from `calculateVolume.enter`, which fires on **every** calculation. A module that
+never executes cannot disagree with one that does.
+
+**This is a harness defect of mine, not a design defect, and it is recorded rather than quietly
+fixed:** a silent no-op replace reported as success is precisely the false-green class this packet
+has been strict about everywhere else. The lesson is carried into §7.2 — **an arm must prove the
+thing it claims to drive actually ran.**
+
+**The real dispatch mechanics, measured and now documented**, because the re-specified arms depend
+on them:
+
+| Listener | Site | Effect |
+|---|---|---|
+| `input` | [`volume-splitter.js:744-752`](../../static/js/modules/volume-splitter.js#L744-L752) | `scheduleCalculate()` → a **300 ms debounce** → `calculateVolume({forceAnnounce:false})` |
+| `change` | [`:755-760`](../../static/js/modules/volume-splitter.js#L755-L760) | `calculateVolume({forceAnnounce:false})` **immediately** |
+
+**A single slider change therefore issues exactly TWO `POST /api/calculate_volume` requests** — the
+immediate one and the debounced one 300 ms later. `calculateVolume()` takes
+`seq = ++calculateRequestSeq` at [`:127`](../../static/js/modules/volume-splitter.js#L127) and the
+`.catch` discards its own response when a newer request has since started
+([`:167`](../../static/js/modules/volume-splitter.js#L167)).
+
+Traced side by side, both drives behave **identically** and neither discards anything, because each
+response returns before the next request starts:
+
+```
+--- step 3: second slider failure ---
+scheduleCalculate                       t=2864
+calculateVolume.enter  seq=6            t=2864     <- the immediate `change` call
+catch   seq=6 current=6 discarded=false t=2866
+announceDecision  ourMessageStands=false  msg="Backup created successfully."  announce=TRUE
+calculateVolume.enter  seq=7            t=3167     <- the debounced `input` call
+catch   seq=7 current=7 discarded=false t=3170
+announceDecision  ourMessageStands=true   msg="Volume calculation failed…"    announce=false
+```
+
+**The first of the pair re-announces; the second is correctly suppressed** because by then U1's
+message *is* standing again. That is the amendment working exactly as designed, and both drives
+produced it once both modules were actually intercepted.
+
+### 7.2 Re-specified `t9` and `t11` — synchronisation and oracles
+
+Both arms are re-specified, and both are now **implemented and running** in the matrix as `k14` and
+`k15`. Nothing in either uses elapsed time, unrelated toast text, or the **absence** of a transition
+as proof that the failure path ran.
+
+**Request synchronisation.** A route handler on `**/api/calculate_volume*` increments a Node-side
+counter **only when it itself fulfils a 500 for a `POST`** — so the count is keyed on **request
+identity** (method + URL) *and* on **expected outcome** (the failure status the arm intends).
+`waitForFailures(state, target)` gates every step on that counter. Because a slider change issues
+**two** requests, the target advances by **`FAILURES_PER_SLIDER_CHANGE = 2`** per action; the
+constant is named so a later reader cannot mistake it for a magic number. The baseline calculation is
+separately gated on a real `waitForResponse` for a **`200`**.
+
+**`k14` — spec arm `t9`, the replacement path.**
+
+| Step | Synchronised on | Paired positive |
+|---|---|---|
+| baseline success | `waitForResponse` POST + **200** | results section visible |
+| first failure | failure count **+2** | **PP1** — `span.toast-message` **is** U1's message **and** `#volume-calculate-error` exists |
+| unrelated toast | — | **PP2** — the message **is** `"Backup created successfully."` **and** the `Retry` button **is still present** (the KI-011 fix really preserved it) |
+| **second failure** | failure count **+2** from the recorded `before` | **PP3** — `.results-section` carries `d-none`, i.e. **`clearResults()` ran**, which is the first statement of `enterCalculateFailureState()` and the independent proof that the second failure **reached the failure state machine** |
+| **oracle** | `waitForFunction` — bounded, event-driven | `span.toast-message` **is** U1's message again |
+
+**`k15` — spec arm `t11`, the auto-hide path.** Same synchronisation. Its expected pristine outcome
+is **suppression**, because measurement (§4.1, A5) showed the **message** survives an auto-hide while
+the **button** does not: PP1 the toast was shown carrying U1's message; PP2 it **auto-hid on its own
+and the message survived**; PP3 `clearResults()` ran after the second failure; **oracle** — the toast
+is **not re-shown**. The three positives are what stop that negative from being bare.
+
+**Why `PP3` is the right proof-of-arrival.** `clearResults()` is the first statement of
+`enterCalculateFailureState()` ([`:193`](../../static/js/modules/volume-splitter.js#L193)) and it is
+the only thing on the page that adds `d-none` to `.results-section` on a failure. An arm that never
+reached the state machine cannot produce it, so `t9`/`t11` can no longer pass — or fail — on a drive
+that silently did nothing.
+
+### 7.3 N11 — the announce mutation, both directions, three runs
+
+**Mutation, stated exactly.** In `enterCalculateFailureState()`'s announce condition, replace the
+message probe with U1's original button probe:
+
+```
+- if (forceAnnounce || !standing || !ourMessageStands())        // pristine, §4.3 item 3
++ if (forceAnnounce || !standing || !ourToastContentStands())   // N11 mutant
+```
+
+It is applied to `artifacts/probe/volume-splitter.candidate.js` — a **copy**, served by route
+interception — behind `MUT.announceUsesActionProbe`. The repository file is never written and its
+blob is asserted alongside `toast.js` before, between and after **every** row.
+
+**Why it must discriminate.** The KI-011 fix preserves the action across a replacement, so
+`ourToastContentStands()` answers `true` while a stranger's message is on screen — the mutant
+suppresses an announcement the amendment exists to restore. On the auto-hide path the divergence runs
+the other way: the button is gone but the message stands, so the mutant announces where the
+amendment suppresses. **One mutation, two opposite failure directions, one arm each.**
+
+| Run | mutant `k14` | mutant `k15` | pristine `k14` | pristine `k15` | Verdict |
+|---|---|---|---|---|---|
+| **1** | **false** | **false** | **true** | **true** | **KILLED** |
+| **2** | **false** | **false** | **true** | **true** | **KILLED** |
+| **3** | **false** | **false** | **true** | **true** | **KILLED** |
+
+**N11 is KILLED by both arms, both directions, three consecutive complete runs.** The oracle was not
+waived or weakened at any point.
+
+### 7.4 Updated mutation totals
+
+**11 rows · 15 arms · 11 KILLED · 0 survivors · 0 BAD ROW · 3 identical complete runs.**
+All **15** pristine arms hold in every run.
+
+| Row | Mutation | Verdict | Killed by | Survived on |
+|---|---|---|---|---|
+| **N1** | restore `toast.js:60`'s wholesale clear | KILLED | k1, k8 | k6 *(placement arm; correct)* |
+| **N2** | a standing action outranks a new one (OQ-3) | KILLED | k2 | — |
+| **N3** | the later call's duration wins outright (OQ-4) | KILLED | k3 | — |
+| **N4** | a standing action never expires | KILLED | k9 | k4 *(non-isolating)* |
+| **N5** | dismissal does not invalidate (OQ-7) | KILLED | k5 | — |
+| **N6** | slot placed outside `#toast-body` | KILLED | k6 | — |
+| **N7** | no eager expiry timer (OQ-1) | KILLED | k10 | — |
+| **N8** | dispose runs after the content write | KILLED | k11 | — |
+| **N9** | the dismiss guard keeps the button-only probe | KILLED | k12 | — |
+| **N10** | the F-NEW-1 transition flush is removed | KILLED | k13 | — |
+| **N11** | **the ANNOUNCE half probes the BUTTON, not the MESSAGE** | **KILLED** | **k14, k15** | — |
+
+**N9 and every dismiss-half conclusion in §6.4 stand unchanged.** Nothing measured here touches them:
+`k12` held on pristine and failed on the mutant in all three runs, exactly as recorded.
+**Both halves of the OD-2 amendment are now locked** — the dismiss half by **N9**, the announce half
+by **N11**.
+
+### 7.5 Gate results
+
+| Gate | Result |
+|---|---|
+| `npm run test:js` (real suite) | **13 files / 231 cases** — green |
+| The 47-case contract against the **final** candidate, file unmodified (mirrored layout) | **49/49** — the real 47 plus the two state-bleed cases |
+| `scripts/generate_test_inventory.py --check` | **exit 0** — *"Test inventory is up to date."* |
+| **`npx tsc --noEmit`** | **exit 0**, no output — the gate §4.5 added on the test-strategist's finding |
+
+### 7.6 Blob checks, live `main`, and containment
+
+**Production blobs, asserted before, between and after every measurement** — by the harness on every
+matrix row, and by hand before and after this section's work:
+
+| Path | Blob | Live `main` | Match |
+|---|---|---|---|
+| `static/js/modules/toast.js` | `42863b4664b7f87a2519556b7f9db8af2cb36e64` | same | ✓ |
+| `static/js/modules/volume-splitter.js` | `552a7baa2dfe050951ad97c3a99007254b211756` | same | ✓ |
+| `static/js/modules/__tests__/toast.test.js` | `9b10e473a284b2968444916f266fd2da56518d6f` | same | ✓ |
+| `e2e/volume-splitter.spec.ts` | `8cffe041a37f91c429d852043510a1e8b2b8091c` | same | ✓ |
+
+**`origin/main` moved again during this section** and was re-read, not assumed:
+**`db6c34b` → `b733c14`** — [#416](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/416),
+the Dependabot `sass 1.102.0 → 1.103.1` bump (`package.json`, `package-lock.json`). **All four
+anchored blobs are byte-identical at `b733c14`.** The bump does **not** rebuild the committed CSS:
+`static/css/bootstrap.custom.min.css` is blob `22fdeed9d1cd09ad3fbbbaf89a81e4efd2fbec4f` on both
+sides, and `.d-inline{display:inline !important}` is still present — so §4.1's "no SCSS edit, no
+bundle drift" argument is unaffected.
+
+`git status --porcelain` shows **only** `docs/toast_action_continuity/PLANNING.md`. The harness —
+including the new `dispatch-trace.mjs` and the two intercepted candidates — lives entirely in the
+gitignored `artifacts/probe/`. **PR #426 remains draft.** **No KI-010 implementation has begun.**
+
+### 7.7 §6.9 status and the updated checklist
+
+**§6.9 is DISCHARGED.** Its three requirements are met: the dispatch difference is explained and was
+a harness defect rather than a behavioural one (§7.1); `t9` and `t11` are re-specified around
+request-identity-and-status synchronisation with three paired positives each, and are implemented and
+passing as `k14`/`k15` (§7.2); and the announce half now carries **N11**, killed both directions,
+three times (§7.3).
+
+- [x] OD-11…OD-14 recorded as governing text (§6.1)
+- [x] F-NEW-1 fixed; generation check removed as measured non-load-bearing (§6.2)
+- [x] **N8** KILLED both directions ×3 (§6.3)
+- [x] **N9** KILLED both directions ×3 — **unchanged** (§6.4)
+- [x] **N10** KILLED both directions ×3 (§6.5)
+- [x] **N11** KILLED by two arms, both directions ×3 (§7.3)
+- [x] **11 rows / 15 arms / 11 KILLED / 0 survivors / 0 BAD ROW**, 3 identical runs (§7.4)
+- [x] `t9`/`t11` synchronised on request identity **and** failure status, with proof-of-arrival (§7.2)
+- [x] Vitest 13/231 · mirrored 49/49 · inventory `--check` 0 · **`tsc --noEmit` 0** (§7.5)
+- [x] Four production blobs asserted before, between and after; live `main` re-reconciled (§7.6)
+- [x] Containment: one file modified, harness gitignored, PR draft
+
+**No blocker remains open in this document.** §6.11's signature block is still **unapplied**, and
+signature is **not** requested here — it will be presented separately, with this evidence, as the
+owner directed.
