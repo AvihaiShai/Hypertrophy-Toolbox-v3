@@ -4709,10 +4709,14 @@ discipline argued on the record and never applied silently.
 > the three 2026-08-25 extensions and the two 2026-08-26 ones did"* instruction in the *Still to do*
 > paragraph at the end of this subsection.
 >
-> **One thing this extension deliberately does NOT do: it does not write row 14.** PR #415 merged
-> twenty-four seconds before this read and its `main` run was still `in_progress`, so its `js-unit`
-> result is **owed, not measured**. A row records a settled result; recording an unsettled one would
-> be the exact substitution §6.1 forbids. The next session that extends this block owes it.
+> **One thing this extension deliberately does NOT do: it does not write row 14.** ⚠️ **And the
+> reason is authorization, not measurement — an earlier draft of this extension said the run was
+> unsettled, which was wrong on this ledger's own rule.** PR #415 merged twenty-four seconds before
+> this read; its `main` run's **overall** `conclusion` was still `null`, but §6.1 indexes `js-unit`
+> **results**, not runs, and that job had already settled. The measured facts are in *Row 14 is
+> owed, and it is measurable* below. This PR's owner authorization covers appending **row 13 only**,
+> so writing row 14 here would exceed it. **The next session that extends this block owes the row**,
+> and has everything it needs to write it without re-deriving.
 
 **Read at `2026-08-26T21:57:02Z`** (UTC now, taken from the GitHub API response `Date` header, not
 from the host clock), after PR
@@ -4731,8 +4735,10 @@ returned run's `/jobs` was then enumerated in full and matched on the exact cont
 **not** used — the job says `completed` / `success` / `2026-08-26T20:42:09Z` on its own. The superset
 returned **nineteen** `main` runs of any workflow in that span: **thirteen** settled `CI/CD Pipeline`
 runs, which are the qualification attempts and are the thirteen rows below; **one** `CI/CD Pipeline`
-run still **in progress** at this read, which is not a row and whose result is deliberately not
-predicted; and **five** runs of other workflows, classified in the table after the tally. The twelve
+run whose overall `conclusion` was still `null` at this read but whose **`js-unit` job had already
+settled**, and which this extension deliberately does **not** write as a row — see *Row 14 is owed,
+and it is measurable* below; and **five** runs of other workflows, classified in the table after the
+tally. The twelve
 rows this block previously carried were **re-derived from the API, not copied from the page**, and
 all twelve came back byte-identical.
 
@@ -4760,8 +4766,8 @@ all twelve came back byte-identical.
 | **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
 | **Skipped** results | **0** |
 | **Cancelled** results | **0** |
-| **In progress at this read** (not yet a row, and deliberately not predicted) | **1** — [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094), `push` / `7a64d2e` (PR #415) |
-| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **19** — the 13 rows above, the 1 in-progress `ci.yml` run, and the 5 classified below |
+| **Settled but NOT written as a row here** (see the note below the table) | **1** — [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094), `push` / `7a64d2e` (PR #415) |
+| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **19** — the 13 rows above, the 1 unwritten `ci.yml` run, and the 5 classified below |
 | **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
 | Elapsed since T0 | **≈ 4 d 3 h 58 m** of the required **14 d** |
 | Remaining to the strict mark | **≈ 9 d 20 h 2 m** |
@@ -4917,13 +4923,34 @@ and Q2's restart clause did not engage. **T0 remains `2026-08-22T17:59:26Z`; the
 and explicitly refused to predict the run's *result*; the result is row 13 above, measured after the
 run existed.
 
+**Row 14 is owed, and it is measurable — the facts are recorded here so the next session does not
+re-derive them.** ⚠️ **This paragraph corrects an earlier draft of this same extension**, which
+classified [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094)
+as *"still in progress"* and its result as *"owed, not measured"*. That read the **run** object,
+whose `conclusion` was `null` at `2026-08-26T21:57:02Z` — but §6.1 and row 1's own note both say
+this ledger indexes **`js-unit` results, not runs**, and that job had settled **four seconds before
+the read**. The correct statement is that row 14 is **measured and unwritten**, not unmeasured:
+
+| Field | Value |
+|---|---|
+| `main` run | [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094) |
+| Event / head | `push` / `7a64d2e` (PR #415, Dependabot `pyinstaller` 6.22.0 → 6.22.2) |
+| `js-unit` job | [`98339729053`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094/job/98339729053) |
+| Job `status` / `conclusion` | `completed` / **`success`** |
+| Job `completed_at` | **`2026-08-26T21:56:58Z`** |
+| Run jobs | **18/18** |
+
+**It is not written as a row here because this PR is not authorized to write it.** The owner
+authorized this document's inclusion in Packet U2's implementation diff **solely to append measured
+row 13**; row 14 belongs to whoever next extends this block, and the restart-clause check for #415
+(a `requirements.txt`-only Dependabot bump) is theirs to measure rather than inherit.
+
 **Three PRs are open at this read time, and none of them is in this ledger.** Re-measured live at
 `2026-08-26T21:57:02Z`, not carried forward. ⚠️ **The two-Dependabot-PRs reading the previous six
 reads carried is spent**: **#415 merged** at `2026-08-26T21:56:38Z` as `7a64d2e`, twenty-four
 seconds before this read, and its `main` `ci.yml` run [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094)
-was **still in progress** when the API was queried. It is therefore **not row 14 yet** — it is the
-in-progress line in the tally above, and **whoever next extends this block owes its job-level
-result**. No prediction is made about it here. **#424 never appeared in this table** — it was opened
+is **row 14**, which **whoever next extends this block owes** — see *Row 14 is owed, and it is
+measurable* below. **#424 never appeared in this table** — it was opened
 and merged between the `12:05:47Z` read and this one, so it is row 13 above rather than a table
 entry here, exactly as #423 was at the previous read. **The carrier of this extension is absent for
 the same reason**: it did not exist at the read time. It is accounted for in
