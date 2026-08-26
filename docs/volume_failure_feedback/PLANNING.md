@@ -1375,8 +1375,12 @@ and it did not move. The extra path is
 separately authorized operational-documentation exception to carry **ledger row 11** — the
 `main` `js-unit` result that #422's own merge produced and could not record. §13.0's LIVE block is
 extended **in place** with row 11, its counters, its spent clauses and its carrier-debt wording,
-and nothing else in that document changes. A ledger-only PR was rejected because it would mint a
-twelfth row and owe a thirteenth without end. **No ninth file is authorized.**
+plus the one counter annotation that block itself planted in the superseded post-#414 block above
+it — the same in-place repair its three earlier extensions each made. **Nothing outside §13.0 is
+edited**, which is a statement about the diff and **not** a claim that nothing outside §13.0 is
+left stale; what is left stale is listed under *Debt this diff creates* below. A ledger-only PR
+was rejected because it would mint a twelfth row and owe a thirteenth without end. **No ninth file
+is authorized.**
 
 **The qualification window is untouched, and that was measured rather than assumed.** U1 changes
 the production JS tree — `static/js`'s tree hash moves off
@@ -1386,6 +1390,64 @@ under `static/js/modules/__tests__/`, changes no existing Vitest case, leaves `v
 blob `c16ca428f7478708d8dd96a20ebcb86f98a8b935` and leaves the collection mechanism alone, so
 `npm run test:js` still reports **13 files / 231 cases**. **T0 stays `2026-08-22T17:59:26Z` and the
 strict mark stays `2026-09-05T17:59:26Z`.**
+
+**The §v2.9 mutation matrix ran in both directions, all nine rows.** Checkpoint commit
+`cb52edd`; `volume-splitter.js` sha256 `ed6563c2…` before and after every row, restored with
+`git checkout --` and never by retyping. **Every predicted red was observed.** Two rows red
+*more* arms than predicted, which is over-detection rather than a defect in an arm, and both are
+explained rather than waved through:
+
+| Row | Predicted red | Observed red | Note |
+|---|---|---|---|
+| **M1** | `a1`–`a6`, `c1`, `c2`, `s2`, `s3`; `s6` mirror case only | `a1`–`a6`, `c1`, `c2`, `s2`, `s3`, `s6` | As predicted. `b1` and `s1` stayed **green**, so the isolation claim rests on `b1` alone exactly as §v2.9 says. `s6` is one test carrying both cases, so its mirror failing reds the whole test. |
+| **M2** | `b1` | `b1` | Isolation in the other direction; every other arm green. |
+| **M3** | `a1`, `a2`, `a5`, `b1` | `a1`, `a2`, `a5`, `b1`, **`s6`** | `s6`'s mirror asserts `#results-body tr` count 0 after the fast failure, which `clearResults()` is what delivers. |
+| **M4** | `c2` | `c2` | |
+| **M5** | `s2` | `s2` | |
+| **M6** | `a3` | `a3`, **`a6`** | Measured, not inferred: deleting the early return `prepend`s a **second** `#volume-calculate-error` rather than replacing the first, so `a6`'s closing `expect(region).toBeVisible()` resolves to two nodes and fails on the ambiguous match. |
+| **M7** | `s3` | `s3` | |
+| **M8** | `a6` | `a6` | |
+| **M9** | `s6` | `s6` | |
+
+**Three coverage gaps are recorded rather than closed, because closing any of them would add an
+arm or a mutation row beyond the ones §v2.8 and §v2.9 enumerate.** They were found by
+`code-reviewer` at diff time and are stated here so a later session does not have to re-derive
+them:
+
+1. **`resetValues()`'s two added lines have no arm and no mutation row.** Deleting both
+   `calculateRequestSeq += 1;` and `exitCalculateFailureState();` leaves all thirteen arms green.
+   **OD-3** is the one criterion the owner amended at Gate 1, and the behaviour it authorises is
+   therefore unmeasured; R1's reset-race bump likewise. An arm would be four lines — drive a 500,
+   assert the region, click `#reset-volume`, assert count 0.
+2. **The third disjunct `|| !ourToastContentStands()` is unmeasured.** **M8** replaces the whole
+   condition, so `a6` reds; deleting only that disjunct keeps every arm green, because no arm puts
+   an unrelated toast over a standing region. **R16**'s KI-011 extension is prose-only.
+3. **The early return in `dismissCalculateFailureToast()` is unmeasured.** Removing it makes every
+   success hide `#liveToast` unconditionally and nothing reds, so **R4**'s "never dismiss an
+   unrelated toast" property is prose-only too.
+
+**Two structural notes, neither a deviation.** (a) §v2.2 (G)'s claim that the sequence bump means a
+failure "cannot repaint a failure region over a deliberately blanked page" holds for requests
+already **in flight**; a debounce timer armed immediately before Reset still fires ~300 ms later
+with a fresh, current sequence. Cancelling it would change the debounce and call sequence, which
+criterion 9 forbids, so the behaviour is left as-is. (b) §v2.2 (B) records the inner-catch
+double-fire edge; the symmetric edge exists on the success side, where a throw from
+`exitCalculateFailureState()` would reach the outer `.catch` with a still-current sequence and
+paint failure over fresh results. The only global that helper touches is `bootstrap`, now guarded
+with the `typeof` form this file already uses in `initDeleteModal()`.
+
+**Debt this diff creates in files it is not authorized to touch, recorded not repaired.** U1
+shifts every `volume-splitter.js` line anchor by **+119** (and by +122 past the slider comment) and
+adds a second caller of `toast.js`'s action button. That falsifies, in files outside the eight:
+[`DUPLICATION_REGISTRY.md`](../DUPLICATION_REGISTRY.md) row 9, whose *"silently swallows"* symptom
+and `:131` / `:136-137` anchors are both spent — already booked under §v2.1 *Out*;
+[`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4's `:131` / `:136` anchors —
+also already booked; and, inside
+[`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md), **§10.7-R10**'s
+*"Reachable inside its own only caller"* with three moved anchors, and **§10.11**'s
+*"Still exactly **one** caller repo-wide"*, which is now two. The STEP12 exception this PR uses is
+scoped to §13.0's LIVE ledger block, so neither STEP12 site is edited here. **All four remain owner
+action owed.**
 
 **U1-FOLLOWUP-1 (§v2.14) remains OPEN**, and the implementation PR body links this subsection and
 §v2.14 explicitly, as **OD-1** requires.

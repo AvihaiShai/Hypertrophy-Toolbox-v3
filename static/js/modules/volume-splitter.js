@@ -21,8 +21,9 @@ const JSON_REQUEST_HEADERS = {
 };
 
 const CALCULATE_ERROR_ID = 'volume-calculate-error';
-// Two propositions, both true on a first-load failure and after a cleared
-// success: the calculation failed, and nothing is on screen right now.
+// States what is on screen now, not what happened to it. Event phrasing such as
+// "your previous results were cleared" is false on the first failure of a page
+// load, where nothing was ever shown.
 const CALCULATE_ERROR_MESSAGE = 'Volume calculation failed, so no results are shown. Please try again.';
 
 // Monotonic request counter. The failure state machine is keyed on request
@@ -239,8 +240,12 @@ function dismissCalculateFailureToast() {
         return;
     }
 
+    // The `typeof` guard is this file's own idiom for the bootstrap global
+    // (initDeleteModal()). It matters more here than there: this helper runs
+    // inside the success `.then`, so a throw would reach the outer `.catch` and
+    // paint the failure region over results that had just rendered.
     const toastElement = document.getElementById('liveToast');
-    if (toastElement) {
+    if (toastElement && typeof bootstrap !== 'undefined') {
         bootstrap.Toast.getInstance(toastElement)?.hide();
     }
 }
@@ -987,7 +992,7 @@ function scheduleCalculate() {
         clearTimeout(calculateDebounceId);
     }
     // Not silent: the first failure of a drag still announces via the
-    // `|| !standing` fallthrough. The 300 ms interval is unchanged.
+    // `|| !standing` fallthrough.
     calculateDebounceId = window.setTimeout(() => calculateVolume({ forceAnnounce: false }), 300);
 }
 

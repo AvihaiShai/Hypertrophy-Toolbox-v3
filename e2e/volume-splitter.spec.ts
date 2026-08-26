@@ -1063,13 +1063,16 @@ test.describe('Volume Splitter calculation failure feedback', () => {
     await routeCalculateServerError(page);
     await page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click();
 
-    // Precondition. Without it "the button is hidden" is vacuously true under a
-    // mutation that deletes the toast-creating path, and this arm passes for
-    // the wrong reason.
+    // Precondition, asserted immediately before the success is driven rather
+    // than before the unroute. Without it "the button is hidden" is vacuously
+    // true under a mutation that deletes the toast-creating path, and this arm
+    // passes for the wrong reason; asserting it after the unroute also means a
+    // slow unroute cannot let the toast's own 3000 ms life expire unnoticed and
+    // retire the mutation that covers dismissCalculateFailureToast().
     const toastRetry = page.locator(TOAST_RETRY);
+    await page.unroute(CALCULATE_ROUTE);
     await expect(toastRetry).toBeVisible();
 
-    await page.unroute(CALCULATE_ROUTE);
     await dispatchSliderEvents(page, 'Chest', 12, ['change']);
 
     // Bootstrap's hide transition is ~150 ms; an un-dismissed toast stays

@@ -4439,9 +4439,11 @@ silently.
 > ⚠️ **ANNOTATION 2026-08-25 — the *six-row* description just above is the dated size of
 > the post-#417 block on 2026-08-24, and is left standing as that reading, not restated.** That
 > block was
-> **extended in place** three times on 2026-08-25 and now carries **ten** rows: the seventh is
+> **extended in place** three times on 2026-08-25 and a fourth time on 2026-08-26, and now carries
+> **eleven** rows: the seventh is
 > the `main` run minted by PR #418's own merge, the eighth PR #419's (`5ca4191`), the ninth PR
-> #420's (`77f4adf`) and the tenth PR #421's (`b4d6b13`). The pointer is otherwise unchanged and
+> #420's (`77f4adf`), the tenth PR #421's (`b4d6b13`) and the eleventh PR #422's (`1243728`).
+> The pointer is otherwise unchanged and
 > still resolves —
 > the post-#417 block is still the live one, and it was **not** superseded by a new block.
 > This block is left exactly as the `2026-08-24T17:03:00Z` **five**-row reading and is **not**
@@ -4643,7 +4645,10 @@ discipline argued on the record and never applied silently.
 > timestamp and its ten-row tally, its completeness figure (*“**14** — the 10 above plus the 4
 > classified below”*), its open-PR paragraph, its *“whoever merges it owes the next sequential
 > ledger row”* clause written against the `docs/u1-gate1-plan` carrier, the *“now carries **ten**
-> rows”* wording in its own read paragraph, and its *“as the **three** 2026-08-25 extensions did”*
+> rows”* annotation it planted in the superseded post-#414 block further up this subsection —
+> **which is where that phrase actually lives; the clause list this one replaces mislocated it in
+> this block's own read paragraph, and the third extension had located the analogous phrase
+> correctly** — and its *“as the **three** 2026-08-25 extensions did”*
 > instruction in the *Still to do* paragraph at the end of this subsection, which was true when
 > all three extensions were made on 2026-08-25 and is corrected in place now that a fourth has
 > been made on 2026-08-26.
