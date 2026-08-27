@@ -1410,11 +1410,18 @@ not re-litigate KI-004's end-to-end behavior.
 >   from an explicit `undefined`.
 > - **The two signed Gate 1 checkboxes** further down that reference the 47-case matrix and *"the
 >   cases with no isolating killer (B23, B43)"*.
-> - **EVERY `toast.js:NN` LINE ANCHOR IN THIS DOCUMENT.** The fix inserted a predicate near the top
->   of the file, so every anchor below it moved by roughly **+45** — §10.5's mutation table alone
->   carries sixteen. An anchor followed from here lands on unrelated code **with no other warning
->   than this bullet.** The post-fix mapping is `toast_type_word_collision/PLANNING.md` §i.2.
->   **Re-anchor by measuring, never by adding the offset.**
+> - **EVERY `toast.js:NN` LINE ANCHOR IN THIS DOCUMENT.** Packet B measured them against a **111-line
+>   `toast.js`**, and that file has since been rewritten **twice**: KI-011 (PR #426, `5b35966`) took
+>   it to 304 lines, and KI-010 takes it to **353**. §10.5's mutation table alone carries sixteen
+>   anchors. **There is no single offset to add** — the measured displacement of Packet B's anchors
+>   runs from **`+201`** (`validTypes`, `:12 → :213`) to **`+226`** (`classList.remove`,
+>   `:88 → :314`) — and **two anchors do not survive as line moves at all**:
+>   `toastBody.innerHTML = ''` (`:60`) was **deleted** by KI-011, and `toastBody.appendChild(button)`
+>   (`:84`) was **replaced** by `resolveSlot(toastBody).appendChild(…)` at `:303-304`, which appends
+>   into `div.toast-action-slot` rather than `#toast-body`. An anchor followed from here lands on
+>   unrelated code **with no other warning than this bullet.** The post-integration mapping is
+>   `toast_type_word_collision/PLANNING.md` §i.2. **Re-anchor by measuring, never by adding an
+>   offset.**
 >
 > **Nothing in §10.3 or §10.5 is edited.** Both remain the record of what Packet B measured and
 > signed, which was accurate when written. **Re-deriving §10.5's kill sets against the post-fix

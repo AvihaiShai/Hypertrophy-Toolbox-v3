@@ -46,9 +46,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { showToast } from '../toast.js';
 
 // Reduced from templates/base.html lines 236-263 (re-verified 2026-08-22).
-// Kept because the module reads them: #liveToast's id (toast.js:80) and its
-// EXACT at-rest class value (:127, :138), #toast-body's id (:74) and its position
+// Kept because the module reads them: #liveToast's id (toast.js:261) and its
+// EXACT at-rest class value (:314, :321), #toast-body's id (:255) and its position
 // inside #liveToast (the nesting B40 depends on).
+// Anchors re-measured 2026-08-27 against toast.js AS INTEGRATED (KI-011 + KI-010).
+// The earlier :41/:88/:99/:35 reading predates KI-011 and the :80/:127/:138/:74
+// reading applied KI-010's offset to it; neither resolves on the shipped file.
 //
 // Deliberately omitted, and safe to omit because toast.js never reads them:
 //   data-testid="toast-container" (base.html:239)  - Playwright locators only
@@ -110,17 +113,19 @@ const makeInstance = () => ({
 const liveToast = () => document.getElementById('liveToast');
 const toastBody = () => document.getElementById('toast-body');
 
-// The message span. toast.js:100-102 creates it and appends it to #toast-body.
+// The message span. toast.js:290-292 creates it and appends it to #toast-body,
+// once, on the first render into an empty body (KI-011).
 const messageSpan = () => toastBody().querySelector('span');
 const bodyText = () => messageSpan()?.textContent;
 
 // The action button, located through #liveToast and NEUTRAL about its direct
-// parent (owner amendment, Gate 1, 2026-08-22). toast.js appends it to
-// #toast-body today, but that placement is the implementation detail
-// implicated in the measured wipe defect (§10.7-R10): :99 clears
-// toastBody.innerHTML, so the NEXT showToast() from anywhere silently removes
-// the button. These cases pin the button's TYPE, LABEL, ARIA-LABEL, GUARD and
-// COERCION behavior; they must not pre-commit to the parent a fix would change.
+// parent (owner amendment, Gate 1, 2026-08-22). AMENDED 2026-08-27: the wipe
+// defect this neutrality was reserved for (§10.7-R10) is FIXED. KI-011 (PR #426)
+// removed the per-call `toastBody.innerHTML = ''` and moved the button into
+// div.toast-action-slot, a CHILD of #toast-body, at :303-304. The neutrality is
+// what let that relocation land without reding these cases, and it is kept for
+// the same reason. These cases pin the button's TYPE, LABEL, ARIA-LABEL, GUARD
+// and COERCION behavior; they must not pre-commit to a parent a fix could change.
 //
 // The fixture's own close button is excluded by its data-bs-dismiss attribute
 // rather than by the action button's className -- :68's seven-class Bootstrap
@@ -405,19 +410,23 @@ describe('showToast - dispose, construct, show ordering', () => {
 //
 // These cases require the action button to exist WITHIN #liveToast and enforce
 // its type, label, aria-label, guard and coercion behavior. They deliberately
-// do NOT pin its direct parent. toast.js:123 appends it to #toast-body today,
-// and that is exactly the implementation detail implicated in the measured wipe
-// defect (§10.7-R10): :99 clears toastBody.innerHTML, so any subsequent toast
-// from anywhere destroys the button. Reachable inside its own only caller --
-// volume-splitter.js raises the action toast with duration 6000, then
-// immediately calls loadVolumeHistory(), whose .catch emits showToast('error',
-// ...); on a slow or failing history fetch the user's "Activate for Plan tab"
-// button vanishes mid-toast.
+// do NOT pin its direct parent.
 //
-// That defect is PINNED, NOT FIXED, and is NOT mitigated by this file --
-// Packet B characterizes current behavior and adds no production change. A fix
-// that relocates the button so it survives a body clear must leave every case
-// below GREEN, which is the whole reason the parent is not asserted.
+// AMENDED 2026-08-27 (Packet U3a integration). This block used to read "toast.js
+// appends it to #toast-body today, and that is exactly the implementation detail
+// implicated in the measured wipe defect (§10.7-R10): the body clear means any
+// subsequent toast from anywhere destroys the button ... That defect is PINNED,
+// NOT FIXED". BOTH HALVES ARE NOW FALSE, and the amendment is prose, not a
+// re-numbering:
+//   - KI-011 (PR #426, 5b35966) FIXED the wipe. There is no per-call
+//     toastBody.innerHTML clear any more; :289 replaceChildren() runs only on the
+//     first render into an empty body.
+//   - The button no longer goes into #toast-body directly. :303-304 appends it
+//     into div.toast-action-slot, a CHILD of #toast-body.
+// The placement-neutrality below is exactly what let that relocation land green,
+// which is the whole reason the parent is not asserted -- so it is KEPT, and the
+// six cases stayed green through KI-011 and through this packet's ten mutation
+// arms. The original defect narrative is preserved in §10.7-R10 as history.
 describe('showToast - action button construction', () => {
     it('B30: a valid action appends a button inside #liveToast', () => {
         showToast('success', 'm', { action: makeAction({ label: 'Activate' }) });
@@ -480,7 +489,7 @@ describe('showToast - action button click behavior', () => {
         calls.length = 0;   // isolate the click from showToast()'s own entries
         actionButton().click();
         // 'getInstance' is the click's OWN first entry: the handler at
-        // toast.js:113 calls bootstrap.Toast.getInstance(toastElement) itself, so
+        // toast.js:136 calls bootstrap.Toast.getInstance(toastElement) itself, so
         // ['hide','onClick'] is not achievable. `hide` BEFORE `onClick` is the
         // assertion this case exists for.
         expect(calls).toEqual(['getInstance', 'hide', 'onClick']);
@@ -504,7 +513,7 @@ describe('showToast - action button click behavior', () => {
         errorSpy.mockClear();
         // NOT wrapped in expect(...).not.toThrow(): an exception thrown inside a
         // DOM event listener does not propagate out of .click() in jsdom, so
-        // such a wrapper passes with OR without the try/catch at toast.js:117-120
+        // such a wrapper passes with OR without the try/catch at toast.js:141-145
         // and would be a false green. The errorSpy assertion below is the only
         // thing that kills N23 -- MEASURED against the N23 shape, the spy's call
         // count is 0.
