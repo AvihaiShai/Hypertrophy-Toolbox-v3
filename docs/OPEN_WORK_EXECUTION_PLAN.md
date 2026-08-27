@@ -9,6 +9,9 @@ merged as squash commit `5111a7f`. The amendments §11.9 previously *proposed* a
 ledger reconciled to **six** rows after #417's own merge minted one (§11.10), §10 criterion 3's
 misstatement of U2's gate repaired, and §11's blanket measurement timestamp replaced with
 per-reading provenance (§11.11).  
+**Reconciled:** 2026-08-27 against `origin/main` @ `f9726a3` — T0, U1, U2 and U3's KI-011
+half have shipped, and Track D1's queue has emptied. §4, §8 and §10 record those landings;
+§12 is the dated evidence log for this pass. **Nothing here authorizes a packet or a merge.**  
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
 ## 1. Purpose
@@ -60,7 +63,10 @@ tests and documentation updates but exclude waiting for scheduled CI runs or own
 ### Packet T0 — Documentation truth reconciliation
 
 **Priority:** P0  
-**Status:** Execute — dependency discharged, not yet started  
+**Status:** **Closed** — shipped 2026-08-25 as squash commit `77f4adf`
+([PR #420](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/420)). The work items and
+acceptance criteria below are retained as the record of what the packet covered, not as an open
+queue.  
 **Sequenced after PR #417:** #417 rewrote [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) — the
 document T0 reconciles [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) *against* — so T0
 could not run beside it without reconciling to a block that was about to move. #417 merged
@@ -106,7 +112,11 @@ the pre-#417 one.
 ### Packet U1 — Volume calculation failure feedback
 
 **Priority:** P1  
-**Status:** Execute — needs its own Gate 0 and Gate 1  
+**Status:** **Closed** — Gate 0 `b4d6b13` ([#421](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/421))
+and Gate 1 `1243728` ([#422](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/422)) both
+signed; the fix shipped 2026-08-26 as `06a3f41`
+([#423](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/423)). Both suppression sites
+in the table below were addressed — neither alone would have sufficed.  
 **Estimate:** 0.5–1 developer-day
 
 **Problem — two independent suppression sites, both of which must be addressed**
@@ -152,7 +162,10 @@ an assumption it may act on.
 ### Packet U2 — Backup “save first” confirmation continuity
 
 **Priority:** P1  
-**Status:** Execute — ready to enter its **own** Gate 1  
+**Status:** **Closed** — Gate 1 signed as `52c44c4`
+([#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424)); the fix shipped
+2026-08-27 as `efa780c` ([#427](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/427)).
+U2 took no Gate 0, as planned.  
 **Estimate:** 0.5–1 developer-day
 
 The defect, the mechanism, and the affected interaction are already stated concretely enough to
@@ -182,8 +195,15 @@ letting the user continue the operation they initiated.
 ### Packet U3 — Toast contract defects KI-010 and KI-011
 
 **Priority:** P1  
-**Status:** Execute as two independently reviewable commits or PRs — each needs its own Gate 0
-and Gate 1  
+**Status:** **Split, as planned — one half closed, one half built and awaiting merge**  
+
+| Defect | Gate 0 | Gate 1 | Implementation |
+|---|---|---|---|
+| **KI-011** action-button survival | — (carried with the fix) | — | **Closed** — `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)), 2026-08-27 |
+| **KI-010** type-word collision | signed `db6c34b` ([#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425)) | signed `a37d7e7` ([#428](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/428)) | **Open** — [PR #431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431), **draft**, based on `main`, 18/18 green, `MERGEABLE`/`CLEAN` |
+
+**PR #431 being green is not authorization to merge it.** It is the last open engineering item
+in this plan, and landing it needs its own explicit owner instruction naming the PR.  
 **Estimate:** 1–2 developer-days total
 
 Both defects change what a shared, repository-wide dispatcher emits, and KI-010 requires
@@ -376,17 +396,20 @@ repair the rendering race
 ### Track P1 — Continuous pyright reduction
 
 **Priority:** P2  
-**Status:** Standing  
-**Baseline, re-measured from `docs/ci_cd_phase3/pyright-baseline.json`:** **132 diagnostics /
-42 distinct keys / 26 files**, all severity `error`. The earlier wording "132 diagnostics across
+**Status:** Standing — **in progress**; the first packet landed 2026-08-27 as `3098282`
+([#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430), `utils/filter_predicates.py`).  
+**Baseline, re-measured from `docs/ci_cd_phase3/pyright-baseline.json` at `f9726a3`:**
+**130 diagnostics / 41 distinct keys / 25 files**, all severity `error` — down from
+**132 / 42 / 26** before #430. The earlier wording "132 diagnostics across
 42 files" conflated the *key* count with the *file* count — each entry in the baseline's
 `diagnostics` array carries its own `count`, so the array length is a key total, never a
 diagnostic total and never a file total.  
 **Estimate:** 8–16 developer-days, **re-derived against the corrected definition rather than
-carried over unexamined.** The diagnostic total the range was sized on (132) is unchanged, so
-the range is retained — but the work is far more concentrated than "42 files" implied: four
-files hold **72 of 132** (`tests/test_volume_progress.py` 35, `tests/test_strength_calibration.py`
-16, `tests/test_program_backup.py` 12, `routes/workout_plan.py` 9), and the top three are test
+carried over unexamined.** The range was sized on a total of 132; #430 removed 2, so **7–15
+developer-days remain** on the same rate assumption — but the work is far more concentrated than
+"42 files" implied: four files hold **72 of 130** (`tests/test_volume_progress.py` 35,
+`tests/test_strength_calibration.py` 16, `tests/test_program_backup.py` 12,
+`routes/workout_plan.py` 9), and the top three are test
 files, which may price differently from production modules. Expect the range's **lower** half if
 the test-file clusters resolve as bulk annotation work, and treat `routes/workout_plan.py` as
 excluded — prior packets record it as off-limits. Re-price after the first two packets measure a
@@ -402,14 +425,18 @@ real per-diagnostic rate; do not treat 8–16 days as validated by anything othe
 - Do not make total pyright closure a release blocker.
 - Quote the multiset as **diagnostics / keys / files** whenever it is restated. The three numbers
   are not interchangeable, and collapsing them is what produced the wording this entry corrects.
-- The 132 figure is the **baseline file's** total. Pyright has not been run live against it here,
-  and the gate blocks net-new diagnostics against exactly that file — so a large live/baseline gap
-  would itself be a finding, and the first packet should measure it.
+- The 130 figure is the **baseline file's** total. Pyright has not been run live against it in
+  this pass, and the gate blocks net-new diagnostics against exactly that file — so a large
+  live/baseline gap would itself be a finding.
+- **A count is not a delta.** #430 moved the total 132 → 130 and the keys 42 → 41; verify a
+  packet's progress by comparing the key-by-key multiset, not the two totals.
 
 ### Track D1 — Dependency-PR triage
 
 **Priority:** P2  
-**Status:** Standing — ordinary triage, deliberately outside the numbered packet sequence  
+**Status:** Standing — ordinary triage, deliberately outside the numbered packet sequence.
+**Queue empty at 2026-08-27:** #415 and #416 both merged 2026-08-26 (`7a64d2e`, `b733c14`), and
+`gh pr list --state open` returns no dependency PR. The rules below stay live for the next one.  
 **Estimate:** minutes per PR; escalates only when a bump lands on a gated path
 
 Dependabot PRs had no home in this plan, and every status document asserted zero open PRs while
@@ -431,9 +458,10 @@ again before reusing these numbers.
 - Their CI runs execute on **PR branches**, so they never enter the JS-unit ledger. **If either
   merges, its post-merge `main` run mints the next sequential ledger row, and whoever lands it
   owes that row.** **Do not write a fixed row number into this rule.** The ledger stood at
-  **six** rows at `2026-08-24T21:36:40Z` (§11.10) and advances on every merge to `main` —
-  including this plan's own PR — so the row a given dependency PR receives depends on what
-  merged before it.
+  **six** rows at `2026-08-24T21:36:40Z` (§11.10) and at **23** rows at `2026-08-27` after #435;
+  it advances on every merge to `main` — including this plan's own PR — so the row a given
+  dependency PR receives depends on what merged before it. **#415 and #416 duly minted rows on
+  their 2026-08-26 merges; that obligation is discharged, not outstanding.**
 - Landing one is a merge decision like any other and needs the same explicit authorization.
 
 ## 5. Parked work — do not place in the active queue
@@ -484,27 +512,34 @@ evidence. Do not reactivate the old implementation plan.
 
 ## 8. Recommended order and total investment
 
-| Order | Packet | Developer time | External/decision dependency | Gate |
-|---:|---|---:|---|---|
-| — | **R0 external evidence refresh** | *spent* | **Closed** — merged 2026-08-24 as `5111a7f` (PR #417). Next external checkpoint: the **2026-08-31** cron, inspected as its own run | — |
-| 1 | T0 documentation truth reconciliation | 0.5–1.5 days | None — the #417 dependency is discharged | Docs-only |
-| 2 | U1 volume failure feedback | 0.5–1 day | None after T0 | **Own Gate 0 + Gate 1** |
-| 3 | U2 backup confirmation continuity | 0.5–1 day | None after T0 | **Own Gate 1** (ready now) |
-| 4 | U3 KI-010 and KI-011 | 1–2 days | None after T0 | **Own Gate 0 + Gate 1**, per defect |
-| 5 | R1 deep-gate mutation probes | 1–2 days | Owner authorization | Own Gate 1 |
-| 6 | R2 testing decisions | 0.5–1 day | Owner decisions; JS-unit window to `2026-09-05T17:59:26Z`; R1-D3 follow-on after the 2026-08-31 run | Decision only |
-| 7 | V1 visual disposition | 0.25 day or 2–5 days | Owner chooses acceptance or investigation | Decision, then own Gate 1 if funded |
-| 8 | R3 tag-trigger proof | 0.5 day | Explicit authorization for a named real tag | Owner action |
-| standing | Track D1 dependency-PR triage | minutes per PR | #415 and #416 open as of 2026-08-24 | Per-PR merge authorization |
-| ongoing | Pyright packets | 8–16 days total | No release dependency | Per-packet |
+**Status column measured 2026-08-27 against `origin/main` @ `f9726a3` and the live PR list.**
 
-R0 is retired from the numbered sequence rather than renumbered in place, so the packet letters
-keep matching §4 and any external reference to "order 2" is not silently repointed.
+| Order | Packet | Status | Developer time | External/decision dependency | Gate |
+|---:|---|---|---:|---|---|
+| — | **R0 external evidence refresh** | **Complete** 2026-08-24 | *spent* | Merged as `5111a7f` ([#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)). Next external checkpoint: the **2026-08-31** cron, inspected as its own run | — |
+| — | **T0 documentation truth reconciliation** | **Complete** 2026-08-25 | *spent* | Merged as `77f4adf` ([#420](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/420)) | Docs-only — passed |
+| — | **U1 volume failure feedback** | **Complete** 2026-08-26 | *spent* | Gate 0 `b4d6b13` ([#421](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/421)), Gate 1 `1243728` ([#422](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/422)), fix `06a3f41` ([#423](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/423)) | Own Gate 0 + Gate 1 — both signed |
+| — | **U2 backup confirmation continuity** | **Complete** 2026-08-27 | *spent* | Gate 1 `52c44c4` ([#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424)), fix `efa780c` ([#427](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/427)) | Own Gate 1 — signed |
+| — | **U3 · KI-011** action-button survival | **Complete** 2026-08-27 | *spent* | Fix `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)) | Signed per defect |
+| 4 | **U3 · KI-010** type-word collision | **Ongoing** — built, unmerged | ≈0 days remaining | Both gates signed (`db6c34b` [#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425); `a37d7e7` [#428](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/428)). [PR #431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) is **draft**, based on `main`, 18/18 green, `MERGEABLE`/`CLEAN`. **Merging needs its own explicit authorization naming the PR** | Own Gate 0 + Gate 1 — both signed |
+| 5 | R1 deep-gate mutation probes | **Not started** | 1–2 days | Owner authorization; both hypotheses still unmeasured | Own Gate 1 |
+| 6 | R2 testing decisions | **Not started** | 0.5–1 day | Owner decisions; JS-unit window to `2026-09-05T17:59:26Z`; R1-D3 clock at **2 of 3** per ADR-007, third qualifying run due **2026-08-31** | Decision only |
+| 7 | V1 visual disposition | **Not started** | 0.25 day or 2–5 days | Owner chooses acceptance or investigation | Decision, then own Gate 1 if funded |
+| 8 | R3 tag-trigger proof | **Not started** | 0.5 day | Explicit authorization for a named real tag; `release.yml` `push` count still **0** | Owner action |
+| standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; no dependency PR open at 2026-08-27 | Per-PR merge authorization |
+| ongoing | Track P1 pyright packets | **Ongoing** | 7–15 days remaining | First packet landed `3098282` ([#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430)); baseline 132 / 42 / 26 → **130 / 41 keys / 25 files** | Per-packet |
 
-The recommended near-term investment is **4–8 developer-days** for T0, U1–U3, and the authorized
-portions of R1/R2 — R0's quarter-day is already spent and is no longer part of that figure.
-Visual race repair and the complete pyright burn-down are separate investments and should not be
-silently included in that commitment.
+**Completed packets are retired from the numbered sequence rather than renumbered in place**, so
+the surviving numbers keep matching §4 and an external reference to "order 5" is not silently
+repointed. This is why the open rows start at **4** and no rows 1–3 remain: those numbers were
+spent, not vacated. U3's two halves are split onto their own rows because they finished at
+different times — the single "order 4" row that once covered both would now be half-true.
+
+The original near-term commitment was **4–8 developer-days** for T0, U1–U3 and the authorized
+portions of R1/R2. **T0, U1, U2 and KI-011 have been delivered and KI-010 is built**, so the
+residual is **1.5–3 developer-days — R1 and R2 — and every hour of it is behind an owner
+decision, not behind engineering capacity.** Visual race repair and the remaining pyright
+burn-down are separate investments and should not be silently folded into that figure.
 
 **Nothing in this table is an approval.** The Gate column records *which* gates each packet owes,
 not that any has been passed — and the three `U` rows deliberately differ: **U1 and U3 owe Gate 0
@@ -532,9 +567,14 @@ This plan is complete when:
 1. ~~R0 refreshes the external release and testing evidence.~~ **Done 2026-08-24** — PR #417,
    squash `5111a7f`. The 2026-08-31 cron is the next checkpoint and is inspected as its own run,
    not as R0 reopening.
-2. T0 is merged and the active status layer no longer contradicts current code.
+2. ~~T0 is merged and the active status layer no longer contradicts current code.~~
+   **Done 2026-08-25** — PR #420, squash `77f4adf`.
 3. U1, U2 and U3 are each fixed or explicitly rejected with rationale, **through the gates that
-   packet actually owes** — which are not the same for all three, and §4 and §8 are the record:
+   packet actually owes** — which are not the same for all three, and §4 and §8 are the record.
+   **Three of the four are met (2026-08-27): U1 `06a3f41` (#423), U2 `efa780c` (#427), U3's
+   KI-011 `5b35966` (#426). U3's KI-010 has both gates signed and its implementation built in
+   draft PR #431; the criterion is met when that lands.** The table below states what each
+   packet *owes* and is unchanged by any of them having paid it:
 
    | Packet | Gates it owes | Why |
    |---|---|---|
@@ -1006,3 +1046,87 @@ correction (`c66b808`); that correction introduced the third, repaired by the se
   11.4, 11.7, 11.8 and 11.9 carry inline stamps naming which event they belong to. **Correcting a
   provenance defect with a narrower but still-wrong attribution is the failure worth remembering:
   the fix has to be checked against the same clock the defect was.**
+
+---
+
+## 12. Evidence log — 2026-08-27 status reconciliation
+
+**This section does not amend §§1–10 beyond the status fields §4, §8 and §10 now carry.** It
+records what was measured to justify those fields, so a later reader can re-check them instead
+of inheriting them. **§11 is left exactly as it stood** — it is the 2026-08-24 reading and
+owns only what it measured on that date. Nothing here authorizes a packet or a merge.
+
+### 12.1 Provenance
+
+| Reading | Source | What rests on it |
+|---|---|---|
+| `origin/main` @ **`f9726a3`** | `git fetch origin main` then `git log` | Every landed-commit claim in §4 and §8 |
+| Merged-PR list, 2026-08-27 | `gh pr list --state merged --limit 20` | The PR↔commit pairings below |
+| Open-PR list, 2026-08-27 | `gh pr list --state open` | "#431 is the only open PR"; Track D1's empty queue |
+| PR #431 detail, 2026-08-27 | `gh pr view 431 --json ...statusCheckRollup` | Draft / base / 18 × `SUCCESS` / `MERGEABLE` / `CLEAN` |
+| `docs/ci_cd_phase3/pyright-baseline.json` @ `f9726a3` | Σ of each entry's `count` | **130 / 41 / 25** |
+
+### 12.2 What shipped since §11's 2026-08-24 reading
+
+| Packet | Squash / merge commit | PR | Merged |
+|---|---|---|---|
+| T0 documentation truth reconciliation | `77f4adf` | [#420](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/420) | 2026-08-25 |
+| U1 Gate 0 | `b4d6b13` | [#421](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/421) | 2026-08-25 |
+| U1 Gate 1 | `1243728` | [#422](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/422) | 2026-08-26 |
+| U1 implementation | `06a3f41` | [#423](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/423) | 2026-08-26 |
+| U2 Gate 1 | `52c44c4` | [#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424) | 2026-08-26 |
+| U3 · KI-010 Gate 0 | `db6c34b` | [#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425) | 2026-08-26 |
+| U3 · KI-011 implementation | `5b35966` | [#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426) | 2026-08-27 |
+| U2 implementation | `efa780c` | [#427](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/427) | 2026-08-27 |
+| U3 · KI-010 Gate 1 | `a37d7e7` | [#428](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/428) | 2026-08-27 |
+| Track P1 packet 1 (`utils/filter_predicates.py`) | `3098282` | [#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430) | 2026-08-27 |
+| Track D1 — `pyinstaller` 6.22.0 → 6.22.2 | `7a64d2e` | [#415](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/415) | 2026-08-26 |
+| Track D1 — `sass` 1.102.0 → 1.103.1 | `b733c14` | [#416](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/416) | 2026-08-26 |
+
+JS-unit ledger rows minted by those merges landed in #429 (`ec1a5cb`), #432 (`1211915`),
+#433 (`07781a8`) and #435 (`f9726a3`); the ledger stands at **23 rows** and **T0 has not
+moved** — it is still `2026-08-22T17:59:26Z`, strict mark `2026-09-05T17:59:26Z`.
+
+### 12.3 The one open engineering item
+
+[PR #431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (KI-010) is **the only open PR in the repository**. It is a **draft**,
+based on `main`, `MERGEABLE`/`CLEAN`, with **18 of 18 checks `SUCCESS`**. Both of its gates are
+signed and on `main`.
+
+**Green CI is not the go-ahead, and neither is this document.** §4's U3 block and §8's order-4
+row both record the same constraint: merging #431 needs an explicit owner instruction naming
+the PR. A status reconciliation that made a built change look pre-approved would be exactly the
+drift §1 warns against.
+
+### 12.4 Track P1 — the baseline moved, and a count is not a delta
+
+| Figure | Before #430 | At `f9726a3` |
+|---|---:|---:|
+| Total diagnostics (Σ `count`) | 132 | **130** |
+| Distinct keys (array entries) | 42 | **41** |
+| Distinct files | 26 | **25** |
+
+The concentration §4 records is unchanged in absolute terms and slightly higher in relative
+terms: the same four files hold **72** diagnostics, now of **130** rather than 132.
+`routes/workout_plan.py` (9) remains recorded as off-limits, so **63 of the top-four total is
+actually addressable**, all of it in test files.
+
+**Do not read the 132 → 130 move as "#430 fixed two diagnostics" without checking the multiset.**
+A packet can remove diagnostics in one file and add them in another for a net figure that
+flatters it; §4's rule already requires the multiset to decrease, and the totals alone cannot
+demonstrate that.
+
+### 12.5 What did *not* change, and is still owed
+
+- **R1** — both mutation hypotheses remain unmeasured and unauthorized. §11.6's probe-design
+  caveats still stand and were not revisited in this pass.
+- **R2** — D4 unsigned; Q4/D2 unsigned, and their window closes `2026-09-05T17:59:26Z`;
+  `scan_export_bounds()`'s `min > max` behavior undecided. **R1-D3's clock is settled at 2 of 3
+  in ADR-007 and is not one of these** — but reaching three still authorizes nothing, which is
+  R2's fourth decision.
+- **V1** — no terminal policy chosen; 81/86 stands unreconciled. §11.7's caution holds and has
+  aged rather than weakened: **a gate that has only ever passed is not yet a gate known to fail
+  correctly**, and the 2026-08-24 clean compare added a third green run, not evidence.
+- **R3** — `release.yml`'s `push` trigger count was **0** at §11.7's reading and no tag has been
+  pushed since. **This pass did not re-measure it**; treat it as carried forward, not confirmed.
+- **The 2026-08-31 cron** is the next external checkpoint, inspected as its own run.
