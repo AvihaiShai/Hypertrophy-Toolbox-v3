@@ -939,20 +939,20 @@
 [data-theme='dark'] #navbar.bg-dark,
 [data-theme='dark'] #navbar.navbar-dark,
 [data-theme='dark'] #navbar.navbar {
-  background: rgba(11, 13, 18, 0.85) !important;
-  background-color: rgba(11, 13, 18, 0.85) !important;
+  background: rgba(12, 16, 21, 0.94) !important;
+  background-color: rgba(12, 16, 21, 0.94) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  border-bottom: 1px solid rgba(185, 203, 224, 0.14) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.34) !important;
 }
 
 [data-theme='dark'] #navbar.nb-compact,
 [data-theme='dark'] #navbar.nb-compact.bg-dark,
 [data-theme='dark'] #navbar.nb-compact.navbar-dark,
 [data-theme='dark'] #navbar.nb-compact.navbar {
-  background: rgba(11, 13, 18, 0.9) !important;
-  background-color: rgba(11, 13, 18, 0.9) !important;
+  background: rgba(12, 16, 21, 0.97) !important;
+  background-color: rgba(12, 16, 21, 0.97) !important;
 }
 
 #navbar > .container-fluid {
@@ -1000,6 +1000,9 @@
 
 #navbar .navbar-brand {
   color: #1a1a2e !important;
+  /* The brand is also a Bootstrap `.nav-link`; restore its pill inset in the
+     unlayered cascade so the icon and label do not crowd the border. */
+  padding-inline: var(--s-3, 12px);
 }
 
 /* Dark mode text colors */

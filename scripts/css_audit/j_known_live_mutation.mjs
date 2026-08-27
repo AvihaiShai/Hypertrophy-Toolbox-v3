@@ -64,7 +64,7 @@ const arg = (name, fallback = null) => {
  * Re-pinned from the CRLF digest `e54818bf…` (LEFTOVERS P2.6); the file itself
  * is untouched.
  */
-const EXPECTED_INPUT = '3ab06083c89eae0b5dd46d820dde4d2da1d59de1ffa6d825585aaca0ad17e14a';
+const EXPECTED_INPUT = 'c567fc273b700b215558467bea675e9be53a9c15a64e594b2fa20f2dc6361b3c';
 const TOKEN = '--bg-primary';
 /**
  * `--bg-primary` proves the instrument is live, but it only surfaces where no

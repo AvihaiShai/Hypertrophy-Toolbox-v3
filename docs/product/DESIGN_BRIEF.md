@@ -91,12 +91,12 @@ the running application, not the source text.
 
 | Token | Light | Dark | Role | `var()` refs |
 |---|---|---|---|---:|
-| `--surface-0` | `#eef1f6` | `#0f1220` | Page background | 3 |
-| `--surface-1` | `#f4f6fa` | `#161a2d` | Recessed / secondary surface | 57 |
-| `--surface-2` | `#ffffff` | `#1d2238` | Raised surface — cards, panels | 101 |
-| `--ink-1` | `#0f1220` | `#eef1f6` | Primary text | 129 |
-| `--ink-2` | `#4a5170` | `#b4bad0` | Secondary text, table headers | 81 |
-| `--ink-3` | `#8a90a8` | `#7a8099` | Tertiary text, hints | 49 |
+| `--surface-0` | `#eef1f6` | `#101419` | Page background / inset dark controls | 3 |
+| `--surface-1` | `#f4f6fa` | `#192028` | Recessed / secondary surface | 57 |
+| `--surface-2` | `#ffffff` | `#26313d` | Raised surface — cards, panels | 101 |
+| `--ink-1` | `#0f1220` | `#f3f6fa` | Primary text | 129 |
+| `--ink-2` | `#4a5170` | `#c3ccd7` | Secondary text, table headers | 81 |
+| `--ink-3` | `#8a90a8` | `#96a2b1` | Tertiary text, hints | 49 |
 | `--accent` | `#4c6ef5` | `#4c6ef5` | Single accent — indigo | **247** |
 | `--accent-ink` | `#ffffff` | `#ffffff` | Text on accent | 6 |
 | `--success` | `#10b981` | `#10b981` | Positive state | 6 |
@@ -111,29 +111,34 @@ Two observations the numbers make plain:
   success, warning, and danger keep the same hex in dark mode, which is why they read as brighter
   there — the surface moved, not the color.
 
-`--ink-3` is the one exception to the clean light/dark inversion: it goes `#8a90a8` → `#7a8099`,
-slightly *darker* rather than mirrored, so tertiary text does not glare on a dark surface.
+The dark ink ramp is intentionally brighter than the former blue-grey ramp. Tertiary copy remains
+visibly subordinate while clearing the raised graphite surfaces without looking dim.
+
+Dark-mode action buttons use a separate muted indigo/brick/forest ramp (`#5264ad`, `#a84f49`, and
+`#3f6f5e`) rather than the brighter semantic accent colors. Hover colors remain WCAG-readable with
+white text, while
+light mode retains the original action palette.
 
 ### Elevation and glass
 
 | Token | Light | Dark | `var()` refs |
 |---|---|---|---:|
-| `--shadow-neu-out` | soft dual shadow, `rgba(167,175,200,.35)` + white highlight | `rgba(0,0,0,.55)` + `rgba(255,255,255,.04)` | 15 |
-| `--shadow-neu-in` | inset variant of the above | inset dark variant | 16 |
-| `--shadow-elev-1` | `0 1px 2px / 0 2px 8px rgba(15,18,32,.06)` | **identical** | 9 |
-| `--shadow-elev-2` | `0 8px 24px rgba(15,18,32,.10)` | **identical** | 8 |
-| `--calm-glass-bg` | `rgba(255,255,255,.55)` | `rgba(29,34,56,.55)` | 12 |
-| `--calm-glass-border` | `rgba(255,255,255,.65)` | `rgba(255,255,255,.08)` | 30 |
+| `--shadow-neu-out` | soft dual shadow, `rgba(167,175,200,.35)` + white highlight | compact black shadow + subtle top edge | 15 |
+| `--shadow-neu-in` | inset variant of the above | compact inset black shadow + inner outline | 16 |
+| `--shadow-elev-1` | `0 1px 2px / 0 2px 8px rgba(15,18,32,.06)` | `0 2px 8px rgba(0,0,0,.28)` | 9 |
+| `--shadow-elev-2` | `0 8px 24px rgba(15,18,32,.10)` | `0 12px 32px rgba(0,0,0,.38)` | 8 |
+| `--calm-glass-bg` | `rgba(255,255,255,.55)` | `rgba(25,32,40,.94)` | 12 |
+| `--calm-glass-border` | `rgba(255,255,255,.65)` | `rgba(185,203,224,.16)` | 30 |
 | `--calm-glass-blur` | `18px` | `18px` | 13 |
 | `--calm-glass-sat` | `180%` | `180%` | 12 |
 
-The neumorphic shadows are theme-aware; the flat elevation shadows are **not** — `--shadow-elev-1`
-and `--shadow-elev-2` keep identical light-mode values in dark mode, where a shadow tuned for a
-light ground has little visible effect. Recorded as measured, not judged.
+Both neumorphic and flat elevation shadows are theme-aware. Dark mode uses compact black shadows
+and a subtle top edge instead of opposing light/dark neumorphic lobes, keeping boundaries visible
+without creating additional apparent surface bands.
 
 Glass surfaces are real and live: the navbar computes to
 `backdrop-filter: blur(20px) saturate(1.8)` in both themes, over `rgba(255,255,255,.75)` light and
-`rgba(11,13,18,.85)` dark. Buttons carry a lighter `blur(4px)`.
+`rgba(12,16,21,.94)` dark. Buttons carry a lighter `blur(4px)`.
 
 ---
 
@@ -273,15 +278,15 @@ Computed values on the Plan page at 1440px, both themes.
 
 | Component | Light | Dark |
 |---|---|---|
-| Page body | bg `#eef1f6`, text `#0f1220` | bg `#0f1220`, text `#eef1f6` |
-| Navbar | `rgba(255,255,255,.75)`, blur 20px + saturate 1.8, shadow `0 4px 24px rgba(0,0,0,.08)` | `rgba(11,13,18,.85)`, same blur, shadow `0 8px 32px rgba(0,0,0,.4)` |
+| Page body | bg `#eef1f6`, text `#0f1220` | bg `#101419`, text `#f3f6fa` |
+| Navbar | `rgba(255,255,255,.75)`, blur 20px + saturate 1.8, shadow `0 4px 24px rgba(0,0,0,.08)` | `rgba(12,16,21,.94)`, same blur, shadow `0 8px 28px rgba(0,0,0,.34)` |
 | Nav link | translucent tint, pill radius `999px` | translucent dark tint, same radius |
 | Primary button | bg `#4c6ef5`, text white, radius 8px, blur 4px | **identical** |
 | Secondary button | translucent `--surface-1`, neumorphic shadow | translucent dark, dark neumorphic shadow |
-| Table | `rgba(255,255,255,.55)` glass, radius 8px | `rgba(29,34,56,.55)` |
-| Table header cell | bg `--surface-1`, text `--ink-2`, padding 10px | bg `#161a2d`, text `#b4bad0` |
-| Table body cell | `rgba(255,255,255,.72)`, text `--ink-1` | `rgba(29,34,56,.74)`, text `--ink-1` |
-| Text input | translucent `--surface-1` (.88 α), radius 8px | translucent dark, radius 8px |
+| Table | `rgba(255,255,255,.55)` glass, radius 8px | `rgba(25,32,40,.94)`; progression table is inset `#101419` |
+| Table header cell | bg `--surface-1`, text `--ink-2`, padding 10px | bg `#192028`, text `#c3ccd7` |
+| Table body cell | `rgba(255,255,255,.72)`, text `--ink-1` | raised graphite mix, text `--ink-1` |
+| Text input | translucent `--surface-1` (.88 α), radius 8px | inset `#101419`, radius 8px |
 | Card | `--calm-glass-bg`, radius 8px | dark glass, radius 8px |
 
 The primary button is byte-identical across themes — accent on accent-ink, unaffected by the
@@ -312,14 +317,16 @@ in both themes.
 
 Dark mode is a `localStorage` toggle, not a media query — though it defaults to one.
 
-1. `static/js/darkMode.js` reads `localStorage.darkMode`.
-2. If nothing is stored it uses `prefers-color-scheme` **and keeps following system changes** until
+1. A parser-blocking `static/js/theme-init.js` in the document head reads `localStorage.darkMode`
+   and sets the `<html>` theme before the first stylesheet can paint.
+2. `static/js/darkMode.js` initializes the navbar control from that already-applied theme.
+3. If nothing is stored the scripts use `prefers-color-scheme` **and keep following system changes** until
    the user makes an explicit choice.
-3. Clicking the navbar toggle writes `'true'` / `'false'` and stops following the system.
-4. The theme is applied by setting `data-theme="light"` or `data-theme="dark"` on `<html>`.
+4. Clicking the navbar toggle writes `'true'` / `'false'` and stops following the system.
+5. The theme is applied by setting `data-theme="light"` or `data-theme="dark"` on `<html>`.
 
-`tokens.css` redefines six surface/ink tokens plus the two neumorphic shadows and two glass
-tokens under `[data-theme="dark"]`; `theme-dark.css` (574 lines) carries the corrections the token
+`tokens.css` redefines six surface/ink tokens plus the neumorphic and elevation shadows and two
+glass tokens under `[data-theme="dark"]`; `theme-dark.css` (574 lines) carries the corrections the token
 swap alone cannot express. Verified live: `data-theme` is `light` and `dark` respectively across
 all 11 pages.
 

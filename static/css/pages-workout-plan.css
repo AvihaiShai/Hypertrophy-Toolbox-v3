@@ -2656,6 +2656,7 @@ select.filter-dropdown:focus {
 
 #workout[data-page="workout-plan"] .routine-tabs {
   display: flex;
+  align-items: stretch;
   flex-wrap: nowrap;
   gap: var(--wp-gap-sm);
   list-style: none;
@@ -2668,6 +2669,7 @@ select.filter-dropdown:focus {
 }
 
 #workout[data-page="workout-plan"] .routine-tab {
+  display: flex;
   flex: 0 0 auto;
 }
 
@@ -5776,13 +5778,13 @@ svg[id^="body-posterior-hypertrophy-advanced"] .muscle-region.partial {
 }
 
 .workout-estimate-trace-action.is-primary {
-    background: color-mix(in srgb, var(--accent) 88%, white);
-    border-color: transparent;
+    background: var(--action-primary);
+    border-color: var(--action-primary-border);
     color: #fff;
 }
 
 .workout-estimate-trace-action.is-primary:hover {
-    background: var(--accent);
+    background: var(--action-primary-hover);
     color: #fff;
 }
 

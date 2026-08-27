@@ -5,7 +5,10 @@ function DarkMode() {
     // Respect system preference if no explicit choice stored
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const stored = localStorage.getItem('darkMode');
-    this.isDarkMode = stored === null ? prefersDark : stored === 'true';
+    const initializedTheme = document.documentElement.getAttribute('data-theme');
+    this.isDarkMode = initializedTheme
+        ? initializedTheme === 'dark'
+        : stored === null ? prefersDark : stored === 'true';
 
     this.applyTheme(this.isDarkMode, false);
     this.updateToggleAppearance(this.isDarkMode);
@@ -62,8 +65,10 @@ DarkMode.prototype.applyTheme = function(isDark, animate) {
     // Apply theme immediately
     if (isDark) {
         root.setAttribute('data-theme', 'dark');
+        root.style.colorScheme = 'dark';
     } else {
         root.setAttribute('data-theme', 'light');
+        root.style.colorScheme = 'light';
     }
     // Remove animation class immediately after theme is applied
     if (animate) {

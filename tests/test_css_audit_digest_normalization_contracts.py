@@ -102,7 +102,7 @@ def test_the_superseded_pin_was_the_windows_only_digest() -> None:
     lf = _tracked_css_as_lf()
     crlf = lf.replace("\n", "\r\n")
     assert len(crlf.encode("utf-8")) - len(lf.encode("utf-8")) == lf.count("\n")
-    assert _digest(crlf) == "e54818bf790eb2c11474f68ecddc25d66304d9edf650cf698853276e419f2fca"
+    assert _digest(crlf) == "bd220b44ac4c9d036824b9c58346e049a00effe20e0effc6c2157d874c2d2352"
     assert _digest(crlf) != _pinned_digest()
 
 
