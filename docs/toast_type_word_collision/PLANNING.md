@@ -1919,7 +1919,7 @@ idiom.
 | **6** `tsc --noEmit` **and** pyright baseline | tsc exit 0; **`PASS — 0 net-new diagnostics`**. ⚠️ **RE-MEASURED 2026-08-27 (integration pass): `baseline 130, current 130`.** The `132 / 132` reading this row carried was taken before **PR #430** (Packet P1, `3098282`) lowered the committed baseline **132 → 130**; the *delta* — zero net-new — is what the gate blocks on and is unchanged |
 | **7** E2E, two invocations | see below |
 | **8** manual smoke | see below |
-| **9** PR CI | ✅ **SATISFIED at the integration pass — 18/18 green.** Run [`33067601349`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349), `pull_request` event, head `bbe2115`, every one of the eighteen jobs `success`, read individually. This **supersedes** the ❌ **BLOCKED** reading the row carried while the PR was stacked; §i.11 keeps both readings and the mechanism |
+| **9** PR CI | ✅ **SATISFIED — 18/18 green on the final head.** Run [`33114518996`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996), `pull_request`, head `3d09b16`, every one of the eighteen jobs `success`, read individually. The earlier retargeted run [`33067601349`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349) (head `bbe2115`) was also 18/18. This **supersedes** the ❌ **BLOCKED** reading the row carried while the PR was stacked; §i.11 keeps both readings and the mechanism |
 
 **Post-integration re-run, 2026-08-27** — after merging `main` (`f9726a3`) and applying this pass's
 documentation and comment corrections, gates **1–6** were re-executed in full from this worktree:
@@ -2060,21 +2060,36 @@ deliberately not done then.
 `efa780c`, #428 → `a37d7e7`. `gh pr view 431 --json baseRefName` reports **`main`**, and `ci.yml`'s
 filter admits it.
 
-**Gate 9 is SATISFIED. Read at the integration pass:**
+**Gate 9 is SATISFIED. Read on the final head:**
 
 | | Value |
 |---|---|
-| Run | [`33067601349`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349) |
-| Event / head | `pull_request` / `bbe2115` |
+| Run | [`33114518996`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996) |
+| Event / head | `pull_request` / `3d09b16` |
 | Result | **18 of 18 jobs `success`**, read individually rather than from the run's overall conclusion |
-| Both load-bearing required contexts | `Test Inventory Drift` [`98501473180`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349/job/98501473180) **`success`**; `Run Tests` [`98501473126`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349/job/98501473126) **`success`** |
-| The three legs local runs cannot cover | `Frontend Build (npm ci + SCSS)` [`98501473167`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349/job/98501473167), `E2E Functional Shard 1/2` [`98501541080`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349/job/98501541080) and `Shard 2/2` [`98501541067`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349/job/98501541067) — all **`success`** |
+| Both load-bearing required contexts | `Test Inventory Drift` [`98665737055`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665737055) **`success`**; `Run Tests` [`98665736962`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665736962) **`success`** |
+| The three legs local runs cannot cover | `Frontend Build (npm ci + SCSS)` [`98665736915`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665736915), `E2E Functional Shard 1/2` [`98665835337`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665835337) and `Shard 2/2` [`98665835355`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665835355) — all **`success`** |
+| Prior retargeted run | [`33067601349`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349), head `bbe2115`, also **18/18** — the first run this PR ever received |
 | Mergeability at that read | `MERGEABLE` / `CLEAN`, **draft** |
+
+**This record cannot cite the run for its own head, and says so rather than implying otherwise.**
+The commit that writes the table above becomes a new head, which gets its own `ci.yml` run — the
+same self-recording gap §13.0's ledger rows 17, 20 and 23 record. `3d09b16` is the last head whose
+run had completed when the table was written. **Whoever reviews or merges this PR must read the CI
+result for the PR's then-current head**, not this table, and `gh pr checks 431` is the shortest path
+to it. The table is evidence that the integrated tree passes all eighteen jobs; it is not a claim
+about a commit that did not exist when it was measured.
+
+**The 17 → 18 mid-run check growth reproduced, and it is why this was judged on the RUN's status
+rather than on a first zero-pending read.** At `23:41` the run reported **11** jobs, at `23:42`
+**17**, and only at completion **18**. A poll that broke on the first `pending == 0` it saw would
+have certified a partial matrix. The judgement here is: poll until the *run* reports `completed`,
+then read every job's own `conclusion`.
 
 **The local-run caveat is discharged, and it is worth saying which part.** Gates 1–8 and 10 ran on a
 Windows host in a worktree whose `node_modules` is a **junction to the main checkout's**, so they
 could not detect a dependency problem, could not run the ubuntu leg of `Test Inventory Drift`, and
-could not compose the sharded `E2E Functional` matrix as CI does. **Run `33067601349` covered all
+could not compose the sharded `E2E Functional` matrix as CI does. **Run `33114518996` covered all
 three**, and the packaged-artifact smoke besides.
 
 **Gate 11 (the ledger row) is still not satisfied and is still not owed by this packet** — §v2.1's
