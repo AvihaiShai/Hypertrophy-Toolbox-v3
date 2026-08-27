@@ -1393,6 +1393,31 @@ not re-litigate KI-004's end-to-end behavior.
 
 ### 10.3 Case matrix — B1–B45 (**47 cases**)
 
+> ⚠️ **STALE AS OF 2026-08-27 — annotated, deliberately NOT re-derived (owner ruling OD-10).**
+> The **KI-010 fix** (Packet U3a, `docs/toast_type_word_collision/PLANNING.md`, Gate 1 signed
+> 2026-08-27) changed `toast.test.js`. **What is now false in §10.3 and §10.5, named so a reader
+> does not trust it:**
+>
+> - **The "47 cases" arithmetic in this section, and the totals line that derives it.** The file is
+>   **61** cases and the suite is **13 files / 245 cases**. `TEST_INVENTORY.json` is the live figure.
+> - **B45's and B43's rows**, which describe the *pinned defect* in the present tense. Both cases
+>   were **deliberately inverted** and parametrised over four type words as **B45a–d** and
+>   **B43a–d**; **B46a–d** and **B47a–d** are new. The red a reviewer sees on those rows without the
+>   production fix is the **intended review signal**, not a regression.
+> - **§10.5's mutation kill sets.** N8 loses B43; N10 and N12 gain the new B45 family. The
+>   disclosure elsewhere in §10.5 that *"B43 is not independently killed"* is **inverted** — B43a
+>   acquires an independent kill, because `arguments.length` now distinguishes an omitted argument
+>   from an explicit `undefined`.
+> - **The two signed Gate 1 checkboxes** further down that reference the 47-case matrix and *"the
+>   cases with no isolating killer (B23, B43)"*.
+>
+> **Nothing in §10.3 or §10.5 is edited.** Both remain the record of what Packet B measured and
+> signed, which was accurate when written. **Re-deriving §10.5's kill sets against the post-fix
+> suite is a packet of its own and is not authorized here.** The live mutation evidence for the
+> post-fix file is `toast_type_word_collision/PLANNING.md` §v2.8, whose every arm was executed
+> against the full 245-case suite.
+
+
 > **Count history, stated once: 42 (2026-08-15) → 44 (refresh) → 47 (Plan v2).**
 > The refresh split **B15 → B15a / B15b** and added **B43**. Plan v2 adds three more, each because a
 > **measurement** showed an existing case could not distinguish a real defect: **B25b** (partial

@@ -5,7 +5,17 @@
 //
 // Covers showToast()'s legacy dispatch, the request-ID gate, default copy,
 // String coercion, the inline action button, and call ordering. Case IDs
-// (B1..B45, 47 cases) map to §10.3; the mutation matrix is §10.5.
+// B1..B45 map to §10.3 and the mutation matrix is §10.5 -- but see the
+// KI-010 note below: §10.3's "47 cases" arithmetic and §10.5's kill sets
+// are STALE as of the KI-010 fix and are annotated there, not here.
+//
+// KI-010 FIX, 2026-08-27. Gate 1 signed; plan and owner rulings in
+// docs/toast_type_word_collision/PLANNING.md. B45 and B43 were
+// CHARACTERIZATION cases pinning a defect; they are DELIBERATELY INVERTED
+// here and parametrised over all four type words as B45a-d and B43a-d.
+// B46a-d and B47a-d are new. If you are reviewing a diff that reverts the
+// production fix, the red you see in this file is the INTENDED signal, not
+// a regression.
 //
 // This module imports nothing, so there is deliberately no vi.mock here. Its
 // only external dependency is the GLOBAL `bootstrap`, faked below (§10.4) --
@@ -233,9 +243,25 @@ describe('showToast - default copy, one case per type', () => {
         expect(bodyText()).toBe('An unexpected error occurred.');
     });
 
-    it('B13: error + undefined message uses the error copy', () => {
+    it('B13: error + an explicitly supplied undefined message uses the error copy', () => {
+        // ARITY IS LOAD-BEARING HERE, and this case is what pins it.
+        //
+        // The KI-010 predicate treats argument 2 as ABSENT via
+        // `arguments.length < 2`, NOT via `message === undefined` (owner ruling
+        // OD-6). So an explicitly supplied `undefined` is still a MODERN call and
+        // still gets the error default copy on bg-danger. The rejected spelling
+        // would have rendered 'error' on bg-SUCCESS here -- a modern error call
+        // silently repainted green, which is why it was rejected.
+        //
+        // Contrast B43a: showToast('error') with NO second argument renders
+        // 'error' on bg-success. The two calls differ only in arity.
+        //
+        // If showToast is ever rewritten with rest parameters, `arguments` is
+        // unavailable in an arrow function -- carry the check across as
+        // `args.length < 2` or this case and B43a stop disagreeing.
         showToast('error', undefined);
         expect(bodyText()).toBe('An unexpected error occurred.');
+        expect(bgClasses()).toEqual(['bg-danger']);
     });
 
     it('B14: success + null message uses the non-error copy', () => {
@@ -532,14 +558,28 @@ describe('showToast - anti-vacuity and API sharp edges', () => {
         expect(bgClasses()).toEqual([]);
     });
 
-    it('B43: a single-argument call renders the default copy, not the type word', () => {
-        // `message` has no default parameter, so an omitted second argument IS
-        // undefined; this is behaviourally identical to showToast('success',
-        // undefined). B14 does not cover it -- B14 passes an explicit null.
-        // Pinned because it is the edge a reader gets wrong, not because it
-        // reaches a distinct branch.
-        showToast('success');
-        expect(bodyText()).toBe('Action completed successfully.');
+    // B43a-d: INVERTED from the pre-fix characterization case B43 (KI-010).
+    //
+    // B43 used to assert that showToast('success') renders the default copy, and
+    // its comment claimed an omitted second argument is "behaviourally identical
+    // to showToast('success', undefined)". BOTH are now false by design: the
+    // predicate distinguishes them on `arguments.length`, so a one-argument call
+    // is a LEGACY bare message and renders the type word itself. B13 holds the
+    // other half of that pair.
+    //
+    // DISCLOSED, not dressed up: only B43a has an independent mutation kill
+    // (deleting the `arguments.length < 2` conjunct). B43b/c/d cannot be killed
+    // by any mutation of the shipped predicate, which contains no per-type
+    // branch -- they defend against a FUTURE per-type implementation, the same
+    // "defensive but unreachable" idiom as B15a/B15b.
+    describe.each([
+        ['error'], ['warning'], ['success'], ['info'],
+    ])('B43: a single-argument call renders the message, not the default copy', (type) => {
+        it(`B43-${type}: showToast('${type}') renders "${type}" on bg-success`, () => {
+            showToast(type);
+            expect(bodyText()).toBe(type);
+            expect(bgClasses()).toEqual(['bg-success']);
+        });
     });
 
     it('B44: a falsy-but-defined message is rendered, not replaced', () => {
@@ -553,18 +593,68 @@ describe('showToast - anti-vacuity and API sharp edges', () => {
         expect(bodyText()).toBe('');
     });
 
-    it('B45: a legacy call whose message IS a type word swallows the message', () => {
-        // PINNED SHARP EDGE, NOT DESIRED BEHAVIOR -- and NOT mitigated here.
-        // 'error' passes validTypes.has() at :15, so the legacy branch never
-        // runs, `message` becomes the boolean true, and the caller's actual
-        // message is swallowed. Eight live call sites have the collision-capable
-        // showToast(error.message || '<fallback>', true) shape, so this is one
-        // server-copy change away from firing; it is not reachable today only
-        // because utils/errors.py never sets a message to one of the four type
-        // words. Fixing it is production code and out of scope for a test-only
-        // packet.
-        showToast('error', true);
-        expect(bodyText()).toBe('true');
-        expect(bgClasses()).toEqual(['bg-danger']);
+    // B45a-d: INVERTED from the pre-fix characterization case B45 (KI-010).
+    //
+    // B45 used to assert the DEFECT: showToast('error', true) rendered the body
+    // text "true" and swallowed the caller's message. It now renders the message.
+    // The inversion is deliberate and signed; see the file header.
+    //
+    // Severity comes from the boolean and NEVER from the message, so all four
+    // land on bg-danger -- showToast('warning', true) is RED by design, not by
+    // accident.
+    //
+    // DISCLOSED: only B45a has an independent kill (deleting the
+    // `typeof message === 'boolean'` conjunct). B45b/c/d have none, and after
+    // the fix this family is insensitive to validTypes membership entirely --
+    // removing 'warning' from the set leaves B45-warning green.
+    describe.each([
+        ['error'], ['warning'], ['success'], ['info'],
+    ])('B45: a legacy call whose message IS a type word renders that message', (type) => {
+        it(`B45-${type}: showToast('${type}', true) renders "${type}" on bg-danger`, () => {
+            showToast(type, true);
+            expect(bodyText()).toBe(type);
+            expect(bgClasses()).toEqual(['bg-danger']);
+        });
+    });
+
+    // B46a-d: the SEVERITY INVERSION half of KI-010, pinned for the first time.
+    //
+    // Pre-fix, showToast('error', false) rendered "false" on bg-DANGER: a caller
+    // asking for a success toast whose message was the word "error" got a red
+    // toast reading "false". Every earlier description of KI-010 used the
+    // isError=true form, where the class agreed with the type word by
+    // coincidence; with false the class and the intent disagreed.
+    //
+    // THIS FAMILY IS THE ONLY THING THAT KILLS THE NARROWING MUTATION. Measured:
+    // spelling the conjunct `message === true` instead of
+    // `typeof message === 'boolean'` is INDISTINGUISHABLE from the correct
+    // predicate against every pre-fix case in this file. Without B46, the most
+    // plausible mis-implementation of this fix ships green.
+    describe.each([
+        ['error'], ['warning'], ['success'], ['info'],
+    ])('B46: a legacy call with isError=false renders the message on success', (type) => {
+        it(`B46-${type}: showToast('${type}', false) renders "${type}" on bg-success`, () => {
+            showToast(type, false);
+            expect(bodyText()).toBe(type);
+            expect(bgClasses()).toEqual(['bg-success']);
+        });
+    });
+
+    // B47a-d: the request-ID suffix DROP on the newly-legacy path (owner ruling
+    // OD-11 -- pinned rather than accepted unpinned).
+    //
+    // Pre-fix, showToast('error', false, {requestId: 'R1'}) was a modern call and
+    // rendered "false (Request ID: R1)" on bg-danger. Post-fix it is legacy, so
+    // legacyIsError=false sets type='success', and the suffix gate is
+    // error-only -- the request ID is DROPPED. That is a real behaviour change
+    // on a debugging affordance and nothing pinned it before this case existed.
+    describe.each([
+        ['error'], ['warning'], ['success'], ['info'],
+    ])('B47: a legacy isError=false call drops the request-ID suffix', (type) => {
+        it(`B47-${type}: showToast('${type}', false, {requestId}) renders "${type}" with no suffix`, () => {
+            showToast(type, false, { requestId: 'R1' });
+            expect(bodyText()).toBe(type);
+            expect(bgClasses()).toEqual(['bg-success']);
+        });
     });
 });

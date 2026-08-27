@@ -17,7 +17,7 @@ Every test count in this repository's prose should link here rather than restate
 | Required functional gate — `E2E Functional (Chromium)` | **527** tests across 25 specs |
 | pytest collected nodes (deterministic subset) | **2855** across 125 files |
 | pytest test files (all) | **126** |
-| JS unit cases (Vitest) | **231** across 13 files |
+| JS unit cases (Vitest) | **245** across 13 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -197,7 +197,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 
 ## Vitest test files
 
-Collected with `vitest list --json=<path>`, which lists cases without running them. `.skip`, `.todo` and `describe.skip` cases are omitted by the lister entirely, so a disabled case is indistinguishable here from a deleted one and **no status is recorded**: a count of 231 means 231 cases that would run.
+Collected with `vitest list --json=<path>`, which lists cases without running them. `.skip`, `.todo` and `describe.skip` cases are omitted by the lister entirely, so a disabled case is indistinguishable here from a deleted one and **no status is recorded**: a count of 245 means 245 cases that would run.
 
 The per-case identity list -- what detects a case being renamed rather than removed -- lives in `TEST_INVENTORY.json` under `vitest.cases`, not here.
 
@@ -210,7 +210,7 @@ The per-case identity list -- what detects a case being renamed rather than remo
 | `static/js/modules/__tests__/fetch-wrapper.test.js` | 3 |
 | `static/js/modules/__tests__/session-summary-helpers.test.js` | 7 |
 | `static/js/modules/__tests__/summary-helpers.test.js` | 22 |
-| `static/js/modules/__tests__/toast.test.js` | 47 |
+| `static/js/modules/__tests__/toast.test.js` | 61 |
 | `static/js/modules/__tests__/user-profile-data.test.js` | 12 |
 | `static/js/modules/__tests__/workout-controls-persistence.test.js` | 35 |
 | `static/js/modules/__tests__/workout-plan-helpers.test.js` | 13 |

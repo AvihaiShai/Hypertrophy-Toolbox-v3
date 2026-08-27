@@ -1,18 +1,63 @@
 /**
  * Toast notification functionality with standardized types.
- * 
- * @param {string} type - Type of toast: 'success', 'error', 'warning', 'info'
- * @param {string} message - Message to display
- * @param {Object} options - Optional configuration
+ *
+ * TWO SIGNATURES ARE SUPPORTED, and which one you get is decided by argument 2,
+ * not by argument 1. Read this table before adding a call site.
+ *
+ *   showToast(type, message, options?)      MODERN
+ *   showToast(message, isError?, duration?) LEGACY
+ *
+ * | argument 2         | how argument 1 is read | why                              |
+ * |--------------------|------------------------|----------------------------------|
+ * | a boolean          | as the MESSAGE         | legacy `isError` flag            |
+ * | not supplied       | as the MESSAGE         | legacy bare message              |
+ * | `null`             | as the TYPE            | modern, "no message" default copy|
+ * | anything else      | as the TYPE            | modern                           |
+ *
+ * An explicitly supplied `undefined` counts as SUPPLIED, so
+ * `showToast('error', undefined)` is a MODERN call and renders the default error
+ * copy. That distinction rests on `arguments.length` -- see the comment on the
+ * `isLegacyCall` predicate below before refactoring this function's signature.
+ *
+ * @param {string} type - Modern: 'success' | 'error' | 'warning' | 'info'.
+ *                        Legacy: the message text.
+ * @param {string|boolean} [message] - Modern: message to display.
+ *                        Legacy: the boolean isError flag.
+ * @param {Object|number} [options] - Optional configuration, or a number for the duration.
  * @param {number} options.duration - Duration in ms (default: 3000)
- * @param {string} options.requestId - Optional request ID for debugging
+ * @param {string} options.requestId - Optional request ID for debugging; appended for type 'error' only
  * @param {{label: string, onClick: () => void, ariaLabel?: string}} options.action - Optional inline action button
  */
 export function showToast(type, message, options = {}) {
     const validTypes = new Set(['success', 'error', 'warning', 'info']);
 
-    // Backward compatibility: detect legacy signature showToast(message, isError?, duration?)
-    if (!validTypes.has(type)) {
+    // Backward compatibility: detect legacy signature showToast(message, isError?, duration?).
+    //
+    // KI-010. This used to test `!validTypes.has(type)` alone, so a LEGACY caller
+    // whose message happened to be one of the four type words was misread as a
+    // modern call: showToast('error', true) rendered the body text "true", and
+    // showToast('warning') rendered "Action completed successfully." on a yellow
+    // toast. Argument 1's domains overlap on exactly those four strings, so the
+    // discriminator has to look at argument 2 as well.
+    //
+    // Contract (owner ruling OD-6, Gate 1 signed 2026-08-27,
+    // docs/toast_type_word_collision/PLANNING.md): argument 1 is a TYPE only when
+    // it is one of the four words AND argument 2 is not a boolean AND argument 2
+    // was actually supplied.
+    //
+    // `arguments.length` -- not `message === undefined` -- is load-bearing and was
+    // chosen deliberately over the alternative spelling. It keeps an explicitly
+    // supplied `undefined` a MODERN call, so a modern caller whose message
+    // expression evaluates to undefined at runtime still gets the red default-copy
+    // error toast rather than a GREEN toast reading the type word. B13 pins that.
+    // If this function is ever rewritten with rest parameters, carry the arity
+    // check across as `args.length < 2`; dropping it silently reintroduces KI-010
+    // for the one-argument form.
+    const isLegacyCall = !validTypes.has(type)
+        || typeof message === 'boolean'
+        || arguments.length < 2;
+
+    if (isLegacyCall) {
         const legacyMessage = type;
         const legacyIsError = typeof message === 'boolean' ? message : false;
         const legacyDuration = typeof options === 'number' ? options : undefined;

@@ -1610,3 +1610,209 @@ file may change** (AC-10, tightened by OD-5).
 `showToast('success', true)` becomes a **red** toast reading `"success"`; the assertive live region
 now announces a single context-free word; and `new Boolean(true)` / `1` / `0` remain **uncovered**
 while CI-6/B8 keeps them contract-legal.
+
+---
+
+## Implementation record — 2026-08-27
+
+*Executed against `origin/main` at **`b733c14f8e76c7f85b1d9dcc75acd8bca8321524`**, in the isolated
+worktree `Hypertrophy-Toolbox-v3-main-u3a-impl` on branch `feat/u3a-ki010-toast-collision`, under
+**Gate 1 as signed** and in the **S2** spelling ruled by **OD-6**.*
+
+> **OD-1 STILL BINDS. This implementation may NOT merge before `2026-09-05T17:59:26Z`**, and passing
+> that instant is neither implementation authorization nor merge authorization. **#427 must also
+> merge first**, and the ledger row numbers in §13.0 must be re-confirmed immediately before merge.
+
+### i.0 Baselines, recorded FIRST (`CLAUDE.md` §4.B)
+
+| Baseline | Value |
+|---|---|
+| `npx vitest run` | **13 files / 231 tests**, exit 0 |
+| `pytest tests/ -q` | **3175 passed, 2 skipped**, exit 0 |
+| `generate_test_inventory.py --check` | `Test inventory is up to date.`, exit 0 |
+
+### i.1 The production change — one predicate, as planned
+
+`static/js/modules/toast.js`. The single `if (!validTypes.has(type)) {` at the old `:15` became:
+
+```js
+const isLegacyCall = !validTypes.has(type)
+    || typeof message === 'boolean'
+    || arguments.length < 2;
+
+if (isLegacyCall) {
+```
+
+plus the comment block explaining the contract and the arity dependence, and the **JSDoc dispatch
+table** finding A4 required. **No other production file changed** — AC-10 in its tightened form.
+
+**Behaviour, measured through the same jsdom harness as §0.3 — all nine outcomes fixed:**
+
+| Call | Before | After |
+|---|---|---|
+| `showToast(T, true)`, all four `T` | `"true"` on the type's own class | **`T` on `bg-danger`** |
+| `showToast('error', false)` | `"false"` on `bg-danger` | **`"error"` on `bg-success`** |
+| `showToast(T)`, all four `T` | default copy on the type's own class | **`T` on `bg-success`** |
+| `showToast('Real msg', true)` / `showToast('errors', true)` / `showToast('Error', true)` | correct | **unchanged** |
+
+### i.2 Line-anchor re-measurement — the LAST content edit, done by measuring
+
+Inserting the predicate shifted every anchor below it. Re-measured, not offset-arithmetic:
+
+| Anchor | Was | Now |
+|---|---:|---:|
+| the discriminator | `:15` | **`:56`** |
+| `} else if (typeof options === 'number')` | `:28` | **`:73`** |
+| the `message !== undefined` guard | `:49` | **`:94`** |
+| the two default-copy strings | `:52` | **`:97`** |
+| **`toastBody.innerHTML = ''` — CI-10's evidence** | `:60` | **`:105`** |
+| **`toastBody.appendChild(button)` — CI-10's evidence** | `:84` | **`:129`** |
+| `typeToClass[type] \|\| 'bg-success'` | `:98` | **`:143`** |
+
+`e2e/workout-plan.spec.ts:682`'s pinned comment was re-anchored from `modules/toast.js:14-27` to
+**`:55-72`** (finding A6).
+
+### i.3 Test changes — exactly what OD-4, OD-7 and OD-11 authorised
+
+| Family | Cases | Status |
+|---|---:|---|
+| **B45a–d** `showToast(T, true)` → `T` on `bg-danger` | 4 | **replaces B45** — deliberately inverted |
+| **B46a–d** `showToast(T, false)` → `T` on `bg-success` | 4 | **new** — the severity inversion |
+| **B43a–d** `showToast(T)` → `T` on `bg-success` | 4 | **replaces B43** — deliberately inverted |
+| **B47a–d** `showToast(T, false, {requestId})` → `T`, **no suffix** | 4 | **new**, per **OD-11** |
+| **B13** | 1 | **assertions unchanged**; comment rewritten to state the arity dependence. Per **OD-7**, the S1-only parametrisation was **not** added |
+
+Every inverted family carries the AC-4 comment naming this document and the Gate 1 sign-off date,
+and the file header states that a red there without the production fix is the intended signal. The
+**nine-cases-have-no-independent-kill disclosure** (finding T-S2) is in the file, in the B15a/B15b
+idiom.
+
+### i.4 The AC-7 matrix — every arm run against the FULL suite
+
+**All ten arms collected 245. No survivors, no BAD RUNs.**
+
+| Arm | Exit | Result | Cases red |
+|---|---:|---|---|
+| **3** the pair (shipped) | **0** | 245 passed (245) | *(none)* |
+| **2** pristine prod + new tests | 1 | 16 failed \| 229 passed | **B43, B45, B46, B47 families — exactly the new and inverted cases** |
+| **4** rival spelling **S1** | 1 | 1 failed \| 244 passed | **B13, and only B13** |
+| **5a** drop `isFlag` | 1 | 12 failed | B45, B46, B47 |
+| **5b** drop `isAbsent` | 1 | 4 failed | **B43 only** |
+| **5c** narrow → `message === true` | 1 | 8 failed | **B46, B47** |
+| **5c′** narrow → `message === false` | 1 | 4 failed | **B45** |
+| **5e** `argc !== 2` | 1 | 7 failed | B19–B23, B33, B34 |
+| **5f** careless rest rewrite (drop arity) | 1 | 4 failed | **B43** |
+| **6** drop `isTypeWord` | 1 | 1 failed | **B8, and only B8** |
+
+**Three results worth stating on their own:**
+
+1. **Arm 2 satisfies AC-7's *"nothing else"* over the real 231/245-case suite**, not over a scoped
+   probe — the gap finding T-B4 identified. Before the test changes, the fix alone red exactly
+   `{B43, B45}` out of 231.
+2. **Arm 5c is the whole justification for B46a–d**, and it held: the narrowing mutation
+   `message === true` — measured *indistinguishable* from the correct predicate against every
+   pre-fix case — is now **killed, and only by B46/B47**. Without this packet's new families the most
+   plausible mis-implementation of this fix would have shipped green.
+3. **Arm 4 vindicates keeping B13.** The rival spelling reds **exactly one case**, so B13 is the sole
+   discriminator between the two contracts — which is precisely why OD-6 needed ruling and why B13
+   could not simply be deleted.
+
+### i.5 Gate results
+
+| Gate | Result |
+|---|---|
+| **1** `npm run test:js` | **245 passed (245)**, 13 files, exit 0. **Three-way reconciliation holds:** diff-derived **61 / 245** == `vitest run` collected **245** == the pinned literals. `.only`/`.skip`/`.todo` grep over `toast.test.js`: **clean**. All 16 new case identities present in the regenerated `vitest.cases` |
+| **2** inventory regeneration | `vitest: 245 cases / 13 files`; `toast.test.js` **47 → 61** |
+| **3** `--check` | `Test inventory is up to date.`, exit 0 |
+| **4** determinism | regenerated **three** times, `git status --porcelain docs/test_inventory/` byte-stable |
+| **5** full pytest | **3175 passed, 2 skipped** — **a delta of exactly ZERO nodes** against the recorded baseline, as predicted |
+| **6** `tsc --noEmit` **and** pyright baseline | tsc exit 0; **`PASS — 0 net-new diagnostics (baseline 132, current 132)`** |
+| **7** E2E, two invocations | see below |
+| **8** manual smoke | see below |
+| **9** PR CI | polled to zero-pending, then `total_count` re-read |
+
+**Contract literals** — two edited, one re-confirmed, exactly as finding T-N1 predicted:
+`EXPECTED_TOTAL_CASES` **231 → 245**, `EXPECTED_PER_FILE[".../toast.test.js"]` **47 → 61**,
+`EXPECTED_TOTAL_FILES` **unchanged at 13**. `tests/test_vitest_inventory_contracts.py`: **46 passed**.
+
+### i.6 One planning prediction corrected by execution
+
+**Plan v2 predicted 61 / 245 and the measurement agreed exactly.** The one place execution
+corrected the plan was a *method* error, not a figure: §v2.9 gate 7's first invocation was first
+attempted as `playwright test --testIgnore=…`, which **is not a Playwright CLI option**. The command
+failed instantly and the shell reported exit 0 — **a textbook BAD RUN of the class §v2.8's judging
+rules exist to catch**, and it was caught by reading the output rather than the exit code. The gate
+is recorded below with the invocation that actually works: an explicit list of the **30** non-visual
+specs.
+
+### i.7 Documentation updated, and one thing deliberately not
+
+- **`UI_SCENARIOS_GAP_ANALYSIS.md`** — the **KI-010** row moves **Open → Mitigated**, with counts
+  **re-measured at fix time** (AC-8) and carrying the **visible** count (11) beside the shape count
+  (13). The **second pointer at §3.1** — which finding P9 caught, and which would otherwise have left
+  the file contradicting itself — is updated in the same pass.
+- **`STEP12_JS_UNIT_GATE0.md` §10.3 / §10.5** — a **dated stale-pointer annotation** only, per
+  **OD-10**. The 47-case arithmetic, B43/B45's present-tense rows, §10.5's kill sets and the two
+  signed Gate 1 checkboxes are named as false; **nothing there is edited**. Re-deriving §10.5 against
+  the post-fix suite is a packet of its own and is **not** authorized here.
+- **Not touched:** `MASTER_HANDOVER.md`, `OPEN_WORK_EXECUTION_PLAN.md`, KI-011, `volume-splitter.js`,
+  and every U2 path.
+
+### i.8 E2E — the two invocations, and how attribution was actually closed
+
+**Gate 7(a) — 30 non-visual specs, 536 tests:** **520 passed / 16 failed.**
+**Gate 7(b) — 3 visual specs, seeded, 126 tests:** **122 passed / 4 failed.**
+
+**Neither red set is attributable to this diff, and that was established by measurement, not by
+inspection.** The repository rule — re-run the identical batch before blaming your diff — was
+applied to both tiers, and it mattered:
+
+| Tier | Modified tree | Pristine tree | Verdict |
+|---|---|---|---|
+| non-visual, 536 tests | **16 failed** | **29 failed** | Failure sets differ in **both** directions — 5 only-modified, 18 only-pristine, 11 common. **Not a regression signal** |
+| the 5 only-modified candidates, run alone | **54 passed / 0 failed** | — | Order- and DB-state-dependent, not caused by the fix |
+| visual, seeded, 126 tests | 4 failed — `user-profile` ×1, `backup` ×3 | 4 failed — `progression` ×2, `body-composition` ×2 | **Same count, ZERO overlap.** Environmental |
+
+**No baseline was regenerated and `--update-snapshots` was never run.** Every red above sits on a
+page this packet does not touch; the fix changes no CSS, no layout and no markup.
+
+**Two BAD RUNS were caught, both by reading output rather than exit status** — the failure mode
+§v2.8's judging rules exist for:
+
+1. `playwright test --testIgnore=…` — **not a Playwright CLI option**. The command died instantly
+   and the shell reported **exit 0**. Nothing ran.
+2. The first pristine-baseline batch **never executed**: port **5000** was still held by an orphaned
+   `app.py` from the previous run's `webServer`, so Playwright aborted in 150 bytes. Read naively,
+   that produced a comparison saying *"16 failures caused by the diff"* — **entirely false**.
+
+**Consequence worth carrying forward:** the two E2E invocations in §v2.9 gate 7 need a **port-5000
+clear between them**, and every invocation must be judged by its `Running N tests` header and its
+summary line, never by exit status alone.
+
+### i.9 Gate 8 — manual smoke against REAL Bootstrap
+
+Run against the app on `127.0.0.1:5000` from this worktree, invoking the module directly on a loaded
+`/workout_plan` page — because §0.4 measures **0 of 229** server sites emitting a bare type word, so
+no real caller can reach the fixed path.
+
+| Call | body | class | live region |
+|---|---|---|---|
+| `showToast('error', true)` | `"error"` | `bg-danger` | `role="alert"`, `aria-live="assertive"` |
+| `showToast('warning')` | `"warning"` | `bg-success` | same |
+| `showToast('success', true)` | `"success"` | **`bg-danger`** | same |
+| `showToast('error', false, {requestId:'R1'})` | `"error"` | `bg-success` | same |
+
+**All four match the contract**, including the OD-11 request-ID drop. Row 3 is §v2.10's stated
+limitation observed in a real browser: a **red** toast whose entire body is the word `"success"`.
+**This is the only tier that exercises the fix outside jsdom.**
+
+### i.10 What is NOT done, and what merging still requires
+
+- **This implementation is NOT merged and may not be.** **OD-1 binds: no U3a implementation PR may
+  merge before `2026-09-05T17:59:26Z`.**
+- **#427 must merge first** (owner ordering ruling), and the §13.0 ledger row numbers must be
+  re-confirmed against the then-current last row immediately before either PR merges.
+- **The Gate 1 planning PR is not merged either.**
+- **KI-011 is untouched.** `toast.js`'s body-clear and button-append lines are not in this diff, and
+  **B30–B35 stayed green in all ten mutation arms**.
+- **§10.5's kill sets are annotated, not re-derived** (OD-10). That remains a packet of its own.
