@@ -154,7 +154,7 @@
       {
         "in_required_functional_set": false,
         "spec": "program-backup.spec.ts",
-        "tests": 22
+        "tests": 33
       },
       {
         "in_required_functional_set": true,
@@ -238,7 +238,7 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 675
+    "total_tests": 686
   },
   "pytest": {
     "collected_deterministic": 2855,
