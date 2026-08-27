@@ -5146,6 +5146,28 @@ This section is a plan and nothing else. **No generator change, no regenerated a
 no JS test, no workflow edit and no branch-protection change is made or authorized by it.** **Q4, Q6 and
 D2 are untouched.** §13.13 restates the stop in full.
 
+#### U3a's ledger extension — **WITHDRAWN 2026-08-27, superseded by PR #429**
+
+> **This block recorded rows 14, 15 and 16 and is withdrawn in full.** While Packet U3a's Gate 1
+> planning PR was open, **PR [#429](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/429)
+> merged to `main` and wrote rows 13–16** — the same four results, from the same runs and jobs.
+>
+> **The unclaimed-first rule fired against this packet, exactly as designed.** U3a's block was
+> written when #427 held row 13 and rows 14–16 were unclaimed; #429 landed first, so those rows are
+> **no longer U3a's to write**. Restating them would put one result in the ledger twice, which is
+> the single failure sequential numbering cannot survive — and it is the hazard U3a's own block
+> named when it declined to restate row 13.
+>
+> **The results themselves are unchanged and are now on `main` at rows 13–16:**
+> `33011674872`/`98319257214`, `33017593094`/`98339729053`, `33020896786`/`98350728218` and
+> `33023109789`/`98358033353` — all `success`. **Nothing measured here was wrong; it was simply
+> claimed elsewhere first.** The conditional row numbering U3a attached to its block was the correct
+> precaution and it is what made this withdrawal a deletion rather than a correction.
+>
+> **U3a therefore writes no ledger row.** Whoever merges U3a's PRs still owes the post-merge
+> `js-unit` result of each, by the standing *merging mints the next row* rule; **no row number is
+> predicted for them here.**
+
 ### 13.1 Ownership, containment, and the must-not-touch list
 
 | | |
