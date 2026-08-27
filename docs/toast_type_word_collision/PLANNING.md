@@ -1785,6 +1785,16 @@ changes, not line moves**.
 ARGUMENTS are read (`:232-248`), KI-011 decides how the toast RENDERS (`:283-337`). This packet's
 diff touches only the first.
 
+**Every other `toast.js:NN` citation in this document — §0.2's `:15`, §0.5's `:15`, §v1.x's `:15`,
+`:28`, `:60`, `:84`, `:1-10` and `:14-27`, and §v2.x's restatements of them — describes the PRE-FIX
+file and is left as written.** They sit next to quoted pre-fix source and next to prose that reasons
+about the defect; **re-numbering them would point a reader at the repaired code while the sentence
+still describes the break**, which is strictly worse than a number that does not resolve. Two of
+them are additionally identity changes, not line moves: §v1.10's *"KI-011 untouched — `toast.js:60`
+and `:84` are not in the diff"* names two lines KI-011 has since **deleted and replaced**; §i.10
+carries the measured restatement of that claim against the shipped file. **The table above is the
+only mapping to trust.**
+
 **Citations INTO the files this packet moved were re-anchored too**, not just citations out of
 them: **B5** `:169 → :183` and the `validTypes` set `:12 → :31` in §0.3/§0.5 (this packet's own test
 header and predicate comment pushed them down), and OD-10's two signed Gate 1 checkboxes
