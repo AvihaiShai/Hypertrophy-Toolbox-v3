@@ -1,8 +1,10 @@
 """Contracts for the Vitest surface of the generated test inventory.
 
 `Test Inventory Drift` is a required branch-protection context, and after this
-packet it also pins the JS-unit suite: 13 files, 231 cases, and every case's
-identity. Two things can quietly unpin it, and `--check` sees neither, because
+packet it also pins the JS-unit suite: 13 files, 245 cases, and every case's
+identity. (231 until the KI-010 toast fix of 2026-08-27, which inverted two
+characterization cases and added fourteen -- see
+docs/toast_type_word_collision/PLANNING.md.) Two things can quietly unpin it, and `--check` sees neither, because
 `--check` only compares a committed artifact with what the generator produces
 right now:
 
@@ -54,7 +56,7 @@ MARKDOWN_PATH = REPO_ROOT / "docs" / "test_inventory" / "TEST_INVENTORY.md"
 # are the point of the file: if the artifact and these disagree, one of them is
 # wrong and a human decides which -- regenerating is only the right repair when
 # the JS suite really did change.
-EXPECTED_TOTAL_CASES = 231
+EXPECTED_TOTAL_CASES = 245
 EXPECTED_TOTAL_FILES = 13
 EXPECTED_PER_FILE = {
     "static/js/modules/__tests__/exercise-helpers.test.js": 15,
@@ -64,7 +66,7 @@ EXPECTED_PER_FILE = {
     "static/js/modules/__tests__/fetch-wrapper.test.js": 3,
     "static/js/modules/__tests__/session-summary-helpers.test.js": 7,
     "static/js/modules/__tests__/summary-helpers.test.js": 22,
-    "static/js/modules/__tests__/toast.test.js": 47,
+    "static/js/modules/__tests__/toast.test.js": 61,
     "static/js/modules/__tests__/user-profile-data.test.js": 12,
     "static/js/modules/__tests__/workout-controls-persistence.test.js": 35,
     "static/js/modules/__tests__/workout-plan-helpers.test.js": 13,
@@ -99,7 +101,7 @@ def _payload(*rows: tuple[str, str]) -> str:
 #
 # Not Vitest-specific, and kept here on purpose: these two assertions are what
 # make the new surface's presence -- rather than only its contents -- load
-# bearing. A test shaped "if the key exists, its total is 231" is satisfied by
+# bearing. A test shaped "if the key exists, its total is 245" is satisfied by
 # deleting the key.
 
 

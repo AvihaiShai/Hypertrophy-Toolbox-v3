@@ -1393,6 +1393,43 @@ not re-litigate KI-004's end-to-end behavior.
 
 ### 10.3 Case matrix — B1–B45 (**47 cases**)
 
+> ⚠️ **STALE AS OF 2026-08-27 — annotated, deliberately NOT re-derived (owner ruling OD-10).**
+> The **KI-010 fix** (Packet U3a, `docs/toast_type_word_collision/PLANNING.md`, Gate 1 signed
+> 2026-08-27) changed `toast.test.js`. **What is now false in §10.3 and §10.5, named so a reader
+> does not trust it:**
+>
+> - **The "47 cases" arithmetic in this section, and the totals line that derives it.** The file is
+>   **61** cases and the suite is **13 files / 245 cases**. `TEST_INVENTORY.json` is the live figure.
+> - **B45's and B43's rows**, which describe the *pinned defect* in the present tense. Both cases
+>   were **deliberately inverted** and parametrised over four type words as **B45a–d** and
+>   **B43a–d**; **B46a–d** and **B47a–d** are new. The red a reviewer sees on those rows without the
+>   production fix is the **intended review signal**, not a regression.
+> - **§10.5's mutation kill sets.** N8 loses B43; N10 and N12 gain the new B45 family. The
+>   disclosure elsewhere in §10.5 that *"B43 is not independently killed"* is **inverted** — B43a
+>   acquires an independent kill, because `arguments.length` now distinguishes an omitted argument
+>   from an explicit `undefined`.
+> - **The two signed Gate 1 checkboxes** further down that reference the 47-case matrix and *"the
+>   cases with no isolating killer (B23, B43)"*.
+> - **EVERY `toast.js:NN` LINE ANCHOR IN THIS DOCUMENT.** Packet B measured them against a **111-line
+>   `toast.js`**, and that file has since been rewritten **twice**: KI-011 (PR #426, `5b35966`) took
+>   it to 304 lines, and KI-010 takes it to **353**. §10.5's mutation table alone carries sixteen
+>   anchors. **There is no single offset to add** — the measured displacement of Packet B's anchors
+>   runs from **`+201`** (`validTypes`, `:12 → :213`) to **`+226`** (`classList.remove`,
+>   `:88 → :314`) — and **two anchors do not survive as line moves at all**:
+>   `toastBody.innerHTML = ''` (`:60`) was **deleted** by KI-011, and `toastBody.appendChild(button)`
+>   (`:84`) was **replaced** by `resolveSlot(toastBody).appendChild(…)` at `:303-304`, which appends
+>   into `div.toast-action-slot` rather than `#toast-body`. An anchor followed from here lands on
+>   unrelated code **with no other warning than this bullet.** The post-integration mapping is
+>   `toast_type_word_collision/PLANNING.md` §i.2. **Re-anchor by measuring, never by adding an
+>   offset.**
+>
+> **Nothing in §10.3 or §10.5 is edited.** Both remain the record of what Packet B measured and
+> signed, which was accurate when written. **Re-deriving §10.5's kill sets against the post-fix
+> suite is a packet of its own and is not authorized here.** The live mutation evidence for the
+> post-fix file is `toast_type_word_collision/PLANNING.md` §v2.8, whose every arm was executed
+> against the full 245-case suite.
+
+
 > **Count history, stated once: 42 (2026-08-15) → 44 (refresh) → 47 (Plan v2).**
 > The refresh split **B15 → B15a / B15b** and added **B43**. Plan v2 adds three more, each because a
 > **measurement** showed an existing case could not distinguish a real defect: **B25b** (partial
@@ -1671,6 +1708,10 @@ N22/N23/N24 alter the click handler — none reads or moves `toastBody.appendChi
 expectations are unchanged, and execution confirmed all seven (§10.12).
 
 ### 10.5 Mutation matrix — prediction (**N1–N32**)
+
+> ⚠️ **STALE AS OF 2026-08-27 — see the annotation under §10.3.** The kill sets below, and every
+> `toast.js:NN` anchor in this table, describe the **pre-fix** module. Not re-derived, per owner
+> ruling OD-10.
 
 > Plan v2 adds **N31** (partial `classList.remove`) and **N32** (the `:49` message guard) to the
 > refresh's N1–N30, so the matrix is **N1–N32 everywhere**.
@@ -1985,6 +2026,13 @@ to one of the four type words. Fixing it is production code and out of scope for
 §10.9 routes it to the owner as a candidate KI row, and it was **accepted there as KI-010**
 (§10.11 ruling 2) — registered in [`UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md)
 by the separate follow-up packet, still **Open** and still unfixed.
+
+> ⚠️ **STALE AS OF 2026-08-27 — see the annotation under §10.3.** **KI-010 is FIXED and its row is
+> now `Mitigated`.** Everything above is the record of what Packet B measured, and it was accurate
+> when written: *"still Open and still unfixed"*, *"Pinned, not fixed"*, and B43/B45 pinning the
+> defect are all **superseded**. B45 and B43 were deliberately **inverted** and parametrised; the
+> citation to a comment at `toast.test.js:563` no longer resolves — that comment was replaced.
+> Not re-derived, per owner ruling OD-10.
 
 > **ANNOTATION 2026-08-22 (KI follow-up) — the conclusion holds, the attribution was imprecise.**
 > `utils/errors.py` does not *set* the message at all: `error_response(code, message, …)` and
