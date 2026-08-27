@@ -4779,6 +4779,7 @@ back byte-identical.
 | **17** | [`33026310164`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026310164) | `push` / `ec1a5cb` (PR #429, JS-unit ledger rows 13–16) | `success`, **18/18** | [**`98368349021`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026310164/job/98368349021) | **`success`** | **`2026-08-27T00:17:21Z`** |
 | **18** | [`33026399702`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026399702) | `push` / `3098282` (PR #430, pyright Packet P1) | `success`, **18/18** | [**`98368648573`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026399702/job/98368648573) | **`success`** | **`2026-08-27T00:19:06Z`** |
 | **19** | [`33030127322`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33030127322) | `push` / `5b35966` (**PR #426, Packet U3b — KI-011 toast action continuity**) | `success`, **18/18** | [**`98380484320`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33030127322/job/98380484320) | **`success`** | **`2026-08-27T01:27:24Z`** |
+| **20** | [`33063751367`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33063751367) | `push` / `1211915` (PR #432, JS-unit ledger rows 17–19) | `success`, **18/18** | [**`98488650519`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33063751367/job/98488650519) | **`success`** | **`2026-08-27T10:37:48Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -4810,6 +4811,32 @@ back byte-identical.
 | **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
 | Elapsed since T0 | **≈ 4 d 7 h 37 m** of the required **14 d** |
 | Remaining to the strict mark | **≈ 9 d 16 h 23 m** |
+
+> **LEDGER EXTENSION — `2026-08-27T10:37:48Z`, row 20.** The tally immediately above was true at
+> `2026-08-27T01:36:07Z` and is **annotated, not rewritten**, exactly as the block before it was; the
+> live reading is below. **One** `main` `ci.yml` run has landed since, read at job level.
+>
+> **Why this row is being written by Packet U2's PR rather than its own.** Row 20 records the merge of
+> **#432**, the PR that wrote rows 17–19 — a ledger PR cannot record its own landing, because the run
+> it would cite does not exist until after it merges. The row is therefore appended by the **next**
+> authorized PR to touch this file, which is #427. That is the same reason row 17 (#429's own merge)
+> was written by #432 rather than by #429.
+
+| Ledger tally, at `2026-08-27T10:37:48Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **20** — all twenty `push`, all twenty 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **20** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
+| Elapsed since T0 | **≈ 4 d 16 h 38 m** of the required **14 d** |
+| Remaining to the strict mark | **≈ 9 d 7 h 22 m** |
+
+**Row 20 restarts nothing.** #432 was **documentation-only** — its whole diff is this file — so it
+changed no JS test case, no `vitest.config.js`, and no generated inventory. **T0 remains
+`2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.**
 
 **Row 19 is the one this extension exists for, and it is the row the window was most exposed to.**
 PR [#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426) (Packet U3b, KI-011) is the
