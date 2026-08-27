@@ -1155,3 +1155,423 @@ test.describe('Volume Splitter calculation failure feedback', () => {
     await expect(page.locator('.results-section')).toHaveClass(/d-none/);
   });
 });
+
+/**
+ * KI-011 — toast action continuity.
+ *
+ * Plan and owner rulings: `docs/toast_action_continuity/PLANNING.md`, Gate 1
+ * signed 2026-08-27 (§6.11). The regression is **E2E-only by owner ruling**
+ * (OQ-10): no Vitest case is added, renamed or removed, `toast.test.js` stays
+ * byte-identical at 47 cases, and the qualification window's T0 is preserved.
+ *
+ * SYNCHRONISATION. Every action is gated on the request it intended, by
+ * identity (`POST` + `/api/calculate_volume`) and by outcome (a **fulfilled
+ * 500**), counted in the route handler itself. Nothing here uses elapsed time,
+ * unrelated toast text, or the *absence* of a transition as proof that the
+ * failure path ran. `dispatchSliderEvents(..., ['change'])` fires the immediate
+ * call site only, so one slider action is exactly one request — the same reason
+ * that helper exists for the U1 block above.
+ *
+ * PROOF OF ARRIVAL. `clearResults()` is the first statement of
+ * `enterCalculateFailureState()` and the only thing that hides
+ * `.results-section` on a failure, so `d-none` on that section is the
+ * independent evidence that a targeted failure reached the failure state
+ * machine. Every negative assertion below is paired with positives that would
+ * fail first if the drive had silently done nothing.
+ */
+const TOAST_ACTION_SLOT = '#toast-body .toast-action-slot';
+const TOAST_MESSAGE = '#toast-body span.toast-message';
+const TOAST_ACTIONS = '#liveToast button:not([data-bs-dismiss="toast"])';
+const SAVE_PLAN_ROUTE = '**/api/save_volume_plan';
+const HISTORY_ROUTE = '**/api/volume_history*';
+const UNRELATED_MESSAGE = 'Backup created successfully.';
+
+/** One `change` event drives exactly one calculation, so the count is 1:1. */
+const FAILURES_PER_SLIDER_ACTION = 1;
+
+/**
+ * Counts only the 500s this handler itself fulfils for a POST, so the count can
+ * never be inflated by an unrelated request or by a response the page produced
+ * some other way.
+ */
+async function armCalculateFailures(page: Page) {
+  const state = { fail: false, failures: 0 };
+  await page.route(CALCULATE_ROUTE, async route => {
+    if (state.fail && route.request().method() === 'POST') {
+      state.failures += 1;
+      await route.fulfill({ status: 500, contentType: 'application/json', body: SERVER_ERROR_BODY });
+      return;
+    }
+    await route.continue();
+  });
+  return state;
+}
+
+async function expectFailureCount(state: { failures: number }, expected: number) {
+  await expect
+    .poll(() => state.failures, {
+      message: `expected ${expected} fulfilled 500s for POST /api/calculate_volume`,
+      timeout: 15000,
+    })
+    .toBe(expected);
+}
+
+/**
+ * Duplicated from `ui-hardening.spec.ts` rather than promoted to `fixtures.ts`:
+ * promoting it would edit that spec too and widen this diff for no gain.
+ */
+async function showToastViaModule(page: Page, type: string, message: string, duration?: number) {
+  await page.evaluate(async ({ t, m, d }) => {
+    const mod = await import('/static/js/modules/toast.js');
+    mod.showToast(t, m, d === undefined ? {} : { duration: d });
+  }, { t: type, m: message, d: duration });
+}
+
+async function raiseSaveActionToast(page: Page, planId: number) {
+  await page.evaluate(async id => {
+    const mod = await import('/static/js/modules/toast.js');
+    mod.showToast('success', `Plan #${id} saved.`, {
+      duration: 6000,
+      action: {
+        label: 'Activate for Plan tab',
+        ariaLabel: `Activate volume plan ${id}`,
+        onClick: () => { (window as unknown as Record<string, unknown>).__ki011Activated = id; },
+      },
+    });
+  }, planId);
+}
+
+test.describe('KI-011 toast action continuity', () => {
+  test.beforeEach(async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+    await page.goto(ROUTES.VOLUME_SPLITTER);
+    await waitForVolumeSplitterReady(page);
+  });
+
+  test.afterEach(async ({ consoleErrors }) => {
+    for (const entry of consoleErrors.errors) {
+      expect(
+        entry,
+        'this block tolerates exactly the U1 calculate diagnostics; anything else is a real console error',
+      ).toContain(U1_DIAGNOSTIC_MARKER);
+    }
+  });
+
+  test('t1 a still-valid action survives a later message from an unrelated flow', async ({ page }) => {
+    await raiseSaveActionToast(page, 7);
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText('Plan #7 saved.');
+
+    await showToastViaModule(page, 'error', 'Failed to load saved volume plans. Please try again.');
+
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText('Failed to load saved volume plans. Please try again.');
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+    await expect(page.locator(TOAST_ACTIONS)).toHaveAttribute('aria-label', 'Activate volume plan 7');
+  });
+
+  test('t2 the surviving action still carries its original handler', async ({ page }) => {
+    await raiseSaveActionToast(page, 11);
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+
+    await showToastViaModule(page, 'error', 'Failed to load saved volume plans. Please try again.');
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+
+    await page.locator(TOAST_ACTIONS).click();
+
+    // The closure, not merely the node: the id it fires with is the id it was
+    // built with, which a re-rendered button could easily lose.
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as Record<string, unknown>).__ki011Activated))
+      .toBe(11);
+  });
+
+  test('t3 a later toast supplying its own action replaces the standing one', async ({ page }) => {
+    await raiseSaveActionToast(page, 3);
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+
+    await page.evaluate(async () => {
+      const mod = await import('/static/js/modules/toast.js');
+      mod.showToast('error', 'Calculation failed.', {
+        action: { label: 'Retry', ariaLabel: 'Retry volume calculation', onClick: () => {} },
+      });
+    });
+
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+    await expect(page.locator(TOAST_ACTIONS)).toHaveText('Retry');
+  });
+
+  test('t4 a standing action keeps the toast alive past the later message own duration', async ({ page }) => {
+    await raiseSaveActionToast(page, 5);
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+
+    // A page-side event log, not a timed sample: `toBeVisible({timeout})`
+    // resolves immediately and would prove nothing about a later instant.
+    await page.evaluate(() => {
+      const el = document.getElementById('liveToast');
+      (window as unknown as Record<string, unknown>).__ki011HiddenAt = null;
+      el?.addEventListener('hidden.bs.toast', () => {
+        (window as unknown as Record<string, unknown>).__ki011HiddenAt = performance.now();
+      }, { once: true });
+      (window as unknown as Record<string, unknown>).__ki011T0 = performance.now();
+    });
+    await showToastViaModule(page, 'info', 'A short unrelated message.', 500);
+
+    // The 500 ms message would have taken the toast with it; the 6000 ms action
+    // must hold it open. Poll until well past 500 ms, then read the log.
+    await expect
+      .poll(() => page.evaluate(() => {
+        const w = window as unknown as Record<string, number | null>;
+        return performance.now() - (w.__ki011T0 as number);
+      }), { timeout: 5000 })
+      .toBeGreaterThan(1500);
+
+    const hiddenAt = await page.evaluate(
+      () => (window as unknown as Record<string, number | null>).__ki011HiddenAt);
+    expect(hiddenAt, 'the standing action must extend the toast past the later message duration').toBeNull();
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+  });
+
+  test('t5 an action expires with its own duration even while the toast lives on', async ({ page }) => {
+    await page.evaluate(async () => {
+      const mod = await import('/static/js/modules/toast.js');
+      mod.showToast('success', 'Plan #9 saved.', {
+        duration: 700,
+        action: { label: 'Activate for Plan tab', ariaLabel: 'Activate volume plan 9', onClick: () => {} },
+      });
+    });
+    // Paired positive: it really was raised, so the disappearance below is a
+    // transition and not a drive that never happened.
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+
+    await showToastViaModule(page, 'info', 'A long unrelated message.', 9000);
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText('A long unrelated message.');
+
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(0);
+    await expect(page.locator('#liveToast')).toHaveClass(/show/);
+  });
+
+  test('t5b an expired action is inert, not merely invisible', async ({ page }) => {
+    await page.evaluate(async () => {
+      const w = window as unknown as Record<string, unknown>;
+      w.__ki011Activated = null;
+      const mod = await import('/static/js/modules/toast.js');
+      mod.showToast('success', 'Plan #13 saved.', {
+        duration: 700,
+        action: {
+          label: 'Activate for Plan tab',
+          ariaLabel: 'Activate volume plan 13',
+          onClick: () => { w.__ki011Activated = 13; },
+        },
+      });
+    });
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+
+    await showToastViaModule(page, 'info', 'A long unrelated message.', 9000);
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(0);
+
+    // Nothing is left to click, and nothing fires.
+    expect(await page.evaluate(
+      () => (window as unknown as Record<string, unknown>).__ki011Activated)).toBeNull();
+  });
+
+  test('t6 dismissing the toast invalidates the standing action', async ({ page }) => {
+    await raiseSaveActionToast(page, 21);
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+
+    await page.locator('#liveToast .btn-close').click();
+    await expect(page.locator('#liveToast')).not.toHaveClass(/show/);
+
+    await showToastViaModule(page, 'info', 'An unrelated later message.');
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText('An unrelated later message.');
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(0);
+  });
+
+  test('t7 the action stays inside #toast-body, where expectToast reads', async ({ page }) => {
+    await raiseSaveActionToast(page, 4);
+
+    // The contract `:340` depends on: both strings inside #toast-body's text.
+    await expect(page.locator(SELECTORS.TOAST_BODY))
+      .toHaveText(/Plan #\d+ saved\.\s*Activate for Plan tab/i);
+    await expect(page.locator(TOAST_ACTION_SLOT)).toHaveCount(1);
+    // Exactly one message span, so the Vitest B26 contract still describes the DOM.
+    await expect(page.locator('#toast-body span')).toHaveCount(1);
+  });
+
+  test('t8 focus on the action survives a later message', async ({ page }) => {
+    await raiseSaveActionToast(page, 8);
+    await page.locator(TOAST_ACTIONS).focus();
+    await expect(page.locator(TOAST_ACTIONS)).toBeFocused();
+
+    await showToastViaModule(page, 'error', 'Failed to load saved volume plans. Please try again.');
+
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText('Failed to load saved volume plans. Please try again.');
+    await expect(page.locator(TOAST_ACTIONS)).toBeFocused();
+  });
+
+  test('t9 a repeat failure re-announces once an unrelated toast has replaced the message', async ({ page }) => {
+    const state = await armCalculateFailures(page);
+    await calculateSuccessfully(page);
+
+    state.fail = true;
+    await dispatchSliderEvents(page, 'Chest', 15, ['change']);
+    await expectFailureCount(state, FAILURES_PER_SLIDER_ACTION);
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText(CALCULATE_FAILURE_MESSAGE);
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toBeVisible();
+
+    await showToastViaModule(page, 'success', UNRELATED_MESSAGE, 9000);
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText(UNRELATED_MESSAGE);
+    // The KI-011 fix really did preserve U1's Retry across that replacement,
+    // which is precisely what makes the button probe the wrong question here.
+    await expect(page.locator(TOAST_RETRY)).toHaveCount(1);
+
+    await dispatchSliderEvents(page, 'Chest', 17, ['change']);
+    await expectFailureCount(state, FAILURES_PER_SLIDER_ACTION * 2);
+    // Proof of arrival, independent of anything the toast does.
+    await expect(page.locator('.results-section')).toHaveClass(/d-none/);
+
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText(CALCULATE_FAILURE_MESSAGE);
+  });
+
+  test('t10 a later success does not dismiss an unrelated toast', async ({ page }) => {
+    const state = await armCalculateFailures(page);
+    await calculateSuccessfully(page);
+
+    state.fail = true;
+    await dispatchSliderEvents(page, 'Chest', 15, ['change']);
+    await expectFailureCount(state, FAILURES_PER_SLIDER_ACTION);
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText(CALCULATE_FAILURE_MESSAGE);
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toBeVisible();
+
+    await showToastViaModule(page, 'success', UNRELATED_MESSAGE, 6000);
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText(UNRELATED_MESSAGE);
+
+    /*
+     * PRECONDITION, asserted immediately before the success and not merely
+     * earlier in the test. The state this arm exists to cover is "our ACTION
+     * stands while a STRANGER'S MESSAGE is on screen", and U1's action lives
+     * only 3000 ms. Without this assertion an expired action would make the
+     * button-only guard return early for the wrong reason, and the arm would
+     * pass against the very defect it is meant to catch -- measured, before it
+     * was added.
+     */
+    state.fail = false;
+    await expect(
+      page.locator(TOAST_RETRY),
+      'the standing action must still be live, or this arm cannot discriminate',
+    ).toHaveCount(1);
+
+    /*
+     * A COUNTER, not a state assertion. `toHaveClass(/show/)` retries until it
+     * passes and therefore succeeds on its first poll, long before a hide
+     * transition would have removed the class -- so it goes green even when the
+     * guard did dismiss the toast. Measured: with the button-only guard in
+     * place, the class assertion passed while the toast was being dismissed.
+     * Counting `hidden.bs.toast` leaves a permanent mark instead.
+     */
+    await page.evaluate(() => {
+      const w = window as unknown as Record<string, unknown>;
+      w.__ki011Hidden = 0;
+      document.getElementById('liveToast')?.addEventListener('hidden.bs.toast', () => {
+        w.__ki011Hidden = (w.__ki011Hidden as number) + 1;
+      });
+    });
+
+    await Promise.all([
+      page.waitForResponse(response =>
+        response.url().includes('/api/calculate_volume') && response.status() === 200),
+      page.locator(SELECTORS.CALCULATE_VOLUME_BTN).click(),
+    ]);
+    await expect(page.locator('.results-section')).not.toHaveClass(/d-none/);
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toHaveCount(0);
+
+    // The success cleared U1's own state, but the toast on screen is a
+    // stranger's and must be left alone.
+    /*
+     * Settle before reading the counter. Bootstrap's hide is a ~150 ms
+     * transition, so a dismissal in flight leaves the counter at 0 and the
+     *  class still on the element -- measured: without this wait the arm
+     * went green against the button-only guard that WAS dismissing the toast.
+     * A page-side timer rather than a driver-side hard wait, so the inventory's
+     * hard-wait surface for this spec does not move. (Its metric is a literal
+     * string scan, so naming the driver API even in a comment would move it.)
+     */
+    await page.evaluate(() => new Promise(resolve => { setTimeout(resolve, 900); }));
+
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText(UNRELATED_MESSAGE);
+    await expect(page.locator('#liveToast')).toHaveClass(/show/);
+    expect(
+      await page.evaluate(() => (window as unknown as Record<string, unknown>).__ki011Hidden),
+      'a success must not dismiss a toast whose message belongs to someone else',
+    ).toBe(0);
+  });
+
+  test('t11 a repeat failure stays suppressed while our own message still stands', async ({ page }) => {
+    const state = await armCalculateFailures(page);
+    await calculateSuccessfully(page);
+
+    state.fail = true;
+    await dispatchSliderEvents(page, 'Chest', 15, ['change']);
+    await expectFailureCount(state, FAILURES_PER_SLIDER_ACTION);
+    await expect(page.locator('#liveToast')).toHaveClass(/show/);
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText(CALCULATE_FAILURE_MESSAGE);
+
+    // It auto-hides on its own. The MESSAGE survives that; the ACTION does not,
+    // which is exactly why the announce condition asks about the message.
+    await expect(page.locator('#liveToast')).not.toHaveClass(/show/, { timeout: 9000 });
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText(CALCULATE_FAILURE_MESSAGE);
+    await expect(page.locator(TOAST_RETRY)).toHaveCount(0);
+
+    /*
+     * A COUNTER, not a state assertion. `not.toHaveClass(/show/)` retries until
+     * it passes, so a toast that is announced and then auto-hides would satisfy
+     * it -- the arm would go green on a build that announced. Counting
+     * `shown.bs.toast` is immune to that: an announcement leaves a permanent
+     * mark whether or not the toast is still visible when we look.
+     */
+    await page.evaluate(() => {
+      const w = window as unknown as Record<string, unknown>;
+      w.__ki011Shown = 0;
+      document.getElementById('liveToast')?.addEventListener('shown.bs.toast', () => {
+        w.__ki011Shown = (w.__ki011Shown as number) + 1;
+      });
+    });
+
+    await dispatchSliderEvents(page, 'Chest', 17, ['change']);
+    await expectFailureCount(state, FAILURES_PER_SLIDER_ACTION * 2);
+    // Proof of arrival: clearResults() ran, so the failure really did reach the
+    // failure state machine.
+    await expect(page.locator('.results-section')).toHaveClass(/d-none/);
+    await expect(page.locator(CALCULATE_ERROR_REGION)).toBeVisible();
+
+    expect(
+      await page.evaluate(() => (window as unknown as Record<string, unknown>).__ki011Shown),
+      'a repeat slider failure must not re-announce while our own message still stands',
+    ).toBe(0);
+  });
+
+  test('t12 replacing a toast mid-transition raises no uncaught error', async ({ page }) => {
+    // A DEDICATED collector. The shared `consoleErrors` fixture filters both
+    // 'classList' and 'Cannot read properties of null' (fixtures.ts) and is
+    // therefore blind to exactly the defect this arm exists for.
+    const uncaught: string[] = [];
+    page.on('pageerror', error => uncaught.push(error.message));
+
+    await page.evaluate(async () => {
+      const mod = await import('/static/js/modules/toast.js');
+      mod.showToast('success', 'Plan #6 saved.', {
+        duration: 6000,
+        action: { label: 'Activate for Plan tab', ariaLabel: 'Activate volume plan 6', onClick: () => {} },
+      });
+      // Same turn: the replacement lands inside the show transition, which is
+      // where dispose() used to null Bootstrap's element out from under a
+      // queued callback.
+      mod.showToast('error', 'Failed to load saved volume plans. Please try again.');
+    });
+
+    // Paired positive: the replacement really happened.
+    await expect(page.locator(TOAST_MESSAGE)).toHaveText('Failed to load saved volume plans. Please try again.');
+    await expect(page.locator(TOAST_ACTIONS)).toHaveCount(1);
+
+    expect(uncaught, 'a mid-transition replacement must not throw inside Bootstrap').toEqual([]);
+  });
+});

@@ -1143,7 +1143,7 @@ confirmation is re-armed with no announcement and no focus target — which is w
 ⚠️ **Added per the diff-stage review.** Plan v1's `§Scope` is frozen and lists only **five** `clearPendingAction()` call sites (A-N1). This is the governing statement.
 
 - **In**: the save-first click listener at [`:1022-1051`](../../static/js/modules/backup-center.js#L1022-L1051); one new module-scoped counter and two increments; one new module-private helper; the mid-flight lock/unlock; one `test.describe` appended to [`e2e/program-backup.spec.ts`](../../e2e/program-backup.spec.ts) plus the mandatory [`:155`](../../e2e/program-backup.spec.ts#L155) deletion; a `KI-013` row; the `DUPLICATION_REGISTRY` row-10 residual; the regenerated [`docs/test_inventory/`](../test_inventory/) artifact; this document.
-- **Out — `clearPendingAction()` and all SIX of its call sites.** Not one line of [`:148-170`](../../static/js/modules/backup-center.js#L148-L170) changes, and **none** of [`:538`](../../static/js/modules/backup-center.js#L538), [`:575`](../../static/js/modules/backup-center.js#L575), [`:635`](../../static/js/modules/backup-center.js#L635), [`:860`](../../static/js/modules/backup-center.js#L860), **[`:870`](../../static/js/modules/backup-center.js#L870)** or [`:891`](../../static/js/modules/backup-center.js#L891) is removed, moved or made conditional. The Cancel binding at [`:1059`](../../static/js/modules/backup-center.js#L1059) is likewise untouched.
+- **Out — `clearPendingAction()` and all SIX of its call sites.** ⚠️ **AMENDED 2026-08-27 (§I.1 C8): one line of the function DOES change** — the counter increment §v2.3(A) authorizes. The scope statement holds for the **call sites**. Not one other line of [`:148-170`](../../static/js/modules/backup-center.js#L148-L170) changes, and **none** of [`:538`](../../static/js/modules/backup-center.js#L538), [`:575`](../../static/js/modules/backup-center.js#L575), [`:635`](../../static/js/modules/backup-center.js#L635), [`:860`](../../static/js/modules/backup-center.js#L860), **[`:870`](../../static/js/modules/backup-center.js#L870)** or [`:891`](../../static/js/modules/backup-center.js#L891) is removed, moved or made conditional. The Cancel binding at [`:1059`](../../static/js/modules/backup-center.js#L1059) is likewise untouched.
 - **Out — code**: `refreshBackupCenter()`, `loadBackupDetails()`, `renderBackupDetails()`, `handleConfirmAction()`, `handleSaveSubmit()`, the inline metadata editor; [`program-backup.js`](../../static/js/modules/program-backup.js) and therefore `showAutoBackupBanner()`; [`templates/backup.html`](../../templates/backup.html); [`toast.js`](../../static/js/modules/toast.js); [`fetch-wrapper.js`](../../static/js/modules/fetch-wrapper.js); [`routes/program_backup.py`](../../routes/program_backup.py); [`utils/program_backup.py`](../../utils/program_backup.py); [`utils/auto_backup.py`](../../utils/auto_backup.py); the `/api/backups*` contracts, status codes and payloads; DB schema and backup `schema_version`; any `scss/**` or `static/css/**` edit; any new `.spec.ts` file and therefore any [`ci.yml`](../../.github/workflows/ci.yml) edit; branch protection.
 - **Out — U1's residue, named so it cannot drift in**: U1's AA/contrast debt; U1's coverage gaps; **U1-FOLLOWUP-1**; **KI-010** and **KI-011**; Dependabot PRs **#415** and **#416**; shared toast behavior of any kind; unrelated Backup Center cleanup.
 - **Out — debt owned elsewhere**: [`MASTER_HANDOVER.md`](../MASTER_HANDOVER.md), [`ACTIVE_DEVELOPMENT.md`](../ACTIVE_DEVELOPMENT.md), [`LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md), packets U3, R0–R3, V1, Track P1, Track D1 — and the five stale ledger-count restatements listed under *Flagged, not edited*.
@@ -1249,7 +1249,7 @@ Two constraints, stated because neither is obvious:
 - **The node must be created idempotently.** `showPendingAction()` runs on every Restore click *and* on every re-assert, so an unguarded `insertAdjacentHTML` stacks a second and a third copy of the note on the same panel. Create-or-reuse by id, and set `textContent`.
 - **[`templates/backup.html`](../../templates/backup.html) stays unmodified**, exactly as under (D) and (E). All three decided user-facing changes are applied from JS, which is what keeps the `templates/**` gate row and the visual matrix out of §v2.10.
 
-**Nothing else changes.** `clearPendingAction()` and all **six** of its call sites are byte-identical
+**Nothing else changes.** ⚠️ **AMENDED 2026-08-27 (§I.1 C8): the CALL SITES are byte-identical; `clearPendingAction()` itself is not** — it gains the one increment §v2.3(A) authorizes two paragraphs above, which this sentence contradicts as written. `clearPendingAction()` and all **six** of its call sites are byte-identical
 before and after. `showPendingAction()` gains one counter increment (plus (E) if chosen).
 `refreshBackupCenter()`, `loadBackupDetails()`, `renderBackupDetails()`, `handleConfirmAction()`,
 `handleSaveSubmit()` and the inline editor are untouched.
@@ -1309,7 +1309,7 @@ and by the counter — except row 10, which the lock does not reach and the coun
 ⚠️ **Two PRs, two diffs — never summed** (A-B3, sharpened by the diff-stage review). Rows **1–7** are the **implementation** PR's diff, which does not exist yet. Row **8** is **this planning PR's**, already written. So:
 
 - **This planning PR: 2 files** — row 7 (this document) and row 8 (the ledger rider). No production file, no test file, no configuration file. **The Gate 1 signature did not move this count**: signing edits row 7 again, it does not add a row.
-- **The implementation PR: 7 files** — rows 1–7, plus **ledger row 14**, which its own merge mints. ⚠️ **Re-derived against the four decisions, and still 7.** OD-3(b), OD-5(a) and OD-6(a) are each applied from JS inside row 1, and OD-1(i) creates nothing — so no decision adds an eighth path, and in particular none of them adds [`templates/backup.html`](../../templates/backup.html).
+- **The implementation PR: 7 files** — rows 1–7, plus **ledger row 14**, which its own merge mints. ⚠️ **Re-derived against the four decisions, and still 7.** ⚠️ **AMENDED 2026-08-27 (§I.1 C1 and C2): the shipped implementation PR carries EIGHT files** — these seven plus row 8, [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md), explicitly authorized by the owner as the ledger rider for **row 13**. The *functional/planning* count is still seven. **And "row 14" is no longer safe to write**: PR #415 merged first and is ahead of this PR in the row queue, so the ledger's own *"whichever lands first takes the next unclaimed row"* rule applies. OD-3(b), OD-5(a) and OD-6(a) are each applied from JS inside row 1, and OD-1(i) creates nothing — so no decision adds an eighth path, and in particular none of them adds [`templates/backup.html`](../../templates/backup.html).
 
 Row 7 appears in both, because both PRs edit this document. §v2.11's blast radius is the implementation PR's alone.
 
@@ -1317,7 +1317,7 @@ Row 7 appears in both, because both PRs edit this document. §v2.11's blast radi
 |---|---|---|---|
 | 1 | [`static/js/modules/backup-center.js`](../../static/js/modules/backup-center.js) | modify | The whole production change: one counter, two increments, one helper, a rewritten save-first tail with lock/unlock. §v2.3. |
 | 2 | [`e2e/program-backup.spec.ts`](../../e2e/program-backup.spec.ts) | modify | One `test.describe` appended (`u1`–`u11`), plus the mandatory `:155` deletion. **All eleven arms are mandatory** — `u11` stopped being conditional when the owner chose **OD-6(a)**. **Not** in `ci.yml`'s 25-spec list ([`:341-365`](../../.github/workflows/ci.yml#L341-L365)); it runs in its own **required** job, so extending it never approaches the `== 25` pin. |
-| 3 | [`docs/UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md) | modify | Add **`KI-013`** — next after `KI-012` at [`:107`](../UI_SCENARIOS_GAP_ANALYSIS.md#L107) — per the file's rule at [`:109-112`](../UI_SCENARIOS_GAP_ANALYSIS.md#L109-L112). |
+| 3 | [`docs/UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md) | modify | Add **`KI-013`** — next after `KI-012` at [`:107`](../UI_SCENARIOS_GAP_ANALYSIS.md#L107) — per the file's rule at [`:110-113`](../UI_SCENARIOS_GAP_ANALYSIS.md#L110-L113) — ⚠️ re-anchored after the diff, since inserting `KI-013` pushed the rule down one line. |
 | 4 | [`docs/DUPLICATION_REGISTRY.md`](../DUPLICATION_REGISTRY.md) | modify | Row 10 ([`:49`](../DUPLICATION_REGISTRY.md#L49)) names its live residual as *"the refresh/confirm race, owned by **Packet U2**"*. Discharging it falsifies that present tense. **All five of its `backup-center.js` anchors — `:148-170`, `:172-183`, `:400-456`, `:580-637` and `:635` — were re-verified at `06a3f41` and are exact** — re-anchor by measuring after the diff, never by applying one drift figure. |
 | 5 | [`docs/test_inventory/TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) | regenerate | Per-spec Playwright counts move. |
 | 6 | [`docs/test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md) | regenerate | Same artifact, second file. **Counted separately here** — Plan v1 folded them into one row, which is part of how its "six paths" was wrong. |
@@ -1479,8 +1479,8 @@ background to OD-1.
 
 ### v2.11 Scope containment, blast radius, rollback
 
-**Blast radius of the implementation PR: seven files** (§v2.6 rows 1–7), of which **one** is production code and **one** is a test file. **This planning PR's own blast radius is two documentation files** and is not counted here. `clearPendingAction()` and all **six** of its call sites are byte-identical before and
-after.
+**Blast radius of the implementation PR: seven files** (§v2.6 rows 1–7), of which **one** is production code and **one** is a test file. ⚠️ **AMENDED 2026-08-27 — eight**, per §I.1 C1: the ledger rider is the eighth. It adds no production, test or configuration surface, so the rollback reasoning below is unchanged; `git revert` of the squash commit would also reach the ledger row, which **must not be reverted** — a row records a `main` run that happened. **This planning PR's own blast radius is two documentation files** and is not counted here. `clearPendingAction()`'s **six call sites** are byte-identical before and
+after; ⚠️ the function itself gains the one increment §v2.3(A) authorizes — §I.1 C8.
 
 **Rollback — any one of these: revert the whole packet, do not patch forward:**
 
@@ -1492,7 +1492,7 @@ after.
 6. `Test Inventory Drift` reds on a surface **other than** per-spec Playwright counts.
 7. Any of the **22** surviving pre-existing tests in `program-backup.spec.ts` reds — `:155` is an *assertion*, not a test, so deleting it removes no test — ⚠️ **carve-out (T-B5): [`program-backup.spec.ts:79`](../../e2e/program-backup.spec.ts#L79) is a documented known-red** ([`QUALITY_GATE.md:224`](../ai_workflow/QUALITY_GATE.md)). If it reds, re-run it **in isolation** and record the result; it does not trigger rollback. **The citation survives this edit**: `:155` is deleted (shifting only lines > 155) and the new block is appended, so `:79` stays `:79`.
 
-**Revert mechanics**: `git revert` of the **implementation** PR's squash commit restores all seven of its files. It does **not** reach ledger row 12, which belongs to this planning PR's commit — and must not be reverted with it in any case: a ledger row records a `main` run that happened and stays true regardless of what the code does afterwards. No DB
+**Revert mechanics**: `git revert` of the **implementation** PR's squash commit restores all **eight** of its files (⚠️ amended with §v2.11's blast radius above, per §I.1 C1 — seven functional/planning plus the ledger rider). It does **not** reach ledger row 12, which belongs to this planning PR's commit — and must not be reverted with it in any case: a ledger row records a `main` run that happened and stays true regardless of what the code does afterwards. No DB
 migration, no schema change, no persisted state, no server change. ⚠️ **The OD-3(a) caveat is
 discharged by the decision**: the owner chose **(b)**, so U2 does not make duplicate
 `Pre-restore snapshot` rows an expected outcome of the flow. The general point survives in a smaller
@@ -1560,13 +1560,13 @@ the announcement and the focus target.
 1. ✅ **DONE — 2026-08-26.** Owner answered **OD-1 (i)**, **OD-3 (b)**, **OD-5 (a)** and **OD-6 (a)**. (OD-2 retired, OD-4 demoted — neither needed an answer.)
 2. ✅ **DONE — 2026-08-26.** Plan v2 amended against those answers, and every restatement re-derived. ⚠️ **Amending a criterion falsifies every restatement of it**, so this document was grepped for restatements before the amendment was called done. **Two were falsified rather than merely confirmed**, and both are marked ⚠️ where they live: `u1`'s "both buttons `toBeEnabled()`" (T-NB7, inverted for save-first by OD-3(b)), and §v2.8's "no DOM state distinguishes" oracle rationale (narrowed by the same decision). A third consequence had no restatement to amend at all — **OD-5(a) needed a production clause Plan v2 did not have**, which is why §v2.3 gains **(F)**.
 3. ✅ **Gate 1 SIGNED — 2026-08-26** (*Sign-off*). ⚠️ **This planning PR has NOT merged**, and that merge is the one remaining precondition. Steps 4 onward are unstarted.
-4. Fresh worktree on `main` as it stands at that time.
-5. Arms `u1`–`u11` written **first** and observed: `u1`, `u2`, `u7`, `u8`, `u9`, `u10` must **red** against unchanged code; `u3`–`u6` must be **green** (they encode existing behavior).
-6. §v2.13 obligation 1 — the 20-run `:155` measurement — **before** the deletion.
-7. Production change (§v2.3).
-8. Mutations **M1–M11** executed; measured results recorded, predictions replaced.
-9. Gates §v2.10 steps 1–6 and 9; §v2.13 obligation 2.
-10. `code-reviewer` + `unslop-reviewer` on the staged diff.
+4. ✅ **DONE — 2026-08-27.** Fresh worktree from `origin/main` at exactly `52c44c4`.
+5. ✅ **DONE.** Arms `u1`–`u11` written **first** and observed. ⚠️ **This step's prediction omitted `u11`, which OD-6(a) makes mandatory — corrected as a clerical restatement error (§I.1 C3) — and its `u3` and `u10` predictions were falsified by measurement.** Measured split: **7 red / 4 green**, in §I.2.
+6. ✅ **DONE.** §v2.13 obligation 1 — the 20-run `:155` measurement — run **twice**, once before the production change and once on the patched branch (the obligation and this step disagreed about which), and in both cases **before** the deletion. ⚠️ **20/20 green both times, so obligation 1's re-derivation trigger fired and the deletion was re-derived before being made.** §I.3.
+7. ✅ **DONE.** Production change (§v2.3), with the four implementation-level corrections in §I.1 (C4–C7).
+8. ✅ **DONE.** Mutations **M1–M11** executed individually and reverted between runs; measured exit codes recorded and predictions replaced. §I.7.
+9. ✅ **DONE.** Gates §v2.10 steps 1–6 and 9; §v2.13 obligation 2 measured at **0 frames** across 5 runs. §I.4, §I.8.
+10. ✅ **DONE.** `code-reviewer` + `unslop-reviewer` on the staged diff; dispositions in the PR body.
 11. PR with §v2.7's migration notes, and **ledger row 13** as a rider. **Do not merge without explicit owner confirmation naming the PR.**
 
 ---
@@ -1720,6 +1720,344 @@ one of them from "when U2 ships" to "now"**:
 - [`OPEN_WORK_EXECUTION_PLAN.md:155`](../OPEN_WORK_EXECUTION_PLAN.md#L155) — Packet U2's `**Status:** Execute — ready to enter its **own** Gate 1` line. ⚠️ **Stale from 2026-08-26**, because U2 has now entered that gate and passed it. A status packet owns the repair; see the closing paragraph of *Sign-off*.
 
 ---
+
+---
+
+## Implementation record — 2026-08-27
+
+**This section is written by the implementation PR and records what was MEASURED.** Where a Plan v2
+prediction was falsified, the measurement stands and the prediction is marked as replaced — §v2.9's
+rule ("results are measured and recorded, never carried forward as predictions") and §v2.13's four
+evidence obligations govern this section. Nothing here re-opens a signed criterion.
+
+### I.0 Ground truth
+
+| Fact | Value |
+|---|---|
+| Base | `origin/main` = **`52c44c43a9d4f643437057085de233b1e9b4b689`**, verified before the worktree was created |
+| Gate 1 planning PR | [#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424) **MERGED** `2026-08-26T20:41:30Z`, squash **`52c44c4`** — the one remaining precondition in §*Sequence* step 3 |
+| Post-merge run | [`33011674872`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33011674872), `success`, **18/18** |
+| `js-unit` job | [`98319257214`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33011674872/job/98319257214), `completed` / **`success`** / **`2026-08-26T20:42:09Z`**, **13 files / 231 cases** — **ledger row 13**, carried by this PR as its rider |
+| Worktree | `Hypertrophy-Toolbox-v3-main-u2-backup-save-first-continuity`, branch `feat/u2-backup-save-first-continuity`, fast-forwarded to `52c44c4`, isolated `data/database.db` |
+
+⚠️ **`main` advanced during implementation.** PR **#415** (Dependabot `pyinstaller` 6.22.0 → 6.22.2)
+merged as **`7a64d2e`** at `2026-08-26T21:56:38Z`, after this branch was cut. It touches no U2
+surface. The base of this branch is deliberately left at `52c44c4`, the SHA the packet was
+authorized against; the PR's checks run against the merge with `main` as it then stands.
+
+### I.1 Clerical corrections applied, with the authority for each
+
+**None of these changes a signed criterion.** Each repairs an arithmetic or restatement error, or an
+implementation-level defect that the plan's own measurement obligations were written to catch.
+
+| # | What the plan says | What was done, and why |
+|---|---|---|
+| **C1** | §v2.6: *"The implementation PR: 7 files"*; §v2.11: *"Blast radius … seven files"* and its *Revert mechanics* sentence; and the **signed** *Sign-off* line *"the **seven** changed paths in §v2.6's Artifacts table"*. | **Eight files.** The owner explicitly authorized [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) as the eighth, solely to append measured **ledger row 13**. The functional/planning count is still **seven**; the eighth is the ledger rider. §v2.6 row 8's *"already modified by THIS PR"* note described the *planning* PR and is now dated rather than live. |
+| **C2** | §v2.6 row 8 and §v2.7 note 9: this PR carries row 13, *"its own merge then mints row 14"*. | Row 13 is carried, as signed. **"Row 14" is no longer safe to write**: #415 merged first and its `main` run was still in progress at the ledger read, so it is ahead of this PR in the queue. The ledger's own rule — *"whichever lands first takes the next unclaimed row"* — is applied instead of a fixed number. |
+| **C3** | §*Sequence* step 5 lists the arms that must red against unchanged code and omits `u11`. | Corrected as a clerical restatement error: **OD-6(a)** is signed, so `u11` is mandatory and must red pre-implementation. It did. |
+| **C4** | §v2.3(B) condition 1: `pendingActionGeneration === capturedGeneration`. | **Off by exactly one, and measured so.** `refreshBackupCenter()` reaches `clearPendingAction()` at the `renderBackupDetails()` call, which is *the* increment site — so on the quiet path the counter is always `capturedGeneration + 1` and the guard as written **never re-asserts**. Measured: with the literal guard, `u1`, `u2`, `u3`, `u7`, `u9` and `u11` all stayed red after the production change. The handler now passes `capturedGeneration + 1`, named at the call site as *the one intent transition the refresh performs on its own*. Every state in §v2.4 was re-derived against it and all sixteen hold. |
+| **C5** | §v2.3(B) condition 4: toast *"on failure of condition 3 specifically"*; §v2.3 says failures of 1 **and 2** are silent. | **§v2.4 state 6 and arm `u9` contradict that**: in state 6 conditions 2 **and** 3 both fail and the toast is required. Implemented as: **condition 1 failing is silent** (the user acted), and **2 or 3 failing raises the toast only when the captured id is absent from the refreshed `backupsCache`** — the literal test of *"the target is gone"*. That keeps §v2.4 states 4 and 5 silent, which a bare `else` would not. |
+| **C6** | §v2.3(C): re-assert at step 5, unlock at step 6. | **Swapped, because the signed end state is otherwise unreachable.** `setDetailActionDisabled(false)` re-enables `#backup-restore-save-first`, so running it *after* the re-assert would undo **OD-3(b)**'s `disabled` relabel, and `#backup-action-cancel` cannot take focus while disabled, so **OD-6(a)** would silently fail. Unlock and re-assert are adjacent and synchronous — nothing awaits between them, so no gesture can interleave. |
+| **C7** | **OD-6(a)** option (a) says the `role` and focus move happen *"when re-asserting"*; §v2.3(E) states it unqualified inside `showPendingAction()`. | Implemented **on the re-assert path only**, in `reassertPendingRestore()` alongside clause (D). This matches the option text the owner signed, the user's own instruction (*"announce the reasserted confirmation"*), and the design's *no signature changes* property — scoping it inside `showPendingAction()` would require a new parameter. A first Restore or Delete click is therefore unchanged: it neither moves focus nor announces. |
+| **C8** | §v2.1a: *"Not one line of `:148-170` changes"*; §v2.3: *"`clearPendingAction()` and all six of its call sites are byte-identical"*; §v2.11, same claim; and §I.8a's first draft, which reasoned from it. | ⚠️ **Raised by both reviewers.** The **six call sites** are byte-identical; **`clearPendingAction()` itself is not** — it gains the one increment §v2.3(A) explicitly authorizes two paragraphs above the sentence that denies it. All four sites are narrowed in place. No behavior changes; the scope boundary the sentences were protecting is unaffected. |
+| **C9** | §v2.3(B) condition 1, as corrected by C4, is an **equality** test on `capturedGeneration + 1`. | ⚠️ **Raised by `code-reviewer` (CR-1) and fixed.** The premise that the refresh contributes exactly one increment **fails on §v2.4 state 11**: when `loadBackupDetails()` strands a response at its stale-response guard, `renderBackupDetails()` never runs and the refresh contributes **zero** — so a concurrent gesture's increment substitutes for the missing one and the sum still matches. `#backup-search` and `#backup-sort` are outside the lock, so it is user-reachable, and it falsifies **I5**. `detailRequestSequence` is now captured alongside and the helper requires `detailRequestSequence === capturedDetailSequence + 1`: the refresh bumps it exactly once, and every concurrent search, sort or list gesture bumps it again. §v2.4 row 11's stated justification — *"the concurrent path moved `G` → condition 1 blocks"* — was **backwards**, and this is the guard that makes the row true. |
+| **C10** | §v2.3(C) step 6 unlocks and stops. | ⚠️ **Raised by `code-reviewer` (CR-2) and fixed.** The success tail relied on `clearPendingAction()` having run inside the refresh to undo the spinner labels. On the same stranded-render path it does not, so the handler would exit having just unlocked an **enabled** confirm button still reading `Working...` — clicking which runs a real restore. That is §0.1's named primary hazard (*"any fix that stops `:635` from running on this path must take over that reset"*) surviving in a narrower form. The success tail now restores both labels when `pendingAction !== null`, i.e. only when the teardown did not run; on the quiet path the branch is skipped and OD-3(b)'s relabel is untouched. |
+
+### I.2 Pre-implementation arm split — measured against unchanged production code
+
+Run: `npx playwright test e2e/program-backup.spec.ts --project=chromium`, arms only. **7 red, 4 green.**
+
+| Arm | Predicted (§*Sequence* step 5 + C3) | **Measured** | Note |
+|---|---|---|---|
+| `u1` | red | **RED** | oracle timeout — only `[true]` is ever recorded |
+| `u2` | red | **RED** | via `u1`'s drive |
+| `u3` | green | **RED** ⚠️ | **prediction replaced.** `u3`'s drive is *"`u1`, then Cancel"*; `u1`'s re-assert does not exist pre-fix, so `u3` cannot be green pre-fix. §v2.8 correctly calls `u3` non-vacuous; the *sequence*'s green prediction was the error |
+| `u4` | green | **GREEN** | §0.3 arm C |
+| `u5` | green | **GREEN** | §0.3 arm D |
+| `u6` | green | **GREEN** | §0.3 arm E |
+| `u7` | red | **RED** | on the mid-flight `pointer-events: none` assertion — the lock does not exist pre-fix |
+| `u8` | red | **RED** | on the mid-flight `#backup-action-cancel` `toBeDisabled()` assertion |
+| `u9` | red | **RED** | no warning toast exists pre-fix |
+| `u10` | red | **GREEN** ⚠️ | **prediction replaced.** Its first run red-ed **on the console-error collector, not on its own assertions**: `u10`'s deliberate 500 makes `program-backup.js:46` log the envelope. The block's `afterEach` was rewritten to the shape U1 established in `volume-splitter.spec.ts` — tolerate exactly that one diagnostic, fail on anything else. With that fixed, `u10` is **GREEN pre-fix**, which is correct: it guards the *untouched* `catch`, so it is a control arm, not a repair arm. The 7 red / 4 green split above counts this cell as green; the pre-rewrite red is recorded rather than quietly dropped |
+| `u11` | red (per C3) | **RED** | no `role` and no focus move exist pre-fix |
+
+### I.3 Evidence obligation 1 — the `:155` 20-run measurement
+
+§v2.13 obligation 1 and §*Sequence* step 6 disagree about *when* to run this: the obligation says
+*"against the patched branch"*, the sequence puts it before the production change. **Both were run**,
+20 iterations each, `--repeat-each=20 --workers=1`, on the unmodified `:139-156` test.
+
+| Branch state | Result |
+|---|---|
+| Unchanged production, `:155` present | **20 passed / 0 failed** |
+| Implemented branch, `:155` still present | **20 passed / 0 failed** |
+
+⚠️ **T-B2's bistability mechanism is FALSIFIED, and the deletion was re-derived before it was made**,
+exactly as §v2.13 obligation 1 requires. The race T-B2 derived from source order is real but its
+window is far smaller than the latency of the Playwright actions that would have to land inside it:
+§0.7(a) measured the whole refresh at **~25 ms** from click to teardown, while `:152`'s `expectToast`
+poll and `:153`'s `fill()` take longer than that to be driven. The window closes before the fill lands.
+
+**The deletion is still mandatory, on the ground that survived.** §0.5's *first* correction — that
+`:155` is **over-determined** and cannot fail — was confirmed by all three reviewers and is
+untouched by this measurement. It is now measured on both sides: `:155` passes on the implemented
+branch **and** on the M1 mutant, so it cannot discriminate between a repair and no repair. Leaving it
+in place would preserve a latent trap and, on a slower host, a real flake. `u6` carries the
+search-clears claim in a state where it can fail; `u1` carries the visibility claim through a
+transition oracle.
+
+### I.4 Evidence obligation 2 — the zero-frame measurement
+
+Measured on the **implemented** branch with a `requestAnimationFrame` counter sampled inside a
+`MutationObserver` on `#backup-action-confirm[hidden]`, across **5** runs:
+
+| Run | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Frames between `hidden: true` and `hidden: false` | **0** | **0** | **0** | **0** | **0** |
+
+**Zero in every run. OD-2 stays retired**, and §0.7(a)'s prediction is confirmed on the repaired
+code rather than assumed from the unrepaired code. The probe spec was deleted after the measurement
+and is not part of the diff — it would have moved `playwright.total_spec_files`.
+
+### I.5 The transition oracle was wrong once, and the correction is the finding
+
+⚠️ **A `hidden = true` assignment to an already-hidden panel still queues a mutation record.** The
+first oracle decoded each record from `record.oldValue`, which made `clearPendingAction()`'s no-op
+re-hide on the **blocked** paths read as *"the panel became visible"*. `u7` and `u8` therefore
+recorded a spurious re-assert.
+
+The oracle now compares the **live** `panel.hidden` against the last value it recorded and pushes
+only on a real transition. That is what makes `[true]` a meaningful assertion on the blocked paths
+and `[true, false]` a meaningful one on the repaired path.
+
+⚠️ **A second false green was found and removed in the same pass.**
+`page.waitForLoadState('networkidle')` **returns immediately on an already-loaded page** — it waits
+for a lifecycle event of the *current navigation*, which had long since fired. Every assertion after
+it in `u7` and `u8` was being taken before the refresh had settled. It is replaced by
+`settleSaveFirstFlight()`, which waits for `#backup-center-list` to regain `pointer-events: auto` —
+a state reached only at the handler's own `setDetailActionDisabled(false)`, the statement immediately
+before the re-assert decision.
+
+**Both defects were caught by mutation, not by reading**: with them in place **M3** — dropping the
+generation check — came back **green**, which under §v2.11 rollback rule 2 would have meant the
+destructive-safety guard did not hold.
+
+### I.6 A third measured correction — `u7`'s drive
+
+§v2.8 gives `u7` and `u8` the drive *"`page.route` holds `GET /api/backups`"*. **`u7` cannot use
+that window**: `refreshBackupCenter()` calls `renderLibraryState('… Loading backups…')` *before* its
+own GET, so the library list is replaced by a loading state and there is no record to click. Both
+arms hold the snapshot **`POST /api/backups`** instead — which is the window §0.7(c) and §0.7(d)
+actually measured (*"click Cancel 5 ms later, while the `POST` is in flight"*). `u9`, which needs the
+refreshed list itself, still intercepts the GET.
+
+### I.7 Mutation matrix — MEASURED, predictions replaced
+
+Each mutation applied alone to the implemented branch and reverted from a pristine copy before the
+next. **Judged by exit code**, per §v2.13 obligation 3.
+
+⚠️ **The whole matrix was re-run from scratch after the reviewer fixes**, not patched. C9 and C10
+changed the guard the earlier run measured, so every row below is a measurement of the **shipped**
+code. **M12** and **M13** are new, and exist only to measure the two guards those fixes added.
+Rows M1–M11 came back identical to the pre-fix run.
+
+| # | Mutation | Predicted red | **Measured** exit | **Measured** red arms |
+|---|---|---|---|---|
+| **M1** | delete the `reassertPendingRestore(...)` call | `u1`, `u2` | **1** | `u1`, `u2`, `u3`, `u9`, `u11` |
+| **M2** | drop condition 3 (details identity) | `u9` | **0** | *(none)* ⚠️ **GAP** |
+| **M3** | drop condition 1 (the generation check) | `u8`, `u7` | **1** | **`u8`** |
+| **M4** | drop condition 2 (`selectedBackupId`) | `u7` | **0** | *(none)* ⚠️ **GAP** |
+| **M5** | remove `setDetailActionDisabled(true)` | *(none)* | **1** | `u7`, `u8` |
+| **M6** | forget `setDetailActionDisabled(false)` in the success tail | `u3` | **1** | `u3`, `u7`, `u8`, `u11` |
+| **M7** | delete `clearPendingAction()` in `renderBackupDetails()` | `u4`, `u5`, `u6` | **1** | `u1`, `u2`, `u3`, **`u4`, `u5`, `u6`**, `u8`, `u9`, `u11` |
+| **M8** | delete `clearPendingAction()` in `handleListClick()` | *(none)* | **0** | *(none)* ✅ as predicted |
+| **M9** | move the original-label capture inside the `try`, after `createBackup` | `u10` | **1** | **`u10`** ✅ as predicted |
+| **M10** | relax the helper so a captured `'delete'` intent would also re-assert | *(none)* | **0** | *(none)* ✅ as predicted |
+| **M11** | restore the `:155` assertion **and** delete `u6` | *(none)* | **0** | *(none)* ✅ as predicted |
+| **M12** ⚠️ NEW | drop the `detailRequestSequence` check (C9) | — | **0** | *(none)* ⚠️ **GAP** |
+| **M13** ⚠️ NEW | drop the stranded-render label reset (C10) | — | **0** | *(none)* ⚠️ **GAP** |
+
+**The three rollback triggers in §v2.11 are all clear.** `u4`, `u5` and `u6` are green on the shipped
+code (trigger 1); `u7` and `u8` are green on the shipped code (trigger 2); and **M7 does red `u4`,
+`u5` and `u6`** (trigger 3), which is the standing proof that those three arms measure §0.3's
+clearing paths rather than the repair.
+
+**M3 is the load-bearing row and it reds.** Dropping the generation check lets a mid-flight Cancel
+resurrect the confirmation, and `u8` catches it. The council's finding is fixed and has regression
+pressure.
+
+**Three predictions were replaced upward, and one downward.** M5, M6 and M7 red *more* arms than predicted,
+because `u7`, `u8` and `u11` assert production behavior (the lock, the unlock, the announcement) that
+the predictions did not account for. M1 likewise reds `u9` and `u11`.
+
+#### The gaps, recorded with reasons (§4.5 honesty rule) — **five**, not two
+
+- **M2 — condition 3 is not independently killable by `u9` as drawn.** `u9`'s signed drive omits the
+  captured id from the **library** response, which moves `selectedBackupId` as well as
+  `selectedBackupDetails`, so **condition 2 alone** already blocks the re-assert and raises the
+  toast. Killing M2 needs a different drive — intercept `GET /api/backups/<captured id>` and return a
+  *different* backup's payload, which keeps `selectedBackupId` on the target while
+  `selectedBackupDetails` moves off it. That arm is **not added here**: §v2.8's eleven arms are the
+  signed set, and adding a twelfth is a scope change. **Condition 3 ships without independent
+  regression pressure**, and is retained because §0.7(d) measured the two variables genuinely
+  diverging.
+- **M4 — condition 2 is not independently killable through the UI.** Every reachable path that moves
+  `selectedBackupId` away from the captured id **also** moves the generation (state 9 routes through
+  `handleListClick()`'s `clearPendingAction()`) or fails condition 3 (state 6). Condition 1 or
+  condition 3 therefore blocks first in every case an arm can drive. Retained for the same measured
+  reason as condition 3.
+
+- **M3 — the downward replacement, recorded rather than smoothed over.** M3 predicted `u8` **and
+  `u7`**; it reds **`u8` only**. `u7` drives a mid-flight *list click*, which routes through
+  `handleListClick()`'s own `clearPendingAction()` **and** its own `loadBackupDetails()`, so
+  conditions 2 and the C9 sequence check both still block it once condition 1 is gone. `u8` drives a
+  mid-flight *Cancel*, which moves nothing but the generation — so `u8` is the arm that isolates
+  condition 1, and it is the one that reds. **The guard is load-bearing and has regression pressure;
+  the prediction about which arms would catch it was wrong in one cell.**
+- **M12 — the C9 sequence check has no arm.** Removing it leaves all 33 green, because §v2.4 state
+  11 — the interleaving it exists to close — has no arm in the signed eleven (§I.11 CR-6.3), and
+  reaching it needs two `#backup-search` inputs landing inside the refresh's detail fetch. **The
+  guard ships without regression pressure.** It is retained because `code-reviewer` demonstrated the
+  substitution sequence concretely and it falsifies **I5**; §I.10 residual 10 records the missing arm.
+- **M13 — the C10 label reset has no arm either**, for the same reason: it only fires when
+  `pendingAction` survives the refresh, which is that same stranded-render state. Retained because
+  the alternative is an enabled confirm button reading `Working...` that executes a real restore.
+
+The first two are **narrower** than Plan v1's "M2 is unkillable" claim that T-B3 overturned: the
+*guard* is killable (M3 proves it), and it is the two identity checks in isolation that lack
+independent arms. **The last two are wider**, and are the honest price of fixing a hole the signed
+arm set was not drawn to cover.
+
+### I.8 Gates — §v2.10, as run
+
+| # | Gate | Result |
+|---|---|---|
+| 1 | `scripts/generate_test_inventory.py` then `--check` | **"Test inventory is up to date"**, exit 0 — see §I.9 |
+| 2 | `pytest tests/test_css_cascade_contracts.py -q` | **30 passed**, exit 0 |
+| 3 | `npx tsc --noEmit` | **exit 0** |
+| 4 | `npx playwright test e2e/program-backup.spec.ts --project=chromium` | **33 passed**, exit 0 |
+| 5 | `npx playwright test e2e/erase-flow.spec.ts --project=chromium` | **2 passed**, exit 0 — clause 5 control |
+| 6 | `npx playwright test e2e/accessibility.spec.ts --project=chromium` | **38 passed**, exit 0 — the `backup:light` / `backup:dark` `color-contrast` pins at `nodes: 2` are **unmoved**, which §v2.10 step 6 required to be proved rather than assumed |
+| 7 | full `pytest` | **not run** — derived, not asserted: no `routes/**`, `app.py`, `utils/**`, `templates/**`, `scss/**`, `static/css/**`, `scripts/**`, `.github/workflows/**` or `tests/conftest.py` in the diff |
+| 8 | `npm run build:css` | **not run, and must not be** — no `scss/**` or `static/css/**` edit |
+| 9 | extended manual smoke | **run in full** — §I.8a |
+
+
+### I.8a Extended manual smoke — §v2.10 step 9
+
+**Provenance proved, not assumed.** The app was launched from **this worktree**
+(`FLASK_DEBUG=0`, `FLASK_USE_RELOADER=0`, port 5000, isolated `data/database.db`), and the served
+`backup-center.js` digests **`c5acc1542a57cb43287a64c9443772d6`** — this worktree's copy, **not**
+the shared `main` checkout's `30eb6f725d4ec9847a10449240e2cc32`. Driven through Playwright MCP.
+The snapshot `POST /api/backups` was held open for **4 s** by a `window.fetch` wrapper to reach the
+in-flight states §0.2's procedure cannot reach.
+
+| # | Step | Measured |
+|---|---|---|
+| 1 | Select a backup, click **Restore To Current Plan** | panel visible; title `Confirm restore`; the OD-5(a) note renders verbatim; save-first visible and enabled; **`role` absent** and focus unmoved — the announcement is scoped to the re-assert (§I.1 C7) |
+| 2 | Click **Save current plan first**, let it settle | panel **re-asserted**; `role="alert"`; title `Confirm restore`; warning text intact; note intact; save-first **disabled** and reading **`Current plan saved`**; `Confirm Restore` enabled; Cancel enabled and **`document.activeElement === #backup-action-cancel`**; list unlocked; the snapshot is in the library; the selection is still the original target |
+| 3 | **Cancel** | panel hidden; save-first hidden; title reset to `Confirm action` |
+| 4 | **Delete Backup** | title `Confirm delete`; button `Confirm Delete`; save-first hidden; **the snapshot-coverage note is `hidden`** — the delete branch does not show it |
+| 5 | **Mid-flight lock**, sampled while the `POST` is held | Cancel, Confirm, save-first, Restore, Delete, edit-name and edit-note **all `disabled`**; `#backup-center-list` `pointer-events: none`; **`#backup-sort` and `#backup-search` deliberately live**; panel still on screen. Real clicks on the disabled Cancel and Delete are **no-ops** — the panel stays on `Confirm restore` |
+| 6 | Let that flight settle with no gesture | re-asserted correctly, exactly as step 2 |
+| 7 | **Change `#backup-sort` during the flight** (outside the lock) | after settle: panel **hidden**, title `Confirm action`, save-first hidden — **the generation counter blocked the re-assert**, which is §v2.4 state 10 and the reason the counter is not optional |
+| 8 | **Force a list selection during the flight** past `pointer-events: none` | after settle: panel **hidden**, selection moved to the other backup — §v2.4 state 9 |
+
+**Console: zero errors and zero warnings** across the whole session; every logged line is a
+`fetch-wrapper.js` `API Success`.
+
+⚠️ **One measured side effect, recorded rather than repaired.** `role="alert"` **persists** on
+`#backup-action-confirm` for the rest of the page's life once a re-assert has set it, because
+`clearPendingAction()` was deliberately given no `removeAttribute('role')` — §v2.1a puts its body out of scope beyond the one authorized increment — and therefore does not remove it (step 4
+above shows the delete confirmation inheriting it). The effect is strictly *more* announcement on a
+destructive confirmation and never less, and it never moves focus — `u11`'s criterion is the
+re-assert case and is met. Removing it would need either an edit to `clearPendingAction()`, which
+§v2.1a puts out of scope, or a new parameter on `showPendingAction()`, which is the signature change
+the chosen design exists to avoid. **Recorded as §I.10 residual 8.**
+### I.9 Counts — predicted in §v2.14, measured here
+
+| Figure | §v2.14 prediction | **Measured** |
+|---|---|---|
+| `program-backup.spec.ts` tests | 22 → **33** | **33** |
+| `playwright.total_tests` | 662 → **673** | **673** |
+| `playwright.total_spec_files` | **33**, unchanged | **33** |
+| `hard_waits.total_lines` | **82** across **14** files, unchanged | **82 / 14** |
+| `vitest.total_files` / `total_cases` | **13 / 231**, unchanged | **13 / 231** |
+| Required functional gate | **527** across **25** specs, unchanged | **527 / 25** |
+
+Every §v2.14 prediction held exactly.
+
+### I.11 Reviewer dispositions — `code-reviewer` and `unslop-reviewer`
+
+Both required reviewers ran on the staged eight-file diff. **Every finding is dispositioned below;
+two were correctness holes in the shipped guard and were fixed, one is declined on scope with the
+reason recorded.**
+
+#### `code-reviewer`
+
+| # | Finding | Disposition |
+|---|---|---|
+| **CR-1** | ⚠️ **The generation guard can be satisfied by *substitution*.** `pendingActionGeneration === capturedGeneration + 1` is an **equality** test, and the premise that the refresh contributes exactly one increment fails on §v2.4 state 11: when `loadBackupDetails()` strands a response at its stale-response guard, `renderBackupDetails()` never runs and the refresh contributes **zero** — so a concurrent gesture's `+1` stands in for the missing one and the sum still matches. `#backup-search` and `#backup-sort` are outside the lock, so it is user-reachable: type in search twice during the refresh and the confirmation is re-armed after a documented *clearing* gesture. That falsifies **I5**, and §v2.4 row 11's justification is exactly backwards — the concurrent path moving `G` is what makes the sum equal. | **ACCEPTED, fixed — §I.1 C9.** The handler now also captures `detailRequestSequence` and the helper requires `detailRequestSequence === capturedDetailSequence + 1`. The refresh bumps it exactly once; every concurrent search, sort or list gesture bumps it again, so substitution is impossible. Re-derived against all sixteen states in §v2.4. **The reviewer's own bound is recorded too**: conditions 2 and 3 still held in that sequence, so this was an intent-resurrection path, **not** a wrong-target restore. |
+| **CR-2** | ⚠️ **The success path has no label restore.** It relies entirely on `clearPendingAction()` having run inside the refresh to undo the spinner labels. On the same stranded-render path that never happens, so the handler exits having just *unlocked* an **enabled** `#backup-action-confirm-btn` still reading `Working...` — and clicking it runs a real restore. This is §0.1's named primary hazard surviving in a narrower form. | **ACCEPTED, fixed — §I.1 C10.** The success tail now restores both labels from `originalSaveFirstHtml` / `originalConfirmHtml` when `pendingAction !== null` — i.e. only when the refresh's teardown did not run. On the quiet path `pendingAction` is `null` and the branch is skipped, so OD-3(b)'s relabel is untouched. |
+| **CR-3** | `handleConfirmAction()`'s untouched `catch` restores `#backup-restore-save-first`'s captured `innerHTML` **and** sets `disabled = false`. After a re-assert the captured HTML is `Current plan saved`, so a *failed* restore leaves an **enabled** button reading `Current plan saved` that takes a second snapshot when clicked. The packet changed that function's correctness by introducing a `disabled` state its `catch` does not model. | **ACCEPTED AS ACCURATE, DECLINED ON SCOPE — recorded as §I.10 residual 9.** [`handleConfirmAction()`](../../static/js/modules/backup-center.js) is named **out** in §v2.1a and is an explicitly excluded surface in the implementation authorization. The outcome is a mislabelled enabled button on an already-failed restore whose worst effect is a redundant snapshot — not a data-loss path — so recording it is proportionate to declining the edit. It is distinct from §v2.12 residual 7, which is the cancel-and-reopen variant. |
+| **CR-4** | Two plan sentences claim `clearPendingAction()` is byte-identical; the **call sites** are, the **function** is not. | **ACCEPTED, fixed — §I.1 C8**, corrected at all four sites. |
+| **CR-6.1** | The block's `afterEach` console tolerance was **block-wide**, so any of the eleven arms could emit `Error creating backup:` and pass. | **ACCEPTED, fixed.** Narrowed to `u10` by `testInfo.title`; every other arm gets `consoleErrors.assertNoErrors()` back. |
+| **CR-6.2** | `u9` asserts only `not.toContainText(target)`, not *which* backup the selection fell to. The reviewer notes the stronger assertion is not deterministic while `#backup-search` still holds the target's name, because `visibleBackups` is then empty and the fallback is `backupsCache[0]`. | **ACCEPTED AS ACCURATE, NOT STRENGTHENED — §I.10 residual 11.** The assertion is **not vacuous** (the target's name is exactly what would be there without the fix), and making it deterministic needs a search-clearing step that would itself clear the pending action. |
+| **CR-6.3** | No arm covers §v2.4 state 11, where CR-1 and CR-2 both live. | **ACCEPTED AS ACCURATE, DECLINED ON SCOPE — §I.10 residual 10.** §v2.8's eleven arms are the signed set and a twelfth would falsify §v2.14's signed counts. **Mutation pressure is provided instead**: **M12** and **M13** were added to the matrix specifically to measure whether the two new guards are killable by the signed arms, and both are recorded honestly in §I.7 under the §4.5 rule. |
+| **CR-6.4** | `u7` / `u8` read `window.__u2` through a non-retrying `page.evaluate` — a point-in-time read on a mutable array. | **ACCEPTED, fixed.** Both now use `expect.poll`. |
+| **CR-5** | Structural checks clean: the six call sites intact; the coverage note cannot stack or leak into the delete branch; no SQL, no `fetch`, no response-envelope construction, no server file. | **NOTED — no action.** |
+
+#### `unslop-reviewer`
+
+| # | Finding | Disposition |
+|---|---|---|
+| **US-1** | The *"The four `main` runs … All four returned zero"* lead-in in §13.0 is falsified by the fifth row this diff adds to its own table. | **ACCEPTED, fixed.** The paragraph is rewritten as one claim about **five** runs, with the spent clause retired in place. |
+| **US-2** | Two adjacent §13.0 paragraphs now assert opposite things about *"the current carrier"* — one says *not* documentation-only, the other says it **is**. | **ACCEPTED, fixed.** The older paragraph is retired in place under the same dated-clause convention, with its still-correct half preserved. |
+| **US-3** | A dated blockquote still names *"Packet U2's Gate 1 planning PR"* as the current carrier. | **ACCEPTED, fixed** by an in-place amendment rather than a rewrite. |
+| **US-4** | `DUPLICATION_REGISTRY.md`'s summary table still routes row 10's residual to Packet U2 after the row itself is marked discharged. | **ACCEPTED, fixed.** Row 10 is removed from that line with the date. ⚠️ **Row 9 is deliberately left alone** — its residual belongs to Packet U1 and is not U2's to re-label. |
+| **US-5** | The pointer-freshness blockquote still dates row 10's anchors to `5ca4191`. | **ACCEPTED, fixed** — row 10 is now dated to the shipped file after this diff. |
+| **US-6** | §I.8a justified a residual with the false *"byte-identical by construction"* premise. | **ACCEPTED, fixed** — the real reason replaces it, and the premise itself is corrected as **C8**. |
+| **US-7** | The stated arm split (7 red / 4 green) does not match its own table, which marks `u10` RED. | **ACCEPTED, fixed.** `u10`'s cell now reads GREEN with the pre-rewrite red preserved in the note. |
+| **US-8** | *"Three predictions were replaced upward, not down"* is falsified by **M3**, which predicted `u8` **and `u7`** but red-ed `u8` only. | **ACCEPTED, fixed** — §I.7 now records M3's unkilled `u7` prediction explicitly. |
+| **US-9** | §v2.11's *Revert mechanics* still says seven files, thirteen lines after the amendment to eight. | **ACCEPTED, fixed.** |
+| **US-10** | The **signed** *Sign-off* line also restates *"seven changed paths"*, and C1 did not cite it. | **ACCEPTED, fixed by citation.** C1 now names it; **the signed block itself is not rewritten**. |
+| **US-11** | Inserting `KI-013` pushed the *"how to use this table"* rule from `:109-112` to `:110-113`, so §v2.6 row 3's citation went stale. | **ACCEPTED, fixed** — re-anchored by measuring after the diff, per §v2.13 obligation 4. |
+| **US-12** | A nine-line JSDoc on a one-statement helper. | **ACCEPTED, trimmed** to the one non-obvious sentence. |
+
+### I.10 Residual debt this PR does NOT discharge
+
+1. **`backup-center.js` keeps 0 % unit coverage** — **OD-1 (i)**, with no follow-up packet and no
+   rider booked, by explicit owner direction (§v2.12 residual 2).
+2. **Conditions 2 and 3 have no independent mutation arm** — §I.7's two gaps, new to this section.
+3. **The mid-flight lock is a real interaction change** (§v2.12 residual 3), and `#backup-sort` /
+   `#backup-search` remain outside it (residual 4).
+4. **The `create_backup()` / `restore_backup()` asymmetry is disclosed, not repaired** (§v2.12
+   residual 6, closed as a *disclosure* only).
+5. **OD-3(b)'s `disabled` state is not durable** — a cancel / re-open cycle re-enables the button and
+   a second snapshot stays reachable (§v2.12 residual 7).
+6. **[`OPEN_WORK_EXECUTION_PLAN.md:155`](../OPEN_WORK_EXECUTION_PLAN.md#L155)** still reads
+   `**Status:** Execute — ready to enter its **own** Gate 1`, and is now stale twice over — U2 has
+   passed that gate and shipped. **Not repaired here**: a status-reconciliation packet owns it, and
+   the *Sign-off* section already records it as owner action owed.
+7. **The five stale ledger-count restatements** in `ACTIVE_DEVELOPMENT.md`, `MASTER_HANDOVER.md`,
+   `OPEN_WORK_EXECUTION_PLAN.md` and `TESTING_STRATEGY_PLANNING.md` are unchanged and now read
+   further from the live value (**13**). Still *flagged, not edited*, per the owner's instruction.
+8. **`role="alert"` persists on `#backup-action-confirm`** after the first re-assert on a page load,
+   so a later Restore or Delete confirmation on that same page is announced too — §I.8a. New to this
+   section, measured rather than derived.
+9. ⚠️ **`handleConfirmAction()`'s `catch` restores `#backup-restore-save-first`'s captured HTML *and*
+   sets `disabled = false`.** After a re-assert that HTML is `Current plan saved`, so a **failed**
+   restore leaves an enabled button reading `Current plan saved` that takes a second snapshot when
+   clicked. Raised by `code-reviewer` (CR-3) and **declined on scope**: `handleConfirmAction()` is
+   named **out** in §v2.1a and is an excluded surface in the implementation authorization. Distinct
+   from residual 7, which is the cancel-and-reopen variant.
+10. **§v2.4 state 11 has a guard but no arm.** C9 closes it; §v2.8's eleven arms are the signed set
+    and a twelfth would falsify §v2.14's signed counts. **M12** and **M13** measure the two new
+    guards instead, and their results are recorded in §I.7 under the §4.5 honesty rule.
+11. **`u9` asserts only that the detail pane no longer shows the target**, not which backup the
+    selection fell to. Not vacuous — the target's name is exactly what would be there without the
+    fix — but weaker than §v2.8 specifies. Making it deterministic needs a search-clearing step that
+    would itself clear the pending action.
 
 ## See also
 

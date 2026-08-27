@@ -3,6 +3,7 @@
  *
  * Covers the dedicated backup page plus its entry points from Workout Plan.
  */
+import type { Page } from '@playwright/test';
 import { test, expect, ROUTES, SELECTORS, waitForPageReady, expectToast } from './fixtures';
 
 test.describe('Backup Center Entry Points', () => {
@@ -152,7 +153,6 @@ test.describe('Backup Center Page', () => {
     await expectToast(page, 'Current plan saved as');
     await page.locator('#backup-search').fill('Pre-restore snapshot');
     await expect(page.locator('#backup-center-list')).toContainText('Pre-restore snapshot');
-    await expect(page.locator('#backup-action-confirm')).not.toBeVisible();
   });
 
   test('restore renders a warning inline result panel when nothing can be restored', async ({ page }) => {
@@ -502,5 +502,353 @@ test.describe('Program Backup API Integration', () => {
       const deleteResponse = await request.delete(`/api/backups/${createData.data.id}`);
       expect(deleteResponse.ok()).toBeTruthy();
     }
+  });
+});
+
+declare global {
+  interface Window {
+    /** Panel-visibility transition log, installed by the save-first continuity arms. */
+    __u2?: boolean[];
+  }
+}
+
+const SNAPSHOT_COVERAGE_NOTE =
+  'Saves the current workout plan only — logged sessions are not included in this snapshot.';
+const RESTORE_TARGET_GONE_WARNING =
+  'The backup you were restoring is no longer available. Please choose it again.';
+/** u10 forces a 500 on the snapshot POST; program-backup.js logs that envelope by design. */
+const U2_TOLERATED_CONSOLE_DIAGNOSTIC = 'Error creating backup:';
+
+async function saveBackupFromForm(page: Page, backupName: string): Promise<void> {
+  await page.locator('#backup-center-name').fill(backupName);
+  await page.locator('#backup-center-save-submit').click();
+  await expectToast(page, backupName);
+}
+
+/** Search, select, and open the restore confirmation. Returns the selected record's id. */
+async function openRestoreFor(page: Page, backupName: string, searchTerm?: string): Promise<number> {
+  await page.locator('#backup-search').fill(searchTerm ?? backupName);
+  await page.locator('[data-role="backup-record"]').filter({ hasText: backupName }).first().click();
+  await expect(page.locator('#backup-detail-name')).toContainText(backupName);
+
+  await page.locator('#backup-detail-restore').click();
+  await expect(page.locator('#backup-action-confirm')).toBeVisible();
+
+  const id = await page
+    .locator('[data-role="backup-record"].is-selected')
+    .first()
+    .getAttribute('data-backup-id');
+  return Number(id);
+}
+
+/**
+ * Record every `#backup-action-confirm[hidden]` **transition** into `window.__u2`.
+ *
+ * The oracle is the ordering, not a state sample: `expectToast` resolves two round
+ * trips before the refresh tears the panel down, so a sample taken there reads the
+ * pre-teardown panel and passes on a mutant that never re-asserts.
+ *
+ * The live property is compared against the last recorded value rather than read off
+ * `record.oldValue`. Assigning `hidden = true` to an already-hidden panel still queues
+ * a mutation record, and `clearPendingAction()` does exactly that on the blocked paths
+ * — an `oldValue`-derived oracle decodes that no-op as a re-assert and reports a false
+ * positive.
+ */
+async function installPanelTransitionOracle(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const panel = document.getElementById('backup-action-confirm');
+    if (!panel) throw new Error('#backup-action-confirm is missing');
+    window.__u2 = [];
+    let last = panel.hidden === true;
+    new MutationObserver(() => {
+      const nowHidden = panel.hidden === true;
+      if (nowHidden === last) return;
+      last = nowHidden;
+      window.__u2?.push(last);
+    }).observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+  });
+}
+
+async function saveFirstAndAwaitReassert(page: Page): Promise<void> {
+  await installPanelTransitionOracle(page);
+  await page.locator('#backup-restore-save-first').click();
+  await page.waitForFunction(() => (window.__u2?.length ?? 0) >= 2, undefined, { timeout: 15000 });
+}
+
+/**
+ * Hold the snapshot `POST /api/backups` open until the returned `release` runs.
+ *
+ * The POST is the only mid-flight window in which the library list is still on screen:
+ * `refreshBackupCenter()` replaces it with a loading state before its own GET, so a
+ * record cannot be clicked once that GET is in flight.
+ */
+async function holdSnapshotPost(page: Page): Promise<{ release: () => void; isHeld: () => boolean }> {
+  let openGate: () => void = () => {};
+  const gate = new Promise<void>((resolve) => {
+    openGate = resolve;
+  });
+  let held = false;
+
+  await page.route('**/api/backups', async (route) => {
+    if (route.request().method() !== 'POST' || held) {
+      await route.continue();
+      return;
+    }
+    held = true;
+    await gate;
+    await route.continue();
+  });
+
+  return { release: () => openGate(), isHeld: () => held };
+}
+
+/**
+ * Block until the save-first handler has run to completion. `waitForLoadState('networkidle')`
+ * cannot be used: on an already-loaded page it returns at once and every assertion after it
+ * is a false green. Pointer events come back one statement before the re-assert decision.
+ */
+async function settleSaveFirstFlight(page: Page): Promise<void> {
+  await expect(page.locator('#backup-center-list')).toHaveCSS('pointer-events', 'auto');
+}
+
+test.describe('Backup Center save-first confirmation continuity', () => {
+  test.beforeEach(async ({ page, consoleErrors }) => {
+    consoleErrors.startCollecting();
+    await page.request.post('/clear_workout_plan', { failOnStatusCode: false });
+    const seedResponse = await page.request.post('/add_exercise', {
+      data: {
+        routine: 'GYM - Full Body - Workout A',
+        exercise: 'Bench Press',
+        sets: 3,
+        min_rep_range: 6,
+        max_rep_range: 8,
+        weight: 100,
+      },
+    });
+    expect(seedResponse.ok()).toBeTruthy();
+    await page.goto(ROUTES.BACKUP);
+    await waitForPageReady(page);
+  });
+
+  test.afterEach(async ({ consoleErrors }, testInfo) => {
+    if (!testInfo.title.startsWith('u10 ')) {
+      consoleErrors.assertNoErrors();
+      return;
+    }
+    for (const entry of consoleErrors.errors) {
+      expect(
+        entry,
+        'u10 tolerates exactly its own deliberate snapshot failure; anything else is a real console error',
+      ).toContain(U2_TOLERATED_CONSOLE_DIAGNOSTIC);
+    }
+  });
+
+  test('u1 save-first tears the confirmation down and then re-asserts it', async ({ page }) => {
+    const backupName = `U2 Reassert ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+    await saveFirstAndAwaitReassert(page);
+
+    expect(await page.evaluate(() => window.__u2)).toEqual([true, false]);
+
+    await expect(page.locator('#backup-action-title')).toContainText('Confirm restore');
+    await expect(page.locator('#backup-action-text')).toContainText('logged sessions will be cleared');
+    await expect(page.locator('#backup-action-confirm-btn')).toContainText('Confirm Restore');
+    await expect(page.locator('#backup-action-snapshot-note')).toHaveText(SNAPSHOT_COVERAGE_NOTE);
+    await expect(page.locator('#backup-action-confirm-btn')).toBeEnabled();
+    await expect(page.locator('#backup-restore-save-first')).toBeDisabled();
+    await expect(page.locator('#backup-restore-save-first')).toContainText('Current plan saved');
+  });
+
+  test('u2 the re-asserted confirmation still executes the original restore', async ({ page }) => {
+    const backupName = `U2 Confirm ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+    await saveFirstAndAwaitReassert(page);
+
+    await page.locator('#backup-action-confirm-btn').click();
+
+    await expectToast(page, 'Restored');
+    await expect(page.locator('#backup-restore-result')).toBeVisible();
+  });
+
+  test('u3 Cancel still clears the re-asserted confirmation', async ({ page }) => {
+    const backupName = `U2 Cancel ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+    await saveFirstAndAwaitReassert(page);
+
+    await expect(page.locator('#backup-action-cancel')).toBeEnabled();
+    await page.locator('#backup-action-cancel').click();
+
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+  });
+
+  test('u4 changing the sort order clears a pending restore and keeps the selection', async ({ page }) => {
+    const backupName = `U2 Sort ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    const selectedId = await openRestoreFor(page, backupName);
+
+    await page.locator('#backup-sort').selectOption('name-asc');
+
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+    await expect(page.locator('[data-role="backup-record"].is-selected')).toHaveAttribute(
+      'data-backup-id',
+      String(selectedId),
+    );
+  });
+
+  test('u5 a matching type filter clears a pending restore and keeps the selection', async ({ page }) => {
+    const backupName = `U2 Filter ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    const selectedId = await openRestoreFor(page, backupName);
+
+    await page.locator('.backup-filter-btn[data-filter="manual"]').click();
+
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+    await expect(page.locator('[data-role="backup-record"].is-selected')).toHaveAttribute(
+      'data-backup-id',
+      String(selectedId),
+    );
+  });
+
+  test('u6 a matching search clears a pending restore and keeps the selection', async ({ page }) => {
+    const stamp = Date.now();
+    const backupName = `U2 Search ${stamp}`;
+    await saveBackupFromForm(page, backupName);
+    const selectedId = await openRestoreFor(page, backupName);
+
+    await page.locator('#backup-search').fill(String(stamp));
+
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+    await expect(page.locator('[data-role="backup-record"].is-selected')).toHaveAttribute(
+      'data-backup-id',
+      String(selectedId),
+    );
+  });
+
+  test('u7 a mid-flight selection change blocks the re-assert', async ({ page }) => {
+    const stamp = Date.now();
+    const target = `U2 Flight A ${stamp}`;
+    const other = `U2 Flight B ${stamp}`;
+    await saveBackupFromForm(page, target);
+    await saveBackupFromForm(page, other);
+
+    await openRestoreFor(page, target, `U2 Flight`);
+    const otherRecord = page.locator('[data-role="backup-record"]').filter({ hasText: other }).first();
+    await expect(otherRecord).toBeVisible();
+
+    const hold = await holdSnapshotPost(page);
+    await installPanelTransitionOracle(page);
+    await page.locator('#backup-restore-save-first').click();
+    await expect.poll(() => hold.isHeld()).toBe(true);
+
+    await expect(page.locator('#backup-center-list')).toHaveCSS('pointer-events', 'none');
+
+    await otherRecord.dispatchEvent('click');
+    hold.release();
+    await settleSaveFirstFlight(page);
+
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+    await expect.poll(() => page.evaluate(() => window.__u2)).toEqual([true]);
+  });
+
+  test('u8 a mid-flight Cancel blocks the re-assert', async ({ page }) => {
+    const backupName = `U2 Cancel Flight ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+
+    const hold = await holdSnapshotPost(page);
+    await installPanelTransitionOracle(page);
+    await page.locator('#backup-restore-save-first').click();
+    await expect.poll(() => hold.isHeld()).toBe(true);
+
+    await expect(page.locator('#backup-action-cancel')).toBeDisabled();
+
+    await page.locator('#backup-action-cancel').dispatchEvent('click');
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+
+    hold.release();
+    await settleSaveFirstFlight(page);
+
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+    await expect.poll(() => page.evaluate(() => window.__u2)).toEqual([true]);
+  });
+
+  test('u9 a vanished restore target is not re-asserted and says so', async ({ page }) => {
+    const stamp = Date.now();
+    const target = `U2 Vanish ${stamp}`;
+    const survivor = `U2 Survivor ${stamp}`;
+    await saveBackupFromForm(page, survivor);
+    await saveBackupFromForm(page, target);
+
+    const targetId = await openRestoreFor(page, target);
+
+    await page.route('**/api/backups', async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      const response = await route.fetch();
+      const payload = await response.json();
+      const rows = Array.isArray(payload.data) ? payload.data : [];
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ...payload,
+          data: rows.filter((row: { id: number }) => Number(row.id) !== targetId),
+        }),
+      });
+    });
+
+    await page.locator('#backup-restore-save-first').click();
+
+    await expectToast(page, RESTORE_TARGET_GONE_WARNING);
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+    await expect(page.locator('#backup-detail-name')).not.toContainText(target);
+  });
+
+  test('u10 a failed snapshot leaves the confirmation and its buttons intact', async ({ page }) => {
+    const backupName = `U2 Save Fail ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+
+    await page.route('**/api/backups', async (route) => {
+      if (route.request().method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: false,
+          status: 'error',
+          error: { code: 'SERVER_ERROR', message: 'Snapshot failed' },
+        }),
+      });
+    });
+
+    await page.locator('#backup-restore-save-first').click();
+
+    await expectToast(page, 'Failed to save current plan first');
+    await expect(page.locator('#backup-action-confirm')).toBeVisible();
+    await expect(page.locator('#backup-restore-save-first')).toBeEnabled();
+    await expect(page.locator('#backup-restore-save-first')).toContainText('Save current plan first');
+    await expect(page.locator('#backup-action-confirm-btn')).toBeEnabled();
+    await expect(page.locator('#backup-action-confirm-btn')).toContainText('Confirm Restore');
+    await expect(page.locator('#backup-action-cancel')).toBeEnabled();
+    await expect(page.locator('#backup-center-list')).toHaveCSS('pointer-events', 'auto');
+  });
+
+  test('u11 the re-asserted confirmation is announced and focus lands on Cancel', async ({ page }) => {
+    const backupName = `U2 Announce ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+    await saveFirstAndAwaitReassert(page);
+
+    await expect(page.locator('#backup-action-confirm')).toHaveAttribute('role', 'alert');
+    await expect(page.locator('#backup-action-cancel')).toBeFocused();
   });
 });

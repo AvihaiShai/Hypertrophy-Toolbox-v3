@@ -17,8 +17,14 @@ let pendingAction = null;
 let detailRequestSequence = 0;
 let inlineEditField = null;
 let emptyWarningShown = false;
+let pendingActionGeneration = 0;
 
 const SORT_PREF_KEY = 'backupCenter.sortPreference';
+const SAVE_FIRST_SAVED_LABEL = '<i class="fas fa-check" aria-hidden="true"></i> Current plan saved';
+const SNAPSHOT_COVERAGE_NOTE =
+    'Saves the current workout plan only — logged sessions are not included in this snapshot.';
+const RESTORE_TARGET_GONE_MESSAGE =
+    'The backup you were restoring is no longer available. Please choose it again.';
 
 function getNavigationIntent() {
     const intent = new URLSearchParams(window.location.search).get('intent');
@@ -147,6 +153,7 @@ function applyNavigationIntent() {
 
 function clearPendingAction() {
     pendingAction = null;
+    pendingActionGeneration += 1;
 
     const confirmWrap = document.getElementById('backup-action-confirm');
     const confirmBtn = document.getElementById('backup-action-confirm-btn');
@@ -707,6 +714,7 @@ function showPendingAction(type) {
     if (!selectedBackupDetails) return;
 
     pendingAction = type;
+    pendingActionGeneration += 1;
     clearInlineEditState();
 
     const confirmWrap = document.getElementById('backup-action-confirm');
@@ -737,7 +745,66 @@ function showPendingAction(type) {
         }
     }
 
+    let noteEl = document.getElementById('backup-action-snapshot-note');
+    if (!noteEl) {
+        noteEl = document.createElement('p');
+        noteEl.id = 'backup-action-snapshot-note';
+        noteEl.className = 'mb-0';
+        textEl.insertAdjacentElement('afterend', noteEl);
+    }
+    noteEl.textContent = SNAPSHOT_COVERAGE_NOTE;
+    noteEl.hidden = type !== 'restore';
+
     confirmWrap.hidden = false;
+}
+
+// Re-arm the restore confirmation that the save-first refresh tore down at the
+// clearPendingAction() call inside renderBackupDetails(). expectedGeneration is the
+// authorization token: the counter moves on every write of pendingAction, so any user
+// gesture during the snapshot flight lands it past what the caller expects and blocks
+// the re-assert.
+//
+// The generation alone is not enough, because it is an equality test. When
+// loadBackupDetails() strands a response at its stale-response guard, renderBackupDetails()
+// never runs and the refresh contributes no increment at all — so a concurrent gesture can
+// substitute its own increment for the missing one and the sum still matches.
+// detailRequestSequence closes that: the refresh bumps it exactly once, and every
+// concurrent search, sort or list gesture bumps it again.
+//
+// Both identity checks are needed because selectedBackupId moves synchronously while
+// selectedBackupDetails lags a fetch, so the two diverge mid-flight.
+function reassertPendingRestore(expectedGeneration, expectedDetailSequence, capturedBackupId) {
+    if (pendingActionGeneration !== expectedGeneration) return;
+    if (detailRequestSequence !== expectedDetailSequence) return;
+
+    const stillOnTarget = Number(selectedBackupId) === Number(capturedBackupId)
+        && Boolean(selectedBackupDetails)
+        && Number(selectedBackupDetails.id) === Number(capturedBackupId);
+    if (!stillOnTarget) {
+        // Announce only when the library was read and the target is not in it. A failed
+        // library or detail fetch leaves its own error on screen and stays silent.
+        const targetVanished = !backupsCache.some(
+            (backup) => Number(backup.id) === Number(capturedBackupId)
+        );
+        if (targetVanished) {
+            showToast('warning', RESTORE_TARGET_GONE_MESSAGE);
+        }
+        return;
+    }
+
+    const confirmWrap = document.getElementById('backup-action-confirm');
+    if (confirmWrap) confirmWrap.setAttribute('role', 'alert');
+
+    showPendingAction('restore');
+
+    const saveFirstBtn = document.getElementById('backup-restore-save-first');
+    if (saveFirstBtn) {
+        saveFirstBtn.disabled = true;
+        saveFirstBtn.innerHTML = SAVE_FIRST_SAVED_LABEL;
+    }
+
+    const cancelBtn = document.getElementById('backup-action-cancel');
+    if (cancelBtn) cancelBtn.focus();
 }
 
 async function handleSaveSubmit(event) {
@@ -1026,10 +1093,17 @@ export function initializeBackupCenter() {
             const originalSaveFirstHtml = saveFirstBtn.innerHTML;
             const originalConfirmHtml = restoreConfirmBtn ? restoreConfirmBtn.innerHTML : '';
 
-            saveFirstBtn.disabled = true;
+            const capturedGeneration = pendingActionGeneration;
+            const capturedDetailSequence = detailRequestSequence;
+            const capturedBackupId = selectedBackupDetails.id;
+
+            // The lock covers seven controls and the library list; #backup-sort and
+            // #backup-search stay live, which is why the generation counter is required
+            // as well. clearPendingAction() re-enables the two buttons mid-flight, so the
+            // lock is not monotonic.
+            setDetailActionDisabled(true);
             saveFirstBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Saving...';
             if (restoreConfirmBtn) {
-                restoreConfirmBtn.disabled = true;
                 restoreConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Working...';
             }
 
@@ -1037,14 +1111,38 @@ export function initializeBackupCenter() {
                 const stamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
                 const backup = await createBackup(`Pre-restore snapshot (${stamp})`, 'Automatic snapshot taken before restore');
                 showToast('success', `Current plan saved as "${backup.name}".`);
-                const preferredSelectionId = selectedBackupDetails.id;
-                await refreshBackupCenter({ preserveSelection: true, preferredSelectionId });
+                await refreshBackupCenter({
+                    preserveSelection: true,
+                    preferredSelectionId: selectedBackupDetails?.id ?? capturedBackupId
+                });
+                // Unlock before the re-assert: setDetailActionDisabled(false) would
+                // otherwise undo the saved-state relabel and leave Cancel unfocusable.
+                // Nothing awaits between the two, so no gesture can interleave.
+                setDetailActionDisabled(false);
+                if (pendingAction !== null) {
+                    // The refresh's detail render was superseded, so clearPendingAction()
+                    // never ran and this handler owns the button reset it otherwise
+                    // performs incidentally. Without this the unlock above would leave an
+                    // enabled confirm button still reading "Working...".
+                    saveFirstBtn.innerHTML = originalSaveFirstHtml;
+                    if (restoreConfirmBtn) {
+                        restoreConfirmBtn.innerHTML = originalConfirmHtml;
+                    }
+                }
+                // refreshBackupCenter() performs exactly one intent transition and one
+                // detail request of its own, so the quiet path lands on both captured
+                // values + 1. Any user gesture in flight lands at least one of them
+                // higher, which is what blocks the re-assert.
+                reassertPendingRestore(
+                    capturedGeneration + 1,
+                    capturedDetailSequence + 1,
+                    capturedBackupId
+                );
             } catch (error) {
                 showToast('error', `Failed to save current plan first: ${error.message}`);
-                saveFirstBtn.disabled = false;
+                setDetailActionDisabled(false);
                 saveFirstBtn.innerHTML = originalSaveFirstHtml;
                 if (restoreConfirmBtn) {
-                    restoreConfirmBtn.disabled = false;
                     restoreConfirmBtn.innerHTML = originalConfirmHtml;
                 }
             }

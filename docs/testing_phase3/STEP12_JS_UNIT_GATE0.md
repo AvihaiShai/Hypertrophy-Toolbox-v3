@@ -4817,6 +4817,9 @@ back byte-identical.
 | **14** | [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094) | `push` / `7a64d2e` (PR #415, PyInstaller 6.22.0 → 6.22.2) | `success`, **18/18** | [**`98339729053`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094/job/98339729053) | **`success`** | **`2026-08-26T21:56:58Z`** |
 | **15** | [`33020896786`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33020896786) | `push` / `db6c34b` (PR #425, Packet U3a Gate 0 requirements) | `success`, **18/18** | [**`98350728218`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33020896786/job/98350728218) | **`success`** | **`2026-08-26T22:49:15Z`** |
 | **16** | [`33023109789`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33023109789) | `push` / `b733c14` (PR #416, Sass 1.102.0 → 1.103.1) | `success`, **18/18** | [**`98358033353`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33023109789/job/98358033353) | **`success`** | **`2026-08-26T23:22:55Z`** |
+| **17** | [`33026310164`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026310164) | `push` / `ec1a5cb` (PR #429, JS-unit ledger rows 13–16) | `success`, **18/18** | [**`98368349021`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026310164/job/98368349021) | **`success`** | **`2026-08-27T00:17:21Z`** |
+| **18** | [`33026399702`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026399702) | `push` / `3098282` (PR #430, pyright Packet P1) | `success`, **18/18** | [**`98368648573`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026399702/job/98368648573) | **`success`** | **`2026-08-27T00:19:06Z`** |
+| **19** | [`33030127322`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33030127322) | `push` / `5b35966` (**PR #426, Packet U3b — KI-011 toast action continuity**) | `success`, **18/18** | [**`98380484320`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33030127322/job/98380484320) | **`success`** | **`2026-08-27T01:27:24Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -4830,6 +4833,54 @@ back byte-identical.
 | **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
 | Elapsed since T0 | **≈ 4 d 5 h 38 m** of the required **14 d** |
 | Remaining to the strict mark | **≈ 9 d 18 h 22 m** |
+
+> **LEDGER EXTENSION — `2026-08-27T01:36:07Z`, rows 17–19.** The tally immediately above was true at
+> `2026-08-26T23:37:12Z` and is **annotated, not rewritten**; the live reading is the block below.
+> Three `main` `ci.yml` runs have landed since it, and **all three are enumerated at job level** —
+> the `js-unit` job's own `conclusion` and `completed_at`, never the run's overall conclusion.
+
+| Ledger tally, at `2026-08-27T01:36:07Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **19** — all nineteen `push`, all nineteen 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **19** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **24** — the 19 above plus the **5** classified below, which is **unchanged**: 3 `Dependabot Updates`, 1 `Deep Gate (manual + weekly)`, 1 `Dependency Graph`. Re-enumerated at this read, not carried forward |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
+| Elapsed since T0 | **≈ 4 d 7 h 37 m** of the required **14 d** |
+| Remaining to the strict mark | **≈ 9 d 16 h 23 m** |
+
+**Row 19 is the one this extension exists for, and it is the row the window was most exposed to.**
+PR [#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426) (Packet U3b, KI-011) is the
+**first post-T0 merge to rewrite the module `toast.test.js` imports**. A collection failure or a red
+there would have **reset the clock to zero** (§6.5) and voided the premise its own Gate 1 was decided
+on. **It did not**: the `JS Unit` job is `success`, and the suite it ran is **byte-identical** to the
+one the window is qualifying.
+
+**Q2's restart clause did not engage, and the argument is the narrow one §13.0 has used since row 12
+— "changed no JS test case", not "changed no JS".** U3b **does** change the production JS tree, so
+whole-tree identity is unavailable and is not claimed. The operative measurement is
+`git rev-parse 3098282:static/js/modules/__tests__` and
+`git rev-parse 5b35966:static/js/modules/__tests__`, both
+**`9db6d8b2e9635755775b8c362f9bebbd750ff3c3`** — the entire Vitest corpus is byte-identical across the
+merge, not merely the files someone remembered to check. `git rev-parse <sha>:vitest.config.js` is
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935` on both sides, so the collection mechanism did not move
+either, and
+[`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) at `5b35966` reads
+`vitest.total_files = 13`, `vitest.total_cases = 231` — unchanged — while `playwright.total_tests`
+moved **662 → 675** and `hard_waits.total_lines` held at **82**. **T0 remains
+`2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.**
+
+**Rows 17 and 18 restart nothing either, for the ordinary reason:** #429 was documentation-only and
+#430 touched `utils/filter_predicates.py` and two documents — **zero** files under
+`static/js/modules/__tests__/` in either.
+
+**One obligation this extension does NOT discharge.** U3b's regression is **E2E-only by owner
+ruling**, so the Vitest coverage for KI-011's helpers is deferred exactly as **U1-FOLLOWUP-1** is
+(§v2.14 of [`volume_failure_feedback/PLANNING.md`](../volume_failure_feedback/PLANNING.md)) — it
+**must not land before `2026-09-05T17:59:26Z`**, for the same reason.
 
 **The five `main` runs in the window that are NOT qualification attempts.** **A fifth has landed
 since the `2026-08-26T12:05:47Z` read, and the previous "no fifth non-attempt run has landed"
