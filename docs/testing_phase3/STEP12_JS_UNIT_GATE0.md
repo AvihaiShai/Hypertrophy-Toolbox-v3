@@ -4820,6 +4820,8 @@ back byte-identical.
 | **17** | [`33026310164`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026310164) | `push` / `ec1a5cb` (PR #429, JS-unit ledger rows 13–16) | `success`, **18/18** | [**`98368349021`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026310164/job/98368349021) | **`success`** | **`2026-08-27T00:17:21Z`** |
 | **18** | [`33026399702`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026399702) | `push` / `3098282` (PR #430, pyright Packet P1) | `success`, **18/18** | [**`98368648573`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33026399702/job/98368648573) | **`success`** | **`2026-08-27T00:19:06Z`** |
 | **19** | [`33030127322`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33030127322) | `push` / `5b35966` (**PR #426, Packet U3b — KI-011 toast action continuity**) | `success`, **18/18** | [**`98380484320`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33030127322/job/98380484320) | **`success`** | **`2026-08-27T01:27:24Z`** |
+| **20** | [`33063751367`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33063751367) | `push` / `1211915` (PR #432, JS-unit ledger rows 17–19) | `success`, **18/18** | [**`98488650519`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33063751367/job/98488650519) | **`success`** | **`2026-08-27T10:37:48Z`** |
+| **21** | [`33064557028`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33064557028) | `push` / `efa780c` (PR #427, Packet U2 implementation) | `success`, **18/18** | [**`98491338039`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33064557028/job/98491338039) | **`success`** | **`2026-08-27T10:48:05Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -4851,6 +4853,82 @@ back byte-identical.
 | **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
 | Elapsed since T0 | **≈ 4 d 7 h 37 m** of the required **14 d** |
 | Remaining to the strict mark | **≈ 9 d 16 h 23 m** |
+
+> **LEDGER EXTENSION — `2026-08-27T10:37:48Z`, row 20.** The tally immediately above was true at
+> `2026-08-27T01:36:07Z` and is **annotated, not rewritten**, exactly as the block before it was; the
+> live reading is below. **One** `main` `ci.yml` run has landed since, read at job level.
+>
+> **Why this row is being written by Packet U2's PR rather than its own.** Row 20 records the merge of
+> **#432**, the PR that wrote rows 17–19 — a ledger PR cannot record its own landing, because the run
+> it would cite does not exist until after it merges. The row is therefore appended by the **next**
+> authorized PR to touch this file, which is #427. That is the same reason row 17 (#429's own merge)
+> was written by #432 rather than by #429.
+
+| Ledger tally, at `2026-08-27T10:37:48Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **20** — all twenty `push`, all twenty 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **20** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
+| Elapsed since T0 | **≈ 4 d 16 h 38 m** of the required **14 d** |
+| Remaining to the strict mark | **≈ 9 d 7 h 22 m** |
+
+**Row 20 restarts nothing.** #432 was **documentation-only** — its whole diff is this file — so it
+changed no JS test case, no `vitest.config.js`, and no generated inventory. **T0 remains
+`2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.**
+
+> **LEDGER EXTENSION — `2026-08-27T10:48:05Z`, row 21.** The tally immediately above was true at
+> `2026-08-27T10:37:48Z` and is **annotated, not rewritten**, exactly as the two blocks before it
+> were; the live reading is below. **One** `main` `ci.yml` run has landed since, read at job level.
+>
+> **Why this row is written here.** Row 21 records the merge of **#427**, Packet U2's
+> implementation — the PR that carried row 20 as a rider. A PR cannot record its own landing, so
+> the row falls to the next authorized PR to touch this file, which is this one. That is the same
+> mechanism row 20 records for #432 and row 17 records for #429.
+
+| Ledger tally, at `2026-08-27T10:48:05Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **21** — all twenty-one `push`, all twenty-one 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **21** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **26** — the 21 attempts plus the 5 classified non-attempts |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
+| Elapsed since T0 | **≈ 4 d 16 h 48 m** of the required **14 d** |
+| Remaining to the strict mark | **≈ 9 d 7 h 12 m** |
+
+**Row 21 restarts nothing either — but the argument is NOT row 20's, and substituting it would be
+wrong.** #427 is Packet U2's implementation and it **does** change the production JS tree:
+`git rev-parse 1211915:static/js` returns `2d122654289967c4538b3086dddeb9e558393a53` while
+`git rev-parse efa780c:static/js` returns **`fedecefa6acc738319ec95dc75e97009a5e24d03`**. The
+whole-tree identity row 20 relied on is therefore **unavailable here, and is not claimed**. The
+operative rule is the one this document has applied at every row since T0 — **"changed no JS test
+case"**, not "changed no JS" — and it is satisfied by a narrower and stronger measurement:
+`git rev-parse 1211915:static/js/modules/__tests__` and
+`git rev-parse efa780c:static/js/modules/__tests__` both return
+**`9db6d8b2e9635755775b8c362f9bebbd750ff3c3`**, so the entire Vitest corpus is byte-identical
+across the merge, and `vitest.config.js` is unchanged at
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935`, so the collection mechanism did not move either. The
+suite the window is qualifying is still **13 files / 231 cases**, re-read from
+[`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) at `efa780c` — while
+`playwright.total_tests` moved **675 → 686** and `hard_waits.total_lines` held at **82**. **Q2's
+restart clause did not engage. T0 remains `2026-08-22T17:59:26Z`; the strict mark remains
+`2026-09-05T17:59:26Z`.** This is the same shape as row 12, the only other row whose carrier moved
+`static/js`.
+
+**The five non-attempt runs are unchanged, and were re-enumerated rather than carried forward.**
+Each was resolved by enumerating its `/jobs` and matching the exact context string; all five return
+**zero** `JS Unit (Vitest, non-required)` jobs — the three Dependabot `dynamic` runs, the one
+`Deep Gate` `schedule` run, and the `Configured Graph Update` `dynamic` run. **No sixth has
+landed.**
+
+**Whoever merges THIS PR owes the next unclaimed row**, by the rule stated earlier in this block: a
+PR cannot record its own landing.
 
 **Row 19 is the one this extension exists for, and it is the row the window was most exposed to.**
 PR [#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426) (Packet U3b, KI-011) is the
