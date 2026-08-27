@@ -679,7 +679,7 @@ test.describe('Plan Generator v1.5.0 Features', () => {
 // ============================================================================
 // Toast severity contract (Track A1) — app.js's generateStarterPlan() previously
 // called showToast(message, type) instead of showToast(type, message). toast.js's
-// legacy-signature fallback (modules/toast.js:55-72) treats any non-boolean 2nd
+// legacy-signature fallback (modules/toast.js:50-66) treats any non-boolean 2nd
 // arg as a falsy legacyIsError, so both the client-side validation warning and
 // the server-error path silently rendered as a green "success" toast. These
 // tests pin the correct severity class (bg-warning / bg-danger) as well as the

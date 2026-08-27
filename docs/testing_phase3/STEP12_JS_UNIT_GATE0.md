@@ -1410,6 +1410,11 @@ not re-litigate KI-004's end-to-end behavior.
 >   from an explicit `undefined`.
 > - **The two signed Gate 1 checkboxes** further down that reference the 47-case matrix and *"the
 >   cases with no isolating killer (B23, B43)"*.
+> - **EVERY `toast.js:NN` LINE ANCHOR IN THIS DOCUMENT.** The fix inserted a predicate near the top
+>   of the file, so every anchor below it moved by roughly **+45** — §10.5's mutation table alone
+>   carries sixteen. An anchor followed from here lands on unrelated code **with no other warning
+>   than this bullet.** The post-fix mapping is `toast_type_word_collision/PLANNING.md` §i.2.
+>   **Re-anchor by measuring, never by adding the offset.**
 >
 > **Nothing in §10.3 or §10.5 is edited.** Both remain the record of what Packet B measured and
 > signed, which was accurate when written. **Re-deriving §10.5's kill sets against the post-fix
@@ -1696,6 +1701,10 @@ N22/N23/N24 alter the click handler — none reads or moves `toastBody.appendChi
 expectations are unchanged, and execution confirmed all seven (§10.12).
 
 ### 10.5 Mutation matrix — prediction (**N1–N32**)
+
+> ⚠️ **STALE AS OF 2026-08-27 — see the annotation under §10.3.** The kill sets below, and every
+> `toast.js:NN` anchor in this table, describe the **pre-fix** module. Not re-derived, per owner
+> ruling OD-10.
 
 > Plan v2 adds **N31** (partial `classList.remove`) and **N32** (the `:49` message guard) to the
 > refresh's N1–N30, so the matrix is **N1–N32 everywhere**.
@@ -2010,6 +2019,13 @@ to one of the four type words. Fixing it is production code and out of scope for
 §10.9 routes it to the owner as a candidate KI row, and it was **accepted there as KI-010**
 (§10.11 ruling 2) — registered in [`UI_SCENARIOS_GAP_ANALYSIS.md`](../UI_SCENARIOS_GAP_ANALYSIS.md)
 by the separate follow-up packet, still **Open** and still unfixed.
+
+> ⚠️ **STALE AS OF 2026-08-27 — see the annotation under §10.3.** **KI-010 is FIXED and its row is
+> now `Mitigated`.** Everything above is the record of what Packet B measured, and it was accurate
+> when written: *"still Open and still unfixed"*, *"Pinned, not fixed"*, and B43/B45 pinning the
+> defect are all **superseded**. B45 and B43 were deliberately **inverted** and parametrised; the
+> citation to a comment at `toast.test.js:563` no longer resolves — that comment was replaced.
+> Not re-derived, per owner ruling OD-10.
 
 > **ANNOTATION 2026-08-22 (KI follow-up) — the conclusion holds, the attribution was imprecise.**
 > `utils/errors.py` does not *set* the message at all: `error_response(code, message, …)` and

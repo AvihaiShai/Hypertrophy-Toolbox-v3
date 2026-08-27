@@ -15,9 +15,8 @@
  * | anything else      | as the TYPE            | modern                           |
  *
  * An explicitly supplied `undefined` counts as SUPPLIED, so
- * `showToast('error', undefined)` is a MODERN call and renders the default error
- * copy. That distinction rests on `arguments.length` -- see the comment on the
- * `isLegacyCall` predicate below before refactoring this function's signature.
+ * `showToast('error', undefined)` is a MODERN call. See the `isLegacyCall`
+ * predicate's comment before refactoring this function's signature.
  *
  * @param {string} type - Modern: 'success' | 'error' | 'warning' | 'info'.
  *                        Legacy: the message text.
@@ -33,26 +32,21 @@ export function showToast(type, message, options = {}) {
 
     // Backward compatibility: detect legacy signature showToast(message, isError?, duration?).
     //
-    // KI-010. This used to test `!validTypes.has(type)` alone, so a LEGACY caller
-    // whose message happened to be one of the four type words was misread as a
-    // modern call: showToast('error', true) rendered the body text "true", and
-    // showToast('warning') rendered "Action completed successfully." on a yellow
-    // toast. Argument 1's domains overlap on exactly those four strings, so the
-    // discriminator has to look at argument 2 as well.
+    // KI-010. This used to test `!validTypes.has(type)` alone. Argument 1's two
+    // domains overlap on exactly the four type words, so a legacy caller whose
+    // message was one of them was misread as a modern call; the discriminator has
+    // to look at argument 2 as well.
     //
-    // Contract (owner ruling OD-6, Gate 1 signed 2026-08-27,
-    // docs/toast_type_word_collision/PLANNING.md): argument 1 is a TYPE only when
-    // it is one of the four words AND argument 2 is not a boolean AND argument 2
-    // was actually supplied.
+    // Contract: owner ruling OD-6, docs/toast_type_word_collision/PLANNING.md
+    // (Gate 1 signed 2026-08-27).
     //
-    // `arguments.length` -- not `message === undefined` -- is load-bearing and was
-    // chosen deliberately over the alternative spelling. It keeps an explicitly
-    // supplied `undefined` a MODERN call, so a modern caller whose message
-    // expression evaluates to undefined at runtime still gets the red default-copy
-    // error toast rather than a GREEN toast reading the type word. B13 pins that.
-    // If this function is ever rewritten with rest parameters, carry the arity
-    // check across as `args.length < 2`; dropping it silently reintroduces KI-010
-    // for the one-argument form.
+    // `arguments.length` -- not `message === undefined` -- is load-bearing. It
+    // keeps an explicitly supplied `undefined` a MODERN call, so a modern caller
+    // whose message expression evaluates to undefined at runtime still gets the
+    // red default-copy error toast rather than a GREEN toast reading the type
+    // word. B13 pins that. If this function is ever rewritten with rest
+    // parameters, carry the arity check across as `args.length < 2`; dropping it
+    // silently reintroduces KI-010 for the one-argument form.
     const isLegacyCall = !validTypes.has(type)
         || typeof message === 'boolean'
         || arguments.length < 2;

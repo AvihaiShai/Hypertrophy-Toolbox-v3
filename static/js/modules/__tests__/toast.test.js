@@ -9,6 +9,10 @@
 // KI-010 note below: §10.3's "47 cases" arithmetic and §10.5's kill sets
 // are STALE as of the KI-010 fix and are annotated there, not here.
 //
+// Family IDs in the comments below use the a-d shorthand; the shipped case
+// names interpolate the type instead, in describe.each row order:
+// a = error, b = warning, c = success, d = info (so B45a is `B45-error`).
+//
 // KI-010 FIX, 2026-08-27. Gate 1 signed; plan and owner rulings in
 // docs/toast_type_word_collision/PLANNING.md. B45 and B43 were
 // CHARACTERIZATION cases pinning a defect; they are DELIBERATELY INVERTED
@@ -42,8 +46,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { showToast } from '../toast.js';
 
 // Reduced from templates/base.html lines 236-263 (re-verified 2026-08-22).
-// Kept because the module reads them: #liveToast's id (toast.js:41) and its
-// EXACT at-rest class value (:88, :99), #toast-body's id (:35) and its position
+// Kept because the module reads them: #liveToast's id (toast.js:80) and its
+// EXACT at-rest class value (:127, :138), #toast-body's id (:74) and its position
 // inside #liveToast (the nesting B40 depends on).
 //
 // Deliberately omitted, and safe to omit because toast.js never reads them:
@@ -106,14 +110,14 @@ const makeInstance = () => ({
 const liveToast = () => document.getElementById('liveToast');
 const toastBody = () => document.getElementById('toast-body');
 
-// The message span. toast.js:61-63 creates it and appends it to #toast-body.
+// The message span. toast.js:100-102 creates it and appends it to #toast-body.
 const messageSpan = () => toastBody().querySelector('span');
 const bodyText = () => messageSpan()?.textContent;
 
 // The action button, located through #liveToast and NEUTRAL about its direct
 // parent (owner amendment, Gate 1, 2026-08-22). toast.js appends it to
 // #toast-body today, but that placement is the implementation detail
-// implicated in the measured wipe defect (§10.7-R10): :60 clears
+// implicated in the measured wipe defect (§10.7-R10): :99 clears
 // toastBody.innerHTML, so the NEXT showToast() from anywhere silently removes
 // the button. These cases pin the button's TYPE, LABEL, ARIA-LABEL, GUARD and
 // COERCION behavior; they must not pre-commit to the parent a fix would change.
@@ -401,9 +405,9 @@ describe('showToast - dispose, construct, show ordering', () => {
 //
 // These cases require the action button to exist WITHIN #liveToast and enforce
 // its type, label, aria-label, guard and coercion behavior. They deliberately
-// do NOT pin its direct parent. toast.js:84 appends it to #toast-body today,
+// do NOT pin its direct parent. toast.js:123 appends it to #toast-body today,
 // and that is exactly the implementation detail implicated in the measured wipe
-// defect (§10.7-R10): :60 clears toastBody.innerHTML, so any subsequent toast
+// defect (§10.7-R10): :99 clears toastBody.innerHTML, so any subsequent toast
 // from anywhere destroys the button. Reachable inside its own only caller --
 // volume-splitter.js raises the action toast with duration 6000, then
 // immediately calls loadVolumeHistory(), whose .catch emits showToast('error',
@@ -476,7 +480,7 @@ describe('showToast - action button click behavior', () => {
         calls.length = 0;   // isolate the click from showToast()'s own entries
         actionButton().click();
         // 'getInstance' is the click's OWN first entry: the handler at
-        // toast.js:74 calls bootstrap.Toast.getInstance(toastElement) itself, so
+        // toast.js:113 calls bootstrap.Toast.getInstance(toastElement) itself, so
         // ['hide','onClick'] is not achievable. `hide` BEFORE `onClick` is the
         // assertion this case exists for.
         expect(calls).toEqual(['getInstance', 'hide', 'onClick']);
@@ -500,7 +504,7 @@ describe('showToast - action button click behavior', () => {
         errorSpy.mockClear();
         // NOT wrapped in expect(...).not.toThrow(): an exception thrown inside a
         // DOM event listener does not propagate out of .click() in jsdom, so
-        // such a wrapper passes with OR without the try/catch at toast.js:78-82
+        // such a wrapper passes with OR without the try/catch at toast.js:117-120
         // and would be a false green. The errorSpy assertion below is the only
         // thing that kills N23 -- MEASURED against the N23 shape, the spy's call
         // count is 0.
@@ -518,7 +522,7 @@ describe('showToast - missing-DOM early returns', () => {
         toastBody().removeAttribute('id');
         // The leading guard IS load-bearing here, unlike in B38: N25 kills this
         // case by TypeError, not by the console assertion. With the return at
-        // :38 deleted, :60 dereferences a null toastBody and throws, which
+        // :80 deleted, :99 dereferences a null toastBody and throws, which
         // would make the assertions below unreachable rather than failing
         // informatively.
         expect(() => showToast('success', 'm')).not.toThrow();
@@ -529,7 +533,7 @@ describe('showToast - missing-DOM early returns', () => {
 
     it('B40: an unresolvable #liveToast logs and returns', () => {
         liveToast().removeAttribute('id');
-        // Same leading guard: N26 throws at :88 on a null toastElement.
+        // Same leading guard: N26 throws at :127 on a null toastElement.
         expect(() => showToast('success', 'm')).not.toThrow();
         expect(errorSpy).toHaveBeenCalledWith('Error: liveToast not found in the DOM!');
         expect(calls).toEqual([]);
@@ -543,8 +547,8 @@ describe('showToast - missing-DOM early returns', () => {
         body.removeAttribute('id');
         showToast('success', 'm');
         // Deep-equalled as a single-entry array, not asserted as "the toast-body
-        // message appears somewhere" -- this proves lookup order (:35 before
-        // :41), which a toHaveBeenCalledWith would not.
+        // message appears somewhere" -- this proves lookup order (:74 before
+        // :80), which a toHaveBeenCalledWith would not.
         expect(errorSpy.mock.calls).toEqual([['Error: toast-body not found in the DOM!']]);
     });
 });
@@ -567,11 +571,12 @@ describe('showToast - anti-vacuity and API sharp edges', () => {
     // is a LEGACY bare message and renders the type word itself. B13 holds the
     // other half of that pair.
     //
-    // DISCLOSED, not dressed up: only B43a has an independent mutation kill
-    // (deleting the `arguments.length < 2` conjunct). B43b/c/d cannot be killed
-    // by any mutation of the shipped predicate, which contains no per-type
-    // branch -- they defend against a FUTURE per-type implementation, the same
-    // "defensive but unreachable" idiom as B15a/B15b.
+    // DISCLOSED, not dressed up, and stated as MEASURED rather than as intuition:
+    // arm 5b (dropping the `arguments.length < 2` conjunct) reds ALL FOUR of these,
+    // not just the first. No individual member is uniquely required, because the
+    // shipped predicate contains no per-type branch. The family defends against a
+    // FUTURE per-type implementation -- the same "defensive but unreachable" idiom
+    // as B15a/B15b.
     describe.each([
         ['error'], ['warning'], ['success'], ['info'],
     ])('B43: a single-argument call renders the message, not the default copy', (type) => {
@@ -584,7 +589,7 @@ describe('showToast - anti-vacuity and API sharp edges', () => {
 
     it('B44: a falsy-but-defined message is rendered, not replaced', () => {
         // MEASURED: the `message !== undefined && message !== null` guard at
-        // :49 is perturbed by no other case. Mutating it to `if (message)`
+        // :88 is perturbed by no other case. Mutating it to `if (message)`
         // leaves B1, B12, B14, B16 and B17 all indistinguishable; only an empty
         // (or zero) message tells the two apart. Without this case the module
         // could silently regress to replacing a deliberate empty message with
@@ -603,9 +608,10 @@ describe('showToast - anti-vacuity and API sharp edges', () => {
     // land on bg-danger -- showToast('warning', true) is RED by design, not by
     // accident.
     //
-    // DISCLOSED: only B45a has an independent kill (deleting the
-    // `typeof message === 'boolean'` conjunct). B45b/c/d have none, and after
-    // the fix this family is insensitive to validTypes membership entirely --
+    // DISCLOSED, as measured: arm 5a (dropping the `typeof message === 'boolean'`
+    // conjunct) reds all four, and so does arm 5c' (narrowing it to
+    // `message === false`). No individual member is uniquely required. After the
+    // fix this family is also insensitive to validTypes membership entirely --
     // removing 'warning' from the set leaves B45-warning green.
     describe.each([
         ['error'], ['warning'], ['success'], ['info'],
@@ -625,11 +631,12 @@ describe('showToast - anti-vacuity and API sharp edges', () => {
     // isError=true form, where the class agreed with the type word by
     // coincidence; with false the class and the intent disagreed.
     //
-    // THIS FAMILY IS THE ONLY THING THAT KILLS THE NARROWING MUTATION. Measured:
-    // spelling the conjunct `message === true` instead of
+    // THIS FAMILY AND B47 ARE THE ONLY THINGS THAT KILL THE NARROWING MUTATION.
+    // Measured: spelling the conjunct `message === true` instead of
     // `typeof message === 'boolean'` is INDISTINGUISHABLE from the correct
-    // predicate against every pre-fix case in this file. Without B46, the most
-    // plausible mis-implementation of this fix ships green.
+    // predicate against every pre-fix case in this file. Arm 5c reds B46 and B47
+    // together -- 8 cases -- and nothing else. Without them, the most plausible
+    // mis-implementation of this fix ships green.
     describe.each([
         ['error'], ['warning'], ['success'], ['info'],
     ])('B46: a legacy call with isError=false renders the message on success', (type) => {
@@ -648,6 +655,10 @@ describe('showToast - anti-vacuity and API sharp edges', () => {
     // legacyIsError=false sets type='success', and the suffix gate is
     // error-only -- the request ID is DROPPED. That is a real behaviour change
     // on a debugging affordance and nothing pinned it before this case existed.
+    //
+    // DISCLOSED: no arm reds this family alone. Arm 5c (narrowing isFlag to
+    // `message === true`) reds it together with B46; it has no kill independent
+    // of that family.
     describe.each([
         ['error'], ['warning'], ['success'], ['info'],
     ])('B47: a legacy isError=false call drops the request-ID suffix', (type) => {

@@ -101,7 +101,7 @@ def _payload(*rows: tuple[str, str]) -> str:
 #
 # Not Vitest-specific, and kept here on purpose: these two assertions are what
 # make the new surface's presence -- rather than only its contents -- load
-# bearing. A test shaped "if the key exists, its total is 231" is satisfied by
+# bearing. A test shaped "if the key exists, its total is 245" is satisfied by
 # deleting the key.
 
 
