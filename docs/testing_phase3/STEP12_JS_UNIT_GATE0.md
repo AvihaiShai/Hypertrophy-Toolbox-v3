@@ -4440,10 +4440,11 @@ silently.
 > the post-#417 block on 2026-08-24, and is left standing as that reading, not restated.** That
 > block was
 > **extended in place** three times on 2026-08-25 and three times more on 2026-08-26, and now carries
-> **thirteen** rows: the seventh is
+> **sixteen** rows: the seventh is
 > the `main` run minted by PR #418's own merge, the eighth PR #419's (`5ca4191`), the ninth PR
 > #420's (`77f4adf`), the tenth PR #421's (`b4d6b13`), the eleventh PR #422's (`1243728`), the
-> twelfth PR #423's (`06a3f41`) and the thirteenth PR #424's (`52c44c4`).
+> twelfth PR #423's (`06a3f41`), the thirteenth PR #424's (`52c44c4`), the fourteenth PR #415's
+> (`7a64d2e`), the fifteenth PR #425's (`db6c34b`) and the sixteenth PR #416's (`b733c14`).
 > The pointer is otherwise unchanged and
 > still resolves —
 > the post-#417 block is still the live one, and it was **not** superseded by a new block.
@@ -4558,7 +4559,7 @@ discipline argued on the record and never applied silently.
 
 ---
 
-#### LIVE LEDGER — extended 2026-08-24 after PR #417 merged (post-#417 read), extended again 2026-08-25 after PR #418 merged (post-#418 read), extended a third time 2026-08-25 after PR #419 and PR #420 merged (post-#420 read), extended a fourth time 2026-08-25 after PR #421 merged (post-#421 read), extended a fifth time 2026-08-26 after PR #422 merged (post-#422 read), extended a sixth time 2026-08-26 after PR #423 merged (post-#423 read)
+#### LIVE LEDGER — extended 2026-08-24 after PR #417 merged (post-#417 read), extended again 2026-08-25 after PR #418 merged (post-#418 read), extended a third time 2026-08-25 after PR #419 and PR #420 merged (post-#420 read), extended a fourth time 2026-08-25 after PR #421 merged (post-#421 read), extended a fifth time 2026-08-26 after PR #422 merged (post-#422 read), extended a sixth time 2026-08-26 after PR #423 merged (post-#423 read), extended a seventh time 2026-08-26 after PR #424, PR #415, PR #425 and PR #416 merged (post-#416 read)
 
 > **This block is now the live one.** It supersedes the `2026-08-24T17:03:00Z` block above,
 > which recorded **five** rows and is left standing as that record — it is **not** restated
@@ -4693,54 +4694,69 @@ discipline argued on the record and never applied silently.
 > at all. The carrier's identity does not affect the row — it affects only the *next* row, which
 > that carrier's own merge will mint.
 >
-> ⚠️ **SIXTH EXTENSION — `2026-08-26T21:57:02Z`, in place, adding row 13.** Row 13 is the `main`
-> run minted by PR #424's own merge (squash `52c44c4`), which is exactly what the fifth extension
-> said it would owe. **This extension is carried by Packet U2's *implementation* PR**, so the
-> pattern alternates again: a planning PR recorded row 12 and an implementation PR records row 13,
-> the same alternation U1 produced at rows 10 and 11.
+> ⚠️ **EXTENDED A SIXTH TIME 2026-08-26 — this block is STILL THE LIVE ONE, and it is still
+> extended IN PLACE.** This is the sixth of this block's in-place extensions and the seventh
+> reading in the heading's count; the two series number differently for the reason the third
+> extension gives — the heading counts the block's creation as its first reading. **Four merges
+> landed since the previous extension, so FOUR rows are appended here, not one**, and that is the
+> largest single extension this block has taken. PR
+> [#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424) — the PR that carried the row-12
+> extension onto `main`, together with Packet U2's Gate 1 plan — merged as squash commit
+> `52c44c4`, and **row 13 is the `main` run that push started**. PR
+> [#415](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/415), the PyInstaller 6.22.0 → 6.22.2 Dependabot
+> bump, merged as squash commit `7a64d2e`, and **row 14 is its run**. PR
+> [#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425), Packet U3a's Gate 0 requirements, merged as
+> squash commit `db6c34b`, and **row 15 is its run**. PR
+> [#416](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/416), the Sass 1.102.0 → 1.103.1 Dependabot bump,
+> merged as squash commit `b733c14`, and **row 16 is its run**. Everything from *Read at* onward is
+> a fresh job-level read of the API at `2026-08-26T23:37:12Z`, not an extension of the page: all
+> twelve earlier rows were re-derived from the API and came back byte-identical.
 >
-> **Seven of the `2026-08-26T12:05:47Z` extension's own clauses are spent by this one, and each is
+> **Six of the `2026-08-26T12:05:47Z` extension's own clauses are spent by this one, and each is
 > corrected where it stands rather than left for a later session to re-derive:** its *Read at*
 > timestamp and its twelve-row tally, its completeness figure (*"**16** — the 12 above plus the 4
-> classified below"*), its *"No fifth non-attempt run has landed"* clause, its
-> two-open-Dependabot-PRs paragraph and table, its *"Whoever merges it owes the next sequential
-> ledger row"* clause written against the U2 planning carrier, the *"now carries **twelve** rows"*
-> annotation it planted in the superseded post-#414 block further up this subsection, and its *"as
-> the three 2026-08-25 extensions and the two 2026-08-26 ones did"* instruction in the *Still to do*
-> paragraph at the end of this subsection.
+> classified below"*), its **"The four `main` runs in the window that are NOT qualification
+> attempts"** heading and its *"No fifth non-attempt run has landed"* sentence — **both now false,
+> and this is the first extension to have to correct them**, its *"whoever merges it owes the next
+> sequential ledger row"* clause written against the Packet U2 Gate 1 carrier, and its *"as the
+> **three** 2026-08-25 extensions and the **two** 2026-08-26 ones did"* instruction in the *Still to
+> do* paragraph at the end of this subsection.
 >
-> **One thing this extension deliberately does NOT do: it does not write row 14.** ⚠️ **And the
-> reason is authorization, not measurement — an earlier draft of this extension said the run was
-> unsettled, which was wrong on this ledger's own rule.** PR #415 merged twenty-four seconds before
-> this read; its `main` run's **overall** `conclusion` was still `null`, but §6.1 indexes `js-unit`
-> **results**, not runs, and that job had already settled. The measured facts are in *Row 14 is
-> owed, and it is measurable* below. This PR's owner authorization covers appending **row 13 only**,
-> so writing row 14 here would exceed it. **The next session that extends this block owes the row**,
-> and has everything it needs to write it without re-deriving.
+> **A fifth non-attempt run exists, and it is the first one minted by a merge rather than by
+> Dependabot's scheduler.** Run [`33017596325`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017596325),
+> `Configured Graph Update: pip in /. #1542182565`, event `dynamic`, was started by PR #415's own
+> push to `main` — a dependency-graph submission that runs *because* a pip lockfile changed. It
+> declares **one** job and no `js-unit`, so it is classified, not tallied, exactly as the four
+> Dependabot runs are. **The four-run classification table below is now a five-run table.**
+>
+> **Rows 14 and 16 are the first ledger rows minted by dependency PRs, and row 16 is the first
+> minted by a JS dependency PR.** Every earlier row was carried by a documentation PR or by Packet
+> U1's implementation. That is a change of carrier class, and because Q2's restart clause is
+> written about *test-suite expansion*, it is answered below by measurement — tree hashes and
+> inventory totals — rather than by assuming that "a dependency bump is not an expansion."
 
-**Read at `2026-08-26T21:57:02Z`** (UTC now, taken from the GitHub API response `Date` header, not
-from the host clock), after PR
-[#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424) merged (squash `52c44c4`,
-`2026-08-26T20:41:30Z`). **This read supersedes this block's own `2026-08-26T12:05:47Z` twelve-row
-reading**, which is not restated. Method, deliberately identical to the three blocks
+**Read at `2026-08-26T23:37:12Z`** (UTC now, taken from the GitHub API response `Date` header, not
+from the host clock), after PR [#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424) merged (squash
+`52c44c4`, `2026-08-26T20:41:30Z`), PR [#415](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/415) merged
+(squash `7a64d2e`, `2026-08-26T21:56:38Z`, final PR head `97aa3c4`), PR
+[#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425) merged (squash `db6c34b`) and PR
+[#416](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/416) merged (squash `b733c14`,
+`2026-08-26T23:22:30Z`, final PR head `73208e8`). **This read supersedes this block's own
+`2026-08-26T12:05:47Z` twelve-row reading**, which is not restated. Method, deliberately identical to the three blocks
 above and to this block's six earlier reads: `gh run list --branch main` plus
 `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to
 `created_at >= 2026-08-22T17:00:00Z` — deliberately **earlier** than T0, so the filter is a
 superset and cannot hide a run — across **every** workflow, not just `CI/CD Pipeline`. Each
 returned run's `/jobs` was then enumerated in full and matched on the exact context string
 `JS Unit (Vitest, non-required)`. **No run's overall conclusion was used as a proxy for its
-`js-unit` result** — §6.1's discipline: row 13's job object was fetched from
-`/actions/runs/33011674872/jobs`, and its `status`, `conclusion` and `completed_at` were read off
-**that job**, not off its run. Its run's overall conclusion is also `success`, and that fact was
-**not** used — the job says `completed` / `success` / `2026-08-26T20:42:09Z` on its own. The superset
-returned **nineteen** `main` runs of any workflow in that span: **thirteen** settled `CI/CD Pipeline`
-runs, which are the qualification attempts and are the thirteen rows below; **one** `CI/CD Pipeline`
-run whose overall `conclusion` was still `null` at this read but whose **`js-unit` job had already
-settled**, and which this extension deliberately does **not** write as a row — see *Row 14 is owed,
-and it is measurable* below; and **five** runs of other workflows, classified in the table after the
-tally. The twelve
-rows this block previously carried were **re-derived from the API, not copied from the page**, and
-all twelve came back byte-identical.
+`js-unit` result** — §6.1's discipline: each of rows 13–16 had its job object fetched from its own
+run's `/jobs`, and its `status`, `conclusion` and `completed_at` were read off **that job**, not off
+its run. All four runs' overall conclusions are also `success`, and that fact was **not** used. The
+superset returned **twenty-one** `main` runs of any workflow in that span: **sixteen** `CI/CD
+Pipeline` runs, which are the qualification attempts and are the sixteen rows below, and **five**
+runs of other workflows, classified in the table after the tally. The twelve rows this block
+previously carried were **re-derived from the API, not copied from the page**, and all twelve came
+back byte-identical.
 
 | # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
 |---|---|---|---|---|---|---|
@@ -4756,32 +4772,32 @@ all twelve came back byte-identical.
 | **10** | [`32874746454`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32874746454) | `push` / `b4d6b13` (PR #421, Packet U1 Gate 0 plus rows 8–9) | `success`, **18/18** | [**`97889882928`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32874746454/job/97889882928) | **`success`** | **`2026-08-25T16:55:12Z`** |
 | **11** | [`32911310086`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32911310086) | `push` / `1243728` (PR #422, Packet U1 Gate 1 sign-off plus row 10) | `success`, **18/18** | [**`98005892825`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32911310086/job/98005892825) | **`success`** | **`2026-08-25T23:34:05Z`** |
 | **12** | [`32959719238`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32959719238) | `push` / `06a3f41` (PR #423, Packet U1 implementation plus row 11) | `success`, **18/18** | [**`98149159459`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32959719238/job/98149159459) | **`success`** | **`2026-08-26T10:44:17Z`** |
-| **13** | [`33011674872`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33011674872) | `push` / `52c44c4` (PR #424, Packet U2 Gate 1 sign-off plus row 12) | `success`, **18/18** | [**`98319257214`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33011674872/job/98319257214) | **`success`** | **`2026-08-26T20:42:09Z`** |
+| **13** | [`33011674872`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33011674872) | `push` / `52c44c4` (PR #424, Packet U2 Gate 1 plan plus row 12) | `success`, **18/18** | [**`98319257214`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33011674872/job/98319257214) | **`success`** | **`2026-08-26T20:42:09Z`** |
+| **14** | [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094) | `push` / `7a64d2e` (PR #415, PyInstaller 6.22.0 → 6.22.2) | `success`, **18/18** | [**`98339729053`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094/job/98339729053) | **`success`** | **`2026-08-26T21:56:58Z`** |
+| **15** | [`33020896786`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33020896786) | `push` / `db6c34b` (PR #425, Packet U3a Gate 0 requirements) | `success`, **18/18** | [**`98350728218`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33020896786/job/98350728218) | **`success`** | **`2026-08-26T22:49:15Z`** |
+| **16** | [`33023109789`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33023109789) | `push` / `b733c14` (PR #416, Sass 1.102.0 → 1.103.1) | `success`, **18/18** | [**`98358033353`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33023109789/job/98358033353) | **`success`** | **`2026-08-26T23:22:55Z`** |
 
-| Ledger tally, at `2026-08-26T21:57:02Z` | Value |
+| Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
-| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 **with a settled `js-unit` result** | **13** — all thirteen `push`, all thirteen 18/18 |
-| Green `main` `JS Unit` results since and including T0 | **13** |
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **16** — all sixteen `push`, all sixteen 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **16** |
 | **Red** results | **0** |
 | **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
 | **Skipped** results | **0** |
 | **Cancelled** results | **0** |
-| **Settled but NOT written as a row here** (see the note below the table) | **1** — [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094), `push` / `7a64d2e` (PR #415) |
-| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **19** — the 13 rows above, the 1 unwritten `ci.yml` run, and the 5 classified below |
+| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **21** — the 16 above plus the 5 classified below |
 | **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
-| Elapsed since T0 | **≈ 4 d 3 h 58 m** of the required **14 d** |
-| Remaining to the strict mark | **≈ 9 d 20 h 2 m** |
+| Elapsed since T0 | **≈ 4 d 5 h 38 m** of the required **14 d** |
+| Remaining to the strict mark | **≈ 9 d 18 h 22 m** |
 
-**The `main` runs in the window that are NOT qualification attempts — now FIVE.** ⚠️ **A fifth has
-landed since the `2026-08-26T12:05:47Z` read**, so that read's *"No fifth non-attempt run has
-landed"* clause is spent as a live statement while remaining accurate as the reading it was. All
-five were **enumerated rather than carried forward** — each resolved the same way as the rows
-above, by enumerating its `/jobs` and matching the exact context string — and **all five returned
-zero** `JS Unit (Vitest, non-required)` jobs: the four earlier ones on re-enumeration, the fifth on
-its first. The nineteen-run superset is therefore 13 settled attempts + 1 in-progress `ci.yml` run
-+ 5 classified, with nothing unaccounted for.
-*(The weekly `Deep Gate` cron is still the only `schedule`-event run in the window and it fired once, on
-2026-08-24; no second cron firing has occurred at this read time.)*
+**The five `main` runs in the window that are NOT qualification attempts.** **A fifth has landed
+since the `2026-08-26T12:05:47Z` read, and the previous "no fifth non-attempt run has landed"
+sentence is retired rather than restated.** Each was **re-enumerated rather than carried forward** —
+resolved the same way as the rows above, by enumerating its `/jobs` and matching the exact context
+string. All five returned **zero** `JS Unit (Vitest, non-required)` jobs, so the twenty-one-run
+superset is 16 attempts + 5 classified, with nothing unaccounted for. *(The weekly `Deep Gate` cron
+is still the only `schedule`-event run in the window and it has still fired once, on 2026-08-24; no
+second cron firing has occurred at this read time.)*
 
 | `main` run | Workflow / path | Event | Jobs | Why it cannot mint a ledger row |
 |---|---|---|---|---|
@@ -4789,13 +4805,47 @@ its first. The nineteen-run superset is therefore 13 settled attempts + 1 in-pro
 | [`32676594619`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32676594619) | `npm_and_yarn in /. - Update #1537135574` — same path | `dynamic` | **1** — `Dependabot`, `success` | As above. It opened PR **#416**. |
 | [`32676594928`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32676594928) | `github_actions in /. - Update #1537135595` — same path | `dynamic` | **1** — `Dependabot`, `success` | As above. It opened no PR. |
 | [`32688747703`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32688747703) | `Deep Gate (manual + weekly)` — `.github/workflows/deep-gate.yml` | **`schedule`** | **7** — all `success` | Not `ci.yml`. `deep-gate.yml` contains **zero** occurrences of `js-unit` / `JS Unit`. Its own evidential value is R1-D3's, not this window's — see [`release_pipeline/PLANNING.md`](../release_pipeline/PLANNING.md) § *The second `schedule`-event run*. |
-| [`33017596325`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017596325) | `Configured Graph Update: pip in /. #1542182565` — `dynamic/dependabot/dependabot-updates` | `dynamic` | **1** — `update-pip-graph` | ⚠️ **NEW at this read.** Not `ci.yml`. Dependabot's dependency-graph updater declares one job and **no** `js-unit`. It fired on `7a64d2e` when **#415** merged. |
+| [`33017596325`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017596325) | `Configured Graph Update: pip in /. #1542182565` — `dynamic/dependabot/dependabot-updates` | `dynamic` | **1** — `Dependabot`, `success` | Not `ci.yml`. **The first non-attempt run minted by a merge rather than by Dependabot's scheduler** — PR #415's push to `main` changed a pip lockfile, which triggers a dependency-graph submission. One job, **no** `js-unit`. |
 
 There is **no** `main` `ci.yml` run in this
 window whose `js-unit` result is red, missing, skipped or cancelled, and **no** qualification
 attempt this ledger omits. *(Row 1's run was **created** at `2026-08-22T17:59:06Z`, twenty seconds
 **before** T0 — the ledger indexes `js-unit` **results** at or after T0, not runs, and that job's
 `completed_at` **is** T0. A run created before T0 can still be row 1.)*
+
+**Rows 13, 14, 15 and 16 did not restart the window, and none of the four `mergedAt` values is
+T0.** By the stronger of the two available checks first: `git rev-parse 06a3f41:static/js`,
+`git rev-parse 52c44c4:static/js`, `git rev-parse 7a64d2e:static/js`,
+`git rev-parse db6c34b:static/js` and `git rev-parse b733c14:static/js` **all** return the same tree
+hash, **`bd703e800d512c21e32d6f03066cfe8080859f93`**, so the entire JS tree is byte-identical across
+all four merges. The suite the window is qualifying is therefore still **13 files / 231 cases**,
+re-read from [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) at `b733c14`
+(`total_files = 13`, `total_cases = 231`). The file lists agree: PR #424 touched **exactly two**
+files (Packet U2's `PLANNING.md` and this document), PR #425 **exactly one**
+(`toast_type_word_collision/PLANNING.md`), PR #415 **exactly one** (`requirements-build.txt`) and
+PR #416 **exactly two** (`package.json` and `package-lock.json`). **T0 remains
+`2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.**
+
+**Rows 14 and 16 needed an argument the twelve rows before them did not, because both are dependency
+bumps and the earlier no-restart paragraphs all recited "no dependency" as part of their case.** That
+recital is not available here, so the claim is made by measurement instead:
+
+- **Row 14 (#415, PyInstaller 6.22.0 → 6.22.2)** changes `requirements-build.txt`, a **Python
+  build-only** requirements file. It is not a Node dependency, is absent from `package.json`, and
+  cannot reach a Vitest run at all.
+- **Row 16 (#416, Sass 1.102.0 → 1.103.1)** changes `package.json` and `package-lock.json`, so it
+  **is** a JS dependency change — the first to mint a ledger row. It still cannot move the suite:
+  `sass` is a **devDependency only** (the manifest's runtime `dependencies` object is empty);
+  `vitest.config.js` scopes `include` to `static/js/**/*.test.js`; **no file in the suite imports
+  `.scss`, `.sass` or `.css`, and none imports `sass`**; and the `vitest`, `@vitest/coverage-v8` and
+  `jsdom` pins are **byte-identical across `db6c34b → b733c14`** at `4.1.11`, `4.1.11` and `30.0.1`.
+  The lockfile delta was also measured node-by-node: **277 package nodes before and after, none
+  added and none removed**, with exactly two nodes carrying any field change — the root
+  `devDependencies` pin and `node_modules/sass` (`version`, `resolved`, `integrity`). **No transitive
+  dependency moved.**
+
+**Neither is an "expansion packet" in Q2's sense**, which is what the restart clause is written
+about; and the measured JS tree hash above settles it independently of how that phrase is read.
 
 **Row 6 did not restart the window, and #417's `mergedAt` is not T0.** PR #417 touched **exactly
 six** files — [`ACTIVE_DEVELOPMENT.md`](../ACTIVE_DEVELOPMENT.md),
@@ -4904,73 +4954,23 @@ paragraph below that discharges #422's debt, and are **not restated here**. The 
 predicted exactly this outcome for the restart clause and explicitly
 refused to predict the run's *result*; the result is row 12 above, measured after the run existed.
 
-**Row 13 did not restart the window either, and #424's `mergedAt` is not T0.** By the stronger of
-the two available checks first: `git rev-parse 06a3f41:static/js` and
-`git rev-parse 52c44c4:static/js` return the **same** tree hash,
-**`bd703e800d512c21e32d6f03066cfe8080859f93`** — the value row 12 moved the tree *to*, so the entire
-JS tree is byte-identical across this merge even though it is not the value rows 7 through 11
-carried. `git rev-parse 06a3f41:vitest.config.js` and `git rev-parse 52c44c4:vitest.config.js`
-likewise both return `c16ca428f7478708d8dd96a20ebcb86f98a8b935`. The file list agrees: PR #424
-touched **exactly two** files —
-[`backup_confirmation_continuity/PLANNING.md`](../backup_confirmation_continuity/PLANNING.md) and
-**this document** — with **zero** files under `static/js/**`, no workflow, no dependency and no
-generated inventory. The suite the window is qualifying is therefore still **13 files / 231 cases**,
-re-read from [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) at `52c44c4`
-(`vitest.total_files = 13`, `vitest.total_cases = 231`, and `playwright.total_tests = 662`,
-`playwright.total_spec_files = 33`, `hard_waits.total_lines = 82`, all unchanged from `06a3f41`),
-and Q2's restart clause did not engage. **T0 remains `2026-08-22T17:59:26Z`; the strict mark remains
-`2026-09-05T17:59:26Z`.** The fifth extension predicted exactly this outcome for the restart clause
-and explicitly refused to predict the run's *result*; the result is row 13 above, measured after the
-run existed.
-
-**Row 14 is owed, and it is measurable — the facts are recorded here so the next session does not
-re-derive them.** ⚠️ **This paragraph corrects an earlier draft of this same extension**, which
-classified [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094)
-as *"still in progress"* and its result as *"owed, not measured"*. That read the **run** object,
-whose `conclusion` was `null` at `2026-08-26T21:57:02Z` — but §6.1 and row 1's own note both say
-this ledger indexes **`js-unit` results, not runs**, and that job had settled **four seconds before
-the read**. The correct statement is that row 14 is **measured and unwritten**, not unmeasured:
-
-| Field | Value |
-|---|---|
-| `main` run | [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094) |
-| Event / head | `push` / `7a64d2e` (PR #415, Dependabot `pyinstaller` 6.22.0 → 6.22.2) |
-| `js-unit` job | [`98339729053`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094/job/98339729053) |
-| Job `status` / `conclusion` | `completed` / **`success`** |
-| Job `completed_at` | **`2026-08-26T21:56:58Z`** |
-| Run jobs | **18/18** |
-
-**It is not written as a row here because this PR is not authorized to write it.** The owner
-authorized this document's inclusion in Packet U2's implementation diff **solely to append measured
-row 13**; row 14 belongs to whoever next extends this block, and the restart-clause check for #415
-(a `requirements.txt`-only Dependabot bump) is theirs to measure rather than inherit.
-
-**Three PRs are open at this read time, and none of them is in this ledger.** Re-measured live at
-`2026-08-26T21:57:02Z`, not carried forward. ⚠️ **The two-Dependabot-PRs reading the previous six
-reads carried is spent**: **#415 merged** at `2026-08-26T21:56:38Z` as `7a64d2e`, twenty-four
-seconds before this read, and its `main` `ci.yml` run [`33017593094`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33017593094)
-is **row 14**, which **whoever next extends this block owes** — see *Row 14 is owed, and it is
-measurable* below. **#424 never appeared in this table** — it was opened
-and merged between the `12:05:47Z` read and this one, so it is row 13 above rather than a table
-entry here, exactly as #423 was at the previous read. **The carrier of this extension is absent for
+**Two PRs are open at this read time, and neither is in this ledger.** Re-measured live at
+`2026-08-26T12:05:47Z`, not carried forward: both are still `OPEN` and unmerged, and they are the
+same two Dependabot PRs the previous five reads found. **#423 never
+appeared in this table** — it was opened and merged between the `00:25:41Z` read and this one, so
+it is row 12 above rather than a table entry here, exactly as #422 was at the previous read.
+**The carrier of this extension is absent for
 the same reason**: it did not exist at the read time. It is accounted for in
 the carrier paragraph below instead:
 
 | PR | Head | State | Why it is not a ledger row |
 |---|---|---|---|
-| [#416](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/416) | `dependabot/npm_and_yarn/sass-1.103.1` (`sass` 1.102.0 → 1.103.1) | **`OPEN`**, unmerged | Its `ci.yml` runs execute on a **PR branch**, not on `main` — outside §6.5's *"the clock starts on `main`"* rule, the same reason Packet F's own PR run `32599231895` was excluded |
-| [#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425) | `docs/u3a-ki010-gate0-plan` (Packet U3a Gate 0 requirements) | **`OPEN`**, unmerged | As above |
-| [#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426) | `wt/u3-ki011-gate0` (Packet U3b Gate 0 candidate) | **`OPEN`**, unmerged | As above |
+| [#415](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/415) | `dependabot/pip/pyinstaller-6.22.2` (`pyinstaller` 6.22.0 → 6.22.2) | **`OPEN`**, `MERGEABLE`/`CLEAN`, unmerged | Its `ci.yml` runs execute on a **PR branch**, not on `main` — outside §6.5's *"the clock starts on `main`"* rule, the same reason Packet F's own PR run `32599231895` was excluded |
+| [#416](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/416) | `dependabot/npm_and_yarn/sass-1.103.1` (`sass` 1.102.0 → 1.103.1) | **`OPEN`**, `MERGEABLE`/`CLEAN`, unmerged | As above |
 
-| PR | Head | State | Why it is not a ledger row **yet** |
-|---|---|---|---|
-| [#415](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/415) | `dependabot/pip/pyinstaller-6.22.2` (`pyinstaller` 6.22.0 → 6.22.2) | **`MERGED`** `2026-08-26T21:56:38Z`, squash `7a64d2e` | Its post-merge `main` run `33017593094` was **`in_progress`** at this read. A row records a *settled* `js-unit` result, so it is owed, not written. |
-
-**Merging any of them mints the next sequential ledger row.** Do not write a fixed row number
-into a forward-looking sentence: whichever lands first takes the next **unclaimed** row,
-and the row a given PR receives depends on what merged before it. **#415's run is already ahead of
-every open PR in that queue**, so the next unclaimed row after 13 is almost certainly its own — but
-that is a statement about ordering, not a prediction of its result.
+**Merging either of them mints the next sequential ledger row.** Do not write a fixed row number
+into a forward-looking sentence: whichever of them lands first takes the next **unclaimed** row,
+and the row a given PR receives depends on what merged before it.
 
 **#418's debt is DISCHARGED.** The clause this block carried here before the
 `2026-08-25T08:37:25Z` extension — *"#418 is the block's own carrier, and its merge is already
@@ -5009,44 +5009,19 @@ clause also held, and was measured rather than assumed — see the *Row 12 did n
 window* paragraph above, which records the one tree hash that **moved** as well as the two that
 did not.
 
-**#424's debt is DISCHARGED too.** The clause the `2026-08-26T12:05:47Z` extension left here —
-*"Whoever merges it owes the next sequential ledger row"*, written against the
-`docs/u2-gate1-plan` PR that carried row 12 and Packet U2's Gate 1 sign-off — is spent as a live
-statement while remaining accurate as the dated prediction it was. It was discharged on
-2026-08-26: #424 merged as `52c44c4`, and its post-merge `js-unit` result is **row 13**. The same
-extension's prediction about the restart clause also held, and was measured rather than assumed:
-the file list and both tree hashes are in the *Row 13 did not restart the window* paragraph above.
+**The same mechanism now applies to the PR carrying THIS extension.** Row 12 is recorded by
+Packet U2's **Gate 1 planning** PR, which changes no file under `static/js/**`, no workflow, no
+dependency and no generated inventory — so it cannot engage Q2's restart clause, and the only
+prediction made here is about that clause, **not** about its run's result. **Whoever merges it
+owes the next sequential ledger row**, by the *Merging either of them mints the next sequential
+ledger row* rule stated above.
 
-**One superseded carrier clause is retired rather than left to mislead.** The paragraph that stood
-here before this extension opened *"The same mechanism now applies to the PR carrying THIS
-extension"* and described a **documentation-only** carrier. It is spent as a live statement while
-remaining accurate as the `12:05:47Z` reading it was: that carrier merged, and the measured outcome
-is row 13 above. **It does not describe the current carrier**, which is not documentation-only.
-
-**The same mechanism now applies to the PR carrying THIS extension, and its carrier changes the
-production JS tree.** Row 13 is recorded by Packet U2's **implementation** PR, which edits
-[`backup-center.js`](../../static/js/modules/backup-center.js) and
-[`program-backup.spec.ts`](../../e2e/program-backup.spec.ts) and therefore moves `static/js` off
-`bd703e800d512c21e32d6f03066cfe8080859f93`. The whole-tree identity that carried rows 7 through 11,
-and that row 13 could still claim, is **unavailable for the next row and is not claimed in advance**.
-The operative rule stays the one this document has applied at every row since T0 — **"changed no JS
-test case"**, not "changed no JS": that PR adds **no** file under `static/js/modules/__tests__/`,
-changes **no** existing Vitest case and leaves `vitest.config.js` untouched, by explicit owner
-decision **OD-1 (i)**, which declined a Vitest file for `backup-center.js` **and declined to book any
-follow-up packet or rider for one** — deliberately unlike U1, whose equivalent decision registered
-**U1-FOLLOWUP-1**. See
-[`backup_confirmation_continuity/PLANNING.md`](../backup_confirmation_continuity/PLANNING.md) §v2.1
-and §v2.14. **Whoever merges it owes the next unclaimed ledger row**, by the rule stated above — and
-**#415's in-progress run is ahead of it in that queue**, so the row that PR receives depends on what
-settles first. No prediction is made here about any run result.
-
-> ⚠️ **DATED 2026-08-26T12:05:47Z — retired in place by the sixth extension.** This paragraph read
-> *"One superseded clause is retired rather than left to mislead … **It does not describe the
-> current carrier**, which is documentation-only."* Its subject — the paragraph immediately below,
-> written about the **U1 implementation** carrier — is still correctly retired. Its **closing
-> clause is not**: the current carrier is Packet U2's *implementation* PR, which is **not**
-> documentation-only. The live statement about the current carrier is three paragraphs above, at
-> *The same mechanism now applies to the PR carrying THIS extension*.
+**One superseded clause is retired rather than left to mislead.** The paragraph immediately below
+opens *“That carrier changes the production JS tree, and it still cannot restart the window”* and
+was written on 2026-08-26 about the **U1 implementation** carrier, in the future tense. It is now
+spent as a live statement while remaining accurate as the dated prediction it was: that carrier
+merged, and the measured outcome is the *Row 12 did not restart the window* paragraph above.
+**It does not describe the current carrier**, which is documentation-only.
 
 **That carrier changes the production JS tree, and it still cannot restart the window.** This is
 the first row-carrying PR since T0 for which `static/js` moves, so the reasoning is spelled out
@@ -5074,11 +5049,8 @@ rider.
 > next PR to merge, so it is the rider — which is why this document appears in a diff otherwise
 > scoped to Packet U1's six functional artifacts.”* **That PR has since merged** (#423, `06a3f41`),
 > so it is no longer *next*; and its diff was **eight** files, not six — measured in the *Row 12 did
-> not restart the window* paragraph above. ⚠️ **AMENDED `2026-08-26T21:57:02Z`.**
-> This blockquote then read *"**The current carrier is Packet U2's Gate 1 planning PR**, whose diff
-> is two documentation files."* **That carrier has since merged as `52c44c4` and is row 13.** The
-> current carrier is Packet U2's *implementation* PR, whose diff is **eight** files and which
-> **does** change `static/js`. The retirement recorded three paragraphs above covers the
+> not restart the window* paragraph above. **The current carrier is Packet U2's Gate 1 planning PR**,
+> whose diff is two documentation files. The retirement recorded three paragraphs above covers the
 > same class of clause and is extended here rather than repeated.
 
 **Still to do, and owed by whoever picks this up:** extend **this** block — not any of the three
