@@ -4822,6 +4822,8 @@ back byte-identical.
 | **19** | [`33030127322`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33030127322) | `push` / `5b35966` (**PR #426, Packet U3b — KI-011 toast action continuity**) | `success`, **18/18** | [**`98380484320`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33030127322/job/98380484320) | **`success`** | **`2026-08-27T01:27:24Z`** |
 | **20** | [`33063751367`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33063751367) | `push` / `1211915` (PR #432, JS-unit ledger rows 17–19) | `success`, **18/18** | [**`98488650519`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33063751367/job/98488650519) | **`success`** | **`2026-08-27T10:37:48Z`** |
 | **21** | [`33064557028`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33064557028) | `push` / `efa780c` (PR #427, Packet U2 implementation) | `success`, **18/18** | [**`98491338039`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33064557028/job/98491338039) | **`success`** | **`2026-08-27T10:48:05Z`** |
+| **22** | [`33066528401`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33066528401) | `push` / `a37d7e7` (PR #428, Packet U3a Gate 1 plan) | `success`, **18/18** | [**`98497846286`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33066528401/job/98497846286) | **`success`** | **`2026-08-27T11:15:16Z`** |
+| **23** | [`33067456258`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067456258) | `push` / `07781a8` (PR #433, JS-unit ledger rows 20–21) | `success`, **18/18** | [**`98500982021`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067456258/job/98500982021) | **`success`** | **`2026-08-27T11:28:17Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -4901,6 +4903,47 @@ changed no JS test case, no `vitest.config.js`, and no generated inventory. **T0
 | **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
 | Elapsed since T0 | **≈ 4 d 16 h 48 m** of the required **14 d** |
 | Remaining to the strict mark | **≈ 9 d 7 h 12 m** |
+
+> **LEDGER EXTENSION — `2026-08-27T11:28:17Z`, rows 22–23.** The tally immediately above was true at
+> `2026-08-27T10:48:05Z` and is **annotated, not rewritten**, as every extension before it has been;
+> the live reading is below. **Two** `main` `ci.yml` runs have landed since, both read at job level —
+> the `js-unit` job's own `conclusion` and `completed_at`, never the run's overall conclusion.
+>
+> **Row 23 is another self-recording gap closed by the next writer**, the same mechanism rows 20 and
+> 17 record: #433 wrote rows 20–21 and could not record its own landing, because the run it would
+> cite does not exist until after it merges.
+
+| Ledger tally, at `2026-08-27T11:28:17Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **23** — all twenty-three `push`, all twenty-three 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **23** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **28** — the 23 attempts plus **5** classified non-attempts, re-enumerated at this read and **unchanged**: 3 `Dependabot Updates`, 1 `Deep Gate (manual + weekly)`, 1 `Dependency Graph` |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
+| Elapsed since T0 | **≈ 4 d 17 h 29 m** of the required **14 d** |
+| Remaining to the strict mark | **≈ 9 d 6 h 31 m** |
+
+**Neither row restarts anything, and both carry the STRONGEST available form of the argument rather
+than the narrowest.** #428 and #433 are **documentation-only**: `git rev-parse <sha>:static/js`
+returns **`fedecefa6acc738319ec95dc75e97009a5e24d03`** at `efa780c`, `a37d7e7` **and** `07781a8`, so
+the **entire production JS tree** — not merely the test corpus — is byte-identical across both
+merges. The narrower "changed no JS test case" measurement holds a fortiori:
+`git rev-parse <sha>:static/js/modules/__tests__` is
+**`9db6d8b2e9635755775b8c362f9bebbd750ff3c3`** at all three, and `vitest.config.js` is
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935` at all three, so the collection mechanism did not move
+either. [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) reads
+`vitest.total_files = 13`, `vitest.total_cases = 231` at **both** `a37d7e7` and `07781a8`.
+**T0 remains `2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.**
+
+**One packet is deliberately being held out of this window.** PR
+[#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (Packet U3a, KI-010) is open,
+**draft**, retargeted to `main` and **18/18 green** — and it is **not merged by owner ruling OD-1**.
+It takes the Vitest corpus **231 → 245**, so merging it *would* engage Q2's restart clause and reset
+T0. It **must not land before `2026-09-05T17:59:26Z`**, and reaching that timestamp is **not itself
+merge authorization**.
 
 **Row 21 restarts nothing either — but the argument is NOT row 20's, and substituting it would be
 wrong.** #427 is Packet U2's implementation and it **does** change the production JS tree:
