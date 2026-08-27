@@ -346,7 +346,7 @@ Gate 1 can derive tests from them rather than the reverse.
 | **CI-7** | `showToast('<msg>', <bool>, <number>)` still treats the number as `delay`. | Pinned by **B11**. |
 | **CI-8** | A deliberate empty-string message is rendered, not replaced by default copy. | Pinned by **B44**; independent of this defect and must survive. |
 | **CI-9** | The two default-copy strings are unchanged unless Q2 is answered in a way that requires it, and `toast.test.js` remains their sole exact-string guard (owner ruling 3, Gate 1, 2026-08-22). | A copy change here is a separate signed decision. |
-| **CI-10** | **KI-011 is neither fixed nor worsened.** B30–B35 stay green and stay placement-neutral; `toastBody.innerHTML = ''` at `:60` and the button append at `:84` are not touched. | KI-011 owes its own Gate 0; U3a must not pre-empt it or silently half-fix it. |
+| **CI-10** | **KI-011 is neither fixed nor worsened.** B30–B35 stay green and stay placement-neutral; `toastBody.innerHTML = ''` at `:60` and the button append at `:84` are not touched. ⚠️ **RECONCILED 2026-08-27 — the second clause is now FALSE AS A DESCRIPTION OF THE FILE and the criterion is restated, not deleted.** **KI-011 shipped first** (PR #426, squash `5b35966`): `toastBody.innerHTML = ''` **no longer exists**, and the action button is appended into a `div.toast-action-slot.d-inline` inside `#toast-body` rather than directly. **The criterion's intent is unchanged and still binds** — U3a must not fix, half-fix or regress KI-011 — but it is now met by **leaving the shipped continuity behaviour intact**, not by leaving two specific lines untouched. **B30–B35 staying green is the live half of this row**, and the anchors `:60` / `:84` must be re-measured against merged `main` before they are cited again. | KI-011 owes its own Gate 0; U3a must not pre-empt it or silently half-fix it. |
 | **CI-11** | No `bg-*` class mapping changes; `typeToClass[type] \|\| 'bg-success'` at `:98` keeps its fallback. | Pinned by B1–B4 and B42. |
 | **CI-12** | The single-`#liveToast` / last-message-wins behavior (KI-004, mitigated) is unchanged. | Locked by `e2e/ui-hardening.spec.ts`. |
 
@@ -374,9 +374,16 @@ Gate 1 can derive tests from them rather than the reverse.
 
 - **KI-011** in every respect: the action-button wipe, `toastBody.innerHTML` at `:60`, the append
   at `:84`, `volume-splitter.js`, and the six B30–B35 cases beyond keeping them green.
+  ⚠️ **RECONCILED 2026-08-27.** KI-011 **shipped** as PR #426 (`5b35966`), so the exclusion now
+  reads forward, not backward: U3a excludes the **merged** KI-011 behaviour — the action slot,
+  the message-node replacement, the expiry timer, the dispose-before-content ordering and the
+  `volume-splitter.js` message probe — and the line anchors above describe a file that no longer
+  exists in that form.
 - **Packet U2** in every respect — `docs/backup_confirmation_continuity/**`,
   `static/js/modules/backup-center.js`, `e2e/program-backup.spec.ts`. U2's implementation is
-  running concurrently and merge order is unresolved.
+  running concurrently and merge order is unresolved. ⚠️ **RECONCILED 2026-08-27: U2 has
+  MERGED** (PR #427, squash `efa780c`), so the concurrency and the unresolved order are both
+  retired as facts.
 - **Packet U1's residue** — U1-FOLLOWUP-1, U1's AA/contrast debt, `volume-splitter.js`.
 - **Decisions Q4, D2 and D4**, and any branch-protection change. U3a *affects* the D2 timeline
   (§0.7); it does not decide D2.
@@ -897,7 +904,7 @@ plan began, **one was already claimed and two were not**:
 
 | `main` run | `js-unit` job | Head / PR | Claim state, measured 2026-08-26T23:11:32Z | Written by U3a? |
 |---|---|---|---|---|
-| `33011674872` | `98319257214` | `52c44c4` / #424 | **Claimed as row 13 by the open, unmerged PR #427** | **No** — restating it would write one result twice |
+| `33011674872` | `98319257214` | `52c44c4` / #424 | **Claimed as row 13 by PR #427** ⚠️ **RECONCILED 2026-08-27: #427 is now MERGED** (`efa780c`), and the row was in fact written by **#429**, not #427 | **No** — restating it would write one result twice |
 | `33017593094` | `98339729053` | `7a64d2e` / #415 | **Unclaimed.** #427 explicitly declines it — *"Row 14 is owed, and it is measurable"* | **Yes — row 14** |
 | `33020896786` | `98350728218` | `db6c34b` / #425 | **Unclaimed.** No open PR mentions it | **Yes — row 15** |
 
@@ -1603,7 +1610,20 @@ proposed 62 to **61**. The withdrawal is recorded at §v2.6 rather than quietly 
   unmerged**. Rows **14 / 15 / 16** hold only if #427 lands row 13 first. `gh pr view 427 --json
   state` must report `MERGED`, and the numbers must be re-confirmed against §13.0's then-current
   last row, immediately before this PR merges.
-- **It does not close KI-011**, a separate packet with its own Gate 0 (PR #426).
+
+  ⚠️ **RECONCILED 2026-08-27 — this precaution fired, and it fired the right way.** The rows it
+  guarded were **claimed by PR #429 first**, and U3a's block was **withdrawn in full** rather than
+  restated (§13's withdrawal note). The re-confirmation this bullet demands is therefore **done and
+  its answer is: U3a writes no ledger row at all**. Measured against merged `main`: rows **13–16**
+  belong to #429 (`ec1a5cb`), rows **17–19** to #432 (`1211915`). **Rows 20 and 21 — the post-merge
+  `js-unit` results of #432 itself (`1211915`, job `98488650519`, `success`, `2026-08-27T10:37:48Z`)
+  and of #427 (`efa780c`, job `98491338039`, `success`, `2026-08-27T10:48:05Z`) — are MEASURED AND
+  UNCLAIMED.** They are recorded here as evidence only; **this PR does not write them**, because its
+  own withdrawal note states that U3a writes no ledger row, and falsifying that note to claim them
+  would be the double-entry hazard the note exists to prevent.
+- **It does not close KI-011**, a separate packet with its own Gate 0 (PR #426). ⚠️ **RECONCILED 2026-08-27: KI-011 is
+  CLOSED and SHIPPED** — PR #426 merged as `5b35966`, post-merge `main` 18/18. It is no longer a
+  pending sibling; it is the baseline U3a's implementation must be rebased onto.
 - **It does not close OD-1's open residual**: for the remainder of the window, any new
   `error_response('error', …)` makes KI-010 live, and the owner declined to rule that out.
 
