@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 527
+      "tests": 540
     },
     "specs": [
       {
@@ -219,7 +219,7 @@
       {
         "in_required_functional_set": true,
         "spec": "volume-splitter.spec.ts",
-        "tests": 46
+        "tests": 59
       },
       {
         "in_required_functional_set": true,
@@ -238,7 +238,7 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 662
+    "total_tests": 675
   },
   "pytest": {
     "collected_deterministic": 2855,

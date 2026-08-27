@@ -1,4 +1,4 @@
-import { showToast } from './toast.js';
+import { showToast, toastMessageText } from './toast.js';
 import { api } from './fetch-wrapper.js';
 
 let volumeConfig = null;
@@ -180,7 +180,7 @@ function enterCalculateFailureState({ forceAnnounce }) {
     const standing = Boolean(document.getElementById(CALCULATE_ERROR_ID));
     renderCalculateFailureRegion();
 
-    if (forceAnnounce || !standing || !ourToastContentStands()) {
+    if (forceAnnounce || !standing || !ourMessageStands()) {
         showToast('error', CALCULATE_ERROR_MESSAGE, {
             action: {
                 label: 'Retry',
@@ -244,6 +244,13 @@ function dismissCalculateFailureToast() {
     if (!ourToastContentStands()) {
         return;
     }
+    // OQ-8, narrowed. KI-011 preserves the action across a message replacement,
+    // so the button probe alone would answer "ours" while an UNRELATED message
+    // is on screen -- and hide() would dismiss a stranger's toast. The message
+    // must be ours too.
+    if (!ourMessageStands()) {
+        return;
+    }
 
     const toastElement = document.getElementById('liveToast');
     if (toastElement) {
@@ -251,12 +258,27 @@ function dismissCalculateFailureToast() {
     }
 }
 
-// The single shared probe for "our content still stands in the toast body".
+// The ACTION probe: "our action button still stands inside #liveToast".
 // Scoped to `#liveToast`, never `#toast-body`: the wider scope survives the
 // node relocation a KI-011 fix would require. Deliberately blind to
 // visibility: it returns true for a toast that has already dismissed itself.
 function ourToastContentStands() {
     return Boolean(document.querySelector('#liveToast button[aria-label="Retry volume calculation"]'));
+}
+
+// The MESSAGE probe, added for KI-011 (docs/toast_action_continuity/PLANNING.md
+// section 4.3). Deliberately NOT a query on #toast-body: the action slot lives
+// inside that node, so #toast-body's own textContent can never equal
+// CALCULATE_ERROR_MESSAGE once a button is present. toast.js owns its DOM shape
+// and exports the reader, so a later rename there cannot break this silently.
+//
+// Why both probes exist. Before KI-011 they were co-extensive -- toast.js:60
+// destroyed message and button together. Now they diverge in BOTH directions: a
+// replacement leaves the button but takes the message, and an auto-hide leaves
+// the message but takes the button. The announce condition asks about the
+// MESSAGE; the dismissal guard requires both.
+function ourMessageStands() {
+    return toastMessageText() === CALCULATE_ERROR_MESSAGE;
 }
 
 function displayResults(results) {

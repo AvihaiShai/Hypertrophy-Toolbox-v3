@@ -2139,3 +2139,185 @@ three times (§7.3).
 **No blocker remains open in this document.** §6.11's signature block is still **unapplied**, and
 signature is **not** requested here — it will be presented separately, with this evidence, as the
 owner directed.
+
+---
+
+## 8. Implementation record
+
+> Gate 1 signed 2026-08-27 (§6.11). This section is the execution record. **Merging remains a
+> separate confirmation and PR #426 stays draft.**
+
+### 8.1 Preconditions discharged before any code was written
+
+| Condition | Discharge |
+|---|---|
+| **Rebase onto live `origin/main` and re-reconcile** | Rebased onto **`b733c14`**. Every signed premise re-measured **after** the rebase and unchanged: `toast.js` `42863b4`, `volume-splitter.js` `552a7ba`, `toast.test.js` `9b10e47`, `e2e/volume-splitter.spec.ts` `8cffe04`, `e2e/fixtures.ts` `63b4af0`, `vitest.config.js` `c16ca42`, `base.html` `a2cb027`, `bootstrap.custom.min.css` `22fdeed`; Vitest **13 files / 231 cases**; `playwright.total_tests` **662**, `required_functional_set` `{spec_files: 25, tests: 527}`, `volume-splitter.spec.ts` **46**, `hard_waits` **82** |
+| **§4.8 ownership claimed** | `WORKSTREAM_OWNERSHIP.local.md` widened from the planning directory to the implementation path set **before** the first production edit |
+| **U3a non-concurrency** | Verified, not assumed: U3a is at **Gate 1 planning**, PR **#428**, whose entire file set is `STEP12_JS_UNIT_GATE0.md` + `docs/toast_type_word_collision/PLANNING.md`. **No `static/js/**` file. No KI-010 implementation is running** |
+| **U2 merge order not assumed** | PR **#427** is open and ready-for-review. U3b does not depend on it and is **not** rebased around it |
+| **`STEP12_JS_UNIT_GATE0.md` deliberately NOT claimed** | Two open PRs are on it — **#429** (ledger rows 13–16) and **#428**. U3b's own §13.0 row records a **post-merge `main`** run and cannot exist before the merge in any case (§4.6 item 11) |
+
+### 8.2 What shipped
+
+**`static/js/modules/toast.js`** — derived from the signed reference with every sandbox mutation
+hook stripped, then given a ship-facing docblock that records the action's lifetime rules, the
+caller-owns-staleness boundary, and **OD-13's accepted re-announcement tradeoff stated accurately**
+rather than optimistically. `toastBody.innerHTML = ''` is gone; `disposeExisting()` runs **before**
+any content is written and flushes a pending Bootstrap transition callback before disposing;
+the action lives in `div.toast-action-slot.d-inline` inside `#toast-body`; expiry is a timer whose
+handle is stamped on the button; **no module-level mutable state**, so `toast.test.js`'s stated
+premise for omitting `vi.resetModules()` remains true.
+
+**`static/js/modules/volume-splitter.js`** — the four §4.3 amendments, **no rename**:
+`toastMessageText` imported from `toast.js` rather than reaching into its DOM; `ourMessageStands()`
+added; the announce condition keyed on the **message**; the dismiss guard narrowed to a
+**conjunction**, which keeps `ourToastContentStands()` live. Its comment no longer calls itself
+*"the single shared probe"*, which the second probe falsified.
+
+**`e2e/volume-splitter.spec.ts`** — a new `KI-011 toast action continuity` block, **13 arms**
+(`t1`–`t12` with `t5b`). **No Vitest file is touched.**
+
+### 8.3 Both directions, at the shipped tier
+
+Not inherited from the sandbox matrix — re-measured against the shipped files by reverting one
+module at a time and re-running.
+
+| Reverted | Arms run | Result |
+|---|---|---|
+| `toast.js` → `42863b4` (pre-fix) | all 13 | **13 failed** — every arm discriminates the dispatcher fix |
+| `volume-splitter.js` → `552a7ba` (pre-amendment) | `t9`, `t10`, `t11` | **all 3 failed** |
+| nothing (shipped) | all 13, then the whole spec | **13 passed**, then **59/59** |
+
+**Three arms were rewritten during this step because their first versions did not discriminate, and
+each failure is recorded rather than quietly fixed.**
+
+- **`t10` passed against the defect twice before it was right.** First because `toHaveClass(/show/)`
+  **retries until it passes** and therefore succeeded on its first poll, long before a hide
+  transition would have removed the class. Instrumenting the pre-amendment guard proved the guard
+  was reached (`dismiss.enter stands:true` → `dismiss.willHide`) and that the toast **was** being
+  dismissed — `hiddenEvents: 1`, `shown: false` — once a settle window let the ~150 ms transition
+  finish. The arm now counts `hidden.bs.toast` **after** a page-side settle.
+- **`t11` had the same retry-until-pass flaw** — an announced-then-auto-hidden toast satisfied
+  `not.toHaveClass(/show/)`. It now counts `shown.bs.toast`, which an announcement marks
+  permanently.
+- The general lesson, and it is the same one §7.1 recorded about the harness: **a negative assertion
+  that Playwright retries until it passes is not an oracle.** Both arms now use event counters with
+  paired positives.
+
+### 8.4 Two pins the signed plan did not list
+
+1. **`tests/test_volume_history_busy_signal_contracts.py:110`** asserts
+   `spec.count("await waitForVolumeSplitterReady(page);") == 4` — one per `test.describe`
+   `beforeEach`. A new block makes it **5**, so **full pytest reds**. **U1 bumped the same literal
+   3 → 4**; U3b bumps it **4 → 5** and keeps it a literal, with a comment saying why: the literal is
+   what forces a new block to adopt the deterministic waiter instead of reintroducing `networkidle`.
+   §4.4's pinned-surface list missed it; the ownership claim was widened on discovery.
+2. **`hard_waits` is a literal string scan for `waitForTimeout`** — including inside **comments**. A
+   comment saying *"a page-side timer, not `page.waitForTimeout`"* moved the metric 82 → 83 while
+   adding no hard wait at all. The comment was reworded and the surface is **unchanged at 82**.
+
+### 8.5 Gate results
+
+| Gate | Result |
+|---|---|
+| **Full pytest** | **3175 passed, 2 skipped** |
+| **`npx tsc --noEmit`** | **exit 0**, no output |
+| **`npm run test:js`** | **13 files / 231 cases** — unchanged |
+| **`toast.test.js`** | **byte-identical**, 47 cases, green against the shipped module |
+| **`generate_test_inventory.py --check`** | **exit 0** after regeneration |
+| **`e2e/volume-splitter.spec.ts`** | **59/59** under the normal harness |
+
+**Inventory deltas — measured, and matching §4.4's prediction except where §8.4 corrects it:**
+
+| Key | Before | After |
+|---|---|---|
+| `vitest.total_files` / `total_cases` | 13 / 231 | **13 / 231 — unchanged, so T0 is preserved** |
+| `playwright.total_tests` | 662 | **675** |
+| `specs[volume-splitter.spec.ts].tests` | 46 | **59** |
+| `required_functional_set.tests` | 527 | **540** |
+| `required_functional_set.spec_files` | 25 | **25 — unchanged**, so the `== 25` pin is untouched |
+| `hard_waits.total_lines` | 82 | **82 — unchanged** |
+
+**One E2E failure was investigated and attributed, not waived.** A first full-spec run red on
+`saved plans can be restored and deleted through volume history` at **`:341`** — `historyRows`
+expected 7, got 6. **`:340`'s `Plan #N saved. / Activate for Plan tab` assertion PASSED**, so the
+K9 contract held. Stash-and-rerun of the identical test with the diff removed — blobs back to
+`42863b4` / `552a7ba` — **failed identically**, so it is this worktree's DB state, polluted by the
+session's own probe runs, not a regression. Reseeded from `e2e/fixtures/database.visual.seed.db`
+and the spec then ran **59/59**.
+
+### 8.6 The two-invocation E2E comparison
+
+Run per §4.5: the whole Chromium suite on the branch and on the merge base, same machine, same
+session, `--reporter=json`, reduced to the set of non-passing `(file, title)` pairs.
+
+| Run | expected | unexpected | skipped | flaky |
+|---|---:|---:|---:|---:|
+| **branch** | 587 | **71** | 17 | 0 |
+| **merge base** | 561 | **84** | 17 | 0 |
+
+**The default suite is not clean on either side**, exactly as §4.5 says — the failures sit in
+`visual.spec.ts` (52), `visual-baseline-thumbnails.spec.ts` (18),
+`workout-plan-desktop-contract.spec.ts` (10), `user-profile.spec.ts` and
+`smoke-navigation.spec.ts`. **All 13 KI-011 arms passed inside the full branch run.**
+
+**Containment was not clean on the first pass, and it was chased rather than waived.**
+`branch_failures \ base_failures` held **7** entries — 2 in `smoke-navigation.spec.ts`, 5 in
+`user-profile.spec.ts`. §4.5 step 4 requires stash-and-re-run of the identical batch before
+attributing any of them, and that is what settled it:
+
+| Batch (`smoke-navigation` + `user-profile`, 35 tests) | Result |
+|---|---|
+| base, run 1 · 2 · 3 | **35 / 35 / 35 passed** |
+| branch, run 1 · 2 · 3 | **6 failed · 1 failed · 3 failed** — and **a different set each time** |
+| branch, run 4 · 5 · 6 | **35 / 35 / 35 passed** |
+
+**The failing identities were not stable across runs**, and one of the individually-failing tests
+passed on its own immediately afterwards. Runs 1–3 overlapped the tail of the two ~16-minute
+full-suite runs and the other active worktrees on this machine; runs 4–6 ran quiet. **Under quiet
+conditions branch and base are symmetric at 35/35 across three consecutive runs each**, so the 7
+entries are load-induced nondeterminism, not a regression.
+
+**Stated as a limit rather than a clean bill:** three consecutive clean runs is evidence, not proof.
+The honest summary is that **no failure has been reproduced against the branch that does not also
+reproduce, or fail to reproduce, against the base**, and that CI — one job per runner, no competing
+worktrees — is a quieter environment than this one.
+
+**No new visual baseline was written**: `git status --porcelain` under `e2e/**-snapshots/` is clean.
+
+### 8.7 Re-reconciliation after the gates
+
+`origin/main` moved **twice more** during the gate runs and the branch was rebased again:
+
+| Read | `origin/main` | What landed |
+|---|---|---|
+| at signature | `b733c14` | — |
+| during gates | `db6c34b` → `b733c14` → **`3098282`** | **#429** (§13.0 ledger rows 13–16) and **#430** (pyright Packet P1) |
+
+**Merge base is now `3098282`.** Every signed premise re-measured there and unchanged: `toast.js`
+`42863b4`, `volume-splitter.js` `552a7ba`, `toast.test.js` `9b10e47`, `e2e/volume-splitter.spec.ts`
+`8cffe04`. **All gates were re-run after this rebase**: pytest **3175 passed / 2 skipped**,
+`tsc --noEmit` clean, Vitest **13 files / 231 cases**, inventory `--check` exit 0,
+`volume-splitter.spec.ts` **59/59**.
+
+**#429 matters to this packet's follow-up.** It extended §13.0 with rows 13–16, so U3b's own ledger
+row — owed **after** merge, for the post-merge `main` `JS Unit` job — appends to a ledger that has
+moved. That obligation (§4.6 item 11) is unchanged and still belongs to whoever holds the ledger.
+
+### 8.8 One sequencing fact for the owner, reported rather than judged
+
+**A U3a / KI-010 implementation workspace now exists.** There is a worktree
+`Hypertrophy-Toolbox-v3-main-u3a-impl` on branch `feat/u3a-ki010-toast-collision`, and a stash
+labelled `u3a-impl`.
+
+**Measured state, so the fact is not overstated:** that worktree is **clean** — no commits beyond
+`main`, `git status` empty, and `toast.js` / `toast.test.js` both **pristine** (`42863b4`,
+`9b10e47`). There is **no open U3a implementation PR** — #428 is U3a's Gate 1 **plan**, still draft,
+and its whole file set is documentation.
+
+So **nothing is running concurrently at this moment**, and the signed condition is not breached
+today. But someone has begun KI-010 implementation work and parked it, on the surface U3b changes.
+**The owner's ruling is that U3b lands before U3a**, and U3b's `toast.js` is a near-total rewrite of
+that file — whoever resumes `u3a-impl` will need to rebase onto the merged U3b rather than onto the
+`42863b4` their stash assumes. That is a merge-order fact worth knowing **before** confirming this
+merge, which is why it is here and not buried.
