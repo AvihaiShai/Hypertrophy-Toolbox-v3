@@ -116,8 +116,26 @@ visibly subordinate while clearing the raised graphite surfaces without looking 
 
 Dark-mode action buttons use a separate muted indigo/brick/forest ramp (`#5264ad`, `#a84f49`, and
 `#3f6f5e`) rather than the brighter semantic accent colors. Hover colors remain WCAG-readable with
-white text, while
-light mode retains the original action palette.
+white text. **Light mode's action palette is unchanged**: light defines the `--action-*` tokens as
+`var(--accent)` / `var(--danger)` and the same greens the Excel action already used, so every light
+action button computes to the value it did before.
+
+**Light layout does move, and it is deliberate.** The navbar brand carries both `.navbar-brand` and
+`.nav-link` (`templates/base.html:41`). Bootstrap's `.nav-link` sets the *shorthand*
+`padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x)`, and `.navbar-brand`, later in
+source order, overrides only the block edges. `--bs-nav-link-padding-x` is defined on `.nav`, which
+the brand is not inside, so the shorthand was invalid at computed-value time and the brand's inline
+padding resolved to **0** — its pill border sat against the text. The house rule that would have
+supplied the inset (`navbar.css:174`) lives inside `@layer navbar`, and unlayered Bootstrap beats a
+layered rule at any specificity, so it never applied. `navbar.css` now restores `padding-inline`
+in the unlayered block, the only place that can win, and `e2e/nav-dropdown.spec.ts` pins it at
+≥ 12px on both edges.
+
+Because the navbar renders on every route, this shifts **both** themes at every viewport. Measured
+against the committed win32 corpus, it moves **33 light captures** by 1–2 % each — a constant delta
+per viewport (820–857 px mobile, 2,644–2,692 px tablet, ~18.8 k desktop), reaching pages whose own
+bundles this change never touched. Those 33 are expected movement, not regression; the light colour
+system itself is untouched.
 
 ### Elevation and glass
 
