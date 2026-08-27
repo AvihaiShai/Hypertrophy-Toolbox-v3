@@ -5246,6 +5246,79 @@ D2 are untouched.** §13.13 restates the stop in full.
 > `js-unit` result of each, by the standing *merging mints the next row* rule; **no row number is
 > predicted for them here.**
 
+> **LEDGER EXTENSION — `2026-08-27T11:28:17Z`, rows 22 and 23.** The tally immediately above was true
+> at `2026-08-27T10:48:05Z` and is **annotated, not rewritten**, exactly as the blocks before it were;
+> the live reading is below. **Two** `main` `ci.yml` runs have landed since, both read at job level.
+>
+> **Why these rows are written here.** Row 22 records the merge of **#428**, Packet U3a's Gate 1
+> plan, and row 23 the merge of **#433**, the PR that carried rows 20 and 21. A PR cannot record its
+> own landing, so each row falls to the next authorized PR to touch this file — the same mechanism
+> rows 17, 20 and 21 record.
+
+| # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
+|---|---|---|---|---|---|---|
+| **22** | [`33066528401`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33066528401) | `push` / `a37d7e7` (PR #428, Packet U3a Gate 1 plan plus the withdrawal record) | `success`, **18/18** | [**`98497846286`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33066528401/job/98497846286) | **`success`** | **`2026-08-27T11:15:16Z`** |
+| **23** | [`33067456258`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067456258) | `push` / `07781a8` (PR #433, ledger rows 20–21) | `success`, **18/18** | [**`98500982021`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067456258/job/98500982021) | **`success`** | **`2026-08-27T11:28:17Z`** |
+
+| Ledger tally, at `2026-08-27T12:10:13Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after T0 | **23** — all twenty-three `push`, all twenty-three 18/18 |
+| Green `main` `JS Unit` results since and including T0 | **23** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after T0 (completeness check, not a tally) | **28** — the 23 attempts plus the 5 classified non-attempts |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
+| Elapsed since T0 | **≈ 4 d 17 h 28 m** of the required **14 d** |
+| Remaining to the strict mark | **≈ 9 d 6 h 31 m** |
+
+**Both rows were resolved at job level, and the whole window was re-enumerated rather than extended
+from the page.** Method: `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"` filtered
+to `created_at >= 2026-08-22T17:00:00Z` — deliberately **earlier** than T0, so the filter is a
+superset and cannot hide a run — across **every** workflow; each returned run's `/jobs` was then
+enumerated in full and matched on the exact context string. **No run's overall conclusion was used as
+a proxy for its `js-unit` result** (§6.1's discipline). The re-enumeration returned **28** `main`
+runs, of which **23** carry a `JS Unit (Vitest, non-required)` job and **5** do not; every one of the
+23 reported `total_count = 18` with all 18 jobs `success`, and **rows 1–21 came back matching what
+this document already records**, run id for run id.
+
+**Neither row restarts the window, and this is the strong form of the argument rather than row 21's
+narrower one.** Both carriers are **documentation-only**: #428's diff is two files under `docs/`
+(`STEP12_JS_UNIT_GATE0.md` and `toast_type_word_collision/PLANNING.md`) and #433's is this file
+alone. Measured across **both** merges, `efa780c → a37d7e7 → 07781a8`, three trees are byte-identical
+at every step:
+
+| Surface | Hash, unchanged across both merges |
+|---|---|
+| `static/js` | `fedecefa6acc738319ec95dc75e97009a5e24d03` |
+| `static/js/modules/__tests__` — the Vitest corpus | `9db6d8b2e9635755775b8c362f9bebbd750ff3c3` |
+| `vitest.config.js` — the collection mechanism | `c16ca428f7478708d8dd96a20ebcb86f98a8b935` |
+| `docs/test_inventory` | `3cc32cf81af1bd39ea5d1830f46f3dd9281584e6` |
+
+The suite the window is qualifying is therefore still **13 files / 231 cases**, and
+`playwright.total_tests` (**686**) and `hard_waits.total_lines` (**82**) are unmoved as well.
+**Q2's restart clause did not engage on either merge. T0 remains `2026-08-22T17:59:26Z`; the strict
+mark remains `2026-09-05T17:59:26Z`.**
+
+**The five non-attempt runs are unchanged and were re-enumerated, not carried forward** — the three
+Dependabot `dynamic` runs, the one `Configured Graph Update` `dynamic` run, and the single
+`schedule`-event **Deep Gate** run of 2026-08-24. All five return **zero**
+`JS Unit (Vitest, non-required)` jobs. **No sixth non-attempt has landed, and no second cron firing
+has occurred at this read time** — nothing about the 2026-08-31 firing is claimed here.
+
+**One PR is open at this read time and it is not in this ledger.** Re-measured live rather than
+carried forward: [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (Packet U3a's
+implementation) is **`OPEN`, draft, `MERGEABLE`/`CLEAN`**, based on `main` at head `bbe21151`. Its
+`ci.yml` runs execute on a **PR branch**, not on `main` — outside §6.5's *"the clock starts on
+`main`"* rule. **It claims no ledger row**: its only edit to this file is a stale-pointer annotation
+under §10.3 and the U3a withdrawal record, verified by diffing it before this block was written.
+**Merging it will mint the next sequential row, and no row number is predicted for it here.**
+
+**Whoever merges the PR carrying this block owes the next sequential ledger row** — its own
+post-merge `main` `js-unit` result — by the standing *merging mints the next row* rule.
+
+
 ### 13.1 Ownership, containment, and the must-not-touch list
 
 | | |
