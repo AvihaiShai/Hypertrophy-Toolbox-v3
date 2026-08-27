@@ -99,7 +99,7 @@ class faked exactly as [`toast.test.js`](../../static/js/modules/__tests__/toast
 
 > ⚠️ **CORRECTED 2026-08-27 by owner ruling OD-8.** Row 6's *Caller's intent* cell read *"red toast
 > saying `error`"* when this table was signed. **That cell was wrong.** The legacy one-argument
-> contract is fixed by **B5** ([`toast.test.js:183`](../../static/js/modules/__tests__/toast.test.js#L183)):
+> contract is fixed by **B5** ([`toast.test.js:188`](../../static/js/modules/__tests__/toast.test.js#L188)):
 > `showToast('Bare message')` renders that message on **`bg-success`**. A legacy caller writing
 > `showToast('error')` therefore intends a **green** toast whose body is the word `error` — which is
 > exactly what **AC-2** and **OD-2** deliver. **The cell is corrected in place, not rewritten
@@ -219,23 +219,33 @@ it('B45: a legacy call whose message IS a type word swallows the message', () =>
 B45 by construction. That red is the intended review signal, and it is exactly why this packet
 owes Gate 0.
 
+> ⚠️ **ANCHOR NOTE 2026-08-27 — `:556-569` no longer resolves, and re-numbering it would be wrong.**
+> The case quoted above **no longer exists**: this packet **inverted** B45 and parametrised it over
+> the four type words. The successor, `B45a–d`, sits at **`:625-633`** with its explanatory comment
+> from **`:610`**, and it asserts the **opposite**. The block above is preserved as the record of
+> what pinned the defect at Gate 0; it is history, not a pointer.
+
 **B43 is the second test in scope**, at
 [`toast.test.js:535-543`](../../static/js/modules/__tests__/toast.test.js#L535-L543): it pins
 `showToast('success')` → `"Action completed successfully."`. Whether B43 must also change depends
 entirely on the answer to **Q2** below. **If the one-argument form is left alone, B43 is
 untouched; if it is fixed, B43 inverts too.**
 
+> ⚠️ **ANCHOR NOTE 2026-08-27 — `:535-543` no longer resolves either.** OD-2 answered Q2 with (b),
+> so **B43 inverted**. The successor, `B43a–d`, sits at **`:589-597`** with its explanatory comment
+> from **`:574`**. Same reasoning as the B45 note above: history, not a pointer.
+
 **Three cases that must stay green under any fix**, because they define the legacy contract that
 still has 33 live callers:
 
 | Case | Assertion |
 |---|---|
-| **B5** ([`:183`](../../static/js/modules/__tests__/toast.test.js#L183)) | `showToast('Bare message')` → body `'Bare message'`, `bg-success` |
-| **B6** ([`:175`](../../static/js/modules/__tests__/toast.test.js#L175)) | `showToast('Broke', true)` → body `'Broke'`, `bg-danger` |
-| **B7** ([`:181`](../../static/js/modules/__tests__/toast.test.js#L181)) | `showToast('Fine', false)` → body `'Fine'`, `bg-success` |
-| **B8** ([`:189`](../../static/js/modules/__tests__/toast.test.js#L189)) | `showToast('Msg', 'not-a-boolean')` → body `'Msg'`, `bg-success` |
-| **B9** ([`:196`](../../static/js/modules/__tests__/toast.test.js#L196)) | `showToast('Broke', true, {requestId:'R1'})` → `'Broke (Request ID: R1)'` |
-| **B11** ([`:210`](../../static/js/modules/__tests__/toast.test.js#L210)) | `showToast('m', false, 5000)` → delay `5000`, body `'m'`, `bg-success` |
+| **B5** ([`:188`](../../static/js/modules/__tests__/toast.test.js#L188)) | `showToast('Bare message')` → body `'Bare message'`, `bg-success` |
+| **B6** ([`:194`](../../static/js/modules/__tests__/toast.test.js#L194)) | `showToast('Broke', true)` → body `'Broke'`, `bg-danger` |
+| **B7** ([`:200`](../../static/js/modules/__tests__/toast.test.js#L200)) | `showToast('Fine', false)` → body `'Fine'`, `bg-success` |
+| **B8** ([`:208`](../../static/js/modules/__tests__/toast.test.js#L208)) | `showToast('Msg', 'not-a-boolean')` → body `'Msg'`, `bg-success` |
+| **B9** ([`:215`](../../static/js/modules/__tests__/toast.test.js#L215)) | `showToast('Broke', true, {requestId:'R1'})` → `'Broke (Request ID: R1)'` |
+| **B11** ([`:229`](../../static/js/modules/__tests__/toast.test.js#L229)) | `showToast('m', false, 5000)` → delay `5000`, body `'m'`, `bg-success` |
 
 ### 0.6 The three pinning layers a fix has to move, and one required check it trips
 
@@ -702,7 +712,7 @@ collision-capable call sites (§0.4) are fixed without being edited.
 
 - **B43 inverts**, as §0.11 Q2 predicted.
 - **B13 enters scope, making THREE characterization cases, not two.**
-  [`toast.test.js:236-239`](../../static/js/modules/__tests__/toast.test.js#L236-L239) is
+  [`toast.test.js:255-274`](../../static/js/modules/__tests__/toast.test.js#L255-L274) is
   `showToast('error', undefined)` asserting the error default copy. In JavaScript an omitted
   second argument and an explicitly-passed `undefined` are indistinguishable *by the parameter's
   value* — which is precisely what **B43's own in-file comment says**: *"`message` has no default
@@ -1040,7 +1050,8 @@ input** — `showToast(T, undefined)`, an *explicitly passed* `undefined` — an
 of that input is:
 
 - **0** production call sites (harness `artifacts/ki010-undef-arg2.py`);
-- **1** site in the entire repository: **`toast.test.js:237`, which is B13 itself.**
+- **1** site in the entire repository: **`toast.test.js:271`, which is B13 itself** (`:237` at the
+  time of this measurement; re-anchored 2026-08-27, the case and its assertions unchanged).
 
 | | **S1** — legacy when `message === undefined` | **S2** — legacy when `argc < 2` |
 |---|---|---|
@@ -1233,7 +1244,7 @@ three different directions. **The recommendation is reversed in Plan v2.**
 | **A2** | architecture | **BLOCKING.** §v1.3's single totality proof — *"reads only argument **types**"* — is true of S1 and **false of S2** (`argc` is not a type). Signed §0.13 condition 5 requires the rule *"as a total function of the argument types"*, so **S2 cannot satisfy condition 5 as worded** | **ACCEPTED, and it is the sharpest procedural finding of the council.** §v2.3 now states **two** contracts: S1 over argument *values*, S2 over *call shape*. **Choosing S2 therefore requires amending §0.13 condition 5 on the record** — surfaced in the sign-off block so the S1/S2 ruling carries that consequence visibly. |
 | **A3 / P2 / T-B2** | all three | **BLOCKING.** The evidence that `isAbsent` "cannot fire on a modern call" is a **lexical scan for the token `undefined`**; S1's predicate is a **runtime value** test | **ACCEPTED — this is the finding that reverses the recommendation.** Re-measured with a value-shape oracle: of the 74 single-line modern sites, **43 pass a literal**, **18 are `\|\|`/ternary-guarded**, and **13 pass a bare expression**. Architecture and test-strategist independently traced all of them and agree with me that **today every one is guarded at its assignment**, so the reachable population is genuinely **0**. But the invariant is **not structural**, and both named the same exposure: [`workout-plan-helpers.js:210`](../../static/js/modules/workout-plan-helpers.js#L210) `default: return { severity: 'error', message };` forwards its caller's `message` **unguarded**. §v2.4 now carries the value-shape measurement **and** the residual. |
 | **P2 / T-B3** | product-risk, test-strategist | **BLOCKING.** Under S1, a modern call whose message evaluates to `undefined` at runtime renders the **type word on a GREEN toast** — a severity inversion, the class §0.3 calls "the sharpest of the nine". And the inverted B13 would **assert that outcome as correct** | **ACCEPTED. Measured and confirmed** (§v2.4): under S1 `showToast('error', <undefined>)` → `"error"` / `bg-success`; under S2 → `"An unexpected error occurred."` / `bg-danger`, i.e. **S2 preserves today's behaviour and S1 degrades it**. Test-strategist's false-pass scenario is real: delete the `\|\| 'Failed to replace exercise'` guard — which **OD-5 forbids U3a from touching and no test pins** — and S1 renders a green "error" with the whole suite green. **Plan v2 recommends S2.** |
-| **P1** | product-risk | **BLOCKING.** §0.3's signed *intent* column says `showToast('error')` means *"red toast saying error"*, but AC-2/OD-2 deliver **green**. The signed table and the signed criterion disagree | **ACCEPTED, and the reviewer is right that the cell is wrong** — but the correction is the opposite of what it implies. Measured: **B5** ([`toast.test.js:183`](../../static/js/modules/__tests__/toast.test.js#L183)) fixes the legacy one-argument contract as **success/green**. So `showToast('error')` from a legacy caller means **green**, and it is **§0.3 row 6's intent cell that is in error**, not AC-2. Rows 1–5 and 7–9 are all correct. **This packet does not silently edit a signed table**: the correction is raised as owner decision **OD-8**. |
+| **P1** | product-risk | **BLOCKING.** §0.3's signed *intent* column says `showToast('error')` means *"red toast saying error"*, but AC-2/OD-2 deliver **green**. The signed table and the signed criterion disagree | **ACCEPTED, and the reviewer is right that the cell is wrong** — but the correction is the opposite of what it implies. Measured: **B5** ([`toast.test.js:188`](../../static/js/modules/__tests__/toast.test.js#L188)) fixes the legacy one-argument contract as **success/green**. So `showToast('error')` from a legacy caller means **green**, and it is **§0.3 row 6's intent cell that is in error**, not AC-2. Rows 1–5 and 7–9 are all correct. **This packet does not silently edit a signed table**: the correction is raised as owner decision **OD-8**. |
 | **P3** | product-risk | **SHOULD-FIX.** The "8 live call sites" figure is shape-only; at most 6 are ever visible — `workout-plan.js:114` sits behind `if (!error.code)` which `normalizeError` makes always-false, and `filters.js:251` is clobbered in the same tick by `:255` under KI-004 | **ACCEPTED.** §v2.2 gains a visibility column, and **AC-8 is amended** to require the KI-010 row to carry the **visible** count beside the shape count. |
 | **P4 / P5 / P11 / P13** | product-risk | **SHOULD-FIX.** The fix restores **fidelity, not quality**: `showToast('success', true)` becomes a **red** toast whose only word is `"success"`. Severity comes from the boolean and never from the message | **ACCEPTED, in full and without softening.** §v2.10 states it plainly and the migration note must carry it. This is the finding most likely to be lost in a summary, so it is stated as a named limitation rather than a caveat. |
 | **P6** | product-risk | **SHOULD-FIX.** No a11y statement anywhere, and `#liveToast` is an **assertive live region** | **ACCEPTED.** Measured: [`base.html:243-248`](../../templates/base.html#L243-L248) carries `role="alert"`, `aria-live="assertive"`, `aria-atomic="true"`, and severity is conveyed **only** by the `bg-*` class — no icon, no visually-hidden prefix. So the announced string changes for all nine outcomes and a screen-reader user cannot distinguish a red "success" from a real success. §v2.10 records it; `e2e/accessibility.spec.ts` is named in §v2.9. |
@@ -1578,7 +1589,7 @@ and **reaching `2026-09-05T17:59:26Z` is not itself merge authorization.**
 | **OD-7** | Under S1 only: parametrise B13 over four type words (60/244) or leave it single (57/241)? | ✅ **RULED N/A 2026-08-27.** S2 was chosen, so B13 is never inverted. **The S1-only parametrisation must NOT be added.** |
 | **OD-8** | **§0.3 row 6's intent cell is wrong** — it says `showToast('error')` means a *red* toast; B5 fixes the legacy one-argument contract as **green**. Correct the signed cell? | ✅ **RULED 2026-08-27 — CORRECT IT.** Applied at §0.3, annotated in place. |
 | **OD-9** | Ratify the §0.9 ledger-scope amendment (§v2.0) | ✅ **RATIFIED 2026-08-27.** Applied at §0.9. |
-| **OD-10** | `STEP12_JS_UNIT_GATE0.md` §10.3/§10.5 go stale — the 47-case arithmetic, B43/B45's present-tense rows, N8/N10/N12's kill sets, and **two signed Gate 1 checkboxes**. Re-derive in the implementation PR, or land a dated stale-pointer annotation? | ✅ **RULED 2026-08-27 — Plan v2's proposal ACCEPTED.** A **dated stale-pointer annotation** lands in the implementation PR; §10.5 is **not** re-derived here. **Measured at implementation time:** the annotation itself shifted those checkboxes, which now sit at **`:2095`** and **`:2108`** — the `:2054`/`:2067` figures in the council row above were the pre-annotation reading and are left as that record. |
+| **OD-10** | `STEP12_JS_UNIT_GATE0.md` §10.3/§10.5 go stale — the 47-case arithmetic, B43/B45's present-tense rows, N8/N10/N12's kill sets, and **two signed Gate 1 checkboxes**. Re-derive in the implementation PR, or land a dated stale-pointer annotation? | ✅ **RULED 2026-08-27 — Plan v2's proposal ACCEPTED.** A **dated stale-pointer annotation** lands in the implementation PR; §10.5 is **not** re-derived here. **Measured at implementation time:** the annotation itself shifted those checkboxes, which then sat at `:2095` and `:2108` — the `:2054`/`:2067` figures in the council row above were the pre-annotation reading and are left as that record. ⚠️ **RE-MEASURED 2026-08-27 (integration pass): they now sit at `:2102` and `:2115`**, because this pass extended the same annotation by seven lines. Measured, not offset. |
 | **OD-11** | The **requestId suffix drop** on `showToast(T, false, {requestId})` — pin it with B47a–d, or accept it unpinned? | ✅ **RULED 2026-08-27 — PIN IT.** B47a–d ship. |
 
 
@@ -1781,11 +1792,32 @@ header and predicate comment pushed them down), and OD-10's two signed Gate 1 ch
 line citations are still re-anchored when this packet is what moved them** — the prose is frozen, the
 line numbers are measurements.
 
-⚠️ **AMENDED 2026-08-27 (integration pass) — the `validTypes` figure above is superseded.** §0.3 and
-§0.5's `validTypes` citation is **`:213`** on the shipped file, not `:31`; `:31` was the pre-KI-011
-reading. **B5's `:183` and OD-10's `:2095`/`:2108` are unaffected** — they are anchors into
-`toast.test.js` and `STEP12_JS_UNIT_GATE0.md`, which KI-011 did not touch, and both were re-verified
-at this pass.
+⚠️ **AMENDED 2026-08-27 (integration pass) — every figure in the paragraph above is superseded, and
+"unaffected" was the wrong answer for all of them.** §0.3 and §0.5's `validTypes` citation is
+**`:213`** on the shipped file, not `:31`; `:31` was the pre-KI-011 reading. `B5`'s `:183` and
+OD-10's `:2095`/`:2108` are **anchors into files KI-011 did not touch — but THIS PASS touched both**,
+by adding comment blocks to `toast.test.js` and seven lines to the `STEP12` annotation. **A citation
+is falsified by whoever moves the target, including the author re-anchoring it.** Every one below was
+measured after the last content edit:
+
+| Citation | Was | Now |
+|---|---:|---:|
+| **B5** (§0.3, §0.5's table, and council row P1) | `:183` | **`:188`** |
+| **B6** (§0.5) | `:175` | **`:194`** |
+| **B7** (§0.5) | `:181` | **`:200`** |
+| **B8** (§0.5) | `:189` | **`:208`** |
+| **B9** (§0.5) | `:196` | **`:215`** |
+| **B11** (§0.5) | `:210` | **`:229`** |
+| **B13**'s span (§v1.1) | `:236-239` | **`:255-274`** |
+| **B13**'s `showToast('error', undefined)` call (§v1.4) | `:237` | **`:271`** |
+| OD-10's two signed Gate 1 checkboxes (`STEP12`) | `:2095` / `:2108` | **`:2102` / `:2115`** |
+
+**Two §0.5 anchors were deliberately NOT re-numbered**, because the cases they name no longer exist:
+`:556-569` (pre-fix **B45**) and `:535-543` (pre-fix **B43**) were both **inverted** by this packet.
+Each carries a dated anchor note naming its successor family — **B45a–d at `:625-633`**, **B43a–d at
+`:589-597`** — and saying that the quoted block is history rather than a pointer. **Re-numbering a
+citation whose target changed its assertion would be worse than leaving it stale**, because the new
+number resolves and the reader has no signal that the meaning moved.
 
 **The `toast.js:NN` citations inside `toast.test.js` were re-anchored a second time, for a reason
 worth recording.** Their first re-anchoring in this packet applied pre-KI-011 offset arithmetic to
