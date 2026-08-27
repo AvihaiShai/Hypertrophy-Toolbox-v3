@@ -5,9 +5,15 @@ Single source of truth for all exercise filtering logic.
 
 from utils.database import DatabaseHandler
 from utils.logger import get_logger
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple, TypeGuard, Union
 
 logger = get_logger()
+
+# A result row as this module accepts it: positional (tuple) or keyed (dict).
+# DatabaseHandler.fetch_all() only ever returns the keyed shape - it converts every
+# sqlite3.Row with dict(). The positional shape reaches filter_exercises through a
+# substituted handler, and is pinned by tests/test_filter_predicates.py:237 and :292.
+ExerciseRow = Union[Tuple[Any, ...], Dict[str, Any]]
 
 
 class FilterPredicates:
@@ -103,6 +109,39 @@ class FilterPredicates:
         
         return query, params
     
+    @staticmethod
+    def _rows_are_tuples(
+        rows: Sequence[ExerciseRow],
+    ) -> TypeGuard[Sequence[Tuple[Any, ...]]]:
+        """Whether the result set uses positional (tuple) rows.
+
+        Declared as a ``TypeGuard`` rather than a ``TypeIs``: an empty sequence
+        is a valid ``Sequence[Tuple[Any, ...]]`` yet returns False here, so the
+        negative branch says nothing about the argument's type.
+        """
+        return bool(rows) and isinstance(rows[0], tuple)
+
+    @staticmethod
+    def _rows_are_dicts(
+        rows: Sequence[ExerciseRow],
+    ) -> TypeGuard[Sequence[Dict[str, Any]]]:
+        """Whether the result set uses keyed (dict) rows. See _rows_are_tuples."""
+        return bool(rows) and isinstance(rows[0], dict)
+
+    @classmethod
+    def _exercise_names(cls, rows: Sequence[ExerciseRow]) -> List[str]:
+        """Pull exercise names out of either supported row shape.
+
+        The shape is decided once, from the first row, and every row is then
+        read that way, so a mixed result set raises rather than returning a
+        partial list.
+        """
+        if cls._rows_are_tuples(rows):
+            return [row[0] for row in rows if row[0]]
+        elif cls._rows_are_dicts(rows):
+            return [row["exercise_name"] for row in rows if row.get("exercise_name")]
+        return []
+
     @classmethod
     def filter_exercises(cls, filters: Optional[Dict[str, str]] = None) -> List[str]:
         """
@@ -119,12 +158,7 @@ class FilterPredicates:
         try:
             with DatabaseHandler() as db:
                 results = db.fetch_all(query, params if params else None)
-                # Handle both tuple and dict results
-                if results and isinstance(results[0], tuple):
-                    return [row[0] for row in results if row[0]]
-                elif results and isinstance(results[0], dict):
-                    return [row["exercise_name"] for row in results if row.get("exercise_name")]
-                return []
+                return cls._exercise_names(results)
         except Exception as e:
             logger.exception("Error filtering exercises: %s", e)
             return []

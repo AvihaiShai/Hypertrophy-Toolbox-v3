@@ -858,6 +858,22 @@ implementation authorization nor merge authorization.**
 
 ### v1.1 Condition 4 — the owner's ordering ruling, and exactly what it does
 
+> ⚠️ **SUPERSEDED IN PART, 2026-08-27 — U3a WRITES NO LEDGER ROW.** Everything in §v1.1 about the
+> *ordering ruling* stands. What is spent is the **ledger-writing** half: while this PR was open,
+> **PR [#429](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/429) merged to `main` and
+> wrote rows 13–16** — the same four results U3a had measured. **The unclaimed-first rule fired
+> against this packet**, U3a's block is **withdrawn** (see the withdrawal record in
+> [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0), and the table below
+> is left as the **disposition it was at planning time**, not as a live claim.
+>
+> **The conditional numbering was the right precaution and it is what made this a clean deletion
+> rather than a correction to a shipped ledger.** The measurements themselves were never wrong —
+> they are on `main` now, at rows 13–16, with the run and job ids U3a recorded.
+>
+> **OD-9's amendment to §0.9 stands but is now moot in effect:** U3a was authorised to write ledger
+> rows and, as it turns out, has none to write.
+
+
 > **Owner ruling, 2026-08-27:** *"U2 PR #427 has merge priority over U3a. U2 goes first; U3a goes
 > second. Ledger entries remain strictly ordered by actual `main` merges and claimed unclaimed-first.
 > Treat this ordering decision as discharging condition 4 for Gate 1 planning. This does not
