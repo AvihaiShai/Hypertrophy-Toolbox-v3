@@ -242,6 +242,7 @@ class TestApplyScriptIdempotency:
                 "SELECT youtube_video_id FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["youtube_video_id"] == "dQw4w9WgXcQ"
 
         # Second apply — must succeed and leave the value unchanged
@@ -252,6 +253,7 @@ class TestApplyScriptIdempotency:
                 "SELECT youtube_video_id FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row2 is not None
         assert row2["youtube_video_id"] == "dQw4w9WgXcQ"
 
     def test_dry_run_does_not_write(
@@ -273,6 +275,7 @@ class TestApplyScriptIdempotency:
                 "SELECT youtube_video_id FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["youtube_video_id"] is None
 
     def test_case_insensitive_match(
@@ -295,6 +298,7 @@ class TestApplyScriptIdempotency:
                 "SELECT youtube_video_id FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["youtube_video_id"] == "dQw4w9WgXcQ"
 
 
