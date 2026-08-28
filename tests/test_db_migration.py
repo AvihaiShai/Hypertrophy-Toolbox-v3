@@ -7,6 +7,7 @@ already-initialized DB (Flask startup calls them on every boot).
 from __future__ import annotations
 
 import sqlite3
+from typing import Any
 
 import pytest
 
@@ -36,7 +37,7 @@ BODY_COMP_COLUMNS = {
 }
 
 
-def _columns(db: DatabaseHandler, table: str) -> dict[str, sqlite3.Row]:
+def _columns(db: DatabaseHandler, table: str) -> dict[str, dict[str, Any]]:
     return {row["name"]: row for row in db.fetch_all(f"PRAGMA table_info({table})")}
 
 
@@ -175,4 +176,5 @@ def test_erase_data_recreates_body_composition_snapshots_table(client, clean_db)
         assert _table_exists(db, BODY_COMP_TABLE)
         assert _index_exists(db, BODY_COMP_INDEX)
         count = db.fetch_one(f"SELECT COUNT(*) AS count FROM {BODY_COMP_TABLE}")
+        assert count is not None
         assert count["count"] == 0
