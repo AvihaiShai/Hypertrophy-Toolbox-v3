@@ -272,6 +272,7 @@ class TestStatusHelper:
             row = db.fetch_one(
                 "SELECT workout_plan_id AS pid FROM workout_log LIMIT 1"
             )
+        assert row is not None  # the factory above inserted the row this selects
         workout_log_factory(plan_id=row["pid"])  # 2nd row, shared plan
         _, payload = self._run()
         assert payload["workout_log_rows"] == 2

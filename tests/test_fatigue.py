@@ -692,6 +692,9 @@ class TestComputePeriodWindow:
 
     def test_last_4_weeks_returns_trailing_28_days_inclusive(self):
         start, end = compute_period_window("last_4_weeks", date(2026, 5, 23))
+        # Only "this_session" can yield a (None, None) window; a calendar period
+        # always resolves to concrete bounds.
+        assert start is not None and end is not None
         assert start == date(2026, 4, 26)
         assert end == date(2026, 5, 23)
         assert (end - start).days == 27
