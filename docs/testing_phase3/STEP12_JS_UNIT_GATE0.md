@@ -4831,6 +4831,9 @@ back byte-identical.
 | **21** | [`33064557028`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33064557028) | `push` / `efa780c` (PR #427, Packet U2 implementation) | `success`, **18/18** | [**`98491338039`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33064557028/job/98491338039) | **`success`** | **`2026-08-27T10:48:05Z`** |
 | **22** | [`33066528401`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33066528401) | `push` / `a37d7e7` (PR #428, Packet U3a Gate 1 plan) | `success`, **18/18** | [**`98497846286`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33066528401/job/98497846286) | **`success`** | **`2026-08-27T11:15:16Z`** |
 | **23** | [`33067456258`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067456258) | `push` / `07781a8` (PR #433, JS-unit ledger rows 20–21) | `success`, **18/18** | [**`98500982021`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067456258/job/98500982021) | **`success`** | **`2026-08-27T11:28:17Z`** |
+| **24** | [`33081518358`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33081518358) | `push` / `f9726a3` (PR #435, JS-unit ledger rows 22–23) | `success`, **18/18** | [**`98549716046`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33081518358/job/98549716046) | **`success`** | **`2026-08-27T14:19:03Z`** |
+| **25** | [`33124861791`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33124861791) | `push` / `46f640c` (**PR #437, pyright Packet P2 — `tests/test_exercise_manager.py`**) | `success`, **18/18** | [**`98700424421`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33124861791/job/98700424421) | **`success`** | **`2026-08-27T23:03:35Z`** |
+| **26** | [`33125767570`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33125767570) | `push` / `288667d` (**PR #431, Packet U3a — KI-010; the RESTART row, 245 cases**) | `success`, **18/18** | [**`98703428098`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33125767570/job/98703428098) | **`success`** | **`2026-08-27T23:18:21Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -4944,6 +4947,117 @@ merges. The narrower "changed no JS test case" measurement holds a fortiori:
 either. [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) reads
 `vitest.total_files = 13`, `vitest.total_cases = 231` at **both** `a37d7e7` and `07781a8`.
 **T0 remains `2026-08-22T17:59:26Z`; the strict mark remains `2026-09-05T17:59:26Z`.**
+
+> **LEDGER EXTENSION — `2026-08-27T23:18:21Z`, rows 24–26, AND THE WINDOW RESTART.** The most
+> recent tally above — the rows 22–23 one, at `2026-08-27T11:28:17Z` — was true at that moment and
+> is **annotated, not rewritten**, as every extension before it has been; the live reading is below.
+> **Three** `main` `ci.yml` runs have landed since, all three read at job level — the `js-unit`
+> job's own `conclusion` and `completed_at`, never the run's overall conclusion. Read from the API
+> at **`2026-08-27T23:30:00Z`** (UTC now, taken from the GitHub API
+> response `Date` header, not from the host clock), after run `33125767570` reached `completed` with **zero** pending
+> jobs.
+>
+> **Row 24 is the self-recording gap #435 left**, the same mechanism rows 23, 20 and 17 record:
+> [#435](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/435) wrote rows 22–23 and a PR
+> cannot cite the run its own merge produces, because that run does not exist until after it merges.
+> **Row 25 is [#437](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/437)'s own landing**
+> (pyright Packet P2) and **row 26 is [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)'s**
+> (Packet U3a, KI-010); neither is a ledger packet, so both fall to this PR. **Whoever merges THIS
+> PR owes the next unclaimed row.**
+>
+> ⚠️ **ROW 26 IS NOT AN ORDINARY ROW. It is the first `main` `js-unit` result on a DIFFERENT SUITE**
+> — see *The window restarted at row 26* below. Rows 1–25 qualify a **231**-case suite; row 26 ran
+> **245** cases.
+
+| Ledger tally, at `2026-08-27T23:18:21Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after the original T0 | **26** — all twenty-six `push`, all twenty-six 18/18 |
+| Green `main` `JS Unit` results since and including the original T0 | **26** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after the original T0 (completeness check, not a tally) | **31** — the 26 attempts plus **5** classified non-attempts, re-enumerated at this read and **unchanged**: 3 `Dependabot Updates`, 1 `Deep Gate (manual + weekly)`, 1 `Dependency Graph`. Each of the five had its `/jobs` enumerated again and each returned **zero** `JS Unit (Vitest, non-required)` jobs |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — `ci.yml` has no `schedule` trigger |
+| Elapsed from the original T0 to row 26 | **≈ 5 d 5 h 19 m** of the required **14 d** — **not** completed, and **superseded by the restart below** |
+| **Green results on the 231-case suite (rows 1–25)** | **25** |
+| **Green results on the 245-case suite (row 26 onward)** | **1** |
+
+**Rows 24 and 25 restart nothing, and both carry the STRONGEST available form of the argument rather
+than the narrowest.** #435 is **documentation-only** — its whole diff is this file. #437 is a
+**pytest-and-baseline** packet: its whole diff is `tests/test_exercise_manager.py` and
+[`ci_cd_phase3/pyright-baseline.json`](../ci_cd_phase3/pyright-baseline.json), with no file under
+`static/**` on either side. `git rev-parse <sha>:static/js` returns
+**`fedecefa6acc738319ec95dc75e97009a5e24d03`** at `07781a8`, `f9726a3` **and** `46f640c`, so the
+**entire production JS tree** — not merely the Vitest corpus — is byte-identical across both merges.
+The narrower "changed no JS test case" measurement holds a fortiori:
+`git rev-parse <sha>:static/js/modules/__tests__` is
+**`9db6d8b2e9635755775b8c362f9bebbd750ff3c3`** at all three, and `vitest.config.js` is
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935` at all three, so the collection mechanism did not move
+either. **Q2's restart clause did not engage at either row.**
+
+**Row 25's carrier changed a *pytest* file, and the inventory proves that added no test case.**
+#437 inserted seven `assert … is not None` statements into `tests/test_exercise_manager.py` and
+removed the matching seven-diagnostic key from the pyright baseline
+(`tests/test_exercise_manager.py | error | reportOptionalSubscript`, count **7 → 0**;
+**130 / 41 / 25 → 123 / 40 / 24** diagnostics / keys / files). Assertions are not test cases, and
+that is measured rather than assumed:
+[`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) is **identical at `f9726a3` and
+`46f640c`** in every scalar — `vitest.total_files = 13`, `vitest.total_cases = 231`,
+`pytest.total_files = 126`, `pytest.collected_deterministic = 2855`,
+`playwright.total_tests = 686`, `hard_waits.total_lines = 82`. The `Test Inventory Drift` job on
+run [`33124861791`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33124861791)
+([`98700424472`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33124861791/job/98700424472),
+**`success`**) is the independent regeneration check on that file, and the `Type Check` job
+([`98700424255`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33124861791/job/98700424255),
+**`success`**) reports its `pyright baseline diff (blocking)` step **`success`** against the
+committed 123-diagnostic baseline.
+
+#### THE WINDOW RESTARTED AT ROW 26 — `2026-08-27T23:18:21Z`
+
+**PR [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (Packet U3a, KI-010)
+merged**, squash **`288667d`**, `mergedAt` **`2026-08-27T23:17:50Z`**, merged by the repository
+owner. **This is the event the paragraph below in this subsection predicted** — *"It takes the
+Vitest corpus **231 → 245**, so merging it would engage Q2's restart clause and reset T0."* That
+paragraph is now **history, not a live constraint**, and it is **annotated rather than rewritten**:
+its `must not land before 2026-09-05T17:59:26Z` sentence describes an owner ruling (**OD-1**) that
+the owner has since discharged by merging. **Nothing in this document is edited to pretend the
+prediction was not made.**
+
+**The corpus change is measured, not inferred.**
+`git rev-parse 46f640c:static/js/modules/__tests__` is
+**`9db6d8b2e9635755775b8c362f9bebbd750ff3c3`**; at `288667d` it is
+**`5858c8497c571548e5116f4b660ff7702dd298b1`** — a different tree.
+[`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) reads `vitest.total_cases` **231** at
+`46f640c` and **245** at `288667d`, with `vitest.total_files` held at **13**. **Q2's restart clause
+engaged.**
+
+**What Q2 says, verbatim (§0.1, signed 2026-08-15):** the strict 14-day window runs *"from the first
+successful `JS Unit (Vitest, non-required)` run on `main` **after the final expansion packet
+lands**."* Row 26 **is** the first successful `main` `js-unit` result after #431 landed:
+
+| Item | Measured value |
+|---|---|
+| Run | [`33125767570`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33125767570) — `CI/CD Pipeline`, `push`, head `288667d`, **18 jobs, all 18 `success`** |
+| `js-unit` job | [`98703428098`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33125767570/job/98703428098), conclusion **`success`** |
+| Job `completed_at` | **`2026-08-27T23:18:21Z`** |
+| Suite it ran | **13 files / 245 cases** |
+| **If #431 was the final expansion packet, this timestamp is the new T0** | strict mark would be **`2026-09-10T23:18:21Z`** |
+
+⚠️ **THE NEW T0 IS NOT DECLARED HERE, AND THIS PR DOES NOT DECLARE IT.** Q2's clause turns on *"the
+**final** expansion packet"*, and **two Vitest expansions are still deferred and unlanded**:
+U3b's KI-011 helper coverage and **U1-FOLLOWUP-1**
+(§v2.14 of [`volume_failure_feedback/PLANNING.md`](../volume_failure_feedback/PLANNING.md)). Both
+were deferred with the wording *"must not land before `2026-09-05T17:59:26Z`"* — a date derived from
+the **old** T0, which no longer exists. **Whether #431 is the final expansion packet, and therefore
+whether `2026-08-27T23:18:21Z` is T0 or merely another restart, is an owner determination and is
+OWED.** Until it is made, this ledger records the restart as a **measured fact** and the new T0 as a
+**conditional**. What is not conditional: **the old T0 `2026-08-22T17:59:26Z` and the old strict
+mark `2026-09-05T17:59:26Z` are SPENT**, and every earlier restatement of them in this document is
+**history from row 26 onward**. Rows 1–25 remain correct as the record of a 231-case suite that
+accumulated **25 consecutive green results and zero red, missing, skipped or cancelled ones** — that
+evidence is not voided, it simply no longer counts toward D2, exactly as Q2 says the pre-expansion
+331-run streak did not.
 
 **One packet is deliberately being held out of this window.** PR
 [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (Packet U3a, KI-010) is open,
