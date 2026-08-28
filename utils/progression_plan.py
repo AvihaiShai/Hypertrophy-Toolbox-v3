@@ -476,4 +476,9 @@ def save_progression_goal(data: Dict[str, Any]) -> int:
     
     with DatabaseHandler() as db:
         db.execute_query(query, params)
-        return db.cursor.lastrowid
+        goal_id = db.cursor.lastrowid
+        if goal_id is None:
+            # Unreachable: progression_goals is an AUTOINCREMENT rowid table. The
+            # INSERT is already committed, so this reports a lookup, not a failed write.
+            raise RuntimeError("INSERT into progression_goals reported no row id")
+        return goal_id
