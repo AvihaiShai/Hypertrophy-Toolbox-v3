@@ -19,6 +19,14 @@ half have shipped, and Track D1's queue has emptied. §4, §8 and §10 record th
 new status; **§13 is the dated evidence log for this pass**, and §12 is annotated where
 superseded rather than rewritten — it owns what it measured at `f9726a3`. **Nothing here
 authorizes a packet or a merge, and nothing here declares a new T0.**  
+**Re-reconciled again:** 2026-08-28, later the same day, against `origin/main` @ `2035852` — an
+evening **Track P1 merge wave** landed six pyright PRs
+([#439](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/439)–[#444](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/444)) taking the baseline **123 / 40 / 24 → 37 / 16 / 11**, and
+[#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438) merged, putting JS-unit ledger rows **24–26** and the recorded window restart
+onto `main`. §4, §8 and §10 carry the new status; **§14 is the dated evidence log for this pass**,
+and §12 and §13 are annotated where superseded rather than rewritten — each owns what it measured
+at `f9726a3` and `288667d` respectively. **Track P1 is reduced, not finished: 37 diagnostics
+remain.** **Nothing here authorizes a packet or a merge, and nothing here declares a new T0.**  
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
 ## 1. Purpose
@@ -349,9 +357,15 @@ produced a new engineering packet.**
    **U1-FOLLOWUP-1** — each recorded in its own planning surface and neither filed as a packet
    here. **Whether #431 was the final expansion packet is an owner determination and is owed.**
    Read the operative T0 out of §13.0 of
-   [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md), never out of this plan —
-   and note the rows recording the restart are **open in PR [#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438), not merged**,
-   so `main`'s ledger still ends at row 23. See §13.3.
+   [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md), never out of this plan.
+   ~~The rows recording the restart are open in PR [#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438), not merged, so `main`'s
+   ledger still ends at row 23.~~ ⚠️ **AMENDED 2026-08-28 later the same day (§14.3): #438 merged
+   as `2035852`**, so rows **24–26 and the restart record are on `main`** and the ledger ends at
+   **row 26**. **Seven further `main` `ci.yml` runs have since produced a green
+   `JS Unit (Vitest, non-required)` job and are not yet in the ledger — rows 27–33 are OWED.**
+   The Vitest corpus held at **13 files / 245 cases** across all seven, so none of them
+   re-engages Q2's restart clause and the conditional above is unchanged by them. See §13.3
+   and §14.3.
 4. **R1-D3 follow-on — the clock question is settled; the action it feeds is not.** An owner
    ruling dated **2026-08-24** is recorded in **ADR-007** ([`DECISIONS.md`](DECISIONS.md)) and
    states: the **2026-08-17 scheduled run counts** toward the three, so **the clock stands at
@@ -438,34 +452,55 @@ repair the rendering race
 ### Track P1 — Continuous pyright reduction
 
 **Priority:** P2  
-**Status:** Standing — **in progress**; **two** packets have landed, both on 2026-08-27:
-`3098282` ([#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430), `utils/filter_predicates.py`) and `46f640c`
-([#437](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/437), `tests/test_exercise_manager.py`).  
-**Baseline, re-measured from `docs/ci_cd_phase3/pyright-baseline.json` at `288667d`:**
-**123 diagnostics / 40 distinct keys / 24 files**, all severity `error` — down from
-**130 / 41 / 25** at `f9726a3` and **132 / 42 / 26** before #430. The earlier wording "132 diagnostics across
-42 files" conflated the *key* count with the *file* count — each entry in the baseline's
-`diagnostics` array carries its own `count`, so the array length is a key total, never a
-diagnostic total and never a file total.  
-**Estimate:** 8–16 developer-days, **re-derived against the corrected definition rather than
-carried over unexamined.** The range was sized on a total of 132; #430 and #437 removed 2 and 7,
-so **≈7.5–15 developer-days remain** on the same rate assumption — but the work is far more
-concentrated than "42 files" implied: four files hold **72 of 123**
-(`tests/test_volume_progress.py` 35, `tests/test_strength_calibration.py` 16,
-`tests/test_program_backup.py` 12, `routes/workout_plan.py` 9), and the top three are test
-files, which may price differently from production modules. Expect the range's **lower** half if
-the test-file clusters resolve as bulk annotation work, and treat `routes/workout_plan.py` as
-excluded — prior packets record it as off-limits.  
-⚠️ **THE RE-PRICE THIS ENTRY BOOKED IS NOW DUE, AND IT IS NOT PERFORMED HERE.** This entry said
-*"re-price after the first two packets measure a real per-diagnostic rate"*; **both packets have
-now landed**, so the condition is met. What they measured is a **per-packet yield of 2 and 7 —
-4.5 on average** — against a recorded per-packet size of 0.5–1.5 days. Extrapolated linearly,
-123 remaining at 4.5 per packet is **≈27 packets, or 14–41 developer-days**, materially above
-the carried 8–16. That extrapolation is **not** adopted here: it assumes uniform difficulty,
-whereas 72 of the 123 sit in four files where bulk annotation could clear far more per packet,
-and two packets are a thin sample. **The 8–16 range is carried forward as unvalidated, with the
-re-price recorded as owed rather than silently performed** — moving a funding estimate is an
-owner call, and this document does not make one. See §13.5.  
+**Status:** Standing — **in progress and NOT closed: 37 diagnostics remain.** **Eight** packets
+have now landed. Two on 2026-08-27 — `3098282` ([#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430),
+`utils/filter_predicates.py`) and `46f640c` ([#437](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/437),
+`tests/test_exercise_manager.py`) — and **six on 2026-08-28**, inside a thirty-four-minute merge
+wave:
+
+| PR | Squash commit | Merged (UTC) | Scope |
+|---|---|---|---|
+| [#439](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/439) | `878057f` | `2026-08-28T21:16:39Z` | `tests/test_volume_progress.py` — let `_create_exercise` accept `None` muscle groups |
+| [#440](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/440) | `8a53fd3` | `2026-08-28T21:17:15Z` | `tests/test_program_backup.py` — assert `get_backup_details` results before subscripting |
+| [#441](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/441) | `cc72162` | `2026-08-28T21:17:42Z` | `tests/test_calibration_integration.py` — narrow the calibration payload |
+| [#442](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/442) | `3e60cdd` | `2026-08-28T21:18:06Z` | `tests/test_db_migration.py` — both diagnostics in the file |
+| [#444](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/444) | `f318d81` | `2026-08-28T21:18:31Z` | **integration of four workers** — `routes/weekly_summary.py`, `utils/profile_estimator.py`, `utils/strength_calibration.py`, plus the user-profile and fatigue test contracts |
+| [#443](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/443) | `c6cfe31` | `2026-08-28T21:50:23Z` | the `reportOptionalSubscript` test cluster — `test_free_exercise_db_mapping.py`, `test_strength_calibration.py`, `test_workout_log_utils.py`, `test_youtube_video_id.py` — **and the one baseline regeneration for the whole wave** |
+
+**Exactly one PR in the wave regenerated `pyright-baseline.json`, and it did so after merging
+`main` in**: #443's regenerated artifact therefore covers the **combined** tree, not one branch's
+slice. #439–#442 and #444 deliberately left the artifact at `123 / 40 / 24`, so **their own PR
+bodies quote pre-wave totals that the wave's last merge superseded.** Take the total from the file
+on `main`; never from a sibling PR's body, and never from a naive `len()` of the `diagnostics`
+array.  
+**Baseline, re-measured from `docs/ci_cd_phase3/pyright-baseline.json` at `2035852`:**
+**37 diagnostics / 16 distinct keys / 11 files**, all severity `error` — down from
+**123 / 40 / 24** at `288667d`, **130 / 41 / 25** at `f9726a3`, and **132 / 42 / 26** before #430.
+The file's own `_meta` block now carries `total_diagnostics: 37` and `distinct_keys: 16`, and both
+agree with a Σ-of-`count` recomputation. The earlier wording "132 diagnostics across 42 files"
+conflated the *key* count with the *file* count — each entry in the `diagnostics` array carries its
+own `count`, so the array length is a key total, never a diagnostic total and never a file total.
+**37 is not zero: the track stays open.**  
+**Where the residual 37 sits** — the concentration broke, and it is no longer test-file-only:
+`tests/test_volume_progress.py` **17**, `routes/workout_plan.py` **9** (recorded off-limits),
+`utils/effective_sets.py` **2**, `utils/fatigue_context.py` **2**, and **1** each in
+`tests/conftest.py`, `tests/test_program_backup.py`, `tests/test_volume_splitter_api.py`,
+`utils/database.py`, `utils/exercise_manager.py`, `utils/export_utils.py` and
+`utils/progression_plan.py`. **28 of the 37 are addressable**, and **six of the eleven files are
+production modules** rather than tests — the opposite shape from the one the 8–16 estimate was
+reasoned against.  
+**Estimate:** ⚠️ **THE BOOKED RE-PRICE IS NOW OVERDUE, AND THIS PASS STILL DOES NOT PERFORM IT.**
+The condition was met at #437 and §13.5 recorded it as owed; the wave has since made the carried
+range visibly wrong on the high side. **86 diagnostics cleared across six packets — ≈14.3 per
+packet**, against §13.5's two-packet sample of **4.5** and a recorded per-packet size of 0.5–1.5
+days. On the wave's rate the residual 37 is **≈3 packets, or 1.5–4.5 developer-days**; on §13.5's
+older rate it is **≈8 packets**. **Neither figure is adopted here.** The wave spent the four-file
+concentration that made it cheap and that concentration will not recur; 9 of the remaining 37 are
+off-limits in `routes/workout_plan.py`; and six packets landing in thirty-four minutes is a sample
+of *parallel worker throughput*, not of per-diagnostic difficulty. **The 8–16 range is carried
+forward marked unvalidated and now demonstrably high, and the re-price stays booked as owed rather
+than silently performed** — moving a funding estimate is an owner call, and this document does not
+make one. See §14.2.  
 **Per-packet size:** 0.5–1.5 days
 
 **Rules**
@@ -477,14 +512,21 @@ owner call, and this document does not make one. See §13.5.
 - Do not make total pyright closure a release blocker.
 - Quote the multiset as **diagnostics / keys / files** whenever it is restated. The three numbers
   are not interchangeable, and collapsing them is what produced the wording this entry corrects.
-- The 123 figure is the **baseline file's** total. Pyright has not been run live against it in
-  this pass, and the gate blocks net-new diagnostics against exactly that file — so a large
-  live/baseline gap would itself be a finding.
+- The 37 figure is the **baseline file's** total, and for the first time in this document's
+  history **a live run was taken beside it and agrees exactly**: pyright 1.1.410 under the
+  committed `pyrightconfig.json` reports **37 errors**, and
+  `scripts/pyright_baseline_diff.py` returns **PASS — 0 net-new diagnostics (baseline 37,
+  current 37)**. The gap earlier passes disclaimed rather than measured is **zero** (§14.2).
+  **A regeneration is an owner decision, not a repair** — #443's is recorded here as what it
+  was, and the multiset check below is what proves it silenced nothing rather than fixing it.
 - **A count is not a delta.** #430 moved the total 132 → 130 and the keys 42 → 41; #437 moved it
-  130 → 123 and the keys 41 → 40. Verify a packet's progress by comparing the key-by-key
-  multiset, not the two totals. **#437 was checked that way and passes**: exactly one key left
-  the baseline — `tests/test_exercise_manager.py` / `reportOptionalSubscript`, count 7 — and
-  **no key was added anywhere**, so the multiset strictly decreased (§13.5).
+  130 → 123 and the keys 41 → 40; the 2026-08-28 wave moved it **123 → 37** and the keys
+  **40 → 16**. Verify a packet's progress by comparing the key-by-key multiset, not the two
+  totals. **The whole wave was checked that way and passes**: **sixteen** keys left the baseline
+  entirely (**68** diagnostics), **one** key fell in place —
+  `tests/test_volume_progress.py` / `reportArgumentType`, **33 → 15**, a further **18** — and
+  **no key was added in any file and no surviving count rose**. 68 + 18 = 86, and 123 − 86 = 37
+  (§14.2).
 
 ### Track D1 — Dependency-PR triage
 
@@ -513,9 +555,10 @@ again before reusing these numbers.
 - Their CI runs execute on **PR branches**, so they never enter the JS-unit ledger. **If either
   merges, its post-merge `main` run mints the next sequential ledger row, and whoever lands it
   owes that row.** **Do not write a fixed row number into this rule.** The ledger stood at
-  **six** rows at `2026-08-24T21:36:40Z` (§11.10) and at **23** rows at `2026-08-27` after #435;
-  it advances on every merge to `main` — including this plan's own PR — so the row a given
-  dependency PR receives depends on what merged before it. **#415 and #416 duly minted rows on
+  **six** rows at `2026-08-24T21:36:40Z` (§11.10), at **23** rows at `2026-08-27` after #435,
+  and at **26** rows on `main` at `2026-08-28` after #438 — with **rows 27–33 already earned and
+  unwritten** (§14.3); it advances on every merge to `main` — including this plan's own PR — so
+  the row a given dependency PR receives depends on what merged before it. **#415 and #416 duly minted rows on
   their 2026-08-26 merges; that obligation is discharged, not outstanding.**
 - Landing one is a merge decision like any other and needs the same explicit authorization.
 
@@ -567,7 +610,7 @@ evidence. Do not reactivate the old implementation plan.
 
 ## 8. Recommended order and total investment
 
-**Status column re-measured 2026-08-28 against `origin/main` @ `288667d` and the live PR list.** The 2026-08-27 reading it replaces is preserved in §12; what moved since is §13.
+**Status column re-measured 2026-08-28, in a second pass the same day, against `origin/main` @ `2035852` and the live PR list.** The 2026-08-27 reading is preserved in §12 and the `288667d` reading in §13; what moved since `288667d` is §14.
 
 | Order | Packet | Status | Developer time | External/decision dependency | Gate |
 |---:|---|---|---:|---|---|
@@ -581,8 +624,8 @@ evidence. Do not reactivate the old implementation plan.
 | 6 | R2 testing decisions | **Not started** | 0.5–1 day | Owner decisions. ⚠️ **The JS-unit window RESTARTED**: `2026-09-05T17:59:26Z` is spent, and `2026-08-27T23:18:21Z` / `2026-09-10T23:18:21Z` are **conditional on an owed owner determination** (§4, §13.3). R1-D3 clock **re-measured 2026-08-28 at 2 of 3** — both `schedule` runs green; third due **2026-08-31 03:17 UTC**, not yet occurred | Decision only |
 | 7 | V1 visual disposition | **Not started** | 0.25 day or 2–5 days | Owner chooses acceptance or investigation | Decision, then own Gate 1 if funded |
 | 8 | R3 tag-trigger proof | **Not started** | 0.5 day | Explicit authorization for a named real tag. **Re-measured 2026-08-28**: `release.yml` `push` count **0**, `workflow_dispatch` count **1** — and that lone rehearsal predates `a937116`, so the current **12-required / 13-expected** `release_gate.py` has **never executed by any trigger** (§13.6) | Owner action |
-| standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; no dependency PR open at 2026-08-27 | Per-PR merge authorization |
-| ongoing | Track P1 pyright packets | **Ongoing** | ≈7.5–15 days remaining, **and the booked re-price is now due** (§4, §13.5) | Two packets landed — `3098282` ([#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430)) and `46f640c` ([#437](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/437)); baseline 132 / 42 / 26 → 130 / 41 / 25 → **123 diagnostics / 40 keys / 24 files** | Per-packet |
+| standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; **re-measured 2026-08-28: still no dependency PR open** — `gh pr list --state open` returns only #436 (§14.1) | Per-PR merge authorization |
+| ongoing | Track P1 pyright packets | **Ongoing — 37 diagnostics remain, so the track does not close** | 8–16 days carried, **unvalidated and now demonstrably high; the booked re-price is OVERDUE and still unperformed** (§4, §14.2) | **Eight** packets landed — `3098282` ([#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430)), `46f640c` ([#437](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/437)), then the 2026-08-28 wave: `878057f` ([#439](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/439)), `8a53fd3` ([#440](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/440)), `cc72162` ([#441](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/441)), `3e60cdd` ([#442](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/442)), `f318d81` ([#444](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/444)), `c6cfe31` ([#443](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/443) — the wave's single baseline regeneration). Baseline 132 / 42 / 26 → 130 / 41 / 25 → 123 / 40 / 24 → **37 diagnostics / 16 keys / 11 files** | Per-packet |
 
 **Completed packets are retired from the numbered sequence rather than renumbered in place**, so
 the surviving numbers keep matching §4 and an external reference to "order 5" is not silently
@@ -597,10 +640,12 @@ residual is **1.5–3 developer-days — R1 and R2 — and every hour of it is b
 decision, not behind engineering capacity.** Visual race repair and the remaining pyright
 burn-down are separate investments and should not be silently folded into that figure.
 
-**Two documentation PRs are open and neither is in this table**, because neither is a packet:
-[#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438) (JS-unit ledger rows 24–26 and the window restart) and
-[#436](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/436) (this reconciliation). Both are `CLEAN`/`MERGEABLE` at 18/18 green, and
-**green CI is not merge authorization for either.**
+**One documentation PR is open and it is not in this table**, because it is not a packet:
+[#436](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/436) (this reconciliation), `CLEAN`/`MERGEABLE`.
+⚠️ **[#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438) — JS-unit ledger rows 24–26 and the window restart — merged as `2035852`
+at `2026-08-28T21:57:17Z`** and is no longer open; the six Track P1 PRs of the same evening are
+standing-track work carried by the ongoing row above, not packets this table numbers.
+**Green CI is not merge authorization.**
 
 **Nothing in this table is an approval.** The Gate column records *which* gates each packet owes,
 not that any has been passed — and the three `U` rows deliberately differ: **U1 and U3 owe Gate 0
@@ -668,7 +713,9 @@ This plan is complete when:
    every `main` run until 2026-08-24 was `ci.yml`.
 7. Visual determinism has one accepted terminal policy.
 8. Pyright has a continuing packet rule and a current baseline quoted as **diagnostics / keys /
-   files**, even if diagnostics remain. **Currently 123 / 40 / 24 at `288667d`** (§4 Track P1).
+   files**, even if diagnostics remain. **Currently 37 / 16 / 11 at `2035852`** (§4 Track P1) —
+   reduced by the 2026-08-28 wave but **not zero**, so the criterion is met by the rule and the
+   quoted figure, and **Track P1 stays open** (§14.2).
 9. Every parked feature is clearly labeled as roadmap/not funded rather than unfinished current
    work.
 10. Open dependency PRs are triaged or explicitly deferred under Track D1 rather than left
@@ -1166,6 +1213,10 @@ row count is the one half of this paragraph still true — **`main`'s ledger doe
 row 23**, because #431 wrote nothing into it and the rows recording the restart are open in PR
 [#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438), unmerged.
 
+⚠️ **SUPERSEDED AGAIN 2026-08-28, later the same day (§14.3): the row-count half is now spent
+too.** #438 merged as `2035852`; `main`'s ledger holds rows **24–26** and ends at **row 26**.
+Nothing in this paragraph is current; it is retained as the `f9726a3` reading.
+
 ### 12.3 The one open engineering item
 
 > ⚠️ **DISCHARGED 2026-08-28 (§13.2).** #431 merged as `288667d` at `2026-08-27T23:17:50Z`,
@@ -1264,6 +1315,12 @@ this reconciliation. Both are `CLEAN`/`MERGEABLE` at 18/18 green. **Neither is a
 merge by that fact**, and the audit that produced this pass found #438 needs no changes — which
 is a statement about its accuracy, not about its disposition.
 
+⚠️ **AMENDED 2026-08-28, later the same day (§14.1).** #438 merged as `2035852` at
+`2026-08-28T21:57:17Z`, and six Track P1 PRs merged between `21:16:39Z` and `21:50:23Z`.
+**[#436](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/436) is now the only open PR.** The claim that this plan has **no open engineering
+packet** survives the wave: the six were Track P1 standing-track work, which §4 carries as an
+ongoing track rather than as a numbered packet.
+
 ### 13.3 The JS-unit qualification window restarted, and both marks §12 quotes are spent
 
 **The corpus change is measured, not inferred.** `vitest.total_cases` in
@@ -1307,6 +1364,13 @@ only in unmerged PR #438. A reader taking the row count from `main` and the rest
 document is reading two different states; §13.0 after #438 merges is the one that reconciles
 them.
 
+⚠️ **SUPERSEDED 2026-08-28, later the same day (§14.3).** #438 merged as `2035852`: rows **24–26**
+and the restart record are on `main`, and the ledger ends at **row 26**. **Seven further `main`
+`ci.yml` runs have since produced a green `JS Unit (Vitest, non-required)` job — rows 27–33 are
+owed.** The corpus held at **13 files / 245 cases** across all seven, so Q2's restart clause is
+**not** re-engaged and the new T0 remains exactly the conditional this subsection describes: the
+final-expansion-packet determination is still an **owed owner call**.
+
 ### 13.4 KI-010 merged ahead of OD-1, and the waiver is not on the record
 
 | Item | Measured value |
@@ -1332,6 +1396,12 @@ that document already gets. It is recorded in this plan because a later reader h
 it is one paragraph.
 
 ### 13.5 Track P1 — 130 / 41 / 25 → 123 / 40 / 24, and the booked re-price is now due
+
+> ⚠️ **SUPERSEDED 2026-08-28, later the same day (§14.2): the baseline moved again,
+> 123 / 40 / 24 → 37 / 16 / 11**, in a six-PR wave. The table below is the `288667d` reading and
+> is left as that record. Its *reasoning* is unchanged and was applied to the whole wave in
+> §14.2: a total is not a delta, only the key-by-key multiset proves progress, and the four-file
+> concentration it describes is what the wave spent.
 
 **The multiset check §4 requires was run, and #437 passes it cleanly.** Comparing
 `pyright-baseline.json` key-by-key between `f9726a3` and `288667d`: exactly **one key left** —
@@ -1408,5 +1478,166 @@ caveats stand and were not revisited in this pass either.
 - **The Track P1 re-price** (§13.5) — condition met, owner call.
 - **The 2026-08-31 03:17 UTC cron** is still the next external checkpoint, inspected as its own
   run and as R0's, not as R0 reopening.
+- **§§1–3, 5–7, 9 are untouched by this pass.** No packet was added, retired, reordered or
+  re-scoped; only status fields and dated evidence moved.
+
+---
+
+## 14. Evidence log — 2026-08-28 second pass, re-reconciled against `2035852`
+
+**§11, §12 and §13 stand as their own dated readings.** Where a §12 or §13 field is now stale it
+carries an inline pointer to the subsection here that replaces it, annotated in place rather than
+rewritten; §11 is untouched. §4, §8 and §10's status fields are updated in place, which is what
+those sections are for. **Nothing here authorizes a packet or a merge, and nothing here declares a
+new T0, and nothing here re-prices Track P1.**
+
+**Why a second pass on the same calendar day.** §13 measured `origin/main` @ `288667d`. Between
+`2026-08-28T21:16:39Z` and `21:57:17Z` — after §13 was written and before this document merged —
+**seven PRs merged**, moving the pyright baseline by 86 diagnostics and landing the ledger rows
+§13.3 described as unmerged. Merging §13's snapshot unchanged would have put a stale status layer
+on `main`, which is the precise failure §1 exists to prevent.
+
+### 14.1 Provenance
+
+| Reading | Source | What rests on it |
+|---|---|---|
+| UTC now — **`2026-08-28T22:04:44Z`** | GitHub API response `Date` header, not the host clock | the dating of this whole section; the host clock read a day later and was not used |
+| `origin/main` @ **`2035852`** | `git fetch origin` then `git rev-parse origin/main` | every landed-commit claim in §4, §8, §10 and below |
+| Merged-PR states and SHAs | `gh pr view <n> --json state,mergedAt,mergeCommit,files` for **#438–#444** | the wave table in §4 Track P1 and §14.2's per-PR scope |
+| `main` commit order | `git log --oneline origin/main` | that `c6cfe31` (#443) precedes `2035852` (#438), so #443's regeneration is on the trunk beneath the ledger merge |
+| `pyright-baseline.json` @ `2035852` **and** at the merged branch head | Σ of each entry's `count`; `_meta.total_diagnostics`; blob `5b81676` | **37 / 16 / 11**; the merge into this branch introduced **no** baseline change — the blob is byte-identical to `main`'s |
+| Live pyright, merged branch tree | `npx pyright@1.1.410 --outputjson`, then `scripts/pyright_baseline_diff.py` | `errorCount` **37**; gate **PASS**, 0 net-new — the live/baseline gap is **zero** |
+| Key-by-key baseline multiset, `288667d` → `2035852` | `Counter` over `(file, rule)` and over `(file, rule, message)` | §14.2's 16-keys-out / 1-key-down / **0-added** result |
+| Open-PR list | `gh pr list --state open` | "**#436** is the only open PR" |
+| `main` `ci.yml` run list | `gh run list --workflow=ci.yml --branch=main` | the **seven** runs after row 26's run `33125767570` |
+| `JS Unit` job on each of those seven | `gh api .../actions/runs/<id>/jobs` | all seven `success` — §14.3's table |
+| `TEST_INVENTORY.json` @ `288667d` and `2035852` | `vitest.total_cases` / `total_files` | **245 / 13 at both** — the corpus did not move in the wave |
+| Deep-gate schedule runs | `gh run list --workflow=deep-gate.yml --event=schedule` | still exactly **2**, both `success`; the third is due 2026-08-31 and has not occurred |
+| Release runs | `gh api .../workflows/release.yml/runs?event=push` and `?event=workflow_dispatch` | **0** and **1** — unchanged from §13.6 |
+| Live branch protection | `gh api .../branches/main/protection` | **12** required contexts — unchanged |
+
+### 14.2 Track P1 — 123 / 40 / 24 → 37 / 16 / 11, and the re-price is now overdue
+
+**Six PRs merged in thirty-four minutes**, five of them parallel single-file worker branches and
+one an integration branch. §4 Track P1 carries the full table with each PR's scope, SHA and merge
+timestamp; what belongs here is the arithmetic and the two traps in it.
+
+**Trap 1 — five of the six PR bodies quote a total that the sixth superseded.** #439, #440, #441,
+#442 and #444 each left `pyright-baseline.json` at `123 / 40 / 24` on purpose, so that exactly one
+PR would own the regeneration and no two workers would conflict on the artifact. #443 performed it
+**after merging `main` into its branch**, so the regenerated file measures the *combined* tree.
+The consequence is that #444's title says `123 -> 108` and #439's body says `-18`, and **both are
+true of their own branch and false of `main`**. A reader reconstructing the total by adding up PR
+bodies gets a wrong answer; the file on `main` is the only figure.
+
+**Trap 2 — the totals alone cannot prove the wave silenced nothing.** A regeneration that dropped
+86 diagnostics is exactly the shape a re-baseline-to-go-green would take, and
+[`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) is explicit that re-baselining is an owner
+decision rather than a repair. **The key-by-key multiset is what distinguishes the two**, and it
+was run at both `(file, rule)` and `(file, rule, message)` granularity:
+
+| Movement | Count |
+|---|---:|
+| Keys that left the baseline **entirely** | **16** keys, **68** diagnostics |
+| Keys whose count **fell in place** | **1** — `tests/test_volume_progress.py` / `reportArgumentType`, **33 → 15** (**−18**) |
+| Keys **added** anywhere | **0** |
+| Surviving counts that **rose** | **0** |
+
+68 + 18 = **86**, and 123 − 86 = **37**. The multiset **strictly decreased**; nothing moved
+between files, and nothing was silenced. The sixteen keys that left:
+`tests/test_calibration_integration.py` (6), `tests/test_database_user_profile.py` (1),
+`tests/test_db_migration.py` (**two** keys, 1 + 1), `tests/test_fatigue.py` (1),
+`tests/test_fatigue_stage4_observer.py` (1), `tests/test_free_exercise_db_mapping.py` (6),
+`tests/test_program_backup.py` (11), `tests/test_strength_calibration.py` (16),
+`tests/test_user_profile_routes.py` (1), `tests/test_weekly_summary_routes.py` (2),
+`tests/test_workout_log_utils.py` (8), `tests/test_youtube_video_id.py` (4),
+`utils/profile_estimator.py` (5), `utils/strength_calibration.py` (**two** keys, 3 + 1) —
+fourteen files, sixteen keys, 68 diagnostics.
+
+| Figure | Before #430 | At `f9726a3` | At `288667d` | At **`2035852`** |
+|---|---:|---:|---:|---:|
+| Total diagnostics (Σ `count`) | 132 | 130 | 123 | **37** |
+| Distinct keys (array entries) | 42 | 41 | 40 | **16** |
+| Distinct files | 26 | 25 | 24 | **11** |
+
+**The live/baseline gap §4's rules warn about was measured in this pass, and it is zero.**
+Every earlier pass recorded the baseline total with an explicit disclaimer that pyright had not
+been run live against it. This one ran it, on the merged branch tree, reproducing CI's own two
+steps:
+
+| Step | Command | Result |
+|---|---|---|
+| measure-only count | `npx pyright@1.1.410 --outputjson` under the committed `pyrightconfig.json` | `summary.errorCount` = **37** |
+| blocking baseline diff | `scripts/pyright_baseline_diff.py --current pyright.json --baseline docs/ci_cd_phase3/pyright-baseline.json` | **PASS — 0 net-new diagnostics (baseline 37, current 37)** |
+
+**The live count and the baseline total are the same number.** #443's regeneration therefore
+records the tree as it actually is, not an allowlist that has drifted ahead of it — which is the
+specific failure mode the "re-baselining is an owner decision, not a repair" rule in
+[`QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md) exists to catch. `main`'s own
+`Type Check (tsc blocking + pyright measure-only)` job is independently green on `2035852`; that
+is a Linux/CI reading and this is a Windows/local one, and they agree.
+
+**Track P1 is ongoing.** 37 ≠ 0. The residual's shape inverted — six of its eleven files are
+production modules, and the four-file test concentration that made the wave cheap is spent.
+**The re-price §4 booked and §13.5 recorded as owed is now overdue**, and this pass does not
+perform it either: the wave's ≈14.3 diagnostics per packet measures parallel worker throughput
+against an unusually concentrated residual, not per-diagnostic difficulty, and 9 of the surviving
+37 are off-limits in `routes/workout_plan.py`. **Moving a funding estimate remains an owner call.**
+
+### 14.3 The ledger reached `main` at row 26, and rows 27–33 are already owed
+
+**#438 merged as `2035852` at `2026-08-28T21:57:17Z`**, so §13.3's closing paragraph — *"`main`'s
+ledger still ends at row 23"* — is spent. [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md)
+§13.0 on `main` now carries rows **24** (`f9726a3`, #435), **25** (`46f640c`, #437) and **26**
+(`288667d`, #431 — the restart row, 245 cases), together with the `THE WINDOW RESTARTED AT ROW 26`
+block. **The row count and the restart record are no longer in two different states.**
+
+**Seven `main` `ci.yml` runs have completed a green `JS Unit` job since row 26 and none is in the
+ledger.** Every one is `CI/CD Pipeline` on `push`; the broad every-workflow query returns no other
+`main` run in the interval, so nothing is hidden behind the narrow one.
+
+| Owed row | `main` run | Head / PR | `JS Unit` job | Conclusion | Completed (UTC) |
+|---|---|---|---|---|---|
+| **27** | `33211850477` | `878057f` (#439) | `98986664528` | `success` | `2026-08-28T21:17:03Z` |
+| **28** | `33211894189` | `8a53fd3` (#440) | `98986802288` | `success` | `2026-08-28T21:18:03Z` |
+| **29** | `33211923147` | `cc72162` (#441) | `98986904544` | `success` | `2026-08-28T21:18:42Z` |
+| **30** | `33211949359` | `3e60cdd` (#442) | `98986991921` | `success` | `2026-08-28T21:20:44Z` |
+| **31** | `33211983925` | `f318d81` (#444) | `98987095494` | `success` | `2026-08-28T21:21:22Z` |
+| **32** | `33214277617` | `c6cfe31` (#443) | `98994314546` | `success` | `2026-08-28T21:50:54Z` |
+| **33** | `33214775557` | `2035852` (#438) | `98995846638` | `success` | `2026-08-28T21:57:45Z` |
+
+**The numbering above is this document's arithmetic, not a ledger entry.** §13.0 is the only place
+a row may be written, and writing these seven is owed there — by the rule §4's Track D1 already
+states, that whoever lands a merge owes the row its post-merge run mints. **Row 33's run was still
+`in_progress` at `22:04:44Z`** (three of its eighteen jobs unfinished); its `JS Unit` job is
+already `completed`/`success`, which is the job-level fact the ledger records, but the run's
+overall conclusion is not yet available and must not be asserted.
+
+**The restart is not re-engaged, and the new T0 stays conditional.** `vitest.total_cases` reads
+**245** and `total_files` **13** at both `288667d` and `2035852` — the wave was pyright and Python
+test work and touched no `*.test.js` case — so Q2's restart clause does not fire again. Everything
+§13.3 records about the conditional therefore stands unchanged: `2026-08-27T23:18:21Z` is the new
+T0 **only if #431 was the final expansion packet**, two Vitest expansions (U3b's KI-011 helper
+coverage and **U1-FOLLOWUP-1**) remain unlanded with deferral dates anchored to a spent mark, and
+**whether #431 was the final expansion packet is an owner determination that is still OWED.**
+
+### 14.4 What did not change in this pass
+
+- **R1** — both mutation hypotheses remain unmeasured and unauthorized; §11.6's probe-design
+  caveats stand and were not revisited.
+- **R2** — D4 unsigned; Q4/D2 unsigned and still waiting on the owed final-expansion-packet
+  determination (§14.3); `scan_export_bounds()`'s `min > max` behavior undecided. **R1-D3's clock
+  re-measured at 2 of 3** — `deep-gate.yml` still returns exactly two `schedule` runs, both
+  `success`; the third is due **2026-08-31 03:17 UTC** and has not occurred, this reading being
+  taken before it. Reaching three still authorizes nothing.
+- **R3** — re-measured and unchanged from §13.6: `release.yml` has **0** `push` runs and **1**
+  `workflow_dispatch` run, and the **12-required / 13-expected** `release_gate.py` on `main` has
+  still **never executed by any trigger**.
+- **V1** — no terminal policy chosen; 81/86 stands unreconciled. Not re-measured in this pass.
+- **The OD-1 waiver record** (§13.4) — still owed in the KI-010 planning surface. The wave did not
+  touch it, and `main` still carries both the "OD-1 STILL BINDS" text and the merge that preceded
+  its date.
+- **Live branch protection** — **12** required contexts, `JS Unit (Vitest, non-required)` still
+  absent. No promotion happened and none is proposed here.
 - **§§1–3, 5–7, 9 are untouched by this pass.** No packet was added, retired, reordered or
   re-scoped; only status fields and dated evidence moved.
