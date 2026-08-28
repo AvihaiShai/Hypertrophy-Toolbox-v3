@@ -714,7 +714,7 @@ def test_profile_page_context_exposes_anterior_posterior_partition(
 def _seed_body_composition_snapshot(
     db,
     *,
-    bfp_navy=18.2,
+    bfp_navy: float | None = 18.2,
     bfp_bmi=20.5,
     lean_mass_kg=63.4,
     fat_mass_kg=14.0,
