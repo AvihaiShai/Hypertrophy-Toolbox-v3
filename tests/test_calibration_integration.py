@@ -71,6 +71,7 @@ def _seed_high_confidence_bench_source(
             scored_rir=2,
         )
     calibration = update_calibration_for_exercise(BENCH, db=clean_db)
+    assert calibration is not None
     assert calibration["confidence"] == "high"
     return calibration
 
@@ -191,6 +192,7 @@ def test_suggest_mode_surfaces_learned_source(
     _seed_exercise(exercise_factory)
     _seed_log(clean_db, workout_plan_factory, workout_log_factory)
     calibration = update_calibration_for_exercise(SQUAT, db=clean_db)
+    assert calibration is not None
     set_calibration_mode("suggest", db=clean_db)
 
     resp = client.get("/api/user_profile/estimate", query_string={"exercise": SQUAT})
@@ -682,6 +684,7 @@ def test_promotion_does_not_change_learned_priority_when_mode_is_on(
         scored_rir=2,
     )
     calibration = update_calibration_for_exercise(SQUAT, db=clean_db)
+    assert calibration is not None
     set_calibration_mode("suggest", db=clean_db)
 
     promote = client.post(
