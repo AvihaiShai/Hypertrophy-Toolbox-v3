@@ -675,6 +675,7 @@ class TestProgramBackupAPI:
         assert data['data']['note'] == 'Original note'
 
         refreshed = get_backup_details(backup['id'])
+        assert refreshed is not None
         assert refreshed['name'] == 'After'
 
     def test_api_patch_backup_updates_note(self, client, clean_db, exercise_factory, workout_plan_factory):
@@ -697,6 +698,7 @@ class TestProgramBackupAPI:
         assert data['data']['note'] == 'Updated note'
 
         refreshed = get_backup_details(backup['id'])
+        assert refreshed is not None
         assert refreshed['note'] == 'Updated note'
 
     def test_api_patch_backup_rejects_empty_name(self, client, clean_db, exercise_factory, workout_plan_factory):
@@ -773,6 +775,7 @@ class TestProgramBackupAPI:
 
         backup = create_backup(name="Before", note="Original note")
         original = get_backup_details(backup['id'])
+        assert original is not None
 
         response = client.patch(
             f'/api/backups/{backup["id"]}',
@@ -786,6 +789,7 @@ class TestProgramBackupAPI:
         assert data['data']['backup_type'] == original['backup_type']
 
         refreshed = get_backup_details(backup['id'])
+        assert refreshed is not None
         assert refreshed['id'] == original['id']
         assert refreshed['created_at'] == original['created_at']
         assert refreshed['backup_type'] == original['backup_type']
@@ -1026,6 +1030,7 @@ class TestUserSelectionBackupIntegrity:
         # Backup is taken while exercise_order is absent.
         backup = create_backup(name="Pre-ALTER Program")
         details = get_backup_details(backup["id"])
+        assert details is not None
         assert all(item["exercise_order"] is None for item in details["items"])
 
         # Startup ALTER runs on the upgraded DB, re-adding exercise_order.
