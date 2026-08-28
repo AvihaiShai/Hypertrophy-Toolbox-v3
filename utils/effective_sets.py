@@ -184,16 +184,18 @@ def get_rep_range_factor(
         - Based on average of min/max if both provided
         - Hypertrophy-optimal range (6-20) gets full credit
     """
-    if min_reps is None and max_reps is None:
-        return DEFAULT_MULTIPLIER
-    
-    # Calculate representative rep count
+    # Calculate representative rep count. The chain is exhaustive over the four
+    # min/max None combinations, and the last branch returns rather than
+    # assigning - that is what proves avg_reps is bound and non-None under the
+    # declared Optional[int] types at the bucket comparison below.
     if min_reps is not None and max_reps is not None:
         avg_reps = (min_reps + max_reps) / 2.0
     elif max_reps is not None:
         avg_reps = max_reps
+    elif min_reps is not None:
+        avg_reps = min_reps
     else:
-        avg_reps = min_reps  # type: ignore
+        return DEFAULT_MULTIPLIER
     
     # Find matching bucket
     for (low, high), factor in REP_RANGE_FACTOR_BUCKETS.items():
