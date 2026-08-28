@@ -1,3 +1,5 @@
+from typing import Optional
+
 from flask import Blueprint, render_template, request, jsonify
 from utils.weekly_summary import (
     calculate_exercise_categories,
@@ -27,12 +29,12 @@ weekly_summary_bp = Blueprint('weekly_summary', __name__)
 logger = get_logger()
 
 
-def _parse_counting_mode(value: str) -> CountingMode:
+def _parse_counting_mode(value: Optional[str]) -> CountingMode:
     """Compatibility wrapper around the shared counting-mode parser."""
     return shared_parse_counting_mode(value)
 
 
-def _parse_contribution_mode(value: str) -> ContributionMode:
+def _parse_contribution_mode(value: Optional[str]) -> ContributionMode:
     """Compatibility wrapper around the shared contribution-mode parser."""
     return shared_parse_contribution_mode(value)
 
