@@ -1,6 +1,31 @@
 /**
  * Toast notification functionality with standardized types.
  *
+ * TWO DEFECTS WERE FIXED IN THIS MODULE, and both contracts below are live.
+ * KI-011 (PR #426) changed how a toast RENDERS; KI-010 (this change) changed how
+ * its ARGUMENTS are read. They touch different halves of the same function.
+ *
+ * ---- KI-010: which signature you get ----------------------------------------
+ *
+ * TWO SIGNATURES ARE SUPPORTED, and which one you get is decided by argument 2,
+ * not by argument 1. Read this table before adding a call site.
+ *
+ *   showToast(type, message, options?)      MODERN
+ *   showToast(message, isError?, duration?) LEGACY
+ *
+ * | argument 2         | how argument 1 is read | why                              |
+ * |--------------------|------------------------|----------------------------------|
+ * | a boolean          | as the MESSAGE         | legacy `isError` flag            |
+ * | not supplied       | as the MESSAGE         | legacy bare message              |
+ * | `null`             | as the TYPE            | modern, "no message" default copy|
+ * | anything else      | as the TYPE            | modern                           |
+ *
+ * An explicitly supplied `undefined` counts as SUPPLIED, so
+ * `showToast('error', undefined)` is a MODERN call. See the `isLegacyCall`
+ * predicate's comment before refactoring this function's signature.
+ *
+ * ---- KI-011: an action outlives the message that raised it -------------------
+ *
  * ONE shared #liveToast serves the whole application (templates/base.html), and
  * last-message-wins is its governing copy contract. What KI-011 changed is that
  * an ACTION is no longer part of that contract. showToast() used to clear
@@ -16,7 +41,7 @@
  *   - a standing action extends the toast to the later of the two deadlines;
  *   - it is invalidated by activation, by dismissal, or by expiry.
  *
- * STALENESS IS THE CALLER'S PROBLEM, and this change makes actions live LONGER,
+ * STALENESS IS THE CALLER'S PROBLEM, and that change makes actions live LONGER,
  * so it increases that exposure rather than reducing it. This module cannot know
  * that the plan an onClick closes over was deleted or already activated. A
  * caller whose action can go stale must handle that in its own handler.
@@ -28,11 +53,15 @@
  * slot from what an atomic ancestor presents. The owner accepted that bounded
  * re-announcement rather than change base.html's live-region contract here.
  *
- * @param {string} type - Type of toast: 'success', 'error', 'warning', 'info'
- * @param {string} message - Message to display
- * @param {Object} options - Optional configuration
+ * -----------------------------------------------------------------------------
+ *
+ * @param {string} type - Modern: 'success' | 'error' | 'warning' | 'info'.
+ *                        Legacy: the message text.
+ * @param {string|boolean} [message] - Modern: message to display.
+ *                        Legacy: the boolean isError flag.
+ * @param {Object|number} [options] - Optional configuration, or a number for the duration.
  * @param {number} options.duration - Duration in ms (default: 3000)
- * @param {string} options.requestId - Optional request ID for debugging
+ * @param {string} options.requestId - Optional request ID for debugging; appended for type 'error' only
  * @param {{label: string, onClick: () => void, ariaLabel?: string}} options.action - Optional inline action button
  */
 const SLOT_CLASS = 'toast-action-slot';
@@ -183,8 +212,28 @@ function disposeExisting(toastElement) {
 export function showToast(type, message, options = {}) {
     const validTypes = new Set(['success', 'error', 'warning', 'info']);
 
-    // Backward compatibility: detect legacy signature showToast(message, isError?, duration?)
-    if (!validTypes.has(type)) {
+    // Backward compatibility: detect legacy signature showToast(message, isError?, duration?).
+    //
+    // KI-010. This used to test `!validTypes.has(type)` alone. Argument 1's two
+    // domains overlap on exactly the four type words, so a legacy caller whose
+    // message was one of them was misread as a modern call; the discriminator has
+    // to look at argument 2 as well.
+    //
+    // Contract: owner ruling OD-6, docs/toast_type_word_collision/PLANNING.md
+    // (Gate 1 signed 2026-08-27).
+    //
+    // `arguments.length` -- not `message === undefined` -- is load-bearing. It
+    // keeps an explicitly supplied `undefined` a MODERN call, so a modern caller
+    // whose message expression evaluates to undefined at runtime still gets the
+    // red default-copy error toast rather than a GREEN toast reading the type
+    // word. B13 pins that. If this function is ever rewritten with rest
+    // parameters, carry the arity check across as `args.length < 2`; dropping it
+    // silently reintroduces KI-010 for the one-argument form.
+    const isLegacyCall = !validTypes.has(type)
+        || typeof message === 'boolean'
+        || arguments.length < 2;
+
+    if (isLegacyCall) {
         const legacyMessage = type;
         const legacyIsError = typeof message === 'boolean' ? message : false;
         const legacyDuration = typeof options === 'number' ? options : undefined;

@@ -99,7 +99,7 @@ class faked exactly as [`toast.test.js`](../../static/js/modules/__tests__/toast
 
 > ⚠️ **CORRECTED 2026-08-27 by owner ruling OD-8.** Row 6's *Caller's intent* cell read *"red toast
 > saying `error`"* when this table was signed. **That cell was wrong.** The legacy one-argument
-> contract is fixed by **B5** ([`toast.test.js:169`](../../static/js/modules/__tests__/toast.test.js#L169)):
+> contract is fixed by **B5** ([`toast.test.js:188`](../../static/js/modules/__tests__/toast.test.js#L188)):
 > `showToast('Bare message')` renders that message on **`bg-success`**. A legacy caller writing
 > `showToast('error')` therefore intends a **green** toast whose body is the word `error` — which is
 > exactly what **AC-2** and **OD-2** deliver. **The cell is corrected in place, not rewritten
@@ -121,7 +121,8 @@ class faked exactly as [`toast.test.js`](../../static/js/modules/__tests__/toast
 3. **The collision is exact-string and case-sensitive.** Measured controls:
    `showToast('Error', true)` renders `"Error"` on `bg-danger`, and `showToast('errors', true)`
    renders `"errors"` on `bg-danger` — both correct. The defect's domain is exactly the four
-   lowercase strings in the `validTypes` set at `:12`, which bounds any fix and any migration.
+   lowercase strings in the `validTypes` set at `:31` (`:12` before this packet), which bounds any
+fix and any migration.
 
 ### 0.4 Caller inventory — measured against `52c44c4`
 
@@ -218,23 +219,33 @@ it('B45: a legacy call whose message IS a type word swallows the message', () =>
 B45 by construction. That red is the intended review signal, and it is exactly why this packet
 owes Gate 0.
 
+> ⚠️ **ANCHOR NOTE 2026-08-27 — `:556-569` no longer resolves, and re-numbering it would be wrong.**
+> The case quoted above **no longer exists**: this packet **inverted** B45 and parametrised it over
+> the four type words. The successor, `B45a–d`, sits at **`:625-633`** with its explanatory comment
+> from **`:610`**, and it asserts the **opposite**. The block above is preserved as the record of
+> what pinned the defect at Gate 0; it is history, not a pointer.
+
 **B43 is the second test in scope**, at
 [`toast.test.js:535-543`](../../static/js/modules/__tests__/toast.test.js#L535-L543): it pins
 `showToast('success')` → `"Action completed successfully."`. Whether B43 must also change depends
 entirely on the answer to **Q2** below. **If the one-argument form is left alone, B43 is
 untouched; if it is fixed, B43 inverts too.**
 
+> ⚠️ **ANCHOR NOTE 2026-08-27 — `:535-543` no longer resolves either.** OD-2 answered Q2 with (b),
+> so **B43 inverted**. The successor, `B43a–d`, sits at **`:589-597`** with its explanatory comment
+> from **`:574`**. Same reasoning as the B45 note above: history, not a pointer.
+
 **Three cases that must stay green under any fix**, because they define the legacy contract that
 still has 33 live callers:
 
 | Case | Assertion |
 |---|---|
-| **B5** ([`:169`](../../static/js/modules/__tests__/toast.test.js#L169)) | `showToast('Bare message')` → body `'Bare message'`, `bg-success` |
-| **B6** ([`:175`](../../static/js/modules/__tests__/toast.test.js#L175)) | `showToast('Broke', true)` → body `'Broke'`, `bg-danger` |
-| **B7** ([`:181`](../../static/js/modules/__tests__/toast.test.js#L181)) | `showToast('Fine', false)` → body `'Fine'`, `bg-success` |
-| **B8** ([`:189`](../../static/js/modules/__tests__/toast.test.js#L189)) | `showToast('Msg', 'not-a-boolean')` → body `'Msg'`, `bg-success` |
-| **B9** ([`:196`](../../static/js/modules/__tests__/toast.test.js#L196)) | `showToast('Broke', true, {requestId:'R1'})` → `'Broke (Request ID: R1)'` |
-| **B11** ([`:210`](../../static/js/modules/__tests__/toast.test.js#L210)) | `showToast('m', false, 5000)` → delay `5000`, body `'m'`, `bg-success` |
+| **B5** ([`:188`](../../static/js/modules/__tests__/toast.test.js#L188)) | `showToast('Bare message')` → body `'Bare message'`, `bg-success` |
+| **B6** ([`:194`](../../static/js/modules/__tests__/toast.test.js#L194)) | `showToast('Broke', true)` → body `'Broke'`, `bg-danger` |
+| **B7** ([`:200`](../../static/js/modules/__tests__/toast.test.js#L200)) | `showToast('Fine', false)` → body `'Fine'`, `bg-success` |
+| **B8** ([`:208`](../../static/js/modules/__tests__/toast.test.js#L208)) | `showToast('Msg', 'not-a-boolean')` → body `'Msg'`, `bg-success` |
+| **B9** ([`:215`](../../static/js/modules/__tests__/toast.test.js#L215)) | `showToast('Broke', true, {requestId:'R1'})` → `'Broke (Request ID: R1)'` |
+| **B11** ([`:229`](../../static/js/modules/__tests__/toast.test.js#L229)) | `showToast('m', false, 5000)` → delay `5000`, body `'m'`, `bg-success` |
 
 ### 0.6 The three pinning layers a fix has to move, and one required check it trips
 
@@ -701,7 +712,7 @@ collision-capable call sites (§0.4) are fixed without being edited.
 
 - **B43 inverts**, as §0.11 Q2 predicted.
 - **B13 enters scope, making THREE characterization cases, not two.**
-  [`toast.test.js:236-239`](../../static/js/modules/__tests__/toast.test.js#L236-L239) is
+  [`toast.test.js:255-274`](../../static/js/modules/__tests__/toast.test.js#L255-L274) is
   `showToast('error', undefined)` asserting the error default copy. In JavaScript an omitted
   second argument and an explicitly-passed `undefined` are indistinguishable *by the parameter's
   value* — which is precisely what **B43's own in-file comment says**: *"`message` has no default
@@ -1039,7 +1050,8 @@ input** — `showToast(T, undefined)`, an *explicitly passed* `undefined` — an
 of that input is:
 
 - **0** production call sites (harness `artifacts/ki010-undef-arg2.py`);
-- **1** site in the entire repository: **`toast.test.js:237`, which is B13 itself.**
+- **1** site in the entire repository: **`toast.test.js:271`, which is B13 itself** (`:237` at the
+  time of this measurement; re-anchored 2026-08-27, the case and its assertions unchanged).
 
 | | **S1** — legacy when `message === undefined` | **S2** — legacy when `argc < 2` |
 |---|---|---|
@@ -1232,7 +1244,7 @@ three different directions. **The recommendation is reversed in Plan v2.**
 | **A2** | architecture | **BLOCKING.** §v1.3's single totality proof — *"reads only argument **types**"* — is true of S1 and **false of S2** (`argc` is not a type). Signed §0.13 condition 5 requires the rule *"as a total function of the argument types"*, so **S2 cannot satisfy condition 5 as worded** | **ACCEPTED, and it is the sharpest procedural finding of the council.** §v2.3 now states **two** contracts: S1 over argument *values*, S2 over *call shape*. **Choosing S2 therefore requires amending §0.13 condition 5 on the record** — surfaced in the sign-off block so the S1/S2 ruling carries that consequence visibly. |
 | **A3 / P2 / T-B2** | all three | **BLOCKING.** The evidence that `isAbsent` "cannot fire on a modern call" is a **lexical scan for the token `undefined`**; S1's predicate is a **runtime value** test | **ACCEPTED — this is the finding that reverses the recommendation.** Re-measured with a value-shape oracle: of the 74 single-line modern sites, **43 pass a literal**, **18 are `\|\|`/ternary-guarded**, and **13 pass a bare expression**. Architecture and test-strategist independently traced all of them and agree with me that **today every one is guarded at its assignment**, so the reachable population is genuinely **0**. But the invariant is **not structural**, and both named the same exposure: [`workout-plan-helpers.js:210`](../../static/js/modules/workout-plan-helpers.js#L210) `default: return { severity: 'error', message };` forwards its caller's `message` **unguarded**. §v2.4 now carries the value-shape measurement **and** the residual. |
 | **P2 / T-B3** | product-risk, test-strategist | **BLOCKING.** Under S1, a modern call whose message evaluates to `undefined` at runtime renders the **type word on a GREEN toast** — a severity inversion, the class §0.3 calls "the sharpest of the nine". And the inverted B13 would **assert that outcome as correct** | **ACCEPTED. Measured and confirmed** (§v2.4): under S1 `showToast('error', <undefined>)` → `"error"` / `bg-success`; under S2 → `"An unexpected error occurred."` / `bg-danger`, i.e. **S2 preserves today's behaviour and S1 degrades it**. Test-strategist's false-pass scenario is real: delete the `\|\| 'Failed to replace exercise'` guard — which **OD-5 forbids U3a from touching and no test pins** — and S1 renders a green "error" with the whole suite green. **Plan v2 recommends S2.** |
-| **P1** | product-risk | **BLOCKING.** §0.3's signed *intent* column says `showToast('error')` means *"red toast saying error"*, but AC-2/OD-2 deliver **green**. The signed table and the signed criterion disagree | **ACCEPTED, and the reviewer is right that the cell is wrong** — but the correction is the opposite of what it implies. Measured: **B5** ([`toast.test.js:169`](../../static/js/modules/__tests__/toast.test.js#L169)) fixes the legacy one-argument contract as **success/green**. So `showToast('error')` from a legacy caller means **green**, and it is **§0.3 row 6's intent cell that is in error**, not AC-2. Rows 1–5 and 7–9 are all correct. **This packet does not silently edit a signed table**: the correction is raised as owner decision **OD-8**. |
+| **P1** | product-risk | **BLOCKING.** §0.3's signed *intent* column says `showToast('error')` means *"red toast saying error"*, but AC-2/OD-2 deliver **green**. The signed table and the signed criterion disagree | **ACCEPTED, and the reviewer is right that the cell is wrong** — but the correction is the opposite of what it implies. Measured: **B5** ([`toast.test.js:188`](../../static/js/modules/__tests__/toast.test.js#L188)) fixes the legacy one-argument contract as **success/green**. So `showToast('error')` from a legacy caller means **green**, and it is **§0.3 row 6's intent cell that is in error**, not AC-2. Rows 1–5 and 7–9 are all correct. **This packet does not silently edit a signed table**: the correction is raised as owner decision **OD-8**. |
 | **P3** | product-risk | **SHOULD-FIX.** The "8 live call sites" figure is shape-only; at most 6 are ever visible — `workout-plan.js:114` sits behind `if (!error.code)` which `normalizeError` makes always-false, and `filters.js:251` is clobbered in the same tick by `:255` under KI-004 | **ACCEPTED.** §v2.2 gains a visibility column, and **AC-8 is amended** to require the KI-010 row to carry the **visible** count beside the shape count. |
 | **P4 / P5 / P11 / P13** | product-risk | **SHOULD-FIX.** The fix restores **fidelity, not quality**: `showToast('success', true)` becomes a **red** toast whose only word is `"success"`. Severity comes from the boolean and never from the message | **ACCEPTED, in full and without softening.** §v2.10 states it plainly and the migration note must carry it. This is the finding most likely to be lost in a summary, so it is stated as a named limitation rather than a caveat. |
 | **P6** | product-risk | **SHOULD-FIX.** No a11y statement anywhere, and `#liveToast` is an **assertive live region** | **ACCEPTED.** Measured: [`base.html:243-248`](../../templates/base.html#L243-L248) carries `role="alert"`, `aria-live="assertive"`, `aria-atomic="true"`, and severity is conveyed **only** by the `bg-*` class — no icon, no visually-hidden prefix. So the announced string changes for all nine outcomes and a screen-reader user cannot distinguish a red "success" from a real success. §v2.10 records it; `e2e/accessibility.spec.ts` is named in §v2.9. |
@@ -1549,6 +1561,14 @@ and `Run Tests` both stay **green**, and the only red is `JS Unit (Vitest, non-r
 
 ### v2.12 Sequencing (finding A7)
 
+⚠️ **RECONCILED 2026-08-27 (integration pass) — steps 1 to 4 are DISCHARGED; step 5 alone still
+binds.** The list below is Plan v2's prose as signed and is not rewritten. Measured against merged
+`main` at `f9726a3`: **#427 merged (`efa780c`)**, **#426 merged (`5b35966`)**, **#428 — the Gate 1
+planning PR — merged (`a37d7e7`)**, and implementation is complete and green. The step-3
+precondition it names, `gh pr view 427 --json state` reporting `MERGED`, was **re-read at this pass
+and reports `MERGED`**. **Nothing in steps 1–4 is an open blocker.** Step 5 — OD-1's embargo — is,
+and **reaching `2026-09-05T17:59:26Z` is not itself merge authorization.**
+
 1. **#427 merges first** (owner ruling). Not authorized here.
 2. **#426 is RESOLVED BY MEASUREMENT, not by waiting.** Measured `2026-08-26T23:50:36Z`:
    `gh pr diff 426 --name-only` returns **exactly one file**,
@@ -1569,7 +1589,7 @@ and `Run Tests` both stay **green**, and the only red is `JS Unit (Vitest, non-r
 | **OD-7** | Under S1 only: parametrise B13 over four type words (60/244) or leave it single (57/241)? | ✅ **RULED N/A 2026-08-27.** S2 was chosen, so B13 is never inverted. **The S1-only parametrisation must NOT be added.** |
 | **OD-8** | **§0.3 row 6's intent cell is wrong** — it says `showToast('error')` means a *red* toast; B5 fixes the legacy one-argument contract as **green**. Correct the signed cell? | ✅ **RULED 2026-08-27 — CORRECT IT.** Applied at §0.3, annotated in place. |
 | **OD-9** | Ratify the §0.9 ledger-scope amendment (§v2.0) | ✅ **RATIFIED 2026-08-27.** Applied at §0.9. |
-| **OD-10** | `STEP12_JS_UNIT_GATE0.md` §10.3/§10.5 go stale — the 47-case arithmetic, B43/B45's present-tense rows, N8/N10/N12's kill sets, and **two signed Gate 1 checkboxes** at `:2054`/`:2067`. Re-derive in the implementation PR, or land a dated stale-pointer annotation? | ✅ **RULED 2026-08-27 — Plan v2's proposal ACCEPTED.** A **dated stale-pointer annotation** lands in the implementation PR; §10.5 is **not** re-derived here. |
+| **OD-10** | `STEP12_JS_UNIT_GATE0.md` §10.3/§10.5 go stale — the 47-case arithmetic, B43/B45's present-tense rows, N8/N10/N12's kill sets, and **two signed Gate 1 checkboxes**. Re-derive in the implementation PR, or land a dated stale-pointer annotation? | ✅ **RULED 2026-08-27 — Plan v2's proposal ACCEPTED.** A **dated stale-pointer annotation** lands in the implementation PR; §10.5 is **not** re-derived here. **Measured at implementation time:** the annotation itself shifted those checkboxes, which then sat at `:2095` and `:2108` — the `:2054`/`:2067` figures in the council row above were the pre-annotation reading and are left as that record. ⚠️ **RE-MEASURED 2026-08-27 (integration pass): they now sit at `:2102` and `:2115`**, because this pass extended the same annotation by seven lines. Measured, not offset. |
 | **OD-11** | The **requestId suffix drop** on `showToast(T, false, {requestId})` — pin it with B47a–d, or accept it unpinned? | ✅ **RULED 2026-08-27 — PIN IT.** B47a–d ship. |
 
 
@@ -1605,7 +1625,11 @@ proposed 62 to **61**. The withdrawal is recorded at §v2.6 rather than quietly 
 - **It is not merge authorisation for anything.** **OD-1 remains binding: no U3a implementation PR
   may merge before `2026-09-05T17:59:26Z`, and passing that instant is neither implementation
   authorization nor merge authorization.**
-- **It does not authorise merging this planning PR**, PR **#427**, or PR **#426**.
+- **It does not authorise merging this planning PR**, PR **#427**, or PR **#426**. ⚠️ **RECONCILED
+  2026-08-27:** all three have since merged under the owner's own authorization, not this
+  signature's — **#426 `5b35966`**, **#427 `efa780c`**, **#428 `a37d7e7`**. The bullet stands as the
+  record of what the Gate 1 signature did and did not confer; it is **not** a live blocker, and it
+  never covered the implementation PR, which OD-1 governs separately.
 - **The ledger row numbers stay conditional.** Measured `2026-08-26T23:50:36Z`: **#427 is `OPEN` and
   unmerged**. Rows **14 / 15 / 16** hold only if #427 lands row 13 first. `gh pr view 427 --json
   state` must report `MERGED`, and the numbers must be re-confirmed against §13.0's then-current
@@ -1646,3 +1670,430 @@ file may change** (AC-10, tightened by OD-5).
 `showToast('success', true)` becomes a **red** toast reading `"success"`; the assertive live region
 now announces a single context-free word; and `new Boolean(true)` / `1` / `0` remain **uncovered**
 while CI-6/B8 keeps them contract-legal.
+
+---
+
+## Implementation record — 2026-08-27
+
+*Executed against `origin/main` at **`b733c14f8e76c7f85b1d9dcc75acd8bca8321524`**, in the isolated
+worktree `Hypertrophy-Toolbox-v3-main-u3a-impl` on branch `feat/u3a-ki010-toast-collision`, under
+**Gate 1 as signed** and in the **S2** spelling ruled by **OD-6**.*
+
+*⚠️ **INTEGRATED 2026-08-27.** `b733c14` is **pre-KI-011**: its `toast.js` is **111 lines** and
+carries no action slot. The branch has since merged `main` — most recently `f9726a3` — so the file
+this record describes now sits on top of KI-011 (PR #426, `5b35966`) and is **353 lines**. Every
+line anchor below was **re-measured against the integrated file**; the pre-integration readings are
+preserved as superseded rather than deleted.*
+
+> **OD-1 STILL BINDS. This implementation may NOT merge before `2026-09-05T17:59:26Z`**, and passing
+> that instant is neither implementation authorization nor merge authorization.
+>
+> ⚠️ **RECONCILED 2026-08-27 (integration pass).** The ordering condition this blockquote used to
+> carry — *"#427 must also merge first"* — is **discharged by measurement**: #427 merged as
+> `efa780c`. So did the two other PRs the Gate 1 signature withheld authorization for — **#426 as
+> `5b35966`** and the **Gate 1 planning PR #428 as `a37d7e7`**. This PR is consequently **based on
+> `main`**, not stacked on #428. **OD-1 is now the sole remaining merge blocker**, and reaching
+> `2026-09-05T17:59:26Z` is not itself merge authorization. The §13.0 ledger row numbers must still
+> be re-confirmed against the then-current last row immediately before merge: §13.0 stands at **row
+> 23** on `main` at `f9726a3`, and **U3a writes no row of its own** (§v2.1's withdrawal note). The
+> next row is owed by whoever merges this PR, against its **post-merge `main`** `js-unit` result.
+
+### i.0 Baselines, recorded FIRST (`CLAUDE.md` §4.B)
+
+| Baseline | Value |
+|---|---|
+| `npx vitest run` | **13 files / 231 tests**, exit 0 |
+| `pytest tests/ -q` | **3175 passed, 2 skipped**, exit 0 |
+| `generate_test_inventory.py --check` | `Test inventory is up to date.`, exit 0 |
+
+### i.1 The production change — one predicate, as planned
+
+`static/js/modules/toast.js`. The single `if (!validTypes.has(type)) {` — at `:15` on the
+implementation base `b733c14`, and at **`:187`** on merged `main` (`f9726a3`) once KI-011 had landed
+— became:
+
+```js
+const isLegacyCall = !validTypes.has(type)
+    || typeof message === 'boolean'
+    || arguments.length < 2;
+
+if (isLegacyCall) {
+```
+
+plus the comment block explaining the contract and the arity dependence, and the **JSDoc dispatch
+table** finding A4 required. **No other production file changed** — AC-10 in its tightened form.
+
+**Behaviour, measured through the same jsdom harness as §0.3.** §0.3's signed table enumerates
+**nine** defective outcomes and all nine are fixed — but **nine is a known undercount of the real
+family, and the fix changes twelve.** §0.3 lists the `false` arity for `'error'` only; the defect is
+present for all four type words in that arity, which is why **B46 ships parametrised over four**.
+The qualified count is carried here and in the note under §i.2; the signed figure is left as signed.
+
+| Call | Before | After |
+|---|---|---|
+| `showToast(T, true)`, all four `T` | `"true"` on the type's own class | **`T` on `bg-danger`** |
+| `showToast('error', false)` | `"false"` on `bg-danger` | **`"error"` on `bg-success`** |
+| `showToast(T, false)`, the other three `T` — **not among §0.3's nine** | `"false"` on the type's own class | **`T` on `bg-success`** |
+| `showToast(T)`, all four `T` | default copy on the type's own class | **`T` on `bg-success`** |
+| `showToast('Real msg', true)` / `showToast('errors', true)` / `showToast('Error', true)` | correct | **unchanged** |
+
+**Separately, and not one of the twelve:** `showToast(T, false, {requestId})` now **drops** the
+request-ID suffix. The drop is observable only for `T = 'error'`, because the suffix gate is
+error-only; **B47a–d** pin the whole arity-3 family per OD-11.
+
+### i.2 Line-anchor re-measurement — the LAST content edit, done by measuring
+
+Inserting the predicate shifted every anchor below it. Re-measured, not offset-arithmetic.
+
+⚠️ **SUPERSEDED 2026-08-27 (integration pass) — this table now reads against merged `main`.** The
+reading it replaces was taken on the **pre-KI-011** base `b733c14`, whose `toast.js` is 111 lines;
+KI-011 (PR #426, `5b35966`) then rewrote the rendering half of the same function and moved every
+anchor again. **The superseded pairs, preserved rather than deleted:** `:12→:31`, `:15→:50`,
+`:15-27→:54-66`, `:28→:67`, `:49→:88`, `:52→:91`, `:56→:95`, `:60→:99`, `:84→:123`,
+`:88-109→:127-148`, `:98→:137`. **None of those numbers resolves on the shipped file.** The "Was"
+column below is merged `main` at **`f9726a3`** (304 lines); the "Now" column is this branch (**353
+lines**). Both were measured, neither derived. **The shift is not a single offset** — it ranges from
+`+29` above the predicate to `+49` below it, on top of KI-011's own displacement of roughly `+170`.
+
+| Anchor | Was (`main` `f9726a3`) | Now (this branch) |
+|---|---:|---:|
+| the click handler's `bootstrap.Toast.getInstance` | `:107` | **`:136`** |
+| the `onClick` `try`/`catch` | `:112-116` | **`:141-145`** |
+| `validTypes` set | `:184` | **`:213`** |
+| the discriminator | `:187` | **`:232`** (predicate `:232-234`; `if (isLegacyCall)` at `:236`) |
+| the legacy normalisation block | `:187-199` | **`:236-248`** |
+| `} else if (typeof options === 'number')` | `:200` | **`:249`** |
+| `#toast-body` id read | `:206` | **`:255`** |
+| `#liveToast` id read | `:212` | **`:261`** |
+| the `message !== undefined` guard | `:224` | **`:273`** |
+| the two default-copy strings | `:227` | **`:276`** |
+| the `requestId` suffix gate | `:230` (append at `:231`) | **`:279`** (append at `:280`) |
+| the KI-004 span (`classList.remove` → `toast.show()`) | `:265-284` | **`:314-333`** |
+| `typeToClass[type] \|\| 'bg-success'` | `:272` | **`:321`** |
+
+**Two anchors this record used to name no longer exist, and re-numbering them would have been the
+wrong repair.** `toastBody.innerHTML = ''` — CI-10's evidence, and §10.7-R10's wipe mechanism — was
+**deleted by KI-011**; the nearest surviving line is `toastBody.replaceChildren()` at **`:289`**,
+which runs **only on the first render into an empty body** and is not a per-call clear.
+`toastBody.appendChild(button)` was **replaced** by
+`resolveSlot(toastBody).appendChild(buildActionButton(…))` at **`:303-304`**, which appends into
+`div.toast-action-slot`, a **child** of `#toast-body` rather than `#toast-body` itself. Anyone
+re-reading CI-10 or §10.7-R10 against the shipped file must read those two rows as **identity
+changes, not line moves**.
+
+**The two fixes occupy different halves of `showToast()` and both are live** — KI-010 decides how the
+ARGUMENTS are read (`:232-248`), KI-011 decides how the toast RENDERS (`:283-337`). This packet's
+diff touches only the first.
+
+**Every other `toast.js:NN` citation in this document — §0.2's `:15`, §0.5's `:15`, §v1.x's `:15`,
+`:28`, `:60`, `:84`, `:1-10` and `:14-27`, and §v2.x's restatements of them — describes the PRE-FIX
+file and is left as written.** They sit next to quoted pre-fix source and next to prose that reasons
+about the defect; **re-numbering them would point a reader at the repaired code while the sentence
+still describes the break**, which is strictly worse than a number that does not resolve. Two of
+them are additionally identity changes, not line moves: §v1.10's *"KI-011 untouched — `toast.js:60`
+and `:84` are not in the diff"* names two lines KI-011 has since **deleted and replaced**; §i.10
+carries the measured restatement of that claim against the shipped file. **The table above is the
+only mapping to trust.**
+
+**Citations INTO the files this packet moved were re-anchored too**, not just citations out of
+them: **B5** `:169 → :183` and the `validTypes` set `:12 → :31` in §0.3/§0.5 (this packet's own test
+header and predicate comment pushed them down), and OD-10's two signed Gate 1 checkboxes
+`:2054`/`:2067 → :2095`/`:2108` (the stale-pointer annotation pushed them down). **A signed section's
+line citations are still re-anchored when this packet is what moved them** — the prose is frozen, the
+line numbers are measurements.
+
+⚠️ **AMENDED 2026-08-27 (integration pass) — every figure in the paragraph above is superseded, and
+"unaffected" was the wrong answer for all of them.** §0.3 and §0.5's `validTypes` citation is
+**`:213`** on the shipped file, not `:31`; `:31` was the pre-KI-011 reading. `B5`'s `:183` and
+OD-10's `:2095`/`:2108` are **anchors into files KI-011 did not touch — but THIS PASS touched both**,
+by adding comment blocks to `toast.test.js` and seven lines to the `STEP12` annotation. **A citation
+is falsified by whoever moves the target, including the author re-anchoring it.** Every one below was
+measured after the last content edit:
+
+| Citation | Was | Now |
+|---|---:|---:|
+| **B5** (§0.3, §0.5's table, and council row P1) | `:183` | **`:188`** |
+| **B6** (§0.5) | `:175` | **`:194`** |
+| **B7** (§0.5) | `:181` | **`:200`** |
+| **B8** (§0.5) | `:189` | **`:208`** |
+| **B9** (§0.5) | `:196` | **`:215`** |
+| **B11** (§0.5) | `:210` | **`:229`** |
+| **B13**'s span (§v1.1) | `:236-239` | **`:255-274`** |
+| **B13**'s `showToast('error', undefined)` call (§v1.4) | `:237` | **`:271`** |
+| OD-10's two signed Gate 1 checkboxes (`STEP12`) | `:2095` / `:2108` | **`:2102` / `:2115`** |
+
+**Two §0.5 anchors were deliberately NOT re-numbered**, because the cases they name no longer exist:
+`:556-569` (pre-fix **B45**) and `:535-543` (pre-fix **B43**) were both **inverted** by this packet.
+Each carries a dated anchor note naming its successor family — **B45a–d at `:625-633`**, **B43a–d at
+`:589-597`** — and saying that the quoted block is history rather than a pointer. **Re-numbering a
+citation whose target changed its assertion would be worse than leaving it stale**, because the new
+number resolves and the reader has no signal that the meaning moved.
+
+**The `toast.js:NN` citations inside `toast.test.js` were re-anchored a second time, for a reason
+worth recording.** Their first re-anchoring in this packet applied pre-KI-011 offset arithmetic to
+numbers that were **already** pre-KI-011 stale on `main` — KI-011 shipped without updating them — so
+both readings were wrong and the second was wrong in a way that looked deliberate. Measured against
+the shipped file: `#liveToast`'s id **`:80 → :261`**, the at-rest class value
+**`(:127, :138) → (:314, :321)`**, `#toast-body`'s id **`(:74) → (:255)`**, the message span's
+creation and append **`:100-102 → :290-292`**, the action button's append **`:123 → :303-304`**, the
+click handler's `getInstance` **`:113 → :136`**, and the `onClick` `try`/`catch`
+**`:117-120 → :141-145`**. The placement-neutrality comment's claim that the button is appended
+**to `#toast-body`** and that a subsequent toast **destroys** it is **prose KI-011 falsified, not a
+number**; it is corrected in place with a dated note rather than silently re-numbered.
+
+**On "nine defective outcomes" (§0.3, signed) — nine is a KNOWN UNDERCOUNT and must not be restated
+as an unqualified current fact.** The count is nine because §0.3's table lists the `false` arity only
+for `'error'`. The defect is in fact present for **all four** type words in that arity —
+`showToast('warning', false)` rendered `"false"` on `bg-warning`, `showToast('success', false)`
+rendered `"false"` on `bg-success` — which is exactly why **B46 is parametrised over four rather than
+shipping as one case**. **The measured family is three arities × four type words = TWELVE changed
+outcomes**, of which §0.3 enumerates nine. The signed figure is left as signed; **every restatement
+outside §0.3 — this PR's body included — carries the qualification**, so a reader who counts the B46
+family does not conclude the arithmetic is broken. **Not counted in the twelve:** the arity-3
+request-ID drop pinned by **B47a–d**, which is a new consequence rather than a repaired defect.
+
+> **These figures supersede an earlier reading in this same section** (`:56`/`:94`/`:97`/`:105`/`:129`/`:143`),
+> taken before the review pass trimmed the predicate's comment block and shifted every line again.
+> **That is precisely why re-anchoring is specified as the LAST edit** — it was done twice here,
+> and only the second reading is true.
+
+`e2e/workout-plan.spec.ts:682`'s pinned comment was re-anchored from `modules/toast.js:14-27` to
+`:50-66` (finding A6). ⚠️ **SUPERSEDED 2026-08-27 (integration pass):** `:50-66` was the pre-KI-011
+span. The legacy-signature fallback's true span on the shipped file is **`:236-248`**, measured, and
+the comment now carries that.
+
+### i.3 Test changes — exactly what OD-4, OD-7 and OD-11 authorised
+
+| Family | Cases | Status |
+|---|---:|---|
+| **B45a–d** `showToast(T, true)` → `T` on `bg-danger` | 4 | **replaces B45** — deliberately inverted |
+| **B46a–d** `showToast(T, false)` → `T` on `bg-success` | 4 | **new** — the severity inversion |
+| **B43a–d** `showToast(T)` → `T` on `bg-success` | 4 | **replaces B43** — deliberately inverted |
+| **B47a–d** `showToast(T, false, {requestId})` → `T`, **no suffix** | 4 | **new**, per **OD-11** |
+| **B13** | 1 | **assertions unchanged**; comment rewritten to state the arity dependence. Per **OD-7**, the S1-only parametrisation was **not** added |
+
+Every inverted family carries the AC-4 comment naming this document and the Gate 1 sign-off date,
+and the file header states that a red there without the production fix is the intended signal. The
+**nine-cases-have-no-independent-kill disclosure** (finding T-S2) is in the file, in the B15a/B15b
+idiom.
+
+### i.4 The AC-7 matrix — every arm run against the FULL suite
+
+**All ten arms collected 245. No survivors, no BAD RUNs.**
+
+| Arm | Exit | Result | Cases red |
+|---|---:|---|---|
+| **3** the pair (shipped) | **0** | 245 passed (245) | *(none)* |
+| **2** pristine prod + new tests | 1 | 16 failed \| 229 passed | **B43, B45, B46, B47 families — exactly the new and inverted cases** |
+| **4** rival spelling **S1** | 1 | 1 failed \| 244 passed | **B13, and only B13** |
+| **5a** drop `isFlag` | 1 | 12 failed | B45, B46, B47 |
+| **5b** drop `isAbsent` | 1 | 4 failed | **B43 only** |
+| **5c** narrow → `message === true` | 1 | 8 failed | **B46, B47** |
+| **5c′** narrow → `message === false` | 1 | 4 failed | **B45** |
+| **5e** `argc !== 2` | 1 | 7 failed | B19–B23, B33, B34 |
+| **5f** careless rest rewrite (drop arity) | 1 | 4 failed | **B43** |
+| **6** drop `isTypeWord` | 1 | 1 failed | **B8, and only B8** |
+
+**Three results worth stating on their own:**
+
+1. **Arm 2 satisfies AC-7's *"nothing else"* over the real 231/245-case suite**, not over a scoped
+   probe — the gap finding T-B4 identified. Before the test changes, the fix alone red exactly
+   `{B43, B45}` out of 231.
+2. **Arm 5c is the whole justification for B46a–d**, and it held: the narrowing mutation
+   `message === true` — measured *indistinguishable* from the correct predicate against every
+   pre-fix case — is now **killed, and only by B46/B47**. Without this packet's new families the most
+   plausible mis-implementation of this fix would have shipped green.
+3. **Arm 4 vindicates keeping B13.** The rival spelling reds **exactly one case**, so B13 is the sole
+   discriminator between the two contracts — which is precisely why OD-6 needed ruling and why B13
+   could not simply be deleted.
+
+### i.5 Gate results
+
+| Gate | Result |
+|---|---|
+| **1** `npm run test:js` | **245 passed (245)**, 13 files, exit 0. **Three-way reconciliation holds:** diff-derived **61 / 245** == `vitest run` collected **245** == the pinned literals. `.only`/`.skip`/`.todo` grep over `toast.test.js`: **clean**. All 16 new case identities present in the regenerated `vitest.cases` |
+| **2** inventory regeneration | `vitest: 245 cases / 13 files`; `toast.test.js` **47 → 61** |
+| **3** `--check` | `Test inventory is up to date.`, exit 0 |
+| **4** determinism | regenerated **three** times, `git status --porcelain docs/test_inventory/` byte-stable |
+| **5** full pytest | **3175 passed, 2 skipped** — **a delta of exactly ZERO nodes** against the recorded baseline, as predicted |
+| **6** `tsc --noEmit` **and** pyright baseline | tsc exit 0; **`PASS — 0 net-new diagnostics`**. ⚠️ **RE-MEASURED 2026-08-27 (integration pass): `baseline 130, current 130`.** The `132 / 132` reading this row carried was taken before **PR #430** (Packet P1, `3098282`) lowered the committed baseline **132 → 130**; the *delta* — zero net-new — is what the gate blocks on and is unchanged |
+| **7** E2E, two invocations | see below |
+| **8** manual smoke | see below |
+| **9** PR CI | ✅ **SATISFIED — 18/18 green on the final head.** Run [`33114518996`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996), `pull_request`, head `3d09b16`, every one of the eighteen jobs `success`, read individually. The earlier retargeted run [`33067601349`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349) (head `bbe2115`) was also 18/18. This **supersedes** the ❌ **BLOCKED** reading the row carried while the PR was stacked; §i.11 keeps both readings and the mechanism |
+
+**Post-integration re-run, 2026-08-27** — after merging `main` (`f9726a3`) and applying this pass's
+documentation and comment corrections, gates **1–6** were re-executed in full from this worktree:
+Vitest **245 passed (245) / 13 files**, `--check` **`Test inventory is up to date.`**, full pytest
+**3175 passed, 2 skipped** (the same zero-node delta), `tsc --noEmit` exit 0, pyright baseline
+**PASS**. **Gates 7 and 8 were not re-run locally**, and deliberately so: this pass changed only
+Markdown, JSDoc-adjacent comments and test comments — no production line, no test case, no
+generated artifact — and the sharded `E2E Functional` matrix is covered by PR CI run
+`33067601349`'s successor rather than by a second local batch whose reds this packet already
+measured as environmental (§i.8).
+
+**Contract literals** — two edited, one re-confirmed, exactly as finding T-N1 predicted:
+`EXPECTED_TOTAL_CASES` **231 → 245**, `EXPECTED_PER_FILE[".../toast.test.js"]` **47 → 61**,
+`EXPECTED_TOTAL_FILES` **unchanged at 13**. `tests/test_vitest_inventory_contracts.py`: **46 passed**.
+
+### i.7 Documentation updated, and one thing deliberately not
+
+- **`UI_SCENARIOS_GAP_ANALYSIS.md`** — the **KI-010** row moves **Open → Mitigated**, with counts
+  **re-measured at fix time** (AC-8) and carrying the **visible** count (11) beside the shape count
+  (13). The **second pointer at §3.1** — which finding P9 caught, and which would otherwise have left
+  the file contradicting itself — is updated in the same pass.
+- **`STEP12_JS_UNIT_GATE0.md`** — a **dated stale-pointer annotation** only, per **OD-10**, placed
+  at **§10.3** and pointed to from **§10.5** and **§10.7-R3**, the two other sites that assert the
+  pre-fix state. The 47-case arithmetic, B43/B45's present-tense rows, §10.5's kill sets, the two
+  signed Gate 1 checkboxes and **every `toast.js:NN` anchor in that document** are named as false;
+  **nothing there is edited**. Re-deriving §10.5 against the post-fix suite is a packet of its own
+  and is **not** authorized here.
+- **Not touched:** `MASTER_HANDOVER.md`, `OPEN_WORK_EXECUTION_PLAN.md`, KI-011, `volume-splitter.js`,
+  and every U2 path.
+
+### i.8 E2E — the two invocations, and how attribution was actually closed
+
+**Gate 7(a) — 30 non-visual specs, 536 tests:** **520 passed / 16 failed.**
+**Gate 7(b) — 3 visual specs, seeded, 126 tests:** **122 passed / 4 failed.**
+
+**Neither red set is attributable to this diff, and that was established by measurement, not by
+inspection.** The repository rule — re-run the identical batch before blaming your diff — was
+applied to both tiers, and it mattered:
+
+| Tier | Modified tree | Pristine tree | Verdict |
+|---|---|---|---|
+| non-visual, 536 tests | **16 failed** | **29 failed** | Failure sets differ in **both** directions — 5 only-modified, 18 only-pristine, 11 common. **Not a regression signal** |
+| the 5 only-modified candidates, run alone | **54 passed / 0 failed** | — | Order- and DB-state-dependent, not caused by the fix |
+| visual, seeded, 126 tests | 4 failed — `user-profile` ×1, `backup` ×3 | 4 failed — `progression` ×2, `body-composition` ×2 | **Same count, ZERO overlap.** Environmental |
+
+**No baseline was regenerated and `--update-snapshots` was never run.** Every red above sits on a
+page this packet does not touch; the fix changes no CSS, no layout and no markup.
+
+**Two BAD RUNS were caught, both by reading output rather than exit status** — the failure mode
+§v2.8's judging rules exist for:
+
+1. `playwright test --testIgnore=…` — **not a Playwright CLI option**. The command died instantly
+   and the shell reported **exit 0**. Nothing ran.
+2. The first pristine-baseline batch **never executed**: port **5000** was still held by an orphaned
+   `app.py` from the previous run's `webServer`, so Playwright aborted in 150 bytes. Read naively,
+   that produced a comparison saying *"16 failures caused by the diff"* — **entirely false**.
+
+**Consequence worth carrying forward:** the two E2E invocations in §v2.9 gate 7 need a **port-5000
+clear between them**, and every invocation must be judged by its `Running N tests` header and its
+summary line, never by exit status alone.
+
+### i.9 Gate 8 — manual smoke against REAL Bootstrap
+
+Run against the app on `127.0.0.1:5000` from this worktree, invoking the module directly on a loaded
+`/workout_plan` page — because §0.4 measures **0 of 229** server sites emitting a bare type word, so
+no real caller can reach the fixed path.
+
+| Call | body | class |
+|---|---|---|
+| `showToast('error', true)` | `"error"` | `bg-danger` |
+| `showToast('warning')` | `"warning"` | `bg-success` |
+| `showToast('success', true)` | `"success"` | **`bg-danger`** |
+| `showToast('error', false, {requestId:'R1'})` | `"error"` | `bg-success` |
+
+In every row the element carried `role="alert"` and `aria-live="assertive"`.
+
+**All four match the contract**, including the OD-11 request-ID drop. Row 3 is §v2.10's stated
+limitation observed in a real browser: a **red** toast whose entire body is the word `"success"`.
+**This is the only tier that exercises the fix outside jsdom.**
+
+### i.10 What is NOT done, and what merging still requires
+
+- **The merge embargo is stated in this section's header and is not restated here.** Its one clause
+  the header lacks: the §13.0 ledger row numbers must be re-confirmed **against the then-current last
+  row** immediately before this PR merges.
+- ⚠️ **RECONCILED 2026-08-27 (integration pass).** This list used to say *"The Gate 1 planning PR is
+  not merged either."* **It is merged** — #428, `a37d7e7` — and so are #426 (`5b35966`) and #427
+  (`efa780c`). **No ordering condition remains unmet.** The one thing still outstanding is **OD-1's
+  embargo**, and reaching `2026-09-05T17:59:26Z` is not merge authorization.
+- **KI-011 is untouched, re-verified after integration.** The KI-011 lines are now physically present
+  in the same file, so "untouched" is a claim about the **diff**, not about the file:
+  `git diff origin/main...HEAD -- static/js/modules/toast.js` carries no line from the rendering half
+  (`:283-337`), and **B30–B35 stayed green in all ten mutation arms** and in the post-integration
+  re-run.
+- **§10.5's kill sets are annotated, not re-derived** (OD-10). That remains a packet of its own.
+
+### i.11 Gate 9 — BLOCKED while stacked, SATISFIED after retargeting
+
+⚠️ **SUPERSEDED 2026-08-27 (integration pass).** This section was written while #431 was stacked on
+the Gate 1 planning branch and read *"Gate 9 is BLOCKED, not satisfied — and it cannot be unblocked
+from this branch."* **That reading is no longer true**, and the sequence it named as the only way out
+is exactly what happened. The diagnosis is preserved below because it is correct about the
+mechanism, and because the mechanism will recur on the next stacked PR.
+
+#### The state that produced the BLOCKED reading — preserved, dated, no longer live
+
+**PR #431 had received ZERO check-suites, and that was structural rather than a glitch.**
+
+Measured: `.github/workflows/ci.yml` declares
+
+```yaml
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+```
+
+The `pull_request` trigger filters on the **base** branch. #431's base was
+`docs/u3a-ki010-gate1-plan` — the Gate 1 planning branch it was stacked on — which is neither `main`
+nor `develop`, so **no workflow run was ever created for it**. `gh pr checks 431` reported *"no checks
+reported"*, and `gh api .../actions/runs?branch=feat/u3a-ki010-toast-collision` returned an **empty**
+list.
+
+**Close/reopen did not fix this.** It was tried, and it did not: the repository's close/reopen
+remedy applies to a *different* mechanism (a PR that is CI-dark despite a valid base). There the base
+branch itself was outside the trigger's filter, so there was nothing to re-fire.
+
+**Unblocking was a sequence, not an action available at the time**: #427 merges, then #428 merges,
+then #431 is **retargeted to `main`**, at which point `ci.yml`'s filter admits it and Gate 9 runs for
+the first time. Retargeting *before* #428 merged would have folded the entire Gate 1 plan into this
+PR's diff and put a signed planning document through an implementation review — which is why it was
+deliberately not done then.
+
+#### What actually happened, measured
+
+**All three predecessors merged and the PR was retargeted to `main`.** #426 → `5b35966`, #427 →
+`efa780c`, #428 → `a37d7e7`. `gh pr view 431 --json baseRefName` reports **`main`**, and `ci.yml`'s
+filter admits it.
+
+**Gate 9 is SATISFIED. Read on the final head:**
+
+| | Value |
+|---|---|
+| Run | [`33114518996`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996) |
+| Event / head | `pull_request` / `3d09b16` |
+| Result | **18 of 18 jobs `success`**, read individually rather than from the run's overall conclusion |
+| Both load-bearing required contexts | `Test Inventory Drift` [`98665737055`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665737055) **`success`**; `Run Tests` [`98665736962`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665736962) **`success`** |
+| The three legs local runs cannot cover | `Frontend Build (npm ci + SCSS)` [`98665736915`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665736915), `E2E Functional Shard 1/2` [`98665835337`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665835337) and `Shard 2/2` [`98665835355`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33114518996/job/98665835355) — all **`success`** |
+| Prior retargeted run | [`33067601349`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33067601349), head `bbe2115`, also **18/18** — the first run this PR ever received |
+| Mergeability at that read | `MERGEABLE` / `CLEAN`, **draft** |
+
+**This record cannot cite the run for its own head, and says so rather than implying otherwise.**
+The commit that writes the table above becomes a new head, which gets its own `ci.yml` run — the
+same self-recording gap §13.0's ledger rows 17, 20 and 23 record. `3d09b16` is the last head whose
+run had completed when the table was written. **Whoever reviews or merges this PR must read the CI
+result for the PR's then-current head**, not this table, and `gh pr checks 431` is the shortest path
+to it. The table is evidence that the integrated tree passes all eighteen jobs; it is not a claim
+about a commit that did not exist when it was measured.
+
+**The 17 → 18 mid-run check growth reproduced, and it is why this was judged on the RUN's status
+rather than on a first zero-pending read.** At `23:41` the run reported **11** jobs, at `23:42`
+**17**, and only at completion **18**. A poll that broke on the first `pending == 0` it saw would
+have certified a partial matrix. The judgement here is: poll until the *run* reports `completed`,
+then read every job's own `conclusion`.
+
+**The local-run caveat is discharged, and it is worth saying which part.** Gates 1–8 and 10 ran on a
+Windows host in a worktree whose `node_modules` is a **junction to the main checkout's**, so they
+could not detect a dependency problem, could not run the ubuntu leg of `Test Inventory Drift`, and
+could not compose the sharded `E2E Functional` matrix as CI does. **Run `33114518996` covered all
+three**, and the packaged-artifact smoke besides.
+
+**Gate 11 (the ledger row) is still not satisfied and is still not owed by this packet** — §v2.1's
+annotation records that PR #429 claimed rows 13–16 first and U3a's block was withdrawn. §13.0 stands
+at **row 23** on `main` at `f9726a3`. Whoever merges #431 owes its **post-merge `main`** `js-unit`
+result as the next **unclaimed** row; **no row number is predicted here**, and this PR's own
+`pull_request` run is **not** a ledger row — the ledger indexes `main` `push` results only.

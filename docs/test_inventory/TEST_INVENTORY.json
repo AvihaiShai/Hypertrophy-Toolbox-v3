@@ -1174,7 +1174,19 @@
       },
       {
         "file": "static/js/modules/__tests__/toast.test.js",
-        "name": "showToast - anti-vacuity and API sharp edges > B43: a single-argument call renders the default copy, not the type word"
+        "name": "showToast - anti-vacuity and API sharp edges > B43: a single-argument call renders the message, not the default copy > B43-error: showToast('error') renders \"error\" on bg-success"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B43: a single-argument call renders the message, not the default copy > B43-info: showToast('info') renders \"info\" on bg-success"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B43: a single-argument call renders the message, not the default copy > B43-success: showToast('success') renders \"success\" on bg-success"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B43: a single-argument call renders the message, not the default copy > B43-warning: showToast('warning') renders \"warning\" on bg-success"
       },
       {
         "file": "static/js/modules/__tests__/toast.test.js",
@@ -1182,7 +1194,51 @@
       },
       {
         "file": "static/js/modules/__tests__/toast.test.js",
-        "name": "showToast - anti-vacuity and API sharp edges > B45: a legacy call whose message IS a type word swallows the message"
+        "name": "showToast - anti-vacuity and API sharp edges > B45: a legacy call whose message IS a type word renders that message > B45-error: showToast('error', true) renders \"error\" on bg-danger"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B45: a legacy call whose message IS a type word renders that message > B45-info: showToast('info', true) renders \"info\" on bg-danger"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B45: a legacy call whose message IS a type word renders that message > B45-success: showToast('success', true) renders \"success\" on bg-danger"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B45: a legacy call whose message IS a type word renders that message > B45-warning: showToast('warning', true) renders \"warning\" on bg-danger"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B46: a legacy call with isError=false renders the message on success > B46-error: showToast('error', false) renders \"error\" on bg-success"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B46: a legacy call with isError=false renders the message on success > B46-info: showToast('info', false) renders \"info\" on bg-success"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B46: a legacy call with isError=false renders the message on success > B46-success: showToast('success', false) renders \"success\" on bg-success"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B46: a legacy call with isError=false renders the message on success > B46-warning: showToast('warning', false) renders \"warning\" on bg-success"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B47: a legacy isError=false call drops the request-ID suffix > B47-error: showToast('error', false, {requestId}) renders \"error\" with no suffix"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B47: a legacy isError=false call drops the request-ID suffix > B47-info: showToast('info', false, {requestId}) renders \"info\" with no suffix"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B47: a legacy isError=false call drops the request-ID suffix > B47-success: showToast('success', false, {requestId}) renders \"success\" with no suffix"
+      },
+      {
+        "file": "static/js/modules/__tests__/toast.test.js",
+        "name": "showToast - anti-vacuity and API sharp edges > B47: a legacy isError=false call drops the request-ID suffix > B47-warning: showToast('warning', false, {requestId}) renders \"warning\" with no suffix"
       },
       {
         "file": "static/js/modules/__tests__/toast.test.js",
@@ -1206,7 +1262,7 @@
       },
       {
         "file": "static/js/modules/__tests__/toast.test.js",
-        "name": "showToast - default copy, one case per type > B13: error + undefined message uses the error copy"
+        "name": "showToast - default copy, one case per type > B13: error + an explicitly supplied undefined message uses the error copy"
       },
       {
         "file": "static/js/modules/__tests__/toast.test.js",
@@ -1716,7 +1772,7 @@
         "file": "static/js/modules/__tests__/summary-helpers.test.js"
       },
       {
-        "cases": 47,
+        "cases": 61,
         "file": "static/js/modules/__tests__/toast.test.js"
       },
       {
@@ -1740,7 +1796,7 @@
         "file": "static/js/modules/__tests__/workout-plan-state.test.js"
       }
     ],
-    "total_cases": 231,
+    "total_cases": 245,
     "total_files": 13
   }
 }

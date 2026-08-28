@@ -321,6 +321,7 @@ class TestDeleteExercise:
             from utils.database import DatabaseHandler
             with DatabaseHandler() as db:
                 before = db.fetch_one("SELECT COUNT(*) as cnt FROM user_selection WHERE id = ?", (plan_id,))
+            assert before is not None
             assert before['cnt'] == 1
             
             # Delete
@@ -329,6 +330,7 @@ class TestDeleteExercise:
             # Verify deleted
             with DatabaseHandler() as db:
                 after = db.fetch_one("SELECT COUNT(*) as cnt FROM user_selection WHERE id = ?", (plan_id,))
+            assert after is not None
             assert after['cnt'] == 0
     
     def test_delete_nonexistent_exercise(self, app, clean_db):
@@ -405,6 +407,7 @@ class TestSaveExercise:
             with DatabaseHandler() as db:
                 row = db.fetch_one("SELECT * FROM exercises WHERE exercise_name = ?", ('Bench Press',))
             
+            assert row is not None
             # Equipment gets normalized to 'Dumbbells' (plural) by normalize_exercise_row
             assert row['equipment'] == 'Dumbbells'
     
@@ -478,6 +481,7 @@ class TestRemoveExerciseByName:
             from utils.database import DatabaseHandler
             with DatabaseHandler() as db:
                 before = db.fetch_one("SELECT COUNT(*) as cnt FROM exercises WHERE exercise_name = ?", ('To Be Deleted',))
+            assert before is not None
             assert before['cnt'] == 1
             
             # Remove
@@ -486,6 +490,7 @@ class TestRemoveExerciseByName:
             # Verify deleted
             with DatabaseHandler() as db:
                 after = db.fetch_one("SELECT COUNT(*) as cnt FROM exercises WHERE exercise_name = ?", ('To Be Deleted',))
+            assert after is not None
             assert after['cnt'] == 0
     
     def test_remove_exercise_deletes_isolated_muscle_mappings(self, app, clean_db):
@@ -516,6 +521,7 @@ class TestRemoveExerciseByName:
                     "SELECT COUNT(*) as cnt FROM exercise_isolated_muscles WHERE exercise_name = ?",
                     ('Mapped Exercise',)
                 )
+            assert before is not None
             assert before['cnt'] >= 1
             
             # Remove
@@ -527,6 +533,7 @@ class TestRemoveExerciseByName:
                     "SELECT COUNT(*) as cnt FROM exercise_isolated_muscles WHERE exercise_name = ?",
                     ('Mapped Exercise',)
                 )
+            assert after is not None
             assert after['cnt'] == 0
     
     def test_remove_nonexistent_exercise(self, app, clean_db):
