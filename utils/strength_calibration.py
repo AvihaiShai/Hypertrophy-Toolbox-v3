@@ -343,7 +343,9 @@ def get_related_calibration_candidate(
             continue
         if row.get("transfer_confidence") not in USABLE_SUGGEST_CONFIDENCES:
             continue
-        basis_factor = _LOAD_BASIS_FACTOR.get(row.get("load_basis"))
+        # load_basis is NOT NULL in exercise_transfer_ratios; the guard below still
+        # rejects a value outside the four _LOAD_BASIS_FACTOR keys.
+        basis_factor = _LOAD_BASIS_FACTOR.get(row["load_basis"])
         if basis_factor is None:
             continue
         try:
@@ -374,9 +376,11 @@ def get_related_calibration_candidate(
         return None
 
     def sort_key(row: dict[str, Any]) -> tuple[int, datetime, int]:
+        # Every candidate cleared the USABLE_SUGGEST_CONFIDENCES filter above, so
+        # source_confidence is a non-NULL "medium"/"high" here.
         observed = _parse_dt(row.get("source_last_observed_at")) or datetime.min
         return (
-            _CONFIDENCE_RANK.get(row.get("source_confidence"), 0),
+            _CONFIDENCE_RANK.get(row["source_confidence"], 0),
             observed,
             int(row.get("source_sample_count") or 0),
         )
@@ -662,7 +666,8 @@ def get_calibration_dashboard(*, db: DatabaseHandler) -> dict[str, Any]:
     """
     learned = list_learned_calibrations(db=db)
     for row in learned:
-        target = resolve_promotion_target(row.get("exercise_name"), db=db)
+        # exercise_name is TEXT UNIQUE NOT NULL and is in the SELECT above.
+        target = resolve_promotion_target(row["exercise_name"], db=db)
         if target is None:
             row["promotable"] = False
             row["lift_key"] = None

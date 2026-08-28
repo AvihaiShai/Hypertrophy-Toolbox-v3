@@ -429,6 +429,7 @@ class TestApplyAtomicity:
                 "SELECT media_path FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["media_path"] is None
 
     def test_missing_asset_blocks_apply(
@@ -481,6 +482,7 @@ class TestApplyAtomicity:
                 "SELECT media_path FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["media_path"] is None
 
     def test_dry_run_does_not_write(
@@ -505,6 +507,7 @@ class TestApplyAtomicity:
                 "SELECT media_path FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["media_path"] is None
 
     def test_midloop_db_error_rolls_back_all_rows(
@@ -593,6 +596,7 @@ class TestApplyHappyPath:
                 "SELECT media_path FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["media_path"] == "Bench/0.jpg"
 
     def test_auto_and_rejected_rows_skipped(
@@ -648,6 +652,7 @@ class TestApplyHappyPath:
                 "SELECT media_path FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["media_path"] == "Bench/0.jpg"
 
     def test_case_insensitive_exercise_match(
@@ -670,6 +675,7 @@ class TestApplyHappyPath:
                 "SELECT media_path FROM exercises "
                 "WHERE exercise_name = 'Bench Press'"
             )
+        assert row is not None
         assert row["media_path"] == "Bench/0.jpg"
 
 

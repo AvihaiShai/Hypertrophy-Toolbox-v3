@@ -23,9 +23,9 @@ def _create_exercise(
     db,
     name,
     *,
-    primary="Chest",
-    secondary="Triceps",
-    tertiary="Shoulders",
+    primary: str | None = "Chest",
+    secondary: str | None = "Triceps",
+    tertiary: str | None = "Shoulders",
     advanced=None,
 ):
     db.execute_query(

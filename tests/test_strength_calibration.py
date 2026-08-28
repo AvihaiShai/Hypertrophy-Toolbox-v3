@@ -171,6 +171,7 @@ def test_rir_does_not_inflate_e1rm(clean_db, exercise_factory, workout_plan_fact
     plan = workout_plan_factory(exercise_name=ex)
     _log(clean_db, plan, ex, scored_weight=120.0, scored_max_reps=8, scored_rir=2)
     result = update_calibration_for_exercise(ex, db=clean_db)
+    assert result is not None
     assert result["estimated_1rm"] == round(120.0 * (1 + 8 / 30), 2)
 
 
@@ -196,6 +197,7 @@ def test_recent_logs_outrank_old_logs(clean_db, exercise_factory, workout_plan_f
     )
 
     result = update_calibration_for_exercise(ex, db=clean_db, now=_utcnow())
+    assert result is not None
     assert result["last_log_id"] == new_id
     assert result["estimated_1rm"] == round(epley_1rm(120.0, 8), 2)
 
@@ -208,6 +210,7 @@ def test_high_confidence_with_three_consistent_recent_logs(
     for _ in range(3):
         _log(clean_db, plan, ex, scored_weight=100.0, scored_max_reps=8, scored_rir=2)
     result = update_calibration_for_exercise(ex, db=clean_db, now=_utcnow())
+    assert result is not None
     assert result["confidence"] == CONFIDENCE_HIGH
     assert result["sample_count"] == 3
 
@@ -219,6 +222,7 @@ def test_stale_logs_yield_low_confidence(clean_db, exercise_factory, workout_pla
     # Evaluate as if 200 days have passed since the log.
     future = _utcnow() + timedelta(days=200)
     result = update_calibration_for_exercise(ex, db=clean_db, now=future)
+    assert result is not None
     assert result["confidence"] == CONFIDENCE_LOW
 
 
@@ -401,6 +405,7 @@ def test_resolve_promotion_target_uses_measured_top_set(
     update_calibration_for_exercise(ex, db=clean_db)
 
     target = resolve_promotion_target(ex, db=clean_db)
+    assert target is not None
     assert target["lift_key"] == "barbell_bench_press"
     assert target["weight_kg"] == 100.0
     assert target["reps"] == 14
@@ -416,6 +421,7 @@ def test_resolve_promotion_target_converts_dumbbell_to_total_lift_basis(
     update_calibration_for_exercise(ex, db=clean_db)
 
     target = resolve_promotion_target(ex, db=clean_db)
+    assert target is not None
     assert target["lift_key"] == "incline_bench_press"
     assert target["weight_kg"] == 72.0
     assert target["reps"] == 8
@@ -430,6 +436,7 @@ def test_resolve_promotion_target_converts_total_to_dumbbell_lift_basis(
     update_calibration_for_exercise(ex, db=clean_db)
 
     target = resolve_promotion_target(ex, db=clean_db)
+    assert target is not None
     assert target["lift_key"] == "dumbbell_bench_press"
     assert target["weight_kg"] == 40.0
     assert target["reps"] == 8

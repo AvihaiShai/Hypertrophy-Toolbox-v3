@@ -236,8 +236,8 @@ def _lookup_related_learned_calibration(
         return None
 
     preferences = db.fetch_all("SELECT tier, rep_range FROM user_profile_preferences")
-    preference_by_tier = {
-        row.get("tier"): row.get("rep_range")
+    preference_by_tier: dict[str, str] = {
+        row["tier"]: row["rep_range"]
         for row in preferences
         if row.get("tier") and row.get("rep_range")
     }
@@ -372,8 +372,8 @@ def _estimate_from_profile(
         return None
 
     lifts_by_key = {row.get("lift_key"): row for row in profile_lifts}
-    preference_by_tier = {
-        row.get("tier"): row.get("rep_range")
+    preference_by_tier: dict[str, str] = {
+        row["tier"]: row["rep_range"]
         for row in preferences
         if row.get("tier") and row.get("rep_range")
     }

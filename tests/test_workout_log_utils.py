@@ -332,6 +332,7 @@ class TestAssistedBodyweightHelpers:
             planned_weight=65.0,
             scored_weight=60.0,
         )
+        assert indicator is not None
         assert indicator["icon"] == "fa-arrow-up"
         assert indicator["class"] == "text-success"
         assert "Assistance decreased" in indicator["title"]
@@ -342,6 +343,7 @@ class TestAssistedBodyweightHelpers:
             planned_weight=5.0,
             scored_weight=0.0,
         )
+        assert indicator is not None
         assert indicator["icon"] == "fa-arrow-up"
         assert indicator["class"] == "text-success"
 
@@ -351,6 +353,7 @@ class TestAssistedBodyweightHelpers:
             planned_weight=65.0,
             scored_weight=70.0,
         )
+        assert indicator is not None
         assert indicator["icon"] == "fa-arrow-down"
         assert indicator["class"] == "text-danger"
         assert "Assistance increased" in indicator["title"]
