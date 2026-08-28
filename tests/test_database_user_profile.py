@@ -176,4 +176,5 @@ def test_erase_data_recreates_user_profile_tables(client, clean_db):
         for table, expected_columns in PROFILE_TABLES.items():
             assert expected_columns <= _columns(db, table)
             row = db.fetch_one(f"SELECT COUNT(*) AS count FROM {table}")
+            assert row is not None
             assert row["count"] == 0
