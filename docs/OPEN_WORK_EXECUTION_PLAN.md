@@ -1511,6 +1511,7 @@ on `main`, which is the precise failure §1 exists to prevent.
 | Open-PR list | `gh pr list --state open` | "**#436** is the only open PR" |
 | `main` `ci.yml` run list | `gh run list --workflow=ci.yml --branch=main` | the **seven** runs after row 26's run `33125767570` |
 | `JS Unit` job on each of those seven | `gh api .../actions/runs/<id>/jobs` | all seven `success` — §14.3's table |
+| Run `33214775557` re-read at `2026-08-28T22:07:53Z` | `gh api .../actions/runs/33214775557` and its `/jobs` | `completed`/`success`, **18 / 18** — the one run pending at the `22:04:44Z` read |
 | `TEST_INVENTORY.json` @ `288667d` and `2035852` | `vitest.total_cases` / `total_files` | **245 / 13 at both** — the corpus did not move in the wave |
 | Deep-gate schedule runs | `gh run list --workflow=deep-gate.yml --event=schedule` | still exactly **2**, both `success`; the third is due 2026-08-31 and has not occurred |
 | Release runs | `gh api .../workflows/release.yml/runs?event=push` and `?event=workflow_dispatch` | **0** and **1** — unchanged from §13.6 |
@@ -1608,10 +1609,14 @@ ledger.** Every one is `CI/CD Pipeline` on `push`; the broad every-workflow quer
 
 **The numbering above is this document's arithmetic, not a ledger entry.** §13.0 is the only place
 a row may be written, and writing these seven is owed there — by the rule §4's Track D1 already
-states, that whoever lands a merge owes the row its post-merge run mints. **Row 33's run was still
-`in_progress` at `22:04:44Z`** (three of its eighteen jobs unfinished); its `JS Unit` job is
-already `completed`/`success`, which is the job-level fact the ledger records, but the run's
-overall conclusion is not yet available and must not be asserted.
+states, that whoever lands a merge owes the row its post-merge run mints. **Row 33's run was still `in_progress`
+at `22:04:44Z`** — seventeen jobs existed, three of them unfinished, and the eighteenth had not
+been created yet, so its overall conclusion was not available and was not asserted. **Re-read at
+`2026-08-28T22:07:53Z`: `33214775557` is `completed`/`success`, 18 jobs and 18 `success`.** Its
+`JS Unit` job had already been `completed`/`success` at the earlier read — the job-level fact is
+what the ledger records, and §6.1's discipline is that a run's overall conclusion is never a proxy
+for it — but the run-level figure the ledger's rows also carry is now measured rather than
+pending.
 
 **The restart is not re-engaged, and the new T0 stays conditional.** `vitest.total_cases` reads
 **245** and `total_files` **13** at both `288667d` and `2035852` — the wave was pyright and Python
