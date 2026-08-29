@@ -183,7 +183,9 @@ as `225b7b0`. **Do not start the OD-1 waiver record either** —
 [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) carries it and is open; review
 or land that PR instead, and the record returns as work only if #451 is closed unmerged; (4) **the owner determination on whether #431 was the
 final Vitest expansion packet is owed**, and it blocks Q4 / D2; (5) **everything
-else waits on the owner** — §15.4 items 1–8 and 10.
+else waits on the owner** — §15.4 items 1–8. *(Repaired 2026-08-29: this read "items 1–8 and
+10"; item 10 was the OD-1 waiver record, landed as **OD-1-W** in `fe15225` (#451) and
+discharged under §15.2. **Item 7 (V1) has since been ruled**, leaving **seven** live.)*
 
 **This reconciliation changed documentation only** — exactly two files,
 [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) and this one. No production, test,

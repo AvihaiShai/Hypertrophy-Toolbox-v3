@@ -24,6 +24,7 @@ unexercised in either theme. That page is now captured in segments instead.
 """
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import sqlite3
@@ -182,6 +183,9 @@ BYTE_GATE_EXEMPT = {
     "plan-desktop-dark-simple",
 }
 REPLACEMENT_SPEC = REPO_ROOT / "e2e" / "workout-plan-desktop-contract.spec.ts"
+INHERITED_RED_LEDGER = (
+    REPO_ROOT / "docs" / "CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json"
+)
 
 
 def test_the_byte_gate_exemption_is_exactly_the_five_measured_captures():
@@ -404,3 +408,83 @@ def test_the_functional_seed_is_not_dragged_into_the_catalog_upgrade(prepared_e2
     changing the shared helper's default.
     """
     assert _scalar(prepared_e2e_db, CURATED_ID_SQL) == 0
+def test_the_linux_inherited_red_ledger_names_only_real_or_exempt_baselines():
+    """Every ledgered red must still resolve to something, and the ledger must say which.
+
+    ``docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`` carries a live rule --
+    "a red on a file NOT in this ledger is a rollback trigger" -- over a list of
+    eleven baselines. Four days after it was written, #298 took three of those
+    eleven off the byte gate, which deletes their PNG on both platforms. Nothing
+    validated the list, so for three weeks the ledger named files that could not
+    be reproduced while still reading as current operational truth.
+
+    The eleven entries are NOT renumbered and this test does not ask them to be:
+    ``p3_ceiling.n8_denominator()`` derives ``11 failed / 57 passed`` from them
+    and reconciles it against three recorded deep-gate runs that really did fail
+    eleven tests. The count is a measurement, so it stays. What this pins is that
+    every name still has a *disposition* -- present as a baseline, or absent
+    because it is byte-gate exempt -- and that the ledger's own ``currentStatus``
+    block reports those two numbers correctly.
+    """
+    ledger = json.loads(INHERITED_RED_LEDGER.read_text(encoding="utf-8"))
+    linux_root = SCREENSHOT_ROOT / "linux"
+
+    present, retired, orphaned = [], [], []
+    for entry in ledger["linuxInheritedReds"]["specs"]:
+        snapshot_dir = linux_root / f"{Path(entry['spec']).name}-snapshots"
+        for name in entry["files"]:
+            if (snapshot_dir / name).is_file():
+                present.append(name)
+            elif Path(name).stem in BYTE_GATE_EXEMPT:
+                retired.append(name)
+            else:
+                orphaned.append(f"{entry['spec']} :: {name}")
+
+    assert orphaned == [], (
+        "The inherited-red ledger names baselines that neither exist nor are "
+        f"byte-gate exempt: {orphaned}. A ledger whose files cannot be resolved "
+        "cannot serve as the rollback-trigger reference its `rules` claim it is. "
+        "Either restore the baseline or record the retirement in `currentStatus`."
+    )
+
+    assert "currentStatus" in ledger, (
+        "the ledger has no `currentStatus` block, so nothing records which of its "
+        "named baselines still exist. That is the state this contract exists to "
+        "end."
+    )
+    status = ledger["currentStatus"]
+    assert status["ledgeredFilesStillPresent"] == len(present), (
+        f"currentStatus says {status['ledgeredFilesStillPresent']} ledgered files "
+        f"are still present; {len(present)} were found."
+    )
+    assert status["ledgeredFilesRetired"] == len(retired), (
+        f"currentStatus says {status['ledgeredFilesRetired']} ledgered files were "
+        f"retired; {len(retired)} are exempt-and-absent."
+    )
+    assert sorted(status["retiredFiles"]) == sorted(
+        f"{entry['spec']} :: {name}"
+        for entry in ledger["linuxInheritedReds"]["specs"]
+        for name in entry["files"]
+        if Path(name).stem in BYTE_GATE_EXEMPT
+    ), "currentStatus.retiredFiles does not match the exempt entries in the ledger"
+
+
+def test_the_inherited_red_ledger_marks_its_operational_rules_superseded():
+    """The historical measurement may stay; the live rule over it may not.
+
+    The failure this guards is subtler than a wrong number: the ledger stayed
+    *arithmetically* correct as a record of three 2026-07 deep-gate runs while
+    becoming false as an instruction to a packet running today. Retaining history
+    is right; letting it read as current operational truth is the defect.
+    """
+    ledger = json.loads(INHERITED_RED_LEDGER.read_text(encoding="utf-8"))
+    assert ledger["rules"], "the ledger declares no rules"
+    assert ledger["rules"][0].startswith("SUPERSEDED"), (
+        "the first entry of `rules` must be the supersession notice, so no reader "
+        "reaches the N8-era rules without it. Found: "
+        f"{ledger['rules'][0][:80]!r}"
+    )
+    assert "currentStatus" in ledger, (
+        "a superseded ledger must carry a `currentStatus` block saying what is "
+        "true now"
+    )
