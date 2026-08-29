@@ -34,15 +34,18 @@ changed a case under `static/js/**/*.test.js`. Therefore:
 file, workflow, job name or repository setting was touched. **Reaching the strict mark is a
 precondition, never a signature.**
 
-**The ledger ends at row 43 once this pass lands — on `main` it still ends at row 40.** Three rows
-are appended to §13.0's master ledger table by the pass carrying this block, all read at job level
-and all `success` / 18-of-18 / attempt 1: **row 41** = #450's own landing, run `33268787682`, job
+**The ledger ends at row 44.** [#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452) merged as **`5d98824`** at
+**`2026-08-29T22:43:37Z`**, putting the T0 declaration and rows 41–43 on `main`; **row 44 is its own
+post-merge run**, written by the closeout pass carrying this block. All four are read at job level
+and all are `success` / 18-of-18 / attempt 1: **row 41** = #450's landing, run `33268787682`, job
 `99143431684`, `2026-08-29T18:38:17Z`; **row 42** = [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454)'s (`8c844df`, the V1
 ruling), run `33273789390`, job `99156860069`, `2026-08-29T20:33:41Z`; **row 43** =
 [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)'s (`2cb938c`, Packet R1), run `33278243462`, job `99168706068`,
-`2026-08-29T22:18:29Z`. Rows 42 and 43 were minted by owner merges that landed while this pass was
-open and touched no ledger, so both were unclaimed and this pass claims them. **Row 44** is what
-this pass's own merge will mint, and it cannot record it. The window holds **16 consecutive green results on the 245-case suite, 0 red / missing /
+`2026-08-29T22:18:29Z`; **row 44** = #452's own, run `33279287312`, job `99171566275`,
+`2026-08-29T22:44:02Z`. **Row 45** is what this closeout pass's own merge will mint, and it cannot
+record it — the standing §11.10 mechanism, unchanged. The window now holds **19 consecutive green
+results on the 245-case suite; 0 red, missing, skipped or cancelled**, and the corpus is
+**13 files / 245 cases at all nineteen heads** `288667d` → `5d98824`. The window holds **16 consecutive green results on the 245-case suite, 0 red / missing /
 skipped / cancelled**, and the corpus is **13 files / 245 cases at all sixteen heads** from
 `288667d` to `116d3c5`. **Read the operative T0 from
 [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here** —

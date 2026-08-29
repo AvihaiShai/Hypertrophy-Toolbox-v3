@@ -4828,7 +4828,7 @@ back byte-identical.
 > that read and has been overtaken by every extension since — the table now carries **40** rows,
 > through the rows 27–40 extension. **The rows themselves are unchanged**; only the lead-in's count
 > and its *"newest `main` run"* are spent. Read the live tally from the newest extension block, not
-> from here. ⚠️ **RE-ANNOTATED 2026-08-29: the table now carries 43 rows**, through the rows-42–43
+> from here. ⚠️ **RE-ANNOTATED 2026-08-29: the table now carries 44 rows**, through the row-44
 > extension. The rows themselves remain unchanged.
 
 | # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
@@ -4876,6 +4876,7 @@ back byte-identical.
 | **41** | [`33268787682`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33268787682) | `push` / `116d3c5` (**PR #450, JS-unit ledger rows 27–40 + plan reconciliation**) | `success`, **18/18** | [**`99143431684`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33268787682/job/99143431684) | **`success`** | **`2026-08-29T18:38:17Z`** |
 | **42** | [`33273789390`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33273789390) | `push` / `8c844df` (**PR #454, the V1 visual-determinism ruling recorded**) | `success`, **18/18** | [**`99156860069`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33273789390/job/99156860069) | **`success`** | **`2026-08-29T20:33:41Z`** |
 | **43** | [`33278243462`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33278243462) | `push` / `2cb938c` (**PR #455, Packet R1 — deep-gate mutation probes**) | `success`, **18/18** | [**`99168706068`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33278243462/job/99168706068) | **`success`** | **`2026-08-29T22:18:29Z`** |
+| **44** | [`33279287312`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33279287312) | `push` / `5d98824` (**PR #452, the T0 declaration — #431 ruled the final expansion packet**) | `success`, **18/18** | [**`99171566275`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33279287312/job/99171566275) | **`success`** | **`2026-08-29T22:44:02Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5280,8 +5281,9 @@ non-attempt run has landed.**
 > at `2026-08-29T22:28:34Z`, and is measured rather than predicted. That is the same discipline
 > rows 33 and 40 record.
 >
-> **This pass's own merge now mints row 44**, which it cannot record — the standing §11.10
-> mechanism, unchanged. The row-41 extension's *"owes row 42"* clause is spent as a live statement
+> ~~**This pass's own merge now mints row 44**, which it cannot record~~ — the standing §11.10
+> mechanism, unchanged. ✅ **DISCHARGED `2026-08-29T22:54:16Z`: row 44 is WRITTEN** in the extension below, from
+> #452's own post-merge run. **Row 45** is what the pass carrying that extension now owes. The row-41 extension's *"owes row 42"* clause is spent as a live statement
 > while remaining accurate as the dated prediction it was: rows 42 and 43 arrived first.
 >
 > **The enumeration is independent and bounded at both ends.**
@@ -5304,6 +5306,60 @@ reads `vitest.total_files = 13`, `vitest.total_cases = 245` at `8c844df` and at 
 `tests/test_release_workflow_contracts.py` **51 → 63** and `tests/test_visual_capture_contracts.py`
 **15 → 17** — and **pytest cases are not Vitest cases**: the operative rule is *"changed no JS test
 case"*, and no JS test case moved. **Q2's restart clause did not engage at either row.**
+
+> **LEDGER EXTENSION — `2026-08-29T22:54:16Z`, row 44.** **Row 44 is appended to the master ledger table
+> above, in place.** It is **[#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452)'s own landing** — the PR that declared this
+> window's T0 and wrote rows 41–43, and which by the standing §11.10 mechanism could not cite the
+> run its own merge produces. **That debt is discharged here**, and every *"this pass owes row 44"*
+> clause #452 left behind is spent as a live statement while remaining accurate as the dated
+> prediction it was.
+>
+> **Read at job level.** The `js-unit` job's own `conclusion` and `completed_at`, never the run's
+> overall conclusion. Job [`99171566275`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33279287312/job/99171566275) reached
+> `completed` / `success` at **`2026-08-29T22:44:02Z`**, ahead of the rest of its run; the run-level
+> **18 / 18** figure was taken only after run [`33279287312`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33279287312) itself
+> reached `completed`, and is measured rather than predicted.
+>
+> **This is the first row minted by a merge that declared a T0**, and it changes nothing about that
+> T0. The declaration is §13.0's *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*; a row is
+> evidence accumulating **inside** the window it opened, never a re-opening of it.
+>
+> **Whoever merges the PR carrying this extension owes row 45**, which it cannot record — the
+> standing §11.10 mechanism, unchanged.
+>
+> **The enumeration is independent and bounded at both ends.**
+> `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to `created_at` in
+> **[`2026-08-22T17:00:00Z`, `2026-08-29T22:54:16Z`]**, returns **49** `main` runs of **any** workflow:
+> **44** `ci.yml` `push` attempts plus the **5** classified non-attempts, whose membership is
+> **unchanged** and each of which still returns **zero** `JS Unit (Vitest, non-required)` jobs. A
+> cross-check **without** the branch filter, filtered to `head_branch == "main"` and
+> `created_at > 2026-08-29T22:18:08Z`, returns the **same single** run. **No sixth non-attempt run
+> has landed.**
+
+**Row 44 restarts nothing.** `git rev-parse 5d98824:static/js` returns
+**`a7e5073568b0fde8e35e1e1a7be5a9f844e77828`**, `5d98824:static/js/modules/__tests__` returns
+**`5858c8497c571548e5116f4b660ff7702dd298b1`** and `5d98824:vitest.config.js` returns
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935` — identical at **all nineteen** heads from `288667d`
+through `5d98824`. [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) reads
+`vitest.total_files = 13`, `vitest.total_cases = 245`. #452 was documentation-only. **Q2's restart
+clause did not engage.**
+
+| Ledger tally, at `2026-08-29T22:54:16Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after the original T0 | **44** — all `push`, all 18/18, all attempt **1** |
+| Green `main` `JS Unit` results since and including the original T0 | **44** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after the original T0 **and at or before this read** (completeness check, not a tally) | **49** — the 44 attempts plus the same **5** classified non-attempts |
+| **`schedule`-event `ci.yml` runs in the window** | **0** |
+| **Green results on the 231-case suite (rows 1–25)** | **25** |
+| **Green results on the 245-case suite (rows 26–44)** | **19** |
+| Elapsed from **T0** to row 44 | **1 d 23 h 25 m 41 s** |
+| Remaining from row 44 to the strict mark **`2026-09-10T23:18:21Z`** | **12 d 0 h 34 m 19 s** |
+
+---
 
 | Ledger tally, at `2026-08-29T22:28:34Z` | Value |
 |---|---:|
