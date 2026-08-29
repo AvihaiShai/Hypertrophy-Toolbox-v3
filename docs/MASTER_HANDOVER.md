@@ -4,6 +4,163 @@
 
 ## Current State
 
+> **2026-08-29 (LATEST) — Track P1 is CLOSED at 0 / 0 / 0, PR [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445) merged as
+> `158ee40`, and NO engineering packet is in flight. Everything still open is either an owner
+> decision or parked. `js-unit` is still NOT promoted, and the JS-unit window's T0 is still
+> CONDITIONAL and UNDECLARED.**
+> `origin/main` is at **`158ee40`**, in full
+> `158ee4008e8e38ac06326948360edf534686a02d` — PR
+> [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445), the owner-facing status board added as §15 of the Open Work Execution
+> Plan, merged **`2026-08-29T13:47:38Z`** — with all **18** checks green on that commit. Post-merge
+> run [`33255921889`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889), `2026-08-29T13:47:41Z → 13:57:55Z`, **read at job
+> level**, **18 jobs and 18 `success`**, never off the overall green. **The repository had ZERO
+> open PRs when this pass began and ONE by the time it finished** — a concurrent session opened
+> [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) at `2026-08-29T14:25:32Z`, re-read here at `2026-08-29T14:28:38Z`
+> from the API `Date` header. The block below says **TWO**; that was true when it was written —
+> #415 and #416 both merged on 2026-08-26.
+>
+> **1 — Track P1 (pyright reduction) is CLOSED at 0 diagnostics / 0 distinct keys / 0 files.**
+> [`ci_cd_phase3/pyright-baseline.json`](ci_cd_phase3/pyright-baseline.json) reads
+> `_meta.total_diagnostics` **0** and `_meta.distinct_keys` **0** at `158ee40`, with an empty
+> `diagnostics` list. Two merges closed it after the six-PR evening wave: **[#446](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/446)**
+> (`1226e46`) took **37 / 16 / 11 → 9 / 2 / 1**, and **[#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447)** (`3532f86`) closed the
+> last nine in `routes/workout_plan.py` under an **explicit owner authorization that lifted that
+> file's off-limits designation for that one bounded packet — spent, not repealed.** The
+> allowlist is now empty and carries **no headroom**: a single net-new diagnostic reds the
+> required `Type Check (tsc blocking + pyright measure-only)` context, and the repair is to fix
+> the diagnostic, never to re-widen the baseline. The narrative record is
+> [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §16.2; do not re-derive it here.
+>
+> **2 — There is NO automatic next engineering packet.** T0, U1, U2 and both halves of U3 are
+> on `main` — KI-010 as `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)) and
+> KI-011 as `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)) — R0 is closed, and Track P1 is closed. Everything that
+> remains is **owner-decision-gated or parked**: the eight live decisions and one owed record in
+> [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §15.4, and §5's eight parked
+> items. **No agent may start any of them.** The single track an agent may continue unattended
+> is **Track D1**, dependency-PR triage — and its queue is **empty**. Note the limit §15.1 sets
+> on it: an agent may *triage* a bump unattended, but **landing one still needs explicit owner
+> authorization.**
+>
+> **3 — The JS-unit ledger on `main` ends at ROW 26, and rows 27–37 are OWED.** Row 26 is job
+> [`98703428098`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33125767570/job/98703428098) of run [`33125767570`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33125767570)
+> (`push` / `288667d`, [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), **`success`**, completed **`2026-08-27T23:18:21Z`** —
+> the row at which the window restarted. **Eleven** `main` `ci.yml` runs have completed a green
+> `JS Unit` job since, none written into §13.0. **All eleven were re-read at job level in this
+> pass** — each run's `/jobs` enumerated and matched on the exact context string
+> `JS Unit (Vitest, non-required)`, then that job's own `conclusion` and `completed_at` read off
+> it, never the run's overall conclusion — and all eleven are 18 jobs / 18 `success`. **The
+> identifiers for rows 27–36 are deliberately not transcribed here** — rows 27–33 are numbered in
+> §14.3, row 34 in §14.5 and rows 35–36 in §16.3 of the Open Work Execution Plan. **Row 37 is the
+> one exception, because no other document carries it.** It is
+> job [`99109487854`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889/job/99109487854) of run
+> [`33255921889`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889), **`success`**, completed **`2026-08-29T13:48:04Z`**,
+> minted by #445's own merge, which #445 could not record — and, following §16.3's discipline,
+> **it is published here as a measurement to be re-verified at §13.0 before transcription, not as
+> a row already recorded.**
+>
+> **The completeness check, with both instruments on the record.** The interval is
+> `2026-08-27T23:18:21Z` (row 26's `completed_at`) → `2026-08-29T13:57:55Z`. **The broad query** —
+> `gh api "…/actions/runs?branch=main&per_page=100&created=>2026-08-27"`, filtered to
+> `created_at > 2026-08-27T23:18:00Z` — returns **exactly those eleven runs and nothing else**,
+> all `ci.yml` / `push`; eleven results against a 100-item page, so no truncation is possible.
+> **The narrow query** enumerated **all five** non-`ci.yml` workflows the repository has, by
+> workflow id, and each returns **zero** `main` runs in the interval — by path:
+> `.github/workflows/_packaged-windows.yml`, `.github/workflows/deep-gate.yml`,
+> `.github/workflows/release.yml`, and the two Dependabot ones,
+> `dynamic/dependabot/dependabot-updates` and `dynamic/dependabot/update-graph`. **So this stretch hides no attempt and, unlike the
+> 2026-08-24 window recorded below, contains no classified non-attempt run at all.** The
+> checkable reason for the Dependabot half is the schedule, not the queue: all three ecosystems
+> in [`.github/dependabot.yml`](../.github/dependabot.yml) are `interval: "weekly"`,
+> `day: "monday"`, and this interval — Thursday to Saturday — **contains no Monday**. **The
+> single authoritative ledger is
+> [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0** — a row may be
+> written only there, and no count may be read off this paragraph at a later session.
+>
+> **4 — T0 is CONDITIONAL and UNDECLARED, and the old marks are SPENT.** [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) took
+> the Vitest corpus **231 → 245**, engaging owner ruling Q2's restart clause. **The old T0
+> `2026-08-22T17:59:26Z` and the old strict mark `2026-09-05T17:59:26Z` no longer exist** —
+> every restatement of them below this block is history, not live guidance. Whether
+> `2026-08-27T23:18:21Z` is the new T0 turns on **whether #431 was the final expansion packet**,
+> which is an **owner determination and is OWED**: two Vitest expansions are still unlanded —
+> U3b's KI-011 helper coverage and **U1-FOLLOWUP-1**. **Read the operative T0 from §13.0, never
+> from here.** The corpus at `158ee40` is **13 files / 245 cases**, re-read from
+> [`TEST_INVENTORY.json`](test_inventory/TEST_INVENTORY.json).
+>
+> **5 — Live state, re-queried in this pass rather than carried over.**
+>
+> | Reading | Value at `158ee40` | Moved since §16.4's reading at `3532f86`? |
+> |---|---|---|
+> | Open PRs (`gh pr list --state open`) | **1** at `14:28:38Z` — [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448), `docs/REFACTOR_PLAN.md` only, `MERGEABLE`; it was **0** at `13:57Z` | **Yes** — 1 (#445) → 0 → 1 (#448). The PR carrying this block will make it **2**, counting itself |
+> | Open dependency PRs | **0** — Track D1's queue is still empty | No |
+> | Open Dependabot alerts | **0** | — §16.4 took no alerts reading |
+> | Open issues | **0** | — |
+> | `deep-gate.yml` `schedule` runs | **2**, both `success` — `31993105305`, `32688747703` | No. The third is due **2026-08-31 03:17 UTC** and has not occurred |
+> | `deep-gate.yml` runs, all events | **110** — 2 `schedule`, 108 `workflow_dispatch` | — |
+> | `release.yml` runs | **0** `push`, **1** `workflow_dispatch` — `31840756293`, `2026-08-14T21:03:46Z` | No. `push: tags` has **still never fired** |
+> | Live branch protection | **12** required contexts; `JS Unit (Vitest, non-required)` **absent**; `strict` **false** | No |
+> | `pyright-baseline.json` `_meta` | `total_diagnostics` **0**, `distinct_keys` **0** | No — closed at `3532f86` |
+> | Vitest corpus | **13 files / 245 cases** | No |
+>
+> **R1-D3's clock is still 2 of 3**, and `scripts/release_gate.py`'s 12-required / 13-expected
+> list on `main` has **still never executed by any trigger** — its lone `workflow_dispatch` run
+> predates `a937116`, the commit that last changed the file.
+>
+> **6 — What this pass did NOT do, and what is still owed.**
+>
+> - **Ledger rows 27–37 are not written here.** §13.0 is the only place a row may be written,
+>   and appending them is a separate owed pass.
+> - **The OD-1 waiver record is still owed.** #431 merged roughly 8 d 18 h ahead of its own
+>   Gate 0 embargo, by the owner's own ruling. It is a **record gap, not an improper merge**.
+> - **[`REFACTOR_PLAN.md`](REFACTOR_PLAN.md)'s continuous-track row is still materially stale on
+>   `main`** — it calls the pyright track *"Ongoing — standing track only"* and quotes
+>   **139/45 → 132/42**, a figure predating all ten packets, and it is the only one of the three
+>   surfaces §16.4 flagged that **actively asserts the track is open**. It was deliberately
+>   outside this pass's two-file scope, and it is **no longer owed to this pass: a concurrent
+>   session claimed it as [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448)**, open and `MERGEABLE` at
+>   `2026-08-29T14:28:38Z`, touching that one file and no other. **Do not duplicate that work.**
+>   If #448 is closed unmerged, the debt returns.
+> - **Two readings on the Open Work Execution Plan's §15 board now sit past its own derivation
+>   stamp.** The board is stamped *"Derived at `3532f86`, 2026-08-29"*, and #445's merge moved two
+>   of its fields: **§15.2 debt 1** reads *"rows 27–36 … ten `main` runs"*, where the range is now
+>   **27–37** and eleven; and **§15.1's Track D1 row** reads *"the one open PR is this plan's
+>   own"*, where #445 has merged and the one open PR is #448. **This is a dated view ageing, not a
+>   defect** — debt 1 explicitly predicted that merging #445 would mint row 37 and that it could
+>   not record it, which is §11.10's designed self-counting behaviour, and no §4 or §5 status
+>   field moved, so §15's *"fix the board in the same commit"* rule did not fire. Refreshing the
+>   board is outside this pass's two-file scope and is **owed**.
+> - **No decision was taken.** No branch-protection or repository-settings change, no tag, no
+>   workflow dispatch, no dependency merge.
+> - **Three further surfaces in THIS file are stale and are annotated in place rather than
+>   rewritten** — the *Active Workstreams* "Testing strategy review" row, the *Open Decisions*
+>   `js-unit` bullet, and the *Next Safe Step* section. All three restate the spent T0 marks, and
+>   **one of them — the Next Safe Step section — also calls KI-010 and KI-011 open.** §16.4's
+>   staleness table named only this file's **Current State**; these three sit outside dated
+>   blocks, so the blanket in item 4 does not reach them.
+>
+> **The current next action, stated explicitly, because none of it starts itself:**
+>
+> 1. **Append JS-unit ledger rows 27–37 to §13.0**, at job level, re-verifying each against the
+>    API rather than transcribing it from here, and recording any red, missing, skipped or
+>    cancelled `ci.yml` result. **Whoever merges the PR carrying this block mints the next
+>    sequential row — row 38 on today's numbering — from a run that does not exist until the
+>    merge does, and is therefore not claimed here as recorded.**
+> 2. **Inspect the 2026-08-31 scheduled deep gate ONLY after it executes** — at **job** level,
+>    with `visual-linux` confirmed *executed* rather than skipped, never read off the overall
+>    green. Expect scheduler drift of up to an hour (45 m 52 s on 2026-08-17, 48 m 58 s on
+>    2026-08-24). A green there is the **third** consecutive green scheduled run and closes
+>    R1-D3's clock; **acting on a closed clock is still a separate owner decision.**
+> 3. **Do NOT start a `REFACTOR_PLAN.md` refresh** — [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) already
+>    carries it. Review or land that PR instead; the refresh returns as work only if #448 is
+>    closed unmerged.
+> 4. **The owner determination on whether #431 was the final Vitest expansion packet is OWED**,
+>    and it blocks the Q4 / D2 decision on promoting `js-unit`.
+> 5. **Everything else waits on the owner** — §15.4 items 1–8 and 10. Nothing there may be
+>    started by an agent, and reaching a clock's threshold is not authorization.
+>
+> **This reconciliation changed documentation only** — exactly two files, this one and
+> [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md). No production, test, workflow, dependency,
+> inventory, generated, config, branch-protection or repository-settings file was touched.
+
 > **2026-08-24 (LATEST) — the 2026-08-24 scheduled deep gate EXECUTED and was green at job
 > level; R1-D3's clock is recorded at 2 of 3; the qualification ledger gains row 5. `js-unit`
 > is still NOT promoted and T0 is unmoved.**
@@ -16,6 +173,24 @@
 > Dependabot, both opened `2026-08-24T00:25Z`, neither merged: **#415** (`pyinstaller`
 > 6.22.0 → 6.22.2) and **#416** (`sass` 1.102.0 → 1.103.1). The block below says "zero";
 > that was true when it was written.
+> **[UPDATED 2026-08-29 — this block carried the `(LATEST)` marker until the block above was
+> written; `git rev-list --count 31659a5..158ee40` is **34** and `git merge-base --is-ancestor`
+> confirms `31659a5` is still an ancestor of `main`. Nothing below is edited except this annotation. **Four** of its claims are
+> spent, and all four are corrected above rather than here: its *"`origin/main` is at
+> `31659a5`"*; its *"TWO open PRs"* — #415 and #416 both merged on **2026-08-26** and there are
+> now **zero**; its **five**-row ledger reading — `main`'s ledger now ends at **row 26** with
+> rows **27–37** owed, and §13.0 remains the only place that count lives; and its *"T0 is
+> UNCHANGED"* / *"the strict 14-day mark is `2026-09-05T17:59:26Z`"* pair — **#431 engaged Q2's
+> restart clause on 2026-08-27 and BOTH marks are SPENT**. Two further statements have moved:
+> **KI-010 and KI-011 are no longer OPEN** (`288667d` and `5b35966`), and its next-action item
+> **4** is discharged. Its next-action item **1** is **still live and undischarged** — the
+> 2026-08-31 deep gate has not yet run. **Its next-action item 2 survives only in part:** the
+> obligation to continue the ledger stands, but its terminus `2026-09-05T17:59:26Z` is **spent**,
+> and the ledger now runs against §13.0's conditional T0 instead. Item **3** is unchanged. **Its
+> remaining assertions were not re-measured in this pass, with three exceptions that item 5's
+> table above did re-measure and confirms** — 12 required contexts with `js-unit` absent,
+> `push: tags` never fired, and the schedule clock at 2 of 3. For everything else the live
+> readings are item 5's table and §16.4 of the Open Work Execution Plan.]**
 >
 > **1 — The scheduled deep gate ran, and it is the second consecutive green `schedule`-event
 > run.** Run
@@ -3106,7 +3281,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
-| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. **[UPDATED 2026-08-20 — X11, X12 and X13 shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15, plus the newly recorded, deliberately unregistered X16.]** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. **[UPDATED 2026-08-23 — "Phases 3 and 5 remain proposals" is now stale for Phase 3.]** **Phase 3 step 12 is in execution and its expansion sequence is COMPLETE on `main`**: Packets **A → B → C → F** all merged — B #406 (`987588a`), C #410 (`9cb6cdc`), F #411 (`2c95bae`) — with **Packet D dropped** (owner ruling Q3) and **the letter E deliberately vacant**. **`js-unit` is still NOT promoted**: the 14-day qualification window is running from **T0 `2026-08-22T17:59:26Z`** to **`2026-09-05T17:59:26Z`**, ledgered at job level in [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, and **Q4 / D2 stay unsigned** — a separate owner signature is required even once the window closes. Phase 3 **step 11** and **Phase 5** are unchanged. | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md), [docs/testing_phase3/STEP12_JS_UNIT_GATE0.md](testing_phase3/STEP12_JS_UNIT_GATE0.md) |
+| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. **[UPDATED 2026-08-20 — X11, X12 and X13 shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15, plus the newly recorded, deliberately unregistered X16.]** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. **[UPDATED 2026-08-23 — "Phases 3 and 5 remain proposals" is now stale for Phase 3.]** **Phase 3 step 12 is in execution and its expansion sequence is COMPLETE on `main`**: Packets **A → B → C → F** all merged — B #406 (`987588a`), C #410 (`9cb6cdc`), F #411 (`2c95bae`) — with **Packet D dropped** (owner ruling Q3) and **the letter E deliberately vacant**. **`js-unit` is still NOT promoted**: the 14-day qualification window is running from **T0 `2026-08-22T17:59:26Z`** to **`2026-09-05T17:59:26Z`**, ledgered at job level in [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, and **Q4 / D2 stay unsigned** — a separate owner signature is required even once the window closes. Phase 3 **step 11** and **Phase 5** are unchanged. **[UPDATED 2026-08-29 — this cell's window reading is SPENT. #431 (`288667d`) took the Vitest corpus 231 → 245 on 2026-08-27 and engaged Q2's restart clause, so **T0 `2026-08-22T17:59:26Z` and the mark `2026-09-05T17:59:26Z` no longer exist**; the new T0 is **conditional and undeclared** pending an owner determination, and §13.0 is the only place to read it. The cell's **A → B → C → F** clause is unchanged and is about the Phase-3 step-12 lettered sequence — read it in that sense only, because **Vitest corpus expansions are a different thing and two are still unlanded** (U3b's KI-011 helper coverage and U1-FOLLOWUP-1), which is precisely what the owed owner determination turns on. The Q4 / D2, step-11 and Phase-5 clauses are unchanged. See this file's 2026-08-29 Current State block.]** | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md), [docs/testing_phase3/STEP12_JS_UNIT_GATE0.md](testing_phase3/STEP12_JS_UNIT_GATE0.md) |
 
 ## Open Decisions
 
@@ -3145,6 +3320,11 @@ behind the CSS it describes.
   non-required** — that clause is unchanged, and the 14-day window running to
   `2026-09-05T17:59:26Z` does not by itself sign it. **D4** is unchanged. Phase 3
   step 11 and Phase 5 are unchanged.]**
+  **[UPDATED 2026-08-29 — the `2026-09-05T17:59:26Z` terminus above is **SPENT**: #431
+  (`288667d`) moved the Vitest corpus 231 → 245 on 2026-08-27 and restarted the window, and
+  the new T0 is **conditional and undeclared** pending an owner determination. Everything
+  else in the annotation above is unchanged — **the `js-unit` half of D2 is still unsigned,
+  `js-unit` is still non-required at 12 required contexts, and D4 is still unsigned.**]**
   **[UPDATED 2026-08-15 — this bullet's tail previously read "Phases 3 and 5 **and the
   release/tag half of Phase 4** remain proposals". Only the "Phases 3 and 5" half is
   still true: the release/tag half **SHIPPED** as Packet R1, #374 (`5222db2`), with
@@ -3182,6 +3362,22 @@ behind the CSS it describes.
 > historical restart ledger, not live state.
 
 ## Next Safe Step
+
+> **[UPDATED 2026-08-29 — the block below is NO LONGER THE LATEST next-safe-step reading.
+> `git rev-list --count 2c95bae..158ee40` is **37**, so `origin/main` has moved thirty-seven
+> commits past the `2c95bae` this block verified against. **Its four numbered next actions are
+> ALL discharged or spent:** (1) Q6 shipped as #413 (`b0aa393`); (2) the 2026-08-24 deep gate
+> executed and was inspected — this file's 2026-08-24 block records it 7/7 green at job level;
+> (3) the ledger obligation stands but its terminus `2026-09-05T17:59:26Z` is **SPENT**, #431
+> having restarted the window on 2026-08-27; and (4) *"until then"* refers to that same spent
+> mark, though **Q4 and D2 do remain unsigned**. The block also says **KI-010 and KI-011 are
+> still open**; both have since shipped — `288667d` (#431) and `5b35966` (#426). **The live
+> next-safe-step list is the 2026-08-29 Current State block at the top of this file**; read that
+> one, not the four actions below. **Most of what the block asserts still stands** — the
+> A → B → C → F sequence, 12 required contexts with `js-unit` absent, D4 unsigned, the
+> `scan_export_bounds()` and `rep_range_integrity.py` items open, `needs:` and job-level
+> `continue-on-error:` unmeasured, Phase 4 open, and `push: tags` never fired; what is falsified
+> is listed above. Nothing below is edited except this annotation.]**
 
 **Current (2026-08-23, latest): Phase 3 step 12's expansion sequence is COMPLETE
 on `main` and there is still no automatic next feature packet.** Verified against
