@@ -43,6 +43,9 @@ reading. **Nothing here authorizes a packet or a merge, and nothing here declare
 packet**. §4, §8, §10 and §15 carry the new status; **§16 is the dated evidence log for this
 pass**, and §§12–14 are annotated where superseded rather than rewritten — §12 owns what it
 measured at `f9726a3`, §13 at `288667d`, and §14 at `2035852` and (in §14.5) `3807011`.
+⚠️ **ONE CARVE-OUT, 2026-08-29: §13.4's HEADING was retitled**, from *"… and the waiver is not on
+the record"*, which had become false. **Its body is annotated, not rewritten**, exactly as this
+sentence requires; the retitle is disclosed at §13.4 itself.
 **The 37 / 16 / 11 reading taken at `2035852` was correct evidence when taken and is preserved as
 history.** **Nothing here authorizes a packet or a merge, and nothing here declares a new T0.**  
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
@@ -2015,13 +2018,31 @@ directly rather than carrying them: R1-D3's clock is still **2 of 3**, and `rele
 > ✅ **AMENDED 2026-08-29, later the same day — one of the five is now in motion.** The owner
 > confirmed the **OD-1 waiver** and it is written as **OD-1-W** in
 > `toast_type_word_collision/PLANNING.md` §0.14 (§13.4, §15.2 debt 2). **At `3532f86`, and on
-> `main` today, this row is still unchanged from §14.4** — it moves only when the PR carrying
-> that record merges. **R1, R2, R3 and V1 are unchanged.** The open-PR row above has been
-> superseded twice over: **#445 has since merged**, and this amendment's own PR re-enters the
-> count. **No new count is stated here** — per §11.10 an open-PR count is an instant. No other
-> value in this pass was re-queried.
+> `main` until the PR carrying that record merges, this row is unchanged from §14.4.**
+> **R1, R2, R3 and V1 are unchanged.** The open-PR row above has been
+> superseded several times over: **#445, #448 and #449 have all since merged**, and this
+> amendment's own PR re-enters the count. **No new count is stated here** — per §11.10 an
+> open-PR count is an instant. No other value in this pass was re-queried.
 
-**Three status surfaces outside this plan are stale on Track P1**, recorded so the debt is
+⚠️ **THE "Three status surfaces" TABLE AT THE END OF THIS SUBSECTION IS DISCHARGED — 2026-08-29,
+later the same day. It is annotated rather than rewritten, because it is the measurement that made
+the debt visible.** All three surfaces have since been refreshed on `main`, by two PRs neither of
+which is this one:
+
+| Surface | Discharged by | On `main` as |
+|---|---|---|
+| [`REFACTOR_PLAN.md`](REFACTOR_PLAN.md) continuous-track row — the row that reading called *"the one worth doing first"* | [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) | **`225b7b0`**, merged `2026-08-29T16:56:57Z`. The row now reads **"Done — closed 2026-08-29 at 0 / 0 / 0"** |
+| [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) Current State and [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md) Current Objective | [#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) | **`5664c0e`**, merged `2026-08-29T17:29:09Z`. Both carry a `2026-08-29` block recording the closure, and their 2026-08-24 blocks are annotated as superseded |
+
+**What is spent, stated precisely rather than as a blanket.** That table is a reading taken at
+`3532f86`, and **its rows are accurate as of that commit**. What no longer holds of `main` is its
+**present tense**: the lead-in *"Three status surfaces … **are** stale"*, the `State` column's
+quotation of the `REFACTOR_PLAN.md` row, and the closing *"Refreshing them is a separate, owed
+documentation pass"* — which is spent by being **done**, as two separately reviewed PRs rather
+than folded into this one. **Read every sentence below as pinned to `3532f86`.**
+
+**Three status surfaces outside this plan are stale on Track P1** *(reading pinned to `3532f86`;
+all three discharged — see the table immediately above)*, recorded so the debt is
 visible rather than discovered:
 
 | Surface | State | Falsified by this closure? |

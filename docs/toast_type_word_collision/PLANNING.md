@@ -758,10 +758,10 @@ Gate 0 ruling, so no higher authority had to be found before lifting it, the own
 before merging, and the owner performed the merge personally. **#431 was authorized when it
 merged.**
 
-**Measured facts, re-read against `main` at `158ee40`** — `origin/main` after **#445** merged,
-one commit ahead of `3532f86`, the base §16 of
-[`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) measures against. PR fields are
-from `gh pr view 431 --json number,title,mergedAt,mergeCommit`.
+**Measured facts, re-read against `main` at `5664c0e`.** Every value below is unchanged from the
+earlier reading at `158ee40`, and necessarily so — they are facts about **#431's** merge, which no
+later commit can move. PR fields are from
+`gh pr view 431 --json number,title,mergedAt,mergeCommit`.
 
 | Item | Value |
 |---|---|
@@ -774,10 +774,12 @@ from `gh pr view 431 --json number,title,mergedAt,mergeCommit`.
 | Waiver granted | **before that merge**, by the owner; confirmed in writing **2026-08-29** |
 
 **What the waiver lifts.** OD-1's second consequence only — the merge embargo on U3a's
-implementation PR, discharged for **#431**. That was OD-1's sole remaining **blocking** clause
-by then — not its only live one: §v2.12's steps 1–4 were already discharged by measurement, and
-the three authorizations the Gate 1 signature withheld had been overtaken by **#426 `5b35966`**,
-**#427 `efa780c`** and **#428 `a37d7e7`** merging.
+implementation PR, discharged for **#431**. **It was OD-1's only remaining *blocking* clause, not
+its only live one:** consequence 3 (*passing the mark authorizes nothing*) and consequence 5 (the
+accepted residual) were both live, and neither blocked a merge. Every *other* precondition on
+#431 had already fallen by then, and to a different cause: §v2.12's steps 1–4 were discharged by
+measurement, and the three authorizations the Gate 1 signature withheld were overtaken by
+**#426 `5b35966`**, **#427 `efa780c`** and **#428 `a37d7e7`** merging.
 
 **What the waiver does NOT do.**
 
@@ -936,6 +938,10 @@ severity inversion, and the one-argument cases OD-2 requires.
   `52c44c4` and U2's implementation has not merged.
 - It does **not** settle OD-2's spelling (S1 vs S2), OD-4's case count, or any gate U3a owes.
 - It does **not** close the latent-defect exposure OD-1 leaves open.
+  ⚠️ **OVERTAKEN 2026-08-29 — the exposure ended EARLY, at #431's merge rather than at the strict
+  mark**, because the embargo was waived and the fix landed (§0.14, **OD-1-W**). The signature
+  still closed nothing; the residual simply expired. Same correction as the structural twin in the
+  Gate 1 sign-off list.
 
 
 ---
@@ -1842,10 +1848,14 @@ preserved as superseded rather than deleted.*
 > 23** on `main` at `f9726a3`, and **U3a writes no row of its own** (§v2.1's withdrawal note). The
 > next row is owed by whoever merges this PR, against its **post-merge `main`** `js-unit` result.
 >
-> ⚠️ **SUPERSEDED 2026-08-29 — this blockquote's opening sentence is the *"OD-1 STILL BINDS"*
-> line, and it no longer governs.** The owner **waived** OD-1's merge embargo **before** this PR
-> merged, so #431 landed as **`288667d`** at **`2026-08-27T23:17:50Z`** with authority. The
-> sentence is kept verbatim because it is the text this branch carried onto `main`, and because
+> ⚠️ **SUPERSEDED 2026-08-29 — TWO sentences in this blockquote state the embargo, and NEITHER
+> governs any more.** They are the opening *"OD-1 STILL BINDS"* line and, in the 2026-08-27
+> reconciliation nested below it, *"**OD-1 is now the sole remaining merge blocker**, and reaching
+> `2026-09-05T17:59:26Z` is not itself merge authorization."* The owner **waived** OD-1's merge
+> embargo **before** this PR
+> merged, so #431 landed as **`288667d`** at **`2026-08-27T23:17:50Z`** with authority — which is
+> also why that second sentence's *"sole remaining merge blocker"* is spent: there was none. Both
+> sentences are kept verbatim because they are the text this branch carried onto `main`, and because
 > [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §13.4 cites it by name. The
 > canonical waiver record is **§0.14, OD-1-W**.
 
