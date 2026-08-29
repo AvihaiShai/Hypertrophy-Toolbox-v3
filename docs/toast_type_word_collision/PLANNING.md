@@ -352,8 +352,10 @@ mark, or ship the complete fix. That is **Q1**.
 > ⚠️ **SUPERSEDED 2026-08-29 as to the embargo clause.** *"U3a's implementation PR must not
 > merge before that instant"* was **waived by the owner** before #431 merged — §0.14, **OD-1-W**.
 > The window facts here are spent too, but for an unrelated reason: #431 took the corpus
-> **231 → 245** and restarted the clock at **`2026-08-27T23:18:21Z`** — **the new T0 itself is
-> undeclared and owed** ([`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md)
+> **231 → 245** and restarted the clock at **`2026-08-27T23:18:21Z`** — ~~**the new T0 itself is
+> undeclared and owed**~~ ✅ **DECLARED 2026-08-29: that instant IS T0, and the strict mark is
+> `2026-09-10T23:18:21Z`**, the owner having ruled #431 the final expansion packet
+> ([`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md)
 > §13.0).
 
 ### 0.8 Compatibility invariants
@@ -500,7 +502,8 @@ measured cost.
 > waiver's cost was priced.** OD-1 chose row **(a)**; the owner then waived the merge embargo
 > before #431 merged (§0.14, **OD-1-W**). What actually happened is row **(b)**'s outcome —
 > *"the clock resets to U3a's merge"* — and it did: the window restarted at
-> **`2026-08-27T23:18:21Z`** (**the new T0 itself is undeclared and owed** —
+> **`2026-08-27T23:18:21Z`** (~~**the new T0 itself is undeclared and owed**~~ ✅ **DECLARED
+> 2026-08-29: that instant IS T0; strict mark `2026-09-10T23:18:21Z`** —
 > [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0). **Row (b)'s
 > *"~13 accumulated days"* is NOT ratified here** — it was an over-estimate when written. The
 > discard measured from T0 `2026-08-22T17:59:26Z` is **5 d 5 h 18 m 55 s**, consistent with
@@ -920,7 +923,9 @@ severity inversion, and the one-argument cases OD-2 requires.
   closed. U3a leaves the legacy signature supported.
   ⚠️ **HORIZON MOVED 2026-08-29 — the ruling stands; *"the window"* it names does not.**
   OD-1's embargo was waived (§0.14, **OD-1-W**) and #431 restarted the qualification window, so
-  the later packet's opening is governed by the **new** T0 — itself undeclared and owed
+  the later packet's opening is governed by the **new** T0 — ~~itself undeclared and owed~~
+  ✅ **DECLARED 2026-08-29 as `2026-08-27T23:18:21Z`, with the window closing
+  `2026-09-10T23:18:21Z`**
   ([`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0).
 - **AC-8's caller-migration branch is spent**; the KI-010 row's counts stay **8** and **5**, and
   are still re-measured at implementation time rather than copied.

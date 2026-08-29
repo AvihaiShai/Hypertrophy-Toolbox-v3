@@ -1,5 +1,35 @@
 # Testing Strategy Review & Plan
 
+> **Status update 2026-08-29 — THE JS-UNIT QUALIFICATION WINDOW RESTARTED, AND ITS NEW T0 IS NOW
+> DECLARED. Every T0 and strict-mark figure below this block is SPENT and is history, not live
+> guidance.**
+>
+> PR [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (`288667d`) took the
+> Vitest corpus **231 → 245 cases** (files held at **13**) on 2026-08-27, engaging owner ruling
+> **Q2**'s restart clause. **The old T0 `2026-08-22T17:59:26Z` and the old strict mark
+> `2026-09-05T17:59:26Z` no longer exist.** On 2026-08-29 the owner ruled **#431 the final Vitest
+> expansion packet** — *"final expansion packet"* meaning the last change merged before this
+> window that added, removed, renamed or materially changed a case under
+> `static/js/**/*.test.js` — and declared:
+>
+> - **Qualifying T0: `2026-08-27T23:18:21Z`** — job `98703428098`, run `33125767570`
+> - **Strict 14-day mark: `2026-09-10T23:18:21Z`**
+>
+> **This changes no decision in this document.** **The `js-unit` half of D2 is STILL UNSIGNED and
+> `js-unit` is STILL NON-REQUIRED** — branch protection re-read live 2026-08-29: **12** required
+> contexts, `JS Unit (Vitest, non-required)` **absent**, `strict` **false**. **Q4 is still
+> untouched** and **D4 remains unsigned**. Reaching the strict mark is a **precondition, not a
+> signature**, and a declared T0 promotes nothing.
+>
+> **Read the operative T0 from
+> [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never
+> from this document.** The ledger stands at **41 rows, all green** — **0** red, missing, skipped
+> or cancelled — with **16** of them on the 245-case suite. **§6.5's own "final expansion packet"
+> gloss (*"the last of A, B, C to merge"*) is the step-12 lettered reading**; the 2026-08-29 ruling
+> supplies the operative definition for the current cycle. Every *"T0 = `2026-08-22T17:59:26Z`"*
+> and *"`2026-09-05T17:59:26Z`"* sentence below is the reading of its own moment and is left
+> standing as that record.
+
 > **Status update 2026-08-24 — THE 2026-08-24 SCHEDULED DEEP GATE EXECUTED AND WAS
 > GREEN, and R1-D3's three-consecutive-green-scheduled-runs clock is recorded at 2 of 3.**
 > Run [`32688747703`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32688747703),
