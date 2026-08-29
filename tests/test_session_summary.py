@@ -979,3 +979,97 @@ class TestDefaultParameters:
             
             # Default should be total
             assert stats['contribution_mode'] == 'total'
+
+
+class TestDuplicateRoleMuscleADR009:
+    """ADR-009 ruling 1, at the session aggregator."""
+
+    def test_duplicate_role_muscle_sums_its_role_weights(
+        self, app, exercise_factory, workout_plan_factory
+    ):
+        """A muscle in two P/S/T roles is credited the SUM of those weights.
+
+        Dumbbell Wrist Curl (Forearms / Forearms) is one of 38 such rows in the
+        shipped catalog. With effort and rep-range factors both 1.0, Effective
+        must equal Raw. This fails in both directions of a partial fix: 9.0 if
+        only calculate_effective_sets() accumulates, 1.5 if only the aggregator
+        collapses its role loop.
+        """
+        with app.app_context():
+            exercise_name = exercise_factory(
+                "Dumbbell Wrist Curl",
+                primary_muscle_group="Forearms",
+                secondary_muscle_group="Forearms",
+                tertiary_muscle_group=None,
+            )
+            workout_plan_factory(
+                exercise_name=exercise_name,
+                routine="Arms Day",
+                sets=3,
+                min_rep_range=8,
+                max_rep_range=12,
+                rir=0,
+                rpe=10.0,
+                weight=10.0,
+            )
+
+            result = calculate_session_summary()
+            forearms = result["Arms Day"]["Forearms"]
+
+            assert forearms["raw_sets"] == pytest.approx(4.5)
+            assert forearms["effective_sets"] == pytest.approx(4.5)
+
+    def test_duplicate_role_muscle_appears_once_per_routine(
+        self, app, exercise_factory, workout_plan_factory
+    ):
+        """The muscle is one row, not two, in the per-routine output."""
+        with app.app_context():
+            exercise_name = exercise_factory(
+                "Dumbbell Wrist Curl",
+                primary_muscle_group="Forearms",
+                secondary_muscle_group="Forearms",
+                tertiary_muscle_group=None,
+            )
+            workout_plan_factory(
+                exercise_name=exercise_name,
+                routine="Arms Day",
+                sets=3,
+                min_rep_range=8,
+                max_rep_range=12,
+                rir=0,
+                rpe=10.0,
+                weight=10.0,
+            )
+
+            result = calculate_session_summary()
+            muscles = list(result["Arms Day"])
+            assert muscles.count("Forearms") == 1
+
+    def test_direct_only_unchanged_by_duplicate_role(
+        self, app, exercise_factory, workout_plan_factory
+    ):
+        """DIRECT_ONLY stays primary-only at full credit."""
+        with app.app_context():
+            exercise_name = exercise_factory(
+                "Dumbbell Wrist Curl",
+                primary_muscle_group="Forearms",
+                secondary_muscle_group="Forearms",
+                tertiary_muscle_group=None,
+            )
+            workout_plan_factory(
+                exercise_name=exercise_name,
+                routine="Arms Day",
+                sets=3,
+                min_rep_range=8,
+                max_rep_range=12,
+                rir=0,
+                rpe=10.0,
+                weight=10.0,
+            )
+
+            result = calculate_session_summary(
+                contribution_mode=ContributionMode.DIRECT_ONLY
+            )
+            forearms = result["Arms Day"]["Forearms"]
+            assert forearms["raw_sets"] == pytest.approx(3.0)
+            assert forearms["effective_sets"] == pytest.approx(3.0)

@@ -31,6 +31,39 @@ os.environ['TESTING'] = '1'
 TEST_DB_FILENAME = "test_hypertrophy_toolbox.db"
 
 
+# Hypothesis profiles (Testing Strategy D4, signed 2026-08-29; F5-3's operational
+# preconditions). `ci` is the DEFAULT so a local run reproduces CI: `Run Tests` is
+# a required check with no retry, and randomized generation would be the suite's
+# first nondeterministic required-path failure. `database=None` keeps Hypothesis
+# from writing a `.hypothesis/` directory to the repository root, which ADR-002
+# forbids; with derandomize=True the example database carries no value anyway.
+#
+# The import is guarded because this is the ROOT conftest: an unguarded ImportError
+# would fail collection of the entire suite -- and would break
+# scripts/generate_test_inventory.py, which shells out to `pytest --collect-only`
+# and backs the required `Test Inventory Drift` check.
+try:
+    from hypothesis import HealthCheck, settings as _hypothesis_settings
+except ImportError:  # pragma: no cover - only when the test extra is absent
+    pass
+else:
+    _hypothesis_settings.register_profile(
+        "ci",
+        derandomize=True,
+        deadline=None,
+        max_examples=200,
+        database=None,
+        suppress_health_check=[HealthCheck.too_slow],
+    )
+    _hypothesis_settings.register_profile(
+        "dev",
+        derandomize=False,
+        deadline=None,
+        database=None,
+    )
+    _hypothesis_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "ci"))
+
+
 def _initialize_test_database() -> None:
     """Create the full test schema for the active database path."""
     run_all_initializers(force_base=True)

@@ -9,8 +9,11 @@ These tests verify the core effective sets calculation logic including:
 - Volume classification and warnings
 """
 import pytest
+from hypothesis import example, given
+from hypothesis import strategies as st
 
 from utils.effective_sets import (
+    MUSCLE_CONTRIBUTION_WEIGHTS,
     # Enums
     CountingMode,
     ContributionMode,
@@ -461,3 +464,133 @@ class TestIntegration:
         
         # But different effective values
         assert raw_result.effective_sets > eff_result.effective_sets
+
+
+# =============================================================================
+# Property-based tests -- Packet A (Testing Strategy D4, ADR-009)
+# =============================================================================
+
+# Provenance: the 25 distinct non-empty `primary_muscle_group` values in the
+# shipped data/catalog.seed.db, read once and FROZEN here on purpose. The
+# strategy must not query the catalog at collection time -- that would be a raw
+# read outside DatabaseHandler, would couple a pure-function property to a data
+# file, and would run before any database fixture exists.
+CATALOG_MUSCLES = (
+    "Abs/Core", "Back", "Biceps", "Calves", "Chest", "External Obliques",
+    "Forearms", "Front-Shoulder", "Gluteus Maximus", "Hamstrings",
+    "Hip-Adductors", "Latissimus Dorsi", "Lower Back", "Middle-Shoulder",
+    "Middle-Traps", "Neck", "Quadriceps", "Rear-Shoulder", "Rectus Abdominis",
+    "Shoulders", "Trapezius", "Triceps", "Unassigned", "Upper Back",
+    "Upper Traps",
+)
+
+_muscle_or_none = st.one_of(st.none(), st.sampled_from(CATALOG_MUSCLES))
+
+# NOTE: no fixtures in any @given test. A function-scoped fixture raises
+# HealthCheck.function_scoped_fixture, which the ci profile does not suppress.
+
+
+class TestRoleWeightAccumulationProperty:
+    """ADR-009 ruling 1: duplicate P/S/T roles sum, they do not overwrite."""
+
+    @given(
+        sets=st.integers(min_value=0, max_value=20),
+        rir=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),
+        reps=st.tuples(
+            st.integers(min_value=1, max_value=50),
+            st.integers(min_value=1, max_value=50),
+        ).map(lambda p: tuple(sorted(p))),
+        primary=_muscle_or_none,
+        secondary=_muscle_or_none,
+        tertiary=_muscle_or_none,
+    )
+    # The three real catalog rows that motivated ADR-009.
+    @example(sets=3, rir=0, reps=(8, 12),
+             primary="Forearms", secondary="Forearms", tertiary=None)
+    @example(sets=3, rir=0, reps=(8, 12),
+             primary="Latissimus Dorsi", secondary="Biceps", tertiary="Biceps")
+    @example(sets=3, rir=0, reps=(8, 12),
+             primary="Forearms", secondary="Forearms", tertiary="Abs/Core")
+    def test_contribution_is_the_sum_of_applicable_role_weights(
+        self, sets, rir, reps, primary, secondary, tertiary
+    ):
+        min_reps, max_reps = reps
+        result = calculate_effective_sets(
+            sets=sets, rir=rir, min_rep_range=min_reps, max_rep_range=max_reps,
+            primary_muscle=primary, secondary_muscle=secondary,
+            tertiary_muscle=tertiary,
+            contribution_mode=ContributionMode.TOTAL,
+        )
+
+        expected = {}
+        for muscle, weight in (
+            (primary, MUSCLE_CONTRIBUTION_WEIGHTS['primary']),
+            (secondary, MUSCLE_CONTRIBUTION_WEIGHTS['secondary']),
+            (tertiary, MUSCLE_CONTRIBUTION_WEIGHTS['tertiary']),
+        ):
+            if muscle:
+                expected[muscle] = expected.get(muscle, 0.0) + (
+                    result.effective_sets * weight
+                )
+
+        assert set(result.muscle_contributions) == set(expected)
+        for muscle, value in expected.items():
+            assert result.muscle_contributions[muscle] == pytest.approx(value)
+
+    @given(
+        sets=st.integers(min_value=0, max_value=20),
+        rir=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),
+        primary=_muscle_or_none,
+        secondary=_muscle_or_none,
+        tertiary=_muscle_or_none,
+    )
+    @example(sets=3, rir=0, primary="Forearms", secondary="Forearms",
+             tertiary=None)
+    def test_total_credits_at_least_as_much_as_direct_only(
+        self, sets, rir, primary, secondary, tertiary
+    ):
+        kwargs = dict(
+            sets=sets, rir=rir, min_rep_range=8, max_rep_range=12,
+            primary_muscle=primary, secondary_muscle=secondary,
+            tertiary_muscle=tertiary,
+        )
+        total = calculate_effective_sets(
+            contribution_mode=ContributionMode.TOTAL, **kwargs
+        ).muscle_contributions
+        direct = calculate_effective_sets(
+            contribution_mode=ContributionMode.DIRECT_ONLY, **kwargs
+        ).muscle_contributions
+
+        for muscle, direct_value in direct.items():
+            assert total.get(muscle, 0.0) >= direct_value - 1e-9
+
+
+class TestDuplicateRoleExamples:
+    """Readable pins for the three shipped catalog rows (ADR-009)."""
+
+    def test_primary_and_secondary_same_muscle_sums_to_one_and_a_half(self):
+        # Dumbbell Wrist Curl: Forearms / Forearms / --
+        result = calculate_effective_sets(
+            sets=3, rir=0, min_rep_range=8, max_rep_range=12,
+            primary_muscle='Forearms', secondary_muscle='Forearms',
+        )
+        assert result.effective_sets == pytest.approx(3.0)
+        assert result.muscle_contributions['Forearms'] == pytest.approx(4.5)
+
+    def test_secondary_and_tertiary_same_muscle_sums(self):
+        # Barbell Pronated Pendlay Row: Lats / Biceps / Biceps
+        result = calculate_effective_sets(
+            sets=3, rir=0, min_rep_range=8, max_rep_range=12,
+            primary_muscle='Latissimus Dorsi', secondary_muscle='Biceps',
+            tertiary_muscle='Biceps',
+        )
+        assert result.muscle_contributions['Latissimus Dorsi'] == pytest.approx(3.0)
+        assert result.muscle_contributions['Biceps'] == pytest.approx(2.25)
+
+    def test_direct_only_is_unchanged_by_a_duplicate_role(self):
+        result = calculate_effective_sets(
+            sets=3, rir=0, min_rep_range=8, max_rep_range=12,
+            primary_muscle='Forearms', secondary_muscle='Forearms',
+            contribution_mode=ContributionMode.DIRECT_ONLY,
+        )
+        assert result.muscle_contributions == {'Forearms': pytest.approx(3.0)}

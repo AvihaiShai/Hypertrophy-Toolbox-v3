@@ -27,3 +27,9 @@ pytest-playwright==0.9.0
 # reds its own pull request instead of landing quietly.
 playwright==1.61.0
 vulture==2.16
+# Property-based testing, authorized by Testing Strategy D4 (signed 2026-08-29,
+# TESTING_STRATEGY_PLANNING.md 8.1e) for utils/effective_sets.py only. Test-only:
+# it is excluded from the frozen build in Hypertrophy-Toolbox.spec alongside
+# pytest. tests/conftest.py registers a derandomized, database-less CI profile,
+# because Run Tests is a required check with no retry.
+hypothesis==6.165.10
