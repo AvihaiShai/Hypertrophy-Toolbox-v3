@@ -679,7 +679,7 @@ evidence. Do not reactivate the old implementation plan.
 | 6 | R2 testing decisions | **Not started** | 0.5–1 day | Owner decisions. ⚠️ **The JS-unit window RESTARTED**: `2026-09-05T17:59:26Z` is spent, and `2026-08-27T23:18:21Z` / `2026-09-10T23:18:21Z` are **conditional on an owed owner determination** (§4, §13.3). R1-D3 clock **re-measured 2026-08-28 at 2 of 3** — both `schedule` runs green; third due **2026-08-31 03:17 UTC**, not yet occurred | Decision only |
 | 7 | V1 visual disposition | **Not started** | 0.25 day or 2–5 days | Owner chooses acceptance or investigation | Decision, then own Gate 1 if funded |
 | 8 | R3 tag-trigger proof | **Not started** | 0.5 day | Explicit authorization for a named real tag. **Re-measured 2026-08-28**: `release.yml` `push` count **0**, `workflow_dispatch` count **1** — and that lone rehearsal predates `a937116`, so the current **12-required / 13-expected** `release_gate.py` has **never executed by any trigger** (§13.6) | Owner action |
-| standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; **re-measured 2026-08-29 at `158ee40`, after #445 merged: `gh pr list --state open` returns ZERO open PRs repo-wide, dependency PRs included** (§17.3). The earlier readings the same day returned only #445 (§16.4) and the day before only #436 (§14.1) | Per-PR merge authorization |
+| standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; **re-measured 2026-08-29 at `158ee40`, after #445 merged: ZERO open PRs repo-wide at `14:10:11Z`, and still ZERO *dependency* PRs at `14:53:31Z` when three documentation PRs were open** (§17.3). The earlier readings returned only #445 (§16.4) and, the day before, only #436 (§14.1) | Per-PR merge authorization |
 | — | Track P1 pyright packets | **Complete 2026-08-29 — 0 / 0 / 0; the track is closed** | *spent* — the carried 8–16 days is moot, not re-priced (§16.2) | **Ten** packets, `3098282` ([#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430)) through `3532f86` ([#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447)); baseline 132 / 42 / 26 → **0 / 0 / 0**. The full table, and the **explicit owner authorization** under which #447 modified `routes/workout_plan.py`, are in §4 Track P1 | Per-packet — none queued |
 
 **Completed packets are retired from the numbered sequence rather than renumbered in place**, so
@@ -706,9 +706,12 @@ the PR carrying §15 and this amendment, `CLEAN`/`MERGEABLE`.** Still no depende
 D1's queue is unchanged. Its own merge mints ledger **row 37**, which it cannot record (§16.3).~~
 ⚠️ **RE-MEASURED AGAIN 2026-08-29, later the same day (§17.3): #445 MERGED as `158ee40` at
 `2026-08-29T13:47:38Z`, and `gh pr list --state open` returns ZERO open PRs repo-wide.** Its merge
-minted **row 37**, now recorded in §13.0 along with rows 27–36 (§17.2). The zero-open reading was
-taken **before** the PR carrying this amendment was opened; by the convention §11.10 set, that PR
-counts itself and will make the live count one again.
+minted **row 37**, now recorded in §13.0 along with rows 27–36 (§17.2). **That zero is an instant,
+not a state**: it was read at `2026-08-29T14:10:11Z`, before the PR carrying this amendment existed
+and before two sibling documentation PRs opened. Re-measured at `2026-08-29T14:53:31Z` the count is
+**three** — this PR plus [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) and
+[#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) (§17.3). **Still no dependency
+PR**, so Track D1's queue is unchanged either way.
 ⚠️ **[#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438) — JS-unit ledger rows 24–26 and the window restart — merged as `2035852`
 at `2026-08-28T21:57:17Z`** and is no longer open; the six Track P1 PRs of the same evening, and
 [#446](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/446) and [#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447) the following day, are standing-track work carried
@@ -1807,7 +1810,7 @@ explicit, per-change owner decision. Status words map to §3 as follows:
 | **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | The release gate on `main` **has never run by any trigger**. A dispatch tests the gate body cheaply; only a real tag you name tests the trigger (§4) |
 | **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | 🟡 **Waiting on you** | **Accept** (~0.25 day of doc work) or **investigate** (2-day time-box, up to 2–5 days if a repair is funded) |
 | **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1), and nothing is attached to it — the funding re-price went **moot** at closure and is out of the debt table and the decision queue (§15.2 *Discharged*, §16.2) |
-| **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — queue empty** (§17.3: **zero open PRs at all** at `158ee40`, dependency PRs included) | Nothing until the next bump. #415/#416 merged 2026-08-26; landing one needs explicit owner authorization |
+| **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — queue empty** (§17.3: **zero dependency PRs** at `158ee40`; the open PRs are documentation) | Nothing until the next bump. #415/#416 merged 2026-08-26; landing one needs explicit owner authorization |
 | **§5 Parked** — 8 items | CSS C8, G4 superset tint, Fatigue Phase 3, four User-Profile/roadmap items, Testing Phase 3 step 11 / Phase 5 | ⛔ **Parked** | Nothing — unless you reopen one, or decide one will never be built, so §5 can mark it **Not planned** instead of leaving it ambiguous |
 
 ### 15.2 Debts — already earned, still unwritten
@@ -2120,7 +2123,7 @@ files it is authorized to touch.
 | Twelve tree readings | `git rev-parse <sha>:static/js`, `<sha>:static/js/modules/__tests__` and `<sha>:vitest.config.js` at **all twelve** heads `288667d` → `158ee40` | that Q2's restart clause engaged at **none** of rows 27–37 |
 | `TEST_INVENTORY.json` at **all twelve** heads | `git show <rev>:docs/test_inventory/TEST_INVENTORY.json` at each | **13 files / 245 cases** at every one — not merely at the two ends |
 | `ci.yml` triggers | `git show 158ee40:.github/workflows/ci.yml` | `on:` carries `push` and `pull_request` only — the *zero `schedule`-event `ci.yml` runs* tally line |
-| Open-PR list | `gh pr list --state open --limit 50` | **zero** open PRs, taken **before** this pass's own PR existed |
+| Open-PR list | `gh pr list --state open --limit 50`, at `14:10:11Z` and again at `14:53:31Z` | **zero** at the first read, taken before this pass's own PR existed; **three** at the second — this PR plus #448 and #449, both opened in between |
 | Deep-gate schedule runs | `gh run list --workflow=deep-gate.yml --event=schedule` | still exactly **2**, both `success` |
 | Release runs | `gh api .../workflows/release.yml/runs?event=push` and `?event=workflow_dispatch` | **0** and **1** |
 | Live branch protection | `gh api .../branches/main/protection` | **12** required contexts, `JS Unit (Vitest, non-required)` **absent**, `strict` **false** |
@@ -2183,7 +2186,7 @@ Re-queried in this pass rather than carried over from §16.4:
 | Reading | Value at `158ee40` | Moved since §16.4? |
 |---|---|---|
 | [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445) | **`MERGED`** — `mergedAt` `2026-08-29T13:47:38Z`, merge commit `158ee40` | **Yes**: `OPEN` → `MERGED` |
-| Open PRs, `gh pr list --state open` | **0** repo-wide | **Yes**: 1 → 0. The reading precedes this pass's own PR, which by §11.10's convention will count itself |
+| Open PRs, `gh pr list --state open` | **0** repo-wide at `14:10:11Z`; **3** when re-measured at `14:53:31Z` — this pass's PR plus [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) (`REFACTOR_PLAN.md`) and [#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) (`MASTER_HANDOVER.md`, `ACTIVE_DEVELOPMENT.md`), both opened after the first reading | **Yes**: 1 → 0 → 3. **An open-PR count is an instant, not a state** — quote it with its timestamp or not at all |
 | Dependency PRs open | **0** — Track D1's queue is still empty | No |
 | JS-unit ledger height on `main` | **26** — `158ee40` is where #438's rows 24–26 still end the table | No, not yet: it becomes **37** only when this PR's own edit to §13.0 merges (§17.2) |
 | `deep-gate.yml` `schedule` runs | **2**, both `success` — `31993105305`, `32688747703` | No. Third due **2026-08-31 03:17 UTC**; this reading still predates it |
@@ -2197,9 +2200,13 @@ R1-D3's clock and the release gate were re-measured here rather than carried: st
 `release_gate.py`'s **12-required / 13-expected** list still **never executed by any trigger**.
 **The three status surfaces §16.4 flags as stale on Track P1 —
 [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md), [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md) and
-[`REFACTOR_PLAN.md`](REFACTOR_PLAN.md) — are still stale, and this pass deliberately did not touch
-them**: they are outside its authorized file set, and `REFACTOR_PLAN.md` remains the one worth
-doing first.
+[`REFACTOR_PLAN.md`](REFACTOR_PLAN.md) — are still stale on `main`, and this pass deliberately
+did not touch them**: they are outside its authorized file set. **They are not unattended, though** —
+re-measured at `14:53:31Z`, [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448)
+carries `REFACTOR_PLAN.md` and
+[#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) carries the other two, both
+open and both disjoint from this PR's two files. **Until they merge, `main` still asserts the stale
+figures.**
 
 ### 17.4 §15 repaired where it read as more than a status board
 
@@ -2236,5 +2243,7 @@ is stale: fix the board.”*
 - **Nothing outside the two authorized files was touched**, and the primary checkout's unrelated
   dirty state was left alone.
 - **Still owed after this pass:** the OD-1 waiver record; the final-expansion-packet determination;
-  §15.4's eight decisions; the next ledger row this PR's own merge mints; and the separate
-  documentation pass over `REFACTOR_PLAN.md`, `MASTER_HANDOVER.md` and `ACTIVE_DEVELOPMENT.md`.
+  §15.4's eight decisions; and the next ledger row this PR's own merge mints. The documentation
+  pass over `REFACTOR_PLAN.md`, `MASTER_HANDOVER.md` and `ACTIVE_DEVELOPMENT.md` is **in flight
+  rather than owed** — #448 and #449 (§17.3) — but it is not landed, so `main` still carries the
+  stale figures.
