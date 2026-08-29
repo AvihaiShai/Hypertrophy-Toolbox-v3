@@ -68,17 +68,26 @@ EFFORT_FACTOR_BUCKETS: Dict[Tuple[int, int], float] = {
     (6, 10): 0.55,   # Low effort (not "junk" unless explicitly indicated)
 }
 
-# Rep range factor buckets (coarse categories)
-# Hypertrophy-optimal range (6-20) gets full credit
-# Lower rep ranges get slight reduction (still builds muscle)
-# Higher rep ranges get slight reduction (more endurance focus)
-REP_RANGE_FACTOR_BUCKETS: Dict[Tuple[int, int], float] = {
-    (1, 5): 0.85,      # Strength-focused (still hypertrophic, just less optimal)
-    (6, 12): 1.0,      # Optimal hypertrophy range
-    (13, 20): 1.0,     # Still excellent for hypertrophy
-    (21, 30): 0.85,    # Higher rep endurance work
-    (31, 100): 0.70,   # Very high rep (diminishing returns)
-}
+# Rep range factor bands (coarse categories), keyed by the average of min/max.
+# TOTAL over every positive average, per ADR-009 ruling 2 -- the bands leave no
+# gap, so nothing in-domain falls through to the neutral default:
+#   avg < 6        -> 0.85   Strength-focused (still hypertrophic, less optimal)
+#   6 <= avg <= 20 -> 1.0    Optimal hypertrophy range
+#   20 < avg <= 30 -> 0.85   Higher rep endurance work
+#   avg > 30       -> 0.70   Very high rep (diminishing returns)
+# Missing rep data, and a non-positive average, stay neutral at 1.0.
+#
+# These replaced disjoint integer buckets -- (1,5), (6,12), (13,20), (21,30),
+# (31,100) -- which a fractional or out-of-range average could miss entirely: an
+# average of 30.5 scored 1.0, ABOVE both its neighbours (0.85 at 30, 0.70 at 31).
+# The bands are documented here rather than expressed as a table because the
+# first boundary is strict and the rest are inclusive; see get_rep_range_factor.
+#
+# REP_RANGE_FACTOR_VALUES is NOT the band definition and nothing reads it at
+# runtime -- get_rep_range_factor returns bare literals. It is a test-visible
+# contract on the function's RANGE (the set of values it may return), so editing
+# this tuple changes no behavior. Change the function's literals, not this.
+REP_RANGE_FACTOR_VALUES: Tuple[float, ...] = (0.70, 0.85, 1.0)
 
 # Muscle contribution weights (primary/secondary/tertiary)
 MUSCLE_CONTRIBUTION_WEIGHTS = {
@@ -178,16 +187,31 @@ def get_rep_range_factor(
     
     Returns:
         Rep range multiplier (0.70 to 1.0). Defaults to 1.0 if unknown.
-    
+
     Notes:
         - Uses coarse categories, not per-rep granularity
         - Based on average of min/max if both provided
         - Hypertrophy-optimal range (6-20) gets full credit
+        - TOTAL over every positive average (ADR-009 ruling 2): the bands below
+          leave no gap, so no in-domain input falls through to the neutral
+          default. The previous disjoint integer buckets did: an average of 30.5
+          scored 1.0, ABOVE both its neighbours (0.85 at 30, 0.70 at 31).
+        - A non-positive average is unusable rather than unknown, and takes the
+          same neutral arm as missing data. It is reachable: nothing validates a
+          lower rep bound, so 0 and negative values persist.
+        - That neutral arm is drawn at ``avg <= 0`` ONLY. An average in the open
+          interval (0, 1) -- a 0-1 rep range, say -- deliberately takes the
+          ``< 6`` band at 0.85 rather than the neutral arm: it is degenerate but
+          not empty. Returning 1.0 there would be the old fall-through wearing a
+          different name.
     """
     # Calculate representative rep count. The chain is exhaustive over the four
     # min/max None combinations, and the last branch returns rather than
     # assigning - that is what proves avg_reps is bound and non-None under the
-    # declared Optional[int] types at the bucket comparison below.
+    # declared Optional[int] types at the band comparisons below. Collapsing the
+    # both-None case into an early guard instead reads more directly but defeats
+    # pyright's narrowing, which cannot follow an `A is None and B is None`
+    # guard back into the later branches.
     if min_reps is not None and max_reps is not None:
         avg_reps = (min_reps + max_reps) / 2.0
     elif max_reps is not None:
@@ -196,14 +220,19 @@ def get_rep_range_factor(
         avg_reps = min_reps
     else:
         return DEFAULT_MULTIPLIER
-    
-    # Find matching bucket
-    for (low, high), factor in REP_RANGE_FACTOR_BUCKETS.items():
-        if low <= avg_reps <= high:
-            return factor
-    
-    # Outside all ranges (shouldn't happen with current buckets)
-    return DEFAULT_MULTIPLIER
+
+    # Explicit bands, not a cumulative loop: the first boundary is STRICT (< 6)
+    # while the rest are inclusive, so a uniform `avg <= upper` walk would
+    # return 0.85 at exactly 6 reps, where the ruling requires 1.0.
+    if avg_reps <= 0:
+        return DEFAULT_MULTIPLIER
+    if avg_reps < 6:
+        return 0.85
+    if avg_reps <= 20:
+        return 1.0
+    if avg_reps <= 30:
+        return 0.85
+    return 0.70
 
 
 def calculate_effective_sets(

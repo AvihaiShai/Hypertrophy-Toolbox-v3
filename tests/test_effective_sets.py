@@ -31,6 +31,7 @@ from utils.effective_sets import (
     rir_to_rpe,
     # Constants
     DEFAULT_MULTIPLIER,
+    REP_RANGE_FACTOR_VALUES,
 )
 
 
@@ -398,10 +399,16 @@ class TestEdgeCases:
             factor = get_effort_factor(rir=rir)
             assert factor > 0, f"RIR {rir} returned zero factor"
         
-        # Test all rep range buckets
-        for reps in [3, 8, 15, 25, 40]:
-            factor = get_rep_range_factor(min_reps=reps, max_reps=reps)
-            assert factor > 0, f"Rep range {reps} returned zero factor"
+        # Test all rep range bands. The original [3, 8, 15, 25, 40] sample is
+        # RETAINED and the four gap regions plus the non-positive arm are added
+        # -- the old sample sat entirely inside the old buckets, so it could not
+        # have observed the fall-through ADR-009 removed.
+        for min_reps, max_reps in [
+            (3, 3), (8, 8), (15, 15), (25, 25), (40, 40),
+            (5, 6), (20, 21), (30, 31), (150, 150), (0, 1), (0, 0),
+        ]:
+            factor = get_rep_range_factor(min_reps=min_reps, max_reps=max_reps)
+            assert factor > 0, f"Rep range {min_reps}-{max_reps} returned zero factor"
 
 
 # =============================================================================
@@ -609,3 +616,96 @@ class TestDuplicateRoleExamples:
             contribution_mode=ContributionMode.DIRECT_ONLY,
         )
         assert result.muscle_contributions == {'Forearms': pytest.approx(3.0)}
+
+
+# =============================================================================
+# Property-based tests -- Packet B (ADR-009 ruling 2: totality)
+# =============================================================================
+
+class TestRepRangeFactorTotality:
+    """The function must never fall through to the neutral default in-domain."""
+
+    @given(
+        reps=st.tuples(
+            st.integers(min_value=1, max_value=200),
+            st.integers(min_value=1, max_value=200),
+        ).map(lambda p: tuple(sorted(p))),
+    )
+    # The four averages that fell through to 1.0 before the ruling.
+    @example(reps=(5, 6))      # avg 5.5
+    @example(reps=(20, 21))    # avg 20.5
+    @example(reps=(30, 31))    # avg 30.5 -- was 1.0, ABOVE both neighbours
+    @example(reps=(150, 150))  # avg 150
+    # The three exact band boundaries.
+    @example(reps=(6, 6))
+    @example(reps=(20, 20))
+    @example(reps=(30, 30))
+    def test_always_returns_the_band_its_average_falls_in(self, reps):
+        min_reps, max_reps = reps
+        avg = (min_reps + max_reps) / 2.0
+
+        # An INDEPENDENT oracle, written from the ruling rather than from the
+        # implementation. A bare `factor in REP_RANGE_FACTOR_VALUES` membership
+        # check would be a false green: 1.0 is a member, so the old
+        # fall-through-to-neutral defect passes it on every one of the examples
+        # below. This assertion reds on that revert.
+        if avg < 6:
+            expected = 0.85
+        elif avg <= 20:
+            expected = 1.0
+        elif avg <= 30:
+            expected = 0.85
+        else:
+            expected = 0.70
+
+        factor = get_rep_range_factor(min_reps=min_reps, max_reps=max_reps)
+        assert factor == expected
+        assert factor in REP_RANGE_FACTOR_VALUES
+
+    @given(
+        a=st.integers(min_value=6, max_value=200),
+        b=st.integers(min_value=6, max_value=200),
+        widen=st.booleans(),
+    )
+    def test_monotone_non_increasing_at_and_above_six(self, a, b, widen):
+        """From the optimal band upward the factor never RISES with more reps.
+
+        Scoped to avg >= 6 on purpose. The function is deliberately non-monotone
+        BELOW that -- 1.0 at a non-positive average (unusable data), 0.85 at 1,
+        1.0 at 6 -- and that discontinuity is the neutral arm, not the (30, 31)
+        defect ADR-009 removed. Do not "repair" it.
+
+        `widen` produces (n, n+1) as well as (n, n), so half-integer averages
+        participate and the 20->21 and 30->31 steps are actually exercised.
+        """
+        lo, hi = sorted((a, b))
+        offset = 1 if widen else 0
+        lo_factor = get_rep_range_factor(lo, lo + offset)
+        hi_factor = get_rep_range_factor(hi, hi + offset)
+        assert lo_factor >= hi_factor
+
+
+class TestRepRangeFactorBands:
+    """Readable pins for every ruled band value and boundary (ADR-009)."""
+
+    @pytest.mark.parametrize("min_reps,max_reps,expected", [
+        (1, 5, 0.85),        # avg 3
+        (5, 6, 0.85),        # avg 5.5 -- was 1.0
+        (6, 6, 1.0),         # lower boundary, inclusive
+        (6, 12, 1.0),
+        (13, 20, 1.0),
+        (20, 20, 1.0),       # upper boundary of the optimal band, inclusive
+        (20, 21, 0.85),      # avg 20.5 -- was 1.0
+        (21, 30, 0.85),
+        (30, 30, 0.85),      # inclusive
+        (30, 31, 0.70),      # avg 30.5 -- was 1.0, above BOTH neighbours
+        (31, 100, 0.70),
+        (150, 150, 0.70),    # was 1.0; no upper rep bound is validated anywhere
+    ])
+    def test_ruled_band_values(self, min_reps, max_reps, expected):
+        assert get_rep_range_factor(min_reps, max_reps) == expected
+
+    @pytest.mark.parametrize("min_reps,max_reps", [(0, 0), (-3, -1)])
+    def test_non_positive_average_is_neutral(self, min_reps, max_reps):
+        """OD-A1: unusable data takes the same neutral arm as missing data."""
+        assert get_rep_range_factor(min_reps, max_reps) == DEFAULT_MULTIPLIER
