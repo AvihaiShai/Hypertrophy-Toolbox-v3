@@ -848,6 +848,18 @@ and before two sibling documentation PRs opened. Re-measured at `2026-08-29T14:5
 [#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) — and at `2026-08-29T18:12:28Z` it is **one**, this PR alone, #448, #449 and
 #451 having all merged (§17.3). **Still no dependency
 PR**, so Track D1's queue is unchanged either way.
+⚠️ **RE-MEASURED AGAIN 2026-08-29 at `22:53:50Z`** (UTC from the GitHub API `Date` header, not the
+host clock), **against `origin/main` @ `5d98824`: THREE PRs are open repo-wide** — this one,
+[#457](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/457), carrying the R2.1 ruling and
+counting itself per §11.10; [#456](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/456),
+the post-R1 handover reconciliation; and
+[#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453), which signs D4 and would
+discharge §15.4 item 3. **Still no dependency PR**, so Track D1's queue is unchanged again.
+**#453 claims `DECISIONS.md` ADR-009 and opened first, so #457's ruling took ADR-010** and records
+why in the ADR itself — a duplicate ADR number is unrecoverable, a gap merely explicable. **This
+count is an instant and it is already stale for a further reason**: #457 is an *engineering*
+packet, so while it is open the "no engineering packet is in flight" reading in §15.5 describes the
+state that resumes when it merges, not the state right now.
 ⚠️ **[#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438) — JS-unit ledger rows 24–26 and the window restart — merged as `2035852`
 at `2026-08-28T21:57:17Z`** and is no longer open; the six Track P1 PRs of the same evening, and
 [#446](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/446) and [#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447) the following day, are standing-track work carried
