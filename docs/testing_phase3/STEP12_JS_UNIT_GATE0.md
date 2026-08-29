@@ -4828,7 +4828,7 @@ back byte-identical.
 > that read and has been overtaken by every extension since — the table now carries **40** rows,
 > through the rows 27–40 extension. **The rows themselves are unchanged**; only the lead-in's count
 > and its *"newest `main` run"* are spent. Read the live tally from the newest extension block, not
-> from here. ⚠️ **RE-ANNOTATED 2026-08-29: the table now carries 41 rows**, through the row-41
+> from here. ⚠️ **RE-ANNOTATED 2026-08-29: the table now carries 43 rows**, through the rows-42–43
 > extension. The rows themselves remain unchanged.
 
 | # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
@@ -4874,6 +4874,8 @@ back byte-identical.
 | **39** | [`33265748817`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33265748817) | `push` / `5664c0e` (PR #449, `MASTER_HANDOVER.md` + `ACTIVE_DEVELOPMENT.md` reconciled) | `success`, **18/18** | [**`99135395368`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33265748817/job/99135395368) | **`success`** | **`2026-08-29T17:29:37Z`** |
 | **40** | [`33267048668`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33267048668) | `push` / `fe15225` (**PR #451, the OD-1 waiver recorded as OD-1-W**) | `success`, **18/18** | [**`99138843724`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33267048668/job/99138843724) | **`success`** | **`2026-08-29T17:59:51Z`** |
 | **41** | [`33268787682`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33268787682) | `push` / `116d3c5` (**PR #450, JS-unit ledger rows 27–40 + plan reconciliation**) | `success`, **18/18** | [**`99143431684`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33268787682/job/99143431684) | **`success`** | **`2026-08-29T18:38:17Z`** |
+| **42** | [`33273789390`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33273789390) | `push` / `8c844df` (**PR #454, the V1 visual-determinism ruling recorded**) | `success`, **18/18** | [**`99156860069`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33273789390/job/99156860069) | **`success`** | **`2026-08-29T20:33:41Z`** |
+| **43** | [`33278243462`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33278243462) | `push` / `2cb938c` (**PR #455, Packet R1 — deep-gate mutation probes**) | `success`, **18/18** | [**`99168706068`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33278243462/job/99168706068) | **`success`** | **`2026-08-29T22:18:29Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5221,8 +5223,11 @@ the strict mark by the same amount.
 > mechanism rows 40, 37, 33, 24, 23, 20 and 17 record. **Its debt is DISCHARGED here**, and the
 > *"Whoever merges THIS PR owes the next unclaimed row, which is row 41"* clause in the rows 27–40
 > block is spent as a live statement while remaining accurate as the dated prediction it was.
-> **Whoever merges the PR carrying this extension owes row 42**, which it cannot record — the
-> standing §11.10 mechanism, unchanged.
+> ~~**Whoever merges the PR carrying this extension owes row 42**, which it cannot record~~ — the
+> standing §11.10 mechanism, unchanged. ⚠️ **OVERTAKEN 2026-08-29 — accurate as the prediction
+> it was, spent as a live statement.** Two owner merges landed before this PR did, so **rows 42
+> and 43 were minted by them and are claimed by this same pass** in the extension below; what
+> this PR's own merge now mints is **row 44**.
 >
 > **The enumeration was independent and bounded at both ends.**
 > `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to `created_at` in
@@ -5259,6 +5264,63 @@ Each had its `/jobs` re-fetched at this read and each returned **zero**
 `32676594619`, `32676594928`, one job each), the one `Deep Gate` `schedule` run (`32688747703`,
 seven jobs) and the `Configured Graph Update` `dynamic` run (`33017596325`, one job). **No sixth
 non-attempt run has landed.**
+
+> **LEDGER EXTENSION — `2026-08-29T22:28:34Z`, rows 42–43.** **Both rows are appended to the master
+> ledger table above, in place.** They were minted while this pass's own PR
+> ([#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452)) was open and unmerged, by two owner merges: **row 42 is
+> [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454)'s landing** (`8c844df`, the V1 visual-determinism ruling) and **row 43 is
+> [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)'s** (`2cb938c`, Packet R1's deep-gate mutation probes). Neither PR touched
+> this document, so both rows were **unclaimed**, and the standing *"whichever pass lands first takes
+> the next unclaimed row"* rule puts them here.
+>
+> **Read at job level, as always** — the `js-unit` job's own `conclusion` and `completed_at`, never
+> the run's overall conclusion. Row 43's `js-unit` job was already `completed` / `success` at
+> `2026-08-29T22:22Z` while its run still showed **17 jobs, 16 finished** and the eighteenth not yet
+> created; the run-level **18 / 18** figure below was taken only after the run reached `completed`
+> at `2026-08-29T22:28:34Z`, and is measured rather than predicted. That is the same discipline
+> rows 33 and 40 record.
+>
+> **This pass's own merge now mints row 44**, which it cannot record — the standing §11.10
+> mechanism, unchanged. The row-41 extension's *"owes row 42"* clause is spent as a live statement
+> while remaining accurate as the dated prediction it was: rows 42 and 43 arrived first.
+>
+> **The enumeration is independent and bounded at both ends.**
+> `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to `created_at` in
+> **[`2026-08-22T17:00:00Z`, `2026-08-29T22:28:34Z`]**, returns **48** `main` runs of **any**
+> workflow: **43** `ci.yml` `push` attempts plus the **5** classified non-attempts, whose membership
+> is **unchanged** and each of which still returns **zero** `JS Unit (Vitest, non-required)` jobs. A
+> cross-check **without** the branch filter, over three unfiltered pages filtered to
+> `head_branch == "main"` and `created_at > 2026-08-29T18:37:57Z`, returns the **same two** runs.
+> **No sixth non-attempt run has landed.**
+
+**Rows 42 and 43 restart nothing, and the T0 declared above is unaffected.** This is the measurement
+that matters most in this extension, because both carriers changed tracked files and #455 changed
+**tests**: `git rev-parse <sha>:static/js` returns **`a7e5073568b0fde8e35e1e1a7be5a9f844e77828`**,
+`<sha>:static/js/modules/__tests__` returns **`5858c8497c571548e5116f4b660ff7702dd298b1`** and
+`<sha>:vitest.config.js` returns `c16ca428f7478708d8dd96a20ebcb86f98a8b935` at **all eighteen**
+heads from `288667d` through `2cb938c`. [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json)
+reads `vitest.total_files = 13`, `vitest.total_cases = 245` at `8c844df` and at `2cb938c` alike.
+**#455 added 14 pytest cases** — `collected_deterministic` **2855 → 2869**,
+`tests/test_release_workflow_contracts.py` **51 → 63** and `tests/test_visual_capture_contracts.py`
+**15 → 17** — and **pytest cases are not Vitest cases**: the operative rule is *"changed no JS test
+case"*, and no JS test case moved. **Q2's restart clause did not engage at either row.**
+
+| Ledger tally, at `2026-08-29T22:28:34Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after the original T0 | **43** — all forty-three `push`, all 18/18, all attempt **1** |
+| Green `main` `JS Unit` results since and including the original T0 | **43** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after the original T0 **and at or before this read** (completeness check, not a tally) | **48** — the 43 attempts plus the same **5** classified non-attempts, re-enumerated at this read and **unchanged in membership** |
+| **`schedule`-event `ci.yml` runs in the window** | **0** |
+| **Green results on the 231-case suite (rows 1–25)** | **25** |
+| **Green results on the 245-case suite (rows 26–43)** | **18** |
+| Elapsed from **T0** to row 43 | **1 d 23 h 0 m 8 s** |
+| Remaining from row 43 to the strict mark **`2026-09-10T23:18:21Z`** | **12 d 0 h 59 m 52 s** |
+
+---
 
 | Ledger tally, at `2026-08-29T19:32:58Z` | Value |
 |---|---:|

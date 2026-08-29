@@ -34,18 +34,30 @@
 > file, workflow, job name or repository setting was touched. **Reaching the strict mark is a
 > precondition, never a signature.**
 >
-> **The ledger ends at row 41 once this pass lands — on `main` it still ends at row 40.** Row 41 is
-> #450's own landing: run `33268787682`, job `99143431684`, `success`, `2026-08-29T18:38:17Z`, and it
-> is appended to §13.0's master ledger table by the pass carrying this block. **Row 42** is what that
-> pass's own merge will mint, and it cannot record it. The window holds **16 consecutive green results on the 245-case suite, 0 red / missing /
+> **The ledger ends at row 43 once this pass lands — on `main` it still ends at row 40.** Three rows
+> are appended to §13.0's master ledger table by the pass carrying this block, all read at job level
+> and all `success` / 18-of-18 / attempt 1: **row 41** = #450's own landing, run `33268787682`, job
+> `99143431684`, `2026-08-29T18:38:17Z`; **row 42** = [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454)'s (`8c844df`, the V1
+> ruling), run `33273789390`, job `99156860069`, `2026-08-29T20:33:41Z`; **row 43** =
+> [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)'s (`2cb938c`, Packet R1), run `33278243462`, job `99168706068`,
+> `2026-08-29T22:18:29Z`. Rows 42 and 43 were minted by owner merges that landed while this pass was
+> open and touched no ledger, so both were unclaimed and this pass claims them. **Row 44** is what
+> this pass's own merge will mint, and it cannot record it. The window holds **16 consecutive green results on the 245-case suite, 0 red / missing /
 > skipped / cancelled**, and the corpus is **13 files / 245 cases at all sixteen heads** from
 > `288667d` to `116d3c5`. **Read the operative T0 from
 > [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here** —
 > the ruling is recorded there, at *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*, and
-> [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §18 is its dated evidence log.
+> [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §19 is its dated evidence log
+> (§18 is Packet R1's, landed by #455 while this pass was open).
 >
-> **What is still open** is unchanged apart from that one debt closing: §15.4's decisions are now
-> **seven**, items 1–7, item 8 having been answered. Track P1 stays closed at 0 / 0 / 0, Track D1's
+> **What is still open**, re-derived from §15.4 as it stands after this branch merged
+> `origin/main` — **not** carried from either side. **Two owner rulings landed while this pass was
+> open**: [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`) ruled
+> **V1 — investigate**, and [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)
+> (`2cb938c`) landed **Packet R1**, discharging §15.4 item 1 and adding item 11. With **item 8 now
+> answered** as well, **the blocking set is items 2–6 — five decisions**: R2.1, R2.2, R2.3 (Q4 / D2),
+> R2.4 and R3. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
+> discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
 > queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 > 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
 
@@ -248,11 +260,15 @@
 >    and it blocks the Q4 / D2 decision on promoting `js-unit`.~~ ✅ **MADE 2026-08-29 — #431 WAS
 >    FINAL.** **T0 `2026-08-27T23:18:21Z`**, **strict mark `2026-09-10T23:18:21Z`**. Q4 / D2 are
 >    unblocked **on timing only** and both remain **unsigned**.
-> 5. **Everything else waits on the owner** — §15.4 items **1–7**. ⚠️ **CORRECTED 2026-08-29:**
->    this read *"items 1–8 and 10"*; **item 10 was removed** by that plan's §17.4 (the OD-1 record,
->    which was never a decision and is now discharged), and **item 8 was answered** on 2026-08-29
->    and is marked discharged in place, keeping its number so existing pointers resolve. Nothing
->    there may be started by an agent, and reaching a clock's threshold is not authorization.
+> 5. **Everything else waits on the owner** — §15.4. *(Repaired 2026-08-29: this
+>    read "items 1–8 **and 10**"; item 10 was the OD-1 waiver record, which is neither a
+>    decision nor outstanding — it landed as **OD-1-W** in `fe15225` (#451) and sits under
+>    §15.2 *Discharged*. **Item 7 (V1) has since been ruled**, **item 1 (R1) discharged**, and
+>    **item 11 added**.)* ⚠️ **RE-CORRECTED 2026-08-29: item 8 is answered too** and is
+>    marked discharged in place, keeping its number so existing pointers resolve. **Counted off
+>    the merged table, the blocking set is items 2–6**; items 7 and 11 are open without
+>    stopping work. Nothing there may be started by an agent, and reaching a clock's
+>    threshold is not authorization.
 >
 > **This reconciliation changed documentation only** — exactly two files, this one and
 > [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md). No production, test, workflow, dependency,
@@ -2191,7 +2207,9 @@ behind the CSS it describes.
 > Gates: contracts **62 passed**, full pytest **2,271 passed / 1 skipped**,
 > required functional/navigation/accessibility Chromium **127 passed** plus
 > `fatigue.spec.ts` **8 passed**, visual **65 / 1 ledgered red** at
-> 875/882/875 px inside the established band, Stylelint **−5** across the seven
+> 875/882/875 px inside the established band *(historical — that ledgered red is
+> `workout-plan-desktop-dark`, byte-gate-exempt since #298 with no baseline on either
+> platform, so the figure cannot be reproduced today)*, Stylelint **−5** across the seven
 > surfaces with no category increase, and all 14 PR checks green. Evidence:
 > [`CSS_PHASE4_WP4_4_F2_NAVBAR_EVIDENCE.md`](CSS_PHASE4_WP4_4_F2_NAVBAR_EVIDENCE.md).
 >
