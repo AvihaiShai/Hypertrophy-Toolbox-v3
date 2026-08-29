@@ -131,6 +131,28 @@ operative T0 from §13.0, never from here.** The corpus at `225b7b0` is **13 fil
 workflow dispatch; any dependency merge; and any action on R1, R2, R3, V1 or
 R1-D3 beyond recording the readings above.
 
+> ⚠️ **[UPDATED 2026-08-30 — two of the five named items have since been acted on, with owner
+> authorization. The sentence above is kept as the reading it was for the pass it describes.]**
+> **R1** — the deep-gate mutation probes — was authorized and run, and shipped as
+> [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455) (`2cb938c`). **V1** was
+> ruled the same day and its documentation half shipped as
+> [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`); the V1
+> *measurement* half remains **blocked on runner access** and unstarted, and the V1 ruling
+> itself stands exactly as #454 recorded it. **R2, R3 and R1-D3 are untouched** and the
+> prohibition still holds for them, as it does for every other item in the sentence.
+>
+> **What R1 established, stated exactly:** the contract tests this repository held **do not
+> detect** either shape — a job-level `needs:` or a job-level `continue-on-error:` on a
+> `deep-gate.yml` job. It did **NOT** establish that a runtime false green occurs. **No workflow
+> was dispatched and no run was inspected**; the runtime behavior rests on documented GitHub
+> Actions semantics and the mechanism `ci.yml` already states in its own comments above the
+> `test-inventory` job. Nothing in #455 may be cited as *"runtime false green demonstrated"*.
+>
+> **R1 left two things open, and neither was implemented.** A job-level `continue-on-error:` on
+> the `uses:` job `frozen-windows` is likewise undetected (arm H2-M4) — **recorded, not fixed**,
+> and now §15.4 item 11. And nothing bars the same shape in `release.yml` or
+> `_packaged-windows.yml`, which sit on the **required** path — **recorded and not probed**.
+
 **One further surface in THIS file is stale and is annotated in place rather than
 rewritten** — the `## Next Action` section far below, which restates the spent T0
 marks, asserts *"zero open PRs"* and calls **KI-010** and **KI-011** open. It sits
@@ -183,9 +205,21 @@ as `225b7b0`. **Do not start the OD-1 waiver record either** —
 [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) carries it and is open; review
 or land that PR instead, and the record returns as work only if #451 is closed unmerged; (4) **the owner determination on whether #431 was the
 final Vitest expansion packet is owed**, and it blocks Q4 / D2; (5) **everything
-else waits on the owner** — §15.4 items 1–8. *(Repaired 2026-08-29: this read "items 1–8 and
-10"; item 10 was the OD-1 waiver record, landed as **OD-1-W** in `fe15225` (#451) and
-discharged under §15.2. **Item 7 (V1) has since been ruled**, leaving **seven** live.)*
+else waits on the owner** — §15.4 items **2–6 and 8**, which is **six** live decisions.
+*(Repaired 2026-08-29: this read "items 1–8 and 10"; item 10 was the OD-1 waiver record, landed
+as **OD-1-W** in `fe15225` (#451) and discharged under §15.2. **Item 7 (V1) was then ruled**,
+leaving seven. **Re-derived 2026-08-30 from the merged table after #455:** the queue is **nine
+rows — items 1–8 and 11** — of which **six block**. **Item 1 is discharged** (the deep-gate
+mutation probes ran), **item 7 is ruled** under the V1 decision, and **item 11 is new and blocks
+nothing today**. The range "1–8" no longer describes the queue in either direction.)*
+
+> **⚠️ "Packet R1" now names two unrelated things in this repository.** The *"Packet R1"*
+> reference far below — *"the release/tag pipeline is no longer deferred"* — means
+> [#374](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/374) (`5222db2`). The **R1**
+> in item 5 above and in [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §15.1 /
+> §15.4 is a different packet entirely: the **deep-gate mutation probes**,
+> [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455) (`2cb938c`). They share a
+> letter and a number and nothing else. **Check which one a citation means before acting on it.**
 
 **This reconciliation changed documentation only** — exactly two files,
 [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) and this one. No production, test,

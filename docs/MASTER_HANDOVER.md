@@ -195,12 +195,29 @@
 >    unmerged.
 > 4. **The owner determination on whether #431 was the final Vitest expansion packet is OWED**,
 >    and it blocks the Q4 / D2 decision on promoting `js-unit`.
-> 5. **Everything else waits on the owner** — §15.4 items 1–8. *(Repaired 2026-08-29: this
->    read "items 1–8 **and 10**"; item 10 was the OD-1 waiver record, which is neither a
->    decision nor outstanding — it landed as **OD-1-W** in `fe15225` (#451) and sits under
->    §15.2 *Discharged*. **Item 7 (V1) has since been ruled**, leaving **seven** live.)*
+> 5. **Everything else waits on the owner** — §15.4 items **2–6 and 8**, which is **six**
+>    live decisions. *(Repaired 2026-08-29: this read "items 1–8 **and 10**"; item 10 was the
+>    OD-1 waiver record, which is neither a decision nor outstanding — it landed as **OD-1-W**
+>    in `fe15225` (#451) and sits under §15.2 *Discharged*. **Item 7 (V1) was then ruled**,
+>    leaving seven. **Re-derived 2026-08-30 from the merged table after #455:** the queue is
+>    **nine rows — items 1–8 and 11** — of which **six block**. **Item 1 is discharged**, the
+>    deep-gate mutation probes having been authorized and run; **item 7 is ruled** under the V1
+>    decision, its narrower remaining question stated in the row itself; and **item 11 is new and
+>    blocks nothing today**. The range "1–8" no longer describes the queue in either direction —
+>    it includes two rows that no longer block and excludes one that exists.)*
 >    Nothing there may be started by an agent, and reaching a clock's threshold is not
 >    authorization.
+>
+> **⚠️ "Packet R1" now names two unrelated things in this repository, and this file uses both.**
+> Every *"Packet R1"* below — the 2026-08-14 block, and the Testing Phase 4 rows — means the
+> **release/tag pipeline**, [#374](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/374)
+> (`5222db2`), whose `push: tags` trigger has still never fired. The **R1** in §15.1 / §15.4 of
+> [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md), and in item 5 above, is a
+> different packet entirely: the **deep-gate mutation probes**,
+> [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455) (`2cb938c`), merged
+> 2026-08-29. They share a letter and a number and nothing else. **Check which one a citation
+> means before acting on it** — the release-pipeline references are historical and accurate as
+> written, and are deliberately not relabelled here.
 >
 > **This reconciliation changed documentation only** — exactly two files, this one and
 > [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md). No production, test, workflow, dependency,
