@@ -1,6 +1,8 @@
 """Integration tests for GET /fatigue (Phase 2 Stage 2)."""
+import pytest
+
 import routes.fatigue as fatigue_route
-from utils.fatigue_data import build_fatigue_page_context
+from utils.fatigue_data import _stimulus_from_rows, build_fatigue_page_context
 
 
 class TestFatigueRouteExceptionPath:
@@ -188,3 +190,45 @@ class TestFatigueContextShape:
         ctx = build_fatigue_page_context(period="last_4_weeks")
         assert ctx["period"] == "last_4_weeks"
         assert "4 weeks" in ctx["period_label"].lower()
+
+
+class TestStimulusRepRangeFactorPin:
+    """Value-pin `_stimulus_from_rows` across the ADR-009 ruling-2 bands.
+
+    This is Packet B's landing condition. `_stimulus_from_rows` sums
+    `calculate_effective_sets(...).effective_sets` for the SFR card's stimulus
+    proxy, and `rep_range_factor` is a multiplicand of that scalar -- so a
+    rep-range band change moves `planned_stimulus` / `logged_stimulus` /
+    `sfr_planned` / `sfr_logged`, rendered on /fatigue.
+
+    Nothing pinned those values before: `tests/goldens/fatigue_golden.json` never
+    exercises `effective_sets` at all (it imports only `utils.fatigue` and drives
+    LOAD_MULTIPLIER_BUCKETS, a different constant), and the only other test on
+    this surface asserts key presence with no value.
+    """
+
+    def _planned_row(self, min_reps, max_reps):
+        # RIR 0 -> effort factor 1.0, so the observed value IS the rep-range
+        # factor times the set count. 2 sets keeps the arithmetic readable.
+        return {
+            "sets": 2,
+            "rir": 0,
+            "min_rep_range": min_reps,
+            "max_rep_range": max_reps,
+        }
+
+    def test_in_band_rep_range_is_unmoved_by_the_ruling(self):
+        # avg 10 sat inside the old (6, 12) bucket and inside the new 6-20 band.
+        rows = [self._planned_row(8, 12)]
+        assert _stimulus_from_rows(rows, "planned") == pytest.approx(2.0)
+
+    def test_gap_region_rep_range_now_scores_the_ruled_band(self):
+        # avg 30.5 matched NO old bucket and fell through to the neutral 1.0 --
+        # above both its neighbours (0.85 at 30, 0.70 at 31). It is now 0.70,
+        # so this is 2 * 0.70 where the old code gave 2 * 1.0.
+        rows = [self._planned_row(30, 31)]
+        assert _stimulus_from_rows(rows, "planned") == pytest.approx(1.4)
+
+    def test_missing_rep_range_stays_neutral(self):
+        rows = [self._planned_row(None, None)]
+        assert _stimulus_from_rows(rows, "planned") == pytest.approx(2.0)
