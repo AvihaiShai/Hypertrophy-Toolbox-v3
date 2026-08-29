@@ -5135,7 +5135,7 @@ merge authorization**.
 | **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
 | **Skipped** results | **0** |
 | **Cancelled** results | **0** |
-| `main` runs of **any** workflow at or after the original T0 **and at or before this read** (completeness check, not a tally) | **45** — the 40 attempts plus **5** classified non-attempts, re-enumerated at this read and **unchanged in membership**: 3 Dependabot update runs, 1 `Deep Gate (manual + weekly)`, 1 dependency-graph update. Each of the five had its `/jobs` enumerated again and each returned **zero** `JS Unit (Vitest, non-required)` jobs. **No sixth non-attempt run has landed** — the three runs added since the `14:10:11Z` read are all `ci.yml` |
+| `main` runs of **any** workflow at or after the original T0 **and at or before this read** (completeness check, not a tally) | **45** — the 40 attempts plus **5** classified non-attempts, re-enumerated at this read and **unchanged in membership**: 3 Dependabot update runs, 1 `Deep Gate (manual + weekly)`, 1 dependency-graph update. Each of the five had its `/jobs` enumerated again and each returned **zero** `JS Unit (Vitest, non-required)` jobs. **No sixth non-attempt run has landed** — the three runs added since this pass's earlier `2026-08-29T14:10:11Z` reading ([`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §17.1) are all `ci.yml` |
 | **`schedule`-event `ci.yml` runs in the window** | **0** — re-read at `fe15225`, where `ci.yml`'s `on:` carries `push` and `pull_request` only |
 | **Green results on the 231-case suite (rows 1–25)** | **25** |
 | **Green results on the 245-case suite (rows 26–40)** | **15** |
