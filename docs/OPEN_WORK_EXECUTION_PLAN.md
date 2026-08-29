@@ -63,9 +63,8 @@ This is a sequencing aid, not a replacement source of truth:
 
 **§15 is an owner status board** — a plain-words, at-a-glance view of every item's status,
 written for a human reader and derived from §4, §5, §8 and the dated logs §§11–14 and §16. It
-carries no
-fact of its own and is the first thing to distrust in a disagreement; its header note records the
-precedence.
+carries no fact of its own and is the first thing to distrust in a disagreement; its header note
+records the precedence.
 
 Before starting any packet, re-read the relevant current-state block and verify the finding
 against current code. A historical document mentioning a problem is not sufficient evidence
@@ -548,8 +547,11 @@ blocks nothing.
   **0 / 0 / 0** (§16.2): `summary.errorCount` **0** and `scripts/pyright_baseline_diff.py`
   **PASS — 0 net-new diagnostics (baseline 0, current 0)**. The gap earlier passes disclaimed
   rather than measured is **zero** at both readings. **A regeneration is an owner decision, not a
-  repair** — #443's, #446's and #447's are each recorded as what they were, and the multiset check
-  below is what proves they silenced nothing rather than fixing it. The empty allowlist now on
+  repair** — #443's, #446's and #447's are each recorded as what they were. **Each is proved by
+  different evidence, and the proofs are not interchangeable**: the multiset check below covers
+  #443's wave; #446's is covered by the surviving `routes/workout_plan.py` key and the blob that
+  shows the file untouched; #447's by a live run agreeing at the same zero, against a gate that
+  would have passed unchanged at 9 (§16.2). The empty allowlist now on
   `main` has no headroom: `pyright_baseline_diff.py` only ever fails upward, so **any net-new
   diagnostic reds the required `Type Check` context, and the repair is to fix it, never to
   re-widen the baseline.**
@@ -1992,7 +1994,8 @@ directly rather than carrying them: R1-D3's clock is still **2 of 3**, and `rele
 **12-required / 13-expected** list on `main` has still **never executed by any trigger** — its lone
 `workflow_dispatch` run predates `a937116`, the commit that last changed the file.
 
-One further debt, recorded so it is visible rather than discovered:
+**Three status surfaces outside this plan are stale on Track P1**, recorded so the debt is
+visible rather than discovered:
 
 | Surface | State | Falsified by this closure? |
 |---|---|---|
