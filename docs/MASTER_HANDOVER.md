@@ -3428,7 +3428,7 @@ behind the CSS it describes.
 >
 > **Amended 2026-08-29, later the same day: the `scan_export_bounds()` and
 > `rep_range_integrity.py` items are NO LONGER OPEN.** The owner decided **R2.1** — recorded as
-> **ADR-009** in [`DECISIONS.md`](DECISIONS.md) — and the follow-through shipped with it:
+> **ADR-010** in [`DECISIONS.md`](DECISIONS.md) — and the follow-through shipped with it:
 > `scan_export_bounds()` now reproduces `export_plan_to_workout_log`'s single combined
 > `validate_workout_bounds(..., allow_null=True)` call, so a numeric `min > max` row is named
 > instead of silently producing no finding, and the module docstring was rewritten to follow the
