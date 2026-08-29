@@ -82,6 +82,11 @@ EFFORT_FACTOR_BUCKETS: Dict[Tuple[int, int], float] = {
 # average of 30.5 scored 1.0, ABOVE both its neighbours (0.85 at 30, 0.70 at 31).
 # The bands are documented here rather than expressed as a table because the
 # first boundary is strict and the rest are inclusive; see get_rep_range_factor.
+#
+# REP_RANGE_FACTOR_VALUES is NOT the band definition and nothing reads it at
+# runtime -- get_rep_range_factor returns bare literals. It is a test-visible
+# contract on the function's RANGE (the set of values it may return), so editing
+# this tuple changes no behavior. Change the function's literals, not this.
 REP_RANGE_FACTOR_VALUES: Tuple[float, ...] = (0.70, 0.85, 1.0)
 
 # Muscle contribution weights (primary/secondary/tertiary)
@@ -194,6 +199,11 @@ def get_rep_range_factor(
         - A non-positive average is unusable rather than unknown, and takes the
           same neutral arm as missing data. It is reachable: nothing validates a
           lower rep bound, so 0 and negative values persist.
+        - That neutral arm is drawn at ``avg <= 0`` ONLY. An average in the open
+          interval (0, 1) -- a 0-1 rep range, say -- deliberately takes the
+          ``< 6`` band at 0.85 rather than the neutral arm: it is degenerate but
+          not empty. Returning 1.0 there would be the old fall-through wearing a
+          different name.
     """
     # Calculate representative rep count. The chain is exhaustive over the four
     # min/max None combinations, and the last branch returns rather than
