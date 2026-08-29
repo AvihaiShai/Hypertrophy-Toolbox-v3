@@ -1275,9 +1275,45 @@ The `Council recommendation and evidence` column is left as the council wrote it
 
 ### v2.14 Follow-up obligation — U1-FOLLOWUP-1, OPEN and recorded here by owner decision
 
+> ⚠️ **AMENDED 2026-08-29 BY OWNER RULING — READ THIS BEFORE THE OBLIGATION BELOW.**
+> **U1-FOLLOWUP-1 is UNCHANGED in substance: it remains OPEN and REQUIRED.** Two things about it
+> moved, and the quoted obligation below is **annotated in place, never rewritten**, so the
+> 2026-08-26 text stays readable as what OD-1 actually signed.
+>
+> 1. **Its no-landing-before date is RE-ANCHORED, from `2026-09-05T17:59:26Z` to
+>    `2026-09-10T23:18:21Z`.** The original bar quoted the strict mark of the **first** JS-unit
+>    qualification window. That window ended when PR
+>    [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (`288667d`) took the
+>    Vitest corpus **231 → 245** on 2026-08-27 and re-engaged ruling Q2's restart clause, so the
+>    quoted date **no longer exists** and the obligation was left pointing at nothing. The owner has
+>    since ruled **#431 the final expansion packet**, declaring **T0 `2026-08-27T23:18:21Z`** and the
+>    strict mark **`2026-09-10T23:18:21Z`**
+>    ([`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, *OWNER RULING —
+>    #431 IS THE FINAL EXPANSION PACKET*). **That is the current bar.** The *reason* for the bar is
+>    untouched: landing a Vitest file inside a live window restarts it.
+> 2. **Its quoted condition is STALE and must be re-read before this packet is planned.** The
+>    obligation names `forceAnnounce || !standing || !ourToastContentStands()`. **Packet U3b changed
+>    that condition** — `ourToastContentStands()` was **not** renamed, `ourMessageStands()` was
+>    added, and the dismiss guard became a conjunction. U3b recorded the resulting staleness as
+>    **K13** and deliberately did not repair it here, because U1's planning document is not U3b's to
+>    edit ([`toast_action_continuity/PLANNING.md`](../toast_action_continuity/PLANNING.md) §4.3,
+>    §4.6 item 9). **Whoever discharges U1-FOLLOWUP-1 re-reads §4.3 first and derives the coverage
+>    from the shipped condition, not from the sentence below.**
+>
+> **A post-mark landing does not invalidate a completed cycle.** Once the strict mark passes, landing
+> this packet restarts the *next* window; it does **not** retroactively void a qualification cycle
+> that completed successfully before it. That is stated because the obligation's own wording invites
+> the opposite reading.
+>
+> **What this amendment does NOT do.** It does not implement U1-FOLLOWUP-1, does not authorize it,
+> does not file it as a packet in [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md)
+> §4 or §7 — which OD-1 left as an open owner option, not a precondition — and grants it no gate.
+> **OD-1 itself is unamended**: option (i) with (iii) as the required follow-up still stands exactly
+> as signed on 2026-08-26.
+
 R13's outstanding point, actioned — and **OD-1 made this subsection the obligation's authoritative record**:
 
-> **U1-FOLLOWUP-1 — Vitest unit coverage for the calculate failure helpers.** **OD-1 resolved to option (i), with (iii) as the required follow-up** (owner, 2026-08-26), so the **five** helpers added by §v2.2 (C)–(F) and (J) ship with **browser-level coverage only**. A follow-up packet must add `static/js/modules/__tests__/volume-splitter.test.js` covering the region's idempotence, the `forceAnnounce || !standing || !ourToastContentStands()` condition, the sequence guard, and the shared probe. **It must not land before `2026-09-05T17:59:26Z`**, the strict mark in [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §6.5, because doing so restarts the qualification window under the operative "changed no JS test case" rule (§v2.1). **Status: OPEN.** The owner **accepts this subsection as the authoritative record** of the obligation for now, so [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) is not edited here (**OD-1**). Filing it there as its own packet in §4 or §7 remains an open owner option, not a precondition.
+> **U1-FOLLOWUP-1 — Vitest unit coverage for the calculate failure helpers.** **OD-1 resolved to option (i), with (iii) as the required follow-up** (owner, 2026-08-26), so the **five** helpers added by §v2.2 (C)–(F) and (J) ship with **browser-level coverage only**. A follow-up packet must add `static/js/modules/__tests__/volume-splitter.test.js` covering the region's idempotence, the `forceAnnounce || !standing || !ourToastContentStands()` condition, the sequence guard, and the shared probe. ~~**It must not land before `2026-09-05T17:59:26Z`**, the strict mark in [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §6.5~~ ⚠️ **RE-ANCHORED 2026-08-29 — the bar is now `2026-09-10T23:18:21Z`**, the strict mark of the **current** window, declared in [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0; the `2026-09-05T17:59:26Z` mark is **SPENT** and §6.5's annotation for it says so at its own site — because doing so restarts the qualification window under the operative "changed no JS test case" rule (§v2.1). ⚠️ **The condition quoted two sentences above is STALE (U3b's K13) and must be re-read against [`toast_action_continuity/PLANNING.md`](../toast_action_continuity/PLANNING.md) §4.3 before this packet is planned.** **Status: OPEN.** The owner **accepts this subsection as the authoritative record** of the obligation for now, so [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) is not edited here (**OD-1**). Filing it there as its own packet in §4 or §7 remains an open owner option, not a precondition.
 
 The implementation PR body **must link §v2.14 explicitly**, so the obligation is discoverable from the merge commit rather than only from a planning document nobody re-opens.
 
