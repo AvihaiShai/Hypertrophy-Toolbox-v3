@@ -14,9 +14,13 @@ owner-facing status board added as §15 of the Open Work Execution Plan, merged
 `2026-08-29T13:47:38Z`), with all 18 checks green on that commit — post-merge run
 `33255921889`, `2026-08-29T13:47:41Z → 13:57:55Z`, **read at job level**, **18
 jobs and 18 `success`**. **The repository had ZERO open PRs when this pass began
-and ONE by the time it finished** — a concurrent session opened [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) at
-`2026-08-29T14:25:32Z`, re-read here at `2026-08-29T14:28:38Z`. The block below
-says TWO, which was true when written — #415 and #416 both merged 2026-08-26.
+and THREE by the time it finished**, read at `2026-08-29T14:47:26Z`: concurrent
+sessions opened [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) at `14:25:32Z` and
+[#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450) at `14:38:42Z`, and the third is the PR carrying this
+block, which counts itself. **Neither touches either file this pass edits**, so
+there is no conflict — but **both claim work otherwise listed as owed below.**
+The block below says TWO, which was true when written — #415 and #416 both merged
+2026-08-26.
 **Take no automatic feature action from this file, and take no action on any
 owner decision it names.**
 
@@ -95,7 +99,7 @@ operative T0 from §13.0, never from here.** The corpus at `158ee40` is **13 fil
 
 | Reading | Value at `158ee40` | Moved since §16.4's reading at `3532f86`? |
 |---|---|---|
-| Open PRs | **1** at `14:28:38Z` — [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448), `docs/REFACTOR_PLAN.md` only, `MERGEABLE`; it was **0** at `13:57Z` | **Yes** — 1 (#445) → 0 → 1 (#448). The PR carrying this block will make it **2**, counting itself |
+| Open PRs | **3** at `14:47:26Z`, all `MERGEABLE` — [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) (`docs/REFACTOR_PLAN.md`), [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450) (`OPEN_WORK_EXECUTION_PLAN.md` + `STEP12_JS_UNIT_GATE0.md`), and the PR carrying this block, which counts itself; it was **0** at `13:57Z` | **Yes** — 1 (#445) → 0 → 3 |
 | Open dependency PRs | **0** — Track D1's queue is still empty | No |
 | Open Dependabot alerts | **0** | — §16.4 took no alerts reading |
 | Open issues | **0** | — |
@@ -115,9 +119,11 @@ operative T0 from §13.0, never from here.** The corpus at `158ee40` is **13 fil
 workflow dispatch; any dependency merge; and any action on R1, R2, R3, V1 or
 R1-D3 beyond recording the readings above.
 
-**Still owed, and not done here:** ledger rows **27–37** in §13.0 (a separate
-pass — §13.0 is the only place a row may be written); the **OD-1 waiver record**
-for #431's early merge (a record gap, **not** an improper merge);
+**Still owed, and not done here:** ledger rows **27–37** in §13.0 — §13.0 is the
+only place a row may be written, and **a concurrent session has since claimed that
+pass as [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450)**, which writes rows 27–37 and refreshes the
+plan's status layer, so **do not duplicate it**; the **OD-1 waiver record** for
+#431's early merge (a record gap, **not** an improper merge);
 [`REFACTOR_PLAN.md`](REFACTOR_PLAN.md)'s continuous-track row, which on `main`
 still calls the pyright track *"Ongoing — standing track only"* and quotes
 **139/45 → 132/42** — the last surface actively asserting Track P1 is open, and
@@ -129,17 +135,19 @@ debt returns only if #448 is closed unmerged.
 derivation stamp** (*"Derived at `3532f86`, 2026-08-29"*): **§15.2 debt 1** reads
 *"rows 27–36 … ten `main` runs"*, where the range is now **27–37** and eleven,
 and **§15.1's Track D1 row** reads *"the one open PR is this plan's own"*, where
-#445 has merged and the one open PR is #448. **This is a dated view ageing, not a
+#445 has merged and three PRs are open. **This is a dated view ageing, not a
 defect** — debt 1 explicitly predicted that merging #445 would mint row 37 and
 that it could not record it, and no §4 or §5 status field moved, so §15's *"fix
 the board in the same commit"* rule did not fire. Refreshing the board is outside
-this pass's two-file scope and is **owed**.
+this pass's two-file scope, and **[#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450) carries it** along
+with the ledger rows.
 
-**Next actions, in order:** (1) **append ledger rows 27–37** to §13.0 at job
-level, re-verifying each against the API rather than transcribing it from here —
-whoever merges the PR carrying this block mints the next sequential row, **row 38
-on today's numbering**, from a run that does not exist until the merge does and
-is therefore not claimed here as recorded; (2) **inspect the 2026-08-31 scheduled deep gate only after it executes**,
+**Next actions, in order:** (1) **do not start a ledger append for rows 27–37** —
+[#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450) already carries them into §13.0; review or land that
+PR instead. **The standing rule is unchanged and applies to every merge,
+including this one**: a PR can never record its own post-merge row, so after #450
+lands, this PR's merge mints the row after its last. Append at job level,
+re-verifying against the API rather than transcribing from any status document; (2) **inspect the 2026-08-31 scheduled deep gate only after it executes**,
 at job level, with `visual-linux` confirmed *executed* rather than skipped, never
 off the overall green — expect drift of up to an hour; a green there is the third
 consecutive green run and closes R1-D3's clock, but **acting on a closed clock is

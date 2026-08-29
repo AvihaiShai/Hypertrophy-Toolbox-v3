@@ -14,10 +14,14 @@
 > Plan, merged **`2026-08-29T13:47:38Z`** — with all **18** checks green on that commit. Post-merge
 > run [`33255921889`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889), `2026-08-29T13:47:41Z → 13:57:55Z`, **read at job
 > level**, **18 jobs and 18 `success`**, never off the overall green. **The repository had ZERO
-> open PRs when this pass began and ONE by the time it finished** — a concurrent session opened
-> [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) at `2026-08-29T14:25:32Z`, re-read here at `2026-08-29T14:28:38Z`
-> from the API `Date` header. The block below says **TWO**; that was true when it was written —
-> #415 and #416 both merged on 2026-08-26.
+> open PRs when this pass began and THREE by the time it finished**, read at
+> `2026-08-29T14:47:26Z` from the API `Date` header: concurrent sessions opened
+> [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) at `14:25:32Z` and [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450) at
+> `14:38:42Z`, and the third is the PR carrying this block, which counts itself per §11.10.
+> **Neither #448 nor #450 touches either file this pass edits**, so there is no conflict — but
+> **both claim work this block would otherwise have listed as owed**, and item 6 records that.
+> The block below says **TWO**; that was true when it was written — #415 and #416 both merged on
+> 2026-08-26.
 >
 > **1 — Track P1 (pyright reduction) is CLOSED at 0 diagnostics / 0 distinct keys / 0 files.**
 > [`ci_cd_phase3/pyright-baseline.json`](ci_cd_phase3/pyright-baseline.json) reads
@@ -90,7 +94,7 @@
 >
 > | Reading | Value at `158ee40` | Moved since §16.4's reading at `3532f86`? |
 > |---|---|---|
-> | Open PRs (`gh pr list --state open`) | **1** at `14:28:38Z` — [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448), `docs/REFACTOR_PLAN.md` only, `MERGEABLE`; it was **0** at `13:57Z` | **Yes** — 1 (#445) → 0 → 1 (#448). The PR carrying this block will make it **2**, counting itself |
+> | Open PRs (`gh pr list --state open`) | **3** at `14:47:26Z`, all `MERGEABLE` — [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) (`docs/REFACTOR_PLAN.md`), [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450) (`OPEN_WORK_EXECUTION_PLAN.md` + `STEP12_JS_UNIT_GATE0.md`), and the PR carrying this block, which counts itself; it was **0** at `13:57Z` | **Yes** — 1 (#445) → 0 → 3 |
 > | Open dependency PRs | **0** — Track D1's queue is still empty | No |
 > | Open Dependabot alerts | **0** | — §16.4 took no alerts reading |
 > | Open issues | **0** | — |
@@ -107,8 +111,11 @@
 >
 > **6 — What this pass did NOT do, and what is still owed.**
 >
-> - **Ledger rows 27–37 are not written here.** §13.0 is the only place a row may be written,
->   and appending them is a separate owed pass.
+> - **Ledger rows 27–37 are not written here** — §13.0 is the only place a row may be written —
+>   and **a concurrent session has since claimed that pass as [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450)**,
+>   open and `MERGEABLE` at `2026-08-29T14:47:26Z`, which writes rows **27–37** into §13.0 and
+>   refreshes the plan's status layer. **Do not duplicate it.** The debt returns only if #450 is
+>   closed unmerged.
 > - **The OD-1 waiver record is still owed.** #431 merged roughly 8 d 18 h ahead of its own
 >   Gate 0 embargo, by the owner's own ruling. It is a **record gap, not an improper merge**.
 > - **[`REFACTOR_PLAN.md`](REFACTOR_PLAN.md)'s continuous-track row is still materially stale on
@@ -123,11 +130,12 @@
 >   stamp.** The board is stamped *"Derived at `3532f86`, 2026-08-29"*, and #445's merge moved two
 >   of its fields: **§15.2 debt 1** reads *"rows 27–36 … ten `main` runs"*, where the range is now
 >   **27–37** and eleven; and **§15.1's Track D1 row** reads *"the one open PR is this plan's
->   own"*, where #445 has merged and the one open PR is #448. **This is a dated view ageing, not a
+>   own"*, where #445 has merged and three PRs are open. **This is a dated view ageing, not a
 >   defect** — debt 1 explicitly predicted that merging #445 would mint row 37 and that it could
 >   not record it, which is §11.10's designed self-counting behaviour, and no §4 or §5 status
 >   field moved, so §15's *"fix the board in the same commit"* rule did not fire. Refreshing the
->   board is outside this pass's two-file scope and is **owed**.
+>   board is outside this pass's two-file scope, and **[#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450) carries it**
+>   along with the ledger rows.
 > - **No decision was taken.** No branch-protection or repository-settings change, no tag, no
 >   workflow dispatch, no dependency merge.
 > - **Three further surfaces in THIS file are stale and are annotated in place rather than
@@ -139,11 +147,13 @@
 >
 > **The current next action, stated explicitly, because none of it starts itself:**
 >
-> 1. **Append JS-unit ledger rows 27–37 to §13.0**, at job level, re-verifying each against the
->    API rather than transcribing it from here, and recording any red, missing, skipped or
->    cancelled `ci.yml` result. **Whoever merges the PR carrying this block mints the next
->    sequential row — row 38 on today's numbering — from a run that does not exist until the
->    merge does, and is therefore not claimed here as recorded.**
+> 1. **Do NOT start a ledger append for rows 27–37** — [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450) already
+>    carries them into §13.0. Review or land that PR instead. **The standing rule is unchanged
+>    and still applies to every merge, including this one**: whoever merges a PR mints the next
+>    sequential row from a run that does not exist until the merge does, so it can never record
+>    its own — and after #450 lands, this PR's own merge mints the row after its last. Append at
+>    job level, re-verifying against the API rather than transcribing from any status document,
+>    and record any red, missing, skipped or cancelled `ci.yml` result.
 > 2. **Inspect the 2026-08-31 scheduled deep gate ONLY after it executes** — at **job** level,
 >    with `visual-linux` confirmed *executed* rather than skipped, never read off the overall
 >    green. Expect scheduler drift of up to an hour (45 m 52 s on 2026-08-17, 48 m 58 s on
