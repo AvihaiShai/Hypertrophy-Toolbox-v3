@@ -195,8 +195,12 @@
 >    unmerged.
 > 4. **The owner determination on whether #431 was the final Vitest expansion packet is OWED**,
 >    and it blocks the Q4 / D2 decision on promoting `js-unit`.
-> 5. **Everything else waits on the owner** — §15.4 items 1–8 and 10. Nothing there may be
->    started by an agent, and reaching a clock's threshold is not authorization.
+> 5. **Everything else waits on the owner** — §15.4 items 1–8. *(Repaired 2026-08-29: this
+>    read "items 1–8 **and 10**"; item 10 was the OD-1 waiver record, which is neither a
+>    decision nor outstanding — it landed as **OD-1-W** in `fe15225` (#451) and sits under
+>    §15.2 *Discharged*. **Item 7 (V1) has since been ruled**, leaving **seven** live.)*
+>    Nothing there may be started by an agent, and reaching a clock's threshold is not
+>    authorization.
 >
 > **This reconciliation changed documentation only** — exactly two files, this one and
 > [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md). No production, test, workflow, dependency,
@@ -2135,7 +2139,9 @@ behind the CSS it describes.
 > Gates: contracts **62 passed**, full pytest **2,271 passed / 1 skipped**,
 > required functional/navigation/accessibility Chromium **127 passed** plus
 > `fatigue.spec.ts` **8 passed**, visual **65 / 1 ledgered red** at
-> 875/882/875 px inside the established band, Stylelint **−5** across the seven
+> 875/882/875 px inside the established band *(historical — that ledgered red is
+> `workout-plan-desktop-dark`, byte-gate-exempt since #298 with no baseline on either
+> platform, so the figure cannot be reproduced today)*, Stylelint **−5** across the seven
 > surfaces with no category increase, and all 14 PR checks green. Evidence:
 > [`CSS_PHASE4_WP4_4_F2_NAVBAR_EVIDENCE.md`](CSS_PHASE4_WP4_4_F2_NAVBAR_EVIDENCE.md).
 >

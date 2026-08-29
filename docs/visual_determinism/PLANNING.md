@@ -11,7 +11,15 @@ PNGs are **not** regenerated here and neither manifest is touched.
 
 Branch `wt/visual-determinism`, merged with `origin/main` = `616b3a6`.
 
-## Gate 2 closure (2026-08-03)
+## Gate 2 closure (2026-08-03) — HISTORICAL. Its 86/86 conclusion is WITHDRAWN.
+
+> ⚠️ **Do not read this section as current state.** Its conclusion — *"the final
+> configuration is 86/86 byte-identical"* — was measured honestly on 2026-08-03 and was
+> **falsified the next day** by the compositor-layer paint offsets recorded in §8. The
+> current contract is this file's status line: **81 of 86 captures are byte-compared;
+> five are exempt by measurement** (§8.4, §8.10). The section is retained because §8 is
+> only legible against it, and because the remediations it lists (A–E) did ship and do
+> hold. **Nothing in this section authorizes a baseline regeneration today.**
 
 The failed result recorded below was real at SHA `40c2873`, but it is superseded by the
 final remediation and fresh-process evidence:
@@ -37,6 +45,12 @@ change can affect only six dark weekly/session-summary baselines:
 Therefore the final configuration is **86/86 byte-identical across three isolated DB,
 server, and browser generations**. The dependency gate for baseline regeneration is
 approved.
+
+> **↑ WITHDRAWN 2026-08-04, restated 2026-08-29.** Both sentences are false as current
+> state. §8 measured a fourth cause the day after this was written, and the corpus is
+> **81 of 86** byte-compared. The two regenerations this "approved" have since happened
+> under their own review (linux #281, win32 #304/#309), so the approval is **spent, not
+> standing** — a regeneration today needs fresh owner authorization.
 
 ## Historical record correction (2026-08-03) — superseded by the closure above
 
@@ -146,7 +160,7 @@ production delivery change is `templates/base.html` pointing the same Font Aweso
 | `e2e/visual-baseline-thumbnails.spec.ts` | Capture-time assertion that every `img.exercise-thumbnail` is decoded, in both the plan and log describe blocks. |
 | `playwright.config.ts` | Serializes compositor stages and disables threaded/checker/image-resync paths used by Chromium's deterministic headless pipeline. |
 | `templates/base.html`, `static/vendor/fontawesome/**` | Replace cdnjs Font Awesome 5.15.4 with the identical local CSS, solid/regular/brand WOFF2 assets, and upstream license. |
-| `tests/test_visual_capture_contracts.py` | **New.** 11 contracts (§3). |
+| `tests/test_visual_capture_contracts.py` | **New.** 11 contracts (§3) *as of this PR*. The file holds **15** today — #298 added the four byte-gate-exemption contracts and V1 (2026-08-29) added the inherited-red ledger check. `docs/test_inventory/TEST_INVENTORY.md` is the live count; do not re-derive it from this row. |
 | `docs/test_inventory/TEST_INVENTORY.{json,md}` | Regenerated (blocking drift gate): pytest **2111** deterministic nodes across 102 files. Playwright counts unchanged. |
 | `e2e/CLAUDE.md` | Visual-spec contract section: records the segmented capture, the pre-started catalog, and the regeneration checklist. |
 | `docs/visual_determinism/PLANNING.md` | This file. |
@@ -190,9 +204,18 @@ Playwright *test* counts do not change (547): a segmented page issues two
 
 ## 3. Tests, with recorded red and green
 
+> ⚠️ **Historical run records (2026-08-03).** Every figure in §3 is a real measurement of
+> this PR's own runs and is kept for that reason. **None of them describes the corpus
+> today.** §8 measured a fourth cause the following day; the contract is **81 of 86**
+> byte-compared with five captures exempt, and a run today writes **81** images, not 86.
+
 Red paths were executed, not asserted in prose. Commands and raw output below.
 
 ### 3.1 `tests/test_visual_capture_contracts.py` (8 nodes)
+
+> **Historical run record.** "8 nodes" and the outputs below describe this PR's own
+> red/green pair. The file holds **15** contracts today; see §1's row and
+> `TEST_INVENTORY.md`.
 
 RED — run before any fix, with `AWAITING_SEGMENTED_REGENERATION` temporarily emptied:
 
@@ -274,6 +297,10 @@ that capture-only surface, all six baselines the selector can affect were byte-i
 across three more fresh generations. Together this proves final **86/86 exact-byte
 stability** without a tolerance increase.
 
+> **↑ Superseded 2026-08-04.** That conclusion did not survive §8: five of the 86 flip
+> between two rasters at byte-identical layout on `ubuntu-24.04`, and are now exempt from
+> byte comparison. "Final" here means final *for this PR*, not final for the corpus.
+
 ---
 
 ## 4. Known reds and deliberate non-changes
@@ -300,6 +327,9 @@ list), `document.fonts.status`, computed `font-family`, `-webkit-font-smoothing`
 rasterisation, per browser process, not in layout or font selection. Serializing the
 compositor stages closes this class: the five residual targets were **5/5 byte-identical
 across three fresh processes**, and the final partitioned full gate is 86/86.
+*(That last clause is superseded — see §8. Serializing the compositor did close the
+**glyph-edge antialiasing** class described in this subsection; it did not close the
+**paint-offset rounding** class §8 measured, which is a different defect.)*
 
 ### 4.2 `prepare_e2e_db.py` deliberately keeps its uncurated catalog
 
@@ -315,6 +345,15 @@ scope here and needs its own packet.
 
 ### 4.3 The oversize contract carries a bounded, self-cleaning carve-out
 
+> **✅ SPENT — the carve-out is now the empty set (verified 2026-08-29).** Both platforms
+> were regenerated with segmented `user-profile-mobile` captures — linux in #281, win32
+> in #304/#309 — so no committed baseline exceeds the surface limit and
+> `AWAITING_SEGMENTED_REGENERATION` is `set()`. The paragraphs below describe the state
+> *during this PR* and are kept for the reasoning, not the status. The equality assertion
+> did **not** delete itself: with an empty constant it became a plain "no oversized
+> baseline may be committed" guard, which is why it was deliberately kept rather than
+> removed. The test's own docstring records that decision.
+
 `AWAITING_SEGMENTED_REGENERATION` names the two retired baselines. The two constraints —
 "the contract must be red today on exactly those two files" and "leave
 `e2e/__screenshots__/**` untouched" — cannot both hold *and* leave the test green, because
@@ -327,6 +366,13 @@ is empty, the constant no longer matches, and the test forces its own deletion.
 ---
 
 ## 5. Migration notes — the regeneration step
+
+> **✅ COMPLETED on both platforms; retained as the method, not as outstanding work.**
+> Linux landed in #281 (`864043f`), win32 in #304/#309 (`10ba89f`). All four steps below
+> are done: `EXPECTED_SNAPSHOT_COUNTS` reads **66 / 15 per platform**, `snapshotManifest`
+> was regenerated, and `AWAITING_SEGMENTED_REGENERATION` is empty. **Re-read this
+> checklist before any *future* regeneration** — it is still the correct four-step
+> procedure, but step 2's target is now 66/15, not the 66 → 68 written below.
 
 Regenerating the baselines is a separate, reviewed change. It must do all four of these
 together, or CI goes red:
@@ -360,12 +406,12 @@ the intended convergence, not a regression — it is the state a real user's app
 |---|---|---|
 | Full pytest | `.venv/Scripts/python.exe -m pytest tests/ -q` | **2431 passed, 2 skipped** in 444.41s |
 | New contracts (red) | `pytest tests/test_visual_capture_contracts.py -q --tb=line`, carve-out emptied, pre-fix | **4 failed, 4 passed** — see §3.1 |
-| New contracts (green) | `pytest tests/test_visual_capture_contracts.py -q` | **11 passed** |
+| New contracts (green) | `pytest tests/test_visual_capture_contracts.py -q` | **11 passed** *(this PR's run; the file holds **15** contracts today — see §1)* |
 | Test-inventory drift | `python scripts/generate_test_inventory.py --check` | DRIFT (expected: +8 nodes) → regenerated → **"Test inventory is up to date."** |
 | pyright net-new | `npx pyright@1.1.410 --outputjson` + `scripts/pyright_baseline_diff.py` | **PASS — 0 net-new (baseline 175, current 175)** |
 | tsc | `npx tsc --noEmit` | **exit 0** |
 | JS unit | `npm run test:js` | **9 files, 105 tests passed** |
-| E2E visual ×3 | fresh DB/server/browser generations, artifacts-only snapshot path | final partitioned gate **86/86 byte-identical** (§3.4) |
+| E2E visual ×3 | fresh DB/server/browser generations, artifacts-only snapshot path | final partitioned gate **86/86 byte-identical** (§3.4) — *this PR's result, superseded the next day by §8; the gate is **81 of 86** today* |
 
 ### `e2e/__screenshots__/**` is untouched
 
@@ -392,14 +438,17 @@ font families used by the templates.
 
 No plan / log / analyze / progress / distribute / backup behaviour changes: DB schema
 unchanged, no API response shape touched, and no calculation module imported by anything
-new. Coverage was added (11 contracts) and migration notes are §5.
+new. Coverage was added (11 contracts — **15** in the file today, see §1) and migration notes
+are §5.
 
 ---
 
 ## 7. Remaining follow-up (not Gate 2 blockers)
 
-1. **Baseline regeneration is not done here** — §5 is its checklist and PR #281 owns it.
-   Until it lands, `AWAITING_SEGMENTED_REGENERATION` is carrying two real oversized files.
+1. ~~**Baseline regeneration is not done here** — §5 is its checklist and PR #281 owns it.
+   Until it lands, `AWAITING_SEGMENTED_REGENERATION` is carrying two real oversized files.~~
+   **✅ CLOSED.** Linux regenerated in #281, win32 in #304/#309; the constant is the empty
+   set and no committed baseline exceeds 16,384 px (verified 2026-08-29).
 2. **The functional suite's startup race (§4.2)** is unfixed and out of scope.
 3. **`e2e/CLAUDE.md` is a shared, never-claimed path** per
    `docs/ai_workflow/PARALLEL_WORKFLOW.md`. It was edited additively (one section) because
@@ -555,6 +604,14 @@ at the pinned Playwright 1.61, a full local `win32` compare reds broadly, and
 > **That figure is pinned to a commit deliberately.** Neither win32 suite runs in required
 > CI, so a later CSS or template change can stale these baselines with nothing going red;
 > treat any commit after the pin as unmeasured until the two suites are re-run locally.
+>
+> > **Scoped 2026-08-29 — this warning now covers *fifteen* captures, not eighty-one.**
+> > The `21df713` pin is **91 commits behind `main`** at `116d3c5`, and #339 and #351 have
+> > moved win32 baselines since. But `visual.spec.ts`'s **66** win32 captures stopped being
+> > pin-dependent when #322 added `visual-windows` to `ci.yml`: they are byte-compared on
+> > every PR and every push to `main`. What the paragraph above still correctly describes is
+> > the **15 `visual-baseline-thumbnails.spec.ts` win32 captures**, which remain on no CI
+> > path at all. Do not cite `21df713` as the currency of the whole win32 corpus.
 > The converse is also not safe to assume — #317 was a real rendering fix that moved **no**
 > capture, because it changes visibility inside the `#superset-actions` container, which is
 > itself `display: none` in the rest state these suites capture. **Compare first; never

@@ -470,11 +470,16 @@ not prove the trigger. **Neither action is taken or authorized here.** See §13.
 ### Packet V1 — Visual determinism disposition
 
 **Priority:** P1 decision; P2 engineering if reopened  
-**Status:** Decision required  
+**Status:** ✅ **RULED 2026-08-29 — option 2, bounded investigation authorized; implementation
+withheld.** The documentation half is done (see the ruling below). The measurement half is
+**BLOCKED on runner access** and has not run.  
 **Estimate:** 2–4 hours to decide and reconcile docs; 2–5 developer-days to investigate and
 repair the rendering race
 
-**Current boundary**
+**Current boundary** — **independently re-counted at `116d3c5` on 2026-08-29**, not carried
+forward from prose: `visual.spec.ts` 66 tests → 68 captures (`user-profile-mobile-{dark,light}`
+each segment into two), `visual-baseline-thumbnails.spec.ts` 18; 162 committed PNGs = 81 per
+platform, linux and win32 name sets identical.
 
 - 81 of 86 captures are byte-compared.
 - Five captures are deliberately exempt and replaced by contract-pinned semantic assertions.
@@ -489,6 +494,39 @@ repair the rendering race
 2. **Fund a bounded investigation.** Time-box the race investigation to two developer-days,
    then either propose a measured repair or return to option 1. Do not regenerate baselines to
    hide nondeterminism.
+
+**Owner ruling — 2026-08-29**
+
+**Option 2.** 81/86 is accepted as the **current** boundary and is **not** terminal. A
+**two-developer-day investigation is authorized**, scoped to one question: does removing the
+`.tbl-wrap` / `.tbl` / `.tbl--responsive` compositor promotion **at capture time** produce
+byte-identical rasters across **three fresh generate runs on `ubuntu-24.04` and three on
+`windows-2022`**, measured by comparing generated rasters **to each other**, never to the
+committed baselines.
+
+The reason it is not closed: §8.5 of
+[`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) records `dropCompositingHints()`
+reaching **0/86 unstable over two runs** and then rejects it because an *exact-head compare*
+stayed red — but §8.3 of the same file states that a compare against baselines generated
+*with* the promotion "could not have shown success whatever it did". That objection was
+applied to the `translateZ(0)` experiment and **not** to this one. The single control that
+reached zero instability was therefore discarded on evidence that cannot distinguish
+*nondeterministic* from *legitimately different*.
+
+**Stop conditions:** the two days elapse; or either platform's three-run set is unstable; or
+the mechanism is shown to sit outside test-side control.
+
+**Prohibited as repairs, whatever the outcome:** snapshot regeneration; any tolerance above
+`maxDiffPixels: 800` / `threshold: 0`; retries; masks; crops; viewport narrowing; and any
+addition to `BYTE_GATE_EXEMPT`. **Implementation requires separate authorization.**
+
+⛔ **BLOCKED — the measurement has not run.** `dropCompositingHints()` is not in the tree
+(it lives only on closed #296's commits `947ba57` / `14344f3` / `bebb45c`), no workflow
+generates-and-self-compares, `visual-windows` has no generate mode and asserts no baseline
+was written, and neither runner image exists locally. Completing it needs a pushed branch
+plus a temporary workflow — beyond disposable local instrumentation — so it stopped for
+approval rather than broadening scope. The minimal proposed change is recorded with the V1
+report and is **not applied**.
 
 **Acceptance criteria**
 
@@ -1837,7 +1875,7 @@ explicit, per-change owner decision. Status words map to §3 as follows:
 | **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | 🟡 **Waiting on you** | **Authorize it and an agent runs it.** Nothing measured yet; 1–2 developer-days (§4) |
 | **R2** Owner-gated testing decisions | Four decisions — §15.4 items 2–5 | 🟡 **Waiting on you** | **You decide**, then ~0.5–1 developer-day of follow-through |
 | **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | The release gate on `main` **has never run by any trigger**. A dispatch tests the gate body cheaply; only a real tag you name tests the trigger (§4) |
-| **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | 🟡 **Waiting on you** | **Accept** (~0.25 day of doc work) or **investigate** (2-day time-box, up to 2–5 days if a repair is funded) |
+| **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | ✅ **Ruled 2026-08-29 — investigate.** Docs reconciled; the measurement is **blocked on runner access** | **Approve or decline the minimal workflow change** the measurement needs (§4 Packet V1). Implementation of any repair stays a separate authorization |
 | **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1), and nothing is attached to it — the funding re-price went **moot** at closure and is out of the debt table and the decision queue (§15.2 *Discharged*, §16.2) |
 | **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — queue empty** (§17.3: **zero dependency PRs** at `fe15225`; the one open PR is this plan's own) | Nothing until the next bump. #415/#416 merged 2026-08-26; landing one needs explicit owner authorization |
 | **§5 Parked** — 8 items | CSS C8, G4 superset tint, Fatigue Phase 3, four User-Profile/roadmap items, Testing Phase 3 step 11 / Phase 5 | ⛔ **Parked** | Nothing — unless you reopen one, or decide one will never be built, so §5 can mark it **Not planned** instead of leaving it ambiguous |
@@ -1886,9 +1924,10 @@ belongs in the table above or in §15.4:
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. **All eight stop work** — every entry
-here is a choice that must be made before something can proceed. Anything owed that blocks nothing
-is recorded outside this table.
+Every decision this plan is waiting on you for, in one place. **Seven of the eight stop work** — every
+entry here is a choice that must be made before something can proceed. Anything owed that blocks
+nothing is recorded outside this table. **Item 7 was ruled on 2026-08-29 and is kept, numbered and
+struck, rather than removed** — removing numbered rows is what created §17.5's citation debt.
 
 | # | Decision | Blocks |
 |---:|---|---|
@@ -1898,7 +1937,7 @@ is recorded outside this table.
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | Blocked behind item 8 |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |
-| 7 | **V1** — accept **81/86** as terminal, or fund the race investigation | V1 entirely and §10 criterion 7 |
+| 7 | ~~**V1** — accept **81/86** as terminal, or fund the race investigation~~ ✅ **RULED 2026-08-29: investigate.** What now blocks V1 is narrower — approve or decline the **minimal workflow change** the measurement needs | §4 Packet V1's measurement half. §10 criterion 7 is **met for the decision**, not for the measurement |
 | 8 | **Was #431 the final Vitest expansion packet?** (§15.2 debt 1) | Item 4, and the window's real T0 |
 
 > **Renumbering note, 2026-08-29.** This table previously ran to **ten** rows. Former item 9 —
@@ -1915,8 +1954,10 @@ is recorded outside this table.
 ### 15.5 The short version
 
 **No engineering packet is in flight.** T0, U1, U2 and both halves of U3 are on `main`, R0 is
-closed, and pyright reached **0 / 0 / 0** on 2026-08-29. What remains is **eight live decisions**
-that stop work — items 1–8 of §15.4, item 8 being §15.2's **one remaining** debt; **one standing
+closed, and pyright reached **0 / 0 / 0** on 2026-08-29. What remains is **seven live decisions**
+that stop work — items 1–8 of §15.4 **less item 7, ruled 2026-08-29** (V1: investigate; its
+measurement is now blocked on a workflow approval, not on the disposition), item 8 being
+§15.2's **one remaining** debt; **one standing
 track**, D1, with an empty queue and no bump to triage; and **two clocks plus two live-state
 readings** (§15.3). **That is eight obligations in total, not eleven** — §15.2's surviving debt is
 already counted among the eight, and its **other three are discharged** (§15.2 *Discharged*). The only unstarted
