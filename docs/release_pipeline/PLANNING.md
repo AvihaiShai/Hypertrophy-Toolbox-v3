@@ -1249,13 +1249,16 @@ counts however green it is. Measured the same day from the REST `total_count`:
 
 ---
 
-## Contract hardening after the first scheduled run — #399, #400 and #402
+## Contract hardening after the first scheduled run — #399, #400, #402 and R1
 
-*All three are **tests-only**. `.github/workflows/**` is byte-identical to
+*All four are **tests-only**. `.github/workflows/**` is byte-identical to
 `origin/main` across every packet — each mutation was applied inside an isolated
-worktree and reverted with `git checkout --`. No production behavior, schema,
+worktree and reverted with `git checkout --` (Packet R1 used `git apply -R`, a safe
+inverse patch, rather than a destructive restore). No production behavior, schema,
 calculation or API contract is involved. **[#402 added 2026-08-21; the heading and
-this paragraph previously named #399 and #400 only.]***
+this paragraph previously named #399 and #400 only. Packet R1 added 2026-08-29, by
+the same amendment convention: "three" became "four" here rather than silently
+leaving R1 outside a heading that enumerates its siblings.]***
 
 The automation-QA review of #398 found that Packet R2-b's hardening was **one
 level too shallow**: the `if:` bar covered the deep-gate *caller* only, while the
@@ -1413,6 +1416,194 @@ are `continue-on-error: true` — so it is held to the `if:` shape because it is
 the repository's only scheduled Python vulnerability scan, not because skipping
 it would lose a blocking signal.
 
+> **[MEASURED 2026-08-29 by Packet R1]** — both shapes have since been measured
+> and neither was detected by any contract this file held. See *Packet R1 — the
+> two shapes #402 left open, measured* below. The paragraph above is kept as
+> written: it was accurate when written, and it records that this work was
+> authorized rather than silently overtaken. **What R1 establishes is that the
+> contracts do not detect the shapes — not that a runtime false green was
+> demonstrated**; the runtime effect rests on documented GitHub semantics and
+> `ci.yml:1094-1095`, and no run was inspected.
+
+### Packet R1 — the two shapes #402 left open, measured
+
+*Tests only. `.github/workflows/**` is **byte-identical to `origin/main`** in the
+landed diff — every mutation below was applied inside a disposable isolated
+worktree, captured as a patch, and reverted with `git apply -R` before the next
+arm. The PR changes `tests/test_release_workflow_contracts.py`, the two generated
+inventory files, and this packet record plus its
+[`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) status amendment —
+no source, workflow, schema or template file. No workflow behavior, runtime
+behavior, schema, API or response contract changed.*
+
+**What was authorized, and on what evidentiary basis.** #402 recorded `needs:`
+and a job-level `continue-on-error:` as *"deliberately left open, and not
+established as defects"*, requiring each to have its own mutation proof and its
+own authorization. Both were authorized on 2026-08-29 on an explicitly stated
+basis, and the basis constrains what may be claimed:
+
+- **Claim A — detectability — is what this packet measures.** Each shape can be
+  introduced into `deep-gate.yml` and **no contract this file held detected it**.
+  That is a property of this repository's text, and it is measured here.
+- **Claim B — the runtime effect — is NOT measured in this repository.** That a
+  skipped job counts as a success, and that a job-level `continue-on-error: true`
+  lets a run report success over a failed job, rest on **GitHub's documented
+  semantics** and on the mechanism `ci.yml` already states in its own comments
+  above the `test-inventory` job: *"an `exit 0` step can never fail, and
+  continue-on-error swallows a real failure"* (`ci.yml:1094-1095`). No workflow
+  was dispatched and no run was inspected for either shape.
+
+**Say "the existing contracts do not detect these shapes." Do not say "runtime
+false green demonstrated."** The second is a claim about GitHub that this packet
+did not measure, and the distinction is the whole reason the probes were
+approvable without dispatching anything.
+
+#### The arms
+
+**21 arms, each applied and reverted individually, with the before-state re-measured
+after every restore rather than inferred once** — then all 21 re-run against the new
+contracts alongside **5 preserved arms** from #399/#400/#402, 26 in that second pass. The
+composition is **2 liveness controls**, **1 preservation control** (H2-C2) and **18 shape
+arms**. The two liveness controls ran **first**: a job-level `continue-on-error` in
+`_packaged-windows.yml` red on
+`test_the_single_definition_keeps_the_shape_both_lifted_jobs_had`, and
+`needs:` + `if: always()` on `full-e2e` red on
+`test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run[full-e2e]`
+— both exactly as predicted, which is what licenses reading a green from any
+other arm.
+
+| Arm | Shape | Before | After |
+|---|---|---|---|
+| H1-M1 | `needs: visual-linux` on `full-e2e` | green | red |
+| H1-M2 | `needs: dependency-health` on `full-e2e` | green | red |
+| H1-M3a–d | the same on the other four unconditional jobs | green | red, individually |
+| H1-M3all | all five at once | green | red, five arms named |
+| H2-M1 | job-level `continue-on-error: true` on `full-e2e` | green | red |
+| H2-M2a–e | the same on the other four plus `visual-linux` | green | red, individually |
+| H2-M2all | all six at once | green | red, six arms named |
+| H2-M3a–c | `${{ true }}`, value-on-next-line, tab-separated | green | red |
+| H2-M4 | job-level `continue-on-error` on `frozen-windows` | green | **green — out of scope, see below** |
+| H2-C2 | delete a **step-level** `continue-on-error` | green | **green — deliberate, preserved** |
+
+All **18 shape arms** were **green before this packet against all 51 contracts the
+file then held**. **17 are now killed by their own parametrized arm**, so the failing node
+id names the offending job. The eighteenth — **H2-M4**, the `uses:`-job boundary probe —
+is deliberately still green and is recorded rather than closed, below.
+
+#### The `needs:` asymmetry, stated before it can be over-read
+
+A `needs:` false green needs a **skipped** dependency. A **failed** dependency
+also skips its dependent, but reds the run — so it cannot produce one. That is
+arm **H1-M2**, run deliberately to produce that negative result — it is one of the 18
+shape arms, not one of the three controls — and **it is not reported as a false
+green**.
+
+Within `deep-gate.yml` as constrained today, `visual-linux` is the **only** job
+that can skip: the census test pins the job-id set at exactly seven, the
+conditional set at exactly `{visual-linux}`, and every other job is barred from
+any `if:`. So the only skip chain available is `needs: visual-linux` — and
+`visual-linux` runs on **every** `schedule` event, because a scheduled run
+carries no inputs and the `github.event_name == 'schedule'` disjunct is the only
+branch that can start it. Therefore:
+
+- **The weekly gate is not reachable by this shape**, and **R1-D3's clock, which
+  counts `schedule` runs, cannot be contaminated by it.**
+- **The `workflow_dispatch` path is reachable**, with `run_visual` at its `false`
+  default — which is how this workflow is overwhelmingly exercised (**108**
+  dispatch runs against **2** scheduled ones, measured 2026-08-24).
+
+The narrower blast radius is the finding, not a reason to skip the contract: a
+dispatch is how every piece of ad-hoc evidence about this gate has been produced.
+
+#### What is now pinned
+
+- **`needs:` is barred on the five unconditional jobs.** `visual-linux` is not
+  barred: a `needs:` *on* it chains to nothing that can skip, so it is not a
+  demonstrated failure mode, and R1's criterion is that protection match the
+  demonstrated mode only.
+- **A job-level `continue-on-error:` is barred on those five and on
+  `visual-linux`.** This shape needs no skip — it swallows a failure wherever it
+  sits — so `visual-linux`'s scheduled compare is as reachable as the rest.
+- **The key alone is the violation** in both contracts, for the reason #402
+  recorded: a pattern demanding `key: value` passes vacuously on the
+  value-on-next-line and tab-separated forms, both measured here as H2-M3b/c.
+- **The indent is the contract** for `continue-on-error`. `^    ` is job level;
+  `^      ` is step level. `dependency-health` carries the key on **both** its
+  scan steps by design — it reports rather than gates — and a whole-file scan
+  would red on that intentional configuration instead of on the unmeasured
+  shape, which is the "discovering an intentional configuration" trap
+  [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §11.6 named in
+  advance. Arm **H2-C2** deletes one of those step-level keys and **passes both
+  before and after**: it makes the gate stricter, not weaker, and is not this
+  contract's business. The indentation boundary is additionally proven against
+  **literal sample strings** inside the test, so that proving the pattern is
+  scoped does not smuggle in a new constraint on the workflow — pinning those two
+  step-level keys would bar a future packet from promoting `dependency-health` to
+  blocking, a decision nothing here has taken. The sample is a realistic job **block**,
+  not a bare key, and both patterns are counted with `findall` on it: a bare key sits at
+  offset 0, where `^` matches with or without `re.MULTILINE`, so a bare-key sample would
+  have left a deletion of that flag green while emptying all eleven job arms. The
+  positive arm matters most for `needs:`, whose five arms are otherwise all negatives —
+  no deep-gate job carries the key today.
+- **Both sets are read out of `DEEP_GATE_UNCONDITIONAL_JOBS` /
+  `DEEP_GATE_CONDITIONAL_JOBS` rather than restated**, so a rename already reds in
+  #402's census test and the classifications cannot drift apart.
+
+**This packet adds contracts and weakens none.** The five preserved arms from
+#399/#400/#402 — an `if:` on `full-e2e`, on all five at once, and on
+`frozen-windows`; `visual-linux`'s dropped `schedule` disjunct; and its `if:`
+removed entirely — were each re-run against the new file and **red both before and
+after**. No existing assertion was relaxed, generalized, or moved.
+
+#### Newly identified and deliberately NOT closed — `continue-on-error` on a `uses:` job
+
+Arm **H2-M4** put a job-level `continue-on-error: true` on `frozen-windows` and
+**no contract detected it**. The `PACKAGED_CALLERS` delegation contract bars
+`if:`, `needs:`, `with:`, `secrets:` and `strategy:` on all three callers; it does
+not bar this key.
+
+**A second, wider instance of the same shape is recorded here too, and likewise not
+fixed: nothing bars a job-level `continue-on-error:` in `release.yml` or
+`_packaged-windows.yml` either.** No job in either file carries one today. That path is
+*required*, not weekly, and `release_gate.py`'s fan-in gates on
+`result.get("result") != "success"` — so on the same documented-semantics basis this
+packet uses for Claim B, a job made non-blocking there would report `success` into
+`needs`. It was **not probed**: it is outside a deep-gate packet, and it is named here
+only so it is not mistaken for something this packet cleared.
+
+**The `frozen-windows` gap is recorded, not fixed**, and the landed contract deliberately
+excludes it — the authorization for this packet named H2-M4 as a boundary
+probe only. Whether the gap is *live* is genuinely unresolved: this document's own
+Plan v1 constraints record that a `uses:` job **does not accept**
+`continue-on-error` at all. If that record is right, the shape is a workflow
+**parse error** rather than a silent false green, and the correct repair is a
+contract that says so — not the one this packet added. If it is wrong, the shape
+would make a red bootloader smoke green for that caller. **Neither has been
+measured**, and resolving it needs its own authorization.
+
+#### Inventory — Packet R1
+
+*The `### Inventory` block further down is #399/#400/#402's and is left as the reading it
+was; these are the current figures.*
+
+**First, the 50 → 51 this file never accounted for.** The block below records #402 leaving
+the contract file at **50**, and Packet R1 started from **51**. The missing node is
+attributable by measurement, not inference: `git log` over
+`docs/test_inventory/TEST_INVENTORY.md` puts the change at **`a937116`**
+([#409](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/409)), the npm-audit
+promotion, which added `test_the_npm_audit_job_is_required_and_keeps_its_name_byte_for_byte`
+to this file. It is a release-pipeline contract added by a packet that was not a
+release-pipeline packet, which is why this document never picked it up.
+
+`tests/test_release_workflow_contracts.py` moves **51 → 63** (five `needs:` arms,
+six `continue-on-error` arms, one boundary test) and the deterministic collected
+total moves **2855 → 2867**. File counts are unchanged at **125** deterministic
+files and **126** pytest files — this packet added no test file. Vitest is
+unchanged at **245 cases across 13 files**, so nothing here re-engages Q2's
+restart clause. The inventory was regenerated by
+`scripts/generate_test_inventory.py` and never hand-edited; read the live figures
+from [`test_inventory/TEST_INVENTORY.md`](../test_inventory/TEST_INVENTORY.md).
+
 ### Inventory
 
 `tests/test_release_workflow_contracts.py` moved **40 → 44** across the two
@@ -1433,7 +1624,11 @@ rather than restating them. No test file was added or removed by either packet.
 ### What none of these packets establishes
 
 *(Previously "What neither packet establishes"; #402 is in scope here too and
-establishes nothing further on any of these points.)*
+establishes nothing further on any of these points. **Packet R1 is in scope as well, by
+the same reading, and added 2026-08-29** — it is a contract packet over workflow text and
+establishes nothing about R1-D3's clock, the `push: tags` trigger, or any gate's ability
+to go red. It adds one item of its own: it establishes nothing about GitHub's **runtime**
+handling of either shape, which it did not measure.)*
 
 Nothing about **R1-D3's three-consecutive-green-scheduled-runs clock**, which
 still stands at **one** (run 31993105305, 2026-08-17); nothing about

@@ -357,7 +357,18 @@ produced a new engineering packet.**
 ### Packet R1 — Deep-gate mutation probes
 
 **Priority:** P1  
-**Status:** Decision required; currently recorded as unmeasured and unauthorized  
+**Status:** ⚠️ **AMENDED 2026-08-29 — AUTHORIZED AND MEASURED.** Both hypotheses were
+authorized on 2026-08-29 and probed; **neither shape was detected by any contract the
+repository held**, and the two narrowest contracts are implemented. The packet record is
+[`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md) § *Packet R1 — the two
+shapes #402 left open, measured*. **What is established is that the contracts do not
+detect the shapes — NOT that a runtime false green was demonstrated**; the runtime effect
+rests on documented GitHub Actions semantics and `ci.yml:1094-1095`, and no workflow was
+dispatched and no run inspected. One shape was **newly identified and deliberately left
+open**: a job-level `continue-on-error:` on the `uses:` job `frozen-windows` is also
+undetected, and closing it needs its own authorization (below).
+
+**Status before that amendment:** Decision required; recorded as unmeasured and unauthorized  
 **Estimate:** 1–2 developer-days
 
 **Work after authorization**
@@ -367,6 +378,27 @@ produced a new engineering packet.**
 - Add the narrowest contract protection justified by each mutation result.
 - If a probe cannot demonstrate a false green, close that hypothesis rather than adding a
   speculative rule.
+
+⚠️ **AMENDED 2026-08-29 — what the probes returned.** **21 arms**, each applied in a
+disposable worktree and reverted by inverse patch with the before-state re-measured after
+every restore, then all 21 re-run against the new contracts together with **5 preserved
+arms** from #399/#400/#402 — 26 in the second pass. The composition: **2 liveness
+controls** (red before and after, as predicted, which is what licenses reading a green
+from any other arm), **1 preservation control** (green before and after by design), and
+**18 shape arms**. **All 18 shape arms were green against all 51 contracts the file then
+held**; **17 are now killed individually**, and the eighteenth is deliberately still green
+— see the `uses:`-job note below. Two results constrain what may be claimed:
+
+- **A failed dependency is not a false green.** `needs:` chains only produce one when the
+  dependency is *skipped*, and `visual-linux` — which always runs on a `schedule` event —
+  is the only job in `deep-gate.yml` that can skip. So the shape is reachable on the
+  `workflow_dispatch` path and **cannot contaminate R1-D3's clock**, which counts
+  `schedule` runs.
+- **`continue-on-error` on a `uses:` job (`frozen-windows`) is also undetected**, and is
+  **recorded, not fixed** — the authorization named it a boundary probe only. Whether the
+  gap is live is unresolved: `release_pipeline/PLANNING.md`'s own Plan v1 constraints record
+  that a `uses:` job does not accept the key at all, which would make it a parse error
+  rather than a silent false green. **A new owner decision is owed** (§15.4 item 11).
 
 **Acceptance criteria**
 
@@ -671,6 +703,7 @@ evidence. Do not reactivate the old implementation plan.
 **Status column re-measured 2026-08-28, in a second pass the same day, against `origin/main` @ `2035852` and the live PR list.** The 2026-08-27 reading is preserved in §12 and the `288667d` reading in §13; what moved since `288667d` is §14.
 ⚠️ **Re-measured again 2026-08-29 against `origin/main` @ `3532f86` and the live PR list; §16 is the log for that pass.** The Track P1 and Track D1 rows and the residual-investment paragraph below carry the newer reading.
 ⚠️ **Re-measured once more 2026-08-29, later the same day, against `origin/main` @ `fe15225` after #445, #448, #449 and #451 merged; §17 is the log for that pass.** Only the Track D1 row, the KI-010 row's waiver clause and the open-PR amendment below moved: no packet's status, estimate or gate changed.
+⚠️ **A fourth pass, 2026-08-29, later still: Packet R1 was authorized, measured and implemented, so row 5's status AND estimate changed** — the only row this pass moved. The sentence immediately above is left as the reading it was for the pass it describes.
 
 | Order | Packet | Status | Developer time | External/decision dependency | Gate |
 |---:|---|---|---:|---|---|
@@ -680,7 +713,7 @@ evidence. Do not reactivate the old implementation plan.
 | — | **U2 backup confirmation continuity** | **Complete** 2026-08-27 | *spent* | Gate 1 `52c44c4` ([#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424)), fix `efa780c` ([#427](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/427)) | Own Gate 1 — signed |
 | — | **U3 · KI-011** action-button survival | **Complete** 2026-08-27 | *spent* | Fix `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)) | Signed per defect |
 | — | **U3 · KI-010** type-word collision | **Complete** 2026-08-27 | *spent* | Gates `db6c34b` ([#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425)), `a37d7e7` ([#428](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/428)); fix `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), merged `2026-08-27T23:17:50Z` — **8 d 18 h ahead of its own OD-1 embargo; the waiver is written as OD-1-W and REACHED `main` as `fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§4, §13.4) | Own Gate 0 + Gate 1 — both signed |
-| 5 | R1 deep-gate mutation probes | **Not started** | 1–2 days | Owner authorization; both hypotheses still unmeasured | Own Gate 1 |
+| 5 | R1 deep-gate mutation probes | ⚠️ **AMENDED 2026-08-29 — authorized, probed and implemented**; was *Not started* | *spent* | — | Own Gate 1 |
 | 6 | R2 testing decisions | **Not started** | 0.5–1 day | Owner decisions. ⚠️ **The JS-unit window RESTARTED**: `2026-09-05T17:59:26Z` is spent, and `2026-08-27T23:18:21Z` / `2026-09-10T23:18:21Z` are **conditional on an owed owner determination** (§4, §13.3). R1-D3 clock **re-measured 2026-08-28 at 2 of 3** — both `schedule` runs green; third due **2026-08-31 03:17 UTC**, not yet occurred | Decision only |
 | 7 | V1 visual disposition | **Not started** | 0.25 day or 2–5 days | Owner chooses acceptance or investigation | Decision, then own Gate 1 if funded |
 | 8 | R3 tag-trigger proof | **Not started** | 0.5 day | Explicit authorization for a named real tag. **Re-measured 2026-08-28**: `release.yml` `push` count **0**, `workflow_dispatch` count **1** — and that lone rehearsal predates `a937116`, so the current **12-required / 13-expected** `release_gate.py` has **never executed by any trigger** (§13.6) | Owner action |
@@ -697,7 +730,8 @@ single row that once covered both would now flatten two different dates into one
 The original near-term commitment was **4–8 developer-days** for T0, U1–U3 and the authorized
 portions of R1/R2. **T0, U1, U2 and both halves of U3 have now been delivered**, so the
 residual is **1.5–3 developer-days — R1 and R2 — and every hour of it is behind an owner
-decision, not behind engineering capacity.** Visual race repair is a separate investment and
+decision, not behind engineering capacity.** ⚠️ **AMENDED 2026-08-29: R1 is delivered, so the
+residual this figure prices is now R2 alone.** Visual race repair is a separate investment and
 should not be silently folded into that figure. **The pyright burn-down is no longer a residual
 at all** — it closed 2026-08-29 at 0 / 0 / 0 (§16.2).
 
@@ -1039,6 +1073,13 @@ the instruction to close a hypothesis rather than add a speculative rule. Two de
   "before" state rather than inferring it** — the two failure modes #399/#400/#402 paid for
   are a contract that passes **vacuously** and a new contract that is **strictly weaker than
   the sibling it imitates**.
+
+> **[FOLLOWED 2026-08-29]** — both design notes were honoured by the executed probes. The
+> step/job distinction was preserved: the landed contract matches `^    continue-on-error:`
+> (four spaces) and a control arm deleting one of `dependency-health`'s **step-level** keys
+> passes both before and after. Every arm ran in a disposable worktree, was captured as a
+> patch, reverted with `git apply -R`, and had its before-state re-measured rather than
+> inferred. See §4 Packet R1 and `release_pipeline/PLANNING.md`.
 
 ### 11.7 Claims checked and confirmed
 
@@ -1834,7 +1875,7 @@ explicit, per-change owner decision. Status words map to §3 as follows:
 | **U3 / KI-011** Toast action-button survival | A still-valid toast button is no longer destroyed by the next message | ✅ **Done** — `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)), 2026-08-27 | — |
 | **U3 / KI-010** Toast type-word collision | `showToast('error')` renders the word, not a default success toast | ✅ **Done** — `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), 2026-08-27 | **Nothing — its one record is written and ON `main`.** The OD-1 waiver is recorded as **OD-1-W** in `toast_type_word_collision/PLANNING.md` §0.14, landed **`fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§15.2 *Discharged*) |
 | **R0** External release/testing evidence | Inspect the scheduled deep gate, refresh the ledger | ✅ **Done** — `5111a7f` ([#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)), 2026-08-24 | — |
-| **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | 🟡 **Waiting on you** | **Authorize it and an agent runs it.** Nothing measured yet; 1–2 developer-days (§4) |
+| **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | ✅ **Done — authorized and measured 2026-08-29.** Neither shape was detected by any existing contract; `needs:` is now barred on 5 of the 7 jobs and job-level `continue-on-error:` on 6 of 7, each for a stated reason | **One new decision**: a job-level `continue-on-error:` on the `uses:` job `frozen-windows` is also undetected and was deliberately left open (§15.4 item 11) |
 | **R2** Owner-gated testing decisions | Four decisions — §15.4 items 2–5 | 🟡 **Waiting on you** | **You decide**, then ~0.5–1 developer-day of follow-through |
 | **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | The release gate on `main` **has never run by any trigger**. A dispatch tests the gate body cheaply; only a real tag you name tests the trigger (§4) |
 | **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | 🟡 **Waiting on you** | **Accept** (~0.25 day of doc work) or **investigate** (2-day time-box, up to 2–5 days if a repair is funded) |
@@ -1886,13 +1927,16 @@ belongs in the table above or in §15.4:
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. **All eight stop work** — every entry
-here is a choice that must be made before something can proceed. Anything owed that blocks nothing
-is recorded outside this table.
+Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-29 — nine
+rows, of which seven stop work.** Items 2–8 are the blocking set; **item 1 is discharged and kept
+numbered** so nothing below it renumbers, and **item 11 is new and blocks nothing today** — it is
+the residual Packet R1 declared rather than closed, and it is recorded here rather than outside the
+table because it is a decision, not a debt. Before that amendment this read *"All eight stop
+work"*, which was true of the eight-row table it described.
 
 | # | Decision | Blocks |
 |---:|---|---|
-| 1 | Authorize the **R1** mutation probes — or close both hypotheses unmeasured | R1 entirely |
+| 1 | ~~Authorize the **R1** mutation probes — or close both hypotheses unmeasured~~ **DISCHARGED 2026-08-29** — authorized and measured; kept numbered so the rows below do not renumber | Nothing |
 | 2 | **R2.1** — what should `scan_export_bounds()` do when `min > max`? | The `utils/rep_range_integrity.py` docstring, which must follow the behavior, not choose it |
 | 3 | **R2.2** — sign or reject Testing Strategy **D4** | R2 closure |
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | Blocked behind item 8 |
@@ -1900,6 +1944,7 @@ is recorded outside this table.
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |
 | 7 | **V1** — accept **81/86** as terminal, or fund the race investigation | V1 entirely and §10 criterion 7 |
 | 8 | **Was #431 the final Vitest expansion packet?** (§15.2 debt 1) | Item 4, and the window's real T0 |
+| 11 | ⚠️ **NEW 2026-08-29 — should a job-level `continue-on-error:` be barred on the `uses:` job `frozen-windows`?** Packet R1 measured it as undetected but left it open by authorization. Resolve first whether a `uses:` job accepts the key at all — `release_pipeline/PLANNING.md`'s Plan v1 constraints say it does not, which would make the shape a parse error rather than a false green | Nothing today; it is the only residual R1 leaves |
 
 > **Renumbering note, 2026-08-29.** This table previously ran to **ten** rows. Former item 9 —
 > Track P1's re-price — went **moot** at the track's 0 / 0 / 0 closure. Former item 10 — recording
@@ -1911,20 +1956,31 @@ is recorded outside this table.
 > *“§15.4 items 2–5”*, §15.2's *“blocks §15.4 item 4”* and item 4's own *“blocked behind item 8”*
 > all still resolve. **The two citations that did point at the removed numbers — both in §16 — are
 > repaired in place** (§16.2, §16.3). Only the removed numbers themselves no longer exist.
+>
+> ⚠️ **AMENDED 2026-08-29.** Packet R1 added a row and it is numbered **11**, not 9. The retired
+> numbers stay retired: §16.2 still carries a struck-through *"§15.4 item 9"* meaning Track P1's
+> re-price, and re-issuing 9 would have made that citation silently resolve to an unrelated
+> decision — the exact damage this note exists to prevent. **Items 1–8 and 11 are the table; 9 and
+> 10 are permanently spent.**
 
 ### 15.5 The short version
 
 **No engineering packet is in flight.** T0, U1, U2 and both halves of U3 are on `main`, R0 is
-closed, and pyright reached **0 / 0 / 0** on 2026-08-29. What remains is **eight live decisions**
-that stop work — items 1–8 of §15.4, item 8 being §15.2's **one remaining** debt; **one standing
-track**, D1, with an empty queue and no bump to triage; and **two clocks plus two live-state
-readings** (§15.3). **That is eight obligations in total, not eleven** — §15.2's surviving debt is
-already counted among the eight, and its **other three are discharged** (§15.2 *Discharged*). The only unstarted
-*engineering* is what sits behind your decisions, and it is **three things, not two**: **R1's
-probes**, **R2's post-decision follow-through** — the export-bounds behavior change, its tests and
-the `utils/rep_range_integrity.py` docstring that must follow it — and **V1's option 2**. §8 prices
-the first two together at a **1.5–3 developer-day** residual for R1 and R2, with V1's repair
-separate.
+closed, and pyright reached **0 / 0 / 0** on 2026-08-29. ⚠️ **AMENDED 2026-08-29 — Packet R1 was
+authorized, measured and implemented, so every count in this paragraph moved.** What remains is
+**seven live decisions** that stop work — items **2–8** of §15.4, item 8 being §15.2's **one
+remaining** debt; **one standing track**, D1, with an empty queue and no bump to triage; and **two
+clocks plus two live-state readings** (§15.3). **That is seven obligations in total** — §15.2's
+surviving debt is already counted among them, and its **other three are discharged** (§15.2
+*Discharged*). R1 leaves **one new decision that blocks nothing**, §15.4 item 11. The only unstarted
+*engineering* is what sits behind your decisions, and it is now **two things, not three**: **R2's
+post-decision follow-through** — the export-bounds behavior change, its tests and the
+`utils/rep_range_integrity.py` docstring that must follow it — and **V1's option 2**. R1's probes
+were the third and are **done**. §8's **1.5–3 developer-day** residual was priced for R1 and R2
+together and now covers **R2 only**, with V1's repair separate.
+
+*Before that amendment this read: eight live decisions (items 1–8), eight obligations, and three
+unstarted engineering items including R1's probes.*
 
 ---
 
@@ -2353,3 +2409,34 @@ is stale: fix the board.”*
   one-line repair in a pass that owns those files.** The alternative — keeping two discharged
   rows numbered in an active queue purely so external pointers keep resolving — is the defect
   §17.4 item 3 exists to remove.
+
+---
+
+## 18. Packet R1 landed — 2026-08-29, and the pointers this pass ages
+
+**What changed.** Packet R1's two hypotheses were authorized, probed and closed with contracts.
+The engineering record is [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md)
+§ *Packet R1 — the two shapes #402 left open, measured*; the status amendments are §4, §8, §11.6,
+§15.1, §15.4 and §15.5 above. `.github/workflows/**` is byte-identical to `origin/main`.
+
+**What it establishes, stated once more because the distinction is the packet:** the contracts
+this repository held **do not detect** either shape. It does **not** establish that a runtime
+false green occurs — that rests on documented GitHub Actions semantics and the mechanism
+`ci.yml:1094-1095` already states, and **no workflow was dispatched and no run inspected**.
+
+**⚠️ THIS PASS AGES TWO POINTERS IN THIS FILE, AND NAMES THEM RATHER THAN LEAVING THEM TO BE
+DISCOVERED.** §15.4 now holds nine rows (items 1–8 and 11), of which seven block.
+
+| Location | Citation | Why it no longer resolves |
+|---|---|---|
+| §16.2 | *“§15.4 runs to **eight** items, and items 1–8 kept their numbers”* | Nine rows now; items 1–8 did keep their numbers, and the new row is **11** precisely so they could |
+| §17.4 | *“§15.4's **eight** decisions”* | Seven block; item 1 is discharged in place and item 11 blocks nothing |
+
+**Neither is a factual error** — both are dated readings that were true of the table they
+described, and this file's convention is to keep such readings and name what has moved past them.
+Both sit inside evidence logs for earlier passes and are deliberately **not** rewritten here.
+
+**Also owed, and outside this packet's authorized file scope:**
+[`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) and [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md)
+carry R1 as unstarted owner-gated work. That is now false, and repairing it belongs to a pass that
+owns those files.
