@@ -470,7 +470,8 @@ held**; **17 are now killed individually**, and the eighteenth is deliberately s
    this pass was open, unclaimed by either, and appended here. ~~**Row 44** is what the same
    standing mechanism now owes, minted by this pass's own merge.~~ ✅ **DISCHARGED `2026-08-29T22:54:16Z` (§20.2)**
    — #452 merged as `5d98824` and **row 44 is written**: run `33279287312`, job `99171566275`,
-   `success`, `2026-08-29T22:44:02Z`. **Row 45** now sits in its place.
+   `success`, `2026-08-29T22:44:02Z`. **The next unclaimed row** now sits in its place — no
+   fixed number, by Track D1's own rule.
    The Vitest corpus read **13 files / 245 cases** at **all fifteen** heads from `288667d` through
    `fe15225`, endpoints and intermediates alike, so **nothing in the range re-engaged Q2's restart
    clause**. ⚠️ **EXTENDED 2026-08-29 (§18.3): sixteen heads now**, `288667d` through `116d3c5`,
@@ -2507,7 +2508,8 @@ is stale: fix the board.”*
 - **Still owed after this pass:** ~~the **final-expansion-packet determination**~~ — ✅ **MADE
   2026-08-29 (§18.2)**; ~~§15.4's eight decisions~~ — **seven**, item 8 having been answered;
   ~~**row 41**, the next ledger row this PR's own merge mints and cannot record~~ — ✅ **WRITTEN
-  (§19.3)**, and **row 45** now sits in its place — rows 42 and 43 were written by the same pass
+  (§19.3)**, and **the next unclaimed row** now sits in its place — rows 42 and 43 were written
+  by the same pass
   (§19.5) and **row 44 by the closeout pass** (§20.2); and the **three out-of-file citations this pass's
   own renumbering falsifies**, immediately below — **still owed, and §18 deliberately created no
   fourth** by declining to renumber §15.4 again.
@@ -2740,7 +2742,7 @@ JS test case"*. **Q2's restart clause did not re-engage.**
 [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md), so both rows were **unclaimed**
 and the standing *"whichever pass lands first takes the next unclaimed row"* rule applies. The
 detail is in §13.0's rows-42–43 extension. ~~**Row 44** is what this pass's own merge mints, and it
-cannot record it.~~ ✅ **DISCHARGED — row 44 is written by the closeout pass (§20.2), and **row 45** now sits in its place.**
+cannot record it.~~ ✅ **DISCHARGED — row 44 is written by the closeout pass (§20.2), and **the next unclaimed row** now sits in its place.**
 
 **Four reconciliations this pass made rather than left to be discovered.**
 
@@ -2823,7 +2825,7 @@ and `created_at > 2026-08-29T22:18:08Z` returns the **same single** run. Window 
 suite. Elapsed T0 → row 44: **1 d 23 h 25 m 41 s**; remaining to `2026-09-10T23:18:21Z`:
 **12 d 0 h 34 m 19 s**.
 
-**Row 45** is what this closeout pass's own merge mints, and it cannot record it.
+**Whoever merges this closeout pass owes the next unclaimed row**, and it cannot record it. **No fixed number is written here, deliberately**: Track D1's own rule forbids it, and it was proved again within the hour — [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) merged at `2026-08-29T23:02:13Z` (`fcc0e59`, **D4 signed**) and took the number this sentence would have named. **Its row is unclaimed and is the next pass's to write.**
 
 ### 20.3 §17.5's citation debt is CLOSED
 
@@ -2837,14 +2839,18 @@ still runs OD-1 → OD-2 with no OD-1-W between them"* was discharged when `fe15
 
 ### 20.4 What this pass deliberately did not do
 
-- **It made no decision.** §15.4's blocking set is unchanged at **items 2–6**; items 7 and 11 remain
+- **It made no decision.** §15.4's blocking set is unchanged **by this pass** — items **2–6** as
+  read at `5d98824`, and **2, 4, 5 and 6** after #453 signed D4; items 7 and 11 remain
   open without stopping work; items 1 and 8 remain discharged.
 - **Q4 and D2 are untouched and unsigned**, and `JS Unit (Vitest, non-required)` remains
   **non-required**. No branch-protection or repository-setting change was made or proposed.
 - **U1-FOLLOWUP-1 is untouched** — OPEN, required, barred before `2026-09-10T23:18:21Z`, and stale
   on its quoted condition (U3b's **K13**). No planning, filing or implementation was begun.
 - **No JS test, production file, workflow, job name or inventory artifact was touched.**
-- **Still owed after this pass:** §15.4's **five** blocking decisions (items 2–6); **item 11**, open
-  but blocking nothing; **row 45**; and U1-FOLLOWUP-1, which is an obligation rather than a decision
-  and is not in §15.4. The **2026-08-31 03:17 UTC** deep-gate cron is the next external checkpoint,
+- **Still owed after this pass**, and every count here is an **instant**, not a state: §15.4's
+  blocking decisions — **items 2–6 at the `5d98824` reading, and items 2, 4, 5 and 6 once
+  [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) signed D4 (item 3) at `2026-08-29T23:02:13Z`**; **item 11**, open but
+  blocking nothing; **the next unclaimed ledger row**; and U1-FOLLOWUP-1, which is an
+  obligation rather than a decision and is not in §15.4. **Re-read §15.4 and §13.0 before
+  quoting either figure** — #453 moved both within twenty minutes of this pass's own reading. The **2026-08-31 03:17 UTC** deep-gate cron is the next external checkpoint,
   and the clock stands at **2 of 3**.

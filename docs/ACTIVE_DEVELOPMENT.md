@@ -42,12 +42,10 @@ and all are `success` / 18-of-18 / attempt 1: **row 41** = #450's landing, run `
 ruling), run `33273789390`, job `99156860069`, `2026-08-29T20:33:41Z`; **row 43** =
 [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)'s (`2cb938c`, Packet R1), run `33278243462`, job `99168706068`,
 `2026-08-29T22:18:29Z`; **row 44** = #452's own, run `33279287312`, job `99171566275`,
-`2026-08-29T22:44:02Z`. **Row 45** is what this closeout pass's own merge will mint, and it cannot
-record it — the standing §11.10 mechanism, unchanged. The window now holds **19 consecutive green
+`2026-08-29T22:44:02Z`. **Whoever merges this closeout pass owes the next unclaimed row**, which it cannot
+record — the standing §11.10 mechanism, unchanged. **No fixed number is written here, deliberately**: Track D1's own rule forbids it, and it was proved again within the hour — [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) merged at `2026-08-29T23:02:13Z` (`fcc0e59`, **D4 signed**) and took the number this sentence would have named. **Its row is unclaimed and is the next pass's to write.** The window now holds **19 consecutive green
 results on the 245-case suite; 0 red, missing, skipped or cancelled**, and the corpus is
-**13 files / 245 cases at all nineteen heads** `288667d` → `5d98824`. The window holds **16 consecutive green results on the 245-case suite, 0 red / missing /
-skipped / cancelled**, and the corpus is **13 files / 245 cases at all sixteen heads** from
-`288667d` to `116d3c5`. **Read the operative T0 from
+**13 files / 245 cases at all nineteen heads** `288667d` → `5d98824`. **Read the operative T0 from
 [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here** —
 the ruling is recorded there, at *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*, and
 [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §19 is its dated evidence log (§18 is Packet R1's, landed by #455 while this pass was open).
@@ -57,7 +55,7 @@ the ruling is recorded there, at *OWNER RULING — #431 IS THE FINAL EXPANSION P
 open**: [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`) ruled
 **V1 — investigate**, and [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)
 (`2cb938c`) landed **Packet R1**, discharging §15.4 item 1 and adding item 11. With **item 8 now
-answered** as well, **the blocking set is items 2–6 — five decisions**: R2.1, R2.2, R2.3 (Q4 / D2),
+answered** as well, **the blocking set was items 2–6 — five decisions** at that reading: R2.1, R2.2, R2.3 (Q4 / D2),
 R2.4 and R3. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
 discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
 queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31

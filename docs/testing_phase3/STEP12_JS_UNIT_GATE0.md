@@ -5283,7 +5283,8 @@ non-attempt run has landed.**
 >
 > ~~**This pass's own merge now mints row 44**, which it cannot record~~ — the standing §11.10
 > mechanism, unchanged. ✅ **DISCHARGED `2026-08-29T22:54:16Z`: row 44 is WRITTEN** in the extension below, from
-> #452's own post-merge run. **Row 45** is what the pass carrying that extension now owes. The row-41 extension's *"owes row 42"* clause is spent as a live statement
+> #452's own post-merge run. **The next unclaimed row** is what the pass carrying that
+> extension now owes. The row-41 extension's *"owes row 42"* clause is spent as a live statement
 > while remaining accurate as the dated prediction it was: rows 42 and 43 arrived first.
 >
 > **The enumeration is independent and bounded at both ends.**
@@ -5324,8 +5325,13 @@ case"*, and no JS test case moved. **Q2's restart clause did not engage at eithe
 > T0. The declaration is §13.0's *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*; a row is
 > evidence accumulating **inside** the window it opened, never a re-opening of it.
 >
-> **Whoever merges the PR carrying this extension owes row 45**, which it cannot record — the
-> standing §11.10 mechanism, unchanged.
+> **Whoever merges the PR carrying this extension owes the next unclaimed row**, which it
+> cannot record — the standing §11.10 mechanism, unchanged. **No fixed number is written here,
+> deliberately**: Track D1's rule in
+> [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 forbids it, and it was
+> proved again within the hour — [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) merged at `2026-08-29T23:02:13Z`
+> (`fcc0e59`) and took the number this clause would have named. **Its row is unclaimed and is
+> the next pass's to write.**
 >
 > **The enumeration is independent and bounded at both ends.**
 > `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to `created_at` in
