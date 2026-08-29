@@ -4,7 +4,52 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-29 (LATEST) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`,
+**2026-08-29 (LATEST) — THE JS-UNIT WINDOW'S T0 IS DECLARED. #431 IS RULED THE FINAL VITEST
+EXPANSION PACKET, `main` is at `116d3c5`, and NO engineering packet is in flight.**
+`origin/main` is at **`116d3c5`**, in full
+`116d3c56284822f8b644c565eb12059cae1ace27` — PR
+[#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450), the JS-unit ledger rows
+27–40 and plan reconciliation, merged **`2026-08-29T18:37:54Z`** — with **18 of 18** checks green
+on that commit (run `33268787682`). **Zero open PRs repo-wide** at `2026-08-29T19:32:58Z`, an
+instant rather than a state.
+
+**The owner ruling, 2026-08-29.** **PR [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)
+(`288667d`) is the FINAL Vitest expansion packet**, where *"final expansion packet"* means the
+last change merged before this qualification window that added, removed, renamed or materially
+changed a case under `static/js/**/*.test.js`. Therefore:
+
+- **Qualifying T0: `2026-08-27T23:18:21Z`** — job `98703428098`, run `33125767570`
+- **Strict 14-day mark: `2026-09-10T23:18:21Z`**
+- **U1-FOLLOWUP-1 remains OPEN and required**, its no-landing-before date re-anchored from the
+  spent `2026-09-05T17:59:26Z` to **`2026-09-10T23:18:21Z`**. Its quoted condition is stale
+  (U3b's **K13**) and must be re-read against
+  [`toast_action_continuity/PLANNING.md`](toast_action_continuity/PLANNING.md) §4.3 before the
+  packet is planned. A post-mark landing does **not** retroactively invalidate a completed cycle.
+- **U3b's KI-011 Vitest helper coverage is RETIRED**, not deferred — `OQ-10` authorized E2E-only
+  coverage and created no Vitest follow-up. Reviving it needs a **new packet and its own Gate 0**.
+
+**The ruling declares a T0 and nothing else.** **Q4 and D2 remain UNSIGNED**, `js-unit` remains
+**non-required** — branch protection re-read live at **12** required contexts,
+`JS Unit (Vitest, non-required)` **absent**, `strict` **false** — and no JS test, production
+file, workflow, job name or repository setting was touched. **Reaching the strict mark is a
+precondition, never a signature.**
+
+**The ledger ends at row 41 once this pass lands — on `main` it still ends at row 40.** Row 41 is
+#450's own landing: run `33268787682`, job `99143431684`, `success`, `2026-08-29T18:38:17Z`, and it
+is appended to §13.0's master ledger table by the pass carrying this block. **Row 42** is what that
+pass's own merge will mint, and it cannot record it. The window holds **16 consecutive green results on the 245-case suite, 0 red / missing /
+skipped / cancelled**, and the corpus is **13 files / 245 cases at all sixteen heads** from
+`288667d` to `116d3c5`. **Read the operative T0 from
+[`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here** —
+the ruling is recorded there, at *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*, and
+[`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §18 is its dated evidence log.
+
+**What is still open** is unchanged apart from that one debt closing: §15.4's decisions are now
+**seven**, items 1–7, item 8 having been answered. Track P1 stays closed at 0 / 0 / 0, Track D1's
+queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
+03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
+
+**2026-08-29 (SUPERSEDED by the block above, which is LATEST; preserved as the `225b7b0` reading it was) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`,
 and NO engineering packet is in flight. Everything still
 open is either an owner decision or parked. `js-unit` is still NOT promoted, and
 the JS-unit window's T0 is still CONDITIONAL and UNDECLARED.** `origin/main` is
@@ -97,6 +142,12 @@ three ecosystems in [`.github/dependabot.yml`](../.github/dependabot.yml) are
 **§13.0**. A row may be written only there, and no count may be read off this
 paragraph at a later session.
 
+✅ **ITEM 4 IS SUPERSEDED 2026-08-29 — T0 IS DECLARED: `2026-08-27T23:18:21Z`, strict mark
+`2026-09-10T23:18:21Z`.** The owner ruled #431 the final expansion packet. **Of the two
+expansions item 4 names, one survives and one does not:** **U1-FOLLOWUP-1** remains OPEN and
+required, re-anchored to the new mark; **U3b's KI-011 helper coverage is RETIRED**. The item is
+preserved below as the `225b7b0` reading it was.
+
 **4 — T0 is CONDITIONAL and UNDECLARED; the old marks are SPENT.** #431 took the
 Vitest corpus **231 → 245**, engaging owner ruling Q2's restart clause. **The old
 T0 `2026-08-22T17:59:26Z` and the old strict mark `2026-09-05T17:59:26Z` no
@@ -183,7 +234,7 @@ as `225b7b0`. **Do not start the OD-1 waiver record either** —
 [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) carries it and is open; review
 or land that PR instead, and the record returns as work only if #451 is closed unmerged; (4) **the owner determination on whether #431 was the
 final Vitest expansion packet is owed**, and it blocks Q4 / D2; (5) **everything
-else waits on the owner** — §15.4 items 1–8 and 10.
+else waits on the owner** — §15.4 items **1–7**. ⚠️ **CORRECTED 2026-08-29:** this read *"items 1–8 and 10"*; **item 10 was removed** by that plan's §17.4 and **item 8 was answered** on 2026-08-29, marked discharged in place so its number still resolves.
 
 **This reconciliation changed documentation only** — exactly two files,
 [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) and this one. No production, test,
@@ -1191,7 +1242,7 @@ intentional review of the exact golden diff before any behavior change.
 > verified against — `git rev-list --count 2c95bae..225b7b0` is **38**. **Three of its claims are
 > spent:** its *"zero open PRs"* — there are now **three**, none a dependency PR; its ledger
 > terminus **`2026-09-05T17:59:26Z`**, which #431 **spent** on 2026-08-27 by moving the Vitest
-> corpus 231 → 245 and restarting the window, whose new T0 is **conditional and undeclared**; and
+> corpus 231 → 245 and restarting the window, whose new T0 is ~~**conditional and undeclared**~~ ✅ **DECLARED 2026-08-29 as `2026-08-27T23:18:21Z`, strict mark `2026-09-10T23:18:21Z`**; and
 > its *"**KI-010** and **KI-011**"* still-open clause — **both shipped**, as `288667d` (#431) and
 > `5b35966` (#426). **The obligation to continue the ledger stands**, but it now runs against
 > §13.0's conditional T0 rather than that spent mark. **Most of what the block asserts still
