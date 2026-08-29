@@ -560,16 +560,20 @@ class TestRoleWeightAccumulationProperty:
     def test_total_credits_at_least_as_much_as_direct_only(
         self, sets, rir, primary, secondary, tertiary
     ):
-        kwargs = dict(
+        # Arguments are passed explicitly rather than splatted from a dict:
+        # pyright infers a homogeneous value type for a dict literal, so **kwargs
+        # here reports every argument as `int` and reds the net-new gate.
+        total = calculate_effective_sets(
             sets=sets, rir=rir, min_rep_range=8, max_rep_range=12,
             primary_muscle=primary, secondary_muscle=secondary,
             tertiary_muscle=tertiary,
-        )
-        total = calculate_effective_sets(
-            contribution_mode=ContributionMode.TOTAL, **kwargs
+            contribution_mode=ContributionMode.TOTAL,
         ).muscle_contributions
         direct = calculate_effective_sets(
-            contribution_mode=ContributionMode.DIRECT_ONLY, **kwargs
+            sets=sets, rir=rir, min_rep_range=8, max_rep_range=12,
+            primary_muscle=primary, secondary_muscle=secondary,
+            tertiary_muscle=tertiary,
+            contribution_mode=ContributionMode.DIRECT_ONLY,
         ).muscle_contributions
 
         for muscle, direct_value in direct.items():
