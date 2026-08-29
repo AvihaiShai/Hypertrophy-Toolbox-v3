@@ -274,6 +274,57 @@ def test_duplicate_role_muscle_is_credited_the_sum_of_its_role_weights(db_handle
     assert forearms['raw_weekly_sets'] == pytest.approx(4.5)
     assert forearms['effective_weekly_sets'] == pytest.approx(4.5)
     assert forearms['weekly_sets'] == pytest.approx(4.5)
+    # sessions_by_muscle accumulates inside the SAME deduplicated loop, so it
+    # moves too. Pinned here because it is the only assertion that would catch a
+    # partial revert of that one line.
+    assert forearms['frequency'] == 1
+
+
+@pytest.mark.usefixtures('clean_db')
+def test_duplicate_role_muscle_frequency_can_cross_the_threshold(db_handler):
+    """ADR-009's frequency consequence, at the boundary it actually moves.
+
+    Frequency counts sessions reaching >= 1.0 effective sets. One set at RIR 2
+    (0.85 effort) and 8-10 reps (1.0 rep-range) gives base 0.85. Before the
+    ruling the muscle was credited 0.85 twice at the secondary weight -- 0.425
+    each, and the per-session total the threshold reads was 0.85, BELOW 1.0, so
+    frequency was 0. Summing the role weights gives 0.85 * 1.5 = 1.275, so
+    frequency is 1. Frequency can only ever move UP this way, never down.
+    """
+    save_exercise(
+        {
+            'exercise_name': 'Dumbbell Wrist Curl',
+            'primary_muscle_group': 'Forearms',
+            'secondary_muscle_group': 'Forearms',
+            'tertiary_muscle_group': None,
+            'advanced_isolated_muscles': None,
+            'utility': 'auxiliary',
+            'grips': 'underhand',
+            'stabilizers': None,
+            'synergists': None,
+            'force': 'pull',
+            'equipment': 'dumbbell',
+            'mechanic': 'isolated',
+            'difficulty': 'beginner',
+        }
+    )
+    add_exercise(
+        routine='Arms Day',
+        exercise='Dumbbell Wrist Curl',
+        sets=1,
+        min_rep_range=8,
+        max_rep_range=10,
+        rir=2,
+        weight=10.0,
+        rpe=8.0,
+    )
+
+    forearms = calculate_weekly_summary()['Forearms']
+    # 0.85 * 1.5 = 1.275, reported rounded to two decimals.
+    assert forearms['effective_weekly_sets'] == pytest.approx(1.27)
+    # The threshold reads the UNROUNDED per-session total, which is 1.275 -- so
+    # this is 1 where the pre-ruling 0.85 gave 0.
+    assert forearms['frequency'] == 1
 
 
 @pytest.mark.usefixtures('clean_db')

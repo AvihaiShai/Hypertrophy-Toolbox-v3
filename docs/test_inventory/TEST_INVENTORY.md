@@ -163,7 +163,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_runtime_migration.py` | 24 |
 | `tests/test_runtime_paths.py` | 22 |
 | `tests/test_schema_registry.py` | 5 |
-| `tests/test_session_summary.py` | 38 |
+| `tests/test_session_summary.py` | 37 |
 | `tests/test_session_summary_routes.py` | 33 |
 | `tests/test_static_cache_policy.py` | 12 |
 | `tests/test_strength_calibration.py` | 36 |
@@ -184,7 +184,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_volume_progress.py` | 31 |
 | `tests/test_volume_splitter_api.py` | 14 |
 | `tests/test_volume_taxonomy.py` | 8 |
-| `tests/test_weekly_summary.py` | 6 |
+| `tests/test_weekly_summary.py` | 7 |
 | `tests/test_weekly_summary_golden.py` | 1 |
 | `tests/test_weekly_summary_routes.py` | 30 |
 | `tests/test_weekly_summary_unassigned.py` | 20 |

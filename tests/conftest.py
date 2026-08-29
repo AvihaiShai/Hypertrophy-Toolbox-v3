@@ -38,10 +38,13 @@ TEST_DB_FILENAME = "test_hypertrophy_toolbox.db"
 # from writing a `.hypothesis/` directory to the repository root, which ADR-002
 # forbids; with derandomize=True the example database carries no value anyway.
 #
-# The import is guarded because this is the ROOT conftest: an unguarded ImportError
-# would fail collection of the entire suite -- and would break
-# scripts/generate_test_inventory.py, which shells out to `pytest --collect-only`
-# and backs the required `Test Inventory Drift` check.
+# The import is guarded because this is the ROOT conftest: an unguarded
+# ImportError here would fail collection of the ENTIRE suite rather than of the
+# one file that needs Hypothesis. requirements.txt pins hypothesis as a hard
+# dependency, so the absent case is not a supported configuration -- the guard
+# just keeps its failure proportionate. Note it does NOT keep
+# `pytest --collect-only` green on its own: tests/test_effective_sets.py imports
+# hypothesis directly.
 try:
     from hypothesis import HealthCheck, settings as _hypothesis_settings
 except ImportError:  # pragma: no cover - only when the test extra is absent
@@ -61,7 +64,13 @@ else:
         deadline=None,
         database=None,
     )
-    _hypothesis_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "ci"))
+    # An unrecognized value would raise InvalidArgument at root-conftest import
+    # time -- the same whole-suite collection failure the guard above exists to
+    # avoid -- so fall back rather than abort.
+    _profile = os.getenv("HYPOTHESIS_PROFILE", "ci")
+    if _profile not in ("ci", "dev"):
+        _profile = "ci"
+    _hypothesis_settings.load_profile(_profile)
 
 
 def _initialize_test_database() -> None:

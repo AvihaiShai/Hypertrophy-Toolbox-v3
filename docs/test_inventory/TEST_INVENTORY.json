@@ -632,7 +632,7 @@
       },
       {
         "file": "tests/test_session_summary.py",
-        "tests": 38
+        "tests": 37
       },
       {
         "file": "tests/test_session_summary_routes.py",
@@ -716,7 +716,7 @@
       },
       {
         "file": "tests/test_weekly_summary.py",
-        "tests": 6
+        "tests": 7
       },
       {
         "file": "tests/test_weekly_summary_golden.py",

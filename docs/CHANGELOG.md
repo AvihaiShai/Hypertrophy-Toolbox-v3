@@ -6,6 +6,21 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ### User-visible
 
+- **A muscle worked in two roles now counts both.** When one exercise names the
+  same muscle in more than one of its Primary/Secondary/Tertiary slots, Effective
+  Sets credited only the *lower* role and silently dropped the higher one — so
+  `Dumbbell Wrist Curl` (Forearms primary **and** secondary) showed **3.0**
+  Effective against **4.5** Raw for the same three sets. **38 of the 1,897
+  exercises in the shipped catalog** are affected, `Barbell Pronated Pendlay Row`
+  and `Kettlebell Farmers Carry` among them. Those roles are now summed, so
+  Effective matches Raw for them on `/weekly_summary` and `/session_summary`
+  (primary + secondary = 150%). Weekly **frequency** can also increment for such
+  a muscle, because a session that previously fell short of the 1.0-effective-set
+  threshold may now clear it — it can only move up, never down. **Direct Only
+  mode is unchanged** (primary only, at 100%), and exercises whose three muscle
+  slots are all different are **completely unaffected**. Effective Sets remain
+  informational: nothing is blocked or auto-adjusted (ADR-009).
+
 - **The Fatigue body map no longer repeats its shoulder caveat.** The panel
   stated the merged-region caveat twice: a complete version above the figures,
   where it has to reach the reader before the gray region it explains, and an

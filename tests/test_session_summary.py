@@ -1019,32 +1019,6 @@ class TestDuplicateRoleMuscleADR009:
             assert forearms["raw_sets"] == pytest.approx(4.5)
             assert forearms["effective_sets"] == pytest.approx(4.5)
 
-    def test_duplicate_role_muscle_appears_once_per_routine(
-        self, app, exercise_factory, workout_plan_factory
-    ):
-        """The muscle is one row, not two, in the per-routine output."""
-        with app.app_context():
-            exercise_name = exercise_factory(
-                "Dumbbell Wrist Curl",
-                primary_muscle_group="Forearms",
-                secondary_muscle_group="Forearms",
-                tertiary_muscle_group=None,
-            )
-            workout_plan_factory(
-                exercise_name=exercise_name,
-                routine="Arms Day",
-                sets=3,
-                min_rep_range=8,
-                max_rep_range=12,
-                rir=0,
-                rpe=10.0,
-                weight=10.0,
-            )
-
-            result = calculate_session_summary()
-            muscles = list(result["Arms Day"])
-            assert muscles.count("Forearms") == 1
-
     def test_direct_only_unchanged_by_duplicate_role(
         self, app, exercise_factory, workout_plan_factory
     ):

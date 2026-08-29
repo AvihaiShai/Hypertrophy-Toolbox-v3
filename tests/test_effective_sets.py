@@ -537,6 +537,17 @@ class TestRoleWeightAccumulationProperty:
         for muscle, value in expected.items():
             assert result.muscle_contributions[muscle] == pytest.approx(value)
 
+        # Independent oracle: the ladder written as literals rather than read
+        # from the constant under test, so a wrong ladder cannot satisfy both.
+        expected_total = result.effective_sets * (
+            (1.0 if primary else 0.0)
+            + (0.5 if secondary else 0.0)
+            + (0.25 if tertiary else 0.0)
+        )
+        assert sum(result.muscle_contributions.values()) == pytest.approx(
+            expected_total
+        )
+
     @given(
         sets=st.integers(min_value=0, max_value=20),
         rir=st.one_of(st.none(), st.integers(min_value=0, max_value=10)),
