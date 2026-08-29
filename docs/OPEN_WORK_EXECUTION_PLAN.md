@@ -448,6 +448,13 @@ held**; **17 are now killed individually**, and the eighteenth is deliberately s
    place**. Every other occurrence sits inside a dated block in `MASTER_HANDOVER.md`,
    `ACTIVE_DEVELOPMENT.md` or `TESTING_STRATEGY_PLANNING.md` and is history, not drift.
 2. Decide and sign Testing Strategy D4.
+2. ~~Decide and sign Testing Strategy D4.~~ ✅ **DONE 2026-08-29 — D4 is SIGNED** with a bounded
+   scope: `hypothesis` over `utils/effective_sets.py` **only**, in two sequential packets, with the
+   volume splitter, plan generator, progression and `get_effort_factor()` **struck** from D4 as
+   written. Two product rulings — sum-of-role-weights for duplicate P/S/T muscles, and a total
+   `get_rep_range_factor()` — are **ADR-009**. Ruling: `TESTING_STRATEGY_PLANNING.md` §8.1e.
+   Execution plan: [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md).
+   **The decision is closed; the two packets are not — each still takes Gate 1.**
 3. After the qualification window, decide Q4/D2 and whether `JS Unit (Vitest,
    non-required)` should become a required context. Q4 and D2 are decided **together**; the
    window's strict mark is `2026-09-05T17:59:26Z`. ⚠️ **AMENDED 2026-08-28 — that mark is
@@ -1998,7 +2005,7 @@ explicit, per-change owner decision. Status words map to §3 as follows:
 | **U3 / KI-010** Toast type-word collision | `showToast('error')` renders the word, not a default success toast | ✅ **Done** — `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), 2026-08-27 | **Nothing — its one record is written and ON `main`.** The OD-1 waiver is recorded as **OD-1-W** in `toast_type_word_collision/PLANNING.md` §0.14, landed **`fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§15.2 *Discharged*) |
 | **R0** External release/testing evidence | Inspect the scheduled deep gate, refresh the ledger | ✅ **Done** — `5111a7f` ([#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)), 2026-08-24 | — |
 | **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | ✅ **Done — authorized and measured 2026-08-29.** Neither shape was detected by any existing contract; `needs:` is now barred on 5 of the 7 jobs and job-level `continue-on-error:` on 6 of 7, each for a stated reason | **One new decision**: a job-level `continue-on-error:` on the `uses:` job `frozen-windows` is also undetected and was deliberately left open (§15.4 item 11) |
-| **R2** Owner-gated testing decisions | **Three** remaining decisions — §15.4 items 3–5; **item 2 (R2.1) is decided and implemented**, ADR-010, 2026-08-29 | 🟡 **Waiting on you** | **You decide** — the ~0.5–1 developer-day of follow-through R2 carried was R2.1's, and it is done |
+| **R2** Owner-gated testing decisions | **Two** remaining decisions — §15.4 items 4–5; **item 2 (R2.1) is decided and implemented** (ADR-010) and **item 3 (D4) is signed** (ADR-009), both 2026-08-29 | 🟡 **Waiting on you** | **You decide** — the ~0.5–1 developer-day of follow-through R2 carried was R2.1's, and it is done |
 | **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | The release gate on `main` **has never run by any trigger**. A dispatch tests the gate body cheaply; only a real tag you name tests the trigger (§4) |
 | **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | ✅ **Ruled 2026-08-29 — investigate.** Docs reconciled; the measurement is **blocked on runner access** | **Approve or decline the minimal workflow change** the measurement needs (§4 Packet V1). Implementation of any repair stays a separate authorization |
 | **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1), and nothing is attached to it — the funding re-price went **moot** at closure and is out of the debt table and the decision queue (§15.2 *Discharged*, §16.2) |
@@ -2054,8 +2061,7 @@ and none belongs in §15.4:
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-29, three times the
-same day — nine rows, of which five stop work.** Items **3–6 and 8** are the blocking set.
+Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-29, four times the same day — nine rows, of which THREE stop work.** Items **4, 5 and 6** are the blocking set. **Items 2, 3 and 8 were all answered on 2026-08-29 — R2.1 as ADR-010, Testing Strategy D4 as ADR-009, and the final-expansion-packet question YES — and each is kept, numbered and struck**, on the same rule as items 1 and 7. **Six of the nine rows are now struck or non-blocking; only 4, 5 and 6 stop work.**
 **Item 7 was ruled on 2026-08-29 and is kept, numbered and struck, rather than removed** —
 removing numbered rows is what created §17.5's citation debt; what stays open under it is narrower
 and is stated in the row itself. **Items 1 and 2 are discharged and likewise kept numbered**, so nothing
@@ -2064,8 +2070,8 @@ declared rather than closed, and it sits in this table rather than outside it be
 decision, not a debt. Anything else owed that blocks nothing is recorded outside this table.
 
 *This read "All eight stop work" until the V1 ruling made it "Seven of the eight"; Packet R1 then
-discharged item 1 and added item 11, and the R2.1 ruling discharged item 2. Each reading was true of
-the table it described.*
+discharged item 1 and added item 11; the D4 signature then discharged item 3, and the R2.1 ruling item 2. Each reading was
+true of the table it described.*
 
 ⚠️ **AMENDED AGAIN 2026-08-29, a third time the same day — item 8 is answered.** #431 is ruled
 the final Vitest expansion packet, so item 8 is **discharged in place and kept numbered**, exactly
@@ -2078,7 +2084,7 @@ above and outside this file still resolves.
 |---:|---|---|
 | 1 | ~~Authorize the **R1** mutation probes — or close both hypotheses unmeasured~~ **DISCHARGED 2026-08-29** — authorized and measured; kept numbered so the rows below do not renumber | Nothing |
 | 2 | ~~**R2.1** — what should `scan_export_bounds()` do when `min > max`?~~ ✅ **DECIDED 2026-08-29 — ADR-010**: it reproduces `export_plan_to_workout_log`'s single combined call, so an inverted row is reported and named; the analysis scanners are unchanged; nothing is coerced and no constraint is added. Kept numbered for the same reason as item 1 | ~~The `utils/rep_range_integrity.py` docstring~~ — **nothing.** The docstring followed the ruling and is written (§4 R2) |
-| 3 | **R2.2** — sign or reject Testing Strategy **D4** | R2 closure |
+| 3 | ~~**R2.2** — sign or reject Testing Strategy **D4**~~ ✅ **DISCHARGED 2026-08-29 — D4 is SIGNED**, with a bounded scope (`utils/effective_sets.py` only, two packets) and two product rulings recorded as **ADR-009**. The ruling is `TESTING_STRATEGY_PLANNING.md` §8.1e; the execution plan is [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md). **This closes the decision, not the work** — both packets still take Gate 1 | ~~R2 closure~~ — R2 now closes on items 4 and 5 |
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | ✅ **Unblocked on timing 2026-08-29** — item 8 is answered and the window's strict mark is **`2026-09-10T23:18:21Z`**. **Still an unsigned decision**, and reaching the mark is a precondition, never a signature |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |
@@ -2107,21 +2113,24 @@ above and outside this file still resolves.
 > removed**, for the same reason item 1 is. §15.1 now reads *“items 3–5”*, so the quotation of
 > *“§15.4 items 2–5”* above is the **prior** wording, preserved because this note is the record of
 > that earlier repair; the other two quoted citations are untouched and still resolve. The blocking
-> set is now **items 3–6 and 8** — five of the nine rows.
+> set is now **items 4, 5 and 6** — three of the nine rows, items 2, 3 and 8 having all been
+> answered the same day.
 
 ### 15.5 The short version
 
 **No engineering packet is in flight.** T0, U1, U2 and both halves of U3 are on `main`, R0 is
-closed, and pyright reached **0 / 0 / 0** on 2026-08-29. ⚠️ **AMENDED 2026-08-29, three times the same
-day — the V1 ruling, Packet R1 and the R2.1 ruling each moved the counts in this paragraph.** What
-remains is **five live decisions** that stop work — items **3–6 and 8** of §15.4, item 8 being
-§15.2's **one remaining** debt; **one standing track**, D1, with an empty queue and no bump to
-triage; and **two clocks plus two live-state readings** (§15.3). **That is five obligations in
-total** — §15.2's surviving debt is already counted among them, and its **other three are
-discharged** (§15.2 *Discharged*).
+closed, and pyright reached **0 / 0 / 0** on 2026-08-29. ⚠️ **AMENDED 2026-08-29, four times the same
+day — the V1 ruling, Packet R1, the D4 signature and the R2.1 ruling each moved the counts in this
+paragraph.** What remains is **three live decisions** that stop work — items **4, 5 and 6** of
+§15.4; **one standing track**, D1, with an empty queue and no bump to triage; and **two clocks plus
+two live-state readings** (§15.3). **That is three obligations in total** — §15.2's last debt was
+item 8, and it was answered on 2026-08-29 along with its **other three** (§15.2 *Discharged*), so
+no debt remains to be counted among them.
 
-**Three rows are open without stopping work**, and are excluded from that five: **item 1**,
-discharged when Packet R1 was measured; **item 2**, ruled 2026-08-29 as ADR-010 and implemented; and
+**Five rows are open without stopping work**, and are excluded from that three: **item 1**,
+discharged when Packet R1 was measured; **item 2**, ruled 2026-08-29 as ADR-010 and implemented;
+**item 3**, D4 signed 2026-08-29 as ADR-009 — the decision closed, its two packets not; **item 8**,
+answered YES on 2026-08-29, which declared the JS-unit T0; and
 **item 7**, ruled 2026-08-29 — V1: investigate, its measurement now blocked on a workflow approval
 rather than on the disposition. **Item 11**, the residual Packet R1 declared rather than closed, is
 likewise open and blocking nothing.
