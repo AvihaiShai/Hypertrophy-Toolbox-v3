@@ -4,7 +4,60 @@
 
 ## Current State
 
-> **2026-08-29 (LATEST) — THE JS-UNIT WINDOW'S T0 IS DECLARED. #431 IS RULED THE FINAL VITEST
+> **2026-08-29 (LATEST) — TESTING STRATEGY D4 IS SIGNED, with a bounded scope and two product
+> rulings. No production code has changed, and no packet is in flight.**
+> `origin/main` is at **`116d3c5`**, re-measured **`2026-08-29T19:36:33Z`**, with **ZERO PRs open**
+> at that same instant — the open-PR count is an INSTANT, not a state. The block below this one
+> still says `225b7b0`; that was true when written, and #449 (`5664c0e`), #451 (`fe15225`) and
+> #450 (`116d3c5`) have merged since. That is a dated derived view ageing, not a defect.
+>
+> **D4 is signed** ([`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) §8.1e). The
+> authorized scope is `hypothesis` over **`utils/effective_sets.py` only**, in two sequential
+> packets — **A** role-weight accumulation, **B** `get_rep_range_factor()` totality. D4's other
+> named targets are **struck**: the volume splitter has no calculation surface, the plan generator
+> is DB-backed with unseeded `random`, progression already has 30 example tests, and
+> `get_effort_factor()` has an 11-integer domain already swept. **The signature authorizes no
+> production code change on its own** — both packets take Gate 1 with `product-risk-reviewer`.
+>
+> **Two product rulings landed as [`DECISIONS.md`](DECISIONS.md) ADR-009**, and both are
+> calculation-semantics changes, so treat them as load-bearing: **(1)** a muscle occupying two
+> P/S/T roles is credited the **sum** of those role weights (primary + secondary = **1.5×**),
+> matching Raw Sets and `utils/_fatigue/per_muscle.py`; `DIRECT_ONLY` stays primary-only.
+> **(2)** `get_rep_range_factor()` becomes **total**: `<6` → 0.85, `6–20` → 1.0, `>20–30` → 0.85,
+> `>30` → 0.70, missing data neutral at 1.0. **Ingress rep validation is out of scope.**
+>
+> **The defect these rulings fix is live and measured.** `calculate_effective_sets()` keys
+> `muscle_contributions` by muscle name, so a repeated muscle is **overwritten** by the lower role
+> weight — and **38 of the 1,897 rows in the shipped `data/catalog.seed.db` repeat a muscle across
+> the roles**. On `Dumbbell Wrist Curl` (Forearms, Forearms, —) at 3 sets / RIR 0 / 8–12 reps the
+> **Effective** column reports **3.0** where **Raw** reports **4.5**, on the same screen. **No test
+> in the repository passes the same muscle string to two roles**, and the weekly-summary golden's
+> fixture uses all-distinct muscles — so the defect is neither covered nor golden-pinned.
+>
+> **Packet A must be atomic across three modules.** Accumulating inside `calculate_effective_sets()`
+> alone makes it *worse*: `utils/weekly_summary.py` and `utils/session_summary.py` iterate the
+> three-role tuple and re-read the same dict key per role, so an accumulated value is added once per
+> duplicate role — 3.0× where 1.5× is ruled. The fix lands as one change across
+> `effective_sets.py` + `weekly_summary.py` + `session_summary.py`, with explicit regression tests
+> on both summary paths. Packet C (the DB-backed parity property) stays **deferred**; summary-level
+> regression coverage does **not**.
+>
+> **R2.2 is discharged** in the Open Work Execution Plan's decision queue. The `js-unit` half of D2
+> is now the only unsigned row in the Testing Strategy decision table. Execution plan:
+> [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md).
+>
+> ⚠️ **AMENDED 2026-08-30 while this block was still unmerged.** Three things above have moved and
+> the reading is left standing as the record of its moment. **`origin/main` is now `5d98824`** —
+> #454, #455 and #452 merged after the `116d3c5` measurement. **The decision queue now reads FIVE
+> stop-work items, not seven**: #455 discharged item 1 and #454 ruled item 7, both after this block
+> was drafted. And **Packet A is now in flight**, so *"no packet is in flight"* is spent — it was
+> true of the signature itself, which authorized no code.
+
+> **[UPDATED 2026-08-30 — this block carried the `(LATEST)` marker until the D4 block above was
+> written. It is otherwise unedited, and nothing in it is retracted: the JS-unit T0 declaration
+> stands exactly as recorded. Its *"D4 remains unsigned"* reading is the one sentence the block
+> above supersedes.]**
+> **2026-08-29 — THE JS-UNIT WINDOW'S T0 IS DECLARED. #431 IS RULED THE FINAL VITEST
 > EXPANSION PACKET, `main` is at `116d3c5`, and NO engineering packet is in flight.**
 > `origin/main` is at **`116d3c5`**, in full
 > `116d3c56284822f8b644c565eb12059cae1ace27` — PR
@@ -70,7 +123,11 @@
 > **V1 — investigate**, and [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)
 > (`2cb938c`) landed **Packet R1**, discharging §15.4 item 1 and adding item 11. With **item 8 now
 > answered** as well, **the blocking set is items 2–6 — five decisions**: R2.1, R2.2, R2.3 (Q4 / D2),
-> R2.4 and R3. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
+> R2.4 and R3. ⚠️ **RE-DERIVED 2026-08-30 — that count is spent.**
+> [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) (`fcc0e59`) **signed D4**,
+> discharging **item 3 (R2.2)** in place. **The blocking set is now items 2, 4, 5 and 6 — four
+> decisions**: R2.1, R2.3 (Q4 / D2), R2.4 and R3, and **item 3 joins items 1 and 8 as
+> discharged**. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
 > discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
 > queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 > 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
@@ -280,7 +337,9 @@
 >    §15.2 *Discharged*. **Item 7 (V1) has since been ruled**, **item 1 (R1) discharged**, and
 >    **item 11 added**.)* ⚠️ **RE-CORRECTED 2026-08-29: item 8 is answered too** and is
 >    marked discharged in place, keeping its number so existing pointers resolve. **Counted off
->    the merged table, the blocking set is items 2–6 — **five decisions**; items 7 and 11 are open without
+>    the merged table, the blocking set was items 2–6 — five decisions; **re-derived
+>    2026-08-30 after #453 signed D4 and discharged item 3, it is items 2, 4, 5 and 6 —
+>    four decisions**; items 7 and 11 are open without
 >    stopping work. Nothing there may be started by an agent, and reaching a clock's
 >    threshold is not authorization.
 >

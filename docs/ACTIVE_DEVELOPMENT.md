@@ -55,7 +55,11 @@ open**: [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`
 **V1 — investigate**, and [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)
 (`2cb938c`) landed **Packet R1**, discharging §15.4 item 1 and adding item 11. With **item 8 now
 answered** as well, **the blocking set is items 2–6 — five decisions**: R2.1, R2.2, R2.3 (Q4 / D2),
-R2.4 and R3. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
+R2.4 and R3. ⚠️ **RE-DERIVED 2026-08-30 — that count is spent.**
+[#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) (`fcc0e59`) **signed D4**,
+discharging **item 3 (R2.2)** in place. **The blocking set is now items 2, 4, 5 and 6 — four
+decisions**: R2.1, R2.3 (Q4 / D2), R2.4 and R3, and **item 3 joins items 1 and 8 as
+discharged**. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
 discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
 queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
