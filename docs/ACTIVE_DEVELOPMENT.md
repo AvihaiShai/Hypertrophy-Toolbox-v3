@@ -48,18 +48,34 @@ results on the 245-case suite; 0 red, missing, skipped or cancelled**, and the c
 **13 files / 245 cases at all nineteen heads** `288667d` → `5d98824`. **Read the operative T0 from
 [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here** —
 the ruling is recorded there, at *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*, and
-[`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §19 is its dated evidence log (§18 is Packet R1's, landed by #455 while this pass was open).
+[`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §19 is its dated evidence log (§18 is Packet R1's — [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455), the deep-gate mutation probes, not the release/tag packet of the same name — — [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455), the deep-gate mutation probes, not the release/tag packet of the same name —, landed by #455 while this pass was open).
 
 **What is still open**, re-derived from §15.4 as it stands after this branch merged
 `origin/main` — **not** carried from either side. **Two owner rulings landed while this pass was
 open**: [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`) ruled
 **V1 — investigate**, and [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)
 (`2cb938c`) landed **Packet R1**, discharging §15.4 item 1 and adding item 11. With **item 8 now
-answered** as well, **the blocking set was items 2–6 — five decisions** at that reading: R2.1, R2.2, R2.3 (Q4 / D2),
-R2.4 and R3. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
+answered** as well, **the blocking set is items 2–6 — five decisions**: R2.1, R2.2, R2.3 (Q4 / D2),
+R2.4 and R3. ⚠️ **RE-DERIVED 2026-08-30 — that count is spent.**
+[#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) (`fcc0e59`) **signed D4**,
+discharging **item 3 (R2.2)** in place. **The blocking set is now items 2, 4, 5 and 6 — four
+decisions**: R2.1, R2.3 (Q4 / D2), R2.4 and R3, and **item 3 joins items 1 and 8 as
+discharged**. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
 discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
 queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
+
+**⚠️ Naming key — "R1" means two unrelated things in this repository.**
+
+| Reads as | Means | Landed |
+|---|---|---|
+| *"Packet R1"*, *"the release/tag pipeline"* | the **release/tag pipeline** packet | [#374](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/374) (`5222db2`), 2026-08-14 — its `push: tags` trigger has **still never fired** |
+| **R1** in `OPEN_WORK_EXECUTION_PLAN.md` §15.1 / §15.4, and in the "NOT authorized" sentence in the superseded block below | the **deep-gate mutation probes** | [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455) (`2cb938c`), 2026-08-29 |
+
+**R1-D1 … R1-D6, and R1-D3 in particular, always belong to #374** — the release pipeline's
+own decision namespace, unrelated to #455 despite the shared letter and number. **Check which
+packet a citation means before acting on it.** The #374 references in this file are historical
+and accurate as written, and are deliberately not relabelled.
 
 **2026-08-29 (SUPERSEDED by the block above, which is LATEST; preserved as the `225b7b0` reading it was) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`,
 and NO engineering packet is in flight. Everything still
@@ -193,6 +209,39 @@ operative T0 from §13.0, never from here.** The corpus at `225b7b0` is **13 fil
 **D2**); **D4**; any branch-protection or repository-settings change; any tag or
 workflow dispatch; any dependency merge; and any action on R1, R2, R3, V1 or
 R1-D3 beyond recording the readings above.
+
+> ⚠️ **[ANNOTATED 2026-08-30 — two of the five packets named above have since been acted on,
+> with owner authorization.]** This whole block is already marked **SUPERSEDED** by the LATEST
+> block at the top of this file, which carries the current reading; the sentence above is kept
+> verbatim as the reading it was. It is annotated rather than rewritten because *"NOT
+> authorized and NOT taken"* is the kind of sentence a reader acts on directly, and **the
+> supersession header does not name which of the five moved.** Nothing here changes the
+> historical text.
+>
+> - **R1 — the deep-gate mutation probes** ([#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455), `2cb938c`) was authorized, run and
+>   merged. Read *"R1"* in the sentence above as that packet; the release/tag-pipeline packet
+>   that shares the name is [#374](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/374) and was never in scope for that
+>   prohibition — see the naming key in this file's current-state block.
+> - **V1** was ruled the same day, and its documentation half shipped as
+>   [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`). The V1
+>   **measurement** half is **still blocked on runner access and unstarted**, and #454's ruling
+>   stands exactly as recorded.
+> - **R2, R3 and R1-D3 are untouched.** The prohibition still holds for them in full, as it
+>   does for `js-unit` promotion (Q4 / D2), D4, branch-protection and repository-settings
+>   changes, tags, workflow dispatches and dependency merges.
+>
+> **What #455 established, stated exactly:** the contract tests this repository held **do not
+> detect** either shape — a job-level `needs:` or a job-level `continue-on-error:` on a
+> `deep-gate.yml` job. It did **NOT** establish that a runtime false green occurs. That
+> behavior is **documented and inferred, not executed or measured**: **no workflow was
+> dispatched and no run was inspected**, and the reasoning rests on documented GitHub Actions
+> semantics plus the mechanism `ci.yml` already states in its own comments above the
+> `test-inventory` job. **Nothing in #455 may be cited as "runtime false green demonstrated."**
+>
+> **#455 left two gaps open, and neither is implemented.** A job-level `continue-on-error:` on
+> the `uses:` job `frozen-windows` is likewise undetected — **recorded, not fixed**, and now
+> §15.4 item 11. And nothing bars the same shape in `release.yml` or `_packaged-windows.yml`,
+> which sit on the **required** path — **recorded and not probed**.
 
 **One further surface in THIS file is stale and is annotated in place rather than
 rewritten** — the `## Next Action` section far below, which restates the spent T0

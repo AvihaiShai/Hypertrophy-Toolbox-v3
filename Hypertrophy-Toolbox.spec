@@ -32,8 +32,8 @@ asset_files = staged_datas(REPO_ROOT)
 
 # Minimal excludes - only things definitely not needed (prioritize performance over size)
 excludes = [
-    'tkinter', 'matplotlib', 'scipy', 'PIL', 'IPython', 
-    'notebook', 'jupyter', 'pytest'
+    'tkinter', 'matplotlib', 'scipy', 'PIL', 'IPython',
+    'notebook', 'jupyter', 'pytest', 'hypothesis'
 ]
 
 a = Analysis(

@@ -425,7 +425,13 @@ held**; **17 are now killed individually**, and the eighteenth is deliberately s
 **Decisions**
 
 1. Define the intended `scan_export_bounds()` behavior when numeric `min > max`.
-2. Decide and sign Testing Strategy D4.
+2. ~~Decide and sign Testing Strategy D4.~~ ✅ **DONE 2026-08-29 — D4 is SIGNED** with a bounded
+   scope: `hypothesis` over `utils/effective_sets.py` **only**, in two sequential packets, with the
+   volume splitter, plan generator, progression and `get_effort_factor()` **struck** from D4 as
+   written. Two product rulings — sum-of-role-weights for duplicate P/S/T muscles, and a total
+   `get_rep_range_factor()` — are **ADR-009**. Ruling: `TESTING_STRATEGY_PLANNING.md` §8.1e.
+   Execution plan: [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md).
+   **The decision is closed; the two packets are not — each still takes Gate 1.**
 3. After the qualification window, decide Q4/D2 and whether `JS Unit (Vitest,
    non-required)` should become a required context. Q4 and D2 are decided **together**; the
    window's strict mark is `2026-09-05T17:59:26Z`. ⚠️ **AMENDED 2026-08-28 — that mark is
@@ -2017,8 +2023,10 @@ and none belongs in §15.4:
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-29, twice the
-same day — nine rows, of which six stop work.** Items **2–6 and 8** are the blocking set.
+Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-29, three times
+the same day — nine rows, of which FIVE stop work.** Items **2, 4, 5, 6 and 8** are the blocking
+set. **Item 3 was decided on 2026-08-29 — Testing Strategy D4 is SIGNED — and is kept, numbered
+and struck**, on the same rule as items 1 and 7.
 **Item 7 was ruled on 2026-08-29 and is kept, numbered and struck, rather than removed** —
 removing numbered rows is what created §17.5's citation debt; what stays open under it is narrower
 and is stated in the row itself. **Item 1 is discharged and likewise kept numbered**, so nothing
@@ -2027,7 +2035,8 @@ declared rather than closed, and it sits in this table rather than outside it be
 decision, not a debt. Anything else owed that blocks nothing is recorded outside this table.
 
 *This read "All eight stop work" until the V1 ruling made it "Seven of the eight"; Packet R1 then
-discharged item 1 and added item 11. Each reading was true of the table it described.*
+discharged item 1 and added item 11; the D4 signature then discharged item 3. Each reading was
+true of the table it described.*
 
 ⚠️ **AMENDED AGAIN 2026-08-29, a third time the same day — item 8 is answered.** #431 is ruled
 the final Vitest expansion packet, so item 8 is **discharged in place and kept numbered**, exactly
@@ -2040,7 +2049,7 @@ above and outside this file still resolves.
 |---:|---|---|
 | 1 | ~~Authorize the **R1** mutation probes — or close both hypotheses unmeasured~~ **DISCHARGED 2026-08-29** — authorized and measured; kept numbered so the rows below do not renumber | Nothing |
 | 2 | **R2.1** — what should `scan_export_bounds()` do when `min > max`? | The `utils/rep_range_integrity.py` docstring, which must follow the behavior, not choose it |
-| 3 | **R2.2** — sign or reject Testing Strategy **D4** | R2 closure |
+| 3 | ~~**R2.2** — sign or reject Testing Strategy **D4**~~ ✅ **DISCHARGED 2026-08-29 — D4 is SIGNED**, with a bounded scope (`utils/effective_sets.py` only, two packets) and two product rulings recorded as **ADR-009**. The ruling is `TESTING_STRATEGY_PLANNING.md` §8.1e; the execution plan is [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md). **This closes the decision, not the work** — both packets still take Gate 1 | ~~R2 closure~~ — R2 now closes on items 2 and 5 |
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | ✅ **Unblocked on timing 2026-08-29** — item 8 is answered and the window's strict mark is **`2026-09-10T23:18:21Z`**. **Still an unsigned decision**, and reaching the mark is a precondition, never a signature |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |

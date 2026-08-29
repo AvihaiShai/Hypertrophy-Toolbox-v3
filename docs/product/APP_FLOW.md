@@ -372,8 +372,15 @@ muscle-contribution weighting still applies. So in `TOTAL` mode a 3-set bench pr
 
 Two threshold details worth knowing before reading a boundary: the session-volume bands are
 lower-inclusive and upper-exclusive, so exactly 10.0 classifies as borderline despite a docstring
-saying "≤10 OK"; and the rep-range factor keys off the *average* of min and max, so an average
-landing between buckets matches none of them and falls through to 1.0.
+saying "≤10 OK"; and the rep-range factor keys off the *average* of min and max, so a 5–8 range is
+read as 6.5 rather than as two endpoints.
+
+Those rep-range bands are **total** — every positive average lands in one, with no gap
+(`DECISIONS.md` ADR-009 ruling 2): under 6 → 85%, 6–20 → 100%, over 20 up to 30 → 85%, over 30 →
+70%. A rep range that is not set, or whose average is zero or negative, stays neutral at 100%.
+*(Superseded wording, kept because it described real behavior until 2026-08-30: "an average landing
+between buckets matches none of them and falls through to 1.0." That fall-through was the defect
+ADR-009 removed — an average of 30.5 scored 1.0, above both its neighbours.)*
 
 > Effective sets, the volume class, and the coverage warnings are **informational**. Nothing here
 > adjusts a plan value, blocks an input, or gates a control.
