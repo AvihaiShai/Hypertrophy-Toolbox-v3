@@ -4808,8 +4808,8 @@ back byte-identical.
 
 > ⚠️ **ANNOTATION 2026-08-29 — the paragraph above is the `2026-08-26T23:37:12Z` reading and is
 > left as one; the TABLE below has since grown past it.** *"The sixteen rows below"* was true at
-> that read and has been overtaken by every extension since — the table now carries **37** rows,
-> through the rows 27–37 extension. **The rows themselves are unchanged**; only the lead-in's count
+> that read and has been overtaken by every extension since — the table now carries **40** rows,
+> through the rows 27–40 extension. **The rows themselves are unchanged**; only the lead-in's count
 > and its *"newest `main` run"* are spent. Read the live tally from the newest extension block, not
 > from here.
 
@@ -4852,6 +4852,9 @@ back byte-identical.
 | **35** | [`33227220925`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33227220925) | `push` / `1226e46` (PR #446, Track P1 integration — six workers, 37 / 16 / 11 → 9 / 2 / 1) | `success`, **18/18** | [**`99033174343`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33227220925/job/99033174343) | **`success`** | **`2026-08-29T01:45:23Z`** |
 | **36** | [`33253693943`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33253693943) | `push` / `3532f86` (PR #447, Track P1 close — `routes/workout_plan.py`, 9 / 2 / 1 → 0 / 0 / 0) | `success`, **18/18** | [**`99103640118`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33253693943/job/99103640118) | **`success`** | **`2026-08-29T12:55:27Z`** |
 | **37** | [`33255921889`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889) | `push` / `158ee40` (PR #445, the owner status board — §15 of the Open Work Execution Plan) | `success`, **18/18** | [**`99109487854`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889/job/99109487854) | **`success`** | **`2026-08-29T13:48:04Z`** |
+| **38** | [`33264331296`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33264331296) | `push` / `225b7b0` (PR #448, `REFACTOR_PLAN.md` reconciled to Track P1's closure) | `success`, **18/18** | [**`99131593513`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33264331296/job/99131593513) | **`success`** | **`2026-08-29T16:57:25Z`** |
+| **39** | [`33265748817`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33265748817) | `push` / `5664c0e` (PR #449, `MASTER_HANDOVER.md` + `ACTIVE_DEVELOPMENT.md` reconciled) | `success`, **18/18** | [**`99135395368`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33265748817/job/99135395368) | **`success`** | **`2026-08-29T17:29:37Z`** |
+| **40** | [`33267048668`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33267048668) | `push` / `fe15225` (**PR #451, the OD-1 waiver recorded as OD-1-W**) | `success`, **18/18** | [**`99138843724`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33267048668/job/99138843724) | **`success`** | **`2026-08-29T17:59:51Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5084,13 +5087,13 @@ It takes the Vitest corpus **231 → 245**, so merging it *would* engage Q2's re
 T0. It **must not land before `2026-09-05T17:59:26Z`**, and reaching that timestamp is **not itself
 merge authorization**.
 
-> **LEDGER EXTENSION — `2026-08-29T13:48:04Z`, rows 27–37.** The most recent tally above — the
+> **LEDGER EXTENSION — `2026-08-29T17:59:51Z`, rows 27–40.** The most recent tally above — the
 > rows 24–26 one, at `2026-08-27T23:18:21Z` — was true at that moment and is **annotated, not
-> rewritten**, as every extension before it has been; the live reading is below. **Eleven** `main`
-> `ci.yml` runs have landed since, all eleven read at job level — the `js-unit` job's own
+> rewritten**, as every extension before it has been; the live reading is below. **Fourteen** `main`
+> `ci.yml` runs have landed since, all fourteen read at job level — the `js-unit` job's own
 > `conclusion` and `completed_at`, never the run's overall conclusion. Read from the API at
-> **`2026-08-29T14:10:11Z`** (UTC now, taken from the GitHub API response `Date` header, not from
-> the host clock), after run `33255921889` reached `completed` with **zero** pending jobs.
+> **`2026-08-29T18:12:28Z`** (UTC now, taken from the GitHub API response `Date` header, not from
+> the host clock), after run `33267048668` reached `completed` with **zero** pending jobs.
 >
 > Rows 27–32 are the 2026-08-28 Track P1 merge wave
 > ([#439](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/439), #440, #441, #442, #444,
@@ -5101,64 +5104,69 @@ merge authorization**.
 > [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445)'s** — the owner-status-board
 > PR, whose own diff predicted that row, in §16.3 of
 > [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md), and correctly declined to claim
-> it as recorded. **Whoever merges THIS PR owes the next unclaimed row.**
+> it as recorded. **Rows 38, 39 and 40 are the three documentation PRs that landed after it** —
+> [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) (`225b7b0`),
+> [#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) (`5664c0e`) and
+> [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) (`fe15225`), in that landing
+> order. **Whoever merges THIS PR owes the next unclaimed row, which is row 41.**
 >
-> **Row order was checked, not assumed.** Sorting the eleven runs by `created_at` and by their
+> **Row order was checked, not assumed.** Sorting the fourteen runs by `created_at` and by their
 > `js-unit` job's `completed_at` yields the **same** sequence, so no row number here is ambiguous.
-> Five of the eleven runs were created inside a **112-second** span
+> Five of the fourteen runs were created inside a **112-second** span
 > (`2026-08-28T21:16:42Z` → `21:18:34Z`) as the Track P1 wave landed, and **none was cancelled or
 > superseded**: `ci.yml`'s concurrency group is
 > `${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}`, so a push run
 > falls back to `github.run_id` and is alone in its group — a rapid push to `main` cannot cancel a
 > queued sibling. That was read off each run's own `status`,
-> `conclusion` and `run_attempt` — all eleven `completed` / `success` / attempt **1**.
+> `conclusion` and `run_attempt` — all fourteen `completed` / `success` / attempt **1**.
 >
 > **The whole ledger was re-derived, not extended from the page**, as this block's own standing
-> rule requires. All **37** rows — not merely the eleven new ones — had their run's `/jobs`
+> rule requires. All **40** rows — not merely the fourteen new ones — had their run's `/jobs`
 > re-fetched and their run id, `js-unit` job id, job `conclusion` and job `completed_at` compared
-> against what this table already carried: **37 of 37 agree, zero mismatches**, and every one of
-> the 37 runs re-read as **18 jobs / 18 `success`**. The rows above are therefore a fresh reading
+> against what this table already carried: **40 of 40 agree, zero mismatches**, and every one of
+> the 40 runs re-read as **18 jobs / 18 `success`**. The rows above are therefore a fresh reading
 > that happens to equal the page, which is what "re-derive" means here.
 
-| Ledger tally, at `2026-08-29T14:10:11Z` | Value |
+| Ledger tally, at `2026-08-29T18:12:28Z` | Value |
 |---|---:|
-| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after the original T0 | **37** — all thirty-seven `push`, all thirty-seven 18/18 |
-| Green `main` `JS Unit` results since and including the original T0 | **37** |
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after the original T0 | **40** — all forty `push`, all forty 18/18, all attempt **1** |
+| Green `main` `JS Unit` results since and including the original T0 | **40** |
 | **Red** results | **0** |
 | **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
 | **Skipped** results | **0** |
 | **Cancelled** results | **0** |
-| `main` runs of **any** workflow at or after the original T0 **and at or before this read** (completeness check, not a tally) | **42** — the 37 attempts plus **5** classified non-attempts, re-enumerated at this read and **unchanged in membership**: 3 Dependabot update runs, 1 `Deep Gate (manual + weekly)`, 1 dependency-graph update. Each of the five had its `/jobs` enumerated again and each returned **zero** `JS Unit (Vitest, non-required)` jobs |
-| **`schedule`-event `ci.yml` runs in the window** | **0** — re-read at `158ee40`, where `ci.yml`'s `on:` carries `push` and `pull_request` only |
+| `main` runs of **any** workflow at or after the original T0 **and at or before this read** (completeness check, not a tally) | **45** — the 40 attempts plus **5** classified non-attempts, re-enumerated at this read and **unchanged in membership**: 3 Dependabot update runs, 1 `Deep Gate (manual + weekly)`, 1 dependency-graph update. Each of the five had its `/jobs` enumerated again and each returned **zero** `JS Unit (Vitest, non-required)` jobs. **No sixth non-attempt run has landed** — the three runs added since the `14:10:11Z` read are all `ci.yml` |
+| **`schedule`-event `ci.yml` runs in the window** | **0** — re-read at `fe15225`, where `ci.yml`'s `on:` carries `push` and `pull_request` only |
 | **Green results on the 231-case suite (rows 1–25)** | **25** |
-| **Green results on the 245-case suite (rows 26–37)** | **12** |
-| Elapsed from row 26 to row 37 | **1 d 14 h 29 m 43 s** — a **conditional** figure: it is a fourteen-day window's elapsed time only if row 26's timestamp is T0, which **this block does not declare** |
-| Remaining from row 37 to the **conditional** `2026-09-10T23:18:21Z` mark | **12 d 9 h 30 m 17 s**, on the same condition |
+| **Green results on the 245-case suite (rows 26–40)** | **15** |
+| Elapsed from row 26 to row 40 | **1 d 18 h 41 m 30 s** — a **conditional** figure: it is a fourteen-day window's elapsed time only if row 26's timestamp is T0, which **this block does not declare** |
+| Remaining from row 40 to the **conditional** `2026-09-10T23:18:21Z` mark | **12 d 5 h 18 m 30 s**, on the same condition |
 
-**Rows 27–37 restart nothing, and the measurement covers every one of the eleven — not merely the
+**Rows 27–40 restart nothing, and the measurement covers every one of the fourteen — not merely the
 endpoints.** `git rev-parse <sha>:static/js` returns **`a7e5073568b0fde8e35e1e1a7be5a9f844e77828`** at **all
-twelve** of `288667d`, `878057f`, `8a53fd3`, `cc72162`, `3e60cdd`, `f318d81`, `c6cfe31`,
-`2035852`, `3807011`, `1226e46`, `3532f86` and `158ee40` — so the **entire production JS tree**,
-not merely the Vitest corpus, is byte-identical from row 26's head through row 37's, at every
+fifteen** of `288667d`, `878057f`, `8a53fd3`, `cc72162`, `3e60cdd`, `f318d81`, `c6cfe31`,
+`2035852`, `3807011`, `1226e46`, `3532f86`, `158ee40`, `225b7b0`, `5664c0e` and `fe15225` — so the
+**entire production JS tree**,
+not merely the Vitest corpus, is byte-identical from row 26's head through row 40's, at every
 commit in between. The narrower *"changed no JS test case"* measurement holds a fortiori:
 `git rev-parse <sha>:static/js/modules/__tests__` is
-**`5858c8497c571548e5116f4b660ff7702dd298b1`** at all twelve, and `vitest.config.js` is
-`c16ca428f7478708d8dd96a20ebcb86f98a8b935` at all twelve, so the collection mechanism did not move
+**`5858c8497c571548e5116f4b660ff7702dd298b1`** at all fifteen, and `vitest.config.js` is
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935` at all fifteen, so the collection mechanism did not move
 either. [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) reads
-`vitest.total_files = 13`, `vitest.total_cases = 245` at **all twelve** as well — the inventory was
+`vitest.total_files = 13`, `vitest.total_cases = 245` at **all fifteen** as well — the inventory was
 read at each head, not merely at the two ends.
-**Q2's restart clause did not engage at any of the eleven rows.**
+**Q2's restart clause did not engage at any of the fourteen rows.**
 
-**The eleven carriers, for the record:** **eight** Track P1 pyright packets over `tests/**`,
+**The fourteen carriers, for the record:** **eight** Track P1 pyright packets over `tests/**`,
 `utils/**` and — in #447's case, under the owner authorization recorded in
 [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 Track P1 —
-`routes/workout_plan.py`; and **three** documentation-only PRs, #438, #436 and #445. **The tree
-hashes above, not this list, are the evidence.**
+`routes/workout_plan.py`; and **six** documentation-only PRs, #438, #436, #445, #448, #449 and
+#451. **The tree hashes above, not this list, are the evidence.**
 
 **The completeness census is bounded at both ends.** The
-42-run figure counts `main` runs of **any** workflow created at or after `2026-08-22T17:00:00Z` —
+45-run figure counts `main` runs of **any** workflow created at or after `2026-08-22T17:00:00Z` —
 deliberately **earlier** than the original T0, so the filter is a superset and cannot hide a run —
-and at or before this block's `2026-08-29T14:10:11Z` read. **An unbounded query would return a
+and at or before this block's `2026-08-29T18:12:28Z` read. **An unbounded query would return a
 larger number the moment the next run starts**, and would not be this reading. Method, identical
 to every block above: `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, then
 full `/jobs` enumeration on each returned run, matched on the exact context string
@@ -5176,7 +5184,7 @@ jobs. The table above is a dated reading and is left as one.
 **T0 is still not declared here.** The restart is recorded at row 26 as a measured fact; whether
 `2026-08-27T23:18:21Z` is T0 turns on whether #431 was the *final* expansion packet, which is an
 **owner determination and still OWED** — U3b's KI-011 helper coverage and **U1-FOLLOWUP-1** remain
-unlanded. The corpus did not move across rows 27–37, so that question is exactly where the
+unlanded. The corpus did not move across rows 27–40, so that question is exactly where the
 rows-24–26 extension left it.
 
 **Row 21 restarts nothing either — but the argument is NOT row 20's, and substituting it would be
