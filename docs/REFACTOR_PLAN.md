@@ -1,12 +1,53 @@
 # Deep Refactor Plan — v3 (2026-07-04, full-scan grounded)
 
-**Status update (2026-08-14, supersedes every status line below):** the
+**Status update (2026-08-29, supersedes every status line below, including the
+2026-08-14 update): the continuous Pyright burn-down is CLOSED at 0 diagnostics /
+0 distinct keys / 0 files.** Ten packets landed between 2026-08-27 and 2026-08-29.
+The last two were
+[#446](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/446), merged as
+`1226e46120aa11819c161bd3e0f7913d0dd405d6`, which took the baseline
+**37 / 16 / 11 → 9 / 2 / 1**, and
+[#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447), merged as
+`3532f8600b1f72eb49ce131bbd6cb6c31175f116`, which closed the last nine diagnostics
+in `routes/workout_plan.py` and took it **9 / 2 / 1 → 0 / 0 / 0**.
+
+**Trajectory — measurement points, not packets. Every figure is recomputed from the
+baseline artifact committed at that revision, quoted as diagnostics / distinct keys /
+files:** **139 / 45 / 28** before #336, **132 / 42 / 26** at `01d890d`,
+**130 / 41 / 25** at `f9726a3`, **123 / 40 / 24** at `288667d`, **37 / 16 / 11** at
+`2035852`, **9 / 2 / 1** at `1226e46`, **0 / 0 / 0** at `3532f86`. The two earliest
+file counts are recomputed here — the contemporaneous record quoted those readings in
+the two-number form. **The baseline was not always zero; retain these figures rather
+than flattening them to the current one.**
+
+**Re-measured for this update at `158ee40`.**
+`docs/ci_cd_phase3/pyright-baseline.json` carries `total_diagnostics: 0`,
+`distinct_keys: 0` and an empty `diagnostics` array. A live pyright 1.1.410 run
+under the committed `pyrightconfig.json` reports `summary.errorCount` **0** over
+**239** files, and `scripts/pyright_baseline_diff.py` returns
+**PASS — 0 net-new diagnostics (baseline 0, current 0)** against it, so the
+artifact-versus-live gap earlier passes disclaimed rather than measured is zero.
+`main`'s own required `Type Check (tsc blocking + pyright measure-only)` job
+agrees on Linux — job `99109487761` of run `33255921889`, `success`.
+
+**No further Pyright packet and no further baseline regeneration are queued.** The
+residual is zero, so there is nothing for a packet to select and nothing left in the
+artifact to regenerate. What survives is the rule: the committed allowlist is empty
+and has no headroom, so any net-new error- or warning-severity diagnostic reds the
+required `Type Check` context, and the repair is to fix the diagnostic rather than
+re-widen the baseline. That contract is stated in full under *Continuous track —
+pyright baseline burn-down* below. The CSS/P3 termination below remains unchanged.
+
+**Status update (2026-08-14, superseded by the 2026-08-29 update above):** the
 continuous Pyright burn-down advanced through #336 (`01d890d`). The bounded
 profile-estimator family removed seven diagnostics and three keys, moving the
 baseline from **139 diagnostics / 45 keys to 132 / 42**, with zero added keys
 and instruction-identical runtime bodies. The standing track remains available
 only one file or tightly coupled family at a time; this update does not name or
 authorize a next packet. The CSS/P3 termination below remains unchanged.
+*(Both figures are accurate as far as they go — recomputed 2026-08-29 they are
+139 / 45 / 28 and 132 / 42 / 26, the file count being what the two-number form
+omitted. The "standing track remains available" sentence is spent.)*
 
 **Status update (2026-08-02, supersedes every status line below, including the
 2026-08-01 update):** **CSS closeout proposal P3 is TERMINATED at `P3-a0`.**
@@ -1547,11 +1588,32 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 
 ## Continuous track — pyright baseline burn-down
 
+> **CLOSED 2026-08-29 at 0 diagnostics / 0 distinct keys / 0 files**, after ten packets ending
+> with #446 (`1226e46`) and #447 (`3532f86`). The reduction is finished: there is no residual
+> left to select from, and **no pyright packet and no baseline regeneration are queued**. **The
+> rules below stay live as the standing contract for a future net-new diagnostic**, which is now
+> the only thing that can put work under this heading. The trajectory and the closing evidence
+> are in the 2026-08-29 status update at the head of this file.
+
 - One file or tightly coupled diagnostic family per WP.
 - Type-only changes; no behavior refactors disguised as typing fixes.
 - Baseline diagnostic multiset may only shrink; regenerate with the existing script when
   removals are intentional.
 - Gate: zero net-new diagnostics, lower count, focused tests, then full pytest.
+- **The allowlist is empty and has no headroom.** `scripts/pyright_baseline_diff.py` only ever
+  fails upward, so any net-new diagnostic of tracked severity reds the required
+  `Type Check (tsc blocking + pyright measure-only)` context. **Fix the diagnostic; do not
+  re-widen the baseline.** A regeneration is an owner decision that follows a fix, never a
+  substitute for one. Tracked severity is `error` and `warning` only — `TRACKED_SEVERITIES`
+  in that script — so an `information` diagnostic never reds the gate.
+- Quote the baseline as **diagnostics / distinct keys / files**. The three numbers are not
+  interchangeable.
+- `routes/workout_plan.py` is recorded off-limits to this track, and the explicit owner
+  authorization that lifted it for #447 covered that packet's nine diagnostics and nothing else.
+  **That authorization is spent, not repealed, and the file stays off-limits** — a future
+  change to it needs its own authorization.
+  [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §4 Track P1 owns both that record
+  and the authorization's verbatim wording.
 
 ---
 
@@ -1634,8 +1696,9 @@ not be re-dispatched.**
 > at a time: `i` → `j` → `k`. Parallelism is read-only analysis/review within a
 > packet; stateful gates and writes remain serialized.
 
-The continuous pyright burn-down is a standing track, not an active packet or
-branch.
+The continuous pyright burn-down **closed 2026-08-29 at 0 / 0 / 0**; it is neither an
+active packet nor a branch, and nothing is queued under it. The standing rules are under
+*Continuous track — pyright baseline burn-down* above.
 
 | Area / packet | Owner-review status | What has been done / current boundary | Why it is not started, deferred, or gated |
 |---|---|---|---|
@@ -1668,5 +1731,5 @@ branch.
 | WP4.4-j — `theme-dark.css` triage | **Done** | Merged via PR #216 (squash `47c7687`, 2026-08-01). Deleted 25 shadow-certified declarations from `theme-dark.css`; the preservation rule held — uncertified, custom-property and JS-state work was retained, with no rebaseline and no visible change. | — |
 | WP4.4-k — final integration | **Done** | Merged via PR #217 (squash `c521d3a`, 2026-08-01), docs/verification only. Closed out WP4.4 and reconciled `REFACTOR_PLAN.md`, `MASTER_HANDOVER.md` and `ACTIVE_DEVELOPMENT.md`. | N10 stays evidence-only; do not edit `QUALITY_GATE.md`. Corrective subpackets are limited by [`N4_CONTINUATION_AUTHORITY.md`](css_phase4_wp4_4/N4_CONTINUATION_AUTHORITY.md); closing the arc spent that authority but did not lift its limits. |
 | Superset dark tint and `layout.css` dead `body.dark-mode` | **`body.dark-mode` RESOLVED by WP4.4-e; superset tint still deferred** | `body.dark-mode` was re-proved and **deleted** in PR #195. The rule was *functional* (all seven `--tbl-*` tokens changed in 11/22 contexts when the class was applied) but its selector was *never satisfied*: `<body>` never carries the class and `darkMode.js:64` sets `data-theme` on the root element. Deleted on **unreachability**, explicitly **not** the ordinary non-winner rule, which does not apply to custom properties. The seven tokens keep their live `[data-theme="dark"]` definitions, now contract-pinned. The missing live dark override for `--superset-bg-1..4` remains recorded and unchanged. | The superset tint belongs to `theme-dark.css` ownership (packet `j`), still gated. |
-| Continuous pyright baseline burn-down | **Ongoing — standing track only; #336 shipped 2026-08-13** | The profile-estimator slice reduced the baseline **139/45 → 132/42** with no runtime-body change. No active next packet is identified by this snapshot. | It has no single phase-close packet. Each change must remain type-only, reduce the diagnostic multiset, and pass focused plus full pytest gates. |
+| Continuous pyright baseline burn-down | **Done — closed 2026-08-29 at 0 / 0 / 0** | **Ten packets** took the baseline **132 / 42 / 26 → 0 / 0 / 0**, ending with [#446](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/446) (`1226e46`, **37 / 16 / 11 → 9 / 2 / 1**) and [#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447) (`3532f86`, **9 / 2 / 1 → 0 / 0 / 0**). The earlier profile-estimator slice (#336, `01d890d`) had moved it **139 / 45 / 28 → 132 / 42 / 26**. **No further packet and no baseline regeneration are queued.** | Closed by the residual reaching zero, not by a phase-close packet. **The rule outlives the reduction:** the committed allowlist is empty, so any net-new error- or warning-severity diagnostic reds the required `Type Check` context and must be fixed in code rather than absorbed by a re-widened baseline. |
 | Overall refactor plan | **Partially complete; WP4.4 closed at `k`; Track B closed** | Track A and Phases -1 through 3 are complete; **Track B is now complete — WPB.4, its last packet, shipped 2026-08-01**. WP4.4 is complete — every packet `a` through `k` is merged and the arc is closed, discharging the dated N4 authority. **All three closeout proposals are now discharged**: P1 (#223, `d543a4b`) and P2 (#222, `4b0670b`) merged, and **P3 is TERMINATED** — both gates signed 2026-08-02, `P3-a0` shipped (#280, `cd93480`), arc terminated at a0. | Remaining Workout Plan/Log cleanup stays paused. **P3-a1 … P3-e carry no residual authorization; reopening P3 requires a new owner decision.** The 235 layer-pin declarations remain deferred. |
