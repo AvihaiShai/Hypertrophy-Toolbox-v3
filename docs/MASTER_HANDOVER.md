@@ -48,7 +48,21 @@
 > [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here** —
 > the ruling is recorded there, at *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*, and
 > [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §19 is its dated evidence log
-> (§18 is Packet R1's, landed by #455 while this pass was open).
+> (§18 is Packet R1's — [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455), the deep-gate mutation
+> probes, not the release/tag packet of the same name — landed by #455 while this pass was open).
+>
+> **⚠️ Naming key — "R1" means two unrelated things in this repository.**
+>
+> | Reads as | Means | Landed |
+> |---|---|---|
+> | *"Packet R1"*, *"the release/tag pipeline"* | the **release/tag pipeline** packet | [#374](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/374) (`5222db2`), 2026-08-14 — its `push: tags` trigger has **still never fired** |
+> | **R1** in `OPEN_WORK_EXECUTION_PLAN.md` §15.1 / §15.4, and in item 5 below | the **deep-gate mutation probes** | [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455) (`2cb938c`), 2026-08-29 |
+>
+> **R1-D1 … R1-D6, and R1-D3 in particular, always belong to #374** — the release pipeline's
+> own decision namespace, unrelated to #455 despite the shared letter and number. **Check which
+> packet a citation means before acting on it.** The #374 references throughout this file — the
+> 2026-08-14 block and the Testing Phase 4 rows — are historical and accurate as written, and are
+> deliberately not relabelled.
 >
 > **What is still open**, re-derived from §15.4 as it stands after this branch merged
 > `origin/main` — **not** carried from either side. **Two owner rulings landed while this pass was
@@ -266,7 +280,7 @@
 >    §15.2 *Discharged*. **Item 7 (V1) has since been ruled**, **item 1 (R1) discharged**, and
 >    **item 11 added**.)* ⚠️ **RE-CORRECTED 2026-08-29: item 8 is answered too** and is
 >    marked discharged in place, keeping its number so existing pointers resolve. **Counted off
->    the merged table, the blocking set is items 2–6**; items 7 and 11 are open without
+>    the merged table, the blocking set is items 2–6 — **five decisions**; items 7 and 11 are open without
 >    stopping work. Nothing there may be started by an agent, and reaching a clock's
 >    threshold is not authorization.
 >
@@ -339,7 +353,7 @@
 > the authority; this block is a reading of it, not a substitute for it. It was recorded
 > rather than inferred because a repository-wide search that day found the question *raised*
 > in three places — [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), ADR-007
-> itself, and this file's R1 block — and **answered nowhere**. The reasoning behind the
+> itself, and this file's release/tag-pipeline R1 block (#374) — and **answered nowhere**. The reasoning behind the
 > ruling, kept for the reader: the binding text is R1-D3 as the release
 > plan's Section 0 records it verbatim — *"Revisit only after the 2026-08-17 run and at least
 > 3 consecutive green scheduled runs"* — which **names** the 2026-08-17 run and nowhere
@@ -359,7 +373,7 @@
 > **Item 1 of the block below is corrected, not deleted.** It said a green 2026-08-24 *"would
 > be the second consecutive green scheduled run, and whether the first counts toward R1-D3's
 > three remains an open owner question"*. Its first half is now measured fact; its second half
-> contradicted both this file's own R1 record and the release plan's live reading, and is
+> contradicted both this file's own #374 R1 record and the release plan's live reading, and is
 > resolved above.
 >
 > **3 — The qualification ledger now holds FIVE rows, and the count still lives in exactly one
@@ -847,7 +861,9 @@
 > Phase 4 stays **open**, `release.yml`'s `push: tags` trigger has **still never
 > fired**, and the next scheduled deep-gate run is still **2026-08-24**.
 
-> **2026-08-14 — the release/tag pipeline SHIPPED as Packet R1.**
+> **2026-08-14 — the release/tag pipeline SHIPPED as Packet R1 (#374).**
+> *(Every bare "R1" in this block means **#374**, not the deep-gate mutation probes of
+> [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455) — see the naming key above.)*
 > **[This block carried the `(LATEST)` marker until 2026-08-20; the block above
 > is now the latest. Nothing else in it is edited.]** This
 > supersedes, as current state, every claim below that "the release/tag half of
@@ -977,8 +993,8 @@
 > | PR | Terminal result |
 > |---|---|
 > | **#364** | `ebfa716` — **Packet E.** Register row **X1** closed. `aria-invalid` is now set and cleared on invalid required controls; on `#exercise` it lands on the `.wpdd-button`, because the native select it replaces is `aria-hidden="true"`. Shipped under a **named Decision-4 carve-out**: the defect was established by inspection, since no honest test can demand an attribute that does not yet exist. Coverage extended an existing node, so the inventory did not move. |
-> | **#365** | `a49da8d` — **Packet F.** Register row **X6** closed. The `.theme-animating` transition suppression was a **regression**, not unbuilt behavior: `ee82643` deleted the rule from the retired `static/css/styles.css` and left `darkMode.js` intact, so for four months the class matched nothing. Restored into `motion.css`; both halves of the CSS/JS pair are contract-pinned. Its recorded R1 blocker was **false** and is corrected in the register. |
-> | **#367** | `a64ea76` — the X1/X2/X6 owner decisions recorded. **X2 DECLINED, do not re-propose** (Bootstrap's `.is-invalid` adds an icon *and* `padding-right: 4.125rem`, so unifying the classes is a restyle, not a rename). Register rules gained "resolved rows stay" and "**do not cite R1 without checking it**". |
+> | **#365** | `a49da8d` — **Packet F.** Register row **X6** closed. The `.theme-animating` transition suppression was a **regression**, not unbuilt behavior: `ee82643` deleted the rule from the retired `static/css/styles.css` and left `darkMode.js` intact, so for four months the class matched nothing. Restored into `motion.css`; both halves of the CSS/JS pair are contract-pinned. Its recorded R1 (#374) blocker was **false** and is corrected in the register. |
+> | **#367** | `a64ea76` — the X1/X2/X6 owner decisions recorded. **X2 DECLINED, do not re-propose** (Bootstrap's `.is-invalid` adds an icon *and* `padding-right: 4.125rem`, so unifying the classes is a restyle, not a rename). Register rules gained "resolved rows stay" and "**do not cite R1 without checking it**" — which now also means checking WHICH R1: #374 or #455. |
 > | **#368** | `9be1a3f` — four more specs migrated onto the strict console guard. |
 > | **#366** | `f627161` — **Packet D (axe) SHIPPED**, closing Phase 2. `@axe-core/playwright` pinned at 4.13.0; 14 nodes added to the required `accessibility.spec.ts` over 11 routes × 2 themes plus three deterministic states. |
 >
@@ -1026,7 +1042,7 @@
 > **[UPDATED 2026-08-21 — D7 left this list: signed as
 > keep-the-stance-and-document, §8.1d. True as written on 2026-08-14.]** The first scheduled
 > deep-gate run is still due **2026-08-17 03:17 UTC**. *(The release/tag half of
-> Testing Phase 4 shipped later the same day as Packet R1 — see the block above.
+> Testing Phase 4 shipped later the same day as Packet R1 (#374) — see the block above.
 > Phase 4 itself remains open. D6 left this list the same day too: signed as
 > retain-informational, #373 (`bae49ce`), ADR-008 / `TESTING_STRATEGY_PLANNING.md`
 > §8.1c.)*
