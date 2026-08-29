@@ -13,6 +13,14 @@ authorizes implementation, test authoring, or any change to
 > or `toast.test.js`.** Gate 1 has not begun, and under **OD-1** the implementation is
 > deliberately deferred past `2026-09-05T17:59:26Z`.
 
+> ⚠️ **ANNOTATION 2026-08-29 — the last clause above is now HISTORY.** Gate 1 was signed, the
+> implementation shipped as **`288667d`** ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)) on
+> **`2026-08-27T23:17:50Z`**, and **OD-1's merge embargo was WAIVED by the owner before that
+> merge**. The waiver is recorded at **§0.14, OD-1-W** — the canonical record; read it before
+> acting on any embargo sentence in this file. Every statement of the embargo below is
+> **preserved and annotated in place with a dated pointer to OD-1-W**, never deleted or
+> re-worded.
+
 **Packet identity.** [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 defines
 **Packet U3** as *two* defects — **KI-010** and **KI-011** — to be executed as *"two independently
 reviewable commits or PRs — each needs its own Gate 0 and Gate 1"*. This document is the KI-010
@@ -340,6 +348,13 @@ mark, or ship the complete fix. That is **Q1**.
 > The other four rows are preserved as the measurement they are; none of them is the chosen
 > path. The **`231+n`** row is what U3a will eventually ship under **OD-4**, but *after* the
 > mark, where its restart cost is zero. See §0.14.
+>
+> ⚠️ **SUPERSEDED 2026-08-29 as to the embargo clause.** *"U3a's implementation PR must not
+> merge before that instant"* was **waived by the owner** before #431 merged — §0.14, **OD-1-W**.
+> The window facts here are spent too, but for an unrelated reason: #431 took the corpus
+> **231 → 245** and restarted the clock at **`2026-08-27T23:18:21Z`** — **the new T0 itself is
+> undeclared and owed** ([`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md)
+> §13.0).
 
 ### 0.8 Compatibility invariants
 
@@ -417,6 +432,8 @@ Gate 1 can derive tests from them rather than the reverse.
   legacy branch outright — remains available to a **later** packet, not to this one.
 - **Shipping before `2026-09-05T17:59:26Z` — added 2026-08-27 by OD-1.** U3a's implementation PR
   merging inside the qualification window is out of scope, not merely deprioritised.
+  ⚠️ **WAIVER RECORDED 2026-08-29; the waiver itself preceded #431's merge** — the owner
+  lifted this scope boundary before that merge (§0.14, **OD-1-W**).
 
 ### 0.10 Acceptance criteria
 
@@ -478,10 +495,25 @@ measured cost.
 > **NOT CHOSEN** in place and are otherwise unedited, so the options the owner declined — and
 > the measured costs that made them declinable — remain readable. **A recommendation that was
 > granted is still a recommendation in these tables; §0.14 is where it became a decision.**
+>
+> ⚠️ **ANNOTATION 2026-08-29 — Q1's ruling was later WAIVED, and Q1's own table is where the
+> waiver's cost was priced.** OD-1 chose row **(a)**; the owner then waived the merge embargo
+> before #431 merged (§0.14, **OD-1-W**). What actually happened is row **(b)**'s outcome —
+> *"the clock resets to U3a's merge"* — and it did: the window restarted at
+> **`2026-08-27T23:18:21Z`** (**the new T0 itself is undeclared and owed** —
+> [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0). **Row (b)'s
+> *"~13 accumulated days"* is NOT ratified here** — it was an over-estimate when written. The
+> discard measured from T0 `2026-08-22T17:59:26Z` is **5 d 5 h 18 m 55 s**, consistent with
+> §0.7's *"Remaining as of 2026-08-27 ≈ 9 days"* of 14. **Row (b) stays marked NOT CHOSEN**,
+> because it records the Gate 0 decision and not the later waiver.
 
 ---
 
 #### **Q1 — Does U3a land inside the qualification window at all?** *(BLOCKING; decides scheduling before design)*
+
+> ⚠️ **Answered as OD-1 (row (a)), then WAIVED — see §0.14, OD-1-W, and this section's
+> preamble annotation. Row (b) describes what actually happened; it is still marked NOT CHOSEN
+> because it records the Gate 0 decision, not the later waiver.**
 
 | Option | Consequence, measured |
 |---|---|
@@ -699,6 +731,79 @@ consequence is the failure mode this document exists to avoid.
   makes KI-010 live with no change to `toast.js`. **Recorded as an open residual, not as a closed
   one.**
 
+> ⚠️ **SUPERSEDED 2026-08-29 — OD-1's merge embargo was WAIVED by the owner before PR #431
+> merged.** The ruling above is preserved verbatim as the record of what was decided on
+> 2026-08-27. **Three of its five consequences are spent, for two different reasons:**
+>
+> | # | Consequence, abbreviated | Status |
+> |---|---|---|
+> | 1 | window untouched — T0, strict mark and **13 files / 231 cases** all hold | **Falsified** — #431 took the corpus **231 → 245** |
+> | 2 | the implementation PR must not merge before the mark | **WAIVED** — this is the clause the owner lifted |
+> | 3 | passing the mark is a precondition, not an authorization | **Untouched** |
+> | 4 | *"because the window cost is now zero"* | **Falsified** — same corpus move; annotated at OD-4 as well |
+> | 5 | the latent-defect residual is accepted and unmitigated | **Ruling stands, horizon moved** — *"the remainder of the window"* ended at the merge |
+>
+> **Only consequence 2 was waived.** 1 and 4 fell to arithmetic, not to the waiver. The waiver
+> and the exact scope of what it lifts are recorded immediately below as **OD-1-W**.
+
+---
+
+#### **OD-1-W — OD-1's merge embargo was WAIVED. Owner ruling, recorded 2026-08-29.**
+
+> **Owner ruling, verbatim:** *"I explicitly confirm that OD-1 was waived for PR #431 before its
+> merge."*
+
+**The authority was never missing — only the written record was.** OD-1 was the owner's own
+Gate 0 ruling, so no higher authority had to be found before lifting it, the owner waived it
+before merging, and the owner performed the merge personally. **#431 was authorized when it
+merged.**
+
+**Measured facts, re-read against `main` at `158ee40`** — `origin/main` after **#445** merged,
+one commit ahead of `3532f86`, the base §16 of
+[`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) measures against. PR fields are
+from `gh pr view 431 --json number,title,mergedAt,mergeCommit`.
+
+| Item | Value |
+|---|---|
+| What OD-1 barred | any U3a implementation PR merging before **`2026-09-05T17:59:26Z`** |
+| The PR the waiver covers | **[#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)**, *fix(toast): render a type-word message instead of swallowing it (KI-010)* |
+| Merge commit | squash **`288667d`** |
+| `mergedAt` | **`2026-08-27T23:17:50Z`** |
+| Margin ahead of the embargo | **8 days, 18 hours, 41 minutes, 36 seconds** |
+| Merged by | the repository owner — **OD-1's own author** |
+| Waiver granted | **before that merge**, by the owner; confirmed in writing **2026-08-29** |
+
+**What the waiver lifts.** OD-1's second consequence only — the merge embargo on U3a's
+implementation PR, discharged for **#431**. That was OD-1's sole remaining **blocking** clause
+by then — not its only live one: §v2.12's steps 1–4 were already discharged by measurement, and
+the three authorizations the Gate 1 signature withheld had been overtaken by **#426 `5b35966`**,
+**#427 `efa780c`** and **#428 `a37d7e7`** merging.
+
+**What the waiver does NOT do.**
+
+- **It does not undo the qualification-window restart.** #431 took the Vitest corpus
+  **231 → 245**, which engaged Q2's restart clause on its own terms. The window restarted at
+  **`2026-08-27T23:18:21Z`**; the old T0 `2026-08-22T17:59:26Z` and the old strict mark
+  `2026-09-05T17:59:26Z` are **spent**. OD-1 was scheduling; the restart is arithmetic over the
+  corpus, and lifting the first does not reach the second. The operative T0 is read from
+  [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here.
+- **It does not revive OD-1's declined residual.** The latent-defect exposure OD-1 accepted and
+  deliberately left unmitigated **ended earlier than planned** — at the merge rather than at the
+  strict mark — because the fix landed. Nothing about that residual is reopened.
+- **It is not a precedent.** It waives one embargo for one PR, and **every OD in this document
+  stands as ruled**. Three neighbouring ODs had their *stated consequences* moved by the merge,
+  none by the waiver: **OD-4**'s *"window cost is zero"* was falsified, **OD-3**'s *"OD-1 makes
+  it moot for U3a"* premise fell, and **OD-5**'s *"once the window has closed"* horizon moved.
+  Each is annotated in place.
+
+**Every statement of the embargo in this document is annotated in place with a dated pointer
+here**, never deleted or re-worded. No index of them is kept.
+
+**This closes the record gap** that
+[`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §13.4 measured and §15.2 carried
+as debt 2 — **on merge of the PR carrying this subsection, not before.** Until then `main`'s
+§0.14 still runs OD-1 → OD-2 with no OD-1-W between them.
+
 ---
 
 #### **OD-2 — Q2 = (b). One argument means a legacy bare message.**
@@ -749,6 +854,12 @@ Q3's own heading scopes it *"BLOCKING if and only if Q1 = (b) or (c)"*, and Q1 w
 so this ruling changes nothing about U3a's execution. The owner ruled it anyway so the precedent
 exists before the next packet needs it.
 
+⚠️ **PREMISE FALSIFIED 2026-08-29 — the ruling itself is untouched, and it is what fired.**
+OD-1's embargo was waived (§0.14, **OD-1-W**) and #431 changed JS test cases, so **OD-3 governed
+U3a after all**: the corpus moved **231 → 245** and the window restarted. The sentence *"this
+ruling changes nothing about U3a's execution"* is the part that fell. Recording the precedent
+*"before the next packet needs it"* turned out to mean this packet.
+
 **Consequences.**
 
 - **The signed operative wording is affirmed, not amended.** Owner ruling **Q2** of
@@ -776,6 +887,10 @@ severity inversion, and the one-argument cases OD-2 requires.
   `EXPECTED_PER_FILE[".../toast.test.js"]` both move, and `docs/test_inventory/` must be
   regenerated. Under OD-1 all of this happens **after** the strict mark, so its window cost is
   **zero**.
+  ⚠️ **SPENT 2026-08-29 — the window cost was not zero.** OD-1's embargo was waived (§0.14,
+  **OD-1-W**), the regeneration landed at `288667d` **before** the strict mark, and the corpus
+  move **231 → 245** engaged Q2's restart clause. **OD-4's ruling is untouched**; only this
+  consequence is falsified.
 - **No case count is signed here.** Q4 row (d)'s *"+7 or more"* is a Plan-v1 estimate. The exact
   count depends on OD-2's unresolved spelling (S1 puts B13 in the inverted set; S2 does not) and
   on how Gate 1 parametrises. **Gate 1 measures it; nobody carries this cell forward as a
@@ -801,6 +916,10 @@ severity inversion, and the one-argument cases OD-2 requires.
 - **The legacy branch is NOT deleted.** Q5 (c) — migrating all 33 sites and removing `:15-31`
   outright — is declined **for U3a** and stays available to a later packet once the window has
   closed. U3a leaves the legacy signature supported.
+  ⚠️ **HORIZON MOVED 2026-08-29 — the ruling stands; *"the window"* it names does not.**
+  OD-1's embargo was waived (§0.14, **OD-1-W**) and #431 restarted the qualification window, so
+  the later packet's opening is governed by the **new** T0 — itself undeclared and owed
+  ([`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0).
 - **AC-8's caller-migration branch is spent**; the KI-010 row's counts stay **8** and **5**, and
   are still re-measured at implementation time rather than copied.
 
@@ -845,6 +964,9 @@ at signing. **And under OD-1, the implementation PR may not merge before
 `2026-09-05T17:59:26Z`.** Signing Gate 0 authorizes exactly one thing: that Gate 1 planning may
 be *requested* once those conditions hold.
 
+⚠️ **ANNOTATION 2026-08-29 — the OD-1 sentence above is superseded; the rest of the paragraph
+stands as signed.** The owner waived the embargo before #431 merged (§0.14, **OD-1-W**).
+
 **No production or test code has been modified by this packet.** This PR adds exactly one file
 and, at the sign-off commit, modifies exactly that same one file.
 The measurement harnesses named in §0.3, §0.4 and §0.14 were written to the gitignored
@@ -863,6 +985,9 @@ this packet's own Gate 0 sign-off), in the isolated worktree
 **Gate 1 is NOT signed and this plan does not authorize implementation.** **OD-1 remains binding: no
 U3a implementation PR may merge before `2026-09-05T17:59:26Z`, and passing that timestamp is neither
 implementation authorization nor merge authorization.**
+
+⚠️ **ANNOTATION 2026-08-29 — both clauses are spent.** Gate 1 **was** signed later the same day,
+and OD-1's embargo was **waived by the owner** before #431 merged (§0.14, **OD-1-W**).
 
 ### v1.0 What changed since Gate 0, and what did not
 
@@ -904,6 +1029,8 @@ implementation authorization nor merge authorization.**
 - It is **not** merge authorization for #427, for this planning PR, or for any U3a implementation PR.
 - It does **not** relax **OD-1**. Even after #427 merges, no U3a implementation may merge before
   `2026-09-05T17:59:26Z`.
+  ⚠️ **ANNOTATION 2026-08-29 — correct as written, and overtaken.** This ruling never relaxed
+  OD-1; the **owner** later waived it directly, before #431 merged (§0.14, **OD-1-W**).
 - It does **not** let a row number be assumed. The ledger rows this packet writes are **14** and
   **15** *because* #427 claims **13** — measured from #427's head, not inferred — and that premise is
   re-checkable by one command. The precondition and the command are recorded in
@@ -1211,6 +1338,8 @@ may be regenerated without owner sign-off); branch-protection changes (D2 is not
 4. **Implementation** may begin only after 2 and 3.
 5. **The implementation PR may not merge before `2026-09-05T17:59:26Z`** (OD-1), and passing that
    instant authorizes nothing on its own.
+   ⚠️ **WAIVER RECORDED 2026-08-29; the waiver itself preceded #431's merge** — §0.14,
+   **OD-1-W**.
 
 ### v1.12 Open decisions carried into the council
 
@@ -1569,6 +1698,10 @@ precondition it names, `gh pr view 427 --json state` reporting `MERGED`, was **r
 and reports `MERGED`**. **Nothing in steps 1–4 is an open blocker.** Step 5 — OD-1's embargo — is,
 and **reaching `2026-09-05T17:59:26Z` is not itself merge authorization.**
 
+⚠️ **SUPERSEDED 2026-08-29 — step 5 is no longer an open blocker either.** The owner **waived**
+OD-1's embargo before #431 merged (§0.14, **OD-1-W**), so every step of this sequence is now
+discharged.
+
 1. **#427 merges first** (owner ruling). Not authorized here.
 2. **#426 is RESOLVED BY MEASUREMENT, not by waiting.** Measured `2026-08-26T23:50:36Z`:
    `gh pr diff 426 --name-only` returns **exactly one file**,
@@ -1580,6 +1713,7 @@ and **reaching `2026-09-05T17:59:26Z` is not itself merge authorization.**
    `MERGED` — the row-14/15 precondition.
 4. Implementation begins.
 5. **The implementation PR may not merge before `2026-09-05T17:59:26Z`** (OD-1).
+   ⚠️ **WAIVER RECORDED 2026-08-29; it preceded #431's merge** — §0.14, **OD-1-W**.
 
 ### v2.13 Open owner decisions carried to Gate 1 sign-off
 
@@ -1622,9 +1756,16 @@ proposed 62 to **61**. The withdrawal is recorded at §v2.6 rather than quietly 
 
 #### What the signature does NOT authorise — unchanged and still binding
 
+⚠️ **ANNOTATION 2026-08-29 — *"still binding"* no longer has a live referent.** All five
+bullets below now carry dated annotations: 2, 3 and 4 were reconciled 2026-08-27, and this
+pass annotates **1** (OD-1's embargo, waived) and **5** (the residual's horizon). The heading
+and the list are preserved as signed.
+
 - **It is not merge authorisation for anything.** **OD-1 remains binding: no U3a implementation PR
   may merge before `2026-09-05T17:59:26Z`, and passing that instant is neither implementation
   authorization nor merge authorization.**
+  ⚠️ **SUPERSEDED 2026-08-29 as to OD-1 — the embargo was waived (§0.14, OD-1-W).** The first
+  sentence still holds: this signature authorised no merge.
 - **It does not authorise merging this planning PR**, PR **#427**, or PR **#426**. ⚠️ **RECONCILED
   2026-08-27:** all three have since merged under the owner's own authorization, not this
   signature's — **#426 `5b35966`**, **#427 `efa780c`**, **#428 `a37d7e7`**. The bullet stands as the
@@ -1650,6 +1791,9 @@ proposed 62 to **61**. The withdrawal is recorded at §v2.6 rather than quietly 
   pending sibling; it is the baseline U3a's implementation must be rebased onto.
 - **It does not close OD-1's open residual**: for the remainder of the window, any new
   `error_response('error', …)` makes KI-010 live, and the owner declined to rule that out.
+  ⚠️ **OVERTAKEN 2026-08-29 — *"the remainder of the window"* ended at the merge**, not at the
+  strict mark: the embargo was waived and the fix landed (§0.14, **OD-1-W**). The residual closed
+  early rather than being reopened.
 
 #### The contract being implemented, in one place
 
@@ -1697,6 +1841,13 @@ preserved as superseded rather than deleted.*
 > be re-confirmed against the then-current last row immediately before merge: §13.0 stands at **row
 > 23** on `main` at `f9726a3`, and **U3a writes no row of its own** (§v2.1's withdrawal note). The
 > next row is owed by whoever merges this PR, against its **post-merge `main`** `js-unit` result.
+>
+> ⚠️ **SUPERSEDED 2026-08-29 — this blockquote's opening sentence is the *"OD-1 STILL BINDS"*
+> line, and it no longer governs.** The owner **waived** OD-1's merge embargo **before** this PR
+> merged, so #431 landed as **`288667d`** at **`2026-08-27T23:17:50Z`** with authority. The
+> sentence is kept verbatim because it is the text this branch carried onto `main`, and because
+> [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §13.4 cites it by name. The
+> canonical waiver record is **§0.14, OD-1-W**.
 
 ### i.0 Baselines, recorded FIRST (`CLAUDE.md` §4.B)
 
@@ -2009,6 +2160,9 @@ limitation observed in a real browser: a **red** toast whose entire body is the 
   not merged either."* **It is merged** — #428, `a37d7e7` — and so are #426 (`5b35966`) and #427
   (`efa780c`). **No ordering condition remains unmet.** The one thing still outstanding is **OD-1's
   embargo**, and reaching `2026-09-05T17:59:26Z` is not merge authorization.
+  ⚠️ **RESOLVED 2026-08-29 — the embargo was WAIVED by the owner before this PR merged (§0.14,
+  OD-1-W).** **No merge precondition remains**; the OD-10 bullet below is a separate packet and
+  is unaffected.
 - **KI-011 is untouched, re-verified after integration.** The KI-011 lines are now physically present
   in the same file, so "untouched" is a claim about the **diff**, not about the file:
   `git diff origin/main...HEAD -- static/js/modules/toast.js` carries no line from the rendering half
