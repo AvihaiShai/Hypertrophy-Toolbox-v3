@@ -1,10 +1,29 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "producedBy": "WP4.4-a closeout",
   "revisedBy": "WP4.4 closeout proposal P1",
   "sourceCommit": "46e340e5f2de60118d4d2d4af55ff61a1783800c",
   "recordedOn": "2026-07-27",
   "revisedOn": "2026-08-01",
+  "supersededAsOperationalRuleOn": "2026-08-29",
+  "supersededBy": "V1 documentation reconciliation, owner-authorized 2026-08-29",
+  "currentStatus": {
+    "headline": "SPENT AS AN OPERATIONAL RULE. `rules` below governed the N8 Linux deep gates at packets h, i, j and k. Do NOT apply them to a new packet without re-measuring the corpus first.",
+    "measuredAt": "116d3c56284822f8b644c565eb12059cae1ace27",
+    "measuredOn": "2026-08-29",
+    "ledgeredFilesStillPresent": 8,
+    "ledgeredFilesRetired": 3,
+    "retiredFiles": [
+      "e2e/visual.spec.ts :: workout-plan-desktop-dark.png",
+      "e2e/visual.spec.ts :: workout-plan-desktop-light.png",
+      "e2e/visual-baseline-thumbnails.spec.ts :: plan-desktop-light-advanced.png"
+    ],
+    "whyThoseThreeAreGone": "All three are in BYTE_GATE_EXEMPT (e2e/visual-helpers.ts) since #298 (f8988f9, 2026-08-04). An exempt capture has no committed PNG on either platform, so three of the eleven names below no longer resolve to a file. tests/test_visual_capture_contracts.py::test_the_exempt_captures_have_no_baseline_on_either_platform is what keeps them absent.",
+    "whyTheHistoricalArrayIsNotRenumbered": "linuxInheritedReds is a measurement, not an inventory. scripts/css_audit/p3_ceiling.py::n8_denominator() derives 11 failed / 57 passed from these eleven entries and their positions, and reconciles it against three recorded deep-gate runs (30665129779, 30663355864, 30671022691) that each really did record 11 failures. Renumbering to 8 would assert those runs failed 8 tests, which is false; measured 2026-08-29 it also raises IndexError in n8_denominator() because specs[1].files empties. The count stays 11 because 11 is what was measured. This block, not the array, carries current state.",
+    "statusOfTheRemainingEight": "Not observed red since. #281, #294 and #308 reconciled the Linux corpus, and the 2026-08-24 scheduled deep-gate run 32688747703 (head 31659a5) compared clean with the Assert compare mode wrote no baseline step green.",
+    "doNotInferDeterminism": "That clean compare is NOT evidence this gate can go red. The corpus was in sync, so it shows nothing WAS written, not that real drift would have been caught. Do not cite a clean committed-baseline compare as evidence of determinism.",
+    "enforcedBy": "tests/test_visual_capture_contracts.py::test_the_linux_inherited_red_ledger_names_only_real_or_exempt_baselines"
+  },
   "purpose": "Machine-readable reconciliation ledger for the N8 Linux deep gates at packets h, i, j and k. Every entry is a red that already existed before the WP4.4 arc began. A packet that reproduces one of these has NOT caused it.",
   "schemaHistory": [
     {
@@ -20,9 +39,18 @@
       "change": "`linuxInheritedReds` is now `{platform, totalCount, specs[]}`. Each element of `specs[]` carries its own `spec`, `snapshotDir`, `count`, `evidence`, `provenance` and `files`, so the ledger can cover any number of spec files. `snapshotDir`, `count`, `evidence`, `allDesktopVariants`, `note` and `files` moved from the `linuxInheritedReds` object into the `specs[0]` entry unchanged.",
       "rebaseline": "None. No snapshot file was regenerated, modified or deleted by this revision. The ten v1 entries are carried over byte-for-byte; the eleventh is ADDED coverage of an already-measured inherited red, not a new baseline.",
       "authority": "Correcting the committed Linux ledger requires owner approval (V2, R3 condition 6). This revision is proposal P1 from `docs/CSS_PHASE4_WP4_4_K_INTEGRATION_EVIDENCE.md` §5 and must not land without it."
+    },
+    {
+      "version": 3,
+      "on": "2026-08-29",
+      "reason": "The ledger had become irreproducible as a live rule while staying correct as history. Three of its eleven files were retired by #298 four days after v2 was written, and nothing validated the list, so the drift was invisible. Left alone, the rule A red on a file NOT in this ledger is a rollback trigger reads as current operational truth over a set that can no longer be reproduced.",
+      "change": "Additive only. currentStatus records the measured 8-of-11 present, why the three are gone, and why the historical array is not renumbered; rules gains a leading supersession notice; schemaVersion 2 -> 3. No entry in linuxInheritedReds, uncertifiableElements or visualMatrix was altered, reordered or removed.",
+      "rebaseline": "None. No snapshot file was regenerated, modified or deleted.",
+      "authority": "V1 owner ruling, 2026-08-29 - documentation reconciliation authorized; implementation and regeneration withheld."
     }
   ],
   "rules": [
+    "SUPERSEDED 2026-08-29 - see currentStatus. The six rules below are retained as the N8-era contract they were. Three of the eleven files they govern no longer exist, so none of them may be applied to a new packet without re-measuring the corpus first.",
     "These reds are inherited. Do not attribute them to the packet under test.",
     "Do NOT rebaseline them. Correcting the committed Linux ledger is a separate change needing owner approval (V2, R3 condition 6).",
     "A red on a file NOT in this ledger is a real finding and a rollback trigger.",

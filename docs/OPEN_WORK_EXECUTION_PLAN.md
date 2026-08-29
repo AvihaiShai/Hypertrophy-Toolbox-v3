@@ -502,11 +502,16 @@ not prove the trigger. **Neither action is taken or authorized here.** See §13.
 ### Packet V1 — Visual determinism disposition
 
 **Priority:** P1 decision; P2 engineering if reopened  
-**Status:** Decision required  
+**Status:** ✅ **RULED 2026-08-29 — option 2, bounded investigation authorized; implementation
+withheld.** The documentation half is done (see the ruling below). The measurement half is
+**BLOCKED on runner access** and has not run.  
 **Estimate:** 2–4 hours to decide and reconcile docs; 2–5 developer-days to investigate and
 repair the rendering race
 
-**Current boundary**
+**Current boundary** — **independently re-counted at `116d3c5` on 2026-08-29**, not carried
+forward from prose: `visual.spec.ts` 66 tests → 68 captures (`user-profile-mobile-{dark,light}`
+each segment into two), `visual-baseline-thumbnails.spec.ts` 18; 162 committed PNGs = 81 per
+platform, linux and win32 name sets identical.
 
 - 81 of 86 captures are byte-compared.
 - Five captures are deliberately exempt and replaced by contract-pinned semantic assertions.
@@ -521,6 +526,39 @@ repair the rendering race
 2. **Fund a bounded investigation.** Time-box the race investigation to two developer-days,
    then either propose a measured repair or return to option 1. Do not regenerate baselines to
    hide nondeterminism.
+
+**Owner ruling — 2026-08-29**
+
+**Option 2.** 81/86 is accepted as the **current** boundary and is **not** terminal. A
+**two-developer-day investigation is authorized**, scoped to one question: does removing the
+`.tbl-wrap` / `.tbl` / `.tbl--responsive` compositor promotion **at capture time** produce
+byte-identical rasters across **three fresh generate runs on `ubuntu-24.04` and three on
+`windows-2022`**, measured by comparing generated rasters **to each other**, never to the
+committed baselines.
+
+The reason it is not closed: §8.5 of
+[`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) records `dropCompositingHints()`
+reaching **0/86 unstable over two runs** and then rejects it because an *exact-head compare*
+stayed red — but §8.3 of the same file states that a compare against baselines generated
+*with* the promotion "could not have shown success whatever it did". That objection was
+applied to the `translateZ(0)` experiment and **not** to this one. The single control that
+reached zero instability was therefore discarded on evidence that cannot distinguish
+*nondeterministic* from *legitimately different*.
+
+**Stop conditions:** the two days elapse; or either platform's three-run set is unstable; or
+the mechanism is shown to sit outside test-side control.
+
+**Prohibited as repairs, whatever the outcome:** snapshot regeneration; any tolerance above
+`maxDiffPixels: 800` / `threshold: 0`; retries; masks; crops; viewport narrowing; and any
+addition to `BYTE_GATE_EXEMPT`. **Implementation requires separate authorization.**
+
+⛔ **BLOCKED — the measurement has not run.** `dropCompositingHints()` is not in the tree
+(it lives only on closed #296's commits `947ba57` / `14344f3` / `bebb45c`), no workflow
+generates-and-self-compares, `visual-windows` has no generate mode and asserts no baseline
+was written, and neither runner image exists locally. Completing it needs a pushed branch
+plus a temporary workflow — beyond disposable local instrumentation — so it stopped for
+approval rather than broadening scope. The minimal proposed change is recorded with the V1
+report and is **not applied**.
 
 **Acceptance criteria**
 
@@ -1878,7 +1916,7 @@ explicit, per-change owner decision. Status words map to §3 as follows:
 | **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | ✅ **Done — authorized and measured 2026-08-29.** Neither shape was detected by any existing contract; `needs:` is now barred on 5 of the 7 jobs and job-level `continue-on-error:` on 6 of 7, each for a stated reason | **One new decision**: a job-level `continue-on-error:` on the `uses:` job `frozen-windows` is also undetected and was deliberately left open (§15.4 item 11) |
 | **R2** Owner-gated testing decisions | Four decisions — §15.4 items 2–5 | 🟡 **Waiting on you** | **You decide**, then ~0.5–1 developer-day of follow-through |
 | **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | The release gate on `main` **has never run by any trigger**. A dispatch tests the gate body cheaply; only a real tag you name tests the trigger (§4) |
-| **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | 🟡 **Waiting on you** | **Accept** (~0.25 day of doc work) or **investigate** (2-day time-box, up to 2–5 days if a repair is funded) |
+| **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | ✅ **Ruled 2026-08-29 — investigate.** Docs reconciled; the measurement is **blocked on runner access** | **Approve or decline the minimal workflow change** the measurement needs (§4 Packet V1). Implementation of any repair stays a separate authorization |
 | **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1), and nothing is attached to it — the funding re-price went **moot** at closure and is out of the debt table and the decision queue (§15.2 *Discharged*, §16.2) |
 | **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — queue empty** (§17.3: **zero dependency PRs** at `fe15225`; the one open PR is this plan's own) | Nothing until the next bump. #415/#416 merged 2026-08-26; landing one needs explicit owner authorization |
 | **§5 Parked** — 8 items | CSS C8, G4 superset tint, Fatigue Phase 3, four User-Profile/roadmap items, Testing Phase 3 step 11 / Phase 5 | ⛔ **Parked** | Nothing — unless you reopen one, or decide one will never be built, so §5 can mark it **Not planned** instead of leaving it ambiguous |
@@ -1927,12 +1965,17 @@ belongs in the table above or in §15.4:
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-29 — nine
-rows, of which seven stop work.** Items 2–8 are the blocking set; **item 1 is discharged and kept
-numbered** so nothing below it renumbers, and **item 11 is new and blocks nothing today** — it is
-the residual Packet R1 declared rather than closed, and it is recorded here rather than outside the
-table because it is a decision, not a debt. Before that amendment this read *"All eight stop
-work"*, which was true of the eight-row table it described.
+Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-29, twice the
+same day — nine rows, of which six stop work.** Items **2–6 and 8** are the blocking set.
+**Item 7 was ruled on 2026-08-29 and is kept, numbered and struck, rather than removed** —
+removing numbered rows is what created §17.5's citation debt; what stays open under it is narrower
+and is stated in the row itself. **Item 1 is discharged and likewise kept numbered**, so nothing
+below it renumbers. **Item 11 is new and blocks nothing today** — it is the residual Packet R1
+declared rather than closed, and it sits in this table rather than outside it because it is a
+decision, not a debt. Anything else owed that blocks nothing is recorded outside this table.
+
+*This read "All eight stop work" until the V1 ruling made it "Seven of the eight"; Packet R1 then
+discharged item 1 and added item 11. Each reading was true of the table it described.*
 
 | # | Decision | Blocks |
 |---:|---|---|
@@ -1942,7 +1985,7 @@ work"*, which was true of the eight-row table it described.
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | Blocked behind item 8 |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |
-| 7 | **V1** — accept **81/86** as terminal, or fund the race investigation | V1 entirely and §10 criterion 7 |
+| 7 | ~~**V1** — accept **81/86** as terminal, or fund the race investigation~~ ✅ **RULED 2026-08-29: investigate.** What now blocks V1 is narrower — approve or decline the **minimal workflow change** the measurement needs | §4 Packet V1's measurement half. §10 criterion 7 is **met for the decision**, not for the measurement |
 | 8 | **Was #431 the final Vitest expansion packet?** (§15.2 debt 1) | Item 4, and the window's real T0 |
 | 11 | ⚠️ **NEW 2026-08-29 — should a job-level `continue-on-error:` be barred on the `uses:` job `frozen-windows`?** Packet R1 measured it as undetected but left it open by authorization. Resolve first whether a `uses:` job accepts the key at all — `release_pipeline/PLANNING.md`'s Plan v1 constraints say it does not, which would make the shape a parse error rather than a false green | Nothing today; it is the only residual R1 leaves |
 
@@ -1966,21 +2009,27 @@ work"*, which was true of the eight-row table it described.
 ### 15.5 The short version
 
 **No engineering packet is in flight.** T0, U1, U2 and both halves of U3 are on `main`, R0 is
-closed, and pyright reached **0 / 0 / 0** on 2026-08-29. ⚠️ **AMENDED 2026-08-29 — Packet R1 was
-authorized, measured and implemented, so every count in this paragraph moved.** What remains is
-**seven live decisions** that stop work — items **2–8** of §15.4, item 8 being §15.2's **one
+closed, and pyright reached **0 / 0 / 0** on 2026-08-29. ⚠️ **AMENDED 2026-08-29, twice the same
+day — the V1 ruling and Packet R1 each moved the counts in this paragraph.** What remains is **six
+live decisions** that stop work — items **2–6 and 8** of §15.4, item 8 being §15.2's **one
 remaining** debt; **one standing track**, D1, with an empty queue and no bump to triage; and **two
-clocks plus two live-state readings** (§15.3). **That is seven obligations in total** — §15.2's
+clocks plus two live-state readings** (§15.3). **That is six obligations in total** — §15.2's
 surviving debt is already counted among them, and its **other three are discharged** (§15.2
-*Discharged*). R1 leaves **one new decision that blocks nothing**, §15.4 item 11. The only unstarted
-*engineering* is what sits behind your decisions, and it is now **two things, not three**: **R2's
-post-decision follow-through** — the export-bounds behavior change, its tests and the
-`utils/rep_range_integrity.py` docstring that must follow it — and **V1's option 2**. R1's probes
-were the third and are **done**. §8's **1.5–3 developer-day** residual was priced for R1 and R2
-together and now covers **R2 only**, with V1's repair separate.
+*Discharged*).
 
-*Before that amendment this read: eight live decisions (items 1–8), eight obligations, and three
-unstarted engineering items including R1's probes.*
+**Two rows are open without stopping work**, and are excluded from that six: **item 7**, ruled
+2026-08-29 — V1: investigate, its measurement now blocked on a workflow approval rather than on
+the disposition — and **item 11**, the residual Packet R1 declared rather than closed.
+
+The only unstarted *engineering* is what sits behind your decisions, and it is now **two things,
+not three**: **R2's post-decision follow-through** — the export-bounds behavior change, its tests
+and the `utils/rep_range_integrity.py` docstring that must follow it — and **V1's option 2**, which
+is authorized and blocked on runner access rather than waiting on a decision. **R1's probes were
+the third and are done.** §8's **1.5–3 developer-day** residual was priced for R1 and R2 together
+and now covers **R2 only**, with V1's repair separate.
+
+*Before these two amendments this read: eight live decisions (items 1–8), eight obligations, and
+three unstarted engineering items including R1's probes and V1's undecided disposition.*
 
 ---
 
@@ -2424,19 +2473,52 @@ this repository held **do not detect** either shape. It does **not** establish t
 false green occurs — that rests on documented GitHub Actions semantics and the mechanism
 `ci.yml:1094-1095` already states, and **no workflow was dispatched and no run inspected**.
 
-**⚠️ THIS PASS AGES TWO POINTERS IN THIS FILE, AND NAMES THEM RATHER THAN LEAVING THEM TO BE
-DISCOVERED.** §15.4 now holds nine rows (items 1–8 and 11), of which seven block.
+### 18.1 Rebased onto the V1 reconciliation — how the collision was resolved
+
+This packet was written against `116d3c5` and **rebased onto `8c844df`**
+([#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454), the V1 documentation
+reconciliation) after that merged. Both packets amended the same three surfaces, and **neither was
+overwritten**:
+
+| Surface | #454's change | Packet R1's change | Resolution |
+|---|---|---|---|
+| §15.4 table | Item **7** struck in place under the V1 ruling, keeping its number | Item **1** discharged in place; item **11** added | Both kept — the table is **nine rows**: 1–8 and 11 |
+| §15.4 intro | *"Seven of the eight stop work"* | *"nine rows … item 1 discharged, item 11 new"* | Rewritten to state **both** rulings and the arithmetic they jointly produce |
+| §15.5 | *"seven live decisions … less item 7"* | *"seven live decisions … items 2–8"* | Rewritten from the merged table rather than from either draft |
+| `test_inventory/` | Regenerated for `test_visual_capture_contracts.py` +2 | Regenerated for this file +12 | **Neither version kept.** Reset to `8c844df` and regenerated from the merged tree |
+
+**The arithmetic was re-derived from the merged table, not carried from either side.** Nine rows;
+**six block** (items 2–6 and 8); item 1 discharged by R1; item 7 ruled by V1; item 11 new and
+non-blocking. Each packet alone would have said seven.
+
+### 18.2 The pointers this pass ages
+
+**⚠️ THIS PASS AGES FOUR POINTERS, AND NAMES THEM RATHER THAN LEAVING THEM TO BE DISCOVERED.**
 
 | Location | Citation | Why it no longer resolves |
 |---|---|---|
-| §16.2 | *“§15.4 runs to **eight** items, and items 1–8 kept their numbers”* | Nine rows now; items 1–8 did keep their numbers, and the new row is **11** precisely so they could |
-| §17.4 | *“§15.4's **eight** decisions”* | Seven block; item 1 is discharged in place and item 11 blocks nothing |
+| §16.2 (this file) | *"§15.4 runs to **eight** items, and items 1–8 kept their numbers"* | Nine rows now; items 1–8 **did** keep their numbers, and the new row is **11** precisely so they could |
+| §17.4 (this file) | *"§15.4's **eight** decisions"* | Six block; item 1 is discharged in place, item 7 is ruled, and item 11 blocks nothing |
+| [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md):198 | *"Everything else waits on the owner — §15.4 items 1–8"* | Item 1 no longer waits, and item 11 is not in the range |
+| [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md):186 | the same *"items 1–8"* | Same |
 
-**Neither is a factual error** — both are dated readings that were true of the table they
-described, and this file's convention is to keep such readings and name what has moved past them.
-Both sit inside evidence logs for earlier passes and are deliberately **not** rewritten here.
+**None is a factual error** — each was true of the table it described, and this file's convention
+is to keep dated readings and name what has moved past them. The two in-file citations sit inside
+evidence logs for earlier passes and are deliberately **not** rewritten here.
 
-**Also owed, and outside this packet's authorized file scope:**
-[`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) and [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md)
-carry R1 as unstarted owner-gated work. That is now false, and repairing it belongs to a pass that
-owns those files.
+**The two out-of-file citations were repaired by #454 hours before this packet, and this packet
+ages them again.** #454 corrected them from *"items 1–8 **and 10**"* to *"items 1–8"*; the range is
+now stale a second time for a different reason. That is not a defect in #454's repair — it is what
+happens when two packets amend one numbered queue on the same day — but it should not be
+rediscovered as novel.
+
+**Also aged, and stated because it is the sharper claim:**
+[`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md):131 lists *"any action on R1, R2, R3, V1 or
+R1-D3"* as **explicitly not authorized and not taken**. That is now false for **R1** — authorized
+and taken — and was already overtaken for **V1** by #454's own ruling. It sits inside a dated
+block.
+
+**Repairing all three belongs to a pass that owns those files** — deliberately not this one, whose
+authorized file scope excludes them. **Note for whoever takes it:** `MASTER_HANDOVER.md`'s many
+*"Packet R1"* references mean the **release/tag pipeline** packet (#374, `5222db2`), a different R1
+entirely. Only the §15.4 range citation above concerns the deep-gate mutation probes.

@@ -364,7 +364,11 @@ Derived from the `QUALITY_GATE.md` **CSS (static bundles) → shared surfaces** 
    untouched here), but it *will* conflict on merge order. **Escalated at Gate 1.**
 2. **The repository-wide visual position.** On current `main`,
    `docs/visual_determinism/PLANNING.md` records **Gate 2 PASSED — 86/86 byte-identical
-   across three isolated generations**. PR #296 is a *later, separate* draft investigation
+   across three isolated generations**. *(**Stale as of 2026-08-04; annotated 2026-08-29.**
+   That 86/86 claim was withdrawn by §8 of that file the day after it was written. The
+   repository-wide position is **81 of 86 byte-compared, five exempt by measurement**.
+   This clause is left as the packet's contemporaneous reading; do not cite it as
+   current.)* PR #296 is a *later, separate* draft investigation
    into workout-table raster nondeterminism that **must not merge**. This packet touches
    none of its files, runs the seeded visual matrix normally, and — per the owner
    instruction — will mark the visual merge gate **blocked** rather than claim a single
