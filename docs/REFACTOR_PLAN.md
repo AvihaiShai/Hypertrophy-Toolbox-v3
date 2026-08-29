@@ -13,14 +13,20 @@ in `routes/workout_plan.py` and took it **9 / 2 / 1 → 0 / 0 / 0**.
 
 **Trajectory — measurement points, not packets. Every figure is recomputed from the
 baseline artifact committed at that revision, quoted as diagnostics / distinct keys /
-files:** **139 / 45 / 28** before #336, **132 / 42 / 26** at `01d890d`,
+files:** **139 / 45 / 28** at `01d890d^` (before #336), **132 / 42 / 26** at `01d890d`,
 **130 / 41 / 25** at `f9726a3`, **123 / 40 / 24** at `288667d`, **37 / 16 / 11** at
-`2035852`, **9 / 2 / 1** at `1226e46`, **0 / 0 / 0** at `3532f86`. The two earliest
-file counts are recomputed here — the contemporaneous record quoted those readings in
-the two-number form. **The baseline was not always zero; retain these figures rather
+`2035852`, **9 / 2 / 1** at `1226e46`, **0 / 0 / 0** at `3532f86`. **Every point names a
+revision so it can be re-run**, which is why the first is `01d890d^` rather than the prose
+"before #336". The second point holds across a fourteen-day gap by **measurement, not
+assumption**: `01d890d` and `3098282^` are the *same blob*, `4da19c9`, so **132 / 42 / 26**
+is simultaneously the reading at `01d890d` and the "before #430" figure the evidence logs
+in [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §§12–14 record. The two
+earliest file counts are recomputed here — the contemporaneous record quoted those readings
+in the two-number form. **The baseline was not always zero; retain these figures rather
 than flattening them to the current one.**
 
-**Re-measured for this update at `158ee40`.**
+**Re-measured for this update at `158ee40`** — `origin/main` at the time of this pass, and
+the commit **after** `3532f86`, where the track actually closed.
 `docs/ci_cd_phase3/pyright-baseline.json` carries `total_diagnostics: 0`,
 `distinct_keys: 0` and an empty `diagnostics` array. A live pyright 1.1.410 run
 under the committed `pyrightconfig.json` reports `summary.errorCount` **0** over
@@ -1599,7 +1605,13 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 - Type-only changes; no behavior refactors disguised as typing fixes.
 - Baseline diagnostic multiset may only shrink; regenerate with the existing script when
   removals are intentional.
+  ⚠️ **Scoped, so it cannot be read against the allowlist rule below.** This bullet governs
+  regenerating after an **intentional reduction**, and at `0 / 0 / 0` there is no residual left
+  to reduce, so nothing can trigger it. It never licensed regenerating to absorb a **net-new**
+  diagnostic — that is the owner decision the allowlist bullet states.
 - Gate: zero net-new diagnostics, lower count, focused tests, then full pytest.
+  ⚠️ **"Lower count" is vacuous at `0 / 0 / 0`** — repairing a net-new diagnostic restores zero
+  rather than lowering it, so what remains operative here is **zero net-new**, plus the tests.
 - **The allowlist is empty and has no headroom.** `scripts/pyright_baseline_diff.py` only ever
   fails upward, so any net-new diagnostic of tracked severity reds the required
   `Type Check (tsc blocking + pyright measure-only)` context. **Fix the diagnostic; do not
