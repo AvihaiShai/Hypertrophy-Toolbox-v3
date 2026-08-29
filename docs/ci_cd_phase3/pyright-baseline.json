@@ -2,23 +2,8 @@
   "_meta": {
     "tool": "pyright",
     "note": "Baseline-allowlist for the typecheck CI gate (leftovers A9). Generated under the committed pyrightconfig.json (pythonVersion 3.14, pythonPlatform Windows). Regenerate with scripts/pyright_baseline_diff.py --write-baseline. Do NOT edit by hand to silence a real regression.",
-    "total_diagnostics": 9,
-    "distinct_keys": 2
+    "total_diagnostics": 0,
+    "distinct_keys": 0
   },
-  "diagnostics": [
-    {
-      "file": "routes/workout_plan.py",
-      "severity": "error",
-      "rule": "reportArgumentType",
-      "message": "Argument of type \"dict[str, Unknown] | None\" cannot be assigned to parameter \"params\" of type \"dict[Unknown, Unknown]\" in function \"_update_execution_style_db\"\n  Type \"dict[str, Unknown] | None\" is not assignable to type \"dict[Unknown, Unknown]\"\n    \"None\" is not assignable to \"dict[Unknown, Unknown]\"",
-      "count": 1
-    },
-    {
-      "file": "routes/workout_plan.py",
-      "severity": "error",
-      "rule": "reportOptionalSubscript",
-      "message": "Object of type \"None\" is not subscriptable",
-      "count": 8
-    }
-  ]
+  "diagnostics": []
 }
