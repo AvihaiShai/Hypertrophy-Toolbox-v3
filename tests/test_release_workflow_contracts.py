@@ -28,8 +28,12 @@ CI = WORKFLOWS / "ci.yml"
 DEEP_GATE = WORKFLOWS / "deep-gate.yml"
 RELEASE = WORKFLOWS / "release.yml"
 PACKAGED = WORKFLOWS / "_packaged-windows.yml"
+# THROWAWAY V1 probe instrumentation - delete with probe/v1-drop-compositing-hints.
+# Declared here because the vacuity floor below demands every workflow on disk be
+# covered by these contracts, not merely tolerated by them.
+V1_PROBE = WORKFLOWS / "v1-probe.yml"
 
-ALL_WORKFLOWS = (CI, DEEP_GATE, RELEASE, PACKAGED)
+ALL_WORKFLOWS = (CI, DEEP_GATE, RELEASE, PACKAGED, V1_PROBE)
 NEW_WORKFLOWS = (RELEASE, PACKAGED)
 WORKFLOW_PATHS = {path.name: path for path in ALL_WORKFLOWS}
 

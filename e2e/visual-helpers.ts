@@ -54,7 +54,25 @@ export const BYTE_GATE_EXEMPT = new Set([
   'plan-desktop-dark-simple',
 ]);
 
+/**
+ * INVESTIGATION INSTRUMENTATION -- V1 probe, default OFF, never set in
+ * committed CI. Disposable; delete with this branch.
+ *
+ * An exempt capture returns from `expectFullPageScreenshot` before
+ * `toHaveScreenshot`, so it writes no file even under `--update-snapshots`.
+ * A generate-based stability measurement therefore cannot see the five
+ * captures it exists to measure. `PW_MEASURE_EXEMPT=1` bypasses the
+ * diversion so those five produce pixels for the probe.
+ *
+ * The bypass lives in the predicate rather than at the two call sites on
+ * purpose: one gate covers both the full-page and locator paths, and
+ * `BYTE_GATE_EXEMPT` itself is NOT edited -- the set, and every contract in
+ * `tests/test_visual_capture_contracts.py` that pins it, are untouched.
+ */
+const MEASURE_EXEMPT_CAPTURES = process.env.PW_MEASURE_EXEMPT === '1';
+
 export function isByteGateExempt(name: string): boolean {
+  if (MEASURE_EXEMPT_CAPTURES) return false;
   return BYTE_GATE_EXEMPT.has(name.replace(/\.png$/i, ''));
 }
 
@@ -264,6 +282,84 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
   });
 
   await waitForImagesSettled(page);
+
+  // INVESTIGATION INSTRUMENTATION -- V1 probe, default OFF. See below.
+  if (DROP_COMPOSITING_HINTS) {
+    await dropCompositingHints(page);
+  }
+}
+
+/**
+ * INVESTIGATION INSTRUMENTATION -- V1 probe, default OFF, never set in
+ * committed CI. Disposable; delete with this branch.
+ */
+const DROP_COMPOSITING_HINTS = process.env.PW_DROP_HINTS === '1';
+
+/**
+ * The two identity transforms Chromium reports for a pure promotion hint.
+ * `translateZ(0)` computes to the 3D form, `translate3d(0,0,0)` and
+ * `scale(1)` to whichever the property was authored in. Both are geometric
+ * no-ops: their only effect is to give the element its own compositor layer.
+ */
+const IDENTITY_TRANSFORMS = new Set([
+  'matrix(1, 0, 0, 1, 0, 0)',
+  'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)',
+]);
+
+/**
+ * Take every element off its own compositor layer before a capture.
+ *
+ * Recovered verbatim from `947ba57` (closed PR #296). Chromium rounds an
+ * element's paint offset against the subpixel accumulation of the compositor
+ * layer it paints into, so the same fractional layout inside a promoted layer
+ * can land on either of two device pixels. `.tbl-wrap` and `.tbl` carry
+ * `translateZ(0)`, `backface-visibility: hidden` and
+ * `will-change: scroll-position` for scroll smoothness
+ * (`static/css/layout.css`); a baseline capture is always taken at the origin
+ * and never scrolls, so it gains nothing from them and inherits their
+ * rounding.
+ *
+ * Only *identity* transforms are cleared, which is what makes this safe to
+ * apply page-wide: an identity transform paints nothing, so removing one
+ * cannot move a pixel a real transform was responsible for. Keyed on computed
+ * values rather than a selector list on purpose -- the promotion hints live on
+ * presentation classes, which is exactly what a CSS refactor renames
+ * (`tests/test_visual_selector_contracts.py`).
+ */
+export async function dropCompositingHints(page: Page): Promise<number> {
+  return page.evaluate(async (identityTransforms: string[]) => {
+    const identity = new Set(identityTransforms);
+    let cleared = 0;
+
+    for (const element of Array.from(document.querySelectorAll('*'))) {
+      const node = element as HTMLElement;
+      if (!node.style) continue;
+      const computed = getComputedStyle(node);
+      let touched = false;
+
+      if (identity.has(computed.transform)) {
+        node.style.setProperty('transform', 'none', 'important');
+        touched = true;
+      }
+      if (computed.willChange !== 'auto') {
+        node.style.setProperty('will-change', 'auto', 'important');
+        touched = true;
+      }
+      if (computed.backfaceVisibility === 'hidden') {
+        node.style.setProperty('backface-visibility', 'visible', 'important');
+        touched = true;
+      }
+      if (touched) cleared += 1;
+    }
+
+    // Layerization changes invalidate paint. Let the new, unpromoted frame be
+    // produced before anything screenshots it.
+    await new Promise<void>((resolveFrame) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolveFrame()));
+    });
+    window.scrollTo(0, 0);
+    return cleared;
+  }, Array.from(IDENTITY_TRANSFORMS));
 }
 
 /**

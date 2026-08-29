@@ -1,0 +1,178 @@
+name: V1 Probe (THROWAWAY - dropCompositingHints stability)
+
+# ============================================================================
+# DISPOSABLE INVESTIGATION INSTRUMENTATION. DELETE WITH probe/v1-drop-compositing-hints.
+#
+# Answers exactly one question from the V1 owner ruling (2026-08-29): does
+# dropCompositingHints() at capture time produce byte-identical rasters across
+# three fresh generate runs on ubuntu-24.04 and three on windows-2022?
+#
+# It compares generated rasters ONLY with other rasters from the same platform
+# and the same arm. It never compares against a committed baseline -- a compare
+# against baselines generated WITH the promotion cannot distinguish
+# "nondeterministic" from "legitimately different", which is precisely the
+# category error that discarded this control in PLANNING.md 8.5.
+#
+# NOTHING IS COMMITTED OR PUSHED. --update-snapshots writes into the runner
+# workspace only; the PNGs leave as an artifact for offline hashing. There is no
+# commit, push, or baseline-acceptance step anywhere in this file.
+#
+# workflow_dispatch ONLY. No push, pull_request or schedule trigger, so this
+# file cannot gate, block, or fire on anything by itself.
+# ============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Runner image (pinned, never a -latest alias)'
+        type: choice
+        options: [ubuntu-24.04, windows-2022]
+        required: true
+      arm:
+        description: 'control = current capture path | treatment = PW_DROP_HINTS=1'
+        type: choice
+        options: [control, treatment]
+        required: true
+      run_index:
+        description: 'Which of the three runs in this set (1, 2 or 3) - labels the artifact only'
+        type: choice
+        options: ['1', '2', '3']
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: V1 probe ${{ inputs.platform }} / ${{ inputs.arm }} / run ${{ inputs.run_index }}
+    runs-on: ${{ inputs.platform }}
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
+
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '24'
+        cache: 'npm'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install npm dependencies
+      run: npm ci
+
+    - name: Build Bootstrap-customized CSS
+      run: npm run build:css
+
+    - name: Install Playwright Chromium
+      run: npx playwright install --with-deps chromium
+
+    # Without the committed fixture, prepare_visual_db.py falls back to
+    # data/database.db and could render real data into the measurement.
+    - name: Assert committed visual seed present
+      shell: bash
+      run: test -f e2e/fixtures/database.visual.seed.db
+
+    # Record what the run actually is, so an artifact can never be misattributed
+    # to the wrong platform, arm or toolchain after the fact.
+    - name: Record run provenance
+      shell: bash
+      run: |
+        mkdir -p artifacts/probe
+        {
+          echo "sha=$(git rev-parse HEAD)"
+          echo "platform_input=${{ inputs.platform }}"
+          echo "runner_os=$RUNNER_OS"
+          echo "arm=${{ inputs.arm }}"
+          echo "run_index=${{ inputs.run_index }}"
+          echo "run_id=${{ github.run_id }}"
+          echo "image_version=${ImageOS:-unknown}/${ImageVersion:-unknown}"
+          echo "node=$(node --version)"
+          echo "python=$(python --version 2>&1)"
+          echo "playwright=$(npx playwright --version)"
+        } > artifacts/probe/provenance.txt
+        cat artifacts/probe/provenance.txt
+
+    # Both snapshot specs. The thumbnails spec is what carries
+    # plan-desktop-light-simple, the capture #322 proved races on windows-2022
+    # and which ci.yml's visual-windows job does not run.
+    #
+    # PW_MEASURE_EXEMPT=1 makes the five BYTE_GATE_EXEMPT captures produce pixels;
+    # without it they return before toHaveScreenshot and the probe would measure
+    # only the 81 that already work. BYTE_GATE_EXEMPT itself is unmodified.
+    - name: Generate rasters
+      env:
+        PW_VISUAL_SEED: '1'
+        PW_PORT: '5058'
+        PW_DB_PATH: 'artifacts/e2e/database.v1probe.db'
+        PW_MEASURE_EXEMPT: '1'
+        PW_DROP_HINTS: ${{ inputs.arm == 'treatment' && '1' || '' }}
+      shell: bash
+      run: |
+        echo "PW_DROP_HINTS=[${PW_DROP_HINTS}]  (empty = control arm)"
+        npx playwright test --project=chromium \
+          e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts \
+          --update-snapshots
+
+    # sha256 every produced PNG. Written as a runner-side temp script so the
+    # repository gains no file, and in node so one implementation covers both
+    # runner images.
+    - name: Hash produced rasters
+      if: always()
+      shell: bash
+      run: |
+        cat > "$RUNNER_TEMP/manifest.mjs" <<'MJS'
+        import { createHash } from 'node:crypto';
+        import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+        import { join, relative } from 'node:path';
+
+        const root = 'e2e/__screenshots__';
+        const walk = (dir) => readdirSync(dir).flatMap((entry) => {
+          const full = join(dir, entry);
+          return statSync(full).isDirectory() ? walk(full) : [full];
+        });
+
+        const rows = walk(root)
+          .filter((f) => f.endsWith('.png'))
+          .map((f) => ({
+            file: relative(root, f).split('\\').join('/'),
+            bytes: statSync(f).size,
+            sha256: createHash('sha256').update(readFileSync(f)).digest('hex'),
+          }))
+          .sort((a, b) => a.file.localeCompare(b.file));
+
+        writeFileSync('artifacts/probe/manifest.json', JSON.stringify(rows, null, 1));
+        console.log(`hashed ${rows.length} PNGs`);
+        for (const r of rows) console.log(`${r.sha256}  ${r.file}`);
+        MJS
+        node "$RUNNER_TEMP/manifest.mjs"
+
+    - name: Upload rasters and manifest
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: v1-probe-${{ inputs.platform }}-${{ inputs.arm }}-${{ inputs.run_index }}
+        path: |
+          e2e/__screenshots__/**
+          artifacts/probe/**
+        retention-days: 7
+
+    - name: Upload Playwright report on failure
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: v1-probe-report-${{ inputs.platform }}-${{ inputs.arm }}-${{ inputs.run_index }}
+        path: artifacts/playwright
+        retention-days: 7
