@@ -5,49 +5,50 @@ name: V1 Probe (THROWAWAY - dropCompositingHints stability)
 #
 # Answers exactly one question from the V1 owner ruling (2026-08-29): does
 # dropCompositingHints() at capture time produce byte-identical rasters across
-# three fresh generate runs on ubuntu-24.04 and three on windows-2022?
+# three fresh generations on ubuntu-24.04 and three on windows-2022?
 #
-# It compares generated rasters ONLY with other rasters from the same platform
-# and the same arm. It never compares against a committed baseline -- a compare
-# against baselines generated WITH the promotion cannot distinguish
-# "nondeterministic" from "legitimately different", which is precisely the
-# category error that discarded this control in PLANNING.md 8.5.
+# It compares generated rasters ONLY with other rasters from the same platform,
+# the same arm and the same job. It NEVER compares against a committed baseline
+# -- a compare against baselines generated WITH the promotion cannot distinguish
+# "nondeterministic" from "legitimately different", which is exactly the category
+# error that discarded this control in visual_determinism/PLANNING.md 8.5.
+#
+# WHY `push:` AND NOT `workflow_dispatch:` ALONE. GitHub resolves a
+# workflow_dispatch workflow from the DEFAULT branch, so dispatching a file that
+# exists only here returns:
+#   HTTP 404: workflow v1-probe.yml not found on the default branch
+# The owner ruled the probe branch must not merge, so a branch-scoped push
+# trigger is the only path that reaches these runner images without putting this
+# file on main. The branch filter is a single literal: this workflow CANNOT fire
+# on main, on develop, on a pull request, or on a schedule.
 #
 # NOTHING IS COMMITTED OR PUSHED. --update-snapshots writes into the runner
 # workspace only; the PNGs leave as an artifact for offline hashing. There is no
 # commit, push, or baseline-acceptance step anywhere in this file.
-#
-# workflow_dispatch ONLY. No push, pull_request or schedule trigger, so this
-# file cannot gate, block, or fire on anything by itself.
 # ============================================================================
 
 on:
+  push:
+    branches: ['probe/v1-drop-compositing-hints']
   workflow_dispatch:
-    inputs:
-      platform:
-        description: 'Runner image (pinned, never a -latest alias)'
-        type: choice
-        options: [ubuntu-24.04, windows-2022]
-        required: true
-      arm:
-        description: 'control = current capture path | treatment = PW_DROP_HINTS=1'
-        type: choice
-        options: [control, treatment]
-        required: true
-      run_index:
-        description: 'Which of the three runs in this set (1, 2 or 3) - labels the artifact only'
-        type: choice
-        options: ['1', '2', '3']
-        required: true
 
 permissions:
   contents: read
 
+concurrency:
+  group: v1-probe-${{ github.run_id }}
+  cancel-in-progress: false
+
 jobs:
   probe:
-    name: V1 probe ${{ inputs.platform }} / ${{ inputs.arm }} / run ${{ inputs.run_index }}
-    runs-on: ${{ inputs.platform }}
-    timeout-minutes: 30
+    name: V1 probe ${{ matrix.platform }} / ${{ matrix.arm }}
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-24.04, windows-2022]
+        arm: [control, treatment]
 
     steps:
     - name: Checkout code
@@ -93,86 +94,125 @@ jobs:
         mkdir -p artifacts/probe
         {
           echo "sha=$(git rev-parse HEAD)"
-          echo "platform_input=${{ inputs.platform }}"
+          echo "platform=${{ matrix.platform }}"
           echo "runner_os=$RUNNER_OS"
-          echo "arm=${{ inputs.arm }}"
-          echo "run_index=${{ inputs.run_index }}"
+          echo "arm=${{ matrix.arm }}"
           echo "run_id=${{ github.run_id }}"
-          echo "image_version=${ImageOS:-unknown}/${ImageVersion:-unknown}"
+          echo "image=${ImageOS:-unknown}/${ImageVersion:-unknown}"
           echo "node=$(node --version)"
           echo "python=$(python --version 2>&1)"
           echo "playwright=$(npx playwright --version)"
-        } > artifacts/probe/provenance.txt
-        cat artifacts/probe/provenance.txt
+        } | tee artifacts/probe/provenance.txt
 
-    # Both snapshot specs. The thumbnails spec is what carries
-    # plan-desktop-light-simple, the capture #322 proved races on windows-2022
-    # and which ci.yml's visual-windows job does not run.
+    # Three fresh generations, sequentially, each with its own prepared database,
+    # Flask process and Chromium process -- the same shape as PLANNING.md 3.4's
+    # "three isolated DB, server and browser generations".
+    #
+    # Both snapshot specs. The thumbnails spec carries plan-desktop-light-simple,
+    # the capture #322 proved races on windows-2022 and which ci.yml's
+    # visual-windows job does not run.
     #
     # PW_MEASURE_EXEMPT=1 makes the five BYTE_GATE_EXEMPT captures produce pixels;
     # without it they return before toHaveScreenshot and the probe would measure
     # only the 81 that already work. BYTE_GATE_EXEMPT itself is unmodified.
-    - name: Generate rasters
+    #
+    # The playwright exit code is recorded, not enforced: the datum is the raster
+    # bytes, and a first-time snapshot write can report non-zero while producing
+    # exactly the pixels being measured.
+    - name: Generate rasters (3 fresh generations)
       env:
         PW_VISUAL_SEED: '1'
         PW_PORT: '5058'
         PW_DB_PATH: 'artifacts/e2e/database.v1probe.db'
         PW_MEASURE_EXEMPT: '1'
-        PW_DROP_HINTS: ${{ inputs.arm == 'treatment' && '1' || '' }}
+        PW_DROP_HINTS: ${{ matrix.arm == 'treatment' && '1' || '' }}
       shell: bash
       run: |
-        echo "PW_DROP_HINTS=[${PW_DROP_HINTS}]  (empty = control arm)"
-        npx playwright test --project=chromium \
-          e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts \
-          --update-snapshots
+        echo "arm=${{ matrix.arm }}  PW_DROP_HINTS=[${PW_DROP_HINTS}]  (empty = control)"
+        for n in 1 2 3; do
+          echo "::group::generation $n"
+          # Identical starting conditions for every generation: committed
+          # baselines restored, and anything the previous generation created
+          # (the five exempt captures have no committed PNG) removed.
+          git checkout -- e2e/__screenshots__
+          git clean -fdq e2e/__screenshots__
+          set +e
+          npx playwright test --project=chromium \
+            e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts \
+            --update-snapshots
+          code=$?
+          set -e
+          echo "generation $n playwright exit=$code" >> artifacts/probe/provenance.txt
+          mkdir -p "artifacts/probe/gen-$n"
+          cp -r e2e/__screenshots__/. "artifacts/probe/gen-$n/"
+          echo "::endgroup::"
+        done
+        git checkout -- e2e/__screenshots__
+        git clean -fdq e2e/__screenshots__
 
-    # sha256 every produced PNG. Written as a runner-side temp script so the
-    # repository gains no file, and in node so one implementation covers both
-    # runner images.
-    - name: Hash produced rasters
+    # sha256 every produced PNG, per generation. Written as a runner-side temp
+    # script so the repository gains no file, and in node so one implementation
+    # covers both runner images.
+    - name: Hash and compare the three generations
       if: always()
       shell: bash
       run: |
         cat > "$RUNNER_TEMP/manifest.mjs" <<'MJS'
         import { createHash } from 'node:crypto';
-        import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+        import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
         import { join, relative } from 'node:path';
 
-        const root = 'e2e/__screenshots__';
-        const walk = (dir) => readdirSync(dir).flatMap((entry) => {
-          const full = join(dir, entry);
+        const walk = (dir) => readdirSync(dir).flatMap((e) => {
+          const full = join(dir, e);
           return statSync(full).isDirectory() ? walk(full) : [full];
         });
+        const hashes = (root) => Object.fromEntries(
+          walk(root).filter((f) => f.endsWith('.png')).map((f) => [
+            relative(root, f).split('\\').join('/'),
+            createHash('sha256').update(readFileSync(f)).digest('hex'),
+          ]),
+        );
 
-        const rows = walk(root)
-          .filter((f) => f.endsWith('.png'))
-          .map((f) => ({
-            file: relative(root, f).split('\\').join('/'),
-            bytes: statSync(f).size,
-            sha256: createHash('sha256').update(readFileSync(f)).digest('hex'),
-          }))
-          .sort((a, b) => a.file.localeCompare(b.file));
+        const gens = [1, 2, 3].map((n) => `artifacts/probe/gen-${n}`);
+        for (const g of gens) if (!existsSync(g)) { console.error(`MISSING ${g}`); process.exit(1); }
+        const [a, b, c] = gens.map(hashes);
 
-        writeFileSync('artifacts/probe/manifest.json', JSON.stringify(rows, null, 1));
-        console.log(`hashed ${rows.length} PNGs`);
-        for (const r of rows) console.log(`${r.sha256}  ${r.file}`);
+        const names = [...new Set([...Object.keys(a), ...Object.keys(b), ...Object.keys(c)])].sort();
+        const rows = names.map((file) => {
+          const h = [a[file], b[file], c[file]];
+          const present = h.filter(Boolean).length;
+          const stable = present === 3 && h[0] === h[1] && h[1] === h[2];
+          return { file, present, stable, sha256: h };
+        });
+
+        const unstable = rows.filter((r) => !r.stable);
+        writeFileSync('artifacts/probe/stability.json', JSON.stringify(
+          { total: rows.length, stable: rows.length - unstable.length, unstable: unstable.length, rows },
+          null, 1,
+        ));
+
+        console.log(`captures: ${rows.length}   stable: ${rows.length - unstable.length}   UNSTABLE: ${unstable.length}`);
+        console.log('');
+        for (const r of rows) {
+          const mark = r.stable ? 'stable  ' : 'UNSTABLE';
+          console.log(`${mark} ${r.file}`);
+          if (!r.stable) r.sha256.forEach((s, i) => console.log(`           gen${i + 1} ${s ?? '(absent)'}`));
+        }
         MJS
         node "$RUNNER_TEMP/manifest.mjs"
 
-    - name: Upload rasters and manifest
+    - name: Upload rasters, hashes and provenance
       if: always()
       uses: actions/upload-artifact@v7
       with:
-        name: v1-probe-${{ inputs.platform }}-${{ inputs.arm }}-${{ inputs.run_index }}
-        path: |
-          e2e/__screenshots__/**
-          artifacts/probe/**
+        name: v1-probe-${{ matrix.platform }}-${{ matrix.arm }}
+        path: artifacts/probe/**
         retention-days: 7
 
     - name: Upload Playwright report on failure
       if: failure()
       uses: actions/upload-artifact@v7
       with:
-        name: v1-probe-report-${{ inputs.platform }}-${{ inputs.arm }}-${{ inputs.run_index }}
+        name: v1-probe-report-${{ matrix.platform }}-${{ matrix.arm }}
         path: artifacts/playwright
         retention-days: 7
