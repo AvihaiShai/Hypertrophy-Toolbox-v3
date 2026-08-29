@@ -4,7 +4,50 @@
 
 ## Current State
 
-> **2026-08-29 (LATEST) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`, and NO
+> **2026-08-29 (LATEST) — TESTING STRATEGY D4 IS SIGNED, with a bounded scope and two product
+> rulings. No production code has changed, and no packet is in flight.**
+> `origin/main` is at **`116d3c5`**, re-measured **`2026-08-29T19:36:33Z`**, with **ZERO PRs open**
+> at that same instant — the open-PR count is an INSTANT, not a state. The block below this one
+> still says `225b7b0`; that was true when written, and #449 (`5664c0e`), #451 (`fe15225`) and
+> #450 (`116d3c5`) have merged since. That is a dated derived view ageing, not a defect.
+>
+> **D4 is signed** ([`TESTING_STRATEGY_PLANNING.md`](TESTING_STRATEGY_PLANNING.md) §8.1e). The
+> authorized scope is `hypothesis` over **`utils/effective_sets.py` only**, in two sequential
+> packets — **A** role-weight accumulation, **B** `get_rep_range_factor()` totality. D4's other
+> named targets are **struck**: the volume splitter has no calculation surface, the plan generator
+> is DB-backed with unseeded `random`, progression already has 30 example tests, and
+> `get_effort_factor()` has an 11-integer domain already swept. **The signature authorizes no
+> production code change on its own** — both packets take Gate 1 with `product-risk-reviewer`.
+>
+> **Two product rulings landed as [`DECISIONS.md`](DECISIONS.md) ADR-009**, and both are
+> calculation-semantics changes, so treat them as load-bearing: **(1)** a muscle occupying two
+> P/S/T roles is credited the **sum** of those role weights (primary + secondary = **1.5×**),
+> matching Raw Sets and `utils/_fatigue/per_muscle.py`; `DIRECT_ONLY` stays primary-only.
+> **(2)** `get_rep_range_factor()` becomes **total**: `<6` → 0.85, `6–20` → 1.0, `>20–30` → 0.85,
+> `>30` → 0.70, missing data neutral at 1.0. **Ingress rep validation is out of scope.**
+>
+> **The defect these rulings fix is live and measured.** `calculate_effective_sets()` keys
+> `muscle_contributions` by muscle name, so a repeated muscle is **overwritten** by the lower role
+> weight — and **38 of the 1,897 rows in the shipped `data/catalog.seed.db` repeat a muscle across
+> the roles**. On `Dumbbell Wrist Curl` (Forearms, Forearms, —) at 3 sets / RIR 0 / 8–12 reps the
+> **Effective** column reports **3.0** where **Raw** reports **4.5**, on the same screen. **No test
+> in the repository passes the same muscle string to two roles**, and the weekly-summary golden's
+> fixture uses all-distinct muscles — so the defect is neither covered nor golden-pinned.
+>
+> **Packet A must be atomic across three modules.** Accumulating inside `calculate_effective_sets()`
+> alone makes it *worse*: `utils/weekly_summary.py` and `utils/session_summary.py` iterate the
+> three-role tuple and re-read the same dict key per role, so an accumulated value is added once per
+> duplicate role — 3.0× where 1.5× is ruled. The fix lands as one change across
+> `effective_sets.py` + `weekly_summary.py` + `session_summary.py`, with explicit regression tests
+> on both summary paths. Packet C (the DB-backed parity property) stays **deferred**; summary-level
+> regression coverage does **not**.
+>
+> **R2.2 is discharged** in the Open Work Execution Plan's decision queue — **seven** items still
+> stop work, not eight. The `js-unit` half of D2 is now the only unsigned row in the Testing
+> Strategy decision table. Execution plan:
+> [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md).
+
+> **2026-08-29 — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`, and NO
 > engineering packet is in flight. Everything still open is either an owner decision or parked.
 > `js-unit` is still NOT promoted, and the JS-unit window's T0 is still CONDITIONAL and
 > UNDECLARED.**

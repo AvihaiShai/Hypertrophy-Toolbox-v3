@@ -383,7 +383,13 @@ produced a new engineering packet.**
 **Decisions**
 
 1. Define the intended `scan_export_bounds()` behavior when numeric `min > max`.
-2. Decide and sign Testing Strategy D4.
+2. ~~Decide and sign Testing Strategy D4.~~ ✅ **DONE 2026-08-29 — D4 is SIGNED** with a bounded
+   scope: `hypothesis` over `utils/effective_sets.py` **only**, in two sequential packets, with the
+   volume splitter, plan generator, progression and `get_effort_factor()` **struck** from D4 as
+   written. Two product rulings — sum-of-role-weights for duplicate P/S/T muscles, and a total
+   `get_rep_range_factor()` — are **ADR-009**. Ruling: `TESTING_STRATEGY_PLANNING.md` §8.1e.
+   Execution plan: [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md).
+   **The decision is closed; the two packets are not — each still takes Gate 1.**
 3. After the qualification window, decide Q4/D2 and whether `JS Unit (Vitest,
    non-required)` should become a required context. Q4 and D2 are decided **together**; the
    window's strict mark is `2026-09-05T17:59:26Z`. ⚠️ **AMENDED 2026-08-28 — that mark is
@@ -1886,15 +1892,18 @@ belongs in the table above or in §15.4:
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. **All eight stop work** — every entry
-here is a choice that must be made before something can proceed. Anything owed that blocks nothing
-is recorded outside this table.
+Every decision this plan is waiting on you for, in one place. ~~**All eight stop work**~~ ⚠️
+**SEVEN stop work as of 2026-08-29**: item 3 (**R2.2**, Testing Strategy D4) was **decided** that
+day and is struck through in place. Every remaining entry is a choice that must be made before
+something can proceed. **Items 1–8 keep their numbers and their meanings** — a decided item is
+struck, never renumbered and never removed, for the same reason the 2026-08-29 renumbering note
+below gives. Anything owed that blocks nothing is recorded outside this table.
 
 | # | Decision | Blocks |
 |---:|---|---|
 | 1 | Authorize the **R1** mutation probes — or close both hypotheses unmeasured | R1 entirely |
 | 2 | **R2.1** — what should `scan_export_bounds()` do when `min > max`? | The `utils/rep_range_integrity.py` docstring, which must follow the behavior, not choose it |
-| 3 | **R2.2** — sign or reject Testing Strategy **D4** | R2 closure |
+| 3 | ~~**R2.2** — sign or reject Testing Strategy **D4**~~ ✅ **DISCHARGED 2026-08-29 — D4 is SIGNED**, with a bounded scope (`utils/effective_sets.py` only, two packets) and two product rulings recorded as **ADR-009**. The ruling is `TESTING_STRATEGY_PLANNING.md` §8.1e; the execution plan is [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md). **This closes the decision, not the work** — both packets still take Gate 1 | ~~R2 closure~~ — R2 now closes on items 2 and 5 |
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | Blocked behind item 8 |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |

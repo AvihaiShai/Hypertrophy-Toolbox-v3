@@ -1,5 +1,30 @@
 # Testing Strategy Review & Plan
 
+> **Status update 2026-08-29 — D4 IS SIGNED, with a bounded scope and two product rulings.**
+> The ruling is recorded in full at [§8.1e](#81e-sixth-sign-off-2026-08-29--d4) and the two
+> product rulings are [`DECISIONS.md`](DECISIONS.md) **ADR-009**. **Every "D4 remains unsigned"
+> sentence below is superseded**; each is the reading of its own moment and is left standing as
+> that record, per this document's convention.
+>
+> **What is authorized:** property-based testing with `hypothesis` over `utils/effective_sets.py`
+> **only**, in two sequential packets — **A**, role-weight accumulation, and **B**, totality of
+> `get_rep_range_factor()`. **What is struck from D4 as written:** the **volume splitter** (it has
+> no calculation surface — `utils/volume_splitter_service.py` is DB reads plus Excel assembly, and
+> the only arithmetic is `round(weekly_sets / training_days, 1)` at `routes/volume_splitter.py:83`,
+> a route), the **plan generator** (`utils/plan_generator.py` is `DatabaseHandler`-backed and calls
+> unseeded `random.uniform(0, 5)` at line 513, which is incompatible with F5-3's mandatory
+> `derandomize=True` on a required check with no retry), **progression** (already covered by 30
+> example tests), and **`get_effort_factor()`** (its domain is 11 integers, already swept
+> exhaustively). D4's own example invariant *"split volume sums to input"* has **no referent in the
+> codebase**.
+>
+> **The signature authorizes no production code change on its own.** Both packets are
+> calculation-surface changes under CLAUDE.md's refactor invariant and take Gate 1 with
+> `product-risk-reviewer` before implementation. The Gate 1 plan is
+> [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md).
+>
+> **Q4, the `js-unit` half of D2, and Phase 3 step 11 are untouched by this signature.**
+
 > **Status update 2026-08-24 — THE 2026-08-24 SCHEDULED DEEP GATE EXECUTED AND WAS
 > GREEN, and R1-D3's three-consecutive-green-scheduled-runs clock is recorded at 2 of 3.**
 > Run [`32688747703`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32688747703),
@@ -354,7 +379,7 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 9. **Adopt strict console-error fixtures beyond visual specs.** Migrate specs off the suppressing fixture incrementally (start with smoke-navigation + workout-plan); keep a per-spec allowlist for genuinely expected errors instead of the global substring list.
 
 ### Phase 3 — New test types where they pay (the valid half of Opus)
-10. **Hypothesis on the calculation core** — `effective_sets`, `double_progression`, volume splitter, plan generator. **Every invariant must be owner-confirmed first** (Gate 0 + `product-risk-reviewer`): candidate invariants like "suggested weight never decreases when reps hit ceiling" or "split volume sums to input" must survive rounding/caps/config review before they become tests. Remember the module's own product rule: effective sets are informational-only. *(Fable 5, 2026-08-02: two operational preconditions before any property test lands — point Hypothesis's `.hypothesis/` example database under `artifacts/` (ADR-002) and register a CI profile with `derandomize=True`/`deadline=None`, because `Run Tests` is a required check with no retry — §9.2 F5-3.)*
+10. **Hypothesis on the calculation core** — ~~`effective_sets`, `double_progression`, volume splitter, plan generator~~ ⚠️ **AMENDED by the D4 signature, 2026-08-29 ([§8.1e](#81e-sixth-sign-off-2026-08-29--d4)): the authorized scope is `utils/effective_sets.py` ONLY.** The volume splitter has no calculation surface to test, the plan generator is DB-backed and unseeded-random, `double_progression` is already covered by 30 example tests, and `get_effort_factor()` has an 11-integer domain already swept exhaustively. Two packets are authorized — **A** (role-weight accumulation, atomic across `effective_sets.py` + `weekly_summary.py` + `session_summary.py`) and **B** (`get_rep_range_factor()` totality) — and the product rulings that fix what they assert are **ADR-009**. *Original wording, superseded:* **Every invariant must be owner-confirmed first** (Gate 0 + `product-risk-reviewer`): candidate invariants like "suggested weight never decreases when reps hit ceiling" or "split volume sums to input" must survive rounding/caps/config review before they become tests. Remember the module's own product rule: effective sets are informational-only. *(Fable 5, 2026-08-02: two operational preconditions before any property test lands — point Hypothesis's `.hypothesis/` example database under `artifacts/` (ADR-002) and register a CI profile with `derandomize=True`/`deadline=None`, because `Run Tests` is a required check with no retry — §9.2 F5-3.)*
 11. **Backup-row fuzzing (Codex's corrected version):** feed `restore_backup()` type-confused/NULL/out-of-range `program_backup_items` rows; assert a clean error + intact live program (the rollback machinery is already tested for injected faults — this extends it to malformed persisted data). **The `schema_version` precondition is discharged (2026-08-14, D6 → ADR-008): it is retained as a reserved informational label and restore stays version-blind, so the fuzz target is the `program_backup_items` rows and never the version itself** — fuzzing a value restore ignores would prove nothing. Version-blindness is already pinned by `test_restore_ignores_foreign_schema_version`, so step 11 need not re-cover it. *(Original wording, superseded: "Treat `schema_version` as a compatibility-policy decision first … If retained, define supported/unsupported-version behavior and test it; do not fuzz a value that restore still ignores.")* `prune_auto_backups()` currently has no production caller—decide whether to remove that dead surface before adding tests that would entrench it.
 12. **JS unit expansion with jsdom** for the highest-risk DOM modules (`exercises.js`, `workout-controls-persistence.js` — the KI-005 contract, `toast.js` — the KI-004 contract, `backup-center.js`), then **promote the Vitest job to required** once green for 2 weeks. *(Fable 5, 2026-08-02: adopt jsdom via per-file `// @vitest-environment jsdom` pragmas, leaving the global `environment: 'node'` and the 9 existing files untouched — §9.2 F5-6.)*
 
@@ -446,16 +471,20 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 | D1 | Reverse the phase-3 "no coverage" decision? | Yes — as non-blocking measurement first (Phase 1); the pyright baseline-diff proves the ratchet pattern works here |
 | D2 | Promote `e2e-erase-flow` (and later `js-unit`) to required checks? | Yes / yes-after-stability; mind the exact-name branch-protection gotcha |
 | D3 | Release process: full pipeline or weekly scheduled deep-gate as stopgap? | Stopgap now, pipeline when the next packaged release is planned |
-| D4 | Hypothesis invariants for calculation modules | Owner review required per invariant (Gate 0) before any property test lands |
+| D4 | Hypothesis invariants for calculation modules | *Recommendation (unchanged, for the record):* owner review required per invariant (Gate 0) before any property test lands. **Owner decision 2026-08-29: signed with a bounded scope** — `hypothesis` is authorized over `utils/effective_sets.py` **only**, in two sequential packets (**A** role-weight accumulation, **B** `get_rep_range_factor()` totality). The volume splitter, plan generator, progression and `get_effort_factor()` are **struck**. Two product rulings settle the invariants' content and are recorded as ADR-009. Ruling and scope: [§8.1e](#81e-sixth-sign-off-2026-08-29--d4) |
 | D5 | Browser matrix | Stay Chromium-only; record as ADR |
 | D6 | `BACKUP_SCHEMA_VERSION` | *Recommendation (unchanged, for the record):* prefer defining and enforcing a compatibility policy; removal is only acceptable as an explicit DB/API contract migration, not a testing cleanup. **Owner decision 2026-08-14: retain-informational instead** — a reserved label, version-blind restore, bump-and-branch rule for the next payload change. Reason for the departure and the evidence behind it: [§8.1c](#81c-fourth-sign-off-2026-08-14--d6); recorded as ADR-008 |
 | D7 | Auto-backup file snapshots: keep "no in-app restore" stance? | Keep, but document the manual recovery procedure in the README. **Owner decision 2026-08-21: signed exactly as recommended** — the "no in-app restore" stance is retained and the reviewed manual recovery procedure shipped to [`README.md`](../README.md). Ruling and scope: [§8.1d](#81d-fifth-sign-off-2026-08-21--d7) |
 
-**Sign-off state (updated 2026-08-21):** D1 is signed as non-blocking measurement; D2 is signed for
+**Sign-off state (updated 2026-08-29):** D1 is signed as non-blocking measurement; D2 is signed for
 `e2e-erase-flow` only; D3 is signed as the stopgap half and D5 as Chromium-only ([§8.1a](#81a-second-sign-off-2026-08-02--d3-and-d5));
 D6 is signed as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6)); **D7 is signed as
-keep-the-stance-and-document** ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)). **D4 remains unsigned**
-and no work may act on it. See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
+keep-the-stance-and-document** ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)); **D4 is signed with a
+bounded scope and two product rulings** ([§8.1e](#81e-sixth-sign-off-2026-08-29--d4), ADR-009).
+**The `js-unit` half of D2 is the only decision in this table still unsigned.** The sentence this
+paragraph carried until 2026-08-29 — *"D4 remains unsigned and no work may act on it"* — is
+superseded; what may act on D4 is bounded by §8.1e and by nothing wider.
+See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
 
 ---
 
@@ -621,6 +650,64 @@ against them from the first restart either way, and a README only helps someone 
 its own decision — the candidate that stops rotating an empty snapshot changes
 `create_startup_backup()` and is therefore a Backup-contract change requiring migration notes and
 tests.
+
+#### 8.1e Sixth sign-off (2026-08-29) — D4
+
+The five sign-offs above are left unedited as the historical record. This is the sixth.
+
+| Decision | Ruling | Scope authorized |
+|---|---|---|
+| **D4** — Hypothesis invariants for calculation modules | **Signed with a bounded scope, narrower than the recommendation.** `hypothesis` is authorized over **`utils/effective_sets.py` only**, in **two sequential packets**. Two product rulings settle what the invariants assert, and are recorded as **ADR-009** | Packets **A** and **B** below, each through Gate 1. **No production code change is authorized by this signature itself** |
+| **D2** (`js-unit` half) | **Still not signed.** | — |
+
+**The two product rulings (ADR-009).**
+
+1. **Duplicate P/S/T roles are credited the SUM of the applicable role weights.** When one muscle
+   occupies two or more of the primary/secondary/tertiary slots, its credit is the sum of those
+   slots' weights — so primary + secondary is **1.5×**, matching what the **Raw Sets** column
+   already reports and matching `utils/_fatigue/per_muscle.py:183-206`, which already accumulates
+   with `totals.get(bucket, 0.0) + …`. **`DIRECT_ONLY` remains primary-only** and is unchanged.
+2. **`get_rep_range_factor()` becomes total for valid positive rep averages**, on these bands:
+   `avg < 6` → **0.85**; `6 ≤ avg ≤ 20` → **1.0**; `20 < avg ≤ 30` → **0.85**; `avg > 30` → **0.70**;
+   missing rep data stays neutral at **1.0**. So `(5,6)` → 0.85, `(20,21)` → 0.85, `(30,31)` → 0.70,
+   `(150,150)` → 0.70. **Ingress rep validation is explicitly out of scope for this work.**
+
+**The measured defect these rulings settle.** `calculate_effective_sets()` writes
+`muscle_contributions` as a plain dict keyed by muscle name
+([`utils/effective_sets.py:270-278`](../utils/effective_sets.py#L270-L278)), so a repeated muscle is
+**overwritten** by the lower role weight rather than accumulated. **38 of the 1,897 exercise rows in
+the shipped `data/catalog.seed.db` repeat a muscle across the P/S/T roles** — `Dumbbell Wrist Curl`
+(Forearms, Forearms, —), `Barbell Pronated Pendlay Row` (Latissimus Dorsi, Biceps, Biceps),
+`Kettlebell Farmers Carry` (Forearms, Forearms, Core) among them. On `Dumbbell Wrist Curl` at
+3 sets / RIR 0 / 8–12 reps the **Effective** column reports **3.0** where **Raw** reports **4.5**,
+on the same screen, a 33% understatement. **No test in the repository passes the same muscle string
+to two roles**, and the weekly-summary golden's fixture uses all-distinct muscles, so the defect is
+neither covered nor golden-pinned. `get_rep_range_factor()` is separately non-total: measured
+fall-throughs to the neutral 1.0 at averages in `(5,6)`, `(20,21)`, `(30,31)` and above 100 — and
+`(30,31)` → 1.0 sits **above both** its neighbours (0.85 at 30, 0.70 at 31), which is a
+non-monotonicity, not a boundary choice.
+
+**Packet A is atomic across three modules, by owner instruction.** Accumulating inside
+`calculate_effective_sets()` alone would make things worse, not better: both aggregators iterate the
+three-role tuple and re-read `eff_result.muscle_contributions.get(muscle, 0.0)` per role
+([`utils/weekly_summary.py:104-137`](../utils/weekly_summary.py#L104-L137),
+[`utils/session_summary.py:115-142`](../utils/session_summary.py#L115-L142)), so an accumulated value
+would be **added once per duplicate role** — 3.0× instead of the ruled 1.5×. The fix therefore lands
+as one change across `utils/effective_sets.py`, `utils/weekly_summary.py` and
+`utils/session_summary.py`, with **cheap explicit regression tests on both summary paths**. Packet C
+— the DB-backed Effective/Raw parity property — **stays deferred, but summary-level regression
+coverage does not**.
+
+**What this signature does not authorize.** It does not authorize property tests over any other
+module; it does not authorize `get_effort_factor()` properties; it does not authorize any change to
+rep-range ingress validation, to `utils/workout_validation.py`, or to `utils/rep_range_integrity.py`
+(whose `min > max` behavior is separately **R2.1**, still undecided and owned elsewhere); and it does
+not authorize Phase 3 step 11, Q4, or the `js-unit` half of D2. F5-3's operational preconditions are
+**conditions of landing, not follow-ups**: `.hypothesis/` under `artifacts/` per ADR-002, a CI
+profile with `derandomize=True` / `deadline=None`, and a regenerated `TEST_INVENTORY.json` in the
+same PR, because `Test Inventory Drift` is a required context.
+
+The execution plan is [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md).
 
 ### 8.2 The port-5000 single-runner rule
 
