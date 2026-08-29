@@ -59,6 +59,12 @@ reading, which is preserved intact.
 longer implies merge authorization, its discharged Track P1 re-price is out of the active debt and
 decision presentation, and the OD-1 record — which is not a decision — is separated from the
 decision queue. **Nothing here authorizes a packet or a merge, and nothing here declares a new T0.**  
+**Owner ruling recorded:** 2026-08-29 — **R2.1 decided as ADR-009** in [`DECISIONS.md`](DECISIONS.md),
+and its follow-through implemented. §4 Packet R2 (decision 1, its docstring dependency and its
+estimate), §8 (the R2 row and the residual paragraph), §15.1, §15.4 item 2 and §15.5 carry it;
+**§§11–14, §16 and §17 are dated evidence and are left saying it was undecided**, which is what
+they were when written. **Nothing here authorizes a packet or a merge, and nothing here declares a
+new T0.**  
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
 ## 1. Purpose
@@ -378,11 +384,32 @@ produced a new engineering packet.**
 
 **Priority:** P1  
 **Status:** Decision required  
-**Estimate:** 0.5–1 developer-day after decisions
+**Estimate:** ~0.25–0.75 developer-day — **decision-only since R2.1's follow-through landed
+(2026-08-29)**; the 0.5–1 day originally carried here was that follow-through
 
 **Decisions**
 
-1. Define the intended `scan_export_bounds()` behavior when numeric `min > max`.
+1. ~~Define the intended `scan_export_bounds()` behavior when numeric `min > max`.~~
+   ✅ **DECIDED 2026-08-29 — owner ruling R2.1, recorded as ADR-009 in
+   [`DECISIONS.md`](DECISIONS.md).** `scan_export_bounds()` reproduces
+   `export_plan_to_workout_log`'s own single combined
+   `validate_workout_bounds(..., allow_null=True)` call, so a numeric `min > max` row is
+   **reported** and named in the `400 VALIDATION_ERROR` message; the two analysis scanners
+   keep per-field isolation and keep reporting nothing for that row; nothing is coerced,
+   swapped or collapsed, no schema constraint is added, and the status, error code, envelope
+   and `{routine, exercise, reason}` finding shape are unchanged. **This decision's
+   follow-through — the behavior change, its tests and the docstring — is implemented, so
+   R2.1 is closed rather than merely decided.**
+
+   **Citations outside this file that the ruling falsifies**, per §17.5's convention of naming
+   them rather than leaving them to be found: [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md)'s
+   *Next Safe Step* `[UPDATED 2026-08-29]` annotation, which lists *"the `scan_export_bounds()`
+   and `rep_range_integrity.py` items open"* among what still stands — **annotated in place**;
+   and [`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md)'s statement that
+   per-field isolation *"structurally excludes"* the cross-field verdict, which was true of the
+   analysis sites it was written about and is not true of the export site — **annotated in
+   place**. Every other occurrence sits inside a dated block in `MASTER_HANDOVER.md`,
+   `ACTIVE_DEVELOPMENT.md` or `TESTING_STRATEGY_PLANNING.md` and is history, not drift.
 2. Decide and sign Testing Strategy D4.
 3. After the qualification window, decide Q4/D2 and whether `JS Unit (Vitest,
    non-required)` should become a required context. Q4 and D2 are decided **together**; the
@@ -424,8 +451,14 @@ produced a new engineering packet.**
    Measure the run count with `gh run list --workflow=deep-gate.yml --event=schedule`; never
    read a count out of the ADR.
 
-The related `utils/rep_range_integrity.py` docstring correction must follow the behavior
-decision; documentation must not choose runtime semantics on its own.
+~~The related `utils/rep_range_integrity.py` docstring correction must follow the behavior
+decision; documentation must not choose runtime semantics on its own.~~
+✅ **DISCHARGED 2026-08-29.** The behavior was decided first (decision 1 above, ADR-009) and
+the docstring was then rewritten to describe it: the module now states that the two analysis
+scanners validate one field at a time while `scan_export_bounds()` makes its caller's single
+combined call, and the false *"not one that makes **any** of these callers fail"* claim about
+`min > max` is narrowed to the analysis surfaces, which is where it is true. Documentation
+followed the behavior; it did not choose it.
 
 **Acceptance criteria**
 
@@ -671,6 +704,7 @@ evidence. Do not reactivate the old implementation plan.
 **Status column re-measured 2026-08-28, in a second pass the same day, against `origin/main` @ `2035852` and the live PR list.** The 2026-08-27 reading is preserved in §12 and the `288667d` reading in §13; what moved since `288667d` is §14.
 ⚠️ **Re-measured again 2026-08-29 against `origin/main` @ `3532f86` and the live PR list; §16 is the log for that pass.** The Track P1 and Track D1 rows and the residual-investment paragraph below carry the newer reading.
 ⚠️ **Re-measured once more 2026-08-29, later the same day, against `origin/main` @ `fe15225` after #445, #448, #449 and #451 merged; §17 is the log for that pass.** Only the Track D1 row, the KI-010 row's waiver clause and the open-PR amendment below moved: no packet's status, estimate or gate changed.
+⚠️ **Amended 2026-08-29 for the R2.1 ruling (ADR-009): the R2 row's status *and* estimate moved, and so did the residual-investment paragraph below.** That is a status and estimate change, which the note above disclaims for its own pass only — no other row changed.
 
 | Order | Packet | Status | Developer time | External/decision dependency | Gate |
 |---:|---|---|---:|---|---|
@@ -681,7 +715,7 @@ evidence. Do not reactivate the old implementation plan.
 | — | **U3 · KI-011** action-button survival | **Complete** 2026-08-27 | *spent* | Fix `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)) | Signed per defect |
 | — | **U3 · KI-010** type-word collision | **Complete** 2026-08-27 | *spent* | Gates `db6c34b` ([#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425)), `a37d7e7` ([#428](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/428)); fix `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), merged `2026-08-27T23:17:50Z` — **8 d 18 h ahead of its own OD-1 embargo; the waiver is written as OD-1-W and REACHED `main` as `fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§4, §13.4) | Own Gate 0 + Gate 1 — both signed |
 | 5 | R1 deep-gate mutation probes | **Not started** | 1–2 days | Owner authorization; both hypotheses still unmeasured | Own Gate 1 |
-| 6 | R2 testing decisions | **Not started** | 0.5–1 day | Owner decisions. ⚠️ **The JS-unit window RESTARTED**: `2026-09-05T17:59:26Z` is spent, and `2026-08-27T23:18:21Z` / `2026-09-10T23:18:21Z` are **conditional on an owed owner determination** (§4, §13.3). R1-D3 clock **re-measured 2026-08-28 at 2 of 3** — both `schedule` runs green; third due **2026-08-31 03:17 UTC**, not yet occurred | Decision only |
+| 6 | R2 testing decisions | **Partly closed 2026-08-29** — **R2.1 decided and implemented** (ADR-009); R2.2/R2.3/R2.4 still open | ~0.25–0.75 day left | Owner decisions. ⚠️ **The JS-unit window RESTARTED**: `2026-09-05T17:59:26Z` is spent, and `2026-08-27T23:18:21Z` / `2026-09-10T23:18:21Z` are **conditional on an owed owner determination** (§4, §13.3). R1-D3 clock **re-measured 2026-08-28 at 2 of 3** — both `schedule` runs green; third due **2026-08-31 03:17 UTC**, not yet occurred | Decision only |
 | 7 | V1 visual disposition | **Not started** | 0.25 day or 2–5 days | Owner chooses acceptance or investigation | Decision, then own Gate 1 if funded |
 | 8 | R3 tag-trigger proof | **Not started** | 0.5 day | Explicit authorization for a named real tag. **Re-measured 2026-08-28**: `release.yml` `push` count **0**, `workflow_dispatch` count **1** — and that lone rehearsal predates `a937116`, so the current **12-required / 13-expected** `release_gate.py` has **never executed by any trigger** (§13.6) | Owner action |
 | standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; **re-measured 2026-08-29 at `158ee40`, after #445 merged: ZERO open PRs repo-wide at `14:10:11Z`, and still ZERO *dependency* PRs at `14:53:31Z` when three documentation PRs were open** (§17.3). The earlier readings returned only #445 (§16.4) and, the day before, only #436 (§14.1) | Per-PR merge authorization |
@@ -697,7 +731,10 @@ single row that once covered both would now flatten two different dates into one
 The original near-term commitment was **4–8 developer-days** for T0, U1–U3 and the authorized
 portions of R1/R2. **T0, U1, U2 and both halves of U3 have now been delivered**, so the
 residual is **1.5–3 developer-days — R1 and R2 — and every hour of it is behind an owner
-decision, not behind engineering capacity.** Visual race repair is a separate investment and
+decision, not behind engineering capacity.** *(Re-priced 2026-08-29: **R2.1 is decided and its
+follow-through is implemented** — the export-bounds behavior change, its tests and the
+`utils/rep_range_integrity.py` docstring — so R2's remaining work is decision-only. The
+residual is now roughly **1.25–2.75 developer-days**, still overwhelmingly R1.)* Visual race repair is a separate investment and
 should not be silently folded into that figure. **The pyright burn-down is no longer a residual
 at all** — it closed 2026-08-29 at 0 / 0 / 0 (§16.2).
 
@@ -1835,7 +1872,7 @@ explicit, per-change owner decision. Status words map to §3 as follows:
 | **U3 / KI-010** Toast type-word collision | `showToast('error')` renders the word, not a default success toast | ✅ **Done** — `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), 2026-08-27 | **Nothing — its one record is written and ON `main`.** The OD-1 waiver is recorded as **OD-1-W** in `toast_type_word_collision/PLANNING.md` §0.14, landed **`fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§15.2 *Discharged*) |
 | **R0** External release/testing evidence | Inspect the scheduled deep gate, refresh the ledger | ✅ **Done** — `5111a7f` ([#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)), 2026-08-24 | — |
 | **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | 🟡 **Waiting on you** | **Authorize it and an agent runs it.** Nothing measured yet; 1–2 developer-days (§4) |
-| **R2** Owner-gated testing decisions | Four decisions — §15.4 items 2–5 | 🟡 **Waiting on you** | **You decide**, then ~0.5–1 developer-day of follow-through |
+| **R2** Owner-gated testing decisions | **Three** remaining decisions — §15.4 items 3–5; **item 2 (R2.1) is decided and implemented**, ADR-009, 2026-08-29 | 🟡 **Waiting on you** | **You decide** — the follow-through R2 carried was R2.1's, and it is done |
 | **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | The release gate on `main` **has never run by any trigger**. A dispatch tests the gate body cheaply; only a real tag you name tests the trigger (§4) |
 | **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | 🟡 **Waiting on you** | **Accept** (~0.25 day of doc work) or **investigate** (2-day time-box, up to 2–5 days if a repair is funded) |
 | **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1), and nothing is attached to it — the funding re-price went **moot** at closure and is out of the debt table and the decision queue (§15.2 *Discharged*, §16.2) |
@@ -1886,14 +1923,17 @@ belongs in the table above or in §15.4:
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. **All eight stop work** — every entry
-here is a choice that must be made before something can proceed. Anything owed that blocks nothing
-is recorded outside this table.
+Every decision this plan is waiting on you for, in one place. **Seven of the eight still stop
+work** — every unresolved entry here is a choice that must be made before something can proceed.
+Anything owed that blocks nothing is recorded outside this table. **Item 2 was answered on
+2026-08-29 and is kept in place, struck through and numbered**, because §15.1, §15.2 and item 4
+all cite these numbers and the 2026-08-29 renumbering note below fixes items 1–8 to their
+meanings; removing a row would repeat the breakage that note repaired.
 
 | # | Decision | Blocks |
 |---:|---|---|
 | 1 | Authorize the **R1** mutation probes — or close both hypotheses unmeasured | R1 entirely |
-| 2 | **R2.1** — what should `scan_export_bounds()` do when `min > max`? | The `utils/rep_range_integrity.py` docstring, which must follow the behavior, not choose it |
+| 2 | ~~**R2.1** — what should `scan_export_bounds()` do when `min > max`?~~ ✅ **DECIDED 2026-08-29 — ADR-009**: it reproduces `export_plan_to_workout_log`'s single combined call, so an inverted row is reported and named; the analysis scanners are unchanged; nothing is coerced and no constraint is added | ~~The `utils/rep_range_integrity.py` docstring~~ — **nothing.** The docstring followed the ruling and is written (§4 R2) |
 | 3 | **R2.2** — sign or reject Testing Strategy **D4** | R2 closure |
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | Blocked behind item 8 |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
@@ -1911,20 +1951,31 @@ is recorded outside this table.
 > *“§15.4 items 2–5”*, §15.2's *“blocks §15.4 item 4”* and item 4's own *“blocked behind item 8”*
 > all still resolve. **The two citations that did point at the removed numbers — both in §16 — are
 > repaired in place** (§16.2, §16.3). Only the removed numbers themselves no longer exist.
+>
+> **Amended later the same day.** **R2.1 was decided (ADR-009)**, so §15.1 now reads
+> *“items 3–5”* and the quotation of *“items 2–5”* above is the **prior** wording, kept because
+> this note is the record of that earlier repair. **Item 2 is struck through in place rather than
+> removed, precisely so items 1–8 keep their numbers a second time** — the other two quoted
+> citations are untouched and still resolve. The blocking list is now **seven** of the eight rows.
 
 ### 15.5 The short version
 
 **No engineering packet is in flight.** T0, U1, U2 and both halves of U3 are on `main`, R0 is
-closed, and pyright reached **0 / 0 / 0** on 2026-08-29. What remains is **eight live decisions**
-that stop work — items 1–8 of §15.4, item 8 being §15.2's **one remaining** debt; **one standing
+closed, and pyright reached **0 / 0 / 0** on 2026-08-29. What remains is **seven live decisions**
+that stop work — items 1 and 3–8 of §15.4, item 8 being §15.2's **one remaining** debt; **one standing
 track**, D1, with an empty queue and no bump to triage; and **two clocks plus two live-state
-readings** (§15.3). **That is eight obligations in total, not eleven** — §15.2's surviving debt is
-already counted among the eight, and its **other three are discharged** (§15.2 *Discharged*). The only unstarted
-*engineering* is what sits behind your decisions, and it is **three things, not two**: **R1's
-probes**, **R2's post-decision follow-through** — the export-bounds behavior change, its tests and
-the `utils/rep_range_integrity.py` docstring that must follow it — and **V1's option 2**. §8 prices
-the first two together at a **1.5–3 developer-day** residual for R1 and R2, with V1's repair
-separate.
+readings** (§15.3). **That is seven obligations in total, not ten** — §15.2's surviving debt is
+already counted among the seven, and its **other three are discharged** (§15.2 *Discharged*).
+*(The figure this contrasts against was **eleven** while the queue held eight; R2.1's ruling
+takes the live count to seven, so the naive total it is not is now ten.)* The only unstarted
+*engineering* is what sits behind your decisions, and it is **two things**: **R1's probes** and
+**V1's option 2**. *(Amended 2026-08-29: this sentence named **three**, the third being R2's
+post-decision follow-through — the export-bounds behavior change, its tests and the
+`utils/rep_range_integrity.py` docstring. **R2.1 was decided that day as ADR-009 and that
+follow-through is implemented**, so it is no longer unstarted engineering and the count drops to
+two. §15.4 item 2 is struck through in place; items 1–8 keep their numbers, as the renumbering
+note there requires. §8's residual is re-priced in the same pass.)* §8 prices the remainder at
+roughly **1.25–2.75 developer-days**, overwhelmingly R1, with V1's repair separate.
 
 ---
 

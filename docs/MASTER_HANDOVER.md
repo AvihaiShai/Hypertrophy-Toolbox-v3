@@ -3416,9 +3416,17 @@ behind the CSS it describes.
 > next-safe-step list is the 2026-08-29 Current State block at the top of this file**; read that
 > one, not the four actions below. **Most of what the block asserts still stands** — the
 > A → B → C → F sequence, 12 required contexts with `js-unit` absent, D4 unsigned, the
-> `scan_export_bounds()` and `rep_range_integrity.py` items open, `needs:` and job-level
+> ~~`scan_export_bounds()` and `rep_range_integrity.py` items open~~, `needs:` and job-level
 > `continue-on-error:` unmeasured, Phase 4 open, and `push: tags` never fired; what is falsified
-> is listed above. Nothing below is edited except this annotation.]**
+> is listed above. Nothing below is edited except this annotation.
+>
+> **Amended 2026-08-29, later the same day: the `scan_export_bounds()` and
+> `rep_range_integrity.py` items are NO LONGER OPEN.** The owner decided **R2.1** — recorded as
+> **ADR-009** in [`DECISIONS.md`](DECISIONS.md) — and the follow-through shipped with it:
+> `scan_export_bounds()` now reproduces `export_plan_to_workout_log`'s single combined
+> `validate_workout_bounds(..., allow_null=True)` call, so a numeric `min > max` row is named
+> instead of silently producing no finding, and the module docstring was rewritten to follow the
+> ruling. **D4 is still unsigned** and the rest of the "still stands" list above is unaffected.]**
 
 **Current (2026-08-23, latest): Phase 3 step 12's expansion sequence is COMPLETE
 on `main` and there is still no automatic next feature packet.** Verified against
