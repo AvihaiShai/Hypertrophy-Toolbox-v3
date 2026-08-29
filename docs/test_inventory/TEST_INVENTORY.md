@@ -15,7 +15,7 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **686** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **540** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **2869** across 125 files |
+| pytest collected nodes (deterministic subset) | **2879** across 125 files |
 | pytest test files (all) | **126** |
 | JS unit cases (Vitest) | **245** across 13 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
@@ -105,7 +105,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_db_migration.py` | 7 |
 | `tests/test_double_progression.py` | 30 |
 | `tests/test_downstream_normalization.py` | 5 |
-| `tests/test_effective_sets.py` | 42 |
+| `tests/test_effective_sets.py` | 47 |
 | `tests/test_erase_data_guard.py` | 10 |
 | `tests/test_error_page_contract.py` | 11 |
 | `tests/test_errors_utils.py` | 31 |
@@ -163,7 +163,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_runtime_migration.py` | 24 |
 | `tests/test_runtime_paths.py` | 22 |
 | `tests/test_schema_registry.py` | 5 |
-| `tests/test_session_summary.py` | 35 |
+| `tests/test_session_summary.py` | 37 |
 | `tests/test_session_summary_routes.py` | 33 |
 | `tests/test_static_cache_policy.py` | 12 |
 | `tests/test_strength_calibration.py` | 36 |
@@ -184,7 +184,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_volume_progress.py` | 31 |
 | `tests/test_volume_splitter_api.py` | 14 |
 | `tests/test_volume_taxonomy.py` | 8 |
-| `tests/test_weekly_summary.py` | 4 |
+| `tests/test_weekly_summary.py` | 7 |
 | `tests/test_weekly_summary_golden.py` | 1 |
 | `tests/test_weekly_summary_routes.py` | 30 |
 | `tests/test_weekly_summary_unassigned.py` | 20 |

@@ -101,23 +101,28 @@ def _aggregate_weekly_volumes(
             contribution_mode=contribution_mode,
         )
 
-        # Aggregate per-muscle contributions
+        # Aggregate per-muscle contributions. Roles are collapsed to ONE entry
+        # per muscle carrying the SUM of its role weights (ADR-009), because
+        # `muscle_contributions` is keyed by muscle: visiting a repeated muscle
+        # once per role would add its already-summed contribution twice.
         contributions = [
-            (row.get('primary_muscle_group'), MUSCLE_CONTRIBUTION_WEIGHTS['primary']),
-            (row.get('secondary_muscle_group'), MUSCLE_CONTRIBUTION_WEIGHTS['secondary']),
-            (row.get('tertiary_muscle_group'), MUSCLE_CONTRIBUTION_WEIGHTS['tertiary']),
+            ('primary', row.get('primary_muscle_group')),
+            ('secondary', row.get('secondary_muscle_group')),
+            ('tertiary', row.get('tertiary_muscle_group')),
         ]
 
-        for muscle, weight_factor in contributions:
+        role_weights: Dict[str, float] = {}
+        for role, muscle in contributions:
             if not muscle:
                 continue
-
             # Skip secondary/tertiary in direct-only mode
-            if contribution_mode == ContributionMode.DIRECT_ONLY:
-                if weight_factor != MUSCLE_CONTRIBUTION_WEIGHTS['primary']:
-                    continue
-                weight_factor = 1.0  # Full credit for primary in direct mode
+            if contribution_mode == ContributionMode.DIRECT_ONLY and role != 'primary':
+                continue
+            role_weights[muscle] = (
+                role_weights.get(muscle, 0.0) + MUSCLE_CONTRIBUTION_WEIGHTS[role]
+            )
 
+        for muscle, weight_factor in role_weights.items():
             # Get effective contribution for this muscle
             eff_contribution = eff_result.muscle_contributions.get(muscle, 0.0)
 

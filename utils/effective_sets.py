@@ -262,21 +262,26 @@ def calculate_effective_sets(
     muscle_contributions: Dict[str, float] = {}
     
     muscles = [
-        (primary_muscle, MUSCLE_CONTRIBUTION_WEIGHTS['primary']),
-        (secondary_muscle, MUSCLE_CONTRIBUTION_WEIGHTS['secondary']),
-        (tertiary_muscle, MUSCLE_CONTRIBUTION_WEIGHTS['tertiary']),
+        ('primary', primary_muscle),
+        ('secondary', secondary_muscle),
+        ('tertiary', tertiary_muscle),
     ]
-    
-    for muscle, weight in muscles:
-        if muscle:
-            if contribution_mode == ContributionMode.DIRECT_ONLY:
-                # Only count primary muscle
-                if weight == MUSCLE_CONTRIBUTION_WEIGHTS['primary']:
-                    muscle_contributions[muscle] = base_effective
-            else:
-                # Total contribution mode - apply muscle weighting
-                muscle_contributions[muscle] = base_effective * weight
-    
+
+    # A muscle may occupy more than one role - 38 of the shipped catalog's 1,897
+    # exercises do. Its credit is the SUM of the applicable role weights, so
+    # primary + secondary is 1.5x (ADR-009). Assigning instead of accumulating
+    # let the lower role overwrite the higher one, which is what made Effective
+    # read 3.0 against Raw 4.5 for the same row.
+    for role, muscle in muscles:
+        if not muscle:
+            continue
+        if contribution_mode == ContributionMode.DIRECT_ONLY and role != 'primary':
+            continue
+        weight = MUSCLE_CONTRIBUTION_WEIGHTS[role]
+        muscle_contributions[muscle] = (
+            muscle_contributions.get(muscle, 0.0) + base_effective * weight
+        )
+
     return EffectiveSetResult(
         raw_sets=raw_sets,
         effective_sets=base_effective,

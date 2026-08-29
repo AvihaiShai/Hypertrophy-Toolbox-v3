@@ -223,3 +223,144 @@ def test_weekly_summary_direct_only_mode(db_handler):
     # Secondary and tertiary muscles should NOT appear
     assert 'Triceps' not in summary
     assert 'Front-Shoulder' not in summary
+
+
+@pytest.mark.usefixtures('clean_db')
+def test_duplicate_role_muscle_is_credited_the_sum_of_its_role_weights(db_handler):
+    """ADR-009 ruling 1, at the weekly aggregator.
+
+    38 of the shipped catalog's 1,897 exercises name the same muscle in two
+    P/S/T roles (Dumbbell Wrist Curl is Forearms / Forearms). Such a muscle is
+    credited the SUM of its role weights, so Effective equals Raw when both
+    factors are 1.0.
+
+    This test is what makes the fix ATOMIC. It fails in BOTH directions of a
+    partial change: accumulating in calculate_effective_sets() alone leaves the
+    aggregator adding the summed value once per role (9.0 here), and collapsing
+    the aggregator's role loop alone leaves the overwritten 1.5 to be read.
+    """
+    save_exercise(
+        {
+            'exercise_name': 'Dumbbell Wrist Curl',
+            'primary_muscle_group': 'Forearms',
+            'secondary_muscle_group': 'Forearms',
+            'tertiary_muscle_group': None,
+            'advanced_isolated_muscles': None,
+            'utility': 'auxiliary',
+            'grips': 'underhand',
+            'stabilizers': None,
+            'synergists': None,
+            'force': 'pull',
+            'equipment': 'dumbbell',
+            'mechanic': 'isolated',
+            'difficulty': 'beginner',
+        }
+    )
+    add_exercise(
+        routine='Arms Day',
+        exercise='Dumbbell Wrist Curl',
+        sets=3,
+        min_rep_range=8,
+        max_rep_range=12,
+        rir=0,  # RIR 0 -> effort 1.0; 8-12 reps -> rep-range 1.0
+        weight=10.0,
+        rpe=10.0,
+    )
+
+    summary = calculate_weekly_summary()
+    forearms = summary['Forearms']
+
+    # 3 sets * (primary 1.0 + secondary 0.5) = 4.5, on both columns.
+    assert forearms['raw_weekly_sets'] == pytest.approx(4.5)
+    assert forearms['effective_weekly_sets'] == pytest.approx(4.5)
+    assert forearms['weekly_sets'] == pytest.approx(4.5)
+    # sessions_by_muscle accumulates inside the SAME deduplicated loop, so it
+    # moves too. Pinned here because it is the only assertion that would catch a
+    # partial revert of that one line.
+    assert forearms['frequency'] == 1
+
+
+@pytest.mark.usefixtures('clean_db')
+def test_duplicate_role_muscle_frequency_can_cross_the_threshold(db_handler):
+    """ADR-009's frequency consequence, at the boundary it actually moves.
+
+    Frequency counts sessions reaching >= 1.0 effective sets. One set at RIR 2
+    (0.85 effort) and 8-10 reps (1.0 rep-range) gives base 0.85. Before the
+    ruling the muscle was credited 0.85 twice at the secondary weight -- 0.425
+    each, and the per-session total the threshold reads was 0.85, BELOW 1.0, so
+    frequency was 0. Summing the role weights gives 0.85 * 1.5 = 1.275, so
+    frequency is 1. Frequency can only ever move UP this way, never down.
+    """
+    save_exercise(
+        {
+            'exercise_name': 'Dumbbell Wrist Curl',
+            'primary_muscle_group': 'Forearms',
+            'secondary_muscle_group': 'Forearms',
+            'tertiary_muscle_group': None,
+            'advanced_isolated_muscles': None,
+            'utility': 'auxiliary',
+            'grips': 'underhand',
+            'stabilizers': None,
+            'synergists': None,
+            'force': 'pull',
+            'equipment': 'dumbbell',
+            'mechanic': 'isolated',
+            'difficulty': 'beginner',
+        }
+    )
+    add_exercise(
+        routine='Arms Day',
+        exercise='Dumbbell Wrist Curl',
+        sets=1,
+        min_rep_range=8,
+        max_rep_range=10,
+        rir=2,
+        weight=10.0,
+        rpe=8.0,
+    )
+
+    forearms = calculate_weekly_summary()['Forearms']
+    # 0.85 * 1.5 = 1.275, reported rounded to two decimals.
+    assert forearms['effective_weekly_sets'] == pytest.approx(1.27)
+    # The threshold reads the UNROUNDED per-session total, which is 1.275 -- so
+    # this is 1 where the pre-ruling 0.85 gave 0.
+    assert forearms['frequency'] == 1
+
+
+@pytest.mark.usefixtures('clean_db')
+def test_duplicate_role_muscle_direct_only_stays_primary_only(db_handler):
+    """DIRECT_ONLY is unchanged by ADR-009 -- primary only, at full credit."""
+    save_exercise(
+        {
+            'exercise_name': 'Dumbbell Wrist Curl',
+            'primary_muscle_group': 'Forearms',
+            'secondary_muscle_group': 'Forearms',
+            'tertiary_muscle_group': None,
+            'advanced_isolated_muscles': None,
+            'utility': 'auxiliary',
+            'grips': 'underhand',
+            'stabilizers': None,
+            'synergists': None,
+            'force': 'pull',
+            'equipment': 'dumbbell',
+            'mechanic': 'isolated',
+            'difficulty': 'beginner',
+        }
+    )
+    add_exercise(
+        routine='Arms Day',
+        exercise='Dumbbell Wrist Curl',
+        sets=3,
+        min_rep_range=8,
+        max_rep_range=12,
+        rir=0,
+        weight=10.0,
+        rpe=10.0,
+    )
+
+    summary = calculate_weekly_summary(
+        contribution_mode=ContributionMode.DIRECT_ONLY
+    )
+    forearms = summary['Forearms']
+    assert forearms['raw_weekly_sets'] == pytest.approx(3.0)
+    assert forearms['effective_weekly_sets'] == pytest.approx(3.0)

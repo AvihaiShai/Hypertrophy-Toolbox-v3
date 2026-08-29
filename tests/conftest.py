@@ -31,6 +31,48 @@ os.environ['TESTING'] = '1'
 TEST_DB_FILENAME = "test_hypertrophy_toolbox.db"
 
 
+# Hypothesis profiles (Testing Strategy D4, signed 2026-08-29; F5-3's operational
+# preconditions). `ci` is the DEFAULT so a local run reproduces CI: `Run Tests` is
+# a required check with no retry, and randomized generation would be the suite's
+# first nondeterministic required-path failure. `database=None` keeps Hypothesis
+# from writing a `.hypothesis/` directory to the repository root, which ADR-002
+# forbids; with derandomize=True the example database carries no value anyway.
+#
+# The import is guarded because this is the ROOT conftest: an unguarded
+# ImportError here would fail collection of the ENTIRE suite rather than of the
+# one file that needs Hypothesis. requirements.txt pins hypothesis as a hard
+# dependency, so the absent case is not a supported configuration -- the guard
+# just keeps its failure proportionate. Note it does NOT keep
+# `pytest --collect-only` green on its own: tests/test_effective_sets.py imports
+# hypothesis directly.
+try:
+    from hypothesis import HealthCheck, settings as _hypothesis_settings
+except ImportError:  # pragma: no cover - only when the test extra is absent
+    pass
+else:
+    _hypothesis_settings.register_profile(
+        "ci",
+        derandomize=True,
+        deadline=None,
+        max_examples=200,
+        database=None,
+        suppress_health_check=[HealthCheck.too_slow],
+    )
+    _hypothesis_settings.register_profile(
+        "dev",
+        derandomize=False,
+        deadline=None,
+        database=None,
+    )
+    # An unrecognized value would raise InvalidArgument at root-conftest import
+    # time -- the same whole-suite collection failure the guard above exists to
+    # avoid -- so fall back rather than abort.
+    _profile = os.getenv("HYPOTHESIS_PROFILE", "ci")
+    if _profile not in ("ci", "dev"):
+        _profile = "ci"
+    _hypothesis_settings.load_profile(_profile)
+
+
 def _initialize_test_database() -> None:
     """Create the full test schema for the active database path."""
     run_all_initializers(force_base=True)

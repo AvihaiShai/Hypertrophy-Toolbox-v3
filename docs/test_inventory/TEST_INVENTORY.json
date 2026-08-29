@@ -241,7 +241,7 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 2869,
+    "collected_deterministic": 2879,
     "deterministic_files": 125,
     "environment_dependent_files": [
       {
@@ -400,7 +400,7 @@
       },
       {
         "file": "tests/test_effective_sets.py",
-        "tests": 42
+        "tests": 47
       },
       {
         "file": "tests/test_erase_data_guard.py",
@@ -632,7 +632,7 @@
       },
       {
         "file": "tests/test_session_summary.py",
-        "tests": 35
+        "tests": 37
       },
       {
         "file": "tests/test_session_summary_routes.py",
@@ -716,7 +716,7 @@
       },
       {
         "file": "tests/test_weekly_summary.py",
-        "tests": 4
+        "tests": 7
       },
       {
         "file": "tests/test_weekly_summary_golden.py",
