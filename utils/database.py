@@ -8,7 +8,7 @@ import time
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date as _date, datetime as _datetime
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Literal, Optional, Union, overload
 
 import utils.config  # For dynamic DB_FILE access in tests
 from utils.logger import get_logger
@@ -522,6 +522,24 @@ class DatabaseHandler:
             self.close()
 
     # -- Internal helpers ---------------------------------------------------
+    @overload
+    @staticmethod
+    def _prepare_params(
+        params: Optional[Union[Sequence[Any], Mapping[str, Any], Any]],
+        *,
+        for_many: Literal[True],
+    ) -> Union[Sequence[Any], Mapping[str, Any]]: ...
+
+    @overload
+    @staticmethod
+    def _prepare_params(
+        params: Optional[Union[Sequence[Any], Mapping[str, Any], Any]],
+        *,
+        for_many: Literal[False] = False,
+    ) -> Optional[Union[Sequence[Any], Mapping[str, Any]]]: ...
+
+    # The None return is what lets the callers fall back to
+    # ``cursor.execute(query)``; a batch always gets something bindable.
     @staticmethod
     def _prepare_params(
         params: Optional[Union[Sequence[Any], Mapping[str, Any], Any]],

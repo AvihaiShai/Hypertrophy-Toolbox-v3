@@ -13,7 +13,7 @@ import os
 import tempfile
 import time
 from io import BytesIO
-from typing import List, Dict, Any, Generator
+from typing import List, Dict, Any, Generator, Optional
 from datetime import datetime
 from flask import Response, make_response
 
@@ -25,7 +25,7 @@ from utils.logger import get_logger
 logger = get_logger()
 
 
-def sanitize_filename(filename: str, max_length: int = None) -> str:
+def sanitize_filename(filename: str, max_length: Optional[int] = None) -> str:
     """
     Sanitize a filename for safe download.
     

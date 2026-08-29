@@ -278,6 +278,7 @@ def db_handler(app, test_db_path):
 
     with handler.connection:
         result = handler.fetch_one("PRAGMA foreign_keys;")
+        assert result is not None, "PRAGMA foreign_keys returned no row"
         assert result['foreign_keys'] == 1, "Foreign keys must be enabled"
 
     yield handler

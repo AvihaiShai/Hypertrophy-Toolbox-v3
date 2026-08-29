@@ -75,8 +75,12 @@ class ExerciseManager:
 
                 if has_exercise_order:
                     # Place new rows at the bottom when exercise_order exists.
+                    # fetch_one is Optional, but COALESCE(MAX(...)) without a
+                    # GROUP BY always returns a row. Same guard as
+                    # utils/schema_registry.py:80 over the identical query.
                     max_order_result = db.fetch_one(max_order_query)
-                    next_order = (max_order_result.get("max_order", 0) or 0) + 1
+                    max_order = (max_order_result.get("max_order", 0) or 0) if max_order_result else 0
+                    next_order = max_order + 1
                     db.execute_query(
                         insert_query_with_order,
                         (routine, exercise, sets, min_rep_range, max_rep_range, rir, weight, rpe, next_order),

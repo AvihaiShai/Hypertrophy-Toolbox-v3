@@ -10,6 +10,7 @@ Tests cover:
 """
 import pytest
 import sqlite3
+from typing import cast
 from utils.program_backup import (
     create_backup,
     list_backups,
@@ -366,7 +367,12 @@ class TestProgramBackup:
         class CommitCountingDatabaseHandler(DatabaseHandler):
             def __init__(self, database_path=None):
                 super().__init__(database_path)
-                self.connection = CommitCountingConnection(self.connection)
+                # The double forwards every attribute to the real connection.
+                # Cast at the substitution so DatabaseHandler.connection keeps
+                # the concrete sqlite3.Connection type it has in production.
+                self.connection = cast(
+                    sqlite3.Connection, CommitCountingConnection(self.connection)
+                )
 
         monkeypatch.setattr("utils.program_backup.DatabaseHandler", CommitCountingDatabaseHandler)
 
