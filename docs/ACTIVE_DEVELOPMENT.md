@@ -5,8 +5,15 @@ This file is the execution source of truth for autonomous development sessions. 
 ## Current Objective
 
 **2026-08-29 (LATEST) — THE JS-UNIT WINDOW'S T0 IS DECLARED. #431 IS RULED THE FINAL VITEST
-EXPANSION PACKET, `main` is at `116d3c5`, and NO engineering packet is in flight.**
-`origin/main` is at **`116d3c5`**, in full
+EXPANSION PACKET and NO engineering packet is in flight.**
+⚠️ **`main` has moved five times since this block was written, and the ruling is unaffected.**
+At `2026-08-29T23:54:19Z` `origin/main` is **`7d9a836`** — #452 (`5d98824`), #453 (`fcc0e59`),
+#460 (`e9f942f`), #459 (`bd686c9`) and #461 (`7d9a836`) have all landed since. The heads named
+below are the reading this block was measured at, kept as the dated reading it is: a derived
+view ageing is not a defect. **T0 is unchanged** — `static/js`, its `__tests__` tree and
+`vitest.config.js` are byte-identical at every one of those heads.
+
+`origin/main` was at **`116d3c5`**, in full
 `116d3c56284822f8b644c565eb12059cae1ace27` — PR
 [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450), the JS-unit ledger rows
 27–40 and plan reconciliation, merged **`2026-08-29T18:37:54Z`** — with **18 of 18** checks green
@@ -34,21 +41,38 @@ changed a case under `static/js/**/*.test.js`. Therefore:
 file, workflow, job name or repository setting was touched. **Reaching the strict mark is a
 precondition, never a signature.**
 
-**The ledger ends at row 44.** [#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452) merged as **`5d98824`** at
-**`2026-08-29T22:43:37Z`**, putting the T0 declaration and rows 41–43 on `main`; **row 44 is its own
-post-merge run**, written by the closeout pass carrying this block. All four are read at job level
-and all are `success` / 18-of-18 / attempt 1: **row 41** = #450's landing, run `33268787682`, job
-`99143431684`, `2026-08-29T18:38:17Z`; **row 42** = [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454)'s (`8c844df`, the V1
-ruling), run `33273789390`, job `99156860069`, `2026-08-29T20:33:41Z`; **row 43** =
-[#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)'s (`2cb938c`, Packet R1), run `33278243462`, job `99168706068`,
-`2026-08-29T22:18:29Z`; **row 44** = #452's own, run `33279287312`, job `99171566275`,
-`2026-08-29T22:44:02Z`. **Whoever merges this closeout pass owes the next unclaimed row**, which it cannot
-record — the standing §11.10 mechanism, unchanged. **No fixed number is written here, deliberately**: Track D1's own rule forbids it, and it was proved again within the hour — [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) merged at `2026-08-29T23:02:13Z` (`fcc0e59`, **D4 signed**) and took the number this sentence would have named. **Its row is unclaimed and is the next pass's to write.** The window now holds **19 consecutive green
-results on the 245-case suite; 0 red, missing, skipped or cancelled**, and the corpus is
-**13 files / 245 cases at all nineteen heads** `288667d` → `5d98824`. **Read the operative T0 from
+**The ledger ends at row 48.** [#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452) merged as **`5d98824`** at
+**`2026-08-29T22:43:37Z`**, putting the T0 declaration and rows 41–43 on `main`. The closeout pass
+carrying this block writes **five more**: **row 44**, #452's own post-merge run, and **rows 45–48**,
+minted by four owner merges that landed while it was open and that touched no ledger. All nine are
+read **at job level** and every one is `success` / 18-of-18 / attempt 1: **row 41** = #450's
+landing, run `33268787682`, job `99143431684`, `2026-08-29T18:38:17Z`; **row 42** =
+[#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454)'s (`8c844df`, the V1 ruling), run `33273789390`, job `99156860069`,
+`2026-08-29T20:33:41Z`; **row 43** = [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)'s (`2cb938c`, Packet R1), run
+`33278243462`, job `99168706068`, `2026-08-29T22:18:29Z`; **row 44** = #452's own, run
+`33279287312`, job `99171566275`, `2026-08-29T22:44:02Z`; **row 45** = [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453)'s
+(`fcc0e59`, **D4 signed**), run `33280011412`, job `99173480852`, `2026-08-29T23:03:22Z`;
+**row 46** = [#460](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/460)'s (`e9f942f`, **D4 Packet A**), run `33280802586`, job
+`99175526987`, `2026-08-29T23:22:12Z`; **row 47** = [#459](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/459)'s (`bd686c9`, the
+*Packet R1* disambiguation), run `33281331253`, job `99176888772`, `2026-08-29T23:35:50Z`; and
+**row 48** = [#461](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/461)'s (`7d9a836`, **D4 Packet B**), run `33281647166`, job
+`99177700301`, `2026-08-29T23:44:01Z`.
+
+**Rows 46 and 48 change an effective-sets calculation** — the first *semantic* production change
+inside this window. It is not the window's first production diff (rows 31, 35 and 36 were the Track
+P1 pyright burn-down), and it is **not a restart**: Q2's clause keys on a change to a **JS test
+case**, not on production code and not on the pytest corpus, which did move.
+
+**Whoever merges this closeout pass owes the next unclaimed row**, which it cannot record — the
+standing §11.10 mechanism, unchanged. **No fixed number is written here, deliberately.**
+Track D1's own rule forbids it and this pass proved the rule twice over: it named a number once,
+#453 took it within the hour, and #460, #459 and #461 took three more while the correction was
+being written. The window now holds **23 consecutive green results on the 245-case suite; 0 red,
+missing, skipped or cancelled**, and the corpus is **13 files / 245 cases at all twenty-three
+heads** `288667d` → `7d9a836`. **Read the operative T0 from
 [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here** —
 the ruling is recorded there, at *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*, and
-[`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §19 is its dated evidence log (§18 is Packet R1's — [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455), the deep-gate mutation probes, not the release/tag packet of the same name — — [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455), the deep-gate mutation probes, not the release/tag packet of the same name —, landed by #455 while this pass was open).
+[`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §19 is its dated evidence log (§18 is Packet R1's — [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455), the deep-gate mutation probes, not the release/tag packet of the same name — landed by #455 while this pass was open).
 
 **What is still open**, re-derived from §15.4 as it stands after this branch merged
 `origin/main` — **not** carried from either side. **Two owner rulings landed while this pass was
