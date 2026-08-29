@@ -4,7 +4,64 @@
 
 ## Current State
 
-> **2026-08-29 (LATEST) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`, and NO
+> **2026-08-29 (LATEST) — THE JS-UNIT WINDOW'S T0 IS DECLARED. #431 IS RULED THE FINAL VITEST
+> EXPANSION PACKET, `main` is at `116d3c5`, and NO engineering packet is in flight.**
+> `origin/main` is at **`116d3c5`**, in full
+> `116d3c56284822f8b644c565eb12059cae1ace27` — PR
+> [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450), the JS-unit ledger rows
+> 27–40 and plan reconciliation, merged **`2026-08-29T18:37:54Z`** — with **18 of 18** checks green
+> on that commit (run `33268787682`). **Zero open PRs repo-wide** at `2026-08-29T19:32:58Z`, an
+> instant rather than a state.
+>
+> **The owner ruling, 2026-08-29.** **PR [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)
+> (`288667d`) is the FINAL Vitest expansion packet**, where *"final expansion packet"* means the
+> last change merged before this qualification window that added, removed, renamed or materially
+> changed a case under `static/js/**/*.test.js`. Therefore:
+>
+> - **Qualifying T0: `2026-08-27T23:18:21Z`** — job `98703428098`, run `33125767570`
+> - **Strict 14-day mark: `2026-09-10T23:18:21Z`**
+> - **U1-FOLLOWUP-1 remains OPEN and required**, its no-landing-before date re-anchored from the
+>   spent `2026-09-05T17:59:26Z` to **`2026-09-10T23:18:21Z`**. Its quoted condition is stale
+>   (U3b's **K13**) and must be re-read against
+>   [`toast_action_continuity/PLANNING.md`](toast_action_continuity/PLANNING.md) §4.3 before the
+>   packet is planned. A post-mark landing does **not** retroactively invalidate a completed cycle.
+> - **U3b's KI-011 Vitest helper coverage is RETIRED**, not deferred — `OQ-10` authorized E2E-only
+>   coverage and created no Vitest follow-up. Reviving it needs a **new packet and its own Gate 0**.
+>
+> **The ruling declares a T0 and nothing else.** **Q4 and D2 remain UNSIGNED**, `js-unit` remains
+> **non-required** — branch protection re-read live at **12** required contexts,
+> `JS Unit (Vitest, non-required)` **absent**, `strict` **false** — and no JS test, production
+> file, workflow, job name or repository setting was touched. **Reaching the strict mark is a
+> precondition, never a signature.**
+>
+> **The ledger ends at row 43 once this pass lands — on `main` it still ends at row 40.** Three rows
+> are appended to §13.0's master ledger table by the pass carrying this block, all read at job level
+> and all `success` / 18-of-18 / attempt 1: **row 41** = #450's own landing, run `33268787682`, job
+> `99143431684`, `2026-08-29T18:38:17Z`; **row 42** = [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454)'s (`8c844df`, the V1
+> ruling), run `33273789390`, job `99156860069`, `2026-08-29T20:33:41Z`; **row 43** =
+> [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)'s (`2cb938c`, Packet R1), run `33278243462`, job `99168706068`,
+> `2026-08-29T22:18:29Z`. Rows 42 and 43 were minted by owner merges that landed while this pass was
+> open and touched no ledger, so both were unclaimed and this pass claims them. **Row 44** is what
+> this pass's own merge will mint, and it cannot record it. The window holds **16 consecutive green results on the 245-case suite, 0 red / missing /
+> skipped / cancelled**, and the corpus is **13 files / 245 cases at all sixteen heads** from
+> `288667d` to `116d3c5`. **Read the operative T0 from
+> [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, never from here** —
+> the ruling is recorded there, at *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*, and
+> [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §19 is its dated evidence log
+> (§18 is Packet R1's, landed by #455 while this pass was open).
+>
+> **What is still open**, re-derived from §15.4 as it stands after this branch merged
+> `origin/main` — **not** carried from either side. **Two owner rulings landed while this pass was
+> open**: [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`) ruled
+> **V1 — investigate**, and [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)
+> (`2cb938c`) landed **Packet R1**, discharging §15.4 item 1 and adding item 11. With **item 8 now
+> answered** as well, **the blocking set is items 2–6 — five decisions**: R2.1, R2.2, R2.3 (Q4 / D2),
+> R2.4 and R3. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
+> discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
+> queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
+> 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
+
+> **2026-08-29 (SUPERSEDED by the block above, which is LATEST; preserved as the `225b7b0` reading it was) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`, and NO
 > engineering packet is in flight. Everything still open is either an owner decision or parked.
 > `js-unit` is still NOT promoted, and the JS-unit window's T0 is still CONDITIONAL and
 > UNDECLARED.**
@@ -96,6 +153,12 @@
 > single authoritative ledger is
 > [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0** — a row may be
 > written only there, and no count may be read off this paragraph at a later session.
+>
+> ✅ **ITEM 4 IS SUPERSEDED 2026-08-29 — T0 IS DECLARED: `2026-08-27T23:18:21Z`, strict mark
+> `2026-09-10T23:18:21Z`.** The owner ruled #431 the final expansion packet. **Of the two
+> expansions item 4 names, one survives and one does not:** **U1-FOLLOWUP-1** remains OPEN and
+> required, re-anchored to the new mark; **U3b's KI-011 helper coverage is RETIRED**. The item is
+> preserved below as the `225b7b0` reading it was.
 >
 > **4 — T0 is CONDITIONAL and UNDECLARED, and the old marks are SPENT.** [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) took
 > the Vitest corpus **231 → 245**, engaging owner ruling Q2's restart clause. **The old T0
@@ -193,14 +256,19 @@
 >    [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) carries it and is open;
 >    review or land that PR instead, and the record returns as work only if #451 is closed
 >    unmerged.
-> 4. **The owner determination on whether #431 was the final Vitest expansion packet is OWED**,
->    and it blocks the Q4 / D2 decision on promoting `js-unit`.
-> 5. **Everything else waits on the owner** — §15.4 items 1–8. *(Repaired 2026-08-29: this
+> 4. ~~**The owner determination on whether #431 was the final Vitest expansion packet is OWED**,
+>    and it blocks the Q4 / D2 decision on promoting `js-unit`.~~ ✅ **MADE 2026-08-29 — #431 WAS
+>    FINAL.** **T0 `2026-08-27T23:18:21Z`**, **strict mark `2026-09-10T23:18:21Z`**. Q4 / D2 are
+>    unblocked **on timing only** and both remain **unsigned**.
+> 5. **Everything else waits on the owner** — §15.4. *(Repaired 2026-08-29: this
 >    read "items 1–8 **and 10**"; item 10 was the OD-1 waiver record, which is neither a
 >    decision nor outstanding — it landed as **OD-1-W** in `fe15225` (#451) and sits under
->    §15.2 *Discharged*. **Item 7 (V1) has since been ruled**, leaving **seven** live.)*
->    Nothing there may be started by an agent, and reaching a clock's threshold is not
->    authorization.
+>    §15.2 *Discharged*. **Item 7 (V1) has since been ruled**, **item 1 (R1) discharged**, and
+>    **item 11 added**.)* ⚠️ **RE-CORRECTED 2026-08-29: item 8 is answered too** and is
+>    marked discharged in place, keeping its number so existing pointers resolve. **Counted off
+>    the merged table, the blocking set is items 2–6**; items 7 and 11 are open without
+>    stopping work. Nothing there may be started by an agent, and reaching a clock's
+>    threshold is not authorization.
 >
 > **This reconciliation changed documentation only** — exactly two files, this one and
 > [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md). No production, test, workflow, dependency,
@@ -3328,7 +3396,7 @@ behind the CSS it describes.
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
 | app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
-| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. **[UPDATED 2026-08-20 — X11, X12 and X13 shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15, plus the newly recorded, deliberately unregistered X16.]** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. **[UPDATED 2026-08-23 — "Phases 3 and 5 remain proposals" is now stale for Phase 3.]** **Phase 3 step 12 is in execution and its expansion sequence is COMPLETE on `main`**: Packets **A → B → C → F** all merged — B #406 (`987588a`), C #410 (`9cb6cdc`), F #411 (`2c95bae`) — with **Packet D dropped** (owner ruling Q3) and **the letter E deliberately vacant**. **`js-unit` is still NOT promoted**: the 14-day qualification window is running from **T0 `2026-08-22T17:59:26Z`** to **`2026-09-05T17:59:26Z`**, ledgered at job level in [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, and **Q4 / D2 stay unsigned** — a separate owner signature is required even once the window closes. Phase 3 **step 11** and **Phase 5** are unchanged. **[UPDATED 2026-08-29 — this cell's window reading is SPENT. #431 (`288667d`) took the Vitest corpus 231 → 245 on 2026-08-27 and engaged Q2's restart clause, so **T0 `2026-08-22T17:59:26Z` and the mark `2026-09-05T17:59:26Z` no longer exist**; the new T0 is **conditional and undeclared** pending an owner determination, and §13.0 is the only place to read it. The cell's **A → B → C → F** clause is unchanged and is about the Phase-3 step-12 lettered sequence — read it in that sense only, because **Vitest corpus expansions are a different thing and two are still unlanded** (U3b's KI-011 helper coverage and U1-FOLLOWUP-1), which is precisely what the owed owner determination turns on. The Q4 / D2, step-11 and Phase-5 clauses are unchanged. See this file's 2026-08-29 Current State block.]** | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md), [docs/testing_phase3/STEP12_JS_UNIT_GATE0.md](testing_phase3/STEP12_JS_UNIT_GATE0.md) |
+| Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. **[UPDATED 2026-08-20 — X11, X12 and X13 shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15, plus the newly recorded, deliberately unregistered X16.]** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. **[UPDATED 2026-08-23 — "Phases 3 and 5 remain proposals" is now stale for Phase 3.]** **Phase 3 step 12 is in execution and its expansion sequence is COMPLETE on `main`**: Packets **A → B → C → F** all merged — B #406 (`987588a`), C #410 (`9cb6cdc`), F #411 (`2c95bae`) — with **Packet D dropped** (owner ruling Q3) and **the letter E deliberately vacant**. **`js-unit` is still NOT promoted**: the 14-day qualification window is running from **T0 `2026-08-22T17:59:26Z`** to **`2026-09-05T17:59:26Z`**, ledgered at job level in [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, and **Q4 / D2 stay unsigned** — a separate owner signature is required even once the window closes. Phase 3 **step 11** and **Phase 5** are unchanged. **[UPDATED 2026-08-29 — this cell's window reading is SPENT. #431 (`288667d`) took the Vitest corpus 231 → 245 on 2026-08-27 and engaged Q2's restart clause, so **T0 `2026-08-22T17:59:26Z` and the mark `2026-09-05T17:59:26Z` no longer exist**; the new T0 is **conditional and undeclared** pending an owner determination, and §13.0 is the only place to read it. The cell's **A → B → C → F** clause is unchanged and is about the Phase-3 step-12 lettered sequence — read it in that sense only, because **Vitest corpus expansions are a different thing and two are still unlanded** (U3b's KI-011 helper coverage and U1-FOLLOWUP-1), which is precisely what the owed owner determination turns on. The Q4 / D2, step-11 and Phase-5 clauses are unchanged. See this file's 2026-08-29 Current State block.]** **[RE-UPDATED 2026-08-29, later the same day — the bracket above is SPENT on two clauses and is annotated rather than rewritten. The owner ruled **#431 the final Vitest expansion packet**, so the T0 is **no longer conditional or undeclared**: **T0 `2026-08-27T23:18:21Z`**, **strict mark `2026-09-10T23:18:21Z`** ([`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*). And *"two are still unlanded"* is now **one**: **U1-FOLLOWUP-1** stays OPEN and required, re-anchored to the new mark, while **U3b's KI-011 helper coverage is RETIRED** — `OQ-10` authorized E2E-only coverage and created no Vitest follow-up. **The Q4 / D2 clause still stands: both remain UNSIGNED and `js-unit` remains non-required at 12 required contexts.**]** | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md), [docs/testing_phase3/STEP12_JS_UNIT_GATE0.md](testing_phase3/STEP12_JS_UNIT_GATE0.md) |
 
 ## Open Decisions
 
@@ -3369,7 +3437,11 @@ behind the CSS it describes.
   step 11 and Phase 5 are unchanged.]**
   **[UPDATED 2026-08-29 — the `2026-09-05T17:59:26Z` terminus above is **SPENT**: #431
   (`288667d`) moved the Vitest corpus 231 → 245 on 2026-08-27 and restarted the window, and
-  the new T0 is **conditional and undeclared** pending an owner determination. Everything
+  the new T0 is **conditional and undeclared** pending an owner determination.
+  **RE-UPDATED 2026-08-29, later the same day — the determination is MADE and the T0 is
+  DECLARED: `2026-08-27T23:18:21Z`, strict mark `2026-09-10T23:18:21Z`** (§13.0's
+  *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*). The *"conditional and undeclared"*
+  clause is spent; everything else in this bracket stands. Everything
   else in the annotation above is unchanged — **the `js-unit` half of D2 is still unsigned,
   `js-unit` is still non-required at 12 required contexts, and D4 is still unsigned.**]**
   **[UPDATED 2026-08-15 — this bullet's tail previously read "Phases 3 and 5 **and the

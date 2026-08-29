@@ -388,6 +388,12 @@ ground —
    Q2) and, if the spec is on `ci.yml`'s required list, may move a pinned count.
    **This is the same trade U1 took and the owner granted as OD-1 option (i).**
 
+> ⚠️ **ANNOTATION 2026-08-29 — the follow-up half of this recommendation was NOT adopted, and is
+> now RETIRED.** `OQ-10` was ruled **E2E-only** and created **no** Vitest follow-up; see the
+> `OQ-10` follow-on ruling in §1. The *"alongside U1-FOLLOWUP-1"* pairing is superseded, and
+> `2026-09-05T17:59:26Z` is a **spent** mark — the current strict mark is `2026-09-10T23:18:21Z`.
+> The recommendation is preserved as the evidence that produced the ruling.
+
 **Recommendation, and it is `OQ-10`:** land KI-011's regression at the **E2E tier only** if the fix
 is wanted before `2026-09-05T17:59:26Z`; add the Vitest cases as a follow-up **after** the strict
 mark, alongside U1-FOLLOWUP-1. **A `js-unit` red during the window resets the clock to zero
@@ -589,6 +595,13 @@ of them to change.
 
 **`OQ-10` — Test tier and timing, given the qualification window.**
 
+> ⚠️ **ANNOTATION 2026-08-29 — option (a) was RULED, but only its first half.** The owner chose
+> **E2E-only**; option (a)'s trailing clause *"Vitest cases follow after `2026-09-05T17:59:26Z`,
+> with U1-FOLLOWUP-1"* was **not** adopted and is **retired** — `OQ-10` created no Vitest follow-up
+> (§1, `OQ-10` follow-on ruling). Reviving that coverage needs a new packet and its own Gate 0.
+> Options (b) and (c) were declined and their `2026-09-05T17:59:26Z` dates are **spent**; the
+> current strict mark is `2026-09-10T23:18:21Z`. The option set is preserved as written.
+
 Restating §0.8 as a decision:
 
 - **(a) E2E-only regression, land any time.** No Vitest case, so no window restart on the
@@ -707,6 +720,28 @@ them rather than rewritten.
 | **OQ-8** | U1 / OD-2 | **Re-sign OD-2 with the amended announcement condition**, and **narrow `dismissCalculateFailureToast()`** so it may dismiss **only U1's own matching failure message** — not an unrelated replacement toast. |
 | **OQ-9** | Backward compatibility | **No `showToast()` signature change and no caller migration.** |
 | **OQ-10** | Test tier and timing | **E2E-only fixed-behavior regression**, so U3b can land **before** the strict qualification mark **without changing the Vitest corpus or restarting T0**. |
+
+> ✅ **`OQ-10` FOLLOW-ON RULING — 2026-08-29: THE VITEST HELPER COVERAGE IS RETIRED, NOT
+> DEFERRED.** The owner has ruled that **`OQ-10` authorized E2E-only coverage and created no Vitest
+> follow-up**. **There is therefore no U3b Vitest obligation, and there never was one on the
+> record** — this document registers no such follow-up in §1, §4.6, §6 or §7, and the ruling in the
+> table above reads *"E2E-only fixed-behavior regression"* and stops there. **Reviving unit coverage
+> for KI-011's helpers requires a new packet and its own Gate 0.**
+>
+> **What this corrects.** §0.8.2's and §0.9's *recommendation* text — *"add the Vitest cases as a
+> follow-up after the strict mark, alongside U1-FOLLOWUP-1"* — was option **(a)**'s advocacy, and
+> §1's preamble already states that these rulings supersede §0.9 wherever the two differ. That
+> recommendation was nevertheless read forward as an obligation by
+> [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, which described the
+> coverage as *"deferred exactly as U1-FOLLOWUP-1 is"*. **That equivalence is annotated as
+> superseded at its own site.** **U1-FOLLOWUP-1 is a different thing and is unaffected**: it was
+> granted by U1's **OD-1** as a **REQUIRED** follow-up, it remains **OPEN**, and its bar is
+> re-anchored to `2026-09-10T23:18:21Z`
+> ([`volume_failure_feedback/PLANNING.md`](../volume_failure_feedback/PLANNING.md) §v2.14).
+>
+> **Both recommendation sites below are annotated in place rather than rewritten**, so the evidence
+> that produced `OQ-10` stays readable. **Nothing else in §1 moves**, and this ruling authorizes no
+> work of any kind.
 
 **Sequencing ruling.** **KI-011 / U3b lands BEFORE KI-010 / U3a.** U3a remains **deferred until
 after the strict mark** and **rebases after U3b**. **Their implementations must not run
