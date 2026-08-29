@@ -48,6 +48,17 @@ the record"*, which had become false. **Its body is annotated, not rewritten**, 
 sentence requires; the retitle is disclosed at §13.4 itself.
 **The 37 / 16 / 11 reading taken at `2035852` was correct evidence when taken and is preserved as
 history.** **Nothing here authorizes a packet or a merge, and nothing here declares a new T0.**  
+**Documentation debt closed:** 2026-08-29, later the same day, against `origin/main` @ `fe15225` —
+[#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445), [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448), [#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) and [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) **all merged**,
+each minting a JS-unit ledger row of its own. **Rows 27–40 are now written into
+[`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0** and are no longer owed.
+§4, §8, §10 and §15 carry the new status; **§17 is the dated evidence log for this pass**, and
+§§12–14 and §16 are annotated where superseded rather than rewritten — §16 owns its pre-merge
+reading, which is preserved intact.
+§15 is additionally repaired where it read as more than a status board: its **Standing** legend no
+longer implies merge authorization, its discharged Track P1 re-price is out of the active debt and
+decision presentation, and the OD-1 record — which is not a decision — is separated from the
+decision queue. **Nothing here authorizes a packet or a merge, and nothing here declares a new T0.**  
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
 ## 1. Purpose
@@ -65,9 +76,10 @@ This is a sequencing aid, not a replacement source of truth:
 5. `scan/`, superseded handoffs, and archived plans are evidence, not executable backlog.
 
 **§15 is an owner status board** — a plain-words, at-a-glance view of every item's status,
-written for a human reader and derived from §4, §5, §8 and the dated logs §§11–14 and §16. It
+written for a human reader and derived from §4, §5, §8 and the dated logs §§11–14, §16 and §17. It
 carries no fact of its own and is the first thing to distrust in a disagreement; its header note
-records the precedence.
+records the precedence. **It is a status view and nothing else** — no status word in it authorizes
+work or a merge.
 
 Before starting any packet, re-read the relevant current-state block and verify the finding
 against current code. A historical document mentioning a problem is not sufficient evidence
@@ -254,7 +266,8 @@ OD-1 was waived for #431 before its merge**, so **the authority was never in que
 merge was authorized** — only the written record was missing. It is now written as **OD-1-W** in
 §0.14 of the KI-010 planning surface, the canonical record; the "**OD-1 STILL BINDS**" text #431
 carried onto `main` is **annotated as superseded**, not deleted. §13.4's finding is
-**discharged on merge** of the PR carrying that record — `main` does not yet hold it.  
+**DISCHARGED** — [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) landed the record as **`fe15225`** at
+`2026-08-29T17:59:24Z`, so `main`'s §0.14 now carries OD-1-W between OD-1 and OD-2 (§17.3).  
 **Estimate:** *spent* — 1–2 developer-days were budgeted and are now consumed
 
 Both defects change what a shared, repository-wide dispatcher emits, and KI-010 requires
@@ -392,12 +405,15 @@ produced a new engineering packet.**
    **row 26**. ~~**Seven further `main` `ci.yml` runs have since produced a green
    `JS Unit (Vitest, non-required)` job and are not yet in the ledger — rows 27–33 are OWED.**~~
    ~~⚠️ **AMENDED 2026-08-28 (§14.5): an eighth run has since completed — #436's own merge — so
-   rows 27–34 are OWED.**~~ ⚠️ **AMENDED AGAIN 2026-08-29 (§16.3): two more have completed —
-   #446's and #447's merges — so rows **27–36** are OWED.** The Vitest corpus read **13 files /
-   245 cases** at every commit measured — `288667d`, `2035852`, `3807011` and `3532f86` — so
-   nothing in this range re-engages Q2's restart clause and the conditional above is unchanged.
-   The intermediate heads were not read, and the ten rows are not claimed as ten measurements.
-   See §13.3, §14.3, §14.5 and §16.3.
+   rows 27–34 are OWED.**~~ ~~⚠️ **AMENDED AGAIN 2026-08-29 (§16.3): two more have completed —
+   #446's and #447's merges — so rows 27–36 are OWED.**~~ ⚠️ **DISCHARGED 2026-08-29, later the
+   same day (§17.2): #445, #448, #449 and #451 all merged, each minting a row of its own, so the
+   range closed at rows 27–40 — and all fourteen are now WRITTEN into §13.0. None is owed.**
+   What remains owed is the *next* row — **row 41** — by the standing §11.10 mechanism rather than
+   as a backlog.
+   The Vitest corpus read **13 files / 245 cases** at **all fifteen** heads from `288667d` through
+   `fe15225`, endpoints and intermediates alike, so **nothing in the range re-engages Q2's restart
+   clause and the conditional above is unchanged**. See §13.3, §14.3, §14.5, §16.3 and §17.2.
 4. **R1-D3 follow-on — the clock question is settled; the action it feeds is not.** An owner
    ruling dated **2026-08-24** is recorded in **ADR-007** ([`DECISIONS.md`](DECISIONS.md)) and
    states: the **2026-08-17 scheduled run counts** toward the three, so **the clock stands at
@@ -597,8 +613,9 @@ again before reusing these numbers.
   merges, its post-merge `main` run mints the next sequential ledger row, and whoever lands it
   owes that row.** **Do not write a fixed row number into this rule.** The ledger stood at
   **six** rows at `2026-08-24T21:36:40Z` (§11.10), at **23** rows at `2026-08-27` after #435,
-  and at **26** rows on `main` at `2026-08-28` after #438, with **rows 27–36 earned and unwritten**
-  (§14.3, §14.5, §16.3); it advances on every merge to `main` — including this plan's own PR — so
+  at **26** rows on `main` at `2026-08-28` after #438, and at **40** rows once rows 27–40 were
+  written (§17.2 — the range §14.3, §14.5 and §16.3 tracked while it was still owed); it advances
+  on every merge to `main` — including this plan's own PR — so
   the row a given dependency PR receives depends on what merged before it. **#415 and #416 duly minted rows on
   their 2026-08-26 merges; that obligation is discharged, not outstanding.**
 - Landing one is a merge decision like any other and needs the same explicit authorization.
@@ -653,6 +670,7 @@ evidence. Do not reactivate the old implementation plan.
 
 **Status column re-measured 2026-08-28, in a second pass the same day, against `origin/main` @ `2035852` and the live PR list.** The 2026-08-27 reading is preserved in §12 and the `288667d` reading in §13; what moved since `288667d` is §14.
 ⚠️ **Re-measured again 2026-08-29 against `origin/main` @ `3532f86` and the live PR list; §16 is the log for that pass.** The Track P1 and Track D1 rows and the residual-investment paragraph below carry the newer reading.
+⚠️ **Re-measured once more 2026-08-29, later the same day, against `origin/main` @ `fe15225` after #445, #448, #449 and #451 merged; §17 is the log for that pass.** Only the Track D1 row, the KI-010 row's waiver clause and the open-PR amendment below moved: no packet's status, estimate or gate changed.
 
 | Order | Packet | Status | Developer time | External/decision dependency | Gate |
 |---:|---|---|---:|---|---|
@@ -661,12 +679,12 @@ evidence. Do not reactivate the old implementation plan.
 | — | **U1 volume failure feedback** | **Complete** 2026-08-26 | *spent* | Gate 0 `b4d6b13` ([#421](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/421)), Gate 1 `1243728` ([#422](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/422)), fix `06a3f41` ([#423](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/423)) | Own Gate 0 + Gate 1 — both signed |
 | — | **U2 backup confirmation continuity** | **Complete** 2026-08-27 | *spent* | Gate 1 `52c44c4` ([#424](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/424)), fix `efa780c` ([#427](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/427)) | Own Gate 1 — signed |
 | — | **U3 · KI-011** action-button survival | **Complete** 2026-08-27 | *spent* | Fix `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)) | Signed per defect |
-| — | **U3 · KI-010** type-word collision | **Complete** 2026-08-27 | *spent* | Gates `db6c34b` ([#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425)), `a37d7e7` ([#428](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/428)); fix `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), merged `2026-08-27T23:17:50Z` — **8 d 18 h ahead of its own OD-1 embargo; the waiver was written 2026-08-29 and reaches `main` with its own PR** (§4, §13.4) | Own Gate 0 + Gate 1 — both signed |
+| — | **U3 · KI-010** type-word collision | **Complete** 2026-08-27 | *spent* | Gates `db6c34b` ([#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425)), `a37d7e7` ([#428](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/428)); fix `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), merged `2026-08-27T23:17:50Z` — **8 d 18 h ahead of its own OD-1 embargo; the waiver is written as OD-1-W and REACHED `main` as `fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§4, §13.4) | Own Gate 0 + Gate 1 — both signed |
 | 5 | R1 deep-gate mutation probes | **Not started** | 1–2 days | Owner authorization; both hypotheses still unmeasured | Own Gate 1 |
 | 6 | R2 testing decisions | **Not started** | 0.5–1 day | Owner decisions. ⚠️ **The JS-unit window RESTARTED**: `2026-09-05T17:59:26Z` is spent, and `2026-08-27T23:18:21Z` / `2026-09-10T23:18:21Z` are **conditional on an owed owner determination** (§4, §13.3). R1-D3 clock **re-measured 2026-08-28 at 2 of 3** — both `schedule` runs green; third due **2026-08-31 03:17 UTC**, not yet occurred | Decision only |
 | 7 | V1 visual disposition | **Not started** | 0.25 day or 2–5 days | Owner chooses acceptance or investigation | Decision, then own Gate 1 if funded |
 | 8 | R3 tag-trigger proof | **Not started** | 0.5 day | Explicit authorization for a named real tag. **Re-measured 2026-08-28**: `release.yml` `push` count **0**, `workflow_dispatch` count **1** — and that lone rehearsal predates `a937116`, so the current **12-required / 13-expected** `release_gate.py` has **never executed by any trigger** (§13.6) | Owner action |
-| standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; **re-measured 2026-08-29 at `3532f86`: still no dependency PR open** — `gh pr list --state open` returns only this plan's own #445 (§16.4). The 2026-08-28 reading returned only #436 (§14.1) | Per-PR merge authorization |
+| standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; **re-measured 2026-08-29 at `158ee40`, after #445 merged: ZERO open PRs repo-wide at `14:10:11Z`, and still ZERO *dependency* PRs at `14:53:31Z` when three documentation PRs were open** (§17.3). The earlier readings returned only #445 (§16.4) and, the day before, only #436 (§14.1) | Per-PR merge authorization |
 | — | Track P1 pyright packets | **Complete 2026-08-29 — 0 / 0 / 0; the track is closed** | *spent* — the carried 8–16 days is moot, not re-priced (§16.2) | **Ten** packets, `3098282` ([#430](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/430)) through `3532f86` ([#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447)); baseline 132 / 42 / 26 → **0 / 0 / 0**. The full table, and the **explicit owner authorization** under which #447 modified `routes/workout_plan.py`, are in §4 Track P1 | Per-packet — none queued |
 
 **Completed packets are retired from the numbered sequence rather than renumbered in place**, so
@@ -688,9 +706,19 @@ at all** — it closed 2026-08-29 at 0 / 0 / 0 (§16.2).
 ⚠️ **AMENDED 2026-08-28 (§14.5): #436 merged as `3807011`**, and `gh pr list --state open`
 then returned **zero** open PRs repo-wide — dependency PRs included. The PR carrying §15 is the
 next one to open, and by the convention §11.10 set it counts itself.
-⚠️ **RE-MEASURED 2026-08-29 (§16.4): exactly one PR is open repo-wide — [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445),
+~~⚠️ **RE-MEASURED 2026-08-29 (§16.4): exactly one PR is open repo-wide — [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445),
 the PR carrying §15 and this amendment, `CLEAN`/`MERGEABLE`.** Still no dependency PR, so Track
-D1's queue is unchanged. Its own merge mints ledger **row 37**, which it cannot record (§16.3).
+D1's queue is unchanged. Its own merge mints ledger **row 37**, which it cannot record (§16.3).~~
+⚠️ **RE-MEASURED AGAIN 2026-08-29, later the same day (§17.3): #445 MERGED as `158ee40` at
+`2026-08-29T13:47:38Z`, and `gh pr list --state open` returns ZERO open PRs repo-wide.** Its merge
+minted **row 37**, now recorded in §13.0 along with rows 27–36 and, after three further merges,
+rows 38–40 (§17.2). **That zero is an instant,
+not a state**: it was read at `2026-08-29T14:10:11Z`, before the PR carrying this amendment existed
+and before two sibling documentation PRs opened. Re-measured at `2026-08-29T14:53:31Z` the count was
+**three** — this PR plus [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) and
+[#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) — and at `2026-08-29T18:12:28Z` it is **one**, this PR alone, #448, #449 and
+#451 having all merged (§17.3). **Still no dependency
+PR**, so Track D1's queue is unchanged either way.
 ⚠️ **[#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438) — JS-unit ledger rows 24–26 and the window restart — merged as `2035852`
 at `2026-08-28T21:57:17Z`** and is no longer open; the six Track P1 PRs of the same evening, and
 [#446](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/446) and [#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447) the following day, are standing-track work carried
@@ -1427,11 +1455,12 @@ final-expansion-packet determination is still an **owed owner call**.
 
 ### 13.4 KI-010 merged ahead of OD-1 — the waiver record, measured 2026-08-28
 
-> ✅ **DISCHARGED 2026-08-29.** The owner confirmed that **OD-1 was waived for #431 before its
-> merge**, and the record is written into the KI-010 planning surface as **§0.14, OD-1-W** —
-> reaching `main` when the PR carrying it merges. **This subsection is kept as the 2026-08-28
-> measurement that found the gap.** The *"none found"* row is **still true today** — no merged
-> document holds the waiver yet — and the second paragraph was true as read. **One sentence of
+> ✅ **DISCHARGED 2026-08-29, AND NOW ON `main`.** The owner confirmed that **OD-1 was waived for
+> #431 before its merge**; the record is written into the KI-010 planning surface as
+> **§0.14, OD-1-W**, and it **landed as `fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)) at
+> `2026-08-29T17:59:24Z`. **This subsection is kept as the 2026-08-28
+> measurement that found the gap.** Its *"none found"* row was true when taken and is **no longer
+> true of `main`**; the second paragraph was true as read. **One sentence of
 > the first was not**, and it is corrected in place below rather than preserved. **The heading
 > was retitled**; it read *"… and the waiver is not on the record"*, which is no longer true.
 
@@ -1451,8 +1480,9 @@ so `main` currently contains a signed constraint and ~~its own violation~~, with
 them explaining which governs. ⚠️ **CORRECTED 2026-08-29 — two clauses, opposite fates.**
 *"Its own violation"* is **struck**: the owner's confirmation establishes that **the waiver
 preceded the merge**, so what `main` carries is a **stale constraint, not a breached one**.
-*"Nothing between them explaining which governs"* is **left standing, because it is still true
-of `main`** — §0.14's **OD-1-W** will be that explanation only once the PR carrying it merges.
+*"Nothing between them explaining which governs"* is **left standing as the 2026-08-28 reading it
+was, and is no longer true of `main`** — §0.14's **OD-1-W** is now that explanation, landed as
+`fe15225` ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)).
 
 **This is a documentation action, not a defect finding.** Nothing about the merge is being
 questioned here. What is owed is a dated waiver note in the KI-010 planning surface saying the
@@ -1541,8 +1571,8 @@ caveats stand and were not revisited in this pass either.
 - **The final-expansion-packet determination** (§13.3) — the newest owed owner call, and the one
   that gates Q4/D2's timing.
 - ~~**The OD-1 waiver record** (§13.4) — owed in the KI-010 planning surface, needs no gate.~~
-  ✅ **DISCHARGED 2026-08-29** — written as **OD-1-W** in the KI-010 planning surface's §0.14,
-  and on `main` when that PR merges; §13.4's annotation carries the detail.
+  ✅ **DISCHARGED 2026-08-29** — written as **OD-1-W** in the KI-010 planning surface's §0.14 and
+  **landed on `main` as `fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)); §13.4's annotation carries the detail.
 - **The Track P1 re-price** (§13.5) — condition met, owner call.
 - **The 2026-08-31 03:17 UTC cron** is still the next external checkpoint, inspected as its own
   run and as R0's, not as R0 reopening.
@@ -1767,9 +1797,9 @@ restart clause and the conditional T0 in §13.3 stands untouched.
 ## 15. Owner status board — written for a human, not for an agent
 
 > **For the repository owner, so the whole queue is legible without asking.** This board is a
-> **derived view**: everything in it comes from §4, §5, §8 and the dated logs §§11–14 and §16, and
-> no reading in it originates here — the 2026-08-28 readings are sourced from **§14.5**, the
-> 2026-08-29 ones from **§16**. Within this
+> **derived view**: everything in it comes from §4, §5, §8 and the dated logs §§11–14, §16 and
+> §17, and no reading in it originates here — the 2026-08-28 readings are sourced from **§14.5**,
+> the 2026-08-29 ones from **§16** and, for anything measured after #445 merged, **§17**. Within this
 > document **§4/§8/§10 govern**, and the durable sources they cite — `MASTER_HANDOVER.md`,
 > ADR-007, `STEP12_JS_UNIT_GATE0.md` §13.0, `pyright-baseline.json`, live branch protection —
 > govern over both. **If this board and §4 disagree, the board is stale: fix the board.** Agents:
@@ -1778,12 +1808,19 @@ restart clause and the conditional T0 in §13.3 stands untouched.
 >
 > The board covers only what §4 and §5 name. Work outside this plan is deliberately not shown.
 
-**Derived at `3532f86`, 2026-08-29.** Status words map to §3 as follows:
+**Derived at `fe15225`, 2026-08-29** (re-derived from `3532f86` after
+[#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445),
+[#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448),
+[#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) and
+[#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) merged; §17). **Every word
+below reports status only. None of them authorizes anything** — this board grants no approval, and
+in particular grants no merge authorization, which under §8 and §4 Track D1 is always a separate,
+explicit, per-change owner decision. Status words map to §3 as follows:
 
 | Board word | §3 status | What it means for you |
 |---|---|---|
 | ✅ **Done** | Closed | Shipped and on `main`. Nothing to do. |
-| 🔵 **Standing** | Standing | Continuing work an agent may take without asking you. An empty queue is still Standing. |
+| 🔵 **Standing** | Standing | Continuing incremental work with no single closeout packet. An empty queue is still Standing. **This word describes the work's shape, not permission to do it** — starting a packet and landing a change each still need their own authorization. |
 | 🟡 **Waiting on you** | Decision required · Owner-controlled external action | **Blocked until you decide or act.** No agent may start it. |
 | ⛔ **Parked** | Park | Valid future work, deliberately not funded. |
 
@@ -1795,41 +1832,63 @@ restart clause and the conditional T0 in §13.3 stands untouched.
 | **U1** Volume calculation failure feedback | A failed volume calc now tells the user instead of failing silently | ✅ **Done** — `06a3f41` ([#423](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/423)), 2026-08-26 | — |
 | **U2** Backup “save first” continuity | The restore confirmation survives a save-first snapshot | ✅ **Done** — `efa780c` ([#427](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/427)), 2026-08-27 | — |
 | **U3 / KI-011** Toast action-button survival | A still-valid toast button is no longer destroyed by the next message | ✅ **Done** — `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)), 2026-08-27 | — |
-| **U3 / KI-010** Toast type-word collision | `showToast('error')` renders the word, not a default success toast | ✅ **Done** — `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), 2026-08-27 | **Nothing — its one debt is written.** The OD-1 waiver was recorded **2026-08-29** as **OD-1-W**, reaching `main` with its own PR (§15.2, debt 2) |
+| **U3 / KI-010** Toast type-word collision | `showToast('error')` renders the word, not a default success toast | ✅ **Done** — `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), 2026-08-27 | **Nothing — its one record is written and ON `main`.** The OD-1 waiver is recorded as **OD-1-W** in `toast_type_word_collision/PLANNING.md` §0.14, landed **`fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§15.2 *Discharged*) |
 | **R0** External release/testing evidence | Inspect the scheduled deep gate, refresh the ledger | ✅ **Done** — `5111a7f` ([#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)), 2026-08-24 | — |
 | **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | 🟡 **Waiting on you** | **Authorize it and an agent runs it.** Nothing measured yet; 1–2 developer-days (§4) |
 | **R2** Owner-gated testing decisions | Four decisions — §15.4 items 2–5 | 🟡 **Waiting on you** | **You decide**, then ~0.5–1 developer-day of follow-through |
 | **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | The release gate on `main` **has never run by any trigger**. A dispatch tests the gate body cheaply; only a real tag you name tests the trigger (§4) |
 | **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | 🟡 **Waiting on you** | **Accept** (~0.25 day of doc work) or **investigate** (2-day time-box, up to 2–5 days if a repair is funded) |
-| **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1). One debt attached — the funding re-price is **moot**, not performed (§15.2, debt 3) |
-| **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — queue empty** (§16.4: **zero dependency PRs** at `3532f86`; the one open PR is this plan's own) | Nothing until the next bump. #415/#416 merged 2026-08-26; landing one needs explicit owner authorization |
+| **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1), and nothing is attached to it — the funding re-price went **moot** at closure and is out of the debt table and the decision queue (§15.2 *Discharged*, §16.2) |
+| **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — queue empty** (§17.3: **zero dependency PRs** at `fe15225`; the one open PR is this plan's own) | Nothing until the next bump. #415/#416 merged 2026-08-26; landing one needs explicit owner authorization |
 | **§5 Parked** — 8 items | CSS C8, G4 superset tint, Fatigue Phase 3, four User-Profile/roadmap items, Testing Phase 3 step 11 / Phase 5 | ⛔ **Parked** | Nothing — unless you reopen one, or decide one will never be built, so §5 can mark it **Not planned** instead of leaving it ambiguous |
 
 ### 15.2 Debts — already earned, still unwritten
 
-Not new work. Each is something that already happened and owes a written record.
+Not new work — each is already earned. **Exactly ONE remains**, and it is an owner determination
+nothing else can supply, which is why it also appears as a §15.4 decision. The other three are
+discharged and are listed below it so the record shows how each closed.
 
 | # | The debt | Who discharges it | State |
 |---:|---|---|---|
-| 1 | **JS-unit ledger rows 27–36** — ten `main` runs have produced a green `JS Unit` job since row 26, none written into `STEP12_JS_UNIT_GATE0.md` §13.0 | **An agent** — no decision needed | Owed. `main`'s ledger still ends at **row 26**; rows 27–33 are numbered in §14.3, row 34 in §14.5, and rows 35–36 in §16.3. **Merging the PR that carries this board mints row 37**, which it cannot record |
-| 2 | ~~**The OD-1 waiver record**~~ — KI-010's own Gate 0 barred #431 from merging before 2026-09-05; it merged 8d 18h early | **Done** — you confirmed it, an agent wrote it down | **WRITTEN 2026-08-29**, discharged on merge. Recorded as **OD-1-W** in `toast_type_word_collision/PLANNING.md` §0.14; the “OD-1 STILL BINDS” text is preserved and annotated as superseded. Like debt 1, this row is scoped to `main`: until that PR lands, `main`'s §0.14 still runs OD-1 → OD-2. It was a record gap, **not** an improper merge — the waiver preceded it (§13.4) |
-| 3 | ~~**Track P1's funding re-price**~~ — **MOOT 2026-08-29**: the 8–16 developer-day estimate priced a residual burn-down, and the residual is **zero** | **Nobody.** There is nothing left to price | Discharged by closure, not by a re-price (§16.2). Formally retiring the range is bookkeeping and blocks nothing |
-| 4 | **“Was #431 the final Vitest expansion packet?”** — the answer sets the JS-unit window's real T0 | **You** — nobody else can | Owed, and it **blocks §15.4 item 4**. Two Vitest expansions are still unlanded: **U3b's KI-011 helper coverage** and **U1-FOLLOWUP-1** (§4 R2 decision 3) |
+| 1 | **“Was #431 the final Vitest expansion packet?”** — the answer sets the JS-unit window's real T0 | **You** — nobody else can | Owed, and it **blocks §15.4 item 4**. Two Vitest expansions are still unlanded: **U3b's KI-011 helper coverage** and **U1-FOLLOWUP-1** (§4 R2 decision 3) |
+
+**Discharged, and kept here only so the record shows how each closed.** None is work, and none
+belongs in the table above or in §15.4:
+
+- **The OD-1 waiver record** — ✅ **written AND on `main`.** KI-010's own Gate 0 barred #431 from
+  merging before `2026-09-05T17:59:26Z`; it merged 8 d 18 h 41 m 36 s early, and the owner has
+  confirmed the waiver **preceded** that merge. It is recorded as **OD-1-W** in
+  [`toast_type_word_collision/PLANNING.md`](toast_type_word_collision/PLANNING.md) §0.14, landed as
+  **`fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)) at
+  `2026-08-29T17:59:24Z`, with the *“OD-1 STILL BINDS”* text **preserved and annotated as
+  superseded** rather than deleted. It was a record gap, **not** an improper merge (§13.4).
+  **This row is no longer scoped to a pending merge** — unlike when it was written, `main`'s §0.14
+  now carries OD-1-W between OD-1 and OD-2.
+- **JS-unit ledger rows 27–40** — fourteen `main` runs produced a green `JS Unit` job after row 26.
+  **All fourteen are written into
+  [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0 by the PR carrying this
+  board** (§17.2), and **reach `main` when it merges** — until then `main`'s ledger still ends at
+  row 26. What replaces this debt is not a backlog but the standing §11.10 mechanism: **this PR's
+  own merge mints row 41**, which it cannot record.
+- **Track P1's funding re-price** — the 8–16 developer-day estimate priced a residual burn-down and
+  the residual reached **zero** on 2026-08-29, so it is **discharged by closure rather than by
+  anyone deciding a number** (§16.2). Formally retiring the range in §4 is bookkeeping and blocks
+  nothing.
 
 ### 15.3 Clocks and live state
 
 | What | State | Date |
 |---|---|---|
-| **Deep-gate scheduled runs** (R1-D3's clock) | **2 of 3**, both `success` — re-measured 2026-08-29 and unchanged (§16.4) | Third due **2026-08-31 03:17 UTC**; not yet occurred |
-| **JS-unit qualification window** | **Restarted** by #431's 231 → 245 corpus move; the old 2026-09-05 mark is spent and the new one is **conditional on debt 4** (§13.3); the corpus has not moved since, so nothing re-engaged the clause (§16.3) | Read the operative T0 from `STEP12_JS_UNIT_GATE0.md` §13.0 — never from here |
-| **Live branch protection** | **12** required contexts; `JS Unit (Vitest, non-required)` still absent — re-measured 2026-08-29 (§16.4) | No promotion proposed |
+| **Deep-gate scheduled runs** (R1-D3's clock) | **2 of 3**, both `success` — re-measured twice on 2026-08-29 and unchanged both times (§16.4, then §17.3 at `fe15225`) | Third due **2026-08-31 03:17 UTC**; not yet occurred |
+| **JS-unit qualification window** | **Restarted** by #431's 231 → 245 corpus move; the old 2026-09-05 mark is spent and the new one is **conditional on debt 1** (§13.3). The corpus has not moved since: **13 files / 245 cases at all fifteen heads from `288667d` to `fe15225`**, so nothing re-engaged the clause across ledger rows 27–40 (§17.2) | Read the operative T0 from `STEP12_JS_UNIT_GATE0.md` §13.0 — never from here |
+| **Live branch protection** | **12** required contexts; `JS Unit (Vitest, non-required)` still absent — re-measured 2026-08-29 at `fe15225` (§17.3) | No promotion proposed |
 | **Pyright baseline** | **0 / 0 / 0** at `3532f86`, live run agreeing exactly; the allowlist is empty and has no headroom (§16.2) | Track P1 closed **2026-08-29** |
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. **Items 1–8 stop work. Items 9 and
-10 are both closed — item 9 went moot on 2026-08-29, item 10 was recorded the same day — and both
-are kept only so the numbering does not shift.**
+Every decision this plan is waiting on you for, in one place. **All eight stop work** — every entry
+here is a choice that must be made before something can proceed. Anything owed that blocks nothing
+is recorded outside this table.
 
 | # | Decision | Blocks |
 |---:|---|---|
@@ -1840,21 +1899,32 @@ are kept only so the numbering does not shift.**
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |
 | 7 | **V1** — accept **81/86** as terminal, or fund the race investigation | V1 entirely and §10 criterion 7 |
-| 8 | **Was #431 the final Vitest expansion packet?** (debt 4) | Item 4, and the window's real T0 |
-| 9 | ~~**Track P1's re-price** (debt 3)~~ — **MOOT 2026-08-29**, the track closed at 0 / 0 / 0 | Nothing, and there is now nothing to decide. **The number is kept so items 1–8 and 10 do not renumber** |
-| 10 | ~~**Record the OD-1 waiver** (debt 2)~~ — **WRITTEN 2026-08-29** as **OD-1-W**; on `main` when that PR merges | Nothing, and nothing is left to decide. **The number is kept so item 9's cross-reference stays readable** |
+| 8 | **Was #431 the final Vitest expansion packet?** (§15.2 debt 1) | Item 4, and the window's real T0 |
+
+> **Renumbering note, 2026-08-29.** This table previously ran to **ten** rows. Former item 9 —
+> Track P1's re-price — went **moot** at the track's 0 / 0 / 0 closure. Former item 10 — recording
+> the **OD-1 waiver** — was never a decision at all: it was a sentence describing a ruling the owner
+> had already made in merging #431, and it is now **written and on `main`** as **OD-1-W**
+> (`fe15225`, [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)). Both are
+> recorded under §15.2 *Discharged*, and keeping them numbered here made an eight-item **blocking**
+> list look like a ten-item one. **Items 1–8 keep their numbers and their meanings**, so §15.1's
+> *“§15.4 items 2–5”*, §15.2's *“blocks §15.4 item 4”* and item 4's own *“blocked behind item 8”*
+> all still resolve. **The two citations that did point at the removed numbers — both in §16 — are
+> repaired in place** (§16.2, §16.3). Only the removed numbers themselves no longer exist.
 
 ### 15.5 The short version
 
 **No engineering packet is in flight.** T0, U1, U2 and both halves of U3 are on `main`, R0 is
 closed, and pyright reached **0 / 0 / 0** on 2026-08-29. What remains is **eight live decisions**
-that stop work — items 1–8 of §15.4; **one standing track** an agent can continue unattended,
-D1, with an empty queue; **two live written debts** (§15.2 — debt 3 discharged by Track P1's
-closure, debt 2 by the OD-1 waiver record **on merge of the PR carrying it; on `main` today the
-count is still three**); and **two clocks plus two live-state readings** (§15.3). The only
-unstarted *engineering* is what sits
-behind your decisions — R1's probes and V1's option 2 — which §8 prices at a **1.5–3
-developer-day** residual for R1 and R2, with V1's repair separate.
+that stop work — items 1–8 of §15.4, item 8 being §15.2's **one remaining** debt; **one standing
+track**, D1, with an empty queue and no bump to triage; and **two clocks plus two live-state
+readings** (§15.3). **That is eight obligations in total, not eleven** — §15.2's surviving debt is
+already counted among the eight, and its **other three are discharged** (§15.2 *Discharged*). The only unstarted
+*engineering* is what sits behind your decisions, and it is **three things, not two**: **R1's
+probes**, **R2's post-decision follow-through** — the export-bounds behavior change, its tests and
+the `utils/rep_range_integrity.py` docstring that must follow it — and **V1's option 2**. §8 prices
+the first two together at a **1.5–3 developer-day** residual for R1 and R2, with V1's repair
+separate.
 
 ---
 
@@ -1956,8 +2026,12 @@ totals do **not** prove is behavior preservation — an empty baseline is equall
 **The re-price is moot, not performed.** §13.5 booked it and §14.2 recorded it as overdue; it
 priced a residual burn-down, and the residual is zero. The debt is discharged by the work
 finishing rather than by anyone deciding a number, which is why **no estimate is adopted or
-revised in this pass** — that remains an owner call. §15.2 debt 3 and §15.4 item 9 are annotated
-accordingly, item 9 keeping its number so items 1–8 and 10 do not shift.
+revised in this pass** — that remains an owner call. ~~§15.2 debt 3 and §15.4 item 9 are annotated
+accordingly, item 9 keeping its number so items 1–8 and 10 do not shift.~~
+⚠️ **POINTER REPAIRED 2026-08-29, later the same day (§17.4): those two rows were subsequently
+REMOVED from §15's active tables rather than kept annotated.** The re-price now sits under §15.2
+*Discharged*, §15.4 runs to **eight** items, and items 1–8 kept their numbers. **The reading in
+this paragraph is unchanged; only its destination moved.**
 
 **Nothing further is queued.** No pyright packet is selected, and no baseline regeneration is
 pending — the committed allowlist is empty and matches a live zero. §4's Rules carry what that
@@ -1989,11 +2063,22 @@ the PR carrying §15 would mint row 35; two Track P1 PRs merged first and took 3
 [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445) will mint row 37** — a run that does not exist until the merge does, and
 is therefore not claimed here as recorded. Row 37 is owed by whoever lands it.
 
+> ⚠️ **FORWARD POINTER, 2026-08-29 later the same day — this subsection's reading is CORRECT and is
+> left exactly as it stands.** #445 merged as `158ee40` at `2026-08-29T13:47:38Z`, its merge minted
+> run [`33255921889`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889),
+> and that run's `JS Unit` job [`99109487854`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889/job/99109487854)
+> completed `success` at `2026-08-29T13:48:04Z` — **row 37, exactly as predicted above**. The
+> prediction is preserved as the evidence it was rather than rewritten into a record. **Rows 27–40
+> are now written into §13.0** (§17.2) — three further merges followed #445's — so the *owed*
+> framing here is spent as a live statement
+> while remaining accurate as this pass's dated reading.
+
 **The restart clause did not re-engage.** `TEST_INVENTORY.json` reads `vitest.total_cases` **245**
 and `total_files` **13** at both `3807011` and `3532f86` — #446 and #447 were pyright work over
 Python and touched no `*.test.js` case — so Q2's clause does not fire, and everything §13.3 records
 about the **conditional** new T0 stands unchanged. **Whether #431 was the final expansion packet is
-still an owner determination and still owed** (§15.2 debt 4).
+still an owner determination and still owed** (§15.2 debt 4 — **renumbered to debt 1 by §17.4**,
+which moved three discharged rows out of the table above it; the debt itself is unchanged).
 
 ### 16.4 Live state re-measured, and what did not change
 
@@ -2009,18 +2094,26 @@ Re-queried in this pass rather than carried over from §14.5:
 | `pyright-baseline.json` `_meta` | `total_diagnostics: 0`, `distinct_keys: 0` | **Yes** — §16.2 |
 | Vitest corpus | **13 files / 245 cases** | No |
 
+> ⚠️ **FORWARD POINTER, 2026-08-29 later the same day.** The **Open PRs** row above is a
+> **pre-merge** reading and is left as one: #445 was open when it was taken, and by §11.10's
+> convention it counted itself. #445 has since merged as `158ee40`, and the live count re-measured
+> after that merge is **zero** (§17.3). Every other row in this table was re-measured at `158ee40`
+> and came back **unchanged** — including the two the paragraph below restates.
+
 **R1, R2, R3, V1 and the OD-1 waiver record are unchanged from §14.4**, and the values re-measured
 above are the only ones that moved. Two are worth restating because this pass measured them
 directly rather than carrying them: R1-D3's clock is still **2 of 3**, and `release_gate.py`'s
 **12-required / 13-expected** list on `main` has still **never executed by any trigger** — its lone
 `workflow_dispatch` run predates `a937116`, the commit that last changed the file.
 
-> ✅ **AMENDED 2026-08-29, later the same day — one of the five is now in motion.** The owner
-> confirmed the **OD-1 waiver** and it is written as **OD-1-W** in
-> `toast_type_word_collision/PLANNING.md` §0.14 (§13.4, §15.2 debt 2). **At `3532f86`, and on
-> `main` until the PR carrying that record merges, this row is unchanged from §14.4.**
+> ✅ **AMENDED 2026-08-29, later the same day — one of the five is now DISCHARGED, not merely in
+> motion.** The owner confirmed the **OD-1 waiver**; it is written as **OD-1-W** in
+> `toast_type_word_collision/PLANNING.md` §0.14 (§13.4, §15.2 *Discharged*), and it **reached
+> `main` as `fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)) at `2026-08-29T17:59:24Z`. **This row is a reading
+> pinned to `3532f86` and stays as one**; what has changed is that its *"unchanged from §14.4"*
+> verdict is no longer true of `main`.
 > **R1, R2, R3 and V1 are unchanged.** The open-PR row above has been
-> superseded several times over: **#445, #448 and #449 have all since merged**, and this
+> superseded several times over: **#445, #448, #449 and #451 have all since merged**, and this
 > amendment's own PR re-enters the count. **No new count is stated here** — per §11.10 an
 > open-PR count is an instant. No other value in this pass was re-queried.
 
@@ -2064,3 +2157,199 @@ and named here rather than left to be discovered: **§1** now cites §16 in §15
 achieved. That second one matters: leaving it would have had this document assert the same
 “ongoing standing track” the table above flags as materially false in
 `REFACTOR_PLAN.md`.
+
+---
+
+## 17. Evidence log — 2026-08-29, re-reconciled against `fe15225` after #445, #448, #449 and #451 merged
+
+**This section is a dated evidence log, not a status layer.** §§11–16 stand as their own dated
+readings; where one is now spent as a live statement it carries an inline forward pointer here,
+annotated in place rather than rewritten. §4, §8, §10 and §15's status fields are updated in place,
+which is what those sections are for. **Nothing here authorizes a packet or a merge, and nothing
+here declares or changes a T0.**
+
+**Why a further pass.** §16 was written while [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445)
+was still open, and it correctly predicted that merging #445 would mint JS-unit ledger row 37
+without claiming that row as recorded. #445 has since merged, so three things this document
+asserted are now false on their face: that **#445 is open**, that **one PR is open repo-wide**, and
+that **ten ledger rows are owed with an eleventh merely predicted** — the eleventh now exists.
+**Three further documentation PRs have landed since**, each minting a row of its own:
+[#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) (`225b7b0`), [#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) (`5664c0e`) and
+[#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) (`fe15225`). **Rows 27–40 are therefore what this pass writes**, not 27–37, and
+the count was re-taken after the last of those merges rather than carried from the reading that
+opened the pass. This pass closes the documentation debt in the two
+files it is authorized to touch.
+
+### 17.1 Provenance
+
+| Reading | Source | What rests on it |
+|---|---|---|
+| UTC now — **`2026-08-29T18:12:28Z`** | GitHub API response `Date` header, not the host clock | the dating of this whole section, and the **upper bound** of §17.2's census. An earlier reading in the same pass, `14:10:11Z`, is superseded: three more merges landed after it |
+| `origin/main` @ **`fe15225`** | `git fetch origin --prune`, then `git rev-parse origin/main` | every landed-commit claim below. The chain since §16's base is `3532f86` → `158ee40` (#445) → `225b7b0` (#448) → `5664c0e` (#449) → `fe15225` (#451) |
+| Four merges | `gh pr view <n> --json state,mergedAt,mergeCommit` — **#445** `2026-08-29T13:47:38Z` / `158ee40`; **#448** `16:56:57Z` / `225b7b0`; **#449** `17:29:09Z` / `5664c0e`; **#451** `17:59:24Z` / `fe15225` | §17.3's *merged, not open*, and rows 37–40's attribution |
+| `main` run enumeration | `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, bounded to `created_at` in **[`2026-08-22T17:00:00Z`, `2026-08-29T18:12:28Z`]** | §17.3's **45**-run census — 40 `ci.yml` `push` attempts plus 5 classified non-attempts |
+| Cross-check **without** the branch filter | three pages of `.../actions/runs?per_page=100`, filtered to `head_branch == "main"` and to `created_at > 2026-08-27T23:18:21Z` | that the branch-filtered query hides **no** `main` run after row 26 — both queries return the same fourteen |
+| The `JS Unit` job on each of the fourteen runs | `gh api ".../actions/runs/<id>/jobs?per_page=100"`, matched on the exact context string `JS Unit (Vitest, non-required)` | rows 27–40's job ids, conclusions and `completed_at`, **and nothing read off a run's overall conclusion** |
+| Merge commit → PR mapping | `gh api "repos/:owner/:repo/commits/<sha>/pulls"` on each of the fourteen heads | each row's PR attribution |
+| Fifteen tree readings | `git rev-parse <sha>:static/js`, `<sha>:static/js/modules/__tests__` and `<sha>:vitest.config.js` at **all fifteen** heads `288667d` → `fe15225` | that Q2's restart clause engaged at **none** of rows 27–40 |
+| `TEST_INVENTORY.json` at **all fifteen** heads | `git show <rev>:docs/test_inventory/TEST_INVENTORY.json` at each | **13 files / 245 cases** at every one — not merely at the two ends |
+| `ci.yml` triggers | `git show fe15225:.github/workflows/ci.yml` | `on:` carries `push` and `pull_request` only — the *zero `schedule`-event `ci.yml` runs* tally line |
+| Open-PR list | `gh pr list --state open --limit 50`, at `14:10:11Z`, `14:53:31Z` and `18:12:28Z` | **zero** at the first, taken before this pass's own PR existed; **three** at the second — this PR plus #448 and #449; **one** at the third — this PR alone, #448, #449 and #451 having all merged. **An open-PR count is an instant** |
+| Deep-gate schedule runs | `gh run list --workflow=deep-gate.yml --event=schedule` | still exactly **2**, both `success` |
+| Release runs | `gh api .../workflows/release.yml/runs?event=push` and `?event=workflow_dispatch` | **0** and **1** |
+| Live branch protection | `gh api .../branches/main/protection` | **12** required contexts, `JS Unit (Vitest, non-required)` **absent**, `strict` **false** |
+
+### 17.2 The ledger debt is closed — rows 27–40 are written, not owed
+
+**The fourteen runs were enumerated independently, from the API, and only then compared with what
+this plan had numbered.** §14.3 numbered 27–33, §14.5 numbered 34, §16.3 numbered 35–36, and §16.3
+predicted 37; **the independent enumeration returned exactly those eleven runs, in that order, with
+no twelfth and no gap.** That agreement is a result, not an input. **Rows 38–40 were numbered by
+this pass alone**, from a fresh enumeration taken after #451 merged: exactly three `main` runs
+exist after row 37, all `ci.yml` / `push`, all attempt 1, and **none of them is a non-attempt run**.
+
+| Row | `main` run | Head / PR | `JS Unit` job | Conclusion | Completed (UTC) |
+|---:|---|---|---|---|---|
+| **27** | [`33211850477`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33211850477) | `878057f` ([#439](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/439)) | `98986664528` | `success` | `2026-08-28T21:17:03Z` |
+| **28** | [`33211894189`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33211894189) | `8a53fd3` ([#440](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/440)) | `98986802288` | `success` | `2026-08-28T21:18:03Z` |
+| **29** | [`33211923147`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33211923147) | `cc72162` ([#441](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/441)) | `98986904544` | `success` | `2026-08-28T21:18:42Z` |
+| **30** | [`33211949359`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33211949359) | `3e60cdd` ([#442](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/442)) | `98986991921` | `success` | `2026-08-28T21:20:44Z` |
+| **31** | [`33211983925`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33211983925) | `f318d81` ([#444](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/444)) | `98987095494` | `success` | `2026-08-28T21:21:22Z` |
+| **32** | [`33214277617`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33214277617) | `c6cfe31` ([#443](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/443)) | `98994314546` | `success` | `2026-08-28T21:50:54Z` |
+| **33** | [`33214775557`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33214775557) | `2035852` ([#438](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/438)) | `98995846638` | `success` | `2026-08-28T21:57:45Z` |
+| **34** | [`33216840672`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33216840672) | `3807011` ([#436](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/436)) | `99002264978` | `success` | `2026-08-28T22:27:21Z` |
+| **35** | [`33227220925`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33227220925) | `1226e46` ([#446](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/446)) | `99033174343` | `success` | `2026-08-29T01:45:23Z` |
+| **36** | [`33253693943`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33253693943) | `3532f86` ([#447](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/447)) | `99103640118` | `success` | `2026-08-29T12:55:27Z` |
+| **37** | [`33255921889`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33255921889) | `158ee40` ([#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445)) | `99109487854` | `success` | `2026-08-29T13:48:04Z` |
+| **38** | [`33264331296`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33264331296) | `225b7b0` ([#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448)) | `99131593513` | `success` | `2026-08-29T16:57:25Z` |
+| **39** | [`33265748817`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33265748817) | `5664c0e` ([#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449)) | `99135395368` | `success` | `2026-08-29T17:29:37Z` |
+| **40** | [`33267048668`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33267048668) | `fe15225` ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)) | `99138843724` | `success` | `2026-08-29T17:59:51Z` |
+
+All fourteen are `CI/CD Pipeline` on `push`, `completed`/`success`, **18 jobs and 18 `success`**, and
+every one is **attempt 1** — no run in the range was retried, cancelled or superseded. **Row 33 is
+#438's own landing**: #438 wrote rows 24–26 and could not cite the run its own merge produces, the
+mechanism §13.0 records at rows 24, 23, 20 and 17. **Row 37 is #445's**, the row §16.3 predicted,
+and **rows 38, 39 and 40 are #448's, #449's and #451's** — the three documentation PRs that landed
+while this one was open, each unable to record its own row for the same reason.
+
+**Five of the fourteen runs were created inside 112 seconds** (`2026-08-28T21:16:42Z` →
+`21:18:34Z`) as the Track P1 wave landed. That is the shape in which a queued run can be cancelled
+outright by a newer one joining its group — and it did not happen here: `ci.yml`'s concurrency
+group falls back to `github.run_id` outside a pull request, so a push run is alone in its group.
+
+**Q2's restart clause engaged at none of the fourteen, endpoints and intermediates
+alike.** `git rev-parse <sha>:static/js` returns
+**`a7e5073568b0fde8e35e1e1a7be5a9f844e77828`** at **all fifteen** of `288667d`, `878057f`, `8a53fd3`,
+`cc72162`, `3e60cdd`, `f318d81`, `c6cfe31`, `2035852`, `3807011`, `1226e46`, `3532f86`,
+`158ee40`, `225b7b0`, `5664c0e` and `fe15225` — the **entire production JS tree** is byte-identical
+from row 26's head through row 40's,
+at every commit in between. `<sha>:static/js/modules/__tests__` is
+**`5858c8497c571548e5116f4b660ff7702dd298b1`** at all fifteen and `<sha>:vitest.config.js` is
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935` at all fifteen, and
+[`TEST_INVENTORY.json`](test_inventory/TEST_INVENTORY.json) reads `vitest.total_files = 13`,
+`vitest.total_cases = 245` at all fifteen as well. That is why §4 R2 decision 3's *"the intermediate
+heads were not read"* clause is replaced rather than carried.
+
+**T0 is untouched, and this pass had no authority to touch it.** The restart is recorded at row 26
+as a measured fact and the new T0 remains **conditional** on an owner determination that is still
+owed (§13.3, §15.2 debt 1).
+
+**What is owed now is one row, by mechanism rather than by backlog.** The PR carrying this section
+mints the next sequential `main` `ci.yml` run on merging and cannot record it — **that is row 41**,
+owed by whoever lands this PR. §11.10's standing rule, unchanged.
+
+### 17.3 Live state re-measured after #445, #448, #449 and #451 merged
+
+Re-queried in this pass rather than carried over from §16.4, and **re-taken at `18:12:28Z` after
+the last of the four merges** rather than left at the reading that opened the pass:
+
+| Reading | Value at `fe15225` | Moved since §16.4? |
+|---|---|---|
+| [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445), [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448), [#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449), [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) | **all four `MERGED`** — `158ee40` `13:47:38Z`, `225b7b0` `16:56:57Z`, `5664c0e` `17:29:09Z`, `fe15225` `17:59:24Z` | **Yes**: #445 `OPEN` → `MERGED`; the other three opened and merged inside this pass |
+| Open PRs, `gh pr list --state open` | **1** at `18:12:28Z` — **this PR alone**, which counts itself per §11.10. Zero are dependency PRs | **Yes**: 1 → 0 (`14:10:11Z`) → 3 (`14:53:31Z`) → **1**. **An open-PR count is an instant, not a state** — quote it with its timestamp or not at all |
+| Dependency PRs open | **0** — Track D1's queue is still empty | No |
+| JS-unit ledger height on `main` | **26** — `fe15225` is still where #438's rows 24–26 end the table | No, not yet: it becomes **40** only when this PR's own edit to §13.0 merges (§17.2) |
+| `deep-gate.yml` `schedule` runs | **2**, both `success` — `31993105305`, `32688747703` | No. Third due **2026-08-31 03:17 UTC**; this reading still predates it |
+| `release.yml` runs | **0** `push`, **1** `workflow_dispatch` — run `31840756293`, head `5222db2`, `2026-08-14T21:03:46Z`, which predates `a937116` | No |
+| Live branch protection | **12** required contexts; `JS Unit (Vitest, non-required)` absent; `strict` **false** | No |
+| Vitest corpus | **13 files / 245 cases** | No |
+| `main` runs of any workflow in the window | **45** = 40 `ci.yml` `push` attempts + 5 classified non-attempts, over the §17.1 interval | **Yes** — the fourteen new attempts of §17.2. **No sixth non-attempt run landed** |
+
+**R1, R2, R3, V1 and every §5 parked item are unchanged from §16.4**, and
+R1-D3's clock and the release gate were re-measured here rather than carried: still **2 of 3**, and
+`release_gate.py`'s **12-required / 13-expected** list still **never executed by any trigger**.
+
+✅ **THE OD-1 WAIVER RECORD IS NO LONGER OWED.** §16.4 listed it among the five unchanged items;
+**[#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) landed it as `fe15225`**, so `main`'s
+`toast_type_word_collision/PLANNING.md` §0.14 now carries **OD-1-W** between OD-1 and OD-2, with
+the *"OD-1 STILL BINDS"* text preserved and annotated as superseded. §15.2 records it under
+*Discharged*.
+
+✅ **AND SO ARE THE THREE STALE STATUS SURFACES.** §16.4 flagged
+[`MASTER_HANDOVER.md`](MASTER_HANDOVER.md), [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md) and
+[`REFACTOR_PLAN.md`](REFACTOR_PLAN.md) as stale on Track P1, and this pass deliberately did not
+touch them — they are outside its authorized file set. **It did not have to.**
+[#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448) landed `REFACTOR_PLAN.md` as `225b7b0`, whose
+continuous-track row now reads **"Done — closed 2026-08-29 at 0 / 0 / 0"**, and
+[#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) landed the other two as `5664c0e`, both now
+carrying a `2026-08-29` block that records the closure. **`main` no longer asserts the stale
+figures**, and §16.4's table is annotated at its own site rather than rewritten.
+
+### 17.4 §15 repaired where it read as more than a status board
+
+Four defects in the board, none of them a measurement error. Each is corrected in place; none
+changes a fact §16 recorded.
+
+| # | What it said | Why that is wrong | Repair |
+|---:|---|---|---|
+| 1 | 🔵 **Standing** meant *“continuing work an agent may take without asking you”* | A **status** legend granted **authorization** — and it contradicted §4 Track D1's own rule that landing a dependency bump *“is a merge decision like any other and needs the same explicit authorization”* | The legend now describes the work's shape only, and says explicitly that starting a packet and landing a change each still need their own authorization. §1 and §15's own preamble carry the same boundary |
+| 2 | §15.5 named the unstarted engineering as *“R1's probes and V1's option 2”*, then priced *“R1 and R2”* | The enumeration and the price **disagreed**: **R2's post-decision follow-through is engineering** — the export-bounds behavior change, its tests and the `utils/rep_range_integrity.py` docstring that must follow it — and §8 prices it at 0.5–1 day inside the same 1.5–3 range | The sentence now names three items, and says so |
+| 3 | §15.2 debts 1–3 and §15.4 items 9–10 carried **discharged** work as struck-through rows inside the **active** debt table and decision queue | A discharged item presented among live ones is read as live at a glance, which is the failure mode a board exists to prevent | All of them move to §15.2 *Discharged* — Track P1's re-price, the **ledger rows** (written by this PR), and the **OD-1 waiver record** (landed as `fe15225`, [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)) — leaving **one** live debt, and §15.4 carries a renumbering note. **Items 1–8 keep their numbers**, so §15.1's *“items 2–5”* and §15.2's *“item 4”* still resolve, and the two citations **inside this file** that did point at the removed numbers are repaired in place. **Three citations OUTSIDE it are falsified and cannot be repaired here** — see §17.5 |
+| 4 | §15.4 mixed the OD-1 record — which **blocks nothing** — into the queue of decisions that stop work | An eight-item blocking list presented as a ten-item one overstates what is in the owner's way | The OD-1 record leaves the queue as a **non-decision**, and is recorded under §15.2 *Discharged* — it is not a numbered debt any more, having **landed on `main` as `fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z`. §15.4's renumbering note explains the removal |
+
+**§3's own `Standing` definition needed no repair** — *“valuable incremental work with no single
+closeout packet”* is already status-only. **The defect was §15's restatement of it**, which is
+exactly the class of drift §15's own header warns about: *“if this board and §4 disagree, the board
+is stale: fix the board.”*
+
+### 17.5 What did not change in this pass
+
+- **No packet was added, retired, reordered or re-scoped**, and no estimate was adopted or revised.
+  §§2, 3, 5–7, 9 and 11–14 are untouched. §1 gains a derivation-set line and a status-only clause;
+  §16 gains **two forward pointers** (§16.3, §16.4) and **two pointer repairs** (§16.2, §16.3)
+  where it cited §15 numbering this pass changed. **No reading in §16 was altered** — both repairs
+  say so in place.
+- **No ledger block was rewritten.** §13.0's rows 1–26, its earlier tallies, its non-attempt
+  classification table and its `THE WINDOW RESTARTED AT ROW 26` subsection are byte-identical; the
+  edit is **purely additive — `git diff --numstat` reports zero deleted lines** in that file. Two
+  of the added lines are **annotations rather than new evidence**: one on the master table's
+  `2026-08-26T23:37:12Z` lead-in, whose *“sixteen rows below”* this extension widens to 40, and one
+  recording that run `33017596325`'s workflow path and job name read differently from the
+  classification table's dated entry — **neither changes a row, a tally or a classification**.
+- **T0 did not move**, and no new T0 was declared.
+- **Nothing outside the two authorized files was touched**, and the primary checkout's unrelated
+  dirty state was left alone.
+- **Still owed after this pass:** the **final-expansion-packet determination**; §15.4's eight
+  decisions; **row 41**, the next ledger row this PR's own merge mints and cannot record; and the
+  **three out-of-file citations this pass's own renumbering falsifies**, immediately below.
+  Three things this pass opened against are now **landed, not merely
+  in flight**: the **OD-1 waiver record** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451), `fe15225`, §17.3), and the
+  documentation pass over
+  `REFACTOR_PLAN.md` ([#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448), `225b7b0`) and over `MASTER_HANDOVER.md` +
+  `ACTIVE_DEVELOPMENT.md` ([#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449), `5664c0e`). **`main` no longer carries the stale
+  figures.**
+- ⚠️ **THIS PASS CREATES ONE DEBT OF ITS OWN, AND NAMES IT RATHER THAN LEAVING IT TO BE
+  DISCOVERED.** Removing §15.4's items 9–10 and §15.2's debts 1–3 falsifies **three live citations
+  in files this PR is not authorized to touch**, all of them landed on `main` by #449 and #451:
+
+  | File | Citation | Why it no longer resolves |
+  |---|---|---|
+  | [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) | *“§15.4 items 1–8 **and 10**”* | Item 10 no longer exists; the OD-1 record it named is under §15.2 *Discharged* |
+  | [`ACTIVE_DEVELOPMENT.md`](ACTIVE_DEVELOPMENT.md) | the same *“items 1–8 and 10”* | Same |
+  | [`toast_type_word_collision/PLANNING.md`](toast_type_word_collision/PLANNING.md) | *“§15.2 carried … **as debt 2**”* | Debt 2 is now *“Was #431 the final Vitest expansion packet?”* |
+
+  **None is a factual error** — each describes the board as it stood when written, and the OD-1
+  record really is discharged either way. **They are stale pointers, and they are owed a
+  one-line repair in a pass that owns those files.** The alternative — keeping two discharged
+  rows numbered in an active queue purely so external pointers keep resolving — is the defect
+  §17.4 item 3 exists to remove.
