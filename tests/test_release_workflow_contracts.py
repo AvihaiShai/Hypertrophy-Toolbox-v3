@@ -704,7 +704,12 @@ def test_every_deep_gate_job_is_classified_as_conditional_or_not():
     assert DEEP_GATE_CONDITIONAL_JOBS == {"visual-linux"}, (
         "`visual-linux` is the only deep-gate job with a pinned condition "
         "(VISUAL_LINUX_DISJUNCTS). Adding another removes it from the unconditional "
-        "contract without pinning what its condition may contain"
+        "contract without pinning what its condition may contain -- and it mints a "
+        "SECOND job that can skip, which is what "
+        "`test_no_unconditional_deep_gate_job_gates_itself_behind_another_job` relies on "
+        "not existing: `visual-linux` is exempt from that contract only because a "
+        "`needs:` on it can chain to nothing skippable. Widening this set reopens the "
+        "`needs:` shape, so widen it there in the same change"
     )
 
 
@@ -745,6 +750,207 @@ def test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run(jo
         "counts as success, so this drops the job's evidence from the weekly gate "
         "while the run still reports green; only `visual-linux` may be conditional here"
     )
+
+
+# The two shapes Packet R1 measured. #402 recorded both as "deliberately left open,
+# and not established as defects"; each is now measured, and each was undetected by
+# every contract this file held.
+#
+# `frozen-windows` is in NEITHER set. Its `needs:` is barred by the PACKAGED_CALLERS
+# delegation contract, and a job-level `continue-on-error:` on it was measured
+# (arm H2-M4, undetected) but is deliberately OUT of this packet's scope: it is a
+# `uses:` job. This repository's recorded position -- stated flatly above the
+# `continue-on-error` assertion on `_packaged-windows.yml`, and in
+# docs/release_pipeline/PLANNING.md's Plan v1 constraints -- is that a `uses:` job may not
+# declare the key at all. What R1 measured is that no CONTRACT here detects it; GitHub's
+# enforcement of that constraint was not measured, so whether the shape is a live false
+# green or a workflow parse error is what remains open. Recorded, not fixed; closing it
+# needs its own authorization.
+#
+# The two sets differ on purpose, and each covers exactly the jobs whose mutation was
+# measured undetected:
+#
+#   * `needs:` -- the five unconditional jobs. The false-green mechanism is a SKIP
+#     chain, and a skipped dependency is the only kind that leaves a run green (a
+#     FAILED dependency skips its dependent but reds the run -- measured as arm H1-M2
+#     and deliberately NOT claimed as a false green). `visual-linux` is the only job
+#     in this workflow that can skip, so it is the only usable dependency; a `needs:`
+#     ON `visual-linux` chains to nothing that skips and is therefore not a
+#     demonstrated failure mode. R1's own criterion is that protection match the
+#     demonstrated mode only, so it is not barred here.
+#   * `continue-on-error:` -- those five AND `visual-linux`. This one needs no skip:
+#     it swallows a real failure wherever it sits, so `visual-linux`'s scheduled
+#     compare is as reachable as the rest.
+DEEP_GATE_NO_JOB_LEVEL_CONTINUE_ON_ERROR_JOBS = (
+    DEEP_GATE_UNCONDITIONAL_JOBS | DEEP_GATE_CONDITIONAL_JOBS
+)
+
+# Job-level keys sit at four spaces; step-level keys at six. The distinction IS the
+# contract below: `dependency-health` carries `continue-on-error: true` on both of its
+# scan steps by design -- it reports rather than gates -- and a whole-file scan would
+# red on that intentional configuration instead of on the unmeasured shape.
+JOB_LEVEL_CONTINUE_ON_ERROR = re.compile(r"^    continue-on-error:", re.MULTILINE)
+JOB_LEVEL_NEEDS = re.compile(r"^    needs:", re.MULTILINE)
+
+
+@pytest.mark.parametrize("job_id", sorted(DEEP_GATE_UNCONDITIONAL_JOBS))
+def test_no_unconditional_deep_gate_job_gates_itself_behind_another_job(job_id):
+    """`needs:` is the second way a job leaves the weekly gate without reddening it.
+
+    A job whose dependency is SKIPPED is skipped too, and a skipped job counts as a
+    success -- so `needs: visual-linux` here removes this job's evidence from any run
+    where `visual-linux` did not start. That is every `workflow_dispatch` taken with
+    the `run_visual` default, which is how this workflow is overwhelmingly exercised.
+
+    Measured on the unprotected set (Packet R1): one `needs: visual-linux` line added
+    after each job's `name:` in turn, and all five at once -- every arm left all 51
+    contracts in this file passing. The runtime effect is not asserted here and was
+    not measured in this repository; it rests on GitHub's documented semantics for a
+    skipped job, the same authority the `if:` contract above already stands on.
+
+    The key alone is the violation, for the reason #402 recorded: a pattern demanding
+    `needs: ` plus a value passes on `needs:` with its value on the following line and
+    on `needs:` followed by a tab, both of which are the same dependency edge. The
+    value is captured only for the message.
+
+    Parametrized on `DEEP_GATE_UNCONDITIONAL_JOBS` directly rather than through an
+    alias: the set IS the five unconditional jobs, and a second name for it could only
+    drift from the census that pins them.
+
+    `frozen-windows` is absent by construction -- it is in neither classification set,
+    and its `needs:` is barred by `test_each_declared_caller_delegates_the_entire_build`
+    for all three callers at once. Reading the sets rather than a fresh literal is what
+    keeps the two contracts from drifting apart.
+    """
+    body = strip_comments(jobs(DEEP_GATE)[job_id])
+    found = JOB_LEVEL_NEEDS.search(body)
+    edge = body[found.end() :].split("\n", 1)[0].strip() if found else None
+    assert found is None, (
+        f"deep-gate.yml:{job_id} gates itself behind `needs: {edge}`. A skipped "
+        "dependency skips this job, and a skipped job counts as success -- so this "
+        "drops the job's evidence from the run while it still reports green"
+    )
+
+
+@pytest.mark.parametrize(
+    "job_id", sorted(DEEP_GATE_NO_JOB_LEVEL_CONTINUE_ON_ERROR_JOBS)
+)
+def test_no_deep_gate_job_makes_its_own_failure_non_blocking(job_id):
+    """The third shape, and the only one of the three that needs no skip at all.
+
+    A job-level `continue-on-error: true` lets the job fail and the RUN still report
+    success. That is the field the deep gate is judged by: it is unattended, it
+    reports one conclusion, and R1-D3's clock is counted with
+    `gh run list --workflow=deep-gate.yml --event=schedule`, which reads the run's
+    conclusion and not the job's. `ci.yml` states the mechanism in its own comments
+    above the `test-inventory` job -- "continue-on-error swallows a real failure" --
+    and uses the key deliberately on `css-stylelint-measure`, a non-required
+    measurement job. It has no business on a job that carries evidence.
+
+    Measured (Packet R1): one job-level line added after each job's `name:` in turn,
+    all six at once, and in the `${{ true }}`, value-on-the-next-line and tab-separated
+    forms -- every arm left all 51 contracts passing. As with `needs:` above, the
+    runtime effect is documented rather than measured here.
+
+    **The indent is the whole contract.** `dependency-health` carries
+    `continue-on-error: true` on BOTH its scan steps by design, at six spaces; it
+    reports rather than gates and that configuration is deliberate. A whole-file
+    `"continue-on-error" not in executable(DEEP_GATE)` would red on it instead of on
+    the shape this measures -- discovering an intentional configuration, which
+    docs/OPEN_WORK_EXECUTION_PLAN.md warned this probe against by name. Deleting one
+    of those step-level keys was run as a control arm and must keep passing here:
+    it makes the gate stricter, not weaker, and is not this contract's business.
+
+    `frozen-windows` is out of scope; see the comment on the sets above.
+    """
+    body = strip_comments(jobs(DEEP_GATE)[job_id])
+    found = JOB_LEVEL_CONTINUE_ON_ERROR.search(body)
+    value = body[found.end() :].split("\n", 1)[0].strip() if found else None
+    assert found is None, (
+        f"deep-gate.yml:{job_id} declares a job-level `continue-on-error: {value}`. "
+        "The job may then fail while the run still reports success, which is the only "
+        "signal an unattended weekly gate produces; step-level use inside "
+        "`dependency-health` is deliberate and unaffected"
+    )
+
+
+# A job block shaped like the ones `jobs()` returns: two-space job id, four-space job
+# keys, and a SIX-space occurrence of each key below them. Both patterns must find
+# exactly ONE match here -- the job-level key -- and neither may find the deeper one.
+#
+# It is a BLOCK rather than a bare key on purpose, and that is half the point of the
+# test below. Every bare-key sample puts the key at offset 0, where `^` matches with or
+# without `re.MULTILINE`; a real job block never does, because it opens with
+# `  <job-id>:`. So a sample built from bare keys stays green when the `re.MULTILINE`
+# flag is deleted, while every job arm above silently becomes vacuous -- `search()`
+# without the flag can never match a key that is not at offset 0.
+#
+# The block is SYNTHETIC, and deliberately so: a step never legally carries `needs:`,
+# and that line is here anyway. Without a deeper `needs:` to reject, an unanchored
+# `^ *needs:` still counts exactly one match and the over-match arm survives -- measured.
+# What these patterns must be pinned by is the COLUMN, not by whether a key is plausible
+# at that depth, so the sample gives each pattern something at six spaces to ignore.
+PATTERN_SAMPLE_BLOCK = """  a-job:
+    name: A job
+    continue-on-error: true
+    needs: [b-job]
+    steps:
+    - name: a step
+      run: true
+      needs: not-a-real-step-key
+      continue-on-error: true
+"""
+
+
+def test_the_job_level_patterns_cannot_see_a_step_level_key():
+    """The boundary both contracts above depend on, proven against literals.
+
+    Asserted on sample text rather than on `deep-gate.yml` so that proving the patterns
+    are indentation-scoped does not smuggle in a new constraint on the workflow --
+    pinning `dependency-health`'s two step-level keys would bar a future packet from
+    promoting that job to blocking, which is a decision nothing here has taken.
+
+    Counted with `findall`, not `search`: `search` proves a match exists and says
+    nothing about the step-level key sitting four lines below it, so an over-matching
+    pattern would pass a positive and a negative arm that are each looking elsewhere.
+
+    `JOB_LEVEL_NEEDS` needs this more than its sibling does. No deep-gate job carries
+    `needs:` today, so its five arms above are all negatives: without a positive here,
+    a five-space anchor or a typo'd key would leave every one of them passing while
+    matching nothing at all. The `if:` contract this pair imitates does not have that
+    hole -- `test_every_deep_gate_job_is_classified_as_conditional_or_not` requires the
+    same `^    if:` literal to MATCH on `visual-linux` -- and a contract that is
+    strictly weaker than the sibling it imitates is the second failure mode #402 paid
+    for.
+    """
+    assert len(JOB_LEVEL_CONTINUE_ON_ERROR.findall(PATTERN_SAMPLE_BLOCK)) == 1
+    assert len(JOB_LEVEL_NEEDS.findall(PATTERN_SAMPLE_BLOCK)) == 1
+
+    # The forms a `key: value` pattern would miss -- all of them the same key, and each
+    # written inside a block so `^` is never satisfied by offset 0.
+    header = "  a-job:\n    name: A job\n"
+    for pattern, tails in (
+        (
+            JOB_LEVEL_CONTINUE_ON_ERROR,
+            (
+                "    continue-on-error: true\n",
+                "    continue-on-error:\n      true\n",
+                "    continue-on-error:\ttrue\n",
+                "    continue-on-error: ${{ true }}\n",
+            ),
+        ),
+        (
+            JOB_LEVEL_NEEDS,
+            (
+                "    needs: visual-linux\n",
+                "    needs: [visual-linux, first-install]\n",
+                "    needs:\n      - visual-linux\n",
+                "    needs:\tvisual-linux\n",
+            ),
+        ),
+    ):
+        for tail in tails:
+            assert pattern.search(header + tail), tail
 
 
 def test_the_deep_gate_produces_no_branch_protection_context():
