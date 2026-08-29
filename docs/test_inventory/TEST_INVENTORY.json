@@ -241,7 +241,7 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 2882,
+    "collected_deterministic": 2901,
     "deterministic_files": 125,
     "environment_dependent_files": [
       {
@@ -400,7 +400,7 @@
       },
       {
         "file": "tests/test_effective_sets.py",
-        "tests": 47
+        "tests": 63
       },
       {
         "file": "tests/test_erase_data_guard.py",
@@ -448,7 +448,7 @@
       },
       {
         "file": "tests/test_fatigue_routes.py",
-        "tests": 14
+        "tests": 17
       },
       {
         "file": "tests/test_fatigue_stage4_observer.py",

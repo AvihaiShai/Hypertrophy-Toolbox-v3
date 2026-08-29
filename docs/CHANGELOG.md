@@ -6,6 +6,23 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ### User-visible
 
+- **Rep-range scoring no longer has gaps.** The Rep Range Factor keys off the
+  *average* of your min and max reps, and its old bands were disjoint whole-number
+  buckets — so an average that landed between them matched nothing and silently
+  scored the neutral **100%**. A **30–31** rep range scored 100%, *higher* than
+  both a 30-rep range (85%) and a 31-rep range (70%). The bands are now
+  continuous: under 6 reps **85%**, 6–20 **100%**, over 20 up to 30 **85%**, over
+  30 **70%**. Five previously-unreachable regions move — a **5–6** range and a
+  **20–21** range go 100% → 85%, a **30–31** range goes 100% → 70%, anything
+  averaging over 100 reps goes 100% → 70%, and a **0–1** range goes 100% → 85%.
+  Every rep range that already matched a band keeps its exact factor, so most
+  plans see no change at all. Because Effective Sets can fall for an affected
+  exercise, weekly **frequency** for its muscles can *decrease* where a session
+  no longer reaches the 1.0-effective-set threshold, and the `/fatigue` page's
+  Stimulus and SFR figures move with it. A rep range you never set, or one whose
+  average is zero or negative, still scores a neutral 100%. Effective Sets remain
+  informational: nothing is blocked or auto-adjusted (ADR-009).
+
 - **A muscle worked in two roles now counts both.** When one exercise names the
   same muscle in more than one of its Primary/Secondary/Tertiary slots, Effective
   Sets credited only the *lower* role and silently dropped the higher one — so
@@ -16,7 +33,9 @@ All notable changes to Hypertrophy Toolbox v3.
   Effective matches Raw for them on `/weekly_summary` and `/session_summary`
   (primary + secondary = 150%). Weekly **frequency** can also increment for such
   a muscle, because a session that previously fell short of the 1.0-effective-set
-  threshold may now clear it — it can only move up, never down. **Direct Only
+  threshold may now clear it — *this change* can only move it up. (The rep-range
+  entry above ships in the same release and can move frequency **down** for a
+  different reason; the two are independent.) **Direct Only
   mode is unchanged** (primary only, at 100%), and exercises whose three muscle
   slots are all different are **completely unaffected**. Effective Sets remain
   informational: nothing is blocked or auto-adjusted (ADR-009).
