@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 import json
+from typing import Any, NamedTuple, Optional
 import werkzeug.exceptions
 from utils.database import DatabaseHandler
 from utils.exercise_manager import (
@@ -860,10 +861,42 @@ def unlink_superset():
 
 # ==================== Phase 3: Execution Styles ====================
 
-def _validate_and_normalize_execution_params(data: dict):
+class _ExecutionStyleError(NamedTuple):
+    """The ``error_response()`` arguments an execution-style helper failed with.
+
+    Passed by name at the call site, so reordering these two adjacent ``str``
+    fields cannot silently swap the code and the message in the envelope.
+    """
+    code: str
+    message: str
+    status_code: int
+
+
+class _ExecutionStyleParams(NamedTuple):
+    """Validated, style-normalized request parameters.
+
+    Only the fields the requested style uses are populated; the others are
+    ``None``, which is what the UPDATE writes to those columns.
+    """
+    exercise_id: int
+    execution_style: str
+    time_cap_seconds: Optional[int]
+    emom_interval_seconds: Optional[int]
+    emom_rounds: Optional[int]
+
+
+class _ExecutionStyleUpdate(NamedTuple):
+    """The pre-update row and the re-fetched row after a successful write."""
+    exercise: dict[str, Any]
+    updated: Optional[dict[str, Any]]
+
+
+def _validate_and_normalize_execution_params(
+    data: Optional[dict],
+) -> _ExecutionStyleParams | _ExecutionStyleError:
     if not data:
-        return None, ("VALIDATION_ERROR", "No data provided", 400)
-    
+        return _ExecutionStyleError("VALIDATION_ERROR", "No data provided", 400)
+
     exercise_id = data.get('exercise_id')
     execution_style = data.get('execution_style', 'standard')
     time_cap_seconds = data.get('time_cap_seconds')
@@ -872,12 +905,12 @@ def _validate_and_normalize_execution_params(data: dict):
     
     # Validate exercise_id
     if not exercise_id or not str(exercise_id).isdigit():
-        return None, ("VALIDATION_ERROR", "Invalid exercise ID", 400)
-    
+        return _ExecutionStyleError("VALIDATION_ERROR", "Invalid exercise ID", 400)
+
     # Validate execution_style
     valid_styles = {'standard', 'amrap', 'emom'}
     if execution_style not in valid_styles:
-        return None, (
+        return _ExecutionStyleError(
             "VALIDATION_ERROR",
             f"Invalid execution style. Must be one of: {', '.join(valid_styles)}",
             400
@@ -887,7 +920,7 @@ def _validate_and_normalize_execution_params(data: dict):
     if execution_style == 'amrap':
         time_cap_seconds = time_cap_seconds if time_cap_seconds else 60
         if not isinstance(time_cap_seconds, int) or time_cap_seconds < 10 or time_cap_seconds > 600:
-            return None, (
+            return _ExecutionStyleError(
                 "VALIDATION_ERROR",
                 "time_cap_seconds must be between 10 and 600 seconds",
                 400
@@ -899,13 +932,13 @@ def _validate_and_normalize_execution_params(data: dict):
         emom_rounds = emom_rounds if emom_rounds else 5
         
         if not isinstance(emom_interval_seconds, int) or emom_interval_seconds < 15 or emom_interval_seconds > 180:
-            return None, (
+            return _ExecutionStyleError(
                 "VALIDATION_ERROR",
                 "emom_interval_seconds must be between 15 and 180 seconds",
                 400
             )
         if not isinstance(emom_rounds, int) or emom_rounds < 1 or emom_rounds > 20:
-            return None, (
+            return _ExecutionStyleError(
                 "VALIDATION_ERROR",
                 "emom_rounds must be between 1 and 20",
                 400
@@ -916,28 +949,30 @@ def _validate_and_normalize_execution_params(data: dict):
         emom_interval_seconds = None
         emom_rounds = None
 
-    return {
-        'exercise_id': int(exercise_id),
-        'execution_style': execution_style,
-        'time_cap_seconds': time_cap_seconds,
-        'emom_interval_seconds': emom_interval_seconds,
-        'emom_rounds': emom_rounds
-    }, None
+    return _ExecutionStyleParams(
+        exercise_id=int(exercise_id),
+        execution_style=execution_style,
+        time_cap_seconds=time_cap_seconds,
+        emom_interval_seconds=emom_interval_seconds,
+        emom_rounds=emom_rounds
+    )
 
 
-def _update_execution_style_db(db: DatabaseHandler, params: dict):
+def _update_execution_style_db(
+    db: DatabaseHandler, params: _ExecutionStyleParams
+) -> _ExecutionStyleUpdate | _ExecutionStyleError:
     # Check if columns exist
     cols = db.fetch_all("PRAGMA table_info(user_selection)")
     col_names = {row['name'] for row in cols}
-    
+
     if 'execution_style' not in col_names:
-        return None, (
+        return _ExecutionStyleError(
             "INTERNAL_ERROR",
             "Execution style feature not available - database migration required",
             500
         )
-    
-    exercise_id = params['exercise_id']
+
+    exercise_id = params.exercise_id
     
     # Verify exercise exists
     exercise = db.fetch_one(
@@ -946,8 +981,8 @@ def _update_execution_style_db(db: DatabaseHandler, params: dict):
     )
     
     if not exercise:
-        return None, ("NOT_FOUND", "Exercise not found", 404)
-    
+        return _ExecutionStyleError("NOT_FOUND", "Exercise not found", 404)
+
     # Update execution style
     db.execute_query(
         """
@@ -959,10 +994,10 @@ def _update_execution_style_db(db: DatabaseHandler, params: dict):
         WHERE id = ?
         """,
         (
-            params['execution_style'],
-            params['time_cap_seconds'],
-            params['emom_interval_seconds'],
-            params['emom_rounds'],
+            params.execution_style,
+            params.time_cap_seconds,
+            params.emom_interval_seconds,
+            params.emom_rounds,
             exercise_id
         )
     )
@@ -976,8 +1011,8 @@ def _update_execution_style_db(db: DatabaseHandler, params: dict):
         """,
         (exercise_id,)
     )
-    
-    return {'exercise': exercise, 'updated': updated}, None
+
+    return _ExecutionStyleUpdate(exercise=exercise, updated=updated)
 
 
 @workout_plan_bp.route("/api/execution_style", methods=["POST"])
@@ -997,33 +1032,33 @@ def set_execution_style():
     """
     try:
         data = request.get_json()
-        params, error = _validate_and_normalize_execution_params(data)
-        if error:
-            return error_response(*error)
-        
+        params = _validate_and_normalize_execution_params(data)
+        if isinstance(params, _ExecutionStyleError):
+            return error_response(params.code, params.message, params.status_code)
+
         with DatabaseHandler() as db:
-            result, db_error = _update_execution_style_db(db, params)
-            if db_error:
-                return error_response(*db_error)
-            
-            exercise = result['exercise']
-            updated = result['updated']
-            
+            result = _update_execution_style_db(db, params)
+            if isinstance(result, _ExecutionStyleError):
+                return error_response(result.code, result.message, result.status_code)
+
+            exercise = result.exercise
+            updated = result.updated
+
             logger.info(
                 "Execution style updated",
                 extra={
-                    'exercise_id': params['exercise_id'],
+                    'exercise_id': params.exercise_id,
                     'exercise': exercise['exercise'],
-                    'execution_style': params['execution_style'],
-                    'time_cap_seconds': params['time_cap_seconds'],
-                    'emom_interval_seconds': params['emom_interval_seconds'],
-                    'emom_rounds': params['emom_rounds']
+                    'execution_style': params.execution_style,
+                    'time_cap_seconds': params.time_cap_seconds,
+                    'emom_interval_seconds': params.emom_interval_seconds,
+                    'emom_rounds': params.emom_rounds
                 }
             )
-            
+
             return jsonify(success_response(
                 data=dict(updated) if updated else None,
-                message=f"Set '{exercise['exercise']}' to {params['execution_style'].upper()} style"
+                message=f"Set '{exercise['exercise']}' to {params.execution_style.upper()} style"
             ))
             
     except Exception as e:

@@ -190,8 +190,11 @@ def _block_from_page(
     planned_payload = _side_payload(planned_bar) if show_planned else None
     logged_payload = _side_payload(logged_bar) if show_logged else None
 
-    planned_band = planned_payload.get("band") if planned_payload else None
-    logged_band = logged_payload.get("band") if logged_payload else None
+    # ``band`` crosses the untyped page dict, but it originates as
+    # ``MuscleFatigueResult.band`` — an Optional[str] written only by
+    # ``classify_muscle_fatigue``.
+    planned_band: Optional[str] = planned_payload.get("band") if planned_payload else None
+    logged_band: Optional[str] = logged_payload.get("band") if logged_payload else None
     disagree = bool(
         source == "both"
         and planned_band
@@ -201,29 +204,26 @@ def _block_from_page(
 
     # Advisory fallback whenever there is no ranked band to show — unranked /
     # unknown / Unassigned muscles, or a ranked muscle with no tracked volume.
-    has_band = bool(planned_band or logged_band)
-    is_advisory_fallback = (not has_landmarks) or (not has_band)
+    selected_band = planned_band or logged_band
+    is_advisory_fallback = (not has_landmarks) or (not selected_band)
 
-    if is_advisory_fallback:
-        if not has_landmarks:
-            headline = f"Fatigue context isn't ranked for {muscle_label} yet."
+    if not has_landmarks:
+        headline = f"Fatigue context isn't ranked for {muscle_label} yet."
+    elif not selected_band:
+        headline = f"No fatigue tracked for {muscle_label} yet."
+    elif source == "both" and planned_band and logged_band:
+        if disagree:
+            headline = (
+                f"{muscle_label} fatigue: {_BAND_LABELS.get(planned_band, planned_band)}"
+                f" (planned) · {_BAND_LABELS.get(logged_band, logged_band)} (logged)."
+            )
         else:
-            headline = f"No fatigue tracked for {muscle_label} yet."
+            headline = (
+                f"{muscle_label} fatigue: "
+                f"{_BAND_LABELS.get(planned_band, planned_band)}."
+            )
     else:
-        if source == "both" and planned_band and logged_band:
-            if disagree:
-                headline = (
-                    f"{muscle_label} fatigue: {_BAND_LABELS.get(planned_band, planned_band)}"
-                    f" (planned) · {_BAND_LABELS.get(logged_band, logged_band)} (logged)."
-                )
-            else:
-                headline = (
-                    f"{muscle_label} fatigue: "
-                    f"{_BAND_LABELS.get(planned_band, planned_band)}."
-                )
-        else:
-            band = planned_band or logged_band
-            headline = f"{muscle_label} fatigue: {_BAND_LABELS.get(band, band)}."
+        headline = f"{muscle_label} fatigue: {_BAND_LABELS.get(selected_band, selected_band)}."
 
     return {
         "enabled": True,

@@ -2,6 +2,7 @@ import pytest
 import sqlite3
 from datetime import datetime
 from email.utils import parsedate_to_datetime
+from typing import cast
 
 import routes.volume_splitter as volume_splitter_routes
 from utils.database import DatabaseHandler
@@ -362,7 +363,10 @@ def test_export_volume_plan_rolls_back_on_insert_failure(clean_db, monkeypatch):
     class FaultyDatabaseHandler(DatabaseHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.cursor = FaultyCursor(self.cursor)
+            # The double forwards every attribute to the real cursor. Cast at
+            # the substitution so DatabaseHandler.cursor keeps the concrete
+            # sqlite3.Cursor type it has in production.
+            self.cursor = cast(sqlite3.Cursor, FaultyCursor(self.cursor))
 
     monkeypatch.setattr("utils.volume_export.DatabaseHandler", FaultyDatabaseHandler)
 

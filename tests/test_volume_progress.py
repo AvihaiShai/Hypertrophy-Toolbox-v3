@@ -76,6 +76,18 @@ def _row_by_muscle(rows, muscle):
     return next(row for row in rows if row["muscle_group"] == muscle)
 
 
+def _export_plan(volume_data, **kwargs) -> int:
+    """Save a volume plan and return its id.
+
+    ``export_volume_plan`` returns ``None`` when the insert fails; every test
+    below needs a real plan id, so treat that as a failed precondition here
+    instead of letting it surface as a confusing downstream error.
+    """
+    plan_id = export_volume_plan(volume_data, **kwargs)
+    assert plan_id is not None, "export_volume_plan did not persist the plan"
+    return plan_id
+
+
 def test_migration_idempotent(clean_db):
     add_volume_plan_activation_columns()
     add_volume_plan_activation_columns()
@@ -104,7 +116,7 @@ def test_default_recommended_ranges_cover_all_muscles():
 
 
 def test_mode_persists_on_save(clean_db):
-    plan_id = export_volume_plan(
+    plan_id = _export_plan(
         {"training_days": 4, "mode": "advanced", "volumes": {"upper-pectoralis": 12}},
         mode="advanced",
     )
@@ -112,12 +124,13 @@ def test_mode_persists_on_save(clean_db):
     with DatabaseHandler() as db:
         plan = db.fetch_one("SELECT mode FROM volume_plans WHERE id = ?", (plan_id,))
 
+    assert plan is not None
     assert plan["mode"] == "advanced"
 
 
 def test_only_one_plan_active_at_a_time(clean_db):
-    first = export_volume_plan({"training_days": 3, "volumes": {"Chest": 12}})
-    second = export_volume_plan({"training_days": 4, "volumes": {"Chest": 16}})
+    first = _export_plan({"training_days": 3, "volumes": {"Chest": 12}})
+    second = _export_plan({"training_days": 4, "volumes": {"Chest": 16}})
 
     assert activate_volume_plan(first)
     assert activate_volume_plan(second)
@@ -129,7 +142,7 @@ def test_only_one_plan_active_at_a_time(clean_db):
 
 
 def test_activate_nonexistent_plan_returns_404_and_preserves_active(client, clean_db):
-    plan_id = export_volume_plan({"training_days": 3, "volumes": {"Chest": 12}})
+    plan_id = _export_plan({"training_days": 3, "volumes": {"Chest": 12}})
     assert activate_volume_plan(plan_id)
 
     response = client.post("/api/volume_plan/999999/activate")
@@ -145,7 +158,7 @@ def test_activate_nonexistent_plan_returns_404_and_preserves_active(client, clea
 
 
 def test_deactivate_idempotent_for_inactive_plan(client, clean_db):
-    plan_id = export_volume_plan({"training_days": 3, "volumes": {"Chest": 12}})
+    plan_id = _export_plan({"training_days": 3, "volumes": {"Chest": 12}})
 
     response = client.post(f"/api/volume_plan/{plan_id}/deactivate")
 
@@ -153,12 +166,13 @@ def test_deactivate_idempotent_for_inactive_plan(client, clean_db):
     with DatabaseHandler() as db:
         active_count = db.fetch_one("SELECT COUNT(*) AS count FROM volume_plans WHERE is_active = 1")
 
+    assert active_count is not None
     assert active_count["count"] == 0
 
 
 def test_partial_unique_index_prevents_two_active(clean_db):
-    first = export_volume_plan({"training_days": 3, "volumes": {"Chest": 12}})
-    second = export_volume_plan({"training_days": 4, "volumes": {"Back": 12}})
+    first = _export_plan({"training_days": 3, "volumes": {"Chest": 12}})
+    second = _export_plan({"training_days": 4, "volumes": {"Back": 12}})
 
     with pytest.raises(sqlite3.IntegrityError):
         with DatabaseHandler() as db:
@@ -291,7 +305,7 @@ def test_no_active_plan_endpoint_returns_200_empty(client, clean_db):
 def test_volume_progress_endpoint_merges_targets_and_planned_sets(client, clean_db):
     exercise = _create_exercise(clean_db, "Bench Press")
     _select_exercise(clean_db, exercise, sets=3)
-    plan_id = export_volume_plan(
+    plan_id = _export_plan(
         {
             "training_days": 4,
             "volumes": {
@@ -341,8 +355,8 @@ def test_erase_data_recreates_columns_and_index(client, clean_db):
 
 def test_activate_is_transactional(clean_db):
     """If the second UPDATE raises, the previously-active plan stays active."""
-    first = export_volume_plan({"training_days": 3, "volumes": {"Chest": 12}})
-    second = export_volume_plan({"training_days": 4, "volumes": {"Chest": 16}})
+    first = _export_plan({"training_days": 3, "volumes": {"Chest": 12}})
+    second = _export_plan({"training_days": 4, "volumes": {"Chest": 16}})
     assert activate_volume_plan(first)
 
     original_execute = DatabaseHandler.execute_query
@@ -368,8 +382,8 @@ def test_activate_is_transactional(clean_db):
 
 def test_activate_rollback_when_set_row_disappears(clean_db):
     """When the SET update returns rowcount 0, rollback preserves the original active plan."""
-    first = export_volume_plan({"training_days": 3, "volumes": {"Chest": 12}})
-    second = export_volume_plan({"training_days": 4, "volumes": {"Chest": 16}})
+    first = _export_plan({"training_days": 3, "volumes": {"Chest": 12}})
+    second = _export_plan({"training_days": 4, "volumes": {"Chest": 16}})
     assert activate_volume_plan(first)
 
     original_execute = DatabaseHandler.execute_query
@@ -423,7 +437,7 @@ def test_planned_without_target_row(clean_db):
         tertiary=None,
     )
     _select_exercise(clean_db, exercise, sets=4)
-    plan_id = export_volume_plan(
+    plan_id = _export_plan(
         {"training_days": 3, "volumes": {"Glutes": {"weekly_sets": 0, "status": "optimal"}}}
     )
     assert activate_volume_plan(plan_id)
@@ -438,7 +452,7 @@ def test_planned_without_target_row(clean_db):
 
 def test_target_without_planned_row(clean_db):
     """Plan has Calves=12 but no calf exercises → unplanned_target."""
-    plan_id = export_volume_plan(
+    plan_id = _export_plan(
         {"training_days": 3, "volumes": {"Calves": {"weekly_sets": 12, "status": "optimal"}}}
     )
     assert activate_volume_plan(plan_id)
@@ -467,7 +481,7 @@ def test_target_status_computed_from_default_ranges(clean_db):
     _select_exercise(clean_db, exercise, sets=3)
 
     # Save with status='optimal' but target=5 (which default ranges classify as 'low')
-    plan_id = export_volume_plan(
+    plan_id = _export_plan(
         {"training_days": 4, "volumes": {"Chest": {"weekly_sets": 5, "status": "optimal"}}}
     )
     assert activate_volume_plan(plan_id)
@@ -484,7 +498,7 @@ def test_target_status_excessive_when_sets_per_session_exceeds_ten(clean_db):
     _select_exercise(clean_db, exercise, sets=3)
 
     # training_days=2 with weekly_sets=22 → sets_per_session=11 (> 10 → excessive)
-    plan_id = export_volume_plan(
+    plan_id = _export_plan(
         {"training_days": 2, "volumes": {"Chest": {"weekly_sets": 22, "status": "optimal"}}}
     )
     assert activate_volume_plan(plan_id)
@@ -501,7 +515,7 @@ def test_target_status_none_when_target_zero(clean_db):
     _select_exercise(clean_db, exercise, sets=3)
 
     # Active plan exists but Chest is not targeted; planned > 0 so the row surfaces.
-    plan_id = export_volume_plan(
+    plan_id = _export_plan(
         {"training_days": 3, "volumes": {"Calves": {"weekly_sets": 12, "status": "optimal"}}}
     )
     assert activate_volume_plan(plan_id)
@@ -541,7 +555,9 @@ def test_middle_shoulder_respects_phase0_decision(clean_db):
     )
     _select_exercise(clean_db, exercise, sets=3)
 
-    expected_basic = COARSE_TO_BASIC[canonical_pst("Middle-Shoulder")]
+    coarse = canonical_pst("Middle-Shoulder")
+    assert coarse is not None
+    expected_basic = COARSE_TO_BASIC[coarse]
 
     totals, diagnostics = aggregate_planned_sets("basic")
 
@@ -591,7 +607,7 @@ def test_volume_progress_performance_sanity(client, clean_db):
     """§12.4 — /api/volume_progress should respond well under 100 ms with ~80 selections."""
     import time
 
-    plan_id = export_volume_plan(
+    plan_id = _export_plan(
         {
             "training_days": 4,
             "volumes": {
