@@ -867,6 +867,23 @@ Consequences, stated so no later session re-reads §6.3 as a promotion credit:
 > `2026-09-05T17:59:26Z`.** The live ledger, and the rule that Packet F may land inside the window
 > without restarting it, are at **§13.0**.
 
+> ⚠️ **SPENT 2026-08-28, AND A SECOND WINDOW IS NOW RUNNING — annotated, not rewritten.** The
+> annotation above records the **first** window: T0 `2026-08-22T17:59:26Z`, strict mark
+> `2026-09-05T17:59:26Z`. **Both are SPENT.** PR
+> [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (`288667d`) took the Vitest
+> corpus **231 → 245** on 2026-08-27 and re-engaged this subsection's own restart clause. **The
+> current window's T0 is `2026-08-27T23:18:21Z` and its strict mark is `2026-09-10T23:18:21Z`**,
+> declared by owner ruling on 2026-08-29 in **§13.0** — which remains the only place a T0 may be
+> declared, so **read it there and never from here**.
+>
+> **This subsection's *"final expansion packet"* gloss — *"the last of A, B, C to merge"* — is the
+> step-12 lettered reading and is preserved as exactly that.** The 2026-08-29 ruling supplies the
+> operative definition for the current cycle: **the last change merged before this qualification
+> window that added, removed, renamed or materially changed a case under
+> `static/js/**/*.test.js`**. Everything else in this subsection — that the clock starts on `main`
+> and on a **successful** run, and that any `js-unit` failure resets it to zero — is unchanged and
+> still binds.
+
 ---
 
 ## 7. The exact branch-protection change, if the owner later signs D2
@@ -4811,7 +4828,8 @@ back byte-identical.
 > that read and has been overtaken by every extension since — the table now carries **40** rows,
 > through the rows 27–40 extension. **The rows themselves are unchanged**; only the lead-in's count
 > and its *"newest `main` run"* are spent. Read the live tally from the newest extension block, not
-> from here.
+> from here. ⚠️ **RE-ANNOTATED 2026-08-29: the table now carries 43 rows**, through the rows-42–43
+> extension. The rows themselves remain unchanged.
 
 | # | `main` run | Event / head | Run conclusion | `js-unit` job | Job conclusion | Completed (UTC) |
 |---|---|---|---|---|---|---|
@@ -4855,6 +4873,9 @@ back byte-identical.
 | **38** | [`33264331296`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33264331296) | `push` / `225b7b0` (PR #448, `REFACTOR_PLAN.md` reconciled to Track P1's closure) | `success`, **18/18** | [**`99131593513`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33264331296/job/99131593513) | **`success`** | **`2026-08-29T16:57:25Z`** |
 | **39** | [`33265748817`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33265748817) | `push` / `5664c0e` (PR #449, `MASTER_HANDOVER.md` + `ACTIVE_DEVELOPMENT.md` reconciled) | `success`, **18/18** | [**`99135395368`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33265748817/job/99135395368) | **`success`** | **`2026-08-29T17:29:37Z`** |
 | **40** | [`33267048668`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33267048668) | `push` / `fe15225` (**PR #451, the OD-1 waiver recorded as OD-1-W**) | `success`, **18/18** | [**`99138843724`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33267048668/job/99138843724) | **`success`** | **`2026-08-29T17:59:51Z`** |
+| **41** | [`33268787682`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33268787682) | `push` / `116d3c5` (**PR #450, JS-unit ledger rows 27–40 + plan reconciliation**) | `success`, **18/18** | [**`99143431684`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33268787682/job/99143431684) | **`success`** | **`2026-08-29T18:38:17Z`** |
+| **42** | [`33273789390`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33273789390) | `push` / `8c844df` (**PR #454, the V1 visual-determinism ruling recorded**) | `success`, **18/18** | [**`99156860069`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33273789390/job/99156860069) | **`success`** | **`2026-08-29T20:33:41Z`** |
+| **43** | [`33278243462`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33278243462) | `push` / `2cb938c` (**PR #455, Packet R1 — deep-gate mutation probes**) | `success`, **18/18** | [**`99168706068`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33278243462/job/99168706068) | **`success`** | **`2026-08-29T22:18:29Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5065,6 +5086,15 @@ lands**."* Row 26 **is** the first successful `main` `js-unit` result after #431
 | Suite it ran | **13 files / 245 cases** |
 | **If #431 was the final expansion packet, this timestamp is the new T0** | strict mark would be **`2026-09-10T23:18:21Z`** |
 
+> ✅ **SUPERSEDED 2026-08-29 — T0 IS NOW DECLARED.** The owner ruled that #431 **was** the final
+> expansion packet, so `2026-08-27T23:18:21Z` is **T0**, not a conditional, and the strict mark is
+> **`2026-09-10T23:18:21Z`** — recorded in this section under *OWNER RULING — #431 IS THE FINAL
+> EXPANSION PACKET*. **The paragraph below is preserved as the reading it was**, and it was right to
+> decline to declare a T0 it had no authority to declare. **Two of its clauses are now false of
+> `main` and are named here rather than left to be discovered:** *"two Vitest expansions are still
+> deferred and unlanded"* — **one** is (U1-FOLLOWUP-1, re-anchored to `2026-09-10T23:18:21Z`),
+> while U3b's is **RETIRED**; and *"is an owner determination and is OWED"* — it is **MADE**.
+
 ⚠️ **THE NEW T0 IS NOT DECLARED HERE, AND THIS PR DOES NOT DECLARE IT.** Q2's clause turns on *"the
 **final** expansion packet"*, and **two Vitest expansions are still deferred and unlanded**:
 U3b's KI-011 helper coverage and **U1-FOLLOWUP-1**
@@ -5086,6 +5116,59 @@ evidence is not voided, it simply no longer counts toward D2, exactly as Q2 says
 It takes the Vitest corpus **231 → 245**, so merging it *would* engage Q2's restart clause and reset
 T0. It **must not land before `2026-09-05T17:59:26Z`**, and reaching that timestamp is **not itself
 merge authorization**.
+
+#### OWNER RULING — #431 IS THE FINAL EXPANSION PACKET; T0 IS DECLARED — 2026-08-29
+
+> **This subsection declares the T0 every block above deliberately left conditional.** It is the
+> owner's ruling, recorded here because §13.0 is the only place a T0 may be declared. **It declares
+> a T0 and nothing else** — **Q4** and **D2** remain unsigned, `JS Unit (Vitest, non-required)`
+> remains **non-required**, and no branch-protection change is authorized or proposed.
+
+**The ruling, as given (owner, 2026-08-29):**
+
+> For the purposes of ruling **Q2** and the current JS-unit qualification cycle, **PR
+> [#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431) (`288667d`) is the FINAL
+> Vitest expansion packet.** *"Final expansion packet"* means **the last change merged before this
+> qualification window that added, removed, renamed or materially changed a case under
+> `static/js/**/*.test.js`**.
+>
+> - **Qualifying T0: `2026-08-27T23:18:21Z`**
+> - **Source: job `98703428098` on run `33125767570`**
+> - **Strict 14-day mark: `2026-09-10T23:18:21Z`**
+>
+> **U1-FOLLOWUP-1 remains OPEN and required**, with its no-landing-before date **re-anchored from
+> `2026-09-05T17:59:26Z` to `2026-09-10T23:18:21Z`**. Before it is planned, its coverage
+> requirements must be re-read against U3b's amended announce condition, recorded as **K13**. **Its
+> eventual post-mark landing does not retroactively invalidate a successfully completed
+> qualification cycle.**
+>
+> **U3b / KI-011 Vitest helper coverage is RETIRED.** **OQ-10** authorized E2E-only coverage and
+> created **no** Vitest follow-up. Reviving that coverage requires a **new packet and its own
+> Gate 0.**
+
+**What the ruling settles, and what it does not.** It settles the *"final expansion packet"*
+definition that §6.5's own gloss — *"the last of A, B, C to merge"* — could not stretch to cover a
+defect fix that moved the corpus, and it converts row 26's timestamp from a conditional into the
+operative **T0**. It does **not** promote `js-unit`, does **not** decide **Q4** or **D2**, does
+**not** authorize U1-FOLLOWUP-1's implementation, and touches **no** JS test.
+
+**Re-measured before recording, not copied forward.** Every figure below was re-read from the
+GitHub API in the recording session, at UTC now **`2026-08-29T19:32:58Z`** (response `Date` header,
+not the host clock):
+
+| Item | Measured value |
+|---|---|
+| T0 job | [`98703428098`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33125767570/job/98703428098), name matched on the exact context string `JS Unit (Vitest, non-required)`, `conclusion` **`success`**, `completed_at` **`2026-08-27T23:18:21Z`** |
+| Its run | [`33125767570`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33125767570) — `.github/workflows/ci.yml`, event `push`, head **`288667d`** (#431's squash), `conclusion` **`success`** |
+| T0 + 14 days | **`2026-09-10T23:18:21Z`** |
+| Suite being qualified | **13 files / 245 cases** |
+| Window integrity, rows 26–41 | **16 consecutive green**; **0** red, **0** missing, **0** skipped, **0** cancelled |
+
+**T0 is a job `completed_at`, never a `mergedAt`.** #431 merged at `2026-08-27T23:17:50Z`; the
+31-second gap is the run's queue and job time, and quoting the `mergedAt` in its place would move
+the strict mark by the same amount.
+
+---
 
 > **LEDGER EXTENSION — `2026-08-29T17:59:51Z`, rows 27–40.** The most recent tally above — the
 > rows 24–26 one, at `2026-08-27T23:18:21Z` — was true at that moment and is **annotated, not
@@ -5126,6 +5209,135 @@ merge authorization**.
 > against what this table already carried: **40 of 40 agree, zero mismatches**, and every one of
 > the 40 runs re-read as **18 jobs / 18 `success`**. The rows above are therefore a fresh reading
 > that happens to equal the page, which is what "re-derive" means here.
+
+> **LEDGER EXTENSION — `2026-08-29T19:32:58Z`, row 41.** **Row 41 is appended to the master ledger
+> table above, in place**, as this block's standing rule requires — not restated in a table of its
+> own. The **rows 27–40 tally**, taken at `2026-08-29T18:12:28Z`, sits *below* the row-41 tally that
+> follows this block and is **annotated, not rewritten**, as every extension before it has been; the
+> **live reading is the row-41 tally immediately below this block**. **One** `main` `ci.yml` run has
+> landed since row 40, read at job level — the `js-unit` job's own `conclusion` and `completed_at`,
+> never the run's overall conclusion.
+>
+> **Row 41 is [#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450)'s own landing**
+> — the PR that wrote rows 27–40 and could not cite the run its own merge produces, the same
+> mechanism rows 40, 37, 33, 24, 23, 20 and 17 record. **Its debt is DISCHARGED here**, and the
+> *"Whoever merges THIS PR owes the next unclaimed row, which is row 41"* clause in the rows 27–40
+> block is spent as a live statement while remaining accurate as the dated prediction it was.
+> ~~**Whoever merges the PR carrying this extension owes row 42**, which it cannot record~~ — the
+> standing §11.10 mechanism, unchanged. ⚠️ **OVERTAKEN 2026-08-29 — accurate as the prediction
+> it was, spent as a live statement.** Two owner merges landed before this PR did, so **rows 42
+> and 43 were minted by them and are claimed by this same pass** in the extension below; what
+> this PR's own merge now mints is **row 44**.
+>
+> **The enumeration was independent and bounded at both ends.**
+> `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to `created_at` in
+> **[`2026-08-22T17:00:00Z`, `2026-08-29T19:32:58Z`]** — the lower bound deliberately **earlier**
+> than the original T0, so the filter is a superset and cannot hide a run — returns **46** `main`
+> runs of **any** workflow: **41** `ci.yml` `push` attempts plus the **5** classified non-attempts.
+> A cross-check **without** the branch filter, over three unfiltered pages filtered to
+> `head_branch == "main"` and `created_at > 2026-08-29T17:59:26Z`, returns the **same single** run,
+> so the branch-filtered query hides nothing.
+
+**Row 41, as written into the master table above:** run
+[`33268787682`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33268787682),
+head `116d3c5` ([#450](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/450)), `js-unit`
+job [`99143431684`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33268787682/job/99143431684),
+conclusion **`success`**, `completed_at` **`2026-08-29T18:38:17Z`**.
+
+Row 41's run is `CI/CD Pipeline` on `push`, `completed` / `success`, **18 jobs and 18 `success`**,
+and **attempt 1** — read off the run's own `status`, `conclusion` and `run_attempt`, with the
+`js-unit` row taken from its `/jobs` enumeration rather than inferred from the run.
+
+**Row 41 restarts nothing, and its head is the tree this ruling's T0 is measured against.**
+`git rev-parse 116d3c5:static/js` returns **`a7e5073568b0fde8e35e1e1a7be5a9f844e77828`**,
+`116d3c5:static/js/modules/__tests__` returns **`5858c8497c571548e5116f4b660ff7702dd298b1`**, and
+`116d3c5:vitest.config.js` returns `c16ca428f7478708d8dd96a20ebcb86f98a8b935` — identical at all
+**sixteen** heads from `288667d` through `116d3c5`, so the entire production JS tree, the whole
+Vitest corpus and the collection mechanism are byte-identical across the window.
+[`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) at `116d3c5` reads
+`vitest.total_files = 13`, `vitest.total_cases = 245`. **Q2's restart clause did not engage at row
+41**; its carrier, #450, was documentation-only.
+
+**The five non-attempt runs are unchanged, and were re-enumerated rather than carried forward.**
+Each had its `/jobs` re-fetched at this read and each returned **zero**
+`JS Unit (Vitest, non-required)` jobs: the three Dependabot `dynamic` runs (`32676594582`,
+`32676594619`, `32676594928`, one job each), the one `Deep Gate` `schedule` run (`32688747703`,
+seven jobs) and the `Configured Graph Update` `dynamic` run (`33017596325`, one job). **No sixth
+non-attempt run has landed.**
+
+> **LEDGER EXTENSION — `2026-08-29T22:28:34Z`, rows 42–43.** **Both rows are appended to the master
+> ledger table above, in place.** They were minted while this pass's own PR
+> ([#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452)) was open and unmerged, by two owner merges: **row 42 is
+> [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454)'s landing** (`8c844df`, the V1 visual-determinism ruling) and **row 43 is
+> [#455](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/455)'s** (`2cb938c`, Packet R1's deep-gate mutation probes). Neither PR touched
+> this document, so both rows were **unclaimed**, and the standing *"whichever pass lands first takes
+> the next unclaimed row"* rule puts them here.
+>
+> **Read at job level, as always** — the `js-unit` job's own `conclusion` and `completed_at`, never
+> the run's overall conclusion. Row 43's `js-unit` job was already `completed` / `success` at
+> `2026-08-29T22:22Z` while its run still showed **17 jobs, 16 finished** and the eighteenth not yet
+> created; the run-level **18 / 18** figure below was taken only after the run reached `completed`
+> at `2026-08-29T22:28:34Z`, and is measured rather than predicted. That is the same discipline
+> rows 33 and 40 record.
+>
+> **This pass's own merge now mints row 44**, which it cannot record — the standing §11.10
+> mechanism, unchanged. The row-41 extension's *"owes row 42"* clause is spent as a live statement
+> while remaining accurate as the dated prediction it was: rows 42 and 43 arrived first.
+>
+> **The enumeration is independent and bounded at both ends.**
+> `gh api "repos/:owner/:repo/actions/runs?branch=main&per_page=100"`, filtered to `created_at` in
+> **[`2026-08-22T17:00:00Z`, `2026-08-29T22:28:34Z`]**, returns **48** `main` runs of **any**
+> workflow: **43** `ci.yml` `push` attempts plus the **5** classified non-attempts, whose membership
+> is **unchanged** and each of which still returns **zero** `JS Unit (Vitest, non-required)` jobs. A
+> cross-check **without** the branch filter, over three unfiltered pages filtered to
+> `head_branch == "main"` and `created_at > 2026-08-29T18:37:57Z`, returns the **same two** runs.
+> **No sixth non-attempt run has landed.**
+
+**Rows 42 and 43 restart nothing, and the T0 declared above is unaffected.** This is the measurement
+that matters most in this extension, because both carriers changed tracked files and #455 changed
+**tests**: `git rev-parse <sha>:static/js` returns **`a7e5073568b0fde8e35e1e1a7be5a9f844e77828`**,
+`<sha>:static/js/modules/__tests__` returns **`5858c8497c571548e5116f4b660ff7702dd298b1`** and
+`<sha>:vitest.config.js` returns `c16ca428f7478708d8dd96a20ebcb86f98a8b935` at **all eighteen**
+heads from `288667d` through `2cb938c`. [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json)
+reads `vitest.total_files = 13`, `vitest.total_cases = 245` at `8c844df` and at `2cb938c` alike.
+**#455 added 14 pytest cases** — `collected_deterministic` **2855 → 2869**,
+`tests/test_release_workflow_contracts.py` **51 → 63** and `tests/test_visual_capture_contracts.py`
+**15 → 17** — and **pytest cases are not Vitest cases**: the operative rule is *"changed no JS test
+case"*, and no JS test case moved. **Q2's restart clause did not engage at either row.**
+
+| Ledger tally, at `2026-08-29T22:28:34Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after the original T0 | **43** — all forty-three `push`, all 18/18, all attempt **1** |
+| Green `main` `JS Unit` results since and including the original T0 | **43** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after the original T0 **and at or before this read** (completeness check, not a tally) | **48** — the 43 attempts plus the same **5** classified non-attempts, re-enumerated at this read and **unchanged in membership** |
+| **`schedule`-event `ci.yml` runs in the window** | **0** |
+| **Green results on the 231-case suite (rows 1–25)** | **25** |
+| **Green results on the 245-case suite (rows 26–43)** | **18** |
+| Elapsed from **T0** to row 43 | **1 d 23 h 0 m 8 s** |
+| Remaining from row 43 to the strict mark **`2026-09-10T23:18:21Z`** | **12 d 0 h 59 m 52 s** |
+
+---
+
+| Ledger tally, at `2026-08-29T19:32:58Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after the original T0 | **41** — all forty-one `push`, all 18/18, all attempt **1** |
+| Green `main` `JS Unit` results since and including the original T0 | **41** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after the original T0 **and at or before this read** (completeness check, not a tally) | **46** — the 41 attempts plus the same **5** classified non-attempts, re-enumerated at this read and **unchanged in membership** |
+| **`schedule`-event `ci.yml` runs in the window** | **0** |
+| **Green results on the 231-case suite (rows 1–25)** | **25** |
+| **Green results on the 245-case suite (rows 26–41)** | **16** |
+| Elapsed from **T0** to row 41 | **1 d 19 h 19 m 56 s** — **no longer a conditional figure**: T0 is declared above |
+| Remaining from row 41 to the strict mark **`2026-09-10T23:18:21Z`** | **12 d 4 h 40 m 4 s** |
+
+---
 
 | Ledger tally, at `2026-08-29T18:12:28Z` | Value |
 |---|---:|
@@ -5180,6 +5392,11 @@ a workflow path of `dynamic/dependabot/update-graph` and a single job named **`u
 — not the `dynamic/dependabot/dependabot-updates` path and `Dependabot` job name that table
 carries. **Its classification is unchanged**: still not a `ci.yml` run, still **zero** `JS Unit`
 jobs. The table above is a dated reading and is left as one.
+
+> ✅ **SUPERSEDED 2026-08-29 — see *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET* above.**
+> T0 is declared: **`2026-08-27T23:18:21Z`**, strict mark **`2026-09-10T23:18:21Z`**. The paragraph
+> below is preserved as the `2026-08-29T18:12:28Z` reading it was; both its *"still OWED"* clause and
+> its pairing of U3b's coverage with U1-FOLLOWUP-1 are spent.
 
 **T0 is still not declared here.** The restart is recorded at row 26 as a measured fact; whether
 `2026-08-27T23:18:21Z` is T0 turns on whether #431 was the *final* expansion packet, which is an
@@ -5239,6 +5456,15 @@ moved **662 → 675** and `hard_waits.total_lines` held at **82**. **T0 remains
 **Rows 17 and 18 restart nothing either, for the ordinary reason:** #429 was documentation-only and
 #430 touched `utils/filter_predicates.py` and two documents — **zero** files under
 `static/js/modules/__tests__/` in either.
+
+> ⚠️ **SUPERSEDED 2026-08-29 — U3b's KI-011 Vitest helper coverage is RETIRED, not deferred.**
+> The owner ruled that **`OQ-10` authorized E2E-only coverage and created no Vitest follow-up**;
+> reviving that coverage requires a **new packet and its own Gate 0**. **The paragraph below is
+> preserved as the reading it was, and its central claim is precisely what is superseded**: it
+> treated the coverage as *"deferred exactly as U1-FOLLOWUP-1 is"*, an equivalence U3b's signed
+> §1 ruling never created — `OQ-10` reads *"E2E-only fixed-behavior regression"* and stops there,
+> and `toast_action_continuity/PLANNING.md` registers no Vitest follow-up obligation anywhere.
+> **U1-FOLLOWUP-1 alone remains OPEN and required**, re-anchored to `2026-09-10T23:18:21Z`.
 
 **One obligation this extension does NOT discharge.** U3b's regression is **E2E-only by owner
 ruling**, so the Vitest coverage for KI-011's helpers is deferred exactly as **U1-FOLLOWUP-1** is
