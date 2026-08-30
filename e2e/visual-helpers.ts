@@ -26,16 +26,25 @@ export const IMAGE_SETTLE_TIMEOUT_MS = 15_000;
  * Captures that are deliberately not byte-compared, by baseline stem.
  *
  * Chromium rasters these five nondeterministically on the ubuntu-24.04 runner.
- * Measured across 8 independent experiment sets (21 generations at 6 different
- * capture configurations), each flips between two states at *byte-identical
- * layout* — a geometry probe compared document size, viewport, the captured
- * table's rect, its first eight row rects and its whole ancestor chain to five
- * decimal places across two runs and all 84 records matched while the PNGs did
- * not. Six documented capture controls were tried; none closed it.
+ * In the eight independent experiment sets that selected the exemptions (21
+ * generations at six capture configurations), each flipped between two states
+ * at *byte-identical layout*. A geometry probe compared document size,
+ * viewport, the captured table's rect, its first eight row rects and its whole
+ * ancestor chain to five decimal places across two runs; all 84 records matched
+ * while the PNGs did not. Six documented capture controls were tried; none
+ * closed it. In that bounded sample, these five were the only captures observed
+ * above the 800px tolerance. `log-desktop-light` and
+ * `workout-plan-mobile-light` flipped by 178px and 13px, so they stayed gated.
  *
- * They are the only captures in the corpus whose diffs exceed the 800px
- * tolerance. `log-desktop-light` and `workout-plan-mobile-light` were each
- * observed to flip once too, by 178px and 13px, so they stay on the gate.
+ * Later evidence disproved the broader "only captures" inference. Scheduled
+ * deep-gate run 32688747703 first failed the non-exempt, still-byte-gated
+ * `plan-desktop-light-simple` by 11,392px, then passed it on retry #1 and ended
+ * `1 flaky` plus `99 passed`. That is a flaky-success, not a clean comparison:
+ * clean means no failed attempt, retry or flaky tally; terminal failure means
+ * the comparison stays red after the retry policy and the job fails. Because
+ * this run finished green, its failure-only report-and-diff upload was skipped.
+ * ADR-011 keeps `plan-desktop-light-simple` byte-gated and keeps this exemption
+ * set at exactly five; the later observation does not broaden it.
  *
  * Their coverage moved to `e2e/workout-plan-desktop-contract.spec.ts`, which
  * asserts the same properties through computed style, geometry and DOM

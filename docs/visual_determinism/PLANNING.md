@@ -518,9 +518,11 @@ promotion, so it could not have shown success whatever it did.
 ### 8.4 Status: RESOLVED by exemption, not by a fix
 
 The defect is **not fixed**. Six independent capture controls were tried and none closed
-it (§8.5), so the five captures it affects were taken off byte comparison and their
-coverage rewritten as computed-style, geometry and DOM assertions. §8.10 is the exemption
-table; §8.9 is what the gate did before it.
+it (§8.5), so the five captures selected by that evidence were taken off byte comparison
+and their coverage rewritten as computed-style, geometry and DOM assertions. Later evidence
+also observed the still-byte-gated `plan-desktop-light-simple` above tolerance (§8.6); ADR-011
+keeps the terminal exemption set at exactly five. §8.10 is the exemption table; §8.9 is what
+the gate did before it.
 
 None of the controls in §8.5 shipped. They are recorded because they are measurements,
 and because the next attempt should not re-run them.
@@ -571,7 +573,13 @@ Every one of those controls moved baselines — the fullest set moved 53 of 86 �
 buying determinism, which is why none of them shipped. Merging any of them would have
 traded one red gate for a much larger diff and the same red gate.
 
-### 8.6 Which captures flip, measured over every experiment
+### 8.6 Historical eight-set experiment matrix (measured through 2026-08-04)
+
+*Correction note, 2026-08-30: this section was previously titled “Which captures flip,
+measured over every experiment.” That heading and the prose after the table generalized a
+bounded historical sample into a corpus-wide claim. The table itself remains unchanged as
+the provenance of those eight experiment sets; later committed-baseline evidence is recorded
+separately below rather than being miscounted as a ninth set.*
 
 8 independent sets, 21 generations, 6 capture configurations. A set is "unstable" for an
 image when that image is not byte-identical across every run in the set.
@@ -586,10 +594,31 @@ image when that image is not byte-identical across every run in the set.
 | `log-desktop-light` | 1/8 | 178 px | **no** — under tolerance |
 | `workout-plan-mobile-light` | 1/8 | 13 px | **no** — under tolerance |
 
-The first five are the exemption. The last two stay on the byte gate: they were seen to
-flip, but by less than the 800px `maxDiffPixels` the suite already allows, so they cannot
-red it. `plan-desktop-light-simple` — same page, same width class, other theme — flipped
-in **0/8** and also stays.
+The first five were selected for the exemption from this sample. The last two stay on the
+byte gate: they were seen to flip, but by less than the 800px `maxDiffPixels` the suite
+already allows, so those observed flips could not red it. `plan-desktop-light-simple` —
+same page, same width class, other theme — was observed to flip in **0/8** of these sets
+and remained byte-gated. That zero is a historical non-observation, not proof of stability.
+
+**Later Linux evidence (run 2026-08-24; correction recorded 2026-08-30).** Scheduled deep-gate
+[run 32688747703](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32688747703),
+job `97318476983`, first failed `plan-desktop-light-simple` by **11,392 pixels** (ratio
+0.02), then passed it on Playwright retry #1 and ended **`1 flaky` + `99 passed`**. The
+step, job and run were green only after that retry, so this was a **flaky-success**, not a
+clean comparison and not a terminal failure. Here, **clean** means no failed attempt,
+retry or flaky tally; **flaky-success** means an attempt fails but a configured retry passes
+and leaves the job green; **terminal failure** means the comparison remains failed after
+the retry policy and the job fails. The failure-only report-and-diff upload was therefore
+skipped, and the run retained zero GitHub Actions artifacts. The job log is the surviving
+primary evidence.
+
+This later committed-baseline compare used a different evidence unit from the eight
+generation-against-generation experiment sets, so rewriting **0/8** as **1/9** would be
+false provenance. It does, however, falsify the broader claims that the exempt five were
+the only captures ever observed above tolerance and that a green job necessarily compared
+cleanly. The V1 probe in §9 later observed `plan-desktop-light-simple` unstable in its
+Windows control arm but not its Linux arms; that non-reproduction does not erase this direct
+Linux observation. ADR-011 keeps the capture byte-gated and the exemption set at five.
 
 ### 8.7 Windows
 
@@ -697,7 +726,7 @@ diversion, and asserts the replacement spec contains no `toHaveScreenshot`.
 | `workout-plan-desktop-dark` | Same, dark | Same assertions at `theme = dark`; body background pinned to `rgb(15, 18, 32)` |
 | `plan-desktop-light-advanced` | Exercise table at 1440, light, advanced view: the full 22-column disclosure, row content, per-row controls | `progressive column disclosure: light advanced` — the exact ordered list of 22 visible headers, `tbl--view-advanced` on the table, exactly the six `col--low` columns that simple hides, and one visible cell per visible column on all 6 rows |
 | `plan-desktop-dark-advanced` | Same, dark | Same, at `theme = dark` |
-| `plan-desktop-dark-simple` | Exercise table at 1440, dark, simple view: the reduced 16-column disclosure | `progressive column disclosure: dark simple` — the exact ordered list of 16 visible headers and the same per-row cell count check. `plan-desktop-light-simple` is unaffected and still byte-compared, so the simple view keeps a pixel baseline in one theme |
+| `plan-desktop-dark-simple` | Exercise table at 1440, dark, simple view: the reduced 16-column disclosure | `progressive column disclosure: dark simple` — the exact ordered list of 16 visible headers and the same per-row cell count check. `plan-desktop-light-simple` is not exempt and remains byte-compared, so the simple view keeps a pixel baseline in one theme; §8.6 records its later Linux flaky-success above tolerance |
 
 Row-level coverage that all five shared is asserted once per theme/mode in
 `row media and controls`: six decoded thumbnails whose `src` stays inside
