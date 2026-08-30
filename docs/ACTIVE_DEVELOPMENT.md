@@ -4,7 +4,25 @@ This file is the execution source of truth for autonomous development sessions. 
 
 ## Current Objective
 
-**2026-08-29 (LATEST) — THE JS-UNIT WINDOW'S T0 IS DECLARED. #431 IS RULED THE FINAL VITEST
+**2026-08-30 (LATEST) — V1 AND THE FROZEN-WINDOWS RESIDUAL ARE CLOSED BY OWNER DECISION;
+NO ENGINEERING CHANGE IS AUTHORIZED.**
+
+- **V1 / §15.4 item 7:** the terminal visual contract is **81 byte-gated captures plus five
+  explicitly exempt captures protected by pinned semantic contracts, per platform**. Run
+  `33274031928` remains the evidence that the approved capture-side hypothesis was tested and
+  falsified. The rendering defect is an accepted bounded residual, not declared fixed. Any future
+  investigation requires a newly named, testable rendering hypothesis and separate authorization
+  (ADR-011).
+- **Packet R1 / §15.4 item 11:** job-level `continue-on-error` on the reusable-workflow caller job
+  `frozen-windows` is an invalid/non-reachable shape because GitHub's official
+  [supported-keywords list](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#supported-keywords-for-jobs-that-call-a-reusable-workflow)
+  does not permit the key. The prior local mutation result remains evidence of a local contract
+  gap only; it did not demonstrate a runtime false green (ADR-012).
+- The §15.4 blocking set remains **items 4, 5 and 6**. Items **1, 2, 3, 7, 8 and 11** are
+  discharged. No workflow, test, baseline, product-code, branch-protection or repository-setting
+  change follows from this closeout.
+
+**2026-08-29 (SUPERSEDED by the 2026-08-30 block above) — THE JS-UNIT WINDOW'S T0 IS DECLARED. #431 IS RULED THE FINAL VITEST
 EXPANSION PACKET and NO engineering packet is in flight.**
 ⚠️ **`main` has moved five times since this block was written, and the ruling is unaffected.**
 At `2026-08-29T23:54:19Z` `origin/main` is **`7d9a836`** — #452 (`5d98824`), #453 (`fcc0e59`),
@@ -90,9 +108,10 @@ taken off §15.4's merged table rather than decremented from the one above it.**
 and shipped its follow-through, discharging **item 2**, so **the blocking set is items 4, 5 and 6
 — three decisions**: R2.3 (Q4 / D2), R2.4 and R3. **The V1 measurement recorded by this pass moves
 that count by nothing** — item 7 was already outside the blocking set and stays outside it; what
-changed is *what* item 7 asks, which is now the terminal policy alone, its workflow-approval clause
-being spent. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1, 2, 3 and 8 are
-discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
+changed is *what* item 7 asks, which was the terminal policy alone, its workflow-approval clause
+being spent. **Superseded 2026-08-30: items 7 and 11 are now discharged by ADR-011 and ADR-012.**
+The table still holds nine rows; items 1, 2, 3 and 8 are also discharged. Nothing is renumbered.
+Track P1 stays closed at 0 / 0 / 0, Track D1's
 queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
 
@@ -108,7 +127,7 @@ own decision namespace, unrelated to #455 despite the shared letter and number. 
 packet a citation means before acting on it.** The #374 references in this file are historical
 and accurate as written, and are deliberately not relabelled.
 
-**2026-08-29 (SUPERSEDED by the block above, which is LATEST; preserved as the `225b7b0` reading it was) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`,
+**2026-08-29 (SUPERSEDED by the later blocks above; preserved as the `225b7b0` reading it was) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`,
 and NO engineering packet is in flight. Everything still
 open is either an owner decision or parked. `js-unit` is still NOT promoted, and
 the JS-unit window's T0 is still CONDITIONAL and UNDECLARED.** `origin/main` is
@@ -261,8 +280,8 @@ R1-D3 beyond recording the readings above.
 >   hypothesis is **falsified** — 3→1 unstable of 86 on Linux, 3→3 on Windows, and
 >   `workout-plan-desktop-dark` unstable in every arm. Nothing merged, no baseline
 >   committed, no repair implemented. Evidence: `visual_determinism/PLANNING.md` §9.
->   #454's ruling otherwise stands exactly as recorded, and **the terminal-policy decision
->   is now the only V1 item open**.
+>   #454's ruling otherwise stands exactly as recorded. **This was the only V1 item open at
+>   this dated reading; ADR-011 discharged it on 2026-08-30.**
 > - ~~**R2, R3 and R1-D3 are untouched.**~~ ⚠️ **AMENDED 2026-08-30 — R2 and D4 have both moved
 >   since, and this bullet exists precisely so a mover is named rather than left to be found.**
 >   **R2.2 / D4** was **signed** 2026-08-29 as **ADR-009** (`fcc0e59`,
@@ -281,10 +300,12 @@ R1-D3 beyond recording the readings above.
 > semantics plus the mechanism `ci.yml` already states in its own comments above the
 > `test-inventory` job. **Nothing in #455 may be cited as "runtime false green demonstrated."**
 >
-> **#455 left two gaps open, and neither is implemented.** A job-level `continue-on-error:` on
-> the `uses:` job `frozen-windows` is likewise undetected — **recorded, not fixed**, and now
-> §15.4 item 11. And nothing bars the same shape in `release.yml` or `_packaged-windows.yml`,
-> which sit on the **required** path — **recorded and not probed**.
+> **At this dated reading #455 left two questions open, and neither was implemented.** A
+> job-level `continue-on-error:` on the `uses:` job `frozen-windows` was likewise undetected
+> locally. **Closed 2026-08-30 by ADR-012:** GitHub does not support that key on a reusable-
+> workflow caller job, so the proposed shape in `deep-gate.yml` or `release.yml` is invalid and
+> non-reachable. `_packaged-windows.yml` contains an ordinary child job instead; its executable
+> `continue-on-error` boundary was already pinned by the existing release-workflow contract.
 
 **One further surface in THIS file is stale and is annotated in place rather than
 rewritten** — the `## Next Action` section far below, which restates the spent T0
@@ -1353,9 +1374,11 @@ intentional review of the exact golden diff before any behavior change.
 > `5b35966` (#426). **The obligation to continue the ledger stands**, but it now runs against
 > §13.0's conditional T0 rather than that spent mark. **Most of what the block asserts still
 > stands** — the A → B → C → F sequence, `js-unit` non-required at **12** required contexts,
-> **D4** unsigned, the `scan_export_bounds()` and `rep_range_integrity.py` items open, `needs:`
-> and job-level `continue-on-error:` unmeasured, and `push: tags` never fired. **The live
-> next-action list is the 2026-08-29 block at the top of this file**; read that one. Nothing below
+> **D4** unsigned, the `scan_export_bounds()` and `rep_range_integrity.py` items open, ~~`needs:`
+> and job-level `continue-on-error:` unmeasured~~, and `push: tags` never fired. **The mutation
+> clause was measured by #455; ADR-012 later closed the `frozen-windows` caller-job residual as
+> invalid/non-reachable.** The live
+> current status is the 2026-08-30 block at the top of this file**; read that one. Nothing below
 > is edited except this annotation.]**
 
 **Current (2026-08-23, after #410 and #411) — take no automatic feature action

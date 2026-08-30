@@ -152,6 +152,55 @@ New cross-cutting or durable project decisions should be added here as lightweig
 
   Three mutation arms were run and each kills: reverting to the per-field replay reds the three new tests; giving the analysis scanners the combined call reds the divergence guards, so the two scanners cannot silently converge; dropping `allow_null=True` reds the flag guards. What is knowingly **not** addressed, and stays open as its own packet: `allow_null=True` maps `""` onto null, so `(min=20, max="")` still passes the export's bounds check and writes a blank `planned_max_reps`.
 
+### ADR-011: The terminal visual contract is 81 byte-gated captures plus five semantic exemptions
+- **Date**: 2026-08-30
+- **Status**: accepted
+- **Context**: The visual suite has 86 capture identities per platform. Five named desktop
+  plan captures raster nondeterministically even when layout is byte-identical, so #298 removed
+  only their byte comparisons and replaced their coverage with computed-style, geometry and DOM
+  contracts. The remaining 81 captures stay on the existing byte gate. Under the V1 ruling, run
+  [`33274031928`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33274031928)
+  tested the only approved capture-side repair hypothesis — removing compositor promotion at
+  capture time — across `ubuntu-24.04` and `windows-2022`, control and treatment, with three fresh
+  generations per arm. The treatment left 1/86 unstable on Linux and 3/86 on Windows; the
+  hypothesis was falsified. Full evidence and the per-capture replacement map are in
+  [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §§8–9.
+- **Decision**: **81 byte-gated captures plus five explicitly exempt captures protected by
+  pinned semantic contracts, per platform, is the terminal visual contract.** The five are
+  `workout-plan-desktop-{light,dark}`, `plan-desktop-{light,dark}-advanced`, and
+  `plan-desktop-dark-simple`. The rendering defect is accepted as a bounded residual; it is not
+  declared fixed. No baseline, tolerance, retry, mask, crop, viewport or exemption-set change is
+  authorized by this decision.
+- **Consequences**: V1 is closed and documentation must not describe 86/86 byte comparison as
+  the current completion criterion. The historical 86/86 measurements remain where explicitly
+  labelled withdrawn or superseded. `BYTE_GATE_EXEMPT` remains a strict five-name equality, the
+  exempt captures retain their semantic coverage in `workout-plan-desktop-contract.spec.ts`, and
+  the other 81 captures remain byte-gated. Any future investigation requires a **newly named,
+  testable rendering hypothesis** and separate authorization; a clean committed-baseline compare
+  alone is still not evidence of determinism.
+
+### ADR-012: `continue-on-error` is not a reachable mutation on reusable-workflow caller jobs
+- **Date**: 2026-08-30
+- **Status**: accepted
+- **Context**: Packet R1's H2-M4 mutation inserted job-level `continue-on-error: true` beside
+  `uses:` on `deep-gate.yml`'s `frozen-windows` job. The repository's local text contracts did
+  not detect that mutation, so it was recorded as a residual without claiming a runtime false
+  green. `frozen-windows` is a reusable-workflow caller job, not a normal runner job. GitHub's
+  official
+  [supported-keywords reference](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#supported-keywords-for-jobs-that-call-a-reusable-workflow)
+  says such caller jobs can use only its enumerated keywords; `continue-on-error` is absent. The
+  [`jobs.<job_id>.uses` syntax reference](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_iduses)
+  describes the same job shape.
+- **Decision**: Close the `frozen-windows` `continue-on-error` residual as **invalid and
+  non-reachable under GitHub's supported caller-job syntax**. H2-M4 remains evidence about a gap
+  in the repository's text contracts, not about a runnable workflow or demonstrated false green.
+  No bespoke runtime contract is added for an invalid workflow shape.
+- **Consequences**: The ordinary workflow syntax/lint path is the appropriate guard for caller
+  keywords. The same conclusion applies to the reusable-workflow caller in `release.yml`. The
+  normal `build-and-smoke` child job inside `_packaged-windows.yml` is distinct and syntactically
+  can use `continue-on-error`; its existing release-workflow contract already bars that reachable
+  weakening. No workflow, test or branch-protection change follows from this ADR.
+
 ### ADR-NNN: <title>
 - **Date**: YYYY-MM-DD
 - **Status**: proposed | accepted | superseded by ADR-MMM

@@ -375,9 +375,11 @@ repository held**, and the two narrowest contracts are implemented. The packet r
 shapes #402 left open, measured*. **What is established is that the contracts do not
 detect the shapes — NOT that a runtime false green was demonstrated**; the runtime effect
 rests on documented GitHub Actions semantics and `ci.yml:1094-1095`, and no workflow was
-dispatched and no run inspected. One shape was **newly identified and deliberately left
-open**: a job-level `continue-on-error:` on the `uses:` job `frozen-windows` is also
-undetected, and closing it needs its own authorization (below).
+dispatched and no run inspected. The additional local probe against a job-level
+`continue-on-error:` on the `uses:` job `frozen-windows` is retained as evidence of a local
+contract gap, but the proposed workflow shape is **invalid and non-reachable**: GitHub's
+official [supported-keywords list for jobs that call reusable workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#supported-keywords-for-jobs-that-call-a-reusable-workflow)
+does not permit `continue-on-error`. The owner closed that residual on 2026-08-30 (ADR-012).
 
 **Status before that amendment:** Decision required; recorded as unmeasured and unauthorized  
 **Estimate:** 1–2 developer-days
@@ -405,11 +407,11 @@ held**; **17 are now killed individually**, and the eighteenth is deliberately s
   is the only job in `deep-gate.yml` that can skip. So the shape is reachable on the
   `workflow_dispatch` path and **cannot contaminate R1-D3's clock**, which counts
   `schedule` runs.
-- **`continue-on-error` on a `uses:` job (`frozen-windows`) is also undetected**, and is
-  **recorded, not fixed** — the authorization named it a boundary probe only. Whether the
-  gap is live is unresolved: `release_pipeline/PLANNING.md`'s own Plan v1 constraints record
-  that a `uses:` job does not accept the key at all, which would make it a parse error
-  rather than a silent false green. **A new owner decision is owed** (§15.4 item 11).
+- **Historical boundary-probe result, closed 2026-08-30:** local contracts did not detect
+  `continue-on-error` on the `uses:` job `frozen-windows`; no workflow was dispatched and no
+  runtime false green was demonstrated. The residual is closed as an invalid/non-reachable
+  workflow shape because GitHub's supported caller-job keywords exclude that key. ADR-012 and
+  §15.4 item 11 record the disposition; no workflow or test mutation is authorized.
 
 **Acceptance criteria**
 
@@ -577,25 +579,25 @@ not prove the trigger. **Neither action is taken or authorized here.** See §13.
 ### Packet V1 — Visual determinism disposition
 
 **Priority:** P1 decision; P2 engineering if reopened  
-**Status:** ✅ **RULED 2026-08-29 — option 2, bounded investigation authorized; implementation
-withheld.** Both halves are now complete: the documentation half shipped as #454 (`8c844df`),
-and the measurement ran as run `33274031928` and **falsified** the hypothesis. **One owner
-decision remains — the terminal policy.**  
-**Estimate:** 2–4 hours to decide and reconcile docs; 2–5 developer-days to investigate and
-repair the rendering race
+**Status:** ✅ **CLOSED 2026-08-30 — 81 byte-gated captures plus five explicitly exempt captures
+protected by pinned semantic contracts, per platform, is the terminal visual contract.** The
+documentation half shipped as #454 (`8c844df`); run `33274031928` then **falsified** the approved
+capture-side hypothesis. The owner accepted that bounded residual without declaring the rendering
+defect fixed.
+**Estimate:** Closed. Any future investigation is a new packet, not remaining V1 work.
 
 **Current boundary** — **independently re-counted at `116d3c5` on 2026-08-29**, not carried
 forward from prose: `visual.spec.ts` 66 tests → 68 captures (`user-profile-mobile-{dark,light}`
 each segment into two), `visual-baseline-thumbnails.spec.ts` 18; 162 committed PNGs = 81 per
 platform, linux and win32 name sets identical.
 
-- 81 of 86 captures are byte-compared.
-- Five captures are deliberately exempt and replaced by contract-pinned semantic assertions.
+- 81 captures per platform remain on the existing byte gate.
+- Five captures per platform are explicitly exempt and replaced by pinned semantic contracts.
 - The exemptions are bounded, not missing by accident.
-- The unresolved engineering question is whether the thumbnail rendering race can be removed
-  cheaply enough to restore all five byte comparisons.
+- The rendering defect remains an accepted bounded residual. Any future work must begin with a
+  newly named, testable rendering hypothesis and receive separate authorization.
 
-**Owner options**
+**Historical owner options — superseded by the 2026-08-30 terminal-policy ruling**
 
 1. **Accept 81/86 as the terminal contract.** Reconcile wording that still implies 86/86 byte
    comparison and keep the exact exemption set pinned.
@@ -657,11 +659,14 @@ unstable”* — and **both** were, in both arms. The two days did not elapse an
 sit outside test-side control, so the authorized investigation is **closed by its own terms**, not
 abandoned and not re-scoped.
 
-⚠️ **What remains is one owner decision, and only that:** adopt **81 of 86 as terminal**
-(option 1), now supported by measurement rather than by exhaustion, or fund a **fresh**
-investigation starting from a new diagnosis of the current residual. The prohibitions in the
-ruling above — no regeneration, no tolerance increase, no retry, mask, crop, viewport change
-or `BYTE_GATE_EXEMPT` addition — continue to bind either way.
+✅ **Owner ruling — 2026-08-30:** adopt the measured boundary as terminal: **81 byte-gated
+captures plus five explicitly exempt captures protected by pinned semantic contracts, per
+platform**. This preserves the evidence that the approved capture-side hypothesis was tested and
+falsified; it does not claim that the rendering defect was fixed or that every capture-side
+approach was exhausted. A future investigation must start with a **newly named, testable rendering
+hypothesis** and obtain separate authorization. The prohibitions in the prior ruling — no
+regeneration, tolerance increase, retry, mask, crop, viewport change or `BYTE_GATE_EXEMPT`
+addition — remain in force. See ADR-011.
 
 **Acceptance criteria**
 
@@ -980,7 +985,9 @@ This plan is complete when:
    other workflows are **classified in a separate table rather than tallied**. Any future edit to
    either half must move both, because the two agreed for four rows only by the accident that
    every `main` run until 2026-08-24 was `ci.yml`.
-7. Visual determinism has one accepted terminal policy.
+7. ✅ **MET 2026-08-30:** visual determinism has one accepted terminal policy — 81 byte-gated
+   captures plus five explicitly exempt captures protected by pinned semantic contracts, per
+   platform (ADR-011).
 8. Pyright has a continuing packet rule and a current baseline quoted as **diagnostics / keys /
    files**, even if diagnostics remain. ~~**Currently 37 / 16 / 11 at `2035852`** (§4 Track P1) —
    reduced by the 2026-08-28 wave but **not zero**, so the criterion is met by the rule and the
@@ -1545,7 +1552,9 @@ demonstrate that.
   `scan_export_bounds()`'s `min > max` behavior undecided. **R1-D3's clock is settled at 2 of 3
   in ADR-007 and is not one of these** — but reaching three still authorizes nothing, which is
   R2's fourth decision.
-- **V1** — no terminal policy chosen; 81/86 stands unreconciled. §11.7's caution holds and has
+- **V1** — **at this dated reading**, no terminal policy had been chosen and 81/86 stood
+  unreconciled. **Superseded 2026-08-30 by ADR-011's 81-byte/5-semantic terminal contract.**
+  §11.7's caution holds and has
   aged rather than weakened: **a gate that has only ever passed is not yet a gate known to fail
   correctly**, and the 2026-08-24 clean compare added a third green run, not evidence.
 - **R3** — `release.yml`'s `push` trigger count was **0** at §11.7's reading and no tag has been
@@ -1768,7 +1777,8 @@ caveats stand and were not revisited in this pass either.
 
 ### 13.7 What did not change, and is still owed
 
-- **V1** — no terminal policy chosen; 81/86 stands unreconciled. Not re-measured in this pass;
+- **V1** — **at this dated reading**, no terminal policy had been chosen and 81/86 stood
+  unreconciled. **Superseded 2026-08-30 by ADR-011.** Not re-measured in this pass;
   §11.7's caution and §12.5's restatement of it both still hold.
 - **R2's other decisions** — D4 unsigned; Q4/D2 unsigned and now waiting on a window whose start
   is itself an owed determination (§13.3); `scan_export_bounds()`'s `min > max` behavior
@@ -1953,7 +1963,8 @@ nothing — is unaffected and still stands.
 - **R3** — re-measured and unchanged from §13.6: `release.yml` has **0** `push` runs and **1**
   `workflow_dispatch` run, and the **12-required / 13-expected** `release_gate.py` on `main` has
   still **never executed by any trigger**.
-- **V1** — no terminal policy chosen; 81/86 stands unreconciled. Not re-measured in this pass.
+- **V1** — **at this dated reading**, no terminal policy had been chosen and 81/86 stood
+  unreconciled. **Superseded 2026-08-30 by ADR-011.** Not re-measured in this pass.
 - **The OD-1 waiver record** (§13.4) — still owed in the KI-010 planning surface. The wave did not
   touch it, and `main` still carries both the "OD-1 STILL BINDS" text and the merge that preceded
   its date. ✅ **DISCHARGED 2026-08-29** — the waiver is written as **OD-1-W**, and the "OD-1
@@ -2053,10 +2064,10 @@ explicit, per-change owner decision. Status words map to §3 as follows:
 | **U3 / KI-011** Toast action-button survival | A still-valid toast button is no longer destroyed by the next message | ✅ **Done** — `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)), 2026-08-27 | — |
 | **U3 / KI-010** Toast type-word collision | `showToast('error')` renders the word, not a default success toast | ✅ **Done** — `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), 2026-08-27 | **Nothing — its one record is written and ON `main`.** The OD-1 waiver is recorded as **OD-1-W** in `toast_type_word_collision/PLANNING.md` §0.14, landed **`fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§15.2 *Discharged*) |
 | **R0** External release/testing evidence | Inspect the scheduled deep gate, refresh the ledger | ✅ **Done** — `5111a7f` ([#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)), 2026-08-24 | — |
-| **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | ✅ **Done — authorized and measured 2026-08-29.** Neither shape was detected by any existing contract; `needs:` is now barred on 5 of the 7 jobs and job-level `continue-on-error:` on 6 of 7, each for a stated reason | **One new decision**: a job-level `continue-on-error:` on the `uses:` job `frozen-windows` is also undetected and was deliberately left open (§15.4 item 11) |
+| **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | ✅ **Done — authorized and measured 2026-08-29.** Neither tested shape was detected by the then-current local contracts; `needs:` is barred on 5 of the 7 jobs and job-level `continue-on-error:` on 6 of 7, each for a stated reason | ✅ **Residual closed 2026-08-30:** `continue-on-error` on the `uses:` job `frozen-windows` is an invalid/non-reachable caller-job shape under GitHub's supported-keywords list (ADR-012; §15.4 item 11). The local boundary-probe result remains historical evidence, not runtime evidence |
 | **R2** Owner-gated testing decisions | **Two** remaining decisions — §15.4 items 4–5; **item 2 (R2.1) is decided and implemented** (ADR-010) and **item 3 (D4) is signed** (ADR-009), both 2026-08-29 | 🟡 **Waiting on you** | **You decide** — the ~0.5–1 developer-day of follow-through R2 carried was R2.1's, and it is done |
 | **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | The release gate on `main` **has never run by any trigger**. A dispatch tests the gate body cheaply; only a real tag you name tests the trigger (§4) |
-| **V1** Visual determinism disposition | Accept 81 of 86 screenshots as byte-compared, or hunt the rendering race | ✅ **Ruled 2026-08-29 — investigate**, and ✅ **MEASURED 2026-08-29 — the capture-side hypothesis is FALSIFIED** (run [`33274031928`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33274031928); §4 Packet V1, `visual_determinism/PLANNING.md` §9). ~~the measurement is **blocked on runner access**~~ — spent | ~~**Approve or decline the minimal workflow change** the measurement needs~~ — spent, the probe ran. **What remains is the terminal policy**: adopt **81 of 86** as terminal, or fund a **fresh** investigation. Implementation of any repair stays a separate authorization |
+| **V1** Visual determinism disposition | Establish the accepted byte/semantic boundary and preserve the falsified probe evidence | ✅ **Closed 2026-08-30:** **81 byte-gated captures plus five explicitly exempt captures protected by pinned semantic contracts, per platform**, is terminal (ADR-011). Run [`33274031928`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33274031928) remains the evidence that the approved capture-side hypothesis was tested and **falsified** | Nothing. The rendering defect is an accepted bounded residual, not declared fixed. Any future investigation needs a newly named, testable rendering hypothesis and separate authorization |
 | **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1), and nothing is attached to it — the funding re-price went **moot** at closure and is out of the debt table and the decision queue (§15.2 *Discharged*, §16.2) |
 | **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — queue empty** (§17.3: **zero dependency PRs** at `fe15225`; the one open PR is this plan's own) | Nothing until the next bump. #415/#416 merged 2026-08-26; landing one needs explicit owner authorization |
 | **§5 Parked** — 8 items | CSS C8, G4 superset tint, Fatigue Phase 3, four User-Profile/roadmap items, Testing Phase 3 step 11 / Phase 5 | ⛔ **Parked** | Nothing — unless you reopen one, or decide one will never be built, so §5 can mark it **Not planned** instead of leaving it ambiguous |
@@ -2123,13 +2134,11 @@ and none belongs in §15.4:
 
 ### 15.4 Your decision queue
 
-Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-29, four times the same day — nine rows, of which THREE stop work.** Items **4, 5 and 6** are the blocking set. **Items 2, 3 and 8 were all answered on 2026-08-29 — R2.1 as ADR-010, Testing Strategy D4 as ADR-009, and the final-expansion-packet question YES — and each is kept, numbered and struck**, on the same rule as items 1 and 7. **Six of the nine rows are now struck or non-blocking; only 4, 5 and 6 stop work.**
-**Item 7 was ruled on 2026-08-29 and is kept, numbered and struck, rather than removed** —
-removing numbered rows is what created §17.5's citation debt; what stays open under it is narrower
-and is stated in the row itself. **Items 1 and 2 are discharged and likewise kept numbered**, so nothing
-below them renumbers. **Item 11 is new and blocks nothing today** — it is the residual Packet R1
-declared rather than closed, and it sits in this table rather than outside it because it is a
-decision, not a debt. Anything else owed that blocks nothing is recorded outside this table.
+Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-30 — nine
+rows, of which THREE stop work.** Items **4, 5 and 6** are the blocking set. **Items 1, 2, 3, 7,
+8 and 11 are discharged; only 4, 5 and 6 stop work.** Items 7 and 11 were closed by the
+2026-08-30 owner decisions recorded in ADR-011 and ADR-012. All discharged rows remain numbered
+in place so historical citations continue to resolve.
 
 *This read "All eight stop work" until the V1 ruling made it "Seven of the eight"; Packet R1 then
 discharged item 1 and added item 11; the D4 signature then discharged item 3, and the R2.1 ruling item 2. Each reading was
@@ -2154,9 +2163,9 @@ below the table both state. Read the count from either of those, never from this
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | ✅ **Unblocked on timing 2026-08-29** — item 8 is answered and the window's strict mark is **`2026-09-10T23:18:21Z`**. **Still an unsigned decision**, and reaching the mark is a precondition, never a signature |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |
-| 7 | ~~**V1** — accept **81/86** as terminal, or fund the race investigation~~ ✅ **RULED 2026-08-29: investigate.** ~~What now blocks V1 is narrower — approve or decline the **minimal workflow change** the measurement needs~~ ⚠️ **SPENT 2026-08-30 — the workflow change was approved, built and RUN** (run `33274031928`), so what is open under this row is the **original** question again and only that: **adopt 81/86 as terminal, or fund a *fresh* investigation** — now answerable from measurement rather than from exhaustion | ~~§4 Packet V1's measurement half. §10 criterion 7 is **met for the decision**, not for the measurement~~ — the measurement half is **done**. **§10 criterion 7 is UNMET**, and the terminal policy is precisely what it names. **This row still stops no other work** |
+| 7 | ~~**V1** — accept **81/86** as terminal, or fund the race investigation~~ ✅ **CLOSED 2026-08-30:** adopt **81 byte-gated captures plus five explicitly exempt captures protected by pinned semantic contracts, per platform**, as terminal. The approved capture-side hypothesis was tested and falsified; the rendering defect is not declared fixed | **Nothing. §10 criterion 7 is met.** Any future investigation requires a newly named, testable rendering hypothesis and separate authorization (ADR-011) |
 | 8 | ~~**Was #431 the final Vitest expansion packet?**~~ ✅ **ANSWERED 2026-08-29 — YES** (§15.2 debt 1, §18.2) | — **nothing.** **T0 `2026-08-27T23:18:21Z`**, **strict mark `2026-09-10T23:18:21Z`**. Kept numbered, and not removed, so §15.1's and §15.2's pointers and the three external ones §17.5 names all still resolve |
-| 11 | ⚠️ **NEW 2026-08-29 — should a job-level `continue-on-error:` be barred on the `uses:` job `frozen-windows`?** Packet R1 measured it as undetected but left it open by authorization. Resolve first whether a `uses:` job accepts the key at all — `release_pipeline/PLANNING.md`'s Plan v1 constraints say it does not, which would make the shape a parse error rather than a false green | Nothing today; it is the only residual R1 leaves |
+| 11 | ~~Should job-level `continue-on-error:` be barred on the `uses:` job `frozen-windows`?~~ ✅ **CLOSED 2026-08-30:** the key is absent from GitHub's official [supported keywords for reusable-workflow caller jobs](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#supported-keywords-for-jobs-that-call-a-reusable-workflow), so the proposed shape is invalid and non-reachable. The 2026-08-29 local probe remains evidence of a contract gap only; no runtime false green was demonstrated | Nothing. No workflow or test change authorized (ADR-012) |
 
 > **Renumbering note, 2026-08-29.** This table previously ran to **ten** rows. Former item 9 —
 > Track P1's re-price — went **moot** at the track's 0 / 0 / 0 closure. Former item 10 — recording
@@ -2194,24 +2203,21 @@ two live-state readings** (§15.3). **That is three obligations in total** — �
 item 8, and it was answered on 2026-08-29 along with its **other three** (§15.2 *Discharged*), so
 no debt remains to be counted among them.
 
-**Six rows are excluded from that three**, and they are excluded for two different reasons.
-**Four are discharged**: **item 1**, when Packet R1 was measured; **item 2**, ruled 2026-08-29 as
-ADR-010 and implemented; **item 3**, D4 signed 2026-08-29 as ADR-009 — the decision closed, its two
-packets not; and **item 8**, answered YES on 2026-08-29, which declared the JS-unit T0. **Two are
-open and stop nothing**: **item 7**, ruled 2026-08-29 — V1: investigate, ~~its measurement now
-blocked on a workflow approval rather than on the disposition~~ ⚠️ **SPENT 2026-08-30 — the
-measurement RAN and falsified the hypothesis**, so item 7 is back to the disposition itself and
-nothing else — and **item 11**, the residual Packet R1 declared rather than closed. Three blocking
-plus six excluded is the nine rows §15.4 carries. **The V1 measurement moved no count in this
-subsection**: item 7 was already excluded from the blocking three, and it still is.
+**Six rows are excluded from that three because all six are discharged**: **item 1**, when Packet
+R1 was measured; **item 2**, ruled 2026-08-29 as ADR-010 and implemented; **item 3**, D4 signed
+2026-08-29 as ADR-009 — the decision closed, its two packets not; **item 8**, answered YES on
+2026-08-29, which declared the JS-unit T0; and **items 7 and 11**, closed 2026-08-30 by ADR-011
+and ADR-012. Three blocking plus six discharged is the nine rows §15.4 carries.
 
 The only unstarted *engineering* is what sits behind your decisions, and it is now **nothing at all
 — not one thing, and not three**. ~~**V1's option 2**, which is authorized and blocked on runner
 access rather than waiting on a decision~~ ⚠️ **SPENT 2026-08-30**: it was the last unstarted
 item and it ran, stopping on its own stop condition — *either platform's three-run set is unstable*,
 and both were — so **the count is zero**;
-what V1 leaves behind is a **decision**, not engineering, and any repair is a fresh authorization
-**left unpriced** — §8 carries no figure for it, deliberately, and says so. **R1's probes were one of the other two and are done**; **R2's post-decision
+V1 leaves **no open decision or engineering**. The rendering defect is an accepted bounded residual;
+any future investigation requires a newly named, testable rendering hypothesis and fresh
+authorization and is **left unpriced** — §8 carries no figure for it, deliberately, and says so.
+**R1's probes were one of the other two and are done**; **R2's post-decision
 follow-through was the third** — the export-bounds behavior change, its tests and the
 `utils/rep_range_integrity.py` docstring — **and it shipped with the R2.1 ruling.** §8's **1.5–3
 developer-day** residual was priced for R1 and R2 together and now prices **nothing that remains**;
@@ -2892,9 +2898,9 @@ cannot record it.~~ ✅ **DISCHARGED — row 44 is written by the closeout pass 
 2. **§15.4's counts were re-derived from the merged table, never carried from either side.** Three
    readings existed and each was true of the table it described: *"all eight stop work"*, then
    *"seven"* after the V1 ruling, then *"six"* after Packet R1. With **item 8 now answered**, the
-   blocking set is **items 2–6 — five**. Items **7** and **11** are open without stopping work;
-   items **1** and **8** are discharged. **Nothing was renumbered**, so §17.5's citation debt is not
-   added to.
+   blocking set is **items 2–6 — five**. At that dated reading, items **7** and **11** were open
+   without stopping work; both were **discharged 2026-08-30** by ADR-011 and ADR-012. Items **1**
+   and **8** were discharged. **Nothing was renumbered**, so §17.5's citation debt is not added to.
 3. **Every R1 and V1 status field from `origin/main` was preserved.** Where this branch and `main`
    both edited a line, `main`'s newer ruling wins and this pass's item-8 discharge is layered onto
    it. **No owner ruling was reverted by the merge.**
@@ -2902,8 +2908,9 @@ cannot record it.~~ ✅ **DISCHARGED — row 44 is written by the closeout pass 
    A declared T0 starts no engineering, and Packet R1's probes are done.
 
 **Nothing in this subsection authorizes anything.** **Q4 and D2 remain unsigned**, `js-unit` remains
-non-required, §15.4 items 2–6 remain the owner's, item 11 remains open, and U1-FOLLOWUP-1 remains an
-untouched obligation barred before `2026-09-10T23:18:21Z`.
+non-required, §15.4 items 2–6 remained the owner's and item 11 remained open **at this dated
+reading**; item 11 was discharged 2026-08-30 by ADR-012. U1-FOLLOWUP-1 remains an untouched
+obligation barred before `2026-09-10T23:18:21Z`.
 
 ---
 
@@ -2979,9 +2986,10 @@ still runs OD-1 → OD-2 with no OD-1-W between them"* was discharged when `fe15
 
 ### 20.4 What this pass deliberately did not do
 
-- **It made no decision.** §15.4's blocking set is unchanged **by this pass** — items **2–6** as
-  read at `5d98824`, and **2, 4, 5 and 6** after #453 signed D4; items 7 and 11 remain
-  open without stopping work; items 1 and 8 remain discharged.
+- **It made no decision.** §15.4's blocking set was unchanged **by this pass** — items **2–6** as
+  read at `5d98824`, and **2, 4, 5 and 6** after #453 signed D4; items 7 and 11 remained open
+  without stopping work at that dated reading, then were discharged 2026-08-30 by ADR-011 and
+  ADR-012; items 1 and 8 remained discharged.
 - **Q4 and D2 are untouched and unsigned**, and `JS Unit (Vitest, non-required)` remains
   **non-required**. No branch-protection or repository-setting change was made or proposed.
 - **U1-FOLLOWUP-1 is untouched** — OPEN, required, barred before `2026-09-10T23:18:21Z`, and stale
@@ -2990,7 +2998,8 @@ still runs OD-1 → OD-2 with no OD-1-W between them"* was discharged when `fe15
 - **Still owed after this pass**, and every count here is an **instant**, not a state: §15.4's
   blocking decisions — **items 2–6 at the `5d98824` reading, and items 2, 4, 5 and 6 once
   [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) signed D4 (item 3) at `2026-08-29T23:02:13Z`**; **item 11**, open but
-  blocking nothing; **the next unclaimed ledger row**; and U1-FOLLOWUP-1, which is an
+  blocking nothing at that dated reading and discharged 2026-08-30 by ADR-012; **the next
+  unclaimed ledger row**; and U1-FOLLOWUP-1, which is an
   obligation rather than a decision and is not in §15.4. **Re-read §15.4 and §13.0 before
   quoting either figure** — #453 moved both within twenty minutes of this pass's own reading,
   and §20.5 records **three more merges** that moved §13.0 again inside the following hour. The **2026-08-31 03:17 UTC** deep-gate cron is the next external checkpoint,

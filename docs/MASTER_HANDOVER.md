@@ -4,7 +4,24 @@
 
 ## Current State
 
-> **2026-08-29 (LATEST) — TESTING STRATEGY D4 IS SIGNED, with a bounded scope and two product
+> **2026-08-30 (LATEST) — V1 AND THE FROZEN-WINDOWS RESIDUAL ARE CLOSED BY OWNER DECISION;
+> NO ENGINEERING CHANGE IS AUTHORIZED.**
+>
+> - **V1 / §15.4 item 7:** the terminal visual contract is **81 byte-gated captures plus five
+>   explicitly exempt captures protected by pinned semantic contracts, per platform**. Run
+>   `33274031928` remains the evidence that the approved capture-side hypothesis was tested and
+>   falsified. The rendering defect is an accepted bounded residual, not declared fixed. Any
+>   future investigation requires a newly named, testable rendering hypothesis and separate
+>   authorization (ADR-011).
+> - **Packet R1 / §15.4 item 11:** job-level `continue-on-error` on the reusable-workflow caller
+>   job `frozen-windows` is invalid and non-reachable because GitHub's official
+>   [supported-keywords list](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#supported-keywords-for-jobs-that-call-a-reusable-workflow)
+>   excludes the key. The historical local mutation result proves only a local contract gap, not
+>   a runtime false green (ADR-012).
+> - The §15.4 blocking set remains **items 4, 5 and 6**. Items **1, 2, 3, 7, 8 and 11** are
+>   discharged. This closeout changes documentation and evidence prose only.
+>
+> **2026-08-29 (SUPERSEDED by the 2026-08-30 block above) — TESTING STRATEGY D4 IS SIGNED, with a bounded scope and two product
 > rulings. No production code has changed, and no packet is in flight.**
 > `origin/main` is at **`116d3c5`**, re-measured **`2026-08-29T19:36:33Z`**, with **ZERO PRs open**
 > at that same instant — the open-PR count is an INSTANT, not a state. The block below this one
@@ -160,13 +177,14 @@
 > same day** — run [`33274031928`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33274031928),
 > the capture-side hypothesis **falsified** — and it **moves that count by nothing**: item 7 was
 > already outside the blocking set and stays outside it. What changed is *what* item 7 asks, which
-> is now the **terminal policy alone**, its workflow-approval clause being spent. The table still
-> holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1, 2, 3 and 8 are
-> discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
+> was then the **terminal policy alone**, its workflow-approval clause being spent. **Superseded
+> 2026-08-30: items 7 and 11 are discharged by ADR-011 and ADR-012.** The table still holds nine
+> rows; items 1, 2, 3 and 8 are also discharged. Nothing is renumbered. Track P1 stays closed at
+> 0 / 0 / 0, Track D1's
 > queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 > 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
 
-> **2026-08-29 (SUPERSEDED by the block above, which is LATEST; preserved as the `225b7b0` reading it was) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`, and NO
+> **2026-08-29 (SUPERSEDED by the later blocks above; preserved as the `225b7b0` reading it was) — Track P1 is CLOSED at 0 / 0 / 0, `main` is at `225b7b0`, and NO
 > engineering packet is in flight. Everything still open is either an owner decision or parked.
 > `js-unit` is still NOT promoted, and the JS-unit window's T0 is still CONDITIONAL and
 > UNDECLARED.**
@@ -376,8 +394,8 @@
 >    four decisions**; ⚠️ **RE-DERIVED AGAIN 2026-08-30, for the R2.1 ruling (ADR-010),
 >    which discharges item 2: it is items 4, 5 and 6 — three decisions.** Each reading
 >    above was true of the table it described and none is rewritten.
->    Items 7 and 11 are open without
->    stopping work. Nothing there may be started by an agent, and reaching a clock's
+>    At that dated reading, items 7 and 11 were open without stopping work; both were discharged
+>    2026-08-30 by ADR-011 and ADR-012. Nothing there may be started by an agent, and reaching a clock's
 >    threshold is not authorization.
 >
 > **This reconciliation changed documentation only** — exactly two files, this one and
@@ -1689,7 +1707,8 @@
 > (`visual-baseline-thumbnails.spec.ts`) + **16** (`workout-plan-desktop-contract.spec.ts`,
 > new in #298). No visual test was removed.
 >
-> **81 of 86 captures are byte-compared. Five are exempt by measurement**, not by
+> **The terminal contract is 81 byte-gated captures plus five explicitly exempt captures
+> protected by pinned semantic contracts, per platform.** The five are exempt by measurement, not by
 > convenience: `workout-plan-desktop-{light,dark}`, `plan-desktop-{light,dark}-advanced`,
 > `plan-desktop-dark-simple`. Chromium rasters exactly those five nondeterministically
 > on `ubuntu-24.04`; over 8 experiment sets / 21 generations they flip between two
@@ -1697,7 +1716,9 @@
 > close it. The exemption is from **byte comparison only** — all five still run at
 > 1440×900, still fail on a console error, and still assert the page rendered. No
 > tolerance, retry, mask or crop changed. **This is a measured exemption, not a
-> Chromium fix**, and it leaves a documented cosmetic-regression gap.
+> Chromium fix**, and it leaves a documented cosmetic-regression gap. **OWNER DISPOSITION
+> 2026-08-30:** accept that bounded residual as terminal policy (ADR-011). Any future investigation
+> requires a newly named, testable rendering hypothesis and separate authorization.
 >
 > **Detailed authority — do not re-derive from this file:**
 > [`docs/visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) **§8**
@@ -1929,7 +1950,13 @@
 > pull requests (#239-#252) because nothing had ever been updated; steady state will be far
 > smaller. **None have been merged** — triage is owner-gated and several are majors.
 
-### Known Windows visual reds — the WP4.0 pair, both OPEN and deferred
+### Known Windows visual reds — historical WP4.0 observations inside the accepted terminal residual
+
+> **OWNER DISPOSITION 2026-08-30:** these observations remain evidence that the rendering defect
+> was not fixed, but they are no longer open policy items. They fall within ADR-011's terminal
+> contract: 81 byte-gated captures plus five explicitly exempt captures protected by pinned
+> semantic contracts, per platform. Any future investigation requires a newly named, testable
+> rendering hypothesis and separate authorization.
 
 > **⚠️ CORRECTED 2026-08-04 — the "exactly these two" claim below is STALE and is
 > withdrawn.** This section used to read *"A correctly seeded Windows visual run
@@ -2077,8 +2104,8 @@
 
 | # | Test | Spec | Observed | Historical | Status |
 |---|---|---|---:|---:|---|
-| 1 | `visual baseline: workout-plan › workout-plan desktop dark` | `visual.spec.ts` | 875 px (882 retry) | band 875/882 ∪ 1,039/1,046 | **open, deferred** — animated navbar logo |
-| 2 | `§4 visual baseline — workout_plan thumbnails › plan-desktop-light-advanced` | `visual-baseline-thumbnails.spec.ts` | **6,084 px** (6,098 retry) | **6,262 px** | **open, deferred** — see below |
+| 1 | `visual baseline: workout-plan › workout-plan desktop dark` | `visual.spec.ts` | 875 px (882 retry) | band 875/882 ∪ 1,039/1,046 | **historical accepted residual** — animated navbar logo |
+| 2 | `§4 visual baseline — workout_plan thumbnails › plan-desktop-light-advanced` | `visual-baseline-thumbnails.spec.ts` | **6,084 px** (6,098 retry) | **6,262 px** | **historical accepted residual** — see below |
 
 > **Neither entry is byte-compared any more, and #309's green does not speak to either.**
 > Both capture names sit in `BYTE_GATE_EXEMPT` (`e2e/visual-helpers.ts`), and
@@ -2091,9 +2118,9 @@
 >
 > That exemption is **#298's** doing, not #309's. Their coverage moved to
 > `e2e/workout-plan-desktop-contract.spec.ts`, which asserts the same properties through
-> computed style, geometry and DOM structure. The two rows stay **open and deferred** as
-> observations about rendering; what changed is only that no byte gate measures them.
-> Whether to close them is a separate decision this entry does not take.
+> computed style, geometry and DOM structure. The two rows remain as historical observations
+> about rendering, but ADR-011 closed them as policy residuals on 2026-08-30. No byte gate measures
+> them; the pinned semantic contract is their terminal protection.
 
 **Entry 2 — `plan-desktop-light-advanced`, recorded explicitly (2026-08-01).**
 
@@ -3506,7 +3533,7 @@ behind the CSS it describes.
 | Redesign post-P8 triage | ✅ complete — 10 of 11 shipped, #1 deferred by owner choice (keep nav Backup link) | none | local-only `debug/redesign_post_p8_issues_SESSION_STATE.md` (closed; annotated 2026-05-19) |
 | phase5_3i_plan | ✅ closed — accepted-as-shipped (owner decision 2026-05-19) | none | local-only `debug/phase5_3i_plan_SESSION_STATE.md` (closed banner added); planning doc shipped `c0da18e` 2026-04-15 and deleted `635fa3e` 2026-04-24; 5A–5H validation gates never ran but `12c90ac` refactors have held 5+ weeks under 1160-test baseline with no regression |
 | Body Composition Issue #21 | ✅ **Fully closed 2026-05-23.** Shipped via PR #31 (squash `20b4b24`, 2026-05-20: backend formula module + idempotent migration + 49 first-slice tests; blueprint with 4 endpoints, calculator page with ACE band + Jackson & Pollock + trend SVG + history, JS formula mirror, route bundle, navbar slot, 18 route tests + 4 Playwright specs). Hardened via PR #32 (`94482d7`, 2026-05-21: `captured_at` ISO validation + JS↔Python numeric parity test). Profile-page display hooks shipped locally via `de3e4d0` (2026-05-23: BFP/ACE line + Lean Mass sub-line on insights card, display-only). Visual baselines for the page added via `40d7dd2` (2026-05-23: 6 PNG baselines). | None blocking. Future read-only consumers (e.g. lean-mass-aware cold-start ratios) remain a separate workstream — do not start without owner direction. | [docs/archive/body_composition/development_issues.md](archive/body_composition/development_issues.md) (source of truth, status now Resolved). OPUS_START_PROMPT.md deleted 2026-06-12 (spent kickoff scaffolding) |
-| app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262) are still **OPEN and deferred**, still pre-existing, and still predate this plan — but they are **not** a complete description of what a Windows visual run reds on today. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
+| app.py review | ✅ **COMPLETE 2026-08-01 — all five packets merged.** P1 `24a6f68` (#227), P2 `d453010` (#232), P3 `573bb7e` (#235), P4 `16a4e53` (#236), P5 `e71e3859` (#230); plan approval `b0cdaf3` (#226). Behavior changes: 405/413/403 now return their real status with `Allow` preserved instead of 500; the `"404"`-in-message misfire is gone; `clear_trailing` deleted so query strings and POST methods survive; all 33 first-party CSS/JS links carry a `?v={{ app_version }}` from the new `utils/version.py`. Findings were triple-verified before execution and a third-round `internal_error` candidate was tested and **dismissed** (§3c). **The finding surface is exhausted — do not commission another review round and do not reopen this plan as a "next task".** One regression was introduced and fixed in-session (`bd121c9`, #234 — see §7). **P4's gates were discharged *after* its merge, not at merge time (§7a).** PR #236 reported "475 passed, 0 failed"; its own retained `.last-run.json` records `status=failed` with **49** failures, caused by running the visual specs without `PW_VISUAL_SEED=1` (the functional seed cannot match visual baselines), and its packaged smoke never ran. Both were re-run correctly and pass: nonvisual **457/457**, packaged smoke **PASS via real bootloader** (36/36). Two follow-ups merged after the plan closed: `a075b0c` (#258) repaired `real_app_client`'s database isolation, which had resolved to the checkout's own `data/database.db` on a first import; `1619262` (#262) closed the F4 residual and made the packaged smoke a per-PR CI gate. | **None owned by this plan — the app.py review stays COMPLETE with no follow-up of its own.** **[CORRECTED 2026-08-05]** This cell previously asserted that *"a correctly seeded visual run reproduces **exactly the two WP4.0 known reds and nothing else**"*. That was true when written and is **withdrawn** — it is the same stale claim the §"Known Windows visual reds" block at the top of this file corrects, and it must not be read as current truth. The two WP4.0 entries themselves remain valid as historical rendering observations: `workout-plan desktop dark` (875/882, in band) and `plan-desktop-light-advanced` (6,084/6,098 vs a historical 6,262). **[CLOSED AS POLICY RESIDUALS 2026-08-30]** ADR-011 accepts them inside the terminal 81-byte/5-semantic contract; they are no longer open work, and any future investigation requires a newly named, testable rendering hypothesis. Measured against unmodified `main` at `02e73c7`, `e2e/visual.spec.ts` failed **58 of 66** on Windows, reproducibly: a stale corpus, not two localized defects. **[UPDATED 2026-08-10]** That corpus was regenerated by **#309** (`10ba89f`) and the suite reds on **none** of the 66 today, so the "cannot serve as a merge gate" consequence this cell used to state is **withdrawn** and issue #304 is **closed**. Current state and authority: §"Known Windows visual reds" at the top of this file; do not re-derive it in this row. | [docs/APP_PY_REVIEW_PLAN.md](APP_PY_REVIEW_PLAN.md) |
 | Product documentation suite | ✅ **SHIPPED 2026-08-13 — three PRs, all merged, all 18/18 green.** **#340** (`53af816`) built the owner-selected subset as `docs/product/`: `README.md` (D0 scaffold + D6 planning pointer), `APP_FLOW.md`, `BACKEND_SCHEMA.md`, `DESIGN_BRIEF.md` — plus `docs/product/**` in the Always-active retention class, the suite indexed from `docs/README.md`, and a back-pointer from each of `.claude/rules/routes.md` / `database.md` / `frontend.md`. **#343** (`d1efc93`) and **#345** (`18c7916`) then corrected drift from #341 and #339, which merged alongside. Gate 0 and Gate 1 were both satisfied: owner decisions are recorded in §8.1, the three-reviewer council in §8.3, and Plan v2 in §8.7. **D1 (PRD) and D3 (TECH_DESIGN) were deliberately not built** — the council was asked whether any requirement of theirs could not live in the four selected documents and found none (§8.5). The plan doc originated 2026-08-01 via PR #219. | **None — do not reopen.** "Finish the six-document suite" is a reopened decision, not leftover work. The suite is descriptive and carries no status by design; on conflict the code wins. Drift is caught by the three rules-file pointers plus the re-verification commands in `docs/product/README.md` — deliberately **not** by a committed parity test, which would be stricter than a document allowed to lag (§8.8, T6). §8.9–§8.10 record two same-day drift corrections as the suite's real maintenance cost. | [docs/PRODUCT_DOCS_PLAN.md](PRODUCT_DOCS_PLAN.md) · [docs/product/README.md](product/README.md) |
 | Testing strategy review | **Phases 0–1 complete.** ~~Phase-2 truth refresh is partially executed.~~ **[UPDATED 2026-08-15 — Phase 2 is COMPLETE (#366, #372), as the next column already records; this cell contradicted it.]** Packet A shipped as #342 (`1438a14`), repairing nine accessibility assertions that previously could not fail, with no test-node change. The already-shipped real erase-handler work remains retired rather than duplicated. | **[UPDATED 2026-08-14]** **Packet C (per-spec strict console handling) SHIPPED as #362 (`52331bf`)** — `e2e/console-guard.ts` plus three migrated specs, with anti-catch-all allowlist rules enforced at setup. **[UPDATED 2026-08-15]** **Packet D (axe coverage) SHIPPED as #366 (`f627161`)** on the owner's explicit-exception path, and #372 (`385ce52`) recorded **Testing Strategy Phase 2 complete**; residual accessibility debt is X7–X13 and X15, owner-deferred. **[UPDATED 2026-08-20 — X11, X12 and X13 shipped in #393 (`eff4362`); the owner-deferred set is now X7–X10 and X15, plus the newly recorded, deliberately unregistered X16.]** Phases 3 and 5 remain proposals. The D3 weekly compare-only stopgap shipped as #323 (`3b1160b`), and **the first scheduled run executed 2026-08-17 and was green** (run 31993105305); it ran R2-b's file, so the pre-#388 evidence the override forfeited stays forfeited, and 2026-08-24 is simply the next scheduled run; **the release/tag half of Phase 4 shipped as Packet R1, #374 (`5222db2`)**, with Phase 4 still open on §7.3 entry criteria 2 and 3. **[UPDATED 2026-08-23 — "Phases 3 and 5 remain proposals" is now stale for Phase 3.]** **Phase 3 step 12 is in execution and its expansion sequence is COMPLETE on `main`**: Packets **A → B → C → F** all merged — B #406 (`987588a`), C #410 (`9cb6cdc`), F #411 (`2c95bae`) — with **Packet D dropped** (owner ruling Q3) and **the letter E deliberately vacant**. **`js-unit` is still NOT promoted**: the 14-day qualification window is running from **T0 `2026-08-22T17:59:26Z`** to **`2026-09-05T17:59:26Z`**, ledgered at job level in [`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, and **Q4 / D2 stay unsigned** — a separate owner signature is required even once the window closes. Phase 3 **step 11** and **Phase 5** are unchanged. **[UPDATED 2026-08-29 — this cell's window reading is SPENT. #431 (`288667d`) took the Vitest corpus 231 → 245 on 2026-08-27 and engaged Q2's restart clause, so **T0 `2026-08-22T17:59:26Z` and the mark `2026-09-05T17:59:26Z` no longer exist**; the new T0 is **conditional and undeclared** pending an owner determination, and §13.0 is the only place to read it. The cell's **A → B → C → F** clause is unchanged and is about the Phase-3 step-12 lettered sequence — read it in that sense only, because **Vitest corpus expansions are a different thing and two are still unlanded** (U3b's KI-011 helper coverage and U1-FOLLOWUP-1), which is precisely what the owed owner determination turns on. The Q4 / D2, step-11 and Phase-5 clauses are unchanged. See this file's 2026-08-29 Current State block.]** **[RE-UPDATED 2026-08-29, later the same day — the bracket above is SPENT on two clauses and is annotated rather than rewritten. The owner ruled **#431 the final Vitest expansion packet**, so the T0 is **no longer conditional or undeclared**: **T0 `2026-08-27T23:18:21Z`**, **strict mark `2026-09-10T23:18:21Z`** ([`testing_phase3/STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET*). And *"two are still unlanded"* is now **one**: **U1-FOLLOWUP-1** stays OPEN and required, re-anchored to the new mark, while **U3b's KI-011 helper coverage is RETIRED** — `OQ-10` authorized E2E-only coverage and created no Vitest follow-up. **The Q4 / D2 clause still stands: both remain UNSIGNED and `js-unit` remains non-required at 12 required contexts.**]** | [docs/TESTING_STRATEGY_PLANNING.md](TESTING_STRATEGY_PLANNING.md), [docs/testing_phase2/PLANNING.md](testing_phase2/PLANNING.md), [docs/testing_phase3/STEP12_JS_UNIT_GATE0.md](testing_phase3/STEP12_JS_UNIT_GATE0.md) |
 
@@ -3523,9 +3550,10 @@ behind the CSS it describes.
 - **The app.py review is CLOSED** (2026-08-01) — all five packets merged, and
   P4's gates were discharged post-merge in §7a. No decision is open on it; see
   [`APP_PY_REVIEW_PLAN.md`](APP_PY_REVIEW_PLAN.md) §7 and §7a. Separately, the
-  **two WP4.0 known Windows visual reds remain open and deferred** — ledgered in
-  §"Known Windows visual reds" at the top of this file. They are not owned by
-  this plan and predate it.
+  **two WP4.0 known Windows visual observations are historical accepted residuals** — ledgered in
+  §"Known Windows visual reds" at the top of this file. ADR-011 closed them as policy items on
+  2026-08-30 under the terminal 81-byte/5-semantic contract; the rendering defect is not declared
+  fixed.
 - **Discharged 2026-08-13:** the product-documentation suite is shipped through
   #340/#343/#345. D1 (PRD) and D3 (TECH_DESIGN) were deliberately omitted after
   the council found no requirement that needed them; completing a six-document
@@ -3603,11 +3631,11 @@ behind the CSS it describes.
 > having restarted the window on 2026-08-27; and (4) *"until then"* refers to that same spent
 > mark, though **Q4 and D2 do remain unsigned**. The block also says **KI-010 and KI-011 are
 > still open**; both have since shipped — `288667d` (#431) and `5b35966` (#426). **The live
-> next-safe-step list is the 2026-08-29 Current State block at the top of this file**; read that
+> current status is the 2026-08-30 block at the top of this file**; read that
 > one, not the four actions below. **Most of what the block asserts still stands** — the
 > A → B → C → F sequence, 12 required contexts with `js-unit` absent, ~~D4 unsigned~~, the
-> ~~`scan_export_bounds()` and `rep_range_integrity.py` items open~~, `needs:` and job-level
-> `continue-on-error:` unmeasured, Phase 4 open, and `push: tags` never fired; what is falsified
+> ~~`scan_export_bounds()` and `rep_range_integrity.py` items open~~, ~~`needs:` and job-level
+> `continue-on-error:` unmeasured~~, Phase 4 open, and `push: tags` never fired; what is falsified
 > is listed above. Nothing below is edited except this annotation.
 >
 > **Amended 2026-08-29, later the same day: the `scan_export_bounds()` and
@@ -3619,7 +3647,9 @@ behind the CSS it describes.
 > ruling. **D4 is no longer unsigned either** — it was signed 2026-08-29 as **ADR-009**
 > (`fcc0e59`, [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453)), which landed
 > before this amendment's own base, so the *"D4 unsigned"* entry in the still-stands list above is
-> falsified too. The rest of that list is unaffected.]**
+> falsified too. **The mutation clause is also spent:** #455 measured it locally, and ADR-012
+> closed the `frozen-windows` reusable-caller residual as invalid/non-reachable on 2026-08-30.
+> The rest of that list is unaffected.]**
 
 **Current (2026-08-23, latest): Phase 3 step 12's expansion sequence is COMPLETE
 on `main` and there is still no automatic next feature packet.** Verified against

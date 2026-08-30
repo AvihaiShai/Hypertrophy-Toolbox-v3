@@ -366,7 +366,8 @@ Derived from the `QUALITY_GATE.md` **CSS (static bundles) → shared surfaces** 
    `docs/visual_determinism/PLANNING.md` records **Gate 2 PASSED — 86/86 byte-identical
    across three isolated generations**. *(**Stale as of 2026-08-04; annotated 2026-08-29.**
    That 86/86 claim was withdrawn by §8 of that file the day after it was written. The
-   repository-wide position is **81 of 86 byte-compared, five exempt by measurement**.
+   repository-wide terminal position is **81 byte-gated captures plus five explicitly exempt
+   captures protected by pinned semantic contracts, per platform**.
    This clause is left as the packet's contemporaneous reading; do not cite it as
    current.)* PR #296 is a *later, separate* draft investigation
    into workout-table raster nondeterminism that **must not merge**. This packet touches

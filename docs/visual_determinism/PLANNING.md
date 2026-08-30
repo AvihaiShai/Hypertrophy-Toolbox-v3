@@ -1,6 +1,7 @@
 # Visual-Capture Determinism Remediation
 
-Status: **PARTIAL — 81 of 86 captures byte-compared; five are exempt by measurement.**
+Status: **TERMINAL — 81 byte-gated captures plus five explicitly exempt captures
+protected by pinned semantic contracts, per platform.**
 The capture-side repair hypothesis was measured on both pinned runner images under the V1
 owner ruling and is **falsified** — §9.
 The Gate 2 claim below was reached on two-to-three samples and did not hold; §8 records
@@ -18,8 +19,8 @@ Branch `wt/visual-determinism`, merged with `origin/main` = `616b3a6`.
 > ⚠️ **Do not read this section as current state.** Its conclusion — *"the final
 > configuration is 86/86 byte-identical"* — was measured honestly on 2026-08-03 and was
 > **falsified the next day** by the compositor-layer paint offsets recorded in §8. The
-> current contract is this file's status line: **81 of 86 captures are byte-compared;
-> five are exempt by measurement** (§8.4, §8.10). The section is retained because §8 is
+> current contract is this file's status line: **81 byte-gated captures plus five explicitly
+> exempt captures protected by pinned semantic contracts, per platform** (§8.4, §8.10). The section is retained because §8 is
 > only legible against it, and because the remediations it lists (A–E) did ship and do
 > hold. **Nothing in this section authorizes a baseline regeneration today.**
 
@@ -50,7 +51,8 @@ approved.
 
 > **↑ WITHDRAWN 2026-08-04, restated 2026-08-29.** Both sentences are false as current
 > state. §8 measured a fourth cause the day after this was written, and the corpus is
-> **81 of 86** byte-compared. The two regenerations this "approved" have since happened
+> **81 byte-gated plus five semantically protected exemptions, per platform**. The two
+> regenerations this "approved" have since happened
 > under their own review (linux #281, win32 #304/#309), so the approval is **spent, not
 > standing** — a regeneration today needs fresh owner authorization.
 
@@ -208,8 +210,9 @@ Playwright *test* counts do not change (547): a segmented page issues two
 
 > ⚠️ **Historical run records (2026-08-03).** Every figure in §3 is a real measurement of
 > this PR's own runs and is kept for that reason. **None of them describes the corpus
-> today.** §8 measured a fourth cause the following day; the contract is **81 of 86**
-> byte-compared with five captures exempt, and a run today writes **81** images, not 86.
+> today.** §8 measured a fourth cause the following day; the terminal contract is **81
+> byte-gated captures plus five explicitly exempt captures protected by pinned semantic
+> contracts, per platform**, and a run today writes **81** images, not 86.
 
 Red paths were executed, not asserted in prose. Commands and raw output below.
 
@@ -413,7 +416,7 @@ the intended convergence, not a regression — it is the state a real user's app
 | pyright net-new | `npx pyright@1.1.410 --outputjson` + `scripts/pyright_baseline_diff.py` | **PASS — 0 net-new (baseline 175, current 175)** |
 | tsc | `npx tsc --noEmit` | **exit 0** |
 | JS unit | `npm run test:js` | **9 files, 105 tests passed** |
-| E2E visual ×3 | fresh DB/server/browser generations, artifacts-only snapshot path | final partitioned gate **86/86 byte-identical** (§3.4) — *this PR's result, superseded the next day by §8; the gate is **81 of 86** today* |
+| E2E visual ×3 | fresh DB/server/browser generations, artifacts-only snapshot path | final partitioned gate **86/86 byte-identical** (§3.4) — *this PR's result, superseded the next day by §8; today's terminal contract is 81 byte-gated plus five semantically protected exemptions per platform* |
 
 ### `e2e/__screenshots__/**` is untouched
 
@@ -790,8 +793,9 @@ Nothing here matches the paint-offset signature, and the differences are confine
 lower ~40% of the page (first differing row ~1542–1710 of ~2517). **On `8c844df` the residual
 instability is a different defect from the compositor-layer paint-offset rounding §8
 measured.** That is a characterization of these four pairs, not a full re-diagnosis — but it
-means a future attempt should start from a fresh diagnosis of the *current* residual rather
-than from §8's mechanism. **It is not independent evidence** — it is the same four pairs from the
+means a future attempt must start from a fresh diagnosis and a **newly named, testable
+rendering hypothesis** for the *current* residual rather than from §8's mechanism. **It is
+not independent evidence** — it is the same four pairs from the
 same run as §9.2 — so it is offered as a pointer for the next diagnosis, not as a second proof.
 
 ### 9.4 What this does and does not settle
@@ -800,9 +804,13 @@ same run as §9.2 — so it is offered as a pointer for the next diagnosis, not 
 byte-deterministic on either pinned runner image. The measurement covers all five exemptions
 and `plan-desktop-light-simple` explicitly, on both platforms.
 
-**Not settled:** the terminal policy. The evidence now supports accepting **81 of 86** as
-terminal — the exemption is vindicated by measurement rather than by exhaustion — but that
-remains an owner decision, recorded in `OPEN_WORK_EXECUTION_PLAN.md` Packet V1.
+**Settled by owner decision, 2026-08-30:** **81 byte-gated captures plus five explicitly
+exempt captures protected by pinned semantic contracts, per platform, is the terminal
+visual contract.** The exemption is accepted on measured evidence rather than on exhaustion:
+the approved capture-side hypothesis was tested and falsified. The rendering defect itself is
+not fixed; the bounded semantic replacement is the accepted policy. Any future investigation
+requires a newly named, testable rendering hypothesis and separate authorization. The owner
+decision is recorded in `DECISIONS.md` ADR-011 and `OPEN_WORK_EXECUTION_PLAN.md` Packet V1.
 
 **Still true, and unchanged by any of this:** a clean committed-baseline compare is not
 evidence of determinism, and must not be cited as one.
