@@ -4881,6 +4881,13 @@ back byte-identical.
 | **46** | [`33280802586`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33280802586) | `push` / `e9f942f` (**PR #460, D4 Packet A — `utils/effective_sets.py`, multi-role weight sum**) | `success`, **18/18** | [**`99175526987`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33280802586/job/99175526987) | **`success`** | **`2026-08-29T23:22:12Z`** |
 | **47** | [`33281331253`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33281331253) | `push` / `bd686c9` (**PR #459, the two-“Packet R1” disambiguation + superseded R1/V1 prohibition annotated**) | `success`, **18/18** | [**`99176888772`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33281331253/job/99176888772) | **`success`** | **`2026-08-29T23:35:50Z`** |
 | **48** | [`33281647166`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33281647166) | `push` / `7d9a836` (**PR #461, D4 Packet B — `get_rep_range_factor` totals over every positive rep average**) | `success`, **18/18** | [**`99177700301`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33281647166/job/99177700301) | **`success`** | **`2026-08-29T23:44:01Z`** |
+| **49** | [`33282773879`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33282773879) | `push` / `450d3a721391721a0c579f8e8d819dc4e77cc207` (**PR #458, rows 44–48 closeout**) | `success`, **18/18**, attempt **1** | [**`99180639075`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33282773879/job/99180639075) | **`success`** | **`2026-08-30T00:12:58Z`** |
+| **50** | [`33309278510`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33309278510) | `push` / `a8574430035ed97b5d608b4f2c7e97a31d474049` (**PR #462, OD-1 waiver-timing correction**) | `success`, **18/18**, attempt **1** | [**`99251269888`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33309278510/job/99251269888) | **`success`** | **`2026-08-30T11:35:04Z`** |
+| **51** | [`33309798756`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33309798756) | `push` / `8a1ad9dbc2fe9983545f6e9ec5952755afe6a5af` (**PR #457, R2.1 scan-export bounds fix**) | `success`, **18/18**, attempt **1** | [**`99252682304`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33309798756/job/99252682304) | **`success`** | **`2026-08-30T11:47:44Z`** |
+| **52** | [`33311084273`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33311084273) | `push` / `e6e57eac224a09957d9c8ce3128ee6013cee6208` (**PR #463, V1 probe result**) | `success`, **18/18**, attempt **1** | [**`99256129768`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33311084273/job/99256129768) | **`success`** | **`2026-08-30T12:17:52Z`** |
+| **53** | [`33322960986`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33322960986) | `push` / `e9eff89a1344f87668b733bef272879d9e95c040` (**PR #464, dark-theme source and Win32-baseline alignment**) | `success`, **18/18**, attempt **1** | [**`99288046573`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33322960986/job/99288046573) | **`success`** | **`2026-08-30T16:37:29Z`** |
+| **54** | [`33323528054`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33323528054) | `push` / `52ca8a826374a6b6ec0c0ddd6ed3197cbf0f5585` (**PR #465, blank/null rep-bound Gate 0 contract**) | `success`, **18/18**, attempt **1** | [**`99289542200`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33323528054/job/99289542200) | **`success`** | **`2026-08-30T16:49:48Z`** |
+| **55** | [`33324073140`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33324073140) | `push` / `b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8` (**PR #466, V1 and frozen-caller residual policy closeout**) | `success`, **18/18**, attempt **1** | [**`99291016089`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33324073140/job/99291016089) | **`success`** | **`2026-08-30T17:01:52Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5440,6 +5447,69 @@ all twenty-three heads** from `288667d` through `7d9a836`, `fcc0e59`, `e9f942f` 
 included. [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) reads
 `vitest.total_files = 13`, `vitest.total_cases = 245` at **every one of them**, #460's and #461's
 pytest additions notwithstanding. **Q2's restart clause did not engage.**
+
+> **LEDGER EXTENSION — fixed cutoff `2026-08-30T21:27:23Z`, rows 49–55.** The cutoff is the
+> GitHub API response **`Date` header** (`Sun, 30 Aug 2026 21:27:23 GMT`), captured before this
+> census; every query and tally below is bounded at that instant. **Seven** qualifying `main`
+> `.github/workflows/ci.yml` results exist after row 48 and at or before the cutoff, so the row
+> range was derived as **49–55**, not carried from a forecast. All seven rows are appended to the
+> master table above, in place.
+>
+> **The completeness query covered every workflow, not only `ci.yml`.** The branch-wide API query
+> began at `2026-08-27T22:30:00Z`, deliberately **47 m 53 s before** the declared T0 run was
+> created and **48 m 21 s before** T0 itself. It returned **33** `main` runs through the cutoff:
+> **31** `ci.yml` runs — row 25 immediately before T0 plus rows 26–55 — and **2** classified
+> non-attempts. The same 100-item API page reached back to `2026-08-15T15:28:28Z`, well before the
+> lower bound, so pagination cannot have clipped this interval. Each of all 33 runs had its
+> `/jobs?per_page=100` collection enumerated and matched on the exact name
+> `JS Unit (Vitest, non-required)`. Every one of the 31 `ci.yml` runs returned exactly one match;
+> both non-`ci.yml` runs returned zero.
+>
+> **Every new carrier was read at job level.** Rows 49–55 are each `push`, `completed` /
+> `success`, attempt **1**, with **18 jobs and 18 `success`**; each exact-name JS job is itself
+> `success` at the `completed_at` recorded in the table. Sorting these seven runs by `created_at`
+> and by JS-job `completed_at` produces the same row order. No workflow conclusion was used as a
+> proxy for a job result.
+>
+> **Non-`ci.yml` means classified, not missing.** The two such runs inside the declared window are
+> [`33280804027`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33280804027),
+> `dynamic/dependabot/update-graph`, event `dynamic`, head `e9f942f`, attempt 1, **1/1 success**;
+> and [`33328039112`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33328039112),
+> `.github/workflows/release.yml`, event `workflow_dispatch`, head `b36ea9e`, attempt 1,
+> **6/6 success**. Both job enumerations contain zero exact-name JS jobs. The first was already in
+> the rows-45–48 census and was rechecked; the release dispatch is the one new non-attempt after
+> row 48. Across the original-T0 superset, the fixed-cutoff census is therefore **62** runs:
+> **55** qualification attempts plus **7** classified non-attempts.
+>
+> **Rows 49–55 do not restart the declared window.** Freshly re-reading all **30** `ci.yml` heads
+> from row 26 through row 55 yields one and only one Vitest-corpus tree,
+> `static/js/modules/__tests__` = **`5858c8497c571548e5116f4b660ff7702dd298b1`**, and one and only
+> one collection-config blob, `vitest.config.js` =
+> **`c16ca428f7478708d8dd96a20ebcb86f98a8b935`**. All 30 inventories read **13 files / 245 cases**;
+> the tree contains all 13 `static/js/**/*.test.js` paths. Thus no JS test was added, removed,
+> renamed or materially changed, the collection mechanism did not move, and Q2's restart clause
+> did not engage. **T0 remains `2026-08-27T23:18:21Z`; the strict mark remains
+> `2026-09-10T23:18:21Z`.**
+>
+> **Whoever merges the PR carrying this extension owes the next unclaimed row**, which it cannot
+> record — the standing §11.10 mechanism. No future row number is predicted.
+
+| Ledger tally, at fixed cutoff `2026-08-30T21:27:23Z` | Value |
+|---|---:|
+| **Qualification attempts** — `main` `CI/CD Pipeline` (`ci.yml`) runs at or after the original T0 | **55** — all fifty-five `push`, all 18/18, all attempt **1** |
+| Green `main` `JS Unit` results since and including the original T0 | **55** |
+| **Red** results | **0** |
+| **Missing** results (a `main` **`ci.yml`** run with no exact-name `js-unit` job) | **0** |
+| **Skipped** results | **0** |
+| **Cancelled** results | **0** |
+| `main` runs of **any** workflow at or after the original T0 and at or before the cutoff (completeness check, not a tally) | **62** — the 55 attempts plus **7** classified non-attempts |
+| **Green results on the 231-case suite (rows 1–25)** | **25** |
+| **Green results on the declared 245-case suite (rows 26–55)** | **30** |
+| Non-`ci.yml` runs inside the declared window | **2** — one `dynamic` dependency-graph update and one `release.yml` dispatch; neither is Missing |
+| Elapsed from **T0** to row 55 | **2 d 17 h 43 m 31 s** |
+| Remaining from row 55 to the strict mark **`2026-09-10T23:18:21Z`** | **11 d 6 h 16 m 29 s** |
+
+---
 
 | Ledger tally, at `2026-08-29T23:54:19Z` | Value |
 |---|---:|
