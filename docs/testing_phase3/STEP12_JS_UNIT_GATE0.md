@@ -5068,8 +5068,26 @@ owner. **This is the event the paragraph below in this subsection predicted** �
 Vitest corpus **231 → 245**, so merging it would engage Q2's restart clause and reset T0."* That
 paragraph is now **history, not a live constraint**, and it is **annotated rather than rewritten**:
 its `must not land before 2026-09-05T17:59:26Z` sentence describes an owner ruling (**OD-1**) that
-the owner has since discharged by merging. **Nothing in this document is edited to pretend the
-prediction was not made.**
+the owner ~~has since discharged by merging~~ **WAIVED BEFORE MERGING — its merge embargo, and
+only that clause**. **Nothing in this document is edited to pretend the prediction was not made.**
+
+> ⚠️ **CORRECTED 2026-08-30 — one clause, on the owner's confirmation.** *"Discharged by
+> merging"* said the **merge** discharged OD-1. It did not: the owner ruled *"I explicitly confirm
+> that OD-1 was waived for PR #431 before its merge"*, so the waiver preceded `288667d` — the merge
+> carried authority rather than conferring it. **It lifted one clause, not the ruling.** OD-1-W
+> scopes the waiver to OD-1's **consequence 2**, the merge embargo on U3a's implementation PR;
+> **consequence 3** (*passing the mark authorizes nothing*) and **consequence 5** (the accepted
+> latent-defect residual) were both left **live**, so nothing here discharges OD-1 as a whole. The
+> mechanism matters in this subsection specifically because it is the one that dates the restart:
+> **the waiver is why #431 could merge; the corpus move 231 → 245 is why the window restarted.**
+> The canonical record is
+> [`toast_type_word_collision/PLANNING.md`](../toast_type_word_collision/PLANNING.md) §0.14,
+> **OD-1-W** (landed 2026-08-29, `fe15225`, PR
+> [#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)). **No existing T0, mark,
+> ledger row or tally in this document is edited** — T0 stays `2026-08-27T23:18:21Z` as declared by
+> PR [#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452) in §13.0. **The standing
+> §11.10 row debt is inherited unchanged**: merging this PR mints the next unclaimed `main`
+> `ci.yml` row, which it cannot record. No number is predicted here, deliberately.
 
 **The corpus change is measured, not inferred.**
 `git rev-parse 46f640c:static/js/modules/__tests__` is
