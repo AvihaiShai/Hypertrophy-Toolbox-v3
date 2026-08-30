@@ -3738,8 +3738,8 @@ body.modal-open > .container-fluid.mt-4 {
 [data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"],
 [data-theme='dark'] #workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset,
 [data-theme='dark'] #workout[data-page="workout-plan"] .exercise-dropdown.input-calm-inset {
-  background: var(--surface-0, #101419) !important;
-  background-color: var(--surface-0, #101419) !important;
+  background: color-mix(in srgb, var(--surface-0, #101419) 96%, transparent) !important;
+  background-color: color-mix(in srgb, var(--surface-0, #101419) 96%, transparent) !important;
   background-image: none !important;
   border-color: color-mix(in srgb, var(--ink-3, #96a2b1) 34%, transparent) !important;
   box-shadow: var(--shadow-neu-in) !important;
@@ -3748,8 +3748,8 @@ body.modal-open > .container-fluid.mt-4 {
 
 [data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range),
 [data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range) {
-  background: var(--surface-0, #101419) !important;
-  background-color: var(--surface-0, #101419) !important;
+  background: color-mix(in srgb, var(--surface-0, #101419) 96%, transparent) !important;
+  background-color: color-mix(in srgb, var(--surface-0, #101419) 96%, transparent) !important;
   background-image: none !important;
   border-color: color-mix(in srgb, var(--ink-3, #96a2b1) 34%, transparent) !important;
   box-shadow: var(--shadow-neu-in) !important;
