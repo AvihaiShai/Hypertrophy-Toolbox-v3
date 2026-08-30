@@ -775,7 +775,7 @@ reproducing the #322 finding that keeps `visual-baseline-thumbnails.spec.ts` out
 
 ### 9.3 The residual is not the mechanism §8 diagnosed
 
-§8.2 found that "essentially every" differing cluster was a `dy = 1` shift of unchanged
+§8.2 found **197 differing clusters, “essentially all of them”** a `dy = 1` shift of unchanged
 pixel values with residual 0. Testing whether a one-device-row shift reconciles the
 differing rows of the residual pairs:
 
@@ -791,8 +791,8 @@ lower ~40% of the page (first differing row ~1542–1710 of ~2517). **On `8c844d
 instability is a different defect from the compositor-layer paint-offset rounding §8
 measured.** That is a characterization of these four pairs, not a full re-diagnosis — but it
 means a future attempt should start from a fresh diagnosis of the *current* residual rather
-than from §8's mechanism, and it is a second, independent reason this hypothesis could not
-have worked.
+than from §8's mechanism. **It is not independent evidence** — it is the same four pairs from the
+same run as §9.2 — so it is offered as a pointer for the next diagnosis, not as a second proof.
 
 ### 9.4 What this does and does not settle
 

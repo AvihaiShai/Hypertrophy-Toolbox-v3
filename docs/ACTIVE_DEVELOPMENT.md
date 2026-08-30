@@ -84,7 +84,14 @@ R2.4 and R3. ⚠️ **RE-DERIVED 2026-08-30 — that count is spent.**
 [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) (`fcc0e59`) **signed D4**,
 discharging **item 3 (R2.2)** in place. **The blocking set is now items 2, 4, 5 and 6 — four
 decisions**: R2.1, R2.3 (Q4 / D2), R2.4 and R3, and **item 3 joins items 1 and 8 as
-discharged**. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
+discharged**. ⚠️ **RE-DERIVED AGAIN 2026-08-30 — that count is spent too, and this reading is
+taken off §15.4's merged table rather than decremented from the one above it.**
+[#457](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/457) ruled **R2.1** as **ADR-010**
+and shipped its follow-through, discharging **item 2**, so **the blocking set is items 4, 5 and 6
+— three decisions**: R2.3 (Q4 / D2), R2.4 and R3. **The V1 measurement recorded by this pass moves
+that count by nothing** — item 7 was already outside the blocking set and stays outside it; what
+changed is *what* item 7 asks, which is now the terminal policy alone, its workflow-approval clause
+being spent. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1, 2, 3 and 8 are
 discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
 queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
@@ -327,7 +334,7 @@ or land that PR instead, and the record returns as work only if #451 is closed u
 final Vitest expansion packet is owed**, and it blocks Q4 / D2; (5) **everything
 else waits on the owner** — §15.4 items 1–8. *(Repaired 2026-08-29: this read "items 1–8 and
 10"; item 10 was the OD-1 waiver record, landed as **OD-1-W** in `fe15225` (#451) and
-discharged under §15.2. **Item 7 (V1) has since been ruled** and **item 1 (R1) discharged**.)* ⚠️ **RE-CORRECTED 2026-08-29:** **item 8 is now answered too** — #431 was the final Vitest expansion packet — and is marked discharged in place, keeping its number. Counted off the merged table, the blocking set is **items 2–6**; items 7 and 11 are open without stopping work.
+discharged under §15.2. **Item 7 (V1) has since been ruled** and **item 1 (R1) discharged**.)* ⚠️ **RE-CORRECTED 2026-08-29:** **item 8 is now answered too** — #431 was the final Vitest expansion packet — and is marked discharged in place, keeping its number. Counted off the merged table, the blocking set is **items 2–6**; items 7 and 11 are open without stopping work. ⚠️ **SPENT 2026-08-30 — twice over.** #453 discharged item 3 and #457 discharged item 2, so the blocking set is **items 4, 5 and 6**. Read it from the LATEST block at the top of this file, or from §15.4 itself — never from here.
 
 **This reconciliation changed documentation only** — exactly two files,
 [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) and this one. No production, test,
