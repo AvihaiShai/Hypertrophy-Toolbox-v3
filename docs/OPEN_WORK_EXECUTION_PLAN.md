@@ -2718,7 +2718,7 @@ window therefore holds **16 consecutive green results on the 245-case suite, wit
 - **No packet was added, retired, reordered or re-scoped**, and no estimate was adopted or revised.
   §§1–3, 5–7, 9 and 11–14 are untouched apart from the annotations named above.
 - **It touched no JS test, no production file, no workflow, no job name and no repository setting.**
-- **Still owed after this pass:** §15.4's **five** blocking decisions — items **2–6**, re-derived from the table as merged, with items 7 and 11 open but blocking nothing and items 1 and 8 discharged; **row 45**, row 44 having been written by the closeout pass (§20.2); the
+- **Still owed after this pass:** §15.4's **five** blocking decisions — items **2–6**, re-derived from the table as merged, with items 7 and 11 open but blocking nothing and items 1 and 8 discharged; **the next unclaimed row**, rows 44–48 having been written by the closeout pass (§20.2, §20.5) — no fixed number, by Track D1's own rule, which #453, #460, #459 and #461 each proved again within the hour; the
   `toast_type_word_collision/PLANNING.md` pointer noted above, ✅ **now repaired** (§20.3); and, unchanged, U1-FOLLOWUP-1 itself,
   which is an obligation rather than a decision and is not in §15.4.
 
