@@ -496,6 +496,7 @@ def export_plan_to_workout_log():
                 min_reps=exercise["min_rep_range"],
                 max_reps=exercise["max_rep_range"],
                 allow_null=True,
+                allow_blank=False,
             )
             if bounds_error:
                 return PlanExportResult(False, bounds_error, "VALIDATION_ERROR", 400)

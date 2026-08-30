@@ -35,12 +35,13 @@ def validate_workout_bounds(
     min_reps: Any = UNSET,
     max_reps: Any = UNSET,
     allow_null: bool = False,
+    allow_blank: Optional[bool] = None,
 ) -> Optional[str]:
     """Return a validation message, or ``None`` when canonical bounds hold.
 
     ``UNSET`` distinguishes an omitted partial-update field from an explicit
-    JSON null. Scored log values are nullable/blank, while bounded plan values
-    are not nullable when supplied.
+    JSON null. When ``allow_blank`` is not selected independently, it follows
+    ``allow_null`` for compatibility with scored-log clear operations.
     """
     numeric_values: dict[str, Optional[float]] = {}
     for key, value, label in (
@@ -51,7 +52,11 @@ def validate_workout_bounds(
     ):
         if value is UNSET:
             continue
-        if allow_null and (value is None or value == ""):
+        if value is None and allow_null:
+            numeric_values[key] = None
+            continue
+        blank_allowed = allow_null if allow_blank is None else allow_blank
+        if value == "" and blank_allowed:
             numeric_values[key] = None
             continue
         if value is None:

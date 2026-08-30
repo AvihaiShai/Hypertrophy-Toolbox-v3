@@ -241,8 +241,8 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 2913,
-    "deterministic_files": 126,
+    "collected_deterministic": 2918,
+    "deterministic_files": 127,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -421,6 +421,10 @@
       {
         "file": "tests/test_exercise_media.py",
         "tests": 6
+      },
+      {
+        "file": "tests/test_export_blank_rep_bounds_contract.py",
+        "tests": 5
       },
       {
         "file": "tests/test_export_blank_rep_bounds_gate0.py",
@@ -759,7 +763,7 @@
         "tests": 40
       }
     ],
-    "total_files": 127
+    "total_files": 128
   },
   "schema_version": 2,
   "vitest": {

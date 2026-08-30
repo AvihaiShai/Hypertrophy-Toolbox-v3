@@ -167,17 +167,23 @@ class TestScanExercisePlanDefault:
 
 
 class TestScanExportBounds:
-    def test_mirrors_allow_null_true(self, plan_row):
-        """export_plan_to_workout_log passes allow_null=True, so '' is accepted.
-
-        Scanning with the stricter default would report a row that the export
-        itself lets through — naming a field the row did not fail on.
-        """
+    def test_mirrors_independent_null_and_blank_policies(self, plan_row):
+        """The export accepts actual null but independently rejects exact blanks."""
         plan_row(column="min_rep_range", value="")
-        assert scan_export_bounds() == []
-        # The same row is a finding for the analysis surfaces, which validate
-        # with allow_null=False. The two scans are deliberately not the same.
-        assert len(scan_rep_ranges()) == 1
+        expected = {
+            "routine": ROUTINE,
+            "exercise": "Diagnostic Curl",
+            "reason": "Minimum reps must be a finite number.",
+        }
+        assert scan_export_bounds() == [expected]
+        assert scan_rep_ranges() == [expected]
+
+        # Existing nullable callers retain the legacy blank-clear contract;
+        # export and its scanner alone select the stricter blank policy.
+        assert validate_workout_bounds(min_reps="", allow_null=True) is None
+        assert validate_workout_bounds(
+            min_reps="", allow_null=True, allow_blank=False
+        ) == "Minimum reps must be a finite number."
 
     def test_reports_non_rep_columns_too(self, plan_row):
         """The export validates all four bounded columns, so the scan must too."""
