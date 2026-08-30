@@ -541,8 +541,9 @@ not prove the trigger. **Neither action is taken or authorized here.** See §13.
 
 **Priority:** P1 decision; P2 engineering if reopened  
 **Status:** ✅ **RULED 2026-08-29 — option 2, bounded investigation authorized; implementation
-withheld.** The documentation half is done (see the ruling below). The measurement half is
-**BLOCKED on runner access** and has not run.  
+withheld.** Both halves are now complete: the documentation half shipped as #454 (`8c844df`),
+and the measurement ran as run `33274031928` and **falsified** the hypothesis. **One owner
+decision remains — the terminal policy.**  
 **Estimate:** 2–4 hours to decide and reconcile docs; 2–5 developer-days to investigate and
 repair the rendering race
 
@@ -590,13 +591,32 @@ the mechanism is shown to sit outside test-side control.
 `maxDiffPixels: 800` / `threshold: 0`; retries; masks; crops; viewport narrowing; and any
 addition to `BYTE_GATE_EXEMPT`. **Implementation requires separate authorization.**
 
-⛔ **BLOCKED — the measurement has not run.** `dropCompositingHints()` is not in the tree
-(it lives only on closed #296's commits `947ba57` / `14344f3` / `bebb45c`), no workflow
-generates-and-self-compares, `visual-windows` has no generate mode and asserts no baseline
-was written, and neither runner image exists locally. Completing it needs a pushed branch
-plus a temporary workflow — beyond disposable local instrumentation — so it stopped for
-approval rather than broadening scope. The minimal proposed change is recorded with the V1
-report and is **not applied**.
+~~⛔ **BLOCKED — the measurement has not run.**~~ **✅ RUN AND CONCLUDED 2026-08-29 — the
+hypothesis is FALSIFIED.** The probe was authorized, built on `8c844df` as throwaway branch
+`probe/v1-drop-compositing-hints`, and executed as run
+[33274031928](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33274031928)
+(4 jobs, 12 generations, all success).
+
+Removing the compositor promotion at capture time does **not** make the corpus
+byte-deterministic. `ubuntu-24.04` went 3 → 1 unstable of 86; `windows-2022` went 3 → 3,
+fixing one capture and newly breaking `workout-plan-desktop-light`. `workout-plan-desktop-dark`
+is unstable in **all four arms**. A one-device-row shift explains 0–9.3% of the residual
+differing rows, against §8.2's "essentially every" — so **the residual is a different defect
+from the paint-offset rounding the hypothesis targeted**. Full evidence, per-image hashes and
+method: [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) **§9**.
+
+**Nothing was merged, no baseline committed, and no repair implemented.** The two blockers
+recorded here were real and are recorded as met rather than deleted: `dropCompositingHints()`
+was recovered from `947ba57` behind `PW_DROP_HINTS`, the five exemptions were made visible
+behind `PW_MEASURE_EXEMPT` without editing `BYTE_GATE_EXEMPT`, and — since GitHub resolves
+`workflow_dispatch` from the **default branch** (`HTTP 404: workflow v1-probe.yml not found
+on the default branch`) — the probe fired from a push trigger filtered to its own branch.
+
+⚠️ **What remains is one owner decision, and only that:** adopt **81 of 86 as terminal**
+(option 1), now supported by measurement rather than by exhaustion, or fund a **fresh**
+investigation starting from a new diagnosis of the current residual. The prohibitions in the
+ruling above — no regeneration, no tolerance increase, no retry, mask, crop, viewport change
+or `BYTE_GATE_EXEMPT` addition — continue to bind either way.
 
 **Acceptance criteria**
 

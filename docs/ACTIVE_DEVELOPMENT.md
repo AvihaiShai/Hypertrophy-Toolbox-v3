@@ -247,9 +247,15 @@ R1-D3 beyond recording the readings above.
 >   that shares the name is [#374](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/374) and was never in scope for that
 >   prohibition — see the naming key in this file's current-state block.
 > - **V1** was ruled the same day, and its documentation half shipped as
->   [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`). The V1
->   **measurement** half is **still blocked on runner access and unstarted**, and #454's ruling
->   stands exactly as recorded.
+>   [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`). ~~The V1
+>   **measurement** half is **still blocked on runner access and unstarted**~~ **SPENT
+>   2026-08-29 — the owner authorized the probe and it RAN**: run `33274031928`, 4 jobs / 12
+>   generations, all success, on `ubuntu-24.04` and `windows-2022`. The capture-side
+>   hypothesis is **falsified** — 3→1 unstable of 86 on Linux, 3→3 on Windows, and
+>   `workout-plan-desktop-dark` unstable in every arm. Nothing merged, no baseline
+>   committed, no repair implemented. Evidence: `visual_determinism/PLANNING.md` §9.
+>   #454's ruling otherwise stands exactly as recorded, and **the terminal-policy decision
+>   is now the only V1 item open**.
 > - **R2, R3 and R1-D3 are untouched.** The prohibition still holds for them in full, as it
 >   does for `js-unit` promotion (Q4 / D2), D4, branch-protection and repository-settings
 >   changes, tags, workflow dispatches and dependency merges.
