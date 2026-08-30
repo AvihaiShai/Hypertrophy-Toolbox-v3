@@ -71,7 +71,7 @@ const SECTIONS = ['filters', 'controls', 'exercise selection'] as const;
 /** Body background per theme, from the shipped tokens. */
 const BODY_BACKGROUND = {
   light: 'rgb(238, 241, 246)',
-  dark: 'rgb(15, 18, 32)',
+  dark: 'rgb(16, 20, 25)',
 } as const;
 
 const SEED_ROWS = 6;
@@ -169,6 +169,12 @@ for (const theme of THEMES) {
             tableVisible: visible(document.querySelector('[data-testid="exercise-table"]') as Element),
             wrapVisible: visible(document.querySelector('.tbl-wrap') as Element),
             surfaces: document.querySelectorAll('[data-visual-surface]').length,
+            routineTabHeights: Array.from(
+              document.querySelectorAll<HTMLElement>('#routine-tabs .routine-tab-btn'),
+            ).map((tab) => ({
+              routine: tab.dataset.routine,
+              height: tab.getBoundingClientRect().height,
+            })),
             scrollWidth: doc.scrollWidth,
             clientWidth: doc.clientWidth,
             // Nothing may be painted outside the document box the capture used
@@ -199,6 +205,12 @@ for (const theme of THEMES) {
         expect(layout.tableVisible, 'plan table is not visible').toBe(true);
         expect(layout.surfaces, 'visual-surface count changed').toBe(14);
         expect(layout.overhang, 'a surface is painted outside the document box').toEqual([]);
+        expect(layout.routineTabHeights.length, 'seeded routine tabs are missing').toBeGreaterThan(1);
+        const tabHeights = layout.routineTabHeights.map((tab) => tab.height);
+        expect(
+          Math.max(...tabHeights) - Math.min(...tabHeights),
+          `routine tabs have mismatched heights: ${JSON.stringify(layout.routineTabHeights)}`,
+        ).toBeLessThanOrEqual(1);
 
         // The advanced table is genuinely wider than the 1440px viewport. That
         // horizontal overflow is the shipped behaviour the captures recorded,

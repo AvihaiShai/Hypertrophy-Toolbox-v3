@@ -114,10 +114,30 @@ test.describe('Dark Mode Persistence', () => {
     await clickDarkModeToggle(page);
     expect(await getDarkModeState(page)).toBe('dark');
 
+    // Observe the first render opportunity in each new document. Delaying the
+    // end-of-body toggle script reproduces the old flash window; theme-init.js must
+    // already have restored dark mode from the parser-blocking head script.
+    await page.addInitScript(() => {
+      (window as typeof window & { __themeOnFirstFrame?: string | null }).__themeOnFirstFrame = null;
+      requestAnimationFrame(() => {
+        (window as typeof window & { __themeOnFirstFrame?: string | null }).__themeOnFirstFrame =
+          document.documentElement.getAttribute('data-theme');
+      });
+    });
+    await page.route('**/js/darkMode.js*', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      await route.continue();
+    });
+
     // Navigate to different pages and verify dark mode persists
     await page.goto(ROUTES.WORKOUT_PLAN);
     await waitForPageReady(page);
     expect(await getDarkModeState(page)).toBe('dark');
+    await expect(page.locator('#add_exercise_btn')).toHaveCSS('background-color', 'rgb(82, 100, 173)');
+    await expect(page.locator('#clear-plan-btn')).toHaveCSS('background-color', 'rgb(168, 79, 73)');
+    await expect.poll(() => page.evaluate(() =>
+      (window as typeof window & { __themeOnFirstFrame?: string | null }).__themeOnFirstFrame
+    )).toBe('dark');
 
     await page.goto(ROUTES.WEEKLY_SUMMARY);
     await waitForPageReady(page);
@@ -126,6 +146,31 @@ test.describe('Dark Mode Persistence', () => {
     await page.goto(ROUTES.VOLUME_SPLITTER);
     await waitForPageReady(page);
     expect(await getDarkModeState(page)).toBe('dark');
+    await expect(page.locator('#export-to-excel-btn')).toHaveCSS('background-color', 'rgb(63, 111, 94)');
+    await expect(page.locator('#export-to-excel-btn')).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect.poll(() => page.evaluate(() =>
+      (window as typeof window & { __themeOnFirstFrame?: string | null }).__themeOnFirstFrame
+    )).toBe('dark');
+
+    await page.goto(ROUTES.BODY_COMPOSITION);
+    await waitForPageReady(page);
+    expect(await getDarkModeState(page)).toBe('dark');
+    await expect(page.locator('.body-composition-panel').first()).toHaveCSS('background-color', 'rgb(25, 32, 40)');
+    await expect(page.locator('.frame-title').first()).toHaveCSS('color', 'rgb(243, 246, 250)');
+    await expect(page.locator('.bc-form-help')).toHaveCSS('color', 'rgb(150, 162, 177)');
+    await expect(page.locator('.bc-trend')).toHaveCSS('background-color', 'rgb(38, 49, 61)');
+    await expect.poll(() => page.evaluate(() =>
+      (window as typeof window & { __themeOnFirstFrame?: string | null }).__themeOnFirstFrame
+    )).toBe('dark');
+
+    await page.goto(ROUTES.BACKUP);
+    await waitForPageReady(page);
+    expect(await getDarkModeState(page)).toBe('dark');
+    await expect(page.locator(SELECTORS.PAGE_BACKUP)).toHaveCSS('color', 'rgb(243, 246, 250)');
+    await expect(page.locator('#backup-center-save-submit')).toHaveCSS('background-color', 'rgb(82, 100, 173)');
+    await expect.poll(() => page.evaluate(() =>
+      (window as typeof window & { __themeOnFirstFrame?: string | null }).__themeOnFirstFrame
+    )).toBe('dark');
   });
 
   // Register row X6. darkMode.js suppresses transitions for the two frames

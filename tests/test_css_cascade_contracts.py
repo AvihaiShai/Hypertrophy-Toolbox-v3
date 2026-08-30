@@ -38,9 +38,10 @@ ROUTE_BUNDLES = {
 }
 LAYER_ORDER = ("workout", "navbar", "workout-dropdowns", "welcome")
 # WP4.3j-c-dead: the region-H metric-lane block, the one page-local paint family
-# on the Workout Log page that wins. Locked byte-for-byte. WP4.3j-d corrected
-# the original anchor, which accidentally started at an earlier prose mention.
-REGION_H_SHA256 = "18658442af0598e5612be704b7e655d14b1dab689efd404138d90a7a93988818"
+# on the Workout Log page that wins. Locked byte-for-byte; intentional palette
+# changes update this digest. WP4.3j-d corrected the original anchor, which
+# accidentally started at an earlier prose mention.
+REGION_H_SHA256 = "b973c7484d062bf90880a6b2eee8dcf11d852b4ed868e25b4471637bef0e2442"
 FRAME_ROUTE_BUNDLES = {
     "plan": "pages-workout-plan.css",
     "log": "pages-workout-log.css",
@@ -1072,6 +1073,7 @@ def test_workout_plan_muscle_selector_drops_dead_local_token_fallbacks() -> None
         "--success: #10b981;",
         "--warning: #f59e0b;",
         "--danger: #ef4444;",
+        "--action-primary: var(--accent);",
     ):
         assert token_def in tokens
 
@@ -1084,7 +1086,7 @@ def test_workout_plan_muscle_selector_drops_dead_local_token_fallbacks() -> None
 
     # The tokens are now consumed bare, matching the sibling-bundle convention.
     for bare in (
-        "background: var(--accent);",
+        "background: var(--action-primary);",
         "color: var(--ink-2);",
         "color-mix(in srgb, var(--accent) 75%, var(--ink-1))",
         "color-mix(in srgb, var(--danger) 78%, var(--ink-2))",
@@ -1527,9 +1529,11 @@ def test_workout_log_drops_inert_responsive_table_and_frame_families() -> None:
     # None of the declarations WP4.3j-b-dead removed carried `!important`, so
     # that packet left the count unchanged at 285. WP4.3j-c-dead then removed
     # 68 important declarations along with its 37 cascade-dead rules, taking it
-    # to 217. WP4.3j-d-hover-paint then removed four more, taking it to 213; the
-    # current total is owned by the two Workout Log dead-CSS contracts below.
-    assert body.count("!important") == 213
+    # to 217. WP4.3j-d-hover-paint then removed four more, taking it to 213.
+    # The dark-tone refresh adds 29 scoped declarations to beat legacy shared
+    # glass rules that themselves use `!important`; keep that intentional delta
+    # locked so unrelated changes cannot silently add more cascade weight.
+    assert body.count("!important") == 242
 
 
 def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
@@ -1636,7 +1640,7 @@ def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
         ),
         (
             "[data-theme='dark'] .tbl.workout-log-table tbody tr:hover td",
-            "filter: saturate(1.05) brightness(1.03);",
+            "filter: saturate(0.96) brightness(1.02);",
         ),
     ):
         assert hover_selector in body
@@ -1648,7 +1652,7 @@ def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
     assert body.count("filter: saturate(") == 3
     assert ".workout-log-table tbody tr:hover td" in body
 
-    # --- 4. Region H, the (1,5,2) lane system, is byte-for-byte intact. ------
+    # --- 4. Region H, the (1,5,2) lane system, matches its approved digest. --
     # It is the one page-local family on this page that renders, because it
     # matches the shared owner's ID-level specificity deliberately rather than
     # answering it with more `!important`.
@@ -1667,16 +1671,16 @@ def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
         == REGION_H_SHA256
     )
 
-    # --- 5. The nine declarations the audit could not verify remain. ---------
-    # Eight are dark planned/scored lane-header properties in region H; the
-    # ninth is the base header `text-transform` in region A. None is
-    # classified dead and none was touched here.
+    # --- 5. The unverified declarations remain structurally represented. -----
+    # The dark planned/scored header paint was intentionally softened; this
+    # keeps the same declarations while locking the lower-chroma replacements.
+    # The ninth declaration is the untouched base-header text transform.
     assert "text-transform: none !important;" in body
     for unverified in (
-        "background-color: rgba(var(--metric-dark-rgb), 0.28) !important;",
-        "border-bottom-color: rgba(var(--metric-dark-rgb), 0.42) !important;",
-        "background-color: rgba(var(--metric-dark-rgb), 0.42) !important;",
-        "border-bottom-color: rgba(var(--metric-dark-rgb), 0.56) !important;",
+        "background-color: color-mix(in srgb, rgb(var(--metric-dark-rgb)) 14%, var(--surface-1, #192028)) !important;",
+        "border-bottom-color: rgba(var(--metric-dark-rgb), 0.22) !important;",
+        "background-color: color-mix(in srgb, rgb(var(--metric-dark-rgb)) 22%, var(--surface-1, #192028)) !important;",
+        "border-bottom-color: rgba(var(--metric-dark-rgb), 0.3) !important;",
         "color: var(--metric-heading-dark, rgba(255, 255, 255, 0.95)) !important;",
     ):
         assert unverified in body
@@ -1729,8 +1733,10 @@ def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
     # 68 `!important` declarations left with the 37 rules (285 -> 217). The j-c
     # audit projected 71 because it counted region F over its line span, which
     # also covers the retained editable-input and badge rules. WP4.3j-d then
-    # removed four cascade-dead hover-paint declarations (217 -> 213).
-    assert body.count("!important") == 213
+    # removed four cascade-dead hover-paint declarations (217 -> 213). The
+    # scoped dark-tone refresh adds 29 declarations to beat legacy shared glass
+    # rules, yielding the intentional current total below.
+    assert body.count("!important") == 242
 
 
 def _assert_workout_log_hover_rules_are_filter_only(css: str) -> None:
@@ -1749,7 +1755,7 @@ def _assert_workout_log_hover_rules_are_filter_only(css: str) -> None:
             "[data-theme='dark'] .workout-log-frame .tbl tbody tr:hover td,\n"
             "[data-theme='dark'] .workout-log-frame .tbl--responsive tbody tr:hover td",
             "[data-theme='dark'] .workout-log-frame .tbl--responsive tbody tr:hover td",
-            "filter: saturate(1.05) brightness(1.03);",
+            "filter: saturate(0.96) brightness(1.02);",
         ),
     )
     for selector_list, final_selector, expected_filter in hover_rules:

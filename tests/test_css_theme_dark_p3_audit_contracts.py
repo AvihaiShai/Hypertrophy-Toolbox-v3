@@ -223,7 +223,7 @@ def test_the_walk_does_not_mistake_a_bundle_name_list_for_a_file_read() -> None:
         for record in records
         if str(record["file"]).endswith("test_css_cascade_contracts.py")
     ]
-    assert {int(str(record["line"])) for record in cascade} == {1006, 1007}
+    assert {int(str(record["line"])) for record in cascade} == {1007, 1008}
 
 
 def _check_self_exclusion_is_counted(bucket: dict[str, object]) -> None:
@@ -342,7 +342,7 @@ def test_the_block_budget_is_derived_from_the_file_and_the_bound_red_path(
         [
             (
                 ':where([data-theme="dark"] .frame-content) {\n'
-                "    background: rgba(26, 26, 34, 0.5) !important;\n"
+                "    background: transparent !important;\n"
                 "}\n",
                 "",
                 1,
@@ -441,7 +441,7 @@ def test_the_value_changed_floor_is_emitted_with_zero_headroom_red_path(
 def _check_backdrop_pin_is_satisfiable_by_absence(
     readers: list[dict[str, object]],
 ) -> None:
-    row = _row(readers, "test_css_cascade_contracts.py:1007")
+    row = _row(readers, "test_css_cascade_contracts.py:1008")
     assert row["satisfiableByAbsence"] is True, (
         "the cascade contract's backdrop-filter pin is no longer detected as "
         "satisfiable by absence; if it was repaired, this contract is obsolete "
@@ -453,7 +453,7 @@ def _check_backdrop_pin_is_satisfiable_by_absence(
 def test_the_backdrop_filter_pin_is_detected_as_satisfiable_by_absence() -> None:
     """O14, on the sharpest live instance in this arc's scope.
 
-    ``tests/test_css_cascade_contracts.py:1007`` is a bare substring check for
+    ``tests/test_css_cascade_contracts.py:1008`` is a bare substring check for
     ``backdrop-filter: blur(8px) !important;``. The detector reports how many
     lines in the file satisfy it, which is the number that decides whether the
     pin can notice the loss of the line it exists to protect.
@@ -478,7 +478,7 @@ def test_the_backdrop_filter_pin_is_detected_as_satisfiable_by_absence_red_path(
         ],
     )
     readers = p3_ceiling.theme_dark_readers(tests_dir=ROOT / "tests", css_path=css)
-    row = _row(readers, "test_css_cascade_contracts.py:1007")
+    row = _row(readers, "test_css_cascade_contracts.py:1008")
     assert row["pinnedLiteralOccurrencesInCss"] == 1
     with pytest.raises(AssertionError):
         _check_backdrop_pin_is_satisfiable_by_absence(readers)
@@ -1133,7 +1133,7 @@ def test_the_two_backdrop_filter_neutralizers_are_registered_independently() -> 
     ``backdrop-filter: none !important;`` while the helper's own
     ``-webkit-backdrop-filter: none !important;`` line *contains* that string —
     so deleting the neutralizer the entry described left its evidence satisfied,
-    the identical defect as ``tests/test_css_cascade_contracts.py:1007``.
+    the identical defect as ``tests/test_css_cascade_contracts.py:1008``.
 
     Identity is now ``(stage, selector, property)``, and one property cannot
     stand in for another. This asserts the repair on the case that named it.
@@ -1163,8 +1163,8 @@ def test_the_two_backdrop_filter_neutralizers_are_registered_independently() -> 
 def _check_register_reach(reach: dict[str, object]) -> None:
     assert reach["contractFilesCoverTheThemeDarkPacketContract"] is False
     assert set(reach["ceilingRowsReachable"]) == {  # type: ignore[arg-type]
-        "cascade_contracts.py:1006",
         "cascade_contracts.py:1007",
+        "cascade_contracts.py:1008",
     }
     assert int(reach["ceilingRowsUnreachableCount"]) > 0  # type: ignore[arg-type]
 

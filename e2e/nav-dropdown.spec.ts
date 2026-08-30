@@ -71,6 +71,16 @@ test.describe('P5 navbar dropdown and backup navigation', () => {
         .map((link) => (link.textContent || '').trim().replace(/\s+/g, ' '))
     );
     expect(overflowingLabels).toEqual([]);
+
+    const brandPadding = await page.locator(SELECTORS.NAV_BRAND).evaluate((brand) => {
+      const style = getComputedStyle(brand);
+      return {
+        left: Number.parseFloat(style.paddingLeft),
+        right: Number.parseFloat(style.paddingRight),
+      };
+    });
+    expect(brandPadding.left).toBeGreaterThanOrEqual(12);
+    expect(brandPadding.right).toBeGreaterThanOrEqual(12);
   });
 
   test('Analyze dropdown opens on hover and contains Weekly and Session links', async ({ page }) => {

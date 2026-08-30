@@ -7,6 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hypertrophy Toolbox{% endblock %}</title>
 
+    <!-- Restore the saved theme before CSS can paint to prevent light-mode flashes. -->
+    <script src="{{ url_for('static', filename='js/theme-init.js') }}?v={{ app_version }}"></script>
+
     <!-- Core Stylesheets (Always Loaded) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/inter/inter.css') }}?v={{ app_version }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v={{ app_version }}">

@@ -94,7 +94,7 @@
 }
 
 :where([data-theme="dark"] .frame-content) {
-    background: rgba(26, 26, 34, 0.5) !important;
+    background: transparent !important;
 }
 
 :where([data-theme="dark"] .frame-header) {

@@ -1,6 +1,6 @@
 # CSS Ownership Map
 
-Last updated: 2026-08-25, re-measured against `templates/base.html` and the route templates at `5ca4191`. Load order has changed since the 2026-05-23 revision (item 6) and item 2's route-bundle statement is corrected. Ownership assignments were re-checked and are unchanged.
+Last updated: 2026-08-27, line citations re-measured against `templates/base.html` after the dark-theme packet inserted a parser-blocking `js/theme-init.js` tag in the head. Every line number below moved by +3; the link **order**, the bundle inventory and the ownership assignments are unchanged. The 2026-08-25 revision re-measured against the route templates at `5ca4191`, corrected item 2 and recorded the load-order drift in item 6; both still stand.
 
 This document reflects the active CSS loading model after the Calm Glass redesign cleanup, the Backup Center page, the Profile page, and the Body Composition page.
 
@@ -10,27 +10,27 @@ This document reflects the active CSS loading model after the Calm Glass redesig
 2. Ten route templates add exactly one route bundle each through `{% block page_css %}`. Two others add none: `templates/error.html` declares the block and deliberately leaves it empty, and `templates/fatigue.html` (`GET /fatigue`) declares no `page_css` block at all. Both render on the global bundles alone.
 3. The steady-state app surface is 18 application CSS files: 8 global bundles plus 10 page bundles, excluding Bootstrap.
 4. Legacy aggregate and per-feature source files from the redesign migration are no longer part of the runtime loading graph.
-5. **Load order is cascade-significant and two globals load *after* the page bundle.** Measured in `templates/base.html`: `tokens.css` (:12), `bootstrap.custom.min.css` (:13), `base.css` (:17), `layout.css` (:18), `components.css` (:19), `navbar.css` (:20), `a11y.css` (:21), **the page bundle (:24)**, then `motion.css` (:25) and `theme-dark.css` (:26) — so those two are the only globals that can beat a route bundle at equal specificity.
+5. **Load order is cascade-significant and two globals load *after* the page bundle.** Measured in `templates/base.html`: `tokens.css` (:15), `bootstrap.custom.min.css` (:16), `base.css` (:20), `layout.css` (:21), `components.css` (:22), `navbar.css` (:23), `a11y.css` (:24), **the page bundle (:27)**, then `motion.css` (:28) and `theme-dark.css` (:29) — so those two are the only globals that can beat a route bundle at equal specificity. Nothing paints before `tokens.css`: the only tag above it is the parser-blocking `js/theme-init.js` (:11), which sets `data-theme` on `<html>` so the first stylesheet already resolves against the correct theme.
 6. **This is drift since the 2026-05-23 revision.** Read at `d5b80bf` (2026-05-23 23:40 +03), the last commit on or before that date, `tokens.css` loaded at `:26`, after `{% block page_css %}` at `:25`; it now loads first, so it went from overriding route bundles to being overridden by them. A route bundle that relies on beating a token declaration must be re-measured rather than assumed.
 
 ## Always-Loaded Core CSS
 
 These styles are linked directly from `templates/base.html` and should be treated as shared app-wide CSS:
 
-Listed in measured link order. Line numbers skip `:11` and `:14`, which are the two `static/vendor/` links (Inter, Font Awesome); every **global** row below is a `static/css/` link. The italicised row is the page bundle's injection point, not a global file, and can itself carry a `static/vendor/` sheet — see `progression_plan.html` under Page-Specific CSS Loading.
+Listed in measured link order. Line numbers skip `:14` and `:17`, which are the two `static/vendor/` links (Inter, Font Awesome), and `:11`, the `js/theme-init.js` script; every **global** row below is a `static/css/` link. The italicised row is the page bundle's injection point, not a global file, and can itself carry a `static/vendor/` sheet — see `progression_plan.html` under Page-Specific CSS Loading.
 
 | Load | File | Ownership / purpose |
 |---|------|----------------------|
-| `base.html:12` | `tokens.css` | Design tokens, spacing, and responsive scale variables |
-| `base.html:13` | `bootstrap.custom.min.css` | Bootstrap build artifact |
-| `base.html:17` | `base.css` | Element defaults, app background, and baseline typography |
-| `base.html:18` | `layout.css` | Shared layout structure and responsive shell behavior |
-| `base.html:19` | `components.css` | Buttons, forms, tables, cards, modals, tooltips, toasts, and calm overlay primitives |
-| `base.html:20` | `navbar.css` | Global navbar layout and calm glass navbar presentation |
-| `base.html:21` | `a11y.css` | Accessibility controls, scale system, focus fixes, and Firefox fallbacks |
-| *`base.html:24`* | *`{% block page_css %}`* | *Route bundle injection point — see Page-Specific CSS Loading below* |
-| `base.html:25` | `motion.css` | Shared animations and reduced-motion behavior |
-| `base.html:26` | `theme-dark.css` | Dark-theme tokens and shared dark overrides |
+| `base.html:15` | `tokens.css` | Design tokens, spacing, and responsive scale variables |
+| `base.html:16` | `bootstrap.custom.min.css` | Bootstrap build artifact |
+| `base.html:20` | `base.css` | Element defaults, app background, and baseline typography |
+| `base.html:21` | `layout.css` | Shared layout structure and responsive shell behavior |
+| `base.html:22` | `components.css` | Buttons, forms, tables, cards, modals, tooltips, toasts, and calm overlay primitives |
+| `base.html:23` | `navbar.css` | Global navbar layout and calm glass navbar presentation |
+| `base.html:24` | `a11y.css` | Accessibility controls, scale system, focus fixes, and Firefox fallbacks |
+| *`base.html:27`* | *`{% block page_css %}`* | *Route bundle injection point — see Page-Specific CSS Loading below* |
+| `base.html:28` | `motion.css` | Shared animations and reduced-motion behavior |
+| `base.html:29` | `theme-dark.css` | Dark-theme tokens and shared dark overrides |
 
 ## Page-Specific CSS Loading
 

@@ -25,7 +25,7 @@ button[type="submit"].btn {
     transition: all 0.3s ease !important;
     border: none !important;
     cursor: pointer !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.4) !important;
+    box-shadow: var(--button-shadow, 0 4px 12px rgba(0,0,0,0.08)) !important;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
 }
@@ -276,20 +276,20 @@ button[type="submit"].btn {
 
 /* Export to Excel Button - Volume Splitter */
 #export-to-excel-btn.btn {
-    background-color: #E8F5E9 !important;  /* Light green */
-    color: #2E7D32 !important;  /* Dark green text */
-    border: 1px solid #C8E6C9 !important;  /* Medium green border */
+    background-color: var(--action-success, #E8F5E9) !important;  /* Light green */
+    color: var(--action-success-ink, #2E7D32) !important;  /* Dark green text */
+    border: 1px solid var(--action-success-border, #C8E6C9) !important;  /* Medium green border */
 }
 
 #export-to-excel-btn.btn:hover {
-    background-color: #C8E6C9 !important;  /* Slightly darker on hover */
-    border-color: #2E7D32 !important;
+    background-color: var(--action-success-hover, #C8E6C9) !important;  /* Slightly darker on hover */
+    border-color: var(--action-success-hover-border, #2E7D32) !important;
     transform: translateY(-2px);
 }
 
 #export-to-excel-btn.btn:active {
     transform: translateY(1px);
-    background-color: #A5D6A7 !important;  /* Even darker when clicked */
+    background-color: var(--action-success-active, #A5D6A7) !important;  /* Even darker when clicked */
 }
 
 /* =================================================================
@@ -3152,8 +3152,8 @@ body.modal-open > .container-fluid.mt-4 {
 
 :where(.btn).btn-calm-primary,
 .btn.btn-calm-primary {
-  background: var(--accent, #4c6ef5) !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 78%, white 22%) !important;
+  background: var(--action-primary, #4c6ef5) !important;
+  border: 1px solid var(--action-primary-border, #7088f7) !important;
   box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
   color: var(--accent-ink, #ffffff) !important;
   min-width: 0 !important;
@@ -3164,8 +3164,8 @@ body.modal-open > .container-fluid.mt-4 {
 .btn.btn-calm-primary:hover,
 :where(.btn).btn-calm-primary:focus-visible,
 .btn.btn-calm-primary:focus-visible {
-  background: color-mix(in srgb, var(--accent, #4c6ef5) 88%, #243b8f 12%) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 84%, white 16%) !important;
+  background: var(--action-primary-hover, #475fdf) !important;
+  border-color: var(--action-primary-hover-border, #687ff6) !important;
   box-shadow: var(--shadow-elev-2, 0 8px 24px rgba(15, 18, 32, 0.10)) !important;
   color: var(--accent-ink, #ffffff) !important;
   transform: translateY(-1px) !important;
@@ -3388,8 +3388,8 @@ body.modal-open > .container-fluid.mt-4 {
 }
 
 [data-theme='dark'] .progression-plan-container .table.table-calm, [data-theme='dark'] :is(#workout[data-page="workout-plan"], .workout-log-page, .summary-frame.frame-calm-glass) .table.table-calm {
-  background: var(--calm-glass-bg, rgba(29, 34, 56, 0.55)) !important;
-  box-shadow: var(--shadow-neu-out, 8px 8px 20px rgba(0, 0, 0, 0.55), -8px -8px 20px rgba(255, 255, 255, 0.04)) !important;
+  background: var(--surface-0, #101419) !important;
+  box-shadow: var(--shadow-neu-in) !important;
 }
 
 [data-theme='dark'] .progression-plan-container .table.table-calm thead th, [data-theme='dark'] :is(#workout[data-page="workout-plan"], .workout-log-page, .summary-frame.frame-calm-glass) .table.table-calm thead th {
@@ -3413,8 +3413,8 @@ body.modal-open > .container-fluid.mt-4 {
 :where(.btn).btn-calm-danger,
 .btn.btn-calm-danger {
   align-items: center !important;
-  background: color-mix(in srgb, var(--danger, #ef4444) 90%, #7f1d1d 10%) !important;
-  border: 1px solid color-mix(in srgb, var(--danger, #ef4444) 78%, white 22%) !important;
+  background: var(--action-danger, #e53f3f) !important;
+  border: 1px solid var(--action-danger-border, #f16d6d) !important;
   border-radius: 8px !important;
   box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
   color: #ffffff !important;
@@ -3432,7 +3432,7 @@ body.modal-open > .container-fluid.mt-4 {
 .btn.btn-calm-danger:hover,
 :where(.btn).btn-calm-danger:focus-visible,
 .btn.btn-calm-danger:focus-visible {
-  background: color-mix(in srgb, var(--danger, #ef4444) 82%, #7f1d1d 18%) !important;
+  background: var(--action-danger-hover, #d83a3a) !important;
   box-shadow: var(--shadow-elev-2, 0 8px 24px rgba(15, 18, 32, 0.10)) !important;
   color: #ffffff !important;
   transform: translateY(-1px) !important;
@@ -3504,8 +3504,8 @@ body.modal-open > .container-fluid.mt-4 {
 
 #workout[data-page="workout-plan"] .frame-calm-glass .routine-tab-btn.active,
 #workout[data-page="workout-plan"] .frame-calm-glass .routine-tab-btn[aria-selected="true"] {
-  background: var(--accent, #4c6ef5) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 80%, white 20%) !important;
+  background: var(--action-primary, #4c6ef5) !important;
+  border-color: var(--action-primary-border, #7088f7) !important;
   box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
   color: var(--accent-ink, #ffffff) !important;
 }
@@ -3540,9 +3540,9 @@ body.modal-open > .container-fluid.mt-4 {
 #workout[data-page="workout-plan"] .btn.btn-calm-primary,
 #workout[data-page="workout-plan"] :where(.btn).btn-calm-primary,
 #workout[data-page="workout-plan"] .modal-content.frame-calm-glass .btn.btn-calm-primary {
-  background: var(--accent, #4c6ef5) !important;
+  background: var(--action-primary, #4c6ef5) !important;
   background-image: none !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 78%, white 22%) !important;
+  border: 1px solid var(--action-primary-border, #7088f7) !important;
   border-radius: 8px !important;
   box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
   color: var(--accent-ink, #ffffff) !important;
@@ -3553,9 +3553,9 @@ body.modal-open > .container-fluid.mt-4 {
 #workout[data-page="workout-plan"] :where(.btn).btn-calm-primary:hover:not(:disabled),
 #workout[data-page="workout-plan"] .btn.btn-calm-primary:focus-visible,
 #workout[data-page="workout-plan"] :where(.btn).btn-calm-primary:focus-visible {
-  background: color-mix(in srgb, var(--accent, #4c6ef5) 88%, #243b8f 12%) !important;
+  background: var(--action-primary-hover, #475fdf) !important;
   background-image: none !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 84%, white 16%) !important;
+  border-color: var(--action-primary-hover-border, #687ff6) !important;
   color: var(--accent-ink, #ffffff) !important;
 }
 
@@ -3587,9 +3587,9 @@ body.modal-open > .container-fluid.mt-4 {
 #workout[data-page="workout-plan"] .btn.btn-calm-danger,
 #workout[data-page="workout-plan"] :where(.btn).btn-calm-danger,
 #workout[data-page="workout-plan"] .modal-content.frame-calm-glass .btn.btn-calm-danger {
-  background: color-mix(in srgb, var(--danger, #ef4444) 88%, #7f1d1d 12%) !important;
+  background: var(--action-danger, #e53f3f) !important;
   background-image: none !important;
-  border: 1px solid color-mix(in srgb, var(--danger, #ef4444) 78%, white 22%) !important;
+  border: 1px solid var(--action-danger-border, #f16d6d) !important;
   border-radius: 8px !important;
   box-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06)) !important;
   color: #ffffff !important;
@@ -3600,9 +3600,9 @@ body.modal-open > .container-fluid.mt-4 {
 #workout[data-page="workout-plan"] :where(.btn).btn-calm-danger:hover:not(:disabled),
 #workout[data-page="workout-plan"] .btn.btn-calm-danger:focus-visible,
 #workout[data-page="workout-plan"] :where(.btn).btn-calm-danger:focus-visible {
-  background: color-mix(in srgb, var(--danger, #ef4444) 80%, #7f1d1d 20%) !important;
+  background: var(--action-danger-hover, #d83a3a) !important;
   background-image: none !important;
-  border-color: color-mix(in srgb, var(--danger, #ef4444) 84%, white 16%) !important;
+  border-color: var(--action-danger-hover-border, #ef6868) !important;
   color: #ffffff !important;
 }
 
@@ -3738,21 +3738,21 @@ body.modal-open > .container-fluid.mt-4 {
 [data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset[type="number"],
 [data-theme='dark'] #workout[data-page="workout-plan"] .filter-dropdown.input-calm-inset,
 [data-theme='dark'] #workout[data-page="workout-plan"] .exercise-dropdown.input-calm-inset {
-  background: color-mix(in srgb, var(--surface-2, #1d2238) 84%, transparent) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #1d2238) 84%, transparent) !important;
+  background: var(--surface-0, #101419) !important;
+  background-color: var(--surface-0, #101419) !important;
   background-image: none !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 26%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 74%) !important;
-  box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(0, 0, 0, 0.55), inset -4px -4px 10px rgba(255, 255, 255, 0.04)) !important;
+  border-color: color-mix(in srgb, var(--ink-3, #96a2b1) 34%, transparent) !important;
+  box-shadow: var(--shadow-neu-in) !important;
   color: var(--ink-1, #eef1f6) !important;
 }
 
 [data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group .input-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range),
 [data-theme='dark'] #workout[data-page="workout-plan"] .input-fields-group input.input-calm-inset:is(#weight, #sets, #rir, #rpe, #min_rep, #max_rep_range) {
-  background: color-mix(in srgb, var(--surface-2, #1d2238) 84%, transparent) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #1d2238) 84%, transparent) !important;
+  background: var(--surface-0, #101419) !important;
+  background-color: var(--surface-0, #101419) !important;
   background-image: none !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 26%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 74%) !important;
-  box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(0, 0, 0, 0.55), inset -4px -4px 10px rgba(255, 255, 255, 0.04)) !important;
+  border-color: color-mix(in srgb, var(--ink-3, #96a2b1) 34%, transparent) !important;
+  box-shadow: var(--shadow-neu-in) !important;
   color: var(--ink-1, #eef1f6) !important;
 }
 
@@ -4211,7 +4211,7 @@ body.modal-open > .container-fluid.mt-4 {
 
 .progression-plan-container .frame-calm-glass {
   background: color-mix(in srgb, var(--surface-2, #ffffff) 72%, transparent) !important;
-  border: 1px solid color-mix(in srgb, var(--accent, #4c6ef5) 12%, transparent) !important;
+  border: 1px solid var(--calm-glass-border, rgba(255, 255, 255, 0.65)) !important;
   border-radius: 8px !important;
   padding: var(--s-4, 16px) !important;
 }
@@ -4226,7 +4226,7 @@ body.modal-open > .container-fluid.mt-4 {
 }
 
 [data-theme='dark'] .progression-plan-container .frame-calm-glass {
-  background: color-mix(in srgb, var(--surface-2, #1d2238) 74%, transparent) !important;
+  background: var(--surface-1, #192028) !important;
 }
 
 [data-theme='dark'] .progression-plan-container .glass-neumorph-card {
@@ -4247,8 +4247,8 @@ body.modal-open > .container-fluid.mt-4 {
 
 [data-theme='dark'] .progression-plan-container .form-control.input-calm-inset,
 [data-theme='dark'] .progression-plan-container .form-select.input-calm-inset {
-  background: color-mix(in srgb, var(--surface-2, #1d2238) 84%, transparent) !important;
-  background-color: color-mix(in srgb, var(--surface-2, #1d2238) 84%, transparent) !important;
+  background: var(--surface-0, #101419) !important;
+  background-color: var(--surface-0, #101419) !important;
   background-image: none !important;
   border-color: color-mix(in srgb, var(--accent, #4c6ef5) 26%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 74%) !important;
   box-shadow: var(--shadow-neu-in, inset 4px 4px 10px rgba(0, 0, 0, 0.55), inset -4px -4px 10px rgba(255, 255, 255, 0.04)) !important;
@@ -4261,8 +4261,8 @@ body.modal-open > .container-fluid.mt-4 {
 
 [data-theme='dark'] .progression-plan-container .form-control.input-calm-inset:hover:not(:disabled),
 [data-theme='dark'] .progression-plan-container .form-select.input-calm-inset:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface-1, #161a2d) 82%, var(--accent, #4c6ef5) 18%) !important;
-  background-color: color-mix(in srgb, var(--surface-1, #161a2d) 82%, var(--accent, #4c6ef5) 18%) !important;
+  background: color-mix(in srgb, var(--surface-0, #101419) 86%, var(--accent, #4c6ef5) 14%) !important;
+  background-color: color-mix(in srgb, var(--surface-0, #101419) 86%, var(--accent, #4c6ef5) 14%) !important;
   border-color: color-mix(in srgb, var(--accent, #4c6ef5) 34%, var(--calm-glass-border, rgba(255, 255, 255, 0.08)) 66%) !important;
 }
 
@@ -4270,8 +4270,8 @@ body.modal-open > .container-fluid.mt-4 {
 [data-theme='dark'] .progression-plan-container .form-control.input-calm-inset:focus-visible,
 [data-theme='dark'] .progression-plan-container .form-select.input-calm-inset:focus,
 [data-theme='dark'] .progression-plan-container .form-select.input-calm-inset:focus-visible {
-  background: var(--surface-2, #1d2238) !important;
-  background-color: var(--surface-2, #1d2238) !important;
+  background: var(--surface-0, #101419) !important;
+  background-color: var(--surface-0, #101419) !important;
   border-color: color-mix(in srgb, var(--accent, #4c6ef5) 48%, white 12%) !important;
   box-shadow:
     var(--shadow-neu-in, inset 4px 4px 10px rgba(0, 0, 0, 0.55), inset -4px -4px 10px rgba(255, 255, 255, 0.04)),
@@ -4321,8 +4321,8 @@ body.modal-open > .container-fluid.mt-4 {
 }
 
 .volume-splitter-container .mode-toggle .btn-group .btn-check:checked + .btn-outline-primary.btn-calm-ghost {
-  background: var(--accent, #4c6ef5) !important;
-  border-color: color-mix(in srgb, var(--accent, #4c6ef5) 78%, white 22%) !important;
+  background: var(--action-primary, #4c6ef5) !important;
+  border-color: var(--action-primary-border, #7088f7) !important;
   color: var(--accent-ink, #ffffff) !important;
 }
 

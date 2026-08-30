@@ -810,18 +810,23 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   'workout_plan:dark': [
     { rule: 'aria-allowed-attr', nodes: 5 },
     { rule: 'aria-hidden-focus', nodes: 14 },
-    { rule: 'color-contrast', nodes: 7 },
+    { rule: 'color-contrast', nodes: 1 },
   ],
 
   'workout_log:light': [{ rule: 'color-contrast', nodes: 2 }],
-  'workout_log:dark': [{ rule: 'color-contrast', nodes: 3 }],
+  // The muted route palette clears the two action-button findings, and its
+  // route-owned guidance tone clears the last dark contrast finding.
+  'workout_log:dark': [],
 
   // Dark scores *better* than light on both summaries: the muted greys that
-  // fail on white clear the bar on the dark surface.
+  // fail on white clear the bar on the dark surface. The brighter dark ink
+  // ramp then cleared the single remaining node on each, so both dark rows
+  // are now empty. Neither page has a route bundle change in this packet --
+  // this is the shared `--ink-2`/`--ink-3` lift reaching them.
   'weekly_summary:light': [{ rule: 'color-contrast', nodes: 4 }],
-  'weekly_summary:dark': [{ rule: 'color-contrast', nodes: 1 }],
+  'weekly_summary:dark': [],
   'session_summary:light': [{ rule: 'color-contrast', nodes: 4 }],
-  'session_summary:dark': [{ rule: 'color-contrast', nodes: 1 }],
+  'session_summary:dark': [],
 
   // Clean since X11 closed: `#exerciseSelect` takes its name from the `<h4>`
   // above it, and nothing else on the route fails.
@@ -829,22 +834,24 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
   'progression:dark': [],
 
   'body_composition:light': [{ rule: 'color-contrast', nodes: 2 }],
-  'body_composition:dark': [{ rule: 'color-contrast', nodes: 4 }],
+  // Page-owned dark copy and chart surfaces clear all four prior contrast nodes.
+  'body_composition:dark': [],
 
   'volume_splitter:light': [{ rule: 'color-contrast', nodes: 2 }],
-  // Final dark paint is 2. A merge-time correction raised this to 3 after #365,
-  // but that reading still came from the body-only settlement helper and the
-  // extra node was transition paint, not a final-state violation. Holding the
-  // whole document's computed paint stable produced 2 in every stress repeat.
-  'volume_splitter:dark': [{ rule: 'color-contrast', nodes: 2 }],
+  // The dark success-action ramp clears both former Excel-action findings.
+  'volume_splitter:dark': [],
 
   'backup:light': [{ rule: 'color-contrast', nodes: 2 }],
-  'backup:dark': [{ rule: 'color-contrast', nodes: 2 }],
+  // The dedicated Backup Center dark palette clears both light-surface
+  // contrast findings; light keeps its two page-owned muted-copy findings.
+  'backup:dark': [],
 
-  // The worst surface in the app by a wide margin — one failing insights-tile
-  // label colour, repeated across every tile.
+  // The light theme remains the worst surface in the app by a wide margin.
+  // The shared dark palette clears the repeated insights-tile labels, and
+  // the muted action ramp clears the two reset-action buttons that a draft
+  // of this packet still had failing, so dark is now clean at 0 from 80.
   'user_profile:light': [{ rule: 'color-contrast', nodes: 84 }],
-  'user_profile:dark': [{ rule: 'color-contrast', nodes: 80 }],
+  'user_profile:dark': [],
 
   // X8. `/fatigue` links no page bundle at all, so this row is a direct reading
   // of the shared bundles: light is clean, final dark paint fails four times.

@@ -298,6 +298,45 @@
     --bc-shadow: 0 24px 50px rgba(0, 0, 0, 0.4);
 }
 
+[data-theme='dark'] .body-composition-page .frame-title {
+    color: var(--ink-1);
+}
+
+[data-theme='dark'] .body-composition-page .bc-form-help,
+[data-theme='dark'] .body-composition-page .bc-results-label,
+[data-theme='dark'] .body-composition-page .bc-results-bfp-unit,
+[data-theme='dark'] .body-composition-page .bc-band-title,
+[data-theme='dark'] .body-composition-page .bc-trend-empty,
+[data-theme='dark'] .body-composition-page .bc-empty,
+[data-theme='dark'] .body-composition-page .bc-citations {
+    color: var(--ink-3);
+}
+
+[data-theme='dark'] .body-composition-page .bc-results-eyebrow {
+    color: #91a7d8;
+}
+
+[data-theme='dark'] .body-composition-page .bc-jp-line {
+    color: var(--ink-2);
+}
+
+[data-theme='dark'] .body-composition-page .bc-warning-body {
+    color: #e7aaa5;
+}
+
+[data-theme='dark'] .body-composition-page .bc-warning-body i {
+    color: #d7827a;
+}
+
+[data-theme='dark'] .body-composition-page .bc-warning-body a {
+    color: #9db7ea;
+}
+
+[data-theme='dark'] .body-composition-page .bc-form-error {
+    background: color-mix(in srgb, var(--action-danger) 18%, transparent);
+    color: #efbbb6;
+}
+
 [data-theme='dark'] .bc-results-bfp,
 [data-theme='dark'] .bc-results-value,
 [data-theme='dark'] .bc-band-current {
@@ -306,16 +345,20 @@
 
 [data-theme='dark'] .bc-results,
 [data-theme='dark'] .body-composition-panel {
-    background: linear-gradient(135deg, rgba(28, 40, 60, 0.85), rgba(20, 30, 48, 0.95));
+    background: var(--surface-1);
 }
 
 [data-theme='dark'] .bc-results-derived > div {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-2);
 }
 
 [data-theme='dark'] .bc-form-guide {
-    background: rgba(45, 108, 223, 0.12);
-    color: #cbdaf5;
+    background: color-mix(in srgb, var(--surface-2) 76%, var(--accent) 24%);
+    color: var(--ink-1);
+}
+
+[data-theme='dark'] .body-composition-page .bc-trend {
+    background: var(--surface-2);
 }
 
 [data-theme='dark'] .bc-band-tick {
