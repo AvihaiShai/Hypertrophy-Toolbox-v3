@@ -533,7 +533,7 @@ _accepts_in_isolation(field, value) -> bool
     # with every other field left UNSET.
 ```
 
-Validating **one field at a time** is what makes this correct rather than convenient: it structurally excludes `"Minimum reps cannot exceed maximum reps."` (`utils/workout_validation.py:79-80`) and the weight/RIR range messages (`:64-75`), none of which cause the 500s at sites 1/2/4 — that is A5's resolution. It also settles `'nan'` / `'inf'` / `''` / `None` by construction rather than by a bare `float()` that would let `'nan'` through (P4).
+Validating **one field at a time** is what makes this correct rather than convenient: it structurally excludes `"Minimum reps cannot exceed maximum reps."` (`utils/workout_validation.py:79-80`) and the weight/RIR range messages (`:64-75`), none of which cause the 500s at sites 1/2/4 — that is A5's resolution. **[AMENDED 2026-08-29 by owner ruling R2.1 / ADR-010: this sentence is true of sites 1/2/4, which it was written about, and is NOT true of site 6. `export_plan_to_workout_log` makes one combined call in which the cross-field verdict fires, and that verdict is exactly what blocks it — so `scan_export_bounds` now makes that same combined call and reports `min > max`. Sites 1/2/4 keep per-field isolation and still report nothing for an inverted row. The per-site table below already says "the full four" for site 6 and needs no change.]** It also settles `'nan'` / `'inf'` / `''` / `None` by construction rather than by a bare `float()` that would let `'nan'` through (P4).
 
 ### Per-site predicate table (P3 + A2)
 
