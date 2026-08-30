@@ -84,7 +84,14 @@ R2.4 and R3. ⚠️ **RE-DERIVED 2026-08-30 — that count is spent.**
 [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) (`fcc0e59`) **signed D4**,
 discharging **item 3 (R2.2)** in place. **The blocking set is now items 2, 4, 5 and 6 — four
 decisions**: R2.1, R2.3 (Q4 / D2), R2.4 and R3, and **item 3 joins items 1 and 8 as
-discharged**. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
+discharged**. ⚠️ **RE-DERIVED AGAIN 2026-08-30 — that count is spent too, and this reading is
+taken off §15.4's merged table rather than decremented from the one above it.**
+[#457](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/457) ruled **R2.1** as **ADR-010**
+and shipped its follow-through, discharging **item 2**, so **the blocking set is items 4, 5 and 6
+— three decisions**: R2.3 (Q4 / D2), R2.4 and R3. **The V1 measurement recorded by this pass moves
+that count by nothing** — item 7 was already outside the blocking set and stays outside it; what
+changed is *what* item 7 asks, which is now the terminal policy alone, its workflow-approval clause
+being spent. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1, 2, 3 and 8 are
 discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
 queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
@@ -247,12 +254,24 @@ R1-D3 beyond recording the readings above.
 >   that shares the name is [#374](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/374) and was never in scope for that
 >   prohibition — see the naming key in this file's current-state block.
 > - **V1** was ruled the same day, and its documentation half shipped as
->   [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`). The V1
->   **measurement** half is **still blocked on runner access and unstarted**, and #454's ruling
->   stands exactly as recorded.
-> - **R2, R3 and R1-D3 are untouched.** The prohibition still holds for them in full, as it
->   does for `js-unit` promotion (Q4 / D2), D4, branch-protection and repository-settings
->   changes, tags, workflow dispatches and dependency merges.
+>   [#454](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/454) (`8c844df`). ~~The V1
+>   **measurement** half is **still blocked on runner access and unstarted**~~ **SPENT
+>   2026-08-29 — the owner authorized the probe and it RAN**: run `33274031928`, 4 jobs / 12
+>   generations, all success, on `ubuntu-24.04` and `windows-2022`. The capture-side
+>   hypothesis is **falsified** — 3→1 unstable of 86 on Linux, 3→3 on Windows, and
+>   `workout-plan-desktop-dark` unstable in every arm. Nothing merged, no baseline
+>   committed, no repair implemented. Evidence: `visual_determinism/PLANNING.md` §9.
+>   #454's ruling otherwise stands exactly as recorded, and **the terminal-policy decision
+>   is now the only V1 item open**.
+> - ~~**R2, R3 and R1-D3 are untouched.**~~ ⚠️ **AMENDED 2026-08-30 — R2 and D4 have both moved
+>   since, and this bullet exists precisely so a mover is named rather than left to be found.**
+>   **R2.2 / D4** was **signed** 2026-08-29 as **ADR-009** (`fcc0e59`,
+>   [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453)) and both its packets have
+>   landed (`e9f942f`, `7d9a836`); **R2.1** was **ruled** as **ADR-010** and implemented
+>   (`8a1ad9d`, [#457](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/457)). **R3 and
+>   R1-D3 are still untouched**, and the prohibition still holds for them in full, as it
+>   does for `js-unit` promotion (Q4 / D2), **R2.3 and R2.4**, branch-protection and
+>   repository-settings changes, tags, workflow dispatches and dependency merges.
 >
 > **What #455 established, stated exactly:** the contract tests this repository held **do not
 > detect** either shape — a job-level `needs:` or a job-level `continue-on-error:` on a
@@ -321,7 +340,7 @@ or land that PR instead, and the record returns as work only if #451 is closed u
 final Vitest expansion packet is owed**, and it blocks Q4 / D2; (5) **everything
 else waits on the owner** — §15.4 items 1–8. *(Repaired 2026-08-29: this read "items 1–8 and
 10"; item 10 was the OD-1 waiver record, landed as **OD-1-W** in `fe15225` (#451) and
-discharged under §15.2. **Item 7 (V1) has since been ruled** and **item 1 (R1) discharged**.)* ⚠️ **RE-CORRECTED 2026-08-29:** **item 8 is now answered too** — #431 was the final Vitest expansion packet — and is marked discharged in place, keeping its number. Counted off the merged table, the blocking set is **items 2–6**; items 7 and 11 are open without stopping work.
+discharged under §15.2. **Item 7 (V1) has since been ruled** and **item 1 (R1) discharged**.)* ⚠️ **RE-CORRECTED 2026-08-29:** **item 8 is now answered too** — #431 was the final Vitest expansion packet — and is marked discharged in place, keeping its number. Counted off the merged table, the blocking set is **items 2–6**; items 7 and 11 are open without stopping work. ⚠️ **SPENT 2026-08-30 — twice over.** #453 discharged item 3 and #457 discharged item 2, so the blocking set is **items 4, 5 and 6**. Read it from the LATEST block at the top of this file, or from §15.4 itself — never from here.
 
 **This reconciliation changed documentation only** — exactly two files,
 [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) and this one. No production, test,
