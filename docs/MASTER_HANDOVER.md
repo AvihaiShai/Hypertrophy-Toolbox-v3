@@ -339,7 +339,10 @@
 >    marked discharged in place, keeping its number so existing pointers resolve. **Counted off
 >    the merged table, the blocking set was items 2–6 — five decisions; **re-derived
 >    2026-08-30 after #453 signed D4 and discharged item 3, it is items 2, 4, 5 and 6 —
->    four decisions**; items 7 and 11 are open without
+>    four decisions**; ⚠️ **RE-DERIVED AGAIN 2026-08-30, for the R2.1 ruling (ADR-010),
+>    which discharges item 2: it is items 4, 5 and 6 — three decisions.** Each reading
+>    above was true of the table it described and none is rewritten.
+>    Items 7 and 11 are open without
 >    stopping work. Nothing there may be started by an agent, and reaching a clock's
 >    threshold is not authorization.
 >
@@ -3568,7 +3571,7 @@ behind the CSS it describes.
 > still open**; both have since shipped — `288667d` (#431) and `5b35966` (#426). **The live
 > next-safe-step list is the 2026-08-29 Current State block at the top of this file**; read that
 > one, not the four actions below. **Most of what the block asserts still stands** — the
-> A → B → C → F sequence, 12 required contexts with `js-unit` absent, D4 unsigned, the
+> A → B → C → F sequence, 12 required contexts with `js-unit` absent, ~~D4 unsigned~~, the
 > ~~`scan_export_bounds()` and `rep_range_integrity.py` items open~~, `needs:` and job-level
 > `continue-on-error:` unmeasured, Phase 4 open, and `push: tags` never fired; what is falsified
 > is listed above. Nothing below is edited except this annotation.
@@ -3579,7 +3582,10 @@ behind the CSS it describes.
 > `scan_export_bounds()` now reproduces `export_plan_to_workout_log`'s single combined
 > `validate_workout_bounds(..., allow_null=True)` call, so a numeric `min > max` row is named
 > instead of silently producing no finding, and the module docstring was rewritten to follow the
-> ruling. **D4 is still unsigned** and the rest of the "still stands" list above is unaffected.]**
+> ruling. **D4 is no longer unsigned either** — it was signed 2026-08-29 as **ADR-009**
+> (`fcc0e59`, [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453)), which landed
+> before this amendment's own base, so the *"D4 unsigned"* entry in the still-stands list above is
+> falsified too. The rest of that list is unaffected.]**
 
 **Current (2026-08-23, latest): Phase 3 step 12's expansion sequence is COMPLETE
 on `main` and there is still no automatic next feature packet.** Verified against

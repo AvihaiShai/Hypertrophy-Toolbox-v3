@@ -69,7 +69,7 @@ superseded rather than rewritten. **This plan still declares no T0 of its own** 
 lives in [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0, which remains the
 only place a T0 may be declared, and §18 records that it is now made there. **Nothing here authorizes
 a packet or a merge, and in particular nothing here signs Q4 or D2 or promotes any context.**  
-**Owner ruling recorded:** 2026-08-29 — **R2.1 decided as ADR-010** in [`DECISIONS.md`](DECISIONS.md), and its follow-through implemented. §4 Packet R2 (decision 1, its docstring dependency and its estimate), §8 (the R2 row and the residual paragraph), §15.1, §15.4 item 2 and §15.5 carry it; **§§11–14 and §16–18 are dated evidence and are left saying it was undecided**, which is what they were when written. **This pass declares no T0 and touches none** — the determination recorded immediately above is untouched by it. **Nothing here authorizes a packet or a merge.**  
+**Owner ruling recorded:** 2026-08-29 — **R2.1 decided as ADR-010** in [`DECISIONS.md`](DECISIONS.md), and its follow-through implemented. §4 Packet R2 (decision 1, its docstring dependency and its estimate), §8 (the R2 row and the residual paragraph), §15.1, §15.4 item 2 and §15.5 carry it; **§§13–14 are dated evidence and are left saying it was undecided**, which is what they were when written, and **§§11–12 and §16–19 do not mention R2.1 at all**. **This pass declares no T0 and touches none** — the determination recorded immediately above is untouched by it.  
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
 ## 1. Purpose
@@ -421,8 +421,10 @@ held**; **17 are now killed individually**, and the eighteenth is deliberately s
 
 **Priority:** P1  
 **Status:** Decision required  
-**Estimate:** ~0.25–0.75 developer-day — **decision-only since R2.1's follow-through landed
-(2026-08-29)**; the 0.5–1 day originally carried here was that follow-through
+**Estimate:** ~0.25–0.75 developer-day, and **none of it is engineering** — it is the time to
+record R2.3's and R2.4's rulings and reconcile the surfaces that cite them. **The 0.5–1 day
+originally carried here was R2.1's follow-through, and that shipped 2026-08-29**, which is why
+the figure fell rather than being re-estimated
 
 **Decisions**
 
@@ -445,9 +447,15 @@ held**; **17 are now killed individually**, and the eighteenth is deliberately s
    and [`finding1_residual/PLANNING.md`](finding1_residual/PLANNING.md)'s statement that
    per-field isolation *"structurally excludes"* the cross-field verdict, which was true of the
    analysis sites it was written about and is not true of the export site — **annotated in
-   place**. Every other occurrence sits inside a dated block in `MASTER_HANDOVER.md`,
-   `ACTIVE_DEVELOPMENT.md` or `TESTING_STRATEGY_PLANNING.md` and is history, not drift.
-2. Decide and sign Testing Strategy D4.
+   place**. **Three further live citations were found on a second sweep and are annotated in
+   place too**, rather than left for a reader to hit: `MASTER_HANDOVER.md`'s **2026-08-30**
+   re-derivation of §15.4's blocking set as *"items 2, 4, 5 and 6 — four decisions"*, which
+   this ruling takes to three; and
+   [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md) in **two** places —
+   its Plan v1 scope table and its v2.10 *Still open* — both of which call R2.1 *undecided* and
+   name this branch as a live external constraint on D4. Every **remaining** occurrence sits
+   inside a dated block in `MASTER_HANDOVER.md`, `ACTIVE_DEVELOPMENT.md` or
+   `TESTING_STRATEGY_PLANNING.md` and is history, not drift.
 2. ~~Decide and sign Testing Strategy D4.~~ ✅ **DONE 2026-08-29 — D4 is SIGNED** with a bounded
    scope: `hypothesis` over `utils/effective_sets.py` **only**, in two sequential packets, with the
    volume splitter, plan generator, progression and `get_effort_factor()` **struck** from D4 as
@@ -806,7 +814,7 @@ evidence. Do not reactivate the old implementation plan.
 ⚠️ **Re-measured again 2026-08-29 against `origin/main` @ `3532f86` and the live PR list; §16 is the log for that pass.** The Track P1 and Track D1 rows and the residual-investment paragraph below carry the newer reading.
 ⚠️ **Re-measured once more 2026-08-29, later the same day, against `origin/main` @ `fe15225` after #445, #448, #449 and #451 merged; §17 is the log for that pass.** Only the Track D1 row, the KI-010 row's waiver clause and the open-PR amendment below moved: no packet's status, estimate or gate changed.
 ⚠️ **A fourth pass, 2026-08-29, later still: Packet R1 was authorized, measured and implemented, so row 5's status AND estimate changed** — the only row this pass moved. The sentence immediately above is left as the reading it was for the pass it describes.
-⚠️ **A fifth pass, 2026-08-29, for the R2.1 ruling (ADR-010): row 6's status AND estimate changed, and so did the residual-investment paragraph below.** Row 5 is untouched by this pass — R1 was already delivered when it ran. Each note above disclaims only its own pass.
+⚠️ **A fifth pass, 2026-08-29, for the R2.1 ruling (ADR-010): row 6's status AND estimate changed, the residual-investment paragraph below changed, and the open-PR amendment below was added.** Row 5 is untouched by this pass — R1 was already delivered when it ran.
 
 | Order | Packet | Status | Developer time | External/decision dependency | Gate |
 |---:|---|---|---:|---|---|
@@ -817,7 +825,7 @@ evidence. Do not reactivate the old implementation plan.
 | — | **U3 · KI-011** action-button survival | **Complete** 2026-08-27 | *spent* | Fix `5b35966` ([#426](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/426)) | Signed per defect |
 | — | **U3 · KI-010** type-word collision | **Complete** 2026-08-27 | *spent* | Gates `db6c34b` ([#425](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/425)), `a37d7e7` ([#428](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/428)); fix `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), merged `2026-08-27T23:17:50Z` — **8 d 18 h ahead of its own OD-1 embargo; the waiver is written as OD-1-W and REACHED `main` as `fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§4, §13.4) | Own Gate 0 + Gate 1 — both signed |
 | 5 | R1 deep-gate mutation probes | ⚠️ **AMENDED 2026-08-29 — authorized, probed and implemented**; was *Not started* | *spent* | — | Own Gate 1 |
-| 6 | R2 testing decisions | **Partly closed 2026-08-29** — **R2.1 decided and implemented** (ADR-010); R2.2/R2.3/R2.4 still open | ~0.25–0.75 day left | Owner decisions. ⚠️ **The JS-unit window RESTARTED**: `2026-09-05T17:59:26Z` is spent, and ~~`2026-08-27T23:18:21Z` / `2026-09-10T23:18:21Z` are **conditional on an owed owner determination**~~ ✅ **AMENDED 2026-08-29 (§18.2): the determination is MADE** — **T0 `2026-08-27T23:18:21Z`, strict mark `2026-09-10T23:18:21Z`**, declared in [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0. **Q4/D2 are unblocked in timing only and remain UNSIGNED** (§4, §13.3). R1-D3 clock **re-measured 2026-08-28 at 2 of 3** — both `schedule` runs green; third due **2026-08-31 03:17 UTC**, not yet occurred | Decision only |
+| 6 | R2 testing decisions | **Partly closed 2026-08-29** — **R2.1 decided and implemented** (ADR-010) and **R2.2 signed** (D4, ADR-009); **R2.3 and R2.4 still open** | ~0.25–0.75 day, **no engineering** | Owner decisions. ⚠️ **The JS-unit window RESTARTED**: `2026-09-05T17:59:26Z` is spent, and ~~`2026-08-27T23:18:21Z` / `2026-09-10T23:18:21Z` are **conditional on an owed owner determination**~~ ✅ **AMENDED 2026-08-29 (§18.2): the determination is MADE** — **T0 `2026-08-27T23:18:21Z`, strict mark `2026-09-10T23:18:21Z`**, declared in [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0. **Q4/D2 are unblocked in timing only and remain UNSIGNED** (§4, §13.3). R1-D3 clock **re-measured 2026-08-28 at 2 of 3** — both `schedule` runs green; third due **2026-08-31 03:17 UTC**, not yet occurred | Decision only |
 | 7 | V1 visual disposition | **Not started** | 0.25 day or 2–5 days | Owner chooses acceptance or investigation | Decision, then own Gate 1 if funded |
 | 8 | R3 tag-trigger proof | **Not started** | 0.5 day | Explicit authorization for a named real tag. **Re-measured 2026-08-28**: `release.yml` `push` count **0**, `workflow_dispatch` count **1** — and that lone rehearsal predates `a937116`, so the current **12-required / 13-expected** `release_gate.py` has **never executed by any trigger** (§13.6) | Owner action |
 | standing | Track D1 dependency-PR triage | **Idle** — queue empty | minutes per PR | #415 and #416 both merged 2026-08-26; **re-measured 2026-08-29 at `158ee40`, after #445 merged: ZERO open PRs repo-wide at `14:10:11Z`, and still ZERO *dependency* PRs at `14:53:31Z` when three documentation PRs were open** (§17.3). The earlier readings returned only #445 (§16.4) and, the day before, only #436 (§14.1) | Per-PR merge authorization |
@@ -833,7 +841,7 @@ single row that once covered both would now flatten two different dates into one
 The original near-term commitment was **4–8 developer-days** for T0, U1–U3 and the authorized
 portions of R1/R2. **T0, U1, U2 and both halves of U3 have now been delivered**, so the
 residual is **1.5–3 developer-days — R1 and R2 — and every hour of it is behind an owner
-decision, not behind engineering capacity.** ⚠️ **AMENDED 2026-08-29, twice: R1 is delivered, and so is R2.1's follow-through (ADR-010) — the export-bounds behavior change, its tests and the `utils/rep_range_integrity.py` docstring.** Those were the two halves this 1.5–3 day figure priced, so **it now prices nothing that remains: R2's surviving work is decision-only** and R3 and V1 are priced separately in the table above. Visual race repair is a separate investment and
+decision, not behind engineering capacity.** ⚠️ **AMENDED 2026-08-29, twice: R1 is delivered, and so is R2.1's follow-through (ADR-010) — the export-bounds behavior change, its tests and the `utils/rep_range_integrity.py` docstring.** Those were the two halves this 1.5–3 day figure priced, so **it now prices nothing that remains.** The 1.5–3 days were **engineering**; R2's surviving ~0.25–0.75 day is recording two rulings and reconciling the documents that cite them, which is why it is carried in the table row above and **not** here. R3 and V1 are priced separately in that same table. Visual race repair is a separate investment and
 should not be silently folded into that figure. **The pyright burn-down is no longer a residual
 at all** — it closed 2026-08-29 at 0 / 0 / 0 (§16.2).
 
@@ -861,7 +869,9 @@ host clock), **against `origin/main` @ `5d98824`: THREE PRs are open repo-wide**
 counting itself per §11.10; [#456](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/456),
 the post-R1 handover reconciliation; and
 [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453), which signs D4 and would
-discharge §15.4 item 3. **Still no dependency PR**, so Track D1's queue is unchanged again.
+discharge §15.4 item 3 — ⚠️ **it since merged as `fcc0e59`, and item 3 IS discharged; the
+clause is left as the reading it was at that instant.** **Still no dependency PR**, so Track D1's
+queue is unchanged again.
 **#453 claims `DECISIONS.md` ADR-009 and opened first, so #457's ruling took ADR-010** and records
 why in the ADR itself — a duplicate ADR number is unrecoverable, a gap merely explicable. **This
 count is an instant and it is already stale for a further reason**: #457 is an *engineering*
@@ -2079,6 +2089,10 @@ as items 1 and 7 are. **Re-counted off the merged table rather than carried from
 the blocking set is items 2–6 — five rows.** Items **7** and **11** remain open **without stopping
 work**, and items **1** and **8** are discharged. **Nothing is renumbered**, so every citation
 above and outside this file still resolves.
+⚠️ **SUPERSEDED TWICE SINCE, and kept for the same reason the readings above it are kept.**
+The D4 signature discharged item 3 and the R2.1 ruling (ADR-010) discharged item 2, so **the
+blocking set is items 4, 5 and 6 — three rows**, as the intro to this subsection and the note
+below the table both state. Read the count from either of those, never from this sentence.
 
 | # | Decision | Blocks |
 |---:|---|---|
@@ -2110,7 +2124,8 @@ above and outside this file still resolves.
 > 10 are permanently spent.**
 >
 > ⚠️ **AMENDED AGAIN 2026-08-29, for the R2.1 ruling (ADR-010).** **Item 2 is struck in place, not
-> removed**, for the same reason item 1 is. §15.1 now reads *“items 3–5”*, so the quotation of
+> removed**, for the same reason item 1 is. §15.1 now reads *“items 4–5”* — item 3 is
+> discharged too — so the quotation of
 > *“§15.4 items 2–5”* above is the **prior** wording, preserved because this note is the record of
 > that earlier repair; the other two quoted citations are untouched and still resolve. The blocking
 > set is now **items 4, 5 and 6** — three of the nine rows, items 2, 3 and 8 having all been
@@ -2127,13 +2142,13 @@ two live-state readings** (§15.3). **That is three obligations in total** — �
 item 8, and it was answered on 2026-08-29 along with its **other three** (§15.2 *Discharged*), so
 no debt remains to be counted among them.
 
-**Five rows are open without stopping work**, and are excluded from that three: **item 1**,
-discharged when Packet R1 was measured; **item 2**, ruled 2026-08-29 as ADR-010 and implemented;
-**item 3**, D4 signed 2026-08-29 as ADR-009 — the decision closed, its two packets not; **item 8**,
-answered YES on 2026-08-29, which declared the JS-unit T0; and
-**item 7**, ruled 2026-08-29 — V1: investigate, its measurement now blocked on a workflow approval
-rather than on the disposition. **Item 11**, the residual Packet R1 declared rather than closed, is
-likewise open and blocking nothing.
+**Six rows are excluded from that three**, and they are excluded for two different reasons.
+**Four are discharged**: **item 1**, when Packet R1 was measured; **item 2**, ruled 2026-08-29 as
+ADR-010 and implemented; **item 3**, D4 signed 2026-08-29 as ADR-009 — the decision closed, its two
+packets not; and **item 8**, answered YES on 2026-08-29, which declared the JS-unit T0. **Two are
+open and stop nothing**: **item 7**, ruled 2026-08-29 — V1: investigate, its measurement now blocked
+on a workflow approval rather than on the disposition — and **item 11**, the residual Packet R1
+declared rather than closed. Three blocking plus six excluded is the nine rows §15.4 carries.
 
 The only unstarted *engineering* is what sits behind your decisions, and it is now **one thing, not
 three**: **V1's option 2**, which is authorized and blocked on runner access rather than waiting on a
@@ -2143,7 +2158,7 @@ follow-through was the third** — the export-bounds behavior change, its tests 
 developer-day** residual was priced for R1 and R2 together and now prices **nothing that remains**;
 R2's surviving work is decision-only, and V1's repair is separate.
 
-*Before these three amendments this read: eight live decisions (items 1–8), eight obligations, and
+*Before these four amendments this read: eight live decisions (items 1–8), eight obligations, and
 three unstarted engineering items including R1's probes and V1's undecided disposition.*
 
 ⚠️ **AMENDED A THIRD TIME 2026-08-29 — item 8 is answered, so the blocking set is FIVE, not
@@ -2155,6 +2170,14 @@ records. **Item 4 (Q4 / D2) is unblocked on timing only** — it is still an uns
 reaching the strict mark is a precondition, never a signature. **The unstarted-engineering count is
 unchanged at two** — R2's follow-through and V1's option 2 — because a declared T0 starts no
 engineering.
+
+⚠️ **SUPERSEDED THE SAME DAY BY THE FOURTH AMENDMENT, which is this subsection's opening paragraph.**
+This third reading is kept because it was true of the table it described, but it is **not** the
+current count: the R2.1 ruling (**ADR-010**) answered item 2 after it was written, so the blocking
+set fell from **five to three — items 4, 5 and 6**, and the unstarted-engineering count fell from
+**two to one**, R2's follow-through having shipped with the ruling. **Read the count from the
+opening paragraph, or from §15.4's table — never from this note.** Its T0 and strict-mark figures are
+unchanged and still current.
 
 ---
 
