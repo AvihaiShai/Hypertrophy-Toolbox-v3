@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "producedBy": "WP4.4-a closeout",
   "revisedBy": "WP4.4 closeout proposal P1",
   "sourceCommit": "46e340e5f2de60118d4d2d4af55ff61a1783800c",
@@ -20,8 +20,15 @@
     ],
     "whyThoseThreeAreGone": "All three are in BYTE_GATE_EXEMPT (e2e/visual-helpers.ts) since #298 (f8988f9, 2026-08-04). An exempt capture has no committed PNG on either platform, so three of the eleven names below no longer resolve to a file. tests/test_visual_capture_contracts.py::test_the_exempt_captures_have_no_baseline_on_either_platform is what keeps them absent.",
     "whyTheHistoricalArrayIsNotRenumbered": "linuxInheritedReds is a measurement, not an inventory. scripts/css_audit/p3_ceiling.py::n8_denominator() derives 11 failed / 57 passed from these eleven entries and their positions, and reconciles it against three recorded deep-gate runs (30665129779, 30663355864, 30671022691) that each really did record 11 failures. Renumbering to 8 would assert those runs failed 8 tests, which is false; measured 2026-08-29 it also raises IndexError in n8_denominator() because specs[1].files empties. The count stays 11 because 11 is what was measured. This block, not the array, carries current state.",
-    "statusOfTheRemainingEight": "Not observed red since. #281, #294 and #308 reconciled the Linux corpus, and the 2026-08-24 scheduled deep-gate run 32688747703 (head 31659a5) compared clean with the Assert compare mode wrote no baseline step green.",
-    "doNotInferDeterminism": "That clean compare is NOT evidence this gate can go red. The corpus was in sync, so it shows nothing WAS written, not that real drift would have been caught. Do not cite a clean committed-baseline compare as evidence of determinism.",
+    "statusOfTheRemainingEight": "None of the eight still-present legacy-ledger names was reported red after #281, #294 and #308 reconciled the Linux corpus. The 2026-08-24 scheduled deep-gate run 32688747703 (head 31659a5) was not a clean comparison, however: the non-ledgered, byte-gated plan-desktop-light-simple capture first failed by 11,392 pixels (ratio 0.02), passed on Playwright retry #1, and ended as 1 flaky plus 99 passed. The run was a flaky-success.",
+    "whyThePreviousClaimWasWrong": "The previous revision called run 32688747703 clean because the Assert compare mode wrote no baseline step was green. That step proves only that compare mode did not write a baseline; it does not prove that every pixel assertion passed on its first attempt. Playwright's retry converted the failed first attempt into a green step, job and run.",
+    "runOutcomeVocabulary": {
+      "clean": "Every byte-gated comparison passes on its first attempt: no failed attempt, retry, or flaky tally.",
+      "flakySuccess": "At least one comparison fails, a configured retry passes, and the Playwright step and job therefore finish green. Run 32688747703 is in this category.",
+      "terminalFailure": "A comparison remains failed after the configured retry policy, so the Playwright step and job finish failed. Of these three comparison outcomes, only terminal failure makes the failure-only report-and-diff upload eligible; upload success is not implied."
+    },
+    "artifactRetention": "Run 32688747703 has zero retained GitHub Actions artifacts. Because its retry made the job succeed, Upload Playwright report + diffs was skipped; the log is the surviving primary evidence for the named actual and diff paths.",
+    "doNotInferDeterminism": "Neither a clean nor a flaky-success committed-baseline compare is evidence of determinism. A clean result says only that no byte-gated comparison failed in that run; this flaky-success instead proves that a green job can contain a failed comparison. Do not cite either outcome as proof that the gate or renderer is deterministic.",
     "enforcedBy": "tests/test_visual_capture_contracts.py::test_the_linux_inherited_red_ledger_names_only_real_or_exempt_baselines"
   },
   "purpose": "Machine-readable reconciliation ledger for the N8 Linux deep gates at packets h, i, j and k. Every entry is a red that already existed before the WP4.4 arc began. A packet that reproduces one of these has NOT caused it.",
@@ -47,6 +54,15 @@
       "change": "Additive only. currentStatus records the measured 8-of-11 present, why the three are gone, and why the historical array is not renumbered; rules gains a leading supersession notice; schemaVersion 2 -> 3. No entry in linuxInheritedReds, uncertifiableElements or visualMatrix was altered, reordered or removed.",
       "rebaseline": "None. No snapshot file was regenerated, modified or deleted.",
       "authority": "V1 owner ruling, 2026-08-29 - documentation reconciliation authorized; implementation and regeneration withheld."
+    },
+    {
+      "version": 4,
+      "on": "2026-08-30",
+      "reason": "The v3 currentStatus called scheduled deep-gate run 32688747703 a clean compare. Its visual-linux log already showed plan-desktop-light-simple failing by 11,392 pixels before passing on retry #1 and ending 1 flaky plus 99 passed, so the statement was wrong when written rather than merely aged.",
+      "change": "Evidence and terminology only. currentStatus now distinguishes a clean comparison, a green flaky-success and a terminal failure; it records why the green no-baseline-write assertion did not establish cleanliness and why the failure-only upload retained no artifact.",
+      "rebaseline": "None. No snapshot file was regenerated, modified or deleted.",
+      "runtimeContract": "Unchanged. BYTE_GATE_EXEMPT remains exactly the five ADR-011 captures; no retry, tolerance, mask, crop, viewport, workflow or visual behavior changed.",
+      "authority": "Owner-authorized August 24 deep-gate evidence correction, 2026-08-30."
     }
   ],
   "rules": [
