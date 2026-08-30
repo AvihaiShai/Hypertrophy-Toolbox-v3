@@ -387,8 +387,10 @@ anything.
   a hang detector, not a budget, following the #325 precedent.
 - ⚠️ A `uses:` job accepts only `name`, `needs`, `if`, `permissions`, `with`, `secrets`,
   `strategy`, `concurrency` — not `timeout-minutes`, `runs-on`, `env`, or
-  `continue-on-error`. Neither converted job uses `continue-on-error` today, so nothing is
-  lost, but this shapes the reusable workflow's input list.
+  `continue-on-error`. This is the enumerated caller-job syntax in GitHub's official
+  [supported-keywords reference](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#supported-keywords-for-jobs-that-call-a-reusable-workflow).
+  Neither converted job uses `continue-on-error` today, so nothing is lost, but this shapes
+  the reusable workflow's input list.
 - ⚠️ Converting `packaged-smoke-windows` to `uses:` changes its check name to
   `Packaged Smoke (Windows bootloader, non-required) / <called job name>`. Safe **only**
   because that job is not in branch protection — verified against the live list. D4's
@@ -1488,7 +1490,8 @@ other arm.
 All **18 shape arms** were **green before this packet against all 51 contracts the
 file then held**. **17 are now killed by their own parametrized arm**, so the failing node
 id names the offending job. The eighteenth — **H2-M4**, the `uses:`-job boundary probe —
-is deliberately still green and is recorded rather than closed, below.
+historically remained green and was recorded rather than changed; the disposition below closes
+the proposed workflow shape as invalid/non-reachable while preserving that local result.
 
 #### The `needs:` asymmetry, stated before it can be over-read
 
@@ -1555,31 +1558,30 @@ dispatch is how every piece of ad-hoc evidence about this gate has been produced
 removed entirely — were each re-run against the new file and **red both before and
 after**. No existing assertion was relaxed, generalized, or moved.
 
-#### Newly identified and deliberately NOT closed — `continue-on-error` on a `uses:` job
+#### Closed 2026-08-30 — `continue-on-error` on a `uses:` job is invalid syntax
 
 Arm **H2-M4** put a job-level `continue-on-error: true` on `frozen-windows` and
 **no contract detected it**. The `PACKAGED_CALLERS` delegation contract bars
 `if:`, `needs:`, `with:`, `secrets:` and `strategy:` on all three callers; it does
 not bar this key.
 
-**A second, wider instance of the same shape is recorded here too, and likewise not
-fixed: nothing bars a job-level `continue-on-error:` in `release.yml` or
-`_packaged-windows.yml` either.** No job in either file carries one today. That path is
-*required*, not weekly, and `release_gate.py`'s fan-in gates on
-`result.get("result") != "success"` — so on the same documented-semantics basis this
-packet uses for Claim B, a job made non-blocking there would report `success` into
-`needs`. It was **not probed**: it is outside a deep-gate packet, and it is named here
-only so it is not mistaken for something this packet cleared.
+The same caller-job conclusion applies to `release.yml`'s reusable-workflow caller.
+`_packaged-windows.yml` is different: its `build-and-smoke` job is the normal child job
+inside the called workflow, where `continue-on-error` is syntactically reachable — and the
+existing `test_the_single_definition_keeps_the_shape_both_lifted_jobs_had` contract already
+bars it. The earlier paragraph grouped an invalid caller mutation and a reachable child-job
+mutation as one wider gap; that grouping is withdrawn.
 
-**The `frozen-windows` gap is recorded, not fixed**, and the landed contract deliberately
-excludes it — the authorization for this packet named H2-M4 as a boundary
-probe only. Whether the gap is *live* is genuinely unresolved: this document's own
-Plan v1 constraints record that a `uses:` job **does not accept**
-`continue-on-error` at all. If that record is right, the shape is a workflow
-**parse error** rather than a silent false green, and the correct repair is a
-contract that says so — not the one this packet added. If it is wrong, the shape
-would make a red bootloader smoke green for that caller. **Neither has been
-measured**, and resolving it needs its own authorization.
+**Owner disposition, 2026-08-30:** the `frozen-windows` residual is **closed as invalid and
+non-reachable**. GitHub's official
+[supported-keywords list for jobs that call a reusable workflow](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#supported-keywords-for-jobs-that-call-a-reusable-workflow)
+is exhaustive and does not include `continue-on-error`; the supporting
+[`jobs.<job_id>.uses` reference](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_iduses)
+describes this exact caller shape. H2-M4 remains valid historical evidence that the local
+text contracts did not reject the mutation. It does **not** describe a runnable GitHub job,
+and no bespoke runtime contract is owed for syntax GitHub rejects before job execution.
+Ordinary workflow syntax/lint validation is the appropriate guard. Decision record:
+`DECISIONS.md` ADR-012.
 
 #### Inventory — Packet R1
 
