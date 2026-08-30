@@ -194,6 +194,47 @@ class TestScanExportBounds:
         plan_row(column="rir", value=None)
         assert scan_export_bounds() == []
 
+    def test_inverted_numeric_range_is_reported(self, plan_row):
+        """R2.1: min > max is what blocks this caller, so it must be named here.
+
+        The export makes one combined call over all four columns, where the
+        cross-field verdict fires; a per-field replay cannot produce it.
+        """
+        plan_row(min_rep_range=20, max_rep_range=5)
+
+        assert scan_export_bounds() == [
+            {
+                "routine": ROUTINE,
+                "exercise": "Diagnostic Curl",
+                "reason": "Minimum reps cannot exceed maximum reps.",
+            }
+        ]
+        # The same row stays silent for the analysis surfaces, which is not an
+        # oversight: arithmetic on an inverted-but-numeric pair succeeds, so it
+        # is not what makes them raise. The two scanners must not converge.
+        assert scan_rep_ranges() == []
+
+    def test_reason_matches_the_caller_on_a_multi_fault_row(self, client, plan_row):
+        """The combined call parses all four columns before range-checking any.
+
+        A per-field replay interleaves parse and range per column, so on this row
+        it returns the weight verdict while the export stops on the rep parse.
+        The caller is driven for real rather than hand-computed: pinning the scan
+        against a literal alone would not notice the export's own call changing.
+        """
+        plan_row(column="min_rep_range", value="abc", weight=5000)
+
+        caller_message = client.post("/export_to_workout_log").get_json()["message"]
+        assert caller_message.startswith("Minimum reps must be a finite number.")
+        assert [item["reason"] for item in scan_export_bounds()] == [
+            "Minimum reps must be a finite number."
+        ]
+        # What the pre-R2.1 per-field replay reported instead: it validated weight
+        # first and alone, reaching the range check the combined call never gets to.
+        assert validate_workout_bounds(weight=5000, allow_null=True) == (
+            "Weight must be between 0 and 1000 kg."
+        )
+
 
 class TestAnnotate:
     def test_empty_findings_returns_the_message_byte_for_byte(self):
