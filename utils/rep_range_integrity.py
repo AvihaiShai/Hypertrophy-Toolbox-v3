@@ -22,10 +22,9 @@ make the same one:
   ``min_rep_range`` and ``max_rep_range`` **one field at a time**, with
   ``allow_null=False``;
 * ``export_plan_to_workout_log`` makes a **single combined call** over all four
-  bounded columns with ``allow_null=True``
-  (``utils/export_service.py:493-499``), so :func:`scan_export_bounds` makes
-  that same one call -- including the flag, because ``allow_null=True`` accepts
-  ``""`` while the default rejects it.
+  bounded columns with ``allow_null=True`` and ``allow_blank=False``
+  (``utils/export_service.py:493-500``), so :func:`scan_export_bounds` makes
+  that same one call -- accepting actual null while rejecting an exact blank.
 
 That split is what makes each result honest rather than merely convenient, and
 "Minimum reps cannot exceed maximum reps." is the case that shows why. Per-field
@@ -130,8 +129,9 @@ def _rep_rejection(row: Dict[str, Any]) -> Optional[str]:
 def _export_rejection(row: Dict[str, Any]) -> Optional[str]:
     """The message ``export_plan_to_workout_log`` returns for this row, or ``None``.
 
-    One combined call over all four bounded columns, which is exactly the call
-    that caller makes (``utils/export_service.py:493-499``).
+    One combined call over all four bounded columns, including the caller's
+    independently selected null and blank policies
+    (``utils/export_service.py:493-500``).
     """
     return validate_workout_bounds(
         weight=row.get("weight"),
@@ -139,6 +139,7 @@ def _export_rejection(row: Dict[str, Any]) -> Optional[str]:
         min_reps=row.get("min_rep_range"),
         max_reps=row.get("max_rep_range"),
         allow_null=True,
+        allow_blank=False,
     )
 
 

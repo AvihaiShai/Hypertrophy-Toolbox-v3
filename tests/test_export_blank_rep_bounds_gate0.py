@@ -1,11 +1,9 @@
-"""Gate-0 characterization for blank/null plan-to-log rep bounds.
+"""Blank/null plan-to-log rep-bound compatibility and mutation contracts.
 
 ``POST /export_to_workout_log`` has no rep-bound request payload.  It validates
 the complete persisted ``user_selection`` source set, then copies accepted rows
-to ``workout_log``.  These tests deliberately pin the current blank-string
-defect and the already-correct neighbouring behavior without changing
-production code.  The future implementation packet must invert the tests whose
-names contain ``known_defect`` and keep the compatibility controls green.
+to ``workout_log``. Exact blanks are rejected without repairing the source;
+actual null and numeric strings remain accepted at the service seam.
 
 The canonical source schema declares both rep bounds ``NOT NULL`` and SQLite
 coerces numeric-looking text under INTEGER affinity.  Actual ``None`` and raw
@@ -60,27 +58,29 @@ def _error_envelope(message: str) -> dict[str, Any]:
 
 
 @pytest.mark.parametrize(
-    "minimum,maximum,minimum_type,maximum_type",
+    "minimum,maximum,minimum_type,maximum_type,field_message",
     [
-        ("", 12, "text", "integer"),
-        (8, "", "integer", "text"),
-        ("", "", "text", "text"),
+        ("", 12, "text", "integer", "Minimum reps must be a finite number."),
+        (8, "", "integer", "text", "Maximum reps must be a finite number."),
+        ("", "", "text", "text", "Minimum reps must be a finite number."),
     ],
     ids=["min_blank", "max_blank", "both_blank"],
 )
-def test_known_defect_exact_blank_rep_bounds_export_as_text(
+def test_exact_blank_rep_bounds_are_rejected_without_source_repair(
     client,
     clean_db,
     exercise_factory,
     workout_plan_factory,
+    workout_log_factory,
     minimum,
     maximum,
     minimum_type,
     maximum_type,
+    field_message,
 ):
-    """Exact blanks currently pass and are copied as TEXT, never normalized to NULL."""
+    """Exact blanks stay TEXT in the source but never reach the workout log."""
     exercise = "Gate Zero Blank Press"
-    _seed_plan(
+    plan_id = _seed_plan(
         clean_db,
         exercise_factory,
         workout_plan_factory,
@@ -88,33 +88,37 @@ def test_known_defect_exact_blank_rep_bounds_export_as_text(
         minimum=minimum,
         maximum=maximum,
     )
+    workout_log_factory(plan_id=plan_id, exercise=exercise)
+    before_source = clean_db.fetch_all(
+        "SELECT *, typeof(min_rep_range) AS min_type, "
+        "typeof(max_rep_range) AS max_type FROM user_selection ORDER BY id"
+    )
+    before_log = clean_db.fetch_all("SELECT * FROM workout_log ORDER BY id")
+    before_backups = clean_db.fetch_all("SELECT * FROM program_backups ORDER BY id")
 
     response = client.post("/export_to_workout_log")
 
-    assert response.status_code == 200
-    assert response.get_json() == {
-        "ok": True,
-        "status": "success",
-        "message": "Workout plan exported successfully (1 exercises)",
-    }
-    assert scan_export_bounds() == []
+    message = (
+        f"{field_message} Invalid plan value on: {ROUTINE} / {exercise}. "
+        "Fix these in the Workout Plan editor."
+    )
+    assert response.status_code == 400
+    assert response.content_type == "application/json"
+    assert response.get_json() == _error_envelope(message)
+    assert scan_export_bounds() == [
+        {"routine": ROUTINE, "exercise": exercise, "reason": field_message}
+    ]
 
     with DatabaseHandler() as db:
-        stored = db.fetch_one(
-            """
-            SELECT planned_min_reps, typeof(planned_min_reps) AS minimum_type,
-                   planned_max_reps, typeof(planned_max_reps) AS maximum_type
-            FROM workout_log
-            WHERE exercise = ?
-            """,
-            (exercise,),
-        )
-    assert stored == {
-        "planned_min_reps": minimum,
-        "minimum_type": minimum_type,
-        "planned_max_reps": maximum,
-        "maximum_type": maximum_type,
-    }
+        assert db.fetch_all(
+            "SELECT *, typeof(min_rep_range) AS min_type, "
+            "typeof(max_rep_range) AS max_type FROM user_selection ORDER BY id"
+        ) == before_source
+        assert before_source[0]["min_type"] == minimum_type
+        assert before_source[0]["max_type"] == maximum_type
+        assert db.fetch_all("SELECT * FROM workout_log ORDER BY id") == before_log
+        assert db.fetch_all("SELECT * FROM program_backups ORDER BY id") == before_backups
+        assert db.fetch_all("SELECT * FROM program_backup_items ORDER BY id") == []
 
 
 @pytest.mark.parametrize(
@@ -176,13 +180,13 @@ def test_whitespace_only_rep_bounds_keep_exact_rejection_and_no_data_write(
     ]
 
 
-def test_known_defect_mixed_valid_and_blank_rows_export_together(
+def test_mixed_valid_and_blank_rows_reject_before_any_log_insert(
     client,
     clean_db,
     exercise_factory,
     workout_plan_factory,
 ):
-    """A later blank row currently defeats the intended all-row preflight guarantee."""
+    """A later blank row rejects the complete source set before any insert."""
     _seed_plan(
         clean_db,
         exercise_factory,
@@ -199,39 +203,26 @@ def test_known_defect_mixed_valid_and_blank_rows_export_together(
         minimum=20,
         maximum="",
     )
+    before_source = clean_db.fetch_all("SELECT * FROM user_selection ORDER BY id")
+    before_log = clean_db.fetch_all("SELECT * FROM workout_log ORDER BY id")
 
     response = client.post("/export_to_workout_log")
 
-    assert response.status_code == 200
+    assert response.status_code == 400
+    assert response.get_json()["error"]["code"] == "VALIDATION_ERROR"
     with DatabaseHandler() as db:
-        rows = db.fetch_all(
-            "SELECT exercise, planned_min_reps, planned_max_reps, "
-            "typeof(planned_max_reps) AS max_type FROM workout_log ORDER BY exercise"
-        )
-    assert rows == [
-        {
-            "exercise": "Gate Zero Blank Last",
-            "planned_min_reps": 20,
-            "planned_max_reps": "",
-            "max_type": "text",
-        },
-        {
-            "exercise": "Gate Zero Valid First",
-            "planned_min_reps": 8,
-            "planned_max_reps": 12,
-            "max_type": "integer",
-        },
-    ]
+        assert db.fetch_all("SELECT * FROM user_selection ORDER BY id") == before_source
+        assert db.fetch_all("SELECT * FROM workout_log ORDER BY id") == before_log
 
 
-def test_known_defect_export_disagrees_with_restore_and_scanner_on_blank(
+def test_export_scanner_and_per_item_restore_agree_on_blank(
     client,
     clean_db,
     exercise_factory,
     workout_plan_factory,
 ):
-    """The same stored blank passes export/scanner but restore rejects it per row."""
-    exercise = "Gate Zero Boundary Disagreement"
+    """All boundaries reject the blank while restore still keeps a valid peer."""
+    exercise = "Gate Zero Boundary Agreement"
     _seed_plan(
         clean_db,
         exercise_factory,
@@ -240,30 +231,44 @@ def test_known_defect_export_disagrees_with_restore_and_scanner_on_blank(
         minimum=20,
         maximum="",
     )
+    valid_exercise = "Gate Zero Restore Valid Peer"
+    _seed_plan(
+        clean_db,
+        exercise_factory,
+        workout_plan_factory,
+        exercise=valid_exercise,
+        minimum=8,
+        maximum=12,
+    )
     backup_id = create_backup("Gate Zero Blank Backup")["id"]
 
-    assert scan_export_bounds() == []
+    reason = "Maximum reps must be a finite number."
+    assert scan_export_bounds() == [
+        {"routine": ROUTINE, "exercise": exercise, "reason": reason}
+    ]
     export_response = client.post("/export_to_workout_log")
-    assert export_response.status_code == 200
+    assert export_response.status_code == 400
     with DatabaseHandler() as db:
-        exported = db.fetch_one(
-            "SELECT planned_max_reps, typeof(planned_max_reps) AS value_type "
-            "FROM workout_log WHERE exercise = ?",
-            (exercise,),
-        )
-    assert exported == {"planned_max_reps": "", "value_type": "text"}
+        assert db.fetch_all("SELECT * FROM workout_log") == []
 
     restore_response = client.post(f"/api/backups/{backup_id}/restore")
 
     assert restore_response.status_code == 200
     restore_data = restore_response.get_json()["data"]
-    assert restore_data["restored_count"] == 0
+    assert restore_data["restored_count"] == 1
     assert restore_data["invalid"] == [
         {
             "routine": ROUTINE,
             "exercise": exercise,
-            "reason": "Maximum reps must be a finite number.",
+            "reason": reason,
         }
+    ]
+    with DatabaseHandler() as db:
+        restored = db.fetch_all(
+            "SELECT exercise, min_rep_range, max_rep_range FROM user_selection ORDER BY exercise"
+        )
+    assert restored == [
+        {"exercise": valid_exercise, "min_rep_range": 8, "max_rep_range": 12}
     ]
 
 

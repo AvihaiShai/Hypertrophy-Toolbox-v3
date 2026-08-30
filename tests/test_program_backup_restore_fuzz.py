@@ -28,11 +28,10 @@ still raise; that is a separately scoped follow-up recorded in
 Nullability
 -----------
 ``program_backup_items`` declares ``weight``, ``min_rep_range`` and ``max_rep_range`` NOT NULL and
-only ``rir``/``rpe`` nullable. ``validate_workout_bounds`` has a single ``allow_null`` flag
-covering all four bounded fields, which cannot express that split, and it additionally maps ``""``
-onto null. The restore path therefore never sets the flag: it omits ``rir`` -- leaving it UNSET --
-when and only when it is exactly ``None``, so NULL rir restores while a blank is rejected on every
-column.
+only ``rir``/``rpe`` nullable. ``validate_workout_bounds`` can select blank handling independently,
+but its null policy still covers all four bounded fields and cannot express that field-level split.
+The restore path therefore omits ``rir`` -- leaving it UNSET -- when and only when it is exactly
+``None``, so NULL rir restores while a blank is rejected on every column.
 
 Incidental contract pin
 -----------------------
@@ -368,9 +367,9 @@ def test_restore_preserves_a_null_rir(
 ):
     """``rir`` is the only nullable bounded column, so NULL must restore, not be rejected.
 
-    The validator has a single ``allow_null`` flag covering all four fields, which cannot express
-    "rir nullable, the rest not". The restore path therefore omits ``rir`` -- leaving it UNSET --
-    when and only when it is exactly ``None``.
+    The validator's null policy covers all four fields, so it cannot express "rir nullable, the
+    rest not". The restore path therefore omits ``rir`` -- leaving it UNSET -- when and only when
+    it is exactly ``None``.
     """
     exercise_name = exercise_factory("Fuzz Null Rir Row", primary_muscle_group="Chest")
     backup_id = _seed_tampered_backup(
@@ -420,10 +419,10 @@ def test_restore_rejects_blank_bounded_values(
 ):
     """An empty string must not reach the insert on any bounded column, nullable or not.
 
-    ``validate_workout_bounds(allow_null=True)`` maps ``""`` onto null, which would clear the
-    bounds check and then land a blank in a NOT NULL column under SQLite's type affinity. The
-    restore path never sets that flag, so a blank stays present and is rejected -- including for
-    ``rir``, where NULL itself is legitimate.
+    The validator's legacy ``allow_null=True`` default maps ``""`` onto null, which would clear
+    the bounds check and then land a blank in a NOT NULL column under SQLite's type affinity. The
+    restore path never enables null or blank acceptance, so a blank stays present and is rejected
+    -- including for ``rir``, where NULL itself is legitimate.
     """
     exercise_name = exercise_factory(f"Fuzz Blank {column}", primary_muscle_group="Chest")
     backup_id = _seed_tampered_backup(
