@@ -263,9 +263,15 @@ R1-D3 beyond recording the readings above.
 >   committed, no repair implemented. Evidence: `visual_determinism/PLANNING.md` §9.
 >   #454's ruling otherwise stands exactly as recorded, and **the terminal-policy decision
 >   is now the only V1 item open**.
-> - **R2, R3 and R1-D3 are untouched.** The prohibition still holds for them in full, as it
->   does for `js-unit` promotion (Q4 / D2), D4, branch-protection and repository-settings
->   changes, tags, workflow dispatches and dependency merges.
+> - ~~**R2, R3 and R1-D3 are untouched.**~~ ⚠️ **AMENDED 2026-08-30 — R2 and D4 have both moved
+>   since, and this bullet exists precisely so a mover is named rather than left to be found.**
+>   **R2.2 / D4** was **signed** 2026-08-29 as **ADR-009** (`fcc0e59`,
+>   [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453)) and both its packets have
+>   landed (`e9f942f`, `7d9a836`); **R2.1** was **ruled** as **ADR-010** and implemented
+>   (`8a1ad9d`, [#457](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/457)). **R3 and
+>   R1-D3 are still untouched**, and the prohibition still holds for them in full, as it
+>   does for `js-unit` promotion (Q4 / D2), **R2.3 and R2.4**, branch-protection and
+>   repository-settings changes, tags, workflow dispatches and dependency merges.
 >
 > **What #455 established, stated exactly:** the contract tests this repository held **do not
 > detect** either shape — a job-level `needs:` or a job-level `continue-on-error:` on a

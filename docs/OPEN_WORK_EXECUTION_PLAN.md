@@ -641,9 +641,8 @@ fixing one capture and newly breaking `workout-plan-desktop-light`. `workout-pla
 is unstable in **all four arms**. A one-device-row shift explains 0–9.3% of the residual
 differing rows, against §8.2's *“essentially all of them”* — so **on these four pairs the residual
 is a different defect from the paint-offset rounding the hypothesis targeted**. **That is a
-characterization of four pairs, not a re-diagnosis of the corpus**, and §9.3 states it with the same
-bound; a future attempt should start from a fresh diagnosis of the *current* residual rather than
-from §8's mechanism. Full evidence, per-image hashes and method:
+characterization of four pairs, not a re-diagnosis of the corpus**; a future attempt should start
+from a fresh diagnosis of the *current* residual rather than from §8's mechanism. Full evidence, per-image hashes and method:
 [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) **§9**.
 
 **Nothing was merged, no baseline committed, and no repair implemented.** The two blockers
@@ -847,6 +846,7 @@ evidence. Do not reactivate the old implementation plan.
 ⚠️ **Re-measured once more 2026-08-29, later the same day, against `origin/main` @ `fe15225` after #445, #448, #449 and #451 merged; §17 is the log for that pass.** Only the Track D1 row, the KI-010 row's waiver clause and the open-PR amendment below moved: no packet's status, estimate or gate changed.
 ⚠️ **A fourth pass, 2026-08-29, later still: Packet R1 was authorized, measured and implemented, so row 5's status AND estimate changed** — the only row this pass moved. The sentence immediately above is left as the reading it was for the pass it describes.
 ⚠️ **A fifth pass, 2026-08-29, for the R2.1 ruling (ADR-010): row 6's status AND estimate changed, the residual-investment paragraph below changed, and the open-PR amendment below was added.** Row 5 is untouched by this pass — R1 was already delivered when it ran.
+⚠️ **A sixth pass, 2026-08-30, for the V1 measurement: row 7's status AND developer-time changed, and nothing else in this section did.** Rows 5 and 6 are untouched by it, and the residual-investment paragraph below is the fifth pass's reading, unchanged.
 
 | Order | Packet | Status | Developer time | External/decision dependency | Gate |
 |---:|---|---|---:|---|---|
@@ -2009,9 +2009,11 @@ restart clause and the conditional T0 in §13.3 stands untouched.
 ## 15. Owner status board — written for a human, not for an agent
 
 > **For the repository owner, so the whole queue is legible without asking.** This board is a
-> **derived view**: everything in it comes from §4, §5, §8 and the dated logs §§11–14, §16 and
-> §17, and no reading in it originates here — the 2026-08-28 readings are sourced from **§14.5**,
-> the 2026-08-29 ones from **§16** and, for anything measured after #445 merged, **§17**. Within this
+> **derived view**: everything in it comes from §4, §5, §8 and the dated logs §§11–14 and
+> §§16–20, and no reading in it originates here — the 2026-08-28 readings are sourced from
+> **§14.5**, the 2026-08-29 ones from **§16** and, for anything measured after #445 merged, **§17**;
+> the **2026-08-30** readings are sourced from **§19.3**, **§20** and, for the V1 measurement, run
+> `33274031928` by way of [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §9. Within this
 > document **§4/§8/§10 govern**, and the durable sources they cite — `MASTER_HANDOVER.md`,
 > ADR-007, `STEP12_JS_UNIT_GATE0.md` §13.0, `pyright-baseline.json`, live branch protection —
 > govern over both. **If this board and §4 disagree, the board is stale: fix the board.** Agents:
@@ -2024,7 +2026,12 @@ restart clause and the conditional T0 in §13.3 stands untouched.
 [#445](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/445),
 [#448](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/448),
 [#449](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/449) and
-[#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) merged; §17). **Every word
+[#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451) merged; §17).
+⚠️ **RE-DERIVED AGAIN at `8a1ad9d`, 2026-08-30**, after
+[#462](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/462) (`a857443`) and
+[#457](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/457) (`8a1ad9d`) merged, and for
+the V1 measurement. **§15.1, §15.2, §15.3, §15.4 item 7 and §15.5 carry that pass**; every other row
+is the `fe15225` reading, unchanged. **Every word
 below reports status only. None of them authorizes anything** — this board grants no approval, and
 in particular grants no merge authorization, which under §8 and §4 Track D1 is always a separate,
 explicit, per-change owner decision. Status words map to §3 as follows:
@@ -2095,8 +2102,10 @@ and none belongs in §15.4:
   **`main` records rows through 48**, not 26, and **row 41 is not owed by anyone**. **The §11.10
   mechanism itself is unchanged and still standing**, which is the part of this bullet that was
   never about a number: every merge to `main` mints the next sequential `ci.yml` run and the PR that
-  caused it cannot record it, so **each of the 2026-08-30 merges — #462, #457 and this one — mints a
-  further qualification row that a later pass must write**. **No height is predicted here**; read it
+  caused it cannot record it, so **each of the 2026-08-30 merges —
+  [#462](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/462) (`a857443`),
+  [#457](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/457) (`8a1ad9d`) and this one —
+  mints a further qualification row that a later pass must write**. **No height is predicted here**; read it
   from [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0.
 - **Track P1's funding re-price** — the 8–16 developer-day estimate priced a residual burn-down and
   the residual reached **zero** on 2026-08-29, so it is **discharged by closure rather than by
@@ -2141,7 +2150,7 @@ below the table both state. Read the count from either of those, never from this
 |---:|---|---|
 | 1 | ~~Authorize the **R1** mutation probes — or close both hypotheses unmeasured~~ **DISCHARGED 2026-08-29** — authorized and measured; kept numbered so the rows below do not renumber | Nothing |
 | 2 | ~~**R2.1** — what should `scan_export_bounds()` do when `min > max`?~~ ✅ **DECIDED 2026-08-29 — ADR-010**: it reproduces `export_plan_to_workout_log`'s single combined call, so an inverted row is reported and named; the analysis scanners are unchanged; nothing is coerced and no constraint is added. Kept numbered for the same reason as item 1 | ~~The `utils/rep_range_integrity.py` docstring~~ — **nothing.** The docstring followed the ruling and is written (§4 R2) |
-| 3 | ~~**R2.2** — sign or reject Testing Strategy **D4**~~ ✅ **DISCHARGED 2026-08-29 — D4 is SIGNED**, with a bounded scope (`utils/effective_sets.py` only, two packets) and two product rulings recorded as **ADR-009**. The ruling is `TESTING_STRATEGY_PLANNING.md` §8.1e; the execution plan is [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md). **This closes the decision, not the work** — both packets still take Gate 1 | ~~R2 closure~~ — R2 now closes on items 4 and 5 |
+| 3 | ~~**R2.2** — sign or reject Testing Strategy **D4**~~ ✅ **DISCHARGED 2026-08-29 — D4 is SIGNED**, with a bounded scope (`utils/effective_sets.py` only, two packets) and two product rulings recorded as **ADR-009**. The ruling is `TESTING_STRATEGY_PLANNING.md` §8.1e; the execution plan is [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md). ~~**This closes the decision, not the work** — both packets still take Gate 1~~ ⚠️ **SPENT 2026-08-30 — both packets have landed on `main`**: **A** role-weight accumulation `e9f942f` ([#460](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/460), ledger row 46) and **B** a total `get_rep_range_factor()` `7d9a836` ([#461](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/461), row 48), each through its own Gate 1. **The decision and its work are both closed** | ~~R2 closure~~ — R2 now closes on items 4 and 5 |
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | ✅ **Unblocked on timing 2026-08-29** — item 8 is answered and the window's strict mark is **`2026-09-10T23:18:21Z`**. **Still an unsigned decision**, and reaching the mark is a precondition, never a signature |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. **Reaching three deep-gate runs authorizes nothing on its own** |
 | 6 | **R3** — authorize a `workflow_dispatch` (proves the gate body) and/or a named real tag (proves the trigger) | R3 entirely |
@@ -2198,11 +2207,11 @@ subsection**: item 7 was already excluded from the blocking three, and it still 
 
 The only unstarted *engineering* is what sits behind your decisions, and it is now **nothing at all
 — not one thing, and not three**. ~~**V1's option 2**, which is authorized and blocked on runner
-access rather than waiting on a decision~~ ⚠️ **SPENT 2026-08-30: option 2 was authorized,
-executed as run `33274031928`, and stopped on its own stop condition** — *either platform's
-three-run set is unstable*, and both were. It was the last unstarted item, so **the count is zero**;
+access rather than waiting on a decision~~ ⚠️ **SPENT 2026-08-30**: it was the last unstarted
+item and it ran, stopping on its own stop condition — *either platform's three-run set is unstable*,
+and both were — so **the count is zero**;
 what V1 leaves behind is a **decision**, not engineering, and any repair is a fresh authorization
-priced separately in §8. **R1's probes were one of the other two and are done**; **R2's post-decision
+**left unpriced** — §8 carries no figure for it, deliberately, and says so. **R1's probes were one of the other two and are done**; **R2's post-decision
 follow-through was the third** — the export-bounds behavior change, its tests and the
 `utils/rep_range_integrity.py` docstring — **and it shipped with the R2.1 ruling.** §8's **1.5–3
 developer-day** residual was priced for R1 and R2 together and now prices **nothing that remains**;
@@ -2225,8 +2234,10 @@ engineering.
 This third reading is kept because it was true of the table it described, but it is **not** the
 current count: the R2.1 ruling (**ADR-010**) answered item 2 after it was written, so the blocking
 set fell from **five to three — items 4, 5 and 6**, and the unstarted-engineering count fell from
-**two to one**, R2's follow-through having shipped with the ruling. **Read the count from the
-opening paragraph, or from §15.4's table — never from this note.** Its T0 and strict-mark figures are
+**two to one**, R2's follow-through having shipped with the ruling — and then, on **2026-08-30**,
+**from one to zero**, when V1's option 2 ran. **Read the blocking set from the opening paragraph or
+from §15.4's table, and the engineering count from the opening paragraph — §15.4's table carries no
+engineering count. Never read either from this note.** Its T0 and strict-mark figures are
 unchanged and still current.
 
 ---
