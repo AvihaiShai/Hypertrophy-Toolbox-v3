@@ -5068,8 +5068,20 @@ owner. **This is the event the paragraph below in this subsection predicted** �
 Vitest corpus **231 → 245**, so merging it would engage Q2's restart clause and reset T0."* That
 paragraph is now **history, not a live constraint**, and it is **annotated rather than rewritten**:
 its `must not land before 2026-09-05T17:59:26Z` sentence describes an owner ruling (**OD-1**) that
-the owner has since discharged by merging. **Nothing in this document is edited to pretend the
-prediction was not made.**
+the owner had ~~discharged by merging~~ **WAIVED BEFORE MERGING**. **Nothing in this document
+is edited to pretend the prediction was not made.**
+
+⚠️ **CORRECTED 2026-08-30 — one clause, on the owner's confirmation.** *"Discharged by
+merging"* said the **merge** discharged OD-1. It did not: the owner ruled *"I explicitly confirm
+that OD-1 was waived for PR #431 before its merge"*, so the waiver preceded `288667d` and the
+merge carried authority rather than conferring it. The mechanism matters here because this
+subsection is the one that dates the restart: **the waiver is why #431 could merge; the corpus
+move 231 → 245 is why the window restarted.** The canonical record is
+[`toast_type_word_collision/PLANNING.md`](../toast_type_word_collision/PLANNING.md) §0.14,
+**OD-1-W** (landed 2026-08-29, `fe15225`, PR
+[#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)). **No T0, mark or ledger
+row in this document moves** — T0 stays `2026-08-27T23:18:21Z` as declared by PR
+[#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452) in §13.0.
 
 **The corpus change is measured, not inferred.**
 `git rev-parse 46f640c:static/js/modules/__tests__` is
