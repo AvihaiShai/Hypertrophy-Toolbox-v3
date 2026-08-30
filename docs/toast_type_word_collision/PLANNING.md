@@ -809,6 +809,17 @@ here**, never deleted or re-worded. No index of them is kept.
 as debt 2 — **on merge of the PR carrying this subsection, not before.** Until then `main`'s
 §0.14 still runs OD-1 → OD-2 with no OD-1-W between them.
 
+> ✅ **BOTH HALVES DISCHARGED, AND THE POINTER REPAIRED — 2026-08-29.** The subsection merged as
+> **`fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), so `main`'s §0.14 now carries **OD-1-W** between OD-1 and
+> OD-2 and the *"until then"* clause above is spent. **The `§15.2 debt 2` citation no longer
+> resolves**: §17.4 of that plan moved three discharged rows out of the debt table, renumbering
+> what had been debt 2, and §19 then discharged the last live row. **§15.2's debt table is now
+> empty and every row in it is marked discharged**, this record among them. Read it there; the
+> sentence above is preserved as the dated statement it was. This is the third of the three
+> out-of-file citations §17.5 named as owed a one-line repair — the other two were repaired in
+> `MASTER_HANDOVER.md` and `ACTIVE_DEVELOPMENT.md` by #452. **The debt §17.5 opened is now
+> closed.**
+
 ---
 
 #### **OD-2 — Q2 = (b). One argument means a legacy bare message.**

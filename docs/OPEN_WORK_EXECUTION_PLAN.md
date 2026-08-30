@@ -473,8 +473,11 @@ held**; **17 are now killed individually**, and the eighteenth is deliberately s
    as a backlog.~~ ✅ **DISCHARGED 2026-08-29 (§18.3): row 41 is WRITTEN** — #450's own landing,
    run `33268787682`, job `99143431684`, `success`, `2026-08-29T18:38:17Z`. ⚠️ **EXTENDED
    2026-08-29 (§19.5): rows 42 and 43 are written too** — minted by #454's and #455's merges while
-   this pass was open, unclaimed by either, and appended here. **Row 44** is what the same
-   standing mechanism now owes, minted by this pass's own merge.
+   this pass was open, unclaimed by either, and appended here. ~~**Row 44** is what the same
+   standing mechanism now owes, minted by this pass's own merge.~~ ✅ **DISCHARGED `2026-08-29T22:54:16Z` (§20.2)**
+   — #452 merged as `5d98824` and **row 44 is written**: run `33279287312`, job `99171566275`,
+   `success`, `2026-08-29T22:44:02Z`. **The next unclaimed row** now sits in its place — no
+   fixed number, by Track D1's own rule.
    The Vitest corpus read **13 files / 245 cases** at **all fifteen** heads from `288667d` through
    `fe15225`, endpoints and intermediates alike, so **nothing in the range re-engaged Q2's restart
    clause**. ⚠️ **EXTENDED 2026-08-29 (§18.3): sixteen heads now**, `288667d` through `116d3c5`,
@@ -2514,8 +2517,9 @@ is stale: fix the board.”*
 - **Still owed after this pass:** ~~the **final-expansion-packet determination**~~ — ✅ **MADE
   2026-08-29 (§18.2)**; ~~§15.4's eight decisions~~ — **seven**, item 8 having been answered;
   ~~**row 41**, the next ledger row this PR's own merge mints and cannot record~~ — ✅ **WRITTEN
-  (§19.3)**, and **row 44** now sits in its place, rows 42 and 43 having been written by the same
-  pass (§19.5); and the **three out-of-file citations this pass's
+  (§19.3)**, and **the next unclaimed row** now sits in its place — rows 42 and 43 were written
+  by the same pass
+  (§19.5) and **row 44 by the closeout pass** (§20.2); and the **three out-of-file citations this pass's
   own renumbering falsifies**, immediately below — **still owed, and §18 deliberately created no
   fourth** by declining to renumber §15.4 again.
   Three things this pass opened against are now **landed, not merely
@@ -2706,7 +2710,7 @@ window therefore holds **16 consecutive green results on the 245-case suite, wit
   citations in files that pass could not touch. Item 8 is therefore marked **discharged in place**
   and keeps its number, so §15.1's *"items 2–5"*, §15.2's *"item 4"*, item 4's own back-reference and
   the three external pointers all still resolve. **This pass creates no new stale-pointer debt.**
-- **It did not repair §17.5's three out-of-file citations.** `MASTER_HANDOVER.md` and
+- **It did not repair §17.5's three out-of-file citations.** ✅ **ALL THREE ARE NOW REPAIRED — the third by the closeout pass (§20.3), so §17.5's debt is CLOSED.** `MASTER_HANDOVER.md` and
   `ACTIVE_DEVELOPMENT.md` were edited in this pass for the T0 block, so their *"§15.4 items 1–8 and
   10"* wording is repaired there; `toast_type_word_collision/PLANNING.md`'s *"as debt 2"* pointer is
   annotated rather than renumbered, since §15.2's rows are unchanged in number.
@@ -2714,8 +2718,8 @@ window therefore holds **16 consecutive green results on the 245-case suite, wit
 - **No packet was added, retired, reordered or re-scoped**, and no estimate was adopted or revised.
   §§1–3, 5–7, 9 and 11–14 are untouched apart from the annotations named above.
 - **It touched no JS test, no production file, no workflow, no job name and no repository setting.**
-- **Still owed after this pass:** §15.4's **five** blocking decisions — items **2–6**, re-derived from the table as merged, with items 7 and 11 open but blocking nothing and items 1 and 8 discharged; **row 44**; the
-  `toast_type_word_collision/PLANNING.md` pointer noted above; and, unchanged, U1-FOLLOWUP-1 itself,
+- **Still owed after this pass:** §15.4's **five** blocking decisions — items **2–6**, re-derived from the table as merged, with items 7 and 11 open but blocking nothing and items 1 and 8 discharged; **the next unclaimed row**, rows 44–48 having been written by the closeout pass (§20.2, §20.5) — no fixed number, by Track D1's own rule, which #453, #460, #459 and #461 each proved again within the hour; the
+  `toast_type_word_collision/PLANNING.md` pointer noted above, ✅ **now repaired** (§20.3); and, unchanged, U1-FOLLOWUP-1 itself,
   which is an obligation rather than a decision and is not in §15.4.
 
 ### 19.5 Addendum — `origin/main` moved while this pass was open, and what that changed
@@ -2746,8 +2750,8 @@ JS test case"*. **Q2's restart clause did not re-engage.**
 **Rows 42 and 43 are written by this pass, not owed by it.** Neither #454 nor #455 touched
 [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md), so both rows were **unclaimed**
 and the standing *"whichever pass lands first takes the next unclaimed row"* rule applies. The
-detail is in §13.0's rows-42–43 extension. **Row 44** is what this pass's own merge mints, and it
-cannot record it.
+detail is in §13.0's rows-42–43 extension. ~~**Row 44** is what this pass's own merge mints, and it
+cannot record it.~~ ✅ **DISCHARGED — row 44 is written by the closeout pass (§20.2), and **the next unclaimed row** now sits in its place.**
 
 **Four reconciliations this pass made rather than left to be discovered.**
 
@@ -2769,3 +2773,158 @@ cannot record it.
 **Nothing in this subsection authorizes anything.** **Q4 and D2 remain unsigned**, `js-unit` remains
 non-required, §15.4 items 2–6 remain the owner's, item 11 remains open, and U1-FOLLOWUP-1 remains an
 untouched obligation barred before `2026-09-10T23:18:21Z`.
+
+---
+
+## 20. Evidence log — 2026-08-29, #452's closeout
+
+**This section is a dated evidence log, not a status layer.** §§11–19 stand as their own dated
+readings; where one is now spent as a live statement it carries an inline forward pointer here,
+annotated in place rather than rewritten. **Nothing here declares or changes a T0** — the
+declaration is [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0's, made by
+the owner and recorded there; this pass only writes the row that PR's own merge minted. **Nothing
+here authorizes a packet or a merge, signs Q4 or D2, or promotes any context.**
+
+### 20.1 #452 merged, and the post-merge run inspected job by job
+
+| Reading | Value |
+|---|---|
+| UTC now | **`2026-08-29T22:54:16Z`** (GitHub API response `Date` header, not the host clock) |
+| [#452](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/452) | **`MERGED`**, squash **`5d98824`**, `mergedAt` **`2026-08-29T22:43:37Z`** |
+| Head merged | `81c8667` — the reconciliation commit, after `origin/main` was merged in at `2cb938c` |
+| `origin/main` | **`5d98824`** |
+| Post-merge run | [`33279287312`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33279287312) — `CI/CD Pipeline`, `push`, head `5d98824`, **`completed` / `success`**, attempt **1** |
+| Jobs | **18 of 18 `success`**, every one read individually rather than off the run's conclusion |
+
+**Every job, named, because a workflow-level green is not evidence about any job:** Run Tests ·
+E2E Functional (Chromium) · E2E Functional Shard 1/2 · E2E Functional Shard 2/2 · E2E Backup
+(Chromium, isolated) · E2E Smoke (Chromium) · E2E Fatigue Context (Chromium, non-required) ·
+E2E Erase Flow (Chromium, isolated, non-required) · Type Check (tsc blocking + pyright
+measure-only) · Code Linting · Frontend Build (npm ci + SCSS) · Security Audit · Test Inventory
+Drift · JS Supply Chain (npm audit, non-required) · JS Unit (Vitest, non-required) · Visual
+Regression (Windows baselines) · CSS Stylelint Measurement (non-required) · Packaged Smoke
+(Windows bootloader, non-required) / Build and smoke. **All eighteen `success`.**
+
+**No failure, transient or otherwise, occurred**, so nothing was retried and no regression was
+attributable to #452. `Test Inventory Drift` passing from a clean checkout is the independent
+confirmation of the equivalent proof #452 offered in place of a local `--check` it could not run.
+
+### 20.2 Row 44 is written — #452's own landing
+
+**Row 44 is appended to §13.0's master ledger table in place.** It is the row #452 predicted and,
+by the standing §11.10 mechanism, could not record: run `33279287312`, `js-unit` job
+[`99171566275`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33279287312/job/99171566275), **`success`**, `completed_at`
+**`2026-08-29T22:44:02Z`**, on an 18-of-18 attempt-1 run. **Read at job level**; the job finished
+ahead of its run, and the run-level figure was taken only after the run itself reached `completed`.
+
+**Row 44 restarts nothing, and it is the first row minted by a merge that declared a T0.** That
+changes nothing about the T0: a row is evidence accumulating **inside** the window the declaration
+opened, never a re-opening of it. `git rev-parse 5d98824:static/js` is
+`a7e5073568b0fde8e35e1e1a7be5a9f844e77828`, `5d98824:static/js/modules/__tests__` is
+`5858c8497c571548e5116f4b660ff7702dd298b1` and `5d98824:vitest.config.js` is
+`c16ca428f7478708d8dd96a20ebcb86f98a8b935` — identical at **all nineteen** heads `288667d` →
+`5d98824`; [`TEST_INVENTORY.json`](test_inventory/TEST_INVENTORY.json) reads **13 files / 245
+cases**. #452 was documentation-only. **Q2's restart clause did not engage.**
+
+**Census bounded at both ends and cross-checked**, `[2026-08-22T17:00:00Z, 2026-08-29T22:54:16Z]`:
+**49** `main` runs of any workflow = **44** `ci.yml` `push` attempts + the same **5** classified
+non-attempts, membership unchanged. An unfiltered cross-check filtered to `head_branch == "main"`
+and `created_at > 2026-08-29T22:18:08Z` returns the **same single** run. Window integrity:
+**44 attempts, 44 green, 0 red / missing / skipped / cancelled**; **19** of them on the 245-case
+suite. Elapsed T0 → row 44: **1 d 23 h 25 m 41 s**; remaining to `2026-09-10T23:18:21Z`:
+**12 d 0 h 34 m 19 s**.
+
+**Whoever merges this closeout pass owes the next unclaimed row**, and it cannot record it. **No fixed number is written here, deliberately**: Track D1's own rule forbids it, and it was proved again within the hour — [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) merged at `2026-08-29T23:02:13Z` (`fcc0e59`, **D4 signed**) and took the number this sentence would have named. ~~**Its row is unclaimed and is the next pass's to write.**~~ ✅ **DISCHARGED — #453's row is written as row 45 (§20.5), together with rows 46–48 from three further owner merges.**
+
+### 20.3 §17.5's citation debt is CLOSED
+
+§17.5 recorded three out-of-file citations that its own renumbering falsified and that it could not
+repair. **All three are now repaired**: `MASTER_HANDOVER.md` and `ACTIVE_DEVELOPMENT.md` by #452,
+and the third — `toast_type_word_collision/PLANNING.md`'s *"§15.2 carried … as debt 2"* — by this
+pass, as a dated annotation beside the original sentence rather than a rewrite of it. **The
+sentence's other half is spent too** and is annotated with it: its *"until then `main`'s §0.14
+still runs OD-1 → OD-2 with no OD-1-W between them"* was discharged when `fe15225` landed.
+**§15.2's debt table is empty**, every row in it discharged.
+
+### 20.4 What this pass deliberately did not do
+
+- **It made no decision.** §15.4's blocking set is unchanged **by this pass** — items **2–6** as
+  read at `5d98824`, and **2, 4, 5 and 6** after #453 signed D4; items 7 and 11 remain
+  open without stopping work; items 1 and 8 remain discharged.
+- **Q4 and D2 are untouched and unsigned**, and `JS Unit (Vitest, non-required)` remains
+  **non-required**. No branch-protection or repository-setting change was made or proposed.
+- **U1-FOLLOWUP-1 is untouched** — OPEN, required, barred before `2026-09-10T23:18:21Z`, and stale
+  on its quoted condition (U3b's **K13**). No planning, filing or implementation was begun.
+- **No JS test, production file, workflow, job name or inventory artifact was touched.**
+- **Still owed after this pass**, and every count here is an **instant**, not a state: §15.4's
+  blocking decisions — **items 2–6 at the `5d98824` reading, and items 2, 4, 5 and 6 once
+  [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) signed D4 (item 3) at `2026-08-29T23:02:13Z`**; **item 11**, open but
+  blocking nothing; **the next unclaimed ledger row**; and U1-FOLLOWUP-1, which is an
+  obligation rather than a decision and is not in §15.4. **Re-read §15.4 and §13.0 before
+  quoting either figure** — #453 moved both within twenty minutes of this pass's own reading,
+  and §20.5 records **three more merges** that moved §13.0 again inside the following hour. The **2026-08-31 03:17 UTC** deep-gate cron is the next external checkpoint,
+  and the clock stands at **2 of 3**.
+
+### 20.5 Addendum — four owner merges landed while #458 was open, and rows 45–48 are written
+
+**Measured at `2026-08-29T23:54:19Z`.** Between #452's merge and this addendum, `origin/main` advanced
+**four** times, all owner work, none of it reverted here:
+
+| `main` | PR | What it was | Ledger row |
+|---|---|---|---:|
+| `fcc0e59` | [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) | **Testing Strategy D4 SIGNED** — bounded scope, ADR-009, Gate 1 plan | **45** |
+| `e9f942f` | [#460](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/460) | **D4 Packet A** — multi-role effective-sets weight sum | **46** |
+| `bd686c9` | [#459](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/459) | the two-*Packet R1* disambiguation | **47** |
+| `7d9a836` | [#461](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/461) | **D4 Packet B** — `get_rep_range_factor` totals over every positive rep average | **48** |
+
+**None of the four touched the ledger**, so all four rows were unclaimed; **all four are written
+here**, at job level, in §13.0's master table in place, with a rows-45–48 extension block and its
+own bounded census. The full evidence is there, not restated from memory here.
+
+**The drift is explained, not anomalous.** #453, #460 and #461 are the owner acting on §15.4's own
+queue — D4 and its two packets — and #459 is the naming repair §18 called for. **The T0 is
+unaffected and this was proved before anything else was done**: `static/js`,
+`static/js/modules/__tests__` and `vitest.config.js` are **byte-identical** at `288667d`,
+`5d98824`, `fcc0e59`, `e9f942f`, `bd686c9` and `7d9a836`, and `TEST_INVENTORY.json` reads
+**13 files / 245 vitest cases** at every one. #460 and #461 moved the **pytest** corpus, not the
+vitest one. **Q2's restart clause keys on a JS test case and did not engage.**
+
+**Two conflicts, both the same hunk**, in `MASTER_HANDOVER.md` and `ACTIVE_DEVELOPMENT.md`: the
+§15.4 blocking-set sentence. **`origin/main`'s side was taken verbatim.** #459 had already
+re-derived that count in place — *five decisions, items 2–6* is spent, and the set is **items 2, 4,
+5 and 6** now that #453 signed D4 and discharged item 3. That is newer canonical status and wins;
+this branch's competing edit was only a tense softening and added nothing #459's dated annotation
+does not already say, so **it was dropped rather than merged.**
+
+**Every line the merge deletes relative to `origin/main` was audited individually** — 28 of them,
+all #452's own dated predictions (*"the ledger ends at row 43 once this pass lands"*, *"row 44 is
+what this pass's own merge will mint"*), each re-emitted as the measured outcome. **No main-side
+decision, evidence section, discharged-or-open item, or naming-key row was removed.**
+
+**One claim of this pass's own was found false before it shipped and was corrected, not shipped.**
+A draft of the rows-45–48 block called rows 46 and 48 *"the first production-code merges inside
+this window"*. They are not: rows **31**, **35** and **36** — the Track P1 pyright burn-down
+(`f318d81`, `1226e46`, `3532f86`) — already touched `routes/**` and `utils/**` inside it. The
+accurate claim, and the one written, is that rows 46 and 48 are the first to change a **documented
+effective-sets calculation**. Recorded here because the near-miss is the evidence that the census
+is being re-derived rather than carried.
+
+**One of the row-44 block's own census claims is now spent and is annotated in place**: *"No sixth
+non-attempt run has landed"*. A sixth landed at `2026-08-29T23:21:50Z` — run
+[`33280804027`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33280804027), *Configured Graph Update: pip in /.*, `dynamic`.
+**All six non-attempts were re-checked individually and every one returns zero
+`JS Unit (Vitest, non-required)` jobs**, so **no tally figure moves**; only the completeness total,
+**49 → 54**.
+
+**Local verification, from a clean worktree that never touched `data/database.db`:**
+`pytest tests/test_vitest_inventory_contracts.py tests/test_agent_workflow_contracts.py
+tests/test_release_workflow_contracts.py tests/test_visual_capture_contracts.py` → **209 passed**;
+and, because the merge pulled #460's and #461's production changes in,
+`pytest tests/test_effective_sets.py tests/test_weekly_summary.py tests/test_session_summary.py`
+→ **107 passed**. **316 in total, zero failures.**
+
+**What this addendum still does not do.** It signs nothing, decides nothing, and touches no JS
+test, workflow, job name, branch-protection setting or inventory artifact. **The next unclaimed
+ledger row — the one this pass's own merge mints — remains owed**, and by the standing §11.10
+mechanism it always will be: the evidence model is necessarily one merge behind, and the honest
+form is to name the obligation and refuse to name the integer.
