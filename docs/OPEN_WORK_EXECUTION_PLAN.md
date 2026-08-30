@@ -2105,9 +2105,9 @@ restart clause and the conditional T0 in §13.3 stands untouched.
 
 > **For the repository owner, so the whole queue is legible without asking.** This board is a
 > **derived view**: everything in it comes from §4, §5, §8 and the dated logs §§11–14 and
-> §§16–21, and no reading in it originates here — the 2026-08-28 readings are sourced from
+> §§16–22, and no reading in it originates here — the 2026-08-28 readings are sourced from
 > **§14.5**, the 2026-08-29 ones from **§16** and, for anything measured after #445 merged, **§17**;
-> the **2026-08-30** readings are sourced from **§19.3**, **§20**, **§21** and, for the V1 measurement, run
+> the **2026-08-30** readings are sourced from **§19.3**, **§20**, **§21**, **§22** and, for the V1 measurement, run
 > `33274031928` by way of [`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §9. Within this
 > document **§4/§8/§10 govern**, and the durable sources they cite — `MASTER_HANDOVER.md`,
 > ADR-007, `STEP12_JS_UNIT_GATE0.md` §13.0, `pyright-baseline.json`, live branch protection —
@@ -2137,6 +2137,17 @@ the in-flight blank/null Gate-1 planning session, seven owed JS-unit observation
 queue, and freshly measured external/live-state rows. Earlier derivations above remain their dated
 readings.
 
+⚠️ **LIVE REFRESH `2026-08-30T19:35:53Z`, still on `origin/main` @ `b36ea9e`:** §22 records
+the completed prompt batch after §21's cutoff. Blank/null Gate 1 is now implemented on green,
+mergeable PR [#467](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/467), but is not on
+`main`; this reconciliation is green, mergeable PR
+[#468](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/468), also unmerged. Current-main
+release dry-run [`33328039112`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33328039112)
+passed all five evidence jobs plus the fan-in and created no tag or GitHub Release. The August 31
+deep-gate run still does not exist, and the JS-unit observation remains 30/30 green through
+observed row 55. The rows below carry this refresh; §21 remains the evidence for its earlier fixed
+cutoff.
+
 | Board word | §3 status | What it means for you |
 |---|---|---|
 | ✅ **Done** | Closed | Shipped and on `main`. Nothing to do. |
@@ -2156,12 +2167,12 @@ readings.
 | **U3 / KI-010** Toast type-word collision | `showToast('error')` renders the word, not a default success toast | ✅ **Done** — `288667d` ([#431](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/431)), 2026-08-27 | **Nothing — its one record is written and ON `main`.** The OD-1 waiver is recorded as **OD-1-W** in `toast_type_word_collision/PLANNING.md` §0.14, landed **`fe15225`** ([#451](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/451)), `2026-08-29T17:59:24Z` (§15.2 *Discharged*) |
 | **R0** External release/testing evidence | Inspect the scheduled deep gate, refresh the ledger | ✅ **Done** — `5111a7f` ([#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)), 2026-08-24 | — |
 | **R1** Deep-gate mutation probes | Prove whether a CI job shape can fake a green | ✅ **Done** — probes #455 (`2cb938c`); terminal policy closure #466 (`b36ea9e`), 2026-08-30 | `continue-on-error` on the `uses:` job `frozen-windows` is invalid/non-reachable under GitHub's supported-keywords list (ADR-012; §15.4 item 11). The local boundary probe remains historical contract-gap evidence, not runtime false-green evidence |
-| **Blank/null rep bounds** | Reject exact blank persisted rep bounds at export without collapsing actual `None` | 🟠 **In flight** — Gate 0 #465 (`52ca8a8`) is on `main`; local Gate-1 branch existed at `b36ea9e` with zero branch commits and no PR at cutoff | The parallel Gate-1 session owns planning only at this cutoff. It is not signed, implemented, complete, or merge-authorized (§4; §21.5) |
+| **Blank/null rep bounds** | Reject exact blank persisted rep bounds at export without collapsing actual `None` | 🟠 **In flight — PR review** — Gate 0 #465 (`52ca8a8`) is on `main`; Gate 1 is implemented on PR [#467](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/467), head `2764d7c`, with 18/18 checks green and `MERGEABLE` / `CLEAN` | Review and separately decide whether to merge #467. The production change is not on `main` and this board grants no merge authorization (§22) |
 | **R2** Owner-gated testing decisions | **Two** remaining decisions — §15.4 items 4–5. R2.1 is decided/implemented; R2.2 and both D4 packets are closed | 🟡 **Waiting on you** | **You decide R2.3 and R2.4.** R2.3 remains time-gated until `2026-09-10T23:18:21Z`; neither decision is made here |
-| **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Waiting on you** | One old dispatch ran, but the **current 12-required / 13-expected gate has never executed**. A new dispatch tests that body; only a real tag you name tests the trigger (§4; §21.4) |
+| **R3** Release tag-trigger proof | Prove a version tag actually starts the release workflow | 🟡 **Partly proved; real tag remains owner-controlled** | ✅ Current-main dry-run `33328039112` passed on `b36ea9e`: all five evidence jobs plus `Release Gate` succeeded and no tag/Release was created. The current gate body is proved. Only a real version tag explicitly named by the owner can prove the `push: tags` trigger (§22) |
 | **V1** Visual determinism disposition | Establish the accepted byte/semantic boundary and preserve the falsified probe evidence | ✅ **Closed 2026-08-30 on `main` as #466 (`b36ea9e`):** **81 byte-gated captures plus five explicitly exempt captures protected by pinned semantic contracts, per platform**, is terminal (ADR-011). Run [`33274031928`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33274031928) remains the falsified-hypothesis evidence | Nothing. The rendering defect is an accepted bounded residual, not declared fixed. Any future investigation needs a newly named, testable rendering hypothesis and separate authorization |
 | **Track P1** Pyright reduction | Burn down type errors, packet by packet | ✅ **Done — 0 left**, was 132. **10 packets**: 2 on 08-27, 6 on 08-28, 2 on 08-29 | **Nothing. The track is closed** (§4 Track P1), and nothing is attached to it — the funding re-price went **moot** at closure and is out of the debt table and the decision queue (§15.2 *Discharged*, §16.2) |
-| **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — queue empty.** Fixed cutoff: **0 open PRs repo-wide; 0 dependency PRs**, exact SHA `b36ea9e` (§21.4) | Nothing until the next bump. #415/#416 merged 2026-08-26; landing one needs explicit owner authorization |
+| **Track D1** Dependency-PR triage | Triage Dependabot bumps one at a time | 🔵 **Standing — dependency queue empty.** Live refresh: **2 open PRs repo-wide (#467 and #468), 0 dependency PRs**; both are 18/18 green and `MERGEABLE` / `CLEAN` (§22) | Independently review #467 and #468; each merge requires a separate explicit owner authorization. Nothing to triage from Dependabot |
 | **U1-FOLLOWUP-1** | Required follow-up whose stale K13 condition must be re-derived | **Open obligation — not authorized or filed here** | Do not land before `2026-09-10T23:18:21Z`; plan it through its own gates after re-reading `toast_action_continuity/PLANNING.md` §4.3 |
 | **§5 Parked** — 8 items | CSS C8, G4 superset tint, Fatigue Phase 3, four User-Profile/roadmap items, Testing Phase 3 step 11 / Phase 5 | ⛔ **Parked** | Nothing — unless you reopen one, or decide one will never be built, so §5 can mark it **Not planned** instead of leaving it ambiguous |
 
@@ -2234,15 +2245,16 @@ and none belongs in §15.4:
 | **Deep-gate scheduled runs** (R1-D3's clock) | **2 of 3**, runs `31993105305` and `32688747703`, both `success` / 7 of 7; **no 2026-08-31 scheduled run existed at cutoff** | Fixed `2026-08-30T18:21:22Z`; `gh api .../workflows/deep-gate.yml/runs?event=schedule`; exact trunk `b36ea9e` (§21.4) |
 | **JS-unit qualification window** | ✅ **RUNNING; T0 DECLARED.** **30 consecutive green results on the 245-case suite, rows 26–55; 0 red / missing / skipped / cancelled.** The committed ledger records through row 48; **rows 49–55 are observed and owed, not written here**. Inventory remains 13 files / 245 cases and the JS test tree matches row 48 | Fixed `2026-08-30T18:21:22Z`; GitHub run/job APIs + `TEST_INVENTORY.json` + `git diff`; exact trunk `b36ea9e`. Strict mark is **`2026-09-10T23:18:21Z`**; reaching it is not a signature (§21.3) |
 | **Live branch protection** | **12** required contexts; `strict:false`; `JS Unit (Vitest, non-required)` absent | Fixed `2026-08-30T18:21:22Z`; `gh api repos/.../branches/main/protection`; exact trunk `b36ea9e`. No promotion proposed (§21.4) |
-| **PR / dependency queue** | **0 open PRs repo-wide; 0 dependency PRs** | Fixed `2026-08-30T18:21:22Z`; `gh pr list --state open --limit 100`; exact trunk `b36ea9e` (§21.4) |
-| **Release workflow** | **0** `push` runs; **1** old `workflow_dispatch` (`31840756293`). The current 12-required / 13-expected gate has never executed | Fixed `2026-08-30T18:21:22Z`; release workflow run API; exact trunk `b36ea9e` (§21.4) |
+| **PR / dependency queue** | **2 open PRs (#467 and #468), both 18/18 green and `MERGEABLE` / `CLEAN`; 0 dependency PRs** | Live `2026-08-30T19:35:53Z`; `gh pr list`, `gh pr checks`; trunk remains `b36ea9e` (§22) |
+| **Release workflow** | **0** `push`/tag runs; **2** successful `workflow_dispatch` runs. Current-main run `33328039112` on `b36ea9e` proved the current gate body: all five evidence jobs plus the fan-in succeeded; no tag or GitHub Release was created | Run completed `2026-08-30T18:29:52Z`; workflow/job APIs and before/after tag/release inventories (§22). The real tag trigger remains unproved |
 | **Registered worktrees** | **75 total: 65 branch-attached, 10 detached; 71 clean, 4 dirty.** Main and this reconciliation worktree were clean. Gate 1 and the Aug-31 monitor are in flight, not complete | Fixed-cutoff census with `git worktree list --porcelain` + per-worktree `git status --porcelain=v1`; exact trunk `b36ea9e` (§21.5) |
 | **Pyright baseline** | **0 / 0 / 0** at `3532f86`, live run agreeing exactly; the allowlist is empty and has no headroom (§16.2) | Track P1 closed **2026-08-29** |
 
 ### 15.4 Your decision queue
 
 Every decision this plan is waiting on you for, in one place. ⚠️ **AMENDED 2026-08-30 — nine
-rows, of which THREE stop work.** Items **4, 5 and 6** are the blocking set. **Items 1, 2, 3, 7,
+rows, of which THREE remain unresolved.** Items **4, 5 and 6** are the outstanding set. Item 6's
+current-gate-body half is proved; its real-tag-trigger half remains owner-controlled. **Items 1, 2, 3, 7,
 8 and 11 are discharged; only 4, 5 and 6 stop work.** Items 7 and 11 were closed by the
 2026-08-30 owner decisions recorded in ADR-011 and ADR-012. All discharged rows remain numbered
 in place so historical citations continue to resolve.
@@ -2269,7 +2281,7 @@ below the table both state. Read the count from either of those, never from this
 | 3 | ~~**R2.2** — sign or reject Testing Strategy **D4**~~ ✅ **DISCHARGED 2026-08-29 — D4 is SIGNED**, with a bounded scope (`utils/effective_sets.py` only, two packets) and two product rulings recorded as **ADR-009**. The ruling is `TESTING_STRATEGY_PLANNING.md` §8.1e; the execution plan is [`testing_d4_invariants/PLANNING.md`](testing_d4_invariants/PLANNING.md). ~~**This closes the decision, not the work** — both packets still take Gate 1~~ ⚠️ **SPENT 2026-08-30 — both packets have landed on `main`**: **A** role-weight accumulation `e9f942f` ([#460](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/460), ledger row 46) and **B** a total `get_rep_range_factor()` `7d9a836` ([#461](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/461), row 48), each through its own Gate 1. **The decision and its work are both closed** | ~~R2 closure~~ — R2 now closes on items 4 and 5 |
 | 4 | **R2.3** — **Q4 / D2 together**: should `JS Unit (Vitest, non-required)` become a required context? | ✅ **The T0-determination debt is discharged, but evaluation remains time-gated until `2026-09-10T23:18:21Z`.** R2.3 / Q4-D2 is unsigned; reaching the mark is a precondition, never a signature |
 | 5 | **R2.4** — put `visual-linux` into the release gate: adopt, decline, or defer? | R2 closure and §10 criterion 5. Fixed cutoff: clock **2 of 3**, no 2026-08-31 run yet. **Reaching three authorizes nothing on its own** |
-| 6 | **R3** — authorize a `workflow_dispatch` (proves the current gate body) and/or a named real tag (proves the trigger) | R3 entirely. Fixed cutoff: **0** push/tag runs; **1** old dispatch (`31840756293`) predating the current 12/13 body |
+| 6 | **R3** — prove the release workflow's current body and its real tag trigger | ✅ **Current-body half proved:** authorized dry-run `33328039112` passed on `b36ea9e`, with all five evidence jobs plus the fan-in successful and no tag/Release created. **Still open:** only a real version tag explicitly named by the owner can prove `push: tags`; do not create a test tag merely to close the row (§22) |
 | 7 | ~~**V1** — accept **81/86** as terminal, or fund the race investigation~~ ✅ **CLOSED 2026-08-30:** adopt **81 byte-gated captures plus five explicitly exempt captures protected by pinned semantic contracts, per platform**, as terminal. The approved capture-side hypothesis was tested and falsified; the rendering defect is not declared fixed | **Nothing. §10 criterion 7 is met.** Any future investigation requires a newly named, testable rendering hypothesis and separate authorization (ADR-011) |
 | 8 | ~~**Was #431 the final Vitest expansion packet?**~~ ✅ **ANSWERED 2026-08-29 — YES** (§15.2 debt 1, §18.2) | — **nothing.** **T0 `2026-08-27T23:18:21Z`**, **strict mark `2026-09-10T23:18:21Z`**. Kept numbered, and not removed, so §15.1's and §15.2's pointers and the three external ones §17.5 names all still resolve |
 | 11 | ~~Should job-level `continue-on-error:` be barred on the `uses:` job `frozen-windows`?~~ ✅ **CLOSED 2026-08-30:** the key is absent from GitHub's official [supported keywords for reusable-workflow caller jobs](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#supported-keywords-for-jobs-that-call-a-reusable-workflow), so the proposed shape is invalid and non-reachable. The 2026-08-29 local probe remains evidence of a contract gap only; no runtime false green was demonstrated | Nothing. No workflow or test change authorized (ADR-012) |
@@ -2301,16 +2313,20 @@ below the table both state. Read the count from either of those, never from this
 
 ### 15.5 The short version
 
-**Fixed-cutoff short version (`2026-08-30T18:21:22Z`, exact trunk `b36ea9e`): one planning session is in
-flight, not complete — blank/null rep-bound Gate 1.** Gate 0 is on `main` as #465 (`52ca8a8`),
-but the local Gate-1 branch had no branch commit or PR at cutoff and no implementation or merge
-outcome may be inferred. A separate `wt/deepgate-0831-monitor` branch is also in flight as an
-observation session; the August 31 run did not yet exist. **Three owner decisions remain** —
-§15.4 items **4, 5 and 6**. Track D1 is standing with an empty queue. **Seven earned JS-unit
-observations, rows 49–55, remain unwritten** and this PR is not authorized to write them.
+**Live short version (`2026-08-30T19:35:53Z`, exact trunk still `b36ea9e`): two green,
+mergeable PRs await separate owner decisions.** [#467](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/467)
+implements blank/null Gate 1 and [#468](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/468)
+is this status reconciliation; neither is on `main`. Current-main release dry-run `33328039112`
+passed, so R3 is narrowed to proving the real tag trigger during an explicitly named release.
+The August 31 deep-gate run still does not exist. **Three owner decisions remain unresolved** —
+§15.4 items **4, 5 and 6**, with item 6's dry-run half complete. Track D1 has zero dependency PRs.
+**Seven earned JS-unit observations, rows 49–55, remain unwritten**, and the strict mark remains
+`2026-09-10T23:18:21Z`.
 
-**No engineering or implementation packet was in flight; one Gate-1 planning session was in
-flight.** The rest of this paragraph is retained as its 2026-08-29-derived reading. T0, U1, U2 and both halves of U3 are on `main`, R0 is
+~~**No engineering or implementation packet was in flight; one Gate-1 planning session was in
+flight.**~~ ⚠️ **LIVE 2026-08-30:** Gate 1 became implementation PR #467 and the plan became docs
+PR #468; both are green and unmerged. The rest of this paragraph is retained as its
+2026-08-29-derived reading. T0, U1, U2 and both halves of U3 are on `main`, R0 is
 closed, and pyright reached **0 / 0 / 0** on 2026-08-29. ⚠️ **AMENDED 2026-08-29, four times the same
 day — the V1 ruling, Packet R1, the D4 signature and the R2.1 ruling each moved the counts in this
 paragraph.** What remains is **three live decisions** that stop work — items **4, 5 and 6** of
@@ -3349,3 +3365,56 @@ them for current guidance. #464 is not recast as V1's policy closeout, #466 does
 rendering defect was fixed, and run `33274031928` is not described as exercising #464's later
 theme/baseline tree. No production file, test, workflow, baseline, branch-protection rule or
 repository setting was edited.
+
+---
+
+## 22. Prompt-batch closeout — live refresh after §21
+
+**Measured:** `2026-08-30T19:35:53Z`. `origin/main` and the clean primary checkout remain
+`b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8`. This is an additive evidence refresh for §15; it
+does not rewrite §21's earlier fixed-cutoff facts and authorizes no merge, tag, workflow change,
+branch-protection change, baseline write or JS-unit promotion.
+
+### 22.1 Open implementation and documentation PRs
+
+| PR | Head | Scope | Live state |
+|---|---|---|---|
+| [#467](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/467) | `2764d7c` | Blank/null Gate-1 implementation: three production utilities, four focused test files and generated inventory; exact blanks become HTTP 400 while actual `None` remains nullable | **OPEN, 18/18 checks green, `MERGEABLE` / `CLEAN`** |
+| [#468](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/468) | this branch | `OPEN_WORK_EXECUTION_PLAN.md` live reconciliation only | **OPEN, 18/18 checks green, `MERGEABLE` / `CLEAN` before this refresh**; this new commit must earn its own CI result |
+
+There are **two open PRs repo-wide and zero dependency PRs**. Neither PR is merge-authorized by
+its creation or by this document. PR #467's local/full evidence is 3,238 pytest passed and 2
+skipped, 80 relevant Playwright tests passed, Pyright 0/0/0, and the required response-contract
+migration note in its PR body. The GitHub checks, not those carried counts, govern its merge state.
+
+### 22.2 Current release-gate execution proof
+
+Owner-authorized `workflow_dispatch` run
+[`33328039112`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33328039112)
+ran exactly once on `main` / `b36ea9e`, attempt 1, from `2026-08-30T18:25:42Z` through
+`18:29:52Z`, and completed `success`.
+
+- `Version and tag identity`, `CI provenance on this commit`, `First install (catalog seed)
+  smoke`, `Frozen Windows executable / Build and smoke`, and `Old-DB migration compatibility`
+  all succeeded.
+- The `Release Gate` fan-in succeeded after reporting all five dependencies successful.
+- All 13 expected provenance checks on `b36ea9e` were present and successful.
+- Before/after remote inventories prove no `v3.0.1` tag and no GitHub Release was created; the
+  unrelated archival tag set was unchanged.
+
+This closes R3's current-gate-body proof. It does **not** prove `push: tags`. That final half is
+appropriate only for a real version tag explicitly named by the owner, not a disposable test tag.
+
+### 22.3 Clocks and local hygiene
+
+- The August 31 scheduled deep-gate query still returns `[]`; the clock remains **2 of 3** and is
+  time-gated, not failed. The expected appearance window remains approximately
+  `2026-08-31T04:00Z`–`04:15Z`.
+- The post-merge JS-unit checkpoint remains **30/30 green** from row 26 through observed row 55,
+  with zero red, missing, skipped or cancelled. The canonical ledger remains through row 48;
+  rows 49–55 are owed. T0 and strict mark remain `2026-08-27T23:18:21Z` and
+  `2026-09-10T23:18:21Z`.
+- The read-only hygiene audit classified **75 worktrees**: 38 merged/potential future cleanup
+  candidates, 1 active/shared, 1 time-gated monitor, 9 evidence-only/detached, 5 dirty requiring
+  owner review, 18 with unique/unpushed commits to preserve, and 3 unknown. No cleanup occurred;
+  the audit is evidence for a later owner-approved cleanup packet, not permission to delete.
