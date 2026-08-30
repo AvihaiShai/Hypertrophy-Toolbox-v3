@@ -417,6 +417,30 @@ class TestExportsEndpoints:
         assert row is not None
         assert row["count"] == 0
     
+    def test_export_to_workout_log_names_the_inverted_row(
+        self, client, sample_workout_plan
+    ):
+        """R2.1: an inverted rep range must name the row the user has to repair.
+
+        This is the export surface that shows the server message -- the Excel
+        path hardcodes its toast instead (residual A3). The status, code and
+        atomicity are asserted by the parametrized test above; what is pinned
+        here is the message, which was previously returned bare.
+        """
+        from utils.database import DatabaseHandler
+
+        with DatabaseHandler() as db:
+            db.execute_query("UPDATE user_selection SET min_rep_range = 13")
+
+        response = client.post('/export_to_workout_log')
+
+        assert response.status_code == 400
+        assert response.get_json()["message"] == (
+            "Minimum reps cannot exceed maximum reps. "
+            "Invalid plan value on: A / Bench Press. "
+            "Fix these in the Workout Plan editor."
+        )
+
     def test_export_to_workout_log_empty_plan(self, client, clean_database):
         """Test exporting empty workout plan."""
         response = client.post('/export_to_workout_log')

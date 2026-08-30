@@ -1,6 +1,8 @@
 # Visual-Capture Determinism Remediation
 
 Status: **PARTIAL — 81 of 86 captures byte-compared; five are exempt by measurement.**
+The capture-side repair hypothesis was measured on both pinned runner images under the V1
+owner ruling and is **falsified** — §9.
 The Gate 2 claim below was reached on two-to-three samples and did not hold; §8 records
 the fourth cause, the six controls that failed to close it, and the five captures that
 moved to non-pixel assertions instead.
@@ -709,3 +711,98 @@ changes no computed value would now pass. That is the cost of the exemption and 
 hidden: `plan-desktop-light-simple`, every tablet and mobile plan capture, and the whole
 `workout-log` table matrix remain byte-compared, so the same components are still
 pixel-covered elsewhere in the corpus.
+
+## 9. The capture-side hypothesis, measured and falsified (2026-08-29)
+
+§8.5 recorded `dropCompositingHints()` reaching **4/86 unstable → 0/86 over two runs** and
+then rejected it because an exact-head *compare* stayed red on `plan-desktop-dark-advanced`.
+§8.3 states, of a different experiment, that a compare against baselines generated **with**
+the promotion "could not have shown success whatever it did" — and that objection was never
+applied to this one. So the single control that reached zero instability had been discarded
+on evidence that cannot distinguish *nondeterministic* from *legitimately different*.
+
+Under the V1 owner ruling that gap was measured properly. **The hypothesis is falsified.**
+The control was right to be rejected; the reasoning in §8.5 was not.
+
+### 9.1 Method
+
+Throwaway branch `probe/v1-drop-compositing-hints` (`94e8ec6`, `7afb170`), based on
+`8c844df`. **Nothing merged, no baseline committed, no tolerance, viewport, mask, crop or
+retry changed, and `BYTE_GATE_EXEMPT` was not edited.**
+
+- `dropCompositingHints()` restored verbatim from `947ba57`, called at the end of
+  `prepareForScreenshot()` only under `PW_DROP_HINTS=1`.
+- `isByteGateExempt()` returns false under `PW_MEASURE_EXEMPT=1`. **Without this the probe
+  is blind to the five captures it exists to measure** — an exempt capture returns before
+  `toHaveScreenshot` and writes no file even under `--update-snapshots`.
+- A `workflow_dispatch` workflow could not be used: GitHub resolves dispatch from the
+  **default branch**, returning `HTTP 404: workflow v1-probe.yml not found on the default
+  branch`. A push trigger filtered to that one branch name was the only route that left
+  `main` untouched.
+- Four jobs (2 platforms × 2 arms), each running **three sequential generations** with its
+  own prepared DB, Flask process and Chromium process, resetting `e2e/__screenshots__`
+  between them. Rasters were compared **only** with rasters from the same platform, arm and
+  job — never against a committed baseline.
+
+Run [33274031928](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33274031928),
+all four jobs success, all twelve generations exit 0. Images `ubuntu24/20260823.283.1` and
+`win22/20260824.284.2`; Playwright 1.61.0, Node 24, Python 3.14.6.
+
+### 9.2 Result
+
+Per platform, own tree only — **86** captures each, which is 81 byte-gated plus the five
+exempt that only the bypass makes visible:
+
+| Platform | Arm | Captures | Stable | Unstable |
+|---|---|---:|---:|---:|
+| ubuntu-24.04 | control | 86 | 83 | **3** |
+| ubuntu-24.04 | treatment | 86 | 85 | **1** |
+| windows-2022 | control | 86 | 83 | **3** |
+| windows-2022 | treatment | 86 | 83 | **3** |
+
+| Platform | Stabilised by the treatment | Unstable in **both** arms | **Newly** unstable |
+|---|---|---|---|
+| ubuntu-24.04 | `plan-desktop-dark-advanced`, `plan-desktop-dark-simple` | `workout-plan-desktop-dark` | none |
+| windows-2022 | `plan-desktop-light-simple` | `plan-desktop-light-advanced`, `workout-plan-desktop-dark` | **`workout-plan-desktop-light`** |
+
+`workout-plan-desktop-dark` is unstable in **all four arms**. On `windows-2022` the treatment
+fixed one capture and broke another, netting zero. Linux 3 → 1 over three generations is not
+the 0/86 that two runs suggested.
+
+`plan-desktop-light-simple` was unstable in the `windows-2022` **control**, independently
+reproducing the #322 finding that keeps `visual-baseline-thumbnails.spec.ts` out of
+`visual-windows`.
+
+### 9.3 The residual is not the mechanism §8 diagnosed
+
+§8.2 found **197 differing clusters, “essentially all of them”** a `dy = 1` shift of unchanged
+pixel values with residual 0. Testing whether a one-device-row shift reconciles the
+differing rows of the residual pairs:
+
+| Pair (gen1 vs gen2) | Differing rows | Explained by a 1-row shift |
+|---|---:|---:|
+| ubuntu treatment, `workout-plan-desktop-dark` | 461 / 2517 | 9.3% |
+| ubuntu control, `workout-plan-desktop-dark` | 208 / 2517 | **0%** |
+| windows treatment, `workout-plan-desktop-light` | 493 / 2516 | 7.5% |
+| windows treatment, `workout-plan-desktop-dark` | 426 / 2517 | **0%** |
+
+Nothing here matches the paint-offset signature, and the differences are confined to the
+lower ~40% of the page (first differing row ~1542–1710 of ~2517). **On `8c844df` the residual
+instability is a different defect from the compositor-layer paint-offset rounding §8
+measured.** That is a characterization of these four pairs, not a full re-diagnosis — but it
+means a future attempt should start from a fresh diagnosis of the *current* residual rather
+than from §8's mechanism. **It is not independent evidence** — it is the same four pairs from the
+same run as §9.2 — so it is offered as a pointer for the next diagnosis, not as a second proof.
+
+### 9.4 What this does and does not settle
+
+**Settled:** removing the compositor promotion at capture time does not make the corpus
+byte-deterministic on either pinned runner image. The measurement covers all five exemptions
+and `plan-desktop-light-simple` explicitly, on both platforms.
+
+**Not settled:** the terminal policy. The evidence now supports accepting **81 of 86** as
+terminal — the exemption is vindicated by measurement rather than by exhaustion — but that
+remains an owner decision, recorded in `OPEN_WORK_EXECUTION_PLAN.md` Packet V1.
+
+**Still true, and unchanged by any of this:** a clean committed-baseline compare is not
+evidence of determinism, and must not be cited as one.

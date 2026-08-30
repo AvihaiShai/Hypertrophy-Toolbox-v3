@@ -241,7 +241,7 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 2898,
+    "collected_deterministic": 2901,
     "deterministic_files": 125,
     "environment_dependent_files": [
       {
@@ -428,7 +428,7 @@
       },
       {
         "file": "tests/test_exports.py",
-        "tests": 56
+        "tests": 57
       },
       {
         "file": "tests/test_fatigue.py",
@@ -612,7 +612,7 @@
       },
       {
         "file": "tests/test_rep_range_integrity.py",
-        "tests": 48
+        "tests": 50
       },
       {
         "file": "tests/test_replace_exercise.py",

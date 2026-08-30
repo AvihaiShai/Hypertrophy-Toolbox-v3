@@ -152,7 +152,16 @@
 > [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453) (`fcc0e59`) **signed D4**,
 > discharging **item 3 (R2.2)** in place. **The blocking set is now items 2, 4, 5 and 6 — four
 > decisions**: R2.1, R2.3 (Q4 / D2), R2.4 and R3, and **item 3 joins items 1 and 8 as
-> discharged**. The table still holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1 and 8 are
+> discharged**. ⚠️ **RE-DERIVED AGAIN 2026-08-30 — that count is spent too, and this reading is
+> taken off §15.4's merged table rather than decremented from the one above it.**
+> [#457](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/457) ruled **R2.1** as
+> **ADR-010** and shipped its follow-through, discharging **item 2**, so **the blocking set is
+> items 4, 5 and 6 — three decisions**: R2.3 (Q4 / D2), R2.4 and R3. **V1's measurement RAN the
+> same day** — run [`33274031928`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33274031928),
+> the capture-side hypothesis **falsified** — and it **moves that count by nothing**: item 7 was
+> already outside the blocking set and stays outside it. What changed is *what* item 7 asks, which
+> is now the **terminal policy alone**, its workflow-approval clause being spent. The table still
+> holds nine rows. **Items 7 and 11 are open without stopping work**, and **items 1, 2, 3 and 8 are
 > discharged.** Nothing is renumbered. Track P1 stays closed at 0 / 0 / 0, Track D1's
 > queue stays empty, the deep-gate clock stays at **2 of 3** with the third due 2026-08-31
 > 03:17 UTC, and `release.yml`'s `push: tags` trigger has still **never** fired.
@@ -364,7 +373,10 @@
 >    marked discharged in place, keeping its number so existing pointers resolve. **Counted off
 >    the merged table, the blocking set was items 2–6 — five decisions; **re-derived
 >    2026-08-30 after #453 signed D4 and discharged item 3, it is items 2, 4, 5 and 6 —
->    four decisions**; items 7 and 11 are open without
+>    four decisions**; ⚠️ **RE-DERIVED AGAIN 2026-08-30, for the R2.1 ruling (ADR-010),
+>    which discharges item 2: it is items 4, 5 and 6 — three decisions.** Each reading
+>    above was true of the table it described and none is rewritten.
+>    Items 7 and 11 are open without
 >    stopping work. Nothing there may be started by an agent, and reaching a clock's
 >    threshold is not authorization.
 >
@@ -3593,10 +3605,21 @@ behind the CSS it describes.
 > still open**; both have since shipped — `288667d` (#431) and `5b35966` (#426). **The live
 > next-safe-step list is the 2026-08-29 Current State block at the top of this file**; read that
 > one, not the four actions below. **Most of what the block asserts still stands** — the
-> A → B → C → F sequence, 12 required contexts with `js-unit` absent, D4 unsigned, the
-> `scan_export_bounds()` and `rep_range_integrity.py` items open, `needs:` and job-level
+> A → B → C → F sequence, 12 required contexts with `js-unit` absent, ~~D4 unsigned~~, the
+> ~~`scan_export_bounds()` and `rep_range_integrity.py` items open~~, `needs:` and job-level
 > `continue-on-error:` unmeasured, Phase 4 open, and `push: tags` never fired; what is falsified
-> is listed above. Nothing below is edited except this annotation.]**
+> is listed above. Nothing below is edited except this annotation.
+>
+> **Amended 2026-08-29, later the same day: the `scan_export_bounds()` and
+> `rep_range_integrity.py` items are NO LONGER OPEN.** The owner decided **R2.1** — recorded as
+> **ADR-010** in [`DECISIONS.md`](DECISIONS.md) — and the follow-through shipped with it:
+> `scan_export_bounds()` now reproduces `export_plan_to_workout_log`'s single combined
+> `validate_workout_bounds(..., allow_null=True)` call, so a numeric `min > max` row is named
+> instead of silently producing no finding, and the module docstring was rewritten to follow the
+> ruling. **D4 is no longer unsigned either** — it was signed 2026-08-29 as **ADR-009**
+> (`fcc0e59`, [#453](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/453)), which landed
+> before this amendment's own base, so the *"D4 unsigned"* entry in the still-stands list above is
+> falsified too. The rest of that list is unaffected.]**
 
 **Current (2026-08-23, latest): Phase 3 step 12's expansion sequence is COMPLETE
 on `main` and there is still no automatic next feature packet.** Verified against

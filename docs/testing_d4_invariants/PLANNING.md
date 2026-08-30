@@ -69,7 +69,7 @@ Signed by the owner ruling that opens this document. OD-A1 is the one item Gate 
 | In | Out |
 |---|---|
 | `utils/effective_sets.py`, `utils/weekly_summary.py`, `utils/session_summary.py` | Any other `utils/**` module |
-| `tests/test_effective_sets.py`, `tests/test_weekly_summary.py`, `tests/test_session_summary.py` | `utils/workout_validation.py`, `utils/rep_range_integrity.py` (**R2.1**, undecided, owned by another session's branch `fix/r21-scan-export-bounds-min-max`) |
+| `tests/test_effective_sets.py`, `tests/test_weekly_summary.py`, `tests/test_session_summary.py` | `utils/workout_validation.py`, `utils/rep_range_integrity.py` (~~**R2.1**, undecided, owned by another session's branch `fix/r21-scan-export-bounds-min-max`~~ ⚠️ **SPENT 2026-08-30 — R2.1 is DECIDED as ADR-010 and that branch has merged; the file stays out of D4's scope on its own merits, not because it is owned elsewhere**) |
 | `requirements.txt`, `tests/conftest.py` (Hypothesis profile), `pytest.ini` if needed | Ingress rep validation, `utils/constants.py` |
 | `docs/test_inventory/TEST_INVENTORY.{md,json}` | `routes/**`, templates, JS |
 
@@ -467,5 +467,8 @@ response shape. New in v2: `requirements.txt` reaches the packaging job
 ### v2.10 Still open
 
 **Nothing blocking.** OD-A1 and OD-A2 are settled above. Packet C remains deferred by owner ruling.
-The one live external constraint is that `utils/rep_range_integrity.py` / **R2.1** is owned by
-another session's branch `fix/r21-scan-export-bounds-min-max`; neither packet touches that file.
+~~The one live external constraint is that `utils/rep_range_integrity.py` / **R2.1** is owned by
+another session's branch `fix/r21-scan-export-bounds-min-max`; neither packet touches that file.~~
+⚠️ **SPENT 2026-08-30.** R2.1 was ruled as **ADR-010** and that branch merged, so the
+constraint is gone rather than satisfied. **Nothing replaces it** — neither packet touches
+`utils/rep_range_integrity.py`, which remains out of D4's scope by the scope table above.
