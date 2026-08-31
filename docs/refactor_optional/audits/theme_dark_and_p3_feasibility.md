@@ -21,6 +21,18 @@ validation, `main` advanced to the audited HEAD above through one docs-only comm
 to CSS, templates, JavaScript, E2E/tests, CSS-audit tools, workflows, WP4.4/P3 evidence, or the
 visual ledgers used here. This report was therefore revalidated rather than restarted.
 
+**Post-rebase publication validation (2026-09-01):** the three-report stack was rebased onto
+`origin/main` at `c809d02461c5c7f9a63d9d92b883e54809ae9adb` without changing the audited HEAD
+or treating the new base as original measurement provenance. The intervening mainline range
+`b36ea9e..c809d02` did not change the CSS, templates, product JavaScript, CSS-audit tools, or
+WP4.4/P3 contracts underlying the four options. It did merge the Linux visual Gate-0 diagnosis
+(`1e9cb4b`), correct the visual-helper explanation of the flaky-success history (`c38b565`), and
+make deep-gate functional-spec selection fail closed (`5595306`). Thus §7's unmerged-branch wording
+is retained as an audited-HEAD record, while the diagnosis is authoritative at the publication
+base. The broad Linux visual red remains unresolved; no Gate-1 diagnostic result or synchronized
+baseline landed. The decisions are unchanged: the superset tint remains a conditional product
+choice, while P3 and unlinking remain declined.
+
 ## 1. Executive decision
 
 | Independent option | Expected user-visible effect | Cost | Risk | Likely value | Recommendation |

@@ -32,6 +32,17 @@ Current measured source identity at the audited HEAD:
 | `static/css/components.css` | `1c420eabfa83cb9839f6e4210abcac4f754a6edee2479046f0ff5f781a2612b5` | `0c79f87633aaf0f56302b5e8392e0c8a657f6d35` | current shared table/frame owners |
 | `static/css/theme-dark.css` | `c567fc273b700b215558467bea675e9be53a9c15a64e594b2fa20f2dc6361b3c` | `c2fb6f44dfff69df0af74f6e9ae6ee41c08208d4` | current last-loaded dark owner |
 
+**Post-rebase publication validation (2026-09-01):** the report stack was rebased onto
+`origin/main` at `c809d02461c5c7f9a63d9d92b883e54809ae9adb`; the audited HEAD above remains the
+measurement provenance. The three LF-normalized hashes and Git blobs in this table still match
+exactly. The intervening mainline range did not change Workout Log CSS, its template or product
+JavaScript, shared CSS, `theme-dark.css`, `tests/test_css_cascade_contracts.py`, or the cited WP4.4
+CSS contracts. It did merge the Linux visual Gate-0 diagnosis and the fail-closed deep-gate
+selection repair, so the file-overlap table's active-branch wording is a point-in-time record rather
+than current branch status. The Linux proof environment remains unresolved and therefore grants no
+new deletion authority. The recommendation remains no broad Workout Log cleanup: only the bounded
+empty-shell packet and audit-only recertification are candidates, each still owner-gated.
+
 The counts are PostCSS source counts over LF-normalized text. They are not regex
 brace counts, and comments are not counted as declarations.
 
