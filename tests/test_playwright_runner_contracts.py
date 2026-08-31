@@ -71,6 +71,22 @@ def deep_gate_visual_group() -> list[str]:
     return SPEC_TOKEN.findall(step.group(1))
 
 
+def deep_gate_full_e2e_exclusion_pattern() -> str:
+    """The ERE used by the deep gate's functional-suite selection step."""
+    text = read(DEEP_GATE)
+    step = re.search(
+        r"- name: Run full suite \(minus visual\)(.*?)(?=\n    - name: |\Z)",
+        text,
+        re.DOTALL,
+    )
+    assert step is not None, (
+        "deep-gate.yml no longer has a 'Run full suite (minus visual)' step"
+    )
+    pattern = re.search(r"grep -vE '([^']+)'", step.group(1))
+    assert pattern is not None, "the full-e2e step no longer exposes its exclusion ERE"
+    return pattern.group(1)
+
+
 def test_runner_and_ci_agree_on_the_visual_seed_group() -> None:
     """Local and CI must seed the same specs the same way.
 
@@ -79,6 +95,21 @@ def test_runner_and_ci_agree_on_the_visual_seed_group() -> None:
     deep-gate run means.
     """
     assert sorted(set(runner_visual_group())) == sorted(set(deep_gate_visual_group()))
+
+    # Gate-0 characterization: exercise the workflow's current shell ERE against
+    # every real spec. This catches a filename collision in the live inventory
+    # without claiming the still-unanchored expression is robust for hypothetical
+    # names or that an empty selection already fails closed.
+    inventory = {f"e2e/{path.name}" for path in E2E.glob("*.spec.ts")}
+    visual_seed_specs = set(deep_gate_visual_group())
+    selected = {
+        spec
+        for spec in inventory
+        if re.search(deep_gate_full_e2e_exclusion_pattern(), spec) is None
+    }
+    assert selected, "the full-e2e selection is empty"
+    assert selected == inventory - visual_seed_specs
+    assert PREFIX_TRAP in selected
 
 
 def test_visual_seed_group_is_exactly_the_three_known_consumers() -> None:

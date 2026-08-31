@@ -1127,11 +1127,48 @@ def test_the_pr_and_release_paths_can_never_write_a_visual_baseline(path):
 def test_the_deep_gate_keeps_baseline_generation_behind_its_generate_mode():
     """deep-gate.yml is the one file allowed to hold `--update-snapshots`, and only
     on a `workflow_dispatch` that explicitly selects generate. Asserted rather than
-    exempted, so this packet cannot be read as blessing an ungated occurrence."""
+    exempted, so this packet cannot be read as blessing an ungated occurrence.
+
+    Compare mode's second half is equally load-bearing: Playwright creates a missing
+    snapshot by default, so success alone is not proof that the baseline tree stayed
+    untouched. Pin the existing guard that turns any final tree delta into a red.
+    """
     source = executable(DEEP_GATE)
     assert source.count("--update-snapshots") == 1
     assert 'UPDATE=""; [ "$MODE" = "generate" ] && UPDATE="--update-snapshots"' in source
     assert '[ "${{ github.event_name }}" = "schedule" ] && MODE=compare' in source
+    visual_steps = steps(jobs(DEEP_GATE)["visual-linux"])
+    names = [name for name, _ in visual_steps]
+    visual_name = "Run visual specs"
+    guard_name = "Assert compare mode wrote no baseline"
+    assert names.count(visual_name) == 1
+    assert names.count(guard_name) == 1
+    assert names.index(guard_name) == names.index(visual_name) + 1
+
+    visual = strip_comments(visual_steps[names.index(visual_name)][1])
+    guard = strip_comments(visual_steps[names.index(guard_name)][1])
+
+    assert len(re.findall(r"^      id:", visual, re.MULTILINE)) == 1
+    assert len(re.findall(r"^      id: visual$", visual, re.MULTILINE)) == 1
+    condition = (
+        r"^      if: \$\{\{ always\(\) && "
+        r"steps\.visual\.outputs\.mode != 'generate' \}\}$"
+    )
+    assert len(re.findall(r"^      if:", guard, re.MULTILINE)) == 1
+    assert len(re.findall(condition, guard, re.MULTILINE)) == 1
+    changed = 'CHANGED="$(git status --porcelain -- e2e/__screenshots__)"'
+    dirty_branch = 'if [ -n "$CHANGED" ]; then'
+    emit_paths = 'echo "$CHANGED"'
+    diagnostic = "a compare run wrote to e2e/__screenshots__"
+    assert guard.count(changed) == 1
+    assert guard.count(dirty_branch) == 1
+    assert guard.count(emit_paths) == 1
+    assert guard.count(diagnostic) == 1
+    assert len(re.findall(r"^          exit 1$", guard, re.MULTILINE)) == 1
+    assert guard.index(changed) < guard.index(dirty_branch) < guard.index(emit_paths)
+    assert guard.index(emit_paths) < guard.index(diagnostic) < guard.index("exit 1")
+    assert "continue-on-error:" not in guard
+    assert "|| true" not in guard
 
 
 # ------------------------------------------------- the release smokes assert no less
