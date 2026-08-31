@@ -98,9 +98,36 @@ jobs:
     # job runs on the user-state-wiped functional one. It runs in visual-linux.
     - name: Run full suite (minus visual)
       run: |
-        SPECS=$(ls e2e/*.spec.ts | grep -vE 'visual\.spec\.ts|visual-baseline-thumbnails\.spec\.ts|workout-plan-desktop-contract\.spec\.ts' | tr '\n' ' ')
-        echo "Running: $SPECS"
-        npx playwright test --project=chromium $SPECS
+        shopt -s nullglob
+        VISUAL_SPECS=(
+          "e2e/visual.spec.ts"
+          "e2e/visual-baseline-thumbnails.spec.ts"
+          "e2e/workout-plan-desktop-contract.spec.ts"
+        )
+        DISCOVERED_SPECS=(e2e/*.spec.ts)
+        SPECS=()
+
+        for excluded in "${VISUAL_SPECS[@]}"; do
+          if [[ ! -f "$excluded" ]]; then
+            echo "declared visual-seed exclusion is absent: $excluded" >&2
+            exit 1
+          fi
+        done
+
+        for spec in "${DISCOVERED_SPECS[@]}"; do
+          case "$spec" in
+            "e2e/visual.spec.ts"|"e2e/visual-baseline-thumbnails.spec.ts"|"e2e/workout-plan-desktop-contract.spec.ts") ;;
+            *) SPECS+=("$spec") ;;
+          esac
+        done
+
+        if (( ${#SPECS[@]} == 0 )); then
+          echo "no functional Playwright specs selected" >&2
+          exit 1
+        fi
+
+        printf 'Running: %s\n' "${SPECS[@]}"
+        npx playwright test --project=chromium "${SPECS[@]}"
 
     - name: Upload Playwright artifacts
       if: failure()
