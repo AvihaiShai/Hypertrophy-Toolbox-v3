@@ -24,7 +24,11 @@ diff hours later.
 
 from __future__ import annotations
 
+import os
 import re
+import shutil
+import subprocess
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -42,6 +46,12 @@ SPEC_TOKEN = re.compile(r"e2e/[A-Za-z0-9._-]+\.spec\.ts")
 # no screenshot, injects its own rows, and runs on the required PR path — so it
 # needs the functional seed. Routing it by prefix would break the required gate.
 PREFIX_TRAP = "e2e/visual-field-separator.spec.ts"
+
+EXACT_VISUAL_SEED_SPECS = {
+    "e2e/visual.spec.ts",
+    "e2e/visual-baseline-thumbnails.spec.ts",
+    "e2e/workout-plan-desktop-contract.spec.ts",
+}
 
 
 def read(path: Path) -> str:
@@ -71,8 +81,8 @@ def deep_gate_visual_group() -> list[str]:
     return SPEC_TOKEN.findall(step.group(1))
 
 
-def deep_gate_full_e2e_exclusion_pattern() -> str:
-    """The ERE used by the deep gate's functional-suite selection step."""
+def deep_gate_full_e2e_script() -> str:
+    """The Bash body used by the deep gate's functional-suite selection step."""
     text = read(DEEP_GATE)
     step = re.search(
         r"- name: Run full suite \(minus visual\)(.*?)(?=\n    - name: |\Z)",
@@ -82,12 +92,106 @@ def deep_gate_full_e2e_exclusion_pattern() -> str:
     assert step is not None, (
         "deep-gate.yml no longer has a 'Run full suite (minus visual)' step"
     )
-    pattern = re.search(r"grep -vE '([^']+)'", step.group(1))
-    assert pattern is not None, "the full-e2e step no longer exposes its exclusion ERE"
-    return pattern.group(1)
+    marker = "      run: |\n"
+    assert step.group(1).count(marker) == 1
+    return textwrap.dedent(step.group(1).split(marker, 1)[1])
 
 
-def test_runner_and_ci_agree_on_the_visual_seed_group() -> None:
+def bash_executable() -> str:
+    candidates = [shutil.which("bash")]
+    git = shutil.which("git")
+    if git:
+        candidates.append(str(Path(git).resolve().parents[1] / "bin" / "bash.exe"))
+    program_files = os.environ.get("ProgramFiles")
+    if program_files:
+        candidates.append(str(Path(program_files) / "Git" / "bin" / "bash.exe"))
+    found = next(
+        (
+            candidate
+            for candidate in candidates
+            if candidate and Path(candidate).is_file()
+        ),
+        None,
+    )
+    assert found is not None, "Bash is required to verify the Ubuntu deep-gate selector"
+    return found
+
+
+def run_full_e2e_script(
+    script: str, root: Path, inventory: set[str]
+) -> tuple[subprocess.CompletedProcess[bytes], list[str] | None]:
+    root.mkdir(parents=True)
+    (root / "e2e").mkdir()
+    for relative_path in inventory:
+        path = root / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+
+    wrapper = """set -euo pipefail
+npx() {
+  printf '__PLAYWRIGHT_ARGV__\\0'
+  printf '%s\\0' "$@"
+}
+""" + script
+    result = subprocess.run(
+        [bash_executable(), "-c", wrapper],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    marker = b"__PLAYWRIGHT_ARGV__\0"
+    if marker not in result.stdout:
+        return result, None
+    encoded = result.stdout.split(marker, 1)[1].rstrip(b"\0")
+    return result, encoded.decode("utf-8").split("\0")
+
+
+def assert_full_e2e_selector_contract(script: str, root: Path) -> None:
+    current = {f"e2e/{path.name}" for path in E2E.glob("*.spec.ts")}
+    assert len(current) == 33
+    assert len(EXACT_VISUAL_SEED_SPECS) == 3
+    assert EXACT_VISUAL_SEED_SPECS <= current
+    expected_current = current - EXACT_VISUAL_SEED_SPECS
+    assert len(expected_current) == 30
+
+    result, argv = run_full_e2e_script(script, root / "current", current)
+    assert result.returncode == 0, result.stderr.decode()
+    assert argv is not None
+    assert argv[:3] == ["playwright", "test", "--project=chromium"]
+    assert len(argv[3:]) == 30
+    assert set(argv[3:]) == expected_current
+
+    near_and_punctuated = {
+        "e2e/nonvisual.spec.ts",
+        "e2e/not-visual-baseline-thumbnails.spec.ts",
+        "e2e/pre-workout-plan-desktop-contract.spec.ts",
+        "e2e/functional [one].spec.ts",
+        "e2e/functional;two.spec.ts",
+    }
+    fabricated = EXACT_VISUAL_SEED_SPECS | near_and_punctuated
+    result, argv = run_full_e2e_script(script, root / "near-names", fabricated)
+    assert result.returncode == 0, result.stderr.decode()
+    assert argv is not None
+    assert argv[:3] == ["playwright", "test", "--project=chromium"]
+    assert len(argv[3:]) == len(near_and_punctuated)
+    assert set(argv[3:]) == near_and_punctuated
+
+    for index, excluded in enumerate(sorted(EXACT_VISUAL_SEED_SPECS)):
+        inventory = fabricated - {excluded}
+        result, argv = run_full_e2e_script(script, root / f"missing-{index}", inventory)
+        assert result.returncode != 0
+        assert argv is None
+
+    for name, inventory in (
+        ("empty", set()),
+        ("excluded-only", EXACT_VISUAL_SEED_SPECS),
+    ):
+        result, argv = run_full_e2e_script(script, root / name, inventory)
+        assert result.returncode != 0
+        assert argv is None
+
+
+def test_runner_and_ci_agree_on_the_visual_seed_group(tmp_path: Path) -> None:
     """Local and CI must seed the same specs the same way.
 
     This is the load-bearing one. Everything else here is a property of one
@@ -96,32 +200,30 @@ def test_runner_and_ci_agree_on_the_visual_seed_group() -> None:
     """
     assert sorted(set(runner_visual_group())) == sorted(set(deep_gate_visual_group()))
 
-    # Gate-0 characterization: exercise the workflow's current shell ERE against
-    # every real spec. This catches a filename collision in the live inventory
-    # without claiming the still-unanchored expression is robust for hypothetical
-    # names or that an empty selection already fails closed.
     inventory = {f"e2e/{path.name}" for path in E2E.glob("*.spec.ts")}
     visual_seed_specs = set(deep_gate_visual_group())
-    selected = {
-        spec
-        for spec in inventory
-        if re.search(deep_gate_full_e2e_exclusion_pattern(), spec) is None
+    assert visual_seed_specs == EXACT_VISUAL_SEED_SPECS
+    assert PREFIX_TRAP in inventory - visual_seed_specs
+
+    script = deep_gate_full_e2e_script()
+    assert_full_e2e_selector_contract(script, tmp_path / "live")
+
+    mutation_patterns = {
+        "selector": r'\nfor spec in "\$\{DISCOVERED_SPECS\[@\]\}"; do.*?\ndone\n',
+        "nonempty-guard": r'\nif \(\( \$\{#SPECS\[@\]\} == 0 \)\); then.*?\nfi\n',
+        "playwright-invocation": r'\nnpx playwright test --project=chromium "\$\{SPECS\[@\]\}"\n',
     }
-    assert selected, "the full-e2e selection is empty"
-    assert selected == inventory - visual_seed_specs
-    assert PREFIX_TRAP in selected
+    for name, pattern in mutation_patterns.items():
+        mutated, count = re.subn(pattern, "\n", script, count=1, flags=re.DOTALL)
+        assert count == 1, f"mutation target disappeared: {name}"
+        with pytest.raises(AssertionError):
+            assert_full_e2e_selector_contract(mutated, tmp_path / name)
 
 
 def test_visual_seed_group_is_exactly_the_three_known_consumers() -> None:
-    expected = {
-        "e2e/visual.spec.ts",
-        "e2e/visual-baseline-thumbnails.spec.ts",
-        # Not a snapshot spec: it carries the five byte-gate-exempt captures'
-        # coverage as computed style / geometry / DOM structure, over plan rows
-        # that only the visual seed provides.
-        "e2e/workout-plan-desktop-contract.spec.ts",
-    }
-    assert set(runner_visual_group()) == expected
+    # The desktop contract is not a snapshot spec; it carries the five
+    # byte-gate-exempt captures' coverage over visual-seed plan rows.
+    assert set(runner_visual_group()) == EXACT_VISUAL_SEED_SPECS
 
 
 @pytest.mark.parametrize("spec", sorted(set(runner_visual_group())))
