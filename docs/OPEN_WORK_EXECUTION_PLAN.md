@@ -108,6 +108,12 @@ H-LINUX-UNSYNC-01 as Gate 0 only. The exact open queue is #468, #472, #473, draf
 #475. §24 is the dated additive evidence log; §23 remains its prior cutoff. R2.3, R2.4, R3,
 U1-FOLLOWUP-1, ADR-007 and ADR-011 are unchanged, and nothing here authorizes a merge, diagnostic
 Gate 1, baseline regeneration, CSS/workflow change, or R2.4 decision.
+**Post-merge reconciliation:** 2026-09-01, fixed cutoff **`2026-08-31T23:05:48Z`**, against
+`origin/main` @ **`c809d02461c5c7f9a63d9d92b883e54809ae9adb`**. PRs #468, #474, #475,
+#472 and #473 are merged, each with an 18/18-success post-merge `main` pipeline; zero PRs are
+open. Selector-robustness Gate 1 is complete on `main`; H-LINUX-UNSYNC-01 Gate 0 is complete on
+`main`, while its diagnostic Gate 1 remains unexecuted and unauthorized. The canonical JS ledger
+now ends at row 64. §25 is the new dated evidence layer; §§21–24 retain their fixed-cutoff history.
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
 ## 1. Purpose
@@ -3741,3 +3747,48 @@ Only `docs/OPEN_WORK_EXECUTION_PLAN.md` is changed. This refresh does not edit
 `MASTER_HANDOVER.md`, the JS ledger, workflows, baselines, screenshots, CSS or dependency files;
 does not dispatch a workflow or alter repository settings; and does not authorize or perform any
 merge.
+
+## 25. Evidence log — 2026-09-01 post-merge reconciliation at `c809d02`
+
+**This is a new dated evidence layer.** It does not rewrite §§21–24 or their fixed cutoffs. The
+GitHub API response-clock cutoff is **`2026-08-31T23:05:48Z`**; a fresh fetch resolved
+`origin/main` to **`c809d02461c5c7f9a63d9d92b883e54809ae9adb`**, which is also the exact base
+of this docs-only worktree. The repo-wide open-PR query returned **zero**.
+
+### 25.1 Five formerly open PRs are merged and green on `main`
+
+| PR | Merge commit / merged at | Post-merge `main` pipeline |
+|---|---|---|
+| [#468](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/468) | `e24a1b7670d20d124e85f72c9dca334804c96093` / `2026-08-31T17:05:41Z` | run [`33417691219`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33417691219), **18/18 success** |
+| [#474](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/474) | `55953069d6b16c74d9cb434443d7b85356c1625c` / `2026-08-31T18:55:32Z` | run [`33427706446`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33427706446), **18/18 success** |
+| [#475](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/475) | `1e9cb4be539b38e1612c5ea92a2823bd179274e0` / `2026-08-31T19:56:05Z` | run [`33433259003`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33433259003), **18/18 success** |
+| [#472](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/472) | `f987caa740dde14a0e7bff2a473664b5af4e8ab6` / `2026-08-31T22:19:09Z` | run [`33445653153`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33445653153), **18/18 success** |
+| [#473](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/473) | `c809d02461c5c7f9a63d9d92b883e54809ae9adb` / `2026-08-31T22:46:11Z` | run [`33447737415`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33447737415), **18/18 success**, including JS Unit |
+
+### 25.2 Gates and decisions after the merges
+
+- Selector-robustness **Gate 1 is complete on `main`** through #474; its earlier draft/unapproved
+  state in §24 remains correct only at that section's fixed cutoff.
+- Linux **H-LINUX-UNSYNC-01 Gate 0 is complete on `main`** through docs-only #475. At this cutoff,
+  the diagnostic Gate 1 remains **unexecuted and unauthorized**. No Linux baseline, CSS, workflow,
+  screenshot or ADR decision is changed here.
+- **R2.3 / Q4-D2 remains time-gated and unsigned.** T0 stays
+  `2026-08-27T23:18:21Z`; the strict mark stays `2026-09-10T23:18:21Z`; branch protection still
+  has 12 contexts with `strict: false`, and JS Unit is absent.
+- **R2.4 remains unsigned**, and `visual-linux` remains outside the release gate. The failed
+  scheduled run `33379302035` and ADR-007 are unchanged.
+- R3's current-body half remains proved by dispatch, but `release.yml` still has **zero**
+  `push`/tag runs. The real tag-trigger half remains unproved.
+- **U1-FOLLOWUP-1 remains barred before the strict mark.** No packet is authorized by this log.
+
+### 25.3 JS ledger and the next owed observation
+
+The exact job-level evidence is written as rows **56–64** in
+[`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0. All nine new carriers
+are attempt-1 `push` runs with 18/18 successful jobs and a successful exact-name JS-unit job.
+The ledger is now **64/64 green overall** and **39 consecutive greens on the declared 245-case
+suite (rows 26–64)**, with zero red, missing, skipped or cancelled results. This evidence changes
+no decision: reaching the strict mark remains a precondition, never a signature.
+
+**The future merge of this reconciliation PR will create another owed ledger observation which
+this PR cannot record.** No future row number is predicted.

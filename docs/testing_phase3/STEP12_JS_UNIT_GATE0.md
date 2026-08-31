@@ -4888,6 +4888,15 @@ back byte-identical.
 | **53** | [`33322960986`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33322960986) | `push` / `e9eff89a1344f87668b733bef272879d9e95c040` (**PR #464, dark-theme source and Win32-baseline alignment**) | `success`, **18/18**, attempt **1** | [**`99288046573`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33322960986/job/99288046573) | **`success`** | **`2026-08-30T16:37:29Z`** |
 | **54** | [`33323528054`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33323528054) | `push` / `52ca8a826374a6b6ec0c0ddd6ed3197cbf0f5585` (**PR #465, blank/null rep-bound Gate 0 contract**) | `success`, **18/18**, attempt **1** | [**`99289542200`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33323528054/job/99289542200) | **`success`** | **`2026-08-30T16:49:48Z`** |
 | **55** | [`33324073140`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33324073140) | `push` / `b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8` (**PR #466, V1 and frozen-caller residual policy closeout**) | `success`, **18/18**, attempt **1** | [**`99291016089`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33324073140/job/99291016089) | **`success`** | **`2026-08-30T17:01:52Z`** |
+| **56** | [`33339732606`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33339732606) | `push` / `467fb985bb013b6591164e3e14fdba1660dd8a28` (**PR #471, JS-unit ledger rows 49–55**) | `success`, **18/18**, attempt **1** | [**`99333063239`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33339732606/job/99333063239) | **`success`** | **`2026-08-30T22:39:44Z`** |
+| **57** | [`33340229920`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33340229920) | `push` / `c38b565319a369362cfeb7fe23218cf063f5315c` (**PR #469, August 24 visual-evidence correction**) | `success`, **18/18**, attempt **1** | [**`99334398510`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33340229920/job/99334398510) | **`success`** | **`2026-08-30T22:51:07Z`** |
+| **58** | [`33340759903`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33340759903) | `push` / `38606f4de8f4dde8262eddeead88e4546ec24aaa` (**PR #467, blank/null persisted rep-bound fix**) | `success`, **18/18**, attempt **1** | [**`99335869889`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33340759903/job/99335869889) | **`success`** | **`2026-08-30T23:03:34Z`** |
+| **59** | [`33344888705`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33344888705) | `push` / `e093081626abba66df883f61831bf0d3a3d0e1fb` (**PR #470, selector-robustness Gate 0**) | `success`, **18/18**, attempt **1** | [**`99347021540`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33344888705/job/99347021540) | **`success`** | **`2026-08-31T00:33:15Z`** |
+| **60** | [`33417691219`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33417691219) | `push` / `e24a1b7670d20d124e85f72c9dca334804c96093` (**PR #468, post-prompt-batch documentation refresh**) | `success`, **18/18**, attempt **1** | [**`99572193569`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33417691219/job/99572193569) | **`success`** | **`2026-08-31T17:06:07Z`** |
+| **61** | [`33427706446`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33427706446) | `push` / `55953069d6b16c74d9cb434443d7b85356c1625c` (**PR #474, selector-robustness Gate 1**) | `success`, **18/18**, attempt **1** | [**`99605229841`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33427706446/job/99605229841) | **`success`** | **`2026-08-31T18:56:01Z`** |
+| **62** | [`33433259003`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33433259003) | `push` / `1e9cb4be539b38e1612c5ea92a2823bd179274e0` (**PR #475, H-LINUX-UNSYNC-01 Gate 0**) | `success`, **18/18**, attempt **1** | [**`99623486099`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33433259003/job/99623486099) | **`success`** | **`2026-08-31T19:56:35Z`** |
+| **63** | [`33445653153`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33445653153) | `push` / `f987caa740dde14a0e7bff2a473664b5af4e8ab6` (**PR #472, `@types/node` dependency update**) | `success`, **18/18**, attempt **1** | [**`99664042276`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33445653153/job/99664042276) | **`success`** | **`2026-08-31T22:19:36Z`** |
+| **64** | [`33447737415`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33447737415) | `push` / `c809d02461c5c7f9a63d9d92b883e54809ae9adb` (**PR #473, Click dependency update**) | `success`, **18/18**, attempt **1** | [**`99670495711`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33447737415/job/99670495711) | **`success`** | **`2026-08-31T22:46:44Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5508,6 +5517,37 @@ pytest additions notwithstanding. **Q2's restart clause did not engage.**
 | Non-`ci.yml` runs inside the declared window | **2** — one `dynamic` dependency-graph update and one `release.yml` dispatch; neither is Missing |
 | Elapsed from **T0** to row 55 | **2 d 17 h 43 m 31 s** |
 | Remaining from row 55 to the strict mark **`2026-09-10T23:18:21Z`** | **11 d 6 h 16 m 29 s** |
+
+> **LEDGER EXTENSION — fixed cutoff `2026-08-31T23:05:48Z`, rows 56–64.** This is a new
+> additive reading; the `2026-08-30T21:27:23Z` rows-49–55 block above remains unchanged as its
+> historical cutoff. A fresh branch-wide run query and job enumeration derived exactly nine later
+> `main` `ci.yml` attempts. Every carrier is `push`, attempt **1**, `completed` / `success`, with
+> **18/18 jobs successful**; every exact `JS Unit (Vitest, non-required)` job is independently
+> `success` at the timestamp written in the master table. The sequence is therefore **64 total
+> green attempts**, including **39 consecutive greens on the declared 245-case corpus (rows
+> 26–64)**, with **0 red, missing, skipped or cancelled**.
+>
+> The completeness read classified **13 non-`ci.yml` runs** since the original T0, so they are
+> not missing JS-unit jobs; the resulting cross-workflow census is **77 runs = 64 qualification
+> attempts + 13 classified non-attempts**. Fresh object reads confirm
+> `static/js/modules/__tests__` = `5858c8497c571548e5116f4b660ff7702dd298b1`
+> and `vitest.config.js` = `c16ca428f7478708d8dd96a20ebcb86f98a8b935` at both `288667d`
+> and `c809d02`; the committed inventory remains **13 files / 245 cases**. Q2's restart clause
+> did not engage. **T0 remains `2026-08-27T23:18:21Z`; the strict mark remains
+> `2026-09-10T23:18:21Z`.** R2.3 / Q4-D2 is therefore still time-gated and unsigned, and
+> U1-FOLLOWUP-1 remains barred before the strict mark.
+>
+> **The future merge of the reconciliation PR carrying this extension will create another owed
+> ledger observation which this PR cannot record.** No future row number is predicted.
+
+| Ledger tally, at fixed cutoff `2026-08-31T23:05:48Z` | Value |
+|---|---:|
+| Qualification attempts since the original T0 | **64** — all `push`, all 18/18, all attempt **1** |
+| Green / red / missing / skipped / cancelled | **64 / 0 / 0 / 0 / 0** |
+| Green results on the declared 245-case suite (rows 26–64) | **39** |
+| Cross-workflow completeness census | **77** — 64 attempts plus 13 classified non-attempts |
+| Elapsed from declared T0 to row 64 | **3 d 23 h 28 m 23 s** |
+| Remaining from row 64 to the strict mark | **10 d 0 h 31 m 37 s** |
 
 ---
 
