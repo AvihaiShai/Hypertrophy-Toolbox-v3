@@ -3971,6 +3971,16 @@ bare div's initial value — so no control element can distinguish them. It is
 pinned by exact occurrence count and must be deleted as a **unit** under fresh
 evidence, never eroded rule by rule.
 
+> **Supersession note — completed work, do not re-dispatch.** The preceding
+> `.scale-btn` and table-helper paragraphs are historical deferral records only.
+> PR #300 (`b6550e6`, merged 2026-08-05) later refuted the apparent table-helper
+> oracle limitation: the bare `div` probe host caused it, and the packet deleted
+> all nine `.tbl-show-*` / `.tbl-hide-*` rules atomically. PR #302 (`9c83777`,
+> merged 2026-08-10) independently certified and atomically deleted all eleven
+> bare `.scale-btn` rules. Neither family remains deferred, retained, gated, or
+> eligible for another deletion packet. This completed work must not be
+> re-dispatched.
+
 > **Superseded 2026-07-29 (later).** This section previously read "packets `a`,
 > `c` and `b` are merged — 3 of 11 … WP4.4-e is the next action". `e` merged in
 > PR #195 (squash `1346a35`).
