@@ -20,9 +20,11 @@ document was changed or run for this audit.
   and then passed on retry, while the terminal contract remains 81 byte-gated
   captures plus five semantic exemptions. A green retry/flaky result is
   therefore not clean zero-difference evidence. The newer Linux Gate 0 also
-  records broad terminal visual reds from unsynchronized rendering inputs and
-  committed baselines; that does not authorize baseline regeneration or weaken
-  the zero-difference requirement. The JS-unit ledger now includes rows 49–55
+  records broad terminal visual reds coexisting with a proven unsynchronized
+  source/baseline state. Causality remains under the Gate-1 hypothesis; Gate 0
+  does not claim that the unsynchronized state caused every difference. This
+  does not authorize baseline regeneration or weaken the zero-difference
+  requirement. The JS-unit ledger now includes rows 49–55
   and confirms the same T0, strict mark, path-based restart definition,
   non-required status, and unsigned Q4/D2 boundary stated below.
 - **Every count, line reference, cascade claim, harness assumption, and packet
@@ -199,8 +201,10 @@ For any interaction deletion packet:
   existing presence lock only in the packet that carries certified deletion.
 - Run focused functional Chromium coverage at minimum from
   `e2e/workout-plan.spec.ts`, `e2e/exercise-interactions.spec.ts`, and
-  `e2e/workout-plan-desktop-contract.spec.ts`; add the superset spec only if the
-  affected state reaches its controls.
+  `e2e/workout-plan-desktop-contract.spec.ts`. During an early focused
+  preflight, `e2e/superset-edge-cases.spec.ts` may be conditional on whether the
+  affected state reaches its controls; it is required by the final page-bundle/
+  full functional gate.
 - Run the Workout Plan rows of `e2e/visual.spec.ts` and the plan thumbnail
   matrix in compare mode with `PW_VISUAL_SEED=1`, on both supported platforms,
   without `--update-snapshots`.
@@ -272,7 +276,7 @@ specificity arithmetic is nomination evidence only.
 | Raw spacing, radii, typography, and transition durations | Dense responsive ranges intentionally use nearby but unequal values. A value-scale replacement can change responsive geometry or motion even if token values initially match. | Visible redesign/architecture. | **Defer; never combine with colour or `!important` changes.** |
 | Remaining 488 legacy `!important` declarations | No current per-declaration winner matrix exists. Their concentration follows shared/page cascade collisions and breakpoint geometry. | Cascade redesign. | **Defer to per-family certification packets.** |
 | `#superset-actions .btn[hidden] { display: none !important; }` | This is the one post-closeout addition, added by #317 to fix a real visibility bug where shared important button display rules beat `[hidden]`. | Required behavior. | **Decline removal or de-weighting.** |
-| Superset dark tint gap | `--superset-bg-1..4` still use light alpha values in dark mode because the old dark selector never matched. Adding a live dark override changes pixels. | Deliberate visible redesign. | **Defer for a separately named, owner-approved visual packet.** |
+| Superset dark tint gap | `--superset-bg-1..4` still use light alpha values in dark mode because the old dark selector never matched. Adding a live dark override changes pixels. | Deliberate visible redesign. | **Defer as an owner-gated visible product decision requiring a separately approved visible-change packet.** |
 
 There is no remaining broad, genuinely mechanical token-extraction packet. The
 only mechanical-looking work is the ten-declaration deletion, and it becomes
@@ -313,7 +317,23 @@ contract. No packet is authorized by this report.
 | Order | Packet | Owned write paths | Reads / gates | Stop conditions |
 |---:|---|---|---|---|
 | 0 | **WP-OPT-R0 — rebase and source revalidation (audit only)** | One new evidence document only; ignored artifacts | Re-resolve all ten selectors/properties, CSS layers, current style counts, current visual policy, current JS-unit ruling, open PR/worktree overlap | Any candidate/source drift, competing-owner change, contract change, or unmerged writer on an owned path returns the plan to owner review. |
-| 1 | **WP-OPT-R1 — animation-stable oracle (audit/tooling only)** | Prefer new unique files: `scripts/css_audit/workout_plan_interaction_probe.mjs`, `tests/test_workout_plan_interaction_probe_contracts.py`, and a new evidence doc | CDP/WAAPI fixed-point method; A/A zero; known-live mutation non-zero; no production diff | Any non-zero A/A record, unsettled animation, missing target, failed sentinel application, or vacuous known-live control. Do not proceed to deletion. |
+| 1 | **WP-OPT-R1 — animation-stable oracle (audit/tooling only)** | New Workout Plan probe/contract/evidence files, plus coordinated ownership of `scripts/css_audit/p3_ceiling.py`, `tests/test_css_theme_dark_p3_audit_contracts.py`, and regenerated `docs/test_inventory/TEST_INVENTORY.json` and `TEST_INVENTORY.md` | CDP/WAAPI fixed-point method; A/A zero; known-live mutation non-zero; no production diff; the `Tooling / scripts` gate, including the committed CSS-audit-tool assessment and both focused pytest contracts; required `code-reviewer`; regenerated test inventory | Any non-zero A/A record, unsettled animation, missing target, failed sentinel application, vacuous known-live control, unassessed CSS-audit tool, inventory drift, or claim of CSS deletion authority. R1 stops at audit/tooling evidence. |
+
+R1's proposed `scripts/css_audit/workout_plan_interaction_probe.mjs` is a new
+non-`p3_*` CSS-audit tool, so the committed directory-enumeration contract makes
+`scripts/css_audit/p3_ceiling.py::TOOL_ASSESSMENT` part of the packet rather than
+an optional follow-up. Coordinate that curated assessment and
+`tests/test_css_theme_dark_p3_audit_contracts.py` with their existing owners;
+the latter must prove the new tool is assessed and does not acquire removal or
+deletion authority. Adding
+`tests/test_workout_plan_interaction_probe_contracts.py` changes the collected
+pytest inventory, so R1 must regenerate and commit both
+`docs/test_inventory/TEST_INVENTORY.json` and `TEST_INVENTORY.md`. Under
+`QUALITY_GATE.md`, the applicable implementation row is **Tooling / scripts**:
+run its stem-plus-directory-derived union, including the new focused contract
+and `tests/test_css_theme_dark_p3_audit_contracts.py`, and obtain the required
+`code-reviewer` gate. These obligations keep R1 audit/tooling-only; they grant
+no authority to edit production CSS or delete any declaration.
 | 2 | **WP-OPT-I1 — collapse/filter candidates** | `static/css/pages-workout-plan.css`; `tests/test_css_cascade_contracts.py`; one new evidence doc | Re-prove IS-01 through IS-03 only; focused functional/visual, Stylelint, pytest | One unproven declaration means that declaration stays. Any changed value/owner/geometry/pixel outside a known-live mutation rolls back the packet. |
 | 3 | **WP-OPT-I2 — selection-actions candidates** | Same CSS/test contract paths; separate evidence doc | Re-prove IS-04 through IS-07. Treat light background/border/shadow as one state family; dark deletes only certified properties | Any non-zero target-element difference, or proof that the current hover declaration wins anywhere. |
 | 4 | **WP-OPT-I3 — table-hover candidates** | Same CSS/test contract paths; separate evidence doc | Re-prove IS-08 through IS-10 over odd/even rows, themes, modes, routines, and widths. IS-08/09 are a unit | If only one of IS-08/09 is certified, retain both. Preserve the dark shadow. Stop on any shared Calm-Glass owner drift. |
@@ -336,7 +356,8 @@ triage order, not authorization to start with the largest cluster.
 | `static/css/tokens.css` | #464 changed theme/action tokens after the original audit. A token change can move computed values while page CSS is byte-identical. | Read-pin digest; keep read-only unless the owner explicitly approves a shared-token packet. |
 | `templates/workout_plan.html` and `static/js/modules/**` | DOM classes, dynamically created controls, and real interaction wiring determine selector reachability. | Read-only for CSS cleanup. Any required behavior change is a separate feature/bug packet. |
 | `tests/test_css_cascade_contracts.py` | Existing presence lock must move only when certified deletion lands; it is also a frequent shared CSS contract surface. | Coordinate single writer; prove red paths; never weaken the Page Header or dead-fallback contracts. |
-| `scripts/css_audit/**` | Shared audit infrastructure; `runtime_probe.mjs` has a documented transition limitation. Other optional CSS audits may touch this directory. | Prefer a new Workout Plan-specific probe file; do not silently “fix” a shared harness inside a deletion packet. |
+| `scripts/css_audit/**` | Shared audit infrastructure; `runtime_probe.mjs` has a documented transition limitation. A new non-`p3_*` `.mjs` is enumerated by the committed P3 tool-assessment contract. Other optional CSS audits may touch this directory. | Prefer a new Workout Plan-specific probe file, but coordinate its required `p3_ceiling.py::TOOL_ASSESSMENT` entry and `tests/test_css_theme_dark_p3_audit_contracts.py` coverage; do not silently “fix” a shared harness inside a deletion packet. |
+| `docs/test_inventory/TEST_INVENTORY.json` and `TEST_INVENTORY.md` | A new pytest contract changes the committed per-file node inventory and otherwise reds the blocking `Test Inventory Drift` check. | Regenerate both artifacts in R1 after the contract is final; never hand-edit them or regenerate them in this audit. |
 | `e2e/visual-helpers.ts` | Differs from the audited HEAD after the upstream visual-policy correction; it controls visual interpretation/exemptions. | Rebase and re-read before runtime proof; do not edit it in Workout Plan cleanup. |
 | `e2e/__screenshots__/**` | Baseline churn would obscure whether cleanup is inert. | Compare only; any write is a stop and needs separate owner-reviewed visual authority. |
 | `docs/MASTER_HANDOVER.md`, `docs/REFACTOR_PLAN.md`, `docs/ACTIVE_DEVELOPMENT.md`, `docs/OPEN_WORK_EXECUTION_PLAN.md` | Canonical shared status surfaces explicitly excluded from this audit and high-conflict under parallel work. | No optional packet edits them unless separately authorized after implementation. |
@@ -406,5 +427,6 @@ This is also a hard containment rule:
   state fix.
 - **Do not reopen or rename-and-repeat WP4.3i-jm or WP4.3i-o.** Their closed
   boundaries are evidence against those approaches, not unfinished work.
-- **Keep the superset dark-tint gap separate:** it remains an owner-approved
-  visible product decision, not refactor cleanup.
+- **Keep the superset dark-tint gap separate:** it remains an owner-gated visible
+  product decision requiring a separately approved visible-change packet, not
+  refactor cleanup.
