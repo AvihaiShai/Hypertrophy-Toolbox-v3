@@ -1,0 +1,184 @@
+name: TEMP H-LINUX-UNSYNC-01 Gate-1 diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-visual-gate1:
+    name: TEMP H-LINUX-UNSYNC-01 Gate-1 diagnostic
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+    - name: Checkout control at exact commit
+      uses: actions/checkout@v7
+      with:
+        ref: 31659a59ccc82391287d98f2e9d899a048d20b2c
+        path: control
+        persist-credentials: false
+
+    - name: Checkout treatment at exact commit
+      uses: actions/checkout@v7
+      with:
+        ref: e093081626abba66df883f61831bf0d3a3d0e1fb
+        path: treatment
+        persist-credentials: false
+
+    - name: Assert immutable inputs and separate checkouts
+      shell: bash
+      run: |
+        set -euo pipefail
+        test "$(git -C control rev-parse HEAD)" = "31659a59ccc82391287d98f2e9d899a048d20b2c"
+        test "$(git -C treatment rev-parse HEAD)" = "e093081626abba66df883f61831bf0d3a3d0e1fb"
+        test "$(realpath control)" != "$(realpath treatment)"
+        cmp control/.python-version treatment/.python-version
+        test -f control/e2e/fixtures/database.visual.seed.db
+        test -f treatment/e2e/fixtures/database.visual.seed.db
+
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version-file: 'treatment/.python-version'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '24'
+
+    - name: Install isolated dependencies and one shared Chromium
+      shell: bash
+      run: |
+        set -euo pipefail
+        for arm in control treatment; do
+          python -m venv "$arm/.venv"
+          "$arm/.venv/bin/python" -m pip install --upgrade pip
+          "$arm/.venv/bin/python" -m pip install -r "$arm/requirements.txt"
+          npm --prefix "$arm" ci
+          npm --prefix "$arm" run build:css
+        done
+        (cd treatment && npx playwright install --with-deps chromium)
+
+    - name: Record environment, versions, and committed baseline hashes
+      shell: bash
+      run: |
+        set -euo pipefail
+        evidence="$GITHUB_WORKSPACE/gate1-artifacts/evidence"
+        mkdir -p "$evidence"
+        {
+          printf 'ImageOS=%s\n' "${ImageOS:-unset}"
+          printf 'ImageVersion=%s\n' "${ImageVersion:-unset}"
+          printf 'RUNNER_OS=%s\n' "$RUNNER_OS"
+          uname -a
+          cat /etc/os-release
+          node --version
+          npm --version
+          python --version
+        } | tee "$evidence/runner-and-toolchain.txt"
+
+        for arm in control treatment; do
+          {
+            printf 'arm=%s\ncommit=%s\n' "$arm" "$(git -C "$arm" rev-parse HEAD)"
+            (cd "$arm" && npx sass --version)
+            (cd "$arm" && npx playwright --version)
+            (cd "$arm" && node - <<'NODE'
+        const { execFileSync } = require('node:child_process');
+        const { chromium } = require('playwright');
+        const executable = chromium.executablePath();
+        console.log(`browser_executable=${executable}`);
+        console.log(`browser_version=${execFileSync(executable, ['--version'], { encoding: 'utf8' }).trim()}`);
+        NODE
+            )
+          } | tee "$evidence/$arm-versions.txt"
+
+          baseline="$arm/e2e/__screenshots__/linux/visual.spec.ts-snapshots/backup-desktop-light.png"
+          test -f "$baseline"
+          sha256sum "$baseline" | tee "$evidence/$arm-committed-baseline-sha256.txt"
+          find "$arm/e2e/__screenshots__" -type f -print0 \
+            | sort -z | xargs -0 sha256sum > "$evidence/$arm-baselines-before.sha256"
+        done
+        test "$(cut -d' ' -f1 "$evidence/control-committed-baseline-sha256.txt")" = \
+          "$(cut -d' ' -f1 "$evidence/treatment-committed-baseline-sha256.txt")"
+        test "$(grep '^browser_executable=' "$evidence/control-versions.txt")" = \
+          "$(grep '^browser_executable=' "$evidence/treatment-versions.txt")"
+        test "$(grep '^browser_version=' "$evidence/control-versions.txt")" = \
+          "$(grep '^browser_version=' "$evidence/treatment-versions.txt")"
+        test "$(grep '^Version ' "$evidence/control-versions.txt")" = \
+          "$(grep '^Version ' "$evidence/treatment-versions.txt")"
+
+    - name: Assert the selector resolves to exactly one comparison per arm
+      shell: bash
+      run: |
+        set -euo pipefail
+        for arm in control treatment; do
+          listing="$GITHUB_WORKSPACE/gate1-artifacts/evidence/$arm-test-list.txt"
+          (cd "$arm" && npx playwright test e2e/visual.spec.ts \
+            --project=chromium --grep 'backup desktop light$' --list) | tee "$listing"
+          grep -Fx 'Total: 1 test in 1 file' "$listing"
+        done
+
+    - name: Run exactly three fresh compare-only invocations per arm
+      shell: bash
+      env:
+        CI: 'true'
+        PW_VISUAL_SEED: '1'
+        PW_WORKERS: '1'
+      run: |
+        set -euo pipefail
+        root="$GITHUB_WORKSPACE/gate1-artifacts"
+        for arm_index in 0 1; do
+          if [ "$arm_index" = 0 ]; then arm=control; else arm=treatment; fi
+          for run in 1 2 3; do
+            run_root="$root/$arm/run-$run"
+            mkdir -p "$run_root"
+            set +e
+            (
+              cd "$arm"
+              PW_PORT="$((5100 + arm_index * 10 + run))" \
+              PW_DB_PATH="$run_root/database.db" \
+              TEST_ARTIFACTS_DIR="$run_root" \
+              npx playwright test e2e/visual.spec.ts \
+                --project=chromium \
+                --grep 'backup desktop light$' \
+                --retries=0 \
+                --workers=1 \
+                --reporter=line
+            ) 2>&1 | tee "$run_root/playwright.log"
+            status=${PIPESTATUS[0]}
+            set -e
+            printf '%s\n' "$status" | tee "$run_root/exit-code.txt"
+          done
+        done
+
+    - name: Hash actual and diff PNGs and enforce baseline-write guards
+      if: ${{ always() }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        root="$GITHUB_WORKSPACE/gate1-artifacts"
+        evidence="$root/evidence"
+        for arm in control treatment; do
+          find "$arm/e2e/__screenshots__" -type f -print0 \
+            | sort -z | xargs -0 sha256sum > "$evidence/$arm-baselines-after.sha256"
+          cmp "$evidence/$arm-baselines-before.sha256" "$evidence/$arm-baselines-after.sha256"
+          changed="$(git -C "$arm" status --porcelain -- e2e/__screenshots__)"
+          test -z "$changed" || { printf '%s\n' "$changed"; exit 1; }
+
+          : > "$evidence/$arm-actual-and-diff-sha256.txt"
+          find "$root/$arm" -type f \( -name '*-actual.png' -o -name '*-diff.png' \) \
+            -print0 | sort -z | xargs -0 -r sha256sum \
+            | tee "$evidence/$arm-actual-and-diff-sha256.txt"
+          test "$(find "$root/$arm" -name exit-code.txt -type f | wc -l)" -eq 3
+        done
+
+    - name: Retain complete diagnostic evidence
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: h-linux-unsync-01-gate1
+        path: gate1-artifacts
+        retention-days: 14
+
+
