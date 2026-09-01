@@ -4,8 +4,40 @@
 
 ## Current State
 
+> **2026-09-01 (LATEST) — POST-MERGE DOCUMENTATION RECONCILIATION AT `c809d02`.**
+> Fixed cutoff: GitHub API response clock **`2026-08-31T23:05:48Z`**. Fresh fetch resolved
+> `origin/main` to **`c809d02461c5c7f9a63d9d92b883e54809ae9adb`**; repo-wide open PRs: **zero**.
+> PRs [#468](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/468),
+> [#474](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/474),
+> [#475](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/475),
+> [#472](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/472) and
+> [#473](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/473) are all merged, with
+> successful **18/18** post-merge `main` pipelines: `33417691219`, `33427706446`, `33433259003`,
+> `33445653153` and `33447737415` respectively.
+>
+> - The canonical JS-unit ledger now ends at **row 64**. Rows **56–64** are exact job-level
+>   observations; all are `push`, attempt 1, 18/18-success carriers with successful exact-name
+>   JS-unit jobs. The declared 245-case sequence is **39 consecutive greens (rows 26–64)** with
+>   zero red, missing, skipped or cancelled. The test tree and `vitest.config.js` remain
+>   byte-identical to the restart head, and inventory remains **13 files / 245 cases**.
+> - **T0 remains `2026-08-27T23:18:21Z`; strict mark remains
+>   `2026-09-10T23:18:21Z`. R2.3 / Q4-D2 remains time-gated and unsigned.** Branch protection
+>   still has 12 contexts, `strict: false`, and JS Unit is absent. **U1-FOLLOWUP-1 remains barred
+>   before the strict mark.**
+> - Selector-robustness **Gate 1 is complete on `main`** through #474. Linux
+>   **H-LINUX-UNSYNC-01 Gate 0 is complete on `main`** through docs-only #475, while its diagnostic
+>   Gate 1 remains **unexecuted and unauthorized at the cutoff**.
+> - **R2.4 remains unsigned and `visual-linux` remains outside the release gate.** R3's current
+>   gate body is proved by dispatch, but `release.yml` still has zero `push`/tag runs; the real
+>   tag-trigger half remains unproved.
+> - [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §25 is the new dated evidence
+>   layer. Its §§21–24 fixed-cutoff sections remain historical and were not rewritten. The future
+>   merge of this reconciliation PR will create another owed ledger observation which it cannot
+>   record.
+
 > **2026-08-30 (LATEST) — V1 AND THE FROZEN-WINDOWS RESIDUAL ARE CLOSED BY OWNER DECISION;
 > NO ENGINEERING CHANGE IS AUTHORIZED.**
+> **[UPDATED 2026-09-01 — this block is historical and no longer current; it was superseded by the 2026-09-01 reconciliation block above.]**
 >
 > - **V1 / §15.4 item 7:** the terminal visual contract is **81 byte-gated captures plus five
 >   explicitly exempt captures protected by pinned semantic contracts, per platform**. Run
