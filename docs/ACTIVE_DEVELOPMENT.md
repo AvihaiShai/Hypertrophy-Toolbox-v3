@@ -1120,6 +1120,15 @@ distinguish them. Splitting the family would leave `@media` overrides targeting
 classes with no base rule, so it is deferred whole and pinned by exact
 occurrence count. **Do not erode it rule by rule.**
 
+> **Supersession note — completed work, do not re-dispatch.** The preceding
+> `.scale-btn` and table-helper deferral language is historical evidence only.
+> PR #300 (`b6550e6`, merged 2026-08-05) established that the bare `div` probe
+> host caused the apparent oracle limitation and atomically deleted all nine
+> `.tbl-show-*` / `.tbl-hide-*` rules. PR #302 (`9c83777`, merged 2026-08-10)
+> independently certified and atomically deleted all eleven bare `.scale-btn`
+> rules. Neither family is current optional work, and neither deletion may be
+> re-dispatched.
+
 **Execution order — fully discharged:**
 
 ```
