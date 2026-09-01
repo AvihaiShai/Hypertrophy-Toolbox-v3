@@ -253,7 +253,8 @@ At audited HEAD there is an additional stop: **the target no longer exists**.
 - **Historical deletion risk:** medium before measurement, because dormant JS, focus
   behavior, duplicate selector text, and a media-only member made a naive grep unsafe.
 - **Historical expected value:** modest but real: 11 rules / 29 declarations removed,
-  61 net lines reduced, and a misleading superseded UI generation eliminated.
+  64 net lines reduced (`static/css/a11y.css`: 728 to 664 lines; PR #302: 71 deletions,
+  7 insertions), and a misleading superseded UI generation eliminated.
 - **Current implementation risk:** any attempt to “continue” would recreate or disturb a
   completed deletion and its contracts.
 - **Current expected value of another CSS packet:** negative.
