@@ -4,7 +4,55 @@
 
 ## Current State
 
+> **2026-09-02 (LATEST) — H-LINUX-UNSYNC-01 GATE 1 EXECUTED AND CLOSED OUT; NO FIX, NO
+> BASELINE CHANGE AND NO R2.4 DECISION IS AUTHORIZED.**
+> Fixed cutoff: GitHub API response clock **`2026-09-01T22:34:04Z`**. Fresh fetch resolved
+> `origin/main` to **`5d3bc95a5251f74d74ff9350a1de11a4131d7999`**; repo-wide open PRs: **zero**.
+> PRs [#478](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/478), [#479](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/479),
+> [#476](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/476), [#480](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/480) and
+> [#477](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/477) merged after the 2026-09-01 block's cutoff, each with an
+> **18/18** post-merge `main` pipeline: `33523146853`, `33523178261`, `33547291593`,
+> `33563897334` and `33564812258`.
+>
+> - **The bounded Gate-1 diagnostic ran exactly once** — run `33565764116`, event
+>   `workflow_dispatch`, attempt 1, job `100048464157`, **12 of 12 steps successful**. On one
+>   runner and one browser installation, with the committed Linux baseline asserted identical
+>   across arms: **control `31659a5` passed 3/3** and **treatment `e093081` failed 3/3** at
+>   `20112 pixels (ratio 0.01 of all image pixels)`, with **one** actual SHA-256 and **one**
+>   diff SHA-256 across the three treatment runs. That is GATE0's acceptance criterion 2
+>   exactly. **The compare-only guard held — no baseline was written.** The job's own
+>   `success` conclusion is *not* the result: the workflow records each Playwright exit code
+>   as evidence rather than failing on it.
+> - **It supports H-LINUX-UNSYNC-01 for that one capture and excludes runner-image, browser
+>   and within-arm nondeterminism for it** — the control tree passes 3/3 on the *newer*
+>   runner image (`20260823.283.1`) that GATE0 could not exclude. **It names no causal commit
+>   and no mechanism, and generalizes to none of the other 64 failing captures.** Sass
+>   `1.102.0` (control) versus `1.103.1` (treatment) is each arm's own pinned toolchain and
+>   stays an unranked candidate. Full record:
+>   [`GATE1.md`](deep_gate_linux_visual_failure_20260831/GATE1.md).
+> - **The temporary `linux-visual-gate1.yml` is deleted and its `ALL_WORKFLOWS` contract line
+>   reverted.** The workflow-directory census is bidirectional, so the two must move together.
+>   No pytest node is added or removed, so `docs/test_inventory/` does not move. Re-running the
+>   experiment needs a fresh authorization.
+> - **Five JS-unit ledger observations are owed** — `33523146853`, `33523178261`,
+>   `33547291593`, `33563897334` and `33564812258`, enumerated at job level in
+>   [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §26.4. This packet does not
+>   append them and predicts no row numbers; the ledger still ends at **row 64**. **The future
+>   merge of this PR creates another owed observation which it cannot record.**
+> - **T0 remains `2026-08-27T23:18:21Z`; the strict mark remains `2026-09-10T23:18:21Z`.**
+>   R2.3 / Q4-D2 remains time-gated and unsigned, branch protection still has 12 required
+>   contexts with `strict: false` and JS Unit absent, and **U1-FOLLOWUP-1 remains barred
+>   before the strict mark.**
+> - **R2.4 remains unsigned and `visual-linux` remains outside the release gate.** ADR-007 and
+>   ADR-011 are unchanged, and baseline regeneration remains forbidden without separate owner
+>   authorization. A red comparison is not a regeneration mandate.
+> - **One owner decision is now due:** what follows Gate 1 — **A** bisect
+>   `31659a59..b36ea9e`, **B** widen the capture matrix, **C** authorize Linux baseline
+>   synchronization, or **D** stop and keep the failure as a recorded bounded residual.
+>   **A is recommended and none is taken here**; A would authorize diagnosis only, never a fix.
+
 > **2026-09-01 (LATEST) — POST-MERGE DOCUMENTATION RECONCILIATION AT `c809d02`.**
+> **[UPDATED 2026-09-02 — this block is historical and no longer current; it was superseded by the 2026-09-02 H-LINUX-UNSYNC-01 Gate-1 closeout block above.]**
 > Fixed cutoff: GitHub API response clock **`2026-08-31T23:05:48Z`**. Fresh fetch resolved
 > `origin/main` to **`c809d02461c5c7f9a63d9d92b883e54809ae9adb`**; repo-wide open PRs: **zero**.
 > PRs [#468](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/468),

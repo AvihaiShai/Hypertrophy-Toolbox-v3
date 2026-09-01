@@ -3792,3 +3792,136 @@ no decision: reaching the strict mark remains a precondition, never a signature.
 
 **The future merge of this reconciliation PR will create another owed ledger observation which
 this PR cannot record.** No future row number is predicted.
+
+## 26. Evidence log — 2026-09-02, H-LINUX-UNSYNC-01 Gate-1 closeout at `5d3bc95`
+
+**This is a new dated evidence layer.** It does not rewrite §§21–25 or their fixed cutoffs; §25
+remains correct at its own `2026-08-31T23:05:48Z` reading. The GitHub API response-clock cutoff
+here is **`2026-09-01T22:34:04Z`**; a fresh `git fetch origin --prune` resolved `origin/main` to
+**`5d3bc95a5251f74d74ff9350a1de11a4131d7999`**, which is also the exact base of this worktree.
+The repo-wide open-PR query returned **zero** at that instant — an instant, not a state.
+
+### 26.1 Five further PRs merged after §25's cutoff
+
+| PR | Merge commit / merged at | Post-merge `main` pipeline |
+|---|---|---|
+| [#478](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/478) | `fe05bdb4ac46dfb8128cbe692d52ef49f1789f8e` / `2026-09-01T15:01:07Z` | run [`33523146853`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33523146853), **18/18 success**, attempt 1 |
+| [#479](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/479) | `8767e120cc154b8582b20ead70a7beac9b7d0342` / `2026-09-01T15:01:26Z` | run [`33523178261`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33523178261), **18/18 success**, attempt 1 |
+| [#476](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/476) | `ec9779f39d35bf71f3a347e56770a9a5b3491df6` / `2026-09-01T19:03:41Z` | run [`33547291593`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33547291593), **18/18 success**, attempt 1 |
+| [#480](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/480) | `bd152a4e4a5bd3152d9ef6a4bf51858ba0bd5744` / `2026-09-01T21:58:21Z` | run [`33563897334`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33563897334), **18/18 success**, attempt 1 |
+| [#477](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/477) | `5d3bc95a5251f74d74ff9350a1de11a4131d7999` / `2026-09-01T22:08:58Z` | run [`33564812258`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33564812258), **18/18 success**, attempt 1 |
+
+#477 is the one that matters for this section: it added the temporary
+`.github/workflows/linux-visual-gate1.yml` as **preparation only**, explicitly not dispatched by
+that PR. §25's statement that the diagnostic Gate 1 was "unexecuted and unauthorized" was true at
+its cutoff and is superseded here, not corrected.
+
+### 26.2 The Gate-1 diagnostic executed once, and landed on GATE0's criterion 2
+
+Run [`33565764116`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33565764116),
+event `workflow_dispatch`, attempt **1**, job
+[`100048464157`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33565764116/job/100048464157),
+`2026-09-01T22:20:12Z` → `2026-09-01T22:22:14Z`, **12 of 12 steps successful**.
+
+- **Control `31659a5`: 3/3 pass** (exit `0`, `0`, `0`); no `*-actual.png` and no `*-diff.png`
+  produced.
+- **Treatment `e093081`: 3/3 fail** (exit `1`, `1`, `1`), each `20112 pixels (ratio 0.01 of all
+  image pixels) are different`.
+- All three treatment actual PNGs share one SHA-256 `f2a6898…`; all three diff PNGs share one
+  SHA-256 `2b376be…`; the actual differs from the committed baseline `4e116bd…`.
+- Both arms ran on one runner (`ubuntu24` / `20260823.283.1`) against one browser installation
+  (`Google Chrome for Testing 149.0.7827.55`, identical executable path) with Playwright
+  `1.61.0` and an identical committed-baseline SHA-256 — each asserted by the workflow before
+  any comparison ran.
+- **The baseline-write guard held for both arms**: before/after tree hash manifests compared
+  equal and `git status --porcelain -- e2e/__screenshots__` was empty. No baseline was written.
+
+The **job's `success` conclusion is not the experimental result** — the workflow captures each
+Playwright exit code as evidence rather than failing on it. Read the exit codes.
+
+**What this does and does not establish** is recorded in full in
+[`deep_gate_linux_visual_failure_20260831/GATE1.md`](deep_gate_linux_visual_failure_20260831/GATE1.md).
+In short: it supports H-LINUX-UNSYNC-01 **for the one selected capture** and excludes
+runner-image, browser and within-arm nondeterminism for that capture — the control tree passes
+3/3 on the *newer* runner image that GATE0 could not exclude. It identifies **no causal commit**,
+identifies **no mechanism**, generalizes to **none** of the other 64 failing captures, and says
+nothing about whether the committed baseline or the current source is the correct one. The one
+input that differs between the arms besides the source itself — Sass `1.102.0` in control versus
+`1.103.1` in treatment — is part of each arm's own pinned toolchain and is recorded as an
+unranked candidate, exactly as GATE0 left it.
+
+The retained evidence artifact `h-linux-unsync-01-gate1` (id `9823089086`, 8,292,115 bytes)
+**expires `2026-09-15T22:22:09Z`**. Every figure this log depends on is transcribed into GATE1.md
+so the record outlives the artifact.
+
+### 26.3 The temporary workflow is removed and its narrow contract restored
+
+`.github/workflows/linux-visual-gate1.yml` was single-use and `workflow_dispatch`-only. It has
+been dispatched once and has produced its result, so this packet deletes it and reverts the one
+line #477 added to `tests/test_release_workflow_contracts.py`
+(`LINUX_VISUAL_GATE1` and its membership in `ALL_WORKFLOWS`).
+
+The revert is required rather than tidy: `test_the_workflow_directory_holds_exactly_the_files_this_file_reads`
+compares the workflow directory against the `ALL_WORKFLOWS` literal in **both** directions, so
+deleting the file alone reds it. `ALL_WORKFLOWS` is iterated only inside test bodies and is not a
+`parametrize` source, so no pytest node is added or removed and `docs/test_inventory/` does not
+move. Re-running the experiment requires restoring the workflow under a fresh authorization.
+
+### 26.4 JS ledger: five owed observations, and a sixth this PR cannot record
+
+The canonical ledger in
+[`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0 still ends at **row
+64** (`c809d02`). **Five qualifying `main` `ci.yml` observations have landed since and are owed.**
+This packet does not append them — it is a Gate-1 closeout, not a ledger packet — so it enumerates
+them at job level here for whichever authorized packet appends them next:
+
+| Owed, in `js-unit` completion order | Carrier run | Head / PR | `js-unit` job | Result | `completed_at` |
+|---|---|---|---|---|---|
+| 1 | [`33523146853`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33523146853) | `fe05bdb4ac46dfb8128cbe692d52ef49f1789f8e` (#478) | [`99907156047`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33523146853/job/99907156047) | `success` | `2026-09-01T15:01:38Z` |
+| 2 | [`33523178261`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33523178261) | `8767e120cc154b8582b20ead70a7beac9b7d0342` (#479) | [`99907266034`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33523178261/job/99907266034) | `success` | `2026-09-01T15:01:54Z` |
+| 3 | [`33547291593`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33547291593) | `ec9779f39d35bf71f3a347e56770a9a5b3491df6` (#476) | [`99987847053`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33547291593/job/99987847053) | `success` | `2026-09-01T19:04:09Z` |
+| 4 | [`33563897334`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33563897334) | `bd152a4e4a5bd3152d9ef6a4bf51858ba0bd5744` (#480) | [`100042542841`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33563897334/job/100042542841) | `success` | `2026-09-01T21:58:50Z` |
+| 5 | [`33564812258`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33564812258) | `5d3bc95a5251f74d74ff9350a1de11a4131d7999` (#477) | [`100045442226`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33564812258/job/100045442226) | `success` | `2026-09-01T22:09:29Z` |
+
+All five carriers are `push`, attempt **1**, **18/18 success**. **No row number is asserted for
+them here** — row numbering belongs to the packet that writes them, in the file that owns them.
+
+**Run `33565764116` is not a qualifying observation.** It is a `workflow_dispatch` run of a
+different workflow with no `js-unit` job at all; only `main` `ci.yml` runs qualify.
+
+**The future merge of this closeout PR will create a further owed observation which this PR
+cannot record**, for the reason §13.0 states at rows 17, 20, 21 and 23: the run that would be
+cited does not exist until after the merge. No future row number is predicted.
+
+### 26.5 Decisions unchanged, and the one decision now due
+
+- **R2.4 remains unsigned**, and `visual-linux` remains outside the release gate. **ADR-007 is
+  unchanged.** Nothing in the Gate-1 result is a promotion argument, and this packet does not
+  decide R2.4.
+- **ADR-011 is unchanged**: 81 byte-gated captures plus five named semantic exemptions. No
+  tolerance, retry, mask, crop, viewport or exemption-set change is authorized.
+- **Baseline regeneration remains explicitly forbidden** without separate owner authorization,
+  Linux and Win32 alike. A red comparison is not itself a regeneration mandate.
+- **R2.3 / Q4-D2 remains time-gated and unsigned.** T0 stays `2026-08-27T23:18:21Z`; the strict
+  mark stays `2026-09-10T23:18:21Z`; branch protection still has 12 required contexts with
+  `strict: false` and `JS Unit (Vitest, non-required)` absent. **U1-FOLLOWUP-1 remains barred
+  before the strict mark.** Reaching the mark remains a precondition, never a signature.
+- **R3's tag-trigger half remains unproved**; `release.yml` still has zero `push`/tag runs.
+
+**The one decision now due to the owner is what follows the Gate-1 result.** GATE0 states that
+any commit bisection or broader capture matrix "requires a separately authorized Gate-1
+extension; it is not implicit in this experiment." The four options — **A** bisect
+`31659a59..b36ea9e`, **B** widen the capture matrix, **C** authorize Linux baseline
+synchronization, **D** stop and keep the failure as a recorded bounded residual — are set out with
+their costs in [GATE1.md](deep_gate_linux_visual_failure_20260831/GATE1.md). **A is recommended
+and none is taken here**; A would be a diagnostic authorization only and would not license a fix.
+
+### 26.6 Limits of this packet
+
+This packet changes `docs/deep_gate_linux_visual_failure_20260831/GATE1.md` (new),
+`docs/MASTER_HANDOVER.md`, `docs/OPEN_WORK_EXECUTION_PLAN.md`,
+`tests/test_release_workflow_contracts.py` (three lines reverted) and deletes
+`.github/workflows/linux-visual-gate1.yml`. It does not edit the JS ledger, baselines,
+screenshots, CSS, SCSS, templates, production code, ADRs or dependency files; does not dispatch a
+workflow or alter repository settings; does not extend the experiment; and does not authorize or
+perform any merge.

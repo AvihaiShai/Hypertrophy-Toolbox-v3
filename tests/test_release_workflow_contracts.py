@@ -26,11 +26,10 @@ from scripts.release_gate import (
 WORKFLOWS = REPO_ROOT / ".github" / "workflows"
 CI = WORKFLOWS / "ci.yml"
 DEEP_GATE = WORKFLOWS / "deep-gate.yml"
-LINUX_VISUAL_GATE1 = WORKFLOWS / "linux-visual-gate1.yml"
 RELEASE = WORKFLOWS / "release.yml"
 PACKAGED = WORKFLOWS / "_packaged-windows.yml"
 
-ALL_WORKFLOWS = (CI, DEEP_GATE, LINUX_VISUAL_GATE1, RELEASE, PACKAGED)
+ALL_WORKFLOWS = (CI, DEEP_GATE, RELEASE, PACKAGED)
 NEW_WORKFLOWS = (RELEASE, PACKAGED)
 WORKFLOW_PATHS = {path.name: path for path in ALL_WORKFLOWS}
 
