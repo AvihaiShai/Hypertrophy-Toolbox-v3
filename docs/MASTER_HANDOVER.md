@@ -37,6 +37,7 @@
 
 > **2026-08-30 (LATEST) — V1 AND THE FROZEN-WINDOWS RESIDUAL ARE CLOSED BY OWNER DECISION;
 > NO ENGINEERING CHANGE IS AUTHORIZED.**
+> **[UPDATED 2026-09-01 — this block carried the&#x20;****`(LATEST)`****&#x20;marker until the 2026-09-01 reconciliation block above was added; it is historical and no longer current.]**
 >
 > - **V1 / §15.4 item 7:** the terminal visual contract is **81 byte-gated captures plus five
 >   explicitly exempt captures protected by pinned semantic contracts, per platform**. Run
