@@ -33,6 +33,58 @@ base. The broad Linux visual red remains unresolved; no Gate-1 diagnostic result
 baseline landed. The decisions are unchanged: the superset tint remains a conditional product
 choice, while P3 and unlinking remain declined.
 
+**Revalidation at `origin/main` `5d3bc95a5251f74d74ff9350a1de11a4131d7999`, 2026-09-02.** Read-only;
+no production CSS, contract, workflow, baseline, screenshot, or canonical status document was
+touched and no packet was started. `git diff b36ea9e..5d3bc95` over `static/`, `templates/` and
+`scripts/` reports **no changed path**, so every source identity, count, and candidate below is
+re-measured as still exact:
+
+| Re-measured item | Report claim | Value at `5d3bc95` | Result |
+|---|---|---|---|
+| `static/css/theme-dark.css` | 574 lines, 74 brace-opening blocks, 125 raw `!important` (124 declarations + 1 comment), 34 custom properties | **574 / 74 / 125 raw (124 declarations) / 34** — blob `c2fb6f4` | matches |
+| `--superset-color-1..4`, `--superset-bg-1..4` owner | `pages-workout-plan.css` `:root`, alpha `0.08` | `:3422-3429`, still alpha **`0.08`** | matches |
+| `tr.superset-group-N` background consumers | four | **four** | matches |
+| Live dark superset override | none | **none** — `theme-dark.css` contains **0** occurrences of `superset` | matches |
+| `data-bs-theme` set by the app | never | **0** in `static/js/**`; the only CSS occurrence is vendored `bootstrap.custom.min.css` | matches |
+| `test_the_deferred_superset_tint_was_not_added` | pins C11's deferral | present at `tests/test_css_wp4_4_theme_dark_contracts.py:65`, still asserting `"superset" not in` the bundle, and still pinned by `tests/test_css_theme_dark_p3_audit_contracts.py:62` | matches |
+| Packet-a `@layer workout` span | `components.css` openLine 3539 / closeLine 4104 | **3539 / 4104**, pinned at `tests/test_css_wp4_4_components_contracts.py:446-447` and `tests/test_css_wp4_4_a_baseline_contracts.py:157` | matches |
+| `static/css/components.css` | current shared owner | 5,207 lines, blob `0c79f87`, LF `1c420eab…12b5` | matches §4.1's staleness premise |
+
+**Two figures in §5.1 are now stale and are corrected here, without changing any verdict.**
+`scripts/css_audit/` currently holds **21 committed tools plus `__init__.py`**, and
+`p3_ceiling.py::TOOL_ASSESSMENT` assesses **20** of them (every tool except the assessor itself).
+P3-a0's *19 then-committed tools* is a historical figure; a reopened P3-a1 must re-price against
+**20 assessed**, not 19, which strengthens rather than weakens §5.1's warning that "nine is the last
+measured starting point, not a guaranteed current count."
+
+**§7's sequencing prerequisite is NOT discharged.** The Linux diagnostic advanced but did not
+resolve, and the closeout is unmerged:
+
+- Gate 0 merged as [#475](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/475) (`1e9cb4b`).
+- [#477](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/477) (`fabdb2f`) merged a
+  single-use `workflow_dispatch` diagnostic, `.github/workflows/linux-visual-gate1.yml`.
+- That workflow was dispatched once, run
+  [`33565764116`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33565764116).
+  Holding runner image, Node, Playwright `1.61.0`, the browser executable and the committed Linux
+  baseline SHA-256 measurably equal across arms, control `31659a5` passed **3/3** and treatment
+  `e093081` failed **3/3** at a byte-identical **20,112**-pixel difference. The baseline-write guard
+  held; nothing was regenerated.
+- The Gate-1 closeout, **PR #481, is OPEN and unmerged** (head `feecb2c`, `CLEAN`, 18/18 green). It
+  deletes the temporary workflow and adds `docs/deep_gate_linux_visual_failure_20260831/GATE1.md`.
+
+What that result does **not** give this report: it names **no causal commit** (the interval
+`31659a59..b36ea9e` is still unbisected, and #464, the Sass `1.102.0`→`1.103.1` bump and two
+template changes remain unranked), identifies **no mechanism**, and **generalizes to none of the
+other 64 failing captures** — the scheduled deep gate was **65 failed / 17 did not run / 18 passed**.
+It authorizes no fix, no baseline regeneration, and no R2.4 decision. **R2.4 remains unsigned** on
+`main`; ADR-007 is untouched and `visual-linux` stays outside the release gate. ADR-011 is confirmed
+by measurement: **81 byte-gated baselines per platform** (162 PNGs across `win32` and `linux`) plus
+the **five** `BYTE_GATE_EXEMPT` stems, none of which has a committed baseline.
+
+**Therefore §9's investment order is unchanged and step 1 is still the live blocker.** The superset
+tint stays **PROCEED, conditionally** — the condition is not yet met. Options 2, 3 and 4 stay
+**DEFER**, **DECLINE**, **DECLINE**.
+
 ## 1. Executive decision
 
 | Independent option | Expected user-visible effect | Cost | Risk | Likely value | Recommendation |
@@ -238,7 +290,10 @@ as a standalone cleanup at the current cost/risk/value ratio.
 
 ### 5.1 What P3-a0 actually concluded
 
-P3-a0 assessed all 19 then-committed CSS-audit tools:
+P3-a0 assessed all 19 then-committed CSS-audit tools. *(Superseded count — at `origin/main`
+`5d3bc95` the directory holds **21** committed tools and `p3_ceiling.py::TOOL_ASSESSMENT` assesses
+**20**. See the 2026-09-02 revalidation block at the head of this report; the a0 verdicts below are
+retained as the historical record.)*
 
 - **9 reusable unmodified:** `specificity.py`, `resolution_check.py`, `measure.py`,
   `i_seed_probe_db.py`, `runtime_probe.mjs`, `j_theme_differential.mjs`, `j_diff_theme.mjs`,
@@ -393,6 +448,11 @@ project. **Value caveat:** one network request and one source file disappear, bu
 only relocate; without a demonstrated ownership simplification, the project can increase complexity.
 
 ## 7. R2.4 and Linux visual-gate overlap
+
+*Point-in-time record. The branch status in the fourth bullet is superseded — Gate 0 merged as #475,
+a Gate-1 diagnostic ran once, and the Gate-1 closeout is open as PR #481. The required sequence
+below is unchanged and step 1 is still undischarged; see the 2026-09-02 revalidation block at the
+head of this report for the measured current state.*
 
 The audited canonical state cannot support a new preservation claim:
 
