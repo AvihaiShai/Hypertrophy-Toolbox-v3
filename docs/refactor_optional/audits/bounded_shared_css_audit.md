@@ -43,18 +43,18 @@ would be a separate, owner-authorized documentation packet, not a CSS packet.
 > discrepancy is therefore closed.** The paragraph above is retained as the audited-HEAD
 > record; it is no longer true of `main`.
 
-## Revalidation at `origin/main` `5d3bc95` — 2026-09-02
+## Revalidation at `origin/main` `22ee9ad` — 2026-09-03
 
 This report was re-checked once against `origin/main`
-`5d3bc95a5251f74d74ff9350a1de11a4131d7999` (merge of
-[#477](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/477)). Read-only; no
+`22ee9ade7b5b69dcb9aecf6eb19526cc5db31158` (squash merge of
+[#481](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/481)). Read-only; no
 production CSS, test, workflow, baseline, screenshot, or canonical status document was
 touched, and no implementation packet was started.
 
-`git diff b36ea9e..5d3bc95` over `static/`, `templates/`, `scripts/` reports **no changed
+`git diff b36ea9e..22ee9ad` over `static/`, `templates/`, `scripts/` reports **no changed
 path**. Both families' zero-state is re-measured, not inherited:
 
-| Re-measured item | Audited-HEAD claim | Value at `5d3bc95` | Result |
+| Re-measured item | Audited-HEAD claim | Value at `22ee9ad` | Result |
 |---|---|---|---|
 | `static/css/a11y.css` bare `.scale-btn` rule heads | 0 | **0** | matches |
 | `static/css/a11y.css` size | 664 lines | **664** lines, blob `8a263e4` | matches |
@@ -538,5 +538,5 @@ repaired here. **It has since been repaired on its own authority by PR #480 (`88
 2026-09-01)**, which marked both `REFACTOR_PLAN.md` rows **Done** against PR #302
 (`9c83777`) and PR #300 (`b6550e6`) and added matching supersession notes to
 `MASTER_HANDOVER.md` and `ACTIVE_DEVELOPMENT.md`. **This audit now carries no open
-action.** Both families are closed as already executed, and the 2026-09-02 revalidation
-above re-measured their zero-state at `origin/main` `5d3bc95` rather than inheriting it.
+action.** Both families are closed as already executed, and the 2026-09-03 revalidation
+above re-measured their zero-state at `origin/main` `22ee9ad` rather than inheriting it.

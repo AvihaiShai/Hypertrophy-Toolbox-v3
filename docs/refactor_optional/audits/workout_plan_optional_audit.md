@@ -32,17 +32,17 @@ document was changed or run for this audit.
   merges and before any future packet is authorized.** Selectors and structural
   anchors, not the line numbers below, are the durable identifiers.
 - **Revalidation at `origin/main`
-  `5d3bc95a5251f74d74ff9350a1de11a4131d7999`, 2026-09-02.** Read-only; no
+  `22ee9ade7b5b69dcb9aecf6eb19526cc5db31158`, 2026-09-03.** Read-only; no
   production CSS, contract, harness, workflow, baseline, screenshot, or
   canonical status document was touched, and no packet was started. This is the
   source/contract half of **WP-OPT-R0** only; it confers no authority and R0
   itself remains unauthorized.
 
-  `git diff b36ea9e..5d3bc95` over `static/`, `templates/` and `scripts/`
+  `git diff b36ea9e..22ee9ad` over `static/`, `templates/` and `scripts/`
   reports **no changed path**, so the ten-candidate inventory was re-resolved
   against unchanged bytes:
 
-  | Re-measured item | Report claim | Value at `5d3bc95` | Result |
+  | Re-measured item | Report claim | Value at `22ee9ad` | Result |
   |---|---|---|---|
   | `pages-workout-plan.css` | 5,810 lines / 2,499 declarations / 489 `!important` declarations / 490 lexical occurrences | **5,810 / 2,499 / 489 / 490** — blob `b7c19c2` | matches |
   | `components.css`, `tokens.css` | byte-identical to audited HEAD | blobs `0c79f87` and `464aa48`, **still byte-identical** | matches |
@@ -55,7 +55,7 @@ document was changed or run for this audit.
 
   **Two citations in this report have drifted and are corrected here.** The
   JS-unit ruling is cited below as
-  `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md:5143-5170`; at `5d3bc95` the
+  `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md:5143-5170`; at `22ee9ad` the
   heading *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET; T0 IS DECLARED —
   2026-08-29* sits at **`:5159`**, with the qualifying-T0 bullets at
   **`:5174-5176`**. The **substance is unchanged**: T0
@@ -78,7 +78,8 @@ document was changed or run for this audit.
   committed Linux baseline SHA-256 asserted equal across arms, control `31659a5`
   passed **3/3** while treatment `e093081` failed **3/3** at a byte-identical
   **20,112**-pixel difference, and the baseline-write guard held. The Gate-1
-  closeout is **open and unmerged as PR #481**. It names **no causal commit**,
+  closeout [**merged as PR #481**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/481)
+  (`22ee9ad`). It names **no causal commit**,
   identifies **no mechanism**, and generalizes to **none** of the other 64
   failing captures (scheduled deep gate: **65 failed / 17 did not run / 18
   passed**). It authorizes no fix, no baseline regeneration and **no R2.4
@@ -86,8 +87,9 @@ document was changed or run for this audit.
   gate. This **reinforces** the post-rebase note above: a green retry is not
   clean evidence, and a red Linux comparison is not permission to regenerate.
 
-  **No competing writer.** At `5d3bc95` the only open pull request in the
-  repository is #481; the `wt/opt-*` audit worktrees are clean and hold no
+  **No competing writer.** At revalidation time on `22ee9ad`, the only open pull
+  request was #482, this four-report revalidation; the other `wt/opt-*` audit
+  worktrees are clean and hold no
   uncommitted work on any path in the file-overlap table.
 
   **Every recommendation below is unchanged.**
@@ -426,7 +428,7 @@ triage order, not authorization to start with the largest cluster.
 
 At the audited HEAD, the operative owner ruling in
 `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md:5143-5170` — re-anchored at
-`origin/main` `5d3bc95` to the heading at `:5159` with its qualifying-T0
+`origin/main` `22ee9ad` to the heading at `:5159` with its qualifying-T0
 bullets at `:5174-5176`, substance unchanged — defines an expansion as
 the last merged change that **added, removed, renamed, or materially changed a
 case under `static/js/**/*.test.js`**. It declares:

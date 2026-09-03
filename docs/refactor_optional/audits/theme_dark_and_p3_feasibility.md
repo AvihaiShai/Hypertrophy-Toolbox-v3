@@ -33,13 +33,13 @@ base. The broad Linux visual red remains unresolved; no Gate-1 diagnostic result
 baseline landed. The decisions are unchanged: the superset tint remains a conditional product
 choice, while P3 and unlinking remain declined.
 
-**Revalidation at `origin/main` `5d3bc95a5251f74d74ff9350a1de11a4131d7999`, 2026-09-02.** Read-only;
+**Revalidation at `origin/main` `22ee9ade7b5b69dcb9aecf6eb19526cc5db31158`, 2026-09-03.** Read-only;
 no production CSS, contract, workflow, baseline, screenshot, or canonical status document was
-touched and no packet was started. `git diff b36ea9e..5d3bc95` over `static/`, `templates/` and
+touched and no packet was started. `git diff b36ea9e..22ee9ad` over `static/`, `templates/` and
 `scripts/` reports **no changed path**, so every source identity, count, and candidate below is
 re-measured as still exact:
 
-| Re-measured item | Report claim | Value at `5d3bc95` | Result |
+| Re-measured item | Report claim | Value at `22ee9ad` | Result |
 |---|---|---|---|
 | `static/css/theme-dark.css` | 574 lines, 74 brace-opening blocks, 125 raw `!important` (124 declarations + 1 comment), 34 custom properties | **574 / 74 / 125 raw (124 declarations) / 34** — blob `c2fb6f4` | matches |
 | `--superset-color-1..4`, `--superset-bg-1..4` owner | `pages-workout-plan.css` `:root`, alpha `0.08` | `:3422-3429`, still alpha **`0.08`** | matches |
@@ -57,8 +57,8 @@ P3-a0's *19 then-committed tools* is a historical figure; a reopened P3-a1 must 
 **20 assessed**, not 19, which strengthens rather than weakens §5.1's warning that "nine is the last
 measured starting point, not a guaranteed current count."
 
-**§7's sequencing prerequisite is NOT discharged.** The Linux diagnostic advanced but did not
-resolve, and the closeout is unmerged:
+**§7's sequencing prerequisite is NOT discharged.** The Linux diagnostic and its closeout merged,
+but the experiment did not resolve the cross-platform proof state:
 
 - Gate 0 merged as [#475](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/475) (`1e9cb4b`).
 - [#477](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/477) (`fabdb2f`) merged a
@@ -69,8 +69,9 @@ resolve, and the closeout is unmerged:
   baseline SHA-256 measurably equal across arms, control `31659a5` passed **3/3** and treatment
   `e093081` failed **3/3** at a byte-identical **20,112**-pixel difference. The baseline-write guard
   held; nothing was regenerated.
-- The Gate-1 closeout, **PR #481, is OPEN and unmerged** (head `feecb2c`, `CLEAN`, 18/18 green). It
-  deletes the temporary workflow and adds `docs/deep_gate_linux_visual_failure_20260831/GATE1.md`.
+- The Gate-1 closeout, [**PR #481**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/481),
+  **merged** as `22ee9ad`. It deleted the temporary workflow and added
+  `docs/deep_gate_linux_visual_failure_20260831/GATE1.md`.
 
 What that result does **not** give this report: it names **no causal commit** (the interval
 `31659a59..b36ea9e` is still unbisected, and #464, the Sass `1.102.0`→`1.103.1` bump and two
@@ -81,7 +82,7 @@ It authorizes no fix, no baseline regeneration, and no R2.4 decision. **R2.4 rem
 by measurement: **81 byte-gated baselines per platform** (162 PNGs across `win32` and `linux`) plus
 the **five** `BYTE_GATE_EXEMPT` stems, none of which has a committed baseline.
 
-**Therefore §9's investment order is unchanged and step 1 is still the live blocker.** The superset
+**Therefore §9's investment order is unchanged and step 2 of §7 is now the live blocker.** The superset
 tint stays **PROCEED, conditionally** — the condition is not yet met. Options 2, 3 and 4 stay
 **DEFER**, **DECLINE**, **DECLINE**.
 
@@ -291,8 +292,8 @@ as a standalone cleanup at the current cost/risk/value ratio.
 ### 5.1 What P3-a0 actually concluded
 
 P3-a0 assessed all 19 then-committed CSS-audit tools. *(Superseded count — at `origin/main`
-`5d3bc95` the directory holds **21** committed tools and `p3_ceiling.py::TOOL_ASSESSMENT` assesses
-**20**. See the 2026-09-02 revalidation block at the head of this report; the a0 verdicts below are
+`22ee9ad` the directory holds **21** committed tools and `p3_ceiling.py::TOOL_ASSESSMENT` assesses
+**20**. See the 2026-09-03 revalidation block at the head of this report; the a0 verdicts below are
 retained as the historical record.)*
 
 - **9 reusable unmodified:** `specificity.py`, `resolution_check.py`, `measure.py`,
@@ -449,10 +450,10 @@ only relocate; without a demonstrated ownership simplification, the project can 
 
 ## 7. R2.4 and Linux visual-gate overlap
 
-*Point-in-time record. The branch status in the fourth bullet is superseded — Gate 0 merged as #475,
-a Gate-1 diagnostic ran once, and the Gate-1 closeout is open as PR #481. The required sequence
-below is unchanged and step 1 is still undischarged; see the 2026-09-02 revalidation block at the
-head of this report for the measured current state.*
+*Point-in-time record. The branch status below is superseded — Gate 0 merged as #475, a Gate-1
+diagnostic ran once, and the Gate-1 closeout merged as #481. Step 1 of the required sequence is
+therefore discharged; step 2 remains open. See the 2026-09-03 revalidation block at the head of
+this report for the measured current state.*
 
 The audited canonical state cannot support a new preservation claim:
 

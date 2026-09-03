@@ -43,17 +43,17 @@ than current branch status. The Linux proof environment remains unresolved and t
 new deletion authority. The recommendation remains no broad Workout Log cleanup: only the bounded
 empty-shell packet and audit-only recertification are candidates, each still owner-gated.
 
-**Revalidation at `origin/main` `5d3bc95a5251f74d74ff9350a1de11a4131d7999`, 2026-09-02.**
+**Revalidation at `origin/main` `22ee9ade7b5b69dcb9aecf6eb19526cc5db31158`, 2026-09-03.**
 Read-only; no production CSS, contract, harness, workflow, baseline, screenshot, or
 canonical status document was touched, and no implementation packet was started. This
 discharges the *Mandatory freshness rule* above **for the source/contract half only**; it
 is not the runtime cascade proof, and WL-O0 through WL-O5 still require everything in
 *Required fresh proof*.
 
-`git diff b36ea9e..5d3bc95` over `static/`, `templates/` and `scripts/` reports **no
+`git diff b36ea9e..22ee9ad` over `static/`, `templates/` and `scripts/` reports **no
 changed path**. The three source identities in the table above were re-derived, not copied:
 
-| Re-measured item | Report claim | Value at `5d3bc95` | Result |
+| Re-measured item | Report claim | Value at `22ee9ad` | Result |
 |---|---|---|---|
 | `pages-workout-log.css` LF SHA-256 / blob | `4d84ac6c…cc94` / `ced40737` | **identical** | matches |
 | `components.css` LF SHA-256 / blob | `1c420eab…12b5` / `0c79f876` | **identical** | matches |
@@ -73,7 +73,8 @@ as [#475](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/475) (`1e9cb
 [#477](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/477) (`fabdb2f`) merged a
 single-use diagnostic workflow that ran once
 ([`33565764116`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33565764116));
-and the Gate-1 closeout is **open and unmerged as PR #481**. The diagnostic supports the
+and the Gate-1 closeout [**merged as PR #481**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/481)
+(`22ee9ad`). The diagnostic supports the
 unsynchronized-source/baseline hypothesis for **one** capture with runner, browser and
 committed-baseline inputs held measurably equal, but it names no causal commit, identifies
 no mechanism, and generalizes to none of the other 64 failures (the scheduled deep gate was
@@ -81,9 +82,10 @@ no mechanism, and generalizes to none of the other 64 failures (the scheduled de
 regeneration. **The Linux proof environment therefore still grants no deletion authority,
 and a red Linux comparison is still not permission to explain a WL diff after the fact.**
 
-**The file-overlap table below is now a point-in-time record.** At `5d3bc95` the only open
-pull request in the repository is **#481**; every other prompt/worktree listed there has
-merged or is clean, and the `wt/opt-*` audit worktrees hold no uncommitted work. The
+**The file-overlap table below is now a point-in-time record.** At revalidation time on
+`22ee9ad`, the only open pull request was **#482**, this four-report revalidation; every other
+prompt/worktree listed there has merged or is clean, and the `wt/opt-*` audit worktrees
+hold no uncommitted work. The
 single-writer collision rules in *Exact future single-writer collision points* are
 unaffected and still bind.
 
