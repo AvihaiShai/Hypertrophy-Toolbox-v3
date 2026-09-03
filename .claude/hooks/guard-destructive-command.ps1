@@ -71,6 +71,135 @@ $maxDelegationDepth = 4
 # Fields that may carry an executable command, in preference order.
 $commandFields = @('command', 'script', 'code', 'cmd', 'input')
 
+# Disabling MSYS argument conversion can turn a Windows path passed to Git into
+# an unrelated POSIX path. Deny observable attempts to set or export either
+# escape hatch, while leaving reads and documentation/search text alone.
+$blockedEnvironmentNames = @('MSYS_NO_PATHCONV', 'MSYS2_ARG_CONV_EXCL')
+$textInspectionCommands = @('echo', 'printf', 'write-output', 'out-string', 'rg',
+    'grep', 'git-grep', 'select-string', 'findstr')
+$commandPositionMarkers = @('then', 'do', 'else', 'if', 'while', 'until', '{', '(')
+
+function Test-BlockedEnvironmentName([string]$name) {
+    return $blockedEnvironmentNames -contains $name.Trim().ToUpperInvariant()
+}
+
+function Get-EnvironmentAssignmentName([string]$token) {
+    if ($token -match '^([A-Za-z_][A-Za-z0-9_]*)=') { return $matches[1] }
+    if ($token -match '^\$\{?env:([A-Za-z_][A-Za-z0-9_]*)\}?=') { return $matches[1] }
+    return $null
+}
+
+function Test-EnvironmentMutation([string[]]$tokens, [string]$printable) {
+    if ($tokens.Count -eq 0) { return $null }
+
+    $head = Get-BareName $tokens[0]
+    if ($textInspectionCommands -contains $head) { return $null }
+    if ($head -eq 'git' -and $tokens.Count -gt 1 -and $tokens[1].ToLowerInvariant() -eq 'grep') {
+        return $null
+    }
+
+    # POSIX assignment words are executable only at the start of a simple
+    # command (possibly behind wrappers), not as arguments to `echo` or `rg`.
+    $i = 0
+    while ($i -lt $tokens.Count) {
+        $assignmentName = Get-EnvironmentAssignmentName $tokens[$i]
+        if ($null -ne $assignmentName) {
+            if (Test-BlockedEnvironmentName $assignmentName) {
+                return @{ Decision = 'deny'; Reason = "MSYS path-conversion override assignment: $printable" }
+            }
+            $i++
+            continue
+        }
+        $wrapper = Get-BareName $tokens[$i]
+        if ($prefixes -notcontains $wrapper) { break }
+        $i++
+        while ($i -lt $tokens.Count -and $tokens[$i] -match '^-') {
+            if ($prefixValueFlags -contains $tokens[$i]) { $i += 2 } else { $i++ }
+        }
+    }
+
+    for ($i = 0; $i -lt $tokens.Count; $i++) {
+        $token = $tokens[$i]
+        $verb = Get-BareName $token
+        $rest = @()
+        if ($i + 1 -lt $tokens.Count) { $rest = @($tokens[($i + 1)..($tokens.Count - 1)]) }
+
+        # A direct assignment may follow shell control syntax that this partial
+        # parser deliberately does not otherwise model.
+        $assignmentName = Get-EnvironmentAssignmentName $token
+        if ($null -ne $assignmentName -and (Test-BlockedEnvironmentName $assignmentName)) {
+            if ($i -eq 0 -or $commandPositionMarkers -contains $tokens[$i - 1].ToLowerInvariant()) {
+                return @{ Decision = 'deny'; Reason = "MSYS path-conversion override assignment: $printable" }
+            }
+        }
+
+        # PowerShell permits whitespace around the assignment operator.
+        if ($token -match '^\$\{?env:([A-Za-z_][A-Za-z0-9_]*)\}?$' -and
+            (Test-BlockedEnvironmentName $matches[1]) -and $rest.Count -gt 0 -and
+            $rest[0] -eq '=') {
+            return @{ Decision = 'deny'; Reason = "MSYS path-conversion override assignment: $printable" }
+        }
+
+        if ($verb -eq 'env') {
+            $j = 0
+            while ($j -lt $rest.Count) {
+                if ($rest[$j] -match '^-' ) {
+                    if ($prefixValueFlags -contains $rest[$j]) { $j += 2 } else { $j++ }
+                    continue
+                }
+                $name = Get-EnvironmentAssignmentName $rest[$j]
+                if ($null -eq $name) { break }
+                if (Test-BlockedEnvironmentName $name) {
+                    return @{ Decision = 'deny'; Reason = "env sets an MSYS path-conversion override: $printable" }
+                }
+                $j++
+            }
+        }
+
+        if ($verb -eq 'export') {
+            if ($rest -contains '-p' -or $rest -contains '--print' -or $rest -contains '-n') { continue }
+            foreach ($candidate in $rest) {
+                $name = Get-EnvironmentAssignmentName $candidate
+                if ($null -eq $name) { $name = $candidate }
+                if (Test-BlockedEnvironmentName $name) {
+                    return @{ Decision = 'deny'; Reason = "export exposes an MSYS path-conversion override: $printable" }
+                }
+            }
+        }
+
+        if ($verb -eq 'set' -and $rest.Count -gt 0) {
+            $name = Get-EnvironmentAssignmentName $rest[0]
+            if ($null -ne $name -and (Test-BlockedEnvironmentName $name)) {
+                return @{ Decision = 'deny'; Reason = "cmd set changes an MSYS path-conversion override: $printable" }
+            }
+        }
+
+        if ($verb -eq 'setx') {
+            foreach ($candidate in $rest) {
+                if (Test-BlockedEnvironmentName $candidate) {
+                    return @{ Decision = 'deny'; Reason = "setx persists an MSYS path-conversion override: $printable" }
+                }
+            }
+        }
+
+        if (@('set-item', 'new-item') -contains $verb) {
+            foreach ($candidate in $rest) {
+                if ($candidate -match '^(?:env:|environment::)([A-Za-z_][A-Za-z0-9_]*)$' -and
+                    (Test-BlockedEnvironmentName $matches[1])) {
+                    return @{ Decision = 'deny'; Reason = "PowerShell environment provider changes an MSYS path-conversion override: $printable" }
+                }
+            }
+        }
+
+        if ($token -match '^\[(?:System\.)?Environment\]::SetEnvironmentVariable' -and
+            (($tokens[$i..($tokens.Count - 1)] -join ' ') -match
+                '(MSYS_NO_PATHCONV|MSYS2_ARG_CONV_EXCL)')) {
+            return @{ Decision = 'deny'; Reason = ".NET sets an MSYS path-conversion override: $printable" }
+        }
+    }
+    return $null
+}
+
 function Split-Segments([string]$text) {
     # Quote-aware split into segments (on unquoted ; && || | & newline) and
     # tokens (on unquoted whitespace). Quote characters are removed, so a
@@ -495,6 +624,12 @@ function Invoke-CommandScan([string]$command, [int]$depth) {
 
     foreach ($tokens in (Split-Segments $command)) {
         if ($tokens.Count -eq 0) { continue }
+
+        $environmentMutation = Test-EnvironmentMutation $tokens ($tokens -join ' ')
+        if ($null -ne $environmentMutation) {
+            [void]$script:denials.Add($environmentMutation.Reason)
+        }
+
         $stripped = @(Remove-Wrappers $tokens)
         if ($stripped.Count -eq 0) { continue }
 

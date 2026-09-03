@@ -17,11 +17,15 @@ three as claims to be checked, never as the answer.
   and the active feature's `PLANNING.md`. Never infer it from an evidence doc —
   those record what happened, not what is next.
 - **Read-only.** This command edits nothing, pushes nothing, starts nothing.
-- **Watch the shell on Windows.** Under Git Bash/MSYS, avoid `<revision>:<path>`
-  checks unless path conversion is disabled with `MSYS_NO_PATHCONV=1`; MSYS may
-  rewrite the argument and fabricate a missing-file result. Prefer
-  `git ls-tree -r --name-only <revision> -- <path>`, and independently verify any
-  unexpected absence.
+- **Read historical blobs safely on Windows.** Do not disable MSYS path
+  conversion. Avoid passing `<revision>:<path>` across a Git Bash/MSYS boundary;
+  resolve the path to an object ID first, then read that ID:
+  ```powershell
+  $blob = @(git ls-tree -r --full-tree --format='%(objectname)' <revision> -- <path>)
+  if ($blob.Count -ne 1) { throw "Expected exactly one blob, found $($blob.Count)" }
+  git cat-file blob $blob[0]
+  ```
+  Independently verify any unexpected absence.
 - **Scope the table.** Do not attempt to re-verify every historical packet;
   `git log -20` cannot substantiate a claim about a packet from three months
   ago. Cover packets that are active, ongoing, owner-gated, or proposed-next,
