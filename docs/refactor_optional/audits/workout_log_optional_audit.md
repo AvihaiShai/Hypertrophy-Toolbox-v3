@@ -43,6 +43,52 @@ than current branch status. The Linux proof environment remains unresolved and t
 new deletion authority. The recommendation remains no broad Workout Log cleanup: only the bounded
 empty-shell packet and audit-only recertification are candidates, each still owner-gated.
 
+**Revalidation at `origin/main` `22ee9ade7b5b69dcb9aecf6eb19526cc5db31158`, 2026-09-03.**
+Read-only; no production CSS, contract, harness, workflow, baseline, screenshot, or
+canonical status document was touched, and no implementation packet was started. This
+discharges the *Mandatory freshness rule* above **for the source/contract half only**; it
+is not the runtime cascade proof, and WL-O0 through WL-O5 still require everything in
+*Required fresh proof*.
+
+`git diff b36ea9e..22ee9ad` over `static/`, `templates/` and `scripts/` reports **no
+changed path**. The three source identities in the table above were re-derived, not copied:
+
+| Re-measured item | Report claim | Value at `22ee9ad` | Result |
+|---|---|---|---|
+| `pages-workout-log.css` LF SHA-256 / blob | `4d84ac6c…cc94` / `ced40737` | **identical** | matches |
+| `components.css` LF SHA-256 / blob | `1c420eab…12b5` / `0c79f876` | **identical** | matches |
+| `theme-dark.css` LF SHA-256 / blob | `c567fc27…1b3c` / `c2fb6f44` | **identical** | matches |
+| `pages-workout-log.css` PostCSS shape | 1,700 lines / 226 rules / 683 declarations / 242 `!important` / 9 at-rules | **1,700 / 226 / 683 / 242 / 9** | matches |
+| Media queries and their conditions | nine, five of them empty shells | nine at `:459`, `:468`, `:504`, `:509`, `:514`, `:518`, `:541`, `:546`, `:1696`; the five at **`:504`, `:509`, `:514`, `:541`, `:546`** are empty and still carry their `WP4.3j-b-dead` retention comments | matches |
+| `REGION_H_SHA256` | `b973c748…2442` | `tests/test_css_cascade_contracts.py:44`, **unchanged** | matches |
+| Donor `:is()` group and reduced-motion cell rule | `components.css:3335-3411` and `:4413` | `components.css` byte-identical, so both hold | matches |
+
+**Disposition unchanged.** WL-O1 (five empty shells) remains the only source-empty
+candidate and remains owner-gated on **OD-WL1**; WL-O0 remains the only other PROCEED and
+is measurement-only.
+
+**The one prerequisite that moved, and did not clear.** *Required fresh proof* and WL-O0's
+*Order* both wait on the deep-gate/Linux state settling. It has not settled. Gate 0 merged
+as [#475](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/475) (`1e9cb4b`);
+[#477](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/477) (`fabdb2f`) merged a
+single-use diagnostic workflow that ran once
+([`33565764116`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33565764116));
+and the Gate-1 closeout [**merged as PR #481**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/481)
+(`22ee9ad`). The diagnostic supports the
+unsynchronized-source/baseline hypothesis for **one** capture with runner, browser and
+committed-baseline inputs held measurably equal, but it names no causal commit, identifies
+no mechanism, and generalizes to none of the other 64 failures (the scheduled deep gate was
+**65 failed / 17 did not run / 18 passed**). It authorizes no fix and no baseline
+regeneration. **The Linux proof environment therefore still grants no deletion authority,
+and a red Linux comparison is still not permission to explain a WL diff after the fact.**
+
+**The file-overlap table below is now a point-in-time record.** At revalidation time on
+`22ee9ad`, the only open pull request was **#482**, this four-report revalidation; every other
+prompt/worktree listed there has merged or is clean, and the `wt/opt-*` audit worktrees
+hold no uncommitted work. The
+single-writer collision rules in *Exact future single-writer collision points* are
+unaffected and still bind.
+
 The counts are PostCSS source counts over LF-normalized text. They are not regex
 brace counts, and comments are not counted as declarations.
 

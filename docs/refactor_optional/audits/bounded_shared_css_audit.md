@@ -34,6 +34,42 @@ commits contradict that status. Those canonical documents are explicitly outside
 audit's write authority and remain unchanged. A future status-document reconciliation
 would be a separate, owner-authorized documentation packet, not a CSS packet.
 
+> **Discharged 2026-09-01 — that reconciliation shipped.** PR
+> [#480](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/480) (`884cfb3`) added
+> supersession notes to `docs/MASTER_HANDOVER.md` and `docs/ACTIVE_DEVELOPMENT.md` and
+> flipped both `docs/REFACTOR_PLAN.md` rows from *Recorded by `d1` / not audited / gated*
+> and *Deferred by WP4.4-e / gated* to **Done**, each citing PR #302 (`9c83777`) and PR
+> #300 (`b6550e6`) and marked *do not re-dispatch*. **This audit's only actionable
+> discrepancy is therefore closed.** The paragraph above is retained as the audited-HEAD
+> record; it is no longer true of `main`.
+
+## Revalidation at `origin/main` `22ee9ad` — 2026-09-03
+
+This report was re-checked once against `origin/main`
+`22ee9ade7b5b69dcb9aecf6eb19526cc5db31158` (squash merge of
+[#481](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/481)). Read-only; no
+production CSS, test, workflow, baseline, screenshot, or canonical status document was
+touched, and no implementation packet was started.
+
+`git diff b36ea9e..22ee9ad` over `static/`, `templates/`, `scripts/` reports **no changed
+path**. Both families' zero-state is re-measured, not inherited:
+
+| Re-measured item | Audited-HEAD claim | Value at `22ee9ad` | Result |
+|---|---|---|---|
+| `static/css/a11y.css` bare `.scale-btn` rule heads | 0 | **0** | matches |
+| `static/css/a11y.css` size | 664 lines | **664** lines, blob `8a263e4` | matches |
+| `.scale-btn` bare-token definitions anywhere in `static/css/**` | 0 | **0** (only `.scale-btn-compact` siblings) | matches |
+| `.tbl-show-*` / `.tbl-hide-*` rule heads in `static/css/**` | 0 | **0** | matches |
+| `.tbl-show-*` / `.tbl-hide-*` product references in `templates/`, `static/js/`, `routes/`, `utils/`, `e2e/` | 0 | **0** | matches |
+| Non-product `tbl-*` references | contracts + a precedent note | `tests/test_css_wp4_4_layout_contracts.py` and `tests/test_css_wp4_4_components_contracts.py` only | matches |
+| `static/css/layout.css` size | — | 1,833 lines, blob `13b0735` | recorded |
+| `scripts/css_audit/scale_btn_census.mjs` | committed | **present** | matches |
+
+**Both recommendations stand unchanged: DECLINE a new deletion packet for either family.**
+The residual-assurance limits in *Evidence still missing* are also unchanged — no fresh
+browser census was run here either, and the table-helper oracle still lives only as a
+reproduction recipe rather than a committed executable.
+
 ## A. Bare `.scale-btn` family
 
 ### Exact inventory
@@ -495,8 +531,12 @@ queue and not re-audited as though the rules still existed. The current technica
 soundly protected: zero definitions, zero product consumers, and family-specific contracts
 that turn reintroduction/adoption into a deliberate decision.
 
-The only actionable discrepancy found by this planning audit is documentation status:
-the canonical handover/refactor tables still present the pre-PR #300/#302 state. That is
-outside the authorized deliverable and must not be repaired incidentally. If the owner
-wants it corrected, commission a documentation-only reconciliation whose evidence base is
-the two successor evidence files and merged commits above.
+The only actionable discrepancy found by this planning audit was documentation status:
+at the audited HEAD the canonical handover/refactor tables still presented the pre-PR
+#300/#302 state. That was outside the authorized deliverable and was correctly not
+repaired here. **It has since been repaired on its own authority by PR #480 (`884cfb3`,
+2026-09-01)**, which marked both `REFACTOR_PLAN.md` rows **Done** against PR #302
+(`9c83777`) and PR #300 (`b6550e6`) and added matching supersession notes to
+`MASTER_HANDOVER.md` and `ACTIVE_DEVELOPMENT.md`. **This audit now carries no open
+action.** Both families are closed as already executed, and the 2026-09-03 revalidation
+above re-measured their zero-state at `origin/main` `22ee9ad` rather than inheriting it.

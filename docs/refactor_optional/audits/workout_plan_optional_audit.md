@@ -31,6 +31,68 @@ document was changed or run for this audit.
   boundary in this report must be revalidated after the active parallel work
   merges and before any future packet is authorized.** Selectors and structural
   anchors, not the line numbers below, are the durable identifiers.
+- **Revalidation at `origin/main`
+  `22ee9ade7b5b69dcb9aecf6eb19526cc5db31158`, 2026-09-03.** Read-only; no
+  production CSS, contract, harness, workflow, baseline, screenshot, or
+  canonical status document was touched, and no packet was started. This is the
+  source/contract half of **WP-OPT-R0** only; it confers no authority and R0
+  itself remains unauthorized.
+
+  `git diff b36ea9e..22ee9ad` over `static/`, `templates/` and `scripts/`
+  reports **no changed path**, so the ten-candidate inventory was re-resolved
+  against unchanged bytes:
+
+  | Re-measured item | Report claim | Value at `22ee9ad` | Result |
+  |---|---|---|---|
+  | `pages-workout-plan.css` | 5,810 lines / 2,499 declarations / 489 `!important` declarations / 490 lexical occurrences | **5,810 / 2,499 / 489 / 490** — blob `b7c19c2` | matches |
+  | `components.css`, `tokens.css` | byte-identical to audited HEAD | blobs `0c79f87` and `464aa48`, **still byte-identical** | matches |
+  | IS-01 … IS-10 | ten declarations at `:982`, `:1010`, `:1105-1107`, `:1315-1325`, `:1336-1346`, `:2522-2526`, `:2537-2540` | **10/10 resolve at those exact lines with the exact declarations quoted**, including IS-03's three selector arms and IS-08/IS-09's shared rule | matches |
+  | Presence lock and deferral assertions | `tests/test_css_cascade_contracts.py:1285`, `:1343-1353` | `test_workout_plan_drops_overridden_rest_state_declarations` at **`:1285`**; the four deferred interaction selectors still asserted present at **`:1343-1353`** | matches |
+  | Page Header contract | `tests/test_css_cascade_contracts.py:951` | **`:951`** | matches |
+  | i-g dead-fallback contract | `tests/test_css_cascade_contracts.py:1186` | **`:1186`** | matches |
+  | Terminal visual contract | 81 byte-gated captures plus five semantic exemptions | **81** baselines per platform (162 PNGs across `win32`/`linux`); `BYTE_GATE_EXEMPT` holds exactly **five** stems, **none** with a committed baseline; pinned as **ADR-011** | matches |
+  | `scripts/css_audit/` corpus | new non-`p3_*` tool triggers `p3_ceiling.py::TOOL_ASSESSMENT` | **21** committed tools; `TOOL_ASSESSMENT` covers **20** (all but the assessor). R1's obligation is unchanged and now sized against 20 | matches, count restated |
+
+  **Two citations in this report have drifted and are corrected here.** The
+  JS-unit ruling is cited below as
+  `docs/testing_phase3/STEP12_JS_UNIT_GATE0.md:5143-5170`; at `22ee9ad` the
+  heading *OWNER RULING — #431 IS THE FINAL EXPANSION PACKET; T0 IS DECLARED —
+  2026-08-29* sits at **`:5159`**, with the qualifying-T0 bullets at
+  **`:5174-5176`**. The **substance is unchanged**: T0
+  `2026-08-27T23:18:21Z`, source job `98703428098` on run `33125767570`, strict
+  mark `2026-09-10T23:18:21Z`, `js-unit` still **non-required**, **Q4 and D2
+  still unsigned**. The ledger has also advanced past the rows 49–55 noted
+  above — it now runs to **row 64** (rows 56–64 landed via
+  [#476](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/476), fixed
+  cutoff `2026-08-31T23:05:48Z`) — with **no** change to the ruling. The
+  containment rule stands: `static/js/**/*.test.js` remains unowned by R0
+  through T1+.
+
+  **The visual-proof prerequisite moved but did not clear.** Gate 0 merged as
+  [#475](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/475)
+  (`1e9cb4b`);
+  [#477](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/477)
+  (`fabdb2f`) merged a single-use `workflow_dispatch` diagnostic that ran once
+  ([`33565764116`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/33565764116)):
+  with runner image, Node, Playwright `1.61.0`, browser executable and the
+  committed Linux baseline SHA-256 asserted equal across arms, control `31659a5`
+  passed **3/3** while treatment `e093081` failed **3/3** at a byte-identical
+  **20,112**-pixel difference, and the baseline-write guard held. The Gate-1
+  closeout [**merged as PR #481**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/481)
+  (`22ee9ad`). It names **no causal commit**,
+  identifies **no mechanism**, and generalizes to **none** of the other 64
+  failing captures (scheduled deep gate: **65 failed / 17 did not run / 18
+  passed**). It authorizes no fix, no baseline regeneration and **no R2.4
+  decision**; R2.4 remains unsigned and `visual-linux` stays outside the release
+  gate. This **reinforces** the post-rebase note above: a green retry is not
+  clean evidence, and a red Linux comparison is not permission to regenerate.
+
+  **No competing writer.** At revalidation time on `22ee9ad`, the only open pull
+  request was #482, this four-report revalidation; the other `wt/opt-*` audit
+  worktrees are clean and hold no
+  uncommitted work on any path in the file-overlap table.
+
+  **Every recommendation below is unchanged.**
 
 ## Current boundary
 
@@ -365,7 +427,9 @@ triage order, not authorization to start with the largest cluster.
 ## JS-unit qualification clock
 
 At the audited HEAD, the operative owner ruling in
-`docs/testing_phase3/STEP12_JS_UNIT_GATE0.md:5143-5170` defines an expansion as
+`docs/testing_phase3/STEP12_JS_UNIT_GATE0.md:5143-5170` — re-anchored at
+`origin/main` `22ee9ad` to the heading at `:5159` with its qualifying-T0
+bullets at `:5174-5176`, substance unchanged — defines an expansion as
 the last merged change that **added, removed, renamed, or materially changed a
 case under `static/js/**/*.test.js`**. It declares:
 
