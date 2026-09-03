@@ -13,6 +13,10 @@ check:
    5.1 decodes such files as CP1252, and the resulting U+201D is a string
    delimiter to PowerShell.
 
+A third incident came from disabling MSYS argument conversion while reading a
+Git blob. The guard now denies observable attempts to set or export either
+conversion override, without blocking environment inspection or quoted text.
+
 So every case runs against EVERY PowerShell host on the machine, and the source
 encoding is asserted directly. `.claude/settings.json` and the agent charters
 invoke `powershell`; if that host is present it must be covered.
@@ -107,6 +111,39 @@ def outcome(
 
 # (command, profile, expected outcome)
 CASES = [
+    # --- MSYS path-conversion overrides are never set or exported -----------
+    ("MSYS_NO_PATHCONV=1 git status", "main", "deny"),
+    ("msys_no_pathconv=1 git status", "main", "deny"),
+    ("MSYS2_ARG_CONV_EXCL=* git status", "main", "deny"),
+    ("FOO=bar MSYS_NO_PATHCONV=1 git status", "main", "deny"),
+    ("env MSYS_NO_PATHCONV=1 git status", "main", "deny"),
+    ("sudo env -i MSYS2_ARG_CONV_EXCL=* git status", "main", "deny"),
+    ("export MSYS_NO_PATHCONV=1", "main", "deny"),
+    ("export msys2_arg_conv_excl", "main", "deny"),
+    ("set MSYS_NO_PATHCONV=1", "main", "deny"),
+    ('cmd /c "set MSYS2_ARG_CONV_EXCL=*"', "main", "deny"),
+    ("$env:MSYS_NO_PATHCONV = '1'", "main", "deny"),
+    ("${env:msys2_arg_conv_excl}='*'", "main", "deny"),
+    ("Set-Item Env:MSYS_NO_PATHCONV 1", "main", "deny"),
+    ("New-Item -Path Env:MSYS2_ARG_CONV_EXCL -Value '*'", "main", "deny"),
+    ("[Environment]::SetEnvironmentVariable('MSYS_NO_PATHCONV','1','Process')", "main", "deny"),
+    ("[System.Environment]::SetEnvironmentVariable('msys2_arg_conv_excl','*','User')", "main", "deny"),
+    ("setx MSYS_NO_PATHCONV 1", "main", "deny"),
+    ("setx /M msys2_arg_conv_excl *", "main", "deny"),
+    ("git status && MSYS_NO_PATHCONV=1 git show HEAD:file", "main", "deny"),
+    ('bash -c "export MSYS2_ARG_CONV_EXCL=*; git status"', "main", "deny"),
+    ('pwsh -Command "$env:MSYS_NO_PATHCONV=1; git status"', "main", "deny"),
+    # Inspection and textual references do not mutate the environment.
+    ("echo $MSYS_NO_PATHCONV", "main", "allow"),
+    ("printenv MSYS2_ARG_CONV_EXCL", "main", "allow"),
+    ("Get-Item Env:MSYS_NO_PATHCONV", "main", "allow"),
+    ("[Environment]::GetEnvironmentVariable('MSYS2_ARG_CONV_EXCL','Machine')", "main", "allow"),
+    ('cmd /c "set MSYS_NO_PATHCONV"', "main", "allow"),
+    ('rg "MSYS_NO_PATHCONV=1" .', "main", "allow"),
+    ('Write-Output "export MSYS2_ARG_CONV_EXCL=*"', "main", "allow"),
+    ('git commit -m "never set MSYS_NO_PATHCONV=1"', "main", "allow"),
+    ("export -p MSYS_NO_PATHCONV", "main", "allow"),
+    ("env -u MSYS2_ARG_CONV_EXCL git status", "main", "allow"),
     # --- recursive force delete: every spelling that has leaked --------------
     ("rm -rf tmp", "main", "deny"),
     ("rm -fr tmp", "main", "deny"),
@@ -340,6 +377,8 @@ def test_unknown_command_field_is_still_inspected(host: str) -> None:
 @pytest.mark.parametrize(
     "command,expected",
     [
+        ("MSYS_NO_PATHCONV=1 git status", "deny"),
+        ("setx MSYS2_ARG_CONV_EXCL *", "deny"),
         ("git worktree remove ../wt", "deny"),
         ("git rm src/foo.py", "deny"),
         ("rm -r tmp", "deny"),

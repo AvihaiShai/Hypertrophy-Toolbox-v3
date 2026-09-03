@@ -45,6 +45,7 @@ COMMANDS = REPO / ".claude" / "commands"
 AGENTS = REPO / ".claude" / "agents"
 SKILLS = REPO / ".claude" / "skills"
 GUARD = REPO / ".claude" / "hooks" / "guard-skill.ps1"
+STATUS_COMMAND = COMMANDS / "status.md"
 
 # Every authority document here has an optional gitignored local twin: the
 # `.local.md` layer that PARALLEL_WORKFLOW.md tells a developer to put live
@@ -237,6 +238,15 @@ def test_every_surface_file_is_tracked_by_git() -> None:
         + ", ".join(untracked)
         + ". Commit them, or name them *.local.md if they are local-only."
     )
+
+
+def test_status_uses_object_ids_instead_of_disabling_msys_conversion() -> None:
+    """Historical blob reads must not disable Git for Windows path conversion."""
+    status = read(STATUS_COMMAND)
+    assert "MSYS_NO_PATHCONV=" not in status
+    assert "MSYS2_ARG_CONV_EXCL=" not in status
+    assert "git ls-tree" in status
+    assert "git cat-file blob" in status
 
 
 @pytest.mark.parametrize(
