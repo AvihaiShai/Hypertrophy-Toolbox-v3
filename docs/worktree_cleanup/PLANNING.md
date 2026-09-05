@@ -1444,10 +1444,11 @@ interception or active lifecycle monitoring.
       named standalone SQLite/diagnostics exception and unchanged technical contracts.
 - [x] Owner-run disposable interactive Windows acceptance is recorded and verified
       against the exact reviewed bootstrap launcher and same-run raw evidence.
-- [ ] Finish authorized local upstream integration and the path-derived checks;
-      record new results separately from valid reused evidence.
-- [ ] Prepare the exact integrated diff, refreshed publication proposal and Gate 2
-      review packet; old digest-pinned publication commands remain stale.
+- [x] Authorized local upstream integration and path-derived checks completed;
+      fresh results and reused evidence are distinguished below.
+- [x] Integrated diff, refreshed publication proposal and Gate 2 review packet
+      prepared; final capture is refreshed after this documentation update.
+      Old digest-pinned publication commands remain stale and unexecuted.
 - [ ] Owner grants Gate 2 approval and separately authorizes publication/merge;
       publication and merge are actually verified.
 - [ ] Owner applies approved current external deltas and verifies installation,
@@ -1469,3 +1470,64 @@ byte-preserving document writes. Git checkout had changed the planning file's li
 endings; restoring LF exactly recovered the verified original prefix before append.
 This documentation worker changed no production code, tests, evidence or fixtures.
 Independent review of implementation and documentation remains separate from authorship.
+
+### Integrated result and Gate 2 handoff
+
+The original reviewed packet is preserved at local commit
+`123c9fbdf6b532f058fb53965bb656a8a14677d1`. A separate
+`operation-a-integration-20260905` branch applies only Operation A to freshly
+advertised/fetched upstream `0f1ac2ed66c24151f6d8c00d9962ebd8a959ad6f`; the local
+integration commit is `093dd04f45c217e20da2bbafda7c62561a102d5e` before this final
+documentation update. Its conflict resolutions preserve the reviewed stronger
+guard/status behavior, all incoming upstream tests and both handover histories.
+The three unrelated local audit commits remain on the preserved original branch;
+they are excluded from publication ancestry. All **1,798** unrelated upstream
+paths are mode/blob-identical to the verified base.
+
+Fresh [QA evidence](../../artifacts/worktree-cleanup-integration-20260905/operation-a-integration-qa.json):
+the standalone guard passed **168 cases** across both installed hosts, profiles
+and permission modes; the integrated guard/workflow union passed **516 tests**,
+zero failures/skips, **314.53 seconds**. Pyright **1.1.410** checked **247 files**
+with zero diagnostics and zero net-new. Unchanged lifecycle **146**, snapshot
+**33**, preflight **66** (a subset of the historical 686 union) and interactive
+acceptance evidence were reused after source/test/helper/dependency identity
+checks, not rerun. These overlapping historical results are not added to fresh
+counts or presented as a final full five-module run.
+
+Inventory collection proved drift from upstream **2,919 → 3,174** deterministic
+pytest nodes. The generator then ran and final `--check` passed: **130** deterministic
+pytest files, **131** files overall; Playwright **686/33 specs** and Vitest
+**245/13 files** unchanged. Existing private Click **8.4.2** versus upstream
+**8.5.0**, and `@types/node` **26.2.0** versus **26.4.0**, bound local evidence to
+that environment; no dependency installation or pinned remote-CI pass is claimed.
+No unrelated upstream application work is claimed as freshly retested.
+
+Post-collector [preservation proof](../../artifacts/worktree-cleanup-integration-20260905/preservation-before-final-docs.json)
+passed for **41,781** original entries, including **26,772 files / 193,059,738 bytes**,
+the original reviewed evidence/fixtures, all **15** protected source hashes against
+historical and turn-start baselines, and the source registry's **90 roots** plus
+**11** runtime/log members. No original evidence or fixture was rewritten.
+Code/manual/unslop integration review found no open issues after correcting the
+owner-procedure status link. `/root/planning_review` performed those roles
+sequentially, excluding its own authored planning/handover/header prose; the
+manager and `/root/integration_qa` independently reviewed that prose. This same
+worker now resumes product-manager solely for this results append.
+
+The review packet is private under `artifacts/worktree-cleanup-integration-20260905/`:
+[validation receipt](../../artifacts/worktree-cleanup-integration-20260905/integration-validation-receipt.json),
+[exact Git/diff capture](../../artifacts/worktree-cleanup-integration-20260905/integration-capture-receipt.json),
+[final preservation](../../artifacts/worktree-cleanup-integration-20260905/preservation-final.json),
+[upstream-relative publication diff](../../artifacts/worktree-cleanup-integration-20260905/operation-a-upstream.diff),
+[reviewed-packet comparison](../../artifacts/worktree-cleanup-integration-20260905/operation-a-reviewed-packet-relative.diff),
+[Operation A scope comparison](../../artifacts/worktree-cleanup-integration-20260905/operation-a-reviewed-scope-relative.diff),
+[refreshed publication proposal](../../artifacts/worktree-cleanup-integration-20260905/publication-proposal.md)
+and [PR body](../../artifacts/worktree-cleanup-integration-20260905/operation-a-pr-body.md).
+The pre-documentation diff and preservation capture already exist; final captures
+bind the subsequent documentation-only commit without a self-referential digest
+in this tracked record. Six original council Markdown hard breaks remain preserved;
+the other whitespace classes pass.
+
+**Stop: Gate 2 owner approval is pending.** Push, PR creation, merge, external
+installation, installed interception and lifecycle baseline/active monitoring
+remain unperformed. The source-pointing `origin` is not a publication destination.
+Operations B–E and cleanup remain unauthorized; `PREVENTION_COMPLETE` is not declared.

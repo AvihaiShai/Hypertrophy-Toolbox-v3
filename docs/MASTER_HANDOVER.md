@@ -4,7 +4,7 @@
 
 ## Current State
 
-> **2026-09-05 — OPERATION A INTERACTIVE ACCEPTANCE PASSED; LOCAL INTEGRATION IN REVIEW.**
+> **2026-09-05 — OPERATION A INTERACTIVE ACCEPTANCE PASSED; GATE 2 PACKET PREPARED.**
 > The saved owner-run production acceptance was independently re-read against its
 > four raw evidence files. Their byte counts and hashes match the review receipt;
 > the exact PowerShell 7.6.5 caller and all nine target-terminal fields match.
@@ -15,8 +15,14 @@
 > `PENDING` raw receipt remains unchanged as historical evidence.
 > See [the current planning continuation](worktree_cleanup/PLANNING.md) for the
 > acceptance hashes and integration evidence. The reviewed bootstrap packet is
-> preserved locally while Operation A is reconciled with freshly verified upstream
-> main; old digest-pinned publication commands must not be executed.
+> preserved locally; Operation A is integrated on a separate branch over freshly
+> verified upstream main `0f1ac2e`. Fresh checks passed: **516** guard/workflow tests,
+> **168** standalone guard cases, Pyright **247 files / zero diagnostics**, and
+> regenerated inventory **3,174** deterministic pytest nodes. Unchanged lifecycle,
+> snapshot, preflight and owner-acceptance evidence is reused with explicit limits.
+> Original evidence/fixtures and unrelated upstream work are preserved. The exact
+> diff and refreshed publication proposal are prepared for Gate 2; final captures
+> are refreshed after this documentation update. Old publication commands must not run.
 > The four earlier Operation A blocks below are historical: their pending Gate 1
 > and interactive-acceptance statements are superseded by the signed approval and
 > verified pass. Unrelated upstream work and its dated handover entries are retained.
