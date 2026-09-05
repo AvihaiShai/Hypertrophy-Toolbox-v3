@@ -12,8 +12,10 @@ from pathlib import Path
 
 import pytest
 
-from tests.worktree_cleanup.support import (HOSTS, ROOT, annotation, audit, creator_args,
+from tests.worktree_cleanup.support import (HOSTS, WINDOWS_ONLY, annotation, audit, creator_args,
     entry, environment, fixture_repo, git, identity, ps, quote, state, write_annotations)
+
+pytestmark = WINDOWS_ONLY
 
 
 @pytest.mark.parametrize("host", HOSTS)

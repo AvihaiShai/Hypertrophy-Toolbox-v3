@@ -241,8 +241,8 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 3174,
-    "deterministic_files": 130,
+    "collected_deterministic": 3192,
+    "deterministic_files": 131,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -759,8 +759,12 @@
         "tests": 85
       },
       {
+        "file": "tests/test_worktree_ci_contracts.py",
+        "tests": 12
+      },
+      {
         "file": "tests/test_worktree_environment_preflight.py",
-        "tests": 66
+        "tests": 72
       },
       {
         "file": "tests/test_worktree_lifecycle.py",
@@ -775,7 +779,7 @@
         "tests": 40
       }
     ],
-    "total_files": 131
+    "total_files": 132
   },
   "schema_version": 2,
   "vitest": {

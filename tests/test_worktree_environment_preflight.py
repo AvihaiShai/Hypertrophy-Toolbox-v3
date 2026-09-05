@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from tests.worktree_cleanup.support import HOSTS, ROOT, VARIABLES, entry, environment, ps, quote
+from tests.worktree_cleanup.support import HOSTS, ROOT, VARIABLES, WINDOWS_ONLY, entry, environment, ps, quote
 
 SCRIPT = ROOT / "scripts" / "preflight-worktree-environment.ps1"
 
@@ -30,11 +30,15 @@ def test_each_scope_presence_or_unreadable_state_refuses(host, name, scope, valu
     report = json.loads(result.stdout)
     assert report["ok"] is False
     assert report["errors"]
-    assert name in json.dumps(report) and scope in json.dumps(report)
+    # Scope refusal is portable even when path validation independently refuses
+    # a POSIX root. Require the injected scope's error, not just any refusal.
+    expected = f"{name} {scope} scope unreadable" if value == "READ_ERROR" else f"{name} is present at {scope} scope"
+    assert any(expected in error for error in report["errors"])
     assert sorted(str(p.relative_to(tmp_path)) for p in tmp_path.rglob("*")) == before
 
 
 @pytest.mark.parametrize("host", HOSTS)
+@WINDOWS_ONLY
 def test_absent_scopes_valid_identity_passes_without_creating_runtime(host, tmp_path):
     runtime = tmp_path / "runtime"
     runtime.mkdir()
@@ -55,12 +59,13 @@ def test_real_process_inheritance_is_refused_by_entrypoint(host, name, tmp_path)
     result = entry(host, SCRIPT, ["-ApprovedRoot", str(tmp_path), "-RuntimeRoot", str(tmp_path),
         "-DatabasePath", str(tmp_path / "database.db")], env=env)
     assert result.returncode != 0
-    assert name in result.stdout + result.stderr
+    assert f"{name} is present at Process scope" in result.stdout
     assert not (tmp_path / "database.db").exists()
 
 
 @pytest.mark.parametrize("host", HOSTS)
 @pytest.mark.parametrize("bad", ("relative/database.db", "/c/converted/database.db", "outside", "alias"))
+@WINDOWS_ONLY
 def test_unverified_runtime_or_database_root_refuses(host, bad, tmp_path):
     runtime = tmp_path / "runtime"
     runtime.mkdir()
@@ -75,6 +80,7 @@ def test_unverified_runtime_or_database_root_refuses(host, bad, tmp_path):
 
 @pytest.mark.parametrize("host", HOSTS)
 @pytest.mark.parametrize("missing_child", (False, True))
+@WINDOWS_ONLY
 def test_dangling_reparse_ancestor_is_not_treated_as_verified_absence(host, missing_child, tmp_path):
     target = tmp_path / "junction-target"
     target.mkdir()
@@ -95,3 +101,13 @@ def test_dangling_reparse_ancestor_is_not_treated_as_verified_absence(host, miss
     result = ps(host, code, env=environment(tmp_path))
     assert result.returncode != 0, "Present dangling reparse ancestry was mistaken for a safe missing path"
     assert retained.is_dir() and not list(retained.iterdir())
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("path", ("relative/database.db", "/c/converted/database.db", "C:relative.db"))
+def test_non_drive_qualified_path_is_rejected_on_every_platform(host, path):
+    code = f". {quote(SCRIPT)}; try {{ Get-VerifiedWorktreePath -Path {quote(path)}; exit 0 }} "
+    code += "catch { [Console]::Error.WriteLine($_); exit 1 }"
+    result = ps(host, code)
+    assert result.returncode != 0
+    assert "Drive-qualified, unambiguous path required" in result.stderr

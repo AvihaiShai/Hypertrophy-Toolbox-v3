@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.worktree_cleanup.support import (HOSTS, ROOT, audit, creator_args, entry, environment,
+from tests.worktree_cleanup.support import (HOSTS, ROOT, WINDOWS_ONLY, audit, creator_args, entry, environment,
                                             fixture_repo, git, ps, quote, state)
 
 SCRIPT = ROOT / "scripts" / "seed_worktree_snapshot.py"
@@ -201,6 +201,7 @@ def test_validation_failure_and_publish_failure_do_not_publish(tmp_path, monkeyp
 
 
 @pytest.mark.parametrize("host", HOSTS)
+@WINDOWS_ONLY
 def test_creator_predictable_tracked_collision_preserves_bytes_index_refs(host, tmp_path):
     repo, annotations, baseline = fixture_repo(tmp_path, host, tracked_db=True)
     before = state(repo)
@@ -217,6 +218,7 @@ def test_creator_predictable_tracked_collision_preserves_bytes_index_refs(host, 
 
 
 @pytest.mark.parametrize("host", HOSTS)
+@WINDOWS_ONLY
 def test_creator_copy_current_runs_real_snapshot_helper(host, tmp_path):
     repo, annotations, baseline = fixture_repo(tmp_path, host)
     source = repo / "data" / "database.db"
@@ -231,6 +233,7 @@ def test_creator_copy_current_runs_real_snapshot_helper(host, tmp_path):
 
 
 @pytest.mark.parametrize("host", HOSTS)
+@WINDOWS_ONLY
 def test_creator_seed_error_retains_registered_ownerless_worktree(host, tmp_path):
     repo, annotations, baseline = fixture_repo(tmp_path, host)
     (repo / "data" / "database.db").write_bytes(b"INVALID SQLITE")
@@ -247,6 +250,7 @@ def test_creator_seed_error_retains_registered_ownerless_worktree(host, tmp_path
 
 
 @pytest.mark.parametrize("host", HOSTS)
+@WINDOWS_ONLY
 def test_creator_missing_helper_refuses_without_claiming_ready(host, tmp_path):
     repo, annotations, baseline = fixture_repo(tmp_path, host)
     database(repo / "data" / "database.db").close()
@@ -364,6 +368,7 @@ def test_standalone_helper_import_does_not_bind_application_runtime(tmp_path):
 
 
 @pytest.mark.parametrize("host", HOSTS)
+@WINDOWS_ONLY
 def test_actual_target_appearing_after_git_preserves_bytes_and_index(host, tmp_path):
     repo, annotations, baseline = fixture_repo(tmp_path, host)
     database(repo / "data" / "database.db").close()
@@ -389,6 +394,7 @@ def test_actual_target_appearing_after_git_preserves_bytes_and_index(host, tmp_p
 
 
 @pytest.mark.parametrize("host", HOSTS)
+@WINDOWS_ONLY
 def test_creator_helper_ignores_foreign_pythonpath_startup_code(host, tmp_path):
     repo, annotations, baseline = fixture_repo(tmp_path, host)
     database(repo / "data" / "database.db").close()

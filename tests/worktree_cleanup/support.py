@@ -13,6 +13,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 HOSTS = ("powershell", "pwsh")
+WINDOWS_ONLY = pytest.mark.skipif(
+    sys.platform != "win32", reason="Requires Windows path identities and filesystem semantics"
+)
 VARIABLES = ("MSYS_NO_PATHCONV", "MSYS2_ARG_CONV_EXCL")
 
 
