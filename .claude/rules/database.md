@@ -43,6 +43,16 @@ with DatabaseHandler() as db:
 ```
 Slow queries (>100ms) auto-logged as WARNING (`database.py:250`).
 
+The sole Operation A infrastructure exception is `scripts/seed_worktree_snapshot.py`:
+it uses Python stdlib `sqlite3` directly, a read-only source URI, online backup into
+an owned temporary destination, disposable-copy validation, and no-overwrite
+publication. Diagnostics are return codes and caller-captured output. It imports
+no `DatabaseHandler`, application config, `get_logger()` or application startup;
+those imports would change journal/log state. This exception covers worktree seeding
+only, never application DB access or B–E preservation/cleanup. Automated verification
+uses synthetic SQLite families in the approved standalone scratch lane. Root
+`CLAUDE.md` keeps all application DatabaseHandler/logging requirements unchanged.
+
 ## Adding a DB table — five places
 
 > **Steps 2–4 predate WP2.6 and no longer describe this repository.** `app.py` contains **zero**

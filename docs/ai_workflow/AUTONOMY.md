@@ -28,6 +28,26 @@ This only applies within the approved scope. Anything outside that scope (new ta
 
 Layers 1 and 4 are process gates (human-approved plan in, human-reviewed diff out). Layers 2 and 3 are technical containment (sandbox + DB isolation). A runaway or mistaken agent can only damage the repo within its worktree, and that damage is reviewed before merging.
 
+The runtime transport's actual settings must be measured; the dated intended
+sandbox configuration above is not evidence that a given session is contained.
+Claude's project and shell-agent hooks are bounded command-text controls. Codex
+shell transport does not prove those hooks intercepted a call. Unknown permission
+semantics fail closed; even `bypassPermissions` cannot waive suppression denial.
+Never set/export `MSYS_NO_PATHCONV` or `MSYS2_ARG_CONV_EXCL`. Fresh-session
+`scripts/preflight-worktree-environment.ps1` independently checks Process/User/Machine
+presence, including zero/empty values and unreadable scopes. Agents do not clear
+persistent settings. Use PowerShell end to end and drive-qualified native paths.
+
+Operation A requires the owner-approved lifecycle/baseline projection before new
+worktrees, validated online SQLite seeding, and the emitted process-only target
+launch setup. Its named stdlib SQLite/diagnostics exception is in the database rule.
+During the signed cleanup sequence all worktrees, recovery roots and discovered
+snapshots are retained; ordinary closeout cannot bypass separate operation approval.
+This packet's snapshot hold does not change normal post-operation backup rotation.
+User-level guard/memory installation, fresh-session acceptance and active lifecycle
+monitoring remain owner actions; repository tests and merge alone cannot establish
+`PREVENTION_COMPLETE`.
+
 ---
 
 ## Workflow roles

@@ -17,15 +17,15 @@ three as claims to be checked, never as the answer.
   and the active feature's `PLANNING.md`. Never infer it from an evidence doc —
   those record what happened, not what is next.
 - **Read-only.** This command edits nothing, pushes nothing, starts nothing.
-- **Read historical blobs safely on Windows.** Do not disable MSYS path
-  conversion. Avoid passing `<revision>:<path>` across a Git Bash/MSYS boundary;
-  resolve the path to an object ID first, then read that ID:
+- **Read historical blobs safely on Windows.** Do not disable MSYS path conversion.
+  Use PowerShell and separate arguments; require exactly one full blob OID:
   ```powershell
-  $blob = @(git ls-tree -r --full-tree --format='%(objectname)' <revision> -- <path>)
-  if ($blob.Count -ne 1) { throw "Expected exactly one blob, found $($blob.Count)" }
-  git cat-file blob $blob[0]
+  $blob = @(git ls-tree -r --full-tree --format='%(objecttype) %(objectname)' HEAD -- scripts/new-worktree.ps1)
+  if ($LASTEXITCODE -ne 0 -or $blob.Count -ne 1 -or $blob[0] -notmatch '^blob ([0-9a-f]{40}|[0-9a-f]{64})$') { throw 'Expected exactly one full blob OID' }
+  $blobOid = $Matches[1]
+  git cat-file blob $blobOid
   ```
-  Independently verify any unexpected absence.
+  Native output paths must be drive-qualified; independently verify any absence.
 - **Scope the table.** Do not attempt to re-verify every historical packet;
   `git log -20` cannot substantiate a claim about a packet from three months
   ago. Cover packets that are active, ongoing, owner-gated, or proposed-next,
@@ -78,8 +78,13 @@ three as claims to be checked, never as the answer.
    doc records; two documents that disagree with each other; or a packet with a
    worktree or open PR that the docs describe as not started.
 6. Close with: the single next step, every owner gate standing in front of it,
-   any document that needs correcting, and any stale worktree or branch worth
-   retiring.
+   any document that needs correcting, and the lifecycle rows requiring owner
+   review. Run `scripts/audit-worktrees.ps1` with the owner's explicit repository,
+   development parent, annotation and dated drive-root baseline paths. Include
+   MERGED/CLOSED/OVERDUE/OWNERLESS/ORPHANED_ANNOTATION/UNRESOLVED rows; unavailable
+   activity or stale PR metadata remains UNKNOWN. Audit stdout is read-only.
+   Retain worktrees and recovery roots under the signed cleanup-sequence hold;
+   no status, age or disposition authorizes teardown.
 7. **Stop.** Do not begin a packet until the owner confirms the table.
 
 ## Permissions
