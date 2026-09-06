@@ -241,8 +241,8 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 2919,
-    "deterministic_files": 127,
+    "collected_deterministic": 3192,
+    "deterministic_files": 131,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -252,7 +252,7 @@
     "files": [
       {
         "file": "tests/test_agent_workflow_contracts.py",
-        "tests": 84
+        "tests": 94
       },
       {
         "file": "tests/test_auto_backup.py",
@@ -759,11 +759,27 @@
         "tests": 85
       },
       {
+        "file": "tests/test_worktree_ci_contracts.py",
+        "tests": 12
+      },
+      {
+        "file": "tests/test_worktree_environment_preflight.py",
+        "tests": 72
+      },
+      {
+        "file": "tests/test_worktree_lifecycle.py",
+        "tests": 146
+      },
+      {
+        "file": "tests/test_worktree_snapshot.py",
+        "tests": 33
+      },
+      {
         "file": "tests/test_youtube_video_id.py",
         "tests": 40
       }
     ],
-    "total_files": 128
+    "total_files": 132
   },
   "schema_version": 2,
   "vitest": {

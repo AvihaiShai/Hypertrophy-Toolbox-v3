@@ -300,3 +300,76 @@ def test_skill_guard_decides_as_the_senior_developer_allowlist_says(
         f"{host} skill={skill!r} exit={result.returncode} "
         f"(expected {expected})\n{result.stderr}"
     )
+
+
+def destructive_registrations(settings=None, charters=None):
+    """Resolve actual registrations and reject missing/misrouted hook wiring."""
+    settings = settings if settings is not None else json.loads(read(REPO / ".claude/settings.json"))
+    charters = charters if charters is not None else {p.name: read(p) for p in AGENTS.glob("*.md")}
+    registrations = []
+    for registration in settings.get("hooks", {}).get("PreToolUse", []):
+        if "Bash" in registration.get("matcher", "") and "PowerShell" in registration.get("matcher", ""):
+            for hook in registration.get("hooks", []):
+                if "guard-destructive-command.ps1" in hook.get("command", ""):
+                    registrations.append(("project", hook["command"], "main"))
+    assert len(registrations) == 1, "Project shell destructive hook missing or ambiguous"
+    for name, content in charters.items():
+        tools = re.search(r"^tools:\s*(.*)$", content, re.MULTILINE)
+        if not tools or not re.search(r"\b(Bash|PowerShell)\b", tools.group(1)):
+            continue
+        assert 'matcher: "Bash|PowerShell"' in content, name
+        matches = re.findall(r"command:\s*'([^'\n]*guard-destructive-command\.ps1[^'\n]*)'", content)
+        assert len(matches) == 1, name + " missing or ambiguous destructive hook"
+        registrations.append((name, matches[0], "agent"))
+    for name, command, profile in registrations:
+        assert "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-destructive-command.ps1" in command, name
+        if profile == "main":
+            assert "-GuardProfile main" in command, name
+        else:
+            assert "-GuardProfile main" not in command, name
+    return registrations
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("permission", ("default", "bypassPermissions"))
+def test_all_effective_destructive_registrations_execute_deny_allow(host, permission):
+    if shutil.which(host) is None:
+        pytest.skip(f"{host} unavailable")
+    for name, command, profile in destructive_registrations():
+        # Execute each resolved installed command, retaining its declared arguments.
+        resolved = command.replace("${CLAUDE_PROJECT_DIR}", str(REPO))
+        host_prefix = "& '" + str(shutil.which(host)).replace("'", "''") + "'"
+        resolved = re.sub(r"^powershell\b", lambda _: host_prefix, resolved)
+        for inert, expected in (("MSYS2_ARG_CONV_EXCL=0 echo inert", 2), ("git status --short", 0)):
+            # The outer harness shell must preserve the registered child's exact
+            # exit code; PowerShell -Command otherwise maps any nonzero to 1.
+            result = subprocess.run([host, "-NoProfile", "-Command", resolved + "; exit $LASTEXITCODE"], input=json.dumps({
+                "permission_mode": permission, "tool_input": {"command": inert}}),
+                capture_output=True, text=True, timeout=20)
+            assert result.returncode == expected, (name, profile, result.stdout, result.stderr)
+
+
+@pytest.mark.parametrize("mutation", ("remove_project", "misroute_project", "remove_agent", "main_agent"))
+def test_missing_or_misrouted_registration_is_detected(mutation):
+    settings = json.loads(read(REPO / ".claude/settings.json"))
+    charters = {p.name: read(p) for p in AGENTS.glob("*.md")}
+    if mutation == "remove_project":
+        settings["hooks"]["PreToolUse"] = []
+    elif mutation == "misroute_project":
+        settings = json.loads(json.dumps(settings).replace("guard-destructive-command.ps1", "guard-skill.ps1"))
+    elif mutation == "remove_agent":
+        charters["automation-qa.md"] = charters["automation-qa.md"].replace("guard-destructive-command.ps1", "guard-skill.ps1")
+    else:
+        charters["automation-qa.md"] = charters["automation-qa.md"].replace('guard-destructive-command.ps1"', 'guard-destructive-command.ps1" -GuardProfile main')
+    with pytest.raises(AssertionError):
+        destructive_registrations(settings, charters)
+
+
+def test_snapshot_exception_is_named_and_keeps_application_rules():
+    root = read(REPO / "CLAUDE.md")
+    db_rule = read(REPO / ".claude/rules/database.md")
+    for text in (root, db_rule):
+        assert "seed_worktree_snapshot.py" in text
+        assert "DatabaseHandler" in text
+    assert len(root.splitlines()) < 200
+    assert "get_logger()" in root

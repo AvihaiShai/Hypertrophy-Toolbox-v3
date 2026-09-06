@@ -4,6 +4,32 @@
 
 ## Current State
 
+> **2026-09-05 — OPERATION A INTERACTIVE ACCEPTANCE PASSED; GATE 2 PACKET PREPARED.**
+> The saved owner-run production acceptance was independently re-read against its
+> four raw evidence files. Their byte counts and hashes match the review receipt;
+> the exact PowerShell 7.6.5 caller and all nine target-terminal fields match.
+> Source-console database/runtime settings stayed unchanged, and the target is
+> registered, unblocked and annotated. Audit exit **1** is the expected result for
+> the retained new child missing from the disposable fixture's old baseline.
+> This satisfies disposable interactive Windows acceptance only. Its pre-capture
+> `PENDING` raw receipt remains unchanged as historical evidence.
+> See [the current planning continuation](worktree_cleanup/PLANNING.md) for the
+> acceptance hashes and integration evidence. The reviewed bootstrap packet is
+> preserved locally; Operation A is integrated on a separate branch over freshly
+> verified upstream main `0f1ac2e`. Fresh checks passed: **516** guard/workflow tests,
+> **168** standalone guard cases, Pyright **247 files / zero diagnostics**, and
+> regenerated inventory **3,174** deterministic pytest nodes. Unchanged lifecycle,
+> snapshot, preflight and owner-acceptance evidence is reused with explicit limits.
+> Original evidence/fixtures and unrelated upstream work are preserved. The exact
+> diff and refreshed publication proposal are prepared for Gate 2; final captures
+> are refreshed after this documentation update. Old publication commands must not run.
+> The four earlier Operation A blocks below are historical: their pending Gate 1
+> and interactive-acceptance statements are superseded by the signed approval and
+> verified pass. Unrelated upstream work and its dated handover entries are retained.
+> Gate 2 owner approval, publication/merge, external installation and actual hook
+> interception, lifecycle baseline and active monitoring remain open.
+> **PREVENTION_COMPLETE is not declared; Operations B–E and cleanup remain unauthorized.**
+
 > **2026-09-02 (LATEST) — H-LINUX-UNSYNC-01 GATE 1 EXECUTED AND CLOSED OUT; NO FIX, NO
 > BASELINE CHANGE AND NO R2.4 DECISION IS AUTHORIZED.**
 > Fixed cutoff: GitHub API response clock **`2026-09-01T22:34:04Z`**. Fresh fetch resolved
@@ -82,6 +108,64 @@
 >   layer. Its §§21–24 fixed-cutoff sections remain historical and were not rewritten. The future
 >   merge of this reconciliation PR will create another owed ledger observation which it cannot
 >   record.
+> **2026-09-05 — OPERATION A BOOTSTRAP CORRECTION; PRODUCTION ACCEPTANCE PENDING.**
+> The direct native invocation retry failed with the same Windows Terminal error.
+> A separate owner-run diagnostic successfully used system Windows PowerShell to
+> invoke the exact PowerShell 7.6.5 caller through an encoded command, with the
+> expected target directory and isolated environment. Its system-host control
+> failed on an unavailable `Get-FileHash` cmdlet; that failure is not a pass.
+> The production launcher now applies the successful bootstrap transport, checks
+> its prerequisites before Git creation, and keeps caller/target paths encoded.
+> The outer host closes after the caller exits; failures pause for inspection
+> without leaving an interactive prompt with inherited source settings.
+> It does not change module paths or persistent settings. The diagnostic is not
+> acceptance of the corrected creator: a fresh owner-run creation and actual new-
+> terminal observation remain pending. Earlier terminal-fix evidence is historical;
+> see the [planning continuation](worktree_cleanup/PLANNING.md) for new evidence.
+> Publication, installation, monitoring and PREVENTION_COMPLETE remain pending.
+
+> **2026-09-05 — OPERATION A TERMINAL ACCEPTANCE REPAIR; OWNER RETRY PENDING.**
+> Owner-run synthetic creation, snapshot/runtime checks, source-environment
+> preservation and the expected annotation/baseline audit completed, but Windows
+> Terminal failed to launch the PowerShell host whose path contains a space.
+> A bounded correction passes the terminal arguments through native invocation
+> and checks the dispatch exit code. Actual Windows Terminal acceptance still
+> requires the owner's retry; automated payload checks do not attest the UI.
+> The original 27-file implementation diff/receipt below is historical after this
+> correction. Updated evidence belongs in the separate terminal-fix receipt and
+> the [planning continuation](worktree_cleanup/PLANNING.md); publication commands
+> pinned to the original digest remain stale. PREVENTION_COMPLETE remains pending.
+
+> **2026-09-05 — OPERATION A IMPLEMENTED; OWNER REVIEW AND INSTALLATION PENDING.**
+> The owner explicitly signed Plan v2 Gate 1 for A, including the named SQLite/
+> diagnostics exception and lifecycle mechanism. That recorded authorization
+> supersedes the historical planning checkpoint immediately below.
+> Implementation in the isolated cleanup-plan checkout adds suppression-scope
+> checks, validated SQLite seeding, retained-failure creation and read-only lifecycle
+> reconciliation. No user-level change, source cleanup, B–E operation, push or merge
+> has been performed. Exact external proposals remain private and unapplied.
+>
+> Validation: the five-module union passed **686 tests** before the final missing-
+> config refusal fix; the complete affected lifecycle/snapshot modules then passed
+> **173 tests** on the final behavior, with no failures or skips. The direct guard
+> contract passed **168 cases** across installed Windows PowerShell 5.1 / PowerShell
+> 7 hosts and both profiles/modes. Pyright 1.1.410 reports **246 files, zero
+> diagnostics, zero net-new**. Code review, manual guidance review, synthetic manual
+> CLI execution and unslop findings are resolved; these are repository evidence,
+> not owner installation or live lifecycle attestations.
+>
+> See [the signed planning record](worktree_cleanup/PLANNING.md) for final inventory/
+> preservation receipts and [owner acceptance instructions](worktree_cleanup/OPERATION_A_OWNER_ACCEPTANCE.md)
+> for exact proposed deltas, baseline/lifecycle choices and disposable Windows
+> acceptance. **PREVENTION_COMPLETE is not declared:** merge, owner installation,
+> actual hook interception and active lifecycle monitoring remain unverified.
+
+> **2026-09-05 — WORKTREE CLEANUP: OPERATION A PLAN V2 READY FOR GATE 1.**
+> Gate 0 requirements are signed (2026-09-05). The canonical packet is
+> [`worktree_cleanup/PLANNING.md`](worktree_cleanup/PLANNING.md); its technical design
+> is [`ai_workflow/WORKTREE_CLEANUP_PLAN.md`](ai_workflow/WORKTREE_CLEANUP_PLAN.md).
+> Gate 1 owner approval for Operation A is pending. This planning lane authorizes
+> no implementation, user-level settings changes, or Operations B–E.
 
 > **2026-08-30 (LATEST) — V1 AND THE FROZEN-WINDOWS RESIDUAL ARE CLOSED BY OWNER DECISION;
 > NO ENGINEERING CHANGE IS AUTHORIZED.**

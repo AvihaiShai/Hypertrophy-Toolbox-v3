@@ -1,62 +1,48 @@
 ---
-description: Create a new git worktree with isolated SQLite DB for parallel agent work.
+description: Create a worktree with verified lifecycle, consistent SQLite seed and isolated launch setup.
 ---
 
-Use this to fork a workstream onto its own checkout so parallel Claude instances don't corrupt each other's `data/database.db`. SQLite WAL is not safe across concurrent writers from independent processes pointing at the same file — this is why [CLAUDE.md](../../CLAUDE.md) §3 keeps `FLASK_USE_RELOADER=0` by default.
-
-## Quick start
-
-```powershell
-.\scripts\new-worktree.ps1 -Task <slug> [-Seed visual|empty|copy-current] [-OpenTerminal]
-```
-
-Creates `..\Hypertrophy-Toolbox-v3-<slug>` from HEAD on branch `wt/<slug>`, ensures `data/` and `data/auto_backup/` exist, seeds `data/database.db` per the mode, and (with `-OpenTerminal`) opens a new Windows Terminal tab in the new worktree.
-
-## When to fork
-
-- Two or more agents will edit the working tree at once.
-- A long experiment will pollute `data/database.db` and you want the main checkout clean.
-- You need to compare two implementations side-by-side.
-
-If only one agent is active, stay in the main checkout — worktrees are overhead.
-
-## Seed modes
-
-| Mode | What it does | Use when |
-|---|---|---|
-| `visual` (default) | Copies `e2e/fixtures/database.visual.seed.db` into `data/database.db`. If the fixture is missing, warns and leaves the DB absent — see the seed note below for what launching then does. | E2E or template work that expects the fixture dataset. |
-| `empty` | Leaves `data/database.db` absent. **This no longer means an empty database** — see the seed note below. | Fresh dev / unit-test work. |
-| `copy-current` | Copies the main checkout's `data/database.db` if it exists. Warns about WAL/SHM sidecars; stop the source app first. | Reproducing a bug against your live local data. |
-
-The script always checks the source exists before copying — missing source warns and skips rather than failing the worktree creation.
-
-> **Seed note — "absent DB" is not "empty DB".** Since the packaging/privacy packet,
-> an absent `data/database.db` is populated on first `app.py` launch by
-> `bootstrap_runtime_database()`, which copies the tracked `data/catalog.seed.db`:
-> **1,897 exercises and zero user rows**. So `-Seed empty` gives you a clean
-> *catalog*, not a blank database. A genuinely empty schema comes only from
-> `run_all_initializers(force_base=True)` against a fresh `DB_FILE`, which is what
-> the pytest fixtures do — the seed bootstrap is deliberately never called from
-> `run_all_initializers()`. See `.claude/rules/database.md`.
-
-## Per-worktree, never shared
-
-- `data/database.db` (and `-wal` / `-shm` sidecars)
-- `data/auto_backup/`
-- `.venv/` — recreate with `python -m venv .venv` or symlink the main checkout's venv with `New-Item -ItemType SymbolicLink`
-- `MASTER_HANDOVER.local.md`
-- Live workstream claims — see [docs/ai_workflow/WORKSTREAM_OWNERSHIP.md](../../docs/ai_workflow/WORKSTREAM_OWNERSHIP.md); put the active row in `MASTER_HANDOVER.local.md` or a local `WORKSTREAM_OWNERSHIP.local.md`, not the committed table.
-
-## Tearing down
+Use the owner-created manager checkout for parallel work. Agents within one feature
+stay in that checkout. Read [PARALLEL_WORKFLOW.md](../../docs/ai_workflow/PARALLEL_WORKFLOW.md)
+and [WORKSTREAM_OWNERSHIP.md](../../docs/ai_workflow/WORKSTREAM_OWNERSHIP.md) first.
 
 ```powershell
-git worktree remove ..\Hypertrophy-Toolbox-v3-<slug>
-git branch -d wt/<slug>   # or -D if abandoned
+.\scripts\new-worktree.ps1 -Task example -Seed empty -Owner '<owner>' -NextReviewDate '<future ISO-8601 date>' -TeardownCondition 'Retain until separately approved' -BaselinePath 'D:\approved\drive-baseline.json'
 ```
 
-`git worktree remove` refuses if the worktree has uncommitted changes. Investigate before forcing.
+Supply the owner-approved baseline; the default annotation file is the Git main
+checkout's `docs/ai_workflow/WORKSTREAM_OWNERSHIP.local.md`. Explicit `-RepoRoot`,
+`-DevelopmentParent`, `-AnnotationPath`, `-PrMetadataPath` and `-PythonExecutable`
+support approved layouts. Missing or inconsistent lifecycle/baseline information
+blocks creation before registrations, refs or children change.
 
-## See also
+| Seed | Behavior |
+|---|---|
+| `visual` (default) | SQLite online backup of the visual fixture, validated and published without overwrite; missing fixture/helper fails. |
+| `empty` | Requires absent target DB; the application's ordinary first launch bootstraps the catalog. No application is launched by the creator. |
+| `copy-current` | Validated online SQLite backup, including committed WAL rows; never a base-file byte copy. |
 
-- [docs/ai_workflow/PARALLEL_WORKFLOW.md](../../docs/ai_workflow/PARALLEL_WORKFLOW.md) — when to fork, DB isolation rule, conflict avoidance.
-- [docs/ai_workflow/WORKSTREAM_OWNERSHIP.md](../../docs/ai_workflow/WORKSTREAM_OWNERSHIP.md) — path-claim rules.
+`copy-current` source order is explicit `-SourceDatabase`, process `DB_FILE`, process
+`HT_RUNTIME_DIR/data/database.db`, then the source checkout's `data/database.db`.
+The selected absolute identity is verified and displayed; unavailable input never
+falls through. Collision with a tracked or existing target refuses without changing
+bytes or index flags. Synthetic acceptance never selects a live source.
+
+Readiness follows Git creation, seed publication, target runtime verification, then
+atomic final annotation. Failure after Git leaves the registered checkout and branch
+in place and reports INCOMPLETE; the next audit exposes missing final annotation as
+OWNERLESS. Review retained scratch; do not remove or prune it to conceal a failure.
+
+Dot-source the exact emitted `artifacts/worktree/launch-worktree.ps1` before commands.
+It sets process-only `HT_RUNTIME_DIR`, `DB_FILE`, temp, caches and bytecode paths to
+the target. `-OpenTerminal` explicitly requests an interactive terminal with that
+same setup. An unrelated new shell is not already isolated. Provision private
+`.venv`/`node_modules`; do not install into shared environments.
+
+Never set/export either MSYS suppression variable. Use PowerShell end to end,
+separate argument arrays and drive-qualified native output paths. The bounded hook
+does not inspect opaque script files or provide a native-process sandbox.
+
+Completion, abandonment, KEEP and DEFERRED retain worktrees, branches/reflogs and
+all recovery roots during the signed cleanup sequence. The owner records rationale
+and a next review date; separate operation approval is required for retirement.

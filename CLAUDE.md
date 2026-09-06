@@ -66,6 +66,9 @@ app.py                 ← startup + middleware only; no business logic
 - All DB access via `DatabaseHandler` context manager (class + `__enter__` / `__exit__` in `utils/database.py`).
 - All JSON responses via `success_response()` / `error_response()` (`utils/errors.py`).
 - All logging via `get_logger()` (`utils/logger.py`).
+- Named infrastructure exception: `scripts/seed_worktree_snapshot.py` uses stdlib
+  `sqlite3` and caller-captured diagnostics only for validated worktree seeding;
+  it imports no application DB/config/logger. See `.claude/rules/database.md`.
 
 ### Deeper references
 - Routes / API endpoints / filters / security → `.claude/rules/routes.md` (loads when editing `routes/**`).
@@ -77,6 +80,16 @@ app.py                 ← startup + middleware only; no business logic
 ---
 
 ## 3. Conventions
+
+### Windows workflow safety
+Never set/export `MSYS_NO_PATHCONV` or `MSYS2_ARG_CONV_EXCL`; run the worktree
+environment preflight in fresh sessions. Use PowerShell end to end, argument arrays
+and drive-qualified native output paths. Resolve Git blobs via one validated full
+OID before `cat-file blob`. The command-text guard is bounded prevention, not a sandbox.
+Worktree creation requires lifecycle/baseline review and target-bound launch setup;
+see `docs/ai_workflow/PARALLEL_WORKFLOW.md`. During the approved cleanup sequence,
+retain worktrees, branches, reflogs, recovery roots and discovered snapshots until
+their separate owner-approved operation; no ordinary teardown bypasses that hold.
 
 ### Logging
 `get_logger()` returns the `'hypertrophy_toolbox'` named logger (`utils/logger.py`). Logs to `<runtime root>/logs/app.log` (rotating 10MB × 5) and console (INFO+). The runtime root is the repository in a source checkout and `%LOCALAPPDATA%\HypertrophyToolbox` in a frozen build — never assume repository-local paths (`utils/runtime_paths.py`).

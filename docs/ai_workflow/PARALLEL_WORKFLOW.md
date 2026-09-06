@@ -34,31 +34,45 @@ worktrees.
 ## Forking — the short version
 
 ```powershell
-.\scripts\new-worktree.ps1 -Task <slug> [-Seed visual|empty|copy-current] [-OpenTerminal]
+.\scripts\new-worktree.ps1 -Task <slug> -Owner '<owner>' -NextReviewDate '<future ISO-8601 date>' -TeardownCondition 'Retain until separately approved' -BaselinePath 'D:\approved\drive-baseline.json' [-Seed visual|empty|copy-current] [-OpenTerminal]
 ```
 
 The script:
-1. `git worktree add -b wt/<slug> ..\Hypertrophy-Toolbox-v3-<slug> HEAD`.
-2. Creates `data/` and `data/auto_backup/` in the new worktree.
-3. Seeds `data/database.db` per `-Seed`. Defensive — warns and skips if the source is missing rather than aborting.
-4. Optionally opens a Windows Terminal tab in the worktree (`-OpenTerminal`).
+1. Refuses suppression state in Process/User/Machine, unresolved paths, unknown
+   baseline/lifecycle state and predictable tracked-DB collisions before mutation.
+2. Creates a branch/worktree from HEAD. Actual target collisions are checked again
+   before seed writes; no skip-worktree/index mutation is performed.
+3. Seeds by validated SQLite online backup (`visual` or `copy-current`), or verifies
+   the target is absent (`empty`). Missing helper/source is an error, never fallback.
+4. Verifies the emitted target-bound launch setup, then atomically appends its final
+   annotation under an exclusive local lock. Earlier failures retain the registered
+   worktree, branch and owned scratch; the next audit reports OWNERLESS/INCOMPLETE.
+5. Optionally opens a Windows Terminal tab with the same process-only setup.
+
+`copy-current` uses explicit `-SourceDatabase`, else process `DB_FILE`, else process
+`HT_RUNTIME_DIR/data/database.db`, else the current checkout DB. The selected absolute
+identity is displayed and checked; it is never silently replaced by another source.
+Source selection is separate from target launch configuration. Dot-source the exact
+emitted `artifacts/worktree/launch-worktree.ps1` in every supported manual session;
+it overrides inherited source DB/runtime with target DB/log/backup/temp/cache paths
+and disables bytecode writes. Merely changing directory does not establish isolation.
 
 See [`.claude/commands/worktree.md`](../../.claude/commands/worktree.md) for the seed-mode table and the per-worktree-never-shared list.
 
 ## Python environment
 
-`.venv/` is gitignored, so a new worktree starts without one. Two options:
+`.venv/` is gitignored, so a new worktree starts without one. Use private dependencies
+for this packet, after dot-sourcing the emitted launch setup:
 
 - Fresh venv (slowest, fully isolated):
   ```powershell
   python -m venv .venv
   .\.venv\Scripts\pip.exe install -r requirements.txt
   ```
-- Symlink to the main checkout's venv (fast; works because the venv is read-only at runtime):
-  ```powershell
-  New-Item -ItemType SymbolicLink -Path .venv -Target ..\Hypertrophy-Toolbox-v3-main\.venv
-  ```
-  Requires admin or Developer Mode on Windows.
+
+Do not install or update packages in a shared environment. Operation A's pre-C tests
+use the stronger owner-created standalone clone with independently proved Git object
+storage and all runtime/cache/temp/bytecode directed to scratch (cleanup plan §1.3).
 
 ## DB isolation rule
 
@@ -100,23 +114,30 @@ checkout.
 - Coordinate explicitly on the **never-claimed shared paths**: `app.py`, root [`CLAUDE.md`](../../CLAUDE.md) and folder-level `CLAUDE.md` files, [`.claude/settings.json`](../../.claude/settings.json), [`docs/MASTER_HANDOVER.md`](../MASTER_HANDOVER.md), [`.gitignore`](../../.gitignore).
 - If two worktrees both need to edit a claimed glob, finish one branch and rebase the other.
 
-## Merging back
+## Completion and retained worktrees
 
-Standard PR flow. Push the `wt/<slug>` branch, open a PR, let CI run, merge into `main`. Then:
-
-```powershell
-git worktree remove ..\Hypertrophy-Toolbox-v3-<slug>
-git branch -d wt/<slug>
-```
-
-`git worktree remove` refuses if the worktree has uncommitted changes — that's intentional. Investigate before forcing.
+Use the normal authorized PR/test/review/merge flow. During the signed cleanup
+sequence, completion, abandonment, KEEP and DEFERRED retain every worktree and
+recovery root, including branches and reflogs. Record owner rationale and next review
+date. Neither status, age, PR state nor ordinary closeout grants retirement authority.
+Separate later operation approval controls removal; no force/prune/ref-cleanup advice
+applies during this hold. Operation A itself is not PREVENTION_COMPLETE until merged,
+owner-installed, accepted and actively monitored.
 
 ## Failure modes to expect
 
-- **Stale `wt/` branches** — `git worktree list` shows all active checkouts. `git worktree prune` clears orphaned admin entries after a manual directory delete.
+- **Unreconciled lifecycle** — run read-only `scripts/audit-worktrees.ps1` with explicit
+  approved roots, annotations and baseline. Missing paths, ownerless or orphaned
+  annotations and unregistered/reparse children block creation; retain and review them.
 - **DB schema drift** — if you fork from an older HEAD and the main DB has new tables, `app.py` startup runs the table-creation helpers idempotently; the worktree's DB will catch up on first launch.
-- **Auto-backup spam** — every worktree creates its own startup snapshot. Periodically clear `data/auto_backup/` per worktree.
-- **Visual fixture missing** — `.gitignore` whitelists `e2e/fixtures/database.visual.seed.db`, so it should be in tree. If it isn't, the seed step warns and skips; either regenerate the fixture or pass `-Seed empty`.
+- **Backup retention** — preserve every discovered snapshot for this packet. This
+  operation-specific hold leaves normal post-operation rotation unchanged.
+- **Visual fixture missing** — creation refuses the missing seed/helper. Choose an
+  explicitly reviewed `-Seed empty` invocation; no silent fallback is advertised.
+
+Never set/export either MSYS suppression variable. Use PowerShell end to end,
+argument arrays and drive-qualified native output paths. For historical Git content,
+resolve exactly one full blob OID with `ls-tree`, then pass it to `cat-file blob`.
 
 ## See also
 

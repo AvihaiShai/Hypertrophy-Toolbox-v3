@@ -404,6 +404,82 @@ def test_missing_permission_mode_denies_confirmation_tier(host: str) -> None:
 
 HOOK_SCRIPTS = sorted((GUARD.parent).glob("*.ps1"))
 
+# Historical incident-shaped commands are DATA passed to the hook; none is executed.
+SUPPRESSION_FORMS = [
+    "{name}=1 npx example --output /c/incident",
+    "export {name}=0",
+    "export {name}",
+    "env {name}=* gh example",
+    'cmd /c "set {name}=0 && echo inert"',
+    "$env:{name} = '0'",
+    "Set-Item Env:{name} '0'",
+    "Set-Content Env:{name} '0'",
+    "[Environment]::SetEnvironmentVariable('{name}','0','Process')",
+    "[System.Environment]::SetEnvironmentVariable('{name}','0','User')",
+    "setx {name} 0",
+    "git status; {name}=0 echo inert",
+    "git status\nexport {name}=0",
+    "bash -c 'export {name}=0; echo inert'",
+    'powershell -Command "$env:{name}=0"',
+    'cmd /c "set /a {name}=1"',
+    r"Set-Item -Path Env:\{name} -Value 1",
+    "export -n {name}=1",
+    'echo "$(export {name}=1)"',
+    "$env:{name}++",
+    "++$env:{name}",
+    "$env:{name}--",
+    "--$env:{name}",
+    'cmd /c "set /a {name} += 1"',
+    'cmd /c "set /a harmless=0,{name}=1"',
+]
+SUPPRESSION_FORMS += [f"$env:{{name}} {operator} '1'" for operator in ("+=", "-=", "*=", "/=", "%=", "??=")]
+SUPPRESSION_FORMS += [f'cmd /c "set /a {{name}}{operator}1"' for operator in
+                      ("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=")]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+@pytest.mark.parametrize("permission", ("default", "bypassPermissions"))
+@pytest.mark.parametrize("name", ("MSYS_NO_PATHCONV", "MSYS2_ARG_CONV_EXCL"))
+def test_suppression_forms_are_profile_and_permission_invariant(host, profile, permission, name):
+    for template in SUPPRESSION_FORMS:
+        command = template.format(name=name)
+        assert outcome(host, command, profile, permission) == "deny", command
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+@pytest.mark.parametrize("permission", ("default", "bypassPermissions"))
+def test_safe_native_and_full_blob_controls_allow(host, profile, permission):
+    for command in (r"npx playwright test --output D:\scratch\results", "git status --short",
+                    "git ls-tree -z HEAD -- scripts/new-worktree.ps1",
+                    "git cat-file blob " + "a" * 40,
+                    "Write-Output 'MSYS_NO_PATHCONV=1'", "rg 'export MSYS_NO_PATHCONV' .",
+                    "git commit -m 'Document MSYS_NO_PATHCONV=1 as historical input'"):
+        assert outcome(host, command, profile, permission) == "allow", command
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+def test_unknown_permission_semantics_cannot_approve_confirmation_tier(host, profile):
+    assert outcome(host, "git worktree remove ../retained", profile, "futureUnknownMode") == "deny"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+def test_denied_payload_never_executes_its_child(host, tmp_path):
+    sentinel = tmp_path / "child-was-executed"
+    command = "$env:MSYS_NO_PATHCONV='0'; Set-Content -LiteralPath '" + str(sentinel) + "' -Value BAD"
+    assert outcome(host, command, "main", "bypassPermissions") == "deny"
+    assert not sentinel.exists()
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+def test_internal_error_inputs_exit_exactly_two_under_every_profile(host, profile):
+    for payload in ("", "{invalid", "{}", '{"permission_mode":"default","tool_input":{}}',
+                    '{"permission_mode":"bypassPermissions","tool_input":{"command":"echo unterminated\'"}}'):
+        assert invoke(host, payload, profile).returncode == 2
+
 
 @pytest.mark.parametrize("script", HOOK_SCRIPTS, ids=lambda p: p.name)
 def test_hook_source_is_ascii_with_bom(script: Path) -> None:

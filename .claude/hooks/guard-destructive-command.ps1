@@ -42,7 +42,6 @@ Two deliberate limitations, documented so they are not mistaken for oversights:
     .claude/settings.json. It is not a sandbox and must not be described as one.
 #>
 param(
-    [ValidateSet('agent', 'main')]
     [string]$GuardProfile = 'agent'
 )
 
@@ -84,8 +83,10 @@ function Test-BlockedEnvironmentName([string]$name) {
 }
 
 function Get-EnvironmentAssignmentName([string]$token) {
-    if ($token -match '^([A-Za-z_][A-Za-z0-9_]*)=') { return $matches[1] }
-    if ($token -match '^\$\{?env:([A-Za-z_][A-Za-z0-9_]*)\}?=') { return $matches[1] }
+    $mutation = '(?:[-+*/%&|^]?=|<<=|>>=|\?\?=|\+\+|--)'
+    if ($token -match ('^([A-Za-z_][A-Za-z0-9_]*)' + $mutation)) { return $matches[1] }
+    if ($token -match ('^\$\{?env:([A-Za-z_][A-Za-z0-9_]*)\}?' + $mutation)) { return $matches[1] }
+    if ($token -match '^(?:\+\+|--)\$\{?env:([A-Za-z_][A-Za-z0-9_]*)\}?$') { return $matches[1] }
     return $null
 }
 
@@ -136,7 +137,7 @@ function Test-EnvironmentMutation([string[]]$tokens, [string]$printable) {
         # PowerShell permits whitespace around the assignment operator.
         if ($token -match '^\$\{?env:([A-Za-z_][A-Za-z0-9_]*)\}?$' -and
             (Test-BlockedEnvironmentName $matches[1]) -and $rest.Count -gt 0 -and
-            $rest[0] -eq '=') {
+            $rest[0] -match '^(?:[-+*/%&|^]?=|<<=|>>=|\?\?=|\+\+|--)$') {
             return @{ Decision = 'deny'; Reason = "MSYS path-conversion override assignment: $printable" }
         }
 
@@ -157,10 +158,12 @@ function Test-EnvironmentMutation([string[]]$tokens, [string]$printable) {
         }
 
         if ($verb -eq 'export') {
-            if ($rest -contains '-p' -or $rest -contains '--print' -or $rest -contains '-n') { continue }
             foreach ($candidate in $rest) {
                 $name = Get-EnvironmentAssignmentName $candidate
-                if ($null -eq $name) { $name = $candidate }
+                if ($null -eq $name) {
+                    if ($rest -contains '-p' -or $rest -contains '--print' -or $rest -contains '-n') { continue }
+                    $name = $candidate
+                }
                 if (Test-BlockedEnvironmentName $name) {
                     return @{ Decision = 'deny'; Reason = "export exposes an MSYS path-conversion override: $printable" }
                 }
@@ -168,9 +171,23 @@ function Test-EnvironmentMutation([string[]]$tokens, [string]$printable) {
         }
 
         if ($verb -eq 'set' -and $rest.Count -gt 0) {
-            $name = Get-EnvironmentAssignmentName $rest[0]
-            if ($null -ne $name -and (Test-BlockedEnvironmentName $name)) {
-                return @{ Decision = 'deny'; Reason = "cmd set changes an MSYS path-conversion override: $printable" }
+            if ($rest[0] -eq '/a') {
+                # cmd arithmetic permits spaces around operators and several
+                # assignments in one comma-separated expression.
+                $arithmetic = ($rest | Select-Object -Skip 1) -join ' '
+                foreach ($assignment in [regex]::Matches($arithmetic,
+                    '(?:^|[,(\s])([A-Za-z_][A-Za-z0-9_]*)\s*(?:[-+*/%&|^]?=|<<=|>>=|\+\+|--)')) {
+                    if (Test-BlockedEnvironmentName $assignment.Groups[1].Value) {
+                        return @{ Decision = 'deny'; Reason = "cmd arithmetic changes an MSYS path-conversion override: $printable" }
+                    }
+                }
+            }
+            foreach ($candidate in $rest) {
+                if ($candidate -match '^/[ap]$') { continue }
+                $name = Get-EnvironmentAssignmentName $candidate
+                if ($null -ne $name -and (Test-BlockedEnvironmentName $name)) {
+                    return @{ Decision = 'deny'; Reason = "cmd set changes an MSYS path-conversion override: $printable" }
+                }
             }
         }
 
@@ -182,9 +199,9 @@ function Test-EnvironmentMutation([string[]]$tokens, [string]$printable) {
             }
         }
 
-        if (@('set-item', 'new-item') -contains $verb) {
+        if (@('set-item', 'new-item', 'set-content', 'add-content', 'si', 'ni', 'sc', 'ac') -contains $verb) {
             foreach ($candidate in $rest) {
-                if ($candidate -match '^(?:env:|environment::)([A-Za-z_][A-Za-z0-9_]*)$' -and
+                if ($candidate -match '^(?:env:|environment::)[\\/]?([A-Za-z_][A-Za-z0-9_]*)$' -and
                     (Test-BlockedEnvironmentName $matches[1])) {
                     return @{ Decision = 'deny'; Reason = "PowerShell environment provider changes an MSYS path-conversion override: $printable" }
                 }
@@ -223,12 +240,21 @@ function Split-Segments([string]$text) {
         }
     }
 
-    foreach ($ch in $text.ToCharArray()) {
+    for ($characterIndex = 0; $characterIndex -lt $text.Length; $characterIndex++) {
+        $ch = $text[$characterIndex]
         if ($quote -ne [char]0) {
             if ($ch -eq $quote) { $quote = [char]0 } else { [void]$buffer.Append($ch) }
             continue
         }
         if ($ch -eq '"' -or $ch -eq "'") { $quote = $ch; continue }
+        # Preserve cmd arithmetic compound operators long enough to classify
+        # their assignment target; the shell boundary otherwise splits & and |.
+        if (($ch -eq '&' -or $ch -eq '|') -and $characterIndex + 1 -lt $text.Length -and
+            $text[$characterIndex + 1] -eq '=' -and $tokens.Count -ge 2 -and
+            (Get-BareName $tokens[0]) -eq 'set' -and $tokens[1] -eq '/a') {
+            [void]$buffer.Append($ch)
+            continue
+        }
         if ($ch -eq ';' -or $ch -eq '&' -or $ch -eq '|' -or $ch -eq "`n" -or $ch -eq "`r") {
             Complete-Segment
             continue
@@ -614,6 +640,35 @@ function Invoke-CommandScan([string]$command, [int]$depth) {
     # or the newline reads as a segment break and hides the verb.
     $command = $command -replace '\\\r?\n', ''
 
+    # Literal-output commands still execute $() outside single quotes. Inspect
+    # those nested command strings before applying the text-inspection allow rule.
+    $outerQuote = [char]0
+    for ($position = 0; $position -lt $command.Length; $position++) {
+        $character = $command[$position]
+        if ($character -eq "'" -and $outerQuote -ne '"') {
+            if ($outerQuote -eq "'") { $outerQuote = [char]0 } else { $outerQuote = "'" }
+            continue
+        }
+        if ($character -eq '"' -and $outerQuote -ne "'") {
+            if ($outerQuote -eq '"') { $outerQuote = [char]0 } else { $outerQuote = '"' }
+            continue
+        }
+        if ($outerQuote -eq "'" -or $character -ne '$' -or $position + 1 -ge $command.Length -or $command[$position + 1] -ne '(') { continue }
+        $level = 1
+        $end = $position + 2
+        $innerQuote = [char]0
+        for (; $end -lt $command.Length; $end++) {
+            $inner = $command[$end]
+            if ($innerQuote -ne [char]0) { if ($inner -eq $innerQuote) { $innerQuote = [char]0 }; continue }
+            if ($inner -eq "'" -or $inner -eq '"') { $innerQuote = $inner; continue }
+            if ($inner -eq '(') { $level++ }
+            if ($inner -eq ')') { $level--; if ($level -eq 0) { break } }
+        }
+        if ($level -ne 0) { [void]$script:denials.Add('unbalanced command substitution'); return }
+        Invoke-CommandScan $command.Substring($position + 2, $end - $position - 2) ($depth + 1)
+        $position = $end
+    }
+
     if (-not (Test-QuotesBalanced $command)) {
         # Quoting the guard cannot close means its tokenization is not
         # trustworthy at all: a quote may be hiding a separator, as in
@@ -688,6 +743,7 @@ function Invoke-CommandScan([string]$command, [int]$depth) {
 
 # --- entry point -------------------------------------------------------------
 try {
+    if ($GuardProfile -notin @('agent','main')) { throw 'Unknown guard profile' }
     $raw = [Console]::In.ReadToEnd()
     if ([string]::IsNullOrWhiteSpace($raw)) {
         [Console]::Error.WriteLine("Guard received no hook payload; failing closed.")
@@ -695,6 +751,7 @@ try {
     }
     $payload = $raw | ConvertFrom-Json
     $permissionMode = [string]$payload.permission_mode
+    if ($permissionMode -notin @('','default','acceptEdits','plan','dontAsk','bypassPermissions')) { throw 'Unknown permission mode' }
     $toolInput = $payload.tool_input
     if ($null -eq $toolInput) {
         [Console]::Error.WriteLine("Guard received no tool_input; failing closed.")
