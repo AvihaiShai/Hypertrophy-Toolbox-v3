@@ -5,7 +5,7 @@ Outcomes (Claude Code PreToolUse contract):
   deny  -> exit 2. The ONLY exit code that blocks. Every other code, including
            1, is non-blocking, so any internal failure here must also exit 2.
   ask   -> permissionDecision JSON on stdout, exit 0. Owner confirms. In
-           bypassPermissions, where Claude Code skips prompts, ask-tier
+           auto and bypassPermissions, without verified owner confirmation, ask-tier
            operations are denied instead of silently proceeding.
   allow -> exit 0, silent.
 
@@ -751,7 +751,7 @@ try {
     }
     $payload = $raw | ConvertFrom-Json
     $permissionMode = [string]$payload.permission_mode
-    if ($permissionMode -notin @('','default','acceptEdits','plan','dontAsk','bypassPermissions')) { throw 'Unknown permission mode' }
+    if ($permissionMode -notin @('','default','acceptEdits','plan','dontAsk','auto','bypassPermissions')) { throw 'Unknown permission mode' }
     $toolInput = $payload.tool_input
     if ($null -eq $toolInput) {
         [Console]::Error.WriteLine("Guard received no tool_input; failing closed.")
@@ -782,10 +782,10 @@ try {
     }
     if ($asks.Count -gt 0) {
         $askReason = ($asks -join ' | ') + " ($GuardProfile guard)"
-        if ([string]::IsNullOrWhiteSpace($permissionMode) -or $permissionMode -eq 'bypassPermissions') {
+        if ([string]::IsNullOrWhiteSpace($permissionMode) -or $permissionMode -in @('auto','bypassPermissions')) {
             [Console]::Error.WriteLine(
                 "Blocked by $GuardProfile guard: confirmation is required, but permission mode " +
-                "'$permissionMode' cannot enforce an ask prompt. Switch out of bypassPermissions " +
+                "'$permissionMode' has no verified owner confirmation for this guard. Use default mode " +
                 "and retry, or run the command manually. $askReason"
             )
             exit 2

@@ -33,7 +33,7 @@ foreach ($hostName in @('powershell','pwsh')) {
     if (-not $hostCommand) { Write-Output "UNAVAILABLE host=$hostName"; continue }
     $version = & $hostCommand.Source -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
     foreach ($profile in @('main','agent')) {
-        foreach ($mode in @('default','bypassPermissions')) {
+        foreach ($mode in @('default','auto','bypassPermissions')) {
             foreach ($case in $cases) {
                 # Serialize only: the historical child payload is NEVER executed.
                 $payload = @{permission_mode=$mode;tool_input=@{command=$case.command}} | ConvertTo-Json -Compress

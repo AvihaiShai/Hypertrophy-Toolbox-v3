@@ -439,7 +439,7 @@ SUPPRESSION_FORMS += [f'cmd /c "set /a {{name}}{operator}1"' for operator in
 
 @pytest.mark.parametrize("host", HOSTS)
 @pytest.mark.parametrize("profile", ("main", "agent"))
-@pytest.mark.parametrize("permission", ("default", "bypassPermissions"))
+@pytest.mark.parametrize("permission", ("default", "auto", "bypassPermissions"))
 @pytest.mark.parametrize("name", ("MSYS_NO_PATHCONV", "MSYS2_ARG_CONV_EXCL"))
 def test_suppression_forms_are_profile_and_permission_invariant(host, profile, permission, name):
     for template in SUPPRESSION_FORMS:
@@ -449,7 +449,7 @@ def test_suppression_forms_are_profile_and_permission_invariant(host, profile, p
 
 @pytest.mark.parametrize("host", HOSTS)
 @pytest.mark.parametrize("profile", ("main", "agent"))
-@pytest.mark.parametrize("permission", ("default", "bypassPermissions"))
+@pytest.mark.parametrize("permission", ("default", "auto", "bypassPermissions"))
 def test_safe_native_and_full_blob_controls_allow(host, profile, permission):
     for command in (r"npx playwright test --output D:\scratch\results", "git status --short",
                     "git ls-tree -z HEAD -- scripts/new-worktree.ps1",
@@ -514,3 +514,27 @@ def test_hook_source_parses(host: str, script: Path) -> None:
         text=True,
     )
     assert proc.returncode == 0, f"{script.name} fails to parse under {host}: {proc.stdout}{proc.stderr}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+@pytest.mark.parametrize("mode", ("default", "acceptEdits", "plan", "dontAsk", "auto", "bypassPermissions"))
+def test_confirmation_tier_preserves_owner_boundary(host, profile, mode):
+    expected = "deny" if mode in ("auto", "bypassPermissions") else "ask"
+    for command in ("git branch -D retained", "git worktree remove ../retained", "rm -r retained"):
+        assert outcome(host, command, profile, mode) == expected
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+def test_auto_keeps_profile_policy_and_deny_precedence(host, profile):
+    for command in ("git push", "git merge feature", "git merge --abort"):
+        assert outcome(host, command, profile, "auto") == ("deny" if profile == "agent" else "allow")
+    denied = invoke(host, json.dumps({"permission_mode": "auto", "tool_input": {
+        "command": "git branch -D retained; export MSYS_NO_PATHCONV=1"}}), profile)
+    assert denied.returncode == 2 and not denied.stdout
+    assert "confirmation is required" not in denied.stderr  # deny takes precedence over ask
+    assert outcome(host, "echo safe", profile, "futureUnknownMode") == "deny"
+    for payload in ('{"permission_mode":"auto","tool_input":{}}',
+                    json.dumps({"permission_mode": "auto", "tool_input": {"command": "echo unterminated'"}})):
+        assert invoke(host, payload, profile).returncode == 2
