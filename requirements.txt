@@ -32,4 +32,4 @@ vulture==2.16
 # it is excluded from the frozen build in Hypertrophy-Toolbox.spec alongside
 # pytest. tests/conftest.py registers a derandomized, database-less CI profile,
 # because Run Tests is a required check with no retry.
-hypothesis==6.165.10
+hypothesis==6.167.1
