@@ -4,6 +4,37 @@
 
 ## Current State
 
+> **2026-09-08 — OPERATION A SOURCE INTEGRATION READY FOR OWNER REVIEW; NOT DEPLOYED.**
+> The owner-authorized standalone clone combines the installed rev-4 retention
+> protections with #485's conservative auto-mode confirmation denial. Final staged
+> source/test diff is `3d6b7add…`; raw guard is `92fcb656…` with its Git LF-normalized
+> byte bridge recorded. Fresh isolated validation passed: **1,506 guard/workflow
+> tests**, **252 standalone cases**, **12 final-source encoding/parser checks**,
+> Pyright **249 files / zero diagnostics**, Flake8 and inventory `--check`.
+> Comment/docstring-only final edits have explicit executable-equivalence evidence;
+> unchanged lifecycle/snapshot/preflight evidence retains its historical scope.
+> Source/tests are staged locally; no new commit, publication, merge or deployment
+> occurred. #484/#485 and their saved CI remain completed historical packets.
+>
+> The [planning continuation](worktree_cleanup/PLANNING.md) records actual review
+> provenance, findings and owner decisions. The
+> [exact review/deployment proposal](../artifacts/operation-a-source-integration-20260908/REVIEW_AND_DEPLOYMENT_PROPOSAL.md)
+> binds all **93** external target preimages; any drift stops the entire proposed
+> rollout before any replacement. Publication and exact deployment require separate
+> owner approval. The [current Gate A matrix](../artifacts/operation-a-source-integration-20260908/EVIDENCE_MATRIX_5_4_CURRENT.md)
+> distinguishes saved installation/report evidence from current missing scheduling:
+> no matching task is present, the operational log is disabled, and removal cause
+> is unknown. A concrete saved-XML restoration proposal remains unexecuted.
+>
+> Completed suppression-state captures stay complete historical evidence. Hold only
+> the three pending interception/profile captures until matching reviewed source
+> lands and is deployed; active-guidance coverage is independent, and these pending
+> captures did not block source integration or validation. The earlier September 5
+> current-state block is historical, including its pending claims for gates later
+> completed. All old records and local drafts remain preserved.
+> **PREVENTION_COMPLETE remains unmet. No development closeout, stabilization,
+> Operations B–E, cleanup, source-checkout write or scheduling change occurred.**
+
 > **2026-09-05 — OPERATION A INTERACTIVE ACCEPTANCE PASSED; GATE 2 PACKET PREPARED.**
 > The saved owner-run production acceptance was independently re-read against its
 > four raw evidence files. Their byte counts and hashes match the review receipt;
