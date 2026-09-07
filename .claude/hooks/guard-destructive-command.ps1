@@ -20,6 +20,14 @@ Windows PowerShell 5.1 decodes a BOM-less .ps1 as CP1252. A UTF-8 em dash
 producing a parser error, exit code 1, and a guard that silently fails open.
 tests/test_guard_destructive_command.py pins this.
 
+Worktree-retention hold: worktree removal and branch, tag, symbolic-ref,
+update-ref and remote-ref deletion deny in both profiles and every permission
+mode. Destructive push forms and worktree prune are exempt only for a proven
+dry run from their own option parsers. Other retention checks precede the generic dry-run exemption;
+those subcommands have no dry-run option, and git tag -n means annotation lines.
+This is bounded Claude-tool coverage; opaque scripts, non-Claude tools and
+non-delete ref retirement remain outside it.
+
 Contract: confidently classified, or denied. Syntax this guard cannot parse
 (unbalanced quoting, base64 -EncodedCommand, nesting past depth 4) denies.
 
@@ -225,11 +233,19 @@ function Split-Segments([string]$text) {
     $tokens = New-Object System.Collections.ArrayList
     $buffer = New-Object System.Text.StringBuilder
     $quote = [char]0
+    # An EMPTY quoted argument is a real argument position. Dropping it makes
+    # `git update-ref <ref> "" <old-oid>` -- which deletes the ref -- read as an
+    # ordinary two-operand update. A hashtable is used rather than a plain
+    # variable because a nested function assigning to a parent-scope variable
+    # would only create its own local copy; mutating a hashtable property does
+    # reach the caller.
+    $quoted = @{ Seen = $false }
 
     function Complete-Token {
-        if ($buffer.Length -gt 0) {
+        if ($buffer.Length -gt 0 -or $quoted.Seen) {
             [void]$tokens.Add($buffer.ToString())
             [void]$buffer.Clear()
+            $quoted.Seen = $false
         }
     }
     function Complete-Segment {
@@ -246,7 +262,7 @@ function Split-Segments([string]$text) {
             if ($ch -eq $quote) { $quote = [char]0 } else { [void]$buffer.Append($ch) }
             continue
         }
-        if ($ch -eq '"' -or $ch -eq "'") { $quote = $ch; continue }
+        if ($ch -eq '"' -or $ch -eq "'") { $quote = $ch; $quoted.Seen = $true; continue }
         # Preserve cmd arithmetic compound operators long enough to classify
         # their assignment target; the shell boundary otherwise splits & and |.
         if (($ch -eq '&' -or $ch -eq '|') -and $characterIndex + 1 -lt $text.Length -and
@@ -294,6 +310,336 @@ function Test-DryRun([string[]]$tokens) {
         if ($t -match '^(--dry-run|--whatif|-WhatIf|-n)$') { return $true }
     }
     return $false
+}
+
+function Test-WorktreePruneDryRun([string[]]$pruneArgs) {
+    # `git worktree prune` accepts -n/--dry-run, -v/--verbose and
+    # --expire <expiry-date>, each with a --no- negation (git 2.55 usage).
+    # Test-DryRun above matches a bare --dry-run token ANYWHERE, which two
+    # real invocations defeat:
+    #   git worktree prune --dry-run --no-dry-run  (last flag wins: prunes)
+    #   git worktree prune --expire --dry-run      (--dry-run is eaten as the
+    #                                               expiry value: prunes)
+    # So prune parses its own grammar, tracking negation and flag order.
+    # $true means PROVEN dry run. A proven real prune and anything this parser
+    # does not recognise both return $false, so an unknown option is denied
+    # rather than exempted.
+    $dry = $false
+    $i = 0
+    while ($i -lt $pruneArgs.Count) {
+        $t = $pruneArgs[$i]
+        if ($t -eq '--') {
+            # prune takes no operands; a trailing one is a malformed call.
+            if ($i -ne $pruneArgs.Count - 1) { return $false }
+            return $dry
+        }
+        elseif ($t -eq '--dry-run') { $dry = $true; $i++ }
+        elseif ($t -eq '--no-dry-run') { $dry = $false; $i++ }
+        elseif ($t -eq '--verbose' -or $t -eq '--no-verbose' -or $t -eq '--no-expire') { $i++ }
+        elseif ($t -like '--expire=*') { $i++ }
+        elseif ($t -eq '--expire') {
+            # Consumes the next token as its value, whatever it looks like.
+            # A missing value is malformed: fail closed.
+            if ($i + 1 -ge $pruneArgs.Count) { return $false }
+            $i += 2
+        }
+        elseif ($t -cmatch '^-[nv]+$') {
+            # Bundled short flags; only n and v are valid here. Case-sensitive:
+            # -N and -V are not options of this subcommand.
+            if ($t -cmatch 'n') { $dry = $true }
+            $i++
+        }
+        else { return $false }
+    }
+    return $dry
+}
+
+# git push option grammar, transcribed from `git push -h` (git 2.55).
+# EVERY push verdict -- dry run, deletion, force, and the operand list the
+# refspec check reads -- comes from this one table and the one parser below.
+# Two defects came from having more than one reading of the same argument list:
+#   git push --del origin wt-example   an exact-string test for '--delete' misses
+#                                      an unambiguous parse-opt abbreviation
+#   git push -4d origin wt-example     Test-ShortFlag's ^-[a-zA-Z]+$ rejects a
+#                                      cluster containing a digit, hiding -d
+# Both are real deletions of a remote ref.
+$pushLongNames = @(
+    'verbose', 'quiet', 'repo', 'all', 'branches', 'mirror', 'delete', 'tags',
+    'dry-run', 'porcelain', 'force', 'force-with-lease', 'force-if-includes',
+    'recurse-submodules', 'thin', 'receive-pack', 'exec', 'set-upstream',
+    'progress', 'prune', 'verify', 'follow-tags', 'signed', 'atomic',
+    'push-option', 'ipv4', 'ipv6',
+    'no-verbose', 'no-quiet', 'no-repo', 'no-all', 'no-branches', 'no-mirror',
+    'no-delete', 'no-tags', 'no-dry-run', 'no-porcelain', 'no-force',
+    'no-force-with-lease', 'no-force-if-includes', 'no-recurse-submodules',
+    'no-thin', 'no-receive-pack', 'no-exec', 'no-set-upstream', 'no-progress',
+    'no-prune', 'no-verify', 'no-follow-tags', 'no-signed', 'no-atomic',
+    'no-push-option')
+# Options whose value is the FOLLOWING token when written without '='. The
+# optional-argument options (--force-with-lease, --signed) are deliberately
+# absent: they bind a value only with '=', so written alone they consume nothing.
+$pushValueNames = @('repo', 'receive-pack', 'exec', 'push-option',
+    'recurse-submodules')
+# Short options carrying no meaning for this guard. -n, -d, -f and -o are
+# handled by name. Digits are included because -4 and -6 are real options, and a
+# cluster may mix them with letters, as in -4d.
+$pushShortBare = 'vqu46'
+
+function Resolve-GitPushOption([string]$given) {
+    # git's parse-opt takes an exact match first, then a UNIQUE prefix, so
+    # `--del` resolves to --delete and deletes. Returns the canonical name, or
+    # $null when the token is unknown OR ambiguous -- `--f` matches force,
+    # force-with-lease, force-if-includes and follow-tags, and git rejects it.
+    if ($pushLongNames -ccontains $given) { return $given }
+    $candidates = @($pushLongNames | Where-Object { $_.StartsWith($given) })
+    if ($candidates.Count -eq 1) { return $candidates[0] }
+    return $null
+}
+
+function Set-GitPushIntent($state, [string]$name) {
+    # Dry-run, delete, mirror and prune honor their own last positive/negative
+    # option. Force and force-with-lease are separately latched during the
+    # retention hold: neither negation clears positive force intent. This is
+    # deliberately conservative, including self-cancelling force options.
+    # A proven dry run remains exempt before the force verdict is evaluated.
+    if ($name -ceq 'dry-run') { $state.Dry = $true }
+    elseif ($name -ceq 'no-dry-run') { $state.Dry = $false }
+    elseif ($name -ceq 'delete') { $state.Delete = $true }
+    elseif ($name -ceq 'no-delete') { $state.Delete = $false }
+    elseif ($name -ceq 'force') { $state.Force = $true }
+    elseif ($name -ceq 'force-with-lease') { $state.ForceWithLease = $true }
+    elseif ($name -ceq 'no-force' -or $name -ceq 'no-force-with-lease') {
+        # Recognised, so the option resolves and the parse still succeeds, but
+        # deliberately inert: a positive force option is not cancellable here.
+    }
+    elseif ($name -ceq 'mirror') { $state.Mirror = $true }
+    elseif ($name -ceq 'no-mirror') { $state.Mirror = $false }
+    elseif ($name -ceq 'prune') { $state.Prune = $true }
+    elseif ($name -ceq 'no-prune') { $state.Prune = $false }
+}
+
+function Get-GitPushParse([string[]]$pushArgs) {
+    # git push [<options>] [<repository> [<refspec>...]]
+    # One pass produces every intent the caller needs:
+    #   Dry / Delete / Mirror / Prune          option intent, negation-aware
+    #   Force / ForceWithLease                 option intent, LATCHED; see
+    #                                          Set-GitPushIntent for why
+    #   Operands                               repository and refspec positions
+    #   Parsed                                 $false if any token was not
+    #                                          recognised; Unrecognised names it
+    #
+    # Test-DryRun cannot be used for any of this. It matches a bare --dry-run or
+    # -n token anywhere in the list, and all three of these defeat it:
+    #   git push --dry-run --no-dry-run ...  last flag wins, so this PUSHES
+    #   git push -o --dry-run ...            --dry-run is -o's value
+    #   git push --repo --dry-run ...        likewise
+    $state = @{
+        Dry = $false; Delete = $false; Force = $false; ForceWithLease = $false;
+        Mirror = $false; Prune = $false; Operands = @(); Parsed = $true;
+        Unrecognised = ''
+    }
+    $operands = New-Object System.Collections.ArrayList
+    $i = 0
+    while ($i -lt $pushArgs.Count) {
+        $t = $pushArgs[$i]
+        if ($t -eq '--') {
+            $i++
+            while ($i -lt $pushArgs.Count) { [void]$operands.Add($pushArgs[$i]); $i++ }
+            break
+        }
+        if ($t -ceq '-') { [void]$operands.Add($t); $i++; continue }
+        if ($t -cmatch '^--') {
+            $given = $t.Substring(2)
+            $attached = $false
+            if ($given.Contains('=')) {
+                $given = ($given -split '=', 2)[0]
+                $attached = $true
+            }
+            $name = Resolve-GitPushOption $given
+            if ($null -eq $name) {
+                $state.Parsed = $false
+                $state.Unrecognised = $t
+                return $state
+            }
+            Set-GitPushIntent $state $name
+            if (-not $attached -and ($pushValueNames -ccontains $name)) {
+                # The value is the following token, whatever it looks like.
+                if ($i + 1 -ge $pushArgs.Count) {
+                    $state.Parsed = $false
+                    $state.Unrecognised = $t
+                    return $state
+                }
+                $i += 2
+                continue
+            }
+            $i++
+            continue
+        }
+        if ($t -cmatch '^-[A-Za-z0-9]') {
+            $cluster = $t.Substring(1)
+            $takesNextToken = $false
+            for ($c = 0; $c -lt $cluster.Length; $c++) {
+                $letter = [string]$cluster[$c]
+                if ($letter -ceq 'n') { $state.Dry = $true; continue }
+                if ($letter -ceq 'd') { $state.Delete = $true; continue }
+                if ($letter -ceq 'f') { $state.Force = $true; continue }
+                if ($letter -ceq 'o') {
+                    # -o wants a value: the rest of the cluster if there is one,
+                    # otherwise the next token. Either way the cluster ends here.
+                    if ($c -eq $cluster.Length - 1) { $takesNextToken = $true }
+                    break
+                }
+                if ($pushShortBare.Contains($letter)) { continue }
+                $state.Parsed = $false
+                $state.Unrecognised = $t
+                return $state
+            }
+            $i++
+            if ($takesNextToken) {
+                if ($i -ge $pushArgs.Count) {
+                    $state.Parsed = $false
+                    $state.Unrecognised = $t
+                    return $state
+                }
+                $i++
+            }
+            continue
+        }
+        [void]$operands.Add($t)
+        $i++
+    }
+    $state.Operands = @($operands.ToArray())
+    return $state
+}
+
+function Test-LongOptionPrefix([string]$token, [string]$name) {
+    # git's parse-opt accepts any UNAMBIGUOUS abbreviation of a long option, so
+    # `git branch --del x` deletes exactly as `--delete` does and must classify
+    # the same way. Callers pass only names that are unambiguous WITHIN their
+    # own subcommand; `git update-ref` deliberately does not use this helper,
+    # because there `--d` is ambiguous between --deref and --no-deref and there
+    # is no --delete long option at all.
+    # A `--no-` negation never matches: it starts with n, so the safe direction
+    # (classify as the deleting form) is what an operator gets.
+    if ($token -cnotmatch '^--[a-z-]+$') { return $false }
+    $given = $token.Substring(2)
+    if ($given.Length -eq 0) { return $false }
+    return $name.StartsWith($given)
+}
+
+function Test-GitBranchDelete([string[]]$branchArgs) {
+    # git branch [<options>] [-r] (-d | -D) <branch-name>...
+    # Verified against `git branch -h`: -d/--delete deletes a merged branch, -D
+    # deletes regardless, and NO other short option of git branch is spelled d
+    # in either case. Short options bundle, so -rd and -dr are the same call.
+    # There is no --dry-run and no -n, which is why this runs before the
+    # generic Test-DryRun exemption.
+    # `--no-delete` is not credited: writing `--delete --no-delete` is not a
+    # real invocation, and refusing to reason about it keeps the failure on the
+    # deny side.
+    foreach ($t in $branchArgs) {
+        if (Test-ShortFlag $t 'd') { return $true }
+        if (Test-ShortFlag $t 'D') { return $true }
+        if (Test-LongOptionPrefix $t 'delete') { return $true }
+    }
+    return $false
+}
+
+function Test-GitTagDelete([string[]]$tagArgs) {
+    # git tag -d <tagname>...
+    # Verified against `git tag -h`. This subcommand is exactly why the generic
+    # dry-run exemption cannot be reused: `-n[<num>]` prints annotation lines,
+    # so Test-DryRun reads the bare `-n` of `git tag -n -d v1` as a dry run and
+    # would exempt a command that still deletes the tag. git tag has no
+    # --dry-run in any form.
+    foreach ($t in $tagArgs) {
+        if (Test-ShortFlag $t 'd') { return $true }
+        if (Test-LongOptionPrefix $t 'delete') { return $true }
+    }
+    return $false
+}
+
+function Test-GitSymbolicRefDelete([string[]]$symArgs) {
+    # git symbolic-ref --delete [-q] <name>
+    # Verified against `git symbolic-ref -h`: long options are --delete,
+    # --quiet, --short, --recurse and --no-recurse, so --d is unambiguous.
+    # No dry-run option exists.
+    foreach ($t in $symArgs) {
+        if (Test-ShortFlag $t 'd') { return $true }
+        if (Test-LongOptionPrefix $t 'delete') { return $true }
+    }
+    return $false
+}
+
+function Get-GitUpdateRefDenial([string[]]$refArgs) {
+    # git update-ref [<options>] -d <refname> [<old-oid>]
+    #   or:          [<options>]    <refname> <new-oid> [<old-oid>]
+    #   or:          [<options>] --stdin [-z] [--batch-updates]
+    # Verified against `git update-ref -h`. Returns a deny reason, or $null
+    # when the call is not a ref deletion.
+    #
+    # Three option facts drive this parser:
+    #   * There is NO --delete long option, and --d/--de are ambiguous with
+    #     --deref/--no-deref, so ONLY the short -d spells deletion. Passing
+    #     'delete' to Test-LongOptionPrefix here would be wrong.
+    #   * -m consumes the next token as the reflog reason, so that token is a
+    #     value and never an operand.
+    #   * There is no --dry-run and no -n, so the generic exemption must not
+    #     reach this subcommand.
+    #   * Counting operands is NOT enough. `<refname> <new-oid>` deletes the ref
+    #     whenever <new-oid> is the empty string or the all-zero object id, and
+    #     both of those are two-operand calls. The new value is inspected.
+    $operands = New-Object System.Collections.ArrayList
+    $i = 0
+    while ($i -lt $refArgs.Count) {
+        $t = $refArgs[$i]
+        if ($t -eq '--') {
+            $i++
+            while ($i -lt $refArgs.Count) { [void]$operands.Add($refArgs[$i]); $i++ }
+            break
+        }
+        if ($t -eq '-m') {
+            if ($i + 1 -ge $refArgs.Count) {
+                return 'git update-ref -m is missing its reason and cannot be classified:'
+            }
+            $i += 2
+            continue
+        }
+        if (Test-LongOptionPrefix $t 'stdin') {
+            return 'git update-ref --stdin carries ref updates this guard cannot read:'
+        }
+        if ($t -cmatch '^-.') {
+            if (Test-ShortFlag $t 'd') {
+                return 'git update-ref -d deletes a ref; not authorized during the worktree-retention hold:'
+            }
+            $i++
+            continue
+        }
+        [void]$operands.Add($t)
+        $i++
+    }
+    if ($operands.Count -lt 2 -or $operands.Count -gt 3) {
+        return 'git update-ref operand count matches no documented form; cannot be classified:'
+    }
+    $newValue = [string]$operands[1]
+    if ($newValue.Length -eq 0) {
+        # `git update-ref <ref> ""` deletes by writing an empty new value. This
+        # position survives only because Split-Segments keeps empty quoted
+        # arguments; without that it would look like a two-operand update.
+        return 'git update-ref with an empty new value deletes a ref; not authorized during the worktree-retention hold:'
+    }
+    if ($newValue -cmatch '^0+$') {
+        # The all-zero object id is git's deletion sentinel. Only the NEW value
+        # position means deletion: an all-zero OLD value is the "must not exist
+        # yet" guard on a creation, which is not a deletion.
+        return 'git update-ref to the all-zero object id deletes a ref; not authorized during the worktree-retention hold:'
+    }
+    if ($newValue -match '[$`]') {
+        # An unexpanded variable or substitution could be the empty string or
+        # the null oid. Unclassifiable, so it denies rather than being guessed.
+        return 'git update-ref new value contains an unexpanded expansion and cannot be classified:'
+    }
+    return $null
 }
 
 function Test-ShortFlag([string]$token, [string]$letter) {
@@ -366,6 +712,7 @@ function Get-GitSubcommand([string[]]$tokens) {
     $i = 1
     while ($i -lt $tokens.Count) {
         $t = $tokens[$i]
+        if ($t.Length -eq 0) { $i++; continue }
         if ($gitOptsWithValue -contains $t) { $i += 2; continue }
         if ($t -match '^(--git-dir|--work-tree|--namespace|--exec-path|--config-env)=') { $i++; continue }
         if ($gitOptsBare -contains $t) { $i++; continue }
@@ -459,10 +806,17 @@ function Get-Delegation([string[]]$tokens) {
         return @{ Kind = 'script'; Script = ($rest -join ' ') }
     }
     if ($flagIndex -ge 0) {
-        if ($flagIndex + 1 -ge $rest.Count) {
+        $nested = ''
+        if ($flagIndex + 1 -lt $rest.Count) {
+            $nested = (@($rest[($flagIndex + 1)..($rest.Count - 1)]) -join ' ')
+        }
+        # Empty quoted arguments now survive tokenization, so `sh -c ""` arrives
+        # as an empty script rather than as a missing one. Both are the same
+        # malformed call, and both deny.
+        if ([string]::IsNullOrWhiteSpace($nested)) {
             return @{ Kind = 'deny'; Reason = "shell invoked with an empty command argument: $printable" }
         }
-        return @{ Kind = 'script'; Script = (@($rest[($flagIndex + 1)..($rest.Count - 1)]) -join ' ') }
+        return @{ Kind = 'script'; Script = $nested }
     }
 
     # A shell handed a script FILE (`bash run.sh`, `powershell -File x.ps1`) is
@@ -491,6 +845,9 @@ function Get-XargsCommand([string[]]$tokens) {
     $i = 1
     while ($i -lt $tokens.Count) {
         $t = $tokens[$i]
+        # An empty quoted argument is a real position but never the program, and
+        # this segment gets no every-position rescan to recover from it.
+        if ($t.Length -eq 0) { $i++; continue }
         # --opt=value carries its own value.
         if ($t -match '^--[a-zA-Z-]+=') { $i++; continue }
         if ($xargsRequiredLong -ccontains $t) { $i += 2; continue }
@@ -544,6 +901,91 @@ function Test-Segment([string[]]$tokens, [string]$printable) {
     $sub = Get-GitSubcommand $tokens
     if ($null -eq $sub) { return $null }
     $subRest = $sub.Rest
+    # Evaluated BEFORE the generic dry-run exemption below, which cannot see
+    # negation, flag order, or an option that swallows the next token.
+    if ($sub.Name -eq 'worktree' -and $subRest.Count -ge 1 -and $subRest[0] -eq 'prune') {
+        $pruneArgs = @()
+        if ($subRest.Count -gt 1) { $pruneArgs = @($subRest[1..($subRest.Count - 1)]) }
+        if (Test-WorktreePruneDryRun $pruneArgs) { return $null }
+        return @{ Decision = 'deny'; Reason = "git worktree prune retires worktree registrations; not authorized during the worktree-cleanup hold: $printable" }
+    }
+    # --- worktree-retention hold ------------------------------------------
+    # These operations are prohibited outright, so they DENY rather than ask:
+    # an ask is softened by permission mode and by whoever answers the prompt,
+    # and the hold is neither mode-dependent nor profile-dependent.
+    #
+    # They are classified HERE, above `Test-DryRun`, for the same reason the
+    # prune block above is. Test-DryRun matches a bare --dry-run, -n, --whatif
+    # or -WhatIf token ANYWHERE in the argument list, and NONE of the
+    # subcommands below has a dry-run option at all (checked against
+    # `git worktree -h`, `git branch -h`, `git tag -h`, `git update-ref -h`
+    # and `git symbolic-ref -h`). Worse, `git tag` gives -n an unrelated
+    # meaning, so reusing the generic exemption would wave through
+    # `git tag -n -d v1`, which deletes.
+    if ($sub.Name -eq 'worktree' -and $subRest.Count -ge 1 -and $subRest[0] -eq 'remove') {
+        return @{ Decision = 'deny'; Reason = "git worktree remove retires a worktree registration; not authorized during the worktree-retention hold: $printable" }
+    }
+    if ($sub.Name -eq 'branch' -and (Test-GitBranchDelete $subRest)) {
+        return @{ Decision = 'deny'; Reason = "git branch delete retires a ref; not authorized during the worktree-retention hold: $printable" }
+    }
+    if ($sub.Name -eq 'tag' -and (Test-GitTagDelete $subRest)) {
+        return @{ Decision = 'deny'; Reason = "git tag delete retires a ref; not authorized during the worktree-retention hold: $printable" }
+    }
+    if ($sub.Name -eq 'symbolic-ref' -and (Test-GitSymbolicRefDelete $subRest)) {
+        return @{ Decision = 'deny'; Reason = "git symbolic-ref delete retires a ref; not authorized during the worktree-retention hold: $printable" }
+    }
+    if ($sub.Name -eq 'update-ref') {
+        $updateRefDenial = Get-GitUpdateRefDenial $subRest
+        if ($null -ne $updateRefDenial) {
+            return @{ Decision = 'deny'; Reason = "$updateRefDenial $printable" }
+        }
+    }
+
+    if ($sub.Name -eq 'push') {
+        # git push HAS a real --dry-run, so unlike the subcommands above it can
+        # legitimately be exempted -- but only by its own grammar, and the SAME
+        # parse decides deletion and force. Reading intent two different ways is
+        # what let `git push --del ...` and `git push -4d ...` through.
+        $push = Get-GitPushParse $subRest
+        if (-not $push.Parsed) {
+            # The guard's contract is "confidently classified, or denied". An
+            # option it cannot resolve makes every other verdict here a guess --
+            # including whether an operand is a refspec at all -- so it denies
+            # rather than falling back to a second, looser reading.
+            return @{ Decision = 'deny'; Reason = "git push option '$($push.Unrecognised)' is unknown or ambiguous, so the push cannot be classified: $printable" }
+        }
+        if ($push.Dry) { return $null }
+        if ($push.Delete) {
+            return @{ Decision = 'deny'; Reason = "git push delete removes a remote ref; not authorized during the worktree-retention hold: $printable" }
+        }
+        if ($push.Mirror -or $push.Prune) {
+            # Both delete every remote ref with no local counterpart, without
+            # naming any of them.
+            return @{ Decision = 'deny'; Reason = "git push mirror or prune removes remote refs that have no local counterpart; not authorized during the worktree-retention hold: $printable" }
+        }
+        if ($push.Force -or $push.ForceWithLease) {
+            # Either positive force option blocks, and neither is cancellable.
+            return @{ Decision = 'deny'; Reason = "force push rewrites remote history: $printable" }
+        }
+        # Refspec grammar is [+]<src>:<dst>. Only operand positions are
+        # refspecs; an option VALUE that happens to look like one is not.
+        foreach ($t in $push.Operands) {
+            if ($t -cmatch '^\+?:.+') {
+                # The optional force marker sits BEFORE the empty source, so
+                # `+:dst` deletes exactly as `:dst` does.
+                return @{ Decision = 'deny'; Reason = "empty-source refspec deletes a remote ref: $printable" }
+            }
+            if ($t -cmatch '^\+[^:]+:') {
+                # Same force intent as --force, just spelled in the refspec.
+                return @{ Decision = 'deny'; Reason = "leading + in a refspec forces the remote update: $printable" }
+            }
+        }
+        if ($GuardProfile -eq 'agent') {
+            return @{ Decision = 'deny'; Reason = "subagents do not push; hand the branch to the owner" }
+        }
+        return $null
+    }
+
     if (Test-DryRun $subRest) { return $null }
 
     switch ($sub.Name) {
@@ -565,36 +1007,17 @@ function Test-Segment([string[]]$tokens, [string]$printable) {
             }
             return @{ Decision = 'ask'; Reason = "git rm deletes working-tree files: $printable" }
         }
-        'push' {
-            foreach ($t in $subRest) {
-                if ($t -eq '--force' -or $t -eq '--delete' -or $t -like '--force-with-lease*' -or (Test-ShortFlag $t 'f') -or (Test-ShortFlag $t 'd')) {
-                    return @{ Decision = 'deny'; Reason = "force or delete push rewrites remote history: $printable" }
-                }
-            }
-            if ($GuardProfile -eq 'agent') {
-                return @{ Decision = 'deny'; Reason = "subagents do not push; hand the branch to the owner" }
-            }
-        }
+        # 'push' is handled above the generic dry-run exemption, because that
+        # exemption cannot see negation, ordering, or an option that swallows
+        # the next token.
         'merge' {
             if ($GuardProfile -eq 'agent') {
                 return @{ Decision = 'deny'; Reason = "subagents do not merge; hand the branch to the owner" }
             }
         }
-        'branch' {
-            $forceDelete = $false
-            foreach ($t in $subRest) {
-                if ($t -cmatch '^-[a-zA-Z]*D[a-zA-Z]*$') { $forceDelete = $true }
-            }
-            if (($subRest -contains '--delete') -and (Test-AnyForce $subRest)) { $forceDelete = $true }
-            if ($forceDelete) {
-                return @{ Decision = 'ask'; Reason = "git branch force-delete drops an unmerged branch: $printable" }
-            }
-        }
-        'worktree' {
-            if ($subRest.Count -ge 1 -and $subRest[0] -eq 'remove') {
-                return @{ Decision = 'ask'; Reason = "git worktree remove discards a worktree: $printable" }
-            }
-        }
+        # 'branch' and 'worktree remove' are handled above the dry-run
+        # exemption, as hard denies. They previously asked; the retention hold
+        # is not something a confirmation prompt may waive.
         'checkout' {
             if (Test-AnyForce $subRest) {
                 return @{ Decision = 'ask'; Reason = "git checkout --force overwrites local modifications: $printable" }
@@ -751,7 +1174,7 @@ try {
     }
     $payload = $raw | ConvertFrom-Json
     $permissionMode = [string]$payload.permission_mode
-    if ($permissionMode -notin @('','default','acceptEdits','plan','dontAsk','auto','bypassPermissions')) { throw 'Unknown permission mode' }
+    if ($permissionMode -notin @('','default','auto','acceptEdits','plan','dontAsk','bypassPermissions')) { throw 'Unknown permission mode' }
     $toolInput = $payload.tool_input
     if ($null -eq $toolInput) {
         [Console]::Error.WriteLine("Guard received no tool_input; failing closed.")

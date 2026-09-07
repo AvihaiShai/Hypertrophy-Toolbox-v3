@@ -1531,3 +1531,271 @@ the other whitespace classes pass.
 installation, installed interception and lifecycle baseline/active monitoring
 remain unperformed. The source-pointing `origin` is not a publication destination.
 Operations B–E and cleanup remain unauthorized; `PREVENTION_COMPLETE` is not declared.
+
+---
+
+## 2026-09-08 — Authorized source-integration continuation (validation in progress)
+
+This append resumes the supported Operation A state. It does not restart council,
+replace Plan v2, reopen Section 0, or grant new publication/deployment approval.
+The entire prior planning record is preserved byte-for-byte. Gate 0 signed on
+2026-09-05 remains settled: Q1–Q8 resolved, A1–A12 accepted with their recorded
+clarifications, both unspecified riders withdrawn, and AC8 unchanged. Existing
+Gate 1, completed council, disposable interactive acceptance, publication and
+installation records retain their dated scope.
+
+### Raw execution request (verbatim)
+
+> Execute the source-integration continuation now. Do not stop at acknowledgment
+> or return another continuation prompt.
+>
+> Work in D:\development\Hypertrophy-Toolbox-worktree-cleanup-plan.
+> Follow the previously supplied continuation’s scope, isolation, role routing,
+> and authorization boundaries.
+>
+> Complete the work that does not depend on owner-session captures:
+>
+> 1. Revalidate isolation and current source/deployment evidence.
+> 2. Reconcile rev-4 protections with #485’s conservative auto-mode denial.
+> 3. Prepare the source changes and meaningful regression coverage.
+> 4. Run applicable isolated validation.
+> 5. Prepare a deployment proposal bound to freshly verified target preimages.
+> 6. Investigate missing monitoring read-only and update the evidence records.
+>
+> Preserve completed suppression-state captures. Hold only the three pending
+> interception/profile captures until matching source is landed and deployed.
+> Their pending status must not block the six steps above.
+>
+> Do not publish, merge, deploy, change scheduling, or execute cleanup.
+>
+> Finish with the actual changed files, validation results, unresolved findings,
+> and concrete decisions requiring owner review. If blocked, identify the exact
+> failed prerequisite and continue any independent work that remains possible.
+
+### Capture correction carried forward (verbatim)
+
+> Preserve completed suppression-state captures as historical evidence.
+> Hold only the three pending interception/profile acceptance captures
+> until the matching reviewed guard source is landed and deployed.
+
+The held captures are the outside-project `default` session, outside-project
+`bypassPermissions` session, and fresh owner-started VS Code conversation from
+the lowercase launch. Completed suppression-state observations are preserved as
+historical evidence and are not repeated. The three pending captures do not
+block source integration, regression testing, a deployment proposal, or read-only
+monitoring investigation. They remain pending after those activities.
+
+### Authorization, ownership and calculation surface
+
+**Calculation surface: none.** No application calculation, database schema,
+route, response contract, or product workflow changes are in this packet.
+
+The read-only manager `/root` delegated production/source evidence to
+`/root/integration_dev`, tests and isolated validation to `/root/integration_qa`,
+and independent code/unslop review to `/root/integration_review`. The manager
+then reused `/root/integration_review` sequentially as product-manager for this
+append, with explicit file ownership of this PLANNING.md. This is a new
+continuation role assignment, not continuity with the historical council or
+multiple independent reviewer identities. The manager independently reviews
+this worker's authored planning prose. Final code-reviewer and unslop-reviewer
+roles exclude that prose. Native read/edit tools were unavailable; the manager
+explicitly authorized bounded shell reads and byte-preserving document append.
+
+Existing Gate 0/Gate 1 and historical authorization remain in force for their
+reviewed scope. The latest request authorizes local source preparation and
+validation, not publication, merge, deployment, scheduling changes, cleanup,
+checkout creation/switching, or main reconciliation. Existing installed
+protections and implementation drafts are evidence; they are not approval of
+new bytes. No new owner-session approval is needed to complete the six steps.
+
+The required order remains:
+
+`A → PREVENTION_COMPLETE → finish or explicitly disposition open development
+while retaining worktrees and recovery roots → owner-accepted stabilization →
+fresh read-only evidence → separately approved B–D operations`.
+
+Operation E remains separately planned and approved. Source merge alone cannot
+establish installation, active monitoring, actual interception, or
+`PREVENTION_COMPLETE`.
+
+### Fresh observations and historical statements superseded
+
+Evidence for this continuation is retained under
+[`artifacts/operation-a-source-integration-20260908/`](../../artifacts/operation-a-source-integration-20260908/).
+The local date is September 8; early receipts use September 7 UTC timestamps.
+The owner-named standalone clone remains the authorized workspace. The source
+checkout, other worktrees, deployed guards, scheduling and recovery roots remain
+read-only in this continuation. The existing 11-line unstaged change to
+`docs/WORKTREE_CLEANUP_PLAN.md` is retained, not adopted as approval.
+
+Fresh isolation/deployment evidence is recorded in `isolation-dev.json`,
+`deployment-preimages-initial.json`, and `preserved-inputs.json`. Exact publication
+queries against `AvihaiShai/Hypertrophy-Toolbox-v3` are retained in
+`pr-484-fresh.json`, `pr-485-fresh.json` and `remote-main-fresh.json`. The
+source-pointing `origin` is not a publication destination. Historical statements
+above that Gate 2, all installation, or both merges remain pending are stale
+for the already completed packets; their original text remains historical.
+
+PR #484 and PR #485 remain merged, with respective merge commits `c0cc3f1` and
+`87e431c`. Their saved CI evidence remains evidence of those exact packets,
+not new CI for this uncommitted source integration. The branch remains
+`fix/operation-a-auto-mode-20260906` at `c92b6b9` while local changes are prepared.
+
+The current user/main guard is the owner-installed rev-4 build, SHA-256
+`806b281388d130c62c0f3fef2372798ef101aae2a61703f9e6d172f908d7d73e`.
+It supersedes the older `81eaf455…` measurement and is the source of the
+retention, option-grammar and force-latching protections being preserved.
+The prior integration proposal is stale. The other historical installation
+rows require their own fresh preimages; no blanket overwrite is authorized.
+
+The proposed source combines those rev-4 protections with #485's conservative
+confirmation-tier denial in `auto`, retaining denial in `bypassPermissions` and
+unknown/missing confirmation semantics. Changes include meaningful retention,
+dry-run option grammar, null/empty ref-update, force-negation, and mode/profile
+regressions. Denial precedence, safe commands, MSYS suppression protection,
+ASCII/BOM, parser failures, and both installed PowerShell hosts remain covered.
+At this append, applicable isolated validation is still running. No final pass,
+new publication approval, or deployment approval is claimed here. Final results
+and review provenance will be appended after validation and review complete.
+
+Read-only monitoring evidence in `monitoring-reconciliation.json` found no
+matching task, an exact `OperationA-WorktreeAudit` query failure (exit 1), and no
+corresponding task file. The Task Scheduler operational log is disabled, so no
+removal time or cause is established. The saved task XML and historical
+installation remain evidence. The latest saved audit metadata is
+`2026-09-07T11:10:36.534135Z`; its report exit 1 records retained audit findings.
+That report does not prove an active current schedule. No task was created,
+started, changed or removed and no audit was rerun to manufacture freshness.
+
+### Remaining decisions at this intermediate record
+
+Final source/validation and the exact staged review packet, target-preimage-bound
+deployment proposal, current-state pointers, and final reviewer findings are
+still being prepared. Owner review must distinguish approval of source/publication
+from approval of the exact external deployment bytes and target set. Monitoring
+restoration needs a concrete separately approved proposal; current absence is
+not permission to change scheduling. Guidance/interception coverage gaps and
+the three held owner-session captures remain open. `PREVENTION_COMPLETE` is not
+declared and development closeout/stabilization/Operations B–E are not started.
+### Final source-integration result and review — 2026-09-08
+
+This completed result supersedes only the in-progress statements in the preceding
+continuation entry. The six authorized steps are complete; the three pending
+owner-session captures did not block them. No publication, merge, deployment,
+scheduler change, cleanup, checkout switch/creation, or source-checkout write
+occurred. Existing owner authorizations and completed historical gates remain
+intact, with no new Gate 2/publication/deployment approval inferred.
+
+**Concrete changes:** `.claude/hooks/guard-destructive-command.ps1` integrates
+rev-4 executable protections with #485 conservative auto-mode ask denial;
+`tests/test_guard_destructive_command.py` adds retention/parser regressions and
+preserves suppression/profile/confirmation coverage. This PLANNING append and
+coordinated MASTER_HANDOVER current-state insertion record the completed local
+continuation. The pre-existing `docs/WORKTREE_CLEANUP_PLAN.md` 11-line change is
+preserved separately. No inventory artifacts were regenerated.
+
+The final staged source/test review is
+[`source-test-staged-final.diff`](../../artifacts/operation-a-source-integration-20260908/source-test-staged-final.diff),
+63,783 bytes, SHA-256
+`3d6b7addabc78fc2c03340a47d622bc9819f14162f5dc28ad71f4289ccc7cdde`.
+Its [receipt](../../artifacts/operation-a-source-integration-20260908/source-test-staged-final-receipt.json)
+binds the final test SHA-256
+`e062310e381143c6ce995b410675ade4433a94b869d2d5b2022c65bb866c221b` and guard
+raw CRLF/BOM SHA-256
+`92fcb656a87c61aacd646fe57559dbb7cf91018edd634345e260e1f5a572f333`
+(59,129 bytes). Git stores the equivalent LF-normalized guard blob
+`49de8f5d687a2ce51e3f10d69837c563e65d2560`, SHA-256
+`76b259d17e4fcda6e7ec29f0b8041746ef70c8bbd3073aca498bf404a52afe0d`.
+Future publication/deployment must preserve that explicit byte-format bridge;
+a matching normalized source is not a claim that raw file hashes are identical.
+The earlier `9b6b32b1…` staged diff remains retained as historical evidence before
+the final docstring-only correction.
+
+**Validation:** the
+[QA receipt](../../artifacts/operation-a-source-integration-20260908/scratch-qa/results/qa-receipt.json)
+records **1,506 guard/workflow tests passed**, no failures or skips, in **698.87 s**;
+**252 standalone guard cases passed**, zero failures; and **12 final-source
+ASCII/BOM/parser tests passed** in **1.25 s**. Both installed PowerShell hosts are
+covered. The baseline retention subset exposed **104 failures / 60 passes**
+before source integration; the earlier aggregation subset had **12 passes**.
+Those baseline runs establish the regression contrast, not additional final
+coverage to add to the 1,506 total.
+
+A header-only edit occurred during the behavioral run. PowerShell non-comment
+token identity records the behavior equivalence between the run-start guard
+`c5071233…` and final guard `92fcb656…`; the 12 focused tests validate final source
+encoding/parsing. The final test edit shortened only a docstring after the run;
+Python AST identity excluding docstrings and syntax parsing bind run test
+`c838c3b3…` to final `e062310e…`. No full behavioral rerun is claimed for these
+prose-only changes. The QA receipt preserves the exact scope of each observation.
+
+Pyright checked **249 files with zero diagnostics** and the baseline gate passed
+with zero net-new diagnostics. Flake8 and staged whitespace checks passed.
+Tracked/staged-view and scratch redirection evidence is retained in the packet;
+`generate_test_inventory.py --check` passed without drift. The host-dependent
+guard module is explicitly excluded from the deterministic inventory counts,
+so its additional cases did not require regeneration. Unchanged lifecycle,
+SQLite-consistent snapshot and worktree creation/preflight evidence was reused
+only after source/test identity checks; those suites and live-database operations
+were not rerun or claimed as newly validated.
+
+**Actual final review provenance:** `/root/integration_review` resumed sequentially
+as code-reviewer, then unslop-reviewer, after the independent developer/QA work.
+These are two roles performed by one reviewer, not two independent agents. The
+review excluded this reviewer's PLANNING/current-state prose, which the read-only
+manager independently reviewed. The same worker then resumed product-manager
+for this final append and coordinated documentation support for MASTER_HANDOVER.
+No historical council provenance or finding was rewritten.
+
+**Code-reviewer final finding (verbatim):**
+
+> No open code findings in source-test-staged-final.diff SHA-256 3d6b7addabc78fc2c03340a47d622bc9819f14162f5dc28ad71f4289ccc7cdde. The integrated source preserves rev-4 executable protections and restores #485 conservative auto-mode ask denial; tested profile/permission precedence, retention grammar, safe controls and fail-closed contracts are retained. This is local candidate evidence, not installed interception or PREVENTION_COMPLETE.
+
+**Unslop-reviewer final finding (verbatim):**
+
+> No open unslop findings in the reviewed source/test diff. Corrected the prune/push header, shortened force-latching history, corrected stale empty-token/unknown-push test comments, and reduced the retention matrix docstring to one line; these corrections change no executable behavior.
+
+### Concrete review decisions and remaining Gate A obligations
+
+The [review/deployment proposal](../../artifacts/operation-a-source-integration-20260908/REVIEW_AND_DEPLOYMENT_PROPOSAL.md)
+and [current Gate A evidence matrix](../../artifacts/operation-a-source-integration-20260908/EVIDENCE_MATRIX_5_4_CURRENT.md)
+are the current continuation pointers. Previous evidence matrices and planning
+statements remain dated history, with their original bytes retained. Required
+owner decisions are concrete:
+
+1. Accept or revise the exact reviewed source/test packet and separately authorize
+   its publication/merge workflow against `AvihaiShai/Hypertrophy-Toolbox-v3`.
+   This packet remains uncommitted, unpublished and unmerged; #484/#485 merges
+   and their CI do not approve or validate these new publication bytes.
+2. After matching source lands, accept or revise the exact **93-target** guard
+   deployment proposal. The
+   [fresh manifest](../../artifacts/operation-a-source-integration-20260908/deployment-preimages-final.json)
+   SHA-256 is `09f0b9bcf19121c7930f2f291345a19678e592871762fb18ac7bd1480aa7e806`.
+   It records exact path, current file identity, raw bytes/hash, link count and
+   reparse ancestry: **91 targets have `b4ba5d0d…`; user/main have rev-4
+   `806b2813…`**. All 93 preimages must be revalidated before any future write;
+   any drift stops the entire proposed rollout. There is no inferred partial
+   subset authority. Excluded variants, original bytes and recovery roots remain.
+3. Separately approve or revise monitoring restoration from the exact retained
+   **1,741-byte** task XML, SHA-256
+   `59173c07010e43ca3cc1e9b04060ccefa84fa2d8e391401902ecca85fa94ff0b`.
+   The proposal pins its wrapper/audit hashes, daily 07:00 +03:00 trigger,
+   InteractiveToken owner, battery/idle restrictions, IgnoreNew and 30-minute
+   limit. Revalidate these availability constraints and current paths before any
+   approved restoration; then require an actual registered schedule and fresh
+   trigger/result/report evidence. Existing XML and September 7 report do not
+   prove present active monitoring. No restoration or scheduling change ran.
+
+Active-guidance coverage remains incomplete and is independent work. Only the
+three pending interception/profile captures are held until matching reviewed
+guard source is landed and deployed; guidance closure is not an added prerequisite
+to those captures. Completed suppression-state captures remain complete historical
+evidence. Source tests are not installed-session observations. Bounded parser
+limitations, active loader/registration scope and non-Claude transport coverage
+remain explicit in the proposal and are not silently expanded in this packet.
+
+The earliest outstanding source/publication decision is now owner review of the
+completed integrated packet; deployment, active monitoring, guidance coverage and
+actual interception remain Gate A obligations afterward. `PREVENTION_COMPLETE`
+is not established. The required retention/stabilization/fresh-evidence sequence
+and separate B–D/E approvals remain unchanged.

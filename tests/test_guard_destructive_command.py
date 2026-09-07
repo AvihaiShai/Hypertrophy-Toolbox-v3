@@ -111,39 +111,6 @@ def outcome(
 
 # (command, profile, expected outcome)
 CASES = [
-    # --- MSYS path-conversion overrides are never set or exported -----------
-    ("MSYS_NO_PATHCONV=1 git status", "main", "deny"),
-    ("msys_no_pathconv=1 git status", "main", "deny"),
-    ("MSYS2_ARG_CONV_EXCL=* git status", "main", "deny"),
-    ("FOO=bar MSYS_NO_PATHCONV=1 git status", "main", "deny"),
-    ("env MSYS_NO_PATHCONV=1 git status", "main", "deny"),
-    ("sudo env -i MSYS2_ARG_CONV_EXCL=* git status", "main", "deny"),
-    ("export MSYS_NO_PATHCONV=1", "main", "deny"),
-    ("export msys2_arg_conv_excl", "main", "deny"),
-    ("set MSYS_NO_PATHCONV=1", "main", "deny"),
-    ('cmd /c "set MSYS2_ARG_CONV_EXCL=*"', "main", "deny"),
-    ("$env:MSYS_NO_PATHCONV = '1'", "main", "deny"),
-    ("${env:msys2_arg_conv_excl}='*'", "main", "deny"),
-    ("Set-Item Env:MSYS_NO_PATHCONV 1", "main", "deny"),
-    ("New-Item -Path Env:MSYS2_ARG_CONV_EXCL -Value '*'", "main", "deny"),
-    ("[Environment]::SetEnvironmentVariable('MSYS_NO_PATHCONV','1','Process')", "main", "deny"),
-    ("[System.Environment]::SetEnvironmentVariable('msys2_arg_conv_excl','*','User')", "main", "deny"),
-    ("setx MSYS_NO_PATHCONV 1", "main", "deny"),
-    ("setx /M msys2_arg_conv_excl *", "main", "deny"),
-    ("git status && MSYS_NO_PATHCONV=1 git show HEAD:file", "main", "deny"),
-    ('bash -c "export MSYS2_ARG_CONV_EXCL=*; git status"', "main", "deny"),
-    ('pwsh -Command "$env:MSYS_NO_PATHCONV=1; git status"', "main", "deny"),
-    # Inspection and textual references do not mutate the environment.
-    ("echo $MSYS_NO_PATHCONV", "main", "allow"),
-    ("printenv MSYS2_ARG_CONV_EXCL", "main", "allow"),
-    ("Get-Item Env:MSYS_NO_PATHCONV", "main", "allow"),
-    ("[Environment]::GetEnvironmentVariable('MSYS2_ARG_CONV_EXCL','Machine')", "main", "allow"),
-    ('cmd /c "set MSYS_NO_PATHCONV"', "main", "allow"),
-    ('rg "MSYS_NO_PATHCONV=1" .', "main", "allow"),
-    ('Write-Output "export MSYS2_ARG_CONV_EXCL=*"', "main", "allow"),
-    ('git commit -m "never set MSYS_NO_PATHCONV=1"', "main", "allow"),
-    ("export -p MSYS_NO_PATHCONV", "main", "allow"),
-    ("env -u MSYS2_ARG_CONV_EXCL git status", "main", "allow"),
     # --- recursive force delete: every spelling that has leaked --------------
     ("rm -rf tmp", "main", "deny"),
     ("rm -fr tmp", "main", "deny"),
@@ -209,21 +176,39 @@ CASES = [
     ("git rm -r --cached .idea", "main", "ask"),
     ("git rm --cached --dry-run x", "main", "allow"),
     ("git rm src/foo.py", "main", "ask"),
-    ("git branch -D wt/foo", "main", "ask"),
-    ("git branch --delete --force wt/foo", "main", "ask"),
-    ("git branch -d wt/foo", "main", "allow"),
-    ("git worktree remove ../wt", "main", "ask"),
-    # Bare form: exactly one token after the subcommand, which is where a
-    # single-element array unrolls to a scalar string and $rest[0] becomes 'r'.
-    ("git worktree remove", "main", "ask"),
     ("git worktree list", "main", "allow"),
+    # --- worktree prune: denied, with its own option-grammar dry-run parse ---
+    ("git worktree prune", "main", "deny"),
+    ("git worktree prune", "agent", "deny"),
+    ("git worktree prune -n", "main", "allow"),
+    ("git worktree prune --dry-run", "main", "allow"),
+    ("git worktree prune -nv", "main", "allow"),
+    ("git worktree prune -vn", "agent", "allow"),
+    # Negation and order: git takes the last flag, so must the guard.
+    ("git worktree prune --dry-run --no-dry-run", "main", "deny"),
+    ("git worktree prune --no-dry-run --dry-run", "main", "allow"),
+    # --expire eats the next token, so this --dry-run is its VALUE, not a flag.
+    ("git worktree prune --expire --dry-run", "main", "deny"),
+    ("git worktree prune --expire 3.days.ago", "main", "deny"),
+    ("git worktree prune --expire=3.days.ago --dry-run", "main", "allow"),
+    ("git worktree prune --expire", "main", "deny"),
+    ("git worktree prune --verbose", "main", "deny"),
+    # Unrecognised option: denied even alongside a real --dry-run.
+    ("git worktree prune --dry-run --bogus", "main", "deny"),
+    ("git worktree prune -- extra", "main", "deny"),
+    ("git worktree prune --dry-run --", "main", "allow"),
+    ("git -C /d/development/wt worktree prune", "main", "deny"),
+    ("git -C /d/development/wt worktree prune --dry-run", "main", "allow"),
+    ("git status && git worktree prune", "main", "deny"),
+    ("git worktree prune --dry-run && git worktree prune", "main", "deny"),
+    ('sh -c "git worktree prune"', "main", "deny"),
     ("git checkout -fq main", "main", "ask"),
     ("git checkout main", "main", "allow"),
     # --- aggregation: an early ask must never mask a later deny --------------
     ("rm -r a && rm -rf b", "main", "deny"),
     ("git rm file ; git reset --hard HEAD", "main", "deny"),
     ("git branch -D old && git push --force origin main", "main", "deny"),
-    ("git worktree remove ../wt && git status", "main", "ask"),
+    ("git worktree remove ../wt && git status", "main", "deny"),
     ("git status && git log --oneline -5", "main", "allow"),
     # --- delegated execution: the nested command must be scanned too ---------
     ('sh -c "rm -rf tmp"', "main", "deny"),
@@ -329,7 +314,362 @@ CASES = [
     (".venv/Scripts/python.exe -m pytest -q", "main", "allow"),
     ("npm run build:css", "main", "allow"),
     ("gh pr list --state all --limit 20", "main", "allow"),
+    # --- worktree-retention hold: prohibited, so deny rather than ask -------
+    # These deny in BOTH profiles and in every permission mode; the matrix in
+    # test_retention_hold_verdict_is_mode_and_profile_independent pins that.
+    # The rows here also pin the option variants and the neighbours that must
+    # stay allowed.
+    #
+    # git worktree remove. `git worktree -h` gives it `[-f] <worktree>` and no
+    # dry-run option at all, so the generic Test-DryRun exemption -- which
+    # matches a bare --dry-run/-n/--whatif token anywhere -- must not reach it.
+    ("git worktree remove ../wt", "main", "deny"),
+    ("git worktree remove ../wt", "agent", "deny"),
+    ("git worktree remove -f ../wt", "main", "deny"),
+    ("git worktree remove --force ../wt", "main", "deny"),
+    # Bare form: exactly one token after the subcommand, which is where a
+    # single-element array unrolls to a scalar string and $rest[0] becomes 'r'.
+    ("git worktree remove", "main", "deny"),
+    ("git -C ../wt worktree remove ../wt", "main", "deny"),
+    ("git worktree remove -n ../wt", "main", "deny"),
+    ("git worktree remove --dry-run ../wt", "main", "deny"),
+    ("git worktree remove ../wt --whatif", "main", "deny"),
+    ("git worktree add ../wt -b feat origin/main", "main", "allow"),
+    ("git worktree repair", "main", "allow"),
+    #
+    # Branch deletion. -d and -D both delete, short options bundle, and git's
+    # parse-opt accepts any unambiguous abbreviation of --delete.
+    ("git branch -d wt/foo", "main", "deny"),
+    ("git branch -d wt/foo", "agent", "deny"),
+    ("git branch -D wt/foo", "main", "deny"),
+    ("git branch --delete wt/foo", "main", "deny"),
+    ("git branch --delete --force wt/foo", "main", "deny"),
+    ("git branch -rd origin/wt/foo", "main", "deny"),
+    ("git branch -dr origin/wt/foo", "main", "deny"),
+    ("git branch -rD origin/wt/foo", "main", "deny"),
+    ("git branch --del wt/foo", "main", "deny"),
+    ("git branch --d wt/foo", "main", "deny"),
+    # git branch has no -n and no --dry-run, so neither token exempts anything.
+    ("git branch -d -n wt/foo", "main", "deny"),
+    ("git branch --delete --dry-run wt/foo", "main", "deny"),
+    ("git -C ../wt branch -D wt/foo", "main", "deny"),
+    # Listing, renaming, copying and creating are untouched.
+    ("git branch", "main", "allow"),
+    ("git branch -a", "main", "allow"),
+    ("git branch -vv", "main", "allow"),
+    ("git branch --show-current", "main", "allow"),
+    ("git branch --list wt/*", "main", "allow"),
+    ("git branch --merged origin/main", "main", "allow"),
+    ("git branch --no-merged origin/main", "main", "allow"),
+    ("git branch --sort=-committerdate", "main", "allow"),
+    ("git branch --format=%(refname)", "main", "allow"),
+    ("git branch --contains HEAD", "main", "allow"),
+    ("git branch -m old new", "main", "allow"),
+    ("git branch -c old copy", "main", "allow"),
+    ("git branch feat origin/main", "main", "allow"),
+    #
+    # Tag deletion. This subcommand is the reason the generic dry-run exemption
+    # cannot be reused: `-n[<num>]` is git tag's annotation-line count, so
+    # Test-DryRun reads the bare -n of `git tag -n -d v1` as a dry run and would
+    # wave through a command that still deletes the tag.
+    ("git tag -d v1", "main", "deny"),
+    ("git tag -d v1", "agent", "deny"),
+    ("git tag --delete v1", "main", "deny"),
+    ("git tag --del v1", "main", "deny"),
+    ("git tag -n -d v1", "main", "deny"),
+    ("git tag -d -n v1", "main", "deny"),
+    ("git tag --dry-run -d v1", "main", "deny"),
+    ("git tag", "main", "allow"),
+    ("git tag -l v1*", "main", "allow"),
+    ("git tag -n5 -l", "main", "allow"),
+    ("git tag -a v1 -m release", "main", "allow"),
+    ("git tag --points-at HEAD", "main", "allow"),
+    ("git tag --column", "main", "allow"),
+    ("git tag -v v1", "main", "allow"),
+    #
+    # update-ref deletion. There is NO --delete long option here, and --d/--de
+    # are ambiguous with --deref/--no-deref, so only the short -d spells
+    # deletion -- which is why this subcommand does not share the long-option
+    # prefix helper. --stdin carries updates the guard cannot read, so it denies
+    # as unclassifiable rather than being guessed at.
+    ("git update-ref -d refs/heads/wt/foo", "main", "deny"),
+    ("git update-ref -d refs/heads/wt/foo", "agent", "deny"),
+    ("git update-ref -d refs/heads/wt/foo abc123", "main", "deny"),
+    ("git update-ref -dz refs/heads/wt/foo", "main", "deny"),
+    ("git update-ref --stdin", "main", "deny"),
+    ("git update-ref --stdin -z", "main", "deny"),
+    ("git update-ref --s", "main", "deny"),
+    ("git update-ref -m reason -d refs/heads/wt/foo", "main", "deny"),
+    # `git update-ref <ref> ""` deletes by writing an empty new value. The
+    # tokenizer preserves the empty quoted argument so the new-value deletion
+    # cannot be mistaken for an ordinary update.
+    ('git update-ref refs/heads/wt/foo ""', "main", "deny"),
+    ("git update-ref -d -n refs/heads/wt/foo", "main", "deny"),
+    ("git update-ref --dry-run -d refs/heads/wt/foo", "main", "deny"),
+    # -m consumes the next token as the reflog reason, so it is never an
+    # operand; these are ordinary two- and three-operand updates.
+    ("git update-ref refs/archive/wt-foo abc123", "main", "allow"),
+    ("git update-ref --no-deref refs/archive/x abc123", "main", "allow"),
+    ("git update-ref -m archive refs/archive/x abc123 def456", "main", "allow"),
+    #
+    # symbolic-ref deletion.
+    ("git symbolic-ref -d refs/heads/x", "main", "deny"),
+    ("git symbolic-ref --delete refs/heads/x", "main", "deny"),
+    ("git symbolic-ref --d refs/heads/x", "main", "deny"),
+    ("git symbolic-ref HEAD", "main", "allow"),
+    ("git symbolic-ref -q --short HEAD", "main", "allow"),
+    #
+    # A refspec with an empty source deletes the remote ref, which the existing
+    # --delete check does not cover. A source-bearing colon refspec is an
+    # ordinary push and keeps the pre-existing per-profile verdict.
+    ("git push origin :wt/foo", "main", "deny"),
+    ("git push origin :refs/heads/wt/foo", "main", "deny"),
+    ("git push origin HEAD:refs/heads/feat", "main", "allow"),
+    ("git push origin HEAD:refs/heads/feat", "agent", "deny"),
+    #
+    # Chaining and delegation: an allow or an ask must never mask the deny.
+    ("git status && git worktree remove ../wt", "main", "deny"),
+    ("git worktree remove ../wt && git status", "agent", "deny"),
+    ("git branch -d a; git branch -d b", "main", "deny"),
+    ("git log --oneline | head -5 && git tag -d v1", "main", "deny"),
+    ("git rm src/foo.py && git branch -D old", "main", "deny"),
+    ('sh -c "git worktree remove ../wt"', "main", "deny"),
+    ('bash -lc "git branch -D wt/foo"', "main", "deny"),
+    ('cmd /c "git update-ref -d refs/heads/x"', "main", "deny"),
+    ("xargs -I {} git branch -D {}", "main", "deny"),
+    ('bash -c "sh -c \'git tag -d v1\'"', "main", "deny"),
+    ("git\\ branch -D wt/foo", "main", "deny"),
+    ("git for-each-ref refs/heads", "main", "allow"),
+    # --- rev 2: option values, negation and ordering in the push dry-run ---
+    # Test-DryRun matches a bare --dry-run/-n token anywhere in the list, so
+    # every command in this first group was exempted while still deleting a
+    # remote ref. git push is parsed by its own grammar now
+    # (Get-GitPushParse), which is also why the genuine dry runs below still
+    # allow.
+    ("git push --dry-run --no-dry-run origin :refs/heads/wt-example", "main", "deny"),
+    ("git push -n --no-dry-run origin :refs/heads/wt-example", "main", "deny"),
+    ("git push --dry-run --no-dry-run origin +:refs/heads/wt-example", "main", "deny"),
+    ("git push --dry-run --no-dry-run --force origin main", "main", "deny"),
+    # -o, --repo and --push-option consume the FOLLOWING token, so the
+    # --dry-run in each of these is a value and the push is real.
+    ("git push -o --dry-run origin :refs/heads/wt-example", "main", "deny"),
+    ("git push --repo --dry-run origin :refs/heads/wt-example", "main", "deny"),
+    ("git push -vo --dry-run origin :refs/heads/wt-example", "main", "deny"),
+    ("git push --push-option --dry-run origin +:refs/heads/wt-example", "main", "deny"),
+    # An unrecognised push option makes classification uncertain, so the whole
+    # command denies without a dry-run exemption or a fallback operand scan.
+    ("git push --bogus --dry-run origin :refs/heads/wt-example", "main", "deny"),
+    # The refspec grammar is [+]<src>:<dst>. The optional force marker sits
+    # BEFORE the empty source, so +:dst deletes exactly as :dst does.
+    ("git push origin +:refs/heads/wt-example", "main", "deny"),
+    ("git push origin +:refs/heads/wt-example", "agent", "deny"),
+    # Proven dry runs stay allowed, including across an option value.
+    ("git push --dry-run origin :refs/heads/wt-example", "main", "allow"),
+    ("git push --dry-run origin :refs/heads/wt-example", "agent", "allow"),
+    ("git push -n origin :refs/heads/wt-example", "main", "allow"),
+    ("git push --no-dry-run --dry-run origin :refs/heads/wt-example", "main", "allow"),
+    ("git push -o ci.skip --dry-run origin :refs/heads/wt-example", "main", "allow"),
+    ("git push --repo upstream --dry-run origin :refs/heads/wt-example", "main", "allow"),
+    ("git push -vn origin :refs/heads/wt-example", "main", "allow"),
+    ("git push --recurse-submodules=no --dry-run origin :refs/x", "main", "allow"),
+    # Ordinary pushes are untouched. (A source-bearing + refspec is NOT one:
+    # rev 3 treats it as the force intent it is. See the rev-3 block below.)
+    ("git push -o ci.skip origin HEAD", "main", "allow"),
+    ("git push --repo upstream origin HEAD", "main", "allow"),
+    ("git push --set-upstream origin feat", "main", "allow"),
+    ("git push --tags origin", "main", "allow"),
+    ("git push -4 origin HEAD", "main", "allow"),
+    ("git push --signed=if-asked origin HEAD", "main", "allow"),
+    #
+    # --- rev 2: update-ref deletes by VALUE, not only by operand count ------
+    # `<refname> <new-oid>` deletes whenever the new value is the empty string
+    # or the all-zero object id, and both of those are two-operand calls.
+    ('git update-ref refs/heads/wt-example "" 1111111111111111111111111111111111111111', "main", "deny"),
+    ('git update-ref refs/heads/wt-example ""', "main", "deny"),
+    ("git update-ref refs/heads/wt-example 0000000000000000000000000000000000000000", "main", "deny"),
+    ("git update-ref refs/heads/wt-example 0000000000000000000000000000000000000000", "agent", "deny"),
+    ("git update-ref refs/heads/wt-example 0000000000000000000000000000000000000000 1111111111111111111111111111111111111111", "main", "deny"),
+    ("git update-ref -m retire refs/heads/wt-example 0000000000000000000000000000000000000000", "main", "deny"),
+    ("git update-ref refs/heads/wt-example 0", "main", "deny"),
+    ("git update-ref -- refs/heads/wt-example 0000000000000000000000000000000000000000", "main", "deny"),
+    # An unexpanded expansion could be the empty string or the null oid, so it
+    # cannot be classified and denies.
+    ("git update-ref refs/heads/wt-example $SHA", "main", "deny"),
+    # No documented form takes four operands.
+    ("git update-ref refs/heads/wt-example 1111111111111111111111111111111111111111 1111111111111111111111111111111111111111 extra", "main", "deny"),
+    # The empty position has to survive delegation and chaining too.
+    ('sh -c \'git update-ref refs/heads/wt-example "" 1111111111111111111111111111111111111111\'', "main", "deny"),
+    ("git status && git update-ref refs/heads/wt-example 0000000000000000000000000000000000000000", "main", "deny"),
+    # An all-zero OLD value is the "must not exist yet" guard on a creation.
+    # Only the NEW value position means deletion.
+    ("git update-ref refs/archive/wt-foo 1111111111111111111111111111111111111111 0000000000000000000000000000000000000000", "main", "allow"),
+    ("git update-ref refs/archive/wt-foo 1111111111111111111111111111111111111111", "main", "allow"),
+    ("git update-ref refs/archive/wt-foo 0abc123", "main", "allow"),
+    ("git update-ref -m archive refs/archive/x 1111111111111111111111111111111111111111 1111111111111111111111111111111111111111", "main", "allow"),
+    #
+    # --- rev 2: empty argument positions survive tokenization ---------------
+    # Dropping an empty quoted argument is what made the update-ref deletion
+    # above read as an ordinary two-operand update. Preserving it must not
+    # disturb anything else, and an empty token is never an executable.
+    ('rm -rf ""', "main", "deny"),
+    ('xargs "" rm -rf', "main", "deny"),
+    ('git "" branch -D wt/foo', "main", "deny"),
+    # An absent command argument and an explicitly empty one are the same
+    # malformed call.
+    ('sh -c ""', "main", "deny"),
+    ('git status ""', "main", "allow"),
+    ('echo ""', "main", "allow"),
+    ('git commit -m ""', "main", "allow"),
+    # --- rev 3: ONE reading of the push option list ------------------------
+    # rev 2 kept three readings of the same argument list alive: the grammar
+    # parser reported only dry-run, while deletion and force were judged by an
+    # exact-string / Test-ShortFlag scan, and refspecs came from operands or
+    # from every token depending on whether the parse succeeded. Both of the
+    # next two commands really delete a remote ref and both used to allow.
+    ("git push --del origin wt-example", "main", "deny"),
+    ("git push --del origin wt-example", "agent", "deny"),
+    ("git push -4d origin wt-example", "main", "deny"),
+    ("git push -4d origin wt-example", "agent", "deny"),
+    # --del is an unambiguous parse-opt abbreviation, which an exact-string test
+    # for '--delete' misses. -4d is a cluster containing a digit, which
+    # Test-ShortFlag's ^-[a-zA-Z]+$ rejects outright, hiding the -d.
+    ("git push --de origin wt-example", "main", "deny"),
+    ("git push -d origin wt-example", "main", "deny"),
+    ("git push -6d origin wt-example", "main", "deny"),
+    ("git push -fd origin wt-example", "main", "deny"),
+    ("git push -df origin wt-example", "main", "deny"),
+    # --mirror and --prune delete every remote ref with no local counterpart,
+    # without naming any of them.
+    ("git push --mirror origin", "main", "deny"),
+    ("git push --mir origin", "main", "deny"),
+    ("git push --prune origin main", "main", "deny"),
+    # Same force intent as --force, spelled in the refspec instead.
+    ("git push origin +refs/heads/a:refs/heads/b", "main", "deny"),
+    ("git push --for origin main", "main", "deny"),
+    # Ambiguous abbreviations: git rejects these too. --d matches delete and
+    # dry-run; --f matches force, force-with-lease, force-if-includes and
+    # follow-tags. An option the guard cannot resolve makes every other verdict
+    # a guess, so the push is denied rather than read a second, looser way.
+    ("git push --d origin wt-example", "main", "deny"),
+    ("git push --f origin main", "main", "deny"),
+    ("git push --bogus origin HEAD", "main", "deny"),
+    ("git push -x origin HEAD", "main", "deny"),
+    # An option missing its required value is equally unclassifiable.
+    ("git push -o", "main", "deny"),
+    ("git push --repo", "main", "deny"),
+    #
+    # --- rev 3 safe neighbours ---------------------------------------------
+    # Negation is honoured for DELETE, because git takes the last spelling of
+    # an option and a cancelled delete removes nothing. Force is deliberately
+    # not negatable -- see the rev-4 block below.
+    ("git push --no-del origin wt-example", "main", "allow"),
+    ("git push --delete --no-delete origin wt-example", "main", "allow"),
+    ("git push -d --no-delete origin wt-example", "main", "allow"),
+    # A dry run performs nothing, so it is checked before the deletion intent.
+    ("git push -nd origin wt-example", "main", "allow"),
+    ("git push --del --dry-run origin wt-example", "main", "allow"),
+    ("git push --dry origin :refs/x", "main", "allow"),
+    # A refspec without the leading + is an ordinary update.
+    ("git push origin refs/heads/a:refs/heads/b", "main", "allow"),
+    # Ordinary options must not be swept up by the digit-aware cluster parser
+    # or by the prefix resolver.
+    ("git push -4 origin HEAD", "main", "allow"),
+    ("git push -6 origin HEAD", "main", "allow"),
+    ("git push -u origin feat", "main", "allow"),
+    ("git push -qv origin HEAD", "main", "allow"),
+    ("git push --thin origin HEAD", "main", "allow"),
+    ("git push --atomic origin HEAD", "main", "allow"),
+    ("git push --follow-tags origin HEAD", "main", "allow"),
+    ("git push --no-verify origin HEAD", "main", "allow"),
+    ("git push --porcelain origin HEAD", "main", "allow"),
+    # --force-if-includes is a safety CONDITION on --force-with-lease, not a
+    # force in its own right.
+    ("git push --force-if-includes origin HEAD", "main", "allow"),
+    ("git push --exec /usr/bin/git-receive-pack origin HEAD", "main", "allow"),
+    ("git push --receive-pack=/usr/bin/grp origin HEAD", "main", "allow"),
+    ("git push --no-mirror origin HEAD", "main", "allow"),
+    ("git push --no-prune origin HEAD", "main", "allow"),
+    #
+    # --- rev 4: --force and --force-with-lease are separate options ---------
+    # rev 3 recorded both in ONE Boolean, so each option's --no- form cancelled
+    # the OTHER one. Both of the next two really force-push, and both allowed.
+    ("git push --force --no-force-with-lease origin wt-example", "main", "deny"),
+    ("git push --force-with-lease --no-force origin wt-example", "main", "deny"),
+    ("git push --force --no-force-with-lease origin wt-example", "agent", "deny"),
+    ("git push --force-with-lease --no-force origin wt-example", "agent", "deny"),
+    # Reversed ordering -- the negation first, the positive option second --
+    # denied under rev 3 as well, which is exactly why the defect was not
+    # visible from one ordering alone.
+    ("git push --no-force-with-lease --force origin wt-example", "main", "deny"),
+    ("git push --no-force --force-with-lease origin wt-example", "main", "deny"),
+    # A positive force option is LATCHED: no later negation clears it, not even
+    # its own. This matches the live guard, which scans for --force,
+    # --force-with-lease* and -f with no notion of negation at all. Honouring
+    # the negation would loosen the guard during the retention hold.
+    ("git push --force --no-force origin main", "main", "deny"),
+    ("git push --force-with-lease --no-force-with-lease origin main", "main", "deny"),
+    ("git push -f --no-force origin main", "main", "deny"),
+    ("git push --force-with-lease=origin/main --no-force origin main", "main", "deny"),
+    # Spellings are resolved by the same unified parser, so an unambiguous
+    # abbreviation and a short flag latch exactly as the full spelling does.
+    ("git push --force-w --no-force origin main", "main", "deny"),
+    ("git push --force --no-force-w origin main", "main", "deny"),
+    ("git push -qf --no-force-with-lease origin main", "main", "deny"),
+    # --for is ambiguous between force, force-with-lease and force-if-includes,
+    # so it denies as unclassifiable rather than as a latched force. Either way
+    # a negation cannot rescue it.
+    ("git push --for --no-force-with-lease origin main", "main", "deny"),
+    # A PROVEN dry run performs nothing and stays exempt, force or not, in
+    # either order. The push block reads Dry before it reads force.
+    ("git push --dry-run --force --no-force-with-lease origin wt-example", "main", "allow"),
+    ("git push --force-with-lease --no-force --dry-run origin wt-example", "main", "allow"),
+    ("git push --force --dry-run origin main", "main", "allow"),
+    ("git push -n -f origin main", "main", "allow"),
+    ("git push -nf origin main", "main", "allow"),
+    # A CANCELLED dry run is not a dry run, and the force behind it still
+    # blocks. Dry-run negation is honoured; force negation is not.
+    ("git push --dry-run --no-dry-run --force-with-lease origin main", "main", "deny"),
+    # Ordinary pushes are untouched, including a bare negation with no force to
+    # cancel and the safety CONDITION that is not a force in its own right.
+    ("git push --no-force origin HEAD", "main", "allow"),
+    ("git push --no-force-with-lease origin HEAD", "main", "allow"),
+    ("git push --no-force --no-force-with-lease origin HEAD", "main", "allow"),
+    ("git push --force-if-includes --no-force origin HEAD", "main", "allow"),
+    ("git push --set-upstream origin feat", "main", "allow"),
+    ("git push origin refs/heads/a:refs/heads/b", "main", "allow"),
     ("gh pr checks 188", "main", "allow"),
+
+    ('MSYS_NO_PATHCONV=1 git status', 'main', 'deny'),
+    ('msys_no_pathconv=1 git status', 'main', 'deny'),
+    ('MSYS2_ARG_CONV_EXCL=* git status', 'main', 'deny'),
+    ('FOO=bar MSYS_NO_PATHCONV=1 git status', 'main', 'deny'),
+    ('env MSYS_NO_PATHCONV=1 git status', 'main', 'deny'),
+    ('sudo env -i MSYS2_ARG_CONV_EXCL=* git status', 'main', 'deny'),
+    ('export MSYS_NO_PATHCONV=1', 'main', 'deny'),
+    ('export msys2_arg_conv_excl', 'main', 'deny'),
+    ('set MSYS_NO_PATHCONV=1', 'main', 'deny'),
+    ('cmd /c "set MSYS2_ARG_CONV_EXCL=*"', 'main', 'deny'),
+    ("$env:MSYS_NO_PATHCONV = '1'", 'main', 'deny'),
+    ("${env:msys2_arg_conv_excl}='*'", 'main', 'deny'),
+    ('Set-Item Env:MSYS_NO_PATHCONV 1', 'main', 'deny'),
+    ("New-Item -Path Env:MSYS2_ARG_CONV_EXCL -Value '*'", 'main', 'deny'),
+    ("[Environment]::SetEnvironmentVariable('MSYS_NO_PATHCONV','1','Process')", 'main', 'deny'),
+    ("[System.Environment]::SetEnvironmentVariable('msys2_arg_conv_excl','*','User')", 'main', 'deny'),
+    ('setx MSYS_NO_PATHCONV 1', 'main', 'deny'),
+    ('setx /M msys2_arg_conv_excl *', 'main', 'deny'),
+    ('git status && MSYS_NO_PATHCONV=1 git show HEAD:file', 'main', 'deny'),
+    ('bash -c "export MSYS2_ARG_CONV_EXCL=*; git status"', 'main', 'deny'),
+    ('pwsh -Command "$env:MSYS_NO_PATHCONV=1; git status"', 'main', 'deny'),
+    ('echo $MSYS_NO_PATHCONV', 'main', 'allow'),
+    ('printenv MSYS2_ARG_CONV_EXCL', 'main', 'allow'),
+    ('Get-Item Env:MSYS_NO_PATHCONV', 'main', 'allow'),
+    ("[Environment]::GetEnvironmentVariable('MSYS2_ARG_CONV_EXCL','Machine')", 'main', 'allow'),
+    ('cmd /c "set MSYS_NO_PATHCONV"', 'main', 'allow'),
+    ('rg "MSYS_NO_PATHCONV=1" .', 'main', 'allow'),
+    ('Write-Output "export MSYS2_ARG_CONV_EXCL=*"', 'main', 'allow'),
+    ('git commit -m "never set MSYS_NO_PATHCONV=1"', 'main', 'allow'),
+    ('export -p MSYS_NO_PATHCONV', 'main', 'allow'),
+    ('env -u MSYS2_ARG_CONV_EXCL git status', 'main', 'allow'),
 ]
 
 
@@ -398,8 +738,54 @@ def test_bypass_mode_never_silently_executes_confirmation_tier(
 @pytest.mark.parametrize("host", HOSTS)
 def test_missing_permission_mode_denies_confirmation_tier(host: str) -> None:
     """Unknown permission semantics are unsafe for a command requiring approval."""
-    payload = json.dumps({"tool_input": {"command": "git worktree remove ../wt"}})
+    payload = json.dumps({"tool_input": {"command": "git rm src/foo.py"}})
     assert invoke(host, payload, "main").returncode == 2
+
+
+RETENTION_HOLD = [
+    ("git worktree remove ../wt", "deny"),
+    ("git worktree prune", "deny"),
+    ("git branch -D wt/foo", "deny"),
+    ("git branch --delete wt/foo", "deny"),
+    ("git tag -d v1", "deny"),
+    ("git update-ref -d refs/heads/wt/foo", "deny"),
+    ("git symbolic-ref --delete refs/heads/x", "deny"),
+    ("git push origin :wt/foo", "deny"),
+    ("git push origin +:refs/heads/wt-example", "deny"),
+    ("git push --dry-run --no-dry-run origin :wt/foo", "deny"),
+    ("git update-ref refs/heads/wt-example 0000000000000000000000000000000000000000", "deny"),
+    ("git push --del origin wt-example", "deny"),
+    ("git push -4d origin wt-example", "deny"),
+    # The neighbours must stay reachable under every mode too, or the hold
+    # would be indistinguishable from a guard that simply blocks git.
+    ("git worktree list", "allow"),
+    ("git branch --show-current", "allow"),
+    ("git tag -l v1*", "allow"),
+    ("git update-ref refs/archive/x abc123", "allow"),
+    ("git push --dry-run origin :wt/foo", "allow"),
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ["main", "agent"])
+@pytest.mark.parametrize(
+    "mode",
+    ["", "default", "auto", "acceptEdits", "plan", "dontAsk", "bypassPermissions"],
+)
+@pytest.mark.parametrize(
+    "command,expected",
+    RETENTION_HOLD,
+    ids=[c for c, _ in RETENTION_HOLD],
+)
+def test_retention_hold_verdict_is_mode_and_profile_independent(
+    host: str,
+    profile: str,
+    mode: str,
+    command: str,
+    expected: str,
+) -> None:
+    """Retention denial and safe neighbors are invariant across profiles and modes."""
+    assert outcome(host, command, profile, mode) == expected
 
 
 HOOK_SCRIPTS = sorted((GUARD.parent).glob("*.ps1"))
@@ -462,7 +848,7 @@ def test_safe_native_and_full_blob_controls_allow(host, profile, permission):
 @pytest.mark.parametrize("host", HOSTS)
 @pytest.mark.parametrize("profile", ("main", "agent"))
 def test_unknown_permission_semantics_cannot_approve_confirmation_tier(host, profile):
-    assert outcome(host, "git worktree remove ../retained", profile, "futureUnknownMode") == "deny"
+    assert outcome(host, "git rm retained", profile, "futureUnknownMode") == "deny"
 
 
 @pytest.mark.parametrize("host", HOSTS)
@@ -521,7 +907,7 @@ def test_hook_source_parses(host: str, script: Path) -> None:
 @pytest.mark.parametrize("mode", ("default", "acceptEdits", "plan", "dontAsk", "auto", "bypassPermissions"))
 def test_confirmation_tier_preserves_owner_boundary(host, profile, mode):
     expected = "deny" if mode in ("auto", "bypassPermissions") else "ask"
-    for command in ("git branch -D retained", "git worktree remove ../retained", "rm -r retained"):
+    for command in ("git rm retained", "git checkout -f retained", "rm -r retained"):
         assert outcome(host, command, profile, mode) == expected
 
 
@@ -531,10 +917,28 @@ def test_auto_keeps_profile_policy_and_deny_precedence(host, profile):
     for command in ("git push", "git merge feature", "git merge --abort"):
         assert outcome(host, command, profile, "auto") == ("deny" if profile == "agent" else "allow")
     denied = invoke(host, json.dumps({"permission_mode": "auto", "tool_input": {
-        "command": "git branch -D retained; export MSYS_NO_PATHCONV=1"}}), profile)
+        "command": "git rm retained; export MSYS_NO_PATHCONV=1"}}), profile)
     assert denied.returncode == 2 and not denied.stdout
     assert "confirmation is required" not in denied.stderr  # deny takes precedence over ask
     assert outcome(host, "echo safe", profile, "futureUnknownMode") == "deny"
     for payload in ('{"permission_mode":"auto","tool_input":{}}',
                     json.dumps({"permission_mode": "auto", "tool_input": {"command": "echo unterminated'"}})):
         assert invoke(host, payload, profile).returncode == 2
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+@pytest.mark.parametrize("mode", ("default", "auto", "bypassPermissions"))
+def test_retention_and_confirmation_aggregation_preserves_stricter_verdict(host, profile, mode):
+    """A real ask-tier command must not mask retention denial in either order."""
+    confirmation = "git rm retained"
+    held = "git push --force --no-force-with-lease origin retained"
+    for command in (confirmation + "; " + held, held + "; " + confirmation):
+        proc = invoke(host, json.dumps({"permission_mode": mode, "tool_input": {"command": command}}), profile)
+        assert proc.returncode == 2
+        assert not proc.stdout
+        assert "confirmation is required" not in proc.stderr
+    safe_dry_run = "git push --dry-run origin :retained"
+    assert outcome(host, safe_dry_run, profile, mode) == "allow"
+    expected = "ask" if mode == "default" else "deny"
+    assert outcome(host, safe_dry_run + "; " + confirmation, profile, mode) == expected
