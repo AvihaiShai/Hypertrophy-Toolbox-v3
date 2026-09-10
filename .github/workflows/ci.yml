@@ -763,7 +763,16 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 20 minutes left too little headroom. tests/test_guard_destructive_command.py
+    # spawns a PowerShell process per case and was 909.9s of the 1031.9s test span
+    # on the last passing run, which finished in 1040.16s of the 1200s budget --
+    # 13.3% slack. Two post-merge attempts of that same tree reached pytest's 50%
+    # marker at 675s and 691s against 523s -- ~1.3x slower, matching a guard
+    # node-interval median of 0.713s -> 0.939/0.961s -- and were cancelled with no
+    # failing assertion. At that pace the full run lands near 23 minutes, so 35
+    # covers it. Why those runners were slower is unknown. Evidence: PR #490 run
+    # 34169875329 (passed) vs run 34170988104 attempts 1 and 2 (both cancelled).
+    timeout-minutes: 35
     
     steps:
     - name: Checkout code
