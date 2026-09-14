@@ -78,7 +78,7 @@
   response matrix, and Plan v2 when the read-only `manager` delegates them during
   `/council-plan` — is documented in [AUTONOMY.md](AUTONOMY.md#workflow-roles).
 - Slash commands: `/handover`, `/unslop`, `/verify-and-polish`, `/council-plan`, `/consult` (in `.claude/commands/`)
-- Agents (diff-time): `code-reviewer`, `unslop-reviewer` (in `.claude/agents/`)
+- Agents (diff-time): `code-reviewer`, `unslop-reviewer` (explicit request only) (in `.claude/agents/`)
 - Agents (plan-time, council): `architecture-reviewer`, `test-strategist`, `product-risk-reviewer` (in `.claude/agents/`)
 - Active workflow roles: `manager`, `product-manager`, `senior-developer`,
   `automation-qa`, `manual-qa-reviewer` (implemented and dry-run in Phase 3 of

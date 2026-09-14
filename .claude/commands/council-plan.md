@@ -71,7 +71,7 @@ justify escalating to Gate 0.
    - [ ] User approved Plan v2.
    - [ ] Ready to implement.
 
-6. **Implement.** During implementation, use [`.claude/commands/unslop.md`](unslop.md) or [`.claude/commands/verify-and-polish.md`](verify-and-polish.md) for the post-code gate — those run `code-reviewer` + `unslop-reviewer` against the staged diff. The council does not re-run after code lands; the diff-time gates do.
+6. **Implement.** During implementation, use [`.claude/commands/unslop.md`](unslop.md) or [`.claude/commands/verify-and-polish.md`](verify-and-polish.md) for the post-code gate — those run the reviewers `QUALITY_GATE.md` requires against the staged diff. The council does not re-run after code lands; the diff-time gates do.
 
 ## Failure handling
 - A reviewer returns "blocking" → revise Plan v1, re-run that reviewer (the other two can stay if their inputs didn't change).

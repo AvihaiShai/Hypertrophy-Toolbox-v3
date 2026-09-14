@@ -1,22 +1,19 @@
 ---
-description: Documented sequence — full /verify-suite, then code-reviewer, then unslop-reviewer, then handover. Use before declaring a feature complete.
+description: Full gate — /verify-suite, then the reviewers QUALITY_GATE.md requires, then handover. Use when QUALITY_GATE.md selects the full gate or the user explicitly requests it.
 ---
 
-This is a **sequence guide**, not a chained skill. Run each step, address findings, re-run if needed.
+This is a **sequence guide**, not a chained skill. Use it when `QUALITY_GATE.md` selects the full gate or the user explicitly requests it.
 
-> **Who runs which step.** Steps 2 and 3 spawn subagents, so a `senior-developer` — which sets `disallowedTools: Agent` precisely so developers do not approve their own work ([AUTONOMY.md](../../docs/ai_workflow/AUTONOMY.md#workflow-roles)) — cannot run them. In a manager-led session the manager or primary session runs steps 2–3; the implementing agent runs steps 1 and 4.
+> **Who runs which step.** Step 2 spawns subagents when reviewer requirements call for them, so a `senior-developer` — which sets `disallowedTools: Agent` precisely so developers do not approve their own work ([AUTONOMY.md](../../docs/ai_workflow/AUTONOMY.md#workflow-roles)) — cannot run those subagents. In a manager-led session the manager or primary session runs step 2; the implementing agent runs steps 1 and 3.
 
 ## Steps
 1. **`/verify-suite`** — full pytest + Chromium E2E gate. Must pass (modulo the known current red / historical flake in `e2e/CLAUDE.md` Gotchas) before continuing.
-2. **`code-reviewer` agent** — invoke on the staged diff. Cites SQL-injection, response-contract, DB-access, logging, blueprint-registration risks. Address every finding or document why deferred.
-3. **`unslop-reviewer` agent** — invoke on the staged diff. Flags AI smells (verbose docstrings, defensive try/except, premature abstractions, restating comments, unrelated churn). Address every finding before commit.
-4. **`/handover`** — prepend a session block to `MASTER_HANDOVER.local.md`. If a milestone shipped, edit `docs/MASTER_HANDOVER.md` manually with new test counts and workstream status.
+2. **Required reviewers** — combine applicable rows' reviewer requirements (a row's self-review alternative covers only that row's files); invoke required reviewers on the staged diff. A full-suite requirement does not add reviewers. Run `unslop-reviewer` only if the user explicitly requested it. Address every finding or document why it is deferred.
+3. **`/handover`** — prepend a session block to `MASTER_HANDOVER.local.md`. If a milestone shipped, edit `docs/MASTER_HANDOVER.md` manually with new test counts and workstream status.
 
 ## Failure handling
-- Step 1 fail → fix the test, re-run from step 1.
-- Step 2 fail → fix the violation, re-run from step 1 if logic changed, else continue from step 3.
-- Step 3 fail → fix the smell, re-run from step 3.
+- After a fix, rerun failing and affected checks. A required full gate must have passed against the final relevant code, tests, dependencies, and configuration; run it if that evidence is missing or invalidated. Documented baseline exceptions still govern.
 - Do not skip to commit on partial success.
 
 ## Difference vs `/unslop`
-`/unslop` is the **lighter** post-implementation gate — uses targeted tests instead of the full suite. Use `/unslop` for routine work, `/verify-and-polish` for refactors, schema changes, or anything that touches multiple modules.
+`/unslop` is the **lighter** post-implementation gate — uses targeted tests instead of the full suite. Use `docs/ai_workflow/QUALITY_GATE.md` to choose the gate. The number of edited files alone does not select this full sequence.

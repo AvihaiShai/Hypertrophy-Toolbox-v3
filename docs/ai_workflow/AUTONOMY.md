@@ -24,7 +24,7 @@ This only applies within the approved scope. Anything outside that scope (new ta
 | **1. Requirements + plan approval gates** | Gate 0 `/requirements` → Gate 1 `/council-plan` → [PLAN_REVIEW_TEMPLATE.md](PLAN_REVIEW_TEMPLATE.md) | Wrong scope, calculation-semantics drift, missing tests, API-contract breaks — caught before a line of code is written |
 | **2. Workspace-write sandbox** | User-level `C:\Users\<user>\.codex\config.toml`: `sandbox_mode = "workspace-write"` and `[sandbox_workspace_write] network_access = false`. **`approval_policy` is `"on-request"`**, measured 2026-08-13 — this row said `"never"` until then, and `AGENTS.md` carried the same drift | Writes confined to the workspace; no outbound network |
 | **3. Worktree isolation** | `scripts/new-worktree.ps1` + [PARALLEL_WORKFLOW.md](PARALLEL_WORKFLOW.md) | Parallel work that may touch the DB, dev server, or tests gets its own `data/database.db`; SQLite WAL corruption on the main checkout is prevented |
-| **4. Post-work review gate** | `/unslop` → `/verify-suite` | AI slop, test regressions, response-contract drift caught after implementation, before any commit lands |
+| **4. Post-work review gate** | `/unslop` → `/verify-suite` | Test regressions and the risks covered by required reviewers caught after implementation, before any commit lands |
 
 Layers 1 and 4 are process gates (human-approved plan in, human-reviewed diff out). Layers 2 and 3 are technical containment (sandbox + DB isolation). A runaway or mistaken agent can only damage the repo within its worktree, and that damage is reviewed before merging.
 

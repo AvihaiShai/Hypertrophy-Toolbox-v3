@@ -141,16 +141,10 @@ npx playwright test --project=chromium --reporter=line
 - [ ] Write tests in `tests/test_myfeature.py`.
 
 ### B. Refactor safely
-1. **Before**: run full test suite, record baseline. Generated output goes under the gitignored `artifacts/`, never the repository root.
-   ```bash
-   mkdir -p artifacts
-   .venv/Scripts/python.exe -m pytest tests/ -q > artifacts/baseline_pytest.txt 2>&1
-   ```
-2. **Scope**: Grep for function/class name across `routes/`, `utils/`, `templates/`, `tests/`.
-3. **Change**: one module at a time, keeping old interface as a thin wrapper if callers span multiple files.
-4. **Verify**: re-run affected test file(s) after each file.
-5. **Gate**: full pytest + relevant E2E specs must pass before done. Use the `/verify-suite` skill.
-6. **Rollback**: if tests fail and the fix isn't obvious, `git stash push` or `git stash push -- <file>` immediately.
+1. **Scope**: search the function/class name across `routes/`, `utils/`, `templates/`, `tests/`.
+2. **Change**: keep the old interface as a thin wrapper while callers span multiple files.
+3. **Gate**: finish with `/verify-and-polish`; tests and reviewers follow `docs/ai_workflow/QUALITY_GATE.md`. No blanket pre-change baseline; if a failure's origin is unclear, reproduce it in an isolated base checkout, not by stashing.
+4. Generated output goes under the gitignored `artifacts/`.
 
 ---
 

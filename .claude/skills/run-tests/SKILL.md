@@ -5,4 +5,4 @@ argument-hint: [path or test-id]
 
 !`.venv/Scripts/python.exe -m pytest $ARGUMENTS -q`
 
-Report pass/fail counts and any tracebacks verbatim. If a test fails, do not attempt a fix unless I ask.
+Report pass/fail counts and actionable failures. Repair failures only when the user's task authorizes repairs.
