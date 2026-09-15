@@ -10,7 +10,7 @@ Outcomes (Claude Code PreToolUse contract):
   allow -> exit 0, silent.
 
 Profiles:
-  agent (default) - charter contract: subagents never push or merge.
+  agent (default) - charter contract: subagents never push, merge, or git rm.
   main            - the owner pushes and merges, so those are allowed; every
                     filesystem-destructive verb still applies.
 
@@ -22,8 +22,11 @@ tests/test_guard_destructive_command.py pins this.
 
 Worktree-retention hold: worktree removal and branch, tag, symbolic-ref,
 update-ref and remote-ref deletion deny in both profiles and every permission
-mode. Destructive push forms and worktree prune are exempt only for a proven
-dry run from their own option parsers. Other retention checks precede the generic dry-run exemption;
+mode. Destructive push forms, worktree prune and git rm are exempt only for a
+proven dry run from their own option parsers. Every one of those three
+proofs is voided by xargs anywhere in the same segment: xargs appends
+arguments the guard never sees, and the last of --dry-run / --no-dry-run
+wins. Other retention checks precede the generic dry-run exemption;
 those subcommands have no dry-run option, and git tag -n means annotation lines.
 This is bounded Claude-tool coverage; opaque scripts, non-Claude tools and
 non-delete ref retirement remain outside it.
@@ -350,6 +353,37 @@ function Test-WorktreePruneDryRun([string[]]$pruneArgs) {
             $i++
         }
         else { return $false }
+    }
+    return $dry
+}
+
+function Test-GitRmDryRun([string[]]$rmArgs) {
+    # git rm options, transcribed from git-rm(1) (git 2.55): -f/--force,
+    # -n/--dry-run, -r, --cached, --ignore-unmatch, --sparse, -q/--quiet,
+    # --pathspec-from-file=<file>, --pathspec-file-nul, and --no- negations
+    # of the long forms. Test-DryRun cannot be used, because a bare -n
+    # anywhere satisfies it:
+    #   git rm -n --no-dry-run x  (last flag wins: removes)
+    #   git rm -- -n              (-n is a path after --: removes)
+    # Options may follow a pathspec until -- or --end-of-options, so every
+    # token before those is read. $true means PROVEN dry run. A proven real
+    # removal and anything unrecognised both return $false: an abbreviated
+    # long option (--dry), an unknown flag, --pathspec-from-file (its value
+    # may be the next token), and any path the shell may rewrite before git
+    # sees it. The tokenizer keeps \ ` $ { } * ? [ ~ and commas, so
+    # `git rm -n x \--no-dry-run` or PowerShell `git rm -n x,--no-dry-run`
+    # would otherwise read as a path while git receives --no-dry-run.
+    $dry = $false
+    foreach ($t in $rmArgs) {
+        if ($t -ceq '--' -or $t -ceq '--end-of-options') { return $dry }
+        if ($t -ceq '--dry-run') { $dry = $true }
+        elseif ($t -ceq '--no-dry-run') { $dry = $false }
+        elseif ($t -cmatch '^--(no-)?(force|cached|ignore-unmatch|sparse|quiet|pathspec-file-nul)$') { }
+        elseif ($t -cmatch '^-[fnrq]+$') {
+            if ($t -cmatch 'n') { $dry = $true }
+        }
+        elseif ($t.StartsWith('-')) { return $false }
+        elseif ($t -cnotmatch '^[A-Za-z0-9._/:+][A-Za-z0-9._/:@+=-]*$') { return $false }
     }
     return $dry
 }
@@ -871,7 +905,9 @@ function Get-XargsCommand([string[]]$tokens) {
     return @($tokens[$i..($tokens.Count - 1)])
 }
 
-function Test-Segment([string[]]$tokens, [string]$printable) {
+function Test-Segment([string[]]$tokens, [string]$printable, [bool]$openArgs) {
+    # $openArgs: xargs appears in this segment, at the head or behind control
+    # syntax, so arguments this guard never sees are appended to the command.
     $tokens = @(Remove-Wrappers $tokens)
     if ($tokens.Count -eq 0) { return $null }
 
@@ -906,7 +942,8 @@ function Test-Segment([string[]]$tokens, [string]$printable) {
     if ($sub.Name -eq 'worktree' -and $subRest.Count -ge 1 -and $subRest[0] -eq 'prune') {
         $pruneArgs = @()
         if ($subRest.Count -gt 1) { $pruneArgs = @($subRest[1..($subRest.Count - 1)]) }
-        if (Test-WorktreePruneDryRun $pruneArgs) { return $null }
+        # xargs in this segment can append --no-dry-run, so the proof is void.
+        if (-not $openArgs -and (Test-WorktreePruneDryRun $pruneArgs)) { return $null }
         return @{ Decision = 'deny'; Reason = "git worktree prune retires worktree registrations; not authorized during the worktree-cleanup hold: $printable" }
     }
     # --- worktree-retention hold ------------------------------------------
@@ -954,7 +991,9 @@ function Test-Segment([string[]]$tokens, [string]$printable) {
             # rather than falling back to a second, looser reading.
             return @{ Decision = 'deny'; Reason = "git push option '$($push.Unrecognised)' is unknown or ambiguous, so the push cannot be classified: $printable" }
         }
-        if ($push.Dry) { return $null }
+        # Same open-argument void as prune and rm: git runs the appended
+        # --no-dry-run last, and last flag wins, so the push is real.
+        if ($push.Dry -and -not $openArgs) { return $null }
         if ($push.Delete) {
             return @{ Decision = 'deny'; Reason = "git push delete removes a remote ref; not authorized during the worktree-retention hold: $printable" }
         }
@@ -986,6 +1025,20 @@ function Test-Segment([string[]]$tokens, [string]$printable) {
         return $null
     }
 
+    if ($sub.Name -eq 'rm') {
+        # Above the generic exemption, like prune: see Test-GitRmDryRun.
+        if (-not $openArgs -and (Test-GitRmDryRun $subRest)) { return $null }
+        if ($GuardProfile -eq 'agent') {
+            return @{ Decision = 'deny'; Reason = "subagents do not run git rm; hand the removal to the owner: $printable" }
+        }
+        if ($subRest -contains '--cached') {
+            # --cached only edits the index; the working tree is left alone.
+            # The risk is downstream: once untracked, a later clean removes it.
+            return @{ Decision = 'ask'; Reason = "git rm --cached untracks files, exposing them to a later clean: $printable" }
+        }
+        return @{ Decision = 'ask'; Reason = "git rm deletes working-tree files: $printable" }
+    }
+
     if (Test-DryRun $subRest) { return $null }
 
     switch ($sub.Name) {
@@ -999,15 +1052,7 @@ function Test-Segment([string[]]$tokens, [string]$printable) {
                 return @{ Decision = 'deny'; Reason = "git clean force deletes untracked files: $printable" }
             }
         }
-        'rm' {
-            if ($subRest -contains '--cached') {
-                # --cached only edits the index; the working tree is left alone.
-                # The risk is downstream: once untracked, a later clean removes it.
-                return @{ Decision = 'ask'; Reason = "git rm --cached untracks files, exposing them to a later clean: $printable" }
-            }
-            return @{ Decision = 'ask'; Reason = "git rm deletes working-tree files: $printable" }
-        }
-        # 'push' is handled above the generic dry-run exemption, because that
+        # 'push' and 'rm' are handled above the generic dry-run exemption, because that
         # exemption cannot see negation, ordering, or an option that swallows
         # the next token.
         'merge' {
@@ -1126,7 +1171,7 @@ function Invoke-CommandScan([string]$command, [int]$depth) {
                     }
                 }
                 else {
-                    $result = Test-Segment $inner ($inner -join ' ')
+                    $result = Test-Segment $inner ($inner -join ' ') $true
                     if ($null -ne $result) {
                         if ($result.Decision -eq 'deny') { [void]$script:denials.Add($result.Reason) }
                         elseif ($result.Decision -eq 'ask') { [void]$script:asks.Add($result.Reason) }
@@ -1142,6 +1187,16 @@ function Invoke-CommandScan([string]$command, [int]$depth) {
         # ... }`, `try { ... } catch {}`, `xargs -I {} rm -rf {}`. Enumerating
         # keywords would be an endless list of two-shell grammar; scanning every
         # position removes the whole class instead.
+        # The branch above catches xargs only at the segment head. Behind `{`,
+        # `then`, `(` or any other control token it reaches this scan instead,
+        # and the arguments it appends are just as invisible there -- so the
+        # open-argument flag is a property of the whole segment, not of one
+        # position.
+        $segmentOpensArgs = $false
+        foreach ($t in $stripped) {
+            if ((Get-VerbCandidates $t) -contains 'xargs') { $segmentOpensArgs = $true; break }
+        }
+
         for ($i = 0; $i -lt $stripped.Count; $i++) {
             $suffix = @($stripped[$i..($stripped.Count - 1)])
 
@@ -1156,7 +1211,7 @@ function Invoke-CommandScan([string]$command, [int]$depth) {
                 break
             }
 
-            $result = Test-Segment $suffix ($suffix -join ' ')
+            $result = Test-Segment $suffix ($suffix -join ' ') $segmentOpensArgs
             if ($null -eq $result) { continue }
             if ($result.Decision -eq 'deny') { [void]$script:denials.Add($result.Reason) }
             elseif ($result.Decision -eq 'ask') { [void]$script:asks.Add($result.Reason) }

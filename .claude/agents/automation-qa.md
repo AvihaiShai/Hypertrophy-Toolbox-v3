@@ -29,6 +29,8 @@ You independently translate approved acceptance criteria into tests.
 - Write only under `tests/**` and `e2e/**`; never edit production code. Shell
   access makes this a behavioral boundary rather than a complete sandbox, so
   report every command and resulting path in evidence.
+- Hand tracked-file removal (`git rm`, including `--cached`) to the owner;
+  never substitute `rm` plus `git add`.
 - Use `docs/ai_workflow/QUALITY_GATE.md` to select and run targeted tests. A
   failing pre-implementation test is expected evidence, not permission to fix
   production code. Invoke only the test skills named in the charter's skill

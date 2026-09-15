@@ -43,7 +43,8 @@ You are the sole production-code writer for an approved feature.
    During `/verify`, use Playwright MCP for the actual UI and do not pass checkout
    filenames to screenshot/download/PDF/trace/save tools.
 4. Never push, force-push, merge, run destructive Git/filesystem commands, or
-   write outside the assigned checkout.
+   write outside the assigned checkout. Hand tracked-file removal (`git rm`,
+   including `--cached`) to the owner; never substitute `rm` plus `git add`.
 5. Before Evidence, enforce `CLAUDE.md` §1 Refactor invariant: any
    plan/log/analyze/progress/distribute/backup behavior change has migration
    notes and updated coverage; cross-check the Section 0 Calculation surface and

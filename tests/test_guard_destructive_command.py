@@ -756,6 +756,13 @@ RETENTION_HOLD = [
     ("git update-ref refs/heads/wt-example 0000000000000000000000000000000000000000", "deny"),
     ("git push --del origin wt-example", "deny"),
     ("git push -4d origin wt-example", "deny"),
+    # xargs re-opens the argument list, so push and prune dry-run proofs are no
+    # more trustworthy than git rm's was. Head position and behind control
+    # syntax both reach the flag, by two different routes through the scan.
+    ("echo --no-dry-run | xargs git push --dry-run origin :wt/foo", "deny"),
+    ("echo --no-dry-run | xargs git worktree prune --dry-run", "deny"),
+    ("echo --no-dry-run | { xargs git push --dry-run origin :wt/foo; }", "deny"),
+    ("if true; then xargs git worktree prune --dry-run; fi", "deny"),
     # The neighbours must stay reachable under every mode too, or the hold
     # would be indistinguishable from a guard that simply blocks git.
     ("git worktree list", "allow"),
@@ -785,7 +792,77 @@ def test_retention_hold_verdict_is_mode_and_profile_independent(
     expected: str,
 ) -> None:
     """Retention denial and safe neighbors are invariant across profiles and modes."""
-    assert outcome(host, command, profile, mode) == expected
+    assert outcome(host, command, profile, mode) == expected, context(command, profile, mode)
+
+
+# (command, reason fragment). The verdict rows above prove these deny; these
+# prove they deny for the RIGHT rule, which a bare verdict cannot show.
+XARGS_VOIDS_DRY_RUN_PROOF = [
+    ("echo --no-dry-run | xargs git push --dry-run origin :wt/foo",
+     "empty-source refspec deletes a remote ref"),
+    ("echo --no-dry-run | { xargs git push --dry-run origin :wt/foo; }",
+     "empty-source refspec deletes a remote ref"),
+    ("echo --no-dry-run | xargs git worktree prune --dry-run",
+     "git worktree prune retires worktree registrations"),
+    ("if true; then xargs git worktree prune --dry-run; fi",
+     "git worktree prune retires worktree registrations"),
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize(
+    "command,reason",
+    XARGS_VOIDS_DRY_RUN_PROOF,
+    ids=[c for c, _ in XARGS_VOIDS_DRY_RUN_PROOF],
+)
+def test_xargs_voids_push_and_prune_dry_run_proof(host, command, reason):
+    for profile in ("main", "agent"):
+        proc = invoke_mode(host, command, profile, "default")
+        where = context(command, profile, "default")
+        assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+        assert not proc.stdout, f"{where}: {proc.stdout}"
+        assert proc.stderr.startswith(f"Blocked by {profile} guard:"), f"{where}: {proc.stderr}"
+        assert reason in proc.stderr, f"{where}: {proc.stderr}"
+        assert "failing closed" not in proc.stderr, f"{where}: {proc.stderr}"
+
+
+# An open argument list does not make every push a retention deny -- HEAD:main
+# names no ref to delete. What it must do is stop the dry-run proof from
+# skipping the agent push deny, which sits BELOW it in the same branch.
+XARGS_PUSH_PROFILE_SPLIT = [
+    "echo --no-dry-run | xargs git push --dry-run origin HEAD:main",
+    "echo --no-dry-run | { xargs git push --dry-run origin HEAD:main; }",
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize(
+    "mode",
+    ["", "default", "auto", "acceptEdits", "plan", "dontAsk", "bypassPermissions"],
+)
+@pytest.mark.parametrize("command", XARGS_PUSH_PROFILE_SPLIT)
+def test_xargs_open_arguments_keep_profile_push_policy(host, mode, command):
+    assert outcome(host, command, "main", mode) == "allow", context(command, "main", mode)
+    proc = invoke_mode(host, command, "agent", mode)
+    where = context(command, "agent", mode)
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert proc.stderr.startswith("Blocked by agent guard:"), f"{where}: {proc.stderr}"
+    assert "subagents do not push" in proc.stderr, f"{where}: {proc.stderr}"
+
+
+# The flag is a property of ONE segment. A future change that made it
+# command-wide would silently deny these, and no other row would notice.
+XARGS_SEGMENT_SCOPE = [
+    "find . | xargs echo hi; git push --dry-run origin :wt/foo",
+    "find . | xargs echo hi; git worktree prune --dry-run",
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("command", XARGS_SEGMENT_SCOPE)
+def test_xargs_open_arguments_are_scoped_to_one_segment(host, command):
+    for profile in ("main", "agent"):
+        assert outcome(host, command, profile, "default") == "allow", context(command, profile, "default")
 
 
 HOOK_SCRIPTS = sorted((GUARD.parent).glob("*.ps1"))
@@ -907,8 +984,189 @@ def test_hook_source_parses(host: str, script: Path) -> None:
 @pytest.mark.parametrize("mode", ("default", "acceptEdits", "plan", "dontAsk", "auto", "bypassPermissions"))
 def test_confirmation_tier_preserves_owner_boundary(host, profile, mode):
     expected = "deny" if mode in ("auto", "bypassPermissions") else "ask"
-    for command in ("git rm retained", "git checkout -f retained", "rm -r retained"):
+    for command in ("git checkout -f retained", "rm -r retained"):
         assert outcome(host, command, profile, mode) == expected
+
+
+# git rm is split by profile. An agent never removes tracked
+# paths, even with approval, so its verdict is a hard deny with no
+# confirmation wording in every mode, including a missing or empty one. The
+# main profile keeps the confirmation tier: ask where the host can prompt,
+# deny where it cannot. Only a proven dry run is allowed, in either profile.
+GIT_RM_FORMS = [
+    "git rm retained",
+    "git rm -r retained",
+    "git rm -f retained",
+    "git rm --cached retained",
+    "git -C ../wt rm retained",
+    "git status && git rm retained",
+    'sh -c "git rm retained"',
+]
+PROMPTING_MODES = ("default", "acceptEdits", "plan", "dontAsk")
+# None drops the permission_mode key from the payload entirely.
+EVERY_MODE = (None, "", *PROMPTING_MODES, "auto", "bypassPermissions")
+EVERY_MODE_IDS = ["missing", "empty", *PROMPTING_MODES, "auto", "bypassPermissions"]
+
+
+def invoke_mode(host: str, command: str, profile: str, mode: str | None) -> subprocess.CompletedProcess:
+    body: dict = {"tool_input": {"command": command}}
+    if mode is not None:
+        body["permission_mode"] = mode
+    return invoke(host, json.dumps(body), profile)
+
+
+def context(command: str | None, profile: str | None = None, mode: str | None = None) -> str:
+    """Name the row in an assertion message: which command, profile and mode failed."""
+    return f"command={command!r} profile={profile!r} mode={mode!r}"
+
+
+def assert_agent_hard_deny(
+    proc: subprocess.CompletedProcess,
+    command: str | None = None,
+    mode: str | None = None,
+) -> None:
+    # A guard crash also exits 2 with empty stdout; the prefix and the absence
+    # of the fail-closed wording prove this deny is a verdict, not an error.
+    where = context(command, "agent", mode)
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+    assert proc.stderr.startswith("Blocked by agent guard:"), f"{where}: {proc.stderr}"
+    # Pin the reason too: a deny from an unrelated rule is not this contract.
+    assert "subagents do not run git rm" in proc.stderr, f"{where}: {proc.stderr}"
+    assert "failing closed" not in proc.stderr, f"{where}: {proc.stderr}"
+    assert "confirmation is required" not in proc.stderr, f"{where}: {proc.stderr}"
+
+
+# The two main-profile git rm reasons are distinct rules, so pinning the tier
+# alone would accept either one -- or an ask raised somewhere else entirely.
+GIT_RM_MAIN_REASONS = {
+    "git rm retained": "git rm deletes working-tree files",
+    "git rm --cached retained": "git rm --cached untracks files",
+}
+
+
+def assert_main_confirmation_tier(
+    proc: subprocess.CompletedProcess,
+    mode: str | None,
+    command: str | None = None,
+    expected_reason: str = "git rm",
+) -> None:
+    where = context(command, "main", mode)
+    if mode in PROMPTING_MODES:
+        assert proc.returncode == 0, f"{where}: {proc.stderr}"
+        decision = json.loads(proc.stdout)["hookSpecificOutput"]
+        assert decision["permissionDecision"] == "ask", f"{where}: {proc.stdout}"
+        # Pin the reason, as the agent side already does: the tier alone cannot
+        # tell this rule from any other ask, nor --cached from the working tree.
+        reason = decision["permissionDecisionReason"]
+        assert expected_reason in reason, f"{where}: {reason}"
+    else:
+        # The prefix separates the no-prompt fallback from a guard crash.
+        assert proc.returncode == 2, f"{where}: {proc.stdout}"
+        assert not proc.stdout, f"{where}: {proc.stdout}"
+        assert proc.stderr.startswith("Blocked by main guard: confirmation is required"), f"{where}: {proc.stderr}"
+
+
+def assert_git_rm_verdict(
+    proc: subprocess.CompletedProcess,
+    profile: str,
+    mode: str | None,
+    proven_dry_run: bool,
+    command: str | None = None,
+) -> None:
+    if proven_dry_run:
+        where = context(command, profile, mode)
+        assert proc.returncode == 0 and not proc.stdout, f"{where}: {proc.stdout}{proc.stderr}"
+    elif profile == "agent":
+        assert_agent_hard_deny(proc, command, mode)
+    else:
+        assert_main_confirmation_tier(proc, mode, command)
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+@pytest.mark.parametrize("command", GIT_RM_FORMS)
+def test_agent_git_rm_is_hard_deny_in_every_mode(host, mode, command):
+    assert_agent_hard_deny(invoke_mode(host, command, "agent", mode), command, mode)
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+@pytest.mark.parametrize("command", ("git rm retained", "git rm --cached retained"))
+def test_main_git_rm_keeps_confirmation_tier(host, mode, command):
+    # The other forms reach the same branch; the agent rows above prove that.
+    # The two commands are parametrized to exercise two DIFFERENT reasons, so
+    # each asserts its own -- otherwise the pair proves nothing the first does.
+    assert_main_confirmation_tier(
+        invoke_mode(host, command, "main", mode), mode, command, GIT_RM_MAIN_REASONS[command]
+    )
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+@pytest.mark.parametrize("mode", (None, ""), ids=["missing", "empty"])
+def test_confirmation_tier_denies_without_a_mode(host, profile, mode):
+    for command in ("git checkout -f retained", "rm -r retained"):
+        proc = invoke_mode(host, command, profile, mode)
+        assert proc.returncode == 2 and not proc.stdout, proc.stdout
+        assert proc.stderr.startswith(f"Blocked by {profile} guard: confirmation is required"), proc.stderr
+
+
+# (command, proven dry run). git rm parses options after a pathspec, lets the
+# last of --dry-run / --no-dry-run win, and stops at -- or --end-of-options.
+# Anything the guard cannot read with certainty is not a proven dry run.
+GIT_RM_DRY_RUN_EVERY_MODE = [
+    ("git rm --cached --dry-run x", True),
+    ("git rm x --no-dry-run -n", True),
+    ("git rm -n --no-dry-run x", False),
+    ("git rm --dry x", False),
+]
+GIT_RM_DRY_RUN_GRAMMAR = [
+    ("git rm -n x", True),
+    ("git rm --dry-run x", True),
+    ("git rm x -n", True),
+    # Not -rn: the every-position scan reads its `rm -rn x` suffix as a
+    # recursive POSIX rm and asks, which is stricter, not a bypass.
+    ("git rm -qn x", True),
+    ("git rm -fn x", True),
+    # -nq: the third bundle the owner named in decision D-BUNDLE.
+    ("git rm -nq x", True),
+    ("git rm -q --dry-run -- x", True),
+    ("git rm --dry-run --no-dry-run x", False),
+    ("git rm -- -n", False),
+    ("git rm --end-of-options -n x", False),
+    ("git rm -N x", False),
+    ("git rm --whatif x", False),
+    ("git rm --pathspec-from-file=list -n", False),
+    ('sh -c "git rm -n --no-dry-run x"', False),
+    # The shell or xargs can hand git a --no-dry-run the guard never reads.
+    ("git rm -n x \\--no-dry-run", False),
+    ("git rm -n x $'--no-dry-run'", False),
+    ("git rm -n {--no-dry-run,x}", False),
+    ("git rm -n x `--no-dry-run", False),
+    ("git rm -n x,--no-dry-run", False),
+    ("git rm -n *", False),
+    ("echo --no-dry-run | xargs git rm -n x", False),
+    # xargs behind control syntax is not the segment head, so the head-position
+    # branch never fires and the every-position scan carries the flag itself.
+    ("echo --no-dry-run | { xargs git rm -n x; }", False),
+    ("if true; then xargs git rm -n x; fi", False),
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+def test_git_rm_dry_run_is_proven_in_every_mode(host, profile, mode):
+    for command, proven in GIT_RM_DRY_RUN_EVERY_MODE:
+        assert_git_rm_verdict(invoke_mode(host, command, profile, mode), profile, mode, proven, command)
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("command,proven", GIT_RM_DRY_RUN_GRAMMAR, ids=[c for c, _ in GIT_RM_DRY_RUN_GRAMMAR])
+def test_git_rm_dry_run_grammar(host, command, proven):
+    for profile in ("main", "agent"):
+        assert_git_rm_verdict(invoke_mode(host, command, profile, "default"), profile, "default", proven, command)
 
 
 @pytest.mark.parametrize("host", HOSTS)
@@ -916,8 +1174,10 @@ def test_confirmation_tier_preserves_owner_boundary(host, profile, mode):
 def test_auto_keeps_profile_policy_and_deny_precedence(host, profile):
     for command in ("git push", "git merge feature", "git merge --abort"):
         assert outcome(host, command, profile, "auto") == ("deny" if profile == "agent" else "allow")
+    # Agent git rm is itself a hard deny, so agent precedence needs an ask-tier command.
+    confirmation = "git rm retained" if profile == "main" else "rm -r retained"
     denied = invoke(host, json.dumps({"permission_mode": "auto", "tool_input": {
-        "command": "git rm retained; export MSYS_NO_PATHCONV=1"}}), profile)
+        "command": confirmation + "; export MSYS_NO_PATHCONV=1"}}), profile)
     assert denied.returncode == 2 and not denied.stdout
     assert "confirmation is required" not in denied.stderr  # deny takes precedence over ask
     assert outcome(host, "echo safe", profile, "futureUnknownMode") == "deny"
@@ -931,7 +1191,9 @@ def test_auto_keeps_profile_policy_and_deny_precedence(host, profile):
 @pytest.mark.parametrize("mode", ("default", "auto", "bypassPermissions"))
 def test_retention_and_confirmation_aggregation_preserves_stricter_verdict(host, profile, mode):
     """A real ask-tier command must not mask retention denial in either order."""
-    confirmation = "git rm retained"
+    # Agent git rm is a hard deny, not ask-tier, so the agent side needs a
+    # command that still asks or ask-never-masks-deny goes unexercised.
+    confirmation = "git rm retained" if profile == "main" else "rm -r retained"
     held = "git push --force --no-force-with-lease origin retained"
     for command in (confirmation + "; " + held, held + "; " + confirmation):
         proc = invoke(host, json.dumps({"permission_mode": mode, "tool_input": {"command": command}}), profile)
@@ -942,3 +1204,7 @@ def test_retention_and_confirmation_aggregation_preserves_stricter_verdict(host,
     assert outcome(host, safe_dry_run, profile, mode) == "allow"
     expected = "ask" if mode == "default" else "deny"
     assert outcome(host, safe_dry_run + "; " + confirmation, profile, mode) == expected
+    if profile == "agent":
+        # The allowed dry run cannot soften the agent's git rm hard deny.
+        chained = json.dumps({"permission_mode": mode, "tool_input": {"command": safe_dry_run + "; git rm retained"}})
+        assert_agent_hard_deny(invoke(host, chained, profile), safe_dry_run + "; git rm retained", mode)
