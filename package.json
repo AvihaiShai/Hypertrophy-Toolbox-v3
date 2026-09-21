@@ -17,14 +17,14 @@
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.61.0",
     "@types/node": "26.4.0",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "5.0.1",
     "bootstrap": "5.3.8",
     "jsdom": "30.0.1",
     "postcss-scss": "4.0.9",
     "sass": "1.103.1",
     "stylelint": "16.11.0",
     "typescript": "7.0.2",
-    "vitest": "4.1.11"
+    "vitest": "5.0.1"
   },
   "engines": {
     "node": ">=24.0.0"
