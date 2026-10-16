@@ -3,7 +3,7 @@
 **Date:** 2026-10-16
 **Authority:** owner closeout directive v2 (avihay1989@gmail.com), 2026-10-16.
 **Outcome:** complete, with one item unresolved by instruction — prevention (§18).
-Steps 1–6 ran on 2026-10-16 (§1–§14 below); **step 7 ran later the same day under the owner's continuation directive and removed all 91 worktrees** (§15); a branch cleanup (§16) and the clearance of §15.4's removal residue (§17) ran on 2026-10-17 under their own directives. §1–§14 are the first run's record and are left as written; §1, §2, §3, §5, §7, §8, §9, §10 and §14 carry supersession or evidence notes where a later run or a later check made them untrue, and §15 carries its own where §16 and §17 overtook it. §19 is the status of all four tasks at close.
+Steps 1–6 ran on 2026-10-16 (§1–§14 below); **step 7 ran later the same day under the owner's continuation directive and removed all 91 worktrees** (§15); a branch cleanup (§16) and the clearance of §15.4's removal residue (§17) ran on 2026-10-17 under their own directives. A drive-root cleanup (§18) also ran on 2026-10-17 under a *separate* directive and is **not** part of the worktree program; it is recorded here because it supersedes part of §12. §1–§14 are the first run's record and are left as written; §1, §2, §3, §5, §7, §8, §9, §10, §12 and §14 carry supersession or evidence notes where a later run or a later check made them untrue, and §15 carries its own where §16 and §17 overtook it. §20 is the status of all four worktree-program tasks at close.
 **Section-reference convention:** a bare §N means a section of *this file*. A reference to the owner's directive is always written "directive §N".
 **Preservation:** `C:\Users\aviha\Backups\Hypertrophy-Toolbox-v3\worktree-closeout-20261016-150200\`
 
@@ -400,6 +400,11 @@ manifest was not re-walked.
 Operation E / main reconciliation, `docs/worktree_cleanup_amendment/`, Operations F and G,
 `D:\c` and `D:\d`. The drive-root audit was left exiting non-zero, as intended. The two
 `PLANNING.md` lineages were not reconciled and the local one was not committed.
+
+> **Partly superseded by §18.** `D:\c` and `D:\d` were removed on 2026-10-17 under a
+> *separate* owner directive, outside the worktree program and outside the teardown lift this
+> record was written under. Everything else listed here stays parked, including both
+> `PLANNING.md` lineages.
 
 ## 13. Contradictions between the documents and this directive
 
@@ -926,7 +931,93 @@ are in gitignored `artifacts/residue-cleanup-20261017/`. No deletion scope was e
 
 ---
 
-## 18. Prevention — in progress, outcome pending
+## 18. Drive-root stray-directory cleanup — 2026-10-17
+
+**Separate authorization, separate scope.** This section records a cleanup that is **not part
+of the worktree program**. The 2026-10-16 directive lifted the teardown hold for everything in
+`git worktree list` (§1); the five directories considered here sit at the `D:\` drive root and
+were **outside that lift**. They were removed under a distinct owner directive of 2026-10-17
+that authorized three named targets and nothing else. No worktree was removed, no prune was
+run, no branch was deleted, no ref was retired. `git worktree list` was **1** entry before and
+**1** entry after.
+
+### 18.1 What was removed
+
+| Target | Files | Bytes | Basis |
+|---|---|---|---|
+| `D:\ht-b1-scratch` | 14,367 | 3,322,859,877 | 15 clone roots; 0 untracked, 0 stashes; both HEADs (`0a1f778`, `6dfb3b3`) on `origin`; every differing blob reachable from a main commit |
+| `D:\d` | 52 | 16,994,332 | MSYS path-conversion fault; preserved and hash-verified first |
+| `D:\c` | 1 | 54,905 | 245-entry vitest listing, sha256 `41f8ddb1…be581`, referencing an already-removed worktree |
+
+**Measured space reclaimed: 3,372,470,272 bytes (3.14 GB)**, by `Get-PSDrive D` free-space
+delta across the removal run.
+
+Removal used native PowerShell with `-LiteralPath` and drive-qualified absolute paths. Each
+target was re-resolved and re-asserted against a three-entry allow-list immediately before
+deletion; the target and every directory beneath it were checked for reparse points, and the
+run was written to refuse on any hit. **Zero reparse points were found** at any target, so no
+recursive delete could escape its intended folder.
+
+### 18.2 What was preserved, and the verification that gated removal
+
+Preserved to the gitignored `artifacts/drive-root-recovery-20261017/`, with `ORIGIN.md`
+recording original paths and `MANIFEST.sha256` giving `<sha256>  <bytes>  <relative path>`
+for every file:
+
+- `d-hlinux-gate1/` — 52 files, the `h-linux-unsync-01-gate1` Gate-1 control/treatment
+  evidence. The intended location `D:\development\ht-wt-hlinux-gate1-20260902` no longer
+  exists, so `D:\d` held the **sole surviving copy**.
+- `ht-b1-scratch-evidence/` — 69 loose files from the 2026-10-09 B1 restore test
+  (listings, comparisons, `HASHES.*`, `restore-run.log`, `REVIEW-pass1-backup.md`).
+- `ht-b1-scratch-evidence/_clone-local-scripts/` — `append_rows.py` and `clock.py`, found in
+  the clones' gitignored `artifacts/`. Preserved because `git cat-file` confirmed **neither
+  blob exists in the main repository's object database**, unlike every other differing file
+  in those clones.
+
+**All 123 source files were re-hashed against their preserved copies before any deletion:
+123 identical, 0 mismatches, 0 missing.** Removal was gated on that pass.
+
+One disposition note worth recording: the restored clones' apparent working-tree
+modifications were largely **autocrlf line-ending artifacts** — `docs/WORKTREE_CLEANUP_PLAN.md`
+carried an identical blob hash with a 4-byte size difference. Tip equality alone did not
+settle disposability; the ignored-file and object-database checks did.
+
+### 18.3 RESIDUE-1 and RESIDUE-2 — deliberately untouched
+
+`D:\dev-cleanup-20260824-digest` and `D:\_digest-discard-bin` were **excluded by instruction
+and remain untouched**. They were not moved, renamed, written into or read destructively.
+Their NTFS creation times are **one of the two independent corroborations** bounding the
+4 min 21 s backup-removal window, and were re-measured after the cleanup as unchanged:
+
+```
+D:\dev-cleanup-20260824-digest   CreationTime 2026-09-28 18:26:56   30 files
+D:\_digest-discard-bin           CreationTime 2026-09-28 18:31:21  548 files
+```
+
+### 18.4 What remains open
+
+**This section closes nothing in the backup-disappearance investigation.** Still unresolved
+and unchanged by this cleanup:
+
+- **Who removed the August preservation paths, and when**, is NOT established. The removal
+  remains an owner-account console event on 2026-09-28.
+- **Whether the off-device copy restores** is NOT established. No restore has been performed,
+  and content identity is verified for **2 of 14,255** manifest entries only.
+- The 22-day audit gap between 2026-09-07 and 2026-09-29 is unchanged, and remains a gap in
+  evidence rather than evidence of anything.
+
+### 18.5 Prevention
+
+The `D:\c` and `D:\d` faults were **MSYS path conversion**, not destination choice: a
+`/c/...` or `/d/...` path landed as a literal relative directory beneath the drive root.
+Destination validation alone does not address this. The standing controls are therefore:
+native PowerShell with drive-qualified absolute paths; validation of the resolved
+destination before anything is created; and a check that flags unexpected new `D:\`
+children, run around browser-automation sessions.
+
+---
+
+## 19. Prevention — in progress, outcome pending
 
 **Status: unresolved, work ongoing elsewhere.** Prevention is being carried out as a separate task
 and will land in **its own pull request**, based on `origin/main` and carrying its own tests and
@@ -950,18 +1041,20 @@ coordinator that wrote this section had `git worktree prune --dry-run -v` denied
 
 ---
 
-## 19. The four tasks at close
+## 20. The four tasks at close
 
 One row per task, with the distinction the owner asked for: **completed** (ran and was verified),
 **retained** (deliberately kept), **waived** (consciously not done), **unresolved** (not done and
-not waived).
+not waived). The drive-root cleanup in §18 is **not** one of these four: it ran under a separate
+directive, on targets that were never in `git worktree list`, and is recorded alongside rather
+than inside this program.
 
 | # | task | status | outcome |
 |---|---|---|---|
 | 1 | Worktree removal (§15) | **completed** | 91 of 91 removed, 0 retained; one residue, since cleared |
 | 2 | Branch cleanup (§16) | **completed** | 13 deleted, 127 retained; all remaining refs exact |
 | 3 | Residue cleanup (§17) | **completed** | target absent; 35 operations; no guard change needed |
-| 4 | Prevention (§18) | **unresolved** | not performed, not waived, not in this record |
+| 4 | Prevention (§19) | **unresolved** | not performed, not waived, not in this record |
 
 **Retained, deliberately:** 127 local branches (125 whose exact tips are not ancestors of
 `origin/main`, plus `main` and the branch carrying this record); all 8 stashes; the 40
@@ -983,7 +1076,7 @@ parked items stay parked.
   local copy is still uncommitted and still must not be staged (§3, §10, §12).
 - The exact install and restore instants of the §15 guard exception were never recorded (§15).
 
-### 19.1 Main checkout, preserved throughout
+### 20.1 Main checkout, preserved throughout
 
 Verified after all four tasks: `HEAD` `85e2372` on `main`, one worktree registration, 8 stashes,
 23 modified + 5 untracked porcelain entries, **0 staged**, the index digest unchanged across the
@@ -992,7 +1085,7 @@ remains diverged from `origin/main` (3 ahead, behind by the rest) and was never 
 baseline, never pulled, reset, stashed or switched. `git add -A` was never run. Of this directory,
 only `CLOSEOUT.md` was ever staged or committed.
 
-### 19.2 What this record is, and is not
+### 20.2 What this record is, and is not
 
 The pull request carrying this file changes **one file**: `docs/worktree_cleanup/CLOSEOUT.md`. It
 is a record, not a change. It contains no application code, no configuration, no test, no
