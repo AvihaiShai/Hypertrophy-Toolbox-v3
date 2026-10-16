@@ -672,7 +672,7 @@ the default for an *empty* argument and so silently re-ran the baseline.
 | local branches | 140 | **140** (identical names) — later 127, see §16 |
 | stashes | 8 | **8** (identical) |
 | main `HEAD` | `85e2372` | `85e2372` |
-| main uncommitted files | 28 | **28** (byte-identical list) |
+| main uncommitted files | 28 | **28** (byte-identical list) — later 27, see §20.1 |
 | main staged files | 0 | **0** |
 | main `.venv` / `node_modules` | 8,256 / 6,566 | **8,256 / 6,566** |
 | guard SHA-256 (both copies) | `0afb81b8…4502` | **`0afb81b8…4502`** |
@@ -1076,14 +1076,40 @@ parked items stay parked.
   local copy is still uncommitted and still must not be staged (§3, §10, §12).
 - The exact install and restore instants of the §15 guard exception were never recorded (§15).
 
-### 20.1 Main checkout, preserved throughout
+### 20.1 Main checkout — preserved in every tracked respect, with one untracked file lost
 
 Verified after all four tasks: `HEAD` `85e2372` on `main`, one worktree registration, 8 stashes,
-23 modified + 5 untracked porcelain entries, **0 staged**, the index digest unchanged across the
-branch deletions, and the tracked working-tree diff byte-identical before and after. Local `main`
-remains diverged from `origin/main` (3 ahead, behind by the rest) and was never used as a merge
-baseline, never pulled, reset, stashed or switched. `git add -A` was never run. Of this directory,
-only `CLOSEOUT.md` was ever staged or committed.
+**0 staged**, the index digest unchanged across the branch deletions, and the tracked
+working-tree diff byte-identical before and after. All **23 modified** paths are intact. Local
+`main` remains diverged from `origin/main` (3 ahead, behind by the rest) and was never used as a
+merge baseline, never pulled, reset, stashed or switched. `git add -A` was never run. Of this
+directory, only `CLOSEOUT.md` was ever staged or committed.
+
+**One untracked file was lost, and this record cannot say by whom.** `git status --porcelain`
+listed **28** entries at `2026-10-16T21:30:06Z`, including `?? analysis.json` at the repository
+root. It listed **27** at `2026-10-16T22:10Z`, and `analysis.json` no longer exists. The 23
+modified paths and the four remaining untracked directories are unaffected, so the porcelain
+figure of 28 recorded in §15.7 was correct when measured and is now 27.
+
+What is established:
+
+- **It is not recoverable.** `analysis.json` was never tracked by git (`git log --all` on the path
+  is empty), it does not appear in the 2026-10-16 preservation `MANIFEST.txt`, and it is not in
+  the `artifacts/drive-root-recovery-20261017/` capture. No copy is known to exist.
+- **No task in this record claims it.** The removal run (§15) never touched the main checkout and
+  its before/after status snapshots hash identically. The branch cleanup (§16) reports the
+  tracked working-tree diff unchanged and worked through a temporary index. The residue cleanup
+  (§17) was bounded to one directory on `D:\development\`. The drive-root cleanup (§18) was
+  bounded to three named `D:\` targets. The session that wrote this section made no filesystem
+  write in the checkout other than to this file.
+- **Its removal may well have been deliberate**, since generated output at the repository root is
+  a policy violation under ADR-002. But **no directive known to this record authorized it, and no
+  actor has claimed it.**
+
+It is therefore recorded as **an unaccounted-for deletion of an untracked file**, not as
+preservation and not as cleanup. Given that this whole program exists to account for filesystem
+state, an unexplained loss inside the one directory it promised to protect belongs in the record
+even though the file was, by policy, one that should not have been there.
 
 ### 20.2 What this record is, and is not
 
