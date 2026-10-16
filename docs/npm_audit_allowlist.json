@@ -1,5 +1,15 @@
 {
   "schemaVersion": 1,
   "note": "Accepted exceptions to the js-supply-chain gate (scripts/npm_audit_gate.mjs). Policy, entry format and the rules behind every field: docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md sections 4 and 6.1. An empty list is written as \"allow\": [] and never as a missing file. Adding an entry requires an owner decision; every field is required, the id is a GHSA id, and expiresOn may be at most 90 days after approvedOn (D-3). An entry whose advisory has left the audit fails the gate and must be deleted (D-5).",
-  "allow": []
+  "allow": [
+    {
+      "id": "GHSA-vfj7-8cjw-p6xm",
+      "package": "braces",
+      "severity": "high",
+      "rationale": "No fixed version exists at any release: braces 3.0.3 is both the latest published version and the top of the vulnerable range (<=3.0.3), and the advisory records first_patched_version as null. The sole path into this graph is stylelint 16.11.0 -> micromatch 4.0.8 -> braces 3.0.3, entirely within devDependencies; package.json declares no runtime dependencies, so nothing reaches the shipped application or the packaged executable. Upgrading stylelint does NOT remedy it -- stylelint 17.16.0, the current major, still depends on micromatch ^4.0.8 and so on braces ^3.0.3 -- and npm's suggested remediation of stylelint@7.7.0 is a downgrade to a 2018-era release, not a fix. The exposure is stack exhaustion from deeply nested brace patterns in glob input; the only braces input here is this repository's own committed stylelint glob configuration, which is not attacker-controlled. Accepted for 14 days so the documentation closeout and the werkzeug security bump can land; revisit when braces publishes a patched release or stylelint moves off micromatch.",
+      "owner": "avihay1989@gmail.com",
+      "approvedOn": "2026-10-16",
+      "expiresOn": "2026-10-30"
+    }
+  ]
 }
