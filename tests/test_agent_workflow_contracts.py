@@ -302,10 +302,219 @@ def test_skill_guard_decides_as_the_senior_developer_allowlist_says(
     )
 
 
+FRONTMATTER = re.compile(r"\A---\r?\n(.*?)^---[ \t]*\r?$", re.DOTALL | re.MULTILINE)
+SHELL_TOOLS = ("Bash", "PowerShell")
+# Flow style, a comment, a flow mapping or an anchor. This parser does not read
+# them, and "not read" has to mean "assume every tool".
+UNREADABLE_TOOLS_VALUE = re.compile(r"[\[\]{}#&]")
+SEQUENCE_ITEM = re.compile(r"^[ \t]*-[ \t]")
+MATCHER_VALUE = re.compile(r"^[ \t]*-?[ \t]*matcher:[ \t]*(.*)$", re.MULTILINE)
+# Either quote style. The single-quoted form legitimately contains the double
+# quotes around ${CLAUDE_PROJECT_DIR}, so the delimiter cannot be excluded from
+# the body.
+QUOTED_COMMAND = re.compile(r"""command:[ \t]*(?:'([^'\n]*)'|"([^"\n]*)")""")
+# PowerShell binds parameter names case-insensitively, by unambiguous prefix,
+# and with a colon as well as whitespace before the value: -G main, -Gu MAIN and
+# -GuardProfile:main all reach $GuardProfile.
+# The value group is optional so that a parameter given with NO value is still
+# seen: it does not bind, and PowerShell's exit 1 on the binding error is
+# non-blocking, so such a registration fails open rather than defaulting.
+PROFILE_ARGUMENT = re.compile(r"""-([A-Za-z]+)(?:[ \t]*[:\s][ \t]*['"]?([A-Za-z]*))?""")
+
+
+def frontmatter(content: str, name: str) -> str:
+    found = FRONTMATTER.search(content)
+    assert found is not None, name + " has no YAML frontmatter"
+    return found.group(1)
+
+
+def indent_of(line: str) -> int:
+    return len(line) - len(line.lstrip())
+
+
+def split_outside_parens(value: str) -> list[str]:
+    """Split a tools-style list on commas that are not inside parentheses.
+
+    `Agent(product-manager, senior-developer)` is one tool carrying an argument
+    list, not three tools.
+    """
+    items: list[str] = []
+    depth = 0
+    current = ""
+    for char in value:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        if char == "," and depth == 0:
+            items.append(current)
+            current = ""
+        else:
+            current += char
+    items.append(current)
+    return [item.strip().strip("\"'") for item in items if item.strip()]
+
+
+def declared_tools(block: str, key: str) -> set[str] | None:
+    """Tool names under a top-level `key:`, or None for "assume every tool".
+
+    None is returned for an absent key -- a charter with no `tools:` inherits
+    everything -- and for any value this parser cannot fully read: a duplicate
+    key (YAML takes the last), flow style `[Read, Bash]`, a trailing `# comment`,
+    an anchor or alias, a wildcard, or a key with nothing readable under it.
+    Both answers mean the same thing to the caller, and that is the fail-closed
+    direction: an unread `tools:` must never be mistaken for "no shell". Written
+    by hand because PyYAML is not a dependency of this repository.
+    """
+    lines = block.splitlines()
+    head = re.compile(r"^" + re.escape(key) + r":[ \t]*(.*)$")
+    found = [
+        (index, match)
+        for index, match in ((i, head.match(line)) for i, line in enumerate(lines))
+        if match is not None
+    ]
+    if len(found) != 1:
+        return None
+    index, match = found[0]
+    inline = match.group(1).strip()
+    if UNREADABLE_TOOLS_VALUE.search(inline):
+        return None
+    items = split_outside_parens(inline)
+    for candidate in lines[index + 1:]:
+        if not candidate.strip():
+            continue
+        # Only an indented `- ` item continues this key. The next top-level key,
+        # a nested mapping such as `mcpServers:`, or a sequence written at column
+        # zero all end it -- and the last of those leaves `items` empty, which is
+        # why an empty result has to be None rather than "no tools".
+        if not SEQUENCE_ITEM.match(candidate) or indent_of(candidate) == 0:
+            break
+        items.extend(split_outside_parens(candidate.split("-", 1)[1]))
+    if not items or any(item.startswith("*") for item in items):
+        return None
+    return {item.split("(", 1)[0].strip() for item in items}
+
+
+def granted_shell_tools(content: str, name: str) -> set[str]:
+    """Which of Bash and PowerShell this charter can reach.
+
+    `disallowedTools` deliberately does not subtract. No charter in this
+    repository names a tool in both keys, so its precedence over an explicit
+    `tools:` grant is unobservable here, and treating it as a denial would
+    exempt `tools: Bash` + `disallowedTools: Bash` from carrying the hook on an
+    unverified premise. Failing closed costs one hook line on a charter that
+    never shells.
+    """
+    granted = declared_tools(frontmatter(content, name), "tools")
+    if granted is None:
+        return set(SHELL_TOOLS)
+    return {tool for tool in SHELL_TOOLS if tool in granted}
+
+
+def pre_tool_use_block(block: str) -> str:
+    """The `PreToolUse:` section of a charter's `hooks:` mapping.
+
+    Only PreToolUse can block a call. A guard registered under PostToolUse runs
+    after the tool has already executed, so its exit 2 prevents nothing -- and
+    reads as a present, correctly matched hook.
+    """
+    lines = block.splitlines()
+    for index, line in enumerate(lines):
+        if not re.match(r"^[ \t]*PreToolUse:[ \t]*$", line):
+            continue
+        depth = indent_of(line)
+        end = len(lines)
+        for offset in range(index + 1, len(lines)):
+            if lines[offset].strip() and indent_of(lines[offset]) <= depth:
+                end = offset
+                break
+        return "\n".join(lines[index + 1:end])
+    return ""
+
+
+def hook_entries(section: str) -> list[str]:
+    """Top-level sequence items of a hook section, each as one text block."""
+    lines = section.splitlines()
+    starts = [index for index, line in enumerate(lines) if SEQUENCE_ITEM.match(line)]
+    if not starts:
+        return []
+    base = min(indent_of(lines[index]) for index in starts)
+    starts = [index for index in starts if indent_of(lines[index]) == base]
+    bounds = starts + [len(lines)]
+    return ["\n".join(lines[bounds[i]:bounds[i + 1]]) for i in range(len(starts))]
+
+
+def matcher_covers(value: str | None, required: set[str]) -> bool:
+    """Whether a matcher routes every shell tool the charter grants.
+
+    An entry with no `matcher` matches every tool, so it covers. A matcher is an
+    alternation, so `"Edit|Write|Bash|PowerShell"` covers as fully as
+    `"Bash|PowerShell"` -- membership, not string equality.
+    """
+    if value is None:
+        return True
+    alternatives = {part.strip().strip("\"'") for part in value.split("|")}
+    return required <= alternatives
+
+
+def guard_commands(text: str) -> list[str]:
+    return [
+        single or double
+        for single, double in QUOTED_COMMAND.findall(text)
+        if "guard-destructive-command.ps1" in (single or double)
+    ]
+
+
+def shell_hook_commands(block: str, name: str, required: set[str]) -> list[str]:
+    """Guard commands that actually sit in front of this charter's shell calls.
+
+    Scoped to one PreToolUse entry whose matcher covers the granted shell tools.
+    Two independent whole-file searches -- one for the matcher, one for the
+    command -- accept a charter whose shell matcher carries an unrelated hook
+    while the destructive guard sits under `matcher: "Skill"` or under
+    PostToolUse, and then enrol it as a live registration.
+    """
+    section = pre_tool_use_block(block)
+    covering: list[str] = []
+    stray: list[str] = []
+    for entry in hook_entries(section):
+        matcher = MATCHER_VALUE.search(entry)
+        target = covering if matcher_covers(matcher.group(1).strip() if matcher else None, required) else stray
+        target.extend(guard_commands(entry))
+    accounted = sum(len(guard_commands(entry)) for entry in hook_entries(section))
+    elsewhere = len(guard_commands(block)) - accounted
+    assert not stray and elsewhere == 0, (
+        name + " registers the destructive guard where it cannot gate a shell "
+        "call -- outside PreToolUse, or under a matcher that does not cover "
+        + ", ".join(sorted(required))
+    )
+    return covering
+
+
+def resolved_profile(command: str) -> str:
+    """The profile this registration actually selects at run time.
+
+    `"-GuardProfile main" not in command` is not that question. PowerShell
+    resolves `-G main`, `-Gu MAIN` and `-GuardProfile:main` to the same
+    permissive profile, so a charter can register the owner profile and still
+    read as if it had not. A parameter given with no value does not bind at all:
+    PowerShell exits 1 on the binding error, which is non-blocking, so that
+    registration fails OPEN and is reported as such rather than as `agent`.
+    """
+    for name, value in PROFILE_ARGUMENT.findall(command):
+        if "guardprofile".startswith(name.lower()):
+            return value.lower() or "<missing value>"
+    return "agent"  # the guard's param() default
+
+
 def destructive_registrations(settings=None, charters=None):
     """Resolve actual registrations and reject missing/misrouted hook wiring."""
     settings = settings if settings is not None else json.loads(read(REPO / ".claude/settings.json"))
-    charters = charters if charters is not None else {p.name: read(p) for p in AGENTS.glob("*.md")}
+    if charters is None:
+        # committed_markdown, not a bare glob: `.claude/agents/*.local.md` is not
+        # gitignored, so an uncommitted charter could otherwise green or red this
+        # contract from one machine.
+        charters = {p.name: read(p) for p in committed_markdown(AGENTS.glob("*.md"))}
     registrations = []
     for registration in settings.get("hooks", {}).get("PreToolUse", []):
         if "Bash" in registration.get("matcher", "") and "PowerShell" in registration.get("matcher", ""):
@@ -314,19 +523,18 @@ def destructive_registrations(settings=None, charters=None):
                     registrations.append(("project", hook["command"], "main"))
     assert len(registrations) == 1, "Project shell destructive hook missing or ambiguous"
     for name, content in charters.items():
-        tools = re.search(r"^tools:\s*(.*)$", content, re.MULTILINE)
-        if not tools or not re.search(r"\b(Bash|PowerShell)\b", tools.group(1)):
+        required = granted_shell_tools(content, name)
+        if not required:
             continue
-        assert 'matcher: "Bash|PowerShell"' in content, name
-        matches = re.findall(r"command:\s*'([^'\n]*guard-destructive-command\.ps1[^'\n]*)'", content)
-        assert len(matches) == 1, name + " missing or ambiguous destructive hook"
-        registrations.append((name, matches[0], "agent"))
+        commands = shell_hook_commands(frontmatter(content, name), name, required)
+        assert len(commands) == 1, name + " missing or ambiguous destructive hook"
+        registrations.append((name, commands[0], "agent"))
     for name, command, profile in registrations:
         assert "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-destructive-command.ps1" in command, name
-        if profile == "main":
-            assert "-GuardProfile main" in command, name
-        else:
-            assert "-GuardProfile main" not in command, name
+        actual = resolved_profile(command)
+        assert actual == profile, (
+            f"{name} resolves to the {actual} profile where {profile} is required"
+        )
     return registrations
 
 
@@ -340,7 +548,14 @@ def test_all_effective_destructive_registrations_execute_deny_allow(host, permis
         resolved = command.replace("${CLAUDE_PROJECT_DIR}", str(REPO))
         host_prefix = "& '" + str(shutil.which(host)).replace("'", "''") + "'"
         resolved = re.sub(r"^powershell\b", lambda _: host_prefix, resolved)
-        for inert, expected in (("MSYS2_ARG_CONV_EXCL=0 echo inert", 2), ("git status --short", 0)):
+        probes = (
+            ("MSYS2_ARG_CONV_EXCL=0 echo inert", 2),
+            ("git status --short", 0),
+            # The other two rows behave identically under both profiles, so they
+            # cannot tell an agent registration from an owner one. This one can.
+            ("git push origin HEAD", 2 if profile == "agent" else 0),
+        )
+        for inert, expected in probes:
             # The outer harness shell must preserve the registered child's exact
             # exit code; PowerShell -Command otherwise maps any nonzero to 1.
             result = subprocess.run([host, "-NoProfile", "-Command", resolved + "; exit $LASTEXITCODE"], input=json.dumps({
@@ -349,19 +564,109 @@ def test_all_effective_destructive_registrations_execute_deny_allow(host, permis
             assert result.returncode == expected, (name, profile, result.stdout, result.stderr)
 
 
-@pytest.mark.parametrize("mutation", ("remove_project", "misroute_project", "remove_agent", "main_agent"))
+# The four original arms, and the assertion each must raise. Without `match=`,
+# an arm is satisfied by any AssertionError -- including one from an unrelated
+# charter or a different rule.
+MUTATION_REASONS = {
+    "remove_project": "Project shell destructive hook missing or ambiguous",
+    "misroute_project": "Project shell destructive hook missing or ambiguous",
+    "remove_agent": "missing or ambiguous destructive hook",
+    "main_agent": "resolves to the main profile",
+}
+
+NO_HOOK = "rogue.md missing or ambiguous destructive hook"
+MISROUTED = "cannot gate a shell call"
+
+
+def _rogue(frontmatter_body: str) -> str:
+    return "---\nname: rogue\ndescription: d\n" + frontmatter_body + "---\n\nbody\n"
+
+
+def _rogue_hook(matcher: str, argument: str = "", event: str = "PreToolUse") -> str:
+    return _rogue(
+        "tools: Read, Bash\nhooks:\n"
+        f"  {event}:\n"
+        f"    - matcher: {matcher}\n"
+        "      hooks:\n"
+        "        - type: command\n"
+        "          command: 'powershell -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/"
+        "guard-destructive-command.ps1\"" + argument + "'\n"
+    )
+
+
+# Charter shapes that reach a shell in the harness. The first group ships no
+# effective guard at all; the second ships a hook that cannot gate a shell call;
+# the third ships one that hands the charter the permissive owner profile. Every
+# one of them read green before the predicate was rewritten.
+UNGUARDED_CHARTERS = {
+    # No `tools:` key, so the charter inherits every tool, Bash included.
+    "no_tools_key": (_rogue("model: inherit\n"), NO_HOOK),
+    "wildcard_tools": (_rogue('tools: "*"\n'), NO_HOOK),
+    "block_sequence_tools": (_rogue("tools:\n  - Read\n  - Bash\n"), NO_HOOK),
+    "flow_sequence_tools": (_rogue("tools: [Read, Bash]\n"), NO_HOOK),
+    "commented_tools": (_rogue("tools: Read, Bash  # shell for the test runner\n"), NO_HOOK),
+    "zero_indent_sequence_tools": (_rogue("tools:\n- Read\n- Bash\n"), NO_HOOK),
+    # YAML takes the last key; a reader that takes the first sees no shell.
+    "duplicate_tools_key": (_rogue("tools: Read\ntools: Read, Bash\n"), NO_HOOK),
+    "empty_tools_value": (_rogue("tools:\n"), NO_HOOK),
+    # The shell matcher carries an unrelated hook while the destructive guard
+    # sits where no shell call reaches it.
+    "hook_under_wrong_matcher": (
+        _rogue(
+            "tools: Read, Bash\nhooks:\n  PreToolUse:\n"
+            '    - matcher: "Bash|PowerShell"\n'
+            "      hooks:\n"
+            "        - type: command\n"
+            "          command: 'powershell -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-skill.ps1\"'\n"
+            '    - matcher: "Skill"\n'
+            "      hooks:\n"
+            "        - type: command\n"
+            "          command: 'powershell -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/"
+            "guard-destructive-command.ps1\"'\n"
+        ),
+        MISROUTED,
+    ),
+    # PostToolUse runs after the call, so exit 2 prevents nothing.
+    "hook_under_wrong_event": (_rogue_hook('"Bash|PowerShell"', event="PostToolUse"), MISROUTED),
+    # A charter may not hand itself the owner profile. PowerShell matches
+    # parameter names case-insensitively, by unambiguous prefix, and with a
+    # colon as well as whitespace before the value.
+    "cased_main_profile": (_rogue_hook('"Bash|PowerShell"', " -GuardProfile MAIN"), MUTATION_REASONS["main_agent"]),
+    "abbreviated_main_profile": (_rogue_hook('"Bash|PowerShell"', " -G main"), MUTATION_REASONS["main_agent"]),
+    "colon_main_profile": (_rogue_hook('"Bash|PowerShell"', " -GuardProfile:main"), MUTATION_REASONS["main_agent"]),
+    "colon_abbreviated_main_profile": (_rogue_hook('"Bash|PowerShell"', " -G:main"), MUTATION_REASONS["main_agent"]),
+    # No value binds nothing: PowerShell exits 1 on the binding error, which is
+    # non-blocking, so this registration fails OPEN.
+    "profile_argument_without_a_value": (
+        _rogue_hook('"Bash|PowerShell"', " -GuardProfile"),
+        "resolves to the <missing value> profile",
+    ),
+}
+
+# This file's collected node count is identical before and after the predicate
+# hardening -- the arms exist in both states -- so no count-based check can tell
+# them apart. Resolving one registration at import time can: an unhardened copy
+# of this file has no `resolved_profile`, so it fails at COLLECTION rather than
+# silently shipping with the arms red.
+assert resolved_profile(_rogue_hook('"Bash|PowerShell"', " -G:main")) == "main"
+
+
+@pytest.mark.parametrize("mutation", (*MUTATION_REASONS, *UNGUARDED_CHARTERS))
 def test_missing_or_misrouted_registration_is_detected(mutation):
     settings = json.loads(read(REPO / ".claude/settings.json"))
-    charters = {p.name: read(p) for p in AGENTS.glob("*.md")}
+    charters = {p.name: read(p) for p in committed_markdown(AGENTS.glob("*.md"))}
     if mutation == "remove_project":
         settings["hooks"]["PreToolUse"] = []
     elif mutation == "misroute_project":
         settings = json.loads(json.dumps(settings).replace("guard-destructive-command.ps1", "guard-skill.ps1"))
     elif mutation == "remove_agent":
         charters["automation-qa.md"] = charters["automation-qa.md"].replace("guard-destructive-command.ps1", "guard-skill.ps1")
-    else:
+    elif mutation == "main_agent":
         charters["automation-qa.md"] = charters["automation-qa.md"].replace('guard-destructive-command.ps1"', 'guard-destructive-command.ps1" -GuardProfile main')
-    with pytest.raises(AssertionError):
+    else:
+        charters["rogue.md"] = UNGUARDED_CHARTERS[mutation][0]
+    reason = MUTATION_REASONS.get(mutation) or UNGUARDED_CHARTERS[mutation][1]
+    with pytest.raises(AssertionError, match=re.escape(reason)):
         destructive_registrations(settings, charters)
 
 
