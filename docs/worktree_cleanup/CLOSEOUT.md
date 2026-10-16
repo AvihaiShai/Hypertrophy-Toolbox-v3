@@ -1017,35 +1017,125 @@ children, run around browser-automation sessions.
 
 ---
 
-## 19. Prevention — in progress, outcome pending
+## 19. Prevention — outcome
 
-**Status: unresolved, work ongoing elsewhere.** Prevention is being carried out as a separate task
-and will land in **its own pull request**, based on `origin/main` and carrying its own tests and
-guidance. It is deliberately **not** part of this record or the pull request that carries it.
+**Authority:** owner directive, 2026-10-17, authorizing a bounded prevention follow-up: focused
+implementation, tests, documentation, a dedicated PR, and installation of the reviewed prevention
+changes, subject to independent review before implementation.
 
-As of `2026-10-16T21:55Z` that task reports its assessment complete and its implementation **not**
-finished. No prevention outcome is recorded here, because none has been delivered: no artifact
-directory, no branch and no pull request for it existed at the time of writing, and the lifecycle
-and guard tooling are unmodified. **Nothing is `PREVENTION_COMPLETE`.**
+**Outcome: the prevention *source* was already merged; what was still open was that its central
+contract did not work.** `PREVENTION_COMPLETE` is **not** declared.
 
-This is recorded as **unresolved — not waived, not complete, and not assessed by this record**.
-Nothing here is a prevention design, finding, approval, review or sign-off, and the absence of a
-recorded finding here is not evidence that there is none. The prevention task's own conclusions are
-its to publish, and must be read there rather than inferred from this section.
+### 19.1 The base correction that reframed the task
 
-What already existed and was **not** changed by any of the four tasks: the guard's
-worktree-retention hold (`git worktree remove`, `git worktree prune` and `git branch -d`/`-D` all
-denied by default), the `scripts/new-worktree.ps1` lifecycle controls, and `.claude/settings.json`.
-Both guard copies are back at their original SHA-256 `0afb81b8…4502`, and the hold is in force: the
-coordinator that wrote this section had `git worktree prune --dry-run -v` denied by it.
+Operation A's prevention source is merged and installed. `origin/main` is `71fc658` (PR #494) and
+tracks `scripts/audit-worktrees.ps1`, `preflight-worktree-environment.ps1`,
+`seed_worktree_snapshot.py`, the 217-line `new-worktree.ps1`, and
+`tests/test_worktree_{lifecycle,snapshot,environment_preflight,ci_contracts}.py` plus
+`tests/worktree_cleanup/**`. Both installed guard copies carry those exact bytes
+(62,363 B, SHA-256 `0AFB81B8…4502`).
+
+The main checkout is **3 ahead / 41 behind** `origin/main`, so every one of those files shows as a
+`D` row in `git diff --name-status origin/main`. **Those are stale-base artifacts, not deletions.**
+Two consequences were recorded rather than acted on: the working-tree
+`tests/test_guard_destructive_command.py` is **+46 / −429** against upstream (it is missing the 33
+MSYS-suppression references), and `docs/ai_workflow/AUTONOMY.md` is **+1 / −21** — committing either
+as-is would revert merged prevention hardening. Likewise the untracked
+`docs/worktree_cleanup/PLANNING.md` and `docs/ai_workflow/WORKTREE_CLEANUP_PLAN.md` are divergent
+stale copies of files already tracked upstream.
+
+### 19.2 What was actually broken
+
+`destructive_registrations()` is the only contract requiring a shell-capable agent charter to carry
+the `PreToolUse` destructive-guard hook. **Fifteen charter shapes passed it**, in three classes:
+eight that ship no effective guard at all (no `tools:` key, `tools: "*"`, block sequence, flow
+sequence `[Read, Bash]`, a trailing `# comment`, a column-zero sequence, a duplicate `tools:` key,
+an empty value); two that ship a hook which cannot gate a shell call (the guard under
+`matcher: "Skill"`, and the guard under `PostToolUse`, which runs after the call); and five that
+hand the charter the **permissive owner profile** — `-GuardProfile MAIN`, `-G main`,
+`-GuardProfile:main`, `-G:main`, and `-GuardProfile` with no value. The last class is the worst,
+because the hook is present and nothing looks missing. All five were measured allowing `git push`
+against the installed guard on both PowerShell hosts.
+
+The existing execution test could not catch any of it: it probed each registration only with
+`MSYS2_ARG_CONV_EXCL=0 echo inert` and `git status --short`, and **neither input distinguishes the
+`agent` profile from `main`**. Consistent with Gate A R4, literal stderr `Blocked by agent guard:`
+had been observed **zero** times.
+
+### 19.3 What shipped
+
+One dedicated PR -- **#508**, branched from `origin/main` at `c0b5a09` -- four files,
++439/-20, no product code: the rewritten predicate
+(frontmatter-scoped, fail-closed on any `tools:` value it cannot fully read, `PreToolUse`-scoped
+with matcher-alternation membership, and resolving each registration's effective profile); fifteen
+mutation arms, each pinned to the assertion it must raise; a third profile-discriminating probe in
+the execution test; the guard invocation both guarded charters actually register (no
+`-GuardProfile` argument at all) across every permission mode; the fail-closed case for an
+unrecognised profile name; and `docs/test_inventory/` regenerated by its own generator
+(3192 → 3207 deterministic nodes, 94 → 109 for that file; file counts unchanged).
+
+Every arm was proven **in both directions**, and the five new guard tests were each killed by a
+targeted mutation of a scratch copy of the guard. pyright 1.1.410 reports 0 errors / 0 warnings on
+both changed files, and the blocking `generate_test_inventory.py --check` gate is green. The
+full run of both files is **1979 passed**. Verification ran on a `git archive` of `71fc658`
+with the real `node_modules`, never in this checkout.
+
+### 19.4 Preservation of owner state
+
+Nothing in the main checkout was read into, staged into, or altered by this work. The commit was
+assembled with git plumbing against a temporary index — never `git add`, never `read-tree -u`. The
+23 modified owner paths and `HEAD` (`85e23725`) are identical before and after, and both guard
+copies remain at `0AFB81B8…4502`. The one unrelated change observed during this work — the
+disappearance of the untracked root-level `analysis.json` — is **not** attributable to it and is
+recorded in §20.1; this section makes no separate claim about it.
+
+The transient guard rewrite seen at 2026-10-16T21:29Z (67,547 B / `12e1c694…3be1`) was independently
+attributed to the branch-cleanup run's scoped exception — `artifacts/branch-cleanup-20261017/guard.EXCEPTION.ps1`
+hashes to exactly those bytes, with mtime 21:28:19Z — and was restored at 21:30:11Z. Neither that
+session nor this one had exclusive access to the checkout; the absence of a lock proves nothing.
+
+### 19.5 Not done, and why
+
+No worktree was created, removed or pruned; no branch, tag or ref was deleted; no permission switch
+was introduced and no cleanup exception was retained. The guard itself was not modified. The
+deletion program, August-backup attribution, main reconciliation, malformed-root cleanup and
+Operations F/G were not reopened. No new amendment or planning-document series was created.
+
+Three residual findings are recorded rather than fixed, all guard behaviour or harness facts outside
+this scope: an **unknown** command-bearing field is not scanned when a declared one is present
+(`{"command": "git status --short", "shellLine": "<destructive>"}` → allow, both hosts);
+`-GuardProfile` with no value exits 1, which is non-blocking, so that registration fails open; and
+the harness-provided agent types (`general-purpose`, `claude`, `Explore`, `Plan`) have no charter
+file and therefore no `agent`-profile hook, running under the settings-level `main` registration
+only. Worktree prevention still holds for them because the retention hold is profile- and
+mode-invariant, but "agent-profile coverage" is not a claim that can be made for them, and no test
+in this repository can close it. The hook payload carries **no agent identity field**, so
+`session_id` cannot distinguish a subagent from its parent.
+
+### 19.6 `PREVENTION_COMPLETE` is NOT declared
+
+Of its four conjuncts, "merged" and "installed" are satisfied; **"tested" and "lifecycle monitoring
+is active" remain owner-only** and are not claimed, waived or relabelled here. The owner-only
+remainder was collected into a single handoff: a fresh direct PowerShell session running
+`preflight-worktree-environment.ps1` and `guard-contract.ps1` against the user-level guard; either
+an observation of a natural 07:00 firing of `OperationA-WorktreeAudit` or an explicit ruling that
+`StartWhenAvailable` catch-up satisfies "active"; a review of the 21-of-21 non-zero audit exits;
+disposition of the ~89 `ORPHANED_ANNOTATION` rows and the drive baseline, which are gitignored
+owner-local files that **no repository change can fix** and which keep upstream worktree creation
+fail-closed; the guard runtime qualification adoption; the G07 and C02 decisions; and whether to
+sync this checkout onto `origin/main`.
+
+---
+
 
 ---
 
 ## 20. The four tasks at close
 
 One row per task, with the distinction the owner asked for: **completed** (ran and was verified),
-**retained** (deliberately kept), **waived** (consciously not done), **unresolved** (not done and
-not waived). The drive-root cleanup in §18 is **not** one of these four: it ran under a separate
+**retained** (deliberately kept), **waived** (consciously not done), **unresolved** (not
+finished, and not waived — which for prevention means shipped-but-unmerged plus an
+owner-only remainder, not untouched). The drive-root cleanup in §18 is **not** one of these four: it ran under a separate
 directive, on targets that were never in `git worktree list`, and is recorded alongside rather
 than inside this program.
 
@@ -1054,7 +1144,7 @@ than inside this program.
 | 1 | Worktree removal (§15) | **completed** | 91 of 91 removed, 0 retained; one residue, since cleared |
 | 2 | Branch cleanup (§16) | **completed** | 13 deleted, 127 retained; all remaining refs exact |
 | 3 | Residue cleanup (§17) | **completed** | target absent; 35 operations; no guard change needed |
-| 4 | Prevention (§19) | **unresolved** | not performed, not waived, not in this record |
+| 4 | Prevention (§19) | **unresolved** | implementation shipped as **PR #508** (open, not merged); `PREVENTION_COMPLETE` **not** declared |
 
 **Retained, deliberately:** 127 local branches (125 whose exact tips are not ancestors of
 `origin/main`, plus `main` and the branch carrying this record); all 8 stashes; the 40
@@ -1069,7 +1159,12 @@ parked items stay parked.
 
 **Still open, named rather than closed:**
 
-- Prevention (§18).
+- Prevention (§19). The repository change shipped as **PR #508**, which is **open and not
+  merged**. Two of `PREVENTION_COMPLETE`'s four conjuncts — "tested" and "lifecycle
+  monitoring is active" — are **owner-only** and are neither claimed nor waived. §19.5 also
+  records three residual guard/harness findings left unfixed, including that the four
+  harness-provided agent types have no charter file and so no `agent`-profile hook, which
+  **no test in this repository can close**.
 - The disposition of reviewer findings **M3, M4 and L1** (§15.5) — unknown, with no retained record.
 - Recheck-then-removal is still **not atomic** (§10, §15.6); inherent to a shared checkout.
 - The two divergent `docs/worktree_cleanup/PLANNING.md` lineages are still unreconciled, and the
