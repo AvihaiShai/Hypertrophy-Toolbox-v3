@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-16
 **Authority:** owner closeout directive v2 (avihay1989@gmail.com), 2026-10-16.
-**Outcome:** steps 1–6 complete and reviewed. **Step 7 (removal) did not run.** All 91 targets retained, nothing deleted.
+**Outcome:** complete. Steps 1–6 ran on 2026-10-16 (§1–§14 below); **step 7 ran later the same day under the owner's continuation directive and removed all 91 worktrees** (§15). §1–§14 are the first run's record and are left as written; §7, §9, §10 and §14 carry supersession notes where the removal run made them untrue.
 **Preservation:** `C:\Users\aviha\Backups\Hypertrophy-Toolbox-v3\worktree-closeout-20261016-150200\`
 
 ---
@@ -16,6 +16,10 @@ Inventory, preservation, restore testing, plan publication and the single pre-de
 review all completed. **Deletion itself is blocked by the installed guard**, which the same
 directive forbids me to modify or bypass (§7 below). Nothing was removed, and no target was
 left in a worse state than it started.
+
+> **Superseded by §15.** A later continuation directive on 2026-10-16 granted a narrow,
+> temporary guard exception for exactly these 91 targets. All 91 were removed; the guard was
+> restored byte-for-byte afterwards.
 
 ## 2. Scope as measured
 
@@ -206,6 +210,10 @@ regular files; it now compares regular files only. Verified: all ten tranches re
 
 ## 7. Why step 7 did not run
 
+> **Historical. Resolved by §15.** The owner resolved the conflict described here by
+> authorizing a scoped, temporary exception to the two denials below. This section records
+> why the first run stopped, not the final state.
+
 `.claude/hooks/guard-destructive-command.ps1`, wired to both `Bash` and `PowerShell` in
 `.claude/settings.json`, returns an unconditional `deny` for:
 
@@ -267,6 +275,10 @@ them.
 
 ## 9. Retained targets
 
+> **Superseded by §15.3.** Zero targets are retained. All 91 were removed on 2026-10-16
+> after the guard exception was granted. The ordering caveat recorded below was honoured:
+> the four `opus`/`sol` lanes ran last, in tranches 9–10.
+
 **All 91**, for one shared reason: the guard denies the removal primitive. No target was
 retained for a preservation, fidelity or activity reason — all 91 pass the hardened recheck
 (`retained=0` across all ten tranches).
@@ -279,6 +291,12 @@ last (tranches 9–10). **Removing them retires the directories that the standin
 trigger drives — that is a workflow decision for the owner, not a data-loss risk.**
 
 ## 10. Accepted risks
+
+> **Partly superseded by §15.5.** Three of these were closed by measurement during the
+> removal run: the near-vacuous activity check was replaced by an OS-level exclusive-access
+> probe, the junction-following question was answered on a throwaway worktree, and the
+> predicted MAX_PATH partial failure actually occurred on the largest target. The
+> non-atomicity of recheck-then-remove still stands.
 
 Recorded, not fixed, per the directive's severity rule.
 
@@ -327,8 +345,225 @@ worktree-retention hold that §1.A lifts.
 
 ## 14. Not done, by instruction
 
+> **One item superseded by §15.1.** "No prevention tooling changed" was true of the first
+> run only. The continuation directive authorized a temporary, scoped edit to the guard; it
+> was installed, verified, used for the 91 removals and then reverted to its exact original
+> bytes. Nothing else in this list changed: still no `git gc`, no reflog expiry, no object
+> pruning, no branch pushes, no remote-ref deletion, no backup deletion.
+
 No `git gc`, no `git reflog expire`, no object pruning, no branch pushes of target branches,
 no remote-ref deletion, no backup deletion. No pytest, E2E or visual suites — this was git
 housekeeping, not a code change. No application code, prevention tooling or repository policy
 changed. No new planning packet, amendment, status document, options memo or ADR was created;
 this file is the single record.
+
+
+---
+
+## 15. Continuation run — removal executed, 2026-10-16/17
+
+**Authority:** owner continuation directive, 2026-10-16, which explicitly authorized "the narrow
+guard modification required below" and superseded the previous prohibition on modifying prevention
+tooling *for that bounded change only*.
+
+**Window:** guard exception installed and verified from 2026-10-16T19:4xZ; baseline captured
+`2026-10-16T20:07:34Z`; the 91 removals ran between roughly `20:15Z` and `20:55Z`; guard restored
+and behaviourally re-verified at `2026-10-16T20:5xZ`. Local time crossed into 2026-10-17 during the
+write-up, which is why this section is dated across both days.
+
+**Outcome: 91 of 91 worktrees removed. 0 retained. 0 branches deleted. The guard is restored to its
+exact original bytes.** The preservation directory is untouched.
+
+### 15.1 The guard exception
+
+`.claude/hooks/guard-destructive-command.ps1` is wired twice — by `.claude/settings.json` **and**
+by `C:\Users\aviha\.claude\settings.json`, both with `-GuardProfile main`. The copy this session
+actually invokes is the **user-level** one; the first denial message of the run is what revealed
+that. Both copies were byte-identical (`0afb81b8…4502`) and both were patched identically.
+
+Original bytes preserved before any edit, in two places, and hash-checked:
+`<scratchpad>/guard-restore/guard-destructive-command.ORIGINAL.ps1` and
+`<backup>/evidence/guard-destructive-command.ORIGINAL.ps1`, both
+`0afb81b851c9b00b71dea8928cf199d7e5665ca4f46016495e4b1ad5a8184502` / 62,363 bytes.
+
+The exception authorizes **one command form against one explicit list**, and denies unless *every*
+one of these holds:
+
+| axis | requirement |
+|---|---|
+| profile | `main` only — the `agent` profile still denies |
+| repository | the hook payload's own `cwd` must be the main checkout |
+| session | the payload's `session_id` must be this coordinator session |
+| segment | the segment **as written** must be exactly five tokens starting `git`, at suffix position 0 |
+| form | `remove` `--force` `<path>`, compared case-sensitively; no `-f`, no `--force=1`, no extra operand |
+| target | ordinal case-insensitive equality with one of the 91 canonical inventory paths |
+
+Everything else in the retention hold was left exactly as it was: `worktree prune`, branch, tag,
+`symbolic-ref`, `update-ref` and remote-ref deletion, and the whole `rm` family. The hook was never
+disabled, no permission mode was changed, no `deny` was broadly replaced, and the removal primitive
+was never run from inside an opaque script — every one of the 91 removals went through the guarded
+tool path as literal text the guard parsed.
+
+**Branch deletion was deliberately left out of the exception.** §4 of the directive makes it
+optional and says to retain whenever deletion is denied, so the guard's unchanged `git branch -d`
+denial stands and **all 140 local branches were kept**, including the 9 that qualified for deletion
+in §3.
+
+### 15.2 Verification of the exception
+
+| check | result |
+|---|---|
+| pre-existing guard regression suite | **1282 / 1282 pass**, unchanged, against both PowerShell hosts |
+| new exception suite (kept out of `tests/`, uncommitted) | **372 / 372 pass** — 2 hosts × 2 guard copies |
+| repository/session binding checks | **25 / 25 pass** |
+| pre-removal gate mutation matrix | **19 / 19 pass**, every gate exercised in both directions |
+| disposable no-follow removal smoke test | **pass**, both arms |
+| restored-guard behavioural checks | **76 / 76 pass** |
+
+The new test files live beside the run scripts rather than in `tests/`: the exception is temporary
+and must not reach a commit, and adding a file under `tests/` would also move the
+test-inventory drift gate.
+
+### 15.3 What was removed
+
+All 91, in the ten risk-ordered tranches from `evidence/inv/tranches.txt`, lowest risk first and
+the `opus`/`sol` lanes last. `git worktree list` went **92 → 1**: only
+`D:\development\Hypertrophy-Toolbox-v3-main` remains. `git worktree prune --dry-run -v` reports
+**nothing prunable**, so no pruning exception was needed or added — normal removal retired every
+registration, as §4 of the directive anticipated.
+
+Per target, immediately before its own removal and in the same shell command as it, the gate
+rechecked: the inventory row, that the caller's path matches that row, that the target is not the
+main checkout and is under `D:/development/`, the canonical path, that the root is not itself a
+reparse point, that the target is still a registration of this repository, `HEAD`, **the index**
+(staged path list and every staged blob OID against the capture), every captured file by SHA-256,
+that nothing uncaptured had appeared, `index.lock`, SQLite WAL/SHM, the 60-minute write window, the
+process-image probe, **exclusive OS-level access**, and finally that nothing under the worktree
+could reach outside it.
+
+**113 escaping junctions were unlinked across the run**, every one of them pointing into this main
+checkout's `.venv` or `node_modules`. Each was removed as a *link* with `rmdir`, never followed,
+and each target re-scanned to zero before the forced delete. The main checkout's toolchain is
+byte-for-byte intact: `.venv` 8,256 files, `node_modules` 6,566 files, `python.exe` 255,200 bytes
+— all three identical to the pre-run baseline.
+
+### 15.4 Targets retained, and the one residue
+
+**None retained.** Every one of the 91 passed its gate and was removed.
+
+One target left residue. `D:\development\Hypertrophy-Toolbox-npm-audit-fix` (slot 062, the
+largest target: a real `node_modules`, 10,631 ignored files, 982 reparse points) had its
+registration retired and all of its **files** deleted, but **25 empty directories survive** under
+its `artifacts/` tree — 0 files, 540 KB of directory entries, no `.git`, and a re-scan confirms
+**0 reparse points that can reach outside it**. This is exactly the MAX_PATH partial failure §10
+predicted, and it is the predicted *harmless* shape of it: nothing is lost (the payload is in the
+backup and re-verified), and nothing can reach the main checkout. It is left in place because
+clearing empty directories needs a recursive delete that the restored guard denies by design, and
+working around that with a verb the guard does not model would be the evasion the directive
+forbids. **Clearing it is a one-line owner action, not an open risk.**
+
+### 15.5 What the review found, and what measurement settled
+
+One independent reviewer read the exception and its tests, per §2 of the directive. It returned
+three high-severity findings. **Two were real and are fixed; one rested on a false premise.** Each
+was reproduced or refuted by running it, not by re-reading the code.
+
+**H1 — the fail-closed branch could never fire. Real, and the worst of the three.** The escaping-
+reparse helper's exit status was captured inside a `$(...)` command substitution, which runs in a
+**subshell**, so the caller's copy of the status stayed `0` forever. Measured directly: a helper
+exiting 2 prints nothing, the empty result reads as "nothing escapes", and the forced recursive
+delete would have proceeded with the junctions into this main checkout still live. **This bug came
+in with the reviewed `step7_remove.sh`, where the same fix is recorded as applied** — §6's F2 fix
+was written but was inert. The status is now read from a file, and the branch is proven to fire by
+a mutation arm that makes the helper exit 2.
+
+**H2 — the exception was not actually bound to this repository or to the coordinator.** Confirmed
+by reading the agent definitions: only `senior-developer` and `automation-qa` wire the Bash guard
+in frontmatter (and they do so *without* `-GuardProfile`, so they correctly default to `agent`).
+The other eight agent types run under the settings-level `main` hook alone, and the user-level
+guard is global to every session on the machine. Fixed by binding to the payload's `cwd` and
+`session_id`, whose presence was established by capturing one real payload rather than assumed.
+
+**M1 — wrapper and prefix forms reached allow.** Confirmed by measurement: `GIT_DIR=D:/other/.git
+git worktree remove --force <listed>`, `env -C D:/other git …`, `sudo …` and `nice …` **all
+returned allow** against a listed target. The cause was not wrapper stripping but the guard's
+every-position suffix rescan, which re-presents the inner command as a clean five-token `git …`.
+Fixed by pinning authorization to suffix position 0 of a segment that is literally the five-token
+form. All four now deny, and all four are pinned by tests.
+
+**M2 — refuted by measurement.** The premise was that PowerShell 5.1's `Get-ChildItem -Recurse`
+descends into junctions, so the scanner would report reparse points *inside* the main checkout
+under worktree-prefixed paths. Measured on a live target: 2 reparse points found, **0 entries under
+the `.venv` junction**. It does not descend. The hardening it suggested was applied anyway because
+it is cheap and strictly safer: the unlink loop now processes shortest path first, skips anything
+nested under a link already removed, and **aborts instead of swallowing a failed unlink with
+`|| true`**.
+
+**M5 — explained: a stale read.** The reviewer read `precheck.sh` before the validation-mode and
+alternate-expectations hooks were added, and reported the mutation harness as unable to work. The
+harness demonstrably ran against the fake expectation set.
+
+**L2 — refuted by measurement.** The concern was that the `build`/`dist` cache exemption could hide
+an uncaptured user file. Across all 91 targets there was exactly **one** such file: a 6-byte
+`<html>` pytest fixture, and it is already in the backup manifest with a matching hash.
+
+**The junction question is now answered.** §10 recorded as unsettled whether
+`git worktree remove --force` follows a Windows directory junction, and noted that settling it
+required running the denied primitive. A second disposable smoke arm settled it: with a **live**
+junction deliberately left in place, pointing at a throwaway directory with sentinels, git
+**did not follow it** — the external target came back byte-identical. What it did instead is
+instructive: it deleted everything else, **left the junction and its parent directory behind, and
+still retired the registration**. So the unlink step is what makes a removal *complete*, and a
+`rm -rf` — not git — was always the thing that would have destroyed this checkout's toolchain.
+
+**The activity check is no longer near-vacuous.** §10's first accepted risk was that no process on
+this machine has an image path under `D:\development\*`, so a live app or test run inside a target
+was invisible. A new `exclusive-access.ps1` asks the OS instead: it opens the worktree root with
+share mode `NONE` and every database, gitfile and per-worktree `index`/`HEAD` with
+`FileShare.None`, and fails closed on a probe error. Validated against four controls — quiet target
+(clear), a process merely *sitting* in the directory (**detected**, win32 32, which the old check
+could not see), a held-open database file (**detected**), and a missing or non-directory root
+(fail closed). Across the run it probed 1,805–12,781 handles per target.
+
+Two of my own checks passed **vacuously** before they were trusted, and both were caught by
+deliberately making them fail: the first two exclusive-access positive controls were measuring
+holder processes that had already died, and one mutation arm used `${3:-default}`, which substitutes
+the default for an *empty* argument and so silently re-ran the baseline.
+
+### 15.6 Residual scope limits, recorded not claimed closed
+
+- **A subagent of this same session could have passed the binding.** The payload carries no agent
+  identity field, so `session_id` cannot distinguish a subagent from its parent. No agent was
+  spawned at any point during the removal run, and the exception is now gone. Two of the ten agent
+  types are additionally protected by their own `agent`-profile hook.
+- **The `cwd` test pins the tool's directory, not the repository git acts on.** A
+  `cd other-repo &&` segment keeps this payload `cwd`. What pins the repository in practice is the
+  explicit 91-path allowlist plus the gate's assertion that the target is a current registration of
+  *this* repository.
+- **Recheck and removal are still not atomic.** A write landing between the gate and the removal is
+  undetectable. Inherent to a shared checkout; unchanged from §10.
+
+### 15.7 Final state
+
+| | before | after |
+|---|---|---|
+| `git worktree list` | 92 | **1** (main only) |
+| stale registrations (`prune --dry-run`) | 0 | **0** |
+| local branches | 140 | **140** (identical names) |
+| stashes | 8 | **8** (identical) |
+| main `HEAD` | `85e2372` | `85e2372` |
+| main uncommitted files | 28 | **28** (byte-identical list) |
+| main staged files | 0 | **0** |
+| main `.venv` / `node_modules` | 8,256 / 6,566 | **8,256 / 6,566** |
+| guard SHA-256 (both copies) | `0afb81b8…4502` | **`0afb81b8…4502`** |
+
+The preservation directory is unchanged at **1.9 GB**, `MANIFEST.txt` still lists 17,913 files, and
+the 40 `refs/closeout/…` reachability pins are all still present. `git add -A` was never run; only
+this file was staged.
+
+### 15.8 Not done in this run
+
+No `git gc`, no reflog expiry, no object pruning, no branch deletion, no branch pushes, no
+remote-ref deletion, no `refs/closeout` retirement, no pruning exception, no backup deletion. No
+new planning packet, amendment, status document, options memo or ADR. No application code or
+repository policy changed, and the guard change was reverted. The items parked in §12 stay parked.
