@@ -241,7 +241,7 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 3207,
+    "collected_deterministic": 3209,
     "deterministic_files": 131,
     "environment_dependent_files": [
       {
@@ -696,7 +696,7 @@
       },
       {
         "file": "tests/test_vitest_inventory_contracts.py",
-        "tests": 46
+        "tests": 48
       },
       {
         "file": "tests/test_volume_ai.py",
@@ -1765,7 +1765,7 @@
         "name": "workoutPlanState > is the same singleton across imports"
       }
     ],
-    "collector": "vitest list --json=<path>",
+    "collector": "vitest list --staticParse=false --json=<path>",
     "files": [
       {
         "cases": 15,
