@@ -15,7 +15,7 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **686** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **540** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **3195** across 131 files |
+| pytest collected nodes (deterministic subset) | **3194** across 131 files |
 | pytest test files (all) | **132** |
 | JS unit cases (Vitest) | **245** across 13 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
@@ -179,7 +179,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_version.py` | 23 |
 | `tests/test_visual_capture_contracts.py` | 17 |
 | `tests/test_visual_selector_contracts.py` | 5 |
-| `tests/test_vitest_inventory_contracts.py` | 49 |
+| `tests/test_vitest_inventory_contracts.py` | 48 |
 | `tests/test_volume_ai.py` | 26 |
 | `tests/test_volume_classifier.py` | 43 |
 | `tests/test_volume_history_busy_signal_contracts.py` | 9 |
@@ -203,7 +203,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 
 ## Vitest test files
 
-Collected with `vitest list --json=<path>`, which lists cases without running them. `.skip`, `.todo` and `describe.skip` cases are omitted by the lister entirely, so a disabled case is indistinguishable here from a deleted one and **no status is recorded**: a count of 245 means 245 cases that would run.
+Collected with `vitest list --staticParse=false --json=<path>`, which lists cases without running them. `.skip`, `.todo` and `describe.skip` cases are omitted by the lister entirely, so a disabled case is indistinguishable here from a deleted one and **no status is recorded**: a count of 245 means 245 cases that would run.
 
 The per-case identity list -- what detects a case being renamed rather than removed -- lives in `TEST_INVENTORY.json` under `vitest.cases`, not here.
 

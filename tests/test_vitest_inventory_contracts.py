@@ -97,19 +97,6 @@ def _payload(*rows: tuple[str, str]) -> str:
     return json.dumps([{"file": _abs(path), "name": name} for path, name in rows])
 
 
-def _payload_v5(*rows: tuple[str, str]) -> str:
-    """The same listing as `_payload`, in the shape vitest 5 emits.
-
-    Measured against vitest 5.0.1: every element carries a third `location` key.
-    """
-    return json.dumps(
-        [
-            {"file": _abs(path), "name": name, "location": {"line": 12, "column": 3}}
-            for path, name in rows
-        ]
-    )
-
-
 # --- the whole-artifact contract --------------------------------------------
 #
 # Not Vitest-specific, and kept here on purpose: these two assertions are what
@@ -219,9 +206,15 @@ def test_vitest_block_records_no_status_and_no_duration(inventory):
 def test_collector_string_matches_the_argv_actually_run(inventory):
     assert inventory["vitest"]["collector"] == VITEST_COLLECTOR
     argv = _vitest_list_argv(Path("/tmp/vitest-list.json"))
-    assert VITEST_COLLECTOR == "vitest list --json=<path>"
+    assert VITEST_COLLECTOR == "vitest list --staticParse=false --json=<path>"
     assert argv[1:3] == ["vitest", "list"]
-    assert argv[3].startswith("--json=")
+    assert argv[-1].startswith("--json=")
+    # Derived as well as pinned, and the derivation is what the literal above
+    # cannot do: it fails in BOTH directions. An argument added to the argv
+    # without being recorded leaves the artifact naming a command that collects
+    # a different set of cases than the one its numbers came from; a flag
+    # dropped from the argv but left in the string is the same lie reversed.
+    assert VITEST_COLLECTOR == " ".join([*argv[1:-1], "--json=<path>"])
 
 
 # --- the argv ----------------------------------------------------------------
@@ -245,6 +238,46 @@ def test_argv_lists_and_never_runs():
 def test_argv_writes_to_the_given_file_and_not_stdout():
     argv = _vitest_list_argv(Path("/tmp/somewhere/vitest-list.json"))
     assert argv[-1] == "--json=/tmp/somewhere/vitest-list.json"
+
+
+def test_argv_pins_runtime_collection_over_static_parsing():
+    """`vitest list` must list the suite it RUNS, not an AST approximation.
+
+    vitest 5.0 flipped this command's `staticParse` default from false to true.
+    Measured on vitest 5.0.1, the static lister emits one unexpanded template
+    row per `.each` block and the raw template literal for a loop-generated
+    case, so this tree's 245 listed cases become 223 while all 245 still run.
+    The missing 22 are parametrized cases, and noticing when one of those is
+    renamed or deleted is the whole job of the committed identity list -- so
+    regenerating under the new default would commit the shrunken surface as if
+    it were the suite, and every later `--check` would agree with it.
+
+    On vitest 4.1.11, whose default was already false, the flag is a measured
+    no-op; that is what lets this assertion precede the version bump it
+    unblocks.
+    """
+    assert "--staticParse=false" in _vitest_list_argv(Path("/tmp/x.json"))
+
+
+def test_argv_passes_the_static_parse_value_as_one_boolean_argument():
+    """The spelling is the repair; three near-misses silently undo it.
+
+    vitest 4 branches on `options.staticParse` being truthy and vitest 5 on it
+    being `!== false`, so a value that arrives as the STRING "false" selects
+    static parsing on both majors. `--staticParse false` as two arguments and a
+    bare `--staticParse` do the same, and `--no-staticParse` leans on a cac
+    negation nothing here has measured.
+
+    None of the four fails at runtime -- the listing is merely short, which is
+    the failure mode this file exists to make impossible -- and `--staticParse
+    false` would satisfy the membership check above only if written loosely, so
+    the exact argument is pinned here.
+    """
+    argv = _vitest_list_argv(Path("/tmp/x.json"))
+    assert argv.count("--staticParse=false") == 1
+    assert "--staticParse" not in argv
+    assert "--no-staticParse" not in argv
+    assert "false" not in argv
 
 
 def test_argv_uses_the_npx_it_is_given():
@@ -376,73 +409,6 @@ def test_parser_rejects_an_element_missing_a_key():
     payload = json.dumps([{"file": _abs("static/js/modules/__tests__/a.test.js")}])
     with pytest.raises(SystemExit) as excinfo:
         parse_vitest_listing(payload, FAKE_ROOT)
-    assert "expected exactly ['file', 'name']" in str(excinfo.value)
-
-
-def test_parser_accepts_the_vitest_5_location_key():
-    """vitest 5.0 adds `location` to every element; vitest 4 omits it.
-
-    The repair is bounded to that one key. Without it the generator exits on
-    `COLLECTION_FAILURE` before comparing anything, so the gate reds on every
-    vitest 5 branch with a message that is not drift.
-    """
-    counts, identities = parse_vitest_listing(
-        _payload_v5(
-            ("static/js/modules/__tests__/b.test.js", "suite > second"),
-            ("static/js/modules/__tests__/a.test.js", "suite > alpha"),
-        ),
-        FAKE_ROOT,
-    )
-    assert counts == {
-        "static/js/modules/__tests__/a.test.js": 1,
-        "static/js/modules/__tests__/b.test.js": 1,
-    }
-    assert identities == [
-        ("static/js/modules/__tests__/a.test.js", "suite > alpha"),
-        ("static/js/modules/__tests__/b.test.js", "suite > second"),
-    ]
-
-
-def test_parser_reads_the_two_vitest_versions_into_the_same_inventory():
-    """The committed artifact must not move when the toolchain crosses majors.
-
-    `location` is discarded rather than recorded, so the vitest 4 and vitest 5
-    listings of one unchanged tree parse to equal counts and identities.
-    A repair that stored the new field would red the drift gate on the bump it
-    was written to unblock.
-    """
-    rows = (
-        ("static/js/modules/__tests__/a.test.js", "suite > alpha"),
-        ("static/js/modules/__tests__/a.test.js", "suite > zulu"),
-        ("static/js/modules/__tests__/b.test.js", "suite > second"),
-    )
-    assert parse_vitest_listing(_payload(*rows), FAKE_ROOT) == parse_vitest_listing(
-        _payload_v5(*rows), FAKE_ROOT
-    )
-
-
-def test_parser_rejects_an_unknown_key_even_beside_the_accepted_one():
-    """The accepted key widens the check by exactly one name, not into a mode.
-
-    The neighbouring `{file, name, status}` case already covers a plain "at
-    least these keys" relaxation. What only this payload catches is an
-    exemption keyed on the new field's PRESENCE -- a repair written as "skip
-    the key check when `location` is there" passes that one and fails this one,
-    and would commit a number derived from a shape nobody has read.
-    """
-    payload = json.dumps(
-        [
-            {
-                "file": _abs("static/js/modules/__tests__/a.test.js"),
-                "name": "case",
-                "location": {"line": 12, "column": 3},
-                "status": "skipped",
-            }
-        ]
-    )
-    with pytest.raises(SystemExit) as excinfo:
-        parse_vitest_listing(payload, FAKE_ROOT)
-    assert COLLECTION_FAILURE in str(excinfo.value)
     assert "expected exactly ['file', 'name']" in str(excinfo.value)
 
 
