@@ -407,7 +407,7 @@ def test_parser_reads_the_two_vitest_versions_into_the_same_inventory():
     """The committed artifact must not move when the toolchain crosses majors.
 
     `location` is discarded rather than recorded, so the vitest 4 and vitest 5
-    listings of one unchanged tree produce byte-identical counts and identities.
+    listings of one unchanged tree parse to equal counts and identities.
     A repair that stored the new field would red the drift gate on the bump it
     was written to unblock.
     """
@@ -424,10 +424,11 @@ def test_parser_reads_the_two_vitest_versions_into_the_same_inventory():
 def test_parser_rejects_an_unknown_key_even_beside_the_accepted_one():
     """The accepted key widens the check by exactly one name, not into a mode.
 
-    This is the mutation that tells a bounded exception apart from `>=`: if the
-    repair had been written as "at least file and name", or as a subtraction of
-    every unknown key, this payload would parse and commit a number derived from
-    a shape nobody has read.
+    The neighbouring `{file, name, status}` case already covers a plain "at
+    least these keys" relaxation. What only this payload catches is an
+    exemption keyed on the new field's PRESENCE -- a repair written as "skip
+    the key check when `location` is there" passes that one and fails this one,
+    and would commit a number derived from a shape nobody has read.
     """
     payload = json.dumps(
         [
