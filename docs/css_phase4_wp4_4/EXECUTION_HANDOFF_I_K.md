@@ -140,11 +140,11 @@ Before presenting Packet i as complete, correct
 ## Exact resume sequence
 
 1. Read the authority and this handoff, fetch origin, and re-audit process/port state.
-2. Inspect the prepared main-checkout diff. Stage **only** these seven paths and create/
+2. Inspect the prepared main-checkout diff. Stage **only** these six paths and create/
    merge the docs-only authority/status PR; never stage `CLAUDE.md`:
    `docs/ACTIVE_DEVELOPMENT.md`, `docs/MASTER_HANDOVER.md`,
    `docs/REFACTOR_PLAN.md`, `docs/css_phase4_wp4_4/PLANNING.md`, this file,
-   `N4_CONTINUATION_AUTHORITY.md`, and `OPUS_CONTINUATION_PROMPT.md`.
+   and `N4_CONTINUATION_AUTHORITY.md`.
 3. Rebase i onto that docs-only merge. Apply C16: retain fresh results only when every
    measured code/test/harness/script/DB digest is unchanged and provenance is complete.
 4. Check processes again. Recover the completed pytest result if it is durably available;

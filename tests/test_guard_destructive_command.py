@@ -1208,3 +1208,334 @@ def test_retention_and_confirmation_aggregation_preserves_stricter_verdict(host,
         # The allowed dry run cannot soften the agent's git rm hard deny.
         chained = json.dumps({"permission_mode": mode, "tool_input": {"command": safe_dry_run + "; git rm retained"}})
         assert_agent_hard_deny(invoke(host, chained, profile), safe_dry_run + "; git rm retained", mode)
+
+
+# --- the invocation the agent charters actually register ----------------------
+#
+# `.claude/agents/automation-qa.md` and `.claude/agents/senior-developer.md`
+# register this guard with no `-GuardProfile` argument, relying on the default
+# the guard applies when the argument is absent. Every helper above supplies the profile explicitly, so the one
+# invocation a subagent ever runs had no coverage and `Blocked by agent guard:`
+# had never been observed from it.
+def invoke_default_profile(host: str, command: str, mode: str | None) -> subprocess.CompletedProcess:
+    body: dict = {"tool_input": {"command": command}}
+    if mode is not None:
+        body["permission_mode"] = mode
+    return subprocess.run(
+        [host, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(GUARD)],
+        input=json.dumps(body),
+        capture_output=True,
+        text=True,
+    )
+
+
+DEFAULT_PROFILE_DENIALS = {
+    "git push origin HEAD": "subagents do not push",
+    "git merge origin/main": "subagents do not merge",
+    "git rm retained": "subagents do not run git rm",
+}
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+@pytest.mark.parametrize("command", DEFAULT_PROFILE_DENIALS)
+def test_omitted_profile_argument_is_the_agent_profile(host, mode, command):
+    proc = invoke_default_profile(host, command, mode)
+    where = context(command, "<omitted>", mode)
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+    assert proc.stderr.startswith("Blocked by agent guard:"), f"{where}: {proc.stderr}"
+    assert DEFAULT_PROFILE_DENIALS[command] in proc.stderr, f"{where}: {proc.stderr}"
+    # A crash also exits 2 with empty stdout, so the absence of the fail-closed
+    # wording is what proves this is a verdict rather than an error.
+    assert "failing closed" not in proc.stderr, f"{where}: {proc.stderr}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+def test_omitted_profile_argument_still_allows_read_only_work(host, mode):
+    # Without this control the test above would also pass against a guard that
+    # denied every command it was given.
+    proc = invoke_default_profile(host, "git status --short", mode)
+    where = context("git status --short", "<omitted>", mode)
+    assert proc.returncode == 0, f"{where}: {proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+
+
+# A profile name the guard does not know must not pick a policy by accident.
+# The empty string and a trailing space are the two spellings a hand-edited
+# registration actually produces; this is the fail-closed half of the pair whose
+# other half is test_profile_matching_is_case_insensitive_in_both_directions.
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("supervisor", "", "agent "), ids=["unknown", "empty", "trailing-space"])
+def test_an_unrecognised_profile_fails_closed(host, profile):
+    payload = json.dumps({"permission_mode": "default", "tool_input": {"command": "git status --short"}})
+    proc = invoke(host, payload, profile)
+    where = f"profile={profile!r}"
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+    assert "Unknown guard profile" in proc.stderr, f"{where}: {proc.stderr}"
+
+
+# PowerShell's `-in` / `-eq` are case-insensitive, so `MAIN` resolves to the
+# PERMISSIVE profile. This is load-bearing, not trivia: it is why
+# tests/test_agent_workflow_contracts.py has to resolve a registration's profile
+# instead of comparing it to the literal string "-GuardProfile main", which a
+# charter spelled `-GuardProfile MAIN` or `-G main` would slip past.
+@pytest.mark.parametrize("host", HOSTS)
+def test_profile_matching_is_case_insensitive_in_both_directions(host):
+    push = json.dumps({"permission_mode": "default", "tool_input": {"command": "git push origin HEAD"}})
+    denied = invoke(host, push, "AGENT")
+    assert denied.returncode == 2, denied.stdout + denied.stderr
+    # The guard echoes the profile string it was given, so the message names the
+    # registration that produced the verdict.
+    assert denied.stderr.startswith("Blocked by AGENT guard:"), denied.stderr
+    assert invoke(host, push, "MAIN").returncode == 0, "MAIN must resolve to the main profile"
+
+
+# `script` is the field the PowerShell tool sends and the hook matcher is
+# `Bash|PowerShell`, so a second command field is a live route. Asserted only in
+# the combined shape: a payload carrying `script` alone is denied by the
+# unknown-schema fallback whether or not `script` is a declared field, so a
+# single-field row cannot fail if the declaration is removed.
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+def test_a_benign_command_field_cannot_shield_a_second_one(host, profile):
+    payload = json.dumps(
+        {
+            "permission_mode": "default",
+            "tool_input": {"command": "git status --short", "code": "git branch -D wt/foo"},
+        }
+    )
+    proc = invoke(host, payload, profile)
+    where = f"profile={profile}"
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert "git branch delete retires a ref" in proc.stderr, f"{where}: {proc.stderr}"
+    assert "failing closed" not in proc.stderr, f"{where}: {proc.stderr}"
+    # `description` is free text alongside a real command field. On its own it
+    # leaves no command field at all, which MALFORMED pins as a fail-closed
+    # deny -- a different contract, not the same one.
+    benign = json.dumps(
+        {
+            "permission_mode": "default",
+            "tool_input": {"command": "git status --short", "description": "git branch -D wt/foo"},
+        }
+    )
+    assert invoke(host, benign, profile).returncode == 0, where
+
+
+# --- the guard's own arguments are classified, not bound -----------------------
+#
+# The entry point parses $args instead of declaring a typed parameter, because a
+# [string] parameter made PowerShell raise a binding error BEFORE the script body
+# ran: `-GuardProfile` with no value, and the parameter given twice, both exited
+# 1. Exit 1 is non-blocking under the PreToolUse contract, so a malformed
+# registration failed OPEN with nothing able to catch it. A bare positional
+# argument was worse than that -- it bound to the parameter positionally, so a
+# registration ending in a stray `main` silently selected the PERMISSIVE profile.
+def invoke_arguments(host: str, command: str, arguments: list[str], mode: str = "default") -> subprocess.CompletedProcess:
+    body: dict = {"tool_input": {"command": command}}
+    if mode is not None:
+        body["permission_mode"] = mode
+    return subprocess.run(
+        [host, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(GUARD), *arguments],
+        input=json.dumps(body),
+        capture_output=True,
+        text=True,
+    )
+
+
+# (arguments, the reason the guard must give)
+MALFORMED_ARGUMENTS = [
+    (["-GuardProfile"], "Guard profile argument has no value"),
+    (["-G"], "Guard profile argument has no value"),
+    (["-GuardProfile", "main", "-GuardProfile", "agent"], "Guard profile given more than once"),
+    # PowerShell does not bind the = form at all, so it is a stray token.
+    (["-GuardProfile=main"], "Unrecognized guard argument"),
+    # The one that used to pick the permissive profile by position.
+    (["main"], "Unrecognized guard argument"),
+    (["-GuardProfile", "main", "extra"], "Unrecognized guard argument"),
+    (["-Bogus", "1"], "Unrecognized guard argument"),
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("arguments,reason", MALFORMED_ARGUMENTS, ids=[" ".join(a) or "empty" for a, _ in MALFORMED_ARGUMENTS])
+def test_a_malformed_profile_argument_fails_closed(host, arguments, reason):
+    # A destructive-free payload, so the only thing that can deny is the
+    # argument itself.
+    proc = invoke_arguments(host, "git status --short", arguments)
+    where = f"arguments={arguments}"
+    assert proc.returncode == 2, f"{where}: exit {proc.returncode} is non-blocking: {proc.stdout}{proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+    assert reason in proc.stderr, f"{where}: {proc.stderr}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("arguments", [a for a, _ in MALFORMED_ARGUMENTS], ids=[" ".join(a) or "empty" for a, _ in MALFORMED_ARGUMENTS])
+def test_a_malformed_profile_argument_cannot_select_the_owner_profile(host, arguments):
+    # The sharper form of the test above: a malformed registration must not let
+    # an agent-denied verb through. `main` as a bare positional did exactly that.
+    proc = invoke_arguments(host, "git push origin HEAD", arguments)
+    assert proc.returncode == 2, f"arguments={arguments}: {proc.stdout}{proc.stderr}"
+
+
+# The spellings PowerShell itself accepts, which the parser must keep accepting:
+# the parameter normalises `-X:value` into two tokens and binds any unambiguous
+# prefix, so all four of these are the same registration.
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize(
+    "arguments,expected",
+    [
+        ([], 2),
+        (["-GuardProfile", "agent"], 2),
+        (["-GuardProfile", "main"], 0),
+        (["-GuardProfile:main"], 0),
+        (["-G", "main"], 0),
+        (["-G:main"], 0),
+        (["-GuardProfile", "MAIN"], 0),
+    ],
+    ids=["absent", "agent", "main", "colon", "abbrev", "abbrev-colon", "cased"],
+)
+def test_the_supported_profile_spellings_still_resolve(host, arguments, expected):
+    proc = invoke_arguments(host, "git push origin HEAD", arguments)
+    where = f"arguments={arguments}"
+    assert proc.returncode == expected, f"{where}: {proc.stdout}{proc.stderr}"
+    # The read-only control must be allowed under every one of them, or this
+    # test would pass against a guard that denied everything.
+    assert invoke_arguments(host, "git status --short", arguments).returncode == 0, where
+
+
+# --- every string field of tool_input is classified ---------------------------
+#
+# `Get-CandidateCommands` used to scan non-declared fields only when NO declared
+# field was found, so a payload pairing a benign declared field with a renamed or
+# additional command-bearing one had that second field examined by nothing.
+MIXED_FIELD_PAYLOADS = [
+    ({"command": "git status --short", "shellLine": "git branch -D wt/foo"}, 2),
+    ({"script": "git status --short", "shellLine": "git branch -D wt/foo"}, 2),
+    ({"command": "git status --short", "code": "git branch -D wt/foo"}, 2),
+    ({"zzz": "git status --short", "shellLine": "git branch -D wt/foo"}, 2),
+    # description stays free-text metadata, with a real command field present.
+    ({"command": "git status --short", "description": "git branch -D wt/foo"}, 0),
+    # A non-string field alongside a benign command is not a command.
+    ({"command": "git status --short", "timeout": 120}, 0),
+    ({"command": "git status --short", "script": "git status", "note": "git log -1"}, 0),
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+@pytest.mark.parametrize(
+    "fields,expected", MIXED_FIELD_PAYLOADS, ids=[",".join(sorted(f)) for f, _ in MIXED_FIELD_PAYLOADS]
+)
+def test_every_string_field_of_tool_input_is_classified(host, profile, fields, expected):
+    payload = json.dumps({"permission_mode": "default", "tool_input": fields})
+    proc = invoke(host, payload, profile)
+    where = f"fields={sorted(fields)} profile={profile}"
+    assert proc.returncode == expected, f"{where}: {proc.stdout}{proc.stderr}"
+    if expected == 2:
+        assert "git branch delete retires a ref" in proc.stderr, f"{where}: {proc.stderr}"
+        # A verdict, not a crash or a fail-closed bail-out.
+        assert "failing closed" not in proc.stderr, f"{where}: {proc.stderr}"
+
+
+# --- a subagent is identified by agent_id, and tightens to the agent profile --
+#
+# The charter contract in tests/test_agent_workflow_contracts.py can only reach
+# the ten charters under .claude/agents/. The harness also provides agent types
+# with no charter file -- general-purpose, claude, Explore, Plan -- which carry
+# Bash and therefore ran under the settings-level `-GuardProfile main` with the
+# three agent-only denials not in force.
+#
+# `agent_id` is the harness's own answer. The installed CLI's hook schema (2.1.296)
+# documents it as "Present only when the hook fires from within a subagent" and
+# "Absent for the main thread, even in --agent sessions", with the explicit
+# instruction to "Use this field (not agent_type) to distinguish subagent calls
+# from main-thread calls".
+#
+# These cases drive the guard with synthetic payloads, which proves the guard's
+# own branch. They do NOT establish that the harness populates the field at run
+# time -- that needs a live capture, which is an owner action.
+def invoke_identified(
+    host: str,
+    command: str,
+    profile: str,
+    *,
+    agent_id: str | None = None,
+    agent_type: str | None = None,
+    mode: str = "default",
+) -> subprocess.CompletedProcess:
+    body: dict = {"permission_mode": mode, "tool_input": {"command": command}}
+    if agent_id is not None:
+        body["agent_id"] = agent_id
+    if agent_type is not None:
+        body["agent_type"] = agent_type
+    return invoke(host, json.dumps(body), profile)
+
+
+AGENT_ONLY_DENIALS = {
+    "git push origin HEAD": "subagents do not push",
+    "git merge origin/main": "subagents do not merge",
+    "git rm retained": "subagents do not run git rm",
+}
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+@pytest.mark.parametrize("command", AGENT_ONLY_DENIALS)
+def test_a_subagent_payload_tightens_the_main_profile(host, mode, command):
+    proc = invoke_identified(
+        host, command, "main", agent_id="agent_01HZX", agent_type="general-purpose", mode=mode
+    )
+    where = context(command, "main+agent_id", mode)
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+    assert proc.stderr.startswith("Blocked by agent guard:"), f"{where}: {proc.stderr}"
+    assert AGENT_ONLY_DENIALS[command] in proc.stderr, f"{where}: {proc.stderr}"
+    assert "failing closed" not in proc.stderr, f"{where}: {proc.stderr}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("command", AGENT_ONLY_DENIALS)
+def test_a_main_thread_payload_keeps_the_registered_profile(host, command):
+    # The other half of the pair. Without this, the test above would also pass
+    # against a guard that had simply been switched to the agent profile.
+    absent = invoke_identified(host, command, "main")
+    assert absent.returncode != 2, f"agent_id absent must stay on main: {absent.stderr}"
+    # An empty or whitespace value is not an identifier.
+    for blank in ("", "   "):
+        proc = invoke_identified(host, command, "main", agent_id=blank)
+        assert proc.returncode != 2, f"agent_id={blank!r} must stay on main: {proc.stderr}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("command", AGENT_ONLY_DENIALS)
+def test_agent_type_alone_does_not_tighten_the_profile(host, command):
+    # `agent_type` is also present on the main thread of an `--agent` session,
+    # so keying on it would deny the owner's own push. The schema says to use
+    # `agent_id`, and this pins that reading.
+    proc = invoke_identified(host, command, "main", agent_type="general-purpose")
+    assert proc.returncode != 2, f"agent_type alone must not tighten: {proc.stderr}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+def test_a_subagent_payload_still_allows_read_only_work(host, mode):
+    proc = invoke_identified(
+        host, "git status --short", "main", agent_id="agent_01HZX", mode=mode
+    )
+    where = context("git status --short", "main+agent_id", mode)
+    assert proc.returncode == 0, f"{where}: {proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+def test_the_retention_hold_is_unaffected_by_agent_identity(host, mode):
+    # The hold already denied under every profile and mode; identity must not
+    # change that in either direction.
+    for command in ("git worktree remove ../wt", "git branch -D wt/foo", "git push origin :wt/foo"):
+        for kwargs in ({}, {"agent_id": "agent_01HZX"}):
+            proc = invoke_identified(host, command, "main", mode=mode, **kwargs)
+            assert proc.returncode == 2, f"{context(command, 'main', mode)}: {proc.stdout}{proc.stderr}"

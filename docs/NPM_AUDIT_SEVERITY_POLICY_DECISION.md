@@ -682,6 +682,85 @@ Note that "the enforcement PR" is written **singular** here and in §8, while §
 sequencing table said *"one reviewable PR each"*. That contradiction was ruled on
 2026-08-21 in favour of the singular reading; §5.2 carries the note.
 
+### 6.2 Owner ruling, 2026-10-17 — the first accepted-debt entry
+
+§7 predicted that "the first genuinely unfixable advisory will arrive with no
+warning". It arrived as **`braces` GHSA-vfj7-8cjw-p6xm** (high; stack exhaustion from
+deeply nested brace patterns in glob input). The entry landed in #509 (`57bf301`) in
+[`npm_audit_allowlist.json`](npm_audit_allowlist.json); this section records the ruling
+behind it.
+
+> **SUPERSEDED by this ruling, and left as written:** every statement that the
+> accepted-debt allowlist or bucket is empty — §0.1 finding 2 (including "pins that
+> emptiness"), §3's "the 'accepted debt' bucket is empty" and its bucket table — describes
+> the graph of 2026-08-15. The allowlist now holds one entry, and the contract test pins
+> the exact approved set (`OWNER_APPROVED_ALLOWLIST_IDS`) instead of an empty list.
+
+**Why no remediation was possible.**
+
+| Question | Measurement, 2026-10-17 |
+|---|---|
+| Is there a patched `braces`? | **No.** The advisory range is `<=3.0.3`, `first_patched_version` is `null`, and `3.0.3` is the registry's `dist-tags.latest`. |
+| Does a parent upgrade drop it? | **No.** `braces` arrives through `micromatch` by four paths: `stylelint→micromatch`, `stylelint→fast-glob→micromatch`, `stylelint→globby→fast-glob→micromatch` and `sass→@parcel/watcher` (optional)`→micromatch`. `micromatch@4.0.8`, the registry latest, still requires `braces ^3.0.3`, and `stylelint@17.16.0`, the registry latest, still requires `micromatch ^4.0.8`. The `sass` path does not involve `stylelint`, so no single parent upgrade retires the entry. |
+| What does `npm audit` propose? | `stylelint@7.7.0` — a nine-major downgrade of a frozen measurement instrument (§3.1), not a fix. |
+| Reachability | Every path is `dev: true` and `package.json` declares no runtime dependencies. Per D-2 that is context, not a carve-out. |
+
+**Ruling.**
+
+| # | Ruling |
+|---|---|
+| **E-1** | `GHSA-vfj7-8cjw-p6xm` on `braces` is accepted as toolchain debt at severity **`high`**, owner `avihay1989@gmail.com`, `approvedOn` **2026-10-17**, `expiresOn` **2026-10-31**. |
+| **E-2** | The lease is **14 days**, not the 90 that D-3 permits. D-3 is a ceiling, not a default. |
+| **E-3** | Renewal is a **fresh owner decision**, not a date bump, and none has been approved. Re-measure all four paths first. If `braces` publishes a patched release, or **both** `stylelint` and `sass` stop reaching `micromatch`, the advisory leaves the audit and the correct action is D-5: delete the entry, do not renew it. |
+
+**Expiry.** The gate fails on `expiresOn <= now`, with `now` the current UTC date, so
+2026-10-30 is the last passing day. From 2026-10-31 the `js-supply-chain` job reds (§4.3),
+and so does `test_the_committed_allowlist_passes_the_real_gate_against_the_real_audit`,
+which passes no `--today`.
+
+### 6.3 Owner renewal ruling for braces, 2026-10-17
+
+The repository owner approved a renewal through **2026-11-14** in response to
+issue [#513](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/513).
+This supersedes §6.2's expiry and its E-3 statement that no renewal has been
+approved; §6.2 remains the record of the initial 14-day approval.
+
+**Evidence re-measured 2026-10-17 at 19:39 UTC**, against merged #516 at
+`3da2b70`:
+
+| Path into `braces 3.0.3` | Committed resolution |
+|---|---|
+| `stylelint → micromatch` | `16.11.0 → 4.0.8` |
+| `stylelint → fast-glob → micromatch` | `16.11.0 → 3.3.3 → 4.0.8` |
+| `stylelint → globby → fast-glob → micromatch` | `16.11.0 → 11.1.0 → 3.3.3 → 4.0.8` |
+| `sass → @parcel/watcher` (optional) `→ micromatch` | `1.103.1 → 2.5.1 → 4.0.8` |
+
+An actual `npm audit --package-lock-only` still consumes one distinct high
+advisory, `GHSA-vfj7-8cjw-p6xm`, propagated across six package entries. Two
+other advisories are moderate, below D-1's floor. The
+[GitHub advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) remains
+`high`, unwithdrawn, affected through `3.0.3`, with no patched version.
+Registry latest remains `braces 3.0.3`, `micromatch 4.0.8` and
+`stylelint 17.16.0`, distinct from the committed versions above.
+
+**Blocker.** The three stylelint paths remain: latest stylelint still declares
+`micromatch`, `fast-glob` and `globby`, and latest micromatch still requires
+`braces ^3.0.3`. Watcher `2.6.0` replaces its micromatch dependency with
+`picomatch ^4.0.4`, so the Sass path can be retired separately. That partial
+migration does not retire the exception. Every committed path is development
+tooling; D-2 still covers the whole graph.
+
+| # | Ruling |
+|---|---|
+| **E-4** | Renew `GHSA-vfj7-8cjw-p6xm` on `braces`, severity `high`, owner `avihay1989@gmail.com`, `approvedOn` **2026-10-17**, `expiresOn` **2026-11-14**. |
+| **E-5** | This is a **28-day lease** from the actual signing date, extending the original deadline by 14 days, within D-3's 90-day cap. It is a fresh owner decision; no subsequent renewal is approved. |
+| **E-6** | Delete the entry under D-5 when a validated updated lockfile and actual audit show this advisory no longer requires an exception. A patched braces, removal of every path, withdrawal, or a severity reduction below the floor triggers re-measurement. An upstream release alone does not change the committed graph. Confirm the real gate passes after deletion. |
+
+**Expiry.** With `expiresOn <= now` evaluated against the UTC date,
+**2026-11-13** is the last passing day. From **2026-11-14**, both the
+`js-supply-chain` job and the committed-allowlist end-to-end contract fail.
+A further renewal needs fresh evidence and another owner decision.
+
 ---
 
 ## 7. Recommendation

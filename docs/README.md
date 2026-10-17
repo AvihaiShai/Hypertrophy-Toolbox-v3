@@ -1,6 +1,6 @@
 # Hypertrophy Toolbox v3 Documentation
 
-This directory keeps the current project docs. Completed execution plans and migration handoff files have been removed from the active docs surface so the folder stays focused on what still helps maintain the app.
+This directory holds current references, open work, and retained completion history. Use the categories below to distinguish their roles.
 
 ## Active Docs
 
@@ -35,6 +35,64 @@ It is descriptive and carries no status; anything time-sensitive stays in `MASTE
 - **[program_backups.md](program_backups.md)** - Backup Center and program snapshot behavior
 - **[muscle_selector.md](muscle_selector.md)** - Muscle selector component notes
 - **[muscle_selector_vendor.md](muscle_selector_vendor.md)** - Vendor SVG attribution
+
+## Feature folders
+
+Active includes current references, deferred work, and records awaiting reconciliation.
+Closed describes execution status; current contracts and evidence in those folders stay in place.
+Proposed entries do not authorize implementation. The archive container is indexed separately below.
+
+### Active
+
+- [agent_roles/](agent_roles/) — role rollout; Phase 6 default-manager activation remains conditional
+- [ai_workflow/](ai_workflow/) — current workflow rules and navigation
+- [backup_confirmation_continuity/](backup_confirmation_continuity/) — shipped U2; residual-risk and status records require reconciliation
+- [ci_cd_phase3/](ci_cd_phase3/) — pinned Pyright baseline used by CI
+- [deep_gate_linux_visual_failure_20260831/](deep_gate_linux_visual_failure_20260831/) — completed Gate-1 diagnostic; further action awaits an owner decision
+- [finding1_residual/](finding1_residual/) — shipped D7; residual poisoned-row behavior still needs a current reference
+- [ki005_controls_persistence/](ki005_controls_persistence/) — shipped KI-005; retains the held Stage 4 restoration baseline
+- [product/](product/) — always-active reference for shipped behavior, schema, and design
+- [release_pipeline/](release_pipeline/) — shipped pipeline and remaining release/deep-gate entry conditions
+- [test_inventory/](test_inventory/) — generated test inventory checked by CI
+- [testing_d4_invariants/](testing_d4_invariants/) — ADR-009 property-invariant scope and deferred Packet C
+- [testing_phase2/](testing_phase2/) — completed Phase 2 plan plus current, test-pinned accessibility exceptions
+- [testing_phase3/](testing_phase3/) — testing plans and the live JS-unit observation ledger
+- [toast_action_continuity/](toast_action_continuity/) — shipped U3b; retains the amended U1 follow-up condition
+- [visual_determinism/](visual_determinism/) — terminal visual contract and accepted residual under ADR-011
+- [volume_failure_feedback/](volume_failure_feedback/) — shipped U1; U1-FOLLOWUP-1 remains open under its recorded conditions
+- [worktree_cleanup/](worktree_cleanup/) — committed workflow and preservation records; separate owner approvals govern further operations
+
+### Closed (history)
+
+- [agent_workflow_integrity/](agent_workflow_integrity/) — shipped workflow-integrity contracts
+- [backup_schema_version/](backup_schema_version/) — closed D6 investigation; ADR-008 records the outcome
+- [css_phase4_wp4_4/](css_phase4_wp4_4/) — completed WP4.4 arc and handoff history
+- [css_scale_btn_cleanup/](css_scale_btn_cleanup/) — completed scale-button cleanup, council findings, and evidence
+- [css_table_helpers_cleanup/](css_table_helpers_cleanup/) — completed table-helper cleanup and evidence
+- [css_theme_dark_p3/](css_theme_dark_p3/) — arc terminated after shipped a0; no later packet authorized
+- [dnone_display_utilities/](dnone_display_utilities/) — shipped display-utility cleanup evidence
+- [doc_truth/](doc_truth/) — shipped documentation-truth repairs
+- [fatigue_meter/](fatigue_meter/) — shipped meter and heatmap; Stage 4 closed, with calibration contracts and evidence retained
+- [local_first_assets/](local_first_assets/) — shipped local asset work
+- [p1_4_debug_scaffolding/](p1_4_debug_scaffolding/) — completed debug-scaffolding work
+- [page_readiness/](page_readiness/) — shipped page-readiness work
+- [pyright_filter_predicates/](pyright_filter_predicates/) — closed Pyright burn-down record
+- [pyright_volume_progress/](pyright_volume_progress/) — closed Pyright burn-down record
+- [pyright_volume_splitter/](pyright_volume_splitter/) — closed Pyright burn-down record
+- [quality_gate_routing/](quality_gate_routing/) — shipped quality-gate routing work
+- [scan/](scan/) — completed grounding-scan evidence
+- [superset_routine_selection/](superset_routine_selection/) — shipped routine-selection work
+- [toast_type_word_collision/](toast_type_word_collision/) — shipped KI-010; retains code and test references
+- [user_profile/](user_profile/) — shipped profile; design and estimator/calibration references remain current
+- [visual_baseline_win32/](visual_baseline_win32/) — superseded Windows-baseline recovery evidence
+- [workout_cool_integration/](workout_cool_integration/) — shipped integration; media rules, provenance, and video reference remain current
+- [wpb4_unassigned_bucket/](wpb4_unassigned_bucket/) — shipped unassigned-bucket behavior
+
+### Proposed
+
+- [blank_null_rep_bounds/](blank_null_rep_bounds/) — Gate 0 characterization shipped as #465; production implementation is unauthorized
+- [deep_gate_robustness_gate0/](deep_gate_robustness_gate0/) — Gate 0 evidence and bounded Gate-1 proposal; implementation requires separate authorization
+- [refactor_optional/](refactor_optional/) — optional-refactor assessments; no implementation approval is implied
 
 ## Archive
 
