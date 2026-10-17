@@ -511,10 +511,11 @@ def test_the_gate_greens_on(tmp_path, case):
 # protecting. Pinning the exact set keeps that protection: a second entry fails
 # this test even though it would satisfy the gate.
 OWNER_APPROVED_ALLOWLIST_IDS = {
-    # braces, approved 2026-10-16, expires 2026-10-30. No upstream fix exists at
+    # braces, approved 2026-10-17, expires 2026-10-31. No upstream fix exists at
     # any release -- 3.0.3 is both the latest published version and the top of
-    # the vulnerable range -- and stylelint 17 still reaches it through
-    # micromatch, so the usual "upgrade the parent" remedy does not apply.
+    # the vulnerable range. Four paths reach it, and one of them (sass ->
+    # @parcel/watcher -> micromatch) does not involve stylelint, so no single
+    # parent upgrade retires it. See the rationale in the allowlist itself.
     "GHSA-vfj7-8cjw-p6xm",
 }
 
