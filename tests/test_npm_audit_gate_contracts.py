@@ -31,6 +31,7 @@ import json
 import re
 import shutil
 import subprocess
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -505,19 +506,55 @@ def test_the_gate_greens_on(tmp_path, case):
 # --------------------------------------------------- the committed artifacts
 
 
-def test_the_committed_allowlist_is_an_empty_list_and_not_a_missing_file():
-    """R2's outcome, section 6.1: the enforcement PR lands the allowlist empty.
+# Every id here is an owner decision on the record, not an implementer's
+# judgement call -- which is what the emptiness assertion this replaced was
+# protecting. Pinning the exact set keeps that protection: a second entry fails
+# this test even though it would satisfy the gate.
+OWNER_APPROVED_ALLOWLIST_IDS = {
+    # braces, approved 2026-10-17, expires 2026-10-31. No upstream fix exists at
+    # any release -- 3.0.3 is both the latest published version and the top of
+    # the vulnerable range. Four paths reach it, and one of them (sass ->
+    # @parcel/watcher -> micromatch) does not involve stylelint, so no single
+    # parent upgrade retires it. See the rationale in the allowlist itself.
+    "GHSA-vfj7-8cjw-p6xm",
+}
 
-    `"allow": []` and a deleted file must never look alike, so the emptiness is
+
+def test_the_committed_allowlist_holds_exactly_the_owner_approved_entries():
+    """R2's outcome, section 6.1, as amended by the 2026-10-16 owner decision.
+
+    `"allow": []` and a deleted file must never look alike, so the contents are
     asserted through a parsed document rather than through the file's absence.
+    The set is pinned rather than merely validated: the gate would accept any
+    well-formed entry, so only this test can tell an approved exception from one
+    an implementer added.
     """
     doc = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
     assert doc["schemaVersion"] == 1
-    assert doc["allow"] == [], (
-        "The accepted-debt bucket was measured empty (section 3). An entry appearing here "
-        "needs an owner decision, not an implementer's judgement call."
-    )
     assert "NPM_AUDIT_SEVERITY_POLICY_DECISION.md" in doc["note"]
+
+    ids = [entry["id"] for entry in doc["allow"]]
+    assert len(ids) == len(set(ids)), f"duplicate ids in the committed allowlist: {ids}"
+    assert set(ids) == OWNER_APPROVED_ALLOWLIST_IDS, (
+        "The committed allowlist does not match the owner-approved set. An entry appearing "
+        "here needs an owner decision, not an implementer's judgement call; a removed entry "
+        "needs OWNER_APPROVED_ALLOWLIST_IDS updated in the same commit."
+    )
+
+    for entry in doc["allow"]:
+        assert set(entry) == {
+            "id",
+            "package",
+            "severity",
+            "rationale",
+            "owner",
+            "approvedOn",
+            "expiresOn",
+        }, f"{entry['id']} carries fields the gate rejects: {sorted(entry)}"
+        approved = date.fromisoformat(entry["approvedOn"])
+        expires = date.fromisoformat(entry["expiresOn"])
+        assert expires > approved, f"{entry['id']} expires on or before its approval"
+        assert (expires - approved).days <= 90, f"{entry['id']} exceeds the D-3 90-day cap"
 
 
 @needs_node
@@ -528,8 +565,31 @@ def test_the_committed_allowlist_passes_the_real_gate_against_the_real_audit(tmp
     were malformed, not one of them would notice.
     """
     assert NODE is not None
+    doc = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
+    # D-5 fails an entry whose advisory has left the audit, so a clean audit is
+    # only the right input while the allowlist is empty. Synthesising the audit
+    # from the committed entries keeps this end-to-end either way, and keeps it
+    # honest: it still reads the two real files CI reads.
+    packages: dict = {}
+    for entry in doc["allow"]:
+        packages.update(_package(entry["id"], entry["package"], entry["severity"]))
+    audit_doc = (
+        CLEAN_AUDIT
+        if not packages
+        else _audit(
+            packages,
+            {
+                "info": 0,
+                "low": 0,
+                "moderate": 0,
+                "high": len(packages),
+                "critical": 0,
+                "total": len(packages),
+            },
+        )
+    )
     audit = tmp_path / "npm-audit.json"
-    audit.write_text(json.dumps(CLEAN_AUDIT), encoding="utf-8")
+    audit.write_text(json.dumps(audit_doc), encoding="utf-8")
     result = subprocess.run(
         [NODE, str(SCRIPT), "--audit", str(audit), "--allowlist", str(ALLOWLIST)],
         capture_output=True,
