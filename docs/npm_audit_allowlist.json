@@ -1,5 +1,15 @@
 {
   "schemaVersion": 1,
   "note": "Accepted exceptions to the js-supply-chain gate (scripts/npm_audit_gate.mjs). Policy, entry format and the rules behind every field: docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md sections 4 and 6.1. An empty list is written as \"allow\": [] and never as a missing file. Adding an entry requires an owner decision; every field is required, the id is a GHSA id, and expiresOn may be at most 90 days after approvedOn (D-3). An entry whose advisory has left the audit fails the gate and must be deleted (D-5).",
-  "allow": []
+  "allow": [
+    {
+      "id": "GHSA-vfj7-8cjw-p6xm",
+      "package": "braces",
+      "severity": "high",
+      "rationale": "Owner-approved on 2026-10-17 by avihay1989@gmail.com, who authorised an advisory-specific 14-day exception after being shown that no upstream fix exists. braces 3.0.3 is simultaneously the latest published release and the top of the vulnerable range (<=3.0.3); the advisory records first_patched_version as null, and the npm registry dist-tags.latest is 3.0.3. There is nothing to upgrade to. Upgrading the parents does not help either: micromatch 4.0.8 is current and still requires braces ^3.0.3, and stylelint 17.16.0, the current major, still requires micromatch ^4.0.8. braces reaches this graph by FOUR paths, not one: stylelint -> micromatch; stylelint -> fast-glob -> micromatch; stylelint -> globby -> fast-glob -> micromatch; and sass -> @parcel/watcher (optional) -> micromatch. The fourth does not involve stylelint at all, so dropping or replacing stylelint alone would NOT retire this waiver. Every one of those paths is dev: true in the lockfile and package.json declares no runtime dependencies, so none reaches the shipped application or the packaged executable; per D-2 that is context, not a carve-out. The exposure is stack exhaustion from deeply nested brace patterns in glob input, and the only such input here is this repository's own committed lint and build globs, which are not attacker-controlled. Retire this entry when braces publishes a patched release, or when BOTH stylelint and sass no longer reach micromatch; D-5 will fail the gate automatically once the advisory leaves the audit.",
+      "owner": "avihay1989@gmail.com",
+      "approvedOn": "2026-10-17",
+      "expiresOn": "2026-10-31"
+    }
+  ]
 }
