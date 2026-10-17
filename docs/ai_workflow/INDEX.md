@@ -21,12 +21,19 @@
 ## Active feature plans
 - [Agent workflow v2.2](../agent_roles/PLANNING.md) — manager, requirements,
   implementation, and independent-QA role rollout; Gate 0/Gate 1 approved 2026-07-11
+- [Testing strategy](../TESTING_STRATEGY_PLANNING.md) — Phases 0–1 shipped; **Phase 2 is COMPLETE** — Packet A #342 (`1438a14`), Packet C #362 (`52331bf`), Packet D #366 (`f627161`), closed by #372 (`385ce52`). The release/tag half of Phase 4 SHIPPED as Packet R1, #374 (`5222db2`), with Phase 4 itself still open on §7.3 entry criteria 2 and 3. Detail in [`testing_phase2/PLANNING.md`](../testing_phase2/PLANNING.md). D4 is signed with bounded scope ([§8.1e](../TESTING_STRATEGY_PLANNING.md#81e-sixth-sign-off-2026-08-29--d4)); the `js-unit` half of D2 remains unsigned (D6 signed 2026-08-14 as retain-informational, ADR-008; **D7 signed 2026-08-21** as keep-the-stance-and-document, §8.1d — the manual auto-backup recovery procedure is now in [`README.md`](../../README.md)); Phase 3's [step 12 expansion](../testing_phase3/STEP12_JS_UNIT_GATE0.md) is complete; Phase 5 remains proposed
+
+## Proposed, not authorized
+
+- [Blank/null rep bounds](../blank_null_rep_bounds/PLANNING.md) — Gate 0 characterization shipped as #465; production implementation remains unauthorized
+
+## Closed and shipped (history)
+
 - [Fatigue meter](../fatigue_meter/PLANNING.md) — Phase 1 shipped; Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`). [Phase 2 Stage 4](../fatigue_meter/PHASE2_PLANNING.md) **closed 2026-08-13** via #338 (`700b5da`) — no real-use evidence, no threshold change. The [Fatigue heatmap](../fatigue_meter/HEATMAP_PLANNING.md) shipped via #339 (`ea82ef1`) as visualization only. Phase 1 Stage 4 closed separately, 2026-05-20.
 - [workout.cool integration](../workout_cool_integration/PLANNING.md) — §3 + §3.6 + §4 + §4.6 + §5 all shipped (§3.6 Profile bodymap landed 2026-05-23, `18ad223`; §5 first curated batch landed 2026-05-22, `cf21191`)
 - [YouTube reference videos](../workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md) — closed 2026-05-23 (`cf21191` 36 rows + `ff244aa` +20 rows = **56 curated rows**); long tail uses the search fallback by design
 - [User profile](../user_profile/PLANNING.md) — questionnaire + bodymap + insights card + Body Composition display hooks (#17/#18) all shipped
 - [Body Composition Issue #21](../archive/body_composition/development_issues.md) — Resolved 2026-05-23; PR #31 (`20b4b24`) + PR #32 (`94482d7`) + Profile hooks (`de3e4d0`)
-- [Testing strategy](../TESTING_STRATEGY_PLANNING.md) — Phases 0–1 shipped; **Phase 2 is COMPLETE** — Packet A #342 (`1438a14`), Packet C #362 (`52331bf`), Packet D #366 (`f627161`), closed by #372 (`385ce52`). The release/tag half of Phase 4 SHIPPED as Packet R1, #374 (`5222db2`), with Phase 4 itself still open on §7.3 entry criteria 2 and 3. Detail in [`testing_phase2/PLANNING.md`](../testing_phase2/PLANNING.md). D4 and the `js-unit` half of D2 remain unsigned (D6 signed 2026-08-14 as retain-informational, ADR-008; **D7 signed 2026-08-21** as keep-the-stance-and-document, §8.1d — the manual auto-backup recovery procedure is now in [`README.md`](../../README.md)); Phases 3 and 5 remain proposals
 - [Theme-dark P3](../css_theme_dark_p3/PLANNING.md) — both gates were signed, `P3-a0` shipped as #280 (`cd93480`), and the owner terminated the arc at a0. No later P3 packet is authorized
 - [app.py review](../APP_PY_REVIEW_PLAN.md) — P1–P5 all merged 2026-08-01, including packaged-smoke permanence and #266's post-merge hardening. Completion history; do not reopen
 - [Product documentation suite](../PRODUCT_DOCS_PLAN.md) — **executed**; the owner-selected subset shipped as [`docs/product/**`](../product/README.md) (App Flow, Backend Schema, Design Brief, plus the suite README). PRD and TECH_DESIGN were deliberately not built — see §8.5. Completion history; do not reopen

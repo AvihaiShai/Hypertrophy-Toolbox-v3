@@ -112,17 +112,17 @@ After implementing 400 tests in Part 1, the following **critical flows** were te
 ## Implementation Priority
 
 ### Phase 1: Critical Route Tests (Prevent Data Corruption) ✅
-1. ✅ [test_workout_log_routes.py](../tests/test_workout_log_routes.py) - CRUD operations (31 tests)
-2. ✅ [test_workout_plan_routes.py](../tests/test_workout_plan_routes.py) - Exercise management (34 tests)
+1. ✅ [test_workout_log_routes.py](../../tests/test_workout_log_routes.py) - CRUD operations (31 tests)
+2. ✅ [test_workout_plan_routes.py](../../tests/test_workout_plan_routes.py) - Exercise management (34 tests)
 3. ⏭️ `test_progression_plan_routes.py` - Goal management (covered via utils)
 
 ### Phase 2: Business Logic (Prevent Miscalculations) ✅
-4. ✅ [test_progression_plan_utils.py](../tests/test_progression_plan_utils.py) - Double progression math (39 tests)
-5. ✅ [test_workout_log_utils.py](../tests/test_workout_log_utils.py) - Progression checks (19 tests)
+4. ✅ [test_progression_plan_utils.py](../../tests/test_progression_plan_utils.py) - Double progression math (39 tests)
+5. ✅ [test_workout_log_utils.py](../../tests/test_workout_log_utils.py) - Progression checks (19 tests)
 
 ### Phase 3: Support Utils (API Contract) ✅
-6. ✅ [test_errors_utils.py](../tests/test_errors_utils.py) - Response formatting (27 tests)
-7. ✅ [test_data_handler.py](../tests/test_data_handler.py) - Data access layer (12 tests)
+6. ✅ [test_errors_utils.py](../../tests/test_errors_utils.py) - Response formatting (27 tests)
+7. ✅ `test_data_handler.py` - Historical data access layer coverage (12 tests); file removed from the current tree
 
 ---
 
