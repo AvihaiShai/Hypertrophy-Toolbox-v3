@@ -2,8 +2,8 @@
 
 **Date:** 2026-10-16
 **Authority:** owner closeout directive v2 (avihay1989@gmail.com), 2026-10-16.
-**Outcome:** complete, with one item unresolved by instruction — prevention (§18).
-Steps 1–6 ran on 2026-10-16 (§1–§14 below); **step 7 ran later the same day under the owner's continuation directive and removed all 91 worktrees** (§15); a branch cleanup (§16) and the clearance of §15.4's removal residue (§17) ran on 2026-10-17 under their own directives. A drive-root cleanup (§18) also ran on 2026-10-17 under a *separate* directive and is **not** part of the worktree program; it is recorded here because it supersedes part of §12. §1–§14 are the first run's record and are left as written; §1, §2, §3, §5, §7, §8, §9, §10, §12 and §14 carry supersession or evidence notes where a later run or a later check made them untrue, and §15 carries its own where §16 and §17 overtook it. §20 is the status of all four worktree-program tasks at close.
+**Outcome:** complete, with one item unresolved by instruction — prevention (§19).
+Steps 1–6 ran on 2026-10-16 (§1–§14 below); **step 7 ran later the same day under the owner's continuation directive and removed all 91 worktrees** (§15); a branch cleanup (§16) and the clearance of §15.4's removal residue (§17) ran on 2026-10-17 under their own directives. A drive-root cleanup (§18) also ran on 2026-10-17 under a *separate* directive and is **not** part of the worktree program; it is recorded here because it supersedes part of §12. §1–§14 retain the first run's account, with inline evidence corrections in §1, §2, §5, §6 and §10 and directive-reference clarifications introduced in `0d6e0b12`; they are not a verbatim transcript. §13's original hold statement is restored below with its resolution in a marked note. §1, §2, §3, §5, §7, §8, §9, §10, §12, §13 and §14 carry supersession or evidence notes where later evidence qualifies the account, and §15 carries its own where §16 and §17 overtook it. §20 is the status of all four worktree-program tasks at close.
 **Section-reference convention:** a bare §N means a section of *this file*. A reference to the owner's directive is always written "directive §N".
 **Preservation:** `C:\Users\aviha\Backups\Hypertrophy-Toolbox-v3\worktree-closeout-20261016-150200\`
 
@@ -194,6 +194,9 @@ still exist.
    cited above.
 
 ## 6. Review and the findings it produced
+
+> **Evidence correction in `0d6e0b12`.** The missing-report qualification below was
+> added after the first run. The findings are reconstructed, not a retained reviewer report.
 
 One independent read-only review ran once, before any deletion, per directive §3 and §6. It
 returned **3 blocking findings, all legitimate.** All three are fixed and each fix was
@@ -411,9 +414,13 @@ Operation E / main reconciliation, `docs/worktree_cleanup_amendment/`, Operation
 Per directive §2, `docs/worktree_cleanup/` (≈2,800 lines across `PLANNING.md`, `STATUS.md`,
 `AMENDMENT_2026-09-28.md`, `PROVENANCE_RECOVERY_OPTIONS.md`) is treated as history. Its open
 "OWED" items, Gate A rows and decisions 1–5 were not re-derived or re-litigated. The one
-contradiction that mattered operationally is recorded in §7: the installed guard enforced the
-worktree-retention hold that directive §1.A lifts. It was resolved by the continuation
-directive's scoped, temporary exception (§15.1); the hold itself is back in force.
+contradiction that mattered operationally is in §7: the installed guard still enforces the
+worktree-retention hold that directive §1.A lifts.
+
+> **Resolved by §15.1.** The continuation directive authorized a scoped, temporary
+> exception; the hold was back in force after the guard was restored. Commit `0d6e0b12`
+> had replaced the first-run sentence with this later state. The sentence above restores
+> its original wording, apart from the explicit directive-reference convention.
 
 ## 14. Not done, by instruction
 
@@ -552,8 +559,9 @@ working around that with a verb the guard does not model would be the evasion th
 forbids. **Clearing it is a one-line owner action, not an open risk.**
 
 > **Superseded by §17.** The residue was cleared on 2026-10-17 and
-> `D:\development\Hypertrophy-Toolbox-npm-audit-fix` no longer exists. Three things above were
-> wrong. The tree also held **10 dangling fixture junctions** this paragraph does not count —
+> `D:\development\Hypertrophy-Toolbox-npm-audit-fix` no longer exists. Four things above were
+> wrong. The **25 ordinary directories include the worktree root**; only **24** are at or
+> below `artifacts/`, as the retained inventory and §17 establish. The tree also held **10 dangling fixture junctions** this paragraph does not count —
 > four of them *named* `.git`, which makes "no `.git`" read more reassuringly than the facts
 > warrant, though none was a real git directory. Clearing it needed **no recursive delete and
 > no guard change**, so "the restored guard denies it" was not the reason it was left. And it
@@ -565,7 +573,7 @@ forbids. **Clearing it is a one-line owner action, not an open risk.**
 
 One independent reviewer read the exception and its tests, per directive §2. It returned six
 findings — two high (H1, H2), three medium (M1, M2, M5) and one low (L2). **Three were real
-and are fixed (H1, H2, M1); two were not reproduced (M2, L2); one was a stale read (M5).**
+and are fixed (H1, H2, M1); M2 was not reproduced; L2 was refuted by measurement; M5 was a stale read.**
 Each was checked by running it where that was possible — though not uniformly: H1 and M1 were
 reproduced by running them, while **H2 was confirmed by reading the agent definitions** and
 **M5 was explained from the file's edit history**, neither of which is a run.
@@ -656,6 +664,12 @@ the default for an *empty* argument and so silently re-ran the baseline.
   identity field, so `session_id` cannot distinguish a subagent from its parent. No agent was
   spawned at any point during the removal run, and the exception is now gone. Two of the ten agent
   types are additionally protected by their own `agent`-profile hook.
+
+  > **Corrected by §19.5.** The claim above that the payload has no agent identity
+  > field is retracted. The installed CLI schema declares `agent_id` for subagent
+  > calls; the guard used during this run did not read it. `session_id` alone still
+  > cannot distinguish a subagent from its parent. This is schema evidence, not a
+  > retained live-payload observation; §19.5 records that qualification.
 - **The `cwd` test pins the tool's directory, not the repository git acts on.** A
   `cd other-repo &&` segment keeps this payload `cwd`. What pins the repository in practice is the
   explicit 91-path allowlist plus the gate's assertion that the target is a current registration of
@@ -697,7 +711,7 @@ repository policy changed, and the guard change was reverted. The items parked i
 
 ## 16. Authorized local-branch cleanup — 2026-10-17
 
-Completed at `2026-10-16T21:30:54+00:00` under the owner's explicit branch-deletion and temporary scoped-guard authorization. Fresh inventory: **140 local branches**; **13 deleted**, **127 retained**. One coordinator performed all mutations; two read-only subagents independently classified tips and verified preservation/reviewed the exact deletion plan. One pre-deletion review completed with no outstanding blockers; the benign ambient `GIT_PAGER` execution issue was fixed and verified within that review. No new worktrees, application execution or database access.
+Completed at `2026-10-16T21:30:54+00:00` (**2026-10-17 00:30:54 Asia/Jerusalem**, the heading date) under the owner's explicit branch-deletion and temporary scoped-guard authorization. Fresh inventory: **140 local branches**; **13 deleted**, **127 retained**. One coordinator performed all mutations; two read-only subagents independently classified tips and verified preservation/reviewed the exact deletion plan. One pre-deletion review completed with no outstanding blockers; the benign ambient `GIT_PAGER` execution issue was fixed and verified within that review. No new worktrees, application execution or database access.
 
 Fetched origin with `--no-prune --no-tags --no-auto-maintenance` and `gc.auto=0`. Exact merge baseline: `origin/main` = `71fc65864cf510d78382c6d6504a3b68b30c2158`. Local `main` = `85e23725bc2871c5f005162f29be231a2f106b85` remained checked out and diverged (3 ahead / 41 behind); it was never substituted for the baseline.
 
@@ -871,6 +885,8 @@ No push, merge, PR creation, reflog expiry, object pruning, backup deletion, sta
 
 ## 17. Empty-directory residue cleanup — 2026-10-17
 
+The heading date is Asia/Jerusalem local time; the removal journal below also gives UTC.
+
 **Authority:** owner's exact-target residue directive, 2026-10-17. This appendix
 supersedes the remaining-residue statement in §15.4; earlier records are unchanged.
 **Outcome:** `D:\development\Hypertrophy-Toolbox-npm-audit-fix` no longer exists;
@@ -906,7 +922,8 @@ verified the fix without restarting the review. No opaque deletion script was in
 
 Independent postchecks confirm target absence by parent enumeration, main-only
 registration, 35 distinct journal entries, unchanged guard bytes/behavior, and identical
-`.venv`/`node_modules` metadata fingerprints (8,949/7,524 entries). Protected sibling
+`.venv`/`node_modules` metadata fingerprints (8,949/7,524 entries, including
+directories and link objects; the 8,256/6,566 figures in §15 count files). Protected sibling
 root metadata, `D:\c`, `D:\d`, hook settings, main HEAD, index hash, status and staged
 state also match the pre-removal baseline. Nothing was staged. No worktrees, servers,
 database access, dependency changes, application tests, PRs or merges were introduced.
@@ -1064,7 +1081,8 @@ had been observed **zero** times.
 
 ### 19.3 What shipped
 
-One dedicated PR -- **#508**, branched from `origin/main` at `c0b5a09` -- four files,
+One dedicated PR, **#508**, branched from `origin/main` at `71fc658`, with candidate
+commit `c0b5a09`: four files,
 +439/-20, no product code: the rewritten predicate
 (frontmatter-scoped, fail-closed on any `tools:` value it cannot fully read, `PreToolUse`-scoped
 with matcher-alternation membership, and resolving each registration's effective profile); fifteen
@@ -1077,8 +1095,11 @@ unrecognised profile name; and `docs/test_inventory/` regenerated by its own gen
 Every arm was proven **in both directions**, and the five new guard tests were each killed by a
 targeted mutation of a scratch copy of the guard. pyright 1.1.410 reports 0 errors / 0 warnings on
 both changed files, and the blocking `generate_test_inventory.py --check` gate is green. The
-full run of both files is **1979 passed**. Verification ran on a `git archive` of `71fc658`
-with the real `node_modules`, never in this checkout.
+reported full run of both files is **1979 passed**. The reported verification used the
+#508 candidate changes over a `git archive` of baseline `71fc658`, with the real
+`node_modules`, never in this checkout. `71fc658` is the archive base, not the candidate
+commit. The retained git/PR evidence distinguishes that base from candidate `c0b5a09`;
+it does not independently establish the exact tested tree or re-verify the local pass count.
 
 ### 19.4 Preservation of owner state
 
@@ -1143,9 +1164,6 @@ disposition of the ~89 `ORPHANED_ANNOTATION` rows and the drive baseline, which 
 owner-local files that **no repository change can fix** and which keep upstream worktree creation
 fail-closed; the guard runtime qualification adoption; the G07 and C02 decisions; and whether to
 sync this checkout onto `origin/main`.
-
----
-
 
 ---
 
@@ -1241,3 +1259,8 @@ PYSEC-2026-4312, published 2026-10-05) and `JS Supply Chain` (four high npm advi
 2026-09-18 and 2026-09-29, one of which — `braces` GHSA-vfj7-8cjw-p6xm — has no patched version at
 all). Neither is caused by this record and neither remedy belongs in it. **No check was disabled,
 no allowlist entry was added and no protection was bypassed to move this record forward.**
+
+> **CI update, 2026-10-17.** After `57bf301` was merged into this PR as `fc08d2b`,
+> all 19 checks on that head passed, including both audit checks (run `39047833494`).
+> The preceding paragraph records the earlier failure. Any later fix commit requires
+> a fresh check of CI on its own head before merge.
