@@ -8,7 +8,7 @@ producer of those numbers; docs point at its output instead of restating it.
 Sources of truth, all read-only:
   * `npx playwright test --list --project=chromium --reporter=json`
   * `<this interpreter> -m pytest tests --collect-only -q`
-  * `npx vitest list --json=<path>`
+  * `npx vitest list --staticParse=false --json=<path>`
   * a literal scan of `e2e/**/*.ts` for `waitForTimeout`
 
 The required-functional-set figure is *derived* from `.github/workflows/ci.yml`
@@ -246,7 +246,11 @@ def collect_pytest() -> dict[str, int]:
 # fail on JS test OUTCOMES. Promoting the JS suite to required is decision D2's
 # to make (docs/testing_phase3/STEP12_JS_UNIT_GATE0.md section 7) and D2 is not
 # signed. A collector choice must not decide it as a side effect.
-VITEST_COLLECTOR = "vitest list --json=<path>"
+#
+# `--staticParse=false` is part of the collector, not a tuning knob -- it
+# decides WHICH cases the listing contains, so the recorded string names it.
+# `_vitest_list_argv()` has the measurement.
+VITEST_COLLECTOR = "vitest list --staticParse=false --json=<path>"
 
 # The CI job's failure annotation tells the reader to regenerate the inventory.
 # That is the right repair for drift and the wrong one for a collection failure,
@@ -263,8 +267,48 @@ def _vitest_list_argv(output_path: Path, npx: str = "npx") -> list[str]:
     on the `Run Tests` job's PATH, so `shutil.which("npx")` succeeds there and a
     shelling test would attempt a registry fetch inside a required job instead of
     failing fast. Production passes the resolved path.
+
+    `--staticParse=false` pins the COLLECTION MODE, and it is load-bearing:
+    vitest 5.0 flipped this command's `staticParse` default from false to true,
+    which replaces running each module with parsing its AST. Every figure below
+    was measured on this tree, vitest 5.0.1 against vitest 4.1.11.
+
+    Unpinned, 5.0.1 lists 223 elements where 4.1.11 lists 245, and the net 22
+    understates it: six unexpanded rows stand in for 28 real cases, and those
+    six are identities that are not in the suite at all. The 28 do still run --
+    `vitest run` on 5.0.1 reports `Tests 245 passed` -- so they are invisible to
+    the lister rather than gone, and noticing one of them being renamed or
+    deleted is the whole job of `vitest.cases`. Regenerating under the new
+    default would commit the shrunken surface as the suite, and every later
+    `--check` would agree with it.
+
+    Pinned, 5.0.1 lists 245 elements of the two-key shape and `--check` exits 0
+    against the committed artifact, so every identity matches. On 4.1.11, whose
+    default was already false, pinned and unpinned list the same sorted 245
+    identities -- which is what lets the pin precede the bump.
+
+    Not byte-identical, though, and deliberately not claimed to be: three
+    consecutive PINNED listings on 4.1.11 came back in three different orders
+    with one identical sorted list. Order is unstable either way, which is what
+    `parse_vitest_listing()`'s sort is for.
+
+    Spelled `=false`, the only spelling measured to work. The value has to
+    arrive as a real boolean: vitest 4's collector branches on
+    `options.staticParse` being truthy and vitest 5's on it being `!== false`
+    (read in both dists), so a value arriving as the STRING "false" would select
+    static parsing on both. How `cac` resolves `--no-staticParse` or a split
+    `--staticParse false` was NOT measured -- they are unused here, not
+    disproved.
+
+    `--json=` stays last, so the output path is always `argv[-1]`.
     """
-    return [npx, "vitest", "list", f"--json={output_path.as_posix()}"]
+    return [
+        npx,
+        "vitest",
+        "list",
+        "--staticParse=false",
+        f"--json={output_path.as_posix()}",
+    ]
 
 
 def _run_vitest_list(output_path: Path) -> str:
@@ -365,8 +409,13 @@ def parse_vitest_listing(
     identities: list[tuple[str, str]] = []
     for entry in entries:
         # Exactly these two keys, not "at least": a superset means the tool's
-        # output format changed, which is the one thing a lenient parser turns
-        # into a wrong committed number. The VALUES are type-checked too -- a
+        # output format changed, or the collector lost `--staticParse=false`,
+        # and either is the one thing a lenient parser turns into a wrong
+        # committed number. Since vitest 5.0 the second cause is the likelier
+        # one, and tolerating its `location` key here would be the worst
+        # available repair: static parsing also unexpands `.each`, so the number
+        # that got committed would be 223 wearing 245's name. The VALUES are
+        # type-checked too -- a
         # non-string `name` would not fail until `identities.sort()`, and a
         # non-string `file` raises TypeError out of Path(), neither of which
         # carries the COLLECTION_FAILURE line the CI annotation needs
@@ -381,8 +430,12 @@ def parse_vitest_listing(
             raise SystemExit(
                 f"{COLLECTION_FAILURE}\n"
                 f"vitest list element has {found}, expected exactly ['file', 'name'] "
-                "with string values. "
-                "The output format changed; fix the parser rather than committing a wrong number."
+                "with string values.\n"
+                "Check the argv in _vitest_list_argv() FIRST: a `location` key means "
+                "vitest 5's static parser collected this listing, so "
+                "`--staticParse=false` was lost -- and that listing is also missing "
+                "the expanded `.each` cases. Otherwise the output format changed. "
+                "Repair the collector or the parser; do not commit this number."
             )
         try:
             relative = Path(entry["file"]).relative_to(repo_root).as_posix()

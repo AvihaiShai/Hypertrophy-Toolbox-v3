@@ -206,9 +206,15 @@ def test_vitest_block_records_no_status_and_no_duration(inventory):
 def test_collector_string_matches_the_argv_actually_run(inventory):
     assert inventory["vitest"]["collector"] == VITEST_COLLECTOR
     argv = _vitest_list_argv(Path("/tmp/vitest-list.json"))
-    assert VITEST_COLLECTOR == "vitest list --json=<path>"
+    assert VITEST_COLLECTOR == "vitest list --staticParse=false --json=<path>"
     assert argv[1:3] == ["vitest", "list"]
-    assert argv[3].startswith("--json=")
+    assert argv[-1].startswith("--json=")
+    # Derived as well as pinned, and the derivation is what the literal above
+    # cannot do: it fails in BOTH directions. An argument added to the argv
+    # without being recorded leaves the artifact naming a command that collects
+    # a different set of cases than the one its numbers came from; a flag
+    # dropped from the argv but left in the string is the same lie reversed.
+    assert VITEST_COLLECTOR == " ".join([*argv[1:-1], "--json=<path>"])
 
 
 # --- the argv ----------------------------------------------------------------
@@ -232,6 +238,41 @@ def test_argv_lists_and_never_runs():
 def test_argv_writes_to_the_given_file_and_not_stdout():
     argv = _vitest_list_argv(Path("/tmp/somewhere/vitest-list.json"))
     assert argv[-1] == "--json=/tmp/somewhere/vitest-list.json"
+
+
+def test_argv_pins_runtime_collection_over_static_parsing():
+    """`vitest list` must list the suite it RUNS, not an AST approximation.
+
+    `_vitest_list_argv()`'s docstring carries the measurement; it is not
+    restated here. What this assertion adds over the collector-string
+    derivation above is survival of a CONSISTENT edit: drop the flag from the
+    argv and from `VITEST_COLLECTOR` together and the derivation stays green,
+    because the two still agree with each other. Only this test reds -- and an
+    argv that silently collects less than the suite is how the gate broke in
+    the first place.
+    """
+    assert "--staticParse=false" in _vitest_list_argv(Path("/tmp/x.json"))
+
+
+def test_argv_passes_the_static_parse_value_as_one_boolean_argument():
+    """The spelling is the repair, so the exact argument is pinned.
+
+    The value has to arrive as a real boolean: vitest 4's collector branches on
+    `options.staticParse` being truthy and vitest 5's on it being `!== false`,
+    so a value arriving as the STRING "false" selects static parsing on both
+    majors.
+
+    The three other spellings are pinned out as UNUSED rather than as
+    disproved. How `cac` resolves a bare `--staticParse`, a split
+    `--staticParse false` or `--no-staticParse` was never measured, and the
+    collector behind a blocking gate is the wrong place to find out -- a wrong
+    guess there does not fail, it just lists less than the suite.
+    """
+    argv = _vitest_list_argv(Path("/tmp/x.json"))
+    assert argv.count("--staticParse=false") == 1
+    assert "--staticParse" not in argv
+    assert "--no-staticParse" not in argv
+    assert "false" not in argv
 
 
 def test_argv_uses_the_npx_it_is_given():

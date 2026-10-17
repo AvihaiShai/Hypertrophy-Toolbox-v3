@@ -33,6 +33,9 @@ non-delete ref retirement remain outside it.
 
 Contract: confidently classified, or denied. Syntax this guard cannot parse
 (unbalanced quoting, base64 -EncodedCommand, nesting past depth 4) denies.
+That extends to this script's own arguments and to the payload: a malformed
+-GuardProfile registration and every string field of tool_input except
+description are classified, never ignored.
 
 Substring regexes were tried first and leaked: rm -fr, rm -r -f, leading
 whitespace, sudo rm -rf, git -C <path> clean -fdx, git clean --force -d, and
@@ -52,10 +55,13 @@ Two deliberate limitations, documented so they are not mistaken for oversights:
     bump in front of honest mistakes, backed by the deny list in
     .claude/settings.json. It is not a sandbox and must not be described as one.
 #>
-param(
-    [string]$GuardProfile = 'agent'
-)
-
+# Deliberately no param() block. A typed [string] parameter cannot be used
+# here: PowerShell raises a parameter-binding error for `-GuardProfile` with no
+# value BEFORE the script body runs, exits 1, and exit 1 is non-blocking under
+# the PreToolUse contract -- so a malformed registration made the guard fail
+# OPEN, with no opportunity to catch it. Parsing $args keeps every malformed
+# form on the fail-closed path. It also removes the positional binding that let
+# a bare `main` argument select the permissive profile.
 $ErrorActionPreference = 'Stop'
 
 # Wrappers that delegate to the real command.
@@ -1084,14 +1090,16 @@ function Get-CandidateCommands($toolInput) {
             [void]$found.Add([string]$value.Value)
         }
     }
-    if ($found.Count -eq 0) {
-        # Unknown schema. Scan every string field except free-text metadata so a
-        # renamed command field cannot slip past unexamined.
-        foreach ($property in $toolInput.PSObject.Properties) {
-            if ($property.Name -eq 'description') { continue }
-            if ($property.Value -is [string] -and -not [string]::IsNullOrWhiteSpace($property.Value)) {
-                [void]$found.Add([string]$property.Value)
-            }
+    # Every other string field is scanned too, not only when no declared field
+    # was found. The previous `if ($found.Count -eq 0)` gate meant a payload
+    # carrying a benign declared field alongside a renamed or additional
+    # command-bearing field had that second field examined by nothing at all.
+    # Free-text metadata stays excluded.
+    foreach ($property in $toolInput.PSObject.Properties) {
+        if ($property.Name -eq 'description') { continue }
+        if ($commandFields -contains $property.Name) { continue }
+        if ($property.Value -is [string] -and -not [string]::IsNullOrWhiteSpace($property.Value)) {
+            [void]$found.Add([string]$property.Value)
         }
     }
     return $found.ToArray()
@@ -1219,8 +1227,39 @@ function Invoke-CommandScan([string]$command, [int]$depth) {
     }
 }
 
+function Get-GuardProfileArgument([string[]]$arguments) {
+    # PowerShell normalises `-GuardProfile:main` into two tokens and accepts any
+    # unambiguous prefix, so `-GuardProfile main`, `-GuardProfile:main`,
+    # `-G main` and `-G:main` all arrive here as the same two tokens. Anything
+    # else -- a bare value, `-GuardProfile=main`, a surplus argument, an
+    # unknown switch, a repeated parameter, or the parameter with no value --
+    # is a malformed registration and throws, which the caller turns into the
+    # blocking exit code rather than a silent profile choice.
+    $selected = $null
+    $index = 0
+    while ($index -lt $arguments.Count) {
+        $token = $arguments[$index]
+        if ($token -notmatch '^-([A-Za-z]+)$') {
+            throw "Unrecognized guard argument: $token"
+        }
+        $name = $matches[1].ToLowerInvariant()
+        if (-not 'guardprofile'.StartsWith($name)) {
+            throw "Unrecognized guard argument: $token"
+        }
+        if ($null -ne $selected) { throw 'Guard profile given more than once' }
+        if ($index + 1 -ge $arguments.Count) {
+            throw 'Guard profile argument has no value'
+        }
+        $selected = $arguments[$index + 1]
+        $index += 2
+    }
+    if ($null -eq $selected) { return 'agent' }
+    return $selected
+}
+
 # --- entry point -------------------------------------------------------------
 try {
+    $GuardProfile = Get-GuardProfileArgument @($args)
     if ($GuardProfile -notin @('agent','main')) { throw 'Unknown guard profile' }
     $raw = [Console]::In.ReadToEnd()
     if ([string]::IsNullOrWhiteSpace($raw)) {
@@ -1230,6 +1269,23 @@ try {
     $payload = $raw | ConvertFrom-Json
     $permissionMode = [string]$payload.permission_mode
     if ($permissionMode -notin @('','default','auto','acceptEdits','plan','dontAsk','bypassPermissions')) { throw 'Unknown permission mode' }
+    # A subagent tightens to the agent profile whatever the registration said.
+    # agent_id is the harness's own answer to this question -- the CLI 2.1.296
+    # hook schema documents it as "Present only when the hook fires from within
+    # a subagent" and "Use this field (not agent_type) to distinguish subagent
+    # calls from main-thread calls". agent_type is deliberately NOT used: the
+    # same schema says it is also present on the main thread of an --agent
+    # session, so keying on it would deny the owner's own push.
+    #
+    # This is the only lever that reaches the harness-provided agent types
+    # (general-purpose, claude, Explore, Plan). They have no charter file, so no
+    # frontmatter hook can register the agent profile for them, and they
+    # otherwise run under the settings-level -GuardProfile main.
+    #
+    # Absence leaves the registered profile exactly as it was, so a CLI that
+    # does not send the field behaves as it did before this change rather than
+    # failing in either direction.
+    if (-not [string]::IsNullOrWhiteSpace([string]$payload.agent_id)) { $GuardProfile = 'agent' }
     $toolInput = $payload.tool_input
     if ($null -eq $toolInput) {
         [Console]::Error.WriteLine("Guard received no tool_input; failing closed.")
