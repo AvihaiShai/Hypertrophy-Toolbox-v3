@@ -243,35 +243,30 @@ def test_argv_writes_to_the_given_file_and_not_stdout():
 def test_argv_pins_runtime_collection_over_static_parsing():
     """`vitest list` must list the suite it RUNS, not an AST approximation.
 
-    vitest 5.0 flipped this command's `staticParse` default from false to true.
-    Measured on vitest 5.0.1, the static lister emits one unexpanded template
-    row per `.each` block and the raw template literal for a loop-generated
-    case, so this tree's 245 listed cases become 223 while all 245 still run.
-    The missing 22 are parametrized cases, and noticing when one of those is
-    renamed or deleted is the whole job of the committed identity list -- so
-    regenerating under the new default would commit the shrunken surface as if
-    it were the suite, and every later `--check` would agree with it.
-
-    On vitest 4.1.11, whose default was already false, the pinned and unpinned
-    listings were measured to the same sorted 245 identities; that is what lets
-    this assertion precede the version bump it unblocks.
+    `_vitest_list_argv()`'s docstring carries the measurement; it is not
+    restated here. What this assertion adds over the collector-string
+    derivation above is survival of a CONSISTENT edit: drop the flag from the
+    argv and from `VITEST_COLLECTOR` together and the derivation stays green,
+    because the two still agree with each other. Only this test reds -- and an
+    argv that silently collects less than the suite is how the gate broke in
+    the first place.
     """
     assert "--staticParse=false" in _vitest_list_argv(Path("/tmp/x.json"))
 
 
 def test_argv_passes_the_static_parse_value_as_one_boolean_argument():
-    """The spelling is the repair; three near-misses silently undo it.
+    """The spelling is the repair, so the exact argument is pinned.
 
-    vitest 4 branches on `options.staticParse` being truthy and vitest 5 on it
-    being `!== false`, so a value that arrives as the STRING "false" selects
-    static parsing on both majors. `--staticParse false` as two arguments and a
-    bare `--staticParse` do the same, and `--no-staticParse` leans on a cac
-    negation nothing here has measured.
+    The value has to arrive as a real boolean: vitest 4's collector branches on
+    `options.staticParse` being truthy and vitest 5's on it being `!== false`,
+    so a value arriving as the STRING "false" selects static parsing on both
+    majors.
 
-    None of the four fails at runtime -- the listing is merely short, which is
-    the failure mode this file exists to make impossible -- and `--staticParse
-    false` would satisfy the membership check above only if written loosely, so
-    the exact argument is pinned here.
+    The three other spellings are pinned out as UNUSED rather than as
+    disproved. How `cac` resolves a bare `--staticParse`, a split
+    `--staticParse false` or `--no-staticParse` was never measured, and the
+    collector behind a blocking gate is the wrong place to find out -- a wrong
+    guess there does not fail, it just lists less than the suite.
     """
     argv = _vitest_list_argv(Path("/tmp/x.json"))
     assert argv.count("--staticParse=false") == 1
