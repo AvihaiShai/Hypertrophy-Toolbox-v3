@@ -276,9 +276,12 @@ def _vitest_list_argv(output_path: Path, npx: str = "npx") -> list[str]:
     245 listed cases collapse to 223 while all 245 still run -- parametrized
     cases drop out of the identity list this artifact exists to pin, and
     regenerating under the new default would commit that shrunken surface as if
-    it were the suite. Pinned, the listing is the executed suite on
-    both majors; measured a byte-identical no-op on vitest 4.1.11, whose default
-    was already false, which is what lets the pin precede the bump.
+    it were the suite. Pinned, the listing is the executed suite on both
+    majors; on vitest 4.1.11, whose default was already false, the pinned and
+    unpinned listings were measured to the same sorted 245 identities, which is
+    what lets the pin precede the bump. Not byte-identical, and deliberately not
+    claimed to be: listing ORDER is unstable run to run with or without the
+    flag, which is what `parse_vitest_listing()`'s sort is for.
 
     Spelled `=false` rather than `--no-staticParse` because the value has to
     reach vitest as a real boolean: vitest 4 branches on `options.staticParse`

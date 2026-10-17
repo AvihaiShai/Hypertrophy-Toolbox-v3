@@ -252,9 +252,9 @@ def test_argv_pins_runtime_collection_over_static_parsing():
     regenerating under the new default would commit the shrunken surface as if
     it were the suite, and every later `--check` would agree with it.
 
-    On vitest 4.1.11, whose default was already false, the flag is a measured
-    no-op; that is what lets this assertion precede the version bump it
-    unblocks.
+    On vitest 4.1.11, whose default was already false, the pinned and unpinned
+    listings were measured to the same sorted 245 identities; that is what lets
+    this assertion precede the version bump it unblocks.
     """
     assert "--staticParse=false" in _vitest_list_argv(Path("/tmp/x.json"))
 
