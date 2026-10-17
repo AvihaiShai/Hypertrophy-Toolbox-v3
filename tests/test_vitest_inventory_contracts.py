@@ -97,6 +97,19 @@ def _payload(*rows: tuple[str, str]) -> str:
     return json.dumps([{"file": _abs(path), "name": name} for path, name in rows])
 
 
+def _payload_v5(*rows: tuple[str, str]) -> str:
+    """The same listing as `_payload`, in the shape vitest 5 emits.
+
+    Measured against vitest 5.0.1: every element carries a third `location` key.
+    """
+    return json.dumps(
+        [
+            {"file": _abs(path), "name": name, "location": {"line": 12, "column": 3}}
+            for path, name in rows
+        ]
+    )
+
+
 # --- the whole-artifact contract --------------------------------------------
 #
 # Not Vitest-specific, and kept here on purpose: these two assertions are what
@@ -363,6 +376,72 @@ def test_parser_rejects_an_element_missing_a_key():
     payload = json.dumps([{"file": _abs("static/js/modules/__tests__/a.test.js")}])
     with pytest.raises(SystemExit) as excinfo:
         parse_vitest_listing(payload, FAKE_ROOT)
+    assert "expected exactly ['file', 'name']" in str(excinfo.value)
+
+
+def test_parser_accepts_the_vitest_5_location_key():
+    """vitest 5.0 adds `location` to every element; vitest 4 omits it.
+
+    The repair is bounded to that one key. Without it the generator exits on
+    `COLLECTION_FAILURE` before comparing anything, so the gate reds on every
+    vitest 5 branch with a message that is not drift.
+    """
+    counts, identities = parse_vitest_listing(
+        _payload_v5(
+            ("static/js/modules/__tests__/b.test.js", "suite > second"),
+            ("static/js/modules/__tests__/a.test.js", "suite > alpha"),
+        ),
+        FAKE_ROOT,
+    )
+    assert counts == {
+        "static/js/modules/__tests__/a.test.js": 1,
+        "static/js/modules/__tests__/b.test.js": 1,
+    }
+    assert identities == [
+        ("static/js/modules/__tests__/a.test.js", "suite > alpha"),
+        ("static/js/modules/__tests__/b.test.js", "suite > second"),
+    ]
+
+
+def test_parser_reads_the_two_vitest_versions_into_the_same_inventory():
+    """The committed artifact must not move when the toolchain crosses majors.
+
+    `location` is discarded rather than recorded, so the vitest 4 and vitest 5
+    listings of one unchanged tree produce byte-identical counts and identities.
+    A repair that stored the new field would red the drift gate on the bump it
+    was written to unblock.
+    """
+    rows = (
+        ("static/js/modules/__tests__/a.test.js", "suite > alpha"),
+        ("static/js/modules/__tests__/a.test.js", "suite > zulu"),
+        ("static/js/modules/__tests__/b.test.js", "suite > second"),
+    )
+    assert parse_vitest_listing(_payload(*rows), FAKE_ROOT) == parse_vitest_listing(
+        _payload_v5(*rows), FAKE_ROOT
+    )
+
+
+def test_parser_rejects_an_unknown_key_even_beside_the_accepted_one():
+    """The accepted key widens the check by exactly one name, not into a mode.
+
+    This is the mutation that tells a bounded exception apart from `>=`: if the
+    repair had been written as "at least file and name", or as a subtraction of
+    every unknown key, this payload would parse and commit a number derived from
+    a shape nobody has read.
+    """
+    payload = json.dumps(
+        [
+            {
+                "file": _abs("static/js/modules/__tests__/a.test.js"),
+                "name": "case",
+                "location": {"line": 12, "column": 3},
+                "status": "skipped",
+            }
+        ]
+    )
+    with pytest.raises(SystemExit) as excinfo:
+        parse_vitest_listing(payload, FAKE_ROOT)
+    assert COLLECTION_FAILURE in str(excinfo.value)
     assert "expected exactly ['file', 'name']" in str(excinfo.value)
 
 

@@ -255,6 +255,16 @@ VITEST_COLLECTOR = "vitest list --json=<path>"
 COLLECTION_FAILURE = "COLLECTION FAILURE - this is not drift; do not regenerate."
 
 
+# vitest 5.0 adds a `location` ({"line", "column"}) to every `vitest list
+# --json` element; vitest 4 omits it entirely. It is accepted BY NAME rather
+# than by relaxing the check to "at least these keys", because the strictness is
+# what stops an unread format change from being committed as a number: any other
+# new key still fails. The value is discarded -- the artifact pins (file, name)
+# identities only -- so it is deliberately not type-checked, and a vitest 4
+# payload stays valid, which is what lets this land before the vitest 5 bump.
+OPTIONAL_VITEST_KEYS = frozenset({"location"})
+
+
 def _vitest_list_argv(output_path: Path, npx: str = "npx") -> list[str]:
     """The argv for the listing run.
 
@@ -364,16 +374,16 @@ def parse_vitest_listing(
     counts: dict[str, int] = {}
     identities: list[tuple[str, str]] = []
     for entry in entries:
-        # Exactly these two keys, not "at least": a superset means the tool's
-        # output format changed, which is the one thing a lenient parser turns
-        # into a wrong committed number. The VALUES are type-checked too -- a
-        # non-string `name` would not fail until `identities.sort()`, and a
-        # non-string `file` raises TypeError out of Path(), neither of which
-        # carries the COLLECTION_FAILURE line the CI annotation needs
-        # contradicting.
+        # Exactly these two keys plus the optional ones, not "at least": an
+        # unexpected superset means the tool's output format changed, which is
+        # the one thing a lenient parser turns into a wrong committed number.
+        # The VALUES are type-checked too -- a non-string `name` would not fail
+        # until `identities.sort()`, and a non-string `file` raises TypeError
+        # out of Path(), neither of which carries the COLLECTION_FAILURE line
+        # the CI annotation needs contradicting.
         if (
             not isinstance(entry, dict)
-            or set(entry) != {"name", "file"}
+            or set(entry) - OPTIONAL_VITEST_KEYS != {"name", "file"}
             or not isinstance(entry["file"], str)
             or not isinstance(entry["name"], str)
         ):
@@ -381,6 +391,7 @@ def parse_vitest_listing(
             raise SystemExit(
                 f"{COLLECTION_FAILURE}\n"
                 f"vitest list element has {found}, expected exactly ['file', 'name'] "
+                f"plus at most {sorted(OPTIONAL_VITEST_KEYS)} "
                 "with string values. "
                 "The output format changed; fix the parser rather than committing a wrong number."
             )
