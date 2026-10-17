@@ -1101,6 +1101,11 @@ reported full run of both files is **1979 passed**. The reported verification us
 commit. The retained git/PR evidence distinguishes that base from candidate `c0b5a09`;
 it does not independently establish the exact tested tree or re-verify the local pass count.
 
+> **Source update, 2026-10-17.** PR #508 merged at `2026-10-17T19:27:47Z` as
+> `654e929d83d1564e2f6f79b5a3110cd05af307f4`. This establishes source publication;
+> it does not establish installation or owner acceptance. The remaining acceptance
+> conditions in §19.6 stay open, and `PREVENTION_COMPLETE` is not declared.
+
 ### 19.4 Preservation of owner state
 
 Nothing in the main checkout was read into, staged into, or altered by this work. The commit was
@@ -1152,7 +1157,34 @@ charter contract cannot reach them, because there is no charter file to carry th
 > `agent_id` actually arrives at the hook needs a temporary logging hook, which is owner
 > action. **It must not be written up as runtime-verified until that runs.**
 
+> **Superseded at source, 2026-10-17.** PR #510 merged at `2026-10-17T19:58:01Z`
+> as `b114d5500439767f9c445f304ea32978f77a1efb`, changing only
+> `.claude/hooks/guard-destructive-command.ps1` and
+> `tests/test_guard_destructive_command.py`. The merged guard parses its own
+> profile arguments inside the fail-closed path instead of relying on typed
+> parameter binding; scans additional nonblank string fields in `tool_input`
+> alongside declared command fields, excluding free-text `description`; and
+> tightens to the `agent` profile whenever `agent_id` is nonblank, regardless of
+> the registered profile. An absent or blank `agent_id` preserves the registered
+> profile; `agent_type` alone does not tighten it. These source changes supersede
+> the three findings above being left unfixed and the statement that the identity
+> fix is still being addressed on a stacked branch.
+>
+> The added identity tests use synthetic payloads. They exercise the guard's
+> identity branch but do not establish that a live subagent hook receives
+> `agent_id`. Its arrival remains schema-observed, not runtime-observed in this
+> record. #510 explicitly excluded deployment; its merge establishes source
+> publication, not installation of the new guard or owner acceptance. The
+> installed-source statement in §19.1 describes the earlier baseline. §19.6's
+> owner-only acceptance and monitoring obligations remain open, and
+> `PREVENTION_COMPLETE` is not declared.
+
 ### 19.6 `PREVENTION_COMPLETE` is NOT declared
+
+> **Scope clarification, 2026-10-17.** The original "installed" statement below
+> concerns the earlier Operation A baseline recorded in §19.1. It does not
+> establish installation of #510's later guard source; that remains unverified
+> by this record. The original owner-only remainder is retained below.
 
 Of its four conjuncts, "merged" and "installed" are satisfied; **"tested" and "lifecycle monitoring
 is active" remain owner-only** and are not claimed, waived or relabelled here. The owner-only
@@ -1171,8 +1203,8 @@ sync this checkout onto `origin/main`.
 
 One row per task, with the distinction the owner asked for: **completed** (ran and was verified),
 **retained** (deliberately kept), **waived** (consciously not done), **unresolved** (not
-finished, and not waived — which for prevention means shipped-but-unmerged plus an
-owner-only remainder, not untouched). The drive-root cleanup in §18 is **not** one of these four: it ran under a separate
+finished, and not waived — which for prevention means merged source plus an
+owner-only acceptance remainder, not untouched). The drive-root cleanup in §18 is **not** one of these four: it ran under a separate
 directive, on targets that were never in `git worktree list`, and is recorded alongside rather
 than inside this program.
 
@@ -1181,7 +1213,7 @@ than inside this program.
 | 1 | Worktree removal (§15) | **completed** | 91 of 91 removed, 0 retained; one residue, since cleared |
 | 2 | Branch cleanup (§16) | **completed** | 13 deleted, 127 retained; all remaining refs exact |
 | 3 | Residue cleanup (§17) | **completed** | target absent; 35 operations; no guard change needed |
-| 4 | Prevention (§19) | **unresolved** | implementation shipped as **PR #508** (open, not merged); `PREVENTION_COMPLETE` **not** declared |
+| 4 | Prevention (§19) | **unresolved** | source merged as **PR #508** (`654e929d`) and **PR #510** (`b114d550`); installation of the later guard and owner-only acceptance remain unestablished here; `PREVENTION_COMPLETE` **not** declared |
 
 **Retained, deliberately:** 127 local branches (125 whose exact tips are not ancestors of
 `origin/main`, plus `main` and the branch carrying this record); all 8 stashes; the 40
@@ -1196,14 +1228,17 @@ parked items stay parked.
 
 **Still open, named rather than closed:**
 
-- Prevention (§19). The repository change shipped as **PR #508**, which is **open and not
-  merged**. Two of `PREVENTION_COMPLETE`'s four conjuncts — "tested" and "lifecycle
-  monitoring is active" — are **owner-only** and are neither claimed nor waived. §19.5 also
-  records three residual guard/harness findings left unfixed, including that the four
-  harness-provided agent types have no charter file and so no `agent`-profile hook. That
-  one is **out of the charter contract's reach, there being no charter file** — but it is
-  **closable in the guard**, keyed on the `agent_id` field the installed CLI's hook schema
-  declares (§19.5). An earlier version of this bullet called it unclosable; that was wrong.
+- Prevention (§19). **PR #508** merged on `2026-10-17T19:27:47Z` as
+  `654e929d83d1564e2f6f79b5a3110cd05af307f4`; **PR #510** merged on
+  `2026-10-17T19:58:01Z` as `b114d5500439767f9c445f304ea32978f77a1efb`.
+  #510 ships source fixes for the three guard/harness findings retained in §19.5's
+  historical account, including identity-based profile tightening for agents with
+  no charter file. Installation of that later guard and live arrival of `agent_id`
+  are not established by these merges or by its synthetic payload tests. Two of
+  `PREVENTION_COMPLETE`'s four conjuncts — "tested" and "lifecycle monitoring is
+  active" — remain **owner-only** and are neither claimed nor waived. §19.5's
+  marked supersession records the source fixes and their evidence limits; §19.6's
+  remaining acceptance and monitoring obligations stay open.
 - The disposition of reviewer findings **M3, M4 and L1** (§15.5) — unknown, with no retained record.
 - Recheck-then-removal is still **not atomic** (§10, §15.6); inherent to a shared checkout.
 - The two divergent `docs/worktree_cleanup/PLANNING.md` lineages are still unreconciled, and the
