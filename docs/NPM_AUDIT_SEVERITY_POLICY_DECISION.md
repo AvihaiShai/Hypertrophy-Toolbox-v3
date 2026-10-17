@@ -93,6 +93,15 @@ that carries its evidence:
    **Confirmed by execution:** [`npm_audit_allowlist.json`](npm_audit_allowlist.json)
    shipped with `"allow": []`, and `tests/test_npm_audit_gate_contracts.py` pins that
    emptiness so an entry cannot appear without an owner decision.
+   **Superseded 2026-10-17 — the bucket is no longer empty, for the first time.** It
+   now holds exactly one entry: `braces` GHSA-vfj7-8cjw-p6xm, which has no patched
+   version in existence — the advisory range `<=3.0.3` covers every version ever
+   published. This is the unfixable advisory §7 predicted would "arrive with no
+   warning", and it arrived. Ruling: **§6.2**. The finding above remains true *as a
+   statement about the graph of 2026-08-15*; it is no longer true of the graph today.
+   The contract test's emptiness assertion became an exact-set assertion over the
+   owner-approved IDs, so the property it existed to protect — an entry cannot appear
+   without an owner decision — is carried forward rather than dropped.
 3. **Dependabot alerts are disabled on this repository**, which invalidates the stated
    premise in [`.github/dependabot.yml`](../.github/dependabot.yml) — *"a security
    advisory against any of these still reaches us as a security update"* — and the
@@ -342,6 +351,12 @@ without `--force`. Both are consistent with the table.
 |---|---|
 | **Actionable — in-range lockfile-only fix** | All 9 advisories / all 5 packages |
 | **Accepted toolchain debt — no fix, or fix blocked by a contract pin** | **Empty** |
+
+> **This bucket stopped being empty on 2026-10-17.** The table above is the 2026-08-15
+> snapshot and is left as measured. One advisory now sits in the accepted-debt bucket —
+> `braces` GHSA-vfj7-8cjw-p6xm, unfixable because no patched `braces` was ever
+> published. See **§6.2**. The sentence below ("the buckets are") describes the
+> 2026-08-15 graph, not today's.
 
 None of the five packages is pinned by a repository contract. The frozen pins are
 `stylelint` 16.11.0, `postcss-scss` 4.0.9 and `@playwright/test` 1.61.0 — all *direct*
@@ -632,6 +647,7 @@ gate enforcing an empty allowlist.
 | **M1** | #390 (`8baddd2`) | Merged — nine advisories cleared with in-range lockfile-only bumps; `warningCount` did not move |
 | **D-6** | *(a repository setting, no PR)* | Setting done — alerts on, automated fixes off (§2.4a). Its **prose** half landed with M2 + M3 |
 | **M2 + M3** | #405 (`f252f5f`) | Merged 2026-08-22 — allowlist, gate script, contract test, L1 + L2 — one PR, per the 2026-08-21 packaging ruling |
+| **E-1** | the braces-exception PR | **2026-10-17.** First entry in the accepted-debt allowlist, under the §6.2 ruling. Shipped with the in-range lockfile bumps that cleared the other three blocking advisories (`source-map-js`, `undici` ×2), so the gate returns to green rather than to "green except one" |
 | **M4** | the L3 PR | **Done 2026-08-22.** Authorized by the owner separately from D-1 – D-7, which cover M2 + M3 only. §5.2's precondition was met first: `JS Supply Chain (npm audit, non-required)` reported `success` as a real check-run on #405 and again on #395 (`444efe4`, run `32570331187`, job `97024789393` — `node scripts/npm_audit_gate.mjs` → `npm_audit_gate: PASSED.`) **before** the context was added to protection. Branch protection: **11 → 12** required contexts, one added, nothing else changed |
 
 ---
@@ -681,6 +697,38 @@ has since landed:
 Note that "the enforcement PR" is written **singular** here and in §8, while §5.2's
 sequencing table said *"one reviewable PR each"*. That contradiction was ruled on
 2026-08-21 in favour of the singular reading; §5.2 carries the note.
+
+### 6.2 Owner ruling, 2026-10-17 — the first accepted-debt entry
+
+§7 closed by predicting that "the first genuinely unfixable advisory will arrive with no
+warning". It arrived as **`braces` GHSA-vfj7-8cjw-p6xm** (high, stack-exhaustion DoS
+through deeply nested patterns), and the mechanism built under D-1 – D-5 is what it was
+built for.
+
+**Why no remediation was possible.** This is not "the fix is inconvenient"; there is no
+fix:
+
+| Question | Measurement, 2026-10-17 |
+|---|---|
+| Is there a patched `braces`? | **No.** The advisory range is `<=3.0.3` and `3.0.3` is the newest version ever published (`npm view braces versions`). There is nothing to upgrade to. |
+| Can the dependency be dropped? | **No**, and not by one upgrade either. It enters by two independent paths: `stylelint`→`micromatch` and `sass`→`@parcel/watcher`→`micromatch`. `micromatch@4.0.8` (latest) declares `braces: ^3.0.3`, and `stylelint@17.16.0` (latest) still declares `micromatch: ^4.0.8`. Upgrading either direct dependency to its newest release does not remove it. |
+| What does `npm audit` propose? | `{"name":"stylelint","version":"7.7.0","isSemVerMajor":true}` — a **nine-major downgrade** of a frozen measurement instrument (§3.1), which would break `npm run lint:css`. npm is reporting the oldest version without the vulnerable path, not a fix. |
+| Reachability | Dev-only. The graph has **one** production dependency and `braces` is not on any path to it. |
+
+**Ruling.** Allowlist it, with a deliberately short lease:
+
+| # | Ruling |
+|---|---|
+| **E-1** | `GHSA-vfj7-8cjw-p6xm` on `braces` is accepted as toolchain debt at severity **`high`**, owner `avihay1989`, `approvedOn` **2026-10-17**, `expiresOn` **2026-11-17**. |
+| **E-2** | The TTL is **31 days**, not the 90 D-3 permits. D-3 is a ceiling, not a default. A quarter-long lease on the *first* exception would set the precedent that an unfixable advisory is parked and forgotten; a month brings it back while the reasoning above is still current. |
+| **E-3** | Renewal is a **fresh owner decision**, not a date bump. Re-measure the two paths first: the exception lapses the moment `micromatch` drops `braces`, or `braces` publishes a patched line, and on that day the correct action is D-5 — delete the entry, do not renew it. |
+
+**What an expiry actually does.** On 2026-11-18 the `js-supply-chain` job reds, because
+an expired exception is stricter than no exception (§4.3). That is the intended
+behaviour and the reason E-2 is short. The pytest contract is deliberately *not* wired
+to the wall clock — it passes `--today` so it measures the entry's shape, not the date
+it happens to run on — so a lapsed waiver surfaces as the supply-chain gate going red
+with a named advisory, and not as an unrelated-looking test failure.
 
 ---
 

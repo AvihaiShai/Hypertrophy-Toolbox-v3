@@ -1,5 +1,15 @@
 {
   "schemaVersion": 1,
   "note": "Accepted exceptions to the js-supply-chain gate (scripts/npm_audit_gate.mjs). Policy, entry format and the rules behind every field: docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md sections 4 and 6.1. An empty list is written as \"allow\": [] and never as a missing file. Adding an entry requires an owner decision; every field is required, the id is a GHSA id, and expiresOn may be at most 90 days after approvedOn (D-3). An entry whose advisory has left the audit fails the gate and must be deleted (D-5).",
-  "allow": []
+  "allow": [
+    {
+      "id": "GHSA-vfj7-8cjw-p6xm",
+      "package": "braces",
+      "severity": "high",
+      "rationale": "No patched braces exists: the advisory range <=3.0.3 covers every version ever published, so there is nothing to upgrade to. Dev-only, and unreachable from the one production dependency. It enters by two paths that cannot be removed by upgrading -- stylelint->micromatch (micromatch ^4.0.8 is still a dependency of stylelint 17.16.0, the latest release) and sass->@parcel/watcher->micromatch. npm reports the only fix as stylelint@7.7.0, a nine-major downgrade of a frozen measurement instrument that would break npm run lint:css. Accepted for one review cycle; revisit when micromatch drops braces or braces publishes a patched line.",
+      "owner": "avihay1989",
+      "approvedOn": "2026-10-17",
+      "expiresOn": "2026-11-17"
+    }
+  ]
 }

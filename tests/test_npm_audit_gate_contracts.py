@@ -27,6 +27,7 @@ Python, following `tests/test_css_audit_digest_normalization_contracts.py`. The
 """
 from __future__ import annotations
 
+import datetime
 import json
 import re
 import shutil
@@ -505,19 +506,62 @@ def test_the_gate_greens_on(tmp_path, case):
 # --------------------------------------------------- the committed artifacts
 
 
-def test_the_committed_allowlist_is_an_empty_list_and_not_a_missing_file():
-    """R2's outcome, section 6.1: the enforcement PR lands the allowlist empty.
+# The accepted-debt bucket was empty from the enforcement PR (R2, section 6.1)
+# until the owner ruling of 2026-10-17 put exactly one advisory in it. Section
+# 6.2 records that ruling; `braces` is the first and only entry, and it is there
+# because no patched `braces` exists -- the advisory range `<=3.0.3` covers every
+# version ever published, so there is nothing to upgrade to.
+#
+# This set is pinned, rather than the list merely being parsed, because the
+# emptiness assertion it replaces was load-bearing: it was what stopped an
+# implementer from quietly widening the gate. A test that accepted any
+# well-formed list would hand that back. Adding a second entry must fail here and
+# be re-decided by the owner, exactly as adding the first one was.
+ACCEPTED_DEBT = {"GHSA-vfj7-8cjw-p6xm"}
 
-    `"allow": []` and a deleted file must never look alike, so the emptiness is
+
+def test_the_committed_allowlist_holds_exactly_the_owner_approved_exceptions():
+    """Section 6.2: one entry, `braces`, and nothing an implementer slipped in.
+
+    `"allow": []` and a deleted file must never look alike, so the list is
     asserted through a parsed document rather than through the file's absence.
     """
     doc = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
     assert doc["schemaVersion"] == 1
-    assert doc["allow"] == [], (
-        "The accepted-debt bucket was measured empty (section 3). An entry appearing here "
-        "needs an owner decision, not an implementer's judgement call."
-    )
     assert "NPM_AUDIT_SEVERITY_POLICY_DECISION.md" in doc["note"]
+
+    assert {entry["id"] for entry in doc["allow"]} == ACCEPTED_DEBT, (
+        "The accepted-debt bucket is the owner's, not the implementer's. An entry appearing "
+        "or disappearing here needs an owner decision and a section 6.2 amendment, not a "
+        "judgement call -- update ACCEPTED_DEBT in the same commit as the ruling."
+    )
+
+    # Every field the gate requires, checked here too. The gate would catch a
+    # malformed entry in CI, but only against a live audit that still reports the
+    # advisory; this reads the file on its own terms. The TTL ceiling is read out
+    # of the script rather than restated, so moving D-3 cannot leave this test
+    # quietly enforcing the old number.
+    max_ttl = int(_constant("MAX_TTL_DAYS"))
+    for entry in doc["allow"]:
+        assert set(entry) == {
+            "id",
+            "package",
+            "severity",
+            "rationale",
+            "owner",
+            "approvedOn",
+            "expiresOn",
+        }, f"{entry['id']} has fields the schemaVersion 1 reader does not implement"
+        approved = datetime.date.fromisoformat(entry["approvedOn"])
+        expires = datetime.date.fromisoformat(entry["expiresOn"])
+        assert expires > approved, f"{entry['id']} expires on or before its approval"
+        assert (expires - approved).days <= max_ttl, (
+            f"{entry['id']} has a {(expires - approved).days}-day TTL; D-3 caps it at "
+            f"{max_ttl}. Without a ceiling, 'expiry' is satisfied by the year 2099."
+        )
+        assert len(entry["rationale"].strip()) >= 40, (
+            f"{entry['id']} carries a rationale no reviewer can act on"
+        )
 
 
 @needs_node
@@ -528,10 +572,39 @@ def test_the_committed_allowlist_passes_the_real_gate_against_the_real_audit(tmp
     were malformed, not one of them would notice.
     """
     assert NODE is not None
+    doc = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
+
+    # The audit is built FROM the committed entries rather than fixed as a clean
+    # report. A clean report plus a non-empty allowlist is the D-5 stale case,
+    # which reds by design -- so pinning CLEAN_AUDIT here would have asserted the
+    # opposite of what this test is for, the moment the list stopped being empty.
+    vulnerabilities: dict = {}
+    counts = {"info": 0, "low": 0, "moderate": 0, "high": 0, "critical": 0, "total": 0}
+    for entry in doc["allow"]:
+        vulnerabilities.update(_package(entry["id"], entry["package"], entry["severity"]))
+        counts[entry["severity"]] += 1
+        counts["total"] += 1
+
     audit = tmp_path / "npm-audit.json"
-    audit.write_text(json.dumps(CLEAN_AUDIT), encoding="utf-8")
+    audit.write_text(json.dumps(_audit(vulnerabilities, counts)), encoding="utf-8")
+
+    # `--today` keeps this deterministic, per this file's opening rule that no
+    # test depends on when it runs. The live expiry deadline is enforced by the
+    # js-supply-chain job against the real audit, which is where a lapsed waiver
+    # has to bite; a date-sensitive assertion here would instead surface as a
+    # pytest failure nobody connects to an expired exception.
+    earliest = min((entry["approvedOn"] for entry in doc["allow"]), default=TODAY)
     result = subprocess.run(
-        [NODE, str(SCRIPT), "--audit", str(audit), "--allowlist", str(ALLOWLIST)],
+        [
+            NODE,
+            str(SCRIPT),
+            "--audit",
+            str(audit),
+            "--allowlist",
+            str(ALLOWLIST),
+            "--today",
+            earliest,
+        ],
         capture_output=True,
         text=True,
         cwd=ROOT,
