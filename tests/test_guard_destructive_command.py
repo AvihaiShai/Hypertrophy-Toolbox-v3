@@ -1208,3 +1208,117 @@ def test_retention_and_confirmation_aggregation_preserves_stricter_verdict(host,
         # The allowed dry run cannot soften the agent's git rm hard deny.
         chained = json.dumps({"permission_mode": mode, "tool_input": {"command": safe_dry_run + "; git rm retained"}})
         assert_agent_hard_deny(invoke(host, chained, profile), safe_dry_run + "; git rm retained", mode)
+
+
+# --- the invocation the agent charters actually register ----------------------
+#
+# `.claude/agents/automation-qa.md` and `.claude/agents/senior-developer.md`
+# register this guard with no `-GuardProfile` argument, relying on the param
+# default. Every helper above supplies the profile explicitly, so the one
+# invocation a subagent ever runs had no coverage and `Blocked by agent guard:`
+# had never been observed from it.
+def invoke_default_profile(host: str, command: str, mode: str | None) -> subprocess.CompletedProcess:
+    body: dict = {"tool_input": {"command": command}}
+    if mode is not None:
+        body["permission_mode"] = mode
+    return subprocess.run(
+        [host, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(GUARD)],
+        input=json.dumps(body),
+        capture_output=True,
+        text=True,
+    )
+
+
+DEFAULT_PROFILE_DENIALS = {
+    "git push origin HEAD": "subagents do not push",
+    "git merge origin/main": "subagents do not merge",
+    "git rm retained": "subagents do not run git rm",
+}
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+@pytest.mark.parametrize("command", DEFAULT_PROFILE_DENIALS)
+def test_omitted_profile_argument_is_the_agent_profile(host, mode, command):
+    proc = invoke_default_profile(host, command, mode)
+    where = context(command, "<omitted>", mode)
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+    assert proc.stderr.startswith("Blocked by agent guard:"), f"{where}: {proc.stderr}"
+    assert DEFAULT_PROFILE_DENIALS[command] in proc.stderr, f"{where}: {proc.stderr}"
+    # A crash also exits 2 with empty stdout, so the absence of the fail-closed
+    # wording is what proves this is a verdict rather than an error.
+    assert "failing closed" not in proc.stderr, f"{where}: {proc.stderr}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("mode", EVERY_MODE, ids=EVERY_MODE_IDS)
+def test_omitted_profile_argument_still_allows_read_only_work(host, mode):
+    # Without this control the test above would also pass against a guard that
+    # denied every command it was given.
+    proc = invoke_default_profile(host, "git status --short", mode)
+    where = context("git status --short", "<omitted>", mode)
+    assert proc.returncode == 0, f"{where}: {proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+
+
+# A profile name the guard does not know must not pick a policy by accident.
+# The empty string and a trailing space are the two spellings a hand-edited
+# registration actually produces; this is the fail-closed half of the pair whose
+# other half is test_profile_matching_is_case_insensitive_in_both_directions.
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("supervisor", "", "agent "), ids=["unknown", "empty", "trailing-space"])
+def test_an_unrecognised_profile_fails_closed(host, profile):
+    payload = json.dumps({"permission_mode": "default", "tool_input": {"command": "git status --short"}})
+    proc = invoke(host, payload, profile)
+    where = f"profile={profile!r}"
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert not proc.stdout, f"{where}: {proc.stdout}"
+    assert "Unknown guard profile" in proc.stderr, f"{where}: {proc.stderr}"
+
+
+# PowerShell's `-in` / `-eq` are case-insensitive, so `MAIN` resolves to the
+# PERMISSIVE profile. This is load-bearing, not trivia: it is why
+# tests/test_agent_workflow_contracts.py has to resolve a registration's profile
+# instead of comparing it to the literal string "-GuardProfile main", which a
+# charter spelled `-GuardProfile MAIN` or `-G main` would slip past.
+@pytest.mark.parametrize("host", HOSTS)
+def test_profile_matching_is_case_insensitive_in_both_directions(host):
+    push = json.dumps({"permission_mode": "default", "tool_input": {"command": "git push origin HEAD"}})
+    denied = invoke(host, push, "AGENT")
+    assert denied.returncode == 2, denied.stdout + denied.stderr
+    # The guard echoes the profile string it was given, so the message names the
+    # registration that produced the verdict.
+    assert denied.stderr.startswith("Blocked by AGENT guard:"), denied.stderr
+    assert invoke(host, push, "MAIN").returncode == 0, "MAIN must resolve to the main profile"
+
+
+# `script` is the field the PowerShell tool sends and the hook matcher is
+# `Bash|PowerShell`, so a second command field is a live route. Asserted only in
+# the combined shape: a payload carrying `script` alone is denied by the
+# unknown-schema fallback whether or not `script` is a declared field, so a
+# single-field row cannot fail if the declaration is removed.
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("profile", ("main", "agent"))
+def test_a_benign_command_field_cannot_shield_a_second_one(host, profile):
+    payload = json.dumps(
+        {
+            "permission_mode": "default",
+            "tool_input": {"command": "git status --short", "code": "git branch -D wt/foo"},
+        }
+    )
+    proc = invoke(host, payload, profile)
+    where = f"profile={profile}"
+    assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
+    assert "git branch delete retires a ref" in proc.stderr, f"{where}: {proc.stderr}"
+    assert "failing closed" not in proc.stderr, f"{where}: {proc.stderr}"
+    # `description` is free text alongside a real command field. On its own it
+    # leaves no command field at all, which MALFORMED pins as a fail-closed
+    # deny -- a different contract, not the same one.
+    benign = json.dumps(
+        {
+            "permission_mode": "default",
+            "tool_input": {"command": "git status --short", "description": "git branch -D wt/foo"},
+        }
+    )
+    assert invoke(host, benign, profile).returncode == 0, where

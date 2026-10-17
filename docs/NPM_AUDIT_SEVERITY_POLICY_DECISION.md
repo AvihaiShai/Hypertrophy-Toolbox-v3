@@ -718,13 +718,15 @@ behind it.
 and so does `test_the_committed_allowlist_passes_the_real_gate_against_the_real_audit`,
 which passes no `--today`.
 
-### 6.3 Braces renewal proposal for issue #513
+### 6.3 Owner renewal ruling for braces, 2026-10-17
 
-**Status: proposed; owner approval pending.** The approved lease in §6.2 still
-expires on **2026-10-31**. [Issue #513](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/513)
-requests a decision by **2026-10-28**; **2026-10-30** is the last passing day.
+The repository owner approved a renewal through **2026-11-14** in response to
+issue [#513](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/513).
+This supersedes §6.2's expiry and its E-3 statement that no renewal has been
+approved; §6.2 remains the record of the initial 14-day approval.
 
-**Evidence measured 2026-10-17 at 19:28 UTC**, against #516's `8131ba7` lockfile:
+**Evidence re-measured 2026-10-17 at 19:39 UTC**, against merged #516 at
+`3da2b70`:
 
 | Path into `braces 3.0.3` | Committed resolution |
 |---|---|
@@ -733,35 +735,31 @@ requests a decision by **2026-10-28**; **2026-10-30** is the last passing day.
 | `stylelint → globby → fast-glob → micromatch` | `16.11.0 → 11.1.0 → 3.3.3 → 4.0.8` |
 | `sass → @parcel/watcher` (optional) `→ micromatch` | `1.103.1 → 2.5.1 → 4.0.8` |
 
-All four paths remain in the committed graph. An actual `npm audit --package-lock-only`
-reports one distinct advisory at or above the `high` floor: `GHSA-vfj7-8cjw-p6xm`.
-The six high package entries are propagation of that advisory, not six advisories.
-Two other advisories are moderate and remain below the floor.
+An actual `npm audit --package-lock-only` still consumes one distinct high
+advisory, `GHSA-vfj7-8cjw-p6xm`, propagated across six package entries. Two
+other advisories are moderate, below D-1's floor. The
+[GitHub advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) remains
+`high`, unwithdrawn, affected through `3.0.3`, with no patched version.
+Registry latest remains `braces 3.0.3`, `micromatch 4.0.8` and
+`stylelint 17.16.0`, distinct from the committed versions above.
 
-The [GitHub advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) remains
-`high`, is not withdrawn, covers `<=3.0.3`, and has no patched version. Registry
-latest remains `braces 3.0.3`, `micromatch 4.0.8` and `stylelint 17.16.0`.
-Those are registry versions, distinct from the committed versions above.
-`micromatch 4.0.8` still requires `braces ^3.0.3`; `stylelint 17.16.0` still
-declares `micromatch`, `fast-glob` and `globby`. Watcher `2.6.0` replaces its
-`micromatch` dependency with `picomatch ^4.0.4`, so path 4 can be retired separately.
-That partial migration leaves the three committed stylelint paths unresolved.
+**Blocker.** The three stylelint paths remain: latest stylelint still declares
+`micromatch`, `fast-glob` and `globby`, and latest micromatch still requires
+`braces ^3.0.3`. Watcher `2.6.0` replaces its micromatch dependency with
+`picomatch ^4.0.4`, so the Sass path can be retired separately. That partial
+migration does not retire the exception. Every committed path is development
+tooling; D-2 still covers the whole graph.
 
-**Proposed decision.** Retain the same advisory, severity and owner
-(`avihay1989@gmail.com`) and extend `expiresOn` to **2026-11-14**. Record
-`approvedOn` as the actual signing date. If signed on 2026-10-17, this is a 28-day
-lease and extends the existing deadline by 14 days; it is within D-3's 90-day cap.
-An approval on a later day must still precede expiry and satisfy that cap.
-On approval, record the ruling and update the allowlist dates and rationale
-together, using fresh measurements of the then-current lockfile and advisory.
-This proposal leaves the active dates unchanged.
+| # | Ruling |
+|---|---|
+| **E-4** | Renew `GHSA-vfj7-8cjw-p6xm` on `braces`, severity `high`, owner `avihay1989@gmail.com`, `approvedOn` **2026-10-17**, `expiresOn` **2026-11-14**. |
+| **E-5** | This is a **28-day lease** from the actual signing date, extending the original deadline by 14 days, within D-3's 90-day cap. It is a fresh owner decision; no subsequent renewal is approved. |
+| **E-6** | Delete the entry under D-5 when a validated updated lockfile and actual audit show this advisory no longer requires an exception. A patched braces, removal of every path, withdrawal, or a severity reduction below the floor triggers re-measurement. An upstream release alone does not change the committed graph. Confirm the real gate passes after deletion. |
 
-**Exit condition.** Delete the entry under D-5 when a validated updated lockfile
-and actual audit show this advisory no longer requires an exception. A patched
-`braces`, removal of every path, withdrawal, or a severity reduction below the
-floor is a reason to re-measure; an upstream release alone does not change the
-committed graph. Confirm the real gate passes after deletion. Otherwise obtain
-a fresh owner decision before the proposed deadline; there is no automatic renewal.
+**Expiry.** With `expiresOn <= now` evaluated against the UTC date,
+**2026-11-13** is the last passing day. From **2026-11-14**, both the
+`js-supply-chain` job and the committed-allowlist end-to-end contract fail.
+A further renewal needs fresh evidence and another owner decision.
 
 ---
 
