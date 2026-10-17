@@ -1108,9 +1108,28 @@ this scope: an **unknown** command-bearing field is not scanned when a declared 
 the harness-provided agent types (`general-purpose`, `claude`, `Explore`, `Plan`) have no charter
 file and therefore no `agent`-profile hook, running under the settings-level `main` registration
 only. Worktree prevention still holds for them because the retention hold is profile- and
-mode-invariant, but "agent-profile coverage" is not a claim that can be made for them, and no test
-in this repository can close it. The hook payload carries **no agent identity field**, so
-`session_id` cannot distinguish a subagent from its parent.
+mode-invariant, but "agent-profile coverage" is not a claim that can be made for them. The
+charter contract cannot reach them, because there is no charter file to carry the hook.
+`session_id` does not distinguish a subagent from its parent either.
+
+> **Corrected 2026-10-17.** An earlier version of this paragraph went further and said the
+> hook payload carries **no agent identity field at all**, and that no test in this
+> repository could close the gap. Both are wrong. The installed CLI (2.1.296) embeds a
+> hook-input schema declaring **`agent_id`**, documented as "Present only when the hook
+> fires from within a subagent... Absent for the main thread, even in `--agent` sessions.
+> Use this field (not `agent_type`) to distinguish subagent calls from main-thread calls."
+> `agent_type` is explicitly *not* usable for the distinction, since the same schema has it
+> present on the main thread of an `--agent` session too. The guard reads only
+> `permission_mode` and `tool_input`; it simply never read `agent_id`. The gap is therefore
+> **closable in this repository and is not an external dependency**, and it is being
+> addressed on a branch stacked on PR #508.
+>
+> **The limit this correction does not exceed:** the field is **schema-observed, not
+> runtime-observed**. No live subagent payload exists on disk — the
+> `artifacts/guard-auto-repro-20261009/payload-*.json` files are hand-authored probe inputs,
+> so their lack of agent fields is evidence of nothing either way. Confirming that
+> `agent_id` actually arrives at the hook needs a temporary logging hook, which is owner
+> action. **It must not be written up as runtime-verified until that runs.**
 
 ### 19.6 `PREVENTION_COMPLETE` is NOT declared
 
@@ -1163,8 +1182,10 @@ parked items stay parked.
   merged**. Two of `PREVENTION_COMPLETE`'s four conjuncts — "tested" and "lifecycle
   monitoring is active" — are **owner-only** and are neither claimed nor waived. §19.5 also
   records three residual guard/harness findings left unfixed, including that the four
-  harness-provided agent types have no charter file and so no `agent`-profile hook, which
-  **no test in this repository can close**.
+  harness-provided agent types have no charter file and so no `agent`-profile hook. That
+  one is **out of the charter contract's reach, there being no charter file** — but it is
+  **closable in the guard**, keyed on the `agent_id` field the installed CLI's hook schema
+  declares (§19.5). An earlier version of this bullet called it unclosable; that was wrong.
 - The disposition of reviewer findings **M3, M4 and L1** (§15.5) — unknown, with no retained record.
 - Recheck-then-removal is still **not atomic** (§10, §15.6); inherent to a shared checkout.
 - The two divergent `docs/worktree_cleanup/PLANNING.md` lineages are still unreconciled, and the
