@@ -10,10 +10,9 @@ Keep active docs focused on current project truth. Archive completed plans when 
 > suite ([`../product/README.md`](../product/README.md)) describes the shipped application rather
 > than a piece of work in flight, so it never becomes archivable when a feature closes.
 >
-> Do not run the Archive Criteria against it. Two of them will always appear satisfied for the
-> wrong reason: the suite deliberately carries no status, so no handover follow-up will ever point
-> at it (criterion 3), and a correct document needs no edits, so it can sit untouched for years
-> (criterion 2). Neither is evidence of staleness here. Do not nominate it as an orphan candidate.
+> Do not run the Archive Criteria against it. The suite describes shipped behavior, not a closed
+> workstream record. It deliberately carries no status, so the absence of a handover follow-up
+> (criterion 3) is not evidence of staleness. Do not nominate it as an orphan candidate.
 >
 > No file inside it may be named `PLANNING.md` or `EXECUTION_LOG.md`; those names belong to the
 > Active workstream class below and to the `/status` sweep, and would contradict this
@@ -33,15 +32,17 @@ Keep active docs focused on current project truth. Archive completed plans when 
 Archive a document only when all of these are true:
 
 1. The feature, audit, or migration shipped or was explicitly abandoned.
-2. The document has had no meaningful edits for at least 6 months.
+2. The record is closed or shipped, a current replacement source exists and is named, and every inbound reference will be repaired in the same change.
 3. No open follow-up in `docs/MASTER_HANDOVER.md` points at it.
 4. The active docs index or feature folder has a better current source of truth.
 
 ## Recorded dispositions — orphan candidates (assessed 2026-08-04 at `db1bc5d`)
 
-These were nominated as orphans by the v21/v22 audits. Each is assessed here rather
-than moved: **every one fails archive criterion 2** (no meaningful edits for 6 months),
-so none is archivable yet. Re-assess after the stated date.
+These were nominated as orphans by the v21/v22 audits. At that assessment, all failed
+the former six-month criterion 2. The three date-held candidates below are now eligible
+under the revised rule, subject to the remaining archive criteria and same-change reference
+repairs. The old hold dates are retained as history; they no longer control eligibility.
+Reference counts and source locations must be checked against the actual proposed diff.
 
 Search for the **shorthand** form too. `MASTER_HANDOVER.md` cites this family as
 `` `_B`/`_C`/`_D`/`_E`/`_F`/`_G` `` after naming one file in full, so a grep for whole
@@ -55,10 +56,10 @@ filenames alone reports a false zero.
 | `CSS_PHASE4_WP4_3I_E_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
 | `CSS_PHASE4_WP4_3I_F_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
 | `CSS_PHASE4_WP4_3I_G_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
-| `CSS_PHASE4_WP4_3I_H_EVIDENCE.md` | 0 | 2026-07-25 | **Archive candidate — hold until 2027-01-25** (fails criterion 2 today) |
-| `WP3_5_FETCH_INVENTORY.md` | 0 | 2026-07-12 | **Archive candidate — hold until 2027-01-12** |
+| `CSS_PHASE4_WP4_3I_H_EVIDENCE.md` | 0 | 2026-07-25 | **Eligible under the revised rule**, subject to the criteria above; current source: `CSS_OWNERSHIP_MAP.md`. Former hold: 2027-01-25. |
+| `WP3_5_FETCH_INVENTORY.md` | 0 | 2026-07-12 | **Eligible under the revised rule**, subject to the criteria above; current sources: `static/js/modules/fetch-wrapper.js` and the `REFACTOR_PLAN.md` closeout. Former hold: 2027-01-12. |
 | `archive/CLEANUP_V2_DEAD_CODE_AUDIT.md` | 1 | 2026-06-12 | **Already in `archive/`.** No further action |
-| `user_profile/DUMBBELL_LOAD_BASIS_FIX.md` | 0 genuine | 2026-06-04 | **Archive candidate — hold until 2026-12-04.** Its only hit is the orphan-candidate list itself, which is not an index link |
+| `user_profile/DUMBBELL_LOAD_BASIS_FIX.md` | 0 genuine | 2026-06-04 | **Eligible under the revised rule**, subject to the criteria above; current sources: `user_profile/DESIGN.md` for the per-hand convention and `utils/_profile_estimator/core_math.py::_load_basis_factor` for cross-basis conversion. Former hold: 2026-12-04. Its only recorded hit was this candidate list, not an index link. |
 
 > **Two corrections to the v22 candidate list.**
 >
@@ -84,7 +85,8 @@ filenames alone reports a false zero.
 2. Move the stale document there with its filename preserved unless the old name is misleading.
 3. Grep the **whole repo** for the filename, not just docs — `*.py`/`*.ts`/`*.json`/`.github/workflows/*.yml` can hardcode a doc path (e.g. a test asserting an audit doc exists, or a CI step reading a baseline file). A doc-only link sweep misses these and the move reds CI. Fix every code/workflow reference, or keep the file in place if a build/test depends on its path.
 4. Update links in `docs/README.md`, `docs/ai_workflow/INDEX.md`, and any affected feature docs.
-5. Add a short changelog or handover note if the archived document was previously part of an active workstream.
+5. Check relative links inside each moved document, heading anchors, and every CSS or workflow contract that names its path. Validate these and the inbound-reference repairs against the actual diff, including unchanged prose that points at moved or removed sections.
+6. Add a short changelog or handover note if the archived document was previously part of an active workstream.
 
 ## Keep Active Procedure
 
