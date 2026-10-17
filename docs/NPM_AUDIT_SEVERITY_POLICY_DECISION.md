@@ -718,6 +718,49 @@ behind it.
 and so does `test_the_committed_allowlist_passes_the_real_gate_against_the_real_audit`,
 which passes no `--today`.
 
+### 6.3 Owner renewal ruling for braces, 2026-10-17
+
+The repository owner approved a renewal through **2026-11-14** in response to
+issue [#513](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/513).
+This supersedes §6.2's expiry and its E-3 statement that no renewal has been
+approved; §6.2 remains the record of the initial 14-day approval.
+
+**Evidence re-measured 2026-10-17 at 19:39 UTC**, against merged #516 at
+`3da2b70`:
+
+| Path into `braces 3.0.3` | Committed resolution |
+|---|---|
+| `stylelint → micromatch` | `16.11.0 → 4.0.8` |
+| `stylelint → fast-glob → micromatch` | `16.11.0 → 3.3.3 → 4.0.8` |
+| `stylelint → globby → fast-glob → micromatch` | `16.11.0 → 11.1.0 → 3.3.3 → 4.0.8` |
+| `sass → @parcel/watcher` (optional) `→ micromatch` | `1.103.1 → 2.5.1 → 4.0.8` |
+
+An actual `npm audit --package-lock-only` still consumes one distinct high
+advisory, `GHSA-vfj7-8cjw-p6xm`, propagated across six package entries. Two
+other advisories are moderate, below D-1's floor. The
+[GitHub advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) remains
+`high`, unwithdrawn, affected through `3.0.3`, with no patched version.
+Registry latest remains `braces 3.0.3`, `micromatch 4.0.8` and
+`stylelint 17.16.0`, distinct from the committed versions above.
+
+**Blocker.** The three stylelint paths remain: latest stylelint still declares
+`micromatch`, `fast-glob` and `globby`, and latest micromatch still requires
+`braces ^3.0.3`. Watcher `2.6.0` replaces its micromatch dependency with
+`picomatch ^4.0.4`, so the Sass path can be retired separately. That partial
+migration does not retire the exception. Every committed path is development
+tooling; D-2 still covers the whole graph.
+
+| # | Ruling |
+|---|---|
+| **E-4** | Renew `GHSA-vfj7-8cjw-p6xm` on `braces`, severity `high`, owner `avihay1989@gmail.com`, `approvedOn` **2026-10-17**, `expiresOn` **2026-11-14**. |
+| **E-5** | This is a **28-day lease** from the actual signing date, extending the original deadline by 14 days, within D-3's 90-day cap. It is a fresh owner decision; no subsequent renewal is approved. |
+| **E-6** | Delete the entry under D-5 when a validated updated lockfile and actual audit show this advisory no longer requires an exception. A patched braces, removal of every path, withdrawal, or a severity reduction below the floor triggers re-measurement. An upstream release alone does not change the committed graph. Confirm the real gate passes after deletion. |
+
+**Expiry.** With `expiresOn <= now` evaluated against the UTC date,
+**2026-11-13** is the last passing day. From **2026-11-14**, both the
+`js-supply-chain` job and the committed-allowlist end-to-end contract fail.
+A further renewal needs fresh evidence and another owner decision.
+
 ---
 
 ## 7. Recommendation
