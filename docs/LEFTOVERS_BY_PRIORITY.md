@@ -453,7 +453,7 @@ starting one.**
   discharging R-3; design record in
   [`release_pipeline/PLANNING.md`](release_pipeline/PLANNING.md), owner decisions
   in [`DECISIONS.md`](DECISIONS.md) ADR-007. **Phases 3 and 5 remain proposals.**
-- ~~**Product documentation suite** in [`PRODUCT_DOCS_PLAN.md`](PRODUCT_DOCS_PLAN.md)~~
+- ~~**Product documentation suite** in [`PRODUCT_DOCS_PLAN.md`](archive/2026/product-docs/PRODUCT_DOCS_PLAN.md)~~
   — **EXECUTED.** Gate 0 answered, council run, Plan v2 recorded in §8; the
   owner-selected subset shipped as [`docs/product/**`](product/README.md).
   PRD and TECH_DESIGN were deliberately not built (§8.5). Not a leftover.

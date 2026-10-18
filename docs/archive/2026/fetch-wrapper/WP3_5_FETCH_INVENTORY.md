@@ -1,3 +1,5 @@
+> **Archived 2026-10-18; current sources: [`static/js/modules/fetch-wrapper.js`](../../../../static/js/modules/fetch-wrapper.js) and the [`REFACTOR_PLAN.md`](../../../REFACTOR_PLAN.md#wp35-json-api-transport-consolidation) WP3.5 closeout.**
+> Moved from `docs/WP3_5_FETCH_INVENTORY.md`; content unchanged.
 # WP3.5 raw-fetch inventory
 
 This is the repository-wide before/after inventory for WP3.5. It covers tracked

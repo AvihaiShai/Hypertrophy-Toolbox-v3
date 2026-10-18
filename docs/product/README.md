@@ -232,4 +232,4 @@ workstream and must not be archived when one closes. No file in this directory m
 class and by the `/status` sweep, and would contradict this classification.
 
 The plan and council review that produced this suite are recorded in
-[`../PRODUCT_DOCS_PLAN.md`](../PRODUCT_DOCS_PLAN.md) §8.
+[`../PRODUCT_DOCS_PLAN.md`](../archive/2026/product-docs/PRODUCT_DOCS_PLAN.md) §8.
