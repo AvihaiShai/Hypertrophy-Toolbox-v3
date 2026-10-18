@@ -7,7 +7,7 @@
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
 | Planning size | Large (new workflows, new jobs, repo-settings changes) — per `docs/ai_workflow/QUALITY_GATE.md` plan-stage routing: Gate 0 → council (`/council-plan`) → Gate 1 → implementation |
-| Branch / PR | `ci/b1-action-pins`; PR pending |
+| Branch / PR | `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), ready / open |
 
 ### Review log
 
@@ -397,7 +397,7 @@ B1 is claimed by Codex `/root`, 2026-10-19; all other packets remain unclaimed a
 | A3 | Claude | blocked | | | | Core Gate 1; after A1; four-leg fan-in proof |
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
 | A5 | either | deferred | | | | CI-D5; no docs filtering in core |
-| B1 | Codex `/root`, 2026-10-19 | implemented; local gates complete; ready to push | `ci/b1-action-pins`; PR pending | implementation `1dfe011b1533f1339660b72a60249b390b296104` | Full run `b1-local-full-pytest-attempt-2` + resolved Bash contract rerun; independent review complete, no findings; §13 | B1 only; merge pending separate owner instruction; C3/settings remain unauthorized |
+| B1 | Codex `/root`, 2026-10-19 | implemented; local gates complete; ready PR, not merged | `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521) | implementation `1dfe011b1533f1339660b72a60249b390b296104` | Full run `b1-local-full-pytest-attempt-2` + resolved Bash contract rerun; independent review complete, no findings; §13 | B1 only; merge pending separate owner instruction; C3/settings remain unauthorized |
 | B2 | Astra | blocked | | | | after B1 |
 | B3 | Astra | blocked | | | | after B2 |
 | B4 | Claude | blocked | | | | After A1 free slot; non-blocking measurement; never delays B1 |
@@ -1052,8 +1052,20 @@ JUnit/logs, `pytest-full-result.json`, `validation-summary.json`,
 
 ### 13.2 Publication boundary
 
-Local gates are complete using the exact evidence above. Push and ready PR are
-owner-authorized; PR/run IDs will be recorded after GitHub assigns them. GitHub CI
-is separate runtime evidence and is not represented as passed before completion.
+Local gates are complete using the exact evidence above. Pushed
+`ci/b1-action-pins` and opened ready PR
+[#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521),
+verified `OPEN` / `isDraft: false`. Initial published head:
+`c63b403152897dd06edfb8df5642544b2298fa3e`, whose workflow/test tree is identical
+to reviewed/tested implementation `1dfe011b1533f1339660b72a60249b390b296104`.
+
+GitHub assigned initial PR CI run
+[`39171727770`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39171727770),
+event `pull_request`, on `c63b403152897dd06edfb8df5642544b2298fa3e`; its jobs
+started `2026-10-18T22:19:39Z` onward. This is an **in-progress snapshot, not a
+passing runtime result**. This publication-receipt-only commit supersedes that
+carrier through the existing PR concurrency policy. The PR description links the
+current-head CI run after GitHub assigns it; no incomplete/cancelled run is
+credited as validation. GitHub CI remains separate runtime evidence.
 The branch stops before merge. No other packet, promotion, setting, credential,
 spend, delivery or release action was executed.
