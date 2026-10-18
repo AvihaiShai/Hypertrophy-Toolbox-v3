@@ -1,3 +1,5 @@
+> **Archived 2026-10-18; current source: [`docs/product/`](../../../product/README.md).**
+> Moved from `docs/PRODUCT_DOCS_PLAN.md`; text unchanged apart from two relative links re-pointed to resolve from here.
 # Product Documentation Suite — Plan
 
 **Status:** EXECUTED — the owner-selected subset (D0, D2, D4, D5, D6) shipped as `docs/product/**`. §1–§7 are the original proposal and the Sol5.6 review, kept as the audit trail; **§8 is the executed plan** (Gate 0 answers, Plan v1, council findings, response matrix, Plan v2, acceptance). D1 (PRD) and D3 (TECH_DESIGN) were deliberately **not built** — see §8.5.
@@ -233,12 +235,12 @@ way only a full run reveals.
 
 ### 8.3 Council review
 
-Run per [`.claude/commands/council-plan.md`](../.claude/commands/council-plan.md) — three
+Run per [`.claude/commands/council-plan.md`](../../../../.claude/commands/council-plan.md) — three
 reviewers in parallel against Plan v1 above.
 
 Three reviewers ran in parallel against Plan v1. All three returned **Needs revision**.
 
-> **Deviation from [`PLAN_REVIEW_TEMPLATE.md`](ai_workflow/PLAN_REVIEW_TEMPLATE.md), recorded rather than hidden.** The
+> **Deviation from [`PLAN_REVIEW_TEMPLATE.md`](../../../ai_workflow/PLAN_REVIEW_TEMPLATE.md), recorded rather than hidden.** The
 > template says to paste each reviewer's output verbatim. Their combined output is roughly
 > four times the length of this whole plan document, and pasting it would make the plan
 > unreadable for the thing it is actually for. Every finding below is reproduced with its

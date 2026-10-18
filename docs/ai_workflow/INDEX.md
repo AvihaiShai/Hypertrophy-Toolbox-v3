@@ -36,7 +36,7 @@
 - [Body Composition Issue #21](../archive/body_composition/development_issues.md) — Resolved 2026-05-23; PR #31 (`20b4b24`) + PR #32 (`94482d7`) + Profile hooks (`de3e4d0`)
 - [Theme-dark P3](../css_theme_dark_p3/PLANNING.md) — both gates were signed, `P3-a0` shipped as #280 (`cd93480`), and the owner terminated the arc at a0. No later P3 packet is authorized
 - [app.py review](../APP_PY_REVIEW_PLAN.md) — P1–P5 all merged 2026-08-01, including packaged-smoke permanence and #266's post-merge hardening. Completion history; do not reopen
-- [Product documentation suite](../PRODUCT_DOCS_PLAN.md) — **executed**; the owner-selected subset shipped as [`docs/product/**`](../product/README.md) (App Flow, Backend Schema, Design Brief, plus the suite README). PRD and TECH_DESIGN were deliberately not built — see §8.5. Completion history; do not reopen
+- [Product documentation suite](../archive/2026/product-docs/PRODUCT_DOCS_PLAN.md) — **executed**; the owner-selected subset shipped as [`docs/product/**`](../product/README.md) (App Flow, Backend Schema, Design Brief, plus the suite README). PRD and TECH_DESIGN were deliberately not built — see §8.5. Completion history; do not reopen
 
 ## History & decisions
 - [CHANGELOG](../CHANGELOG.md)

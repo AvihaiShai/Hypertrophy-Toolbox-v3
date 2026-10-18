@@ -57,7 +57,7 @@ filenames alone reports a false zero.
 | `CSS_PHASE4_WP4_3I_F_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
 | `CSS_PHASE4_WP4_3I_G_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
 | `CSS_PHASE4_WP4_3I_H_EVIDENCE.md` | 0 | 2026-07-25 | **Eligible under the revised rule**, subject to the criteria above; current source: `CSS_OWNERSHIP_MAP.md`. Former hold: 2027-01-25. |
-| `WP3_5_FETCH_INVENTORY.md` | 0 | 2026-07-12 | **Eligible under the revised rule**, subject to the criteria above; current sources: `static/js/modules/fetch-wrapper.js` and the `REFACTOR_PLAN.md` closeout. Former hold: 2027-01-12. |
+| `archive/2026/fetch-wrapper/WP3_5_FETCH_INVENTORY.md` | 0 | 2026-07-12 | **Eligible under the revised rule**, subject to the criteria above; current sources: `static/js/modules/fetch-wrapper.js` and the `REFACTOR_PLAN.md` closeout. Former hold: 2027-01-12. |
 | `archive/CLEANUP_V2_DEAD_CODE_AUDIT.md` | 1 | 2026-06-12 | **Already in `archive/`.** No further action |
 | `user_profile/DUMBBELL_LOAD_BASIS_FIX.md` | 0 genuine | 2026-06-04 | **Eligible under the revised rule**, subject to the criteria above; current sources: `user_profile/DESIGN.md` for the per-hand convention and `utils/_profile_estimator/core_math.py::_load_basis_factor` for cross-basis conversion. Former hold: 2026-12-04. Its only recorded hit was this candidate list, not an index link. |
 
