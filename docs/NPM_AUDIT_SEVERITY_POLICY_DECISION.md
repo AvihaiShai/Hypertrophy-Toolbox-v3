@@ -761,6 +761,21 @@ tooling; D-2 still covers the whole graph.
 `js-supply-chain` job and the committed-allowlist end-to-end contract fail.
 A further renewal needs fresh evidence and another owner decision.
 
+### 6.4 Braces remediation and exception retirement, 2026-10-18
+
+Under E-6, the remediation for issue #513 replaces all four paths' common
+`braces` dependency with the exact patched alias `npm:@zklogic/braces@3.0.7`
+and deletes the exception in the same commit. Stylelint remains at `16.11.0`;
+the separately proposed watcher bump remains skipped. The actual full-graph
+audit has zero high or critical findings, and the real gate passes with an
+empty allowlist, including on the former expiry date, `2026-11-14`.
+
+The [remediation evidence](BRACES_REMEDIATION.md) records the reviewed source,
+artifact integrity and provenance, positive-control depth-exhaustion probes,
+unchanged lint reports and the recent fork's maintenance risk. This retires
+the lease; it is not a further renewal or a change to D-1 through D-5.
+Sections 6.2 and 6.3 remain the historical approval record.
+
 ---
 
 ## 7. Recommendation

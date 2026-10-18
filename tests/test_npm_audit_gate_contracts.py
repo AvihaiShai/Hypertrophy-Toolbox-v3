@@ -506,22 +506,13 @@ def test_the_gate_greens_on(tmp_path, case):
 # --------------------------------------------------- the committed artifacts
 
 
-# Every id here is an owner decision on the record, not an implementer's
-# judgement call -- which is what the emptiness assertion this replaced was
-# protecting. Pinning the exact set keeps that protection: a second entry fails
-# this test even though it would satisfy the gate.
-OWNER_APPROVED_ALLOWLIST_IDS = {
-    # braces, approved 2026-10-17, expires 2026-10-31. No upstream fix exists at
-    # any release -- 3.0.3 is both the latest published version and the top of
-    # the vulnerable range. Four paths reach it, and one of them (sass ->
-    # @parcel/watcher -> micromatch) does not involve stylelint, so no single
-    # parent upgrade retires it. See the rationale in the allowlist itself.
-    "GHSA-vfj7-8cjw-p6xm",
-}
+# New exceptions require an owner decision. The braces remediation retires the
+# last exception under D-5 and section 6.3 E-6; see docs/BRACES_REMEDIATION.md.
+OWNER_APPROVED_ALLOWLIST_IDS: set[str] = set()
 
 
 def test_the_committed_allowlist_holds_exactly_the_owner_approved_entries():
-    """R2's outcome, section 6.1, as amended by the 2026-10-16 owner decision.
+    """R2's empty allowlist, restored under section 6.3 E-6 after remediation.
 
     `"allow": []` and a deleted file must never look alike, so the contents are
     asserted through a parsed document rather than through the file's absence.
@@ -559,17 +550,18 @@ def test_the_committed_allowlist_holds_exactly_the_owner_approved_entries():
 
 @needs_node
 def test_the_committed_allowlist_passes_the_real_gate_against_the_real_audit(tmp_path):
-    """End to end over the two files CI actually reads, with no fixture in between.
+    """Run the real gate with the committed allowlist and a synthetic audit.
 
     Every case above builds its allowlist in `tmp_path`; if the committed file
-    were malformed, not one of them would notice.
+    were malformed, not one of them would notice. The historical test name is
+    retained, but this contract does not query npm or validate the live graph;
+    the js-supply-chain CI job performs that actual audit.
     """
     assert NODE is not None
     doc = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
-    # D-5 fails an entry whose advisory has left the audit, so a clean audit is
-    # only the right input while the allowlist is empty. Synthesising the audit
-    # from the committed entries keeps this end-to-end either way, and keeps it
-    # honest: it still reads the two real files CI reads.
+    # Construct matching synthetic advisories so D-5 does not obscure format and
+    # real-date expiry validation of the committed allowlist. This cannot detect
+    # a stale entry in the actual dependency graph; CI's npm audit does that.
     packages: dict = {}
     for entry in doc["allow"]:
         packages.update(_package(entry["id"], entry["package"], entry["severity"]))
