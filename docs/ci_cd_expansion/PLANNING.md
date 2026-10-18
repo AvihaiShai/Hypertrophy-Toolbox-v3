@@ -18,14 +18,15 @@
 | 2026-10-19 | `/root/product_manager` | Formal core council Step 1 | Reconciled §§0–9 and drafted §12 Plan v1. Formal reviewers, response matrix and Plan v2 pending. Historical consultations receive no formal-council credit. |
 | 2026-10-19 | `/root/architecture_reviewer`, `/root/test_strategist`, `/root/product_risk_reviewer` | Formal independent council Step 2 | All completed; AR-1/AR-2 and TS-1/TS-2/TS-3 recorded verbatim in §12.2; product-risk review returned no findings. |
 | 2026-10-19 | `/root` → resumed `/root/product_manager` | Formal Steps 3–4 | Manager proposed acceptance of all five findings; same PM wrote §12.3 matrix and §12.4 Plan v2, completed provenance, and reconciled operative §§0–9. No reject/defer or repeated review pass. |
+| 2026-10-19 | Owner | Core Gate 1 and B1 execution | Approved §12.4 including the five accepted findings; authorized B1 implementation, gates, independent code-reviewer, push and ready PR. Stop before merge; §13 records execution. |
 
 ---
 
 ## 0. Operating protocol — reconciled 2026-10-19
 
-Other sessions share this repository. This council owns only this planning document; preserve their changes. The following are proposed implementation controls, not authorization to start a packet.
+Other sessions share this repository; preserve their changes. The council originally owned only this planning document. The owner subsequently approved core Gate 1 and authorized B1 alone; §13 records that authority. The following controls apply to implementation; they do not authorize any other packet.
 
-1. **Nothing in §4 starts before its applicable Gate 1 and execution authority.** Gate 0 was approved 2026-10-19 for requirements and formal core planning only. Formal core council is complete; owner Plan v2/Gate 1 approval is pending. F1/F3 require their own scoped delivery council/Gate 1. §10 and §11 consultations are advisory evidence, not formal reviews. Q4/D2, credentials, spending, settings, PR merge and publication remain separate owner actions.
+1. **Nothing in §4 starts before its applicable Gate 1 and execution authority.** Gate 0 was approved 2026-10-19 for requirements and formal core planning only. Formal core council and owner Plan v2/Gate 1 approval are complete; only B1 has execution authority in this session. F1/F3 require their own scoped delivery council/Gate 1. §10 and §11 consultations are advisory evidence, not formal reviews. Q4/D2, credentials, spending, settings, PR merge and publication remain separate owner actions.
 2. **Claim before you start.** Write your name and the date in the §7 ledger row. One packet is one PR. Two agents never hold the same packet.
 3. **Isolated implementation copies.** Follow `docs/ai_workflow/PARALLEL_WORKFLOW.md` and `scripts/new-worktree.ps1` before parallel work touching tests, DB or dev servers, preserving the Operation A hold. Read-only council reviewers and one planning-document writer need no DB/worktree activity. Never stash, reset or incorporate another session's changes.
 4. **One `ci.yml` PR in flight at a time.** Proposed order: B1 → A1 → B2 → B3 → A2 → A3 → G6 → G7; B4 may follow any merged slot after A1, but **must never delay B1**. E1/D3 and promotion-contract packets also serialize whenever they touch the same workflow. Each starts from current `origin/main` after the prior merge; merges require owner authority. B2/B3/G6/G7 priorities may move between free slots without weakening their dependencies or gates.
@@ -191,13 +192,13 @@ This is the operative decision sheet. It supersedes the pre-approval §3 recomme
 | CI-D10 | Sole-owner emergency bypass only for red-on-main hotfixes | Document reason, affected checks, compensating evidence and follow-up green; new CodeQL rule must explicitly support this, since `enforce_admins: false` alone does not. | C1/C2/C4 policy |
 | CI-D11 | Separate prerelease delivery milestone; exact version tag and candidate recovery before publication | Separate delivery council/Gate 1, ADR-007 amendment, same-ZIP acceptance, owner tag timing; dispatch never publishes and stable promotion remains manual. | F1/F3 separate |
 
-Core Gate 1 will be requested only after the formal reviewers, all dispositions, actual provenance and Plan v2 are complete. It cannot sign JS Q4/D2 or a delivery plan, authorize settings/credentials/spending, merge PRs or publish releases by implication.
+Core Gate 1 was approved after the formal reviewers, all dispositions, actual provenance and Plan v2 were complete (§13). It does not sign JS Q4/D2 or a delivery plan, authorize settings/credentials/spending, merge PRs or publish releases by implication.
 
 ---
 
 ## 4. Reconciled packet catalog — FORMAL CORE Plan v2
 
-Future code packets are one PR each. `Owner` is proposed; none is claimed. The active core scope is B1/A1/B2/B3/A2/A3/B4/C1–C5/D1/D3/E1/E3/G6/G7 (B4 non-blocking measurement; D1 and E3 retain extra activation gates). All other entries are retained as deferred or separate delivery directions. Time figures are **estimates until measured**.
+Code packets are one PR each. `Owner` is proposed except B1, claimed in §7. The active core scope is B1/A1/B2/B3/A2/A3/B4/C1–C5/D1/D3/E1/E3/G6/G7 (B4 non-blocking measurement; D1 and E3 retain extra activation gates). All other entries are retained as deferred or separate delivery directions. Time figures are **estimates until measured**.
 
 ### Phase A — Speed
 
@@ -329,7 +330,7 @@ Future code packets are one PR each. `Owner` is proposed; none is claimed. The a
 
 | Batch | Packets | Pipeline wall after (estimate) | Needs |
 |---|---|---|---|
-| 0 | Formal v1 → independent reviewers → every disposition → v2 → owner Gate 1 | No implementation | Gate 0 complete; core Gate 1 pending |
+| 0 | Formal v1 → independent reviewers → every disposition → v2 → owner Gate 1 | Complete, 2026-10-19 | Core Gate 1 approved; subsequent execution authority is B1 only (§13) |
 | 1 | B1 first shared-workflow slot, then A1 benchmark/fail-closed fan-in; B2/B3; C1/C2/C5 prepared for owner execution | **12–15 min initial objective**; include queue time | Core Gate 1 and implementation authority; settings remain owner actions |
 | 2 | A2/A3, G6 enforced destinations, G7 retry visibility; B4 optional measurement slot after A1 | **8 min second-stage target**, 6 min stretch; neither promised | Serialize shared workflows; B4 cannot delay B1; preserve test identities |
 | 3 | C3 inventory/policy; C4 contract migration and independent qualified activations | No fixed speed claim | Pins/contracts first; proofs per candidate; JS Q4/D2 separate; owner readback |
@@ -396,7 +397,7 @@ B1 is claimed by Codex `/root`, 2026-10-19; all other packets remain unclaimed a
 | A3 | Claude | blocked | | | | Core Gate 1; after A1; four-leg fan-in proof |
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
 | A5 | either | deferred | | | | CI-D5; no docs filtering in core |
-| B1 | Codex `/root`, 2026-10-19 | claimed — implementation | `ci/b1-action-pins`; PR pending | base `7ac1af2d2dc10be6bf6a5016c09bc5244cf37ed7` | pending implementation gates; §13 | First hardening slot; no A1/B4 dependency; C3/settings remain unauthorized |
+| B1 | Codex `/root`, 2026-10-19 | implemented; local gates complete; ready to push | `ci/b1-action-pins`; PR pending | implementation `1dfe011b1533f1339660b72a60249b390b296104` | Full run `b1-local-full-pytest-attempt-2` + resolved Bash contract rerun; independent review complete, no findings; §13 | B1 only; merge pending separate owner instruction; C3/settings remain unauthorized |
 | B2 | Astra | blocked | | | | after B1 |
 | B3 | Astra | blocked | | | | after B2 |
 | B4 | Claude | blocked | | | | After A1 free slot; non-blocking measurement; never delays B1 |
@@ -441,9 +442,9 @@ B1 is claimed by Codex `/root`, 2026-10-19; all other packets remain unclaimed a
 
 ## 9. Remaining decisions and scope checks
 
-No unanswered requirement blocks completed formal core planning. The three independent reviewers read formal v1 cold; §12.2 preserves their outputs and §12.3 accepts all five findings in final v2. Owners remain proposed, not claimed. A2 prefers xdist without test edits; a host-matrix variant touching held tests returns to its owner boundary. D2 model/effort/budget and F1/F3 details belong to separate proposals.
+No unanswered requirement blocks completed formal core planning. The three independent reviewers read formal v1 cold; §12.2 preserves their outputs and §12.3 accepts all five findings in final v2. B1 is claimed in §7; other owners remain proposed. A2 prefers xdist without test edits; a host-matrix variant touching held tests returns to its owner boundary. D2 model/effort/budget and F1/F3 details belong to separate proposals.
 
-Core Gate 1 is requested only after formal Plan v2. JS Q4/D2, activation proofs, settings execution, D1 credentials, E3 named diagnostic extension and separate delivery council/Gate 1 remain individual gates. GitHub access is capability, not authorization.
+Core Gate 1 is approved for Plan v2; only B1 is authorized for execution (§13). JS Q4/D2, activation proofs, settings execution, D1 credentials, E3 named diagnostic extension and separate delivery council/Gate 1 remain individual gates. GitHub access is capability, not authorization.
 
 ---
 
@@ -875,14 +876,14 @@ Manager proposed the following dispositions; the same PM incorporated every acce
 
 ### 12.4 FORMAL CORE Plan v2
 
-**Status:** formal core council complete; **owner approved Plan v2 at Gate 1 on 2026-10-19, including all five accepted findings; B1 alone authorized for implementation**. This is the approved plan, incorporating AR-1/AR-2/TS-1/TS-2/TS-3. Operative §§0–9 are reconciled to it; §12's v1 body and §§10–11 remain dated audit history. Approval is requested for the core plan only, not its separately gated activations or delivery.
+**Status:** formal core council complete; **owner approved Plan v2 at Gate 1 on 2026-10-19, including all five accepted findings; B1 alone authorized for implementation**. This is the approved plan, incorporating AR-1/AR-2/TS-1/TS-2/TS-3. Operative §§0–9 are reconciled to it; §12's v1 body and §§10–11 remain dated audit history. Approval covers the core plan only, not its separately gated activations or delivery. B1 execution is separately authorized in §13.
 
 **Goal:** shorten the time from a code PR's workflow creation to a trustworthy required-gate result, preserve merge/release evidence integrity, add qualified security controls, and expose scheduled failures, previously skipped tests and recovered retries.
 
 **Scope:**
 
 - **In:** B1 action pins/least permissions; A1 guard split with fail-closed `Run Tests`; B2 always-present workflow lint and B3 PR-only dependency review; A2/A3 measured Windows/E2E optimization; optional non-blocking B4 measurement; C1–C5 reviewable settings/conditional-promotion design; D1 credential-gated ten-review advisory pilot; D3/E1 deterministic monitoring and Linux split; separately activated E3 bounded diagnostic; G6/G7 executed-case and retry visibility.
-- **Out:** implementation in this request; JS Q4/D2 signature; credentials/app authorization, spending, settings execution, PR merges and publication; delivery F1/F3 (separate scoped council/Gate 1), signing F2, cache/docs filtering/scanner expansion A4/A5/B5, Codex D2, G1–G5/G8 expansion, org/merge queue; application/schema/API/calculation/catalog/backup-startup or visual-baseline changes.
+- **Out of the council request:** implementation (B1 subsequently authorized in §13); JS Q4/D2 signature; credentials/app authorization, spending, settings execution, PR merges and publication; delivery F1/F3 (separate scoped council/Gate 1), signing F2, cache/docs filtering/scanner expansion A4/A5/B5, Codex D2, G1–G5/G8 expansion, org/merge queue; application/schema/API/calculation/catalog/backup-startup or visual-baseline changes.
 - **Unchanged product invariants:** local-first behavior; Effective Sets informational semantics; module/DB/response/logging conventions; no authentication/cloud sync/telemetry; no dormant product work reopened. Calculation surface `none`; no `tests/conftest.py` registration change indicated.
 
 **Artifacts:** proposed paths for later authorized work, not files created by this council.
@@ -914,11 +915,11 @@ Manager proposed the following dispositions; the same PM incorporated every acce
 
 If implementation extracts a verifier/helper beyond this proposed suite, name it in that packet and derive its real script gates before writing it; no unlisted helper evades the canonical union. Existing tests may only be migrated for actual changed wiring, with their positive/negative guarantees retained.
 
-**Effort:** L, multiple independently reviewable packets. **Owners:** §7 proposals, all unclaimed; PM `/root/product_manager` owns this planning artifact. **Dependencies:** Gate 0 complete and council complete; owner core Gate 1 still pending. Every setting/promotion/credential/diagnostic/release boundary below remains separate.
+**Effort:** L, multiple independently reviewable packets. **Owners:** §7 proposals, B1 now claimed by Codex `/root`; PM `/root/product_manager` authored the council artifact. **Dependencies:** Gate 0, council and owner core Gate 1 complete; only B1 execution authorized (§13). Every setting/promotion/credential/diagnostic/release boundary below remains separate.
 
 **Sequence:**
 
-1. **Stop at Gate 1:** present this Plan v2 with all five accepted findings and actual provenance. No code, tests, DB/server activity, workflow dispatch, repository setting, credential or remote publication follows from council completion.
+1. **Gate 1 complete:** the owner approved Plan v2, all five accepted findings and provenance on 2026-10-19. Council completion itself authorized no execution; the subsequent owner instruction authorizes B1 only (§13).
 2. **After later authorized implementation:** create the isolated checkout required for test/DB work and preserve other sessions' edits/Operation A hold. One `ci.yml` PR in flight. B1 takes the first hardening slot; B4 never delays it. B1 inventories/pins adopted direct/nested actions and least permissions; no broad future integrations are allowlisted.
 3. **Required-gate speed and test integrity:** A1 benchmarks the current serial corpus/environment against each candidate partition shape and proves exact executed outcomes, no unintended duplicates/skips, and all-success `Run Tests`. B2/B3 follow B1, always-present lint on PR/main and PR-only dependency review. A2/A3 optimize independently of promotions, preserving host identities and the 25-spec/four-leg aggregate. Measure creation-to-required-gate completion, queue/job time and runner-minutes: 12–15 min initial objective, eight-minute second-stage target, six-minute stretch.
 4. **Bring hidden coverage into existing enforcement:** G6 adds only the six-case `workflow-contracts-windows` leg to `Run Tests`; three dependency cases execute after `npm ci` in `pytest-core`. Their exact identity/outcome/preflight evidence must fail on removal, skip, missing prerequisite or report/failure. This neither waits for nor implicitly promotes all Operation A. G7 adds the named attempt-preserving reporter with unavailable-report classification, summaries on both successful/failed steps, unchanged test verdict and retry policy. B4 occupies a free slot after A1 as non-blocking measurement.
@@ -965,7 +966,7 @@ is retained. No Q4/D2 signature, promotion, settings, credentials, spending,
 delivery approval, release publication or merge authority follows.
 
 - Claim: Codex `/root`, 2026-10-19; branch `ci/b1-action-pins`.
-- Isolation: standalone HTTPS shallow clone at
+- Isolation: standalone HTTPS clone (initially shallow) at
   `D:/development/Hypertrophy-Toolbox-v3-ci-b1-shallow-20261019`, from current
   `origin/main` `7ac1af2d2dc10be6bf6a5016c09bc5244cf37ed7`. No linked worktree,
   shared DB, cleanup/ref retirement, stash, reset, or other-session edit.
@@ -980,4 +981,79 @@ delivery approval, release publication or merge authority follows.
   No job added, removed or converted; required gate is full pytest plus independent
   code-reviewer. No Python, test identity, shard/spec, root-config or product diff
   is planned, so no pyright, inventory regeneration or extra Chromium gate is derived.
-- Implementation, test commit/run evidence and independent review: pending.
+- Implementation commit: `1dfe011b1533f1339660b72a60249b390b296104`.
+  Four actions / 85 remote calls pinned; CI and Deep Gate default to `contents:
+  read`; CI's API-free E2E fan-in uses `{}`; the existing release `checks: read`
+  exception is preserved. [B1_ACTION_INVENTORY.md](B1_ACTION_INVENTORY.md) records
+  exact pins, upstream metadata, all three reusable callers and permission needs.
+- Metadata/structure run `b1-structural-and-metadata-verification`: **PASS** at the
+  implementation commit against the base above. Parsed workflows are identical
+  after normalizing only pins and the three permission additions; job names,
+  conditions, triggers, matrices, steps, contracts and enforcement are unchanged.
+- Independent code-reviewer **`/root/b1_code_reviewer` completed with no findings**
+  on implementation `1dfe011b1533f1339660b72a60249b390b296104` versus base
+  `7ac1af2d2dc10be6bf6a5016c09bc5244cf37ed7`. It independently compared Git blobs
+  and freshly retrieved official tags/exact-SHA metadata. No tests, DB/server
+  activity, source edits or additional agents were performed by the reviewer.
+- Final diff is four existing workflow files and two CI-expansion documents.
+  Full pytest and independent code-reviewer are the required union; no job is
+  added/removed/converted, no Python/root config is changed, and no test identity
+  or functional spec list changes. No architecture review, extra Chromium gate,
+  pyright run or test-inventory regeneration is derived. Ledger closeout is
+  documentation only, manually checked; the reviewed workflow/test tree stays
+  byte-identical to the implementation commit.
+
+### 13.1 Exact local test evidence
+
+The standalone clone has its own venv, npm dependencies and runtime path. Python
+3.14.6 / pytest 9.1.1. The initial setup attempt was interrupted after exposing
+an unnecessary `DB_FILE` override and missing shallow-history ancestry. Removing
+that process override restores the clone-local default DB path. A Git transport
+fetch of exact base `7ac1af2d2dc10be6bf6a5016c09bc5244cf37ed7` from the shared
+checkout supplied its committed ancestry without importing working files, shared
+objects, alternates or worktree metadata. The clone is now non-shallow. Both
+specific environment checks passed (`2 passed in 0.19s`). The interrupted attempt
+is retained as `pytest-first-attempt*`, not credited as a complete run.
+
+| Run | Exact implementation commit | Command / environment | Result |
+|---|---|---|---|
+| `b1-local-full-pytest-attempt-2` | `1dfe011b1533f1339660b72a60249b390b296104` | `python -m pytest tests/ -q --junitxml=artifacts/ci_cd_expansion/b1/pytest-full.xml` | **5,242 passed, 2 skipped, 1 failed**, 1514.51s; exit 1. Sole failure: Windows selected `C:/WINDOWS/system32/bash.EXE`, the unconfigured WSL launcher, for the existing Deep Gate selector contract. |
+| `b1-local-bash-contract-repair` | same workflow/test tree | Process-local PATH prepends `C:/Program Files/Git/bin`; `python -m pytest tests/test_playwright_runner_contracts.py -q --junitxml=artifacts/ci_cd_expansion/b1/pytest-bash-repair.xml` | **12 passed in 0.47s**, exit 0, including the sole failed identity and all selector-negative cases. No repository/test change. |
+
+Full-run UTC interval: `2026-10-18T21:52:40.5614657Z` to
+`2026-10-18T22:17:56.0167874Z` (2026-10-19 locally). The full run and repaired
+contract run cover **5,243 distinct passing identities plus two existing skips,
+zero unresolved failures**. JUnit identity reconciliation verifies that every
+rerun identity belongs to the full run and replaces its sole failure. This is
+full-run evidence plus a targeted environment repair, **not a claim that the
+original full invocation exited zero**. Reuse of the other 5,242 passes avoids
+repeating the unaffected guard/lifecycle corpus.
+
+The two skipped identities and unchanged reasons are:
+
+- `tests.test_package_asset_staging::test_executable_bit_survives_staging` —
+  Windows filesystems carry no executable bit.
+- `tests.test_priority7_error_handling.TestWorkoutLogEndpoints::test_update_workout_log_success`
+  — happy path covered by `test_workout_log_routes.py`; this app has no fixtures.
+
+Raw evidence is retained under `artifacts/ci_cd_expansion/b1/`: full and repaired
+JUnit/logs, `pytest-full-result.json`, `validation-summary.json`,
+`verification.json`, upstream metadata/commit records, and `code-review.txt`.
+`validation-summary.json` records the SHA256 receipts below.
+
+
+| Evidence | SHA256 |
+|---|---|
+| `pytest-full.xml` | `2da8e36d01b696eea7ea6d8d9e86146d1d21be29ca92721fe703f0fd9902004b` |
+| `pytest-bash-repair.xml` | `a2d5717a582c7b579504243a48336f1dcff5342c7927ac1dc55259f8082bdb2d` |
+| `verification.json` | `c6f49f6a55347f8e587fa3f941920c38dbd7b28e136fb19744beca3e6f315da3` |
+| `code-review.txt` | `1429706385888feb09ca1ae79aeef1b921d8bb386f7f93912fab45766a3f717b` |
+
+
+### 13.2 Publication boundary
+
+Local gates are complete using the exact evidence above. Push and ready PR are
+owner-authorized; PR/run IDs will be recorded after GitHub assigns them. GitHub CI
+is separate runtime evidence and is not represented as passed before completion.
+The branch stops before merge. No other packet, promotion, setting, credential,
+spend, delivery or release action was executed.
