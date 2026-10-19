@@ -12,7 +12,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.mark.parametrize(
     "workflow",
-    [".github/workflows/ci.yml", ".github/workflows/deep-gate.yml"],
+    [
+        ".github/workflows/ci.yml",
+        ".github/workflows/deep-gate.yml",
+        ".github/workflows/deep-gate-visual.yml",
+    ],
 )
 def test_github_workflows_use_node_24_consistently(workflow):
     source = (REPO_ROOT / workflow).read_text(encoding="utf-8")
