@@ -682,7 +682,9 @@ def test_every_download_is_a_release_asset_verified_before_unpacking():
     repos = set()
     for argv in downloads:
         assert argv[0] == "curl" and "--fail" in argv, argv
-        assert any(argv[i : i + 2] == ["--proto", "=https"] for i in range(len(argv))), argv
+        for flag in ("--proto", "--proto-redir"):
+            assert any(argv[i : i + 2] == [flag, "=https"] for i in range(len(argv))), (flag, argv)
+        assert "--max-time" in argv, argv
         for url in (token for token in argv if "://" in token):
             asset = re.fullmatch(r"https://github\.com/([\w.-]+/[\w.-]+)/releases/download/\S+", url)
             assert asset, url
@@ -731,6 +733,7 @@ def test_no_other_environment_can_reconfigure_the_linters():
     # $GITHUB_ENV carries variables into every later step; a workflow-level env reaches
     # every job. Neither is used today, so neither may appear unreviewed.
     assert "GITHUB_ENV" not in lint_job()
+    # Policy: a future workflow-level env must change this line deliberately, since it could reconfigure the linters.
     assert not re.search(r"^env:", strip_comments(workflow_text(CI)), re.MULTILINE)
 
 
