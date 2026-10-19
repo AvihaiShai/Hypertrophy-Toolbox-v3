@@ -4,29 +4,16 @@
 
 ## Current State
 
-> **2026-10-19T22:05Z — current state, measured against `origin/main` `f3adacf1` (#530, the head;
-> full SHA `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`).** Readings were taken 2026-10-19 between
-> 22:05Z and 22:07Z, after `git fetch origin`. This block replaces the 09:13–09:18Z block of the
-> same date (at `e486e3b5`); it and the blocks of 2026-06-07 → 2026-09-08 are preserved in
+> **2026-10-19T22:05Z — current state, measured against `origin/main` `f3adacf1` (#530, the
+> head), after `git fetch origin`.** This block replaces the 09:13–09:18Z block of the same date
+> (at `e486e3b5`); it and the blocks of 2026-06-07 → 2026-09-08 are preserved in
 > [`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](archive/2026/master-handover/CURRENT_STATE_HISTORY.md).
+> The maintenance rule for this block is its last subsection.
 
-**Work queue:** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §0, the single
-actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
-§11), reconciled at the same SHA. Its §4, §8, §15 and §§11–26 remain earlier readings.
-
-**Maintenance rule.**
-- Replace this block in place and move the outgoing block to the archive file; never prepend a
-  new block.
-- `docs/MASTER_HANDOVER.md` is a never-claimed shared path, so coordinate each edit
-  ([`WORKSTREAM_OWNERSHIP.md`](ai_workflow/WORKSTREAM_OWNERSHIP.md) rule 4).
-- Status and next steps come from this block. The *Next safe step* below is the current one. The
-  *Open Decisions*, *Blockers* and *Next Safe Step* sections after this block are historical.
-  *Active Workstreams* rows keep their own dates.
-- In those retained sections, a reference to an old Current State block or entry ("at the top
-  of this file", "this file's 2026-08-29 Current State block", "the top of `## Current State`"
-  and similar) now means the archive file. "The block above" or "the block below" inside one of
-  those sections still means the neighbouring block there, and references to the two ledger
-  headings at the end of this block still resolve here.
+**Work queue and owner decisions:** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md)
+§0 is the single actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
+§11). Its §0.2 holds every open owner decision and §0.4 every open obligation; this block does not
+repeat them. The queue's §4, §8, §15 and §§11–26 remain earlier readings.
 
 ### Trunk, CI and live readings
 
@@ -36,15 +23,15 @@ actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AG
 | Open PRs | Zero at 22:05Z. This is a reading at one instant; run `gh pr list --state open` |
 | Open issues / Dependabot alerts | 0 / 0 |
 | Branch protection | 12 required contexts; `strict: false`; `JS Unit (Vitest, non-required)` absent. A1 kept the required name `Run Tests`, now a fan-in job |
-| Scheduled deep gate (Mondays 03:17 UTC) | **Red for 8 consecutive runs**, 2026-08-31 → 2026-10-19, with no scheduled run since; the next slot is 2026-10-26. In the two latest runs, only `Visual regression (Linux baselines)` failed. Read every run at job level, with `visual-linux` confirmed executed; never read the overall green |
+| Scheduled deep gate (Mondays 03:17 UTC) | **8 consecutive scheduled failures**, 2026-08-31 → last run 2026-10-19; next slot 2026-10-26. In the two latest runs, only `Visual regression (Linux baselines)` failed. Read every run at job level, with `visual-linux` confirmed executed; never read the overall green |
 | `release.yml` | Two `workflow_dispatch` runs only; `push: tags` has never fired, and no GitHub Release exists |
 | Pyright baseline | 0 / 0 / 0 with no headroom. A net-new diagnostic fails `Type Check`; the fix is the code, never the baseline |
 | Test counts | [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md) is the single producer |
 
 ### Landed since the 09:13Z reading (`e486e3b5`)
 
-Merges #481–#520 are listed in the archived 09:13Z block. Queue §0.6 folds in everything since the
-queue's 2026-09-02 cutoff (`5d3bc95`).
+Merges #481–#520 are listed in the archived 09:13Z block. Queue §0.6 lists the closures that
+contradict older queue sections.
 
 | PR | What |
 |---|---|
@@ -56,71 +43,27 @@ queue's 2026-09-02 cutoff (`5d3bc95`).
 
 ### Holds in force
 
-- **Operation A: `PREVENTION_COMPLETE` is not declared.**
-  - Merged source: #484, #485, #490, #494, #508 and #510.
-  - #510 excluded deployment; installation and acceptance are owner-only
-    ([CLOSEOUT §19.5–§19.6](worktree_cleanup/CLOSEOUT.md)).
-  - The owner-only remainder is listed in [`CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19.6:
-    - a fresh preflight and guard-contract session;
-    - a *natural* 07:00 `OperationA-WorktreeAudit` firing, or a ruling on `StartWhenAvailable`;
-    - a review of the 21 non-zero audit exits;
-    - disposition of the ~89 `ORPHANED_ANNOTATION` rows and the drive baseline (until then,
-      worktree creation fails closed);
-    - guard runtime qualification;
-    - the G07 and C02 decisions;
-    - whether to sync the main checkout.
-- **No standing teardown authority.**
-  - The 2026-10-16/17 directives were scoped to named targets and are spent
-    ([`CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §15–§18, §20).
-  - Still parked: Operation E and main reconciliation, `worktree_cleanup_amendment/`, and
-    Operations F/G.
-  - Still retained: the branches, stashes and `refs/closeout/…` pins listed in §20.
-  - The two `docs/worktree_cleanup/PLANNING.md` lineages are unreconciled, and the local copy is
-    not to be staged.
-  - Reviewer findings M3, M4 and L1 have unknown dispositions. Items waived in §11 are not passes.
+Constraints to know before acting. Decisions and obligations live in queue §0.2 and §0.4.
+
+- **Operation A:** `PREVENTION_COMPLETE` is not declared, and there is no standing teardown
+  authority. The owner-only remainder is
+  [`worktree_cleanup/CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19.6; retained refs are in §20.
 - **Sequencing.**
   - The [`WORKTREE_CLEANUP_PLAN.md`](ai_workflow/WORKTREE_CLEANUP_PLAN.md) §1.2 order still binds
     Operations B–E: prevention, then open-development closeout, then separately approved cleanup.
   - Under the owner's 2026-10-19 delegation (Q8(a) in
     [`AGREED_PLAN.md`](project_direction/AGREED_PLAN.md) §11; not a Gate 0 or Gate 1 signature),
     isolated application-factory, service-extraction and dependency-group work does not wait for
-    `PREVENTION_COMPLETE`; each still needs its own gates.
-- **Visual baselines.**
-  - Regenerating Linux or Win32 baselines requires separate owner authorization.
-  - A red comparison is not a regeneration mandate.
-  - `--update-snapshots` is never the resolution of a red.
-
-### Owner decisions open
-
-1. **R2.3 — Q4/D2** (make `JS Unit` required): unsigned. The strict mark `2026-09-10T23:18:21Z`
-   has passed; that is a precondition, not a signature. The ledger ends at row 64. The audit in
-   #526's description counted 33 unrecorded `main` runs (five in queue §26.4, 28 from #481 through
-   #520); each later `main` merge adds another, and none is recorded. See
-   [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0.
-2. **R2.4** (`visual-linux` in the release gate): unsigned. ADR-007's three-consecutive-green
-   threshold is unmet.
-3. **R3:** the tag trigger is unproved. Only a real version tag that the owner names can prove it.
-4. **H-LINUX-UNSYNC-01:** option A, the compare-only bisect, ran as CI/CD E3 (#529): for the one
-   capture, first-parent boundary #463 (`e6e57eac`) → #464 (`e9eff89a`), no fix
-   ([`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md)). Options B (wider capture
-   matrix), C (Linux baseline synchronization) and D (stop; keep the bounded residual) in
-   [`GATE1.md`](deep_gate_linux_visual_failure_20260831/GATE1.md) remain owner decisions. Fixes,
-   broader matrices and baseline changes are unauthorized.
-5. **CI/CD expansion** ([`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md)): core
-   Plan v2 approved at Gate 1; B1 (#521) and A1 (#530) merged. Under owner authorization, B2
-   (actionlint + zizmor) and E1 + D3 (`Deep Gate Visual (Linux)` split plus the deterministic
-   watchdog) are in progress, with no PR at this reading. Order B1 → A1 → B2 → B3 → A2 → A3 → G6
-   → G7; B3 onward not started. Merges, settings, C4 promotion, credentials, spending and release
-   publication stay owner-only.
-6. **U1-FOLLOWUP-1** is open and required, but unplanned; the strict mark it was barred behind has
-   passed. Its condition is to be re-read against
-   [`toast_action_continuity/PLANNING.md`](toast_action_continuity/PLANNING.md) §4.3
-   ([`volume_failure_feedback/PLANNING.md`](volume_failure_feedback/PLANNING.md) §v2.14).
-7. **Dependency PRs (Track D1):** triage is open to agents; landing one needs explicit owner
-   authorization. Dependabot security updates are off (D-6), so alerts need human-opened PRs.
-8. **Project direction** ([`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)):
-   WS3 (application factory), WS4 (service extraction) and WS5 (dependency groups) remain DRAFT,
-   and each needs its own Gate 0, council and Gate 1. Publishing that record approves none of them.
+    `PREVENTION_COMPLETE`; each still needs its own gates. WS4 implementation follows WS3; WS5
+    implementation is eligible only after its manifest and applicable gates are approved; §11's
+    Q8(a) boundaries apply (a standalone clone with independent Git storage and private
+    environments, and a check of live freezes and blocked-recovery states before work).
+- **Visual baselines:** regenerating Linux or Win32 baselines requires separate owner
+  authorization; a red comparison is not a regeneration mandate; `--update-snapshots` is never
+  the resolution of a red.
+- **Owner-only actions:** merges (including each dependency PR; Dependabot security updates are off
+  under D-6, so alerts need human-opened PRs), repository settings, C4 promotion, credentials,
+  spending and release publication.
 
 ### Dated items
 
@@ -170,9 +113,28 @@ The full list is [`README.md`](README.md) *Feature folders → Active*.
 
 ### Next safe step
 
-In flight under owner authorization, with no PR at this reading: CI/CD B2 and E1 + D3. Nothing
-else starts automatically. Agents may run `/status`, triage Dependabot PRs, and do read-only design
-work. Other work waits on an owner decision listed above, or on its own Gate 0/1 sign-off.
+In flight, with no PR at this reading: CI/CD B2, then E1 + D3 stacked on B2's branch (B2 edits
+every `deep-gate.yml` checkout and adds the lint that gates the new workflows); one `ci.yml` PR is
+in flight at a time. Their authority is the owner's instruction of 2026-10-20 (local; UTC
+2026-10-19), which the B2 PR records in [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md)
+§7 and §15; it is not on `main` at `f3adacf1`. Nothing else starts automatically. Agents may run
+`/status`, triage Dependabot PRs, and do read-only design work. Other work waits on an owner
+decision in queue §0.2, or on its own Gate 0/1 sign-off.
+
+### Maintenance rule
+
+- Replace this block in place and move the outgoing block to the archive file; never prepend a
+  new block.
+- `docs/MASTER_HANDOVER.md` is a never-claimed shared path, so coordinate each edit
+  ([`WORKSTREAM_OWNERSHIP.md`](ai_workflow/WORKSTREAM_OWNERSHIP.md) rule 4).
+- Status and next steps come from this block. The *Next safe step* above is the current one. The
+  *Open Decisions*, *Blockers* and *Next Safe Step* sections after this block are historical.
+  *Active Workstreams* rows keep their own dates.
+- In those retained sections, a reference to an old Current State block or entry ("at the top
+  of this file", "this file's 2026-08-29 Current State block", "the top of `## Current State`"
+  and similar) now means the archive file. "The block above" or "the block below" inside one of
+  those sections still means the neighbouring block there, and references to the two ledger
+  headings at the end of this block still resolve here.
 
 ### Known Windows visual reds — historical WP4.0 observations inside the accepted terminal residual
 

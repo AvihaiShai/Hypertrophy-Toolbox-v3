@@ -1,6 +1,7 @@
 # Open Work Execution Plan
 
 **Status:** Proposed sequencing plan — no implementation packet is authorized by this document alone  
+**Current queue:** §0, the single actionable queue since 2026-10-19  
 **Prepared:** 2026-08-24  
 **Revised:** 2026-08-24, after PR [#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)
 merged as squash commit `5111a7f`. The amendments §11.9 previously *proposed* are now folded into
@@ -115,40 +116,46 @@ open. Selector-robustness Gate 1 is complete on `main`; H-LINUX-UNSYNC-01 Gate 0
 `main`, while its diagnostic Gate 1 remains unexecuted and unauthorized. The canonical JS ledger
 now ends at row 64. §25 is the new dated evidence layer; §§21–24 retain their fixed-cutoff history.
 **Single-queue reconciliation:** 2026-10-19 at **`2026-10-19T22:05Z`**, against `origin/main` @
-**`f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`** (#530), zero open PRs. Q12 of
+**`f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`** (#530). Q12 of
 [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md) §11 selected this file as the
-single actionable queue; **§0 is that queue**. §§1–26 are unchanged apart from one-line pointers to
-§0 at §1, §4, §8 and §15. Nothing here authorizes a packet, a merge, a setting change or a release.
+single actionable queue, and **§0 is that queue**. Nothing here authorizes a packet, a merge, a
+setting change or a release.
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
 ## 0. Current actionable queue — reconciled 2026-10-19 at `f3adacf1`
 
-**Read this section first.** It was measured at `2026-10-19T22:05Z` against `origin/main`
-`f3adacf1` after `git fetch origin`; `gh pr list --state open` returned zero PRs at that instant.
-As a queue it supersedes the status words in §4, §8 and §15, whose newest readings stop at §26's
-`5d3bc95` cutoff (2026-09-02); where they disagree, §0 is newer. The current-state entry point is
-[`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) *Current State*. Dedicated plans and ledgers keep their
-detailed authority. Every obligation below is carried forward unless its row cites closing
-evidence, and no status word here is an approval.
+**Read this section first.** Measured at `2026-10-19T22:05Z` against `origin/main`
+`f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d` after `git fetch origin`; `gh pr list --state open`
+returned zero PRs at that instant. As a queue it supersedes the status words in §4, §8 and §15,
+which stop at the §24 reading (2026-08-31); §25 and §26 are later dated logs. Where they disagree,
+§0 is newer. The current-state entry point is [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md)
+*Current State*. Dedicated plans and ledgers keep their detailed authority. Every obligation below
+is carried forward unless its row cites closing evidence, and no status word here is an approval.
+
+**Elsewhere:** parked work §5; closed work §6; owner-deferred accessibility exceptions
+[`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
 
 ### 0.1 In progress
 
-| Item | Scope | Authority / record | Next |
+Authority for both rows: the owner's instruction of 2026-10-20 (local; UTC 2026-10-19). The B2 PR
+records it in [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §7 and §15; it is not on
+`main` at `f3adacf1`. One `ci.yml` PR is in flight at a time.
+
+| Item | Scope | Record | Next |
 |---|---|---|---|
-| CI/CD **B2** | `Workflow Lint (actionlint + zizmor)` on every PR and `main` push | Owner execution authority; started after #530 merged; [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §4 Phase B | No PR at the measurement. Merge, and any later promotion through C4, stay owner actions |
-| CI/CD **E1 + D3** | Move `visual-linux` into `Deep Gate Visual (Linux)`, shipped with the deterministic Deep Gate watchdog | Same authority; CI PLANNING §4 Phases D–E | No PR at the measurement. No baseline regeneration, tolerance or ADR-011 change |
+| CI/CD **B2** | `Workflow Lint (actionlint + zizmor)` on every PR and `main` push | CI PLANNING §4 Phase B | No PR at the measurement. Merge, and any later promotion through C4, stay owner actions |
+| CI/CD **E1 + D3** | Move `visual-linux` into `Deep Gate Visual (Linux)`, shipped with the deterministic Deep Gate watchdog | CI PLANNING §4 Phases D–E | Stacked on B2's branch, because B2 edits every `deep-gate.yml` checkout and adds the lint that gates the new workflows. No PR at the measurement. No baseline regeneration, tolerance or ADR-011 change |
 
 ### 0.2 Owner decisions and owner-only actions
 
 | Item | State at `f3adacf1` | Record |
 |---|---|---|
 | **R2.3 — Q4/D2** (`JS Unit` required?) | **Unsigned.** No longer time-gated: the strict mark `2026-09-10T23:18:21Z` has passed, which is a precondition, not a signature | §15.4 item 4; [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0 |
-| **R2.4** (`visual-linux` in the release gate) | **Unsigned.** ADR-007's threshold is unmet: the scheduled deep gate failed 8 consecutive runs, 2026-08-31 → 2026-10-19 | §15.4 item 5 |
+| **R2.4** (`visual-linux` in the release gate) | **Unsigned.** ADR-007's threshold is unmet: 8 consecutive scheduled deep-gate failures, last run 2026-10-19; next slot 2026-10-26 | §15.4 item 5 |
 | **R3** (real tag trigger) | **Unproved.** `release.yml` has two `workflow_dispatch` runs and no `push` run; only a real version tag named by the owner can prove it | §15.4 item 6; §4 R3 |
 | **H-LINUX-UNSYNC-01** next step | Option A ran as CI/CD E3 (#529, `c7fec052`): one capture, first-parent boundary #463 → #464, no fix. **Options B, C and D remain owner decisions**; fixes, wider matrices and baseline changes are unauthorized | [`GATE1.md`](deep_gate_linux_visual_failure_20260831/GATE1.md), [`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md) |
-| CI/CD owner actions | Merges; settings C1–C5 including C4 promotions; D1 credential/app authorization; any spending; F1/F3 release publication | CI PLANNING §3, §4, §6 |
+| CI/CD owner actions | Merges, including each dependency PR (Dependabot security updates are off under D-6); settings C1–C5 including C4 promotions; D1 credential/app authorization; any spending; F1/F3 release publication | CI PLANNING §3, §4, §6; §4 Track D1 |
 | Project direction WS3–WS5 | DRAFT; each needs its own Gate 0, council and Gate 1. Publishing `AGREED_PLAN.md` approves none of them | AGREED_PLAN §6, §11 |
-| Dependency PR landings (Track D1) | Triage open to agents; each merge needs explicit owner authorization; security updates off (D-6) | §4 Track D1 |
 | Operation A remainder | `PREVENTION_COMPLETE` not declared; owner-only list unchanged | [`worktree_cleanup/CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19.6 |
 
 ### 0.3 Sequenced, not started
@@ -164,6 +171,10 @@ evidence, and no status word here is an approval.
   (`P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md`, `APP_PY_REVIEW_PLAN.md`, root `WORKTREE_CLEANUP_PLAN.md`)
   and Slice 2 splits; instruction-surface cleanup; WS2 (d)–(f). Each needs its own approval and
   coordination with the docs-cleanup claim on this file.
+- **Everything else in the project-direction record** stays governed by AGREED_PLAN §4, §9.2 and
+  §11, each item with its own approval. That includes WS1 items 3–4 (navigation and the split of the
+  two large `ai_workflow` plans), the Q14 folder-disposition slice, WS2 (a) and (c), and WS6
+  (deferred).
 
 ### 0.4 Open obligations
 
@@ -171,35 +182,30 @@ evidence, and no status word here is an approval.
 |---|---|---|
 | **U1-FOLLOWUP-1** | Open and required, unplanned. The strict-mark bar has passed; re-derive its stale K13 condition before planning it through its own gates | [`toast_action_continuity/PLANNING.md`](toast_action_continuity/PLANNING.md) §4.3; [`volume_failure_feedback/PLANNING.md`](volume_failure_feedback/PLANNING.md) §v2.14 |
 | **JS-unit ledger debt** | The ledger ends at row 64. The audit in #526's description counted 33 unrecorded `main` runs (five in §26.4, 28 from #481 through #520); each later `main` merge adds another. Write rows only through the §13.0 process | `STEP12_JS_UNIT_GATE0.md` §13.0; §26.4 |
-| **Worktree cleanup holds** | No standing teardown authority; Operation E, `worktree_cleanup_amendment/` and Operations F/G parked; retained branches, stashes and `refs/closeout/…` pins; two unreconciled `worktree_cleanup/PLANNING.md` lineages; reviewer findings M3, M4 and L1 undispositioned | `CLOSEOUT.md` §11, §15–§20 |
+| **Worktree cleanup holds** | No standing teardown authority: the 2026-10-16/17 directives were scoped to named targets and are spent. Operation E and main reconciliation, `worktree_cleanup_amendment/` and Operations F/G are parked; branches, stashes and `refs/closeout/…` pins are retained; the two `worktree_cleanup/PLANNING.md` lineages are unreconciled and the local copy is not to be staged; reviewer findings M3, M4 and L1 are undispositioned, and items waived in §11 are not passes | `CLOSEOUT.md` §11, §15–§20 |
 | **Feature-folder obligations** | Agent roles Phase 6 conditional; KI-005 Stage 4 restoration held; D4 Packet C deferred; FINDING-1 residual reference; backup-confirmation residual risk; release-pipeline R3 and deep-gate entry conditions; visual-determinism ADR-011 residual | Each folder's `PLANNING.md`; [`README.md`](README.md) *Feature folders → Active* |
 | **Fatigue Stage-4 handoff** | Earliest archive review 2026-11-20 | §7 |
 | **Visual baselines** | Linux or Win32 regeneration needs separate owner authorization; a red is not a mandate | ADR-011; §26.5 |
 
 ### 0.5 Carried from `LEFTOVERS_BY_PRIORITY.md` until its reconciliation
 
-| Item | State at `f3adacf1` | Disposition |
-|---|---|---|
-| P2.4 — KI-005 manual-edit provenance staleness | Accepted limitation | Owner- and demand-gated; a new UX packet only if visible in real use |
-| §4 TODOs — `utils/constants.py:19` (`Front-Shoulder`) and `:100–101` (`Mid/Upper Back`) | All three markers present | Owner taxonomy decisions; not a rename |
-| §4a FINDING-1 residuals | The Excel export still shows a fixed failure toast (`static/js/modules/exports.js`), so the server's diagnostic never reaches the screen; site 7 stays unfixed by design | Proposal; a `static/**` packet needs its own gates |
-| P3 proposals — app-JS TypeScript checking; widening the inert `d-flex` / `d-inline-block` utilities (pinned by `KNOWN_INERT`); cross-model `$orchestrate`; the CSS/refactor tail | Proposals | Park, as §5 |
-| §3 held local artifacts — `artifacts/wp4_4/`, `artifacts/environment-backups/…`, `artifacts/vbl_check/` | Held, local only | Owner housekeeping under the Operation A teardown restrictions |
-| ~~P3 — six E2E specs hard-code `http://127.0.0.1:5000`~~ | **Closed:** no `127.0.0.1:5000` or `localhost:5000` remains under `e2e/` at `f3adacf1`; the last change to those occurrences was #311 (`8b5231ab`) | Closed with that evidence |
-
-### 0.6 Closed since §26, with evidence
-
-| Item | Evidence |
+| Item | Disposition |
 |---|---|
-| Deep-gate selector robustness Gate 1 (§4, §8, §15 still say "in flight") | #474 merged with an 18/18 post-merge pipeline (§25) |
-| H-LINUX-UNSYNC-01 Gate 0 and Gate 1 diagnostic; bisect option A | #475 merged (§25); diagnostic executed and closed out by #481 (§26); E3 merged as #529 (`c7fec052`, 2026-10-19T19:06:05Z) |
-| Track D1 recommendations for #472/#473 | Both merged (§25); later Dependabot PRs through #525 merged; zero open PRs at the measurement |
-| §26.5's "one decision now due" (options A–D) | Option A taken and executed (E3, above); B–D remain in §0.2 |
-| `braces` waiver and issue #513 | Remediated and retired by #519 ([`BRACES_REMEDIATION.md`](BRACES_REMEDIATION.md)) |
-| CI/CD B1 | #521, squash `77f400bb`, 2026-10-18T23:46:43Z |
-| CI/CD A1 | #530, squash `f3adacf1`, 2026-10-19T19:06:48Z (the CI PLANNING §7 ledger rows for A1 and E3 predate their merges at this SHA) |
-| WS1a; WS1b; WS2(b); five-record archive | #520 (`e486e3b5`); #526; #527; #528 |
-| Q9 — publish `AGREED_PLAN.md` | Published at [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md) by the change that added this section |
+| P2.4 — KI-005 manual-edit provenance staleness (accepted limitation) | Owner- and demand-gated; a new UX packet only if visible in real use |
+| §4 TODOs — `utils/constants.py:19` (`Front-Shoulder`) and `:100–101` (`Mid/Upper Back`), all three markers present at `f3adacf1` | Owner taxonomy decisions; not a rename |
+| §4a FINDING-1 residuals — the Excel export still shows a fixed failure toast (`static/js/modules/exports.js`), so the server's diagnostic never reaches the screen; site 7 stays unfixed by design | Proposal; a `static/**` packet needs its own gates |
+| P3 proposals — app-JS TypeScript checking; widening the inert `d-flex` / `d-inline-block` utilities (pinned by `KNOWN_INERT`); cross-model `$orchestrate`; the CSS/refactor tail | Park, as §5 |
+| §3 held local artifacts — `artifacts/wp4_4/`, `artifacts/environment-backups/…`, `artifacts/vbl_check/` | Owner housekeeping under the Operation A teardown restrictions |
+
+### 0.6 Closures that correct older sections
+
+| Stale statement | Evidence |
+|---|---|
+| §4, §8 and §15 show deep-gate selector robustness Gate 1 (#474) in flight | #474 merged with an 18/18 post-merge pipeline (§25) |
+| §4, §8 and §15 show H-LINUX-UNSYNC-01 as draft Gate 0 #475; §26.5 leaves options A–D due | #475 merged (§25); the Gate-1 diagnostic was executed and closed out by #481 (`22ee9ade`), which added §26; option A ran as E3, merged as #529 (`c7fec052`, 2026-10-19T19:06:05Z). B–D remain in §0.2 |
+| §4, §8 and §15 show #472 and #473 open with MERGE recommendations | Both merged (§25); later Dependabot PRs through #525 merged; zero open PRs at the measurement |
+| LEFTOVERS P3: six E2E specs hard-code `http://127.0.0.1:5000` | No `127.0.0.1:5000` or `localhost:5000` remains under `e2e/` at `f3adacf1`; the last change to those occurrences was #311 (`8b5231ab`) |
+| Outside this file: at `f3adacf1`, the CI PLANNING §7 ledger rows for A1 (#530, `f3adacf1`) and E3 (#529) predate their merges, and the B2 / E1 + D3 authority in §0.1 is not yet recorded there | The B2 PR records both; see §0.1 |
 
 ## 1. Purpose
 

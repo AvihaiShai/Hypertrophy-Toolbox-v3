@@ -5,10 +5,10 @@
 **Replacement:** the dated *Current State* block in
 [`docs/MASTER_HANDOVER.md`](../../../MASTER_HANDOVER.md#current-state) and the work queue it names.
 
-This file holds the former body of that section, moved here on 2026-10-19. It runs from 2026-09-08
+This file holds the former body of that section, moved here on 2026-10-19, with each later
+outgoing block added at the top. It runs from 2026-10-19 (the 09:13–09:18Z block at `e486e3b5`)
 back to 2026-06-07 and includes the *Known Windows visual reds* and *Known LINUX visual reds*
-ledgers. Each later outgoing block is added at the top when its replacement lands; the first is
-the 2026-10-19 09:13–09:18Z block at `e486e3b5`, replaced by the 22:05Z block at `f3adacf1`.
+ledgers.
 
 **Links:** the text is unchanged apart from relative link targets repaired to resolve from this
 folder, including targets for records archived after this history was moved.
