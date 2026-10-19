@@ -758,13 +758,13 @@ test.describe('Screen Reader Support', () => {
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 /**
- * Pinned in `package.json` at `@axe-core/playwright` 4.13.0, which pins
- * `axe-core` to `~4.13.0`. Asserted at runtime because the registered node
+ * Pinned in `package.json` at `@axe-core/playwright` 4.14.0, which pins
+ * `axe-core` to `~4.14.0`. Asserted at runtime because the registered node
  * counts below are a function of the engine's rule set: a floating engine that
  * added or retired a rule would silently move every count, and the register
  * would then be recording the engine rather than the app.
  */
-const AXE_ENGINE_MAJOR_MINOR = '4.13';
+const AXE_ENGINE_MAJOR_MINOR = '4.14';
 
 interface AxeFinding {
   rule: string;
