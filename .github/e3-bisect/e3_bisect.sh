@@ -100,6 +100,7 @@ probe() {
 
   git -C "$REPO" worktree add --detach "$dir" "$commit" > "$pdir/checkout.log" 2>&1
   [ "$(git -C "$dir" rev-parse HEAD)" = "$commit" ] || die "checkout of $commit resolved elsewhere"
+  find "$dir/e2e/__screenshots__" -type f -print0 | sort -z | xargs -0 sha256sum > "$pdir/baselines-before.sha256"
 
   # Inputs held equal across the whole interval (pre-registered).
   if [ "$(git -C "$dir" rev-parse "HEAD:e2e/__screenshots__/linux")" != "$LINUX_BASELINE_TREE" ] \
@@ -110,14 +111,14 @@ probe() {
   fi
 
   if [ -z "$PROBE_CLASS" ]; then
+    # Chained with &&: `set -e` is ignored inside a subshell used as an `if` condition.
     if ! (
-      set -e
-      cd "$dir"
-      python -m venv .venv
-      .venv/bin/python -m pip install --upgrade pip
-      .venv/bin/python -m pip install -r requirements.txt
-      npm ci
-      npm run build:css
+      cd "$dir" \
+        && python -m venv .venv \
+        && .venv/bin/python -m pip install --upgrade pip \
+        && .venv/bin/python -m pip install -r requirements.txt \
+        && npm ci \
+        && npm run build:css
     ) > "$pdir/install.log" 2>&1; then
       PROBE_CLASS=INSTALL_FAIL
     fi
@@ -159,7 +160,6 @@ probe() {
 
   local classes=()
   if [ -z "$PROBE_CLASS" ]; then
-    find "$dir/e2e/__screenshots__" -type f -print0 | sort -z | xargs -0 sha256sum > "$pdir/baselines-before.sha256"
     for i in $(seq 1 "$INVOCATIONS"); do
       run="$pdir/run-$i"
       mkdir -p "$run"
@@ -210,6 +210,9 @@ probe() {
 
   record "$phase" "$commit" "$PROBE_CLASS" "$(IFS=,; echo "${classes[*]:-none}")" "$PROBE_ACTUAL" "$PROBE_DIFF" "$pixel_line"
   printf 'probe %s %s %s -> %s\n' "$ORDER" "$phase" "$commit" "$PROBE_CLASS"
+  # Up to eight probes share one runner disk; the probe's evidence is already in $pdir.
+  rm -rf "$dir/node_modules" "$dir/.venv"
+  df -h "$WORK" > "$pdir/disk-after.txt" 2>&1 || true
 }
 
 write_verdict() {  # verdict lo hi probes_used
@@ -220,11 +223,13 @@ write_verdict() {  # verdict lo hi probes_used
     printf 'first_bad=%s\n' "${POSITIONS[$hi]}"
     printf 'last_good_position=%s\nfirst_bad_position=%s\n' "$lo" "$hi"
     printf 'probes_used=%s\ninvocations_used=%s\n' "$used" "$((used * INVOCATIONS))"
+    printf 'image_version=%s\n' "${ImageVersion:-unset}"
     printf 'finished_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   } | tee "$OUT/verdict.env" >> "$GITHUB_OUTPUT"
   {
     printf '## E3 %s: %s\n\n' "$MODE" "$verdict"
-    printf 'Interval positions %s..%s: `%s`..`%s`\n\n```\n' "$lo" "$hi" "${POSITIONS[$lo]}" "${POSITIONS[$hi]}"
+    printf 'Interval positions %s..%s: `%s`..`%s`\n\n' "$lo" "$hi" "${POSITIONS[$lo]}" "${POSITIONS[$hi]}"
+    printf 'A boundary assumes one GOOD-to-BAD transition; untested positions are inferred, not observed.\n\n```\n'
     cat "$RESULTS"
     printf '```\n'
   } >> "$GITHUB_STEP_SUMMARY"
@@ -266,6 +271,9 @@ case "$MODE" in
     lo="$(position_of "$last_good")" || die "last good is not in the pre-registered interval"
     hi="$(position_of "$first_bad")" || die "first bad is not in the pre-registered interval"
     [ $((hi - lo)) -eq 1 ] || die "boundary commits are not adjacent first-parent positions"
+    printf 'bisect_image_version=%s\nconfirm_image_version=%s\nsame_image_version=%s\n' \
+      "${BISECT_IMAGE_VERSION:-unset}" "${ImageVersion:-unset}" \
+      "$([ "${BISECT_IMAGE_VERSION:-}" = "${ImageVersion:-}" ] && echo yes || echo no)" >> "$OUT/environment.txt"
     probe confirm "$last_good"; good_class="$PROBE_CLASS"
     probe confirm "$first_bad"; bad_class="$PROBE_CLASS"
     if [ "$good_class" = GOOD ] && [ "$bad_class" = BAD ]; then

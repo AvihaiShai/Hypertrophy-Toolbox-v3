@@ -25,6 +25,7 @@ jobs:
       verdict: ${{ steps.bisect.outputs.verdict }}
       last_good: ${{ steps.bisect.outputs.last_good }}
       first_bad: ${{ steps.bisect.outputs.first_bad }}
+      image_version: ${{ steps.bisect.outputs.image_version }}
 
     steps:
     - name: Checkout harness with full history
@@ -36,12 +37,12 @@ jobs:
 
     - name: Pin the interval's Python version
       shell: bash
-      run: git -C repo show b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8:.python-version > "$RUNNER_TEMP/python-version"
+      run: git -C repo show b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8:.python-version > "$GITHUB_WORKSPACE/python-version"
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
-        python-version-file: ${{ runner.temp }}/python-version
+        python-version-file: python-version
 
     - name: Set up Node.js
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -78,12 +79,12 @@ jobs:
 
     - name: Pin the interval's Python version
       shell: bash
-      run: git -C repo show b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8:.python-version > "$RUNNER_TEMP/python-version"
+      run: git -C repo show b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8:.python-version > "$GITHUB_WORKSPACE/python-version"
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
-        python-version-file: ${{ runner.temp }}/python-version
+        python-version-file: python-version
 
     - name: Set up Node.js
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -95,6 +96,7 @@ jobs:
       env:
         LAST_GOOD: ${{ needs.bisect.outputs.last_good }}
         FIRST_BAD: ${{ needs.bisect.outputs.first_bad }}
+        BISECT_IMAGE_VERSION: ${{ needs.bisect.outputs.image_version }}
       run: bash repo/.github/e3-bisect/e3_bisect.sh confirm "$LAST_GOOD" "$FIRST_BAD"
 
     - name: Retain complete diagnostic evidence
