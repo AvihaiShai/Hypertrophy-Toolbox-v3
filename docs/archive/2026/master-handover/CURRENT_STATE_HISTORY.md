@@ -7,7 +7,8 @@
 
 This file holds the former body of that section, moved here on 2026-10-19. It runs from 2026-09-08
 back to 2026-06-07 and includes the *Known Windows visual reds* and *Known LINUX visual reds*
-ledgers.
+ledgers. Each later outgoing block is added at the top when its replacement lands; the first is
+the 2026-10-19 09:13–09:18Z block at `e486e3b5`, replaced by the 22:05Z block at `f3adacf1`.
 
 **Links:** the text is unchanged apart from relative link targets repaired to resolve from this
 folder, including targets for records archived after this history was moved.
@@ -21,6 +22,170 @@ A constraint stated here is live only if the current block, or the record that o
 carries it.
 
 ---
+
+> **2026-10-19 — current state, measured against `origin/main` `e486e3b5` (#520, the head; #521
+> merged just before it).** Readings were taken 2026-10-19 between 09:13Z and 09:18Z. This block
+> replaces the dated status blocks of 2026-06-07 → 2026-09-08, which are preserved in
+> [`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](../../../archive/2026/master-handover/CURRENT_STATE_HISTORY.md).
+> Until the queue below is reconciled past 2026-09-02, this block is the authoritative statement
+> of state since that date. Linked records hold the detail.
+
+**Work queue (owner chose it on 2026-10-19):** [`OPEN_WORK_EXECUTION_PLAN.md`](../../../OPEN_WORK_EXECUTION_PLAN.md) — decision queue §15.4, parked §5, closed §6.
+
+That queue was last reconciled on 2026-09-02 at `5d3bc95` (§26). The main merges since then are
+listed below and have not yet been folded into it.
+
+**Maintenance rule.**
+- Replace this block in place and move the outgoing block to the archive file; never prepend a
+  new block.
+- `docs/MASTER_HANDOVER.md` is a never-claimed shared path, so coordinate each edit
+  ([`WORKSTREAM_OWNERSHIP.md`](../../../ai_workflow/WORKSTREAM_OWNERSHIP.md) rule 4).
+- Status and next steps come from this block. The *Next safe step* below is the current one. The
+  *Open Decisions*, *Blockers* and *Next Safe Step* sections after this block are historical.
+  *Active Workstreams* rows keep their own dates.
+- In those retained sections, a reference to an old Current State block or entry ("at the top
+  of this file", "this file's 2026-08-29 Current State block", "the top of `## Current State`"
+  and similar) now means the archive file. "The block above" or "the block below" inside one of
+  those sections still means the neighbouring block there, and references to the two ledger
+  headings at the end of this block still resolve here.
+
+### Trunk, CI and live readings
+
+| Reading | Value |
+|---|---|
+| `origin/main` | `e486e3b5`; its `main` CI run was green |
+| Open PRs | At 09:13Z, four, all Dependabot version bumps. This is a reading at one instant; run `gh pr list --state open` |
+| Open issues / Dependabot alerts | 0 / 0 |
+| Branch protection | 12 required contexts; `strict: false`; `JS Unit (Vitest, non-required)` absent |
+| Scheduled deep gate (Mondays 03:17 UTC) | **Red for 8 consecutive runs**, 2026-08-31 → 2026-10-19. In the two latest runs, only `Visual regression (Linux baselines)` failed. Read every run at job level, with `visual-linux` confirmed executed; never read the overall green |
+| `release.yml` | Dispatch runs only; `push: tags` has never fired |
+| Pyright baseline | 0 / 0 / 0 with no headroom. A net-new diagnostic fails `Type Check`; the fix is the code, never the baseline |
+| Test counts | [`test_inventory/TEST_INVENTORY.md`](../../../test_inventory/TEST_INVENTORY.md) is the single producer |
+
+### Landed since the queue's last cutoff (`5d3bc95`, 2026-09-02)
+
+| Date | PR | What |
+|---|---|---|
+| 09-02 | #481 | H-LINUX-UNSYNC-01 Gate 1 closeout ([`GATE1.md`](../../../deep_gate_linux_visual_failure_20260831/GATE1.md)) |
+| 09-03 | #482, #483 | Optional-audit revalidation and `fast-uri`; guard blocks MSYS path-conversion overrides |
+| 09-06 → 09-08 | #484, #485, #490 | Operation A prevention and lifecycle controls; auto-mode confirmation denial; retention protections kept in auto mode |
+| 09-16 | #491, #494 | `Run Tests` timeout raised 20 → 35 min, plus colord/js-yaml; guard denies agent `git rm` |
+| 10-17 | #509 | Werkzeug, undici and source-map-js fixed; temporary `braces` allowlist entry (since retired) |
+| 10-17 | #508, #510, #511 | Guard registration contract closes 15 fail-open charter shapes; guard argument, field-scan and `agent_id` tightening (source only); Vitest inventory collector pinned |
+| 10-17 | #516, #517 | `braces` ruling and renewal proposal ([`NPM_AUDIT_SEVERITY_POLICY_DECISION.md`](../../../NPM_AUDIT_SEVERITY_POLICY_DECISION.md) §6.2–§6.3) |
+| 10-18 | #514, #515 | Feature navigation repaired ([`README.md`](../../../README.md) *Feature folders*); retention age gate replaced by replacement and reference checks |
+| 10-18 | 8 PRs, #487–#518 | Dependabot version bumps |
+| 10-18 | #507 | Worktree-cleanup closeout record ([`worktree_cleanup/CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md)) |
+| 10-18 | #519 | `braces` remediated by an exact-fork override; waiver retired; allowlist empty; issue #513 closed ([`BRACES_REMEDIATION.md`](../../../BRACES_REMEDIATION.md)) |
+| 10-19 | #521 | CI/CD B1: actions pinned to full SHAs, workflow permissions narrowed ([`ci_cd_expansion/PLANNING.md`](../../../ci_cd_expansion/PLANNING.md)) |
+| 10-19 | #520 | WS1a: two closed records archived |
+
+### Holds in force
+
+- **Operation A: `PREVENTION_COMPLETE` is not declared.**
+  - Merged source: #484, #485, #490, #494, #508 and #510.
+  - #510 excluded deployment; installation and acceptance are owner-only
+    ([CLOSEOUT §19.5–§19.6](../../../worktree_cleanup/CLOSEOUT.md)).
+  - The owner-only remainder is listed in [`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19.6:
+    - a fresh preflight and guard-contract session;
+    - a *natural* 07:00 `OperationA-WorktreeAudit` firing, or a ruling on `StartWhenAvailable`;
+    - a review of the 21 non-zero audit exits;
+    - disposition of the ~89 `ORPHANED_ANNOTATION` rows and the drive baseline (until then,
+      worktree creation fails closed);
+    - guard runtime qualification;
+    - the G07 and C02 decisions;
+    - whether to sync the main checkout.
+- **No standing teardown authority.**
+  - The 2026-10-16/17 directives were scoped to named targets and are spent
+    ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §15–§18, §20).
+  - Still parked: Operation E and main reconciliation, `worktree_cleanup_amendment/`, and
+    Operations F/G.
+  - Still retained: the branches, stashes and `refs/closeout/…` pins listed in §20.
+  - The two `docs/worktree_cleanup/PLANNING.md` lineages are unreconciled, and the local copy is
+    not to be staged.
+  - Reviewer findings M3, M4 and L1 have unknown dispositions. Items waived in §11 are not passes.
+- **Sequencing.**
+  - The [`WORKTREE_CLEANUP_PLAN.md`](../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md) §1.2 order still binds
+    Operations B–E: prevention, then open-development closeout, then separately approved cleanup.
+  - Under the owner's 2026-10-19 delegation (not a Gate 0 or Gate 1 signature), isolated
+    application-factory, service-extraction and dependency-group work does not wait for
+    `PREVENTION_COMPLETE`; each still needs its own gates.
+- **Visual baselines.**
+  - Regenerating Linux or Win32 baselines requires separate owner authorization.
+  - A red comparison is not a regeneration mandate.
+  - `--update-snapshots` is never the resolution of a red.
+
+### Owner decisions open
+
+1. **R2.3 — Q4/D2** (make `JS Unit` required): unsigned. The strict mark `2026-09-10T23:18:21Z`
+   has passed; that is a precondition, not a signature. The ledger ends at row 64, and later runs
+   are unrecorded; see [`STEP12_JS_UNIT_GATE0.md`](../../../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0.
+2. **R2.4** (`visual-linux` in the release gate): unsigned. ADR-007's three-consecutive-green
+   threshold is unmet.
+3. **R3:** the tag trigger is unproved. Only a real version tag that the owner names can prove it.
+4. **H-LINUX-UNSYNC-01** (options A–D, queue §26.5): CI/CD Gate 0 (CI-D1) approved the requirement
+   for bounded compare-only bisect A of `31659a59..b36ea9e`. Running it (packet E3) needs a named
+   diagnostic extension and execution authority. Fixes, broader matrices and baseline changes are
+   unauthorized.
+5. **CI/CD expansion** ([`ci_cd_expansion/PLANNING.md`](../../../ci_cd_expansion/PLANNING.md)): core
+   Plan v2 approved at Gate 1. B1 was the only authorized packet and is merged. Every other packet
+   needs its own execution authority, and repository settings are owner-run.
+6. **U1-FOLLOWUP-1** is open and required, but unplanned. Its condition is to be re-read against
+   [`toast_action_continuity/PLANNING.md`](../../../toast_action_continuity/PLANNING.md) §4.3
+   ([`volume_failure_feedback/PLANNING.md`](../../../volume_failure_feedback/PLANNING.md) §v2.14).
+7. **Dependency PRs (Track D1):** triage is open to agents; landing one needs explicit owner
+   authorization. Dependabot security updates are off (D-6), so alerts need human-opened PRs.
+
+### Dated items
+
+- `braces` / #513: closed 2026-10-18 by #519. The 2026-11-14 waiver expiry no longer applies, and
+  the deliberately skipped watcher bump stays skipped.
+- Fatigue Stage-4 handoff: earliest archive review 2026-11-20 (queue §7).
+
+### Standing constraints and parked work
+
+- **Decisions:** ADR-003 through ADR-012 in [`DECISIONS.md`](../../../DECISIONS.md) are settled and remain
+  in force.
+- **CI:**
+  - Required check names are fixed. Three required contexts carry a deliberately false
+    "(non-required)" suffix: E2E Fatigue Context, E2E Erase Flow and JS Supply Chain.
+  - A test-node change regenerates `docs/test_inventory/`.
+  - Coverage is non-blocking.
+- **Product:**
+  - Effective sets are informational only.
+  - Calculation paths add `product-risk-reviewer` ([`QUALITY_GATE.md`](../../../ai_workflow/QUALITY_GATE.md)).
+- **Parked and closed work:** queue §5 and §6 list them. Reopening any of them takes a new owner
+  decision. This includes:
+  - P3 beyond `P3-a0`;
+  - R4, which forbids unlinking `theme-dark.css`;
+  - Fatigue (see the *Active Workstreams* fatigue row; calibration guardrails in
+    [`ACTIVE_DEVELOPMENT.md`](../../../ACTIVE_DEVELOPMENT.md), cited by `scripts/fatigue_stage4_observer.py`);
+  - the app.py review.
+- **Accessibility:** owner-deferred exceptions live in
+  [`testing_phase2/A11Y_EXCEPTIONS.md`](../../../testing_phase2/A11Y_EXCEPTIONS.md), which tests read.
+
+### Preserved obligations in feature folders
+
+- [`agent_roles/`](../../../agent_roles/PLANNING.md): Phase 6 is conditional.
+- [`ki005_controls_persistence/`](../../../ki005_controls_persistence/PLANNING.md): Stage 4 restoration held.
+- [`testing_d4_invariants/`](../../../testing_d4_invariants/PLANNING.md): Packet C is deferred.
+- [`finding1_residual/`](../../../finding1_residual/PLANNING.md): residual behavior needs a current reference.
+- [`backup_confirmation_continuity/`](../../../backup_confirmation_continuity/PLANNING.md): residual-risk reconciliation.
+- [`release_pipeline/`](../../../release_pipeline/PLANNING.md): R3, deep-gate entry conditions.
+- [`deep_gate_linux_visual_failure_20260831/`](../../../deep_gate_linux_visual_failure_20260831/GATE1.md): decision 4.
+- [`visual_determinism/`](../../../visual_determinism/PLANNING.md): the ADR-011 residual.
+- [`volume_failure_feedback/`](../../../volume_failure_feedback/PLANNING.md): U1-FOLLOWUP-1.
+- [`toast_action_continuity/`](../../../toast_action_continuity/PLANNING.md): U1-FOLLOWUP-1's amended condition.
+- [`worktree_cleanup/`](../../../worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
+- [`ci_cd_expansion/`](../../../ci_cd_expansion/PLANNING.md): packets after B1.
+
+The full list is [`README.md`](../../../README.md) *Feature folders → Active*.
+
+### Next safe step
+
+No engineering packet is in flight, and none starts automatically. Agents may run `/status`,
+triage Dependabot PRs, and do read-only design work. Other work waits on an owner decision listed
+above, or on its own Gate 0/1 sign-off.
 
 > **2026-09-08 — OPERATION A SOURCE INTEGRATION READY FOR OWNER REVIEW; NOT DEPLOYED.**
 > The owner-authorized standalone clone combines the installed rev-4 retention
