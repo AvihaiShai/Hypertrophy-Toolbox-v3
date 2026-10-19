@@ -2,12 +2,12 @@
 
 | Field | Value |
 |---|---|
-| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19, including all five accepted findings. B1 merged (#521, `77f400bb`); A1 authorized and claimed (§14); E3 separately authorized to another session.** Other packets require later execution authority; delivery council/Gate 1 remain separate. |
+| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19, including all five accepted findings. B1 merged (#521, `77f400bb`); A1 merged (#530, `f3adacf1`, §14); E3 merged (#529, `c7fec052`). B2 and E1+D3 authorized 2026-10-20 and claimed, in progress (§15). B3 and later packets not started.** Other packets require later execution authority; delivery council/Gate 1 remain separate. |
 | Authors | Historical draft: Claude and Astra, 2026-10-18. Formal council document owner: `product-manager` `/root/product_manager`, 2026-10-19; read-only manager `/root`. |
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
 | Planning size | Large (new workflows, new jobs, repo-settings changes) — per `docs/ai_workflow/QUALITY_GATE.md` plan-stage routing: Gate 0 → council (`/council-plan`) → Gate 1 → implementation |
-| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), ready / open, not merged |
+| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), merged 2026-10-19T19:06:48Z. E3: `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529), merged 2026-10-19T19:06:05Z. B2: `ci/b2-workflow-lint`; PR pending. E1+D3: `ci/e1-d3-deep-gate-observability`, stacked on B2; PR pending |
 
 ### Review log
 
@@ -19,6 +19,7 @@
 | 2026-10-19 | `/root/architecture_reviewer`, `/root/test_strategist`, `/root/product_risk_reviewer` | Formal independent council Step 2 | All completed; AR-1/AR-2 and TS-1/TS-2/TS-3 recorded verbatim in §12.2; product-risk review returned no findings. |
 | 2026-10-19 | `/root` → resumed `/root/product_manager` | Formal Steps 3–4 | Manager proposed acceptance of all five findings; same PM wrote §12.3 matrix and §12.4 Plan v2, completed provenance, and reconciled operative §§0–9. No reject/defer or repeated review pass. |
 | 2026-10-19 | Owner | Core Gate 1 and B1 execution | Approved §12.4 including the five accepted findings; authorized B1 implementation, gates, independent code-reviewer, push and ready PR. Stop before merge; §13 records execution. |
+| 2026-10-20 local (+03:00); 2026-10-19 UTC | Owner | B2 and E1+D3 execution; ledger follow-up | Authorized B2, E1+D3 as one coherent observability change, four documentation follow-ups, and implementation/tests/independent reviews/bounded rehearsals/commits/pushes/ready PRs. Stop before merge. Settings, C4, credentials, spending, release publication and B3+ excluded. §15 quotes the boundaries. |
 
 ---
 
@@ -27,6 +28,7 @@
 Other sessions share this repository; preserve their changes. The council originally owned only this planning document. The owner subsequently approved core Gate 1 and authorized B1 alone; §13 records that authority. The following controls apply to implementation; they do not authorize any other packet.
 
 1. **Nothing in §4 starts before its applicable Gate 1 and execution authority.** Gate 0 was approved 2026-10-19 for requirements and formal core planning only. Formal core council and owner Plan v2/Gate 1 approval are complete; only B1 has execution authority in this session. F1/F3 require their own scoped delivery council/Gate 1. §10 and §11 consultations are advisory evidence, not formal reviews. Q4/D2, credentials, spending, settings, PR merge and publication remain separate owner actions.
+   *Dated supersession, 2026-10-20 (2026-10-19 UTC):* the text above is retained as written. A1 (§14) and E3 later received their own authority and merged. The 2026-10-20 owner authorization adds execution authority for **B2 and E1+D3 only** (§15); B3 and every later packet still lack it.
 2. **Claim before you start.** Write your name and the date in the §7 ledger row. One packet is one PR. Two agents never hold the same packet.
 3. **Isolated implementation copies.** Follow `docs/ai_workflow/PARALLEL_WORKFLOW.md` and `scripts/new-worktree.ps1` before parallel work touching tests, DB or dev servers, preserving the Operation A hold. Read-only council reviewers and one planning-document writer need no DB/worktree activity. Never stash, reset or incorporate another session's changes.
 4. **One `ci.yml` PR in flight at a time.** Proposed order: B1 → A1 → B2 → B3 → A2 → A3 → G6 → G7; B4 may follow any merged slot after A1, but **must never delay B1**. E1/D3 and promotion-contract packets also serialize whenever they touch the same workflow. Each starts from current `origin/main` after the prior merge; merges require owner authority. B2/B3/G6/G7 priorities may move between free slots without weakening their dependencies or gates.
@@ -388,17 +390,17 @@ The contract PR distinguishes `PR_REQUIRED_CONTEXTS` from `RELEASE_EXPECTED_CONT
 
 ## 7. Ledger
 
-B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A1 is claimed by Claude Code, 2026-10-19, under separate owner authority (§14); E3 is held by another session under its own authority and records its own row. All other packets remain unclaimed and unauthorized. Core Gate 1 is approved; `blocked` now names remaining packet-specific prerequisites or execution authority, not missing core Gate 1 or Gate 0. `deferred` and `separate milestone` distinguish excluded work. No PR/head/run is invented; §11.5 evidence qualifies only its named criterion, never implementation or owner approval.
+B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A1 was claimed by Claude Code, 2026-10-19, under separate owner authority (§14), and merged through #530. E3 was held by another session under its own authority and merged through #529. B2, D3 and E1 are claimed by the CI coordinating lead under the 2026-10-20 owner authorization (§15). All other packets remain unclaimed and unauthorized. Merge receipts for A1 and E3 were verified by the lead with `gh pr view` / `gh run list` at 2026-10-19T22:1xZ and recorded by the product-manager; §§13–14's historical receipts are not rewritten. Core Gate 1 is approved; `blocked` now names remaining packet-specific prerequisites or execution authority, not missing core Gate 1 or Gate 0. `deferred` and `separate milestone` distinguish excluded work. No PR/head/run is invented; §11.5 evidence qualifies only its named criterion, never implementation or owner approval.
 
 | Packet | Owner (proposed) | Status | Branch / PR | Head SHA | Evidence (run id, job, value) | Notes |
 |---|---|---|---|---|---|---|
-| A1 | Claude Code (A1 session), 2026-10-19 | implemented; local gates and both independent reviews complete; ready PR, not merged | `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530) | published head `18fc388a38cd4efcd9140aaf9cdfa3f49b0ad6db` (code tree `0e4f342` + review nits) | PR run `39289691671` 25/25 success, last required context 10.4 min (baseline 28.2–32.3); bench `39270742974` attempts 1–2; rehearsals `39285097596`, `39285103455`, `39285105591`, `39285108590`, `39285112726`, `39288227037`; local full pytest 5,330 passed / 2 skipped at `0e4f342`; §14 | Stop before merge. B2 not started; `download-artifact` joins the C3 candidate set |
+| A1 | Claude Code (A1 session), 2026-10-19 | **merged** 2026-10-19T19:06:48Z by AvihaiShai as squash `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d` | `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530) | published head `18fc388a38cd4efcd9140aaf9cdfa3f49b0ad6db` (code tree `0e4f342` + review nits, §14.6); final PR head `699c56820603237fc490ced3114d359b00f37cf9` | PR run `39289691671` 25/25 success, last required context 10.4 min (baseline 28.2–32.3); bench `39270742974` attempts 1–2; rehearsals `39285097596`, `39285103455`, `39285105591`, `39285108590`, `39285112726`, `39288227037`; local full pytest 5,330 passed / 2 skipped at `0e4f342`; §14. Final head: PR run `39291809942` (`pull_request`, attempt 1) success, rollup 25/25 success. Post-merge `main` push run `39308234107` on `f3adacf1`, attempt 1, success | Closed. Final head advanced after §14.6; §14's receipts are historical. `download-artifact` joins the C3 candidate set. §14.7's post-merge timing confirmation is not recorded here; no scheduled Deep Gate has run since A1 |
 | A2 | Astra | blocked | | | | Core Gate 1; identities preserved; not a promotion prerequisite |
 | A3 | Claude | blocked | | | | Core Gate 1; after A1; four-leg fan-in proof |
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
 | A5 | either | deferred | | | | CI-D5; no docs filtering in core |
 | B1 | Codex `/root`, 2026-10-19 | **merged** 2026-10-18T23:46:43Z by the owner as squash `77f400bb331e1de631a32114a7cc9996f5b5dd1e` | `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521) | implementation `1dfe011b1533f1339660b72a60249b390b296104`; final PR head `c91986bf376a1a09f055c4ee4dc4cb4d27bb601e` | Local: §13.1 unchanged. PR run `39171777513` (final head) 19/19 success; post-merge `main` push run `39177927596` on `77f400bb` success; post-merge scheduled Deep Gate `39226020933` 6/7 success, only pre-existing `visual-linux` red; §13.2 | Closed. C3/settings remain unauthorized |
-| B2 | Astra | blocked | | | | after B1 |
+| B2 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | in progress — implemented, local gates and both acceptance rehearsals complete; both first reviews approve with nits; delta reviews and PR pending | `ci/b2-workflow-lint` | base `origin/main` `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`; implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, review fixes `9823beb9c7ba1f3f800dcfdabca349c472035595`; PR head pending | Local full pytest 5,356 passed / 2 skipped / 0 failed at `9823beb9`; mutation 72/72 killed, 6/6 controls green; actionlint and zizmor clean offline and online at `9823beb9`; rehearsals `39342689323` green control success, `39342691486` seeded PR-title red (both linters); baseline §15.3; §§15.5–15.6. PR run pending | Authorized 2026-10-20 (§15). Not in `REQUIRED_CONTEXTS`; promotion is C4 |
 | B3 | Astra | blocked | | | | after B2 |
 | B4 | Claude | blocked | | | | After A1 free slot; non-blocking measurement; never delays B1 |
 | B5 | Claude | deferred | | | | Unique scanner value unproven; no removal |
@@ -409,9 +411,9 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | C5 | Owner | blocked | | | | Core Gate 1; owner disable; retain history |
 | D1 | Claude | blocked | | | | Core Gate 1 + OAuth/app; trusted orchestration/isolated config and adversarial/fresh-head proof; subscription only |
 | D2 | Astra | deferred | | | | Paired-trial proposal requires evidence, spend cap, credential |
-| D3 | Claude | blocked | | | | Core Gate 1; E1 monitoring; newer executed-compare recovery distinct from schedule freshness |
-| E1 | either | blocked | | | | Core Gate 1; both monitors active at split |
-| E3 | Claude Code session `hypertrophy-toolbox-v3-main-3f`, 2026-10-19 | executed; ready PR, not merged | `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529) | harness `abf65918e01af75c0de9352a45fd0a9741d2ba70` (never-merged `diag/e3-h-linux-unsync-01-bisect`) | Run [`39276388378`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39276388378): `BOUNDARY_FOUND` then `CONFIRMED`; one capture, first-parent boundary `e6e57eac` (#463) → `e9eff89a` (#464); 10 probes / 30 invocations; [GATE2.md](../deep_gate_linux_visual_failure_20260831/GATE2.md) | No fix or visual-policy change; GATE1 options B/C/D remain owner decisions |
+| D3 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | in progress — stacked on B2 (serialized: B2 edits every `deep-gate.yml` checkout and adds the lint that gates the new workflows); PR pending | `ci/e1-d3-deep-gate-observability` | pending | pending | Authorized with E1 as one change, 2026-10-20 (§15.1). E1 monitoring; newer executed-compare recovery distinct from schedule freshness; one registered `dangerous-triggers` suppression expected (§15.4) |
+| E1 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | in progress — stacked on B2 (serialized: B2 edits every `deep-gate.yml` checkout and adds the lint that gates the new workflows); PR pending | `ci/e1-d3-deep-gate-observability` | pending | pending | Authorized with D3 as one change, 2026-10-20 (§15.1). Both monitors active at split |
+| E3 | Claude Code session `hypertrophy-toolbox-v3-main-3f`, 2026-10-19 | executed; **merged** 2026-10-19T19:06:05Z by AvihaiShai as squash `c7fec0523f35f39d15b0e204edd2cfdf02650656` | `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529) | harness `abf65918e01af75c0de9352a45fd0a9741d2ba70` (never-merged `diag/e3-h-linux-unsync-01-bisect`); final PR head `390ae1bf17d4a8bddc349a2c045e79e976666f63` | Run [`39276388378`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39276388378): `BOUNDARY_FOUND` then `CONFIRMED`; one capture, first-parent boundary `e6e57eac` (#463) → `e9eff89a` (#464); 10 probes / 30 invocations; [GATE2.md](../deep_gate_linux_visual_failure_20260831/GATE2.md). Final head: PR run `39278678473` (`pull_request`) success, rollup 19/19 success. Post-merge `main` push run `39308135423` on `c7fec052` success | No fix or visual-policy change; GATE1 options B/C/D remain owner decisions |
 | F1 | Astra | separate milestone | | | | Delivery council/Gate 1; candidate before publication |
 | F2 | tbd | deferred | | | | No signing purchase/credential/identity authority |
 | F3 | Claude | separate milestone | | | | Delivery council/Gate 1; exact candidate ZIP, before publication |
@@ -1400,3 +1402,321 @@ success.**
 - **Rep 2 and every rehearsal ran inside an open GitHub Actions incident.**
 - `release.yml` is untouched. The release gate still reads the exact `Run Tests` name;
   no tag rehearsal was run.
+
+## 15. B2 execution — 2026-10-20
+
+Recorded by `product-manager` from the coordinating lead's relay. This agent did not read
+the owner's message directly; the quotations below are the lead-supplied verbatim excerpts.
+Evidence in §§15.5–15.6 is as the lead reported it, tied to the branch's two commits:
+implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, then review fixes
+`9823beb9c7ba1f3f800dcfdabca349c472035595`. Short forms `704016f5` / `9823beb9` refer to
+these. Delta reviews, the PR run and the post-merge run are still pending. Nothing pending
+is filled in advance.
+
+### 15.1 Authority
+
+Owner authorization, 2026-10-20 local (+03:00), 2026-10-19 UTC. Verbatim excerpts:
+
+> I authorize:
+> - B2: workflow lint with actionlint and zizmor.
+> - E1 + D3: separate Linux visual workflow and deterministic Deep Gate monitoring, delivered together as the coherent observability change permitted by the plan.
+> - The four documentation follow-ups below.
+> - Necessary implementation, tests, independent reviews, bounded CI rehearsals on existing infrastructure, commits, pushes, and ready PRs.
+>
+> Stop before merging. Repository settings, required-check promotion/C4, credentials, spending, release publication, and later CI packets remain outside this authorization. Publishing AGREED_PLAN.md into a documentation PR is explicitly authorized.
+>
+> Preserve the sequence: B1 → A1 → B2 → B3 → A2 → A3 → G6 → G7. B2 has priority. Do not begin B3 or later packets.
+>
+> Documentation follow-ups: Correct A1 and E3 ledger statuses from verified merge receipts, preserving historical execution evidence.
+>
+> Agent organization: product-manager owns writes to the CI PLANNING.md, including execution authority, claims, ledger reconciliation, and evidence. senior-developer owns implementation. automation-qa owns acceptance tests. A documentation writer owns the handover, queue reconciliation, and AGREED_PLAN publication. Independent code-reviewer and architecture-reviewer review the implementation.
+
+The lead summarized, not quoted, the other three documentation follow-ups: handover
+refresh, `OPEN_WORK` queue reconciliation and Q9 `AGREED_PLAN.md` publication. They ship
+in a separate documentation PR on branch `docs/ci-ledger-handover-queue-q9` and do not
+edit this file. The first follow-up (A1/E3 ledger statuses) is this file's §7 and header
+update, from the receipts the lead verified at 2026-10-19T22:1xZ.
+
+**Boundaries as applied here.**
+- Authorized: B2; E1+D3 as one change; implementation, tests, independent reviews, bounded
+  rehearsals on existing GitHub Actions infrastructure, commits, pushes and ready PRs.
+- Not authorized: any merge; repository settings or branch protection; C4 or any
+  required-check promotion; credentials; spending; release publication.
+- B3 and every later packet (A2, A3, G6, G7 and all others) are **not started**.
+  `Workflow Lint (actionlint + zizmor)` is not added to `REQUIRED_CONTEXTS` or
+  `scripts/release_gate.py`; that change belongs to C4.
+- This section supersedes the earlier "B1 only" and "A1 alone" statements (§0.1, §5
+  batch 0, §9, §12.4, §§13–14) for B2 and E1+D3 alone. Historical text is retained.
+
+### 15.2 Claim, isolation and coordination
+
+- **Claim.** Claude Code (Opus) CI coordinating lead, 2026-10-20, for B2, D3 and E1 (§7).
+  Live path claims are in the shared checkout's gitignored
+  `docs/ai_workflow/WORKSTREAM_OWNERSHIP.local.md`. The lead reports that the A1 and E3
+  rows there were released on their merge evidence. No open PR existed at
+  2026-10-19T22:1xZ.
+- **Isolation.** Standalone clone `D:/development/Hypertrophy-Toolbox-v3-ci-b2-20261020`
+  on `ci/b2-workflow-lint`, from `origin/main`
+  `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`, with its own `.git`, `.venv` and
+  `node_modules`. It was made as a local clone and its remote then set to GitHub. No
+  linked worktree, shared DB, stash, reset or other-session edit. The shared checkout's
+  untracked copy of this plan is a divergent stale lineage and is not used.
+- **Serialization.** B2 is the only `ci.yml` PR in flight (§0.4). E1+D3 is stacked on B2
+  on `ci/e1-d3-deep-gate-observability`: B2 edits every `deep-gate.yml` checkout and adds
+  the lint that gates the new workflows. This departs from §0.4's "each starts from
+  current `origin/main` after the prior merge". The E1/D3 section, shipped on its own
+  branch, records how that PR's base and evidence are reconciled after B2 merges. The
+  `architecture-reviewer` (§15.5) endorsed the stacking on two conditions: B2's review
+  fixes land first, and the merge order is stated. The lead reports both met: the fixes
+  are `9823beb9`, and B2 merges before E1+D3.
+- **Other lanes.** The lead noted an advisory claim on `OPEN_WORK` held by a
+  docs-cleanup lane; the separate documentation PR coordinates with it.
+- **Observed concurrent activity (E1 coordination note).** Manual Deep Gate run
+  `39331294762` (`workflow_dispatch`, branch `visual/linux-baseline-resync-20261020` at
+  `f3adacf1`) was in progress at 2026-10-19T22:1xZ. It was triggered from the owner
+  account by an unidentified session, with no claim or PR. It is **not interpreted** and
+  is not evidence for any packet. No scheduled Deep Gate has run since A1 merged.
+
+| Role | Agent | Owns |
+|---|---|---|
+| `product-manager` | this agent | This file only: authority, claims, ledger, evidence |
+| `senior-developer` | — | B2 implementation |
+| `automation-qa` | — | The headed B2 section of `tests/test_ci_expansion_contracts.py` and its mutation proof |
+| `code-reviewer` | Claude Code subagent launched by the lead, 2026-10-20 (UTC 2026-10-19) | Independent review of the B2 implementation (§15.5) |
+| `architecture-reviewer` | Claude Code subagent launched by the lead, 2026-10-20 (UTC 2026-10-19) | Independent review of the B2 implementation (§15.5) |
+| Documentation writer | — | Separate docs PR (`docs/ci-ledger-handover-queue-q9`) |
+
+Internal agent IDs were not recorded, so none is stamped and none is invented.
+
+### 15.3 Baseline lint measurement on `f3adacf1`
+
+Measured by the lead, 2026-10-20 local, over `.github/workflows` at `origin/main`
+`f3adacf1`. Local Windows builds of the pinned versions were used for verification only;
+CI runs the Linux release assets of the same versions (§15.4).
+
+| Tool / mode | Result |
+|---|---|
+| actionlint 1.7.12, no shellcheck | clean |
+| actionlint 1.7.12 + shellcheck 0.11.0 | 4 × `SC2016` (info), all in `ci.yml` run blocks: line 214 (two hits), 954, 1334. Intentional single-quoted `$` literals |
+| zizmor 1.30.1 `--min-severity medium`, offline | **34 findings.** 31 × `artipacked` (every `actions/checkout` without `persist-credentials: false`: 19 `ci.yml`, 6 `deep-gate.yml`, 5 `release.yml`, 1 `_packaged-windows.yml`); 2 × `cache-poisoning` (`release.yml` setup-python `cache: 'pip'` in the tag-triggered workflow); 1 × `template-injection` (`release.yml` `${{ github.ref }}` in a `run:` block) |
+| zizmor 1.30.1, online | `artipacked` reported as Low; the other three findings identical |
+| zizmor, repository-root scan | adds 3 × `dependabot-cooldown` on `.github/dependabot.yml` |
+
+The `dependabot-cooldown` findings are **out of B2 scope**: B2 lints
+`.github/workflows` only, and changing Dependabot cadence is a D-6-adjacent owner
+decision. Recorded as an observation and possible follow-up; `dependabot.yml` is not
+changed.
+
+### 15.4 Design
+
+Source: the lead's B2 implementation brief ("Required job shape" and its rationale),
+read by this agent.
+
+**Job.** `workflow-lint` / `Workflow Lint (actionlint + zizmor)` in `ci.yml`:
+`ubuntu-latest`, `timeout-minutes: 10`, job `permissions: {contents: read}`. No `needs`,
+no job `if:`, no `continue-on-error`, no `|| true`, no path filter. It runs on every PR
+and every `main` push.
+- Checkout uses the B1-pinned `actions/checkout` with `persist-credentials: false`.
+- One install step downloads the three release assets into `$RUNNER_TEMP` with
+  `curl --fail --proto '=https' --proto-redir '=https'`, `--retry 3 --retry-all-errors`,
+  `--connect-timeout 15` and `--max-time 120`. It verifies all three with
+  `sha256sum --check --strict` before any extraction or execution, and prints each
+  version. Retries, timeouts and `--proto-redir` were added in `9823beb9` (§15.5).
+- `actionlint` runs with `-shellcheck=` pointing at the pinned binary and `-pyflakes=`
+  (optional pyflakes integration disabled).
+- `zizmor --min-severity medium --format plain .github/workflows` runs under
+  `if: ${{ !cancelled() }}`, so it reports even when actionlint fails. It runs online
+  with `GH_TOKEN: ${{ github.token }}` (read-only).
+
+**Pins.** All three digests match the GitHub-published release-asset digests, verified by
+the lead through the releases API.
+
+| Tool | Version | Asset | SHA-256 |
+|---|---|---|---|
+| actionlint | 1.7.12 | `rhysd/actionlint` `actionlint_1.7.12_linux_amd64.tar.gz` | `8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8` |
+| zizmor | 1.30.1 | `zizmorcore/zizmor` `zizmor-x86_64-unknown-linux-gnu.tar.gz` | `e65324f4430c2717591937edcec90ccbefaf14c174f8ec9415e03ca875b46e1a` |
+| shellcheck | v0.11.0 | `koalaman/shellcheck` `shellcheck-v0.11.0.linux.x86_64.tar.gz` | `b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6` |
+
+**Rationale.**
+- zizmor 1.30.1 was chosen over 1.31.x as the newest release at least five weeks old (the
+  lead's selection).
+- shellcheck is pinned because actionlint otherwise uses whatever the runner image ships.
+- No new action is adopted, so the C3 candidate set is unchanged. The three binaries are
+  recorded as non-Action tools in
+  [B1_ACTION_INVENTORY.md](B1_ACTION_INVENTORY.md#non-action-tool-binaries-b2), written by
+  the senior-developer. The lint job's pinned checkout takes `ci.yml` from 62 to 63
+  remote `uses:` and the repository from 91 to 92, per the senior-developer's count.
+- **Online-mode consequence.** zizmor's pin audits (impostor commit, ref/version mismatch,
+  known-vulnerable actions) run, so a newly published advisory for a pinned action can red
+  this job. The repair is a reviewed pin bump, never a suppression. Because online mode
+  rates `artipacked` Low, the CI job alone would not catch a reintroduced persisted
+  credential at `medium`; the repository-wide `persist-credentials: false` contract in
+  the B2 test section covers that. Online mode also couples the job to GitHub API
+  availability (§15.5).
+- Not added to `REQUIRED_CONTEXTS`; promotion waits for C4 (§6, §11.5).
+
+**Remediation plan (no weakening).** Applied in `704016f5`; §15.5 records the outcome.
+1. `persist-credentials: false` on every `actions/checkout` in all four workflows, after
+   showing that no job needs persisted git credentials.
+2. Remove `cache: 'pip'` from the two flagged `release.yml` setup-python steps.
+3. Replace `${{ github.ref }}` in the `release.yml` `run:` block with `"$GITHUB_REF"`, and
+   check every other `run:` for attacker-controllable expansion.
+4. The four `SC2016` infos: an inline `# shellcheck disable=SC2016` with a one-line reason
+   at each site, or a byte-for-byte behaviour-preserving rewrite. No blanket disable.
+5. B2 adds no zizmor configuration file and no `zizmor: ignore[...]` comment.
+
+Target: actionlint (with pinned shellcheck) clean and zizmor `--min-severity medium` clean
+in both offline and online mode.
+
+**Contracts.** A headed B2 section of the existing `tests/test_ci_expansion_contracts.py`
+(automation-qa), per the §12.4 file table; no new test file. It covers job identity,
+triggers without path filters, permissions, exact pins and download/verify order, step
+flags, linter-softening environment, repo-wide checkout/injection/cache guards, a
+suppression register (explicit allowlist with exact counts, starting with B2's `SC2016`
+entries and no zizmor entries), and absence from `REQUIRED_CONTEXTS`. Each assertion
+family has a recorded mutation that turns it red (§15.5).
+
+**E1/D3 implication.** zizmor flags every `workflow_run` trigger as `dangerous-triggers`
+(High). D3's `deep-gate-watch.yml` uses `workflow_run` by design (§4 D3), so the E1/D3 PR
+will carry one explained inline suppression, registered in the suppression allowlist and
+reviewed in that PR. B2 itself adds none.
+
+### 15.5 Gates and reviews
+
+**Required union.** The diff edits workflows (one job added), Python tests (the B2 section
+of an existing test file) and the generated inventory. That requires:
+- full pytest;
+- `code-reviewer` and `architecture-reviewer`;
+- a pyright baseline diff;
+- the blocking flake8 selection on changed Python;
+- inventory regeneration plus `--check`;
+- local actionlint and zizmor clean.
+
+No product, route, template, JS or CSS change is involved, so no Chromium gate applies.
+All figures below are as the lead reported them.
+
+**Tests first.** automation-qa wrote the B2 contracts before the implementation existed:
+25 tests, of which 18 failed and 7 passed before implementation. After the review fixes
+the B2 section holds 26 tests, and `tests/test_ci_expansion_contracts.py` holds 113 (A1's
+87 plus B2's 26).
+
+**Mutation proof.** The mutation driver was a scratch script and was never committed.
+- At `704016f5`, it killed 57 / 57 arms.
+- At `9823beb9`, it killed 72 / 72 arms, and all 6 / 6 unmutated controls stayed green.
+- The arms include:
+  - an unpinned digest; verification after `tar`; `sha256sum --ignore-missing` or
+    `--quiet`; a dropped `--fail` or `--proto`; `wget`;
+  - `|| true`, `continue-on-error`, a job `if:`, a paths filter;
+  - zizmor `--min-severity high`, `--offline` or `--no-exit-codes`;
+  - linter-softening environment variables (`SHELLCHECK_OPTS`, `ZIZMOR_OFFLINE`,
+    `ZIZMOR_CONFIG`) and a `GITHUB_ENV` export;
+  - a checkout without `persist-credentials: false`;
+  - PR title, `github.ref_name`, `github.base_ref` or `github.ref` in a `run:`;
+  - release `cache: 'pip'`;
+  - an unregistered `zizmor: ignore` or `shellcheck disable`, and zizmor config files;
+  - promotion into `REQUIRED_CONTEXTS`.
+
+| Gate | Commit | Result |
+|---|---|---|
+| Full pytest, local | `704016f5` | 5,355 passed, 2 skipped, 0 failed, 1654.5 s |
+| Full pytest, local | `9823beb9` | **5,356 passed, 2 skipped, 0 failed, 1615.6 s**: A1's 5,330 plus the 26 B2 tests |
+
+The skip count (2) in both full runs matches §14's A1 baseline. The skipped identities
+were not re-captured in these runs, so this record does not claim they are the same two
+as §13.1.
+
+| Gate | Commit | Result |
+|---|---|---|
+| B2 section plus the 8 workflow-contract files | `9823beb9` | 323 passed |
+| pyright 1.1.410 baseline diff | `704016f5` and `9823beb9` | PASS, 0 net-new on both |
+| flake8 blocking selection on changed Python | `704016f5` and `9823beb9` | 0 on both |
+| `generate_test_inventory.py` regeneration | `704016f5` and `9823beb9` | regenerated in both; 3,325 → 3,326 collected |
+| `generate_test_inventory.py --check` | `9823beb9` | up to date (3,326 collected) |
+| actionlint 1.7.12 + pinned shellcheck 0.11.0 + `-pyflakes=`, local | `9823beb9` | exit 0, no output |
+| zizmor 1.30.1 `--min-severity medium .github/workflows`, local | `9823beb9` | "No findings" offline and online |
+
+**Fixes applied** (against the §15.3 baseline).
+- **Checkouts.** All 31 `actions/checkout` steps now set `persist-credentials: false`.
+  No job needs persisted git credentials. After checkout, jobs run only local
+  `git diff`, `git status`, `git show`, `git rev-parse`, `git merge-base` and
+  `git ls-files`. `scripts/release_gate.py` calls the API via `urllib` with an explicit
+  token.
+- **Release caches.** The `release.yml` jobs `first-install` and `old-db-migration` no
+  longer set `cache: 'pip'`. In `9823beb9` the workflow comment was narrowed so it no
+  longer claims the whole tag path is cache-free (see residuals below).
+- **Template injection.** `release.yml` now passes `--ref "$GITHUB_REF"`.
+- **SC2016.** Four inline `# shellcheck disable=SC2016` directives, each with a reason.
+  The pwsh probe became a `run: |` block to carry its directive.
+
+**Local seeded evidence.** These are local checks, not the §4 acceptance rehearsals in
+§15.6.
+- Seeding a PR-title interpolation into a scratch copy made zizmor exit 14
+  (`template-injection`, High) and actionlint exit 1.
+- Flipping one character of a digest made `sha256sum --check --strict` fail before any
+  extraction.
+- A real download stall hit `--max-time 120` and recovered on retry. The install step
+  exited 0 after 2 min 07 s.
+
+**Online availability coupling: an owner decision before C4.** The lead probed online
+zizmor. With an invalid token, or with the API unreachable, zizmor exits 1. That fails
+closed: the job turns red and never falsely green. The cost is that a GitHub API outage
+can red this job. Before C4 promotes it, the owner chooses between two options:
+- keep it online as a single check; or
+- split it into an offline required check plus an online non-required or scheduled
+  audit.
+
+This record does not decide.
+
+**Reviews.** Each reviewer was a Claude Code subagent launched by the lead, 2026-10-20
+(UTC 2026-10-19), independent of the implementation. They read files and ran nothing.
+Internal agent IDs were not recorded.
+
+| Reviewer | Commit | Verdict | Findings and dispositions |
+|---|---|---|---|
+| `code-reviewer` | `704016f5` | **approve with nits** | S1, no curl retry/timeouts: fixed in `9823beb9`. S2, linter-softening env vars not contracted: fixed (exact env key sets, no `GITHUB_ENV`, no workflow-level env). N1, `_packaged-windows.yml` pip cache: recorded residual. N2, stale test-file name in §15: fixed in this documentation update. N3, mutation driver not committed: confirmed. N4, widened untrusted-context pattern: fixed. N5, full `sha256sum` flags pinned: fixed. N6, `--proto-redir`: fixed. N7, the Linux tar member layout can only be proved on a Linux runner: proved by green-control rehearsal run `39342689323` (§15.6). Online mode is acceptable while non-required; owner decision before C4. |
+| `architecture-reviewer` | `704016f5` | **approve with nits** | Should-fix, stale §15 file name: fixed in this documentation update. Should-fix, the `release.yml` cache comment overclaimed tag-path cache-freedom: narrowed in `9823beb9`, residual recorded. "Inventory not regenerated": the lead's disposition is that the review diff excluded `docs/test_inventory/`, and the inventory is regenerated in both commits. This is a disposition, not a reviewer retraction. Nits: B1 inventory pointer (added, §15.4); untrusted-pattern gap (fixed). Endorsed stacking E1+D3 on B2, conditional on the review fixes landing first and a stated merge order (§15.2). |
+| Delta reviews of `9823beb9` | `9823beb9` | **pending** | The lead will report them. |
+
+A review that did not run, or whose reviewer failed, is recorded as incomplete, never as
+"no findings".
+
+**Residuals and observations.** These have no owner yet and are recorded for routing.
+- **`_packaged-windows.yml` pip cache.** It keeps `cache: 'pip'` and is reachable from
+  the tag path through `workflow_call`. zizmor does not flag it. It is the shared PR,
+  weekly and release build. Route to A2/A3 or the owner.
+- **Dependabot cooldown.** `.github/dependabot.yml` has 3 × `dependabot-cooldown` (§15.3).
+  This is D-6-adjacent. Route to the owner.
+- **Stale Dependabot comment.** `.github/dependabot.yml:108` describes deep-gate's opt-in
+  `visual-linux` job. That comment becomes more stale after E1. Fix later.
+
+### 15.6 PR, rehearsals and post-merge evidence
+
+**Acceptance rehearsals (§4 B2).** Both ran on `ubuntu-latest` from throwaway branches
+built on `9823beb9`. Neither branch is merged. Both are retained, because branch deletion
+is not authorized under the Operation A teardown restrictions. These runs are rehearsals,
+**not** the representative PR run.
+
+| Case | Branch / head | Mutation | Run | Window (UTC, 2026-10-19) | Result |
+|---|---|---|---|---|---|
+| Green control | `rehearsal/b2-green-v1` @ `807d203e` | adds a throwaway push-triggered `b2-rehearsal.yml` whose job is a byte-for-byte copy of `ci.yml`'s `workflow-lint` job (substring identity checked when generated) | [`39342689323`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39342689323), push, attempt 1 | 23:37:13Z → 23:37:29Z | **success** |
+| Seeded red | `rehearsal/b2-seeded-red-v1` @ `184070f4` | the green branch, plus a `ci.yml` job whose `run:` is `echo "${{ github.event.pull_request.title }}"` | [`39342691486`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39342691486), push, attempt 1 | 23:37:14Z → 23:37:28Z | **failure** |
+
+- **Green control.** Every step succeeded:
+  - install, printing zizmor 1.30.1 and ShellCheck 0.11.0;
+  - actionlint;
+  - zizmor, "No findings to report".
+
+  This proves the Linux tarball member layout on a real runner (code-reviewer N7).
+- **Seeded red.**
+  - Step `actionlint` failed with exit 1: `"github.event.pull_request.title" is
+    potentially untrusted … [expression]` at `ci.yml:173:22`.
+  - Step `zizmor (min severity medium)` still ran under `!cancelled()`. It failed with
+    exit 14: `error[template-injection]`, 1 high.
+  - Both linters independently turned the job red.
+
+**Pending.**
+- **PR.** The number, the published head and the representative PR run on that head.
+- **Post-merge.** The real post-merge `main` push run cannot exist before the owner
+  merges. It is pending and is not inferred from PR runs.
+- **Promotion.** A red seeded job is pre-activation evidence only. Promotion still needs
+  the actual check-name observation and C4 activation, which this authorization excludes.

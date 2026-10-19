@@ -127,3 +127,21 @@ repository holds 91 (was 85) across five repositories. The C3 candidate set ther
 becomes `actions/checkout`, `actions/setup-python`, `actions/setup-node`,
 `actions/upload-artifact` and `actions/download-artifact`. That set is still a
 proposal; it activates nothing.
+
+## Non-Action tool binaries (B2)
+
+The `workflow-lint` job downloads three release assets pinned by version and SHA-256
+in its `env` block, and verifies them with `sha256sum --check --strict` before
+anything is unpacked. The record and rationale are in
+[PLANNING.md §15](PLANNING.md#15-b2-execution--2026-10-20).
+
+| Tool | Version | Asset | SHA-256 |
+|---|---|---|---|
+| actionlint | 1.7.12 | `actionlint_1.7.12_linux_amd64.tar.gz` | `8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8` |
+| zizmor | 1.30.1 | `zizmor-x86_64-unknown-linux-gnu.tar.gz` | `e65324f4430c2717591937edcec90ccbefaf14c174f8ec9415e03ca875b46e1a` |
+| shellcheck | v0.11.0 | `shellcheck-v0.11.0.linux.x86_64.tar.gz` | `b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6` |
+
+These are tool binaries, not Actions, so the C3 allowlist and candidate set are
+unchanged. The job's only `uses:` is the existing pinned `actions/checkout`. That one
+call brings `ci.yml` to 63 remote `uses:` (was 62) and the repository to 92 (was 91),
+all at the pins above.
