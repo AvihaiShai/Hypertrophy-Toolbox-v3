@@ -28,6 +28,8 @@ name: Deep Gate Visual (Linux)
 # job byte-compares the win32 corpus on every PR and every push to main, so the
 # weekly run does not need to and must not duplicate it here.
 on:
+  push:  # REHEARSAL ONLY (never merged): run the real visual job body on this branch
+    branches: ['rehearsal/e1d3-visual-**']
   schedule:
     # Mondays at 03:17 UTC, the same slot as deep-gate.yml; a non-zero minute
     # avoids the top-of-hour queue spike. scripts/deep_gate_watch.py keys its
