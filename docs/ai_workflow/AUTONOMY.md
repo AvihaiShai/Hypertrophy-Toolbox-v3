@@ -82,7 +82,7 @@ documents rather than being copied into every charter.
 - **`manual-qa-reviewer`** is repository-read-only and performs exploratory browser
   testing with reproducible findings.
 - Existing plan-time and diff-time reviewers remain independent; developers do not
-  review their own work as independent reviewers.
+  approve their own work.
 
 One manager-led feature owns one checkout. Sequential work may use the main checkout;
 concurrent work must start in a separate checkout created before its manager session.

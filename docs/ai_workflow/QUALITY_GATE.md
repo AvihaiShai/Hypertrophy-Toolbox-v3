@@ -24,8 +24,8 @@ suite.
 - **Owner approval** — a decision the repository owner gives directly: Gate 0
   (requirements approval), Gate 1 (plan approval), Gate 2 (owner review of the finished
   diff and its evidence before commit or activation), confirmation to merge a named PR,
-  and any separate operation approval a governing plan requires. "Gate N" always means
-  an owner approval. An agent may request one and record it once given; an agent's
+  and any separate operation approval a governing plan requires. Gates 0–2 always mean
+  owner approvals. An agent may request one and record it once given; an agent's
   relay, summary or inference of the owner's intent is not an owner approval.
 - **Reviewer pass** — the verdict of a reviewer this file requires (the Required
   reviewers column below and the plan-stage council) or the active plan calls for, or
