@@ -46,7 +46,7 @@ def test_ci_report_rejects_absent_or_unexecuted_coverage(damage):
 
 def test_windows_job_runs_all_operation_a_modules_and_checks_execution():
     source = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    job = source.split("\n  worktree-windows:\n", 1)[1].split("\n  test:\n", 1)[0]
+    job = re.split(r"\n  [\w-]+:\n", source.split("\n  worktree-windows:\n", 1)[1], maxsplit=1)[0]
     assert "runs-on: windows-2022" in job
     assert "continue-on-error" not in job
     assert "@('powershell', 'pwsh')" in job
@@ -60,9 +60,12 @@ def test_windows_job_runs_all_operation_a_modules_and_checks_execution():
     assert "if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }" in job
     assert "if: always()\n      run: python -m tests.worktree_cleanup.verify_ci_report artifacts/pytest/worktree-windows.xml" in job
     assert "name: operation-a-windows-junit" in job and "if-no-files-found: error" in job
-    linux = re.split(r"\n  [\w-]+:\n", source.split("\n  test:\n", 1)[1], maxsplit=1)[0]
+    # The portable half runs in pytest-core, whose only exclusion is the guard-hook
+    # file -- never an Operation A module.
+    linux = re.split(r"\n  [\w-]+:\n", source.split("\n  pytest-core:\n", 1)[1], maxsplit=1)[0]
     assert "runs-on: ubuntu-latest" in linux
     assert "pytest tests/ -v --tb=short" in linux
+    assert re.findall(r"--ignore=(\S+)", linux) == ["tests/test_guard_destructive_command.py"]
 
 
 @pytest.mark.parametrize("module_name", MODULES)

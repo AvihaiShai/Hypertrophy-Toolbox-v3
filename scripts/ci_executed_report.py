@@ -9,6 +9,7 @@ outside ``pytest-core``; ``tests/test_ci_expansion_contracts.py`` pins it.
     pytest --collect-only -q <paths> > collected.txt
     python scripts/ci_executed_report.py shard collected.txt --index 1 --total 2 > shard.txt
     python scripts/ci_executed_report.py verify collected.txt report.xml [--index 1 --total 2]
+    python scripts/ci_executed_report.py union --shards 2 --collected c1.txt c2.txt --reports r1.xml r2.xml
 """
 from __future__ import annotations
 
@@ -101,8 +102,18 @@ def verify(expected_node_ids: list[str], reports: list[Path]) -> int:
     return len(cases)
 
 
+def verify_union(collections: list[str], reports: list[Path], shards: int) -> int:
+    """Every shard collected the same identities, and together they executed all of them."""
+    if len(collections) != shards or len(reports) != shards:
+        raise ValueError(f"expected {shards} shard collections and reports, got {len(collections)} and {len(reports)}")
+    node_ids = [read_collection(text) for text in collections]
+    if any(other != node_ids[0] for other in node_ids[1:]):
+        raise ValueError("shards collected different identities; their union proves nothing")
+    return verify(node_ids[0], reports)
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description="Prove pytest executed exactly what it collected.")
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("shard", "verify"):
         command = sub.add_parser(name)
@@ -111,8 +122,17 @@ def main(argv: list[str] | None = None) -> int:
         command.add_argument("--total", type=int, default=1)
         if name == "verify":
             command.add_argument("reports", type=Path, nargs="+")
+    union = sub.add_parser("union")
+    union.add_argument("--shards", type=int, required=True)
+    union.add_argument("--collected", type=Path, nargs="+", required=True)
+    union.add_argument("--reports", type=Path, nargs="+", required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command == "union":
+            texts = [path.read_text(encoding="utf-8") for path in args.collected]
+            count = verify_union(texts, args.reports, args.shards)
+            print(f"{args.shards} shards executed all {count} collected identities exactly once; all passed")
+            return 0
         node_ids = read_collection(args.collected.read_text(encoding="utf-8"))
         selected = select_shard(node_ids, args.index, args.total)
         if args.command == "shard":

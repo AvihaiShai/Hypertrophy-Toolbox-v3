@@ -23,7 +23,7 @@ useless in the opposite direction and would still pass a red-only suite.
 
 `node` is invoked as a subprocess rather than the logic being reimplemented in
 Python, following `tests/test_css_audit_digest_normalization_contracts.py`. The
-`test` job in `ci.yml` pins `node-version: '24'` for exactly this reason.
+`pytest-core` job in `ci.yml` pins `node-version: '24'` for exactly this reason.
 """
 from __future__ import annotations
 
