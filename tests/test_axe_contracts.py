@@ -32,7 +32,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 AXE_PACKAGE = "@axe-core/playwright"
-AXE_PINNED_VERSION = "4.13.0"
+AXE_PINNED_VERSION = "4.14.0"
 PLAYWRIGHT_CORE_VERSION = "1.61.0"
 
 SPEC = REPO_ROOT / "e2e" / "accessibility.spec.ts"
