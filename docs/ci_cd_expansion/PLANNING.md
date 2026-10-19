@@ -411,7 +411,7 @@ B1 is claimed by Codex `/root`, 2026-10-19; all other packets remain unclaimed a
 | D2 | Astra | deferred | | | | Paired-trial proposal requires evidence, spend cap, credential |
 | D3 | Claude | blocked | | | | Core Gate 1; E1 monitoring; newer executed-compare recovery distinct from schedule freshness |
 | E1 | either | blocked | | | | Core Gate 1; both monitors active at split |
-| E3 | owner-assigned | blocked | | | | Core Gate 1 + named bounded diagnostic extension; no fix |
+| E3 | Claude Code session `hypertrophy-toolbox-v3-main-3f`, 2026-10-19 | executed; ready PR, not merged | `docs/e3-gate2-linux-bisect` | harness `abf65918e01af75c0de9352a45fd0a9741d2ba70` (never-merged `diag/e3-h-linux-unsync-01-bisect`) | Run [`39276388378`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39276388378): `BOUNDARY_FOUND` then `CONFIRMED`; one capture, first-parent boundary `e6e57eac` (#463) → `e9eff89a` (#464); 10 probes / 30 invocations; [GATE2.md](../deep_gate_linux_visual_failure_20260831/GATE2.md) | No fix or visual-policy change; GATE1 options B/C/D remain owner decisions |
 | F1 | Astra | separate milestone | | | | Delivery council/Gate 1; candidate before publication |
 | F2 | tbd | deferred | | | | No signing purchase/credential/identity authority |
 | F3 | Claude | separate milestone | | | | Delivery council/Gate 1; exact candidate ZIP, before publication |

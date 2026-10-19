@@ -213,4 +213,175 @@ independent `code-reviewer` and `architecture-reviewer` (`docs/ai_workflow/QUALI
 
 ## Results
 
-*Appended after execution.*
+*Appended after execution. Nothing above this heading was changed after the pre-registration
+commit `b1207f17ab3549be9c54ea3f911cfd595ee89fab`, whose branch GitHub records as created at
+`2026-10-19T15:15:21Z`, twelve seconds before the harness branch (`15:15:33Z`).*
+
+### Verdict
+
+**Supported attribution for the one selected capture: the first-parent boundary is
+`e6e57eac` (#463) → `e9eff89a` (#464).** The bisect returned `BOUNDARY_FOUND` and the separate
+confirmation job returned `CONFIRMED`. Under the single-transition assumption bisection rests on,
+#464 is the initiating commit: the first on the first-parent line whose tree renders
+`backup desktop light` differently from the committed Linux baseline in this environment. It
+produces the same failing image that the treatment endpoint and GATE1's `e093081` produced.
+
+This assigns no mechanism inside #464. It also says nothing about the other 64 captures and does
+not decide whether the baseline or the new rendering is correct.
+
+### The run
+
+| Field | Exact value |
+|---|---|
+| Run | [`39276388378`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39276388378), event `push`, attempt **1**, head `abf65918e01af75c0de9352a45fd0a9741d2ba70`, created `2026-10-19T15:15:35Z`, conclusion `success` |
+| Bisect job | [`118141659831`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39276388378/job/118141659831), `15:15:38Z`–`15:20:59Z`, `success`, verdict `BOUNDARY_FOUND` |
+| Confirmation job | [`118144248491`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39276388378/job/118144248491), `15:21:03Z`–`15:23:06Z`, `success`, verdict `CONFIRMED` |
+| Artifact `e3-bisect` | id `12198335832`, 20,561,064 B, `sha256:8a2bf74eef0e4aaa93fb5468aeb7d41e57ba11ed7e79a1f804d4ba4223a967ed`, expires `2027-01-17T15:15:35Z` |
+| Artifact `e3-confirm` | id `12197364011`, 8,307,922 B, `sha256:9cf2ef59482d2ce3c8ffb80007341a2b19aba82136aaf5d19725300f966a4650`, expires `2027-01-17T15:15:35Z` |
+
+As in GATE1, the job conclusion is **not** the result. The verdicts come from each job's
+`verdict.env` and `results.tsv`, and every figure below is transcribed from those files so the
+record outlives the artifacts.
+
+### Environment, measured
+
+| Input | Bisect job | Confirmation job |
+|---|---|---|
+| Runner image | `ImageOS=ubuntu24`, `ImageVersion=20261012.334.1`, Ubuntu 24.04.5 LTS, kernel `6.17.0-1022-azure` | `20261012.334.1` (recorded `same_image_version=yes`) |
+| Runner identity | `RUNNER_NAME=GitHub Actions 1000022835`, hostname `runnervm8k3b6` | `GitHub Actions 1000022836`, the **same** hostname `runnervm8k3b6` |
+| Node / npm / Python | `v24.21.0` / `11.19.0` / `3.14.6` | identical |
+| Playwright | `Version 1.61.0` at all 8 probes | `1.61.0` at both probes |
+| Browser installed | Chrome for Testing **and** Chrome Headless Shell `149.0.7827.55`, both Playwright revision `1228`, downloaded into an empty cache | identical, downloaded again into an empty cache |
+| Browser reported | `chromium.executablePath()` = `…/chromium-1228/chrome-linux64/chrome`, `Google Chrome for Testing 149.0.7827.55` at every probe | identical |
+| Committed baseline | `4e116bdb…87ca` at every probe | identical |
+| Selector | `Total: 1 test in 1 file` at every probe | identical |
+| Baseline guard | the 162-file `e2e/__screenshots__` manifest was unchanged before and after at every probe, and `git status` was clean | identical |
+
+The harness records the path `chromium.executablePath()` reports, not the binary each headless
+run launched. Both revision-`1228` builds were present, and the deep gate's own failing run used
+the headless shell of that revision (GATE0), so the measured identity is the revision and
+version, not which of the two executables rendered.
+
+Compared with GATE1, the runner image (`20260823.283.1` → `20261012.334.1`), Node
+(`24.19.0` → `24.21.0`) and npm (`11.17.0` → `11.19.0`) moved, while Playwright, the browser
+build and the baseline did not. The endpoint controls were therefore re-established here rather
+than inherited from GATE1.
+
+### Endpoint controls
+
+| Probe | Commit | Sass | Invocations | Result |
+|---|---|---|---|---|
+| 1 | control `31659a59` (position 0) | 1.102.0 | `1 passed` ×3 (4.6 s, 4.8 s, 4.6 s), exit 0 ×3, no actual PNG | **GOOD** |
+| 2 | treatment `b36ea9e1` (position 50) | 1.103.1 | exit 1 ×3, `20112 pixels (ratio 0.01 of all image pixels) are different` ×3 | **BAD** |
+
+**The endpoints distinguish pass from fail in this environment.** The treatment's actual PNG is
+`f2a689840749eb3ddfed993e8cf020ea124e853c687d73f185ed105af50de608` and its diff PNG is
+`2b376bef9bf91c904d56aa33eded07c8e0c5013a9bf0edf4b09f836a8134bb8b`, three times each. Both
+hashes, and the 20,112-pixel count, are byte-for-byte the values GATE1 recorded for `e093081`
+on the older image.
+
+### Bisect
+
+| Probe | Position | Commit | PR | Interval before → after | Result |
+|---|---|---|---|---|---|
+| 3 | 25 | `3e60cdd446d4d33c447762a59909814ea366776e` | #442 | 0..50 → 25..50 | GOOD (3 × `PASS`) |
+| 4 | 37 | `8c844dfda6ca6363f779721529e808445c24b828` | #454 | 25..50 → 37..50 | GOOD |
+| 5 | 43 | `7d9a836c3204b81f357bc6ebf90b90ea421db9eb` | #461 | 37..50 → 43..50 | GOOD |
+| 6 | 46 | `8a1ad9dbc2fe9983545f6e9ec5952755afe6a5af` | #457 | 43..50 → 46..50 | GOOD |
+| 7 | 48 | `e9eff89a1344f87668b733bef272879d9e95c040` | #464 | 46..50 → 46..48 | **BAD**: actual `f2a68984…`, diff `2b376bef…`, 20,112 px, ×3 |
+| 8 | 47 | `e6e57eac224a09957d9c8ce3128ee6013cee6208` | #463 | 46..48 → 47..48 | GOOD |
+
+Six bisect probes, as predicted for 50 candidates. Every bisect probe ran Sass `1.103.1`.
+
+### Boundary confirmation on a fresh runner
+
+| Probe | Commit | Result |
+|---|---|---|
+| 1 | `e6e57eac` (position 47) | GOOD, exit 0 ×3 |
+| 2 | `e9eff89a` (position 48) | BAD, exit 1 ×3, 20,112 px; actual `f2a68984…` ×3, diff `2b376bef…` ×3 |
+
+The confirmation job re-tested the pair with fresh checkouts, fresh dependency installs and a
+browser downloaded again into an empty cache, and reproduced both classes and both hashes. It
+reported a different `RUNNER_NAME` but the same hostname, so a different VM is not established;
+what it does establish is that the result does not depend on state the bisect job left behind. It
+ran on the same image release, so it is not a cross-image control.
+
+### Pre-registered sanity check
+
+Passed. `e9eff89a` (#464, squash-merged; its only parent is `e6e57eac`) changes eleven rendering
+inputs: eight files under `static/css/` (`tokens.css`, `theme-dark.css`, `components.css`,
+`layout.css`, `navbar.css` and three page bundles), `templates/base.html`,
+`static/js/theme-init.js` and `static/js/darkMode.js`. It also changes 77 Win32 screenshots and **zero** Linux screenshots.
+`e6e57eac` (#463) changes four files, all under `docs/`.
+
+### Budget used
+
+1 workflow run, 1 attempt, 10 probes and 30 invocations, the planned path. No harness fault, no
+infrastructure failure, no re-run; the infrastructure allowance was not used.
+
+### Contract wording corrected against the code
+
+The pre-registration says `.python-version` is checked against the pre-registered value. The
+harness actually compares each probe with the first probe's copy and does not compare with the
+literal `3.14.6`. The job's Python comes from the treatment's file, which is `3.14.6`, and no
+probe reported `INPUT_MISMATCH`, so the result is unaffected. A probe mixing `STARTUP_FAIL` with
+another failure class resolves to `STARTUP_FAIL`; no probe in this run mixed failure classes.
+
+### What this establishes, and what it does not
+
+**Established for the selected capture, in this environment:**
+
+1. **The boundary itself is observed, not inferred** (see [Verdict](#verdict)): each side three
+   times in each of two jobs.
+2. **Later commits in the interval did not change this capture again at the tested points.**
+   #464, the treatment `b36ea9e1` and GATE1's `e093081` all produce one byte-identical actual
+   PNG. That is consistent with a single change, but position 49 (`52ca8a82`) was not probed.
+3. **None of the other named candidate changes produces this failure by itself.** Each is
+   present in a probed GOOD tree: the Sass bump `b733c14` (position 11) in all five GOOD bisect
+   probes, positions 25–47, which ran Sass `1.103.1`; #427's `backup-center.js` change (16) in
+   the same trees; the summary-template change `e9f942f` (41) in the trees at 43–47; and
+   `7d9a836` (43) was probed directly. That one of them caused a failure that later recovered
+   before position 25 or 43 is excluded only by the single-transition assumption.
+4. **The newer runner image `20261012.334.1` does not by itself red this capture.** The control
+   passes on it, as it passed on `20260823.283.1` in GATE1.
+
+**Not established:**
+
+- **No mechanism.** This experiment does not say which of #464's eleven rendering inputs, or
+  which interaction between them, produces the 20,112 differing pixels.
+  Isolating that would be a new experiment inside one commit and is not authorized.
+- **Monotonicity is assumed, not proven.** 43 of the 49 intermediate positions were not probed.
+  A pass→fail→pass→fail pattern elsewhere in the interval would not be visible here, although
+  the single repeated failing image makes that unlikely for this capture.
+- **Nothing is generalized to the other 64 failing captures.** They may share #464 as their
+  initiator or not; that is GATE1 option B and was not run.
+- **Nothing about correctness.** GATE0 records that #464's merged description states no Linux
+  baseline was touched and Linux work remained outstanding. This result is consistent with
+  H-LINUX-UNSYNC-01 for this capture. It does not decide whether the Linux baseline should be
+  regenerated (GATE1 option C), which remains a separate owner decision.
+- **Not a deep-gate outcome.** Retries were 0, the test ran alone, and the launched browser
+  executable was not recorded (see [Environment, measured](#environment-measured)). The verdicts
+  are stricter than, not equivalent to, a deep-gate result.
+
+### What remains unfixed
+
+- The weekly deep gate's `Visual regression (Linux baselines)` job stays red. Nothing here
+  changes CSS, templates, baselines, tolerances, masks, viewports, retries or exemptions.
+- The committed Linux baseline tree is still `206f30d8…`, unsynchronized with #464's source.
+- The other 64 captures are uninvestigated. `visual-linux` stays outside the release gate under
+  ADR-007 (R1-D3). ADR-011's 81 byte-gated captures and five semantic exemptions are unchanged.
+
+### Disposition of the harness
+
+The harness exists only on `diag/e3-h-linux-unsync-01-bisect` (head `abf65918`). It was never
+merged, so no workflow on `main` needs retiring and `main`'s `ALL_WORKFLOWS` census is untouched.
+It runs only on a push to that branch. The branch is retained under the standing Operation A
+retention hold, and no further push to it is authorized by this packet.
+
+### The next owner decision
+
+GATE1 option A is complete. Options **B** (widen the capture matrix — for example the pair
+`e6e57eac`/`e9eff89a` over the other 64 captures), **C** (owner-authorized Linux baseline
+synchronization) and **D** (stop) stand as GATE1 defines them; none is taken here. Isolating a
+mechanism inside #464 would be a further diagnostic outside GATE1's options and needs its own
+authorization.
