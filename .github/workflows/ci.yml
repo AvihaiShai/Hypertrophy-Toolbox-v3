@@ -59,6 +59,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
       
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -92,6 +94,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
       
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -143,6 +147,77 @@ jobs:
           flake8_idiom.txt
         retention-days: 14
 
+  # Workflow lint (CI/CD expansion packet B2, docs/ci_cd_expansion/PLANNING.md).
+  # Lints every file in .github/workflows on every PR and main push: no path
+  # filter, no `needs`, no job `if:`, no continue-on-error, no `|| true`.
+  #
+  # No new action is adopted (the C3 inventory is unchanged). The three tools are
+  # Linux release assets pinned by version AND SHA-256, and all three digests are
+  # checked before anything is unpacked or executed. shellcheck is pinned because
+  # actionlint otherwise uses whatever the runner image ships; `-pyflakes=`
+  # disables actionlint's optional pyflakes integration for the same reason.
+  #
+  # zizmor runs online on the read-only job token so its pin audits
+  # (impostor-commit, ref-version-mismatch, known-vulnerable-actions) execute. A
+  # newly published advisory for a pinned action can therefore red this job; the
+  # repair is a reviewed pin bump, never a suppression. `!cancelled()` makes
+  # zizmor report even when actionlint failed.
+  #
+  # Not a required check yet: promotion into scripts/release_gate.py is packet C4.
+  workflow-lint:
+    name: Workflow Lint (actionlint + zizmor)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      ACTIONLINT_VERSION: '1.7.12'
+      ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
+      ZIZMOR_VERSION: '1.30.1'
+      ZIZMOR_SHA256: 'e65324f4430c2717591937edcec90ccbefaf14c174f8ec9415e03ca875b46e1a'
+      SHELLCHECK_VERSION: 'v0.11.0'
+      SHELLCHECK_SHA256: 'b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Install pinned workflow linters
+      run: |
+        set -euo pipefail
+        cd "$RUNNER_TEMP"
+        curl --fail --silent --show-error --location --proto '=https' -o actionlint.tar.gz \
+          "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+        curl --fail --silent --show-error --location --proto '=https' -o zizmor.tar.gz \
+          "https://github.com/zizmorcore/zizmor/releases/download/v${ZIZMOR_VERSION}/zizmor-x86_64-unknown-linux-gnu.tar.gz"
+        curl --fail --silent --show-error --location --proto '=https' -o shellcheck.tar.gz \
+          "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.gz"
+        printf '%s  %s\n' \
+          "$ACTIONLINT_SHA256" actionlint.tar.gz \
+          "$ZIZMOR_SHA256" zizmor.tar.gz \
+          "$SHELLCHECK_SHA256" shellcheck.tar.gz \
+          | sha256sum --check --strict
+        mkdir -p workflow-lint-bin
+        tar -xzf actionlint.tar.gz -C workflow-lint-bin actionlint
+        tar -xzf zizmor.tar.gz -C workflow-lint-bin zizmor
+        tar -xzf shellcheck.tar.gz -C workflow-lint-bin --strip-components=1 "shellcheck-${SHELLCHECK_VERSION}/shellcheck"
+        workflow-lint-bin/actionlint -version
+        workflow-lint-bin/zizmor --version
+        workflow-lint-bin/shellcheck --version
+
+    - name: actionlint
+      run: |
+        "$RUNNER_TEMP/workflow-lint-bin/actionlint" -color -shellcheck="$RUNNER_TEMP/workflow-lint-bin/shellcheck" -pyflakes=
+
+    - name: zizmor (min severity medium)
+      if: ${{ !cancelled() }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        "$RUNNER_TEMP/workflow-lint-bin/zizmor" --min-severity medium --format plain .github/workflows
+
   # This job also owns the compiled-SCSS drift gate (docs/LEFTOVERS_BY_PRIORITY.md,
   # "Nothing ties the committed bootstrap.custom.min.css to its SCSS source").
   #
@@ -166,6 +241,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Node.js
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -223,7 +300,9 @@ jobs:
           {
             echo "### Compiled SCSS drift — blocking"
             echo
+            # shellcheck disable=SC2016 # backticks are literal Markdown, not substitution
             echo 'The committed bundle does not match what `npm run build:css` produces from'
+            # shellcheck disable=SC2016 # backticks are literal Markdown, not substitution
             echo '`scss/custom-bootstrap.scss`. Run the build and commit **both** regenerated'
             echo 'artifacts in the same PR that changed the SCSS:'
             echo
@@ -248,6 +327,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -301,6 +382,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -441,6 +524,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -499,6 +584,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -565,6 +652,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -638,6 +727,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -718,6 +809,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -784,6 +877,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
+        persist-credentials: false
         # WP4.4's immutable baseline contract verifies the seven shared CSS
         # surfaces at the merged Packet-a commit via `git show`.
         fetch-depth: 0
@@ -937,6 +1031,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -951,7 +1047,9 @@ jobs:
 
     # The file skips itself without a PowerShell host; a missing pwsh must fail here.
     - name: Require PowerShell 7
-      run: pwsh -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()'
+      run: |
+        # shellcheck disable=SC2016 # PowerShell, not bash, expands $PSVersionTable
+        pwsh -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()'
 
     - name: Collect and select this shard
       run: |
@@ -989,6 +1087,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Require every guard-hook shard to pass
       env:
@@ -1024,6 +1124,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Require every test job to pass
       env:
@@ -1063,6 +1165,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -1155,6 +1259,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Node.js
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -1227,6 +1333,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Node.js
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -1306,6 +1414,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -1342,6 +1452,7 @@ jobs:
           {
             echo "### Test inventory drift — blocking"
             echo
+            # shellcheck disable=SC2016 # backticks are literal Markdown, not substitution
             echo 'Run `python scripts/generate_test_inventory.py` and commit the regenerated'
             echo 'artifact in the same PR that changed the test surface.'
             echo
@@ -1442,6 +1553,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Node.js
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0

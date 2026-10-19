@@ -58,6 +58,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -68,12 +70,14 @@ jobs:
     # former is a real boolean and the latter is the string "true"/"false", and mixing
     # them is a silent inversion. On a tag push there are no inputs at all, so this
     # renders as the empty string -- which parse_dry_run() resolves to release mode.
+    # The ref comes from the runner's `$GITHUB_REF` (the same value) rather than an
+    # expression pasted into the script: B2's zizmor template-injection finding.
     - name: Assert the tag matches the code
       env:
         GITHUB_TOKEN: ${{ github.token }}
       run: |
         python scripts/release_gate.py version \
-          --ref "${{ github.ref }}" \
+          --ref "$GITHUB_REF" \
           --dry-run "${{ inputs.dry_run }}" \
           --repo "${{ github.repository }}"
 
@@ -91,6 +95,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -119,16 +125,19 @@ jobs:
     # Keep in step with deep-gate.yml's `first-install`, which asserts the same
     # contract on the weekly gate. The two differ in the port, the step name, and
     # this copy's `set -euo pipefail`: HT_PORT is set here because a release job must
-    # never assume 5000 is free.
+    # never assume 5000 is free. Neither release smoke restores a pip cache: a
+    # tag-triggered job must not install from a cache another ref could have written
+    # (B2, zizmor cache-poisoning).
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version-file: '.python-version'
-        cache: 'pip'
 
     - name: Install Python dependencies
       run: |
@@ -189,12 +198,13 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version-file: '.python-version'
-        cache: 'pip'
 
     - name: Install Python dependencies
       run: |
@@ -302,6 +312,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
