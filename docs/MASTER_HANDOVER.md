@@ -8,7 +8,7 @@
 > head), after `git fetch origin`.** This block replaces the 09:13–09:18Z block of the same date
 > (at `e486e3b5`); it and the blocks of 2026-06-07 → 2026-09-08 are preserved in
 > [`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](archive/2026/master-handover/CURRENT_STATE_HISTORY.md).
-> The maintenance rule for this block is its last subsection.
+> The maintenance rule for this block is the subsection headed *Maintenance rule*.
 
 **Work queue and owner decisions:** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md)
 §0 is the single actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
@@ -116,7 +116,7 @@ The full list is [`README.md`](README.md) *Feature folders → Active*.
 In flight, with no PR at this reading: CI/CD B2, then E1 + D3 stacked on B2's branch (B2 edits
 every `deep-gate.yml` checkout and adds the lint that gates the new workflows); one `ci.yml` PR is
 in flight at a time. Their authority is the owner's instruction of 2026-10-20 (local; UTC
-2026-10-19), which the B2 PR records in [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md)
+2026-10-19), which the B2 PR (unmerged) adds to [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md)
 §7 and §15; it is not on `main` at `f3adacf1`. Nothing else starts automatically. Agents may run
 `/status`, triage Dependabot PRs, and do read-only design work. Other work waits on an owner
 decision in queue §0.2, or on its own Gate 0/1 sign-off.

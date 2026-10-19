@@ -138,7 +138,7 @@ is carried forward unless its row cites closing evidence, and no status word her
 ### 0.1 In progress
 
 Authority for both rows: the owner's instruction of 2026-10-20 (local; UTC 2026-10-19). The B2 PR
-records it in [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §7 and §15; it is not on
+(unmerged) adds it to [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §7 and §15; it is not on
 `main` at `f3adacf1`. One `ci.yml` PR is in flight at a time.
 
 | Item | Scope | Record | Next |
