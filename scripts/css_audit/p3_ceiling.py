@@ -1183,12 +1183,12 @@ def n8_denominator(root: Path = ROOT) -> dict[str, object]:
         "derivationMatchesEveryRecordedRun": bool(recorded)
         and all(bool(run["derivationMatches"]) for run in recorded),
         "dispatched": False,
-        "method": "documentary — deep-gate.yml, the ledger scopeNote, and the "
+        "method": "documentary — deep-gate-visual.yml, the ledger scopeNote, and the "
         "two spec matrices (66 + 18 tests); no CI dispatch is authorized at "
         "P3-a0",
-        "workflow": ".github/workflows/deep-gate.yml",
+        "workflow": ".github/workflows/deep-gate-visual.yml",
         "workflowRunsBothSpecsTogether": "e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts"
-        in (root / ".github" / "workflows" / "deep-gate.yml").read_text(
+        in (root / ".github" / "workflows" / "deep-gate-visual.yml").read_text(
             encoding="utf-8"
         ),
         "committedBaselinePins": committed_baseline_pins(root),

@@ -13,17 +13,29 @@ back as constants:
 
 The wiring tests then pin that ``ci.yml`` actually routes through both, so
 neither can be bypassed by editing the workflow alone.
+
+The D3 section at the end drives ``scripts/deep_gate_watch.py`` against a fake
+GitHub REST server: clock, freshness, recovery, pagination and unavailable API.
 """
 from __future__ import annotations
 
+import copy
+import hashlib
+import importlib
 import json
 import os
 import re
 import shlex
 import subprocess
 import sys
+import threading
+import time
 import xml.etree.ElementTree as ET
 from collections import Counter
+from datetime import datetime, timedelta, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import Any, cast
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 import pytest
 
@@ -782,3 +794,1161 @@ def test_workflow_lint_is_not_a_required_or_expected_context_yet():
     # Promotion is C4's deliberate change, after seeded blocking proof.
     assert LINT_JOB_NAME not in REQUIRED_CONTEXTS
     assert LINT_JOB_NAME not in EXPECTED_CONTEXTS
+# =========================================================================================
+# D3 — deep_gate_watch
+#
+# Seam (implement to this): reconcile(client, now, event=None, dry_run=False) receives a real
+# GitHubClient(repo, token, api_url=..., timeout=...) that these tests point at FakeGitHub, an
+# in-process server for the REST routes the brief names; the label is checked with
+# GET /labels/deep-gate, and issues close by PATCH state=closed plus POST /comments. `event` is
+# the parsed $GITHUB_EVENT_PATH payload, and the returned Report's `unavailable` iterates the
+# watched file names whose evidence was unavailable. The CLI reads GH_TOKEN, GITHUB_API_URL and
+# GITHUB_STEP_SUMMARY; `--now` is also the watchdog start time, and a workflow_run summary
+# carries a line containing "latency" and the latency in whole seconds.
+# =========================================================================================
+
+SCRIPT = ROOT / "scripts" / "deep_gate_watch.py"
+REPO = "octo/toolbox"
+PREFIX = f"/repos/{REPO}"
+TOKEN = "test-token"
+LABEL = "deep-gate"
+UTC = timezone.utc
+SECOND, MINUTE, HOUR, DAY = (
+    timedelta(seconds=1),
+    timedelta(minutes=1),
+    timedelta(hours=1),
+    timedelta(days=1),
+)
+
+SUITE, VISUAL = "deep-gate.yml", "deep-gate-visual.yml"
+NAMES = {SUITE: "Deep Gate (manual + weekly)", VISUAL: "Deep Gate Visual (Linux)"}
+SUITE_JOBS = (
+    "Full E2E incl. accessibility (Chromium)",
+    "First install (catalog seed) smoke",
+    "Empty-schema initializer smoke",
+    "Old-DB migration compatibility",
+    "Frozen executable (real bootloader, Windows) / Build and smoke",
+    "Dependency Health Check",
+)
+FAILED_JOB = SUITE_JOBS[3]
+FAILED_STEP = "Generate historical-schema DB, boot, assert upgrade"
+VISUAL_JOB = "Visual regression (Linux baselines)"
+COMPARE = "Run visual specs (compare)"
+GENERATE = "Run visual specs (generate)"
+NO_WRITE = "Assert compare mode wrote no baseline"
+NON_SUCCESS = (
+    "failure",
+    "cancelled",
+    "timed_out",
+    "startup_failure",
+    "action_required",
+    "stale",
+    "neutral",
+    "skipped",
+    None,
+)
+
+SLOT = datetime(2026, 10, 19, 3, 17, tzinfo=UTC)  # a Monday
+PREV = SLOT - 7 * DAY
+BEFORE = SLOT + 2 * HOUR
+AFTER = SLOT + 21 * HOUR
+SCHEDULE_EVENT = {"schedule": "23 * * * 1,2"}
+ENDLESS_LIMIT = 500
+SLOW_SECONDS = 3
+
+
+# ------------------------------------------------------------------ fixture builders
+
+
+def iso(moment: datetime) -> str:
+    return moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def gh_run(
+    file,
+    run_id,
+    created,
+    *,
+    event="schedule",
+    conclusion="success",
+    status="completed",
+    attempt=1,
+    branch="main",
+    updated=None,
+):
+    return {
+        "id": run_id,
+        "run_attempt": attempt,
+        "head_sha": hashlib.sha1(str(run_id).encode()).hexdigest(),
+        "head_branch": branch,
+        "event": event,
+        "status": status,
+        "conclusion": conclusion if status == "completed" else None,
+        "created_at": iso(created),
+        "updated_at": iso(updated or created + 30 * MINUTE),
+        "path": f".github/workflows/{file}",
+        "name": NAMES[file],
+        "html_url": f"https://github.com/{REPO}/actions/runs/{run_id}",
+    }
+
+
+def gh_step(name, conclusion="success"):
+    return {"name": name, "status": "completed", "conclusion": conclusion}
+
+
+def gh_job(r, name, conclusion="success", step_list=(gh_step("Checkout code"),)):
+    return {
+        "id": r["id"] * 100 + len(name),
+        "run_id": r["id"],
+        "run_attempt": r["run_attempt"],
+        "head_sha": r["head_sha"],
+        "name": name,
+        "status": "completed",
+        "conclusion": conclusion,
+        "steps": [{**s, "number": n} for n, s in enumerate(step_list, 1)],
+        "html_url": f"{r['html_url']}/job/{r['id'] * 100 + len(name)}",
+    }
+
+
+def suite_jobs(r, failed=None, skipped=None):
+    out = []
+    for name in SUITE_JOBS:
+        if name == failed:
+            out.append(
+                gh_job(
+                    r,
+                    name,
+                    "failure",
+                    (
+                        gh_step("Checkout code"),
+                        gh_step(FAILED_STEP, "failure"),
+                        gh_step("Upload diagnostics", "failure"),
+                    ),
+                )
+            )
+        elif name == skipped:
+            out.append(gh_job(r, name, "skipped", ()))
+        else:
+            out.append(gh_job(r, name))
+    return out
+
+
+def visual_job(
+    r,
+    *,
+    compare="success",
+    generate="skipped",
+    no_write="success",
+    conclusion="success",
+    name=VISUAL_JOB,
+):
+    planned = (
+        ("Checkout code", "success"),
+        ("Resolve visual mode", "success"),
+        (COMPARE, compare),
+        (GENERATE, generate),
+        (NO_WRITE, no_write),
+    )
+    return gh_job(r, name, conclusion, tuple(gh_step(n, c) for n, c in planned if c is not None))
+
+
+def delivered(r):
+    return {
+        "action": "completed",
+        "workflow_run": r,
+        "workflow": {"path": r["path"], "name": r["name"]},
+    }
+
+
+def new_issue(number, title, body, labels):
+    return {
+        "number": number,
+        "title": title,
+        "body": body,
+        "state": "open",
+        "state_reason": None,
+        "labels": [{"name": n if isinstance(n, str) else n["name"]} for n in labels],
+        "comments": 0,
+        "html_url": f"https://github.com/{REPO}/issues/{number}",
+    }
+
+
+# --------------------------------------------------------------------- fake GitHub
+
+
+class FakeGitHub(ThreadingHTTPServer):
+    daemon_threads = True
+
+    def __init__(self) -> None:
+        super().__init__(("127.0.0.1", 0), _Handler)
+        self.runs: list[dict[str, Any]] = []
+        self.jobs: dict[tuple[int, int], list[dict[str, Any]]] = {}
+        self.issues: list[dict[str, Any]] = []
+        self.comments: dict[int, list[str]] = {}
+        self.label = True
+        self.page_size = 100
+        # path substring -> "502" | "403" | "malformed" | "slow" | "endless"; "kind@N" only on page N
+        self.faults: dict[str, str] = {}
+        self.requests: list[tuple[str, str, dict[str, str], dict[str, str]]] = []
+        self.writes: list[tuple[str, str, Any]] = []
+
+    @property
+    def url(self) -> str:
+        return f"http://127.0.0.1:{self.server_port}"
+
+    def handle_error(self, request, client_address) -> None:
+        pass  # a client that timed out hangs up mid-reply
+
+    def add(self, r, jobs=None):
+        self.runs = [x for x in self.runs if x["id"] != r["id"]] + [r]
+        if jobs is not None:
+            self.jobs[(r["id"], r["run_attempt"])] = jobs
+        return r
+
+    def issue(self, number):
+        return next(i for i in self.issues if i["number"] == number)
+
+    def find(self, file, kind, state="open"):
+        marker = f"<!-- deep-gate-watch v1 workflow={file} kind={kind} "
+        return [i for i in self.issues if i["state"] == state and marker in (i["body"] or "")]
+
+    def only(self, file, kind):
+        found = self.find(file, kind)
+        assert len(found) == 1, found
+        return found[0]
+
+    def open_issues(self):
+        return [i for i in self.issues if i["state"] == "open"]
+
+    def note(self, title):
+        number = max((i["number"] for i in self.issues), default=0) + 1
+        self.issues.append(new_issue(number, title, "filed by hand", [LABEL]))
+
+
+class _Handler(BaseHTTPRequestHandler):
+    def log_message(self, format: str, *args: Any) -> None:
+        pass
+
+    def do_GET(self) -> None:
+        self._route("GET")
+
+    def do_POST(self) -> None:
+        self._route("POST")
+
+    def do_PATCH(self) -> None:
+        self._route("PATCH")
+
+    def do_PUT(self) -> None:
+        self._route("PUT")
+
+    def do_DELETE(self) -> None:
+        self._route("DELETE")
+
+    def _route(self, method: str) -> None:
+        gh = cast(FakeGitHub, self.server)
+        parts = urlsplit(self.path)
+        query = dict(parse_qsl(parts.query))
+        length = int(self.headers.get("Content-Length") or 0)
+        body = json.loads(self.rfile.read(length)) if length else None
+        headers = {key.lower(): value for key, value in self.headers.items()}
+        gh.requests.append((method, parts.path, query, headers))
+        if method != "GET":
+            gh.writes.append((method, parts.path.removeprefix(PREFIX), body))
+
+        fault = next((kind for needle, kind in gh.faults.items() if needle in parts.path), "")
+        kind, _, on_page = fault.partition("@")
+        if kind and on_page in ("", query.get("page", "1")):
+            if kind == "slow":
+                time.sleep(SLOW_SECONDS)
+            elif kind == "malformed":
+                return self._reply(200, raw=b'{"workflow_runs": [')
+            elif kind != "endless":
+                return self._reply(int(kind), {"message": "injected"})
+        if not parts.path.startswith(PREFIX + "/"):
+            return self._reply(404, {"message": "Not Found"})
+        self._serve(gh, method, parts.path.removeprefix(PREFIX), query, body, kind == "endless")
+
+    def _serve(self, gh, method, path, query, body, endless) -> None:
+        runs = re.fullmatch(r"/actions/workflows/([^/]+)/runs", path)
+        jobs = re.fullmatch(r"/actions/runs/(\d+)/attempts/(\d+)/jobs", path)
+        issue = re.fullmatch(r"/issues/(\d+)", path)
+        comment = re.fullmatch(r"/issues/(\d+)/comments", path)
+        if method == "GET" and runs:
+            listed = [
+                r
+                for r in gh.runs
+                if r["path"] == f".github/workflows/{runs[1]}"
+                and query.get("branch", r["head_branch"]) == r["head_branch"]
+            ]
+            listed.sort(key=lambda r: (r["created_at"], r["id"]), reverse=True)
+            return self._page(gh, listed, query, endless, "workflow_runs")
+        if method == "GET" and jobs:
+            listed = gh.jobs.get((int(jobs[1]), int(jobs[2])), [])
+            return self._page(gh, listed, query, endless, "jobs")
+        if method == "GET" and path == "/issues":
+            wanted = query.get("labels")
+            listed = [
+                i
+                for i in gh.issues
+                if i["state"] == query.get("state", "open")
+                and (wanted is None or wanted in {label["name"] for label in i["labels"]})
+            ]
+            listed.sort(key=lambda i: i["number"], reverse=True)
+            return self._page(gh, listed, query, endless, None)
+        if method == "POST" and path == "/issues":
+            number = max((i["number"] for i in gh.issues), default=0) + 1
+            created = new_issue(number, body["title"], body.get("body", ""), body.get("labels", []))
+            gh.issues.append(created)
+            return self._reply(201, created)
+        if method == "PATCH" and issue:
+            target = gh.issue(int(issue[1]))
+            target.update({k: v for k, v in body.items() if k in ("title", "body", "state", "state_reason")})
+            if "labels" in body:
+                target["labels"] = new_issue(0, "", "", body["labels"])["labels"]
+            return self._reply(200, target)
+        if method == "POST" and comment:
+            target = gh.issue(int(comment[1]))
+            target["comments"] += 1
+            gh.comments.setdefault(target["number"], []).append(body["body"])
+            return self._reply(201, {"id": target["comments"], "body": body["body"]})
+        if method == "GET" and path == f"/labels/{LABEL}":
+            if gh.label:
+                return self._reply(200, {"name": LABEL})
+            return self._reply(404, {"message": "Not Found"})
+        if method == "POST" and path == "/labels":
+            gh.label = True
+            return self._reply(201, {"name": body["name"]})
+        self._reply(404, {"message": "Not Found"})
+
+    def _page(self, gh, items, query, endless, envelope) -> None:
+        size = max(1, min(int(query.get("per_page", 30)), gh.page_size))
+        number = int(query.get("page", 1))
+        if number > ENDLESS_LIMIT:
+            return self._reply(500, {"message": "the fake stops serving here"})
+        chunk = items[:size] if endless else items[(number - 1) * size : number * size]
+        last = number + 1 if endless else max(1, -(-len(items) // size))
+        base = f"{gh.url}{urlsplit(self.path).path}"
+
+        def link(page, rel):
+            return f'<{base}?{urlencode({**query, "page": page})}>; rel="{rel}"'
+
+        # `next` is never the first relation listed, so a parser that takes the first URL skips pages.
+        links = [link(1, "first"), link(number - 1, "prev")] if number > 1 else []
+        if number < last:
+            links += [link(last, "last"), link(number + 1, "next")]
+        total = 10**6 if endless else len(items)
+        payload = {"total_count": total, envelope: chunk} if envelope else chunk
+        self._reply(200, payload, headers={"Link": ", ".join(links)} if links else None)
+
+    def _reply(self, status, payload=None, raw=None, headers=None) -> None:
+        data = raw if raw is not None else json.dumps(payload).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        for key, value in (headers or {}).items():
+            self.send_header(key, value)
+        self.end_headers()
+        self.wfile.write(data)
+
+
+# -------------------------------------------------------------------------- fixtures
+
+
+@pytest.fixture(scope="module")
+def dgw():
+    return importlib.import_module("scripts.deep_gate_watch")
+
+
+@pytest.fixture
+def gh(monkeypatch):
+    monkeypatch.setenv("NO_PROXY", "*")
+    server = FakeGitHub()
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield server
+    server.shutdown()
+    server.server_close()
+
+
+def watched(dgw, file):
+    return next(x for x in dgw.WATCHED if x.file == file)
+
+
+def classify(dgw, file, r, jobs):
+    return dgw.classify_run(watched(dgw, file), r, jobs)
+
+
+def fresh(dgw, file, runs, now):
+    return dgw.freshness_state(watched(dgw, file), runs, now)
+
+
+def run_watch(dgw, gh, now, event=None, dry_run=False, timeout=5.0):
+    client = dgw.GitHubClient(REPO, TOKEN, api_url=gh.url, timeout=timeout)
+    return dgw.reconcile(client, now, event=event, dry_run=dry_run)
+
+
+def seed_success(gh, file, run_id, created=SLOT + 5 * MINUTE, event="schedule"):
+    r = gh_run(file, run_id, created, event=event)
+    return gh.add(r, suite_jobs(r) if file == SUITE else [visual_job(r)])
+
+
+def seed_failure(gh, file, run_id, created=SLOT + 5 * MINUTE, event="schedule", conclusion="failure"):
+    r = gh_run(file, run_id, created, event=event, conclusion=conclusion)
+    if file == SUITE:
+        return gh.add(r, suite_jobs(r, failed=FAILED_JOB))
+    return gh.add(r, [visual_job(r, compare="failure", conclusion="failure")])
+
+
+def issue_comments(gh, issue):
+    return "\n".join(gh.comments.get(issue["number"], []))
+
+
+# ------------------------------------------------------------ constants and the slot
+
+
+def test_constants_pin_the_slot_bounds_and_identities(dgw):
+    assert dgw.DEFAULT_BRANCH == "main"
+    assert (dgw.SLOT_WEEKDAY, dgw.SLOT_TIME) == (0, (3, 17))
+    assert dgw.MISSING_THRESHOLD == timedelta(hours=20)
+    assert dgw.FRESHNESS_DEADLINE == timedelta(hours=36)
+    assert dgw.MISSING_THRESHOLD < dgw.FRESHNESS_DEADLINE
+    assert [(x.file, x.name, x.kind) for x in dgw.WATCHED] == [
+        (SUITE, NAMES[SUITE], "suite"),
+        (VISUAL, NAMES[VISUAL], "visual"),
+    ]
+    assert (dgw.VISUAL_JOB_NAME, dgw.COMPARE_STEP_NAME, dgw.NO_WRITE_STEP_NAME) == (
+        VISUAL_JOB,
+        COMPARE,
+        NO_WRITE,
+    )
+    assert (dgw.ISSUE_LABEL, dgw.MARKER_PREFIX) == (LABEL, "<!-- deep-gate-watch v1 ")
+
+
+SLOT_CASES = {
+    "at-the-slot": (SLOT, SLOT),
+    "monday-0316-59": (SLOT - SECOND, PREV),
+    "monday-0316": (SLOT - MINUTE, PREV),
+    "sunday-before-next": (SLOT + 7 * DAY - SECOND, SLOT),
+    "next-slot": (SLOT + 7 * DAY, SLOT + 7 * DAY),
+    "europe-dst-ends-sunday": (datetime(2026, 10, 25, 23, 59, tzinfo=UTC), SLOT),
+    "two-weeks-later": (SLOT + 14 * DAY + HOUR, SLOT + 14 * DAY),
+    "plus-three-offset-before": (
+        datetime(2026, 10, 19, 6, 16, 59, tzinfo=timezone(timedelta(hours=3))),
+        PREV,
+    ),
+    "plus-one-offset-at": (datetime(2026, 10, 19, 4, 17, tzinfo=timezone(timedelta(hours=1))), SLOT),
+    "year-boundary-sunday": (
+        datetime(2027, 1, 3, 12, tzinfo=UTC),
+        datetime(2026, 12, 28, 3, 17, tzinfo=UTC),
+    ),
+    "year-boundary-monday": (
+        datetime(2027, 1, 4, 3, 17, tzinfo=UTC),
+        datetime(2027, 1, 4, 3, 17, tzinfo=UTC),
+    ),
+}
+
+
+@pytest.mark.parametrize("case", list(SLOT_CASES))
+def test_expected_slot_is_the_latest_monday_0317_utc_at_or_before_now(dgw, case):
+    now, slot = SLOT_CASES[case]
+    found = dgw.expected_slot(now)
+    assert found == slot
+    assert found.utcoffset() == timedelta(0)
+
+
+def test_evidence_key_orders_by_creation_then_id_then_attempt(dgw):
+    a = gh_run(SUITE, 5, SLOT)
+    b = gh_run(SUITE, 4, SLOT + SECOND)
+    c = gh_run(SUITE, 6, SLOT + SECOND)
+    d = {**c, "run_attempt": 2}
+    assert sorted([d, c, b, a], key=dgw.evidence_key) == [a, b, c, d]
+    assert dgw.evidence_key(d) != dgw.evidence_key(c)
+
+
+# -------------------------------------------------------------------- classify_run
+
+
+def test_runs_of_other_workflows_or_branches_are_ignored(dgw):
+    foreign = {**gh_run(SUITE, 1, SLOT), "path": ".github/workflows/ci.yml", "name": "CI"}
+    suite_green = gh_run(SUITE, 2, SLOT)
+    branch = gh_run(SUITE, 3, SLOT, branch="feature")
+    assert classify(dgw, SUITE, foreign, suite_jobs(foreign)).kind == "ignored"
+    assert classify(dgw, VISUAL, suite_green, suite_jobs(suite_green)).kind == "ignored"
+    assert classify(dgw, SUITE, branch, suite_jobs(branch)).kind == "ignored"
+    assert classify(dgw, SUITE, {**branch, "conclusion": "failure"}, []).kind == "ignored"
+
+
+@pytest.mark.parametrize("status", ["queued", "in_progress", "waiting", "requested", "pending"])
+def test_incomplete_runs_are_not_evaluative(dgw, status):
+    for file in (SUITE, VISUAL):
+        assert classify(dgw, file, gh_run(file, 1, SLOT, status=status), None).kind == "non_evaluative"
+
+
+@pytest.mark.parametrize("file", [SUITE, VISUAL])
+@pytest.mark.parametrize("conclusion", NON_SUCCESS)
+def test_every_non_success_conclusion_is_failure_evidence(dgw, file, conclusion):
+    evidence = classify(dgw, file, gh_run(file, 1, SLOT, conclusion=conclusion), [])
+    assert evidence.kind == "failure"
+    assert evidence.run["id"] == 1
+
+
+@pytest.mark.parametrize("file", [SUITE, VISUAL])
+def test_a_success_without_its_jobs_is_unavailable_never_healthy(dgw, file):
+    with pytest.raises(dgw.EvidenceUnavailable):
+        classify(dgw, file, gh_run(file, 1, SLOT), None)
+
+
+def test_suite_recovery_needs_every_job_green(dgw):
+    r = gh_run(SUITE, 1, SLOT)
+    assert classify(dgw, SUITE, r, suite_jobs(r)).kind == "recovery"
+    assert classify(dgw, SUITE, r, suite_jobs(r, skipped=SUITE_JOBS[-1])).kind == "non_evaluative"
+    assert classify(dgw, SUITE, r, []).kind == "non_evaluative"
+
+
+VISUAL_CARRIERS = {
+    "compare-executed": ({}, "recovery"),
+    "generation": ({"compare": "skipped", "generate": "success", "no_write": "skipped"}, "non_evaluative"),
+    "compare-skipped": ({"compare": "skipped"}, "non_evaluative"),
+    "compare-absent": ({"compare": None}, "non_evaluative"),
+    "no-write-skipped": ({"no_write": "skipped"}, "non_evaluative"),
+    "no-write-absent": ({"no_write": None}, "non_evaluative"),
+    "job-skipped": ({"conclusion": "skipped"}, "non_evaluative"),
+    "renamed-job": ({"name": "Visual regression"}, "non_evaluative"),
+}
+
+
+@pytest.mark.parametrize("carrier", list(VISUAL_CARRIERS))
+def test_only_an_executed_compare_is_visual_recovery(dgw, carrier):
+    options, kind = VISUAL_CARRIERS[carrier]
+    r = gh_run(VISUAL, 1, SLOT, event="workflow_dispatch")
+    assert classify(dgw, VISUAL, r, [visual_job(r, **options)]).kind == kind
+
+
+def test_a_successful_visual_run_without_its_visual_job_is_not_recovery(dgw):
+    r = gh_run(VISUAL, 1, SLOT)
+    assert classify(dgw, VISUAL, r, []).kind == "non_evaluative"
+    assert classify(dgw, VISUAL, r, suite_jobs(r)).kind == "non_evaluative"
+
+
+# ------------------------------------------------------------------- failure_state
+
+
+def test_failure_state_follows_the_newest_evaluative_evidence(dgw):
+    sw = watched(dgw, SUITE)
+    failed = gh_run(SUITE, 10, PREV, conclusion="failure")
+    recovered = gh_run(SUITE, 11, SLOT)
+    partial = gh_run(SUITE, 12, SLOT + HOUR, event="workflow_dispatch")
+    running = gh_run(SUITE, 13, SLOT + 2 * HOUR, status="in_progress")
+    foreign = gh_run(VISUAL, 14, SLOT + 3 * HOUR, conclusion="failure")
+    evidence = [
+        dgw.classify_run(sw, partial, suite_jobs(partial, skipped=SUITE_JOBS[0])),
+        dgw.classify_run(sw, recovered, suite_jobs(recovered)),
+        dgw.classify_run(sw, running, None),
+        dgw.classify_run(sw, foreign, []),
+        dgw.classify_run(sw, failed, suite_jobs(failed, failed=FAILED_JOB)),
+    ]
+    state = dgw.failure_state(sw, evidence)
+    assert (state.status, state.evidence.run["id"]) == ("healthy", 11)
+
+    later = gh_run(SUITE, 15, SLOT + 4 * HOUR, conclusion="timed_out")
+    state = dgw.failure_state(sw, [dgw.classify_run(sw, later, []), *evidence])
+    assert (state.status, state.evidence.run["id"]) == ("failing", 15)
+
+
+def test_failure_state_is_unknown_without_evaluative_evidence(dgw):
+    sw = watched(dgw, SUITE)
+    assert dgw.failure_state(sw, []).status == "unknown"
+    noise = [
+        dgw.classify_run(sw, gh_run(SUITE, 1, SLOT, status="queued"), None),
+        dgw.classify_run(sw, gh_run(VISUAL, 2, SLOT, conclusion="failure"), []),
+        dgw.classify_run(sw, gh_run(SUITE, 3, SLOT, branch="feature", conclusion="failure"), []),
+    ]
+    assert dgw.failure_state(sw, noise).status == "unknown"
+
+
+@pytest.mark.parametrize("order", [1, -1], ids=["listed-in-order", "listed-reversed"])
+def test_a_re_run_attempt_outranks_its_own_first_attempt(dgw, order):
+    sw = watched(dgw, SUITE)
+    first = gh_run(SUITE, 20, SLOT, conclusion="failure")
+    second = gh_run(SUITE, 20, SLOT, attempt=2)
+    evidence = [dgw.classify_run(sw, first, []), dgw.classify_run(sw, second, suite_jobs(second))][::order]
+    state = dgw.failure_state(sw, evidence)
+    assert (state.status, state.evidence.run["run_attempt"]) == ("healthy", 2)
+
+
+def test_generation_skipped_compare_and_suite_success_leave_the_visual_state_failing(dgw):
+    vw = watched(dgw, VISUAL)
+    failed = gh_run(VISUAL, 30, SLOT, conclusion="failure")
+    generated = gh_run(VISUAL, 31, SLOT + HOUR, event="workflow_dispatch")
+    skipped = gh_run(VISUAL, 32, SLOT + 2 * HOUR, event="workflow_dispatch")
+    suite_green = gh_run(SUITE, 33, SLOT + 3 * HOUR)
+    evidence = [
+        dgw.classify_run(vw, failed, [visual_job(failed, compare="failure", conclusion="failure")]),
+        dgw.classify_run(
+            vw,
+            generated,
+            [visual_job(generated, compare="skipped", generate="success", no_write="skipped")],
+        ),
+        dgw.classify_run(vw, skipped, [visual_job(skipped, compare="skipped")]),
+        dgw.classify_run(vw, suite_green, suite_jobs(suite_green)),
+    ]
+    state = dgw.failure_state(vw, evidence)
+    assert (state.status, state.evidence.run["id"]) == ("failing", 30)
+
+
+# ----------------------------------------------------------------- freshness_state
+
+
+@pytest.mark.parametrize("conclusion", ["success", "failure", "cancelled", "timed_out"])
+def test_a_completed_scheduled_run_in_the_slot_is_fresh_whatever_its_conclusion(dgw, conclusion):
+    state = fresh(dgw, SUITE, [gh_run(SUITE, 1, SLOT + 6 * HOUR, conclusion=conclusion)], AFTER)
+    assert (state.status, state.slot, state.run["id"]) == ("fresh", SLOT, 1)
+
+
+def test_the_slot_boundary_is_inclusive_and_the_second_before_it_is_last_week(dgw):
+    assert fresh(dgw, SUITE, [gh_run(SUITE, 1, SLOT)], AFTER).status == "fresh"
+    assert fresh(dgw, SUITE, [gh_run(SUITE, 1, SLOT - SECOND)], AFTER).status == "missing"
+
+
+@pytest.mark.parametrize(
+    "offset, with_run, status",
+    [
+        (20 * HOUR - SECOND, True, "pending"),
+        (20 * HOUR, True, "late"),
+        (35 * HOUR, True, "late"),
+        (20 * HOUR - SECOND, False, "pending"),
+        (20 * HOUR, False, "missing"),
+    ],
+    ids=["running-before", "running-at", "running-near-deadline", "absent-before", "absent-at"],
+)
+def test_incomplete_and_absent_slots_turn_late_or_missing_at_the_threshold(dgw, offset, with_run, status):
+    runs = [gh_run(SUITE, 1, SLOT + HOUR, status="in_progress")] if with_run else []
+    assert fresh(dgw, SUITE, runs, SLOT + offset).status == status
+
+
+def test_one_completed_run_makes_the_slot_fresh_despite_another_still_running(dgw):
+    runs = [
+        gh_run(SUITE, 1, SLOT + HOUR, status="in_progress"),
+        gh_run(SUITE, 2, SLOT + 2 * HOUR, conclusion="failure"),
+    ]
+    state = fresh(dgw, SUITE, runs, AFTER)
+    assert (state.status, state.run["id"]) == ("fresh", 2)
+
+
+NOT_THIS_SLOT = {
+    "manual-only": [gh_run(SUITE, 1, SLOT + HOUR, event="workflow_dispatch")],
+    "manual-in-progress": [gh_run(SUITE, 1, SLOT + HOUR, event="workflow_dispatch", status="in_progress")],
+    "prior-week": [gh_run(SUITE, 1, PREV), gh_run(SUITE, 2, PREV + 6 * HOUR)],
+    "other-workflow": [gh_run(VISUAL, 1, SLOT + HOUR)],
+    "other-branch": [gh_run(SUITE, 1, SLOT + HOUR, branch="release")],
+    "other-events": [
+        gh_run(SUITE, 1, SLOT + HOUR, event="push"),
+        gh_run(SUITE, 2, SLOT + HOUR, event="workflow_run"),
+    ],
+}
+
+
+@pytest.mark.parametrize("history", list(NOT_THIS_SLOT))
+def test_runs_that_are_not_this_weeks_scheduled_run_never_satisfy_freshness(dgw, history):
+    state = fresh(dgw, SUITE, NOT_THIS_SLOT[history], AFTER)
+    assert (state.status, state.slot) == ("missing", SLOT)
+
+
+# -------------------------------------------------------------------- plan_actions
+
+
+def test_plan_actions_has_nothing_to_do_without_evidence_or_issues(dgw):
+    for file in (SUITE, VISUAL):
+        x = watched(dgw, file)
+        assert dgw.plan_actions(x, dgw.failure_state(x, []), dgw.freshness_state(x, [], BEFORE), []) == []
+
+
+def test_plan_actions_is_a_no_op_when_the_open_issue_already_cites_the_evidence(dgw, gh):
+    s = seed_failure(gh, SUITE, 150)
+    seed_success(gh, VISUAL, 900)
+    run_watch(dgw, gh, AFTER)
+    sw = watched(dgw, SUITE)
+    state = dgw.failure_state(sw, [dgw.classify_run(sw, s, gh.jobs[(150, 1)])])
+    assert dgw.plan_actions(sw, state, dgw.freshness_state(sw, [s], AFTER), gh.open_issues()) == []
+
+
+# ------------------------------------------------------- reconcile: failure issues
+
+
+def test_suite_and_visual_failures_each_open_their_own_issue(dgw, gh):
+    s = seed_failure(gh, SUITE, 150)
+    v = seed_failure(gh, VISUAL, 250, SLOT + 6 * MINUTE)
+    report = run_watch(dgw, gh, AFTER)
+
+    assert set(report.unavailable) == set()
+    suite_issue, visual_issue = gh.only(SUITE, "failure"), gh.only(VISUAL, "failure")
+    assert suite_issue["number"] != visual_issue["number"]
+    for file, issue, r, failed_job, failed_step in (
+        (SUITE, suite_issue, s, FAILED_JOB, FAILED_STEP),
+        (VISUAL, visual_issue, v, VISUAL_JOB, COMPARE),
+    ):
+        assert issue["title"] == f"Deep Gate watch: {NAMES[file]} — failing"
+        assert LABEL in {label["name"] for label in issue["labels"]}
+        for fragment in (
+            NAMES[file],
+            str(r["id"]),
+            r["html_url"],
+            r["head_sha"],
+            r["event"],
+            r["conclusion"],
+            failed_job,
+            failed_step,
+            "Status: UNRESOLVED",
+        ):
+            assert fragment in issue["body"], fragment
+    assert gh.find(SUITE, "missing-schedule") == gh.find(VISUAL, "missing-schedule") == []
+    assert ("POST", "/labels", {"name": LABEL}) not in [(m, p, b) for m, p, b in gh.writes]
+
+
+@pytest.mark.parametrize("file", [SUITE, VISUAL])
+@pytest.mark.parametrize("conclusion", ["cancelled", "timed_out", "skipped", "startup_failure"])
+def test_every_non_success_completion_opens_that_workflows_issue(dgw, gh, file, conclusion):
+    other = VISUAL if file == SUITE else SUITE
+    seed_success(gh, other, 900)
+    r = gh.add(gh_run(file, 150, SLOT + 5 * MINUTE, conclusion=conclusion))
+    run_watch(dgw, gh, AFTER, event=delivered(r))
+    issue = gh.only(file, "failure")
+    assert conclusion in issue["body"] and str(r["id"]) in issue["body"]
+    assert gh.find(other, "failure") == []
+
+
+def test_a_newer_failure_updates_the_open_issue_instead_of_opening_another(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    number = gh.only(SUITE, "failure")["number"]
+    newer = seed_failure(gh, SUITE, 200, SLOT + 3 * HOUR, event="workflow_dispatch")
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER + HOUR, event=delivered(newer))
+    issue = gh.only(SUITE, "failure")
+    assert issue["number"] == number
+    assert "evidence=200.1" in issue["body"]
+    assert ("POST", "/issues") not in [(m, p) for m, p, _ in gh.writes]
+
+
+def test_a_duplicate_delivery_writes_nothing_the_second_time(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    s = seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER, event=delivered(s))
+    assert len(gh.find(SUITE, "failure")) == 1
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER + 5 * MINUTE, event=delivered(s))
+    assert gh.writes == []
+
+
+def test_an_older_event_after_a_newer_one_never_regresses_the_issue(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    older = seed_failure(gh, SUITE, 150)
+    newer = seed_failure(gh, SUITE, 200, SLOT + 3 * HOUR, event="workflow_dispatch")
+    run_watch(dgw, gh, AFTER, event=delivered(newer))
+    assert "evidence=200.1" in gh.only(SUITE, "failure")["body"]
+
+    gh.runs = [r for r in gh.runs if r["id"] != 200]  # a stale listing
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER + 10 * MINUTE, event=delivered(older))
+    assert gh.writes == []
+    assert "evidence=200.1" in gh.only(SUITE, "failure")["body"]
+
+
+def test_a_recovery_older_than_the_issue_evidence_does_not_close_it(dgw, gh):
+    seed_success(gh, SUITE, 100)
+    good = seed_success(gh, VISUAL, 150)
+    bad = seed_failure(gh, VISUAL, 200, SLOT + 3 * HOUR, event="workflow_dispatch")
+    run_watch(dgw, gh, AFTER, event=delivered(bad))
+    gh.runs = [r for r in gh.runs if r["id"] != 200]
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER + 10 * MINUTE, event=delivered(good))
+    assert gh.writes == []
+    assert gh.only(VISUAL, "failure")["state"] == "open"
+
+
+def test_duplicate_open_watch_issues_collapse_onto_the_lowest_number(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    original = gh.only(SUITE, "failure")
+    for number in (original["number"] + 1, original["number"] + 2):
+        gh.issues.append({**copy.deepcopy(original), "number": number})
+    run_watch(dgw, gh, AFTER + 5 * MINUTE)
+    assert gh.issue(original["number"])["state"] == "open"
+    for number in (original["number"] + 1, original["number"] + 2):
+        duplicate = gh.issue(number)
+        assert duplicate["state"] == "closed"
+        assert f"Duplicate of #{original['number']}" in issue_comments(gh, duplicate)
+
+
+def test_the_label_is_created_before_the_first_issue_when_absent(dgw, gh):
+    gh.label = False
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    order = [(m, p) for m, p, _ in gh.writes]
+    assert order.index(("POST", "/labels")) < order.index(("POST", "/issues"))
+    assert LABEL in {label["name"] for label in gh.only(SUITE, "failure")["labels"]}
+
+
+# ------------------------------------------------------ reconcile: visual recovery
+
+
+@pytest.mark.parametrize("event", ["schedule", "workflow_dispatch"])
+def test_an_executed_compare_success_closes_the_visual_failure_issue(dgw, gh, event):
+    seed_success(gh, SUITE, 100)
+    seed_failure(gh, VISUAL, 150)
+    run_watch(dgw, gh, AFTER)
+    issue = gh.only(VISUAL, "failure")
+    good = seed_success(gh, VISUAL, 160, SLOT + 4 * HOUR, event=event)
+    run_watch(dgw, gh, AFTER + HOUR, event=delivered(good))
+    assert gh.issue(issue["number"])["state"] == "closed"
+    note = issue_comments(gh, issue)
+    for fragment in (NAMES[VISUAL], str(good["id"]), good["head_sha"], COMPARE):
+        assert fragment in note, fragment
+
+
+@pytest.mark.parametrize("carrier", ["skipped-compare", "generation", "green-six-job-suite"])
+def test_carriers_that_executed_no_comparison_never_close_the_visual_issue(dgw, gh, carrier):
+    seed_success(gh, SUITE, 100)
+    seed_failure(gh, VISUAL, 150)
+    run_watch(dgw, gh, AFTER)
+    number = gh.only(VISUAL, "failure")["number"]
+    if carrier == "green-six-job-suite":
+        carried = seed_success(gh, SUITE, 160, SLOT + 4 * HOUR, event="workflow_dispatch")
+    else:
+        carried = gh_run(VISUAL, 160, SLOT + 4 * HOUR, event="workflow_dispatch")
+        options = {"compare": "skipped"}
+        if carrier == "generation":
+            options = {"compare": "skipped", "generate": "success", "no_write": "skipped"}
+        gh.add(carried, [visual_job(carried, **options)])
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER + HOUR, event=delivered(carried))
+    assert gh.writes == []
+    assert gh.issue(number)["state"] == "open"
+
+
+def test_a_manual_compare_recovery_closes_the_failure_issue_but_never_the_missing_one(dgw, gh):
+    seed_success(gh, SUITE, 100)
+    seed_failure(gh, VISUAL, 150, PREV + 5 * MINUTE)
+    run_watch(dgw, gh, AFTER)
+    failure, missing = gh.only(VISUAL, "failure"), gh.only(VISUAL, "missing-schedule")
+    good = seed_success(gh, VISUAL, 160, AFTER + 10 * MINUTE, event="workflow_dispatch")
+    run_watch(dgw, gh, AFTER + HOUR, event=delivered(good))
+    assert gh.issue(failure["number"])["state"] == "closed"
+    assert gh.issue(missing["number"])["state"] == "open"
+
+
+# -------------------------------------------------------- reconcile: freshness issues
+
+
+@pytest.mark.parametrize("file", [SUITE, VISUAL])
+@pytest.mark.parametrize("history", ["none", "manual-only", "prior-week"])
+def test_no_scheduled_run_in_the_current_slot_opens_a_missing_schedule_issue(dgw, gh, file, history):
+    other = VISUAL if file == SUITE else SUITE
+    seed_success(gh, other, 900)
+    if history == "manual-only":
+        seed_success(gh, file, 101, SLOT + HOUR, event="workflow_dispatch")
+    if history == "prior-week":
+        seed_success(gh, file, 101, PREV + 5 * MINUTE)
+    run_watch(dgw, gh, AFTER)
+    issue = gh.only(file, "missing-schedule")
+    assert issue["title"] == f"Deep Gate watch: {NAMES[file]} — missing scheduled run"
+    assert "Status: UNRESOLVED" in issue["body"]
+    assert "2026-10-19" in issue["body"]
+    assert gh.find(other, "missing-schedule") == []
+    assert gh.find(file, "failure") == []
+
+
+@pytest.mark.parametrize(
+    "now, running, opened",
+    [(BEFORE, True, 0), (AFTER, True, 1), (BEFORE, False, 0)],
+    ids=["running-before-threshold", "running-after-threshold", "absent-before-threshold"],
+)
+def test_the_current_slot_is_pending_before_the_threshold_and_late_after(dgw, gh, now, running, opened):
+    seed_success(gh, VISUAL, 900)
+    if running:
+        gh.add(gh_run(SUITE, 101, SLOT + HOUR, status="in_progress"))
+    run_watch(dgw, gh, now)
+    assert len(gh.find(SUITE, "missing-schedule")) == opened
+    assert gh.find(SUITE, "failure") == []
+    if not opened:
+        assert gh.writes == []
+
+
+def test_the_missing_issue_follows_the_slot_and_only_a_scheduled_run_closes_it(dgw, gh):
+    seed_success(gh, VISUAL, 801, PREV + 5 * MINUTE)
+    run_watch(dgw, gh, PREV + 21 * HOUR)
+    issue = gh.only(SUITE, "missing-schedule")
+    assert "2026-10-12" in issue["body"]
+
+    seed_success(gh, VISUAL, 802)
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER)
+    assert gh.only(SUITE, "missing-schedule")["number"] == issue["number"]
+    assert "2026-10-19" in gh.issue(issue["number"])["body"]
+    assert ("POST", "/issues") not in [(m, p) for m, p, _ in gh.writes]
+
+    manual = seed_success(gh, SUITE, 300, SLOT + 21 * HOUR + 10 * MINUTE, event="workflow_dispatch")
+    gh.writes.clear()
+    run_watch(dgw, gh, SLOT + 21 * HOUR + 30 * MINUTE, event=delivered(manual))
+    assert gh.writes == []
+    assert gh.issue(issue["number"])["state"] == "open"
+
+    scheduled = seed_success(gh, SUITE, 301, SLOT + 22 * HOUR)
+    run_watch(dgw, gh, SLOT + 23 * HOUR, event=delivered(scheduled))
+    assert gh.issue(issue["number"])["state"] == "closed"
+    assert str(scheduled["id"]) in issue_comments(gh, issue)
+
+
+def test_freshness_and_failure_issues_recover_independently(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150, PREV + 5 * MINUTE)
+    run_watch(dgw, gh, AFTER)
+    failure, missing = gh.only(SUITE, "failure"), gh.only(SUITE, "missing-schedule")
+
+    late = seed_failure(gh, SUITE, 160, SLOT + 22 * HOUR)
+    run_watch(dgw, gh, SLOT + 24 * HOUR, event=delivered(late))
+    assert gh.issue(missing["number"])["state"] == "closed"
+    assert str(late["id"]) in issue_comments(gh, missing)
+    assert gh.issue(failure["number"])["state"] == "open"
+    assert "evidence=160.1" in gh.issue(failure["number"])["body"]
+
+    good = seed_success(gh, SUITE, 170, SLOT + 25 * HOUR, event="workflow_dispatch")
+    run_watch(dgw, gh, SLOT + 26 * HOUR, event=delivered(good))
+    assert gh.issue(failure["number"])["state"] == "closed"
+    assert gh.find(SUITE, "missing-schedule") == []
+
+
+# ------------------------------------------------------- reconcile: event payloads
+
+
+@pytest.mark.parametrize("listed", ["in-progress", "lower-attempt"])
+def test_the_delivered_event_supersedes_a_stale_listing_of_the_same_run(dgw, gh, listed):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    number = gh.only(SUITE, "failure")["number"]
+
+    done = gh_run(SUITE, 160, SLOT + 2 * HOUR, event="workflow_dispatch", attempt=2)
+    if listed == "in-progress":
+        gh.add({**done, "status": "in_progress", "conclusion": None})
+    else:
+        stale = {**done, "run_attempt": 1, "conclusion": "failure"}
+        gh.add(stale, suite_jobs(stale, failed=FAILED_JOB))
+    gh.jobs[(160, 2)] = suite_jobs(done)
+    run_watch(dgw, gh, AFTER + HOUR, event=delivered(done))
+    assert gh.issue(number)["state"] == "closed"
+
+
+def test_a_stale_event_for_an_older_attempt_does_not_override_the_listing(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    number = gh.only(SUITE, "failure")["number"]
+    done = gh_run(SUITE, 160, SLOT + 2 * HOUR, event="workflow_dispatch", attempt=2)
+    gh.add(done, suite_jobs(done))
+    run_watch(dgw, gh, AFTER + HOUR, event=delivered({**done, "run_attempt": 1, "conclusion": "failure"}))
+    assert gh.issue(number)["state"] == "closed"
+    assert gh.find(SUITE, "failure") == []
+
+
+def test_an_event_from_an_unwatched_workflow_changes_nothing(dgw, gh):
+    seed_success(gh, SUITE, 100)
+    seed_success(gh, VISUAL, 900)
+    foreign = {**gh_run(SUITE, 999, SLOT + HOUR, conclusion="failure"), "path": ".github/workflows/ci.yml", "name": "CI"}
+    report = run_watch(dgw, gh, AFTER, event=delivered(foreign))
+    assert set(report.unavailable) == set()
+    assert gh.writes == []
+
+
+# ------------------------------------------------------ reconcile: pagination, API
+
+
+def test_runs_are_read_across_every_page(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    seed_success(gh, SUITE, 500)  # the only scheduled run is the oldest, so it is listed last
+    for n in range(3):
+        seed_success(gh, SUITE, 501 + n, SLOT + (n + 1) * HOUR, event="workflow_dispatch")
+    gh.page_size = 1
+    run_watch(dgw, gh, AFTER)
+    assert gh.writes == []
+    pages = {q.get("page", "1") for _, p, q, _ in gh.requests if p.endswith(f"/workflows/{SUITE}/runs")}
+    assert len(pages) == 4
+
+
+def test_jobs_are_read_across_every_page(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    number = gh.only(SUITE, "failure")["number"]
+    partial = gh_run(SUITE, 160, SLOT + 2 * HOUR, event="workflow_dispatch")
+    gh.add(partial, suite_jobs(partial, skipped=SUITE_JOBS[-1]))  # the skip sits on the last page
+    gh.page_size = 1
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER + HOUR)
+    assert gh.writes == []
+    assert gh.issue(number)["state"] == "open"
+    pages = {q.get("page", "1") for _, p, q, _ in gh.requests if p.endswith("/actions/runs/160/attempts/1/jobs")}
+    assert len(pages) == len(SUITE_JOBS)
+
+
+def test_open_issues_are_read_across_every_page(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    for n in range(3):
+        gh.note(f"hand-filed {n}")  # newer, so the watch's own issue is listed last
+    gh.page_size = 1
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER + 5 * MINUTE)
+    assert gh.writes == []
+    assert all(i["state"] == "open" for i in gh.issues)
+    pages = {q.get("page", "1") for m, p, q, _ in gh.requests if m == "GET" and p == f"{PREFIX}/issues"}
+    assert len(pages) == 4
+
+
+@pytest.mark.parametrize("fault", ["502", "403", "malformed", "endless", "502@2", "slow"])
+def test_an_unreadable_runs_listing_isolates_that_workflow_without_writes(dgw, gh, fault):
+    seed_failure(gh, SUITE, 150)
+    for n in range(3):
+        seed_failure(gh, VISUAL, 200 + n, SLOT + n * HOUR, event="workflow_dispatch")
+    gh.page_size = 1 if fault == "502@2" else 100
+    gh.faults[f"/actions/workflows/{VISUAL}/runs"] = fault
+    report = run_watch(dgw, gh, AFTER, timeout=1.0 if fault == "slow" else 5.0)
+    assert set(report.unavailable) == {VISUAL}
+    assert not [x for x in gh.writes if VISUAL in json.dumps(x) or NAMES[VISUAL] in json.dumps(x)]
+    assert gh.find(VISUAL, "failure") == gh.find(VISUAL, "missing-schedule") == []
+    assert gh.only(SUITE, "failure")
+    listed = Counter(p for _, p, _, _ in gh.requests if p.endswith(f"/workflows/{VISUAL}/runs"))
+    assert max(listed.values()) <= 100
+
+
+@pytest.mark.parametrize("field, value", [("run_attempt", 1), ("head_sha", "f" * 40), ("run_id", 999)])
+def test_jobs_of_another_attempt_head_or_run_are_unavailable_evidence(dgw, gh, field, value):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    number = gh.only(SUITE, "failure")["number"]
+    good = gh_run(SUITE, 160, SLOT + 2 * HOUR, event="workflow_dispatch", attempt=2)
+    listed = suite_jobs(good)
+    listed[-1] = {**listed[-1], field: value}
+    gh.add(good, listed)
+    gh.writes.clear()
+    report = run_watch(dgw, gh, AFTER + HOUR, event=delivered(good))
+    assert set(report.unavailable) == {SUITE}
+    assert gh.writes == []
+    assert gh.issue(number)["state"] == "open"
+
+
+def test_dry_run_reads_but_never_writes(dgw, gh):
+    gh.label = False
+    seed_failure(gh, SUITE, 150)  # and the visual workflow has no run at all
+    run_watch(dgw, gh, AFTER, dry_run=True)
+    assert gh.writes == [] and gh.issues == []
+    assert {method for method, *_ in gh.requests} == {"GET"}
+
+
+def test_requests_are_authenticated_and_scoped_to_the_named_endpoints(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    assert gh.requests
+    for _, path, _, headers in gh.requests:
+        assert headers["authorization"] == f"Bearer {TOKEN}"
+        assert headers["x-github-api-version"] == "2022-11-28"
+        assert path.startswith(PREFIX + "/")
+        assert "/artifacts" not in path and "/logs" not in path
+
+    listings = {p.split("/")[-2]: q for m, p, q, _ in gh.requests if m == "GET" and p.endswith("/runs")}
+    assert set(listings) == {SUITE, VISUAL}
+    for query in listings.values():
+        assert (query["branch"], query["per_page"]) == ("main", "100")
+        assert query["created"].startswith(">=")
+        since = datetime.strptime(query["created"][2:12], "%Y-%m-%d").date()
+        assert (AFTER - 22 * DAY).date() <= since <= (AFTER - 21 * DAY).date()
+    issue_queries = [q for m, p, q, _ in gh.requests if m == "GET" and p == f"{PREFIX}/issues"]
+    assert issue_queries and all(q["state"] == "open" and q["labels"] == LABEL for q in issue_queries)
+
+
+# ----------------------------------------------------------------------------- CLI
+
+
+def watch_cli(gh, tmp_path, *args, event=None):
+    summary = tmp_path / "summary.md"
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GITHUB_")}
+    env.update(GH_TOKEN=TOKEN, GITHUB_API_URL=gh.url, GITHUB_STEP_SUMMARY=str(summary), NO_PROXY="*")
+    argv = [sys.executable, str(SCRIPT), "reconcile", "--repo", REPO, "--now", iso(AFTER), *args]
+    if event is not None:
+        payload = tmp_path / "event.json"
+        payload.write_text(event if isinstance(event, str) else json.dumps(event), encoding="utf-8")
+        argv += ["--event-path", str(payload)]
+    proc = subprocess.run(argv, env=env, cwd=ROOT, capture_output=True, text=True, timeout=120, check=False)
+    return proc, summary.read_text(encoding="utf-8") if summary.is_file() else ""
+
+
+def test_cli_reconciles_exits_zero_and_summarises_both_workflows(dgw, gh, tmp_path):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    proc, summary = watch_cli(gh, tmp_path, event=SCHEDULE_EVENT)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert gh.only(SUITE, "failure")
+    assert NAMES[SUITE] in summary and NAMES[VISUAL] in summary
+    # A schedule event has no watched run to time; the summary must not claim a measured latency.
+    assert not re.search(r"latency[^\n]*\d", summary, re.IGNORECASE), summary
+
+
+def test_cli_summary_measures_dispatch_latency_for_a_workflow_run_event(dgw, gh, tmp_path):
+    seed_success(gh, VISUAL, 900)
+    s = gh_run(SUITE, 150, SLOT + 5 * MINUTE, conclusion="failure", updated=AFTER - 450 * SECOND)
+    gh.add(s, suite_jobs(s, failed=FAILED_JOB))
+    proc, summary = watch_cli(gh, tmp_path, event=delivered(s))
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert re.search(r"latency[^\n]*\b450\b", summary, re.IGNORECASE), summary
+
+
+def test_cli_dry_run_reports_the_plan_and_writes_nothing(dgw, gh, tmp_path):
+    gh.label = False
+    seed_failure(gh, SUITE, 150)
+    proc, summary = watch_cli(gh, tmp_path, "--dry-run", event=SCHEDULE_EVENT)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert gh.writes == [] and gh.issues == []
+    assert "create" in summary.lower()
+
+
+CLI_FAULTS = [
+    ("/issues", "502"),
+    ("/issues", "403"),
+    ("/issues", "malformed"),
+    ("/issues", "endless"),
+    ("/issues", "502@2"),
+    ("/actions/workflows/", "502"),
+    ("/actions/workflows/", "endless"),
+    ("/jobs", "502"),
+    ("/jobs", "malformed"),
+]
+
+
+@pytest.mark.parametrize(
+    "needle, fault", CLI_FAULTS, ids=[f"{n.strip('/').split('/')[-1]}-{f}" for n, f in CLI_FAULTS]
+)
+def test_cli_exits_two_and_writes_nothing_when_evidence_is_unavailable(dgw, gh, tmp_path, needle, fault):
+    seed_failure(gh, SUITE, 150)
+    seed_failure(gh, VISUAL, 250)
+    for n in range(3):
+        gh.note(f"hand-filed {n}")
+    gh.page_size = 1 if fault == "502@2" else 100
+    gh.faults[needle] = fault
+    proc, summary = watch_cli(gh, tmp_path, event=SCHEDULE_EVENT)
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert gh.writes == []
+    assert "unavailable" in summary.lower()
+    assert max(Counter(p for _, p, _, _ in gh.requests if needle in p).values(), default=0) <= 100
+
+
+def test_cli_exits_one_on_an_unreadable_event_payload(dgw, gh, tmp_path):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    proc, _ = watch_cli(gh, tmp_path, event="{not json")
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert gh.writes == []

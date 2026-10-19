@@ -12,7 +12,11 @@ question about them.
 Several contracts are deliberately *positive*: a negative scan for a forbidden string
 scores green exactly when the line that carried the guarantee is deleted.
 """
+import importlib
+import os
 import re
+import subprocess
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -22,14 +26,18 @@ from scripts.release_gate import (
     REQUIRED_CONTEXTS,
     REPO_ROOT,
 )
+from tests.test_playwright_runner_contracts import bash_executable
 
 WORKFLOWS = REPO_ROOT / ".github" / "workflows"
 CI = WORKFLOWS / "ci.yml"
 DEEP_GATE = WORKFLOWS / "deep-gate.yml"
 RELEASE = WORKFLOWS / "release.yml"
 PACKAGED = WORKFLOWS / "_packaged-windows.yml"
+# E1 moved `visual-linux` into its own workflow; D3 watches both by `workflow_run`.
+VISUAL_LINUX = WORKFLOWS / "deep-gate-visual.yml"
+WATCH = WORKFLOWS / "deep-gate-watch.yml"
 
-ALL_WORKFLOWS = (CI, DEEP_GATE, RELEASE, PACKAGED)
+ALL_WORKFLOWS = (CI, DEEP_GATE, RELEASE, PACKAGED, VISUAL_LINUX, WATCH)
 NEW_WORKFLOWS = (RELEASE, PACKAGED)
 WORKFLOW_PATHS = {path.name: path for path in ALL_WORKFLOWS}
 
@@ -67,16 +75,7 @@ PACKAGED_STEP_SEQUENCE = (
 )
 PACKAGED_FAILURE_STEP = "Upload distribution inventory on failure"
 
-# The two ways `deep-gate.yml`'s `visual-linux` job is allowed to start, as the exact
-# disjuncts of its job-level `if:`. The weekly schedule is what makes the Linux visual
-# comparison run at all; the input is the manual opt-in. Neither is optional, and
-# nothing else may be added -- a third disjunct is a third way to enter a job whose
-# every later step branches on which of these fired.
-VISUAL_LINUX_DISJUNCTS = frozenset(
-    {"github.event_name == 'schedule'", "inputs.run_visual"}
-)
-
-# Every `deep-gate.yml` job, split by whether it may carry a job-level `if:` at all.
+# Every `deep-gate.yml` job that runs its own steps. None may carry a job-level `if:`.
 #
 # GitHub counts a SKIPPED job as a success, and the weekly run is unattended and
 # reports one conclusion for the whole workflow -- so `if: ${{ false }}` on any job
@@ -86,14 +85,12 @@ VISUAL_LINUX_DISJUNCTS = frozenset(
 # each job's `name:` in turn and then all five at once -- every arm left every
 # contract this file held before this packet passing.
 #
-# `visual-linux` is the one job deliberately allowed one, and what its condition may
-# contain is pinned by VISUAL_LINUX_DISJUNCTS above. A job may only join it with its
-# condition pinned that way: otherwise moving one across is a two-word edit that
-# drops an arm from the parametrized contract below and constrains nothing in its
-# place, so the census test measures every member against the file for an `if:` it
-# actually carries. `frozen-windows` is barred from carrying one by the
-# PACKAGED_CALLERS contracts, which is why it is in neither set here and is read back
-# out of that mapping rather than repeated.
+# `visual-linux` was the one job allowed a condition (`schedule || inputs.run_visual`)
+# until E1 moved it into `deep-gate-visual.yml`, where dispatching the workflow
+# is the opt-in and the job is unconditional too -- so deep-gate.yml now has no
+# conditional job at all, and adding one is a deliberate edit to this census.
+# `frozen-windows` is barred from carrying one by the PACKAGED_CALLERS contracts,
+# which is why it is not listed here and is read back out of that mapping instead.
 DEEP_GATE_UNCONDITIONAL_JOBS = frozenset(
     {
         "full-e2e",
@@ -103,7 +100,43 @@ DEEP_GATE_UNCONDITIONAL_JOBS = frozenset(
         "dependency-health",
     }
 )
-DEEP_GATE_CONDITIONAL_JOBS = frozenset({"visual-linux"})
+
+# Every job across the Deep Gate workflows that must run whenever its workflow does.
+# The visual job and the watchdog are single-job workflows: a skipped job there is the
+# whole workflow's evidence gone while its run still reports success.
+UNCONDITIONAL_JOBS = (
+    *((DEEP_GATE, job_id) for job_id in sorted(DEEP_GATE_UNCONDITIONAL_JOBS)),
+    (VISUAL_LINUX, "visual-linux"),
+    (WATCH, "reconcile"),
+)
+
+# What E1 moved, by name. D3 reads the job and both step names through
+# scripts/deep_gate_watch.py, so a rename here without one there blinds the watchdog.
+VISUAL_JOB_NAME = "Visual regression (Linux baselines)"
+VISUAL_STEP_SEQUENCE = (
+    "Checkout code",
+    "Set up Python",
+    "Set up Node.js",
+    "Install Python dependencies",
+    "Install npm dependencies",
+    "Build Bootstrap-customized CSS",
+    "Install Playwright Chromium",
+    "Assert committed visual seed present",
+    "Resolve visual mode",
+    "Run visual specs (compare)",
+    "Run visual specs (generate)",
+    "Assert compare mode wrote no baseline",
+    "Upload generated Linux baselines",
+    "Upload Playwright report + diffs",
+)
+VISUAL_SPECS = (
+    "e2e/visual.spec.ts",
+    "e2e/visual-baseline-thumbnails.spec.ts",
+    "e2e/workout-plan-desktop-contract.spec.ts",
+)
+WATCH_PERMISSIONS = {"actions": "read", "contents": "read", "issues": "write"}
+# The longest GitHub cron delay docs/ci_cd_expansion/PLANNING.md §2.1 observed for this gate.
+OBSERVED_CRON_DELAY = timedelta(hours=7, minutes=30)
 
 # ci.yml job names that exist and are deliberately NOT part of the expected set.
 #
@@ -257,10 +290,114 @@ def triggers(path):
     a workflow from *naming*, in a comment, the trigger it must never have -- which is
     exactly what deep-gate.yml's conversion rationale needs to do.
     """
+    return set(re.findall(r"^  ([a-z_]+):", on_block(path), re.MULTILINE))
+
+
+def on_block(path):
     source = strip_comments(text(path))
     match = re.search(r"^on:[ \t]*\n(.*?)(?=^\S)", source, re.MULTILINE | re.DOTALL)
     assert match is not None, f"{path.name} has no on: block"
-    return set(re.findall(r"^  ([a-z_]+):", match.group(1), re.MULTILINE))
+    return match.group(1)
+
+
+def on_list(path, key):
+    """A list under `on:` -- `key: [a, "b"]` or a block of `- a` lines -- read exactly once."""
+    block = on_block(path)
+    found = re.findall(rf"^( +){key}:(.*)\n((?:\1  +- .+\n)*)", block, re.MULTILINE)
+    assert len(found) == 1, f"{path.name}: `{key}:` appears {len(found)} times under on:"
+    _, inline, items = found[0]
+    raw = inline.split(" #", 1)[0].strip()
+    values = raw[1:-1].split(",") if raw.startswith("[") else re.findall(r"- (.+)", items)
+    return [value.strip().strip("'\"") for value in values if value.strip()]
+
+
+def workflow_name(path):
+    match = re.search(r"^name: (.+)$", text(path), re.MULTILINE)
+    assert match is not None, f"{path.name} has no workflow name"
+    return match.group(1).strip().strip("'\"")
+
+
+def crons(path):
+    return re.findall(r"^    - cron: '([^']+)'", text(path), re.MULTILINE)
+
+
+def watch_module():
+    return importlib.import_module("scripts.deep_gate_watch")
+
+
+def run_script(raw):
+    """The `run:` body of one step, as the shell receives it; None when it has none."""
+    lines = raw.splitlines()
+    for index, line in enumerate(lines):
+        found = re.match(r"^      run: ?(.*)$", line)
+        if found is None:
+            continue
+        if not re.fullmatch(r"[|>][-+]?", found.group(1).strip()):
+            return found.group(1)
+        body = []
+        for following in lines[index + 1 :]:
+            if following.strip() and not following.startswith("        "):
+                break
+            body.append(following[8:])
+        return "\n".join(body).strip("\n")
+    return None
+
+
+def command(raw):
+    script = run_script(raw)
+    assert script is not None
+    return " ".join(script.replace("\\\n", " ").split())
+
+
+def step_env(raw):
+    block = re.search(r"^      env:[ \t]*\n((?:        \S.*\n?)+)", raw, re.MULTILINE)
+    if block is None:
+        return {}
+    return dict(line.strip().split(": ", 1) for line in block.group(1).splitlines())
+
+
+def step_condition(raw):
+    """A step's `if:` with any `${{ }}` wrapper removed; None when unconditional."""
+    found = re.findall(r"^      if: (.+)$", raw, re.MULTILINE)
+    assert len(found) <= 1, found
+    if not found:
+        return None
+    wrapped = re.fullmatch(r"\$\{\{ (.+) \}\}", found[0].strip())
+    return wrapped.group(1) if wrapped else found[0].strip()
+
+
+def cron_matches(expression, moment):
+    minute, hour, day, month, weekday = expression.split()
+
+    def accepts(field, value):
+        if field == "*":
+            return True
+        for part in field.split(","):
+            low, _, high = part.partition("-")
+            if int(low) <= value <= int(high or low):
+                return True
+        return False
+
+    return (
+        accepts(minute, moment.minute)
+        and accepts(hour, moment.hour)
+        and accepts(day, moment.day)
+        and accepts(month, moment.month)
+        and accepts(weekday, (moment.weekday() + 1) % 7)
+    )
+
+
+def cron_fires(expression, start, end):
+    """Every minute in [start, end) that the cron selects."""
+    moment = start.replace(second=0, microsecond=0)
+    if moment < start:
+        moment += timedelta(minutes=1)
+    fired = []
+    while moment < end:
+        if cron_matches(expression, moment):
+            fired.append(moment)
+        moment += timedelta(minutes=1)
+    return fired
 
 
 # --------------------------------------------------------------- the vacuity floor
@@ -302,7 +439,10 @@ def test_the_parser_still_finds_every_job():
     assert len(ci_jobs) >= 17
 
     deep_gate_jobs = jobs(DEEP_GATE)
-    assert len(deep_gate_jobs) == 7
+    assert len(deep_gate_jobs) == 6
+
+    assert set(jobs(VISUAL_LINUX)) == {"visual-linux"}
+    assert set(jobs(WATCH)) == {"reconcile"}
 
     # Every declared caller must at least be a job the parser can see. Without this,
     # "no caller kept its own build steps" would be a statement about missing blocks.
@@ -479,20 +619,32 @@ def test_each_declared_caller_delegates_the_entire_build(file_name):
     )
 
 
-def test_the_weekly_schedule_still_fires_weekly():
+@pytest.mark.parametrize("path", (DEEP_GATE, VISUAL_LINUX), ids=lambda p: p.name)
+def test_the_weekly_schedule_still_fires_weekly(path):
     """`triggers()` reads trigger NAMES, so `schedule:` staying present says nothing
     about whether the cron can ever fire. Changing `'17 3 * * 1'` to a date that
     effectively never comes -- or deleting the `- cron:` line while keeping the
-    `schedule:` key -- silently kills the D3 safety net and reds nothing. Nothing
-    else in the repository mentions `cron` at all.
+    `schedule:` key -- silently kills the D3 safety net and reds nothing.
 
     Pinned to the exact expression because the cadence IS the decision: the weekly
     gate is what the 2026-08-17 first run and the R1-D3 three-run clock are measured
-    against.
+    against. E1 moved the Linux visual comparison into its own workflow on the same
+    cron, so both carry it.
     """
-    assert "schedule" in triggers(DEEP_GATE)
-    crons = re.findall(r"^    - cron: '([^']+)'", DEEP_GATE.read_text(encoding="utf-8"), re.MULTILINE)
-    assert crons == ["17 3 * * 1"], crons
+    assert "schedule" in triggers(path)
+    assert crons(path) == ["17 3 * * 1"], crons(path)
+
+
+@pytest.mark.parametrize("path", (DEEP_GATE, VISUAL_LINUX), ids=lambda p: p.name)
+def test_the_weekly_cron_fires_exactly_at_the_slot_the_watchdog_expects(path):
+    """D3 keys freshness on `expected_slot()`; a cron that drifts from it makes every
+    on-time run look missing, or lets a missing one look on time."""
+    watch = watch_module()
+    (cron,) = crons(path)
+    slot = watch.expected_slot(datetime(2026, 10, 21, tzinfo=timezone.utc))
+    assert (slot.weekday(), (slot.hour, slot.minute)) == (watch.SLOT_WEEKDAY, watch.SLOT_TIME)
+    week = cron_fires(cron, slot - timedelta(days=3), slot + timedelta(days=4))
+    assert week == [slot]
 
 
 def test_the_reusable_build_accepts_nothing_from_its_callers():
@@ -615,8 +767,8 @@ def test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows():
     # The lift shrank this job to a single `uses:` line, so a one-line `if:` above it
     # would skip the weekly gate's ONLY packaged-artifact check and still report the
     # run green. The step-level guard below is no help: it iterates NEW_WORKFLOWS, and
-    # a `uses:` job has no steps to iterate. deep-gate.yml already carries the
-    # precedent on `visual-linux`, and MASTER_HANDOVER makes "executed, not skipped"
+    # a `uses:` job has no steps to iterate. deep-gate.yml carried the precedent on
+    # `visual-linux` until E1, and MASTER_HANDOVER makes "executed, not skipped"
     # the pass condition of this gate -- so the shape has to be barred by name here.
     assert not re.search(r"^    if:", frozen, re.MULTILINE), (
         "`frozen-windows` must stay unconditional; a `uses:` job with an `if:` "
@@ -628,106 +780,131 @@ def test_the_weekly_gate_still_smokes_a_real_bootloader_on_windows():
     assert "--mode bootloader" in dict(steps(called))["Smoke the real bootloader"]
 
 
-def test_the_weekly_visual_comparison_cannot_be_reduced_to_a_manual_opt_in():
-    """`visual-linux` is the one job in this repository that may carry a job-level
-    `if:`, and the contracts that bar the shape elsewhere therefore had nothing to say
-    about what its condition contains.
+def test_the_weekly_visual_comparison_runs_unconditionally_in_its_own_workflow():
+    """Relocated by E1 from the `visual-linux` job-level-`if:` disjunct contract.
 
-    Both disjuncts are load-bearing, and the schedule one is the fragile half. A
-    `schedule` event carries no `inputs` at all, so `inputs.run_visual` alone resolves
-    false: dropping `github.event_name == 'schedule' ||` leaves a workflow whose weekly
-    run skips its visual comparison entirely and still reports green -- the exact
-    "executed, not skipped" failure the comment above the condition says it exists to
-    prevent, and the one this workflow's own prose claims is impossible. Measured: that
-    one-line deletion left all 42 contracts in this file passing.
-
-    Pinned as a set of disjuncts rather than as a string so the message names what
-    changed, and `&&` is barred by name because it reads as a near-identical edit while
-    inverting the meaning -- a scheduled run would then also need an input it can never
-    have.
+    In deep-gate.yml the job carried `if: schedule || inputs.run_visual`, and the
+    schedule disjunct was the fragile half: a `schedule` event carries no `inputs`, so
+    dropping it left a weekly run that skipped its comparison and still reported green
+    (measured: that deletion left all 42 contracts then in this file passing). The job
+    now lives alone in `deep-gate-visual.yml`, where dispatching the workflow IS
+    the opt-in -- so the guarantee becomes stronger and simpler: the job carries no
+    condition at all, the workflow fires on exactly the weekly schedule and a manual
+    dispatch, and `run_visual` exists nowhere (the deliberate E1 interface delta).
     """
-    block = strip_comments(jobs(DEEP_GATE)["visual-linux"])
-    found = re.search(r"^    if: \$\{\{ (.+) \}\}$", block, re.MULTILINE)
-    assert found is not None, (
-        "`visual-linux` lost its job-level `if:`; the weekly/manual split is the "
-        "whole reason this job is allowed to carry one"
+    block = strip_comments(jobs(VISUAL_LINUX)["visual-linux"])
+    assert job_name(block) == VISUAL_JOB_NAME
+    found = JOB_LEVEL_IF.search(block)
+    assert found is None, (
+        "`visual-linux` regained a job-level `if:`; a skipped single-job workflow "
+        "reports success, so the weekly compare could silently stop running"
     )
-
-    condition = found.group(1).strip()
-    assert "&&" not in condition, (
-        f"`visual-linux` gates its run on a conjunction: {condition!r} -- a scheduled "
-        "run carries no inputs, so this never runs weekly"
-    )
-    disjuncts = {part.strip() for part in condition.split("||")}
-    assert disjuncts == VISUAL_LINUX_DISJUNCTS, (
-        f"`visual-linux` must run on the weekly schedule AND on an opted-in manual "
-        f"dispatch, and on nothing else; found {sorted(disjuncts)}"
-    )
+    assert triggers(VISUAL_LINUX) == {"schedule", "workflow_dispatch"}
+    for path in (DEEP_GATE, VISUAL_LINUX):
+        assert "run_visual" not in executable(path), path.name
 
 
-def test_every_deep_gate_job_is_classified_as_conditional_or_not():
+def test_the_visual_workflow_keeps_its_dispatch_input_and_shape():
+    on = on_block(VISUAL_LINUX)
+    inputs = re.search(r"^    inputs:\n((?:      .*\n?)+)", on, re.MULTILINE)
+    assert inputs is not None, "the visual workflow lost its dispatch inputs"
+    assert re.findall(r"^      ([a-z_]+):", inputs.group(1), re.MULTILINE) == ["visual_mode"]
+    for line in (
+        "description: 'Visual mode: compare against committed Linux baselines, or generate new ones'",
+        "type: choice",
+        "options: [compare, generate]",
+        "default: compare",
+    ):
+        assert re.search(rf"^        {re.escape(line)}$", inputs.group(1), re.MULTILINE), line
+
+    assert workflow_name(VISUAL_LINUX) == "Deep Gate Visual (Linux)"
+    assert _scopes(text(VISUAL_LINUX), "") == {"contents": "read"}
+    assert "concurrency:" not in executable(VISUAL_LINUX)
+    block = jobs(VISUAL_LINUX)["visual-linux"]
+    assert permissions(block) is None
+    # Pinned, not ubuntu-latest: the compare must render on the image that generated
+    # the committed e2e/__screenshots__/linux/ baselines (ADR-011).
+    assert re.search(r"^    runs-on: ubuntu-24\.04$", block, re.MULTILINE)
+    assert re.search(r"^    timeout-minutes: 25$", block, re.MULTILINE)
+    assert tuple(name for name, _ in steps(block)) == VISUAL_STEP_SEQUENCE
+    bodies = dict(steps(block))
+    assert command(bodies["Install npm dependencies"]) == "npm ci"
+    assert command(bodies["Build Bootstrap-customized CSS"]) == "npm run build:css"
+    assert command(bodies["Install Playwright Chromium"]) == "npx playwright install --with-deps chromium"
+    assert command(bodies["Assert committed visual seed present"]) == (
+        "test -f e2e/fixtures/database.visual.seed.db"
+    )
+
+
+def test_deep_gate_keeps_six_named_jobs_and_no_visual_inputs():
+    """E1 retained the six non-Linux jobs, names unchanged, and moved the visual job
+    and both of its inputs out. A dispatch input left behind here is a knob that no
+    longer controls anything."""
+    assert workflow_name(DEEP_GATE) == "Deep Gate (manual + weekly)"
+    names = {job_id: job_name(block) for job_id, block in jobs(DEEP_GATE).items()}
+    assert names == {
+        "full-e2e": "Full E2E incl. accessibility (Chromium)",
+        "first-install": "First install (catalog seed) smoke",
+        "empty-schema": "Empty-schema initializer smoke",
+        "old-db-migration": "Old-DB migration compatibility",
+        "frozen-windows": "Frozen executable (real bootloader, Windows)",
+        "dependency-health": "Dependency Health Check",
+    }
+    assert triggers(DEEP_GATE) == {"schedule", "workflow_dispatch"}
+    on = on_block(DEEP_GATE)
+    assert re.search(r"^  workflow_dispatch:[ \t]*(\{\})?$", on, re.MULTILINE)
+    assert "inputs:" not in on
+    source = executable(DEEP_GATE)
+    for moved in ("visual_mode", "PW_VISUAL_SEED", "Run visual specs", "visual-baselines-linux"):
+        assert moved not in source, moved
+
+
+def test_every_deep_gate_job_is_classified_and_none_is_conditional():
     """The completeness half, and the reason the per-job contract below is not
     vacuous.
 
     That contract can only speak about the job ids it is handed. The vacuity floor
     above counts deep-gate's jobs, so a job simply ADDED already reds there -- but a
     count says nothing about WHICH jobs, and a rename, or an add paired with a
-    removal, keeps it at seven while moving a job out of the protected set entirely.
+    removal, keeps it at six while moving a job out of the protected set entirely.
     This pins the ids, so the failure names the job that stopped being classified
     instead of reporting a number that no longer matches.
+
+    Until E1 `visual-linux` was the one conditional job here, pinned by its disjuncts.
+    It left with its condition, so no deep-gate job may now carry one -- asserted over
+    every job, `frozen-windows` included, so reintroducing a conditional job means
+    pinning its condition in a new contract rather than editing a set.
     """
     frozen_id, _ = PACKAGED_CALLERS[DEEP_GATE.name]
-    classified = DEEP_GATE_UNCONDITIONAL_JOBS | DEEP_GATE_CONDITIONAL_JOBS | {frozen_id}
-    assert set(jobs(DEEP_GATE)) == classified, (
-        "deep-gate.yml's jobs no longer match the conditional/unconditional split. An "
-        "unclassified job can carry `if: ${{ false }}` and skip out of the unattended "
-        "weekly gate while the run still reports green"
+    assert set(jobs(DEEP_GATE)) == DEEP_GATE_UNCONDITIONAL_JOBS | {frozen_id}, (
+        "deep-gate.yml's jobs no longer match the census. An unclassified job can "
+        "carry `if: ${{ false }}` and skip out of the unattended weekly gate while "
+        "the run still reports green"
     )
-
-    # The conditional set is the escape hatch, so it is measured against the file
-    # rather than trusted. Moving an unconditional job into it silently deletes that
-    # job's arm from the parametrized contract below and the census above stays green,
-    # because the union is unchanged -- but a job that was unconditional has no `if:`
-    # to find, which is what this catches.
-    unpinned = sorted(
+    conditional = sorted(
         job_id
-        for job_id in DEEP_GATE_CONDITIONAL_JOBS
-        if not re.search(
-            r"^    if:", strip_comments(jobs(DEEP_GATE)[job_id]), re.MULTILINE
-        )
+        for job_id, block in jobs(DEEP_GATE).items()
+        if JOB_LEVEL_IF.search(strip_comments(block))
     )
-    assert not unpinned, (
-        f"{unpinned} are listed as deliberately conditional but carry no job-level "
-        "`if:`; a job only belongs here with its condition pinned, or it has left the "
-        "unconditional contract with nothing taking its place"
-    )
-    # The check above is satisfied by moving a job across AND skipping it in the same
-    # change, which then shows up only as one fewer parametrize arm. `visual-linux` is
-    # the only job whose condition anything pins, so widening the exception has to be
-    # a deliberate edit here, against a message saying what it costs.
-    assert DEEP_GATE_CONDITIONAL_JOBS == {"visual-linux"}, (
-        "`visual-linux` is the only deep-gate job with a pinned condition "
-        "(VISUAL_LINUX_DISJUNCTS). Adding another removes it from the unconditional "
-        "contract without pinning what its condition may contain -- and it mints a "
-        "SECOND job that can skip, which is what "
-        "`test_no_unconditional_deep_gate_job_gates_itself_behind_another_job` relies on "
-        "not existing: `visual-linux` is exempt from that contract only because a "
-        "`needs:` on it can chain to nothing skippable. Widening this set reopens the "
-        "`needs:` shape, so widen it there in the same change"
+    assert conditional == [], (
+        f"{conditional} carry a job-level `if:`. deep-gate.yml has had no conditional "
+        "job since E1; a new one also reopens the `needs:` skip-chain shape barred below"
     )
 
 
-@pytest.mark.parametrize("job_id", sorted(DEEP_GATE_UNCONDITIONAL_JOBS))
-def test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run(job_id):
-    """The five jobs that must run every week.
+@pytest.mark.parametrize(
+    "path,job_id", UNCONDITIONAL_JOBS, ids=lambda v: v.name if hasattr(v, "name") else v
+)
+def test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run(path, job_id):
+    """The jobs that must run whenever their Deep Gate workflow runs.
 
-    `visual-linux` is allowed a job-level `if:` and `frozen-windows` is barred from
-    one by name, so the shape was pinned for exactly two of seven jobs and unmeasured
-    for the rest. A skipped job is a successful job to GitHub, and this workflow's
-    conclusion is the only thing an unattended weekly run reports -- so one `if:` line
-    here deletes the full E2E suite, a cold-start smoke, the empty-schema smoke or the
-    old-DB migration proof from the gate without reddening anything, in the workflow
-    whose whole purpose is to run the checks the PR pipeline deliberately does not.
+    `frozen-windows` is barred from a job-level `if:` by name, and until E1
+    `visual-linux` was allowed one, so the shape was pinned for exactly two of seven
+    jobs and unmeasured for the rest. A skipped job is a successful job to GitHub, and a
+    workflow's conclusion is the only thing an unattended weekly run reports -- so one
+    `if:` line here deletes the full E2E suite, a cold-start smoke, the empty-schema
+    smoke, the old-DB migration proof, the Linux visual compare or the watchdog itself
+    without reddening anything.
 
     `dependency-health` is the one job here that reports rather than gates -- both its
     scan steps are `continue-on-error: true` -- so skipping it costs the weekly output,
@@ -741,18 +918,18 @@ def test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run(jo
     `    if:\n      ${{ false }}` and a tab after the colon are both the same skip, and
     a pattern demanding `if: ` plus a value passes on either.
 
-    Standing on the second vacuity floor, not asserting it: all five jobs declare
+    Standing on the second vacuity floor, not asserting it: every job here declares
     `steps:` at four spaces, so a 4->6 job reindent would leave every arm here green
     with the parser unable to read the block at all. What reds there is
     `test_the_step_parser_reads_every_job_that_declares_steps`.
     """
-    body = strip_comments(jobs(DEEP_GATE)[job_id])
-    found = re.search(r"^    if:(.*)$", body, re.MULTILINE)
-    condition = found.group(1).strip() if found else None
+    body = strip_comments(jobs(path)[job_id])
+    found = JOB_LEVEL_IF.search(body)
+    condition = body[found.end() :].split("\n", 1)[0].strip() if found else None
     assert found is None, (
-        f"deep-gate.yml:{job_id} carries a job-level `if: {condition}`. A skipped job "
+        f"{path.name}:{job_id} carries a job-level `if: {condition}`. A skipped job "
         "counts as success, so this drops the job's evidence from the weekly gate "
-        "while the run still reports green; only `visual-linux` may be conditional here"
+        "while the run still reports green"
     )
 
 
@@ -777,17 +954,14 @@ def test_no_unconditional_deep_gate_job_can_skip_itself_out_of_the_weekly_run(jo
 #   * `needs:` -- the five unconditional jobs. The false-green mechanism is a SKIP
 #     chain, and a skipped dependency is the only kind that leaves a run green (a
 #     FAILED dependency skips its dependent but reds the run -- measured as arm H1-M2
-#     and deliberately NOT claimed as a false green). `visual-linux` is the only job
-#     in this workflow that can skip, so it is the only usable dependency; a `needs:`
-#     ON `visual-linux` chains to nothing that skips and is therefore not a
-#     demonstrated failure mode. R1's own criterion is that protection match the
-#     demonstrated mode only, so it is not barred here.
-#   * `continue-on-error:` -- those five AND `visual-linux`. This one needs no skip:
-#     it swallows a real failure wherever it sits, so `visual-linux`'s scheduled
-#     compare is as reachable as the rest.
-DEEP_GATE_NO_JOB_LEVEL_CONTINUE_ON_ERROR_JOBS = (
-    DEEP_GATE_UNCONDITIONAL_JOBS | DEEP_GATE_CONDITIONAL_JOBS
-)
+#     and deliberately NOT claimed as a false green). Until E1 `visual-linux` was the
+#     only job in this workflow that could skip, so the only usable dependency; it now
+#     lives alone in its own workflow, where `needs:` can name nothing. The bar stays
+#     so a skippable job added here cannot be chained to.
+#   * `continue-on-error:` -- those five, plus `visual-linux` and the watchdog in their
+#     own workflows (UNCONDITIONAL_JOBS). This one needs no skip: it swallows a real
+#     failure wherever it sits, so the scheduled Linux compare is as reachable as the
+#     rest -- and a watchdog that cannot fail cannot report unavailable evidence.
 
 # Job-level keys sit at four spaces; step-level keys at six. The distinction IS the
 # contract below: `dependency-health` carries `continue-on-error: true` on both of its
@@ -795,6 +969,7 @@ DEEP_GATE_NO_JOB_LEVEL_CONTINUE_ON_ERROR_JOBS = (
 # red on that intentional configuration instead of on the unmeasured shape.
 JOB_LEVEL_CONTINUE_ON_ERROR = re.compile(r"^    continue-on-error:", re.MULTILINE)
 JOB_LEVEL_NEEDS = re.compile(r"^    needs:", re.MULTILINE)
+JOB_LEVEL_IF = re.compile(r"^    if:", re.MULTILINE)
 
 
 @pytest.mark.parametrize("job_id", sorted(DEEP_GATE_UNCONDITIONAL_JOBS))
@@ -802,9 +977,10 @@ def test_no_unconditional_deep_gate_job_gates_itself_behind_another_job(job_id):
     """`needs:` is the second way a job leaves the weekly gate without reddening it.
 
     A job whose dependency is SKIPPED is skipped too, and a skipped job counts as a
-    success -- so `needs: visual-linux` here removes this job's evidence from any run
-    where `visual-linux` did not start. That is every `workflow_dispatch` taken with
-    the `run_visual` default, which is how this workflow is overwhelmingly exercised.
+    success -- so `needs: visual-linux` here removed this job's evidence from any run
+    where `visual-linux` did not start: every `workflow_dispatch` taken with the
+    `run_visual` default, which was how this workflow was overwhelmingly exercised
+    before E1 moved that job out. The bar stays for whatever skippable job comes next.
 
     Measured on the unprotected set (Packet R1): one `needs: visual-linux` line added
     after each job's `name:` in turn, and all five at once -- every arm left all 51
@@ -837,9 +1013,9 @@ def test_no_unconditional_deep_gate_job_gates_itself_behind_another_job(job_id):
 
 
 @pytest.mark.parametrize(
-    "job_id", sorted(DEEP_GATE_NO_JOB_LEVEL_CONTINUE_ON_ERROR_JOBS)
+    "path,job_id", UNCONDITIONAL_JOBS, ids=lambda v: v.name if hasattr(v, "name") else v
 )
-def test_no_deep_gate_job_makes_its_own_failure_non_blocking(job_id):
+def test_no_deep_gate_job_makes_its_own_failure_non_blocking(path, job_id):
     """The third shape, and the only one of the three that needs no skip at all.
 
     A job-level `continue-on-error: true` lets the job fail and the RUN still report
@@ -867,11 +1043,11 @@ def test_no_deep_gate_job_makes_its_own_failure_non_blocking(job_id):
 
     `frozen-windows` is out of scope; see the comment on the sets above.
     """
-    body = strip_comments(jobs(DEEP_GATE)[job_id])
+    body = strip_comments(jobs(path)[job_id])
     found = JOB_LEVEL_CONTINUE_ON_ERROR.search(body)
     value = body[found.end() :].split("\n", 1)[0].strip() if found else None
     assert found is None, (
-        f"deep-gate.yml:{job_id} declares a job-level `continue-on-error: {value}`. "
+        f"{path.name}:{job_id} declares a job-level `continue-on-error: {value}`. "
         "The job may then fail while the run still reports success, which is the only "
         "signal an unattended weekly gate produces; step-level use inside "
         "`dependency-health` is deliberate and unaffected"
@@ -896,10 +1072,12 @@ def test_no_deep_gate_job_makes_its_own_failure_non_blocking(job_id):
 # at that depth, so the sample gives each pattern something at six spaces to ignore.
 PATTERN_SAMPLE_BLOCK = """  a-job:
     name: A job
+    if: ${{ false }}
     continue-on-error: true
     needs: [b-job]
     steps:
     - name: a step
+      if: always()
       run: true
       needs: not-a-real-step-key
       continue-on-error: true
@@ -921,14 +1099,15 @@ def test_the_job_level_patterns_cannot_see_a_step_level_key():
     `JOB_LEVEL_NEEDS` needs this more than its sibling does. No deep-gate job carries
     `needs:` today, so its five arms above are all negatives: without a positive here,
     a five-space anchor or a typo'd key would leave every one of them passing while
-    matching nothing at all. The `if:` contract this pair imitates does not have that
-    hole -- `test_every_deep_gate_job_is_classified_as_conditional_or_not` requires the
-    same `^    if:` literal to MATCH on `visual-linux` -- and a contract that is
-    strictly weaker than the sibling it imitates is the second failure mode #402 paid
-    for.
+    matching nothing at all. `JOB_LEVEL_IF` joined them with E1: its positive arm used
+    to be `visual-linux`'s own condition, which left with the job, so every `if:` arm
+    on the workflows is now a negative too and this sample is its only positive -- and
+    a contract that is strictly weaker than the sibling it imitates is the second
+    failure mode #402 paid for.
     """
     assert len(JOB_LEVEL_CONTINUE_ON_ERROR.findall(PATTERN_SAMPLE_BLOCK)) == 1
     assert len(JOB_LEVEL_NEEDS.findall(PATTERN_SAMPLE_BLOCK)) == 1
+    assert len(JOB_LEVEL_IF.findall(PATTERN_SAMPLE_BLOCK)) == 1
 
     # The forms a `key: value` pattern would miss -- all of them the same key, and each
     # written inside a block so `^` is never satisfied by offset 0.
@@ -952,22 +1131,32 @@ def test_the_job_level_patterns_cannot_see_a_step_level_key():
                 "    needs:\tvisual-linux\n",
             ),
         ),
+        (
+            JOB_LEVEL_IF,
+            (
+                "    if: ${{ false }}\n",
+                "    if:\n      false\n",
+                "    if:\tfalse\n",
+            ),
+        ),
     ):
         for tail in tails:
             assert pattern.search(header + tail), tail
 
 
-def test_the_deep_gate_produces_no_branch_protection_context():
+@pytest.mark.parametrize("path", (DEEP_GATE, VISUAL_LINUX), ids=lambda p: p.name)
+def test_the_deep_gate_produces_no_branch_protection_context(path):
     """Converting `frozen-windows` renamed its check to `<name> / Build and smoke`.
     That rename is safe only because nothing in this workflow is a required context --
     it runs on the weekly schedule and on workflow_dispatch, never on a pull request.
     Add a `pull_request:` trigger here and the safety argument stops holding, so this
     asserts the trigger set positively -- exactly these two, nothing else -- rather than
-    trusting the job names alone or scanning the file for a forbidden word.
+    trusting the job names alone or scanning the file for a forbidden word. E1's visual
+    workflow stands on the same premise: "never a required PR check".
     """
-    names = {job_name(block) for block in jobs(DEEP_GATE).values()}
+    names = {job_name(block) for block in jobs(path).values()}
     assert not names & set(REQUIRED_CONTEXTS)
-    assert triggers(DEEP_GATE) == {"schedule", "workflow_dispatch"}
+    assert triggers(path) == {"schedule", "workflow_dispatch"}
 
 
 # ------------------------------------------------------------------ triggers and inputs
@@ -1049,7 +1238,7 @@ def test_the_packaged_smoke_serves_on_a_port_that_is_not_5000():
         assert forbidden not in source, forbidden
 
 
-@pytest.mark.parametrize("path", NEW_WORKFLOWS, ids=lambda p: p.name)
+@pytest.mark.parametrize("path", (*NEW_WORKFLOWS, VISUAL_LINUX), ids=lambda p: p.name)
 def test_every_new_job_has_an_explicit_read_only_token(path):
     """Positive on purpose. A job with no `permissions:` anywhere above it inherits
     the repository default, which is wider than an explicit `read`. The file-level
@@ -1085,7 +1274,7 @@ def test_no_step_carries_a_condition_that_could_skip_it_silently(path):
 
 
 @pytest.mark.parametrize(
-    "path", (*NEW_WORKFLOWS, DEEP_GATE), ids=lambda p: p.name
+    "path", (*NEW_WORKFLOWS, DEEP_GATE, VISUAL_LINUX, WATCH), ids=lambda p: p.name
 )
 def test_no_assertion_hides_inside_an_and_list(path):
     """`[ "$a" = "200" ] && [ "$b" = "200" ]` does NOT fail a `set -e` step when the
@@ -1099,9 +1288,9 @@ def test_no_assertion_hides_inside_an_and_list(path):
 
     `deep-gate.yml` is not one of the two new workflows this file was written for,
     but it is covered here: it carried this exact defect at its `old-db-migration`
-    HTTP assertion until R2-a split it, and it is the only workflow in the repository
-    with a `schedule:` trigger, so its jobs run unattended with nothing else gating
-    them."""
+    HTTP assertion until R2-a split it, and it and E1/D3's two workflows are the only
+    ones in the repository with a `schedule:` trigger, so their jobs run unattended
+    with nothing else gating them."""
     chained = re.compile(r"^\[ .+ \] &&\s*\[")
     for job_id, block in jobs(path).items():
         for name, raw in steps(block):
@@ -1123,40 +1312,66 @@ def test_the_release_concurrency_group_never_cancels_a_running_release():
     assert re.search(r"^  cancel-in-progress: false$", source, re.MULTILINE)
 
 
-@pytest.mark.parametrize("path", (CI, RELEASE, PACKAGED), ids=lambda p: p.name)
+@pytest.mark.parametrize(
+    "path", (CI, RELEASE, PACKAGED, DEEP_GATE, WATCH), ids=lambda p: p.name
+)
 def test_the_pr_and_release_paths_can_never_write_a_visual_baseline(path):
+    """Since E1, deep-gate.yml joins the files that may never hold the flag: the
+    visual job and its generate mode moved to deep-gate-visual.yml."""
     assert "--update-snapshots" not in executable(path)
 
 
-def test_the_deep_gate_keeps_baseline_generation_behind_its_generate_mode():
-    """deep-gate.yml is the one file allowed to hold `--update-snapshots`, and only
-    on a `workflow_dispatch` that explicitly selects generate. Asserted rather than
-    exempted, so this packet cannot be read as blessing an ungated occurrence.
+def visual_steps():
+    return dict(
+        (name, strip_comments(raw)) for name, raw in steps(jobs(VISUAL_LINUX)["visual-linux"])
+    )
+
+
+def test_the_visual_workflow_keeps_baseline_generation_behind_its_generate_mode():
+    """Relocated by E1 from deep-gate.yml, where one `Run visual specs` step built an
+    `UPDATE` variable from the resolved mode. E1 split it so the mode is visible in the
+    Actions API (D3 recovery reads whether the COMPARE step executed): a mode step, a
+    compare step that can never update, a generate step that always does.
+
+    deep-gate-visual.yml is now the one file allowed to hold `--update-snapshots`,
+    and only in the step a dispatch that explicitly selects generate can reach.
+    Asserted rather than exempted, so this packet cannot be read as blessing an
+    ungated occurrence.
 
     Compare mode's second half is equally load-bearing: Playwright creates a missing
     snapshot by default, so success alone is not proof that the baseline tree stayed
     untouched. Pin the existing guard that turns any final tree delta into a red.
     """
-    source = executable(DEEP_GATE)
+    source = executable(VISUAL_LINUX)
     assert source.count("--update-snapshots") == 1
-    assert 'UPDATE=""; [ "$MODE" = "generate" ] && UPDATE="--update-snapshots"' in source
-    assert '[ "${{ github.event_name }}" = "schedule" ] && MODE=compare' in source
-    visual_steps = steps(jobs(DEEP_GATE)["visual-linux"])
-    names = [name for name, _ in visual_steps]
-    visual_name = "Run visual specs"
-    guard_name = "Assert compare mode wrote no baseline"
-    assert names.count(visual_name) == 1
-    assert names.count(guard_name) == 1
-    assert names.index(guard_name) == names.index(visual_name) + 1
+    assert "steps.visual.outputs" not in source, "every mode read goes through steps.mode"
+    by_name = visual_steps()
+    names = list(by_name)
+    mode_name, compare_name, generate_name, guard_name = (
+        "Resolve visual mode",
+        "Run visual specs (compare)",
+        "Run visual specs (generate)",
+        "Assert compare mode wrote no baseline",
+    )
+    start = names.index(mode_name)
+    assert names[start : start + 4] == [mode_name, compare_name, generate_name, guard_name]
 
-    visual = strip_comments(visual_steps[names.index(visual_name)][1])
-    guard = strip_comments(visual_steps[names.index(guard_name)][1])
+    mode, compare, generate, guard = (by_name[n] for n in names[start : start + 4])
+    for raw, step_id in ((mode, "mode"), (compare, "visual")):
+        assert re.findall(r"^      id: (.+)$", raw, re.MULTILINE) == [step_id]
+    assert step_condition(mode) is None
+    assert step_condition(compare) == "steps.mode.outputs.mode == 'compare'"
+    assert step_condition(generate) == "steps.mode.outputs.mode == 'generate'"
+    for raw in (compare, generate):
+        assert step_env(raw) == {"PW_VISUAL_SEED": "'1'"}
+        assert "continue-on-error:" not in raw
+    expected = "npx playwright test --project=chromium " + " ".join(VISUAL_SPECS)
+    assert command(compare) == expected
+    assert command(generate) == expected + " --update-snapshots"
 
-    assert len(re.findall(r"^      id:", visual, re.MULTILINE)) == 1
-    assert len(re.findall(r"^      id: visual$", visual, re.MULTILINE)) == 1
     condition = (
         r"^      if: \$\{\{ always\(\) && "
-        r"steps\.visual\.outputs\.mode != 'generate' \}\}$"
+        r"steps\.mode\.outputs\.mode != 'generate' \}\}$"
     )
     assert len(re.findall(r"^      if:", guard, re.MULTILINE)) == 1
     assert len(re.findall(condition, guard, re.MULTILINE)) == 1
@@ -1173,6 +1388,202 @@ def test_the_deep_gate_keeps_baseline_generation_behind_its_generate_mode():
     assert guard.index(emit_paths) < guard.index(diagnostic) < guard.index("exit 1")
     assert "continue-on-error:" not in guard
     assert "|| true" not in guard
+
+
+def test_generated_baselines_upload_only_in_generate_mode_and_reports_only_on_failure():
+    by_name = visual_steps()
+    baselines = by_name["Upload generated Linux baselines"]
+    assert step_condition(baselines) == "steps.mode.outputs.mode == 'generate'"
+    for line in ("name: visual-baselines-linux", "path: e2e/__screenshots__/linux/**", "retention-days: 14"):
+        assert re.search(rf"^        {re.escape(line)}$", baselines, re.MULTILINE), line
+    report = by_name["Upload Playwright report + diffs"]
+    assert step_condition(report) == "failure()"
+    for line in ("name: visual-linux-report", "path: artifacts/playwright", "retention-days: 7"):
+        assert re.search(rf"^        {re.escape(line)}$", report, re.MULTILINE), line
+
+
+def evaluate(expression, event, visual_mode):
+    """The value GitHub would substitute for one `env:` entry of the mode step."""
+    value = expression.strip().strip("'\"")
+    wrapped = re.fullmatch(r"\$\{\{ (.+) \}\}", value)
+    if wrapped is None:
+        return value
+    for term in (part.strip() for part in wrapped.group(1).split("||")):
+        if term == "inputs.visual_mode":
+            resolved = visual_mode
+        elif term == "github.event_name":
+            resolved = event
+        else:
+            literal = re.fullmatch(r"'([^']*)'", term)
+            assert literal is not None, f"unmodelled expression in the mode step: {term}"
+            resolved = literal.group(1)
+        if resolved:
+            return resolved
+    return ""
+
+
+@pytest.mark.parametrize(
+    "event,visual_mode,expected",
+    [
+        ("schedule", "", "compare"),
+        # A schedule carries no inputs; this models the input default changing, which
+        # the event-name pin exists to survive.
+        ("schedule", "generate", "compare"),
+        ("workflow_dispatch", "generate", "generate"),
+        ("workflow_dispatch", "compare", "compare"),
+        ("workflow_dispatch", "", "compare"),
+    ],
+)
+def test_the_mode_step_resolves_compare_on_every_schedule(tmp_path, event, visual_mode, expected):
+    """Executed, not read: the weekly run must compare whatever the input says, and
+    only a dispatch that selects generate may generate. The step receives the input
+    and event name through `env:` (no `${{ }}` in the script), as B2 requires."""
+    raw = visual_steps()["Resolve visual mode"]
+    script = run_script(raw)
+    assert script and "${{" not in script
+    output = tmp_path / "github_output"
+    output.write_text("", encoding="utf-8")
+    env = {
+        **os.environ,
+        **{name: evaluate(expr, event, visual_mode) for name, expr in step_env(raw).items()},
+        "GITHUB_EVENT_NAME": event,
+        "GITHUB_OUTPUT": output.as_posix(),
+    }
+    result = subprocess.run(
+        [bash_executable(), "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert re.findall(r"^mode=(.*)$", output.read_text(encoding="utf-8"), re.MULTILINE) == [expected]
+
+
+# ------------------------------------------------------------ the D3 watch workflow
+
+
+def test_the_watch_listens_to_exactly_the_two_deep_gate_workflows_by_name():
+    """`workflow_run` matches on the watched workflows' `name:`. Renaming either file's
+    name, or the script's WATCHED table, without the other silently unwatches it."""
+    watched = {(x.file, x.name) for x in watch_module().WATCHED}
+    declared = {(path.name, workflow_name(path)) for path in (DEEP_GATE, VISUAL_LINUX)}
+    assert watched == declared
+    listened = on_list(WATCH, "workflows")
+    assert len(listened) == len(set(listened)) and set(listened) == {name for _, name in declared}
+    assert on_list(WATCH, "types") == ["completed"]
+    assert on_list(WATCH, "branches") == ["main"]
+    assert triggers(WATCH) == {"workflow_run", "schedule", "workflow_dispatch"}
+    assert workflow_name(WATCH) == "Deep Gate Watch"
+
+
+def test_the_watchdog_reads_the_job_and_step_names_the_visual_workflow_declares():
+    watch = watch_module()
+    block = jobs(VISUAL_LINUX)["visual-linux"]
+    assert watch.VISUAL_JOB_NAME == job_name(block) == VISUAL_JOB_NAME
+    names = [name for name, _ in steps(block)]
+    assert watch.COMPARE_STEP_NAME in names
+    assert watch.NO_WRITE_STEP_NAME in names
+
+
+def test_the_watch_schedule_detects_a_missing_slot_before_the_36_hour_deadline():
+    """Computed from the cron and the script's own constants, so changing either
+    re-proves the bound. The first check after the threshold must leave more margin
+    before the deadline than the longest cron delay observed for this gate, and a
+    second check must follow in case one is dropped."""
+    watch = watch_module()
+    assert crons(WATCH) == ["23 * * * 1,2"]
+    slot = watch.expected_slot(datetime(2026, 10, 21, tzinfo=timezone.utc))
+    fired = cron_fires(
+        crons(WATCH)[0], slot + watch.MISSING_THRESHOLD, slot + watch.FRESHNESS_DEADLINE
+    )
+    assert len(fired) >= 2, fired
+    assert watch.FRESHNESS_DEADLINE - (fired[0] - slot) > OBSERVED_CRON_DELAY
+
+
+def test_the_watch_holds_least_privilege_and_serialises_without_cancelling():
+    source = executable(WATCH)
+    assert re.search(r"^permissions: \{\}$", source, re.MULTILINE)
+    block = jobs(WATCH)["reconcile"]
+    assert job_name(block) == "Reconcile Deep Gate status"
+    assert permissions(block) == WATCH_PERMISSIONS
+    assert re.search(r"^    runs-on: ubuntu-latest$", block, re.MULTILINE)
+    assert re.search(r"^    timeout-minutes: 10$", block, re.MULTILINE)
+    # Each run reconciles full history, so a queued run loses nothing; two concurrent
+    # runs could each create the same issue.
+    assert re.search(
+        r"^(\s*)concurrency:\n\1  group: deep-gate-watch\n\1  cancel-in-progress: false$",
+        source,
+        re.MULTILINE,
+    )
+    on = on_block(WATCH)
+    dry_run = re.search(r"^      dry_run:\n((?:        .+\n?)+)", on, re.MULTILINE)
+    assert dry_run is not None
+    assert "type: boolean" in dry_run.group(1) and "default: false" in dry_run.group(1)
+    assert re.findall(r"zizmor: ignore\[([^\]]+)\]", text(WATCH)) == ["dangerous-triggers"]
+
+
+def test_the_watch_executes_nothing_from_the_triggering_run():
+    """`workflow_run` runs with this repository's token on the default branch. The job
+    may check out only that revision, install nothing, download nothing, and read the
+    event only as data from $GITHUB_EVENT_PATH."""
+    source = executable(WATCH)
+    for forbidden in (
+        "download-artifact",
+        "actions/cache",
+        "pip install",
+        "npm",
+        "github.event.",
+        "github.head_ref",
+    ):
+        assert forbidden not in source, forbidden
+    assert not re.search(r"^\s+(ref|repository|cache):", source, re.MULTILINE)
+
+    by_name = dict(steps(strip_comments(jobs(WATCH)["reconcile"])))
+    uses = [re.search(r"uses: (\S+)@", raw) for raw in by_name.values()]
+    assert sorted(found.group(1) for found in uses if found) == [
+        "actions/checkout",
+        "actions/setup-python",
+    ]
+    setup = next(raw for raw in by_name.values() if "actions/setup-python@" in raw)
+    assert "python-version-file: '.python-version'" in setup
+
+    runners = [raw for raw in by_name.values() if run_script(raw)]
+    assert len(runners) == 1
+    script = command(runners[0])
+    assert script.count("python scripts/deep_gate_watch.py") == 1
+    assert (
+        'python scripts/deep_gate_watch.py reconcile --repo "$GITHUB_REPOSITORY" '
+        '--event-path "$GITHUB_EVENT_PATH"'
+    ) in script
+    assert "--dry-run" in script
+    env = step_env(runners[0])
+    assert env.get("GH_TOKEN") == "${{ github.token }}"
+    assert any("inputs.dry_run" in value for value in env.values())
+    assert step_condition(runners[0]) is None
+
+
+@pytest.mark.parametrize("path", (VISUAL_LINUX, WATCH), ids=lambda p: p.name)
+def test_new_deep_gate_workflows_reuse_reviewed_pins_and_drop_checkout_credentials(path):
+    source = executable(path)
+    uses = re.findall(r"uses: (\S+)", source)
+    pinned = re.findall(r"uses: ([\w.-]+/[\w.-]+)@([0-9a-f]{40}) # v\S+$", source, re.MULTILINE)
+    assert uses and len(pinned) == len(uses), uses
+    reviewed = set(
+        re.findall(r"uses: ([\w.-]+/[\w.-]+)@([0-9a-f]{40}) # v\S+$", executable(DEEP_GATE), re.MULTILINE)
+    )
+    assert set(pinned) <= reviewed, set(pinned) - reviewed
+    checkouts = source.count("uses: actions/checkout@")
+    assert checkouts >= 1
+    assert source.count("persist-credentials: false") == checkouts
+
+
+@pytest.mark.parametrize("path", (VISUAL_LINUX, WATCH), ids=lambda p: p.name)
+def test_new_deep_gate_workflows_keep_expressions_out_of_shell(path):
+    for job_id, block in jobs(path).items():
+        for name, raw in steps(strip_comments(block)):
+            script = run_script(raw)
+            assert script is None or "${{" not in script, f"{path.name}:{job_id} / {name}"
 
 
 # ------------------------------------------------- the release smokes assert no less
