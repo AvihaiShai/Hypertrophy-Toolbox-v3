@@ -7,7 +7,7 @@
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
 | Planning size | Large (new workflows, new jobs, repo-settings changes) — per `docs/ai_workflow/QUALITY_GATE.md` plan-stage routing: Gate 0 → council (`/council-plan`) → Gate 1 → implementation |
-| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; PR recorded in §7/§14 |
+| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), ready / open, not merged |
 
 ### Review log
 
@@ -392,7 +392,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 
 | Packet | Owner (proposed) | Status | Branch / PR | Head SHA | Evidence (run id, job, value) | Notes |
 |---|---|---|---|---|---|---|
-| A1 | Claude Code (A1 session), 2026-10-19 | implemented; local gates and both independent reviews complete; ready PR, not merged | `ci/a1-guard-split-b`; PR in the receipt commit | final code tree `0e4f3423993cd74d807602ffb52479ab561d0b95` | Bench `39270742974` attempts 1–2; rehearsals `39285097596`, `39285103455`, `39285105591`, `39285108590`, `39285112726`, `39288227037`; local full pytest 5,330 passed / 2 skipped at `0e4f342`; §14 | Stop before merge. B2 not started; `download-artifact` joins the C3 candidate set |
+| A1 | Claude Code (A1 session), 2026-10-19 | implemented; local gates and both independent reviews complete; ready PR, not merged | `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530) | published head `18fc388a38cd4efcd9140aaf9cdfa3f49b0ad6db` (code tree `0e4f342` + review nits) | PR run `39289691671` 25/25 success, last required context 10.4 min (baseline 28.2–32.3); bench `39270742974` attempts 1–2; rehearsals `39285097596`, `39285103455`, `39285105591`, `39285108590`, `39285112726`, `39288227037`; local full pytest 5,330 passed / 2 skipped at `0e4f342`; §14 | Stop before merge. B2 not started; `download-artifact` joins the C3 candidate set |
 | A2 | Astra | blocked | | | | Core Gate 1; identities preserved; not a promotion prerequisite |
 | A3 | Claude | blocked | | | | Core Gate 1; after A1; four-leg fan-in proof |
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
@@ -1339,9 +1339,43 @@ ran nothing.
 
 ### 14.6 PR and measured speed
 
-The ready PR, its head and its GitHub CI runs are recorded in §7 and in the
-publication receipt commit that follows this section. A run that is incomplete or
-cancelled by a later push is not credited.
+**Publication.**
+- Pushed `ci/a1-guard-split-b` and opened ready PR
+  [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), verified
+  `OPEN` and `isDraft: false` at 2026-10-19T16:55:29Z.
+- The published head is `18fc388a38cd4efcd9140aaf9cdfa3f49b0ad6db`. Its workflow,
+  script and test tree is `0e4f342` plus the two review nits; §14.5 re-ran the
+  targeted gates on it.
+- This receipt-only commit changes nothing but this file, and it starts a new PR run.
+  That run supersedes the one below as the current-head carrier. A run that is
+  incomplete or cancelled is not credited.
+
+**PR CI run [`39289691671`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39289691671)**
+(`pull_request`, attempt 1, head `18fc388`, created 16:55:33Z): **all 25 jobs
+success.**
+- **Identities.** Core ∪ guard executed 4,318 identities: 3,300 core and 1,018 guard
+  (the union was re-verified locally from the downloaded reports). That is the
+  baseline's 4,231 plus exactly the 87 new `test_ci_expansion_contracts` cases. None is
+  missing, no outcome changed, and there are 211 skips as before.
+- **Coverage** is identical: 6,930 / 7,938 lines across 72 files.
+
+| Measure | Baseline `main` push `39249316854` | Baseline PRs `39171777513` / `39245465367` | **A1 PR `39289691671`** |
+|---|---|---|---|
+| Creation → `Run Tests` | 32.3 min | 31.8 / 28.2 min | **8.1 min** |
+| Creation → last required context | 32.3 min (`Run Tests`) | 31.8 / 28.2 min (`Run Tests`) | **10.4 min** (`E2E Functional (Chromium)`) |
+| Creation → last job | 32.3 min | 31.8 / 28.2 min | 11.9 min (`Operation A Windows Tests`, not required) |
+| Runner-minutes (billed) | 80.3 (91) | 73.7 (85) / 73.7 (81) | 79.9 (93) |
+| Max job queue | 4 s | 3 s / 54 s | 5 s |
+
+**Result on G1.**
+- The 12–15-minute initial objective is **met on this one PR run**: 10.4 min from
+  creation to the last required context. It is a single sample, taken during the open
+  GitHub Actions incident, so it is not a median.
+- `Run Tests` is no longer the critical path; E2E Functional is.
+- The 8-minute second stage and the 6-minute stretch are **not** met. They depend on
+  A3, and on the 1.7× leg variance noted in §14.7.
+- The cost is about +6 runner-minutes against same-event PR runs (+8–12 billed): four
+  guard-leg setups plus two short aggregates.
 
 **Baseline for comparison:** `main` push run `39249316854` on `c6a982cf`,
 2026-10-19 12:05:08Z.
@@ -1360,9 +1394,9 @@ cancelled by a later push is not credited.
 - **Leg times vary by up to 1.7× between runners** (7.2 against 12.5 min on the same
   slice). The required gate's guard path therefore runs 8–14 min. That is near or
   below E2E Functional today, but it would become the critical path after A3.
-- **The timing targets are not claimed as achieved.** §1.2's 12–15-minute initial
-  objective is judged only by the PR's own creation-to-required-gate measurement in
-  §14.6. The 8-minute second stage and the 6-minute stretch were not reached.
+- **Timing.** §1.2's 12–15-minute initial objective is met on **one** PR run (10.4 min,
+  §14.6), not on a median. Confirm it on post-merge `main` runs before treating it as
+  established. The 8-minute second stage and the 6-minute stretch were not reached.
 - **Rep 2 and every rehearsal ran inside an open GitHub Actions incident.**
 - `release.yml` is untouched. The release gate still reads the exact `Run Tests` name;
   no tag rehearsal was run.
