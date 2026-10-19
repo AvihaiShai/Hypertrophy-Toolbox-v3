@@ -1,0 +1,114 @@
+name: A1 Guard Benchmark (throwaway, never merged)
+
+# CI/CD packet A1 benchmark matrix, docs/ci_cd_expansion/PLANNING.md section 4.
+# Lives ONLY on bench/a1-guard-shape-20261019; it must never reach main.
+on:
+  push:
+    branches: [ 'bench/a1-guard-shape-20261019' ]
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: guard ${{ matrix.arm }} ${{ matrix.index }}/${{ matrix.total }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arm: serial, index: 1, total: 1, xdist: '' }
+          - { arm: n4, index: 1, total: 1, xdist: '-n 4 --dist load' }
+          - { arm: n8, index: 1, total: 1, xdist: '-n 8 --dist load' }
+          - { arm: s2, index: 1, total: 2, xdist: '' }
+          - { arm: s2, index: 2, total: 2, xdist: '' }
+          - { arm: s2n4, index: 1, total: 2, xdist: '-n 4 --dist load' }
+          - { arm: s2n4, index: 2, total: 2, xdist: '-n 4 --dist load' }
+          - { arm: s4, index: 1, total: 4, xdist: '' }
+          - { arm: s4, index: 2, total: 4, xdist: '' }
+          - { arm: s4, index: 3, total: 4, xdist: '' }
+          - { arm: s4, index: 4, total: 4, xdist: '' }
+          - { arm: s4n4, index: 1, total: 4, xdist: '-n 4 --dist load' }
+          - { arm: s4n4, index: 2, total: 4, xdist: '-n 4 --dist load' }
+          - { arm: s4n4, index: 3, total: 4, xdist: '-n 4 --dist load' }
+          - { arm: s4n4, index: 4, total: 4, xdist: '-n 4 --dist load' }
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Record environment
+      run: |
+        mkdir -p artifacts/bench
+        { nproc; pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'; python --version; } | tee artifacts/bench/env.txt
+    - name: Collect and select
+      run: |
+        python -m pytest --collect-only -q -p no:cacheprovider tests/test_guard_destructive_command.py > artifacts/bench/collected.txt
+        python scripts/ci_executed_report.py shard artifacts/bench/collected.txt --index ${{ matrix.index }} --total ${{ matrix.total }} > artifacts/bench/shard.txt
+        wc -l artifacts/bench/shard.txt
+    - name: Run guard tests
+      run: |
+        set +e
+        date -u +%Y-%m-%dT%H:%M:%S.%NZ > artifacts/bench/pytest-start.txt
+        python -m pytest -p no:cacheprovider ${{ matrix.xdist }} @artifacts/bench/shard.txt -v --tb=short --junitxml=artifacts/bench/junit.xml
+        status=$?
+        date -u +%Y-%m-%dT%H:%M:%S.%NZ > artifacts/bench/pytest-end.txt
+        exit $status
+    - name: Verify executed identities
+      if: always()
+      run: python scripts/ci_executed_report.py verify artifacts/bench/collected.txt artifacts/bench/junit.xml --index ${{ matrix.index }} --total ${{ matrix.total }}
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      if: always()
+      with:
+        name: bench-${{ matrix.arm }}-${{ matrix.index }}-of-${{ matrix.total }}
+        path: artifacts/bench
+        if-no-files-found: error
+        retention-days: 14
+
+  core:
+    name: core minus guard (coverage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: '24'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run pytest core with coverage
+      run: |
+        mkdir -p artifacts/bench
+        set +e
+        date -u +%Y-%m-%dT%H:%M:%S.%NZ > artifacts/bench/pytest-start.txt
+        pytest tests/ -v --tb=short --ignore=tests/test_guard_destructive_command.py \
+          --junitxml=artifacts/bench/junit.xml --cov=utils --cov=routes \
+          --cov-report=term --cov-report=xml:artifacts/bench/coverage.xml
+        status=$?
+        date -u +%Y-%m-%dT%H:%M:%S.%NZ > artifacts/bench/pytest-end.txt
+        exit $status
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      if: always()
+      with:
+        name: bench-core
+        path: artifacts/bench
+        if-no-files-found: error
+        retention-days: 14
