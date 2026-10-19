@@ -767,20 +767,19 @@ jobs:
         if-no-files-found: error
         retention-days: 14
 
-  test:
-    name: Run Tests
+  # CI/CD packet A1 (docs/ci_cd_expansion/PLANNING.md section 14). The suite is
+  # split in two: this job runs everything EXCEPT
+  # tests/test_guard_destructive_command.py, which spawns one PowerShell process
+  # per case and owns the guard-hook-tests job below. Neither job is a protected
+  # context; the required `Run Tests` check is the run-tests fan-in, green only
+  # when this job, every guard-hook leg and their cross-shard proof succeeded. The 35-minute budget this job used to need was
+  # the guard file's; without it the job measured 2.3-3.6 minutes (benchmark
+  # and rehearsal runs, PLANNING.md section 14), so 20 is ample headroom.
+  pytest-core:
+    name: Python Tests (core)
     runs-on: ubuntu-latest
-    # 20 minutes left too little headroom. tests/test_guard_destructive_command.py
-    # spawns a PowerShell process per case and was 909.9s of the 1031.9s test span
-    # on the last passing run, which finished in 1040.16s of the 1200s budget --
-    # 13.3% slack. Two post-merge attempts of that same tree reached pytest's 50%
-    # marker at 675s and 691s against 523s -- ~1.3x slower, matching a guard
-    # node-interval median of 0.713s -> 0.939/0.961s -- and were cancelled with no
-    # failing assertion. At that pace the full run lands near 23 minutes, so 35
-    # covers it. Why those runners were slower is unknown. Evidence: PR #490 run
-    # 34169875329 (passed) vs run 34170988104 attempts 1 and 2 (both cancelled).
-    timeout-minutes: 35
-    
+    timeout-minutes: 20
+
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -829,6 +828,7 @@ jobs:
     - name: Run pytest with coverage
       run: |
         pytest tests/ -v --tb=short --junitxml=artifacts/pytest/junit.xml \
+          --ignore=tests/test_guard_destructive_command.py \
           --cov=utils --cov=routes \
           --cov-report=term \
           --cov-report=xml:artifacts/pytest/coverage.xml \
@@ -910,6 +910,125 @@ jobs:
           artifacts/pytest/coverage.xml
           artifacts/pytest/htmlcov
         retention-days: 14
+
+  # The guard-hook file, sharded four ways across runners, SERIAL within each leg.
+  # Shape chosen by the A1 benchmark (PLANNING.md section 14): the whole file
+  # serially took 28.2-28.7 minutes, these legs 7.2-7.6 with one 12.5-minute
+  # straggler -- hence 20 minutes, not 15. Four xdist workers per leg were faster
+  # but crashed pwsh twice in one leg (exit -6, a truncated assembly name in a
+  # FileLoadException) while concurrent pwsh processes shared one runner profile;
+  # never add -n here without first isolating that. Every case still runs in its
+  # own PowerShell process. Each leg collects the file, runs its round-robin slice
+  # and must prove it executed exactly that slice with no skips; guard-hook-tests
+  # then proves the four legs together executed every collected identity once.
+  # The file contributes no utils/routes coverage, so these legs measure none.
+  # Leg names are not contexts -- `Run Tests` is.
+  guard-hook-shard:
+    name: Guard Hook Tests (Linux pwsh) shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # The file skips itself without a PowerShell host; a missing pwsh must fail here.
+    - name: Require PowerShell 7
+      run: pwsh -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()'
+
+    - name: Collect and select this shard
+      run: |
+        mkdir -p artifacts/guard
+        python -m pytest --collect-only -q tests/test_guard_destructive_command.py > artifacts/guard/collected.txt
+        python scripts/ci_executed_report.py shard artifacts/guard/collected.txt --index ${{ matrix.shard }} --total 4 > artifacts/guard/shard.txt
+
+    - name: Run guard-hook tests
+      run: python -m pytest @artifacts/guard/shard.txt -v --tb=short --junitxml=artifacts/guard/junit.xml
+
+    - name: Require executed shard identities without skips
+      if: always()
+      run: python scripts/ci_executed_report.py verify artifacts/guard/collected.txt artifacts/guard/junit.xml --index ${{ matrix.shard }} --total 4
+
+    - name: Upload guard-hook shard report
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: guard-hook-junit-${{ matrix.shard }}
+        path: |
+          artifacts/guard/collected.txt
+          artifacts/guard/junit.xml
+        if-no-files-found: error
+        retention-days: 7
+
+  # Cross-shard proof. A leg can only check its own slice; if two legs collected
+  # different lists, their union could skip identities while every leg is green.
+  guard-hook-tests:
+    name: Guard Hook Tests (Linux pwsh)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: guard-hook-shard
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Require every guard-hook shard to pass
+      env:
+        NEEDS: ${{ toJSON(needs) }}
+      run: python3 scripts/ci_fan_in.py guard-hook-shard
+
+    - name: Download guard-hook shard reports
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        pattern: guard-hook-junit-*
+        path: artifacts/guard
+
+    - name: Require the shards to have executed every collected identity once
+      run: |
+        python3 scripts/ci_executed_report.py union --shards 4 \
+          --collected artifacts/guard/guard-hook-junit-*/collected.txt \
+          --reports artifacts/guard/guard-hook-junit-*/junit.xml
+
+  # The required `Run Tests` context (scripts/release_gate.py, branch
+  # protection). Before A1 it was the single pytest job; it is now a fan-in that
+  # is green only when pytest-core, every guard-hook leg and the cross-shard
+  # proof all reported success. Failure, cancellation, skip or a missing result
+  # of any of them fails it. `if: always()` makes it report instead of staying
+  # pending. scripts/ci_fan_in.py holds the decision and
+  # tests/test_ci_expansion_contracts.py pins it and this wiring.
+  run-tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [pytest-core, guard-hook-shard, guard-hook-tests]
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Require every test job to pass
+      env:
+        NEEDS: ${{ toJSON(needs) }}
+      run: python3 scripts/ci_fan_in.py pytest-core guard-hook-shard guard-hook-tests
 
   # NOTE: the former `dependency-check` job (outdated/safety scans) moved to the
   # manual Deep Gate (.github/workflows/deep-gate.yml) in Phase 4.5 — it's

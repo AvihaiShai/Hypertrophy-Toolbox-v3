@@ -114,6 +114,10 @@ DEEP_GATE_CONDITIONAL_JOBS = frozenset({"visual-linux"})
 # the promotion is contracted positively below instead.
 UNEXPECTED_CI_JOB_NAMES = (
     "E2E Functional Shard ${{ matrix.shard }}/2",
+    # A1: children of the `Run Tests` fan-in; the fan-in is the contract.
+    "Python Tests (core)",
+    "Guard Hook Tests (Linux pwsh) shard ${{ matrix.shard }}/4",
+    "Guard Hook Tests (Linux pwsh)",
     "JS Unit (Vitest, non-required)",
     "CSS Stylelint Measurement (non-required)",
     PACKAGED_SMOKE_JOB_NAME,

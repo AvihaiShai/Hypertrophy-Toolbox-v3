@@ -100,3 +100,30 @@ The C3 candidate repository set is exactly `actions/checkout`,
 `actions/setup-python`, `actions/setup-node`, and `actions/upload-artifact`.
 No wildcard or future integration is pre-approved. C3 activation, its owner
 readback/proof and any future inventory expansion remain separate work.
+
+## A1 addition — 2026-10-19
+
+Packet A1 ([PLANNING.md §14](PLANNING.md#14-a1-execution--2026-10-19)) adopts one
+more GitHub-owned action. It follows the same procedure as above, and the sections
+above are left at their B1 measurement.
+
+| Repository | Release | Pinned commit | Metadata Git blob | Calls: CI |
+|---|---|---|---|---|
+| `actions/download-artifact` | v8.0.2 | `9000827ccba6bdab643e8b6fd33ac0654aef8333` | `8b8c65029ccad20750a29fecb438eca5a607fc57` | 1 |
+
+The `v8.0.2` and `v8` tags both resolve to that commit. GitHub reports its signature
+`verified` (`valid`). Its `package.json` version is `8.0.2`, and the commit is 5 ahead
+of and 0 behind `v8.0.1`. The pinned
+[`action.yml`](https://github.com/actions/download-artifact/blob/9000827ccba6bdab643e8b6fd33ac0654aef8333/action.yml)
+runs `node24` from `dist/index.js` with no post entrypoint. It declares no
+`runs.steps`, nested `uses:` or container, so the traversal ends there. It runs in the
+`guard-hook-tests` job, inheriting `contents: read`, and downloads only this run's
+own `guard-hook-junit-*` artifacts (no `github-token`, `repository` or `run-id`
+input), so no permission is added.
+
+A1 also adds three `checkout`, one `setup-python` and one `upload-artifact` call to
+`ci.yml`, all at the pins above. `ci.yml` now holds 62 remote `uses:` (was 56), and the
+repository holds 91 (was 85) across five repositories. The C3 candidate set therefore
+becomes `actions/checkout`, `actions/setup-python`, `actions/setup-node`,
+`actions/upload-artifact` and `actions/download-artifact`. That set is still a
+proposal; it activates nothing.
