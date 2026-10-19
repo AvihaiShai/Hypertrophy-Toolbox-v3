@@ -38,7 +38,7 @@ New cross-cutting or durable project decisions should be added here as lightweig
 ### ADR-002: The repository root holds five categories of file, and nothing else
 - **Date**: 2026-07-26
 - **Status**: accepted
-- **Context**: The root-cleanup audit began from the impression that nearly every root file other than `app.py`, `CLAUDE.md`, `README.md`, and `requirements.txt` was accumulated clutter. Inspection did not support that. Most root files are there because a tool discovers them from the project root, and moving them would require wrapper commands or path overrides and make the project less conventional. The real problems the audit found were elsewhere — a tracked user database and unrestricted packaging inputs — and are addressed by `docs/rootdircleanup.md` Packets A and B. What the root actually lacked was a stated rule, so that the next judgment call is answerable without re-running the audit.
+- **Context**: The root-cleanup audit began from the impression that nearly every root file other than `app.py`, `CLAUDE.md`, `README.md`, and `requirements.txt` was accumulated clutter. Inspection did not support that. Most root files are there because a tool discovers them from the project root, and moving them would require wrapper commands or path overrides and make the project less conventional. The real problems the audit found were elsewhere — a tracked user database and unrestricted packaging inputs — and are addressed by `docs/archive/2026/root-cleanup/rootdircleanup.md` Packets A and B. What the root actually lacked was a stated rule, so that the next judgment call is answerable without re-running the audit.
 - **Decision**: The repository root may contain exactly these categories:
 
   | Category | Current members |
@@ -54,7 +54,7 @@ New cross-cutting or durable project decisions should be added here as lightweig
   Two corollaries, both learned the hard way:
   - **Do not move a root file merely to reduce the file count.** Some are load-bearing at the root: `Hypertrophy-Toolbox.spec` derives `REPO_ROOT` from `SPECPATH`, and a packaging contract test asserts `build_exe.bat` invokes it by that exact name. Root visibility is also part of what makes `START.bat` usable for its audience.
   - **A file in an approved category is not automatically justified.** It still has to be correct and non-duplicative; C2 trimmed `QUICK_START.md` rather than deleting it.
-- **Consequences**: Adding a root file now requires naming its category, which makes the review question concrete instead of aesthetic. New generated output has an obvious destination, so the "temporary file at the root" habit has no excuse. The cost is that this table needs updating whenever a genuinely new root file is added — accepted, because the alternative is re-deriving the policy from scratch each time. The audit behind it is recorded in `docs/rootdircleanup.md` §8.4 and §12.
+- **Consequences**: Adding a root file now requires naming its category, which makes the review question concrete instead of aesthetic. New generated output has an obvious destination, so the "temporary file at the root" habit has no excuse. The cost is that this table needs updating whenever a genuinely new root file is added — accepted, because the alternative is re-deriving the policy from scratch each time. The audit behind it is recorded in `docs/archive/2026/root-cleanup/rootdircleanup.md` §8.4 and §12.
 
 ### ADR-003: Python 3.14.6 is the minimum supported runtime
 - **Date**: 2026-07-29

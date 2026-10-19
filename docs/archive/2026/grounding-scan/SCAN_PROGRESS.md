@@ -1,3 +1,6 @@
+> **Archived 2026-10-19; current sources: [`docs/scan/README.md`](../../../scan/README.md) (what was carried forward and where), [`DUPLICATION_REGISTRY.md`](../../../DUPLICATION_REGISTRY.md) and [`OPEN_WORK_EXECUTION_PLAN.md`](../../../OPEN_WORK_EXECUTION_PLAN.md).**
+> Moved from `docs/SCAN_PROGRESS.md`; content unchanged.
+
 # Codebase Grounding Scan — Progress Tracker
 
 **Purpose:** A genuine line-by-line read of the *entire* codebase, resumable across many

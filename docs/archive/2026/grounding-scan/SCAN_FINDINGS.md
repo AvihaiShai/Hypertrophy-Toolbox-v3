@@ -1,3 +1,6 @@
+> **Archived 2026-10-19; current sources: [`docs/scan/README.md`](../../../scan/README.md) (what was carried forward and where), [`DUPLICATION_REGISTRY.md`](../../../DUPLICATION_REGISTRY.md) and [`OPEN_WORK_EXECUTION_PLAN.md`](../../../OPEN_WORK_EXECUTION_PLAN.md).**
+> Moved from `docs/SCAN_FINDINGS.md`; text unchanged apart from 21 relative links re-pointed to resolve from here.
+
 # Codebase Grounding Scan — Findings
 
 Accumulating notes from the line-by-line read. One section per phase. Each file entry
@@ -48,7 +51,7 @@ CLAUDE.md, docs/MASTER_HANDOVER.md. (Subsystem rules deferred to their phases; p
   `b5e837d` (PRs #87/#88 landed after). Changelog body mentions #87/#88, but the SHA anchor drifted. `[NEW]`
 
 ## Phase 2 — Data layer & schema
-Full detail: [scan/PHASE_02.md](scan/PHASE_02.md). Highlights:
+Full detail: [scan/PHASE_02.md](../../../scan/PHASE_02.md). Highlights:
 - **Schema init even more scattered than WP2.4 says** `[CONTRADICTS-PLAN]`: SIX `add_*_table()` in
   database.py:461-763 (plan says "three"), plus duplicate instance-method/module-function for
   add_progression_goals_table (database.py:443 vs 461).
@@ -66,7 +69,7 @@ Full detail: [scan/PHASE_02.md](scan/PHASE_02.md). Highlights:
   first token "WITH"); one live instance: maintenance.py REBUILD_EIM_SQL runs unlocked.
 
 ## Phase 3 — Volume & summary calculations
-Full detail: [scan/PHASE_03.md](scan/PHASE_03.md). Highlights:
+Full detail: [scan/PHASE_03.md](../../../scan/PHASE_03.md). Highlights:
 - **effective_sets.py:349-575 — entire second aggregation pipeline DEAD in production** `[NEW]`
   (aggregate_session_volumes, aggregate_weekly_volumes, calculate_training_frequency,
   calculate_volume_distribution, format_volume_summary) — only its own unit tests call it;
@@ -80,7 +83,7 @@ Full detail: [scan/PHASE_03.md](scan/PHASE_03.md). Highlights:
 - **Dead code confirmed**: advanced_to_basic (test-fixture-only, matches plan), weekly_summary.STATUS_MAP,
   MovementCategory enum, HOME_BASIC_EQUIPMENT `[CONFIRMS-PLAN]`.
 ## Phase 4 — Fatigue, progression, log
-Full detail: [scan/PHASE_04.md](scan/PHASE_04.md) (agent-read, verified). Highlights:
+Full detail: [scan/PHASE_04.md](../../../scan/PHASE_04.md) (agent-read, verified). Highlights:
 - **utils/fatigue.py — four concerns behind banner comments** (Phase-1 core / per-muscle / period-window /
   SFR). `[NEW]` Strong move-only split candidate, same shape as WP2.1/WP2.3, but absent from REFACTOR_PLAN.
 - **Duplicated logic across fatigue.py ↔ fatigue_data.py** `[NEW]`: the "is this logged row scored" skip
@@ -96,7 +99,7 @@ Full detail: [scan/PHASE_04.md](scan/PHASE_04.md) (agent-read, verified). Highli
 - Verified live (not dead): decide_progression_target shared with strength_calibration (import at line 38);
   both fatigue_data query shapes serve different routes.
 ## Phase 5 — Estimator core
-Full detail: [scan/PHASE_05.md](scan/PHASE_05.md). Highlights:
+Full detail: [scan/PHASE_05.md](../../../scan/PHASE_05.md). Highlights:
 - **WP2.1's cohort.py grouping is wrong** `[CONTRADICTS-PLAN]`: cohort_ranges (2045) belongs with
   cohort_bars/coverage_donut (2214/2281); muscle_coverage_state (2327) is an unrelated bodymap-SVG
   concern with its own JS drift-guard test.
@@ -112,7 +115,7 @@ Full detail: [scan/PHASE_05.md](scan/PHASE_05.md). Highlights:
   profile_estimator._load_basis_factor (1176) arithmetic exactly; linked only by docstring.
 
 ## Phase 6 — Plan generation & calibration
-Full detail: [scan/PHASE_06.md](scan/PHASE_06.md). Highlights:
+Full detail: [scan/PHASE_06.md](../../../scan/PHASE_06.md). Highlights:
 - **All four WP2.2 targets verified with exact spans** `[CONFIRMS-PLAN]`: _score_exercise 495-585,
   _apply_priority_muscle_boost 847-955, persist 1248-1347, generate_starter_plan 1350-1441 (thin under
   big docstring). Clean order-preserving extract-method decompositions exist.
@@ -127,7 +130,7 @@ Full detail: [scan/PHASE_06.md](scan/PHASE_06.md). Highlights:
   GeneratorConfig.__post_init__ validation.
 
 ## Phase 7 — Backup, exports, misc utils
-Full detail: [scan/PHASE_07.md](scan/PHASE_07.md). Highlights:
+Full detail: [scan/PHASE_07.md](../../../scan/PHASE_07.md). Highlights:
 - **create_backup() not atomic on the main user-facing path** `[RISK]` (program_backup.py:146-219):
   N+1 separate commits (header + each item); crash mid-loop leaves header overstating item_count.
   restore_backup 200 lines away does it right (single transaction).
@@ -142,7 +145,7 @@ Full detail: [scan/PHASE_07.md](scan/PHASE_07.md). Highlights:
   directly; e2e/scripts/prepare_visual_db.py is the one outlier on the routes wrapper.
 - Stray debug: unconditional time.sleep(0.5) in create_excel_workbook cleanup — +500ms per Excel export.
 ## Phase 8 — Routes: workout_plan + filters
-Full detail: [scan/PHASE_08.md](scan/PHASE_08.md). Highlights:
+Full detail: [scan/PHASE_08.md](../../../scan/PHASE_08.md). Highlights:
 - **WP1.1 strongly confirmed** `[CONFIRMS-PLAN]`: fetch_unique_values (workout_plan.py:20-101) and
   get_unique_values (filters.py:356-442) are near-duplicate ~80-line whitelist lookups; plus
   workout_plan.py:12 imports ALLOWED_COLUMNS/validate_column_name cross-blueprint from routes.filters
@@ -160,7 +163,7 @@ Full detail: [scan/PHASE_08.md](scan/PHASE_08.md). Highlights:
   superseded. Dead-code candidates for a Phase-0-style WP.
 - **ANTAGONIST_PAIRS casing watch item CLOSED — no bug** (lowercased canonical values verified end-to-end).
 ## Phase 9 — Routes: profile / exports / progression
-Full detail: [scan/PHASE_09.md](scan/PHASE_09.md). Highlights:
+Full detail: [scan/PHASE_09.md](../../../scan/PHASE_09.md). Highlights:
 - **exports.py is the real fat-route file** `[CONFIRMS-PLAN]`: DB_TO_ADVANCED_MUSCLE/WORKOUT_PLAN_COLUMNS/
   transform_muscle_value/reorder_and_rename_columns (22-227), _build_export_query (276-326),
   _fetch_all_sheets (329-400) — business logic with no home in export_utils (which is purely mechanical).
@@ -175,7 +178,7 @@ Full detail: [scan/PHASE_09.md](scan/PHASE_09.md). Highlights:
   progression_plan.py:136-200): estimate first, sibling key only, exception-swallowed. `[CONFIRMS design]`
 
 ## Phase 10 — Routes: remainder
-Full detail: [scan/PHASE_10.md](scan/PHASE_10.md). Highlights:
+Full detail: [scan/PHASE_10.md](../../../scan/PHASE_10.md). Highlights:
 - **error.html contract bug at 6 of 7 call sites** `[NEW][RISK]`: routes pass message= but template reads
   error_message/error_title/error_code → real 500s render near-blank. Only fatigue.py:28 is correct.
 - **DB-work-in-routes is a 3-file pattern the plan misses** `[CONTRADICTS-PLAN]`: body_composition.py
@@ -188,14 +191,14 @@ Full detail: [scan/PHASE_10.md](scan/PHASE_10.md). Highlights:
 - **WP2.4 wrapper confirmed**: program_backup.py:226-234 pure wrapper; caller map pinned (prepare_visual_db
   → routes wrapper; conftest → utils direct). `[CONFIRMS-PLAN]`
 ## Phase 11 — Templates
-Full detail: [scan/PHASE_11.md](scan/PHASE_11.md) (complete; agent killed pre-summary). Highlights:
+Full detail: [scan/PHASE_11.md](../../../scan/PHASE_11.md) (complete; agent killed pre-summary). Highlights:
 - **`<main>` landmark inconsistent across all templates** `[NEW][RISK]`: base.html:219 uses a plain div;
   5 templates nest their own `<main>`; 7 pages have NO main landmark → real a11y gap, unscoped by any WP.
 - **Three coexisting "server data → JS" conventions** `[NEW]`: JSON script tag (user_profile.html:280),
   plain data-* attrs (body_composition.html:10-15), tojson-in-data-* (volume_splitter.html:25-29).
 - Query-string cache-buster on static assets noted as a cheap perf win (replace with content hash).
 ## Phase 12 — JS: workout-plan cluster
-Full detail: [scan/PHASE_12.md](scan/PHASE_12.md). Highlights:
+Full detail: [scan/PHASE_12.md](../../../scan/PHASE_12.md). Highlights:
 - **Toast severity bug re-confirmed at app.js:99,111,158,162** (generateStarterPlan paths);
   workout-plan.js/exercises.js themselves clean of the pattern. `[RISK]`
 - **TWO full duplicate "Add Exercise" flows** `[NEW]`: exercises.js addExercise/sendExerciseData/
@@ -210,7 +213,7 @@ Full detail: [scan/PHASE_12.md](scan/PHASE_12.md). Highlights:
 - **Event-listener leak confirmed** `[RISK]`: showExecutionStylePicker (workout-plan.js:383-390) —
   3 of 4 close paths never remove the document outside-click listener.
 ## Phase 13 — JS: profile / muscle-map / media
-Full detail: [scan/PHASE_13.md](scan/PHASE_13.md) (complete). Highlights:
+Full detail: [scan/PHASE_13.md](../../../scan/PHASE_13.md) (complete). Highlights:
 - **PR #87 MuscleMap unification verified clean at JS level** `[CONFIRMS-PLAN]`: no dead workout-cool/
   react-body-highlighter code in muscle-selector.js/bodymap-svg.js; leftovers are comment/test-docstring
   only (test_muscle_selector_mapping.py:151 stale "workout-cool" naming — cosmetic).
@@ -220,7 +223,7 @@ Full detail: [scan/PHASE_13.md](scan/PHASE_13.md) (complete). Highlights:
   settings toggles; fold into any future user-profile.js split.
 
 ## Phase 14 — JS: backup / volume-splitter
-Full detail: [scan/PHASE_14.md](scan/PHASE_14.md) (complete). Highlights:
+Full detail: [scan/PHASE_14.md](../../../scan/PHASE_14.md) (complete). Highlights:
 - **WP3.5 fetch counts exactly right (7 + 2)** `[CONFIRMS-PLAN]` — BUT volume-splitter.js:16-90 is a
   ~50-line parallel reimplementation of apiFetch's envelope/error logic that should be deleted wholesale,
   not call-site-swapped. Amend WP3.5 scope. `[CONTRADICTS-PLAN, scope]`
@@ -230,7 +233,7 @@ Full detail: [scan/PHASE_14.md](scan/PHASE_14.md) (complete). Highlights:
 - **Silent failure in volume-splitter's highest-frequency call** `[RISK]`; backup-center.js vs
   program-backup.js refresh interplay dismisses in-flight restore confirmations (UX regression noted).
 ## Phase 15 — JS: log / filters / dropdowns
-Full detail: [scan/PHASE_15.md](scan/PHASE_15.md). Highlights:
+Full detail: [scan/PHASE_15.md](../../../scan/PHASE_15.md). Highlights:
 - **Double-submission bug on every scored-value edit** `[RISK]`: workout_log.html inline onchange
   races ui-handlers.js's 500ms-debounced input handler — two identical /update_workout_log POSTs,
   each re-running server calibration recompute + toast.
@@ -247,7 +250,7 @@ Full detail: [scan/PHASE_15.md](scan/PHASE_15.md). Highlights:
   filter-view-mode.js vs constants.py; routine names in routine-cascade.js vs plan_generator.py);
   dead showToast import in routine-cascade.js; no toast legacy-arg misuse in these four files.
 ## Phase 16 — JS: progression / body-comp / tables / summary
-Full detail: [scan/PHASE_16.md](scan/PHASE_16.md). Highlights:
+Full detail: [scan/PHASE_16.md](../../../scan/PHASE_16.md). Highlights:
 - **charts.js fully dead in production** `[NEW]`: reachable via initializeCharts() but no template
   creates [data-chart] and Chart.js is never loaded (Chart global doesn't exist).
 - **summary.js exports are permanent no-ops** `[NEW]`: self-guard pageHasOwnUpdater() is always true
@@ -262,7 +265,7 @@ Full detail: [scan/PHASE_16.md](scan/PHASE_16.md). Highlights:
   runtime-unreachable exports — a JS dead-code category (call-graph-reachable, runtime-unreachable)
   that Phase 0 (Python-only) doesn't cover.
 ## Phase 17 — JS: app infra & shared
-Full detail: [scan/PHASE_17.md](scan/PHASE_17.md) (complete). Highlights:
+Full detail: [scan/PHASE_17.md](../../../scan/PHASE_17.md) (complete). Highlights:
 - **app.js:99,111,158,162 — toast severity bug, reachable in production** `[NEW][RISK]`: four call
   sites pass 'warning'/'error' as toast.js's legacy boolean 2nd arg (toast.js:17 coerces non-boolean
   → false) so warnings AND errors render as green success toasts. Behavior-changing fix → standalone
@@ -272,7 +275,7 @@ Full detail: [scan/PHASE_17.md](scan/PHASE_17.md) (complete). Highlights:
 - toast.js dual API (legacy positional + object-style) is the root enabler of the severity bug;
   full export-surface documentation gap noted for any Phase-3 work.
 ## Phase 18 — CSS part 1
-Full detail: [scan/PHASE_18.md](scan/PHASE_18.md). Highlights:
+Full detail: [scan/PHASE_18.md](../../../scan/PHASE_18.md). Highlights:
 - **@layer cascade trap** `[RISK]`: no explicit @layer order statement anywhere; components.css and
   pages-workout-plan.css both open `@layer workout {}` (silently merged by load order); ~100% of
   in-layer rules carry !important — a workaround for losing to unlayered rules. Removing !important
@@ -287,7 +290,7 @@ Full detail: [scan/PHASE_18.md](scan/PHASE_18.md). Highlights:
 - **Dead**: .legend-mode-badge, ADVANCED MODE grouped-legend block, .view-toggle-group (~60 lines).
 
 ## Phase 20 — CSS part 3 (+ SCSS pipeline)
-Full detail: [scan/PHASE_20.md](scan/PHASE_20.md). Highlights:
+Full detail: [scan/PHASE_20.md](../../../scan/PHASE_20.md). Highlights:
 - **bootstrap.custom.min.css is NOT pure Bootstrap** `[RISK]`: silently bundles compiled .fatigue-*
   and .vp-*/.volume-active-summary from SCSS — invisible to static/css-only audits; name-collides
   with unrelated .volume-* in pages-volume-splitter.css.
@@ -303,7 +306,7 @@ Full detail: [scan/PHASE_20.md](scan/PHASE_20.md). Highlights:
   none referencing tokens.css `[NEW]` — the real duplication is one level above hardcoded colors;
   WP4.1's framing undercounts it.
 ## Phase 19 — CSS part 2
-Full detail: [scan/PHASE_19.md](scan/PHASE_19.md). Highlights:
+Full detail: [scan/PHASE_19.md](../../../scan/PHASE_19.md). Highlights:
 - **weekly-summary ↔ session-summary CSS 99.1% byte-identical (diff-confirmed)** `[NEW]`; the same
   ~1350-line frame block is copy-pasted into pages-workout-log.css (3rd copy) and
   pages-workout-plan.css (4th). WP4.3's dedupe payoff is far larger than the plan sized.
@@ -317,7 +320,7 @@ Full detail: [scan/PHASE_19.md](scan/PHASE_19.md). Highlights:
   (declared 3×, used 0×), layout.css .tbl-show-*/.tbl-hide-sm helpers.
 ## Phase 20 — CSS part 3
 ## Phase 21 — Tests: pytest suite
-Full detail: [scan/PHASE_21.md](scan/PHASE_21.md) (incl. full coverage matrix). Highlights:
+Full detail: [scan/PHASE_21.md](../../../scan/PHASE_21.md) (incl. full coverage matrix). Highlights:
 - **effective_sets second pipeline: deletion touches exactly 26 tests in test_effective_sets.py**
   `[CONFIRMS P3]` — clean one-shot removal.
 - **Backup coverage is INVERTED** `[NEW][RISK]`: create_auto_backup_before_erase (dead) has 7 tests;
@@ -333,7 +336,7 @@ Full detail: [scan/PHASE_21.md](scan/PHASE_21.md) (incl. full coverage matrix). 
   zero pytest coverage (Playwright-only) — gates for WPs touching those must include the e2e spec.
 
 ## Phase 22 — E2E specs + build/CI config
-Full detail: [scan/PHASE_22.md](scan/PHASE_22.md). Highlights:
+Full detail: [scan/PHASE_22.md](../../../scan/PHASE_22.md). Highlights:
 - **WP0.4 misclassification** `[CONTRADICTS-PLAN]`: scripts/seed_visual_baseline.py is on the
   "must stay" list but has ZERO code/CI/e2e refs (doc mentions only) — fails the plan's own archive
   standard; distinct from e2e/scripts/build_visual_seed.py.

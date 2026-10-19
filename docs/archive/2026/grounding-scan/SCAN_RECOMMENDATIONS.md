@@ -1,7 +1,10 @@
+> **Archived 2026-10-19; current sources: [`docs/scan/README.md`](../../../scan/README.md) (what was carried forward and where), [`DUPLICATION_REGISTRY.md`](../../../DUPLICATION_REGISTRY.md) and [`OPEN_WORK_EXECUTION_PLAN.md`](../../../OPEN_WORK_EXECUTION_PLAN.md).**
+> Moved from `docs/SCAN_RECOMMENDATIONS.md`; text unchanged apart from 1 relative link re-pointed to resolve from here.
+
 # Codebase Grounding Scan — Recommendations (Phase 23 Synthesis)
 
 **Basis:** line-by-line read of the entire codebase, 2026-07-03 (see [SCAN_PROGRESS.md](SCAN_PROGRESS.md),
-per-phase evidence in [scan/PHASE_*.md](scan/), distilled ledger in [SCAN_FINDINGS.md](SCAN_FINDINGS.md)).
+per-phase evidence in [scan/PHASE_*.md](../../../scan/), distilled ledger in [SCAN_FINDINGS.md](SCAN_FINDINGS.md)).
 Every claim below carries a phase tag (P1–P22) pointing at file:line evidence.
 
 **Headline verdict on `docs/REFACTOR_PLAN.md` v2:** direction is sound, sizing and sequencing are not.

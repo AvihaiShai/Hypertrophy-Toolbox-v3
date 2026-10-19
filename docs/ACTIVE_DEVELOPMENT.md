@@ -1350,7 +1350,7 @@ legend query were not measured and remain unclassified. Exact evidence:
 [`CSS_PHASE4_WP4_3J_B_EVIDENCE.md`](CSS_PHASE4_WP4_3J_B_EVIDENCE.md).
 
 The root-cleanup / data-packaging track also remains CLOSED. All packets shipped,
-all 225 checklist items in [`rootdircleanup.md`](rootdircleanup.md) are ticked,
+all 225 checklist items in [`rootdircleanup.md`](archive/2026/root-cleanup/rootdircleanup.md) are ticked,
 and that closed record must not be re-executed.
 
 The Phase-4 CSS track is paused and owner-gated after WP4.3j-d ships. The j-b

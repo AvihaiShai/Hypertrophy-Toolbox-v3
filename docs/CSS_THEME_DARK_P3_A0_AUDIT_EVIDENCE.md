@@ -884,7 +884,7 @@ test no longer pins a length: the standalone **Q10** packet (#331, `5dd0b22`) re
 comparison with exact equality against the serialized live register and made
 `verify_blind_spots()` bidirectional. The quoted assertion is what a0 measured and is left
 verbatim; **the rest of §9 and its rows in §10 are a0's record and are not amended here.**
-[`CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md`](CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md) is the
+[`CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md`](archive/2026/css-q10-blind-spot-register/CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md) is the
 live account of what the repair actually measured.
 
 `blind_spot_repair_sizing()` runs the converse read-only. Every rule block in

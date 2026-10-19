@@ -9,8 +9,8 @@ This file holds the former body of that section, moved here on 2026-10-19. It ru
 back to 2026-06-07 and includes the *Known Windows visual reds* and *Known LINUX visual reds*
 ledgers.
 
-**Links:** the text is unchanged apart from one repair. Every relative link target now carries a
-`../../../` prefix, so it resolves from this folder exactly as it did from `docs/`.
+**Links:** the text is unchanged apart from relative link targets repaired to resolve from this
+folder, including targets for records archived after this history was moved.
 
 **Historical wording:** the following describe the handover on the day each block was written, not
 today:
@@ -1582,7 +1582,7 @@ carries it.
 > now corroborates the repair at 20 blocks / 18 mapped / 2 token / 0 unmapped.
 >
 > Full record:
-> [`CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md`](../../../CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md).
+> [`CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md`](../css-q10-blind-spot-register/CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md).
 
 > **2026-08-11 — the Workout Plan bug queue below is empty. All three
 > items shipped, and two of them are still written up as open further down this
@@ -3055,7 +3055,7 @@ behind the CSS it describes.
 > CSS note below **as to HEAD only**; that note remains the authoritative record
 > of the WP4.3i arc and its commit ladder, and every CSS constraint it lists is
 > still binding. Closed record:
-> [`docs/rootdircleanup.md`](../../../rootdircleanup.md) — read it for the *reasoning*
+> [`docs/rootdircleanup.md`](../root-cleanup/rootdircleanup.md) — read it for the *reasoning*
 > behind the invariants below, but **do not execute its checklists**; all 225 are
 > ticked and its §13 Definition of Done is met. Exact ladder:
 >
