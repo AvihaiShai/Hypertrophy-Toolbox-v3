@@ -13,8 +13,8 @@
 
 **Work queue (owner chose it on 2026-10-19):** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) — decision queue §15.4, parked §5, closed §6.
 
-That queue was last reconciled on 2026-09-02 at `5d3bc95` (§26). Merges since then are listed
-below and have not yet been folded into it.
+That queue was last reconciled on 2026-09-02 at `5d3bc95` (§26). The main merges since then are
+listed below and have not yet been folded into it.
 
 **Maintenance rule.**
 - Replace this block in place and move the outgoing block to the archive file; never prepend a
@@ -24,9 +24,11 @@ below and have not yet been folded into it.
 - Status and next steps come from this block. The *Next safe step* below is the current one. The
   *Open Decisions*, *Blockers* and *Next Safe Step* sections after this block are historical.
   *Active Workstreams* rows keep their own dates.
-- In those retained sections, "at the top of this file" and "the block above" now mean the
-  archive file. The one exception: references to the two ledger headings at the end of this block
-  still resolve here.
+- In those retained sections, a reference to an old Current State block or entry ("at the top
+  of this file", "this file's 2026-08-29 Current State block", "the top of `## Current State`"
+  and similar) now means the archive file. "The block above" or "the block below" inside one of
+  those sections still means the neighbouring block there, and references to the two ledger
+  headings at the end of this block still resolve here.
 
 ### Trunk, CI and live readings
 
