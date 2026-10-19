@@ -241,7 +241,7 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 3326,
+    "collected_deterministic": 3469,
     "deterministic_files": 133,
     "environment_dependent_files": [
       {
@@ -304,7 +304,7 @@
       },
       {
         "file": "tests/test_ci_expansion_contracts.py",
-        "tests": 113
+        "tests": 223
       },
       {
         "file": "tests/test_compiled_css_drift_gate_contracts.py",
@@ -516,7 +516,7 @@
       },
       {
         "file": "tests/test_node_version_contract.py",
-        "tests": 3
+        "tests": 4
       },
       {
         "file": "tests/test_normalization.py",
@@ -552,7 +552,7 @@
       },
       {
         "file": "tests/test_playwright_runner_contracts.py",
-        "tests": 12
+        "tests": 13
       },
       {
         "file": "tests/test_playwright_shard_launcher_contracts.py",
@@ -612,7 +612,7 @@
       },
       {
         "file": "tests/test_python_version_contract.py",
-        "tests": 15
+        "tests": 17
       },
       {
         "file": "tests/test_real_app_db_isolation.py",
@@ -624,7 +624,7 @@
       },
       {
         "file": "tests/test_release_workflow_contracts.py",
-        "tests": 63
+        "tests": 92
       },
       {
         "file": "tests/test_rep_range_integrity.py",

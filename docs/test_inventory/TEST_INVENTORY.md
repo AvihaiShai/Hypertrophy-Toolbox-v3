@@ -15,7 +15,7 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **686** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **540** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **3326** across 133 files |
+| pytest collected nodes (deterministic subset) | **3469** across 133 files |
 | pytest test files (all) | **134** |
 | JS unit cases (Vitest) | **245** across 13 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
@@ -81,7 +81,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_catalog_seed.py` | 3 |
 | `tests/test_catalog_seed_bootstrap.py` | 10 |
 | `tests/test_catalog_upgrade.py` | 19 |
-| `tests/test_ci_expansion_contracts.py` | 113 |
+| `tests/test_ci_expansion_contracts.py` | 223 |
 | `tests/test_compiled_css_drift_gate_contracts.py` | 3 |
 | `tests/test_config.py` | 20 |
 | `tests/test_console_guard_contracts.py` | 11 |
@@ -134,7 +134,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_logger.py` | 14 |
 | `tests/test_maintenance.py` | 19 |
 | `tests/test_muscle_selector_mapping.py` | 15 |
-| `tests/test_node_version_contract.py` | 3 |
+| `tests/test_node_version_contract.py` | 4 |
 | `tests/test_normalization.py` | 6 |
 | `tests/test_npm_audit_gate_contracts.py` | 62 |
 | `tests/test_package_asset_staging.py` | 22 |
@@ -143,7 +143,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_phase3_features.py` | 19 |
 | `tests/test_plan_generator.py` | 35 |
 | `tests/test_plan_generator_refactor_contracts.py` | 6 |
-| `tests/test_playwright_runner_contracts.py` | 12 |
+| `tests/test_playwright_runner_contracts.py` | 13 |
 | `tests/test_playwright_shard_launcher_contracts.py` | 40 |
 | `tests/test_playwright_url_contracts.py` | 14 |
 | `tests/test_playwright_version_contract.py` | 1 |
@@ -158,10 +158,10 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_progression_plan_routes.py` | 23 |
 | `tests/test_progression_plan_utils.py` | 46 |
 | `tests/test_pyright_baseline_diff.py` | 13 |
-| `tests/test_python_version_contract.py` | 15 |
+| `tests/test_python_version_contract.py` | 17 |
 | `tests/test_real_app_db_isolation.py` | 5 |
 | `tests/test_release_gate.py` | 60 |
-| `tests/test_release_workflow_contracts.py` | 63 |
+| `tests/test_release_workflow_contracts.py` | 92 |
 | `tests/test_rep_range_integrity.py` | 50 |
 | `tests/test_replace_exercise.py` | 17 |
 | `tests/test_runtime_migration.py` | 24 |

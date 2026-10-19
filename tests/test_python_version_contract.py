@@ -56,6 +56,8 @@ def test_pyright_excludes_generated_and_environment_roots():
         ".github/workflows/deep-gate.yml",
         ".github/workflows/release.yml",
         ".github/workflows/_packaged-windows.yml",
+        ".github/workflows/deep-gate-visual.yml",
+        ".github/workflows/deep-gate-watch.yml",
     ],
 )
 def test_github_workflows_use_the_canonical_version_file(workflow):
