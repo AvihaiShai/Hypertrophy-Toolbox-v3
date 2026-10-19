@@ -60,7 +60,11 @@ def select_shard(node_ids: list[str], index: int, total: int) -> list[str]:
     """Round-robin slice ``index`` (1-based) of ``total`` over collection order."""
     if total < 1 or not 1 <= index <= total:
         raise ValueError(f"shard {index}/{total} is out of range")
-    return node_ids[index - 1::total]
+    selected = node_ids[index - 1::total]
+    if not selected:
+        # An empty argument file would make `pytest @shard.txt` collect the whole tree.
+        raise ValueError(f"shard {index}/{total} selected no identities")
+    return selected
 
 
 def executed_cases(report: Path) -> list[tuple[str, str]]:

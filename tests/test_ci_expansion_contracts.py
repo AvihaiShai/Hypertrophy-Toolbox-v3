@@ -184,6 +184,20 @@ def test_shard_out_of_range_is_refused(index, total):
         select_shard(NODE_IDS, index, total)
 
 
+def test_an_empty_shard_is_refused_before_pytest_could_run_everything():
+    with pytest.raises(ValueError, match="selected no identities"):
+        select_shard(NODE_IDS[:2], 3, 3)
+
+
+def test_the_real_guard_collection_parses_and_maps_to_distinct_identities():
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider", GUARD_FILE],
+        cwd=ROOT, capture_output=True, text=True, check=True,
+    )
+    node_ids = read_collection(proc.stdout)
+    assert len({junit_identity(n) for n in node_ids}) == len(node_ids) > 0
+
+
 def test_verify_accepts_exactly_the_collected_identities(tmp_path):
     assert verify(NODE_IDS, [junit(tmp_path, [(n, None) for n in NODE_IDS])]) == len(NODE_IDS)
 
@@ -272,6 +286,41 @@ def test_union_rejects_shards_that_together_miss_an_identity(tmp_path):
     reports[1] = junit(tmp_path, [(n, None) for n in select_shard(NODE_IDS, 2, 2)[:-1]], "short.xml")
     with pytest.raises(ValueError, match="missing"):
         verify_union([collection(NODE_IDS)] * 2, reports, shards=2)
+
+
+def cli(*args):
+    return subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ci_executed_report.py"), *map(str, args)],
+        capture_output=True, text=True, check=False,
+    )
+
+
+def test_shard_cli_writes_exactly_its_selection(tmp_path):
+    collected = tmp_path / "collected.txt"
+    collected.write_text(collection(NODE_IDS), encoding="utf-8")
+    proc = cli("shard", collected, "--index", 2, "--total", 2)
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout.splitlines() == select_shard(NODE_IDS, 2, 2)
+    assert cli("shard", collected, "--index", 3, "--total", 2).returncode == 1
+
+
+def test_verify_cli_checks_only_its_own_shard(tmp_path):
+    collected = tmp_path / "collected.txt"
+    collected.write_text(collection(NODE_IDS), encoding="utf-8")
+    report = junit(tmp_path, [(n, None) for n in select_shard(NODE_IDS, 1, 2)])
+    assert cli("verify", collected, report, "--index", 1, "--total", 2).returncode == 0
+    assert cli("verify", collected, report, "--index", 2, "--total", 2).returncode == 1
+    assert cli("verify", collected, report).returncode == 1
+
+
+def test_union_cli_requires_every_shard(tmp_path):
+    collected = tmp_path / "collected.txt"
+    collected.write_text(collection(NODE_IDS), encoding="utf-8")
+    reports = shard_reports(tmp_path, 2)
+    ok = cli("union", "--shards", 2, "--collected", collected, collected, "--reports", *reports)
+    assert ok.returncode == 0, ok.stderr
+    lost = cli("union", "--shards", 2, "--collected", collected, "--reports", reports[0])
+    assert lost.returncode == 1 and "::error" in lost.stderr
 
 
 @pytest.mark.parametrize("passing,code", ((True, 0), (False, 1)))

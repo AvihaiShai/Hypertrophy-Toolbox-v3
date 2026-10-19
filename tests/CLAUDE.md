@@ -16,9 +16,11 @@ Pytest suite covering routes, utils, and integration paths. Each test gets a uni
 
 Measured locally: **serial median ≈195s, `-n 8 --dist loadfile` median ≈76s.**
 
-Parallel is opt-in; without `-n` the plugin does nothing, and **CI's pytest
-parallelism is unchanged and separately unmeasured** — these medians are this
-machine's, and a CI worker count must be derived from CI. Keep using serial to
+Parallel is opt-in; without `-n` the plugin does nothing. In CI only the
+guard-hook file runs parallel — four runner shards, `-n 4 --dist load` each, chosen
+from CI measurements (`docs/ci_cd_expansion/PLANNING.md` §14); `pytest-core` stays
+serial. These medians are this machine's, and a CI worker count must be derived
+from CI. Keep using serial to
 diagnose a failure — worker output is interleaved, and a test that only fails in
 parallel is itself the finding.
 

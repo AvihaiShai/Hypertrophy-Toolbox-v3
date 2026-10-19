@@ -18,7 +18,7 @@ the generator claims to write.
 
 Two authoring rules this file must keep obeying:
 
-1. **No subprocess, no `node_modules`, no `_npx()`.** `Run Tests` has node on its
+1. **No subprocess, no `node_modules`, no `_npx()`.** `pytest-core` has node on its
    PATH, so `shutil.which("npx")` succeeds there and would not fail fast -- a
    shelling test would attempt a registry fetch inside a required job. The
    subprocess seam is `_run_vitest_list()`, and it is deliberately not covered
@@ -287,7 +287,7 @@ def test_the_call_site_uses_the_pinned_argv_and_pins_CI(monkeypatch, tmp_path):
     from inlining a different command into `_run_vitest_list` -- `vitest run`
     included -- and leaving all of them green.
 
-    `_npx` is REPLACED here, never invoked: node is on the `Run Tests` job's
+    `_npx` is REPLACED here, never invoked: node is on the `pytest-core` job's
     PATH, so the real one resolves successfully and a shelling test would attempt
     a registry fetch inside a required job. `subprocess.run` is replaced for the
     same reason -- no runner starts.

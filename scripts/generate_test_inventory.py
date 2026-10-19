@@ -264,7 +264,7 @@ def _vitest_list_argv(output_path: Path, npx: str = "npx") -> list[str]:
 
     `npx` is a parameter with a plain-name default so the argv SHAPE can be
     pinned without resolving an executable. No test may reach `_npx()`: node is
-    on the `Run Tests` job's PATH, so `shutil.which("npx")` succeeds there and a
+    on the `pytest-core` job's PATH, so `shutil.which("npx")` succeeds there and a
     shelling test would attempt a registry fetch inside a required job instead of
     failing fast. Production passes the resolved path.
 
