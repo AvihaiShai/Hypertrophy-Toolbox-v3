@@ -1,0 +1,106 @@
+name: TEMP E3 H-LINUX-UNSYNC-01 bounded bisect
+
+# Diagnostic only. Lives solely on its own diag branch and is never merged: a push
+# to that branch is the one trigger, so it never runs on main, on a PR or on a
+# schedule, and it touches neither ci.yml nor deep-gate.yml. Pre-registered in
+# docs/deep_gate_linux_visual_failure_20260831/GATE2.md. Compare-only: no
+# --update-snapshots anywhere, retries 0, and any baseline write aborts the run.
+on:
+  push:
+    branches: [diag/e3-h-linux-unsync-01-bisect]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e3-linux-bisect
+  cancel-in-progress: false
+
+jobs:
+  bisect:
+    name: TEMP E3 bisect (backup desktop light)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    outputs:
+      verdict: ${{ steps.bisect.outputs.verdict }}
+      last_good: ${{ steps.bisect.outputs.last_good }}
+      first_bad: ${{ steps.bisect.outputs.first_bad }}
+
+    steps:
+    - name: Checkout harness with full history
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        path: repo
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Pin the interval's Python version
+      shell: bash
+      run: git -C repo show b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8:.python-version > "$RUNNER_TEMP/python-version"
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: ${{ runner.temp }}/python-version
+
+    - name: Set up Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: '24'
+
+    - name: Run endpoint controls and bounded bisect
+      id: bisect
+      shell: bash
+      run: bash repo/.github/e3-bisect/e3_bisect.sh bisect
+
+    - name: Retain complete diagnostic evidence
+      if: ${{ always() }}
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: e3-bisect
+        path: e3-artifacts
+        retention-days: 90
+
+  confirm:
+    name: TEMP E3 boundary confirmation (fresh runner)
+    needs: bisect
+    if: ${{ needs.bisect.outputs.verdict == 'BOUNDARY_FOUND' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout harness with full history
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        path: repo
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Pin the interval's Python version
+      shell: bash
+      run: git -C repo show b36ea9e1a3d7e0e37918e9db4198cb4bf7e0ecf8:.python-version > "$RUNNER_TEMP/python-version"
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: ${{ runner.temp }}/python-version
+
+    - name: Set up Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: '24'
+
+    - name: Re-test the boundary pair
+      shell: bash
+      env:
+        LAST_GOOD: ${{ needs.bisect.outputs.last_good }}
+        FIRST_BAD: ${{ needs.bisect.outputs.first_bad }}
+      run: bash repo/.github/e3-bisect/e3_bisect.sh confirm "$LAST_GOOD" "$FIRST_BAD"
+
+    - name: Retain complete diagnostic evidence
+      if: ${{ always() }}
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: e3-confirm
+        path: e3-artifacts
+        retention-days: 90
