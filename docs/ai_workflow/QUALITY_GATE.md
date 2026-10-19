@@ -19,6 +19,26 @@ under Targeted-test derivation applies only to implementation-gate derivation; a
 docs-only change whose row explicitly requires no tests does not escalate to the full
 suite.
 
+## Owner approvals and reviewer passes
+
+- **Owner approval** — a decision the repository owner gives directly: Gate 0
+  (requirements approval), Gate 1 (plan approval), Gate 2 (owner review of the finished
+  diff and its evidence before commit or activation, where a governing plan or workflow
+  requires it), confirmation to merge a named PR, and any separate operation approval a
+  governing plan requires. Gates 0–2 always mean owner approvals. An agent may request
+  one and record it once given; an agent's relay, summary or inference of the owner's
+  intent is not an owner approval.
+- **Reviewer pass** — the verdict of a reviewer this file requires (the Required
+  reviewers column below and the plan-stage council) or the active plan calls for, or
+  careful self-review (not independent) where a change-type row allows it. A pass is
+  evidence for the owner, not a decision.
+
+An agent may not treat a reviewer pass as an owner approval, nor an owner approval as a
+reviewer pass; a required test or reviewer is waived only by an explicit, recorded owner
+exception, given directly and never inferred or relayed. A review that did not run, or
+whose reviewer failed, is incomplete, never "no findings", and does not satisfy a
+Required-reviewers cell.
+
 ## Change-type → gates table
 
 | Change type | Path globs | Required gates | Required reviewers |

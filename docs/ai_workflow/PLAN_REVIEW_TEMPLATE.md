@@ -149,7 +149,7 @@ Every finding gets a row. "Defer" requires a one-line reason and a note in `MAST
 - [ ] Gate 0 complete when required by planning size; otherwise marked not applicable.
 - [ ] Every finding has a disposition.
 - [ ] Agent provenance complete — both `product-manager` IDs, same-PM-resumed yes/no, the three reviewer IDs, and an evidence-gap line (or `none`).
-- [ ] User approved Plan v2.
+- [ ] Owner approved Plan v2 (Gate 1).
 - [ ] Ready to implement — proceed to code, then `/unslop` or `/verify-and-polish` for the diff-time gate.
 
 ---
