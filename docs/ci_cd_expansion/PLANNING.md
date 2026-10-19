@@ -7,7 +7,7 @@
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
 | Planning size | Large (new workflows, new jobs, repo-settings changes) — per `docs/ai_workflow/QUALITY_GATE.md` plan-stage routing: Gate 0 → council (`/council-plan`) → Gate 1 → implementation |
-| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split`; PR recorded in §7/§14 |
+| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; PR recorded in §7/§14 |
 
 ### Review log
 
@@ -392,7 +392,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 
 | Packet | Owner (proposed) | Status | Branch / PR | Head SHA | Evidence (run id, job, value) | Notes |
 |---|---|---|---|---|---|---|
-| A1 | Claude Code (A1 session), 2026-10-19 | claimed; in progress | `ci/a1-guard-split` | | §14 | Owner-authorized A1 implementation, bounded benchmarks/rehearsals, gates, push and ready PR; stop before merge. B2 not started |
+| A1 | Claude Code (A1 session), 2026-10-19 | implemented; local gates and both independent reviews complete; ready PR, not merged | `ci/a1-guard-split-b`; PR in the receipt commit | final code tree `0e4f3423993cd74d807602ffb52479ab561d0b95` | Bench `39270742974` attempts 1–2; rehearsals `39285097596`, `39285103455`, `39285105591`, `39285108590`, `39285112726`, `39288227037`; local full pytest 5,330 passed / 2 skipped at `0e4f342`; §14 | Stop before merge. B2 not started; `download-artifact` joins the C3 candidate set |
 | A2 | Astra | blocked | | | | Core Gate 1; identities preserved; not a promotion prerequisite |
 | A3 | Claude | blocked | | | | Core Gate 1; after A1; four-leg fan-in proof |
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
@@ -1091,3 +1091,278 @@ on `e486e3b5` (2026-10-19), passed six of seven jobs with pinned actions. The
 exception is the pre-existing `Visual regression (Linux baselines)` failure (CI-D1/E3
 scope), unchanged by B1. `release.yml` has not run since B1, so its pins have
 parse/contract evidence only. B1 is closed; C3 remains an owner action.
+
+## 14. A1 execution — 2026-10-19
+
+The owner authorized **A1 only**: implementation, its bounded benchmarks and failure
+rehearsals on existing GitHub Actions infrastructure, the required tests and
+independent reviews, push and a ready PR. The PR stops before merge. The same
+instruction authorized the bounded B1 closeout correction (§7, §13.2). It authorizes
+no other packet, settings change, check promotion, paid service or release. This
+section supersedes the earlier "B1 only" statements for A1 alone; historical text is
+retained. B2 was not started.
+
+### 14.1 Claim, isolation and coordination
+
+- **Claim.** Claude Code A1 session, 2026-10-19. The live path claim is in the shared
+  checkout's gitignored `WORKSTREAM_OWNERSHIP.local.md`. The §7 row was committed and
+  pushed first (`ci/a1-guard-split` @ `a8688b1`, before any implementation commit; after the rebase onto `f85ec050` the work is published as `ci/a1-guard-split-b`, because the guard forbids force pushes). At claim time
+  no open PR touched `ci.yml`; the only open PRs were #526–#528, all docs.
+- **Isolation.** A standalone HTTPS clone at
+  `D:/development/Hypertrophy-Toolbox-v3-ci-a1-20261019` with its own `.git` (no
+  alternates), venv, `node_modules` and runtime paths. A full-history clone stalled on
+  transport, so the clone was taken shallow and later unshallowed from `origin`.
+  Rehearsal branches were built in a second independent clone inside the session
+  scratchpad, so the full pytest run was never disturbed. The shared checkout, its
+  stale local plan and its locally modified guard test were never edited, reset or
+  stashed. The only write to the shared checkout was the claim row in the gitignored
+  local claims file.
+- **E3 coordination.** The E3 session (`hypertrophy-toolbox-v3-main-3f`) owns E3, its
+  `GATE2.md` and its §7 row; this packet edits neither. Runner windows were
+  serialized by message:
+
+  | Window (UTC) | Owner | Run |
+  |---|---|---|
+  | 14:38:13–15:06:57 | A1 benchmark rep 1 | `39270742974` attempt 1 |
+  | 15:15:31–15:23:06 | E3 bisect + confirmation (one runner) | `39276388378` |
+  | 15:23:51–15:52:09 | A1 benchmark rep 2 | `39270742974` attempt 2 |
+
+  Nothing overlapped. **Interference that did occur:**
+  - GitHub declared an Actions incident ("degraded availability for GitHub Actions,
+    Pages and Webhooks") at 15:49:25Z. It was still open at the time of writing.
+    During it, the jobs API returned HTTP 502 and stale `in_progress` states.
+  - Rep 2's last job and all rehearsals ran inside the incident window.
+  - Run-level `queued` statuses were shown while jobs had in fact already started.
+    Job-level `created_at` / `started_at` is authoritative and showed at most 5 s of
+    queueing.
+  - Durations below are runner start-to-finish.
+
+### 14.2 Benchmark matrix (bounded, before choosing the shape)
+
+Workflow `.github/workflows/a1-bench.yml`. It lives only on throwaway branch
+`bench/a1-guard-shape-20261019`, head `27fad2927a7604fb0c1604b2ef871131d9644c5f`
+(A1 verifier commit plus the bench file), and is never merged. Every arm runs
+`tests/test_guard_destructive_command.py` on `ubuntu-latest`: 4 vCPUs, pwsh 7.6.6,
+Python 3.14.6, pip cache. Each arm collects the file, selects its slice, runs it, and
+then `scripts/ci_executed_report.py verify` checks its executed JUnit against the
+collection. A `core` arm runs pytest minus the guard file, with coverage. Rep 1 is
+attempt 1, created 14:38:13Z; rep 2 is attempt 2, created 15:23:51Z, on the same
+commit.
+
+| Arm | Jobs | Slowest job, rep 1 / rep 2 (min) | Arm end-to-end from run creation (min) | Runner-min (billed) | Max queue (s) | Executed identities |
+|---|---|---|---|---|---|---|
+| serial | 1 | 28.7 / 28.2 | 28.7 / 28.3 | 28.7 / 28.2 (29 / 29) | 4 | 1,018 / 1,018, all passed |
+| `-n 4` | 1 | 17.1 / 21.4 | 17.2 / 21.6 | 17.1 / 21.4 (18 / 22) | 4 | same set, all passed |
+| `-n 8` | 1 | 15.5 / 15.7 | 15.5 / 15.8 | 15.5 / 15.7 (16 / 16) | 4 | same set, all passed |
+| 2 shards | 2 | 14.1 / 16.5 | 14.2 / 16.6 | 23.3 / 27.6 (25 / 29) | 4 | same set, all passed |
+| 2 shards × `-n 4` | 2 | 8.8 / 8.2 | 8.9 / 8.3 | 15.0 / 15.3 (16 / 17) | 4 | same set, all passed |
+| **4 shards (chosen)** | 4 | **7.3 / 12.5** (legs 7.2–7.6 plus one 12.5 straggler) | 7.4 / 12.6 | 27.5 / 34.7 (30 / 37) | 4 | same set, all passed |
+| 4 shards × `-n 4` | 4 | 4.9 / 5.3 | 5.0 / 5.4 | 17.7 / 18.6 (19 / 20) | 5 | same set, all passed |
+| core (minus guard) | 1 | 2.9 / 2.3 | 2.9 / 2.4 | 2.9 / 2.3 (3 / 3) | 4 | 3,213; see below |
+
+**Identity checks.**
+- For every guard arm, in both reps:
+  - collection equalled the serial arm's collection;
+  - executed identities equalled the serial set: 1,018 cases, pwsh host only on Linux;
+  - there were zero duplicates;
+  - every shard executed exactly its own slice;
+  - there were zero skips, failures or errors.
+- Core ∪ serial-guard equals main push run `39249316854` (on `c6a982cf`, same corpus)
+  identity-for-identity: 4,231 identities, none missing or extra, and the same 211
+  skips.
+- The one core failure in both reps was `test_the_workflow_directory_holds_exactly_the_files_this_file_reads`.
+  It fired because the bench workflow file itself is an undeclared workflow — the
+  census contract working as designed — and it does not occur on the A1 branch.
+- Coverage from the core arm equals the baseline exactly: 6,930 / 7,938 lines
+  (87.3%), all 72 files identical. The guard file contributes nothing to
+  `utils`/`routes` coverage, so the guard legs measure none.
+- The §2 figure of 1,018 guard cases still held at this corpus.
+
+**Shape decision: four runner shards, serial within each.**
+- `4 × -n 4` was fastest and cheapest, but it was **rejected after failure evidence**
+  (§14.3).
+- No single-runner arm reaches the required-gate path's current floor. `E2E Functional
+  (Chromium)` is about 10.4 min on baseline run `39249316854`.
+- `2 shards` alone is slower than that floor.
+- Four serial shards keep each pwsh process as isolated as before. They cost about
+  1–9 runner-minutes more than the old single serial job (27.5–34.7 against 28.2–28.7),
+  plus four setups.
+- **Deviation from §4's "guard timeout 15":** `timeout-minutes: 20`, because the rep 2
+  straggler took 12.5 min. A timeout fails closed. Raise it to 25 if a timeout-cancelled
+  leg ever appears.
+
+### 14.3 Failure rehearsals (separate from green equivalence)
+
+Workflow `.github/workflows/a1-rehearsal.yml`, generated per case on throwaway
+`rehearsal/a1-*` branches (never merged). It contains `ci.yml`'s `pytest-core`,
+`guard-hook-shard`, `guard-hook-tests` and `run-tests` blocks **copied verbatim**. The
+generator asserts that byte equality, so each case differs from `ci.yml` only by its one
+named mutation. A census line for the rehearsal file is added only on these branches.
+
+**Round 1** (on `7642645`, the `4 × -n 4` shape):
+- The **green control failed.** Run `39280323729`, shard 3/4: two guard cases,
+  `test_agent_git_rm_is_hard_deny_in_every_mode[sh -c "git rm retained"-default-pwsh]`
+  and `test_suppression_forms_are_profile_and_permission_invariant[MSYS_NO_PATHCONV-default-agent-pwsh]`.
+  pwsh exited -6 with `System.IO.FileLoadException: The given assembly name was invalid`
+  on a truncated `PublicKeyToken=b03f5f7f11d50a3`.
+- This crash occurred while four pwsh processes ran concurrently on one runner. A
+  shared per-user pwsh startup cache is the **suspected, not proven** mechanism.
+- Before the decision, 28 xdist legs ran: 16 benchmark legs and 12 round-1 rehearsal
+  legs. This was the only crashing leg. None of the 14 serial benchmark legs crashed.
+- A required check must not flake, so the shape moved to serial legs (`0e4f342`).
+  `ci.yml` and the contracts now forbid `-n` in the guard leg.
+- Round-1 guard-fail `39280328021` and core-fail `39280332221` also turned
+  `Run Tests` red as designed.
+
+**Round 2** (on `0e4f342`, the final shape; branches `rehearsal/a1-*-v2` and
+`cancel-v3`, pushed 16:23:47Z and 16:46:02Z):
+
+| Case | Mutation | Run | Shards | `Guard Hook Tests` | Python Tests (core) | **Run Tests** |
+|---|---|---|---|---|---|---|
+| green control | none | `39285097596` | 4 × success (7.2–7.9 min) | success | success (2.6 min) | **success** |
+| injected guard failure | guard case `powershell -File scripts/run-pytest.ps1` expected `deny` | `39285103455` | shard 2 failure (that one identity), 3 × success | failure (shard gate) | success | **failure** |
+| injected core failure | `GUARD_SHARDS = 5` in the A1 contract suite | `39285105591` | 4 × success | success | failure | **failure** |
+| lost shard (every leg green) | matrix `[1, 2, 3]`, total still 4 | `39285108590` | 3 × success | failure (union step only) | success | **failure** |
+| skipped shards | `if: ${{ false }}` on the shard job | `39285112726` | skipped | failure (shard gate) | success | **failure** |
+| cancellation | run cancelled at 16:46:56Z with all four shards in progress | `39288227037` | 4 × cancelled | failure | cancelled | **failure** |
+
+**Coverage of failure modes.**
+- Every non-success, cancelled, skipped and partial-union case turned `Run Tests` red,
+  and the green control turned it green.
+- A "missing" dependency result cannot be produced by a valid workflow. It is covered
+  by `scripts/ci_fan_in.py` behaviour tests, as are malformed and unexpected `needs`
+  input.
+- An earlier cancellation attempt, `rehearsal/a1-cancel-v2` (`39285117239`), completed
+  green before the watcher fired. It was not cancelled and is not credited.
+
+### 14.4 Implementation
+
+**Final shape.**
+- `pytest-core` / `Python Tests (core)` is the former job, with
+  `--ignore=tests/test_guard_destructive_command.py` and timeout 20. Coverage flags,
+  artifacts (`pytest-junit`, `pytest-coverage`), Node, `fetch-depth: 0` and the D1
+  summary are unchanged.
+- `guard-hook-shard` (4 legs, `fail-fast: false`, timeout 20) collects the guard file,
+  writes its round-robin slice and runs `pytest @artifacts/guard/shard.txt`. It then
+  verifies that it executed exactly that slice with no skips, failures or errors, and
+  uploads `guard-hook-junit-<n>` with `if-no-files-found: error`.
+- `guard-hook-tests` / `Guard Hook Tests (Linux pwsh)` runs `if: always()`. Its fan-in
+  over the shards comes first, then `actions/download-artifact`, then
+  `ci_executed_report.py union --shards 4`: identical collections on every leg, and the
+  union executes every identity exactly once.
+- `run-tests` / **`Run Tests`** runs `if: always()` and `needs: [pytest-core,
+  guard-hook-shard, guard-hook-tests]`. It passes only when every dependency is
+  exactly `success`.
+- The direct shard edge is deliberate defence in depth.
+- No required context, release-gate list, settings or app binding changed. The three
+  child names join `UNEXPECTED_CI_JOB_NAMES`, so they can never become expected
+  contexts by accident.
+
+**Named helpers** (§12.4's helper rule):
+- `scripts/ci_fan_in.py` makes the fan-in decision. It fails on failure, cancelled,
+  skipped, absent or extra dependency, or malformed `toJSON(needs)`.
+- `scripts/ci_executed_report.py` provides `shard`, `verify` and `union`. Missing,
+  unexpected, duplicate-expected, duplicate-executed, skipped (including xfail),
+  failed/errored, empty, nameless and unparsable reports all fail. A collection whose
+  node count disagrees with pytest's own summary fails. An empty slice is refused
+  before pytest could fall back to collecting the whole tree.
+- `tests/worktree_cleanup/verify_ci_report.py` is **not** reused or broadened. It is
+  Operation A's module/host verifier. A1 reuses its executed-outcome rule (a testcase
+  with a `skipped`, `failure` or `error` child does not count) without changing its
+  scope.
+
+**Divergence from the `e2e-functional` fan-in** (deliberate): the two new aggregates
+check out the repository and call a script instead of an inline shell test. This makes
+the decision behaviourally testable. A checkout failure still fails closed.
+
+**Contracts.**
+- `tests/test_ci_expansion_contracts.py` (87 cases) covers the fan-in result matrix,
+  the identity/collection/shard/union decisions and the CLIs. It includes a real
+  `--collect-only` parse of the guard file, plus `ci.yml` wiring.
+- `tests/test_worktree_ci_contracts.py` now reads `pytest-core`. It keeps every
+  Windows host/report assertion and adds the single-`--ignore` check.
+- Seventeen `ci.yml` weakenings were each applied and turned the suites red. They
+  include dropping a dependency, a missing `always()`, `continue-on-error`, a three-leg
+  matrix, a shard-count drift, deselection, a second `--ignore`, reintroduced `-n`,
+  `merge-multiple`, `if-no-files-found: warn` and a second `Run Tests`.
+
+**Action inventory.** One newly adopted action, `actions/download-artifact` v8.0.2 at
+full SHA, is recorded in [B1_ACTION_INVENTORY.md](B1_ACTION_INVENTORY.md). The C3
+candidate set becomes five repositories.
+
+**Notes for later packets.**
+- A3 must update the `/2` shard literal and these wiring pins.
+- G6 adds its Windows leg to `run-tests` `needs`, to the `ci_fan_in.py` arguments and to
+  `FAN_IN_DEPENDENCIES`. The exact-set check forces all three.
+- B4 is compatible with `pytest-core`'s flags.
+
+### 14.5 Gates and reviews
+
+**Required union.** The diff touches a workflow (jobs added and converted), scripts,
+tests, generated inventory and docs. That requires:
+- full pytest;
+- `code-reviewer` and `architecture-reviewer`;
+- a pyright baseline diff;
+- inventory regeneration plus `--check`;
+- the blocking flake8 selection on changed Python.
+
+No product, route, template, JS or CSS change is involved, so no Chromium gate applies.
+
+| Gate | Commit | Result |
+|---|---|---|
+| Full pytest, local Windows (Python 3.14.6, Git Bash first on process PATH, as §13.1) | `7642645` | 5,324 passed, 2 skipped, 1 failed. The failure was `test_wp4_4_baseline_is_pinned_and_matches_its_source_commit`: the shallow clone lacked `46e340e5`. After unshallowing, that file passed 33/33. The skips are the same two as §13.1. |
+| Full pytest, local Windows, non-shallow clone | `0e4f342` (final code tree) | **5,330 passed, 2 skipped, exit 0**, 1521.69 s, 16:24:35–16:49:58Z. The skips are the same two as §13.1. |
+| Targeted contracts, plus 17-mutation matrix | `0e4f342` | all pass; 17 / 17 killed |
+| pyright 1.1.410 baseline diff | `bcff949` tree | PASS, 0 net-new. One net-new diagnostic in the first draft was fixed in code, not baselined. |
+| `generate_test_inventory.py --check` | `0e4f342` | up to date |
+| flake8 blocking selection on changed Python | `bcff949` tree | 0 |
+
+**Reviews.** Both reviewers were independent subagents. They read files, not chat, and
+ran nothing.
+- **`code-reviewer`, on `a440844`: approve.**
+  - Should-fix: an empty slice would make `pytest @file` collect the whole tree. Fixed
+    in `bcff949`.
+  - Nit: the CLI paths were untested. Subprocess tests were added.
+  - Nit: the secondary verify error after a failed collection is left as is.
+  - Delta review of `0e4f342`: all resolved, no new gap, timeout 20 acceptable. The
+    collection-test message nit is fixed in the commit that adds this section.
+- **`architecture-reviewer`, on `a440844`: needs revision.**
+  - This §14 was missing; it is resolved by this section.
+  - Stale CI-shape prose in `tests/CLAUDE.md`, `scripts/generate_test_inventory.py` and
+    `tests/test_vitest_inventory_contracts.py` is fixed.
+  - The fan-in divergence and the YAML-pin notes are recorded above.
+  - Delta review of `0e4f342`: the serial change and the timeout deviation are sound.
+    The only further nit, a stale "both" in the `pytest-core` comment, is fixed in
+    the same commit. That commit changes one comment and one assertion message; the
+    targeted contracts, lint and inventory check were re-run on it.
+  - No reviewer was re-run on this documentation section.
+
+### 14.6 PR and measured speed
+
+The ready PR, its head and its GitHub CI runs are recorded in §7 and in the
+publication receipt commit that follows this section. A run that is incomplete or
+cancelled by a later push is not credited.
+
+**Baseline for comparison:** `main` push run `39249316854` on `c6a982cf`,
+2026-10-19 12:05:08Z.
+- The run took 32.3 min from creation to its last job.
+- `Run Tests`, a single job, completed at 32.2 min and was the slowest required
+  context.
+- The other required contexts finished by 10.5 min (`E2E Functional (Chromium)`
+  12:15:40Z).
+- Creation to the last required context was therefore 32.3 min.
+
+### 14.7 Remaining limitations
+
+- **The pwsh crash mechanism is suspected, not proven.** Restoring xdist (about
+  5 min and 18 runner-min instead of 7.3–12.5 and 28–35) needs per-process pwsh cache
+  isolation, plus fresh failure-free evidence across many legs.
+- **Leg times vary by up to 1.7× between runners** (7.2 against 12.5 min on the same
+  slice). The required gate's guard path therefore runs 8–14 min. That is near or
+  below E2E Functional today, but it would become the critical path after A3.
+- **The timing targets are not claimed as achieved.** §1.2's 12–15-minute initial
+  objective is judged only by the PR's own creation-to-required-gate measurement in
+  §14.6. The 8-minute second stage and the 6-minute stretch were not reached.
+- **Rep 2 and every rehearsal ran inside an open GitHub Actions incident.**
+- `release.yml` is untouched. The release gate still reads the exact `Run Tests` name;
+  no tag rehearsal was run.

@@ -192,8 +192,9 @@ def test_an_empty_shard_is_refused_before_pytest_could_run_everything():
 def test_the_real_guard_collection_parses_and_maps_to_distinct_identities():
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider", GUARD_FILE],
-        cwd=ROOT, capture_output=True, text=True, check=True,
+        cwd=ROOT, capture_output=True, text=True, check=False,
     )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
     node_ids = read_collection(proc.stdout)
     assert len({junit_identity(n) for n in node_ids}) == len(node_ids) > 0
 

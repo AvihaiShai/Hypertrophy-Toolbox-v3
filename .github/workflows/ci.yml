@@ -772,7 +772,7 @@ jobs:
   # tests/test_guard_destructive_command.py, which spawns one PowerShell process
   # per case and owns the guard-hook-tests job below. Neither job is a protected
   # context; the required `Run Tests` check is the run-tests fan-in, green only
-  # when both of them succeeded. The 35-minute budget this job used to need was
+  # when this job, every guard-hook leg and their cross-shard proof succeeded. The 35-minute budget this job used to need was
   # the guard file's; without it the job measured 2.3-3.6 minutes (benchmark
   # and rehearsal runs, PLANNING.md section 14), so 20 is ample headroom.
   pytest-core:
