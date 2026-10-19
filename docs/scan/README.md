@@ -11,7 +11,7 @@
 Twenty-one phase files, `PHASE_02.md` to `PHASE_22.md`. The scan ran **23** phases: phase 1
 has no file of its own and is written up in [`../archive/2026/grounding-scan/SCAN_FINDINGS.md`](../archive/2026/grounding-scan/SCAN_FINDINGS.md), and
 phase 23 is the synthesis, which is [`../archive/2026/grounding-scan/SCAN_RECOMMENDATIONS.md`](../archive/2026/grounding-scan/SCAN_RECOMMENDATIONS.md).
-Progress is tracked in [`../archive/2026/grounding-scan/SCAN_PROGRESS.md`](../archive/2026/grounding-scan/SCAN_PROGRESS.md). Each phase file records
+Progress was tracked in [`../archive/2026/grounding-scan/SCAN_PROGRESS.md`](../archive/2026/grounding-scan/SCAN_PROGRESS.md). Each phase file records
 what a file does, its coupling, and anything that confirmed or contradicted the refactor plan
 at the time.
 
