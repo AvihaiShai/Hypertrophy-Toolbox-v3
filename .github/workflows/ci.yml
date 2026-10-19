@@ -773,7 +773,8 @@ jobs:
   # per case and owns the guard-hook-tests job below. Neither job is a protected
   # context; the required `Run Tests` check is the run-tests fan-in, green only
   # when both of them succeeded. The 35-minute budget this job used to need was
-  # the guard file's; without it the job measured well under 20.
+  # the guard file's; without it the job measured 2.3-3.6 minutes (benchmark
+  # and rehearsal runs, PLANNING.md section 14), so 20 is ample headroom.
   pytest-core:
     name: Python Tests (core)
     runs-on: ubuntu-latest
@@ -910,19 +911,22 @@ jobs:
           artifacts/pytest/htmlcov
         retention-days: 14
 
-  # The guard-hook file, sharded four ways with four xdist workers per shard.
-  # Shape chosen by the A1 benchmark (PLANNING.md section 14): serial took 28.7
-  # minutes, this shape about 5 on its slowest leg. Every case still runs in its
-  # own PowerShell process; sharding only decides which runner starts it. Each
-  # leg collects the file, runs its round-robin slice and must prove it executed
-  # exactly that slice with no skips; guard-hook-tests then proves the four legs
-  # together executed every collected identity once. The file contributes no
-  # utils/routes coverage, so these legs measure none. Leg names are not
-  # contexts -- `Run Tests` is.
+  # The guard-hook file, sharded four ways across runners, SERIAL within each leg.
+  # Shape chosen by the A1 benchmark (PLANNING.md section 14): the whole file
+  # serially took 28.2-28.7 minutes, these legs 7.2-7.6 with one 12.5-minute
+  # straggler -- hence 20 minutes, not 15. Four xdist workers per leg were faster
+  # but crashed pwsh twice in one leg (exit -6, a truncated assembly name in a
+  # FileLoadException) while concurrent pwsh processes shared one runner profile;
+  # never add -n here without first isolating that. Every case still runs in its
+  # own PowerShell process. Each leg collects the file, runs its round-robin slice
+  # and must prove it executed exactly that slice with no skips; guard-hook-tests
+  # then proves the four legs together executed every collected identity once.
+  # The file contributes no utils/routes coverage, so these legs measure none.
+  # Leg names are not contexts -- `Run Tests` is.
   guard-hook-shard:
     name: Guard Hook Tests (Linux pwsh) shard ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -956,7 +960,7 @@ jobs:
         python scripts/ci_executed_report.py shard artifacts/guard/collected.txt --index ${{ matrix.shard }} --total 4 > artifacts/guard/shard.txt
 
     - name: Run guard-hook tests
-      run: python -m pytest -n 4 --dist load @artifacts/guard/shard.txt -v --tb=short --junitxml=artifacts/guard/junit.xml
+      run: python -m pytest @artifacts/guard/shard.txt -v --tb=short --junitxml=artifacts/guard/junit.xml
 
     - name: Require executed shard identities without skips
       if: always()

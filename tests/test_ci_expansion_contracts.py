@@ -410,6 +410,8 @@ def test_guard_shards_partition_one_collection_of_only_the_guard_file():
     assert matrix and [int(n) for n in matrix.group(1).split(",")] == list(range(1, GUARD_SHARDS + 1))
     assert job_name(block) == f"Guard Hook Tests (Linux pwsh) shard ${{{{ matrix.shard }}}}/{GUARD_SHARDS}"
     assert "fail-fast: false" in block
+    # A measured 12.5-minute straggler (PLANNING.md §14) is why this is not 15.
+    assert re.search(r"^    timeout-minutes: 20$", block, re.MULTILINE)
     select = shard_steps()["Collect and select this shard"]
     assert f"pytest --collect-only -q {GUARD_FILE} > artifacts/guard/collected.txt" in select
     selection = f"--index ${{{{ matrix.shard }}}} --total {GUARD_SHARDS}"
@@ -422,10 +424,8 @@ def test_guard_shards_partition_one_collection_of_only_the_guard_file():
 def test_guard_shards_run_exactly_their_selection_and_require_pwsh():
     run = shard_steps()["Run guard-hook tests"]
     command = run.split("run: ", 1)[1].strip()
-    assert command == (
-        "python -m pytest -n 4 --dist load @artifacts/guard/shard.txt -v --tb=short "
-        "--junitxml=artifacts/guard/junit.xml"
-    )
+    # Serial on purpose: concurrent pwsh processes on one runner crashed (PLANNING.md §14).
+    assert command == "python -m pytest @artifacts/guard/shard.txt -v --tb=short --junitxml=artifacts/guard/junit.xml"
     assert "pwsh -NoProfile" in shard_steps()["Require PowerShell 7"]
     upload = shard_steps()["Upload guard-hook shard report"]
     assert "name: guard-hook-junit-${{ matrix.shard }}" in upload
