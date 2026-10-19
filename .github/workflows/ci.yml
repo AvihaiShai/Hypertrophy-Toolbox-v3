@@ -164,6 +164,14 @@ jobs:
   # zizmor report even when actionlint failed.
   #
   # Not a required check yet: promotion into scripts/release_gate.py is packet C4.
+  seeded-unsafe-pr-title:
+    name: Seeded unsafe PR title (B2 negative rehearsal)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Echo the PR title (UNSAFE, seeded)
+      run: echo "${{ github.event.pull_request.title }}"
+
   workflow-lint:
     name: Workflow Lint (actionlint + zizmor)
     runs-on: ubuntu-latest
