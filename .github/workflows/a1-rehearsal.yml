@@ -1,0 +1,246 @@
+name: A1 Rehearsal cancel-v2 (throwaway, never merged)
+
+# CI/CD packet A1 failure rehearsal. Job blocks are ci.yml's pytest-core,
+# guard-hook-shard, guard-hook-tests and run-tests copied verbatim, except the
+# single named mutation for this case. Lives only on rehearsal/a1-cancel-v2.
+on:
+  push:
+    branches: [ 'rehearsal/a1-cancel-v2' ]
+
+permissions:
+  contents: read
+
+jobs:
+  pytest-core:
+    name: Python Tests (core)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        # WP4.4's immutable baseline contract verifies the seven shared CSS
+        # surfaces at the merged Packet-a commit via `git show`.
+        fetch-depth: 0
+      
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    # tests/test_css_audit_digest_normalization_contracts.py runs
+    # scripts/css_audit/j_known_live_mutation.mjs as a subprocess and skips when
+    # `node` is absent. The runner image happens to ship one, but a contract that
+    # silently skips on the platform it was written for (LEFTOVERS P2.6: the
+    # control refused to run on Linux) is not a contract. Pinning the version
+    # here makes the run deterministic instead of image-dependent. No `npm ci` --
+    # the script imports only node builtins.
+    - name: Set up Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: '24'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Phase 1 step 5 of docs/TESTING_STRATEGY_PLANNING.md, decision D1 (signed
+    # 2026-08-01): coverage is NON-BLOCKING MEASUREMENT. There is deliberately no
+    # --cov-fail-under and no threshold of any kind -- this job's verdict is still
+    # exactly "did the tests pass". The observed number is the baseline for a
+    # future baseline-diff ratchet (the scripts/pyright_baseline_diff.py pattern
+    # this repo already proves), not a line anyone has to stay above today. The
+    # phase-3 decision that ruled coverage out is reversed only this far.
+    #
+    # Scope is utils + routes. app.py is deliberately ABSENT: pytest never imports
+    # it, so coverage answers --cov=app with "Module app was never imported" and
+    # no row at all. Its one import site is the app_client fixture at
+    # tests/test_pattern_coverage.py:329, which no test in that class requests --
+    # a dead fixture. That is blindspot B2 surfacing in the coverage data, and it
+    # is recorded in section 8.6 rather than papered over with a permanent warning.
+    - name: Run pytest with coverage
+      run: |
+        pytest tests/ -v --tb=short --junitxml=artifacts/pytest/junit.xml \
+          --ignore=tests/test_guard_destructive_command.py \
+          --cov=utils --cov=routes \
+          --cov-report=term \
+          --cov-report=xml:artifacts/pytest/coverage.xml \
+          --cov-report=html:artifacts/pytest/htmlcov
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+
+    # Measure-only reporting. Never fails: `if: always()` so a red test suite
+    # still publishes whatever coverage was collected, and the script itself
+    # cannot fail the job.
+    - name: Summarize coverage (measure-only)
+      if: always()
+      continue-on-error: true
+      run: |
+        python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+        import xml.etree.ElementTree as ET
+
+        # The four surfaces Phase 1 step 5 names as core, corrected against the
+        # tree: the plan says "utils/double_progression*", which does not exist.
+        # The double-progression logic lives in utils/progression_plan.py.
+        CORE_PREFIXES = (
+            "utils/effective_sets",
+            "utils/progression_plan",
+            "utils/volume_",
+            "utils/program_backup",
+        )
+
+        try:
+            root = ET.parse("artifacts/pytest/coverage.xml").getroot()
+        except Exception as exc:
+            print("### Coverage\n\nNo coverage report was produced (%s)." % exc)
+            raise SystemExit(0)
+
+        overall = float(root.get("line-rate", 0)) * 100
+        classes = []
+        for cls in root.iter("class"):
+            name = (cls.get("filename") or "").replace("\\", "/")
+            classes.append((name, float(cls.get("line-rate", 0)) * 100))
+        classes.sort()
+
+        print("### Python coverage (measure-only — no threshold, D1)")
+        print()
+        print("**Overall: %.1f%%** across %d measured files." % (overall, len(classes)))
+        print()
+        print("| Core module | Coverage |")
+        print("|---|---:|")
+        for name, rate in classes:
+            if name.startswith(CORE_PREFIXES):
+                print("| `%s` | %.0f%% |" % (name, rate))
+        print()
+        weakest = sorted(classes, key=lambda c: c[1])[:8]
+        print("<details><summary>Eight weakest modules</summary>")
+        print()
+        print("| Module | Coverage |")
+        print("|---|---:|")
+        for name, rate in weakest:
+            print("| `%s` | %.0f%% |" % (name, rate))
+        print()
+        print("</details>")
+        print()
+        print("No threshold is enforced. This number is the baseline for a future")
+        print("baseline-diff ratchet; see TESTING_STRATEGY_PLANNING.md section 8.6.")
+        PY
+
+    - name: Upload pytest JUnit XML
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: pytest-junit
+        path: artifacts/pytest/junit.xml
+        retention-days: 7
+
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: pytest-coverage
+        path: |
+          artifacts/pytest/coverage.xml
+          artifacts/pytest/htmlcov
+        retention-days: 14
+
+  guard-hook-shard:
+    name: Guard Hook Tests (Linux pwsh) shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # The file skips itself without a PowerShell host; a missing pwsh must fail here.
+    - name: Require PowerShell 7
+      run: pwsh -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()'
+
+    - name: Collect and select this shard
+      run: |
+        mkdir -p artifacts/guard
+        python -m pytest --collect-only -q tests/test_guard_destructive_command.py > artifacts/guard/collected.txt
+        python scripts/ci_executed_report.py shard artifacts/guard/collected.txt --index ${{ matrix.shard }} --total 4 > artifacts/guard/shard.txt
+
+    - name: Run guard-hook tests
+      run: python -m pytest @artifacts/guard/shard.txt -v --tb=short --junitxml=artifacts/guard/junit.xml
+
+    - name: Require executed shard identities without skips
+      if: always()
+      run: python scripts/ci_executed_report.py verify artifacts/guard/collected.txt artifacts/guard/junit.xml --index ${{ matrix.shard }} --total 4
+
+    - name: Upload guard-hook shard report
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: guard-hook-junit-${{ matrix.shard }}
+        path: |
+          artifacts/guard/collected.txt
+          artifacts/guard/junit.xml
+        if-no-files-found: error
+        retention-days: 7
+
+  guard-hook-tests:
+    name: Guard Hook Tests (Linux pwsh)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: guard-hook-shard
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Require every guard-hook shard to pass
+      env:
+        NEEDS: ${{ toJSON(needs) }}
+      run: python3 scripts/ci_fan_in.py guard-hook-shard
+
+    - name: Download guard-hook shard reports
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        pattern: guard-hook-junit-*
+        path: artifacts/guard
+
+    - name: Require the shards to have executed every collected identity once
+      run: |
+        python3 scripts/ci_executed_report.py union --shards 4 \
+          --collected artifacts/guard/guard-hook-junit-*/collected.txt \
+          --reports artifacts/guard/guard-hook-junit-*/junit.xml
+
+  run-tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [pytest-core, guard-hook-shard, guard-hook-tests]
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Require every test job to pass
+      env:
+        NEEDS: ${{ toJSON(needs) }}
+      run: python3 scripts/ci_fan_in.py pytest-core guard-hook-shard guard-hook-tests
