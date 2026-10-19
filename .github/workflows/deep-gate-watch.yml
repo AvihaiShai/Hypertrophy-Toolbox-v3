@@ -31,6 +31,8 @@ on:
       - 'Deep Gate Visual (Linux)'
     types: [completed]
     branches: [main]
+  push:  # REHEARSAL ONLY (never merged)
+    branches: ['rehearsal/e1d3-watch-**']
   schedule:
     # Hourly through Monday and Tuesday UTC. The first check after the 20 h
     # missing-run threshold is Monday 23:23, 20 h 06 min after the 03:17 slot and
@@ -66,7 +68,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-      issues: write
+      issues: read  # REHEARSAL ONLY: no write scope at all
 
     steps:
     - name: Checkout code
@@ -83,7 +85,7 @@ jobs:
     - name: Reconcile Deep Gate issues
       env:
         GH_TOKEN: ${{ github.token }}
-        DRY_RUN: ${{ inputs.dry_run }}
+        DRY_RUN: 'true'  # REHEARSAL ONLY: forced dry run
       run: |
         args=()
         if [ "$DRY_RUN" = "true" ]; then
