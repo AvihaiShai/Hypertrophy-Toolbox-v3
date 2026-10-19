@@ -1069,3 +1069,25 @@ current-head CI run after GitHub assigns it; no incomplete/cancelled run is
 credited as validation. GitHub CI remains separate runtime evidence.
 The branch stops before merge. No other packet, promotion, setting, credential,
 spend, delivery or release action was executed.
+
+**Post-merge closeout (recorded by the A1 session, 2026-10-19; verified from Git and
+the GitHub API, nothing above is rewritten).** The paragraphs above are the
+pre-merge publication receipt. Final PR head
+`c91986bf376a1a09f055c4ee4dc4cb4d27bb601e` added only this file on top of the
+receipt commit. Its PR run
+[`39171777513`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39171777513)
+(`pull_request`, attempt 1) concluded **success** with all 19 check runs
+successful. The owner merged #521 on 2026-10-18T23:46:43Z as squash
+`77f400bb331e1de631a32114a7cc9996f5b5dd1e`, parent `7ac1af2d`. The squash tree
+`cfc864bd` is identical to the final head's tree. `.github/`, `tests/` and
+`scripts/` are identical to implementation `1dfe011b`, so §13.1's local evidence
+still describes the merged workflow/test tree.
+
+Post-merge `main` push run
+[`39177927596`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39177927596)
+on `77f400bb` concluded **success**. The first scheduled Deep Gate containing B1,
+[`39226020933`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39226020933)
+on `e486e3b5` (2026-10-19), passed six of seven jobs with pinned actions. The
+exception is the pre-existing `Visual regression (Linux baselines)` failure (CI-D1/E3
+scope), unchanged by B1. `release.yml` has not run since B1, so its pins have
+parse/contract evidence only. B1 is closed; C3 remains an owner action.
