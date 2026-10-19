@@ -188,11 +188,14 @@ jobs:
       run: |
         set -euo pipefail
         cd "$RUNNER_TEMP"
-        curl --fail --silent --show-error --location --proto '=https' -o actionlint.tar.gz \
+        curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+          --retry 3 --retry-all-errors --connect-timeout 15 --max-time 120 -o actionlint.tar.gz \
           "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
-        curl --fail --silent --show-error --location --proto '=https' -o zizmor.tar.gz \
+        curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+          --retry 3 --retry-all-errors --connect-timeout 15 --max-time 120 -o zizmor.tar.gz \
           "https://github.com/zizmorcore/zizmor/releases/download/v${ZIZMOR_VERSION}/zizmor-x86_64-unknown-linux-gnu.tar.gz"
-        curl --fail --silent --show-error --location --proto '=https' -o shellcheck.tar.gz \
+        curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+          --retry 3 --retry-all-errors --connect-timeout 15 --max-time 120 -o shellcheck.tar.gz \
           "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.gz"
         printf '%s  %s\n' \
           "$ACTIONLINT_SHA256" actionlint.tar.gz \

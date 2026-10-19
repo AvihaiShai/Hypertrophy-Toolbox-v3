@@ -529,7 +529,9 @@ LINT_CONFIG_FILES = (
 RUN_KEY = re.compile(r"^( *)(?:- )?run:[ \t]*(.*)$")
 BLOCK_SCALAR = re.compile(r"^[|>][-+0-9]*$")
 EXPRESSION = re.compile(r"\$\{\{(.*?)\}\}", re.DOTALL)
-UNTRUSTED = re.compile(r"\bgithub\.(?:event[.\[]|head_ref\b)")
+# Event payloads and every branch/tag name (chosen by whoever pushes) never reach a shell
+# through `${{ }}`; scripts read the runner's own env vars ($GITHUB_REF) instead.
+UNTRUSTED = re.compile(r"\bgithub\.(?:event[.\[]|head_ref\b|base_ref\b|ref_name\b|ref\b)")
 
 
 def lint_job():
@@ -592,10 +594,25 @@ def run_expressions(path):
     return [expr.strip() for script in run_blocks(path) for expr in EXPRESSION.findall(script)]
 
 
-def step_key_block(step, key):
-    """The eight-space body under a six-space step key such as `with:` or `env:`."""
-    match = re.search(rf"^      {key}:[ \t]*\n((?:        .*(?:\n|$))*)", step, re.MULTILINE)
-    return match.group(1) if match else ""
+def key_body(block, key, indent):
+    """The lines under a block-style `key:` at `indent`, blank lines included.
+
+    Blank-line tolerant on purpose: YAML lets a blank line sit inside a mapping, and a
+    key hidden after one must still be seen. A flow-style `key: {...}` returns "".
+    """
+    match = re.search(rf"^{' ' * indent}{key}:[ \t]*\n", block, re.MULTILINE)
+    if match is None:
+        return ""
+    body = []
+    for line in block[match.end() :].split("\n"):
+        if line.strip() and len(line) - len(line.lstrip()) <= indent:
+            break
+        body.append(line)
+    return "\n".join(body)
+
+
+def mapping_keys(body, indent):
+    return set(re.findall(rf"^{' ' * indent}([A-Za-z0-9_-]+):", body, re.MULTILINE))
 
 
 def steps_using(path, action):
@@ -648,25 +665,38 @@ def test_the_lint_job_runs_exactly_its_four_steps_in_order():
 
 def test_the_tool_versions_and_digests_are_pinned_exactly():
     assert all(re.fullmatch(r"[0-9a-f]{64}", LINT_PINS[key]) for key in LINT_DIGEST_KEYS)
-    env = re.search(r"^    env:[ \t]*\n((?:      .*\n)+)", lint_job(), re.MULTILINE)
-    assert env, "the lint job declares no job-level env"
-    declared = dict(re.findall(r"^      ([A-Z0-9_]+):[ \t]*'?([^'\n]*?)'?[ \t]*$", env.group(1), re.MULTILINE))
-    assert {key: declared.get(key) for key in LINT_PINS} == LINT_PINS
+    env = key_body(lint_job(), "env", 4)
+    declared = dict(re.findall(r"^      ([A-Za-z0-9_-]+):[ \t]*'?([^'\n]*?)'?[ \t]*$", env, re.MULTILINE))
+    # Exact keys: a job-level SHELLCHECK_OPTS or ZIZMOR_* would reconfigure every step.
+    assert declared == LINT_PINS
 
 
 def test_every_download_is_a_release_asset_verified_before_unpacking():
     script = run_script(lint_steps()[INSTALL_STEP])
+    commands = [
+        line.strip()
+        for line in script.replace("\\\n", " ").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    downloads = [shlex.split(command) for command in commands if "://" in command]
     repos = set()
-    for url in re.findall(r"[a-z]+://[^\s\"'<>]+", script):
-        asset = re.fullmatch(r"https://github\.com/([\w.-]+/[\w.-]+)/releases/download/\S+", url)
-        assert asset, url
-        repos.add(asset.group(1))
+    for argv in downloads:
+        assert argv[0] == "curl" and "--fail" in argv, argv
+        assert any(argv[i : i + 2] == ["--proto", "=https"] for i in range(len(argv))), argv
+        for url in (token for token in argv if "://" in token):
+            asset = re.fullmatch(r"https://github\.com/([\w.-]+/[\w.-]+)/releases/download/\S+", url)
+            assert asset, url
+            repos.add(asset.group(1))
     assert repos == LINT_TOOL_REPOS
 
-    unpack = re.search(r"(?:^|[;&|])[ \t]*tar\s", script, re.MULTILINE)
+    joined = "\n".join(commands)
+    # One verify, no extra flags: `--ignore-missing` passes a checksum list that names no
+    # downloaded file, and `--quiet` is the first step toward ignoring its output.
+    assert [flags.split() for flags in re.findall(r"\bsha256sum\b([^|;&\n]*)", joined)] == [["--check", "--strict"]]
+    unpack = re.search(r"(?:^|[;&|])[ \t]*tar\s", joined, re.MULTILINE)
     assert unpack, "the install step never unpacks anything"
-    before = script[: unpack.start()]
-    assert "sha256sum --check --strict" in before
+    before = joined[: unpack.start()]
+    assert re.search(r"\bsha256sum\b", before)
     for key in LINT_DIGEST_KEYS:
         assert re.search(rf"\$\{{?{key}\b", before), f"{key} is not checked before the first tar"
     # Under the runner's default `bash -e`, any `||` or `set +e` can swallow a failed check.
@@ -687,9 +717,21 @@ def test_each_linter_runs_exactly_its_pinned_command(step):
 
 def test_zizmor_runs_online_and_even_after_actionlint_fails():
     step = lint_steps()[ZIZMOR_STEP]
-    assert re.search(r"^        GH_TOKEN: \$\{\{ github\.token \}\}[ \t]*$", step_key_block(step, "env"), re.MULTILINE)
+    env = key_body(step, "env", 6)
+    # Exact keys: ZIZMOR_OFFLINE / ZIZMOR_CONFIG / ZIZMOR_* flags all soften the run.
+    assert mapping_keys(env, 8) == {"GH_TOKEN"}
+    assert re.search(r"^        GH_TOKEN: \$\{\{ github\.token \}\}[ \t]*$", env, re.MULTILINE)
     condition = re.search(r"^      if:[ \t]*(.+?)[ \t]*$", step, re.MULTILINE)
     assert condition and condition.group(1) in ZIZMOR_CONDITIONS
+
+
+def test_no_other_environment_can_reconfigure_the_linters():
+    for name in (INSTALL_STEP, ACTIONLINT_STEP):
+        assert not re.search(r"^      env:", lint_steps()[name], re.MULTILINE), name
+    # $GITHUB_ENV carries variables into every later step; a workflow-level env reaches
+    # every job. Neither is used today, so neither may appear unreviewed.
+    assert "GITHUB_ENV" not in lint_job()
+    assert not re.search(r"^env:", strip_comments(workflow_text(CI)), re.MULTILINE)
 
 
 def test_no_lint_step_is_tolerated_or_conditional():
@@ -705,7 +747,7 @@ def test_every_checkout_drops_its_credentials(path):
     # An unnamed `- uses:` step merges into its neighbour; the count makes that red.
     assert len(checkouts) == executable(path).count("actions/checkout@") > 0
     for where, step in checkouts:
-        assert re.search(r"^        persist-credentials: false[ \t]*$", step_key_block(step, "with"), re.MULTILINE), where
+        assert re.search(r"^        persist-credentials: false[ \t]*$", key_body(step, "with", 6), re.MULTILINE), where
 
 
 @pytest.mark.parametrize("path", ALL_WORKFLOWS, ids=lambda p: p.name)
@@ -715,7 +757,7 @@ def test_no_run_block_interpolates_attacker_controlled_context(path):
 
 
 def test_release_runs_take_the_ref_from_the_runner_environment():
-    assert [expr for expr in run_expressions(RELEASE) if re.search(r"\bgithub\.ref", expr)] == []
+    # The `${{ github.ref }}` ban itself is UNTRUSTED, above; this pins the replacement.
     assert '--ref "$GITHUB_REF"' in run_script(dict(steps(jobs(RELEASE)["version-guard"]))["Assert the tag matches the code"])
 
 
@@ -723,7 +765,7 @@ def test_release_setup_steps_restore_no_cache():
     setups = steps_using(RELEASE, "actions/setup-python") + steps_using(RELEASE, "actions/setup-node")
     assert setups
     for where, step in setups:
-        assert not re.search(r"^        cache", step_key_block(step, "with"), re.MULTILINE), where
+        assert not re.search(r"^        cache", key_body(step, "with", 6), re.MULTILINE), where
     assert "actions/cache" not in executable(RELEASE)
 
 

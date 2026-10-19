@@ -125,9 +125,14 @@ jobs:
     # Keep in step with deep-gate.yml's `first-install`, which asserts the same
     # contract on the weekly gate. The two differ in the port, the step name, and
     # this copy's `set -euo pipefail`: HT_PORT is set here because a release job must
-    # never assume 5000 is free. Neither release smoke restores a pip cache: a
-    # tag-triggered job must not install from a cache another ref could have written
-    # (B2, zizmor cache-poisoning).
+    # never assume 5000 is free. The two release smokes defined in this file
+    # (`first-install`, `old-db-migration`) restore no pip cache: a tag-triggered job
+    # must not install from a cache another ref could have written (B2, zizmor
+    # cache-poisoning). This does NOT make the whole tag path cache-free:
+    # `packaged-windows` calls _packaged-windows.yml via workflow_call, whose
+    # setup-python keeps `cache: 'pip'` (not flagged by zizmor). That file is the
+    # shared PR/weekly/release build, so the residual is recorded and left to A2/A3
+    # or the owner rather than changed here.
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
