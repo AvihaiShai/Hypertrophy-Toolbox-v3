@@ -1,3 +1,6 @@
+> **Archived 2026-10-19; current sources: [`docs/DECISIONS.md`](../../../DECISIONS.md#adr-002-the-repository-root-holds-five-categories-of-file-and-nothing-else) ADR-002 (root-file policy); [`utils/runtime_paths.py`](../../../../utils/runtime_paths.py), [`Hypertrophy-Toolbox.spec`](../../../../Hypertrophy-Toolbox.spec) and [`.claude/rules/database.md`](../../../../.claude/rules/database.md) (seed, runtime paths, packaging allowlist).**
+> Moved from `docs/rootdircleanup.md`; content unchanged. Do not execute its checklists.
+
 # Root Directory Cleanup and Data Packaging Safety Plan
 
 **Status:** COMPLETE and CLOSED. Packets A0, A, A2, A3, B1, B2, B3, C1, C2, and

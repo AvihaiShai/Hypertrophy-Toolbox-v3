@@ -1,3 +1,6 @@
+> **Archived 2026-10-19; current source: [`CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](../../../CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md#8-oracle-blind-spot-register-f2) §8, enforced by `tests/test_css_wp4_4_a_baseline_contracts.py` and `scripts/css_audit/measure.py`.**
+> Moved from `docs/CSS_Q10_BLIND_SPOT_REGISTER_EVIDENCE.md`; text unchanged apart from 3 relative links re-pointed to resolve from here.
+
 # Q10 — the CSS visual-oracle blind-spot register, repaired
 
 **Packet:** Q10, standalone. Authorized independently of the terminated theme-dark P3 arc.
@@ -6,7 +9,7 @@ every stylesheet under `static/css/`, every template and every committed screens
 written**.
 
 Sized (not implemented) at P3-a0 in
-[`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md) §9. This document
+[`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](../../../CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md) §9. This document
 records what the repair actually measured, which differs from that sizing in every count.
 
 ---
@@ -268,6 +271,6 @@ what it was, not as something stronger.
 
 ## See also
 
-- [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md) §9 — the sizing this repair supersedes
-- [`CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md) §8 — the register, corrected by this packet
+- [`CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md`](../../../CSS_THEME_DARK_P3_A0_AUDIT_EVIDENCE.md) §9 — the sizing this repair supersedes
+- [`CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md`](../../../CSS_PHASE4_WP4_4_A_BASELINE_EVIDENCE.md) §8 — the register, corrected by this packet
 - `.claude/rules/verification.md` — "validate the oracle before trusting the oracle"
