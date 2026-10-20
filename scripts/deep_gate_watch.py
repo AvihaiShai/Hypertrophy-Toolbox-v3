@@ -41,7 +41,10 @@ ISSUE_LABEL = "deep-gate"
 MARKER_PREFIX = "<!-- deep-gate-watch v1 "
 MARKER = re.compile(r"<!-- deep-gate-watch v1 workflow=(\S+) kind=(\S+) ([^>]*?) ?-->")
 FAILURE, MISSING = "failure", "missing-schedule"
-MANAGED_LINE = "_Managed by Deep Gate Watch — do not edit the HTML comment marker; the watch reads it._"
+MANAGED_LINE = (
+    "_Managed by Deep Gate Watch — do not edit the HTML comment marker; closing this issue by hand"
+    " does not acknowledge it: the next sweep recreates it while the state persists._"
+)
 
 Run = dict[str, Any]
 
