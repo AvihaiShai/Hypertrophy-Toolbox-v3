@@ -224,16 +224,12 @@ class TestLoggingFormat:
 class TestFlaskIntegration:
     """Tests for Flask app integration."""
 
-    def test_flask_app_provided_configures_app_logger(self):
-        """When Flask app provided, should configure its logger."""
+    def test_setup_logging_takes_no_app_argument(self):
+        """The ``app`` branch registered request hooks that never attached in
+        production (the handler early return ran first), so WS3 deleted it with
+        its parameter (Q-WS3-2H). An ``app`` argument is now a TypeError rather
+        than a silent no-op."""
+        import inspect
         import utils.logger
-        utils.logger._logger = None
-        
-        mock_app = MagicMock()
-        mock_app.logger = MagicMock()
-        
-        # setup_logging returns logger when app is provided
-        logger = utils.logger.setup_logging(app=mock_app)
-        
-        # App logger handlers should be set from main logger
-        assert logger is not None
+
+        assert list(inspect.signature(utils.logger.setup_logging).parameters) == []

@@ -1,7 +1,6 @@
 """Contracts for the centralized runtime-path resolver (Packet B1)."""
 from __future__ import annotations
 
-import ast
 import importlib
 import sys
 from pathlib import Path
@@ -197,29 +196,63 @@ class TestPacketB2MovesTheDatabase:
             clean_environment.undo()
             importlib.reload(utils.config)
 
-    def test_startup_migrates_before_it_seeds(self):
+    @pytest.mark.parametrize("seeded", [False, True], ids=["existing", "fresh-seed"])
+    def test_startup_migrates_before_it_seeds(self, monkeypatch, tmp_path, seeded):
         """Ordering is the whole safety property, so it is asserted directly.
 
         Seeding first would create an empty database at the new path, after
         which migration would correctly decline to overwrite it — and the user
         would be looking at an empty catalog with their data still on disk.
-        """
-        source = (
-            Path(__file__).resolve().parents[1] / "app.py"
-        ).read_text(encoding="utf-8")
-        tree = ast.parse(source)
-        called_at = {}
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-                called_at.setdefault(node.func.id, node.lineno)
 
-        assert "prepare_runtime_database" in called_at
-        assert "bootstrap_runtime_database" in called_at
-        assert (
-            called_at["prepare_runtime_database"]
-            < called_at["bootstrap_runtime_database"]
-            < called_at["run_all_initializers"]
-        )
+        Asserted on the calls ``init_runtime()`` makes rather than on line
+        numbers, since WS3 moved the steps out of ``app.py``. Each step records
+        the ``utils.config.DB_FILE`` it saw: only migration sees the stale
+        value, so the single assignment sits between the first two steps.
+        """
+        import utils.config
+        from utils import runtime_init
+        from utils.runtime_migration import MigrationOutcome
+
+        stale = str(tmp_path / "stale.db")
+        migrated = tmp_path / "migrated.db"
+        monkeypatch.setattr(utils.config, "DB_FILE", stale)
+        monkeypatch.delenv("DB_FILE", raising=False)
+        monkeypatch.delenv("TESTING", raising=False)
+        monkeypatch.setenv(runtime_paths.RUNTIME_ROOT_ENV, str(tmp_path / "rt"))
+
+        calls = []
+        results = {
+            "prepare_runtime_database": MigrationOutcome("migrated", migrated),
+            "bootstrap_runtime_database": seeded,
+            "run_all_initializers": None,
+            "upgrade_catalog_from_seed": None,
+            "create_startup_backup": None,
+        }
+
+        def recorder(name, result):
+            def step(*args, **kwargs):
+                calls.append((name, args, kwargs, utils.config.DB_FILE))
+                return result
+            return step
+
+        for name, result in results.items():
+            monkeypatch.setattr(runtime_init, name, recorder(name, result))
+
+        runtime_init._reset_for_tests()
+        try:
+            runtime_init.init_runtime()
+        finally:
+            runtime_init._reset_for_tests()
+
+        expected = ["prepare_runtime_database", "bootstrap_runtime_database", "run_all_initializers"]
+        if not seeded:
+            expected += ["upgrade_catalog_from_seed", "create_startup_backup"]
+        assert [call[0] for call in calls] == expected
+        assert calls[0][3] == stale
+        assert all(call[3] == str(migrated) for call in calls[1:])
+        _, args, kwargs, _ = calls[2]
+        assert kwargs.get("force_base", args[0] if args else None) is False
+        assert utils.config.DB_FILE == str(migrated)
 
 
 class TestEnvironmentOverride:
