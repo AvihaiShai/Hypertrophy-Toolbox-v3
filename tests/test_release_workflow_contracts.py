@@ -153,7 +153,8 @@ UNEXPECTED_CI_JOB_NAMES = (
     "Python Tests (core)",
     "Guard Hook Tests (Linux pwsh) shard ${{ matrix.shard }}/4",
     "Guard Hook Tests (Linux pwsh)",
-    "JS Unit (Vitest, non-required)",
+    # Q4 renames the unprotected job before the separately approved C4 promotion.
+    "JS Unit (Vitest)",
     "CSS Stylelint Measurement (non-required)",
     PACKAGED_SMOKE_JOB_NAME,
 )

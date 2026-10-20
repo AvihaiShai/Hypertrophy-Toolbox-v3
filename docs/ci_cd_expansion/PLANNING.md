@@ -555,9 +555,15 @@ Owner actions remain separate: Gate 0/Gate 1 sign-off, credential and app author
 
 These are **target sets after each named promotion qualifies**, not a report of changed protection. Keep every existing requirement throughout transition. Let `R0` be the exact twelve strings in §2.3 and define:
 
+**Q4 owner ruling, 2026-10-21:** the JS candidate's final name is
+`JS Unit (Vitest)`, to land in a standalone rename before protection. D2 is
+conditional on the canonical §13.0 cycle record using exact JS Unit job
+conclusions. This updates the candidate name only; C4 activation still needs
+separate owner approval, and the other promotion prerequisites remain in force.
+
 | Set | Target membership | Count at full adoption |
 |---|---|---|
-| `PR_REQUIRED_CONTEXTS` | `R0` + `JS Unit (Vitest, non-required)` + `Operation A Windows Tests` + `Packaged Smoke (Windows bootloader, non-required) / Build and smoke` + `Visual Regression (Windows baselines)` + `Workflow Lint (actionlint + zizmor)` + proposed `Dependency Review` | 18 |
+| `PR_REQUIRED_CONTEXTS` | `R0` + `JS Unit (Vitest)` + `Operation A Windows Tests` + `Packaged Smoke (Windows bootloader, non-required) / Build and smoke` + `Visual Regression (Windows baselines)` + `Workflow Lint (actionlint + zizmor)` + proposed `Dependency Review` | 18 |
 | `RELEASE_EXPECTED_CONTEXTS` | The same set **without** PR-only `Dependency Review`; Windows visual occurs once | 17 |
 
 `Dependency Review` is a proposed new display name, to be verified from a real check-run before protection changes. It runs on every eligible PR with severity `high`, scopes `runtime, development, unknown`, and `warn-only: false`; use the job summary without comment-write permission. It is not expected on a `main` push. Existing full pip/npm audits still run on `main`. B2 runs on every PR and `main` push; do not path-skip a required lint context. CodeQL's alert-based merge rule is a separate control, not another invented Actions context or a claim that a successful scan means no vulnerabilities.
