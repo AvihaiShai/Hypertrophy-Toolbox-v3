@@ -869,6 +869,8 @@ jobs:
     # Linux's full suite retains portable snapshot/scope/path-refusal tests.
     # Native identities, junctions and creator/launcher contracts execute here
     # under BOTH hosts. A skipped capability must fail this job, never green it.
+    # These three modules use only per-test fixtures. Distribute their cases;
+    # full-suite parallel runs still require loadfile for module fixtures.
     - name: Run Operation A tests on both Windows hosts
       shell: pwsh
       env:
@@ -880,7 +882,7 @@ jobs:
         HT_RUNTIME_DIR: '${{ runner.temp }}/operation-a-runtime'
         PYTHONDONTWRITEBYTECODE: '1'
       run: |
-        python -m pytest tests/test_worktree_environment_preflight.py tests/test_worktree_lifecycle.py tests/test_worktree_snapshot.py -n 4 --dist loadfile -v --tb=short --junitxml=artifacts/pytest/worktree-windows.xml
+        python -m pytest tests/test_worktree_environment_preflight.py tests/test_worktree_lifecycle.py tests/test_worktree_snapshot.py -n 4 --dist load -v --tb=short --junitxml=artifacts/pytest/worktree-windows.xml
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Require executed coverage without skips
