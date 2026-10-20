@@ -13,6 +13,7 @@ oracle and is explicitly outside this packet.
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import pytest
@@ -24,6 +25,7 @@ from utils.rep_range_integrity import scan_export_bounds
 
 
 ROUTINE = "GYM - Full Body - Workout A"
+REQUEST_ID = re.compile(r"^req_[0-9a-f]{16}$")
 
 
 def _seed_plan(
@@ -44,7 +46,11 @@ def _seed_plan(
     return plan_id
 
 
-def _error_envelope(message: str) -> dict[str, Any]:
+def _error_envelope(message: str, response) -> dict[str, Any]:
+    # The test app is the production factory, so the request-id middleware
+    # fills the envelope; it must be the id the response itself carries.
+    request_id = response.headers.get("X-Request-ID", "")
+    assert REQUEST_ID.match(request_id), request_id
     return {
         "ok": False,
         "status": "error",
@@ -52,7 +58,7 @@ def _error_envelope(message: str) -> dict[str, Any]:
         "error": {
             "code": "VALIDATION_ERROR",
             "message": message,
-            "requestId": None,
+            "requestId": request_id,
         },
     }
 
@@ -104,7 +110,7 @@ def test_exact_blank_rep_bounds_are_rejected_without_source_repair(
     )
     assert response.status_code == 400
     assert response.content_type == "application/json"
-    assert response.get_json() == _error_envelope(message)
+    assert response.get_json() == _error_envelope(message, response)
     assert scan_export_bounds() == [
         {"routine": ROUTINE, "exercise": exercise, "reason": field_message}
     ]
@@ -164,7 +170,7 @@ def test_whitespace_only_rep_bounds_keep_exact_rejection_and_no_data_write(
     )
     assert response.status_code == 400
     assert response.content_type == "application/json"
-    assert response.get_json() == _error_envelope(message)
+    assert response.get_json() == _error_envelope(message, response)
 
     with DatabaseHandler() as db:
         assert db.fetch_all(

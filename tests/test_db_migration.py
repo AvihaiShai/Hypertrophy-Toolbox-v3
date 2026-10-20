@@ -168,7 +168,7 @@ def test_erase_data_recreates_body_composition_snapshots_table(client, clean_db)
         ("2026-05-20T10:00:00Z", 80.0, 180.0, 34, "M", 20.3),
     )
 
-    response = client.post("/erase-data")
+    response = client.post("/erase-data", json={"confirm": "ERASE_ALL_DATA"})
     assert response.status_code == 200
     assert response.get_json()["ok"] is True
 

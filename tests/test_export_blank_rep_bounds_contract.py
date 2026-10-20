@@ -1,6 +1,7 @@
 """Executable contract tests for the blank-string export boundary."""
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import pytest
@@ -11,6 +12,9 @@ from utils.rep_range_integrity import scan_export_bounds
 
 
 ROUTINE = "GYM - Full Body - Workout A"
+# The test app is the production factory, so the request-id middleware fills
+# the envelope; it must be the id the response itself carries.
+REQUEST_ID = re.compile(r"^req_[0-9a-f]{16}$")
 
 
 def _seed(clean_db, exercise_factory, workout_plan_factory, exercise, minimum, maximum):
@@ -54,7 +58,9 @@ def test_export_rejects_exact_blank_rep_bounds_without_mutation(
         f"{reason} Invalid plan value on: {ROUTINE} / {exercise}. "
         "Fix these in the Workout Plan editor."
     )
+    request_id = response.headers.get("X-Request-ID", "")
     assert response.status_code == 400
+    assert REQUEST_ID.match(request_id), request_id
     assert response.get_json() == {
         "ok": False,
         "status": "error",
@@ -62,7 +68,7 @@ def test_export_rejects_exact_blank_rep_bounds_without_mutation(
         "error": {
             "code": "VALIDATION_ERROR",
             "message": message,
-            "requestId": None,
+            "requestId": request_id,
         },
     }
     assert scan_export_bounds() == [
