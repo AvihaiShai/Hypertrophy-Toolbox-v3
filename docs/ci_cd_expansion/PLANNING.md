@@ -2,12 +2,12 @@
 
 | Field | Value |
 |---|---|
-| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19, including all five accepted findings. B1 merged (#521, `77f400bb`); A1 merged (#530, `f3adacf1`, §14); E3 merged (#529, `c7fec052`). B2 merged (#532, `1a5e0e6f`); first main push green, 26/26 (§15.6, §16.9). E1+D3 merged (#533, `48d6a450`), after rebase and fresh-head CI 26/26 (§16.9). D3 trigger repair #538 merged as `b86e9ad7`; bounded live delivery/recovery is recorded, with scheduled qualification pending (§16.10). B3 authorized 2026-10-20 and implemented on `ci/b3-dependency-review`: local gates, four rehearsals and both reviews (approve with nits) complete; full pytest on the committed head, delta review and PR pending (§17). A2 and later packets not started.** Other packets require later execution authority; delivery council/Gate 1 remain separate. |
+| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19, including all five accepted findings. B1 merged (#521, `77f400bb`); A1 merged (#530, `f3adacf1`, §14); E3 merged (#529, `c7fec052`). B2 merged (#532, `1a5e0e6f`); first main push green, 26/26 (§15.6, §16.9). E1+D3 merged (#533, `48d6a450`), after rebase and fresh-head CI 26/26 (§16.9). D3 trigger repair #538 merged as `b86e9ad7`; bounded live delivery/recovery is recorded, with scheduled qualification pending (§16.10). B3 authorized 2026-10-20 and implemented on `ci/b3-dependency-review` as implementation commit `90cde802`: gates (full pytest 5,580 / 2 / 0), four rehearsals, reviews and delta reviews complete; ready PR #539 open, not merged; PR CI pending (§17). A2 and later packets not started.** Other packets require later execution authority; delivery council/Gate 1 remain separate. |
 | Authors | Historical draft: Claude and Astra, 2026-10-18. Formal council document owner: `product-manager` `/root/product_manager`, 2026-10-19; read-only manager `/root`. |
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
 | Planning size | Large (new workflows, new jobs, repo-settings changes) — per `docs/ai_workflow/QUALITY_GATE.md` plan-stage routing: Gate 0 → council (`/council-plan`) → Gate 1 → implementation |
-| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), merged 2026-10-19T19:06:48Z. E3: `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529), merged 2026-10-19T19:06:05Z. B2: `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532), merged as `1a5e0e6f`. E1+D3: `ci/e1-d3-deep-gate-observability`; [#533](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/533), merged as `48d6a450` after fresh-head CI 26/26. D3 repair: `ci/d3-literal-workflow-filter`; [#538](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/538), merged as `b86e9ad7` (§16.10). B3: `ci/b3-dependency-review`; PR pending (§17) |
+| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), merged 2026-10-19T19:06:48Z. E3: `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529), merged 2026-10-19T19:06:05Z. B2: `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532), merged as `1a5e0e6f`. E1+D3: `ci/e1-d3-deep-gate-observability`; [#533](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/533), merged as `48d6a450` after fresh-head CI 26/26. D3 repair: `ci/d3-literal-workflow-filter`; [#538](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/538), merged as `b86e9ad7` (§16.10). B3: `ci/b3-dependency-review`; [#539](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/539), ready, not merged (§17) |
 
 ### Review log
 
@@ -406,7 +406,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | A5 | either | deferred | | | | CI-D5; no docs filtering in core |
 | B1 | Codex `/root`, 2026-10-19 | **merged** 2026-10-18T23:46:43Z by the owner as squash `77f400bb331e1de631a32114a7cc9996f5b5dd1e` | `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521) | implementation `1dfe011b1533f1339660b72a60249b390b296104`; final PR head `c91986bf376a1a09f055c4ee4dc4cb4d27bb601e` | Local: §13.1 unchanged. PR run `39171777513` (final head) 19/19 success; post-merge `main` push run `39177927596` on `77f400bb` success; post-merge scheduled Deep Gate `39226020933` 6/7 success, only pre-existing `visual-linux` red; §13.2 | Closed. C3/settings remain unauthorized |
 | B2 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | implemented; local gates, acceptance rehearsals and both delta reviews complete (code-reviewer approve, architecture-reviewer approve with nits); **merged** 2026-10-20T13:12:10Z as squash `1a5e0e6f` | `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532) | base `origin/main` `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`; implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, review fixes `9823beb9c7ba1f3f800dcfdabca349c472035595`; published head `d5dfa0615fb5770dca2fab50a8d052211c99308b` | PR run `39344273368` (`pull_request`, attempt 1, head `d5dfa061`) 26/26 success, `Workflow Lint (actionlint + zizmor)` 10 s, name observed exactly; local full pytest 5,356 passed / 2 skipped / 0 failed at `9823beb9`; targeted contracts and mutation 74/74 killed, 6/6 controls green at `d5dfa061`; rehearsals `39342689323` green control success, `39342691486` seeded PR-title red (both linters); baseline §15.3; §§15.5–15.6 | First main-push run `39428398134`: lint job `118646704773` and both linters succeeded (§15.6); missing post-merge lint evidence complete; overall pipeline 26/26 success (§16.9). Not in `REQUIRED_CONTEXTS`; promotion is C4 |
-| B3 | Claude Code session `hypertrophy-toolbox-v3-main-68` (Opus), 2026-10-20 | implemented; local gates, rehearsals and reviews (approve with nits) complete; PR pending | `ci/b3-dependency-review`; PR pending | pending (uncommitted tree on base `origin/main` `71c4cc6d2eea1147fcd3b1defe89fabaff0fb3ac`) | Rehearsal push runs `39474857728` (a, success), `39474859322` (b, failure), `39474857709` (c, failure), `39474857803` (d, success); mutation 73/73 arms (63 red killed, 10 green held); B3 contracts 11/11; inventory 3,550; full pytest and delta review pending; §17.5–17.6 | After B2 (merged). Owner authority and delegated decisions §17; stop before merge. Not in `REQUIRED_CONTEXTS`/`EXPECTED_CONTEXTS`; promotion and blocking proof are C4 |
+| B3 | Claude Code session `hypertrophy-toolbox-v3-main-68` (Opus), 2026-10-20 | implemented; gates, rehearsals, reviews and delta reviews complete; ready PR #539 open, not merged | `ci/b3-dependency-review`; [#539](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/539) | implementation `90cde802e4ed4215db6e11e4d4ecd737380bdb15` (parent `71c4cc6d`); receipts commit follows | Full pytest 5,580 passed / 2 skipped / 0 failed at `90cde802`; rehearsal push runs `39474857728` (a, success), `39474859322` (b, failure), `39474857709` (c, failure), `39474857803` (d, success); mutation 73/73 arms (63 red killed, 10 green held); B3 contracts 11/11; inventory 3,550; PR CI pending; §17.5–17.6 | After B2 (merged). Owner authority and delegated decisions §17; stop before merge. Not in `REQUIRED_CONTEXTS`/`EXPECTED_CONTEXTS`; promotion and blocking proof are C4 |
 | B4 | Claude | blocked | | | | After A1 free slot; non-blocking measurement; never delays B1 |
 | B5 | Claude | deferred | | | | Unique scanner value unproven; no removal |
 | C1 | Owner | blocked | | | | Core Gate 1; setup/triage/native rule/bypass and seeded proof; owner execution |
@@ -2328,10 +2328,12 @@ Recorded by `product-manager` `a8501dd3530da91e2` from the manager session's wri
 records. This agent did not read the owner's message directly. The quotation in §17.1 is
 the verbatim text that manager session `hypertrophy-toolbox-v3-main-68` reports
 receiving. Facts and evidence in §§17.2–17.6 are as that session measured or the named
-agent reported them. As of authorization (2026-10-20) nothing was implemented; this
-update records implementation, local gates, rehearsals and the first review round on an
-uncommitted tree on base `71c4cc6d`. Full pytest on the committed head, the delta review
-and the PR are pending; nothing pending is filled in advance.
+agent reported them. As of authorization (2026-10-20) nothing was implemented. The
+evidence below is as of implementation commit
+`90cde802e4ed4215db6e11e4d4ecd737380bdb15` (parent `71c4cc6d`), which also carries the
+first §17 evidence update; short form `90cde802`. This receipts update is committed
+after it and cannot cite its own commit. PR #539's CI is pending and is recorded at
+closeout; nothing pending is filled in advance.
 
 ### 17.1 Authority
 
@@ -2564,7 +2566,12 @@ addition. That requires:
   `--min-severity medium`, plus the CI `Workflow Lint (actionlint + zizmor)` job.
 
 No product, route, template, JS or CSS change is involved, so no Chromium gate applies.
-All results below are on the uncommitted tree on base `71c4cc6d`.
+Results marked "before / after review fixes" were taken on the working tree before
+implementation commit `90cde802`; results marked `90cde802` were re-measured on that
+commit with a clean tree (`git status --porcelain` empty before and after the full run).
+`ci.yml` is unchanged by the review fixes, so the workflow-lint rows hold for the final
+head. `origin/main` was re-fetched at about 2026-10-20T18:47Z: still `71c4cc6d`, with no
+other open PR.
 
 **Tests first.** automation-qa added 11 tests in a headed B3 section of
 `tests/test_ci_expansion_contracts.py`; every name contains `dependency_review`. Before
@@ -2585,15 +2592,19 @@ and hashes the live files before and after.
 
 | Gate | Tree | Result |
 |---|---|---|
-| Full pytest, local | — | **pending; to be recorded on the committed head** |
+| Full pytest, local (private venv, `artifacts/b3/env.ps1`, `pytest tests/ -q --junitxml=...`) | `90cde802` | **5,580 passed, 2 skipped, 0 failed in 1,637.12 s**, exit 0. Expected: §16.10's 5,569 plus the 11 B3 tests |
+| Full pytest, local | before review fixes | **Superseded; not credited.** 5,580 passed, 2 skipped, 0 failed, 1,630.31 s. The review fixes then edited only existing B3 tests |
 | B3 contracts, `-k dependency_review` | after review fixes | `11 passed, 292 deselected in 0.33s` |
 | 10 workflow/release contract files (senior-developer) | before review fixes | `575 passed in 64.29s` |
 | `test_ci_expansion_contracts.py` + `test_release_workflow_contracts.py` (automation-qa) | after review fixes | `396 passed in 64.45s` |
-| actionlint 1.7.12 + shellcheck 0.11.0, `-pyflakes=` (senior-developer) | not stated relative to the fixes | exit 0, no output. Windows release assets SHA-256-verified against the GitHub release digests |
-| zizmor 1.30.1 `--min-severity medium --format plain .github/workflows` | not stated relative to the fixes | "No findings to report", offline and online, exit 0. Online pin audits (impostor-commit, known-vulnerable-actions, ref-version-mismatch) were scheduled |
-| pyright 1.1.410 + `scripts/pyright_baseline_diff.py` | not stated relative to the fixes | PASS, 0 net-new (baseline 0, current 0). Ran from the PyPI wrapper in the private venv after `npx pyright@1.1.410` failed on an npm registry `ECONNRESET` |
-| flake8 blocking selection (`E9,F63,F7,F82,F811,E711,E712,F401`) | both | 0 on the whole repository; 0 on the test file after fixes |
-| `generate_test_inventory.py` regeneration and `--check` | both | 3,539 → 3,550 (+11) across 133 files; up to date, re-checked after the review fixes |
+| actionlint 1.7.12 + shellcheck 0.11.0, `-pyflakes=` | `90cde802` | exit 0. The senior-developer's earlier run also exited 0 with no output, using Windows release assets SHA-256-verified against the GitHub release digests |
+| zizmor 1.30.1 `--min-severity medium --format plain .github/workflows` | `90cde802` | "No findings to report", offline and online, "(4 ignored, 13 suppressed)". The counts are identical on base `71c4cc6d`'s workflows, so B3 adds no ignore or suppression |
+| pyright 1.1.410 + `scripts/pyright_baseline_diff.py` | `90cde802` | PASS, 0 net-new (baseline 0, current 0). The earlier run used the PyPI wrapper in the private venv after `npx pyright@1.1.410` failed on an npm registry `ECONNRESET` |
+| flake8 blocking selection (`E9,F63,F7,F82,F811,E711,E712,F401`) | `90cde802` | 0 on the whole repository |
+| `generate_test_inventory.py` regeneration and `--check` | before / after review fixes; `90cde802` | 3,539 → 3,550 (+11) across 133 files; `--check` up to date at `90cde802` |
+
+The skip count (2) matches §16.10. The skipped identities were not re-captured, so this
+record does not claim they are the same two as §13.1.
 
 **Dependency-graph precondition (AR2).** Measured by the manager with read-only
 `GET /repos/AvihaiShai/Hypertrophy-Toolbox-v3/dependency-graph/compare/b86e9ad7...a305e5a4`.
@@ -2602,15 +2613,17 @@ hypothesis 6.170.0 → 6.170.1 (`requirements.txt`, pip, scope runtime). The dep
 graph is enabled and compare is reachable. The `pull_request` default-ref path is still
 proved only by the PR's own run.
 
-**Reviews.** Both reviewers were independent and read-only and ran no tests. They
-reviewed the pre-fix tree, diff sha256 `7e05b05c…7d1c`. The manager made the
-dispositions under delegation.
+**Reviews.** Both reviewers were independent and read-only and ran no tests. The first
+pass reviewed the pre-fix tree, diff sha256 `7e05b05c…7d1c`; the delta pass, by the same
+two agents, reviewed the committed diff at `90cde802`. The manager made the dispositions
+under delegation.
 
 | Reviewer | Agent ID | Verdict | Findings and dispositions |
 |---|---|---|---|
-| `code-reviewer` | `a27312dfe469a87b9` | **approve with nits**, no blocking | Should-fix CR1, stale §17 "nothing implemented / pending" text: accepted, fixed in this update. CR2, the `if:` inline-comment strip: applied, plus a green arm. CR3, the inventory contract should bind the metadata blob: applied, plus a red arm. CR4, composite actions under `.github/actions` not scanned: **declined**, because no `.github/actions` directory exists; recorded as a future-adoption note. CR5, a C4 comment on the REQUIRED/EXPECTED name requirement: applied by automation-qa |
-| `architecture-reviewer` | `afaa3581390cd3568` | **approve with nits**, no blocking | Should-fix AR1, stale §17 text: accepted, fixed in this update. Should-fix AR2, dependency-graph precondition missing from the outstanding list: accepted, measured above and listed in §17.6. AR3, B1 inventory "exactly four" standing sentence: applied by the senior-developer. AR4, release-gate test type assertion brittle for C4: applied by automation-qa. AR5, trigger-ban message should point C4 to §17.4: applied. AR6, A2 and later `ci.yml` packets: accepted, sentence in §17.6 |
-| Delta review of the final diff, same two reviewers | — | **pending** | — |
+| `code-reviewer` | `a27312dfe469a87b9` | **approve with nits**, no blocking | Should-fix CR1, stale §17 "nothing implemented / pending" text: accepted, fixed in the first §17 evidence update (in `90cde802`). CR2, the `if:` inline-comment strip: applied, plus a green arm. CR3, the inventory contract should bind the metadata blob: applied, plus a red arm. CR4, composite actions under `.github/actions` not scanned: **declined**, because no `.github/actions` directory exists; recorded as a future-adoption note. CR5, a C4 comment on the REQUIRED/EXPECTED name requirement: applied by automation-qa |
+| `architecture-reviewer` | `afaa3581390cd3568` | **approve with nits**, no blocking | Should-fix AR1, stale §17 text: accepted, fixed in the first §17 evidence update (in `90cde802`). Should-fix AR2, dependency-graph precondition missing from the outstanding list: accepted, measured above and listed in §17.6. AR3, B1 inventory "exactly four" standing sentence: applied by the senior-developer. AR4, release-gate test type assertion brittle for C4: applied by automation-qa. AR5, trigger-ban message should point C4 to §17.4: applied. AR6, A2 and later `ci.yml` packets: accepted, sentence in §17.6 |
+| `code-reviewer`, delta | `a27312dfe469a87b9` | **approve** | Reviewed the committed diff `71c4cc6d..90cde802` (`artifacts/b3/review-diff-2.patch`, sha256 `1e60334e…6b30`). All accepted findings resolved; the CR4 decline is reasonable. D-CR1, "uncommitted tree" wording and the "not stated relative to the fixes" gate cells: accepted, fixed in this receipts update. D-CR2, rehearsal change lists also include `+ actions/dependency-review-action@a1d282b3…`, and the B3 PR's own run will too: accepted, recorded in §17.6. D-CR3, the string-typed check precedes the `PR_` skip: left as is (harmless, fails closed) |
+| `architecture-reviewer`, delta | `afaa3581390cd3568` | **approve with nits** | Same committed diff. The `ci.yml` hunk is byte-identical to the first diff; every AR disposition holds; CR2/CR3/CR5 hold; the CR4 decline is accepted. It found the separation of delegated decisions, reviewer passes and owner approvals in §17 clean, the outstanding list complete, and nothing that unduly constrains C4 or A2. D-AR1, reword stale "uncommitted tree" text as of implementation commit `90cde802`: accepted, fixed in this receipts update. D-AR2, replace "not stated relative to the fixes" with the `90cde802` measurements: accepted, fixed above. D-AR3, merge prerequisites should list full pytest and delta review recorded on the final head: accepted, §17.6. D-AR4, move the function-local `from collections.abc import Mapping` to module imports: **declined**. It is style-only; automation-qa kept the import local to confine the B3 section, and changing reviewed code after both delta approvals would need another review and test cycle for no behavioural gain |
 
 A review that did not run, or whose reviewer failed, is recorded as incomplete, never as
 "no findings".
@@ -2643,14 +2656,27 @@ Every run printed the effective configuration: fail-on-severity `high`; fail-on-
 `runtime, development, unknown`; vulnerability-check true; license-check false;
 show-openssf-scorecard false.
 
+Each arm's detected change list also contains
+`+ actions/dependency-review-action@a1d282b3…`, because every rehearsal commit adds the
+workflow file that uses it (D-CR2). PR #539's own run will likewise list the action as a
+detected change.
+
 **Security adviser's dissent stands.** These push arms prove the action's policy
 decisions on the shipped inputs. They do not prove the `pull_request` event path,
 blocking of a PR check, or branch protection, so they do not by themselves satisfy §4
 B3's PR acceptance criterion.
 
-**PR.** Pending: PR number, published head and exact tested head. The B3 PR's own run
-supplies the in-PR observation of the name `Dependency Review`. It counts as a clean
-dependency-change PR only if its job summary shows a detected dependency change.
+**PR.** Pushed `ci/b3-dependency-review` and opened ready PR
+[#539](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/539), verified `OPEN`
+with `isDraft: false` at about 2026-10-20T19:16Z. Its head at opening was `90cde802`.
+- **PR CI.** The run on `90cde802` was in progress when this was recorded. It is
+  **pending and is recorded in the PR closeout**. This receipts commit starts a new run,
+  which supersedes it as the current-head carrier. A run that is incomplete or cancelled
+  is not credited.
+- **Name and clean-change observation.** The B3 PR's own run supplies the in-PR
+  observation of the name `Dependency Review`. It counts as a clean dependency-change PR
+  only if its job summary shows a detected dependency change. As D-CR2 notes, the
+  detected changes will include the action itself.
 
 **Outstanding qualification (not executed; owner or C4).**
 - A seeded red that visibly blocks a real PR check.
@@ -2665,11 +2691,26 @@ dependency-change PR only if its job summary shows a detected dependency change.
 - The repository's dependency-graph setting staying enabled (AR2).
 
 **Merge prerequisites.**
-- Current-base CI green on the final head, with `Dependency Review` observed by exact name.
+- Full pytest recorded on the final head: **satisfied** at `90cde802` (5,580 / 2 / 0,
+  §17.5).
+- Delta review recorded: **satisfied** at `90cde802` (§17.5).
+- Current-base CI green on the final head, with `Dependency Review` observed by exact
+  name: **pending**.
 - The WS3/B3 inventory rule (§17.2): whichever merges second rebases onto `main` and
   regenerates the inventory from scratch, never hand-merging.
-- An explicit owner merge message naming the PR (§0.10).
+- An explicit owner merge message naming #539 (§0.10).
 
 A2 and later `ci.yml` packets start from post-B3 `origin/main`, regenerate the inventory
 and re-count remote `uses:` (95) (AR6). Promotion still needs C4 activation and its
 blocking proof, which this authorization excludes.
+
+**Coordination follow-ups (routing only; B3 does not act on them).**
+- **WS3 and `QUALITY_GATE.md`.** WS3 (`-53`) will edit only the Route/API gate cell of
+  `docs/ai_workflow/QUALITY_GATE.md`. B3 does not edit that file, so there is no overlap.
+- **Stale `ci.yml` comment after WS3.** WS3 deletes the `app_client` fixture in
+  `tests/test_pattern_coverage.py`. `.github/workflows/ci.yml` (around lines 919–924)
+  cites that fixture to justify omitting `--cov=app`, so the comment goes stale once WS3
+  merges. This is outside B3's scope. Route it to the next `ci.yml` slot after WS3 merges
+  (A2 or later), or to WS3 if it edits `ci.yml` after B3.
+- **Unclaimed qualification.** §16.10's 2026-10-26 scheduled qualification still has no
+  claimant. This is an owner follow-up and is unchanged.
