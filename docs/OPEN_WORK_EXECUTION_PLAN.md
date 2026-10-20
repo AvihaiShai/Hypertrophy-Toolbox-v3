@@ -1,7 +1,8 @@
 # Open Work Execution Plan
 
 **Status:** Proposed sequencing plan — no implementation packet is authorized by this document alone  
-**Current queue:** §0, the single actionable queue since 2026-10-19  
+**Current queue:** §0, the single actionable queue since 2026-10-19
+
 **Prepared:** 2026-08-24  
 **Revised:** 2026-08-24, after PR [#417](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/417)
 merged as squash commit `5111a7f`. The amendments §11.9 previously *proposed* are now folded into
