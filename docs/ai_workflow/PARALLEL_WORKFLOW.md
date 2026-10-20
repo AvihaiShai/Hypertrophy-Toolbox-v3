@@ -129,7 +129,7 @@ owner-installed, accepted and actively monitored.
 - **Unreconciled lifecycle** — run read-only `scripts/audit-worktrees.ps1` with explicit
   approved roots, annotations and baseline. Missing paths, ownerless or orphaned
   annotations and unregistered/reparse children block creation; retain and review them.
-- **DB schema drift** — if you fork from an older HEAD and the main DB has new tables, `app.py` startup runs the table-creation helpers idempotently; the worktree's DB will catch up on first launch.
+- **DB schema drift** — if you fork from an older HEAD and the main DB has new tables, runtime initialization (`init_runtime()`, run by `python app.py`, the packaged launcher and `app:create_initialized_app`; not by importing `app`) runs the table-creation helpers idempotently; the worktree's DB will catch up on first launch.
 - **Backup retention** — preserve every discovered snapshot for this packet. This
   operation-specific hold leaves normal post-operation rotation unchanged.
 - **Visual fixture missing** — creation refuses the missing seed/helper. Choose an
