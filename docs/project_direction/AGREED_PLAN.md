@@ -209,7 +209,7 @@ Q1–Q7 from round 3 are **closed as agreed**; their outcomes are now in §2 (A3
 | Workstream | Status | Approved by / date |
 |---|---|---|
 | WS1a | **IMPLEMENTED AND MERGED.** Owner approval was given in chat on 2026-10-18 (this row was not updated at the time) and restated on 2026-10-19 as approval of head `7913bae5eb360ca8249d641ad6fda44b1a0b9abd`. Q8(b): a bounded hunk handoff only — `ai_workflow/INDEX.md:39` (one link target) and `ai_workflow/DOC_RETENTION.md:60` (one path cell) — recorded as a dated paragraph in the gitignored `WORKSTREAM_OWNERSHIP.local.md`; the Codex docs-cleanup claim row stays live and its pending `870f4865` reconciles against WS1a. Q8(c): both `MASTER_HANDOVER.md` occurrences (1470, 3732) coordinated per edit. **Implemented** 2026-10-18 as commit `7913bae5` on `origin/main` `7ac1af2d`, PR [#520](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/520): 2 renames + 6 edited files, +15/−11, 19/19 CI checks green. **Merged** 2026-10-19 (`2026-10-18T23:49:26Z`) by squash pinned to that head; merge commit `e486e3b5` on `77f400bb` (#521); `origin/main^{tree}` = `b44f43d5`, equal to the pre-merge merge-tree of the reviewed head, so only the reviewed content landed. Branch `docs/ws1a-archive-two-records` retained (repository `deleteBranchOnMerge` is off); no worktree, stash, pull or reset touched the shared checkout. **Accepted deviations and preserved wording (owner, 2026-10-19):** `doc_truth/PLANNING.md:208` left unchanged (bare basename, not a link); the two-line archive notes and the verified `#L115` anchor kept; the `:113` link text and "line 113" prose in `volume_failure_feedback/PLANNING.md`, the old-path link labels at `MASTER_HANDOVER.md:3732` and `product/README.md:235`, and the `DOC_RETENTION.md:60` "Eligible…" disposition stay as historical wording. Acceptance does not make those descriptions current and authorizes no broader cleanup. | Owner (Yaakov Avihai Shai): approval 2026-10-18 (chat); merge instruction 2026-10-19 naming #520 and head `7913bae5` |
-| WS1b+ | DRAFT — backlog items 1–5 in §4; each slice needs its own approval. Q12 selects OPEN_WORK as the target queue (§11); consolidation and coordination remain pending. | |
+| WS1b+ | DELEGATED SELECTION 2026-10-20 (§12) — three slices selected and prepared as separate PRs; the rest deferred on named triggers or declined. Not an owner Gate 1; each PR lands only on the owner's merge confirmation naming it. | None — delegated selection, not an owner approval (§12) |
 | WS2 | DRAFT — Q11 selects (b) first (§11); concrete scope and applicable Gate 1 remain pending. Parallel conditions in §4 apply; (d) is a separate later slice. | |
 | WS3 | DRAFT — Q8(a) permits independently isolated implementation after its own gates (§11); design items and Gate 0/council/Gate 1 remain pending. | |
 | WS4 | DRAFT — follows WS3; own handler scope and approvals remain pending. Q8(a) adds no Operation A completion prerequisite under §11's isolation conditions. | |
@@ -381,3 +381,38 @@ preservation choice; the old prepared patch has an obsolete preimage and must no
 be replayed. No memory or preservation record was edited. This session updates only
 this direction record, with a preimage under `artifacts/project-direction-decisions-20261019-c93e64b5/`;
 no implementation, tests, claim release, commit or publication occurred.
+
+## 12. Delegated documentation-slice decisions — 2026-10-20
+
+**Authority and provenance.** The owner's commission (verbatim): *"keep working on Documentation
+slices with the ai consulting team until it get done"*. Three independent read-only advisers
+reported against `origin/main` `1f5ae0f0`: documentation structure, machine consumers/testing, and
+governance/holds. The primary session adopts the selections below. This is a delegated selection,
+not an owner Gate 0/Gate 1 signature and not a plan-review council. Merges stay owner-only: each
+PR below lands only on a separate owner confirmation naming it.
+
+**One rule for every split: the file keeps its path.** The live text stays; history moves word for
+word, with headings and section numbers unchanged, to `docs/archive/2026/<topic>/`. Code comments,
+test docstrings and prose citations that name a path or a section number keep resolving, and no
+file is added to or removed from `docs/ai_workflow/` (which would change the test inventory).
+
+| Slice | Decision | Advisers |
+|---|---|---|
+| OPEN_WORK split (WS1 item 1 follow-through) + LEFTOVERS reconciliation | **Selected, PR 1.** §0, §5, §6, §7, §9 stay; the header and §§1–4, 8, 10–26 move to `archive/2026/open-work/`. §0.5 becomes the complete owner-gated remainder of LEFTOVERS; the deferred Playwright 1.62.1 bump gets its own §0.4 row (it was untracked). LEFTOVERS gets a reconciled banner; its archive move waits (below) | All three |
+| `ACTIVE_DEVELOPMENT.md` | **Selected, PR 2.** Trim in place: the "Live calibration guardrails" heading stays identical (a script docstring cites it), with the authority and stop-condition text verbatim; history moves. No script edit and no new ADR | Consumers + governance; structure preferred an ADR — not adopted, to avoid a scripts-row edit |
+| Cross-model orchestration plan (WS1 item 4, first half) | **Selected, PR 3.** Trim in place to the header, Plan v2 and sign-off; history and the deferred `$orchestrate` proposal move to `archive/2026/cross-model-orchestration/`. `$orchestrate` stays labelled deferred | All three |
+| Archive `LEFTOVERS_BY_PRIORITY.md`, `P1_6_DEPENDENCY_QUEUE_CLOSEOUT.md` | **Deferred.** Trigger: the shared CI edit slot is free (inbound comments at `ci.yml:257` and `dependabot.yml:117`; the slot is claimed by the B2-leftovers lane). Needs full pytest + `code-reviewer` (CI row) | Governance |
+| Archive `APP_PY_REVIEW_PLAN.md` | **Deferred.** Trigger: WS3 lands (its branch edits two of the five docstring tests) and the CI slot is free (`ci.yml:1422`). §2's "intentional, do not fix" findings are a WS3 Gate 0 input | Governance |
+| Root `WORKTREE_CLEANUP_PLAN.md`; split of `ai_workflow/WORKTREE_CLEANUP_PLAN.md` | **Deferred.** Trigger: Operation A closeout disposes of both. The `ai_workflow` copy is operative policy and the recovery drafts cite it | Structure + governance |
+| CSS_PHASE4 evidence Markdown; `docs/scan/` and the other Q14 folders without readers | **Deferred, lower value.** Trigger: one bounded batch after PRs 1–3 merge, excluding every file cited from CSS/SCSS or the Linux ledger JSON and every folder with a live obligation; never moving a JSON baseline. Reopen sooner if a CSS packet already edits those files | Split: structure declined; consumers + governance clear with exclusions |
+| Instruction-surface cleanup (WS1 item 3) | **Narrow part deferred to the batch above** (stale `blank_null_rep_bounds` "unauthorized" text in `docs/README.md` and `ai_workflow/INDEX.md`). **The broader cleanup needs an owner Gate 0**: it is cross-cutting and overlaps WS3 and recovery-lane edits | Governance; structure would have done it |
+| Q13 Slice 2 splits (`REFACTOR_PLAN`, `TESTING_STRATEGY_PLANNING`, `UI_SCENARIOS_GAP_ANALYSIS`, `E2E_PERFORMANCE_PROFILE`, `NPM_AUDIT_SEVERITY_POLICY_DECISION`) | **Declined.** CI workflows, scripts, tests and `/status` cite their section numbers and filenames; their status banners already do the job. Reopen only with a named reader problem | Structure + consumers; governance would allow path-preserving splits |
+
+**Coordination.** The docs-cleanup claim on `OPEN_WORK_EXECUTION_PLAN.md` was coordinated, not
+released, by a dated paragraph in the gitignored `ai_workflow/WORKSTREAM_OWNERSHIP.local.md`;
+the `MASTER_HANDOVER.md` queue-pointer sentence is a per-edit coordinated hunk. `#L` line anchors
+into OPEN_WORK from `backup_confirmation_continuity/` and `volume_failure_feedback/` were already
+stale before the split and are left as historical citations.
+
+**Done** for this program means: PRs 1–3 ready with green CI and their reviews recorded; every
+deferred item above carries its trigger here; nothing is merged by an agent.
