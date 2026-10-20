@@ -221,6 +221,39 @@ jobs:
       run: |
         "$RUNNER_TEMP/workflow-lint-bin/zizmor" --min-severity medium --format plain .github/workflows
 
+  # Dependency review (CI/CD expansion packet B3, docs/ci_cd_expansion/PLANNING.md
+  # section 17). PR-only by the job-level `if:`, the single sanctioned skip: a push
+  # to main shows this job as skipped, which is expected. The full pip-audit and
+  # npm audit jobs above and below still run on main; this does not replace them.
+  #
+  # One pinned action step, every policy input explicit. No checkout (no
+  # config-file to read) and no PR comment, so the token stays contents: read.
+  # Scorecard off: it calls third-party APIs whose outage would red this check.
+  # License check off: without lists it gates nothing, and blocks once one appears.
+  #
+  # Not in scripts/release_gate.py contexts: PR-only, so never release evidence.
+  # Promotion to a required check is packet C4.
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+
+    steps:
+    - name: Review dependency changes
+      uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+      with:
+        fail-on-severity: high
+        fail-on-scopes: runtime, development, unknown
+        warn-only: false
+        vulnerability-check: true
+        license-check: false
+        show-openssf-scorecard: false
+        comment-summary-in-pr: never
+        retry-on-snapshot-warnings: false
+
   # This job also owns the compiled-SCSS drift gate (docs/LEFTOVERS_BY_PRIORITY.md,
   # "Nothing ties the committed bootstrap.custom.min.css to its SCSS source").
   #

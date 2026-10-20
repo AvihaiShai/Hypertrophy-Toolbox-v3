@@ -3,6 +3,9 @@
 Measured 2026-10-19 against base `7ac1af2d2dc10be6bf6a5016c09bc5244cf37ed7`.
 Execution authority and commit/run/review evidence live in [PLANNING.md §13](PLANNING.md#13-b1-execution--2026-10-19).
 This is the B1 inventory, not activation of the C3 repository policy.
+Later additions (A1, B2, E1/D3, B3) are appended below without rewriting this measurement;
+the current C3 candidate set and remote `uses:` count are in the latest addition (B3: six
+repositories, 95).
 
 ## Adopted remote actions
 
@@ -97,7 +100,8 @@ update this inventory and affected workflows before adoption. Keep full SHA pins
 and version comments; do not infer nested safety from a tag-text search.
 
 The C3 candidate repository set is exactly `actions/checkout`,
-`actions/setup-python`, `actions/setup-node`, and `actions/upload-artifact`.
+`actions/setup-python`, `actions/setup-node`, and `actions/upload-artifact`
+(B1-time; see the additions below).
 No wildcard or future integration is pre-approved. C3 activation, its owner
 readback/proof and any future inventory expansion remain separate work.
 
@@ -160,3 +164,37 @@ Remote `uses:` per file, by
 `release.yml` 10, `_packaged-windows.yml` 2. The repository holds **94** (was 92)
 across the same five repositories. The three local `uses: ./.github/workflows/_packaged-windows.yml`
 calls are not remote and are not counted.
+
+## B3 addition — 2026-10-20
+
+Packet B3 ([PLANNING.md §17](PLANNING.md#17-b3-execution--2026-10-20)) adopts one more
+GitHub-owned action for the PR-only `dependency-review` / `Dependency Review` job. It
+follows the same procedure as above, and the sections above are left at their own
+measurements.
+
+| Repository | Release | Pinned commit | Metadata Git blob | Calls: CI |
+|---|---|---|---|---|
+| `actions/dependency-review-action` | v5.0.0 | `a1d282b36b6f3519aa1f3fc636f609c47dddb294` | `5f6cf73d694f70892899c2768fa9814a9218dd0d` | 1 |
+
+`v5.0.0` is a lightweight tag on that commit; no moving `v5` tag exists. GitHub reports
+the commit signature `verified` (`valid`). Its `package.json` version is `5.0.0`, the
+commit is 19 ahead of and 0 behind `v4.9.0`, and the release was published 2026-05-08.
+The pinned
+[`action.yml`](https://github.com/actions/dependency-review-action/blob/a1d282b36b6f3519aa1f3fc636f609c47dddb294/action.yml)
+runs `node24` from `dist/index.js` with no post entrypoint. It declares no
+`runs.steps`, nested `uses:` or container, so the traversal ends there.
+
+The only API the action calls is the dependency-graph compare endpoint
+(`GET /repos/{owner}/{repo}/dependency-graph/compare/{base}...{head}`) on the default
+job token, so the job's `contents: read` suffices and no permission is added. There is
+no checkout. The job sets `show-openssf-scorecard: false`, which disables the action's
+outbound calls to third-party scorecard services.
+
+Remote `uses:` per file, by the same
+`grep -cE '^\s*(- )?uses: [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@'`: `ci.yml` 64 (was 63);
+`deep-gate.yml` 12, `deep-gate-visual.yml` 5, `deep-gate-watch.yml` 2, `release.yml` 10
+and `_packaged-windows.yml` 2 are unchanged. The repository holds **95** (was 94) across
+six repositories. The C3 candidate set therefore becomes `actions/checkout`,
+`actions/setup-python`, `actions/setup-node`, `actions/upload-artifact`,
+`actions/download-artifact` and `actions/dependency-review-action`. That set is still a
+proposal; it activates nothing.
