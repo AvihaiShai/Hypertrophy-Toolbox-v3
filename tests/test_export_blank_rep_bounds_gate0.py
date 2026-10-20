@@ -13,19 +13,18 @@ oracle and is explicitly outside this packet.
 """
 from __future__ import annotations
 
-import re
 from typing import Any
 
 import pytest
 
 import utils.export_service as export_service
+from tests.app_factory_support import REQUEST_ID
 from utils.database import DatabaseHandler
 from utils.program_backup import create_backup
 from utils.rep_range_integrity import scan_export_bounds
 
 
 ROUTINE = "GYM - Full Body - Workout A"
-REQUEST_ID = re.compile(r"^req_[0-9a-f]{16}$")
 
 
 def _seed_plan(

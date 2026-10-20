@@ -1,20 +1,17 @@
 """Executable contract tests for the blank-string export boundary."""
 from __future__ import annotations
 
-import re
 from typing import Any
 
 import pytest
 
 import utils.export_service as export_service
+from tests.app_factory_support import REQUEST_ID
 from utils.database import DatabaseHandler
 from utils.rep_range_integrity import scan_export_bounds
 
 
 ROUTINE = "GYM - Full Body - Workout A"
-# The test app is the production factory, so the request-id middleware fills
-# the envelope; it must be the id the response itself carries.
-REQUEST_ID = re.compile(r"^req_[0-9a-f]{16}$")
 
 
 def _seed(clean_db, exercise_factory, workout_plan_factory, exercise, minimum, maximum):

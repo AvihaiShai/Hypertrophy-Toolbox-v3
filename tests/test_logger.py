@@ -5,6 +5,8 @@ Tests for utils/logger.py - Logging configuration.
 import logging
 from unittest.mock import patch, MagicMock
 
+import pytest
+
 
 class TestRequestIdFilter:
     """Tests for RequestIdFilter class."""
@@ -225,11 +227,8 @@ class TestFlaskIntegration:
     """Tests for Flask app integration."""
 
     def test_setup_logging_takes_no_app_argument(self):
-        """The ``app`` branch registered request hooks that never attached in
-        production (the handler early return ran first), so WS3 deleted it with
-        its parameter (Q-WS3-2H). An ``app`` argument is now a TypeError rather
-        than a silent no-op."""
-        import inspect
+        """Logging setup accepts no Flask application (Q-WS3-2H)."""
         import utils.logger
 
-        assert list(inspect.signature(utils.logger.setup_logging).parameters) == []
+        with pytest.raises(TypeError):
+            utils.logger.setup_logging(app=object())  # pyright: ignore[reportCallIssue]

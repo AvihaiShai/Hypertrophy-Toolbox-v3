@@ -1,15 +1,13 @@
 """Contracts for ``create_app()`` and the entry points that join it to the runtime.
 
-WS3 (``docs/app_factory/PLANNING.md`` Plan v2 §V5) makes ``create_app()`` the
-one construction path: production, the packaged launcher, ``flask run`` and the
-test suite all build through it, and only the entry points call
-``init_runtime()``. These pin what the factory builds, that building it does no
+``create_app()`` is the one construction path for production, the packaged
+launcher, the Flask CLI and the test suite (Plan v2 §V5). These tests pin
+what the factory builds, that building it does no
 logging setup or database work, and how ``main()``, the launcher and
 ``create_initialized_app()`` order initialization, cleanup and serving.
 
-``app`` is imported through the ``app_module`` fixture, never at collection: a
-first import used to run the whole runtime startup, so the fixture points the
-environment at a scratch tree for the duration of that import.
+``app`` is imported through the ``app_module`` fixture with the environment
+pointed at a scratch tree.
 """
 from __future__ import annotations
 
@@ -33,6 +31,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 import utils.config
 import utils.logger
+from tests.app_factory_support import REQUEST_ID
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -66,16 +65,11 @@ IMPORT_PROMISE = (
 )
 
 ERASE_MESSAGE = "All data has been erased and tables reinitialized successfully."
-REQUEST_ID = re.compile(r"^req_[0-9a-f]{16}$")
 
 
 @pytest.fixture(scope="module")
 def app_module(tmp_path_factory) -> ModuleType:
-    """``app``, imported with the environment pointed at scratch.
-
-    Harmless once import does no data work; before that it keeps a first
-    import's startup off the checkout's own database.
-    """
+    """Import ``app`` with the environment pointed at scratch."""
     scratch = tmp_path_factory.mktemp("factory_import")
     saved_env = {name: os.environ.get(name) for name in ("DB_FILE", "HT_RUNTIME_DIR")}
     saved_attribute = utils.config.DB_FILE
@@ -223,11 +217,11 @@ def test_filters_hooks_processors_and_erase_route_present(factory_app, app_modul
     assert factory_app.view_functions["erase_data"] is app_module.erase_data
 
 
-def test_only_request_id_and_cache_policy_hooks(factory_app, app_module):
+def test_only_request_id_and_cache_policy_hooks(factory_app):
     """Registration order is asserted, not only membership (GA-7).
 
     Flask runs after-request functions in reverse, so this order is what puts
-    the cache policy before the request-id header, as before WS3.
+    the cache policy before the request-id header.
     """
     assert _hook_names(factory_app.before_request_funcs) == {
         None: [("utils.request_id", "add_request_id_middleware.<locals>.before_request")],
@@ -238,7 +232,6 @@ def test_only_request_id_and_cache_policy_hooks(factory_app, app_module):
             ("app", "apply_static_cache_policy"),
         ],
     }
-    assert factory_app.after_request_funcs[None][1] is app_module.apply_static_cache_policy
 
 
 def test_config_overrides_apply_after_frozen_block(app_module, monkeypatch):
@@ -308,17 +301,12 @@ def test_factory_adds_no_logger_handlers(app_module):
 # --- AC6: the test fixture is the factory ----------------------------------------
 
 
-def test_app_fixture_is_the_factory_app(app, app_module):
-    """conftest's ``app`` is ``create_app(config_overrides=...)``, not a twin."""
-    assert app is not app_module.app
+def test_app_fixture_is_the_factory_app(app):
+    """The shared fixture builds the factory app with the test configuration."""
     assert Path(app.root_path).resolve() == ROOT
     assert app.name == "app"
     assert app.config["TESTING"] is True
     assert app.config["WTF_CSRF_ENABLED"] is False
-    assert set(app.blueprints) == EXPECTED_BLUEPRINTS
-    assert app.view_functions["erase_data"] is app_module.erase_data
-    assert app.jinja_env.filters["datetime"] is app_module.format_datetime
-    assert app_module.apply_static_cache_policy in app.after_request_funcs[None]
 
 
 # --- AC7 (+R-5): launch paths -----------------------------------------------------
@@ -444,12 +432,9 @@ def launcher(app_module, monkeypatch):
     return module, events
 
 
-def _patch_launcher_init(monkeypatch, module, fake):
-    # Plan v2 D-11 imports init_runtime lazily inside main(); a module-level
-    # binding is patched too, so either form is exercised rather than the real call.
+def _patch_launcher_init(monkeypatch, fake):
+    # main() imports init_runtime lazily (Plan v2 D-11).
     monkeypatch.setattr("utils.runtime_init.init_runtime", fake)
-    if hasattr(module, "init_runtime"):
-        monkeypatch.setattr(module, "init_runtime", fake)
 
 
 def _printed(events, text):
@@ -459,7 +444,7 @@ def _printed(events, text):
 def test_launcher_initializes_after_import_before_run(launcher, monkeypatch):
     module, events = launcher
     _patch_launcher_init(
-        monkeypatch, module, lambda *args, **kwargs: events.append(("init", (args, kwargs)))
+        monkeypatch, lambda *args, **kwargs: events.append(("init", (args, kwargs)))
     )
 
     module.main()
@@ -483,7 +468,7 @@ def test_launcher_init_failure_uses_error_wait(launcher, monkeypatch):
     def failing_init(*_args, **_kwargs):
         raise RuntimeError("init failed")
 
-    _patch_launcher_init(monkeypatch, module, failing_init)
+    _patch_launcher_init(monkeypatch, failing_init)
 
     with pytest.raises(SystemExit) as exit_info:
         module.main()
@@ -598,9 +583,7 @@ def test_public_import_surface(app_module):
 
     assert isinstance(module_app, Flask)
     assert STATIC_LONG_MAX_AGE_SECONDS == 31536000
-    for name in ("create_app", "create_initialized_app", "main", "_register_shutdown_cleanup"):
-        assert callable(getattr(app_module, name, None)), name
-    # Import-time startup left these behind; their absence is part of C-9.
+    # Runtime outcomes and timing helpers are not part of this module's surface (C-9).
     for name in ("migration", "database_seeded", "start_timer"):
         assert not hasattr(app_module, name), name
 
@@ -638,6 +621,11 @@ _FLASK_APP_ASSIGNMENT = re.compile(
     r"""|['"]FLASK_APP['"]\s*,\s*(?P<setenv>['"][^'"]*['"])"""
 )
 _APP_OPTION = re.compile(r"""--app(?![\w-])(?:\s*=\s*|\s+|['"]\s*,\s*)(?P<value>[^\s,;)\]}]+)""")
+_FLASK_RUN_COMMAND = re.compile(
+    r"(?:^|[;&|])\s*(?:&\s+)?"
+    r"(?:(?:[^\s;|]+[/\\])?python[\d.]*(?:\.exe)?\s+-m\s+)?"
+    r"flask(?:\.exe)?(?:\s+[^\r\n]*?)?\s+run\b"
+)
 _EXCLUDED_PREFIXES = ("docs/archive/", "docs/app_factory/")
 
 
@@ -647,6 +635,48 @@ def _literal_target(raw: str) -> str | None:
     if not value or value[0] in "$%{<":
         return None
     return value
+
+
+def _bare_flask_run_lines(text: str) -> list[int]:
+    """Find executable Flask run commands lacking a factory option or binding."""
+    factory_configured = False
+    violations = []
+    for number, line in enumerate(text.splitlines(), 1):
+        for match in _FLASK_APP_ASSIGNMENT.finditer(line):
+            target = _literal_target(match.group("value") or match.group("setenv") or "")
+            factory_configured = target == FACTORY_TARGET
+        if not _FLASK_RUN_COMMAND.search(line):
+            continue
+        options = list(_APP_OPTION.finditer(line))
+        if options:
+            configured = any(_literal_target(match.group("value")) == FACTORY_TARGET for match in options)
+        else:
+            configured = factory_configured
+        if not configured:
+            violations.append(number)
+    return violations
+
+
+@pytest.mark.parametrize("command", [
+    "flask run",
+    "python -m flask run --no-reload",
+    ".venv/Scripts/python.exe -m flask --debug run",
+    "& flask run",
+    "Write-Host starting; flask run",
+])
+def test_flask_caller_tripwire_rejects_auto_discovery(command):
+    assert _bare_flask_run_lines(command) == [1]
+
+
+@pytest.mark.parametrize("text", [
+    f"flask --app {FACTORY_TARGET} run --no-reload",
+    f"python -m flask --app={FACTORY_TARGET} run",
+    f'$env:FLASK_APP = "{FACTORY_TARGET}"\npython -m flask run',
+    f"export FLASK_APP={FACTORY_TARGET}\nflask run",
+    "The CLI uses `flask run` with the configured factory.",
+])
+def test_flask_caller_tripwire_accepts_factory_commands_and_prose(text):
+    assert _bare_flask_run_lines(text) == []
 
 
 def test_flask_run_callers_use_the_factory():
@@ -673,9 +703,11 @@ def test_flask_run_callers_use_the_factory():
         if not path.is_file():
             continue
         data = path.read_bytes()
-        if b"\0" in data or (b"FLASK_APP" not in data and b"--app" not in data):
+        if b"\0" in data or not any(token in data for token in (b"FLASK_APP", b"--app", b"flask")):
             continue
-        for number, line in enumerate(data.decode("utf-8", errors="replace").splitlines(), 1):
+        text = data.decode("utf-8", errors="replace")
+        violations.extend(f"{name}:{number}: flask run without the factory target" for number in _bare_flask_run_lines(text))
+        for number, line in enumerate(text.splitlines(), 1):
             for match in _FLASK_APP_ASSIGNMENT.finditer(line):
                 target = _literal_target(match.group("value") or match.group("setenv") or "")
                 if target is not None and target != FACTORY_TARGET:

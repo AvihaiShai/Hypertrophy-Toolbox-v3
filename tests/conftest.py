@@ -115,31 +115,16 @@ def schema_template(tmp_path_factory):
 
 @pytest.fixture(scope='module')
 def real_app_client(tmp_path_factory):
-    """A client for ``app.py``'s module-level ``app``, initialized on scratch.
+    """A client for the module-level app, initialized on a seeded scratch DB.
 
-    The ``app`` fixture below builds a fresh ``create_app()`` instance on the
-    empty test schema. This one wraps the module-level object itself — the one
-    ``test_static_cache_policy.py``'s ``frozen_cache_client`` mutates — and runs
-    the production initialization against it, so the database is seeded from
-    the catalog the way a first install is.
-
-    Isolation is explicit rather than inferred from import order:
-
-    * ``init_runtime(db_file=<scratch>)`` takes the ``explicit-override``
-      branch, so it never resolves the checkout's own ``data/database.db``.
-      Under ``TESTING=1`` it refuses outright to run without a path.
-    * The initialization guard is once per process and this fixture is
-      module-scoped, so each consuming module brings a different scratch
-      database. ``_reset_for_tests()`` runs before the call and again on
-      teardown, so no module inherits another's guard key.
-    * The resolved path is still asserted, from both the outcome and
-      ``utils.config.DB_FILE``, before any test runs.
+    Each module supplies an explicit database path and resets the process
+    guard before and after initialization. Both the outcome and config path
+    must match scratch before yielding. Environment, config, TESTING and the
+    guard are restored on teardown.
 
     ``HT_RUNTIME_DIR`` is set to scratch as well, but it relocates neither logs
     nor backups here: ``conftest.py``'s own imports fixed the log directory
-    before this runs, and auto-backups go beside the database. The environment,
-    the module attribute, the app's ``TESTING`` value and the guard are all
-    restored on teardown.
+    before this runs, and auto-backups go beside the database.
     """
     scratch_db = tmp_path_factory.mktemp('real_app') / 'database.db'
     scratch_resolved = Path(scratch_db).resolve()

@@ -18,9 +18,7 @@ with no coverage is indistinguishable from the hook never having been exercised.
 import pytest
 
 # ``real_app_client`` comes from tests/conftest.py and wraps app.py's module-level
-# app on a seeded scratch database. conftest's ``app`` fixture is now built by the
-# same create_app() factory, so either would show a reinstated ``clear_trailing``
-# hook; these stay on the module-level object, the one production serves.
+# app on a seeded scratch database, the same object production serves.
 
 
 @pytest.mark.parametrize('path', ['/workout_plan/', '/weekly_summary/', '/progression/'])

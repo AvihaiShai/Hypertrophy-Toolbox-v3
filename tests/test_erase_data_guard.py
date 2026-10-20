@@ -2,13 +2,6 @@
 
 F5 of ``docs/APP_PY_REVIEW_PLAN.md``. The guard lives in ``app.py``'s real
 route: it requires ``confirm == "ERASE_ALL_DATA"`` and snapshots before wiping.
-When this file was written, ``tests/conftest.py`` registered a guard-less twin
-and six tests POSTed ``/erase-data`` with no body and still expected success.
-The E2E flow in ``e2e/erase-flow.spec.ts`` only drives the happy path, because
-the UI always sends the correct token. Nothing anywhere submitted a missing or
-wrong token, so deleting the server-side guard would not have failed a single
-test. WS3 replaced the twin with ``create_app()``, so those tests now send the
-token as well.
 
 These drive the module-level app on a seeded scratch database. Only the
 rejection paths are covered, deliberately: the guard returns before

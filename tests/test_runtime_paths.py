@@ -204,14 +204,12 @@ class TestPacketB2MovesTheDatabase:
         which migration would correctly decline to overwrite it — and the user
         would be looking at an empty catalog with their data still on disk.
 
-        Asserted on the calls ``init_runtime()`` makes rather than on line
-        numbers, since WS3 moved the steps out of ``app.py``. Each step records
-        the ``utils.config.DB_FILE`` it saw: only migration sees the stale
-        value, so the single assignment sits between the first two steps.
+        Each step records the ``utils.config.DB_FILE`` it saw: only migration
+        sees the stale value, so the assignment sits between the first two steps.
         """
         import utils.config
         from utils import runtime_init
-        from utils.runtime_migration import MigrationOutcome
+        from tests.app_factory_support import install_runtime_steps
 
         stale = str(tmp_path / "stale.db")
         migrated = tmp_path / "migrated.db"
@@ -220,23 +218,10 @@ class TestPacketB2MovesTheDatabase:
         monkeypatch.delenv("TESTING", raising=False)
         monkeypatch.setenv(runtime_paths.RUNTIME_ROOT_ENV, str(tmp_path / "rt"))
 
-        calls = []
-        results = {
-            "prepare_runtime_database": MigrationOutcome("migrated", migrated),
-            "bootstrap_runtime_database": seeded,
-            "run_all_initializers": None,
-            "upgrade_catalog_from_seed": None,
-            "create_startup_backup": None,
-        }
-
-        def recorder(name, result):
-            def step(*args, **kwargs):
-                calls.append((name, args, kwargs, utils.config.DB_FILE))
-                return result
-            return step
-
-        for name, result in results.items():
-            monkeypatch.setattr(runtime_init, name, recorder(name, result))
+        calls = install_runtime_steps(
+            monkeypatch, migrated, action="migrated",
+            overrides={"bootstrap_runtime_database": lambda: seeded},
+        )
 
         runtime_init._reset_for_tests()
         try:
@@ -250,8 +235,7 @@ class TestPacketB2MovesTheDatabase:
         assert [call[0] for call in calls] == expected
         assert calls[0][3] == stale
         assert all(call[3] == str(migrated) for call in calls[1:])
-        _, args, kwargs, _ = calls[2]
-        assert kwargs.get("force_base", args[0] if args else None) is False
+        assert calls[2][2] == {"force_base": False}
         assert utils.config.DB_FILE == str(migrated)
 
 

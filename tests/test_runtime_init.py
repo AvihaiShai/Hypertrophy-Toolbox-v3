@@ -1,9 +1,8 @@
 """Contracts for ``utils/runtime_init.py``: the one guarded runtime initialization.
 
-WS3 moved the five startup steps out of ``app.py``'s module body
-(``docs/app_factory/PLANNING.md`` Plan v2 §V6). These pin what the move must
-preserve -- the step order and fresh-seed skip -- and what the guard adds:
-same key is a no-op, a different key raises, a failure leaves the guard unset,
+The five startup steps preserve their order and fresh-seed skip
+(``docs/app_factory/PLANNING.md`` Plan v2 §V6). The guard makes the
+same key a no-op; a different key raises, a failure leaves the guard unset,
 ``TESTING=1`` without a path refuses, and only tests may reset it.
 
 In-process tests mock the steps by patching the names ``utils.runtime_init``
@@ -18,8 +17,6 @@ import json
 import os
 import shutil
 import sqlite3
-import subprocess
-import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -29,8 +26,15 @@ import utils.config
 import utils.runtime_init as runtime_init
 import utils.runtime_migration as runtime_migration
 from utils.catalog_seed import bootstrap_runtime_database, resolve_catalog_seed_path
-from utils.runtime_migration import MigrationOutcome
 from utils.schema_registry import OWNED_TABLES_DROP_ORDER
+from tests.app_factory_support import (
+    OUTCOME_PROBE,
+    Call,
+    install_runtime_steps as _install_steps,
+    probe_env as _probe_env,
+    run_probe,
+    run_python as _run_python,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -50,9 +54,6 @@ OUTCOME_FIELDS = {
     "already_initialized",
 }
 _ISOLATED_ENV = ("DB_FILE", "HT_RUNTIME_DIR", "TESTING")
-
-# (step name, positional args, keyword args, utils.config.DB_FILE at the call)
-Call = tuple[str, tuple[object, ...], dict[str, object], str]
 
 
 @pytest.fixture(autouse=True)
@@ -79,35 +80,6 @@ def isolated_runtime_init(monkeypatch, tmp_path):
     assert {name: os.environ.get(name) for name in _ISOLATED_ENV} == saved_env
 
 
-def _install_steps(
-    monkeypatch,
-    database: Path,
-    *,
-    action: str = "explicit-override",
-    overrides: dict[str, Callable[[], object]] | None = None,
-) -> list[Call]:
-    """Replace the five steps with recorders; ``overrides`` supplies results."""
-    results: dict[str, Callable[[], object]] = {
-        "prepare_runtime_database": lambda: MigrationOutcome(action, database),
-        "bootstrap_runtime_database": lambda: False,
-        "run_all_initializers": lambda: None,
-        "upgrade_catalog_from_seed": lambda: None,
-        "create_startup_backup": lambda: None,
-    }
-    results.update(overrides or {})
-    calls: list[Call] = []
-
-    def recorder(name: str, result: Callable[[], object]) -> Callable[..., object]:
-        def step(*args: object, **kwargs: object) -> object:
-            calls.append((name, args, kwargs, utils.config.DB_FILE))
-            return result()
-        return step
-
-    for name, result in results.items():
-        monkeypatch.setattr(runtime_init, name, recorder(name, result))
-    return calls
-
-
 def _names(calls: list[Call]) -> list[str]:
     return [call[0] for call in calls]
 
@@ -122,24 +94,6 @@ def _sequence(*values: object) -> Callable[[], object]:
             raise value
         return value
     return result
-
-
-def _probe_env(**overrides: str) -> dict[str, str]:
-    env = {
-        name: value for name, value in os.environ.items()
-        if name not in ("TESTING", "DB_FILE") and not name.startswith("HT_")
-    }
-    env.update(overrides)
-    return env
-
-
-def _run_python(tmp_path: Path, args: list[str], env: dict[str, str]) -> str:
-    result = subprocess.run(
-        [sys.executable, *args],
-        capture_output=True, text=True, env=env, cwd=str(tmp_path), timeout=300,
-    )
-    assert result.returncode == 0, f"probe failed:\n{result.stdout}\n{result.stderr}"
-    return result.stdout
 
 
 def _snapshots(directory: Path) -> list[Path]:
@@ -451,19 +405,21 @@ def test_explicit_argument_wins(monkeypatch, tmp_path):
     assert not from_env.exists()
 
 
-OUTCOME_PROBE = """
-import json, sys
-sys.path.insert(0, sys.argv[1])
-from utils.runtime_init import init_runtime
-outcome = init_runtime(db_file=sys.argv[2])
-print(json.dumps({
-    "database_path": str(outcome.database_path),
-    "migration_action": outcome.migration_action,
-    "seeded": outcome.seeded,
-    "snapshot_path": None if outcome.snapshot_path is None else str(outcome.snapshot_path),
-    "already_initialized": outcome.already_initialized,
-}))
-"""
+def test_empty_db_file_refuses_before_any_step(monkeypatch, tmp_path):
+    """An empty argument cannot silently fall back to the environment (D-6)."""
+    database = tmp_path / "database.db"
+    monkeypatch.setenv("DB_FILE", str(database))
+    calls = _install_steps(monkeypatch, database)
+    sentinel = utils.config.DB_FILE
+
+    with pytest.raises(ValueError, match="db_file must be a non-empty path or None"):
+        runtime_init.init_runtime(db_file="")
+
+    assert calls == []
+    assert utils.config.DB_FILE == sentinel
+    assert not database.exists()
+    assert not (tmp_path / "rt").exists()
+    assert runtime_init.init_runtime(db_file=database).already_initialized is False
 
 
 def test_init_runtime_upgrades_old_schema_database(tmp_path):
@@ -481,8 +437,7 @@ def test_init_runtime_upgrades_old_schema_database(tmp_path):
         env,
     )
 
-    stdout = _run_python(tmp_path, ["-c", OUTCOME_PROBE, str(ROOT), str(database)], env)
-    report = json.loads(stdout.strip().splitlines()[-1])
+    report = run_probe(tmp_path, OUTCOME_PROBE, "", str(database), env=env)
 
     assert report["migration_action"] == "explicit-override"
     assert Path(report["database_path"]).resolve() == database.resolve()

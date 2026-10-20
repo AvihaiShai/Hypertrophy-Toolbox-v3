@@ -1,10 +1,6 @@
 """Importing ``app`` does no data work; ``init_runtime()`` alone decides the database.
 
-Before WS3, ``app.py``'s module body ran the whole runtime startup, so these
-tests pinned where a *first import* landed -- including the defect that a
-patched ``utils.config.DB_FILE`` was discarded. WS3 (``docs/app_factory/
-PLANNING.md`` AC1, AC5) moved that startup into ``utils.runtime_init.
-init_runtime()``, and the contract split in two:
+The contract has two parts (``docs/app_factory/PLANNING.md`` AC1, AC5):
 
 * **Import** constructs one Flask app and nothing else: no ``DatabaseHandler``,
   no ``sqlite3.connect``, no database or ``auto_backup/``, and
@@ -29,13 +25,15 @@ path -- and initialization would then write to the developer's real database.
 write to it. The import probes keep the skip too: on a tree where import still
 initializes, they would take the same path.
 """
-import json
-import os
-import subprocess
-import sys
 from pathlib import Path
 
 import pytest
+
+from tests.app_factory_support import (
+    OUTCOME_PROBE,
+    probe_env as _probe_env,
+    run_probe as _run,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -77,24 +75,6 @@ print(json.dumps({
 }))
 """
 
-# Calls init_runtime() in a fresh interpreter and reports where it landed.
-INIT_PROBE = """
-import json, os, sys
-sys.path.insert(0, sys.argv[1])
-patched, explicit = sys.argv[2], sys.argv[3]
-import utils.config
-if patched:
-    utils.config.DB_FILE = patched
-from utils.runtime_init import init_runtime
-outcome = init_runtime(db_file=explicit) if explicit else init_runtime()
-print(json.dumps({
-    "active_db": os.path.abspath(utils.config.DB_FILE),
-    "database_path": str(outcome.database_path),
-    "migration_action": outcome.migration_action,
-    "seeded": outcome.seeded,
-}))
-"""
-
 
 def _skip_if_legacy_database_is_busy():
     """Refuse a no-``DB_FILE`` probe when it could reach the real database.
@@ -115,24 +95,6 @@ def _skip_if_legacy_database_is_busy():
             f"{legacy.name} has outstanding {', '.join(busy)} sidecars; the "
             "no-DB_FILE case would fall back to the real database"
         )
-
-
-def _probe_env(**overrides):
-    env = {
-        name: value for name, value in os.environ.items()
-        if name not in ("TESTING", "DB_FILE") and not name.startswith("HT_")
-    }
-    env.update(overrides)
-    return env
-
-
-def _run(tmp_path, probe, *args, env):
-    result = subprocess.run(
-        [sys.executable, "-c", probe, str(ROOT), *args],
-        capture_output=True, text=True, env=env, cwd=str(tmp_path), timeout=300,
-    )
-    assert result.returncode == 0, f"probe failed:\n{result.stdout}\n{result.stderr}"
-    return json.loads(result.stdout.strip().splitlines()[-1])
 
 
 def _checkout_data_state():
@@ -199,8 +161,7 @@ def test_import_creates_no_data_with_missing_db_file(tmp_path):
 
 
 def test_import_creates_no_data_with_patched_attribute_only(tmp_path):
-    """The case the old negative test pinned: a patched attribute with no
-    environment override. Import must neither discard it nor act on it."""
+    """Import preserves a patched attribute without acting on its path."""
     _skip_if_legacy_database_is_busy()
     scratch = tmp_path / "scratch.db"
     report, sandbox = _import_report(tmp_path, patched=str(scratch))
@@ -226,7 +187,7 @@ def test_init_runtime_explicit_argument_lands_on_scratch(tmp_path):
     before = _checkout_data_state()
 
     report = _run(
-        tmp_path, INIT_PROBE, "", str(scratch),
+        tmp_path, OUTCOME_PROBE, "", str(scratch),
         env=_probe_env(HT_RUNTIME_DIR=str(sandbox), TESTING="1"),
     )
 
@@ -239,12 +200,9 @@ def test_init_runtime_explicit_argument_lands_on_scratch(tmp_path):
 
 
 def test_init_runtime_ignores_patched_attribute(tmp_path):
-    """Replaces ``test_patching_config_alone_is_not_isolation`` (A4).
-
-    That test pinned import-time startup discarding a patched attribute. The
-    attribute is still not an input, but now by contract: with no environment
-    ``DB_FILE``, production-mode initialization resolves the runtime database
-    and overwrites the patch. The scratch path is never created.
+    """With no environment ``DB_FILE``, initialization uses the runtime path
+    and overwrites a patched config attribute (A4). The scratch path is never
+    created.
     """
     _skip_if_legacy_database_is_busy()
     sandbox, scratch = tmp_path / "rt", tmp_path / "scratch.db"
@@ -252,7 +210,7 @@ def test_init_runtime_ignores_patched_attribute(tmp_path):
     before = _checkout_data_state()
 
     report = _run(
-        tmp_path, INIT_PROBE, str(scratch), "",
+        tmp_path, OUTCOME_PROBE, str(scratch), "",
         env=_probe_env(HT_RUNTIME_DIR=str(sandbox)),
     )
 
@@ -267,7 +225,7 @@ def test_init_runtime_with_env_db_file(tmp_path):
     sandbox, scratch = tmp_path / "rt", tmp_path / "scratch.db"
 
     report = _run(
-        tmp_path, INIT_PROBE, "", "",
+        tmp_path, OUTCOME_PROBE, "", "",
         env=_probe_env(HT_RUNTIME_DIR=str(sandbox), DB_FILE=str(scratch)),
     )
 
@@ -284,7 +242,7 @@ def test_env_override_wins_regardless_of_config_patch(tmp_path, mode):
     sandbox, scratch, decoy = tmp_path / "rt", tmp_path / "scratch.db", tmp_path / "decoy.db"
 
     report = _run(
-        tmp_path, INIT_PROBE, str(decoy) if mode == 'patch-config-too' else "", "",
+        tmp_path, OUTCOME_PROBE, str(decoy) if mode == 'patch-config-too' else "", "",
         env=_probe_env(HT_RUNTIME_DIR=str(sandbox), DB_FILE=str(scratch), TESTING="1"),
     )
 
