@@ -7,7 +7,7 @@
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
 | Planning size | Large (new workflows, new jobs, repo-settings changes) — per `docs/ai_workflow/QUALITY_GATE.md` plan-stage routing: Gate 0 → council (`/council-plan`) → Gate 1 → implementation |
-| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), merged 2026-10-19T19:06:48Z. E3: `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529), merged 2026-10-19T19:06:05Z. B2: `ci/b2-workflow-lint`; PR pending. E1+D3: `ci/e1-d3-deep-gate-observability`, stacked on B2; PR pending |
+| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), merged 2026-10-19T19:06:48Z. E3: `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529), merged 2026-10-19T19:06:05Z. B2: `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532), ready / open, not merged. E1+D3: `ci/e1-d3-deep-gate-observability`, stacked on B2; PR pending |
 
 ### Review log
 
@@ -401,7 +401,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
 | A5 | either | deferred | | | | CI-D5; no docs filtering in core |
 | B1 | Codex `/root`, 2026-10-19 | **merged** 2026-10-18T23:46:43Z by the owner as squash `77f400bb331e1de631a32114a7cc9996f5b5dd1e` | `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521) | implementation `1dfe011b1533f1339660b72a60249b390b296104`; final PR head `c91986bf376a1a09f055c4ee4dc4cb4d27bb601e` | Local: §13.1 unchanged. PR run `39171777513` (final head) 19/19 success; post-merge `main` push run `39177927596` on `77f400bb` success; post-merge scheduled Deep Gate `39226020933` 6/7 success, only pre-existing `visual-linux` red; §13.2 | Closed. C3/settings remain unauthorized |
-| B2 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | in progress — implemented, local gates and both acceptance rehearsals complete; delta reviews: code-reviewer approve, architecture-reviewer approve with nits; N-a contract commit and PR pending | `ci/b2-workflow-lint` | base `origin/main` `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`; implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, review fixes `9823beb9c7ba1f3f800dcfdabca349c472035595`; PR head pending | Local full pytest 5,356 passed / 2 skipped / 0 failed at `9823beb9`; mutation 72/72 killed, 6/6 controls green; actionlint and zizmor clean offline and online at `9823beb9`; rehearsals `39342689323` green control success, `39342691486` seeded PR-title red (both linters); baseline §15.3; §§15.5–15.6. PR run pending | Authorized 2026-10-20 (§15). Not in `REQUIRED_CONTEXTS`; promotion is C4 |
+| B2 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | implemented; local gates, acceptance rehearsals and both delta reviews complete (code-reviewer approve, architecture-reviewer approve with nits); **ready PR, not merged** | `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532) | base `origin/main` `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`; implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, review fixes `9823beb9c7ba1f3f800dcfdabca349c472035595`; published head `d5dfa0615fb5770dca2fab50a8d052211c99308b` | PR run `39344273368` (`pull_request`, attempt 1, head `d5dfa061`) 26/26 success, `Workflow Lint (actionlint + zizmor)` 10 s, name observed exactly; local full pytest 5,356 passed / 2 skipped / 0 failed at `9823beb9`; targeted contracts and mutation 74/74 killed, 6/6 controls green at `d5dfa061`; rehearsals `39342689323` green control success, `39342691486` seeded PR-title red (both linters); baseline §15.3; §§15.5–15.6 | Stop before merge. Post-merge `main` push run pending; B2 qualification not complete until it is recorded (§15.6). Not in `REQUIRED_CONTEXTS`; promotion is C4 |
 | B3 | Astra | blocked | | | | after B2 |
 | B4 | Claude | blocked | | | | After A1 free slot; non-blocking measurement; never delays B1 |
 | B5 | Claude | deferred | | | | Unique scanner value unproven; no removal |
@@ -1408,11 +1408,12 @@ success.**
 
 Recorded by `product-manager` from the coordinating lead's relay. This agent did not read
 the owner's message directly; the quotations below are the lead-supplied verbatim excerpts.
-Evidence in §§15.5–15.6 is as the lead reported it, tied to the branch's two commits:
-implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, then review fixes
-`9823beb9c7ba1f3f800dcfdabca349c472035595`. Short forms `704016f5` / `9823beb9` refer to
-these. The PR run, the post-merge run and the QA commit for delta nit N-a are still
-pending. Nothing pending is filled in advance.
+Evidence in §§15.5–15.6 is as the lead reported it, tied to the branch's commits:
+implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, review fixes
+`9823beb9c7ba1f3f800dcfdabca349c472035595`, and published head
+`d5dfa0615fb5770dca2fab50a8d052211c99308b`. Short forms `704016f5`, `9823beb9` and
+`d5dfa061` refer to these. Only the post-merge `main` run is still pending; nothing
+pending is filled in advance.
 
 ### 15.1 Authority
 
@@ -1640,6 +1641,18 @@ as §13.1.
 | actionlint 1.7.12 + pinned shellcheck 0.11.0 + `-pyflakes=`, local | `9823beb9` | exit 0, no output |
 | zizmor 1.30.1 `--min-severity medium .github/workflows`, local | `9823beb9` | "No findings" offline and online |
 
+**At the published head `d5dfa061`.** Relative to `9823beb9`, it tightens test assertions
+inside existing tests, adding no new identities, and changes documentation. Full pytest
+last ran at `9823beb9` (5,356 / 2 / 0) and was not re-run at `d5dfa061`.
+
+| Gate | Commit | Result |
+|---|---|---|
+| `test_ci_expansion_contracts.py` + `test_release_workflow_contracts.py` | `d5dfa061` | 176 passed |
+| The 9 workflow-contract files | `d5dfa061` | 323 passed |
+| flake8 blocking selection on changed Python | `d5dfa061` | 0 |
+| `generate_test_inventory.py --check` | `d5dfa061` | up to date (3,326) |
+| Mutation driver (scratch, not committed) | `d5dfa061` | 74 / 74 arms killed, 6 / 6 controls green |
+
 **Fixes applied** (against the §15.3 baseline).
 - **Checkouts.** All 32 `actions/checkout` steps set `persist-credentials: false`: the
   31 existing ones plus the lint job's own. By file: 20 `ci.yml`, 6 `deep-gate.yml`,
@@ -1682,8 +1695,8 @@ Internal agent IDs were not recorded.
 |---|---|---|---|
 | `code-reviewer` | `704016f5` | **approve with nits** | S1, no curl retry/timeouts: fixed in `9823beb9`. S2, linter-softening env vars not contracted: fixed (exact env key sets, no `GITHUB_ENV`, no workflow-level env). N1, `_packaged-windows.yml` pip cache: recorded residual. N2, stale test-file name in §15: fixed in this documentation update. N3, mutation driver not committed: confirmed. N4, widened untrusted-context pattern: fixed. N5, full `sha256sum` flags pinned: fixed. N6, `--proto-redir`: fixed. N7, the Linux tar member layout can only be proved on a Linux runner: proved by green-control rehearsal run `39342689323` (§15.6). Online mode is acceptable while non-required; owner decision before C4. |
 | `architecture-reviewer` | `704016f5` | **approve with nits** | Should-fix, stale §15 file name: fixed in this documentation update. Should-fix, the `release.yml` cache comment overclaimed tag-path cache-freedom: narrowed in `9823beb9`, residual recorded. "Inventory not regenerated": withdrawn by the reviewer in its delta review (it had misread the post-`704016f5` count); the inventory is regenerated in both commits. Nits: B1 inventory pointer (added, §15.4); untrusted-pattern gap (fixed). Endorsed building E1+D3 on B2 with the merge order in §15.2. |
-| `code-reviewer`, delta | `9823beb9` / `5e80a091` | **approve** | All prior S and N items resolved; no new defect. Nit N-a: the download contract should also pin `--proto-redir '=https'` and `--max-time`. automation-qa is adding both; that commit is pending and not yet in any recorded commit. |
-| `architecture-reviewer`, delta | `9823beb9` / `5e80a091` | **approve with nits** | Withdrew the "inventory not regenerated" point. The lead relayed the resulting documentation corrections, applied in this update: the §0.4 dated note, the §15.2 merge-order text, the inventory counts, the checkout count and the Dependabot line number. The relay did not attribute each correction to a specific reviewer. |
+| `code-reviewer`, delta | `9823beb9` / `5e80a091` | **approve** | All prior S and N items resolved; no new defect. Nit N-a: the download contract should also pin `--proto-redir '=https'` and `--max-time`; applied in `d5dfa061`. Nits N-b and N-c: the checkout count (32), the inventory-row wording and the Dependabot line number (109); applied in `d5dfa061`. |
+| `architecture-reviewer`, delta | `9823beb9` / `5e80a091` | **approve with nits** | Withdrew the "inventory not regenerated" point. Nits: the §0.4 dated note, the §15.2 stacking text, the §7 D3/E1 row wording and the inventory base count (3,300 before B2); applied in `d5dfa061`. |
 
 A review that did not run, or whose reviewer failed, is recorded as incomplete, never as
 "no findings".
@@ -1722,9 +1735,35 @@ is not authorized under the Operation A teardown restrictions. These runs are re
     exit 14: `error[template-injection]`, 1 high.
   - Both linters independently turned the job red.
 
-**Pending.**
-- **PR.** The number, the published head and the representative PR run on that head.
-- **Post-merge.** The real post-merge `main` push run cannot exist before the owner
-  merges. It is pending and is not inferred from PR runs.
-- **Promotion.** A red seeded job is pre-activation evidence only. Promotion still needs
-  the actual check-name observation and C4 activation, which this authorization excludes.
+**Publication.**
+- Pushed `ci/b2-workflow-lint` and opened ready PR
+  [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532), verified `OPEN`
+  and `isDraft: false` at 2026-10-19T23:52:50Z.
+- The published head is `d5dfa0615fb5770dca2fab50a8d052211c99308b`.
+- This receipt-only commit changes nothing but this file, and it starts a new PR run. That
+  run supersedes the one below as the current-head carrier. A run that is incomplete or
+  cancelled is not credited.
+
+**PR CI run [`39344273368`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39344273368)**
+(`pull_request`, attempt 1, head `d5dfa061`, created 2026-10-19T23:52:53Z, last job done
+2026-10-20T00:05:01Z, 12.1 min): **all 26 jobs success**, A1's 25 plus the new one. This
+is B2's clean representative PR run (§4 B2 acceptance).
+
+| Context | Completed (UTC) | From creation |
+|---|---|---|
+| `Workflow Lint (actionlint + zizmor)` | 23:52:57Z → 23:53:07Z (10 s) | 0.2 min |
+| `Run Tests` | 2026-10-20T00:00:34Z | 7.7 min |
+| `E2E Functional (Chromium)` | 2026-10-20T00:03:24Z | 10.5 min |
+
+The check name was observed on the PR exactly as `Workflow Lint (actionlint + zizmor)`.
+That observation is one input to C4's "actual check-name observation". C4 itself is not
+activated, and the job is not a required check.
+
+**Pending: the post-merge `main` push run.** It cannot exist before merge, and B2
+qualification is not complete until it is recorded. After the owner merges #532, record
+in this ledger the first `main` push run on the squash commit: the
+`Workflow Lint (actionlint + zizmor)` job's conclusion and its executed steps. It is not
+inferred from PR runs.
+
+**Promotion.** A red seeded job is pre-activation evidence only. Promotion still needs C4
+activation and its blocking proof, which this authorization excludes.
