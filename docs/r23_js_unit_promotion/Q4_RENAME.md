@@ -25,6 +25,14 @@ workflow/release contract is updated without changing its expected membership.
 Prepare and validate this isolated change, then re-read that slot and fresh main
 before publishing a workflow PR. This is not merge or C4 authority.
 
+**Receipt, 2026-10-21:** #544 and #547 merged with their separately approved
+heads and all 27 trusted checks green. The canonical ledger condition is now
+fulfilled, and this branch includes both merged documentation changes. Runtime,
+workflow and test trees are identical to the locally tested/reviewed rename
+commit `0aa2cd2b`; only documentation has been reconciled afterward. #546 remains
+open at `a8fca068`, so publication is still queued. The original signatures are
+not requested again. [Receipts](MERGE_RECEIPTS.md).
+
 ## Verification
 
 - Independent required `code-reviewer`, `/root/q4_code_review`, reviewed the

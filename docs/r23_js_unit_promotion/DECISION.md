@@ -1,7 +1,8 @@
 # R2.3 — JS Unit Q4 / D2 decision
 
-**Status: Q4 approved; D2 approved conditionally, effective only after §13.0
-records the specified cycle through its own process. C4 is not approved.**
+**Status: D2's ledger condition is fulfilled; its owner approval is effective.
+Q4's standalone rename is prepared and awaiting its workflow slot/landing.
+C4 is not approved.**
 Prepared 2026-10-20 on an isolated checkout of `main`; exact readings are in
 [`EVIDENCE.md`](EVIDENCE.md) and [`main-js-jobs.csv`](main-js-jobs.csv).
 
@@ -28,6 +29,14 @@ PR [#544](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/544), head
 publication in an unmerged PR is not represented as a completed mainline ledger
 update. Until that prerequisite lands, D2 remains conditional. No replacement
 T0, new window or repeat signature is requested.
+
+**Merge receipt, 2026-10-21:** the owner separately approved merging #544 then
+#547. They landed in that order as `b4a2653c` at `2026-10-20T23:15:04Z` and
+`aafba153` at `2026-10-20T23:15:25Z`. The pending statement above is preserved
+as the earlier recording. All 50 cycle observations now match the verified jobs
+in canonical main's §13.0, so **D2's condition is satisfied**. This is the
+effective decision, not GitHub check promotion. Full receipts and post-merge
+job results: [MERGE_RECEIPTS.md](MERGE_RECEIPTS.md).
 
 **Fresh verification, 2026-10-21:** the implementer independently re-read all
 50 cycle carriers and all JS job attempts from GitHub, then compared run ID,
@@ -90,7 +99,7 @@ and named merge gates remain governed by the repository workflow.
 
 | Decision | Ruling | Owner record |
 |---|---|---|
-| D2, JS Unit half | Approved, conditional on the specified §13.0 cycle being recorded with zero adverse JS job results | Owner, 2026-10-21; canonical ledger landing pending |
+| D2, JS Unit half | Approved; specified §13.0 cycle recorded with zero adverse JS job results, so the condition is fulfilled | Owner, 2026-10-21; #544 and #547 merged and verified |
 | Q4 | Use `JS Unit (Vitest)`; land the rename in its own change before protection | Owner, 2026-10-21; rename implementation and landing tracked separately |
 | Cancellation scope | Exact JS Unit job conclusions; preserve carrier conclusions separately | Owner clarification, 2026-10-21 |
 | C4 settings activation | Separate owner approval after code/contracts and live proofs | Not approved |
@@ -143,8 +152,8 @@ are reconciled. Promotion itself closes only on verified GitHub enforcement.
    are not enforcement evidence. Record the final names, bindings, SHA and live
    blocking result, then reconcile all live status references.
 
-**Completion evidence still needed:** mainline §13.0 ledger landing for D2's
-effective state; the standalone Q4 rename with required tests/review and named
-merge authority; separate C4 approval and live settings/blocking proof for actual
-promotion. The direct Q4/D2 owner signature and cancellation reading are recorded
-above and do not need to be requested again.
+**Completed:** the direct Q4/D2 owner signature, exact-job cancellation reading,
+canonical ledger landing and verification of D2's condition. **Still needed:**
+the standalone Q4 rename landing after its workflow slot is free, and separate
+C4 approval with live settings/blocking proof for actual promotion. The existing
+signatures and the two approved documentation merges need no repeat approval.

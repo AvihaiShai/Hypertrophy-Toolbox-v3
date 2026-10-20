@@ -5,8 +5,12 @@
 > recording the declared cycle through its own process. The owner expressly
 > selects **exact JS Unit job conclusions**: 50 green executions, zero red,
 > missing, skipped or cancelled JS jobs; the one cancelled carrier stays recorded.
-> [The decision record](../r23_js_unit_promotion/DECISION.md) preserves the exact
-> owner words and the pending ledger/rename landings. C4 needs separate approval.
+> **Ledger condition fulfilled:** #544 (`b4a2653c`) then #547 (`aafba153`) merged
+> with separate owner approval; all 50 canonical cycle observations match the
+> successful jobs. D2's approval is effective. The standalone rename landing
+> remains pending; C4 needs separate approval.
+> [Decision](../r23_js_unit_promotion/DECISION.md) and
+> [receipts](../r23_js_unit_promotion/MERGE_RECEIPTS.md).
 
 > **Scope**: the step-12 decision packet, **plus Packet A as implemented** (§9) **and Packet B as
 > implemented** (§10, Gate 1 approved with one owner amendment and executed 2026-08-22 — §10.11,
@@ -4312,6 +4316,13 @@ quoted on every claim that rests on them. **Where the dossier lacks a fact, this
 > mark are unchanged. Q4's rename is a separate change; C4 is not authorized.
 > Exact approval and evidence: [R2.3 decision](../r23_js_unit_promotion/DECISION.md).
 
+> **Receipt, 2026-10-21:** the pending-ledger clause above is spent. The owner
+> approved #544 then #547; both merged in that order (`b4a2653c`, `aafba153`).
+> Canonical main now records all 50 cycle observations at rows 26–75 with zero
+> red/missing/skipped/cancelled JS jobs, verified against the exact job IDs and
+> timestamps. D2's condition is fulfilled; no new signature or window is needed.
+> C4 remains unapproved. [Receipts](../r23_js_unit_promotion/MERGE_RECEIPTS.md).
+
 **Three annotation blocks elsewhere in this document point forward to this subsection** — the header's
 THIRD ANNOTATION, §6.5's "THE WINDOW IS NOW RUNNING" block, and §11.18's T0 annotation. This is the
 live block they defer to.
@@ -4965,6 +4976,9 @@ back byte-identical.
 | **111** | [`39445379283`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39445379283) | `push` / `a305e5a485f805711e3f393583f50a3eed656c54` (**PR #535, chore(deps): bump sass from 1.105.1 to 1.105.2**) | `success`, **26/26**, attempt **1** | [**`118705785047`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39445379283/job/118705785047) | **`success`** | **`2026-10-20T15:10:57Z`** |
 | **112** | [`39449180398`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39449180398) | `push` / `71c4cc6d2eea1147fcd3b1defe89fabaff0fb3ac` (**PR #531, docs: refresh handover, reconcile single queue, publish AGREED_PLAN (Q9)**) | `success`, **26/26**, attempt **1** | [**`118719077698`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39449180398/job/118719077698) | **`success`** | **`2026-10-20T15:31:42Z`** |
 | **113** | [`39489279999`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39489279999) | `push` / `1f5ae0f059f6cb4a994f92b6e03c57d689fd060c` (**PR #539, ci: add PR-only Dependency Review (B3)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`118857774388`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39489279999/job/118857774388) | **`success`** | **`2026-10-20T20:07:57Z`** |
+| **114** | [`39504386125`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39504386125) | `push` / `43f5df3357e0c8d9a1e7e3c050eb57ad1af5b538` (**PR #540, A2 Operation A Windows scheduling**) | `success`; job attempt **1** | [**`118909532396`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39504386125/job/118909532396) | **`success`** | **`2026-10-20T21:57:09Z`** |
+| **115** | [`39513763499`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39513763499) | `push` / `b4a2653c0b64965a6bd906ebb981fef0cd412bf7` (**PR #544, canonical ledger rows 65–113**) | `in_progress` at snapshot; overall conclusion pending; job attempt **1** | [**`118940855860`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39513763499/job/118940855860) | **`success`** | **`2026-10-20T23:15:29Z`** |
+| **116** | [`39513805113`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39513805113) | `push` / `aafba153cd0508d4f92934c3bf622ef0e9a9ff40` (**PR #547, conditional D2 approval and Q4 ruling**) | `in_progress` at snapshot; overall conclusion pending; job attempt **1** | [**`118940988132`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39513805113/job/118940988132) | **`success`** | **`2026-10-20T23:16:00Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5684,6 +5698,49 @@ pytest additions notwithstanding. **Q2's restart clause did not engage.**
 | Green results on Vitest 5 (rows 89–113) | **25** |
 | Cross-workflow completeness census | **194** — the rows-56–64 block's 77, plus 49 attempts and 68 non-attempts (44 Dependabot updates, 5 dependency-graph updates, 9 `deep-gate.yml`, 6 `deep-gate-watch.yml`, 2 `deep-gate-visual.yml`, 1 `linux-visual-gate1.yml`, 1 `release.yml`) |
 | Elapsed from declared T0 to row 113 | **53 d 20 h 49 m 36 s** |
+
+#### LIVE LEDGER — extended 2026-10-21 after #544 and #547 merged
+
+**Snapshot collected `2026-10-20T23:20:22Z`; main `aafba153`.** Rows 114–116
+above are actual observed jobs, not future row predictions. The exact JS Unit
+job succeeded on all three main carriers; #544/#547's workflows were still
+`in_progress` at the snapshot, so no overall green is claimed for them.
+
+The first-parent range `1f5ae0f0..aafba153` contains exactly three commits and
+matches these three `ci.yml` main pushes one-to-one. An all-workflow, all-event
+main-branch query after the preceding fixed cutoff `2026-10-20T20:20:57Z`
+returned five runs: the three CI carriers and scheduled `deep-gate-watch.yml`
+runs `39504346169` and `39507750144`. Both watch job enumerations contain zero
+exact-name JS jobs and are classified non-attempts. The census therefore adds
+**3 observations + 2 non-attempts** to the prior 194, giving **199**.
+
+**The owner resolved row 75's interpretative fork:** “Assess exact JS Unit job
+conclusions under §13.0.” Its cancelled carrier stays recorded; its successful
+JS job counts once, and the attempt-2 copy adds no execution. The historical
+stricter counts above remain their dated reading, not the chosen rule.
+
+**D2's condition is fulfilled.** Canonical main now records the entire declared
+cycle at rows 26–75, independently matched against all 50 actual job IDs,
+completion times and successful conclusions: **50 / 0 / 0 / 0 / 0**. #544 and
+#547 landed with separately granted named merge approval, in that order. T0
+and the strict mark remain unchanged. Q4's standalone rename is prepared;
+C4 settings activation still requires separate owner approval. The direct
+signature and its cancellation reading need no repeat approval.
+
+| Ledger tally at this snapshot | Value |
+|---|---:|
+| Recorded main CI observations since original T0 | **116** |
+| Green / red / missing / skipped / cancelled exact JS jobs | **116 / 0 / 0 / 0 / 0** |
+| Closed qualification cycle, rows 26–75 | **50 green; zero adverse JS job results** |
+| Green results on the declared 245-case suite, rows 26–116 | **91** |
+| Green results on Vitest 5, rows 89–116 | **28** |
+| All-workflow completeness census | **199** |
+
+This extension rides the standalone rename change under §11.10 rather than
+opening another ledger-only carrier. Its eventual main merge owes the next
+unclaimed row; no future row number is predicted. Exact approvals, merge
+receipts and post-merge job links: [R2.3 receipts](../r23_js_unit_promotion/MERGE_RECEIPTS.md).
+
 
 ---
 
