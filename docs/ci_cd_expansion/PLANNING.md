@@ -2,12 +2,12 @@
 
 | Field | Value |
 |---|---|
-| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19, including all five accepted findings. B1 merged (#521, `77f400bb`); A1 merged (#530, `f3adacf1`, §14); E3 merged (#529, `c7fec052`). B2 and E1+D3 authorized 2026-10-20 and claimed, in progress (§15). B3 and later packets not started.** Other packets require later execution authority; delivery council/Gate 1 remain separate. |
+| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19, including all five accepted findings. B1 merged (#521, `77f400bb`); A1 merged (#530, `f3adacf1`, §14); E3 merged (#529, `c7fec052`). B2 merged (#532, `1a5e0e6f`); its first main-push lint job succeeded (§15.6). E1+D3 is open PR #533, rebased onto B2's squash; final-head CI is required before merge (§16.8). B3 and later packets not started.** Other packets require later execution authority; delivery council/Gate 1 remain separate. |
 | Authors | Historical draft: Claude and Astra, 2026-10-18. Formal council document owner: `product-manager` `/root/product_manager`, 2026-10-19; read-only manager `/root`. |
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
 | Planning size | Large (new workflows, new jobs, repo-settings changes) — per `docs/ai_workflow/QUALITY_GATE.md` plan-stage routing: Gate 0 → council (`/council-plan`) → Gate 1 → implementation |
-| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), merged 2026-10-19T19:06:48Z. E3: `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529), merged 2026-10-19T19:06:05Z. B2: `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532), ready / open, not merged. E1+D3: `ci/e1-d3-deep-gate-observability`, stacked on B2; PR pending |
+| Branch / PR | B1: `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521), merged 2026-10-18T23:46:43Z. A1: `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530), merged 2026-10-19T19:06:48Z. E3: `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529), merged 2026-10-19T19:06:05Z. B2: `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532), merged as `1a5e0e6f`. E1+D3: `ci/e1-d3-deep-gate-observability`; [#533](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/533), rebased onto merged #532, targeting `main`, open; new CI pending |
 
 ### Review log
 
@@ -20,6 +20,7 @@
 | 2026-10-19 | `/root` → resumed `/root/product_manager` | Formal Steps 3–4 | Manager proposed acceptance of all five findings; same PM wrote §12.3 matrix and §12.4 Plan v2, completed provenance, and reconciled operative §§0–9. No reject/defer or repeated review pass. |
 | 2026-10-19 | Owner | Core Gate 1 and B1 execution | Approved §12.4 including the five accepted findings; authorized B1 implementation, gates, independent code-reviewer, push and ready PR. Stop before merge; §13 records execution. |
 | 2026-10-20 local (+03:00); 2026-10-19 UTC | Owner | B2 and E1+D3 execution; ledger follow-up | Authorized B2, E1+D3 as one coherent observability change, four documentation follow-ups, and implementation/tests/independent reviews/bounded rehearsals/commits/pushes/ready PRs. Stop before merge. Settings, C4, credentials, spending, release publication and B3+ excluded. §15 quotes the boundaries. |
+| 2026-10-20 | Owner; Codex consulting team | Named PR decisions and execution | Owner asked the AI consulting team to decide and proceed with #531, #532 and #533. Three independent read-only advisers recommended proceeding; Codex adopted the decisions and merge sequence in §16.8. Earlier stop-before-merge instructions are superseded for these three PRs only. |
 
 ---
 
@@ -28,11 +29,11 @@
 Other sessions share this repository; preserve their changes. The council originally owned only this planning document. The owner subsequently approved core Gate 1 and authorized B1 alone; §13 records that authority. The following controls apply to implementation; they do not authorize any other packet.
 
 1. **Nothing in §4 starts before its applicable Gate 1 and execution authority.** Gate 0 was approved 2026-10-19 for requirements and formal core planning only. Formal core council and owner Plan v2/Gate 1 approval are complete; only B1 has execution authority in this session. F1/F3 require their own scoped delivery council/Gate 1. §10 and §11 consultations are advisory evidence, not formal reviews. Q4/D2, credentials, spending, settings, PR merge and publication remain separate owner actions.
-   *Dated supersession, 2026-10-20 (2026-10-19 UTC):* the text above is retained as written. A1 (§14) and E3 later received their own authority and merged. The 2026-10-20 owner authorization adds execution authority for **B2 and E1+D3 only** (§15); B3 and every later packet still lack it.
+   *Dated supersession, 2026-10-20 (2026-10-19 UTC):* the text above is retained as written. A1 (§14) and E3 later received their own authority and merged. The 2026-10-20 owner authorization adds execution authority for **B2 and E1+D3 only** (§§15–16); B3 and every later packet still lack it.
 2. **Claim before you start.** Write your name and the date in the §7 ledger row. One packet is one PR. Two agents never hold the same packet.
 3. **Isolated implementation copies.** Follow `docs/ai_workflow/PARALLEL_WORKFLOW.md` and `scripts/new-worktree.ps1` before parallel work touching tests, DB or dev servers, preserving the Operation A hold. Read-only council reviewers and one planning-document writer need no DB/worktree activity. Never stash, reset or incorporate another session's changes.
 4. **One `ci.yml` PR in flight at a time.** Proposed order: B1 → A1 → B2 → B3 → A2 → A3 → G6 → G7; B4 may follow any merged slot after A1, but **must never delay B1**. E1/D3 and promotion-contract packets also serialize whenever they touch the same workflow. Each starts from current `origin/main` after the prior merge; merges require owner authority. B2/B3/G6/G7 priorities may move between free slots without weakening their dependencies or gates.
-   *Dated note, 2026-10-20:* the text above is retained as written. E1+D3 departs from "each starts from current `origin/main`": its PR carries B2's commits and merges after B2 (§15.2).
+   *Dated note, 2026-10-20:* the text above is retained as written. E1+D3 departs from "each starts from current `origin/main`": its PR carries B2's commits and merges after B2 (§15.2 and §16.2).
 5. **Evidence is tied to a commit.** Every ledger number names the PR head SHA and the run id it came from. A reviewer that did not run is `incomplete`, never `no findings`.
 6. **Reuse sufficient evidence; refresh only what the packet changes.** §2 remains the dated audit at `7ac1af2d`; manager confirmed the existing `origin/main` ref still matches that SHA on 2026-10-19 without a new live audit. New implementation evidence records tested SHA, run/event/attempt, exact job/step, executed identities, and current settings snapshots where relevant.
 7. **Never rename a protected check in isolation.** Preserve §2.3's exact twelve names and all adopted composite caller/child names. §11.5 defines distinct PR/release target sets; PR-only B3 is never demanded from a `main` release carrier. Preserve trusted-app binding `app_id: 15368`, exact-SHA and newest-run release checks.
@@ -401,7 +402,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
 | A5 | either | deferred | | | | CI-D5; no docs filtering in core |
 | B1 | Codex `/root`, 2026-10-19 | **merged** 2026-10-18T23:46:43Z by the owner as squash `77f400bb331e1de631a32114a7cc9996f5b5dd1e` | `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521) | implementation `1dfe011b1533f1339660b72a60249b390b296104`; final PR head `c91986bf376a1a09f055c4ee4dc4cb4d27bb601e` | Local: §13.1 unchanged. PR run `39171777513` (final head) 19/19 success; post-merge `main` push run `39177927596` on `77f400bb` success; post-merge scheduled Deep Gate `39226020933` 6/7 success, only pre-existing `visual-linux` red; §13.2 | Closed. C3/settings remain unauthorized |
-| B2 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | implemented; local gates, acceptance rehearsals and both delta reviews complete (code-reviewer approve, architecture-reviewer approve with nits); **ready PR, not merged** | `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532) | base `origin/main` `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`; implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, review fixes `9823beb9c7ba1f3f800dcfdabca349c472035595`; published head `d5dfa0615fb5770dca2fab50a8d052211c99308b` | PR run `39344273368` (`pull_request`, attempt 1, head `d5dfa061`) 26/26 success, `Workflow Lint (actionlint + zizmor)` 10 s, name observed exactly; local full pytest 5,356 passed / 2 skipped / 0 failed at `9823beb9`; targeted contracts and mutation 74/74 killed, 6/6 controls green at `d5dfa061`; rehearsals `39342689323` green control success, `39342691486` seeded PR-title red (both linters); baseline §15.3; §§15.5–15.6 | Stop before merge. Post-merge `main` push run pending; B2 qualification not complete until it is recorded (§15.6). Not in `REQUIRED_CONTEXTS`; promotion is C4 |
+| B2 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | implemented; local gates, acceptance rehearsals and both delta reviews complete (code-reviewer approve, architecture-reviewer approve with nits); **merged** 2026-10-20T13:12:10Z as squash `1a5e0e6f` | `ci/b2-workflow-lint`; [#532](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/532) | base `origin/main` `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d`; implementation `704016f5e01f26c2b5efbf0b3678593d060f0794`, review fixes `9823beb9c7ba1f3f800dcfdabca349c472035595`; published head `d5dfa0615fb5770dca2fab50a8d052211c99308b` | PR run `39344273368` (`pull_request`, attempt 1, head `d5dfa061`) 26/26 success, `Workflow Lint (actionlint + zizmor)` 10 s, name observed exactly; local full pytest 5,356 passed / 2 skipped / 0 failed at `9823beb9`; targeted contracts and mutation 74/74 killed, 6/6 controls green at `d5dfa061`; rehearsals `39342689323` green control success, `39342691486` seeded PR-title red (both linters); baseline §15.3; §§15.5–15.6 | First main-push run `39428398134`: lint job `118646704773` and both linters succeeded (§15.6); missing post-merge lint evidence complete. Not in `REQUIRED_CONTEXTS`; promotion is C4 |
 | B3 | Astra | blocked | | | | after B2 |
 | B4 | Claude | blocked | | | | After A1 free slot; non-blocking measurement; never delays B1 |
 | B5 | Claude | deferred | | | | Unique scanner value unproven; no removal |
@@ -412,8 +413,8 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | C5 | Owner | blocked | | | | Core Gate 1; owner disable; retain history |
 | D1 | Claude | blocked | | | | Core Gate 1 + OAuth/app; trusted orchestration/isolated config and adversarial/fresh-head proof; subscription only |
 | D2 | Astra | deferred | | | | Paired-trial proposal requires evidence, spend cap, credential |
-| D3 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | in progress — stacked on B2 (serialized: B2 edits every `deep-gate.yml` checkout and adds the lint that gates the new workflows); PR pending | `ci/e1-d3-deep-gate-observability` | pending | pending | Authorized with E1 as one change, 2026-10-20 (§15.1). PR targets `main`, carries B2's commits, merges after B2 (§15.2). E1 monitoring; newer executed-compare recovery distinct from schedule freshness; one registered `dangerous-triggers` suppression expected (§15.4) |
-| E1 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | in progress — stacked on B2 (serialized: B2 edits every `deep-gate.yml` checkout and adds the lint that gates the new workflows); PR pending | `ci/e1-d3-deep-gate-observability` | pending | pending | Authorized with D3 as one change, 2026-10-20 (§15.1). PR targets `main`, carries B2's commits, merges after B2 (§15.2). Both monitors active at split |
+| D3 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | implemented; gates and delta reviews complete (code-reviewer approve, architecture-reviewer approve with nits); **ready PR, not merged** | `ci/e1-d3-deep-gate-observability`; [#533](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/533) (rebased onto merged #532) | published head `cacc3f79e0eddc07fcb046654dd2cff0d4d1049c` (code `44cd5416`: implementation `b99b0ce4`, creation guard `29f8dfa1`, review fixes `d3b6e527`, `MANAGED_LINE` `44cd5416`; stacked on B2 `ddda9492`) | PR run `39421286969` (`pull_request`, attempt 1, head `cacc3f79`) 26/26 success, carrying B2's commits; full pytest 5,569 passed / 2 skipped / 0 failed at `cacc3f79` and at `d3b6e527`; lint, pyright, flake8 and inventory clean at `d3b6e527`; watch dry-runs `39343196678` (v1) and `39414109552` (v2, final code: creation guard live) success; §16 | Authorized with E1 as one change, 2026-10-20 (§15.1). PR rebased onto B2 squash `1a5e0e6f`; final-head CI required (§16.8). E1 monitoring; newer executed-compare recovery distinct from schedule freshness; one registered `dangerous-triggers` suppression expected (§15.4) |
+| E1 | Claude Code (Opus) CI coordinating lead, 2026-10-20 | implemented; gates and delta reviews complete (code-reviewer approve, architecture-reviewer approve with nits); **ready PR, not merged** | `ci/e1-d3-deep-gate-observability`; [#533](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/533) (rebased onto merged #532) | published head `cacc3f79e0eddc07fcb046654dd2cff0d4d1049c` (code `44cd5416`: implementation `b99b0ce4`, creation guard `29f8dfa1`, review fixes `d3b6e527`, `MANAGED_LINE` `44cd5416`; stacked on B2 `ddda9492`) | PR run `39421286969` (`pull_request`, attempt 1, head `cacc3f79`) 26/26 success, carrying B2's commits; full pytest 5,569 passed / 2 skipped / 0 failed at `cacc3f79` and at `d3b6e527`; visual compare rehearsal `39343153293`: compare executed, 65 failed / 18 passed (the pre-existing reds), no baseline written; `deep-gate-visual.yml` byte-identical at `d3b6e527`; 30/30 E1 contract mutations killed; v2 dry-run `39414109552`; §16 | Authorized with D3 as one change, 2026-10-20 (§15.1). PR rebased onto B2 squash `1a5e0e6f`; final-head CI required (§16.8). Both monitors active at split. `run_visual` dropped: interface delta accepted under delegation (§16.8). First scheduled visual run 2026-10-26 pending |
 | E3 | Claude Code session `hypertrophy-toolbox-v3-main-3f`, 2026-10-19 | executed; **merged** 2026-10-19T19:06:05Z by AvihaiShai as squash `c7fec0523f35f39d15b0e204edd2cfdf02650656` | `docs/e3-gate2-linux-bisect`; [#529](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/529) | harness `abf65918e01af75c0de9352a45fd0a9741d2ba70` (never-merged `diag/e3-h-linux-unsync-01-bisect`); final PR head `390ae1bf17d4a8bddc349a2c045e79e976666f63` | Run [`39276388378`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39276388378): `BOUNDARY_FOUND` then `CONFIRMED`; one capture, first-parent boundary `e6e57eac` (#463) → `e9eff89a` (#464); 10 probes / 30 invocations; [GATE2.md](../deep_gate_linux_visual_failure_20260831/GATE2.md). Final head: PR run `39278678473` (`pull_request`) success, rollup 19/19 success. Post-merge `main` push run `39308135423` on `c7fec052` success | No fix or visual-policy change; GATE1 options B/C/D remain owner decisions |
 | F1 | Astra | separate milestone | | | | Delivery council/Gate 1; candidate before publication |
 | F2 | tbd | deferred | | | | No signing purchase/credential/identity authority |
@@ -1767,3 +1768,398 @@ inferred from PR runs.
 
 **Promotion.** A red seeded job is pre-activation evidence only. Promotion still needs C4
 activation and its blocking proof, which this authorization excludes.
+
+**2026-10-20 post-merge receipt — the pending paragraph above is discharged.**
+Under the later delegation (§16.8), #532 was squash-merged at `2026-10-20T13:12:10Z`
+as `1a5e0e6fa1fbcfbb3544c16270edf6367956a435`, from verified head `ddda9492`.
+The first `main` push run is
+[`39428398134`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39428398134),
+attempt 1, on that exact squash SHA. Job `118646704773`, named exactly
+`Workflow Lint (actionlint + zizmor)`, succeeded at `13:12:27Z` (started `13:12:17Z`).
+Its checkout, pinned-tool install, `actionlint` and `zizmor (min severity medium)`
+steps all executed and succeeded. This completes B2's missing main-push lint evidence;
+the overall pipeline was still running when this job-level receipt was read.
+No required-check promotion or C4 activation is implied.
+
+## 16. E1 + D3 execution — 2026-10-20
+
+Recorded by `product-manager` from the coordinating lead's relay and the lead's E1/D3
+implementation brief, which quotes the owner's requirements verbatim (§16.1). Evidence is
+as the lead reported it, tied to these commits:
+- E1+D3 implementation `b99b0ce4064b2809313c69d76c85fd7665b657d3`;
+- creation guard `29f8dfa1c9267f8088864ebcf055847d63ad8a11`;
+- review fixes `d3b6e527c52d7f1e3f5577bed1d1f5ec7bf59775`;
+- final `MANAGED_LINE` wording `44cd54165c523c6cf2ef1507d5138862343fc80c`.
+
+Short forms refer to these. The published PR head is `cacc3f79e0eddc07fcb046654dd2cff0d4d1049c`
+(§16.7). All post-merge evidence is pending; nothing pending is filled in advance.
+
+### 16.1 Authority
+
+The same 2026-10-20 owner instruction as §15.1 authorizes "E1 + D3: separate Linux visual
+workflow and deterministic Deep Gate monitoring, delivered together as the coherent
+observability change permitted by the plan". The same stop-before-merge boundary applies,
+and the same exclusions: settings, C4, credentials, spending, release publication and
+later packets.
+
+Owner requirements, verbatim as quoted at the top of the brief:
+
+> Move visual-linux into Deep Gate Visual (Linux), preserving its weekly schedule, dispatch inputs,
+> compare behavior, and visual policy. Retain the six other Deep Gate jobs.
+> - Track each workflow independently.
+> - Upsert a workflow-specific issue for non-success completion, targeting the approved one-hour bound.
+> - Detect missing scheduled runs within the approved 36-hour bound using the current expected Monday 03:17 UTC slot.
+> - Manual runs, prior-week runs, and successes from another workflow cannot satisfy scheduled freshness.
+> - Resolve a visual-failure issue only with newer, successfully executed compare-mode evidence for the matching workflow/run/attempt/head.
+> - Skipped comparison, generation-mode success, and a green six-job Deep Gate cannot establish visual recovery.
+> - Handle duplicate/stale events, pagination, API failures, and incomplete or late runs explicitly.
+> Use minimal permissions and no execution of untrusted upstream artifacts. Preserve ADR-011,
+> baselines, tolerances, exemptions, and E3's diagnostic boundary.
+> Update the named workflow census, visual-source, seed, and recovery contracts. Provide the
+> approved behavioral fixtures and bounded live evidence. Distinguish measured timing from timing
+> that remains unproven.
+
+**Boundaries as applied here.** This packet does separation and monitoring only.
+- No rendering fix.
+- No baseline regeneration.
+- No ADR-011, tolerance or exemption change.
+- E3's diagnostic boundary is preserved: [GATE2.md](../deep_gate_linux_visual_failure_20260831/GATE2.md)
+  is untouched.
+
+### 16.2 Claim, isolation and serialization
+
+- **Claim.** Claude Code (Opus) CI coordinating lead, 2026-10-20, for D3 and E1 (§7).
+- **Isolation.** Standalone clone `D:/development/Hypertrophy-Toolbox-v3-ci-e1d3-20261020`
+  on `ci/e1-d3-deep-gate-observability`, with its own `.git`, `.venv` and `node_modules`.
+- **History.**
+  - The branch was started from `origin/main` `f3adacf1` and rebased onto `9823beb9`.
+  - It was then re-stacked onto B2's final head `ddda9492`.
+  - Rebase conflicts:
+    - `deep-gate.yml`: E1's removal of the visual job was taken onto B2's checkout lines.
+    - `tests/test_ci_expansion_contracts.py`: both the B2 and the D3 sections were kept.
+  - The test inventory was regenerated.
+- **Serialization.** As §15.2 records, the PR targets `main`, carries B2's commits and
+  merges after #532. This is the departure from §0.4 noted at §0 item 4.
+- **Coordination.** Another session dispatched manual Deep Gate run `39331294762` on
+  `visual/linux-baseline-resync-20261020`, with no PR and no claim (§15.2). The watch
+  ignores non-`main` runs, and no files overlap.
+
+| Role | Agent | Owns |
+|---|---|---|
+| `product-manager` | this agent | This file only |
+| `automation-qa` | — | Contracts and behavioral fixtures, written before implementation |
+| `senior-developer` | — | Implementation through `d3b6e527`. The owner stopped this agent during the pause; it is not relaunched without an explicit owner request |
+| `code-reviewer` | Claude Code subagent launched by the lead, 2026-10-20 (UTC 2026-10-19), read-only | Independent review (§16.4) |
+| `architecture-reviewer` | Claude Code subagent launched by the lead, 2026-10-20 (UTC 2026-10-19), read-only | Independent review (§16.4) |
+| Coordinating lead | Claude Code (Opus) | Bounded live rehearsals (§16.5); the wording-only `MANAGED_LINE` commit `44cd5416` |
+
+Internal agent IDs were not recorded.
+
+### 16.3 Design
+
+**E1: `.github/workflows/deep-gate-visual.yml`, "Deep Gate Visual (Linux)".**
+- Triggers: schedule `17 3 * * 1`, plus `workflow_dispatch` with `visual_mode`
+  (`compare` | `generate`, default `compare`).
+- One job, `visual-linux` / `Visual regression (Linux baselines)`: `ubuntu-24.04`,
+  timeout 25 min, no job `if:`.
+- The mode is resolved in its own step. The compare and generate steps are split, so the
+  API shows whether compare actually executed.
+- **Deliberate interface delta, for owner acknowledgement: `run_visual` is dropped.**
+  - The `architecture-reviewer` judged dropping it the safer choice. Keeping it would need
+    a job-level `if:`, and a default-false dispatch would then report green without
+    comparing.
+  - A stale `-f run_visual=true` dispatch now fails loudly, with HTTP 422.
+  - This still departs from the literal owner wording "preserving … dispatch inputs". The
+    owner has not yet acknowledged it.
+
+**E1: `deep-gate.yml`.** It keeps its six jobs, names unchanged, and now has no
+dispatch inputs.
+
+**D3: `.github/workflows/deep-gate-watch.yml`.**
+- **Triggers:**
+  - `workflow_run` on both workflow names, type `completed`, branch `main` only. It carries
+    one registered `zizmor: ignore[dangerous-triggers]` with its reason (§15.4).
+  - An hourly Monday–Tuesday cron `23 * * * 1,2`.
+  - A 6-hourly backup sweep `53 */6 * * *` (review fix, `d3b6e527`). It is a backup for
+    lost deliveries, not a means of meeting the one-hour target (§16.6).
+  - `workflow_dispatch` with `dry_run`.
+- **Permissions:** `{}` at the top level. The job gets `actions: read`, `contents: read`
+  and `issues: write`.
+- **Concurrency:** group `deep-gate-watch`, no cancellation.
+- **Untrusted input:** default-branch checkout only, no artifact download, no install. The
+  triggering event is read only as data.
+
+**D3: `scripts/deep_gate_watch.py`** (standard library only).
+- **Reconciliation.** Every trigger reconciles the full history over a 21-day window.
+- **Issues.** Each workflow has two independent issue kinds: failure and missing-schedule.
+  Each issue carries an HTML marker with `evidence=<run>.<attempt>` and `created=`.
+- **Recovery.**
+  - The suite issue resolves on a newer run in which every job succeeded.
+  - The visual issue resolves only on a newer run in which three things succeeded: the
+    `Visual regression (Linux baselines)` job, its `Run visual specs (compare)` step and its
+    `Assert compare mode wrote no baseline` step.
+  - Generation success, a skipped compare and a green suite never resolve the visual issue.
+- **Freshness.**
+  - Only `schedule` runs on `main` count, created in [slot, slot + 7 d) for the current
+    Monday 03:17Z slot.
+  - The alarm threshold is 20 h; the approved bound is 36 h.
+  - The first hourly check after the threshold is Monday 23:23Z, 20 h 06 min after the
+    slot. That leaves 15 h 54 min of margin before the bound.
+- **Creation guard** (`29f8dfa1`). A slot that began before the workflow's `created_at` is
+  `not_applicable`.
+- **Fail-closed.**
+  - Any of these makes that workflow unavailable: an API error, a pagination problem (cap
+    50, same-origin `Link` only), malformed data, or a jobs/attempt/head mismatch.
+  - "Unavailable" means exit 2 and no writes. It is never reported as healthy.
+  - Degraded path (review fix, `d3b6e527`): a failure run whose jobs cannot be read still
+    opens the failure issue, marked "job details unavailable". It can never count as
+    recovery or suppress a newer failure. Mismatched job rows are never shown, and the
+    path is idempotent.
+- **Managed issues** (`44cd5416`). Each issue body carries this `MANAGED_LINE` (§16.6):
+  `_Managed by Deep Gate Watch — do not edit the HTML comment marker; closing this issue by hand does not acknowledge it: the next sweep recreates it while the state persists._`
+- **Ordering.** A stale or duplicate delivery never regresses or duplicates an issue.
+
+**Reference and documentation updates.**
+- `scripts/css_audit/p3_ceiling.py` now reads the visual spec pair from
+  `deep-gate-visual.yml`. This is a required reference update; no audit baseline was
+  regenerated.
+- Narrow documentation updates: `docs/ai_workflow/QUALITY_GATE.md` and `e2e/CLAUDE.md`.
+- Review fixes in `d3b6e527`: `docs/MASTER_HANDOVER.md:486`,
+  `.github/dependabot.yml:109`, and an E1/D3 subsection in
+  [B1_ACTION_INVENTORY.md](B1_ACTION_INVENTORY.md).
+- **Known-stale, deliberately left alone:**
+  - `docs/CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json:221` (the baseline ledger's
+    `scopeNote`);
+  - historical evidence documents.
+
+### 16.4 Gates and reviews
+
+**Commits.**
+- Implementation `b99b0ce4064b2809313c69d76c85fd7665b657d3`, rebased from `655e008f` /
+  `b78bd296`.
+- Creation guard `29f8dfa1c9267f8088864ebcf055847d63ad8a11`, rebased from `ade69ae8`.
+- Review fixes `d3b6e527c52d7f1e3f5577bed1d1f5ec7bf59775`, by the senior-developer.
+- `MANAGED_LINE` wording `44cd54165c523c6cf2ef1507d5138862343fc80c`. The CI lead applied
+  this change, not the senior-developer, because the owner had stopped the developer agent
+  during the pause.
+- PR head `cacc3f79e0eddc07fcb046654dd2cff0d4d1049c`: `44cd5416` plus the commit carrying
+  the §16 PLANNING.md update.
+
+**Tests first.** automation-qa wrote:
+- 136 D3 tests, all erroring with `ModuleNotFoundError` before the implementation existed;
+- 21 creation-guard tests;
+- 19 review-fix tests, in `d3b6e527`.
+
+On the E1 contracts, 30 / 30 workflow mutations were killed.
+
+| Gate | Commit | Result |
+|---|---|---|
+| Full pytest, local | `ade69ae8` (pre-rebase) | 5,550 passed, 2 skipped, 1606 s |
+| Full pytest, local | `29f8dfa1` | **not credited**: 5,549 passed / 1 failed. The working tree was edited mid-run, so the watch cron contract read a file the developer had just changed |
+| Full pytest, local (code-reviewer N6) | `d3b6e527` | **5,569 passed, 2 skipped, 0 failed, 1543.2 s**, 2026-10-20T11:19:04Z → 11:44:48Z, with no concurrent working-tree edits |
+| 7 contract files | `29f8dfa1` | 477 passed |
+| actionlint + pinned shellcheck + `-pyflakes=`, all workflows | `d3b6e527` | exit 0 |
+| zizmor `--min-severity medium`, offline and online | `d3b6e527` | "No findings" (4 ignored, 13 suppressed); the one registered `dangerous-triggers` ignore |
+| pyright baseline diff | `d3b6e527` | PASS, 0 net-new |
+| flake8 blocking selection | `d3b6e527` | 0 |
+| Test inventory `--check` | `d3b6e527` | up to date (3,520 collected at `ade69ae8`) |
+| D3 section + `test_release_workflow_contracts.py` | `44cd5416` | 385 passed |
+| flake8 blocking selection; advisory (complexity 10, line 127) | `44cd5416` | 0; 0 |
+| pyright on `scripts/deep_gate_watch.py` | `44cd5416` | 0 errors |
+| Full pytest on the committed PR head | `cacc3f79` | **5,569 passed, 2 skipped, 0 failed, 1534.7 s**, 2026-10-20T11:48:24Z → 12:13:59Z, with no concurrent edits |
+| Test inventory `--check` | `cacc3f79` | up to date |
+
+`deep-gate-visual.yml` is byte-identical between the rehearsed `b78bd296` and `d3b6e527`
+(`git diff --quiet`), so compare rehearsal `39343153293` still applies to the final file.
+`44cd5416` is a one-line wording change made after the `d3b6e527` gates. Its own targeted
+gates are the `44cd5416` rows above.
+
+**Reviews.** The first reviews were on `29f8dfa1` and the delta reviews on `d3b6e527`. All
+reviewers were Claude Code subagents launched by the lead, and they were read-only.
+
+| Reviewer | Verdict | Findings and dispositions |
+|---|---|---|
+| `code-reviewer` | **approve with nits** | **S1**, the day-one suite issue: kept deliberately and documented (§16.5). **N1**, a jobs error blocks the failure issue: fixed in `d3b6e527`. **N2**, the sweep ran Monday–Tuesday only and nothing watches the watchdog: a 6-hourly sweep was added; watching the watchdog is recorded as a known limit (§16.6). **N3**, `created_at` registration semantics: at most one false "missing", never a false green. **N4**, a repeated comment on a partial close: accepted. **N5**, style: the unused `id: visual` is kept because a contract pins the step ids, and the static concurrency group is accepted. **N6**, a final-head full pytest is required: run at `d3b6e527`, 5,569 / 2 / 0. |
+| `architecture-reviewer` | **approve with should-fixes** | **Day-one false alarm:** kept deliberately, with a healing follow-up (§16.5). **Jobs-error suppression:** fixed in `d3b6e527`. **Name the `run_visual` delta:** done (§16.3). **Stale `MASTER_HANDOVER.md:486`:** fixed in `d3b6e527`. **B1 inventory line:** fixed in `d3b6e527`. **`MASTER_HANDOVER.md:41` / `:104` and the DECISIONS R1-D3 gate-clock reading:** not edited here, because docs PR #531 rewrites that block (§16.6 follow-up). **Nits:** marker durability, fixed with a "do not edit" line; cron-margin wording, fixed. |
+| `code-reviewer`, delta on `d3b6e527` | **approve** | The degraded path is fail-closed: it can never become recovery or suppress a newer failure, mismatched rows are never shown, and it is idempotent. The QA test changes weaken nothing. All three nits are accepted and recorded: **(a)** a "job details unavailable" issue is not backfilled at the same evidence key; **(b)** there is no success-run timeout arm (it takes the same path as a 502); **(c)** the 6-hourly sweep is a backup, not the one-hour target (§16.6). |
+| `architecture-reviewer`, delta on `d3b6e527` plus the §16 draft | **approve with nits** | **Withdrew** its classify special-case, and accepts keeping the day-one suite issue on condition that the healing dispatch is recorded as an owner action (done, §16.5). **Should-fix:** a manually closed issue does not stay closed, because the sweep recreates it. Fixed by the `MANAGED_LINE` commit `44cd5416` (§16.3, §16.6). It also reported the §0.4 note as missing; the note exists at §0 item 4 (from §15.2), and §16.2 now points to it. |
+
+**Disposition of S1 / the day-one finding.** The day-one suite issue is kept. The
+architecture-reviewer accepted this, on condition that the healing dispatch is recorded as
+an owner action. The code-reviewer accepted it.
+
+**The DECISIONS R1-D3 gate-clock point.**
+- After E1, the weekly-gate evidence spans two workflows.
+- The R2.4 / R1-D3 three-green clock should therefore be read per workflow.
+- The owner decisions themselves are unchanged.
+- Handle this at the next handover refresh.
+
+### 16.5 Live evidence
+
+These are bounded rehearsals on push-triggered throwaway branches. None of the branches is
+merged, and all are retained (no branch deletion under the Operation A teardown
+restrictions). The visual compare and v1 dry-run ran on the pre-rebase tree `b78bd296`;
+`deep-gate-visual.yml` is byte-identical at `d3b6e527` (§16.4). The v2 dry-run ran on the
+final code.
+
+| Case | Branch @ head | Run | Window (UTC) | Result |
+|---|---|---|---|---|
+| Visual compare | `rehearsal/e1d3-visual-compare-v1` @ `9edc9d6d` (`b78bd296` plus a push trigger) | [`39343153293`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39343153293), push, attempt 1 | job 2026-10-19T23:41:54Z → 23:58:11Z (16.3 min) | failure, as expected (the known reds) |
+| Watch dry-run v1 | `rehearsal/e1d3-watch-dryrun-v1` @ `a4e1d308` (`b78bd296` plus a push trigger, `DRY_RUN` forced true, `issues: read` only so writes were impossible) | [`39343196678`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39343196678), push, attempt 1 | 2026-10-19T23:42:15Z → 23:42:36Z | success |
+| Watch dry-run v2 | `rehearsal/e1d3-watch-dryrun-v2` @ `2d0f13f6` (`d3b6e527` plus a push trigger, `issues: read`, `DRY_RUN` forced) | [`39414109552`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39414109552), push, attempt 1 | 2026-10-20T11:19:18Z → 11:19:44Z | success |
+
+**Visual compare.**
+- Steps:
+  - `Resolve visual mode`: success.
+  - `Run visual specs (compare)`: **failure, 65 failed / 18 passed**. This matches the 65
+    pre-existing H-LINUX-UNSYNC-01 captures.
+  - `Run visual specs (generate)`: skipped.
+  - `Assert compare mode wrote no baseline`: success.
+  - Generated-baseline upload: skipped.
+  - Report upload: success.
+- ADR-011 is unchanged and no baseline was written.
+- For comparison, the last scheduled in-workflow visual job, in run `39226020933`, took
+  12.7 min.
+
+**Watch dry-run v1 summary.**
+- **Suite:** "failing (run 39226020933 attempt 1)"; freshness "fresh" for slot
+  2026-10-19T03:17Z; planned action "create failure issue".
+- **Visual:** "unknown", "missing"; planned action "create missing-schedule issue".
+- That visual result exposed the gap for slots before the workflow existed, which led to
+  the creation guard in `29f8dfa1`.
+
+**Watch dry-run v2 summary (final code).**
+- **Suite:** "failing (run 39226020933 attempt 1)"; fresh for slot 2026-10-19T03:17Z;
+  planned action "create failure issue". This is the expected day-one issue.
+- **Visual:** failure "unknown"; freshness "**not_applicable** (workflow created after this
+  slot began)"; no planned action. The creation guard is confirmed on live data.
+
+**Not exercised live.** Neither dry-run exercised the degraded path, the 6-hourly sweep or
+the managed line on live data; those are proven by fixtures only. The creation guard was
+exercised live, in v2.
+
+**Expected day-one behaviour after merge.**
+- The first reconcile opens "Deep Gate (manual + weekly) — failing" from pre-split run
+  `39226020933`. That run failed only on the visual job that has now moved. This is kept
+  deliberately, so the Linux failure stays visible across the split (§4 D3).
+- **Healing follow-up: owner actions.** No post-merge authority is held, so these
+  dispatches are the owner's. After merge, dispatch each workflow once on `main`:
+  - `deep-gate.yml`: a green six-job run heals the suite issue.
+  - `deep-gate-visual.yml` in compare mode: it will fail on the known reds and open the
+    visual failure issue. Linux tracking then lives with its own workflow.
+- The visual missing-schedule check is `not_applicable` for the 2026-10-19 slot. It is
+  live from the 2026-10-26 slot.
+
+### 16.6 Measured versus unproven
+
+**Measured:**
+- classification against real history (dry-runs v1 and v2, including the creation guard);
+- compare execution and its duration;
+- B2's `Workflow Lint (actionlint + zizmor)` linting `deep-gate-visual.yml` and
+  `deep-gate-watch.yml` in CI, green with the one registered suppression (PR run
+  `39421286969`, §16.7).
+
+**Unproven until after merge:**
+- **Dispatch latency of `workflow_run`.** It bounds the one-hour target. The step summary
+  records a "Dispatch latency" line for each event. That line measures from the watched
+  run's `updated_at` to the watchdog's start. It excludes the watchdog's own runtime and
+  its issue-write time, while the one-hour bound is end to end.
+- **Cron delay for the watch schedule.** It bounds the 36-hour target. The 6.5–7.5 h figure
+  is the Deep Gate's observed cron delay (§2.1), used here only as an estimate.
+- **The first real scheduled visual run,** due 2026-10-26.
+- **Issue writes with `issues: write`,** label creation (`POST /labels`), and closing an
+  issue with `state_reason`.
+- **Real `Link`-header pagination** beyond one page, and the `created>=` filter. Both are
+  proven by fixtures only.
+- **The degraded path and the 6-hourly sweep** on live data.
+
+**Known limits.**
+- **Nothing watches the watchdog** (code-reviewer N2).
+- **Lost `workflow_run` deliveries** are bounded by the 6-hourly sweep, which means up to
+  about 6 h plus cron delay, not 1 h (code-reviewer delta nit c).
+- **A manual close does not acknowledge an issue.** The sweep recreates a manually closed
+  issue while the condition persists. The `MANAGED_LINE` (`44cd5416`) makes this
+  explicit in the issue body (architecture-reviewer delta should-fix).
+
+**Post-merge follow-ups to record in this ledger:**
+- **Healing dispatches (owner action).** Dispatch `deep-gate.yml` once on `main`, and
+  `deep-gate-visual.yml` once in compare mode (§16.5).
+- **Rebase after #532 merges.** On this branch, run
+  `git rebase --onto origin/main ddda9492` (B2's head), then re-run CI on the final head.
+- **Owner acknowledgement of the `run_visual` delta** (§16.3).
+- **`MASTER_HANDOVER.md` gate-clock reading (`:41` / `:104`).** Record the per-workflow
+  reading (§16.4).
+  - Owner: the next session holding the handover-writer role.
+  - Trigger: the later of the #531 merge and this PR's merge.
+  - This PR edits `MASTER_HANDOVER.md:486`, a region #531 does not rewrite. Re-check for
+    conflicts at merge either way.
+- **The 2026-10-26 slot.** Record the first `fresh` result for both workflows and the
+  first scheduled `Deep Gate Visual (Linux)` run.
+- **The first `workflow_run`-triggered watch run,** with its dispatch-latency line.
+- **The first scheduled watch runs** on Monday and Tuesday.
+- **Whether a manually closed issue is recreated.**
+
+### 16.7 PR and publication
+
+**Publication.**
+- **Push.** Pushed `ci/e1-d3-deep-gate-observability`. The first push attempt failed with a
+  connection reset and was retried.
+- **PR.** Opened ready PR [#533](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/533),
+  titled with the suffix "[stacked on #532]". It was created at about
+  2026-10-20T12:18Z, after one GitHub API 499 on the first attempt, and verified `OPEN`
+  with `isDraft: false`.
+- **Published head:** `cacc3f79e0eddc07fcb046654dd2cff0d4d1049c`.
+- **PR body** states:
+  - the binding merge order: #532 first, then `git rebase --onto origin/main ddda9492`
+    and a CI re-run on the final head;
+  - the `run_visual` delta, for owner acknowledgement;
+  - the day-one issue and the owner's healing dispatches;
+  - that `git merge-tree` of `cacc3f79` against #531's head `20264e1b` is clean.
+- **This commit.** This receipt-only commit changes nothing but this file, and it starts a
+  new PR run. That run supersedes the one below as the current-head carrier. A run that is
+  incomplete or cancelled is not credited.
+
+**PR CI run [`39421286969`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39421286969)**
+(`pull_request`, attempt 1, head `cacc3f79`, 2026-10-20T12:18:41Z → 12:30:26Z): **all 26
+jobs success.**
+- `Workflow Lint (actionlint + zizmor)` succeeded at 12:18:55Z. This is B2's lint checking
+  the new `deep-gate-visual.yml` and `deep-gate-watch.yml` in CI, with the one registered
+  suppression.
+- `Run Tests` succeeded at 12:26:48Z.
+- The run carries B2's commits, as the stack requires (§16.2). It is **not** post-merge
+  evidence. After #532 merges, the rebased final head needs its own CI run (§16.6).
+
+### 16.8 Delegated decisions and merge execution — 2026-10-20
+
+The owner supplied the three-PR handoff and asked: "span the ai consulting team to
+decide and proceed with those PRs". Codex adopted that delegation for #531, #532 and
+#533, including their binding rebase/CI sequence and bounded post-merge qualification.
+It supersedes the earlier stop-before-merge boundary for these named PRs. It does not
+authorize settings, C4, later packets, release publication or baseline regeneration.
+
+Three independent read-only Codex advisers completed, with no blocking findings:
+`/root/ci_architecture_consult`, `/root/ci_test_consult` and
+`/root/ci_operations_consult`. They inspected source and recorded evidence, ran no
+tests and made no changes. These are advisory reviews of merge readiness, not a new
+formal council or replacements for the implementation reviews in §§15.5 and 16.4.
+
+The primary session adopted their unanimous recommendations:
+- **Accept the removal of `run_visual`.** Dispatching the separate visual workflow
+  supplies opt-in; an unconditional job avoids skipped-green comparisons. The pending
+  acknowledgement in §16.3 is discharged under this delegation.
+- **Keep zizmor online while non-required.** API failure remains red. The choice of a
+  required-check arrangement remains with C4; this does not authorize promotion.
+- **Merge #532 first; then rebase #533; require new CI; merge #531 last.** #532 merged
+  as `1a5e0e6f` (§15.6). `git rebase --onto origin/main ddda9492` completed without
+  conflicts, producing `7b6fd959`; its complete tree is identical to the former
+  `8ab0a5c8` head. This receipt adds documentation only. The resulting pushed head
+  still needs its own successful CI before #533 can merge.
+- **Qualify the split on merged `main`.** Run the six-job Deep Gate and the visual
+  workflow explicitly in compare mode; inspect the real watchdog issue writes and
+  completion-to-issue latency. Its dispatch-latency line excludes runtime and issue
+  writes and cannot alone prove the one-hour target.
+
+The 2026-10-26 scheduled runs and each workflow's freshness remain pending until
+observed. Manual dispatches cannot satisfy scheduled freshness or ADR-007's visual
+threshold. Existing release-cache and Dependabot-cooldown findings remain outside
+this packet. Branches and worktrees are retained under the teardown restrictions.

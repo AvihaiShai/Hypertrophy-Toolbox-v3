@@ -808,10 +808,9 @@ def _synthetic_root(tmp_path: Path, ledger: dict) -> Path:
     )
     for name in ("visual.spec.ts", "visual-baseline-thumbnails.spec.ts", "visual-helpers.ts"):
         shutil.copy2(ROOT / "e2e" / name, root / "e2e" / name)
-    shutil.copy2(
-        ROOT / ".github" / "workflows" / "deep-gate.yml",
-        root / ".github" / "workflows" / "deep-gate.yml",
-    )
+    # Every workflow, not one by name: E1 moved the visual run this record reads.
+    for workflow in (ROOT / ".github" / "workflows").glob("*.yml"):
+        shutil.copy2(workflow, root / ".github" / "workflows" / workflow.name)
     return root
 
 

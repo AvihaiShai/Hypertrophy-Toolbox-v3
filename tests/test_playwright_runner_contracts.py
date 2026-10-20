@@ -37,6 +37,9 @@ REPO = Path(__file__).resolve().parents[1]
 RUNNER = REPO / "scripts" / "run-playwright.ps1"
 CONFIG = REPO / "playwright.config.ts"
 DEEP_GATE = REPO / ".github" / "workflows" / "deep-gate.yml"
+# E1 moved the Linux visual job out of deep-gate.yml; the functional suite stayed.
+VISUAL_LINUX = REPO / ".github" / "workflows" / "deep-gate-visual.yml"
+VISUAL_RUN_STEPS = ("Run visual specs (compare)", "Run visual specs (generate)")
 E2E = REPO / "e2e"
 
 SPEC_TOKEN = re.compile(r"e2e/[A-Za-z0-9._-]+\.spec\.ts")
@@ -68,17 +71,34 @@ def runner_visual_group() -> list[str]:
 
 
 def deep_gate_visual_group() -> list[str]:
-    """The spec list the `visual-linux` job runs under PW_VISUAL_SEED=1."""
+    """The spec list the `visual-linux` job runs under PW_VISUAL_SEED=1, in both modes.
+
+    E1 split the one deep-gate.yml step into a compare and a generate step in
+    deep-gate-visual.yml; each must seed and render the same specs, or a
+    generated baseline would not be the one a later compare reads.
+    """
+    text = read(VISUAL_LINUX)
+    groups = []
+    for name in VISUAL_RUN_STEPS:
+        step = re.search(
+            rf"- name: {re.escape(name)}\n(.*?)(?=\n    - name: |\Z)", text, re.DOTALL
+        )
+        assert step is not None, f"deep-gate-visual.yml has no '{name}' step"
+        assert re.search(r"^        PW_VISUAL_SEED: '1'$", step.group(1), re.MULTILINE), (
+            f"'{name}' stopped setting PW_VISUAL_SEED; local and CI seeding would "
+            "diverge silently"
+        )
+        groups.append(SPEC_TOKEN.findall(step.group(1)))
+    assert groups[0] == groups[1], "compare and generate render different specs"
+    return groups[0]
+
+
+def test_the_suite_workflow_no_longer_carries_a_visual_seed_run() -> None:
+    """Moved, not copied: a second visual run left in deep-gate.yml would seed the
+    plan-bearing DB in a workflow the watchdog does not treat as visual evidence."""
     text = read(DEEP_GATE)
-    step = re.search(
-        r"- name: Run visual specs(.*?)(?=\n    - name: |\Z)", text, re.DOTALL
-    )
-    assert step is not None, "deep-gate.yml no longer has a 'Run visual specs' step"
-    assert "PW_VISUAL_SEED" in step.group(1), (
-        "the visual-linux step stopped setting PW_VISUAL_SEED; local and CI "
-        "seeding would diverge silently"
-    )
-    return SPEC_TOKEN.findall(step.group(1))
+    assert "- name: Run visual specs" not in text
+    assert "PW_VISUAL_SEED" not in text
 
 
 def deep_gate_full_e2e_script() -> str:

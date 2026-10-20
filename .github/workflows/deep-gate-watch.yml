@@ -1,0 +1,95 @@
+name: Deep Gate Watch
+
+# CI/CD expansion packet D3 (docs/ci_cd_expansion/PLANNING.md §4): a deterministic
+# watchdog for the two scheduled Deep Gate workflows, each tracked on its own.
+# scripts/deep_gate_watch.py does all the deciding; this file only starts it.
+#
+#   * Any non-success completion of either workflow upserts that workflow's
+#     `deep-gate` failure issue (run, attempt, head, failed jobs and first failing
+#     step, `Status: UNRESOLVED`). It closes only on newer recovery evidence for
+#     the same workflow -- for the Linux visual workflow, a run whose compare step
+#     actually executed and succeeded.
+#   * A missing or incomplete scheduled run for the current Monday 03:17 UTC slot
+#     opens a separate missing-schedule issue. Manual runs, earlier weeks' runs and
+#     the other workflow's runs never satisfy it.
+#   * Evidence the API cannot deliver fails this job (exit 2) and writes nothing
+#     for that workflow; it is never read as healthy.
+on:
+  # zizmor reports every `workflow_run` trigger as dangerous-triggers, because the
+  # triggered run gets this repository's token while the triggering run may have
+  # been controlled by someone else. Neither half applies here:
+  #   * both watched workflows run only on `schedule` and `workflow_dispatch`, so
+  #     no fork or pull request can trigger them, and `branches: [main]` filters
+  #     the completions to the default branch;
+  #   * this job checks out only the default-branch revision of this repository
+  #     (no `ref:`), downloads no artifact, installs nothing, and executes nothing
+  #     from the triggering run -- the event reaches the script only as data, via
+  #     the file at $GITHUB_EVENT_PATH.
+  workflow_run:  # zizmor: ignore[dangerous-triggers] reviewed; see the comment above
+    workflows:
+      - 'Deep Gate (manual + weekly)'
+      - 'Deep Gate Visual (Linux)'
+    types: [completed]
+    branches: [main]
+  schedule:
+    # Hourly through Monday and Tuesday UTC; the 36 h bound rests on this cron alone.
+    # The first check after the 20 h missing-run threshold is Monday 23:23, 20 h 06 min
+    # after the 03:17 slot and 15 h 54 min before the approved 36 h bound. This cron's
+    # own delay is not yet measured; the margin is sized against an ESTIMATE borrowed
+    # from the Deep Gate's observed cron delay (6.5-7.5 h, PLANNING.md §2.1), which it
+    # covers more than twice, with hourly retries behind it if one check is dropped.
+    - cron: '23 * * * 1,2'
+    # Backup sweep on every day for lost workflow_run deliveries (failure issues).
+    - cron: '53 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report the planned issue changes without writing them'
+        type: boolean
+        default: false
+
+# No default token scopes; the one job below declares exactly what it needs.
+permissions: {}
+
+# Each run reconciles the full 21-day history, so a queued run superseded by a
+# newer one loses nothing; serialising prevents two concurrent runs from both
+# creating the same issue.
+concurrency:
+  group: deep-gate-watch
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    name: Reconcile Deep Gate status
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # actions: read lists runs and jobs; issues: write upserts and closes the
+    # `deep-gate` issues and creates that label once; contents: read is checkout.
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    # Standard library only: no dependency install and no cache to restore.
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: '.python-version'
+
+    - name: Reconcile Deep Gate issues
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DRY_RUN: ${{ inputs.dry_run }}
+      run: |
+        args=()
+        if [ "$DRY_RUN" = "true" ]; then
+          args+=(--dry-run)
+        fi
+        python scripts/deep_gate_watch.py reconcile --repo "$GITHUB_REPOSITORY" \
+          --event-path "$GITHUB_EVENT_PATH" "${args[@]}"
