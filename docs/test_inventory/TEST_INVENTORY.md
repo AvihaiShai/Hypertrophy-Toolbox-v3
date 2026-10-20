@@ -15,8 +15,8 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **686** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **540** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **3550** across 133 files |
-| pytest test files (all) | **134** |
+| pytest collected nodes (deterministic subset) | **3627** across 135 files |
+| pytest test files (all) | **136** |
 | JS unit cases (Vitest) | **245** across 13 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
@@ -69,6 +69,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | File | Collected |
 |---|---:|
 | `tests/test_agent_workflow_contracts.py` | 109 |
+| `tests/test_app_factory.py` | 44 |
 | `tests/test_auto_backup.py` | 7 |
 | `tests/test_axe_contracts.py` | 8 |
 | `tests/test_body_composition_history_busy_signal_contracts.py` | 13 |
@@ -159,13 +160,14 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_progression_plan_utils.py` | 46 |
 | `tests/test_pyright_baseline_diff.py` | 13 |
 | `tests/test_python_version_contract.py` | 17 |
-| `tests/test_real_app_db_isolation.py` | 5 |
+| `tests/test_real_app_db_isolation.py` | 10 |
 | `tests/test_release_gate.py` | 60 |
 | `tests/test_release_workflow_contracts.py` | 93 |
 | `tests/test_rep_range_integrity.py` | 50 |
 | `tests/test_replace_exercise.py` | 17 |
+| `tests/test_runtime_init.py` | 27 |
 | `tests/test_runtime_migration.py` | 24 |
-| `tests/test_runtime_paths.py` | 22 |
+| `tests/test_runtime_paths.py` | 23 |
 | `tests/test_schema_registry.py` | 5 |
 | `tests/test_session_summary.py` | 37 |
 | `tests/test_session_summary_routes.py` | 33 |
