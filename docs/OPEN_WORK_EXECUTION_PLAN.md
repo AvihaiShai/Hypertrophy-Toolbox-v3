@@ -154,7 +154,7 @@ is authorized by that repair or by the closeout.
 
 | Item | State at `b86e9ad7` | Record |
 |---|---|---|
-| **R2.3 — Q4/D2** (`JS Unit` required?) | **Unsigned.** No longer time-gated: the strict mark `2026-09-10T23:18:21Z` has passed, which is a precondition, not a signature | §15.4 item 4; [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0 |
+| **R2.3 — Q4/D2** (`JS Unit` required?) | **Owner approval recorded 2026-10-21.** D2 is conditional until §13.0 records the declared 2026-08-27 → 2026-09-10T23:18:21Z cycle with zero adverse exact JS Unit job conclusions; ledger PR #544 remains pending. Q4 approves `JS Unit (Vitest)` in its own change before protection. C4 settings activation requires separate owner approval | [Exact ruling](r23_js_unit_promotion/DECISION.md); [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0 |
 | **R2.4** (`visual-linux` in the release gate) | **Unsigned.** ADR-007's threshold is unmet. Eight mixed-workflow scheduled failures through 2026-10-19 predate the split; read suite and visual clocks separately from #533 onward. Next slot 2026-10-26 | §15.4 item 5 |
 | **R3** (real tag trigger) | **Unproved.** `release.yml` has two `workflow_dispatch` runs and no `push` run; only a real version tag named by the owner can prove it | §15.4 item 6; §4 R3 |
 | **H-LINUX-UNSYNC-01** next step | Option A ran as CI/CD E3 (#529, `c7fec052`): one capture, first-parent boundary #463 → #464, no fix. **Options B, C and D remain owner decisions**; fixes, wider matrices and baseline changes are unauthorized | [`GATE1.md`](deep_gate_linux_visual_failure_20260831/GATE1.md), [`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md) |

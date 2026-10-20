@@ -511,7 +511,16 @@ Ordering principle: **make the existing suite honest before making it bigger.** 
 D6 is signed as retain-informational ([§8.1c](#81c-fourth-sign-off-2026-08-14--d6)); **D7 is signed as
 keep-the-stance-and-document** ([§8.1d](#81d-fifth-sign-off-2026-08-21--d7)); **D4 is signed with a
 bounded scope and two product rulings** ([§8.1e](#81e-sixth-sign-off-2026-08-29--d4), ADR-009).
-**The `js-unit` half of D2 is the only decision in this table still unsigned.** The sentence this
+**Updated 2026-10-21:** the `js-unit` half of D2 is **approved conditionally**:
+the §13.0 ledger must record the `2026-08-27` → `2026-09-10T23:18:21Z` cycle
+through its own process with zero adverse **JS Unit job** results. The owner
+expressly selected exact JS Unit job conclusions, so the cancelled workflow
+carrier's successful JS job counts green without duplicate rerun credit.
+Q4 approves `JS Unit (Vitest)` in its own change before protection. The canonical
+ledger landing and rename landing remain pending; C4 needs separate approval.
+[Exact owner ruling and evidence](r23_js_unit_promotion/DECISION.md).
+The prior statement, *“the `js-unit` half of D2 is the only decision in this table
+still unsigned”*, is superseded. The sentence this
 paragraph carried until 2026-08-29 — *"D4 remains unsigned and no work may act on it"* — is
 superseded; what may act on D4 is bounded by §8.1e and by nothing wider.
 See [§8.1](#81-owner-sign-off-recorded-2026-08-01).
