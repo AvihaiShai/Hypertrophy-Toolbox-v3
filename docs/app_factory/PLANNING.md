@@ -307,7 +307,7 @@ Each criterion assumes the recommended answers. The criterion numbering follows 
    - `utils.config.DB_FILE` equals its import-time value;
    - `app.app` is a `Flask` instance and exactly one was constructed;
    - only `<scratch>/` and `<scratch>/logs/` (with `app.log`) may have been created.
-   
+
    The same holds when `DB_FILE` points at a non-existent scratch path, and when only `utils.config.DB_FILE` is patched before import. Asserted by subprocess tests that replace the import-subject cases of `tests/test_real_app_db_isolation.py`.
 2. **Initialization order** (Q-WS3-6). Given `utils/runtime_init.py`, when `init_runtime()` is called once with its steps mocked, then the calls occur in this order:
    1. `prepare_runtime_database`;
@@ -316,7 +316,7 @@ Each criterion assumes the recommended answers. The criterion numbering follows 
    4. `run_all_initializers(force_base=False)`;
    5. `upgrade_catalog_from_seed` (skipped when the seed just ran);
    6. `create_startup_backup` (skipped when the seed just ran).
-   
+
    The result exposes `database_path`, `migration_action`, `seeded`, `snapshot_path` and `already_initialized`. This mock-based test replaces the AST line-number test at `tests/test_runtime_paths.py:200-222`. `utils/runtime_init.py` imports no `routes` or `app` module.
 3. **Repeated initialization** (Q-WS3-4). Given `init_runtime()` has completed once in a process:
    - (a) a second call with the same resolved key returns `already_initialized=True`, with no migration, seed copy, schema pass or upgrade, and no new file in `auto_backup/`;
@@ -325,7 +325,7 @@ Each criterion assumes the recommended answers. The criterion numbering follows 
    - (d) a retry after a failed call that had already seeded skips upgrade and backup;
    - (e) under `TESTING=1`, a call with neither an explicit `db_file` nor env `DB_FILE` raises before touching any file;
    - (f) after `utils.runtime_init._reset_for_tests()`, a call with a different key initializes normally instead of raising. A contract test proves that no production entry point (`app.py`, `app_launcher.py`, any `utils/`, `routes/` or `scripts/` module other than `utils/runtime_init.py` itself) references `_reset_for_tests`.
-   
+
    `/erase-data` still writes a snapshot on every confirmed call.
 4. **Factory construction** (Q-WS3-2, Q-WS3-2H, Q-WS3-3). Given `create_app()` is called twice in one process, when both applications are inspected, then:
    - each is a distinct `Flask` instance with the same 13 blueprint names and the same URL rule set as today's module-level app;
@@ -352,7 +352,7 @@ Each criterion assumes the recommended answers. The criterion numbering follows 
    - the five token-less `/erase-data` sites (`test_database_user_profile.py:170`, `test_db_migration.py:171`, `test_program_backup.py:822,838,855`) send `{"confirm": "ERASE_ALL_DATA"}`;
    - **every changed assertion is listed in the PR with its reason, and none is weakened**;
    - the dead `test_pattern_coverage.py:417` fixture is deleted with a reason.
-   
+
    The five self-built minimal test apps (F1a) are explicitly unchanged.
 7. **Launch paths** (Q-WS3-4). Given `python app.py` and the packaged bootloader (`app_launcher.main()`), when each starts, then `init_runtime()` runs exactly once per serving process before `app.run(...)`; with the reloader on, the monitoring parent does not initialize. The following behave as today: `HT_PORT`, `FLASK_DEBUG`, `FLASK_USE_RELOADER`, `HT_NO_BROWSER`, the `__main__` WAL-checkpoint/signal cleanup (not added to the launcher), and the launcher's import-time `chdir`/`sys.path` and error-wait UX. `scripts/smoke_packaged_app.py` passes in bootloader mode (including `check_upgrade_migration`) and payload mode, and the `deep-gate.yml` / `release.yml` first-install, empty-schema and old-DB jobs pass with no workflow edit.
 8. **`/erase-data` unchanged.** Given the real route on `create_app()`, when it is called with and without the exact token, then the F8 contract is unchanged:
@@ -361,7 +361,7 @@ Each criterion assumes the recommended answers. The criterion numbering follows 
    - `data.auto_backup` as `{"filename": …}` or `None`;
    - the same message;
    - 500 `INTERNAL_ERROR` on any exception.
-   
+
    `tests/test_erase_data_guard.py` passes.
 9. **Frozen build and imports.** Given `sys.frozen` is true, the frozen block and `STATIC_LONG_MAX_AGE_SECONDS` apply exactly as today. `from app import app` and `from app import STATIC_LONG_MAX_AGE_SECONDS` keep working for `app_launcher.py`, `tests/test_static_cache_policy.py` and `scripts/smoke_packaged_app.py`. The smoke's in-process import no longer runs startup, and that behavior change is recorded in the PR.
 10. **Written promise** (Q-WS3-2). When the PR lands, root `CLAUDE.md` states the Q-WS3-2(a) promise text verbatim and stays under 200 lines (`tests/test_agent_workflow_contracts.py:673-680` passes).
@@ -375,7 +375,7 @@ Each criterion assumes the recommended answers. The criterion numbering follows 
     - backup/restore: `tests/test_program_backup.py` plus a manual backup/restore smoke in the clone;
     - both launch paths;
     - pyright with no net-new diagnostics, vulture, a regenerated `Test Inventory Drift`, and `tests/test_agent_workflow_contracts.py`.
-    
+
     No Waitress or server-behavior change. All runtime evidence comes from the standalone clone with private paths (IC-1…IC-2) and records those paths.
 13. **Documentation.** When the PR lands, every statement in the F9 `f3adacf1` list that WS3 makes false is corrected in place:
     - "Register in both `app.py` and `tests/conftest.py`" becomes "register in `create_app()`".
@@ -1360,7 +1360,7 @@ Section 0's AC text stays as signed at Gate 0. These refinements follow from the
   - `utils.config` as a module object, so `importlib.reload(utils.config)` (`tests/test_catalog_seed_bootstrap.py:125-130`, `tests/test_runtime_paths.py`) stays visible;
   - `get_logger` and `runtime_root`;
   - the five step functions by name, so tests patch `utils.runtime_init.<step>`.
-  
+
   It imports no `flask`, `routes`, `app` or `app_launcher`. This is enforced by an AST test and by a fresh-interpreter `sys.modules` test [TS-9].
 - `create_app()` calls no runtime step and never calls `setup_logging()`, `DatabaseHandler`, `sqlite3` or any filesystem function. `init_runtime()` never touches a Flask object. Only the entry points join them (§V4).
 - `routes` → `utils` only; never the reverse.
@@ -1720,7 +1720,7 @@ All of this runs in the standalone clone with private paths (IC-1/IC-2); every e
     - `rg -n "register(ed)? in (\*\*)?both" CLAUDE.md .claude routes/CLAUDE.md tests/CLAUDE.md utils/CLAUDE.md docs/ai_workflow`
     - `rg -n "flask run --reload" app.py`
     - `rg -n "Slow request detected|log_request_info|start_timer" --glob "!docs/archive/**"`
-    
+
     A reviewer also reads each F9 and R-4 line against the new behavior.
 17. **URL-map evidence:** the S1(a) capture equals the post-C3 capture (D-16). A non-empty diff is a WS3 defect.
 18. **A8b measurement before Gate 2** (§V16).
