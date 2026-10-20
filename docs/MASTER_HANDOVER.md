@@ -109,7 +109,7 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`finding1_residual/`](finding1_residual/PLANNING.md): residual behavior needs a current reference.
 - [`backup_confirmation_continuity/`](backup_confirmation_continuity/PLANNING.md): residual-risk reconciliation.
 - [`release_pipeline/`](release_pipeline/PLANNING.md): R3, deep-gate entry conditions.
-- [`deep_gate_linux_visual_failure_20260831/`](deep_gate_linux_visual_failure_20260831/GATE1.md): options B–D after [`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md).
+- [`deep_gate_linux_visual_failure_20260831/`](deep_gate_linux_visual_failure_20260831/GATE1.md): option C (Linux baseline sync) taken after [`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md); a compare run on `main` remains.
 - [`visual_determinism/`](visual_determinism/PLANNING.md): the ADR-011 residual.
 - [`volume_failure_feedback/`](volume_failure_feedback/PLANNING.md): U1-FOLLOWUP-1.
 - [`toast_action_continuity/`](toast_action_continuity/PLANNING.md): U1-FOLLOWUP-1's amended condition.
@@ -125,6 +125,7 @@ is the 2026-10-26 scheduled slot, read independently for the suite and visual wo
 record it through [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §§16.9–16.10.
 `run_visual` removal is accepted and zizmor stays online while non-required (§16.8).
 A green suite or a manual dispatch cannot satisfy the scheduled visual threshold.
+Issue #537 closes on the first `main` compare run after the Linux baseline sync merges.
 Nothing else starts automatically; B3, C4/settings and later packets keep their own authority
 and gates.
 
@@ -163,8 +164,9 @@ and gates.
   run"; with a serial suite, 11 is a floor. The unblock sequence is not to be re-run.
 - Pixel counts cannot tell CSS-arc drift apart from a real regression. Any regeneration therefore
   needs a human by-eye review of the PNGs, and `maxDiffPixels` stays where it is.
-- The current Linux failure (as of 2026-10-19) is a separate condition:
-  [H-LINUX-UNSYNC-01](deep_gate_linux_visual_failure_20260831/GATE1.md).
+- The 2026-10-19 Linux failure is a separate condition:
+  [H-LINUX-UNSYNC-01](deep_gate_linux_visual_failure_20260831/GATE1.md). Under GATE1 option C the
+  owner approved regenerated Linux PNGs by eye on 2026-10-21 (generate run `39465642620`).
 
 ## Active Workstreams
 | Workstream | Status | Next safe step | Docs |
