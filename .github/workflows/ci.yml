@@ -880,7 +880,7 @@ jobs:
         HT_RUNTIME_DIR: '${{ runner.temp }}/operation-a-runtime'
         PYTHONDONTWRITEBYTECODE: '1'
       run: |
-        python -m pytest tests/test_worktree_environment_preflight.py tests/test_worktree_lifecycle.py tests/test_worktree_snapshot.py -v --tb=short --junitxml=artifacts/pytest/worktree-windows.xml
+        python -m pytest tests/test_worktree_environment_preflight.py tests/test_worktree_lifecycle.py tests/test_worktree_snapshot.py -n 4 --dist loadfile -v --tb=short --junitxml=artifacts/pytest/worktree-windows.xml
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Require executed coverage without skips

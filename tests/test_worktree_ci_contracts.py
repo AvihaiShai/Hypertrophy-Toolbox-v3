@@ -55,6 +55,8 @@ def test_windows_job_runs_all_operation_a_modules_and_checks_execution():
         assert f"{variable}: ${{{{ runner.temp }}}}" in job
     command = next(line.strip() for line in job.splitlines() if "python -m pytest " in line)
     assert command.split()[3:6] == [module.replace(".", "/") + ".py" for module in MODULES]
+    # Keep module-scoped fixtures on one worker while shortening the native job.
+    assert "-n 4 --dist loadfile" in command
     assert not re.search(r"(?:^| )(-k|-m|--ignore|--deselect)(?:[ =]|$)", command.split("pytest ", 1)[1])
     assert "--junitxml=artifacts/pytest/worktree-windows.xml" in command
     assert "if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }" in job

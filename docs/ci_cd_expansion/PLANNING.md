@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19, including all five accepted findings. B1 merged (#521, `77f400bb`); A1 merged (#530, `f3adacf1`, §14); E3 merged (#529, `c7fec052`). B2 merged (#532, `1a5e0e6f`); first main push green, 26/26 (§15.6, §16.9). E1+D3 merged (#533, `48d6a450`), after rebase and fresh-head CI 26/26 (§16.9). D3 trigger repair #538 merged as `b86e9ad7`; bounded live delivery/recovery is recorded, with scheduled qualification pending (§16.10). B3 authorized 2026-10-20 and implemented on `ci/b3-dependency-review` as implementation commit `90cde802`: gates (full pytest 5,580 / 2 / 0), four rehearsals, reviews and delta reviews complete; ready PR #539 open, not merged; PR CI pending (§17). A2 and later packets not started.** Other packets require later execution authority; delivery council/Gate 1 remain separate. |
+| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19, including all five accepted findings. B1 merged (#521, `77f400bb`); A1 merged (#530, `f3adacf1`, §14); E3 merged (#529, `c7fec052`). B2 merged (#532, `1a5e0e6f`); first main push green, 26/26 (§15.6, §16.9). E1+D3 merged (#533, `48d6a450`), after rebase and fresh-head CI 26/26 (§16.9). D3 trigger repair #538 merged as `b86e9ad7`; bounded live delivery/recovery is recorded, with scheduled qualification pending (§16.10). B3 authorized 2026-10-20 and implemented on `ci/b3-dependency-review` as implementation commit `90cde802`: gates (full pytest 5,580 / 2 / 0), four rehearsals, reviews and delta reviews complete; B3 merged through #539 as `1f5ae0f0` on 2026-10-20T20:07:19Z (§17; refreshed receipt §19). Owner authorized continuation A2 → A3 → G6 → G7 with the AI consulting team; A2 implementation and validation in progress (§19), later packets await the serial workflow slot.** Other packets require later execution authority; delivery council/Gate 1 remain separate. |
 | Authors | Historical draft: Claude and Astra, 2026-10-18. Formal council document owner: `product-manager` `/root/product_manager`, 2026-10-19; read-only manager `/root`. |
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
@@ -400,7 +400,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | Packet | Owner (proposed) | Status | Branch / PR | Head SHA | Evidence (run id, job, value) | Notes |
 |---|---|---|---|---|---|---|
 | A1 | Claude Code (A1 session), 2026-10-19 | **merged** 2026-10-19T19:06:48Z by AvihaiShai as squash `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d` | `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530) | published head `18fc388a38cd4efcd9140aaf9cdfa3f49b0ad6db` (code tree `0e4f342` + review nits, §14.6); final PR head `699c56820603237fc490ced3114d359b00f37cf9` | PR run `39289691671` 25/25 success, last required context 10.4 min (baseline 28.2–32.3); bench `39270742974` attempts 1–2; rehearsals `39285097596`, `39285103455`, `39285105591`, `39285108590`, `39285112726`, `39288227037`; local full pytest 5,330 passed / 2 skipped at `0e4f342`; §14. Final head: PR run `39291809942` (`pull_request`, attempt 1) success, rollup 25/25 success. Post-merge `main` push run `39308234107` on `f3adacf1`, attempt 1, success | Closed. Final head advanced after §14.6; §14's receipts are historical. `download-artifact` joins the C3 candidate set. §14.7's post-merge timing confirmation is not recorded here; no scheduled Deep Gate has run since A1 |
-| A2 | Astra | blocked | | | | Core Gate 1; identities preserved; not a promotion prerequisite |
+| A2 | Codex `/root`, 2026-10-20 | implementing; execution gates pending | `ci/a2-operation-a-parallel`; PR pending | baseline `1f5ae0f0` | Native baseline: run `39484164996`, job `118840137591`, 251 passed; targeted contracts 12 passed; pyright 0 net-new; full pytest and candidate Windows rehearsal pending | §19; preserve exact identities; stop before owner merge authority |
 | A3 | Claude | blocked | | | | Core Gate 1; after A1; four-leg fan-in proof |
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
 | A5 | either | deferred | | | | CI-D5; no docs filtering in core |
@@ -2714,3 +2714,65 @@ blocking proof, which this authorization excludes.
   (A2 or later), or to WS3 if it edits `ci.yml` after B3.
 - **Unclaimed qualification.** §16.10's 2026-10-26 scheduled qualification still has no
   claimant. This is an owner follow-up and is unchanged.
+
+
+## 19. CI core after B3 — A2 execution, 2026-10-20
+
+### 19.1 Authority and serial scope
+
+Owner request, verbatim:
+
+> keep working on **CI/CD core after B3:** A2 → A3 → G6 → G7, with B4 as an optional measurement slot. **with the ai consulting team until it get done**
+
+This authorizes the named approved core implementation sequence and consulting work.
+The existing one-workflow-PR-at-a-time rule and explicit named-PR merge boundary
+in §0.10 continue to apply. B4 is optional and does not delay the named sequence.
+No repository setting, check promotion, credential, release or delivery action is
+part of this packet. The earlier core council remains sufficient; it is not rerun.
+
+B3 #539 was independently read back as MERGED at `2026-10-20T20:07:19Z`, merge
+`1f5ae0f059f6cb4a994f92b6e03c57d689fd060c`, with all 27 PR checks successful on
+head `b7a6fecf516add32a96f7dd9980695289a7400b2` (run `39484164996`). This
+updates the historical pending receipt in §17; it does not promote Dependency Review.
+
+### 19.2 A2 implementation and decisions
+
+The existing `worktree-windows` invocation adds `-n 4 --dist loadfile`, retaining
+all three module arguments, both PowerShell hosts, xunit2 JUnit, explicit pytest
+exit handling, unconditional no-skip verification, artifact name and protected
+context names. No Operation A held test module or helper is edited.
+
+`requirements.txt` already pins pytest-xdist 3.8.0 and requires `loadfile` to keep
+module fixtures together. Four workers are requested, with at most three busy
+workers for these three files. This scheduling choice changes no retry policy.
+The workflow contract now pins that scheduling requirement.
+
+The AI test adviser `/root/ci_test_adviser` read the approved packet and helper
+contracts independently. Its concrete baseline-equivalence concern is adopted:
+the existing verifier checks both-host symmetry, but deduplicates cases and
+cannot establish equivalence to a previous run. Acceptance therefore compares
+the complete `(classname, name)` identity Counters and executed outcomes from
+the downloaded baseline and candidate reports, rejecting omissions, additions,
+duplicates and nonpassed outcomes. Host symmetry alone is insufficient.
+
+Implementation uses a standalone clone of current `origin/main`, with private
+Python/npm dependencies and isolated runtime/temp roots. The original dirty
+checkout and retained development/rehearsal branches are preserved.
+
+### 19.3 Baseline, gates and evidence
+
+| Evidence | State |
+|---|---|
+| Baseline | B3 PR run `39484164996` (attempt 1), Operation A Windows job `118840137591`, head `b7a6fecf`; same three Operation A modules are byte-identical to A2 base `1f5ae0f0` |
+| Baseline executed report | `operation-a-windows-junit`: 251 cases, 0 skipped/failures/errors, suite 589.869 s; job `19:31:22Z`–`19:42:39Z` = 677 s; native test step `19:32:41Z`–`19:42:33Z` = 592 s |
+| Targeted workflow contracts | 12 passed |
+| Pyright baseline diff | pyright 1.1.410, 0 current diagnostics / 0 net-new |
+| Independent code review | `/root/a2_code_reviewer`, staged workflow + contract diff: no findings; execution gates still required |
+| Full pytest | Running; no pass claimed |
+| Native candidate | Retained rehearsal branch `rehearsal/a2-native-20261020`, SHA `877ac8d2f2abffc8179b19d88526091b88173f82`, run `39490106461`; Windows job body is copied unchanged from the candidate, with only the push trigger/job census narrowed for this unmerged rehearsal; outcome and identity/timing comparison pending |
+| Ready PR / owner merge | Not yet; requires completed evidence and explicit named-PR merge authority |
+
+Generated reports and local consult records stay under ignored `artifacts/`.
+Adding two assertions/comments to an existing test changes no collected node
+identity/count, so inventory regeneration is unnecessary unless a later change
+trips a canonical drift surface. A2 is independent of Operation A promotion.
