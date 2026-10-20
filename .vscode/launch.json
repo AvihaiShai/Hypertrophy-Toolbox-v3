@@ -3,11 +3,15 @@
     "configurations": [
         {
             // --no-reload is load-bearing, do not remove it. This config runs
-            // `flask run`, which bypasses app.py's __main__ block and therefore
-            // its use_reloader=False guard. With the reloader on, Werkzeug forks
-            // a child that re-runs all module-level startup -- now including the
-            // Packet B runtime migration and seed bootstrap -- in two processes
-            // against one database. app.py avoids that deliberately; so does this.
+            // `flask run` against the app:create_initialized_app factory, which
+            // bypasses app.py's main() and therefore its reloader rule. Importing
+            // app no longer runs startup, but the factory initializes the runtime
+            // database (migration, seed bootstrap, schema, catalog upgrade,
+            // startup snapshot) in every process that loads it, so with the
+            // reloader on, the monitoring parent and the serving child would both
+            // initialize against one database. Every flask subcommand against
+            // this factory (run, routes, shell, ...) initializes the runtime
+            // database too.
             //
             // FLASK_DEBUG=1 is kept on purpose: it enables the debugger, and
             // utils/database.py reads it to select DELETE journal mode instead of
@@ -20,7 +24,7 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "app.py",
+                "FLASK_APP": "app:create_initialized_app",
                 "FLASK_DEBUG": "1"
             },
             "args": [

@@ -22,13 +22,10 @@ class RequestIdFilter(logging.Filter):
         return True
 
 
-def setup_logging(app=None):
+def setup_logging():
     """
     Configure structured logging with file and console handlers.
     Includes request ID in log messages for correlation.
-    
-    Args:
-        app: Flask application instance (optional)
     """
     # Resolved here rather than at import so a relocated runtime root and the
     # frozen per-user path both take effect. A frozen install must never need
@@ -70,48 +67,6 @@ def setup_logging(app=None):
     # Add handlers
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    
-    # Set Flask app logger if provided
-    if app:
-        app.logger.handlers = logger.handlers
-        app.logger.setLevel(logging.DEBUG)
-        
-        # Log request details
-        @app.before_request
-        def log_request_info():
-            from flask import request, g
-            request_id = getattr(g, 'request_id', 'N/A')
-            logger.info(f"Request: {request.method} {request.path}")
-        
-        @app.after_request
-        def log_response_info(response):
-            from flask import request, g
-            import time
-            
-            request_id = getattr(g, 'request_id', 'N/A')
-            
-            # Calculate request duration if start_time exists
-            if hasattr(g, 'start_time'):
-                duration_ms = (time.time() - g.start_time) * 1000
-                duration_str = f" (duration: {round(duration_ms, 2)}ms)"
-                
-                # Log slow requests as WARNING
-                if duration_ms > 1000:
-                    logger.warning(
-                        f"Slow request detected: {request.method} {request.path}",
-                        extra={
-                            'duration_ms': round(duration_ms, 2),
-                            'status_code': response.status_code,
-                            'endpoint': request.endpoint,
-                            'method': request.method,
-                            'path': request.path
-                        }
-                    )
-            else:
-                duration_str = ""
-            
-            logger.info(f"Response: {response.status_code} for {request.method} {request.path}{duration_str}")
-            return response
     
     return logger
 
