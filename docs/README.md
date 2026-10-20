@@ -16,7 +16,7 @@ It is descriptive and carries no status; anything time-sensitive stays in `MASTE
 
 ### Project State
 - **[MASTER_HANDOVER.md](MASTER_HANDOVER.md)** - Canonical current state; the file new agents read first
-- **[ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md)** - Execution source of truth for autonomous sessions
+- **[ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md)** - Fatigue calibration guardrails and agent authority rules; earlier objectives and status blocks archived
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and recent work
 - **[DECISIONS.md](DECISIONS.md)** - Durable project decisions and lightweight ADRs
 - **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Current architecture debt snapshot

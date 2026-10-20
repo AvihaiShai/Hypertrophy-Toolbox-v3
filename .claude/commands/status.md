@@ -61,8 +61,8 @@ three as claims to be checked, never as the answer.
      **Owner review status table** near the bottom.
    - `docs/MASTER_HANDOVER.md` — CLAUDE.md calls this canonical; it has
      nonetheless carried self-contradictory sections.
-   - `docs/ACTIVE_DEVELOPMENT.md` — declares itself the execution source of
-     truth for autonomous sessions.
+   - `docs/OPEN_WORK_EXECUTION_PLAN.md` — §0 is the single actionable queue;
+     §0.2 lists the open owner decisions.
    - The active feature's `PLANNING.md`. Find it rather than assuming a path.
      Identify it from what the live state already points at — the plan doc's
      Ongoing row, the open PR's branch and body, and the handover's current

@@ -609,8 +609,9 @@ evidence, never eroded rule by rule.
 > already-shipped WP3.5 and WP4.3g work. Reconcile this file, `ACTIVE_DEVELOPMENT.md`
 > and `REFACTOR_PLAN.md` together, or not at all.
 
-Use [docs/ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md) as the execution source
-of truth. The older Fatigue Stage-4 and Body Composition material below is
+~~Use [docs/ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md) as the execution source
+of truth.~~ **Superseded 2026-10-20:** the queue is
+[`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §0. The older Fatigue Stage-4 and Body Composition material below is
 retained as historical verification context, not as the current next action.
 
 **Verification of Body Composition Issue #21 second slice (2026-05-20, later):**
