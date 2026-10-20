@@ -523,6 +523,14 @@ ZIZMOR_CONDITIONS = {"${{ !cancelled() }}", "!cancelled()", "${{ always() }}", "
 # finding at f3adacf1; B2 adds no zizmor entry, and any later one is a deliberate edit here.
 LINT_SUPPRESSIONS = {
     ("ci.yml", "SC2016"): (4, "single-quoted `$`/backtick text is printed literally on purpose"),
+    # D3: zizmor flags every `workflow_run` trigger.
+    ("deep-gate-watch.yml", "dangerous-triggers"): (
+        1,
+        "D3 requires workflow_run; the watched workflows are schedule/dispatch-only here, the "
+        "trigger is filtered to main, and the job checks out only the default-branch revision, "
+        "downloads no artifact, executes nothing from the triggering run and reads the event "
+        "only as data via $GITHUB_EVENT_PATH",
+    ),
 }
 SUPPRESSION = re.compile(r"zizmor:\s*ignore\[([^\]]*)\]|shellcheck\s+disable=([\w,-]+)")
 # Each of these would suppress findings repository-wide without a comment at the site.
@@ -808,6 +816,10 @@ def test_workflow_lint_is_not_a_required_or_expected_context_yet():
 # watched file names whose evidence was unavailable. The CLI reads GH_TOKEN, GITHUB_API_URL and
 # GITHUB_STEP_SUMMARY; `--now` is also the watchdog start time, and a workflow_run summary
 # carries a line containing "latency" and the latency in whole seconds.
+# freshness_state(watched, runs, now, *, workflow_created_at) takes the aware UTC datetime from
+# GET /actions/workflows/{file} (fetched once per watched file by reconcile) and returns
+# `not_applicable` when the workflow was created after the slot start (created_at == slot is
+# applicable); that endpoint failing makes the workflow unavailable, never fresh or healthy.
 # =========================================================================================
 
 SCRIPT = ROOT / "scripts" / "deep_gate_watch.py"
@@ -855,6 +867,7 @@ SLOT = datetime(2026, 10, 19, 3, 17, tzinfo=UTC)  # a Monday
 PREV = SLOT - 7 * DAY
 BEFORE = SLOT + 2 * HOUR
 AFTER = SLOT + 21 * HOUR
+CREATED = datetime(2026, 1, 5, 9, 0, tzinfo=UTC)  # both watched workflows long predate SLOT
 SCHEDULE_EVENT = {"schedule": "23 * * * 1,2"}
 ENDLESS_LIMIT = 500
 SLOW_SECONDS = 3
@@ -990,7 +1003,9 @@ class FakeGitHub(ThreadingHTTPServer):
         self.comments: dict[int, list[str]] = {}
         self.label = True
         self.page_size = 100
-        # path substring -> "502" | "403" | "malformed" | "slow" | "endless"; "kind@N" only on page N
+        self.created = {SUITE: CREATED, VISUAL: CREATED}  # served by GET /actions/workflows/{file}
+        # path substring (or exact path suffix when it ends in "$") ->
+        # "404" | "502" | "403" | "malformed" | "slow" | "endless"; "kind@N" only on page N
         self.faults: dict[str, str] = {}
         self.requests: list[tuple[str, str, dict[str, str], dict[str, str]]] = []
         self.writes: list[tuple[str, str, Any]] = []
@@ -1058,7 +1073,14 @@ class _Handler(BaseHTTPRequestHandler):
         if method != "GET":
             gh.writes.append((method, parts.path.removeprefix(PREFIX), body))
 
-        fault = next((kind for needle, kind in gh.faults.items() if needle in parts.path), "")
+        fault = next(
+            (
+                kind
+                for needle, kind in gh.faults.items()
+                if (parts.path.endswith(needle[:-1]) if needle.endswith("$") else needle in parts.path)
+            ),
+            "",
+        )
         kind, _, on_page = fault.partition("@")
         if kind and on_page in ("", query.get("page", "1")):
             if kind == "slow":
@@ -1072,6 +1094,20 @@ class _Handler(BaseHTTPRequestHandler):
         self._serve(gh, method, parts.path.removeprefix(PREFIX), query, body, kind == "endless")
 
     def _serve(self, gh, method, path, query, body, endless) -> None:
+        workflow = re.fullmatch(r"/actions/workflows/([^/]+)", path)
+        if method == "GET" and workflow and workflow[1] in gh.created:
+            file = workflow[1]
+            return self._reply(
+                200,
+                {
+                    "id": len(file),
+                    "name": NAMES[file],
+                    "path": f".github/workflows/{file}",
+                    "state": "active",
+                    "created_at": iso(gh.created[file]),
+                    "updated_at": iso(gh.created[file]),
+                },
+            )
         runs = re.fullmatch(r"/actions/workflows/([^/]+)/runs", path)
         jobs = re.fullmatch(r"/actions/runs/(\d+)/attempts/(\d+)/jobs", path)
         issue = re.fullmatch(r"/issues/(\d+)", path)
@@ -1180,8 +1216,8 @@ def classify(dgw, file, r, jobs):
     return dgw.classify_run(watched(dgw, file), r, jobs)
 
 
-def fresh(dgw, file, runs, now):
-    return dgw.freshness_state(watched(dgw, file), runs, now)
+def fresh(dgw, file, runs, now, created=CREATED):
+    return dgw.freshness_state(watched(dgw, file), runs, now, workflow_created_at=created)
 
 
 def run_watch(dgw, gh, now, event=None, dry_run=False, timeout=5.0):
@@ -1456,13 +1492,45 @@ def test_runs_that_are_not_this_weeks_scheduled_run_never_satisfy_freshness(dgw,
     assert (state.status, state.slot) == ("missing", SLOT)
 
 
+APPLICABILITY = {
+    # A workflow merged after Monday 03:17 never had this slot to miss.
+    "created-after-slot": (SLOT + 10 * HOUR, [], AFTER, "not_applicable"),
+    "created-a-second-after": (SLOT + SECOND, [], AFTER, "not_applicable"),
+    "created-after-slot-before-threshold": (SLOT + HOUR, [], BEFORE, "not_applicable"),
+    "created-after-slot-manual-run": (
+        SLOT + 10 * HOUR,
+        [gh_run(VISUAL, 1, SLOT + 11 * HOUR, event="workflow_dispatch")],
+        AFTER,
+        "not_applicable",
+    ),
+    "created-a-second-before": (SLOT - SECOND, [], AFTER, "missing"),
+    "created-exactly-at-slot": (SLOT, [], AFTER, "missing"),
+    "created-at-slot-and-ran": (SLOT, [gh_run(VISUAL, 1, SLOT)], AFTER, "fresh"),
+    "next-slot-applies": (SLOT + 10 * HOUR, [], SLOT + 7 * DAY + 21 * HOUR, "missing"),
+}
+
+
+@pytest.mark.parametrize("case", list(APPLICABILITY))
+def test_a_slot_that_began_before_the_workflow_existed_is_not_applicable(dgw, case):
+    created, runs, now, status = APPLICABILITY[case]
+    state = fresh(dgw, VISUAL, runs, now, created=created)
+    assert (state.status, state.slot) == (status, dgw.expected_slot(now))
+
+
+def test_freshness_state_requires_the_workflow_creation_time(dgw):
+    with pytest.raises(TypeError):
+        dgw.freshness_state(watched(dgw, VISUAL), [], AFTER)
+    with pytest.raises(TypeError):
+        dgw.freshness_state(watched(dgw, VISUAL), [], AFTER, CREATED)  # keyword-only
+
+
 # -------------------------------------------------------------------- plan_actions
 
 
 def test_plan_actions_has_nothing_to_do_without_evidence_or_issues(dgw):
     for file in (SUITE, VISUAL):
         x = watched(dgw, file)
-        assert dgw.plan_actions(x, dgw.failure_state(x, []), dgw.freshness_state(x, [], BEFORE), []) == []
+        assert dgw.plan_actions(x, dgw.failure_state(x, []), fresh(dgw, file, [], BEFORE), []) == []
 
 
 def test_plan_actions_is_a_no_op_when_the_open_issue_already_cites_the_evidence(dgw, gh):
@@ -1471,7 +1539,7 @@ def test_plan_actions_is_a_no_op_when_the_open_issue_already_cites_the_evidence(
     run_watch(dgw, gh, AFTER)
     sw = watched(dgw, SUITE)
     state = dgw.failure_state(sw, [dgw.classify_run(sw, s, gh.jobs[(150, 1)])])
-    assert dgw.plan_actions(sw, state, dgw.freshness_state(sw, [s], AFTER), gh.open_issues()) == []
+    assert dgw.plan_actions(sw, state, fresh(dgw, SUITE, [s], AFTER), gh.open_issues()) == []
 
 
 # ------------------------------------------------------- reconcile: failure issues
@@ -1723,6 +1791,63 @@ def test_freshness_and_failure_issues_recover_independently(dgw, gh):
     assert gh.find(SUITE, "missing-schedule") == []
 
 
+# ------------------------------------------- reconcile: workflow created after the slot
+
+
+def test_a_workflow_merged_after_the_slot_opens_no_missing_schedule_issue(dgw, gh):
+    seed_success(gh, SUITE, 100)
+    gh.created[VISUAL] = SLOT + 10 * HOUR  # merged Monday afternoon; no run exists yet
+    report = run_watch(dgw, gh, AFTER)
+    assert set(report.unavailable) == set()
+    assert gh.writes == []
+    assert gh.find(VISUAL, "missing-schedule") == []
+
+
+@pytest.mark.parametrize("created", [SLOT - SECOND, SLOT], ids=["before-slot", "exactly-at-slot"])
+def test_a_workflow_that_existed_at_the_slot_still_reports_a_missing_run(dgw, gh, created):
+    seed_success(gh, SUITE, 100)
+    gh.created[VISUAL] = created
+    run_watch(dgw, gh, AFTER)
+    assert "2026-10-19" in gh.only(VISUAL, "missing-schedule")["body"]
+
+
+def test_a_not_applicable_slot_leaves_an_open_missing_issue_for_it_untouched(dgw, gh):
+    seed_success(gh, SUITE, 100)
+    run_watch(dgw, gh, AFTER)
+    issue = gh.only(VISUAL, "missing-schedule")
+    gh.created[VISUAL] = SLOT + 10 * HOUR
+    gh.writes.clear()
+    run_watch(dgw, gh, AFTER + HOUR)
+    assert gh.writes == []
+    assert gh.issue(issue["number"])["state"] == "open"
+
+
+def test_reconcile_reads_each_watched_workflow_object_once(dgw, gh):
+    seed_success(gh, SUITE, 100)
+    seed_success(gh, VISUAL, 900)
+    run_watch(dgw, gh, AFTER)
+    fetched = Counter(p for m, p, _, _ in gh.requests if m == "GET" and re.fullmatch(rf"{PREFIX}/actions/workflows/[^/]+", p))
+    assert fetched == {f"{PREFIX}/actions/workflows/{SUITE}": 1, f"{PREFIX}/actions/workflows/{VISUAL}": 1}
+
+
+@pytest.mark.parametrize("fault", ["404", "502", "malformed"])
+def test_an_unreadable_workflow_object_is_unavailable_never_healthy(dgw, gh, fault):
+    seed_failure(gh, SUITE, 150)
+    seed_failure(gh, VISUAL, 250)
+    run_watch(dgw, gh, AFTER)
+    failing = gh.only(VISUAL, "failure")
+    good = seed_success(gh, VISUAL, 260, SLOT + 4 * HOUR, event="workflow_dispatch")
+    newer = seed_failure(gh, SUITE, 160, SLOT + 5 * HOUR, event="workflow_dispatch")
+    gh.faults[f"/actions/workflows/{VISUAL}$"] = fault
+    gh.writes.clear()
+    report = run_watch(dgw, gh, AFTER + HOUR, event=delivered(good))
+    assert set(report.unavailable) == {VISUAL}
+    assert gh.issue(failing["number"])["state"] == "open"  # the compare recovery is not applied
+    assert not [x for x in gh.writes if VISUAL in json.dumps(x) or NAMES[VISUAL] in json.dumps(x)]
+    assert not [x for x in gh.writes if x[1] == f"/issues/{failing['number']}" or x[1].startswith(f"/issues/{failing['number']}/")]
+    assert f"evidence={newer['id']}.1" in gh.only(SUITE, "failure")["body"]  # the suite is still tracked
+
+
 # ------------------------------------------------------- reconcile: event payloads
 
 
@@ -1947,6 +2072,26 @@ def test_cli_exits_two_and_writes_nothing_when_evidence_is_unavailable(dgw, gh, 
     assert gh.writes == []
     assert "unavailable" in summary.lower()
     assert max(Counter(p for _, p, _, _ in gh.requests if needle in p).values(), default=0) <= 100
+
+
+@pytest.mark.parametrize("fault", ["404", "502", "malformed"])
+def test_cli_exits_two_when_a_workflow_object_is_unreadable(dgw, gh, tmp_path, fault):
+    seed_failure(gh, SUITE, 150)
+    seed_failure(gh, VISUAL, 250)
+    for file in (SUITE, VISUAL):
+        gh.faults[f"/actions/workflows/{file}$"] = fault
+    proc, summary = watch_cli(gh, tmp_path, event=SCHEDULE_EVENT)
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert gh.writes == []
+    assert "unavailable" in summary.lower()
+
+
+def test_cli_exits_zero_for_a_workflow_merged_after_the_slot(dgw, gh, tmp_path):
+    seed_success(gh, SUITE, 100)
+    gh.created[VISUAL] = SLOT + 10 * HOUR
+    proc, _ = watch_cli(gh, tmp_path, event=SCHEDULE_EVENT)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert gh.writes == []
 
 
 def test_cli_exits_one_on_an_unreadable_event_payload(dgw, gh, tmp_path):
