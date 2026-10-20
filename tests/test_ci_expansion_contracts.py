@@ -820,6 +820,11 @@ def test_workflow_lint_is_not_a_required_or_expected_context_yet():
 # GET /actions/workflows/{file} (fetched once per watched file by reconcile) and returns
 # `not_applicable` when the workflow was created after the slot start (created_at == slot is
 # applicable); that endpoint failing makes the workflow unavailable, never fresh or healthy.
+# A non-success run whose jobs cannot be listed (HTTP/timeout/JSON error or a run_id/attempt/head
+# mismatch) is still failure evidence: its issue body says "job details unavailable", the CLI
+# summary says so too, and the workflow is not unavailable; a success run's unreadable jobs stay
+# EvidenceUnavailable. Every issue body has a visible line, outside the marker comment, naming
+# Deep Gate Watch and saying "do not edit".
 # =========================================================================================
 
 SCRIPT = ROOT / "scripts" / "deep_gate_watch.py"
@@ -1969,6 +1974,91 @@ def test_jobs_of_another_attempt_head_or_run_are_unavailable_evidence(dgw, gh, f
     assert gh.issue(number)["state"] == "open"
 
 
+JOBS_DEGRADED = {
+    "502": ("fault", "502"),
+    "malformed": ("fault", "malformed"),
+    "timeout": ("fault", "slow"),
+    "other-attempt": ("field", ("run_attempt", 9)),
+    "other-head": ("field", ("head_sha", "f" * 40)),
+    "other-run": ("field", ("run_id", 999)),
+}
+
+
+def degrade_jobs(gh, r, case):
+    """Make the jobs of `r` unreadable the way JOBS_DEGRADED[case] says."""
+    how, what = JOBS_DEGRADED[case]
+    if how == "fault":
+        gh.faults[f"/actions/runs/{r['id']}/attempts/{r['run_attempt']}/jobs"] = what
+        return
+    field, value = what
+    listed = gh.jobs[(r["id"], r["run_attempt"])]
+    listed[-1] = {**listed[-1], field: value}
+
+
+@pytest.mark.parametrize("file", [SUITE, VISUAL])
+@pytest.mark.parametrize("case", list(JOBS_DEGRADED))
+def test_a_failure_whose_jobs_cannot_be_read_still_opens_its_issue(dgw, gh, file, case):
+    other = VISUAL if file == SUITE else SUITE
+    seed_success(gh, other, 900)
+    bad = seed_failure(gh, file, 150)
+    degrade_jobs(gh, bad, case)
+    report = run_watch(dgw, gh, AFTER, event=delivered(bad), timeout=1.0 if case == "timeout" else 5.0)
+    assert set(report.unavailable) == set()
+    body = gh.only(file, "failure")["body"]
+    assert "job details unavailable" in body.lower()
+    for fragment in (str(bad["id"]), bad["head_sha"], "failure", "Status: UNRESOLVED"):
+        assert fragment in body, fragment
+    if file == SUITE:  # nothing is reported from jobs that could not be trusted
+        assert FAILED_JOB not in body and FAILED_STEP not in body
+
+
+@pytest.mark.parametrize("case", ["502", "other-head"])
+def test_a_newer_failure_with_unreadable_jobs_still_updates_the_issue(dgw, gh, case):
+    seed_success(gh, VISUAL, 900)
+    seed_failure(gh, SUITE, 150)
+    run_watch(dgw, gh, AFTER)
+    number = gh.only(SUITE, "failure")["number"]
+    newer = seed_failure(gh, SUITE, 160, SLOT + 3 * HOUR, event="workflow_dispatch")
+    degrade_jobs(gh, newer, case)
+    report = run_watch(dgw, gh, AFTER + HOUR, event=delivered(newer))
+    assert set(report.unavailable) == set()
+    issue = gh.only(SUITE, "failure")
+    assert issue["number"] == number
+    assert "evidence=160.1" in issue["body"]
+    assert "job details unavailable" in issue["body"].lower()
+
+
+def test_unreadable_jobs_of_a_newer_success_do_not_close_a_failure_whose_jobs_also_failed(dgw, gh):
+    seed_success(gh, VISUAL, 900)
+    bad = seed_failure(gh, SUITE, 150)
+    degrade_jobs(gh, bad, "502")
+    run_watch(dgw, gh, AFTER)
+    number = gh.only(SUITE, "failure")["number"]
+    good = seed_success(gh, SUITE, 160, SLOT + 3 * HOUR, event="workflow_dispatch")
+    degrade_jobs(gh, good, "502")
+    gh.writes.clear()
+    report = run_watch(dgw, gh, AFTER + HOUR, event=delivered(good))
+    assert set(report.unavailable) == {SUITE}
+    assert gh.writes == []
+    assert gh.issue(number)["state"] == "open"
+
+
+def test_every_issue_body_tells_humans_not_to_edit_the_marker(dgw, gh):
+    seed_failure(gh, SUITE, 150, PREV + 5 * MINUTE)  # prior-week failure; visual never ran
+    run_watch(dgw, gh, AFTER)  # creates: suite failure, suite missing, visual missing
+    seed_failure(gh, SUITE, 160, SLOT + 3 * HOUR, event="workflow_dispatch")
+    run_watch(dgw, gh, AFTER + HOUR)  # updates the suite failure issue
+    run_watch(dgw, gh, SLOT + 7 * DAY + 21 * HOUR)  # moves both missing issues to the next slot
+    bodies = [body["body"] for method, path, body in gh.writes if body and "body" in body and (
+        (method == "POST" and path == "/issues") or (method == "PATCH" and re.fullmatch(r"/issues/\d+", path))
+    )]
+    assert len(bodies) >= 6, bodies
+    for text in bodies:
+        assert "<!-- deep-gate-watch v1 " in text
+        visible = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+        assert re.search(r"Deep Gate Watch[^\n]*do not edit|do not edit[^\n]*Deep Gate Watch", visible, re.IGNORECASE), text
+
+
 def test_dry_run_reads_but_never_writes(dgw, gh):
     gh.label = False
     seed_failure(gh, SUITE, 150)  # and the visual workflow has no run at all
@@ -2052,8 +2142,6 @@ CLI_FAULTS = [
     ("/issues", "502@2"),
     ("/actions/workflows/", "502"),
     ("/actions/workflows/", "endless"),
-    ("/jobs", "502"),
-    ("/jobs", "malformed"),
 ]
 
 
@@ -2072,6 +2160,36 @@ def test_cli_exits_two_and_writes_nothing_when_evidence_is_unavailable(dgw, gh, 
     assert gh.writes == []
     assert "unavailable" in summary.lower()
     assert max(Counter(p for _, p, _, _ in gh.requests if needle in p).values(), default=0) <= 100
+
+
+@pytest.mark.parametrize("fault", ["502", "malformed"])
+def test_cli_exits_two_when_a_success_runs_jobs_are_unreadable(dgw, gh, tmp_path, fault):
+    """Relocated from the `jobs-502` / `jobs-malformed` arms above: unreadable jobs still
+    mean unavailable for a SUCCESS, which could otherwise close an issue unproven."""
+    seed_failure(gh, SUITE, 150)
+    seed_failure(gh, VISUAL, 250)
+    run_watch(dgw, gh, AFTER)
+    seed_success(gh, SUITE, 160, SLOT + 3 * HOUR, event="workflow_dispatch")
+    seed_success(gh, VISUAL, 260, SLOT + 3 * HOUR, event="workflow_dispatch")
+    gh.faults["/jobs"] = fault
+    gh.writes.clear()
+    proc, summary = watch_cli(gh, tmp_path, event=SCHEDULE_EVENT)
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert gh.writes == []
+    assert "unavailable" in summary.lower()
+    assert len(gh.find(SUITE, "failure")) == len(gh.find(VISUAL, "failure")) == 1
+
+
+@pytest.mark.parametrize("fault", ["502", "malformed"])
+def test_cli_exits_zero_and_still_reports_a_failure_whose_jobs_are_unreadable(dgw, gh, tmp_path, fault):
+    seed_failure(gh, SUITE, 150)
+    seed_failure(gh, VISUAL, 250)
+    gh.faults["/jobs"] = fault
+    proc, summary = watch_cli(gh, tmp_path, event=SCHEDULE_EVENT)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    for file in (SUITE, VISUAL):
+        assert "job details unavailable" in gh.only(file, "failure")["body"].lower()
+    assert "job details unavailable" in summary.lower()
 
 
 @pytest.mark.parametrize("fault", ["404", "502", "malformed"])

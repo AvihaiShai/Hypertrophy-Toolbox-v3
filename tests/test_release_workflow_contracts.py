@@ -137,6 +137,8 @@ VISUAL_SPECS = (
 WATCH_PERMISSIONS = {"actions": "read", "contents": "read", "issues": "write"}
 # The longest GitHub cron delay docs/ci_cd_expansion/PLANNING.md §2.1 observed for this gate.
 OBSERVED_CRON_DELAY = timedelta(hours=7, minutes=30)
+WATCH_FRESHNESS_CRON = "23 * * * 1,2"  # hourly Monday-Tuesday: the 36 h bound rests on this
+WATCH_SWEEP_CRON = "53 */6 * * *"  # backup sweep for lost workflow_run deliveries
 
 # ci.yml job names that exist and are deliberately NOT part of the expected set.
 #
@@ -373,6 +375,10 @@ def cron_matches(expression, moment):
         if field == "*":
             return True
         for part in field.split(","):
+            if part.startswith("*/"):
+                if value % int(part[2:]) == 0:
+                    return True
+                continue
             low, _, high = part.partition("-")
             if int(low) <= value <= int(high or low):
                 return True
@@ -1490,15 +1496,29 @@ def test_the_watch_schedule_detects_a_missing_slot_before_the_36_hour_deadline()
     """Computed from the cron and the script's own constants, so changing either
     re-proves the bound. The first check after the threshold must leave more margin
     before the deadline than the longest cron delay observed for this gate, and a
-    second check must follow in case one is dropped."""
+    second check must follow in case one is dropped.
+
+    The bound rests on the Monday/Tuesday hourly cron alone: the six-hourly sweep exists
+    to recover lost `workflow_run` deliveries, and the freshness guarantee must not
+    quietly come to depend on it.
+    """
     watch = watch_module()
-    assert crons(WATCH) == ["23 * * * 1,2"]
+    assert sorted(crons(WATCH)) == sorted([WATCH_FRESHNESS_CRON, WATCH_SWEEP_CRON])
+    assert len(crons(WATCH)) == 2
     slot = watch.expected_slot(datetime(2026, 10, 21, tzinfo=timezone.utc))
     fired = cron_fires(
-        crons(WATCH)[0], slot + watch.MISSING_THRESHOLD, slot + watch.FRESHNESS_DEADLINE
+        WATCH_FRESHNESS_CRON, slot + watch.MISSING_THRESHOLD, slot + watch.FRESHNESS_DEADLINE
     )
     assert len(fired) >= 2, fired
     assert watch.FRESHNESS_DEADLINE - (fired[0] - slot) > OBSERVED_CRON_DELAY
+
+
+def test_the_watch_sweeps_every_six_hours_for_lost_deliveries():
+    """A dropped `workflow_run` delivery is recovered within six hours on any day."""
+    start = datetime(2026, 10, 19, tzinfo=timezone.utc)
+    fired = cron_fires(WATCH_SWEEP_CRON, start, start + timedelta(days=7))
+    assert len(fired) == 28
+    assert {(moment.hour, moment.minute) for moment in fired} == {(h, 53) for h in (0, 6, 12, 18)}
 
 
 def test_the_watch_holds_least_privilege_and_serialises_without_cancelling():

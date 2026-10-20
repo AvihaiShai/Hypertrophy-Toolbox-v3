@@ -145,3 +145,18 @@ These are tool binaries, not Actions, so the C3 allowlist and candidate set are
 unchanged. The job's only `uses:` is the existing pinned `actions/checkout`. That one
 call brings `ci.yml` to 63 remote `uses:` (was 62) and the repository to 92 (was 91),
 all at the pins above.
+
+## E1/D3 (2026-10-20)
+
+E1 moves the `visual-linux` job's five calls (`checkout`, `setup-python`, `setup-node`
+and two `upload-artifact`) out of `deep-gate.yml` (17 → 12) into the new
+`deep-gate-visual.yml` (5). D3's new `deep-gate-watch.yml` adds one `actions/checkout`
+and one `actions/setup-python` (2). Every call uses the pins above; no new action
+repository is adopted, and the C3 candidate set is unchanged.
+
+Remote `uses:` per file, by
+`grep -cE '^\s*(- )?uses: [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@'`: `ci.yml` 63,
+`deep-gate.yml` 12, `deep-gate-visual.yml` 5, `deep-gate-watch.yml` 2,
+`release.yml` 10, `_packaged-windows.yml` 2. The repository holds **94** (was 92)
+across the same five repositories. The three local `uses: ./.github/workflows/_packaged-windows.yml`
+calls are not remote and are not counted.
