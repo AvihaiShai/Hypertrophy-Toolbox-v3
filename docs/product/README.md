@@ -198,9 +198,11 @@ first `get_logger()` call creates `<runtime root>/logs/`; set it to keep that ou
 Do not serve that module-level `app` object through `flask run` or a WSGI server. A Flask
 command with no target also auto-discovers `app.py` and serves that object. It is uninitialized,
 so no migration, seed, schema pass, catalog upgrade or startup snapshot runs, and
-a first request may create an empty database file that a later normal start does not re-seed.
-Point the Flask CLI at the factory target `app:create_initialized_app` instead. Recovery: stop
-the app, confirm the file has 0 exercises, delete it plus its `-wal`/`-shm` sidecars, restart.
+a first request may create an empty database file. A normal restart skips seed copying into
+an existing file; in the scratch probe, schema initialization and catalog upgrade still recovered
+the catalog. Point the Flask CLI at the factory target `app:create_initialized_app` instead.
+Recovery (only for an empty file with no user data): stop the app, confirm the file has 0 exercises,
+delete it plus its `-wal`/`-shm` sidecars, restart.
 
 **Schema.** The full field-level inventory, derived twice — once from an empty file and once
 from the shipped catalog seed, which is what a real first run copies:
