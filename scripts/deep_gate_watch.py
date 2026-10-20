@@ -82,7 +82,7 @@ class State:
 
 @dataclass(frozen=True)
 class Freshness:
-    status: str  # fresh | pending | late | missing
+    status: str  # fresh | pending | late | missing | not_applicable
     slot: datetime
     run: Run | None = None
 
@@ -186,8 +186,10 @@ def failure_state(watched: Watched, evidences: list[Evidence]) -> State:
     return State("failing" if newest.kind == "failure" else "healthy", newest)
 
 
-def freshness_state(watched: Watched, runs: list[Run], now: datetime) -> Freshness:
+def freshness_state(watched: Watched, runs: list[Run], now: datetime, *, workflow_created_at: datetime) -> Freshness:
     slot = expected_slot(now)
+    if workflow_created_at > slot:  # the workflow did not exist yet when this slot began
+        return Freshness("not_applicable", slot)
     qualifying = [
         r
         for r in runs
@@ -458,6 +460,14 @@ class GitHubClient:
             url = following
         raise EvidenceUnavailable(f"GET {path}: more than {MAX_PAGES} pages")
 
+    def workflow_created_at(self, file: str) -> datetime:
+        url = f"{self.base}/actions/workflows/{urllib.parse.quote(file)}"
+        workflow = self._call("GET", url)[0]
+        try:
+            return parse_time(workflow["created_at"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise EvidenceUnavailable(f"GET {url}: no readable created_at") from exc
+
     def list_runs(self, file: str, since: datetime) -> list[Run]:
         query = {"branch": DEFAULT_BRANCH, "per_page": 100, "created": f">={since.date().isoformat()}"}
         return self._pages(f"/actions/workflows/{urllib.parse.quote(file)}/runs", query, "workflow_runs")
@@ -543,9 +553,10 @@ def reconcile(client: GitHubClient, now: datetime, event: Any = None, dry_run: b
     for outcome in report.outcomes:
         watched = outcome.watched
         try:
+            created_at = client.workflow_created_at(watched.file)
             runs = _merge_event(client.list_runs(watched.file, now - HISTORY_WINDOW), delivered, watched)
             outcome.failure = failure_state(watched, _evaluate(client, watched, runs))
-            outcome.freshness = freshness_state(watched, runs, now)
+            outcome.freshness = freshness_state(watched, runs, now, workflow_created_at=created_at)
             outcome.actions = plan_actions(watched, outcome.failure, outcome.freshness, issues)
         except (EvidenceUnavailable, KeyError, TypeError, ValueError) as exc:
             outcome.error = f"{type(exc).__name__}: {exc}"
@@ -605,7 +616,8 @@ def render_summary(report: Report, now: datetime, event: Any) -> str:
             lines.append(f"- Failure state: {outcome.failure.status}{cited}")
         if outcome.freshness is not None:
             fresh = outcome.freshness
-            lines.append(f"- Scheduled freshness for slot `{iso(fresh.slot)}`: {fresh.status}")
+            note = " (workflow created after this slot began)" if fresh.status == "not_applicable" else ""
+            lines.append(f"- Scheduled freshness for slot `{iso(fresh.slot)}`: {fresh.status}{note}")
         if outcome.failure is not None:
             verb = "Planned" if report.dry_run else "Actions"
             described = [_describe(a) for a in outcome.actions] or ["none"]
