@@ -33,3 +33,4 @@ vulture==2.16
 # pytest. tests/conftest.py registers a derandomized, database-less CI profile,
 # because Run Tests is a required check with no retry.
 hypothesis==6.170.1
+requests==2.31.0
