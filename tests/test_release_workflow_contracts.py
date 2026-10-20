@@ -148,7 +148,7 @@ WATCH_SWEEP_CRON = "53 */6 * * *"  # backup sweep for lost workflow_run deliveri
 # only stops asserting that it is excluded, which is a green-by-silence move, so
 # the promotion is contracted positively below instead.
 UNEXPECTED_CI_JOB_NAMES = (
-    "E2E Functional Shard ${{ matrix.shard }}/2",
+    "E2E Functional Shard ${{ matrix.shard }}/4",
     # A1: children of the `Run Tests` fan-in; the fan-in is the contract.
     "Python Tests (core)",
     "Guard Hook Tests (Linux pwsh) shard ${{ matrix.shard }}/4",

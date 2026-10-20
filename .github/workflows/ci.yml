@@ -396,24 +396,24 @@ jobs:
       run: npx playwright test e2e/smoke-navigation.spec.ts --project=chromium --reporter=line
 
   # Sharded functional E2E (leftovers A11). The deterministic functional set is
-  # split across a 2-way matrix (`--shard=i/2`); each matrix leg is its own
+  # split across a 4-way matrix (`--shard=i/4`); each matrix leg is its own
   # runner with its own setup, server, and freshly-seeded throwaway DB (seeded by
   # playwright.config.ts's webServer command per server start), so cross-shard is
   # clean by construction and within-shard serial order-safety (fullyParallel:
-  # false / workers:1) is unchanged. These per-shard contexts ("E2E Functional
-  # Shard 1/2", "E2E Functional Shard 2/2") are NOT branch-protection required
+  # false / workers:1) is unchanged. The per-shard contexts ("E2E Functional
+  # Shard i/4") are NOT branch-protection required
   # checks — the single required context "E2E Functional (Chromium)" is preserved
   # by the e2e-functional fan-in gate below. fail-fast:false so a red in one shard
-  # still lets the other finish (full failure picture + both artifacts).
+  # still lets the other shards finish (full failure picture + all artifacts).
   e2e-functional-shard:
-    name: E2E Functional Shard ${{ matrix.shard }}/2
+    name: E2E Functional Shard ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: frontend-build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3, 4]
 
     steps:
     - name: Checkout code
@@ -456,12 +456,12 @@ jobs:
     # accessibility + fatigue-stage4-smokes +
     # volume-progress were promoted here in A10 after a 5x-repeat ubuntu stability
     # probe (225/225 green, zero flakes). nav-dropdown was promoted after the
-    # issue #8 1440px actionability fix; sharding remains `--shard=${{ matrix.shard }}/2`.
+    # issue #8 1440px actionability fix; sharding remains `--shard=${{ matrix.shard }}/4`.
     # No --reporter flag: the CI-gated reporters in playwright.config.ts (list +
     # html + junit) must all emit so the artifact upload below has a report.
-    - name: Run functional specs (shard ${{ matrix.shard }}/2)
+    - name: Run functional specs (shard ${{ matrix.shard }}/4)
       run: |
-        npx playwright test --project=chromium --shard=${{ matrix.shard }}/2 \
+        npx playwright test --project=chromium --shard=${{ matrix.shard }}/4 \
           e2e/accessibility.spec.ts \
           e2e/api-integration.spec.ts \
           e2e/body-composition.spec.ts \
@@ -494,10 +494,10 @@ jobs:
     # of needing a local reproduction.
     #
     # `--shards 1` is deliberate. This step runs inside one matrix leg, so its
-    # junit.xml holds that shard's half of the suite. Modelling a 2-way packing
-    # of it would report a hypothetical re-split of an already-split half and
-    # read as the global balance, which it is not. The real balance is the two
-    # jobs' totals compared, and no single job can see both.
+    # junit.xml holds that shard's quarter of the suite. Modelling a 4-way packing
+    # of it would report a hypothetical re-split of an already-split quarter and
+    # read as the global balance, which it is not. The real balance is the four
+    # jobs' totals compared, and no single job can see all four.
     #
     # `always()` so a red shard still reports where its time went; `|| true` so
     # a summary problem can never turn a passing shard red.
@@ -507,13 +507,24 @@ jobs:
         python scripts/playwright_timing_report.py \
           --junit artifacts/playwright/junit.xml \
           --shards 1 --top 12 --markdown \
-          --label "shard ${{ matrix.shard }}/2 (required set)" >> "$GITHUB_STEP_SUMMARY" || true
+          --label "shard ${{ matrix.shard }}/4 (required set)" >> "$GITHUB_STEP_SUMMARY" || true
+
+    # Keep successful execution evidence without uploading the full HTML/trace
+    # bundle on every green run. Report absence must fail this shard.
+    - name: Upload functional JUnit
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: playwright-functional-report-shard-${{ matrix.shard }}-of-4
+        path: artifacts/playwright/junit.xml
+        if-no-files-found: error
+        retention-days: 7
 
     - name: Upload Playwright artifacts
       if: failure()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
-        name: playwright-functional-shard-${{ matrix.shard }}-of-2
+        name: playwright-functional-shard-${{ matrix.shard }}-of-4
         path: artifacts/playwright
         retention-days: 7
 
@@ -522,10 +533,10 @@ jobs:
   # (Chromium)" must stay byte-for-byte (renaming it orphans the required check
   # and blocks every PR; same rule as the typecheck job). It contains no test
   # logic: it just aggregates the matrix result. `needs.<matrix-job>.result` is
-  # 'success' only when ALL shards succeeded, so this gate is green iff both
+  # 'success' only when ALL shards succeeded, so this gate is green iff all four
   # shards passed. `if: always()` makes the gate run (and post its status) even
   # when a shard fails, so the required check turns red instead of staying
-  # pending. Do NOT add the per-shard "E2E Functional Shard i/2" contexts to
+  # pending. Do NOT add the per-shard "E2E Functional Shard i/4" contexts to
   # branch protection — this gate is the contract.
   e2e-functional:
     name: E2E Functional (Chromium)
