@@ -15,7 +15,8 @@
 **Work queue and owner decisions:** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md)
 §0 is the single actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
 §11). Its §0.2 holds every open owner decision and §0.4 every open obligation; this block does not
-repeat them. The queue's §4, §8, §15 and §§11–26 remain earlier readings.
+repeat them. The queue's §§1–4, 8 and 10–26 are earlier readings, moved on 2026-10-20 to
+[`archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md`](archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md).
 
 ### Trunk, CI and live readings
 
