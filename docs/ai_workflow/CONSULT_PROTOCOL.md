@@ -5,9 +5,10 @@ owner relaying anything. This file is canonical for the consult mechanism. It ch
 planning gate: [QUALITY_GATE.md](QUALITY_GATE.md), [AUTONOMY.md](AUTONOMY.md) and
 [PARALLEL_WORKFLOW.md](PARALLEL_WORKFLOW.md) remain canonical for everything they own.*
 
-The design record, the measured host evidence, and the disposition of every review
-finding live in
-[CROSS_MODEL_ORCHESTRATION_PLAN.md](CROSS_MODEL_ORCHESTRATION_PLAN.md).
+The design record lives in
+[CROSS_MODEL_ORCHESTRATION_PLAN.md](CROSS_MODEL_ORCHESTRATION_PLAN.md); the measured host
+evidence and the disposition of every review finding live in its
+[history file](../archive/2026/cross-model-orchestration/CROSS_MODEL_ORCHESTRATION_HISTORY.md).
 
 ---
 
@@ -293,7 +294,8 @@ every record, so a fixture run can never be mistaken for a live one.
 
 ## See also
 
-- [CROSS_MODEL_ORCHESTRATION_PLAN.md](CROSS_MODEL_ORCHESTRATION_PLAN.md) — design record,
-  host evidence, finding dispositions, and the deferred heavier orchestration scope
+- [CROSS_MODEL_ORCHESTRATION_PLAN.md](CROSS_MODEL_ORCHESTRATION_PLAN.md) — design record;
+  host evidence, finding dispositions and the deferred heavier orchestration scope are in its
+  [history file](../archive/2026/cross-model-orchestration/CROSS_MODEL_ORCHESTRATION_HISTORY.md)
 - [QUALITY_GATE.md](QUALITY_GATE.md) — the gates a consult does not change
 - [AUTONOMY.md](AUTONOMY.md) — the four-layer model and what a consult does to layer 2

@@ -58,9 +58,9 @@
   question. Shipped 2026-08-13. Read its first section before the first consult of a
   session: a consult sends text off this machine, and it answers no gate
 - [Cross-model orchestration plan](CROSS_MODEL_ORCHESTRATION_PLAN.md) — the design
-  record behind the protocol above: measured host evidence, the disposition of all
-  thirty pre-council findings, the council review, and the heavier `$orchestrate`
-  mechanism that remains **planned and deliberately unimplemented**
+  record behind the protocol above; its [history file](../archive/2026/cross-model-orchestration/CROSS_MODEL_ORCHESTRATION_HISTORY.md) holds the measured host
+  evidence, the disposition of all thirty pre-council findings, the council review, and the
+  heavier `$orchestrate` mechanism that remains **planned and deliberately unimplemented**
 - [Quality Gate](QUALITY_GATE.md) — change-type → required tests/reviewers map
 - [Autonomy Model](AUTONOMY.md) — Codex/Claude approval, sandbox, worktree, and review boundaries
 - [Parallel Workflow](PARALLEL_WORKFLOW.md) — one manager-led feature per checkout,
