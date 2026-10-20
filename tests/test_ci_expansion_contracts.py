@@ -58,6 +58,7 @@ from tests.test_release_workflow_contracts import (
     permissions,
     steps,
     strip_comments,
+    triggers,
 )
 from tests.test_release_workflow_contracts import text as workflow_text
 from tests.worktree_cleanup.support import ROOT
@@ -805,6 +806,205 @@ def test_workflow_lint_is_not_a_required_or_expected_context_yet():
     # Promotion is C4's deliberate change, after seeded blocking proof.
     assert LINT_JOB_NAME not in REQUIRED_CONTEXTS
     assert LINT_JOB_NAME not in EXPECTED_CONTEXTS
+
+
+# =================================================== B3: Dependency Review
+#
+# The PR-only dependency gate: one pinned action step whose policy inputs are all explicit,
+# a read-only token, and no path into the release gate or the `Run Tests` fan-in.
+
+DEPENDENCY_REVIEW_JOB_ID = "dependency-review"
+DEPENDENCY_REVIEW_NAME = "Dependency Review"
+DEPENDENCY_REVIEW_STEP = "Review dependency changes"
+DEPENDENCY_REVIEW_ACTION = "actions/dependency-review-action"
+DEPENDENCY_REVIEW_SHA = "a1d282b36b6f3519aa1f3fc636f609c47dddb294"
+DEPENDENCY_REVIEW_VERSION = "v5.0.0"
+DEPENDENCY_REVIEW_METADATA_BLOB = "5f6cf73d694f70892899c2768fa9814a9218dd0d"  # action.yml at the pin
+DEPENDENCY_REVIEW_CONDITION = "github.event_name == 'pull_request'"
+DEPENDENCY_REVIEW_CONDITIONS = {DEPENDENCY_REVIEW_CONDITION, f"${{{{ {DEPENDENCY_REVIEW_CONDITION} }}}}"}
+# Exact job keys: an extra `env:` could inject INPUT_* variables the `with:` map never shows.
+DEPENDENCY_REVIEW_JOB_KEYS = {"name", "runs-on", "timeout-minutes", "permissions", "if", "steps"}
+# Every input explicit, so a changed upstream default cannot change the policy. Scorecard
+# calls third-party APIs whose outage would red the check; a license check without lists
+# gates nothing today and starts blocking silently once a list appears.
+DEPENDENCY_REVIEW_SCOPES = ["runtime", "development", "unknown"]  # order pinned, spacing not
+DEPENDENCY_REVIEW_INPUTS = {
+    "fail-on-severity": "high",
+    "fail-on-scopes": ", ".join(DEPENDENCY_REVIEW_SCOPES),
+    "warn-only": "false",
+    "vulnerability-check": "true",
+    "license-check": "false",
+    "show-openssf-scorecard": "false",
+    "comment-summary-in-pr": "never",
+    "retry-on-snapshot-warnings": "false",
+}
+# A skipped required check counts as success, so either trigger would let this gate pass
+# without running (merge_group) or run it against an untrusted base (pull_request_target).
+DEPENDENCY_REVIEW_BANNED_TRIGGERS = ("pull_request_target", "merge_group")
+ACTION_INVENTORY = ROOT / "docs" / "ci_cd_expansion" / "B1_ACTION_INVENTORY.md"
+ACTION_REFERENCE = re.compile(r"([\w.-]+)/dependency-review-action(@\S*)?", re.IGNORECASE)
+
+
+def dependency_review_job():
+    return strip_comments(ci_job(DEPENDENCY_REVIEW_JOB_ID))
+
+
+def job_needs(block):
+    """Every job id in a job's `needs:`, in flow-list, bare or block-sequence form; [] if none."""
+    found = re.findall(r"^    needs:[ \t]*(.*?)[ \t]*$", block, re.MULTILINE)
+    assert len(found) <= 1, found
+    if not found:
+        return []
+    inline = found[0].split(" #", 1)[0].strip()
+    if inline:
+        return [item.strip().strip("'\"") for item in inline.strip("[]").split(",") if item.strip()]
+    return re.findall(r"^ +- ['\"]?([A-Za-z0-9_-]+)", key_body(block, "needs", 4), re.MULTILINE)
+
+
+def action_inputs(step):
+    """A step's `with:` map as {input: unquoted value}; every line must be one plain input."""
+    inputs = {}
+    for line in key_body(step, "with", 6).splitlines():
+        if not line.strip():
+            continue
+        # A deeper line is a folded continuation or block scalar: `high` + `  low` reads "high low".
+        match = re.fullmatch(r" {8}([A-Za-z0-9_-]+):[ \t]*(.*?)[ \t]*", line)
+        assert match, f"`with:` line is not a one-line input: {line!r}"
+        key, value = match.group(1), match.group(2).split(" #", 1)[0].strip()
+        assert key not in inputs, f"input {key} is declared twice"
+        if len(value) > 1 and value[0] == value[-1] and value[0] in "'\"":
+            value = value[1:-1]
+        inputs[key] = value
+    return inputs
+
+
+def test_exactly_one_ci_job_reports_the_dependency_review_name():
+    named = [job_id for job_id, block in jobs(CI).items() if job_name(block) == DEPENDENCY_REVIEW_NAME]
+    assert named == [DEPENDENCY_REVIEW_JOB_ID]
+    # jobs() is a dict: a second block under the same id would silently replace the first.
+    source = executable(CI)
+    assert len(re.findall(rf"^  {DEPENDENCY_REVIEW_JOB_ID}:[ \t]*$", source, re.MULTILINE)) == 1
+    assert len(re.findall(rf"^    name: {DEPENDENCY_REVIEW_NAME}[ \t]*$", source, re.MULTILINE)) == 1
+
+
+def test_dependency_review_runs_for_pull_request_events_only():
+    found = re.findall(r"^    if:[ \t]*(.*?)[ \t]*$", dependency_review_job(), re.MULTILINE)
+    conditions = [condition.split(" #", 1)[0].strip() for condition in found]
+    assert len(conditions) == 1 and conditions[0] in DEPENDENCY_REVIEW_CONDITIONS, found
+
+
+def test_the_dependency_review_job_cannot_wait_soften_or_widen_itself():
+    block = dependency_review_job()
+    # `strategy:` mints a `(matrix value)` suffix, renaming the check C4 will require.
+    for key in ("needs", "strategy", "continue-on-error", "services", "container", "env"):
+        assert not re.search(rf"^    {key}:", block, re.MULTILINE), key
+    assert mapping_keys(block, 4) == DEPENDENCY_REVIEW_JOB_KEYS
+    assert re.search(r"^    runs-on: ubuntu-latest[ \t]*$", block, re.MULTILINE)
+    timeout = re.findall(r"^    timeout-minutes: (\d+)[ \t]*$", block, re.MULTILINE)
+    assert len(timeout) == 1 and 1 <= int(timeout[0]) <= 10, timeout
+
+
+def test_the_dependency_review_token_is_read_only():
+    block = dependency_review_job()
+    assert permissions(block) == {"contents": "read"}
+    # permissions() stops at a blank line; key_body() does not, so a hidden scope still reds.
+    assert len(re.findall(r"^    permissions:", block, re.MULTILINE)) == 1
+    assert mapping_keys(key_body(block, "permissions", 4), 6) == {"contents"}
+
+
+def test_dependency_review_is_one_pinned_action_step_and_nothing_else():
+    block = dependency_review_job()
+    parsed = steps(block)
+    assert [name for name, _ in parsed] == [DEPENDENCY_REVIEW_STEP]
+    # An unnamed `- uses:` step merges into a neighbour in steps(); counting `uses:` catches it.
+    assert len(re.findall(r"^ *(?:- )?uses:", block, re.MULTILINE)) == 1
+    assert not re.search(r"^ *(?:- )?run:", block, re.MULTILINE)
+    assert "actions/checkout" not in block.lower()
+    step = parsed[0][1]
+    assert mapping_keys(step, 6) == {"uses", "with"}
+    pin = rf"^      uses: {DEPENDENCY_REVIEW_ACTION}@{DEPENDENCY_REVIEW_SHA}[ \t]+#[ \t]*{re.escape(DEPENDENCY_REVIEW_VERSION)}[ \t]*$"
+    assert re.search(pin, step, re.MULTILINE), step
+
+
+def test_dependency_review_inputs_are_exactly_the_adopted_policy():
+    step = dict(steps(dependency_review_job())).get(DEPENDENCY_REVIEW_STEP)
+    assert step is not None, f"no {DEPENDENCY_REVIEW_STEP} step"
+    assert len(re.findall(r"^      with:", step, re.MULTILINE)) == 1
+    inputs = action_inputs(step)
+    # Exact key set: config-file, allow-ghsas, base-ref, repo-token or any other key reds.
+    assert set(inputs) == set(DEPENDENCY_REVIEW_INPUTS)
+    assert [scope.strip() for scope in inputs.pop("fail-on-scopes").split(",")] == DEPENDENCY_REVIEW_SCOPES
+    expected = dict(DEPENDENCY_REVIEW_INPUTS)
+    del expected["fail-on-scopes"]
+    assert inputs == expected
+
+
+def test_no_job_waits_on_dependency_review():
+    declared = {job_id: job_needs(strip_comments(block)) for job_id, block in jobs(CI).items()}
+    # Vacuity floor: the parser must still read the fan-in it is guarding.
+    assert set(FAN_IN_DEPENDENCIES) <= set(declared["run-tests"])
+    assert [job_id for job_id, needed in declared.items() if DEPENDENCY_REVIEW_JOB_ID in needed] == []
+
+
+def test_dependency_review_is_absent_from_every_release_gate_context_set():
+    # PR-only: a push to main never reports it, so the release gate would wait out its deadline.
+    from collections.abc import Mapping
+
+    module = importlib.import_module("scripts.release_gate")
+    sets = {name: value for name, value in vars(module).items() if name.endswith("CONTEXTS")}
+    # `in` on a str is a substring test, so a string-typed *CONTEXTS would answer the wrong question.
+    assert [name for name, value in sets.items() if isinstance(value, str)] == []
+    checked = set()
+    for name, value in sets.items():
+        # PR_* sets are the PR-only merge sets B3 belongs in (docs/ci_cd_expansion/PLANNING.md §11.5).
+        if name.startswith("PR_"):
+            continue
+        if isinstance(value, Mapping):
+            value = list(value.keys())
+        elif not isinstance(value, (tuple, list, set, frozenset)):
+            continue  # Deliberately skipped: not a collection of context names.
+        assert [context for context in value if DEPENDENCY_REVIEW_NAME in str(context)] == [], name
+        checked.add(name)
+    # C4: if these constants are renamed or split, update this requirement deliberately.
+    assert {"REQUIRED_CONTEXTS", "EXPECTED_CONTEXTS"} <= checked
+
+
+def test_the_action_inventory_records_the_dependency_review_pin():
+    rows = [
+        line
+        for line in ACTION_INVENTORY.read_text(encoding="utf-8").splitlines()
+        if line.lstrip().startswith("|")
+        and all(
+            fact in line
+            for fact in (
+                DEPENDENCY_REVIEW_ACTION,
+                DEPENDENCY_REVIEW_VERSION,
+                DEPENDENCY_REVIEW_SHA,
+                DEPENDENCY_REVIEW_METADATA_BLOB,
+            )
+        )
+    ]
+    assert rows, f"{ACTION_INVENTORY.name} has no table row with the {DEPENDENCY_REVIEW_ACTION} pin and metadata blob"
+
+
+def test_every_dependency_review_action_reference_is_the_one_pinned_step():
+    references = [
+        (path.name, match.group(0))
+        for path in ALL_WORKFLOWS
+        for match in ACTION_REFERENCE.finditer(executable(path))
+    ]
+    # Owner/repo match case-insensitively on GitHub, so a fork or recased copy counts too.
+    assert references == [("ci.yml", f"{DEPENDENCY_REVIEW_ACTION}@{DEPENDENCY_REVIEW_SHA}")], references
+    assert len(ACTION_REFERENCE.findall(dependency_review_job())) == 1
+
+
+def test_ci_triggers_cannot_skip_or_bypass_dependency_review():
+    on = triggers(CI)
+    assert "pull_request" in on, on
+    for event in DEPENDENCY_REVIEW_BANNED_TRIGGERS:
+        assert event not in on, f"{event}: revisit Dependency Review's PR-only skip (PLANNING.md §17.4) before adding it"
+
+
 # =========================================================================================
 # D3 — deep_gate_watch
 #
