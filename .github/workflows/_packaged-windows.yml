@@ -65,6 +65,7 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
+        ref: 1f5ae0f059f6cb4a994f92b6e03c57d689fd060c
 
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -113,3 +114,44 @@ jobs:
         Get-ChildItem -Recurse dist/Hypertrophy-Toolbox/_internal/data |
           Select-Object FullName, Length | Format-Table -AutoSize
       shell: pwsh
+
+    # Verification branch only: retain all canonical steps/jobs and build the
+    # immutable candidate above. Never merge this pinned-checkout experiment.
+    - name: Checkout R3 verification helpers from this run
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ github.sha }}
+        path: artifacts/r3-qa
+        sparse-checkout: r3_qa
+        persist-credentials: false
+
+    - name: Install Chromium for the frozen functional checklist
+      run: python -m playwright install chromium
+
+    - name: Exercise release checklist on the real frozen process
+      env:
+        CANDIDATE_ROOT: ${{ github.workspace }}
+      run: |
+        python artifacts/r3-qa/r3_qa/run_real_frozen_check.py --candidate "$env:CANDIDATE_ROOT" --sha 1f5ae0f059f6cb4a994f92b6e03c57d689fd060c --harness artifacts/r3-qa/r3_qa/frozen_functional_check.py --output artifacts/r3-functional-evidence
+        exit $LASTEXITCODE
+
+    - name: Retain successful synthetic R3 frozen functional evidence
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: r3-frozen-functional-1f5ae0f0
+        path: |
+          artifacts/r3-functional-evidence/
+          artifacts/r3-qa/r3_qa/functional-*/
+        if-no-files-found: error
+        retention-days: 30
+
+    - name: Retain failed synthetic R3 frozen functional evidence
+      if: failure()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: r3-frozen-functional-1f5ae0f0-failed
+        path: |
+          artifacts/r3-functional-evidence/
+          artifacts/r3-qa/r3_qa/functional-*/
+        if-no-files-found: error
+        retention-days: 30
