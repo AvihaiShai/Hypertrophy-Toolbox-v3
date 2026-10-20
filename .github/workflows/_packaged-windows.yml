@@ -66,11 +66,15 @@ jobs:
       with:
         persist-credentials: false
 
+    # No `cache:`. release.yml reaches this job from a tag, and a tag run restores
+    # caches that any main-branch job could have written (zizmor cache-poisoning,
+    # which does not follow workflow_call). A per-trigger cache would be the
+    # per-caller knob ruled out above, so no caller gets one
+    # (docs/ci_cd_expansion/PLANNING.md section 18).
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version-file: '.python-version'
-        cache: 'pip'
 
     - name: Install runtime and pinned build dependencies
       run: |

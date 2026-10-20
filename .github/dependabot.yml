@@ -18,6 +18,13 @@
 #
 # Majors are isolated everywhere except inside a peer-pinned family, where
 # splitting them would produce an unresolvable lockfile.
+#
+# Cooldown: every ecosystem waits 7 days after a release before proposing it.
+# Hijacked releases are usually caught and pulled within that window, so a
+# weekly run cannot hand one over the morning after it ships. It delays version
+# updates only; Dependabot alerts, and the human-opened bump that answers one
+# (decision D-6), are unaffected. 7 is zizmor's dependabot-cooldown threshold,
+# and workflow lint audits this file (docs/ci_cd_expansion/PLANNING.md section 18).
 version: 2
 
 updates:
@@ -26,6 +33,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
@@ -45,6 +54,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
@@ -166,6 +177,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(actions)"
