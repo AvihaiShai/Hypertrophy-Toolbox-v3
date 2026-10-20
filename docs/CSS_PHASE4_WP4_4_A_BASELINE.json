@@ -991,7 +991,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "3b4623665fbc7d26ed6da31fd8f5241b1405433eb18d70250d3d4bfaa8883c5e"
+      "nameAndSizeSha256": "b0fb12715a064eab6e5bd41d56bcf6e4e7ac6d5e39492e76874873442246e972"
     },
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -1012,7 +1012,7 @@
         "plan-tablet-light-advanced.png",
         "plan-tablet-light-simple.png"
       ],
-      "nameAndSizeSha256": "62fcbdb7f4e7cc6fb4985c6fa89e719f0d49eb8fca6ae43470198f1dabadaf86"
+      "nameAndSizeSha256": "636925f51ba41a09b9db22801ea8a276a8b1400e6f521a685f976e3edf127522"
     }
   },
   "fatigueBaselines": {
