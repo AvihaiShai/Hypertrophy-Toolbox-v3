@@ -241,7 +241,7 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 3520,
+    "collected_deterministic": 3539,
     "deterministic_files": 133,
     "environment_dependent_files": [
       {
@@ -304,7 +304,7 @@
       },
       {
         "file": "tests/test_ci_expansion_contracts.py",
-        "tests": 274
+        "tests": 292
       },
       {
         "file": "tests/test_compiled_css_drift_gate_contracts.py",
@@ -624,7 +624,7 @@
       },
       {
         "file": "tests/test_release_workflow_contracts.py",
-        "tests": 92
+        "tests": 93
       },
       {
         "file": "tests/test_rep_range_integrity.py",

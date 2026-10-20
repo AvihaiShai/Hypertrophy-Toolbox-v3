@@ -32,13 +32,15 @@ on:
     types: [completed]
     branches: [main]
   schedule:
-    # Hourly through Monday and Tuesday UTC. The first check after the 20 h
-    # missing-run threshold is Monday 23:23, 20 h 06 min after the 03:17 slot and
-    # 15 h 54 min before the approved 36 h bound -- more than twice the longest
-    # cron delay §2.1 observed for the Deep Gate (6.5-7.5 h), with hourly retries
-    # behind it if one check is dropped. The earlier hourly runs also re-sweep
-    # failure issues in case a workflow_run delivery is lost.
+    # Hourly through Monday and Tuesday UTC; the 36 h bound rests on this cron alone.
+    # The first check after the 20 h missing-run threshold is Monday 23:23, 20 h 06 min
+    # after the 03:17 slot and 15 h 54 min before the approved 36 h bound. This cron's
+    # own delay is not yet measured; the margin is sized against an ESTIMATE borrowed
+    # from the Deep Gate's observed cron delay (6.5-7.5 h, PLANNING.md §2.1), which it
+    # covers more than twice, with hourly retries behind it if one check is dropped.
     - cron: '23 * * * 1,2'
+    # Backup sweep on every day for lost workflow_run deliveries (failure issues).
+    - cron: '53 */6 * * *'
   workflow_dispatch:
     inputs:
       dry_run:

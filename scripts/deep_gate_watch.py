@@ -20,7 +20,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -41,6 +41,7 @@ ISSUE_LABEL = "deep-gate"
 MARKER_PREFIX = "<!-- deep-gate-watch v1 "
 MARKER = re.compile(r"<!-- deep-gate-watch v1 workflow=(\S+) kind=(\S+) ([^>]*?) ?-->")
 FAILURE, MISSING = "failure", "missing-schedule"
+MANAGED_LINE = "_Managed by Deep Gate Watch — do not edit the HTML comment marker; the watch reads it._"
 
 Run = dict[str, Any]
 
@@ -72,6 +73,7 @@ class Evidence:
     reason: str
     run: Run
     jobs: list[dict[str, Any]] = field(default_factory=list)
+    jobs_unavailable: bool = False  # a failure whose jobs listing could not be read or trusted
 
 
 @dataclass(frozen=True)
@@ -274,6 +276,8 @@ def failure_issue(watched: Watched, evidence: Evidence) -> tuple[str, str]:
     body = "\n".join(
         [
             _marker(watched, FAILURE, ident),
+            MANAGED_LINE,
+            "",
             f"**{watched.name}** did not succeed.",
             "",
             f"- Workflow: {watched.name} (`{watched.path}`)",
@@ -282,8 +286,11 @@ def failure_issue(watched: Watched, evidence: Evidence) -> tuple[str, str]:
             f"- Event: `{run.get('event')}`",
             f"- Conclusion: `{run.get('conclusion')}`",
             f"- Observed: created {run.get('created_at')}, last updated {run.get('updated_at')}",
-            "- Failed jobs:",
-            *_failed_jobs(evidence.jobs),
+            *(
+                ["- Failed jobs: job details unavailable (the jobs listing could not be read or did not match this run)"]
+                if evidence.jobs_unavailable
+                else ["- Failed jobs:", *_failed_jobs(evidence.jobs)]
+            ),
             "",
             "Status: UNRESOLVED",
             "",
@@ -306,6 +313,8 @@ def missing_issue(watched: Watched, fresh: Freshness) -> tuple[str, str]:
     body = "\n".join(
         [
             _marker(watched, MISSING, f"slot={iso(fresh.slot)}"),
+            MANAGED_LINE,
+            "",
             f"**{watched.name}** has no completed scheduled run for the {fresh.slot:%Y-%m-%d} slot.",
             "",
             f"- Workflow: {watched.name} (`{watched.path}`)",
@@ -534,8 +543,16 @@ def _evaluate(client: GitHubClient, watched: Watched, runs: list[Run]) -> list[E
             and run.get("head_branch") == DEFAULT_BRANCH
             and run.get("status") == "completed"
         )
-        evidence = classify_run(watched, run, client.list_jobs(run) if decisive else None)
-        evidences.append(evidence)
+        jobs, degraded = None, False
+        if decisive:
+            try:
+                jobs = client.list_jobs(run)
+            except EvidenceUnavailable:
+                if run.get("conclusion") == "success":  # only a trusted listing may prove recovery
+                    raise
+                degraded = True  # the conclusion alone is failure evidence
+        evidence = classify_run(watched, run, jobs)
+        evidences.append(replace(evidence, jobs_unavailable=True) if degraded else evidence)
         if evidence.kind in ("failure", "recovery"):
             break
     return evidences
@@ -613,6 +630,8 @@ def render_summary(report: Report, now: datetime, event: Any) -> str:
         if outcome.failure is not None:
             run = outcome.failure.evidence.run if outcome.failure.evidence else None
             cited = f" (run {run.get('id')} attempt {run.get('run_attempt')})" if run else ""
+            if outcome.failure.evidence and outcome.failure.evidence.jobs_unavailable:
+                cited += "; job details unavailable"
             lines.append(f"- Failure state: {outcome.failure.status}{cited}")
         if outcome.freshness is not None:
             fresh = outcome.freshness

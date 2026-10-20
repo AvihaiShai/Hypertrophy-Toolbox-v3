@@ -105,8 +105,8 @@ updates:
       #
       # The upgrade is not merely blocked on paperwork. 1.61.0 -> 1.62.1 moves
       # Chromium 148.0.7778.96 -> 151.0.7922.34, and every committed visual
-      # baseline was rendered by 148. The visual specs run only in deep-gate.yml's
-      # manual, opt-in `visual-linux` job and are excluded from ci.yml, so the
+      # baseline was rendered by 148. The Linux visual specs run in
+      # deep-gate-visual.yml's weekly `visual-linux` job, not on the PR path, so the
       # bump would invalidate all of them with nothing going red on the pull
       # request -- the next deep-gate run inherits the wall of failures instead.
       #
