@@ -19,9 +19,11 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+from collections import Counter
 
 import pytest
 
@@ -33,14 +35,19 @@ from scripts.ci_executed_report import (
     verify_union,
 )
 from scripts.ci_fan_in import problems
-from scripts.release_gate import REQUIRED_CONTEXTS
+from scripts.release_gate import EXPECTED_CONTEXTS, REQUIRED_CONTEXTS
 from tests.test_release_workflow_contracts import (
+    ALL_WORKFLOWS,
     CI,
+    RELEASE,
+    executable,
     jobs,
     job_name,
+    permissions,
     steps,
     strip_comments,
 )
+from tests.test_release_workflow_contracts import text as workflow_text
 from tests.worktree_cleanup.support import ROOT
 
 GUARD_FILE = "tests/test_guard_destructive_command.py"
@@ -467,3 +474,314 @@ def test_pytest_core_runs_the_whole_suite_except_the_guard_file():
     assert not re.search(r"(?:^| )(-k|-m|--deselect|-x|--lf)(?:[ =]|$)", command)
     for flag in ("--cov=utils", "--cov=routes", "--junitxml=artifacts/pytest/junit.xml"):
         assert flag in command
+
+
+# =================================================== B2: workflow lint (actionlint + zizmor)
+#
+# The always-on lint job, its pinned tools, and the findings it keeps fixed repo-wide.
+
+LINT_JOB_ID = "workflow-lint"
+LINT_JOB_NAME = "Workflow Lint (actionlint + zizmor)"
+LINT_BIN = "$RUNNER_TEMP/workflow-lint-bin"
+INSTALL_STEP = "Install pinned workflow linters"
+ACTIONLINT_STEP = "actionlint"
+ZIZMOR_STEP = "zizmor (min severity medium)"
+LINT_STEP_NAMES = ("Checkout code", INSTALL_STEP, ACTIONLINT_STEP, ZIZMOR_STEP)
+
+LINT_PINS = {
+    "ACTIONLINT_VERSION": "1.7.12",
+    "ACTIONLINT_SHA256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+    "ZIZMOR_VERSION": "1.30.1",
+    "ZIZMOR_SHA256": "e65324f4430c2717591937edcec90ccbefaf14c174f8ec9415e03ca875b46e1a",
+    "SHELLCHECK_VERSION": "v0.11.0",
+    "SHELLCHECK_SHA256": "b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6",
+}
+LINT_DIGEST_KEYS = tuple(key for key in LINT_PINS if key.endswith("_SHA256"))
+LINT_TOOL_REPOS = {"rhysd/actionlint", "zizmorcore/zizmor", "koalaman/shellcheck"}
+
+# Exact argv: any extra token (`|| true`, `--no-exit-codes`, `--offline`, a narrower
+# target, a second severity flag) is a softening and must red.
+LINTER_ARGV = {
+    ACTIONLINT_STEP: [f"{LINT_BIN}/actionlint", "-color", f"-shellcheck={LINT_BIN}/shellcheck", "-pyflakes="],
+    ZIZMOR_STEP: [f"{LINT_BIN}/zizmor", "--min-severity", "medium", "--format", "plain", ".github/workflows"],
+}
+ZIZMOR_CONDITIONS = {"${{ !cancelled() }}", "!cancelled()", "${{ always() }}", "always()"}
+
+# (workflow file, rule) -> (exact occurrences, reason). One inline directive per SC2016
+# finding at f3adacf1; B2 adds no zizmor entry, and any later one is a deliberate edit here.
+LINT_SUPPRESSIONS = {
+    ("ci.yml", "SC2016"): (4, "single-quoted `$`/backtick text is printed literally on purpose"),
+}
+SUPPRESSION = re.compile(r"zizmor:\s*ignore\[([^\]]*)\]|shellcheck\s+disable=([\w,-]+)")
+# Each of these would suppress findings repository-wide without a comment at the site.
+LINT_CONFIG_FILES = (
+    "zizmor.yml",
+    "zizmor.yaml",
+    ".zizmor.yml",
+    ".zizmor.yaml",
+    ".github/zizmor.yml",
+    ".github/zizmor.yaml",
+    ".github/actionlint.yml",
+    ".github/actionlint.yaml",
+    ".shellcheckrc",
+)
+
+RUN_KEY = re.compile(r"^( *)(?:- )?run:[ \t]*(.*)$")
+BLOCK_SCALAR = re.compile(r"^[|>][-+0-9]*$")
+EXPRESSION = re.compile(r"\$\{\{(.*?)\}\}", re.DOTALL)
+# Event payloads and every branch/tag name (chosen by whoever pushes) never reach a shell
+# through `${{ }}`; scripts read the runner's own env vars ($GITHUB_REF) instead.
+UNTRUSTED = re.compile(r"\bgithub\.(?:event[.\[]|head_ref\b|base_ref\b|ref_name\b|ref\b)")
+
+
+def lint_job():
+    return strip_comments(ci_job(LINT_JOB_ID))
+
+
+def lint_steps():
+    return dict(steps(lint_job()))
+
+
+def run_script(step):
+    """A step's `run:` shell text, unwrapped from YAML quoting."""
+    match = re.search(r"^      run:[ \t]*(.*)$", step, re.MULTILINE)
+    assert match, "step has no run:"
+    value = match.group(1).strip()
+    if not BLOCK_SCALAR.match(value):
+        if len(value) > 1 and value[0] == value[-1] == "'":
+            return value[1:-1].replace("''", "'")
+        return value
+    body = []
+    for line in step[match.end() :].split("\n")[1:]:
+        if line.strip() and not line.startswith(" " * 8):
+            break
+        body.append(line[8:])
+    return "\n".join(body)
+
+
+def single_command(step):
+    script = run_script(step).replace("\\\n", " ").replace("${RUNNER_TEMP}", "$RUNNER_TEMP")
+    commands = [line for line in script.splitlines() if line.strip() and not line.lstrip().startswith("#")]
+    assert len(commands) == 1, commands
+    return shlex.split(commands[0])
+
+
+def run_blocks(path):
+    """Every `run:` value in a workflow, at any indent, comments inside it included.
+
+    Raw text on purpose: Actions expands `${{ }}` inside a shell comment too.
+    """
+    lines = workflow_text(path).splitlines()
+    found = []
+    for index, line in enumerate(lines):
+        key = RUN_KEY.match(line)
+        if key is None:
+            continue
+        indent, value = len(key.group(1)), key.group(2).strip()
+        if not BLOCK_SCALAR.match(value):
+            found.append(value)
+            continue
+        body = []
+        for following in lines[index + 1 :]:
+            if following.strip() and len(following) - len(following.lstrip()) <= indent:
+                break
+            body.append(following)
+        found.append("\n".join(body))
+    return found
+
+
+def run_expressions(path):
+    return [expr.strip() for script in run_blocks(path) for expr in EXPRESSION.findall(script)]
+
+
+def key_body(block, key, indent):
+    """The lines under a block-style `key:` at `indent`, blank lines included.
+
+    Blank-line tolerant on purpose: YAML lets a blank line sit inside a mapping, and a
+    key hidden after one must still be seen. A flow-style `key: {...}` returns "".
+    """
+    match = re.search(rf"^{' ' * indent}{key}:[ \t]*\n", block, re.MULTILINE)
+    if match is None:
+        return ""
+    body = []
+    for line in block[match.end() :].split("\n"):
+        if line.strip() and len(line) - len(line.lstrip()) <= indent:
+            break
+        body.append(line)
+    return "\n".join(body)
+
+
+def mapping_keys(body, indent):
+    return set(re.findall(rf"^{' ' * indent}([A-Za-z0-9_-]+):", body, re.MULTILINE))
+
+
+def steps_using(path, action):
+    return [
+        (f"{job_id} / {name}", strip_comments(raw))
+        for job_id, block in jobs(path).items()
+        for name, raw in steps(block)
+        if re.search(rf"^      uses: {action}@", strip_comments(raw), re.MULTILINE)
+    ]
+
+
+def test_exactly_one_ci_job_reports_the_workflow_lint_name():
+    named = [job_id for job_id, block in jobs(CI).items() if job_name(block) == LINT_JOB_NAME]
+    assert named == [LINT_JOB_ID]
+
+
+@pytest.mark.parametrize("event", ("push", "pull_request"))
+def test_ci_triggers_reach_main_with_no_path_or_branch_exclusion(event):
+    on = re.search(r"^on:[ \t]*\n(.*?)(?=^\S)", strip_comments(workflow_text(CI)), re.MULTILINE | re.DOTALL)
+    assert on, "ci.yml has no on: block"
+    trigger = re.search(rf"^  {event}:[ \t]*\n((?:    .*\n)*)", on.group(1), re.MULTILINE)
+    assert trigger, f"ci.yml does not trigger on {event}"
+    body = trigger.group(1)
+    assert not re.search(r"^    (paths|paths-ignore|branches-ignore):", body, re.MULTILINE), body
+    flow = re.search(r"^    branches:[ \t]*\[([^\]]*)\]", body, re.MULTILINE)
+    listed = (
+        [b.strip().strip("'\"") for b in flow.group(1).split(",")]
+        if flow
+        else re.findall(r"^      - ['\"]?([^'\"\s]+)", body, re.MULTILINE)
+    )
+    assert "main" in listed, listed
+
+
+def test_the_lint_job_cannot_skip_wait_soften_or_rename_itself():
+    block = lint_job()
+    # `strategy:` mints a `(matrix value)` suffix, renaming the check C4 will require.
+    for key in ("if", "needs", "continue-on-error", "strategy"):
+        assert not re.search(rf"^    {key}:", block, re.MULTILINE), key
+    timeout = re.search(r"^    timeout-minutes: (\d+)[ \t]*$", block, re.MULTILINE)
+    assert timeout and int(timeout.group(1)) <= 15
+
+
+def test_the_lint_job_token_is_read_only():
+    assert permissions(lint_job()) == {"contents": "read"}
+
+
+def test_the_lint_job_runs_exactly_its_four_steps_in_order():
+    assert tuple(lint_steps()) == LINT_STEP_NAMES
+
+
+def test_the_tool_versions_and_digests_are_pinned_exactly():
+    assert all(re.fullmatch(r"[0-9a-f]{64}", LINT_PINS[key]) for key in LINT_DIGEST_KEYS)
+    env = key_body(lint_job(), "env", 4)
+    declared = dict(re.findall(r"^      ([A-Za-z0-9_-]+):[ \t]*'?([^'\n]*?)'?[ \t]*$", env, re.MULTILINE))
+    # Exact keys: a job-level SHELLCHECK_OPTS or ZIZMOR_* would reconfigure every step.
+    assert declared == LINT_PINS
+
+
+def test_every_download_is_a_release_asset_verified_before_unpacking():
+    script = run_script(lint_steps()[INSTALL_STEP])
+    commands = [
+        line.strip()
+        for line in script.replace("\\\n", " ").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    downloads = [shlex.split(command) for command in commands if "://" in command]
+    repos = set()
+    for argv in downloads:
+        assert argv[0] == "curl" and "--fail" in argv, argv
+        for flag in ("--proto", "--proto-redir"):
+            assert any(argv[i : i + 2] == [flag, "=https"] for i in range(len(argv))), (flag, argv)
+        assert "--max-time" in argv, argv
+        for url in (token for token in argv if "://" in token):
+            asset = re.fullmatch(r"https://github\.com/([\w.-]+/[\w.-]+)/releases/download/\S+", url)
+            assert asset, url
+            repos.add(asset.group(1))
+    assert repos == LINT_TOOL_REPOS
+
+    joined = "\n".join(commands)
+    # One verify, no extra flags: `--ignore-missing` passes a checksum list that names no
+    # downloaded file, and `--quiet` is the first step toward ignoring its output.
+    assert [flags.split() for flags in re.findall(r"\bsha256sum\b([^|;&\n]*)", joined)] == [["--check", "--strict"]]
+    unpack = re.search(r"(?:^|[;&|])[ \t]*tar\s", joined, re.MULTILINE)
+    assert unpack, "the install step never unpacks anything"
+    before = joined[: unpack.start()]
+    assert re.search(r"\bsha256sum\b", before)
+    for key in LINT_DIGEST_KEYS:
+        assert re.search(rf"\$\{{?{key}\b", before), f"{key} is not checked before the first tar"
+    # Under the runner's default `bash -e`, any `||` or `set +e` can swallow a failed check.
+    assert "||" not in script and "set +e" not in script
+
+
+def test_the_job_installs_nothing_but_the_verified_binaries():
+    block = lint_job()
+    assert "pip install" not in block and "go install" not in block
+    uses = re.findall(r"^ *(?:- )?uses:[ \t]*(\S+)", block, re.MULTILINE)
+    assert len(uses) == 1 and re.fullmatch(r"actions/checkout@[0-9a-f]{40}", uses[0]), uses
+
+
+@pytest.mark.parametrize("step", sorted(LINTER_ARGV))
+def test_each_linter_runs_exactly_its_pinned_command(step):
+    assert single_command(lint_steps()[step]) == LINTER_ARGV[step]
+
+
+def test_zizmor_runs_online_and_even_after_actionlint_fails():
+    step = lint_steps()[ZIZMOR_STEP]
+    env = key_body(step, "env", 6)
+    # Exact keys: ZIZMOR_OFFLINE / ZIZMOR_CONFIG / ZIZMOR_* flags all soften the run.
+    assert mapping_keys(env, 8) == {"GH_TOKEN"}
+    assert re.search(r"^        GH_TOKEN: \$\{\{ github\.token \}\}[ \t]*$", env, re.MULTILINE)
+    condition = re.search(r"^      if:[ \t]*(.+?)[ \t]*$", step, re.MULTILINE)
+    assert condition and condition.group(1) in ZIZMOR_CONDITIONS
+
+
+def test_no_other_environment_can_reconfigure_the_linters():
+    for name in (INSTALL_STEP, ACTIONLINT_STEP):
+        assert not re.search(r"^      env:", lint_steps()[name], re.MULTILINE), name
+    # $GITHUB_ENV carries variables into every later step; a workflow-level env reaches
+    # every job. Neither is used today, so neither may appear unreviewed.
+    assert "GITHUB_ENV" not in lint_job()
+    # Policy: a future workflow-level env must change this line deliberately, since it could reconfigure the linters.
+    assert not re.search(r"^env:", strip_comments(workflow_text(CI)), re.MULTILINE)
+
+
+def test_no_lint_step_is_tolerated_or_conditional():
+    for name, step in lint_steps().items():
+        assert not re.search(r"^      continue-on-error:", step, re.MULTILINE), name
+        if name != ZIZMOR_STEP:
+            assert not re.search(r"^      if:", step, re.MULTILINE), name
+
+
+@pytest.mark.parametrize("path", ALL_WORKFLOWS, ids=lambda p: p.name)
+def test_every_checkout_drops_its_credentials(path):
+    checkouts = steps_using(path, "actions/checkout")
+    # An unnamed `- uses:` step merges into its neighbour; the count makes that red.
+    assert len(checkouts) == executable(path).count("actions/checkout@") > 0
+    for where, step in checkouts:
+        assert re.search(r"^        persist-credentials: false[ \t]*$", key_body(step, "with", 6), re.MULTILINE), where
+
+
+@pytest.mark.parametrize("path", ALL_WORKFLOWS, ids=lambda p: p.name)
+def test_no_run_block_interpolates_attacker_controlled_context(path):
+    assert run_blocks(path)
+    assert [expr for expr in run_expressions(path) if UNTRUSTED.search(expr)] == []
+
+
+def test_release_runs_take_the_ref_from_the_runner_environment():
+    # The `${{ github.ref }}` ban itself is UNTRUSTED, above; this pins the replacement.
+    assert '--ref "$GITHUB_REF"' in run_script(dict(steps(jobs(RELEASE)["version-guard"]))["Assert the tag matches the code"])
+
+
+def test_release_setup_steps_restore_no_cache():
+    setups = steps_using(RELEASE, "actions/setup-python") + steps_using(RELEASE, "actions/setup-node")
+    assert setups
+    for where, step in setups:
+        assert not re.search(r"^        cache", key_body(step, "with", 6), re.MULTILINE), where
+    assert "actions/cache" not in executable(RELEASE)
+
+
+def test_every_lint_suppression_is_registered():
+    assert [name for name in LINT_CONFIG_FILES if (ROOT / name).exists()] == []
+    found = Counter()
+    for path in ALL_WORKFLOWS:
+        for match in SUPPRESSION.finditer(workflow_text(path)):
+            found.update((path.name, rule.strip()) for rule in (match.group(1) or match.group(2)).split(","))
+    assert dict(found) == {key: count for key, (count, _) in LINT_SUPPRESSIONS.items()}
+
+
+def test_workflow_lint_is_not_a_required_or_expected_context_yet():
+    # Promotion is C4's deliberate change, after seeded blocking proof.
+    assert LINT_JOB_NAME not in REQUIRED_CONTEXTS
+    assert LINT_JOB_NAME not in EXPECTED_CONTEXTS
