@@ -4,9 +4,11 @@
 
 ## Current State
 
-> **2026-10-19T22:05Z — current state, measured against `origin/main` `f3adacf1` (#530, the
-> head), after `git fetch origin`.** This block replaces the 09:13–09:18Z block of the same date
-> (at `e486e3b5`); it and the blocks of 2026-06-07 → 2026-09-08 are preserved in
+> **2026-10-20T15:05Z — current state, measured against GitHub `main` `b86e9ad7`
+> (#538); the merge receipt and local commit object are verified.** Readings below
+> were taken 15:03–15:05Z. B2, E1+D3 and the necessary D3 trigger repair are merged;
+> #531 carries this closeout. The superseded unmerged #531 draft and earlier blocks
+> are retained in
 > [`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](archive/2026/master-handover/CURRENT_STATE_HISTORY.md).
 > The maintenance rule for this block is the subsection headed *Maintenance rule*.
 
@@ -19,11 +21,12 @@ repeat them. The queue's §4, §8, §15 and §§11–26 remain earlier readings.
 
 | Reading | Value |
 |---|---|
-| `origin/main` | `f3adacf1` (#530); its `main` CI run `39308234107` succeeded |
-| Open PRs | Zero at 22:05Z. This is a reading at one instant; run `gh pr list --state open` |
-| Open issues / Dependabot alerts | 0 / 0 |
-| Branch protection | 12 required contexts; `strict: false`; `JS Unit (Vitest, non-required)` absent. A1 kept the required name `Run Tests`, now a fan-in job |
-| Scheduled deep gate (Mondays 03:17 UTC) | **8 consecutive scheduled failures**, 2026-08-31 → last run 2026-10-19; next slot 2026-10-26. In the two latest runs, only `Visual regression (Linux baselines)` failed. Read every run at job level, with `visual-linux` confirmed executed; never read the overall green |
+| GitHub `main` | `b86e9ad7` (#538); main push `39444332091` running at this reading. B2 and E1+D3 main pushes succeeded, each 26/26; CI PLANNING §§15.6, 16.9–16.10 |
+| Open PRs | Three at the reading: #531 carries this closeout; #535/#536 are new Dependabot PRs outside the named delegation. Re-read live state before acting |
+| Live split checks | Suite 6/6; Linux compare 65 failed / 18 passed, no baseline write. Watch closed suite #534; visual #537 remains open. Completion-to-issue observations: visual 24 s, corrected suite 27 s; CI PLANNING §§16.9–16.10 |
+| Dependabot alerts | 0 at 15:05Z |
+| Branch protection | Re-read this session: 12 required contexts; `strict: false`; `JS Unit (Vitest, non-required)` absent. A1 kept the required name `Run Tests`, now a fan-in job |
+| Weekly gates (Mondays 03:17 UTC) | Pre-split: 8 scheduled failures through 2026-10-19; only the visual job failed in the latest two. After #533, read `deep-gate.yml` and `deep-gate-visual.yml` separately at job and compare-step level. First post-split scheduled slot, 2026-10-26, is pending for both |
 | `release.yml` | Two `workflow_dispatch` runs only; `push: tags` has never fired, and no GitHub Release exists |
 | Pyright baseline | 0 / 0 / 0 with no headroom. A net-new diagnostic fails `Type Check`; the fix is the code, never the baseline |
 | Test counts | [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md) is the single producer |
@@ -40,6 +43,9 @@ contradict older queue sections.
 | #526, #527, #528 | Handover condensed (WS1b); owner approvals distinguished from reviewer passes (WS2(b)); five closed records archived |
 | #529 | CI/CD E3: bounded bisect of H-LINUX-UNSYNC-01 ([`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md)) |
 | #530 | CI/CD A1: guard-hook tests split out behind a fail-closed `Run Tests` fan-in |
+| #532 | CI/CD B2: workflow lint; first main-push lint job and both linters succeeded (CI PLANNING §15.6) |
+| #533 | CI/CD E1+D3: separate Linux visual workflow and deterministic watchdog; rebased-head CI 26/26 before merge (CI PLANNING §16.9) |
+| #538 | D3 literal workflow-name filter repaired after live qualification exposed the unescaped plus; full pytest 5,569 passed / 2 skipped, PR CI 26/26, corrected automatic delivery and recovery verified |
 
 ### Holds in force
 
@@ -61,9 +67,10 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - **Visual baselines:** regenerating Linux or Win32 baselines requires separate owner
   authorization; a red comparison is not a regeneration mandate; `--update-snapshots` is never
   the resolution of a red.
-- **Owner-only actions:** merges (including each dependency PR; Dependabot security updates are off
-  under D-6, so alerts need human-opened PRs), repository settings, C4 promotion, credentials,
-  spending and release publication.
+- **Owner-only actions:** merges outside the named #531–#533 closeout and necessary D3
+  repair #538; repository settings, C4 promotion, credentials, spending and release publication.
+  Each dependency PR still needs its own merge authority; Dependabot security updates remain
+  off under D-6, so alerts need human-opened PRs.
 
 ### Dated items
 
@@ -107,19 +114,19 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`volume_failure_feedback/`](volume_failure_feedback/PLANNING.md): U1-FOLLOWUP-1.
 - [`toast_action_continuity/`](toast_action_continuity/PLANNING.md): U1-FOLLOWUP-1's amended condition.
 - [`worktree_cleanup/`](worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19–§20).
-- [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): packets after A1.
+- [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): Post-split scheduled qualification; later packets remain unstarted.
 
 The full list is [`README.md`](README.md) *Feature folders → Active*.
 
 ### Next safe step
 
-In flight, with no PR at this reading: CI/CD B2, then E1 + D3 stacked on B2's branch (B2 edits
-every `deep-gate.yml` checkout and adds the lint that gates the new workflows); one `ci.yml` PR is
-in flight at a time. Their authority is the owner's instruction of 2026-10-20 (local; UTC
-2026-10-19), which the B2 PR (unmerged) adds to [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md)
-§7 and §15; it is not on `main` at `f3adacf1`. Nothing else starts automatically. Agents may run
-`/status`, triage Dependabot PRs, and do read-only design work. Other work waits on an owner
-decision in queue §0.2, or on its own Gate 0/1 sign-off.
+The named merge closeout completes when #531 lands after its fresh CI. The next evidence
+is the 2026-10-26 scheduled slot, read independently for the suite and visual workflow;
+record it through [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §§16.9–16.10.
+`run_visual` removal is accepted and zizmor stays online while non-required (§16.8).
+A green suite or a manual dispatch cannot satisfy the scheduled visual threshold.
+Nothing else starts automatically; B3, C4/settings and later packets keep their own authority
+and gates.
 
 ### Maintenance rule
 

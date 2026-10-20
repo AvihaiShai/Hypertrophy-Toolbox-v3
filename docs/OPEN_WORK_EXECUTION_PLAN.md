@@ -122,11 +122,11 @@ single actionable queue, and **§0 is that queue**. Nothing here authorizes a pa
 setting change or a release.
 **Scope:** Open, unfinished, ongoing, parked, and misleadingly stale work recorded under `docs/`
 
-## 0. Current actionable queue — reconciled 2026-10-19 at `f3adacf1`
+## 0. Current actionable queue — reconciled 2026-10-20 at `b86e9ad7`
 
-**Read this section first.** Measured at `2026-10-19T22:05Z` against `origin/main`
-`f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d` after `git fetch origin`; `gh pr list --state open`
-returned zero PRs at that instant. As a queue it supersedes the status words in §4, §8 and §15,
+**Read this section first.** Readings at `2026-10-20T15:03–15:05Z` verify GitHub `main`
+`b86e9ad783d6ba4e7b5835db5aec64a180e915da`. #532, #533 and necessary D3 repair #538
+are merged; #531 carries this closeout. As a queue it supersedes the status words in §4, §8 and §15,
 which stop at the §24 reading (2026-08-31); §25 and §26 are later dated logs. Where they disagree,
 §0 is newer. The current-state entry point is [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md)
 *Current State*. Dedicated plans and ledgers keep their detailed authority. Every obligation below
@@ -135,26 +135,29 @@ is carried forward unless its row cites closing evidence, and no status word her
 **Elsewhere:** parked work §5; closed work §6; owner-deferred accessibility exceptions
 [`testing_phase2/A11Y_EXCEPTIONS.md`](testing_phase2/A11Y_EXCEPTIONS.md).
 
-### 0.1 In progress
+### 0.1 Named PR closeout and qualification
 
-Authority for both rows: the owner's instruction of 2026-10-20 (local; UTC 2026-10-19). The B2 PR
-(unmerged) adds it to [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §7 and §15; it is not on
-`main` at `f3adacf1`. One `ci.yml` PR is in flight at a time.
+The owner delegated decisions and execution for #531–#533 to the consulting team on
+2026-10-20. CI PLANNING §16.8 records the three independent advisers and the adopted
+decisions. The necessary correction of D3 in #538 is recorded in §16.10; no later packet
+is authorized by that repair or by the closeout.
 
-| Item | Scope | Record | Next |
+| Item | Landed scope | Record | Next |
 |---|---|---|---|
-| CI/CD **B2** | `Workflow Lint (actionlint + zizmor)` on every PR and `main` push | CI PLANNING §4 Phase B | No PR at the measurement. Merge, and any later promotion through C4, stay owner actions |
-| CI/CD **E1 + D3** | Move `visual-linux` into `Deep Gate Visual (Linux)`, shipped with the deterministic Deep Gate watchdog | CI PLANNING §4 Phases D–E | Stacked on B2's branch, because B2 edits every `deep-gate.yml` checkout and adds the lint that gates the new workflows. No PR at the measurement. No baseline regeneration, tolerance or ADR-011 change |
+| CI/CD **B2** | #532 merged as `1a5e0e6f`; workflow lint on every PR and main push | CI PLANNING §15.6 | First main push `39428398134` succeeded, 26/26; lint job and both linters executed successfully. C4 promotion remains separate |
+| CI/CD **E1 + D3** | #533 merged as `48d6a450`, after rebase and 26/26 fresh-head CI | CI PLANNING §§16.8–16.9 | Manual suite 6/6; Linux compare executed with known failures and no baseline write. First post-split scheduled slot, 2026-10-26, remains pending for each workflow |
+| D3 **repair #538** | Merged as `b86e9ad7`; exact literal suite filter, with strengthened existing contract | CI PLANNING §16.10 | Full pytest 5,569 passed / 2 skipped; PR CI 26/26. Corrected automatic suite delivery and recovery observed in 27 s; independent visual issue #537 stays open |
+| Documentation **#531** | Handover refresh, single queue, Q9 publication and final CI receipts | This section; AGREED_PLAN §11; CI PLANNING §§15.6, 16.9–16.10 | Its landing after fresh-head CI discharges this named merge closeout; it authorizes no next packet |
 
 ### 0.2 Owner decisions and owner-only actions
 
-| Item | State at `f3adacf1` | Record |
+| Item | State at `b86e9ad7` | Record |
 |---|---|---|
 | **R2.3 — Q4/D2** (`JS Unit` required?) | **Unsigned.** No longer time-gated: the strict mark `2026-09-10T23:18:21Z` has passed, which is a precondition, not a signature | §15.4 item 4; [`STEP12_JS_UNIT_GATE0.md`](testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0 |
-| **R2.4** (`visual-linux` in the release gate) | **Unsigned.** ADR-007's threshold is unmet: 8 consecutive scheduled deep-gate failures, last run 2026-10-19; next slot 2026-10-26 | §15.4 item 5 |
+| **R2.4** (`visual-linux` in the release gate) | **Unsigned.** ADR-007's threshold is unmet. Eight mixed-workflow scheduled failures through 2026-10-19 predate the split; read suite and visual clocks separately from #533 onward. Next slot 2026-10-26 | §15.4 item 5 |
 | **R3** (real tag trigger) | **Unproved.** `release.yml` has two `workflow_dispatch` runs and no `push` run; only a real version tag named by the owner can prove it | §15.4 item 6; §4 R3 |
 | **H-LINUX-UNSYNC-01** next step | Option A ran as CI/CD E3 (#529, `c7fec052`): one capture, first-parent boundary #463 → #464, no fix. **Options B, C and D remain owner decisions**; fixes, wider matrices and baseline changes are unauthorized | [`GATE1.md`](deep_gate_linux_visual_failure_20260831/GATE1.md), [`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md) |
-| CI/CD owner actions | Merges, including each dependency PR (Dependabot security updates are off under D-6); settings C1–C5 including C4 promotions; D1 credential/app authorization; any spending; F1/F3 release publication | CI PLANNING §3, §4, §6; §4 Track D1 |
+| CI/CD owner actions | Merges outside the named closeout and necessary D3 repair (§16.10), including each dependency PR (Dependabot security updates are off under D-6); settings C1–C5 including C4 promotions; D1 credential/app authorization; any spending; F1/F3 release publication | CI PLANNING §3, §4, §6; §4 Track D1 |
 | Project direction WS3–WS5 | DRAFT; each needs its own Gate 0, council and Gate 1. Publishing `AGREED_PLAN.md` approves none of them | AGREED_PLAN §6, §11 |
 | Operation A remainder | `PREVENTION_COMPLETE` not declared; owner-only list unchanged | [`worktree_cleanup/CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19.6 |
 
@@ -180,6 +183,8 @@ Authority for both rows: the owner's instruction of 2026-10-20 (local; UTC 2026-
 
 | Obligation | State | Record |
 |---|---|---|
+| **CI/CD qualification** | Bounded manual healing and corrected automatic completion delivery are recorded. First 2026-10-26 scheduled runs/freshness remain pending per workflow; broader cron/backup behavior is not yet qualified | CI PLANNING §§16.9–16.10 |
+| **Workflow-lint residuals** | Packaged-release pip cache and three missing Dependabot cooldowns remain outside this work; later handling needs its own scope | CI PLANNING §15.5 |
 | **U1-FOLLOWUP-1** | Open and required, unplanned. The strict-mark bar has passed; re-derive its stale K13 condition before planning it through its own gates | [`toast_action_continuity/PLANNING.md`](toast_action_continuity/PLANNING.md) §4.3; [`volume_failure_feedback/PLANNING.md`](volume_failure_feedback/PLANNING.md) §v2.14 |
 | **JS-unit ledger debt** | The ledger ends at row 64. The audit in #526's description counted 33 unrecorded `main` runs (five in §26.4, 28 from #481 through #520); each later `main` merge adds another. Write rows only through the §13.0 process | `STEP12_JS_UNIT_GATE0.md` §13.0; §26.4 |
 | **Worktree cleanup holds** | No standing teardown authority: the 2026-10-16/17 directives were scoped to named targets and are spent. Operation E and main reconciliation, `worktree_cleanup_amendment/` and Operations F/G are parked; branches, stashes and `refs/closeout/…` pins are retained; the two `worktree_cleanup/PLANNING.md` lineages are unreconciled and the local copy is not to be staged; reviewer findings M3, M4 and L1 are undispositioned, and items waived in §11 are not passes | `CLOSEOUT.md` §11, §15–§20 |
@@ -203,9 +208,11 @@ Authority for both rows: the owner's instruction of 2026-10-20 (local; UTC 2026-
 |---|---|
 | §4, §8 and §15 show deep-gate selector robustness Gate 1 (#474) in flight | #474 merged with an 18/18 post-merge pipeline (§25) |
 | §4, §8 and §15 show H-LINUX-UNSYNC-01 as draft Gate 0 #475; §26.5 leaves options A–D due | #475 merged (§25); the Gate-1 diagnostic was executed and closed out by #481 (`22ee9ade`), which added §26; option A ran as E3, merged as #529 (`c7fec052`, 2026-10-19T19:06:05Z). B–D remain in §0.2 |
-| §4, §8 and §15 show #472 and #473 open with MERGE recommendations | Both merged (§25); later Dependabot PRs through #525 merged; zero open PRs at the measurement |
+| §4, §8 and §15 show #472 and #473 open with MERGE recommendations | Both merged (§25); later Dependabot PRs through #525 merged; #531 is the named closeout PR at this reading |
 | LEFTOVERS P3: six E2E specs hard-code `http://127.0.0.1:5000` | No `127.0.0.1:5000` or `localhost:5000` remains under `e2e/` at `f3adacf1`; the last change to those occurrences was #311 (`8b5231ab`) |
-| Outside this file: at `f3adacf1`, the CI PLANNING §7 ledger rows for A1 (#530, `f3adacf1`) and E3 (#529) predate their merges, and the B2 / E1 + D3 authority in §0.1 is not yet recorded there | The B2 PR records both; see §0.1 |
+| Outside this file: at `f3adacf1`, the CI PLANNING §7 ledger rows for A1 (#530, `f3adacf1`) and E3 (#529) predate their merges, and the B2 / E1 + D3 authority in §0.1 is not yet recorded there | #532 merged those records as `1a5e0e6f`; see §0.1 |
+| Earlier B2/E1+D3 status reads in progress or awaiting `run_visual` acknowledgement | #532/#533 merged; the delegated decision accepts input removal and keeps zizmor online while non-required. #538 repaired the suite filter; bounded live recovery is recorded. CI PLANNING §§15.6, 16.8–16.10; remaining qualification is in §0.4 |
+
 
 ## 1. Purpose
 
