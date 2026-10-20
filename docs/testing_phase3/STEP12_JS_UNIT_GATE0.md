@@ -1,5 +1,13 @@
 # Testing Strategy Phase 3 — Step 12 (JS unit expansion with jsdom) — Gate 0 decision packet
 
+> **R2.3 owner ruling, 2026-10-21:** Q4 approves a standalone rename to
+> `JS Unit (Vitest)` before protection. D2 is approved **conditionally** on §13.0
+> recording the declared cycle through its own process. The owner expressly
+> selects **exact JS Unit job conclusions**: 50 green executions, zero red,
+> missing, skipped or cancelled JS jobs; the one cancelled carrier stays recorded.
+> [The decision record](../r23_js_unit_promotion/DECISION.md) preserves the exact
+> owner words and the pending ledger/rename landings. C4 needs separate approval.
+
 > **Scope**: the step-12 decision packet, **plus Packet A as implemented** (§9) **and Packet B as
 > implemented** (§10, Gate 1 approved with one owner amendment and executed 2026-08-22 — §10.11,
 > §10.12). Each adds **one new test file** and nothing else. **No production JS, `package.json`,
@@ -972,7 +980,7 @@ with each answer.
 | **Q1** | Is step 12's expansion authorized at all? Phase 3 is still a **proposal** — §8.1a and §8.1c both state Phases 2, 3 and 5 are not authorized, and D6's signing covered step 11 *"precondition only"*. | **SIGNED — authorized, Phase 3 test expansion only.** Packets A, B, C. `js-unit` is **not** promoted to required yet. |
 | **Q2** | Does the two-week window restart on the **post-expansion** suite (§6.4b), or does the existing 331-run streak count toward D2? | **SIGNED — restarts.** From the first successful `JS Unit (Vitest, non-required)` run on `main` after the final expansion packet lands. See §6.5. |
 | **Q3** | `backup-center.js` (Packet D): **skip**, test through the full-DOM `initializeBackupCenter()` surface, or authorize a **production** seam extraction? | **RULED — dropped from step 12.** The required production seam extraction is out of scope. §2.4. |
-| **Q4** | Drop the `(non-required)` suffix from the job name **in the change before** promotion? | **OPEN.** Not yet needed — promotion is not authorized. But the window closes permanently once the context is protected (§7.3), so decide it **with** D2 and never after. |
+| **Q4** | Drop the `(non-required)` suffix from the job name **in the change before** promotion? | **APPROVED 2026-10-21:** rename to `JS Unit (Vitest)` in its own change before protection. D2 is conditionally approved on the §13.0 cycle record, using exact JS Unit job conclusions; C4 needs separate owner approval. [Owner ruling](../r23_js_unit_promotion/DECISION.md). |
 | **Q5** | Extend `generate_test_inventory.py` to pin Vitest node counts? | **RULED — required before promotion.** Carried as **Packet F** (§2.5), sequenced after Packet C. |
 | **Q6** | Correct the stale coverage/jsdom claims in `TESTING_STRATEGY_PLANNING.md` (lines 79, 172, 540-541) and `vitest.config.js`'s comment (§1.1, §1.2)? | **DISCHARGED 2026-08-23**, as the recommended **separate docs-only packet** — based on `main` @ `ca28ec0`, in its own isolated worktree. All figures were **re-measured**, not carried over: job [`97193944527`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/32639359162/job/97193944527) gives **13 files / 231 cases**, statements **7.8 %** (582 / 7,453), **57** files under `static/js` excluding `*.test.js`, **13** with any coverage, **44** at exactly 0 %, **5** test files carrying the jsdom pragma. The three prose sites (now lines **125**, **137**, **218** — the line numbers in this cell moved, which is why they are a poor anchor) and the §8.6 rows are **annotated in place**, with the live reading in a new **§2.1a**; `vitest.config.js`'s comment now quotes **no** module counts, so it cannot rot again. **Comment-only in that file — no executable configuration changed.** Q4 and D2 were **not** drawn in. |
 
@@ -4292,6 +4300,17 @@ quoted on every claim that rests on them. **Where the dossier lacks a fact, this
 > remains open and unexercised**; nothing here closes it.
 
 ### 13.0 Packet C merge, T0, and the live qualification-window ledger
+
+> **Owner ruling, 2026-10-21 — R2.3 / Q4-D2:** D2 takes effect only after this
+> subsection records the `2026-08-27` → `2026-09-10T23:18:21Z` cycle through its
+> own process with zero red/missing/skipped/cancelled **JS Unit jobs**. The owner
+> expressly ruled: **“Assess exact JS Unit job conclusions under §13.0.”** The
+> 50 carriers contain 50 successful JS executions; run `34170988104` remains
+> `cancelled` at workflow level with a successful JS job. Its attempt-2 copy is
+> not another execution. PR #544 prepares rows 65–113 (cycle rows 65–75);
+> its mainline landing is still pending at this recording. T0 and the strict
+> mark are unchanged. Q4's rename is a separate change; C4 is not authorized.
+> Exact approval and evidence: [R2.3 decision](../r23_js_unit_promotion/DECISION.md).
 
 **Three annotation blocks elsewhere in this document point forward to this subsection** — the header's
 THIRD ANNOTATION, §6.5's "THE WINDOW IS NOW RUNNING" block, and §11.18's T0 annotation. This is the
