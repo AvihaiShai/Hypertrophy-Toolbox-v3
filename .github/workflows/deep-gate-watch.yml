@@ -26,8 +26,9 @@ on:
   #     from the triggering run -- the event reaches the script only as data, via
   #     the file at $GITHUB_EVENT_PATH.
   workflow_run:  # zizmor: ignore[dangerous-triggers] reviewed; see the comment above
+    # Workflow-name filters are globs; the suite's literal plus must be escaped.
     workflows:
-      - 'Deep Gate (manual + weekly)'
+      - 'Deep Gate (manual \+ weekly)'
       - 'Deep Gate Visual (Linux)'
     types: [completed]
     branches: [main]

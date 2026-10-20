@@ -1470,13 +1470,27 @@ def test_the_mode_step_resolves_compare_on_every_schedule(tmp_path, event, visua
 
 
 def test_the_watch_listens_to_exactly_the_two_deep_gate_workflows_by_name():
-    """`workflow_run` matches on the watched workflows' `name:`. Renaming either file's
-    name, or the script's WATCHED table, without the other silently unwatches it."""
+    """Subscriptions are GitHub workflow-name globs, so literal metacharacters need escaping.
+
+    https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_runworkflows
+
+    The suite name contains a literal plus. A bare plus repeats the preceding character
+    instead of matching that name, silently losing completion deliveries. Pin canonical
+    literal patterns rather than implementing another glob matcher. Renaming a workflow
+    must also update the script's WATCHED table and its escaped subscription together.
+    """
     watched = {(x.file, x.name) for x in watch_module().WATCHED}
     declared = {(path.name, workflow_name(path)) for path in (DEEP_GATE, VISUAL_LINUX)}
     assert watched == declared
     listened = on_list(WATCH, "workflows")
-    assert len(listened) == len(set(listened)) and set(listened) == {name for _, name in declared}
+    literal_patterns = {
+        "".join("\\" + char if char in r"\*?+[]!" else char for char in name)
+        for _, name in declared
+    }
+    assert len(listened) == len(set(listened)) and set(listened) == literal_patterns, (
+        f"{WATCH.name}: workflow_run subscriptions must escape literal GitHub glob metacharacters; "
+        f"expected {sorted(literal_patterns)!r}, got {listened!r}"
+    )
     assert on_list(WATCH, "types") == ["completed"]
     assert on_list(WATCH, "branches") == ["main"]
     assert triggers(WATCH) == {"workflow_run", "schedule", "workflow_dispatch"}
