@@ -62,9 +62,7 @@ def init_runtime(db_file: str | os.PathLike[str] | None = None) -> RuntimeInitOu
     the upgrade and the snapshot. ``utils.config.DB_FILE`` is assigned once, from
     the migration's decision, and is never read as input.
 
-    Any exception propagates with the guard unset, including one from
-    ``copy_legacy_backups()`` inside ``prepare_runtime_database()`` despite that
-    function's "never raises" docstring.
+    Any exception propagates with the guard unset.
     """
     global _completed
     if db_file is not None and not os.fspath(db_file):

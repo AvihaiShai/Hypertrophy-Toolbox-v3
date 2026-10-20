@@ -45,7 +45,7 @@ Any change to core workflow behavior (plan/log/analyze/progress/distribute/backu
 ### Startup sequence (`init_runtime()`, `utils/runtime_init.py`)
 `app.py` builds the application with `create_app()`; module-level `app = create_app()` stays importable. Importing `app` performs no database, data-directory, migration, seed, catalog-upgrade or backup work. The first `get_logger()` call in a process — triggered transitively by importing `app`, any route module or most `utils` modules — still creates `<runtime root>/logs/` and attaches the `app.log` file handler and the console handler.
 
-Runtime initialization is `init_runtime()`, called only by the entry points: `main()` in `app.py` (`python app.py`; under the reloader only the serving child), `app_launcher.main()` (packaged exe) and `create_initialized_app()` (the `flask` CLI target `app:create_initialized_app`). It is guarded once per process. The order is load-bearing — `.claude/rules/database.md` has the reasoning:
+Production code calls `init_runtime()` only from the entry points: `main()` in `app.py` (`python app.py`; under the reloader only the serving child), `app_launcher.main()` (packaged exe) and `create_initialized_app()` (the `flask` CLI target `app:create_initialized_app`). It is guarded once per process. The order is load-bearing — `.claude/rules/database.md` has the reasoning:
 ```
 prepare_runtime_database()              ← moves a legacy DB out of the install dir, once
 bootstrap_runtime_database()            ← copies data/catalog.seed.db only when DB_FILE is missing

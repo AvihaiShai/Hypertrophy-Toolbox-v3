@@ -84,7 +84,7 @@ def add_myfeature_table() -> None:
 - Journal mode: `FLASK_DEBUG` env defaults to `'1'` → `DELETE` mode; set `FLASK_DEBUG=0` for `WAL` (line 90)
 - Synchronous: debug → `FULL`; non-debug → `NORMAL` (lines 99-102)
 
-**Note:** `database.py:90` defaults `FLASK_DEBUG` to `'1'`, but `app.py:259` defaults it to `'0'`. Result: `python app.py` runs Flask non-debug, but DB uses DELETE journal + FULL sync (safe defaults).
+**Note:** `database.py:90` defaults `FLASK_DEBUG` to `'1'`, but `main()` in `app.py` defaults it to `'0'`. Result: `python app.py` runs Flask non-debug, but DB uses DELETE journal + FULL sync (safe defaults).
 
 ## Thread safety
 DatabaseHandler writes are locked via `_DB_LOCK` (`threading.RLock`, `database.py:24`) — see `execute_query` (line 236) and `executemany` (line 311).
@@ -145,7 +145,7 @@ fails `tests/test_catalog_upgrade.py`.
 |---|---|---|
 | `DB_FILE` | `data/database.db` | SQLite path; wins over every resolved path. Tests patch `utils.config.DB_FILE` directly. |
 | `HT_RUNTIME_DIR` | unset | Relocates the whole runtime tree (data + logs). Portable installs. |
-| `FLASK_DEBUG` | `'0'` in `app.py:259`; `'1'` in `database.py:90` | Controls Flask debug AND journal mode |
+| `FLASK_DEBUG` | `'0'` in `main()` in `app.py`; `'1'` in `database.py:90` | Controls Flask debug AND journal mode |
 | `TESTING` | unset | Set to `'1'` by `tests/conftest.py` for the shared pytest harness |
 
 ## Startup sequence (`init_runtime()`, `utils/runtime_init.py`)

@@ -1,3 +1,4 @@
+
 # The interpreter guard runs before the rest of the imports on purpose, so an
 # unsupported Python fails with ADR-003's message instead of a SyntaxError from
 # a dependency that assumes newer syntax. That ordering makes every import below
@@ -145,7 +146,7 @@ def inject_scale_level():
             scale = '6'
     except (ValueError, TypeError):
         scale = '6'
-
+    
     zoom_values = {'1': '0.75', '2': '0.8', '3': '0.85', '4': '0.9', '5': '0.95', '6': '1', '7': '1.1', '8': '1.2'}
     return {
         'ui_scale_level': scale,
@@ -267,7 +268,7 @@ def _register_shutdown_cleanup() -> None:
     """Checkpoint the WAL on exit and on SIGINT/SIGTERM."""
     import atexit
     import signal
-
+    
     # Register cleanup on graceful shutdown
     def cleanup_on_exit():
         """Cleanup resources on application exit."""
@@ -278,16 +279,16 @@ def _register_shutdown_cleanup() -> None:
             logger.info("Database cleanup completed on exit")
         except Exception as e:
             logger.warning(f"Error during cleanup: {e}")
-
+    
     atexit.register(cleanup_on_exit)
-
+    
     # Handle SIGINT (Ctrl+C) and SIGTERM gracefully
     def signal_handler(_sig, _frame):
         del _sig, _frame  # Required by signal.signal(); intentionally unused.
         logger.info("Received shutdown signal, cleaning up...")
         cleanup_on_exit()
         sys.exit(0)
-
+    
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 

@@ -195,8 +195,9 @@ Importing `app` does no database or data-directory work: it builds the module-le
 `create_app()` and does not run `init_runtime()`. `HT_RUNTIME_DIR` still matters, because the
 first `get_logger()` call creates `<runtime root>/logs/`; set it to keep that out of the checkout.
 
-Do not serve that module-level `app` object through `flask run` or a WSGI server: it is
-uninitialized, so no migration, seed, schema pass, catalog upgrade or startup snapshot runs, and
+Do not serve that module-level `app` object through `flask run` or a WSGI server. A Flask
+command with no target also auto-discovers `app.py` and serves that object. It is uninitialized,
+so no migration, seed, schema pass, catalog upgrade or startup snapshot runs, and
 a first request may create an empty database file that a later normal start does not re-seed.
 Point the Flask CLI at the factory target `app:create_initialized_app` instead. Recovery: stop
 the app, confirm the file has 0 exercises, delete it plus its `-wal`/`-shm` sidecars, restart.
