@@ -1275,6 +1275,17 @@ The `Council recommendation and evidence` column is left as the council wrote it
 
 ### v2.14 Follow-up obligation — U1-FOLLOWUP-1, OPEN and recorded here by owner decision
 
+> **U1-FOLLOWUP-1 implementation annotation — 2026-10-21.** The owner directly
+> approved [Plan v2](../u1_followup_1_vitest/PLANNING.md) and its disclosed real-toast
+> assertion boundary. The additive 24-case Vitest file covers the six shipped
+> failure helpers through `initializeVolumeSplitter()`, using K13's actual
+> `forceAnnounce || !standing || !ourMessageStands()` condition and the conjunctive
+> dismiss guard. Production JavaScript and retired KI-011 coverage stay unchanged.
+> Pre-merge checks and the 38-mutation evidence are recorded in that plan.
+> **This obligation remains open until the authorized merge, green post-merge
+> JS Unit job and post-merge docs/status record.** The merge SHA will be added
+> by that status PR; the qualification-ledger owner records §13.0 separately.
+
 > ⚠️ **AMENDED 2026-08-29 BY OWNER RULING — READ THIS BEFORE THE OBLIGATION BELOW.**
 > **U1-FOLLOWUP-1 is UNCHANGED in substance: it remains OPEN and REQUIRED.** Two things about it
 > moved, and the quoted obligation below is **annotated in place, never rewritten**, so the
