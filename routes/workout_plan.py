@@ -11,6 +11,7 @@ from utils.errors import success_response, error_response
 from utils.exercise_media import resolve_exercise_media_path
 from utils import exercise_replacement as replacement_service
 from utils import supersets as superset_service
+from utils import workout_plan_service as plan_service
 from utils.logger import get_logger
 from utils.filter_values import fetch_filter_values
 from utils.plan_generator import GENERATOR_ROUTINE_PROGRAMS, generate_starter_plan
@@ -263,38 +264,16 @@ def remove_exercise():
         if not exercise_id or not str(exercise_id).isdigit():
             return error_response("VALIDATION_ERROR", "Invalid exercise ID", 400)
 
-        with DatabaseHandler() as db_handler:
-            # First get exercise details for logging and superset handling
-            exercise_info = db_handler.fetch_one(
-                "SELECT routine, exercise, superset_group FROM user_selection WHERE id = ?",
-                (int(exercise_id),)
-            )
-            
-            # Return 404 if exercise doesn't exist
-            if not exercise_info:
-                return error_response("NOT_FOUND", f"Exercise with ID {exercise_id} not found", 404)
-            
-            # If exercise is part of a superset, unlink the partner exercise
-            # through this handler (partner-null, then delete below).
-            if exercise_info and exercise_info.get('superset_group'):
-                superset_service.unlink_partner_for_removal(
-                    db_handler, exercise_id, exercise_info['superset_group']
-                )
-            
-            # Delete related workout logs to avoid foreign key constraint error
-            delete_logs_query = "DELETE FROM workout_log WHERE workout_plan_id = ?"
-            db_handler.execute_query(delete_logs_query, (int(exercise_id),))
-            
-            # Then delete the exercise from user_selection
-            delete_exercise_query = "DELETE FROM user_selection WHERE id = ?"
-            db_handler.execute_query(delete_exercise_query, (int(exercise_id),))
+        removed = plan_service.remove_plan_exercise(exercise_id)
+        if removed is None:
+            return error_response("NOT_FOUND", f"Exercise with ID {exercise_id} not found", 404)
 
         logger.info(
             "Exercise removed from workout plan",
             extra={
                 'exercise_id': exercise_id,
-                'routine': exercise_info.get('routine') if exercise_info else 'unknown',
-                'exercise': exercise_info.get('exercise') if exercise_info else 'unknown'
+                'routine': removed.routine,
+                'exercise': removed.exercise
             }
         )
         return jsonify(success_response(message="Exercise removed successfully"))
