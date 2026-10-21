@@ -128,11 +128,8 @@ jobs:
     # never assume 5000 is free. The two release smokes defined in this file
     # (`first-install`, `old-db-migration`) restore no pip cache: a tag-triggered job
     # must not install from a cache another ref could have written (B2, zizmor
-    # cache-poisoning). This does NOT make the whole tag path cache-free:
-    # `packaged-windows` calls _packaged-windows.yml via workflow_call, whose
-    # setup-python keeps `cache: 'pip'` (not flagged by zizmor). That file is the
-    # shared PR/weekly/release build, so the residual is recorded and left to A2/A3
-    # or the owner rather than changed here.
+    # cache-poisoning). `packaged-windows` calls _packaged-windows.yml, which restores
+    # none either, so the whole tag path is cache-free (CI PLANNING section 18).
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
