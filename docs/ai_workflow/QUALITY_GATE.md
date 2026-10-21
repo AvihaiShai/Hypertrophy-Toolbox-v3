@@ -84,7 +84,7 @@ they are named here once rather than duplicated into every row.
 
 The Vitest row is the only one that pins **identities** rather than counts alone, because a
 renamed case leaves every count untouched. It is collected with `vitest list`, which never runs
-a test — the `JS Unit (Vitest, non-required)` job's pass/fail still gates nothing. Two
+a test — the unprotected `JS Unit (Vitest)` job's pass/fail still gates nothing. Two
 consequences worth knowing before you see the red: a `.skip`-ed case is indistinguishable here
 from a deleted one, and a collection failure is **not drift** — regenerating is the wrong repair
 and the generator's own message says so.
