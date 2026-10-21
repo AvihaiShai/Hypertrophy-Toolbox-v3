@@ -469,13 +469,42 @@ as a real emergency incident.
 
 ## Validation and remaining owner actions
 
-`git diff --check` passes. All six JSON request-body blocks parse, and all eleven
-PowerShell example blocks pass syntax parsing without executing a settings command.
-Final full-object comparisons show only the authorized changes. The explicit full
-pytest invocation is still running in the private environment and has reported
-failures; diagnosis and its final report are pending. The PR remains draft until
-local validation, the cold security review and final-head native CI are resolved.
-No tests, workflow, source, manifest or generated inventory changed.
+The independent cold security reviewer approved the technical packet at content commit
+`bddfd740b4b36ebd53c403b6acfc6984e1b99497`, with no blocking findings. The private report
+is `artifacts/settings-s2/review/SECURITY_REVIEW.md`; final receipt changes also require
+a delta check. A reviewer pass is not an owner signature or a readiness waiver.
+
+The initial full Windows run completed **5,798 passed / 2 skipped / 13 failed** in
+1,462.02s. Twelve shell contracts selected the unconfigured Windows WSL bash launcher;
+one default-DB assertion conflicted with the explicit DB_FILE environment override
+while a test changed HT_RUNTIME_DIR. The original log/XML are retained privately as
+`full-pytest.log` / `full-pytest.xml`. No source or test was changed to resolve these.
+
+Using Git Bash first on process PATH and letting the private HT_RUNTIME_DIR determine
+the default DB resolved the failures: all four affected modules passed, **583/583**
+in72.72s (`affected-modules.log` / `.xml`). The resolved DB path was asserted beneath
+this clone's private runtime before execution. No user/machine environment changed;
+no MSYS suppression variable was set. The corrected full-suite command is:
+
+```powershell
+# From this standalone clone, with its private dependency environment:
+. ./artifacts/settings-s2/enter-lane.ps1
+$env:PATH = 'C:\Program Files\Git\bin;' + $env:PATH
+Remove-Item -LiteralPath Env:DB_FILE -ErrorAction SilentlyContinue
+.\.venv\Scripts\python.exe -m pytest tests/ -q -n 4 --dist loadfile --junitxml=artifacts/settings-s2/full-pytest-corrected.xml
+```
+
+Corrected full-suite stdout/XML are retained as `full-pytest-corrected.log` / `.xml`.
+The final completed full-suite result, final full head and exact-head CI run/check
+receipt are recorded in [PR #555](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/555).
+The PR stays draft until the corrected full suite, final review delta and every
+final-head CI check are successful. The initial content head had30/30 successful
+native checks; that is historical evidence and cannot substitute for final-head CI.
+
+`git diff --check` passes. All six JSON request-body blocks and all twelve PowerShell
+example blocks pass parsing without executing a settings command. Full before/final
+settings comparisons show only the authorized changes. No test set, workflow, source,
+manifest or generated inventory changed; C4 and every other ledger row are preserved.
 
 The remaining owner settings choices are CodeQL setup/rules/proof activation, C2 and
 C3. Recommend reviewing/authorizing the CodeQL setup and bounded proof plan separately,
