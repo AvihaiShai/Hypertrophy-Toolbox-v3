@@ -17,9 +17,8 @@ with no coverage is indistinguishable from the hook never having been exercised.
 """
 import pytest
 
-# ``real_app_client`` comes from tests/conftest.py. The conftest test app has no
-# ``clear_trailing`` hook and never did, so it cannot tell whether the production
-# hook is gone — this coverage has to run against app.py's real routes.
+# ``real_app_client`` comes from tests/conftest.py and wraps app.py's module-level
+# app on a seeded scratch database, the same object production serves.
 
 
 @pytest.mark.parametrize('path', ['/workout_plan/', '/weekly_summary/', '/progression/'])

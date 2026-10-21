@@ -5,6 +5,8 @@ Tests for utils/logger.py - Logging configuration.
 import logging
 from unittest.mock import patch, MagicMock
 
+import pytest
+
 
 class TestRequestIdFilter:
     """Tests for RequestIdFilter class."""
@@ -224,16 +226,9 @@ class TestLoggingFormat:
 class TestFlaskIntegration:
     """Tests for Flask app integration."""
 
-    def test_flask_app_provided_configures_app_logger(self):
-        """When Flask app provided, should configure its logger."""
+    def test_setup_logging_takes_no_app_argument(self):
+        """Logging setup accepts no Flask application (Q-WS3-2H)."""
         import utils.logger
-        utils.logger._logger = None
-        
-        mock_app = MagicMock()
-        mock_app.logger = MagicMock()
-        
-        # setup_logging returns logger when app is provided
-        logger = utils.logger.setup_logging(app=mock_app)
-        
-        # App logger handlers should be set from main logger
-        assert logger is not None
+
+        with pytest.raises(TypeError):
+            utils.logger.setup_logging(app=object())  # pyright: ignore[reportCallIssue]

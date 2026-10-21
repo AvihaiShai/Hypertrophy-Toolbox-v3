@@ -138,9 +138,10 @@ def test_real_app_first_install_seeds_catalog_without_mutating_seed(tmp_path):
     environment.pop("TESTING", None)
     environment["DB_FILE"] = str(target)
     environment["FLASK_USE_RELOADER"] = "0"
+    # The Flask CLI factory initializes the runtime; import alone does not.
     smoke = (
         "import app; "
-        "assert app.app.test_client().get('/').status_code == 200"
+        "assert app.create_initialized_app().test_client().get('/').status_code == 200"
     )
 
     subprocess.run(

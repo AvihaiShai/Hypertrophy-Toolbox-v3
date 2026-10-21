@@ -60,7 +60,7 @@ utils.config.DB_FILE = test_db_path   # ← correct: modifies module attribute
 | Problem | Cause | Fix |
 |---|---|---|
 | `no such table` in test | Test bypassed conftest init path | Use the shared `app` / `client` / `db_handler` fixtures or run the same init helpers |
-| Route returns 404 in test | Blueprint not registered in the test app fixture | Register the needed blueprint in the local test app or use the shared conftest app fixture |
+| Route returns 404 in test | Blueprint not registered in `create_app()` (the shared `app` fixture is that factory), or a self-built local test app lacks it | Register it in `create_app()` (`app.py`); in a self-built minimal app, register the needed blueprint locally |
 | FK constraint failed | Child row without parent | Use `exercise_factory` before `workout_plan_factory` |
 | Test hits live DB | `utils.config.DB_FILE` not patched | Ensure fixture patches it; use `clean_db` fixture |
 | `pytest` command not found | System Python, not venv | Use `.venv/Scripts/python.exe -m pytest` |
@@ -119,8 +119,8 @@ Support files:
 - `e2e/console-guard.ts` — strict console/page-error guard with a per-block allowlist
 - `e2e/strict-fixtures.ts` — the same guard, narrowed to zero allowance
 - `e2e/puppeteer_mcp_summary_regression.py` — Python-based Puppeteer regression (not Playwright)
-- `e2e/run_puppeteer_summary_regression.ps1` — PowerShell runner for above
+- `e2e/run_puppeteer_summary_regression.ps1` — PowerShell runner for above; serves `flask run --no-reload` against the `app:create_initialized_app` factory, which initializes the runtime database
 - `e2e/scripts/seed_summary_regression_db.py` — DB seeder for regression testing
 
-## Adding a new blueprint — don't forget the test app
-New blueprints must be registered in BOTH `app.py` AND `tests/conftest.py` (in the `app` fixture). Missing step = 404s in tests.
+## Adding a new blueprint — the test app follows automatically
+New blueprints are registered once, in `create_app()` (`app.py`); the shared `app` fixture in `tests/conftest.py` is `create_app(config_overrides=...)`, so it picks them up. Also add the name to `EXPECTED_BLUEPRINTS` in `tests/test_app_factory.py`, the one deliberate second site, a test oracle. A missing registration = 404s in production and in every test.

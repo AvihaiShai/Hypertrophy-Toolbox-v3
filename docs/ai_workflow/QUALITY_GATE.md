@@ -43,7 +43,7 @@ Required-reviewers cell.
 
 | Change type | Path globs | Required gates | Required reviewers |
 |---|---|---|---|
-| Route / API | `routes/**`, `app.py` | route pytest target (`tests/test_<route>_routes.py` or `tests/test_<route>.py`) + blueprint-registration coverage in `tests/conftest.py` | `code-reviewer`; + `product-risk-reviewer` if response shape changes |
+| Route / API | `routes/**`, `app.py` | route pytest target (`tests/test_<route>_routes.py` or `tests/test_<route>.py`) + blueprint-registration coverage in `tests/test_app_factory.py` (`EXPECTED_BLUEPRINTS`) | `code-reviewer`; + `product-risk-reviewer` if response shape changes |
 | DB / schema | `utils/db_initializer.py`, `utils/database.py`, `utils/program_backup.py`, `utils/auto_backup.py` | full `pytest` + manual backup/restore smoke | `code-reviewer` + `architecture-reviewer` |
 | Business logic | `utils/**.py` (non-DB) | `pytest tests/test_<module>.py` | `code-reviewer`; + `product-risk-reviewer` if `effective_sets` / `weekly_summary` / `session_summary` / `progression` / `fatigue` touched |
 | Frontend (template) | `templates/**` | matching Chromium specs from the feature map below | none required |

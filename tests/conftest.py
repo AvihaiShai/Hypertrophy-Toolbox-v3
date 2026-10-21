@@ -5,24 +5,9 @@ import pytest
 import os
 import shutil
 from pathlib import Path
-from flask import Flask, jsonify
 from utils.database import DatabaseHandler
-from routes.workout_plan import workout_plan_bp
-from routes.filters import filters_bp
-from routes.workout_log import workout_log_bp
-from routes.weekly_summary import weekly_summary_bp
-from routes.session_summary import session_summary_bp
-from routes.exports import exports_bp
-from routes.main import main_bp
-from routes.progression_plan import progression_plan_bp
-from routes.user_profile import user_profile_bp
-from routes.body_composition import body_composition_bp
-from routes.volume_splitter import volume_splitter_bp
-from routes.program_backup import program_backup_bp
-from routes.fatigue import fatigue_bp
-from utils.catalog_seed import bootstrap_runtime_database
-from utils.schema_registry import drop_all_owned_tables, run_all_initializers
-from utils.errors import success_response, error_response
+from utils.runtime_init import _reset_for_tests, init_runtime
+from utils.schema_registry import run_all_initializers
 import utils.config
 
 
@@ -71,11 +56,6 @@ else:
     if _profile not in ("ci", "dev"):
         _profile = "ci"
     _hypothesis_settings.load_profile(_profile)
-
-
-def _initialize_test_database() -> None:
-    """Create the full test schema for the active database path."""
-    run_all_initializers(force_base=True)
 
 
 def _cleanup_database_files(database_path: str) -> None:
@@ -135,29 +115,16 @@ def schema_template(tmp_path_factory):
 
 @pytest.fixture(scope='module')
 def real_app_client(tmp_path_factory):
-    """A client for ``app.py``'s own routes, on a scratch database.
+    """A client for the module-level app, initialized on a seeded scratch DB.
 
-    Distinct from the ``app`` fixture below, which builds a blueprint-only twin.
-    Some behavior lives on the real application object and nowhere else — the
-    ``/erase-data`` confirm guard, the error-handler layering, trailing-slash
-    routing — so it can only be covered against the real one.
+    Each module supplies an explicit database path and resets the process
+    guard before and after initialization. Both the outcome and config path
+    must match scratch before yielding. Environment, config, TESTING and the
+    guard are restored on teardown.
 
-    Isolation here is load-bearing, and patching ``utils.config.DB_FILE`` alone
-    is NOT enough:
-
-    * ``utils/config.py`` resolves ``DB_FILE`` from the **environment** at import
-      time, and ``prepare_runtime_database()`` takes its ``explicit-override``
-      branch only when ``os.environ['DB_FILE']`` is set.
-    * ``app.py``'s startup then *reassigns* ``utils.config.DB_FILE`` from that
-      call's result. With no environment override, a first import resolves the
-      real runtime database — the checkout's own ``data/database.db`` in a source
-      tree — and silently discards the scratch path.
-
-    So the environment variable is set too, the scratch path is reasserted after
-    the import (whether or not that import was a cached no-op that ran startup
-    under some other module's path), and the resolved path is asserted before any
-    write happens. Both the environment variable and the module attribute are
-    restored on teardown, as is the app's original ``TESTING`` value.
+    ``HT_RUNTIME_DIR`` is set to scratch as well, but it relocates neither logs
+    nor backups here: ``conftest.py``'s own imports fixed the log directory
+    before this runs, and auto-backups go beside the database.
     """
     scratch_db = tmp_path_factory.mktemp('real_app') / 'database.db'
     scratch_resolved = Path(scratch_db).resolve()
@@ -172,44 +139,32 @@ def real_app_client(tmp_path_factory):
     real_app = None
 
     os.environ['DB_FILE'] = str(scratch_db)
-    # DB_FILE only relocates the database. HT_RUNTIME_DIR relocates the whole
-    # runtime tree, so auto-backups and logs land in the scratch area too rather
-    # than in the repository — otherwise the first test to exercise a path that
-    # writes a backup would target <repo>/data/auto_backup.
     os.environ['HT_RUNTIME_DIR'] = str(runtime_root)
     utils.config.DB_FILE = str(scratch_db)
     try:
         from app import app as real_app
 
-        # Read what app.py's startup actually resolved, BEFORE overwriting it.
-        # The previous version reasserted the scratch path first and then
-        # compared, which read back the value it had just written and so could
-        # never detect a defeated override. On a cached import nothing reassigns
-        # and this is simply the value set above; on a fresh import it is
-        # whatever prepare_runtime_database() decided, which is the case worth
-        # catching. Failing here happens before bootstrap_runtime_database() and
-        # run_all_initializers() below, so a defeated override cannot reach a
-        # real database.
-        resolved_by_startup = Path(utils.config.DB_FILE).resolve()
-        if resolved_by_startup != scratch_resolved:
-            pytest.fail(
-                "real_app_client refuses to run: app.py's startup resolved a "
-                "database that is not the fixture scratch database.\n"
-                f"  resolved: {resolved_by_startup}\n  scratch:  {scratch_resolved}"
-            )
+        _reset_for_tests()
+        outcome = init_runtime(db_file=str(scratch_db))
+        for source, resolved in (
+            ("init_runtime() outcome", Path(outcome.database_path).resolve()),
+            ("utils.config.DB_FILE", Path(utils.config.DB_FILE).resolve()),
+        ):
+            if resolved != scratch_resolved:
+                pytest.fail(
+                    f"real_app_client refuses to run: {source} is not the fixture "
+                    f"scratch database.\n  resolved: {resolved}\n  scratch:  {scratch_resolved}"
+                )
 
         original_testing = bool(real_app.config.get('TESTING', False))
         real_app.config['TESTING'] = True
-
-        with real_app.app_context():
-            bootstrap_runtime_database()
-            run_all_initializers(force_base=True)
 
         with real_app.test_client() as client:
             yield client
     finally:
         if real_app is not None and original_testing is not None:
             real_app.config['TESTING'] = original_testing
+        _reset_for_tests()
         utils.config.DB_FILE = original_config_db
         if original_env_db is None:
             os.environ.pop('DB_FILE', None)
@@ -242,61 +197,27 @@ def catalog_db_path(tmp_path):
 
 @pytest.fixture
 def app(test_db_path, schema_template):
-    """Create Flask app with test configuration."""
+    """The production ``create_app()`` application on a copy of the empty schema.
+
+    The same factory ``app.py`` uses, so every blueprint, handler, filter, hook
+    and the real ``/erase-data`` route (confirm token included) is the
+    production one. ``create_app()`` does no runtime initialization, so the
+    database stays the unseeded test schema: no migration, catalog seed,
+    upgrade or startup backup.
+    """
+    # Imported here rather than at module top so collecting the suite never
+    # imports app (Plan v2 D-12).
+    from app import create_app
+
     original_db_file = utils.config.DB_FILE
     utils.config.DB_FILE = test_db_path
 
-    repo_root = Path(__file__).resolve().parents[1]
-
-    app = Flask(
-        __name__,
-        template_folder=str(repo_root / "templates"),
-        static_folder=str(repo_root / "static"),
-    )
-    app.config['TESTING'] = True
-    app.config['WTF_CSRF_ENABLED'] = False
-    app.url_map.strict_slashes = False
-
-    app.register_blueprint(main_bp)
-    app.register_blueprint(workout_log_bp)
-    app.register_blueprint(weekly_summary_bp)
-    app.register_blueprint(session_summary_bp)
-    app.register_blueprint(exports_bp)
-    app.register_blueprint(filters_bp)
-    app.register_blueprint(workout_plan_bp)
-    app.register_blueprint(progression_plan_bp)
-    app.register_blueprint(user_profile_bp)
-    app.register_blueprint(body_composition_bp)
-    app.register_blueprint(volume_splitter_bp)
-    app.register_blueprint(program_backup_bp)
-    app.register_blueprint(fatigue_bp)
-
-    from utils.media_path import is_valid_media_path_shape
-
-    @app.template_filter('safe_media_path')
-    def _safe_media_path(value):
-        return value if is_valid_media_path_shape(value) else None
-
-    @app.route('/erase-data', methods=['POST'])
-    def erase_data():
-        try:
-            # Drop ALL tables including backup tables (full reset)
-            with DatabaseHandler() as db:
-                drop_all_owned_tables(db)
-
-            _initialize_test_database()
-
-            return jsonify(success_response(
-                data=None,
-                message='All data has been erased and tables reinitialized successfully.'
-            ))
-        except Exception:
-            return error_response("INTERNAL_ERROR", "Failed to erase data", 500)
+    app = create_app(config_overrides={"TESTING": True, "WTF_CSRF_ENABLED": False})
 
     # Copy the prebuilt empty schema rather than re-running every initializer.
     # Equivalent output, ~700x cheaper; see the schema_template fixture. The
-    # erase-data route above deliberately still calls the real initializers,
-    # since that path is asserting they work.
+    # real /erase-data route still calls the initializers itself, so that path
+    # keeps asserting they work.
     shutil.copyfile(schema_template, test_db_path)
 
     try:

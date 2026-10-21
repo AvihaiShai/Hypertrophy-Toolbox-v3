@@ -42,8 +42,10 @@ Any change to core workflow behavior (plan/log/analyze/progress/distribute/backu
 
 ## 2. Architecture
 
-### Startup sequence (`app.py`)
-The order is load-bearing — `.claude/rules/database.md` has the reasoning:
+### Startup sequence (`init_runtime()`, `utils/runtime_init.py`)
+`app.py` builds the application with `create_app()`; module-level `app = create_app()` stays importable. Importing `app` performs no database, data-directory, migration, seed, catalog-upgrade or backup work. The first `get_logger()` call in a process — triggered transitively by importing `app`, any route module or most `utils` modules — still creates `<runtime root>/logs/` and attaches the `app.log` file handler and the console handler.
+
+Production code calls `init_runtime()` only from the entry points: `main()` in `app.py` (`python app.py`; under the reloader only the serving child), `app_launcher.main()` (packaged exe) and `create_initialized_app()` (the `flask` CLI target `app:create_initialized_app`). It is guarded once per process. The order is load-bearing — `.claude/rules/database.md` has the reasoning:
 ```
 prepare_runtime_database()              ← moves a legacy DB out of the install dir, once
 bootstrap_runtime_database()            ← copies data/catalog.seed.db only when DB_FILE is missing
@@ -51,11 +53,11 @@ run_all_initializers(force_base=False)  ← canonical schema registry (utils/sch
 upgrade_catalog_from_seed()             ← additive catalog refresh; skipped on a fresh seed
 create_startup_backup()                 ← also skipped on a fresh seed
 ```
-The per-table `initialize_*` / `add_*_table` functions are registered in `utils/schema_registry.py`, not called individually from `app.py`. Seeding and catalog upgrade are called **only** from real `app.py` startup, never from `run_all_initializers()` — the test suite creates empty schemas on purpose. `app.py` then registers 13 blueprints (`register_blueprint` calls in `app.py`), plus one direct route: `POST /erase-data` (`erase_data()` in `app.py`) — the erase route is **not** a blueprint.
+The per-table `initialize_*` / `add_*_table` functions are registered in `utils/schema_registry.py`, not called individually from `app.py`. Seeding and catalog upgrade are called **only** from `init_runtime()`, never from `run_all_initializers()` — the test suite creates empty schemas on purpose, and its `app` fixture is `create_app()` without `init_runtime()`. `create_app()` registers 13 blueprints (`register_blueprint` in `create_app()`), plus one direct route: `POST /erase-data` (`erase_data()` in `app.py`) — the erase route is **not** a blueprint.
 
 ### Module boundaries
 ```
-app.py                 ← startup + middleware only; no business logic
+app.py                 ← create_app() + middleware + entry points only; no business logic
   routes/*.py          ← HTTP: validate input → call utils → return response
     utils/*.py         ← all business logic + DB queries
       utils/database.py → DatabaseHandler → SQLite (path resolved by utils/runtime_paths.py)
@@ -133,7 +135,7 @@ npx playwright test --project=chromium --reporter=line
 - [ ] Create `utils/myfeature.py` with business logic.
 - [ ] Add `from utils.logger import get_logger` + `logger = get_logger()` at module top.
 - [ ] Create `routes/myfeature.py` with blueprint (routes rule has the template).
-- [ ] Register the blueprint in `app.py` AND `tests/conftest.py` (both — missing either is a 404 in tests).
+- [ ] Register the blueprint in `create_app()` (`app.py`) and add the name to `EXPECTED_BLUEPRINTS` in `tests/test_app_factory.py`, the one deliberate second site, a test oracle. The tests use the same factory, so a missing `register_blueprint` is a 404 in production and in every test.
 - [ ] If a new table is needed, follow the database rule.
 - [ ] Create `templates/myfeature.html` extending `{% extends "base.html" %}`.
 - [ ] Create `static/js/modules/myfeature.js`; use `apiFetch` or `api` from `fetch-wrapper.js`.

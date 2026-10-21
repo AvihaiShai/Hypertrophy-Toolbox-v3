@@ -47,10 +47,10 @@ def my_endpoint():
 
 ## Adding a blueprint — three places
 1. Create `routes/newbp.py` with `newbp_bp = Blueprint('newbp', __name__)`
-2. In `app.py`: `from routes.newbp import newbp_bp` + `app.register_blueprint(newbp_bp)`
-3. In `tests/conftest.py` `app` fixture (~line 59-69): same import + `app.register_blueprint(newbp_bp)`
+2. In `app.py`: `from routes.newbp import newbp_bp` + add `newbp_bp` to the blueprint tuple registered inside `create_app()`
+3. Add `"newbp"` to `EXPECTED_BLUEPRINTS` in `tests/test_app_factory.py` — the one deliberate second site, a test oracle
 
-Missing step 3 = 404s in tests.
+The tests' `app` fixture is `create_app()` itself, so missing step 2 = 404s in production and in every test; missing step 3 fails `test_app_factory.py`.
 
 ## Filters & SQL injection prevention
 Two layers:

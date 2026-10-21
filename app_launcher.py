@@ -67,6 +67,10 @@ def main():
         # Import Flask app
         print("  Loading application...")
         from app import app
+        # Importing app does no database work; initialize the runtime before
+        # reporting success so a failed initialization never prints it.
+        from utils.runtime_init import init_runtime
+        init_runtime()
         print("  Application loaded successfully!")
         print()
         

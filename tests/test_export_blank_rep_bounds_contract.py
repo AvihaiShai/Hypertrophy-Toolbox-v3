@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 import utils.export_service as export_service
+from tests.app_factory_support import REQUEST_ID
 from utils.database import DatabaseHandler
 from utils.rep_range_integrity import scan_export_bounds
 
@@ -54,7 +55,9 @@ def test_export_rejects_exact_blank_rep_bounds_without_mutation(
         f"{reason} Invalid plan value on: {ROUTINE} / {exercise}. "
         "Fix these in the Workout Plan editor."
     )
+    request_id = response.headers.get("X-Request-ID", "")
     assert response.status_code == 400
+    assert REQUEST_ID.match(request_id), request_id
     assert response.get_json() == {
         "ok": False,
         "status": "error",
@@ -62,7 +65,7 @@ def test_export_rejects_exact_blank_rep_bounds_without_mutation(
         "error": {
             "code": "VALIDATION_ERROR",
             "message": message,
-            "requestId": None,
+            "requestId": request_id,
         },
     }
     assert scan_export_bounds() == [

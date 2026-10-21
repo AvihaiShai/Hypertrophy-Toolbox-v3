@@ -819,7 +819,7 @@ class TestEraseDataDeletesBackups:
         assert len(backups_before) == 2
         
         # Call erase-data
-        response = client.post('/erase-data')
+        response = client.post('/erase-data', json={"confirm": "ERASE_ALL_DATA"})
         
         assert response.status_code == 200
         data = response.get_json()
@@ -835,12 +835,12 @@ class TestEraseDataDeletesBackups:
         assert get_active_program_count() == 0
         
         # Call erase-data
-        response = client.post('/erase-data')
+        response = client.post('/erase-data', json={"confirm": "ERASE_ALL_DATA"})
         
         assert response.status_code == 200
         data = response.get_json()
         assert data['ok'] is True
-        assert data.get('data') is None
+        assert data['data'] == {"auto_backup": None}
     
     def test_erase_data_reinitializes_tables(self, client, clean_db, exercise_factory, workout_plan_factory):
         """Test that /erase-data properly reinitializes all tables."""
@@ -852,7 +852,7 @@ class TestEraseDataDeletesBackups:
         create_backup(name="Test Backup")
         
         # Call erase-data
-        response = client.post('/erase-data')
+        response = client.post('/erase-data', json={"confirm": "ERASE_ALL_DATA"})
         assert response.status_code == 200
         
         # Verify workout plan is cleared

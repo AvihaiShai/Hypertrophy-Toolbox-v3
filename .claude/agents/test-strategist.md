@@ -29,7 +29,7 @@ For every changed (or to-be-changed) path:
    - **Manual dry-run / self-review** — `.claude/**`, root `CLAUDE.md`, folder `CLAUDE.md`, `docs/ai_workflow/**`. Run tests only if source behavior changed; otherwise rely on careful self-review.
 4. **Re-baseline / known-red awareness** — if the plan touches a surface with a documented known-red, name it. Current entries (per [docs/ai_workflow/QUALITY_GATE.md](../../docs/ai_workflow/QUALITY_GATE.md) "Known exceptions"):
    - `e2e/program-backup.spec.ts:79` — historical DB-pollution flake.
-5. **Fixture impact** — any new blueprint/table requires updating `tests/conftest.py` (`app` fixture and possibly `erase_data()`). Flag it. See [tests/CLAUDE.md](../../tests/CLAUDE.md).
+5. **Fixture impact** — the test `app` fixture is `create_app()`, so a new blueprint needs no `tests/conftest.py` edit, only its `EXPECTED_BLUEPRINTS` entry in `tests/test_app_factory.py`. A new table reaches the test schema through `run_all_initializers()`; a user-state table also needs the `clean_db` fixture's `DELETE` list. Flag either. See [tests/CLAUDE.md](../../tests/CLAUDE.md).
 
 ## How to report
 

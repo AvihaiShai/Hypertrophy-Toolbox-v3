@@ -18,11 +18,11 @@ HTTP layer. Each file is one Flask blueprint that validates input, calls `utils/
 | `filters.py` | `filters_bp` — `/api/exercises`, `/api/available_filters` (column whitelist lives here) |
 | `exports.py` | `exports_bp` — CSV export |
 
-`POST /erase-data` is a direct route in `app.py:130`, not a blueprint.
+`POST /erase-data` is a direct route (`erase_data()` in `app.py`, added by `create_app()`), not a blueprint.
 
 ## Conventions
 - All JSON returns via `success_response()` / `error_response()` from `utils/errors.py`.
-- New blueprints register in **three** places: `routes/X.py`, `app.py`, `tests/conftest.py` (fixture). Missing the third = 404 in tests.
+- New blueprints: define in `routes/X.py`, register in `create_app()` (`app.py`), and add the name to `EXPECTED_BLUEPRINTS` in `tests/test_app_factory.py`, the one deliberate second site, a test oracle. The test `app` fixture is the same factory, so a missing registration = 404 in production and in every test.
 - Logger: `from utils.logger import get_logger` then `logger = get_logger()`. Never `print()`.
 - Dynamic column names must pass `validate_column_name()` in `filters.py:147` before SQL interpolation.
 
