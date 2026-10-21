@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Gate 0 signed by the owner 2026-10-22** (record in the Section 0 sign-off block). **Plan v1 written 2026-10-22 (rev 3) and awaiting a delegated Gate 1:** three independent advisers review it, bound by its SHA-256 (§P14). No council (Q-WS4-9). Implementation (C2–C4) is not authorized until a favourable delegated Gate 1 is recorded in this file. A merge needs the owner's confirmation naming the PR. |
+| Status | **Gate 0 signed by the owner 2026-10-22** (record in the Section 0 sign-off block). **Gate 1 disposed 2026-10-22 as a DELEGATED Gate 1, not an owner signature (§P15).** Three independent advisers unanimously approved Plan v1, as bound at `3768e52` (SHA-256 `6e95835d…e328f9`), with no BLOCKING finding. No council (Q-WS4-9). Implementation C2–C4 is authorized within §P1, under Plan v1 as amended by GA-1…GA-14 (§P15). The push and the ready PR follow under the owner's lane-O2 instruction (§P14.4). A merge stays owner-only, approved by PR number and head SHA. |
 | Authors | Rev 1 (Section 0): a `product-manager` agent, 2026-10-19; no agent ID was supplied. Revs 2–3 (Gate 0 record, rev 2 Section 0 delta, Plan v1): a fresh `product-manager` spawned on 2026-10-22 by the primary session of lane O2, ID `ae7ed7afd0994c6df` (see Agent provenance). |
 | Source of truth | This file, for WS4 slice-1 requirements and plan. Direction: `docs/project_direction/AGREED_PLAN.md` §4 WS4, §6 (`:215`) and §11 (`:343`), tracked on `main` since #531. Advisory evidence: `artifacts/parallel-next-five/ws4/` in the clone (gitignored, never committed). The rev 2 delta restates every correction the owner accepted from it. |
 | Governing baseline | `origin/main` `155181d67a89fe72e86c75a1ff438caec250a9bd` (#552). The decision packet measured the contract at `d98f45d3` (#545). On 2026-10-22 the primary session confirmed that #549, #551 and #552 change no path this slice reads or writes except `docs/test_inventory/**`. F1–F9 and the rev 1 evidence note below refer to `e486e3b5`. |
@@ -16,6 +16,7 @@
 | 1 | 2026-10-19 | `product-manager` (no ID supplied) | Section 0 drafted at `e486e3b5`; stopped at Gate 0. Committed byte-for-byte as C0 `c5a1a43`. | Owner request relayed 2026-10-19 (quoted in Section 0); `ws4_design_report.md`. |
 | 2 | 2026-10-22 | `product-manager` `ae7ed7afd0994c6df` | Gate 0 recorded: owner text verbatim, sign-off boxes ticked, answers to Q-WS4-1…9 and dispositions for A1–A7. Rev 2 Section 0 delta added, carrying the decision packet's §2–§3 corrections into the committed record. The header table and the closing note were replaced; F1–F9, the acceptance criteria, A1–A7 and the questions are unchanged. | Owner decision of 2026-10-22, relayed verbatim by the primary O2 session; `artifacts/parallel-next-five/ws4/DECISION_PACKET.md` §2–§4 and `analyst/CONTRACT_ANALYSIS.md`; the primary session's re-verification at `155181d6`. Preimage: C0. |
 | 3 | 2026-10-22 | Same agent as rev 2 | Plan v1 (§P1–§P14), Agent provenance and Sign-off added below Section 0. | Packet §4 *Plan v1 design*; `reviewer/ARCHITECTURE_REVIEW.md` findings 2–15; `designer/TEST_DESIGN.md` §3–§10; the 43-node draft; `designer/mutation/mutate.py` (the M01 reference shape). |
+| 4 | 2026-10-22 | `product-manager` `ae7ed7afd0994c6df`, resumed by the primary session via `SendMessage` (same agent as revs 2–3) | Delegated Gate 1 record added as §P15. Also updated: the header Status row, this row, the Agent provenance adviser row and the Sign-off Gate 1 box. §P1–§P14 are unchanged. | The primary session's adopted disposition, relayed by message on 2026-10-22. The adviser reports and the lane prompt are under `artifacts/o2/gate1/`. This agent confirmed the four §P15 quotes and line numbers against the preserved lane prompt, but did not read the adviser reports. Preimage: commit `3768e52`, which is rev 3 including the primary session's three corrections made before hashing. |
 
 **Evidence note: how the baseline was read.** This agent has no shell, so it could not run `git show origin/main:<path>` or `git grep` itself. Every source fact below comes from `artifacts/project_direction_batch_20261019/ws1b/tree/`. Its `NOTES.md` §1 and §6 describe that tree as `git archive e486e3b5` with a scratch repository at `read-tree e486e3b5`. The tree's only overlay is `docs/MASTER_HANDOVER.md` plus one new archive file, and no source or test file is overlaid. Every figure taken from `ws4_design_report.md` was re-read in that tree before it was used here. This agent did **not** hash-check the extraction against `e486e3b5`. **Evidence gap:** before Gate 1, the manager or owner should confirm that `git -C artifacts/project_direction_batch_20261019/ws1b/tree status --short` lists only the two overlay paths. The shared working tree was not used as a baseline because it is 70 commits behind.
 
@@ -831,6 +832,124 @@ The owner's 2026-10-22 lane-O2 session prompt is the same direct instruction tha
 
 **P14.5 What a favourable delegated Gate 1 authorizes.** S0 and C2–C4 in the clone, within §P1, together with the §P7 checks and the §P8 reviews. It authorizes nothing outside §P1.
 
+### P15. Gate 1 — delegated decision record (2026-10-22)
+
+*Appended in rev 4. §P1–§P14 above are the bound object and are not edited. The amendments GA-1…GA-14 bind the implementation on top of them. Each amendment takes precedence over the Plan v1 text it names.*
+
+**Bound object.** This file at commit `3768e52`: SHA-256 `6e95835d84923bfd90d7bc63e27d3191308d8ded60a813dc1c9e90b682e328f9`, 96,894 B. The primary session computed the hash, then recomputed it over the byte-identical copy `artifacts/o2/gate1/PLANNING.plan-v1.md`; the two are equal. Rev 4 changes only this section and the four places listed in its Revision history row, so `git diff 3768e52 -- docs/service_extraction/PLANNING.md` shows §P1–§P14 untouched.
+
+**Authority.**
+- **Gate 1 delegation.** The owner's Gate 1 delegation, which is the second Gate 0 paragraph, with its decision rule quoted in §P14.3.
+- **Consulting-team authorization.** From the same lane-O2 prompt, verbatim:
+
+  > I delegate in-scope technical, classification and plan-disposition decisions to an AI consulting team. When a decision blocks progress:
+  > 1. Spawn three independent read-only advisers: architecture, testing, and security/product risk.
+  > 2. Quote this authorization to them verbatim.
+  > 3. Adopt a reasoned disposition and keep the adviser reports.
+  > 4. Record the disposition as DELEGATED (not my signature), then continue.
+  >
+  > A consulting verdict cannot create evidence, waive a required check, or widen this lane's scope.
+
+- **Preserved prompt.** The lane prompt is preserved at `artifacts/o2/gate1/LANE_PROMPT_O2.md` (SHA-256 `64d9c66b104b288e6ad2ece8b6d54fffd373238156a2c0beebb1fa760ffa3a05`). In it:
+  - the consulting authorization is at lines 65–73;
+  - the two §P14.4 sentences are at lines 76 and 91;
+  - the Gate 1 paragraph is at line 126.
+
+**Advisers.** All three were read-only and were briefed cold, with the authorization quoted verbatim. Each was independent of the others, of this plan's author and of the implementers. Their reports are in the clone's gitignored `artifacts/o2/gate1/`.
+
+| Lens | Agent type | Agent ID | Verdict | Report |
+|---|---|---|---|---|
+| Architecture | `architecture-reviewer` | `ae4a85c325e322cd0` | **APPROVE**: 0 BLOCKING, 3 NIT | `ADVISER_ARCHITECTURE.md` |
+| Testing | `test-strategist` | `a1898718223e9556a` | **APPROVE WITH CHANGES**: 0 BLOCKING, 5 SHOULD, 6 NIT | `ADVISER_TESTING.md` |
+| Security / product risk | `product-risk-reviewer` | `adf27f7abe7af2604` | **APPROVE WITH CHANGES**: 0 BLOCKING, 1 SHOULD, 4 NIT | `ADVISER_SECURITY_PRODUCT_RISK.md` |
+
+**Outcome.** All three approved and none raised a BLOCKING finding, so the decision rule is met. This is recorded as a **DELEGATED Gate 1, not the owner's signature**.
+
+The advisers stated these coverage gaps themselves:
+- none of them recomputed the hash;
+- architecture did not read the §P5 bodies;
+- security did not re-read `utils/errors.py` or `CONTRACT_ANALYSIS`;
+- testing could not run anything, or test the Linux trace behaviour.
+
+Under the authorization, these verdicts create no evidence. Every §P7 check still has to be run.
+
+**Binding amendments.** The primary session adopted these. Each names its source finding.
+
+1. **GA-1 (testing #1; amends §P7 item 3): mutation check (a) harness.**
+   - Copy the harness to `artifacts/o2/mutation-pre/`, and set its interpreter to the clone's absolute `.venv\Scripts\python.exe`.
+   - Build the tree from a `git archive` of C2. Target `tests/test_remove_exercise_characterization.py` inside it, and run without `-p tests.conftest`, so that the `tests` package conftest loads normally.
+   - Start with an empty `pristine/`, and keep the occurs-exactly-once assertion on every `old` string.
+   - **Validity gate, run first:** M00 and M01 must show zero failures *and* zero errors.
+   - A kill counts only when a node's outcome is an assertion failure. A mutant "killed" only by collection or import errors is a harness defect to fix.
+   - Compare each mutant's killer set with the packet's `runs/mutation/matrix.json`, and explain every difference by a §P5.1 trim.
+2. **GA-2 (testing #2; amends §P7 item 5): mutation check (b).**
+   - First run an unmutated control, a C3 archive through the same harness, with zero failures and zero errors.
+   - Add service-side mutant 8, "swallow": the service body wrapped in `try/except Exception: return None`.
+   - Add three route-side mutants, applied to the C3 route text:
+     - M05: the 404 message uses the int id;
+     - M14: the routine is stripped in the INFO extras;
+     - M17: the DEBUG record moves after validation.
+   - The "killed by `tests/test_workout_plan_service.py` alone" rule applies only to service-side mutants 1–8. It does not apply to route-side or trace-only (M22-type) mutants.
+3. **GA-3 (testing #3; amends §P7 items 2, 9 and 10(b), and §P5.1 item 4): static checks and the AC1 proof.**
+   - Before C2 is committed, run pyright 1.1.410 and flake8 (the selection at `ci.yml:119`) on the characterization file. At C3, run both on all four Python files.
+   - The AC1 proof becomes: `git diff C2 <final HEAD> -- tests/test_remove_exercise_characterization.py` is empty.
+   - If a later edit to that file is unavoidable (the trace fallback, or a reviewer fix), re-verify it in two places:
+     - on a `git archive` of the C2 tree, where it must pass on the unmodified route;
+     - at the final head.
+
+     Then re-run mutation check (a).
+4. **GA-4 (testing #4; amends §P7 item 7 and §P9): additional Chromium coverage.**
+   - **Run locally,** in addition to the 25 specs:
+     - `listener-cleanup.spec.ts`;
+     - `exercise-catalog-fetch.spec.ts`;
+     - `workout-plan-desktop-contract.spec.ts`, with `PW_VISUAL_SEED=1`. This is a computed-style/geometry spec, not a screenshot spec.
+
+     A local red in any of these is triaged against base before it is attributed.
+   - **Named but not run locally:**
+     - `visual-baseline-thumbnails.spec.ts`. It is a screenshot corpus that CI runs only in the weekly `visual-linux` job. Its win32 captures have no CI path and may be stale, and baseline regeneration is owner-only. This slice changes no template, CSS, JS or E2E file.
+     - `visual.spec.ts`, evidenced by `visual-windows` on the PR.
+   - **Evidenced by their CI jobs:** `program-backup`, `fatigue-context` and `erase-flow`.
+   - **Disclosure.** The PR body states this as a disclosed deviation from the literal `/verify-suite` default run, for the owner to see. It does not claim a waiver.
+5. **GA-5 (testing #5; amends §P9 and §P13): AC13 evidence in the PR body.**
+   - `git rev-parse --git-common-dir`, which must be the clone's own `.git`;
+   - no `objects/info/alternates`;
+   - `git worktree list`, with a single entry;
+   - `len(TEMP)`: 69, within the 103 limit;
+   - `git status --short` of the shared checkout, hashed before and after. Paths outside this lane may change because of other sessions; the evidence is that this lane wrote none.
+   - nothing from this lane listening on :5000, and the `PW_PORT` that was used.
+6. **GA-6 (testing #6; amends §P5.1 item 2).** Keep one first-record assertion, `("DEBUG", "Received data for remove_exercise: [1]")`, in one non-object case.
+7. **GA-7 (testing #7; amends §P5.1 item 4).** The failure messages of the trace assertions include `sqlite3.sqlite_version` and `sys.version`. This adds no node and no print. After any trace fallback, re-run check (a).
+8. **GA-8 (testing #8; reading of AC6).** "No `BEGIN`" means that no explicit `BEGIN` statement is issued through the handler. The implicit `BEGIN`/`COMMIT` pairs in the trace are sqlite3's per-statement transactions.
+9. **GA-9 (testing #9; amends §P7 items 1 and 6).** Run both the baseline and the final full pytest with `--junitxml`, and diff their node-ID sets. The expected delta is exactly the nodes of the two new files. Any other node that is added, removed or changes outcome must be triaged.
+10. **GA-10 (testing #10; amends §P7 item 7).** A red at `program-backup.spec.ts:79` is rerun and triaged, not waived.
+11. **GA-11 (testing #11; amends §P7).** `tsc` is covered by the required CI `Type Check` job; no TS or JS file changes.
+12. **GA-12 (architecture #1; amends §P4).** A third invisible difference, alongside §P4's two:
+    - an exception raised inside the `with` now carries one extra traceback frame (`remove_plan_exercise`) in the `exc_info` of `logger.exception`;
+    - the `lineno` and `funcName` of the route's INFO and ERROR records shift.
+
+    No test pins traceback text, `lineno` or `funcName`.
+13. **GA-13 (architecture #3; amends §P7 item 10(a)).** Also check that `:252-265` and `:301-306` are byte-identical, including the whitespace-only `:259`.
+14. **GA-14 (security F1, F2; amends §P9).** The PR text gains two additions:
+    - a sentence naming follow-ups 1–4 as pre-existing base behaviour, unchanged by this slice and out of scope:
+      - follow-up 1 is unpinned;
+      - follow-up 3 is pinned as current behaviour, not endorsed;
+      - follow-ups 2 and 4 are recorded;
+    - after "No behaviour … change", the parenthetical "(one log-record ordering difference on the 404 path, database-internal records only; see below)".
+
+**Not adopted.**
+- **Architecture #2:** no change is needed, and §P11 already records it.
+- **Security F3:** already done by the primary session; the lane prompt is preserved with its hash.
+- **Security F4:** none requested.
+- **Security F5:** already done; the hash was recomputed over both copies, and they are equal.
+
+**Dissent.** None. No adviser blocked.
+
+**What this authorizes.**
+- §P14.5 as amended by GA-1…GA-14: S0 and C2–C4 in the clone, within §P1, with the §P7 checks and the §P8 reviews.
+- Then, once the local §P7 checks pass, the push and the ready (non-draft) PR, under §P14.4's owner instruction.
+
+It authorizes no merge. The owner approves each merge by PR number and head SHA.
+
 ---
 
 ## Agent provenance
@@ -840,7 +959,7 @@ The owner's 2026-10-22 lane-O2 session prompt is the same direct instruction tha
 | `product-manager`, Section 0 (rev 1, 2026-10-19) | not supplied | The rev 1 header (C0) says "The manager supplied no agent ID." The primary O2 session supplied none either. This is a context row; there was no council. |
 | `product-manager`, Gate 0 record, rev 2 delta and Plan v1 (revs 2–3, 2026-10-22) | `ae7ed7afd0994c6df` | A fresh `product-manager`, spawned by the primary session of lane O2 of the 2026-10-22 batch. An agent cannot know its own ID. After the agent's first return, the primary session supplied this ID by message to the same agent, which then stamped it here. The agent had no shell: it read files with Read, Grep and Glob, could not compute any SHA-256, and wrote only this file. |
 | Decision-packet advisers: route/transaction analyst, characterization-test designer, independent `architecture-reviewer` | not stated in the packet | Advisory inputs dated 2026-10-21 (packet header). They are not council reviewers and not gate signatures. |
-| Delegated Gate 1 advisers | — | Recorded with the Gate 1 record. |
+| Delegated Gate 1 advisers (rev 4, §P15) | `architecture-reviewer` `ae4a85c325e322cd0`; `test-strategist` `a1898718223e9556a`; `product-risk-reviewer` `adf27f7abe7af2604` | Read-only. Briefed cold by the primary session, with the consulting authorization quoted verbatim. Independent of each other, of the plan's author and of the implementers. Verdicts: APPROVE; APPROVE WITH CHANGES; APPROVE WITH CHANGES; no BLOCKING finding. Reports are in `artifacts/o2/gate1/`. The IDs were supplied by the primary session. The §P15 record was written by `ae7ed7afd0994c6df`, resumed via `SendMessage`. |
 
 **Same product-manager resumed?** **No.** The Section 0 author's ID was never supplied, so it could not be resumed, and a fresh `product-manager` wrote revs 2–3. There was no council, so no question of response-matrix or Plan v2 continuity arises.
 
@@ -890,7 +1009,7 @@ The owner decision and the re-verified facts at `155181d6` were supplied by the 
 
 - [x] Gate 0: signed by the owner on 2026-10-22 (Section 0 sign-off block).
 - [x] Agent provenance for revs 2–3: `product-manager` `ae7ed7afd0994c6df`, supplied by the primary session. The Gate 1 adviser IDs are added with the Gate 1 record.
-- [ ] Gate 1: delegated (§P14); not yet given.
+- [x] Gate 1: disposed on 2026-10-22 as a DELEGATED Gate 1, not an owner signature (§P15). Plan v1 is bound at `3768e52` (SHA-256 `6e95835d…e328f9`), and GA-1…GA-14 are binding.
 - [ ] Implementation C2–C4: only after the Gate 1 record.
 - [ ] Push and ready (non-draft) PR: authorized by the owner's direct lane-O2 instruction (§P14.4); done only after Gate 1 and the local §P7 checks; stop once all CI is green on the final head.
 - [ ] Merge: owner-only, approved by PR number and head SHA.
