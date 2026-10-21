@@ -24,8 +24,8 @@ export default defineConfig({
 
         // Phase 1 step 6 of docs/TESTING_STRATEGY_PLANNING.md. REPORT-ONLY: no
         // `thresholds` key, so `vitest run --coverage` can report any number
-        // without failing. Q4 renames the unprotected job; D2 readiness follows
-        // the canonical ledger, and C4 needs separate owner approval.
+        // without failing. The js-unit job stays non-required (decision D2's
+        // js-unit half is explicitly NOT signed), so nothing here gates a merge.
         //
         // `all: true` is the whole point. Without it v8 reports only files a test
         // imported, which would score the handful of covered modules and silently

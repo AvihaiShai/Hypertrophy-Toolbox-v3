@@ -11,17 +11,23 @@ none of the source branch's ledger or receipt commits; #550 owns those records.
 
 The `js-unit` display name becomes `JS Unit (Vitest)`. Its identifier, runner,
 timeout, dependencies, permissions, steps, install and coverage commands, test
-corpus, collection settings and failure propagation stay the same. Comments
-and coverage-summary wording are reconciled with the approved decision. The
+corpus, collection settings and failure propagation stay the same. Workflow
+comments and coverage-summary wording reflect the approved decision. The
 release contract continues excluding this unprotected check from release
 provenance, under its new exact name; release enforcement sets do not change.
 The CI PLANNING §7 Q4 row names the current candidate without rewriting its
 historical target-set snapshot or other lanes' rows.
 
-QUALITY_GATE's workflow row requires full pytest and an independent code
-reviewer. No job is added, removed or converted to `uses:`. The S1 commission
-also requires a fresh, independent test strategist. The existing exact-name
-contract is updated; no test case is added, removed or renamed. Run inventory
+The final diff contains five paths: `.github/workflows/ci.yml`, the existing
+release contract, `docs/ai_workflow/QUALITY_GATE.md`, this record and the CI
+PLANNING Q4 row. `vitest.config.js` is byte-identical to fetched main; no root
+config is changed. QUALITY_GATE's workflow row requires full pytest and an
+independent code reviewer; its AI-workflow row adds manual review, and its
+product-docs row adds no tests. The root-config `/verify-suite` fallback is
+not triggered by this final diff. No job is added, removed or converted to
+`uses:`. The S1 commission also requires a fresh, independent test strategist.
+The existing exact-name contract is updated; no test case is added, removed
+or renamed. Run inventory
 `--check`, affected workflow/release contracts, JS coverage, TypeScript,
 pyright 1.1.410 plus its baseline diff, and blocking flake8. A seeded Vitest
 failure must exit nonzero and remain a job failure despite the always-running
@@ -115,8 +121,8 @@ Operation A.
 Local evidence under `artifacts/s1-q4/`:
 
 - `invariants.json`: all **24** YAML job definitions retained; parsed workflow
-  differs only in the JS display name and coverage-summary heading. Vitest's
-  executable configuration and `scripts/release_gate.py` are unchanged; the
+  differs only in the JS display name and coverage-summary heading.
+  `vitest.config.js` and `scripts/release_gate.py` are byte-identical to main; the
   Python contract AST changes only the excluded exact name.
 - `vitest-coverage.log`: **14 files / 269 tests passed**, exit 0. This is the
   current post-U1 corpus, not the historical 13-file qualification corpus.
@@ -133,6 +139,15 @@ Local evidence under `artifacts/s1-q4/`:
   private launch script now selects installed Git Bash and creates that private
   directory; it changes no repository source. The aborted attempt and failing
   diagnostics are retained and receive no green-gate credit.
-- The corrected full pytest, inventory check and pyright baseline diff are
-  running or pending at implementation handoff. Independent code and test
-  strategist reviews, publication readbacks and final-head CI are pending.
+- `inventory-check.log`: inventory up to date, exit 0. `pyright.json` and
+  `pyright-baseline-diff.log`: pyright 1.1.410 reports zero diagnostics and
+  zero new diagnostics; both commands exit 0. No baseline was changed.
+- The corrected full pytest was interrupted at implementation handoff; its
+  retained `pytest-full-corrected-interrupted-handoff.log` is incomplete and
+  receives no green-gate credit. The parent session owns the replacement full
+  run and will record its completed result before marking a PR ready.
+- The independent code review passed implementation `8485b5b4`. The independent
+  test strategist found that the optional root-config comment edit broadened
+  the required gate. That edit has been removed entirely, and this five-path
+  gate derivation records the fix. The finding remains pending re-review;
+  code delta review, publication readbacks and final-head CI are also pending.
