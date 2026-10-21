@@ -161,7 +161,8 @@ jobs:
   # (impostor-commit, ref-version-mismatch, known-vulnerable-actions) execute. A
   # newly published advisory for a pinned action can therefore red this job; the
   # repair is a reviewed pin bump, never a suppression. `!cancelled()` makes
-  # zizmor report even when actionlint failed.
+  # zizmor report even when actionlint failed. It also audits .github/dependabot.yml,
+  # named explicitly so the input set stays fixed; a missing or short cooldown reds it.
   #
   # Not a required check yet: promotion into scripts/release_gate.py is packet C4.
   workflow-lint:
@@ -219,7 +220,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        "$RUNNER_TEMP/workflow-lint-bin/zizmor" --min-severity medium --format plain .github/workflows
+        "$RUNNER_TEMP/workflow-lint-bin/zizmor" --min-severity medium --format plain .github/workflows .github/dependabot.yml
 
   # Dependency review (CI/CD expansion packet B3, docs/ci_cd_expansion/PLANNING.md
   # section 17). PR-only by the job-level `if:`, the single sanctioned skip: a push
@@ -869,6 +870,8 @@ jobs:
     # Linux's full suite retains portable snapshot/scope/path-refusal tests.
     # Native identities, junctions and creator/launcher contracts execute here
     # under BOTH hosts. A skipped capability must fail this job, never green it.
+    # These three modules use only per-test fixtures. Distribute their cases;
+    # full-suite parallel runs still require loadfile for module fixtures.
     - name: Run Operation A tests on both Windows hosts
       shell: pwsh
       env:
@@ -880,7 +883,7 @@ jobs:
         HT_RUNTIME_DIR: '${{ runner.temp }}/operation-a-runtime'
         PYTHONDONTWRITEBYTECODE: '1'
       run: |
-        python -m pytest tests/test_worktree_environment_preflight.py tests/test_worktree_lifecycle.py tests/test_worktree_snapshot.py -v --tb=short --junitxml=artifacts/pytest/worktree-windows.xml
+        python -m pytest tests/test_worktree_environment_preflight.py tests/test_worktree_lifecycle.py tests/test_worktree_snapshot.py -n 4 --dist load -v --tb=short --junitxml=artifacts/pytest/worktree-windows.xml
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Require executed coverage without skips

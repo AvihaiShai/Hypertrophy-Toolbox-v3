@@ -1,5 +1,10 @@
 # Leftovers by Priority
 
+> **Reconciled 2026-10-20 — no longer a queue.** Its owner-gated remainder is carried in
+> [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §0.4–§0.5, the single actionable queue.
+> This file is retained unchanged below as a dated record until its archive move, which waits on
+> repairing the inbound comment in `.github/workflows/ci.yml` (`project_direction/AGREED_PLAN.md` §12).
+
 > **Audit snapshot:** 2026-08-02, deep-scan revision v23 (final adversarial
 > audit). Codex authored v18, Opus re-verified as v19, v20 reconciled
 > #264–#267, v21 added the third-model deep scan, v22 made the resulting queue
