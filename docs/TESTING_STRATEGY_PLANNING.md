@@ -516,8 +516,11 @@ the §13.0 ledger must record the `2026-08-27` → `2026-09-10T23:18:21Z` cycle
 through its own process with zero adverse **JS Unit job** results. The owner
 expressly selected exact JS Unit job conclusions, so the cancelled workflow
 carrier's successful JS job counts green without duplicate rerun credit.
-Q4 approves `JS Unit (Vitest)` in its own change before protection. The canonical
-ledger landing and rename landing remain pending; C4 needs separate approval.
+Q4 approves `JS Unit (Vitest)` in its own change before protection.
+**Receipt, 2026-10-21:** #544 (`b4a2653c`) put cycle rows 26–75 on main, and they
+match GitHub at **50 / 0 / 0 / 0 / 0** exact JS Unit jobs, so the `js-unit` half's
+condition is met.
+The rename landing remains pending; C4 needs separate approval.
 [Exact owner ruling and evidence](r23_js_unit_promotion/DECISION.md).
 The prior statement, *“the `js-unit` half of D2 is the only decision in this table
 still unsigned”*, is superseded. The sentence this
