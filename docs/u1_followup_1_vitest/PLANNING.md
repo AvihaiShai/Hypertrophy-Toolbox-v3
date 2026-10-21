@@ -2838,3 +2838,31 @@ Evidence is retained under `artifacts/parallel-next-five/u1/post-merge/`, includ
 `MERGE_COMMAND_RECEIPT.json`, `LANDED_BLOBS_AND_INVENTORY.json`, the independent
 post-merge JS assessment and the authority/landing review. All clone, branch,
 environment, runtime and evidence retention holds continue.
+
+### S1 live re-verification — 2026-10-22 (Asia/Jerusalem)
+
+The prepared closeout `cf0d7ec` was rebased onto fetched `main`
+`155181d67a89fe72e86c75a1ff438caec250a9bd`. Live reads at
+`2026-10-21T21:41:34Z` (2026-10-22 in Asia/Jerusalem) confirm the original
+implementation merge and exact JS evidence above. The merged commit retains
+parent `dee3c379` and reviewed tree `848a9f0c48358c87b12de1d927c7c3324c225990`.
+
+| Receipt | Live result |
+|---|---|
+| #551 merge | `2026-10-21T18:45:23Z`, `a12b680fba9503b8578d777ed51dff571f7c44f2` |
+| Final implementation PR run `39649818908`, attempt 1 | Reviewed head `da74afdf13858585f55789cca78db8478acebcb1`; 29 jobs, all successful |
+| Merged-main run `39655584237`, attempt 1 | Exact `a12b680f` main push; completed/success; **29 jobs: 28 successful, one skipped (`Dependency Review`)** |
+| Exact main JS job `119414814441` | `JS Unit (Vitest, non-required)`; success, `18:45:30Z`–`18:45:51Z` |
+| Actual coverage step 5 | `Run Vitest with coverage`; success, `18:45:43Z`–`18:45:46Z`; log confirms 14 files / 269 cases, including 24 Volume Splitter cases |
+| Coverage artifact `12370049315` | Bound to that run and full head; retained ZIP SHA-256 equals the live artifact digest `ad5ea39cc0be4aabae51e8d227aab67fada73bfe1ebb9ec5d6b5838a556be60f` |
+
+The original JS receipt's in-progress whole-run reading remains historical;
+the completed reading above does not turn the expected skipped job into a pass.
+The original independent reviews retain their original diff and evidence binding.
+This live update does not claim a fresh independent review. Detailed receipts
+are retained in this clone under `artifacts/s1-u1-20261022/`.
+
+This remains the three-document closeout vehicle described above. It changes
+only product documentation and U1's queue cell. No pending qualification-ledger
+change is treated as landed; §13.0, Q2 and the final named-PR merge remain with
+their respective owners.
