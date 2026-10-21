@@ -1275,6 +1275,22 @@ The `Council recommendation and evidence` column is left as the council wrote it
 
 ### v2.14 Follow-up obligation — U1-FOLLOWUP-1, OPEN and recorded here by owner decision
 
+> **U1-FOLLOWUP-1 post-merge closeout record — 2026-10-21.** Direct owner authority
+> named [PR #551](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/551),
+> reviewed head `da74afdf13858585f55789cca78db8478acebcb1`, squash merge before G6
+> and a head-SHA guard, with branches retained. It merged at `2026-10-21T18:45:23Z`
+> as `a12b680fba9503b8578d777ed51dff571f7c44f2`; the landed tree equals the reviewed
+> tree. Its exact merged-main [JS Unit job](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39655584237/job/119414814441)
+> succeeded at `2026-10-21T18:45:51Z`, including the actual coverage step
+> (`18:45:43Z`–`18:45:46Z`): 14 files / 269 cases, including 24 new helper cases.
+> Inventories were regenerated after integration and remain unchanged.
+> Approved filing (a2)+(i) discharges this obligation and queue §0.4 when this
+> docs/status record merges. The implementation and merged-main JS conditions
+> are satisfied; this record's own publication and named merge remain separate.
+> Historical OPEN language below is retained. The qualification owner receives
+> the exact receipt and owns §13.0; no ledger row, T0, new-window completion or
+> C4 activation is assigned here. See the [full closeout record](../u1_followup_1_vitest/PLANNING.md#post-merge-receipt-and-closeout-record--2026-10-21).
+
 > **U1-FOLLOWUP-1 implementation annotation — 2026-10-21.** The owner directly
 > approved [Plan v2](../u1_followup_1_vitest/PLANNING.md) and its disclosed real-toast
 > assertion boundary. The additive 24-case Vitest file covers the six shipped

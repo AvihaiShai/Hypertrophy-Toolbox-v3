@@ -1,5 +1,12 @@
 # Plan Review — U1-FOLLOWUP-1: Vitest coverage for the Volume Splitter calculate-failure helpers
 
+> **IMPLEMENTATION LANDED — 2026-10-21.** PR #551 merged as `a12b680f`, and its
+> exact merged-main JS job and coverage step succeeded on 14 files / 269 cases.
+> The [post-merge receipt below](#post-merge-receipt-and-closeout-record--2026-10-21)
+> supplies the approved filing (a2)+(i). U1 is complete when this docs/status
+> record merges on its own authority; no such merge is claimed at preparation.
+> Earlier approval and pending-state blocks remain their dated history.
+
 > **DIRECT OWNER UPDATE — 2026-10-21: Gate 1 APPROVED.** The owner directly
 > approved the refreshed decision packet, the joint criterion 3(b) reading and all
 > disclosed §v2.G toast assertions; selected filing (a2)+(i); and made this packet
@@ -2757,3 +2764,77 @@ Prompt 1 received the A3 integration/landing-order handoff, and prompt 2 receive
 the pre-merge job/step receipt explicitly outside the mainline ledger. No row or
 new T0 is preassigned. U1 still requires named-PR merge authority, a green exact
 merged-main JS Unit job and the later docs/status PR before completion.
+
+### Post-merge receipt and closeout record — 2026-10-21
+
+This entry supersedes earlier pending-publication, pending-merge and pre-merge
+execution statements for U1. Gate 0 retains its original relayed provenance;
+Gate 1, filing (a2)+(i), publication and the named implementation merge each have
+their own direct owner records. The completed council was reused.
+
+The owner's implementation merge instruction was:
+
+> Approved: mark PR #551 ready and squash-merge head da74afdf13858585f55789cca78db8478acebcb1 before G6 #552, with a head-SHA guard. Retain branches.
+
+[PR #551](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/551) was marked
+ready and squash-merged with `--match-head-commit` set to that full reviewed SHA.
+It landed at `2026-10-21T18:45:23Z` as
+`a12b680fba9503b8578d777ed51dff571f7c44f2`, sole parent
+`dee3c379b8435e1ba0941884b9f264675f8012b7`, tree
+`848a9f0c48358c87b12de1d927c7c3324c225990`. That tree exactly equals the reviewed
+head. G6 #552 was still open at the merge receipt; no other PR was merged here.
+The remote implementation branch and all local original/intermediate refs remain.
+
+Final integrated-head PR run `39649818908`, attempt 1, passed all 29 workflow
+jobs and all 12 required contexts. The independent source, Python, native
+identity/artifact and landing-readiness reviews passed. Its clean local full
+Python invocation passed 5,681 cases with two unchanged skips; JS coverage passed
+269/269, matching local Chromium passed 75 without skips or flakes, and the
+38-mutation evidence remains valid under the approved unchanged-blob L11 rule.
+The earlier red/composite and original-head runs remain separate historical
+receipts rather than being relabeled or substituted for these final checks.
+
+**Exact merged-main reading:**
+
+| Field | Verified value |
+|---|---|
+| Workflow / event / branch | `ci.yml` / `push` / `main` |
+| Head SHA | `a12b680fba9503b8578d777ed51dff571f7c44f2` |
+| Run / attempt | [39655584237](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39655584237) / 1 |
+| Exact job / id | `JS Unit (Vitest, non-required)` / [119414814441](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39655584237/job/119414814441) |
+| Job result / times | `success`; `2026-10-21T18:45:30Z`–`2026-10-21T18:45:51Z` |
+| Actual coverage step | Step 5, `Run Vitest with coverage`, `success`; `18:45:43Z`–`18:45:46Z` |
+| Executed corpus | 14 files / 269 cases; Volume Splitter 24; v8 coverage enabled |
+| Attempts observed | One exact-head run, attempt 1; no adverse JS result observed |
+
+This conclusion is read from the actual job and step, not inferred from the
+overall workflow. Other main-run jobs were still running at the JS receipt, so
+that receipt makes no whole-run success claim. The coverage ZIP's SHA-256 matches
+GitHub's artifact digest and exact run/head binding.
+
+After integration onto this landed main, inventories were regenerated from live
+collection and checked again: unchanged JSON/Markdown, Vitest 14/269, deterministic
+Python 3,651. The landed 24 identities, all 13 old JS test files and 31 protected
+source/config/workflow/ledger surfaces were independently verified unchanged.
+Production behavior, the existing public seam and retired KI-011 scope remain
+preserved. The original shared checkout and its original local plan are untouched.
+
+The actual merge SHA and exact merged-main job/step receipt were sent to prompt 1
+and prompt 2 through the shared handoff files. Prompt 1's acknowledged order means
+G6 integrates this main and regenerates its inventory before its own landing.
+Prompt 2 owns §13.0 and applies the already-approved Q2 next-window rule; no row
+number, T0, new-window completion, completed-cycle voiding or C4 activation is
+assigned here. No qualification ledger or workflow is edited by this closeout.
+
+This three-document change is the approved post-merge vehicle: it records the
+merge SHA and green exact-main evidence in §v2.14, replaces queue §0.4's stale
+U1 row with closing evidence, and completes this implementation record. **Q-done(a)
+is satisfied when this docs/status change lands with its own publication and
+named-PR merge authority.** No publication or merge of this final vehicle is
+claimed at preparation time, and the implementation PR's authority is not reused
+as a blanket approval for another PR.
+
+Evidence is retained under `artifacts/parallel-next-five/u1/post-merge/`, including
+`MERGE_COMMAND_RECEIPT.json`, `LANDED_BLOBS_AND_INVENTORY.json`, the independent
+post-merge JS assessment and the authority/landing review. All clone, branch,
+environment, runtime and evidence retention holds continue.
