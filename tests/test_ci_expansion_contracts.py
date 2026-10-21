@@ -53,16 +53,20 @@ from tests.test_release_workflow_contracts import (
     CI,
     PACKAGED,
     RELEASE,
+    bash_executable,
+    command,
     executable,
     jobs,
     job_name,
     permissions,
+    step_condition,
     steps,
     strip_comments,
     triggers,
 )
 from tests.test_release_workflow_contracts import text as workflow_text
 from tests.worktree_cleanup.support import ROOT
+from tests.test_playwright_shard_launcher_contracts import launcher_array
 
 GUARD_FILE = "tests/test_guard_destructive_command.py"
 FAN_IN_DEPENDENCIES = ("pytest-core", "guard-hook-shard", "guard-hook-tests")
@@ -2451,3 +2455,112 @@ def test_cli_exits_one_on_an_unreadable_event_payload(dgw, gh, tmp_path):
     proc, _ = watch_cli(gh, tmp_path, event="{not json")
     assert proc.returncode == 1, proc.stdout + proc.stderr
     assert gh.writes == []
+
+
+# ---------------------------------------------------------- A3: four functional shards
+
+
+def assert_a3_shard_contract(raw):
+    """Membership is enforced here; GitHub exposes one aggregate matrix result."""
+    block = strip_comments(raw)
+    assert job_name(block) == "E2E Functional Shard ${{ matrix.shard }}/4"
+    assert needs_list(block) == ["frontend-build"]
+    matrix = re.findall(r"^        shard: \[([^\]]*)\]$", block, re.MULTILINE)
+    assert len(matrix) == 1
+    assert [int(value.strip()) for value in matrix[0].split(",")] == [1, 2, 3, 4]
+    assert re.search(r"^      fail-fast: false$", block, re.MULTILINE)
+    assert not re.search(r"^        (include|exclude):", block, re.MULTILINE)
+    assert not re.search(r"^    (if|continue-on-error):", block, re.MULTILINE)
+    by_name = dict(steps(block))
+    run = by_name["Run functional specs (shard ${{ matrix.shard }}/4)"]
+    assert step_condition(run) is None
+    assert "continue-on-error" not in run
+    expected = (
+        "npx playwright test --project=chromium --shard=${{ matrix.shard }}/4 "
+        + " ".join(sorted(launcher_array("RequiredSpecs")))
+    )
+    assert command(run) == expected
+    report = by_name["Upload functional JUnit"]
+    assert step_condition(report) == "always()"
+    assert "continue-on-error" not in report
+    assert re.search(r"uses: actions/upload-artifact@[0-9a-f]{40}\b", report)
+    for line in (
+        "name: playwright-functional-report-shard-${{ matrix.shard }}-of-4",
+        "path: artifacts/playwright/junit.xml",
+        "if-no-files-found: error",
+        "retention-days: 7",
+    ):
+        assert re.search(rf"^        {re.escape(line)}$", report, re.MULTILINE), line
+
+
+def test_a3_four_shards_preserve_the_required_selection_and_executed_reports():
+    assert_a3_shard_contract(ci_job("e2e-functional-shard"))
+
+
+@pytest.mark.parametrize("missing", (1, 2, 3, 4))
+def test_a3_removing_any_shard_fails_the_required_workflow_contract(missing):
+    block = ci_job("e2e-functional-shard")
+    reduced = ", ".join(str(value) for value in (1, 2, 3, 4) if value != missing)
+    mutated = block.replace("shard: [1, 2, 3, 4]", f"shard: [{reduced}]")
+    assert mutated != block
+    with pytest.raises(AssertionError):
+        assert_a3_shard_contract(mutated)
+
+
+@pytest.mark.parametrize(
+    "before,after",
+    (
+        ("shard: [1, 2, 3, 4]", "shard: [1, 2, 3, 3]"),
+        ("fail-fast: false", "fail-fast: true"),
+        ("        shard: [1, 2, 3, 4]", "        shard: [1, 2, 3, 4]\n        exclude: []"),
+        ("        shard: [1, 2, 3, 4]", "        shard: [1, 2, 3, 4]\n        include: []"),
+        ("    needs: frontend-build", "    needs: frontend-build\n    continue-on-error: true"),
+        ("    needs: frontend-build", "    needs: frontend-build\n    if: false"),
+        ("--shard=${{ matrix.shard }}/4", "--shard=${{ matrix.shard }}/2"),
+        ("      run: |\n        npx playwright", "      if: false\n      run: |\n        npx playwright"),
+        ("e2e/workout-plan.spec.ts\n", "e2e/workout-plan.spec.ts || true\n"),
+        ("      if: always()\n      uses: actions/upload-artifact", "      if: failure()\n      uses: actions/upload-artifact"),
+        ("if-no-files-found: error", "if-no-files-found: warn"),
+    ),
+)
+def test_a3_cannot_soften_or_skip_a_shard_or_its_execution_report(before, after):
+    block = ci_job("e2e-functional-shard")
+    mutated = block.replace(before, after)
+    assert mutated != block
+    with pytest.raises(AssertionError):
+        assert_a3_shard_contract(mutated)
+
+
+def test_a3_preserves_the_single_always_running_required_aggregate():
+    named = [job_id for job_id, raw in jobs(CI).items() if job_name(raw) == "E2E Functional (Chromium)"]
+    assert named == ["e2e-functional"]
+    assert "E2E Functional (Chromium)" in REQUIRED_CONTEXTS
+    block = strip_comments(ci_job("e2e-functional"))
+    assert needs_list(block) == ["e2e-functional-shard"]
+    assert re.search(r"^    if: always\(\)$", block, re.MULTILINE)
+    assert not re.search(r"^    continue-on-error:", block, re.MULTILINE)
+    decision_steps = steps(block)
+    assert len(decision_steps) == 1
+    name, raw = decision_steps[0]
+    assert name == "Require all functional shards to pass"
+    assert step_condition(raw) is None
+    assert "continue-on-error" not in raw
+
+
+@pytest.mark.parametrize("result", ("success", "failure", "cancelled", "skipped", "", "SUCCESS"))
+def test_a3_actual_aggregate_shell_fails_closed_for_every_non_success_result(result):
+    raw = dict(steps(strip_comments(ci_job("e2e-functional"))))["Require all functional shards to pass"]
+    script = run_script(raw)
+    expression = "${{ needs.e2e-functional-shard.result }}"
+    assert script is not None and script.count(expression) == 1
+    script = script.replace(expression, result)
+    assert "${{" not in script
+    proc = subprocess.run(
+        [bash_executable(), "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == (0 if result == "success" else 1), proc.stdout + proc.stderr
+    if result != "success":
+        assert "::error title=E2E Functional gate::" in proc.stdout
