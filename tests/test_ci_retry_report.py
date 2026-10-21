@@ -999,8 +999,28 @@ def test_cli_step_outcome_is_free_text(tmp_path, capsys):
     assert code == 0 and "**Status:** unavailable (inconsistent)" in markdown
 
 
+@pytest.mark.parametrize("step,span", (("fail`ure", "fail'ure"), ("fail\nure", None)), ids=("backtick", "newline"))
+def test_cli_keeps_the_step_outcome_inside_one_code_span(tmp_path, capsys, step, span):
+    code, markdown, _ = cli(tmp_path, capsys, FIXTURES / "clean.json", step)
+    assert code == 0
+    lines = [line for line in markdown.splitlines() if "Original test step outcome:" in line]
+    assert len(lines) == 1, markdown
+    found = re.findall(r"Original test step outcome: `([^`]*)`", lines[0])
+    assert len(found) == 1, lines[0]
+    if span is not None:
+        assert found[0] == span
+    else:
+        # Flattened to one line: the break becomes a space or disappears, never a second line.
+        assert re.fullmatch(r"fail ?ure", found[0]), found[0]
+
+
 @pytest.mark.parametrize(
-    "statuses,classification", ((("failed",), "failed"), (("passed", "passed", "passed"), "exhausted"))
+    "statuses,classification",
+    (
+        (("failed",), "failed"),
+        (("passed", "passed", "passed"), "exhausted"),
+        (("failed", "skipped"), "recovered"),  # Playwright's flaky: the final attempt skipped as expected
+    ),
 )
 def test_a_skip_expected_test_that_ran_is_never_hidden_as_skipped(tmp_path, capsys, statuses, classification):
     def ran(test):
@@ -1114,6 +1134,7 @@ RERUN_DISTRIBUTIONS = frozenset(
 RERUN_OPTION = re.compile(
     r"--reruns\b|--reruns-delay\b|--only-rerun\b|--rerun-except\b|--force-flaky\b|--max-runs\b"
     r"|(?:^|\s)-p\s*(?:pytest_)?rerunfailures\b"
+    r"|(?:^|\s)(?:-o\s*|--override-ini[=\s]\s*)['\"]?(?:reruns|reruns_delay|only_rerun|rerun_except)\s*="
 )
 RERUN_INI_KEYS = frozenset({"reruns", "reruns_delay", "only_rerun", "rerun_except"})
 # pytest-retry's option; only meaningful on a pytest command, since pip has its own --retries.
@@ -1176,25 +1197,40 @@ def pytest_settings() -> list[tuple[str, str, str]]:
     return found
 
 
+def run_lines(text: str):
+    """Logical shell lines of every `run:` value in one workflow; a folded (`>`) block is one line."""
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        key = RUN_KEY.match(line)
+        if key is None:
+            continue
+        script = key.group(2).strip()
+        block = re.fullmatch(r"([|>])[-+0-9]*", script)
+        if block:
+            indent, body = len(key.group(1)), []
+            for following in lines[index + 1:]:
+                if following.strip() and len(following) - len(following.lstrip()) <= indent:
+                    break
+                body.append(following.strip())
+            script = ("\n" if block.group(1) == "|" else " ").join(body)
+        for logical in script.replace("\\\n", " ").replace("`\n", " ").splitlines():
+            if logical.strip() and not logical.lstrip().startswith("#"):
+                yield " ".join(logical.split())
+
+
 def workflow_run_lines():
     """(workflow, logical shell line) for every `run:` value in every workflow."""
     for path in sorted(WORKFLOWS.glob("*.y*ml")):
-        lines = path.read_text(encoding="utf-8").splitlines()
-        for index, line in enumerate(lines):
-            key = RUN_KEY.match(line)
-            if key is None:
-                continue
-            script = key.group(2).strip()
-            if re.fullmatch(r"[|>][-+0-9]*", script):
-                indent, body = len(key.group(1)), []
-                for following in lines[index + 1:]:
-                    if following.strip() and len(following) - len(following.lstrip()) <= indent:
-                        break
-                    body.append(following)
-                script = "\n".join(body)
-            for logical in script.replace("\\\n", " ").replace("`\n", " ").splitlines():
-                if logical.strip() and not logical.lstrip().startswith("#"):
-                    yield path.name, logical.strip()
+        for logical in run_lines(path.read_text(encoding="utf-8")):
+            yield path.name, logical
+
+
+def reruns_pytest(line: str) -> bool:
+    return bool(
+        PYTEST_COMMAND.search(line)
+        and not PIP_INSTALL.search(line)
+        and (RERUN_OPTION.search(line) or PYTEST_RETRY_OPTION.search(line))
+    )
 
 
 def installed(line: str) -> set[str]:
@@ -1218,7 +1254,7 @@ def test_no_workflow_reruns_pytest_or_installs_a_rerun_plugin():
     installs = [(name, line) for name, line in lines if PIP_INSTALL.search(line)]
     # Vacuity floors: the parser still sees ci.yml's pytest runs and its installs.
     assert any(name == "ci.yml" for name, _ in commands) and any(name == "ci.yml" for name, _ in installs)
-    offenders = [(name, line) for name, line in commands if RERUN_OPTION.search(line) or PYTEST_RETRY_OPTION.search(line)]
+    offenders = [(name, line) for name, line in commands if reruns_pytest(line)]
     offenders += [(name, line) for name, line in installs if installed(line) & RERUN_DISTRIBUTIONS]
     offenders += [
         (path.name, line)
@@ -1227,6 +1263,66 @@ def test_no_workflow_reruns_pytest_or_installs_a_rerun_plugin():
         if "PYTEST_ADDOPTS" in line and (RERUN_OPTION.search(line) or PYTEST_RETRY_OPTION.search(line))
     ]
     assert offenders == []
+
+
+RERUN_COMMANDS = (
+    "python -m pytest tests/ -v --reruns 2",
+    "pytest --reruns-delay 1 tests",
+    "pytest --only-rerun AssertionError",
+    "pytest -p rerunfailures tests",
+    "pytest -p pytest_rerunfailures",
+    "pytest --retries 2 tests",
+    "pytest -o reruns=2 tests",
+    "pytest -oreruns=2",
+    "pytest -o reruns_delay=1",
+    "pytest -o only_rerun=AssertionError",
+    "pytest -orerun_except=KeyError",
+    "pytest -o 'reruns=2'",
+    "pytest --override-ini=reruns=2",
+)
+ORDINARY_COMMANDS = (
+    "python -m pip install --retries 5 -r requirements.txt",
+    "pytest tests/ -v --tb=short -o junit_family=xunit2",
+    "echo pytest-core --reruns",
+    "npx playwright test --project=chromium",
+)
+
+
+@pytest.mark.parametrize("line", RERUN_COMMANDS)
+def test_the_rerun_tripwire_recognises_each_rerun_setting(line):
+    assert reruns_pytest(line)
+
+
+@pytest.mark.parametrize("line", ORDINARY_COMMANDS)
+def test_the_rerun_tripwire_ignores_ordinary_commands(line):
+    assert not reruns_pytest(line)
+
+
+def test_folded_and_literal_run_blocks_become_logical_lines():
+    workflow = "\n".join((
+        "jobs:",
+        "  a:",
+        "    steps:",
+        "    - name: folded",
+        "      run: >-",
+        "        python -m pytest tests/",
+        "        --reruns 2",
+        "",
+        "    - name: literal",
+        "      run: |",
+        "        pytest tests/ \\",
+        "          -o reruns=1",
+        "        echo done",
+        "    - name: plain",
+        "      run: pytest -p rerunfailures",
+    ))
+    assert list(run_lines(workflow)) == [
+        "python -m pytest tests/ --reruns 2",
+        "pytest tests/ -o reruns=1",
+        "echo done",
+        "pytest -p rerunfailures",
+    ]
+    assert all(reruns_pytest(line) for line in run_lines(workflow) if line != "echo done")
 
 
 def test_no_rerun_plugin_is_loaded_into_this_session(request):

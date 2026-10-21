@@ -59,7 +59,7 @@ def classify(expected: str, statuses: list[str], retries: int) -> str:
         return "skipped" if expected == "skipped" else "did-not-run"
     if statuses[-1] == "interrupted":
         return "interrupted"
-    if expected == "skipped" and statuses[-1] == "skipped":
+    if expected == "skipped" and all(status == "skipped" for status in statuses):
         return "skipped"
     if all(status == "skipped" for status in statuses):
         return "did-not-run"
@@ -286,12 +286,13 @@ def render(result: dict[str, Any], label: str, step_outcome: str, run_attempt: s
         scope = "unsharded"
     if run_attempt:
         scope = f"Workflow run attempt {run_attempt}, {scope}"
+    outcome_text = _flat(step_outcome).replace("`", "'")
     lines = [
         f"### Retry report — {_flat(label)}",
         "",
         f"**Status:** {state}",
         "",
-        f"Original test step outcome: `{step_outcome}`. This summary reports that outcome and does not change it.",
+        f"Original test step outcome: `{outcome_text}`. This summary reports that outcome and does not change it.",
         "",
         f"- Reporter: Playwright JSON {result['reporter_version'] or '(version unknown)'}",
         f"- Retry policy: {policy or 'unknown'}",
