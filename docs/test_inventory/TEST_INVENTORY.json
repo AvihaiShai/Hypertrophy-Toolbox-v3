@@ -241,8 +241,8 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 3781,
-    "deterministic_files": 135,
+    "collected_deterministic": 3978,
+    "deterministic_files": 136,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -309,6 +309,10 @@
       {
         "file": "tests/test_ci_expansion_contracts.py",
         "tests": 457
+      },
+      {
+        "file": "tests/test_ci_retry_report.py",
+        "tests": 197
       },
       {
         "file": "tests/test_compiled_css_drift_gate_contracts.py",
@@ -795,7 +799,7 @@
         "tests": 40
       }
     ],
-    "total_files": 136
+    "total_files": 137
   },
   "schema_version": 2,
   "vitest": {

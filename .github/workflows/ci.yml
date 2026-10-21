@@ -393,8 +393,28 @@ jobs:
     - name: Install Playwright Chromium
       run: npx playwright install --with-deps chromium
 
+    # --reporter replaces the config reporters, so the JSON report the retry
+    # summary reads is requested here and pointed at the shared path.
     - name: Run smoke spec
-      run: npx playwright test e2e/smoke-navigation.spec.ts --project=chromium --reporter=line
+      id: playwright
+      env:
+        PLAYWRIGHT_JSON_OUTPUT_FILE: artifacts/playwright/results.json
+      run: npx playwright test e2e/smoke-navigation.spec.ts --project=chromium --reporter=line,json
+
+    # Attempt-preserving retry summary (G7). `always()` so a red run still
+    # reports its attempts; continue-on-error and the script's exit 0 mean the
+    # summary can never change the Playwright step's verdict. Values reach the
+    # shell through env, never as `${{ }}` inside run:.
+    - name: Summarize Playwright retries
+      if: always()
+      continue-on-error: true
+      env:
+        STEP_OUTCOME: ${{ steps.playwright.outcome }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: |
+        python scripts/ci_retry_report.py --report artifacts/playwright/results.json \
+          --label "E2E Smoke (Chromium)" --step-outcome "$STEP_OUTCOME" \
+          --run-attempt "$RUN_ATTEMPT" --summary-file "$GITHUB_STEP_SUMMARY"
 
   # Sharded functional E2E (leftovers A11). The deterministic functional set is
   # split across a 4-way matrix (`--shard=i/4`); each matrix leg is its own
@@ -459,8 +479,10 @@ jobs:
     # probe (225/225 green, zero flakes). nav-dropdown was promoted after the
     # issue #8 1440px actionability fix; sharding remains `--shard=${{ matrix.shard }}/4`.
     # No --reporter flag: the CI-gated reporters in playwright.config.ts (list +
-    # html + junit) must all emit so the artifact upload below has a report.
+    # html + junit + json) must all emit so the artifact uploads below have a
+    # report and the retry summary has its JSON.
     - name: Run functional specs (shard ${{ matrix.shard }}/4)
+      id: playwright
       run: |
         npx playwright test --project=chromium --shard=${{ matrix.shard }}/4 \
           e2e/accessibility.spec.ts \
@@ -509,6 +531,23 @@ jobs:
           --junit artifacts/playwright/junit.xml \
           --shards 1 --top 12 --markdown \
           --label "shard ${{ matrix.shard }}/4 (required set)" >> "$GITHUB_STEP_SUMMARY" || true
+
+    # Attempt-preserving retry summary (G7). JUnit above keeps one final outcome
+    # per test, so a recovered retry is invisible there; this reads every attempt
+    # from the JSON report. The shard reaches the shell through env because run:
+    # holds no `${{ }}`; a report from another shard is reported as inconsistent.
+    - name: Summarize Playwright retries
+      if: always()
+      continue-on-error: true
+      env:
+        STEP_OUTCOME: ${{ steps.playwright.outcome }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+        SHARD: ${{ matrix.shard }}/4
+      run: |
+        python scripts/ci_retry_report.py --report artifacts/playwright/results.json \
+          --label "E2E Functional Shard $SHARD" --expect-shard "$SHARD" \
+          --step-outcome "$STEP_OUTCOME" --run-attempt "$RUN_ATTEMPT" \
+          --summary-file "$GITHUB_STEP_SUMMARY"
 
     # Keep successful execution evidence without uploading the full HTML/trace
     # bundle on every green run. Report absence must fail this shard.
@@ -602,7 +641,20 @@ jobs:
       run: npx playwright install --with-deps chromium
 
     - name: Run backup spec
+      id: playwright
       run: npx playwright test e2e/program-backup.spec.ts --project=chromium
+
+    # G7 retry summary; the JSON comes from the CI-gated config reporters.
+    - name: Summarize Playwright retries
+      if: always()
+      continue-on-error: true
+      env:
+        STEP_OUTCOME: ${{ steps.playwright.outcome }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: |
+        python scripts/ci_retry_report.py --report artifacts/playwright/results.json \
+          --label "E2E Backup (Chromium, isolated)" --step-outcome "$STEP_OUTCOME" \
+          --run-attempt "$RUN_ATTEMPT" --summary-file "$GITHUB_STEP_SUMMARY"
 
     - name: Upload Playwright artifacts
       if: failure()
@@ -661,8 +713,24 @@ jobs:
     - name: Install Playwright Chromium
       run: npx playwright install --with-deps chromium
 
+    # --reporter replaces the config reporters; see e2e-smoke.
     - name: Run fatigue-context spec
-      run: npx playwright test e2e/fatigue-context.spec.ts --project=chromium --reporter=line
+      id: playwright
+      env:
+        PLAYWRIGHT_JSON_OUTPUT_FILE: artifacts/playwright/results.json
+      run: npx playwright test e2e/fatigue-context.spec.ts --project=chromium --reporter=line,json
+
+    # G7 retry summary; see e2e-smoke.
+    - name: Summarize Playwright retries
+      if: always()
+      continue-on-error: true
+      env:
+        STEP_OUTCOME: ${{ steps.playwright.outcome }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: |
+        python scripts/ci_retry_report.py --report artifacts/playwright/results.json \
+          --label "E2E Fatigue Context (Chromium, non-required)" --step-outcome "$STEP_OUTCOME" \
+          --run-attempt "$RUN_ATTEMPT" --summary-file "$GITHUB_STEP_SUMMARY"
 
     - name: Upload Playwright artifacts
       if: failure()
@@ -729,8 +797,24 @@ jobs:
     - name: Install Playwright Chromium
       run: npx playwright install --with-deps chromium
 
+    # --reporter replaces the config reporters; see e2e-smoke.
     - name: Run erase-flow spec
-      run: npx playwright test e2e/erase-flow.spec.ts --project=chromium --reporter=line
+      id: playwright
+      env:
+        PLAYWRIGHT_JSON_OUTPUT_FILE: artifacts/playwright/results.json
+      run: npx playwright test e2e/erase-flow.spec.ts --project=chromium --reporter=line,json
+
+    # G7 retry summary; see e2e-smoke.
+    - name: Summarize Playwright retries
+      if: always()
+      continue-on-error: true
+      env:
+        STEP_OUTCOME: ${{ steps.playwright.outcome }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: |
+        python scripts/ci_retry_report.py --report artifacts/playwright/results.json \
+          --label "E2E Erase Flow (Chromium, isolated, non-required)" --step-outcome "$STEP_OUTCOME" \
+          --run-attempt "$RUN_ATTEMPT" --summary-file "$GITHUB_STEP_SUMMARY"
 
     - name: Upload Playwright artifacts
       if: failure()
@@ -824,6 +908,7 @@ jobs:
     # NO --update-snapshots, here or anywhere in CI. Baselines are owner-local
     # and change only through a reviewed local run.
     - name: Run Windows visual suite (compare only)
+      id: playwright
       env:
         PW_VISUAL_SEED: '1'
         PW_PORT: '5057'
@@ -839,6 +924,20 @@ jobs:
       run: |
         $changed = git status --porcelain -- e2e/__screenshots__
         if ($changed) { Write-Host $changed; throw 'CI wrote to e2e/__screenshots__; baselines are owner-local and must never be produced here' }
+      shell: pwsh
+
+    # G7 retry summary; see e2e-smoke. The JSON comes from the CI-gated config
+    # reporters, and pwsh reads the step env through $env:.
+    - name: Summarize Playwright retries
+      if: always()
+      continue-on-error: true
+      env:
+        STEP_OUTCOME: ${{ steps.playwright.outcome }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: |
+        python scripts/ci_retry_report.py --report artifacts/playwright/results.json `
+          --label "Visual Regression (Windows baselines)" --step-outcome "$env:STEP_OUTCOME" `
+          --run-attempt "$env:RUN_ATTEMPT" --summary-file "$env:GITHUB_STEP_SUMMARY"
       shell: pwsh
 
     - name: Upload Playwright report + diffs

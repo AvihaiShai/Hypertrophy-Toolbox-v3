@@ -53,12 +53,17 @@ if (process.env.PW_BASE_URL) {
   }
 }
 
-/* CI-only JUnit reporter, gated on process.env.CI so local `npx playwright test`
-   (and the --update-snapshots visual-baseline workflow) keep the interactive
-   list + html reporters untouched. Each CI job runs on its own runner, so a
-   fixed filename never collides — the uploaded artifact is named per job. */
+/* CI-only JUnit and JSON reporters, gated on process.env.CI so local
+   `npx playwright test` (and the --update-snapshots visual-baseline workflow) keep
+   the interactive list + html reporters untouched. JUnit keeps one final outcome
+   per test; the JSON report keeps every retry attempt for
+   scripts/ci_retry_report.py. Each CI job runs on its own runner, so a fixed
+   filename never collides — the uploaded artifact is named per job. */
 const ciReporters: import('@playwright/test').ReporterDescription[] = process.env.CI
-  ? [['junit', { outputFile: path.join(playwrightArtifactsDir, 'junit.xml') }]]
+  ? [
+      ['junit', { outputFile: path.join(playwrightArtifactsDir, 'junit.xml') }],
+      ['json', { outputFile: path.join(playwrightArtifactsDir, 'results.json') }],
+    ]
   : [];
 
 /* Throwaway DB the web server runs against (under gitignored artifacts/), so the
