@@ -6,7 +6,7 @@ does not import from it, so a change to the service alone is caught here.
 
 ``_Recorder`` patches ``utils.database.DatabaseHandler`` on the CLASS and
 records the handlers opened, the calls made on each and their ``commit``
-argument. It records no SQLite trace.
+argument.
 """
 from __future__ import annotations
 

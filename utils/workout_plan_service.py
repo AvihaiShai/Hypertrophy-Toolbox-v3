@@ -1,9 +1,8 @@
-"""Plan-row removal behind ``POST /remove_exercise`` (WS4 slice 1).
+"""Plan-row removal behind ``POST /remove_exercise``.
 
-Moved from ``routes/workout_plan.py`` without a behaviour change. Removal is not
-atomic: each statement commits on its own (``execute_query``'s default
-``commit=True``), so a failure in a later statement leaves the earlier ones
-committed.
+Removal is not atomic: each statement commits on its own (``execute_query``'s
+default ``commit=True``), so a failure in a later statement leaves the earlier
+ones committed.
 """
 from typing import Any, NamedTuple, Optional
 
