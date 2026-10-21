@@ -59,7 +59,7 @@ def classify(expected: str, statuses: list[str], retries: int) -> str:
         return "skipped" if expected == "skipped" else "did-not-run"
     if statuses[-1] == "interrupted":
         return "interrupted"
-    if expected == "skipped":
+    if expected == "skipped" and statuses[-1] == "skipped":
         return "skipped"
     if all(status == "skipped" for status in statuses):
         return "did-not-run"
@@ -266,7 +266,8 @@ def _flat(text: str) -> str:
 
 
 def _row(test: dict[str, Any]) -> str:
-    identity = _flat(f"{test['file']}:{test['line']}{SEP}{test['title']} [{test['project']}]").replace("|", "\\|")
+    identity = _flat(f"{test['file']}:{test['line']}{SEP}{test['title']} [{test['project']}]")
+    identity = identity.replace("`", "'").replace("|", "\\|")
     tries = " → ".join(
         f"#{attempt['retry']} {attempt['status']} ({attempt['duration_ms'] / 1000:.1f}s)" for attempt in test["attempts"]
     )
@@ -277,7 +278,12 @@ def render(result: dict[str, Any], label: str, step_outcome: str, run_attempt: s
     status, reason, shard = result["status"], result["reason"], result["shard"]
     state = {"no-retries": "no retries", "retries": "retries observed"}.get(status, f"unavailable ({reason})")
     policy = ", ".join(f"{project} retries={retries}" for project, retries in result["retry_policy"].items())
-    scope = f"shard {shard}" if shard else "shard unknown" if reason in UNREAD else "unsharded"
+    if shard:
+        scope = f"shard {shard}"
+    elif reason in UNREAD:
+        scope = "shard unknown"
+    else:
+        scope = "unsharded"
     if run_attempt:
         scope = f"Workflow run attempt {run_attempt}, {scope}"
     lines = [
@@ -321,6 +327,15 @@ def annotation(result: dict[str, Any], label: str) -> str | None:
     return f"::warning title={_escape(f'Retry report: {label}', prop=True)}::{_escape(message)}"
 
 
+def _append(path: Path, markdown: str) -> bool:
+    try:
+        with path.open("a", encoding="utf-8", errors="replace") as handle:
+            handle.write(markdown)
+    except OSError:
+        return False
+    return True
+
+
 def _outputs(result: dict[str, Any], args: argparse.Namespace) -> tuple[str, str | None]:
     return render(result, args.label, args.step_outcome, args.run_attempt), annotation(result, args.label)
 
@@ -332,7 +347,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--step-outcome", required=True, help="the test step's outcome; free text, never a usage error")
     parser.add_argument("--expect-shard", help="I/N the job ran, e.g. 1/4")
     parser.add_argument("--run-attempt")
-    parser.add_argument("--summary-file", type=Path, help="append the markdown here as UTF-8; stdout otherwise")
+    parser.add_argument("--summary-file", type=Path, help="append the markdown here as UTF-8; stdout otherwise or on failure")
     args = parser.parse_args(argv)
     try:
         result = analyze(args.report, step_outcome=args.step_outcome, expect_shard=args.expect_shard)
@@ -343,11 +358,8 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if warning:
         print(warning)
-    if args.summary_file is None:
+    if args.summary_file is None or not _append(args.summary_file, markdown):
         print(markdown, end="")
-    else:
-        with args.summary_file.open("a", encoding="utf-8", errors="replace") as handle:
-            handle.write(markdown)
     return 0
 
 

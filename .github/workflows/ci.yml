@@ -403,8 +403,7 @@ jobs:
 
     # Attempt-preserving retry summary (G7). `always()` so a red run still
     # reports its attempts; continue-on-error and the script's exit 0 mean the
-    # summary can never change the Playwright step's verdict. Values reach the
-    # shell through env, never as `${{ }}` inside run:.
+    # summary can never change the Playwright step's verdict.
     - name: Summarize Playwright retries
       if: always()
       continue-on-error: true
@@ -534,8 +533,7 @@ jobs:
 
     # Attempt-preserving retry summary (G7). JUnit above keeps one final outcome
     # per test, so a recovered retry is invisible there; this reads every attempt
-    # from the JSON report. The shard reaches the shell through env because run:
-    # holds no `${{ }}`; a report from another shard is reported as inconsistent.
+    # from the JSON report. A report from another shard is reported as inconsistent.
     - name: Summarize Playwright retries
       if: always()
       continue-on-error: true
@@ -926,8 +924,7 @@ jobs:
         if ($changed) { Write-Host $changed; throw 'CI wrote to e2e/__screenshots__; baselines are owner-local and must never be produced here' }
       shell: pwsh
 
-    # G7 retry summary; see e2e-smoke. The JSON comes from the CI-gated config
-    # reporters, and pwsh reads the step env through $env:.
+    # G7 retry summary; see e2e-backup.
     - name: Summarize Playwright retries
       if: always()
       continue-on-error: true

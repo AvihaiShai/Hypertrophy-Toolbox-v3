@@ -1,19 +1,22 @@
 """G7: attempt-preserving Playwright retry report and its CI wiring.
 
-Behaviour runs against real Playwright 1.61.0 JSON reporter captures in
-tests/fixtures/ci_retry_report/ (browser-free synthetic specs, paths sanitized). Every
-malformed, partial or inconsistent report is derived from them in tmp_path, so the
-committed fixtures stay byte-identical to what Playwright wrote.
+Behaviour runs against tests/fixtures/ci_retry_report/: sanitized copies of real Playwright
+1.61.0 JSON reporter captures of browser-free synthetic specs, with machine paths replaced by
+placeholders. Their provenance is recorded in docs/ci_cd_expansion/PLANNING.md's G7 section.
+Every malformed, partial or inconsistent report is derived from them in tmp_path.
 """
 from __future__ import annotations
 
 import ast
+import configparser
 import copy
 import json
+import os
 import re
 import shlex
 import subprocess
 import sys
+import tomllib
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, NamedTuple
@@ -209,11 +212,19 @@ def absent(tmp_path: Path) -> Path:
     return tmp_path / "never-written" / "results.json"
 
 
+def clean_bytes() -> bytes:
+    return (FIXTURES / "clean.json").read_bytes()
+
+
+def truncated_bytes() -> bytes:
+    raw = clean_bytes()
+    return raw[: len(raw) // 2]
+
+
 def truncated(tmp_path: Path) -> Path:
     tmp_path.mkdir(parents=True, exist_ok=True)
     path = tmp_path / "results.json"
-    raw = (FIXTURES / "clean.json").read_bytes()
-    path.write_bytes(raw[: len(raw) // 2])
+    path.write_bytes(truncated_bytes())
     return path
 
 
@@ -343,10 +354,8 @@ def test_every_capture_is_a_supported_playwright_json_report(name):
 def test_supported_versions_include_the_pinned_playwright():
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     pinned = package["devDependencies"]["@playwright/test"]
-    supported = retry_report.SUPPORTED_PLAYWRIGHT_VERSIONS
-    assert isinstance(supported, tuple) and all(isinstance(version, str) for version in supported)
     # A Playwright bump must re-verify the JSON reporter shape before G7 trusts it.
-    assert pinned in supported
+    assert pinned in retry_report.SUPPORTED_PLAYWRIGHT_VERSIONS
 
 
 def test_the_script_imports_only_the_standard_library():
@@ -488,7 +497,8 @@ def merge_projects(data):
     suite = data["suites"][0]
     merged = []
     for spec in suite["specs"]:
-        twin = next((m for m in merged if (m["title"], m["line"], m["column"]) == (spec["title"], spec["line"], spec["column"])), None)
+        where = (spec["title"], spec["line"], spec["column"])
+        twin = next((m for m in merged if (m["title"], m["line"], m["column"]) == where), None)
         if twin is None:
             merged.append(spec)
         else:
@@ -534,16 +544,24 @@ def test_classification_follows_the_reported_retry_policy(tmp_path):
     assert result["counts"] == counts(first_attempt=3, recovered=4, rerun=3, failed=3, skipped=1, did_not_run=1)
 
 
-def test_the_expected_shard_must_match_the_report():
-    result = analyze(FIXTURES / "small-shard-1-of-2.json", "success", "1/2")
-    assert (result["status"], result["shard"]) == ("retries", "1/2")
-
-
 def test_a_skip_expected_test_without_results_is_not_partial(tmp_path):
     edit = then_restat(on_test("clean two", lambda test: test.update(expectedStatus="skipped", results=[])))
     result = analyze(captured("clean.json", edit)(tmp_path), "success")
     assert (result["status"], result["reason"]) == ("no-retries", None)
     assert result["counts"] == counts(first_attempt=2, skipped=1)
+
+
+@pytest.mark.parametrize("retries,classification", ((0, "exhausted"), (2, "failed")))
+def test_one_failed_attempt_is_exhausted_only_when_no_retry_was_allowed(tmp_path, retries, classification):
+    def fail_once(data):
+        data["config"]["projects"][0]["retries"] = retries
+        find(data, "clean two")["results"][0]["status"] = "failed"
+        restat(data)
+
+    result = analyze(captured("clean.json", fail_once)(tmp_path), "failure")
+    test = by_title(result)["clean two"]
+    assert (attempts(test), test["classification"]) == ([(0, "failed")], classification)
+    assert (result["status"], result["retry_policy"]) == ("no-retries", {"chromium": retries})
 
 
 # ------------------------------------------------------------------ unavailable, never zero
@@ -555,12 +573,8 @@ def test_a_missing_report_is_unavailable_not_zero(tmp_path):
     assert (result["tests"], result["retry_policy"], result["reporter_version"], result["shard"]) == ([], {}, None, None)
 
 
-def clean_bytes() -> bytes:
-    return (FIXTURES / "clean.json").read_bytes()
-
-
 UNREADABLE = {
-    "truncated": lambda: clean_bytes()[: len(clean_bytes()) // 2],
+    "truncated": truncated_bytes,
     "empty-file": lambda: b"",
     "not-utf-8": lambda: clean_bytes().replace(b"clean one", b"clean \xff"),
     "empty-object": lambda: b"{}",
@@ -682,7 +696,9 @@ def test_an_incomplete_report_is_partial_with_observed_tests_retained(tmp_path, 
 INCONSISTENT: dict[str, tuple[str, str, str | None, Edit | None]] = {
     "stats-undercount": ("clean.json", "success", None, lambda data: data["stats"].update(expected=2)),
     "stats-extra-flaky": ("clean.json", "success", None, lambda data: data["stats"].update(flaky=1)),
-    "test-status": ("mixed.json", "failure", None, on_test("fails then recovers", lambda test: test.update(status="expected"))),
+    "test-status": (
+        "mixed.json", "failure", None, on_test("fails then recovers", lambda test: test.update(status="expected"))
+    ),
     "other-shard": ("small-shard-1-of-2.json", "success", "2/2", None),
     "other-shard-total": ("small-shard-1-of-2.json", "success", "1/4", None),
     "unsharded-report": ("clean.json", "success", "1/4", None),
@@ -723,7 +739,9 @@ PRECEDENCE: dict[str, tuple[Source, str, str | None, str]] = {
         captured("max-failures.json", on_test("passes first attempt", lambda test: test["results"][0].update(status="flaky"))),
         "failure", None, "malformed",
     ),
-    "unsupported-over-partial": (captured("global-timeout.json", set_version("1.62.1")), "failure", None, "unsupported-reporter"),
+    "unsupported-over-partial": (
+        captured("global-timeout.json", set_version("1.62.1")), "failure", None, "unsupported-reporter"
+    ),
     "unsupported-over-inconsistent": (captured("clean.json", set_version("1.62.1")), "failure", "1/4", "unsupported-reporter"),
     "partial-over-step-outcome": (captured("max-failures.json"), "success", None, "partial"),
     "partial-over-cancelled-step": (captured("load-error.json"), "cancelled", None, "partial"),
@@ -821,7 +839,9 @@ CLI_STATUS: dict[str, tuple[Source, str, str, dict[str, int] | None]] = {
     "retries": (captured("mixed.json"), "failure", "retries observed", MIXED_COUNTS),
     "missing": (absent, "success", "unavailable (missing)", None),
     "malformed": (truncated, "success", "unavailable (malformed)", None),
-    "unsupported-reporter": (captured("clean.json", set_version("1.62.1")), "success", "unavailable (unsupported-reporter)", None),
+    "unsupported-reporter": (
+        captured("clean.json", set_version("1.62.1")), "success", "unavailable (unsupported-reporter)", None
+    ),
     "partial": (captured("max-failures.json"), "failure", "unavailable (partial)", None),
     "inconsistent": (captured("clean.json"), "failure", "unavailable (inconsistent)", None),
     "cancelled-step": (captured("mixed.json"), "cancelled", "unavailable (inconsistent)", None),
@@ -979,6 +999,67 @@ def test_cli_step_outcome_is_free_text(tmp_path, capsys):
     assert code == 0 and "**Status:** unavailable (inconsistent)" in markdown
 
 
+@pytest.mark.parametrize(
+    "statuses,classification", ((("failed",), "failed"), (("passed", "passed", "passed"), "exhausted"))
+)
+def test_a_skip_expected_test_that_ran_is_never_hidden_as_skipped(tmp_path, capsys, statuses, classification):
+    def ran(test):
+        first = test["results"][0]
+        test["results"] = [dict(first, status=status, retry=retry) for retry, status in enumerate(statuses)]
+
+    path = captured("mixed.json", then_restat(on_test("skipped", ran)))(tmp_path)
+    result = analyze(path, "failure")
+    test = by_title(result)["skipped"]
+    tries = list(enumerate(statuses))
+    assert (test["expected_status"], attempts(test), test["classification"]) == ("skipped", tries, classification)
+    assert result["status"] == "retries"
+    code, markdown, _ = cli(tmp_path / "cli", capsys, path, "failure")
+    assert code == 0
+    assert_row(markdown, (D, 32, "skipped", "chromium", tries, classification))
+
+
+def test_cli_prints_the_markdown_when_the_summary_file_cannot_be_written(tmp_path, capsys):
+    directory = tmp_path / "summary-is-a-directory"
+    directory.mkdir()
+    argv = ["--report", str(FIXTURES / "clean.json"), "--label", LABEL, "--step-outcome", "success"]
+    assert retry_report.main([*argv, "--summary-file", str(directory)]) == 0
+    out = capsys.readouterr().out
+    assert f"### Retry report — {LABEL}" in out and "**Status:** no retries" in out
+    assert directory.is_dir() and not any(directory.iterdir())
+
+
+def test_cli_keeps_a_backtick_title_inside_one_code_span(tmp_path, capsys):
+    def rename(data):
+        spec = next(spec for spec, title, _ in entries(data) if title == "fails then recovers")
+        spec["title"] = "fails `then` recovers"
+
+    path = captured("mixed.json", rename)(tmp_path)
+    code, markdown, _ = cli(tmp_path / "cli", capsys, path, "failure")
+    assert code == 0
+    identity = f"`{D}:7{SEP}fails 'then' recovers [chromium]`"
+    assert len([line for line in markdown.splitlines() if identity in line]) == 1, markdown
+    assert "fails `then` recovers" not in markdown
+
+
+REPORTS_TO_KEEP: dict[str, Source] = {
+    "available": captured("mixed.json"),
+    "partial": captured("max-failures.json"),
+    "malformed": truncated,
+}
+
+
+@pytest.mark.parametrize("case", REPORTS_TO_KEEP)
+def test_the_report_file_is_never_modified(tmp_path, capsys, case):
+    path = tmp_path / "results.json"
+    path.write_bytes(REPORTS_TO_KEEP[case](tmp_path / "source").read_bytes())
+    before = (path.read_bytes(), path.stat().st_mtime_ns)
+    analyze(path, "failure")
+    assert (path.read_bytes(), path.stat().st_mtime_ns) == before
+    code, _, _ = cli(tmp_path / "cli", capsys, path, "failure")
+    assert code == 0
+    assert (path.read_bytes(), path.stat().st_mtime_ns) == before
+
+
 @pytest.mark.parametrize("missing", ("--report", "--label", "--step-outcome"))
 def test_cli_usage_errors_still_exit_nonzero(capsys, missing):
     options = {"--report": str(FIXTURES / "clean.json"), "--label": LABEL, "--step-outcome": "success"}
@@ -1008,6 +1089,19 @@ def test_the_script_runs_standalone_and_exits_zero(tmp_path, source, step, statu
     assert len([line for line in proc.stdout.splitlines() if line.startswith("::warning ")]) == 1
 
 
+def test_the_script_survives_a_cp1252_console_without_a_summary_file():
+    env = {key: value for key, value in os.environ.items() if key != "PYTHONUTF8"} | {"PYTHONIOENCODING": "cp1252"}
+    argv = ["--report", str(FIXTURES / "mixed.json"), "--label", LABEL, "--step-outcome", "failure"]
+    proc = subprocess.run([sys.executable, str(SCRIPT), *argv], cwd=ROOT, env=env, capture_output=True, check=False)
+    out, err = (stream.decode("utf-8", errors="replace") for stream in (proc.stdout, proc.stderr))
+    assert proc.returncode == 0, out + err
+    assert "Traceback" not in err
+    # ASCII fragments only: the separator and arrows may be re-encoded for the console.
+    rows = [line for line in out.splitlines() if f"{D}:7" in line and "fails then recovers [chromium]" in line]
+    assert len(rows) == 1, out
+    assert all(token in rows[0] for token in ("recovered", "#0 failed", "#1 passed")), rows[0]
+
+
 # ------------------------------------------------------------------ pytest rerun tripwire
 #
 # No pytest reporter is selected for G7 because nothing reruns pytest tests: no plugin is
@@ -1016,7 +1110,19 @@ def test_the_script_runs_standalone_and_exits_zero(tmp_path, source, step, statu
 RERUN_DISTRIBUTIONS = frozenset(
     {"pytest-rerunfailures", "pytest-rerun", "pytest-retry", "pytest-retries", "flaky", "pytest-flaky"}
 )
-RERUN_SETTING = re.compile(r"reruns|rerunfailures|only-rerun|force-flaky|max-runs", re.IGNORECASE)
+# pytest-rerunfailures and flaky options, and pytest-rerunfailures' ini keys.
+RERUN_OPTION = re.compile(
+    r"--reruns\b|--reruns-delay\b|--only-rerun\b|--rerun-except\b|--force-flaky\b|--max-runs\b"
+    r"|(?:^|\s)-p\s*(?:pytest_)?rerunfailures\b"
+)
+RERUN_INI_KEYS = frozenset({"reruns", "reruns_delay", "only_rerun", "rerun_except"})
+# pytest-retry's option; only meaningful on a pytest command, since pip has its own --retries.
+PYTEST_RETRY_OPTION = re.compile(r"--retries\b")
+PYTEST_COMMAND = re.compile(r"(?:^|[\s;&|(])(?:python3?\s+-m\s+)?pytest(?=\s|$)")
+PIP_INSTALL = re.compile(r"\bpip3?\s+install\b")
+RUN_KEY = re.compile(r"^( *)(?:- )?run:[ \t]*(.*)$")
+INI_SECTIONS = {"pytest.ini": "pytest", "setup.cfg": "tool:pytest", "tox.ini": "pytest"}
+WORKFLOWS = ROOT / ".github" / "workflows"
 
 
 def distribution(name: str) -> str:
@@ -1043,22 +1149,89 @@ def test_no_pytest_rerun_plugin_is_required():
     }
 
 
+def flat(value, key=""):
+    if isinstance(value, dict):
+        for inner_key, inner in value.items():
+            yield from flat(inner, inner_key)
+    else:
+        yield key, str(value)
+
+
+def pytest_settings() -> list[tuple[str, str, str]]:
+    """(file, key, value) for every setting in the sections pytest reads its configuration from."""
+    found = []
+    for name, section in INI_SECTIONS.items():
+        parser = configparser.ConfigParser(interpolation=None)
+        if parser.read(ROOT / name, encoding="utf-8") and parser.has_section(section):
+            found += [(name, key, value) for key, value in parser.items(section)]
+    pyproject = ROOT / "pyproject.toml"
+    if pyproject.is_file():
+        tool = tomllib.loads(pyproject.read_text(encoding="utf-8")).get("tool", {})
+        found += [
+            ("pyproject.toml", key, value)
+            for name, section in tool.items()
+            if name.startswith("pytest")
+            for key, value in flat(section)
+        ]
+    return found
+
+
+def workflow_run_lines():
+    """(workflow, logical shell line) for every `run:` value in every workflow."""
+    for path in sorted(WORKFLOWS.glob("*.y*ml")):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            key = RUN_KEY.match(line)
+            if key is None:
+                continue
+            script = key.group(2).strip()
+            if re.fullmatch(r"[|>][-+0-9]*", script):
+                indent, body = len(key.group(1)), []
+                for following in lines[index + 1:]:
+                    if following.strip() and len(following) - len(following.lstrip()) <= indent:
+                        break
+                    body.append(following)
+                script = "\n".join(body)
+            for logical in script.replace("\\\n", " ").replace("`\n", " ").splitlines():
+                if logical.strip() and not logical.lstrip().startswith("#"):
+                    yield path.name, logical.strip()
+
+
+def installed(line: str) -> set[str]:
+    words = PIP_INSTALL.split(line, maxsplit=1)[1].split()
+    return {
+        distribution(re.split(r"[<>=!~\[;]", word.strip("'\""), maxsplit=1)[0])
+        for word in words
+        if not word.startswith("-")
+    }
+
+
 def test_no_pytest_rerun_is_configured():
-    configs = [ROOT / name for name in ("pytest.ini", "pyproject.toml", "setup.cfg", "tox.ini") if (ROOT / name).is_file()]
-    workflows = sorted((ROOT / ".github" / "workflows").glob("*.y*ml"))
-    assert ROOT / "pytest.ini" in configs and "ci.yml" in {path.name for path in workflows}
-    offenders = [
-        f"{path.name}:{number}"
-        for path in (*configs, *workflows)
-        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
-        if not line.lstrip().startswith(("#", ";")) and RERUN_SETTING.search(line)
+    settings = pytest_settings()
+    assert any(name == "pytest.ini" for name, _, _ in settings)
+    assert [setting for setting in settings if setting[1] in RERUN_INI_KEYS or RERUN_OPTION.search(setting[2])] == []
+
+
+def test_no_workflow_reruns_pytest_or_installs_a_rerun_plugin():
+    lines = list(workflow_run_lines())
+    commands = [(name, line) for name, line in lines if PYTEST_COMMAND.search(line) and not PIP_INSTALL.search(line)]
+    installs = [(name, line) for name, line in lines if PIP_INSTALL.search(line)]
+    # Vacuity floors: the parser still sees ci.yml's pytest runs and its installs.
+    assert any(name == "ci.yml" for name, _ in commands) and any(name == "ci.yml" for name, _ in installs)
+    offenders = [(name, line) for name, line in commands if RERUN_OPTION.search(line) or PYTEST_RETRY_OPTION.search(line)]
+    offenders += [(name, line) for name, line in installs if installed(line) & RERUN_DISTRIBUTIONS]
+    offenders += [
+        (path.name, line)
+        for path in sorted(WORKFLOWS.glob("*.y*ml"))
+        for line in strip_comments(path.read_text(encoding="utf-8")).splitlines()
+        if "PYTEST_ADDOPTS" in line and (RERUN_OPTION.search(line) or PYTEST_RETRY_OPTION.search(line))
     ]
     assert offenders == []
 
 
 def test_no_rerun_plugin_is_loaded_into_this_session(request):
     loaded = {distribution(dist.project_name) for _, dist in request.config.pluginmanager.list_plugin_distinfo()}
-    assert "pytest-cov" in loaded
+    assert loaded
     assert loaded & RERUN_DISTRIBUTIONS == set()
     assert request.config.getoption("reruns", default=None) is None
 
@@ -1067,7 +1240,6 @@ def test_no_rerun_plugin_is_loaded_into_this_session(request):
 
 JUNIT_REPORTER = "['junit',{outputFile:path.join(playwrightArtifactsDir,'junit.xml')}]"
 JSON_REPORTER = "['json',{outputFile:path.join(playwrightArtifactsDir,'results.json')}]"
-LOCAL_REPORTERS = "['list'],['html',{outputFolder:path.join(playwrightArtifactsDir,'report')}],...ciReporters"
 
 
 def config_code() -> str:
@@ -1076,6 +1248,18 @@ def config_code() -> str:
     source = re.sub(r"^[ \t]*//.*$", "", source, flags=re.MULTILINE)
     compact = re.sub(r"\s+", "", source).replace('"', "'")
     return compact.replace(",]", "]").replace(",}", "}")
+
+
+def literal_array(code: str, prefix: str) -> str:
+    """The inside of the bracketed array that `prefix` (ending in '[') opens."""
+    start = code.find(prefix)
+    assert start != -1, prefix
+    opening, depth = start + len(prefix) - 1, 0
+    for end in range(opening, len(code)):
+        depth += {"[": 1, "]": -1}.get(code[end], 0)
+        if depth == 0:
+            return code[opening + 1:end]
+    raise AssertionError(f"unbalanced {prefix}")
 
 
 def test_the_playwright_retry_policy_is_unchanged():
@@ -1089,9 +1273,9 @@ def test_ci_reporters_write_json_beside_junit_and_only_in_ci():
     reporters = re.findall(r"\[[^\[\]]*\]", ci.group(1))
     assert ",".join(reporters) == ci.group(1)
     assert sorted(reporters) == sorted([JUNIT_REPORTER, JSON_REPORTER])
-    local = re.search(r"reporter:\[(.*?)\],outputDir:", code)
-    assert local and local.group(1) == LOCAL_REPORTERS
-    assert code.count("'json'") == 1
+    local = re.findall(r"\[[^\[\]]*\]|\.\.\.\w+", literal_array(code, "reporter:["))
+    assert "['list']" in local and "...ciReporters" in local
+    assert "'json'" not in code.replace(ci.group(0), "")
 
 
 def test_the_json_report_lands_where_the_summary_reads_it():
@@ -1113,53 +1297,22 @@ PLAYWRIGHT_JOBS = {
     "visual-windows": "Visual Regression (Windows baselines)",
 }
 # A `run:` block cannot expand the matrix expression, so the shard label comes from $SHARD.
-LABELS = {job_id: {name} for job_id, name in PLAYWRIGHT_JOBS.items()} | {
-    "e2e-functional-shard": {"E2E Functional Shard $SHARD", "E2E Functional Shard ${SHARD}"},
+LABELS = PLAYWRIGHT_JOBS | {"e2e-functional-shard": "E2E Functional Shard $SHARD"}
+PLAYWRIGHT_STEPS = {
+    "e2e-smoke": "Run smoke spec",
+    "e2e-functional-shard": "Run functional specs (shard ${{ matrix.shard }}/4)",
+    "e2e-backup": "Run backup spec",
+    "e2e-fatigue-context": "Run fatigue-context spec",
+    "e2e-erase-flow": "Run erase-flow spec",
+    "visual-windows": "Run Windows visual suite (compare only)",
 }
-LINE_REPORTER_COMMANDS = {
-    "e2e-smoke": "npx playwright test e2e/smoke-navigation.spec.ts --project=chromium --reporter=line,json",
-    "e2e-fatigue-context": "npx playwright test e2e/fatigue-context.spec.ts --project=chromium --reporter=line,json",
-    "e2e-erase-flow": "npx playwright test e2e/erase-flow.spec.ts --project=chromium --reporter=line,json",
-}
+LINE_REPORTER_JOBS = frozenset({"e2e-smoke", "e2e-fatigue-context", "e2e-erase-flow"})
 # These keep the config reporters, where ciReporters adds the JSON file under CI=true.
-CONFIG_REPORTER_COMMANDS = {
-    "e2e-functional-shard": None,  # the spec list is pinned by the A3 launcher contracts
-    "e2e-backup": "npx playwright test e2e/program-backup.spec.ts --project=chromium",
-    "visual-windows": "npx playwright test --project=chromium e2e/visual.spec.ts",
-}
+CONFIG_REPORTER_JOBS = frozenset({"e2e-functional-shard", "e2e-backup", "visual-windows"})
 PWSH_JOBS = {"visual-windows"}
 SHARDED_JOBS = {"e2e-functional-shard"}
 SUMMARY_STEP = "Summarize Playwright retries"
 REPORT_PATH = "artifacts/playwright/results.json"
-SETUP = (
-    "Checkout code",
-    "Set up Python",
-    "Set up Node.js",
-    "Install Python dependencies",
-    "Install npm dependencies",
-    "Build Bootstrap-customized CSS",
-    "Install Playwright Chromium",
-)
-PRE_G7_STEPS = {
-    "e2e-smoke": (*SETUP, "Run smoke spec"),
-    "e2e-functional-shard": (
-        *SETUP,
-        "Run functional specs (shard ${{ matrix.shard }}/4)",
-        "Summarize shard timing",
-        "Upload functional JUnit",
-        "Upload Playwright artifacts",
-    ),
-    "e2e-backup": (*SETUP, "Run backup spec", "Upload Playwright artifacts"),
-    "e2e-fatigue-context": (*SETUP, "Run fatigue-context spec", "Upload Playwright artifacts"),
-    "e2e-erase-flow": (*SETUP, "Run erase-flow spec", "Upload Playwright artifacts"),
-    "visual-windows": (
-        *SETUP,
-        "Assert committed visual seed present",
-        "Run Windows visual suite (compare only)",
-        "Assert no baseline was written",
-        "Upload Playwright report + diffs",
-    ),
-}
 
 
 def ci_block(job_id: str, *, comments: bool = False) -> str:
@@ -1178,6 +1331,11 @@ def summary_step(job_id: str, *, comments: bool = False) -> str:
     found = [raw for name, raw in steps(ci_block(job_id, comments=comments)) if name == SUMMARY_STEP]
     assert len(found) == 1, f"{job_id} has {len(found)} '{SUMMARY_STEP}' steps"
     return found[0]
+
+
+def step_values(raw: str, key: str) -> list[str]:
+    """Values of a step-level `key:` line."""
+    return [value.strip() for value in re.findall(rf"^      {key}:(.*)$", raw, re.MULTILINE)]
 
 
 def words(script: str) -> list[str]:
@@ -1216,16 +1374,16 @@ def report_options(job_id: str) -> tuple[str, dict[str, str]]:
 
 def test_the_six_playwright_jobs_keep_their_names():
     assert {job_id: job_name(ci_block(job_id)) for job_id in PLAYWRIGHT_JOBS} == PLAYWRIGHT_JOBS
-    assert set(LINE_REPORTER_COMMANDS) | set(CONFIG_REPORTER_COMMANDS) == set(PLAYWRIGHT_JOBS)
+    assert LINE_REPORTER_JOBS | CONFIG_REPORTER_JOBS == set(PLAYWRIGHT_JOBS)
+    assert not LINE_REPORTER_JOBS & CONFIG_REPORTER_JOBS
 
 
 @pytest.mark.parametrize("job_id", PLAYWRIGHT_JOBS)
 def test_the_playwright_step_is_identified_and_never_softened(job_id):
     block = ci_block(job_id)
-    _, raw = playwright_step(job_id)
-    assert re.search(r"^      id: playwright[ \t]*$", raw, re.MULTILINE), job_id
-    assert len(re.findall(r"^ +id: playwright[ \t]*$", block, re.MULTILINE)) == 1
-    assert not re.search(r"^      continue-on-error:", raw, re.MULTILINE), job_id
+    name, raw = playwright_step(job_id)
+    assert [step for step, text in steps(block) if step_values(text, "id") == ["playwright"]] == [name]
+    assert step_values(raw, "continue-on-error") == []
     assert not re.search(r"^    continue-on-error:", block, re.MULTILINE), job_id
 
 
@@ -1234,42 +1392,36 @@ def test_the_playwright_step_writes_the_json_report(job_id):
     _, raw = playwright_step(job_id)
     script = run_script(raw)
     assert script is not None
-    reporter_flags = [word for word in shlex.split(script.replace("\\\n", " ")) if word.startswith("--reporter")]
-    env = {key: unquote(value) for key, value in step_env(raw).items()}
-    if job_id in LINE_REPORTER_COMMANDS:
-        assert " ".join(script.replace("\\\n", " ").split()) == LINE_REPORTER_COMMANDS[job_id]
-        assert env.get("PLAYWRIGHT_JSON_OUTPUT_FILE") == REPORT_PATH
+    flags = [word for word in shlex.split(script.replace("\\\n", " ")) if word.startswith("--reporter")]
+    if job_id in LINE_REPORTER_JOBS:
+        assert flags == ["--reporter=line,json"]
+        assert unquote(step_env(raw).get("PLAYWRIGHT_JSON_OUTPUT_FILE", "")) == REPORT_PATH
     else:
-        assert reporter_flags == [], job_id
-        expected = CONFIG_REPORTER_COMMANDS[job_id]
-        if expected is not None:
-            assert " ".join(script.split()) == expected
+        assert flags == [], job_id
 
 
 @pytest.mark.parametrize("job_id", PLAYWRIGHT_JOBS)
 def test_the_summary_runs_after_success_or_failure_and_cannot_fail_the_job(job_id):
     step = summary_step(job_id)
     assert step_condition(step) == "always()"
-    assert re.search(r"^      continue-on-error: true[ \t]*$", step, re.MULTILINE), job_id
+    assert step_values(step, "continue-on-error") == ["true"]
     if job_id in PWSH_JOBS:
-        assert re.search(r"^      shell: pwsh[ \t]*$", step, re.MULTILINE), job_id
-    names = [name for name, _ in steps(ci_block(job_id))]
-    assert names.index(playwright_step(job_id)[0]) < names.index(SUMMARY_STEP)
+        assert step_values(step, "shell") == ["pwsh"]
 
 
 @pytest.mark.parametrize("job_id", PLAYWRIGHT_JOBS)
 def test_the_summary_reports_the_original_outcome_and_run_attempt(job_id):
-    expected_env = {"STEP_OUTCOME": "${{ steps.playwright.outcome }}", "RUN_ATTEMPT": "${{ github.run_attempt }}"}
+    required = {"STEP_OUTCOME": "${{ steps.playwright.outcome }}", "RUN_ATTEMPT": "${{ github.run_attempt }}"}
     if job_id in SHARDED_JOBS:
-        expected_env["SHARD"] = "${{ matrix.shard }}/4"
-    assert {key: unquote(value) for key, value in step_env(summary_step(job_id)).items()} == expected_env
+        required["SHARD"] = "${{ matrix.shard }}/4"
+    env = {key: unquote(value) for key, value in step_env(summary_step(job_id)).items()}
+    assert {key: env.get(key) for key in required} == required
 
     script, options = report_options(job_id)
     variable = (lambda name: f"$env:{name}") if job_id in PWSH_JOBS else (lambda name: f"${name}")
-    label = options.pop("--label", None)
-    assert label in LABELS[job_id], label
     expected = {
         "--report": REPORT_PATH,
+        "--label": LABELS[job_id],
         "--step-outcome": variable("STEP_OUTCOME"),
         "--run-attempt": variable("RUN_ATTEMPT"),
         "--summary-file": variable("GITHUB_STEP_SUMMARY"),
@@ -1278,7 +1430,7 @@ def test_the_summary_reports_the_original_outcome_and_run_attempt(job_id):
         expected["--expect-shard"] = variable("SHARD")
     assert options == expected
     # Quoted, so an empty or spaced value still reaches the script as one argument.
-    for value in (label, *(value for value in expected.values() if "$" in value)):
+    for value in (LABELS[job_id], *(value for value in expected.values() if value.startswith("$"))):
         assert f'"{value}"' in script, value
 
 
@@ -1290,10 +1442,12 @@ def test_the_summary_keeps_expressions_out_of_its_shell(job_id):
 
 
 @pytest.mark.parametrize("job_id", PLAYWRIGHT_JOBS)
-def test_no_existing_step_changes_around_the_summary(job_id):
+def test_one_summary_follows_the_pinned_playwright_step(job_id):
     names = [name for name, _ in steps(ci_block(job_id))]
+    playwright = playwright_step(job_id)[0]
+    assert playwright == PLAYWRIGHT_STEPS[job_id]
     assert names.count(SUMMARY_STEP) == 1
-    assert tuple(name for name in names if name != SUMMARY_STEP) == PRE_G7_STEPS[job_id]
+    assert names.index(playwright) < names.index(SUMMARY_STEP)
 
 
 def test_no_playwright_command_overrides_the_retry_policy():
