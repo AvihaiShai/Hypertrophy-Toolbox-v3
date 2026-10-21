@@ -51,6 +51,7 @@ from scripts.release_gate import EXPECTED_CONTEXTS, REQUIRED_CONTEXTS
 from tests.test_release_workflow_contracts import (
     ALL_WORKFLOWS,
     CI,
+    PACKAGED,
     RELEASE,
     bash_executable,
     command,
@@ -520,8 +521,11 @@ LINT_TOOL_REPOS = {"rhysd/actionlint", "zizmorcore/zizmor", "koalaman/shellcheck
 # target, a second severity flag) is a softening and must red.
 LINTER_ARGV = {
     ACTIONLINT_STEP: [f"{LINT_BIN}/actionlint", "-color", f"-shellcheck={LINT_BIN}/shellcheck", "-pyflakes="],
-    ZIZMOR_STEP: [f"{LINT_BIN}/zizmor", "--min-severity", "medium", "--format", "plain", ".github/workflows"],
+    ZIZMOR_STEP: [
+        f"{LINT_BIN}/zizmor", "--min-severity", "medium", "--format", "plain", ".github/workflows", ".github/dependabot.yml",
+    ],
 }
+DEPENDABOT = ROOT / ".github" / "dependabot.yml"
 ZIZMOR_CONDITIONS = {"${{ !cancelled() }}", "!cancelled()", "${{ always() }}", "always()"}
 
 # (workflow file, rule) -> (exact occurrences, reason). One inline directive per SC2016
@@ -789,12 +793,41 @@ def test_release_runs_take_the_ref_from_the_runner_environment():
     assert '--ref "$GITHUB_REF"' in run_script(dict(steps(jobs(RELEASE)["version-guard"]))["Assert the tag matches the code"])
 
 
+def tag_path_workflows():
+    """release.yml plus every local workflow it reaches through `uses: ./`, transitively."""
+    found, pending = [], [RELEASE]
+    while pending:
+        path = pending.pop()
+        if path not in found:
+            found.append(path)
+            pending += [
+                ROOT / local for local in re.findall(r"^ *(?:- )?uses: \./(\S+)", executable(path), re.MULTILINE)
+            ]
+    return found
+
+
 def test_release_setup_steps_restore_no_cache():
-    setups = steps_using(RELEASE, "actions/setup-python") + steps_using(RELEASE, "actions/setup-node")
-    assert setups
-    for where, step in setups:
-        assert not re.search(r"^        cache", key_body(step, "with", 6), re.MULTILINE), where
-    assert "actions/cache" not in executable(RELEASE)
+    # zizmor checks release.yml's own steps only; a cache in a workflow_call child is
+    # restored by the same tag run, so the child is held to the same rule (section 18).
+    reached = tag_path_workflows()
+    assert PACKAGED in reached
+    for path in reached:
+        setups = steps_using(path, "actions/setup-python") + steps_using(path, "actions/setup-node")
+        assert setups or path not in (RELEASE, PACKAGED), path.name
+        for where, step in setups:
+            assert not re.search(r"^        cache", key_body(step, "with", 6), re.MULTILINE), (path.name, where)
+        assert "actions/cache" not in executable(path), path.name
+
+
+def test_every_dependabot_ecosystem_waits_out_the_cooldown():
+    # zizmor's dependabot-cooldown threshold is 7 days. One uniform window, no semver
+    # split, so any change to it is a deliberate edit here (section 18).
+    entries = re.split(r"^  - package-ecosystem:", DEPENDABOT.read_text(encoding="utf-8"), flags=re.MULTILINE)[1:]
+    assert sorted(entry.splitlines()[0].strip() for entry in entries) == ['"github-actions"', '"npm"', '"pip"']
+    for entry in entries:
+        cooldown = key_body(entry, "cooldown", 4)
+        assert mapping_keys(cooldown, 6) == {"default-days"}, entry.splitlines()[0]
+        assert re.search(r"^      default-days: 7[ \t]*$", cooldown, re.MULTILINE), entry.splitlines()[0]
 
 
 def test_every_lint_suppression_is_registered():

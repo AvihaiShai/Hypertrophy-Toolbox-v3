@@ -15,7 +15,7 @@ The owner's decision points are the owner approvals
 ([definitions](QUALITY_GATE.md#owner-approvals-and-reviewer-passes)), not individual
 in-scope tool calls.
 
-This only applies within the approved scope. Anything outside that scope (new tables, deletes outside `data/auto_backup/`, changes to `app.py` blueprint registration, pushes to remote) still requires explicit confirmation.
+This only applies within the approved scope. Anything outside that scope (new tables, deletes outside `data/auto_backup/`, changes to blueprint registration in `create_app()` in `app.py`, pushes to remote) still requires explicit confirmation.
 
 ---
 
@@ -141,7 +141,7 @@ Always pause and confirm before:
 - **Schema changes** — anything that adds/alters/drops a column or table (`utils/db_initializer.py`, `utils/database.py`, migration scripts). These touch `data/database.db` and can corrupt the live DB or break the backup/restore flow.
 - **Edits to `data/database.db` on the main worktree** — only the app itself or a migration script should touch this file.
 - **Deletes outside `data/auto_backup/`** — any `rm`/`Remove-Item` targeting files not in the auto-backup dir.
-- **`app.py` blueprint registration** — adding or removing a `register_blueprint` call affects every test in `tests/conftest.py`; a mismatch produces 404s silently.
+- **Blueprint registration in `create_app()` (`app.py`)** — the tests build their app with the same factory, so adding or removing a `register_blueprint` call changes production and every test at once; a missing one 404s in both.
 - **`.github/workflows/ci.yml` changes** — CI is shared state; a broken pipeline blocks everyone.
 - **Anything matching `.claude/rules/database.md` scope** — the database rule is the highest-risk surface in this codebase.
 

@@ -1,0 +1,57 @@
+{
+  "strict": false,
+  "checks": [
+    {
+      "context": "Run Tests",
+      "app_id": 15368
+    },
+    {
+      "context": "E2E Functional (Chromium)",
+      "app_id": 15368
+    },
+    {
+      "context": "E2E Backup (Chromium, isolated)",
+      "app_id": 15368
+    },
+    {
+      "context": "E2E Smoke (Chromium)",
+      "app_id": 15368
+    },
+    {
+      "context": "Type Check (tsc blocking + pyright measure-only)",
+      "app_id": 15368
+    },
+    {
+      "context": "Code Linting",
+      "app_id": 15368
+    },
+    {
+      "context": "Frontend Build (npm ci + SCSS)",
+      "app_id": 15368
+    },
+    {
+      "context": "Security Audit",
+      "app_id": 15368
+    },
+    {
+      "context": "E2E Fatigue Context (Chromium, non-required)",
+      "app_id": 15368
+    },
+    {
+      "context": "E2E Erase Flow (Chromium, isolated, non-required)",
+      "app_id": 15368
+    },
+    {
+      "context": "Test Inventory Drift",
+      "app_id": 15368
+    },
+    {
+      "context": "JS Supply Chain (npm audit, non-required)",
+      "app_id": 15368
+    },
+    {
+      "context": "JS Unit (Vitest)",
+      "app_id": 15368
+    }
+  ]
+}

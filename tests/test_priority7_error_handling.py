@@ -17,8 +17,9 @@ from utils.request_id import generate_request_id
 def error_app(tmp_path_factory):
     """Create a fresh test app for error handling tests.
 
-    Creates a new Flask app instance to avoid interference with
-    the shared app from conftest.py.
+    Builds its own minimal Flask app with only the blueprints and layering
+    these tests need, so they exercise the shared registration functions
+    directly rather than through conftest.py's ``create_app()`` instance.
 
     The database path comes from ``tmp_path_factory`` rather than a fixed name
     under the system temp directory. A fixed name is shared by every process on

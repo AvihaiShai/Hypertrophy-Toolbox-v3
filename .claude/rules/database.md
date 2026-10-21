@@ -53,17 +53,14 @@ only, never application DB access or B–E preservation/cleanup. Automated verif
 uses synthetic SQLite families in the approved standalone scratch lane. Root
 `CLAUDE.md` keeps all application DatabaseHandler/logging requirements unchanged.
 
-## Adding a DB table — five places
+## Adding a DB table — three places
 
-> **Steps 2–4 predate WP2.6 and no longer describe this repository.** `app.py` contains **zero**
-> `add_*_table()` calls — it reaches the schema only through `run_all_initializers()`, at
-> `app.py:95` on startup (`force_base=False`) and at `app.py:263` inside `erase_data()`
-> (`force_base=True`) — and
-> `tests/conftest.py` calls `run_all_initializers(force_base=True)` rather than registering each
-> table. Register a new table in `utils/schema_registry.py`: add its creation function to
-> `run_all_initializers()`, and add the table name to `OWNED_TABLES_DROP_ORDER` in FK-safe order
-> if it holds user state. Root `CLAUDE.md` §2 states the current model; step 1 and step 5's
-> FK-ordering advice still hold.
+Every schema build goes through one registry, `run_all_initializers()` in
+`utils/schema_registry.py`: `init_runtime()` (`utils/runtime_init.py`) on startup
+(`force_base=False`), `erase_data()` in `app.py` (`force_base=True`), and the test suite's
+`schema_template` in `tests/conftest.py` (`force_base=True`). Neither `app.py` nor
+`tests/conftest.py` calls an `add_*_table()` function directly. Root `CLAUDE.md` §2 states the
+current model.
 
 1. Write creation function in `utils/database.py`:
 ```python
@@ -74,10 +71,11 @@ def add_myfeature_table() -> None:
             ...
         )""")
 ```
-2. Call in `app.py` startup block (after line 52, alongside other `add_*` calls)
-3. Call in `tests/conftest.py` → `app` fixture `with app.app_context():` block (line 107-112)
-4. Call in `tests/conftest.py` → `erase_data()` inner function (line 92-97)
-5. If FK to an existing table: add child name to drop-order list in `erase_data` and `clean_db` fixture
+2. Add it to `run_all_initializers()` in `utils/schema_registry.py`; startup, erase and the test
+   `schema_template` all pick it up from there.
+3. If it holds user state: add the table name to `OWNED_TABLES_DROP_ORDER` in FK-safe order
+   (children before parents) — `erase_data()` drops through it — and to the `clean_db` fixture's
+   `DELETE` list in `tests/conftest.py`.
 
 ## Connection config (`utils/database.py:80-104`)
 `_configure_connection()` sets PRAGMAs per connection:
@@ -86,7 +84,7 @@ def add_myfeature_table() -> None:
 - Journal mode: `FLASK_DEBUG` env defaults to `'1'` → `DELETE` mode; set `FLASK_DEBUG=0` for `WAL` (line 90)
 - Synchronous: debug → `FULL`; non-debug → `NORMAL` (lines 99-102)
 
-**Note:** `database.py:90` defaults `FLASK_DEBUG` to `'1'`, but `app.py:259` defaults it to `'0'`. Result: `python app.py` runs Flask non-debug, but DB uses DELETE journal + FULL sync (safe defaults).
+**Note:** `database.py:90` defaults `FLASK_DEBUG` to `'1'`, but `main()` in `app.py` defaults it to `'0'`. Result: `python app.py` runs Flask non-debug, but DB uses DELETE journal + FULL sync (safe defaults).
 
 ## Thread safety
 DatabaseHandler writes are locked via `_DB_LOCK` (`threading.RLock`, `database.py:24`) — see `execute_query` (line 236) and `executemany` (line 311).
@@ -94,7 +92,7 @@ DatabaseHandler writes are locked via `_DB_LOCK` (`threading.RLock`, `database.p
 ## Seed database
 `data/catalog.seed.db` is an immutable, physically sanitized catalog asset.
 `bootstrap_runtime_database()` in `utils/catalog_seed.py` copies it atomically
-to a missing configured `DB_FILE` during real `app.py` startup. Existing
+to a missing configured `DB_FILE` during `init_runtime()`. Existing
 databases are never replaced. The bootstrap is deliberately not called by
 `DatabaseHandler`, config imports, or `run_all_initializers()`, so isolated
 tests and explicit empty-schema initialization remain empty.
@@ -113,7 +111,7 @@ Database, backups, and logs all follow the resolver. A frozen install writes to
 `%LOCALAPPDATA%\HypertrophyToolbox\` and adds nothing to its own installation
 directory; a source checkout still uses `<repo>/data` and `<repo>/logs`.
 
-`utils/runtime_migration.py::prepare_runtime_database()` runs in `app.py`
+`utils/runtime_migration.py::prepare_runtime_database()` runs in `init_runtime()`
 **before** `bootstrap_runtime_database()` — seeding first would create an empty
 database that migration would then correctly decline to replace. It opens the
 legacy database `mode=ro`, refuses when `-wal`/`-journal` sidecars are
@@ -124,7 +122,7 @@ seeds a clean database after finding real data.
 
 ## Catalog upgrades (`utils/catalog_upgrade.py`)
 The seed only initializes a new install. `upgrade_catalog_from_seed()` brings an
-existing runtime catalog up to the shipped one and runs from `app.py` startup
+existing runtime catalog up to the shipped one and runs from `init_runtime()`
 only — never from `run_all_initializers()`, which the test suite uses to build
 deliberately empty schemas.
 
@@ -147,12 +145,16 @@ fails `tests/test_catalog_upgrade.py`.
 |---|---|---|
 | `DB_FILE` | `data/database.db` | SQLite path; wins over every resolved path. Tests patch `utils.config.DB_FILE` directly. |
 | `HT_RUNTIME_DIR` | unset | Relocates the whole runtime tree (data + logs). Portable installs. |
-| `FLASK_DEBUG` | `'0'` in `app.py:259`; `'1'` in `database.py:90` | Controls Flask debug AND journal mode |
+| `FLASK_DEBUG` | `'0'` in `main()` in `app.py`; `'1'` in `database.py:90` | Controls Flask debug AND journal mode |
 | `TESTING` | unset | Set to `'1'` by `tests/conftest.py` for the shared pytest harness |
 
-## Startup sequence (`app.py`)
+## Startup sequence (`init_runtime()`, `utils/runtime_init.py`)
+Importing `app` does none of this. Only the entry points call `init_runtime()` —
+`main()` in `app.py`, `app_launcher.main()` and `create_initialized_app()` — once per
+process; a repeat with the same database and runtime root is a no-op, and a different
+one raises `RuntimeError`.
 ```
-app.py startup:
+init_runtime():
   prepare_runtime_database()      ← moves a legacy database to the runtime root, once
   utils.config.DB_FILE = ...      ← whatever that decided (legacy path on failure)
   bootstrap_runtime_database()    ← copies catalog seed only when DB_FILE is missing

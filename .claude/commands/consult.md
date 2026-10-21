@@ -89,5 +89,5 @@ know, anything mechanical, or anything a grep answers.
 ## See also
 
 - [docs/ai_workflow/CONSULT_PROTOCOL.md](../../docs/ai_workflow/CONSULT_PROTOCOL.md) — canonical protocol
-- [docs/ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md](../../docs/ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md) — design record and measured host evidence
+- [docs/ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md](../../docs/ai_workflow/CROSS_MODEL_ORCHESTRATION_PLAN.md) — design record; measured host evidence is in its archived history file
 - [docs/ai_workflow/QUALITY_GATE.md](../../docs/ai_workflow/QUALITY_GATE.md) — the gates a consult does not change

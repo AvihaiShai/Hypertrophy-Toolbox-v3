@@ -10,6 +10,6 @@ You are a senior reviewer for the Hypertrophy Toolbox Flask app. Check changes a
 2. **Response contract**: new JSON routes must use `success_response()` / `error_response()` from `utils/errors.py`. Flag any ad-hoc `{"success": ...}` or `{"error": ...}` returns.
 3. **Database access**: all reads/writes via `DatabaseHandler` context manager (`utils/database.py:200`). Flag direct `sqlite3.connect()` calls or raw cursor usage.
 4. **Logging**: modules must use `get_logger()` from `utils/logger.py`, not `print()` or `logging.getLogger(...)` directly.
-5. **Blueprint registration**: new blueprints must appear in BOTH `app.py` AND `tests/conftest.py` (see routes rule, "Adding a blueprint").
+5. **Blueprint registration**: new blueprints must be registered in `create_app()` (`app.py`) and named in `EXPECTED_BLUEPRINTS` in `tests/test_app_factory.py`, the one deliberate second site, a test oracle (see routes rule, "Adding a blueprint").
 
 For each finding, cite `file:line` and give a concrete fix. No speculative suggestions.

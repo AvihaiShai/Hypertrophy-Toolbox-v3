@@ -86,7 +86,7 @@ Validated from `package.json`, `playwright.config.ts`, and `scripts/run-playwrig
 - `e2e/scripts/prepare_visual_db.py` - prepares the deterministic visual DB
 - `e2e/fixtures/database.visual.seed.db` - committed visual-test seed database
 - `e2e/puppeteer_mcp_summary_regression.py` - summary regression helper
-- `e2e/run_puppeteer_summary_regression.ps1` - PowerShell runner for the Puppeteer/MCP summary regression path
+- `e2e/run_puppeteer_summary_regression.ps1` - PowerShell runner for the Puppeteer/MCP summary regression path; serves `flask run --no-reload` against the `app:create_initialized_app` factory, which initializes the runtime database
 
 ## Coverage Notes
 

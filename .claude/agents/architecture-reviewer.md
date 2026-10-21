@@ -14,9 +14,9 @@ You are the architecture reviewer for the Hypertrophy Toolbox Flask app. Your jo
 
 1. **Module-boundary violations** — `routes/` importing only from `utils/`; `utils/` never importing from `routes/`. Flag any planned `from routes.X import …` inside `utils/`. Source rule: root [CLAUDE.md](../../CLAUDE.md) §2 ("Module boundaries"); see also [utils/CLAUDE.md](../../utils/CLAUDE.md).
 
-2. **Blueprint registration triple** — every new blueprint must register in **`routes/X.py`**, **`app.py`**, and **`tests/conftest.py`** (the `app` fixture). Plans that mention only one or two of the three will 404 in tests. Cite [routes/CLAUDE.md](../../routes/CLAUDE.md) "Conventions".
+2. **Blueprint registration** — every new blueprint is defined in **`routes/X.py`**, registered in **`create_app()`** (`app.py`), and named in `EXPECTED_BLUEPRINTS` in `tests/test_app_factory.py` (the one deliberate second site, a test oracle). The test `app` fixture is the same factory, so a plan that skips `create_app()` 404s in production and in every test. Cite [routes/CLAUDE.md](../../routes/CLAUDE.md) "Conventions".
 
-3. **Schema-change registration** — new tables require a creator helper called from both `app.py` startup and `tests/conftest.py` `app` fixture (and optionally `erase_data()`). Plans must name where the creator lives (`utils/db_initializer.py` or feature-specific `utils/X.py`) and which fixture wires it in. See [.claude/rules/database.md](../../.claude/rules/database.md).
+3. **Schema-change registration** — new tables require a creator helper registered in `run_all_initializers()` (`utils/schema_registry.py`), which startup (`init_runtime()`), `erase_data()` and the test `schema_template` all call; a user-state table also joins `OWNED_TABLES_DROP_ORDER` and the `clean_db` fixture. Plans must name where the creator lives (`utils/db_initializer.py` or feature-specific `utils/X.py`). Flag a plan that calls a creator from `app.py` or `tests/conftest.py` directly. See [.claude/rules/database.md](../../.claude/rules/database.md).
 
 4. **DB-access pattern** — any planned DB read/write must go through `with DatabaseHandler() as db:` (class at `utils/database.py:185`; `__enter__` / `__exit__` at `utils/database.py:414`). Flag `sqlite3.connect()` references or raw cursor usage in the plan.
 

@@ -1,21 +1,18 @@
 """Regression tests for the ``/erase-data`` confirmation guard.
 
-F5 of ``docs/APP_PY_REVIEW_PLAN.md``. The guard exists only in ``app.py``'s real
+F5 of ``docs/APP_PY_REVIEW_PLAN.md``. The guard lives in ``app.py``'s real
 route: it requires ``confirm == "ERASE_ALL_DATA"`` and snapshots before wiping.
-``tests/conftest.py`` registers a guard-less twin, so six existing tests POST
-``/erase-data`` with no body at all and still expect success. The E2E flow in
-``e2e/erase-flow.spec.ts`` only drives the happy path, because the UI always
-sends the correct token. Nothing anywhere submitted a missing or wrong token,
-so deleting the server-side guard would not have failed a single test.
 
-These drive the real route instead of the twin. Only the rejection paths are
-covered, deliberately: the guard returns before ``create_startup_backup()`` and
-before ``drop_all_owned_tables()``, so nothing here can erase anything.
+These drive the module-level app on a seeded scratch database. Only the
+rejection paths are covered, deliberately: the guard returns before
+``create_startup_backup()`` and before ``drop_all_owned_tables()``, so nothing
+here can erase anything.
 """
 import pytest
 
-# ``real_app_client`` comes from tests/conftest.py. It has to be the real route:
-# the conftest twin has no confirm guard at all, which is the gap F5 records.
+# ``real_app_client`` comes from tests/conftest.py. It is used rather than the
+# ``app`` fixture because the last test needs a seeded catalog to prove nothing
+# was dropped; the ``app`` fixture's schema is empty.
 
 
 def test_app_py_registers_the_fallback_handlers(real_app_client):
@@ -52,7 +49,7 @@ def _assert_rejected(response):
 
 
 def test_erase_data_rejects_request_with_no_body(real_app_client):
-    """The exact shape six existing tests send against the conftest twin."""
+    """The exact shape six tests used to send against the old conftest twin."""
     _assert_rejected(real_app_client.post('/erase-data'))
 
 

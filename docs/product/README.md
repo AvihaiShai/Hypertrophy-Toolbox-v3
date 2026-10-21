@@ -191,8 +191,18 @@ drifted.
 HT_RUNTIME_DIR=<scratch-dir> .venv/Scripts/python.exe -c "import app; [print(sorted((r.methods or set()) - {'HEAD','OPTIONS'}), r.rule, r.endpoint) for r in app.app.url_map.iter_rules()]"
 ```
 
-`HT_RUNTIME_DIR` matters. Importing `app` runs the real startup sequence, which resolves and
-writes a database; without an isolated runtime root it will use the checkout's own.
+Importing `app` does no database or data-directory work: it builds the module-level app with
+`create_app()` and does not run `init_runtime()`. `HT_RUNTIME_DIR` still matters, because the
+first `get_logger()` call creates `<runtime root>/logs/`; set it to keep that out of the checkout.
+
+Do not serve that module-level `app` object through `flask run` or a WSGI server. A Flask
+command with no target also auto-discovers `app.py` and serves that object. It is uninitialized,
+so no migration, seed, schema pass, catalog upgrade or startup snapshot runs, and
+a first request may create an empty database file. A normal restart skips seed copying into
+an existing file; in the scratch probe, schema initialization and catalog upgrade still recovered
+the catalog. Point the Flask CLI at the factory target `app:create_initialized_app` instead.
+Recovery (only for an empty file with no user data): stop the app, confirm the file has 0 exercises,
+delete it plus its `-wal`/`-shm` sidecars, restart.
 
 **Schema.** The full field-level inventory, derived twice — once from an empty file and once
 from the shipped catalog seed, which is what a real first run copies:

@@ -167,7 +167,7 @@ def test_erase_data_recreates_user_profile_tables(client, clean_db):
         """
     )
 
-    response = client.post("/erase-data")
+    response = client.post("/erase-data", json={"confirm": "ERASE_ALL_DATA"})
 
     assert response.status_code == 200
     assert response.get_json()["ok"] is True

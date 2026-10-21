@@ -26,7 +26,7 @@ $serverArgs = @("-m", "flask", "run", "--host", "127.0.0.1", "--port", "5001", "
 Write-Host "[2/4] Starting isolated Flask server on http://127.0.0.1:5001"
 $oldFlaskApp = $env:FLASK_APP
 $oldFlaskDebug = $env:FLASK_DEBUG
-$env:FLASK_APP = "app:app"
+$env:FLASK_APP = "app:create_initialized_app"
 $env:FLASK_DEBUG = "0"
 $serverProc = Start-Process -FilePath $python -ArgumentList $serverArgs -PassThru -WorkingDirectory $repoRoot -NoNewWindow
 
