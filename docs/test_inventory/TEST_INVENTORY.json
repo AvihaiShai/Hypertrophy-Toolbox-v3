@@ -241,8 +241,8 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 3781,
-    "deterministic_files": 135,
+    "collected_deterministic": 3837,
+    "deterministic_files": 137,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -631,6 +631,10 @@
         "tests": 93
       },
       {
+        "file": "tests/test_remove_exercise_characterization.py",
+        "tests": 45
+      },
+      {
         "file": "tests/test_rep_range_integrity.py",
         "tests": 50
       },
@@ -775,6 +779,10 @@
         "tests": 85
       },
       {
+        "file": "tests/test_workout_plan_service.py",
+        "tests": 11
+      },
+      {
         "file": "tests/test_worktree_ci_contracts.py",
         "tests": 12
       },
@@ -795,7 +803,7 @@
         "tests": 40
       }
     ],
-    "total_files": 136
+    "total_files": 138
   },
   "schema_version": 2,
   "vitest": {
