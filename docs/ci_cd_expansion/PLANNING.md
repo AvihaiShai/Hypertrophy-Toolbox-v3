@@ -2,12 +2,12 @@
 
 | Field | Value |
 |---|---|
-| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19. B1/A1/B2/B3/E1+D3 and A2 are merged; dated receipts remain in §§13–19. B2 residual #546 merged as `28484dda` on 2026-10-21T12:40:52Z. Retained A3 `398b0564` is resumed on current main `d98f45d3` (§20.6), with fresh validation/reviews and final-head PR CI pending. G6/G7 follow only after the preceding merge.** Delivery, settings, promotions, credentials and new merges retain their separate gates. |
+| Status | **FORMAL CORE Plan v2 approved at owner Gate 1, 2026-10-19. A3 merged through [#549](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/549) as `dee3c379` (§20.7). G6 [#552](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/552) integrates current main `a12b680f` after U1 #551; regenerated combined-tree validation, fresh reviews and new-head CI are required before a new exact-SHA merge request (§21.4). G6 merge is not approved; G7 needs its own approval after that merge.** Q4 remains a separate change; settings, promotions, credentials, delivery and every later PR merge retain separate authority. |
 | Authors | Historical draft: Claude and Astra, 2026-10-18. Formal council document owner: `product-manager` `/root/product_manager`, 2026-10-19; read-only manager `/root`. |
 | Source of truth | This file. The chat threads that produced it are not. |
 | Baseline measured | `origin/main` `7ac1af2d`, CI run `39125460089`, 2026-10-18 |
 | Planning size | Large (new workflows, new jobs, repo-settings changes) — per `docs/ai_workflow/QUALITY_GATE.md` plan-stage routing: Gate 0 → council (`/council-plan`) → Gate 1 → implementation |
-| Branch / PR | A3: `ci/a3-functional-four-shards`, retained source `398b0564`, brought onto current `origin/main` `d98f45d3`; no PR yet (§20.6). A2 [#540](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/540) and B2 residual [#546](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/546) are merged. Earlier packet branches and receipts: §§13–19. |
+| Branch / PR | G6: `ci/g6-enforced-selected-tests`; [#552](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/552), ordinary merge of current main `a12b680fba9503b8578d777ed51dff571f7c44f2` into retained `df91daec` (§21.4); final refreshed head and checks pending. A3 [#549](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/549), A2 [#540](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/540) and B2 residual [#546](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/546) are merged; retained branches and dated receipts stay in §§13–20. |
 
 ### Review log
 
@@ -28,6 +28,7 @@
 | 2026-10-21 local | Owner | #546 against post-A2 main | Asked for #546 to be resolved against current `main`, preserving merged A2 behavior, with the affected gates and required reviews completed, and presented ready for a separately authorized merge. §18.7 records the merge of `43f5df33`. |
 | 2026-10-21 local | Owner | A2 named-head merge and A3 execution | Approved merging #540 at `30c88a2e`, then continuing A3 from merged main. Merge `43f5df33` independently read back; §20 records A3 execution and the separate #546 workflow-slot constraint. |
 | 2026-10-21 local | Owner | CI implementation lane continuation | Directed the sole workflow-editing lane to resume retained A3 from `398b0564`, refresh it on current main and prepare a ready PR; G6 follows an explicitly authorized A3 merge and G7 follows G6. Independent isolation, required gates/reviews and named-PR merge authority remain binding (§20.6). |
+| 2026-10-21 local | Owner | Named A3 merge and G6 continuation | Explicitly approved merging #549 at `f069bed1`, then continuing G6; prohibited every other merge without separate explicit approval naming its PR (§§20.7, 21.1). |
 
 ---
 
@@ -90,7 +91,7 @@ Core also needs bounded advisory review, enforced destinations for skipped tests
 | G1 | Shorter PR feedback | Creation-to-required-gate completion: 12–15 min initial objective, eight-minute measured second-stage target, six-minute stretch; include queue time and runner-minutes. §2's 31.4-minute job-dominated wall is dated evidence, not a current latency median. |
 | G2 | Merge integrity | `strict: true` on `main`. Merge queue evaluated as a separate decision (needs an org-owned repo). |
 | G3 | Security layers | Secret scanning/push protection and CodeQL configured; baseline triaged; native CodeQL rule blocks newly introduced High/Critical alerts with seeded proof and explicit owner bypass. Every adopted action/dependency is SHA-pinned and explicitly allowlisted with both broad flags false. B2 always runs on PR/main; B3 enforces PR dependency changes. |
-| G4 | Distinct enforcement sets preserve intent | Conditional promotions follow §11.5. Code/contracts declare `PR_REQUIRED_CONTEXTS` (target 18) separately from `RELEASE_EXPECTED_CONTEXTS` (target 17); owner applies only qualified PR checks with app binding. Existing enforcement never weakens; Q4/D2 remains unsigned. |
+| G4 | Distinct enforcement sets preserve intent | Conditional promotions follow §11.5. Code/contracts declare `PR_REQUIRED_CONTEXTS` (target 18) separately from `RELEASE_EXPECTED_CONTEXTS` (target 17); owner applies only qualified PR checks with app binding. Existing enforcement never weakens; Q4 is approved and D2's ledger condition is met. The standalone rename and C4 activation remain separate (§21.3). |
 | G5 | Scheduled-gate observability | Any non-success completion of either Deep Gate workflow upserts a tracking issue within 1 h; a missing scheduled run is detected within 36 h. Visual-linux owner decision (GATE1 A–D) taken. |
 | G6 | Bounded agentic review | After separate owner OAuth/app authorization, ten completed fresh-head reviews of eligible human same-repo code/workflow PRs, 15 min/20 turns, existing subscription quota only, no paid fallback. Failed/stale/skipped attempts are visible and do not count. |
 | G7 | Separately gated delivery direction | F1 candidate artifact → F3 upgrade/recovery → publication; same final ZIP throughout, genuine exact version tag only, dispatch nonpublishing. Separate delivery council/Gate 1 and owner timing; no delivery work in core. |
@@ -194,7 +195,7 @@ This is the operative decision sheet. It supersedes the pre-approval §3 recomme
 |---|---|---|---|
 | CI-D1 | Bounded compare-only bisect A of `31659a59..b36ea9e` and separately monitored visual workflow E | Core Gate 1 plus named diagnostic extension; retain one-capture hypothesis H-LINUX-UNSYNC-01, ADR-011, baselines/tolerances/exemptions; stop at attribution or bounded inconclusive result. No broader experiment/fix. | E1, D3, E3 |
 | CI-D2 | Strict checks; defer organization transfer/merge queue | Owner settings execution after approved plan; retain every check/app binding. | C2 |
-| CI-D3 | Four independent conditional promotions; B2/B3 required after qualification | §11.5 proof matrix; original JS Q4/D2 unsigned; code/contracts before owner activation. Separate PR/release sets; no A2 or Linux coupling. | C4 |
+| CI-D3 | Four independent conditional promotions; B2/B3 required after qualification | §11.5 proof matrix; Q4 approved and D2 ledger condition met (§21.3); standalone rename and code/contracts before owner activation. Separate PR/release sets; no A2 or Linux coupling. | C4 |
 | CI-D4 | Claude-only advisory ten-review pilot, 15 minutes/20 turns, existing OAuth subscription quota only | Owner credential/app authorization and two-push fresh-head/security rehearsal before enablement; no paid fallback. Codex requires separate paired-trial evidence, credential and hard spend cap. | D1; D2 deferred |
 | CI-D5 | Docs filtering deferred | Measured speed work, A5 protection proof and fail-closed classifier cases before a new proposal; `main` always validates fully. | A5 deferred |
 | CI-D6 | Initial prereleases unsigned; no signing purchase | Owner distribution acceptance at separate delivery gate. Any signing identity/credential/purchase separate; smoke final signed bytes if later approved. | F2 deferred |
@@ -365,7 +366,7 @@ Measure workflow creation → required-gate completion, queue delay, job wall an
 | C1c | Native code-scanning ruleset on `main`, tool CodeQL, `security_alerts_threshold: high_or_higher`, `alerts_threshold: none`; seeded newly introduced High/Critical alert must block. Separate rule, no invented check context. Sole-owner **numeric User ID**, `bypass_mode: pull_request`; no blanket admin or unaudited `exempt`. Owner emergency PR records reason/checks/compensating evidence/follow-up green. |
 | C2 | PATCH only `strict: true`; preserve exact current checks and app bindings. |
 | C3 | After B1 pins and adopted direct/nested/caller inventory: selected-actions body `github_owned_allowed: false`, `verified_allowed: false`, explicit `patterns_allowed` repositories (including adopted GitHub-owned actions). Policy body `enabled: true`, `allowed_actions: selected`, `sha_pinning_required: true`. No broad `actions/*`, deferred Codex/signing or unreviewed nested dependency. |
-| C4 | After candidate qualification/signatures and code/contracts merge: `strict: true`, `checks: [{context: <exact observed name>, app_id: 15368}, ...]`. Preserve existing checks/bindings; include only the currently qualified approved subset, not all 18 target members. JS Q4/D2 remains unsigned. No context-only POST. |
+| C4 | After candidate qualification/signatures and code/contracts merge: `strict: true`, `checks: [{context: <exact observed name>, app_id: 15368}, ...]`. Preserve existing checks/bindings; include only the currently qualified approved subset, not all 18 target members. Q4 approved; D2 ledger condition met; rename and C4 activation remain separate (§21.3). No context-only POST. |
 | C5 | Disable workflow `345538425`; retain historical runs. |
 
 The manager verified the supported rule/bypass fields, check app bindings and repository SHA-policy field against [GitHub rules API](https://docs.github.com/en/rest/repos/rules), [branch protection API](https://docs.github.com/en/rest/branches/branch-protection), and [Actions permissions API](https://docs.github.com/en/rest/actions/permissions) during this council. An admin exemption in branch protection does not bypass a ruleset.
@@ -400,13 +401,13 @@ The contract PR distinguishes `PR_REQUIRED_CONTEXTS` from `RELEASE_EXPECTED_CONT
 
 ## 7. Ledger
 
-B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A1 was claimed by Claude Code, 2026-10-19, under separate owner authority (§14), and merged through #530. E3 was held by another session under its own authority and merged through #529. B2, D3 and E1 are claimed by the CI coordinating lead under the 2026-10-20 owner authorization (§15). B3 is claimed by Claude Code session `hypertrophy-toolbox-v3-main-68` (Opus) under a separate 2026-10-20 owner authorization (§17). A2 merged under §19. A3 is resumed by Codex `/root` under §20.6 from its retained qualified source, with current-main gates and its PR pending. G6/G7 are authorized in sequence but remain unclaimed until the preceding packet merges. Other packets remain unclaimed under their existing authority boundaries. Merge receipts for A1 and E3 were verified by the lead with `gh pr view` / `gh run list` at 2026-10-19T22:1xZ and recorded by the product-manager; §§13–14's historical receipts are not rewritten. Core Gate 1 is approved; `blocked` now names remaining packet-specific prerequisites or execution authority, not missing core Gate 1 or Gate 0. `deferred` and `separate milestone` distinguish excluded work. No PR/head/run is invented; §11.5 evidence qualifies only its named criterion, never implementation or owner approval.
+B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A1 was claimed by Claude Code, 2026-10-19, under separate owner authority (§14), and merged through #530. E3 was held by another session under its own authority and merged through #529. B2, D3 and E1 are claimed by the CI coordinating lead under the 2026-10-20 owner authorization (§15). B3 is claimed by Claude Code session `hypertrophy-toolbox-v3-main-68` (Opus) under a separate 2026-10-20 owner authorization (§17). A2 merged under §19. A3 merged through #549 (§20.7). G6 #552 is integrating current main after U1 #551, with fresh-head gates and explicit merge approval pending (§21.4). G7 remains unclaimed and requires its own separate approval after G6 merges. Other packets remain unclaimed under their existing authority boundaries. Merge receipts for A1 and E3 were verified by the lead with `gh pr view` / `gh run list` at 2026-10-19T22:1xZ and recorded by the product-manager; §§13–14's historical receipts are not rewritten. Core Gate 1 is approved; `blocked` now names remaining packet-specific prerequisites or execution authority, not missing core Gate 1 or Gate 0. `deferred` and `separate milestone` distinguish excluded work. No PR/head/run is invented; §11.5 evidence qualifies only its named criterion, never implementation or owner approval.
 
 | Packet | Owner (proposed) | Status | Branch / PR | Head SHA | Evidence (run id, job, value) | Notes |
 |---|---|---|---|---|---|---|
 | A1 | Claude Code (A1 session), 2026-10-19 | **merged** 2026-10-19T19:06:48Z by AvihaiShai as squash `f3adacf1c1b48cc6e2c7ca9ac900e3294b3bae2d` | `ci/a1-guard-split-b`; [#530](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/530) | published head `18fc388a38cd4efcd9140aaf9cdfa3f49b0ad6db` (code tree `0e4f342` + review nits, §14.6); final PR head `699c56820603237fc490ced3114d359b00f37cf9` | PR run `39289691671` 25/25 success, last required context 10.4 min (baseline 28.2–32.3); bench `39270742974` attempts 1–2; rehearsals `39285097596`, `39285103455`, `39285105591`, `39285108590`, `39285112726`, `39288227037`; local full pytest 5,330 passed / 2 skipped at `0e4f342`; §14. Final head: PR run `39291809942` (`pull_request`, attempt 1) success, rollup 25/25 success. Post-merge `main` push run `39308234107` on `f3adacf1`, attempt 1, success | Closed. Final head advanced after §14.6; §14's receipts are historical. `download-artifact` joins the C3 candidate set. §14.7's post-merge timing confirmation is not recorded here; no scheduled Deep Gate has run since A1 |
 | A2 | Codex `/root` | merged | `ci/a2-operation-a-parallel`; [#540](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/540) | approved head `30c88a2e`; merge `43f5df33` | Final run `39493591638`: 27/27 jobs successful; exact 251-case Counter preserved; Windows jobs 439 s / 432 s vs serial 677 s; independent reviews no findings | Owner named-head merge approval, 2026-10-21 local; §19 |
-| A3 | Codex `/root`, resumed 2026-10-21 | current-main refresh in progress; final gates pending | `ci/a3-functional-four-shards`; no PR yet | retained source `398b0564`; merged-main base `d98f45d3` | Historical same-corpus native pair: 540 executed identities, 499→367 s to aggregate with higher runner time (§20.4). Fresh local gates, independent reviews and final-head PR CI pending after main integration | §20.6; #546 merged, preserved; ready state and separate named-PR merge authority still required |
+| A3 | Codex `/root`, resumed 2026-10-21 | **merged** 2026-10-21T17:38:23Z as `dee3c379` | `ci/a3-functional-four-shards`; [#549](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/549) | approved/tested head `f069bed180e425bd1dbdf3967a19b246b3d5271e` | Exact-head CI `39613142357`: 29/29 jobs success; fresh four-report Counter equals 540 passing identities/25 specs; source reviews pass. Actual PR wall 485 s, functional aggregate 423 s; historical 499→367 pair remains dated (§20.7) | Only this named PR was authorized to merge. Source/evidence/checkouts retained; G6 now follows merged main |
 | A4 | Astra | deferred | | | | Optional cache experiment outside core |
 | A5 | either | deferred | | | | CI-D5; no docs filtering in core |
 | B1 | Codex `/root`, 2026-10-19 | **merged** 2026-10-18T23:46:43Z by the owner as squash `77f400bb331e1de631a32114a7cc9996f5b5dd1e` | `ci/b1-action-pins`; [#521](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/521) | implementation `1dfe011b1533f1339660b72a60249b390b296104`; final PR head `c91986bf376a1a09f055c4ee4dc4cb4d27bb601e` | Local: §13.1 unchanged. PR run `39171777513` (final head) 19/19 success; post-merge `main` push run `39177927596` on `77f400bb` success; post-merge scheduled Deep Gate `39226020933` 6/7 success, only pre-existing `visual-linux` red; §13.2 | Closed. C3/settings remain unauthorized |
@@ -417,7 +418,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | C1 | Owner | blocked | | | | Core Gate 1; setup/triage/native rule/bypass and seeded proof; owner execution |
 | C2 | Owner | blocked | | | | Core Gate 1; strict-only change preserves checks/bindings |
 | C3 | Owner | blocked | | | | Pins/inventory first; broad flags false; owner execution |
-| C4 | Owner + implementer | blocked | | | §11.5 evidence reused | Candidate proofs/signatures; separate sets; contracts then settings; JS Q4/D2 unsigned |
+| C4 | Owner + implementer | blocked | | | §11.5 evidence reused | Candidate proofs; separate sets; contracts then settings; Q4 approved/D2 ledger condition met; standalone rename pending (§21.3) |
 | C5 | Owner | blocked | | | | Core Gate 1; owner disable; retain history |
 | D1 | Claude | blocked | | | | Core Gate 1 + OAuth/app; trusted orchestration/isolated config and adversarial/fresh-head proof; subscription only |
 | D2 | Astra | deferred | | | | Paired-trial proposal requires evidence, spend cap, credential |
@@ -428,8 +429,8 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | F2 | tbd | deferred | | | | No signing purchase/credential/identity authority |
 | F3 | Claude | separate milestone | | | | Delivery council/Gate 1; exact candidate ZIP, before publication |
 | G1–G5/G8 | per §4 | deferred | | | | Expansion outside core; coverage stays non-blocking |
-| G6 | Astra | queued | | | | Authorized §19, queued after A3 merge; narrow Windows leg + dependency cases feed Run Tests; independent of Operation A promotion |
-| G7 | Claude | queued | | | | Authorized §19, queued after G6 merge; ci_retry_report behavior suite; unavailable reports visible; verdict/policy preserved |
+| G6 | Codex `/root`, implementation team | current-main integration; final fresh-head gates pending, merge not approved | `ci/g6-enforced-selected-tests`; [#552](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/552) | retained `df91daec`; current main `a12b680f` integrated without rewriting branch history | Prior checks and four native adverse rehearsals remain dated; combined-tree inventory, bounded checks, independent refresh reviews and new-head CI govern the next request | §21.4; preserve U1 #551; require explicit approval naming #552 and its new exact SHA; G7 needs its own later approval |
+| G7 | Unassigned | held for separate approval after G6 merge | | | No implementation or new review credit | Latest owner instruction §21.4: G7 requires its own approval after the merge; not started |
 
 ---
 
@@ -456,7 +457,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 
 No unanswered requirement blocks completed formal core planning. The three independent reviewers read formal v1 cold; §12.2 preserves their outputs and §12.3 accepts all five findings in final v2. B1 is claimed in §7; other owners remain proposed. A2 prefers xdist without test edits; a host-matrix variant touching held tests returns to its owner boundary. D2 model/effort/budget and F1/F3 details belong to separate proposals.
 
-Core Gate 1 is approved for Plan v2; execution receipts and authority are recorded per packet in §§13–19, including the newly authorized A2 → A3 → G6 → G7 sequence (§19). JS Q4/D2, activation proofs, settings execution, D1 credentials, E3 named diagnostic extension and separate delivery council/Gate 1 remain individual gates. GitHub access is capability, not authorization.
+Core Gate 1 is approved for Plan v2; execution receipts and authority are recorded per packet in §§13–19, including the newly authorized A2 → A3 → G6 → G7 sequence (§19). Q4 is approved and D2's ledger condition is met (§21.3). The standalone rename, activation proofs, settings execution, D1 credentials, E3 named diagnostic extension and separate delivery council/Gate 1 remain individual gates. GitHub access is capability, not authorization.
 
 ---
 
@@ -3303,3 +3304,158 @@ qualification lane and remains its own change before any protection change.
 WS3 GA-14's stale coverage comment is queued for a separate bounded comment
 change in this sole workflow lane; it is not folded into A3. No settings,
 promotion, merge, release, spending or artifact removal is authorized here.
+
+### 20.7 Exact-head A3 completion and named merge — 2026-10-21
+
+The owner explicitly approved only PR #549 at
+`f069bed180e425bd1dbdf3967a19b246b3d5271e`. Fresh pre-merge readback found that
+exact head, OPEN/ready/MERGEABLE and all 30 check runs successful: the 29 CI
+workflow jobs plus the independent Dependabot configuration check. Squash merge
+completed at `2026-10-21T17:38:23Z` as
+`dee3c379b8435e1ba0941884b9f264675f8012b7`, independently read back and fetched.
+No branch or artifact was removed. The connector returned 403; authenticated
+GitHub CLI performed the authorized merge with `--match-head-commit`.
+
+Final PR run [39613142357](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39613142357),
+attempt 1, passed 29/29 jobs. Independent four-report parsing proves exactly 540
+passing project/file/full-title identities across 25 specs, equal to the retained
+baseline Counter. Native approved full-pytest route: 4,458 passed / 211 existing
+skips / zero failures or errors; native Operation A Windows: 251/251 passed.
+Local full Windows: 5,678 passed / two existing skips / three setup failures in
+1,069.75 s. After creating the private runtime/data directory and shortening
+private TEMP (Git object writes exceeded MAX_PATH), complete affected config and
+lifecycle modules passed 166/166 in 389.73 s, including all three original
+failures. Source stayed unchanged. These counts overlap; this is not a clean
+all-green local full rerun. Independent evidence assessment accepted the native
+full gate plus the transparent local correction.
+
+Fresh independent `/root/code_reviewer` and `/root/architecture_reviewer` reviews
+passed with no findings at the exact tested head/tree. Inventory regeneration and
+`--check` passed; pyright 1.1.410 reported zero current/net-new diagnostics.
+Actual full-PR wall was 485 s, functional aggregate 423 s, longest shard 385 s and
+summed frontend/shards/aggregate runner-job time 20.317 min. This is a fresh
+scheduling observation, not a controlled performance pair; the longest shard
+exceeds the old six-minute estimate. The historical 499→367 s pair and its
+additional runner time remain dated. JUnit final outcomes do not prove recovered
+retries. Raw reports, reviews and local setup diagnoses are retained under
+`artifacts/parallel-next-five/ci-core/`, mirrored to the shared checkout.
+
+The first merged-main push run is
+[39645582155](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39645582155),
+on `dee3c379`; pending at the initial G6 claim. It is not reported green in advance.
+
+## 21. G6 — required destinations for nine existing cases
+
+### 21.1 Authority, isolation and boundaries
+
+Owner instruction, verbatim:
+
+> Approved: merge PR #549 at f069bed1, then continue to G6. Do not merge anything else without a separate explicit approval naming the PR.
+
+This follows the approved core Plan v2/TS-2 acceptance, not a new council or a
+promotion authorization. Implementation starts from merged main `dee3c379` in
+the retained independent clone `D:/development/Hypertrophy-Toolbox-v3-ci-core-20261021`,
+branch `ci/g6-enforced-selected-tests`, with private .venv/node_modules, runtime,
+database, caches and short temporary paths. The dirty shared checkout and all
+retained A3/recovery refs and artifacts remain untouched. Only this lane edits
+workflows. G6 ends at a ready PR; its merge requires a separately named approval.
+G7 begins only after that authorized G6 merge and its own separate approval. WS5 workflow integration waits for
+G7 and its own execution assignment.
+
+Parent manager owns this planning record; `/root/implementer` owns bounded source
+and acceptance tests; `/root/evidence_analyst` owns evidence analysis. Fresh code
+and architecture reviewers remain independent of implementation and each other.
+Use no more than four concurrent agents. A reviewer that has not completed is
+pending, never credited as a pass.
+
+### 21.2 Approved implementation and evidence
+
+Add only `workflow-contracts-windows`, a narrow Windows job for the six fixed
+`powershell` identities, to existing `Run Tests` needs and its all-success fan-in
+arguments. Keep the guard legs and their cross-shard proof; never include the
+entire unqualified Operation A job. Install from existing `requirements.txt`.
+In existing `pytest-core`, add `npm ci` before pytest so the three installed-braces
+identities execute. A stdlib-only selected-report helper reuses existing pytest
+identity conventions, compares fixed exact identities and rejects missing,
+unexpected, duplicated, skipped, failed/error and absent/malformed reports.
+Collection may select complete approved function families but may not redefine
+the fixed allowlist from whatever remains. Verify reports after failed test
+steps too; preserve the original test verdict and all existing retry policies.
+Preflight both required host/dependency prerequisites. Reports and exact node IDs
+must come from the actual candidate corpus, not from documentation alone.
+
+`tests/test_ci_expansion_contracts.py` covers actual report decisions, removal,
+skip, prerequisite and failure controls, plus failure/cancellation/skip/missing
+of every required dependency. Existing workflow/caller/job census contracts must
+adopt the narrow job without weakening protected-name or exclusion assertions.
+Fresh full pytest, pyright baseline diff, generator-owned inventory and its drift
+check, independent code/architecture reviews, final-head PR CI and representative
+native prerequisite/selected-failure rehearsals are required. Native bounded
+route harnesses may shorten only unrelated work, and must disclose that scope;
+they prove required-route propagation, not activated branch-protection behavior.
+No prerequisites, cases, production code, dependency pins or retry policies are
+changed to make the nine identities pass.
+
+G6 also resolves WS3 **GA-14** with an explicitly bounded comment-only correction
+above the same core coverage command: pytest now imports the production factory;
+the deleted pattern-coverage fixture reference is removed. Keep
+`--cov=utils --cov=routes`, report outputs and D1's non-blocking policy unchanged.
+No app.py coverage expansion is implied.
+
+At this pre-implementation record, implementation, generated inventory, required
+checks, current-candidate native outcomes and independent reviews are pending.
+Final receipt numbers are recorded only after the tests/reviews actually run.
+
+### 21.3 Reviewed handoffs and serial ownership
+
+Qualification lane supplied a reviewed Q4 specification/candidate plus its
+independent reconciliation review. Q4 was approved by the owner in #547; D2's
+recorded ledger prerequisite is met on main through #544 (cycle rows 26–75,
+50 / 0 / 0 / 0 / 0 exact JS jobs), independently rechecked by that lane. This
+reconciles live "unsigned" cells only; dated council/decision blocks remain
+verbatim. #550 records the follow-up documentation receipt and is a different
+ready PR, not authorized for merge here. Q4's rename remains a standalone change
+before any protection update; C4 remains unapproved. The prospective §11.5
+target-set name will be reconciled with the standalone rename, not by this G6
+workflow change. The latest owner instruction continues G6 now; qualification
+imposes no timing constraint, so Q4 stays queued for a coordinated separate slot.
+Do not copy the qualification lane's JS ledger rows into this PR.
+
+Reviewed WS5 readiness handoff is received with conditions, not execution
+authority. Keep G6's new helper stdlib-only and install the existing manifest;
+do not pre-split requirements, add test-tool pins, touch security-audit or change
+the fan-in CLI on WS5's behalf. WS5 re-censuses after G7; its open readiness
+decisions and execution assignment remain with that lane/owner. No WS5 work is
+implemented by G6. Both handoffs and their review records are retained beside
+CI evidence; no handoff grants merge, settings, release or cleanup authority.
+
+### 21.4 Current-main refresh after U1 #551 — 2026-10-21
+
+Owner instruction, verbatim:
+
+> Not approved yet. #551 merged to main at 18:45Z, after #552's CI. Per your own PR body, integrate current main (`a12b680f`) into #552, regenerate the inventory from the actual tree, rerun CI on the new head, then re-ask with the new exact SHA. G7 needs its own approval after the merge.
+
+PR #551 merged at `2026-10-21T18:45:23Z` as
+`a12b680fba9503b8578d777ed51dff571f7c44f2`. The integration preserves the
+previous G6 head `df91daec8330f4ea80a8878535a24f88cc05d34b` in
+`retain/g6-df91-before-u1` and merges that fetched current main through an
+ordinary two-parent merge. No squash, rebase, held test edits, dependency
+reinstallation or workflow-policy change is part of this refresh. Both U1 and
+G6 source are preserved. The generated inventory is regenerated by the actual
+combined-tree collector even where Git's text merge reported no conflict.
+
+At this dated integration receipt, bounded G6/Vitest inventory contracts, JS
+coverage, final inventory check, full current-candidate pytest, fresh independent
+reviews and new-head CI are pending. The PR closeout and ignored evidence carry
+the exact resulting commit and tree after they exist. Earlier positive/native
+negative receipts remain retained and dated; they are not relabeled as new-head
+CI. If held G6 enforcement bytes remain identical, the representative native
+negative rehearsals need no repeat. Any changed enforcement byte must be
+reported and its affected evidence refreshed.
+
+New integration evidence belongs under
+`artifacts/parallel-next-five/ci-core/g6/refresh-20261021/`; previous evidence,
+rehearsal refs, the dirty shared checkout and recovery artifacts remain retained.
+No PR merge, settings activation or G7 execution is authorized by this integration.
+After fresh new-head CI is complete, re-ask for #552 with that exact SHA.
+G7 requires its own separate approval after G6 merges and is not started here.

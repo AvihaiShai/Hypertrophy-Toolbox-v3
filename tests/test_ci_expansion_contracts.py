@@ -47,6 +47,7 @@ from scripts.ci_executed_report import (
     verify_union,
 )
 from scripts.ci_fan_in import problems
+from scripts import ci_selected_report as selected_report
 from scripts.release_gate import EXPECTED_CONTEXTS, REQUIRED_CONTEXTS
 from tests.test_release_workflow_contracts import (
     ALL_WORKFLOWS,
@@ -69,7 +70,7 @@ from tests.worktree_cleanup.support import ROOT
 from tests.test_playwright_shard_launcher_contracts import launcher_array
 
 GUARD_FILE = "tests/test_guard_destructive_command.py"
-FAN_IN_DEPENDENCIES = ("pytest-core", "guard-hook-shard", "guard-hook-tests")
+FAN_IN_DEPENDENCIES = ("pytest-core", "guard-hook-shard", "guard-hook-tests", "workflow-contracts-windows")
 GUARD_SHARDS = 4
 NODE_IDS = [
     "tests/test_a.py::test_plain",
@@ -416,7 +417,7 @@ def test_the_guard_aggregate_waits_for_every_shard():
     assert needs_list(strip_comments(ci_job("guard-hook-tests"))) == ["guard-hook-shard"]
 
 
-@pytest.mark.parametrize("job_id", ("pytest-core", "guard-hook-shard"))
+@pytest.mark.parametrize("job_id", ("pytest-core", "guard-hook-shard", "workflow-contracts-windows"))
 def test_test_running_jobs_cannot_skip_or_soften_themselves(job_id):
     block = strip_comments(ci_job(job_id))
     assert not re.search(r"^    (if|continue-on-error|needs):", block, re.MULTILINE), job_id
@@ -2564,3 +2565,293 @@ def test_a3_actual_aggregate_shell_fails_closed_for_every_non_success_result(res
     assert proc.returncode == (0 if result == "success" else 1), proc.stdout + proc.stderr
     if result != "success":
         assert "::error title=E2E Functional gate::" in proc.stdout
+
+
+# ------------------------------------------------ G6: fixed, executed selected identities
+
+G6_WINDOWS_FILE = "tests/test_agent_workflow_contracts.py"
+G6_SKILL_FAMILY = "test_skill_guard_decides_as_the_senior_developer_allowlist_says"
+G6_DESTRUCTIVE_FAMILY = "test_all_effective_destructive_registrations_execute_deny_allow"
+G6_WINDOWS = tuple(
+    f"{G6_WINDOWS_FILE}::{family}[{parameter}-powershell]"
+    for family, parameters in (
+        (G6_SKILL_FAMILY, ("handover-0", "verify-and-polish-0", "council-plan-2", "-2")),
+        (G6_DESTRUCTIVE_FAMILY, ("default", "bypassPermissions")),
+    )
+    for parameter in parameters
+)
+G6_DEPENDENCIES = (
+    "tests/test_braces_override_contracts.py::test_installed_braces_preserves_ordinary_glob_behavior",
+    "tests/test_braces_override_contracts.py::test_installed_braces_bounds_malicious_nesting[compile]",
+    "tests/test_braces_override_contracts.py::test_installed_braces_bounds_malicious_nesting[expand]",
+)
+G6_GROUPS = {"windows": G6_WINDOWS, "dependencies": G6_DEPENDENCIES}
+G6_ALL = [(group, node) for group, nodes in G6_GROUPS.items() for node in nodes]
+
+
+def g6_junit(tmp_path, cases, name="g6.xml"):
+    path = junit(tmp_path, cases, name)
+    tree = ET.parse(path)
+    for suite in tree.getroot().iter("testsuite"):
+        found = suite.findall("testcase")
+        suite.set("tests", str(len(found)))
+        for attribute, tag in (("skipped", "skipped"), ("failures", "failure"), ("errors", "error")):
+            suite.set(attribute, str(sum(case.find(tag) is not None for case in found)))
+    tree.write(path, encoding="utf-8")
+    return path
+
+
+def test_g6_expectations_are_the_approved_nine_fixed_node_ids():
+    assert selected_report.WINDOWS_NODES == G6_WINDOWS
+    assert selected_report.DEPENDENCY_NODES == G6_DEPENDENCIES
+    assert len(set((*G6_WINDOWS, *G6_DEPENDENCIES))) == 9
+
+
+def test_g6_selects_windows_from_both_complete_host_families():
+    nodes = [*G6_WINDOWS, *(node.replace("-powershell]", "-pwsh]") for node in G6_WINDOWS)]
+    assert selected_report.select_windows(collection(nodes)) == list(G6_WINDOWS)
+
+
+@pytest.mark.parametrize("missing", G6_WINDOWS)
+def test_g6_collection_cannot_hide_removal_of_any_windows_identity(missing):
+    with pytest.raises(ValueError, match="missing"):
+        selected_report.select_windows(collection([node for node in G6_WINDOWS if node != missing]))
+
+
+@pytest.mark.parametrize("mutation", ("extra-parameter", "duplicate", "wrong-host", "unapproved-family"))
+def test_g6_windows_collection_rejects_unreviewed_membership(mutation):
+    nodes = list(G6_WINDOWS)
+    if mutation == "extra-parameter":
+        nodes.append(G6_WINDOWS[0].replace("handover-0", "new-parameter-0"))
+    elif mutation == "duplicate":
+        nodes.append(nodes[0])
+    elif mutation == "wrong-host":
+        nodes[0] = nodes[0].replace("-powershell]", "-pwsh]")
+    else:
+        nodes.append("tests/test_other.py::test_other[powershell]")
+    with pytest.raises(ValueError):
+        selected_report.select_windows(collection(nodes))
+
+
+@pytest.mark.parametrize("group", G6_GROUPS)
+@pytest.mark.parametrize("root_tag", ("testsuites", "testsuite"))
+def test_g6_verifier_accepts_every_fixed_case_exactly_once(tmp_path, group, root_tag):
+    report = g6_junit(tmp_path, [(node, None) for node in G6_GROUPS[group]])
+    if root_tag == "testsuite":
+        suite = ET.parse(report).getroot().find("testsuite")
+        assert suite is not None
+        ET.ElementTree(suite).write(report, encoding="utf-8")
+    assert selected_report.verify(group, report) == len(G6_GROUPS[group])
+
+
+def test_g6_core_ignores_unrelated_legitimate_host_skips(tmp_path):
+    cases: list[tuple[str, str | None]] = [(node, None) for node in G6_DEPENDENCIES]
+    cases.extend((node, "skipped") for node in G6_WINDOWS)
+    assert selected_report.verify("dependencies", g6_junit(tmp_path, cases)) == 3
+
+
+@pytest.mark.parametrize("group,node", G6_ALL)
+@pytest.mark.parametrize("mutation", ("remove", "duplicate", "skipped", "failure", "error"))
+def test_g6_each_selected_identity_requires_one_executed_pass(tmp_path, group, node, mutation):
+    cases = [(identity, None) for identity in G6_GROUPS[group] if identity != node]
+    if mutation == "duplicate":
+        cases.extend(((node, None), (node, None)))
+    elif mutation != "remove":
+        cases.append((node, mutation))
+    with pytest.raises(ValueError):
+        selected_report.verify(group, g6_junit(tmp_path, cases))
+
+
+@pytest.mark.parametrize("group", G6_GROUPS)
+def test_g6_both_complete_function_families_reject_new_parameters(tmp_path, group):
+    for family_node in (G6_GROUPS[group][0], G6_GROUPS[group][-1]):
+        extra = family_node.partition("[")[0] + "[unreviewed-parameter-powershell]"
+        cases = [(node, None) for node in (*G6_GROUPS[group], extra)]
+        with pytest.raises(ValueError, match="unexpected"):
+            selected_report.verify(group, g6_junit(tmp_path, cases))
+
+
+@pytest.mark.parametrize("extra", ("pwsh", "unrelated"))
+def test_g6_windows_report_rejects_extra_cases_even_outside_approved_families(tmp_path, extra):
+    node = G6_WINDOWS[0].replace("-powershell]", "-pwsh]") if extra == "pwsh" else "tests/test_other.py::test_other"
+    cases = [(identity, None) for identity in (*G6_WINDOWS, node)]
+    with pytest.raises(ValueError, match="unexpected"):
+        selected_report.verify("windows", g6_junit(tmp_path, cases))
+
+
+@pytest.mark.parametrize("group", G6_GROUPS)
+@pytest.mark.parametrize("problem", ("absent", "empty", "malformed", "no-cases", "wrong-root", "misplaced-case",
+                                    "no-classname", "no-name", "tests", "skipped", "failures", "errors", "root-count", "multiple-outcomes",
+                                    "nested-suite", "unknown-case-child", "unknown-root-child"))
+def test_g6_unverifiable_junit_fails_closed(tmp_path, group, problem):
+    path = tmp_path / "bad.xml"
+    if problem in {"empty", "malformed", "no-cases"}:
+        path.write_text({"empty": "", "malformed": "<testsuites>", "no-cases": "<testsuites/>"}[problem], encoding="utf-8")
+    elif problem != "absent":
+        path = g6_junit(tmp_path, [(node, None) for node in G6_GROUPS[group]])
+        tree = ET.parse(path)
+        root = tree.getroot()
+        suite = root.find("testsuite")
+        first = root.find(".//testcase")
+        assert suite is not None and first is not None
+        if problem == "wrong-root":
+            root.tag = "arbitrary"
+        elif problem == "misplaced-case":
+            suite.remove(first)
+            root.append(first)
+        elif problem.startswith("no-"):
+            del first.attrib[problem.removeprefix("no-")]
+        elif problem == "root-count":
+            root.set("tests", "9999")
+        elif problem == "multiple-outcomes":
+            ET.SubElement(first, "failure")
+            ET.SubElement(first, "error")
+        elif problem == "nested-suite":
+            root.remove(suite)
+            ET.SubElement(root, "testsuite").append(suite)
+        elif problem == "unknown-case-child":
+            ET.SubElement(first, "not-run")
+        elif problem == "unknown-root-child":
+            ET.SubElement(root, "not-a-suite")
+        else:
+            suite.set(problem, "9999")
+        tree.write(path, encoding="utf-8")
+    with pytest.raises(ValueError):
+        selected_report.verify(group, path)
+
+
+@pytest.mark.parametrize("group", G6_GROUPS)
+def test_g6_verifier_cli_preserves_the_executed_outcome_verdict(tmp_path, group):
+    for outcome, expected in ((None, 0), ("skipped", 1), ("failure", 1)):
+        path = g6_junit(tmp_path, [(node, outcome) for node in G6_GROUPS[group]])
+        result = subprocess.run([sys.executable, str(ROOT / "scripts/ci_selected_report.py"), "verify", group, str(path)],
+                                capture_output=True, text=True, check=False)
+        assert result.returncode == expected, result.stdout + result.stderr
+        assert ("::error" in result.stderr) == bool(expected)
+
+
+@pytest.mark.parametrize("group", G6_GROUPS)
+def test_g6_preflight_rejects_a_missing_required_executable(monkeypatch, tmp_path, group):
+    (tmp_path / "node_modules").mkdir()
+    monkeypatch.setattr(selected_report, "ROOT", tmp_path)
+    monkeypatch.setattr(selected_report.sys, "platform", "win32")
+    monkeypatch.setattr(selected_report.shutil, "which", lambda _: None)
+    with pytest.raises(ValueError, match="required"):
+        selected_report.preflight(group)
+
+
+def test_g6_preflight_rejects_linux_even_when_a_powershell_named_program_exists(monkeypatch):
+    monkeypatch.setattr(selected_report.sys, "platform", "linux")
+    monkeypatch.setattr(selected_report.shutil, "which", lambda _: "fake-powershell")
+    with pytest.raises(ValueError, match="native Windows"):
+        selected_report.preflight("windows")
+
+
+def test_g6_preflight_rejects_absent_npm_tree_even_when_node_exists(monkeypatch, tmp_path):
+    monkeypatch.setattr(selected_report, "ROOT", tmp_path)
+    monkeypatch.setattr(selected_report.shutil, "which", lambda _: "fake-node")
+    with pytest.raises(ValueError, match="npm dependencies"):
+        selected_report.preflight("dependencies")
+
+
+@pytest.mark.parametrize("group", G6_GROUPS)
+@pytest.mark.parametrize("outcome", ("success", "failure", "unlaunchable", "timeout"))
+def test_g6_preflight_requires_the_actual_host_or_installed_resolution_to_run(monkeypatch, tmp_path, group, outcome):
+    (tmp_path / "node_modules").mkdir()
+    monkeypatch.setattr(selected_report, "ROOT", tmp_path)
+    monkeypatch.setattr(selected_report.sys, "platform", "win32")
+    monkeypatch.setattr(selected_report.shutil, "which", lambda name: f"fake-{name}")
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append((command, kwargs))
+        if outcome == "unlaunchable":
+            raise OSError("prerequisite unavailable")
+        if outcome == "timeout":
+            raise subprocess.TimeoutExpired(command, 30)
+        return subprocess.CompletedProcess(command, 0 if outcome == "success" else 1, "", "")
+
+    monkeypatch.setattr(selected_report.subprocess, "run", run)
+    if outcome == "success":
+        selected_report.preflight(group)
+    else:
+        with pytest.raises(ValueError, match="prerequisite"):
+            selected_report.preflight(group)
+    command_line, options = calls[0]
+    assert options["cwd"] == tmp_path and options["check"] is False
+    if group == "windows":
+        assert "PSEdition" in command_line[-1] and "Desktop" in command_line[-1]
+    else:
+        assert "micromatch/package.json" in command_line[-1] and "r('braces')" in command_line[-1]
+
+
+def test_g6_preflight_and_missing_report_cli_fail_instead_of_succeeding(monkeypatch, tmp_path):
+    monkeypatch.setattr(selected_report.shutil, "which", lambda _: None)
+    assert selected_report.main(["preflight", "dependencies"]) == 1
+    assert selected_report.main(["verify", "windows", str(tmp_path / "missing.xml")]) == 1
+
+
+def test_g6_windows_route_collects_whole_families_and_preserves_pytest_exit():
+    block = strip_comments(ci_job("workflow-contracts-windows"))
+    assert job_name(block) == "Workflow Contracts (Windows PowerShell)"
+    assert re.search(r"^    runs-on: windows-latest$", block, re.MULTILINE)
+    assert not re.search(r"^    (if|continue-on-error|needs|strategy):", block, re.MULTILINE)
+    by_name = dict(steps(block))
+    assert command(by_name["Require native Windows PowerShell"]) == "python scripts/ci_selected_report.py preflight windows"
+    select = by_name["Collect and select the six Windows identities"]
+    script = run_script(select)
+    assert script is not None
+    collects = f"python -m pytest --collect-only -q {G6_WINDOWS_FILE}::{G6_SKILL_FAMILY} {G6_WINDOWS_FILE}::{G6_DESTRUCTIVE_FAMILY}"
+    assert collects + " > artifacts/workflow-contracts-windows/collected.txt" in script
+    assert "python scripts/ci_selected_report.py select-windows artifacts/workflow-contracts-windows/collected.txt > artifacts/workflow-contracts-windows/selected.txt" in script
+    assert script.count("if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }") == 2
+    run = by_name["Run the selected Windows cases"]
+    assert command(run) == "python -m pytest '@artifacts/workflow-contracts-windows/selected.txt' -v --tb=short -o junit_family=xunit2 --junitxml=artifacts/workflow-contracts-windows/junit.xml"
+    for name in ("Require native Windows PowerShell", "Collect and select the six Windows identities", "Run the selected Windows cases"):
+        assert step_condition(by_name[name]) is None
+        assert "continue-on-error" not in by_name[name]
+    names = list(by_name)
+    assert names.index("Require native Windows PowerShell") < names.index("Collect and select the six Windows identities") < names.index("Run the selected Windows cases")
+
+
+@pytest.mark.parametrize("job,step,expected", (
+    ("pytest-core", "Require installed dependency cases to execute and pass", "dependencies artifacts/pytest/junit.xml"),
+    ("workflow-contracts-windows", "Require all six Windows cases to execute and pass", "windows artifacts/workflow-contracts-windows/junit.xml"),
+))
+def test_g6_both_verifiers_run_even_after_prerequisite_or_pytest_failure(job, step, expected):
+    by_name = dict(steps(strip_comments(ci_job(job))))
+    verify_step = by_name[step]
+    assert step_condition(verify_step) == "always()"
+    assert "continue-on-error" not in verify_step
+    assert command(verify_step) == f"python scripts/ci_selected_report.py verify {expected}"
+    run = "Run pytest with coverage" if job == "pytest-core" else "Run the selected Windows cases"
+    assert list(by_name).index(run) < list(by_name).index(step)
+
+
+def test_g6_core_installs_npm_and_checks_prerequisites_before_existing_full_suite():
+    by_name = dict(steps(strip_comments(ci_job("pytest-core"))))
+    install = "Install npm dependencies for enforced dependency cases"
+    preflight = "Require installed dependency prerequisites"
+    assert command(by_name[install]) == "npm ci"
+    assert command(by_name[preflight]) == "python scripts/ci_selected_report.py preflight dependencies"
+    for name in (install, preflight):
+        assert step_condition(by_name[name]) is None and "continue-on-error" not in by_name[name]
+    names = list(by_name)
+    assert names.index(install) < names.index(preflight) < names.index("Run pytest with coverage")
+
+
+@pytest.mark.parametrize("job,step,artifact", (
+    ("pytest-core", "Upload pytest JUnit XML", "pytest-junit"),
+    ("workflow-contracts-windows", "Upload Windows workflow-contract reports", "workflow-contracts-windows-junit"),
+))
+def test_g6_execution_reports_are_always_retained_and_required(job, step, artifact):
+    upload = dict(steps(strip_comments(ci_job(job))))[step]
+    assert step_condition(upload) == "always()" and "continue-on-error" not in upload
+    assert f"name: {artifact}" in upload and "if-no-files-found: error" in upload
+    assert "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9" in upload
+
+
+def test_g6_fan_in_requires_the_narrow_leg_without_promoting_operation_a():
+    assert "workflow-contracts-windows" in fan_in_gate("run-tests")
+    assert "worktree-windows" not in fan_in_gate("run-tests")
+    assert needs_of(strip_comments(ci_job("run-tests"))) == list(FAN_IN_DEPENDENCIES)

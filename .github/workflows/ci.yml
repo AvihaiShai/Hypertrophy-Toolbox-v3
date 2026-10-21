@@ -943,8 +943,8 @@ jobs:
     # `node` is absent. The runner image happens to ship one, but a contract that
     # silently skips on the platform it was written for (LEFTOVERS P2.6: the
     # control refused to run on Linux) is not a contract. Pinning the version
-    # here makes the run deterministic instead of image-dependent. No `npm ci` --
-    # the script imports only node builtins.
+    # here makes the run deterministic instead of image-dependent. G6 also
+    # installs the lockfile below so the three installed-braces cases execute.
     - name: Set up Node.js
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
@@ -955,6 +955,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Install npm dependencies for enforced dependency cases
+      run: npm ci
+
+    - name: Require installed dependency prerequisites
+      run: python scripts/ci_selected_report.py preflight dependencies
+
     # Phase 1 step 5 of docs/TESTING_STRATEGY_PLANNING.md, decision D1 (signed
     # 2026-08-01): coverage is NON-BLOCKING MEASUREMENT. There is deliberately no
     # --cov-fail-under and no threshold of any kind -- this job's verdict is still
@@ -963,12 +969,11 @@ jobs:
     # this repo already proves), not a line anyone has to stay above today. The
     # phase-3 decision that ruled coverage out is reversed only this far.
     #
-    # Scope is utils + routes. app.py is deliberately ABSENT: pytest never imports
-    # it, so coverage answers --cov=app with "Module app was never imported" and
-    # no row at all. Its one import site is the app_client fixture at
-    # tests/test_pattern_coverage.py:329, which no test in that class requests --
-    # a dead fixture. That is blindspot B2 surfacing in the coverage data, and it
-    # is recorded in section 8.6 rather than papered over with a permanent warning.
+    # Scope remains utils + routes under D1; app.py is outside this measurement.
+    # WS3's shared app fixture calls the production create_app() factory; importing
+    # app constructs the Flask app without init_runtime(). Startup behavior is
+    # exercised explicitly by tests/test_runtime_init.py and entry-point tests.
+    # The coverage targets and non-blocking measurement policy stay unchanged.
     - name: Run pytest with coverage
       run: |
         pytest tests/ -v --tb=short --junitxml=artifacts/pytest/junit.xml \
@@ -979,6 +984,10 @@ jobs:
           --cov-report=html:artifacts/pytest/htmlcov
       env:
         PYTHONPATH: ${{ github.workspace }}
+
+    - name: Require installed dependency cases to execute and pass
+      if: always()
+      run: python scripts/ci_selected_report.py verify dependencies artifacts/pytest/junit.xml
 
     # Measure-only reporting. Never fails: `if: always()` so a red test suite
     # still publishes whatever coverage was collected, and the script itself
@@ -1043,6 +1052,7 @@ jobs:
       with:
         name: pytest-junit
         path: artifacts/pytest/junit.xml
+        if-no-files-found: error
         retention-days: 7
 
     - name: Upload coverage report
@@ -1157,18 +1167,73 @@ jobs:
           --collected artifacts/guard/guard-hook-junit-*/collected.txt \
           --reports artifacts/guard/guard-hook-junit-*/junit.xml
 
+  # G6 enforces only the six Windows PowerShell cases, independently of the
+  # unqualified Operation A job. Collect whole function families first so an
+  # added/removed powershell parameter cannot silently shrink this fixed set.
+  workflow-contracts-windows:
+    name: Workflow Contracts (Windows PowerShell)
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Require native Windows PowerShell
+      run: python scripts/ci_selected_report.py preflight windows
+
+    - name: Collect and select the six Windows identities
+      run: |
+        New-Item -ItemType Directory -Force artifacts/workflow-contracts-windows | Out-Null
+        python -m pytest --collect-only -q tests/test_agent_workflow_contracts.py::test_skill_guard_decides_as_the_senior_developer_allowlist_says tests/test_agent_workflow_contracts.py::test_all_effective_destructive_registrations_execute_deny_allow > artifacts/workflow-contracts-windows/collected.txt
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        python scripts/ci_selected_report.py select-windows artifacts/workflow-contracts-windows/collected.txt > artifacts/workflow-contracts-windows/selected.txt
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    - name: Run the selected Windows cases
+      run: python -m pytest '@artifacts/workflow-contracts-windows/selected.txt' -v --tb=short -o junit_family=xunit2 --junitxml=artifacts/workflow-contracts-windows/junit.xml
+
+    - name: Require all six Windows cases to execute and pass
+      if: always()
+      run: python scripts/ci_selected_report.py verify windows artifacts/workflow-contracts-windows/junit.xml
+
+    - name: Upload Windows workflow-contract reports
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: workflow-contracts-windows-junit
+        path: |
+          artifacts/workflow-contracts-windows/collected.txt
+          artifacts/workflow-contracts-windows/selected.txt
+          artifacts/workflow-contracts-windows/junit.xml
+        if-no-files-found: error
+        retention-days: 7
+
   # The required `Run Tests` context (scripts/release_gate.py, branch
   # protection). Before A1 it was the single pytest job; it is now a fan-in that
-  # is green only when pytest-core, every guard-hook leg and the cross-shard
-  # proof all reported success. Failure, cancellation, skip or a missing result
-  # of any of them fails it. `if: always()` makes it report instead of staying
+  # is green only when pytest-core, every guard-hook leg, the cross-shard
+  # proof and the six-case Windows leg all reported success. Failure, cancellation,
+  # skip or a missing result of any of them fails it. `if: always()` reports instead of staying
   # pending. scripts/ci_fan_in.py holds the decision and
   # tests/test_ci_expansion_contracts.py pins it and this wiring.
   run-tests:
     name: Run Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [pytest-core, guard-hook-shard, guard-hook-tests]
+    needs: [pytest-core, guard-hook-shard, guard-hook-tests, workflow-contracts-windows]
     if: always()
 
     steps:
@@ -1180,7 +1245,7 @@ jobs:
     - name: Require every test job to pass
       env:
         NEEDS: ${{ toJSON(needs) }}
-      run: python3 scripts/ci_fan_in.py pytest-core guard-hook-shard guard-hook-tests
+      run: python3 scripts/ci_fan_in.py pytest-core guard-hook-shard guard-hook-tests workflow-contracts-windows
 
   # NOTE: the former `dependency-check` job (outdated/safety scans) moved to the
   # manual Deep Gate (.github/workflows/deep-gate.yml) in Phase 4.5 — it's

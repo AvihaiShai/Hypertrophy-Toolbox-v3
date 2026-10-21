@@ -153,6 +153,7 @@ UNEXPECTED_CI_JOB_NAMES = (
     "Python Tests (core)",
     "Guard Hook Tests (Linux pwsh) shard ${{ matrix.shard }}/4",
     "Guard Hook Tests (Linux pwsh)",
+    "Workflow Contracts (Windows PowerShell)",
     "JS Unit (Vitest, non-required)",
     "CSS Stylelint Measurement (non-required)",
     PACKAGED_SMOKE_JOB_NAME,
