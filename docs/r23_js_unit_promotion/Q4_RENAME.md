@@ -151,3 +151,44 @@ Local evidence under `artifacts/s1-q4/`:
   the required gate. That edit has been removed entirely, and this five-path
   gate derivation records the fix. The finding remains pending re-review;
   code delta review, publication readbacks and final-head CI are also pending.
+
+### Completion receipt — 2026-10-22
+
+This receipt updates the implementation-handoff states above. Final
+documentation-head CI is reported in the public [#554 PR body](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/554).
+
+- Corrected full Windows pytest: **5,811 passed / 2 skipped / 0 failures or
+  errors**, exit 0, in 1,390.47 s; XML has **5,813 unique identities** and
+  no duplicates. It ran `2026-10-21T21:48:40Z`–`22:11:50Z`, starting at
+  `8485b5b4`. The config-comment restoration and Q4 prose update landed as
+  `9a2f375f` during the run. All Python, tests, workflows and other tracked
+  inputs match between those commits; both Vitest modules evaluate to deeply
+  equal configurations. The receipt retains the actual start commit and this
+  code-equivalence proof. This later receipt changes prose only.
+- Inventory, **269 cases / 14 files** with JS coverage, TypeScript and blocking
+  flake8 pass. Pyright **1.1.410** reports zero current and zero net-new
+  diagnostics; its baseline is unchanged.
+- Fresh reviewers with **no inherited implementation context** completed:
+  `/root/q4_cold_code` passed `9a2f375f`; `/root/q4_cold_tests` derived the
+  gate union independently, then closed its native failure-proof P2 after
+  re-reading the source and raw receipts below. The earlier root-config
+  finding is resolved by the config's exact restoration. Context-inheriting
+  reviews remain diagnostic history; the two cold reviews satisfy S1's gate.
+- Native proof:
+  [run `39683330072`, attempt 1, job `119511059749`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39683330072/job/119511059749),
+  rehearsal `dac825e79f2078ba2580895ff2755c6b43b61e28`, based on `9a2f375f`.
+  Removing one runtime assertion-injection step makes its parsed JS job
+  identical to the candidate. **269 original tests passed; the injected test
+  alone failed.** The real coverage step failed with exit 1; the unchanged
+  `always()` summary then succeeded, reporting absent coverage; the Actions
+  job still concluded **failure**. The other 23 jobs were disabled/skipped
+  and receive no execution credit. The retained rehearsal branch is outside
+  the merge candidate and earns no qualification row.
+- [Candidate CI `39682711569`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39682711569)
+  passed **30/30 jobs** at `9a2f375f`, including the renamed JS check. The
+  final prose-receipt head needs its own green CI before readiness.
+
+Raw XML, interrupted/failed attempts, equivalence proofs, native logs and
+cold review reports remain under `artifacts/s1-q4/`. Owner merge, successful
+renamed merged-main evidence, workflow-slot release and later C4 preparation
+and activation retain their separate boundaries.
