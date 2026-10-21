@@ -2645,7 +2645,7 @@ def test_g6_verifier_accepts_every_fixed_case_exactly_once(tmp_path, group, root
 
 
 def test_g6_core_ignores_unrelated_legitimate_host_skips(tmp_path):
-    cases = [(node, None) for node in G6_DEPENDENCIES]
+    cases: list[tuple[str, str | None]] = [(node, None) for node in G6_DEPENDENCIES]
     cases.extend((node, "skipped") for node in G6_WINDOWS)
     assert selected_report.verify("dependencies", g6_junit(tmp_path, cases)) == 3
 
