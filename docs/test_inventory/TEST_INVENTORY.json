@@ -1465,6 +1465,102 @@
         "name": "user-profile estimator seams > preserves tier and next-tier multipliers"
       },
       {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-1 region idempotence > 2a repeat failure keeps the same single node and does not rewrite text"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-1 region idempotence > 2b no .volume-insights-panel: no region, nothing throws"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-1 region idempotence > 2c-reset reset removes the node from the DOM"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-1 region idempotence > 2c-success next success removes the node from the DOM"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3a explicit commands announce while region AND our message stand"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3a-loadPlan loading a saved plan announces while region AND our message stand"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3b slider-originated first failure announces (change)"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3b slider-originated first failure announces (debounced input)"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3b-after-recovery slider failure after a success announces although our message text persists"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3c slider repeat while region and our message stand does NOT announce"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3d slider repeat after a stranger replaced our message DOES announce, button still standing"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3d-near-miss message probe is exact equality"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-2 announce condition > 3e slider repeat after our button is gone but our message stands does NOT announce"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-3 request-sequence guard > 4a stale SUCCESS after a newer failure: no paint, no region removal, no dismiss"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-3 request-sequence guard > 4b stale REQUEST FAILURE after a newer success: no region, no announce"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-3 request-sequence guard > 4c stale POST-2xx HANDLING FAILURE after a newer success: no region, no announce"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-3 request-sequence guard > 4c-control a CURRENT post-2xx handling failure does enter the failure state"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-3 request-sequence guard > 4d reset while in flight, then the request fails: no region, no toast"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-3 request-sequence guard > 4d-handling reset while in flight, then a post-2xx handling failure: no region, no toast"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-4 probes and dismiss guard > 5a both stand: success hides the toast"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-4 probes and dismiss guard > 5b action probe is scoped to #liveToast: button OUTSIDE #toast-body still counts"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-4 probes and dismiss guard > 5c only the button stands (stranger message): NOT hidden"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-4 probes and dismiss guard > 5d only the message stands (button gone): NOT hidden"
+      },
+      {
+        "file": "static/js/modules/__tests__/volume-splitter.test.js",
+        "name": "T-4 probes and dismiss guard > 5e a same-label button OUTSIDE #liveToast does not count as ours"
+      },
+      {
         "file": "static/js/modules/__tests__/workout-controls-persistence.test.js",
         "name": "A1-A2 exported constants > A1: WORKOUT_CONTROL_IDS is exactly the six controls, in order"
       },
@@ -1820,6 +1916,10 @@
         "file": "static/js/modules/__tests__/user-profile-data.test.js"
       },
       {
+        "cases": 24,
+        "file": "static/js/modules/__tests__/volume-splitter.test.js"
+      },
+      {
         "cases": 35,
         "file": "static/js/modules/__tests__/workout-controls-persistence.test.js"
       },
@@ -1836,7 +1936,7 @@
         "file": "static/js/modules/__tests__/workout-plan-state.test.js"
       }
     ],
-    "total_cases": 245,
-    "total_files": 13
+    "total_cases": 269,
+    "total_files": 14
   }
 }
