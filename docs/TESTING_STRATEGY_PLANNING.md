@@ -521,6 +521,13 @@ Q4 approves `JS Unit (Vitest)` in its own change before protection.
 match GitHub at **50 / 0 / 0 / 0 / 0** exact JS Unit jobs, so the `js-unit` half's
 condition is met.
 The rename landing remains pending; C4 needs separate approval.
+**Receipt, 2026-10-22:** #554 (`73de866e`) landed the standalone Q4 rename;
+its exact merged-main `JS Unit (Vitest)` job `119766292139` and coverage step
+succeeded. §13.0 records through #557 at cutoff `2026-10-22T15:24:52Z`:
+**131 / 0 / 0 / 0 / 0** cumulative exact JS jobs. #551's 245 → 269
+expansion engages Q2 for the next window; its new T0 declaration remains
+owner-controlled. The accepted 50-job cycle and D2 approval stand; C4 remains
+separately gated. This receipt supersedes the pending-rename sentence only.
 [Exact owner ruling and evidence](r23_js_unit_promotion/DECISION.md).
 The prior statement, *“the `js-unit` half of D2 is the only decision in this table
 still unsigned”*, is superseded. The sentence this

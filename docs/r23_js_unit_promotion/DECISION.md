@@ -50,6 +50,20 @@ condition is therefore met.** This is the decision's effective state, not check
 promotion. The §13.0 receipt and rows 114–122 are in
 [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0.
 
+**Ledger/Q4 receipt, 2026-10-22, cutoff `2026-10-22T15:24:52Z`:**
+§13.0 now records rows 123–131 through #557 (`b77cb742`), at
+**131 / 0 / 0 / 0 / 0** cumulative exact JS jobs. #554 (`73de866e`)
+landed Q4's standalone rename; its exact merged-main
+[`JS Unit (Vitest)` job `119766292139`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39761432262/job/119766292139)
+and coverage step succeeded, bound to that SHA and GitHub Actions app `15368`.
+This supersedes the pending-rename clauses above and below as live status.
+#551 expanded 245 → 269 cases; its eight successful main results belong to the
+next corpus window. Q2's restart requirement does not retroactively invalidate
+the accepted 50-job cycle or D2's effective approval. Declaring #551 final and
+`2026-10-21T18:45:51Z` as the next T0 remains an owner determination in §13.0;
+no new qualification is declared. C4 remains unapproved and requires its own
+activation authority and live enforcement proofs.
+
 ## Approved outcome
 
 **D2: approve making JS Unit a required check. Q4: rename it to
