@@ -431,7 +431,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | F3 | Claude | separate milestone | | | | Delivery council/Gate 1; exact candidate ZIP, before publication |
 | G1–G5/G8 | per §4 | deferred | | | | Expansion outside core; coverage stays non-blocking |
 | G6 | Codex `/root`, implementation team | current-main integration; final fresh-head gates pending, merge not approved | `ci/g6-enforced-selected-tests`; [#552](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/552) | retained `df91daec`; current main `a12b680f` integrated without rewriting branch history | Prior checks and four native adverse rehearsals remain dated; combined-tree inventory, bounded checks, independent refresh reviews and new-head CI govern the next request | §21.4; preserve U1 #551; require explicit approval naming #552 and its new exact SHA; G7 needs its own later approval |
-| G7 | Claude Code O1 session (Opus), 2026-10-22 | implemented; acceptance tests first; reviews complete (one BLOCKING gate-evidence finding cleared with conditions); local gates green except the `/verify-suite` E2E step (visual/contract reds also present with the base config; load-induced functional reds passed in isolation; §22.4); not pushed — workflow slot 2 waits for Q4; merge not approved | `ci/g7-retry-report`; PR pending | pre-rebase `ce111f2` on `155181d6` | 228 G7 tests; bite proof 35/35; 701 contract tests; pyright 0 net-new; full pytest 6,039 passed / 2 skipped at `ce111f2`; PR CI pending | §22 |
+| G7 | Claude Code O1 session (Opus), 2026-10-22 | implemented and reviewed (one BLOCKING gate-evidence finding cleared, its PR-CI condition discharged); rebased onto `73de866e` after Q4 #554; PR CI green with all nine retry summaries rendered; merge not approved | `ci/g7-retry-report`; [#557](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/557) | rebased `9a13efe` (receipts commit follows; pre-rebase `ce111f2` retained locally) | PR run `39762263460` 30/30; full pytest 6,039 passed / 2 skipped at `9a13efe`; 929 G7 and contract tests; bite proof 35/35; pyright 0 net-new | §22 |
 
 ---
 
@@ -3620,5 +3620,27 @@ Lane decisions (no consulting-team delegation was needed):
    one runs with `retries: 2`.
 3. `if: always()` on the summary steps, as above.
 
-Pending at this writing: the workflow-slot release, the rebase onto the post-Q4 `main` with
-refreshed gates, and the re-review's PR-CI conditions.
+### 22.6 Rebase, PR and CI receipts — 2026-10-22
+
+S1's #554 merged at 2026-10-22T10:13:05Z as `73de866e` (after #550 as `61da31cb`), releasing
+workflow slot 1; no other open PR touched `.github/workflows/**`. G7 rebased onto `73de866e`
+without conflicts. Its own bytes — script, tests, fixtures, config and `ci.yml` hunks — are
+identical to `ce111f2`, so the bite proof applies unchanged; the pre-rebase head is retained
+locally as `retain/g7-c0e971a-pre-rebase`. The regenerated inventory matched git's merge. On the
+rebased head `9a13efe`: 929 G7 and contract tests passed; full pytest 6,039 passed / 2 skipped,
+exit 0; pyright 0 net-new; flake8, `tsc`, inventory `--check`, actionlint + shellcheck and
+zizmor clean (`artifacts/ci-g7/verify/rebase-73de866/`, `verify/full-pytest-9a13efe-rebased.log`).
+
+PR [#557](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/557), CI run
+[39762263460](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39762263460)
+(`pull_request`, attempt 1, head `9a13efe`): success, 30/30 jobs. In all nine Playwright runs the
+Playwright step and the `Summarize Playwright retries` step succeeded, and each job summary
+rendered a `Retry report` block with status `no retries`, original outcome `success`,
+`Playwright JSON 1.61.0`, `chromium retries=2` and run attempt 1. First-attempt counts: Visual
+Regression (Windows, pwsh) 66; Smoke 11; functional shards 1/4–4/4 143 / 136 / 126 / 135, each
+with its own shard and summing to the 540-test required set; Backup 33; Fatigue Context 6; Erase
+Flow 2 (`artifacts/ci-g7/prci/`). This discharges the re-review's PR-CI condition; no Playwright
+step conclusion changed. The commit recording these receipts is verified by the PR's final-head
+CI, reported in the PR.
+
+Remaining owner actions: decision 1 above and the merge of #557.
