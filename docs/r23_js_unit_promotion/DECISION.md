@@ -1,7 +1,8 @@
 # R2.3 — JS Unit Q4 / D2 decision
 
-**Status: Q4 approved; D2 approved conditionally, effective only after §13.0
-records the specified cycle through its own process. C4 is not approved.**
+**Status: Q4 approved; its standalone rename has not landed. D2 approved; its
+recorded §13.0 ledger condition is met on main (#544, `b4a2653c`), so by the
+owner's wording it takes effect without a further signature. C4 is not approved.**
 Prepared 2026-10-20 on an isolated checkout of `main`; exact readings are in
 [`EVIDENCE.md`](EVIDENCE.md) and [`main-js-jobs.csv`](main-js-jobs.csv).
 
@@ -37,6 +38,17 @@ The result is **50 / 0 / 0 / 0 / 0** green/red/missing/skipped/cancelled JS
 executions. The raw comparison is retained in
 `artifacts/r23/cycle-ledger-comparison.json`; this is verification evidence, not
 an independent reviewer verdict or a declaration that #544 has merged.
+
+**Ledger receipt, 2026-10-21:** the pending statement above is preserved as the
+earlier recording. #544 merged as `b4a2653c` at `2026-10-20T23:15:04Z`, 21 seconds
+before this record's own PR, #547 (`aafba153`). A fresh, paginated read of
+`main` `ci.yml` runs created `2026-08-27T23:00Z`–`2026-09-11T00:00Z` found 51: the
+50 cycle rows 26–75 and the pre-T0 row 25, with no unrecorded run. All 50 rows on main match GitHub on run id, job id, conclusion
+and `completed_at`; every Vitest step succeeded. That gives **50 / 0 / 0 / 0 / 0**
+JS executions, with row 75's carrier still recorded as `cancelled`. **D2's recorded
+condition is therefore met.** This is the decision's effective state, not check
+promotion. The §13.0 receipt and rows 114–122 are in
+[`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §13.0.
 
 ## Approved outcome
 
@@ -90,7 +102,7 @@ and named merge gates remain governed by the repository workflow.
 
 | Decision | Ruling | Owner record |
 |---|---|---|
-| D2, JS Unit half | Approved, conditional on the specified §13.0 cycle being recorded with zero adverse JS job results | Owner, 2026-10-21; canonical ledger landing pending |
+| D2, JS Unit half | Approved, conditional on the specified §13.0 cycle being recorded with zero adverse JS job results | Owner, 2026-10-21; ledger condition met on main 2026-10-21 (#544, `b4a2653c`) |
 | Q4 | Use `JS Unit (Vitest)`; land the rename in its own change before protection | Owner, 2026-10-21; rename implementation and landing tracked separately |
 | Cancellation scope | Exact JS Unit job conclusions; preserve carrier conclusions separately | Owner clarification, 2026-10-21 |
 | C4 settings activation | Separate owner approval after code/contracts and live proofs | Not approved |
@@ -143,8 +155,7 @@ are reconciled. Promotion itself closes only on verified GitHub enforcement.
    are not enforcement evidence. Record the final names, bindings, SHA and live
    blocking result, then reconcile all live status references.
 
-**Completion evidence still needed:** mainline §13.0 ledger landing for D2's
-effective state; the standalone Q4 rename with required tests/review and named
+**Completion evidence still needed:** the standalone Q4 rename with required tests/review and named
 merge authority; separate C4 approval and live settings/blocking proof for actual
 promotion. The direct Q4/D2 owner signature and cancellation reading are recorded
 above and do not need to be requested again.

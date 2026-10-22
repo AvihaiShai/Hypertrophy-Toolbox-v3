@@ -8,6 +8,12 @@
 > [The decision record](../r23_js_unit_promotion/DECISION.md) preserves the exact
 > owner words and the pending ledger/rename landings. C4 needs separate approval.
 
+> **Receipt, 2026-10-21 (rows 114–122 extension, §13.0):** the ledger half of the
+> pending landings above is spent. #544 merged as `b4a2653c` at `2026-10-20T23:15:04Z`,
+> so main records the declared cycle at rows 26–75 with **50 / 0 / 0 / 0 / 0**
+> exact JS Unit job results. D2's recorded condition is met; the rename landing is
+> still pending, and C4 still needs separate approval.
+
 > **Scope**: the step-12 decision packet, **plus Packet A as implemented** (§9) **and Packet B as
 > implemented** (§10, Gate 1 approved with one owner amendment and executed 2026-08-22 — §10.11,
 > §10.12). Each adds **one new test file** and nothing else. **No production JS, `package.json`,
@@ -782,6 +788,12 @@ different question. Every run was resolved to the **job level** via
 `GET /repos/:owner/:repo/actions/runs/{id}/jobs`, filtering on the exact context string
 `JS Unit (Vitest, non-required)`.
 
+> **ANNOTATION 2026-10-21 — the exact string follows the owner's Q4 rename.** Q4 renames this
+> job's display name to `JS Unit (Vitest)`; the `js-unit` job id and its steps are unchanged
+> ([R2.3 decision](../r23_js_unit_promotion/DECISION.md)). For every `ci.yml` carrier whose head
+> contains the rename commit, the exact context string is `JS Unit (Vitest)`. Earlier carriers keep
+> the old string. Reading a post-rename carrier on the old string would record a false **Missing**.
+
 | Parameter | Value |
 |---|---|
 | Workflow | `ci.yml` (`CI/CD Pipeline`) |
@@ -928,6 +940,12 @@ The 11 are: `Run Tests`, `E2E Functional (Chromium)`, `E2E Backup (Chromium, iso
 > annotation: the live count moved to 12 with PR #409, and the count below is preserved as the
 > 2026-08-15 measurement it was. **Re-measure before executing this section** — it has now been wrong
 > once, and its failure mode is silently un-protecting a context by omitting it from the resent array.
+
+> ⚠️ **ANNOTATION 2026-10-21 — the context to add is `JS Unit (Vitest)`.** The owner's Q4 ruling
+> (R2.3, [decision](../r23_js_unit_promotion/DECISION.md)) renames the job before any protection
+> change. The block below keeps the old string as the 2026-08-15 text. The R2.3 decision's
+> procedure supersedes this section's count and payload: re-read live protection, then add the
+> one new context. C4 settings activation needs separate owner approval.
 
 Add a **12th** context. The name must match the workflow's `name:` **byte for byte**:
 
@@ -4312,6 +4330,14 @@ quoted on every claim that rests on them. **Where the dossier lacks a fact, this
 > mark are unchanged. Q4's rename is a separate change; C4 is not authorized.
 > Exact approval and evidence: [R2.3 decision](../r23_js_unit_promotion/DECISION.md).
 
+> **Receipt, 2026-10-21:** the pending-landing clause above is spent. #544 merged first, as
+> `b4a2653c` at `2026-10-20T23:15:04Z`; #547 merged as `aafba153` 21 seconds later. Rows 26–75
+> are on main, and a fresh paginated read matched all 50 against GitHub on run id, job id,
+> conclusion and `completed_at`. The result is **50 / 0 / 0 / 0 / 0** green / red / missing /
+> skipped / cancelled `JS Unit` jobs. Under the owner's exact-job ruling, D2's recorded condition
+> is met; see the rows 114–122 extension below. T0 and the strict mark are unchanged, no new
+> signature is requested, and C4 remains unapproved.
+
 **Three annotation blocks elsewhere in this document point forward to this subsection** — the header's
 THIRD ANNOTATION, §6.5's "THE WINDOW IS NOW RUNNING" block, and §11.18's T0 annotation. This is the
 live block they defer to.
@@ -4965,6 +4991,15 @@ back byte-identical.
 | **111** | [`39445379283`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39445379283) | `push` / `a305e5a485f805711e3f393583f50a3eed656c54` (**PR #535, chore(deps): bump sass from 1.105.1 to 1.105.2**) | `success`, **26/26**, attempt **1** | [**`118705785047`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39445379283/job/118705785047) | **`success`** | **`2026-10-20T15:10:57Z`** |
 | **112** | [`39449180398`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39449180398) | `push` / `71c4cc6d2eea1147fcd3b1defe89fabaff0fb3ac` (**PR #531, docs: refresh handover, reconcile single queue, publish AGREED_PLAN (Q9)**) | `success`, **26/26**, attempt **1** | [**`118719077698`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39449180398/job/118719077698) | **`success`** | **`2026-10-20T15:31:42Z`** |
 | **113** | [`39489279999`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39489279999) | `push` / `1f5ae0f059f6cb4a994f92b6e03c57d689fd060c` (**PR #539, ci: add PR-only Dependency Review (B3)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`118857774388`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39489279999/job/118857774388) | **`success`** | **`2026-10-20T20:07:57Z`** |
+| **114** | [`39504386125`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39504386125) | `push` / `43f5df3357e0c8d9a1e7e3c050eb57ad1af5b538` (**PR #540, ci: parallelize Operation A Windows tests (A2)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`118909532396`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39504386125/job/118909532396) | **`success`** | **`2026-10-20T21:57:09Z`** |
+| **115** | [`39513763499`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39513763499) | `push` / `b4a2653c0b64965a6bd906ebb981fef0cd412bf7` (**PR #544, docs(ledger): write JS-unit ledger rows 65-113**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`118940855860`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39513763499/job/118940855860) | **`success`** | **`2026-10-20T23:15:29Z`** |
+| **116** | [`39513805113`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39513805113) | `push` / `aafba153cd0508d4f92934c3bf622ef0e9a9ff40` (**PR #547, docs(r23): record conditional D2 approval and Q4 name**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`118940988132`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39513805113/job/118940988132) | **`success`** | **`2026-10-20T23:16:00Z`** |
+| **117** | [`39517555376`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39517555376) | `push` / `c9c0d838e9cea968eb3c70a8c2ee6352ac3f0413` (**PR #541, docs: split OPEN_WORK into live queue and archived history (WS1)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`118953256683`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39517555376/job/118953256683) | **`success`** | **`2026-10-20T23:50:41Z`** |
+| **118** | [`39517597070`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39517597070) | `push` / `6dd7dc834970d1a49ea3c8aede79bd7506cdd514` (**PR #542, docs: trim ACTIVE_DEVELOPMENT to its standing rules (WS1)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`118953385865`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39517597070/job/118953385865) | **`success`** | **`2026-10-20T23:51:19Z`** |
+| **119** | [`39517613908`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39517613908) | `push` / `f3d72be4480097b16b480875449bf200a1d30566` (**PR #543, docs: trim cross-model orchestration plan to its shipped record (WS1)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`118953438341`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39517613908/job/118953438341) | **`success`** | **`2026-10-20T23:53:45Z`** |
+| **120** | [`39601539825`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601539825) | `push` / `28484ddaf7c85da1fa485eaa31c784f17f851d8f` (**PR #546, ci: close the B2 workflow-lint residuals (cache, cooldown, lint scope)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119226995162`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601539825/job/119226995162) | **`success`** | **`2026-10-21T12:41:15Z`** |
+| **121** | [`39601572984`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601572984) | `push` / `c2020735f3c74903ba89c81d7a0cdde67cd6e196` (**PR #548, fix(visual): sync Linux baselines with the #464 restyle (GATE1 option C)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119227113317`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601572984/job/119227113317) | **`success`** | **`2026-10-21T12:42:03Z`** |
+| **122** | [`39604198579`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39604198579) | `push` / `d98f45d34de8356f7ac2becb7a7c4b3bef48f8e3` (**PR #545, refactor(app): separate application construction from runtime startup**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119236093534`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39604198579/job/119236093534) | **`success`** | **`2026-10-21T13:00:44Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5684,6 +5719,75 @@ pytest additions notwithstanding. **Q2's restart clause did not engage.**
 | Green results on Vitest 5 (rows 89–113) | **25** |
 | Cross-workflow completeness census | **194** — the rows-56–64 block's 77, plus 49 attempts and 68 non-attempts (44 Dependabot updates, 5 dependency-graph updates, 9 `deep-gate.yml`, 6 `deep-gate-watch.yml`, 2 `deep-gate-visual.yml`, 1 `linux-visual-gate1.yml`, 1 `release.yml`) |
 | Elapsed from declared T0 to row 113 | **53 d 20 h 49 m 36 s** |
+
+> **LEDGER EXTENSION — fixed cutoff `2026-10-21T14:13:09Z`, rows 114–122.** The cutoff is the
+> GitHub API response **`Date` header** (`Wed, 21 Oct 2026 14:13:09 GMT`). Every query and tally
+> below is bounded at that instant. The rows 65–113 block above stays unchanged at its own
+> cutoff. **Nine** qualifying `main` `ci.yml` results exist after row 113: #540, #544, #547,
+> #541, #542, #543, #546, #548 and #545, in merge order.
+>
+> **Completeness was measured two ways.** The all-workflow `main` query started at the previous
+> cutoff, `2026-10-20T20:20:57Z`, and returned **21** runs: **9** `ci.yml` `push` runs and **12**
+> others. Separately, `git rev-list --first-parent 1f5ae0f..d98f45d` returns **9** commits. Each
+> is the `head_sha` of exactly one of the nine `ci.yml` runs, with none missing or duplicated.
+>
+> **Every carrier was read at job level, across all attempts.** All nine runs are `push`,
+> attempt **1**, `completed` / `success`, with 27 jobs. The one job that did not succeed is the
+> PR-only `Dependency Review`, which is `skipped` on `push`. Each run has exactly one job named
+> `JS Unit (Vitest, non-required)`, and it succeeded at the `completed_at` shown in the master
+> table. Its `Run Vitest with coverage` step also succeeded. All 12 other runs have **zero**
+> such jobs:
+> - 5 `schedule` and 2 `workflow_run` runs of `deep-gate-watch.yml`
+> - 3 Dependabot updates
+> - 2 `workflow_dispatch` runs of `deep-gate-visual.yml`
+>
+> **The owner's exact-job ruling settles the row-75 fork.** The ruling is
+> [“Assess exact JS Unit job conclusions under §13.0”](../r23_js_unit_promotion/DECISION.md),
+> 2026-10-21. #544's block above presents row 75 as *"Recorded, not ruled on"* and shows
+> alternative counts under the stricter §6.5 reading. That text is preserved as the reading at
+> its cutoff, but the stricter reading was **not** chosen. Run `34170988104` stays recorded as
+> `cancelled`. Its successful `JS Unit` job counts once, and the attempt-2 copy
+> `102565307402` adds no execution. A fresh paginated query of the declared window matched all
+> 50 cycle rows (26–75) against GitHub: run id, job id, conclusion and `completed_at`, with no
+> unrecorded `ci.yml` run. The result is **50 / 0 / 0 / 0 / 0**, so **D2's recorded ledger
+> condition is met on main**. This does not promote the check. Q4's standalone rename has not
+> landed, and C4 settings activation needs separate owner approval.
+>
+> **Rows 114–122 do not restart the declared window.** At all ten heads, `1f5ae0f` through
+> `d98f45d`, the following are identical:
+> - `static/js/modules/__tests__` = **`5858c8497c571548e5116f4b660ff7702dd298b1`**
+> - `vitest.config.js` = **`c16ca428f7478708d8dd96a20ebcb86f98a8b935`**
+> - `static/js` = **`89077bbfadac2f7d4b1a9cacc282fde7404fdbcf`**
+> - the `vitest` section of [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json), including its `collector`: **13 files / 245 cases**
+> - `vitest` **5.0.5** and `jsdom` **30.1.3** in the lockfile
+>
+> Q2's restart clause did not engage. **T0 remains `2026-08-27T23:18:21Z`.**
+>
+> **Two known future events, recorded here so their rows are read correctly:**
+> - **The Q4 rename.** From its carrier onward, rows match the renamed job; see the §6.1
+>   annotation. If the rename edits a comment in `vitest.config.js`, that file's blob moves.
+>   The writer of that row records whether the change is comment-only, as with the Q6 edit at
+>   row 4.
+> - **U1-FOLLOWUP-1.** It is the first post-T0 Vitest corpus change. The row for its carrier
+>   applies Q2 to the window it starts. Under the 2026-08-29 owner ruling, its post-mark landing
+>   does not retroactively invalidate the completed cycle.
+>
+> Rows 114–116 were also drafted on branch `r23/q4-rename-20261021` (pushed, no PR). That draft
+> had an earlier snapshot, in which two runs were still `in_progress`. These rows are the
+> canonical reading at this cutoff.
+>
+> **Whoever merges the PR carrying this extension owes the next unclaimed row**, which it cannot
+> record. This is the standing §11.10 mechanism. No future row number is predicted.
+
+| Ledger tally, at fixed cutoff `2026-10-21T14:13:09Z` | Value |
+|---|---:|
+| Qualification attempts since the original T0 | **122** — all `push`, all attempt **1** except row 75 (run attempt **2**; cited job from attempt **1**) |
+| Green / red / missing / skipped / cancelled `JS Unit` jobs | **122 / 0 / 0 / 0 / 0** — row 75's *run* stays `cancelled` by `Run Tests`; its job counts once under the owner's exact-job ruling |
+| Declared cycle, rows 26–75 | **50 / 0 / 0 / 0 / 0** — D2's recorded condition met |
+| Green results on the declared 245-case suite (rows 26–122) | **97** |
+| Green results on Vitest 5 (rows 89–122) | **34** |
+| Cross-workflow completeness census | **215** — the rows 65–113 block's 194, plus 9 attempts and 12 non-attempts (7 `deep-gate-watch.yml`, 3 Dependabot updates, 2 `deep-gate-visual.yml`) |
+| Elapsed from declared T0 to row 122 | **54 d 13 h 42 m 23 s** |
 
 ---
 
