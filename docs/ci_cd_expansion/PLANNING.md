@@ -419,6 +419,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | C2 | Owner | blocked | | | | Core Gate 1; strict-only change preserves checks/bindings |
 | C3 | Owner | blocked | | | | Pins/inventory first; broad flags false; owner execution |
 | C4 | Owner + implementer | blocked | | | §11.5 evidence reused | Candidate proofs; separate sets; contracts then settings; Q4 approved/D2 ledger condition met; standalone rename pending (§21.3) |
+| Q4 rename | Codex S1, 2026-10-22 | locally preparing; independent reviews and final-head CI pending | `ci/s1-q4-rename-20261022` | from `main` `155181d6`; reviewed source `0aa2cd2b` | [Q4_RENAME.md](../r23_js_unit_promotion/Q4_RENAME.md): live 12-context floor, all `app_id: 15368`, `strict: false`; both JS Unit names absent | Owner-approved standalone `JS Unit (Vitest)` name, before C4. This row supplies Q4's current candidate name for the historical §6.4 target sets; qualified evidence and live enforcement remain separate. Workflow slot 1 retained through merge or explicit release |
 | C5 | Owner | blocked | | | | Core Gate 1; owner disable; retain history |
 | D1 | Claude | blocked | | | | Core Gate 1 + OAuth/app; trusted orchestration/isolated config and adversarial/fresh-head proof; subscription only |
 | D2 | Astra | deferred | | | | Paired-trial proposal requires evidence, spend cap, credential |
