@@ -234,9 +234,11 @@ been taken.** Re-derived 2026-08-04 from
 [`NPM_AUDIT_SEVERITY_POLICY_DECISION.md`](../NPM_AUDIT_SEVERITY_POLICY_DECISION.md)
 §5.2), which is the same second-row-to-first-row move `Test Inventory Drift` made, and
 the count in the 2026-08-04 sentence above is left as the measurement it was.
-`REQUIRED_CONTEXTS` in [`scripts/release_gate.py`](../../scripts/release_gate.py) is the
-in-repo copy of the list; pytest cannot see branch protection, so that copy is the thing
-to keep true.
+`BASE_PR_REQUIRED_CONTEXTS` in [`scripts/release_gate.py`](../../scripts/release_gate.py)
+preserves that twelve-context floor. `PR_REQUIRED_CONTEXTS` adds `JS Unit (Vitest)`
+for the separately activated C4 stage; code/contracts preparation does not change
+live protection. pytest cannot see branch protection, so verify the live check/app
+bindings separately before settings activation or release.
 
 ## Known exceptions to treat as pre-existing
 

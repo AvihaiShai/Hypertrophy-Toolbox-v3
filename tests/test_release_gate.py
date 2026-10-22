@@ -11,10 +11,13 @@ import json
 import pytest
 
 from scripts.release_gate import (
-    EXPECTED_CONTEXTS,
+    BASE_PR_REQUIRED_CONTEXTS,
+    BASE_RELEASE_EXPECTED_CONTEXTS,
+    JS_UNIT_CONTEXT,
+    PR_REQUIRED_CONTEXTS,
+    RELEASE_EXPECTED_CONTEXTS,
     RELEASE_JOB_IDS,
     RELEASE_TAG_PATTERN,
-    REQUIRED_CONTEXTS,
     VISUAL_CONTEXT,
     check_fan_in,
     check_provenance,
@@ -27,6 +30,22 @@ from scripts.release_gate import (
 )
 
 APP = "3.0.1"
+SHA = "0123456789abcdef0123456789abcdef01234567"
+OTHER_SHA = "89abcdef0123456789abcdef0123456789abcdef"
+BASE_PR_NAMES = (
+    "Code Linting",
+    "E2E Backup (Chromium, isolated)",
+    "E2E Erase Flow (Chromium, isolated, non-required)",
+    "E2E Fatigue Context (Chromium, non-required)",
+    "E2E Functional (Chromium)",
+    "E2E Smoke (Chromium)",
+    "Frontend Build (npm ci + SCSS)",
+    "JS Supply Chain (npm audit, non-required)",
+    "Run Tests",
+    "Security Audit",
+    "Test Inventory Drift",
+    "Type Check (tsc blocking + pyright measure-only)",
+)
 
 
 def run(
@@ -41,6 +60,8 @@ def run(
     *,
     status: str = "completed",
     slug: str = "github-actions",
+    app_id=15368,
+    head_sha=SHA,
 ):
     """One synthetic check-run. Keyword defaults keep each arm a one-field edit."""
     return {
@@ -49,19 +70,20 @@ def run(
         "started_at": started_at,
         "status": status,
         "conclusion": conclusion,
-        "app": {"slug": slug},
+        "head_sha": head_sha,
+        "app": {"slug": slug, "id": app_id},
         "html_url": f"https://example.invalid/{run_id}",
     }
 
 
-def all_green():
+def all_green(expected=RELEASE_EXPECTED_CONTEXTS):
     return [
         run(name, 1000 + index, "2026-08-14T10:00:00Z")
-        for index, name in enumerate(EXPECTED_CONTEXTS)
+        for index, name in enumerate(expected)
     ]
 
 
-def provenance(pages, *, deadline=0.0, expected=EXPECTED_CONTEXTS):
+def provenance(pages, *, deadline=0.0, expected=RELEASE_EXPECTED_CONTEXTS):
     """Drive the real poll loop with a scripted sequence of per-poll responses."""
     calls = {"n": 0}
     clock = {"t": 0.0}
@@ -80,7 +102,7 @@ def provenance(pages, *, deadline=0.0, expected=EXPECTED_CONTEXTS):
     stream = io.StringIO()
     code = check_provenance(
         repo="o/r",
-        sha="deadbeef",
+        sha=SHA,
         expected=expected,
         fetch=fetch,
         deadline_seconds=deadline,
@@ -117,12 +139,32 @@ def version(
 # ------------------------------------------------------------------ the constants
 
 
-def test_expected_contexts_is_the_twelve_required_plus_the_visual_one():
-    assert len(REQUIRED_CONTEXTS) == 12
-    assert "JS Supply Chain (npm audit, non-required)" in REQUIRED_CONTEXTS
-    assert VISUAL_CONTEXT not in REQUIRED_CONTEXTS
-    assert set(EXPECTED_CONTEXTS) == set(REQUIRED_CONTEXTS) | {VISUAL_CONTEXT}
-    assert len(EXPECTED_CONTEXTS) == 13
+@pytest.mark.parametrize(
+    "actual,expected,count",
+    [
+        (BASE_PR_REQUIRED_CONTEXTS, BASE_PR_NAMES, 12),
+        (BASE_RELEASE_EXPECTED_CONTEXTS, (*BASE_PR_NAMES, "Visual Regression (Windows baselines)"), 13),
+        (PR_REQUIRED_CONTEXTS, (*BASE_PR_NAMES, "JS Unit (Vitest)"), 13),
+        (RELEASE_EXPECTED_CONTEXTS, (*BASE_PR_NAMES, "Visual Regression (Windows baselines)", "JS Unit (Vitest)"), 14),
+    ],
+    ids=["baseline-pr", "baseline-release", "js-pr", "js-release"],
+)
+def test_context_sets_preserve_exact_membership_and_uniqueness(actual, expected, count):
+    assert isinstance(actual, tuple)
+    assert len(actual) == len(set(actual)) == count
+    assert set(actual) == set(expected)
+
+
+def test_only_js_is_added_to_both_active_sets():
+    assert JS_UNIT_CONTEXT == "JS Unit (Vitest)"
+    assert VISUAL_CONTEXT == "Visual Regression (Windows baselines)"
+    assert set(PR_REQUIRED_CONTEXTS) - set(BASE_PR_REQUIRED_CONTEXTS) == {JS_UNIT_CONTEXT}
+    assert set(RELEASE_EXPECTED_CONTEXTS) - set(BASE_RELEASE_EXPECTED_CONTEXTS) == {JS_UNIT_CONTEXT}
+    assert RELEASE_EXPECTED_CONTEXTS.count(VISUAL_CONTEXT) == 1
+    assert VISUAL_CONTEXT not in PR_REQUIRED_CONTEXTS
+    for contexts in (BASE_PR_REQUIRED_CONTEXTS, BASE_RELEASE_EXPECTED_CONTEXTS,
+                     PR_REQUIRED_CONTEXTS, RELEASE_EXPECTED_CONTEXTS):
+        assert "Dependency Review" not in contexts
 
 
 def test_the_release_tag_pattern_is_anchored():
@@ -335,13 +377,97 @@ def test_a_third_party_failure_is_discarded_rather_than_fatal():
 
 def test_select_runs_ignores_names_nobody_expects():
     selected, seen = select_runs(
-        [run("Some Other Job", 1, "2026-08-14T10:00:00Z")], EXPECTED_CONTEXTS
+        [run("Some Other Job", 1, "2026-08-14T10:00:00Z")], RELEASE_EXPECTED_CONTEXTS, sha=SHA
     )
     assert selected == {}
     assert seen == {}
 
 
 # ------------------------------------------------------------- pending and verdict
+
+
+@pytest.mark.parametrize("expected", [BASE_RELEASE_EXPECTED_CONTEXTS, RELEASE_EXPECTED_CONTEXTS],
+                         ids=["baseline", "js-stage"])
+@pytest.mark.parametrize("missing", [False, True], ids=["success", "missing"])
+def test_both_release_stages_require_every_context(expected, missing):
+    runs = all_green(expected)
+    if missing:
+        runs = [r for r in runs if r["name"] != VISUAL_CONTEXT]
+    code, output, _ = provenance([runs], expected=expected)
+    assert code == int(missing)
+    if missing:
+        assert f"MISSING   {VISUAL_CONTEXT}" in output
+
+
+@pytest.mark.parametrize("binding", [
+    {"head_sha": None}, {"head_sha": OTHER_SHA},
+    {"app_id": None}, {"app_id": 1}, {"app_id": "15368"},
+    {"app_id": 15368.0}, {"app_id": True},
+    {"slug": None}, {"slug": "some-other-app"},
+])
+def test_wrong_provenance_binding_cannot_supply_a_required_success(binding):
+    runs = [r for r in all_green() if r["name"] != JS_UNIT_CONTEXT]
+    runs.append(run(JS_UNIT_CONTEXT, 4100, "2026-08-14T12:00:00Z", **binding))
+    code, output, _ = provenance([runs])
+    assert code == 1
+    assert f"MISSING   {JS_UNIT_CONTEXT}" in output
+
+
+@pytest.mark.parametrize("missing", ["head_sha", "app", "app.id", "app.slug"])
+def test_missing_provenance_binding_cannot_supply_a_required_success(missing):
+    unbound = run(JS_UNIT_CONTEXT, 4100, "2026-08-14T12:00:00Z")
+    if missing.startswith("app."):
+        del unbound["app"][missing.split(".")[1]]
+    else:
+        del unbound[missing]
+    runs = [r for r in all_green() if r["name"] != JS_UNIT_CONTEXT] + [unbound]
+    code, output, _ = provenance([runs])
+    assert code == 1
+    assert f"MISSING   {JS_UNIT_CONTEXT}" in output
+
+
+@pytest.mark.parametrize("binding", [
+    {"head_sha": OTHER_SHA}, {"app_id": 1}, {"slug": "some-other-app"},
+])
+@pytest.mark.parametrize("trusted_conclusion,expected_code", [("success", 0), ("failure", 1)])
+def test_untrusted_newer_result_neither_masks_failure_nor_poisons_success(
+    binding, trusted_conclusion, expected_code
+):
+    other = "failure" if trusted_conclusion == "success" else "success"
+    runs = [r for r in all_green() if r["name"] != JS_UNIT_CONTEXT] + [
+        run(JS_UNIT_CONTEXT, 4200, "2026-08-14T10:00:00Z", trusted_conclusion),
+        run(JS_UNIT_CONTEXT, 4201, None, other, **binding),
+    ]
+    code, output, _ = provenance([runs])
+    assert code == expected_code
+    assert "id=4200" in output
+    assert "id=4201" not in output
+
+
+@pytest.mark.parametrize("conclusion", [
+    "failure", "cancelled", "skipped", "neutral", "timed_out", "action_required",
+])
+def test_js_unit_requires_a_successful_conclusion(conclusion):
+    runs = [r for r in all_green() if r["name"] != JS_UNIT_CONTEXT]
+    runs.append(run(JS_UNIT_CONTEXT, 4300, "2026-08-14T10:00:00Z", conclusion))
+    code, output, _ = provenance([runs])
+    assert code == 1
+    assert "did not conclude success" in output
+    assert JS_UNIT_CONTEXT in output
+
+
+@pytest.mark.parametrize("state", ["missing", "old-name", "queued", "in_progress"])
+def test_js_unit_missing_renamed_or_pending_expires_at_the_deadline(state):
+    runs = [r for r in all_green() if r["name"] != JS_UNIT_CONTEXT]
+    if state == "old-name":
+        runs.append(run("JS Unit (Vitest, non-required)", 4400, "2026-08-14T10:00:00Z"))
+    elif state != "missing":
+        runs.append(run(JS_UNIT_CONTEXT, 4400, "2026-08-14T10:00:00Z", None, status=state))
+    code, output, fetches = provenance([runs], deadline=2)
+    assert code == 1
+    assert "timed out after 2s" in output
+    assert JS_UNIT_CONTEXT in output
+    assert fetches == 3
 
 
 @pytest.mark.parametrize(
@@ -361,8 +487,8 @@ def test_a_newer_in_progress_run_keeps_the_name_pending():
         run("Run Tests", 5001, "2026-08-14T10:00:00Z", "success"),
         run("Run Tests", 5002, "2026-08-14T11:00:00Z", None, status="in_progress"),
     ]
-    selected, _ = select_runs(runs, EXPECTED_CONTEXTS)
-    pending, failed = classify(selected, EXPECTED_CONTEXTS)
+    selected, _ = select_runs(runs, RELEASE_EXPECTED_CONTEXTS, sha=SHA)
+    pending, failed = classify(selected, RELEASE_EXPECTED_CONTEXTS)
     assert pending == ["Run Tests"]
     assert failed == []
 
@@ -379,7 +505,7 @@ def test_a_missing_name_is_pending_then_fails_at_the_deadline():
 def test_an_empty_response_fails_naming_every_expected_context():
     code, output, _ = provenance([[]])
     assert code == 1
-    for name in EXPECTED_CONTEXTS:
+    for name in RELEASE_EXPECTED_CONTEXTS:
         assert f"MISSING   {name}" in output
 
 
@@ -404,6 +530,42 @@ def test_a_failure_stops_the_loop_immediately():
 # ------------------------------------------------------------------- pagination
 
 
+@pytest.mark.parametrize("newer_conclusion,expected_code", [("failure", 1), ("success", 0), (None, 1)])
+@pytest.mark.parametrize("reverse", [False, True], ids=["forward", "reversed"])
+def test_page_two_newest_js_result_decides_real_provenance(monkeypatch, newer_conclusion, expected_code, reverse):
+    older = "failure" if newer_conclusion == "success" else "success"
+    first = all_green() + [run(JS_UNIT_CONTEXT, 9999, "2026-08-14T11:00:00Z", older)]
+    first += [run(f"Filler {i}", 11000 + i, "2026-08-14T10:00:00Z")
+              for i in range(100 - len(first))]
+    second = [run(JS_UNIT_CONTEXT, 12000, "2026-08-14T12:00:00Z", newer_conclusion,
+                  status="in_progress" if newer_conclusion is None else "completed")]
+    urls = []
+
+    def fake_get(url, _token):
+        urls.append(url)
+        page = len(urls)
+        assert url == (f"https://api.github.com/repos/o/r/commits/{SHA}/check-runs"
+                       f"?filter=all&per_page=100&page={page}")
+        values = first if page == 1 else second
+        return {"check_runs": list(reversed(values)) if reverse else values}
+
+    monkeypatch.setattr("scripts.release_gate._api_get", fake_get)
+    code, output, _ = provenance([fetch_check_runs("o/r", SHA, None)])
+    assert code == expected_code
+    assert len(urls) == 2
+    assert "id=12000" in output
+
+
+@pytest.mark.parametrize("include_js", [True, False], ids=["js-success", "missing-js"])
+def test_provenance_cli_uses_the_promoted_release_set(monkeypatch, include_js):
+    from scripts import release_gate
+
+    payload = all_green() if include_js else all_green(BASE_RELEASE_EXPECTED_CONTEXTS)
+    monkeypatch.setattr(release_gate, "_api_get", lambda _url, _token: {"check_runs": payload})
+    monkeypatch.setattr(release_gate, "DEFAULT_DEADLINE_SECONDS", 0)
+    assert release_gate.main(["provenance", "--repo", "o/r", "--sha", SHA]) == int(not include_js)
+
+
 def test_pagination_reads_every_page(monkeypatch):
     """The decisive run sits on page 2, so a single-page read scores green."""
     page_one = [
@@ -420,9 +582,9 @@ def test_pagination_reads_every_page(monkeypatch):
         return {"total_count": 101, "check_runs": page_one if page == 1 else page_two}
 
     monkeypatch.setattr("scripts.release_gate._api_get", fake_get)
-    collected = fetch_check_runs("o/r", "sha", None)
+    collected = fetch_check_runs("o/r", SHA, None)
     assert len(collected) == 101
-    selected, _ = select_runs(collected, ["Run Tests"])
+    selected, _ = select_runs(collected, ["Run Tests"], sha=SHA)
     assert selected["Run Tests"]["conclusion"] == "failure"
 
 
@@ -449,9 +611,9 @@ def test_pagination_does_not_trust_a_missing_total_count(monkeypatch):
         return {"check_runs": page_one if page == 1 else page_two}
 
     monkeypatch.setattr("scripts.release_gate._api_get", fake_get)
-    collected = fetch_check_runs("o/r", "sha", None)
+    collected = fetch_check_runs("o/r", SHA, None)
     assert len(collected) == 101
-    selected, _ = select_runs(collected, ["Run Tests"])
+    selected, _ = select_runs(collected, ["Run Tests"], sha=SHA)
     assert selected["Run Tests"]["conclusion"] == "failure"
 
 
@@ -462,9 +624,9 @@ def test_a_run_with_no_timestamp_is_selected_rather_than_outranked():
         run("Run Tests", 9001, "2026-08-14T10:00:00Z", "success"),
         run("Run Tests", 9002, None, None, status="in_progress"),
     ]
-    selected, _ = select_runs(runs, EXPECTED_CONTEXTS)
+    selected, _ = select_runs(runs, RELEASE_EXPECTED_CONTEXTS, sha=SHA)
     assert selected["Run Tests"]["id"] == 9002
-    pending, _ = classify(selected, EXPECTED_CONTEXTS)
+    pending, _ = classify(selected, RELEASE_EXPECTED_CONTEXTS)
     assert pending == ["Run Tests"]
 
 
