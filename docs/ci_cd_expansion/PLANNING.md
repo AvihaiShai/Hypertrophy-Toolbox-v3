@@ -431,7 +431,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | F3 | Claude | separate milestone | | | | Delivery council/Gate 1; exact candidate ZIP, before publication |
 | G1–G5/G8 | per §4 | deferred | | | | Expansion outside core; coverage stays non-blocking |
 | G6 | Codex `/root`, implementation team | current-main integration; final fresh-head gates pending, merge not approved | `ci/g6-enforced-selected-tests`; [#552](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/552) | retained `df91daec`; current main `a12b680f` integrated without rewriting branch history | Prior checks and four native adverse rehearsals remain dated; combined-tree inventory, bounded checks, independent refresh reviews and new-head CI govern the next request | §21.4; preserve U1 #551; require explicit approval naming #552 and its new exact SHA; G7 needs its own later approval |
-| G7 | Claude Code O1 session (Opus), 2026-10-22 | implemented; acceptance tests first; reviews complete (one BLOCKING gate-evidence finding cleared with conditions); local gates green except the `/verify-suite` E2E step (pre-existing local reds, reproduced on base; §22.4); not pushed — workflow slot 2 waits for Q4; merge not approved | `ci/g7-retry-report`; PR pending | pre-rebase `ce111f2` on `155181d6` | 228 G7 tests; bite proof 35/35; 701 contract tests; pyright 0 net-new; `ce111f2` full pytest and PR CI pending | §22 |
+| G7 | Claude Code O1 session (Opus), 2026-10-22 | implemented; acceptance tests first; reviews complete (one BLOCKING gate-evidence finding cleared with conditions); local gates green except the `/verify-suite` E2E step (visual/contract reds also present with the base config; load-induced functional reds passed in isolation; §22.4) and the pending `ce111f2` full pytest; not pushed — workflow slot 2 waits for Q4; merge not approved | `ci/g7-retry-report`; PR pending | pre-rebase `ce111f2` on `155181d6` | 228 G7 tests; bite proof 35/35; 701 contract tests; pyright 0 net-new; `ce111f2` full pytest and PR CI pending | §22 |
 
 ---
 
@@ -3492,8 +3492,9 @@ any implementation existed), `senior-developer` implemented against them, and `c
   `playwright==1.61.0` pin is in lockstep). The JUnit reporter cannot serve G7. With the repo's
   settings it emits one `<testcase>` per test with the final outcome and summed duration, so
   recovered attempts disappear (§20.4's evidence limit). Its `includeRetries` option
-  (`PLAYWRIGHT_JUNIT_INCLUDE_RETRIES`) adds `<flaky>`/`<rerun>` children only for earlier attempts
-  that failed: earlier passed or skipped attempts (serial-group re-runs) are dropped and no entry
+  (`PLAYWRIGHT_JUNIT_INCLUDE_RETRIES`) adds `flakyFailure`/`flakyError` (recovered test) or
+  `rerunFailure`/`rerunError` (failed test) children only for attempts that neither passed nor
+  were skipped: earlier passed or skipped attempts (serial-group re-runs) are dropped and no entry
   carries its retry number, so it was not adopted. The JSON reporter keeps every attempt's retry
   number, status and duration, plus the shard and each project's retry policy.
   `SUPPORTED_PLAYWRIGHT_VERSIONS = ("1.61.0",)`; a test asserts it contains the `package.json`
@@ -3529,8 +3530,8 @@ pin is widened.
 `scripts/ci_retry_report.py` (stdlib only) classifies every test in one job's JSON report from
 its own attempts: `first-attempt`; `recovered` (final attempt met its expected status after an
 earlier attempt that was neither that status nor skipped); `rerun` (re-run without such an
-attempt, e.g. a serial group); `exhausted` (missed its expected status on all `retries + 1`
-attempts); `failed` (stopped before exhaustion); `skipped`; `did-not-run`; `interrupted`. Every
+attempt, e.g. a serial group); `exhausted` (final attempt missed its expected status after all
+`retries + 1` attempts were used); `failed` (stopped before exhaustion); `skipped`; `did-not-run`; `interrupted`. Every
 attempt's retry number, status and duration is kept. A missing, malformed, unpinned (§22.2),
 partial (top-level errors, interruption, never-started tests, no tests) or inconsistent (stats or
 per-test status disagreeing with the attempts, a shard other than the job's, or a step outcome
@@ -3568,11 +3569,11 @@ SHAs below are pre-rebase; post-rebase receipts go in §22.5.
 | Acceptance tests (`tests/test_ci_retry_report.py`) | 228 passed at `ce111f2` |
 | Two-direction bite proof | 35/35 at `ce111f2`, every TS-3 class: each deliberate break turned the suite red and restoring it turned it green. Breaks were applied to a separate `--no-local` copy and restored with `git checkout --` (`artifacts/ci-g7/bite/results-ce111f2.json`) |
 | ci.yml-parsing and related contract suites (12 files) | 701 passed, no existing pin changed (`b529008`; the later commits touch no workflow logic) |
-| Full pytest | 6,008 passed / 2 skipped on the `b529008` tree (superseded); `ce111f2` run pending at this writing |
+| Full pytest | 6,008 passed / 2 skipped on the pre-commit tree of `b529008` (superseded); `ce111f2` run pending at this writing |
 | pyright 1.1.410 + baseline diff | 0 errors, 0 net-new (measured at `ee44eed`, whose code is `ce111f2`'s) |
-| flake8, both ci.yml invocations | 0 blocking at `ce111f2`; no informational findings in the changed Python |
+| flake8, both ci.yml invocations | 0 blocking repo-wide; 0 informational findings in the two changed Python files (measured at `09a1f3b`, code identical to `ce111f2`; `artifacts/ci-g7/verify/flake8-inventory-09a1f3b.log`) |
 | `tsc --noEmit`; actionlint 1.7.12 + shellcheck v0.11.0; zizmor 1.30.1 offline | exit 0; clean and identical to the pre-change baselines (`b529008`/`222e29e`; the later commits change no workflow syntax) |
-| Inventory | regenerated by the generator for the new file (228 cases); `--check` reports no drift |
+| Inventory | regenerated by the generator for the new file (228 cases); `--check` reports no drift at `09a1f3b` (same log) |
 | `/verify-suite` E2E (command verbatim, `PW_PORT=5082`) | **not green:** 593 passed / 76 failed / 17 did not run at `b529008`, under concurrent CPU load. Re-running the eight affected spec files alone at `ce111f2`: head config 115 passed / 69 failed, base (`155181d6`) config 116 passed / 68 failed, 17 did not run each. Every functional failure from the loaded run passed on both sides; the rest are visual, thumbnail and desktop-contract specs this command runs without `PW_VISUAL_SEED` (QUALITY_GATE's documented condition) and `visual-field-separator` volume-splitter desktop/tablet dark, red on both sides on this host. The three tests whose outcome differed between head and base passed twice on head. The config differs only inside its CI-gated branch, which local runs never take |
 
 **Root-config substitute.** The `/verify-suite` E2E command passes `--reporter=line`, which
@@ -3580,16 +3581,17 @@ replaces the config reporters, and `ciReporters` exists only under `CI`, so the 
 exercises the config change. Substitute runs on port 5081 with `CI=1`: (1) smoke with the config
 reporters wrote both `junit.xml` and `results.json`, summary `no retries`; (2) the exact
 `--reporter=line,json` + `PLAYWRIGHT_JSON_OUTPUT_FILE` invocation wrote `results.json` there, and
-its summary showed a real local retry the passing list output hid — the smoke spec's "navigate
-back to home via brand link", `recovered` (`#0 failed → #1 passed`); (3) a temporary fail-once spec
+its summary showed a real local retry that the console reported only as `1 flaky`, with no
+attempt statuses — the smoke spec's "navigate back to home via brand link", `recovered`
+(`#0 failed → #1 passed`); (3) a temporary fail-once spec
 (never committed) through the real config and web server gave `recovered` under `retries=2`. The
 six summary-step bodies were also executed under bash and pwsh with GitHub-style env.
 
 **Reviews** (verdicts as reported to the lane; the reports are retained under
 `artifacts/ci-g7/review/`). Cold `code-reviewer` on `b529008`: no BLOCKING. The changes that
-matter later: a skip-expected test whose attempts ran is no longer counted as `skipped`; `if:
-always()` is kept deliberately (a job hitting `timeout-minutes` is cancelled, and `!cancelled()`
-would skip the summary exactly then). `test-strategist` (diff stage): one BLOCKING gate-evidence
+matter later: a skip-expected test whose attempts ran is no longer counted as `skipped`; its
+optional `!cancelled()` suggestion was declined by the lane (a job hitting `timeout-minutes` is
+cancelled, and `!cancelled()` would skip the summary exactly then). `test-strategist` (diff stage): one BLOCKING gate-evidence
 finding (the root-config limit above); per-case malformed-detail pinning was declined (it would
 pin wording; the precedence tests and the bite proof cover the branches). `unslop-reviewer`: no
 BLOCKING; the rerun tripwire is kept because TS-3 requires it. Delta `code-reviewer` on
@@ -3597,8 +3599,8 @@ BLOCKING; the rerun tripwire is kept because TS-3 requires it. Delta `code-revie
 
 A fresh cold `test-strategist` re-reviewed the BLOCKING finding at `ce111f2`: **cleared with
 conditions.** Substitute items (1) and (3) are resolved. Item (2), the script against real
-reports, is resolved: `ce111f2` renders the three real reports identically to the `b529008`
-outputs (`artifacts/ci-g7/substitute/ce111f2/`). Item (4), PR CI, is pending. The local E2E
+reports, was resolved with a condition, since met: `ce111f2` renders the three real reports
+identically to the `b529008` outputs (`artifacts/ci-g7/substitute/ce111f2/`). Item (4), PR CI, is pending. The local E2E
 evidence was judged adequate, with no pre-merge action on the 76 local failures. Conditions for
 the PR: its body states that local `/verify-suite` never exercises the CI reporters and that the
 `CI=1` runs stand in; the `ce111f2` full pytest is recorded; and PR CI is recorded for all six
