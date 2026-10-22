@@ -186,6 +186,8 @@ gh api "repos/$Repo/code-scanning/default-setup" @Headers
 
 Expected configured state, default suite and exactly those languages. Wait for real analysis and baseline triage; an accepted asynchronous request is not proof of completed scanning. [Default setup REST API](https://docs.github.com/en/rest/code-scanning/code-scanning?apiVersion=2026-03-10#update-a-code-scanning-default-setup-configuration) supports these values. Rollback uses `rollback.ps1 -Action C1CodeQLNotConfigured`, then GET verifies `not-configured`; scan results and run history may remain.
 
+*C1b/C1c completion addendum, 2026-10-22 (read-only lane; nothing activated).* The PATCH returns 200 `{}` or 202 with `run_id`/`run_url`; on 409 wait and re-read, never re-PATCH. GET default-setup has no progress field and cannot prove analysis: completion is one error-free CodeQL analysis per language category on `refs/heads/main` at a recorded SHA (`code-scanning/analyses`). The readback also asserts `threat_model: remote`, `runner_type: standard` and `runner_label: null`. **Rollback order:** while the C1c rule is active, disable it before setting default setup to `not-configured`; otherwise every PR into `main` is blocked ("A required tool is not configured for the repository"). Default setup is not subject to the allowed-actions policy ([changelog](https://github.blog/changelog/2025-11-25-code-scanning-default-setup-bypasses-github-actions-policy-blocks/)), so C1b and C3 are order-independent and need no CodeQL allowlist entry. Owner decision package: `artifacts/c1bc-codeql-prep-20261022/C1BC_APPROVAL_PACKAGE.md` (private, shared checkout).
+
 The separate native main-branch ruleset request `c1-codeql-main-rule.json` is:
 
 ```json
@@ -199,7 +201,7 @@ The separate native main-branch ruleset request `c1-codeql-main-rule.json` is:
 }
 ```
 
-The owner ID was observed in both repository metadata and `GET /users/AvihaiShai`. This is the only bypass actor. After scans/baseline triage and the independently reviewed proof design, the separately authorized owner could run:
+The owner ID was observed in both repository metadata and `GET /users/AvihaiShai`. This is the only bypass actor. A 2026-10-22 collaborators readback shows a second account, `avihayshai1989` (211789243), with write access; it is deliberately not a bypass actor, and a `RepositoryRole` write or maintain bypass would include it. `User` is in the 2026-03-10 bypass-actor enum ([changelog](https://github.blog/changelog/2026-05-07-repository-rulesets-user-bypass-and-branch-renaming/)); live acceptance is proved only by the POST response and a readback showing `current_user_can_bypass: pull_requests_only` for the owner. If the POST is rejected, nothing is substituted without a new owner decision. After scans/baseline triage and the independently reviewed proof design, the separately authorized owner could run:
 
 ```powershell
 gh api --method POST "repos/$Repo/rulesets" @Headers --input (Join-Path $Body 'c1-codeql-main-rule.json')
@@ -230,7 +232,9 @@ gh api "repos/$Repo/branches/main/protection" @Headers
 
 The body is exactly `{"strict":true}`. Expected strict true and exact current checks/contexts/app bindings preserved; all unrelated protection unchanged. Rollback is `rollback.ps1 -Action C2StrictFalse`, using only `{"strict":false}`. The [status-check protection API](https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2026-03-10#update-status-check-protection) supports this partial update.
 
-Recommendation: wait until the six-lane batch and its serial workflow PRs have drained, then freshly approve/apply C2. Strict requires the branch to be up to date before merge, so activating during serial merges creates additional refresh/CI work. Preparation does not depend on that timing choice.
+Refreshed read-only at 2026-10-22T15:27–15:35Z (main `b77cb742`, then `295f2acd` after docs-only #558): strict false; the same 12 checks, each `app_id` 15368; `enforce_admins` false; no rulesets. Protection and ruleset objects equal the 21:50Z S2 readback. GitHub's documentation does not say that a strict-only PATCH keeps omitted `checks`, so the immediate full readback is the proof, and any other difference triggers rollback. With `enforce_admins: false` the owner can still merge a behind PR as admin, and `allow_update_branch: false` does not hide *Update branch* when strict applies. Strict also voids a named-head merge approval whenever `main` moves first: the updated branch has a new head and needs fresh CI.
+
+Recommendation: apply C2 after the WS5 workflow PR (slot 3) merges, in a window with no PR in its final merge sequence. Strict requires the branch to be up to date before merge, so activating during serial merges creates additional refresh/CI work. Refreshed payloads, expected objects, a GET-only pre-flight and the runbook are private under `artifacts/c2c3-activation-prep-20261022/` (shared checkout, gitignored).
 
 ### C3 selected actions and full SHA — prepare only
 
@@ -240,7 +244,7 @@ The policy body `c3-policy.json` is exactly:
 {"enabled":true,"allowed_actions":"selected","sha_pinning_required":true}
 ```
 
-The separate inventory supplies the copied `c3-selected-actions.json` below. Its reviewed corpus has 99 direct remote references and three local reusable calls across six workflows / 39 jobs. No broad `actions/*`, deferred Codex/signing or unreviewed dependency is pre-allowed. Review any later generated CodeQL workflow dependency separately before the two configurations coexist.
+The separate inventory supplies the copied `c3-selected-actions.json` below. Its reviewed corpus has 99 direct remote references and three local reusable calls across six workflows / 39 jobs. No broad `actions/*`, deferred Codex/signing or unreviewed dependency is pre-allowed. Re-inventoried on 2026-10-22 at `b77cb742`: totals unchanged and no new `owner/repo@sha`. WS5's staged workflows (102 remote uses, 40 jobs) add none. GitHub documents that CodeQL default setup ([changelog](https://github.blog/changelog/2025-11-25-code-scanning-default-setup-bypasses-github-actions-policy-blocks)) and Dependabot update jobs ([Dependabot on Actions](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/about-dependabot-on-github-actions-runners)) bypass the Actions policy, so neither needs a pattern. Neither was tested here. `dynamic/dependabot/update-graph` is not documented either way; check it after activation. Also observe one default-setup run after C3 as live evidence.
 
 ```json
 {
@@ -257,18 +261,22 @@ The separate inventory supplies the copied `c3-selected-actions.json` below. Its
 }
 ```
 
+PLANNING §3 CI-D8 and §6 C3 name allowed *repositories*. A repository-level variant uses `actions/<repo>@*` for the same six repositories, with SHA pinning still required. It matches that wording and needs no allowlist change when Dependabot bumps an action. The exact-SHA list above instead blocks each such bump's CI until the owner adds the new SHA. The next likely bump is `actions/setup-python` v7.1.0, released 2026-10-22 and eligible about 2026-11-02. The owner chooses; both keep the two broad flags false and add no repository.
+
 The live selected-actions GET returns HTTP 409 because the current policy allows all actions. [GitHub's selected-actions API](https://docs.github.com/en/rest/actions/permissions?apiVersion=2026-03-10#set-allowed-actions-and-reusable-workflows-for-a-repository) requires selected mode for its PUT as well as its GET. Therefore the command-sheet staging order cannot be executed literally through these endpoints; preparing/reviewing the allowlist is possible first, persisting it is not documented while all actions are allowed.
 
-After owner approval and inventory review, switch the policy, immediately PUT the reviewed allowlist and read both back. This has a brief transition window with unknown latent selected state. Coordinate the activation so it cannot surprise another lane. On any failure, restore the effective before policy immediately and capture all error responses.
+After owner approval and inventory review, apply three writes back to back, with no workflow run unfinished. First switch to `selected` with SHA pinning still off. Then read the hidden selected list once, the only moment it can be read. Then PUT the reviewed allowlist, and finally turn SHA pinning on. Read back after each write. Between the first and second writes the hidden list governs. Coordinate the activation so it cannot surprise another lane. On any failure, restore the effective before policy immediately and capture all error responses. The status-filtered runs list returned `total_count: 0` while a main push run was in progress, so a quiet window is judged from the unfiltered list.
 
 ```powershell
-gh api --method PUT "repos/$Repo/actions/permissions" @Headers --input (Join-Path $Body 'c3-policy.json')
+'{"enabled":true,"allowed_actions":"selected","sha_pinning_required":false}' | gh api --method PUT "repos/$Repo/actions/permissions" @Headers --input -
+gh api "repos/$Repo/actions/permissions/selected-actions" @Headers --include   # retain: hidden list before this change
 gh api --method PUT "repos/$Repo/actions/permissions/selected-actions" @Headers --input (Join-Path $Body 'c3-selected-actions.json')
-gh api "repos/$Repo/actions/permissions" @Headers
 gh api "repos/$Repo/actions/permissions/selected-actions" @Headers
+gh api --method PUT "repos/$Repo/actions/permissions" @Headers --input (Join-Path $Body 'c3-policy.json')
+gh api "repos/$Repo/actions/permissions" @Headers
 ```
 
-Expected selected/SHA true and both broad flags false with exactly reviewed patterns. Observed execution of every caller remains an activation gate. Rollback: `rollback.ps1 -Action C3AllActions`, then GET policy shows enabled/all/SHA false and selected-actions returns the original 409. Because its before policy is hidden by 409, exact restoration of latent selected settings cannot be claimed; this restores effective before behavior.
+Expected selected/SHA true and both broad flags false with exactly reviewed patterns. Observed execution of every caller remains an activation gate. Rollback: `rollback.ps1 -Action C3AllActions`, then GET policy shows enabled/all/SHA false and selected-actions returns the original 409. Because its before policy is hidden by 409, exact restoration of latent selected settings cannot be claimed; this restores effective before behavior. If the hidden list was captured during activation, a later quiet window can restore it exactly: switch to `selected`, PUT the captured list, then return to `all`. Without that capture, the hidden list keeps the installed allowlist, which has no effect while the mode is `all`.
 
 ### C5 orphan — authorized root execution only
 
@@ -299,13 +307,15 @@ gh api "repos/$Repo/actions/workflows/345538425" @Headers
 gh api "repos/$Repo" @Headers
 gh api "repos/$Repo/automated-security-fixes" @Headers
 
-# C1b: restore unconfigured default setup; retained analyses may remain.
-'{"state":"not-configured"}' | gh api --method PATCH "repos/$Repo/code-scanning/default-setup" @Headers --input -
-gh api "repos/$Repo/code-scanning/default-setup" @Headers
-
-# C1c: $RulesetId must be the numeric ID retained from this lane's create response.
+# C1c first: an active code-scanning rule blocks every PR once CodeQL is unconfigured.
+# $RulesetId must be the numeric ID retained from the create response.
 '{"enforcement":"disabled"}' | gh api --method PUT "repos/$Repo/rulesets/$RulesetId" @Headers --input -
 gh api "repos/$Repo/rulesets/$RulesetId" @Headers
+gh api "repos/$Repo/rules/branches/main" @Headers
+
+# C1b only after C1c is disabled: restore unconfigured default setup; retained analyses may remain.
+'{"state":"not-configured"}' | gh api --method PATCH "repos/$Repo/code-scanning/default-setup" @Headers --input -
+gh api "repos/$Repo/code-scanning/default-setup" @Headers
 
 # C2: preserve all current required check/app bindings.
 '{"strict":false}' | gh api --method PATCH "repos/$Repo/branches/main/protection/required_status_checks" @Headers --input -
@@ -358,7 +368,7 @@ All 39 jobs are checked individually in `inventory.json`, including jobs with no
 | `.github/workflows/deep-gate.yml` / `frozen-windows` | `./.github/workflows/_packaged-windows.yml` | `actions/checkout`, `actions/setup-python` at the pins above | local call inherently permitted; both child pins match |
 | `.github/workflows/release.yml` / `packaged-windows` | `./.github/workflows/_packaged-windows.yml` | `actions/checkout`, `actions/setup-python` at the pins above | local call inherently permitted; both child pins match |
 
-Local `./` actions/reusable workflows remain permitted by selected-actions mode. The local reusable resolves from the same caller commit and takes no `@ref`; adding an external pattern for it is unnecessary. Selected mode also inherently permits owner components, so the six patterns do not prohibit all possible same-owner/local additions. The SHA requirement applies to actions (including GitHub-owned actions); GitHub documents that reusable workflows may still use tags. This tree adopts no remote reusable workflow. [GitHub policy semantics](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)
+Local `./` actions/reusable workflows remain permitted by selected-actions mode. The local reusable resolves from the same caller commit and takes no `@ref`; adding an external pattern for it is unnecessary. GitHub's repository settings page says local `./` actions and reusable workflows stay allowed. For other `AvihaiShai/*` repositories it uses organization wording only, so their automatic allowance for a personal-account owner is unverified. No such action is used. The SHA requirement applies to actions (including GitHub-owned actions); GitHub documents that reusable workflows may still use tags. This tree adopts no remote reusable workflow. [GitHub policy semantics](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)
 
 ### Workflow Lint tool downloads
 
@@ -372,11 +382,20 @@ These shell-downloaded release binaries are not Actions `uses:` dependencies and
 
 The compatibility result is bound to the fetched main tree above. The live workflow
 registry also retains branch-only rehearsal entries (16 registry entries versus six
-workflow source files on main). Their other-ref callers were not inventoried or
-pre-allowed by this packet. A future repository-wide C3 activation must account for
-affected other refs during its coordinated window; main-tree coverage does not prove
-every retained or future branch workflow will run. The disabled C5 orphan remains in
-the registry and its source is absent from main.
+workflow source files on main). Other refs were inventoried read-only at
+2026-10-22T15:28Z: 36 branches and 2 tags, 47 unique workflow blobs. 30 are
+compatible. 8 are blocked by SHA pinning under either allowlist variant, because they
+pin tags (`@v4`–`@v7`, pre-B1):
+
+- branches `docs/js-unit-ledger-rows-22-23`, `docs/model-guidance-efficiency-20260914`,
+  `docs/r1-postmerge-reconcile`, `feat/d4-packet-a-role-weight-accumulation`,
+  `fix/npm-audit-braces-exception-20261017` and `probe/v1-drop-compositing-hints`;
+- tags `archive/pr-4-fatigue-planning-recovery` and `archive/probe-v1-drop-compositing-hints`.
+
+A PR opened or reopened from one of those branches, or a dispatch of `deep-gate.yml`
+or `release.yml` against one, would fail to start. They need an explicit owner
+disposition before C3; their retention under Operation A is unchanged. The disabled
+C5 orphan remains in the registry and its source is absent from main.
 
 
 ## C1 seeded enforcement and bypass proof design — prepare only
@@ -422,8 +441,17 @@ actual engine returning High/Critical, not this expectation. [CodeQL query metad
    distinguishes a native High/Critical alert block from missing setup/results
    or unrelated checks. Do not merge this PR under present authority.
 
-Code scanning rules also block when configured tool results are absent/in
-progress. Their constraints exclude merge queue groups and Dependabot PRs
+*Addendum, 2026-10-22.* A red `Code scanning results / CodeQL` check is not enforcement
+evidence: it fails with or without the ruleset. Open the seed PR before C1c exists and
+record its exact head with every required context green and `mergeStateStatus`
+UNSTABLE or CLEAN; then create C1c and record the same head BLOCKED. Record the
+distinct waiting-for-results state on the fix head before its analysis completes.
+Any seed PR is public: code scanning on private repositories needs a paid licence,
+so publication is an owner decision.
+
+Code scanning rules also block while the configured tool's analysis is still in
+progress or when the tool is not configured; failed-analysis behaviour is
+undocumented. Their constraints exclude merge queue groups and Dependabot PRs
 analyzed by default setup, and require identified lines in the PR diff. These
 limitations belong in the receipt; one ordinary PR cannot prove excluded cases.
 [Code scanning merge protection](https://docs.github.com/en/code-security/concepts/code-scanning/merge-protection).
@@ -447,15 +475,21 @@ that proof branch; capture ordinary rule blocking; then let the owner explicitly
 choose PR bypass and merge only into that isolated proof base. Capture before/
 after ref SHAs, PR/actor IDs, timestamp, ruleset version and detailed native
 rule-suite result `bypass`. Collect
-`rulesets/rule-suites?ref=<proof-ref>&actor_name=AvihaiShai&rule_suite_result=bypass`
-with pagination, then its detailed suite. Check that its `actor_id` is 58347128
+`rulesets/rule-suites?ref=<proof-ref>&actor_name=AvihaiShai&rule_suite_result=bypass&time_period=month`
+with pagination, then its detailed suite. The default `time_period` is `day` (24 h)
+and `month` is the longest window, so capture immediately. The proof base needs
+classic branch protection (ruleset-only triggering of default-setup PR scans is
+undocumented) and its own completed analysis before the seed PR. Check that its `actor_id` is 58347128
 and its code-scanning rule is the one bypassed. This demonstrates the matching
 configuration on a rehearsal branch, not a bypass executed on main. If GitHub
 does not emit the needed result, report the evidence gap. [Rule suites REST API](https://docs.github.com/en/rest/repos/rule-suites).
 
 Do not add another bypass actor to generate a negative test or obtain/use another
 person's credentials. Sole-owner exclusion is established from fresh full actor
-readback; a negative native test would need a separately authorized existing
+readback plus the collaborators readback (a write collaborator exists and stays
+outside the bypass list); whether the rule evaluates owner direct pushes
+(`enforce_admins: false`) or clears a PR block after a write user's alert
+dismissal is undocumented and remains a recorded residual; a negative native test would need a separately authorized existing
 non-owner actor and remains unproved absent that evidence. Preserve all proof
 refs/history/artifacts; cleanup needs its own authority. An actual main bypass
 remains unproved until a separately authorized genuine emergency occurs.
@@ -509,10 +543,159 @@ manifest or generated inventory changed; C4 and every other ledger row are prese
 The remaining owner settings choices are CodeQL setup/rules/proof activation, C2 and
 C3. Recommend reviewing/authorizing the CodeQL setup and bounded proof plan separately,
 then applying the native rule only after its baseline is triaged. Recommend C2 after
-this six-lane batch drains; recommend C3 in a coordinated window after a fresh complete
-inventory and an explicit choice about latent-policy rollback limits. Any future
-default-setup generated CodeQL action dependencies need inventory review before C3
-and CodeQL are activated together. Do not pre-allow deferred tools or extra actors.
+the WS5 workflow PR merges. Recommend C3 in a later, separate quiet window, once WS5 has
+merged and a post-WS5 inventory still matches, and after the 2026-10-26 scheduled slot
+is read. C3 also needs explicit choices on the allowlist variant, the eight blocked refs
+and latent-policy restoration. Default setup is not subject to the allowed-actions policy, so C1b and C3 are order-independent; observe one default-setup run once both are active. Do not pre-allow deferred tools or extra actors.
 
 Every PR merge still requires the owner's approval naming the PR and full head SHA.
 No settings proposal or delegated classification is an owner signature.
+
+## C4 JS Unit preparation — owner handoff, 2026-10-22
+
+This supplement records lane 07's bounded documentation integration after the
+owner's explicit section handoff. It changes no repository setting. The original
+S2 receipts above remain dated evidence; C5 and S2's executed settings are untouched.
+C4 code/contracts implementation is **not approved**. Q4's rename and D2's
+conditional ruling do not authorize that stage. Later settings activation needs
+its own owner decision, readbacks and live merge-blocking proof.
+
+### Qualification and native proof
+
+Q4 [#554](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/554), reviewed
+head `316d7f69930b11d80b089b8c7956d296949f08ac`, merged as
+`73de866ecb22bc8472dafb85f1405a27caf6513b`. Its exact renamed merged-main
+[job 119766292139](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39761432262/job/119766292139)
+is `JS Unit (Vitest)`, successful with coverage, 14 files / 269 cases. The full
+main run succeeded with 29 successful jobs and the expected PR-only Dependency
+Review skip. This is current-suite evidence, separate from historical qualification.
+
+Reuse [Q4_RENAME.md](../r23_js_unit_promotion/Q4_RENAME.md)'s native seeded proof:
+[run 39683330072 / job 119511059749](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39683330072/job/119511059749),
+rehearsal `dac825e79f2078ba2580895ff2755c6b43b61e28`. The 269 original tests
+passed, the injected assertion alone failed, the actual coverage command exited 1,
+the summary succeeded and the Actions job remained failed. Reuse depends on the
+final execution/failure-propagation bytes remaining equivalent. No new failure
+campaign or protection-enforcement credit is assigned by this record.
+
+Lane 03's final fixed-cutoff handoff was received at SHA-256
+`e077541e9471c074ef88a3b96c3dda560619257d4fbda7309fb7abda764f779a`.
+It proposes rows 123–131, nine exact successful jobs, cumulative 131/0/0/0/0
+across corpora, at cutoff `2026-10-22T15:24:52Z`. Its separately owned source
+publication is [#559](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/559);
+this record neither applies those rows nor claims them merged. Historical rows
+26–75 remain the completed 245-case cycle, 50/0/0/0/0, and D2's recorded
+condition stays met. The eight expanded-corpus successes span only 18 h 14 m 29 s.
+The owner still determines whether #551 is the final expansion packet: candidate
+T0 `2026-10-21T18:45:51Z`, conditional strict mark `2026-11-04T18:45:51Z`.
+Neither is declared operative here; no new C4/window condition is imposed.
+#558 is after the cutoff and remains later ledger debt. Lane 04's final preflight
+handoff awards no scheduled qualification before the 2026-10-26 slot.
+
+### Exact first-stage membership and implementation proposal
+
+Let R0 be the exact twelve existing strings in
+[`scripts/release_gate.py`](../../scripts/release_gate.py)'s `REQUIRED_CONTEXTS`;
+preserve their historical suffixes. Let J = `JS Unit (Vitest)` and
+V = `Visual Regression (Windows baselines)`.
+
+| Stage | PR required contexts | Release expected contexts |
+|---|---|---|
+| Current | R0, 12 | R0 + V, 13 |
+| First proposed C4 stage | R0 + J, 13 | R0 + V + J, 14 |
+| Future full adoption | R0 + J + Operation A Windows Tests + packaged composite + V + Workflow Lint + Dependency Review, 18 | Same excluding PR-only Dependency Review, 17 |
+
+The future packaged context is `Packaged Smoke (Windows bootloader, non-required) / Build and smoke`;
+Workflow Lint is `Workflow Lint (actionlint + zizmor)`. Full adoption is a future
+target, not this payload. Windows visual occurs once in release. Dependency Review
+never becomes release evidence; Linux and all unrelated candidates are excluded
+from this first promotion.
+
+After explicit owner approval naming **JS Unit C4 code/contracts implementation**:
+
+| Path | Proposed bounded delta |
+|---|---|
+| `scripts/release_gate.py` | Keep immutable baseline `BASE_PR_REQUIRED_CONTEXTS` (R0) and `BASE_RELEASE_EXPECTED_CONTEXTS` (R0+V). Add `JS_UNIT_CONTEXT`, `PR_REQUIRED_CONTEXTS` = R0+J and separately `RELEASE_EXPECTED_CONTEXTS` = baseline release+J. Default provenance to the release set; migrate consumers together, retaining compatibility aliases if needed. No arbitrary runtime switch to a weaker stage. |
+| Same script, provenance | Retain exact commit endpoint, pagination, slug filter, newest `(started_at,id)` choice, missing-timestamp handling and deadline behavior. Thread requested SHA into `select_runs(runs, expected, *, sha)` and require result `head_sha == sha`, `app.slug == github-actions`, numeric `app.id == 15368` before credit. Missing/wrong bindings cannot counterfeit success. Preserve version, exact-tag/main-ancestry and release fan-in rules. |
+| `tests/test_release_gate.py` | Realistic SHA/app-ID fixtures; independently specified baseline 12/13 and JS 13/14 floors, uniqueness and exact membership; real provenance decisions for both supported sets, retaining existing mirror, pagination, pending, version and fan-in tests. |
+| `tests/test_release_workflow_contracts.py` | Migrate explicit set imports; replace JS exclusion with positive PR/release membership. Pin the stable direct `js-unit` job, exact name and `npm run test:js -- --coverage` invocation with unsuppressed test failure. Preserve composite-name resolution and unrelated negative assertions. |
+| `docs/test_inventory/**` | Regenerate only on actual added/renamed-case drift from the final integrated tree; never hand-merge generated output. |
+
+Current provenance scopes SHA through the API endpoint and filters app slug;
+its selection/fixtures do **not** already validate per-result SHA and numeric
+app ID. The paired implementation/tests above make that requirement explicit.
+Stale means a superseded run on the requested SHA masking a newer result, not
+a new wall-clock TTL. No executable workflow change, new threshold, suite change
+or release-job change is needed merely to promote the existing context.
+
+| Decision | Positive control | Negative control |
+|---|---|---|
+| Floors and membership | Exact R0 preserved; J in both first-stage sets; V once in release | Dropped/rebound/renamed floor, duplicate V, empty expected set, extra promotion or release Dependency Review rejected |
+| JS outcome | Completed/success on requested SHA | Missing/old name; deadline-pending; failure, cancelled, skipped, neutral, timed_out or action_required rejected |
+| Provenance | Requested URL/SHA, slug and numeric app ID agree | Missing/wrong SHA or app ID, foreign slug cannot fill a requirement; foreign failure does not poison genuine trusted success |
+| Newest result | Newer success beats old failure; timestamp/ID order is deterministic | Newer failure/pending beats stale success regardless of array order, including page 2 |
+| Wiring and settings | Real direct coverage exit propagates; exact 13-check object list preserves strict | Test failure suppression, conditional/detached execution, lost composite resolution, strict flip or unrelated candidate rejected |
+
+Reuse existing acceptance tests first. The implementation gate union includes
+full pytest per the owning R2.3 follow-through, targeted release/contracts/staged
+behavior, JS coverage, inventory check/necessary regeneration, and pyright
+baseline diff for Python edits. Run an independent code reviewer; adding/removing
+jobs or converting to `uses:` also needs architecture review. Apply any stronger
+matching `/verify-suite` gate for uncovered behavior, milestones or root configs.
+G7's one-PR E2E exception grants C4 no waiver. Reserve host resources separately;
+respect S3/WS5's workflow slot if any workflow change becomes necessary.
+
+### Future owner activation and rollback sheet — not executed
+
+The reviewed snapshot has 12 exact `(context, app_id)` pairs, all app 15368,
+`strict: false`, and JS absent. The complete first-stage body is the existing
+[`required-status-checks.proposed.json`](../r23_js_unit_promotion/required-status-checks.proposed.json):
+the twelve pairs plus exactly `{"context":"JS Unit (Vitest)","app_id":15368}`.
+It is a reviewed snapshot, never a blind replacement of concurrent settings.
+For this JS-only stage, preserve fresh strict; C2 is a separate action. This
+bounded instruction supersedes §6's generic C4 `strict: true` for this proposal.
+
+Before activation: separately approved code/contracts implemented, derived gates
+and independent reviews complete, named PR merged under separate merge authority,
+and J succeeds on that exact merged-main SHA. Then obtain separate owner C4
+settings/proof authority and serialize settings writers. Re-read full protection
+and effective rules immediately; drift from the reviewed floor requires
+reconciliation and a refreshed reviewed payload. No tag during a partial transition.
+
+```powershell
+# Future owner-run sheet; no command below was executed by lane 07.
+$Repo = 'AvihaiShai/Hypertrophy-Toolbox-v3'
+$Out = 'artifacts/ci07/activation'
+$Headers = @('-H', 'Accept: application/vnd.github+json', '-H', 'X-GitHub-Api-Version: 2026-03-10')
+New-Item -ItemType Directory -Path $Out -Force | Out-Null
+gh api "repos/$Repo/branches/main/protection" @Headers |
+    Set-Content (Join-Path $Out 'full-before.json') -Encoding utf8
+gh api "repos/$Repo/rules/branches/main" @Headers |
+    Set-Content (Join-Path $Out 'effective-rules-before.json') -Encoding utf8
+# Check exit codes and compare complete readbacks before considering any apply.
+# Only with separate owner C4 settings/proof approval and a freshly reviewed body:
+# gh api --method PATCH "repos/$Repo/branches/main/protection/required_status_checks" @Headers --input 'docs/r23_js_unit_promotion/required-status-checks.proposed.json'
+# Then retain fresh full protection and effective-rule readbacks.
+```
+
+Expected after-state: exactly 13 unique check/app pairs, all twelve original pairs
+unchanged, J bound to 15368, strict unchanged, unrelated protection/effective rules
+unchanged. Retain UTC request/response status, complete snapshots and payload/hash.
+A failed/ambiguous response requires readback before deciding what applied.
+
+Actual blocking proof remains an owner action on an explicitly approved harmless
+proof PR/head with all twelve old requirements green and the real J job failing.
+Record GitHub's blocked state/reason attributable to J under the agreed non-bypass
+actor. Admin enforcement is false; an administrative override is not this proof.
+Any active merge-attempt method needs its own owner approval; an unrelated rejection
+does not qualify. Restore the assertion on the retained proof branch and capture
+the exact new head's J success and required-check recovery. No proof-branch merge
+or deletion is authorized. A green job, fixture or YAML inspection alone cannot
+close live enforcement.
+
+Rollback is a separate owner action: re-read first; if the current full object
+equals the expected post-apply state, a scoped PATCH restores the reviewed twelve
+checks and same strict. If it drifted, reconcile a body removing only J while
+preserving concurrent settings. Never drop or rebind another context. Retain full
+readbacks and mark C4 reverted/unactivated, not completed. No mutation, rollback
+transport test or live blocking proof ran in this preparation lane.
