@@ -41,19 +41,22 @@ and no green elsewhere substitutes for this check.
 ## 2. Confirm the contexts the gate expects still match branch protection
 
 ```bash
-gh api repos/{owner}/{repo}/branches/main/protection/required_status_checks --jq '.contexts'
+gh api repos/{owner}/{repo}/branches/main/protection/required_status_checks
 ```
 
-Compare against `REQUIRED_CONTEXTS` in [`scripts/release_gate.py`](../scripts/release_gate.py).
-pytest runs offline and cannot see branch protection, so drift there is invisible to
-every automated check in the repository — this read is the only thing that catches it.
+Compare the full check/app bindings against the approved stage in
+[`scripts/release_gate.py`](../scripts/release_gate.py). `BASE_PR_REQUIRED_CONTEXTS`
+preserves the twelve existing requirements; `PR_REQUIRED_CONTEXTS` adds exactly
+`JS Unit (Vitest)` for thirteen. Code/contracts preparation does not activate that
+requirement in GitHub: settings activation and live blocking proof remain separate
+owner actions. pytest runs offline and cannot detect live protection drift.
 
-**"`main` is green" means all 13 expected contexts, not the 12 required ones.**
-*(11 and 12 until 2026-08-22, when npm-audit M4 / lever L3 promoted
-`JS Supply Chain (npm audit, non-required)` into branch protection.)*
-`Visual Regression (Windows baselines)` is *not* branch-protected, so `main` can merge
-with it red; the release gate will then fail at tag time, after the version-bump PR has
-already landed.
+The release command requires all fourteen `RELEASE_EXPECTED_CONTEXTS`: the thirteen
+PR-stage names plus `Visual Regression (Windows baselines)` once. Dependency Review
+is excluded. Windows visual is not branch-protected, so verify its exact-head success
+before release. Do not create a tag during a partial enforcement transition; follow
+the separate activation prerequisites in
+[`SETTINGS_ACTIVATION.md`](ci_cd_expansion/SETTINGS_ACTIVATION.md).
 
 ## 3. Plan — `/workout_plan`
 

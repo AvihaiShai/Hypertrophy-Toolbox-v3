@@ -48,7 +48,7 @@ from scripts.ci_executed_report import (
 )
 from scripts.ci_fan_in import problems
 from scripts import ci_selected_report as selected_report
-from scripts.release_gate import EXPECTED_CONTEXTS, REQUIRED_CONTEXTS
+from scripts.release_gate import RELEASE_EXPECTED_CONTEXTS, PR_REQUIRED_CONTEXTS
 from tests.test_release_workflow_contracts import (
     ALL_WORKFLOWS,
     CI,
@@ -382,7 +382,7 @@ def needs_of(block):
 def test_run_tests_is_exactly_one_always_running_fan_in():
     named = [job_id for job_id, block in jobs(CI).items() if job_name(block) == "Run Tests"]
     assert named == ["run-tests"]
-    assert "Run Tests" in REQUIRED_CONTEXTS
+    assert "Run Tests" in PR_REQUIRED_CONTEXTS
     assert needs_of(strip_comments(ci_job("run-tests"))) == list(FAN_IN_DEPENDENCIES)
 
 
@@ -842,8 +842,8 @@ def test_every_lint_suppression_is_registered():
 
 def test_workflow_lint_is_not_a_required_or_expected_context_yet():
     # Promotion is C4's deliberate change, after seeded blocking proof.
-    assert LINT_JOB_NAME not in REQUIRED_CONTEXTS
-    assert LINT_JOB_NAME not in EXPECTED_CONTEXTS
+    assert LINT_JOB_NAME not in PR_REQUIRED_CONTEXTS
+    assert LINT_JOB_NAME not in RELEASE_EXPECTED_CONTEXTS
 
 
 # =================================================== B3: Dependency Review
@@ -1004,7 +1004,9 @@ def test_dependency_review_is_absent_from_every_release_gate_context_set():
         assert [context for context in value if DEPENDENCY_REVIEW_NAME in str(context)] == [], name
         checked.add(name)
     # C4: if these constants are renamed or split, update this requirement deliberately.
-    assert {"REQUIRED_CONTEXTS", "EXPECTED_CONTEXTS"} <= checked
+    assert {
+        "BASE_PR_REQUIRED_CONTEXTS", "BASE_RELEASE_EXPECTED_CONTEXTS", "RELEASE_EXPECTED_CONTEXTS"
+    } <= checked
 
 
 def test_the_action_inventory_records_the_dependency_review_pin():
@@ -2535,7 +2537,7 @@ def test_a3_cannot_soften_or_skip_a_shard_or_its_execution_report(before, after)
 def test_a3_preserves_the_single_always_running_required_aggregate():
     named = [job_id for job_id, raw in jobs(CI).items() if job_name(raw) == "E2E Functional (Chromium)"]
     assert named == ["e2e-functional"]
-    assert "E2E Functional (Chromium)" in REQUIRED_CONTEXTS
+    assert "E2E Functional (Chromium)" in PR_REQUIRED_CONTEXTS
     block = strip_comments(ci_job("e2e-functional"))
     assert needs_list(block) == ["e2e-functional-shard"]
     assert re.search(r"^    if: always\(\)$", block, re.MULTILINE)

@@ -21,9 +21,10 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from scripts.release_gate import (
-    EXPECTED_CONTEXTS,
+    JS_UNIT_CONTEXT,
+    RELEASE_EXPECTED_CONTEXTS,
     RELEASE_JOB_IDS,
-    REQUIRED_CONTEXTS,
+    PR_REQUIRED_CONTEXTS,
     REPO_ROOT,
 )
 from tests.test_playwright_runner_contracts import bash_executable
@@ -154,8 +155,6 @@ UNEXPECTED_CI_JOB_NAMES = (
     "Guard Hook Tests (Linux pwsh) shard ${{ matrix.shard }}/4",
     "Guard Hook Tests (Linux pwsh)",
     "Workflow Contracts (Windows PowerShell)",
-    # Q4 renames the unprotected job before the separately approved C4 promotion.
-    "JS Unit (Vitest)",
     "CSS Stylelint Measurement (non-required)",
     PACKAGED_SMOKE_JOB_NAME,
 )
@@ -490,11 +489,11 @@ def test_the_step_parser_reads_every_job_that_declares_steps():
 def test_every_expected_context_is_a_real_ci_job_name():
     """Derived, not hand-copied.
 
-    A rename of any of the thirteen in ci.yml reds here instead of burning the
+    A rename of an expected context in ci.yml reds here instead of burning the
     release gate's 45-minute deadline on a name that will never report.
     """
     names = {job_name(block) for block in jobs(CI).values()}
-    missing = sorted(set(EXPECTED_CONTEXTS) - names)
+    missing = sorted(set(RELEASE_EXPECTED_CONTEXTS) - names)
     assert not missing, f"expected contexts with no matching ci.yml job: {missing}"
 
 
@@ -502,7 +501,7 @@ def test_the_deliberately_excluded_ci_jobs_exist_and_stay_excluded():
     names = {job_name(block) for block in jobs(CI).values()}
     for name in UNEXPECTED_CI_JOB_NAMES:
         assert name in names, name
-        assert name not in EXPECTED_CONTEXTS, name
+        assert name not in RELEASE_EXPECTED_CONTEXTS, name
 
 
 def test_the_npm_audit_job_is_required_and_keeps_its_name_byte_for_byte():
@@ -513,21 +512,65 @@ def test_the_npm_audit_job_is_required_and_keeps_its_name_byte_for_byte():
     promotion asserted by nothing at all -- a name can go missing from a tuple
     without any test noticing. So: the job still exists in `ci.yml` under exactly
     this string, and that string is a required context. Renaming the job in
-    `ci.yml` alone reds the first half; dropping it from `REQUIRED_CONTEXTS`
+    `ci.yml` alone reds the first half; dropping it from `PR_REQUIRED_CONTEXTS`
     alone reds the second.
     """
     names = {job_name(block) for block in jobs(CI).values()}
     assert NPM_AUDIT_JOB_NAME in names, NPM_AUDIT_JOB_NAME
-    assert NPM_AUDIT_JOB_NAME in REQUIRED_CONTEXTS, NPM_AUDIT_JOB_NAME
+    assert NPM_AUDIT_JOB_NAME in PR_REQUIRED_CONTEXTS, NPM_AUDIT_JOB_NAME
     assert NPM_AUDIT_JOB_NAME not in UNEXPECTED_CI_JOB_NAMES
 
 
 def test_no_required_context_job_was_converted_to_a_reusable_call():
     """Converting a protected job to `uses:` renames its check to `parent / child`."""
     for job_id, block in jobs(CI).items():
-        if job_name(block) in REQUIRED_CONTEXTS:
+        if job_name(block) in PR_REQUIRED_CONTEXTS:
             assert "steps:" in block, job_id
             assert "uses: ./" not in block, job_id
+
+
+def assert_js_unit_wiring(block):
+    source = strip_comments(block)
+    header = source.split("    steps:", 1)[0]
+    assert STEPS_KEY.search(source)
+    assert job_name(source) == "JS Unit (Vitest)"
+    assert not re.search(r"^    (?:if|needs|uses|strategy|continue-on-error):", header, re.MULTILINE)
+    parsed = steps(source)
+    coverage = [raw for name, raw in parsed if name == "Run Vitest with coverage"]
+    assert len(coverage) == 1
+    assert run_script(coverage[0]) == "npm run test:js -- --coverage"
+    assert not re.search(r"^      (?:if|continue-on-error):", coverage[0], re.MULTILINE)
+    install = [raw for name, raw in parsed if name == "Install npm dependencies"]
+    assert len(install) == 1
+    assert run_script(install[0]) == "npm ci"
+    assert source.index(install[0]) < source.index(coverage[0])
+
+
+def test_js_unit_is_required_in_both_sets_and_runs_coverage_without_suppression():
+    assert JS_UNIT_CONTEXT == "JS Unit (Vitest)"
+    assert JS_UNIT_CONTEXT in PR_REQUIRED_CONTEXTS
+    assert JS_UNIT_CONTEXT in RELEASE_EXPECTED_CONTEXTS
+    assert JS_UNIT_CONTEXT not in UNEXPECTED_CI_JOB_NAMES
+    assert_js_unit_wiring(jobs(CI)["js-unit"])
+
+
+@pytest.mark.parametrize("before,after", [
+    ("    name: JS Unit (Vitest)", "    name: JS Unit (Vitest, non-required)"),
+    ("    steps:", "    if: ${{ false }}\n    steps:"),
+    ("    steps:", "    needs: run-tests\n    steps:"),
+    ("    steps:", "    continue-on-error: true\n    steps:"),
+    ("    steps:", "    strategy:\n      matrix: {}\n    steps:"),
+    ("    steps:", "    uses: ./detached.yml\n    steps:"),
+    ("      run: npm run test:js -- --coverage", "      run: npm run test:js -- --coverage || true"),
+    ("      run: npm run test:js -- --coverage", "      if: always()\n      run: npm run test:js -- --coverage"),
+    ("      run: npm run test:js -- --coverage", "      continue-on-error: true\n      run: npm run test:js -- --coverage"),
+    ("      run: npm run test:js -- --coverage", "      run: npm run test:js"),
+])
+def test_js_unit_wiring_rejects_detachment_renaming_and_failure_suppression(before, after):
+    block = jobs(CI)["js-unit"]
+    assert block.count(before) == 1
+    with pytest.raises(AssertionError):
+        assert_js_unit_wiring(block.replace(before, after))
 
 
 # --------------------------------------------------------- one build, three callers
@@ -1163,7 +1206,7 @@ def test_the_deep_gate_produces_no_branch_protection_context(path):
     workflow stands on the same premise: "never a required PR check".
     """
     names = {job_name(block) for block in jobs(path).values()}
-    assert not names & set(REQUIRED_CONTEXTS)
+    assert not names & set(PR_REQUIRED_CONTEXTS)
     assert triggers(path) == {"schedule", "workflow_dispatch"}
 
 

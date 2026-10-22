@@ -39,7 +39,7 @@ GITHUB_API = "https://api.github.com"
 # list was first read on 2026-08-14. Byte-for-byte, parentheticals included --
 # three of these say "non-required" and are required anyway
 # (docs/ai_workflow/QUALITY_GATE.md).
-REQUIRED_CONTEXTS = (
+BASE_PR_REQUIRED_CONTEXTS = (
     "Code Linting",
     "E2E Backup (Chromium, isolated)",
     "E2E Erase Flow (Chromium, isolated, non-required)",
@@ -56,14 +56,18 @@ REQUIRED_CONTEXTS = (
 
 # R1-D2: the release gate credits the Windows visual comparison that already ran on
 # this commit instead of running a second one. It is not a protected context, so it
-# has to be named here explicitly -- "main is green" means these 13, not the 12.
+# has to be named here explicitly.
 VISUAL_CONTEXT = "Visual Regression (Windows baselines)"
 
-EXPECTED_CONTEXTS = tuple(sorted(REQUIRED_CONTEXTS + (VISUAL_CONTEXT,)))
+BASE_RELEASE_EXPECTED_CONTEXTS = tuple(sorted(BASE_PR_REQUIRED_CONTEXTS + (VISUAL_CONTEXT,)))
+JS_UNIT_CONTEXT = "JS Unit (Vitest)"
+PR_REQUIRED_CONTEXTS = tuple(sorted(BASE_PR_REQUIRED_CONTEXTS + (JS_UNIT_CONTEXT,)))
+RELEASE_EXPECTED_CONTEXTS = tuple(sorted(BASE_RELEASE_EXPECTED_CONTEXTS + (JS_UNIT_CONTEXT,)))
 
 # A third-party GitHub App can create a check-run with any name it likes. Only runs
 # produced by Actions are evidence about this repository's pipeline.
 ELIGIBLE_APP_SLUG = "github-actions"
+ELIGIBLE_APP_ID = 15368
 
 # The job ids `release-gate` expects to hear from. Deleting a job from the workflow's
 # `needs:` list without deleting it here is the failure this constant exists to catch.
@@ -157,7 +161,7 @@ def commit_is_on_main(repo: str, sha: str, token: str | None) -> bool:
     """Whether ``sha`` is on ``main``, which R1-D1 requires of a release tag.
 
     Nothing else in the pipeline establishes this. `github.ref` carries the tag name,
-    not what it points at, and provenance only asks whether the 12 contexts passed on
+    not what it points at, and provenance only asks whether the expected contexts passed on
     this commit -- which a green feature-branch head satisfies just as well.
     """
     payload = _api_get(f"{GITHUB_API}/repos/{repo}/compare/main...{sha}", token)
@@ -271,7 +275,7 @@ def check_version(
 
 
 def select_runs(
-    runs: Iterable[dict], expected: Sequence[str]
+    runs: Iterable[dict], expected: Sequence[str], *, sha: str
 ) -> tuple[dict[str, dict], Counter]:
     """One eligible run per expected name: the newest by ``(started_at, id)``.
 
@@ -287,7 +291,13 @@ def select_runs(
         name = run.get("name")
         if name not in expected_set:
             continue
-        if (run.get("app") or {}).get("slug") != ELIGIBLE_APP_SLUG:
+        app = run.get("app") or {}
+        if (
+            run.get("head_sha") != sha
+            or app.get("slug") != ELIGIBLE_APP_SLUG
+            or type(app.get("id")) is not int
+            or app["id"] != ELIGIBLE_APP_ID
+        ):
             continue
         seen[name] += 1
         # A missing timestamp sorts HIGHEST, not lowest. `started_at` is the primary
@@ -374,7 +384,7 @@ def check_provenance(
     deadline = monotonic() + deadline_seconds
     while True:
         runs = fetch(repo, sha)
-        selected, seen = select_runs(runs, expected)
+        selected, seen = select_runs(runs, expected, sha=sha)
         pending, failed = classify(selected, expected)
 
         if failed:
@@ -478,7 +488,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return check_provenance(
             repo=args.repo,
             sha=args.sha,
-            expected=EXPECTED_CONTEXTS,
+            expected=RELEASE_EXPECTED_CONTEXTS,
             fetch=lambda repo, sha: fetch_check_runs(repo, sha, token),
             deadline_seconds=DEFAULT_DEADLINE_SECONDS,
             poll_seconds=DEFAULT_POLL_SECONDS,
