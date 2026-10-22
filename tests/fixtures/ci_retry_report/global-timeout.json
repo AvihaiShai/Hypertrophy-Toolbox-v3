@@ -1,0 +1,449 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "/repo/node_modules/@playwright/test/cli.js",
+      "test",
+      "-c",
+      "/capture/capture.config.ts",
+      "--global-timeout=2500"
+    ],
+    "configFile": "/capture/capture.config.ts",
+    "rootDir": "/capture/specs",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 2500,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/capture/out/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/capture/specs",
+        "testIgnore": [],
+        "testMatch": [
+          "**/default-mode.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/capture/out/global-timeout.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "default-mode.spec.ts",
+      "file": "default-mode.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "passes first attempt",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T21:53:07.017Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cdea08ea454c98f347be-670ec868e7a116f5e1e7",
+          "file": "default-mode.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "fails then recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2,
+                  "error": {
+                    "message": "Error: fails on the first attempt only\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m",
+                    "stack": "Error: fails on the first attempt only\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n    at /capture/specs/default-mode.spec.ts:8:61",
+                    "location": {
+                      "file": "/capture/specs/default-mode.spec.ts",
+                      "column": 61,
+                      "line": 8
+                    },
+                    "snippet": "\u001b[0m \u001b[90m  6 |\u001b[39m\n \u001b[90m  7 |\u001b[39m test(\u001b[32m'fails then recovers'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({}\u001b[33m,\u001b[39m testInfo) \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  8 |\u001b[39m   expect(testInfo\u001b[33m.\u001b[39mretry\u001b[33m,\u001b[39m \u001b[32m'fails on the first attempt only'\u001b[39m)\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m  9 |\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 10 |\u001b[39m\n \u001b[90m 11 |\u001b[39m test(\u001b[32m'times out then recovers'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({}\u001b[33m,\u001b[39m testInfo) \u001b[33m=>\u001b[39m {\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/capture/specs/default-mode.spec.ts",
+                        "column": 61,
+                        "line": 8
+                      },
+                      "message": "Error: fails on the first attempt only\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\n   6 |\n   7 | test('fails then recovers', async ({}, testInfo) => {\n>  8 |   expect(testInfo.retry, 'fails on the first attempt only').toBeGreaterThan(0);\n     |                                                             ^\n   9 | });\n  10 |\n  11 | test('times out then recovers', async ({}, testInfo) => {\n    at /capture/specs/default-mode.spec.ts:8:61"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T21:53:07.063Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/capture/out/test-results/default-mode-fails-then-recovers-chromium/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/capture/specs/default-mode.spec.ts",
+                    "column": 61,
+                    "line": 8
+                  }
+                },
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 1,
+                  "startTime": "2026-10-21T21:53:07.444Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "flaky"
+            }
+          ],
+          "id": "cdea08ea454c98f347be-1f6341931b5a0ee70341",
+          "file": "default-mode.spec.ts",
+          "line": 7,
+          "column": 5
+        },
+        {
+          "title": "times out then recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 1000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 1007,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 1000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 1000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 1000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T21:53:07.486Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/capture/out/test-results/default-mode-times-out-then-recovers-chromium/error-context.md"
+                    }
+                  ]
+                },
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 1,
+                  "startTime": "2026-10-21T21:53:08.874Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "flaky"
+            }
+          ],
+          "id": "cdea08ea454c98f347be-d07390933871c99f9092",
+          "file": "default-mode.spec.ts",
+          "line": 11,
+          "column": 5
+        },
+        {
+          "title": "fails every attempt",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 4,
+                  "error": {
+                    "message": "Error: always fails\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m1\u001b[39m",
+                    "stack": "Error: always fails\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m1\u001b[39m\n    at /capture/specs/default-mode.spec.ts:19:29",
+                    "location": {
+                      "file": "/capture/specs/default-mode.spec.ts",
+                      "column": 29,
+                      "line": 19
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m test(\u001b[32m'fails every attempt'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m () \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m   expect(\u001b[35m1\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'always fails'\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[35m2\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m\n \u001b[90m 22 |\u001b[39m test(\u001b[32m'expected failure'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m () \u001b[33m=>\u001b[39m {\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/capture/specs/default-mode.spec.ts",
+                        "column": 29,
+                        "line": 19
+                      },
+                      "message": "Error: always fails\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m1\u001b[39m\n\n  17 |\n  18 | test('fails every attempt', async () => {\n> 19 |   expect(1, 'always fails').toBe(2);\n     |                             ^\n  20 | });\n  21 |\n  22 | test('expected failure', async () => {\n    at /capture/specs/default-mode.spec.ts:19:29"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T21:53:08.919Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/capture/out/test-results/default-mode-fails-every-attempt-chromium/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/capture/specs/default-mode.spec.ts",
+                    "column": 29,
+                    "line": 19
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "cdea08ea454c98f347be-7e3fb7ec0ed332c37e9a",
+          "file": "default-mode.spec.ts",
+          "line": 18,
+          "column": 5
+        },
+        {
+          "title": "expected failure",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "cdea08ea454c98f347be-849222e11c16f82d1eee",
+          "file": "default-mode.spec.ts",
+          "line": 22,
+          "column": 5
+        },
+        {
+          "title": "unexpected pass of an expected failure",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "cdea08ea454c98f347be-249f5d2cd666a3c78daa",
+          "file": "default-mode.spec.ts",
+          "line": 27,
+          "column": 5
+        },
+        {
+          "title": "skipped",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "cdea08ea454c98f347be-1bde0091228cb6743bc5",
+          "file": "default-mode.spec.ts",
+          "line": 32,
+          "column": 5
+        }
+      ],
+      "suites": [
+        {
+          "title": "group",
+          "file": "default-mode.spec.ts",
+          "line": 36,
+          "column": 6,
+          "specs": [
+            {
+              "title": "same title",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cdea08ea454c98f347be-205a88c86d965ff58dec",
+              "file": "default-mode.spec.ts",
+              "line": 37,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "other group",
+          "file": "default-mode.spec.ts",
+          "line": 42,
+          "column": 6,
+          "specs": [
+            {
+              "title": "same title",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cdea08ea454c98f347be-92220d76bb17a0b352ed",
+              "file": "default-mode.spec.ts",
+              "line": 43,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "message": "\u001b[31mTimed out waiting 2.5s for the test suite to run\u001b[39m"
+    },
+    {
+      "message": "\u001b[31mTimed out waiting 2.5s for the teardown for test suite to run\u001b[39m"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-21T21:53:06.607Z",
+    "duration": 2500.999,
+    "expected": 1,
+    "skipped": 5,
+    "unexpected": 1,
+    "flaky": 2
+  }
+}
