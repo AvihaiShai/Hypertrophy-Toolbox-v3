@@ -4,49 +4,59 @@
 
 ## Current State
 
-> **2026-10-20T15:05Z — current state, measured against GitHub `main` `b86e9ad7`
-> (#538); the merge receipt and local commit object are verified.** Readings below
-> were taken 15:03–15:05Z. B2, E1+D3 and the necessary D3 trigger repair are merged;
-> #531 carries this closeout. The superseded unmerged #531 draft and earlier blocks
-> are retained in
-> [`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](archive/2026/master-handover/CURRENT_STATE_HISTORY.md).
-> The maintenance rule for this block is the subsection headed *Maintenance rule*.
+> **2026-10-22T14:10Z — current state, measured against GitHub `main`
+> `b77cb742f3af5222d9d80b608d497390c4b3e4f2` (#557).** PR, Actions, issue, branch-protection
+> and repository-security readings were taken together at 13:50–14:10Z. This record grants no
+> merge, settings or packet authority.
 
 **Work queue and owner decisions:** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md)
 §0 is the single actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
 §11). Its §0.2 holds every open owner decision and §0.4 every open obligation; this block does not
-repeat them. The queue's §§1–4, 8 and 10–26 are earlier readings, moved on 2026-10-20 to
+repeat them. Earlier Current State blocks are in
+[`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](archive/2026/master-handover/CURRENT_STATE_HISTORY.md);
+the queue's earlier readings are in
 [`archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md`](archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md).
+The maintenance rule for this block is the subsection headed *Maintenance rule*.
 
 ### Trunk, CI and live readings
 
 | Reading | Value |
 |---|---|
-| GitHub `main` | `b86e9ad7` (#538); main push `39444332091` running at this reading. B2 and E1+D3 main pushes succeeded, each 26/26; CI PLANNING §§15.6, 16.9–16.10 |
-| Open PRs | Three at the reading: #531 carries this closeout; #535/#536 are new Dependabot PRs outside the named delegation. Re-read live state before acting |
-| Live split checks | Suite 6/6; Linux compare 65 failed / 18 passed, no baseline write. Watch closed suite #534; visual #537 remains open. Completion-to-issue observations: visual 24 s, corrected suite 27 s; CI PLANNING §§16.9–16.10 |
-| Dependabot alerts | 0 at 15:05Z |
-| Branch protection | Re-read this session: 12 required contexts; `strict: false`; `JS Unit (Vitest, non-required)` absent. A1 kept the required name `Run Tests`, now a fan-in job |
-| Weekly gates (Mondays 03:17 UTC) | Pre-split: 8 scheduled failures through 2026-10-19; only the visual job failed in the latest two. After #533, read `deep-gate.yml` and `deep-gate-visual.yml` separately at job and compare-step level. First post-split scheduled slot, 2026-10-26, is pending for both |
-| `release.yml` | Two `workflow_dispatch` runs only; `push: tags` has never fired, and no GitHub Release exists |
+| GitHub `main` | `b77cb742` (#557). Push run `39783010460` succeeded (29 jobs; PR-only Dependency Review skipped) |
+| Open PRs | None at 13:51Z. Re-read live state before acting |
+| Branch protection | 12 exact contexts, each bound to GitHub Actions `app_id: 15368`; `strict: false`; `enforce_admins: false`. `JS Unit (Vitest)` is not a required context |
+| Repository security | Secret scanning and push protection enabled on 2026-10-21 under S2's bounded owner authority ([`SETTINGS_ACTIVATION.md`](ci_cd_expansion/SETTINGS_ACTIVATION.md)). CodeQL default setup is not configured. Dependabot security updates stay off under D-6; 0 open Dependabot alerts |
+| Orphan workflow | `345538425` is `disabled_manually` (C5); its historical run `33274031928` is retained |
+| Linux visual compare | No compare run since the two `main` dispatches after #548; both succeeded without writing a baseline but needed retries, which is not a pass (queue §0.2, H-LINUX-UNSYNC-01). Issue #537 closed at #548's merge |
+| Weekly gates (Mondays 03:17 UTC) | Neither `deep-gate.yml` nor `deep-gate-visual.yml` has a scheduled run since the #533 split; their first scheduled slot is **2026-10-26**. Manual dispatches do not count toward the scheduled threshold |
+| `release.yml` | Three `workflow_dispatch` runs, all successful; `push: tags` has never fired, and no GitHub Release exists |
 | Pyright baseline | 0 / 0 / 0 with no headroom. A net-new diagnostic fails `Type Check`; the fix is the code, never the baseline |
 | Test counts | [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md) is the single producer |
 
-### Landed since the 09:13Z reading (`e486e3b5`)
+### Landed since the 2026-10-20 reading (`b86e9ad7`)
 
-Merges #481–#520 are listed in the archived 09:13Z block. Queue §0.6 lists the closures that
-contradict older queue sections.
+First-parent order. Merges #481–#538 are listed in the archived blocks.
 
-| PR | What |
-|---|---|
-| #522, #523, #525 | Dependabot version bumps |
-| #524 | Button accessible names aligned for the axe 4.14 upgrade |
-| #526, #527, #528 | Handover condensed (WS1b); owner approvals distinguished from reviewer passes (WS2(b)); five closed records archived |
-| #529 | CI/CD E3: bounded bisect of H-LINUX-UNSYNC-01 ([`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md)) |
-| #530 | CI/CD A1: guard-hook tests split out behind a fail-closed `Run Tests` fan-in |
-| #532 | CI/CD B2: workflow lint; first main-push lint job and both linters succeeded (CI PLANNING §15.6) |
-| #533 | CI/CD E1+D3: separate Linux visual workflow and deterministic watchdog; rebased-head CI 26/26 before merge (CI PLANNING §16.9) |
-| #538 | D3 literal workflow-name filter repaired after live qualification exposed the unescaped plus; full pytest 5,569 passed / 2 skipped, PR CI 26/26, corrected automatic delivery and recovery verified |
+| PR | Merge | What |
+|---|---|---|
+| #536, #535 | `3b21384c`, `a305e5a4` | Dependabot bumps: Hypothesis, Sass |
+| #531 | `71c4cc6d` | Previous handover refresh, single queue, `AGREED_PLAN.md` publication (Q9) |
+| #539 | `1f5ae0f0` | CI/CD B3: PR-only Dependency Review |
+| #540 | `43f5df33` | CI/CD A2: Operation A Windows tests parallelized; Operation A itself is not complete |
+| #544, #547 | `b4a2653c`, `aafba153` | JS-unit ledger rows 65–113; owner Q4 name and conditional D2 ruling |
+| #541, #542, #543 | `c9c0d838`, `6dd7dc83`, `f3d72be4` | WS1 documentation slices: OPEN_WORK, `ACTIVE_DEVELOPMENT.md` and cross-model plan splits |
+| #546 | `28484dda` | CI/CD B2 workflow-lint residuals closed: cache, cooldowns, lint scope |
+| #548 | `c2020735` | Linux baselines synced with the #464 restyle (GATE1 option C, owner-approved PNGs); closed #537 |
+| #545 | `d98f45d3` | WS3: application construction separated from runtime startup |
+| #549 | `dee3c379` | CI/CD A3: functional E2E split across four runners |
+| #551 | `a12b680f` | U1-FOLLOWUP-1: 24 Volume Splitter Vitest cases |
+| #552 | `155181d6` | CI/CD G6: nine previously skipped cases enforced |
+| #550 | `61da31cb` | JS-unit ledger rows 114–122; D2's recorded condition met |
+| #554 | `73de866e` | Q4: JS job renamed `JS Unit (Vitest)`; not yet required |
+| #556 | `c7782854` | WS4 slice 1: `POST /remove_exercise` database work moved to `utils/workout_plan_service.py`, behaviour unchanged |
+| #555 | `10b31185` | S2 safeguards record and the prepared C1–C3 settings packet |
+| #553 | `5361ad6f` | U1-FOLLOWUP-1 closeout; the obligation is discharged |
+| #557 | `b77cb742` | CI/CD G7: each Playwright job summary reports its retries; completes the core sequence B3 → G7 |
 
 ### Holds in force
 
@@ -61,17 +71,16 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
   - Under the owner's 2026-10-19 delegation (Q8(a) in
     [`AGREED_PLAN.md`](project_direction/AGREED_PLAN.md) §11; not a Gate 0 or Gate 1 signature),
     isolated application-factory, service-extraction and dependency-group work does not wait for
-    `PREVENTION_COMPLETE`; each still needs its own gates. WS4 implementation follows WS3; WS5
-    implementation is eligible only after its manifest and applicable gates are approved; §11's
-    Q8(a) boundaries apply (a standalone clone with independent Git storage and private
-    environments, and a check of live freezes and blocked-recovery states before work).
+    `PREVENTION_COMPLETE`; each slice still needs its own gates, and WS5 implementation is
+    eligible only after its manifest and applicable gates are approved. §11's Q8(a) boundaries
+    apply (a standalone clone with independent Git storage and private environments, and a check
+    of live freezes and blocked-recovery states before work).
 - **Visual baselines:** regenerating Linux or Win32 baselines requires separate owner
   authorization; a red comparison is not a regeneration mandate; `--update-snapshots` is never
   the resolution of a red.
-- **Owner-only actions:** merges outside the named #531–#533 closeout and necessary D3
-  repair #538; repository settings, C4 promotion, credentials, spending and release publication.
-  Each dependency PR still needs its own merge authority; Dependabot security updates remain
-  off under D-6, so alerts need human-opened PRs.
+- **Owner-only actions:** every merge, approved by PR number and head SHA; repository settings;
+  credentials, spending and release publication. Queue §0.2 lists the settings states and the
+  dependency-PR rule.
 
 ### Dated items
 
@@ -110,25 +119,27 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`finding1_residual/`](finding1_residual/PLANNING.md): residual behavior needs a current reference.
 - [`backup_confirmation_continuity/`](backup_confirmation_continuity/PLANNING.md): residual-risk reconciliation.
 - [`release_pipeline/`](release_pipeline/PLANNING.md): R3, deep-gate entry conditions.
-- [`deep_gate_linux_visual_failure_20260831/`](deep_gate_linux_visual_failure_20260831/GATE1.md): option C (Linux baseline sync) taken after [`GATE2.md`](deep_gate_linux_visual_failure_20260831/GATE2.md); a compare run on `main` remains.
+- [`deep_gate_linux_visual_failure_20260831/`](deep_gate_linux_visual_failure_20260831/GATE1.md): option C landed as #548; scheduled-compare evidence is pending (queue §0.2).
 - [`visual_determinism/`](visual_determinism/PLANNING.md): the ADR-011 residual.
-- [`volume_failure_feedback/`](volume_failure_feedback/PLANNING.md): U1-FOLLOWUP-1.
-- [`toast_action_continuity/`](toast_action_continuity/PLANNING.md): U1-FOLLOWUP-1's amended condition.
+- [`service_extraction/`](service_extraction/PLANNING.md): WS4 handlers after slice 1, each with its own gates.
 - [`worktree_cleanup/`](worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19–§20).
-- [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): Post-split scheduled qualification; later packets remain unstarted.
+- [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): post-split scheduled qualification; settings C1b/C1c, C2, C3 and C4; B4, D1 and F1/F3 unstarted.
 
 The full list is [`README.md`](README.md) *Feature folders → Active*.
 
 ### Next safe step
 
-The named merge closeout completes when #531 lands after its fresh CI. The next evidence
-is the 2026-10-26 scheduled slot, read independently for the suite and visual workflow;
-record it through [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §§16.9–16.10.
-`run_visual` removal is accepted and zizmor stays online while non-required (§16.8).
-A green suite or a manual dispatch cannot satisfy the scheduled visual threshold.
-Issue #537 closes on the first `main` compare run after the Linux baseline sync merges.
-Nothing else starts automatically; B3, C4/settings and later packets keep their own authority
-and gates.
+Nothing starts automatically; each item keeps its own authority and gates, and queue §0.2–§0.4
+holds the detail.
+
+- **2026-10-26:** read the scheduled suite and visual runs separately and record them through
+  [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §§16.9–16.10. A manual dispatch
+  cannot substitute.
+- **WS5** is next in line for the `ci.yml` slot (queue §0.3); it still needs its own approval
+  and gates.
+- **Settings:** C1b/C1c, C2, C3 and C4 await the owner
+  ([`SETTINGS_ACTIVATION.md`](ci_cd_expansion/SETTINGS_ACTIVATION.md); queue §0.2).
+- **Ledger:** §13.0 rows are owed for every merge after row 122 (queue §0.4).
 
 ### Maintenance rule
 
@@ -167,7 +178,7 @@ and gates.
   needs a human by-eye review of the PNGs, and `maxDiffPixels` stays where it is.
 - The 2026-10-19 Linux failure is a separate condition:
   [H-LINUX-UNSYNC-01](deep_gate_linux_visual_failure_20260831/GATE1.md). Under GATE1 option C the
-  owner approved regenerated Linux PNGs by eye on 2026-10-21 (generate run `39465642620`).
+  owner approved regenerated Linux PNGs by eye on 2026-10-21 (generate run `39465642620`); #548 merged them.
 
 ## Active Workstreams
 | Workstream | Status | Next safe step | Docs |
