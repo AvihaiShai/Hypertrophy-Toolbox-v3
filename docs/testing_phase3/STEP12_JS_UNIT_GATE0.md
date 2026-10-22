@@ -5000,6 +5000,15 @@ back byte-identical.
 | **120** | [`39601539825`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601539825) | `push` / `28484ddaf7c85da1fa485eaa31c784f17f851d8f` (**PR #546, ci: close the B2 workflow-lint residuals (cache, cooldown, lint scope)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119226995162`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601539825/job/119226995162) | **`success`** | **`2026-10-21T12:41:15Z`** |
 | **121** | [`39601572984`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601572984) | `push` / `c2020735f3c74903ba89c81d7a0cdde67cd6e196` (**PR #548, fix(visual): sync Linux baselines with the #464 restyle (GATE1 option C)**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119227113317`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601572984/job/119227113317) | **`success`** | **`2026-10-21T12:42:03Z`** |
 | **122** | [`39604198579`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39604198579) | `push` / `d98f45d34de8356f7ac2becb7a7c4b3bef48f8e3` (**PR #545, refactor(app): separate application construction from runtime startup**) | `success`, **26/27** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119236093534`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39604198579/job/119236093534) | **`success`** | **`2026-10-21T13:00:44Z`** |
+| **123** | [`39645582155`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39645582155) | `push` / `dee3c379b8435e1ba0941884b9f264675f8012b7` (**PR #549**) | `success`, **28/29** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119380145418`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39645582155/job/119380145418) | **`success`** | **`2026-10-21T17:38:49Z`** |
+| **124** | [`39655584237`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39655584237) | `push` / `a12b680fba9503b8578d777ed51dff571f7c44f2` (**PR #551**) | `success`, **28/29** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119414814441`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39655584237/job/119414814441) | **`success`** | **`2026-10-21T18:45:51Z`** |
+| **125** | [`39669286271`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39669286271) | `push` / `155181d67a89fe72e86c75a1ff438caec250a9bd` (**PR #552**) | `success`, **29/30** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119462547162`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39669286271/job/119462547162) | **`success`** | **`2026-10-21T20:19:43Z`** |
+| **126** | [`39761396302`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39761396302) | `push` / `61da31cb96fe5cac83b5301c2e07a66353576b6c` (**PR #550**) | `success`, **29/30** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119766177511`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39761396302/job/119766177511) | **`success`** | **`2026-10-22T10:13:10Z`** |
+| **127** | [`39761432262`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39761432262) | `push` / `73de866ecb22bc8472dafb85f1405a27caf6513b` (**PR #554**) | `success`, **29/30** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119766292139`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39761432262/job/119766292139) | **`success`** | **`2026-10-22T10:14:07Z`** |
+| **128** | [`39763804915`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39763804915) | `push` / `c7782854f2589f07ea0a0509da005da08d78cf55` (**PR #556**) | `success`, **29/30** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119774172079`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39763804915/job/119774172079) | **`success`** | **`2026-10-22T10:34:42Z`** |
+| **129** | [`39765785397`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39765785397) | `push` / `10b3118516f75be582caaeded9297478c3dbcd74` (**PR #555**) | `success`, **29/30** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119780763948`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39765785397/job/119780763948) | **`success`** | **`2026-10-22T10:48:23Z`** |
+| **130** | [`39765839630`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39765839630) | `push` / `5361ad6f2ad16ffe9a1055d6b2fafdfb1165be89` (**PR #553**) | `success`, **29/30** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119780940998`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39765839630/job/119780940998) | **`success`** | **`2026-10-22T10:52:27Z`** |
+| **131** | [`39783010460`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39783010460) | `push` / `b77cb742f3af5222d9d80b608d497390c4b3e4f2` (**PR #557**) | `success`, **29/30** — `Dependency Review` `skipped` (PR-only job), attempt **1** | [**`119838831332`**](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39783010460/job/119838831332) | **`success`** | **`2026-10-22T13:00:20Z`** |
 
 | Ledger tally, at `2026-08-26T23:37:12Z` | Value |
 |---|---:|
@@ -5788,6 +5797,81 @@ pytest additions notwithstanding. **Q2's restart clause did not engage.**
 | Green results on Vitest 5 (rows 89–122) | **34** |
 | Cross-workflow completeness census | **215** — the rows 65–113 block's 194, plus 9 attempts and 12 non-attempts (7 `deep-gate-watch.yml`, 3 Dependabot updates, 2 `deep-gate-visual.yml`) |
 | Elapsed from declared T0 to row 122 | **54 d 13 h 42 m 23 s** |
+
+> **LEDGER EXTENSION — fixed cutoff `2026-10-22T15:24:52Z`, rows 123–131.**
+> Remote `main` is `b77cb742f3af5222d9d80b608d497390c4b3e4f2` (#557).
+> The bounded all-workflow `main` census after the previous cutoff,
+> `2026-10-21T14:13:09Z`, contains **13** runs: **9** `ci.yml` `push`
+> carriers and **4** `deep-gate-watch.yml` `schedule` runs. The nine first-parent
+> commits after `d98f45d` correspond one-to-one to #549, #551, #552, #550,
+> #554, #556, #555, #553 and #557, in that order. #558 is open and unmerged
+> at this cutoff; it has no `main` carrier here. No row is reserved for this
+> extension's own future merge. Earlier batches and their cutoffs remain intact.
+>
+> **Exact jobs, steps and bindings.** All nine carriers are completed/success,
+> attempt **1**; every attempt was enumerated. Each has exactly one expected
+> `js-unit` job, successful `Run Vitest with coverage` and `Summarize JS coverage (measure-only)`
+> steps, and a successful check run from GitHub Actions **app `15368`** whose
+> `head_sha` equals the full carrier SHA in the master table. The check-run IDs
+> below equal their job IDs. The four watch runs have no JS Unit job and are
+> outside the qualification scope; they are not missing results. Each CI carrier's
+> sole skipped job is the PR-only `Dependency Review`, not JS Unit.
+
+| Row / carrier | Exact context | Check run / check suite | Files / cases (job log) | Coverage / summary steps |
+|---|---|---|---|---|
+| 123 / #549 | `JS Unit (Vitest, non-required)` | `119380145418` / `107442791883` | `13 / 245` | success / success |
+| 124 / #551 | `JS Unit (Vitest, non-required)` | `119414814441` / `107470964462` | `14 / 269` | success / success |
+| 125 / #552 | `JS Unit (Vitest, non-required)` | `119462547162` / `107509626696` | `14 / 269` | success / success |
+| 126 / #550 | `JS Unit (Vitest, non-required)` | `119766177511` / `107758425690` | `14 / 269` | success / success |
+| 127 / #554 | `JS Unit (Vitest)` | `119766292139` / `107758521358` | `14 / 269` | success / success |
+| 128 / #556 | `JS Unit (Vitest)` | `119774172079` / `107765111547` | `14 / 269` | success / success |
+| 129 / #555 | `JS Unit (Vitest)` | `119780763948` / `107770582244` | `14 / 269` | success / success |
+| 130 / #553 | `JS Unit (Vitest)` | `119780940998` / `107770726143` | `14 / 269` | success / success |
+| 131 / #557 | `JS Unit (Vitest)` | `119838831332` / `107818606917` | `14 / 269` | success / success |
+
+**Q4 landed at row 127.** #554 (`73de866e`) is the standalone rename;
+rows 123–126 use `JS Unit (Vitest, non-required)` and rows 127–131 use
+`JS Unit (Vitest)`. Job ID `js-unit` and executable commands are unchanged.
+The `vitest.config.js` blob remains `c16ca428f7478708d8dd96a20ebcb86f98a8b935`;
+#554 changes no executable configuration or test corpus. The successful renamed merged-main
+job is [`119766292139`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39761432262/job/119766292139).
+This receipt does not activate C4.
+
+**#551 changes the corpus; its facts do not declare a T0.** Row 123 still ran
+13 files / 245 cases. #551 (`a12b680f`) added one 24-case file, taking the suite
+to 14 files / 269 cases while preserving the previous 245 identities; rows
+124–131 ran that expanded corpus with coverage. Its first successful merged-main
+job, [`119414814441`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39655584237/job/119414814441),
+completed at **`2026-10-21T18:45:51Z`**. Q2 and the 2026-08-29 owner amendment
+require a restart for the next corpus window and explicitly preserve a completed
+cycle after U1-FOLLOWUP-1's post-mark landing. The accepted rows 26–75 remain
+**50 / 0 / 0 / 0 / 0**, and D2's signed ledger condition remains met.
+
+**Owner determination still owed:** whether #551 is the final expansion packet
+for the next 269-case cycle. If declared, its measured first-green completion
+above is the candidate T0 and its strict mark is **`2026-11-04T18:45:51Z`**.
+Neither timestamp is declared operative here. Eight successful post-change jobs
+are evidence, not a completed fortnight or a new qualification ruling. The last
+of them completed only **18 h 14 m 29 s** after that candidate timestamp.
+C4 activation remains separately owner-gated; lane 07 receives these receipts
+for its bounded integration, without a CI PLANNING or settings edit by this lane.
+
+| Ledger tally, at fixed cutoff `2026-10-22T15:24:52Z` | Value |
+|---|---:|
+| Recorded `main` `ci.yml` carriers since the original T0 | **131** — 122 prior carriers plus 9; all new carriers attempt 1 |
+| Green / red / missing / skipped / cancelled exact JS Unit jobs | **131 / 0 / 0 / 0 / 0** — cumulative evidence across corpora, not one qualification cycle; row 75 counts once under the signed exact-job ruling |
+| Accepted declared cycle, rows 26–75 | **50 / 0 / 0 / 0 / 0** — D2 condition preserved |
+| Green results on the 245-case suite, rows 26–123 | **98** |
+| Green results on the 269-case suite, rows 124–131 | **8** — next-cycle T0 declaration pending |
+| Green results on Vitest 5, rows 89–131 | **43** |
+| Cross-workflow completeness census | **228** — 215 prior runs plus 9 CI carriers and 4 watch schedules |
+
+Raw per-attempt run/job/check JSON, job logs and first-parent census are retained
+under `artifacts/js-ledger-20261022-agent-a/`; an independent completeness check
+is retained under `artifacts/js-ledger-20261022-agent-b/`. These local artifacts
+are not substituted for the linked native jobs. Whoever lands this extension
+owes the next unclaimed result; its run does not yet exist at this cutoff.
+
 
 ---
 
