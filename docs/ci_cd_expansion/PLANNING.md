@@ -431,7 +431,7 @@ B1 was claimed by Codex `/root`, 2026-10-19, and merged through #521 (§13.2). A
 | F3 | Claude | separate milestone | | | | Delivery council/Gate 1; exact candidate ZIP, before publication |
 | G1–G5/G8 | per §4 | deferred | | | | Expansion outside core; coverage stays non-blocking |
 | G6 | Codex `/root`, implementation team | current-main integration; final fresh-head gates pending, merge not approved | `ci/g6-enforced-selected-tests`; [#552](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/552) | retained `df91daec`; current main `a12b680f` integrated without rewriting branch history | Prior checks and four native adverse rehearsals remain dated; combined-tree inventory, bounded checks, independent refresh reviews and new-head CI govern the next request | §21.4; preserve U1 #551; require explicit approval naming #552 and its new exact SHA; G7 needs its own later approval |
-| G7 | Unassigned | held for separate approval after G6 merge | | | No implementation or new review credit | Latest owner instruction §21.4: G7 requires its own approval after the merge; not started |
+| G7 | Claude Code O1 session (Opus), 2026-10-22 | implemented; acceptance tests written first; cold code, diff-stage test-strategy and unslop reviews complete (one BLOCKING gate-evidence finding cleared with conditions); local gates green; workflow slot 2 — not pushed until Q4 merges or S1 releases the slot; merge not approved | `ci/g7-retry-report`; PR pending | `ce111f2` on `155181d6` (tests `2a55ffe`, implementation `b529008`, review fixes `222e29e`) | 228 G7 tests pass; two-direction bite proof 35/35; 701 contract tests; pyright 0 net-new; full pytest at final head pending; PR CI pending | §22. Owner approved G7 execution 2026-10-22 under Plan v2 (§21.4's separate approval); merge needs a separate named approval; owner confirmation requested for the CI-only JSON reporter line in `playwright.config.ts` (§22.5) |
 
 ---
 
@@ -3460,3 +3460,169 @@ rehearsal refs, the dirty shared checkout and recovery artifacts remain retained
 No PR merge, settings activation or G7 execution is authorized by this integration.
 After fresh new-head CI is complete, re-ask for #552 with that exact SHA.
 G7 requires its own separate approval after G6 merges and is not started here.
+
+## 22. G7 — attempt-preserving retry report, 2026-10-22
+
+### 22.1 Authority, isolation and boundaries
+
+Owner instruction (lane O1 of the 2026-10-22 six-lane commission), verbatim:
+
+> **Authority.** I approve G7 execution under the approved core Plan v2. This is the separate
+> approval that CI PLANNING §21.4 requires after G6 (#552, merged as `155181d6`). It runs to a
+> ready PR; the merge is mine.
+
+G6 #552 was read back as MERGED at `2026-10-21T20:19:20Z`, merge
+`155181d67a89fe72e86c75a1ff438caec250a9bd` (head `2e480330`); the §7 G6 row and this file's
+status line predate that merge and belong to other writers, so they are not edited here. This
+lane is the sole writer of `scripts/ci_retry_report.py`, `tests/test_ci_retry_report.py`, the §7
+G7 row and this section; it also adds the fixture directory `tests/fixtures/ci_retry_report/`,
+the CI-only JSON reporter line in `playwright.config.ts` (§22.3) and the six summary steps in
+`ci.yml`. Workflow slot order for the batch is S1 Q4 rename → O1 G7 → S3 WS5: G7 was built and
+validated locally and is pushed only after Q4 merges or S1 records a slot release, then rebased
+and re-gated. `requirements*.txt`, the `security-audit` job and `scripts/ci_fan_in.py` stay with
+WS5 (§21.3). No pytest reruns are introduced. Merge, settings, releases and baselines remain
+the owner's.
+
+Implementation ran in the standalone clone `D:\development\Hypertrophy-Toolbox-v3-ci-g7-20261022`
+(branch `ci/g7-retry-report` from `origin/main` `155181d6`; network clone, no alternates or
+linked worktrees) with private `.venv`, `node_modules`, Chromium, runtime/DB, caches and a
+64-character TEMP; no app launch used port 5000. Evidence is under the clone's ignored
+`artifacts/ci-g7/`. Agents: `automation-qa` wrote the TS-3 acceptance tests first (committed
+`2a55ffe` before any implementation existed); `senior-developer` implemented against them;
+`code-reviewer`, `test-strategist` (diff stage) and `unslop-reviewer` reviewed cold and
+independently.
+
+### 22.2 Selected reporter formats (pinned)
+
+- **Playwright: built-in JSON reporter, `@playwright/test` 1.61.0** (`package.json`; the pip
+  `playwright==1.61.0` pin is in lockstep). JUnit cannot serve G7: it emits one `<testcase>`
+  per test with the final outcome and summed duration, so recovered attempts disappear (§20.4's
+  evidence limit). `SUPPORTED_PLAYWRIGHT_VERSIONS = ("1.61.0",)`; a test asserts it contains the
+  `package.json` version, so a Playwright bump fails pytest until the format is re-verified, and
+  any other `config.version` is reported `unavailable (unsupported-reporter)`.
+- **pytest: no reporter selected.** pytest 9.1.1 `xunit2` carries no attempt metadata, and no
+  rerun plugin is installed or configured; "already-configured pytest rerun output" is therefore
+  none. A tripwire test fails if a rerun plugin enters `requirements*.txt` or a workflow
+  `pip install`, if pytest config sets rerun keys, or if any workflow pytest command line or
+  `PYTEST_ADDOPTS` passes `--reruns`, `--only-rerun`, `-o reruns=…`, `-p rerunfailures` or
+  similar, so introducing reruns forces G7 to be revisited.
+
+Format facts were read from `node_modules/playwright/lib/runner/index.js` (`JSONReporter`) and
+`lib/common/index.js` (`computeTestCaseOutcome`) and confirmed on real captures: each result
+carries a 0-based `retry` and its own `status`; there is no overall run status; `stats` is
+Playwright's per-test outcome count, **not** a retry count — serial groups re-run tests that
+already passed (`[passed, passed]` → `expected`), never-started tests in an interrupted run have
+`results: []` and count as `skipped`, and interruptions appear only in top-level `errors[]`.
+
+**Fixture provenance.** `tests/fixtures/ci_retry_report/*.json` are eight real Playwright
+1.61.0 JSON reports from browser-free synthetic specs (pass, fail→pass, timeout→pass, always
+fail, expected failure, unexpected pass, skip, nested equal titles, two serial groups; a 2-way
+shard pair; two projects; `--max-failures=1`; `--global-timeout=2500`; a load error), run with
+`retries: 2`, `workers: 1`. Only machine paths were rewritten (`/capture`, `/repo`). The capture
+specs, config, runner and sanitizer are retained under the clone's ignored
+`artifacts/ci-g7/capture/`; a Playwright bump re-captures with the same specs before widening
+the pin.
+
+### 22.3 Implementation
+
+`scripts/ci_retry_report.py` (stdlib only) reads one job's JSON report and classifies every test
+from its own attempts: `first-attempt`, `recovered` (final attempt met its expected status after
+an earlier failed/timed-out attempt), `rerun` (re-run without an earlier failure, e.g. a serial
+group), `exhausted` (failed on all `retries + 1` attempts), `failed` (stopped before exhaustion),
+`skipped`, `did-not-run` and `interrupted`. Every attempt's retry number, status and duration
+is kept. A missing, malformed, unpinned, partial (top-level errors, interruption, never-started
+tests, no tests) or inconsistent (stats or per-test status disagreeing with the attempts, a
+shard other than the job's, or a step outcome that contradicts the report) report is
+`unavailable` with its reason; the summary then says "Retry totals are unavailable; this is not
+a report of zero retries." and shows no counts table, while still listing observed attempts. The
+markdown names the original test-step outcome (reported, never changed), the reporter and
+version, each project's retry policy, the workflow run attempt and shard, a counts table, and one
+row per test with more than one attempt or a non-first-attempt classification. Retries and
+unavailability also raise one `::warning` annotation. Every report outcome exits 0; an internal
+error renders `unavailable (reporter-error)`; a summary-file write failure falls back to stdout.
+
+`playwright.config.ts` adds `['json', { outputFile: <artifacts>/playwright/results.json }]` to
+the existing CI-only `ciReporters` beside junit; local reporters and `retries: process.env.CI ?
+2 : 0` are unchanged. This one enabling line is outside the named deliverable files and is
+recorded as an owner-visible implementation decision (§22.5).
+
+`ci.yml`: in `e2e-smoke`, `e2e-functional-shard` (×4), `e2e-backup`, `e2e-fatigue-context`,
+`e2e-erase-flow` and `visual-windows`, the Playwright step gets `id: playwright` (never
+`continue-on-error`). The three `--reporter=line` jobs request `--reporter=line,json` with
+`PLAYWRIGHT_JSON_OUTPUT_FILE: artifacts/playwright/results.json`; the others get JSON from the
+config reporters. A following `Summarize Playwright retries` step (`if: always()`,
+`continue-on-error: true`) runs the script with the step's `steps.playwright.outcome`, the
+workflow run attempt and, for shards, the expected shard, all through `env:`. Job names, `needs`,
+fan-ins, permissions, required contexts and retry policy are unchanged; other workflows that load
+the config under `CI=true` (`deep-gate*.yml`) only gain an extra `results.json` in their existing
+`artifacts/playwright` output.
+
+### 22.4 Gates, reviews and bite proof
+
+| Gate | Result |
+|---|---|
+| Acceptance tests (`tests/test_ci_retry_report.py`) | 228 passed at `ce111f2` (197 at `b529008`, 207 at `222e29e`) |
+| Two-direction bite proof | 35 deliberate breaks across every TS-3 class (first-attempt success; fail→recover; exhausted; distinct tests/shards/attempt numbers/projects; pytest rerun tripwire; missing/malformed/partial unavailable; inconsistent; verdict preserved; summary after success/failure; retry policy; pinned/identified format): each turned the suite red and restoring it turned it green: **35/35 at `ce111f2`** (preliminary 30/30 at `b529008`, 33/33 at `222e29e`). Breaks were applied to a separate `--no-local` copy of the committed tree and restored with `git checkout --` (`artifacts/ci-g7/bite/results-ce111f2.json`) |
+| ci.yml-parsing and related contract suites (12 files) | 701 passed, no existing pin changed |
+| Full pytest | 6,008 passed / 2 skipped at the `b529008` tree; final-head run pending at this writing |
+| pyright 1.1.410 + baseline diff | 0 errors, 0 net-new |
+| flake8 (both ci.yml invocations) | 0 blocking; 0 informational findings in the changed Python |
+| `tsc --noEmit` | exit 0 |
+| actionlint 1.7.12 + shellcheck v0.11.0; zizmor 1.30.1 (offline) | clean; identical to the pre-change baselines |
+| Inventory | regenerated by the generator; `--check` up to date |
+| `/verify-suite` E2E (command verbatim, `PW_PORT=5082`) | 593 passed / 76 failed / 17 did not run at `b529008`, run while other CPU-heavy jobs ran. Re-running the eight failing spec files alone at `ce111f2`: head config 115 passed / 69 failed, base (`155181d6`) config 116 passed / 68 failed (17 did not run each). All eight contended functional failures passed on both sides; the remaining reds are the visual, thumbnail and desktop-contract specs this command runs without `PW_VISUAL_SEED` (QUALITY_GATE's documented condition) plus `visual-field-separator` volume-splitter desktop/tablet dark, which fail on both sides locally (pre-existing on this Windows host). The three tests whose outcome differed between head and base passed twice on head. The config differs only inside its CI-gated branch, which local runs never take |
+| `CI=1` substitute for the config change | see below |
+
+**`/verify-suite` limit and substitute.** The skill's E2E command passes `--reporter=line`,
+which replaces the config reporters, and `ciReporters` exists only under `CI`, so the local
+suite cannot exercise the config change (test-strategist BLOCKING finding; this is the evidence
+answering it). Substitute runs on port 5081 with `CI=1`: (1) smoke spec with the config reporters
+wrote both `junit.xml` and `results.json`, summary `no retries`; (2) the exact `--reporter=line,json`
++ `PLAYWRIGHT_JSON_OUTPUT_FILE` invocation wrote `results.json` at that path, and its summary
+showed a real local retry — `smoke-navigation.spec.ts:146 › Global Smoke and Navigation ›
+navigate back to home via brand link`, `#0 failed (1.7s) → #1 passed (2.3s)`, `recovered` — that
+the passing list/JUnit output does not show; (3) a temporary fail-once spec (never committed)
+through the real config and web server produced `recovered`, `#0 failed → #1 passed`, under
+`retries=2`. The implementer separately executed all six summary-step bodies under bash and pwsh
+with GitHub-style env.
+
+**Reviews.** `code-reviewer` (cold, `b529008`): no BLOCKING; five NON-BLOCKING, of which a real
+classification gap (a skip-expected test whose final attempt ran was counted as skipped), the
+summary-write exit path and a code-span break were fixed, the tripwire fragility was fixed, and
+`if: always()` was kept deliberately (a job that hits `timeout-minutes` is cancelled;
+`!cancelled()` would skip the summary exactly then). `test-strategist` (diff stage): one BLOCKING
+gate-evidence finding (above) and eleven NON-BLOCKING; over-pinned step/command/local-reporter
+assertions were relaxed to what G7 requires, the tripwire was re-scoped, and retries=0,
+unmodified-report and cp1252-console cases were added; per-case malformed detail substrings were
+declined (they would pin wording; the reason-precedence tests and the bite proof cover the
+branches). `unslop-reviewer`: no BLOCKING; repeated `ci.yml` comments and test duplication were
+trimmed; the named per-class behaviour tests, the extra malformed shapes, the rerun tripwire
+(TS-3 requires it) and the packet labels in comments (repo idiom) were kept. Delta
+`code-reviewer` (`222e29e`): no BLOCKING; three NON-BLOCKING fixed in `ce111f2`.
+
+**Re-review of the BLOCKING finding** (fresh cold `test-strategist`, at `ce111f2`):
+**cleared with conditions.** Substitute items (1) config reporters and (3) the exact
+`line,json` invocation RESOLVED; (2) script against real reports RESOLVED once re-run at the
+final head — done: `ce111f2` renders the three real reports identically to the `b529008` outputs
+(`artifacts/ci-g7/substitute/ce111f2/`); (4) PR CI PENDING by nature. The local E2E evidence
+(config identity outside its CI branch, isolation A/B, flip re-runs) was judged adequate, with no
+pre-merge action on the 76 local failures. Conditions carried to the PR: state in its body that
+local `/verify-suite` never exercises the CI reporters and that the `CI=1` substitute runs stand
+in for it; record the final-head full pytest; and record PR CI for all six jobs — run URL, head
+SHA, each `Summarize Playwright retries` conclusion, each rendered `### Retry report` block
+(including the first live `--shard` legs and the Windows pwsh step) and the unchanged Playwright
+step conclusion. A missing summary or a changed Playwright conclusion reopens the finding.
+
+### 22.5 Decisions, slot and receipts
+
+Implementation decisions taken by the lane (no consulting-team delegation was needed):
+(1) the JSON reporter line in `playwright.config.ts` (the alternative — CLI `--reporter` plus
+output-path env in `ci.yml` — duplicates the config and contradicts its documented "no
+--reporter" contract; Plan v2's G7 wiring anticipated this surface) — **owner confirmation
+requested**; (2) all six Playwright jobs in `ci.yml` are covered, not only the functional
+shards, because every one runs with `retries: 2`; (3) an unavailable report warns and never
+fails a job, so the summary cannot change a verdict; (4) `if: always()` kept, as above.
+
+Pending at this writing: final-head full pytest, the workflow-slot release, rebase onto the
+post-Q4 `main` with refreshed gates, PR CI and the native rendering of the six summaries
+(the re-review's conditions). Receipts are recorded only after they exist.
