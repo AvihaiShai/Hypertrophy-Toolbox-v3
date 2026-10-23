@@ -1,22 +1,12 @@
 # CLAUDE.md
 
-Operational guidance for Claude Code. Keep this file under 200 lines. Subsystem-specific detail lives in `.claude/rules/*.md` and loads only when the matching files enter context. **For long-running work, read [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md) first** (canonical current state); folder orientation lives in `<dir>/CLAUDE.md` files.
+Operational guidance for Claude Code. Keep this file under 200 lines and limited to what most tasks need. Subsystem-specific detail lives in `.claude/rules/*.md` and loads only when the matching files enter context. **For long-running work, read [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md) first** (canonical current state); folder orientation lives in `<dir>/CLAUDE.md` files.
 
 ---
 
 ## 1. Product Intent
 
-### What this is
-A local-first Flask web app for designing, logging, and analyzing hypertrophy (muscle-building) resistance-training programs. Single user, no auth, runs on `localhost:5000`.
-
-### Core workflows
-1. **Plan** (`/workout_plan`) — build routines: choose exercises via filters, set reps/sets/weight/RIR. Or auto-generate via starter plan generator.
-2. **Log** (`/workout_log`) — record actual performance (scored reps, weight, RIR) against plan.
-3. **Analyze** (`/weekly_summary`, `/session_summary`) — volume per muscle with Effective Sets and Raw Sets shown side-by-side; direct/total contribution mode.
-4. **Progress** (`/progression`) — double-progression suggestions (increase weight vs reps).
-5. **Distribute** (`/volume_splitter`) — optimize weekly set allocation across muscles.
-6. **Profile** (`/user_profile`) — save reference lifts and rep preferences for Workout Controls estimates.
-7. **Backup** (via `/api/backups`) — snapshot/restore entire programs.
+A local-first Flask web app for designing, logging, and analyzing hypertrophy (muscle-building) resistance-training programs. Single user, no auth, runs on `localhost:5000`. Core workflows: Plan (`/workout_plan`), Log (`/workout_log`), Analyze (`/weekly_summary`, `/session_summary`), Progress (`/progression`), Distribute (`/volume_splitter`), Profile (`/user_profile`) and Backup (`/api/backups`). Per-page controls and outcomes: [`docs/product/APP_FLOW.md`](docs/product/APP_FLOW.md).
 
 ### Key terminology
 | Term | Meaning |
@@ -42,18 +32,10 @@ Any change to core workflow behavior (plan/log/analyze/progress/distribute/backu
 
 ## 2. Architecture
 
-### Startup sequence (`init_runtime()`, `utils/runtime_init.py`)
-`app.py` builds the application with `create_app()`; module-level `app = create_app()` stays importable. Importing `app` performs no database, data-directory, migration, seed, catalog-upgrade or backup work. The first `get_logger()` call in a process — triggered transitively by importing `app`, any route module or most `utils` modules — still creates `<runtime root>/logs/` and attaches the `app.log` file handler and the console handler.
+### Startup
+Importing `app` performs no database, data-directory, migration, seed, catalog-upgrade or backup work. The first `get_logger()` call in a process — triggered transitively by importing `app`, any route module or most `utils` modules — still creates `<runtime root>/logs/` and attaches the `app.log` file handler and the console handler.
 
-Production code calls `init_runtime()` only from the entry points: `main()` in `app.py` (`python app.py`; under the reloader only the serving child), `app_launcher.main()` (packaged exe) and `create_initialized_app()` (the `flask` CLI target `app:create_initialized_app`). It is guarded once per process. The order is load-bearing — `.claude/rules/database.md` has the reasoning:
-```
-prepare_runtime_database()              ← moves a legacy DB out of the install dir, once
-bootstrap_runtime_database()            ← copies data/catalog.seed.db only when DB_FILE is missing
-run_all_initializers(force_base=False)  ← canonical schema registry (utils/schema_registry.py, WP2.6)
-upgrade_catalog_from_seed()             ← additive catalog refresh; skipped on a fresh seed
-create_startup_backup()                 ← also skipped on a fresh seed
-```
-The per-table `initialize_*` / `add_*_table` functions are registered in `utils/schema_registry.py`, not called individually from `app.py`. Seeding and catalog upgrade are called **only** from `init_runtime()`, never from `run_all_initializers()` — the test suite creates empty schemas on purpose, and its `app` fixture is `create_app()` without `init_runtime()`. `create_app()` registers 13 blueprints (`register_blueprint` in `create_app()`), plus one direct route: `POST /erase-data` (`erase_data()` in `app.py`) — the erase route is **not** a blueprint.
+`create_app()` registers 13 blueprints plus one direct route, `POST /erase-data` (`erase_data()` in `app.py`), which is **not** a blueprint. Only the entry points call `init_runtime()` (`utils/runtime_init.py`), once per process; it runs migration, seeding, the schema registry, the catalog upgrade and the startup backup in a load-bearing order. The tests' `app` fixture is `create_app()` without it. Sequence, entry points and reasoning: `.claude/rules/database.md`.
 
 ### Module boundaries
 ```
@@ -68,13 +50,11 @@ app.py                 ← create_app() + middleware + entry points only; no bus
 - All DB access via `DatabaseHandler` context manager (class + `__enter__` / `__exit__` in `utils/database.py`).
 - All JSON responses via `success_response()` / `error_response()` (`utils/errors.py`).
 - All logging via `get_logger()` (`utils/logger.py`).
-- Named infrastructure exception: `scripts/seed_worktree_snapshot.py` uses stdlib
-  `sqlite3` and caller-captured diagnostics only for validated worktree seeding;
-  it imports no application DB/config/logger. See `.claude/rules/database.md`.
+- Named infrastructure exception: `scripts/seed_worktree_snapshot.py` (validated worktree seeding only); see `.claude/rules/database.md`.
 
 ### Deeper references
-- Routes / API endpoints / filters / security → `.claude/rules/routes.md` (loads when editing `routes/**`).
-- DB schema / DatabaseHandler / adding tables → `.claude/rules/database.md` (loads when editing `utils/database*.py` or `utils/db_initializer.py`).
+- Routes / API endpoints / filters / security / new-feature checklist → `.claude/rules/routes.md` (loads when editing `routes/**`).
+- DB schema / DatabaseHandler / adding tables / startup / env vars → `.claude/rules/database.md` (loads when editing `utils/database*.py` or `utils/db_initializer.py`).
 - Templates / JS modules / SCSS → `.claude/rules/frontend.md` (loads when editing `templates/**`, `static/**`, `scss/**`).
 - Pytest + Playwright + E2E map → `.claude/rules/testing.md` (loads when editing `tests/**` or `e2e/**`).
 - Logging / request tracing / typical failures → `.claude/rules/debugging.md` (loads when editing `utils/logger.py` or `utils/request_id.py`).
@@ -93,8 +73,8 @@ see `docs/ai_workflow/PARALLEL_WORKFLOW.md`. During the approved cleanup sequenc
 retain worktrees, branches, reflogs, recovery roots and discovered snapshots until
 their separate owner-approved operation; no ordinary teardown bypasses that hold.
 
-### Logging
-`get_logger()` returns the `'hypertrophy_toolbox'` named logger (`utils/logger.py`). Logs to `<runtime root>/logs/app.log` (rotating 10MB × 5) and console (INFO+). The runtime root is the repository in a source checkout and `%LOCALAPPDATA%\HypertrophyToolbox` in a frozen build — never assume repository-local paths (`utils/runtime_paths.py`).
+### Logging and paths
+`get_logger()` returns the `'hypertrophy_toolbox'` logger (`utils/logger.py`), writing to `<runtime root>/logs/app.log` and the console. The runtime root is the repository in a source checkout and `%LOCALAPPDATA%\HypertrophyToolbox` in a frozen build — never assume repository-local paths (`utils/runtime_paths.py`). `DB_FILE` overrides the SQLite path (tests patch `utils.config.DB_FILE`) and `HT_RUNTIME_DIR` relocates the whole runtime tree; the full env-var table is in `.claude/rules/database.md`.
 
 ### Repository root policy
 The root holds five categories only — entry points, user-facing start/readme files, build manifests, root-discovered tool config, and repository operating instructions. Generated output (baselines, reports, screenshots, scratch DBs) goes under the gitignored `artifacts/`, never the root. Full table and rationale: `docs/DECISIONS.md` ADR-002.
@@ -102,15 +82,19 @@ The root holds five categories only — entry points, user-facing start/readme f
 ### Constants and normalization
 `utils/constants.py` has canonical enums. Always normalize before persisting: `normalize_muscle()`, `normalize_equipment()`, etc. from `utils/normalization.py`.
 
-### Env vars (`utils/config.py`)
-| Variable | Default | Effect |
-|---|---|---|
-| `DB_FILE` | `<runtime root>/data/database.db` | SQLite path; wins over every resolved path. Tests patch `utils.config.DB_FILE` directly. |
-| `HT_RUNTIME_DIR` | unset | Relocates the whole runtime tree (database, backups, logs) in one move. The supported portable-install mechanism. |
-| `FLASK_DEBUG` | `'0'` in `app.py`; `'1'` in `utils/database.py` | Controls Flask debug AND journal mode |
-| `FLASK_USE_RELOADER` | `'0'` | Auto-reload (off by default — avoids WAL corruption) |
-| `TESTING` | unset | Set to `'1'` by `tests/conftest.py` |
-| `MAX_EXPORT_ROWS` | `1000000` | Export cap |
+### Reasoning effort is not agent authorization
+
+Applies to every kind of task — implementation, audits, migrations, research and reviews alike.
+Reasoning-effort words such as "high", "max" and "ultra" do not authorize additional agents. Use
+the minimum agents required by the explicit request and applicable repository workflow, such as
+the gates in
+[`docs/ai_workflow/QUALITY_GATE.md`](docs/ai_workflow/QUALITY_GATE.md#plan-stage-routing).
+Additional optional agents, review layers, or per-finding verifier pairs require explicit user
+authorization — propose them and let the owner decide. Preserve mandatory delegation, approval
+gates, and reviewer independence.
+
+A review that did not run, or whose reviewer failed, is **incomplete** — never record it as
+"no findings" or "refuted", and never let it move an approval status.
 
 ### Run commands
 ```bash
@@ -132,46 +116,25 @@ npx playwright test --project=chromium --reporter=line
 ## 4. Cross-cutting Playbooks
 
 ### A. Add a new feature
-- [ ] Create `utils/myfeature.py` with business logic.
-- [ ] Add `from utils.logger import get_logger` + `logger = get_logger()` at module top.
-- [ ] Create `routes/myfeature.py` with blueprint (routes rule has the template).
-- [ ] Register the blueprint in `create_app()` (`app.py`) and add the name to `EXPECTED_BLUEPRINTS` in `tests/test_app_factory.py`, the one deliberate second site, a test oracle. The tests use the same factory, so a missing `register_blueprint` is a 404 in production and in every test.
-- [ ] If a new table is needed, follow the database rule.
-- [ ] Create `templates/myfeature.html` extending `{% extends "base.html" %}`.
-- [ ] Create `static/js/modules/myfeature.js`; use `apiFetch` or `api` from `fetch-wrapper.js`.
-- [ ] Add nav link in `templates/base.html` navbar.
-- [ ] Write tests in `tests/test_myfeature.py`.
+Follow the checklist in `.claude/rules/routes.md` (*Adding a feature end to end*).
 
 ### B. Refactor safely
-1. **Before**: run full test suite, record baseline. Generated output goes under the gitignored `artifacts/`, never the repository root.
-   ```bash
-   mkdir -p artifacts
-   .venv/Scripts/python.exe -m pytest tests/ -q > artifacts/baseline_pytest.txt 2>&1
-   ```
-2. **Scope**: Grep for function/class name across `routes/`, `utils/`, `templates/`, `tests/`.
-3. **Change**: one module at a time, keeping old interface as a thin wrapper if callers span multiple files.
-4. **Verify**: re-run affected test file(s) after each file.
-5. **Gate**: full pytest + relevant E2E specs must pass before done. Use the `/verify-suite` skill.
-6. **Rollback**: if tests fail and the fix isn't obvious, `git stash push` or `git stash push -- <file>` immediately.
+1. **Scope**: search the function/class name across `routes/`, `utils/`, `templates/`, `tests/`.
+2. **Change**: keep the old interface as a thin wrapper while callers span multiple files.
+3. **Gate**: finish with `/verify-and-polish`; tests and reviewers follow `docs/ai_workflow/QUALITY_GATE.md`. No blanket pre-change baseline; if a failure's origin is unclear, reproduce it in an isolated base checkout, not by stashing.
+4. Generated output goes under the gitignored `artifacts/`.
 
 ---
 
 ## 5. Current State & Risks
 
-> **Point-in-time status (branch/PR/WP progress, test counts, "what shipped when") lives in [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md) — read it first for long-running work.** Keep this section to *durable* facts only: architecture gotchas that stay true across sessions. Do not add timestamped status logs here — they go stale and mislead.
-
-### Known response-contract exceptions
-None. The pattern-coverage and replace-exercise fallback paths were migrated to `success_response()` / `error_response()` (2026-05-21). The replace-exercise "no result" cases (`NO_CANDIDATES`, `DUPLICATE`, `SELECTION_FAILED`) keep HTTP 200 by passing `status_code=200` to `error_response()` — they're user-facing "couldn't be processed" outcomes that pytest + the JS swap handler treat as 200 + `ok:false`.
+Point-in-time status lives in [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md); this section holds durable gotchas only. The response-contract rule and its HTTP-200 "no result" cases are in `.claude/rules/routes.md`.
 
 ### exercise_order column
 Added at startup by `initialize_exercise_order()` (defined in `utils/schema_registry.py`, re-exported from `routes/workout_plan.py`) via `ALTER TABLE`. `get_workout_plan()` in `routes/workout_plan.py` defensively checks `column_exists()` for pre-migration DBs.
 
 ### session_summary vs weekly_summary — not duplicates
-- `calculate_session_summary(routine, time_window, ...)` in `utils/session_summary.py`: groups by routine, optional date filter, per-session averages from `workout_log` join.
-- `calculate_weekly_summary(method, ...)` in `utils/weekly_summary.py`: aggregates across all routines weekly, no date filter, tracks frequency.
-
-`session_summary.py` imports only `EFFECTIVE_STATUS_MAP` from `weekly_summary.py`;
-the calculations remain independent.
+`calculate_session_summary()` (`utils/session_summary.py`) groups by routine with an optional date filter; `calculate_weekly_summary()` (`utils/weekly_summary.py`) aggregates all routines weekly with no date filter and tracks frequency. The first imports only `EFFECTIVE_STATUS_MAP` from the second.
 
 ### Historical audit trail
 Full audit history and resolved violations: `docs/CLAUDE_MD_AUDIT.md`.
