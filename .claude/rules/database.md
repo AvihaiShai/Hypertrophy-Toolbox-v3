@@ -140,13 +140,15 @@ The trigger is a SHA-256 over the shipped catalog's rows, recorded in
 `OWNED_TABLES_DROP_ORDER`). Adding a column to `save_exercise`'s editable list
 fails `tests/test_catalog_upgrade.py`.
 
-## Env vars that affect DB (`utils/config.py`)
+## Env vars (`utils/config.py`)
 | Variable | Default | Effect |
 |---|---|---|
-| `DB_FILE` | `data/database.db` | SQLite path; wins over every resolved path. Tests patch `utils.config.DB_FILE` directly. |
-| `HT_RUNTIME_DIR` | unset | Relocates the whole runtime tree (data + logs). Portable installs. |
+| `DB_FILE` | `<runtime root>/data/database.db` | SQLite path; wins over every resolved path. Tests patch `utils.config.DB_FILE` directly. |
+| `HT_RUNTIME_DIR` | unset | Relocates the whole runtime tree (database, backups, logs) in one move. The supported portable-install mechanism. |
 | `FLASK_DEBUG` | `'0'` in `main()` in `app.py`; `'1'` in `database.py:90` | Controls Flask debug AND journal mode |
+| `FLASK_USE_RELOADER` | `'0'` | Auto-reload (off by default — avoids WAL corruption) |
 | `TESTING` | unset | Set to `'1'` by `tests/conftest.py` for the shared pytest harness |
+| `MAX_EXPORT_ROWS` | `1000000` | Export cap |
 
 ## Startup sequence (`init_runtime()`, `utils/runtime_init.py`)
 Importing `app` does none of this. Only the entry points call `init_runtime()` —
@@ -158,10 +160,15 @@ init_runtime():
   prepare_runtime_database()      ← moves a legacy database to the runtime root, once
   utils.config.DB_FILE = ...      ← whatever that decided (legacy path on failure)
   bootstrap_runtime_database()    ← copies catalog seed only when DB_FILE is missing
-  run_all_initializers()          ← canonical schema registry sequence
+  run_all_initializers(force_base=False)  ← canonical schema registry sequence
   upgrade_catalog_from_seed()     ← additive catalog refresh; skipped when the seed just ran
   create_startup_backup()         ← skipped for the pristine first-run seed copy
 ```
+Under the reloader only the serving child of `python app.py` calls it. The per-table
+`initialize_*` / `add_*_table` functions are registered in `utils/schema_registry.py`, not
+called individually from `app.py`. Seeding and the catalog upgrade run **only** from
+`init_runtime()`, never from `run_all_initializers()`: the test suite creates empty schemas on
+purpose, and its `app` fixture is `create_app()` without `init_runtime()`.
 
 ## Typical failures
 | Symptom | Cause | Evidence |

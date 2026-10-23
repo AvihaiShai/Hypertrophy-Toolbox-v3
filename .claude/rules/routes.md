@@ -45,6 +45,17 @@ def my_endpoint():
         return error_response("INTERNAL_ERROR", "Unexpected error", 500)
 ```
 
+## Adding a feature end to end
+- [ ] Create `utils/myfeature.py` with business logic.
+- [ ] Add `from utils.logger import get_logger` + `logger = get_logger()` at module top.
+- [ ] Create `routes/myfeature.py` with a blueprint (template above).
+- [ ] Register the blueprint in `create_app()` (`app.py`) and add the name to `EXPECTED_BLUEPRINTS` in `tests/test_app_factory.py` (next section).
+- [ ] If a new table is needed, follow `.claude/rules/database.md`.
+- [ ] Create `templates/myfeature.html` extending `{% extends "base.html" %}`.
+- [ ] Create `static/js/modules/myfeature.js`; use `apiFetch` or `api` from `fetch-wrapper.js`.
+- [ ] Add nav link in `templates/base.html` navbar.
+- [ ] Write tests in `tests/test_myfeature.py`.
+
 ## Adding a blueprint — three places
 1. Create `routes/newbp.py` with `newbp_bp = Blueprint('newbp', __name__)`
 2. In `app.py`: `from routes.newbp import newbp_bp` + add `newbp_bp` to the blueprint tuple registered inside `create_app()`
