@@ -237,6 +237,22 @@ class TestMappingCsv:
 class TestApplyScriptValidation:
     """parse_csv rejects malformed input without partially applying."""
 
+    def test_utf8_exercise_name_from_unicode_csv_path(self, tmp_path):
+        name = "אימון כוח – Café"
+        path = tmp_path / 'בדיקה Café.csv'
+        path.write_bytes((
+            'exercise_name,suggested_fed_id,suggested_image_path,'
+            'score,review_status\n'
+            f'{name},,,,rejected\n'
+        ).encode('utf-8'))
+
+        rows, errors = parse_csv(path)
+
+        assert errors == []
+        assert len(rows) == 1
+        assert rows[0].exercise_name == name
+        assert rows[0].review_status == 'rejected'
+
     def _write(self, tmp_path: Path, body: str) -> Path:
         p = tmp_path / "mapping.csv"
         p.write_text(body, encoding="utf-8")

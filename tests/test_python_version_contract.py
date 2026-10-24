@@ -18,12 +18,19 @@ def test_current_interpreter_meets_project_minimum():
     assert sys.version_info[:3] >= MIN_PYTHON
 
 
-def test_runtime_guard_rejects_older_patch_release():
-    with pytest.raises(RuntimeError, match=r"requires Python 3\.14\.6 or newer"):
-        require_supported_python((3, 14, 5))
+def test_runtime_floor_is_the_approved_exact_patch():
+    assert MIN_PYTHON == (3, 15, 1)
+    assert MIN_PYTHON_TEXT == "3.15.1"
 
 
-@pytest.mark.parametrize("version", [(3, 14, 6), (3, 14, 7), (3, 15, 0)])
+@pytest.mark.parametrize("version", [(3, 14, 6), (3, 15, 0)])
+def test_runtime_guard_rejects_older_patch_and_minor_releases(version):
+    with pytest.raises(RuntimeError, match=r"requires Python 3\.15\.1 or newer") as exc:
+        require_supported_python(version)
+    assert f"found Python {'.'.join(map(str, version))}" in str(exc.value)
+
+
+@pytest.mark.parametrize("version", [(3, 15, 1), (3, 15, 2), (3, 16, 0)])
 def test_runtime_guard_accepts_minimum_and_newer(version):
     require_supported_python(version)
 

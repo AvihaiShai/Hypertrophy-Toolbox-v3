@@ -241,7 +241,7 @@
     "total_tests": 686
   },
   "pytest": {
-    "collected_deterministic": 4121,
+    "collected_deterministic": 4127,
     "deterministic_files": 138,
     "environment_dependent_files": [
       {
@@ -452,7 +452,7 @@
       },
       {
         "file": "tests/test_exports.py",
-        "tests": 57
+        "tests": 58
       },
       {
         "file": "tests/test_fatigue.py",
@@ -492,7 +492,7 @@
       },
       {
         "file": "tests/test_free_exercise_db_mapping.py",
-        "tests": 85
+        "tests": 86
       },
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -600,7 +600,7 @@
       },
       {
         "file": "tests/test_program_backup.py",
-        "tests": 40
+        "tests": 41
       },
       {
         "file": "tests/test_program_backup_restore_fuzz.py",
@@ -620,7 +620,7 @@
       },
       {
         "file": "tests/test_python_version_contract.py",
-        "tests": 17
+        "tests": 19
       },
       {
         "file": "tests/test_real_app_db_isolation.py",
@@ -804,7 +804,7 @@
       },
       {
         "file": "tests/test_youtube_video_id.py",
-        "tests": 40
+        "tests": 41
       }
     ],
     "total_files": 139

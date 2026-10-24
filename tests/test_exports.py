@@ -280,6 +280,37 @@ class TestWorkbookCleanupPaths:
 
 class TestExportsEndpoints:
     """Test export endpoints with actual requests."""
+
+    def test_excel_export_preserves_unicode_text_and_numbers_in_unicode_path(
+        self, client, clean_db, exercise_factory, workout_plan_factory, tmp_path
+    ):
+        routine = "אימון כוח – Café"
+        exercise = exercise_factory("לחיצת חזה – Développé")
+        workout_plan_factory(
+            exercise_name=exercise, routine=routine, sets=3,
+            min_rep_range=6, max_rep_range=8, weight=52.5,
+        )
+
+        response = client.get('/export_to_excel')
+        assert response.status_code == 200
+        destination = tmp_path / 'בדיקה Café' / 'אימון.xlsx'
+        destination.parent.mkdir()
+        destination.write_bytes(response.data)
+
+        workbook = load_workbook(destination, read_only=True, data_only=True)
+        try:
+            rows = list(workbook['Workout Plan'].iter_rows(values_only=True))
+            assert len(rows) == 2
+            exported = dict(zip(rows[0], rows[1]))
+            assert {
+                key: exported[key]
+                for key in ('Routine', 'Exercise', 'Sets', 'Min Rep', 'Max Rep', 'Weight')
+            } == {
+                'Routine': routine, 'Exercise': exercise, 'Sets': 3,
+                'Min Rep': 6, 'Max Rep': 8, 'Weight': 52.5,
+            }
+        finally:
+            workbook.close()
     
     def test_export_to_excel_structure(self, client, sample_workout_plan):
         """Test full Excel export structure."""

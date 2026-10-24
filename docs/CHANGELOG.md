@@ -2,6 +2,21 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - 2026-10-24
+
+### Python 3.15.1 minimum runtime
+
+- Source, test, CI, analysis and executable-build configuration now target Python
+  3.15.1 or newer. Windows launcher/build guidance points to the matching release
+  and rejects virtual environments created below that floor.
+- Existing dependency pins remain unchanged after fresh Windows x64 installations
+  and `pip check` passed under the official standard CPython 3.15.1 runtime.
+- Added dependency consistency checks to the existing Linux core-test, Windows
+  worktree-test and Windows packaged-build environments. The Pyright baseline
+  retains zero diagnostics. Full acceptance and the separate no-Python Windows
+  Sandbox merge requirement are tracked in the
+  [execution record](python315_migration/EXECUTION.md).
+
 ## Unreleased - August 2026
 
 ### User-visible
