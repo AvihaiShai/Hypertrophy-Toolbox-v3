@@ -8,8 +8,8 @@ Design your workout plan using science - all the tools you need to design, track
 
 **Double-click `START.bat`** - That's it!
 
-**Requirement:** Python 3.14.6 or newer. The launcher reads `.python-version`,
-selects the registered Python 3.14 runtime through the Windows Python launcher,
+**Requirement:** Python 3.15.1 or newer. The launcher reads `.python-version`,
+selects the registered Python 3.15 runtime through the Windows Python launcher,
 and checks any existing `venv` before starting.
 
 This will automatically:
@@ -41,10 +41,10 @@ This will automatically:
 
 ### Option 3: Manual Setup (For Developers)
 
-1. **Install Python 3.14.6 or newer:**
+1. **Install Python 3.15.1 or newer:**
 
-   Use the [Python 3.14.6 release](https://www.python.org/downloads/release/python-3146/)
-   or another compatible 3.14.6+ distribution. The committed
+   Use the [Python 3.15.1 release](https://www.python.org/downloads/release/python-3151/)
+   or another compatible 3.15.1+ distribution. The committed
    `.python-version` is the canonical interpreter pin used by CI and
    version-aware environment managers.
 
@@ -64,6 +64,15 @@ This will automatically:
    > installs the pinned toolchain there from the committed requirements files, so
    > a release never depends on packages that happen to be in a developer's
    > environment. Don't build from `.venv`, and don't point the tools at `venv`.
+
+   When upgrading, retain the previous checkout, its Python 3.14 environments,
+   and database/backups. Create fresh `.venv` and launcher/build `venv`
+   environments with Python 3.15.1; an existing environment keeps its original
+   interpreter. On Windows, `py -3.15 --version` must identify at least 3.15.1
+   before using either batch entry point. Rename an old launcher/build `venv`
+   folder to `venv-3.14-backup`, then rerun the batch entry point to create its
+   replacement. See the
+   [migration and rollback record](docs/python315_migration/EXECUTION.md).
 
 3. **Install dependencies:**
    ```bash
@@ -217,7 +226,7 @@ See the [`docs/`](docs/) folder:
 ## 🛠️ Tech Stack
 
 - **Backend**: Flask 3.1+, SQLite
-- **Python**: 3.14.6+ (source, CI, type analysis, and executable builds)
+- **Python**: 3.15.1+ (source, CI, type analysis, and executable builds)
 - **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
 - **Styling**: Custom Bootstrap 5.1.3 build + custom CSS
 - **Testing**: pytest, Playwright (Chromium), Vitest
