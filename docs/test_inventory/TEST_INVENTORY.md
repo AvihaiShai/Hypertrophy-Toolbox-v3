@@ -15,7 +15,7 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **691** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **545** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4127** across 138 files |
+| pytest collected nodes (deterministic subset) | **4132** across 138 files |
 | pytest test files (all) | **139** |
 | JS unit cases (Vitest) | **269** across 14 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
@@ -113,7 +113,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_erase_data_guard.py` | 10 |
 | `tests/test_error_page_contract.py` | 11 |
 | `tests/test_errors_utils.py` | 31 |
-| `tests/test_exercise_manager.py` | 37 |
+| `tests/test_exercise_manager.py` | 38 |
 | `tests/test_exercise_media.py` | 6 |
 | `tests/test_export_blank_rep_bounds_contract.py` | 5 |
 | `tests/test_export_blank_rep_bounds_gate0.py` | 12 |
@@ -144,7 +144,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_pattern_coverage.py` | 23 |
 | `tests/test_phase3_features.py` | 19 |
 | `tests/test_plan_generator.py` | 35 |
-| `tests/test_plan_generator_refactor_contracts.py` | 6 |
+| `tests/test_plan_generator_refactor_contracts.py` | 7 |
 | `tests/test_playwright_runner_contracts.py` | 13 |
 | `tests/test_playwright_shard_launcher_contracts.py` | 40 |
 | `tests/test_playwright_url_contracts.py` | 14 |
@@ -200,7 +200,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_workout_log_calibration_route.py` | 7 |
 | `tests/test_workout_log_routes.py` | 58 |
 | `tests/test_workout_log_utils.py` | 30 |
-| `tests/test_workout_plan_routes.py` | 85 |
+| `tests/test_workout_plan_routes.py` | 88 |
 | `tests/test_workout_plan_service.py` | 11 |
 | `tests/test_worktree_ci_contracts.py` | 12 |
 | `tests/test_worktree_environment_preflight.py` | 72 |

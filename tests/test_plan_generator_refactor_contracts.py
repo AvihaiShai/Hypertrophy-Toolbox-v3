@@ -169,7 +169,7 @@ def test_persist_reraises_failure_outside_individual_row_insert(monkeypatch):
         generator.persist(plan)
 
 
-def test_persistence_result_keeps_public_error_shape(monkeypatch):
+def test_persistence_result_keeps_public_error_shape(monkeypatch, caplog):
     config = GeneratorConfig(persist=True)
     generator = PlanGenerator(config)
     plan = GeneratedPlan(routines={}, config=config)
@@ -179,12 +179,31 @@ def test_persistence_result_keeps_public_error_shape(monkeypatch):
         raise RuntimeError("write failed")
 
     monkeypatch.setattr(generator, "persist", fail_persistence)
+    plan_generator.logger.addHandler(caplog.handler)
+    try:
+        plan_generator._add_persistence_result(
+            generator, plan, result, should_persist=True,
+        )
+    finally:
+        plan_generator.logger.removeHandler(caplog.handler)
 
+    assert result == {"persisted": False, "persist_error": "Failed to save generated plan"}
+    assert any(record.exc_info and str(record.exc_info[1]) == "write failed" for record in caplog.records)
+    assert "write failed" in caplog.text
+
+
+def test_disabled_persistence_keeps_generated_data_without_failure_metadata(monkeypatch):
+    config = GeneratorConfig(persist=False)
+    generator = PlanGenerator(config)
+    plan = GeneratedPlan(routines={}, config=config)
+    result = {"routines": {}, "total_exercises": 0}
+
+    def fail_if_called(_plan):
+        raise AssertionError("disabled persistence must not call storage")
+
+    monkeypatch.setattr(generator, "persist", fail_if_called)
     plan_generator._add_persistence_result(
-        generator,
-        plan,
-        result,
-        should_persist=True,
+        generator, plan, result, should_persist=False,
     )
 
-    assert result == {"persisted": False, "persist_error": "write failed"}
+    assert result == {"routines": {}, "total_exercises": 0, "persisted": False}

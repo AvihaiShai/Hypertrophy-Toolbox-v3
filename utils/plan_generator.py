@@ -1517,15 +1517,16 @@ def _add_persistence_result(
     result: Dict[str, Any],
     should_persist: bool,
 ) -> None:
-    """Attach persistence outcome fields without changing API error behavior."""
+    """Attach persistence outcomes without exposing unexpected error details."""
     if should_persist:
         try:
             inserted = generator.persist(plan)
             result["persisted"] = True
             result["inserted_counts"] = inserted
-        except Exception as e:
+        except Exception:
+            logger.exception("Failed to save generated plan")
             result["persisted"] = False
-            result["persist_error"] = str(e)
+            result["persist_error"] = "Failed to save generated plan"
     else:
         result["persisted"] = False
 

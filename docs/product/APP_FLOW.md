@@ -301,6 +301,11 @@ live.
 | Load Program | Navigation | → `/backup?intent=browse` |
 | Clear Plan | Presentation → API | Modal, then `POST /clear_workout_plan` |
 
+Unexpected Add Exercise storage failures return HTTP 500 / `INTERNAL_ERROR` with
+`Failed to add exercise`; expected input problems retain their specific validation
+messages. If starter-plan storage fails, generation still returns HTTP 200 and its
+generated data with `persisted: false` and `persist_error: "Failed to save generated plan"`.
+
 ---
 
 ## Log — `/workout_log`

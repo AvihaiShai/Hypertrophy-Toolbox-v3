@@ -720,3 +720,30 @@ class TestSyncIsolatedMuscles:
                 )
             
             assert len(muscles) == 0
+
+
+def test_unexpected_add_failure_is_generic_and_logged(app, monkeypatch, caplog):
+    import utils.exercise_manager as exercise_manager
+
+    sentinel = "PRIVATE_ADD_EXERCISE_STORAGE_DETAIL"
+
+    class FailingDB:
+        def __enter__(self):
+            raise RuntimeError(sentinel)
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    monkeypatch.setattr(exercise_manager, "DatabaseHandler", FailingDB)
+    exercise_manager.logger.addHandler(caplog.handler)
+    try:
+        with app.app_context():
+            result = ExerciseManager.add_exercise(
+                "Push", "Bench Press", 3, 8, 12, 2, 80.0,
+            )
+    finally:
+        exercise_manager.logger.removeHandler(caplog.handler)
+
+    assert result == "Failed to add exercise"
+    assert any(record.exc_info and str(record.exc_info[1]) == sentinel for record in caplog.records)
+    assert sentinel in caplog.text
