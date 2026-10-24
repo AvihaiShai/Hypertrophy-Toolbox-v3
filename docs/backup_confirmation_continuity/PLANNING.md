@@ -1,6 +1,6 @@
 # Plan Review — Packet U2: Backup "save first" confirmation continuity
 
-**Packet**: U2, from [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 ([`:152-181`](../OPEN_WORK_EXECUTION_PLAN.md#L152-L181))
+**Packet**: U2, from [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 ([`:152-181`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L152-L181))
 **Priority**: P1 · **Status**: **Gate 1 SIGNED — 2026-08-26.** Plan v2 is an approved plan; the owner's four decisions are recorded in §v2.1 and restated in *Sign-off*. **Implementation becomes authorized only after this signed planning PR merges** — signing alone authorizes nothing.
 **Base**: `origin/main` at **`06a3f419fd658403b2659ac2e2053d332254b3e2`** (PR #423, Packet U1 implementation), **plus this PR's own two edits** — this document and the [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) ledger row 12 recorded in the *Operational rider* below. Every line citation in §0 was read from the **base commit's** content of the file it cites; the ledger file is the one exception and is treated separately.
 **Branch**: `docs/u2-gate1-plan`
@@ -34,7 +34,7 @@
 
 The owner stated the packet in five clauses, reproduced here as the owner worded them in the
 authorization. ⚠️ **CORRECTED (architecture N6, product-risk NIT).** Plan v1 called these "verbatim"
-and they are the *owner's* wording, not the *document's*. [`OPEN_WORK_EXECUTION_PLAN.md:162-180`](../OPEN_WORK_EXECUTION_PLAN.md#L162-L180)
+and they are the *owner's* wording, not the *document's*. [`OPEN_WORK_EXECUTION_PLAN.md:162-180`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L162-L180)
 words two of them differently, and one difference is load-bearing:
 
 - The document says *"Detail rendering calls `clearPendingAction()`"*; clause 2 below names `renderBackupDetails()`. Same mechanism, and §0.1 measures it.
@@ -270,7 +270,7 @@ Two clauses of that ruling reach U2, and they reach it differently:
 - **The Vitest prohibition binds U2's *test* tier.** Q3's "no test file for it may be written" is
   scoped to step 12, and U2 is authorized by a different document. But the sentence that follows —
   *"reviving this needs its own Gate 0"* — is not step-12-scoped; it is a statement about what
-  authorizing `backup-center.js` unit coverage requires. ⚠️ **CORRECTED (A-N5).** Plan v1 argued here that *because* U2 has no Gate 0, U2 therefore **cannot** be the vehicle that revives `backup-center.js` unit coverage. **That syllogism does not hold.** [`OPEN_WORK_EXECUTION_PLAN.md:158-160`](../OPEN_WORK_EXECUTION_PLAN.md#L158-L160) says U2's *requirements* are settled — a statement about what U2 need not re-derive, not a rule about what U2 may do. **The owner can simply grant the Gate 0 Q3 asks for.** Q3's substantive point still stands on its own (unit-testing this module at its single export means standing up the whole Backup Center DOM), but the **decisive** obstacle is the live qualification window, not Q3. **§v2.1 OD-1** is restructured accordingly. **Settled at Gate 1: OD-1 (i)** — the owner neither requested nor granted the Gate 0 this paragraph shows they *could* have.
+  authorizing `backup-center.js` unit coverage requires. ⚠️ **CORRECTED (A-N5).** Plan v1 argued here that *because* U2 has no Gate 0, U2 therefore **cannot** be the vehicle that revives `backup-center.js` unit coverage. **That syllogism does not hold.** [`OPEN_WORK_EXECUTION_PLAN.md:158-160`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L158-L160) says U2's *requirements* are settled — a statement about what U2 need not re-derive, not a rule about what U2 may do. **The owner can simply grant the Gate 0 Q3 asks for.** Q3's substantive point still stands on its own (unit-testing this module at its single export means standing up the whole Backup Center DOM), but the **decisive** obstacle is the live qualification window, not Q3. **§v2.1 OD-1** is restructured accordingly. **Settled at Gate 1: OD-1 (i)** — the owner neither requested nor granted the Gate 0 this paragraph shows they *could* have.
 - **The seam-extraction prohibition is *not* binding on U2, and must not be mistaken for a licence.**
   Q3 says extracting "`detailRequestSequence` and the `pendingAction` state machine into seams" is a
   production change "outside step 12's test-only scope", and that "the owner ruled that extraction out
@@ -848,8 +848,8 @@ Every finding is listed. **Disposition** is one of ACCEPTED (Plan v2 changes), A
 | **A-N2** | `u5` and `u6` silently degrade into selection-change tests unless the fixture pins the selection: a search string that excludes the selected backup, or a filter the selected backup fails, takes the `:960-961` / `:910-911` branch instead. They would then inherit `:155`'s vacuity while claiming to replace it. | Verified against `getVisibleBackups()` [`:70-98`](../../static/js/modules/backup-center.js#L70-L98) and both handlers. | **ACCEPTED.** §v2.8 specifies for `u5` a filter matching the selected backup's `backup_type`, for `u6` a substring of the selected backup's own name, and requires **both** arms to assert the selection is unchanged — otherwise the arm is not measuring what it claims. |
 | **A-N3** | A fifth design is missing: **Design E — do not refresh at all on save-first.** It removes the teardown, the round trips and every interleaving at once. Its costs: the handler must take over the button reset, and the new snapshot is absent from the library until the flow ends, which **reds `program-backup.spec.ts:153-154`**. | Verified: `:153-154` assert the snapshot appears in the list. Design E does red them. | **ACCEPTED as a plan defect; Design E EVALUATED AND REJECTED.** §v2.2 adds it with its costs stated. Rejected because it inverts a *correct* existing assertion (unlike `:155`, which is vacuous), and because the save-first snapshot's absence from the library is a real information loss for a user deciding whether to proceed. Recorded so the owner can overrule. |
 | **A-N4** | Under OD-3(b), the "Saved" label becomes a **seventh** writer of `#backup-restore-save-first`'s `innerHTML`/`disabled`; and the state is **not durable** — any later `clearPendingAction()` resets it at `:165-166` and a re-opened Restore relabels it at `:728`. | Verified: writers at `:166`, `:725-728`, `:821`, `:879`, `:1030`, `:1045`. | **ACCEPTED.** Folded into **OD-3**, whose (b) row now carries the non-durability honestly. §v2.3 requires the label to live in one module constant if (b) is chosen. |
-| **A-N5** | OD-1's "obstacle 1" is a syllogism the authorizing text does not support: [`OPEN_WORK_EXECUTION_PLAN.md:158-160`](../OPEN_WORK_EXECUTION_PLAN.md#L158-L160) says U2's *requirements* are settled, not that U2 may not do something needing a Gate 0 — the owner can simply grant one. Obstacle 2 (the window) is the decisive, measured one. | Verified — the reviewer is right about what the text says. | **ACCEPTED.** §v2.1 restructures OD-1 so the **qualification window is the obstacle** and Q3 is an **argument**. This matters: it means the owner *can* grant (ii) without contradiction, which is precisely what an owner decision should look like. |
-| **A-N6 · P-NIT** | §0.0's clauses are called "verbatim" and are paraphrases; one difference is load-bearing, because arms C/D/E change no selection and are not covered by the source's "changing selection" at all. | Verified against [`:162-180`](../OPEN_WORK_EXECUTION_PLAN.md#L162-L180). | **ACCEPTED-AS-CORRECTION.** §0.0 rewritten; the three differences are enumerated and the deliberate strengthening is stated. |
+| **A-N5** | OD-1's "obstacle 1" is a syllogism the authorizing text does not support: [`OPEN_WORK_EXECUTION_PLAN.md:158-160`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L158-L160) says U2's *requirements* are settled, not that U2 may not do something needing a Gate 0 — the owner can simply grant one. Obstacle 2 (the window) is the decisive, measured one. | Verified — the reviewer is right about what the text says. | **ACCEPTED.** §v2.1 restructures OD-1 so the **qualification window is the obstacle** and Q3 is an **argument**. This matters: it means the owner *can* grant (ii) without contradiction, which is precisely what an owner decision should look like. |
+| **A-N6 · P-NIT** | §0.0's clauses are called "verbatim" and are paraphrases; one difference is load-bearing, because arms C/D/E change no selection and are not covered by the source's "changing selection" at all. | Verified against [`:162-180`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L162-L180). | **ACCEPTED-AS-CORRECTION.** §0.0 rewritten; the three differences are enumerated and the deliberate strengthening is stated. |
 | **A-NIT ×7** | Header anchor pointed at Packet U1 (`:107-131` is U1; U2 is `:152-181`) · "stale by two awaits" is off by one · §0.5's arm-E attribution · the inventory duty routes from `QUALITY_GATE.md:59`, not `:30` · the `catch` runs `:1042-1050` · the literal is `Loading backup details...` with ASCII periods · 82 hard waits is a repository total, the pin is per-file. | All seven verified. | **ALL ACCEPTED.** Header corrected; §0.5 corrected; the rest applied in Plan v2's prose. |
 
 ### `test-strategist`
@@ -970,7 +970,7 @@ accumulated and moves the strict mark to roughly U2's merge plus fourteen days �
 
 **The argument — owner ruling Q3.** §0.4. `backup-center.js` is `CLOSED UNSTARTED` for step 12, its
 0 % unit coverage is an *accepted, recorded* gap, and reviving it "needs its own Gate 0 and its own
-plan". U2 has no Gate 0 ([`OPEN_WORK_EXECUTION_PLAN.md:158-160`](../OPEN_WORK_EXECUTION_PLAN.md#L158-L160)),
+plan". U2 has no Gate 0 ([`OPEN_WORK_EXECUTION_PLAN.md:158-160`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L158-L160)),
 but that text settles U2's *requirements*, not its permissions — **the owner can simply grant a Gate
 0 if they want option (ii)**. Q3's substantive point stands on its own: unit-testing this module at
 its single export means standing up the whole Backup Center DOM, "an integration test wearing a unit
@@ -1629,11 +1629,11 @@ Plan v2 approved as written / as amended above:  [x] yes   [ ] no
 
 **What this signing leaves stale elsewhere — flagged, not edited.** This signing session was
 authorized to modify **this file only**, so nothing below is repaired here.
-[`OPEN_WORK_EXECUTION_PLAN.md:155`](../OPEN_WORK_EXECUTION_PLAN.md#L155) reads
+[`OPEN_WORK_EXECUTION_PLAN.md:155`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L155) reads
 `**Status:** Execute — ready to enter its **own** Gate 1`. U2 has now entered that gate **and passed
 it**, so the line is stale from this moment — not from U2 shipping, which is how the
 *Flagged, not edited* section below had it before this signing. §4's per-packet gating blockquote at
-[`:218-225`](../OPEN_WORK_EXECUTION_PLAN.md#L218-L225) is **not** stale: it is framed as the gates each
+[`:218-225`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L218-L225) is **not** stale: it is framed as the gates each
 packet *owes*, and a "gates it owes" framing survives a gate being passed. Repairing the `Status:`
 line belongs to a status-reconciliation packet, and it is **owner action owed**.
 
@@ -1717,7 +1717,7 @@ Two other documents that name U2 are likewise not touched here, and ⚠️ **the
 one of them from "when U2 ships" to "now"**:
 
 - [`DUPLICATION_REGISTRY.md:49`](../DUPLICATION_REGISTRY.md) — row 10's live residual. Still falsified only **when U2 ships**, and the implementation PR owns it (§v2.6 row 4).
-- [`OPEN_WORK_EXECUTION_PLAN.md:155`](../OPEN_WORK_EXECUTION_PLAN.md#L155) — Packet U2's `**Status:** Execute — ready to enter its **own** Gate 1` line. ⚠️ **Stale from 2026-08-26**, because U2 has now entered that gate and passed it. A status packet owns the repair; see the closing paragraph of *Sign-off*.
+- [`OPEN_WORK_EXECUTION_PLAN.md:155`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L155) — Packet U2's `**Status:** Execute — ready to enter its **own** Gate 1` line. ⚠️ **Stale from 2026-08-26**, because U2 has now entered that gate and passed it. A status packet owns the repair; see the closing paragraph of *Sign-off*.
 
 ---
 
@@ -2035,7 +2035,7 @@ reason recorded.**
    residual 6, closed as a *disclosure* only).
 5. **OD-3(b)'s `disabled` state is not durable** — a cancel / re-open cycle re-enables the button and
    a second snapshot stays reachable (§v2.12 residual 7).
-6. **[`OPEN_WORK_EXECUTION_PLAN.md:155`](../OPEN_WORK_EXECUTION_PLAN.md#L155)** still reads
+6. **[`OPEN_WORK_EXECUTION_PLAN.md:155`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L155)** still reads
    `**Status:** Execute — ready to enter its **own** Gate 1`, and is now stale twice over — U2 has
    passed that gate and shipped. **Not repaired here**: a status-reconciliation packet owns it, and
    the *Sign-off* section already records it as owner action owed.
@@ -2061,7 +2061,7 @@ reason recorded.**
 
 ## See also
 
-- [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 Packet U2 ([`:152-181`](../OPEN_WORK_EXECUTION_PLAN.md#L152-L181)) — the authorization, and the per-packet gating at [`:218-225`](../OPEN_WORK_EXECUTION_PLAN.md#L218-L225)
+- [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 Packet U2 ([`:152-181`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L152-L181)) — the authorization, and the per-packet gating at [`:218-225`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L218-L225)
 - [`STEP12_JS_UNIT_GATE0.md`](../testing_phase3/STEP12_JS_UNIT_GATE0.md) §2.4 (owner ruling Q3), §6.5 (the window), §13.0 (the live ledger)
 - [`volume_failure_feedback/PLANNING.md`](../volume_failure_feedback/PLANNING.md) — Packet U1, the sibling packet and the precedent for OD-1
 - [`DUPLICATION_REGISTRY.md`](../DUPLICATION_REGISTRY.md) row 10 — the independent record of this defect
