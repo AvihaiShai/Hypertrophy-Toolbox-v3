@@ -963,7 +963,13 @@ jobs:
         cache: 'pip'
 
     - name: Install dependencies
-      run: python -m pip install -r requirements.txt
+      run: |
+        python -m pip install -r requirements.txt
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        python -m pip check
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        python -m pip list --format=json
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Require Windows PowerShell and PowerShell 7
       shell: pwsh
@@ -1050,6 +1056,8 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        python -m pip check
+        python -m pip list --format=json
 
     - name: Install npm dependencies for enforced dependency cases
       run: npm ci
@@ -1358,7 +1366,7 @@ jobs:
   #                   job only on NET-NEW diagnostics. Existing errors never red
   #                   the build; a regression does.
   # The recorded pyright count is 1.1.410 under the committed pyrightconfig.json
-  # (py3.14 + Windows platform — pythonVersion aligned to the CI runtime).
+  # (py3.15 + Windows platform — pythonVersion aligned to the CI runtime).
   # The baseline-diff keys on file+rule+message+
   # severity (repo-relative POSIX path), counted as a multiset, so it reproduces
   # across Windows/Linux. Regenerate the baseline with --write-baseline when an
@@ -1383,7 +1391,7 @@ jobs:
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         # Read the exact patch-level runtime from the repository-wide contract.
-        # Pyright itself targets the corresponding 3.14 language/stdlib surface.
+        # Pyright itself targets the corresponding 3.15 language/stdlib surface.
         python-version-file: '.python-version'
         cache: 'pip'
 
@@ -1409,10 +1417,10 @@ jobs:
       run: |
         npx pyright@1.1.410 --outputjson > pyright.json 2> pyright.stderr.txt || true
         COUNT=$(python -c "import json; print(json.load(open('pyright.json'))['summary']['errorCount'])" 2>/dev/null || echo "unknown")
-        echo "::notice title=pyright (measure-only count)::pyright 1.1.410 reported $COUNT errors (py3.14 config); the baseline-diff step gates NET-NEW errors only"
+        echo "::notice title=pyright (measure-only count)::pyright 1.1.410 reported $COUNT errors (py3.15 config); the baseline-diff step gates NET-NEW errors only"
         {
           echo "### pyright (measure-only count + baseline-gated)"
-          echo "- **total errors**: $COUNT (pyright 1.1.410, py3.14 + Windows-platform config)"
+          echo "- **total errors**: $COUNT (pyright 1.1.410, py3.15 + Windows-platform config)"
           echo "- Blocking gate: net-new vs docs/ci_cd_phase3/pyright-baseline.json (next step)."
         } >> "$GITHUB_STEP_SUMMARY"
 

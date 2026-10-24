@@ -15,7 +15,7 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **686** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **540** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4121** across 138 files |
+| pytest collected nodes (deterministic subset) | **4127** across 138 files |
 | pytest test files (all) | **139** |
 | JS unit cases (Vitest) | **269** across 14 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
@@ -118,7 +118,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_export_blank_rep_bounds_contract.py` | 5 |
 | `tests/test_export_blank_rep_bounds_gate0.py` | 12 |
 | `tests/test_export_weekly_summary_sheet.py` | 4 |
-| `tests/test_exports.py` | 57 |
+| `tests/test_exports.py` | 58 |
 | `tests/test_fatigue.py` | 134 |
 | `tests/test_fatigue_context.py` | 29 |
 | `tests/test_fatigue_golden.py` | 1 |
@@ -128,7 +128,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_filter_predicates.py` | 39 |
 | `tests/test_filter_registry.py` | 10 |
 | `tests/test_filter_values.py` | 8 |
-| `tests/test_free_exercise_db_mapping.py` | 85 |
+| `tests/test_free_exercise_db_mapping.py` | 86 |
 | `tests/test_guard_destructive_command.py` | env-dependent |
 | `tests/test_harness_isolation.py` | 3 |
 | `tests/test_lift_matching.py` | 3 |
@@ -155,12 +155,12 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_priority7_error_handling.py` | 28 |
 | `tests/test_profile_estimator.py` | 104 |
 | `tests/test_profile_estimator_contract.py` | 6 |
-| `tests/test_program_backup.py` | 40 |
+| `tests/test_program_backup.py` | 41 |
 | `tests/test_program_backup_restore_fuzz.py` | 15 |
 | `tests/test_progression_plan_routes.py` | 23 |
 | `tests/test_progression_plan_utils.py` | 46 |
 | `tests/test_pyright_baseline_diff.py` | 13 |
-| `tests/test_python_version_contract.py` | 17 |
+| `tests/test_python_version_contract.py` | 19 |
 | `tests/test_real_app_db_isolation.py` | 10 |
 | `tests/test_release_gate.py` | 105 |
 | `tests/test_release_workflow_contracts.py` | 104 |
@@ -206,7 +206,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_worktree_environment_preflight.py` | 72 |
 | `tests/test_worktree_lifecycle.py` | 146 |
 | `tests/test_worktree_snapshot.py` | 33 |
-| `tests/test_youtube_video_id.py` | 40 |
+| `tests/test_youtube_video_id.py` | 41 |
 
 ## Vitest test files
 

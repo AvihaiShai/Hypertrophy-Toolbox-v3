@@ -8,6 +8,8 @@ Tests cover:
 4. Deleting backups removes them
 5. Erase/reset integration with auto-backup
 """
+import json
+
 import pytest
 import sqlite3
 from typing import cast
@@ -520,6 +522,56 @@ class TestProgramBackup:
 
 class TestProgramBackupAPI:
     """Test suite for program backup API endpoints."""
+
+    def test_unicode_json_backup_preserves_metadata_and_restored_plan(
+        self, client, clean_db, exercise_factory, workout_plan_factory
+    ):
+        routine = "אימון כוח – Café"
+        exercise = exercise_factory("לחיצת חזה – Développé")
+        note = "הערות – entraînement 🏋️"
+        workout_plan_factory(
+            exercise_name=exercise, routine=routine, sets=3,
+            min_rep_range=6, max_rep_range=8, weight=52.5,
+        )
+
+        response = client.post(
+            '/api/backups',
+            data=json.dumps(
+                {'name': routine, 'note': note}, ensure_ascii=False
+            ).encode('utf-8'),
+            content_type='application/json; charset=utf-8',
+        )
+        assert response.status_code == 200
+        created = json.loads(response.data.decode('utf-8', errors='strict'))
+        assert created['ok'] is True
+        assert created['data']['name'] == routine
+        assert created['data']['note'] == note
+        backup_id = created['data']['id']
+
+        response = client.get(f'/api/backups/{backup_id}')
+        assert response.status_code == 200
+        detail = json.loads(response.data.decode('utf-8', errors='strict'))['data']
+        assert detail['name'] == routine
+        assert detail['note'] == note
+        assert len(detail['items']) == 1
+        item = detail['items'][0]
+        expected = {
+            'routine': routine, 'exercise': exercise, 'sets': 3,
+            'min_rep_range': 6, 'max_rep_range': 8, 'weight': 52.5,
+        }
+        assert {key: item[key] for key in expected} == expected
+
+        clean_db.execute_query('DELETE FROM user_selection')
+        response = client.post(f'/api/backups/{backup_id}/restore')
+        assert response.status_code == 200
+        restored = json.loads(response.data.decode('utf-8', errors='strict'))
+        assert restored['ok'] is True
+        assert restored['data']['restored_count'] == 1
+        rows = clean_db.fetch_all(
+            'SELECT routine, exercise, sets, min_rep_range, max_rep_range, '
+            'weight FROM user_selection'
+        )
+        assert [dict(row) for row in rows] == [expected]
 
     def test_backup_center_page_renders(self, client, clean_db):
         """The dedicated backup page should render successfully."""

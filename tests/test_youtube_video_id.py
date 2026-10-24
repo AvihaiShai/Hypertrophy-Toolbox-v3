@@ -157,6 +157,18 @@ class TestCuratedCsv:
 class TestApplyScriptValidation:
     """The apply script rejects bad input without partially applying."""
 
+    def test_utf8_exercise_name_from_unicode_csv_path(self, tmp_path):
+        name = "אימון כוח – Café"
+        path = tmp_path / 'בדיקה Café.csv'
+        path.write_bytes((
+            f'exercise_name,youtube_video_id\n{name},dQw4w9WgXcQ\n'
+        ).encode('utf-8'))
+
+        rows, errors = parse_csv(path)
+
+        assert errors == []
+        assert rows == [(name, 'dQw4w9WgXcQ')]
+
     def _write(self, tmp_path: Path, body: str) -> Path:
         p = tmp_path / "curated.csv"
         p.write_text(body, encoding="utf-8")

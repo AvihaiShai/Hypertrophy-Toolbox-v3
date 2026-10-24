@@ -1,0 +1,106 @@
+# Python 3.15.1 migration execution
+
+Issue [#564](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/564), owner-approved Gate 1 and sequencing amendments dated 2026-10-24. Both independent reviews passed with no actionable findings; the local Windows browser gate has **not passed**. Gate 2 before first push, exact-head native CI, the owner-requested post-reboot local run, no-Python Windows Sandbox acceptance and named-PR/head merge approval remain separate conditions. The direct owner amendment is recorded in [PLANNING.md](PLANNING.md).
+
+## Interpreter and dependency prerequisite
+
+Before implementation, a fresh private feasibility environment installed unchanged `requirements.txt` and `requirements-build.txt`; both installs and the runtime/test and combined `pip check` commands exited 0. Both checks reported `No broken requirements found.` All 36 selected distributions were wheels. No dependency or tool pin changed.
+
+The official [3.15.1 Windows release manifest](https://www.python.org/ftp/python/3.15.1/windows-3.15.1.json) selects standard GIL `PythonCore` x64, separately from embeddable and free-threaded distributions:
+
+| Artifact | SHA-256 |
+|---|---|
+| Windows release manifest | `b819787561df37cea04b116666dab47977b1c270a9dc19cdf59554b4e1b34b69` |
+| `python-3.15.1-amd64.zip` | `cc1448e5dc0e1c5782396ededcaea11dd3966175751ae67857629d1dca20aff5` |
+
+The extracted `python.exe` has valid Python Software Foundation Authenticode signing. Actual runtime: `3.15.1 (tags/v3.15.1:c37e74c, Oct 21 2026, 06:24:08) [MSC v.1951 64 bit (AMD64)]`, GIL enabled, UTF-8 mode enabled. Extraction is task-private and makes no PATH, launcher, association, registration or persistent environment changes. The official [Windows runtime documentation](https://docs.python.org/3.15/using/windows.html#installing-runtimes) describes extraction with `--target` as an unregistered runtime invoked through its executable path. This preparation directly extracts that same official standard PythonCore archive.
+
+Private evidence (retained, gitignored):
+
+- `artifacts/python315-prerequisite/RESULT.json`: original prerequisite, actual commands, exits and manifest hashes.
+- `artifacts/python315-prerequisite/downloads/artifact-verification.json`: official URLs, archive/manifest hashes and Authenticode identity.
+- `artifacts/python315-prerequisite/{base-identity,venv-identity}.stdout.txt`: exact version, architecture, executable, prefixes and runtime flags.
+- `artifacts/python315-prerequisite/{runtime-test,build}.install-report.json`, `selected-wheels.json` and `freeze-*.stdout.txt`: selected distributions, wheel URLs/hashes and resolved environment.
+- `artifacts/python315-prerequisite/{venv-dev,venv-build}/RESULT.json`: independent fresh task `.venv` and launcher/build `venv`, each installed from both unchanged manifests and checked after each install; all commands exited 0.
+- `artifacts/worktree/isolation-repair.RESULT.json`: target module/runtime/log/interpreter identity verification. Our lifecycle row is annotated; 165 unrelated shared lifecycle/baseline errors remain retained. No global lifecycle reconciliation is claimed.
+
+## Initial implementation and verification boundary
+
+Independent QA first recorded the runtime contract red against the old floor: 3 failed, 16 passed, raw exit 1. Evidence: `artifacts/python315_migration/qa/runtime-contract-red.RESULT.json`. QA owns the five approved regression-test files; the implementation contains no API, schema or calculation changes.
+
+The canonical pin, runtime floor, Pyright target/provenance, requirements comments, Windows download links and current setup guidance now align to 3.15.1. ADR-013 supersedes ADR-003. The Pyright baseline edit changes only explanatory metadata; both counts remain 0 and `diagnostics` remains empty. Only the owner's three named CI environments gain `pip check` and resolved-version output. No job identity, caller, trigger, analyzer pin or dependency pin changes.
+
+Independent focused verification passed **23/23**, exit 0, including the runtime contract and four Unicode regressions (`artifacts/python315_migration/qa/focused.RESULT.json`). Serial preparation then passed: unchanged-lock `npm ci`, CSS compilation with committed-content identity preserved (Sass changed only checkout CRLF to LF), private Chromium installation, TypeScript and pinned Pyright 1.1.410. Pyright accepted target 3.15 with empty stderr and reported 0 errors, 0 warnings and 0 information diagnostics; the blocking baseline check passed with 0 net-new diagnostics. Inventory regeneration/check passed with only the real QA collection delta. Raw preparation and the initially overstrict CSS byte-comparison failure are retained under `artifacts/python315_migration/validation/`.
+
+Full pytest, local analysis/audits, copied-data/Unicode acceptance, rollback and the canonical host build/real bootloader have completed as recorded below. Full local Chromium remains failed; no comparison baseline, snapshot, allowlist, test assertion or timeout was weakened. The owner explicitly permits independent reviews to proceed with those failed local results, subject to the added native-CI and post-reboot conditions.
+
+The task runtime is intentionally unregistered: successful private environment creation does not prove `py -3.15` resolves on the host or that an interactive batch launch passed. Actual batch guidance/path verification and source/frozen execution are separate acceptance checks. Main/shared Python 3.14 installations and environments remain unchanged.
+
+## Completed local checks
+
+All evidence paths below are relative to the task checkout and retained under gitignored `artifacts/python315_migration/`. No main/shared environment or owner database was used.
+
+| Check | Actual result and evidence |
+|---|---|
+| Full pytest, corrected complete invocation | **6157 passed, 2 skipped**, exit 0, 978.62s; all **6159** fresh collection/JUnit identities match. `validation/full-pytest-2/RESULT.json` and raw command/JUnit records. |
+| First full pytest attempt | **6143 passed, 14 failed, 2 skipped**, exit 1; retained in `validation/full-pytest-1/`. Process-only Git Bash selection/private runtime corrections and a Git index-stat refresh fixed the runner; all 14 focused cases passed before the one fresh complete passing run. No green result was assembled from partial runs. |
+| Type analysis | `tsc` and pinned Pyright 1.1.410 exited 0. Actual Pyright: 264 source files, 0 errors/warnings/information, empty stderr and accepted Python 3.15 target; baseline diff 0 net-new. `validation/preparation-remainder/`. |
+| Inventory | Regenerated only the QA collection delta and checked successfully: 4127 deterministic pytest cases/138 files, 686 Playwright cases/33 specs, 269 Vitest cases/14 files, 82 hard waits. No collection failure was relabeled drift. |
+| Lint and dependency audits | Tracked-Python blocking Flake8 and informational style checks exited 0; Pylint imports/version worked. Private `pip-audit==2.10.1` scan exited 0 over 56 selected distributions under the existing ignore policy. Safety 3.8.1 exited 0: 67 packages, 0 affected/0 vulnerabilities; its existing deprecation/Authlib warnings remain in raw output. `validation/local-tools-1/` and `local-tools-remainder-2/`. |
+| Informational Vulture | Exit 3 with 19 findings on both the migrated tree and exact base. The complete diagnostics and enclosing function bodies match, apart from QA insertion line offsets. Existing findings remain visible; no exclusion or new zero-findings gate was introduced. `local-tools-remainder-2/vulture-base-comparison.json`. |
+| Node dependency policy | Unchanged-lock `npm ci`; `npm audit --audit-level=high --json` exited 0 with 1 moderate, 0 high/critical. No automatic fix or pin/lockfile update. |
+| Canonical Windows packaging | Fresh build `venv`, unchanged manifests and `pip check`; asset staging and `python -m PyInstaller --clean --noconfirm Hypertrophy-Toolbox.spec` exited 0. Actual bootloader smoke passed on port 5123 with no skip flags. `validation/build-and-bootloader-1/RESULT.json`. |
+| Source and frozen saved data | Real old-schema copied fixtures preserved legacy rows/numeric values; Unicode `אימון כוח – Café` and `הערה – Café`, strict UTF-8 HTTP/log data, actual XLSX cells, backup metadata/restore and two restarts passed for both source and the actual executable. Private Unicode runtime paths used. `unicode/source/RESULT.json`, `unicode/frozen/RESULT.json`. |
+| Python 3.14 rollback | Exact archived base `ae5ec18c3293df302393b28195d8e12ceb92d176`, fresh private 3.14.6 environment, copied 3.15-written database and its backup: real reads, restore, numeric/Unicode XLSX and restart passed; original 3.15 database hash unchanged. `validation/rollback-314-1/ROLLBACK.RESULT.json`. |
+| Runtime floor and batch guards | Actual private 3.14.6 against the migrated floor exited 1 with actionable 3.15.1/found-version output; private 3.15.1 exited 0. Real host `START.bat` and `build_exe.bat` rejected missing registered `py -3.15` with the correct download guidance. Successful registered-host batch launch is **not claimed**. `validation/launcher-guards-2/RESULT.json`. |
+
+The two pytest skips are explicit: the workout-log happy path is covered by its fixture-backed route tests, and Windows has no executable filesystem bit for the package-staging assertion. Neither skipped assertion is credited as executed. Native Linux-specific tool and wheel compatibility remains pending exact-head CI.
+
+Actual source/frozen SQLite is **3.53.4**; rollback Python 3.14.6 uses **3.50.4**. The original legacy database SHA-256 is `b3137766a8e7f274f851cd5a12422793cb675de1056f2cbaeeebeb323699683c`; the retained 3.15-written rollback input is `fa1eaaf170300c79d2cd5d50f656063f22a5336d258b04ddfd978ddab0f2ec4f`. These are task-owned fixtures, never the owner's live data.
+
+## Browser results and owner sequencing exception
+
+Each complete campaign used fresh private data, Playwright 1.61.0 with its pinned private Chromium build, one worker and zero retries. The canonical command was **`npm run test:e2e` with no arguments**, allowing its existing functional/visual seed partition to control execution. Every complete functional campaign matched all 586 freshly collected functional identities. The visual partition correctly did not run after a functional failure.
+
+| Campaign | Actual result | Evidence under `validation/` |
+|---|---|---|
+| Migrated 3.15.1 full attempt 1 | 582 passed, 4 failed; exit 1; visual 100 **not run** | `full-e2e-1/` |
+| Migrated 3.15.1 full attempt 2 | 584 passed, 2 failed; exit 1; visual 100 **not run** | `full-e2e-2/` |
+| Matched exact-base 3.14.6 full control | 584 passed, 2 failed; exit 1; visual 100 **not run** | `full-e2e-base-314-1/` |
+| Temporary affinity mitigation experiment | **Aborted/partial**, 343 completed identities: 339 passed/4 failed; 243 unreported, including any interrupted in-flight case. No full-campaign credit. | `full-e2e-3-job-affinity-1/RESULT.json` |
+| Separately seeded migrated visual diagnostic | 98 passed, 2 failed of exactly 100; exit 1, one attempt each | `visual-diagnostic-1/` |
+| One exact-base visual attribution control | 98 passed, 2 failed of exactly 100; exit 1, one attempt each | `visual-base-314-1/` |
+
+The original functional failures include actual Chromium `ERR_ADDRESS_IN_USE`, `ERR_NO_BUFFER_SPACE` and native WinSock 10055. Windows Tcpip events 4227/4231 occurred in unrestricted campaigns, including the exact 3.14 base control. This establishes that the allocation-error class also occurs without the migration; it does not establish every failed request's cause. Memory, all TCP states/owners and event timestamps are retained. TIME_WAIT count alone was not treated as proof of complete port exhaustion; the [Microsoft diagnostic guidance](https://learn.microsoft.com/en-us/troubleshoot/windows-client/networking/tcp-ip-port-exhaustion-troubleshooting) explains the relevant event classes. The owner directed **no socket fix in #564**; the authorized follow-up is [#565](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/565).
+
+Focused replays of the first four cases passed on both runtimes, but do not replace the failed full gate. An eight-case mask-only probe passed its test assertions but failed resource verification because a Chromium child expanded its affinity. A fresh affinity-only Windows job probe passed all eight cases and verified actual job limits/membership. The subsequent capped experiment still produced two allocation errors, a separate hidden-input/readiness timeout in the golden calibration flow, and a superset setup HTTP 400 (`Minimum reps cannot exceed maximum reps`) before linking/deleting. These latter two were not automatically labeled socket failures. The manager stopped that unsuccessful mitigation; raw partial identities, source/job proofs and verified owned-process termination remain retained. No resource cap is part of the implementation or accepted test environment, and no further mitigation tuning was performed.
+
+The migrated visual differences are **workout-plan mobile dark: 1503 pixels** and **tablet dark: 2805 pixels**. The base control instead failed **workout-log desktop light: 3892 pixels** and **backup tablet dark: 764861 pixels**. The same-two-differences hypothesis was **not established**, so the migrated pair is not classified as inherited. Exact coverage, expected/actual/diff image hashes and comparison are in `validation/visual-attribution-comparison.json`. The existing five `BYTE_GATE_EXEMPT` captures and their semantic contracts are unchanged; no snapshot, tolerance, renderer, CSS, font, timeout or allowlist was changed. A separate visual result is not spliced into a canonical full pass.
+
+The owner approved independent reviews despite these failed local results, with binding conditions: full native Linux Chromium evidence and **exact-head native Windows E2E/visual jobs must pass before merge**; after the owner's Sandbox-enabling reboot, run the full canonical local E2E once at normal resources and record the result; clean no-installed-Python Sandbox acceptance and final named-PR/head approval remain required. The existing native Windows browser job is `ci.yml` → `visual-windows` (`Visual Regression (Windows baselines)`, `windows-2022`), covering `visual.spec.ts`. Existing functional browser jobs run on Linux; clarification of any additional Windows functional-job scope is pending, and no additional job was added.
+
+## Compatibility review and artifact bindings
+
+The official [3.15 porting/removal/deprecation notes](https://docs.python.org/3.15/whatsnew/3.15.html) and [Windows/UTF-8 guidance](https://docs.python.org/3.15/using/windows.html) were reviewed against the repository. The retained AST/text audit parsed all 272 tracked Python files without errors and found no selected removed-API uses. SQLite connection options already use keywords; existing callback registrations have valid positional arguments. Date formats include years, lock construction uses no removed arguments, and soft-deprecated regex spelling does not require a behavior rewrite. Actual UTF-8 mode is 1 on 3.15 and 0 on the preserved 3.14 runtime, so real Unicode filesystem/JSON/log/XLSX/backup checks provide the relevant boundary evidence. `compatibility/porting-review.json` records the calls/searches. No speculative API, schema or calculation change was introduced.
+
+Full pytest bound to raw source-manifest SHA-256 `7efe90cb382f79d6ec356bfc4ba7c83c52c4a7529de028696352ca7c6eac6485`. The first PM evidence-only append produced the tested build/browser manifest `80dfecadd9986881697cb5a9be8d6205ae4dd3c187e9dd555fc9f19b9f236c30`. During the visual diagnostic, the explicitly approved PLANNING append changed only its exact `b6e943…` hash to `d92d61…`; `visual-diagnostic-1/provenance-reconciliation.json` records that delta and leaves the actual 98/2 test failure intact. Later PM/developer evidence-document updates do not retroactively rebind any test.
+
+The stable **1871-file production/test/configuration manifest**, excluding only the named evidence files `PLANNING.md` and `EXECUTION.md`, is `6e868c016ed1b19fc1377688d455da346f550f5f45930142a0bdfe758a0bbb90`. Raw tested hashes are preserved separately from Git-clean-filtered blob IDs. Staged-source verification must compare every included file to its tested bytes, permit only recorded standard Git newline normalization, and compare the resulting object IDs to the index. README, configuration and tests remain covered; there is no broad documentation exception. Ignored acceptance helpers and input artifacts are supplied to independent reviewers with path/SHA manifests alongside the scoped Git diff.
+
+The actual host-built executable SHA-256 is `0abc23fb4b43c2f9e022034f9adb6a93f6780fb0923963ef07ec0ef016e7d35e`. The prepared Sandbox distribution archive is `30f0d17f9f3349355da31e9425e1eeab78bf77a9ca2671b023d6a53c86cdfddf`; the source archive contains the actual tested migrated workspace, hash `31242a6f40e38c18eef69e09c732b611d1842385dd7d864b120868d3db05cbdf`, not the old base. All 2165 distribution files, 1873 source inputs and 36 offline wheels have retained bindings in `sandbox/input/` and `sandbox/bundle.RESULT.json`.
+
+## Independent reviews
+
+Independent code review, followed by independent unslop review, completed **PASS with no actionable findings** on staged tree `da351225324d6237ae45f2e6bc324c8ebcf304c8`. The read-only reviews covered the 24-file diff and frozen helper/input manifest `aad0c01a5a5c3389f44802acb1e4b47ceb909a835d953eb5b7065afda7bca045`; their verbatim records are retained in `artifacts/python315_migration/reviews/{code-review,unslop-review}.md`. Review passes do not supply owner Gate 2, native CI, local E2E, Sandbox or merge clearance. Later evidence-document updates must retain the reviewed tree/proofs and separately bind the final staged diff; production, tests, configuration and critical harnesses remain unchanged.
+
+## Remaining acceptance and handoff
+
+The PowerShell-only, UTF-8 BOM Sandbox harnesses and read-only input/results mappings are **prepared, not executed**. PowerShell 5.1 syntax and helper compilation passed; that is not guest acceptance. The no-Python phase inventories commands, PEP 514 registrations and Appx packages before extracting the bundle; only positively identified Microsoft Store redirector placeholders qualify as absent runtimes, without invocation. Unknown aliases/runtimes fail closed. Actual executable CRUD, Unicode persistence, backup/restore, XLSX and clean owned-process exit must produce a real guest final proof before merge.
+
+Only after that independent no-Python final proof may the separate optional guest phase install the verified official standard 3.15.1 interpreter/launcher and exercise real registered `START.bat` with guest-local source and fresh environments. It does not claim a second full batch build. Host registration, PATH, system settings and owner environments remain untouched. The official installer is staged and signature/hash verified, never executed on the host. Sandbox enablement/reboot, post-reboot local E2E, exact-head CI, Gate 2/first push and owner merge approval remain pending; no commit, push, merge or cleanup is authorized by this ledger.
+
+## Upgrade and rollback
+
+Use a fresh checkout and fresh Python 3.15.1 environments. Before a source upgrade, preserve the previous revision, its `.venv` and launcher/build `venv`, and existing database plus program/startup backups. On Windows, verify `py -3.15 --version` reports at least 3.15.1 before the batch entry points; a private extracted runtime instead creates environments using its full executable path. Use `.venv` for development/test tools and `venv` for the launcher/canonical spec build. Keep editor interpreter selection relative to the active checkout; do not copy another checkout's absolute interpreter setting.
+
+For recovery, run the preserved known-good revision with its separate Python 3.14 environment against a **copy** of retained data/backups. Do not downgrade a 3.15 environment in place or experiment against the live database. This migration intentionally changes no database schema, response contract or calculation semantics; real copied-data and backup/restore verification must establish that claim before merge. Rebuilding the owner's main environments and installing/registering a system interpreter require the separate coordinated owner handoff.

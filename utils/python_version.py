@@ -14,7 +14,7 @@ import sys
 from collections.abc import Sequence
 
 
-MIN_PYTHON = (3, 14, 6)
+MIN_PYTHON = (3, 15, 1)
 MIN_PYTHON_TEXT = ".".join(str(part) for part in MIN_PYTHON)
 
 

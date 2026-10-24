@@ -58,7 +58,7 @@ New cross-cutting or durable project decisions should be added here as lightweig
 
 ### ADR-003: Python 3.14.6 is the minimum supported runtime
 - **Date**: 2026-07-29
-- **Status**: accepted
+- **Status**: superseded by ADR-013
 - **Context**: The repository advertised Python 3.11+ while development and executable builds already ran on 3.14. CI and Pyright therefore validated an older runtime than the one used to ship the application, and local environments could silently retain an obsolete interpreter.
 - **Decision**: Python 3.14.6 is the minimum for source runs, tests, CI, and executable builds. `.python-version` is the exact CI/environment-manager pin; Pyright targets the corresponding 3.14 language and standard-library surface; `utils/python_version.py` enforces the patch-level floor; and both Windows entry points derive the registered Python minor from the pin, validate its patch level, and validate any retained `venv`.
 - **Consequences**: The project no longer promises Python 3.11–3.13 compatibility. Runtime, CI, analysis, and packaging now agree, and stale virtual environments fail with an actionable message. Adopting a newer minimum requires updating the canonical pin, runtime contract, Pyright target when the minor changes, its committed diagnostic baseline, and verification under the exact interpreter.
@@ -200,6 +200,13 @@ New cross-cutting or durable project decisions should be added here as lightweig
   normal `build-and-smoke` child job inside `_packaged-windows.yml` is distinct and syntactically
   can use `continue-on-error`; its existing release-workflow contract already bars that reachable
   weakening. No workflow, test or branch-protection change follows from this ADR.
+
+### ADR-013: Python 3.15.1 is the minimum supported runtime
+- **Date**: 2026-10-24
+- **Status**: accepted
+- **Context**: Issue #564 requests one coordinated standard CPython target for source, tests, CI, analysis and Windows packaging. A minor-version upgrade needs real saved-data, Unicode and bootloader evidence, including a Windows environment without a system Python installation.
+- **Decision**: Pin `.python-version` to 3.15.1, enforce that patch-level floor in `utils/python_version.py`, and target Python 3.15 in Pyright. Keep dependency and analyzer pins unless an incompatibility is first reported to the owner. Add explicit dependency consistency checks only to the existing `pytest-core`, `worktree-windows` and packaged `build-and-smoke` environments. Preserve the zero-diagnostic Pyright allowlist.
+- **Consequences**: Existing 3.14 virtual environments must be retained separately and replaced with fresh task/project environments for this revision. Windows batch entry points select a registered 3.15 interpreter and reject an older retained environment. An official task-private PythonCore archive provides the standard runtime without changing registration or PATH. Keep the previous revision, its 3.14 environments and copied data/backups for recovery. Source/data/Unicode and real Windows bootloader checks, full suites, native CI and independent reviews remain required; the owner's separate no-Python Sandbox acceptance is a merge condition. Evidence and remaining checks: [Python 3.15 execution record](python315_migration/EXECUTION.md).
 
 ### ADR-NNN: <title>
 - **Date**: YYYY-MM-DD

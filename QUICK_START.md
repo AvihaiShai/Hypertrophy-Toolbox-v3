@@ -47,7 +47,7 @@ Monitor your program balance on the **Weekly Summary** page:
 
 ## 🔧 For Developers
 
-**Python 3.14.6+** is required for source runs and executable builds. CI reads
+**Python 3.15.1+** is required for source runs and executable builds. CI reads
 the exact minimum from `.python-version`.
 
 Build and distribution steps live in one place — see
@@ -64,15 +64,20 @@ current that day.
 ## ❓ Troubleshooting
 
 ### "Python is not installed" Error
-- Install Python 3.14.6 or newer from
-  https://www.python.org/downloads/release/python-3146/
+- Install Python 3.15.1 or newer from
+  https://www.python.org/downloads/release/python-3151/
 - Ensure the Windows Python launcher or Python install manager is enabled;
-  `START.bat` selects the registered 3.14 runtime directly.
+  `START.bat` selects the registered 3.15 runtime directly. Confirm
+  `py -3.15 --version` reports at least 3.15.1; extracting a private runtime
+  does not register it with the launcher.
 
 ### Existing Virtual Environment Uses an Older Python
-- Delete the `venv/` folder and rerun `START.bat` or `build_exe.bat`.
-- For development, recreate `.venv` with Python 3.14.6+ and reinstall
+- Retain the old `venv/` separately, then create a fresh environment before
+  rerunning `START.bat` or `build_exe.bat`.
+- For development, retain the previous `.venv` and create a fresh one with Python 3.15.1+; reinstall
   `requirements.txt`.
+- Keep the previous checkout and copied database/backups for recovery; the
+  [migration record](docs/python315_migration/EXECUTION.md) describes rollback.
 
 ### App Won't Start
 - Make sure no other app is using port 5000

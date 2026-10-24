@@ -32,7 +32,7 @@ if errorlevel 1 (
     echo [ERROR] Registered Python %PYTHON_TAG% is not installed!
     echo.
     echo Please install Python %PYTHON_VERSION% or newer from:
-    echo https://www.python.org/downloads/release/python-3146/
+    echo https://www.python.org/downloads/release/python-3151/
     echo Make sure the Python launcher or install manager is enabled.
     echo.
     pause
@@ -58,8 +58,8 @@ if errorlevel 1 (
 if exist "venv\Scripts\python.exe" (
     venv\Scripts\python.exe -m utils.python_version >nul 2>&1
     if errorlevel 1 (
-        echo [ERROR] The existing "venv" was created with Python older than 3.14.6.
-        echo Delete the "venv" folder and run START.bat again.
+        echo [ERROR] The existing "venv" was created with Python older than %PYTHON_VERSION%.
+        echo Retain the old "venv" separately, then recreate it with Python %PYTHON_VERSION%.
         echo.
         pause
         exit /b 1
