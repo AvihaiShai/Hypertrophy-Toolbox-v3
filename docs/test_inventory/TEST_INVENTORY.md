@@ -12,9 +12,9 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **686** |
+| Playwright tests (chromium) | **691** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **540** tests across 25 specs |
+| Required functional gate — `E2E Functional (Chromium)` | **545** tests across 25 specs |
 | pytest collected nodes (deterministic subset) | **4127** across 138 files |
 | pytest test files (all) | **139** |
 | JS unit cases (Vitest) | **269** across 14 files |
@@ -43,7 +43,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `listener-cleanup.spec.ts` | 3 | — |
 | `nav-dropdown.spec.ts` | 7 | yes |
 | `program-backup.spec.ts` | 33 | — |
-| `progression.spec.ts` | 27 | yes |
+| `progression.spec.ts` | 29 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
 | `smoke-navigation.spec.ts` | 11 | yes |
 | `summary-pages.spec.ts` | 20 | yes |
@@ -55,10 +55,10 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `visual-field-separator.spec.ts` | 42 | yes |
 | `visual.spec.ts` | 66 | — |
 | `volume-progress.spec.ts` | 16 | yes |
-| `volume-splitter.spec.ts` | 59 | yes |
+| `volume-splitter.spec.ts` | 61 | yes |
 | `workout-log.spec.ts` | 23 | yes |
 | `workout-plan-desktop-contract.spec.ts` | 16 | — |
-| `workout-plan.spec.ts` | 37 | yes |
+| `workout-plan.spec.ts` | 38 | yes |
 
 ## pytest files
 

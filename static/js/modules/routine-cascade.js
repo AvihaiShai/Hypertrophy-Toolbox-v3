@@ -7,6 +7,7 @@
  */
 
 import { showToast } from './toast.js';
+import { escapeHtml } from './exercise-helpers.js';
 
 // Routine configuration data structure
 const ROUTINE_CONFIG = {
@@ -324,16 +325,16 @@ function updateBreadcrumb() {
     }
     
     let parts = [];
-    parts.push(`<span class="breadcrumb-env">${environment}</span>`);
+    parts.push(`<span class="breadcrumb-env">${escapeHtml(environment)}</span>`);
     
     if (program) {
         parts.push(`<span class="breadcrumb-separator">→</span>`);
-        parts.push(`<span class="breadcrumb-program">${program}</span>`);
+        parts.push(`<span class="breadcrumb-program">${escapeHtml(program)}</span>`);
     }
     
     if (routine) {
         parts.push(`<span class="breadcrumb-separator">→</span>`);
-        parts.push(`<span class="breadcrumb-routine">${routine}</span>`);
+        parts.push(`<span class="breadcrumb-routine">${escapeHtml(routine)}</span>`);
     }
     
     breadcrumb.innerHTML = parts.join('');

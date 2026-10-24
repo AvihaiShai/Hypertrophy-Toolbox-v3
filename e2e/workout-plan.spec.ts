@@ -73,6 +73,45 @@ test.describe('Workout Plan Page', () => {
     await expect(page.locator(SELECTORS.EXERCISE_TABLE)).toBeVisible();
   });
 
+  test('routine breadcrumb renders option labels as literal text', async ({ page }) => {
+    const label = '<b data-codeql-injected>Workout & recovery</b>';
+    await page.route('**/get_routine_exercises/**', route => {
+      if (route.request().url().includes('data-codeql-injected')) {
+        return route.fulfill({ json: { ok: true, status: 'success', data: [] } });
+      }
+      return route.continue();
+    });
+    await page.selectOption('#routine-env', 'GYM');
+    await page.selectOption('#routine-program', 'Full Body');
+    await page.selectOption('#routine-day', 'Workout A');
+    const breadcrumb = page.locator('#routine-breadcrumb');
+    await expect(breadcrumb).toHaveText('GYM→Full Body→Workout A');
+
+    // Synthetic options test the sink; ordinary options come from fixed configuration.
+    await page.locator('#routine-program').evaluate((element, value) => {
+      (element as HTMLSelectElement).add(new Option(value, value));
+    }, label);
+    await page.selectOption('#routine-program', label);
+    await expect(breadcrumb.locator('.breadcrumb-program')).toHaveText(label);
+    await page.locator('#routine-day').evaluate((element, value) => {
+      const select = element as HTMLSelectElement;
+      select.add(new Option(value, value));
+      select.disabled = false;
+    }, label);
+    await page.selectOption('#routine-day', label);
+    await expect(breadcrumb.locator('.breadcrumb-routine')).toHaveText(label);
+    await expect(breadcrumb).toHaveClass(/has-selection/);
+    await expect(breadcrumb.locator('[data-codeql-injected]')).toHaveCount(0);
+
+    await page.locator('#routine-env').evaluate((element, value) => {
+      (element as HTMLSelectElement).add(new Option(value, value));
+    }, label);
+    await page.selectOption('#routine-env', label);
+    await expect(breadcrumb.locator('.breadcrumb-env')).toHaveText(label);
+    await expect(breadcrumb.locator('[data-codeql-injected]')).toHaveCount(0);
+    await expect(breadcrumb).not.toHaveClass(/has-selection/);
+  });
+
   test('routine cascade: selecting environment enables program dropdown', async ({ page }) => {
     const envSelect = page.locator(SELECTORS.ROUTINE_ENV);
     const programSelect = page.locator(SELECTORS.ROUTINE_PROGRAM);

@@ -107,11 +107,13 @@ def test_generic_waiter_remains_for_unconverted_pages() -> None:
 def test_volume_splitter_spec_is_exactly_converted() -> None:
     spec = read(SPEC)
     assert "waitForVolumeSplitterReady" in spec
-    # One per test.describe beforeEach in the spec. 3 originally; 4 after U1 added
+    # One readiness entry per block (beforeEach, or each parametrized case).
+    # 3 originally; 4 after U1 added
     # its calculation-failure block; 5 after U3b added the KI-011 toast action
-    # continuity block. The literal is the point of the assertion -- it is what
+    # continuity block; 6 with the CodeQL literal-muscle regression block.
+    # The literal is the point of the assertion -- it is what
     # makes a new block prove it adopted the deterministic waiter rather than
     # reintroducing networkidle -- so it is BUMPED with each block, never relaxed.
-    assert spec.count("await waitForVolumeSplitterReady(page);") == 5
+    assert spec.count("await waitForVolumeSplitterReady(page);") == 6
     assert "waitForPageReady" not in spec
     assert "networkidle" not in spec

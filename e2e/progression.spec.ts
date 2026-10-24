@@ -8,6 +8,89 @@
  * - Delete confirmation modal
  */
 import { test, expect, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
+import { test as dataSafetyTest } from './console-guard';
+
+dataSafetyTest.describe('Progression suggestion data safety', () => {
+  dataSafetyTest('renders a suggestion failure message as literal text', async ({ page }) => {
+    const message = '<span data-codeql-injected>unavailable & retry</span>';
+    await page.goto(ROUTES.PROGRESSION);
+    await waitForPageReady(page);
+    await page.evaluate(async value => {
+      const { api } = await import('/static/js/modules/fetch-wrapper.js');
+      const originalPost = api.post;
+      api.post = (...args: unknown[]) => args[0] === '/get_exercise_suggestions'
+        ? Promise.reject(new Error(value))
+        : originalPost.apply(api, args);
+      // Record only this deliberately induced handler log. The strict guard
+      // still receives every unrelated console error and every page error.
+      const originalError = console.error;
+      const records: string[] = [];
+      (window as unknown as Record<string, unknown>).__suggestionFailureLogs = records;
+      console.error = (...args: unknown[]) => {
+        if (args[0] === 'Error fetching suggestions:' && args[1] instanceof Error && args[1].message === value) {
+          records.push(args[1].message);
+        } else {
+          originalError.apply(console, args);
+        }
+      };
+      (document.getElementById('exerciseSelect') as HTMLSelectElement).add(new Option('Fixture', 'Fixture'));
+    }, message);
+    await page.selectOption('#exerciseSelect', 'Fixture');
+    await expect(page.locator('#suggestionsList .alert-danger')).toHaveText(`Error loading suggestions: ${message}`);
+    await expect(page.locator('#suggestionsList [data-codeql-injected]')).toHaveCount(0);
+    expect(await page.evaluate(() => (window as unknown as Record<string, unknown>).__suggestionFailureLogs)).toEqual([message]);
+  });
+
+  dataSafetyTest('renders suggestion text literally and preserves quoted goal data', async ({ page }) => {
+    const text = '<span data-codeql-injected>Lift & recover</span>';
+    const attribute = '" data-codeql-injected="yes';
+    const exercise = `Bench ${text} ${attribute}`;
+    const suggestion = {
+      type: `weight${attribute}`,
+      title: text,
+      description: `${text} "quoted" 'label'`,
+      action: text,
+      current_value: attribute,
+      suggested_value: `${attribute} & target`,
+    };
+    await page.route('**/get_exercise_suggestions', route => route.fulfill({
+      json: {
+        ok: true, status: 'success', data: [
+          suggestion,
+          { type: 'weight', title: 'Add weight', description: 'Keep your form', action: 'Set goal', current_value: 0, suggested_value: 2.5 },
+          { type: 'reps', title: 'Add reps', description: 'No values yet', action: 'Set goal', current_value: null, suggested_value: null },
+        ],
+      },
+    }));
+    await page.goto(ROUTES.PROGRESSION);
+    await waitForPageReady(page);
+    await page.locator('#exerciseSelect').evaluate((element, value) => {
+      (element as HTMLSelectElement).add(new Option(value, value));
+    }, exercise);
+    await page.selectOption('#exerciseSelect', exercise);
+
+    const cards = page.locator('#suggestionsList .suggestion-card');
+    await expect(cards).toHaveCount(3);
+    await expect(cards.first().locator('.card-title')).toHaveText(suggestion.title);
+    await expect(cards.first().locator('.card-text')).toHaveText(suggestion.description);
+    const button = cards.first().locator('.set-goal-btn');
+    await expect(button).toHaveText(suggestion.action);
+    await expect(cards.first()).toHaveAttribute('data-goal-type', suggestion.type);
+    await expect(button).toHaveAttribute('data-goal-type', suggestion.type);
+    await expect(button).toHaveAttribute('data-exercise', exercise);
+    await expect(button).toHaveAttribute('data-current-value', suggestion.current_value);
+    await expect(button).toHaveAttribute('data-target-value', suggestion.suggested_value);
+    await expect(page.locator('#suggestionsList [data-codeql-injected]')).toHaveCount(0);
+    await expect(cards.nth(2).locator('button')).toHaveAttribute('data-current-value', '');
+    await expect(cards.nth(2).locator('button')).toHaveAttribute('data-target-value', '');
+
+    // Zero remains a real prefilled value, and the existing goal action still works.
+    await cards.nth(1).locator('button').click();
+    await expect(page.locator('#goalSettingModal')).toBeVisible();
+    await expect(page.locator('#currentValue')).toHaveValue('0');
+    await expect(page.locator('#targetValue')).toHaveValue('2.5');
+  });
+});
 
 function unwrapProgressionApiData(payload: unknown) {
   if (

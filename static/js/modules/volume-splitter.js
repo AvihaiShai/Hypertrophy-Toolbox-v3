@@ -842,7 +842,7 @@ function attachSliderTooltips() {
 
 function updateValueDisplay(slider) {
     const muscle = slider.dataset.muscle;
-    const valueDisplay = document.querySelector(`.current-value[data-muscle="${escapeForSelector(muscle)}"]`);
+    const valueDisplay = findMuscleElement('.current-value', muscle);
     if (valueDisplay) {
         valueDisplay.textContent = slider.value;
     }
@@ -877,7 +877,7 @@ function applyServerRanges(rangeMap) {
         state[muscle] = range;
         updatedAny = true;
 
-        const row = document.querySelector(`.muscle-row[data-muscle="${escapeForSelector(muscle)}"]`);
+        const row = findMuscleElement('.muscle-row', muscle);
         if (!row) {
             return;
         }
@@ -910,7 +910,7 @@ function handleCalculateResponse(data) {
 }
 
 function applyStatusToRow(muscle, result, range) {
-    const row = document.querySelector(`.muscle-row[data-muscle="${escapeForSelector(muscle)}"]`);
+    const row = findMuscleElement('.muscle-row', muscle);
     if (!row) {
         return;
     }
@@ -1048,9 +1048,7 @@ function clearResults() {
     });
 }
 
-function escapeForSelector(value) {
-    if (window.CSS && typeof window.CSS.escape === 'function') {
-        return window.CSS.escape(value);
-    }
-    return value.replace(/"/g, '\\"');
+function findMuscleElement(selector, muscle) {
+    return Array.from(document.querySelectorAll(selector))
+        .find(element => element.getAttribute('data-muscle') === muscle);
 }
