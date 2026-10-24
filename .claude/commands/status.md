@@ -61,8 +61,11 @@ three as claims to be checked, never as the answer.
      **Owner review status table** near the bottom.
    - `docs/MASTER_HANDOVER.md` — CLAUDE.md calls this canonical; it has
      nonetheless carried self-contradictory sections.
-   - `docs/OPEN_WORK_EXECUTION_PLAN.md` — §0 is the single actionable queue;
-     §0.2 lists the open owner decisions.
+   - `docs/OPEN_WORK_EXECUTION_PLAN.md` — §0 is the work index. For migrated
+     entries, read the linked GitHub issue for current status, decisions and
+     completion evidence (`gh issue view <number> --json state,body,comments`).
+     Unmigrated entries remain in §0. Owning plans and qualification ledgers
+     retain their contracts and approval records; an issue does not authorize work.
    - The active feature's `PLANNING.md`. Find it rather than assuming a path.
      Identify it from what the live state already points at — the plan doc's
      Ongoing row, the open PR's branch and body, and the handover's current
@@ -72,10 +75,11 @@ three as claims to be checked, never as the answer.
      the last commits, so recency alone can point at the wrong document.
 5. Print one table, most-actionable first:
 
-   | Packet | Claimed by (doc → status) | Git evidence (SHA / PR / worktree) | DRIFT | Next action |
+   | Packet | Claimed by (doc / issue → status) | Git / GitHub evidence (SHA / PR / issue / worktree) | DRIFT | Next action |
 
    Raise **DRIFT** for any of: a doc claim with no git evidence; shipped work no
-   doc records; two documents that disagree with each other; or a packet with a
+   doc records; a document and its linked issue disagreeing; two documents that
+   disagree with each other; or a packet with a
    worktree or open PR that the docs describe as not started.
 6. Close with: the single next step, every owner gate standing in front of it,
    any document that needs correcting, and the lifecycle rows requiring owner
@@ -88,6 +92,6 @@ three as claims to be checked, never as the answer.
 7. **Stop.** Do not begin a packet until the owner confirms the table.
 
 ## Permissions
-This command needs `gh pr list`, `gh pr checks`, `git fetch` and `git -C …
-status`. If any prompt for approval, that is expected on first run — approve
+This command needs `gh pr list`, `gh pr checks`, `gh issue view`, `git fetch`
+and `git -C … status`. If any prompt for approval, that is expected on first run — approve
 them once rather than narrowing the reconciliation.
