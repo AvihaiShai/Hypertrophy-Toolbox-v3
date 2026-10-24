@@ -1,5 +1,6 @@
 import { showToast } from './toast.js';
 import { api } from './fetch-wrapper.js';
+import { escapeHtml } from './exercise-helpers.js';
 
 // Store flatpickr instance
 let goalDatePicker = null;
@@ -303,7 +304,7 @@ export function initializeProgressionPlan() {
             console.error('Error fetching suggestions:', error);
             suggestionsList.innerHTML = `
                 <div class="alert alert-danger">
-                    Error loading suggestions: ${error.message}
+                    Error loading suggestions: ${escapeHtml(error.message)}
                 </div>
             `;
             renderProgressionFatigueContext(null);
@@ -335,16 +336,16 @@ export function initializeProgressionPlan() {
             const currentValue = (suggestion.current_value !== undefined && suggestion.current_value !== null) ? suggestion.current_value : '';
             const suggestedValue = (suggestion.suggested_value !== undefined && suggestion.suggested_value !== null) ? suggestion.suggested_value : '';
             card.innerHTML = `
-                <div class="card suggestion-card glass-neumorph-card h-100 w-100" data-visual-surface data-goal-type="${suggestion.type}">
+                <div class="card suggestion-card glass-neumorph-card h-100 w-100" data-visual-surface data-goal-type="${escapeHtml(suggestion.type)}">
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">${suggestion.title}</h5>
-                        <p class="card-text">${suggestion.description}</p>
+                        <h5 class="card-title">${escapeHtml(suggestion.title)}</h5>
+                        <p class="card-text">${escapeHtml(suggestion.description)}</p>
                         <button class="btn btn-primary btn-calm-primary set-goal-btn mt-auto" 
-                                data-goal-type="${suggestion.type}"
-                                data-exercise="${exercise}"
-                                data-current-value="${currentValue}"
-                                data-target-value="${suggestedValue}">
-                            ${suggestion.action}
+                                data-goal-type="${escapeHtml(suggestion.type)}"
+                                data-exercise="${escapeHtml(exercise)}"
+                                data-current-value="${escapeHtml(currentValue)}"
+                                data-target-value="${escapeHtml(suggestedValue)}">
+                            ${escapeHtml(suggestion.action)}
                         </button>
                     </div>
                 </div>

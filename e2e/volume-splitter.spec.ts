@@ -10,6 +10,7 @@
  * - Export to Excel
  */
 import type { Page } from '@playwright/test';
+import { test as dataSafetyTest } from './console-guard';
 import {
   test,
   expect,
@@ -18,6 +19,48 @@ import {
   waitForVolumeSplitterReady,
   expectToast,
 } from './fixtures';
+
+dataSafetyTest.describe('Volume muscle lookup data safety', () => {
+  for (const cssEscapeAvailable of [true, false]) {
+    dataSafetyTest(`matches literal muscle names with CSS.escape ${cssEscapeAvailable ? 'available' : 'unavailable'}`, async ({ page }) => {
+      const muscle = 'Chest"\\tail[data-extra="x"]';
+      await page.route('**/api/calculate_volume', route => route.fulfill({
+        json: {
+          ok: true, status: 'success', data: {
+            ranges: { [muscle]: { min: 9, max: 27 } },
+            results: { [muscle]: { weekly_sets: 17, sets_per_session: 6, status: 'high' } },
+            suggestions: [],
+          },
+        },
+      }));
+      await page.goto(ROUTES.VOLUME_SPLITTER);
+      await waitForVolumeSplitterReady(page);
+      const targetRow = page.locator('#sliders .muscle-row').first();
+      const otherRow = page.locator('#sliders .muscle-row').nth(1);
+      const otherValue = await otherRow.locator('.current-value').textContent();
+      await targetRow.evaluate((element, { muscle, cssEscapeAvailable }) => {
+        element.setAttribute('data-muscle', muscle);
+        element.querySelector('.current-value')!.setAttribute('data-muscle', muscle);
+        element.querySelector('.volume-slider')!.setAttribute('data-muscle', muscle);
+        if (!cssEscapeAvailable) {
+          Object.defineProperty(CSS, 'escape', { configurable: true, value: undefined });
+        }
+      }, { muscle, cssEscapeAvailable });
+      const slider = targetRow.locator('.volume-slider');
+      await slider.evaluate(element => {
+        const input = element as HTMLInputElement;
+        input.value = '17';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      await expect(targetRow.locator('.current-value')).toHaveText('17');
+      await expect(otherRow.locator('.current-value')).toHaveText(otherValue!);
+      await expect(targetRow).toHaveClass(/status-high/);
+      await expect(targetRow.locator('.current-value')).toHaveClass(/volume-value-pill--high/);
+      await expect(otherRow).not.toHaveClass(/status-high/);
+      await expect(page.locator('#results-body tr').first().locator('td').first()).toHaveText(muscle);
+    });
+  }
+});
 
 async function setVolumeSlider(page: Page, muscle: string, value: number) {
   const slider = page.locator(`#sliders input.volume-slider[data-muscle="${muscle}"]`);
