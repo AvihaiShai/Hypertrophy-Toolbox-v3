@@ -433,3 +433,17 @@ The required independent **code review, then unslop review both completed PASS, 
 This evidence-only append follows the reviewed tree. Preserve its original source proof and artifact manifest; the final Gate 2 proof must account separately for this planning append and the developer's execution-record update. No production/test/config change, dependency/tool pin change or socket fix is authorized or recorded here; socket work remains in separate issue #565.
 
 **Delivery boundary:** Gate 2 remains unapproved; no commit or push has occurred. The native Windows functional-job clarification remains unanswered. Before merge, require exact-final-head native Linux Chromium and the clarified native Windows E2E/visual evidence, **one full canonical local E2E run after the owner's Sandbox-enabling reboot with its actual result recorded**, actual clean no-Python Sandbox **PASS**, and the owner's final-diff/named-PR/head merge approval. None of those pending conditions is discharged by the reviewer passes. The owner retains the coordinated post-merge main `.venv` rebuild.
+
+### Direct owner publication approval and Windows clarification — 2026-10-24
+
+**Gate 2 reply (verbatim)**
+
+> :Gate 2 approved. In the first follow-up commit on the PR (in scope, no re-approval needed): (1) change the stale-venv message in START.bat/build_exe.bat to tell users to rename the old venv folder and rerun; (2) remove the "private extracted PythonCore runtime" wording from README, QUICK_START and ADR-013; (3) make the pyright-baseline.json note identical to the text pyright_baseline_diff.py generates.
+
+The approval names finished staged tree **`9a10e87937fe39ca6ac661b023e5738b584b4537`**. That exact tree was committed as **`7e86c0546d80784ae3e8262067bd398f7187752a`**, pushed, and published in draft [PR #566](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/566), against base **`ae5ec18c3293df302393b28195d8e12ceb92d176`**. This supersedes older pending-Gate-2/publication status above. The three requested changes belong in the **first follow-up commit on that PR**, with applicable verification and accurate evidence; they require no repeated Gate 2 approval. No dependency-pin change or socket-exhaustion fix is authorized.
+
+**Native Windows scope clarification (verbatim)**
+
+> Require existing Windows jobs (Recommended)
+
+The owner selected the existing native Windows visual/build/test jobs, alongside the required post-reboot full local E2E run. Do not add a native Windows functional E2E CI job for #564. Before merge, require **exact-final-head native Linux Chromium and all existing Windows visual/build/test jobs to pass**, record **one full canonical local E2E run after the owner's Sandbox-enabling reboot with its actual result**, obtain actual clean no-Python Sandbox **PASS**, and obtain the owner's final-diff review and **named-PR/head merge approval**. Publication approval supplies none of those results and does not authorize merge. The owner retains the coordinated post-merge main `.venv` rebuild; socket work remains in separate issue #565.

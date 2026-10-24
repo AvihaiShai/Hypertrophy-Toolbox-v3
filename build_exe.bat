@@ -57,7 +57,7 @@ if exist "venv\Scripts\python.exe" (
     venv\Scripts\python.exe -m utils.python_version >nul 2>&1
     if errorlevel 1 (
         echo [ERROR] The existing "venv" was created with Python older than %PYTHON_VERSION%.
-        echo Retain the old "venv" separately, then recreate it with Python %PYTHON_VERSION%.
+        echo Rename the old "venv" folder to "venv-3.14-backup", then rerun build_exe.bat.
         echo.
         pause
         exit /b 1

@@ -68,12 +68,11 @@ current that day.
   https://www.python.org/downloads/release/python-3151/
 - Ensure the Windows Python launcher or Python install manager is enabled;
   `START.bat` selects the registered 3.15 runtime directly. Confirm
-  `py -3.15 --version` reports at least 3.15.1; extracting a private runtime
-  does not register it with the launcher.
+  `py -3.15 --version` reports at least 3.15.1.
 
 ### Existing Virtual Environment Uses an Older Python
-- Retain the old `venv/` separately, then create a fresh environment before
-  rerunning `START.bat` or `build_exe.bat`.
+- Rename the old `venv/` folder to `venv-3.14-backup`, then rerun `START.bat`
+  or `build_exe.bat` to create a fresh environment.
 - For development, retain the previous `.venv` and create a fresh one with Python 3.15.1+; reinstall
   `requirements.txt`.
 - Keep the previous checkout and copied database/backups for recovery; the

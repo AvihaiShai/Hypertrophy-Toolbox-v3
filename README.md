@@ -69,9 +69,9 @@ This will automatically:
    and database/backups. Create fresh `.venv` and launcher/build `venv`
    environments with Python 3.15.1; an existing environment keeps its original
    interpreter. On Windows, `py -3.15 --version` must identify at least 3.15.1
-   before using either batch entry point. A private extracted PythonCore runtime
-   can create environments through its full executable path, but extraction alone
-   does not register it for `py -3.15`. See the
+   before using either batch entry point. Rename an old launcher/build `venv`
+   folder to `venv-3.14-backup`, then rerun the batch entry point to create its
+   replacement. See the
    [migration and rollback record](docs/python315_migration/EXECUTION.md).
 
 3. **Install dependencies:**
