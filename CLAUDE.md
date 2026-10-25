@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Operational guidance for Claude Code. Keep this file under 200 lines and limited to what most tasks need. Subsystem-specific detail lives in `.claude/rules/*.md` and loads only when the matching files enter context. **For long-running work, read [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md) first** (canonical current state); folder orientation lives in `<dir>/CLAUDE.md` files.
+Operational guidance for Claude Code. Keep this file under 200 lines and limited to what most tasks need. Subsystem-specific detail lives in `.claude/rules/*.md` and loads only when the matching files enter context. **For long-running work, read [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md) first** for runtime handover and operating context. For migrated public work, read the owning [GitHub issue](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues) for current status and decisions; [`docs/OPEN_WORK_EXECUTION_PLAN.md`](docs/OPEN_WORK_EXECUTION_PLAN.md) retains unmigrated entries and sequencing. Folder orientation lives in `<dir>/CLAUDE.md` files.
 
 ---
 
@@ -128,7 +128,7 @@ Follow the checklist in `.claude/rules/routes.md` (*Adding a feature end to end*
 
 ## 5. Current State & Risks
 
-Point-in-time status lives in [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md); this section holds durable gotchas only. The response-contract rule and its HTTP-200 "no result" cases are in `.claude/rules/routes.md`.
+Current status and decisions for migrated public work live in the owning [GitHub issues](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues). [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md) retains dated runtime handover and operating context; this section holds durable gotchas only. The response-contract rule and its HTTP-200 "no result" cases are in `.claude/rules/routes.md`.
 
 ### exercise_order column
 Added at startup by `initialize_exercise_order()` (defined in `utils/schema_registry.py`, re-exported from `routes/workout_plan.py`) via `ALTER TABLE`. `get_workout_plan()` in `routes/workout_plan.py` defensively checks `column_exists()` for pre-migration DBs.
