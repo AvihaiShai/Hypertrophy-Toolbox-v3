@@ -43,6 +43,8 @@ the former six-month criterion 2. The three date-held candidates below are now e
 under the revised rule, subject to the remaining archive criteria and same-change reference
 repairs. The old hold dates are retained as history; they no longer control eligibility.
 Reference counts and source locations must be checked against the actual proposed diff.
+The two 2026-10-25 archive locations below preserve the original evidence unchanged;
+their assessment counts, edit dates and former hold dates remain historical.
 
 Search for the **shorthand** form too. `MASTER_HANDOVER.md` cites this family as
 `` `_B`/`_C`/`_D`/`_E`/`_F`/`_G` `` after naming one file in full, so a grep for whole
@@ -56,10 +58,10 @@ filenames alone reports a false zero.
 | `CSS_PHASE4_WP4_3I_E_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
 | `CSS_PHASE4_WP4_3I_F_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
 | `CSS_PHASE4_WP4_3I_G_EVIDENCE.md` | 1 (same) | 2026-07-24 | as above |
-| `CSS_PHASE4_WP4_3I_H_EVIDENCE.md` | 0 | 2026-07-25 | **Eligible under the revised rule**, subject to the criteria above; current source: `CSS_OWNERSHIP_MAP.md`. Former hold: 2027-01-25. |
+| [`archive/2026/css-wp4-3i-h/CSS_PHASE4_WP4_3I_H_EVIDENCE.md`](../archive/2026/css-wp4-3i-h/CSS_PHASE4_WP4_3I_H_EVIDENCE.md) | 0 | 2026-07-25 | **Archived 2026-10-25** under the revised criteria, with evidence unchanged and its path reference repaired here; current source: `CSS_OWNERSHIP_MAP.md`. Former hold: 2027-01-25. |
 | `archive/2026/fetch-wrapper/WP3_5_FETCH_INVENTORY.md` | 0 | 2026-07-12 | **Eligible under the revised rule**, subject to the criteria above; current sources: `static/js/modules/fetch-wrapper.js` and the `REFACTOR_PLAN.md` closeout. Former hold: 2027-01-12. |
 | `archive/CLEANUP_V2_DEAD_CODE_AUDIT.md` | 1 | 2026-06-12 | **Already in `archive/`.** No further action |
-| `user_profile/DUMBBELL_LOAD_BASIS_FIX.md` | 0 genuine | 2026-06-04 | **Eligible under the revised rule**, subject to the criteria above; current sources: `user_profile/DESIGN.md` for the per-hand convention and `utils/_profile_estimator/core_math.py::_load_basis_factor` for cross-basis conversion. Former hold: 2026-12-04. Its only recorded hit was this candidate list, not an index link. |
+| [`archive/2026/profile-dumbbell-load-basis/DUMBBELL_LOAD_BASIS_FIX.md`](../archive/2026/profile-dumbbell-load-basis/DUMBBELL_LOAD_BASIS_FIX.md) | 0 genuine | 2026-06-04 | **Archived 2026-10-25** under the revised criteria, with evidence unchanged and its path reference repaired here; current sources: `user_profile/DESIGN.md` for the per-hand convention and `utils/_profile_estimator/core_math.py::_load_basis_factor` for cross-basis conversion. Former hold: 2026-12-04. Its only recorded hit was this candidate list, not an index link. |
 
 > **Two corrections to the v22 candidate list.**
 >
