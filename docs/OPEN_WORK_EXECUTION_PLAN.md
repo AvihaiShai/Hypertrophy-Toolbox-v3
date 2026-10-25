@@ -1,7 +1,9 @@
 # Open Work Execution Plan
 
-**Status:** the actionable work index (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
-§11). Nothing here authorizes a packet, a merge, a setting change or a release.
+**Status:** retained sequencing, decision gates and closed/parked boundaries from Q12
+([`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md) §11).
+The [GitHub Project board](https://github.com/users/AvihaiShai/projects/5/views/2) and its linked issues
+own current public work tracking. Nothing here authorizes a packet, a merge, a setting change or a release.
 **Current-state entry point:** [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) *Current State*.
 
 **Section map.** This file holds §0, §5, §6, §7 and §9. The revision header and §§1–4, 8 and
@@ -11,9 +13,11 @@ a bare section number from those ranges, here or in another document, refers to 
 
 ## 0. Current actionable queue — reconciled 2026-10-22 at `b77cb742`
 
-**Tracking cutover — 2026-10-24.** Linked GitHub issues own their current status,
-decisions and completion evidence; unmigrated rows remain here. Detailed plans and ledgers
-retain their contracts, approvals and evidence. Nothing here grants execution, merge,
+**Tracking cutover — 2026-10-25.** All public candidates from the completed migration have
+verified GitHub destinations. Linked issues own their current status, decisions and completion
+evidence; this file retains sequencing, approval boundaries and historical context.
+Detailed plans and ledgers retain their contracts, approvals and evidence. Held private records
+remain local; public summaries do not replace them. Nothing here grants execution, merge,
 settings, baseline or release authority, or reopens closed/parked work.
 
 The heading retains the earlier reconciliation date; the outgoing reading is preserved in the
@@ -63,7 +67,7 @@ is authorized by that repair or by the closeout.
   still need consumer/CI-slot coordination. Every selected slice needs its own approval.
 - **Workflow/retention decisions and deferred WS6** are tracked in
   [#595](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/595) under AGREED_PLAN §4, §9.2, §11 and §12. Other proposals remain with their owning
-  plan until migrated. Parked/declined items keep their triggers;
+  plan and linked GitHub issue. Parked/declined items keep their triggers;
   tracking them does not select or authorize implementation.
 
 ### 0.4 Open obligations
@@ -91,9 +95,9 @@ Strategy Phases 3 and 5, User Profile v2 and Fatigue Phase 3 are in §5.
 | Item | Disposition |
 |---|---|
 | P2.4 — KI-005 manual-edit provenance staleness (accepted limitation) | Owner- and demand-gated; a new UX packet only if visible in real use |
-| LEFTOVERS §4 TODOs — `utils/constants.py:19` (`Front-Shoulder`) and `:100–101` (`Mid/Upper Back`), all three markers present at `f3adacf1` | Owner taxonomy decisions; not a rename |
-| LEFTOVERS §4a FINDING-1 residuals — the Excel export still shows a fixed failure toast (`static/js/modules/exports.js`), so the server's diagnostic never reaches the screen; site 7 stays unfixed by design | Proposal; a `static/**` packet needs its own gates |
-| P3 proposals — app-JS TypeScript checking; widening the inert `d-flex` / `d-inline-block` utilities (pinned by `KNOWN_INERT`; a rendering change that moves 12 visual captures, so it needs its own baseline review); cross-model `$orchestrate`; the CSS/refactor tail (C8 and G4 are in §5; the rest of its list stays in LEFTOVERS §1 P3 as a dated record) | Park, as §5 |
+| LEFTOVERS §4 taxonomy markers | [#620](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/620) owns the naming, grouping and alias decisions. A separately selected rename requires its own data/consumer migration and protected-calculation review; these markers are not a rename. |
+| LEFTOVERS §4a FINDING-1 export feedback | [#625](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/625) owns diagnostic-feedback and export-contract follow-ups. Site 7 remains unfixed by design; any `static/**` packet keeps its own gates. |
+| P3 proposals — app-JS TypeScript checking, inert display utilities, cross-model `$orchestrate` and the CSS/refactor tail | [#623](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/623) tracks the shared-CSS proposals; other proposals retain their owning issue and the dated LEFTOVERS §1 P3 record. `KNOWN_INERT` remains pinned; widening the utilities is a rendering change requiring separate baseline review. Parked boundaries in §5 remain. |
 | LEFTOVERS §3 held local artifacts — `artifacts/wp4_4/`, `artifacts/environment-backups/…`, `artifacts/vbl_check/` | Owner housekeeping under the Operation A teardown restrictions. Deleting anything further is a new owner decision with its own path-specific authorization; `data/auto_backup/*.db` snapshots belong to backup rotation and are never cleanup targets |
 
 ### 0.6 Closures that correct older sections
@@ -111,16 +115,16 @@ Strategy Phases 3 and 5, User Profile v2 and Fatigue Phase 3 are in §5.
 
 ## 5. Parked work — do not place in the active queue
 
-| Area | If reopened | Current disposition |
+| Area | Historical estimate | Tracking / retained boundary |
 |---|---:|---|
-| CSS C8 — 235 declarations crossing the frozen `@layer workout` span | 5–10 days | Park. High cascade risk and no demonstrated user-facing defect. Requires a newly certified packet. |
-| G4 — superset dark-tint gap | 1–3 days | Park unless a visible defect or explicit design requirement is supplied. |
-| Fatigue Phase 3 | 8–15 days | Product roadmap, not incomplete v1 cleanup. Requires product scope and schema review. |
-| User Profile per-exercise ratios | 3–5 days | v2 roadmap. |
-| User Profile auto-refresh from logs | 3–5 days | v2 roadmap; needs conflict/source-of-truth rules. |
-| Bodyweight-aware weighted lift estimates | 2–4 days | v2 roadmap; calculation semantics require product-risk review. |
-| User Profile confidence indicator | 1–2 days | v2 roadmap; define the confidence contract before UI work. |
-| Testing Strategy Phase 3 step 11 / Phase 5 proposals | Unknown | Do not execute until separately selected and planned. |
+| CSS C8 — 235 declarations crossing the frozen `@layer workout` span | 5–10 days | [#623](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/623). Parked; high cascade risk and no demonstrated user-facing defect. Requires a newly certified packet. |
+| G4 — superset dark-tint gap | 1–3 days | [#623](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/623). Parked unless a visible defect or explicit design requirement is supplied. |
+| Fatigue Phase 3 | 8–15 days | [#630](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/630). Product roadmap, not incomplete v1 cleanup. Requires product scope and schema review. |
+| User Profile per-exercise ratios | 3–5 days | [#628](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/628). v2 roadmap. |
+| User Profile auto-refresh from logs | 3–5 days | [#628](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/628). v2 roadmap; needs conflict/source-of-truth rules. |
+| Bodyweight-aware weighted lift estimates | 2–4 days | [#628](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/628). v2 roadmap; calculation semantics require product-risk review. |
+| User Profile confidence indicator | 1–2 days | [#628](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/628). v2 roadmap; define the confidence contract before UI work. |
+| Testing Strategy Phase 3 step 11 / Phase 5 proposals | Unknown | [#639](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/639). Do not execute until separately selected and planned. |
 
 Parking means “not funded now,” not “safe to delete.” If the owner decides these will not be
 built, update their source plans to **Not planned** so they stop appearing as ambiguous open
