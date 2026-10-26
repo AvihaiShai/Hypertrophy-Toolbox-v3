@@ -1,5 +1,11 @@
 # WP4.3i-dead — Workout Plan overridden rest-state declaration removal
 
+> **Retained packet evidence.** Measurements and handoffs below describe the dated
+> packet, including any former next-action instructions. They are not a current
+> work queue or authorization. Use the [CSS ownership map](CSS_OWNERSHIP_MAP.md)
+> for loading architecture and the [GitHub board](https://github.com/users/AvihaiShai/projects/5/views/2)
+> for current public work. The original evidence is preserved below.
+
 Packet: WP4.3i-dead (Phase 4 CSS, page #9 Workout Plan)
 Base: `main` @ `bfadf9d`, branch `wt/css-wp4-3i-dead`, isolated worktree
 Date: 2026-07-25

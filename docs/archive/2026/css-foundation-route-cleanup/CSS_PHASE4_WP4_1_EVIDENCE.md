@@ -17,7 +17,7 @@ SCSS sources, excluding generated Bootstrap CSS. It found 30,768 lines,
 percentages, 262 durations, and 2,570 `!important` occurrences.
 
 The complete namespace counts, hardcoded-value ranking, and frozen mapping are
-in [`CSS_PHASE4_WP4_1_TOKEN_INVENTORY.md`](CSS_PHASE4_WP4_1_TOKEN_INVENTORY.md).
+in [`CSS_PHASE4_WP4_1_TOKEN_INVENTORY.md`](../../../CSS_PHASE4_WP4_1_TOKEN_INVENTORY.md).
 The approved mapping is deliberately narrow:
 
 - `--s-*` remains the fixed component-spacing scale.
@@ -42,7 +42,7 @@ declarations/selectors, descending specificity, selector ceilings, unknown
 properties, and invalid hex. All findings are warnings.
 
 The committed pre-change baseline is
-[`CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json`](CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json):
+[`CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json`](../../../CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json):
 
 | Measurement | Pre-change | Post-alias |
 | --- | ---: | ---: |
@@ -98,7 +98,7 @@ The diff images were inspected. The first red is confined to the navbar
 signature plus six exercise video/control frames. The second is confined to
 the transient skip-link/signature frame plus the same six video/control
 frames. Counts and locations exactly reproduce
-[`CSS_PHASE4_WP4_0_EVIDENCE.md`](CSS_PHASE4_WP4_0_EVIDENCE.md); there is no
+[`CSS_PHASE4_WP4_0_EVIDENCE.md`](../../../CSS_PHASE4_WP4_0_EVIDENCE.md); there is no
 layout, token, or cascade drift. The existing pinned-Linux WP4.0 evidence
 remains authoritative, so no push was made to dispatch another Linux run.
 

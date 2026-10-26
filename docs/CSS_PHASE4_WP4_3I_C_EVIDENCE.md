@@ -1,5 +1,11 @@
 # CSS Phase 4 WP4.3i-c Evidence — Workout Plan Header/Frame Ownership Cleanup
 
+> **Retained packet evidence.** Measurements and handoffs below describe the dated
+> packet, including any former next-action instructions. They are not a current
+> work queue or authorization. Use the [CSS ownership map](CSS_OWNERSHIP_MAP.md)
+> for loading architecture and the [GitHub board](https://github.com/users/AvihaiShai/projects/5/views/2)
+> for current public work. The original evidence is preserved below.
+
 Date: 2026-07-22
 
 Branch: isolated worktree `wt/css-wp4-3i-c`
