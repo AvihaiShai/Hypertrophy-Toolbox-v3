@@ -7,7 +7,7 @@ This directory holds current references, open work, and retained completion hist
 ### Product Reference
 
 The [`product/`](product/) suite describes the shipped application — behavior, schema, and design.
-It is descriptive and carries no status; anything time-sensitive stays in `MASTER_HANDOVER.md`.
+It is descriptive and carries no task status; current public tracking is in GitHub, with runtime handover context in `MASTER_HANDOVER.md`.
 
 - **[product/README.md](product/README.md)** - Suite index, canonical-source map, conflict rules, terminology, and how work gets planned
 - **[product/APP_FLOW.md](product/APP_FLOW.md)** - Every screen: purpose, controls, action types, and success / no-result / failure outcomes
@@ -15,15 +15,21 @@ It is descriptive and carries no status; anything time-sensitive stays in `MASTE
 - **[product/DESIGN_BRIEF.md](product/DESIGN_BRIEF.md)** - The shipped design system: tokens with measured consumers, theming, typography, motion, accessibility
 
 ### Project State
-- **[MASTER_HANDOVER.md](MASTER_HANDOVER.md)** - Canonical current state; the file new agents read first
+- **[GitHub Project board](https://github.com/users/AvihaiShai/projects/5/views/2)** - Current public work, organized by canonical workstream parents; issues own status, decisions and completion evidence
+- **[MASTER_HANDOVER.md](MASTER_HANDOVER.md)** - Runtime handover and operating context; the file new agents read first
 - **[ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md)** - Fatigue calibration guardrails and agent authority rules; earlier objectives and status blocks archived
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and recent work
 - **[DECISIONS.md](DECISIONS.md)** - Durable project decisions and lightweight ADRs
 - **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Current architecture debt snapshot
-- **[LEFTOVERS_BY_PRIORITY.md](LEFTOVERS_BY_PRIORITY.md)** - Prioritized punch list of unfinished / parked / deferred items
-- **[OPEN_WORK_EXECUTION_PLAN.md](OPEN_WORK_EXECUTION_PLAN.md)** - Reconciled order of work, estimates, decision gates, and explicit closed/parked boundaries
+- **[LEFTOVERS_BY_PRIORITY.md](LEFTOVERS_BY_PRIORITY.md)** - Historical prioritization and retained evidence; current public tracking is in GitHub
+- **[OPEN_WORK_EXECUTION_PLAN.md](OPEN_WORK_EXECUTION_PLAN.md)** - Retained sequencing, decision gates and closed/parked boundaries, with links to current GitHub tracking
 - **[ai_workflow/INDEX.md](ai_workflow/INDEX.md)** - AI workflow navigation spine
 - **[ai_workflow/DOC_RETENTION.md](ai_workflow/DOC_RETENTION.md)** - Rules for keeping, archiving, or deleting docs
+
+Documentation cutover is tracked in [#595](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/595),
+with index/status corrections in [#577](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/577)
+and operating-guidance reconciliation in [#580](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/580).
+Source contracts, approval boundaries and evidence remain in the retained documents; issue publication does not replace or retire a document by itself.
 
 ### Runtime, UI, And Testing
 - **[CSS_OWNERSHIP_MAP.md](CSS_OWNERSHIP_MAP.md)** - Current CSS loading and ownership map

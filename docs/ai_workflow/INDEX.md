@@ -1,11 +1,14 @@
 # AI Workflow Index
 
-*Navigation map for AI agents and humans working on this repo. The Master Handover is the entry point; everything else here is reference.*
+*Navigation map for AI agents and humans working on this repo. Read the Master Handover for runtime and operating context, then the owning GitHub issue for migrated public work.*
 
 ## Spine (read first)
-- [Master Handover](../MASTER_HANDOVER.md) — canonical current state
+- [Master Handover](../MASTER_HANDOVER.md) — dated runtime handover and operating context
+- [GitHub Project board](https://github.com/users/AvihaiShai/projects/5/views/2) — current public work; owning issues hold status, decisions and completion evidence
 - root [CLAUDE.md](../../CLAUDE.md) — operational guidance
 - [`.claude/rules/`](../../.claude/rules/) — subsystem rules (auto-loaded by Claude Code on matching paths)
+
+Unmigrated entries and retained sequencing stay in [OPEN_WORK_EXECUTION_PLAN.md](../OPEN_WORK_EXECUTION_PLAN.md). Owning plans, qualification ledgers and operating guides retain their approval and evidence requirements; a tracking issue does not replace them.
 
 > **There is no shared plan file, and no tier or appendix numbering.** Workflow
 > authority is split by topic, and each of these is canonical for its own:
