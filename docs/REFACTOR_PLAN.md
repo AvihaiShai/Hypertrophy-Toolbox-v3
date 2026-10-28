@@ -1093,7 +1093,7 @@ including 58 fatigue and 57 workout-plan volume-panel entries owned by SCSS.
 Four focused contracts, blocking static checks, Vitest (93), and the complete
 required Chromium set (407) passed. Seeded visual comparison reproduced the
 unchanged animated-GIF known-reds with identical mismatch counts; no snapshot
-was rebaselined. Full evidence: [`CSS_PHASE4_WP4_-1_EVIDENCE.md`](CSS_PHASE4_WP4_-1_EVIDENCE.md).
+was rebaselined. Full evidence: [`CSS_PHASE4_WP4_-1_EVIDENCE.md`](archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_-1_EVIDENCE.md).
 WP4.0a followed and is not included in this packet.
 
 ### WP4.0a Harden visual and functional selectors
@@ -1116,7 +1116,7 @@ and imported only the 12 missing images. The Linux compare's 11 reds were all
 confined to pre-existing animated signature/exercise-thumbnail pixels; no new
 route failed. Static/unit/Python gates and the full 407-test functional set are
 verified. See
-[`CSS_PHASE4_WP4_0A_EVIDENCE.md`](CSS_PHASE4_WP4_0A_EVIDENCE.md). WP4.0 followed
+[`CSS_PHASE4_WP4_0A_EVIDENCE.md`](archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_0A_EVIDENCE.md). WP4.0 followed
 and is not included in this packet.
 
 ### WP4.0 Fresh known-red ledger
@@ -1161,7 +1161,7 @@ sources and reports a non-blocking CI delta; no required context was renamed.
 Static, unit, Python, functional Chromium, and update-free visual gates passed
 with only the exact WP4.0 known reds. All 156 screenshots, generated Bootstrap
 CSS, and live databases stayed byte-identical. Evidence:
-[`CSS_PHASE4_WP4_1_EVIDENCE.md`](CSS_PHASE4_WP4_1_EVIDENCE.md). WP4.2 is next
+[`CSS_PHASE4_WP4_1_EVIDENCE.md`](archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_1_EVIDENCE.md). WP4.2 is next
 and is not included in this packet.
 
 ### WP4.2 Shared-frame dedupe and ownership repair
@@ -1184,7 +1184,7 @@ files shrink by a net **3,668 lines**. Contracts **12/12**, affected Chromium
 and update-free visual locks all match. Stylelint falls from the 7,202 baseline
 to **6,444** with unchanged selector ceiling warning counts and zero parse/config
 errors. All 156 snapshots, generated Bootstrap, and protected DBs are unchanged.
-Evidence: [`CSS_PHASE4_WP4_2_EVIDENCE.md`](CSS_PHASE4_WP4_2_EVIDENCE.md). The
+Evidence: [`CSS_PHASE4_WP4_2_EVIDENCE.md`](archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_2_EVIDENCE.md). The
 packet was integrated into local `main` as merge `d695188`; narrow post-merge
 gates passed, nothing was pushed, and WP4.3 had not started.
 
@@ -1216,7 +1216,7 @@ counts. Contracts **13/13**, focused Backup Chromium **20/20**, required Chromiu
 **407/407**, and pytest **1,734 + 2 catalog known-reds** match the expected gates;
 all six Backup variants pass and the full suites reproduce only the exact WP4.0
 known reds. All integrity locks are unchanged. Evidence:
-[`CSS_PHASE4_WP4_3A_EVIDENCE.md`](CSS_PHASE4_WP4_3A_EVIDENCE.md). The packet was
+[`CSS_PHASE4_WP4_3A_EVIDENCE.md`](archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_3A_EVIDENCE.md). The packet was
 integrated into local `main` as merge `dc607fe`; narrow post-merge gates passed,
 all protected identities remained unchanged, nothing was pushed, and WP4.3b had
 not started. Begin only the Body Composition page packet next.
@@ -1233,7 +1233,7 @@ Chromium **407/407**, and pytest **1,735 + 2 catalog known-reds** match the
 expected gates. All six Windows route variants pass; all twelve committed Body
 Composition images and all integrity locks are unchanged. The full suites
 reproduce only the exact WP4.0 known reds. Evidence:
-[`CSS_PHASE4_WP4_3B_EVIDENCE.md`](CSS_PHASE4_WP4_3B_EVIDENCE.md). The packet was
+[`CSS_PHASE4_WP4_3B_EVIDENCE.md`](archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_3B_EVIDENCE.md). The packet was
 integrated into local `main` as merge `92291ed`; narrow post-merge gates passed,
 all protected identities remained unchanged, and nothing was pushed. Progression
 and later packets have not started; wait for explicit direction before beginning

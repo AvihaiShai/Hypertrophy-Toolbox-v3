@@ -176,7 +176,12 @@ The twelve committed Session Summary images remained byte-identical:
 
 ## Next action
 
-WP4.3f is complete in isolated `wt/wp4-3-session-summary-dark-token-cleanup` and
-shipped via PR to `main`. The next packet in order is WP4.3g Weekly Summary
-(a good place to also resolve the deferred dead `#weekly-*` arms and the two
-parallel dark table systems). Do not begin it without explicit direction.
+WP4.3f shipped. Current tracking for the retained Session Summary Weekly-selector
+arms is [#623, AUD-0386](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/623).
+The deferred-findings section above remains the historical technical record;
+a new owner-selected packet, fresh measurement and its existing gates are
+required before any cleanup. WP4.3g's opposite-direction deletion did not
+authorize this direction.
+
+The former sequential handoff is preserved in the
+[pre-cutover source](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/c29ddf0740ecd9dd90e65424c37050c764504431/docs/CSS_PHASE4_WP4_3F_EVIDENCE.md#next-action).

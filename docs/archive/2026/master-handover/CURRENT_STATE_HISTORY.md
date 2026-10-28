@@ -3909,7 +3909,7 @@ behind the CSS it describes.
 > CSS-contract, Flake8, tsc, Node-syntax, and Vitest gates passed; all 156
 > screenshot hashes and protected DB/Bootstrap identities remained unchanged.
 > Nothing was pushed and Progression, another WP4.3 page, and WP4.4 had not
-> started. Evidence: `docs/CSS_PHASE4_WP4_3B_EVIDENCE.md`. **Wait for explicit
+> started. Evidence: `docs/archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_3B_EVIDENCE.md`. **Wait for explicit
 > direction before beginning another packet.**
 >
 > **2026-07-18 — WP4.3a Backup token cleanup integrated locally as merge
@@ -3930,7 +3930,7 @@ behind the CSS it describes.
 > byte-identical. The narrow post-merge git-diff, CSS-contract, Flake8, tsc,
 > Node-syntax, and Vitest gates passed; all 156 screenshot hashes and protected
 > DB/Bootstrap identities remained unchanged. Nothing was pushed and WP4.3b had
-> not started. Evidence: `docs/CSS_PHASE4_WP4_3A_EVIDENCE.md`. **Begin only
+> not started. Evidence: `docs/archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_3A_EVIDENCE.md`. **Begin only
 > WP4.3b Body Composition dark-mode/token cleanup in a new visual-seeded
 > isolated worktree.**
 >
@@ -3950,7 +3950,7 @@ behind the CSS it describes.
 > the exact **1,039/6,262** WP4.0 known-reds; all 156 snapshots, Bootstrap, and
 > both protected DBs are byte-identical. The narrow post-merge gates passed;
 > nothing was pushed and WP4.3 had not started. Evidence:
-> `docs/CSS_PHASE4_WP4_2_EVIDENCE.md`. **Begin only WP4.3a Backup page
+> `docs/archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_2_EVIDENCE.md`. **Begin only WP4.3a Backup page
 > dark-mode/token cleanup in a new visual-seeded isolated worktree.**
 >
 > **2026-07-17 — WP4.1 token vocabulary consolidation complete in isolated
@@ -3968,7 +3968,7 @@ behind the CSS it describes.
 > on every attempt. All 156 snapshots, generated Bootstrap CSS, and the main,
 > Phase-4, and visual-seed DBs stayed byte-identical. No snapshot was updated and
 > no push was made; pinned-Linux WP4.0 evidence remains authoritative. Evidence:
-> `docs/CSS_PHASE4_WP4_1_EVIDENCE.md`. WP4.2 followed in the block above.
+> `docs/archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_1_EVIDENCE.md`. WP4.2 followed in the block above.
 >
 > **2026-07-17 — WP4.0 fresh known-red ledger complete on unchanged
 > `wt/wp4-cascade-foundation` head `e46b67e`.** Fresh gates: contracts **7**,
@@ -4009,7 +4009,7 @@ behind the CSS it describes.
 > pytest **1,722 + the same 2 catalog known-reds**, and required Chromium
 > **407/407**. No legacy snapshot was rebaselined and the live DB stayed
 > byte-identical. WP4.0 followed in the block above. Evidence:
-> `docs/CSS_PHASE4_WP4_0A_EVIDENCE.md`.
+> `docs/archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_0A_EVIDENCE.md`.
 >
 > **2026-07-16 — Phase 4 WP4.-1 cascade/load-order foundation complete in the
 > isolated `wt/wp4-cascade-foundation` worktree (base `8c6acb6`).** `tokens.css`
@@ -4019,7 +4019,7 @@ behind the CSS it describes.
 > 8 global + 10 route bundles; no class, token value, API, SCSS, or snapshot
 > changed. The Bootstrap CSSOM inventory records 1,429 unique selector entries:
 > 1,314 Bootstrap, 58 fatigue-partial, and 57 volume-panel-partial entries; see
-> `docs/CSS_PHASE4_WP4_-1_EVIDENCE.md`. Gates: focused contracts **4 passed**;
+> `docs/archive/2026/css-foundation-route-cleanup/CSS_PHASE4_WP4_-1_EVIDENCE.md`. Gates: focused contracts **4 passed**;
 > blocking flake8 **0**; tsc passed; Vitest **93 passed**; full pytest **1,719
 > passed + 2 unchanged visual-seed catalog known-reds**; complete required
 > Chromium set **407 passed**. Seeded visuals reproduced the unchanged GIF-frame

@@ -15,6 +15,7 @@ It is descriptive and carries no task status; current public tracking is in GitH
 - **[product/DESIGN_BRIEF.md](product/DESIGN_BRIEF.md)** - The shipped design system: tokens with measured consumers, theming, typography, motion, accessibility
 
 ### Project State
+- **[docs_cutover/README.md](docs_cutover/README.md)** - Documentation cutover rules, completion criteria and the owner-reviewed pilot boundary
 - **[GitHub Project board](https://github.com/users/AvihaiShai/projects/5/views/2)** - Current public work, organized by canonical workstream parents; issues own status, decisions and completion evidence
 - **[MASTER_HANDOVER.md](MASTER_HANDOVER.md)** - Runtime handover and operating context; the file new agents read first
 - **[ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md)** - Fatigue calibration guardrails and agent authority rules; earlier objectives and status blocks archived
