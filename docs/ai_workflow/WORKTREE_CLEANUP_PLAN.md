@@ -3,13 +3,19 @@
 *Status: fourth-pass rewrite after independent Codex, Astra, and Opus review.*
 *Authority: planning only. This document authorizes no unlink, move, worktree
 removal, prune, ref change, branch change, archive deletion, or main reconciliation.*
-*Approval state: Gate 0 and Operation A Plan v2 Gate 1 are signed; the dated
-[planning record](../worktree_cleanup/PLANNING.md) records the approved implementation
-and verified disposable interactive Windows acceptance. Gate 2 and the remaining
-publication, installation and monitoring obligations remain open; PREVENTION_COMPLETE
-is not declared. B, C, and D still require the operation-specific owner approvals
-below and the independent Windows-filesystem review. E remains a separately planned
-and approved operation. This factual status correction changes no technical contract.*
+*Approval state: Gate 0 and Operation A Plan v2 Gate 1 are signed, and the approved
+planning record records the approved implementation and verified disposable
+interactive Windows acceptance. Operation A's reviewed guard and test source is
+merged. Section 5.4, Section 11, and the dated operation evidence govern installation,
+verification, monitoring, post-merge required-check disposition, and successor-artifact
+reconciliation obligations; this amendment discharges none. Operation-specific owner
+approval and Windows-filesystem review remain requirements under the contracts below.
+Actual approvals, waivers, execution results, and the remaining prevention acceptance
+are recorded in the dated [closeout record](../worktree_cleanup/CLOSEOUT.md) and
+[state evidence](../worktree_cleanup/evidence/2026-10-29-amendment-readiness.md).
+E requires its own separate plan and approval. Section 14 defines F and G under
+their own separate plans and approvals; neither is approved here. This amendment
+does not reopen completed operations or declare PREVENTION_COMPLETE.*
 
 ## 1. Purpose, authority, and independent outcomes
 
@@ -47,7 +53,7 @@ Empty directory skeletons below .git/refs are not refs. Every ref inventory must
 Git's ref enumeration. Transient agent-created refs, including refs/codex entries,
 must be recorded dynamically rather than assumed from a prior count.
 
-### 1.2 Five independently completable operations
+### 1.2 Independently completable operations
 
 #### Approved rollout order
 
@@ -62,7 +68,11 @@ The Gate 0 requirements impose this program order:
       -> separately approve and schedule B, C, and D
       -> consider E only under its separate plan and approval
 
-No technical independence below permits B-E to bypass that sequence. During the
+Operations F and G, added by a later amendment under Section 1.1, are considered only
+under their own separate plans and approvals (Section 14). The Gate 0 requirements
+above neither order nor authorize them.
+
+No technical independence below permits B-G to bypass that sequence. During the
 open-development phase, merged-PR and exact-head evidence may pre-classify completed
 work mechanically; only ambiguous or genuinely unmerged residue requires substantive
 owner judgment. Every row still receives the disposition and preservation checks in
@@ -81,9 +91,13 @@ After the stabilization checkpoint and fresh evidence, the dependencies are:
           +--> D1...Dn. Independently approved worktree-removal slices
           |
           +--> E. Main reconciliation under a separate approval
+    |
+    +--> F. Separately approved additional-source preservation (Section 14.1)
+          |
+          +--> G. Separately approved drive-root child retirement (Section 14.2)
 
-The shared Windows-filesystem proof in Section 4 is required before B, C, or D uses
-its filesystem mutation/copy primitives.
+The shared Windows-filesystem proof in Section 4 is required before B, C, D, F, or G
+uses its filesystem mutation/copy primitives.
 
 - B does not depend on C, D, or E.
 - Each D slice is approved, executed, verified, and closed independently. Normal
@@ -93,6 +107,27 @@ its filesystem mutation/copy primitives.
   regardless of whether every D slice has run.
 - A triage result with no approved candidates is
   TRIAGE_COMPLETE_NO_REMOVAL_AUTHORIZED, not successful worktree retirement.
+- F and G each require PREVENTION_COMPLETE and their own approvals. Beyond that they
+  are independent: F does not depend on B, C, D, or E; no D slice, no E operation, and
+  no PRESERVATION_COMPLETE waits on it; and an F failure blocks only G, and only for
+  the source identities it failed to preserve. G depends only on its own approval and
+  on ADDITIONAL_SOURCE_PRESERVED(source) already proved for its exact root identity.
+  Neither is part of worktree-cleanup completion.
+
+Section 14.0 defines when an unexpected drive-root child is outside approved operation
+scope; that definition is stated only there, and such a child is retained and recorded
+only. No proximity to a named root, generated-output classification, filesystem
+creation time, previous campaign completion receipt, aggregate, receipt, approval
+record, manifest, or baseline entry in this plan confers preservation, relocation,
+quarantine, or removal authority over any unexpected drive-root child. Authority
+exists only where this plan names it explicitly, as Operation B's two named roots are
+named, or under a dated Section 4.3 owner approval record created separately from and
+after this plan text. Section 14 defines the shape of two separately approved
+operations, F and G, and approves neither: this plan names no source and no target for
+either. Completing either changes no Operation B aggregate, no Operation C
+PRESERVATION_COMPLETE, no Operation D worktree-slice outcome, and no
+PREVENTION_COMPLETE declaration, and permits neither an edit to the owner-approved
+drive-root baseline nor a zero exit from the Section 5.2 audit.
 
 ### 1.3 Planning-artifact landing gate
 
@@ -104,8 +139,12 @@ provenance, the three required reviewers' verbatim findings, a response matrix, 
 v2, and owner Gate 1 sign-off. The Astra/Opus/Codex reviews are additional evidence,
 not replacements for architecture-reviewer, test-strategist, or
 product-risk-reviewer.
+Each later semantic amendment to this design records its own Gate 0 and Gate 1 in its
+own council artifact rather than in the artifact named above, which is the Operation A
+council artifact. The amendment that added Section 14 records its gates in
+docs/worktree_cleanup_amendment/PLANNING.md.
 
-The first Gate 1 implementation decision is for Operation A only. Sections B-E retain
+The first Gate 1 implementation decision is for Operation A only. Sections B-G retain
 their safety contracts and dependencies, but their production launchers and
 operation-specific recovery details do not need to be built or approved before A can
 land. Refine each later operation after stabilization and fresh evidence, then review
@@ -167,7 +206,8 @@ required for confidentiality and recoverability.
 ### 2.2 Non-negotiable safety rules
 
 1. Never use git worktree remove --force.
-2. During A-D, never run a mutating worktree prune, manually delete .git/worktrees
+2. During A-D, F, and G, never run a mutating worktree prune, manually delete
+   .git/worktrees
    entries, delete or rename a branch/ref/tag/stash, reset, rebase, force-push,
    expire reflogs, or run Git object cleanup. The only prune command permitted is a
    reviewed worktree prune --dry-run for evidence. E has one narrow exception: its
@@ -175,7 +215,9 @@ required for confidentiality and recoverability.
    reflog under a new collision-free name before a new main is created; it is not
    history deletion.
 3. Disable automatic Git maintenance for every cleanup Git child. During each C/D
-   live freeze, and any future E live-mutation window, suspend scheduled/background
+   live freeze, any Operation F live freeze whose approved source contains a live Git
+   repository (Section 14), and any future E live-mutation window, suspend
+   scheduled/background
    Git maintenance through an explicitly
    reviewed reversible mechanism, record its original state, and restore it only at
    a verified clean closeout. A failure before restoration leaves it suspended for
@@ -191,7 +233,7 @@ required for confidentiality and recoverability.
 5. A successful fsck is necessary but not proof that a previously present object was
    preserved. Freeze all three Section 3.3 protected OID sets and test every member
    and type explicitly after preservation and after every removal slice.
-6. For every B-E preservation/cleanup command that invokes Git against live or
+6. For every B-G preservation/cleanup command that invokes Git against live or
    restored operation state, invoke a pinned absolute git.exe directly with an
    argument array through the final reviewed safe Git runner. Use a freshly
    constructed minimal child environment, disabled hooks/fsmonitor/helpers/pagers/
@@ -249,7 +291,9 @@ required for confidentiality and recoverability.
 19. Keep a durably flushed append-only journal for each mutation. REMOVE_INVOKED is
     the boundary after which no automatic retry or rollback is permitted.
 20. Retain every preservation object and quarantine payload for at least 30 days
-    after the relevant operation and a successful normal-development observation.
+    after the relevant operation, including each Operation F source capture and each
+    Operation G quarantine payload (Section 14), and a successful
+    normal-development observation.
     Later deletion requires a separate manifest and owner approval; no automatic
     expiry is permitted.
 
@@ -450,7 +494,7 @@ estate-wide cleanup claim.
 
 Build tooling in explicit stages:
 
-1. Before B or C, approve an early shared package containing the no-follow
+1. Before B, C, or F, approve an early shared package containing the no-follow
    inventory/manifest compiler, final safe Git runner, path/identity validator,
    append-only journal primitives, strict versioned schemas, and scratch tests. C
    uses this final runner; it is not deferred until worktree triage.
@@ -461,6 +505,13 @@ Build tooling in explicit stages:
 4. Only after C produces the real candidate model and triage table, add the D
    transaction core and thin owner-only worktree-removal launcher. Do not build that
    removal surface speculatively.
+5. Operation F (Section 14.1) uses the same established copy/archive/encryption tools
+   through the same reviewed wrappers as C and requires no new mutation primitive.
+   Only after an approved Operation G target manifest exists for one exact root, add
+   the thin root-quarantine launcher for Operation G (Section 14.2), built from the
+   same reviewed template as item 2 but bound to its own manifest, journal and outcome
+   name. Do not build that mutation surface speculatively. Neither F nor G may use D's
+   worktree-removal transaction core.
 
 The resulting packages contain no unrelated orchestration. Scratch-only
 tests/adapters are not reachable from any production launcher.
@@ -473,7 +524,8 @@ runner hash is approved.
 Each production launcher accepts no caller-supplied target/path/action, pipeline
 input, environment authorization, or permissive fallback. It loads one adjacent
 approved immutable manifest and verifies its recorded digest. B handles exactly one
-root, C one live capture phase, and E one live maintenance window. One D launcher
+root, C one live capture phase, F one approved closed source set, G exactly one root,
+and E one live maintenance window. One D launcher
 invocation owns exactly one slice: it holds the same process, coordination handle,
 and freeze through ordered row processing and
 Section 8.3 closeout, pausing for fresh owner confirmation before each row. It never
@@ -500,10 +552,15 @@ Run scratch proofs for every item. If the selected API cannot safely handle a
 measured live path, classify that path KEEP/BLOCKED; do not improvise a fallback.
 File-ID revalidation reduces accidental target substitution but is not described as
 an adversarial race-proof sandbox.
+This review is required for an Operation F source capture and an Operation G root move
+exactly as it is for B, C, and D (Section 14), and it must add fresh scratch proofs
+for every path form a drive-root source or quarantine destination introduces. A prior
+review of a different operation's mutation surface never satisfies it.
 
 ### 4.3 Manifest integrity and owner approval
 
-Each B root operation, C preservation run, D slice, and future E operation uses an
+Each B root operation, C preservation run, D slice, future E operation, Operation F
+source capture, and Operation G root operation (Section 14) uses an
 exact immutable manifest produced by reviewed tooling. The owner approval records the
 operation ID and SHA-256 digest of the manifest and production package in the
 operation's durable approval record outside every source and candidate. At launch,
@@ -512,7 +569,8 @@ state. This guards against accidental drift between approval and execution witho
 introducing a detached-signature or external-anchor protocol outside the Section 2.1
 threat model.
 
-Every B root-operation and D slice approval binds these common fields:
+Every B root-operation, D slice, Operation F source-capture, and Operation G
+root-operation approval binds these common fields:
 
 - operation/root/slice ID;
 - exact manifest hash;
@@ -521,7 +579,9 @@ Every B root-operation and D slice approval binds these common fields:
   operation-supplied artifact rather than an installed owner-selected tool;
 - required preservation object IDs/hashes;
 - exact source, destination, evidence, and quarantine identities as applicable;
-- expected pre/post Git and filesystem state; and
+- expected pre/post Git and filesystem state;
+- the SHA-256 digest of the Section 14.3 known-unexpected register as frozen at this
+  operation's start, recorded again in the operation's closeout receipt; and
 - owner, date, and retention deadline.
 
 A B approval additionally binds exactly one malformed-root identity, one nonexistent
@@ -529,6 +589,19 @@ same-volume destination, and its single ordered move. A D approval additionally
 binds its immutable cleanup-campaign ID/target-set hash, candidate row IDs and ordered
 actions, plus the control-checkout identity. Fields that do not apply to that
 operation are absent, never populated with dummy values.
+An Operation F approval additionally binds the exact closed set of source identities,
+the digest of that same set's retained outside-scope eligibility assessment taken
+immediately before manifest approval, each Git-bearing source's retained empty
+archive-ref-need set and protected ref/OID inventory, each source's extraction root,
+the destination identity, the freeze budget with the owner-approved maximum freeze
+duration approved for that Operation F operation, its safe-abort boundary, and its
+expected capture and restore results. The approval enrolls only the assessed set;
+it changes no source's unexpected classification and no owner-approved baseline.
+An Operation G approval additionally binds exactly one drive-root child identity,
+one nonexistent same-volume quarantine destination, its single ordered move, the
+ADDITIONAL_SOURCE_PRESERVED(source) evidence for that exact identity, and its
+retention start and per-object retention period. An Operation G approval is never an
+Operation B approval, and no Operation B approval may bind an Operation G root.
 
 Each C manifest binds the exact source/destination scopes, copy/archive/encryption
 executables, archive-ref creation set, protected OID inputs, storage objects,
@@ -548,7 +621,8 @@ hash, and evidence hash. Flush each record durably. Hash the completed journal f
 the closeout receipt, but do not require a custom per-record hash chain, prefix hash,
 or external anchor.
 
-All B-E live launchers use one fixed owner-approved coordination-file path
+All B-G live launchers, including the Section 14 operations F and G, use one fixed
+owner-approved coordination-file path
 outside every operation evidence root, source, and candidate. Its parent must be an
 ordinary non-reparse directory at the expected canonical path. The lock is an
 exclusive OS handle on the pre-created file; file existence alone is not a lock.
@@ -557,7 +631,7 @@ executor never deletes, replaces, steals, or forcibly breaks the coordination fi
 handle.
 
 A shared append-only attempt register at the same owner-approved root records every
-B-E live attempt and closeout. Every read, append, and flush occurs while holding the
+B-G live attempt and closeout. Every read, append, and flush occurs while holding the
 exclusive handle. The production launcher acquires that handle once and keeps the
 same hold from initial state verification through final durable closeout. On entry it:
 
@@ -595,6 +669,10 @@ release never authorizes development resume or retry. A verified
 ABORTED_NO_MUTATION or ROLLED_BACK may receive a clean closeout for its own attempt,
 never another attempt. An offline C restore-gate failure after a verified live capture
 closeout blocks D and E through Gate C; it does not falsely poison B's live lock.
+An offline Operation F restore failure at Gate F, after that operation's verified live
+capture closeout, blocks only Operation G and only for the source identities it failed
+to preserve; it does not poison B's, C's, or another Operation F operation's live
+lock.
 
 A successful approved recovery verifies the exact bound repair and all global/live
 postconditions, restores maintenance when applicable, and appends
@@ -611,7 +689,9 @@ aggregate state never substitutes for per-mutation recovery evidence.
 ### 4.5 Recovery readiness and test isolation
 
 Before the first live mutation in B, the first preservation write or ref creation in
-C, the first removal slice in D, or any future E mutation, approve the common recovery
+C, the first removal slice in D, the first preservation write in an Operation F source
+capture, the first live mutation in an Operation G root operation (Section 14), or any
+future E mutation, approve the common recovery
 playbook for that operation and pass its scratch drills. Do not wait for a blocked
 live repository to design known recovery procedures.
 
@@ -658,7 +738,7 @@ Use this gate matrix:
 | scripts at repository root | Stem/directory-token test union; verify-suite if genuine coverage is absent; code-reviewer |
 | Any Python implementation | Repository-wide pyright baseline diff in addition to its path-derived gate |
 | Added/removed/renamed test or parametrized config | Run inventory --check; regenerate after proved drift; never hand-edit |
-| B/C/D/E operation with no source change | Manifest, restore, and receipt gates only; no invented browser gate |
+| B/C/D/E/F/G operation with no source change | Manifest, restore, and receipt gates only; no invented browser gate |
 
 After C, normal path-derived gates may run in an isolated checkout/runtime. Always
 run generate_test_inventory.py --check for a relevant surface; regeneration is
@@ -988,15 +1068,26 @@ After the archive refs exist:
 ### 7.5 Databases, ignored state, and environments
 
 Inventory every root discovered in the pre-stop runtime map plus the repository,
-artifacts, recovery/backup directories, local application-data roots, and explicit
-owner paths.
+artifacts, recovery/backup directories, local application-data roots, and the owner
+paths enumerated in C's approved immutable source manifest. A path is an inventory
+target only because one of those categories covers it; being named by the owner
+somewhere outside the approved manifest does not make it one.
+
+This inventory is a discovery obligation, not a source grant. When it observes a
+drive-root directory outside C's approved source scope, that directory is recorded and
+retained only: discovery never adds it to an immutable source manifest, and discovery
+alone obliges no capture. Adding any such directory to a source manifest requires the
+separate Operation F approval of Section 14.1, which this plan does not give.
 
 - Capture every raw SQLite family first; never open the original after capture.
 - Create completed online backups from disposable family copies, then run integrity,
   foreign-key, schema, and logical-count checks on disposable/online copies only.
 - Preserve every manifest-enumerated startup snapshot before any app/test launch.
-- Preserve ignored/untracked/local settings, handovers/claims, evidence, loose files,
-  recovery/salvage directories, and unique local payload.
+- Preserve, within C's approved immutable source manifest, ignored/untracked/local
+  settings, handovers/claims, evidence, loose files, recovery/salvage directories, and
+  unique local payload. This bullet adds nothing to that manifest, and a drive-root
+  directory outside C's approved source scope is recorded and retained only, per the
+  discovery paragraph above and Section 14.
 - Preserve main .venv, venv, node_modules, browser stores, and every ordinary private
   environment as separate exact no-follow archives/manifests. Record reconstruction
   versions and health output without installing or repairing anything.
@@ -1013,7 +1104,8 @@ checks, and restore drills operate only on those immutable copies. Later live dr
 is handled by D's slice refresh; it does not alter the captured C snapshot.
 
 Use an established authenticated-encryption tool; do not invent crypto. Before a B
-quarantine move or D removal, the owner must approve:
+quarantine move, a D removal, or an Operation G retirement move (Section 14), the
+owner must approve:
 
 - the tool and its AEAD/KDF or equivalent security properties;
 - a tool-generated high-entropy secret or approved strong recovery phrase;
@@ -1026,7 +1118,7 @@ quarantine move or D removal, the owner must approve:
 Upload every required encrypted object to private off-machine versioned storage,
 download it into a fresh root, verify ciphertext hashes, decrypt/extract, and compare
 exact member/hash sets. Prove recovery with the stored secret before any removal and
-again at retention exit.
+before any Operation G retirement move, and again at retention exit.
 
 ### 7.6 Gate C and isolated restore
 
@@ -1066,6 +1158,12 @@ C reaches PRESERVATION_COMPLETE only when its live capture phase has
 VERIFIED_CLEAN_CLOSEOUT in the shared register, maintenance is restored, no C-caused
 BLOCKED_RECOVERY remains, the final capture receipt passes, and every offline
 encryption/upload/download/restore gate above passes. Anything less blocks D and E.
+Operation F is outside PRESERVATION_COMPLETE. Operation F still performs every Section
+7.6 restore verification for its own sources, under Operation F's own gate; no
+Operation F source, receipt, or failure contributes to or blocks
+PRESERVATION_COMPLETE, and no Operation C receipt covers an Operation F source, so
+PRESERVATION_COMPLETE keeps exactly the meaning it had before Section 14 existed and
+pre-amendment and post-amendment C receipts remain comparable.
 
 ## 8. Operation D - resumable worktree-removal slices
 
@@ -1237,7 +1335,12 @@ leave a verified removal behind an open slice. Verify:
   and content/preservation disposition, including KEEP and DEFERRED rows;
 - verify the manifest-enumerated live database/snapshot families without opening the
   originals;
-- confirm no unexpected drive-root child was created;
+- confirm that no unexpected drive-root child was created during the operation, by
+  comparing a no-follow explicit-stack enumeration of the configured drive roots
+  (Section 5.2) against the owner-approved baseline union the Section 14.3
+  known-unexpected register as frozen at this operation's start; a pre-existing
+  registered child is not a failure and a newly created child is, whether or not it
+  resembles a registered entry;
 - hash and review the complete journal; and
 - complete the Section 4.4 single-hold clean-closeout protocol, including maintenance
   restoration and the final slice receipt, end the freeze, and record
@@ -1327,13 +1430,18 @@ coordination lock-state record, source, and quarantine object. For a failed/inco
 live attempt, follow the already drilled Section 4.5 playbook and Section 4.4's
 single-hold blocked-recovery protocol. Never write the shared register after releasing
 the handle. Handle release does not authorize development resume or retry. If the
-failure occurred while a C/D freeze or E live-mutation window was active and
+failure occurred while a C/D freeze, an Operation F live freeze, or an E
+live-mutation window was active and
 restoration was not attempted, keep Git maintenance suspended; if restoration failed
 or is ambiguous, record its actual/unknown state and keep development paused. The
 separately reviewed recovery must verify a clean closeout. An offline C restore
 failure after the verified capture-phase closeout blocks D and E without resuspending
 maintenance. Return only to the earliest affected operation or slice; a later success
 cannot waive its failed gate.
+These rules apply unchanged to Operation F and Operation G (Section 14). An Operation
+F or Operation G failure returns only to that operation's own earliest affected source
+or root; it neither reopens nor waives a completed B, C, or D result, and no later F
+or G success waives a failed gate of any operation.
 
 ## 11. Completion and retention
 
@@ -1370,23 +1478,75 @@ The outcomes are intentionally distinct:
   state. No removed, deferred, or superseded target row may disappear from the
   approved denominator.
 - MAIN_RECONCILIATION_COMPLETE: E's independent plan passes.
+- ADDITIONAL_SOURCE_PRESERVED(source): that one Operation F source, bound by exact
+  canonical/final path and physical identity in F's approved immutable source
+  manifest, has an Operation F live capture with VERIFIED_CLEAN_CLOSEOUT in the shared
+  register, maintenance restored where F suspended it, no F-caused BLOCKED_RECOVERY
+  remaining, a passing final capture receipt, and every Section 14.1 Gate F
+  whole-tree, encryption, off-machine, and isolated-restore check passing for that
+  exact source. The outcome is defined per source. This plan defines no aggregate over
+  an Operation F source set; an aggregate claim would require a later amendment naming
+  an exact closed set and reviewed under Section 1.1.
+  ADDITIONAL_SOURCE_PRESERVED(source) is not an input to PRESERVATION_COMPLETE,
+  neither contributes to nor blocks it, and authorizes no Operation B, D, or E step.
+- DRIVE_ROOT_CHILD_RETIRED(root): that one Operation G root, bound by exact
+  canonical/final path and physical identity in G's approved immutable target
+  manifest, has ADDITIONAL_SOURCE_PRESERVED(source) already proved for an Operation F
+  source whose exact identity is that same root, has a VERIFIED Operation G attempt
+  under Section 14.2's adopted Section 6 state machine with the complete Section 4.4
+  clean-closeout protocol and final root receipt, is absent from its original path, is
+  exact in its operation-specific nonexistent same-volume quarantine destination, and
+  is independently recoverable off-machine from the stored secret. The outcome is
+  defined per root. This plan defines no aggregate over Operation G roots. It does not
+  alter, satisfy, or contribute to MALFORMED_ROOT_QUARANTINED(root),
+  MALFORMED_ROOTS_QUARANTINED, PRESERVATION_COMPLETE, PREVENTION_COMPLETE,
+  TRIAGE_COMPLETE_NO_REMOVAL_AUTHORIZED, WORKTREE_SLICE_COMPLETE,
+  WORKTREE_SLICE_PARTIAL_CLOSED, or WORKTREE_CLEANUP_COMPLETE, and is not part of any
+  of them.
 
 After each operation/slice, perform a normal guarded development observation
 appropriate to its scope. Database bytes may legitimately change during normal app
 use; capture a new closeout family and inspect only disposable copies rather than
 claiming it still equals the pre-resume snapshot. Protected environment members,
 Git/ref relationships, guard installation, quarantines, and unexpected drive-root
-children must remain consistent with their closeout manifest.
+children must remain consistent with their closeout manifest. For an unexpected
+drive-root child that belongs to no operation's manifest, that requirement is met when
+its Section 14.3 register entry is unchanged at its recorded identity at closeout.
+Every operation and slice also performs the Section 14.3 delta comparison: a no-follow
+explicit-stack enumeration of the configured drive roots (Section 5.2) against the
+owner-approved baseline union the Section 14.3 register as frozen at that operation's
+start, failing on any child newly created during the operation.
 
 At retention exit, reverify off-machine access, ciphertext hashes, both recovery
 custody copies, decryption, protected Git OIDs, and representative data restoration.
 Permanent archive/quarantine deletion and any branch/ref retirement are separate
 operations with new exact manifests. Nothing expires automatically.
+Preserving a source under Operation F grants no quarantine, relocation, or removal
+authority for it. No Operation F receipt, Operation B receipt, Operation C receipt,
+Operation D receipt or campaign target set, approval record, or baseline entry in this
+plan authorizes an Operation G step; Operation G authority exists only under its own
+dated Section 4.3 owner approval, created separately from and after this plan text.
+Operation G's route is archive plus non-overwriting same-volume quarantine and never
+recursive deletion, so completing it deletes nothing. Permanent deletion of an
+Operation F preservation object or an Operation G quarantine payload remains a
+separate later operation with its own exact manifest and owner approval, exactly as
+for B and C above.
 
 ## 12. Open owner decisions before execution
 
 - [x] Approve Gate 0 requirements (requirements only; signed 2026-09-05).
 - [ ] Approve the Gate 1 council-reviewed version of this plan.
+- [x] Approve Operation A Plan v2 at Gate 1 (signed 2026-09-05); this approved neither
+      B-G execution nor any later semantic amendment to this design.
+- [ ] Approve the renewed plan-level Gate 1 that Section 1.1 requires after each later
+      semantic amendment to this design.
+- [ ] Complete Section 5.4's outstanding conditions as that section states them,
+      including installation and verification of the owner-approved user-level
+      guard/memory updates; satisfy Section 11's PREVENTION_COMPLETE requirement that
+      lifecycle monitoring is active; complete the outstanding post-merge
+      required-check disposition recorded in the dated operation evidence; and
+      reconcile any successor of the reviewed guard and test artifact against the
+      reviewed bytes before the deployment decision.
 - [ ] Select the human Windows-filesystem/mutation-surface reviewer.
 - [ ] Select the no-follow copy/archive tools and prove their exact Windows behavior.
 - [ ] Select authenticated encryption, private off-machine versioned storage, and
@@ -1394,7 +1554,7 @@ operations with new exact manifests. Nothing expires automatically.
 - [ ] Select the durable owner-approval record and SHA-256 manifest/package-digest
       procedure described in Section 4.3.
 - [ ] Select operation evidence, restore, and same-volume quarantine roots.
-- [ ] Select the single shared B-E coordination lock/register root and verify its
+- [ ] Select the single shared B-G coordination lock/register root and verify its
       canonical path, non-reparse parent, and access boundary.
 - [ ] Approve user-level guard/memory changes and the worktree lifecycle mechanism.
 - [ ] Approve C's exact preservation/ref-creation manifest and digest, including every
@@ -1410,6 +1570,22 @@ operations with new exact manifests. Nothing expires automatically.
 - [ ] Approve each slice's candidate order, duration, maintenance window, storage
       estimate, preservation objects, retention date, and human executor.
 - [ ] Decide whether and when to commission the separate E main-reconciliation plan.
+- [ ] Decide whether to commission an Operation F additional-source preservation
+      (Section 14.1) for an exact, closed set of unexpected drive-root children
+      outside approved operation scope, and approve its Section 4.3 manifest, capacity
+      requirement, freeze budget, and Operation-F-specific maximum freeze duration. No
+      source is proposed or approved by this plan.
+- [ ] Decide separately and later whether to commission an Operation G retirement
+      (Section 14.2) for any such child whose ADDITIONAL_SOURCE_PRESERVED(source) is
+      already proved, and approve its Section 4.3 target manifest, retention start,
+      and per-object retention period. No root is proposed or approved by this plan.
+- [ ] Maintain the Section 14.3 known-unexpected register. Each entry is recorded,
+      amended, or removed by owner decision only, and the register is frozen for the
+      duration of each operation.
+
+Operation A's reviewed guard and test source is merged. Section 5.4's merge condition
+is a conjunction: it additionally requires that Operation A implement the approved
+subplan and pass every Section 4.5 implementation gate.
 
 ## 13. Review dispositions
 
@@ -1469,3 +1645,290 @@ mechanisms the owner must operate correctly:
   actual repair; and
 - uses fresh merged-PR metadata and exact PR-head OID matching to accelerate squash-
   aware disposition without treating PR state as removal authority.
+## 14. Drive-root children outside Operations B and C
+
+### 14.0 Scope, terminology, authority, and receipts
+
+**The term.** Sections 8.3 and 11 use the noun unexpected drive-root child, and this
+section uses it in exactly that sense: a drive root's child that the owner-approved
+drive-root baseline does not list. Two adjacent terms elsewhere are deliberately left
+unrenamed because their senses differ: Section 5.1's "unintended drive-root child" is a
+causal description of how path conversion creates one, and Section 6's "other
+unexpected root" is discriminated against the configured drive-root allowlist rather
+than against the baseline. No second noun is minted here.
+
+**The scope qualifier, defined once.** An unexpected drive-root child is outside
+approved operation scope when, evaluated by exact canonical/final path and physical
+identity rather than by name, prefix, proximity, or any alias form Section 2.2 rule 8
+rejects, it is neither of Operation B's two named roots nor enumerated in an approved
+operation source or target manifest. This is the only place the qualifier is defined.
+The noun is fixed by the owner-approved baseline; only the qualifier depends on
+manifest approval, and it is the qualifier - never the noun - that stops applying when
+a manifest is approved, because no manifest approval edits that baseline. The term
+"unapproved drive-root child" is deliberately not used: it would go false at the moment
+of manifest approval while "unexpected" must stay true, splitting the Section 8.3 and
+Section 11 checks from the Section 5.2 audit.
+
+**No implicit authority over any unexpected drive-root child.** Proximity to a named
+root, a generated-output classification, a filesystem creation time, a previous
+campaign's completion receipt, and every existing aggregate, receipt, approval record,
+manifest, and baseline entry in this plan confer no preservation, relocation,
+quarantine, or removal authority over any unexpected drive-root child, whether or not
+it is outside approved operation scope. Authority exists only where this plan names it
+explicitly - Operation B for its two named roots - or under a dated Section 4.3 owner
+approval record for an operation of this section, created separately from and after
+this text. This section approves nothing, names no source and no target, and widens no
+existing approval. Completing either operation of this section changes no
+PREVENTION_COMPLETE declaration, permits no edit to the owner-approved drive-root
+baseline, and permits no zero exit from the Section 5.2 audit.
+
+**Prevention first.** Operations F and G each require PREVENTION_COMPLETE in addition
+to their own approvals. Operation A is the prevention operation for the very defect
+that creates unexpected drive-root children, and an operation freeze that ran before
+prevention was complete could itself create one, which the Section 8.3 and Section 11
+delta checks would then correctly fail. Beyond that precondition, F and G may be
+commissioned at any point after the owner-accepted stabilization checkpoint and fresh
+evidence, independently of whether B, C, or D has been approved or scheduled.
+
+**Operation B is unchanged.** MALFORMED_ROOT_QUARANTINED(root) and
+MALFORMED_ROOTS_QUARANTINED continue to mean exactly Operation B's two named roots and
+nothing else; Section 4.3's binding of exactly one malformed-root identity to a B
+approval is unchanged; and no Operation B receipt, approval record, or quarantine
+destination may cover any other root. An Operation G approval is never an Operation B
+approval, and an Operation G launcher may not emit an Operation B outcome name.
+
+**Operation D is unchanged, and the structural seal is stated rather than relied on.**
+A drive-root directory can never satisfy Section 3.6 condition 1, which requires a
+registered immediate child of the approved development parent; it can therefore never
+be an ELIGIBLE row, can never record a Section 3.5 positive lifecycle basis, and can
+never enter a Section 3.7 immutable cleanup target set. No drive-root directory can
+affect WORKTREE_SLICE_COMPLETE, WORKTREE_SLICE_PARTIAL_CLOSED,
+TRIAGE_COMPLETE_NO_REMOVAL_AUTHORIZED, or WORKTREE_CLEANUP_COMPLETE, in either
+direction.
+
+**Receipts are private by default.** An Operation F or Operation G manifest, journal,
+and receipt necessarily bind an exact canonical/final path, a physical identity, and,
+for F, an off-machine storage object. Those are private under Section 2.2 rules 16 and
+17. Publish only a privacy-reviewed redacted receipt; no public receipt names a
+drive-root child's exact path, physical identity, or off-machine storage object.
+
+### 14.1 Operation F - separately approved additional-source preservation
+
+No Operation F preservation authority exists for any source until every one of the
+conditions below is true. Operation F preserves an approved closed set of exactly
+identified unexpected drive-root children. Immediately before approval of that
+Operation F manifest, an exact, retained eligibility assessment must establish that
+every source in the set is outside approved operation scope under Section 14.0.
+The ensuing approval enrolls only that same closed set by exact path and physical
+identity. The scope qualifier then stops applying as Section 14.0 describes; neither
+the sources' unexpected classification nor the owner-approved baseline changes.
+Operation F is not a general route for arbitrary sources outside Operation C's scope,
+and it is not an extension of Operation C's immutable source manifest: no Operation
+C manifest, approval, receipt, freeze budget, or capacity approval is altered, reused,
+or extended by it.
+
+One Operation F operation binds one approved closed set. Its outcome is per source:
+Section 11 defines ADDITIONAL_SOURCE_PRESERVED(source) and defines no aggregate over
+the set, so no claim may be made over the set as a whole.
+
+1. A Section 4.3 immutable, digest-bound manifest enumerates the exact, closed set of
+   sources by canonical/final path and physical identity. Immediately before its
+   approval, retain a digest-bound assessment of that exact set's Section 14.0
+   outside-scope eligibility. A dated Section 4.3 owner approval record binds that
+   assessment's digest and the same manifest, created separately from and after
+   this plan text. It enrolls only the assessed identities and changes neither the
+   owner-approved baseline nor the sources' unexpected classification. Wildcard or
+   prefix expansion, source-to-source overlap, source-to-destination overlap,
+   overlap with Operation C's approved scope, overlap with a previously approved
+   Operation F source, a missing source, and a changed identity are each a rejection,
+   not a warning.
+2. Every obligation of Section 7.5 applies to each source in the set, unchanged, with
+   only these two scope-specific deviations: Section 7.5's opening inventory paragraph
+   governs Operation C's pre-stop runtime map, and Operation F substitutes its own
+   approved source set; and Section 7.5's live-capture freeze release governs
+   Operation C's capture phase, and Operation F releases its own. Nothing else in
+   Section 7.5 is narrowed - including raw SQLite-family capture before any open,
+   completed online backups and logical checks on disposable copies only, preservation
+   of every manifest-enumerated startup snapshot before any app or test launch,
+   preservation of ignored/untracked/local settings, handovers/claims, evidence, loose
+   files, recovery/salvage directories and unique local payload, separate exact
+   no-follow archives for every ordinary private environment with reconstruction
+   versions and health output recorded without installing or repairing anything, the
+   separate recording of volatile cache and log paths, and the authenticated
+   encryption, two independent offline custody copies, and off-machine
+   upload/download/verify/decrypt/compare regime.
+3. Section 7.2 items 4 and 5 apply to each source as obligations: a no-follow cold
+   copy or archive of the complete approved source, including loose files, directories
+   and reparse entries recorded as inert metadata; and live-source manifests generated
+   immediately before and after capture, required identical, and compared directly
+   with the extraction - archive-to-itself or upload-to-download equality alone is
+   insufficient.
+4. Section 7.6 applies to each source: the first decrypted extraction is immutable
+   evidence, a second disposable copy with no hardlinks is sanitized before any Git
+   invocation, extraction rejects traversal and absolute/device/ADS entries, and
+   whole-tree source-to-restoration equality is proved in a fresh isolated root. Each
+   source is proved separately against its own extraction root; no union or aggregate
+   comparison substitutes for a per-source proof. This section's restore gate over the
+   complete approved set is named Gate F.
+5. Any Git repository inside a source carries Section 7.3's OID enumeration and
+   type-checking and Section 7.4's separate preservation and restore-test. Before
+   approving the Operation F manifest, compute Section 7.3's archive-ref-need set
+   read-only from durable named refs and retain the exact result with the approval.
+   The set must be empty; a nonempty or unresolved set rejects the source under
+   Operation F. Recompute it read-only against the frozen source immediately before
+   capture; any nonempty result, unresolved result, or changed protected ref/OID set
+   stops the capture under its approved safe-abort or recovery protocol. Operation F
+   creates no archive ref or other live Git metadata. A source needing ref creation
+   requires a separately reviewed plan and its own approval; this paragraph grants
+   no such authority and never treats a reflog as a durable named ref.
+6. Section 7.1's runtime map and writer-shutdown set are extended to each source, or
+   the absence of a writer is positively recorded for it. An unresolved writer or an
+   unresolved root blocks Operation F for that source exactly as it blocks Operation
+   C.
+7. Every member class present in each source - SQLite family, nested repository,
+   reparse point, alternate data stream, long path - has been enumerated and
+   characterized before approval, and the absence of each unlisted class is positively
+   recorded. An uncharacterized member class makes the source unapprovable.
+8. The capacity requirement and the freeze budget are calculated for the complete
+   approved set, not per source in isolation, and re-measured immediately before
+   writing under Section 7.2 item 3's margin. The owner re-approves the maximum freeze
+   duration for this Operation F operation. A maximum approved for Operation C, or for
+   an earlier Operation F operation, never carries over.
+9. The Section 4.5 recovery playbook for Operation F is approved and its scratch
+   drills pass before the first preservation write, and the Section 4.2 non-LLM human
+   and Windows-filesystem review has been performed against the actual mutation
+   surface with fresh scratch proofs for every path form a drive-root source
+   introduces.
+
+**States and abort branches.** Operation F adopts Operation C's safe-abort model. Its
+safe-abort boundary is the first preservation write: before it, a failed checkpoint or
+projected overrun cleanly aborts under Section 7.2's abort paragraph, retaining and
+labelling partial outputs INVALID_INCOMPLETE, restoring maintenance, recording
+ABORTED_NO_MUTATION, and closing out under Section 4.4. After it, the operation
+finishes the minimum manifest-enumerated capture and clean closeout or enters
+BLOCKED_RECOVERY under its pre-drilled Section 4.5 playbook. Operation F creates no
+archive ref and no live Git metadata in the live repository.
+
+**Closeout.** An Operation F closeout runs the complete Section 4.4 single-hold
+clean-closeout protocol and, in addition, the Section 14.3 drive-root delta
+comparison: a no-follow explicit-stack enumeration of the configured drive roots of
+Section 5.2, compared against the owner-approved baseline union the Section 14.3
+register as frozen at this operation's start, failing on any child newly created
+during the operation.
+
+**Failure isolation.** A defect, overrun, or unresolved identity on an Operation F
+source aborts or blocks only that Operation F operation, under its own safe-abort
+boundary and its own recovery playbook. It never aborts, blocks, delays, or alters
+Operation C's D:\development capture; Section 7.2's abort branches govern Operation C
+on its own scope. PRESERVATION_COMPLETE is unchanged by this section: it remains
+Operation C's outcome, computed from Operation C's gates over Operation C's approved
+scope only, so a pre-amendment and a post-amendment Operation C receipt remain
+directly comparable. An Operation F failure does not block Operation D or Operation E;
+it blocks only Operation G, and only for the source identities it failed to preserve.
+
+### 14.2 Operation G - separately approved drive-root child retirement
+
+Operation G is built on Operation B's per-root template: archive, then a single
+ordered non-overwriting move of one exact root to a nonexistent operation-specific
+same-volume quarantine destination. It never uses recursive deletion, never
+copy-deletes, and never uses Operation D's worktree-removal transaction core.
+Permanent deletion of a quarantine payload remains Section 11's separate later
+operation.
+
+Operation G adopts Section 6's forward states and terminal branches unchanged -
+NOT_STARTED, PREFLIGHTED, AUTHORIZED, QUARANTINE_MOVE_INTENT, MOVE_RESULT,
+QUARANTINED, VERIFIED, with ABORTED_NO_MUTATION and FAILED_NEEDS_RECOVERY on the same
+branches and the same QUARANTINE_MOVE_INTENT boundary - reading "root" as the
+Operation G root. It derives its own aggregate per root and never derives an Operation
+B aggregate.
+
+No Operation G retirement authority exists for a root until every one of the following
+is true for that exact identity:
+
+1. ADDITIONAL_SOURCE_PRESERVED(source) is proved for an Operation F source whose exact
+   canonical/final path and physical identity are the same identity as this Operation
+   G root. That equality is required; resemblance, adjacency, and a matching name are
+   not sufficient.
+2. Recovery has been proved with the stored secret for that exact source before the
+   move - the proof Section 7.5 requires before a B quarantine move, a D removal, or
+   an Operation G retirement move - by downloading the encrypted object into a fresh
+   root off this machine, verifying ciphertext hashes, decrypting, extracting, and
+   comparing exact member and hash sets.
+3. An exact immutable, digest-bound, positive, non-empty target manifest names that
+   one root and its single nonexistent same-volume quarantine destination.
+4. Section 4.2's non-LLM human and Windows-filesystem review has been performed
+   against that actual mutation surface, with fresh scratch proofs for every path form
+   a drive-root source or quarantine destination introduces. A prior review of another
+   operation's mutation surface does not satisfy it.
+5. Section 4.3 manifest and production-package digest integrity are verified and the
+   owner's approval is recorded in a durable approval record outside every source and
+   candidate.
+6. A Section 4.4 journal is kept, and the shared Section 4.4 coordination lock and
+   shared attempt register are used on the same single-hold protocol as every other
+   live launcher.
+7. The Section 4.5 recovery playbook for Operation G is approved and its scratch
+   drills pass before the first live mutation.
+8. A retention start and a per-object retention period are stated, and Section 11's
+   named retention-exit checks apply to the resulting quarantine payload.
+
+Operation G uses its own thin root-quarantine launcher built from the same reviewed
+template as Section 4.1 item 2, bound to its own approved single-root manifest, its
+own journal, and Operation G's own outcome name. It is not Operation B's launcher and
+cannot emit an Operation B outcome. A failure for one Operation G root does not
+invalidate another root's completed operation, and no Operation G attempt overwrites a
+prior attempt's evidence.
+
+**Closeout.** An Operation G closeout runs the complete Section 4.4 single-hold
+clean-closeout protocol, the final root receipt, and, in addition, the Section 14.3
+drive-root delta comparison described for Operation F above. Because a completed
+Operation G changes the drive-root enumeration, that comparison also reports the
+retired root as absent at its recorded identity, and the owner dispositions its
+Section 14.3 register entry at that closeout.
+
+### 14.3 The owner-dispositioned known-unexpected register
+
+The register is a durable owner record of unexpected drive-root children that are
+already known and dispositioned as retained. It is an owner-approved artifact: each
+version carries a SHA-256 digest, lives in an evidence root meeting Section 3.1's
+conditions, and is bound by digest into the Section 4.3 approval of every operation
+that will consume it and again into that operation's closeout receipt.
+
+**What it changes.** Section 8.3's closeout check is "confirm no unexpected drive-root
+child was created" - a delta over the operation window, not a census. The register
+pins, by exact canonical/final path and physical identity, the set of unexpected
+drive-root children already recorded before an operation began. A closeout therefore
+compares a no-follow explicit-stack enumeration of the configured drive roots of
+Section 5.2 against the owner-approved baseline union the register as frozen at that
+operation's start, and fails on a child newly created during the operation. A
+pre-existing registered child is not a closeout failure. A newly created child is a
+closeout failure whether or not it resembles a registered entry. This comparison is
+performed at every Operation B, C, D, F and G closeout: Section 8.3 states it for a D
+slice, Sections 14.1 and 14.2 state it for F and G, and Section 11's post-operation
+observation states it for every operation and slice. The register also gives Section
+11's requirement that unexpected drive-root children "remain consistent with their
+closeout manifest" a determinate meaning for a child that belongs to no operation's
+manifest: each registered entry must be unchanged at its recorded identity at that
+closeout.
+
+**What it does not change.** The register does not clear, suppress, alter, or
+reinterpret the Section 5.2 read-only drive-root audit, which continues to compare
+configured drive roots against the owner-approved baseline and to report every
+unexpected child. That audit's non-zero exit is unchanged and expected. A registered
+entry is neither a reason to suppress that report nor a reason to ignore it. A
+register entry is not a baseline entry: it is not added to the baseline, and it alters
+none of the baseline's bytes, approver, approval timestamp, or RESOLVED meanings. It
+is not a source-manifest entry and not a target-manifest entry. It confers no
+preservation, relocation, quarantine, or removal authority, and it is not a
+disposition any operation may act on. Section 6's post-operation observation of the
+configured drive-root allowlist is likewise unaffected: detection is never suppressed.
+
+**Its own integrity.** Each entry carries an exact canonical/final path and physical
+identity, the owner's disposition, and the fact that the child is retained. An entry
+is added, amended, or removed only by owner decision - never by an executor, an audit
+run, a closeout, or an agent. The register is frozen for the duration of an operation,
+from that operation's start through its closeout; the frozen version's digest is
+recorded in that operation's Section 4.3 approval and again in its closeout receipt,
+so the delta above is computable and an after-the-fact addition is detectable. When a
+completed Operation G retires a registered child, the owner dispositions that entry at
+that operation's closeout; until the owner does so, the entry stands and its recorded
+identity is expected absent.
