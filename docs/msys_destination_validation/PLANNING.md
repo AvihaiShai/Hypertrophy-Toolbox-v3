@@ -1,10 +1,13 @@
 # MSYS destination validation and `D:\`-child monitoring — Planning
 
-**Status:** Gate 0 APPROVED by owner 2026-10-28 (quotes under the Gate 0 sign-off). Gate 1 is
-delegated to the main session acting as manager; delegated acceptance will be recorded as such,
-never as the owner's personal review. **Gate 1 accepted (delegated) 2026-10-28; implementation
-in progress.** Plan v1 drafted 2026-10-28; council rounds 1–3 complete; Plan v2 (final, rev.
-round 3). First drafted 2026-10-17 by session `S8-MSYS-GATE0`.
+**Status:** Gate 0 APPROVED by owner 2026-10-28 (quotes under the Gate 0 sign-off). Gate 1,
+implementation, merge, installation and bounded operational acceptance are **accepted under the
+owner's task-specific delegation**, not the owner's personal review. PR #654 merged as
+`d8e3e3c61866ca0fa123693335d65775d880225e`; the merged user-level hooks are installed and the
+fresh bundled-CLI check passed. The four acceptance levels and remaining coverage limits are
+recorded at the end of this document and in [CLOSEOUT.md](CLOSEOUT.md). Panel rendering remains
+unmeasured; `PREVENTION_COMPLETE` is not claimed. Plan v1 drafted 2026-10-28; council rounds 1–3
+complete; Plan v2 (final, rev. round 3). First drafted 2026-10-17 by session `S8-MSYS-GATE0`.
 
 **Planning size:** Large / new workflow (`docs/ai_workflow/QUALITY_GATE.md`, plan-stage routing).
 The work changes the executable destructive-command guard or adds a new agent-workflow control,
@@ -1293,9 +1296,14 @@ Standalone and static:
   drive-token selection (guard arms) or the full monitor file (monitor arms). The outcomes outside
   the must-fail set are recorded in the evidence but not gated.
 - **Hosts**:
-  - Guard arms run under each host, one junit per host.
-  - Monitor arms produce one junit per run covering both hosts inside each test body. Each failure
-    message lists every host's result (F8 ruling, D20).
+  - The plan proposed one guard junit per host. The actual accepted format is **one junit per
+    arm**, with host-specific guard node IDs; every designated host identity is checked
+    individually against its required failure.
+  - Monitor arms produce one junit per arm covering both hosts inside each test body. Each
+    failure message lists every host's result (F8 ruling, D20), and the independent message audit
+    verifies failure on both hosts for every designated monitor node.
+  - The manager accepted this evidence-format reconciliation under the owner's delegation on
+    2026-10-28. The per-host failure criterion is unchanged; no new reviewer pass is claimed.
   - `restored` runs everything. The full guard file runs once on `restored` under both hosts.
 - **Merge gate**: every must-fail node fails under its arm, on each host where the arm is valid,
   **and** every test in the TS3-N5 scope (below the table) passes on `restored`. There is no gated
@@ -1316,7 +1324,7 @@ Standalone and static:
 | G-offset | D4 treats every Bash occurrence as converted | R8, R9, R16, P3-refuse, P3-refuse-newline (diff-time), P4a, P6a |
 | G-interp | **both** the D5(i) scan **and** D4's interpreter-body exemption disabled (bodies are decided by D4) | R20 |
 | G-heredoc | D6 off | R18, P4h (G2-6 ruling) |
-| G-message-always | the plain non-conservative clause is always emitted, ignoring `cwd` validity, directory change and conservativeness | **pending**: set from the deterministic outcome of the arm run (see Diff-time review). P1b-* was the planned set; P1b-cd-heredoc and P1b-cd-interp are excluded (`restored`-only). |
+| G-message-always | the plain non-conservative resolved clause is always emitted, using `D` for invalid/missing `cwd` and suppressing the directory-change hedge | P1b-cd, P1b-conservative-interp, P1b-conservative-ps, P1b-emptycwd, P1b-garbage, P1b-nocwd, P1b-setlocation, P1b-unc, each on powershell and pwsh: all 16 failed at `68d52ba7`. P1b-cd-heredoc and P1b-cd-interp remain `restored`-only requirements. |
 | G-message-never | the clause is never emitted | P1a-* |
 | G-sanitize | no `?` replacement of non-ASCII characters in the echoed token | P1a-nonascii: U+00E9, raw stderr bytes, no byte above 127 (G2-7 ruling, TS3-S4) |
 | G-cdsubstring | directory change matched as a substring instead of a whole word | P1a-cdword (G2-7 ruling) |
@@ -1606,9 +1614,10 @@ supplied it. The PM did not give the acceptance.
 
 ## Evidence — implementation (senior-developer, 2026-10-28)
 
-*Ownership: written by senior-developer. From the diff-time review onward this section is owned by
-the `product-manager` (agent `a96acae55b870d077`), at the manager's direction. Only the
-AC7-arm sentence under "Design choices" has been corrected; the rest is senior-developer's text.*
+*Historical implementation handoff: written by senior-developer. From the diff-time review onward
+this section was owned by the `product-manager` (agent `a96acae55b870d077`), at the manager's
+direction. Later corrections and final-candidate evidence are labelled below; the original
+agent's execution scope and dated results are retained.*
 
 Implementation level only; no commit, push, merge, installation or AC7 arm was run by this
 agent. Gate 2 is not marked. Base `c29ddf0740ecd9dd90e65424c37050c764504431` (clone HEAD and
@@ -1656,8 +1665,10 @@ the inventory); 48 monitor nodes, host-looped in the body. (Measured at `3d85fd9
 - Monitor: 872 lines.
 - Inventory: the monitor file goes from 48 to 49 nodes (4176 deterministic nodes in total);
   `--check` exits 0.
-- Full guard file: 2245 passed at `a7aa5163`, before P4i. P4i and P4i-escaped (4 nodes) were added
-  afterwards and pass.
+- The retained `artifacts/msys-impl/fix1/03-guard-full.txt` records 2245 passed on the earlier
+  pre-P4i working tree. It does not prove the complete committed `a7aa5163` or final-candidate
+  collection. P4i and P4i-escaped add four host-specific nodes; the exact `68d52ba7` restored
+  guard run below passes all 2249. The `a7aa5163` → `68d52ba7` delta adds no test cases.
 - Monitor file: 48 passed, 1 skipped (H8b).
 - Contract files: 578 passed.
 - pyright baseline diff: 0 net-new.
@@ -1668,7 +1679,8 @@ the inventory); 48 monitor nodes, host-looped in the body. (Measured at `3d85fd9
 - `docs/msys_destination_validation/evidence/CORPUS_PASS_3d85fd9f.md`: 60 hits in 12,442
   commands, classified by class.
 - The sed/regex false-positive class was accepted by the manager and pinned as P4i.
-- The re-run on the final candidate will be appended to that file.
+- The final `68d52ba7` re-run is appended to that file: 69 hits in 12,612 commands. All 60 earlier
+  hits remain; the nine additions introduce no new false-positive class.
 
 **Design choices where the plan left room**
 - The refusal echoes the whole path from the D3 token to the next delimiter (`/d/development/x`,
@@ -1677,8 +1689,9 @@ the inventory); 48 monitor nodes, host-looped in the body. (Measured at `3d85fd9
 - D2 and D4, and the parts D5/D6 decide, are separate functions (`Get-DriveTokenRegion`,
   `Test-DriveTokenConverted`, `Get-DriveTokenInterpreterBody`, `Split-DriveTokenHeredocs`,
   `Get-DriveTokenSubstitutions`). *(Corrected by the PM:)* The AC7 arms actually run are
-  per-control literal patches defined in `C:\ht\MSYS-AC7\harness\arms.3d85fd9f.json`, not one
-  mutation point per function. Their results are pending. The drive-token depth
+  per-control literal patches, not one mutation point per function. The initial definitions were
+  `C:\ht\MSYS-AC7\harness\arms.3d85fd9f.json`; the validated final definitions are retained as
+  `C:\ht\MSYS-AC7\runs\68d52ba7-sol-full\arms.json`, with all arm gates passed. The drive-token depth
   reason reads "Drive-token rule: nesting exceeds 4 levels ...". It deliberately avoids the
   existing "command nesting exceeds" wording, so P6a stays discriminating.
 - Hints are explicit for Bash-reached `cmd` and `node` bodies. In a raw Unconverted scan they
@@ -1709,7 +1722,8 @@ token now deny (exit 2) in every profile and mode. A payload whose `tool_name` i
 `Bash` is scanned as unconverted. The monitor adds no registration (D19: user level, installed
 by the manager).
 
-**Known reds / gaps.**
+**Known reds / gaps at the initial implementation handoff** (resolved manager steps are recorded
+in the final-candidate evidence below).
 - No red in the scope above.
 - Linux pwsh was not run locally (no WSL on this host). The monitor's POSIX paths (the `flock`
   sharing violation in H6/H1-held, `chmod 000` in M4-unreadable-root, H8b) are first exercised
@@ -1727,8 +1741,9 @@ by the manager).
 - `code-reviewer`, agent `a2a2781864144fd32`;
 - `unslop-reviewer`, agent `a280ec8cb8a9dddbc`.
 
-The finding summaries below are as relayed by the manager. This PM did not read the reviewers'
-reports; no verbatim copy is in `reviews/` yet.
+The finding summaries below were relayed by the manager. The original PM did not read the
+reviewers' reports; verbatim copies were not yet in `reviews/` at that recording step and are
+now retained there.
 
 **Dispositions:** made by the **main session acting as manager under the owner's 2026-10-28
 delegation**, not by the owner. All are accepted. Nothing is deferred or rejected.
@@ -1752,8 +1767,9 @@ delegation**, not by the owner. All are accepted. Nothing is deferred or rejecte
 - G-noop must-fail set gains R23 and R24.
 - G-offset must-fail set gains P3-refuse-newline.
 - M-midsession must-fail set gains H13-zero-length.
-- P1b-cd-heredoc and P1b-cd-interp are `restored`-only regression nodes, not arm-gated. The
-  manager's reason: G-message-always forces the resolved clause on and does not affect the hedge.
+- P1b-cd-heredoc and P1b-cd-interp remain `restored`-only regression requirements, not arm-gated.
+  The manager originally wrote that G-message-always "does not affect the hedge"; the actual
+  final mutation suppresses it. The measured resolution below corrects that earlier rationale.
 
 **Plan amendments applied in place**
 - D3: repeated slashes; optional colon in the attached-option boundary.
@@ -1765,7 +1781,7 @@ delegation**, not by the owner. All are accepted. Nothing is deferred or rejecte
 - P1b-cd-heredoc, P1b-cd-interp, P3-refuse-newline, H13-zero-length.
 - AC1/AC2 mapping ranges: R1–R24, A1–A26.
 
-**PM flag (resolved by the manager, 2026-10-28, under the owner's delegation).** The Plan v2 arm table describes G-message-always as "the plain
+**PM flag (historical text; measured resolution follows).** The Plan v2 arm table describes G-message-always as "the plain
 non-conservative clause is always emitted, ignoring `cwd` validity, directory change and
 conservativeness". It lists P1b-* as must-fail, which includes P1b-cd and P1b-setlocation. The
 manager's note says G-message-always does not affect the hedge. If the patch in
@@ -1774,20 +1790,74 @@ fail under it, and the merge gate trips. Either the table's mutation text and mu
 corrected to the actual patch (P1b-* minus the hedge nodes), or the patch also suppresses the
 hedge. The manager decides.
 
-*Resolution:* the gating model stands: must-fail = tests guaranteed to fail. P1b-cd-heredoc and
-P1b-cd-interp are `restored`-only (already recorded). The exact G-message-always must-fail set
-will be set from the deterministic outcome of the arm run, which the harness agent reports. This
-PM records it then. Until then, the arm-table row's must-fail set is marked pending.
+*Resolution, 2026-10-28:* the manager accepted the measured `68d52ba7` result under the owner's
+delegation. The retained patch always emits the plain resolved clause, substitutes `D` for
+invalid/missing `cwd`, and removes the hedge. The designated must-fail set is P1b-cd,
+P1b-conservative-interp, P1b-conservative-ps, P1b-emptycwd, P1b-garbage, P1b-nocwd,
+P1b-setlocation and P1b-unc on each host: all 16 failed. The arm recorded 20 failures in total;
+the additional four are the two-host P1b-cd-heredoc and P1b-cd-interp rows, which remain
+`restored`-only requirements under the existing ruling. They are recorded, not added to this
+arm's gate. The pending set is resolved; the earlier hedge rationale is superseded by this patch
+and observed outcome. Evidence: `C:\ht\MSYS-AC7\runs\68d52ba7-sol-full\G-message-always\`.
 
 ### Diff-time review (round 2) — delta review of fix commit `a7aa516317a27fcc6350da6368a41221d03f386f`
 
-The verbatim files `reviews/diff2-*` will be added by the manager. Summaries are as relayed by the
-manager. Dispositions are by the manager under the owner's delegation; all accepted.
+The verbatim files `reviews/diff2-*` are retained. Summaries were relayed by the manager.
+Dispositions are by the manager under the owner's delegation; all accepted.
 
 | Reviewer | Result | Disposition / owner of the action |
 |---|---|---|
 | `code-reviewer` `a2a2781864144fd32` | All six round-1 findings (CR-1 to CR-6) resolved; no new defects. Residual: it relies on the recorded M-12 measurements (`evidence/MEASUREMENTS_20261028.md`). | accept; residual recorded under the fix-commit evidence |
-| `unslop-reviewer` `a280ec8cb8a9dddbc` | Items 1, 3, 4 and 5 resolved; items 2 and 6 partial; new cosmetic items. | accept. Test-file ID/attribution cleanup → automation-qa (in progress). Header rewrap → senior-developer (in progress). PLANNING items → this PM: evidence figures labelled and the fix-commit block (Evidence); must-address (2) wording; G-message-always flag resolution; corpus reference. |
+| `unslop-reviewer` `a280ec8cb8a9dddbc` | Items 1, 3, 4 and 5 resolved; items 2 and 6 partial at this review; new cosmetic items. | accept. Test-file ID/attribution cleanup and header rewrap completed in `68d52ba7`, merged by #654. The manager rechecked that final delta. PLANNING evidence labels, wording, G-message-always resolution and corpus reference are recorded in this closeout. |
 
-The partial items 2 and 6 are closed only when the cleanup and rewrap commits land and have been
-re-checked. This record does not close them.
+The cleanup and rewrap landed in #654 and were rechecked by the manager against `68d52ba7`.
+The exact candidate's CI and restored tests pass, and the pending planning evidence is reconciled
+above. Items 2 and 6 are resolved under the manager's delegation; no additional independent
+review is claimed for the final cosmetic delta.
+
+---
+
+## Final candidate and acceptance — 2026-10-28
+
+Recorded by fresh Codex `product-manager` `/root/product_manager`, at Sol's direction, from the
+active artifact and verified `artifacts/sol-closeout/facts.json`. The original PM
+`a96acae55b870d077` was **not resumed** for this closeout; the continuity gap is limited to that
+handoff. The council identities, reviews and Gate 0/Gate 1 provenance above remain unchanged.
+The decisions below are **delegated manager acceptance**, not the owner's personal review.
+
+**Exact candidate:** `68d52ba74a53a8ba4807842e512719b12e0a94fb`, based on `c29ddf07`.
+The final delta from `a7aa5163` changes comments, documentation, assertion wording and the
+`refusal_sentences` helper name; it adds no test cases or production behavior. Against base,
+the guard is +352 / −0, 1694 lines; the monitor is 872 lines.
+
+| Level | Acceptance and evidence |
+|---|---|
+| Implementation | **Accepted (delegated).** Exact-candidate CI: 34/34 successful checks, including all 12 protected context/app pairs. AC7: 15 guard arms and 19 monitor arms passed every designated failure gate; all 244 guard must-fail nodes failed, and all 33 monitor must-fail nodes failed on both Windows PowerShell and pwsh (66 host outcomes). `restored`: **2301 passed, 1 documented H8b skip** — guard 2249; monitor 48 passed / 1 skipped; registration probe 4. Final corpus: 69 refusals among 12,612 commands; no new false-positive class or unexpected exit code. Code-reviewer follow-up and the final cosmetic recheck are distinguished above. |
+| Merge | **Accepted (delegated).** [PR #654](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/654) merged through normal protections as `d8e3e3c61866ca0fa123693335d65775d880225e` at `2026-10-28T15:56:55Z`. Merged guard blob `427ae4c5ff28f23a41d765ae1e40928237d064fb` and monitor blob `6993a66d530fe2725d4fadc5c826ee1673d8765f` match the tested candidate; source branch retained. |
+| Installation | **Accepted (delegated).** User guard and monitor match those merged blobs. Expanded staged/installed probes and `verify_install.ps1` passed. User settings changed by a verified pure insertion, preserving LF, absence of BOM and existing settings. Monitor registrations are **user-level only**; the shared checkout remains untouched. Transcript `C:\ht\MSYS-INSTALL\transcript-20261028T155730Z.json`; backup `C:\ht\MSYS-INSTALL\backup-20261028T155730Z`; prepared rollback `C:\ht\MSYS-INSTALL\ROLLBACK.ps1`. The fake-profile install and byte-for-byte rollback rehearsal also passed. |
+| Operational | **Accepted (delegated), within the measured headless scope.** Fresh VS Code extension bundled `claude.exe` **2.1.310** session `ff872564-63a6-4d82-a4e8-d39a32deb274`: exact guard refusal, SessionStart snapshot before first tool, first Stop silent, NEW child notice and UNKNOWN notice all passed. The controller injected invalid JSON only into this test session's own TEMP snapshot. All four Stop hooks exited 0; CLI exited 0. Stop durations were 0.3549763, 0.3568104, 0.3959337 and 0.3159702 seconds. The fixture child and `Q:` subst mapping were removed. Evidence `C:\ht\MSYS-OPS\run-sol-20261028T155934Z`. |
+
+The first operational attempt, `C:\ht\MSYS-OPS\run-sol-20261028T155803Z`, remains **INCOMPLETE**:
+Claude declined to corrupt its test snapshot, so UNKNOWN was not exercised. Its first three
+phases passed and its fixture mapping was removed; it is not credited as full acceptance. The
+second fresh session above supplies the complete result.
+
+AC7 retained evidence: `C:\ht\MSYS-AC7\runs\68d52ba7-sol-full\SUMMARY.md`, `summary.json` and
+`host-audit.json`, with per-arm patches, hashes, commands, junit and logs. The final corpus and
+manual reconciliation remain under `C:\ht\MSYS-AC7\corpus\run-68d52ba7-sol`; committed counts
+are in [the corpus record](evidence/CORPUS_PASS_3d85fd9f.md). Summary:
+[ACCEPTANCE_20261028.md](evidence/ACCEPTANCE_20261028.md). H4 creation times were unchanged
+after AC7 and in the final after-operational check. Shared-checkout guard/settings hashes
+remained unchanged through installation and operational acceptance.
+
+**Operational label:** fresh headless session on the VS Code extension's bundled `claude.exe`
+2.1.310; payload fields and Stop notice measured on bundled 2.1.310 (headless) and CLI 2.1.302;
+panel rendering unmeasured (open); detection exercised on a substitute (subst) root; guard shown
+on one harmless row; charter-frontmatter payloads inferred. Other open sessions may show one
+UNKNOWN notice when the fixture drive appears or disappears; their UI was not inspected.
+
+These four levels close this packet within the approved bounded scope. The textual guard still
+cannot see script-file contents, stdin, run-time-built paths, MCP parameters or non-Claude
+processes. The monitor sees direct root children between snapshot and compare; writes beneath
+an existing child remain invisible. The standing warnings and other coverage limits above
+remain. `PREVENTION_COMPLETE` is not claimed.
