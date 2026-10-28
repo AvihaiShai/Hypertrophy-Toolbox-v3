@@ -31,6 +31,22 @@ those subcommands have no dry-run option, and git tag -n means annotation lines.
 This is bounded Claude-tool coverage; opaque scripts, non-Claude tools and
 non-delete ref retirement remain outside it.
 
+Drive-token rule: a POSIX drive path such as /d/x that reaches a native
+Windows program unconverted resolves against the root of the CURRENT drive
+(from cwd D: it becomes D:\d\x), so the output lands somewhere nobody meant.
+A drive token is /<letter>/<segment> (or /<letter>//<segment>) at a path
+boundary, or attached to a short option (-D/d/x, -Path:/d/x). It denies in
+every profile and mode wherever nothing is known to convert it: anywhere in
+a PowerShell-tool command or a payload whose tool_name is not exactly Bash;
+in a python -c / node -e code body, a powershell / pwsh -Command or cmd /c
+body, a heredoc or here-string; and in a Bash word where MSYS does not
+convert it (only offset 0, NAME=, --opt= and an attached -X or -X: convert).
+Drive-qualified paths (D:/x, D:\x) never match; nor do cmd switches written
+apart (/s /q), URLs or relative paths. The refusal names the token and, for
+a drive-letter cwd, the path it resolves to. This is a textual check:
+scripts read from files and paths built at run time are not seen. Design:
+docs/msys_destination_validation/PLANNING.md.
+
 Contract: confidently classified, or denied. Syntax this guard cannot parse
 (unbalanced quoting, base64 -EncodedCommand, nesting past depth 4) denies.
 That extends to this script's own arguments and to the payload: a malformed
@@ -1257,6 +1273,338 @@ function Get-GuardProfileArgument([string[]]$arguments) {
     return $selected
 }
 
+# --- drive-token rule ----------------------------------------------------------
+# Self-contained: it reads Split-Segments, Remove-Wrappers, Get-Delegation and
+# Get-VerbCandidates but never changes them or Invoke-CommandScan, and it only
+# adds to $script:denials. Pure string computation, no filesystem call, so it
+# behaves the same under Windows PowerShell, pwsh on Windows and pwsh on Linux.
+
+# A drive token is /<letter>/<segment> (the slash after the letter may be
+# doubled: /d//x resolves like /d/x) at a path boundary, or right after an
+# attached short option, optionally colon-bound: -D/d/x, -Path:/d/x. Group 1
+# is the token; group 2 extends it to the rest of the path for the message.
+$driveTokenPattern = '(?:(?<![\w./:\\~*%})\]$])|(?<=(?:^|[\s''"(])-[A-Za-z]+:?))' +
+    '(/[A-Za-z]/+[^/\\\s''"`,;)\]}|&<>]+)([^\s''"`,;)\]}|&<>=]*)'
+# The prefixes MSYS is measured to convert after: NAME=, --opt=, chained a=b=,
+# attached -X and colon-bound -X:. Offset 0 is the empty prefix. \z, not $:
+# $ also matches before a trailing line feed.
+$driveTokenConvertedPrefix = '\A(?:[A-Za-z0-9_.-]+=)*(?:-[A-Za-z]+:?)?\z'
+$driveTokenDirectoryChange = '(?i)(?<![\w-])(?:cd|chdir|pushd|set-location|sl|push-location)(?![\w-])'
+$driveTokenNodeHint = 'If this is a JavaScript regex literal, use new RegExp(...) or a script file.'
+$driveTokenCmdHint = 'If these are cmd switches, separate them with spaces.'
+$driveTokenRawCmd = '(?i)(?<![\w.-])cmd(?:\.exe)?\s+[/-][ck](?!\w)'
+$driveTokenRawNode = '(?i)(?<![\w.-])node(?:\.exe)?(?![\w.-])'
+$pythonValueLetters = 'WX'
+$nodeCodeFlags = @('-e', '--eval', '-p', '--print')
+$nodeValueOptions = @('-r', '--require', '--import', '--input-type', '--loader', '--experimental-loader')
+
+function Get-DriveTokenRegion($toolName) {
+    # Strict: only the exact string Bash gets the converted grammar.
+    if ($toolName -is [string] -and $toolName -ceq 'Bash') { return 'Bash' }
+    return 'Unconverted'
+}
+
+function Get-DriveTokenCwdLetter($cwd) {
+    # A resolved path is named only for a drive-letter cwd.
+    if ($cwd -is [string] -and $cwd -match '^([A-Za-z]):[\\/]') { return $matches[1].ToUpperInvariant() }
+    return $null
+}
+
+function Test-DriveTokenConverted([string]$word, [int]$index) {
+    # Converted only at offset 0 of the word or after a measured prefix.
+    return $word.Substring(0, $index) -match $driveTokenConvertedPrefix
+}
+
+function Get-DriveTokenRefusal([string]$token, [bool]$conservative, [string[]]$hints) {
+    # Sentences in a fixed order. Pure ASCII: anything else in the token becomes ?.
+    $shown = [regex]::Replace($token, '[^\x20-\x7E]', '?')
+    $letter = $shown.Substring(1, 1).ToUpperInvariant()
+    $parts = New-Object System.Collections.ArrayList
+    if ($conservative) {
+        [void]$parts.Add("Refused conservatively: '$shown' is a POSIX drive path inside a nested command body; MSYS may or may not convert it.")
+    }
+    else {
+        [void]$parts.Add("Refused: '$shown' is a POSIX drive path where nothing converts it.")
+    }
+    $cwdLetter = $script:driveTokenCwdLetter
+    if ($null -ne $cwdLetter) {
+        $resolved = $cwdLetter + ':' + [regex]::Replace($shown, '/+', '\')
+        if ($conservative) {
+            [void]$parts.Add("If MSYS does not convert it, from cwd ${cwdLetter}: a native Windows program resolves it to $resolved.")
+        }
+        else {
+            [void]$parts.Add("From cwd ${cwdLetter}: a native Windows program resolves it to $resolved.")
+        }
+        if ($script:driveTokenHedge) { [void]$parts.Add('A directory change in this command may alter this.') }
+    }
+    else {
+        [void]$parts.Add('cwd unavailable; no resolved path is claimed.')
+    }
+    [void]$parts.Add('This is a textual check; it does not know what the command would do.')
+    [void]$parts.Add("Write it drive-qualified (${letter}:/... or ${letter}:\...); for prose, write the text to a file (for example with the Write tool) and pass it with -F / --body-file.")
+    foreach ($hint in @($hints | Select-Object -Unique)) {
+        if (-not [string]::IsNullOrEmpty($hint)) { [void]$parts.Add($hint) }
+    }
+    return ($parts -join ' ')
+}
+
+function Add-DriveTokenRawRefusals([string]$text, [bool]$conservative, [string[]]$hints) {
+    # An unconverted region refuses every drive token in its raw text.
+    $all = New-Object System.Collections.ArrayList
+    foreach ($hint in @($hints)) { [void]$all.Add($hint) }
+    if ($text -match $driveTokenRawNode) { [void]$all.Add($driveTokenNodeHint) }
+    if ($text -match $driveTokenRawCmd) { [void]$all.Add($driveTokenCmdHint) }
+    foreach ($match in [regex]::Matches($text, $driveTokenPattern)) {
+        [void]$script:denials.Add((Get-DriveTokenRefusal $match.Value $conservative @($all.ToArray())))
+    }
+}
+
+function Split-DriveTokenHeredocs([string]$text) {
+    # Heredoc bodies (<< and <<-) and here-string words (<<<) are stdin,
+    # which nothing converts. Returns them, and the text with them removed.
+    $bodies = New-Object System.Collections.ArrayList
+    $out = New-Object System.Text.StringBuilder
+    $pending = New-Object System.Collections.ArrayList
+    $quote = [char]0
+    $i = 0
+    while ($i -lt $text.Length) {
+        $ch = $text[$i]
+        if ($quote -ne [char]0) {
+            if ($ch -eq $quote) { $quote = [char]0 }
+            [void]$out.Append($ch); $i++; continue
+        }
+        if ($ch -eq "'" -or $ch -eq '"') { $quote = $ch; [void]$out.Append($ch); $i++; continue }
+        if ($ch -eq '\' -and $i + 1 -lt $text.Length -and $text[$i + 1] -ne "`n") {
+            [void]$out.Append($ch); [void]$out.Append($text[$i + 1]); $i += 2; continue
+        }
+        if ($ch -eq '<' -and $i + 1 -lt $text.Length -and $text[$i + 1] -eq '<') {
+            $isHereString = ($i + 2 -lt $text.Length -and $text[$i + 2] -eq '<')
+            $j = $i + 2
+            if ($isHereString) { $j = $i + 3 }
+            $stripTabs = $false
+            if (-not $isHereString -and $j -lt $text.Length -and $text[$j] -eq '-') { $stripTabs = $true; $j++ }
+            while ($j -lt $text.Length -and ($text[$j] -eq ' ' -or $text[$j] -eq "`t")) { $j++ }
+            $wordStart = $j
+            $wordQuote = [char]0
+            while ($j -lt $text.Length) {
+                $w = $text[$j]
+                if ($wordQuote -ne [char]0) { if ($w -eq $wordQuote) { $wordQuote = [char]0 }; $j++; continue }
+                if ($w -eq "'" -or $w -eq '"') { $wordQuote = $w; $j++; continue }
+                if ([char]::IsWhiteSpace($w) -or ';&|<>()'.IndexOf($w) -ge 0) { break }
+                $j++
+            }
+            $word = $text.Substring($wordStart, $j - $wordStart)
+            if ($isHereString) {
+                [void]$out.Append($text.Substring($i, $wordStart - $i))
+                [void]$bodies.Add($word)
+                $i = $j
+                continue
+            }
+            $delimiter = $word -replace '[''"\\]', ''
+            [void]$out.Append($text.Substring($i, $j - $i))
+            if ($delimiter.Length -gt 0) { [void]$pending.Add(@{ Delimiter = $delimiter; StripTabs = $stripTabs }) }
+            $i = $j
+            continue
+        }
+        if ($ch -eq "`n" -and $pending.Count -gt 0) {
+            [void]$out.Append($ch)
+            $position = $i + 1
+            foreach ($heredoc in $pending) {
+                $body = New-Object System.Text.StringBuilder
+                $terminated = $false
+                while ($position -lt $text.Length) {
+                    $lineEnd = $text.IndexOf("`n", $position)
+                    if ($lineEnd -lt 0) { $lineEnd = $text.Length }
+                    $line = $text.Substring($position, $lineEnd - $position)
+                    $candidate = $line.TrimEnd("`r")
+                    if ($heredoc.StripTabs) { $candidate = $candidate.TrimStart("`t") }
+                    $position = $lineEnd + 1
+                    if ($candidate -ceq $heredoc.Delimiter) { $terminated = $true; break }
+                    [void]$body.Append($line).Append("`n")
+                }
+                [void]$bodies.Add($body.ToString())
+                if (-not $terminated) { $position = $text.Length }
+            }
+            [void]$pending.Clear()
+            if ($position -lt $text.Length) { [void]$out.Append("`n") }
+            $i = $position
+            continue
+        }
+        [void]$out.Append($ch)
+        $i++
+    }
+    return @{ Text = $out.ToString(); Bodies = @($bodies.ToArray()) }
+}
+
+function Get-DriveTokenSubstitutions([string]$text) {
+    # The $(...) spans, found the way Invoke-CommandScan finds them
+    # (outside single quotes, quote-aware inside), and the text without them.
+    $spans = New-Object System.Collections.ArrayList
+    $out = New-Object System.Text.StringBuilder
+    $outerQuote = [char]0
+    for ($position = 0; $position -lt $text.Length; $position++) {
+        $character = $text[$position]
+        if ($character -eq "'" -and $outerQuote -ne '"') {
+            if ($outerQuote -eq "'") { $outerQuote = [char]0 } else { $outerQuote = "'" }
+            [void]$out.Append($character)
+            continue
+        }
+        if ($character -eq '"' -and $outerQuote -ne "'") {
+            if ($outerQuote -eq '"') { $outerQuote = [char]0 } else { $outerQuote = '"' }
+            [void]$out.Append($character)
+            continue
+        }
+        if ($outerQuote -eq "'" -or $character -ne '$' -or $position + 1 -ge $text.Length -or $text[$position + 1] -ne '(') {
+            [void]$out.Append($character)
+            continue
+        }
+        $level = 1
+        $end = $position + 2
+        $innerQuote = [char]0
+        for (; $end -lt $text.Length; $end++) {
+            $inner = $text[$end]
+            if ($innerQuote -ne [char]0) { if ($inner -eq $innerQuote) { $innerQuote = [char]0 }; continue }
+            if ($inner -eq "'" -or $inner -eq '"') { $innerQuote = $inner; continue }
+            if ($inner -eq '(') { $level++ }
+            if ($inner -eq ')') { $level--; if ($level -eq 0) { break } }
+        }
+        if ($level -ne 0) { return @{ Balanced = $false } }
+        [void]$spans.Add($text.Substring($position + 2, $end - $position - 2))
+        $position = $end
+    }
+    return @{ Balanced = $true; Text = $out.ToString(); Spans = @($spans.ToArray()) }
+}
+
+function Get-DriveTokenInterpreterBody([string[]]$tokens) {
+    # The code body of python -c / node -e, recognised only among the
+    # interpreter's own options before its first non-option argument or -m.
+    # Returns @{ Index; Body; Node } with Index relative to $tokens, or $null.
+    $isPython = $false
+    $isNode = $false
+    foreach ($candidate in (Get-VerbCandidates $tokens[0])) {
+        if ($candidate -cmatch '^(?:python(?:\d+(?:\.\d+)*)?|pythonw|py)$') { $isPython = $true }
+        if ($candidate -ceq 'node') { $isNode = $true }
+    }
+    if (-not ($isPython -or $isNode)) { return $null }
+    $i = 1
+    while ($i -lt $tokens.Count) {
+        $t = $tokens[$i]
+        if ($t.Length -lt 2 -or $t[0] -ne '-' -or $t -eq '--') { return $null }
+        if ($isNode) {
+            if ($nodeCodeFlags -ccontains $t) {
+                if ($i + 1 -lt $tokens.Count) { return @{ Index = $i + 1; Body = $tokens[$i + 1]; Node = $true } }
+                return $null
+            }
+            if ($t -cmatch '^--(?:eval|print)=(.*)$') { return @{ Index = $i; Body = $matches[1]; Node = $true } }
+            if ($nodeValueOptions -ccontains $t) { $i += 2; continue }
+            $i++
+            continue
+        }
+        if ($t.StartsWith('--')) { $i++; continue }
+        $cluster = $t.Substring(1)
+        $consumesNext = $false
+        for ($c = 0; $c -lt $cluster.Length; $c++) {
+            $letter = [string]$cluster[$c]
+            if ($letter -ceq 'c') {
+                if ($c + 1 -lt $cluster.Length) { return @{ Index = $i; Body = $cluster.Substring($c + 1); Node = $false } }
+                if ($i + 1 -lt $tokens.Count) { return @{ Index = $i + 1; Body = $tokens[$i + 1]; Node = $false } }
+                return $null
+            }
+            if ($letter -ceq 'm') { return $null }
+            if ($pythonValueLetters.Contains($letter)) {
+                if ($c + 1 -ge $cluster.Length) { $consumesNext = $true }
+                break
+            }
+        }
+        if ($consumesNext) { $i += 2 } else { $i++ }
+    }
+    return $null
+}
+
+function Invoke-DriveTokenScan([string]$text, [string]$region, [int]$depth, [bool]$conservative = $false, [string[]]$hints = @()) {
+    # Owns its own recursion and depth limit. $region is Bash (the MSYS word
+    # grammar) or Unconverted (a raw scan). $conservative marks a body MSYS
+    # may still convert when it is passed.
+    if ($depth -gt $maxDelegationDepth) {
+        [void]$script:denials.Add("Drive-token rule: nesting exceeds $maxDelegationDepth levels, so the command cannot be checked for POSIX drive paths.")
+        return
+    }
+    if ([string]::IsNullOrEmpty($text)) { return }
+    if ($region -ne 'Bash') {
+        Add-DriveTokenRawRefusals $text $conservative $hints
+        return
+    }
+
+    $work = $text -replace '\\\r?\n', ''
+    # Stdin bodies first, on the raw text.
+    $heredocs = Split-DriveTokenHeredocs $work
+    foreach ($body in $heredocs.Bodies) { Invoke-DriveTokenScan $body 'Unconverted' $depth $false $hints }
+    $work = $heredocs.Text
+
+    # $(...) spans are Bash commands of their own, removed from the outer
+    # word before its positions are read.
+    $substitutions = Get-DriveTokenSubstitutions $work
+    if (-not $substitutions.Balanced) {
+        # Unparseable: every token is refused (fail closed).
+        Add-DriveTokenRawRefusals $work $conservative $hints
+        return
+    }
+    foreach ($span in $substitutions.Spans) { Invoke-DriveTokenScan $span 'Bash' ($depth + 1) $false $hints }
+    $work = $substitutions.Text
+    if (-not (Test-QuotesBalanced $work)) {
+        Add-DriveTokenRawRefusals $work $conservative $hints
+        return
+    }
+
+    foreach ($segment in (Split-Segments $work)) {
+        $tokens = @($segment)
+        if ($tokens.Count -eq 0) { continue }
+        $exempt = @{}
+        $stripped = @(Remove-Wrappers $tokens)
+        $offset = $tokens.Count - $stripped.Count
+        for ($i = 0; $i -lt $stripped.Count; $i++) {
+            $suffix = @($stripped[$i..($stripped.Count - 1)])
+            $delegation = Get-Delegation $suffix
+            if ($null -ne $delegation) {
+                if ($delegation.Kind -eq 'script') {
+                    # The delegated words are decided by the nested scan.
+                    for ($j = $offset + $i + 1; $j -lt $tokens.Count; $j++) { $exempt[$j] = $true }
+                    $shell = $null
+                    foreach ($v in (Get-VerbCandidates $suffix[0])) {
+                        if ($shellDelegators -contains $v) { $shell = $v; break }
+                    }
+                    if ($shell -eq 'cmd') {
+                        Invoke-DriveTokenScan $delegation.Script 'Unconverted' ($depth + 1) $true (@($hints) + $driveTokenCmdHint)
+                    }
+                    elseif ($psShells -contains $shell) {
+                        Invoke-DriveTokenScan $delegation.Script 'Unconverted' ($depth + 1) $true $hints
+                    }
+                    else {
+                        Invoke-DriveTokenScan $delegation.Script 'Bash' ($depth + 1) $false $hints
+                    }
+                }
+                break
+            }
+            $code = Get-DriveTokenInterpreterBody $suffix
+            if ($null -ne $code) {
+                $exempt[$offset + $i + $code.Index] = $true
+                $codeHints = @($hints)
+                if ($code.Node) { $codeHints += $driveTokenNodeHint }
+                Invoke-DriveTokenScan $code.Body 'Unconverted' $depth $true $codeHints
+            }
+        }
+        for ($j = 0; $j -lt $tokens.Count; $j++) {
+            if ($exempt.ContainsKey($j)) { continue }
+            $word = [string]$tokens[$j]
+            foreach ($match in [regex]::Matches($word, $driveTokenPattern)) {
+                if (-not (Test-DriveTokenConverted $word $match.Index)) {
+                    [void]$script:denials.Add((Get-DriveTokenRefusal $match.Value $conservative $hints))
+                }
+            }
+        }
+    }
+}
+
 # --- entry point -------------------------------------------------------------
 try {
     $GuardProfile = Get-GuardProfileArgument @($args)
@@ -1302,9 +1650,13 @@ try {
     # approving the prompt would run both.
     $script:denials = New-Object System.Collections.ArrayList
     $script:asks = New-Object System.Collections.ArrayList
+    $driveTokenRegion = Get-DriveTokenRegion $payload.tool_name
+    $script:driveTokenCwdLetter = Get-DriveTokenCwdLetter $payload.cwd
 
     foreach ($command in $commands) {
         Invoke-CommandScan $command 0
+        $script:driveTokenHedge = ($command -match $driveTokenDirectoryChange)
+        Invoke-DriveTokenScan $command $driveTokenRegion 0
     }
 
     $denials = @($script:denials | Select-Object -Unique)
