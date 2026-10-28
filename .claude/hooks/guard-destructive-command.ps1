@@ -35,16 +35,17 @@ Drive-token rule: a POSIX drive path such as /d/x that reaches a native
 Windows program unconverted resolves against the root of the CURRENT drive
 (from cwd D: it becomes D:\d\x), so the output lands somewhere nobody meant.
 A drive token is /<letter>/<segment> (or /<letter>//<segment>) at a path
-boundary, or attached to a short option (-D/d/x, -Path:/d/x). It denies in every profile and mode wherever nothing
-is known to convert it: anywhere in a PowerShell-tool command or a payload
-whose tool_name is not exactly Bash; in a python -c / node -e code body, a
-powershell / pwsh -Command or cmd /c body, a heredoc or here-string; and in a
-Bash word where MSYS does not convert it (only offset 0, NAME=, --opt= and an
-attached -X or -X: convert). Drive-qualified paths (D:/x, D:\x) never match; nor do
-cmd switches written apart (/s /q), URLs or relative paths. The refusal names
-the token and, for a drive-letter cwd, the path it resolves to. This is a
-textual check: scripts read from files and paths built at run time are not
-seen. Design: docs/msys_destination_validation/PLANNING.md.
+boundary, or attached to a short option (-D/d/x, -Path:/d/x). It denies in
+every profile and mode wherever nothing is known to convert it: anywhere in
+a PowerShell-tool command or a payload whose tool_name is not exactly Bash;
+in a python -c / node -e code body, a powershell / pwsh -Command or cmd /c
+body, a heredoc or here-string; and in a Bash word where MSYS does not
+convert it (only offset 0, NAME=, --opt= and an attached -X or -X: convert).
+Drive-qualified paths (D:/x, D:\x) never match; nor do cmd switches written
+apart (/s /q), URLs or relative paths. The refusal names the token and, for
+a drive-letter cwd, the path it resolves to. This is a textual check:
+scripts read from files and paths built at run time are not seen. Design:
+docs/msys_destination_validation/PLANNING.md.
 
 Contract: confidently classified, or denied. Syntax this guard cannot parse
 (unbalanced quoting, base64 -EncodedCommand, nesting past depth 4) denies.

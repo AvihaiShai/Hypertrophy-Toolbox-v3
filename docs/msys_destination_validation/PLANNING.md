@@ -967,7 +967,7 @@ see it.
 *(2) The standalone monitor is non-zero on hits or UNKNOWN; the hooks never block Stop.*
 - The standalone `Snapshot`/`Compare`/`ListRoots` modes exit 10 on new children and 11 on UNKNOWN,
   bad arguments or internal failure (D12).
-- The hook modes always exit 0 (D13). `HookStop` reports only through a single `systemMessage`
+- Recognised hook modes always exit 0; an unrecognised `-Mode` exits 11 (non-blocking) (D13). `HookStop` reports only through a single `systemMessage`
   object (measured user-visible, M-1) and never emits `decision`.
 - Every internal failure in hook mode is caught and turned into exit 0 plus an UNKNOWN notice. It
   never becomes exit 2, which would block stopping. H4 and the M-hookexit arm prove this.
@@ -1316,7 +1316,7 @@ Standalone and static:
 | G-offset | D4 treats every Bash occurrence as converted | R8, R9, R16, P3-refuse, P3-refuse-newline (diff-time), P4a, P6a |
 | G-interp | **both** the D5(i) scan **and** D4's interpreter-body exemption disabled (bodies are decided by D4) | R20 |
 | G-heredoc | D6 off | R18, P4h (G2-6 ruling) |
-| G-message-always | the plain non-conservative clause is always emitted, ignoring `cwd` validity, directory change and conservativeness | P1b-* |
+| G-message-always | the plain non-conservative clause is always emitted, ignoring `cwd` validity, directory change and conservativeness | **pending**: set from the deterministic outcome of the arm run (see Diff-time review). P1b-* was the planned set; P1b-cd-heredoc and P1b-cd-interp are excluded (`restored`-only). |
 | G-message-never | the clause is never emitted | P1a-* |
 | G-sanitize | no `?` replacement of non-ASCII characters in the echoed token | P1a-nonascii: U+00E9, raw stderr bytes, no byte above 127 (G2-7 ruling, TS3-S4) |
 | G-cdsubstring | directory change matched as a substring instead of a whole word | P1a-cdword (G2-7 ruling) |
@@ -1616,7 +1616,11 @@ agent. Gate 2 is not marked. Base `c29ddf0740ecd9dd90e65424c37050c764504431` (cl
 post-restart run). Retained output: `artifacts/msys-impl/` (gitignored; pre-shutdown runs kept
 apart in `pre-shutdown/`).
 
-**Changed paths**
+*The figures in "Changed paths", "Commands and results" and "Measured new nodes" below were
+**measured at `3d85fd9f`** (the first candidate). For the fix commit, see "Fix commit `a7aa5163`"
+after them.*
+
+**Changed paths** (measured at `3d85fd9f`)
 - `.claude/hooks/guard-destructive-command.ps1`: +350 / −0 (1692 lines). D1–D8 as
   self-contained functions before the entry point. The entry point gains two payload reads
   (`tool_name` → `Get-DriveTokenRegion`, `cwd` → drive letter) and one call
@@ -1629,7 +1633,7 @@ apart in `pre-shutdown/`).
 - Tests were not edited by this agent (automation-qa's files).
 - SHA-256: `artifacts/msys-impl/13-sha256.txt`.
 
-**Commands and results** (`.venv` Python 3.15.1; both hosts present: powershell 5.1, pwsh 7.6.9)
+**Commands and results** (measured at `3d85fd9f`; `.venv` Python 3.15.1; both hosts present: powershell 5.1, pwsh 7.6.9)
 
 | # | Command | Exit | Result |
 |---|---|---|---|
@@ -1644,7 +1648,27 @@ apart in `pre-shutdown/`).
 
 Measured new nodes: 194 drive-token nodes in the guard file (97 × 2 hosts) plus 3 monitor
 `test_hook_source_*` nodes (the guard file is 2229, environment-dependent and excluded from
-the inventory); 48 monitor nodes, host-looped in the body.
+the inventory); 48 monitor nodes, host-looped in the body. (Measured at `3d85fd9f`.)
+
+**Fix commit `a7aa516317a27fcc6350da6368a41221d03f386f`** (figures as reported by the manager)
+- Guard: +351 / −0 against base `c29ddf07`, 1693 lines. "No pre-existing line edited" holds
+  **relative to base `c29ddf07`**. The fix rewrote lines that the first commit had added.
+- Monitor: 872 lines.
+- Inventory: the monitor file goes from 48 to 49 nodes (4176 deterministic nodes in total);
+  `--check` exits 0.
+- Full guard file: 2245 passed at `a7aa5163`, before P4i. P4i and P4i-escaped (4 nodes) were added
+  afterwards and pass.
+- Monitor file: 48 passed, 1 skipped (H8b).
+- Contract files: 578 passed.
+- pyright baseline diff: 0 net-new.
+- Measurements the fix relies on: M-12 in
+  `docs/msys_destination_validation/evidence/MEASUREMENTS_20261028.md`.
+
+**Corpus pass** (R4, F9 ruling):
+- `docs/msys_destination_validation/evidence/CORPUS_PASS_3d85fd9f.md`: 60 hits in 12,442
+  commands, classified by class.
+- The sed/regex false-positive class was accepted by the manager and pinned as P4i.
+- The re-run on the final candidate will be appended to that file.
 
 **Design choices where the plan left room**
 - The refusal echoes the whole path from the D3 token to the next delimiter (`/d/development/x`,
@@ -1741,7 +1765,7 @@ delegation**, not by the owner. All are accepted. Nothing is deferred or rejecte
 - P1b-cd-heredoc, P1b-cd-interp, P3-refuse-newline, H13-zero-length.
 - AC1/AC2 mapping ranges: R1–R24, A1–A26.
 
-**PM flag (not resolved).** The Plan v2 arm table describes G-message-always as "the plain
+**PM flag (resolved by the manager, 2026-10-28, under the owner's delegation).** The Plan v2 arm table describes G-message-always as "the plain
 non-conservative clause is always emitted, ignoring `cwd` validity, directory change and
 conservativeness". It lists P1b-* as must-fail, which includes P1b-cd and P1b-setlocation. The
 manager's note says G-message-always does not affect the hedge. If the patch in
@@ -1750,5 +1774,20 @@ fail under it, and the merge gate trips. Either the table's mutation text and mu
 corrected to the actual patch (P1b-* minus the hedge nodes), or the patch also suppresses the
 hedge. The manager decides.
 
-**Next required step:** a diff-time **delta review by both reviewers** (`code-reviewer` and
-`unslop-reviewer`) on the fix commit. Until then, this review round is not closed.
+*Resolution:* the gating model stands: must-fail = tests guaranteed to fail. P1b-cd-heredoc and
+P1b-cd-interp are `restored`-only (already recorded). The exact G-message-always must-fail set
+will be set from the deterministic outcome of the arm run, which the harness agent reports. This
+PM records it then. Until then, the arm-table row's must-fail set is marked pending.
+
+### Diff-time review (round 2) — delta review of fix commit `a7aa516317a27fcc6350da6368a41221d03f386f`
+
+The verbatim files `reviews/diff2-*` will be added by the manager. Summaries are as relayed by the
+manager. Dispositions are by the manager under the owner's delegation; all accepted.
+
+| Reviewer | Result | Disposition / owner of the action |
+|---|---|---|
+| `code-reviewer` `a2a2781864144fd32` | All six round-1 findings (CR-1 to CR-6) resolved; no new defects. Residual: it relies on the recorded M-12 measurements (`evidence/MEASUREMENTS_20261028.md`). | accept; residual recorded under the fix-commit evidence |
+| `unslop-reviewer` `a280ec8cb8a9dddbc` | Items 1, 3, 4 and 5 resolved; items 2 and 6 partial; new cosmetic items. | accept. Test-file ID/attribution cleanup → automation-qa (in progress). Header rewrap → senior-developer (in progress). PLANNING items → this PM: evidence figures labelled and the fix-commit block (Evidence); must-address (2) wording; G-message-always flag resolution; corpus reference. |
+
+The partial items 2 and 6 are closed only when the cleanup and rewrap commits land and have been
+re-checked. This record does not close them.

@@ -52,8 +52,8 @@ Modes and exit codes:
              missing root and the mid-session baseline is announced once per
              snapshot; an invalid snapshot is announced on every Stop and never
              overwritten. With no snapshot, or a zero-length one, it records
-             one now (mid-session baseline). A snapshot held by another instance is skipped
-             silently.
+             one now (mid-session baseline). A snapshot held by another
+             instance is skipped silently.
   Recognised hook modes always exit 0: a monitor hit is a notice, never a
   block. (An unrecognised -Mode is a standalone bad-arguments call: 11.)
 

@@ -115,7 +115,7 @@ def available_hosts() -> list[str]:
     if not hosts:
         pytest.fail(
             "no PowerShell host (powershell or pwsh) is available. The monitor cannot be "
-            "exercised, and a missing host fails rather than skips (D20).",
+            "exercised, and a missing host fails rather than skips.",
             pytrace=False,
         )
     return hosts
@@ -370,8 +370,8 @@ def hook_start(
         host, base, "HookSessionStart", roots=roots, snapshot_dir=snapshot_dir,
         stdin=start_payload(session_id, base, source),
     )[0]
-    assert run.returncode == 0, f"HookSessionStart must exit 0 (D13), got {run.returncode}: {run.stderr}"
-    assert run.stdout == "", f"HookSessionStart must write nothing to stdout (D13): {run.stdout!r}"
+    assert run.returncode == 0, f"HookSessionStart must exit 0, got {run.returncode}: {run.stderr}"
+    assert run.stdout == "", f"HookSessionStart must write nothing to stdout: {run.stdout!r}"
 
 
 def stop_notice(stdout: str) -> str | None:
@@ -381,9 +381,9 @@ def stop_notice(stdout: str) -> str | None:
     try:
         message = json.loads(stdout)
     except json.JSONDecodeError as exc:
-        raise AssertionError(f"HookStop stdout is neither empty nor one JSON object (D13): {stdout!r}") from exc
+        raise AssertionError(f"HookStop stdout is neither empty nor one JSON object: {stdout!r}") from exc
     assert isinstance(message, dict) and list(message) == ["systemMessage"], (
-        f"HookStop stdout must be exactly one object whose only key is systemMessage (D13): {stdout!r}"
+        f"HookStop stdout must be exactly one object whose only key is systemMessage: {stdout!r}"
     )
     text = message["systemMessage"]
     assert isinstance(text, str) and text, f"systemMessage is not a non-empty string: {stdout!r}"
@@ -403,7 +403,7 @@ def hook_stop(
         host, base, "HookStop", roots=roots, snapshot_dir=snapshot_dir,
         stdin=stop_payload(session_id, base) if stdin is None else stdin,
     )[0]
-    assert run.returncode == 0, f"HookStop must always exit 0, never block (D13), got {run.returncode}: {run.stderr}"
+    assert run.returncode == 0, f"HookStop must always exit 0, never block, got {run.returncode}: {run.stderr}"
     return stop_notice(run.stdout)
 
 
@@ -411,7 +411,7 @@ def parse_report(stdout: str) -> dict[str, object]:
     try:
         report = json.loads(stdout)
     except json.JSONDecodeError as exc:
-        raise AssertionError(f"standalone stdout is not the D12 JSON report: {stdout!r}") from exc
+        raise AssertionError(f"standalone stdout is not the JSON report: {stdout!r}") from exc
     assert isinstance(report, dict), f"report is not a JSON object: {stdout!r}"
     missing = [key for key in REPORT_KEYS if key not in report]
     assert not missing, f"report lacks {missing}: {stdout!r}"
@@ -499,8 +499,8 @@ def test_hook_session_start_creates_once(case_id: str, tmp_path: Path) -> None:
             children = snapshot_children(path)
             assert {"existing", "added"} <= children, f"{source} did not re-snapshot: {sorted(children)}"
             assert read_snapshot(path).get("source") == source
-            assert os.stat(path).st_ino == file_id, "the snapshot was replaced, not written in place (D14)"
-        assert snap_listing(base) == [path.name], f"no other file may appear (D14): {snap_listing(base)}"
+            assert os.stat(path).st_ino == file_id, "the snapshot was replaced, not written in place"
+        assert snap_listing(base) == [path.name], f"no other file may appear: {snap_listing(base)}"
 
     across_hosts(tmp_path, scenario)
 
@@ -791,7 +791,7 @@ def test_hook_stop_zero_length_snapshot_is_baseline(case_id: str, tmp_path: Path
     # A crash after `CreateNew` but before the first write leaves a zero-length
     # file. It holds no state at all, so Stop treats it like a missing snapshot:
     # it takes the mid-session baseline instead of reporting it invalid on every
-    # Stop (diff-time review addition).
+    # Stop.
     def scenario(host: str, base: Path) -> None:
         (root,) = make_roots(base, "r1")
         (root / "existing").mkdir()

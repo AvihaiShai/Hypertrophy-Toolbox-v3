@@ -1691,8 +1691,9 @@ DRIVE_TOKEN_CASES: list[tuple[str, tuple[object, ...], str, str, str | None]] = 
     ("A21", EITHER, "cat ~/d/x", "allow", None),
     ("A22", BASH, "python -m pytest -c /d/x/pytest.ini", "allow", None),
     ("A23", BASH, "python tool.py -c /d/x", "allow", None),
-    # --- diff-time review additions (measured 2026-10-28 in Bash: `-Path:/d/x`
-    # -> `-Path:D:/x`, `/d//x` -> `D:/x`, `-X:/c/y` -> `-X:C:/y`) --------------
+    # --- converted colon-bound and doubled-slash forms (measured 2026-10-28 in
+    # Bash: `-Path:/d/x` -> `-Path:D:/x`, `/d//x` -> `D:/x`, `-X:/c/y` ->
+    # `-X:C:/y`) and their drive-qualified PowerShell equivalent ---------------
     ("A24", PS, "Set-Content -Path:D:/x -Value hi", "allow", None),
     ("A25", BASH, "tool -Path:/d/x", "allow", None),
     ("A26", BASH, "tool /d//x", "allow", None),
@@ -1731,7 +1732,7 @@ DRIVE_TOKEN_CASES: list[tuple[str, tuple[object, ...], str, str, str | None]] = 
     ("R20", BASH, 'python -c "x=/d/y"', "refuse", "/d/y"),
     ("R21", BASH, 'python -W ignore -c "x=/d/y"', "refuse", "/d/y"),
     ("R22", BASH, 'node --require x -e "x=/d/y"', "refuse", "/d/y"),
-    # --- diff-time review additions ------------------------------------------
+    # --- PowerShell colon-bound and doubled-slash forms, which nothing converts
     # A colon-bound PowerShell parameter value is unconverted: nothing in the
     # PowerShell tool converts it.
     ("R23", PS, "Set-Content -Path:/d/x -Value hi", "refuse", "/d/x"),
@@ -1808,7 +1809,7 @@ TEXTUAL_CHECK = "This is a textual check; it does not know what the command woul
 CWD_UNAVAILABLE = "cwd unavailable; no resolved path is claimed."
 
 
-def d7_sentences(
+def refusal_sentences(
     token: str,
     *,
     cwd_letter: str | None,
@@ -1892,7 +1893,7 @@ P1_CASES: list[tuple[str, str, str, object, str, str | None, bool, bool]] = [
     ("P1b-conservative-ps", "Bash", "powershell -NoProfile -Command 'New-Item /d/x -ItemType Directory'",
      "D:\\work", P1_TOKEN, "D", True, False),
     # A directory change also hedges a refusal inside a heredoc body or an
-    # interpreter code body (diff-time review). `cd /c/x` itself leads its word
+    # interpreter code body. `cd /c/x` itself leads its word
     # and is converted, so the refused token is the body's `/d/y`.
     ("P1b-cd-heredoc", "Bash", "cd /c/x && cat <<'EOF' > f.txt\n/d/y\nEOF",
      "D:\\work", "/d/y", "D", False, True),
@@ -1925,7 +1926,7 @@ def test_drive_token_resolution_message(
     where = f"{case_id} host={host} cwd={tool_label(cwd)} command={command!r}"
     assert_drive_token_refusal(decision, stderr, token, where)
     assert_sentences_in_order(
-        stderr, d7_sentences(token, cwd_letter=cwd_letter, conservative=conservative, hedge=hedge), where
+        stderr, refusal_sentences(token, cwd_letter=cwd_letter, conservative=conservative, hedge=hedge), where
     )
     if cwd_letter is None:
         assert "resolves it to" not in stderr, f"{where}: a guessed resolved path was claimed: {stderr!r}"
