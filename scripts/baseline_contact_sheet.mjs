@@ -148,7 +148,7 @@ async function main() {
         Array.from(document.images ?? []).map((i) => i.decode().catch(() => {})),
       ));
       await page.waitForTimeout(150);
-      const file = join(outDir, `${key.replace('|', '--')}.png`);
+      const file = join(outDir, `${key.replaceAll('|', '--')}.png`);
       await page.screenshot({ path: file, fullPage: true });
       // A blank sheet is indistinguishable from a legitimately empty capture, so
       // assert every band actually carries inlined image data before trusting it.

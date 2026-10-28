@@ -70,7 +70,7 @@ def sanitize_filename(filename: str, max_length: Optional[int] = None) -> str:
         filename = f"{name_part}.{ext}"
     
     # Trim underscores that end up directly before the extension
-    filename = re.sub(r'_+(\.xlsx)$', r'\1', filename)
+    filename = filename.removesuffix('.xlsx').rstrip('_') + '.xlsx'
 
     # Fallback to default if sanitization results in empty name
     if not filename or filename == '.xlsx':
