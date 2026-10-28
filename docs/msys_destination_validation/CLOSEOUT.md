@@ -67,7 +67,10 @@ root; guard shown on one harmless row; charter-frontmatter payloads inferred**.
 A fresh interactive VS Code Claude Code **2.1.312** session
 `9313ae9d-8fb7-439b-81c7-d12542caa097` exercised the installed user-level monitor.
 This extends the earlier headless evidence to owner-visible NEW rendering on this version.
-The owner requested this panel check and a docs-only PR, with no merge.
+The owner requested this panel check and a docs-only PR, with no merge; "with no merge"
+was the authorization at the time of the panel check. A later owner instruction authorized
+the merge: PR #656 was squash-merged on 2026-10-28 at 20:30:07 UTC as
+`207f5c3c4d68837a2cea7f2da2cf6990e29339ee`.
 
 | Observation | Evidence |
 |---|---|
