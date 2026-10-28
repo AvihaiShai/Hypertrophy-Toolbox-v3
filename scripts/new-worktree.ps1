@@ -1,5 +1,6 @@
 <# Create an isolated worktree after reconciled lifecycle/environment checks.
 Incomplete creations retain their worktree and branch for explicit owner review.
+Creation is serialized by ht-worktree-add.lock in the git common dir (never deleted).
 Dot-source for injected acceptance; no CLI or environment fault switch.
 #>
 param(
@@ -43,6 +44,27 @@ function Write-WorktreeAnnotation {
     } finally {$lock.Dispose()}
 }
 
+function Enter-WorktreeCreationLock {
+    param([string]$Repo,[string]$Phase,[scriptblock]$Boundary)
+    # Git does not lock worktree admin writes; a peer's half-written entry kills list/add.
+    $common=Get-VerifiedWorktreePath (Invoke-WorktreeGit $Repo @('rev-parse','--path-format=absolute','--git-common-dir'))
+    $lockPath=Get-VerifiedWorktreePath (Join-Path $common 'ht-worktree-add.lock')
+    # Long wait: must outlast a peer's whole lifecycle audit or git worktree add.
+    $until=[DateTime]::UtcNow.AddSeconds(300)
+    $contended=$false
+    while($true) {
+        try {return [IO.File]::Open($lockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
+        catch {
+            # Only a sharing/lock violation is contention; every other failure propagates.
+            $cause=$_.Exception.GetBaseException()
+            if($cause -isnot [IO.IOException] -or ($cause.HResult -band 0xFFFF) -notin 32,33){throw}
+            if(-not $contended){$contended=$true;if($Boundary){& $Boundary ($Phase+'_lock_contended') | Out-Null}}
+            if([DateTime]::UtcNow -ge $until){throw 'Worktree creation lock unavailable; nothing created'}
+            Start-Sleep -Milliseconds 50
+        }
+    }
+}
+
 function New-IsolatedWorktree {
     param(
         [Parameter(Mandatory=$true)][string]$Task,
@@ -69,7 +91,11 @@ function New-IsolatedWorktree {
     if(Test-Path -LiteralPath $target){throw "Worktree target already exists: $target"}
     $envReport=Test-WorktreeEnvironment -ApprovedRoot $parent -RuntimeRoot $target -DatabasePath $targetDb
     if(-not $envReport.ok){throw ($envReport.errors -join '; ')}
-    $audit=Get-WorktreeAudit -RepoRoot $repo -DevelopmentParent $parent -AnnotationPath $annotationFile -BaselinePath $BaselinePath -PrMetadataPath $PrMetadataPath
+    $creationLock=Enter-WorktreeCreationLock $repo 'preflight' $Boundary
+    try {
+        if($Boundary){& $Boundary 'preflight_lock_held'}
+        $audit=Get-WorktreeAudit -RepoRoot $repo -DevelopmentParent $parent -AnnotationPath $annotationFile -BaselinePath $BaselinePath -PrMetadataPath $PrMetadataPath
+    } finally {$creationLock.Dispose()}
     if(-not $audit.ok){throw ('Lifecycle preflight refused: '+($audit.errors -join '; '))}
     $main=@($audit.rows | Where-Object {$_.registered})[0].path
     if($annotationFile -ne (Join-Path $main 'docs\ai_workflow\WORKSTREAM_OWNERSHIP.local.md')){throw 'AnnotationPath must be the main checkout canonical local file'}
@@ -136,7 +162,11 @@ try {
         }
     }
     if($Boundary){& $Boundary 'before_git'}
-    Invoke-WorktreeGit $repo @('worktree','add','-b',$branch,$target,'HEAD') | Out-Null
+    $creationLock=Enter-WorktreeCreationLock $repo 'git' $Boundary
+    try {
+        if($Boundary){& $Boundary 'git_lock_held'}
+        Invoke-WorktreeGit $repo @('worktree','add','-b',$branch,$target,'HEAD') | Out-Null
+    } finally {$creationLock.Dispose()}
     try {
         if($Boundary){& $Boundary 'after_git'}
         Get-WorktreePathIdentity $target | Out-Null

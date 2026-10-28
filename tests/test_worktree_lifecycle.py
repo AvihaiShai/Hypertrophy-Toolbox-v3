@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import shutil
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -320,6 +321,208 @@ def test_simultaneous_annotation_commits_preserve_both_creators(host, tmp_path):
     for task in ("one", "two"):
         row = next(row for row in report["rows"] if Path(row["path"]).name == "fixture-" + task)
         assert row["registered"] and row["annotation"]["owner"] == "acceptance-owner"
+
+
+def _params(repo, annotations, baseline, task):
+    args = creator_args(repo, annotations, baseline, task=task)
+    return " ".join(args[i] + " " + quote(args[i+1]) for i in range(0, len(args), 2))
+
+
+def _boundary(signals, task, actions=""):
+    # Every boundary leaves a <task>-<name> marker before its injected action.
+    return (" -Boundary { param($name) [IO.File]::WriteAllText((Join-Path " + quote(signals) + " ("
+            + quote(task + "-") + "+$name)),'seen'); " + actions + " }")
+
+
+def _ps_wait(path, label, seconds=120):
+    return ("$deadline=[DateTime]::UtcNow.AddSeconds(" + str(seconds) + "); while (-not [IO.File]::Exists("
+            + quote(path) + ")) { if ([DateTime]::UtcNow -gt $deadline) {throw " + quote(label + " timeout")
+            + "}; Start-Sleep -Milliseconds 20 }; ")
+
+
+def _midwrite_state(repo, tmp_path):
+    # Git's half-written peer admin entry: gitdir present, commondir created but still empty.
+    common = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").strip())
+    admin = common / "worktrees" / "ht-planted-midwrite"
+    plant = ("[IO.Directory]::CreateDirectory(" + quote(admin) + ") | Out-Null; [IO.File]::WriteAllText("
+             + quote(admin / "gitdir") + "," + quote((tmp_path / "planted-midwrite" / ".git").as_posix())
+             + "+[char]10); [IO.File]::WriteAllBytes(" + quote(admin / "commondir") + ",[byte[]]@()); ")
+    return plant, "[IO.Directory]::Delete(" + quote(admin) + ",$true); "
+
+
+def _creator_code(repo, annotations, baseline, task, signals, actions=""):
+    return (f". {quote(repo / 'scripts' / 'new-worktree.ps1')}; try {{ New-IsolatedWorktree "
+            + _params(repo, annotations, baseline, task) + _boundary(signals, task, actions)
+            + "; exit 0 } catch { [Console]::Error.WriteLine($_); exit 1 }")
+
+
+def _spawn(host, repo, code):
+    executable = shutil.which(host)
+    if executable is None:
+        pytest.skip(f"{host} unavailable")
+    return subprocess.Popen([executable, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "-Command", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=environment(repo))
+
+
+def _await(marker, child, abort=()):
+    # Polls a marker; the deadline is only a hang guard, never synchronization.
+    deadline = time.monotonic() + 120
+    while not marker.exists():
+        if child.poll() is not None or any(path.exists() for path in abort) or time.monotonic() > deadline:
+            return marker.exists()
+        time.sleep(0.02)
+    return True
+
+
+def _kill(children):
+    for child in children.values():
+        if child.poll() is None:
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(child.pid)], capture_output=True)
+            child.wait(timeout=60)
+
+
+def _stop(children):
+    _kill(children)
+    return {task: (child.returncode,) + child.communicate(timeout=60) for task, child in children.items()}
+
+
+@pytest.mark.parametrize("host", HOSTS)
+def test_add_lock_makes_peer_wait_out_midwrite_admin_state(host, tmp_path):
+    repo, annotations, baseline = fixture_repo(tmp_path, host)
+    signals = tmp_path / "signals"
+    signals.mkdir()
+    plant, remove = _midwrite_state(repo, tmp_path)
+    go, held, release = signals / "go-two", signals / "one-held", signals / "release-one"
+    children = {}
+    try:
+        # Two passes its preflight first and parks outside both lock windows.
+        children["two"] = _spawn(host, repo, _creator_code(repo, annotations, baseline, "two", signals,
+            "if ($name -eq 'before_git') { " + _ps_wait(go, "go") + "}"))
+        if not _await(signals / "two-before_git", children["two"]):
+            pytest.fail("two never parked at before_git: " + repr(_stop(children)))
+        children["one"] = _spawn(host, repo, _creator_code(repo, annotations, baseline, "one", signals,
+            "if ($name -eq 'git_lock_held') { " + plant + "[IO.File]::WriteAllText(" + quote(held)
+            + ",'held'); " + _ps_wait(release, "release") + remove + "}"))
+        if not _await(held, children["one"], abort=(signals / "one-after_git",)):
+            pytest.fail("one never held the add lock: " + repr(_stop(children)))
+        go.write_text("go", encoding="utf-8")
+        contended = _await(signals / "two-git_lock_contended", children["two"])
+        if not contended and children["two"].poll() is None:
+            pytest.fail("two neither contended nor exited: " + repr(_stop(children)))
+        release.write_text("release", encoding="utf-8")
+        outputs = {task: child.communicate(timeout=180) for task, child in children.items()}
+    finally:
+        _kill(children)
+    codes = [children[task].returncode for task in ("one", "two")]
+    assert contended, ("two must wait on the add lock, not race the planted entry", codes, outputs)
+    assert codes == [0, 0], outputs
+    report = audit(host, repo, annotations, baseline)
+    for task in ("one", "two"):
+        row = next(row for row in report["rows"] if Path(row["path"]).name == "fixture-" + task)
+        assert row["registered"] and row["annotation"]["owner"] == "acceptance-owner"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+def test_preflight_lock_makes_peer_wait_out_midwrite_admin_state(host, tmp_path):
+    repo, annotations, baseline = fixture_repo(tmp_path, host)
+    signals = tmp_path / "signals"
+    signals.mkdir()
+    plant, remove = _midwrite_state(repo, tmp_path)
+    held, release = signals / "one-held", signals / "release-one"
+    children = {}
+    try:
+        # One adds only after two's preflight, so two's audit never sees an unbaselined child.
+        children["one"] = _spawn(host, repo, _creator_code(repo, annotations, baseline, "one", signals,
+            "if ($name -eq 'preflight_lock_held') { " + plant + "[IO.File]::WriteAllText(" + quote(held)
+            + ",'held'); " + _ps_wait(release, "release") + remove + "}; if ($name -eq 'before_git') { "
+            + _ps_wait(signals / "two-before_git", "peer preflight") + "}"))
+        if not _await(held, children["one"], abort=(signals / "one-before_git",)):
+            pytest.fail("one never held the preflight lock: " + repr(_stop(children)))
+        children["two"] = _spawn(host, repo, _creator_code(repo, annotations, baseline, "two", signals))
+        contended = _await(signals / "two-preflight_lock_contended", children["two"])
+        if not contended and children["two"].poll() is None:
+            pytest.fail("two neither contended nor exited: " + repr(_stop(children)))
+        release.write_text("release", encoding="utf-8")
+        if children["two"].wait(timeout=180) != 0:
+            pytest.fail("two failed: " + repr((contended, _stop(children))))
+        outputs = {task: child.communicate(timeout=180) for task, child in children.items()}
+    finally:
+        _kill(children)
+    codes = [children[task].returncode for task in ("one", "two")]
+    assert contended, ("two's preflight must wait on the lock, not list the planted entry", codes, outputs)
+    assert codes == [0, 0], outputs
+    report = audit(host, repo, annotations, baseline)
+    for task in ("one", "two"):
+        row = next(row for row in report["rows"] if Path(row["path"]).name == "fixture-" + task)
+        assert row["registered"] and row["annotation"]["owner"] == "acceptance-owner"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("phase", ("preflight_lock_held", "git_lock_held"))
+def test_throwing_lock_window_releases_lock_for_next_creator(host, phase, tmp_path):
+    repo, annotations, baseline = fixture_repo(tmp_path, host)
+    signals = tmp_path / "signals"
+    signals.mkdir()
+    outcome = tmp_path / "first-outcome.json"
+    lock = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").strip()) / "ht-worktree-add.lock"
+    # A leaked handle is unreachable after the throw; a GC could finalize it before
+    # any check. A no-GC region opened while the handle is still referenced spans the
+    # throw and the probe, so only the creator's own release can free the lock.
+    code = f". {quote(repo / 'scripts' / 'new-worktree.ps1')}; $leak=@{{started=$false}}; $first='completed'; "
+    code += "$probe='unprobed'; $region='unended'; try { New-IsolatedWorktree "
+    code += _params(repo, annotations, baseline, "one") + _boundary(signals, "one",
+        "if ($name -like '*_lock_contended') { throw 'unexpected lock contention' }; if ($name -eq " + quote(phase)
+        + ") { $leak.started=[GC]::TryStartNoGCRegion(128MB); throw 'synthetic lock-phase failure' }")
+    code += " } catch { $err=$_; try { [IO.File]::Open(" + quote(lock) + ",[IO.FileMode]::Open,"
+    code += "[IO.FileAccess]::ReadWrite,[IO.FileShare]::None).Dispose(); $probe='free' } "
+    code += "catch { $probe='held: '+$_.Exception.GetBaseException().Message }; "
+    code += "try { [GC]::EndNoGCRegion(); $region='intact' } "
+    code += "catch { $region='broken: '+$_.Exception.GetBaseException().Message }; $first=[string]$err }; "
+    code += "[IO.File]::WriteAllText(" + quote(outcome) + ",(@{first=$first;started=$leak.started;probe=$probe;"
+    code += "region=$region} | ConvertTo-Json -Compress)); "
+    # Same process: a handle leaked past the throw would also refuse the next acquisition.
+    code += "try { New-IsolatedWorktree " + _params(repo, annotations, baseline, "two") + _boundary(signals, "two",
+        "if ($name -like '*_lock_contended') { throw 'unexpected lock contention' }")
+    code += "; exit 0 } catch { [Console]::Error.WriteLine($_); exit 1 }"
+    result = ps(host, code, env=environment(repo), timeout=180)
+    first = json.loads(outcome.read_text(encoding="utf-8")) if outcome.exists() else None
+    assert first is not None and "synthetic lock-phase failure" in first["first"], (first, result.stdout, result.stderr)
+    # The leak check is void unless no GC ran between the throw and the probe.
+    assert first["started"] is True and first["region"] == "intact", first
+    assert first["probe"] == "free", ("lock handle leaked past the throwing window", first)
+    assert not (repo.parent / "fixture-one").exists()
+    assert "refs/heads/wt/one" not in git(repo, "show-ref")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not sorted(p.name for p in signals.glob("two-*_lock_contended"))
+    assert (signals / "two-preflight_lock_held").exists() and (signals / "two-git_lock_held").exists()
+    assert git(repo, "worktree", "list", "--porcelain").count("worktree ") == 2
+    row = next(row for row in audit(host, repo, annotations, baseline)["rows"]
+               if Path(row["path"]).name == "fixture-two")
+    assert row["registered"] and row["annotation"]["owner"] == "acceptance-owner"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+def test_killed_lock_holder_does_not_block_next_creator(host, tmp_path):
+    repo, annotations, baseline = fixture_repo(tmp_path, host)
+    signals = tmp_path / "signals"
+    signals.mkdir()
+    held = signals / "one-held"
+    children = {}
+    try:
+        children["one"] = _spawn(host, repo, _creator_code(repo, annotations, baseline, "one", signals,
+            "if ($name -eq 'git_lock_held') { [IO.File]::WriteAllText(" + quote(held) + ",'held'); "
+            + _ps_wait(signals / "never-released", "kill", seconds=600) + "}"))
+        if not _await(held, children["one"], abort=(signals / "one-after_git",)):
+            pytest.fail("one never held the add lock: " + repr(_stop(children)))
+        killed = _stop(children)
+    finally:
+        _kill(children)
+    result = ps(host, _creator_code(repo, annotations, baseline, "two", signals), env=environment(repo), timeout=180)
+    assert result.returncode == 0, (result.stdout, result.stderr, killed)
+    assert (signals / "two-preflight_lock_held").exists() and (signals / "two-git_lock_held").exists()
+    row = next(row for row in audit(host, repo, annotations, baseline)["rows"]
+               if Path(row["path"]).name == "fixture-two")
+    assert row["registered"] and row["annotation"]["owner"] == "acceptance-owner"
 
 
 @pytest.mark.parametrize("host", HOSTS)
