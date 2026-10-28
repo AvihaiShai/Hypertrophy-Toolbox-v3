@@ -241,7 +241,7 @@
     "total_tests": 691
   },
   "pytest": {
-    "collected_deterministic": 4175,
+    "collected_deterministic": 4176,
     "deterministic_files": 139,
     "environment_dependent_files": [
       {
@@ -416,7 +416,7 @@
       },
       {
         "file": "tests/test_drive_root_monitor.py",
-        "tests": 48
+        "tests": 49
       },
       {
         "file": "tests/test_effective_sets.py",

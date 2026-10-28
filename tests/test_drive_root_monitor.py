@@ -1,12 +1,12 @@
 """Acceptance tests for the drive-root-child monitor.
 
 The script under test is `.claude/hooks/drive-root-monitor.ps1`. The source of
-truth is docs/msys_destination_validation/PLANNING.md: Section 0 AC4-AC7 and
-Plan v2 (final, rev. round 3), decisions D9-D18 and the H/M monitor nodes. Every
-node id carries the plan's own label (`H2`, `M4-missing-root`, ...), so an AC7
-arm can select its must-fail set with `-k`.
+truth is docs/msys_destination_validation/PLANNING.md: its monitor acceptance
+criteria, design decisions and monitor test rows. Every node id carries the
+planning document's own label (`H2`, `M4-missing-root`, ...), so a
+neutralization run can select the nodes it must fail with `-k`.
 
-Isolation (AC7, D10, D20):
+Isolation:
 
 * Every invocation goes through `run_monitor`. It always passes `-Root` and
   `-SnapshotDir`, and it refuses any root, snapshot directory or protected path
@@ -18,7 +18,7 @@ Isolation (AC7, D10, D20):
   touched: protection is exercised only through `-ProtectedPath` under
   `tmp_path`, and M6-list only reads the print-only `protected[]` field.
 
-Hosts (D20, F8 ruling): the tests are NOT host-parametrized at collection, so
+Hosts: the tests are NOT host-parametrized at collection, so
 the node count is machine-independent. Each test runs its scenario under every
 available PowerShell host, records every host's result, and only then asserts,
 naming each host. No host at all fails inside the test body, never at import.
@@ -29,9 +29,9 @@ The CLI contract these tests fix where the plan is silent:
 * `-Root <path>`, repeated once per root; `-SnapshotDir <dir>`;
   `-ProtectedPath <path>`, repeated; the standalone modes take
   `-SessionId <id>`;
-* every mode uses the D14 file `<SnapshotDir>/claude-drive-root-<id>.json`, so
+* every mode uses the session file `<SnapshotDir>/claude-drive-root-<id>.json`, so
   a standalone `Compare` can read a hook session's snapshot (H7);
-* the standalone modes print the D12 JSON report on stdout; the hook modes read
+* the standalone modes print the JSON report on stdout; the hook modes read
   the hook payload on stdin.
 """
 
@@ -57,7 +57,7 @@ HOST_NAMES = ("powershell", "pwsh")
 IS_WINDOWS = sys.platform == "win32"
 TIMEOUT_SECONDS = 120
 
-# D12 standalone exit codes and report shape.
+# Standalone exit codes and report shape.
 EXIT_CLEAN = 0
 EXIT_NEW_CHILDREN = 10
 EXIT_UNKNOWN = 11
@@ -67,7 +67,7 @@ BUILTIN_PROTECTED = ("D:\\dev-cleanup-20260824-digest", "D:\\_digest-discard-bin
 SNAPSHOT_PREFIX = "claude-drive-root-"
 EVERYONE_SID = "*S-1-1-0"
 
-# D18 notice texts, exact.
+# Hook notice texts, exact.
 INVALID_SNAPSHOT_TEXT = (
     "Drive-root monitoring: this session's snapshot is invalid or unreadable; UNKNOWN. "
     "No claim is made about drive roots."
@@ -296,11 +296,11 @@ def entry_stamps(root: Path) -> dict[str, tuple[int, int]]:
 
 @contextlib.contextmanager
 def held_exclusively(path: Path) -> Iterator[None]:
-    """Hold the snapshot as another monitor instance would (TS-S4).
+    """Hold the snapshot as another monitor instance would.
 
     On Windows a plain handle suffices: Python opens files sharing read and
     write, so the monitor's `FileShare.None` open fails with a sharing
-    violation, while a `FileShare.ReadWrite` open (the M-lock mutation) would
+    violation, while a `FileShare.ReadWrite` open (a weakened lock) would
     succeed. On POSIX, .NET implements `FileShare.None` with `flock`.
     """
     with open(path, "r+b") as handle:
@@ -311,7 +311,7 @@ def held_exclusively(path: Path) -> Iterator[None]:
 
 
 def write_red_audit_fixture(base: Path, root: Path) -> None:
-    """A failing standing-audit report and baseline BESIDE the roots (AC4, AC5).
+    """A failing standing-audit report and baseline BESIDE the roots.
 
     The monitor must neither read these nor be influenced by them.
     """
@@ -375,7 +375,7 @@ def hook_start(
 
 
 def stop_notice(stdout: str) -> str | None:
-    """D13: HookStop stdout is empty, or exactly one object whose only key is systemMessage."""
+    """HookStop stdout is empty, or exactly one object whose only key is systemMessage."""
     if stdout == "":
         return None
     try:
@@ -507,8 +507,8 @@ def test_hook_session_start_creates_once(case_id: str, tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("case_id", ["H1c"])
 def test_hook_session_start_concurrent_smoke(case_id: str, tmp_path: Path) -> None:
-    # Smoke test only; in no must-fail set (TS2-B1). M-9 measured overlapping
-    # hook instances losing unlocked writes.
+    # Smoke test only; no neutralization run depends on it. Overlapping hook
+    # instances were measured losing unlocked writes.
     def scenario(host: str, base: Path) -> None:
         (root,) = make_roots(base, "r1")
         runs = run_monitor(host, base, "HookSessionStart", roots=[root], stdin=start_payload("h1c", base), copies=4)
@@ -587,7 +587,7 @@ def test_hook_stop_never_exits_two(case_id: str, tmp_path: Path) -> None:
                     f"expected the invalid-session-id text, got {notice!r}"
                 )
             # A MAX_PATH failure would also be caught as UNKNOWN, so the absence
-            # of any written file is what proves the id was refused (G2-5).
+            # of any written file is what proves the id was refused.
             assert snap_listing(base) == [], f"a file was written for an invalid id: {snap_listing(base)}"
             assert tree_state(base) == before, "something was written under tmp_path"
             return
@@ -614,7 +614,7 @@ def test_hook_stop_never_exits_two(case_id: str, tmp_path: Path) -> None:
 @pytest.mark.parametrize("case_id", ["H5"])
 def test_sessions_are_isolated(case_id: str, tmp_path: Path) -> None:
     # Both ids are longer than 8 characters and share their first 8, so a file
-    # name keyed on a prefix (the M-sessionfile mutation) would merge them.
+    # name keyed on a prefix of the id would merge them.
     session_a, session_b = "h5shared-alpha", "h5shared-bravo"
 
     def scenario(host: str, base: Path) -> None:
@@ -641,7 +641,7 @@ def test_hook_stop_skips_when_locked(case_id: str, tmp_path: Path) -> None:
         path = snapshot_file(base, "h6")
         before = path.read_bytes()
         # Created first, so an unlocked Stop would print a notice and update
-        # `announced` (TS3-S1).
+        # `announced`.
         (root / "newchild").mkdir()
         with held_exclusively(path):
             notice = hook_stop(host, base, [root], "h6")
@@ -786,6 +786,32 @@ def test_hook_stop_root_gone_announced_once(case_id: str, tmp_path: Path) -> Non
     across_hosts(tmp_path, scenario)
 
 
+@pytest.mark.parametrize("case_id", ["H13-zero-length"])
+def test_hook_stop_zero_length_snapshot_is_baseline(case_id: str, tmp_path: Path) -> None:
+    # A crash after `CreateNew` but before the first write leaves a zero-length
+    # file. It holds no state at all, so Stop treats it like a missing snapshot:
+    # it takes the mid-session baseline instead of reporting it invalid on every
+    # Stop (diff-time review addition).
+    def scenario(host: str, base: Path) -> None:
+        (root,) = make_roots(base, "r1")
+        (root / "existing").mkdir()
+        path = snapshot_file(base, "h13")
+        path.write_bytes(b"")
+        notice = hook_stop(host, base, [root], "h13")
+        assert path.stat().st_size > 0, "Stop left the zero-length snapshot unwritten"
+        snapshot = read_snapshot(path)
+        assert snapshot.get("schemaVersion") == 1, f"not a valid snapshot: {snapshot}"
+        assert snapshot.get("source") == "stop-baseline", f"source: {snapshot.get('source')!r}"
+        assert snap_listing(base) == [path.name], f"extra files: {snap_listing(base)}"
+        expected = midsession_text(created_utc(path))
+        assert notice is not None and expected in notice, f"expected {expected!r} in {notice!r}"
+        assert INVALID_SNAPSHOT_TEXT not in notice, f"a zero-length file was reported invalid: {notice!r}"
+        repeat = hook_stop(host, base, [root], "h13")
+        assert repeat is None, f"a second Stop must emit neither notice: {repeat!r}"
+
+    across_hosts(tmp_path, scenario)
+
+
 # --- standalone ----------------------------------------------------------------------
 
 @pytest.mark.parametrize("case_id", ["M1"])
@@ -806,7 +832,7 @@ def test_new_child_reported_despite_red_audit_fixture(case_id: str, tmp_path: Pa
 
 @pytest.mark.parametrize("case_id", ["M2"])
 def test_no_new_child_exits_zero(case_id: str, tmp_path: Path) -> None:
-    # Exit code only (TS2-B2). The red audit and ORPHANED_ANNOTATION fixture
+    # Exit code only. The red audit and ORPHANED_ANNOTATION fixture
     # sits beside the root and must not move it.
     def scenario(host: str, base: Path) -> None:
         (root,) = make_roots(base, "r1")
@@ -902,7 +928,7 @@ def unreadable_root_case(
     session: str,
     expect: Callable[[int, dict[str, object], str, Path | None], None],
 ) -> None:
-    # The deny is always removed again, so pytest can clean tmp_path (TS2-S3).
+    # The deny is always removed again, so pytest can clean tmp_path.
     if IS_WINDOWS:
         _icacls(first, "/deny", f"{EVERYONE_SID}:(RD)")
     else:
@@ -937,8 +963,8 @@ def test_monitor_is_read_only(case_id: str, tmp_path: Path) -> None:
         tree_before = outside_snap()
         stamps_before = {root.name: entry_stamps(root) for root in (first, second)}
         take_snapshot(host, base, [first, second], "m5")
-        # Compare runs against a VALID snapshot, so a write placed after
-        # enumeration (the M-write mutation) is reached (TS3-S5).
+        # Compare runs against a VALID snapshot, so a stray write placed after
+        # enumeration would be reached.
         code, report = compare(host, base, [first, second], "m5")
         assert code == EXIT_CLEAN, f"precondition: an unchanged tree compares clean, got {code}: {report}"
         assert {root.name: entry_stamps(root) for root in (first, second)} == stamps_before, (
@@ -1011,7 +1037,7 @@ OS_STARTERS = {"system", "popen", "startfile", "execv", "execve", "execl", "exec
 
 @pytest.mark.parametrize("case_id", ["M8-helper"])
 def test_only_run_monitor_invokes_the_script(case_id: str) -> None:
-    """No test starts the monitor except through run_monitor (TS-S8)."""
+    """No test starts the monitor except through run_monitor."""
     tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))
     problems: list[str] = []
 
@@ -1051,7 +1077,7 @@ def test_only_run_monitor_invokes_the_script(case_id: str) -> None:
 
 
 def strip_powershell_comments(source: str) -> str:
-    """Drop `#` line comments and `<# #>` blocks, keeping quoted text (TS-N2)."""
+    """Drop `#` line comments and `<# #>` blocks, keeping quoted text."""
     out: list[str] = []
     index, quote = 0, ""
     while index < len(source):
@@ -1093,7 +1119,7 @@ def monitor_code() -> str:
 
 
 # The standing audit, its owner baseline and the ownership ledger. The monitor's
-# independence (AC4) means its code never names any of them; comments may.
+# independence means its code never names any of them; comments may.
 AUDIT_REFERENCES = ("audit-worktrees", "Get-WorktreeAudit", "drive-baseline", "BaselinePath",
                     "driveRootUnexpected", "WORKSTREAM_OWNERSHIP")
 
@@ -1112,7 +1138,7 @@ def test_reported_paths_and_texts(case_id: str, tmp_path: Path) -> None:
     def path_case(host: str, base: Path) -> None:
         make_roots(base, "r1")
         # The root as given keeps its `.` segment; the reported path is that
-        # string plus the child name, not a canonicalised form (TS-N3).
+        # string plus the child name, not a canonicalised form.
         given = os.path.join(str(base), ".", "r1")
         take_snapshot(host, base, [given], "m9")
         (base / "r1" / "newchild").mkdir()
@@ -1127,7 +1153,7 @@ def test_reported_paths_and_texts(case_id: str, tmp_path: Path) -> None:
         os.rename(root / "Alpha", root / "ALPHA")
         code, report = compare(host, base, [root], "m9")
         if IS_WINDOWS:
-            # Ordinal-ignore-case on Windows (D11): a case-only rename is not new.
+            # Ordinal-ignore-case on Windows: a case-only rename is not new.
             assert code == EXIT_CLEAN and report_list(report, "new") == [], f"exit {code}: {report}"
         else:
             assert code == EXIT_NEW_CHILDREN, f"ordinal elsewhere: expected exit 10, got {code}: {report}"

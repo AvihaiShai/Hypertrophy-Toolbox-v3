@@ -7,8 +7,7 @@ direct child of a drive root (D:\d\..., C:\c\...). This script snapshots the
 direct children of each monitored root and later reports any child that was
 not in the snapshot. It is independent of every other check: it reads no
 other report, no owner baseline and no ledger, so their state can neither mask
-nor produce its result. docs/msys_destination_validation/PLANNING.md,
-Plan v2 D9-D18.
+nor produce its result. Design: docs/msys_destination_validation/PLANNING.md.
 
 THIS FILE MUST STAY PURE ASCII AND KEEP ITS UTF-8 BOM (see the guard header;
 tests/test_guard_destructive_command.py pins every hook in this directory).
@@ -52,10 +51,11 @@ Modes and exit codes:
              child, single-letter (fault-shaped) child, newly discovered root,
              missing root and the mid-session baseline is announced once per
              snapshot; an invalid snapshot is announced on every Stop and never
-             overwritten. With no snapshot it records one now (mid-session
-             baseline). A snapshot held by another instance is skipped
+             overwritten. With no snapshot, or a zero-length one, it records
+             one now (mid-session baseline). A snapshot held by another instance is skipped
              silently.
-  Hook modes ALWAYS exit 0: a monitor hit is a notice, never a block.
+  Recognised hook modes always exit 0: a monitor hit is a notice, never a
+  block. (An unrecognised -Mode is a standalone bad-arguments call: 11.)
 
 Accumulation: one small snapshot file per session stays in TEMP. Nothing here
 deletes it; clearing TEMP is safe at any time.
@@ -319,7 +319,7 @@ function New-UnknownEntry($root, [string]$reason) {
 }
 
 function Write-Notice([string[]]$notices) {
-    # D13: one object whose only key is systemMessage.
+    # One object whose only key is systemMessage.
     $message = New-JsonObject
     $message.Add('systemMessage', ($notices -join "`n"))
     Write-MonitorLine (ConvertTo-MonitorJson $message)
@@ -387,7 +387,7 @@ function Get-ComparablePath([string]$path) {
 }
 
 function Get-SnapshotPathRefusal([string]$snapshotPath, [string[]]$roots, $protected) {
-    # AC6: the one written file is never a direct child of a monitored root nor
+    # The one written file is never a direct child of a monitored root nor
     # inside a protected tree. Returns a reason code, or $null.
     $target = Get-ComparablePath $snapshotPath
     $parent = Get-ComparablePath ([IO.Path]::GetDirectoryName($target))
@@ -407,7 +407,7 @@ function Get-SnapshotPathRefusal([string]$snapshotPath, [string[]]$roots, $prote
 }
 
 function Get-RootState([string]$root) {
-    # D11: names only, one level, hidden and system entries included, nothing
+    # Names only, one level, hidden and system entries included, nothing
     # followed. Any enumeration error makes the root unreadable.
     if (-not [IO.Directory]::Exists($root)) { return @{ State = 'missing'; Names = @() } }
     $names = New-Object System.Collections.ArrayList
@@ -423,7 +423,7 @@ function Get-RootState([string]$root) {
 }
 
 function Get-FaultShaped([string]$root, [string[]]$names) {
-    # D17: an existing single-letter child is the X:\<letter> fault shape.
+    # An existing single-letter child is the X:\<letter> fault shape.
     $found = New-Object System.Collections.ArrayList
     foreach ($name in $names) {
         if ($name -cmatch '\A[A-Za-z]\z') { [void]$found.Add([IO.Path]::Combine($root, $name)) }
@@ -481,7 +481,6 @@ function Read-SnapshotText([IO.FileStream]$stream) {
 }
 
 function Write-SnapshotStream([IO.FileStream]$stream, $document) {
-    # In place under the exclusive handle: truncate, write, flush.
     $bytes = [Text.Encoding]::UTF8.GetBytes((ConvertTo-MonitorJson $document))
     $stream.SetLength(0)
     $stream.Position = 0
@@ -593,17 +592,17 @@ function Compare-MonitorSnapshot($document, [string[]]$roots) {
 
 # --- modes ---------------------------------------------------------------------------------
 
+function Get-SnapshotDirectory($parsed) {
+    if ([string]::IsNullOrEmpty($parsed.SnapshotDir)) { return [IO.Path]::GetTempPath() }
+    return $parsed.SnapshotDir
+}
+
 function Get-SnapshotPath([string]$directory, [string]$sessionId) {
-    if ([string]::IsNullOrEmpty($directory)) { $directory = [IO.Path]::GetTempPath() }
     return [IO.Path]::Combine($directory, $snapshotPrefix + $sessionId + '.json')
 }
 
-function Get-ProtectedList($parsed) {
-    return @(@($builtinProtected) + @($parsed.Protected.ToArray()))
-}
-
 function Invoke-Standalone($parsed) {
-    $protectedList = Get-ProtectedList $parsed
+    $protectedList = @(@($builtinProtected) + @($parsed.Protected.ToArray()))
     $roots = $null
     if (-not $parsed.Bad) { $roots = Get-MonitorRoots $parsed }
     if ($parsed.Bad -or $null -eq $roots -or @($roots).Count -eq 0) {
@@ -629,7 +628,7 @@ function Invoke-Standalone($parsed) {
         $script:exitCode = 11
         return
     }
-    $path = Get-SnapshotPath $parsed.SnapshotDir $parsed.SessionId
+    $path = Get-SnapshotPath (Get-SnapshotDirectory $parsed) $parsed.SessionId
     $refusal = Get-SnapshotPathRefusal $path $roots $parsed.Protected.ToArray()
     if ($null -ne $refusal) {
         Write-Report 'UNKNOWN' @() @((New-UnknownEntry $null $refusal)) @() $protectedList
@@ -655,7 +654,6 @@ function Invoke-Standalone($parsed) {
         return
     }
 
-    # Compare: read-only, and ignores what the hooks have announced.
     $unknown = New-Object System.Collections.ArrayList
     $new = New-Object System.Collections.ArrayList
     $faults = New-Object System.Collections.ArrayList
@@ -710,8 +708,7 @@ function Get-HookContext($parsed) {
     if ($null -eq $roots -or @($roots).Count -eq 0) { throw 'no roots to monitor' }
     $identity = Read-HookSessionId
     if ($null -eq $identity) { return $null }
-    $directory = $parsed.SnapshotDir
-    if ([string]::IsNullOrEmpty($directory)) { $directory = [IO.Path]::GetTempPath() }
+    $directory = Get-SnapshotDirectory $parsed
     $path = Get-SnapshotPath $directory $identity.SessionId
     $refusal = Get-SnapshotPathRefusal $path @($roots) $parsed.Protected.ToArray()
     if ($null -ne $refusal) { throw "snapshot path refused: $refusal" }
@@ -720,7 +717,7 @@ function Get-HookContext($parsed) {
 }
 
 function Invoke-HookSessionStart($parsed) {
-    # D13: nothing on stdout in any path.
+    # Nothing on stdout in any path.
     $context = Get-HookContext $parsed
     if ($null -eq $context) { return }
     $stream = Open-Snapshot $context.Path ([IO.FileMode]::OpenOrCreate) ([IO.FileAccess]::ReadWrite) ([IO.FileShare]::None)
@@ -737,7 +734,7 @@ function Invoke-HookSessionStart($parsed) {
 }
 
 function Get-StopNotices($document, [string[]]$roots, [string]$sessionId) {
-    # D15: every kind once per snapshot; `announced` is the only gate.
+    # Every kind once per snapshot; `announced` is the only gate.
     # Returns @{ Notices; Keys } for what has not been announced yet.
     $announced = New-Object 'System.Collections.Generic.HashSet[string]' ($script:nameComparer)
     foreach ($key in $document['announced'].Keys) { [void]$announced.Add([string]$key) }
@@ -795,9 +792,13 @@ function Invoke-HookStop($parsed) {
     if ([IO.File]::Exists($context.Path)) {
         $stream = Open-Snapshot $context.Path ([IO.FileMode]::Open) ([IO.FileAccess]::ReadWrite) ([IO.FileShare]::None)
         if ($null -eq $stream) { return }
+        # A zero-length file (a crash between creation and the first write)
+        # holds no state, so it is baselined like a missing one, under the
+        # handle already held. Any non-empty invalid content stays evidence.
+        if ($stream.Length -eq 0) { $baseline = $true }
     }
     else {
-        # D14 mid-session baseline: created under the same exclusive handle.
+        # Mid-session baseline: created under the same exclusive handle.
         try {
             $stream = [IO.File]::Open($context.Path, [IO.FileMode]::CreateNew, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
         }
@@ -825,7 +826,7 @@ function Invoke-HookStop($parsed) {
         }
         $pending = Get-StopNotices $document $context.Roots $context.SessionId
         if ($pending.Notices.Count -eq 0) { return }
-        # AR-N4: print first, then record, still holding the handle.
+        # Print first, then record, still holding the handle.
         Write-Notice $pending.Notices
         $stamp = Get-UtcStamp
         foreach ($key in $pending.Keys) {

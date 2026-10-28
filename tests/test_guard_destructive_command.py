@@ -92,11 +92,11 @@ def outcome(
     permission_mode: str = "default",
     tool_name: str = "Bash",
 ) -> str:
-    # Every real PreToolUse payload carries `tool_name` (measured, PLANNING.md
-    # M-1/M-10/M-11), and the drive-token rule reads it: anything other than
-    # exactly "Bash" is scanned as an unconverted region (Q3a strict). Payload
-    # builders that model a real tool call therefore send it; the deliberately
-    # malformed payloads below keep their shape.
+    # Every real PreToolUse payload carries `tool_name` (measured on the CLI,
+    # the VS Code bundled binary and a subagent call), and the drive-token rule
+    # reads it: anything other than exactly "Bash" is scanned as an unconverted
+    # region. Payload builders that model a real tool call therefore send it;
+    # the deliberately malformed payloads below keep their shape.
     payload = json.dumps(
         {
             "tool_name": tool_name,
@@ -1630,17 +1630,17 @@ def test_the_retention_hold_is_unaffected_by_agent_identity(host, mode):
 
 # --- drive-token rule: unconverted POSIX drive paths --------------------------
 #
-# docs/msys_destination_validation/PLANNING.md, Section 0 AC1-AC3 and Plan v2
-# (final, rev. round 3). A POSIX drive path such as `/d/x` that reaches a native
-# Windows program unconverted resolves against the root of the CURRENT drive:
-# from cwd D: it becomes D:\d\x. Two such trees were created that way. These
-# cases pin the Section 0 case table (A/R/L rows), the Plan v2 additions and the
-# P-rows. Every node id is the plan's own label.
+# docs/msys_destination_validation/PLANNING.md. A POSIX drive path such as
+# `/d/x` that reaches a native Windows program unconverted resolves against the
+# root of the CURRENT drive: from cwd D: it becomes D:\d\x. Two such trees were
+# created that way. These cases pin the planning document's case table (allow,
+# refuse and limit rows) and its message, profile, position, false-positive,
+# nesting and stderr rows. Every node id is the planning document's own label.
 #
 # Everything here is classification only: each command is DATA on the hook's
 # stdin and none of them is ever executed.
 #
-# The refusal names the token "as written". D3 defines the token as
+# The refusal names the token "as written". The token is defined as
 # /<letter>/<one segment>, so for `/d/development/x` the regex match is
 # `/d/development`. The R-row assertions check the reason prefix immediately
 # followed by that match, which holds whether the guard echoes the match or the
@@ -1661,9 +1661,9 @@ EITHER = ("Bash", "PowerShell")
 #   allow          - exit 0, no ask, neither drive-token prefix nor "failing closed"
 #   refuse         - deny carrying either drive-token prefix followed by the token
 #   existing-deny  - deny from the pre-existing rule, with no drive-token reason
-# A tool marked "either" in the plan is evaluated under both tool names.
+# A row that applies to either tool is evaluated under both tool names.
 DRIVE_TOKEN_CASES: list[tuple[str, tuple[object, ...], str, str, str | None]] = [
-    # --- Section 0 allow rows ------------------------------------------------
+    # --- allow rows -----------------------------------------------------------
     ("A1", PS, "Get-Content -LiteralPath D:\\development\\x", "allow", None),
     ("A2", PS, "New-Item -ItemType Directory -Path 'D:/development/x'", "allow", None),
     ("A3", PS, "C:\\Users\\aviha\\x", "allow", None),
@@ -1680,7 +1680,7 @@ DRIVE_TOKEN_CASES: list[tuple[str, tuple[object, ...], str, str, str | None]] = 
     ("A11", BASH, "ls //d/x", "allow", None),
     ("A12", BASH, "git rev-parse origin/main:.claude/x", "allow", None),
     ("A13", BASH, "cat /tmp/x", "allow", None),
-    # --- Plan v2 allow additions ---------------------------------------------
+    # --- allow rows added in planning review ----------------------------------
     ("A14", BASH, 'bash -c "gh run download 1 -D /d/x"', "allow", None),
     ("A15", BASH, ".venv/Scripts/python.exe -c \"open(r'D:/x')\"", "allow", None),
     ("A16", BASH, 'find . -path "*/d/*"', "allow", None),
@@ -1691,7 +1691,12 @@ DRIVE_TOKEN_CASES: list[tuple[str, tuple[object, ...], str, str, str | None]] = 
     ("A21", EITHER, "cat ~/d/x", "allow", None),
     ("A22", BASH, "python -m pytest -c /d/x/pytest.ini", "allow", None),
     ("A23", BASH, "python tool.py -c /d/x", "allow", None),
-    # --- Section 0 refuse rows -----------------------------------------------
+    # --- diff-time review additions (measured 2026-10-28 in Bash: `-Path:/d/x`
+    # -> `-Path:D:/x`, `/d//x` -> `D:/x`, `-X:/c/y` -> `-X:C:/y`) --------------
+    ("A24", PS, "Set-Content -Path:D:/x -Value hi", "allow", None),
+    ("A25", BASH, "tool -Path:/d/x", "allow", None),
+    ("A26", BASH, "tool /d//x", "allow", None),
+    # --- refuse rows ----------------------------------------------------------
     ("R1", PS, "New-Item -ItemType Directory /d/development/x", "refuse", "/d/development"),
     ("R2", PS, "gh run download 1 -D /d/development/x", "refuse", "/d/development"),
     ("R3", PS, "[IO.Path]::GetFullPath('/c/Users/x')", "refuse", "/c/Users"),
@@ -1704,8 +1709,8 @@ DRIVE_TOKEN_CASES: list[tuple[str, tuple[object, ...], str, str, str | None]] = 
     ("R9", BASH, 'tool "-D /d/x"', "refuse", "/d/x"),
     ("R10", BASH, "bash -c \"python -c \\\"open('/d/x','w')\\\"\"", "refuse", "/d/x"),
     ("R11", PS, "Get-Date > /d/out.txt", "refuse", "/d/out.txt"),
-    # R12: strict Q3a. A leading-word token that the Bash tool WOULD convert is
-    # refused when tool_name is anything other than exactly "Bash".
+    # R12: strict tool_name. A leading-word token that the Bash tool WOULD
+    # convert is refused when tool_name is anything other than exactly "Bash".
     ("R12-absent", (OMIT,), "ls /d/x", "refuse", "/d/x"),
     ("R12-null", (None,), "ls /d/x", "refuse", "/d/x"),
     ("R12-number", (5,), "ls /d/x", "refuse", "/d/x"),
@@ -1714,24 +1719,33 @@ DRIVE_TOKEN_CASES: list[tuple[str, tuple[object, ...], str, str, str | None]] = 
     ("R12-unknown", ("Foo",), "ls /d/x", "refuse", "/d/x"),
     ("R13", PS, "git -C /d/development/wt status", "refuse", "/d/development"),
     ("R14", PS, "gh run download 1 -D/d/x", "refuse", "/d/x"),
-    # --- Plan v2 refuse additions --------------------------------------------
+    # --- refuse rows added in planning review ---------------------------------
     ("R15", BASH, 'cmd /c "python x.py /d/x"', "refuse", "/d/x"),
     ("R16", BASH, "eval 'tool \"-D /d/x\"'", "refuse", "/d/x"),
     ("R17", BASH, ".venv/Scripts/python.exe -I -c \"import os; os.makedirs('/d/x')\"", "refuse", "/d/x"),
     ("R18", BASH, "cat <<'EOF' > f.txt\n/d/x\nEOF", "refuse", "/d/x"),
     ("R19", BASH, "python - <<<\"import os; os.makedirs('/d/x')\"", "refuse", "/d/x"),
-    # D4 alone would allow R20-R22 (`x=` is a converted prefix); only the
-    # interpreter-code-body rule, with option-value tracking, refuses them.
+    # The Bash converted-position rule alone would allow R20-R22 (`x=` is a
+    # converted prefix); only the interpreter-code-body rule, with option-value
+    # tracking, refuses them.
     ("R20", BASH, 'python -c "x=/d/y"', "refuse", "/d/y"),
     ("R21", BASH, 'python -W ignore -c "x=/d/y"', "refuse", "/d/y"),
     ("R22", BASH, 'node --require x -e "x=/d/y"', "refuse", "/d/y"),
+    # --- diff-time review additions ------------------------------------------
+    # A colon-bound PowerShell parameter value is unconverted: nothing in the
+    # PowerShell tool converts it.
+    ("R23", PS, "Set-Content -Path:/d/x -Value hi", "refuse", "/d/x"),
+    # A doubled slash after the letter: Windows PowerShell measured
+    # [IO.Path]::GetFullPath("/d//x") -> D:\d\x, the same fault. The asserted
+    # token is the `/d/` it starts with, whatever the guard echoes after it.
+    ("R24", PS, "Set-Content /d//x hi", "refuse", "/d/"),
     # --- coverage limits, pinned as allow so a change to them is visible -----
     ("L1", PS, "New-Item \\d\\x", "allow", None),
     ("L2", PS, "New-Item /tmp/x", "allow", None),
     ("L3", EITHER, "python script.py", "allow", None),
     ("L4", PS, "$p = '/' + 'd/x'; New-Item $p", "allow", None),
-    # L5 (Write tool file_path) is harness behaviour, measured as M-2; no hook
-    # test can exercise it.
+    # The Write tool's file_path is converted by the harness before hooks run
+    # (measured), so no hook test can exercise it.
 ]
 
 
@@ -1775,7 +1789,7 @@ def test_drive_token_case_table(
             assert decision == "allow", f"{where}: expected allow, got {decision!r}; stderr={stderr!r}"
             assert_no_drive_token_reason(stderr, where)
         elif expected == "existing-deny":
-            # Case A9: cmd switches are not drive tokens. The deny that stands is
+            # A9: cmd switches are not drive tokens. The deny that stands is
             # the pre-existing recursive-delete rule (test row `cmd /c "rmdir /s
             # /q tmp"` above), not this control.
             assert decision == "deny", f"{where}: expected the existing deny, got {decision!r}"
@@ -1787,7 +1801,7 @@ def test_drive_token_case_table(
             assert_drive_token_refusal(decision, stderr, token, where)
 
 
-# --- P1: the exact D7 refusal text ---------------------------------------------
+# --- P1: the exact refusal text ------------------------------------------------
 
 DIRECTORY_CHANGE_HEDGE = "A directory change in this command may alter this."
 TEXTUAL_CHECK = "This is a textual check; it does not know what the command would do."
@@ -1801,7 +1815,7 @@ def d7_sentences(
     conservative: bool = False,
     hedge: bool = False,
 ) -> list[str]:
-    """Sentences 1-4 of D7, in order, for one refused token."""
+    """The refusal sentences, in order, for one refused token."""
     if conservative:
         lead = (
             f"{DRIVE_REFUSED_CONSERVATIVE}{token}' is a POSIX drive path inside a nested "
@@ -1829,7 +1843,7 @@ def d7_sentences(
 
 
 def remedy_sentence(token: str) -> str:
-    # D7 sentence 4: <L> is the token's OWN letter, upper-cased, not the cwd's.
+    # The remedy's <L> is the token's OWN letter, upper-cased, not the cwd's.
     letter = token[1].upper()
     return (
         f"Write it drive-qualified ({letter}:/... or {letter}:\\...); for prose, write the "
@@ -1877,6 +1891,13 @@ P1_CASES: list[tuple[str, str, str, object, str, str | None, bool, bool]] = [
     # ... or conditional, inside a body MSYS may still convert.
     ("P1b-conservative-ps", "Bash", "powershell -NoProfile -Command 'New-Item /d/x -ItemType Directory'",
      "D:\\work", P1_TOKEN, "D", True, False),
+    # A directory change also hedges a refusal inside a heredoc body or an
+    # interpreter code body (diff-time review). `cd /c/x` itself leads its word
+    # and is converted, so the refused token is the body's `/d/y`.
+    ("P1b-cd-heredoc", "Bash", "cd /c/x && cat <<'EOF' > f.txt\n/d/y\nEOF",
+     "D:\\work", "/d/y", "D", False, True),
+    ("P1b-cd-interp", "Bash", "cd /c/x && python -c \"open('/d/y','w')\"",
+     "D:\\work", "/d/y", "D", True, True),
     ("P1b-conservative-interp", "Bash", "python -c \"import os; os.makedirs('/d/x')\"",
      "D:\\work", P1_TOKEN, "D", True, False),
 ]
@@ -1950,6 +1971,9 @@ P3_CASES: list[tuple[str, str, str, str | None]] = [
     # Attached to the operator, the token is not at a measured converted
     # position, so it fails closed.
     ("P3-refuse", "tool >/d/x", "refuse", "/d/x"),
+    # A line feed inside a quoted word, immediately before the token: the token
+    # does not lead its word, so it is not at a measured converted position.
+    ("P3-refuse-newline", 'tool "\n/d/x"', "refuse", "/d/x"),
 ]
 
 
@@ -1968,7 +1992,7 @@ def test_drive_token_converted_positions(
         assert_drive_token_refusal(decision, stderr, token, where)
 
 
-# --- P4: accepted, pinned false positives (D8) ---------------------------------
+# --- P4: accepted, pinned false positives ---------------------------------------
 
 NODE_REGEX_HINT = "If this is a JavaScript regex literal, use new RegExp(...) or a script file."
 CMD_SWITCH_HINT = "If these are cmd switches, separate them with spaces."
@@ -1989,17 +2013,36 @@ P4_CASES: list[tuple[str, str, tuple[str, ...], str, str | None]] = [
     ("P4f", "Bash", ("node -e \"s.replace(/a/g,'')\"",), "/a/g", NODE_REGEX_HINT),
     ("P4g", "Bash", ("powershell -Command New-Item /d/x",), "/d/x", None),
     ("P4h", "Bash", ("git commit -F - <<EOF\nsee /d/x\nEOF",), "/d/x", None),
+    # A sed script argument whose delimiter is not `/`: the `#` before `/d/` is
+    # a path boundary, so the regex text reads as a drive path.
+    ("P4i", "Bash", ("sed 's#/d/development##' f.txt",), "/d/development", None),
+]
+
+# Allow companions: the documented remedy for an accepted false positive must
+# itself pass. (id, tool_name, commands)
+P4_ALLOW_COMPANIONS: list[tuple[str, str, tuple[str, ...]]] = [
+    # An escaped slash: `\/d/` is not at a path boundary.
+    ("P4i-escaped", "Bash", ("sed 's#\\/d/development##' f.txt",)),
+]
+
+P4_PARAMS: list[tuple[str, str, tuple[str, ...], str | None, str | None]] = [
+    *P4_CASES,
+    *[(case_id, tool, commands, None, None) for case_id, tool, commands in P4_ALLOW_COMPANIONS],
 ]
 
 
 @pytest.mark.parametrize("host", HOSTS)
-@pytest.mark.parametrize("case_id,tool,commands,token,hint", P4_CASES, ids=[case[0] for case in P4_CASES])
+@pytest.mark.parametrize("case_id,tool,commands,token,hint", P4_PARAMS, ids=[case[0] for case in P4_PARAMS])
 def test_drive_token_accepted_false_positives(
-    host: str, case_id: str, tool: str, commands: tuple[str, ...], token: str, hint: str | None
+    host: str, case_id: str, tool: str, commands: tuple[str, ...], token: str | None, hint: str | None
 ) -> None:
     for command in commands:
         decision, stderr = outcome_with_stderr(host, command, "main", "default", tool_name=tool, cwd=DRIVE_CWD)
         where = f"{case_id} host={host} tool_name={tool} command={command!r}"
+        if token is None:
+            assert decision == "allow", f"{where}: expected allow, got {decision!r}; stderr={stderr!r}"
+            assert_no_drive_token_reason(stderr, where)
+            continue
         assert_drive_token_refusal(decision, stderr, token, where)
         # Every accepted false positive is refused WITH its remedy, which names
         # the Write tool for prose (P4h) and uses the token's own letter.
@@ -2030,8 +2073,8 @@ def test_drive_token_refused_payload_never_executes(host: str, case_id: str, tmp
 # Four levels through eval and $(): eval (1) -> $() (2) -> $() (3) -> $() (4).
 # Quote nesting is avoided on purpose: Split-Segments strips one quote layer
 # per re-scan, so the inner `"-D /d/x"` survives only through eval's single
-# quotes and the raw-text $() spans. The innermost word is an R9-style
-# embedded token, which only the D4 offset rule refuses.
+# quotes and the raw-text $() spans. The innermost word embeds the token in
+# a quoted word, which only the Bash word-offset rule refuses.
 P6A_COMMAND = "eval 'echo $(echo $(echo $(tool \"-D /d/x\")))'"
 # The same chain with a destructive innermost command. The existing guard must
 # deny it for the rm rule, which proves the chain is reached and classified at
@@ -2056,7 +2099,7 @@ def test_drive_token_nesting_depth_denies(host: str, case_id: str) -> None:
         assert_drive_token_refusal(decision, stderr, "/d/x", where)
     else:
         # A pin of the existing nesting deny. P7's prefix discipline is not
-        # applied here (F10): the drive-token rule may add its own depth reason.
+        # applied here: the drive-token rule may add its own depth reason.
         decision, stderr = outcome_with_stderr(host, P6B_COMMAND, "main", tool_name="Bash", cwd=DRIVE_CWD)
         where = f"P6b host={host} command={P6B_COMMAND!r}"
         assert decision == "deny", f"{where}: {decision!r}"
@@ -2083,6 +2126,8 @@ def p7_allowed_calls() -> list[tuple[str, object, str]]:
         if expected != "refuse":
             calls += [(case_id, tool, command) for tool in tools]
     calls += [(case_id, "Bash", command) for case_id, command, expected, _ in P3_CASES if expected == "allow"]
+    for case_id, tool, commands in P4_ALLOW_COMPANIONS:
+        calls += [(case_id, tool, command) for command in commands]
     return calls
 
 

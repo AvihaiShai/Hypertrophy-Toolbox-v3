@@ -34,17 +34,17 @@ non-delete ref retirement remain outside it.
 Drive-token rule: a POSIX drive path such as /d/x that reaches a native
 Windows program unconverted resolves against the root of the CURRENT drive
 (from cwd D: it becomes D:\d\x), so the output lands somewhere nobody meant.
-A drive token is /<letter>/<segment> at a path boundary, or attached to a
-short option (-D/d/x). It denies in every profile and mode wherever nothing
+A drive token is /<letter>/<segment> (or /<letter>//<segment>) at a path
+boundary, or attached to a short option (-D/d/x, -Path:/d/x). It denies in every profile and mode wherever nothing
 is known to convert it: anywhere in a PowerShell-tool command or a payload
 whose tool_name is not exactly Bash; in a python -c / node -e code body, a
 powershell / pwsh -Command or cmd /c body, a heredoc or here-string; and in a
 Bash word where MSYS does not convert it (only offset 0, NAME=, --opt= and an
-attached -X convert). Drive-qualified paths (D:/x, D:\x) never match; nor do
+attached -X or -X: convert). Drive-qualified paths (D:/x, D:\x) never match; nor do
 cmd switches written apart (/s /q), URLs or relative paths. The refusal names
 the token and, for a drive-letter cwd, the path it resolves to. This is a
 textual check: scripts read from files and paths built at run time are not
-seen. docs/msys_destination_validation/PLANNING.md, Plan v2 D1-D8.
+seen. Design: docs/msys_destination_validation/PLANNING.md.
 
 Contract: confidently classified, or denied. Syntax this guard cannot parse
 (unbalanced quoting, base64 -EncodedCommand, nesting past depth 4) denies.
@@ -1273,20 +1273,21 @@ function Get-GuardProfileArgument([string[]]$arguments) {
 }
 
 # --- drive-token rule ----------------------------------------------------------
-# docs/msys_destination_validation/PLANNING.md, Plan v2 D1-D8. Self-contained:
-# it reads Split-Segments, Remove-Wrappers, Get-Delegation and
+# Self-contained: it reads Split-Segments, Remove-Wrappers, Get-Delegation and
 # Get-VerbCandidates but never changes them or Invoke-CommandScan, and it only
 # adds to $script:denials. Pure string computation, no filesystem call, so it
 # behaves the same under Windows PowerShell, pwsh on Windows and pwsh on Linux.
 
-# D3: /<letter>/<segment> at a path boundary, or right after an attached short
-# option such as -D/d/x. Group 1 is the D3 token; group 2 extends it to the
-# rest of the path for the message only.
-$driveTokenPattern = '(?:(?<![\w./:\\~*%})\]$])|(?<=(?:^|[\s''"(])-[A-Za-z]+))' +
-    '(/[A-Za-z]/[^/\\\s''"`,;)\]}|&<>]+)([^\s''"`,;)\]}|&<>=]*)'
-# D4: the prefixes MSYS converts after (measured, M-6): NAME=, --opt=, chained
-# a=b=, attached -X. Offset 0 is the empty prefix.
-$driveTokenConvertedPrefix = '^(?:[A-Za-z0-9_.-]+=)*(?:-[A-Za-z]+)?$'
+# A drive token is /<letter>/<segment> (the slash after the letter may be
+# doubled: /d//x resolves like /d/x) at a path boundary, or right after an
+# attached short option, optionally colon-bound: -D/d/x, -Path:/d/x. Group 1
+# is the token; group 2 extends it to the rest of the path for the message.
+$driveTokenPattern = '(?:(?<![\w./:\\~*%})\]$])|(?<=(?:^|[\s''"(])-[A-Za-z]+:?))' +
+    '(/[A-Za-z]/+[^/\\\s''"`,;)\]}|&<>]+)([^\s''"`,;)\]}|&<>=]*)'
+# The prefixes MSYS is measured to convert after: NAME=, --opt=, chained a=b=,
+# attached -X and colon-bound -X:. Offset 0 is the empty prefix. \z, not $:
+# $ also matches before a trailing line feed.
+$driveTokenConvertedPrefix = '\A(?:[A-Za-z0-9_.-]+=)*(?:-[A-Za-z]+:?)?\z'
 $driveTokenDirectoryChange = '(?i)(?<![\w-])(?:cd|chdir|pushd|set-location|sl|push-location)(?![\w-])'
 $driveTokenNodeHint = 'If this is a JavaScript regex literal, use new RegExp(...) or a script file.'
 $driveTokenCmdHint = 'If these are cmd switches, separate them with spaces.'
@@ -1297,24 +1298,24 @@ $nodeCodeFlags = @('-e', '--eval', '-p', '--print')
 $nodeValueOptions = @('-r', '--require', '--import', '--input-type', '--loader', '--experimental-loader')
 
 function Get-DriveTokenRegion($toolName) {
-    # D2, strict Q3a: only the exact string Bash gets the converted grammar.
+    # Strict: only the exact string Bash gets the converted grammar.
     if ($toolName -is [string] -and $toolName -ceq 'Bash') { return 'Bash' }
     return 'Unconverted'
 }
 
 function Get-DriveTokenCwdLetter($cwd) {
-    # D7: a resolved path is named only for a drive-letter cwd.
+    # A resolved path is named only for a drive-letter cwd.
     if ($cwd -is [string] -and $cwd -match '^([A-Za-z]):[\\/]') { return $matches[1].ToUpperInvariant() }
     return $null
 }
 
 function Test-DriveTokenConverted([string]$word, [int]$index) {
-    # D4: converted only at offset 0 of the word or after a measured prefix.
+    # Converted only at offset 0 of the word or after a measured prefix.
     return $word.Substring(0, $index) -match $driveTokenConvertedPrefix
 }
 
 function Get-DriveTokenRefusal([string]$token, [bool]$conservative, [string[]]$hints) {
-    # D7, sentences in order. Pure ASCII: anything else in the token becomes ?.
+    # Sentences in a fixed order. Pure ASCII: anything else in the token becomes ?.
     $shown = [regex]::Replace($token, '[^\x20-\x7E]', '?')
     $letter = $shown.Substring(1, 1).ToUpperInvariant()
     $parts = New-Object System.Collections.ArrayList
@@ -1326,7 +1327,7 @@ function Get-DriveTokenRefusal([string]$token, [bool]$conservative, [string[]]$h
     }
     $cwdLetter = $script:driveTokenCwdLetter
     if ($null -ne $cwdLetter) {
-        $resolved = $cwdLetter + ':' + $shown.Replace('/', '\')
+        $resolved = $cwdLetter + ':' + [regex]::Replace($shown, '/+', '\')
         if ($conservative) {
             [void]$parts.Add("If MSYS does not convert it, from cwd ${cwdLetter}: a native Windows program resolves it to $resolved.")
         }
@@ -1347,7 +1348,7 @@ function Get-DriveTokenRefusal([string]$token, [bool]$conservative, [string[]]$h
 }
 
 function Add-DriveTokenRawRefusals([string]$text, [bool]$conservative, [string[]]$hints) {
-    # D3: an unconverted region refuses every drive token in its raw text.
+    # An unconverted region refuses every drive token in its raw text.
     $all = New-Object System.Collections.ArrayList
     foreach ($hint in @($hints)) { [void]$all.Add($hint) }
     if ($text -match $driveTokenRawNode) { [void]$all.Add($driveTokenNodeHint) }
@@ -1358,7 +1359,7 @@ function Add-DriveTokenRawRefusals([string]$text, [bool]$conservative, [string[]
 }
 
 function Split-DriveTokenHeredocs([string]$text) {
-    # D6: heredoc bodies (<< and <<-) and here-string words (<<<) are stdin,
+    # Heredoc bodies (<< and <<-) and here-string words (<<<) are stdin,
     # which nothing converts. Returns them, and the text with them removed.
     $bodies = New-Object System.Collections.ArrayList
     $out = New-Object System.Text.StringBuilder
@@ -1435,7 +1436,7 @@ function Split-DriveTokenHeredocs([string]$text) {
 }
 
 function Get-DriveTokenSubstitutions([string]$text) {
-    # D5(iii): the $(...) spans, found the way Invoke-CommandScan finds them
+    # The $(...) spans, found the way Invoke-CommandScan finds them
     # (outside single quotes, quote-aware inside), and the text without them.
     $spans = New-Object System.Collections.ArrayList
     $out = New-Object System.Text.StringBuilder
@@ -1474,7 +1475,7 @@ function Get-DriveTokenSubstitutions([string]$text) {
 }
 
 function Get-DriveTokenInterpreterBody([string[]]$tokens) {
-    # D5(i): the code body of python -c / node -e, recognised only among the
+    # The code body of python -c / node -e, recognised only among the
     # interpreter's own options before its first non-option argument or -m.
     # Returns @{ Index; Body; Node } with Index relative to $tokens, or $null.
     $isPython = $false
@@ -1520,10 +1521,9 @@ function Get-DriveTokenInterpreterBody([string[]]$tokens) {
 }
 
 function Invoke-DriveTokenScan([string]$text, [string]$region, [int]$depth, [bool]$conservative = $false, [string[]]$hints = @()) {
-    # D1: owns its own recursion and depth limit. $region is Bash (the MSYS
-    # grammar of D4) or Unconverted (a raw scan, D3). $conservative marks a
-    # body MSYS may still convert when it is passed (D7).
-    if ($depth -eq 0) { $script:driveTokenHedge = ($text -match $driveTokenDirectoryChange) }
+    # Owns its own recursion and depth limit. $region is Bash (the MSYS word
+    # grammar) or Unconverted (a raw scan). $conservative marks a body MSYS
+    # may still convert when it is passed.
     if ($depth -gt $maxDelegationDepth) {
         [void]$script:denials.Add("Drive-token rule: nesting exceeds $maxDelegationDepth levels, so the command cannot be checked for POSIX drive paths.")
         return
@@ -1535,16 +1535,16 @@ function Invoke-DriveTokenScan([string]$text, [string]$region, [int]$depth, [boo
     }
 
     $work = $text -replace '\\\r?\n', ''
-    # D6: stdin bodies first, on the raw text.
+    # Stdin bodies first, on the raw text.
     $heredocs = Split-DriveTokenHeredocs $work
     foreach ($body in $heredocs.Bodies) { Invoke-DriveTokenScan $body 'Unconverted' $depth $false $hints }
     $work = $heredocs.Text
 
-    # D5(ii)/(iii): $(...) spans are Bash commands of their own, removed from
-    # the outer word before D4 reads it.
+    # $(...) spans are Bash commands of their own, removed from the outer
+    # word before its positions are read.
     $substitutions = Get-DriveTokenSubstitutions $work
     if (-not $substitutions.Balanced) {
-        # Unparseable: every token is refused (Q3 fail-closed).
+        # Unparseable: every token is refused (fail closed).
         Add-DriveTokenRawRefusals $work $conservative $hints
         return
     }
@@ -1566,7 +1566,7 @@ function Invoke-DriveTokenScan([string]$text, [string]$region, [int]$depth, [boo
             $delegation = Get-Delegation $suffix
             if ($null -ne $delegation) {
                 if ($delegation.Kind -eq 'script') {
-                    # The delegated words are decided by the nested scan, not D4.
+                    # The delegated words are decided by the nested scan.
                     for ($j = $offset + $i + 1; $j -lt $tokens.Count; $j++) { $exempt[$j] = $true }
                     $shell = $null
                     foreach ($v in (Get-VerbCandidates $suffix[0])) {
@@ -1654,6 +1654,7 @@ try {
 
     foreach ($command in $commands) {
         Invoke-CommandScan $command 0
+        $script:driveTokenHedge = ($command -match $driveTokenDirectoryChange)
         Invoke-DriveTokenScan $command $driveTokenRegion 0
     }
 

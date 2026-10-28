@@ -929,18 +929,18 @@ both directions, and carry them through merge, installation and operational acce
 |---|---|---|
 | D1 | `Invoke-DriveTokenScan($text, $region, $depth)` owns its own recursion. It may call `Split-Segments`, `Remove-Wrappers`, `Get-Delegation` and `Get-VerbCandidates` read-only, and it never edits `Invoke-CommandScan`. Depth beyond `$maxDelegationDepth` denies with a drive-token reason. It is called once per candidate command, inside the existing entry-point `try/catch`, so any exception exits 2. Denials go into `$script:denials`, which keeps deny-wins aggregation. | R1, PR-N2 |
 | D2 | Region: a string `tool_name` that is `-ceq 'Bash'` → `Bash`. Anything else is `Unconverted`: `PowerShell`, absent, `null`, non-string, `"bash"`, `"Bash "`, unknown. | Q3a, R20 |
-| D3 | `Unconverted` = a raw-text regex over the whole string. Token: `/<letter>/<segment>`, where the segment is one or more characters other than slash, backslash, whitespace, quote, backtick, `,` `;` `)` `]` `}` `\|` `&` `<` `>`. Boundary: not preceded by `[\w./:\\~*%})\]$]`, **or** preceded by an attached short-option prefix `(?<=(^\|[\s'"(])-[A-Za-z]+)`. There is no JS-regex-literal exclusion. | AC1, R4 |
-| D4 | `Bash` region: tokens come from `Split-Segments`, with quotes stripped. Occurrences inside a word are found with D3's token and boundary rules (AR2-N1). A drive-token occurrence is converted only at offset 0 of its word, or right after a prefix matching `^(?:[A-Za-z0-9_.-]+=)*(?:-[A-Za-z]+)?$` (`NAME=`, `--opt=`, chained `a=b=`, `OUT2=--o=`, attached `-X`; M-6). Every other occurrence is refused. A word that is a delegated body or an interpreter code body (D5) is exempt from D4. | R3, M-6 |
+| D3 | `Unconverted` = a raw-text regex over the whole string. Token: `/<letter>/<segment>`, where the segment is one or more characters other than slash, backslash, whitespace, quote, backtick, `,` `;` `)` `]` `}` `\|` `&` `<` `>`. **Repeated slashes after the letter are allowed** (`/d//x`; diff-time CR-2). Boundary: not preceded by `[\w./:\\~*%})\]$]`, **or** preceded by an attached short-option prefix with an optional colon, `(?<=(^\|[\s'"(])-[A-Za-z]+:?)` (PowerShell `-Path:/d/x`; diff-time CR-1). There is no JS-regex-literal exclusion. | AC1, R4, CR-1, CR-2 |
+| D4 | `Bash` region: tokens come from `Split-Segments`, with quotes stripped. Occurrences inside a word are found with D3's token and boundary rules (AR2-N1). A drive-token occurrence is converted only at offset 0 of its word, or right after a prefix matching `^(?:[A-Za-z0-9_.-]+=)*(?:-[A-Za-z]+:?)?\z` (`NAME=`, `--opt=`, chained `a=b=`, `OUT2=--o=`, attached `-X`, and colon-bound `-X:`, which the manager reports measured converted in Bash; M-6; diff-time CR-1). It is anchored with `\z`, not `$`, because `$` would also match before a trailing newline (diff-time CR-4). Every other occurrence is refused. A word that is a delegated body or an interpreter code body (D5) is exempt from D4. | R3, M-6 |
 | D5 | Bodies in the `Bash` region.<br>(i) **Interpreter code bodies → `Unconverted`**, conservative wording (D7). Python family: verb resolved through `Get-VerbCandidates` (`python`, `python3`, `python3.x`, `py`, `pythonw`, and path forms such as `.venv/Scripts/python.exe`), with flag `-c`, including clusters ending in `c` such as `-Ic`. `node`: `-e`, `--eval`, `-p`, `--print`. The flag is recognised **only among interpreter options before the first non-option argument or `-m <module>`** (AR2-S3). Option values are tracked (G2-8 ruling): python `-W` and `-X` take a value, separate or attached; node `-r`, `--require`, `--import`, `--input-type`, `--loader` and `--experimental-loader` take a value, separate or with `=`. The first non-option argument is the first token that neither starts with `-` nor is the value of a listed option (refuse Case R21). Examples: `python -m pytest -c /d/x/pytest.ini` and `python tool.py -c /d/x` are allow Cases A22 and A23. Restored to keep AC1(b) literal; discriminating row Case R20. **Delegated reconciliation (AR2-S2):** for interpreter code bodies, AC1(b) takes precedence over AC2's converted-position allowance (fail-closed per Q3; conservative wording). So R20 `python -c "x=/d/y"` is refused although AC2 lists `NAME=` as converted.<br>(ii) Delegated bodies: `bash\|sh\|…-c` and `eval` bodies, and `$(...)` spans → re-scan as `Bash`. `powershell\|pwsh -Command\|-c` and `cmd /c\|/k` bodies → re-scan as `Unconverted`.<br>(iii) `$(...)` spans are found by the function's own quote-aware extraction, which mirrors `Invoke-CommandScan`'s existing loop without calling or editing it. Each span is removed from the outer word before D4 is applied. | R1, F4 ruling |
 | D6 | Heredoc and here-string: in the `Bash` region, the body after an unquoted `<<` / `<<-` operator up to its terminator line, and the word after `<<<`, are stdin. They are scanned as `Unconverted`, on the raw text before `Split-Segments`. | R2 |
-| D7 | Refusal message (rev. round 2; pure ASCII; AR2-S1, PR2-NEW-1/2/4/7). Sentences in order:<br>1. **Lead.** Non-conservative: `Refused: '<token>' is a POSIX drive path where nothing converts it.` Conservative: `Refused conservatively: '<token>' is a POSIX drive path inside a nested command body; MSYS may or may not convert it.`<br>2. **Resolved clause.** When `cwd` matches `^[A-Za-z]:[\\/]` it is **always** present (AC1 literal). Non-conservative: `From cwd <X:> a native Windows program resolves it to <X:\...>.` Conservative: `If MSYS does not convert it, from cwd <X:> a native Windows program resolves it to <X:\...>.` If the command contains a word-bounded, case-insensitive directory change (`cd`, `chdir`, `pushd`, `Set-Location`, `sl`, `Push-Location`), the clause is followed by ` A directory change in this command may alter this.` When `cwd` is missing or invalid, the clause is replaced by `cwd unavailable; no resolved path is claimed.` (must-address 5).<br>3. `This is a textual check; it does not know what the command would do.`<br>4. **Remedy.** `Write it drive-qualified (<L>:/... or <L>:\...); for prose, write the text to a file (for example with the Write tool) and pass it with -F / --body-file.` `<L>` is the token's own letter, upper-cased.<br>5. **Context hints (G2-4 ruling).** Every refusal inside a `node` body adds `If this is a JavaScript regex literal, use new RegExp(...) or a script file.` Every refusal inside a `cmd` body adds `If these are cmd switches, separate them with spaces.`<br>Non-ASCII characters in the echoed token are replaced by `?`. `<X:\...>` is the token with `/` replaced by `\`, after the cwd letter. AC1 is now met literally for a drive-letter `cwd`. With a missing or invalid `cwd` there is no drive to name, and must-address (5) governs (G2-9 ruling). The round-1 "withhold" interpretation (F3 ruling) is withdrawn.<br>**Conservative** means a drive token inside a body that MSYS may still convert when it is passed: (a) a `powershell\|pwsh -Command\|-c` or `cmd /c\|/k` body reached from the `Bash` region; (b) a `Bash`-region interpreter code body (D5(i)). Conservativeness is per body, not per token position (PR2-NEW-7, not adopted). The words "creates" and "would create" never appear. | R5, F2/F3 rulings, round-2 matrix |
+| D7 | Refusal message (rev. round 2; pure ASCII; AR2-S1, PR2-NEW-1/2/4/7). Sentences in order:<br>1. **Lead.** Non-conservative: `Refused: '<token>' is a POSIX drive path where nothing converts it.` Conservative: `Refused conservatively: '<token>' is a POSIX drive path inside a nested command body; MSYS may or may not convert it.`<br>2. **Resolved clause.** When `cwd` matches `^[A-Za-z]:[\\/]` it is **always** present (AC1 literal). Non-conservative: `From cwd <X:> a native Windows program resolves it to <X:\...>.` Conservative: `If MSYS does not convert it, from cwd <X:> a native Windows program resolves it to <X:\...>.` If the command contains a word-bounded, case-insensitive directory change (`cd`, `chdir`, `pushd`, `Set-Location`, `sl`, `Push-Location`), the clause is followed by ` A directory change in this command may alter this.` The directory-change flag is computed **once per command at the entry point**, so same-depth heredoc or interpreter scans cannot clobber it (diff-time CR-3 = UN-1). When `cwd` is missing or invalid, the clause is replaced by `cwd unavailable; no resolved path is claimed.` (must-address 5).<br>3. `This is a textual check; it does not know what the command would do.`<br>4. **Remedy.** `Write it drive-qualified (<L>:/... or <L>:\...); for prose, write the text to a file (for example with the Write tool) and pass it with -F / --body-file.` `<L>` is the token's own letter, upper-cased.<br>5. **Context hints (G2-4 ruling).** Every refusal inside a `node` body adds `If this is a JavaScript regex literal, use new RegExp(...) or a script file.` Every refusal inside a `cmd` body adds `If these are cmd switches, separate them with spaces.`<br>Non-ASCII characters in the echoed token are replaced by `?`. `<X:\...>` is the token with `/` replaced by `\`, after the cwd letter. AC1 is now met literally for a drive-letter `cwd`. With a missing or invalid `cwd` there is no drive to name, and must-address (5) governs (G2-9 ruling). The round-1 "withhold" interpretation (F3 ruling) is withdrawn.<br>**Conservative** means a drive token inside a body that MSYS may still convert when it is passed: (a) a `powershell\|pwsh -Command\|-c` or `cmd /c\|/k` body reached from the `Bash` region; (b) a `Bash`-region interpreter code body (D5(i)). Conservativeness is per body, not per token position (PR2-NEW-7, not adopted). The words "creates" and "would create" never appear. | R5, F2/F3 rulings, round-2 matrix |
 | D8 | Accepted, pinned false positives (P4), each refused with the remedy:<br>- Bash `git commit -m "see /d/x"`<br>- PowerShell prose in `-m`, `--body` or a here-string<br>- PowerShell `rmdir /s/q tmp`<br>- Bash `cmd /c "dir /b/s"`<br>- Bash `cmd /c "xcopy /e/i/y a b"`<br>- Bash `node -e "s.replace(/a/g,'')"` (conservative)<br>- Bash unquoted `powershell -Command New-Item /d/x` (conservative)<br>- Bash heredoc prose `git commit -F - <<EOF` / `see /d/x` / `EOF` (P4h; AR2-N4)<br>The context hints are in D7, sentence 5. | R4, R6, AR2-N4, PR2-NEW-3 |
 | D9 | The monitor is one self-contained file, `.claude/hooks/drive-root-monitor.ps1`, with modes `Snapshot`, `Compare`, `ListRoots` (print-only), `HookSessionStart` and `HookStop`. It parses `$args` (no typed `param()`); bad arguments → 11. | D7 (v1), R18 |
 | D10 | Roots: explicit `-Root <list>`. Otherwise, on Windows, `[IO.DriveInfo]` fixed volumes as `X:\`, which includes `subst` drives (M-7). On non-Windows with no `-Root` → 11. There is no environment-variable override. Hook modes accept the same optional `-Root` / `-SnapshotDir`; tests always pass them and production registrations never do. | D8 (v1), R12, R18 |
 | D11 | Enumeration: names only, non-recursive, `[IO.Directory]::EnumerateFileSystemEntries`. Hidden and system entries are included and reparse points are never followed. Comparison is ordinal-ignore-case on Windows and ordinal elsewhere. An enumeration error on a root → UNKNOWN for that root. | R10 |
 | D12 | Standalone exit codes: `0` CLEAN, `10` NEW_CHILDREN, `11` UNKNOWN (also bad arguments and internal failure). The report is JSON on stdout: `status`, `new[]`, `unknown[]`, `faultShapedPresent[]` and `protected[]` (the built-in H4 paths, print-only). If any root is UNKNOWN, the status is UNKNOWN and `new[]` is still listed.<br>Each `unknown[]` entry is `{root, reason}`, with a fixed reason code: `snapshot-missing`, `snapshot-invalid`, `schema-mismatch`, `root-missing`, `root-unreadable`, `root-new`, `protected-path`, `root-parent-path`, `session-id-invalid`, `bad-arguments`, `internal`. This makes each M4/M6 node deterministic. Every M4/M6 must-fail node asserts its specific reason code, never just exit 11, so an internal failure cannot satisfy a specific-variant assertion (G2-1 ruling). | D9 (v1), R16 |
-| D13 | Hook I/O. Hook modes always exit 0. `HookSessionStart` writes nothing to stdout in any path, including failures. `HookStop` stdout is empty or exactly one JSON object whose only key is `systemMessage`. A top-level catch turns any failure into exit 0: SessionStart stays silent, and Stop gives an UNKNOWN notice. `stop_hook_active` changes nothing. | R8, Q7 |
-| D14 | Snapshot lifecycle: **one file per session, and that file is its own lock**. File: `<SnapshotDir or TEMP>\claude-drive-root-<session_id>.json`.<br>**Schema (AR2-N2):** `schemaVersion` (integer, `1`), `sessionId`, `createdUtc` (ISO 8601 `Z`; the "monitoring began at" time), `source` (`startup`\|`clear`\|`resume`\|`compact`\|`stop-baseline`), `roots` (object: root → array of child names), `announced` (object: key `<kind>\|<subject>` → UTC). Kinds are `child`, `fault`, `newroot`, `midsession` and `rootgone` (G2-2 ruling). Anything else, or a different `schemaVersion`, is invalid (`schema-mismatch`).<br> It is opened with an exclusive handle (`FileShare.None`) and written in place under that handle (truncate, write, flush). There is no temp file and no separate lock file, so AC6's single-file exception holds literally. `session_id` must match `^[A-Za-z0-9_-]{1,128}$`, otherwise UNKNOWN and no write.<br>**SessionStart** (`OpenOrCreate`): `startup`, `clear` and `resume` replace the contents in place. `compact` keeps a valid snapshot (no write) and replaces an invalid one. If the file cannot be opened because another instance holds it: silent no-op.<br>**Stop** (`Open`): invalid snapshot → UNKNOWN notice on every Stop; it is never overwritten at Stop. Cannot open because another instance holds it → silent exit 0. A missing file is created with `CreateNew` under the same exclusive handle as the mid-session baseline, announced once (R7; see the note under the manager rulings).<br>A crash mid-write leaves an invalid file, which the invalid-snapshot rules handle: replaced at SessionStart, UNKNOWN at Stop.<br>**Any mode**: if the snapshot path's parent is a monitored root, or the path lies under the built-in H4 paths or an additive `-ProtectedPath` → UNKNOWN, nothing written.<br>Old snapshots are never deleted.<br>**Open failures (TS3-N4):** only a sharing violation, meaning another handle holds the file, is the silent no-op / exit 0. Every other open failure (a missing or non-directory parent, access denied, a path error) goes to the top-level catch → UNKNOWN (`internal`), which is the path H4-forced-error and M-hookexit exercise. | R7, R16, PR-N3, F1 ruling, TS3-N4 |
+| D13 | Hook I/O. Recognised hook modes always exit 0. An unrecognised `-Mode` exits 11, which is non-blocking; this is the header wording, with no behaviour change (diff-time CR-6). `HookSessionStart` writes nothing to stdout in any path, including failures. `HookStop` stdout is empty or exactly one JSON object whose only key is `systemMessage`. A top-level catch turns any failure into exit 0: SessionStart stays silent, and Stop gives an UNKNOWN notice. `stop_hook_active` changes nothing. | R8, Q7 |
+| D14 | Snapshot lifecycle: **one file per session, and that file is its own lock**. File: `<SnapshotDir or TEMP>\claude-drive-root-<session_id>.json`.<br>**Schema (AR2-N2):** `schemaVersion` (integer, `1`), `sessionId`, `createdUtc` (ISO 8601 `Z`; the "monitoring began at" time), `source` (`startup`\|`clear`\|`resume`\|`compact`\|`stop-baseline`), `roots` (object: root → array of child names), `announced` (object: key `<kind>\|<subject>` → UTC). Kinds are `child`, `fault`, `newroot`, `midsession` and `rootgone` (G2-2 ruling). Anything else, or a different `schemaVersion`, is invalid (`schema-mismatch`).<br> It is opened with an exclusive handle (`FileShare.None`) and written in place under that handle (truncate, write, flush). There is no temp file and no separate lock file, so AC6's single-file exception holds literally. `session_id` must match `^[A-Za-z0-9_-]{1,128}$`, otherwise UNKNOWN and no write.<br>**SessionStart** (`OpenOrCreate`): `startup`, `clear` and `resume` replace the contents in place. `compact` keeps a valid snapshot (no write) and replaces an invalid one. If the file cannot be opened because another instance holds it: silent no-op.<br>**Stop** (`Open`): invalid snapshot → UNKNOWN notice on every Stop; it is never overwritten at Stop. Cannot open because another instance holds it → silent exit 0. A missing file is created with `CreateNew` under the same exclusive handle as the mid-session baseline, announced once (R7; see the note under the manager rulings).<br>A crash mid-write leaves an invalid file, which the invalid-snapshot rules handle: replaced at SessionStart, UNKNOWN at Stop. Exception: a **zero-length** file held at Stop, left by a failed baseline write, takes the mid-session baseline branch and is not treated as invalid (diff-time CR-5; node H13-zero-length).<br>**Any mode**: if the snapshot path's parent is a monitored root, or the path lies under the built-in H4 paths or an additive `-ProtectedPath` → UNKNOWN, nothing written.<br>Old snapshots are never deleted.<br>**Open failures (TS3-N4):** only a sharing violation, meaning another handle holds the file, is the silent no-op / exit 0. Every other open failure (a missing or non-directory parent, access denied, a path error) goes to the top-level catch → UNKNOWN (`internal`), which is the path H4-forced-error and M-hookexit exercise. | R7, R16, PR-N3, F1 ruling, TS3-N4 |
 | D15 | Dedupe: `HookStop` prints its notice first, then records each announced `<kind>\|<subject>` in `announced`, while still holding the exclusive handle. Every kind is announced once per snapshot lifetime, and `announced` is the **sole** gate (TS3-S3). For example, Stop emits the mid-session notice whenever the snapshot's `source` is `stop-baseline` and the `midsession` key is absent from `announced`, not only at file creation. Invalid-snapshot, invalid-id and internal-failure notices have no usable state, so they repeat on every Stop. Standalone `Compare` ignores `announced`. | R7, AR-N4, TS2-S2 |
 | D16 | Newly discovered root: a root present now but absent from the snapshot → UNKNOWN for that root (`root-new`), announced once (`newroot`). A snapshot root that is now missing or unreadable → UNKNOWN (`root-missing` / `root-unreadable`), announced once (`rootgone`, G2-2 ruling). | D13 (v1), R9 |
 | D17 | Fault shape: `faultShapedPresent[]` lists every existing single-letter direct child of a monitored root. It is a standing warning, announced once (`fault`), and it does not change the exit code. | D14 (v1), R9 |
@@ -1118,6 +1118,9 @@ A1–A13, R1–R14, L1–L5 and M1–M5 stand)
 | A21 | either | `cat ~/d/x` | allow | R4 |
 | A22 | Bash | `python -m pytest -c /d/x/pytest.ini` | allow (`-c` belongs to pytest; the token leads its word and is converted) | AR2-S3 |
 | A23 | Bash | `python tool.py -c /d/x` | allow (`-c` follows the first non-option argument; the token is converted) | AR2-S3, PR2-NEW-7 |
+| A24 | PS | `Set-Content -Path:D:/x -Value hi` | allow (drive-qualified) | diff-time CR-1 |
+| A25 | Bash | `tool -Path:/d/x` | allow (manager reports measured converted to `-Path:D:/x`) | diff-time CR-1 |
+| A26 | Bash | `tool /d//x` | allow (manager reports measured converted to `D:/x`) | diff-time CR-2 |
 | R15 | Bash | `cmd /c "python x.py /d/x"` | refuse | R1 |
 | R16 | Bash | `eval 'tool "-D /d/x"'` | refuse | R1, F6 ruling (replaces the backslash-escaped form) |
 | R17 | Bash | `.venv/Scripts/python.exe -I -c "import os; os.makedirs('/d/x')"` | refuse (conservative) | R1, F4 ruling |
@@ -1126,6 +1129,8 @@ A1–A13, R1–R14, L1–L5 and M1–M5 stand)
 | R20 | Bash | `python -c "x=/d/y"` | refuse (conservative). D4 alone would allow it, so this row discriminates D5(i). | F4 ruling |
 | R21 | Bash | `python -W ignore -c "x=/d/y"` | refuse (conservative; `ignore` is the value of `-W`, not the first non-option argument) | G2-8 ruling |
 | R22 | Bash | `node --require x -e "x=/d/y"` | refuse (conservative; `x` is the value of `--require`) | TS3-N2 |
+| R23 | PS | `Set-Content -Path:/d/x -Value hi` | refuse (colon-bound parameter; it was a fail-open) | diff-time CR-1 |
+| R24 | PS | `Set-Content /d//x hi` | refuse (doubled slash; the manager reports `GetFullPath` measured → `D:\d\x`; it was a fail-open) | diff-time CR-2 |
 | R12 variants | — | `tool_name` absent, `null`, `5`, `"bash"`, `"Bash "`, `"Foo"`, with a leading-word `/d/x` | refuse | R20 |
 
 **P-rows**
@@ -1145,11 +1150,16 @@ A1–A13, R1–R14, L1–L5 and M1–M5 stand)
     lead + the `If MSYS does not convert it` clause.
   - P1b-conservative-interp: a Bash `python -c` body → the same.
   - Only P1b nodes assert the conservative sentence (TS2-B2).
+  - P1b-cd-heredoc and P1b-cd-interp (diff-time CR-3): a directory change in the command plus a
+    same-depth heredoc or interpreter body → the hedge sentence is still present. These are
+    `restored`-only regression nodes and are not arm-gated.
 - P2 profiles × modes: one node per pair, `P2-<profile>-<mode>` (`agent`/`main` ×
   `default`/`auto`/`bypassPermissions`/`plan`), each asserting the drive-token deny. Plus P2-mask:
   an ask elsewhere in the command cannot mask it (TS3-N1).
 - P3-allow (one node per form): P3-allow-x `tool x=/d/y`, P3-allow-ab `tool a=b=/d/y`,
   P3-allow-out2 `OUT2=--o=/c/y tool`, P3-allow-redirect `tool > /d/x`. P3-refuse: `tool >/d/x`.
+  P3-refuse-newline: Bash `tool "a=<newline>/d/x"` → refuse; the prefix ends in a newline, which
+  `$` would accept and `\z` does not (diff-time CR-4).
 - P4 accepted false positives (D8), each with tool and region named: P4a Bash commit prose; P4b
   PowerShell `-m` / `--body` / here-string prose; P4c PowerShell `rmdir /s/q tmp` (default mode;
   asserts the drive-token reason, since the existing rule alone would only ask); P4d
@@ -1176,8 +1186,8 @@ A1–A13, R1–R14, L1–L5 and M1–M5 stand)
 
 | AC / rows | Tests |
 |---|---|
-| AC1 | Case R1–R22, R12 variants, P1a, P1b, P3-refuse, P4a–h, P6a, P7, P8 — `test_drive_token_case_table[<id>]` × host, `test_drive_token_*` |
-| AC2 | Case A1–A23, P3-allow, P7 (interpreter code bodies excepted under the AR2-S2 reconciliation, D5(i)) |
+| AC1 | Case R1–R24, R12 variants, P1a, P1b, P3-refuse, P4a–h, P6a, P7, P8 — `test_drive_token_case_table[<id>]` × host, `test_drive_token_*` |
+| AC2 | Case A1–A26, P3-allow, P7 (interpreter code bodies excepted under the AR2-S2 reconciliation, D5(i)) |
 | AC3 | the full pre-existing guard file on the candidate; `test_hook_source_is_ascii_with_bom[*]` and `test_hook_source_parses[*]` (now including the monitor); the internal-error cases; the registration probe; P2, P6b. The reviewer checks that no pre-existing expected value was edited. |
 | L1–L4 | pinned as allow; L5 by M-2 measurement only |
 | AC4 | M1, H2, H7 |
@@ -1249,6 +1259,9 @@ Stop:
   standalone ignores `announced` (G2-2 ruling).
 - H12-rootgone-once: in hook mode, a snapshot root removed after the snapshot → the
   missing-or-unreadable-root text once, not repeated (G2-2 ruling).
+- H13-zero-length (diff-time CR-5): a zero-length snapshot held at Stop → the mid-session
+  baseline branch, with the mid-session text and a valid `stop-baseline` snapshot written. It is
+  not the invalid-snapshot UNKNOWN.
 
 Standalone and static:
 - M1: new child with a red standing-audit fixture → 10, names the path.
@@ -1292,7 +1305,7 @@ Standalone and static:
 
 | Arm | Mutation | Must-fail set |
 |---|---|---|
-| G-noop | `Invoke-DriveTokenScan` body → `return` | every Case R-row (R1–R22) and each R12 variant; P1a-*; P1b-*; P2-<profile>-<mode>, P2-mask; P3-refuse; P4a–h; P5-sentinel; P6a; P7-deny-prefix |
+| G-noop | `Invoke-DriveTokenScan` body → `return` | every Case R-row (R1–R24; R23, R24 added at diff time) and each R12 variant; P1a-*; P1b-*; P2-<profile>-<mode>, P2-mask; P3-refuse; P4a–h; P5-sentinel; P6a; P7-deny-prefix |
 | G-region-unconv | D2 always returns `Unconverted` | A4, A5, A6, A7 (TS3-S6) |
 | G-prefix | D4 prefix allowance removed (offset 0 only) | A5, A7, P3-allow-x, P3-allow-ab, P3-allow-out2 (TS3-S6; P3-allow-redirect is an offset-0 word and cannot fail here) |
 | G-exempt-delegated | D4 exemption for delegated bodies removed (the outer word is decided by D4) | A14 (TS3-S6) |
@@ -1300,7 +1313,7 @@ Standalone and static:
 | G-nonoption-anywhere | the code flag is recognised anywhere among the arguments | A22, A23 (TS3-S6) |
 | G-boundary | boundary lookbehind removed (token matches anywhere) | A10a–d, A11, A16–A21 |
 | G-region | D2 always returns `Bash` | R1, R2, R11, R13, R14, each R12 variant |
-| G-offset | D4 treats every Bash occurrence as converted | R8, R9, R16, P3-refuse, P4a, P6a |
+| G-offset | D4 treats every Bash occurrence as converted | R8, R9, R16, P3-refuse, P3-refuse-newline (diff-time), P4a, P6a |
 | G-interp | **both** the D5(i) scan **and** D4's interpreter-body exemption disabled (bodies are decided by D4) | R20 |
 | G-heredoc | D6 off | R18, P4h (G2-6 ruling) |
 | G-message-always | the plain non-conservative clause is always emitted, ignoring `cwd` validity, directory change and conservativeness | P1b-* |
@@ -1323,10 +1336,13 @@ Standalone and static:
 | M-lock (Windows hosts only) | the handle opened `FileShare.ReadWrite` instead of `None` | H6, H1-held |
 | M-sessionid | `session_id` regex removed | H4-badid-129, H4-traversal |
 | M-hookexit | catch → `exit 2` | H4-forced-error |
-| M-midsession | a missing snapshot is not baselined at Stop | H10-baseline |
+| M-midsession | a missing snapshot is not baselined at Stop | H10-baseline, H13-zero-length (diff-time) |
 | M-protected | protected-path refusal disabled (`-ProtectedPath` under `tmp_path`) | M6-protected |
 | M-root-parent | root-parent refusal disabled (root-parent path under `tmp_path`) | M6-root-parent |
 | restored | none | — (every test in scope must pass) |
+
+P1b-cd-heredoc and P1b-cd-interp are `restored`-only regression nodes in no must-fail set
+(diff-time ruling).
 
 H1c is a smoke test and appears in no must-fail set (TS2-B1). Under the round-1 ruling, L1–L4 are
 pins that no single-control arm fails.
@@ -1590,6 +1606,10 @@ supplied it. The PM did not give the acceptance.
 
 ## Evidence — implementation (senior-developer, 2026-10-28)
 
+*Ownership: written by senior-developer. From the diff-time review onward this section is owned by
+the `product-manager` (agent `a96acae55b870d077`), at the manager's direction. Only the
+AC7-arm sentence under "Design choices" has been corrected; the rest is senior-developer's text.*
+
 Implementation level only; no commit, push, merge, installation or AC7 arm was run by this
 agent. Gate 2 is not marked. Base `c29ddf0740ecd9dd90e65424c37050c764504431` (clone HEAD and
 `origin/main`, re-confirmed after the owner's PC shutdown; every result below is a fresh
@@ -1632,7 +1652,9 @@ the inventory); 48 monitor nodes, host-looped in the body.
   readings.
 - D2 and D4, and the parts D5/D6 decide, are separate functions (`Get-DriveTokenRegion`,
   `Test-DriveTokenConverted`, `Get-DriveTokenInterpreterBody`, `Split-DriveTokenHeredocs`,
-  `Get-DriveTokenSubstitutions`), giving each AC7 arm one mutation point. The drive-token depth
+  `Get-DriveTokenSubstitutions`). *(Corrected by the PM:)* The AC7 arms actually run are
+  per-control literal patches defined in `C:\ht\MSYS-AC7\harness\arms.3d85fd9f.json`, not one
+  mutation point per function. Their results are pending. The drive-token depth
   reason reads "Drive-token rule: nesting exceeds 4 levels ...". It deliberately avoids the
   existing "command nesting exceeds" wording, so P6a stays discriminating.
 - Hints are explicit for Bash-reached `cmd` and `node` bodies. In a raw Unconverted scan they
@@ -1670,3 +1692,63 @@ by the manager).
   by CI.
 - AC7 arms, the S0-d H4 creation-time check, the corpus pass and `code-reviewer` are not done
   (manager steps).
+
+---
+
+## Diff-time review (round 1)
+
+**Candidate:** commit `3d85fd9febb7b5bd1ec5755fdf7294425f380fc0`, PR #654 (draft).
+
+**Reviewers:**
+- `code-reviewer`, agent `a2a2781864144fd32`;
+- `unslop-reviewer`, agent `a280ec8cb8a9dddbc`.
+
+The finding summaries below are as relayed by the manager. This PM did not read the reviewers'
+reports; no verbatim copy is in `reviews/` yet.
+
+**Dispositions:** made by the **main session acting as manager under the owner's 2026-10-28
+delegation**, not by the owner. All are accepted. Nothing is deferred or rejected.
+
+| Finding | Reviewer | Summary | Disposition | Fix / plan amendment |
+|---|---|---|---|---|
+| CR-1 | code-reviewer | A colon-bound PowerShell parameter (`-Path:/d/x`) is not refused: a **fail-open**. | accept | The attached-option boundary accepts an optional colon, `-[A-Za-z]+:?` (D3). The D4 converted prefix also accepts `-[A-Za-z]+:`, which the manager reports measured converted in Bash. New rows R23 (refuse), A24 and A25 (allow). |
+| CR-2 | code-reviewer | A doubled slash `/d//x` escapes the token: a **fail-open**. | accept | The token allows repeated slashes after the letter (D3). New rows R24 (refuse; `GetFullPath` measured → `D:\d\x` per the manager) and A26 (allow; measured `D:/x` per the manager). |
+| CR-3 | code-reviewer | Same-depth heredoc or interpreter scans clobber the directory-change hedge flag. | accept | The flag is computed once per command at the entry point (D7). Rows P1b-cd-heredoc and P1b-cd-interp. |
+| CR-4 | code-reviewer | The converted-prefix regex uses `$`, which also matches before a trailing newline. | accept | Use `\z` (D4). Row P3-refuse-newline. |
+| CR-5 | code-reviewer | A zero-length snapshot left by a failed baseline write sticks as invalid. | accept | A zero-length file held at Stop takes the mid-session baseline branch (D14). Node H13-zero-length. |
+| CR-6 | code-reviewer | The header says "hook modes ALWAYS exit 0", but an unrecognised `-Mode` exits 11. | accept | The header is softened to "recognised hook modes" (D13). No behaviour change: exit 11 is non-blocking. |
+| UN-1 | unslop-reviewer | Same as CR-3. | accept (= CR-3) | As CR-3. |
+| UN-2 | unslop-reviewer | Plan and finding-ID prefixes in code comments. | accept | Remove them and keep the invariant text. One header-level pointer to the plan stays. |
+| UN-3 | unslop-reviewer | Duplicated default snapshot-directory logic. | accept | Deduplicate it. |
+| UN-4 | unslop-reviewer | `Get-ProtectedList` is a needless indirection. | accept | Inline it. |
+| UN-5 | unslop-reviewer | Two comments restate the code. | accept | Drop them. |
+| UN-6 | unslop-reviewer | The PLANNING D7 prose does not match the code. | accept — resolved by CR-3 | After the CR-3 fix the code matches D7. The Evidence sentence about AC7 arms is corrected (see the Evidence section). |
+
+**AC7 amendments** (applied in place in the Plan v2 arm table):
+- G-noop must-fail set gains R23 and R24.
+- G-offset must-fail set gains P3-refuse-newline.
+- M-midsession must-fail set gains H13-zero-length.
+- P1b-cd-heredoc and P1b-cd-interp are `restored`-only regression nodes, not arm-gated. The
+  manager's reason: G-message-always forces the resolved clause on and does not affect the hedge.
+
+**Plan amendments applied in place**
+- D3: repeated slashes; optional colon in the attached-option boundary.
+- D4: `-X:` prefix; `\z`.
+- D7: hedge flag computed once per command.
+- D13: "recognised hook modes".
+- D14: zero-length held file at Stop.
+- Case table: A24–A26, R23, R24.
+- P1b-cd-heredoc, P1b-cd-interp, P3-refuse-newline, H13-zero-length.
+- AC1/AC2 mapping ranges: R1–R24, A1–A26.
+
+**PM flag (not resolved).** The Plan v2 arm table describes G-message-always as "the plain
+non-conservative clause is always emitted, ignoring `cwd` validity, directory change and
+conservativeness". It lists P1b-* as must-fail, which includes P1b-cd and P1b-setlocation. The
+manager's note says G-message-always does not affect the hedge. If the patch in
+`arms.3d85fd9f.json` matches the note and not the table, then P1b-cd and P1b-setlocation will not
+fail under it, and the merge gate trips. Either the table's mutation text and must-fail set are
+corrected to the actual patch (P1b-* minus the hedge nodes), or the patch also suppresses the
+hedge. The manager decides.
+
+**Next required step:** a diff-time **delta review by both reviewers** (`code-reviewer` and
+`unslop-reviewer`) on the fix commit. Until then, this review round is not closed.
