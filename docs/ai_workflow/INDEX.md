@@ -68,11 +68,14 @@ Unmigrated entries and retained sequencing stay in [OPEN_WORK_EXECUTION_PLAN.md]
 - [Autonomy Model](AUTONOMY.md) — Codex/Claude approval, sandbox, worktree, and review boundaries
 - [Parallel Workflow](PARALLEL_WORKFLOW.md) — one manager-led feature per checkout,
   DB isolation, and the tracked-DB commit rule
-- [Worktree Cleanup and Preservation Plan](WORKTREE_CLEANUP_PLAN.md) — phase-gated,
-  slice-based path-conversion prevention, malformed-root quarantine, whole-tree
-  preservation, worktree retirement, and separately approved main reconciliation;
-  planning only with Gate 0 signed and Gate 1 plus the Windows-filesystem review
-  pending
+- [Worktree Cleanup and Preservation Plan](WORKTREE_CLEANUP_PLAN.md) — phase-gated
+  prevention, malformed-root quarantine, preservation, worktree retirement, main
+  reconciliation, and separately gated preservation and retirement routes for
+  drive-root children outside Operations B and C. Gate 0 and Operation A Plan v2
+  Gate 1 are signed; each later semantic amendment and operation requires its
+  applicable approval. The dated [closeout record](../worktree_cleanup/CLOSEOUT.md)
+  records completed work and the remaining prevention acceptance; this entry
+  grants no operation approval
 - Folder orientation maps (Claude Code auto-loads on path entry):
   - [routes/CLAUDE.md](../../routes/CLAUDE.md)
   - [utils/CLAUDE.md](../../utils/CLAUDE.md)
