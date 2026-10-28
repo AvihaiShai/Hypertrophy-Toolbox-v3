@@ -14,6 +14,7 @@ owner's approval; these later decisions are delegated acceptance, not personal o
 
 The implementation PR is merged and the controls are installed. This closeout records the
 packet's bounded operational acceptance; the coverage limits below remain.
+The panel follow-up below additionally records owner-confirmed NEW rendering on 2.1.312.
 
 ## Installed copies and recovery
 
@@ -55,10 +56,41 @@ The first run, `C:\ht\MSYS-OPS\run-sol-20261028T155803Z`, is retained as **incom
 the model declined the requested snapshot corruption, so UNKNOWN was not exercised. Its
 first three phases passed and its fixture was removed. It is not credited as full acceptance.
 
-Acceptance label: **fresh headless session on the VS Code extension's bundled claude.exe
+Initial headless acceptance label (panel status at that run): **fresh headless session on
+the VS Code extension's bundled claude.exe
 2.1.310; payload fields and Stop notice measured on the bundled 2.1.310 binary (headless) and
 CLI 2.1.302; panel rendering unmeasured (open); detection exercised on a substitute (subst)
 root; guard shown on one harmless row; charter-frontmatter payloads inferred**.
+
+## VS Code panel follow-up — 2026-10-28
+
+A fresh interactive VS Code Claude Code **2.1.312** session
+`9313ae9d-8fb7-439b-81c7-d12542caa097` exercised the installed user-level monitor.
+This extends the earlier headless evidence to owner-visible NEW rendering on this version.
+The owner requested this panel check and a docs-only PR, with no merge.
+
+| Observation | Evidence |
+|---|---|
+| Safe fixture | `Q:` was absent from native logical drives and `subst` before mapping to `C:\ht\MSYS-OPS\panel-20261028T191029Z\qroot`. The mapping was checked again before creating the child. No real drive-root fixture was created. |
+| Fresh SessionStart | Snapshot source `startup`, created `2026-10-28T19:11:24.336Z`, recorded `Q:\` with no children before the first submitted message. |
+| Baseline Stop | `PANEL_BASELINE_READY`; one Stop hook, 403 ms, no notice or hook errors. |
+| Mid-session child | The controller created only `Q:\panel-probe-child` at `2026-10-28T19:12:21.3024557Z`, then submitted a second tool-free panel turn without resuming or clearing the session. |
+| NEW Stop | After `PANEL_PROBE_STOP`, the panel rendered the notice below. The transcript records `hook_system_message` at `2026-10-28T19:12:32.227Z`, hook exit 0, empty stderr, duration 435 ms, no prevented continuation. |
+| Owner observation | The owner directly confirmed: "Yes, I can see the NEW alert". This confirms NEW panel visibility; it grants no merge or broader acceptance. |
+| Cleanup | After owner confirmation, the empty fixture child and `Q:` mapping were removed at `2026-10-28T20:04:43.3230733Z`. Native logical drives were C, D, E and F; `subst` returned no mappings and `qroot` was empty. |
+
+The rendered notice was:
+
+> Stop says: New direct child(ren) of Q:\ since monitoring began at 2026-10-28T19:11:24.336Z: Q:\panel-probe-child. Cause unknown; not necessarily created by this session.
+
+Evidence retained locally in `C:\ht\MSYS-OPS\panel-20261028T191029Z\`:
+`summary.json`, `sessionstart-snapshot.json`, `baseline-stop-snapshot.json`,
+`new-stop-snapshot.json`, `panel-session-events.jsonl`, `installed-hook-hashes.json`,
+`cleanup.json` and the panel-only capture `panel-probe-result.png`.
+The session log remains in the user's Claude project directory. Installed guard and monitor
+hashes match the installation table above. No hook, setting, app, DB or test was changed.
+UNKNOWN rendering and other panel versions were not exercised by this follow-up;
+`PREVENTION_COMPLETE` is not claimed.
 
 ## Retained limits
 
@@ -71,7 +103,8 @@ root; guard shown on one harmless row; charter-frontmatter payloads inferred**.
 - Root changes from other sessions, the OS or the owner are reported with cause unknown.
   Other open sessions may emit one UNKNOWN notice when a fixture drive appears or disappears;
   their UI was not inspected.
-- VS Code panel rendering remains unmeasured. Linux monitor behavior is covered by CI;
+- VS Code NEW panel rendering is owner-confirmed on 2.1.312 by the follow-up above;
+  UNKNOWN panel rendering remains unmeasured. Linux monitor behavior is covered by CI;
   Windows PowerShell 5.1 behavior is covered locally.
 - Accepted textual false-positive classes remain; [the final corpus reconciliation](evidence/CORPUS_PASS_3d85fd9f.md)
   records their counts and pins. The guard is not a filesystem-wide prevention mechanism.
