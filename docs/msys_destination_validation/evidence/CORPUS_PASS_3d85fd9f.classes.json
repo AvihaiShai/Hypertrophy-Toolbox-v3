@@ -1,0 +1,12 @@
+{
+  "total_candidates": 12442,
+  "hits": 60,
+  "classes": {
+    "TP interpreter/Windows-shell body or deliberate probe": 14,
+    "OTHER": 21,
+    "FP heredoc body text (pinned P4h)": 4,
+    "FP sed/regex script argument (Bash)": 13,
+    "FP prose in echo/printf/prompt string (Q3b, pinned P4b)": 6,
+    "FP attached redirect target (pinned P3-refuse)": 2
+  }
+}

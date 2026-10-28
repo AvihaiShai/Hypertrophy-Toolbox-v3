@@ -241,8 +241,8 @@
     "total_tests": 691
   },
   "pytest": {
-    "collected_deterministic": 4127,
-    "deterministic_files": 138,
+    "collected_deterministic": 4176,
+    "deterministic_files": 139,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -413,6 +413,10 @@
       {
         "file": "tests/test_downstream_normalization.py",
         "tests": 5
+      },
+      {
+        "file": "tests/test_drive_root_monitor.py",
+        "tests": 49
       },
       {
         "file": "tests/test_effective_sets.py",
@@ -807,7 +811,7 @@
         "tests": 41
       }
     ],
-    "total_files": 139
+    "total_files": 140
   },
   "schema_version": 2,
   "vitest": {

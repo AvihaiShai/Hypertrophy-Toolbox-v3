@@ -46,6 +46,7 @@ Two limitations are deliberate, and are limitations rather than oversights:
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -89,9 +90,16 @@ def outcome(
     command: str,
     profile: str,
     permission_mode: str = "default",
+    tool_name: str = "Bash",
 ) -> str:
+    # Every real PreToolUse payload carries `tool_name` (measured on the CLI,
+    # the VS Code bundled binary and a subagent call), and the drive-token rule
+    # reads it: anything other than exactly "Bash" is scanned as an unconverted
+    # region. Payload builders that model a real tool call therefore send it;
+    # the deliberately malformed payloads below keep their shape.
     payload = json.dumps(
         {
+            "tool_name": tool_name,
             "permission_mode": permission_mode,
             "tool_input": {"command": command},
         }
@@ -107,6 +115,77 @@ def outcome(
     if "permissionDecision" in proc.stdout:
         return json.loads(proc.stdout)["hookSpecificOutput"]["permissionDecision"]
     return "allow"
+
+
+# Leaves a key out of the payload entirely, which is not the same as sending
+# null or an empty string.
+OMIT = object()
+
+
+def drive_token_payload(
+    command: str,
+    permission_mode: str = "default",
+    tool_name: object = "Bash",
+    cwd: object = OMIT,
+) -> str:
+    body: dict[str, object] = {"permission_mode": permission_mode, "tool_input": {"command": command}}
+    if tool_name is not OMIT:
+        body["tool_name"] = tool_name
+    if cwd is not OMIT:
+        body["cwd"] = cwd
+    # ensure_ascii keeps stdin pure ASCII on every host; non-ASCII text in a
+    # command arrives as \uXXXX escapes and is decoded by ConvertFrom-Json.
+    return json.dumps(body)
+
+
+def outcome_with_raw_stderr(
+    host: str,
+    command: str,
+    profile: str = "main",
+    permission_mode: str = "default",
+    *,
+    tool_name: object = "Bash",
+    cwd: object = OMIT,
+) -> tuple[str, bytes]:
+    """The decision plus the guard's stderr exactly as written, as bytes."""
+    payload = drive_token_payload(command, permission_mode, tool_name, cwd)
+    proc = subprocess.run(
+        [host, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(GUARD), "-GuardProfile", profile],
+        input=payload.encode("ascii"),
+        capture_output=True,
+    )
+    stderr_text = proc.stderr.decode("utf-8", errors="replace")
+    if proc.returncode == 2:
+        return "deny", proc.stderr
+    if proc.returncode != 0:
+        raise AssertionError(
+            f"{host} exited {proc.returncode}; every code except 2 is "
+            f"non-blocking, so the guard failed OPEN.\n{stderr_text}"
+        )
+    stdout_text = proc.stdout.decode("utf-8", errors="replace")
+    if "permissionDecision" in stdout_text:
+        return json.loads(stdout_text)["hookSpecificOutput"]["permissionDecision"], proc.stderr
+    return "allow", proc.stderr
+
+
+def outcome_with_stderr(
+    host: str,
+    command: str,
+    profile: str = "main",
+    permission_mode: str = "default",
+    *,
+    tool_name: object = "Bash",
+    cwd: object = OMIT,
+) -> tuple[str, str]:
+    """The decision and stderr, so a deny can be tied to the rule that issued it.
+
+    A guard crash also exits 2, so a bare "deny" cannot tell the drive-token
+    refusal from the fail-closed catch. Callers pin the reason text instead.
+    """
+    decision, raw = outcome_with_raw_stderr(
+        host, command, profile, permission_mode, tool_name=tool_name, cwd=cwd
+    )
+    return decision, raw.decode("utf-8", errors="replace")
 
 
 # (command, profile, expected outcome)
@@ -706,6 +785,7 @@ def test_unknown_command_field_is_still_inspected(host: str) -> None:
     """A renamed command field must not slip past unexamined."""
     payload = json.dumps(
         {
+            "tool_name": "Bash",
             "permission_mode": "default",
             "tool_input": {"shellCommand": "rm -rf tmp"},
         }
@@ -738,7 +818,7 @@ def test_bypass_mode_never_silently_executes_confirmation_tier(
 @pytest.mark.parametrize("host", HOSTS)
 def test_missing_permission_mode_denies_confirmation_tier(host: str) -> None:
     """Unknown permission semantics are unsafe for a command requiring approval."""
-    payload = json.dumps({"tool_input": {"command": "git rm src/foo.py"}})
+    payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "git rm src/foo.py"}})
     assert invoke(host, payload, "main").returncode == 2
 
 
@@ -1009,7 +1089,7 @@ EVERY_MODE_IDS = ["missing", "empty", *PROMPTING_MODES, "auto", "bypassPermissio
 
 
 def invoke_mode(host: str, command: str, profile: str, mode: str | None) -> subprocess.CompletedProcess:
-    body: dict = {"tool_input": {"command": command}}
+    body: dict = {"tool_name": "Bash", "tool_input": {"command": command}}
     if mode is not None:
         body["permission_mode"] = mode
     return invoke(host, json.dumps(body), profile)
@@ -1176,13 +1256,14 @@ def test_auto_keeps_profile_policy_and_deny_precedence(host, profile):
         assert outcome(host, command, profile, "auto") == ("deny" if profile == "agent" else "allow")
     # Agent git rm is itself a hard deny, so agent precedence needs an ask-tier command.
     confirmation = "git rm retained" if profile == "main" else "rm -r retained"
-    denied = invoke(host, json.dumps({"permission_mode": "auto", "tool_input": {
+    denied = invoke(host, json.dumps({"tool_name": "Bash", "permission_mode": "auto", "tool_input": {
         "command": confirmation + "; export MSYS_NO_PATHCONV=1"}}), profile)
     assert denied.returncode == 2 and not denied.stdout
     assert "confirmation is required" not in denied.stderr  # deny takes precedence over ask
     assert outcome(host, "echo safe", profile, "futureUnknownMode") == "deny"
     for payload in ('{"permission_mode":"auto","tool_input":{}}',
-                    json.dumps({"permission_mode": "auto", "tool_input": {"command": "echo unterminated'"}})):
+                    json.dumps({"tool_name": "Bash", "permission_mode": "auto",
+                                "tool_input": {"command": "echo unterminated'"}})):
         assert invoke(host, payload, profile).returncode == 2
 
 
@@ -1196,7 +1277,8 @@ def test_retention_and_confirmation_aggregation_preserves_stricter_verdict(host,
     confirmation = "git rm retained" if profile == "main" else "rm -r retained"
     held = "git push --force --no-force-with-lease origin retained"
     for command in (confirmation + "; " + held, held + "; " + confirmation):
-        proc = invoke(host, json.dumps({"permission_mode": mode, "tool_input": {"command": command}}), profile)
+        proc = invoke(host, json.dumps({"tool_name": "Bash", "permission_mode": mode,
+                                        "tool_input": {"command": command}}), profile)
         assert proc.returncode == 2
         assert not proc.stdout
         assert "confirmation is required" not in proc.stderr
@@ -1206,7 +1288,8 @@ def test_retention_and_confirmation_aggregation_preserves_stricter_verdict(host,
     assert outcome(host, safe_dry_run + "; " + confirmation, profile, mode) == expected
     if profile == "agent":
         # The allowed dry run cannot soften the agent's git rm hard deny.
-        chained = json.dumps({"permission_mode": mode, "tool_input": {"command": safe_dry_run + "; git rm retained"}})
+        chained = json.dumps({"tool_name": "Bash", "permission_mode": mode,
+                              "tool_input": {"command": safe_dry_run + "; git rm retained"}})
         assert_agent_hard_deny(invoke(host, chained, profile), safe_dry_run + "; git rm retained", mode)
 
 
@@ -1218,7 +1301,7 @@ def test_retention_and_confirmation_aggregation_preserves_stricter_verdict(host,
 # invocation a subagent ever runs had no coverage and `Blocked by agent guard:`
 # had never been observed from it.
 def invoke_default_profile(host: str, command: str, mode: str | None) -> subprocess.CompletedProcess:
-    body: dict = {"tool_input": {"command": command}}
+    body: dict = {"tool_name": "Bash", "tool_input": {"command": command}}
     if mode is not None:
         body["permission_mode"] = mode
     return subprocess.run(
@@ -1269,7 +1352,8 @@ def test_omitted_profile_argument_still_allows_read_only_work(host, mode):
 @pytest.mark.parametrize("host", HOSTS)
 @pytest.mark.parametrize("profile", ("supervisor", "", "agent "), ids=["unknown", "empty", "trailing-space"])
 def test_an_unrecognised_profile_fails_closed(host, profile):
-    payload = json.dumps({"permission_mode": "default", "tool_input": {"command": "git status --short"}})
+    payload = json.dumps({"tool_name": "Bash", "permission_mode": "default",
+                          "tool_input": {"command": "git status --short"}})
     proc = invoke(host, payload, profile)
     where = f"profile={profile!r}"
     assert proc.returncode == 2, f"{where}: {proc.stdout}{proc.stderr}"
@@ -1284,7 +1368,8 @@ def test_an_unrecognised_profile_fails_closed(host, profile):
 # charter spelled `-GuardProfile MAIN` or `-G main` would slip past.
 @pytest.mark.parametrize("host", HOSTS)
 def test_profile_matching_is_case_insensitive_in_both_directions(host):
-    push = json.dumps({"permission_mode": "default", "tool_input": {"command": "git push origin HEAD"}})
+    push = json.dumps({"tool_name": "Bash", "permission_mode": "default",
+                       "tool_input": {"command": "git push origin HEAD"}})
     denied = invoke(host, push, "AGENT")
     assert denied.returncode == 2, denied.stdout + denied.stderr
     # The guard echoes the profile string it was given, so the message names the
@@ -1303,6 +1388,7 @@ def test_profile_matching_is_case_insensitive_in_both_directions(host):
 def test_a_benign_command_field_cannot_shield_a_second_one(host, profile):
     payload = json.dumps(
         {
+            "tool_name": "Bash",
             "permission_mode": "default",
             "tool_input": {"command": "git status --short", "code": "git branch -D wt/foo"},
         }
@@ -1317,6 +1403,7 @@ def test_a_benign_command_field_cannot_shield_a_second_one(host, profile):
     # deny -- a different contract, not the same one.
     benign = json.dumps(
         {
+            "tool_name": "Bash",
             "permission_mode": "default",
             "tool_input": {"command": "git status --short", "description": "git branch -D wt/foo"},
         }
@@ -1334,7 +1421,7 @@ def test_a_benign_command_field_cannot_shield_a_second_one(host, profile):
 # argument was worse than that -- it bound to the parameter positionally, so a
 # registration ending in a stray `main` silently selected the PERMISSIVE profile.
 def invoke_arguments(host: str, command: str, arguments: list[str], mode: str = "default") -> subprocess.CompletedProcess:
-    body: dict = {"tool_input": {"command": command}}
+    body: dict = {"tool_name": "Bash", "tool_input": {"command": command}}
     if mode is not None:
         body["permission_mode"] = mode
     return subprocess.run(
@@ -1430,7 +1517,7 @@ MIXED_FIELD_PAYLOADS = [
     "fields,expected", MIXED_FIELD_PAYLOADS, ids=[",".join(sorted(f)) for f, _ in MIXED_FIELD_PAYLOADS]
 )
 def test_every_string_field_of_tool_input_is_classified(host, profile, fields, expected):
-    payload = json.dumps({"permission_mode": "default", "tool_input": fields})
+    payload = json.dumps({"tool_name": "Bash", "permission_mode": "default", "tool_input": fields})
     proc = invoke(host, payload, profile)
     where = f"fields={sorted(fields)} profile={profile}"
     assert proc.returncode == expected, f"{where}: {proc.stdout}{proc.stderr}"
@@ -1466,7 +1553,7 @@ def invoke_identified(
     agent_type: str | None = None,
     mode: str = "default",
 ) -> subprocess.CompletedProcess:
-    body: dict = {"permission_mode": mode, "tool_input": {"command": command}}
+    body: dict = {"tool_name": "Bash", "permission_mode": mode, "tool_input": {"command": command}}
     if agent_id is not None:
         body["agent_id"] = agent_id
     if agent_type is not None:
@@ -1539,3 +1626,558 @@ def test_the_retention_hold_is_unaffected_by_agent_identity(host, mode):
         for kwargs in ({}, {"agent_id": "agent_01HZX"}):
             proc = invoke_identified(host, command, "main", mode=mode, **kwargs)
             assert proc.returncode == 2, f"{context(command, 'main', mode)}: {proc.stdout}{proc.stderr}"
+
+
+# --- drive-token rule: unconverted POSIX drive paths --------------------------
+#
+# docs/msys_destination_validation/PLANNING.md. A POSIX drive path such as
+# `/d/x` that reaches a native Windows program unconverted resolves against the
+# root of the CURRENT drive: from cwd D: it becomes D:\d\x. Two such trees were
+# created that way. These cases pin the planning document's case table (allow,
+# refuse and limit rows) and its message, profile, position, false-positive,
+# nesting and stderr rows. Every node id is the planning document's own label.
+#
+# Everything here is classification only: each command is DATA on the hook's
+# stdin and none of them is ever executed.
+#
+# The refusal names the token "as written". The token is defined as
+# /<letter>/<one segment>, so for `/d/development/x` the regex match is
+# `/d/development`. The R-row assertions check the reason prefix immediately
+# followed by that match, which holds whether the guard echoes the match or the
+# whole path. The P1 rows use single-segment tokens, where both readings agree,
+# so they can pin the exact text.
+
+DRIVE_REFUSED = "Refused: '"
+DRIVE_REFUSED_CONSERVATIVE = "Refused conservatively: '"
+DRIVE_PREFIXES = (DRIVE_REFUSED, DRIVE_REFUSED_CONSERVATIVE)
+# "Resolves to" in the case table assumes cwd on D:.
+DRIVE_CWD = "D:\\work"
+
+PS = ("PowerShell",)
+BASH = ("Bash",)
+EITHER = ("Bash", "PowerShell")
+
+# (id, tool_name values, command, expected, refused token)
+#   allow          - exit 0, no ask, neither drive-token prefix nor "failing closed"
+#   refuse         - deny carrying either drive-token prefix followed by the token
+#   existing-deny  - deny from the pre-existing rule, with no drive-token reason
+# A row that applies to either tool is evaluated under both tool names.
+DRIVE_TOKEN_CASES: list[tuple[str, tuple[object, ...], str, str, str | None]] = [
+    # --- allow rows -----------------------------------------------------------
+    ("A1", PS, "Get-Content -LiteralPath D:\\development\\x", "allow", None),
+    ("A2", PS, "New-Item -ItemType Directory -Path 'D:/development/x'", "allow", None),
+    ("A3", PS, "C:\\Users\\aviha\\x", "allow", None),
+    ("A4", BASH, "gh run download 1 -D /d/development/x", "allow", None),
+    ("A5", BASH, "npx vitest list --json=/c/Users/x/out.json", "allow", None),
+    ("A6", BASH, "git -C /d/development/wt worktree prune --dry-run", "allow", None),
+    ("A7", BASH, "OUT=/d/x python tool.py", "allow", None),
+    ("A8", BASH, "python -c \"open(r'D:/development/x','w')\"", "allow", None),
+    ("A9", EITHER, 'cmd /c "rmdir /s /q tmp"', "existing-deny", None),
+    ("A10a", EITHER, "curl https://host/d/x", "allow", None),
+    ("A10b", EITHER, "cat ./d/x", "allow", None),
+    ("A10c", EITHER, "cat docs/d/x", "allow", None),
+    ("A10d", EITHER, "gh api repos/o/r/contents/d/x", "allow", None),
+    ("A11", BASH, "ls //d/x", "allow", None),
+    ("A12", BASH, "git rev-parse origin/main:.claude/x", "allow", None),
+    ("A13", BASH, "cat /tmp/x", "allow", None),
+    # --- allow rows added in planning review ----------------------------------
+    ("A14", BASH, 'bash -c "gh run download 1 -D /d/x"', "allow", None),
+    ("A15", BASH, ".venv/Scripts/python.exe -c \"open(r'D:/x')\"", "allow", None),
+    ("A16", BASH, 'find . -path "*/d/*"', "allow", None),
+    ("A17", BASH, "rg -g '!**/c/**' pattern", "allow", None),
+    ("A18", PS, "Get-Item %USERPROFILE%/a/b", "allow", None),
+    ("A19", BASH, "cat ${HOME}/c/x", "allow", None),
+    ("A20", PS, "Get-Item (Get-Location)/d/x", "allow", None),
+    ("A21", EITHER, "cat ~/d/x", "allow", None),
+    ("A22", BASH, "python -m pytest -c /d/x/pytest.ini", "allow", None),
+    ("A23", BASH, "python tool.py -c /d/x", "allow", None),
+    # --- converted colon-bound and doubled-slash forms (measured 2026-10-28 in
+    # Bash: `-Path:/d/x` -> `-Path:D:/x`, `/d//x` -> `D:/x`, `-X:/c/y` ->
+    # `-X:C:/y`) and their drive-qualified PowerShell equivalent ---------------
+    ("A24", PS, "Set-Content -Path:D:/x -Value hi", "allow", None),
+    ("A25", BASH, "tool -Path:/d/x", "allow", None),
+    ("A26", BASH, "tool /d//x", "allow", None),
+    # --- refuse rows ----------------------------------------------------------
+    ("R1", PS, "New-Item -ItemType Directory /d/development/x", "refuse", "/d/development"),
+    ("R2", PS, "gh run download 1 -D /d/development/x", "refuse", "/d/development"),
+    ("R3", PS, "[IO.Path]::GetFullPath('/c/Users/x')", "refuse", "/c/Users"),
+    ("R4", BASH, "python -c \"import os; os.makedirs('/d/development/x')\"", "refuse", "/d/development"),
+    ("R5", BASH, "node -e \"require('fs').mkdirSync('/c/Users/x',{recursive:true})\"", "refuse", "/c/Users"),
+    ("R6", BASH, "powershell -NoProfile -Command 'New-Item /d/x -ItemType Directory'", "refuse", "/d/x"),
+    ("R7", PS, 'pwsh -c "Set-Content /c/x/y.txt hi"', "refuse", "/c/x"),
+    # Only the second token is unconverted: the first leads its word.
+    ("R8", BASH, 'tool --paths "/d/x,/c/y"', "refuse", "/c/y"),
+    ("R9", BASH, 'tool "-D /d/x"', "refuse", "/d/x"),
+    ("R10", BASH, "bash -c \"python -c \\\"open('/d/x','w')\\\"\"", "refuse", "/d/x"),
+    ("R11", PS, "Get-Date > /d/out.txt", "refuse", "/d/out.txt"),
+    # R12: strict tool_name. A leading-word token that the Bash tool WOULD
+    # convert is refused when tool_name is anything other than exactly "Bash".
+    ("R12-absent", (OMIT,), "ls /d/x", "refuse", "/d/x"),
+    ("R12-null", (None,), "ls /d/x", "refuse", "/d/x"),
+    ("R12-number", (5,), "ls /d/x", "refuse", "/d/x"),
+    ("R12-lowercase", ("bash",), "ls /d/x", "refuse", "/d/x"),
+    ("R12-trailing-space", ("Bash ",), "ls /d/x", "refuse", "/d/x"),
+    ("R12-unknown", ("Foo",), "ls /d/x", "refuse", "/d/x"),
+    ("R13", PS, "git -C /d/development/wt status", "refuse", "/d/development"),
+    ("R14", PS, "gh run download 1 -D/d/x", "refuse", "/d/x"),
+    # --- refuse rows added in planning review ---------------------------------
+    ("R15", BASH, 'cmd /c "python x.py /d/x"', "refuse", "/d/x"),
+    ("R16", BASH, "eval 'tool \"-D /d/x\"'", "refuse", "/d/x"),
+    ("R17", BASH, ".venv/Scripts/python.exe -I -c \"import os; os.makedirs('/d/x')\"", "refuse", "/d/x"),
+    ("R18", BASH, "cat <<'EOF' > f.txt\n/d/x\nEOF", "refuse", "/d/x"),
+    ("R19", BASH, "python - <<<\"import os; os.makedirs('/d/x')\"", "refuse", "/d/x"),
+    # The Bash converted-position rule alone would allow R20-R22 (`x=` is a
+    # converted prefix); only the interpreter-code-body rule, with option-value
+    # tracking, refuses them.
+    ("R20", BASH, 'python -c "x=/d/y"', "refuse", "/d/y"),
+    ("R21", BASH, 'python -W ignore -c "x=/d/y"', "refuse", "/d/y"),
+    ("R22", BASH, 'node --require x -e "x=/d/y"', "refuse", "/d/y"),
+    # --- PowerShell colon-bound and doubled-slash forms, which nothing converts
+    # A colon-bound PowerShell parameter value is unconverted: nothing in the
+    # PowerShell tool converts it.
+    ("R23", PS, "Set-Content -Path:/d/x -Value hi", "refuse", "/d/x"),
+    # A doubled slash after the letter: Windows PowerShell measured
+    # [IO.Path]::GetFullPath("/d//x") -> D:\d\x, the same fault. The asserted
+    # token is the `/d/` it starts with, whatever the guard echoes after it.
+    ("R24", PS, "Set-Content /d//x hi", "refuse", "/d/"),
+    # --- coverage limits, pinned as allow so a change to them is visible -----
+    ("L1", PS, "New-Item \\d\\x", "allow", None),
+    ("L2", PS, "New-Item /tmp/x", "allow", None),
+    ("L3", EITHER, "python script.py", "allow", None),
+    ("L4", PS, "$p = '/' + 'd/x'; New-Item $p", "allow", None),
+    # The Write tool's file_path is converted by the harness before hooks run
+    # (measured), so no hook test can exercise it.
+]
+
+
+def tool_label(tool: object) -> str:
+    return "<absent>" if tool is OMIT else repr(tool)
+
+
+def assert_drive_token_refusal(decision: str, stderr: str, token: str, where: str) -> None:
+    assert decision == "deny", f"{where}: expected the drive-token deny, got {decision!r}; stderr={stderr!r}"
+    # The fail-closed catch also exits 2; a verdict never carries that wording.
+    assert "failing closed" not in stderr, f"{where}: {stderr!r}"
+    assert any(prefix + token in stderr for prefix in DRIVE_PREFIXES), (
+        f"{where}: stderr does not refuse {token!r} with either drive-token prefix: {stderr!r}"
+    )
+
+
+def assert_no_drive_token_reason(stderr: str, where: str) -> None:
+    assert "failing closed" not in stderr, f"{where}: {stderr!r}"
+    for prefix in DRIVE_PREFIXES:
+        assert prefix not in stderr, f"{where}: unexpected drive-token reason: {stderr!r}"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize(
+    "case_id,tools,command,expected,token",
+    DRIVE_TOKEN_CASES,
+    ids=[case[0] for case in DRIVE_TOKEN_CASES],
+)
+def test_drive_token_case_table(
+    host: str,
+    case_id: str,
+    tools: tuple[object, ...],
+    command: str,
+    expected: str,
+    token: str | None,
+) -> None:
+    for tool in tools:
+        decision, stderr = outcome_with_stderr(host, command, "main", tool_name=tool, cwd=DRIVE_CWD)
+        where = f"{case_id} host={host} tool_name={tool_label(tool)} command={command!r}"
+        if expected == "allow":
+            assert decision == "allow", f"{where}: expected allow, got {decision!r}; stderr={stderr!r}"
+            assert_no_drive_token_reason(stderr, where)
+        elif expected == "existing-deny":
+            # A9: cmd switches are not drive tokens. The deny that stands is
+            # the pre-existing recursive-delete rule (test row `cmd /c "rmdir /s
+            # /q tmp"` above), not this control.
+            assert decision == "deny", f"{where}: expected the existing deny, got {decision!r}"
+            assert stderr.startswith("Blocked by main guard:"), f"{where}: {stderr!r}"
+            assert "recursive force delete" in stderr, f"{where}: {stderr!r}"
+            assert_no_drive_token_reason(stderr, where)
+        else:
+            assert token is not None
+            assert_drive_token_refusal(decision, stderr, token, where)
+
+
+# --- P1: the exact refusal text ------------------------------------------------
+
+DIRECTORY_CHANGE_HEDGE = "A directory change in this command may alter this."
+TEXTUAL_CHECK = "This is a textual check; it does not know what the command would do."
+CWD_UNAVAILABLE = "cwd unavailable; no resolved path is claimed."
+
+
+def refusal_sentences(
+    token: str,
+    *,
+    cwd_letter: str | None,
+    conservative: bool = False,
+    hedge: bool = False,
+) -> list[str]:
+    """The refusal sentences, in order, for one refused token."""
+    if conservative:
+        lead = (
+            f"{DRIVE_REFUSED_CONSERVATIVE}{token}' is a POSIX drive path inside a nested "
+            "command body; MSYS may or may not convert it."
+        )
+    else:
+        lead = f"{DRIVE_REFUSED}{token}' is a POSIX drive path where nothing converts it."
+    sentences = [lead]
+    if cwd_letter is None:
+        sentences.append(CWD_UNAVAILABLE)
+    else:
+        resolved = f"{cwd_letter}:" + token.replace("/", "\\")
+        if conservative:
+            sentences.append(
+                f"If MSYS does not convert it, from cwd {cwd_letter}: a native Windows "
+                f"program resolves it to {resolved}."
+            )
+        else:
+            sentences.append(f"From cwd {cwd_letter}: a native Windows program resolves it to {resolved}.")
+        if hedge:
+            sentences.append(DIRECTORY_CHANGE_HEDGE)
+    sentences.append(TEXTUAL_CHECK)
+    sentences.append(remedy_sentence(token))
+    return sentences
+
+
+def remedy_sentence(token: str) -> str:
+    # The remedy's <L> is the token's OWN letter, upper-cased, not the cwd's.
+    letter = token[1].upper()
+    return (
+        f"Write it drive-qualified ({letter}:/... or {letter}:\\...); for prose, write the "
+        "text to a file (for example with the Write tool) and pass it with -F / --body-file."
+    )
+
+
+def assert_sentences_in_order(stderr: str, sentences: list[str], where: str) -> None:
+    """Each sentence appears verbatim, in order, separated only by whitespace."""
+    start = stderr.find(sentences[0])
+    assert start >= 0, f"{where}: missing {sentences[0]!r} in {stderr!r}"
+    position = start + len(sentences[0])
+    for sentence in sentences[1:]:
+        rest = stderr[position:]
+        gap = len(rest) - len(rest.lstrip())
+        assert rest[gap:].startswith(sentence), (
+            f"{where}: expected {sentence!r} next, found {rest[:160]!r}; full stderr={stderr!r}"
+        )
+        position += gap + len(sentence)
+
+
+P1_PS_COMMAND = "New-Item -ItemType Directory /d/x"
+P1_TOKEN = "/d/x"
+
+# (id, tool_name, command, cwd, token, cwd letter or None, conservative, hedge)
+P1_CASES: list[tuple[str, str, str, object, str, str | None, bool, bool]] = [
+    # P1a: the plain resolved clause, no hedge.
+    ("P1a-cwdD", "PowerShell", P1_PS_COMMAND, "D:\\work", P1_TOKEN, "D", False, False),
+    ("P1a-cwdC", "PowerShell", P1_PS_COMMAND, "C:\\work", P1_TOKEN, "C", False, False),
+    # U+00E9 in the token is echoed as `?`. The ASCII check below runs on the
+    # raw stderr bytes, so a console encoder that substitutes on its own cannot
+    # stand in for the missing sanitizer.
+    ("P1a-nonascii", "PowerShell", "New-Item -ItemType Directory /d/caf\u00e9", "D:\\work", "/d/caf?", "D", False, False),
+    # Word-bounded directory-change match: `abcd` and `isl` contain cd / sl but
+    # are not commands, so no hedge sentence.
+    ("P1a-cdword", "PowerShell", "Write-Output abcd isl; " + P1_PS_COMMAND, "D:\\work", P1_TOKEN, "D", False, False),
+    # P1b: clause absent ...
+    ("P1b-nocwd", "PowerShell", P1_PS_COMMAND, OMIT, P1_TOKEN, None, False, False),
+    ("P1b-emptycwd", "PowerShell", P1_PS_COMMAND, "", P1_TOKEN, None, False, False),
+    ("P1b-unc", "PowerShell", P1_PS_COMMAND, "\\\\server\\share\\work", P1_TOKEN, None, False, False),
+    ("P1b-garbage", "PowerShell", P1_PS_COMMAND, "not a path", P1_TOKEN, None, False, False),
+    # ... hedged by a directory change ...
+    ("P1b-cd", "PowerShell", "cd C:\\ && " + P1_PS_COMMAND, "D:\\work", P1_TOKEN, "D", False, True),
+    ("P1b-setlocation", "PowerShell", "Set-Location C:\\; " + P1_PS_COMMAND, "D:\\work", P1_TOKEN, "D", False, True),
+    # ... or conditional, inside a body MSYS may still convert.
+    ("P1b-conservative-ps", "Bash", "powershell -NoProfile -Command 'New-Item /d/x -ItemType Directory'",
+     "D:\\work", P1_TOKEN, "D", True, False),
+    # A directory change also hedges a refusal inside a heredoc body or an
+    # interpreter code body. `cd /c/x` itself leads its word
+    # and is converted, so the refused token is the body's `/d/y`.
+    ("P1b-cd-heredoc", "Bash", "cd /c/x && cat <<'EOF' > f.txt\n/d/y\nEOF",
+     "D:\\work", "/d/y", "D", False, True),
+    ("P1b-cd-interp", "Bash", "cd /c/x && python -c \"open('/d/y','w')\"",
+     "D:\\work", "/d/y", "D", True, True),
+    ("P1b-conservative-interp", "Bash", "python -c \"import os; os.makedirs('/d/x')\"",
+     "D:\\work", P1_TOKEN, "D", True, False),
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize(
+    "case_id,tool,command,cwd,token,cwd_letter,conservative,hedge",
+    P1_CASES,
+    ids=[case[0] for case in P1_CASES],
+)
+def test_drive_token_resolution_message(
+    host: str,
+    case_id: str,
+    tool: str,
+    command: str,
+    cwd: object,
+    token: str,
+    cwd_letter: str | None,
+    conservative: bool,
+    hedge: bool,
+) -> None:
+    decision, raw = outcome_with_raw_stderr(host, command, "main", tool_name=tool, cwd=cwd)
+    stderr = raw.decode("utf-8", errors="replace")
+    where = f"{case_id} host={host} cwd={tool_label(cwd)} command={command!r}"
+    assert_drive_token_refusal(decision, stderr, token, where)
+    assert_sentences_in_order(
+        stderr, refusal_sentences(token, cwd_letter=cwd_letter, conservative=conservative, hedge=hedge), where
+    )
+    if cwd_letter is None:
+        assert "resolves it to" not in stderr, f"{where}: a guessed resolved path was claimed: {stderr!r}"
+    if not hedge:
+        assert DIRECTORY_CHANGE_HEDGE not in stderr, f"{where}: unexpected hedge: {stderr!r}"
+    if not conservative:
+        assert DRIVE_REFUSED_CONSERVATIVE not in stderr, f"{where}: {stderr!r}"
+    assert "create" not in stderr.lower(), f"{where}: the refusal must not claim creation: {stderr!r}"
+    offenders = [hex(byte) for byte in raw if byte > 127]
+    assert not offenders, f"{where}: non-ASCII bytes in stderr: {offenders[:5]}"
+
+
+# --- P2: every profile and mode, and an ask cannot mask the deny ---------------
+
+P2_COMMAND = "New-Item -ItemType Directory /d/x"
+P2_CASES: list[tuple[str, str, str, str]] = [
+    (f"P2-{profile}-{mode}", profile, mode, P2_COMMAND)
+    for profile in ("agent", "main")
+    for mode in ("default", "auto", "bypassPermissions", "plan")
+]
+# `rm -r` alone asks in default mode; the drive token in the same command must
+# still deny.
+P2_CASES.append(("P2-mask", "main", "default", "rm -r tmp; " + P2_COMMAND))
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("case_id,profile,mode,command", P2_CASES, ids=[case[0] for case in P2_CASES])
+def test_drive_token_profiles_and_modes(host: str, case_id: str, profile: str, mode: str, command: str) -> None:
+    decision, stderr = outcome_with_stderr(host, command, profile, mode, tool_name="PowerShell", cwd=DRIVE_CWD)
+    where = f"{case_id} host={host} command={command!r}"
+    assert_drive_token_refusal(decision, stderr, "/d/x", where)
+    assert stderr.startswith(f"Blocked by {profile} guard:"), f"{where}: {stderr!r}"
+
+
+# --- P3: the measured MSYS-converted positions in the Bash tool ----------------
+
+# (id, command, expected, token)
+P3_CASES: list[tuple[str, str, str, str | None]] = [
+    ("P3-allow-x", "tool x=/d/y", "allow", None),
+    ("P3-allow-ab", "tool a=b=/d/y", "allow", None),
+    ("P3-allow-out2", "OUT2=--o=/c/y tool", "allow", None),
+    ("P3-allow-redirect", "tool > /d/x", "allow", None),
+    # Attached to the operator, the token is not at a measured converted
+    # position, so it fails closed.
+    ("P3-refuse", "tool >/d/x", "refuse", "/d/x"),
+    # A line feed inside a quoted word, immediately before the token: the token
+    # does not lead its word, so it is not at a measured converted position.
+    ("P3-refuse-newline", 'tool "\n/d/x"', "refuse", "/d/x"),
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("case_id,command,expected,token", P3_CASES, ids=[case[0] for case in P3_CASES])
+def test_drive_token_converted_positions(
+    host: str, case_id: str, command: str, expected: str, token: str | None
+) -> None:
+    decision, stderr = outcome_with_stderr(host, command, "main", tool_name="Bash", cwd=DRIVE_CWD)
+    where = f"{case_id} host={host} command={command!r}"
+    if expected == "allow":
+        assert decision == "allow", f"{where}: expected allow, got {decision!r}; stderr={stderr!r}"
+        assert_no_drive_token_reason(stderr, where)
+    else:
+        assert token is not None
+        assert_drive_token_refusal(decision, stderr, token, where)
+
+
+# --- P4: accepted, pinned false positives ---------------------------------------
+
+NODE_REGEX_HINT = "If this is a JavaScript regex literal, use new RegExp(...) or a script file."
+CMD_SWITCH_HINT = "If these are cmd switches, separate them with spaces."
+
+# (id, tool_name, commands, token, required context hint or None)
+P4_CASES: list[tuple[str, str, tuple[str, ...], str, str | None]] = [
+    ("P4a", "Bash", ('git commit -m "see /d/x"',), "/d/x", None),
+    ("P4b", "PowerShell", (
+        'git commit -m "see /d/x"',
+        'gh pr edit 1 --body "see /d/x"',
+        '$t = @"\nsee /d/x\n"@; Write-Output $t',
+    ), "/d/x", None),
+    # Default mode: the existing rule alone would only ASK for this rmdir, so a
+    # deny here can only come from the drive-token rule.
+    ("P4c", "PowerShell", ("rmdir /s/q tmp",), "/s/q", None),
+    ("P4d", "Bash", ('cmd /c "dir /b/s"',), "/b/s", CMD_SWITCH_HINT),
+    ("P4e", "Bash", ('cmd /c "xcopy /e/i/y a b"',), "/e/i", CMD_SWITCH_HINT),
+    ("P4f", "Bash", ("node -e \"s.replace(/a/g,'')\"",), "/a/g", NODE_REGEX_HINT),
+    ("P4g", "Bash", ("powershell -Command New-Item /d/x",), "/d/x", None),
+    ("P4h", "Bash", ("git commit -F - <<EOF\nsee /d/x\nEOF",), "/d/x", None),
+    # A sed script argument whose delimiter is not `/`: the `#` before `/d/` is
+    # a path boundary, so the regex text reads as a drive path.
+    ("P4i", "Bash", ("sed 's#/d/development##' f.txt",), "/d/development", None),
+]
+
+# Allow companions: the documented remedy for an accepted false positive must
+# itself pass. (id, tool_name, commands)
+P4_ALLOW_COMPANIONS: list[tuple[str, str, tuple[str, ...]]] = [
+    # An escaped slash: `\/d/` is not at a path boundary.
+    ("P4i-escaped", "Bash", ("sed 's#\\/d/development##' f.txt",)),
+]
+
+P4_PARAMS: list[tuple[str, str, tuple[str, ...], str | None, str | None]] = [
+    *P4_CASES,
+    *[(case_id, tool, commands, None, None) for case_id, tool, commands in P4_ALLOW_COMPANIONS],
+]
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("case_id,tool,commands,token,hint", P4_PARAMS, ids=[case[0] for case in P4_PARAMS])
+def test_drive_token_accepted_false_positives(
+    host: str, case_id: str, tool: str, commands: tuple[str, ...], token: str | None, hint: str | None
+) -> None:
+    for command in commands:
+        decision, stderr = outcome_with_stderr(host, command, "main", "default", tool_name=tool, cwd=DRIVE_CWD)
+        where = f"{case_id} host={host} tool_name={tool} command={command!r}"
+        if token is None:
+            assert decision == "allow", f"{where}: expected allow, got {decision!r}; stderr={stderr!r}"
+            assert_no_drive_token_reason(stderr, where)
+            continue
+        assert_drive_token_refusal(decision, stderr, token, where)
+        # Every accepted false positive is refused WITH its remedy, which names
+        # the Write tool for prose (P4h) and uses the token's own letter.
+        assert remedy_sentence(token) in stderr, f"{where}: remedy missing: {stderr!r}"
+        if hint is not None:
+            assert hint in stderr, f"{where}: context hint missing: {stderr!r}"
+
+
+# --- P5: a refused payload never executes ---------------------------------------
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("case_id", ["P5-sentinel"])
+def test_drive_token_refused_payload_never_executes(host: str, case_id: str, tmp_path: Path) -> None:
+    # The pattern of test_denied_payload_never_executes_its_child. The guard is
+    # classification-only, so the sentinel cannot appear whatever it decides:
+    # the deny assertion is the real check, the sentinel is documentation.
+    sentinel = tmp_path / "child-was-executed"
+    command = "New-Item -ItemType Directory /d/x; Set-Content -LiteralPath '" + str(sentinel) + "' -Value BAD"
+    decision, stderr = outcome_with_stderr(
+        host, command, "main", "bypassPermissions", tool_name="PowerShell", cwd=DRIVE_CWD
+    )
+    assert_drive_token_refusal(decision, stderr, "/d/x", f"{case_id} host={host}")
+    assert not sentinel.exists()
+
+
+# --- P6: nesting depth -----------------------------------------------------------
+
+# Four levels through eval and $(): eval (1) -> $() (2) -> $() (3) -> $() (4).
+# Quote nesting is avoided on purpose: Split-Segments strips one quote layer
+# per re-scan, so the inner `"-D /d/x"` survives only through eval's single
+# quotes and the raw-text $() spans. The innermost word embeds the token in
+# a quoted word, which only the Bash word-offset rule refuses.
+P6A_COMMAND = "eval 'echo $(echo $(echo $(tool \"-D /d/x\")))'"
+# The same chain with a destructive innermost command. The existing guard must
+# deny it for the rm rule, which proves the chain is reached and classified at
+# depth 4 rather than cut off by the nesting limit.
+P6A_REACH_COMMAND = "eval 'echo $(echo $(echo $(rm -rf tmp)))'"
+# One more level: depth 5 exceeds $maxDelegationDepth.
+P6B_COMMAND = "eval 'echo $(echo $(echo $(echo $(tool \"-D /d/x\"))))'"
+NESTING_REASON = "command nesting exceeds 4 levels"
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("case_id", ["P6a", "P6b"])
+def test_drive_token_nesting_depth_denies(host: str, case_id: str) -> None:
+    if case_id == "P6a":
+        reach_decision, reach_stderr = outcome_with_stderr(host, P6A_REACH_COMMAND, "main", tool_name="Bash")
+        assert reach_decision == "deny" and NESTING_REASON not in reach_stderr, (
+            f"P6a host={host}: the four-level chain is not classified at depth 4: {reach_stderr!r}"
+        )
+        decision, stderr = outcome_with_stderr(host, P6A_COMMAND, "main", tool_name="Bash", cwd=DRIVE_CWD)
+        where = f"P6a host={host} command={P6A_COMMAND!r}"
+        assert NESTING_REASON not in stderr, f"{where}: caught by the nesting limit instead: {stderr!r}"
+        assert_drive_token_refusal(decision, stderr, "/d/x", where)
+    else:
+        # A pin of the existing nesting deny. P7's prefix discipline is not
+        # applied here: the drive-token rule may add its own depth reason.
+        decision, stderr = outcome_with_stderr(host, P6B_COMMAND, "main", tool_name="Bash", cwd=DRIVE_CWD)
+        where = f"P6b host={host} command={P6B_COMMAND!r}"
+        assert decision == "deny", f"{where}: {decision!r}"
+        assert NESTING_REASON in stderr, f"{where}: {stderr!r}"
+        assert "failing closed" not in stderr, f"{where}: {stderr!r}"
+
+
+# --- P7: stderr discipline across every drive-token row --------------------------
+
+def p7_refused_calls() -> list[tuple[str, object, str]]:
+    calls: list[tuple[str, object, str]] = []
+    for case_id, tools, command, expected, _token in DRIVE_TOKEN_CASES:
+        if expected == "refuse":
+            calls += [(case_id, tool, command) for tool in tools]
+    calls += [(case_id, "Bash", command) for case_id, command, expected, _ in P3_CASES if expected == "refuse"]
+    for case_id, tool, commands, _token, _hint in P4_CASES:
+        calls += [(case_id, tool, command) for command in commands]
+    return calls
+
+
+def p7_allowed_calls() -> list[tuple[str, object, str]]:
+    calls: list[tuple[str, object, str]] = []
+    for case_id, tools, command, expected, _token in DRIVE_TOKEN_CASES:
+        if expected != "refuse":
+            calls += [(case_id, tool, command) for tool in tools]
+    calls += [(case_id, "Bash", command) for case_id, command, expected, _ in P3_CASES if expected == "allow"]
+    for case_id, tool, commands in P4_ALLOW_COMPANIONS:
+        calls += [(case_id, tool, command) for command in commands]
+    return calls
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("case_id", ["P7-deny-prefix", "P7-allow-clean"])
+def test_drive_token_stderr_discipline(host: str, case_id: str) -> None:
+    problems: list[str] = []
+    if case_id == "P7-deny-prefix":
+        for row, tool, command in p7_refused_calls():
+            decision, stderr = outcome_with_stderr(host, command, "main", tool_name=tool, cwd=DRIVE_CWD)
+            if decision != "deny" or "failing closed" in stderr or not any(p in stderr for p in DRIVE_PREFIXES):
+                problems.append(f"{row} tool_name={tool_label(tool)}: {decision} {stderr!r}")
+    else:
+        # A/L rows (A9's existing deny included) and P3-allow: neither prefix,
+        # and never the fail-closed wording.
+        for row, tool, command in p7_allowed_calls():
+            _decision, stderr = outcome_with_stderr(host, command, "main", tool_name=tool, cwd=DRIVE_CWD)
+            if "failing closed" in stderr or any(p in stderr for p in DRIVE_PREFIXES):
+                problems.append(f"{row} tool_name={tool_label(tool)}: {stderr!r}")
+    assert not problems, f"{case_id} host={host}:\n" + "\n".join(problems)
+
+
+# --- P8: an exception inside the drive-token scan fails closed -------------------
+
+DRIVE_TOKEN_SCAN_DEFINITION = re.compile(rb"function\s+Invoke-DriveTokenScan\b[^{]*\{", re.IGNORECASE)
+
+
+@pytest.mark.parametrize("host", HOSTS)
+@pytest.mark.parametrize("case_id", ["P8"])
+def test_drive_token_forced_exception_fails_closed(host: str, case_id: str, tmp_path: Path) -> None:
+    source = GUARD.read_bytes()
+    matches = list(DRIVE_TOKEN_SCAN_DEFINITION.finditer(source))
+    assert len(matches) == 1, (
+        f"{case_id} host={host}: expected exactly one Invoke-DriveTokenScan definition in "
+        f"{GUARD.name}, found {len(matches)}"
+    )
+    # A disposable copy with `throw` as the first statement of the scan. The
+    # copy keeps the BOM and stays pure ASCII.
+    patched = source[: matches[0].end()] + b" throw 'P8 injected failure'; " + source[matches[0].end():]
+    copy = tmp_path / GUARD.name
+    copy.write_bytes(patched)
+    payload = drive_token_payload("git status --short", "default", "Bash", DRIVE_CWD)
+    control = invoke(host, payload, "main")
+    assert control.returncode == 0, f"{case_id} host={host}: the unpatched guard must allow: {control.stderr}"
+    proc = subprocess.run(
+        [host, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(copy), "-GuardProfile", "main"],
+        input=payload,
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 2, f"{case_id} host={host}: exit {proc.returncode} is non-blocking: {proc.stderr}"
+    assert "failing closed" in proc.stderr, f"{case_id} host={host}: {proc.stderr!r}"
