@@ -241,7 +241,7 @@
     "total_tests": 691
   },
   "pytest": {
-    "collected_deterministic": 4181,
+    "collected_deterministic": 4191,
     "deterministic_files": 139,
     "environment_dependent_files": [
       {
@@ -800,7 +800,7 @@
       },
       {
         "file": "tests/test_worktree_lifecycle.py",
-        "tests": 146
+        "tests": 156
       },
       {
         "file": "tests/test_worktree_snapshot.py",

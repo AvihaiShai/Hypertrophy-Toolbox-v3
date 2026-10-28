@@ -15,7 +15,7 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **691** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **545** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4181** across 139 files |
+| pytest collected nodes (deterministic subset) | **4191** across 139 files |
 | pytest test files (all) | **140** |
 | JS unit cases (Vitest) | **269** across 14 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
@@ -205,7 +205,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_workout_plan_service.py` | 11 |
 | `tests/test_worktree_ci_contracts.py` | 12 |
 | `tests/test_worktree_environment_preflight.py` | 72 |
-| `tests/test_worktree_lifecycle.py` | 146 |
+| `tests/test_worktree_lifecycle.py` | 156 |
 | `tests/test_worktree_snapshot.py` | 33 |
 | `tests/test_youtube_video_id.py` | 41 |
 
