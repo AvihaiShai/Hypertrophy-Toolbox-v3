@@ -102,9 +102,9 @@ class ExerciseManager:
                         exercise,
                     )
                 return "Exercise added successfully."
-        except Exception as exc:  # pragma: no cover - logged for observability
+        except Exception:
             logger.exception("Database error while adding exercise")
-            return f"Database error: {exc}"
+            return "Failed to add exercise"
 
     @staticmethod
     def delete_exercise(exercise_id: int) -> None:

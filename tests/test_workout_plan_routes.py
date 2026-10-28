@@ -102,6 +102,9 @@ class TestAddExercise:
         assert resp.status_code == 400
         data = resp.get_json()
         assert data["ok"] is False
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+        assert data["message"] == 'Error: Missing required fields.'
+        assert data["error"]["message"] == data["message"]
 
     def test_add_exercise_duplicate_returns_400(self, client, clean_db, exercise_factory):
         """Duplicate exercise in same routine should return validation error."""
@@ -131,6 +134,8 @@ class TestAddExercise:
         payload = duplicate.get_json()
         assert payload["ok"] is False
         assert payload["error"]["code"] == "VALIDATION_ERROR"
+        assert payload["message"] == 'Exercise already exists in this routine.'
+        assert payload["error"]["message"] == payload["message"]
 
     @pytest.mark.parametrize("weight", [0, 1000])
     def test_add_exercise_accepts_weight_boundaries(
@@ -965,3 +970,86 @@ class TestUpdateExerciseWithAnUnusableStoredSibling:
 
         assert resp.status_code == 400
         assert resp.get_json()["message"] == "Maximum reps must be a finite number."
+
+
+def test_add_exercise_internal_failure_keeps_http_envelope(client, clean_db, exercise_factory, monkeypatch, caplog):
+    import utils.exercise_manager as exercise_manager
+
+    exercise_factory("Bench Press")
+    sentinel = "PRIVATE_ADD_EXERCISE_HTTP_DETAIL"
+
+    class FailingDB:
+        def __enter__(self):
+            raise RuntimeError(sentinel)
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    monkeypatch.setattr(exercise_manager, "DatabaseHandler", FailingDB)
+    exercise_manager.logger.addHandler(caplog.handler)
+    try:
+        response = client.post("/add_exercise", json={
+            "routine": "Push", "exercise": "Bench Press", "sets": 3,
+            "min_rep_range": 8, "max_rep_range": 12, "rir": 2, "weight": 80.0,
+        })
+    finally:
+        exercise_manager.logger.removeHandler(caplog.handler)
+
+    assert response.status_code == 500
+    payload = response.get_json()
+    assert set(payload) == {"ok", "status", "message", "error"}
+    assert payload["ok"] is False and payload["status"] == "error"
+    assert payload["message"] == "Failed to add exercise"
+    assert payload["error"]["code"] == "INTERNAL_ERROR"
+    assert payload["error"]["message"] == payload["message"]
+    assert isinstance(payload["error"]["requestId"], str)
+    assert sentinel not in response.get_data(as_text=True)
+    assert any(record.exc_info and str(record.exc_info[1]) == sentinel for record in caplog.records)
+    assert sentinel in caplog.text
+
+
+def test_generator_persistence_failure_preserves_generated_result(client, clean_db, exercise_factory, monkeypatch, caplog):
+    import utils.plan_generator as plan_generator
+
+    for name in ("Bench Press", "Squat", "Deadlift"):
+        exercise_factory(name)
+    sentinel = "PRIVATE_GENERATOR_PERSISTENCE_DETAIL"
+
+    def fail_persistence(self, plan):
+        raise RuntimeError(sentinel)
+
+    monkeypatch.setattr(plan_generator.PlanGenerator, "persist", fail_persistence)
+    plan_generator.logger.addHandler(caplog.handler)
+    try:
+        response = client.post("/generate_starter_plan", json={
+            "training_days": 3, "environment": "gym", "experience_level": "novice", "persist": True,
+        })
+    finally:
+        plan_generator.logger.removeHandler(caplog.handler)
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["ok"] is True and payload["status"] == "success"
+    result = payload["data"]
+    assert list(result["routines"]) == plan_generator.get_generator_routine_names(3, "gym")
+    assert result["total_exercises"] > 0
+    assert result["persisted"] is False
+    assert result["persist_error"] == "Failed to save generated plan"
+    assert "inserted_counts" not in result
+    assert sentinel not in response.get_data(as_text=True)
+    assert any(record.exc_info and str(record.exc_info[1]) == sentinel for record in caplog.records)
+    assert sentinel in caplog.text
+
+
+def test_generator_preserves_expected_value_error_text(client, clean_db):
+    response = client.post("/generate_starter_plan", json={
+        "training_days": 3, "environment": "gym", "experience_level": "novice",
+        "priority_muscles": "chest",
+    })
+
+    assert response.status_code == 400
+    payload = response.get_json()
+    assert payload["ok"] is False
+    assert payload["error"]["code"] == "VALIDATION_ERROR"
+    assert payload["message"] == "priority_muscles must be a list"
+    assert payload["error"]["message"] == payload["message"]

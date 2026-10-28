@@ -241,7 +241,7 @@
     "total_tests": 691
   },
   "pytest": {
-    "collected_deterministic": 4176,
+    "collected_deterministic": 4181,
     "deterministic_files": 139,
     "environment_dependent_files": [
       {
@@ -436,7 +436,7 @@
       },
       {
         "file": "tests/test_exercise_manager.py",
-        "tests": 37
+        "tests": 38
       },
       {
         "file": "tests/test_exercise_media.py",
@@ -560,7 +560,7 @@
       },
       {
         "file": "tests/test_plan_generator_refactor_contracts.py",
-        "tests": 6
+        "tests": 7
       },
       {
         "file": "tests/test_playwright_runner_contracts.py",
@@ -784,7 +784,7 @@
       },
       {
         "file": "tests/test_workout_plan_routes.py",
-        "tests": 85
+        "tests": 88
       },
       {
         "file": "tests/test_workout_plan_service.py",
