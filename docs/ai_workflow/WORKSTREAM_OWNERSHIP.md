@@ -85,11 +85,11 @@ Failures before final annotation retain the registered worktree as OWNERLESS; re
 the retained temporary annotation/seed evidence. Lock-file presence alone is no lock.
 There is no cross-resource transaction or automatic rollback/removal.
 
-During the signed sequence, completed/abandoned/KEEP/DEFERRED developments retain
-worktrees, branches, detached/archive refs, reflogs and local-only recovery roots.
-Normal development may advance branches and append reflogs; retirement requires
-separate operation authority. See [owner acceptance](../worktree_cleanup/OPERATION_A_OWNER_ACCEPTANCE.md)
-for the proposed installation/monitoring choices and disposable Windows procedure.
+The cleanup campaign that introduced these annotations was closed by owner decision on
+2026-11-10. Retiring a worktree, branch or ref remains an owner action; the standing
+rule is in [Parallel Workflow](PARALLEL_WORKFLOW.md#completion-and-retained-worktrees).
+[Owner acceptance](../worktree_cleanup/OPERATION_A_OWNER_ACCEPTANCE.md) is the historical
+record of the proposed installation/monitoring choices.
 
 ## Related guides
 

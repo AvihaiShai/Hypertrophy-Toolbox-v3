@@ -43,6 +43,7 @@ Never set/export either MSYS suppression variable. Use PowerShell end to end,
 separate argument arrays and drive-qualified native output paths. The bounded hook
 does not inspect opaque script files or provide a native-process sandbox.
 
-Completion, abandonment, KEEP and DEFERRED retain worktrees, branches/reflogs and
-all recovery roots during the signed cleanup sequence. The owner records rationale
-and a next review date; separate operation approval is required for retirement.
+Create a worktree only on explicit owner approval. If the script refuses, stop and
+report; do not create a checkout another way. When the work's PR merges, tell the owner
+the worktree can be retired. The guard still denies worktree removal and branch or ref
+deletion, so retirement is an owner action.
