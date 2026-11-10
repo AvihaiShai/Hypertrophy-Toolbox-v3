@@ -44,6 +44,9 @@ separate argument arrays and drive-qualified native output paths. The bounded ho
 does not inspect opaque script files or provide a native-process sandbox.
 
 Create a worktree only on explicit owner approval. If the script refuses, stop and
-report; do not create a checkout another way. When the work's PR merges, tell the owner
-the worktree can be retired. The guard still denies worktree removal and branch or ref
-deletion, so retirement is an owner action.
+report; do not create a checkout another way. When the work's PR merges, propose a
+retirement review to the owner. Before removal, check local commits and all files,
+including untracked and ignored data, and verify preservation of anything unique.
+Merge status alone does not establish disposability. Retirement needs path-specific
+owner approval; the guard still denies worktree removal and branch or ref deletion
+to Claude Code sessions.

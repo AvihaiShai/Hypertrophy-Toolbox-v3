@@ -128,9 +128,11 @@ was closed by owner decision on 2026-11-10. Its retention hold, approval sequenc
 - If the creation script refuses, stop that attempt. Do not improvise another checkout
   elsewhere.
 - Generated scratch output goes under `artifacts/`.
-- When a worktree's PR merges, tell the owner it can be retired. Retirement is an owner
-  action: the command guard still denies worktree removal and branch or ref deletion
-  to Claude Code sessions.
+- When a worktree's PR merges, propose a retirement review to the owner. Before removal,
+  check local commits and all files, including untracked and ignored data, and verify
+  preservation of anything unique. Merge status alone does not establish disposability.
+  Retirement needs path-specific owner approval; the command guard still denies
+  worktree removal and branch or ref deletion to Claude Code sessions.
 
 Limits accepted at closure:
 
@@ -152,7 +154,10 @@ Limits accepted at closure:
   annotations and unregistered/reparse children block creation; retain and review them.
 - **DB schema drift** — if you fork from an older HEAD and the main DB has new tables, runtime initialization (`init_runtime()`, run by `python app.py`, the packaged launcher and `app:create_initialized_app`; not by importing `app`) runs the table-creation helpers idempotently; the worktree's DB will catch up on first launch.
 - **Backup retention** — the campaign's snapshot hold ended with its closure on
-  2026-11-10; normal rotation applies.
+  2026-11-10; normal rotation applies to application auto-backup snapshots. Retained
+  cleanup backups, recovery archives and evidence are not rotation targets. Retiring
+  those requires path-specific owner approval and verified coverage of the material
+  to be kept in a retained copy.
 - **Visual fixture missing** — creation refuses the missing seed/helper. Choose an
   explicitly reviewed `-Seed empty` invocation; no silent fallback is advertised.
 
