@@ -1,7 +1,9 @@
 /**
  * Common test fixtures and utilities for E2E tests
  */
-import { test as base, expect, Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
+
+import { test as base } from './static-replay';
 
 /**
  * Console error collector - fails test if uncaught JS errors occur

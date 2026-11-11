@@ -12,11 +12,11 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **691** |
+| Playwright tests (chromium) | **699** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **545** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4191** across 139 files |
-| pytest test files (all) | **140** |
+| Required functional gate — `E2E Functional (Chromium)` | **553** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **4296** across 140 files |
+| pytest test files (all) | **141** |
 | JS unit cases (Vitest) | **269** across 14 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
@@ -45,7 +45,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `program-backup.spec.ts` | 33 | — |
 | `progression.spec.ts` | 29 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
-| `smoke-navigation.spec.ts` | 11 | yes |
+| `smoke-navigation.spec.ts` | 19 | yes |
 | `summary-pages.spec.ts` | 20 | yes |
 | `superset-edge-cases.spec.ts` | 16 | yes |
 | `ui-hardening.spec.ts` | 37 | yes |
@@ -175,6 +175,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_session_summary.py` | 37 |
 | `tests/test_session_summary_routes.py` | 33 |
 | `tests/test_static_cache_policy.py` | 12 |
+| `tests/test_static_replay_contracts.py` | 105 |
 | `tests/test_strength_calibration.py` | 36 |
 | `tests/test_superset.py` | 14 |
 | `tests/test_superset_service.py` | 9 |

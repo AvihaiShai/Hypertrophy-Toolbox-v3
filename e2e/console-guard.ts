@@ -29,7 +29,6 @@
  * `message` - not its stack, which is reported but not matched.
  */
 import {
-  test as base,
   expect,
   type PlaywrightTestArgs,
   type PlaywrightTestOptions,
@@ -37,6 +36,8 @@ import {
   type PlaywrightWorkerOptions,
   type TestType,
 } from '@playwright/test';
+
+import { test as base } from './static-replay';
 
 export interface ExpectedConsoleError {
   /** The exact message text, or a regex anchored with `^` and `$`. */

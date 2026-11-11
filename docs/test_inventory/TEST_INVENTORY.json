@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 545
+      "tests": 553
     },
     "specs": [
       {
@@ -169,7 +169,7 @@
       {
         "in_required_functional_set": true,
         "spec": "smoke-navigation.spec.ts",
-        "tests": 11
+        "tests": 19
       },
       {
         "in_required_functional_set": true,
@@ -238,11 +238,11 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 691
+    "total_tests": 699
   },
   "pytest": {
-    "collected_deterministic": 4191,
-    "deterministic_files": 139,
+    "collected_deterministic": 4296,
+    "deterministic_files": 140,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -679,6 +679,10 @@
         "tests": 12
       },
       {
+        "file": "tests/test_static_replay_contracts.py",
+        "tests": 105
+      },
+      {
         "file": "tests/test_strength_calibration.py",
         "tests": 36
       },
@@ -811,7 +815,7 @@
         "tests": 41
       }
     ],
-    "total_files": 140
+    "total_files": 141
   },
   "schema_version": 2,
   "vitest": {
