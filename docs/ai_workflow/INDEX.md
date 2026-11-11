@@ -44,7 +44,7 @@ Unmigrated entries and retained sequencing stay in [OPEN_WORK_EXECUTION_PLAN.md]
 ## History & decisions
 - [CHANGELOG](../CHANGELOG.md)
 - [DECISIONS](../DECISIONS.md) — durable project choices and lightweight ADRs
-- [Documentation Retention](DOC_RETENTION.md) — when to keep, archive, or delete docs
+- [Documentation Retention](DOC_RETENTION.md) — when to keep, archive, retire, or delete docs
 - [CLAUDE.md audit](../CLAUDE_MD_AUDIT.md)
 - [E2E testing notes](../E2E_TESTING.md)
 - [CSS ownership map](../CSS_OWNERSHIP_MAP.md)

@@ -136,7 +136,7 @@ or tertiary muscle. This surprises people; it is not a bug.
 | Where | Meaning | What this suite calls it |
 |---|---|---|
 | Muscle-naming mode, stored value | `'advanced'` in `localStorage` | The **Scientific** mode; `'advanced'` is called out as the internal stored value |
-| Muscle-naming mode, UI label | The button reads `Scientific` | **Scientific** |
+| Muscle-naming mode, UI label | The navbar button reads `Scientific`; the Plan table's own button for the same setting reads `Advanced` | **Scientific** |
 | `utils/volume_ai.py` mode parameter | `'basic'` / `'advanced'` muscle grouping | The splitter's **advanced grouping mode**, always qualified |
 | Exercise catalog column | `advanced_isolated_muscles` | Always written as the column name |
 

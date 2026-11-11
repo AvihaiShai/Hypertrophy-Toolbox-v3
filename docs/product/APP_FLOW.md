@@ -201,14 +201,34 @@ Present on every page.
 | **Backup** | Navigation | → `/backup` |
 | Author link | Navigation | External, `target="_blank" rel="noopener noreferrer"` |
 | Scale − / + | Local state | Writes the `ui-scale-level` **cookie** (1–8). Read server-side by `inject_scale_level()` in `app.py`, which maps it to a zoom factor; out-of-range or non-numeric falls back to `6` (zoom `1`) |
-| Muscle naming toggle (`#muscleModeToggle`) | Local state | Writes `hypertrophy_filter_view_mode` to `localStorage` and dispatches a `filterViewModeChanged` event. **No request.** Button label reads **Simple** or **Scientific**; the stored values are `'simple'` and `'advanced'` |
+| Muscle naming toggle (`#muscleModeToggle`) | Local state | Writes `hypertrophy_filter_view_mode` to `localStorage` and dispatches a `filterViewModeChanged` event. **No request.** Button label reads **Simple** or **Scientific**; the stored values are `'simple'` and `'advanced'`. What it changes: [Muscle naming mode](#muscle-naming-mode) |
 | Dark mode toggle (`#darkModeToggle`) | Local state | Writes `darkMode` (`'true'`/`'false'`) to `localStorage` and sets `data-theme` on `<html>`. With nothing stored it follows `prefers-color-scheme` and keeps following it until the user chooses |
 | Skip to main content | Presentation | Focuses `#main-content` |
 
-> The muscle-naming control is a **navbar** button and affects every page. A currently-shipped
-> document, `docs/FILTER_VIEW_MODE.md`, tells the reader to find it in the Workout Plan "Filter
-> Exercises" header and calls the modes "Simple / Advanced". Both are stale. Flagged here rather
-> than corrected — editing that document was outside this packet's scope.
+### Muscle naming mode
+
+The navbar muscle-naming button is the control for one browser-wide setting. It is stored only as
+`hypertrophy_filter_view_mode` in `localStorage` (`'simple'` when unset), so it survives reloads and
+applies on every page; the server stores nothing. Below the `lg` breakpoint the button shows only
+its icon. **Simple** uses everyday groupings (Biceps, Glutes, Quads); **Scientific** uses anatomical
+names (Long Head Bicep, Gluteus Maximus, Rectus Femoris). Changing it re-renders in place with no
+request:
+
+| Surface | What changes |
+|---|---|
+| Plan filter dropdowns — Primary, Secondary, Tertiary, Advanced Isolated Muscles | Options are rebuilt in the new naming. A current selection is translated where a counterpart exists; a simple group with no one-to-one scientific option is kept as a temporary "… (Group)" option; otherwise the dropdown resets to All. When the translation changes the filter value, the filter re-runs |
+| Plan table muscle columns | Cell text is re-derived from each cell's stored raw value, with no refetch. In Scientific mode a Primary cell shows the matching isolated muscles when the row has any |
+| Plan table **Simple / Advanced** button | A second control for the same setting, created in the table's own controls row. It flips the same stored value, so the two buttons stay in step. In Simple mode the Tertiary Muscle, Utility, Movement Pattern, Movement Subpattern, Stabilizers and Synergists columns are hidden by CSS; Scientific shows them |
+| Weekly Summary and Session Summary | Muscle-group rows and isolated-muscle cells re-render |
+| Excel export | The value is sent as `view_mode` on `GET /export_to_excel`. `advanced` renames the Workout Plan columns (for example `Primary Muscle` becomes `Primary Muscle Group`) and swaps muscle names for the scientific ones; any other value is treated as `simple` |
+
+**Server-side filter expansion.** `POST /filter_exercises` accepts either naming and expands it in
+`routes/filters.py`. A simple key becomes every database value it covers, matched with OR —
+`glutes` covers `Gluteus Maximus` and `Hip-Adductors` for the primary filter, and `biceps` covers
+`long-head-bicep` and `short-head-bicep` for the isolated filter. A scientific key on a
+primary/secondary/tertiary filter resolves through its simple parent. A simple key with no
+scientific breakdown (`traps-middle`, `lower-back`, `lats`, `upper-back`) is **ignored** on the
+isolated filter — it does not narrow the result, and it does not return nothing.
 
 ---
 
@@ -235,14 +255,15 @@ navigation — and one destructive control that exists nowhere else.
 3. reinitializes the schema.
 
 **This destroys the Backup Center library.** `program_backups` and `program_backup_items` are
-the first two entries in the drop list. `docs/program_backups.md` currently states the opposite
-("Backups survive normal erase/reset flows because they are not stored in `user_selection`") —
-that claim is contradicted by the code. See
+the first two entries in the drop list. See
 [`BACKEND_SCHEMA.md`](BACKEND_SCHEMA.md#what-an-erase-actually-destroys).
 
 The pre-erase snapshot is a raw SQLite file copy. There is **no in-application path to restore
 it** — recovery means replacing the database file by hand. Home's own copy, "Auto-backup before
-data reset ensures you never lose progress," is optimistic about that.
+data reset ensures you never lose progress," is optimistic about that. The success response carries
+`data.auto_backup` — `{"filename": "database_<timestamp>.db"}`, or `null` when no snapshot was
+taken (see [Startup snapshot](#startup-snapshot)) — and the Home page shows it as an informational
+banner naming the file.
 
 The exercise catalog is not dropped and is not lost.
 
@@ -609,14 +630,14 @@ the column nullability encodes.
 
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
-| Name + note, Save | API | `POST /api/backups`. A blank name is blocked client-side with a warning toast, and independently by the route as `VALIDATION_ERROR` 400. Saving with an empty plan warns once before proceeding |
+| Name + note, Save | API | `POST /api/backups`. A blank name is blocked client-side with a warning toast, and independently by the route as `VALIDATION_ERROR` 400. Saving with an empty plan warns once before proceeding. The name is trimmed, required and at most 100 characters; the note is optional, trimmed and at most 500 (a blank note is stored as `NULL`); either limit exceeded is `VALIDATION_ERROR` 400. Duplicate names are allowed. Every backup this route creates is `backup_type` `manual` |
 | Backup list | API | `GET /api/backups` |
-| Search / sort | Presentation | Filters and orders the loaded list client-side |
+| Search / type filter / sort | Presentation | Filters (All / Manual / Auto) and orders the loaded list client-side. The page header counts the current program's rows and the saved, manual and auto snapshots. Nothing in the application writes an `auto` backup, so the Auto filter and count stay empty |
 | Open a backup | API | `GET /api/backups/<id>` → `NOT_FOUND` 404 for an unknown id — verified live |
 | Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Always reads `1` today |
-| Rename / edit note | API | `PATCH /api/backups/<id>` |
+| Rename / edit note | API | `PATCH /api/backups/<id>`. At least one of `name` / `note` is required (`VALIDATION_ERROR` 400 otherwise); the same limits as Save apply; an unknown id is `NOT_FOUND` 404 |
 | **Restore** | Presentation → API | Confirmation, then `POST /api/backups/<id>/restore`. The confirmation text states plainly that the current plan and all logged sessions will be cleared |
-| Save current plan first | API | Offered inside the restore confirmation only; snapshots the present state before restoring |
+| Save current plan first | API | Offered inside the restore confirmation only; snapshots the present state before restoring, as an ordinary manual backup named `Pre-restore snapshot (<timestamp>)` |
 | Delete | Presentation → API | Confirmation, then `DELETE /api/backups/<id>` |
 
 `/workout_plan`'s "Load Program" button arrives here as `/backup?intent=browse`.
@@ -635,10 +656,22 @@ order, and superset group. It carries no logged history, no profile, no goals, n
 composition, no volume plans, and no settings. Restoring therefore loses all training history
 permanently, and does not restore anything outside the program.
 
-Rows naming an exercise no longer in the catalog are skipped and reported rather than failing the
-restore.
+The three steps run in one transaction that is rolled back on a database error. Rows naming an
+exercise no longer in the catalog are skipped and reported in `skipped`; rows whose weight, rep
+range or RIR fails the plan's bounds validation are skipped and reported in `invalid` (each with
+its routine, exercise and reason) rather than failing the restore. The response data is
+`backup_id`, `backup_name`, `restored_count`, `skipped` and `invalid`; an unknown id is
+`NOT_FOUND` 404. The Backup Center lists the skipped and invalid rows inline, and when
+`restored_count` is 0 it shows a warning toast and warning styling instead of a success message.
 
-An automatic snapshot is also taken at application startup, and one is taken before an erase.
+### Startup snapshot
+
+Separate from the Backup Center library, the application copies the whole SQLite file to
+`data/auto_backup/database_<timestamp>.db` (under the runtime root) at startup and immediately
+before an erase, using SQLite's online-backup API, and keeps the newest 7. No snapshot is taken —
+and the erase response's `auto_backup` is `null` — when the database file is missing, holds fewer
+than 100 exercises, or `TESTING=1`; startup also skips it on the first run that has just copied
+the catalog seed. These files are outside the Backup Center and have no in-application restore.
 
 ---
 
@@ -651,8 +684,7 @@ a documentation packet.
 |---|---|
 | `static/js/modules/exports.js` — `exportSummary()` | Builds `/export_weekly_summary` or `/export_session_summary`. **Neither route exists**; the real route is `POST /export_summary`. The function is exported and assigned to `window.exportSummary`, but no template or spec invokes it, so nothing currently calls the broken URL. Its unit test mocks `fetch`, so it passes without ever proving the route exists |
 | `static/js/app.js` — `initializeModules()` | Defined, contains a single case, and is never called |
-| `docs/program_backups.md` | States backups survive an erase. The code drops both backup tables |
-| `docs/FILTER_VIEW_MODE.md` | Documents the naming toggle as living in the Plan page's filter header and calls the modes "Simple / Advanced". It is a navbar control, and the UI label is "Scientific" |
+| `utils/program_backup.py` — module docstring | States backups "survive standard erase/reset operations". The erase drops both backup tables |
 | `utils/progression_plan.py` — `_get_progression_status` docstring | Advertises a `reduce_weight` return the body cannot produce |
 | `templates/volume_splitter.html` | Heading reads "AI Suggestions" for a rule-based local heuristic |
 | Registered but unbound | **Six of the 78 routes have no caller anywhere** in `templates/` or `static/js/`: `GET /api/superset/suggest`, `GET /get_generator_options`, `GET /get_workout_logs`, `GET /export_workout_log`, `POST /export_summary`, `POST /export_large_dataset`. Established by censusing every registered rule against the whole frontend, matching each rule's static prefix so dynamically assembled URLs still count. They work when called directly; nothing in the UI calls them. Note the causal link: `/export_summary` is unreachable **because** its only intended caller, `exportSummary()`, builds a different URL — see the row above |

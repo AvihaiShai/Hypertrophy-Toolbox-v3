@@ -2,6 +2,18 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - 2026-11-11
+
+### Documentation retention
+
+- [Documentation Retention](ai_workflow/DOC_RETENTION.md) gains a retirement route: a
+  completed or abandoned plan may leave the checkout and remain in Git history, one
+  reviewed batch of exact files at a time. Archiving remains available.
+- Retired `docs/FILTER_VIEW_MODE.md` and `docs/program_backups.md`. Their accurate content
+  now lives in [`product/APP_FLOW.md`](product/APP_FLOW.md) (*Muscle naming mode*, *Backup
+  Center*, *Startup snapshot*). The last commit that contains both files is
+  `04816d8d8d6ee576ae3f2738468e29d8078fa293`.
+
 ## Unreleased - 2026-10-24
 
 ### Python 3.15.1 minimum runtime

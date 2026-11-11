@@ -618,8 +618,7 @@ Owned by `utils/program_backup.py`. **These are the first two entries in
 
 `schema_version` is a **reserved informational label**, not an enforced compatibility contract:
 it is written and returned but never read to make a decision, and `restore_backup()` is
-deliberately version-blind. See [ADR-008](../DECISIONS.md) and
-[`program_backups.md`](../program_backups.md). It is the column the *Constraint enforcement*
+deliberately version-blind. See [ADR-008](../DECISIONS.md). It is the column the *Constraint enforcement*
 section above flags as unrelated to SQLite's `user_version`. Being `NOT NULL`, it also has no
 reachable `NULL` state.
 
@@ -666,11 +665,8 @@ That list is:
 Sixteen of the nineteen tables. **This includes the Backup Center library** — `program_backups`
 and `program_backup_items` are the first two dropped. Erasing does not preserve your snapshots.
 
-> **A currently-shipped document contradicts this.** `docs/program_backups.md` states that
-> "Backups survive normal erase/reset flows because they are not stored in `user_selection`."
-> That is false: not being in `user_selection` is irrelevant, because both backup tables are
-> dropped by name. Flagged here rather than corrected, because editing that document is outside
-> this documentation packet's scope.
+Not being stored in `user_selection` does not protect a snapshot: both backup tables are dropped
+by name.
 
 The three tables an erase does **not** drop are `exercises`, `exercise_isolated_muscles`, and
 `catalog_version` — the shipped catalog, which is reinstalled content rather than user data.

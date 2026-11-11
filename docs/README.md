@@ -38,8 +38,6 @@ Source contracts, approval boundaries and evidence remain in the retained docume
 - **[UI_SCENARIOS_GAP_ANALYSIS.md](UI_SCENARIOS_GAP_ANALYSIS.md)** - UI risk status, deferred quality items, and Known Issues table (KI-001..)
 
 ### Feature Docs
-- **[FILTER_VIEW_MODE.md](FILTER_VIEW_MODE.md)** - Simple vs scientific muscle naming mode
-- **[program_backups.md](program_backups.md)** - Backup Center and program snapshot behavior
 - **[muscle_selector.md](muscle_selector.md)** - Muscle selector component notes
 - **[muscle_selector_vendor.md](muscle_selector_vendor.md)** - Vendor SVG attribution
 
