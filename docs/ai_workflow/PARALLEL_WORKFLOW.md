@@ -14,7 +14,9 @@ The fix is **one DB per checkout**, achieved via `git worktree`.
 
 ## When to fork
 
-Fork when any of these is true:
+Forking needs explicit owner approval; see
+[Completion and retained worktrees](#completion-and-retained-worktrees). Ask for it when
+any of these is true:
 - Two agents will edit the working tree at the same time.
 - One agent will run the dev server or pytest while another agent edits unrelated code.
 - An experiment will leave `data/database.db` in a state you don't want to keep.
@@ -70,9 +72,7 @@ for this packet, after dot-sourcing the emitted launch setup:
   .\.venv\Scripts\pip.exe install -r requirements.txt
   ```
 
-Do not install or update packages in a shared environment. Operation A's pre-C tests
-use the stronger owner-created standalone clone with independently proved Git object
-storage and all runtime/cache/temp/bytecode directed to scratch (cleanup plan §1.3).
+Do not install or update packages in a shared environment.
 
 ## DB isolation rule
 
@@ -116,13 +116,36 @@ checkout.
 
 ## Completion and retained worktrees
 
-Use the normal authorized PR/test/review/merge flow. During the signed cleanup
-sequence, completion, abandonment, KEEP and DEFERRED retain every worktree and
-recovery root, including branches and reflogs. Record owner rationale and next review
-date. Neither status, age, PR state nor ordinary closeout grants retirement authority.
-Separate later operation approval controls removal; no force/prune/ref-cleanup advice
-applies during this hold. Operation A itself is not PREVENTION_COMPLETE until merged,
-owner-installed, accepted and actively monitored.
+Use the normal authorized PR/test/review/merge flow.
+
+The 2026 worktree cleanup campaign (Operation A and the operations planned after it)
+was closed by owner decision on 2026-11-10. Its retention hold, approval sequence and
+`PREVENTION_COMPLETE` acceptance impose no current obligation. The standing rule is:
+
+- Work in the existing checkout by default, with one active editing/testing workstream.
+- An additional worktree needs explicit owner approval and `scripts/new-worktree.ps1`.
+  A standalone clone needs a separately approved reason and exact path.
+- If the creation script refuses, stop that attempt. Do not improvise another checkout
+  elsewhere.
+- Generated scratch output goes under `artifacts/`.
+- When a worktree's PR merges, propose a retirement review to the owner. Before removal,
+  check local commits and all files, including untracked and ignored data, and verify
+  preservation of anything unique. Merge status alone does not establish disposability.
+  Retirement needs path-specific owner approval; the command guard still denies
+  worktree removal and branch or ref deletion to Claude Code sessions.
+
+Limits accepted at closure:
+
+- The guard is a bounded command-text check on Claude Code sessions. It is not a
+  filesystem sandbox, does not inspect script contents, does not restrict where a clone
+  or worktree is created, and does not bind other tools.
+- The drive-root monitor only reports new direct children of a drive root between one
+  Claude Code session's start and stop. It does not see a new folder inside an existing
+  directory such as the development parent.
+- For other agents, containment is whatever sandbox the running session actually has;
+  a configuration file's defaults do not establish it.
+- The owner-started acceptance captures planned for Operation A were not performed.
+  They are waived by owner decision and are not recorded as passes.
 
 ## Failure modes to expect
 
@@ -130,8 +153,11 @@ owner-installed, accepted and actively monitored.
   approved roots, annotations and baseline. Missing paths, ownerless or orphaned
   annotations and unregistered/reparse children block creation; retain and review them.
 - **DB schema drift** — if you fork from an older HEAD and the main DB has new tables, runtime initialization (`init_runtime()`, run by `python app.py`, the packaged launcher and `app:create_initialized_app`; not by importing `app`) runs the table-creation helpers idempotently; the worktree's DB will catch up on first launch.
-- **Backup retention** — preserve every discovered snapshot for this packet. This
-  operation-specific hold leaves normal post-operation rotation unchanged.
+- **Backup retention** — the campaign's snapshot hold ended with its closure on
+  2026-11-10; normal rotation applies to application auto-backup snapshots. Retained
+  cleanup backups, recovery archives and evidence are not rotation targets. Retiring
+  those requires path-specific owner approval and verified coverage of the material
+  to be kept in a retained copy.
 - **Visual fixture missing** — creation refuses the missing seed/helper. Choose an
   explicitly reviewed `-Seed empty` invocation; no silent fallback is advertised.
 

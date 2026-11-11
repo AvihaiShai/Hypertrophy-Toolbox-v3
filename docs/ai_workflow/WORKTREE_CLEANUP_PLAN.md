@@ -1,5 +1,9 @@
 # Worktree Cleanup, Preservation, and Recurrence-Prevention Plan
 
+> **Closed by owner decision on 2026-11-10. Historical record only.** Nothing below is a
+> current obligation, hold or pending approval. The standing rule is in
+> [Parallel Workflow](PARALLEL_WORKFLOW.md#completion-and-retained-worktrees).
+
 *Status: fourth-pass rewrite after independent Codex, Astra, and Opus review.*
 *Authority: planning only. This document authorizes no unlink, move, worktree
 removal, prune, ref change, branch change, archive deletion, or main reconciliation.*
