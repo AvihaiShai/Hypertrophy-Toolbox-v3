@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Keep active docs focused on current project truth. Archive completed plans when they stop helping daily work, and delete local/debug artifacts that should never become project memory.
+Keep active docs focused on current project truth. Archive completed plans when they stop helping daily work, retire them to Git history when nothing useful would be lost, and delete local/debug artifacts that should never become project memory.
 
 > **`docs/product/**` is Always active and is not a feature workstream.** The product reference
 > suite ([`../product/README.md`](../product/README.md)) describes the shipped application rather
@@ -25,7 +25,8 @@ Keep active docs focused on current project truth. Archive completed plans when 
 | Always active | `CLAUDE.md`, `docs/MASTER_HANDOVER.md`, `docs/ai_workflow/**`, `docs/product/**`, `docs/DECISIONS.md`, `docs/CHANGELOG.md` | Keep in the active tree. Update when the workflow or durable project truth changes. |
 | Active workstream | `docs/<feature>/PLANNING.md`, `docs/<feature>/EXECUTION_LOG.md`, feature research notes | Keep while the workstream is active, paused, or referenced from `docs/MASTER_HANDOVER.md`. |
 | Archive | Completed feature plans, old audits, superseded implementation notes | Move to `docs/archive/<year>/<feature>/` after all archive criteria are met. |
-| Delete | `debug/*`, `*.local.md`, generated scratch notes, local command output | Do not archive. These are local-only or transient artifacts. |
+| Retire | Completed or abandoned plans whose remaining useful information has a maintained home | Remove from the checkout; the record stays in Git history. Only through the Retirement Criteria and Procedure below, one reviewed batch at a time. |
+| Delete | `debug/*`, `*.local.md`, generated scratch notes, local command output | Do not archive or retire. These are local-only or transient artifacts. |
 
 ## Archive Criteria
 
@@ -35,6 +36,27 @@ Archive a document only when all of these are true:
 2. The record is closed or shipped, a current replacement source exists and is named, and every inbound reference will be repaired in the same change.
 3. No open follow-up in `docs/MASTER_HANDOVER.md` points at it.
 4. The active docs index or feature folder has a better current source of truth.
+
+Archiving remains available. Retirement below is an additional route, not a mandate to empty `docs/archive/`.
+
+## Retirement Criteria
+
+Owner decision 2026-11-11. A completed or abandoned plan may leave the checkout and remain in Git history instead of moving to `docs/archive/`.
+
+**Keep in the checkout:**
+
+- Current guides.
+- Machine inputs: files read by tests, scripts or CI.
+- Unresolved requirements, including records deferred behind a named trigger.
+- Evidence needed for current decisions.
+
+**Retire to Git history:** completed or abandoned plans whose remaining useful information has a maintained home.
+
+**Preserve explicitly:** historical evidence that cannot be regenerated, or whose exact contents still support a current claim. Archive it, or keep it in place; do not retire it.
+
+**Approval.** This policy approves no particular deletion. Each retirement is a small batch of exact files, reviewed separately, that shows nothing currently useful disappears. "No test or script reads it" establishes only one part of that. It does not establish that decisions, evidence, deferred requirements or human-facing references are replaceable.
+
+`docs/product/**` stays Always active and is never a retirement candidate.
 
 ## Recorded dispositions — orphan candidates (assessed 2026-08-04 at `db1bc5d`)
 
@@ -90,6 +112,14 @@ filenames alone reports a false zero.
 5. Check relative links inside each moved document, heading anchors, and every CSS or workflow contract that names its path. Validate these and the inbound-reference repairs against the actual diff, including unchanged prose that points at moved or removed sections.
 6. Add a short changelog or handover note if the archived document was previously part of an active workstream.
 
+## Retirement Procedure
+
+1. Name the exact files in one small batch and, for each, the maintained home of its remaining useful information (a guide, ADR, test, issue or source file).
+2. Show in the batch review that no decision, evidence, deferred requirement or human-facing reference is lost. Record any file that fails this and keep or archive it instead.
+3. Run the whole-repo grep from Archive Procedure step 3, including the shorthand forms of each name. Fix every code, workflow and docs reference, or keep the file in place.
+4. Repair surviving references in the same change. Where the historical record remains relevant, link to its exact commit (a commit-pinned URL, or SHA and path) rather than leaving a dangling path.
+5. Remove the files in that change, so Git history is the record, and add a short changelog or handover note naming the removed paths and the last commit that contains them.
+
 ## Keep Active Procedure
 
 When a document stays active after a milestone, trim it to what future work needs:
@@ -106,4 +136,5 @@ Delete transient artifacts instead of archiving them:
 - Files under `debug/`, which are gitignored session scratch.
 - `*.local.md`, including `MASTER_HANDOVER.local.md`.
 - Generated command output, screenshots, or test logs unless a committed doc explicitly needs a small excerpt.
-- Duplicated plans whose useful decisions have already moved into active docs.
+
+Tracked plans and other committed records are not deleted under this procedure, even when duplicated; use the Retirement Procedure.

@@ -221,7 +221,7 @@ See the [`docs/`](docs/) folder:
 - [CHANGELOG.md](docs/CHANGELOG.md) - Version history
 - [CSS_OWNERSHIP_MAP.md](docs/CSS_OWNERSHIP_MAP.md) - CSS file organization
 - [muscle_selector.md](docs/muscle_selector.md) - Muscle selector component
-- [program_backups.md](docs/program_backups.md) - Backup/restore feature
+- [APP_FLOW.md](docs/product/APP_FLOW.md#backup-center--backup) - Backup Center and restore behavior
 
 ## 🛠️ Tech Stack
 
