@@ -201,7 +201,7 @@ Present on every page.
 | **Backup** | Navigation | → `/backup` |
 | Author link | Navigation | External, `target="_blank" rel="noopener noreferrer"` |
 | Scale − / + | Local state | Writes the `ui-scale-level` **cookie** (1–8). Read server-side by `inject_scale_level()` in `app.py`, which maps it to a zoom factor; out-of-range or non-numeric falls back to `6` (zoom `1`) |
-| Muscle naming toggle (`#muscleModeToggle`) | Local state | Writes `hypertrophy_filter_view_mode` to `localStorage` and dispatches a `filterViewModeChanged` event. **No request.** Button label reads **Simple** or **Scientific**; the stored values are `'simple'` and `'advanced'`. What it changes: [Muscle naming mode](#muscle-naming-mode) |
+| Muscle naming toggle (`#muscleModeToggle`) | Local state | Writes `hypertrophy_filter_view_mode` to `localStorage` and dispatches a `filterViewModeChanged` event. The toggle itself sends **no request**. Button label reads **Simple** or **Scientific**; the stored values are `'simple'` and `'advanced'`. What it changes: [Muscle naming mode](#muscle-naming-mode) |
 | Dark mode toggle (`#darkModeToggle`) | Local state | Writes `darkMode` (`'true'`/`'false'`) to `localStorage` and sets `data-theme` on `<html>`. With nothing stored it follows `prefers-color-scheme` and keeps following it until the user chooses |
 | Skip to main content | Presentation | Focuses `#main-content` |
 
@@ -211,15 +211,16 @@ The navbar muscle-naming button is the control for one browser-wide setting. It 
 `hypertrophy_filter_view_mode` in `localStorage` (`'simple'` when unset), so it survives reloads and
 applies on every page; the server stores nothing. Below the `lg` breakpoint the button shows only
 its icon. **Simple** uses everyday groupings (Biceps, Glutes, Quads); **Scientific** uses anatomical
-names (Long Head Bicep, Gluteus Maximus, Rectus Femoris). Changing it re-renders in place with no
-request:
+names (Long Head Bicep, Gluteus Maximus, Rectus Femoris). Changing it updates every surface
+below in place. The toggle itself sends no request, but two surfaces react with one — the Plan
+filter when a selected value is translated, and the two summary pages — as their rows say:
 
 | Surface | What changes |
 |---|---|
 | Plan filter dropdowns — Primary, Secondary, Tertiary, Advanced Isolated Muscles | Options are rebuilt in the new naming. A current selection is translated where a counterpart exists; a simple group with no one-to-one scientific option is kept as a temporary "… (Group)" option; otherwise the dropdown resets to All. When the translation changes the filter value, the filter re-runs |
 | Plan table muscle columns | Cell text is re-derived from each cell's stored raw value, with no refetch. In Scientific mode a Primary cell shows the matching isolated muscles when the row has any |
 | Plan table **Simple / Advanced** button | A second control for the same setting, created in the table's own controls row. It flips the same stored value, so the two buttons stay in step. In Simple mode the Tertiary Muscle, Utility, Movement Pattern, Movement Subpattern, Stabilizers and Synergists columns are hidden by CSS; Scientific shows them |
-| Weekly Summary and Session Summary | Muscle-group rows and isolated-muscle cells re-render |
+| Weekly Summary and Session Summary | The page refetches its summary (`GET /weekly_summary` or `GET /session_summary`) and re-renders the muscle-group rows in the new naming. The server-rendered isolated-muscle cells are relabelled in place from their stored raw value |
 | Excel export | The value is sent as `view_mode` on `GET /export_to_excel`. `advanced` renames the Workout Plan columns (for example `Primary Muscle` becomes `Primary Muscle Group`) and swaps muscle names for the scientific ones; any other value is treated as `simple` |
 
 **Server-side filter expansion.** `POST /filter_exercises` accepts either naming and expands it in
@@ -632,7 +633,7 @@ the column nullability encodes.
 |---|---|---|
 | Name + note, Save | API | `POST /api/backups`. A blank name is blocked client-side with a warning toast, and independently by the route as `VALIDATION_ERROR` 400. Saving with an empty plan warns once before proceeding. The name is trimmed, required and at most 100 characters; the note is optional, trimmed and at most 500 (a blank note is stored as `NULL`); either limit exceeded is `VALIDATION_ERROR` 400. Duplicate names are allowed. Every backup this route creates is `backup_type` `manual` |
 | Backup list | API | `GET /api/backups` |
-| Search / type filter / sort | Presentation | Filters (All / Manual / Auto) and orders the loaded list client-side. The page header counts the current program's rows and the saved, manual and auto snapshots. Nothing in the application writes an `auto` backup, so the Auto filter and count stay empty |
+| Search / type filter / sort | Presentation | Filters (All / Manual / Auto) and orders the loaded list client-side. The page header counts the current program's rows and the saved, manual and auto snapshots. No route or startup path creates an `auto` backup, so the Auto filter and count show only rows already marked `auto` in the database |
 | Open a backup | API | `GET /api/backups/<id>` → `NOT_FOUND` 404 for an unknown id — verified live |
 | Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Always reads `1` today |
 | Rename / edit note | API | `PATCH /api/backups/<id>`. At least one of `name` / `note` is required (`VALIDATION_ERROR` 400 otherwise); the same limits as Save apply; an unknown id is `NOT_FOUND` 404 |
