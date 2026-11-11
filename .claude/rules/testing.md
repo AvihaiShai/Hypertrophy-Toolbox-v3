@@ -76,6 +76,8 @@ Fixtures: `e2e/fixtures.ts` exports `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `wai
 
 **New and migrated specs take `test` from `e2e/console-guard.ts` instead**, which fails on every console and page error and takes a per-block allowlist of anchored, wildcard-free patterns. `e2e/strict-fixtures.ts` re-exports the same guard with the allowlist removed from its type for the zero-allowance visual/redesign specs. The split is described in `e2e/CLAUDE.md` and bound by `tests/test_console_guard_contracts.py`.
 
+All three fixture modules build on `e2e/static-replay.ts`, which replays repeated same-origin `200` static GETs from memory within a worker to relieve Windows connection pressure (ADR-014, #565). `PW_STATIC_REPLAY=0` disables it for a run; `test.use({ staticReplay: false })` disables it for a block. Wiring and the two native exceptions are bound by `tests/test_static_replay_contracts.py`.
+
 ## E2E test map
 
 Per-spec counts are in [`docs/test_inventory/TEST_INVENTORY.md`](../../docs/test_inventory/TEST_INVENTORY.md), which also marks which specs feed the required functional gate. This table covers what the generator cannot derive: what each spec is *for*.

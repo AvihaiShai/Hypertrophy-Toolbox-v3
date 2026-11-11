@@ -55,6 +55,7 @@ Proposed entries do not authorize implementation. The archive container is index
 - [ci_cd_phase3/](ci_cd_phase3/) — pinned Pyright baseline used by CI
 - [deep_gate_linux_visual_failure_20260831/](deep_gate_linux_visual_failure_20260831/) — completed Gate-1 diagnostic; further action awaits an owner decision
 - [finding1_residual/](finding1_residual/) — shipped D7; residual poisoned-row behavior still needs a current reference
+- [issue565_socket_allocation/](issue565_socket_allocation/) — #565 diagnosis, Gate 1 requirements and evidence for the ADR-014 static replay
 - [ki005_controls_persistence/](ki005_controls_persistence/) — shipped KI-005; retains the held Stage 4 restoration baseline
 - [product/](product/) — always-active reference for shipped behavior, schema, and design
 - [release_pipeline/](release_pipeline/) — shipped pipeline and remaining release/deep-gate entry conditions

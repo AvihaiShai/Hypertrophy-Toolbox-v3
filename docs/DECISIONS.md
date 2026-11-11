@@ -90,7 +90,7 @@ New cross-cutting or durable project decisions should be added here as lightweig
 - **Decision**: **N=1 is the only supported local Playwright configuration.** `scripts/run-playwright-shards.ps1` defaults to `-Shards 1`, and N>1 warns at runtime that it is an unsupported diagnostic. The launcher and all N>1 evidence are retained so the measurement stays reproducible, but a green N>1 run is not evidence and must not be used to select a shard count or to claim a local speedup. Reopening this requires a new owner decision that names which forbidden lever is being bought and why.
 
   **This says nothing about CI.** CI's `e2e-functional-shard` matrix runs each leg on its own runner with its own port pool, server, and freshly seeded database, so it shares none of the machine state implicated here. Its N=2 design remains valid and is unchanged by this ADR.
-- **Consequences**: The local E2E fast lane is 719.0s and stays there; local wall-clock improvement has to come from making the work smaller rather than from running it in parallel, which is what the profiling in [`E2E_PERFORMANCE_PROFILE.md`](E2E_PERFORMANCE_PROFILE.md) is for. The diagnosis also has standing value beyond sharding: the same HTTP/1.0 connection-close behavior is why per-navigation readiness is expensive, so anything that multiplies navigations on this machine pays for it. The cost is that the launcher keeps a parameter whose interesting values are unsupported; the runtime warning and this ADR are what stop that from being rediscovered as a bug.
+- **Consequences**: The local E2E fast lane is 719.0s and stays there; local wall-clock improvement has to come from making the work smaller rather than from running it in parallel, which is what the profiling in [`E2E_PERFORMANCE_PROFILE.md`](E2E_PERFORMANCE_PROFILE.md) is for. The diagnosis also has standing value beyond sharding: the same HTTP/1.0 connection-close behavior is why per-navigation readiness is expensive, so anything that multiplies navigations on this machine pays for it. The cost is that the launcher keeps a parameter whose interesting values are unsupported; the runtime warning and this ADR are what stop that from being rediscovered as a bug. *(2026-11-11: the "reliable" N=1 reading was later qualified. As the suite grew, serial Windows runs also hit allocation failures from the same per-request connections. ADR-014 mitigates that inside the harness and leaves this decision unchanged.)*
 
 ### ADR-007: Release tags are exact `v<APP_VERSION>` tags, and the release gate reuses CI rather than re-running it
 - **Date**: 2026-08-14
@@ -207,6 +207,32 @@ New cross-cutting or durable project decisions should be added here as lightweig
 - **Context**: Issue #564 requests one coordinated standard CPython target for source, tests, CI, analysis and Windows packaging. A minor-version upgrade needs real saved-data, Unicode and bootloader evidence, including a Windows environment without a system Python installation.
 - **Decision**: Pin `.python-version` to 3.15.1, enforce that patch-level floor in `utils/python_version.py`, and target Python 3.15 in Pyright. Keep dependency and analyzer pins unless an incompatibility is first reported to the owner. Add explicit dependency consistency checks only to the existing `pytest-core`, `worktree-windows` and packaged `build-and-smoke` environments. Preserve the zero-diagnostic Pyright allowlist.
 - **Consequences**: Existing 3.14 virtual environments must be retained separately and replaced with fresh task/project environments for this revision. Windows batch entry points select a registered 3.15 interpreter and reject an older retained environment. Rename the old launcher/build `venv` folder to `venv-3.14-backup`, then rerun the batch entry point to create its replacement. Keep the previous revision, its 3.14 environments and copied data/backups for recovery. Source/data/Unicode and real Windows bootloader checks, full suites, native CI and independent reviews remain required; the owner's separate no-Python Sandbox acceptance is a merge condition. Evidence and remaining checks: [Python 3.15 execution record](python315_migration/EXECUTION.md).
+
+### ADR-014: The E2E harness replays repeated static-asset GETs to relieve serial Windows connection pressure
+- **Date**: 2026-11-11
+- **Status**: accepted (owner Gate 1, #565)
+- **Context**: Serial (N=1) local Chromium runs on Windows failed with `ERR_ADDRESS_IN_USE`, `ERR_NO_BUFFER_SPACE` and failed `fetch()` calls. An observed run on unchanged `main` (`04816d8d`) found the following ([#565 planning record](issue565_socket_allocation/PLANNING.md)):
+  - Werkzeug 3.x closes every connection.
+  - Chromium performs the active close, so every request leaves a client-side `TIME_WAIT` on a dynamic port for about 120 s.
+  - The functional partition sent 43,302 requests, 91.9% of them for `/static/`, because each fresh context re-fetches every asset of every page it opens.
+  - Client `TIME_WAIT` peaked at 81% of the dynamic range. Windows Tcpip 4227/4231 events coincided to the second with the run's two socket-class failures, at 61% and 45% occupancy.
+
+  ADR-006 lists asset cache-policy changes among the levers that need an owner decision.
+- **Decision**:
+  - **What is replayed.** `e2e/static-replay.ts` records a static asset only when all of these hold:
+    - a same-origin `GET` under `/static/` that carries no `Range`, `If-Range`, `If-None-Match` or `If-Modified-Since` header;
+    - the request reached the harness's own context route (a spec's page routes run first and are never recorded);
+    - the network served it (`serverAddr()` is non-null);
+    - it is a `200` carrying Flask's `ETag` and `Last-Modified`.
+
+    Repeats of that full URL in the same Playwright worker are fulfilled from memory, without the per-exchange `Date`, `Connection` and `X-Request-ID` headers. HTML pages, APIs, non-GET, conditional and Range requests, other statuses and other origins always reach the server.
+  - **Where it applies.** `fixtures.ts` and `console-guard.ts` extend the replay base, and `strict-fixtures.ts` inherits from `console-guard.ts`. `api-integration.spec.ts` (request-only) and `visual-baseline-thumbnails.spec.ts` (own contexts) stay native, bound by `tests/test_static_replay_contracts.py`.
+  - **How to turn it off.** `PW_STATIC_REPLAY=0` disables replay for a run and `staticReplay: false` for a block. A native-network block in `smoke-navigation.spec.ts` keeps real asset delivery, the source-run headers, `304` revalidation and `404` handling under test in every run.
+- **Consequences**: This is a **test-harness mitigation for connection pressure**. It is not evidence that the Windows allocation mechanism or the production server's per-request connection behaviour changed. Both are unchanged, and production pages still open one connection per asset.
+  - With replay on, Flask serves each static URL once per worker instead of once per request. Routing also disables a context's HTTP cache, so most specs no longer exercise revalidation; the native block is where that coverage now lives.
+  - A static file edited while a run is in progress would be replayed stale. Nothing in the application writes under `static/`.
+  - Once a context has a route, Playwright intercepts every request in it, APIs included, which delays responses slightly. That exposed one latent test race. `ui-hardening.spec.ts` TS-3 filled controls before the exercise recommendation had landed; it failed 17 of 30 repeats with replay and 0 of 30 without. Its helper now waits for the app's existing `data-workout-controls-busy` marker, and no assertion changed. A new timing failure under replay should be read the same way: as a missing synchronization point, not a replay defect.
+  - ADR-006 is unchanged: same-machine N>1 remains unsupported, and this ADR does not reopen it.
 
 ### ADR-NNN: <title>
 - **Date**: YYYY-MM-DD
