@@ -1,11 +1,13 @@
 """Public entrypoint drivers; never import application modules or use live data."""
 from __future__ import annotations
 
+import itertools
 import json
 import os
 import shutil
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -36,12 +38,60 @@ def environment(root: Path) -> dict[str, str]:
     return env
 
 
+# --- Issue #614 pilot instrumentation (experiment branch only; never merged) ---
+_HT614_DIR = ROOT / "artifacts" / "ht614" / "timing"
+_HT614_ORDINAL = itertools.count(1)
+
+
+def _ht614_qpc() -> tuple[int | None, int | None]:
+    """Raw QueryPerformanceCounter value and frequency (the child's Stopwatch clock)."""
+    if sys.platform != "win32":
+        return None, None
+    import ctypes
+    count, frequency = ctypes.c_int64(), ctypes.c_int64()
+    ctypes.windll.kernel32.QueryPerformanceCounter(ctypes.byref(count))
+    ctypes.windll.kernel32.QueryPerformanceFrequency(ctypes.byref(frequency))
+    return count.value, frequency.value
+
+
+def _ht614_write(record: dict) -> None:
+    _HT614_DIR.mkdir(parents=True, exist_ok=True)
+    name = f"{os.environ.get('PYTEST_XDIST_WORKER', 'main')}-{os.getpid()}.jsonl"
+    with open(_HT614_DIR / name, "a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record) + "\n")
+
+
 def ps(host: str, code: str, *, env=None, timeout=30):
-    if not shutil.which(host):
+    record: dict = {"ordinal": next(_HT614_ORDINAL), "pid": os.getpid(),
+                    "worker": os.environ.get("PYTEST_XDIST_WORKER", "main"),
+                    "test": os.environ.get("PYTEST_CURRENT_TEST"), "host": host,
+                    "timeout": timeout, "wall_start": datetime.now(timezone.utc).isoformat(),
+                    "t_entry_ns": time.perf_counter_ns()}
+    resolved = shutil.which(host)
+    record["resolved"] = resolved
+    record["t_after_which_ns"] = time.perf_counter_ns()
+    if not resolved:
+        record["outcome"] = "skip"
+        _ht614_write(record)
         pytest.skip(f"{host} unavailable")
-    return subprocess.run([host, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-                           "-Command", code], capture_output=True, text=True,
-                          env=env, timeout=timeout)
+    record["qpc_before_run"], record["qpc_frequency"] = _ht614_qpc()
+    record["t_before_run_ns"] = time.perf_counter_ns()
+    try:
+        result = subprocess.run([host, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+                                 "-Command", code], capture_output=True, text=True,
+                                env=env, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        record["t_end_ns"] = time.perf_counter_ns()
+        record["qpc_end"] = _ht614_qpc()[0]
+        record["outcome"] = "TimeoutExpired"
+        _ht614_write(record)
+        raise
+    record["t_end_ns"] = time.perf_counter_ns()
+    record["qpc_end"] = _ht614_qpc()[0]
+    record["outcome"] = "returned"
+    record["returncode"] = result.returncode
+    _ht614_write(record)
+    return result
 
 
 def entry(host: str, script: Path, args: list[str], *, env=None, timeout=40):
