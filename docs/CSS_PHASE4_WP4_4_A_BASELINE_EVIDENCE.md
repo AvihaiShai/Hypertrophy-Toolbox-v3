@@ -169,16 +169,16 @@ Weekly and Session Summary are the two routes where motion-carrying elements are
 
 Every declaration `prepareForScreenshot()` applies before any pixel is captured. **A packet whose declarations fall inside this register may not cite the pixel matrix as evidence; it must supply a computed-style differential.**
 
-**22 entries, 52 declarations**, across the two channels the helper uses:
+**23 entries, 53 declarations**, across the two channels the helper uses:
 
 | Channel | Rule blocks | Declarations |
 |---|---|---|
-| Injected `addStyleTag()` stylesheet — neutralizers | 18 | 45 |
+| Injected `addStyleTag()` stylesheet — neutralizers | 19 | 46 |
 | Injected `addStyleTag()` stylesheet — `--visual-surface-*` support tokens | 2 | 4 |
 | Post-load inline `element.style.setProperty()` | 1 | 3 |
-| **Total** | **21** | **52** |
+| **Total** | **22** | **53** |
 
-Machine identity is `(stage, selector, property)`. Twenty-one entries describe the stylesheet stage and one the inline stage; the `*, *::before, *::after` block is split across two entries — motion and `backdrop-filter` blind different packet families — which is why 22 entries span 21 blocks.
+Machine identity is `(stage, selector, property)`. Twenty-two entries describe the stylesheet stage and one the inline stage; the `*, *::before, *::after` block is split across two entries — motion and `backdrop-filter` blind different packet families — which is why 23 entries span 22 blocks.
 
 | Stage | Helper selector | Declarations | Class | Blinds |
 |---|---|---|---|---|
@@ -193,6 +193,7 @@ Machine identity is `(stage, selector, property)`. Twenty-one entries describe t
 | stylesheet | `html[data-theme='dark'] [data-visual-surface][data-visual-surface]:where(:not([data-visual-preserve-border]))` | `border-color: #273145 !important`<br>`border-radius: 0 !important` | neutralizer | **j** |
 | stylesheet | `html[data-theme='dark'] [data-page="workout-plan"] [data-visual-header]::before` | `background: transparent !important` | neutralizer | **j** |
 | stylesheet | `html[data-theme='dark'] [data-page="workout-plan"] [data-visual-accent]` | `background: #4f8cff !important`<br>`border-radius: 0 !important`<br>`box-shadow: none !important`<br>`transform: none !important`<br>`transition: none !important` | neutralizer | **c**, **j** |
+| stylesheet | `html[data-theme='dark'] #workout[data-page="workout-plan"] [data-section="filters"][data-visual-surface]` | `box-shadow: none !important` | neutralizer | — (issue #609) |
 | stylesheet | `input, textarea` | `caret-color: transparent !important` | neutralizer | — |
 | stylesheet | `select` | `appearance: none !important`<br>`-webkit-appearance: none !important`<br>`background-image: none !important` | neutralizer | **h**, **i** |
 | stylesheet | `[data-visual-control], input, textarea, select, input[type="number"]` | `border-radius: 0 !important`<br>`box-shadow: none !important`<br>`text-shadow: none !important` | neutralizer | **d**, **h**, **j** |

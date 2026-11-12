@@ -1057,6 +1057,31 @@ BLIND_SPOT_REGISTER: tuple[dict[str, object], ...] = (
                "and transition were never registered at all.",
     },
     {
+        "selector": "Filter Exercises card (dark Workout Plan only)",
+        "stage": STYLESHEET_STAGE,
+        "helperSelector": (
+            "html[data-theme='dark'] #workout[data-page=\"workout-plan\"] "
+            "[data-section=\"filters\"][data-visual-surface]"
+        ),
+        "classification": NEUTRALIZER,
+        "properties": ["box-shadow"],
+        "declarations": [
+            {"property": "box-shadow", "value": "none", "important": True},
+        ],
+        "neutralizedTo": "none",
+        "helperEvidence": "[data-section=\"filters\"][data-visual-surface] {",
+        "blindsSurfaces": ["components.css", "tokens.css"],
+        "blindsPackets": [],
+        "why": "Issue #609. This card's dark box-shadow rastered its top and bottom "
+               "edges nondeterministically at an unchanged layout, so the first "
+               "capture attempt intermittently failed on Windows. The product's Calm "
+               "Glass rule carries ID-level weight from #workout and outranks the "
+               "surface flattener, so the shadow had stayed in the capture; this rule "
+               "uses the same ID to remove it. The dark shadow of this one card is "
+               "no longer covered by the pixel oracle. The Workout Controls and "
+               "Exercise Selection cards keep theirs.",
+    },
+    {
         "selector": "input, textarea (caret)",
         "stage": STYLESHEET_STAGE,
         "helperSelector": "input, textarea",

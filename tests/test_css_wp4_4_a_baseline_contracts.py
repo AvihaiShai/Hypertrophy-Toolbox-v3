@@ -279,9 +279,9 @@ def test_the_register_enumerates_every_rule_the_capture_helper_applies() -> None
     inline = measure.helper_inline_blocks()
 
     classifications = [block["classification"] for block in stylesheet]
-    assert classifications.count(measure.NEUTRALIZER) == 18
+    assert classifications.count(measure.NEUTRALIZER) == 19
     assert classifications.count(measure.SUPPORT_TOKEN) == 2
-    assert len(stylesheet) == 20
+    assert len(stylesheet) == 21
 
     # The post-load `setProperty()` stage is a second channel, not a restatement
     # of the stylesheet: inline `!important` outranks every author rule.
