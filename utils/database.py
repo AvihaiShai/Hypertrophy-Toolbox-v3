@@ -206,7 +206,13 @@ def _should_attempt_recovery(exc: sqlite3.DatabaseError, database_path: str) -> 
 
 
 def _attempt_database_recovery(database_path: str) -> bool:
-    """Quarantine the corrupted database file and restore a safe copy when available."""
+    """Quarantine the corrupted database file so a fresh empty one is created.
+
+    Tries to remove the ``-wal``/``-shm`` sidecars, then renames the database to
+    ``<name>.corrupted_<timestamp>``. Nothing is restored: no snapshot from
+    ``data/auto_backup/`` is copied back, so recovering earlier data is a manual
+    step. Returns ``False`` only when the rename fails.
+    """
     db_path = Path(database_path)
     _RECOVERY_ATTEMPTS[database_path] = True
     logger.error(

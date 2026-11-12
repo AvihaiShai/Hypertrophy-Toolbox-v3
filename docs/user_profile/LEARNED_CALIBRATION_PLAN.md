@@ -167,7 +167,7 @@ Estimator priority is unchanged: `exact learned → exact log → related learne
 
 - It becomes the **declared baseline** used when learned data and exact log fallback are unavailable (for example learned mode off or row reset/stale, with no exact target log taking priority).
 - It feeds the **cross-muscle fallback chain**, **accuracy band**, **cohort bars/donut**, and **cold-start replacement** on `/user_profile`, none of which read learned-calibration rows.
-- It is idempotent and reversible via backup/restore.
+- It is idempotent. It is **not** reversible through the Backup Center: program backups save only the workout plan (`user_selection`), not `user_profile_lifts`. An overwritten Profile lift can be re-entered by hand, or recovered from a whole-database startup snapshot using the manual steps in the root `README.md`.
 
 So promotion is "save this measured number as my permanent baseline," distinct from the live learned suggestion. UI copy must make that distinction explicit.
 

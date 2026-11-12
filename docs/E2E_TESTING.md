@@ -39,7 +39,7 @@ Validated from `package.json`, `playwright.config.ts`, and `scripts/run-playwrig
 - Test-results output: `artifacts/playwright/test-results/`
 - Default retry policy: retries on CI only
 - Default timeout: `30s`
-- Default full-suite script: runs all non-visual specs first, then prepares a visual DB and runs `visual.spec.ts`
+- Default full-suite script: runs every functional-seed spec first; if that run passes, it runs the three visual-seed specs with `PW_VISUAL_SEED=1` — `visual.spec.ts`, `visual-baseline-thumbnails.spec.ts` and `workout-plan-desktop-contract.spec.ts`
 
 ## What each spec covers
 
@@ -67,7 +67,7 @@ Validated from `package.json`, `playwright.config.ts`, and `scripts/run-playwrig
 | `summary-pages.spec.ts` | Weekly/session summary rendering and controls |
 | `superset-edge-cases.spec.ts` | Superset link/unlink/delete/replace edge cases |
 | `ui-hardening.spec.ts` | Toast stacking, form-state persistence, modal keyboard/focus contracts |
-| `user-profile.spec.ts` | Profile questionnaire, insights card, coverage bodymap (workout-cool art), Body Composition snapshot display hooks |
+| `user-profile.spec.ts` | Profile questionnaire, insights card, coverage bodymap (MuscleMap figure), Body Composition snapshot display hooks |
 | `validation-boundary.spec.ts` | Invalid form and boundary-value behavior |
 | `visual-baseline-thumbnails.spec.ts` | §4.6 thumbnail inspection matrix (plan + log × viewport × theme × mode) |
 | `visual-field-separator.spec.ts` | Table field-separator contrast guard (both themes) |

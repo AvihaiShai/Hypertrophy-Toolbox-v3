@@ -525,11 +525,9 @@ logged sets, and it ignores the Counting Mode toggle.
 - **The page returns a list, not a decision.** A technique note and three manual options are
   appended on every call regardless of status. The double-progression verdict is one card among
   them.
-- **There are three reachable statuses**: `increase_weight`, `increase_reps`, `maintain`. The
-  function's own docstring advertises a fourth, `reduce_weight`, that the body cannot return —
-  reduce-weight appears as a *suggestion* inside the `increase_reps` branch when the lifter has
-  been below the minimum twice consecutively and the weight exceeds 5. Read the body, not the
-  docstring.
+- **There are three statuses**: `increase_weight`, `increase_reps`, `maintain`. `reduce_weight`
+  is not a status — it appears as a *suggestion* inside the `increase_reps` branch when the
+  lifter has been below the minimum twice consecutively and the weight exceeds 5.
 - **Missing effort data counts as acceptable effort.** With both RIR and RPE absent, the effort
   check returns true, so a weight increase can be suggested from rep data alone.
 - **The increment is flat.** +2.5 kg for novices, +5.0 kg otherwise, at every load — the current
@@ -685,8 +683,6 @@ a documentation packet.
 |---|---|
 | `static/js/modules/exports.js` — `exportSummary()` | Builds `/export_weekly_summary` or `/export_session_summary`. **Neither route exists**; the real route is `POST /export_summary`. The function is exported and assigned to `window.exportSummary`, but no template or spec invokes it, so nothing currently calls the broken URL. Its unit test mocks `fetch`, so it passes without ever proving the route exists |
 | `static/js/app.js` — `initializeModules()` | Defined, contains a single case, and is never called |
-| `utils/program_backup.py` — module docstring | States backups "survive standard erase/reset operations". The erase drops both backup tables |
-| `utils/progression_plan.py` — `_get_progression_status` docstring | Advertises a `reduce_weight` return the body cannot produce |
 | `templates/volume_splitter.html` | Heading reads "AI Suggestions" for a rule-based local heuristic |
 | Registered but unbound | **Six of the 78 routes have no caller anywhere** in `templates/` or `static/js/`: `GET /api/superset/suggest`, `GET /get_generator_options`, `GET /get_workout_logs`, `GET /export_workout_log`, `POST /export_summary`, `POST /export_large_dataset`. Established by censusing every registered rule against the whole frontend, matching each rule's static prefix so dynamically assembled URLs still count. They work when called directly; nothing in the UI calls them. Note the causal link: `/export_summary` is unreachable **because** its only intended caller, `exportSummary()`, builds a different URL — see the row above |
 
@@ -695,7 +691,7 @@ a documentation packet.
 ## Verifying this document
 
 Route claims come from the live `url_map`. Behavior claims come from handler bodies, never from
-docstrings — that rule is what caught the progression-status discrepancy above. Outcome claims for
+docstrings — that rule is what caught the progression-status docstring error, since corrected. Outcome claims for
 14 GET endpoints and 9 deliberate failure paths were probed against a running application.
 
 The check that matters most here is the **reverse** one, and it is the easy one to skip. Proving
