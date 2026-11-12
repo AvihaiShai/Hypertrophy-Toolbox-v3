@@ -79,7 +79,9 @@ def _get_progression_status(
     - "increase_weight": Hit top of range with good effort
     - "increase_reps": Below minimum range  
     - "maintain": Within range, continue current load
-    - "reduce_weight": Consistently below range (needs history analysis)
+
+    "reduce_weight" is not a status. It is a suggestion type that
+    _build_primary_rep_suggestion() can emit for an "increase_reps" result.
     """
     if scored_max_reps is None or planned_max_reps is None or planned_min_reps is None:
         return "maintain"

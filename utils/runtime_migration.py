@@ -230,8 +230,11 @@ def prepare_runtime_database(
     3. A legacy database is copied once, verified, and published.
     4. Neither present — the caller's seed bootstrap handles a fresh install.
 
-    Never raises. A migration that cannot be proven correct leaves the legacy
-    database authoritative for this run and reports how to retry.
+    A migration that fails with ``MigrationError``, ``sqlite3.Error`` or
+    ``OSError`` does not raise: it leaves the legacy database authoritative for
+    this run and reports how to retry. Any other exception propagates, as does
+    anything ``copy_legacy_backups()`` raises after a successful migration (it
+    swallows only an ``OSError`` from the copy itself).
     """
     override = (
         explicit_override

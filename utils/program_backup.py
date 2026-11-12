@@ -2,7 +2,14 @@
 Program Backup / Program Library functionality.
 
 Provides snapshot and restore capabilities for the active workout program.
-Backups are stored persistently in the database and survive standard erase/reset operations.
+Backups are stored in the program_backups and program_backup_items tables of the
+application database. They do not survive Erase All Data: both tables are in
+OWNED_TABLES_DROP_ORDER (utils/schema_registry.py) and are dropped with the rest of
+the user data. What an erase leaves behind is the whole-database file snapshots in
+the auto_backup directory beside the database file (utils/auto_backup.py):
+erase_data() writes one first unless the database is missing or holds fewer than
+100 exercises, and earlier startup snapshots stay. They have no in-application
+restore.
 """
 from __future__ import annotations
 

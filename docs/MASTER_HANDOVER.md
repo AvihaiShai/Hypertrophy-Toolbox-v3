@@ -62,19 +62,19 @@ First-parent order. Merges #481–#538 are listed in the archived blocks.
 
 Constraints to know before acting. Decisions and obligations live in queue §0.2 and §0.4.
 
-- **Operation A:** `PREVENTION_COMPLETE` is not declared, and there is no standing teardown
-  authority. The owner-only remainder is
-  [`worktree_cleanup/CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19.6; retained refs are in §20.
-- **Sequencing.**
-  - The [`WORKTREE_CLEANUP_PLAN.md`](ai_workflow/WORKTREE_CLEANUP_PLAN.md) §1.2 order still binds
-    Operations B–E: prevention, then open-development closeout, then separately approved cleanup.
-  - Under the owner's 2026-10-19 delegation (Q8(a) in
-    [`AGREED_PLAN.md`](project_direction/AGREED_PLAN.md) §11; not a Gate 0 or Gate 1 signature),
-    isolated application-factory, service-extraction and dependency-group work does not wait for
-    `PREVENTION_COMPLETE`; each slice still needs its own gates, and WS5 implementation is
-    eligible only after its manifest and applicable gates are approved. §11's Q8(a) boundaries
-    apply (a standalone clone with independent Git storage and private environments, and a check
-    of live freezes and blocked-recovery states before work).
+- **Worktree cleanup campaign (Operation A and later operations):** closed by owner decision on
+  2026-11-10. `PREVENTION_COMPLETE` was not declared and is no longer pursued; the
+  [`WORKTREE_CLEANUP_PLAN.md`](ai_workflow/WORKTREE_CLEANUP_PLAN.md) §1.2 operation order no
+  longer binds. The standing rule and the limits accepted at closure are in
+  [`PARALLEL_WORKFLOW.md`](ai_workflow/PARALLEL_WORKFLOW.md#completion-and-retained-worktrees):
+  one checkout by default, and any additional worktree or clone needs explicit owner approval.
+  The guard still denies worktree removal and branch or ref deletion, so retirement is an owner
+  action. Retained refs are in [`worktree_cleanup/CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §20.
+- **Sequencing.** Application-factory, service-extraction and dependency-group slices each still
+  need their own gates, and WS5 implementation is eligible only after its manifest and
+  applicable gates are approved (Q8(a) in
+  [`AGREED_PLAN.md`](project_direction/AGREED_PLAN.md) §11). Q8(a)'s boundary that each slice
+  uses a standalone clone is superseded by the standing rule above.
 - **Visual baselines:** regenerating Linux or Win32 baselines requires separate owner
   authorization; a red comparison is not a regeneration mandate; `--update-snapshots` is never
   the resolution of a red.

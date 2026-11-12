@@ -117,7 +117,8 @@ database that migration would then correctly decline to replace. It opens the
 legacy database `mode=ro`, refuses when `-wal`/`-journal` sidecars are
 outstanding, verifies the copy (`integrity_check`, `foreign_key_check`, row
 counts) before publishing it atomically, and never deletes or writes to the
-original. Any failure returns the legacy path and logs recovery steps; it never
+original. A `MigrationError`, `sqlite3.Error` or `OSError` failure returns the
+legacy path and logs recovery steps; any other exception propagates. It never
 seeds a clean database after finding real data.
 
 ## Catalog upgrades (`utils/catalog_upgrade.py`)
