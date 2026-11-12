@@ -241,7 +241,7 @@
     "total_tests": 699
   },
   "pytest": {
-    "collected_deterministic": 4296,
+    "collected_deterministic": 4299,
     "deterministic_files": 140,
     "environment_dependent_files": [
       {
@@ -788,7 +788,7 @@
       },
       {
         "file": "tests/test_workout_plan_routes.py",
-        "tests": 88
+        "tests": 91
       },
       {
         "file": "tests/test_workout_plan_service.py",
