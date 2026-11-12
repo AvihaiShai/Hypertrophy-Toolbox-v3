@@ -630,6 +630,67 @@ class TestUpdateExerciseOrder:
         data = resp.get_json()
         assert data["ok"] is False
 
+    @staticmethod
+    def _stored_orders(*ids):
+        from utils.database import DatabaseHandler
+
+        orders = []
+        with DatabaseHandler() as db:
+            for row_id in ids:
+                row = db.fetch_one(
+                    "SELECT exercise_order FROM user_selection WHERE id = ?", (row_id,)
+                )
+                assert row is not None
+                orders.append(row["exercise_order"])
+        return orders
+
+    def test_update_exercise_order_applies_whole_valid_batch(
+        self, client, clean_db, two_exercises_fixture
+    ):
+        ex_a, ex_b = two_exercises_fixture
+
+        resp = client.post("/update_exercise_order", json=[
+            {"id": ex_a["id"], "order": 7},
+            {"id": ex_b["id"], "order": 8},
+        ])
+
+        assert resp.status_code == 200
+        assert resp.get_json()["ok"] is True
+        assert self._stored_orders(ex_a["id"], ex_b["id"]) == [7, 8]
+
+    def test_update_exercise_order_late_invalid_entry_leaves_batch_unchanged(
+        self, client, clean_db, two_exercises_fixture
+    ):
+        """A validation failure on a later entry must not persist earlier entries (#570)."""
+        ex_a, ex_b = two_exercises_fixture
+        before = self._stored_orders(ex_a["id"], ex_b["id"])
+
+        resp = client.post("/update_exercise_order", json=[
+            {"id": ex_a["id"], "order": 7},
+            {"id": ex_b["id"]},
+        ])
+
+        assert resp.status_code == 400
+        assert resp.get_json()["error"]["code"] == "VALIDATION_ERROR"
+        assert self._stored_orders(ex_a["id"], ex_b["id"]) == before
+
+    def test_update_exercise_order_write_failure_leaves_batch_unchanged(
+        self, client, clean_db, two_exercises_fixture
+    ):
+        """A write failure on a later entry must roll back earlier entries (#570)."""
+        ex_a, ex_b = two_exercises_fixture
+        before = self._stored_orders(ex_a["id"], ex_b["id"])
+
+        # A list passes the presence check but cannot be bound as a SQLite value.
+        resp = client.post("/update_exercise_order", json=[
+            {"id": ex_a["id"], "order": 7},
+            {"id": ex_b["id"], "order": [8]},
+        ])
+
+        assert resp.status_code == 500
+        assert resp.get_json()["error"]["code"] == "INTERNAL_ERROR"
+        assert self._stored_orders(ex_a["id"], ex_b["id"]) == before
+
 
 class TestSupersetLink:
     """Tests for POST /api/superset/link endpoint."""

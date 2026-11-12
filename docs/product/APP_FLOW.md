@@ -303,7 +303,7 @@ live.
 |---|---|---|
 | Table load / refresh | API | `GET /get_workout_plan` returns every plan row with its exercise metadata. Called on load and after any mutation |
 | Inline field edit | API | `POST /update_exercise` with `{id, updates}`. Server-side bounds: weight 0–1000 kg, RIR 0–10, min ≤ max; violations are `VALIDATION_ERROR` 400 |
-| Drag to reorder | API | `POST /update_exercise_order`, using the vendored Sortable library |
+| Drag to reorder | API | `POST /update_exercise_order`, using the vendored Sortable library. The batch is all-or-nothing: an invalid entry (`VALIDATION_ERROR` 400) or a failed write leaves every row's order unchanged |
 | Remove row | API | `POST /remove_exercise`. A non-numeric id is `VALIDATION_ERROR` 400 — verified live |
 | Replace exercise | API | `POST /replace_exercise` — **see the three-outcome table above** |
 | Link superset | API | `POST /api/superset/link` with exactly two ids; one id is `VALIDATION_ERROR` 400 — verified live |
