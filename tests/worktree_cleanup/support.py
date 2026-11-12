@@ -61,8 +61,37 @@ def _ht614_write(record: dict) -> None:
         handle.write(json.dumps(record) + "\n")
 
 
+_HT614_PREFLIGHT = ROOT / "scripts" / "preflight-worktree-environment.ps1"
+
+
+def _ht614_mark(name: str, extra: str = "") -> str:
+    return f"[Console]::Error.WriteLine('HT614 {name} '+[Diagnostics.Stopwatch]::GetTimestamp(){extra})"
+
+
+def _ht614_wrap(code: str) -> str | None:
+    """Arm C: add child phase markers to the target family's command text only."""
+    prefix = f". {quote(_HT614_PREFLIGHT)}; "
+    test = os.environ.get("PYTEST_CURRENT_TEST", "")
+    if ("test_worktree_environment_preflight.py" not in test or not code.startswith(prefix)
+            or "Test-WorktreeEnvironment " not in code):
+        return None
+    return "; ".join((_ht614_mark("cmd-start", "+' freq '+[Diagnostics.Stopwatch]::Frequency"),
+                      prefix[:-2], _ht614_mark("dotsource-end"), code[len(prefix):],
+                      _ht614_mark("pipeline-end")))
+
+
+def _ht614_markers(stderr) -> list[str]:
+    if isinstance(stderr, bytes):
+        stderr = stderr.decode("utf-8", "replace")
+    return [line[6:].strip() for line in (stderr or "").splitlines() if line.startswith("HT614 ")]
+
+
 def ps(host: str, code: str, *, env=None, timeout=30):
-    record: dict = {"ordinal": next(_HT614_ORDINAL), "pid": os.getpid(),
+    wrapped = _ht614_wrap(code)
+    if wrapped is not None:
+        code = wrapped
+        env = dict(os.environ if env is None else env, HT614_MARKERS="1")
+    record: dict = {"ordinal": next(_HT614_ORDINAL), "pid": os.getpid(), "wrapped": wrapped is not None,
                     "worker": os.environ.get("PYTEST_XDIST_WORKER", "main"),
                     "test": os.environ.get("PYTEST_CURRENT_TEST"), "host": host,
                     "timeout": timeout, "wall_start": datetime.now(timezone.utc).isoformat(),
@@ -80,16 +109,18 @@ def ps(host: str, code: str, *, env=None, timeout=30):
         result = subprocess.run([host, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
                                  "-Command", code], capture_output=True, text=True,
                                 env=env, timeout=timeout)
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as error:
         record["t_end_ns"] = time.perf_counter_ns()
         record["qpc_end"] = _ht614_qpc()[0]
         record["outcome"] = "TimeoutExpired"
+        record["markers"] = _ht614_markers(error.stderr)
         _ht614_write(record)
         raise
     record["t_end_ns"] = time.perf_counter_ns()
     record["qpc_end"] = _ht614_qpc()[0]
     record["outcome"] = "returned"
     record["returncode"] = result.returncode
+    record["markers"] = _ht614_markers(result.stderr)
     _ht614_write(record)
     return result
 

@@ -42,7 +42,9 @@ function Test-WorktreeContainment {
 function Get-WorktreePathIdentity {
     param([Parameter(Mandatory=$true)][string]$Path)
     $verified = Get-VerifiedWorktreePath $Path
+    if ($env:HT614_MARKERS) { [Console]::Error.WriteLine('HT614 id-verified '+[Diagnostics.Stopwatch]::GetTimestamp()) }
     if (-not (Test-Path -LiteralPath $verified)) { throw "Identity unavailable: $verified" }
+    if ($env:HT614_MARKERS) { [Console]::Error.WriteLine('HT614 id-testpath-end '+[Diagnostics.Stopwatch]::GetTimestamp()) }
     if (-not ('WorktreeIdentity' -as [type])) {
         Add-Type -TypeDefinition @'
 using System;
@@ -69,7 +71,10 @@ public static class WorktreeIdentity {
 }
 '@
     }
-    return [WorktreeIdentity]::Read($verified)
+    if ($env:HT614_MARKERS) { [Console]::Error.WriteLine('HT614 id-addtype-end '+[Diagnostics.Stopwatch]::GetTimestamp()) }
+    $ht614Identity = [WorktreeIdentity]::Read($verified)
+    if ($env:HT614_MARKERS) { [Console]::Error.WriteLine('HT614 id-read-end '+[Diagnostics.Stopwatch]::GetTimestamp()) }
+    return $ht614Identity
 }
 
 function Read-WorktreeEnvironmentScope {
@@ -89,6 +94,7 @@ function Read-WorktreeEnvironmentScope {
 function Test-WorktreeEnvironment {
     param([string]$ApprovedRoot,[string]$RuntimeRoot,[string]$DatabasePath,
           [scriptblock]$ScopeReader = ${function:Read-WorktreeEnvironmentScope})
+    if ($env:HT614_MARKERS) { [Console]::Error.WriteLine('HT614 twe-entry '+[Diagnostics.Stopwatch]::GetTimestamp()) }
     $issues = [Collections.Generic.List[string]]::new()
     $scopes = [Collections.Generic.List[object]]::new()
     foreach ($name in @('MSYS_NO_PATHCONV','MSYS2_ARG_CONV_EXCL')) {
@@ -104,6 +110,7 @@ function Test-WorktreeEnvironment {
             }
         }
     }
+    if ($env:HT614_MARKERS) { [Console]::Error.WriteLine('HT614 scopes-end '+[Diagnostics.Stopwatch]::GetTimestamp()) }
     $paths = @{}
     try {
         $root = Get-VerifiedWorktreePath $ApprovedRoot
@@ -113,8 +120,10 @@ function Test-WorktreeEnvironment {
         if (-not (Test-WorktreeContainment $root $runtime) -or -not (Test-WorktreeContainment $runtime $db)) {
             throw 'Runtime and database must remain within approved root/runtime'
         }
+        if ($env:HT614_MARKERS) { [Console]::Error.WriteLine('HT614 paths-verified '+[Diagnostics.Stopwatch]::GetTimestamp()) }
         $paths = @{approvedRoot=$root;rootIdentity=(Get-WorktreePathIdentity $root);runtime=$runtime;database=$db;logs=(Join-Path $runtime 'logs')}
     } catch { $issues.Add([string]$_) }
+    if ($env:HT614_MARKERS) { [Console]::Error.WriteLine('HT614 twe-return '+[Diagnostics.Stopwatch]::GetTimestamp()) }
     return @{ok=($issues.Count -eq 0);errors=@($issues.ToArray());paths=$paths;scopes=@($scopes.ToArray())}
 }
 
