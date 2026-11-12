@@ -9,7 +9,8 @@ Playwright Chromium specs covering UI flows end-to-end. `playwright.config.ts` a
 | `fixtures.ts` | Shared `test` fixture (console-error collector), `ROUTES`, `API_ENDPOINTS`, `SELECTORS`, `waitForPageReady()`, the page-specific `waitForWorkoutPlanReady()` / `waitForVolumeSplitterReady()` / `waitForBodyCompositionReady()`, `expectToast()` |
 | `console-guard.ts` | Strict console/page-error guard with a per-block allowlist; `strict-fixtures.ts` re-exports it with the allowlist removed from its type |
 | `fixtures/database.visual.seed.db` | Seed DB used by visual specs (committed; whitelisted in `.gitignore`) |
-| `smoke-navigation.spec.ts` | Page loads + nav cycle (no fixtures) |
+| `static-replay.ts` | Per-worker `/static/` replay base under every fixture module (ADR-014) |
+| `smoke-navigation.spec.ts` | Page loads + nav cycle, plus the static-replay and native static-delivery checks (ADR-014) |
 | `dark-mode.spec.ts`, `nav-dropdown.spec.ts` | Theme + navbar |
 | `workout-plan.spec.ts`, `workout-log.spec.ts` | Plan/log CRUD |
 | `summary-pages.spec.ts`, `progression.spec.ts`, `volume-splitter.spec.ts` | Analyze + progress + distribute |
@@ -68,7 +69,8 @@ The GitHub Actions gate runs a curated, deterministic subset on **ubuntu/Chromiu
 
 ## Local parallelism — N=1 only
 
-**The supported local lane is serial: 25 required specs / 477 tests / 719.0s.**
+**The supported local lane is serial.** ADR-006 measured it at 25 required specs /
+477 tests / 719.0s; current counts are in `docs/test_inventory/`.
 `scripts/run-playwright-shards.ps1` defaults to `-Shards 1` and is the way to
 reproduce that reference.
 
@@ -91,6 +93,23 @@ time actually goes is profiled in
 `networkidle` in `waitForPageReady()` is ~30% of the suite, most of it dead
 time, but deleting it breaks a real assertion. Read that before optimizing
 anything here, and read ADR-005 before proposing a change without timings.
+
+**Static-asset replay (ADR-014, #565).** The same per-request connections cause
+trouble at N=1 too. On Windows they drove client `TIME_WAIT` to 45–81% of the
+dynamic range and produced allocation failures in serial runs.
+`e2e/static-replay.ts` therefore records each same-origin `200` `GET /static/…`
+the network serves, and every test fixture module replays repeats of it from
+memory within a worker. Every other request still reaches the server: HTML
+pages, APIs, non-GET, conditional and `Range` requests, other statuses and spec
+mocks. ADR-014's 43,302-request figure covers the 591-test functional partition;
+the ~34k above is ADR-006's 477-test required set.
+To work with it:
+- Disable it for a run with `PW_STATIC_REPLAY=0`.
+- Disable it for a block with `test.use({ staticReplay: false })`. The native
+  block in `smoke-navigation.spec.ts` uses this option and owns the coverage of
+  real delivery, headers, `304` revalidation and `404`s.
+- A new spec takes `test` from a fixture module, or becomes a named exception
+  in `tests/test_static_replay_contracts.py`.
 
 ## Visual spec contract (`visual.spec.ts`, `visual-baseline-thumbnails.spec.ts`)
 - **Where they run.** *(Corrected 2026-08-29. This bullet read "Manual deep gate only … opt-in behind the `run_visual` input (`workflow_dispatch`-only)", which was false on two counts. The "never a **required** status check" half was and remains true.)*

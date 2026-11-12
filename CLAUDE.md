@@ -68,10 +68,12 @@ Never set/export `MSYS_NO_PATHCONV` or `MSYS2_ARG_CONV_EXCL`; run the worktree
 environment preflight in fresh sessions. Use PowerShell end to end, argument arrays
 and drive-qualified native output paths. Resolve Git blobs via one validated full
 OID before `cat-file blob`. The command-text guard is bounded prevention, not a sandbox.
-Worktree creation requires lifecycle/baseline review and target-bound launch setup;
-see `docs/ai_workflow/PARALLEL_WORKFLOW.md`. During the approved cleanup sequence,
-retain worktrees, branches, reflogs, recovery roots and discovered snapshots until
-their separate owner-approved operation; no ordinary teardown bypasses that hold.
+Work in the existing checkout by default. An additional worktree needs explicit owner
+approval and `scripts/new-worktree.ps1`; a standalone clone needs a separately approved
+reason and exact path. If the script refuses, stop that attempt; do not improvise a
+checkout elsewhere. Generated scratch output goes under `artifacts/`. The guard still
+denies worktree removal and branch or ref deletion, so retirement is an owner action.
+The 2026 cleanup campaign is closed; rule and limits: `docs/ai_workflow/PARALLEL_WORKFLOW.md`.
 
 ### Logging and paths
 `get_logger()` returns the `'hypertrophy_toolbox'` logger (`utils/logger.py`), writing to `<runtime root>/logs/app.log` and the console. The runtime root is the repository in a source checkout and `%LOCALAPPDATA%\HypertrophyToolbox` in a frozen build — never assume repository-local paths (`utils/runtime_paths.py`). `DB_FILE` overrides the SQLite path (tests patch `utils.config.DB_FILE`) and `HT_RUNTIME_DIR` relocates the whole runtime tree; the full env-var table is in `.claude/rules/database.md`.

@@ -156,7 +156,7 @@ Document corrections made in this revision:
 | Scenario | Current Behavior | Status |
 |----------|------------------|--------|
 | Weight in 0–1000 kg | Inclusive server-side bound; 0 remains valid for bodyweight/assisted entries | ✅ |
-| Negative rep range | Rejected | ✅ |
+| Negative rep range | Clamped or rejected by the browser form controls only (input `min` attributes and `ui-handlers.js`). The server enforces minimum ≤ maximum but no lower bound on reps: a direct `POST /update_exercise` with negative values returns 200 and stores them (checked 2026-11-12 in an isolated database; tracked in #596) | ⚠️ |
 | Min rep > Max rep | Rejected server-side on plan add/edit and scored-log edit | ✅ |
 | Sets = 0 | Rejected | ✅ |
 | RIR outside 0–10 | Rejected server-side on plan add/edit and scored-log edit | ✅ |

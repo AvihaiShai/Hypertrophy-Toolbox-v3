@@ -447,19 +447,24 @@ def update_exercise_order():
         if not data:
             return error_response("VALIDATION_ERROR", "No data provided", 400)
         
+        # The batch is all-or-nothing: validate every entry before writing, then
+        # apply the writes in one transaction.
+        updates = []
+        for entry in data:
+            entry_id = entry.get("id")
+            entry_order = entry.get("order")
+            # order == 0 is a valid position; only None/absent/empty-string
+            # counts as missing.
+            if not entry_id or entry_order is None or entry_order == "":
+                return error_response("VALIDATION_ERROR", "Invalid entry data", 400)
+            updates.append((entry_order, entry_id))
+
         with DatabaseHandler() as db:
-            for entry in data:
-                entry_id = entry.get("id")
-                entry_order = entry.get("order")
-                # order == 0 is a valid position; only None/absent/empty-string
-                # counts as missing.
-                if not entry_id or entry_order is None or entry_order == "":
-                    return error_response("VALIDATION_ERROR", "Invalid entry data", 400)
-                db.execute_query(
-                    "UPDATE user_selection SET exercise_order = ? WHERE id = ?",
-                    (entry_order, entry_id)
-                )
-                
+            db.executemany(
+                "UPDATE user_selection SET exercise_order = ? WHERE id = ?",
+                updates,
+            )
+
         return jsonify(success_response(message="Exercise order updated successfully"))
     except Exception as e:
         logger.exception("Error updating exercise order")

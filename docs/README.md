@@ -38,8 +38,6 @@ Source contracts, approval boundaries and evidence remain in the retained docume
 - **[UI_SCENARIOS_GAP_ANALYSIS.md](UI_SCENARIOS_GAP_ANALYSIS.md)** - UI risk status, deferred quality items, and Known Issues table (KI-001..)
 
 ### Feature Docs
-- **[FILTER_VIEW_MODE.md](FILTER_VIEW_MODE.md)** - Simple vs scientific muscle naming mode
-- **[program_backups.md](program_backups.md)** - Backup Center and program snapshot behavior
 - **[muscle_selector.md](muscle_selector.md)** - Muscle selector component notes
 - **[muscle_selector_vendor.md](muscle_selector_vendor.md)** - Vendor SVG attribution
 
@@ -57,6 +55,7 @@ Proposed entries do not authorize implementation. The archive container is index
 - [ci_cd_phase3/](ci_cd_phase3/) — pinned Pyright baseline used by CI
 - [deep_gate_linux_visual_failure_20260831/](deep_gate_linux_visual_failure_20260831/) — completed Gate-1 diagnostic; further action awaits an owner decision
 - [finding1_residual/](finding1_residual/) — shipped D7; residual poisoned-row behavior still needs a current reference
+- [issue565_socket_allocation/](issue565_socket_allocation/) — #565 diagnosis, Gate 1 requirements and evidence for the ADR-014 static replay
 - [ki005_controls_persistence/](ki005_controls_persistence/) — shipped KI-005; retains the held Stage 4 restoration baseline
 - [product/](product/) — always-active reference for shipped behavior, schema, and design
 - [release_pipeline/](release_pipeline/) — shipped pipeline and remaining release/deep-gate entry conditions

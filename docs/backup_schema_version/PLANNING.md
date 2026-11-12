@@ -62,7 +62,7 @@ Confirmed by direct read on 2026-08-14. Re-verify before relying on any line num
 
 1. **Contract is stated at the definition site.** Given a developer opens [`utils/program_backup.py`](../../utils/program_backup.py), when they read the lines that define `BACKUP_SCHEMA_VERSION`, then they find a statement that the value is a **reserved informational label**; that `restore_backup` is **deliberately version-blind**; that structural compatibility is owned by `_check_column_exists`; and the TODO text at [`:18-21`](../../utils/program_backup.py#L18-L21) is gone.
 
-2. **The bump-and-branch rule is written where the next author will hit it.** Given a future change adds, removes, or renames a column in `program_backup_items`, when the author reads either the module contract or [`docs/program_backups.md`](../program_backups.md), then they find a mandatory three-part obligation — bump `BACKUP_SCHEMA_VERSION`, add an `ALTER`-based migration in `initialize_backup_tables` in the shape of the `superset_group` precedent at [`:70-75`](../../utils/program_backup.py#L70-L75), and add the corresponding branch in `restore_backup` — together with the citation that `6b99535` (2026-02-05) skipped exactly this after `720cb0e` (2026-02-03) introduced the constant.
+2. **The bump-and-branch rule is written where the next author will hit it.** Given a future change adds, removes, or renames a column in `program_backup_items`, when the author reads either the module contract or [`docs/program_backups.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/program_backups.md), then they find a mandatory three-part obligation — bump `BACKUP_SCHEMA_VERSION`, add an `ALTER`-based migration in `initialize_backup_tables` in the shape of the `superset_group` precedent at [`:70-75`](../../utils/program_backup.py#L70-L75), and add the corresponding branch in `restore_backup` — together with the citation that `6b99535` (2026-02-05) skipped exactly this after `720cb0e` (2026-02-03) introduced the constant.
 
 3. **The persisted value is asserted from the database.** Given a backup created through `create_backup`, when the test asserts its version, then the value is read by a fresh `SELECT schema_version FROM program_backups WHERE id = ?` through `DatabaseHandler`, not from the dict returned at [`:248`](../../utils/program_backup.py#L248).
 
@@ -78,7 +78,7 @@ Confirmed by direct read on 2026-08-14. Re-verify before relying on any line num
 
 8. **Every documentation location is reconciled.** Given the six locations that describe the column plus the one gap identified in the trace, when the packet lands, then each states the same contract:
    - [`utils/program_backup.py:18-21`](../../utils/program_backup.py#L18-L21) — contract replaces the TODO (AC 1).
-   - [`docs/program_backups.md:24`](../program_backups.md#L24) — storage table row gains the label semantics and the bump-and-branch rule (AC 2).
+   - [`docs/program_backups.md:24`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/program_backups.md#L24) — storage table row gains the label semantics and the bump-and-branch rule (AC 2).
    - [`docs/product/BACKEND_SCHEMA.md:612`](../product/BACKEND_SCHEMA.md#L612) — `schema_version` column row notes it is informational; [`:74`](../product/BACKEND_SCHEMA.md#L74)'s existing "unrelated to `user_version`" note is kept and cross-referenced.
    - [`docs/LEFTOVERS_BY_PRIORITY.md:608`](../LEFTOVERS_BY_PRIORITY.md#L608) — disposition changes from "OWNER / D6 open" to resolved, citing the ADR.
    - [`docs/TESTING_STRATEGY_PLANNING.md:259`](../TESTING_STRATEGY_PLANNING.md#L259) — D6 row records the decision as **B**, noting it departs from the doc's own recommendation of A and why; [`:172`](../TESTING_STRATEGY_PLANNING.md#L172) (B11) drops the "escape hatch doesn't exist yet" framing for the settled contract; the sign-off state line and a new §8.1b move D6 out of the unsigned set, leaving the §8.1 and §8.1a tables frozen as historical record per their own stated convention.
@@ -114,7 +114,7 @@ No function in the calculation surface defined by [`QUALITY_GATE.md`](../ai_work
 - **Any enforcement of the version.** No guard, no supported range, no new error code, no UI state. That is option A, which the owner declined.
 - **Any removal.** The column, the four API fields, the JS consumer, and the Schema tile all stay exactly as they are. Option C is declined and would need a separate explicit reversal.
 - **`prune_auto_backups()` / `get_latest_auto_backup()`** ([`:618`](../../utils/program_backup.py#L618), [`:656`](../../utils/program_backup.py#L656)) — verified to have no production callers. **Adjacent finding, explicitly excluded**; it is its own decision under [`docs/TESTING_STRATEGY_PLANNING.md:203`](../TESTING_STRATEGY_PLANNING.md#L203), and adding tests here would entrench a dead surface.
-- **The erase/backup-survival contradiction** — [`docs/program_backups.md:27`](../program_backups.md#L27) says backups survive an erase; `OWNED_TABLES_DROP_ORDER` drops both tables. **Adjacent finding, explicitly excluded**; already ledgered at [`docs/product/APP_FLOW.md:641`](../product/APP_FLOW.md#L641) and owned by whoever fixes that row. This packet must not "helpfully" correct line 27 while editing line 24 of the same file.
+- **The erase/backup-survival contradiction** — [`docs/program_backups.md:27`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/program_backups.md#L27) says backups survive an erase; `OWNED_TABLES_DROP_ORDER` drops both tables. **Adjacent finding, explicitly excluded**; already ledgered at [`docs/product/APP_FLOW.md:641`](../product/APP_FLOW.md#L641) and owned by whoever fixes that row. This packet must not "helpfully" correct line 27 while editing line 24 of the same file.
 - Phase 3 step 11 implementation (backup-row fuzzing). Released by AC 10, executed elsewhere.
 - Any template, SCSS, or JS edit — and therefore no visual-baseline exposure. The Schema tile is unchanged and sits behind a panel that is `hidden` at rest.
 - Any database mutation, restore execution, or backup creation against a live database during this packet.
@@ -175,7 +175,7 @@ Note the distinction the packet must not blur: AC 6 **pins** an existing API fie
 **Out** — as Section 0. Restated for the implementer because each is a live temptation while editing adjacent lines:
 - No enforcement, no guard, no error code, no supported range.
 - No removal of the column, the four API fields, the JS consumer, or the Schema tile.
-- **Do not touch [`docs/program_backups.md:27`](../program_backups.md#L27)** while editing line 24 of the same file.
+- **Do not touch [`docs/program_backups.md:27`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/program_backups.md#L27)** while editing line 24 of the same file.
 - **Do not add tests for `prune_auto_backups()` / `get_latest_auto_backup()`** while editing the same test file.
 - No template, SCSS, or JS edit — therefore no visual, CSS, or E2E exposure.
 - No JS unit-test harness (owner instruction 5).
@@ -187,7 +187,7 @@ Note the distinction the packet must not blur: AC 6 **pins** an existing API fie
 | [`utils/program_backup.py`](../../utils/program_backup.py) | modify | Replace the TODO at `:18-21` with the contract + bump-and-branch rule. **Comment text only — no executable line changes.** |
 | [`tests/test_program_backup.py`](../../tests/test_program_backup.py) | modify | Replace the tautological assertion at `:55` (AC 3–4); add foreign-version restore pinning for `0` and `2` (AC 5); add the API-field presence assertion (AC 6). |
 | [`docs/DECISIONS.md`](../DECISIONS.md) | modify | `ADR-008`, status `accepted`. Renumber if a concurrent packet claims it first. |
-| [`docs/program_backups.md`](../program_backups.md) | modify | Storage-table row `:24` + the bump-and-branch rule. Line 27 untouched. |
+| [`docs/program_backups.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/program_backups.md) | modify | Storage-table row `:24` + the bump-and-branch rule. Line 27 untouched. |
 | [`docs/product/BACKEND_SCHEMA.md`](../product/BACKEND_SCHEMA.md) | modify | `:612` column row notes the label semantics; cross-reference the existing `:74` note. |
 | [`docs/product/APP_FLOW.md`](../product/APP_FLOW.md) | modify | **New** Schema-tile row in the Backup Center control table (`:594`+). Preserve the concurrent working-tree edits. |
 | [`docs/LEFTOVERS_BY_PRIORITY.md`](../LEFTOVERS_BY_PRIORITY.md) | modify | `:608` disposition → resolved, citing `ADR-008`. |

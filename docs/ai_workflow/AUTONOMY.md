@@ -40,15 +40,14 @@ Never set/export `MSYS_NO_PATHCONV` or `MSYS2_ARG_CONV_EXCL`. Fresh-session
 presence, including zero/empty values and unreadable scopes. Agents do not clear
 persistent settings. Use PowerShell end to end and drive-qualified native paths.
 
-Operation A requires the owner-approved lifecycle/baseline projection before new
-worktrees, validated online SQLite seeding, and the emitted process-only target
-launch setup. Its named stdlib SQLite/diagnostics exception is in the database rule.
-During the signed cleanup sequence all worktrees, recovery roots and discovered
-snapshots are retained; ordinary closeout cannot bypass separate operation approval.
-This packet's snapshot hold does not change normal post-operation backup rotation.
-User-level guard/memory installation, fresh-session acceptance and active lifecycle
-monitoring remain owner actions; repository tests and merge alone cannot establish
-`PREVENTION_COMPLETE`.
+A new worktree requires the creation script's lifecycle/baseline preflight, validated
+online SQLite seeding, and the emitted process-only target launch setup. Its named
+stdlib SQLite/diagnostics exception is in the database rule. The 2026 worktree cleanup
+campaign was closed by owner decision on 2026-11-10: its retention hold and
+`PREVENTION_COMPLETE` acceptance impose no current obligation, and its unperformed
+acceptance captures are waived, not passed. The standing rule and the limits accepted
+at closure are in
+[Parallel Workflow](PARALLEL_WORKFLOW.md#completion-and-retained-worktrees).
 
 ---
 

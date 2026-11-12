@@ -250,6 +250,10 @@ async function selectFirstExercise(page: Page): Promise<void> {
   const value = await exerciseSelect.locator('option').nth(1).getAttribute('value');
   expect(value, 'expected at least one selectable exercise option').toBeTruthy();
   await exerciseSelect.selectOption(value as string);
+  // The change handler sets this marker synchronously and clears it once the
+  // recommendation is written. Without this wait a late estimate overwrites
+  // values the caller fills next (#565: routed contexts delay API responses).
+  await page.waitForFunction(() => !document.documentElement.hasAttribute('data-workout-controls-busy'));
 }
 
 /** Click Add Exercise and wait for the plan to actually gain a row (a SUCCESSFUL add). */
