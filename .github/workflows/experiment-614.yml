@@ -1,0 +1,125 @@
+# Issue #614 diagnostic pilot. Throwaway: lives only on the experiment branch,
+# is never merged, and runs only on pushes to that branch. One push whose head
+# commit message is "614 pilot block NN" is one block: one job per arm, each on
+# its own fresh hosted runner. Steps up to and including the no-skips verifier
+# are copied from `worktree-windows` in ci.yml; only the checkout ref differs.
+name: Experiment 614 preflight timeouts
+
+on:
+  push:
+    branches: ['experiment/614-preflight-timeouts']
+
+permissions:
+  contents: read
+
+jobs:
+  pilot:
+    name: Arm ${{ matrix.arm }}
+    runs-on: windows-2022
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arm: A
+            ref: 9338543a8a71251b401029da04677d717f53c659
+          - arm: B
+            ref: e052fe99eb1562b8e07b06b2163e9ea096b09a6b
+          - arm: C
+            ref: 60bb5664c55278a986240f386f4172c2b37543d2
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ matrix.ref }}
+        persist-credentials: false
+
+    - name: Set up Python
+      id: setup-python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version-file: '.python-version'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install -r requirements.txt
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        python -m pip check
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        python -m pip list --format=json
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    - name: Require Windows PowerShell and PowerShell 7
+      shell: pwsh
+      run: |
+        foreach ($hostName in @('powershell', 'pwsh')) {
+          $executable = (Get-Command $hostName -ErrorAction Stop).Source
+          & $executable -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        }
+
+    - name: Run Operation A tests on both Windows hosts
+      shell: pwsh
+      env:
+        TEMP: ${{ runner.temp }}
+        TMP: ${{ runner.temp }}
+        TMPDIR: ${{ runner.temp }}
+        HT_RUNTIME_DIR: '${{ runner.temp }}/operation-a-runtime'
+        PYTHONDONTWRITEBYTECODE: '1'
+      run: |
+        python -m pytest tests/test_worktree_environment_preflight.py tests/test_worktree_lifecycle.py tests/test_worktree_snapshot.py -n 4 --dist load -v --tb=short --junitxml=artifacts/pytest/worktree-windows.xml
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    - name: Require executed coverage without skips
+      if: always()
+      run: python -m tests.worktree_cleanup.verify_ci_report artifacts/pytest/worktree-windows.xml
+
+    # Everything below runs after the tests, so it cannot perturb them.
+    - name: Record job environment
+      id: evidence
+      if: always()
+      shell: pwsh
+      env:
+        HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+        ARM: ${{ matrix.arm }}
+        ARM_REF: ${{ matrix.ref }}
+        PIP_CACHE_HIT: ${{ steps.setup-python.outputs.cache-hit }}
+      run: |
+        $dir = 'artifacts/ht614'
+        New-Item -ItemType Directory -Force -Path $dir | Out-Null
+        $block = if ($env:HEAD_MESSAGE -match '^614 pilot block (\d{2})') { $Matches[1] } else { 'unknown' }
+        "block=$block" >> $env:GITHUB_OUTPUT
+        python -m pip list --format=json | Out-File -Encoding utf8 "$dir/pip-list.json"
+        $hosts = foreach ($hostName in @('powershell', 'pwsh')) {
+          $executable = (Get-Command $hostName -ErrorAction Stop).Source
+          $version = & $executable -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()'
+          @{ name = $hostName; path = $executable; version = "$version" }
+        }
+        $region = try {
+          Invoke-RestMethod -Headers @{ Metadata = 'true' } -TimeoutSec 5 -Uri 'http://169.254.169.254/metadata/instance/compute/location?api-version=2021-02-01&format=text'
+        } catch { 'unavailable' }
+        $agent = try {
+          (Get-Process -Name Runner.Listener -ErrorAction Stop | Select-Object -First 1).MainModule.FileVersionInfo.ProductVersion
+        } catch { 'see job log' }
+        @{
+          arm = $env:ARM; armRef = $env:ARM_REF; block = $block
+          runId = $env:GITHUB_RUN_ID; runAttempt = $env:GITHUB_RUN_ATTEMPT
+          imageOS = $env:ImageOS; imageVersion = $env:ImageVersion
+          runnerName = $env:RUNNER_NAME; runnerArch = $env:RUNNER_ARCH; agentVersion = "$agent"
+          region = "$region"; pipCacheHit = $env:PIP_CACHE_HIT
+          python = "$(python --version)"; hosts = @($hosts)
+          processors = $env:NUMBER_OF_PROCESSORS
+        } | ConvertTo-Json -Depth 5 | Out-File -Encoding utf8 "$dir/env.json"
+
+    - name: Upload pilot evidence
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ht614-arm${{ matrix.arm }}-block${{ steps.evidence.outputs.block }}-run${{ github.run_id }}-attempt${{ github.run_attempt }}
+        path: |
+          artifacts/pytest/worktree-windows.xml
+          artifacts/ht614/
+        if-no-files-found: error
+        retention-days: 90
