@@ -85,9 +85,10 @@ def test_the_certified_removals_stay_removed() -> None:
             if selector in head
         ]
         occurrences = sum(len(re.findall(rf"^\s*{re.escape(prop)}\s*:", b, flags=re.MULTILINE)) for b in blocks)
-        assert occurrences <= 1, (
-            f"{selector} declares {prop} {occurrences} times; the duplicate generation "
-            "WP4.4-j certified as shadowed has come back"
+        assert occurrences == 1, (
+            f"{selector} declares {prop} {occurrences} times, expected exactly once: "
+            "more than one means the duplicate generation WP4.4-j certified as shadowed "
+            "has come back, and zero means the surviving winner itself was removed"
         )
 
 
