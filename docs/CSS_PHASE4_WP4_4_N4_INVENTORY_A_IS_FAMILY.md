@@ -78,7 +78,7 @@ before `h`'s legal deletion window (lines 4105–5345) and did **not** move.
 
 Packet i's scope row lists thirteen line identities and omits `:3336`. Council item **A15**
 already required adding it; this inventory records it as a first-class row (§3, row 1b)
-because it is the family's lowest-specificity arm and therefore its highest-risk one.
+because it is the second selector line of the family's lowest-specificity rule: `:3335` (1,2,0) is the lowest arm, `:3336` is (1,3,0) (§2.1).
 
 ---
 

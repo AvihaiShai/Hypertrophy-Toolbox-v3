@@ -100,10 +100,12 @@
 > to `accessibility.spec.ts`. Both change test counts.
 >
 > **N7 — the retention constraint is harder than "QUALITY_GATE links them".**
-> Six CSS evidence artifacts are **pytest-pinned** in `tests/test_css_wp4_4_*.py`
-> (`_D1_A11Y_`, `_D2_A11Y_`, `_E_LAYOUT_`, `_H_COMPONENTS_DEAD_`,
-> `_A_BASELINE.json`, `_1_STYLELINT_BASELINE.json`); moving one reds the required
-> `Run Tests`. The seven orphan `WP4_3I_*` files are **not** test- or
+> Two JSON baselines (`CSS_PHASE4_WP4_4_A_BASELINE.json`,
+> `CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json`) are **pytest-pinned**. The four
+> `*_EVIDENCE.md` files are named only in test docstrings and one assertion message
+> (`tests/test_css_wp4_4_a11y_contracts.py:18-19,:334`, `components_contracts.py:5`,
+> `layout_contracts.py:10,:104`); no test reads them. Moving one does not red
+> `Run Tests`, but `ci.yml` and `deep-gate.yml` hard-code several `docs/` paths. The seven orphan `WP4_3I_*` files are **not** test- or
 > CI-referenced and are the genuinely movable subset.
 >
 > **N8 — cleanup executability in this repo.** `git worktree remove` is
@@ -547,11 +549,13 @@ starting one.**
   tracker still points at a deleted worktree (`D:/development/HT-scan`). Archive
   candidates under [`DOC_RETENTION.md`](ai_workflow/DOC_RETENTION.md), but the
   6-month criterion is unmet. **v23 (N7): the CSS blocker is harder than a doc
-  link.** Six of these artifacts are asserted by pytest in
-  `tests/test_css_wp4_4_*.py` — `_D1_A11Y_`, `_D2_A11Y_`, `_E_LAYOUT_`,
-  `_H_COMPONENTS_DEAD_`, plus `CSS_PHASE4_WP4_4_A_BASELINE.json` and
-  `CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json` — so moving one reds the **required**
-  `Run Tests` context, not merely a documentation link. The seven orphan
+  link.** Two of these artifacts, `CSS_PHASE4_WP4_4_A_BASELINE.json` and
+  `CSS_PHASE4_WP4_1_STYLELINT_BASELINE.json`, are asserted by pytest in
+  `tests/test_css_wp4_4_*.py`, so moving one reds the **required** `Run Tests`
+  context. The four `*_EVIDENCE.md` files (`_D1_A11Y_`, `_D2_A11Y_`, `_E_LAYOUT_`,
+  `_H_COMPONENTS_DEAD_`) are named only in test docstrings and one assertion message;
+  no test reads them, though `ci.yml` and `deep-gate.yml` hard-code several `docs/`
+  paths. The seven orphan
   `WP4_3I_*` files carry no test or CI reference and are the only genuinely
   movable subset. Revisit, do not act now.
 

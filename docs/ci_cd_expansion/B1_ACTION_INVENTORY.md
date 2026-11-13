@@ -5,7 +5,7 @@ Execution authority and commit/run/review evidence live in [PLANNING.md §13](PL
 This is the B1 inventory, not activation of the C3 repository policy.
 Later additions (A1, B2, E1/D3, B3) are appended below without rewriting this measurement;
 the current C3 candidate set and remote `uses:` count are in the latest addition (B3: six
-repositories, 95).
+repositories, 95 at that time). The census at `b77cb742` and at `origin/main` is 99 (`SETTINGS_ACTIVATION.md:35`, `:247`); the B1 addendum tables are not updated.
 
 ## Adopted remote actions
 

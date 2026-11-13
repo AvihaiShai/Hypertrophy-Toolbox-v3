@@ -145,7 +145,7 @@ The self-checks were not decorative. **Every one of them failed first**, and eac
 
 ## 7. Motion oracle for WP4.4-c (F1)
 
-`visual.spec.ts` cannot falsify WP4.4-c: `prepareForScreenshot()` sets `animation-duration: 0s !important` and `transition-duration: 0s !important` globally, so deleting `motion.css` entirely would produce a byte-identical visual matrix. The replacement oracle captures the transition/animation longhands at rest, with no determinism tag, under **both** `prefers-reduced-motion` states.
+`visual.spec.ts` cannot falsify WP4.4-c: `prepareForScreenshot()` sets `animation-duration: 0s !important` and `transition-duration: 0s !important` globally, so the capture helper zeroes `motion.css`'s animation and transition timing; `motion.css` also holds static declarations (`.skeleton` fill, `border-radius`, `color: transparent !important`, `border-color`) that the helper does not neutralize. Whether any captured page renders `.skeleton` was not measured here. The replacement oracle captures the transition/animation longhands at rest, with no determinism tag, under **both** `prefers-reduced-motion` states.
 
 | Route (per theme) | Elements | With motion | Changed under reduced-motion |
 |---|---:|---:|---:|

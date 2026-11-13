@@ -171,7 +171,7 @@ production delivery change is `templates/base.html` pointing the same Font Aweso
 
 **Not touched:** `e2e/__screenshots__/**`, `docs/CSS_PHASE4_WP4_4_A_BASELINE.json`,
 `tests/test_css_wp4_4_a_baseline_contracts.py`, `e2e/scripts/prepare_e2e_db.py`,
-`playwright.config.ts`, and every production source file.
+and every production source file except `templates/base.html` (Font Awesome now vendored locally).
 
 ---
 

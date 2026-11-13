@@ -635,6 +635,7 @@ rows here.
 `97094899990` (run `32599231895`, `ubuntu-latest`, `success`) checked the committed
 inventory against a fresh **Linux** regeneration and passed against a
 Windows-generated artifact. **NT-7 remains open.**
+[2026-11 note: closed. `static/js/modules/__tests__/toast.test.js:589,:625` use `describe.each`; the runtime-collected inventory lists the expanded rows (`TEST_INVENTORY.json:1237-1249`); #511 (`72ad8b6d`) pinned the collector to runtime collection. The evidence is indirect (inventory rows), not a fresh run.]
 
 **`Test Inventory Drift` now pins six surfaces, not five.** From `2c95bae` onward,
 adding, removing, **renaming**, `.skip`-ing or `.todo`-ing any

@@ -9,6 +9,8 @@
 
 ## 1. Questionnaire — reference lifts
 
+*(Original 14-lift questionnaire, 2026-04. Shipped: `KEY_LIFTS` holds 64 slugs (`utils/_profile_estimator/constants.py:38`); the questionnaire is `REFERENCE_LIFT_GROUPS` in `routes/user_profile.py:68` (issues #6, #9, #24; `romanian_deadlift` and `conventional_deadlift` are split).)*
+
 The questionnaire captures one `(weight_kg, reps)` pair per slug. All lifts are optional.
 
 > *** codex 5.5*** Add one implementation note for Slice-E/D: these lift inputs should mean "a recent hard set you remember", not a calculated 1RM. The estimator already computes Epley 1RM from weight and reps; if the UI copy lets users enter an estimated 1RM plus reps, the downstream estimates will be inflated.
@@ -30,7 +32,7 @@ The questionnaire captures one `(weight_kg, reps)` pair per slug. All lifts are 
 | `bodyweight_dips` | Bodyweight Dips | `weight_kg = 0`; reps = best AMRAP |
 | `barbell_row` | Barbell Row | Bent-over / Pendlay |
 
-**`KEY_LIFTS`** in `utils/profile_estimator.py` is exactly the frozenset of these 14 slugs.
+**`KEY_LIFTS`** in `utils/profile_estimator.py` was exactly the frozenset of these 14 slugs in the original design (see the note under the section heading for the shipped set).
 
 **Resolved (Opus 4.7, 2026-04-26):** UI copy for the questionnaire (Slice-E) and any inline help in the workout-plan caption (Slice-F) must phrase these inputs as "a recent hard working set you remember (weight × reps)", **not** as a 1RM. The estimator runs Epley over the stored `(weight_kg, reps)`; if a user enters an already-calculated 1RM as `weight_kg` with low reps, the downstream estimate compounds. Concrete copy directive for Slice-E: each row's helper text must say "your recent hard set", and the section header must NOT use the word "1RM".
 
@@ -180,7 +182,7 @@ Round the `pct_1rm × 1RM × tier_ratio` product before returning it.
 
 **Rationale:** Per-hand is the gym industry standard, matches how dumbbells are physically labelled (each dumbbell carries its own per-piece weight), and is what users naturally type when reading the rack.
 
-**No estimator-math change is required.** The chain `epley_1rm` → `TIER_RATIOS` → `REP_RANGE_PRESETS` → `round_weight` is unit-agnostic — it operates on `weight` as an opaque scalar end-to-end. As long as input and output share the same convention (and the user is consistent across questionnaire and Workout Controls), the math is correct without conversion. Aggregations downstream (`utils/weekly_summary.py`, `utils/session_summary.py`) compute `total_volume = sets × reps × weight` and inherit the same convention; per-hand volume is internally consistent across barbell and dumbbell exercises but is **not** directly comparable to total-load tonnage from other tracking apps.
+**Superseded by the load-basis reconciliation:** `_load_basis_factor` (`utils/_profile_estimator/core_math.py:103`) converts per-hand vs total basis (x2 per-hand reference to total target, x0.5 the reverse) when reference and target disagree. Inputs and outputs are still per hand. The original statement follows. **No estimator-math change is required.** The chain `epley_1rm` → `TIER_RATIOS` → `REP_RANGE_PRESETS` → `round_weight` is unit-agnostic — it operates on `weight` as an opaque scalar end-to-end. As long as input and output share the same convention (and the user is consistent across questionnaire and Workout Controls), the math is correct without conversion. Aggregations downstream (`utils/weekly_summary.py`, `utils/session_summary.py`) compute `total_volume = sets × reps × weight` and inherit the same convention; per-hand volume is internally consistent across barbell and dumbbell exercises but is **not** directly comparable to total-load tonnage from other tracking apps.
 
 **UI surfacing:**
 - `utils/profile_estimator.py:DUMBBELL_LIFT_KEYS` is the canonical set of dumbbell-loaded reference-lift slugs (per-hand convention applies).
@@ -257,6 +259,8 @@ Some fallbacks are cross-muscle approximations (e.g., `Triceps → barbell_bench
 
 Strict order; first source that yields a result wins.
 
+**Shipped order (supersedes the three-step list below, which is the v1 design):** 1. exact learned calibration (settings mode `suggest`); 2. last logged set; 3. related learned calibration (when `allow_related_exercise_learning` is on); 4. Profile estimate; 5. cold-start from demographics (Issue #16; `source: 'cold_start'`); 6. default. The Profile-estimate formula is `reference_1rm × min(TIER_RATIOS[target_tier] / TIER_RATIOS[reference_tier], 1.0) × cross_factor × load_basis_factor`, with `reference_tier` from `KEY_LIFT_TIER`. The `reason` enum below is the v1 enum and lacks the learned and cold-start reasons.
+
 1. **Last logged set** — most recent row in `workout_log` for this exact exercise name (queried by `id DESC LIMIT 1`, no JOIN). Returns `{weight, sets, min_rep, max_rep, rir, rpe, source: 'log', reason: 'log'}` using `COALESCE(scored_*, planned_*)` columns from the log row.
 2. **Profile estimate** — runs `_estimate_from_profile(exercise_row, profile_lifts, preferences)`:
    - Tier = `classify_tier(exercise_row)`
@@ -295,7 +299,7 @@ reason ∈ {
 
 | Field | Min | Max | Notes |
 | --- | --- | --- | --- |
-| `gender` | — | — | One of `{'M', 'F', 'Other'}`; nullable |
+| `gender` | — | — | One of `{'M', 'F'}`; nullable (`VALID_GENDERS`, `routes/user_profile.py:54`) |
 | `age` | 10 | 100 | int; nullable |
 | `height_cm` | 100 | 250 | float; nullable |
 | `weight_kg` (demographics) | 30 | 300 | float; nullable |
@@ -312,7 +316,7 @@ reason ∈ {
 
 > *** codex 5.5*** Demographics are collected in v1 but mostly unused by the estimator, except as future context for bodyweight-aware calculations. That is acceptable, but the implementation docs should state it plainly so agents do not invent age/gender/bodyweight formulas late in the build and create unreviewed behavior.
 
-**Resolved (Opus 4.7, 2026-04-26 — codex 5.5 follow-up):** Pinning explicitly. **In v1, `_estimate_from_profile` reads ONLY `user_profile_lifts` and `user_profile_preferences`. It MUST NOT read `gender`, `age`, `height_cm`, `weight_kg`, or `experience_years` from `user_profile`.** Demographics are collected for v2 (bodyweight-add-on for weighted pull-ups/dips, possible age/experience-aware tier ratios) and for the user's own reference, but the estimator function signature does not even take them as inputs. This is a **hard constraint** for Slice-C: any implementation that imports demographic columns into the estimate path is out-of-scope and must be rejected at review.
+**Resolved (Opus 4.7, 2026-04-26 — codex 5.5 follow-up):** Pinning explicitly. **In v1, `_estimate_from_profile` reads ONLY `user_profile_lifts` and `user_profile_preferences`. It MUST NOT read `gender`, `age`, `height_cm`, `weight_kg`, or `experience_years` from `user_profile`.** *(v1 statement; `_estimate_from_cold_start` reads demographics since Issue #16.)* Demographics are collected for v2 (bodyweight-add-on for weighted pull-ups/dips, possible age/experience-aware tier ratios) and for the user's own reference, but the estimator function signature does not even take them as inputs. This is a **hard constraint** for Slice-C: any implementation that imports demographic columns into the estimate path is out-of-scope and must be rejected at review.
 
 - **Per-exercise overrides** — user might want to pin "preacher curl uses 65% of standing curl 1RM" rather than the flat 40% tier ratio. Out of scope for v1.
 - **Auto-update from logged data** — currently last-logged-set wins, but the questionnaire data is *not* refreshed from logs. A future job could refresh `user_profile_lifts` whenever a heavier 1RM is observed. Out of scope for v1.

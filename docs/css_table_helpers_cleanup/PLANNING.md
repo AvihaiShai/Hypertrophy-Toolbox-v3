@@ -575,7 +575,7 @@ Separately, state whether the detector widening (`className =`, `setAttribute('c
 
 All run inside "full pytest", so no gate changes — but the plan should cite them:
 
-- `tests/test_css_wp4_4_a_baseline_contracts.py:39-44` — `EXPECTED_SNAPSHOT_COUNTS` manifests the committed screenshot trees (`win32` 66/18, `linux` 68/18). **This is the mechanical enforcement of the plan's P3 ("no rebaseline")**, stronger than the `git diff --name-only` check P3 currently relies on. Cite it as the P3 gate.
+- `tests/test_css_wp4_4_a_baseline_contracts.py:39-44` — `EXPECTED_SNAPSHOT_COUNTS` manifests the committed screenshot trees (`win32` 66/18, `linux` 68/18) by names, counts and byte sizes of the committed PNGs (`nameAndSizeSha256`, `tests/test_css_wp4_4_a_baseline_contracts.py:636-645`); a same-size regeneration would not red it, so the `git diff --name-only` zero-path check remains the content check.
 - `tests/test_css_wp4_4_a_baseline_contracts.py:61` — compares per-surface line counts against the baseline's own `sourceCommit` via `git show`, deliberately **not** the working tree (docstring lines 69-74; WP4.4-c fixed exactly this). So outcome A's ~41-line deletion does **not** red it. Record that, or a reviewer will read a line-count pin as a blocker.
 - The other four files reading `layout.css`: `tests/test_css_cascade_contracts.py`, `tests/test_css_field_separator_contracts.py`, `tests/test_css_wp4_4_base_contracts.py`, `tests/test_css_wp4_4_a11y_contracts.py`.
 
@@ -905,7 +905,7 @@ P1–P6 and P8 carry forward from Plan v1 unchanged. Changed:
 
 | # | Invariant | Pass condition (v2) |
 |---|---|---|
-| **P3** | No rebaseline, no tolerance change | **Now mechanically gated, not promised**: `tests/test_css_wp4_4_a_baseline_contracts.py:39–44` (`EXPECTED_SNAPSHOT_COUNTS`, `win32` 66/18 · `linux` 68/18) manifests the committed screenshot trees inside the full pytest run — stronger than the `git diff --name-only` check P3 leaned on, which is retained as a second check alongside zero changes to `e2e/visual-helpers.ts` and `playwright.config.ts`. |
+| **P3** | No rebaseline, no tolerance change | **Now mechanically gated on names, counts and byte sizes, not promised**: `tests/test_css_wp4_4_a_baseline_contracts.py:39–44` (`EXPECTED_SNAPSHOT_COUNTS`, `win32` 66/18 · `linux` 68/18) manifests the committed screenshot trees inside the full pytest run (`nameAndSizeSha256`, `:636-645`); a same-size regeneration would not red it, so the `git diff --name-only` zero-path check remains the content check, retained as a second check alongside zero changes to `e2e/visual-helpers.ts` and `playwright.config.ts`. |
 | **P7** | The record is true | **Rescoped** to: *no file this packet writes* asserts the refuted "inherently blind" rationale, under either outcome. The four documents it does not write are named in deferral **D-1**, with the evidence document as the supersession pointer. The v1 wording ("no document in the tree") was unsatisfiable by construction and is corrected rather than ticked falsely. |
 | **P9** *(new)* | Red paths leave no residue | Every transient red-path edit under `templates/**` and `static/js/**` is reverted immediately, and `git status --porcelain` + `git ls-files --others --exclude-standard` prove the committed diff is exactly the artifact table. AC7 is read as a statement about the **committed** diff. |
 

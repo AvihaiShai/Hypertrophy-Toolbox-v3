@@ -5,17 +5,17 @@
 **Planning size:** Large / cross-cutting per [QUALITY_GATE.md](../ai_workflow/QUALITY_GATE.md#plan-stage-routing) → **Gate 0 required**, then Gate 1 via [`/council-plan`](../../.claude/commands/council-plan.md).
 **Status:** **Gate 0 APPROVED** (owner, subject to rulings R1–R6 below). **Gate 1 APPROVED** (owner, 2026-07-27, subject to rulings N1–N10). **N4 CONTINUATION APPROVED** (owner, 2026-07-31) under [`N4_CONTINUATION_AUTHORITY.md`](N4_CONTINUATION_AUTHORITY.md). Plan v2 remains the executable technical plan; the dated continuation authority supersedes its spent hard-stop instructions and records the bounded post-N4 exceptions.
 **Base:** `main` @ `f4f9ee6` (clean).
-**Current authorized order:** completed packets through `h` → N4 approved → PR #211 harness prerequisite merged → `i` → `j` → `k`.
+**Current authorized order:** completed packets through `h` → N4 approved → PR #211 harness prerequisite merged → `i` → `j` → `k` (completed 2026-08-01).
 
 ---
 
-### ▶ EXECUTION STATUS (2026-07-31) — N4 is discharged; Packet i is active
+### ▶ EXECUTION STATUS (2026-07-31; superseded 2026-08-01) — arc CLOSED at k: i #212 (`5f7b5acb`), j #216 (`47c76872`), k #217 (`c521d3a8`)
 
 All ten pre-checkpoint packets are merged. The owner approved the proof-first,
 narrow-or-abandon execution of `i` and continuous sequential execution through `j` and
 `k`. The binding authority, routine-decision fallbacks and genuine hard stops are in
-[`N4_CONTINUATION_AUTHORITY.md`](N4_CONTINUATION_AUTHORITY.md); the live restart state is
-in [`EXECUTION_HANDOFF_I_K.md`](EXECUTION_HANDOFF_I_K.md).
+[`N4_CONTINUATION_AUTHORITY.md`](N4_CONTINUATION_AUTHORITY.md); the restart state was
+in [`EXECUTION_HANDOFF_I_K.md`](EXECUTION_HANDOFF_I_K.md) (historical ledger).
 
 | Packet | PR | Squash |
 |---|---|---|

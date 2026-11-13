@@ -6,7 +6,7 @@
 [`docs/MASTER_HANDOVER.md`](../../../MASTER_HANDOVER.md#current-state) and the work queue it names.
 
 This file holds the former body of that section, moved here on 2026-10-19, with each later
-outgoing block added at the top. It runs from 2026-10-20 (the 15:05Z block at `b86e9ad7`)
+outgoing block added at the top. It runs from 2026-10-22 (the 14:10Z block at `b77cb742`)
 back to 2026-06-07 and includes the *Known Windows visual reds* and *Known LINUX visual reds*
 ledgers. Separately labelled unmerged drafts, including #531's 22:05Z draft, are also
 retained separately in this file; they were never current on `main`.
@@ -23,6 +23,149 @@ A constraint stated here is live only if the current block, or the record that o
 carries it.
 
 ---
+
+## Superseded main block - 2026-10-22T14:10Z at `b77cb742`
+
+Moved by the 2026-11-13 refresh at `9338543a`. Body unchanged; relative link targets rebased to
+this folder. The *Maintenance rule* and the two visual-red ledger stubs that closed the block
+stay in the live handover and are not repeated here; the full ledgers are below.
+
+> **2026-10-22T14:10Z — current state, measured against GitHub `main`
+> `b77cb742f3af5222d9d80b608d497390c4b3e4f2` (#557).** PR, Actions, issue, branch-protection
+> and repository-security readings were taken together at 13:50–14:10Z. This record grants no
+> merge, settings or packet authority.
+
+**Work queue and owner decisions:** [`OPEN_WORK_EXECUTION_PLAN.md`](../../../OPEN_WORK_EXECUTION_PLAN.md)
+§0 is the single actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](../../../project_direction/AGREED_PLAN.md)
+§11). Its §0.2 holds every open owner decision and §0.4 every open obligation; this block does not
+repeat them. Earlier Current State blocks are in
+[`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](../../../archive/2026/master-handover/CURRENT_STATE_HISTORY.md);
+the queue's earlier readings are in
+[`archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md`](../../../archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md).
+The maintenance rule for this block is the subsection headed *Maintenance rule*.
+
+### Trunk, CI and live readings
+
+| Reading | Value |
+|---|---|
+| GitHub `main` | `b77cb742` (#557). Push run `39783010460` succeeded (29 jobs; PR-only Dependency Review skipped) |
+| Open PRs | None at 13:51Z. Re-read live state before acting |
+| Branch protection | 12 exact contexts, each bound to GitHub Actions `app_id: 15368`; `strict: false`; `enforce_admins: false`. `JS Unit (Vitest)` is not a required context |
+| Repository security | Secret scanning and push protection enabled on 2026-10-21 under S2's bounded owner authority ([`SETTINGS_ACTIVATION.md`](../../../ci_cd_expansion/SETTINGS_ACTIVATION.md)). CodeQL default setup is not configured. Dependabot security updates stay off under D-6; 0 open Dependabot alerts |
+| Orphan workflow | `345538425` is `disabled_manually` (C5); its historical run `33274031928` is retained |
+| Linux visual compare | No compare run since the two `main` dispatches after #548; both succeeded without writing a baseline but needed retries, which is not a pass (queue §0.2, H-LINUX-UNSYNC-01). Issue #537 closed at #548's merge |
+| Weekly gates (Mondays 03:17 UTC) | Neither `deep-gate.yml` nor `deep-gate-visual.yml` has a scheduled run since the #533 split; their first scheduled slot is **2026-10-26**. Manual dispatches do not count toward the scheduled threshold |
+| `release.yml` | Three `workflow_dispatch` runs, all successful; `push: tags` has never fired, and no GitHub Release exists |
+| Pyright baseline | 0 / 0 / 0 with no headroom. A net-new diagnostic fails `Type Check`; the fix is the code, never the baseline |
+| Test counts | [`test_inventory/TEST_INVENTORY.md`](../../../test_inventory/TEST_INVENTORY.md) is the single producer |
+
+### Landed since the 2026-10-20 reading (`b86e9ad7`)
+
+First-parent order. Merges #481–#538 are listed in the archived blocks.
+
+| PR | Merge | What |
+|---|---|---|
+| #536, #535 | `3b21384c`, `a305e5a4` | Dependabot bumps: Hypothesis, Sass |
+| #531 | `71c4cc6d` | Previous handover refresh, single queue, `AGREED_PLAN.md` publication (Q9) |
+| #539 | `1f5ae0f0` | CI/CD B3: PR-only Dependency Review |
+| #540 | `43f5df33` | CI/CD A2: Operation A Windows tests parallelized; Operation A itself is not complete |
+| #544, #547 | `b4a2653c`, `aafba153` | JS-unit ledger rows 65–113; owner Q4 name and conditional D2 ruling |
+| #541, #542, #543 | `c9c0d838`, `6dd7dc83`, `f3d72be4` | WS1 documentation slices: OPEN_WORK, `ACTIVE_DEVELOPMENT.md` and cross-model plan splits |
+| #546 | `28484dda` | CI/CD B2 workflow-lint residuals closed: cache, cooldowns, lint scope |
+| #548 | `c2020735` | Linux baselines synced with the #464 restyle (GATE1 option C, owner-approved PNGs); closed #537 |
+| #545 | `d98f45d3` | WS3: application construction separated from runtime startup |
+| #549 | `dee3c379` | CI/CD A3: functional E2E split across four runners |
+| #551 | `a12b680f` | U1-FOLLOWUP-1: 24 Volume Splitter Vitest cases |
+| #552 | `155181d6` | CI/CD G6: nine previously skipped cases enforced |
+| #550 | `61da31cb` | JS-unit ledger rows 114–122; D2's recorded condition met |
+| #554 | `73de866e` | Q4: JS job renamed `JS Unit (Vitest)`; not yet required |
+| #556 | `c7782854` | WS4 slice 1: `POST /remove_exercise` database work moved to `utils/workout_plan_service.py`, behaviour unchanged |
+| #555 | `10b31185` | S2 safeguards record and the prepared C1–C3 settings packet |
+| #553 | `5361ad6f` | U1-FOLLOWUP-1 closeout; the obligation is discharged |
+| #557 | `b77cb742` | CI/CD G7: each Playwright job summary reports its retries; completes the core sequence B3 → G7 |
+
+### Holds in force
+
+Constraints to know before acting. Decisions and obligations live in queue §0.2 and §0.4.
+
+- **Worktree cleanup campaign (Operation A and later operations):** closed by owner decision on
+  2026-11-10. `PREVENTION_COMPLETE` was not declared and is no longer pursued; the
+  [`WORKTREE_CLEANUP_PLAN.md`](../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md) §1.2 operation order no
+  longer binds. The standing rule and the limits accepted at closure are in
+  [`PARALLEL_WORKFLOW.md`](../../../ai_workflow/PARALLEL_WORKFLOW.md#completion-and-retained-worktrees):
+  one checkout by default, and any additional worktree or clone needs explicit owner approval.
+  The guard still denies worktree removal and branch or ref deletion, so retirement is an owner
+  action. Retained refs are in [`worktree_cleanup/CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §20.
+- **Sequencing.** Application-factory, service-extraction and dependency-group slices each still
+  need their own gates, and WS5 implementation is eligible only after its manifest and
+  applicable gates are approved (Q8(a) in
+  [`AGREED_PLAN.md`](../../../project_direction/AGREED_PLAN.md) §11). Q8(a)'s boundary that each slice
+  uses a standalone clone is superseded by the standing rule above.
+- **Visual baselines:** regenerating Linux or Win32 baselines requires separate owner
+  authorization; a red comparison is not a regeneration mandate; `--update-snapshots` is never
+  the resolution of a red.
+- **Owner-only actions:** every merge, approved by PR number and head SHA; repository settings;
+  credentials, spending and release publication. Queue §0.2 lists the settings states and the
+  dependency-PR rule.
+
+### Dated items
+
+- `braces` / #513: closed 2026-10-18 by #519. The 2026-11-14 waiver expiry no longer applies, and
+  the deliberately skipped watcher bump stays skipped.
+- Fatigue Stage-4 handoff: earliest archive review 2026-11-20 (queue §7).
+
+### Standing constraints and parked work
+
+- **Decisions:** ADR-003 through ADR-012 in [`DECISIONS.md`](../../../DECISIONS.md) are settled and remain
+  in force.
+- **CI:**
+  - Required check names are fixed. Three required contexts carry a deliberately false
+    "(non-required)" suffix: E2E Fatigue Context, E2E Erase Flow and JS Supply Chain.
+  - A test-node change regenerates `docs/test_inventory/`.
+  - Coverage is non-blocking.
+- **Product:**
+  - Effective sets are informational only.
+  - Calculation paths add `product-risk-reviewer` ([`QUALITY_GATE.md`](../../../ai_workflow/QUALITY_GATE.md)).
+- **Parked and closed work:** queue §5 and §6 list them, and queue §0.5 carries the open items of
+  [`LEFTOVERS_BY_PRIORITY.md`](../../../LEFTOVERS_BY_PRIORITY.md). Reopening any of them takes a new owner
+  decision. This includes:
+  - P3 beyond `P3-a0`;
+  - R4, which forbids unlinking `theme-dark.css`;
+  - Fatigue (see the *Active Workstreams* fatigue row; calibration guardrails in
+    [`ACTIVE_DEVELOPMENT.md`](../../../ACTIVE_DEVELOPMENT.md), cited by `scripts/fatigue_stage4_observer.py`);
+  - the app.py review.
+- **Accessibility:** owner-deferred exceptions live in
+  [`testing_phase2/A11Y_EXCEPTIONS.md`](../../../testing_phase2/A11Y_EXCEPTIONS.md), which tests read.
+
+### Preserved obligations in feature folders
+
+- [`agent_roles/`](../../../agent_roles/PLANNING.md): Phase 6 is conditional.
+- [`ki005_controls_persistence/`](../../../ki005_controls_persistence/PLANNING.md): Stage 4 restoration held.
+- [`testing_d4_invariants/`](../../../testing_d4_invariants/PLANNING.md): Packet C is deferred.
+- [`finding1_residual/`](../../../finding1_residual/PLANNING.md): residual behavior needs a current reference.
+- [`backup_confirmation_continuity/`](../../../backup_confirmation_continuity/PLANNING.md): residual-risk reconciliation.
+- [`release_pipeline/`](../../../release_pipeline/PLANNING.md): R3, deep-gate entry conditions.
+- [`deep_gate_linux_visual_failure_20260831/`](../../../deep_gate_linux_visual_failure_20260831/GATE1.md): option C landed as #548; scheduled-compare evidence is pending (queue §0.2).
+- [`visual_determinism/`](../../../visual_determinism/PLANNING.md): the ADR-011 residual.
+- [`service_extraction/`](../../../service_extraction/PLANNING.md): WS4 handlers after slice 1, each with its own gates.
+- [`worktree_cleanup/`](../../../worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
+- [`ci_cd_expansion/`](../../../ci_cd_expansion/PLANNING.md): post-split scheduled qualification; settings C1b/C1c, C2, C3 and C4; B4, D1 and F1/F3 unstarted.
+
+The full list is [`README.md`](../../../README.md) *Feature folders → Active*.
+
+### Next safe step
+
+Nothing starts automatically; each item keeps its own authority and gates, and queue §0.2–§0.4
+holds the detail.
+
+- **2026-10-26:** read the scheduled suite and visual runs separately and record them through
+  [`ci_cd_expansion/PLANNING.md`](../../../ci_cd_expansion/PLANNING.md) §§16.9–16.10. A manual dispatch
+  cannot substitute.
+- **WS5** is next in line for the `ci.yml` slot (queue §0.3); it still needs its own approval
+  and gates.
+- **Settings:** C1b/C1c, C2, C3 and C4 await the owner
+  ([`SETTINGS_ACTIVATION.md`](../../../ci_cd_expansion/SETTINGS_ACTIVATION.md); queue §0.2).
+- **Ledger:** §13.0 rows are owed for every merge after row 122 (queue §0.4).
 
 ## Superseded main block — 2026-10-20T15:05Z at `b86e9ad7`
 
@@ -1375,6 +1518,7 @@ above, or on its own Gate 0/1 sign-off.
 > `ubuntu-latest`, conclusion `success`, `2026-08-22T21:19:58Z`), whose *"Check committed inventory
 > against a fresh Linux regeneration"* step passed against a Windows-generated artifact. It may now be
 > written up as measured. **NT-7 (`describe.each`) remains open and unexercised.**
+> [2026-11 note: closed. `static/js/modules/__tests__/toast.test.js:589,:625` use `describe.each`; the runtime-collected inventory lists the expanded rows (`TEST_INVENTORY.json:1237-1249`, `B43-error` ... `B43-warning`); #511 (`72ad8b6d`) pinned the collector to runtime collection. The evidence that `vitest list` expands `.each` is indirect (inventory rows), not a fresh run.]
 >
 > **`Test Inventory Drift` now pins SIX surfaces, not five.** The sixth is per-file Vitest case counts
 > **plus every case's identity** — the only surface pinning identities rather than counts, because a

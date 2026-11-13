@@ -382,8 +382,8 @@ contract-removal WP with explicit migration notes and authorized test changes.
    closures, imports, scripts, tests, CI, and docs. JS checks include imports, DOM wiring,
    inline handlers, dynamic lookup, `window` assignments and actual callers. CSS checks
    include templates, JS-created classes, E2E selectors, and visual-helper overrides.
-6. **Gate each source-changing WP.** Record the pytest baseline, run focused tests during
-   implementation, then full pytest plus the literal E2E specs named by the WP. Counts may
+6. **Gate each source-changing WP.** Run focused tests during
+   implementation, then full pytest plus the literal E2E specs named by the WP. Do not record a blanket pre-change baseline; if a failure's origin is unclear reproduce it in an isolated base checkout (CLAUDE.md §4B). Counts may
    change only for explicitly added regression tests or approved contract removals.
    Documentation-only WPs use the repository's docs self-review gate. Phase close uses
    `/verify-suite`.
@@ -395,8 +395,8 @@ contract-removal WP with explicit migration notes and authorized test changes.
 10. **Parallel work requires isolation.** Before concurrent work involving the DB, dev
     server, pytest, or E2E, follow `docs/ai_workflow/PARALLEL_WORKFLOW.md` and create
     worktrees with `scripts/new-worktree.ps1`.
-11. **Rollback quickly.** If a gate fails and one focused correction does not explain it,
-    revert/stash the WP and report rather than widening scope.
+11. **Stop quickly.** If a gate fails and one focused correction does not explain it,
+    stop and report rather than widening scope; reproduce an unclear failure in an isolated base checkout, never by stashing (CLAUDE.md §4B).
 12. **Use symbols, not line numbers, as execution anchors.** Scan line numbers are evidence
     pointers only and will drift.
 
@@ -824,7 +824,7 @@ tests / 30 specs**. Each WP preserved endpoint URLs and response envelopes.
 - Persistence coverage includes the `remove_exercise` partner-unlink, extracted to
   `unlink_partner_for_removal(db, exercise_id, superset_group)`. Unlike the other service
   entry points it reuses the caller's `DatabaseHandler` so the partner-null, log-delete,
-  and exercise-delete continue to share one handler (connection + write lock); behavior
+  and exercise-delete continue to share one handler (connection; each write statement takes and releases `_DB_LOCK` on its own, so the three statements are not one atomic unit); behavior
   and the removal log are preserved exactly.
 - Gate: superset pytest, `superset-edge-cases.spec.ts`, `workout-plan.spec.ts`.
 
@@ -1567,6 +1567,8 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 > [`CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json`](CSS_PHASE4_WP4_4_LINUX_INHERITED_REDS.json)
 > — **do not rebaseline the reds**, and **no packet may classify a declaration
 > affecting those eight elements as dead using the rest-state harness.**
+> *(Packet-time statement. The Linux ledger was spent as an operational rule on
+> 2026-08-29 and is history only; re-measure before applying it to a new packet.)*
 
 - **Prerequisite discharged 2026-07-27.** The `components.css` `:is()` arm that
   exports ID-level specificity is why four generations of page-local Workout Log
@@ -1642,8 +1644,7 @@ carries the narrative. **Wait for explicit direction before the next packet.**
 | 6 | Phase 3 JS | Vitest scaffold; may overlap Python only in isolated worktrees | Vitest + `/verify-suite` |
 | 7 | Phase 4 CSS | WP3.2 scripts stable; WP4.-1/0a/0 complete | both-platform visual deep gate + functional frontend |
 
-At every phase close, update `docs/MASTER_HANDOVER.md`, the verified-count block in
-`CLAUDE.md`, and this plan's status. Do not mark a phase complete while follow-up contract
+At every phase close, update `docs/MASTER_HANDOVER.md` and this plan's status; test counts live only in the generated `docs/test_inventory/TEST_INVENTORY.md` (CLAUDE.md carries no count block). Do not mark a phase complete while follow-up contract
 decisions are silently outstanding; either resolve them or leave them explicitly deferred.
 
 ## Sign-off checklist

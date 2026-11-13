@@ -29,8 +29,8 @@ Plan and council record: [`PLANNING.md`](PLANNING.md), [`COUNCIL_FINDINGS.md`](C
 > not provable until #304 is completed"*, because 58 of 66 tests were already red and the
 > pixel oracle was running at roughly 12% of its discriminating power. That is now
 > discharged directly: the #309 baselines were generated on `main`, which does **not**
-> contain this deletion, so 66/66 byte-identical captures are a cross-tree pixel proof
-> that the deletion changes nothing rendered — not a self-consistency check.
+> contain this deletion, so all 66 captures passed within the configured tolerance
+> (`maxDiffPixels: 800`, `threshold: 0`, `e2e/visual-helpers.ts` at the packet commit `9c837774`:397,:479); identity of computed styles rests on the independent 339,120-record differential (§9c last paragraph).
 >
 > Everything re-measured below reproduced exactly (Stylelint −7, differential 0/339,120,
 > flip 22/22, oracle PASS both sides, contracts 36). The rows that moved are pytest,
@@ -312,6 +312,8 @@ whole contract file after restore: 37 passed
 all 6 red paths proven
 ```
 
+*Note (2026-11-13): the transcript above reports 37; the committed tree collects 36 (inventory at `9c837774`); not reconciled. The raw transcript is not retained in the repository.*
+
 ### The `data-scale` strengthening is measured, not claimed
 
 The pre-existing assertion used an unanchored `[data-scale="N"]` substring satisfied by
@@ -472,8 +474,7 @@ run.
 
 **Why this is a stronger proof than a matched control would be.** The #309 baselines were
 generated on `main`, which does **not** contain this deletion. The candidate reproducing
-all 66 byte-for-byte is therefore a *cross-tree* comparison — rendering with the eleven
-rules deleted is byte-identical to rendering with them present — rather than a
+all 66 within the configured tolerance (`maxDiffPixels: 800`, `threshold: 0`; raw per-capture diff counts of the packet-time run are not retained) is therefore a *cross-tree* comparison, rather than a
 self-consistency check. No same-tree control run is needed to make that claim, and none
 is cited.
 

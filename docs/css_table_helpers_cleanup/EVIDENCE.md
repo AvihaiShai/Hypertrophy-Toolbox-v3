@@ -283,7 +283,7 @@ DEFERRED_HELPER_COUNTS = {"tbl-show-sm": 2, ..., "tbl-hide-lg": 1}
 |---|---|---|---|
 | **C1** | `test_breakpoint_helper_family_is_absent_from_layout_css` | **W1** | Asserts a **state** (`0` rule heads), not a tally. Counts rule heads by scanning brace boundaries, so it sees the class at any nesting depth, inside `@media`, and in any position within a compound or descendant chain — including `.foo.tbl-show-sm` and `.tbl-show-sm .bar`, which the selector-shape matcher used elsewhere in the suite would miss. Reports the offender by name. |
 | **C2** | `test_breakpoint_helper_family_is_all_or_nothing` | indivisibility | Fails on any partial state in **either** direction — an `@media` override left with no base rule, or base rules left with no overrides. **Outcome-independent**: the same contract holds whether the family is deleted or restored, so indivisibility survives past this packet rather than expiring with it. |
-| **C3** | `test_breakpoint_helper_classes_are_unreachable` | **W2**, the largest gap | Turns the deletion's premise into a standing gate. The detector matches the **bare stems `tbl-show` / `tbl-hide` anywhere** in `templates/**` and `static/js/**` — deliberately *simpler* than `test_deleted_classes_are_still_unreachable`'s form-enumerating parser, not a wider version of it. That test enumerates `class="…"` attributes and `classList.add/toggle/replace` literals, so it cannot see `className =`, `setAttribute('class', …)`, or a runtime-assembled name; enumerating more forms only moves the boundary. One substring match subsumes all of them, including `'tbl-show-' + size` and `` `tbl-hide-${size}` ``, which are real class names containing no full class literal. It can only over-fire, never under-fire, and over-firing is the safe direction. Discharges M10 permanently instead of as a one-time measurement. |
+| **C3** | `test_breakpoint_helper_classes_are_unreachable` | **W2**, the largest gap | Turns the deletion's premise into a standing gate. The detector matches the **bare stems `tbl-show` / `tbl-hide` anywhere** in `templates/**` and `static/js/**` — deliberately *simpler* than `test_deleted_classes_are_still_unreachable`'s form-enumerating parser, not a wider version of it. That test enumerates `class="…"` attributes and `classList.add/toggle/replace` literals, so it cannot see `className =`, `setAttribute('class', …)`, or a runtime-assembled name; enumerating more forms only moves the boundary. A substring match catches any construction containing the contiguous stems `tbl-show` / `tbl-hide` in `templates/**` and `static/js/**` (outside comments and `__tests__`), including `'tbl-show-' + size` and `` `tbl-hide-${size}` ``, which are real class names containing no full class literal. A name assembled from non-contiguous fragments (for example `'tbl-' + kind + '-' + size`) is not detected. Discharges M10 permanently instead of as a one-time measurement. |
 | **C4** | `test_breakpoint_helper_classes_have_no_definition_site_in_a_sibling_bundle` | **W3** | Globs **every** `static/css/*.css`, so a bundle added later is covered automatically — unlike the existing five-surface hard-coded list. Excludes `layout.css` by name; C1 owns that file at the stronger rule-head granularity. That split is what makes C4 hold unchanged under both outcomes instead of being red-on-arrival under retention. |
 | **C5** | `test_layout_css_has_no_empty_media_block` | new guarantee | Forecloses the specific sloppy deletion — rules removed, three empty `@media` shells left — that passes C1 and leaves a residue a later reader takes for intentional. Scoped to `layout.css`: `pages-workout-log.css:459,464,469,496,501` already carry five whitespace-only `@media` blocks that WP4.3j-b-dead kept deliberately. |
 
@@ -777,8 +777,11 @@ node artifacts/tblhelpers/tbl_oracle.mjs --out artifacts/tblhelpers/before2 --ph
 node artifacts/tblhelpers/summarize.mjs artifacts/tblhelpers/before1
 node artifacts/tblhelpers/compare.mjs --same-css artifacts/tblhelpers/before1 artifacts/tblhelpers/before2
 
-# rest-state differential, committed harness, unmodified (A11)
-node scripts/css_audit/runtime_probe.mjs --out artifacts/tblhelpers/rest_before
+# rest-state differential: the committed probe hard-coded port 5000 at packet time (§9b; it
+# now honours PW_PORT), so the accepted run used the port-5178 copy against a second server
+# started with HT_PORT=5178
+env HT_PORT=5178 FLASK_DEBUG=0 FLASK_USE_RELOADER=0 .venv/Scripts/python.exe app.py
+node artifacts/tblhelpers/runtime_probe_5178.mjs --out artifacts/tblhelpers/rest_before
 
 #   ... apply the deletion ...
 .venv/Scripts/python.exe artifacts/tblhelpers/apply_deletion.py
@@ -787,13 +790,13 @@ node scripts/css_audit/runtime_probe.mjs --out artifacts/tblhelpers/rest_before
 node artifacts/tblhelpers/tbl_oracle.mjs --out artifacts/tblhelpers/after1 --phase after --port 5177
 node artifacts/tblhelpers/tbl_oracle.mjs --out artifacts/tblhelpers/after2 --phase after --port 5177
 node artifacts/tblhelpers/compare.mjs --flip artifacts/tblhelpers/before1 artifacts/tblhelpers/after1
-node scripts/css_audit/runtime_probe.mjs --out artifacts/tblhelpers/rest_after
+node artifacts/tblhelpers/runtime_probe_5178.mjs --out artifacts/tblhelpers/rest_after
 
 # red paths
 .venv/Scripts/python.exe artifacts/tblhelpers/redpath.py
 
 # visual differential, scratch snapshot path under gitignored artifacts/
-npx playwright test -c artifacts/tblhelpers/pw-scratch.config.ts --project=chromium \
+env PW_SCRATCH_PORT=5178 npx playwright test -c artifacts/tblhelpers/pw-scratch.config.ts --project=chromium \
   e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts
 
 # seven-surface stylelint

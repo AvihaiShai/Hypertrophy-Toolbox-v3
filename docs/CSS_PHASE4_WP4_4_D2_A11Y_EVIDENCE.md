@@ -634,6 +634,6 @@ then restored and re-verified (sha `adce3716…`, contracts 22/22).
   for every WP4.4 packet that used a sentinel. This packet does not re-open
   `a`–`f1`; it records the defect, ships the repair in its own harness, and
   flags that `scripts/css_audit/runtime_probe.mjs` still carries the beatable
-  CSS-only suppressor. **Fixing the shared harness belongs to a packet that
+  CSS-only suppressor (Measured 2026-11: `runtime_probe.mjs` has no stylesheet suppressor; it sets `transition-property: none !important` inline per element at :269, which a stylesheet cannot outrank. D7 was a defect of d2's own harness). **Fixing the shared harness belongs to a packet that
   owns it (A11), not to `d2`.**
 - **The rest-state differential limitation** in §5.4.
