@@ -24,8 +24,8 @@ export default defineConfig({
 
         // Phase 1 step 6 of docs/TESTING_STRATEGY_PLANNING.md. REPORT-ONLY: no
         // `thresholds` key, so `vitest run --coverage` can report any number
-        // without failing. The js-unit job stays non-required (decision D2's
-        // js-unit half is explicitly NOT signed), so nothing here gates a merge.
+        // without failing. `JS Unit (Vitest)` is not a required check (D2 is approved,
+        // but required-check activation, C4, is not: #592), so nothing here gates a merge.
         //
         // `all: true` is the whole point. Without it v8 reports only files a test
         // imported, which would score the handful of covered modules and silently
