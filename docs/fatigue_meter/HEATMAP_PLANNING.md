@@ -174,9 +174,9 @@ is hidden, and the panel note says so.
 ## §4 — Pinned user-facing copy (D2.10: descriptive, no verbs, no MRV/MEV)
 
 - `<summary>`: **Body map**
-- Panel note: **Colors show each muscle's band for the selected period. Regions without a reading stay gray.**
+- Panel note: **Colors show each muscle's fatigue band for the selected period. Regions without a reading stay gray.**
 - Shoulder note: **Shoulder regions show Middle-Shoulder; the upper-back region shows Traps. Front-Shoulder, Rear-Shoulder and Middle-Traps are listed separately below.** *(Corrected to the shipped copy. §6 finding #42 widened this note to cover Traps/Middle-Traps and moved it above the figures; a stale second copy of the older sentence survived at the foot of the panel until it was removed. Until this correction, §4 was the last place in the repository asserting the deleted sentence was current — which invited its reintroduction. `tests/test_fatigue_heatmap_mapping.py` now asserts the note renders exactly once.)*
-- Legend caption: **Lower → higher**
+- Legend caption: **Lower → higher fatigue**
 - Legend items: **Light · Moderate · Heavy · Very heavy · No reading**
 - Channel caption: **Showing: Planned** / **Showing: Logged**
 - Region `<title>`, mapped with data: **Chest — heavy · 78% of typical recoverable range**
@@ -255,7 +255,4 @@ contract drift, `paint()` cannot leave a stale or doubled band class, and the `<
 correct for SVG and idempotent across repaints.
 
 ### Owner follow-up
-**Linux visual baselines for `/fatigue` are stale after this ship.** Regenerate via the
-`visual-linux` deep-gate job (`run_visual=true`, `visual_mode=generate`) and commit the six PNGs;
-CI never pushes pixels. Until then the weekly `visual-linux` compare run reds on those six captures
-only.
+**Discharged:** #351 (`5a03d475`, 2026-08-14) regenerated the six Linux and six win32 fatigue captures; #548 (`c2020735`) later re-synced the full Linux corpus.

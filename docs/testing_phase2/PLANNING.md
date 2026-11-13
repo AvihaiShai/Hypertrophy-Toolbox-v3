@@ -114,7 +114,7 @@ pytest gate.
 ## 4. Standing rules
 
 - **R1 — colour/token discoveries split out.** No required check measures visual output, so a
-  contrast fix in `tokens.css`/`theme-dark.css` would stale 66 win32 + 66 linux captures with CI
+  contrast fix in `tokens.css`/`theme-dark.css` would stale 81 captures per platform (66 `visual.spec.ts` + 15 thumbnails; ADR-011: 81 byte-gated plus 5 exempt identities) with CI
   green. Any such change leaves its packet and becomes an owner-gated packet carrying the
   two-platform re-baseline, `EXPECTED_SNAPSHOT_COUNTS`, and `snapshotManifest`.
 - **R2 — flake trap.** `accessibility.spec.ts` "focus returns after modal closes" has a documented

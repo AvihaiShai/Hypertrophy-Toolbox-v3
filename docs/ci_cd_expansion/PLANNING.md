@@ -2350,6 +2350,67 @@ lost-delivery backup, real multi-page pagination, degraded path and manual-close
 recreation remain unqualified. No settings, C4, later packet or visual-policy
 change is authorized by this result.
 
+### 16.11 First scheduled post-split readings — 2026-11-13
+
+Read from GitHub on 2026-11-13. Three scheduled slots (2026-10-26, 11-02, 11-09; cron
+`17 3 * * 1`) have passed since #533. Each workflow has exactly one `schedule` run per slot,
+all attempt 1 on `main`; neither workflow was disabled and no slot was skipped. Creation
+delays after the 03:17Z slot were 5 h 39 m, 7 h 52 m and 8 h 16 m. Manual dispatches are not
+counted.
+
+**Suite (`deep-gate.yml`)** —
+[`40295782494`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/40295782494)
+(`302ef0e9`),
+[`41434407548`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/41434407548)
+and
+[`42609927664`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/42609927664)
+(both `e140b039`): all six jobs succeeded in each. Full E2E jobs `121481369204`,
+`125240568844` and `129135429812` each ended `591 passed` with no `flaky` footer and no
+`retry #` line; Windows real-bootloader jobs `121481369525`, `125240569226` and
+`129135430123` succeeded. All three are clean passes.
+
+**Visual (`deep-gate-visual.yml`)** —
+[`40295844558`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/40295844558),
+[`41434489444`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/41434489444)
+and
+[`42610012553`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/42610012553);
+jobs `121481573674`, `125240835948` and `129135717531`. All three resolved `compare`,
+executed compare, skipped generate and both baseline/diff uploads, and passed `Assert compare
+mode wrote no baseline`; no baseline was written. 10-26 ended `1 flaky / 99 passed`
+(`workout-plan tablet dark` failed attempt 1 at 2,805 px and passed on `retry #1`); 11-02
+ended `1 flaky / 99 passed` (`workout-plan mobile dark`, 1,334 px, `retry #1`). Under §8.1 of
+[`visual_determinism/PLANNING.md`](../visual_determinism/PLANNING.md) a green reached
+through retries is not a pass, so these two are flaky-successes. 11-09 ended `100 passed`
+with no retry: a clean pass.
+
+**Watchdog.** Each scheduled completion triggered a successful `Deep Gate Watch`
+`workflow_run`, including the suite side after the §16.10 filter repair: `40296368668`,
+`40298255451`, `41434932313`, `41437084680`, `42610558364` and `42611874893`. The 11-09 logs
+read healthy for both workflows, 16–21 s dispatch latency, and freshness `fresh` for the
+11-09 slot. The watchdog does not read Playwright retries. The 10-26 and 11-02 watch logs
+were not read for freshness lines.
+
+**Counts, kept separately.** The suite has three consecutive clean scheduled passes. The visual
+gate has one consecutive clean scheduled pass (11-09); the first two runs concluded
+`success` only through one retry each.
+
+**Owner ruling, 2026-11-13 (#583).** A green reached through a retry does not count. The
+requirement stays three consecutive clean scheduled visual runs, and a manual dispatch does
+not substitute. 2026-11-23 is therefore the earliest date the visual count can reach three,
+and only if the 11-16 and 11-23 scheduled runs are both clean. Qualification does not itself
+authorize activation.
+
+**Other limits.** Lost-delivery recovery, live
+multi-page pagination, the degraded path and manual-close recreation remain unqualified
+(#589). `deep-gate.yml` and `deep-gate-visual.yml` do not carry the PR #557 retry-report
+step, so the retry evidence above is the Playwright log footer.
+
+**Also recorded (#582).** #546 merge `28484dda`, first `main` push run
+[`39601539825`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/actions/runs/39601539825):
+Workflow Lint job `119226994598` succeeded; packaged smoke job `119226995376` succeeded in
+113 s with no restored pip cache, against 131 to 144 s on cached runs `39430536736`,
+`39249316854` and `39783010460`.
+
 ## 17. B3 execution — 2026-10-20
 
 Recorded by `product-manager` `a8501dd3530da91e2` from the manager session's written

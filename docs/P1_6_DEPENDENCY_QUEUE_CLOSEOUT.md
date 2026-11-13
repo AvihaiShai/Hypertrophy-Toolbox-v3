@@ -204,7 +204,6 @@ Carried forward as separately-tracked debt, not P1.6 residue:
 | Item | Where it lives |
 |---|---|
 | The Playwright 1.62.1 upgrade | §3.4 above, mirrored in the `dependabot.yml` comment. Blocked on #281 + #286. |
-| The `npm audit` severity / exception policy | Still an open, separate decision — the P1.6 row always held it apart. |
 
 ---
 

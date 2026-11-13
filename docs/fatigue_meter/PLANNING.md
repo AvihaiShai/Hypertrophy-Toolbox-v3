@@ -530,11 +530,11 @@ Phase 1 ships with §24.B threshold bands marked "starting points, not science".
 
 ---
 
-## Stage 5 — Phase 2 (NOT ACTIVE — owner-gated; detailed planning extracted)
+## Stage 5 — Phase 2 (Path 1 SHIPPED 2026-05-23, PR #35 `d5b80bf`; Stage 4 closed 2026-08-13, #338; planning in PHASE2_PLANNING.md)
 
 **Detailed Phase 2 planning lives in [`PHASE2_PLANNING.md`](PHASE2_PLANNING.md)** (extracted 2026-05-23). That doc carries the recommended MVP scope, the Phase-2 open-decision list (D2.1–D2.10), the staged implementation plan, files-touched matrix, test plan, rollback notes, and Phase-2 non-goals.
 
-Status: **planning extracted / awaiting owner decision.** Phase 2 has not been approved for implementation. Stage 4 closed 2026-05-20 with no threshold changes (see [`calibration-notes.md`](calibration-notes.md)); Phase 1 is the current working state.
+Status: **Path 1 shipped (PR #35); Stage 4 closed 2026-08-13 as no-evidence / no threshold change (#338); Phase 3 stays deferred.**
 
 ---
 
@@ -555,7 +555,7 @@ Update this as you progress. Reviewers can scan it to see where the work stands.
 | 2 | Phase 1 implementation | ✅ Complete | 2026-05-02 |
 | 3 | Phase 1 verification & merge | ✅ Closeout pass complete; 6/7 smoke items PASS, 1 documented-not-walked (smokes 4 + 5 walked 2026-05-10 via PR #12) | 2026-05-04 |
 | 4 | Post-merge calibration | ✅ Closed by owner-approved felt-label review 2026-05-20 — 5 anchors (1 real W20 + 4 generated), 4/5 felt labels agreed with computed bands, lone disagreement was on `hard_4d` synthetic scenario only; §4.2 "≥2 disagreements" bar not met; **no threshold changes**; `utils/fatigue.py` thresholds remain §24.B defaults | 2026-05-20 |
-| 5 | Phase 2 | ⬜ Not started — planning extracted to [`PHASE2_PLANNING.md`](PHASE2_PLANNING.md) 2026-05-23; owner-gated, awaiting Stage 0 (D2.x) decision walk | 2026-05-23 (extraction only) |
+| 5 | Phase 2 | ✅ Path 1 shipped 2026-05-23 (PR #35); Stage 4 closed 2026-08-13 (#338) — planning in [`PHASE2_PLANNING.md`](PHASE2_PLANNING.md) | 2026-05-23 |
 | 6 | Phase 3 | ⬜ Not started — first schema-changing stage; planning will be extracted to a sibling `PHASE3_PLANNING.md` once Phase 2 closes | — |
 
 Status legend: ⬜ Not started · 🟡 In progress · ✅ Complete · ❌ Blocked

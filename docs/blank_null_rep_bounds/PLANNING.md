@@ -4,7 +4,7 @@
 **Base:** `e6e57eac224a09957d9c8ce3128ee6013cee6208` (`origin/main`)  
 **Worktree:** `D:\development\Hypertrophy-Toolbox-v3-main-blank-null-rep-bound-gate0`  
 **Branch:** `wt/blank-null-rep-bound-gate0`  
-**Status:** contract and failing evidence complete; production implementation is not authorized by this packet
+**Status:** contract and failing evidence complete; production implementation is not authorized by this packet. *(2026-11-13: the production fix later shipped separately as #467, `38606f4d`.)*
 
 ## 1. Gate-0 decision
 

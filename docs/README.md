@@ -72,10 +72,12 @@ Proposed entries do not authorize implementation. The archive container is index
 
 - [agent_workflow_integrity/](agent_workflow_integrity/) — shipped workflow-integrity contracts
 - [backup_schema_version/](backup_schema_version/) — closed D6 investigation; ADR-008 records the outcome
+- [blank_null_rep_bounds/](blank_null_rep_bounds/) — shipped: Gate 0 #465, fix #467
 - [css_phase4_wp4_4/](css_phase4_wp4_4/) — completed WP4.4 arc and handoff history
 - [css_scale_btn_cleanup/](css_scale_btn_cleanup/) — completed scale-button cleanup, council findings, and evidence
 - [css_table_helpers_cleanup/](css_table_helpers_cleanup/) — completed table-helper cleanup and evidence
 - [css_theme_dark_p3/](css_theme_dark_p3/) — arc terminated after shipped a0; no later packet authorized
+- [deep_gate_robustness_gate0/](deep_gate_robustness_gate0/) — shipped: Gate 1 implementation #474 (`55953069`, deep-gate e2e selection fail-closed)
 - [dnone_display_utilities/](dnone_display_utilities/) — shipped display-utility cleanup evidence
 - [doc_truth/](doc_truth/) — shipped documentation-truth repairs
 - [fatigue_meter/](fatigue_meter/) — shipped meter and heatmap; Stage 4 closed, with calibration contracts and evidence retained
@@ -96,8 +98,6 @@ Proposed entries do not authorize implementation. The archive container is index
 
 ### Proposed
 
-- [blank_null_rep_bounds/](blank_null_rep_bounds/) — Gate 0 characterization shipped as #465; production implementation is unauthorized
-- [deep_gate_robustness_gate0/](deep_gate_robustness_gate0/) — Gate 0 evidence and bounded Gate-1 proposal; implementation requires separate authorization
 - [refactor_optional/](refactor_optional/) — optional-refactor assessments; no implementation approval is implied
 
 ## Archive

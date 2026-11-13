@@ -2117,8 +2117,10 @@ prescription that was measured and refuted is recorded once, at §10.9-C-9.
 
 `:60` clears `toastBody.innerHTML` and `:84` appends the button **into `toastBody`**, so the *next*
 `showToast()` from anywhere silently removes it. **Reachable inside its own only caller**:
-`volume-splitter.js:299-306` raises the action toast with `duration: 6000`, line **308** immediately
-calls `loadVolumeHistory()`, and that function's `.catch` at **439** emits `showToast('error', …)`.
+`volume-splitter.js:446-452` raises the action toast with `duration: 6000` (at `:447`), line **455** immediately
+calls `loadVolumeHistory()`, and that function's `.catch` error toast at **586** emits `showToast('error', …)`
+(anchors as of `9338543a`; the rest of R10 describes the defect as it stood at Gate 0, and KI-011
+was later repaired by #426, `5b35966b`).
 On a slow or failing history fetch the user's "Activate for Plan tab" button vanishes mid-toast.
 
 **Pinned, not fixed** — production behavior, out of scope. Packet B **characterizes** this defect and
@@ -6499,7 +6501,7 @@ them. **None is guessed.**
 | **NT-4** | **Linux behavior of `vitest list --json`** | Every probe P1–P14 ran on **win32-x64 / node v24.19.0**. Cross-platform agreement is *reasoned*, and its only proof is the first ubuntu `--check` | ✅ **TAKEN AND CLOSED 2026-08-22** — job `97094899990` (`Test Inventory Drift`, `ubuntu-latest`) on PR run `32599231895`, conclusion **`success`**, completed `2026-08-22T21:19:58Z`, step *"Check committed inventory against a fresh Linux regeneration"* **`success`**. Agreement is now **measured** |
 | **NT-5** | The **size** of the regenerated artifacts (added JSON/Markdown lines) | Bears on NT-6 and on review cost | At regeneration |
 | **NT-6** | Whether a whole-surface drift **exceeds `_check()`'s 200-line diff cap** | With a 231-row identity list, a surface-wide drift could be truncated in the CI report — the gate still **reds**, but the operator sees a truncated diff | At the first deliberate red (§13.10 step 4) |
-| **NT-7** | Whether **`describe.each`** expands in `vitest list` the way `test.each` does (P5 measured `test.each` only) | Only matters if a future JS test uses it; today none is known to | Before any future packet adds one |
+| **NT-7** | Whether **`describe.each`** expands in `vitest list` the way `test.each` does (P5 measured `test.each` only) | Only matters if a future JS test uses it; today none is known to | Before any future packet adds one [2026-11 note: closed. `toast.test.js:589,:625` use `describe.each` and the runtime-collected inventory lists the expanded rows (`TEST_INVENTORY.json:1237-1249`); evidence is indirect, not a fresh run] |
 | **NT-8** | The **wall-clock cost** of `vitest list` inside the `test-inventory` job (20-minute timeout, M6) | A collector that materially lengthens a required job is a cost the owner should see | The PR's first CI run |
 | **NT-9** | `vitest list --filesOnly` output shape | Documented in `--help` (M5) but **not probed**. Named only so a later reader does not think it was evaluated and rejected on evidence | Only if the file-level-only design is ever revisited |
 

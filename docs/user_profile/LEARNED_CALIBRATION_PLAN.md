@@ -32,11 +32,12 @@ The shipped estimate flow prioritizes:
 
 1. Exact exercise learned calibration, when settings mode is `suggest` and confidence is usable.
 2. Last logged set for the exact exercise.
-3. Profile reference lifts.
-4. Cold-start demographics.
-5. Static default.
+3. Related-exercise learned calibration, when `allow_related_exercise_learning` is on (Phase 2A, #53).
+4. Profile reference lifts.
+5. Cold-start demographics.
+6. Static default.
 
-Exact exercises now adapt from recent valid scored logs instead of only mirroring the latest row. Similar exercises still do not learn from logs. Cross-exercise propagation exists only through Profile reference lifts, and workout logs do not write back to those reference lifts.
+Exact exercises now adapt from recent valid scored logs instead of only mirroring the latest row. Related-exercise transfer is ratio-gated and off by default; workout logs still do not write back to Profile reference lifts.
 
 ## Desired Result
 

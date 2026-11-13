@@ -1,6 +1,6 @@
 # R2.3 — JS Unit Q4 / D2 decision
 
-**Status: Q4 approved; its standalone rename has not landed. D2 approved; its
+**Status: Q4 approved and its standalone rename landed in #554 (`73de866e`). D2 approved; its
 recorded §13.0 ledger condition is met on main (#544, `b4a2653c`), so by the
 owner's wording it takes effect without a further signature. C4 is not approved.**
 Prepared 2026-10-20 on an isolated checkout of `main`; exact readings are in

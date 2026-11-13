@@ -47,15 +47,14 @@ Seven concrete additions, all additive, no schema change, no API.
 
 ## 3. Deferred to Phase 3 or later
 
-> **📌 COMMITTED — Fatigue body heatmap (owner-requested 2026-06-13).** A
-> per-muscle body **heatmap** on `/fatigue` is an accepted, tracked work item —
-> **do not skip it.** It is a pure visualization of the existing per-muscle
+> **📌 SHIPPED 2026-08-13 via #339 (`ea82ef17`) — Fatigue body heatmap (owner-requested 2026-06-13).** A
+> per-muscle body **heatmap** on `/fatigue` was an accepted, tracked work item;
+> it has shipped and no longer belongs to this deferred list. It is a pure visualization of the existing per-muscle
 > bands (reuses the MuscleMap figure + `bodymap-svg.js` coloring + the
 > `fatigue-*` band palette), so it adds **no fatigue math, no thresholds, no
 > schema, and no `/api/fatigue/*`** — fully compatible with the Stage-4
-> calibration freeze and the D2.8/D9 locks below. Draft plan + the open owner
-> decisions that gate kickoff: [`HEATMAP_PLANNING.md`](HEATMAP_PLANNING.md).
-> Sequence: answer HEATMAP_PLANNING §8 → `/council-plan` → implement (§6 there).
+> calibration freeze and the D2.8/D9 locks below. Gate 0 and Gate 1 closed; see
+> [`HEATMAP_PLANNING.md`](HEATMAP_PLANNING.md). Linux baselines refreshed by #351 (`5a03d475`).
 
 Explicitly out of Phase 2 Path 1 scope, kept on file:
 

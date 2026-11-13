@@ -4,15 +4,15 @@
 
 ## Current State
 
-> **2026-10-22T14:10Z — current state, measured against GitHub `main`
-> `b77cb742f3af5222d9d80b608d497390c4b3e4f2` (#557).** PR, Actions, issue, branch-protection
-> and repository-security readings were taken together at 13:50–14:10Z. This record grants no
-> merge, settings or packet authority.
+> **2026-11-13T03:19Z — current state, measured against GitHub `main`
+> `9338543a8a71251b401029da04677d717f53c659` (#664).** PR, Actions, issue, branch-protection
+> and repository-security readings were taken together. This record grants no merge, settings
+> or packet authority.
 
 **Work queue and owner decisions:** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md)
 §0 is the single actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
 §11). Its §0.2 holds every open owner decision and §0.4 every open obligation; this block does not
-repeat them. Earlier Current State blocks are in
+repeat them. Current public work status lives in the linked GitHub issues. Earlier Current State blocks are in
 [`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](archive/2026/master-handover/CURRENT_STATE_HISTORY.md);
 the queue's earlier readings are in
 [`archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md`](archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md).
@@ -22,41 +22,35 @@ The maintenance rule for this block is the subsection headed *Maintenance rule*.
 
 | Reading | Value |
 |---|---|
-| GitHub `main` | `b77cb742` (#557). Push run `39783010460` succeeded (29 jobs; PR-only Dependency Review skipped) |
-| Open PRs | None at 13:51Z. Re-read live state before acting |
-| Branch protection | 12 exact contexts, each bound to GitHub Actions `app_id: 15368`; `strict: false`; `enforce_admins: false`. `JS Unit (Vitest)` is not a required context |
-| Repository security | Secret scanning and push protection enabled on 2026-10-21 under S2's bounded owner authority ([`SETTINGS_ACTIVATION.md`](ci_cd_expansion/SETTINGS_ACTIVATION.md)). CodeQL default setup is not configured. Dependabot security updates stay off under D-6; 0 open Dependabot alerts |
-| Orphan workflow | `345538425` is `disabled_manually` (C5); its historical run `33274031928` is retained |
-| Linux visual compare | No compare run since the two `main` dispatches after #548; both succeeded without writing a baseline but needed retries, which is not a pass (queue §0.2, H-LINUX-UNSYNC-01). Issue #537 closed at #548's merge |
-| Weekly gates (Mondays 03:17 UTC) | Neither `deep-gate.yml` nor `deep-gate-visual.yml` has a scheduled run since the #533 split; their first scheduled slot is **2026-10-26**. Manual dispatches do not count toward the scheduled threshold |
-| `release.yml` | Three `workflow_dispatch` runs, all successful; `push: tags` has never fired, and no GitHub Release exists |
-| Pyright baseline | 0 / 0 / 0 with no headroom. A net-new diagnostic fails `Type Check`; the fix is the code, never the baseline |
+| GitHub `main` | `9338543a` (#664). Push run `43301522250` succeeded (29 jobs succeeded; PR-only Dependency Review skipped) |
+| Open PRs | Nine at the reading. #679 (`test(css)`: Q1 survivor assertions, #573); #678 (`fast-uri` 3.1.7 to 3.1.9 in the lockfile; addresses the four open Dependabot alerts); #677 (`CLAUDE.md` trims and subsystem gotchas); #676 (draft, backup and export execution-fields plan, #567 / #568); #674 (draft, #609 Filter Exercises card shadow removed from visual captures); Dependabot #665 (sass), #666 (`@types/node` group), #667 (xlsxwriter), #668 (hypothesis). Re-read live state before acting |
+| Branch protection | Unchanged: 12 exact contexts, each bound to GitHub Actions `app_id: 15368`; `strict: false`; `enforce_admins: false`; no required reviews. `JS Unit (Vitest)` is not a required context. No repository ruleset is listed |
+| Repository security | Secret scanning and push protection enabled 2026-10-21 (S2). CodeQL default setup configured **scan-only** on 2026-10-24 on the owner's bounded answer ([#588](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/588)): languages actions, javascript-typescript, python; default suite; weekly schedule; no native blocking rule and CodeQL is not a required context. 1 open code-scanning alert (#2, `py/stack-trace-exposure`, `utils/errors.py`, opened 2026-10-24). Dependabot security updates stay off under D-6; **4 open Dependabot alerts**, all npm `fast-uri` (2 medium, 2 low), opened 2026-10-24; PR #678 is open for them. Actions policy unchanged: all actions allowed, SHA pinning not required (C3 selected, not applied) |
+| Orphan workflow | `345538425` is still `disabled_manually` (C5) |
+| Linux visual compare | Scheduled `deep-gate-visual.yml` ran 2026-10-26 (`40295844558`), 2026-11-02 (`41434489444`) and 2026-11-09 (`42610012553`), each `success`. The first two were green only through one Playwright retry each (`1 flaky / 99 passed`), which is not a pass ([`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8.1); the 11-09 run was clean (`100 passed`). No baseline was written in any of the three. Readings: [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §16.11, with the owner's 2026-11-13 ruling that a green reached through a retry does not count ([#583](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/583)). Branch dispatches for #674 on 2026-11-12: generate run `43270547903` rendered `plan-desktop-light-simple` 15,535 px off its baseline, compare run `43271645153` passed ([#675](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/675)) |
+| Weekly gates (Mondays) | `deep-gate.yml` scheduled runs 2026-10-26, 2026-11-02, 2026-11-09 all `success`, each clean (no retry). Manual dispatches do not count toward the scheduled threshold |
+| `release.yml` | Four `workflow_dispatch` runs, all successful (latest 2026-10-24); `push: tags` has never fired and no GitHub Release exists |
+| Pyright baseline | 0 / 0 / 0 with no headroom (carried from 2026-10-22, not re-measured). A net-new diagnostic fails `Type Check`; the fix is the code, never the baseline |
 | Test counts | [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md) is the single producer |
 
-### Landed since the 2026-10-20 reading (`b86e9ad7`)
+### Landed since the 2026-10-22 reading (`b77cb742`)
 
-First-parent order. Merges #481–#538 are listed in the archived blocks.
+First-parent order. Merges #481–#557 are listed in the archived blocks.
 
 | PR | Merge | What |
 |---|---|---|
-| #536, #535 | `3b21384c`, `a305e5a4` | Dependabot bumps: Hypothesis, Sass |
-| #531 | `71c4cc6d` | Previous handover refresh, single queue, `AGREED_PLAN.md` publication (Q9) |
-| #539 | `1f5ae0f0` | CI/CD B3: PR-only Dependency Review |
-| #540 | `43f5df33` | CI/CD A2: Operation A Windows tests parallelized; Operation A itself is not complete |
-| #544, #547 | `b4a2653c`, `aafba153` | JS-unit ledger rows 65–113; owner Q4 name and conditional D2 ruling |
-| #541, #542, #543 | `c9c0d838`, `6dd7dc83`, `f3d72be4` | WS1 documentation slices: OPEN_WORK, `ACTIVE_DEVELOPMENT.md` and cross-model plan splits |
-| #546 | `28484dda` | CI/CD B2 workflow-lint residuals closed: cache, cooldowns, lint scope |
-| #548 | `c2020735` | Linux baselines synced with the #464 restyle (GATE1 option C, owner-approved PNGs); closed #537 |
-| #545 | `d98f45d3` | WS3: application construction separated from runtime startup |
-| #549 | `dee3c379` | CI/CD A3: functional E2E split across four runners |
-| #551 | `a12b680f` | U1-FOLLOWUP-1: 24 Volume Splitter Vitest cases |
-| #552 | `155181d6` | CI/CD G6: nine previously skipped cases enforced |
-| #550 | `61da31cb` | JS-unit ledger rows 114–122; D2's recorded condition met |
-| #554 | `73de866e` | Q4: JS job renamed `JS Unit (Vitest)`; not yet required |
-| #556 | `c7782854` | WS4 slice 1: `POST /remove_exercise` database work moved to `utils/workout_plan_service.py`, behaviour unchanged |
-| #555 | `10b31185` | S2 safeguards record and the prepared C1–C3 settings packet |
-| #553 | `5361ad6f` | U1-FOLLOWUP-1 closeout; the obligation is discharged |
-| #557 | `b77cb742` | CI/CD G7: each Playwright job summary reports its retries; completes the core sequence B3 → G7 |
+| #558, #559, #560, #562 | `295f2acd`, `aa6c3676`, `04ae436b`, `16a27198` | Handover and queue refreshed to `b77cb742`; JS-unit ledger rows 123-131; CI records and JS-only C4 preparation and contracts (nothing activated) |
+| #561, #563 | `498e3b34`, `ae5ec18c` | Documentation retention recorded at feature closeout; CLAUDE.md shortened, subsystem detail moved into `.claude/rules/` |
+| #566 | `a21ae507` | Runtime, CI and Windows packaging migrated to Python 3.15.1 |
+| #597, #608, #651 | `7c220850`, `aa3ddbda`, `4c7994fc` | Work tracking routed to GitHub issues; status reconciliation reads migrated state |
+| #611, #612, #613 | `302ef0e9`, `7a9213f6`, `3730f460` | Frontend labels rendered safely and muscles matched literally; export suffix cleanup and screenshot separators; unexpected plan storage details kept in server logs |
+| #652, #653 | `c29ddf07`, `7cec3466` | Closed CSS and estimator evidence archived; CSS evidence cutover pilot |
+| #654, #655, #656, #657, #658, #659 | `d8e3e3c6`, `ac5b28b6`, `207f5c3c`, `939b8cd6`, `2ed91afa`, `e140b039` | Command guard refuses unconverted POSIX drive paths and a drive-root monitor; MSYS acceptance and VS Code panel records; worktree creator serializes git enumeration; gated drive-root cleanup routes |
+| #669, #670 | `04816d8d`, `466dc144` | Worktree cleanup campaign closed and the standing one-checkout rule set; retention retirement route and two stale feature guides retired |
+| #671 | `f6b65d47` | E2E replays repeated static GETs to relieve serial Windows socket pressure (#565, ADR-014) |
+| #672 | `b276c402` | Exercise-order batch made all-or-nothing (#570) |
+| #673 | `1b9893fb` | Erase, recovery and validation guidance corrected (#576, #575) |
+| #663, #664 | `f26daab8`, `9338543a` | Dependency bumps: `actions/setup-python`, pytest 9.1.1 to 9.2.0 |
 
 ### Holds in force
 
@@ -119,11 +113,11 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`finding1_residual/`](finding1_residual/PLANNING.md): residual behavior needs a current reference.
 - [`backup_confirmation_continuity/`](backup_confirmation_continuity/PLANNING.md): residual-risk reconciliation.
 - [`release_pipeline/`](release_pipeline/PLANNING.md): R3, deep-gate entry conditions.
-- [`deep_gate_linux_visual_failure_20260831/`](deep_gate_linux_visual_failure_20260831/GATE1.md): option C landed as #548; scheduled-compare evidence is pending (queue §0.2).
+- [`deep_gate_linux_visual_failure_20260831/`](deep_gate_linux_visual_failure_20260831/GATE1.md): option C landed as #548; the three scheduled compare readings are in CI PLANNING §16.11 (#583 / #641; queue §0.2).
 - [`visual_determinism/`](visual_determinism/PLANNING.md): the ADR-011 residual.
 - [`service_extraction/`](service_extraction/PLANNING.md): WS4 handlers after slice 1, each with its own gates.
 - [`worktree_cleanup/`](worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19–§20).
-- [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): post-split scheduled qualification; settings C1b/C1c, C2, C3 and C4; B4, D1 and F1/F3 unstarted.
+- [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): post-split scheduled qualification (readings in §16.11); settings C1c, C2, C3 and C4 (C1b CodeQL applied scan-only 2026-10-24); B4, D1 and F1/F3 unstarted.
 
 The full list is [`README.md`](README.md) *Feature folders → Active*.
 
@@ -132,14 +126,20 @@ The full list is [`README.md`](README.md) *Feature folders → Active*.
 Nothing starts automatically; each item keeps its own authority and gates, and queue §0.2–§0.4
 holds the detail.
 
-- **2026-10-26:** read the scheduled suite and visual runs separately and record them through
-  [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §§16.9–16.10. A manual dispatch
-  cannot substitute.
+- **Scheduled evidence:** the 2026-10-26, 2026-11-02 and 2026-11-09 slots are read and recorded
+  in [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §16.11. The owner ruled on
+  2026-11-13 that a green reached through a retry does not count: the visual gate has one clean
+  scheduled run of the three consecutive it needs, so 2026-11-23 is the earliest it can qualify
+  ([#583](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/583)). A manual dispatch
+  cannot substitute, and qualification does not itself authorize activation.
 - **WS5** is next in line for the `ci.yml` slot (queue §0.3); it still needs its own approval
   and gates.
-- **Settings:** C1b/C1c, C2, C3 and C4 await the owner
+- **Settings:** C1c, C2, C3 and C4 await the owner
   ([`SETTINGS_ACTIVATION.md`](ci_cd_expansion/SETTINGS_ACTIVATION.md); queue §0.2).
-- **Ledger:** §13.0 rows are owed for every merge after row 122 (queue §0.4).
+- **Ledger:** §13.0 stops at row 131 (`b77cb742`); later merges are unrecorded
+  ([#582](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/582), queue §0.4).
+- **Security triage:** PR #678 is open for the four `fast-uri` Dependabot alerts; the one CodeQL
+  alert has no recorded disposition. Opening a fix PR is a human action (D-6).
 
 ### Maintenance rule
 
