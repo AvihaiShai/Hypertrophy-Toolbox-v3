@@ -2059,7 +2059,7 @@ reason recorded.**
     fix — but weaker than §v2.8 specifies. Making it deterministic needs a search-clearing step that
     would itself clear the pending action.
 
-### I.11 Follow-up tracking (14 November 2026)
+### I.12 Follow-up tracking (14 November 2026)
 
 Section I.10 preserves the residuals at this packet's closeout. For residual 9's
 current disposition, see [issue #569](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/569)
