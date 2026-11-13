@@ -207,12 +207,10 @@ test.describe('Exercise Delete Functionality', () => {
     await page.waitForSelector('#workout_plan_table_body tr');
 
     const rows = page.locator('#workout_plan_table_body tr');
-    const count = await rows.count();
+    expect(await rows.count(), 'beforeEach seeds at least one plan row').toBeGreaterThan(0);
 
-    if (count > 0) {
-      const deleteBtn = rows.first().locator('button[data-action="delete"], .delete-btn, .btn-danger');
-      await expect(deleteBtn).toBeVisible();
-    }
+    const deleteBtn = rows.first().locator('button[data-action="delete"], .delete-btn, .btn-danger');
+    await expect(deleteBtn).toBeVisible();
   });
 
   test('clicking delete sends the remove request', async ({ page }) => {
@@ -220,17 +218,15 @@ test.describe('Exercise Delete Functionality', () => {
     await page.waitForSelector('#workout_plan_table_body tr');
 
     const rows = page.locator('#workout_plan_table_body tr');
-    const count = await rows.count();
+    expect(await rows.count(), 'beforeEach seeds at least one plan row').toBeGreaterThan(0);
 
-    if (count > 0) {
-      const deleteBtn = rows.first().locator('button[data-action="delete"], .delete-btn, .btn-danger');
-      const responsePromise = page.waitForResponse(response =>
-        response.url().endsWith('/remove_exercise') && response.request().method() === 'POST'
-      );
-      await deleteBtn.click();
-      const response = await responsePromise;
-      expect(response.status()).toBe(200);
-    }
+    const deleteBtn = rows.first().locator('button[data-action="delete"], .delete-btn, .btn-danger');
+    const responsePromise = page.waitForResponse(response =>
+      response.url().endsWith('/remove_exercise') && response.request().method() === 'POST'
+    );
+    await deleteBtn.click();
+    const response = await responsePromise;
+    expect(response.status()).toBe(200);
   });
 
   test('delete removes exercise from table', async ({ page }) => {
