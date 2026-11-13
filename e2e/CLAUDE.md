@@ -11,18 +11,8 @@ Playwright Chromium specs covering UI flows end-to-end. `playwright.config.ts` a
 | `fixtures/database.visual.seed.db` | Seed DB used by visual specs (committed; whitelisted in `.gitignore`) |
 | `static-replay.ts` | Per-worker `/static/` replay base under every fixture module (ADR-014) |
 | `smoke-navigation.spec.ts` | Page loads + nav cycle, plus the static-replay and native static-delivery checks (ADR-014) |
-| `dark-mode.spec.ts`, `nav-dropdown.spec.ts` | Theme + navbar |
-| `workout-plan.spec.ts`, `workout-log.spec.ts` | Plan/log CRUD |
-| `summary-pages.spec.ts`, `progression.spec.ts`, `volume-splitter.spec.ts` | Analyze + progress + distribute |
-| `program-backup.spec.ts`, `erase-flow.spec.ts`, `user-profile.spec.ts` | Backup/erase recovery flows, profile questionnaire |
-| `exercise-interactions.spec.ts`, `superset-edge-cases.spec.ts`, `replace-exercise-errors.spec.ts` | Per-row actions |
-| `validation-boundary.spec.ts`, `error-handling.spec.ts`, `empty-states.spec.ts`, `accessibility.spec.ts` | Edge & a11y |
-| `api-integration.spec.ts` | All API endpoints |
-| `fatigue-context.spec.ts`, `listener-cleanup.spec.ts` | Advisory fatigue context + listener lifecycle regressions |
-| `visual.spec.ts`, `visual-baseline-thumbnails.spec.ts`, `volume-progress.spec.ts`, `fatigue-stage4-smokes.spec.ts` | Visual snapshots + recent feature smokes |
-| `visual-field-separator.spec.ts` | Rendered table separator/outline contrast (computed styles, not screenshots) — required functional gate |
 
-Full per-spec test count map: `.claude/rules/testing.md`.
+Per-spec coverage map: `.claude/rules/testing.md`. Generated test counts: `docs/test_inventory/TEST_INVENTORY.md`.
 
 ## Conventions
 - **Console-error handling is mid-migration. Three `test` fixtures exist; pick deliberately.**
@@ -131,7 +121,6 @@ To work with it:
 ## Gotchas
 - **Known historical flake**: `program-backup.spec.ts` (`Backup Center Page` describe block) — sequential DB-pollution flake observed in earlier full runs; passes in isolation. This is why CI runs it in the isolated `e2e-backup` job (see CI inclusion contract above), not alongside other DB-mutating specs.
 - Visual snapshot regressions need an intentional re-baseline. Don't blanket-`--update-snapshots`.
-- Chromium is the only configured project (`playwright.config.ts`).
 
 ## See also
 - `.claude/rules/testing.md` — spec inventory + baselines

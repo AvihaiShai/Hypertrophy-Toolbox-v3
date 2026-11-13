@@ -171,6 +171,10 @@ called individually from `app.py`. Seeding and the catalog upgrade run **only** 
 `init_runtime()`, never from `run_all_initializers()`: the test suite creates empty schemas on
 purpose, and its `app` fixture is `create_app()` without `init_runtime()`.
 
+`user_selection.exercise_order` is not in the base schema: `initialize_exercise_order()`
+(`utils/schema_registry.py`) adds it by `ALTER TABLE`. The pre-migration guard that follows
+from this is under Gotchas in `routes/CLAUDE.md`.
+
 ## Typical failures
 | Symptom | Cause | Evidence |
 |---|---|---|
