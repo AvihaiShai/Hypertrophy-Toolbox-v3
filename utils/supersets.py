@@ -231,8 +231,9 @@ def unlink_partner_for_removal(
     Unlike :func:`unlink_superset`, this reuses the caller's ``DatabaseHandler``
     rather than opening its own: ``remove_exercise`` performs the partner-null,
     log-delete, and exercise-delete through one handler so they share its
-    connection and write lock. It nulls every group member except the exercise
-    being removed (``id != ?``); that row is deleted by the caller next.
+    connection. Each statement takes and releases the write lock on its own, so
+    the three are not one atomic unit. It nulls every group member except the
+    exercise being removed (``id != ?``); that row is deleted by the caller next.
     """
     db.execute_query(
         "UPDATE user_selection SET superset_group = NULL "

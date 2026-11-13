@@ -501,8 +501,9 @@ def test_breakpoint_helper_classes_are_unreachable() -> None:
     `'tbl-show-' + size` and `` `tbl-hide-${size}` ``, which produce a real class
     name while containing no full class literal.
 
-    It can only over-fire, never under-fire, and over-firing is the safe
-    direction. Two narrow exemptions keep the over-firing honest rather than
+    It over-fires by design, and over-firing is the safe direction. It can
+    still under-fire on a name whose stem is itself split, such as
+    `'tbl-' + kind + '-' + size`. Two narrow exemptions keep the over-firing honest rather than
     obstructive, because both are legitimate mentions that apply nothing:
     comments -- the likeliest is a note beside `table-responsiveness.js:112`
     explaining why the family went -- and JS unit tests, which may assert the

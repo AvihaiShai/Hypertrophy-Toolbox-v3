@@ -529,7 +529,7 @@ describe('characterization tie-ins', () => {
         // docs/UI_SCENARIOS_GAP_ANALYSIS.md:105. THIS PINS PASS-THROUGH AND
         // NOTHING ELSE: toast.js is mocked here, so this file cannot observe the
         // collision's rendering, and this case neither pins nor mitigates KI-010
-        // -- which stays Open in a document Packet C may not edit.
+        // -- Open when this was written; repaired 2026-08-27 by Packet U3a.
         resolvePost({ message: 'error' });
 
         await clearWorkoutPlan();
