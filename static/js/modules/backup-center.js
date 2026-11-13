@@ -881,6 +881,9 @@ async function handleConfirmAction() {
 
     const originalHtml = confirmBtn.innerHTML;
     const originalSaveFirstHtml = saveFirstBtn ? saveFirstBtn.innerHTML : '';
+    // Disabled here means the pre-restore snapshot was already taken; a failed
+    // restore must not hand that button back as a second snapshot.
+    const saveFirstWasDisabled = saveFirstBtn ? saveFirstBtn.disabled : false;
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Working...';
     if (saveFirstBtn) {
@@ -942,7 +945,7 @@ async function handleConfirmAction() {
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = originalHtml;
         if (saveFirstBtn) {
-            saveFirstBtn.disabled = false;
+            saveFirstBtn.disabled = saveFirstWasDisabled;
             saveFirstBtn.innerHTML = originalSaveFirstHtml;
         }
     }

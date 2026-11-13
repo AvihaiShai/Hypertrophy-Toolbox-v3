@@ -516,8 +516,15 @@ const SNAPSHOT_COVERAGE_NOTE =
   'Saves the current workout plan only — logged sessions are not included in this snapshot.';
 const RESTORE_TARGET_GONE_WARNING =
   'The backup you were restoring is no longer available. Please choose it again.';
-/** u10 forces a 500 on the snapshot POST; program-backup.js logs that envelope by design. */
-const U2_TOLERATED_CONSOLE_DIAGNOSTIC = 'Error creating backup:';
+/**
+ * Arms that force a 500, keyed by title prefix, with the one diagnostic program-backup.js
+ * logs for that failure by design. Every other arm tolerates nothing.
+ */
+const TOLERATED_CONSOLE_DIAGNOSTIC_BY_ARM: Record<string, string> = {
+  'u10 ': 'Error creating backup:',
+  'u12 ': 'Error restoring backup:',
+  'u13 ': 'Error restoring backup:',
+};
 
 async function saveBackupFromForm(page: Page, backupName: string): Promise<void> {
   await page.locator('#backup-center-name').fill(backupName);
@@ -611,6 +618,21 @@ async function settleSaveFirstFlight(page: Page): Promise<void> {
   await expect(page.locator('#backup-center-list')).toHaveCSS('pointer-events', 'auto');
 }
 
+/** Answer every `POST /api/backups/<id>/restore` with a 500 envelope. */
+async function failRestorePost(page: Page): Promise<void> {
+  await page.route('**/api/backups/*/restore', async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: false,
+        status: 'error',
+        error: { code: 'SERVER_ERROR', message: 'Restore failed' },
+      }),
+    });
+  });
+}
+
 test.describe('Backup Center save-first confirmation continuity', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
@@ -631,15 +653,18 @@ test.describe('Backup Center save-first confirmation continuity', () => {
   });
 
   test.afterEach(async ({ consoleErrors }, testInfo) => {
-    if (!testInfo.title.startsWith('u10 ')) {
+    const arm = Object.keys(TOLERATED_CONSOLE_DIAGNOSTIC_BY_ARM).find((prefix) =>
+      testInfo.title.startsWith(prefix),
+    );
+    if (!arm) {
       consoleErrors.assertNoErrors();
       return;
     }
     for (const entry of consoleErrors.errors) {
       expect(
         entry,
-        'u10 tolerates exactly its own deliberate snapshot failure; anything else is a real console error',
-      ).toContain(U2_TOLERATED_CONSOLE_DIAGNOSTIC);
+        `${arm.trim()} tolerates exactly its own deliberate failure; anything else is a real console error`,
+      ).toContain(TOLERATED_CONSOLE_DIAGNOSTIC_BY_ARM[arm]);
     }
   });
 
@@ -850,5 +875,60 @@ test.describe('Backup Center save-first confirmation continuity', () => {
 
     await expect(page.locator('#backup-action-confirm')).toHaveAttribute('role', 'alert');
     await expect(page.locator('#backup-action-cancel')).toBeFocused();
+  });
+
+  test('u12 a failed restore after save-first keeps "Current plan saved" disabled', async ({ page }) => {
+    const backupName = `U2 Restore Fail Saved ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+    await saveFirstAndAwaitReassert(page);
+
+    let snapshotPosts = 0;
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/backups') {
+        snapshotPosts += 1;
+      }
+    });
+    await failRestorePost(page);
+
+    await page.locator('#backup-action-confirm-btn').click();
+
+    await expectToast(page, 'Failed to restore backup');
+    await expect(page.locator('#backup-action-confirm')).toBeVisible();
+    await expect(page.locator('#backup-action-confirm-btn')).toBeEnabled();
+    await expect(page.locator('#backup-action-confirm-btn')).toContainText('Confirm Restore');
+    await expect(page.locator('#backup-action-cancel')).toBeEnabled();
+    await expect(page.locator('#backup-restore-save-first')).toBeDisabled();
+    await expect(page.locator('#backup-restore-save-first')).toContainText('Current plan saved');
+
+    // A disabled button dispatches no click, so a forced click must not reach the handler.
+    await page.locator('#backup-restore-save-first').click({ force: true });
+
+    // Accepted behaviour, unchanged: Cancel then reopen offers a fresh snapshot.
+    await page.locator('#backup-action-cancel').click();
+    await expect(page.locator('#backup-action-confirm')).toBeHidden();
+    await page.locator('#backup-detail-restore').click();
+    await expect(page.locator('#backup-action-confirm')).toBeVisible();
+    await expect(page.locator('#backup-restore-save-first')).toBeEnabled();
+    await expect(page.locator('#backup-restore-save-first')).toContainText('Save current plan first');
+
+    expect(snapshotPosts, 'a failed restore must not allow a second snapshot').toBe(0);
+  });
+
+  test('u13 a failed restore without save-first keeps "Save current plan first" enabled', async ({ page }) => {
+    const backupName = `U2 Restore Fail Unsaved ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+    await failRestorePost(page);
+
+    await page.locator('#backup-action-confirm-btn').click();
+
+    await expectToast(page, 'Failed to restore backup');
+    await expect(page.locator('#backup-action-confirm')).toBeVisible();
+    await expect(page.locator('#backup-action-confirm-btn')).toBeEnabled();
+    await expect(page.locator('#backup-action-confirm-btn')).toContainText('Confirm Restore');
+    await expect(page.locator('#backup-action-cancel')).toBeEnabled();
+    await expect(page.locator('#backup-restore-save-first')).toBeEnabled();
+    await expect(page.locator('#backup-restore-save-first')).toContainText('Save current plan first');
   });
 });
