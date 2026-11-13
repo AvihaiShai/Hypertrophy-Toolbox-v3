@@ -42,41 +42,15 @@ prerequisite for the command above.
 ## Key files
 | File | Role |
 |---|---|
-| `conftest.py` | Fixture hierarchy (see below); the `app` fixture is the production `create_app()` factory |
+| `conftest.py` | Fixture hierarchy (see `.claude/rules/testing.md`); the `app` fixture is the production `create_app()` factory |
 | `test_<route>.py` | Per-route HTTP tests (e.g. `test_workout_plan_routes.py`) |
 | `test_<util>.py` | Per-module unit tests (e.g. `test_effective_sets.py`, `test_fatigue.py`) |
 | `test_priority0_*.py` | Cross-cutting contract / FK / filter tests |
 | `test_harness_isolation.py` | Verifies the test fixtures themselves isolate DB state |
 
-## Fixture hierarchy (`conftest.py`)
-```
-schema_template (session)       — empty schema built ONCE per worker
-test_db_path (function)         — unique tmp_path SQLite per test
-  app (function)                — Flask app + copy of schema_template, all blueprints
-    client (function)           — test client bound to the same DB
-    db_handler (function)       — DatabaseHandler at the same DB
-      clean_db (function)       — DELETEs rows, preserves tables
-        exercise_factory        — INSERTs into exercises
-        workout_plan_factory    — needs exercise
-        workout_log_factory     — needs plan
-```
-
-The `app` fixture **copies** `schema_template` rather than re-running
-`run_all_initializers()`, which commits (and so fsyncs) every DDL statement
-separately under the test pragma profile. Adding a table still only means
-registering its initializer in `utils/schema_registry.py` — the template picks
-it up automatically.
-
 ## Conventions
-- Patch DB path by **assignment**, not import: `import utils.config; utils.config.DB_FILE = test_db_path`. `DatabaseHandler.__init__` reads `utils.config.DB_FILE` at call time (`database.py:209`).
 - Use the shared `app` / `client` / `db_handler` fixtures unless you need a specialized setup.
-- New blueprint? Register it in `create_app()` (`app.py`) — the `app` fixture is that factory — and add the name to `EXPECTED_BLUEPRINTS` in `test_app_factory.py`, the one deliberate second site, a test oracle.
 - New table? Register its creator in `run_all_initializers()` (`utils/schema_registry.py`); `schema_template` picks it up. A user-state table also joins `clean_db`'s `DELETE` list (see `.claude/rules/database.md`).
-
-## Gotchas
-- `pytest` not found → use `.venv/Scripts/python.exe -m pytest` (system Python lacks deps).
-- `no such table` → bypassed conftest init; use the shared fixtures.
-- `FK constraint failed` → call `exercise_factory` before `workout_plan_factory` before `workout_log_factory`.
 
 ## See also
 - `.claude/rules/testing.md` — full E2E map, baselines, fixture detail

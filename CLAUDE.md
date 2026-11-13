@@ -53,11 +53,7 @@ app.py                 ← create_app() + middleware + entry points only; no bus
 - Named infrastructure exception: `scripts/seed_worktree_snapshot.py` (validated worktree seeding only); see `.claude/rules/database.md`.
 
 ### Deeper references
-- Routes / API endpoints / filters / security / new-feature checklist → `.claude/rules/routes.md` (loads when editing `routes/**`).
-- DB schema / DatabaseHandler / adding tables / startup / env vars → `.claude/rules/database.md` (loads when editing `utils/database*.py` or `utils/db_initializer.py`).
-- Templates / JS modules / SCSS → `.claude/rules/frontend.md` (loads when editing `templates/**`, `static/**`, `scss/**`).
-- Pytest + Playwright + E2E map → `.claude/rules/testing.md` (loads when editing `tests/**` or `e2e/**`).
-- Logging / request tracing / typical failures → `.claude/rules/debugging.md` (loads when editing `utils/logger.py` or `utils/request_id.py`).
+Subsystem detail lives in `.claude/rules/{routes,database,frontend,testing,debugging,verification}.md`. Read the matching rule before working in that area; Claude Code also loads these rules when a file matching their `paths` frontmatter enters context.
 
 ---
 
@@ -124,19 +120,12 @@ Follow the checklist in `.claude/rules/routes.md` (*Adding a feature end to end*
 1. **Scope**: search the function/class name across `routes/`, `utils/`, `templates/`, `tests/`.
 2. **Change**: keep the old interface as a thin wrapper while callers span multiple files.
 3. **Gate**: finish with `/verify-and-polish`; tests and reviewers follow `docs/ai_workflow/QUALITY_GATE.md`. No blanket pre-change baseline; if a failure's origin is unclear, reproduce it in an isolated base checkout, not by stashing.
-4. Generated output goes under the gitignored `artifacts/`.
 
 ---
 
 ## 5. Current State & Risks
 
-Current status and decisions for migrated public work live in the owning [GitHub issues](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues). [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md) retains dated runtime handover and operating context; this section holds durable gotchas only. The response-contract rule and its HTTP-200 "no result" cases are in `.claude/rules/routes.md`.
-
-### exercise_order column
-Added at startup by `initialize_exercise_order()` (defined in `utils/schema_registry.py`, re-exported from `routes/workout_plan.py`) via `ALTER TABLE`. `get_workout_plan()` in `routes/workout_plan.py` defensively checks `column_exists()` for pre-migration DBs.
-
-### session_summary vs weekly_summary — not duplicates
-`calculate_session_summary()` (`utils/session_summary.py`) groups by routine with an optional date filter; `calculate_weekly_summary()` (`utils/weekly_summary.py`) aggregates all routines weekly with no date filter and tracks frequency. The first imports only `EFFECTIVE_STATUS_MAP` from the second.
+Current status and decisions for migrated public work live in the owning [GitHub issues](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues). [`docs/MASTER_HANDOVER.md`](docs/MASTER_HANDOVER.md) retains dated runtime handover and operating context. The response-contract rule and its HTTP-200 "no result" cases are in `.claude/rules/routes.md`.
 
 ### Historical audit trail
 Full audit history and resolved violations: `docs/CLAUDE_MD_AUDIT.md`.

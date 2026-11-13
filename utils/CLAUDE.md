@@ -24,8 +24,7 @@ All business logic and DB access. Routes call into here; nothing in here imports
 ## Gotchas
 - **Effective sets are informational only** (`effective_sets.py:6-7`). Never auto-adjust or block user actions on them.
 - **FLASK_DEBUG default mismatch**: `main()` in `app.py` defaults `'0'`, `database.py:90` defaults `'1'`. Result: `python app.py` runs Flask non-debug but DB uses DELETE-journal/FULL-sync (safe).
-- `session_summary.py` imports only `EFFECTIVE_STATUS_MAP` from `weekly_summary.py` —
-  not duplicates; per-session vs cross-routine weekly aggregation.
+- **`session_summary.py` vs `weekly_summary.py` — not duplicates.** `calculate_session_summary()` groups by routine with an optional date filter; `calculate_weekly_summary()` aggregates all routines weekly with no date filter and tracks frequency. The first imports only `EFFECTIVE_STATUS_MAP` from the second.
 
 ## See also
 - `.claude/rules/database.md` — schema table, DatabaseHandler pattern, adding a table
