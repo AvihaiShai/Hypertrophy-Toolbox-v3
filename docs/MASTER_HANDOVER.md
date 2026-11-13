@@ -27,7 +27,7 @@ The maintenance rule for this block is the subsection headed *Maintenance rule*.
 | Branch protection | Unchanged: 12 exact contexts, each bound to GitHub Actions `app_id: 15368`; `strict: false`; `enforce_admins: false`; no required reviews. `JS Unit (Vitest)` is not a required context. No repository ruleset is listed |
 | Repository security | Secret scanning and push protection enabled 2026-10-21 (S2). CodeQL default setup configured **scan-only** on 2026-10-24 on the owner's bounded answer ([#588](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/588)): languages actions, javascript-typescript, python; default suite; weekly schedule; no native blocking rule and CodeQL is not a required context. 1 open code-scanning alert (#2, `py/stack-trace-exposure`, `utils/errors.py`, opened 2026-10-24). Dependabot security updates stay off under D-6; **4 open Dependabot alerts**, all npm `fast-uri` (2 medium, 2 low), opened 2026-10-24; PR #678 is open for them. Actions policy unchanged: all actions allowed, SHA pinning not required (C3 selected, not applied) |
 | Orphan workflow | `345538425` is still `disabled_manually` (C5) |
-| Linux visual compare | Scheduled `deep-gate-visual.yml` ran 2026-10-26 (`40295844558`), 2026-11-02 (`41434489444`) and 2026-11-09 (`42610012553`), each `success`. The first two were green only through one Playwright retry each (`1 flaky / 99 passed`), which is not a pass ([`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8.1); the 11-09 run was clean (`100 passed`). No baseline was written in any of the three. Readings: [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §16.11; whether a flaky success counts is open ([#583](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/583), [#641](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/641)). Branch dispatches for #674 on 2026-11-12: generate run `43270547903` rendered `plan-desktop-light-simple` 15,535 px off its baseline, compare run `43271645153` passed ([#675](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/675)) |
+| Linux visual compare | Scheduled `deep-gate-visual.yml` ran 2026-10-26 (`40295844558`), 2026-11-02 (`41434489444`) and 2026-11-09 (`42610012553`), each `success`. The first two were green only through one Playwright retry each (`1 flaky / 99 passed`), which is not a pass ([`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8.1); the 11-09 run was clean (`100 passed`). No baseline was written in any of the three. Readings: [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §16.11, with the owner's 2026-11-13 ruling that a green reached through a retry does not count ([#583](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/583)). Branch dispatches for #674 on 2026-11-12: generate run `43270547903` rendered `plan-desktop-light-simple` 15,535 px off its baseline, compare run `43271645153` passed ([#675](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/675)) |
 | Weekly gates (Mondays) | `deep-gate.yml` scheduled runs 2026-10-26, 2026-11-02, 2026-11-09 all `success`, each clean (no retry). Manual dispatches do not count toward the scheduled threshold |
 | `release.yml` | Four `workflow_dispatch` runs, all successful (latest 2026-10-24); `push: tags` has never fired and no GitHub Release exists |
 | Pyright baseline | 0 / 0 / 0 with no headroom (carried from 2026-10-22, not re-measured). A net-new diagnostic fails `Type Check`; the fix is the code, never the baseline |
@@ -127,11 +127,11 @@ Nothing starts automatically; each item keeps its own authority and gates, and q
 holds the detail.
 
 - **Scheduled evidence:** the 2026-10-26, 2026-11-02 and 2026-11-09 slots are read and recorded
-  in [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §16.11. Whether a green reached
-  through a retry counts toward the visual gate's threshold is open
-  ([#583](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/583),
-  [#641](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/641)). A manual dispatch
-  cannot substitute.
+  in [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §16.11. The owner ruled on
+  2026-11-13 that a green reached through a retry does not count: the visual gate has one clean
+  scheduled run of the three consecutive it needs, so 2026-11-23 is the earliest it can qualify
+  ([#583](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/583)). A manual dispatch
+  cannot substitute, and qualification does not itself authorize activation.
 - **WS5** is next in line for the `ci.yml` slot (queue §0.3); it still needs its own approval
   and gates.
 - **Settings:** C1c, C2, C3 and C4 await the owner

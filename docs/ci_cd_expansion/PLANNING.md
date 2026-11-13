@@ -2390,10 +2390,17 @@ read healthy for both workflows, 16–21 s dispatch latency, and freshness `fres
 11-09 slot. The watchdog does not read Playwright retries. The 10-26 and 11-02 watch logs
 were not read for freshness lines.
 
-**Counts, not credited.** The suite has three consecutive clean scheduled passes. The visual
+**Counts, kept separately.** The suite has three consecutive clean scheduled passes. The visual
 gate has one consecutive clean scheduled pass (11-09); the first two runs concluded
-`success` only through one retry each. Whether a flaky success counts toward ADR-007 R1-D3's
-three green scheduled runs is not decided here (#583). Lost-delivery recovery, live
+`success` only through one retry each.
+
+**Owner ruling, 2026-11-13 (#583).** A green reached through a retry does not count. The
+requirement stays three consecutive clean scheduled visual runs, and a manual dispatch does
+not substitute. 2026-11-23 is therefore the earliest date the visual count can reach three,
+and only if the 11-16 and 11-23 scheduled runs are both clean. Qualification does not itself
+authorize activation.
+
+**Other limits.** Lost-delivery recovery, live
 multi-page pagination, the degraded path and manual-close recreation remain unqualified
 (#589). `deep-gate.yml` and `deep-gate-visual.yml` do not carry the PR #557 retry-report
 step, so the retry evidence above is the Playwright log footer.
