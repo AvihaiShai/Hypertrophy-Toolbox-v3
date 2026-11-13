@@ -3,7 +3,7 @@ name: manual-qa-reviewer
 description: Repository-read-only exploratory QA reviewer that drives the running Hypertrophy Toolbox through Playwright MCP and reports reproducible steps, expected behavior, observations, and evidence.
 tools: Read, Grep, Glob, mcp__playwright__*
 disallowedTools: Write, Edit, NotebookEdit, Bash, PowerShell, Agent, Skill
-model: sonnet
+model: inherit
 mcpServers:
   - playwright:
       type: stdio
