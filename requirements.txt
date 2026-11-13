@@ -4,7 +4,7 @@ Jinja2==3.1.6
 Werkzeug==3.1.9
 itsdangerous==2.2.0
 click==8.5.0
-XlsxWriter==3.2.9
+XlsxWriter==3.3.1
 openpyxl==3.1.5
 pytest==9.2.0
 # Coverage is NON-BLOCKING measurement (decision D1, signed 2026-08-01). Adding
