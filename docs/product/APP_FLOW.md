@@ -633,7 +633,7 @@ the column nullability encodes.
 | Backup list | API | `GET /api/backups` |
 | Search / type filter / sort | Presentation | Filters (All / Manual / Auto) and orders the loaded list client-side. The page header counts the current program's rows and the saved, manual and auto snapshots. No route or startup path creates an `auto` backup, so the Auto filter and count show only rows already marked `auto` in the database |
 | Open a backup | API | `GET /api/backups/<id>` → `NOT_FOUND` 404 for an unknown id — verified live |
-| Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Reads `2` for a backup saved since the execution fields were added to backups (#567) and `1` for an earlier one |
+| Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Reads `2` for a backup saved since the execution fields were added to backups and `1` for an earlier one |
 | Rename / edit note | API | `PATCH /api/backups/<id>`. At least one of `name` / `note` is required (`VALIDATION_ERROR` 400 otherwise); the same limits as Save apply; an unknown id is `NOT_FOUND` 404 |
 | **Restore** | Presentation → API | Confirmation, then `POST /api/backups/<id>/restore`. The confirmation text states plainly that the current plan and all logged sessions will be cleared. A backup holding an execution style or timing value restore cannot interpret is refused as `VALIDATION_ERROR` 400 with `error.reason` `RESTORE_REFUSED`, and nothing is changed: an error toast carries the server's message for 30 seconds, no result panel is shown, and the confirmation stays open |
 | Save current plan first | API | Offered inside the restore confirmation only; snapshots the present state before restoring, as an ordinary manual backup named `Pre-restore snapshot (<timestamp>)` |
@@ -669,8 +669,9 @@ toast and warning styling instead of a success message.
 
 Each restored row gets back the execution style and timing values it had when the backup was
 taken. A value the backup does not hold is *missing* — the row was saved before backups carried
-these fields, or the value is empty. A missing style is restored as `standard`; a missing time
-cap, interval or rounds value is restored empty, never as a default. So every row of a backup
+these fields, or the backup row holds no value for it (SQL `NULL`). An empty string is a stored
+value, not a missing one. A missing style is restored as `standard`; a missing time cap,
+interval or rounds value is restored empty, never as a default. So every row of a backup
 saved before this change restores as `standard` with no timing values.
 
 A value that is present but cannot be interpreted **refuses the whole restore**, unlike the

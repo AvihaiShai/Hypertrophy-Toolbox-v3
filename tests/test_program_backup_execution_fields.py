@@ -1,26 +1,28 @@
 """Program backup and restore carry the four execution fields (#567).
 
-Acceptance tests for criteria 1-4, 10 and 11 of
-``docs/backup_export_execution_fields/PLANNING.md``, driven through the ``/api/backups``
-endpoints with the shared ``client``:
+Acceptance tests driven through the ``/api/backups`` endpoints with the shared ``client``:
 
-* **C1 / C2** -- a plan row's ``execution_style``, ``time_cap_seconds``,
+* **Round trip** -- a plan row's ``execution_style``, ``time_cap_seconds``,
   ``emom_interval_seconds`` and ``emom_rounds`` survive backup and restore exactly, including
   rows at the limit values and the snapshot taken by "Save current plan first".
-* **C3 / C4** -- a backup saved by a build that predates the four columns is untouched by the
-  upgrade, stays listed and usable, and restores as ``standard`` with empty timing.
-* **C10** -- a new backup is labelled ``schema_version`` 2; restore ignores the label.
-* **C11** -- the six endpoints' success responses carry exactly the keys they carried before.
+* **Older backups** -- a backup saved by a build that predates the four columns is untouched
+  by the upgrade, stays listed and usable, and restores as ``standard`` with empty timing.
+* **Version label** -- a new backup is labelled ``schema_version`` 2; restore ignores the
+  label (ADR-008).
+* **Response shapes** -- the six endpoints' success responses carry exactly the keys they
+  carried before.
 
-The refusal outcome (C5-C8) and the untouched-plan guarantees (C7) are in
-``tests/test_program_backup_restore_fuzz.py``; the contract and its tripwire (C15) are in
-``tests/test_backup_execution_contract.py``.
+The whole-restore refusal and the guarantee that a refused restore changes nothing are in
+``tests/test_program_backup_restore_fuzz.py``; the restore-acceptance contract and its
+tripwire (ADR-015) are in ``tests/test_backup_execution_contract.py``.
 
 Harness non-claim
 -----------------
 Plan rows at the limit values and the pre-change backup tables are written by direct SQL. That
-constructs a persisted state; it is not a modelled user action. The three shapes of
-reproduction A are set through ``POST /api/execution_style``, the application's own writer.
+constructs a persisted state; it is not a modelled user action. The three shapes the plan page
+itself writes -- ``standard`` with no timing, ``amrap`` with a time cap, ``emom`` with an
+interval and rounds -- are set through ``POST /api/execution_style``, the application's own
+writer.
 """
 from __future__ import annotations
 
@@ -42,7 +44,7 @@ _EXECUTION_COLUMNS = (
 )
 
 # The seven metadata keys of a backup, and the ten keys of each item in the detail payload,
-# as they were before this change (Section 0, last row of the evidence table).
+# as they were before this change.
 _METADATA_KEYS = {
     "id",
     "name",
@@ -187,7 +189,7 @@ def _restore(client: Any, backup_id: int) -> Dict[str, Any]:
 
 @pytest.fixture
 def reproduction_a_plan(client, clean_db, exercise_factory, workout_plan_factory) -> Dict[str, int]:
-    """The three application-valid rows of reproduction A, set through the plan page's endpoint."""
+    """One row of each shape the plan page writes, set through the plan page's endpoint."""
     plan_ids: Dict[str, int] = {}
     for exercise in ("Probe Press", "Probe Row", "Probe Curl"):
         exercise_factory(exercise)
@@ -209,7 +211,7 @@ _REPRODUCTION_A_FIELDS: Dict[str, ExecutionFields] = {
 
 
 # ---------------------------------------------------------------------------
-# C1 -- round trip
+# Round trip
 # ---------------------------------------------------------------------------
 
 
@@ -217,7 +219,7 @@ _REPRODUCTION_A_FIELDS: Dict[str, ExecutionFields] = {
 def test_round_trip_through_the_endpoints_preserves_execution_fields(
     client, reproduction_a_plan, plan_after_backup
 ):
-    """C1, reproduction A: every restored row has the four fields it had at backup time.
+    """Every restored row has the four fields it had when the backup was taken.
 
     Measured before this change: the ``amrap`` and ``emom`` rows came back as ``standard`` with
     no timing values, and the restore reported success.
@@ -273,7 +275,7 @@ _LIMIT_VALUE_ROWS: List[Tuple[str, ExecutionFields]] = [
 def test_round_trip_preserves_rows_at_the_limit_values(
     client, clean_db, exercise_factory, workout_plan_factory
 ):
-    """C1: time cap 10 and 600, interval 15 and 180, rounds 1 and 20 all survive exactly."""
+    """Time cap 10 and 600, interval 15 and 180, rounds 1 and 20 all survive exactly."""
     for exercise, fields in _LIMIT_VALUE_ROWS:
         exercise_factory(exercise)
         plan_id = workout_plan_factory(exercise_name=exercise, routine=_ROUTINE)
@@ -294,14 +296,14 @@ def test_round_trip_preserves_rows_at_the_limit_values(
 
 
 # ---------------------------------------------------------------------------
-# C2 -- the pre-restore safety snapshot
+# The pre-restore safety snapshot
 # ---------------------------------------------------------------------------
 
 
 def test_pre_restore_snapshot_preserves_execution_fields(
     client, clean_db, exercise_factory, workout_plan_factory
 ):
-    """C2: "Save current plan first" snapshots the four fields like any other backup.
+    """The "Save current plan first" snapshot keeps the four fields like any other backup.
 
     The Backup Center's button calls the same ``POST /api/backups`` with a generated name and a
     fixed note (``static/js/modules/backup-center.js``), so the flow is reproduced here through
@@ -343,7 +345,7 @@ def test_pre_restore_snapshot_preserves_execution_fields(
 
 
 # ---------------------------------------------------------------------------
-# C3 / C4 -- backups that predate the change
+# Backups that predate the change
 # ---------------------------------------------------------------------------
 
 # routine, exercise, sets, min, max, rir, rpe, weight, exercise_order, superset_group
@@ -429,7 +431,7 @@ def _legacy_snapshot() -> Dict[str, List[Dict[str, Any]]]:
 
 
 def test_upgrade_leaves_legacy_headers_and_rows_unchanged(clean_db, exercise_factory):
-    """C4: starting the new build rewrites no existing backup; a second start changes nothing."""
+    """Starting the new build rewrites no existing backup; a second start changes nothing."""
     backup_id = _seed_legacy_backup(exercise_factory)
     before = _legacy_snapshot()
     assert len(before["program_backups"]) == 1
@@ -449,7 +451,7 @@ def test_upgrade_leaves_legacy_headers_and_rows_unchanged(clean_db, exercise_fac
 
 
 def test_upgrade_adds_the_four_columns_as_null(clean_db, exercise_factory):
-    """C4 / C5: the migration is additive and idempotent, and stamps no invented value.
+    """The migration is additive and idempotent, and stamps no invented value.
 
     ``execution_style`` must come out NULL -- not ``'standard'`` -- so a legacy row reads as
     *missing*, which is what lets restore tell it from a present value.
@@ -486,7 +488,7 @@ def test_upgrade_adds_the_four_columns_as_null(clean_db, exercise_factory):
 
 
 def test_legacy_backup_stays_listed_and_usable_after_upgrade(client, clean_db, exercise_factory):
-    """C4: an existing backup is still listed unchanged, and can be opened, renamed, restored
+    """An existing backup is still listed unchanged, and can be opened, renamed, restored
     and deleted."""
     backup_id = _seed_legacy_backup(exercise_factory)
     listed_before = client.get("/api/backups").get_json()["data"]
@@ -535,7 +537,7 @@ def test_legacy_backup_stays_listed_and_usable_after_upgrade(client, clean_db, e
 def test_legacy_backup_restores_as_standard_with_empty_timing(
     client, clean_db, exercise_factory, workout_plan_factory
 ):
-    """C3: every row of a pre-change backup restores as ``standard`` with empty timing.
+    """Every row of a pre-change backup restores as ``standard`` with empty timing.
 
     The style must be the stored text ``'standard'``, not NULL: the plan page only *displays*
     a NULL style as standard.
@@ -568,8 +570,8 @@ def test_legacy_backup_restores_as_standard_with_empty_timing(
 
 
 def test_legacy_backup_reports_skipped_and_invalid_rows_as_before(client, clean_db, exercise_factory):
-    """C3 / C9: a legacy backup's uncatalogued and out-of-bounds rows are skipped and reported
-    on their own channels, and the rest restore as ``standard``."""
+    """A legacy backup's uncatalogued and out-of-bounds rows are skipped and reported on their
+    own channels, exactly as before, and the rest restore as ``standard``."""
     items = list(_LEGACY_ITEMS) + [
         ("Upper A", "Legacy Retired Exercise", 3, 8, 10, 2, 8.0, 40.0, 4, None),
         ("Lower B", "Legacy Overloaded Row", 3, 8, 10, 2, 8.0, 99999.0, 5, None),
@@ -595,12 +597,12 @@ def test_legacy_backup_reports_skipped_and_invalid_rows_as_before(client, clean_
 
 
 # ---------------------------------------------------------------------------
-# C10 -- the version label
+# The version label
 # ---------------------------------------------------------------------------
 
 
 def test_new_backup_is_labelled_schema_version_2(client, reproduction_a_plan):
-    """C10: a backup created by this build reports ``schema_version`` 2 wherever it is returned.
+    """A backup created by this build reports ``schema_version`` 2 wherever it is returned.
 
     The literal is deliberate. Comparing against ``BACKUP_SCHEMA_VERSION`` would pass whatever
     the constant says.
@@ -635,7 +637,7 @@ def _plan_without_ids() -> List[Dict[str, Any]]:
 
 
 def test_restore_outcome_does_not_depend_on_the_version_label(client, reproduction_a_plan):
-    """C10: two backups identical except for ``schema_version`` restore identically.
+    """Two backups identical except for ``schema_version`` restore identically.
 
     Restore tells a missing value from a present one by the stored value, never by the label
     (ADR-008).
@@ -668,7 +670,7 @@ def test_restore_outcome_does_not_depend_on_the_version_label(client, reproducti
 
 
 # ---------------------------------------------------------------------------
-# C11 -- success response shapes
+# Success response shapes: no endpoint gains or loses a key
 # ---------------------------------------------------------------------------
 
 
@@ -685,13 +687,13 @@ def shape_backup(client, reproduction_a_plan) -> Dict[str, Any]:
 
 
 def test_create_backup_response_keys_are_unchanged(shape_backup):
-    """C11: ``POST /api/backups``."""
+    """``POST /api/backups``."""
     assert shape_backup["ok"] is True
     assert set(shape_backup["data"]) == _METADATA_KEYS
 
 
 def test_list_backups_response_keys_are_unchanged(client, shape_backup):
-    """C11: ``GET /api/backups``."""
+    """``GET /api/backups``."""
     response = client.get("/api/backups")
     assert response.status_code == 200
     body = response.get_json()
@@ -701,7 +703,8 @@ def test_list_backups_response_keys_are_unchanged(client, shape_backup):
 
 
 def test_backup_detail_response_keys_are_unchanged(client, shape_backup):
-    """C11: ``GET /api/backups/<id>`` gains no key, on the backup or on any of its items (Q4)."""
+    """``GET /api/backups/<id>`` gains no key, on the backup or on any of its items: the detail
+    response does not expose the four execution fields."""
     response = client.get(f"/api/backups/{shape_backup['data']['id']}")
     assert response.status_code == 200
     body = response.get_json()
@@ -713,7 +716,7 @@ def test_backup_detail_response_keys_are_unchanged(client, shape_backup):
 
 
 def test_update_backup_response_keys_are_unchanged(client, shape_backup):
-    """C11: ``PATCH /api/backups/<id>``."""
+    """``PATCH /api/backups/<id>``."""
     response = client.patch(
         f"/api/backups/{shape_backup['data']['id']}", json={"name": "shape-renamed"}
     )
@@ -724,7 +727,7 @@ def test_update_backup_response_keys_are_unchanged(client, shape_backup):
 
 
 def test_restore_backup_response_keys_are_unchanged(client, shape_backup):
-    """C11: ``POST /api/backups/<id>/restore``."""
+    """``POST /api/backups/<id>/restore``."""
     response = client.post(f"/api/backups/{shape_backup['data']['id']}/restore")
     assert response.status_code == 200
     body = response.get_json()
@@ -733,7 +736,7 @@ def test_restore_backup_response_keys_are_unchanged(client, shape_backup):
 
 
 def test_delete_backup_response_keys_are_unchanged(client, shape_backup):
-    """C11: ``DELETE /api/backups/<id>`` answers with a message and no data."""
+    """``DELETE /api/backups/<id>`` answers with a message and no data."""
     response = client.delete(f"/api/backups/{shape_backup['data']['id']}")
     assert response.status_code == 200
     body = response.get_json()

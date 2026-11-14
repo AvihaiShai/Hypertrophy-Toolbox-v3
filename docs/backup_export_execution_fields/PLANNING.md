@@ -1019,7 +1019,7 @@ The 21 existing headers, as read from `utils/export_service.py:114-160` on 13 No
 
 ## Evidence — PR 1 (#567), implementation
 
-*Recorded 14 November 2026 by the implementation agent, on branch `fix/567-backup-execution-fields` over acceptance-test commit `2fed459e`. Nothing here is a Gate 2 approval. The full pytest suite, the full Chromium suite and the code-time reviewers had not run when this was written; the manager runs them.*
+*Recorded 14 November 2026 by the implementation agent, on branch `fix/567-backup-execution-fields` over acceptance-test commit `2fed459e`. Nothing here is a Gate 2 approval. The full pytest suite and the full Chromium suite had not run when this was written; the manager runs them.*
 
 **Changed paths**
 
@@ -1029,7 +1029,7 @@ The 21 existing headers, as read from `utils/export_service.py:114-160` on 13 No
 | `utils/program_backup.py` | `BACKUP_SCHEMA_VERSION = 2` and its comment; four columns in the `CREATE TABLE` plus the migration loop; capture; `BackupRestoreRefused`; pre-flight, read and one assembled `INSERT` in `restore_backup()` |
 | `routes/program_backup.py` | `except BackupRestoreRefused` ahead of the `ValueError` branch; `_restore_refused_message()`; docstring |
 | `static/js/modules/backup-center.js` | the one line of decision (ii), in the restore catch |
-| `docs/product/BACKEND_SCHEMA.md`, `docs/product/APP_FLOW.md`, `docs/DECISIONS.md` | as the artifacts table lists; ADR-015 added, dated note on ADR-008 |
+| `docs/product/BACKEND_SCHEMA.md`, `docs/product/APP_FLOW.md`, `docs/DECISIONS.md` | as the artifacts table lists; ADR-015 added, dated update bullet on ADR-008 |
 | `docs/DUPLICATION_REGISTRY.md` | row 13 — **not in the artifacts table**. It stated "`execution_style` is exported but not backed up" and cited `_check_column_exists()`; both became false with this change |
 | `docs/test_inventory/**` | regenerated |
 
@@ -1043,32 +1043,35 @@ No test file and no file on the plan's not-touched list was edited.
 - A non-integer value in a field the style does not use is reported with the rule (ii) text.
 - Only the two optional columns that already were optional, and the four execution columns, are filtered by destination; the eight base columns are always inserted, as before.
 - `_check_column_exists()` became `_get_column_names()`, read once by create and once by restore.
+- "A missing style means `standard`" is defined once, as `MISSING_STYLE` in the contract module; restore imports it.
+- In a refusal row the routine and exercise are passed through `str()`, so a routine stored as something other than text is still JSON-safe.
 
-**Commands and results**
+**Commands and results** — on the final code: `8ec2ba7d` plus the uncommitted reviewer follow-ups and the test author's 12 added pinning tests.
 
 | Check | Result |
 |---|---|
-| `pytest` on the four acceptance files plus `tests/test_phase3_features.py` | 219 passed (92 + 17 + 46 + 45 + 19) |
-| `pytest` on those plus 13 further modules that touch backup, export, schema or the edited files | 612 passed |
-| `npx playwright test program-backup.spec.ts --project=chromium --reporter=line` | 36 passed, twice; `:79` did not fail |
+| `pytest` on the four acceptance files plus `tests/test_phase3_features.py` | 231 passed (100 + 17 + 50 + 45 + 19) |
+| `pytest` on those plus 13 further modules that touch backup, export, schema or the edited files | 624 passed |
+| `npx playwright test program-backup.spec.ts --project=chromium --reporter=line` | 36 passed; `:79` did not fail |
 | `npx pyright@1.1.410 --outputjson` then `scripts/pyright_baseline_diff.py` | 0 net-new (baseline 0, current 0) |
 | `npx tsc --noEmit -p .` | exit 0 |
-| `scripts/generate_test_inventory.py`, then `--check` | up to date. Playwright 701 → 702; pytest 4299 → 4443 collected, 141 → 143 files |
+| `scripts/generate_test_inventory.py`, then `--check` | up to date. Against `main`: Playwright 701 → 702; pytest 4299 → 4455 collected, 141 → 143 files. Against `8ec2ba7d`: pytest 4443 → 4455 (contract 92 → 100, restore fuzz 46 → 50) |
 
 `docs/ai_workflow/WORKSTREAM_OWNERSHIP.local.md` is a gitignored file in a workflow directory. The inventory generator does not read that directory, and the regenerated diff holds test counts only.
 
-**Mutation arms** — each applied to `utils/program_backup.py`, the four acceptance files run, the file restored byte-for-byte (SHA-256 checked) and the files run again: 200 passed after every revert. Run twice, the second time on the final file; the red sets were identical.
+**Mutation arms** — run on the final code. Each was applied to the file named, the tests run, the file restored byte-for-byte (SHA-256 checked) and the tests run again. Arms 1–6 ran the four acceptance files: 212 passed after every revert. Arm 7 ran E2E `u14`. The four production files had the same SHA-256 before and after the whole run.
 
-| Arm | Red | Red nodes |
-|---|---|---|
-| 1 — drop the four columns from the restore `INSERT` | 15 | C1: both `test_round_trip_through_the_endpoints_preserves_execution_fields` cases, `test_round_trip_preserves_rows_at_the_limit_values`, `test_pre_restore_snapshot_preserves_execution_fields`; the five `TestUserSelectionBackupIntegrity` nodes; four `test_restore_never_refuses_or_defaults_a_missing_execution_value` cases; both `..._with_a_bad_style_is_skipped_not_refused` tests |
-| 2 — pre-flight finds no problem | 23 | all four `test_restore_refuses_an_unrecognized_execution_style`; all 16 `test_restore_refuses_a_present_invalid_timing_value`; `test_restore_refusal_names_every_offending_row`; `test_refused_restore_issues_no_write_statement`; `test_refusal_is_its_own_exception_carrying_the_backup_name_and_rows` |
-| 3 — raise after the two `DELETE`s | 1 | `test_refused_restore_issues_no_write_statement` only. Every snapshot test stayed green, as the plan predicted |
-| 4 — write `NULL` for a missing style | 3 | `test_legacy_backup_restores_as_standard_with_empty_timing`, `test_legacy_backup_reports_skipped_and_invalid_rows_as_before`, `test_restore_never_refuses_or_defaults_a_missing_execution_value[style_and_timing_missing]` |
-| 5 — swap `min_rep_range` and `max_rep_range` | 8 | the five `TestUserSelectionBackupIntegrity` nodes, `test_unicode_json_backup_preserves_metadata_and_restored_plan`, `test_legacy_backup_restores_as_standard_with_empty_timing`, `test_restore_mixed_batch_keeps_valid_rows_and_skips_the_invalid_one` |
-| extra — remove the `backup-center.js` line | 1 | `u14`; green again with the line restored |
+| Arm | File | Red | Red nodes |
+|---|---|---|---|
+| 1 — drop the four columns from the restore `INSERT` | `utils/program_backup.py` | 15 | C1: both `test_round_trip_through_the_endpoints_preserves_execution_fields` cases, `test_round_trip_preserves_rows_at_the_limit_values`, `test_pre_restore_snapshot_preserves_execution_fields`; the five `TestUserSelectionBackupIntegrity` nodes; four `test_restore_never_refuses_or_defaults_a_missing_execution_value` cases; both `..._with_a_bad_style_is_skipped_not_refused` tests |
+| 2 — pre-flight finds no problem | `utils/program_backup.py` | 27 | all four `test_restore_refuses_an_unrecognized_execution_style`; all 16 `test_restore_refuses_a_present_invalid_timing_value`; `test_restore_refusal_names_every_offending_row`; `test_refused_restore_issues_no_write_statement`; `test_refusal_is_its_own_exception_carrying_the_backup_name_and_rows`; `test_one_row_with_two_problems_is_counted_once_and_named_twice`; `test_refusal_exception_counts_backup_rows_not_problems`; `test_refusal_message_is_pinned_exactly_for_several_rows`; `test_unrecognized_style_is_the_only_problem_reported_for_its_row` |
+| 3 — raise after the two `DELETE`s | `utils/program_backup.py` | 1 | `test_refused_restore_issues_no_write_statement` only. Every snapshot test stayed green, as the plan predicted |
+| 4 — write `NULL` for a missing style | `utils/program_backup.py` | 3 | `test_legacy_backup_restores_as_standard_with_empty_timing`, `test_legacy_backup_reports_skipped_and_invalid_rows_as_before`, `test_restore_never_refuses_or_defaults_a_missing_execution_value[style_and_timing_missing]` |
+| 5 — swap `min_rep_range` and `max_rep_range` | `utils/program_backup.py` | 8 | the five `TestUserSelectionBackupIntegrity` nodes, `test_unicode_json_backup_preserves_metadata_and_restored_plan`, `test_legacy_backup_restores_as_standard_with_empty_timing`, `test_restore_mixed_batch_keeps_valid_rows_and_skips_the_invalid_one` |
+| 6 — the route builds `<n>` from `len(refused.rows)` | `routes/program_backup.py` | 2 | `test_one_row_with_two_problems_is_counted_once_and_named_twice`, `test_refusal_message_is_pinned_exactly_for_several_rows` |
+| 7 — remove `{ duration: 30000 }` | `static/js/modules/backup-center.js` | 1 | E2E `u14`; 1 passed with the line restored |
 
-**Manual smoke** — real UI through Playwright MCP, port 5067, `DB_FILE` and `HT_RUNTIME_DIR` both under `artifacts\567-backup-execution-fields\smoke\`; startup logged `migration=explicit-override`. The scratch database came from `e2e/scripts/prepare_e2e_db.py`; its backup tables were then rebuilt, and one backup saved, by `utils/program_backup.py` as of `189756f4` read with `git show` into the scratch folder.
+**Manual smoke** — run on `8ec2ba7d`'s code before the reviewer follow-ups, which changed no behavior; not repeated afterwards. Real UI through Playwright MCP, port 5067, `DB_FILE` and `HT_RUNTIME_DIR` both under `artifacts\567-backup-execution-fields\smoke\`; startup logged `migration=explicit-override`. The scratch database came from `e2e/scripts/prepare_e2e_db.py`; its backup tables were then rebuilt, and one backup saved, by `utils/program_backup.py` as of `189756f4` read with `git show` into the scratch folder.
 
 | Step | Result |
 |---|---|
@@ -1082,6 +1085,25 @@ No test file and no file on the plan's not-touched list was edited.
 
 **Known reds**: none in the checks above.
 
-**Not covered by any test** — reported, not fixed here: a row with two problems reaching the route (so `<n>` against the number of `<row>` segments), the `; ` separator, a timing problem beside an unrecognized style, and a non-integer value in an unused field.
+**The four points first left unpinned are now pinned** by tests the test author added after `8ec2ba7d`:
+
+- `<n>` against the number of `<row>` segments, and the `; ` and `. ` separators: `test_one_row_with_two_problems_is_counted_once_and_named_twice`, `test_refusal_exception_counts_backup_rows_not_problems`, `test_refusal_message_is_pinned_exactly_for_several_rows`.
+- An unrecognized style is the only problem reported for its row: `test_unrecognized_style_is_the_only_problem_reported_for_its_row`, `test_check_reports_only_the_style_when_it_is_unrecognized`.
+- A value in an unused field takes the rule (ii) text whatever kind of value it is: `test_check_judges_an_unused_field_before_the_kind_of_value_it_holds`.
+
+**Known cosmetic edge**: an empty string stored in a timing field the style does not use renders as `EMOM rounds  is not used by the amrap style`, with two spaces, because the rule (ii) template does not quote the value. It is reachable only by editing the database.
+
+**Code-time reviewers** — `code-reviewer`, `architecture-reviewer`, `product-risk-reviewer` and `unslop-reviewer` all ran on `8ec2ba7d`; none found a blocking defect.
+
+- Applied: the `APP_FLOW.md` wording of "missing" (SQL `NULL`; an empty string is a stored value), and the unslop cleanup listed below.
+- Not applied: `_get_column_names(db, table)` keeps its signature, because both callers pass a literal; the `backup-center.js` change stays one line, the owner's limit; test-helper duplication is left.
+
+**Reviewer follow-ups, applied after commit `8ec2ba7d`** — production code and documents only, behavior unchanged.
+
+- Whitespace-only hunks removed: against `189756f4`, `routes/program_backup.py` and `utils/program_backup.py` now differ by 202 insertions and 150 deletions, the same with and without `--ignore-space-at-eol`.
+- `MISSING_STYLE` is public in the contract module and imported by restore; the two private copies are gone. The helpers `_restore_value` and `_as_text` are gone: the first is inlined at its one call site.
+- The contract check no longer tests `isinstance(style, str)`, and `render_value` reports only `bytes` by size.
+- Comments and docstrings were shortened and lost their planning labels. The `restore_backup()` docstring keeps the return list it had before this work; the route docstring carries the full one.
+- `docs/DECISIONS.md`: the ADR-008 addendum is a plain dated bullet. `APP_FLOW.md` and `BACKEND_SCHEMA.md` cited no issue number before this work, so the three added ones were removed.
 
 **Blockers**: none.

@@ -624,7 +624,7 @@ reachable `NULL` state.
 
 The column's own default is still `1`, but no backup takes it: `create_backup()` always writes
 `BACKUP_SCHEMA_VERSION`, which is **`2`** since the four execution columns were added to
-`program_backup_items` (#567). A backup saved before that keeps `1`; the upgrade rewrites no
+`program_backup_items`. A backup saved before that keeps `1`; the upgrade rewrites no
 header.
 
 #### `program_backup_items`
@@ -653,9 +653,9 @@ header.
 
 The last four columns are declared in the `CREATE TABLE`, and `initialize_backup_tables()` adds
 any that are missing to an existing table by `ALTER TABLE`, as it does for `superset_group`.
-The four were added for #567, after this document's derivation revision. Their rows above were
-read back with `PRAGMA table_info` on 2026-11-14, from a freshly created table and from a
-pre-change table after the migration; the two agree.
+They postdate this document's derivation revision: their rows above were read back with
+`PRAGMA table_info` on 2026-11-14, from a freshly created table and from an older table after
+the migration, and the two agree.
 
 **A snapshot contains plan rows and nothing else.** Compare this column list to
 `user_selection`: there is no logged history, no profile, no goals, no body composition, no

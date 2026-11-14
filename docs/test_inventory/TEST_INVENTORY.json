@@ -241,7 +241,7 @@
     "total_tests": 702
   },
   "pytest": {
-    "collected_deterministic": 4443,
+    "collected_deterministic": 4455,
     "deterministic_files": 142,
     "environment_dependent_files": [
       {
@@ -268,7 +268,7 @@
       },
       {
         "file": "tests/test_backup_execution_contract.py",
-        "tests": 92
+        "tests": 100
       },
       {
         "file": "tests/test_body_composition_history_busy_signal_contracts.py",
@@ -616,7 +616,7 @@
       },
       {
         "file": "tests/test_program_backup_restore_fuzz.py",
-        "tests": 46
+        "tests": 50
       },
       {
         "file": "tests/test_progression_plan_routes.py",

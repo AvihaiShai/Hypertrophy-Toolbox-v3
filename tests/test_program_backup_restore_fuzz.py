@@ -50,8 +50,9 @@ rule from the bounded columns above. A row skipped for its catalog entry or its 
 skipped per row. But a row that *would be restored* and holds an execution value restore cannot
 interpret refuses the **whole** restore, before anything is written: HTTP 400
 ``VALIDATION_ERROR`` with ``error.reason == "RESTORE_REFUSED"`` and one ``error.rows`` entry per
-problem, leaving the plan, the workout log and the backup exactly as they were
-(``docs/backup_export_execution_fields/PLANNING.md``, criteria 5-9 and assumption A8).
+problem, leaving the plan, the workout log and the backup exactly as they were (ADR-015). A
+row already skipped for its catalog entry or its bounds cannot cause a refusal: its execution
+values are never examined, because it would not have been written.
 """
 from __future__ import annotations
 
@@ -759,8 +760,9 @@ def _assert_restore_refused(
     client: Any,
     backup_id: int,
     expected_rows: Sequence[Mapping[str, str]],
-) -> None:
-    """Request the restore and assert the whole refusal contract (criteria 6, 7 and 8).
+    offending_rows: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Request the restore and assert the whole refusal contract.
 
     The response: 400, ``VALIDATION_ERROR``, ``reason`` ``RESTORE_REFUSED``, the fixed opening
     and closing sentences, every offending row named in the message, and the matching
@@ -768,7 +770,14 @@ def _assert_restore_refused(
 
     The database: ``user_selection``, ``workout_log`` and both backup tables hold exactly the
     rows they held before the request, ids included, and the refused backup is still listed.
+
+    ``expected_rows`` has one entry per *problem*. ``offending_rows`` is the number of backup
+    rows the opening sentence must count; it defaults to ``len(expected_rows)``, which is right
+    only when every offending row has exactly one problem. Returns the response's ``error``
+    object for assertions a single case adds on top.
     """
+    if offending_rows is None:
+        offending_rows = len(expected_rows)
     before = _snapshot_database()
     assert before["user_selection"], "seed a current plan first, or the snapshot proves nothing"
     assert before["workout_log"], "seed a logged session first, or the snapshot proves nothing"
@@ -787,7 +796,7 @@ def _assert_restore_refused(
     assert error["reason"] == "RESTORE_REFUSED"
 
     message = error["message"]
-    assert message.startswith(_refusal_opening(len(expected_rows))), message
+    assert message.startswith(_refusal_opening(offending_rows)), message
     assert message.endswith(_REFUSAL_CLOSING), message
     for row in expected_rows:
         row_text = f"{row['routine']} / {row['exercise']}: {row['problem']}"
@@ -800,12 +809,13 @@ def _assert_restore_refused(
         (dict(row) for row in expected_rows), key=by_row
     )
 
-    # Criterion 7: nothing changed -- same ids, same values, every logged session intact, and
+    # A refused restore changes nothing: same ids, same values, every logged session intact, and
     # the stored value that caused the refusal neither normalized nor discarded.
     assert _snapshot_database() == before
     assert get_active_program_count() == active_before
     listed = client.get("/api/backups").get_json()["data"]
     assert backup_id in [entry["id"] for entry in listed]
+    return error
 
 
 # case id, stored (style, time cap, interval, rounds), restored (style, time cap, interval, rounds)
@@ -833,7 +843,7 @@ def test_restore_never_refuses_or_defaults_a_missing_execution_value(
     stored,
     restored,
 ):
-    """Criterion 5: SQL NULL is *missing* -- never an error, and never filled with a default."""
+    """SQL NULL is *missing* -- never an error, and never filled with a default."""
     exercise_name = exercise_factory("Fuzz Missing Execution Value", primary_muscle_group="Chest")
     updates, expected_typeof = _execution_updates(stored)
     backup_id = _seed_tampered_backup(workout_plan_factory, exercise_name, updates, expected_typeof)
@@ -864,7 +874,7 @@ def test_restore_refuses_an_unrecognized_execution_style(
     workout_log_factory,
     style,
 ):
-    """Criteria 6 and 7: one unrecognized style refuses the whole restore and changes nothing.
+    """One unrecognized style refuses the whole restore and changes nothing.
 
     No case folding and no trimming -- ``EMOM`` and `` emom`` are not ``emom`` -- and the empty
     string is a present value, not a missing one.
@@ -906,7 +916,7 @@ def test_restore_refusal_names_every_offending_row(
     workout_plan_factory,
     workout_log_factory,
 ):
-    """Criterion 6: with more than five offending rows, every one is named -- none is cut off."""
+    """With more than five offending rows, every one is named -- none is cut off."""
     # exercise -> (backup-item updates, refused field, rendered value, problem)
     offending: Dict[str, Tuple[Dict[str, Any], str, str, str]] = {
         "Fuzz Many Tabata": (
@@ -968,7 +978,7 @@ def test_restore_refusal_names_every_offending_row(
 
 # case id, stored (style, time cap, interval, rounds), refused field, rendered value, problem
 _INVALID_TIMING_CASES: List[Tuple[str, ExecutionFields, str, str, str]] = [
-    # Rule (i): a value the plan page would reject for that style -- not a whole number ...
+    # A value the plan page would reject for that style -- not a whole number ...
     (
         "time_cap_text",
         ("amrap", "abc", None, None),
@@ -1047,7 +1057,7 @@ _INVALID_TIMING_CASES: List[Tuple[str, ExecutionFields, str, str, str]] = [
         "21",
         f"EMOM rounds 21 is outside 1{_EN_DASH}20",
     ),
-    # Rule (ii): a value stored against a style that does not use it.
+    # A value stored against a style that does not use it.
     (
         "standard_with_time_cap",
         ("standard", 60, None, None),
@@ -1069,7 +1079,7 @@ _INVALID_TIMING_CASES: List[Tuple[str, ExecutionFields, str, str, str]] = [
         "5",
         "EMOM rounds 5 is not used by the amrap style",
     ),
-    # Reproduction B: the combination the application cannot write.
+    # The combination the application cannot write: for emom the plan page clears the time cap.
     (
         "emom_with_time_cap_reproduction_b",
         ("emom", 600, 60, 10),
@@ -1104,8 +1114,8 @@ def test_restore_refuses_a_present_invalid_timing_value(
     value,
     problem,
 ):
-    """Criteria 7 and 8: the message names the row, the field and the stored value; nothing is
-    silently repaired, cleared or discarded."""
+    """The message names the row, the field and the stored value; nothing is silently
+    repaired, cleared or discarded."""
     exercise_name = exercise_factory("Fuzz Invalid Timing", primary_muscle_group="Chest")
     updates, expected_typeof = _execution_updates(stored)
     backup_id = _seed_tampered_backup(workout_plan_factory, exercise_name, updates, expected_typeof)
@@ -1148,7 +1158,7 @@ def test_refused_restore_issues_no_write_statement(
     workout_log_factory,
     monkeypatch,
 ):
-    """Criterion 7: restore decides to refuse *before* it writes anything.
+    """Restore decides to refuse *before* it writes anything.
 
     The snapshot comparison alone cannot prove this. A refusal raised after the two DELETEs
     still leaves the tables intact, because ``DatabaseHandler.__exit__`` rolls the transaction
@@ -1243,7 +1253,7 @@ def test_uncatalogued_row_with_a_bad_style_is_skipped_not_refused(
     exercise_factory,
     workout_plan_factory,
 ):
-    """Assumption A8 / criterion 9: only rows that would be restored can refuse a restore.
+    """Only rows that would be restored can refuse a restore.
 
     A row already skipped because its exercise left the catalog is reported in ``skipped`` as
     before, whatever its execution values are, and the other rows are restored with theirs.
@@ -1282,7 +1292,7 @@ def test_out_of_bounds_row_with_a_bad_style_is_skipped_not_refused(
     exercise_factory,
     workout_plan_factory,
 ):
-    """Assumption A8 / criterion 9: a row skipped for its bounds does not refuse the restore.
+    """A row skipped for its bounds does not refuse the restore.
 
     It is reported in ``invalid`` with the bounds reason, exactly as before; its unrecognized
     style is never examined because the row would not have been written.
@@ -1326,3 +1336,214 @@ def test_out_of_bounds_row_with_a_bad_style_is_skipped_not_refused(
             row["exercise"] for row in db.fetch_all("SELECT exercise FROM user_selection")
         }
     assert present == {good}
+
+
+# ---------------------------------------------------------------------------
+# Execution fields (#567): what the count counts, the separators, the style-only rule
+# ---------------------------------------------------------------------------
+
+
+def test_one_row_with_two_problems_is_counted_once_and_named_twice(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+    workout_log_factory,
+):
+    """``<n> row(s)`` counts offending backup rows, not problems.
+
+    One ``standard`` row holding both a time cap and an EMOM interval is one row to correct.
+    The message says ``1 row(s)``, names the row once per problem, and ``error.rows`` carries
+    both entries.
+    """
+    exercise_name = exercise_factory("Fuzz Two Problems", primary_muscle_group="Chest")
+    updates, expected_typeof = _execution_updates(("standard", 60, 45, None))
+    backup_id = _seed_tampered_backup(workout_plan_factory, exercise_name, updates, expected_typeof)
+    _seed_current_plan_and_log(exercise_factory, workout_plan_factory, workout_log_factory)
+
+    error = _assert_restore_refused(
+        client,
+        backup_id,
+        [
+            _refused_row(
+                exercise_name,
+                "time_cap_seconds",
+                "60",
+                "time cap 60 is not used by the standard style",
+            ),
+            _refused_row(
+                exercise_name,
+                "emom_interval_seconds",
+                "45",
+                "EMOM interval 45 is not used by the standard style",
+            ),
+        ],
+        offending_rows=1,
+    )
+
+    assert len(error["rows"]) == 2
+    assert error["message"].count(f"{_ROUTINE} / {exercise_name}: ") == 2
+
+
+def test_refusal_exception_counts_backup_rows_not_problems(
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+):
+    """``BackupRestoreRefused.row_count`` is the number of offending backup rows.
+
+    It is a separate number from ``len(rows)``, which has one entry per problem. The route
+    builds ``<n> row(s)`` from ``row_count``; if either side used ``len(rows)`` instead, a row
+    with two problems would be announced as two rows.
+    """
+    from utils.program_backup import BackupRestoreRefused
+
+    exercise_name = exercise_factory("Fuzz Row Count", primary_muscle_group="Chest")
+    updates, expected_typeof = _execution_updates(("standard", 60, 45, None))
+    backup_id = _seed_tampered_backup(workout_plan_factory, exercise_name, updates, expected_typeof)
+
+    with pytest.raises(BackupRestoreRefused) as excinfo:
+        restore_backup(backup_id)
+
+    assert excinfo.value.row_count == 1
+    assert len(excinfo.value.rows) == 2
+    assert {row["exercise"] for row in excinfo.value.rows} == {exercise_name}
+    assert {row["field"] for row in excinfo.value.rows} == {
+        "time_cap_seconds",
+        "emom_interval_seconds",
+    }
+
+
+def test_refusal_message_is_pinned_exactly_for_several_rows(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+    workout_log_factory,
+):
+    """The whole message, character for character, for three offending rows and four problems.
+
+    The Backup Center shows this text and nothing else, so its shape is part of the contract:
+    the row segments are joined by ``; ``, the last one ends with ``. `` before the closing
+    sentence, a row with two problems is named twice but counted once, rows appear in backup
+    order, and the valid row is not mentioned. ``error.rows`` holds the same four entries in
+    the same order.
+    """
+    unrecognized = "Fuzz Exact A Unrecognized"
+    two_problems = "Fuzz Exact B Two Problems"
+    out_of_range = "Fuzz Exact C Time Cap"
+    valid = "Fuzz Exact D Valid"
+    names = [unrecognized, two_problems, out_of_range, valid]
+    for name in names:
+        exercise_factory(name, primary_muscle_group="Chest")
+
+    backup_id = _seed_backup_with_rows(
+        workout_plan_factory,
+        names,
+        {
+            unrecognized: {"execution_style": "tabata"},
+            two_problems: {
+                "execution_style": "standard",
+                "time_cap_seconds": 60,
+                "emom_rounds": 5,
+            },
+            out_of_range: {"execution_style": "amrap", "time_cap_seconds": 601},
+            valid: {"execution_style": "amrap", "time_cap_seconds": 120},
+        },
+    )
+    # The order the message is expected in is the backup's own item order.
+    with DatabaseHandler() as db:
+        backup_order = [
+            row["exercise"]
+            for row in db.fetch_all(
+                "SELECT exercise FROM program_backup_items WHERE backup_id = ? ORDER BY id",
+                (backup_id,),
+            )
+        ]
+    assert backup_order == names
+    _seed_current_plan_and_log(exercise_factory, workout_plan_factory, workout_log_factory)
+
+    expected_rows = [
+        _refused_row(
+            unrecognized,
+            "execution_style",
+            "tabata",
+            'execution style "tabata" is not recognized',
+        ),
+        _refused_row(
+            two_problems,
+            "time_cap_seconds",
+            "60",
+            "time cap 60 is not used by the standard style",
+        ),
+        _refused_row(
+            two_problems,
+            "emom_rounds",
+            "5",
+            "EMOM rounds 5 is not used by the standard style",
+        ),
+        _refused_row(
+            out_of_range,
+            "time_cap_seconds",
+            "601",
+            f"time cap 601 is outside 10{_EN_DASH}600",
+        ),
+    ]
+
+    error = _assert_restore_refused(client, backup_id, expected_rows, offending_rows=3)
+
+    # Written out in full rather than assembled from the helpers above, so a change to a
+    # separator or to a sentence cannot move the expectation along with it.
+    assert error["message"] == (
+        "Backup 'Restore Fuzz Backup' was not restored. Your current plan and workout log were "
+        "preserved; nothing was changed. 3 row(s) hold execution settings that cannot be "
+        "restored: "
+        'GYM - Full Body - Workout A / Fuzz Exact A Unrecognized: execution style "tabata" is '
+        "not recognized; "
+        "GYM - Full Body - Workout A / Fuzz Exact B Two Problems: time cap 60 is not used by "
+        "the standard style; "
+        "GYM - Full Body - Workout A / Fuzz Exact B Two Problems: EMOM rounds 5 is not used by "
+        "the standard style; "
+        "GYM - Full Body - Workout A / Fuzz Exact C Time Cap: time cap 601 is outside "
+        "10–600. "
+        "The backup itself was left unchanged and cannot be restored until these values are "
+        "corrected."
+    )
+    assert error["rows"] == expected_rows
+
+
+def test_unrecognized_style_is_the_only_problem_reported_for_its_row(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+    workout_log_factory,
+):
+    """With no recognized style there is nothing to judge the timing values against.
+
+    The row's time cap, interval and rounds are each outside every limit, yet the refusal
+    names the style alone: one ``error.rows`` entry and one segment in the message.
+    """
+    exercise_name = exercise_factory("Fuzz Style Only", primary_muscle_group="Chest")
+    updates, expected_typeof = _execution_updates(("tabata", 601, 14, 21))
+    backup_id = _seed_tampered_backup(workout_plan_factory, exercise_name, updates, expected_typeof)
+    _seed_current_plan_and_log(exercise_factory, workout_plan_factory, workout_log_factory)
+
+    error = _assert_restore_refused(
+        client,
+        backup_id,
+        [
+            _refused_row(
+                exercise_name,
+                "execution_style",
+                "tabata",
+                'execution style "tabata" is not recognized',
+            )
+        ],
+    )
+
+    assert len(error["rows"]) == 1
+    message = error["message"]
+    assert message.count(f"{_ROUTINE} / {exercise_name}: ") == 1
+    for label in ("time cap", "EMOM interval", "EMOM rounds"):
+        assert label not in message

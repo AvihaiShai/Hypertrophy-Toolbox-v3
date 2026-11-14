@@ -1,4 +1,4 @@
-"""Restore-acceptance contract for the four execution fields (#567, criterion 15).
+"""Restore-acceptance contract for the four execution fields (#567, ADR-015).
 
 ``utils/backup_execution_contract.py`` decides which stored ``execution_style``,
 ``time_cap_seconds``, ``emom_interval_seconds`` and ``emom_rounds`` values a program-backup
@@ -7,8 +7,8 @@ plan-page limit cannot silently strand a backup that used to restore.
 
 Three groups of tests live here:
 
-* **Unit tests of the pure check** -- the outcome table and the ``<problem>`` templates of
-  Plan v2 (D2, D5) and the value rendering of owner decision (iii).
+* **Unit tests of the pure check** -- which rows it accepts, the exact wording of each
+  problem it reports, and how a stored value is rendered in that wording.
 * **The literal pin** -- the contract's constants equal the values written in this file. It
   fails when the contract itself is edited.
 * **The behavioral tripwire** -- every probe in ``_PROBES`` is sent to the live plan page
@@ -49,8 +49,9 @@ _DECISION_REQUIRED = (
     "backups that restore refuses."
 )
 
-# The values in force when #567 shipped (Section 0, A11). These literals are the pin: the
-# contract must equal them, and the plan page is probed against them.
+# The values in force when #567 shipped. Restore keeps accepting them whatever the plan page
+# does later. These literals are the pin: the contract must equal them, and the plan page is
+# probed against them.
 _PINNED_STYLES = ("standard", "amrap", "emom")
 _PINNED_RANGES = {
     "time_cap_seconds": (10, 600),
@@ -141,7 +142,7 @@ def test_contract_reads_neither_the_plan_page_nor_the_database(contract):
     """The contract holds its own literals.
 
     Importing the route layer would let a plan-page edit change what restore accepts, which is
-    exactly what criterion 15 forbids; it would also break the ``utils`` -> ``routes`` boundary.
+    exactly what ADR-015 forbids; it would also break the ``utils`` -> ``routes`` boundary.
     The check is pure, so it needs no database access either.
     """
     source = Path(contract.__file__).read_text(encoding="utf-8")
@@ -161,7 +162,7 @@ def test_contract_reads_neither_the_plan_page_nor_the_database(contract):
 
 
 # ---------------------------------------------------------------------------
-# The pure check: accepted rows (Plan v2 D5)
+# The pure check: accepted rows
 # ---------------------------------------------------------------------------
 
 _ACCEPTED_ROWS = [
@@ -173,7 +174,7 @@ _ACCEPTED_ROWS = [
     ("emom_typical", _row("emom", interval=60, rounds=10)),
     ("emom_both_min", _row("emom", interval=15, rounds=1)),
     ("emom_both_max", _row("emom", interval=180, rounds=20)),
-    # Rule (iii): a missing timing value is never an error and is never defaulted.
+    # A missing timing value is never an error and is never defaulted.
     ("amrap_time_cap_missing", _row("amrap")),
     ("emom_both_missing", _row("emom")),
     ("emom_rounds_missing", _row("emom", interval=60)),
@@ -203,7 +204,7 @@ def test_check_does_not_modify_the_row(contract):
 
 
 # ---------------------------------------------------------------------------
-# The pure check: refused rows and the <problem> templates (Plan v2 D2, D5)
+# The pure check: refused rows and the wording of each problem
 # ---------------------------------------------------------------------------
 
 
@@ -251,7 +252,8 @@ def _row_with(style: Optional[str], field: str, value: Any, others: Mapping[str,
 def test_check_refuses_a_timing_value_that_is_not_a_whole_number(
     contract, style, field, others, value, rendered
 ):
-    """Rule (i). A present non-int is non-numeric text, a fractional real or a blob."""
+    """A value the style uses must be a whole number. A present non-int is non-numeric text,
+    a fractional real or a blob."""
     problems = _problems_by_field(
         contract.check_execution_fields(_row_with(style, field, value, others))
     )
@@ -283,7 +285,8 @@ _OUT_OF_RANGE_CASES = [
     ids=[f"{case[1]}_{case[3]}" for case in _OUT_OF_RANGE_CASES],
 )
 def test_check_refuses_a_timing_value_outside_the_range(contract, style, field, others, value):
-    """Rule (i). The range in the message is the contract's own, joined by an en dash."""
+    """A value the style uses must be inside its range. The range in the message is the
+    contract's own, joined by an en dash."""
     low, high = _PINNED_RANGES[field]
     problems = _problems_by_field(
         contract.check_execution_fields(_row_with(style, field, value, others))
@@ -305,7 +308,7 @@ _UNUSED_FIELD_CASES = [
     ("standard_rounds", "standard", "standard", "emom_rounds", 5, {}),
     ("amrap_interval", "amrap", "amrap", "emom_interval_seconds", 60, {"time_cap_seconds": 60}),
     ("amrap_rounds", "amrap", "amrap", "emom_rounds", 5, {"time_cap_seconds": 60}),
-    # Reproduction B: the row the application cannot write.
+    # A row the application cannot write: for emom the plan page clears the time cap.
     (
         "emom_time_cap_reproduction_b",
         "emom",
@@ -327,7 +330,8 @@ _UNUSED_FIELD_CASES = [
 def test_check_refuses_a_timing_value_the_style_does_not_use(
     contract, stored_style, named_style, field, value, others
 ):
-    """Rule (ii). Nothing is cleared or repaired; the row is refused as stored."""
+    """A value stored against a style that does not use it is refused. Nothing is cleared or
+    repaired; the row is refused as stored."""
     problems = _problems_by_field(
         contract.check_execution_fields(_row_with(stored_style, field, value, others))
     )
@@ -361,8 +365,98 @@ def test_check_collects_every_problem_of_a_row(contract):
     }
 
 
+_STYLE_ONLY_ROWS = [
+    ("timing_outside_every_range", _row("tabata", time_cap=601, interval=14, rounds=21)),
+    ("timing_not_whole_numbers", _row("EMOM", time_cap="abc", interval=12.5, rounds=b"\x00")),
+    ("timing_valid_for_a_real_style", _row("", time_cap=60, interval=60, rounds=5)),
+]
+
+
+@pytest.mark.parametrize(
+    "row", [case[1] for case in _STYLE_ONLY_ROWS], ids=[case[0] for case in _STYLE_ONLY_ROWS]
+)
+def test_check_reports_only_the_style_when_it_is_unrecognized(contract, row):
+    """An unrecognized style is the only problem reported for its row.
+
+    With no recognized style there is nothing to judge the timing values against, so they are
+    not examined -- whatever they hold.
+    """
+    style = row["execution_style"]
+
+    assert contract.check_execution_fields(row) == [
+        {
+            "field": "execution_style",
+            "value": style,
+            "problem": f'execution style "{style}" is not recognized',
+        }
+    ]
+
+
+# stored style, the style named in the message, the unused field, its value, its rendering,
+# the rest of the row
+_NON_INTEGER_UNUSED_FIELD_CASES = [
+    ("standard_time_cap_text", "standard", "standard", "time_cap_seconds", "abc", "abc", {}),
+    (
+        "standard_interval_fractional",
+        "standard",
+        "standard",
+        "emom_interval_seconds",
+        12.5,
+        "12.5",
+        {},
+    ),
+    (
+        "amrap_rounds_empty_string",
+        "amrap",
+        "amrap",
+        "emom_rounds",
+        "",
+        "",
+        {"time_cap_seconds": 60},
+    ),
+    (
+        "emom_time_cap_blob",
+        "emom",
+        "emom",
+        "time_cap_seconds",
+        b"\x00\x01\x02",
+        "<binary, 3 bytes>",
+        {"emom_interval_seconds": 60, "emom_rounds": 10},
+    ),
+    ("missing_style_time_cap_text", None, "standard", "time_cap_seconds", "abc", "abc", {}),
+]
+
+
+@pytest.mark.parametrize(
+    "stored_style,named_style,field,value,rendered,others",
+    [case[1:] for case in _NON_INTEGER_UNUSED_FIELD_CASES],
+    ids=[case[0] for case in _NON_INTEGER_UNUSED_FIELD_CASES],
+)
+def test_check_judges_an_unused_field_before_the_kind_of_value_it_holds(
+    contract, stored_style, named_style, field, value, rendered, others
+):
+    """Being unused by the style wins over not being a whole number: a value in a field the
+    style does not use is refused as unused, whatever kind of value it is.
+
+    Telling the user that an unused time cap "is not a whole number" would send them to fix
+    the number, when the value should not be there at all. The value is shown unquoted, as in
+    every "is not used by" message.
+    """
+    problems = _problems_by_field(
+        contract.check_execution_fields(_row_with(stored_style, field, value, others))
+    )
+
+    assert problems == {
+        field: {
+            "field": field,
+            "value": rendered,
+            "problem": f"{_LABELS[field]} {rendered} is not used by the {named_style} style",
+        }
+    }
+
+
 # ---------------------------------------------------------------------------
-# Value rendering (owner decision iii)
+# Value rendering: long text is shortened and a blob is shown by its size
 # ---------------------------------------------------------------------------
 
 
@@ -431,7 +525,7 @@ def test_a_blob_timing_value_is_reported_by_its_size(contract):
 
 
 # ---------------------------------------------------------------------------
-# The behavioral tripwire (Plan v2 D3)
+# The behavioral tripwire
 # ---------------------------------------------------------------------------
 
 # probe id, style, timing values sent, and the one verdict both sides must reach:

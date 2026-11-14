@@ -1,21 +1,12 @@
-"""Restore-acceptance contract for the four execution fields of a program backup.
+"""The execution-field values a program-backup restore accepts (ADR-015).
 
-Decides which stored ``execution_style``, ``time_cap_seconds``,
-``emom_interval_seconds`` and ``emom_rounds`` values ``restore_backup()``
-(``utils/program_backup.py``) accepts. ADR-015 (``docs/DECISIONS.md``) records
-the decision.
-
-The literals below are the contract. They are deliberately **not** read from the
-plan page (``routes/workout_plan.py``): the two agree today, but a later
-narrowing of a plan-page limit must not turn a backup that used to restore into
-one that is refused. ``tests/test_backup_execution_contract.py`` pins these
-literals and probes the live plan page against them, in both directions. When
-either test fails, record a backup-compatibility decision under ADR-015 before
-changing this module or the plan page.
-
-There are no defaults here. Restore never fills in a missing timing value.
-
-This module is pure: no database access, no logging, no imports from ``routes``.
+The literals below are deliberately **not** read from the plan page
+(``routes/workout_plan.py``): the two agree today, but a later narrowing of a
+plan-page limit must not turn a backup that used to restore into one that is
+refused. ``tests/test_backup_execution_contract.py`` pins these literals and
+probes the live plan page against them, in both directions. When either test
+fails, record a backup-compatibility decision under ADR-015
+(``docs/DECISIONS.md``) before changing this module or the plan page.
 """
 from __future__ import annotations
 
@@ -41,8 +32,8 @@ STYLE_TIMING_FIELDS: Dict[str, Tuple[str, ...]] = {
 }
 
 # A missing style (SQL NULL, or a backup that predates the column) is judged,
-# and restored, as this style.
-_MISSING_STYLE = "standard"
+# and restored, as this style. No timing value has a default.
+MISSING_STYLE = "standard"
 
 _STYLE_FIELD = "execution_style"
 
@@ -53,20 +44,15 @@ _TIMING_LABELS: Dict[str, str] = {
 }
 
 # Longest text shown as stored; anything longer is cut to this many characters
-# and an ellipsis (owner decision (iii), Gate 1 of #567).
+# and an ellipsis.
 _MAX_RENDERED_CHARS = 40
 _ELLIPSIS = "\N{HORIZONTAL ELLIPSIS}"
 _EN_DASH = "\N{EN DASH}"
 
 
 def render_value(value: object) -> str:
-    """Render a stored value as text for the refusal message and response.
-
-    Text of up to 40 characters is returned as stored -- nothing is trimmed or
-    case-folded. Longer text is its first 40 characters and an ellipsis. A blob
-    is reported by its size. Anything else, a number in practice, is ``str()``.
-    """
-    if isinstance(value, (bytes, bytearray, memoryview)):
+    """Render a stored value as text: long text is shortened, a blob is reported by its size."""
+    if isinstance(value, bytes):
         return f"<binary, {len(value)} bytes>"
     if isinstance(value, str):
         if len(value) > _MAX_RENDERED_CHARS:
@@ -80,22 +66,15 @@ def _problem(field: str, rendered: str, problem: str) -> Dict[str, str]:
 
 
 def check_execution_fields(row: Mapping[str, Any]) -> List[Dict[str, str]]:
-    """Return every reason ``row``'s execution fields cannot be restored.
+    """Return one ``{"field", "value", "problem"}`` entry per execution field restore refuses.
 
-    ``row`` is a backup item. A field is *missing* when its key is absent or its
-    value is ``None``; a missing value is never a problem. The result is empty
-    when the row can be restored as stored, and otherwise holds one
-    ``{"field", "value", "problem"}`` entry per offending field, all text.
-    ``row`` is not modified.
-
-    A present style that is not exactly one of ``ACCEPTED_STYLES`` is the only
-    problem reported for its row: with no recognized style there is nothing to
-    judge the timing values against.
+    A missing value (absent key or ``None``) is never a problem, and an
+    unrecognized style is the only problem reported for its row.
     """
     style = row.get(_STYLE_FIELD)
     if style is None:
-        style = _MISSING_STYLE
-    elif not isinstance(style, str) or style not in ACCEPTED_STYLES:
+        style = MISSING_STYLE
+    elif style not in ACCEPTED_STYLES:
         rendered = render_value(style)
         return [
             _problem(
