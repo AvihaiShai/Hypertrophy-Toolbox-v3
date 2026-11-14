@@ -2059,6 +2059,16 @@ reason recorded.**
     fix — but weaker than §v2.8 specifies. Making it deterministic needs a search-clearing step that
     would itself clear the pending action.
 
+### I.12 Follow-up tracking (14 November 2026)
+
+Section I.10 preserves the residuals at this packet's closeout. For residual 9's
+current disposition, see [issue #569](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/569)
+and [PR #682](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/682), which
+contains the failed-restore fix and the saved-first / unsaved-first regressions.
+The original packet's scope exclusions and signed test counts above remain historical
+evidence; they do not describe the follow-up packet. Cancel then reopen remains a
+separate accepted behavior (I.10 item 5; v2.12 residual 7).
+
 ## See also
 
 - [`OPEN_WORK_EXECUTION_PLAN.md`](../OPEN_WORK_EXECUTION_PLAN.md) §4 Packet U2 ([`:152-181`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L152-L181)) — the authorization, and the per-packet gating at [`:218-225`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/26ce7e9c2e92b67377f1187771d208a33f27893f/docs/OPEN_WORK_EXECUTION_PLAN.md#L218-L225)
