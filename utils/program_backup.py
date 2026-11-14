@@ -486,8 +486,8 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
     Every item is classified before anything is written. If an item that would
     be restored holds an execution value the contract refuses, the whole restore
     is refused (ADR-015). Otherwise this will:
-    1. Clear all current user_selection entries
-    2. Insert all backup items (skipping any with missing exercises)
+    1. Clear the current workout_log and user_selection entries
+    2. Insert restorable backup items, skipping missing exercises and invalid bounds
     
     Args:
         backup_id: The ID of the backup to restore
@@ -496,7 +496,9 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
         Dict with restore results including:
         - restored_count: Number of items successfully restored
         - skipped: List of exercises that were skipped (missing from catalog)
+        - invalid: List of rows skipped for invalid workout bounds
         - backup_name: Name of the restored backup
+        - backup_id: ID of the restored backup
     
     Raises:
         ValueError: If backup_id is invalid

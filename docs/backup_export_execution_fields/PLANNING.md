@@ -1181,3 +1181,63 @@ The same four reviewer agents re-reviewed the delta with whole-function context 
   - The committed inventory at `8ec2ba7d` matches the node counts the test author reported.
   - No edit of this PR was found lost or carried into that commit.
 - **Attribution, not proven:** both other Claude sessions on the host say they did not make the commit or the switches. One relays the owner's report that a Codex session finished that batch and opened PR #685, whose head is `9bfda6f2`. The commit's author identity is shared by every local session, so the reflog cannot show which session made it.
+
+## Codex continuation — PR 1 (#567), 15 November 2026
+
+The owner asked Codex to continue from `01cc3bea558f9e4cba56feefe3a53f8c0d9a7236`.
+This entry supplements the retained history. **The PR remains draft: the visual
+gate and three owner decisions are unresolved. No failure is waived and no merge
+is authorized.**
+
+**Required docstring correction.** The earlier statement that the owner declined
+the `restore_backup()` docstring correction is superseded. The owner explicitly
+requested it. The docstring now names both tables cleared, missing-exercise and
+invalid-bounds handling, and all five returned fields. A required unslop follow-up
+returned PASS for this narrow change. An AST comparison against the committed
+module, removing only this function's docstring on both sides, is equal. Existing
+full-pytest, mutation and manual-smoke evidence remains applicable to the unchanged
+implementation; no new executable statement was introduced.
+
+**Fresh local runs.** The source was `01cc3bea` plus only that docstring correction.
+Both partitions used one Chromium worker, zero retries, fresh private databases
+and runtimes, and no reused server. They ran sequentially. Tracked-file hashes,
+branch and HEAD were checked during each run; neither source nor branch moved.
+
+| Check | Result |
+|---|---|
+| Functional partition, 30 specs, functional seed | **602 passed, 0 failed, 0 skipped, 0 flaky**, 12.1 min. Both previously failing `ui-hardening` cases passed in this full run. Initial TCP `TIME_WAIT`: 18; sampled peak: 880 |
+| Visual partition, three specs, `PW_VISUAL_SEED=1` | **98 passed, 2 failed, 0 skipped, 0 flaky**, 1.9 min. Started after the functional runner/server exited and socket state drained; initial TCP `TIME_WAIT`: 27 |
+| Inventory `--check` / `tsc --noEmit -p .` | Up to date / exit 0 |
+| Pyright 1.1.410 and baseline diff | 0 diagnostics, 0 net-new |
+| CI on `01cc3bea` | Workflow `43646418943` completed successfully; separate from the failed local visual partition |
+
+The functional pass does not explain or erase the earlier `ERR_NO_BUFFER_SPACE`
+failures. No controlled base comparison was performed and no network fix is claimed.
+
+The visual failures are `workout-plan mobile dark` (1,217 differing pixels) and
+`workout-plan tablet dark` (3,293). By-eye inspection shows the highlighted differences
+around the Filter Exercises card's top/bottom edges and corners. The visual spec,
+capture helper, visual seed, templates, static CSS and Workout Plan route are unchanged
+from base `189756f4`. This is a symptom matching #609/#674, not proof of a common cause
+or an accepted inherited failure. PR #674 is still draft and its four candidate
+baselines require owner review. No baseline, capture helper, tolerance, retry count
+or assertion was changed here. No further full-suite repetition was started to seek green.
+
+Logs, Playwright JSON, source hashes, TCP samples and docstring review/equivalence
+records are retained locally under `artifacts/567-closeout-codex-20261115/`. Both
+test listeners were absent afterward. The real `data/database.db` retained its size,
+mtime and SHA-256. Earlier `.playwright-mcp` output, scratch copies, interference
+evidence and the docs-retirement branch were preserved.
+
+**Owner decisions remain pending.** Codex asked directly; no answer was inferred:
+
+1. Retain internal `row_count` and count offending backup rows, rather than problems,
+   in the message? Recommendation: count backup rows.
+2. Explain an unused timing field as "not used by the style" before checking whether
+   it is a whole number? Recommendation: explain the wrong style first.
+3. Summarize a binary routine name as `<binary, N bytes>` while keeping ordinary text
+   names complete, or retain the unbounded Python bytes representation?
+   Recommendation: summarize binary names. The implementation is unchanged.
+
+The visual gate also needs resolution through its own evidence/approval boundary;
+the failed partition is not converted to a pass by successful functional tests or CI.
