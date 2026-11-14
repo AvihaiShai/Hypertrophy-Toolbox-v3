@@ -21,7 +21,7 @@ It is descriptive and carries no task status; current public tracking is in GitH
 - **[ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md)** - Fatigue calibration guardrails and agent authority rules; earlier objectives and status blocks archived
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and recent work
 - **[DECISIONS.md](DECISIONS.md)** - Durable project decisions and lightweight ADRs
-- **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Current architecture debt snapshot
+- **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Architecture-debt audit, last validated 2026-05-23; re-verify a finding before relying on it
 - **[LEFTOVERS_BY_PRIORITY.md](LEFTOVERS_BY_PRIORITY.md)** - Historical prioritization and retained evidence; current public tracking is in GitHub
 - **[OPEN_WORK_EXECUTION_PLAN.md](OPEN_WORK_EXECUTION_PLAN.md)** - Retained sequencing, decision gates and closed/parked boundaries, with links to current GitHub tracking
 - **[ai_workflow/INDEX.md](ai_workflow/INDEX.md)** - AI workflow navigation spine
@@ -51,15 +51,20 @@ Proposed entries do not authorize implementation. The archive container is index
 
 - [agent_roles/](agent_roles/) — role rollout; Phase 6 default-manager activation remains conditional
 - [ai_workflow/](ai_workflow/) — current workflow rules and navigation
+- [app_factory/](app_factory/) — WS3 application factory, shipped in #545; its Gate 2 record and follow-ups are tracked in #593
 - [backup_confirmation_continuity/](backup_confirmation_continuity/) — shipped U2; residual-risk and status records require reconciliation
 - [backup_export_execution_fields/](backup_export_execution_fields/) — #567/#568 requirements brief, council-reviewed plan and implementation evidence; current status in #567 and #568
+- [ci_cd_expansion/](ci_cd_expansion/) — CI/CD expansion plan, settings-activation records and the machine-read B1 action inventory; remaining settings await the owner
 - [ci_cd_phase3/](ci_cd_phase3/) — pinned Pyright baseline used by CI
 - [deep_gate_linux_visual_failure_20260831/](deep_gate_linux_visual_failure_20260831/) — completed Gate-1 diagnostic; further action awaits an owner decision
 - [finding1_residual/](finding1_residual/) — shipped D7; residual poisoned-row behavior still needs a current reference
 - [issue565_socket_allocation/](issue565_socket_allocation/) — #565 diagnosis, Gate 1 requirements and evidence for the ADR-014 static replay
 - [ki005_controls_persistence/](ki005_controls_persistence/) — shipped KI-005; retains the held Stage 4 restoration baseline
 - [product/](product/) — always-active reference for shipped behavior, schema, and design
+- [project_direction/](project_direction/) — agreed project direction, owner decisions and workstream sequencing
+- [r23_js_unit_promotion/](r23_js_unit_promotion/) — JS-unit Q4/D2 decision record; C4 is not approved
 - [release_pipeline/](release_pipeline/) — shipped pipeline and remaining release/deep-gate entry conditions
+- [service_extraction/](service_extraction/) — WS4 service extraction; slice 1 shipped in #556, later handlers each need their own gates
 - [test_inventory/](test_inventory/) — generated test inventory checked by CI
 - [testing_d4_invariants/](testing_d4_invariants/) — ADR-009 property-invariant scope and deferred Packet C
 - [testing_phase2/](testing_phase2/) — completed Phase 2 plan plus current, test-pinned accessibility exceptions
@@ -83,6 +88,7 @@ Proposed entries do not authorize implementation. The archive container is index
 - [doc_truth/](doc_truth/) — shipped documentation-truth repairs
 - [fatigue_meter/](fatigue_meter/) — shipped meter and heatmap; Stage 4 closed, with calibration contracts and evidence retained
 - [local_first_assets/](local_first_assets/) — shipped local asset work
+- [msys_destination_validation/](msys_destination_validation/) — guard destination validation and drive-root monitor, merged in #654; delegated acceptance and coverage limits in its closeout
 - [p1_4_debug_scaffolding/](p1_4_debug_scaffolding/) — completed debug-scaffolding work
 - [page_readiness/](page_readiness/) — shipped page-readiness work
 - [pyright_filter_predicates/](pyright_filter_predicates/) — closed Pyright burn-down record
@@ -92,6 +98,7 @@ Proposed entries do not authorize implementation. The archive container is index
 - [scan/](scan/) — completed grounding-scan evidence
 - [superset_routine_selection/](superset_routine_selection/) — shipped routine-selection work
 - [toast_type_word_collision/](toast_type_word_collision/) — shipped KI-010; retains code and test references
+- [u1_followup_1_vitest/](u1_followup_1_vitest/) — U1-FOLLOWUP-1 Vitest coverage: implementation #551, closeout #553
 - [user_profile/](user_profile/) — shipped profile; design and estimator/calibration references remain current
 - [visual_baseline_win32/](visual_baseline_win32/) — superseded Windows-baseline recovery evidence
 - [workout_cool_integration/](workout_cool_integration/) — shipped integration; media rules, provenance, and video reference remain current
