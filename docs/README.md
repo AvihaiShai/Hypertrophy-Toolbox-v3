@@ -21,7 +21,7 @@ It is descriptive and carries no task status; current public tracking is in GitH
 - **[ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md)** - Fatigue calibration guardrails and agent authority rules; earlier objectives and status blocks archived
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and recent work
 - **[DECISIONS.md](DECISIONS.md)** - Durable project decisions and lightweight ADRs
-- **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Architecture-debt audit, last validated 2026-05-23; re-verify a finding before relying on it
+- **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Architecture-debt audit snapshot; check its "Last validated" date and re-verify a finding before relying on it
 - **[LEFTOVERS_BY_PRIORITY.md](LEFTOVERS_BY_PRIORITY.md)** - Historical prioritization and retained evidence; current public tracking is in GitHub
 - **[OPEN_WORK_EXECUTION_PLAN.md](OPEN_WORK_EXECUTION_PLAN.md)** - Retained sequencing, decision gates and closed/parked boundaries, with links to current GitHub tracking
 - **[ai_workflow/INDEX.md](ai_workflow/INDEX.md)** - AI workflow navigation spine
@@ -54,7 +54,7 @@ Proposed entries do not authorize implementation. The archive container is index
 - [app_factory/](app_factory/) — WS3 application factory, shipped in #545; its Gate 2 record and follow-ups are tracked in #593
 - [backup_confirmation_continuity/](backup_confirmation_continuity/) — shipped U2; residual-risk and status records require reconciliation
 - [backup_export_execution_fields/](backup_export_execution_fields/) — #567/#568 requirements brief, council-reviewed plan and implementation evidence; current status in #567 and #568
-- [ci_cd_expansion/](ci_cd_expansion/) — CI/CD expansion plan, settings-activation records and the machine-read B1 action inventory; remaining settings await the owner
+- [ci_cd_expansion/](ci_cd_expansion/) — CI/CD expansion plan, settings-activation records and the machine-read B1 action inventory
 - [ci_cd_phase3/](ci_cd_phase3/) — pinned Pyright baseline used by CI
 - [deep_gate_linux_visual_failure_20260831/](deep_gate_linux_visual_failure_20260831/) — completed Gate-1 diagnostic; further action awaits an owner decision
 - [finding1_residual/](finding1_residual/) — shipped D7; residual poisoned-row behavior still needs a current reference
@@ -62,9 +62,9 @@ Proposed entries do not authorize implementation. The archive container is index
 - [ki005_controls_persistence/](ki005_controls_persistence/) — shipped KI-005; retains the held Stage 4 restoration baseline
 - [product/](product/) — always-active reference for shipped behavior, schema, and design
 - [project_direction/](project_direction/) — agreed project direction, owner decisions and workstream sequencing
-- [r23_js_unit_promotion/](r23_js_unit_promotion/) — JS-unit Q4/D2 decision record; C4 is not approved
+- [r23_js_unit_promotion/](r23_js_unit_promotion/) — JS-unit Q4/D2 decision record
 - [release_pipeline/](release_pipeline/) — shipped pipeline and remaining release/deep-gate entry conditions
-- [service_extraction/](service_extraction/) — WS4 service extraction; slice 1 shipped in #556, later handlers each need their own gates
+- [service_extraction/](service_extraction/) — WS4 service extraction; slice 1 shipped in #556
 - [test_inventory/](test_inventory/) — generated test inventory checked by CI
 - [testing_d4_invariants/](testing_d4_invariants/) — ADR-009 property-invariant scope and deferred Packet C
 - [testing_phase2/](testing_phase2/) — completed Phase 2 plan plus current, test-pinned accessibility exceptions
