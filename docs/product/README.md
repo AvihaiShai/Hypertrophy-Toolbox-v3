@@ -50,7 +50,8 @@ When two documents disagree, the owner in this table wins.
 | CSS file ownership map | [`../CSS_OWNERSHIP_MAP.md`](../CSS_OWNERSHIP_MAP.md) | Links |
 | Which tests and reviewers a change requires | [`../ai_workflow/QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) | Links |
 | Durable cross-cutting decisions | [`../DECISIONS.md`](../DECISIONS.md) | Links |
-| Current project state, open work, decisions in flight | [`../MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) | Never duplicated here |
+| Current public work status | The owning [GitHub issues](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues) | Never duplicated here |
+| Runtime handover, operating state, decisions in flight | [`../MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) | Never duplicated here |
 
 **Conflict rule, in order.** Running code beats every document. `CLAUDE.md` and
 `.claude/rules/*` beat this suite on anything they own. `MASTER_HANDOVER.md` beats this suite on
