@@ -71,9 +71,7 @@ Proposed entries do not authorize implementation. The archive container is index
 
 ### Closed (history)
 
-- [agent_workflow_integrity/](agent_workflow_integrity/) — shipped workflow-integrity contracts
 - [backup_schema_version/](backup_schema_version/) — closed D6 investigation; ADR-008 records the outcome
-- [blank_null_rep_bounds/](blank_null_rep_bounds/) — shipped: Gate 0 #465, fix #467
 - [css_phase4_wp4_4/](css_phase4_wp4_4/) — completed WP4.4 arc and handoff history
 - [css_scale_btn_cleanup/](css_scale_btn_cleanup/) — completed scale-button cleanup, council findings, and evidence
 - [css_table_helpers_cleanup/](css_table_helpers_cleanup/) — completed table-helper cleanup and evidence
@@ -84,18 +82,14 @@ Proposed entries do not authorize implementation. The archive container is index
 - [fatigue_meter/](fatigue_meter/) — shipped meter and heatmap; Stage 4 closed, with calibration contracts and evidence retained
 - [local_first_assets/](local_first_assets/) — shipped local asset work
 - [p1_4_debug_scaffolding/](p1_4_debug_scaffolding/) — completed debug-scaffolding work
-- [page_readiness/](page_readiness/) — shipped page-readiness work
 - [pyright_filter_predicates/](pyright_filter_predicates/) — closed Pyright burn-down record
 - [pyright_volume_progress/](pyright_volume_progress/) — closed Pyright burn-down record
-- [pyright_volume_splitter/](pyright_volume_splitter/) — closed Pyright burn-down record
 - [quality_gate_routing/](quality_gate_routing/) — shipped quality-gate routing work
 - [scan/](scan/) — completed grounding-scan evidence
-- [superset_routine_selection/](superset_routine_selection/) — shipped routine-selection work
 - [toast_type_word_collision/](toast_type_word_collision/) — shipped KI-010; retains code and test references
 - [user_profile/](user_profile/) — shipped profile; design and estimator/calibration references remain current
 - [visual_baseline_win32/](visual_baseline_win32/) — superseded Windows-baseline recovery evidence
 - [workout_cool_integration/](workout_cool_integration/) — shipped integration; media rules, provenance, and video reference remain current
-- [wpb4_unassigned_bucket/](wpb4_unassigned_bucket/) — shipped unassigned-bucket behavior
 
 ### Proposed
 
@@ -117,6 +111,17 @@ These files are historical reference only. They should not be treated as active 
 ## Removed From Active Docs
 
 The old Backup Center hardening plan, Calm Glass redesign plan/audit/mockup, seed-fix plan, and spring-cleanup Phase 4/5 execution plans were completed and superseded by the current source, changelog, CSS map, and Backup Center docs.
+
+Six shipped feature plans were retired to Git history on 2026-11-14 under
+[Documentation Retention](ai_workflow/DOC_RETENTION.md#retirement-criteria). Each link opens the
+plan at `189756f4`, the main snapshot immediately before this batch:
+
+- [agent_workflow_integrity](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/agent_workflow_integrity/PLANNING.md) — shipped as #292
+- [blank_null_rep_bounds](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/blank_null_rep_bounds/PLANNING.md) — Gate 0 #465, fix #467
+- [page_readiness](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/page_readiness/PLANNING.md) — shipped as #347, #350 and #355
+- [pyright_volume_splitter](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/pyright_volume_splitter/PLANNING.md) — shipped as #328
+- [superset_routine_selection](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/superset_routine_selection/PLANNING.md) — shipped as #346
+- [wpb4_unassigned_bucket](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/wpb4_unassigned_bucket/PLANNING.md) — shipped as #256
 
 This index is maintained by hand. It carries no dated freshness stamp on purpose — one
 was previously written here and went stale without anyone noticing. Check `git log` for
