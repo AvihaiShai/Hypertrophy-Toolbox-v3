@@ -579,7 +579,8 @@ Playwright inventory **504 tests / 30 specs**.
 > **(D2)** the export gate became net-new coverage of `build_summary_sheets`,
 > because no export test family existed to extend.
 > **(D1)** `global_sessions` deliberately still excludes the synthetic bucket.
-> Full record: [`wpb4_unassigned_bucket/PLANNING.md`](wpb4_unassigned_bucket/PLANNING.md).
+> Full record: [`wpb4_unassigned_bucket/PLANNING.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/wpb4_unassigned_bucket/PLANNING.md)
+> (retired to Git history 2026-11-14; pinned link).
 
 - Protected calc zone. Weekly summary buckets null-routine rows as `Unassigned`,
   matching session summary, instead of dropping them from frequency.
