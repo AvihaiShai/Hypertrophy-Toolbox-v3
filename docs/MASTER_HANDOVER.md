@@ -9,10 +9,11 @@
 > and repository-security readings were taken together. This record grants no merge, settings
 > or packet authority.
 
-**Work queue and owner decisions:** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md)
-§0 is the single actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
+**Work queue and owner decisions:** current public work status lives in the owning GitHub
+issues. [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §0 retains the sequencing,
+decision gates and unmigrated entries (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
 §11). Its §0.2 holds every open owner decision and §0.4 every open obligation; this block does not
-repeat them. Current public work status lives in the linked GitHub issues. Earlier Current State blocks are in
+repeat them. Earlier Current State blocks are in
 [`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](archive/2026/master-handover/CURRENT_STATE_HISTORY.md);
 the queue's earlier readings are in
 [`archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md`](archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md).
@@ -52,6 +53,9 @@ First-parent order. Merges #481–#557 are listed in the archived blocks.
 | #673 | `1b9893fb` | Erase, recovery and validation guidance corrected (#576, #575) |
 | #663, #664 | `f26daab8`, `9338543a` | Dependency bumps: `actions/setup-python`, pytest 9.1.1 to 9.2.0 |
 
+This table is the 2026-11-13 reading and stops at its `main` (#664). Later merges are recorded in
+Git history and their owning issues, not here.
+
 ### Holds in force
 
 Constraints to know before acting. Decisions and obligations live in queue §0.2 and §0.4.
@@ -84,8 +88,8 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 
 ### Standing constraints and parked work
 
-- **Decisions:** ADR-003 through ADR-012 in [`DECISIONS.md`](DECISIONS.md) are settled and remain
-  in force.
+- **Decisions:** [`DECISIONS.md`](DECISIONS.md) is the authority. Its accepted ADRs remain in
+  force; ADR-003 is superseded by ADR-013.
 - **CI:**
   - Required check names are fixed. Three required contexts carry a deliberately false
     "(non-required)" suffix: E2E Fatigue Context, E2E Erase Flow and JS Supply Chain.
@@ -147,7 +151,8 @@ holds the detail.
   new block.
 - `docs/MASTER_HANDOVER.md` is a never-claimed shared path, so coordinate each edit
   ([`WORKSTREAM_OWNERSHIP.md`](ai_workflow/WORKSTREAM_OWNERSHIP.md) rule 4).
-- Status and next steps come from this block. The *Next safe step* above is the current one. The
+- Runtime and operating state and next steps come from this block; public work status comes from
+  the owning GitHub issues. The *Next safe step* above is the current one. The
   *Open Decisions*, *Blockers* and *Next Safe Step* sections after this block are historical.
   *Active Workstreams* rows keep their own dates.
 - In those retained sections, a reference to an old Current State block or entry ("at the top

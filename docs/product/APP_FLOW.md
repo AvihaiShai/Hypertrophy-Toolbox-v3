@@ -64,9 +64,9 @@ the binding is the `onclick` attribute itself.
 
 ## Third-party assets — all served locally
 
-**The application makes no network request outside itself.** The server has no outbound calls, and
-the browser fetches every asset from the application's own origin. Nothing is loaded from a CDN,
-a font service, or any other third party.
+**The application loads every asset from its own origin.** The server has no outbound calls, and
+nothing is loaded from a CDN, a font service, or any other third party. The one network use is the
+optional, click-initiated exercise reference video described at the end of this section.
 
 Third-party code is vendored under `static/vendor/`, each directory carrying its upstream license,
 a `NOTICE.md`, and a `VERSION` file recording the exact source it was taken from:
@@ -84,12 +84,19 @@ a `NOTICE.md`, and a `VERSION` file recording the exact source it was taken from
 The Inter stylesheet references `woff2` files by relative path under the same vendor directory, so
 the font resolves offline too.
 
-**Offline behavior is therefore complete**: every page renders exactly as it does online, with its
-typography and every interaction intact — drag-to-reorder on the plan, the date picker on
-progression, tooltips on the splitter. There is no degraded mode.
+**Offline, every page renders exactly as it does online**, with its typography and every
+interaction intact — drag-to-reorder on the plan, the date picker on progression, tooltips on the
+splitter. The only feature that degrades is the reference video below.
 
-The only external URLs anywhere in the templates are two author links to LinkedIn, in the navbar
+The only external URLs written into the templates are two author links to LinkedIn, in the navbar
 and on Home. Both are ordinary links the user must click; neither is fetched on page load.
+
+**Exercise reference videos need the network.** `static/js/modules/exercise-video-modal.js`
+builds YouTube URLs when the user clicks an exercise's video control on the Plan or Log page. A
+curated video ID sets the shared modal's iframe to `https://www.youtube.com/embed/<id>` and its
+external link to `https://www.youtube.com/watch?v=<id>`; an exercise without a valid ID opens
+`https://www.youtube.com/results?search_query=…` in a new tab. Nothing is requested before the
+click. Offline, the embedded player or search tab cannot load; the rest of the page is unaffected.
 
 ## Route surface
 
@@ -309,7 +316,7 @@ live.
 | Link superset | API | `POST /api/superset/link` with exactly two ids; one id is `VALIDATION_ERROR` 400 — verified live |
 | Unlink superset | API | `POST /api/superset/unlink` |
 | Execution style | API | `GET /api/execution_style_options`, then `POST /api/execution_style` |
-| Video / image preview | Presentation | Opens a modal. The plan table is built client-side, so its media path is validated in JavaScript by `resolveExerciseMediaSrc()` — a mirror of the server-side shape rules in `utils/media_path.py` |
+| Video / image preview | Presentation | Opens a modal. The plan table is built client-side, so its media path is validated in JavaScript by `resolveExerciseMediaSrc()` — a mirror of the server-side shape rules in `utils/media_path.py`. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
 | Routine tabs | Presentation | Filters displayed rows |
 | Volume panel toggle | Presentation → API | Expands the panel, which reads `GET /api/volume_progress` |
 
@@ -343,7 +350,7 @@ the `planned_*` snapshot and the `scored_*` values.
 | Progression status check | API | `GET /check_progression/<log_id>` |
 | Delete row | API | `POST /delete_workout_log` |
 | Clear Log | Presentation → API | Modal, then `POST /clear_workout_log` |
-| Reference video / thumbnail | Presentation | Opens the shared video modal. This page is server-rendered, so its media path is revalidated at render by the `safe_media_path` Jinja filter — the only template in the application that uses it |
+| Reference video / thumbnail | Presentation | Opens the shared video modal. This page is server-rendered, so its media path is revalidated at render by the `safe_media_path` Jinja filter — the only template in the application that uses it. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
 
 Neither `GET /export_workout_log` nor `GET /get_workout_logs` has any control bound to it in the
 current templates — the page's rows are server-rendered, so the log page never needs to fetch

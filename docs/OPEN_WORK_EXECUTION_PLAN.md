@@ -165,7 +165,8 @@ evidence. Do not reactivate the old implementation plan.
       — the block moved with #417 (`5111a7f`).
 - [ ] Reproduce or re-measure it against current code.
 - [ ] Check `ai_workflow/WORKSTREAM_OWNERSHIP.local.md` for path claims.
-- [ ] Use an isolated worktree when the packet may touch the database, dev server, or tests.
+- [ ] Work in the existing checkout. Use a separate worktree only with explicit owner approval,
+      created through `scripts/new-worktree.ps1` (`ai_workflow/PARALLEL_WORKFLOW.md`).
 - [ ] Route the change through `ai_workflow/QUALITY_GATE.md`.
 - [ ] Keep unrelated dirty-worktree changes untouched.
 - [ ] Update the owning plan, current handover, and generated inventories only when required.

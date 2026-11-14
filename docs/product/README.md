@@ -92,17 +92,20 @@ requirement.
 
 ### Network behavior
 
-**Nothing in this application talks to the network** — not the server, and not the browser.
+**The application's core is local.** The routes make no outbound calls and send no telemetry;
+nothing is uploaded and there is no analytics of any kind. Every asset a page needs is served from
+the application's own origin: fonts, third-party JavaScript, and icons are all vendored under
+`static/vendor/` with their licenses and pinned versions. Planning, logging, analysis, progression,
+distribution, profile and backup all work offline.
 
-The routes make no outbound calls and send no telemetry; nothing is uploaded and there is no
-analytics of any kind. Every asset a page needs is served from the application's own origin:
-fonts, third-party JavaScript, and icons are all vendored under `static/vendor/` with their
-licenses and pinned versions. The application is therefore local-only in its assets as well as
-local-first in its data, and it behaves identically offline.
+**One optional feature uses the network: exercise reference videos.** On the Plan and Log pages,
+an exercise's video control loads its video, or a YouTube search, from YouTube when clicked, and
+needs an internet connection. Nothing is requested before the click, and every other control
+works offline.
 
-The full vendored inventory is in
-[`APP_FLOW.md`](APP_FLOW.md#third-party-assets--all-served-locally). The only external URLs in
-the templates are two author links to LinkedIn, which are clicked rather than fetched.
+The full vendored inventory and the video URLs are in
+[`APP_FLOW.md`](APP_FLOW.md#third-party-assets--all-served-locally). The only external URLs
+written into the templates are two author links to LinkedIn, which are clicked rather than fetched.
 
 ### Security boundary
 

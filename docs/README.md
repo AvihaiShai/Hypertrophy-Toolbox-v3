@@ -25,7 +25,7 @@ It is descriptive and carries no task status; current public tracking is in GitH
 - **[LEFTOVERS_BY_PRIORITY.md](LEFTOVERS_BY_PRIORITY.md)** - Historical prioritization and retained evidence; current public tracking is in GitHub
 - **[OPEN_WORK_EXECUTION_PLAN.md](OPEN_WORK_EXECUTION_PLAN.md)** - Retained sequencing, decision gates and closed/parked boundaries, with links to current GitHub tracking
 - **[ai_workflow/INDEX.md](ai_workflow/INDEX.md)** - AI workflow navigation spine
-- **[ai_workflow/DOC_RETENTION.md](ai_workflow/DOC_RETENTION.md)** - Rules for keeping, archiving, or deleting docs
+- **[ai_workflow/DOC_RETENTION.md](ai_workflow/DOC_RETENTION.md)** - Rules for keeping, archiving, retiring, or deleting docs
 
 Documentation cutover is tracked in [#595](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/595),
 with index/status corrections in [#577](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/577)
@@ -52,7 +52,7 @@ Proposed entries do not authorize implementation. The archive container is index
 - [agent_roles/](agent_roles/) — role rollout; Phase 6 default-manager activation remains conditional
 - [ai_workflow/](ai_workflow/) — current workflow rules and navigation
 - [backup_confirmation_continuity/](backup_confirmation_continuity/) — shipped U2; residual-risk and status records require reconciliation
-- [backup_export_execution_fields/](backup_export_execution_fields/) — #567/#568 requirements brief (Gate 0 signed) and council-reviewed Plan v2; Gate 1 signed 14 November 2026, PR 1 and PR 2 authorized for implementation
+- [backup_export_execution_fields/](backup_export_execution_fields/) — #567/#568 requirements brief, council-reviewed plan and implementation evidence; current status in #567 and #568
 - [ci_cd_phase3/](ci_cd_phase3/) — pinned Pyright baseline used by CI
 - [deep_gate_linux_visual_failure_20260831/](deep_gate_linux_visual_failure_20260831/) — completed Gate-1 diagnostic; further action awaits an owner decision
 - [finding1_residual/](finding1_residual/) — shipped D7; residual poisoned-row behavior still needs a current reference
@@ -64,7 +64,7 @@ Proposed entries do not authorize implementation. The archive container is index
 - [testing_d4_invariants/](testing_d4_invariants/) — ADR-009 property-invariant scope and deferred Packet C
 - [testing_phase2/](testing_phase2/) — completed Phase 2 plan plus current, test-pinned accessibility exceptions
 - [testing_phase3/](testing_phase3/) — testing plans and the live JS-unit observation ledger
-- [toast_action_continuity/](toast_action_continuity/) — shipped U3b; retains the amended U1 follow-up condition
+- [toast_action_continuity/](toast_action_continuity/) — shipped U3b; its amended U1 follow-up condition was discharged when #553 closed U1-FOLLOWUP-1
 - [visual_determinism/](visual_determinism/) — terminal visual contract and accepted residual under ADR-011
 - [volume_failure_feedback/](volume_failure_feedback/) — shipped U1; U1-FOLLOWUP-1 remains open under its recorded conditions
 - [worktree_cleanup/](worktree_cleanup/) — committed workflow and preservation records; separate owner approvals govern further operations
@@ -115,6 +115,12 @@ These files are historical reference only. They should not be treated as active 
 - **[archive/workout_cool_integration/checkpoint3_coverage.md](archive/workout_cool_integration/checkpoint3_coverage.md)** - Completed free-exercise-db mapper coverage baseline (pre-curation snapshot).
 
 ## Removed From Active Docs
+
+Two superseded guides were retired to Git history on 2026-11-11 by #670:
+[`FILTER_VIEW_MODE.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/FILTER_VIEW_MODE.md)
+and [`program_backups.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/program_backups.md),
+linked at `04816d8d`, the last commit containing both. Their accurate content lives in
+[`product/APP_FLOW.md`](product/APP_FLOW.md) (*Muscle naming mode*, *Backup Center*, *Startup snapshot*).
 
 The old Backup Center hardening plan, Calm Glass redesign plan/audit/mockup, seed-fix plan, and spring-cleanup Phase 4/5 execution plans were completed and superseded by the current source, changelog, CSS map, and Backup Center docs.
 
