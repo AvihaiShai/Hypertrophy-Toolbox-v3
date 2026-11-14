@@ -2,7 +2,7 @@
 
 **Issues**: [#567](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/567) (program backup/restore drops execution fields) · [#568](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/568) (Excel export omits them)
 **Branch**: `docs/567-568-execution-fields-planning` · **Brief written**: 2026-11-12 · **Amended**: 2026-11-13
-**Status**: Section 0 amended on 13 November 2026 with the owner's answers and four reconciliation points. **Gate 0 signed 13 November 2026** by the owner's message 3 (a forwarded review adopted with "from astra what to do:") — requirements approved as amended. This is not an approval of a plan, an implementation or a merge. Plan v1 was drafted on 13 November 2026 (council Step 1); the three reviewers returned "sound with changes", none blocking; **Plan v2 is written** (council Step 4) with a response matrix covering every finding. **Gate 1 is not signed**: Plan v2 carries three owner decisions and awaits the owner's approval. Nothing is authorized for implementation.
+**Status**: Section 0 amended on 13 November 2026 with the owner's answers and four reconciliation points. **Gate 0 signed 13 November 2026** by the owner's message 3 (a forwarded review adopted with "from astra what to do:") — requirements approved as amended. This is not an approval of a plan, an implementation or a merge. Plan v1 was drafted on 13 November 2026 (council Step 1); the three reviewers returned "sound with changes", none blocking; **Plan v2 is written** (council Step 4) with a response matrix covering every finding. **Gate 1 signed 14 November 2026** on the owner's behalf, on the owner's explicit instruction in that day's session, adopting the proposed option for all three owner decisions — see *Gate 1 sign-off* under Plan v2. PR 1 and PR 2 are authorized for implementation; every merge stays owner-only, by PR number and head SHA.
 **Planning size** ([`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md#plan-stage-routing)): **Large** — PR 1 changes the `program_backup_items` schema, so Gate 0 (this brief) and a council-reviewed Gate 1 are both required.
 
 ---
@@ -798,6 +798,14 @@ The plan maps every criterion to a test. I found no blocking problem, but five s
 | (ii) | One production JavaScript change: the Backup Center keeps the refusal toast on screen longer. This is an explicit exception to "no production JS edit" and touches A14 | **Yes**: one line in the restore catch (`backup-center.js:940-941`) passes `{ duration: 30000 }` when the error is the restore refusal. The toast has a close button (`templates/base.html:261-262`) | Leave the 3-second default (`toast.js:253`). No JavaScript changes, and a refusal message naming several rows disappears before it can be read. The message is still in the server log and the response |
 | (iii) | Long stored values in the message. C6 says the message identifies each row by "the unrecognized value"; a stored value can be arbitrarily long text or a blob | **Shorten**: a value longer than 40 characters is shown as its first 40 characters and `…`; a blob is shown as `<binary, N bytes>`. Every offending row is still named | Show every value in full. A pathological value then produces an arbitrarily long message, toast and log line |
 
+**Gate 1 sign-off — 14 November 2026.** The owner approved Plan v2 and instructed the session agent to sign on the owner's behalf and proceed. The approval followed a written decision brief that recommended the proposed option for each decision; the owner adopted it:
+
+- (i) **Fallback** — `routes/workout_plan.py` and `utils/constants.py` stay untouched; restore keeps its own pinned contract; the behavioral tripwire watches the live plan page.
+- (ii) **Yes** — the restore-refusal toast stays on screen for 30 seconds (`{ duration: 30000 }`, one line in `backup-center.js`'s restore catch), as the stated exception to "no production JS edit".
+- (iii) **Shorten** — a stored value longer than 40 characters is shown as its first 40 characters and `…`; a blob as `<binary, N bytes>`; every offending row is still named.
+
+The response-matrix dispositions are confirmed as proposed. This approves implementation of PR 1 and PR 2 only; it is not a merge approval.
+
 **Decisions this plan settles**
 
 *D1 — Restore decides to refuse before it writes anything.* `restore_backup()` already reads the header, the items and the catalog names before `BEGIN IMMEDIATE` (`utils/program_backup.py:450-478`; `BEGIN` at `:481`, the two `DELETE`s at `:485-486`). A pre-flight pass is added in that same region:
@@ -1004,5 +1012,5 @@ The 21 existing headers, as read from `utils/export_service.py:114-160` on 13 No
 - [x] Gate 0 complete when required by planning size; otherwise marked not applicable. *(Signed 13 November 2026 — see Section 0 sign-off.)*
 - [x] Every finding has a disposition. *(31 rows in the response matrix: AR1–AR9; TS1–TS11 and test-strategist's position on D3; PR1–PR10. None deferred. The dispositions are the manager's proposals and are confirmed by the owner at Gate 1.)*
 - [x] Agent provenance complete — both `product-manager` IDs, same-PM-resumed yes/no, the three reviewer IDs, and an evidence-gap line (or `none`).
-- [ ] Owner approved Plan v2 (Gate 1). *(Includes owner decisions (i)–(iii) in Plan v2.)*
-- [ ] Ready to implement — proceed to code, then `/unslop` or `/verify-and-polish` for the diff-time gate.
+- [x] Owner approved Plan v2 (Gate 1). *(Signed 14 November 2026 on the owner's behalf at the owner's instruction; decisions (i)–(iii) take the proposed option — see Gate 1 sign-off under Plan v2.)*
+- [x] Ready to implement — proceed to code, then `/unslop` or `/verify-and-polish` for the diff-time gate.

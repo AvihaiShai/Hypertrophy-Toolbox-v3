@@ -52,7 +52,7 @@ Proposed entries do not authorize implementation. The archive container is index
 - [agent_roles/](agent_roles/) — role rollout; Phase 6 default-manager activation remains conditional
 - [ai_workflow/](ai_workflow/) — current workflow rules and navigation
 - [backup_confirmation_continuity/](backup_confirmation_continuity/) — shipped U2; residual-risk and status records require reconciliation
-- [backup_export_execution_fields/](backup_export_execution_fields/) — #567/#568 requirements brief (Gate 0 signed) and council-reviewed Plan v2; Gate 1 not signed, no implementation authorized
+- [backup_export_execution_fields/](backup_export_execution_fields/) — #567/#568 requirements brief (Gate 0 signed) and council-reviewed Plan v2; Gate 1 signed 14 November 2026, PR 1 and PR 2 authorized for implementation
 - [ci_cd_phase3/](ci_cd_phase3/) — pinned Pyright baseline used by CI
 - [deep_gate_linux_visual_failure_20260831/](deep_gate_linux_visual_failure_20260831/) — completed Gate-1 diagnostic; further action awaits an owner decision
 - [finding1_residual/](finding1_residual/) — shipped D7; residual poisoned-row behavior still needs a current reference
