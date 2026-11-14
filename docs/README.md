@@ -114,7 +114,7 @@ The old Backup Center hardening plan, Calm Glass redesign plan/audit/mockup, see
 
 Six shipped feature plans were retired to Git history on 2026-11-14 under
 [Documentation Retention](ai_workflow/DOC_RETENTION.md#retirement-criteria). Each link opens the
-plan at `189756f4`, the last commit that contains it:
+plan at `189756f4`, the main snapshot immediately before this batch:
 
 - [agent_workflow_integrity](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/agent_workflow_integrity/PLANNING.md) — shipped as #292
 - [blank_null_rep_bounds](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/blank_null_rep_bounds/PLANNING.md) — Gate 0 #465, fix #467

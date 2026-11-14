@@ -10,8 +10,9 @@ All notable changes to Hypertrophy Toolbox v3.
   `docs/blank_null_rep_bounds/PLANNING.md`, `docs/page_readiness/PLANNING.md`,
   `docs/pyright_volume_splitter/PLANNING.md`, `docs/superset_routine_selection/PLANNING.md` and
   `docs/wpb4_unassigned_bucket/PLANNING.md`. The shipped code and its tests carry the behavior;
-  [`docs/README.md`](README.md) (*Removed From Active Docs*) links each plan at the last commit
-  that contains all six, `189756f473601850c82912f43f25f16396bdc8fa`.
+  [`docs/README.md`](README.md) (*Removed From Active Docs*) links each plan at this batch's main
+  base, `189756f473601850c82912f43f25f16396bdc8fa`. The last batch-branch commit containing all
+  six is `97003ee62c45fd56a0d4d659da2327ed4c44fbd1`; their contents are identical at both commits.
 
 ## Unreleased - 2026-11-11
 

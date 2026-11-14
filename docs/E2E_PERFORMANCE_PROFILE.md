@@ -537,7 +537,7 @@ converted. Generic multi-route loops, the deliberate direct waits, visual
 capture readiness, and Body Composition remain untouched. Full requirements,
 council dispositions, and raw-evidence routing:
 [`page_readiness/PLANNING.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/page_readiness/PLANNING.md)
-(retired to Git history 2026-11-14; the link is pinned to the last commit that contains it).
+(retired to Git history 2026-11-14; the link is pinned to the main snapshot before this batch).
 
 ### Rollout to Body Composition — **the census's second and last candidate**
 
