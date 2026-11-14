@@ -8,6 +8,7 @@ from flask import Blueprint, request, jsonify, render_template
 from utils.errors import success_response, error_response
 from utils.logger import get_logger
 from utils.program_backup import (
+    BackupRestoreRefused,
     create_backup,
     list_backups,
     get_backup_details,
@@ -141,34 +142,76 @@ def api_get_backup(backup_id: int):
         return error_response("INTERNAL_ERROR", "Failed to get backup details", 500)
 
 
+def _restore_refused_message(refused: BackupRestoreRefused) -> str:
+    """Build the user-facing message for a refused restore.
+
+    The Backup Center shows this text and nothing else from the response, so it
+    is complete on its own: it says nothing was changed, and it names every
+    offending row -- none is cut off, however many there are. The row count is
+    the number of backup rows; a row with two problems is named twice.
+    """
+    named_rows = "; ".join(
+        f"{row['routine']} / {row['exercise']}: {row['problem']}" for row in refused.rows
+    )
+    return (
+        f"Backup '{refused.backup_name}' was not restored. Your current plan and workout "
+        "log were preserved; nothing was changed. "
+        f"{refused.row_count} row(s) hold execution settings that cannot be restored: "
+        f"{named_rows}. "
+        "The backup itself was left unchanged and cannot be restored until these values "
+        "are corrected."
+    )
+
+
 @program_backup_bp.route('/api/backups/<int:backup_id>/restore', methods=['POST'])
 def api_restore_backup(backup_id: int):
     """
     Restore a backup to the active program (replace mode).
-    
-    This will clear the current active program and load the backup.
-    Any exercises that no longer exist in the catalog will be skipped.
-    
+
+    This will clear the current active program and the workout log, and load the
+    backup. Exercises that no longer exist in the catalog, and rows whose weight,
+    rep range or RIR is out of bounds, are skipped and reported.
+
+    If a row that would be restored holds an execution style or timing value
+    restore cannot interpret, the whole restore is refused and nothing is
+    changed (ADR-015).
+
     Args:
         backup_id: The ID of the backup to restore
-    
+
     Returns:
         JSON with restore results:
-        - restored_count: Number of items successfully restored
-        - skipped: List of exercises that were skipped
+        - backup_id: ID of the restored backup
         - backup_name: Name of the restored backup
+        - restored_count: Number of items successfully restored
+        - skipped: List of exercises skipped as missing from the catalog
+        - invalid: List of rows skipped for an out-of-bounds value
+
+        400 VALIDATION_ERROR with error.reason "RESTORE_REFUSED" when the restore
+        is refused; error.rows holds one {routine, exercise, field, value, problem}
+        entry per problem. 404 NOT_FOUND when the backup does not exist.
     """
     try:
         logger.info(f"Restoring backup {backup_id}")
-        
+
         result = restore_backup(backup_id)
-        
+
         message = f"Restored {result['restored_count']} exercises from '{result['backup_name']}'"
         if result['skipped']:
             message += f" ({len(result['skipped'])} skipped due to missing exercises)"
-        
+
         return jsonify(success_response(data=result, message=message))
-        
+
+    except BackupRestoreRefused as refused:
+        # Ahead of the ValueError branch on purpose: a refusal is a validation
+        # error about the backup's contents, never NOT_FOUND.
+        return error_response(
+            "VALIDATION_ERROR",
+            _restore_refused_message(refused),
+            400,
+            reason="RESTORE_REFUSED",
+            rows=refused.rows,
+        )
     except ValueError as e:
         logger.warning(f"Validation error restoring backup: {e}")
         return error_response("NOT_FOUND", str(e), 404)

@@ -15,8 +15,9 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
+from utils.backup_execution_contract import check_execution_fields, render_value
 from utils.database import DatabaseHandler
 from utils.logger import get_logger
 from utils.workout_validation import validate_workout_bounds
@@ -26,17 +27,73 @@ logger = get_logger()
 # Reserved informational label for a backup's payload shape (Testing Strategy D6,
 # ADR-008). It is persisted to program_backups.schema_version and returned by the
 # API, but nothing reads it to make a decision: restore_backup() is deliberately
-# version-blind, and structural compatibility is handled instead by
-# _check_column_exists() probing the destination columns at restore time.
+# version-blind. It tells a missing value from a present one by the stored value
+# (a column added by migration reads NULL on every older row), and it leaves out
+# of its INSERT any optional column the destination user_selection lacks.
 #
 # Changing the program_backup_items payload shape requires all three of:
 #   1. bump this constant;
-#   2. add an ALTER-based migration in initialize_backup_tables() -- the
-#      superset_group block below is the reference shape;
+#   2. add an ALTER-based migration in initialize_backup_tables() -- the loop
+#      over _EXECUTION_ITEM_COLUMNS is the reference shape;
 #   3. add the matching branch in restore_backup().
-# Commit 6b99535 added superset_group with (2) and (3) but without the bump,
-# which is why version 1 does not identify a payload shape today.
-BACKUP_SCHEMA_VERSION = 1
+#
+# Version 2 (#567) is the first bump that tracks a payload change: it added the
+# four execution columns with all three parts. Version 1 does not identify one
+# shape -- commit 6b99535 added superset_group with (2) and (3) but without the
+# bump -- so a version-1 backup may or may not carry superset_group, and never
+# carries the execution columns.
+BACKUP_SCHEMA_VERSION = 2
+
+# The four execution fields of a plan row, as (column, declared type). In
+# program_backup_items all four are nullable and default to NULL -- never to
+# 'standard'. NULL means "missing", which is how a row saved before version 2
+# reads (ADR-015).
+_EXECUTION_ITEM_COLUMNS = (
+    ("execution_style", "TEXT"),
+    ("time_cap_seconds", "INTEGER"),
+    ("emom_interval_seconds", "INTEGER"),
+    ("emom_rounds", "INTEGER"),
+)
+_EXECUTION_COLUMN_NAMES = tuple(name for name, _ in _EXECUTION_ITEM_COLUMNS)
+
+# The plan-row columns a backup item carries. The first eight exist in every
+# user_selection; the rest are added to it by migration, so a backup or a
+# restore can meet a user_selection without them.
+_REQUIRED_PLAN_COLUMNS = (
+    "routine", "exercise", "sets", "min_rep_range", "max_rep_range",
+    "rir", "rpe", "weight",
+)
+_OPTIONAL_PLAN_COLUMNS = ("exercise_order", "superset_group") + _EXECUTION_COLUMN_NAMES
+
+# What restore writes for a row whose execution style is missing.
+_MISSING_STYLE_RESTORED_AS = "standard"
+
+
+class BackupRestoreRefused(Exception):
+    """A backup holds an execution value restore cannot interpret (ADR-015).
+
+    Raised by restore_backup() before it issues any write, so the active plan,
+    the workout log and the backup are exactly as they were.
+
+    Derives from Exception directly, never from ValueError: the restore route
+    answers ValueError as NOT_FOUND.
+
+    Attributes:
+        backup_name: Name of the refused backup.
+        rows: One ``{routine, exercise, field, value, problem}`` entry per
+            problem, in backup order, every value already rendered to text.
+        row_count: Number of backup rows that have at least one problem. A row
+            with two problems has two entries in ``rows`` and counts once.
+    """
+
+    def __init__(self, backup_name: str, rows: List[Dict[str, str]], row_count: int) -> None:
+        super().__init__(
+            f"Backup '{backup_name}' was not restored: {row_count} row(s) hold "
+            "execution settings that cannot be restored"
+        )
+        self.backup_name = backup_name
+        self.rows = rows
+        self.row_count = row_count
 
 
 def initialize_backup_tables(db: Optional[DatabaseHandler] = None) -> None:
@@ -81,17 +138,32 @@ def initialize_backup_tables(db: Optional[DatabaseHandler] = None) -> None:
                 weight REAL NOT NULL,
                 exercise_order INTEGER,
                 superset_group TEXT DEFAULT NULL,
+                execution_style TEXT DEFAULT NULL,
+                time_cap_seconds INTEGER DEFAULT NULL,
+                emom_interval_seconds INTEGER DEFAULT NULL,
+                emom_rounds INTEGER DEFAULT NULL,
                 FOREIGN KEY (backup_id) REFERENCES program_backups(id) ON DELETE CASCADE
             )
         """)
-        
+
         # Add superset_group column if it doesn't exist (migration for existing backup tables)
         cols = db.fetch_all("PRAGMA table_info(program_backup_items)")
         col_names = {row['name'] for row in cols}
         if 'superset_group' not in col_names:
             db.execute_query("ALTER TABLE program_backup_items ADD COLUMN superset_group TEXT DEFAULT NULL")
             logger.debug("Added superset_group column to program_backup_items table")
-        
+
+        # Add the four execution columns to an existing backup table (schema
+        # version 2). They default to NULL -- execution_style included, never
+        # 'standard' -- so rows saved before the change read as missing and no
+        # existing row or header is rewritten.
+        for column, declared_type in _EXECUTION_ITEM_COLUMNS:
+            if column not in col_names:
+                db.execute_query(
+                    f"ALTER TABLE program_backup_items ADD COLUMN {column} {declared_type} DEFAULT NULL"
+                )
+                logger.debug(f"Added {column} column to program_backup_items table")
+
         # Create indexes for efficient lookups
         db.execute_query("""
             CREATE INDEX IF NOT EXISTS idx_backup_items_backup_id 
@@ -117,13 +189,13 @@ def initialize_backup_tables(db: Optional[DatabaseHandler] = None) -> None:
             db.close()
 
 
-def _check_column_exists(db: DatabaseHandler, table: str, column: str) -> bool:
-    """Check if a column exists in a table."""
+def _get_column_names(db: DatabaseHandler, table: str) -> Set[str]:
+    """Return the names of a table's columns; empty if they cannot be read."""
     try:
         columns = db.fetch_all(f"PRAGMA table_info({table})")
-        return any(col['name'] == column for col in columns)
+        return {col['name'] for col in columns}
     except sqlite3.Error:
-        return False
+        return set()
 
 
 def create_backup(
@@ -187,22 +259,18 @@ def create_backup(
             logger.warning("user_selection table does not exist, creating empty backup")
             items = []
         else:
-            # Check if exercise_order and superset_group columns exist
-            has_order = _check_column_exists(db, 'user_selection', 'exercise_order')
-            has_superset = _check_column_exists(db, 'user_selection', 'superset_group')
-            
-            # Build SELECT columns based on available columns
-            base_cols = "routine, exercise, sets, min_rep_range, max_rep_range, rir, rpe, weight"
-            extra_cols = []
-            if has_order:
-                extra_cols.append("exercise_order")
-            if has_superset:
-                extra_cols.append("superset_group")
-            
-            select_cols = base_cols + (", " + ", ".join(extra_cols) if extra_cols else "")
+            # Select every optional column user_selection has. One it lacks is
+            # stored as NULL in the backup item.
+            plan_columns = _get_column_names(db, 'user_selection')
+            has_order = 'exercise_order' in plan_columns
+            select_cols = ", ".join(
+                _REQUIRED_PLAN_COLUMNS
+                + tuple(col for col in _OPTIONAL_PLAN_COLUMNS if col in plan_columns)
+            )
             order_clause = "ORDER BY exercise_order, routine, exercise" if has_order else "ORDER BY routine, exercise"
-            
-            # Fetch all items from active program
+
+            # Fetch all items from active program. Values are copied as stored:
+            # nothing is validated or normalized at backup time.
             items = db.fetch_all(f"""
                 SELECT {select_cols}
                 FROM user_selection
@@ -228,9 +296,10 @@ def create_backup(
             for item in items:
                 db.execute_query("""
                     INSERT INTO program_backup_items 
-                    (backup_id, routine, exercise, sets, min_rep_range, max_rep_range, 
-                     rir, rpe, weight, exercise_order, superset_group)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (backup_id, routine, exercise, sets, min_rep_range, max_rep_range,
+                     rir, rpe, weight, exercise_order, superset_group,
+                     execution_style, time_cap_seconds, emom_interval_seconds, emom_rounds)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     backup_id,
                     item.get('routine'),
@@ -241,8 +310,13 @@ def create_backup(
                     item.get('rir'),
                     item.get('rpe'),
                     item.get('weight'),
-                    item.get('exercise_order'),  # Will be None if column doesn't exist
-                    item.get('superset_group')   # Will be None if column doesn't exist
+                    # Each of the six below is None if user_selection lacks the column
+                    item.get('exercise_order'),
+                    item.get('superset_group'),
+                    item.get('execution_style'),
+                    item.get('time_cap_seconds'),
+                    item.get('emom_interval_seconds'),
+                    item.get('emom_rounds'),
                 ), commit=False)
 
         if own_transaction:
@@ -426,25 +500,65 @@ def _validate_restore_item(item: Dict[str, Any]) -> Optional[str]:
     return validate_workout_bounds(**fields, allow_null=False)
 
 
+def _as_text(value: Any) -> str:
+    """A routine or exercise name as text for a refusal row.
+
+    Names are stored as text and returned unchanged. Anything else -- reachable
+    only by editing the database outside the application -- is rendered, so the
+    row is always JSON-safe.
+    """
+    return value if isinstance(value, str) else render_value(value)
+
+
+def _restore_value(item: Dict[str, Any], column: str) -> Any:
+    """The value restore writes to ``column`` of user_selection for ``item``.
+
+    Every value is written as stored, with one exception: a missing execution
+    style is written as 'standard'. A missing timing value stays NULL -- restore
+    never fills in a default.
+    """
+    value = item.get(column)
+    if column == 'execution_style' and value is None:
+        return _MISSING_STYLE_RESTORED_AS
+    return value
+
+
 def restore_backup(backup_id: int) -> Dict[str, Any]:
     """
     Restore a backup to the active program (replace mode).
-    
-    This will:
-    1. Clear all current user_selection entries
-    2. Insert all backup items (skipping any with missing exercises)
-    
+
+    Every decision is made before anything is written. Each backup item is
+    classified, in backup order:
+
+    1. its exercise is not in the catalog: skipped, reported in ``skipped``;
+    2. its weight, rep range or RIR fails the plan's bounds: skipped, reported
+       in ``invalid``;
+    3. otherwise it is restorable, and its four execution fields are checked
+       against the restore-acceptance contract
+       (utils/backup_execution_contract.py, ADR-015).
+
+    If any restorable item holds an execution value the contract does not
+    accept, the whole restore is refused and nothing is written. Otherwise one
+    transaction clears workout_log and user_selection and inserts every
+    restorable item. A missing execution style is restored as 'standard'; a
+    missing timing value is restored empty.
+
     Args:
         backup_id: The ID of the backup to restore
-    
+
     Returns:
-        Dict with restore results including:
-        - restored_count: Number of items successfully restored
-        - skipped: List of exercises that were skipped (missing from catalog)
+        Dict with restore results:
+        - backup_id: ID of the restored backup
         - backup_name: Name of the restored backup
-    
+        - restored_count: Number of items restored
+        - skipped: Exercises skipped because they are missing from the catalog
+        - invalid: Items skipped because a bounded value is out of range, each
+          ``{routine, exercise, reason}``
+
     Raises:
         ValueError: If backup_id is invalid
+        BackupRestoreRefused: If a restorable item holds an execution value the
+            contract does not accept. Raised before any write.
     """
     with DatabaseHandler() as db:
         # Verify backup exists
@@ -453,30 +567,104 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
             FROM program_backups
             WHERE id = ?
         """, (backup_id,))
-        
+
         if not backup:
             raise ValueError(f"Backup with id {backup_id} not found")
-        
+
         backup_name = backup['name']
-        
+
         # Get backup items
         items = db.fetch_all("""
-            SELECT routine, exercise, sets, min_rep_range, max_rep_range, 
-                   rir, rpe, weight, exercise_order, superset_group
+            SELECT routine, exercise, sets, min_rep_range, max_rep_range,
+                   rir, rpe, weight, exercise_order, superset_group,
+                   execution_style, time_cap_seconds, emom_interval_seconds, emom_rounds
             FROM program_backup_items
             WHERE backup_id = ?
         """, (backup_id,))
-        
+
         # Get list of valid exercises from catalog
         valid_exercises = db.fetch_all("""
             SELECT exercise_name FROM exercises
         """)
         valid_exercise_names = {row['exercise_name'] for row in valid_exercises}
-        
-        # Check if exercise_order and superset_group columns exist in user_selection
-        has_order = _check_column_exists(db, 'user_selection', 'exercise_order')
-        has_superset = _check_column_exists(db, 'user_selection', 'superset_group')
-        
+
+        # An optional column the destination lacks is left out of the INSERT.
+        # The column list comes only from the two fixed tuples, never from
+        # input, and the placeholders and each row's parameters are built from
+        # this same list, so their order cannot drift apart.
+        destination_columns = _get_column_names(db, 'user_selection')
+        insert_columns = _REQUIRED_PLAN_COLUMNS + tuple(
+            column for column in _OPTIONAL_PLAN_COLUMNS if column in destination_columns
+        )
+        insert_sql = (
+            f"INSERT INTO user_selection ({', '.join(insert_columns)}) "
+            f"VALUES ({', '.join('?' for _ in insert_columns)})"
+        )
+
+        # Pre-flight: classify every item before anything is written.
+        restorable: List[Dict[str, Any]] = []
+        skipped: List[Any] = []
+        invalid: List[Dict[str, Any]] = []
+        refused_rows: List[Dict[str, str]] = []
+        refused_row_count = 0
+
+        for item in items:
+            exercise_name = item.get('exercise')
+
+            # Check if exercise exists in catalog (FK constraint)
+            if exercise_name not in valid_exercise_names:
+                skipped.append(exercise_name)
+                logger.warning(
+                    f"Skipping exercise during restore: '{exercise_name}' not in catalog"
+                )
+                continue
+
+            # A backup predating validate_workout_bounds can carry values the plan
+            # routes reject. Skip that row rather than writing it: a non-numeric rep
+            # range reaches six downstream sites, where it can cause failures and
+            # silent miscalculation (FINDING-1).
+            bounds_error = _validate_restore_item(item)
+            if bounds_error:
+                invalid.append({
+                    'routine': item.get('routine'),
+                    'exercise': exercise_name,
+                    'reason': bounds_error,
+                })
+                logger.warning(
+                    "Skipping exercise during restore: invalid bounds",
+                    extra={'exercise': exercise_name, 'reason': bounds_error},
+                )
+                continue
+
+            # Only a row that would be written can refuse the restore: a row
+            # skipped above never has its execution fields examined.
+            problems = check_execution_fields(item)
+            if problems:
+                refused_row_count += 1
+                for problem in problems:
+                    refused_rows.append({
+                        'routine': _as_text(item.get('routine')),
+                        'exercise': _as_text(exercise_name),
+                        **problem,
+                    })
+                continue
+
+            restorable.append(item)
+
+        if refused_rows:
+            # Raised before BEGIN IMMEDIATE: no write statement has been issued,
+            # so the plan and the log keep their rows and their ids.
+            logger.warning(
+                "Backup restore refused: execution values cannot be restored",
+                extra={
+                    'backup_id': backup_id,
+                    'backup_name': backup_name,
+                    'refused_row_count': refused_row_count,
+                    'problem_count': len(refused_rows),
+                },
+            )
+            raise BackupRestoreRefused(backup_name, refused_rows, refused_row_count)
+
         try:
             db.execute_query("BEGIN IMMEDIATE", commit=False)
 
@@ -485,133 +673,23 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
             db.execute_query("DELETE FROM workout_log", commit=False)
             db.execute_query("DELETE FROM user_selection", commit=False)
 
-            restored_count = 0
-            skipped = []
-            invalid = []
-
-            for item in items:
-                exercise_name = item.get('exercise')
-
-                # Check if exercise exists in catalog (FK constraint)
-                if exercise_name not in valid_exercise_names:
-                    skipped.append(exercise_name)
-                    logger.warning(
-                        f"Skipping exercise during restore: '{exercise_name}' not in catalog"
-                    )
-                    continue
-
-                # A backup predating validate_workout_bounds can carry values the plan
-                # routes reject. Skip that row rather than writing it: a non-numeric rep
-                # range reaches six downstream sites, where it can cause failures and
-                # silent miscalculation (FINDING-1).
-                bounds_error = _validate_restore_item(item)
-                if bounds_error:
-                    invalid.append({
-                        'routine': item.get('routine'),
-                        'exercise': exercise_name,
-                        'reason': bounds_error,
-                    })
-                    logger.warning(
-                        "Skipping exercise during restore: invalid bounds",
-                        extra={'exercise': exercise_name, 'reason': bounds_error},
-                    )
-                    continue
-
-                # Insert item
-                # Build INSERT based on available columns
-                if has_order and has_superset:
-                    db.execute_query(
-                        """
-                        INSERT INTO user_selection
-                        (routine, exercise, sets, min_rep_range, max_rep_range,
-                         rir, rpe, weight, exercise_order, superset_group)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            item.get('routine'),
-                            exercise_name,
-                            item.get('sets'),
-                            item.get('min_rep_range'),
-                            item.get('max_rep_range'),
-                            item.get('rir'),
-                            item.get('rpe'),
-                            item.get('weight'),
-                            item.get('exercise_order'),
-                            item.get('superset_group')
-                        ),
-                        commit=False,
-                    )
-                elif has_order:
-                    db.execute_query(
-                        """
-                        INSERT INTO user_selection
-                        (routine, exercise, sets, min_rep_range, max_rep_range,
-                         rir, rpe, weight, exercise_order)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            item.get('routine'),
-                            exercise_name,
-                            item.get('sets'),
-                            item.get('min_rep_range'),
-                            item.get('max_rep_range'),
-                            item.get('rir'),
-                            item.get('rpe'),
-                            item.get('weight'),
-                            item.get('exercise_order')
-                        ),
-                        commit=False,
-                    )
-                elif has_superset:
-                    db.execute_query(
-                        """
-                        INSERT INTO user_selection
-                        (routine, exercise, sets, min_rep_range, max_rep_range,
-                         rir, rpe, weight, superset_group)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            item.get('routine'),
-                            exercise_name,
-                            item.get('sets'),
-                            item.get('min_rep_range'),
-                            item.get('max_rep_range'),
-                            item.get('rir'),
-                            item.get('rpe'),
-                            item.get('weight'),
-                            item.get('superset_group')
-                        ),
-                        commit=False,
-                    )
-                else:
-                    db.execute_query(
-                        """
-                        INSERT INTO user_selection
-                        (routine, exercise, sets, min_rep_range, max_rep_range,
-                         rir, rpe, weight)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            item.get('routine'),
-                            exercise_name,
-                            item.get('sets'),
-                            item.get('min_rep_range'),
-                            item.get('max_rep_range'),
-                            item.get('rir'),
-                            item.get('rpe'),
-                            item.get('weight')
-                        ),
-                        commit=False,
-                    )
-                restored_count += 1
+            # One INSERT per row, never executemany.
+            for item in restorable:
+                db.execute_query(
+                    insert_sql,
+                    tuple(_restore_value(item, column) for column in insert_columns),
+                    commit=False,
+                )
             db.connection.commit()
         except sqlite3.Error:
             db.connection.rollback()
             raise
 
+        restored_count = len(restorable)
+
         # Normalize skipped entries while preserving order
         skipped_unique = list(dict.fromkeys(skipped))
-        
+
         logger.info(
             "Backup restored successfully",
             extra={
