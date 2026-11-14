@@ -26,9 +26,9 @@ document already owns a subject, this suite links to it rather than restating it
 ## What these documents are not
 
 They carry **no status**. No branch names, no pull-request numbers, no test counts, no "current
-work packet", no dates that imply freshness. Point-in-time project state lives in
-[`../MASTER_HANDOVER.md`](../MASTER_HANDOVER.md), which is the file to read first for anything
-in flight. A count or a status claim appearing here would be a defect, not an update.
+work packet", no dates that imply freshness. Point-in-time runtime and operating state lives in
+[`../MASTER_HANDOVER.md`](../MASTER_HANDOVER.md), and current public work status lives in the
+owning GitHub issues. A count or a status claim appearing here would be a defect, not an update.
 
 They are also **not implementation guides**. How to add a blueprint, how to add a table, which
 tests a change requires — those belong to the canonical guides below and are deliberately not
