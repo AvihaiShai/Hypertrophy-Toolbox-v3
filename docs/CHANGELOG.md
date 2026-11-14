@@ -2,6 +2,13 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - 2026-11-15
+
+### Documentation reconciliation
+
+- Recorded the worktree campaign closure and the already-published amendment, corrected U1 follow-up and fast-uri PR navigation, and linked P2.4's accepted limitation to #687.
+- Added the Python 3.15 acceptance closeout from #566 while retaining failed, unrun and retried browser results accurately. Historical evidence and all three Batch 2 candidate plans remain in the checkout.
+
 ## Unreleased - 2026-11-11
 
 ### Documentation retention

@@ -1,5 +1,16 @@
 # Python 3.15.1 migration execution
 
+## Acceptance closeout recorded 2026-11-15
+
+[PR #566](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/566) records the later acceptance and owner-approved merge as `a21ae507d11cd67f797ace528b645e74a8caea64` on 2026-10-24. This closeout supersedes earlier pending Sandbox/publication/merge descriptions below without rewriting the dated evidence.
+
+- Clean Windows Sandbox without installed Python: **PASS, 55 assertions**, using 44 verified frozen inputs, direct executable launch, PowerShell-only guest probes and separate guest runtime/results. The optional guest Python-install/registered-launcher phase was not run. The PR records subsequent host verification of the exact exported workbook bytes.
+- The one post-reboot local browser campaign completed **584 passed / 2 failed / 586** functional cases; its 100-case visual partition did not run, and the outer wrapper's final exit was not observed. The Windows CI visual job recovered one failure on retry. These limitations were accepted by the owner and remain failures, unrun work or retry results as recorded.
+- The PR records successful native CI and the authorized merge. Its local acceptance paths are historical evidence pointers, not newly verified attachments. No Sandbox rerun or current artifact-availability claim is made here. Post-merge environment handoff retains its own recorded scope.
+
+The old execution-stage text is retained as history. Current public follow-up status belongs to the owning GitHub issues, including #565 and #609.
+
+
 Issue [#564](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/564), owner-approved Gate 1 and sequencing amendments dated 2026-10-24. Both independent reviews passed with no actionable findings; the local Windows browser gate has **not passed**. The owner approved Gate 2 for tree `9a10e87937fe39ca6ac661b023e5738b584b4537`, published as commit `7e86c0546d80784ae3e8262067bd398f7187752a` in draft [PR #566](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/566). Exact-head native CI, the owner-requested post-reboot local run, no-Python Windows Sandbox acceptance and named-PR/head merge approval remain separate conditions. The direct owner amendment is recorded in [PLANNING.md](PLANNING.md).
 
 ## Interpreter and dependency prerequisite

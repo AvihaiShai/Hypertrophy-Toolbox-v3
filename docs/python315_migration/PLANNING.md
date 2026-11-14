@@ -1,5 +1,7 @@
 # Plan Review — Python 3.15 migration (#564)
 
+> **Closeout recorded 2026-11-15.** The migration merged through [PR #566](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/566). Its clean no-installed-Python Windows Sandbox acceptance passed 55 assertions. Earlier pending Sandbox/publication/merge descriptions below are historical; see the [acceptance closeout](EXECUTION.md#acceptance-closeout-recorded-2026-11-15) for completed evidence and the retained browser-test limitations.
+
 ## Section 0 — Requirements Brief
 
 **Status:** Gate 0 approved on 2026-10-23; **Gate 1 approved with conditions on 2026-10-24**. Approved implementation, focused QA, preparation/type/inventory and corrected full pytest are complete. **Local full Chromium remains failed**, with failed/partial controls preserved; the owner approved proceeding to required independent reviews under added pre-merge conditions. Latest evidence/remaining boundaries are recorded below. Reviewed plans and earlier snapshots remain historical. Gate 2, first push, Sandbox and merge remain pending.
