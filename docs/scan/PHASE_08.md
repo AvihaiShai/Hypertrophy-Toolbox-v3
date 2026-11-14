@@ -142,6 +142,12 @@ with DatabaseHandler() as db:
 ```
 If entry 3 of 5 fails validation, entries 1-2 have already been written (assuming `DatabaseHandler.execute_query` isn't deferred to a single commit at context-exit — full transactional semantics weren't verified here since `utils/database.py` is Phase 2 scope, but the *code shape* is the same "validate mid-loop, write immediately" bug pattern regardless of the transaction boundary). Recommend validating the whole batch first, then writing.
 
+> **Later update, recorded 2026-11-15.** Tracked as [#570](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/570)
+> and fixed by [PR #672](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/672) (`b276c402`,
+> issue closed 2026-11-12): the exercise-order batch is now all-or-nothing, so an invalid entry or a
+> failed write leaves every row's order unchanged, verified by that PR's focused tests. The other
+> `[NEW]` items in this section are unaffected.
+
 ## 11. Dead/unreferenced routes
 
 **[NEW]**

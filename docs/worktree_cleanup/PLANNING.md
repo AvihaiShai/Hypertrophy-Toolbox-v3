@@ -38,7 +38,7 @@ before preservation and cleanup approval.
 
 **Technical-design evidence and precedence**
 
-- [`§1.2`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#12-five-independently-completable-operations)
+- [`§1.2`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#12-independently-completable-operations)
   defines Operations A–E and their technical dependencies. This brief adds a stricter
   program sequence; it does not weaken any dependency, safety rule, or approval.
 - [`§1.3`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#13-planning-artifact-landing-gate)
