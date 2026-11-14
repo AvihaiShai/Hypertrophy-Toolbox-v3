@@ -898,7 +898,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "f318decc7839cea7cfe661ea40d8e5e68c8d4478883ecdc0f3c6b46c561a1849"
+      "nameAndSizeSha256": "01fef2d4b3d84e8d9c1bb621ae4ed24682e25a50c930afe951662d5d8aa00951"
     },
     "win32/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -991,7 +991,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "b0fb12715a064eab6e5bd41d56bcf6e4e7ac6d5e39492e76874873442246e972"
+      "nameAndSizeSha256": "8feb51e8fb60095a329f44771d787fbc23287e28bffdf31b769da43e3a95a870"
     },
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -2603,6 +2603,30 @@
         "j"
       ],
       "why": "Five properties, not one: the old register reached this block only because the form-control entry cited `box-shadow: none !important;` and that string happens to occur here too. background, transform and transition were never registered at all."
+    },
+    {
+      "selector": "Filter Exercises card (dark Workout Plan only)",
+      "stage": "stylesheet",
+      "helperSelector": "html[data-theme='dark'] #workout[data-page=\"workout-plan\"] [data-section=\"filters\"][data-visual-surface]",
+      "classification": "neutralizer",
+      "properties": [
+        "box-shadow"
+      ],
+      "declarations": [
+        {
+          "property": "box-shadow",
+          "value": "none",
+          "important": true
+        }
+      ],
+      "neutralizedTo": "none",
+      "helperEvidence": "[data-section=\"filters\"][data-visual-surface] {",
+      "blindsSurfaces": [
+        "components.css",
+        "tokens.css"
+      ],
+      "blindsPackets": [],
+      "why": "Issue #609. This card's dark box-shadow rastered its top and bottom edges nondeterministically at an unchanged layout, so the first capture attempt intermittently failed on Windows. The product's Calm Glass rule carries ID-level weight from #workout and outranks the surface flattener, so the shadow had stayed in the capture; this rule uses the same ID to remove it. The dark shadow of this one card is no longer covered by the pixel oracle. The Workout Controls and Exercise Selection cards keep theirs."
     },
     {
       "selector": "input, textarea (caret)",
