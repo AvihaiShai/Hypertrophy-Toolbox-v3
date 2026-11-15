@@ -129,3 +129,14 @@ export function getSubcategoryTooltip(category, subcategory) {
     };
     return tooltips[category]?.[subcategory] || '';
 }
+
+export function replaceSummaryRows(tableBody, html) {
+    const selector = '[data-bs-toggle="tooltip"]';
+    tableBody.querySelectorAll(selector).forEach(element => {
+        bootstrap.Tooltip.getInstance(element)?.dispose();
+    });
+    tableBody.innerHTML = html;
+    tableBody.querySelectorAll(selector).forEach(element => {
+        bootstrap.Tooltip.getOrCreateInstance(element);
+    });
+}

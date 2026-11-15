@@ -23,6 +23,7 @@ import {
     getApiErrorMessage,
     getCategoryTooltip,
     getSubcategoryTooltip,
+    replaceSummaryRows,
 } from './summary-helpers.js';
 import { api } from './fetch-wrapper.js';
 
@@ -164,12 +165,12 @@ async function updateWeeklySummary() {
     const categoryTableBody = document.getElementById("categories-table-body");
 
     // Display loading spinner
-    tableBody.innerHTML = `
+    replaceSummaryRows(tableBody, `
         <tr>
             <td colspan="6">
                 <div class="skeleton" style="height: 150px; width: 100%;"></div>
             </td>
-        </tr>`;
+        </tr>`);
 
     // Update formula text based on counting mode
     const formulaText = document.getElementById('volume-formula-text');
@@ -199,13 +200,13 @@ async function updateWeeklySummary() {
 
         // Update weekly summary table
         if (weeklySummary.length === 0) {
-            tableBody.innerHTML = `
+            replaceSummaryRows(tableBody, `
                 <tr>
                     <td colspan="6" class="text-center text-muted">No data available.</td>
-                </tr>`;
+                </tr>`);
         } else {
             // Populate the table with fetched data
-            tableBody.innerHTML = weeklySummary.map(row => {
+            replaceSummaryRows(tableBody, weeklySummary.map(row => {
                 const effectiveSets = row.effective_sets ?? row.total_sets ?? 0;
                 const rawSets = row.raw_sets ?? row.total_sets ?? 0;
                 const routines = row.frequency || 0;
@@ -231,17 +232,17 @@ async function updateWeeklySummary() {
                         </td>
                     </tr>
                 `;
-            }).join("");
+            }).join(""));
         }
 
         // Update categories table
         if (categories.length === 0) {
-            categoryTableBody.innerHTML = `
+            replaceSummaryRows(categoryTableBody, `
                 <tr>
                     <td colspan="3" class="text-center text-muted">No categories data available.</td>
-                </tr>`;
+                </tr>`);
         } else {
-            categoryTableBody.innerHTML = categories.map(cat => `
+            replaceSummaryRows(categoryTableBody, categories.map(cat => `
                 <tr>
                     <td>
                         <span data-bs-toggle="tooltip"
@@ -257,21 +258,15 @@ async function updateWeeklySummary() {
                     </td>
                     <td>${cat.total_exercises}</td>
                 </tr>
-            `).join('');
+            `).join(''));
         }
-
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
 
     } catch (error) {
         console.error("Error fetching data:", error);
-        tableBody.innerHTML = `
+        replaceSummaryRows(tableBody, `
             <tr>
                 <td colspan="6" class="text-center text-danger">Failed to load data.</td>
-            </tr>`;
+            </tr>`);
     }
 }
 

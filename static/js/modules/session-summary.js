@@ -23,6 +23,7 @@ import {
     getApiErrorMessage,
     getCategoryTooltip,
     getSubcategoryTooltip,
+    replaceSummaryRows,
 } from './summary-helpers.js';
 import { getSessionWarningBadge } from './session-summary-helpers.js';
 import { api } from './fetch-wrapper.js';
@@ -40,14 +41,14 @@ async function updateSessionSummary() {
     }
 
     // Display loading spinner
-    tableBody.innerHTML = `
+    replaceSummaryRows(tableBody, `
         <tr>
             <td colspan="6" class="text-center">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </td>
-        </tr>`;
+        </tr>`);
 
     try {
         const params = new URLSearchParams({
@@ -74,13 +75,13 @@ async function updateSessionSummary() {
         const categories = Array.isArray(data.categories) ? data.categories : [];
 
         if (sessionSummary.length === 0) {
-            tableBody.innerHTML = `
+            replaceSummaryRows(tableBody, `
                 <tr>
                     <td colspan="6" class="text-center text-muted">No data available.</td>
-                </tr>`;
+                </tr>`);
         } else {
             // Populate the table with fetched data
-            tableBody.innerHTML = sessionSummary.map(row => {
+            replaceSummaryRows(tableBody, sessionSummary.map(row => {
                 const effectiveSets = row.effective_sets ?? row.total_sets ?? 0;
                 const rawSets = row.raw_sets ?? row.total_sets ?? 0;
                 const effectivePerSession = row.effective_per_session;
@@ -116,17 +117,17 @@ async function updateSessionSummary() {
                         </td>
                     </tr>
                 `;
-            }).join("");
+            }).join(""));
         }
 
         // Update categories table
         if (categories.length === 0) {
-            categoryTableBody.innerHTML = `
+            replaceSummaryRows(categoryTableBody, `
                 <tr>
                     <td colspan="3" class="text-center text-muted">No categories data available.</td>
-                </tr>`;
+                </tr>`);
         } else {
-            categoryTableBody.innerHTML = categories.map(cat => `
+            replaceSummaryRows(categoryTableBody, categories.map(cat => `
                 <tr>
                     <td>
                         <span data-bs-toggle="tooltip"
@@ -142,21 +143,15 @@ async function updateSessionSummary() {
                     </td>
                     <td>${cat.total_exercises}</td>
                 </tr>
-            `).join('');
+            `).join(''));
         }
-
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
 
     } catch (error) {
         console.error("Error fetching data:", error);
-        tableBody.innerHTML = `
+        replaceSummaryRows(tableBody, `
             <tr>
                 <td colspan="6" class="text-center text-danger">Failed to load data.</td>
-            </tr>`;
+            </tr>`);
     }
 }
 
