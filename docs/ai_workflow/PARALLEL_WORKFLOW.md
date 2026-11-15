@@ -28,8 +28,8 @@ Don't fork for:
 ## Manager-session ownership
 
 One manager-led feature owns one checkout. For sequential work, launch the manager in
-the main checkout. Before starting a second feature concurrently, create its isolated
-checkout first and launch a separate manager session there. Subagents operate inside
+the main checkout. Before starting a second feature concurrently, obtain the owner's explicit
+approval, create its isolated checkout first and launch a separate manager session there. Subagents operate inside
 their parent manager's checkout; the manager does not create, merge, or move
 worktrees.
 

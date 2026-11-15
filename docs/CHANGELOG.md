@@ -142,8 +142,9 @@ All notable changes to Hypertrophy Toolbox v3.
 - The required frontend-build job now deletes, rebuilds and byte-diffs both
   `bootstrap.custom.min.css` and its source map, preventing committed SCSS/CSS
   drift (#335).
-- Eleven false-green test escape hatches were closed across seven pytest modules;
-  a duplicate weaker PR was closed unmerged (#334, #337).
+- Eleven false-green test escape hatches were closed across seven pytest modules
+  (#334, merged). An overlapping weaker PR, #337, was closed unmerged because #334
+  subsumed it.
 - The profile-estimator Pyright baseline shrank without changing runtime
   expressions, and nine accessibility assertions that could not fail were
   repaired without adding test nodes (#336, #342).

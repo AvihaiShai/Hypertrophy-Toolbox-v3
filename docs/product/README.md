@@ -26,9 +26,9 @@ document already owns a subject, this suite links to it rather than restating it
 ## What these documents are not
 
 They carry **no status**. No branch names, no pull-request numbers, no test counts, no "current
-work packet", no dates that imply freshness. Point-in-time project state lives in
-[`../MASTER_HANDOVER.md`](../MASTER_HANDOVER.md), which is the file to read first for anything
-in flight. A count or a status claim appearing here would be a defect, not an update.
+work packet", no dates that imply freshness. Point-in-time runtime and operating state lives in
+[`../MASTER_HANDOVER.md`](../MASTER_HANDOVER.md), and current public work status lives in the
+owning GitHub issues. A count or a status claim appearing here would be a defect, not an update.
 
 They are also **not implementation guides**. How to add a blueprint, how to add a table, which
 tests a change requires — those belong to the canonical guides below and are deliberately not
@@ -50,7 +50,8 @@ When two documents disagree, the owner in this table wins.
 | CSS file ownership map | [`../CSS_OWNERSHIP_MAP.md`](../CSS_OWNERSHIP_MAP.md) | Links |
 | Which tests and reviewers a change requires | [`../ai_workflow/QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) | Links |
 | Durable cross-cutting decisions | [`../DECISIONS.md`](../DECISIONS.md) | Links |
-| Current project state, open work, decisions in flight | [`../MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) | Never duplicated here |
+| Current public work status | The owning [GitHub issues](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues) | Never duplicated here |
+| Runtime handover, operating state, decisions in flight | [`../MASTER_HANDOVER.md`](../MASTER_HANDOVER.md) | Never duplicated here |
 
 **Conflict rule, in order.** Running code beats every document. `CLAUDE.md` and
 `.claude/rules/*` beat this suite on anything they own. `MASTER_HANDOVER.md` beats this suite on
@@ -92,17 +93,20 @@ requirement.
 
 ### Network behavior
 
-**Nothing in this application talks to the network** — not the server, and not the browser.
+**The application's core is local.** The routes make no outbound calls and send no telemetry;
+nothing is uploaded and there is no analytics of any kind. Every asset a page needs is served from
+the application's own origin: fonts, third-party JavaScript, and icons are all vendored under
+`static/vendor/` with their licenses and pinned versions. Planning, logging, analysis, progression,
+distribution, profile and backup all work offline.
 
-The routes make no outbound calls and send no telemetry; nothing is uploaded and there is no
-analytics of any kind. Every asset a page needs is served from the application's own origin:
-fonts, third-party JavaScript, and icons are all vendored under `static/vendor/` with their
-licenses and pinned versions. The application is therefore local-only in its assets as well as
-local-first in its data, and it behaves identically offline.
+**One optional feature uses the network: exercise reference videos.** On the Plan and Log pages,
+an exercise's video control loads its video, or a YouTube search, from YouTube when clicked, and
+needs an internet connection. Nothing is requested before the click, and every other control
+works offline.
 
-The full vendored inventory is in
-[`APP_FLOW.md`](APP_FLOW.md#third-party-assets--all-served-locally). The only external URLs in
-the templates are two author links to LinkedIn, which are clicked rather than fetched.
+The full vendored inventory and the video URLs are in
+[`APP_FLOW.md`](APP_FLOW.md#third-party-assets--all-served-locally). The only external URLs
+written into the templates are two author links to LinkedIn, which are clicked rather than fetched.
 
 ### Security boundary
 

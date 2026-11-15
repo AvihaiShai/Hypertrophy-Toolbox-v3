@@ -23,15 +23,15 @@ paths:
 
 | Table | PK | Key FK | Created in |
 |---|---|---|---|
-| `exercises` | `exercise_name TEXT` | — | `db_initializer.py:34` |
-| `exercise_isolated_muscles` | `(exercise_name, muscle)` | → `exercises` CASCADE | `db_initializer.py:90` |
-| `user_selection` | `id INTEGER` | `exercise` → `exercises` CASCADE | `db_initializer.py:166` |
-| `workout_log` | `id INTEGER` | `workout_plan_id` → `user_selection` CASCADE | `db_initializer.py:237` |
-| `progression_goals` | `id INTEGER` | — | `database.py:460` |
-| `volume_plans` | `id INTEGER` | — | `database.py:484` |
-| `muscle_volumes` | `id INTEGER` | `plan_id` → `volume_plans` CASCADE | `database.py:491` |
-| `program_backups` | `id INTEGER` | — | `utils/program_backup.py:23` |
-| `program_backup_items` | `id INTEGER` | `backup_id` → `program_backups` CASCADE | `utils/program_backup.py:23` |
+| `exercises` | `exercise_name TEXT` | — | `db_initializer.py:90` |
+| `exercise_isolated_muscles` | `(exercise_name, muscle)` | → `exercises` CASCADE | `db_initializer.py:14` |
+| `user_selection` | `id INTEGER` | `exercise` → `exercises` CASCADE | `db_initializer.py:184` |
+| `workout_log` | `id INTEGER` | `workout_plan_id` → `user_selection` CASCADE | `db_initializer.py:255` |
+| `progression_goals` | `id INTEGER` | — | `database.py:566` |
+| `volume_plans` | `id INTEGER` | — | `database.py:585` |
+| `muscle_volumes` | `id INTEGER` | `plan_id` → `volume_plans` CASCADE | `database.py:592` |
+| `program_backups` | `id INTEGER` | — | `utils/program_backup.py:57` |
+| `program_backup_items` | `id INTEGER` | `backup_id` → `program_backups` CASCADE | `utils/program_backup.py:71` |
 
 ## DatabaseHandler pattern (required for all DB access)
 ```python
@@ -41,7 +41,7 @@ with DatabaseHandler() as db:
     row = db.fetch_one("SELECT ... WHERE id = ?", (id,))         # dict | None
     db.execute_query("INSERT INTO t (c) VALUES (?)", (val,))     # write (locks)
 ```
-Slow queries (>100ms) auto-logged as WARNING (`database.py:250`).
+Slow queries (>100ms) auto-logged as WARNING (`DatabaseHandler.execute_query`, `fetch_one` and `fetch_all` in `database.py`).
 
 The sole Operation A infrastructure exception is `scripts/seed_worktree_snapshot.py`:
 it uses Python stdlib `sqlite3` directly, a read-only source URI, online backup into
@@ -77,17 +77,17 @@ def add_myfeature_table() -> None:
    (children before parents) — `erase_data()` drops through it — and to the `clean_db` fixture's
    `DELETE` list in `tests/conftest.py`.
 
-## Connection config (`utils/database.py:80-104`)
+## Connection config (`utils/database.py:78-102`)
 `_configure_connection()` sets PRAGMAs per connection:
-- `foreign_keys = ON` (line 84)
-- `busy_timeout = 30000` (line 86)
-- Journal mode: `FLASK_DEBUG` env defaults to `'1'` → `DELETE` mode; set `FLASK_DEBUG=0` for `WAL` (line 90)
-- Synchronous: debug → `FULL`; non-debug → `NORMAL` (lines 99-102)
+- `foreign_keys = ON` (line 82)
+- `busy_timeout = 30000` (line 84)
+- Journal mode: `FLASK_DEBUG` env defaults to `'1'` → `DELETE` mode; set `FLASK_DEBUG=0` for `WAL` (line 88)
+- Synchronous: debug → `FULL`; non-debug → `NORMAL` (lines 97-100)
 
-**Note:** `database.py:90` defaults `FLASK_DEBUG` to `'1'`, but `main()` in `app.py` defaults it to `'0'`. Result: `python app.py` runs Flask non-debug, but DB uses DELETE journal + FULL sync (safe defaults).
+**Note:** `database.py:88` defaults `FLASK_DEBUG` to `'1'`, but `main()` in `app.py` defaults it to `'0'`. Result: `python app.py` runs Flask non-debug, but DB uses DELETE journal + FULL sync (safe defaults).
 
 ## Thread safety
-DatabaseHandler writes are locked via `_DB_LOCK` (`threading.RLock`, `database.py:24`) — see `execute_query` (line 236) and `executemany` (line 311).
+DatabaseHandler writes are locked via `_DB_LOCK` (`threading.RLock`, `database.py:24`) — see `execute_query` (line 300) and `executemany` (line 378).
 
 ## Seed database
 `data/catalog.seed.db` is an immutable, physically sanitized catalog asset.
@@ -146,7 +146,7 @@ fails `tests/test_catalog_upgrade.py`.
 |---|---|---|
 | `DB_FILE` | `<runtime root>/data/database.db` | SQLite path; wins over every resolved path. Tests patch `utils.config.DB_FILE` directly. |
 | `HT_RUNTIME_DIR` | unset | Relocates the whole runtime tree (database, backups, logs) in one move. The supported portable-install mechanism. |
-| `FLASK_DEBUG` | `'0'` in `main()` in `app.py`; `'1'` in `database.py:90` | Controls Flask debug AND journal mode |
+| `FLASK_DEBUG` | `'0'` in `main()` in `app.py`; `'1'` in `database.py:88` | Controls Flask debug AND journal mode |
 | `FLASK_USE_RELOADER` | `'0'` | Auto-reload (off by default — avoids WAL corruption) |
 | `TESTING` | unset | Set to `'1'` by `tests/conftest.py` for the shared pytest harness |
 | `MAX_EXPORT_ROWS` | `1000000` | Export cap |
@@ -179,5 +179,5 @@ from this is under Gotchas in `routes/CLAUDE.md`.
 | Symptom | Cause | Evidence |
 |---|---|---|
 | `database is locked` | Concurrent writes (e.g. reloader spawned 2 processes) | Check `_DB_LOCK` in `database.py:24`; disable reloader |
-| Empty exercise list on fresh start | No DB backup restored | `db_initializer.py:348` |
-| `FK constraint failed` | Inserting log without valid `workout_plan_id` | `db_initializer.py:257` |
+| Empty exercise list on fresh start | Catalog seed not bootstrapped | `bootstrap_runtime_database()` in `utils/catalog_seed.py` |
+| `FK constraint failed` | Inserting log without valid `workout_plan_id` | `db_initializer.py:273` |
