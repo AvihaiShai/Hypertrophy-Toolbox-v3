@@ -17,6 +17,8 @@ number below comes from `git archive 7ac1af2d`, not from the working tree.
 
 ---
 
+**Retirement navigation, 2026-11-16:** historical mentions below of [`WP3_5_FETCH_INVENTORY.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/2026/fetch-wrapper/WP3_5_FETCH_INVENTORY.md) and [`doc_truth/PLANNING.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/doc_truth/PLANNING.md) refer to these commit-pinned copies. Their maintained replacements are recorded in [the docs index](../README.md#removed-from-active-docs). The dated proposals and decisions below are preserved.
+
 ## 1. The question this plan answers
 
 The owner asked two things:

@@ -5,7 +5,9 @@
 > **Publication and closure correction, recorded 2026-11-15.** The amendment's documentation design was published through [PR #659](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/659), merge `e140b0393a7d8fe25390846975932efec00071d4`. The owner later closed the campaign on 2026-11-10 through [PR #669](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/669), discontinuing further F/G and amendment campaign work. The final entry's pending-publication statement is historical. Design publication did not execute F or G. Signed decisions and review text below are preserved; the [closeout note](../../../../worktree_cleanup/CLOSEOUT.md#2026-11-10--campaign-closure) governs the campaign disposition.
 
 *Artifact created from [`docs/ai_workflow/PLAN_REVIEW_TEMPLATE.md`](../../../../ai_workflow/PLAN_REVIEW_TEMPLATE.md).
-Source packet: [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](../../../../worktree_cleanup/AMENDMENT_2026-09-28.md).*
+Source-packet navigation stub (the original draft remains private): [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/worktree_cleanup/AMENDMENT_2026-09-28.md).*
+
+**Retirement navigation, 2026-11-16.** The published September reference stub was retired to Git history. Its published navigation text is retained under [Historical source-reference landing](#historical-source-reference-landing); the original September draft remains private. Historical path mentions and verbatim prompts below are unchanged.
 
 **Landing-path note.** This artifact is deliberately at
 `docs/worktree_cleanup_amendment/PLANNING.md`, outside two hazards:
@@ -3330,7 +3332,7 @@ it, and annotating a box is not checking it.
 
 ## See also
 
-- [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](../../../../worktree_cleanup/AMENDMENT_2026-09-28.md) — the draft amendment packet (source).
+- [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/worktree_cleanup/AMENDMENT_2026-09-28.md) — retired navigation stub for the privately retained September source draft; its public text is reproduced below.
 - [`docs/worktree_cleanup/evidence/2026-09-28-state.md`](../../../../worktree_cleanup/evidence/2026-09-28-state.md) — dated state evidence; the home for every dated count, timestamp, and the backup-disappearance window.
 - [`docs/ai_workflow/WORKTREE_CLEANUP_PLAN.md`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md) — the current technical design being amended. The `origin/main` tracked copy is the amendment base.
 - [`docs/ai_workflow/INDEX.md`](../../../../ai_workflow/INDEX.md) — carries the stale *"Gate 1 … pending"* description corrected by this packet.

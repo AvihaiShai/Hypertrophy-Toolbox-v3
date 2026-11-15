@@ -2,6 +2,8 @@
 
 > **Current disposition:** the owner closed the campaign on 2026-11-10. The dated [campaign-closure note](#2026-11-10--campaign-closure) supersedes earlier open-obligation statements while preserving the historical evidence.
 
+> **Retirement navigation, 2026-11-16:** the public `AMENDMENT_2026-09-28.md` navigation stub was retired. Its text remains in the [council record](../archive/2026/worktree-plans/drive-root-amendment/PLANNING.md#historical-source-reference-landing). The original September draft mentioned in the dated inventories below remains private; the stub did not reproduce it.
+
 **Date:** 2026-10-16
 **Authority:** owner closeout directive v2 (avihay1989@gmail.com), 2026-10-16.
 **Outcome:** complete, with one item unresolved by instruction — prevention (§19).
