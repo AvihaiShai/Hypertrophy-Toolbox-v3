@@ -1,5 +1,10 @@
 # Plan Review — U1-FOLLOWUP-1: Vitest coverage for the Volume Splitter calculate-failure helpers
 
+> **Later update, recorded 2026-11-15.** This docs/status record merged on
+> 2026-10-22 as [PR #553](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/553)
+> (`5361ad6f`), which closed U1-FOLLOWUP-1. The pending-merge wording in the next
+> block is historical.
+
 > **IMPLEMENTATION LANDED — 2026-10-21.** PR #551 merged as `a12b680f`, and its
 > exact merged-main JS job and coverage step succeeded on 14 files / 269 cases.
 > The [post-merge receipt below](#post-merge-receipt-and-closeout-record--2026-10-21)

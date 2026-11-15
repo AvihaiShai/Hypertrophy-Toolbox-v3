@@ -228,7 +228,7 @@ Two unrelated problems share this packet.
 12. Create the PR. Its description carries the migration notes, the three §4a corrections, the knowingly-unfixed site 7 residual, the Item 2 draft, and the two incidental findings (the `/progression` fixture artifact and the `_attempt_database_recovery` docstring).
 13. Poll CI to **zero pending** (the count grows 17→18 mid-run — poll, do not sample once). Mark ready. **STOP. Do not merge.**
 
-**Expected gates** — superseded; see [Plan v2's filled block](#expected-gates).
+**Expected gates** — superseded; see the filled **Expected gates** block in [Plan v2](#plan-v2).
 
 ---
 
