@@ -622,6 +622,11 @@ deliberately version-blind. See [ADR-008](../DECISIONS.md). It is the column the
 section above flags as unrelated to SQLite's `user_version`. Being `NOT NULL`, it also has no
 reachable `NULL` state.
 
+The column's own default is still `1`, but no backup takes it: `create_backup()` always writes
+`BACKUP_SCHEMA_VERSION`, which is **`2`** since the four execution columns were added to
+`program_backup_items`. A backup saved before that keeps `1`; the upgrade rewrites no
+header.
+
 #### `program_backup_items`
 
 | Column | Type | Null | Default |
@@ -638,15 +643,37 @@ reachable `NULL` state.
 | `weight` | REAL | no | — |
 | `exercise_order` | INTEGER | yes | — |
 | `superset_group` | TEXT | yes | NULL |
+| `execution_style` | TEXT | yes | NULL |
+| `time_cap_seconds` | INTEGER | yes | NULL |
+| `emom_interval_seconds` | INTEGER | yes | NULL |
+| `emom_rounds` | INTEGER | yes | NULL |
 
 **PK** `id`. **FK** `backup_id` → `program_backups.id` CASCADE.
 **Index**: `idx_backup_items_backup_id`.
 
+The last four columns are declared in the `CREATE TABLE`, and `initialize_backup_tables()` adds
+any that are missing to an existing table by `ALTER TABLE`, as it does for `superset_group`.
+They postdate this document's derivation revision: their rows above were read back with
+`PRAGMA table_info` on 2026-11-14, from a freshly created table and from an older table after
+the migration, and the two agree.
+
 **A snapshot contains plan rows and nothing else.** Compare this column list to
 `user_selection`: there is no logged history, no profile, no goals, no body composition, no
 volume plan, and no settings. Backing up and restoring does not preserve anything but the
-program. `execution_style` and its EMOM/time-cap companions are also absent, so those settings
-do not survive a restore.
+program.
+
+**It does carry every plan column except `id`**, the four execution columns included, so an
+exercise's AMRAP or EMOM settings survive a backup and restore. Two differences from
+`user_selection` are deliberate:
+
+- `execution_style` defaults to `NULL` here, not `'standard'`. `NULL` means *missing*: it is
+  what a row saved before the columns existed reads as, and restore writes `'standard'` for it.
+  A missing timing value is restored as `NULL`, never as a default.
+- The values are copied as stored and are not validated when the backup is taken. Restore
+  checks them against a pinned acceptance contract (`utils/backup_execution_contract.py`) and
+  refuses the whole restore — changing nothing — when a row it would write holds an execution
+  value it cannot interpret. See [ADR-015](../DECISIONS.md) and
+  [`APP_FLOW.md`](APP_FLOW.md#what-restore-actually-does).
 
 ---
 

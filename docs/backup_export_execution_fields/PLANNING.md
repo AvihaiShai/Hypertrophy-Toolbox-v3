@@ -1014,3 +1014,348 @@ The 21 existing headers, as read from `utils/export_service.py:114-160` on 13 No
 - [x] Agent provenance complete — both `product-manager` IDs, same-PM-resumed yes/no, the three reviewer IDs, and an evidence-gap line (or `none`).
 - [x] Owner approved Plan v2 (Gate 1). *(Signed 14 November 2026 on the owner's behalf at the owner's instruction; decisions (i)–(iii) take the proposed option — see Gate 1 sign-off under Plan v2.)*
 - [x] Ready to implement — proceed to code, then `/unslop` or `/verify-and-polish` for the diff-time gate.
+
+---
+
+## Evidence — PR 1 (#567), implementation
+
+*Recorded 14 November 2026 by the implementation agent, on branch `fix/567-backup-execution-fields` over acceptance-test commit `2fed459e`. Nothing here is a Gate 2 approval. The full pytest suite and the full Chromium suite had not run when this was written; the manager runs them.*
+
+**Changed paths**
+
+| Path | Change |
+|---|---|
+| `utils/backup_execution_contract.py` | new — the pinned contract and the pure check (D3, D5) |
+| `utils/program_backup.py` | `BACKUP_SCHEMA_VERSION = 2` and its comment; four columns in the `CREATE TABLE` plus the migration loop; capture; `BackupRestoreRefused`; pre-flight, read and one assembled `INSERT` in `restore_backup()` |
+| `routes/program_backup.py` | `except BackupRestoreRefused` ahead of the `ValueError` branch; `_restore_refused_message()`; docstring |
+| `static/js/modules/backup-center.js` | the one line of decision (ii), in the restore catch |
+| `docs/product/BACKEND_SCHEMA.md`, `docs/product/APP_FLOW.md`, `docs/DECISIONS.md` | as the artifacts table lists; ADR-015 added, dated update bullet on ADR-008 |
+| `docs/DUPLICATION_REGISTRY.md` | row 13 — **not in the artifacts table**. It stated "`execution_style` is exported but not backed up" and cited `_check_column_exists()`; both became false with this change |
+| `docs/test_inventory/**` | regenerated |
+
+No test file and no file on the plan's not-touched list was edited.
+
+**Points the tests leave unpinned, and what was chosen**
+
+- Rows in the message are joined by `; `, then `. ` before the closing sentence.
+- `<n>` counts backup rows with at least one problem; each problem gets its own `<row>` segment. `BackupRestoreRefused` carries a third attribute, `row_count`, for this: `user_selection`'s UNIQUE constraint spans eight columns, so two backup rows can share a routine and exercise and the count cannot be derived from `rows`.
+- An unrecognized style is the only problem reported for its row; its timing values are not judged.
+- A non-integer value in a field the style does not use is reported with the rule (ii) text.
+- Only the two optional columns that already were optional, and the four execution columns, are filtered by destination; the eight base columns are always inserted, as before.
+- `_check_column_exists()` became `_get_column_names()`, read once by create and once by restore.
+- "A missing style means `standard`" is defined once, as `MISSING_STYLE` in the contract module; restore imports it.
+- In a refusal row the routine and exercise are passed through `str()`, so a routine stored as something other than text is still JSON-safe.
+
+**Commands and results** — on the final code: `8ec2ba7d` plus the uncommitted reviewer follow-ups and the test author's 12 added pinning tests.
+
+| Check | Result |
+|---|---|
+| `pytest` on the four acceptance files plus `tests/test_phase3_features.py` | 231 passed (100 + 17 + 50 + 45 + 19) |
+| `pytest` on those plus 13 further modules that touch backup, export, schema or the edited files | 624 passed |
+| `npx playwright test program-backup.spec.ts --project=chromium --reporter=line` | 36 passed; `:79` did not fail |
+| `npx pyright@1.1.410 --outputjson` then `scripts/pyright_baseline_diff.py` | 0 net-new (baseline 0, current 0) |
+| `npx tsc --noEmit -p .` | exit 0 |
+| `scripts/generate_test_inventory.py`, then `--check` | up to date. Against `main`: Playwright 701 → 702; pytest 4299 → 4455 collected, 141 → 143 files. Against `8ec2ba7d`: pytest 4443 → 4455 (contract 92 → 100, restore fuzz 46 → 50) |
+
+`docs/ai_workflow/WORKSTREAM_OWNERSHIP.local.md` is a gitignored file in a workflow directory. The inventory generator does not read that directory, and the regenerated diff holds test counts only.
+
+**Mutation arms** — run on the final code. Each was applied to the file named, the tests run, the file restored byte-for-byte (SHA-256 checked) and the tests run again. Arms 1–6 ran the four acceptance files: 212 passed after every revert. Arm 7 ran E2E `u14`. The four production files had the same SHA-256 before and after the whole run.
+
+| Arm | File | Red | Red nodes |
+|---|---|---|---|
+| 1 — drop the four columns from the restore `INSERT` | `utils/program_backup.py` | 15 | C1: both `test_round_trip_through_the_endpoints_preserves_execution_fields` cases, `test_round_trip_preserves_rows_at_the_limit_values`, `test_pre_restore_snapshot_preserves_execution_fields`; the five `TestUserSelectionBackupIntegrity` nodes; four `test_restore_never_refuses_or_defaults_a_missing_execution_value` cases; both `..._with_a_bad_style_is_skipped_not_refused` tests |
+| 2 — pre-flight finds no problem | `utils/program_backup.py` | 27 | all four `test_restore_refuses_an_unrecognized_execution_style`; all 16 `test_restore_refuses_a_present_invalid_timing_value`; `test_restore_refusal_names_every_offending_row`; `test_refused_restore_issues_no_write_statement`; `test_refusal_is_its_own_exception_carrying_the_backup_name_and_rows`; `test_one_row_with_two_problems_is_counted_once_and_named_twice`; `test_refusal_exception_counts_backup_rows_not_problems`; `test_refusal_message_is_pinned_exactly_for_several_rows`; `test_unrecognized_style_is_the_only_problem_reported_for_its_row` |
+| 3 — raise after the two `DELETE`s | `utils/program_backup.py` | 1 | `test_refused_restore_issues_no_write_statement` only. Every snapshot test stayed green, as the plan predicted |
+| 4 — write `NULL` for a missing style | `utils/program_backup.py` | 3 | `test_legacy_backup_restores_as_standard_with_empty_timing`, `test_legacy_backup_reports_skipped_and_invalid_rows_as_before`, `test_restore_never_refuses_or_defaults_a_missing_execution_value[style_and_timing_missing]` |
+| 5 — swap `min_rep_range` and `max_rep_range` | `utils/program_backup.py` | 8 | the five `TestUserSelectionBackupIntegrity` nodes, `test_unicode_json_backup_preserves_metadata_and_restored_plan`, `test_legacy_backup_restores_as_standard_with_empty_timing`, `test_restore_mixed_batch_keeps_valid_rows_and_skips_the_invalid_one` |
+| 6 — the route builds `<n>` from `len(refused.rows)` | `routes/program_backup.py` | 2 | `test_one_row_with_two_problems_is_counted_once_and_named_twice`, `test_refusal_message_is_pinned_exactly_for_several_rows` |
+| 7 — remove `{ duration: 30000 }` | `static/js/modules/backup-center.js` | 1 | E2E `u14`; 1 passed with the line restored |
+
+**Manual smoke** — run on `8ec2ba7d`'s code before the reviewer follow-ups, which changed no behavior; not repeated afterwards. Real UI through Playwright MCP, port 5067, `DB_FILE` and `HT_RUNTIME_DIR` both under `artifacts\567-backup-execution-fields\smoke\`; startup logged `migration=explicit-override`. The scratch database came from `e2e/scripts/prepare_e2e_db.py`; its backup tables were then rebuilt, and one backup saved, by `utils/program_backup.py` as of `189756f4` read with `git show` into the scratch folder.
+
+| Step | Result |
+|---|---|
+| (a) start on a database holding a pre-change backup | pass — listed with its name, note, type and 3 exercises; Schema reads 1; the four columns were added and read `NULL` on its rows |
+| (b) AMRAP and EMOM set in the plan page, backup, change both, restore | pass — Schema reads 2; EMOM 8×45 s and AMRAP 90 s returned |
+| (c) restore the pre-change backup | pass — every row standard, stored as the text `standard` |
+| (d) one backup row's style set to `tabata` by SQL, restore | pass — 400; red toast with the full message, still shown after 6 s, with a close button; no result panel; confirmation still open; program count unchanged; all four tables identical before and after, ids included |
+| (e) "Save current plan first", then restore | pass — the snapshot reads Schema 2 and restoring it brought back AMRAP 90 s |
+
+**Migration notes for the PR description** — as written under *Migration notes each PR description must carry*, PR 1, including the 30-second toast. Calculation surface: `none`, unchanged — restore writes sets, rep range, RIR, RPE and weight as before, and arm 5 shows the tests hold that.
+
+**Known reds**: none in the checks above.
+
+**The four points first left unpinned are now pinned** by tests the test author added after `8ec2ba7d`:
+
+- `<n>` against the number of `<row>` segments, and the `; ` and `. ` separators: `test_one_row_with_two_problems_is_counted_once_and_named_twice`, `test_refusal_exception_counts_backup_rows_not_problems`, `test_refusal_message_is_pinned_exactly_for_several_rows`.
+- An unrecognized style is the only problem reported for its row: `test_unrecognized_style_is_the_only_problem_reported_for_its_row`, `test_check_reports_only_the_style_when_it_is_unrecognized`.
+- A value in an unused field takes the rule (ii) text whatever kind of value it is: `test_check_judges_an_unused_field_before_the_kind_of_value_it_holds`.
+
+**Known cosmetic edge**: an empty string stored in a timing field the style does not use renders as `EMOM rounds  is not used by the amrap style`, with two spaces, because the rule (ii) template does not quote the value. It is reachable only by editing the database.
+
+**Code-time reviewers** — `code-reviewer`, `architecture-reviewer`, `product-risk-reviewer` and `unslop-reviewer` all ran on `8ec2ba7d`; none found a blocking defect.
+
+- Applied: the `APP_FLOW.md` wording of "missing" (SQL `NULL`; an empty string is a stored value), and the unslop cleanup listed below.
+- Not applied: `_get_column_names(db, table)` keeps its signature, because both callers pass a literal; the `backup-center.js` change stays one line, the owner's limit; test-helper duplication is left.
+
+**Reviewer follow-ups, applied after commit `8ec2ba7d`** — production code and documents only, behavior unchanged.
+
+- Whitespace-only hunks removed: against `189756f4`, `routes/program_backup.py` and `utils/program_backup.py` now differ by 202 insertions and 150 deletions, the same with and without `--ignore-space-at-eol`.
+- `MISSING_STYLE` is public in the contract module and imported by restore; the two private copies are gone. The helpers `_restore_value` and `_as_text` are gone: the first is inlined at its one call site.
+- The contract check no longer tests `isinstance(style, str)`, and `render_value` reports only `bytes` by size.
+- Comments and docstrings were shortened and lost their planning labels. The `restore_backup()` docstring keeps the return list it had before this work; the route docstring carries the full one.
+- `docs/DECISIONS.md`: the ADR-008 addendum is a plain dated bullet. `APP_FLOW.md` and `BACKEND_SCHEMA.md` cited no issue number before this work, so the three added ones were removed.
+
+**Blockers**: none.
+
+---
+
+## Closeout — PR 1 (#567), 15 November 2026
+
+*Appended by the session that implemented PR #686, under the owner's closeout instruction of 14–15 November 2026. The Evidence section above is kept as written and is history. Where this entry and that section disagree, this entry supersedes it. Nothing here is a Gate 2 approval. The local gate status is **unresolved**, and no failure below is accepted or waived.*
+
+**Superseded statements in the Evidence section above**
+
+- "The full pytest suite and the full Chromium suite had not run when this was written". This was true when written. Both have since run on `81c4d3922c344465b75f9bb3d675979895d2d38a`; the results are below.
+- "the uncommitted reviewer follow-ups". They are committed in `81c4d392`.
+- "behavior unchanged" (reviewer follow-ups) and "which changed no behavior" (manual smoke). These are not exact. Since `81c4d392`, a refusal row renders a non-text routine with `str()` rather than the 40-character renderer, so a routine stored as a blob reads `b'…'`, unbounded, where `8ec2ba7d` showed `<binary, N bytes>`. The exercise cannot reach this: a non-text exercise fails the catalog check and is skipped. It needs a database edited outside the application, and the restore is still refused with the row named. The manual smoke was repeated on `81c4d392`; all steps passed.
+- "Known reds: none in the checks above". This is superseded by the Chromium results below.
+
+**Validation on `81c4d392`**
+
+| Run | Conditions | Result |
+|---|---|---|
+| Full pytest | `pytest tests/ -q`, concurrent with the run below | 6,701 passed, 3 skipped (34 min 41 s) |
+| Chromium, all specs, default seed | `/verify-suite` step 2, concurrent with full pytest | **Failed**: 621 passed, 64 failed, 17 did not run. 63 failures are in the three visual-seed specs. The 64th is `ui-hardening.spec.ts:745`: `page.goto: net::ERR_NO_BUFFER_SPACE` in its `beforeEach`, before any assertion ran |
+| Visual-seed specs, `PW_VISUAL_SEED=1` | After pytest finished | 100 passed |
+| `ui-hardening.spec.ts` alone | After the run above | 37 passed |
+| Functional partition: the 30 specs the deep gate runs, i.e. all but `visual`, `visual-baseline-thumbnails` and `workout-plan-desktop-contract`; functional seed | No pytest, server or other test run from this session; 23:45–23:57 on 14 November | **Failed**: 601 passed, 1 failed. `ui-hardening.spec.ts:1406` (OWNER-9 ± nudge): `page.reload: net::ERR_NO_BUFFER_SPACE`, before its assertions ran |
+| Visual partition, `PW_VISUAL_SEED=1` | Alone, directly after the run above | **Failed**: 99 passed, 1 failed. `visual.spec.ts` `workout-plan-tablet-dark`: 3,468 pixels differ. The diff image shows every changed pixel on the Filter Exercises card's top and bottom edges and corners. That is the region #609 describes and draft PR #674 addresses: a matching symptom, not a proven cause. The same partition passed 100 of 100 in the earlier run |
+| Functional partition, repeated on the head | Started 31 s after the visual run, with 351 TCP connections in `TIME_WAIT`; a new Claude session started on the host at 00:02:41 | **Stopped incomplete** at 00:05:27 by this session. It is confounded and not evidence either way. `TIME_WAIT` was sampled between 307 and 849 |
+| Functional partition on base `189756f4` | — | **Not run.** No valid head-versus-base comparison exists |
+
+**What the evidence does and does not show**
+
+- `ERR_NO_BUFFER_SPACE` occurred in two of the three runs that reached `ui-hardening.spec.ts`. Each time it hit a different test, at a page navigation and before any assertion.
+- The second occurrence was in a run with no competing pytest, server or test work from this session. The error therefore occurs without pytest sharing the machine, so pytest alone does not explain the first.
+- It is not known whether `189756f4` reproduces it under the same conditions. Nor is it known whether host socket state causes it. The sampled `TIME_WAIT` counts were in the hundreds, but sampling ran only in the stopped run.
+- The PR does not edit the pages or specs involved. That alone does not show the failures are unrelated to it.
+- CI on `81c4d392`: 34 of 34 checks passed, including the four E2E functional shards and `Visual Regression (Windows baselines)`. CI runs on its own runners and does not settle the local failures.
+
+All logs, the failure screenshots, the diff image, the TCP samples and the process record of the stopped run are under `artifacts/567-backup-execution-fields/gate-81c4d392/`.
+
+**Code-time review of the final delta `8ec2ba7d` → `81c4d392`**
+
+The same four reviewer agents re-reviewed the delta with whole-function context and stated what of their first review carries forward. None found a blocking defect.
+
+- `code-reviewer`: the "no behavior change" claims hold except for the blob routine rendering above. None of the 12 new tests can pass vacuously. The docstring pass changed no assertion.
+- `architecture-reviewer`: module boundaries, migration ordering and restore ordering are unchanged. Moving `MISSING_STYLE` into the contract does not weaken its separation from the plan page. The `DUPLICATION_REGISTRY.md` row 13 citations are correct. ADR-015's "has no defaults" was inaccurate; it is corrected with this entry.
+- `product-risk-reviewer`: no user-visible change apart from the blob routine rendering. Two message choices are interpretations the signed text does not decide (see the dispositions below).
+- `unslop-reviewer`: the earlier items are closed. Two items were still listed as required:
+  - The "uncommitted" wording is superseded above.
+  - The `restore_backup()` docstring still lists only the `user_selection` clear and the catalog skip. That list predates this PR. It is left unchanged, because the owner ruled out cosmetic widening of this closeout.
+
+**Deviations from Plan v2**
+
+| Item | Signed text | Disposition |
+|---|---|---|
+| `BackupRestoreRefused.row_count`, and `<n>` counting backup rows rather than problems | D1: the exception "carries the backup name and the list of rows". D2's template reads `<n> row(s) hold execution settings…` and does not define `<n>` | The response contract is unchanged. The attribute adds to D1's stated payload, and it was added without first asking the owner. Counting rows is a reading of "row(s)". **Owner decision required.** |
+| An unrecognized style is the only problem reported for its row | C8 applies to rows with "a recognized or missing style". D5's table gives no timing outcome ("—") for an unrecognized style | Follows from the signed text. Preserves the contract |
+| `docs/DUPLICATION_REGISTRY.md` row 13 edited | Not in the artifacts table. C14 requires correcting, in the same change, documentation that states the old behavior | Documentation only, and it removes a claim this PR made false. Preserves the contract; it adds to the plan's file list |
+| `_check_column_exists()` replaced by `_get_column_names()` | D5: capture "reads `user_selection`'s column names once" | A private helper with no caller outside the module. Preserves the contract |
+| A timing value stored against a style that does not use it gets the "not used by the style" text, even when it is also not a whole number | D2 gives the two templates. Neither D2 nor D5 says which applies first | Whether the restore is refused is unaffected; only the sentence shown changes. An interpretation. **Owner decision required** |
+| A blob routine name renders as `b'…'` since `81c4d392` | Decision (iii) bounds stored values, not names | A behavior change made by the cleanup commit, which was described as behavior-free. **Owner decision required**: keep it, or route the name through `render_value` |
+
+**Proposed follow-up, not part of PR 1:** an empty string stored in a timing field the style does not use renders as `EMOM rounds  is not used by the amrap style`, with two spaces, because the rule (ii) template does not quote the value. It is pinned by the `amrap_rounds_empty_string` case in `tests/test_backup_execution_contract.py`.
+
+**Checkout interference, 14 November 2026**
+
+- **What the reflog shows** (preserved in `artifacts/567-backup-execution-fields/interference/`):
+  - While this PR's test author was running, the shared checkout was switched to `docs/retire-closed-plans-batch-1` at 21:26:00.
+  - Commit `9bfda6f2` ("docs: retire six shipped feature plans") was made there at 21:27:02.
+  - The checkout was switched back to `fix/567-backup-execution-fields` at 21:27:28.
+- **What was compared:**
+  - `9bfda6f2` and `97003ee6` change nothing outside `docs/`.
+  - Their files and PR #686's 16 files have none in common.
+  - The test and E2E files are identical between `2fed459e` and `8ec2ba7d`.
+  - The committed inventory at `8ec2ba7d` matches the node counts the test author reported.
+  - No edit of this PR was found lost or carried into that commit.
+- **Attribution, not proven:** both other Claude sessions on the host say they did not make the commit or the switches. One relays the owner's report that a Codex session finished that batch and opened PR #685, whose head is `9bfda6f2`. The commit's author identity is shared by every local session, so the reflog cannot show which session made it.
+
+## Codex continuation — PR 1 (#567), 15 November 2026
+
+The owner asked Codex to continue from `01cc3bea558f9e4cba56feefe3a53f8c0d9a7236`.
+This entry supplements the retained history. **The PR remains draft: the visual
+gate and three owner decisions are unresolved. No failure is waived and no merge
+is authorized.**
+
+**Required docstring correction.** The earlier statement that the owner declined
+the `restore_backup()` docstring correction is superseded. The owner explicitly
+requested it. The docstring now names both tables cleared, missing-exercise and
+invalid-bounds handling, and all five returned fields. A required unslop follow-up
+returned PASS for this narrow change. An AST comparison against the committed
+module, removing only this function's docstring on both sides, is equal. Existing
+full-pytest, mutation and manual-smoke evidence remains applicable to the unchanged
+implementation; no new executable statement was introduced.
+
+**Fresh local runs.** The source was `01cc3bea` plus only that docstring correction.
+Both partitions used one Chromium worker, zero retries, fresh private databases
+and runtimes, and no reused server. They ran sequentially. Tracked-file hashes,
+branch and HEAD were checked during each run; neither source nor branch moved.
+
+| Check | Result |
+|---|---|
+| Functional partition, 30 specs, functional seed | **602 passed, 0 failed, 0 skipped, 0 flaky**, 12.1 min. Both previously failing `ui-hardening` cases passed in this full run. Initial TCP `TIME_WAIT`: 18; sampled peak: 880 |
+| Visual partition, three specs, `PW_VISUAL_SEED=1` | **98 passed, 2 failed, 0 skipped, 0 flaky**, 1.9 min. Started after the functional runner/server exited and socket state drained; initial TCP `TIME_WAIT`: 27 |
+| Inventory `--check` / `tsc --noEmit -p .` | Up to date / exit 0 |
+| Pyright 1.1.410 and baseline diff | 0 diagnostics, 0 net-new |
+| CI on `01cc3bea` | Workflow `43646418943` completed successfully; separate from the failed local visual partition |
+
+The functional pass does not explain or erase the earlier `ERR_NO_BUFFER_SPACE`
+failures. No controlled base comparison was performed and no network fix is claimed.
+
+The visual failures are `workout-plan mobile dark` (1,217 differing pixels) and
+`workout-plan tablet dark` (3,293). By-eye inspection shows the highlighted differences
+around the Filter Exercises card's top/bottom edges and corners. The visual spec,
+capture helper, visual seed, templates, static CSS and Workout Plan route are unchanged
+from base `189756f4`. This is a symptom matching #609/#674, not proof of a common cause
+or an accepted inherited failure. PR #674 is still draft and its four candidate
+baselines require owner review. No baseline, capture helper, tolerance, retry count
+or assertion was changed here. No further full-suite repetition was started to seek green.
+
+Logs, Playwright JSON, source hashes, TCP samples and docstring review/equivalence
+records are retained locally under `artifacts/567-closeout-codex-20261115/`. Both
+test listeners were absent afterward. The real `data/database.db` retained its size,
+mtime and SHA-256. Earlier `.playwright-mcp` output, scratch copies, interference
+evidence and the docs-retirement branch were preserved.
+
+**Owner decisions remain pending.** Codex asked directly; no answer was inferred:
+
+1. Retain internal `row_count` and count offending backup rows, rather than problems,
+   in the message? Recommendation: count backup rows.
+2. Explain an unused timing field as "not used by the style" before checking whether
+   it is a whole number? Recommendation: explain the wrong style first.
+3. Summarize a binary routine name as `<binary, N bytes>` while keeping ordinary text
+   names complete, or retain the unbounded Python bytes representation?
+   Recommendation: summarize binary names. The implementation is unchanged.
+
+The visual gate also needs resolution through its own evidence/approval boundary;
+the failed partition is not converted to a pass by successful functional tests or CI.
+
+## Owner decisions applied — 15 November 2026
+
+The owner answered the three questions directly after the Codex continuation above:
+
+- **Count backup rows**, with the exception's internal `row_count` separate from
+  the per-problem `error.rows`. The implementation and existing row-count tests
+  already follow this rule.
+- **Explain wrong style first** when a timing field is unused by the row's style,
+  even when its value also is not a whole number. Existing tests pin this order;
+  it changes neither refusal nor preservation of the current plan/log.
+- **Summarize binary routine names** as `<binary, N bytes>` and preserve complete
+  ordinary text names. The implementation now calls the existing `render_value`
+  only for byte-valued routine names. Execution-field value rendering and its
+  40-character limit are unchanged; backup data is never rewritten.
+
+These answers supersede the pending-decision statements in the retained closeout
+history. ADR-015 records them. A three-case route regression covers a 1,024-byte
+name, an empty blob and a text name longer than 40 characters. The two binary
+cases failed before the fix, while text already passed; the four backup test
+modules then passed **215 tests** with the fix. The tests also assert that the
+plan, log and backup tables, including ids and stored binary data, are unchanged
+on refusal. Final validation and diff-review results follow below when complete.
+
+The owner selected **preparing #674 for baseline review first**, then directly
+accepted all four Windows/Linux mobile/tablet candidate baselines at head
+`9392a76a58237438ad52c0b8dfef41c9d2a272d3`: "Accept all four candidate baselines;
+no merge." Its exact-head CI has 34 successful checks and it is now ready for
+review. No baseline was regenerated and no merge is authorized. #686 remains
+draft pending its own gates; #674 has not been incorporated into this branch.
+
+**Approved-decision validation.** All four required reviewers returned scoped PASS
+for this delta, carrying their earlier reviews forward for unchanged surfaces.
+The new real-UI smoke verified the binary marker in the actual HTTP 400 and toast,
+the toast still visible after five seconds, and identical before/after plan, log
+and both backup tables with a nonempty log. Its server's private database identity
+was verified through a unique fixture marker before any HTTP mutation. Chromium
+also loaded all twelve review images and verified synchronized panel scrolling.
+The initial smoke attempt stopped before browser work because the OS listener
+lookup returned no entry; it is retained separately. A later smoke passed, but
+another session's three-file pytest run was then discovered; the smoke was repeated
+after that process exited and passed again. No exclusive-host claim is made for
+the overlapping attempt. Evidence is in `approved-decisions/` beneath the existing
+Codex evidence folder.
+
+The first fresh full pytest invocation used eight workers and finished **6,690
+passed, 14 failed, 3 skipped**. Its source/branch hashes were stable. Twelve failed
+shell checks selected `C:\WINDOWS\system32\bash.EXE`, which reported that WSL has
+no distribution, instead of the installed Git Bash. One config check failed because
+the diagnostic runner forced `DB_FILE` while the test reloaded the default runtime
+path. One synthetic worktree-fixture subprocess timed out at its unchanged 40 s
+limit. All fourteen cases then passed serially in **4.63 s** with Git Bash first in
+the child process's PATH, no forced `DB_FILE` (the runtime still private), and a
+shorter scratch path. The original full invocation remains failed; the focused
+pass does not convert it to green or establish the timeout's cause. No application,
+workflow, guard or test assertion was changed to address these runner conditions.
+The corrected full invocation uses four workers with `--dist loadfile`; its result
+is recorded separately when complete. The runner now checks for foreign test work
+before starting and during the run and invalidates only its own run if it appears.
+
+**Subsequent runner results and #674 merge.** The next corrected invocation was
+stopped when a foreign test workload appeared; it is incomplete, not green. A
+config-module diagnostic then found that the private runtime also needed its
+`data/` directory precreated. With that setup, the full config module plus the
+other earlier failing cases passed (33 tests). The subsequent full invocation
+(`pytest-20261114T234328Z`) ended with **6,587 passed, 1 failed, 3 skipped** under
+`-x`; source and branch stayed stable and the workload monitor saw no competing
+test runner. The failure was `test_real_app_client_lands_on_its_scratch_database`:
+the scratch runner's `--basetemp` basename was `p567-...`, while that isolation
+assertion requires a path component starting with `pytest-`. Renaming only the
+scratch path to `pytest-567-...` let the unchanged isolation module pass all ten
+tests. The failed invocation is retained and is not a full-suite pass.
+
+After baseline acceptance the owner separately authorized squash-merging **#674
+only at `9392a76a58237438ad52c0b8dfef41c9d2a272d3`**, conditional on an unchanged
+head. The head remained exact, all 34 checks passed, and merge state was clean.
+It merged as `4afe8ec774d20f7feabf576761dfa37f1a86d7f9` without changing this
+checkout during pytest. This supersedes the earlier baseline-only/no-merge status
+for #674. No additional PNG was regenerated. #686 remains draft and is explicitly
+not authorized for merge. Integration and combined-source gates follow separately.
+
+## Combined-source local closeout — 15 November 2026
+
+Commit `a9dc3e23d5bee05db52bc5d8910da30359506170` integrates accepted #674 squash
+`4afe8ec774d20f7feabf576761dfa37f1a86d7f9` with approved-decision commit `f200fa16`.
+The merge was conflict-free. The four accepted baseline PNGs and capture change
+are inherited from `main`; this PR generates no further baseline or exception.
+
+| Gate | Result on the combined code/test tree |
+|---|---|
+| Full pytest, four workers, `--dist loadfile` | **6,704 passed, 3 skipped**, 19 min 51 s (`pytest-20261115T000517Z`) |
+| Three visual-seed specs, one worker, zero retries | **100 passed, 0 failed/skipped/flaky**, 1.9 min (`visual-20261115T002553Z`) |
+| All 30 functional specs, functional seed, one worker, zero retries | **602 passed, 0 failed/skipped/flaky**, 13.7 min (`functional-20261115T002942Z`), including all 36 Backup Center tests and both previously failing `ui-hardening` cases |
+| TypeScript / pyright baseline diff / inventory check | Clean / **0 diagnostics, 0 net-new** / up to date |
+| Required scoped reviews for approved binary display | Code, architecture, product-risk and unslop: **PASS**; earlier reviews carry forward outside this delta |
+| New real-UI refusal smoke | Binary marker in real HTTP 400 and toast, toast visible after five seconds, all four table snapshots and ids unchanged; private DB identity verified before HTTP mutation |
+
+These were separate, sequential full partitions, each with private data/runtime
+paths. Every tracked file's before/after hash, HEAD and branch stayed stable; the
+workload monitor detected no competing test runner. The visual process exited and
+its listener was absent before the functional run, which started after `TIME_WAIT`
+drained to 16. No browser retries, baseline writes or assertion/tolerance/timeout
+changes were used. Both test listeners were absent after the functional runner
+exited. The real database retains SHA-256
+`3c690ca221db891a68482ab67e7c115b0afa3aeca8b67dec50410ac7ed3173b5`,
+size 839,680 bytes and its original modification time.
+
+The earlier failures and incomplete attempts remain in the preceding history and
+their original artifact directories. These passes resolve the current local gate;
+they do not prove the causes of the earlier network/visual failures. The separate
+light-thumbnail observation #675 and the empty-string wording follow-up remain
+outside this PR. The original mutation arms and complete (a)–(e) manual smoke
+remain evidence for unchanged behavior. Evidence root:
+`artifacts/567-closeout-codex-20261115/`.
+
+This final entry changes documentation only; the combined executable code and
+tests stay at the validated tree. Exact-head CI and ready status are reported in
+the PR description after push. **#686 is explicitly not authorized for merge.**

@@ -633,9 +633,9 @@ the column nullability encodes.
 | Backup list | API | `GET /api/backups` |
 | Search / type filter / sort | Presentation | Filters (All / Manual / Auto) and orders the loaded list client-side. The page header counts the current program's rows and the saved, manual and auto snapshots. No route or startup path creates an `auto` backup, so the Auto filter and count show only rows already marked `auto` in the database |
 | Open a backup | API | `GET /api/backups/<id>` → `NOT_FOUND` 404 for an unknown id — verified live |
-| Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Always reads `1` today |
+| Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Reads `2` for a backup saved since the execution fields were added to backups and `1` for an earlier one |
 | Rename / edit note | API | `PATCH /api/backups/<id>`. At least one of `name` / `note` is required (`VALIDATION_ERROR` 400 otherwise); the same limits as Save apply; an unknown id is `NOT_FOUND` 404 |
-| **Restore** | Presentation → API | Confirmation, then `POST /api/backups/<id>/restore`. The confirmation text states plainly that the current plan and all logged sessions will be cleared |
+| **Restore** | Presentation → API | Confirmation, then `POST /api/backups/<id>/restore`. The confirmation text states plainly that the current plan and all logged sessions will be cleared. A backup holding an execution style or timing value restore cannot interpret is refused as `VALIDATION_ERROR` 400 with `error.reason` `RESTORE_REFUSED`, and nothing is changed: an error toast carries the server's message for 30 seconds, no result panel is shown, and the confirmation stays open |
 | Save current plan first | API | Offered inside the restore confirmation only; snapshots the present state before restoring, as an ordinary manual backup named `Pre-restore snapshot (<timestamp>)` |
 | Delete | Presentation → API | Confirmation, then `DELETE /api/backups/<id>` |
 
@@ -651,17 +651,53 @@ Restore is **replace, not merge, and its blast radius is the whole program**:
 3. re-insert the snapshot's rows.
 
 A snapshot contains **plan rows only** — routine, exercise, sets, rep range, RIR, RPE, weight,
-order, and superset group. It carries no logged history, no profile, no goals, no body
-composition, no volume plans, and no settings. Restoring therefore loses all training history
-permanently, and does not restore anything outside the program.
+order, superset group, and the execution style with its time cap, EMOM interval and EMOM
+rounds. It carries no logged history, no profile, no goals, no body composition, no volume
+plans, and no settings. Restoring therefore loses all training history permanently, and does
+not restore anything outside the program.
 
-The three steps run in one transaction that is rolled back on a database error. Rows naming an
-exercise no longer in the catalog are skipped and reported in `skipped`; rows whose weight, rep
-range or RIR fails the plan's bounds validation are skipped and reported in `invalid` (each with
-its routine, exercise and reason) rather than failing the restore. The response data is
-`backup_id`, `backup_name`, `restored_count`, `skipped` and `invalid`; an unknown id is
-`NOT_FOUND` 404. The Backup Center lists the skipped and invalid rows inline, and when
-`restored_count` is 0 it shows a warning toast and warning styling instead of a success message.
+Restore decides everything before it writes anything. Rows naming an exercise no longer in the
+catalog are skipped and reported in `skipped`; rows whose weight, rep range or RIR fails the
+plan's bounds validation are skipped and reported in `invalid` (each with its routine, exercise
+and reason) rather than failing the restore. The three steps then run in one transaction that
+is rolled back on a database error. The response data is `backup_id`, `backup_name`,
+`restored_count`, `skipped` and `invalid`; an unknown id is `NOT_FOUND` 404. The Backup Center
+lists the skipped and invalid rows inline, and when `restored_count` is 0 it shows a warning
+toast and warning styling instead of a success message.
+
+#### Execution settings, and when a restore is refused
+
+Each restored row gets back the execution style and timing values it had when the backup was
+taken. A value the backup does not hold is *missing* — the row was saved before backups carried
+these fields, or the backup row holds no value for it (SQL `NULL`). An empty string is a stored
+value, not a missing one. A missing style is restored as `standard`; a missing time cap,
+interval or rounds value is restored empty, never as a default. So every row of a backup
+saved before this change restores as `standard` with no timing values.
+
+A value that is present but cannot be interpreted **refuses the whole restore**, unlike the
+per-row skips above. Only rows that would otherwise be restored are checked; a row already
+skipped for its catalog entry or its bounds cannot cause a refusal. The cases:
+
+| Case | Example |
+|---|---|
+| A style that is not exactly `standard`, `amrap` or `emom` — no case folding, no trimming | `tabata`, `EMOM`, ` emom`, an empty string |
+| A timing value that is not a whole number | `abc`, `12.5`, an empty string |
+| A timing value outside its range: time cap 10–600 s, EMOM interval 15–180 s, EMOM rounds 1–20 | time cap `601` |
+| A timing value stored against a style that does not use it | `standard` with a time cap; `emom` with a time cap |
+
+The application cannot write any of these. They reach a backup only when the database was
+edited outside it.
+
+A refusal is `VALIDATION_ERROR` 400 with `error.reason` `RESTORE_REFUSED` and `error.rows`,
+one `{routine, exercise, field, value, problem}` entry per problem. It is decided before the
+first `DELETE`, so the plan, every logged session and the backup itself are exactly as they
+were. The message says so and names every offending row; a stored value longer than 40
+characters is shown as its first 40 and `…`, and a binary value as `<binary, N bytes>`. The
+Backup Center shows that message in an error toast that stays for 30 seconds instead of the
+usual 3. Nothing in the application repairs such a row, so the backup cannot be restored until
+the value is corrected in the database. The accepted styles and ranges are restore's own
+(`utils/backup_execution_contract.py`), pinned so that a later change to the plan page's limits
+cannot silently make an existing backup unrestorable ([ADR-015](../DECISIONS.md)).
 
 ### Startup snapshot
 

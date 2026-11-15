@@ -517,14 +517,26 @@ const SNAPSHOT_COVERAGE_NOTE =
 const RESTORE_TARGET_GONE_WARNING =
   'The backup you were restoring is no longer available. Please choose it again.';
 /**
- * Arms that force a 500, keyed by title prefix, with the one diagnostic program-backup.js
- * logs for that failure by design. Every other arm tolerates nothing.
+ * Arms that force a failed request, keyed by title prefix, with the one diagnostic
+ * program-backup.js logs for that failure by design. Every other arm tolerates nothing.
  */
 const TOLERATED_CONSOLE_DIAGNOSTIC_BY_ARM: Record<string, string> = {
   'u10 ': 'Error creating backup:',
   'u12 ': 'Error restoring backup:',
   'u13 ': 'Error restoring backup:',
+  'u14 ': 'Error restoring backup:',
 };
+/**
+ * The server's refusal message for a backup row holding an execution style restore cannot
+ * interpret (#567), in the fixed shape `routes/program_backup.py` builds. The browser client
+ * keeps only `code`, `message` and `requestId` of an error, so this text is everything the
+ * user is told.
+ */
+const RESTORE_REFUSED_MESSAGE =
+  "Backup 'Refused Program' was not restored. Your current plan and workout log were " +
+  'preserved; nothing was changed. 1 row(s) hold execution settings that cannot be restored: ' +
+  'GYM - Full Body - Workout A / Bench Press: execution style "tabata" is not recognized. ' +
+  'The backup itself was left unchanged and cannot be restored until these values are corrected.';
 
 async function saveBackupFromForm(page: Page, backupName: string): Promise<void> {
   await page.locator('#backup-center-name').fill(backupName);
@@ -628,6 +640,36 @@ async function failRestorePost(page: Page): Promise<void> {
         ok: false,
         status: 'error',
         error: { code: 'SERVER_ERROR', message: 'Restore failed' },
+      }),
+    });
+  });
+}
+
+/** Answer every `POST /api/backups/<id>/restore` with the 400 refusal envelope (#567). */
+async function refuseRestorePost(page: Page): Promise<void> {
+  await page.route('**/api/backups/*/restore', async (route) => {
+    await route.fulfill({
+      status: 400,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: false,
+        status: 'error',
+        message: RESTORE_REFUSED_MESSAGE,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: RESTORE_REFUSED_MESSAGE,
+          requestId: 'e2e-restore-refused',
+          reason: 'RESTORE_REFUSED',
+          rows: [
+            {
+              routine: 'GYM - Full Body - Workout A',
+              exercise: 'Bench Press',
+              field: 'execution_style',
+              value: 'tabata',
+              problem: 'execution style "tabata" is not recognized',
+            },
+          ],
+        },
       }),
     });
   });
@@ -930,5 +972,43 @@ test.describe('Backup Center save-first confirmation continuity', () => {
     await expect(page.locator('#backup-action-cancel')).toBeEnabled();
     await expect(page.locator('#backup-restore-save-first')).toBeEnabled();
     await expect(page.locator('#backup-restore-save-first')).toContainText('Save current plan first');
+  });
+
+  test('u14 a refused restore shows the server message and keeps it on screen past the 3 s default', async ({ page }) => {
+    const backupName = `U2 Restore Refused ${Date.now()}`;
+    await saveBackupFromForm(page, backupName);
+    await openRestoreFor(page, backupName);
+    await refuseRestorePost(page);
+
+    // Page time is driven by the test from here on, so "still there after 3 s" is asserted
+    // without a hard wait. Installed before the click: the toast's hide timer is created
+    // after it and is therefore a controlled one.
+    await page.clock.install();
+
+    await page.locator('#backup-action-confirm-btn').click();
+
+    const toast = page.locator(SELECTORS.TOAST);
+    const toastBody = page.locator(SELECTORS.TOAST_BODY);
+    await expectToast(page, `Failed to restore backup: ${RESTORE_REFUSED_MESSAGE}`);
+    await expect(toast).toHaveClass(/bg-danger/);
+
+    // Nothing was restored, so no result panel; the confirmation stays usable.
+    await expect(page.locator('#backup-restore-result')).toBeHidden();
+    await expect(page.locator('#backup-action-confirm')).toBeVisible();
+    await expect(page.locator('#backup-action-confirm-btn')).toBeEnabled();
+    await expect(page.locator('#backup-action-confirm-btn')).toContainText('Confirm Restore');
+    await expect(page.locator('#backup-action-cancel')).toBeEnabled();
+
+    // A pointer resting on the toast pauses Bootstrap's hide timer and would keep any toast
+    // on screen, so park it elsewhere before advancing time.
+    await page.mouse.move(0, 0);
+
+    // 5 s of page time covers the toast's show transition, the 3 s default lifetime and the
+    // hide transition. A toast on the default duration is gone by now; the refusal names the
+    // offending rows and must still be readable.
+    await page.clock.runFor(5000);
+
+    await expect(toast).toBeVisible();
+    await expect(toastBody).toContainText(RESTORE_REFUSED_MESSAGE);
   });
 });
