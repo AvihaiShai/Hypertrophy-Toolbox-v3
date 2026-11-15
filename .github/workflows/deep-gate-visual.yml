@@ -114,6 +114,54 @@ jobs:
     # visible in the Actions API: D3 counts a visual recovery only when the
     # compare step itself ran and succeeded. The input and event name arrive
     # through env, never as `${{ }}` inside the script.
+    # Diagnostic branch only; restore the original before the normal comparisons.
+    - name: Prepare one fresh cold-capture destination
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.visual_mode == 'generate' }}
+      run: |
+        mkdir -p artifacts/issue675-cold
+        cp e2e/__screenshots__/linux/visual-baseline-thumbnails.spec.ts-snapshots/plan-desktop-light-simple.png artifacts/issue675-cold/committed.png
+        rm -- e2e/__screenshots__/linux/visual-baseline-thumbnails.spec.ts-snapshots/plan-desktop-light-simple.png
+        git rev-parse HEAD > artifacts/issue675-cold/head.txt
+        cp node_modules/playwright-core/browsers.json artifacts/issue675-cold/browsers.json
+
+    - name: Capture plan desktop light simple on the first attempt
+      id: cold
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.visual_mode == 'generate' }}
+      env:
+        PW_VISUAL_SEED: '1'
+      run: |
+        npx playwright test --project=chromium \
+          e2e/visual-baseline-thumbnails.spec.ts -g 'plan-desktop-light-simple$' \
+          --retries=0 --update-snapshots=all --reporter=line
+
+    - name: Preserve fresh PNG and restore the committed baseline
+      if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.visual_mode == 'generate' }}
+      env:
+        CAPTURE_OUTCOME: ${{ steps.cold.outcome }}
+        SOURCE_BASE: 'a0c32d637ee1e5e450d3e858a8ff75538956263f'
+      run: |
+        mkdir -p artifacts/issue675-cold
+        CAPTURE=e2e/__screenshots__/linux/visual-baseline-thumbnails.spec.ts-snapshots/plan-desktop-light-simple.png
+        if [ -f "$CAPTURE" ]; then
+          cp "$CAPTURE" artifacts/issue675-cold/actual.png
+        fi
+        git restore --source=HEAD -- "$CAPTURE"
+        python - <<'PY'
+        import json, os, pathlib
+        record = {key: os.environ.get(key) for key in (
+            'CAPTURE_OUTCOME', 'SOURCE_BASE', 'GITHUB_SHA', 'GITHUB_RUN_ID',
+            'GITHUB_RUN_ATTEMPT', 'ImageOS', 'ImageVersion', 'RUNNER_OS', 'RUNNER_ARCH')}
+        pathlib.Path('artifacts/issue675-cold/run.json').write_text(json.dumps(record, indent=2))
+        PY
+
+    - name: Upload cold-capture evidence even on failure
+      if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.visual_mode == 'generate' }}
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: issue675-cold-capture-${{ github.run_id }}
+        path: artifacts/issue675-cold/
+        retention-days: 14
+
     - name: Resolve visual mode
       id: mode
       env:
