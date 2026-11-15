@@ -66,10 +66,12 @@ Proposed entries do not authorize implementation. The archive container is index
 - [testing_phase3/](testing_phase3/) — testing plans and the live JS-unit observation ledger
 - [toast_action_continuity/](toast_action_continuity/) — shipped U3b; retains the amended U1 follow-up condition
 - [visual_determinism/](visual_determinism/) — terminal visual contract and accepted residual under ADR-011
-- [volume_failure_feedback/](volume_failure_feedback/) — shipped U1; U1-FOLLOWUP-1 remains open under its recorded conditions
-- [worktree_cleanup/](worktree_cleanup/) — committed workflow and preservation records; separate owner approvals govern further operations
+- [volume_failure_feedback/](volume_failure_feedback/) — shipped U1; U1-FOLLOWUP-1 closed by #553; retained evidence supports the separate JS-unit qualification work (#582/#592)
 
 ### Closed (history)
+
+- [worktree_cleanup/](worktree_cleanup/) — campaign closed by owner decision on 2026-11-10 (#669); historical approvals and preservation evidence retained
+- [worktree_cleanup_amendment/](worktree_cleanup_amendment/) — documentation design published in #659; further campaign operations discontinued by #669
 
 - [agent_workflow_integrity/](agent_workflow_integrity/) — shipped workflow-integrity contracts
 - [backup_schema_version/](backup_schema_version/) — closed D6 investigation; ADR-008 records the outcome

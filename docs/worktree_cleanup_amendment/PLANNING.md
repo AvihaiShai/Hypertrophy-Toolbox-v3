@@ -1,5 +1,7 @@
 # Plan Review — Worktree cleanup: drive-root children outside Operations B and C
 
+> **Publication and closure correction, recorded 2026-11-15.** The amendment's documentation design was published through [PR #659](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/659), merge `e140b0393a7d8fe25390846975932efec00071d4`. The owner later closed the campaign on 2026-11-10 through [PR #669](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/669), discontinuing further F/G and amendment campaign work. The final entry's pending-publication statement is historical. Design publication did not execute F or G. Signed decisions and review text below are preserved; the [closeout note](../worktree_cleanup/CLOSEOUT.md#2026-11-10--campaign-closure) governs the campaign disposition.
+
 *Artifact created from [`docs/ai_workflow/PLAN_REVIEW_TEMPLATE.md`](../ai_workflow/PLAN_REVIEW_TEMPLATE.md).
 Source packet: [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](../worktree_cleanup/AMENDMENT_2026-09-28.md).*
 
