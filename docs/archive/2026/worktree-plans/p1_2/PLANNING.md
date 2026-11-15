@@ -1,6 +1,8 @@
 # P1.2 — Worktree and generated-artifact cleanup
 
-Execution goal for [`LEFTOVERS_BY_PRIORITY.md`](LEFTOVERS_BY_PRIORITY.md) row **P1.2**
+> **Archived 2026-11-15 ([#688](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/688)).** Moved from `docs/WORKTREE_CLEANUP_PLAN.md`. Relative links were repointed for this location; the text is otherwise unchanged, so path statements below describe the original location.
+
+Execution goal for [`LEFTOVERS_BY_PRIORITY.md`](../../../../LEFTOVERS_BY_PRIORITY.md) row **P1.2**
 ("Remove obsolete worktrees and generated artifacts"), which has stood at 0% across
 six audit revisions because it was never converted from a warning into a procedure.
 
@@ -87,7 +89,7 @@ These come from the guard hook and from what the v18→v23 audit arc actually ob
 They are constraints on *how* the work runs, not preferences.
 
 1. **`git worktree remove` prompts.** Intercepted at
-   [`guard-destructive-command.ps1:438-440`](../.claude/hooks/guard-destructive-command.ps1)
+   [`guard-destructive-command.ps1:438-440`](../../../../../.claude/hooks/guard-destructive-command.ps1)
    with decision **`ask`**. An unattended agent run **stalls, it does not proceed** —
    so this packet must be run interactively, or each removal pre-approved. Do not
    attempt to route around the hook.
@@ -408,7 +410,7 @@ especially — it is the only ref containing `b990412`, and removing the *worktr
 ref intact.
 
 **Historical blocker, superseded by §9.3's manual execution.** `git worktree remove` is
-decided `ask` by [`guard-destructive-command.ps1:438-441`](../.claude/hooks/guard-destructive-command.ps1),
+decided `ask` by [`guard-destructive-command.ps1:438-441`](../../../../../.claude/hooks/guard-destructive-command.ps1),
 and a `bypassPermissions` session cannot render an ask prompt, so the guard fails closed on
 every attempt. `--force` does **not** bypass it — verified again here. Re-run in a prompting
 permission mode. Do not disable the guard, and do not route around it.
@@ -420,7 +422,7 @@ Supersession evidence, all re-derived 2026-08-10 against `origin/main` `0c8681a`
   deletions and `templates/base.html` 1 / 4 — and that single addition is the *old*
   FontAwesome CDN link main replaced with a vendored copy. It holds nothing main lacks.
 - **`probe/stylelint17`** — PR **#252 CLOSED**; `.github/dependabot.yml` ignores stylelint at
-  major, minor *and* patch; [`test_css_cascade_contracts.py:166`](../tests/test_css_cascade_contracts.py)
+  major, minor *and* patch; [`test_css_cascade_contracts.py:166`](../../../../../tests/test_css_cascade_contracts.py)
   asserts the literal `16.11.0`. Publishing would red the contract and reverse a written
   policy decision.
 - **`…-dnone`** — PR **#309 MERGED**, and all three files touched by tip commit `4001fbd`
@@ -487,7 +489,7 @@ The actual blocker is the guard, and it is unconditional:
 
 | Command shape | Guard decision | Source |
 |---|---|---|
-| `rm -rf`, `Remove-Item -Recurse -Force` | **`deny`** — hard, cannot be prompted past | [`guard-destructive-command.ps1:381`](../.claude/hooks/guard-destructive-command.ps1) |
+| `rm -rf`, `Remove-Item -Recurse -Force` | **`deny`** — hard, cannot be prompted past | [`guard-destructive-command.ps1:381`](../../../../../.claude/hooks/guard-destructive-command.ps1) |
 | `rm -r` (recursive, no force) | **`ask`** | `:383` |
 | non-recursive file delete | permitted | falls through at `:385` |
 
@@ -526,7 +528,7 @@ Two scope corrections for whoever runs this:
   not even three of the six. **A pattern match is not an authorization.** Re-enumerate,
   and take the scope back to the owner before deleting any of them.
 - `artifacts/e2e` holds the live throwaway E2E database
-  ([`playwright.config.ts:76`](../playwright.config.ts)) and `artifacts/dev-server` is not a
+  ([`playwright.config.ts:76`](../../../../../playwright.config.ts)) and `artifacts/dev-server` is not a
   §6 candidate. **Neither is approved for deletion.** They probe FREE, which is exactly why
   a lock probe must not be mistaken for an authorization.
 

@@ -1,9 +1,11 @@
 # Plan Review — Prevention-first worktree cleanup sequence
 
-> **Historical campaign record.** The owner closed the campaign on 2026-11-10 through [PR #669](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/669). Earlier pending gates and operation orders below retain their dated meaning and create no current obligation. See the [campaign-closure note](CLOSEOUT.md#2026-11-10--campaign-closure) and the current [standing rule](../ai_workflow/PARALLEL_WORKFLOW.md#completion-and-retained-worktrees). No acceptance result is upgraded by this note.
+> **Archived 2026-11-15 ([#688](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/688)).** Moved from `docs/worktree_cleanup/PLANNING.md`. Relative links were repointed for this location; the text is otherwise unchanged, so path statements below describe the original location.
+
+> **Historical campaign record.** The owner closed the campaign on 2026-11-10 through [PR #669](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/669). Earlier pending gates and operation orders below retain their dated meaning and create no current obligation. See the [campaign-closure note](../../../../worktree_cleanup/CLOSEOUT.md#2026-11-10--campaign-closure) and the current [standing rule](../../../../ai_workflow/PARALLEL_WORKFLOW.md#completion-and-retained-worktrees). No acceptance result is upgraded by this note.
 
 *Requirements-only artifact. Technical-design evidence:
-[`WORKTREE_CLEANUP_PLAN.md`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md). This
+[`WORKTREE_CLEANUP_PLAN.md`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md). This
 Section 0 grants no implementation, preservation, quarantine, removal, prune,
 ref-change, reconciliation, or other cleanup authority.*
 
@@ -40,21 +42,21 @@ before preservation and cleanup approval.
 
 **Technical-design evidence and precedence**
 
-- [`§1.2`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#12-independently-completable-operations)
+- [`§1.2`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md#12-independently-completable-operations)
   defines Operations A–E and their technical dependencies. This brief adds a stricter
   program sequence; it does not weaken any dependency, safety rule, or approval.
-- [`§1.3`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#13-planning-artifact-landing-gate)
+- [`§1.3`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md#13-planning-artifact-landing-gate)
   requires this council artifact, Gate 0, Plan v1/v2, reviewer provenance, and Gate 1
   before A may be implemented.
-- [`§5`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#5-operation-a---prevention-and-lifecycle-compliance)
+- [`§5`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md#5-operation-a---prevention-and-lifecycle-compliance)
   is the complete technical boundary of the first implementation tranche.
-- [`§11`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#11-completion-and-retention)
+- [`§11`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md#11-completion-and-retention)
   defines `PREVENTION_COMPLETE` as A being merged, installed, tested, with lifecycle
   monitoring active. That outcome is the proposed meaning of “prevention is landed.”
-- [`§3`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#3-evidence-disposition-and-candidate-model)
+- [`§3`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md#3-evidence-disposition-and-candidate-model)
   requires fresh, dated evidence and explicit dispositions rather than stale counts
   or age-based conclusions.
-- [`§9`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#9-operation-e---separate-main-reconciliation)
+- [`§9`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md#9-operation-e---separate-main-reconciliation)
   keeps E outside worktree-cleanup completion and requires its own plan and approval.
 
 If this brief and the technical design appear to conflict, the stricter no-authority
@@ -70,7 +72,7 @@ Plan v1/v2, Operation A implementation, a B–D operation, or Operation E.
 2. Given Gate 0 is signed and a later council-reviewed Plan v2 receives Gate 1 owner
    approval, when the first implementation tranche starts, then every implementation
    artifact and action is bounded to Operation A as defined by technical-design
-   [`§5`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#5-operation-a---prevention-and-lifecycle-compliance).
+   [`§5`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md#5-operation-a---prevention-and-lifecycle-compliance).
 3. Given the Operation A tranche is active, when work is proposed under Operations
    B, C, D, or E, then it remains unauthorized: no live preservation or quarantine,
    no removal or prune, no branch/ref reconciliation, and no B–E production launcher
@@ -1074,14 +1076,14 @@ log hashes are deliberately not copied into this planning document.
 | Requirement | Observed proof / result |
 |---|---|
 | Owner-created standalone clone | `D:\development\Hypertrophy-Toolbox-worktree-cleanup-plan`; `.git` equals common directory; HEAD `85e23725bc2871c5f005162f29be231a2f106b85`; ordinary non-reparse clone ancestry. Source-pointing origin remained unused. |
-| Independent Git object storage before collection | Initial no-follow proof checked all three object files, each `fsutil hardlink list` containing exactly one clone path; no alternates/http-alternates/reparse object members. After staging, a second proof checked all nine then-present files with the same result: [Git storage proof](../../artifacts/worktree-cleanup-planning/council-20260905/git-storage-proof.json). The different totals are evidence epochs, not omitted initial members. |
-| Scratch runtime before collection | [Runtime proof](../../artifacts/worktree-cleanup-planning/council-20260905/runtime-isolation-proof.json) records the clone-local interpreter and `utils/config.py`; effective DB, DATA_DIR, LOGS_DIR and Python tempfile paths all resolve inside the verified scratch root; the scratch planning DB was absent at proof time. No path resolves to the live DB or logs. |
-| Complete cache/temp/bytecode isolation | Scratch `isolated-env.ps1` sets TEMP/TMP/TMPDIR, HT_RUNTIME_DIR, DB_FILE, npm/pip/XDG, pytest, Hypothesis and Playwright caches; bytecode is disabled and its prefix is scratch. [Node cache proof](../../artifacts/worktree-cleanup-planning/council-20260905/node-cache-isolation-proof.json) uses actual Node realpaths to prove private `.vite`/`.vite-temp` junctions resolve only to scratch cache targets. These intentional cache junctions are distinct from prohibited object/runtime redirection to live roots. |
+| Independent Git object storage before collection | Initial no-follow proof checked all three object files, each `fsutil hardlink list` containing exactly one clone path; no alternates/http-alternates/reparse object members. After staging, a second proof checked all nine then-present files with the same result: [Git storage proof](../../../../../artifacts/worktree-cleanup-planning/council-20260905/git-storage-proof.json). The different totals are evidence epochs, not omitted initial members. |
+| Scratch runtime before collection | [Runtime proof](../../../../../artifacts/worktree-cleanup-planning/council-20260905/runtime-isolation-proof.json) records the clone-local interpreter and `utils/config.py`; effective DB, DATA_DIR, LOGS_DIR and Python tempfile paths all resolve inside the verified scratch root; the scratch planning DB was absent at proof time. No path resolves to the live DB or logs. |
+| Complete cache/temp/bytecode isolation | Scratch `isolated-env.ps1` sets TEMP/TMP/TMPDIR, HT_RUNTIME_DIR, DB_FILE, npm/pip/XDG, pytest, Hypothesis and Playwright caches; bytecode is disabled and its prefix is scratch. [Node cache proof](../../../../../artifacts/worktree-cleanup-planning/council-20260905/node-cache-isolation-proof.json) uses actual Node realpaths to prove private `.vite`/`.vite-temp` junctions resolve only to scratch cache targets. These intentional cache junctions are distinct from prohibited object/runtime redirection to live roots. |
 | Independent dependencies | Fresh clone-local ordinary `.venv` and `node_modules`; dependency installation exits 0. Actual Python 3.14.6, Node 24.19.0 and npm 11.17.0. No shared source dependency tree was reused or mutated. |
 | Migration / shared-path coordination | Support copied missing PLANNING and technical design byte-for-byte; inserted only the intended source INDEX delta after base comparison; preserved source drafts, source INDEX bytes and source Git index. Manager acknowledged support's exact MASTER_HANDOVER insertion per shared-path rules before its edit; historical text remains. |
-| Git visibility before first collection | [Staged visibility](../../artifacts/worktree-cleanup-planning/council-20260905/staged-visibility.txt) shows four packet documents staged before the initial inventory run. [Surface proof](../../artifacts/worktree-cleanup-planning/council-20260905/surface-tracked-proof.json) shows all 36 configuration Markdown surface files Git-visible, with no untracked/ignored contamination. |
-| Proved drift before regeneration | Initial `scripts/generate_test_inventory.py --check` exited 1 with actual successful-collection drift only: workflow-contract nodes 83 → 84 and deterministic pytest total 2913 → 2914, caused by the new technical-design document. [Initial check](../../artifacts/worktree-cleanup-planning/council-20260905/inventory-check-initial.log). No dependency/collection failure was misclassified as drift. |
-| Generator and final check | Regenerator exited 0 and wrote both inventory artifacts: [generation log](../../artifacts/worktree-cleanup-planning/council-20260905/inventory-regenerate.log). Subsequent `--check` exited 0: “Test inventory is up to date.” [Final check](../../artifacts/worktree-cleanup-planning/council-20260905/inventory-check-final.log). Both generated files were staged; six packet files total. |
+| Git visibility before first collection | [Staged visibility](../../../../../artifacts/worktree-cleanup-planning/council-20260905/staged-visibility.txt) shows four packet documents staged before the initial inventory run. [Surface proof](../../../../../artifacts/worktree-cleanup-planning/council-20260905/surface-tracked-proof.json) shows all 36 configuration Markdown surface files Git-visible, with no untracked/ignored contamination. |
+| Proved drift before regeneration | Initial `scripts/generate_test_inventory.py --check` exited 1 with actual successful-collection drift only: workflow-contract nodes 83 → 84 and deterministic pytest total 2913 → 2914, caused by the new technical-design document. [Initial check](../../../../../artifacts/worktree-cleanup-planning/council-20260905/inventory-check-initial.log). No dependency/collection failure was misclassified as drift. |
+| Generator and final check | Regenerator exited 0 and wrote both inventory artifacts: [generation log](../../../../../artifacts/worktree-cleanup-planning/council-20260905/inventory-regenerate.log). Subsequent `--check` exited 0: “Test inventory is up to date.” [Final check](../../../../../artifacts/worktree-cleanup-planning/council-20260905/inventory-check-final.log). Both generated files were staged; six packet files total. |
 | Diff and source protection | Default `git diff --cached --check` passed at Plan v1/inventory staging. After verbatim reviews were inserted, default whitespace checking reports exactly six intentional Markdown two-space hard breaks in the architecture review; these are retained to honor the verbatim requirement and reviewed as formatting, not content defects. A separately labelled per-command `core.whitespace=-blank-at-eol` check may check remaining whitespace without changing configuration; it does not erase the six default flags. Private source-after-validation evidence confirms all 15 baseline hashes unchanged, including draft/INDEX bytes, source Git index and 11 source DB/log-family files. Source DB-family/direct-log member sets also match, with no new sidecars/log files. No source SQLite connection was opened to obtain those byte/member checks. |
 | History preservation | Manager verified the original source requirements artifact is the exact 24,381-byte prefix of the expanded PLANNING. Plan v1 remains unchanged after reviewer cold reads; the earlier pending evidence block is kept as a dated record, superseded by this completed entry. |
 
@@ -1212,7 +1214,7 @@ isolation. SQLite fixtures and disposable Git repositories were synthetic. The
 earlier 602-test checkpoint predates review corrections and is superseded by the
 results below; the planning-lane inventory results are not implementation evidence.
 Exact commands, isolation details and retained test-log references are recorded in
-the [final QA receipt](../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-qa-closeout.json).
+the [final QA receipt](../../../../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-qa-closeout.json).
 
 | Gate | Observed result and limit |
 |---|---|
@@ -1222,9 +1224,9 @@ the [final QA receipt](../../artifacts/worktree-cleanup-planning/council-2026090
 | Native annotation-lock reparse coverage | Both actual creator hosts passed using the existing Windows native file-symlink capability. An earlier PowerShell 5.1 fixture-cmdlet setup skip was corrected by changing synthetic fixture creation; the final affected run has zero skips. No settings or privileges were changed. |
 | Manual synthetic workflow/guidance dry-run | PASS for copy-current, actual target configuration probe, final annotation and read-only audit. The fixture's old baseline intentionally reports the new retained child `UNEXPECTED` with exit **1**; this is the expected baseline-drift oracle, not failed creation or permission to delete/update the baseline. Interactive owner acceptance remains separate. |
 | Repository-wide Python type-check baseline diff | Pyright **1.1.410**, **246 files**, **zero diagnostics**; baseline zero, current zero, net-new zero. |
-| Inventory gate | Successful collection proved deterministic inventory drift **3076 → 3162** (**86** added regression nodes), with the final inventory covering **129 files**. Regeneration then final `--check` passed, and both generated inventory artifacts were staged. Final receipt: [inventory closeout check](../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-inventory-closeout-final.log). |
-| Final preservation after the implementation evidence append | **PASS**, [final preservation receipt](../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-final-preservation.json): all **15** initial protected-source hashes unchanged (including index, drafts and runtime files); exact **11** database-family/direct-log members preserved; the original **93,940-byte** planning prefix preserved apart from the two authorized Gate 1 checkbox substitutions; technical design byte-identical to its source draft; all **90** observed registered source roots ordinary and present. The registry proof establishes the initial observed count and final presence, not a byte-identical initial registry snapshot. No source SQLite connection or source mutation was used for this verification. |
-| Final exact diff capture | **Available**: [staged diff](../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-final.diff) and [capture receipt](../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-final-diff-receipt.json), covering **27 files**. Senior-developer will refresh these same artifacts after staging this final record update; no digest is embedded here. Default `git diff --check` reports exactly six preserved original council Markdown hard breaks; all other checked whitespace classes pass. |
+| Inventory gate | Successful collection proved deterministic inventory drift **3076 → 3162** (**86** added regression nodes), with the final inventory covering **129 files**. Regeneration then final `--check` passed, and both generated inventory artifacts were staged. Final receipt: [inventory closeout check](../../../../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-inventory-closeout-final.log). |
+| Final preservation after the implementation evidence append | **PASS**, [final preservation receipt](../../../../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-final-preservation.json): all **15** initial protected-source hashes unchanged (including index, drafts and runtime files); exact **11** database-family/direct-log members preserved; the original **93,940-byte** planning prefix preserved apart from the two authorized Gate 1 checkbox substitutions; technical design byte-identical to its source draft; all **90** observed registered source roots ordinary and present. The registry proof establishes the initial observed count and final presence, not a byte-identical initial registry snapshot. No source SQLite connection or source mutation was used for this verification. |
+| Final exact diff capture | **Available**: [staged diff](../../../../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-final.diff) and [capture receipt](../../../../../artifacts/worktree-cleanup-planning/council-20260905/operation-a-final-diff-receipt.json), covering **27 files**. Senior-developer will refresh these same artifacts after staging this final record update; no digest is embedded here. Default `git diff --check` reports exactly six preserved original council Markdown hard breaks; all other checked whitespace classes pass. |
 
 The script-path coverage derivation maps the changed guard, creator, preflight,
 snapshot and audit entrypoints to these behavioral gates. No changed script was
@@ -1235,7 +1237,7 @@ change or CSS/visual-specific gate was introduced.
 ### Concrete owner handoff and remaining gates
 
 The reviewable owner procedure is
-[OPERATION_A_OWNER_ACCEPTANCE.md](OPERATION_A_OWNER_ACCEPTANCE.md), including
+[OPERATION_A_OWNER_ACCEPTANCE.md](../../../../worktree_cleanup/OPERATION_A_OWNER_ACCEPTANCE.md), including
 developer-facing migration behavior, disposable Windows acceptance commands,
 fresh-session scope and installed-hook checks, and proposed lifecycle/baseline
 choices. Its exact private installation proposals are retained at
@@ -1321,7 +1323,7 @@ authorized bounded read-only shell commands; this PM wrote only this append.
 The original 27-file final diff/receipt remains historical and is not evidence
 for the changed bytes. Original digest-pinned publication commands are **STALE**.
 The developer's refreshed
-[correction receipt](../../artifacts/worktree-cleanup-planning/council-20260905/terminal-fix-validation-receipt.json)
+[correction receipt](../../../../../artifacts/worktree-cleanup-planning/council-20260905/terminal-fix-validation-receipt.json)
 records the new diff and validation evidence after this append is staged.
 Remaining gates are the owner's actual terminal retry, upstream reconciliation
 and authorized publication/merge, external installation/interception, and
@@ -1375,7 +1377,7 @@ and QA roles. No new council or independent-reviewer continuity is claimed.
 This append preserves the earlier record and signed approval boxes.
 
 The first terminal-fix receipt/diff is now historical. The new
-[bootstrap correction receipt](../../artifacts/worktree-cleanup-planning/council-20260905/bootstrap-fix-validation-receipt.json)
+[bootstrap correction receipt](../../../../../artifacts/worktree-cleanup-planning/council-20260905/bootstrap-fix-validation-receipt.json)
 records the final staged capture after this append. Digest-pinned publication
 commands remain stale. A fresh owner-run creator and same-run actual host/target
 observation are next; upstream reconciliation/publication, installation and
@@ -1403,7 +1405,7 @@ worktree retirement, development closeout or `PREVENTION_COMPLETE`.
 
 ### Acceptance evidence and limits
 
-The [saved interactive review](../../artifacts/worktree-cleanup-planning/council-20260905/owner-acceptance-570dae1e9a1a4d9c8260936c7a937057/interactive-acceptance-review.json)
+The [saved interactive review](../../../../../artifacts/worktree-cleanup-planning/council-20260905/owner-acceptance-570dae1e9a1a4d9c8260936c7a937057/interactive-acceptance-review.json)
 records `PASS` at **2026-09-05T20:32:01.7721652Z**, for the fresh production fixture
 `owner-acceptance-570dae1e9a1a4d9c8260936c7a937057`. Its SHA-256 is
 `444DD7DA7234DBCC4B78C60E82BA6EA2BCD8992CB694CC865A4A098F23A9D2A4`.
@@ -1431,9 +1433,9 @@ and independently matched all four byte counts and hashes in that receipt.
 At re-verification, `scripts/new-worktree.ps1` SHA-256
 `DCBDA8C0E5236C8FC67F487AD5E9759EA4223B242B51F1E4EC328EB7277ED05A`
 matched the reviewed bootstrap correction. The original
-[bootstrap validation receipt](../../artifacts/worktree-cleanup-planning/council-20260905/bootstrap-fix-validation-receipt.json)
+[bootstrap validation receipt](../../../../../artifacts/worktree-cleanup-planning/council-20260905/bootstrap-fix-validation-receipt.json)
 SHA-256 is `BA519A18CBE5A6A65E081970B9CF5DE62FD4D1E8071475B966C7FE9A36E1DA40`;
-its [full reviewed diff](../../artifacts/worktree-cleanup-planning/council-20260905/bootstrap-fix-full.diff)
+its [full reviewed diff](../../../../../artifacts/worktree-cleanup-planning/council-20260905/bootstrap-fix-full.diff)
 SHA-256 is `AEA529C405510721BCABEFD620EE94B0C77953CAED90ECB245A7CDF4B7D1B9C4`.
 Both artifacts were independently hashed and match their recorded bindings.
 Reuse after integration must identify unchanged surfaces. This acceptance does not
@@ -1486,7 +1488,7 @@ The three unrelated local audit commits remain on the preserved original branch;
 they are excluded from publication ancestry. All **1,798** unrelated upstream
 paths are mode/blob-identical to the verified base.
 
-Fresh [QA evidence](../../artifacts/worktree-cleanup-integration-20260905/operation-a-integration-qa.json):
+Fresh [QA evidence](../../../../../artifacts/worktree-cleanup-integration-20260905/operation-a-integration-qa.json):
 the standalone guard passed **168 cases** across both installed hosts, profiles
 and permission modes; the integrated guard/workflow union passed **516 tests**,
 zero failures/skips, **314.53 seconds**. Pyright **1.1.410** checked **247 files**
@@ -1504,7 +1506,7 @@ pytest files, **131** files overall; Playwright **686/33 specs** and Vitest
 that environment; no dependency installation or pinned remote-CI pass is claimed.
 No unrelated upstream application work is claimed as freshly retested.
 
-Post-collector [preservation proof](../../artifacts/worktree-cleanup-integration-20260905/preservation-before-final-docs.json)
+Post-collector [preservation proof](../../../../../artifacts/worktree-cleanup-integration-20260905/preservation-before-final-docs.json)
 passed for **41,781** original entries, including **26,772 files / 193,059,738 bytes**,
 the original reviewed evidence/fixtures, all **15** protected source hashes against
 historical and turn-start baselines, and the source registry's **90 roots** plus
@@ -1516,14 +1518,14 @@ manager and `/root/integration_qa` independently reviewed that prose. This same
 worker now resumes product-manager solely for this results append.
 
 The review packet is private under `artifacts/worktree-cleanup-integration-20260905/`:
-[validation receipt](../../artifacts/worktree-cleanup-integration-20260905/integration-validation-receipt.json),
-[exact Git/diff capture](../../artifacts/worktree-cleanup-integration-20260905/integration-capture-receipt.json),
-[final preservation](../../artifacts/worktree-cleanup-integration-20260905/preservation-final.json),
-[upstream-relative publication diff](../../artifacts/worktree-cleanup-integration-20260905/operation-a-upstream.diff),
-[reviewed-packet comparison](../../artifacts/worktree-cleanup-integration-20260905/operation-a-reviewed-packet-relative.diff),
-[Operation A scope comparison](../../artifacts/worktree-cleanup-integration-20260905/operation-a-reviewed-scope-relative.diff),
-[refreshed publication proposal](../../artifacts/worktree-cleanup-integration-20260905/publication-proposal.md)
-and [PR body](../../artifacts/worktree-cleanup-integration-20260905/operation-a-pr-body.md).
+[validation receipt](../../../../../artifacts/worktree-cleanup-integration-20260905/integration-validation-receipt.json),
+[exact Git/diff capture](../../../../../artifacts/worktree-cleanup-integration-20260905/integration-capture-receipt.json),
+[final preservation](../../../../../artifacts/worktree-cleanup-integration-20260905/preservation-final.json),
+[upstream-relative publication diff](../../../../../artifacts/worktree-cleanup-integration-20260905/operation-a-upstream.diff),
+[reviewed-packet comparison](../../../../../artifacts/worktree-cleanup-integration-20260905/operation-a-reviewed-packet-relative.diff),
+[Operation A scope comparison](../../../../../artifacts/worktree-cleanup-integration-20260905/operation-a-reviewed-scope-relative.diff),
+[refreshed publication proposal](../../../../../artifacts/worktree-cleanup-integration-20260905/publication-proposal.md)
+and [PR body](../../../../../artifacts/worktree-cleanup-integration-20260905/operation-a-pr-body.md).
 The pre-documentation diff and preservation capture already exist; final captures
 bind the subsequent documentation-only commit without a self-referential digest
 in this tracked record. Six original council Markdown hard breaks remain preserved;
@@ -1623,7 +1625,7 @@ establish installation, active monitoring, actual interception, or
 ### Fresh observations and historical statements superseded
 
 Evidence for this continuation is retained under
-[`artifacts/operation-a-source-integration-20260908/`](../../artifacts/operation-a-source-integration-20260908/).
+[`artifacts/operation-a-source-integration-20260908/`](../../../../../artifacts/operation-a-source-integration-20260908/).
 The local date is September 8; early receipts use September 7 UTC timestamps.
 The owner-named standalone clone remains the authorized workspace. The source
 checkout, other worktrees, deployed guards, scheduling and recovery roots remain
@@ -1697,10 +1699,10 @@ continuation. The pre-existing `docs/WORKTREE_CLEANUP_PLAN.md` 11-line change is
 preserved separately. No inventory artifacts were regenerated.
 
 The final staged source/test review is
-[`source-test-staged-final.diff`](../../artifacts/operation-a-source-integration-20260908/source-test-staged-final.diff),
+[`source-test-staged-final.diff`](../../../../../artifacts/operation-a-source-integration-20260908/source-test-staged-final.diff),
 63,783 bytes, SHA-256
 `3d6b7addabc78fc2c03340a47d622bc9819f14162f5dc28ad71f4289ccc7cdde`.
-Its [receipt](../../artifacts/operation-a-source-integration-20260908/source-test-staged-final-receipt.json)
+Its [receipt](../../../../../artifacts/operation-a-source-integration-20260908/source-test-staged-final-receipt.json)
 binds the final test SHA-256
 `e062310e381143c6ce995b410675ade4433a94b869d2d5b2022c65bb866c221b` and guard
 raw CRLF/BOM SHA-256
@@ -1714,7 +1716,7 @@ The earlier `9b6b32b1…` staged diff remains retained as historical evidence be
 the final docstring-only correction.
 
 **Validation:** the
-[QA receipt](../../artifacts/operation-a-source-integration-20260908/scratch-qa/results/qa-receipt.json)
+[QA receipt](../../../../../artifacts/operation-a-source-integration-20260908/scratch-qa/results/qa-receipt.json)
 records **1,506 guard/workflow tests passed**, no failures or skips, in **698.87 s**;
 **252 standalone guard cases passed**, zero failures; and **12 final-source
 ASCII/BOM/parser tests passed** in **1.25 s**. Both installed PowerShell hosts are
@@ -1759,8 +1761,8 @@ No historical council provenance or finding was rewritten.
 
 ### Concrete review decisions and remaining Gate A obligations
 
-The [review/deployment proposal](../../artifacts/operation-a-source-integration-20260908/REVIEW_AND_DEPLOYMENT_PROPOSAL.md)
-and [current Gate A evidence matrix](../../artifacts/operation-a-source-integration-20260908/EVIDENCE_MATRIX_5_4_CURRENT.md)
+The [review/deployment proposal](../../../../../artifacts/operation-a-source-integration-20260908/REVIEW_AND_DEPLOYMENT_PROPOSAL.md)
+and [current Gate A evidence matrix](../../../../../artifacts/operation-a-source-integration-20260908/EVIDENCE_MATRIX_5_4_CURRENT.md)
 are the current continuation pointers. Previous evidence matrices and planning
 statements remain dated history, with their original bytes retained. Required
 owner decisions are concrete:
@@ -1771,7 +1773,7 @@ owner decisions are concrete:
    and their CI do not approve or validate these new publication bytes.
 2. After matching source lands, accept or revise the exact **93-target** guard
    deployment proposal. The
-   [fresh manifest](../../artifacts/operation-a-source-integration-20260908/deployment-preimages-final.json)
+   [fresh manifest](../../../../../artifacts/operation-a-source-integration-20260908/deployment-preimages-final.json)
    SHA-256 is `09f0b9bcf19121c7930f2f291345a19678e592871762fb18ac7bd1480aa7e806`.
    It records exact path, current file identity, raw bytes/hash, link count and
    reparse ancestry: **91 targets have `b4ba5d0d…`; user/main have rev-4

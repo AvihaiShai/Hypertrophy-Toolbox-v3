@@ -4,6 +4,15 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ## Unreleased - 2026-11-15
 
+### Documentation archive
+
+- Archived the three closed worktree cleanup plans (#688), with approvals, reviewer findings and evidence kept:
+  `docs/WORKTREE_CLEANUP_PLAN.md` → [`archive/2026/worktree-plans/p1_2/PLANNING.md`](archive/2026/worktree-plans/p1_2/PLANNING.md),
+  `docs/worktree_cleanup/PLANNING.md` → [`archive/2026/worktree-plans/operation-a/PLANNING.md`](archive/2026/worktree-plans/operation-a/PLANNING.md) and
+  `docs/worktree_cleanup_amendment/PLANNING.md` → [`archive/2026/worktree-plans/drive-root-amendment/PLANNING.md`](archive/2026/worktree-plans/drive-root-amendment/PLANNING.md).
+  Each gains a one-line archive note; other edits are relative-link repairs. The closeout, owner acceptance, evidence files,
+  the amendment reference stub and `ai_workflow/WORKTREE_CLEANUP_PLAN.md` stay in place.
+
 ### Documentation reconciliation
 
 - Recorded the worktree campaign closure and the already-published amendment, corrected U1 follow-up and fast-uri PR navigation, and linked P2.4's accepted limitation to #687.

@@ -75,8 +75,7 @@ Proposed entries do not authorize implementation. The archive container is index
 
 ### Closed (history)
 
-- [worktree_cleanup/](worktree_cleanup/) — campaign closed by owner decision on 2026-11-10 (#669); historical approvals and preservation evidence retained
-- [worktree_cleanup_amendment/](worktree_cleanup_amendment/) — documentation design published in #659; further campaign operations discontinued by #669
+- [worktree_cleanup/](worktree_cleanup/) — campaign closed by owner decision on 2026-11-10 (#669); the closeout, owner acceptance, evidence and amendment reference stay here; the three plans are archived (see *Archive*)
 
 - [backup_schema_version/](backup_schema_version/) — closed D6 investigation; ADR-008 records the outcome
 - [css_phase4_wp4_4/](css_phase4_wp4_4/) — completed WP4.4 arc and handoff history
@@ -116,6 +115,7 @@ These files are historical reference only. They should not be treated as active 
 - **[archive/VOLUME_TAXONOMY_AUDIT.md](archive/VOLUME_TAXONOMY_AUDIT.md)** - Phase 0 live database audit (2026-04-25). Completed audit, now archived.
 - **[archive/workout_cool_integration/checkpoint3_coverage.md](archive/workout_cool_integration/checkpoint3_coverage.md)** - Completed free-exercise-db mapper coverage baseline (pre-curation snapshot).
 - **[archive/2026/local-first-assets/PLANNING.md](archive/2026/local-first-assets/PLANNING.md)** - Local-first navigation assets plan, council response matrix and as-built record (shipped #341); current contract: `tests/test_local_first_assets.py` and `static/vendor/*/NOTICE.md`.
+- **[archive/2026/worktree-plans/](archive/2026/worktree-plans/)** - Closed worktree cleanup plans, archived 2026-11-15 (#688) with their text unchanged apart from link repairs: [P1.2 ledger](archive/2026/worktree-plans/p1_2/PLANNING.md) (August 2026), [Operation A council record](archive/2026/worktree-plans/operation-a/PLANNING.md) and [drive-root amendment council record](archive/2026/worktree-plans/drive-root-amendment/PLANNING.md) (published in #659). The campaign was closed by #669; current rules: `ai_workflow/PARALLEL_WORKFLOW.md`, closeout: `worktree_cleanup/CLOSEOUT.md`.
 
 ## Removed From Active Docs
 
