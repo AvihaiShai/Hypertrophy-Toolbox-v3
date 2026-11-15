@@ -1,5 +1,7 @@
 # Plan Review — Prevention-first worktree cleanup sequence
 
+> **Historical campaign record.** The owner closed the campaign on 2026-11-10 through [PR #669](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/669). Earlier pending gates and operation orders below retain their dated meaning and create no current obligation. See the [campaign-closure note](CLOSEOUT.md#2026-11-10--campaign-closure) and the current [standing rule](../ai_workflow/PARALLEL_WORKFLOW.md#completion-and-retained-worktrees). No acceptance result is upgraded by this note.
+
 *Requirements-only artifact. Technical-design evidence:
 [`WORKTREE_CLEANUP_PLAN.md`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md). This
 Section 0 grants no implementation, preservation, quarantine, removal, prune,
@@ -38,7 +40,7 @@ before preservation and cleanup approval.
 
 **Technical-design evidence and precedence**
 
-- [`§1.2`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#12-five-independently-completable-operations)
+- [`§1.2`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#12-independently-completable-operations)
   defines Operations A–E and their technical dependencies. This brief adds a stricter
   program sequence; it does not weaken any dependency, safety rule, or approval.
 - [`§1.3`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md#13-planning-artifact-landing-gate)

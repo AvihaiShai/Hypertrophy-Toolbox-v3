@@ -79,21 +79,23 @@ Unmigrated entries and retained sequencing stay in [OPEN_WORK_EXECUTION_PLAN.md]
   - [templates/CLAUDE.md](../../templates/CLAUDE.md)
   - [static/js/CLAUDE.md](../../static/js/CLAUDE.md)
 - [Plan Review Template](PLAN_REVIEW_TEMPLATE.md) — size-conditional Section 0 / Gate 0 → Plan v1 → council findings → response matrix → Plan v2
-- Skills live in `.claude/skills/<name>/SKILL.md`; the requirements workflow lives
+- Skills live in `.claude/skills/<name>/SKILL.md`: `requirements`, `run-tests`, `run-e2e`,
+  `verify-suite`, `build-css` and `run-hypertrophy-toolbox`. The requirements workflow lives
   at `.claude/skills/requirements/SKILL.md`, is owned by `product-manager`, and stays
   strictly Section-0-only (stops at Gate 0). `product-manager`'s broader write
   ownership — the entire active `docs/<feature>/PLANNING.md`, including Plan v1, the
   response matrix, and Plan v2 when the read-only `manager` delegates them during
   `/council-plan` — is documented in [AUTONOMY.md](AUTONOMY.md#workflow-roles).
-- Slash commands: `/handover`, `/unslop`, `/verify-and-polish`, `/council-plan`, `/consult` (in `.claude/commands/`)
+- Slash commands: `/handover`, `/unslop`, `/verify-and-polish`, `/council-plan`, `/consult`, `/status`, `/worktree`, `/fix-issue` (in `.claude/commands/`)
 - Agents (diff-time): `code-reviewer`, `unslop-reviewer` (in `.claude/agents/`)
 - Agents (plan-time, council): `architecture-reviewer`, `test-strategist`, `product-risk-reviewer` (in `.claude/agents/`)
 - Active workflow roles: `manager`, `product-manager`, `senior-developer`,
   `automation-qa`, `manual-qa-reviewer` (implemented and dry-run in Phase 3 of
   the agent workflow plan; default-manager activation remains Phase 6-gated).
 
-## Baselines (gitignored, generated locally)
-- `artifacts/baseline_pytest.txt`, `artifacts/baseline_e2e.txt` — last full-suite outputs; not in git
+## Generated output (gitignored)
+- No standing pre-change baseline files are kept; `CLAUDE.md` §4 B says how to establish the
+  origin of an unclear failure.
 - Generated output belongs under `artifacts/`, never the repository root. `/artifacts/`
   is gitignored, and Playwright (`playwright.config.ts`), pytest's cache (`pytest.ini`),
   and both CI workflows already write there.

@@ -10,6 +10,17 @@ objectives and status blocks moved on 2026-10-20 to
 [`archive/2026/active-development/ACTIVE_DEVELOPMENT_HISTORY.md`](archive/2026/active-development/ACTIVE_DEVELOPMENT_HISTORY.md);
 the V1 and frozen-Windows closures they record are ADR-011 and ADR-012 in [`DECISIONS.md`](DECISIONS.md).
 
+> **Precedence (recorded 2026-11-15).** Where the retained verbatim rules below conflict with
+> current guidance, the current guidance wins: [`CLAUDE.md`](../CLAUDE.md), the owner approvals in
+> [`ai_workflow/QUALITY_GATE.md`](ai_workflow/QUALITY_GATE.md#owner-approvals-and-reviewer-passes),
+> the one-checkout rule in
+> [`ai_workflow/PARALLEL_WORKFLOW.md`](ai_workflow/PARALLEL_WORKFLOW.md#completion-and-retained-worktrees)
+> and the [`MASTER_HANDOVER.md`](MASTER_HANDOVER.md) *Next safe step* and *Maintenance rule*. In
+> particular, nothing continues automatically from one task to the next, and the *Stop Conditions*
+> list does not narrow those owner approvals. `CLAUDE.md` has no separate agents-must-not list; the
+> `data/database.db` rule is the *Tracked-DB commit rule* in `PARALLEL_WORKFLOW.md`. This note
+> rewords nothing below.
+
 ### Fatigue meter Phase 2 — Stage 4 calibration window CLOSED (status updated 2026-08-13)
 
 Phase 1 shipped; Phase 1 Stage 4 closed 2026-05-20 (no threshold changes). **Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`); Phase 2 Stage 4 calibration window opened 2026-05-24 and CLOSED 2026-08-13 — owner decision, no real-use evidence, no threshold change.** Source of truth: [`docs/fatigue_meter/PHASE2_PLANNING.md`](fatigue_meter/PHASE2_PLANNING.md) Stage 4 + §10. `calibration-notes.md` remains the Phase 1 Stage 4 authority; STAGE4_PARKED_HANDOFF.md is superseded.

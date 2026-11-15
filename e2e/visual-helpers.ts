@@ -204,6 +204,15 @@ export async function prepareForScreenshot(page: Page): Promise<void> {
         transform: none !important;
         transition: none !important;
       }
+      /* #609: the Filter Exercises card's dark box-shadow rasters its top and
+         bottom edges nondeterministically at an unchanged layout. The product's
+         Calm Glass rule carries ID-level weight from #workout, so the shadow
+         survives the surface flattener above; the ID here is what lets this rule
+         win. One card only, capture layer only - the dark shadow of this card is
+         no longer pixel-covered. */
+      html[data-theme='dark'] #workout[data-page="workout-plan"] [data-section="filters"][data-visual-surface] {
+        box-shadow: none !important;
+      }
 
       input, textarea { caret-color: transparent !important; }
       select {

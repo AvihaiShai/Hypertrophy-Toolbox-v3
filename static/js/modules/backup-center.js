@@ -941,7 +941,7 @@ async function handleConfirmAction() {
             await refreshBackupCenter({ preserveSelection: false });
         }
     } catch (error) {
-        showToast('error', `Failed to ${pendingAction} backup: ${error.message}`);
+        showToast('error', `Failed to ${pendingAction} backup: ${error.message}`, pendingAction === 'restore' && error.code === 'VALIDATION_ERROR' ? { duration: 30000 } : {});
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = originalHtml;
         if (saveFirstBtn) {

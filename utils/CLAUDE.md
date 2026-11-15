@@ -13,8 +13,8 @@ All business logic and DB access. Routes call into here; nothing in here imports
 | **Infra** | `logger.py`, `errors.py`, `request_id.py`, `maintenance.py`, `export_utils.py` |
 
 ## Conventions
-- DB access via `with DatabaseHandler() as db:` only (`database.py:200`). No `sqlite3.connect()` calls.
-- Logger via `get_logger()` (`logger.py:121`). Never `print()` or a custom logger.
+- DB access via `with DatabaseHandler() as db:` only (`database.py:285`). No `sqlite3.connect()` calls.
+- Logger via `get_logger()` (`logger.py:78`). Never `print()` or a custom logger.
   Sole exception: `python_version.py`, the pre-flight interpreter guard, writes to
   stdout/stderr — `get_logger()` would create the runtime tree as a side effect,
   and its batch-file callers need the message on stderr. Rationale in its docstring.
@@ -23,7 +23,7 @@ All business logic and DB access. Routes call into here; nothing in here imports
 
 ## Gotchas
 - **Effective sets are informational only** (`effective_sets.py:6-7`). Never auto-adjust or block user actions on them.
-- **FLASK_DEBUG default mismatch**: `main()` in `app.py` defaults `'0'`, `database.py:90` defaults `'1'`. Result: `python app.py` runs Flask non-debug but DB uses DELETE-journal/FULL-sync (safe).
+- **FLASK_DEBUG default mismatch**: `main()` in `app.py` defaults `'0'`, `database.py:88` defaults `'1'`. Result: `python app.py` runs Flask non-debug but DB uses DELETE-journal/FULL-sync (safe).
 - **`session_summary.py` vs `weekly_summary.py` — not duplicates.** `calculate_session_summary()` groups by routine with an optional date filter; `calculate_weekly_summary()` aggregates all routines weekly with no date filter and tracks frequency. The first imports only `EFFECTIVE_STATUS_MAP` from the second.
 
 ## See also

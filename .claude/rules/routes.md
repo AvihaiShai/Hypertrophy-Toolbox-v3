@@ -65,14 +65,14 @@ The tests' `app` fixture is `create_app()` itself, so missing step 2 = 404s in p
 
 ## Filters & SQL injection prevention
 Two layers:
-1. **Column whitelist** — `ALLOWED_COLUMNS` dict in `routes/filters.py:115-139`. Call `validate_column_name()` (line 147) before any dynamic column name.
-2. **Parameterized values** — `FilterPredicates.build_filter_query()` in `utils/filter_predicates.py:45` uses `?`. `PARTIAL_MATCH_FIELDS` (line 34) use `LIKE ?` with `%value%`; others use exact match.
+1. **Column whitelist** — `ALLOWED_COLUMNS` dict in `utils/filter_registry.py:40` (re-exported by `routes/filters.py`). Call `validate_column_name()` (`utils/filter_registry.py:72`) before any dynamic column name.
+2. **Parameterized values** — `FilterPredicates.build_filter_query()` in `utils/filter_predicates.py:54` uses `?`. `PARTIAL_MATCH_FIELDS` (line 43) use `LIKE ?` with `%value%`; others use exact match.
 
 To add a filterable column:
-- [ ] Add to `ALLOWED_COLUMNS` in `routes/filters.py`
-- [ ] Add to `FilterPredicates.VALID_FILTER_FIELDS` in `utils/filter_predicates.py:17`
-- [ ] If partial match: add to `PARTIAL_MATCH_FIELDS` (line 34)
-- [ ] If muscle-type: add mapping in `SIMPLE_TO_DB_MUSCLE` / `SIMPLE_TO_ADVANCED_ISOLATED` (`routes/filters.py:17-69`)
+- [ ] Add to `ALLOWED_COLUMNS` in `utils/filter_registry.py`
+- [ ] Add to `FilterPredicates.VALID_FILTER_FIELDS` in `utils/filter_predicates.py:26`
+- [ ] If partial match: add to `PARTIAL_MATCH_FIELDS` (line 43)
+- [ ] If muscle-type: add mapping in `SIMPLE_TO_DB_MUSCLE` / `SIMPLE_TO_ADVANCED_ISOLATED` (`routes/filters.py:25-77`)
 
 ## Input validation
 Validation is currently path-specific; do not assume browser input attributes are a
@@ -84,7 +84,7 @@ HTTP 400 `VALIDATION_ERROR` envelope. Scored-log fields retain their nullable/bl
 clear contract, while plan required-field validation continues to reject supplied blanks.
 
 ## Auth boundaries
-**No authentication exists.** Single-user local app. `POST /erase-data` (`app.py:158`) requires `{"confirm": "ERASE_ALL_DATA"}` in body; requests without it return 400. A pre-erase snapshot writes to `data/auto_backup/` before wiping. **Do not expose this app to an untrusted network.**
+**No authentication exists.** Single-user local app. `POST /erase-data` (`app.py:157`) requires `{"confirm": "ERASE_ALL_DATA"}` in body; requests without it return 400. A pre-erase snapshot writes to `data/auto_backup/` before wiping. **Do not expose this app to an untrusted network.**
 
 ## Filename sanitization
 `utils/export_utils.py` has `sanitize_filename()` to strip path traversal and dangerous characters from export filenames.

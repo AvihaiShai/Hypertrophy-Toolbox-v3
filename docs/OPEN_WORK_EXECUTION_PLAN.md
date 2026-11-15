@@ -94,7 +94,7 @@ Strategy Phases 3 and 5, User Profile v2 and Fatigue Phase 3 are in §5.
 
 | Item | Disposition |
 |---|---|
-| P2.4 — KI-005 manual-edit provenance staleness (accepted limitation) | Owner- and demand-gated; a new UX packet only if visible in real use |
+| P2.4 — KI-005 manual-edit provenance staleness (accepted limitation) | [#687](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/687) owns tracking. Owner- and demand-gated; a new UX packet only if visible in real use. Tracking authorizes no fix |
 | LEFTOVERS §4 taxonomy markers | [#620](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/620) owns the naming, grouping and alias decisions. A separately selected rename requires its own data/consumer migration and protected-calculation review; these markers are not a rename. |
 | LEFTOVERS §4a FINDING-1 export feedback | [#625](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/625) owns diagnostic-feedback and export-contract follow-ups. Site 7 remains unfixed by design; any `static/**` packet keeps its own gates. |
 | P3 proposals — app-JS TypeScript checking, inert display utilities, cross-model `$orchestrate` and the CSS/refactor tail | [#623](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/623) tracks the shared-CSS proposals; other proposals retain their owning issue and the dated LEFTOVERS §1 P3 record. `KNOWN_INERT` remains pinned; widening the utilities is a rendering change requiring separate baseline review. Parked boundaries in §5 remain. |
@@ -165,7 +165,8 @@ evidence. Do not reactivate the old implementation plan.
       — the block moved with #417 (`5111a7f`).
 - [ ] Reproduce or re-measure it against current code.
 - [ ] Check `ai_workflow/WORKSTREAM_OWNERSHIP.local.md` for path claims.
-- [ ] Use an isolated worktree when the packet may touch the database, dev server, or tests.
+- [ ] Work in the existing checkout. Use a separate worktree only with explicit owner approval,
+      created through `scripts/new-worktree.ps1` (`ai_workflow/PARALLEL_WORKFLOW.md`).
 - [ ] Route the change through `ai_workflow/QUALITY_GATE.md`.
 - [ ] Keep unrelated dirty-worktree changes untouched.
 - [ ] Update the owning plan, current handover, and generated inventories only when required.

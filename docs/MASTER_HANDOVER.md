@@ -9,14 +9,23 @@
 > and repository-security readings were taken together. This record grants no merge, settings
 > or packet authority.
 
-**Work queue and owner decisions:** [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md)
-§0 is the single actionable queue (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
+**Work queue and owner decisions:** current public work status lives in the owning GitHub
+issues. [`OPEN_WORK_EXECUTION_PLAN.md`](OPEN_WORK_EXECUTION_PLAN.md) §0 retains the sequencing,
+decision gates and unmigrated entries (Q12, [`project_direction/AGREED_PLAN.md`](project_direction/AGREED_PLAN.md)
 §11). Its §0.2 holds every open owner decision and §0.4 every open obligation; this block does not
-repeat them. Current public work status lives in the linked GitHub issues. Earlier Current State blocks are in
+repeat them. Earlier Current State blocks are in
 [`archive/2026/master-handover/CURRENT_STATE_HISTORY.md`](archive/2026/master-handover/CURRENT_STATE_HISTORY.md);
 the queue's earlier readings are in
 [`archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md`](archive/2026/open-work/OPEN_WORK_EXECUTION_HISTORY.md).
 The maintenance rule for this block is the subsection headed *Maintenance rule*.
+
+### Corrections recorded 2026-11-15
+
+This bounded reconciliation supersedes the named pending-status claims below; it does not refresh the complete 2026-11-13 measurement table.
+
+- [PR #678](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/678) merged on 2026-11-13; its recorded result clears the four fast-uri Dependabot alerts. The security row below preserves the earlier reading.
+- [PR #659](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/659) published the cleanup amendment design. The owner subsequently closed the campaign through #669; Operation A is historical evidence, not a preserved execution obligation. The [closeout note](worktree_cleanup/CLOSEOUT.md#2026-11-10--campaign-closure) records the superseding decision.
+- [PR #566](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/566) records passing clean no-Python Windows Sandbox acceptance with 55 assertions. The migration docs distinguish that result from the accepted failed local browser run.
 
 ### Trunk, CI and live readings
 
@@ -52,6 +61,9 @@ First-parent order. Merges #481–#557 are listed in the archived blocks.
 | #673 | `1b9893fb` | Erase, recovery and validation guidance corrected (#576, #575) |
 | #663, #664 | `f26daab8`, `9338543a` | Dependency bumps: `actions/setup-python`, pytest 9.1.1 to 9.2.0 |
 
+This table is the 2026-11-13 reading and stops at its `main` (#664). Later merges are recorded in
+Git history and their owning issues, not here.
+
 ### Holds in force
 
 Constraints to know before acting. Decisions and obligations live in queue §0.2 and §0.4.
@@ -84,8 +96,8 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 
 ### Standing constraints and parked work
 
-- **Decisions:** ADR-003 through ADR-012 in [`DECISIONS.md`](DECISIONS.md) are settled and remain
-  in force.
+- **Decisions:** [`DECISIONS.md`](DECISIONS.md) is the authority. Its accepted ADRs remain in
+  force; ADR-003 is superseded by ADR-013.
 - **CI:**
   - Required check names are fixed. Three required contexts carry a deliberately false
     "(non-required)" suffix: E2E Fatigue Context, E2E Erase Flow and JS Supply Chain.
@@ -116,7 +128,6 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`deep_gate_linux_visual_failure_20260831/`](deep_gate_linux_visual_failure_20260831/GATE1.md): option C landed as #548; the three scheduled compare readings are in CI PLANNING §16.11 (#583 / #641; queue §0.2).
 - [`visual_determinism/`](visual_determinism/PLANNING.md): the ADR-011 residual.
 - [`service_extraction/`](service_extraction/PLANNING.md): WS4 handlers after slice 1, each with its own gates.
-- [`worktree_cleanup/`](worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](worktree_cleanup/CLOSEOUT.md) §19–§20).
 - [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): post-split scheduled qualification (readings in §16.11); settings C1c, C2, C3 and C4 (C1b CodeQL applied scan-only 2026-10-24); B4, D1 and F1/F3 unstarted.
 
 The full list is [`README.md`](README.md) *Feature folders → Active*.
@@ -138,8 +149,7 @@ holds the detail.
   ([`SETTINGS_ACTIVATION.md`](ci_cd_expansion/SETTINGS_ACTIVATION.md); queue §0.2).
 - **Ledger:** §13.0 stops at row 131 (`b77cb742`); later merges are unrecorded
   ([#582](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/582), queue §0.4).
-- **Security triage:** PR #678 is open for the four `fast-uri` Dependabot alerts; the one CodeQL
-  alert has no recorded disposition. Opening a fix PR is a human action (D-6).
+- **Security triage:** PR #678 merged and records the fast-uri alert fixes. CodeQL alert #2 remains open and awaits owner disposition in GitHub Security (#588); this reconciliation grants no fix or dismissal authority.
 
 ### Maintenance rule
 
@@ -147,7 +157,8 @@ holds the detail.
   new block.
 - `docs/MASTER_HANDOVER.md` is a never-claimed shared path, so coordinate each edit
   ([`WORKSTREAM_OWNERSHIP.md`](ai_workflow/WORKSTREAM_OWNERSHIP.md) rule 4).
-- Status and next steps come from this block. The *Next safe step* above is the current one. The
+- Runtime and operating state and next steps come from this block; public work status comes from
+  the owning GitHub issues. The *Next safe step* above is the current one. The
   *Open Decisions*, *Blockers* and *Next Safe Step* sections after this block are historical.
   *Active Workstreams* rows keep their own dates.
 - In those retained sections, a reference to an old Current State block or entry ("at the top

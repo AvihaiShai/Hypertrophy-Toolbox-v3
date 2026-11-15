@@ -64,9 +64,9 @@ the binding is the `onclick` attribute itself.
 
 ## Third-party assets — all served locally
 
-**The application makes no network request outside itself.** The server has no outbound calls, and
-the browser fetches every asset from the application's own origin. Nothing is loaded from a CDN,
-a font service, or any other third party.
+**The application loads every asset from its own origin.** The server has no outbound calls, and
+nothing is loaded from a CDN, a font service, or any other third party. The one network use is the
+optional, click-initiated exercise reference video described at the end of this section.
 
 Third-party code is vendored under `static/vendor/`, each directory carrying its upstream license,
 a `NOTICE.md`, and a `VERSION` file recording the exact source it was taken from:
@@ -84,12 +84,19 @@ a `NOTICE.md`, and a `VERSION` file recording the exact source it was taken from
 The Inter stylesheet references `woff2` files by relative path under the same vendor directory, so
 the font resolves offline too.
 
-**Offline behavior is therefore complete**: every page renders exactly as it does online, with its
-typography and every interaction intact — drag-to-reorder on the plan, the date picker on
-progression, tooltips on the splitter. There is no degraded mode.
+**Offline, every page renders exactly as it does online**, with its typography and every
+interaction intact — drag-to-reorder on the plan, the date picker on progression, tooltips on the
+splitter. The only feature that degrades is the reference video below.
 
-The only external URLs anywhere in the templates are two author links to LinkedIn, in the navbar
+The only external URLs written into the templates are two author links to LinkedIn, in the navbar
 and on Home. Both are ordinary links the user must click; neither is fetched on page load.
+
+**Exercise reference videos need the network.** `static/js/modules/exercise-video-modal.js`
+builds YouTube URLs when the user clicks an exercise's video control on the Plan or Log page. A
+curated video ID sets the shared modal's iframe to `https://www.youtube.com/embed/<id>` and its
+external link to `https://www.youtube.com/watch?v=<id>`; an exercise without a valid ID opens
+`https://www.youtube.com/results?search_query=…` in a new tab. Nothing is requested before the
+click. Offline, the embedded player or search tab cannot load; the rest of the page is unaffected.
 
 ## Route surface
 
@@ -309,7 +316,7 @@ live.
 | Link superset | API | `POST /api/superset/link` with exactly two ids; one id is `VALIDATION_ERROR` 400 — verified live |
 | Unlink superset | API | `POST /api/superset/unlink` |
 | Execution style | API | `GET /api/execution_style_options`, then `POST /api/execution_style` |
-| Video / image preview | Presentation | Opens a modal. The plan table is built client-side, so its media path is validated in JavaScript by `resolveExerciseMediaSrc()` — a mirror of the server-side shape rules in `utils/media_path.py` |
+| Video / image preview | Presentation | Opens a modal. The plan table is built client-side, so its media path is validated in JavaScript by `resolveExerciseMediaSrc()` — a mirror of the server-side shape rules in `utils/media_path.py`. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
 | Routine tabs | Presentation | Filters displayed rows |
 | Volume panel toggle | Presentation → API | Expands the panel, which reads `GET /api/volume_progress` |
 
@@ -343,7 +350,7 @@ the `planned_*` snapshot and the `scored_*` values.
 | Progression status check | API | `GET /check_progression/<log_id>` |
 | Delete row | API | `POST /delete_workout_log` |
 | Clear Log | Presentation → API | Modal, then `POST /clear_workout_log` |
-| Reference video / thumbnail | Presentation | Opens the shared video modal. This page is server-rendered, so its media path is revalidated at render by the `safe_media_path` Jinja filter — the only template in the application that uses it |
+| Reference video / thumbnail | Presentation | Opens the shared video modal. This page is server-rendered, so its media path is revalidated at render by the `safe_media_path` Jinja filter — the only template in the application that uses it. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
 
 Neither `GET /export_workout_log` nor `GET /get_workout_logs` has any control bound to it in the
 current templates — the page's rows are server-rendered, so the log page never needs to fetch
@@ -633,9 +640,9 @@ the column nullability encodes.
 | Backup list | API | `GET /api/backups` |
 | Search / type filter / sort | Presentation | Filters (All / Manual / Auto) and orders the loaded list client-side. The page header counts the current program's rows and the saved, manual and auto snapshots. No route or startup path creates an `auto` backup, so the Auto filter and count show only rows already marked `auto` in the database |
 | Open a backup | API | `GET /api/backups/<id>` → `NOT_FOUND` 404 for an unknown id — verified live |
-| Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Always reads `1` today |
+| Detail pane "Schema" stat | Presentation | Displays `schema_version` from the detail payload, defaulting to `1` when absent. Informational only — nothing branches on it and restore ignores it ([ADR-008](../DECISIONS.md)). Reads `2` for a backup saved since the execution fields were added to backups and `1` for an earlier one |
 | Rename / edit note | API | `PATCH /api/backups/<id>`. At least one of `name` / `note` is required (`VALIDATION_ERROR` 400 otherwise); the same limits as Save apply; an unknown id is `NOT_FOUND` 404 |
-| **Restore** | Presentation → API | Confirmation, then `POST /api/backups/<id>/restore`. The confirmation text states plainly that the current plan and all logged sessions will be cleared |
+| **Restore** | Presentation → API | Confirmation, then `POST /api/backups/<id>/restore`. The confirmation text states plainly that the current plan and all logged sessions will be cleared. A backup holding an execution style or timing value restore cannot interpret is refused as `VALIDATION_ERROR` 400 with `error.reason` `RESTORE_REFUSED`, and nothing is changed: an error toast carries the server's message for 30 seconds, no result panel is shown, and the confirmation stays open |
 | Save current plan first | API | Offered inside the restore confirmation only; snapshots the present state before restoring, as an ordinary manual backup named `Pre-restore snapshot (<timestamp>)` |
 | Delete | Presentation → API | Confirmation, then `DELETE /api/backups/<id>` |
 
@@ -651,17 +658,53 @@ Restore is **replace, not merge, and its blast radius is the whole program**:
 3. re-insert the snapshot's rows.
 
 A snapshot contains **plan rows only** — routine, exercise, sets, rep range, RIR, RPE, weight,
-order, and superset group. It carries no logged history, no profile, no goals, no body
-composition, no volume plans, and no settings. Restoring therefore loses all training history
-permanently, and does not restore anything outside the program.
+order, superset group, and the execution style with its time cap, EMOM interval and EMOM
+rounds. It carries no logged history, no profile, no goals, no body composition, no volume
+plans, and no settings. Restoring therefore loses all training history permanently, and does
+not restore anything outside the program.
 
-The three steps run in one transaction that is rolled back on a database error. Rows naming an
-exercise no longer in the catalog are skipped and reported in `skipped`; rows whose weight, rep
-range or RIR fails the plan's bounds validation are skipped and reported in `invalid` (each with
-its routine, exercise and reason) rather than failing the restore. The response data is
-`backup_id`, `backup_name`, `restored_count`, `skipped` and `invalid`; an unknown id is
-`NOT_FOUND` 404. The Backup Center lists the skipped and invalid rows inline, and when
-`restored_count` is 0 it shows a warning toast and warning styling instead of a success message.
+Restore decides everything before it writes anything. Rows naming an exercise no longer in the
+catalog are skipped and reported in `skipped`; rows whose weight, rep range or RIR fails the
+plan's bounds validation are skipped and reported in `invalid` (each with its routine, exercise
+and reason) rather than failing the restore. The three steps then run in one transaction that
+is rolled back on a database error. The response data is `backup_id`, `backup_name`,
+`restored_count`, `skipped` and `invalid`; an unknown id is `NOT_FOUND` 404. The Backup Center
+lists the skipped and invalid rows inline, and when `restored_count` is 0 it shows a warning
+toast and warning styling instead of a success message.
+
+#### Execution settings, and when a restore is refused
+
+Each restored row gets back the execution style and timing values it had when the backup was
+taken. A value the backup does not hold is *missing* — the row was saved before backups carried
+these fields, or the backup row holds no value for it (SQL `NULL`). An empty string is a stored
+value, not a missing one. A missing style is restored as `standard`; a missing time cap,
+interval or rounds value is restored empty, never as a default. So every row of a backup
+saved before this change restores as `standard` with no timing values.
+
+A value that is present but cannot be interpreted **refuses the whole restore**, unlike the
+per-row skips above. Only rows that would otherwise be restored are checked; a row already
+skipped for its catalog entry or its bounds cannot cause a refusal. The cases:
+
+| Case | Example |
+|---|---|
+| A style that is not exactly `standard`, `amrap` or `emom` — no case folding, no trimming | `tabata`, `EMOM`, ` emom`, an empty string |
+| A timing value that is not a whole number | `abc`, `12.5`, an empty string |
+| A timing value outside its range: time cap 10–600 s, EMOM interval 15–180 s, EMOM rounds 1–20 | time cap `601` |
+| A timing value stored against a style that does not use it | `standard` with a time cap; `emom` with a time cap |
+
+The application cannot write any of these. They reach a backup only when the database was
+edited outside it.
+
+A refusal is `VALIDATION_ERROR` 400 with `error.reason` `RESTORE_REFUSED` and `error.rows`,
+one `{routine, exercise, field, value, problem}` entry per problem. It is decided before the
+first `DELETE`, so the plan, every logged session and the backup itself are exactly as they
+were. The message says so and names every offending row; a stored value longer than 40
+characters is shown as its first 40 and `…`, and a binary value as `<binary, N bytes>`. The
+Backup Center shows that message in an error toast that stays for 30 seconds instead of the
+usual 3. Nothing in the application repairs such a row, so the backup cannot be restored until
+the value is corrected in the database. The accepted styles and ranges are restore's own
+(`utils/backup_execution_contract.py`), pinned so that a later change to the plan page's limits
+cannot silently make an existing backup unrestorable ([ADR-015](../DECISIONS.md)).
 
 ### Startup snapshot
 

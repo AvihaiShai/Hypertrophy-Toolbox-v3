@@ -2,6 +2,13 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - 2026-11-15
+
+### Documentation reconciliation
+
+- Recorded the worktree campaign closure and the already-published amendment, corrected U1 follow-up and fast-uri PR navigation, and linked P2.4's accepted limitation to #687.
+- Added the Python 3.15 acceptance closeout from #566 while retaining failed, unrun and retried browser results accurately. Historical evidence and all three Batch 2 candidate plans remain in the checkout.
+
 ## Unreleased - 2026-11-14
 
 ### Documentation retention
@@ -147,8 +154,9 @@ All notable changes to Hypertrophy Toolbox v3.
 - The required frontend-build job now deletes, rebuilds and byte-diffs both
   `bootstrap.custom.min.css` and its source map, preventing committed SCSS/CSS
   drift (#335).
-- Eleven false-green test escape hatches were closed across seven pytest modules;
-  a duplicate weaker PR was closed unmerged (#334, #337).
+- Eleven false-green test escape hatches were closed across seven pytest modules
+  (#334, merged). An overlapping weaker PR, #337, was closed unmerged because #334
+  subsumed it.
 - The profile-estimator Pyright baseline shrank without changing runtime
   expressions, and nine accessibility assertions that could not fail were
   repaired without adding test nodes (#336, #342).

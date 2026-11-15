@@ -54,7 +54,7 @@ Tests swap DB by **assigning** `utils.config.DB_FILE` (never importing the value
 import utils.config
 utils.config.DB_FILE = test_db_path   # ← correct: modifies module attribute
 ```
-`DatabaseHandler.__init__` reads `utils.config.DB_FILE` at call time (`database.py:209`). If you import `DB_FILE` as a bare name at module scope, the patch won't apply.
+`DatabaseHandler.__init__` reads `utils.config.DB_FILE` at call time (`database.py:294`). If you import `DB_FILE` as a bare name at module scope, the patch won't apply.
 
 ## Common pitfalls
 | Problem | Cause | Fix |

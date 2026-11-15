@@ -8,6 +8,7 @@ from flask import Blueprint, request, jsonify, render_template
 from utils.errors import success_response, error_response
 from utils.logger import get_logger
 from utils.program_backup import (
+    BackupRestoreRefused,
     create_backup,
     list_backups,
     get_backup_details,
@@ -141,6 +142,21 @@ def api_get_backup(backup_id: int):
         return error_response("INTERNAL_ERROR", "Failed to get backup details", 500)
 
 
+def _restore_refused_message(refused: BackupRestoreRefused) -> str:
+    """Build the refusal message; it names every problem because the Backup Center shows nothing else."""
+    named_rows = "; ".join(
+        f"{row['routine']} / {row['exercise']}: {row['problem']}" for row in refused.rows
+    )
+    return (
+        f"Backup '{refused.backup_name}' was not restored. Your current plan and workout "
+        "log were preserved; nothing was changed. "
+        f"{refused.row_count} row(s) hold execution settings that cannot be restored: "
+        f"{named_rows}. "
+        "The backup itself was left unchanged and cannot be restored until these values "
+        "are corrected."
+    )
+
+
 @program_backup_bp.route('/api/backups/<int:backup_id>/restore', methods=['POST'])
 def api_restore_backup(backup_id: int):
     """
@@ -148,6 +164,8 @@ def api_restore_backup(backup_id: int):
     
     This will clear the current active program and load the backup.
     Any exercises that no longer exist in the catalog will be skipped.
+    A backup holding an execution value restore cannot interpret is refused
+    whole, with nothing changed (ADR-015).
     
     Args:
         backup_id: The ID of the backup to restore
@@ -156,7 +174,12 @@ def api_restore_backup(backup_id: int):
         JSON with restore results:
         - restored_count: Number of items successfully restored
         - skipped: List of exercises that were skipped
+        - invalid: List of rows skipped for an out-of-bounds value
         - backup_name: Name of the restored backup
+        - backup_id: ID of the restored backup
+
+        400 VALIDATION_ERROR with error.reason "RESTORE_REFUSED" and error.rows
+        when the restore is refused.
     """
     try:
         logger.info(f"Restoring backup {backup_id}")
@@ -169,6 +192,15 @@ def api_restore_backup(backup_id: int):
         
         return jsonify(success_response(data=result, message=message))
         
+    except BackupRestoreRefused as refused:
+        # Must stay ahead of the ValueError branch, which answers NOT_FOUND.
+        return error_response(
+            "VALIDATION_ERROR",
+            _restore_refused_message(refused),
+            400,
+            reason="RESTORE_REFUSED",
+            rows=refused.rows,
+        )
     except ValueError as e:
         logger.warning(f"Validation error restoring backup: {e}")
         return error_response("NOT_FOUND", str(e), 404)

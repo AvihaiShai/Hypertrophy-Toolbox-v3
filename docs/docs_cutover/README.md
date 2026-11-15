@@ -6,9 +6,10 @@ does not make its source document disposable. This cutover changes documentation
 it does not authorize implementation of the work described in it.
 
 The owner approved the private-record handling, the keep/split/archive policy and
-20–30-document batches on 2026-10-26. The current commission is **one public pilot**;
-the private H1 review waits until after that pilot. Every merge requires a separate
-approval naming the PR number and exact head SHA. See the [pilot record](PILOT_CSS.md).
+20–30-document batches on 2026-10-26. The first commission was **one public pilot**,
+merged as #653 (`7cec3466`); the private H1 review has its own, separate start. Every
+merge requires a separate approval naming the PR number and exact head SHA. See the
+[pilot record](PILOT_CSS.md).
 
 ## Decision rules
 
@@ -20,11 +21,13 @@ with [Documentation Retention](../ai_workflow/DOC_RETENTION.md):
 | KEEP | Current guidance, active or paused work, durable contracts, needed evidence, qualification ledgers or machine inputs | Stable home, explicit role and reason; current public task status points to its owning issue. Dated evidence and handoffs are identified as historical. |
 | SPLIT | Durable reference or evidence is mixed with duplicated task status or closed history | Preserve technical conditions, decisions, evidence and anchors; replace duplicate public tracking with verified issue links. Extract history only if it independently qualifies for archive. |
 | ARCHIVE | Shipped or explicitly abandoned, no live follow-up or hold, named current replacement, all references and consumers repairable in the same change | Complete historical content in `docs/archive/<year>/<workstream>/`, with repaired navigation and source/destination identities. Pure moves preserve bytes; link-only edits are declared separately. |
+| RETIRE | A completed or abandoned plan whose remaining useful information has a maintained home, and which meets the [Retirement Criteria](../ai_workflow/DOC_RETENTION.md#retirement-criteria) | Removed from the checkout in one small reviewed batch of exact files, following the [Retirement Procedure](../ai_workflow/DOC_RETENTION.md#retirement-procedure); surviving references repaired, with commit-pinned links where the record stays relevant. Irreplaceable evidence is archived or kept instead. |
 
 Always-active product and workflow references remain active. Machine inputs stay at
 their consumed paths. A blocked move can become KEEP with a documented durable role;
-an unreviewed or unresolved disposition cannot be marked complete. This cutover
-proposes no deletion and releases no private hold.
+an unreviewed or unresolved disposition cannot be marked complete. A tracked file
+leaves the checkout only through the RETIRE route above. This cutover releases no
+private hold.
 
 ## Completion criteria
 
@@ -89,5 +92,6 @@ thirteen KEEP, one SPLIT and six ARCHIVE dispositions. Navigation repairs and th
 acceptance record are included in the same PR. Original measurements, accepted
 limitations, contracts and signed decisions are preserved.
 
-Stop after that PR is ready for owner review. Do not prepare another public batch,
-start H1, enable auto-merge or merge this PR under the pilot commission.
+The pilot commission stopped once that PR was ready for owner review; it authorized
+no further public batch, H1 start, auto-merge or merge. Each later batch is
+commissioned and reviewed separately.

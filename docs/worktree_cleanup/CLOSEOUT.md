@@ -1,5 +1,7 @@
 # Worktree cleanup — closeout record
 
+> **Current disposition:** the owner closed the campaign on 2026-11-10. The dated [campaign-closure note](#2026-11-10--campaign-closure) supersedes earlier open-obligation statements while preserving the historical evidence.
+
 **Date:** 2026-10-16
 **Authority:** owner closeout directive v2 (avihay1989@gmail.com), 2026-10-16.
 **Outcome:** complete, with one item unresolved by instruction — prevention (§19).
@@ -1299,3 +1301,14 @@ no allowlist entry was added and no protection was bypassed to move this record 
 > all 19 checks on that head passed, including both audit checks (run `39047833494`).
 > The preceding paragraph records the earlier failure. Any later fix commit requires
 > a fresh check of CI on its own head before merge.
+
+
+## 2026-11-10 — Campaign closure
+
+Recorded during documentation reconciliation on 2026-11-15 from [PR #669](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/669), merged as `04816d8d8d6ee576ae3f2738468e29d8078fa293`. This records the existing owner decision; it grants no new operation or deletion approval.
+
+The 2026 worktree cleanup campaign, including Operation A and the later planned operations, is closed. Its retention hold, operation order and PREVENTION_COMPLETE acceptance impose no current obligation. Operations E, F and G, the cleanup amendment's further campaign work, and the recovery plans are not pursued. The amendment's documentation design had already been published in [PR #659](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/659), merge `e140b0393a7d8fe25390846975932efec00071d4`; publication did not execute F or G.
+
+The unperformed Operation A acceptance captures, reviewer findings M3/M4/L1 and the items waived in §11 are waived, not passing results. PREVENTION_COMPLETE was never declared and is no longer pursued. Completed historical tests and acceptance observations retain their original scope.
+
+The standing rule and accepted limits live in [Parallel Workflow](../ai_workflow/PARALLEL_WORKFLOW.md#completion-and-retained-worktrees). The campaign's snapshot hold has ended and normal application auto-backup rotation applies. Retained cleanup backups, recovery archives and evidence remain outside rotation; retirement requires path-specific owner approval and verified preservation. Existing retained refs and the earlier ledgers remain historical records; this note neither inventories them afresh nor authorizes disposal.

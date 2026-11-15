@@ -21,11 +21,11 @@ It is descriptive and carries no task status; current public tracking is in GitH
 - **[ACTIVE_DEVELOPMENT.md](ACTIVE_DEVELOPMENT.md)** - Fatigue calibration guardrails and agent authority rules; earlier objectives and status blocks archived
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and recent work
 - **[DECISIONS.md](DECISIONS.md)** - Durable project decisions and lightweight ADRs
-- **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Current architecture debt snapshot
+- **[CLAUDE_MD_AUDIT.md](CLAUDE_MD_AUDIT.md)** - Architecture-debt audit snapshot; check its "Last validated" date and re-verify a finding before relying on it
 - **[LEFTOVERS_BY_PRIORITY.md](LEFTOVERS_BY_PRIORITY.md)** - Historical prioritization and retained evidence; current public tracking is in GitHub
 - **[OPEN_WORK_EXECUTION_PLAN.md](OPEN_WORK_EXECUTION_PLAN.md)** - Retained sequencing, decision gates and closed/parked boundaries, with links to current GitHub tracking
 - **[ai_workflow/INDEX.md](ai_workflow/INDEX.md)** - AI workflow navigation spine
-- **[ai_workflow/DOC_RETENTION.md](ai_workflow/DOC_RETENTION.md)** - Rules for keeping, archiving, or deleting docs
+- **[ai_workflow/DOC_RETENTION.md](ai_workflow/DOC_RETENTION.md)** - Rules for keeping, archiving, retiring, or deleting docs
 
 Documentation cutover is tracked in [#595](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/595),
 with index/status corrections in [#577](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/577)
@@ -51,25 +51,32 @@ Proposed entries do not authorize implementation. The archive container is index
 
 - [agent_roles/](agent_roles/) — role rollout; Phase 6 default-manager activation remains conditional
 - [ai_workflow/](ai_workflow/) — current workflow rules and navigation
+- [app_factory/](app_factory/) — WS3 application factory, shipped in #545; its Gate 2 record and follow-ups are tracked in #593
 - [backup_confirmation_continuity/](backup_confirmation_continuity/) — shipped U2; residual-risk and status records require reconciliation
-- [backup_export_execution_fields/](backup_export_execution_fields/) — #567/#568 requirements brief (Gate 0 signed) and council-reviewed Plan v2; Gate 1 signed 14 November 2026, PR 1 and PR 2 authorized for implementation
+- [backup_export_execution_fields/](backup_export_execution_fields/) — #567/#568 requirements brief, council-reviewed plan and implementation evidence; current status in #567 and #568
+- [ci_cd_expansion/](ci_cd_expansion/) — CI/CD expansion plan, settings-activation records and the machine-read B1 action inventory
 - [ci_cd_phase3/](ci_cd_phase3/) — pinned Pyright baseline used by CI
 - [deep_gate_linux_visual_failure_20260831/](deep_gate_linux_visual_failure_20260831/) — completed Gate-1 diagnostic; further action awaits an owner decision
 - [finding1_residual/](finding1_residual/) — shipped D7; residual poisoned-row behavior still needs a current reference
 - [issue565_socket_allocation/](issue565_socket_allocation/) — #565 diagnosis, Gate 1 requirements and evidence for the ADR-014 static replay
 - [ki005_controls_persistence/](ki005_controls_persistence/) — shipped KI-005; retains the held Stage 4 restoration baseline
 - [product/](product/) — always-active reference for shipped behavior, schema, and design
+- [project_direction/](project_direction/) — agreed project direction, owner decisions and workstream sequencing
+- [r23_js_unit_promotion/](r23_js_unit_promotion/) — JS-unit Q4/D2 decision record
 - [release_pipeline/](release_pipeline/) — shipped pipeline and remaining release/deep-gate entry conditions
+- [service_extraction/](service_extraction/) — WS4 service extraction; slice 1 shipped in #556
 - [test_inventory/](test_inventory/) — generated test inventory checked by CI
 - [testing_d4_invariants/](testing_d4_invariants/) — ADR-009 property-invariant scope and deferred Packet C
 - [testing_phase2/](testing_phase2/) — completed Phase 2 plan plus current, test-pinned accessibility exceptions
 - [testing_phase3/](testing_phase3/) — testing plans and the live JS-unit observation ledger
-- [toast_action_continuity/](toast_action_continuity/) — shipped U3b; retains the amended U1 follow-up condition
+- [toast_action_continuity/](toast_action_continuity/) — shipped U3b; its amended U1 follow-up condition was discharged when #553 closed U1-FOLLOWUP-1
 - [visual_determinism/](visual_determinism/) — terminal visual contract and accepted residual under ADR-011
-- [volume_failure_feedback/](volume_failure_feedback/) — shipped U1; U1-FOLLOWUP-1 remains open under its recorded conditions
-- [worktree_cleanup/](worktree_cleanup/) — committed workflow and preservation records; separate owner approvals govern further operations
+- [volume_failure_feedback/](volume_failure_feedback/) — shipped U1; U1-FOLLOWUP-1 closed by #553; retained evidence supports the separate JS-unit qualification work (#582/#592)
 
 ### Closed (history)
+
+- [worktree_cleanup/](worktree_cleanup/) — campaign closed by owner decision on 2026-11-10 (#669); historical approvals and preservation evidence retained
+- [worktree_cleanup_amendment/](worktree_cleanup_amendment/) — documentation design published in #659; further campaign operations discontinued by #669
 
 - [backup_schema_version/](backup_schema_version/) — closed D6 investigation; ADR-008 records the outcome
 - [css_phase4_wp4_4/](css_phase4_wp4_4/) — completed WP4.4 arc and handoff history
@@ -81,12 +88,14 @@ Proposed entries do not authorize implementation. The archive container is index
 - [doc_truth/](doc_truth/) — shipped documentation-truth repairs
 - [fatigue_meter/](fatigue_meter/) — shipped meter and heatmap; Stage 4 closed, with calibration contracts and evidence retained
 - [local_first_assets/](local_first_assets/) — shipped local asset work
+- [msys_destination_validation/](msys_destination_validation/) — guard destination validation and drive-root monitor, merged in #654; delegated acceptance and coverage limits in its closeout
 - [p1_4_debug_scaffolding/](p1_4_debug_scaffolding/) — completed debug-scaffolding work
 - [pyright_filter_predicates/](pyright_filter_predicates/) — closed Pyright burn-down record
 - [pyright_volume_progress/](pyright_volume_progress/) — closed Pyright burn-down record
 - [quality_gate_routing/](quality_gate_routing/) — shipped quality-gate routing work
 - [scan/](scan/) — completed grounding-scan evidence
 - [toast_type_word_collision/](toast_type_word_collision/) — shipped KI-010; retains code and test references
+- [u1_followup_1_vitest/](u1_followup_1_vitest/) — U1-FOLLOWUP-1 Vitest coverage: implementation #551, closeout #553
 - [user_profile/](user_profile/) — shipped profile; design and estimator/calibration references remain current
 - [visual_baseline_win32/](visual_baseline_win32/) — superseded Windows-baseline recovery evidence
 - [workout_cool_integration/](workout_cool_integration/) — shipped integration; media rules, provenance, and video reference remain current
@@ -109,6 +118,12 @@ These files are historical reference only. They should not be treated as active 
 - **[archive/workout_cool_integration/checkpoint3_coverage.md](archive/workout_cool_integration/checkpoint3_coverage.md)** - Completed free-exercise-db mapper coverage baseline (pre-curation snapshot).
 
 ## Removed From Active Docs
+
+Two superseded guides were retired to Git history on 2026-11-11 by #670:
+[`FILTER_VIEW_MODE.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/FILTER_VIEW_MODE.md)
+and [`program_backups.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/04816d8d8d6ee576ae3f2738468e29d8078fa293/docs/program_backups.md),
+linked at `04816d8d`, the last commit containing both. Their accurate content lives in
+[`product/APP_FLOW.md`](product/APP_FLOW.md) (*Muscle naming mode*, *Backup Center*, *Startup snapshot*).
 
 The old Backup Center hardening plan, Calm Glass redesign plan/audit/mockup, seed-fix plan, and spring-cleanup Phase 4/5 execution plans were completed and superseded by the current source, changelog, CSS map, and Backup Center docs.
 

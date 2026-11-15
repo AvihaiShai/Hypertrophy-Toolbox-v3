@@ -154,7 +154,7 @@
       {
         "in_required_functional_set": false,
         "spec": "program-backup.spec.ts",
-        "tests": 35
+        "tests": 36
       },
       {
         "in_required_functional_set": true,
@@ -238,11 +238,11 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 701
+    "total_tests": 702
   },
   "pytest": {
-    "collected_deterministic": 4299,
-    "deterministic_files": 140,
+    "collected_deterministic": 4458,
+    "deterministic_files": 142,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -265,6 +265,10 @@
       {
         "file": "tests/test_axe_contracts.py",
         "tests": 8
+      },
+      {
+        "file": "tests/test_backup_execution_contract.py",
+        "tests": 100
       },
       {
         "file": "tests/test_body_composition_history_busy_signal_contracts.py",
@@ -604,11 +608,15 @@
       },
       {
         "file": "tests/test_program_backup.py",
-        "tests": 41
+        "tests": 45
+      },
+      {
+        "file": "tests/test_program_backup_execution_fields.py",
+        "tests": 17
       },
       {
         "file": "tests/test_program_backup_restore_fuzz.py",
-        "tests": 15
+        "tests": 53
       },
       {
         "file": "tests/test_progression_plan_routes.py",
@@ -815,7 +823,7 @@
         "tests": 41
       }
     ],
-    "total_files": 141
+    "total_files": 143
   },
   "schema_version": 2,
   "vitest": {
