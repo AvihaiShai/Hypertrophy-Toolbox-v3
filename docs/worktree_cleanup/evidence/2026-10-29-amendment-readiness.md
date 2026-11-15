@@ -43,7 +43,7 @@ This addendum neither reopens completed operations nor declares
 
 ## Amendment approval state
 
-The amendment's [council artifact](../../worktree_cleanup_amendment/PLANNING.md)
+The amendment's [council artifact](../../archive/2026/worktree-plans/drive-root-amendment/PLANNING.md)
 records the owner's September 28 Gate 0 signature, the completed September council,
 and the proposed readiness refresh. Gate 1 has not been given at this addendum's
 drafting. Publication and implementation require the owner's Gate 1 decision.

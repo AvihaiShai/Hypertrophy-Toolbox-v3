@@ -146,7 +146,8 @@ product-risk-reviewer.
 Each later semantic amendment to this design records its own Gate 0 and Gate 1 in its
 own council artifact rather than in the artifact named above, which is the Operation A
 council artifact. The amendment that added Section 14 records its gates in
-docs/worktree_cleanup_amendment/PLANNING.md.
+docs/worktree_cleanup_amendment/PLANNING.md, archived on 2026-11-15 at
+docs/archive/2026/worktree-plans/drive-root-amendment/PLANNING.md.
 
 The first Gate 1 implementation decision is for Operation A only. Sections B-G retain
 their safety contracts and dependencies, but their production launchers and

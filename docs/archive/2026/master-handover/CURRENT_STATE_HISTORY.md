@@ -148,7 +148,7 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`deep_gate_linux_visual_failure_20260831/`](../../../deep_gate_linux_visual_failure_20260831/GATE1.md): option C landed as #548; scheduled-compare evidence is pending (queue §0.2).
 - [`visual_determinism/`](../../../visual_determinism/PLANNING.md): the ADR-011 residual.
 - [`service_extraction/`](../../../service_extraction/PLANNING.md): WS4 handlers after slice 1, each with its own gates.
-- [`worktree_cleanup/`](../../../worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
+- [`worktree_cleanup/`](../worktree-plans/operation-a/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
 - [`ci_cd_expansion/`](../../../ci_cd_expansion/PLANNING.md): post-split scheduled qualification; settings C1b/C1c, C2, C3 and C4; B4, D1 and F1/F3 unstarted.
 
 The full list is [`README.md`](../../../README.md) *Feature folders → Active*.
@@ -283,7 +283,7 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`visual_determinism/`](../../../visual_determinism/PLANNING.md): the ADR-011 residual.
 - [`volume_failure_feedback/`](../../../volume_failure_feedback/PLANNING.md): U1-FOLLOWUP-1.
 - [`toast_action_continuity/`](../../../toast_action_continuity/PLANNING.md): U1-FOLLOWUP-1's amended condition.
-- [`worktree_cleanup/`](../../../worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
+- [`worktree_cleanup/`](../worktree-plans/operation-a/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
 - [`ci_cd_expansion/`](../../../ci_cd_expansion/PLANNING.md): Post-split scheduled qualification; later packets remain unstarted.
 
 The full list is [`README.md`](../../../README.md) *Feature folders → Active*.
@@ -424,7 +424,7 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`visual_determinism/`](../../../visual_determinism/PLANNING.md): the ADR-011 residual.
 - [`volume_failure_feedback/`](../../../volume_failure_feedback/PLANNING.md): U1-FOLLOWUP-1.
 - [`toast_action_continuity/`](../../../toast_action_continuity/PLANNING.md): U1-FOLLOWUP-1's amended condition.
-- [`worktree_cleanup/`](../../../worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
+- [`worktree_cleanup/`](../worktree-plans/operation-a/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
 - [`ci_cd_expansion/`](../../../ci_cd_expansion/PLANNING.md): packets after A1.
 
 The full list is [`README.md`](../../../README.md) *Feature folders → Active*.
@@ -609,7 +609,7 @@ listed below and have not yet been folded into it.
 - [`visual_determinism/`](../../../visual_determinism/PLANNING.md): the ADR-011 residual.
 - [`volume_failure_feedback/`](../../../volume_failure_feedback/PLANNING.md): U1-FOLLOWUP-1.
 - [`toast_action_continuity/`](../../../toast_action_continuity/PLANNING.md): U1-FOLLOWUP-1's amended condition.
-- [`worktree_cleanup/`](../../../worktree_cleanup/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
+- [`worktree_cleanup/`](../worktree-plans/operation-a/PLANNING.md): Operation A ([`CLOSEOUT.md`](../../../worktree_cleanup/CLOSEOUT.md) §19–§20).
 - [`ci_cd_expansion/`](../../../ci_cd_expansion/PLANNING.md): packets after B1.
 
 The full list is [`README.md`](../../../README.md) *Feature folders → Active*.
@@ -632,7 +632,7 @@ above, or on its own Gate 0/1 sign-off.
 > Source/tests are staged locally; no new commit, publication, merge or deployment
 > occurred. #484/#485 and their saved CI remain completed historical packets.
 >
-> The [planning continuation](../../../worktree_cleanup/PLANNING.md) records actual review
+> The [planning continuation](../worktree-plans/operation-a/PLANNING.md) records actual review
 > provenance, findings and owner decisions. The
 > [exact review/deployment proposal](../../../../artifacts/operation-a-source-integration-20260908/REVIEW_AND_DEPLOYMENT_PROPOSAL.md)
 > binds all **93** external target preimages; any drift stops the entire proposed
@@ -660,7 +660,7 @@ above, or on its own Gate 0/1 sign-off.
 > the retained new child missing from the disposable fixture's old baseline.
 > This satisfies disposable interactive Windows acceptance only. Its pre-capture
 > `PENDING` raw receipt remains unchanged as historical evidence.
-> See [the current planning continuation](../../../worktree_cleanup/PLANNING.md) for the
+> See [the current planning continuation](../worktree-plans/operation-a/PLANNING.md) for the
 > acceptance hashes and integration evidence. The reviewed bootstrap packet is
 > preserved locally; Operation A is integrated on a separate branch over freshly
 > verified upstream main `0f1ac2e`. Fresh checks passed: **516** guard/workflow tests,
@@ -768,7 +768,7 @@ above, or on its own Gate 0/1 sign-off.
 > It does not change module paths or persistent settings. The diagnostic is not
 > acceptance of the corrected creator: a fresh owner-run creation and actual new-
 > terminal observation remain pending. Earlier terminal-fix evidence is historical;
-> see the [planning continuation](../../../worktree_cleanup/PLANNING.md) for new evidence.
+> see the [planning continuation](../worktree-plans/operation-a/PLANNING.md) for new evidence.
 > Publication, installation, monitoring and PREVENTION_COMPLETE remain pending.
 
 > **2026-09-05 — OPERATION A TERMINAL ACCEPTANCE REPAIR; OWNER RETRY PENDING.**
@@ -780,7 +780,7 @@ above, or on its own Gate 0/1 sign-off.
 > requires the owner's retry; automated payload checks do not attest the UI.
 > The original 27-file implementation diff/receipt below is historical after this
 > correction. Updated evidence belongs in the separate terminal-fix receipt and
-> the [planning continuation](../../../worktree_cleanup/PLANNING.md); publication commands
+> the [planning continuation](../worktree-plans/operation-a/PLANNING.md); publication commands
 > pinned to the original digest remain stale. PREVENTION_COMPLETE remains pending.
 
 > **2026-09-05 — OPERATION A IMPLEMENTED; OWNER REVIEW AND INSTALLATION PENDING.**
@@ -801,7 +801,7 @@ above, or on its own Gate 0/1 sign-off.
 > CLI execution and unslop findings are resolved; these are repository evidence,
 > not owner installation or live lifecycle attestations.
 >
-> See [the signed planning record](../../../worktree_cleanup/PLANNING.md) for final inventory/
+> See [the signed planning record](../worktree-plans/operation-a/PLANNING.md) for final inventory/
 > preservation receipts and [owner acceptance instructions](../../../worktree_cleanup/OPERATION_A_OWNER_ACCEPTANCE.md)
 > for exact proposed deltas, baseline/lifecycle choices and disposable Windows
 > acceptance. **PREVENTION_COMPLETE is not declared:** merge, owner installation,
@@ -809,7 +809,7 @@ above, or on its own Gate 0/1 sign-off.
 
 > **2026-09-05 — WORKTREE CLEANUP: OPERATION A PLAN V2 READY FOR GATE 1.**
 > Gate 0 requirements are signed (2026-09-05). The canonical packet is
-> [`worktree_cleanup/PLANNING.md`](../../../worktree_cleanup/PLANNING.md); its technical design
+> [`worktree_cleanup/PLANNING.md`](../worktree-plans/operation-a/PLANNING.md); its technical design
 > is [`ai_workflow/WORKTREE_CLEANUP_PLAN.md`](../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md).
 > Gate 1 owner approval for Operation A is pending. This planning lane authorizes
 > no implementation, user-level settings changes, or Operations B–E.

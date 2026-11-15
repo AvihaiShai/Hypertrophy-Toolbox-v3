@@ -1,7 +1,7 @@
 # Operation A owner review and Windows acceptance
 
 Status, 2026-09-05: disposable interactive Windows acceptance **PASSED**, as verified
-in the [planning continuation](PLANNING.md#2026-09-05--verified-interactive-acceptance-and-local-integration-continuation).
+in the [planning continuation](../archive/2026/worktree-plans/operation-a/PLANNING.md#2026-09-05--verified-interactive-acceptance-and-local-integration-continuation).
 The procedure below remains available for future reruns. External installation,
 publication, merge and active lifecycle monitoring remain unverified. Gate 1 and
 the bounded local integration authorization do not complete Gate A;

@@ -1,15 +1,17 @@
 # Plan Review — Worktree cleanup: drive-root children outside Operations B and C
 
-> **Publication and closure correction, recorded 2026-11-15.** The amendment's documentation design was published through [PR #659](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/659), merge `e140b0393a7d8fe25390846975932efec00071d4`. The owner later closed the campaign on 2026-11-10 through [PR #669](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/669), discontinuing further F/G and amendment campaign work. The final entry's pending-publication statement is historical. Design publication did not execute F or G. Signed decisions and review text below are preserved; the [closeout note](../worktree_cleanup/CLOSEOUT.md#2026-11-10--campaign-closure) governs the campaign disposition.
+> **Archived 2026-11-15 ([#688](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/688)).** Moved from `docs/worktree_cleanup_amendment/PLANNING.md`. Relative links were repointed for this location; the text is otherwise unchanged, so path statements below describe the original location.
 
-*Artifact created from [`docs/ai_workflow/PLAN_REVIEW_TEMPLATE.md`](../ai_workflow/PLAN_REVIEW_TEMPLATE.md).
-Source packet: [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](../worktree_cleanup/AMENDMENT_2026-09-28.md).*
+> **Publication and closure correction, recorded 2026-11-15.** The amendment's documentation design was published through [PR #659](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/659), merge `e140b0393a7d8fe25390846975932efec00071d4`. The owner later closed the campaign on 2026-11-10 through [PR #669](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/669), discontinuing further F/G and amendment campaign work. The final entry's pending-publication statement is historical. Design publication did not execute F or G. Signed decisions and review text below are preserved; the [closeout note](../../../../worktree_cleanup/CLOSEOUT.md#2026-11-10--campaign-closure) governs the campaign disposition.
+
+*Artifact created from [`docs/ai_workflow/PLAN_REVIEW_TEMPLATE.md`](../../../../ai_workflow/PLAN_REVIEW_TEMPLATE.md).
+Source packet: [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](../../../../worktree_cleanup/AMENDMENT_2026-09-28.md).*
 
 **Landing-path note.** This artifact is deliberately at
 `docs/worktree_cleanup_amendment/PLANNING.md`, outside two hazards:
 
 - `docs/ai_workflow/` is one of the non-recursively globbed directories in the
-  parametrized test-inventory surface ([QUALITY_GATE.md](../ai_workflow/QUALITY_GATE.md),
+  parametrized test-inventory surface ([QUALITY_GATE.md](../../../../ai_workflow/QUALITY_GATE.md),
   "What trips `Test Inventory Drift`"). *Adding* a file there moves an inventory node and
   reds the required `Test Inventory Drift` check. *Editing* a file already tracked there
   does not.
@@ -73,7 +75,7 @@ no existing approval.
 
 ### Problem
 
-The current technical design — [`docs/ai_workflow/WORKTREE_CLEANUP_PLAN.md`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md)
+The current technical design — [`docs/ai_workflow/WORKTREE_CLEANUP_PLAN.md`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md)
 — has no defined outcome for a drive-root directory that is neither one of Operation B's
 two named malformed roots (`D:\c`, `D:\d`) nor inside Operation C's owner-approved
 `D:\development` source scope. Two such directories were observed on 2026-09-28,
@@ -157,7 +159,7 @@ Consequences, all resolved by drafting judgment rather than owner decision:
 
 ### Why a new Gate 0 is required
 
-Classification under [QUALITY_GATE.md](../ai_workflow/QUALITY_GATE.md):
+Classification under [QUALITY_GATE.md](../../../../ai_workflow/QUALITY_GATE.md):
 
 | Axis | Result |
 |---|---|
@@ -313,7 +315,7 @@ answer the owner gives to the blocking questions below, and none of them presume
     the **2026-09-07 merge date is not introduced into the design or `INDEX.md`**; those
     surfaces state the merged-source *status* as a stable fact and nothing more, and the
     date itself lives in
-    [`evidence/2026-09-28-state.md`](../worktree_cleanup/evidence/2026-09-28-state.md).
+    [`evidence/2026-09-28-state.md`](../../../../worktree_cleanup/evidence/2026-09-28-state.md).
     The exclusion does **not** extend to the gate-approval signature dates the design
     already carries in §12 (*"signed 2026-09-05"*): a durable owner approval record is not
     live evidence, §1.1's enumeration does not list it, and §4.3 requires an approval to
@@ -1828,7 +1830,7 @@ Fix: cite §5.4 without renaming its conditions — e.g. *"Section 5.4's outstan
 **20. Hunk 5 rewrites the approval-state paragraph for accuracy while leaving its approval citation pointing at a path whose resolved lineage does not carry the sign-off it claims**
 Severity: **significant**
 Location: Plan v1 lines 1419–1425 (evidence gap 6); base lines 6–7.
-Base lines 6–7 read *"Gate 0 and Operation A Plan v2 Gate 1 are signed; the dated [planning record](../worktree_cleanup/PLANNING.md) records the approved implementation and verified disposable interactive Windows acceptance."* Plan v1 correctly identifies (and deserves credit for flagging rather than silently fixing) that this relative link resolves to a lineage that does **not** carry the owner's 2026-09-05 Gate 1 sign-off. But Hunk 5 is the hunk whose stated purpose is making the approval-state paragraph accurate, and it leaves the paragraph asserting an approval fact anchored to a citation that does not carry it. Acceptance criterion 2 requires every permissive clause to be anchored to a dated owner approval record; this one is anchored to an ambiguous one.
+Base lines 6–7 read *"Gate 0 and Operation A Plan v2 Gate 1 are signed; the dated [planning record](../operation-a/PLANNING.md) records the approved implementation and verified disposable interactive Windows acceptance."* Plan v1 correctly identifies (and deserves credit for flagging rather than silently fixing) that this relative link resolves to a lineage that does **not** carry the owner's 2026-09-05 Gate 1 sign-off. But Hunk 5 is the hunk whose stated purpose is making the approval-state paragraph accurate, and it leaves the paragraph asserting an approval fact anchored to a citation that does not carry it. Acceptance criterion 2 requires every permissive clause to be anchored to a dated owner approval record; this one is anchored to an ambiguous one.
 Fix: within Hunk 5, either drop the *"the dated [planning record] records…"* clause (the approval facts are stated directly in the same sentence and do not need it) or replace it with a lineage-neutral phrase such as *"the approved planning record"* with no link, and record the link repair as the separate out-of-scope decision it is. Do not leave it as an evidence gap only.
 
 **21. `ADDITIONAL_SOURCE_PRESERVED` is parameterized inconsistently, and Operation F's restore gate has no name although the design names gates per operation**
@@ -3328,14 +3330,14 @@ it, and annotating a box is not checking it.
 
 ## See also
 
-- [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](../worktree_cleanup/AMENDMENT_2026-09-28.md) — the draft amendment packet (source).
-- [`docs/worktree_cleanup/evidence/2026-09-28-state.md`](../worktree_cleanup/evidence/2026-09-28-state.md) — dated state evidence; the home for every dated count, timestamp, and the backup-disappearance window.
-- [`docs/ai_workflow/WORKTREE_CLEANUP_PLAN.md`](../ai_workflow/WORKTREE_CLEANUP_PLAN.md) — the current technical design being amended. The `origin/main` tracked copy is the amendment base.
-- [`docs/ai_workflow/INDEX.md`](../ai_workflow/INDEX.md) — carries the stale *"Gate 1 … pending"* description corrected by this packet.
-- [`docs/WORKTREE_CLEANUP_PLAN.md`](../WORKTREE_CLEANUP_PLAN.md) — the **other**, older document: the closed August P1.2 campaign record. It does not control the present machine; do not conflate the two.
-- [`docs/ai_workflow/QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md) — plan-stage routing and change-type gates.
-- [`docs/ai_workflow/PLAN_REVIEW_TEMPLATE.md`](../ai_workflow/PLAN_REVIEW_TEMPLATE.md) — the artifact shell.
-- [`.claude/commands/council-plan.md`](../../.claude/commands/council-plan.md) — how the council runs, once Gate 0 is signed.
+- [`docs/worktree_cleanup/AMENDMENT_2026-09-28.md`](../../../../worktree_cleanup/AMENDMENT_2026-09-28.md) — the draft amendment packet (source).
+- [`docs/worktree_cleanup/evidence/2026-09-28-state.md`](../../../../worktree_cleanup/evidence/2026-09-28-state.md) — dated state evidence; the home for every dated count, timestamp, and the backup-disappearance window.
+- [`docs/ai_workflow/WORKTREE_CLEANUP_PLAN.md`](../../../../ai_workflow/WORKTREE_CLEANUP_PLAN.md) — the current technical design being amended. The `origin/main` tracked copy is the amendment base.
+- [`docs/ai_workflow/INDEX.md`](../../../../ai_workflow/INDEX.md) — carries the stale *"Gate 1 … pending"* description corrected by this packet.
+- [`docs/WORKTREE_CLEANUP_PLAN.md`](../p1_2/PLANNING.md) — the **other**, older document: the closed August P1.2 campaign record. It does not control the present machine; do not conflate the two.
+- [`docs/ai_workflow/QUALITY_GATE.md`](../../../../ai_workflow/QUALITY_GATE.md) — plan-stage routing and change-type gates.
+- [`docs/ai_workflow/PLAN_REVIEW_TEMPLATE.md`](../../../../ai_workflow/PLAN_REVIEW_TEMPLATE.md) — the artifact shell.
+- [`.claude/commands/council-plan.md`](../../../../../.claude/commands/council-plan.md) — how the council runs, once Gate 0 is signed.
 
 ---
 
