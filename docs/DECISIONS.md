@@ -255,6 +255,8 @@ New cross-cutting or durable project decisions should be added here as lightweig
   - Known residual: the plan page's validator and its options endpoint are two copies inside one route. The tripwire probes the styles the contract accepts and one unlisted style, so a style added to the validator but not to the options payload is not detected. Moving the literals to `utils/constants.py` would close that. The owner chose not to edit a core plan-page route for it.
   - ADR-008 is unchanged: restore stays version-blind, and schema version 2 is the first bump under its rule.
 
+- **Owner clarification, 2026-11-15**: The refusal's count is the number of offending backup rows, held in the exception's internal `row_count`; `error.rows` still has one entry per problem. A timing field that the style does not use receives the "not used by the style" explanation before whole-number validation. Binary routine names are displayed as `<binary, N bytes>`, including empty blobs, while ordinary text names remain complete. These display rules do not change stored values, restore acceptance, or the 40-character limit for displayed execution-field values.
+
 ### ADR-NNN: <title>
 - **Date**: YYYY-MM-DD
 - **Status**: proposed | accepted | superseded by ADR-MMM

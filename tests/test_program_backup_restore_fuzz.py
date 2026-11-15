@@ -1512,6 +1512,44 @@ def test_refusal_message_is_pinned_exactly_for_several_rows(
     assert error["rows"] == expected_rows
 
 
+@pytest.mark.parametrize(
+    ("stored_routine", "displayed_routine"),
+    [
+        (b"\x00\xff" * 512, "<binary, 1024 bytes>"),
+        (b"", "<binary, 0 bytes>"),
+        ("Long routine name — " * 8, "Long routine name — " * 8),
+    ],
+    ids=["binary", "empty_binary", "full_text"],
+)
+def test_refusal_summarizes_binary_routine_names_and_preserves_text(
+    client,
+    clean_db,
+    exercise_factory,
+    workout_plan_factory,
+    workout_log_factory,
+    stored_routine,
+    displayed_routine,
+):
+    exercise_name = exercise_factory("Fuzz Routine Display", primary_muscle_group="Chest")
+    updates, expected_typeof = _execution_updates(("tabata", None, None, None))
+    updates["routine"] = stored_routine
+    expected_typeof["routine"] = _STORAGE_CLASS[type(stored_routine)]
+    backup_id = _seed_tampered_backup(workout_plan_factory, exercise_name, updates, expected_typeof)
+    _seed_current_plan_and_log(exercise_factory, workout_plan_factory, workout_log_factory)
+
+    expected_row = _refused_row(
+        exercise_name,
+        "execution_style",
+        "tabata",
+        'execution style "tabata" is not recognized',
+    )
+    expected_row["routine"] = displayed_routine
+    error = _assert_restore_refused(client, backup_id, [expected_row])
+
+    assert error["rows"][0]["routine"] == displayed_routine
+    assert error["message"].count(f"{displayed_routine} / {exercise_name}:") == 1
+
+
 def test_unrecognized_style_is_the_only_problem_reported_for_its_row(
     client,
     clean_db,

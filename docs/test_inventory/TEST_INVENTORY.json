@@ -241,7 +241,7 @@
     "total_tests": 702
   },
   "pytest": {
-    "collected_deterministic": 4455,
+    "collected_deterministic": 4458,
     "deterministic_files": 142,
     "environment_dependent_files": [
       {
@@ -616,7 +616,7 @@
       },
       {
         "file": "tests/test_program_backup_restore_fuzz.py",
-        "tests": 50
+        "tests": 53
       },
       {
         "file": "tests/test_progression_plan_routes.py",

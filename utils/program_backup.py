@@ -17,7 +17,7 @@ import sqlite3
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set
 
-from utils.backup_execution_contract import MISSING_STYLE, check_execution_fields
+from utils.backup_execution_contract import MISSING_STYLE, check_execution_fields, render_value
 from utils.database import DatabaseHandler
 from utils.logger import get_logger
 from utils.workout_validation import validate_workout_bounds
@@ -583,9 +583,11 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
             problems = check_execution_fields(item)
             if problems:
                 refused_row_count += 1
+                routine = item.get('routine')
+                routine_name = render_value(routine) if isinstance(routine, bytes) else str(routine)
                 for problem in problems:
                     refused_rows.append({
-                        'routine': str(item.get('routine')),
+                        'routine': routine_name,
                         'exercise': str(exercise_name),
                         **problem,
                     })

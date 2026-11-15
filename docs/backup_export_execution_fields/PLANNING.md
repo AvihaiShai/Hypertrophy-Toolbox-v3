@@ -1241,3 +1241,83 @@ evidence and the docs-retirement branch were preserved.
 
 The visual gate also needs resolution through its own evidence/approval boundary;
 the failed partition is not converted to a pass by successful functional tests or CI.
+
+## Owner decisions applied — 15 November 2026
+
+The owner answered the three questions directly after the Codex continuation above:
+
+- **Count backup rows**, with the exception's internal `row_count` separate from
+  the per-problem `error.rows`. The implementation and existing row-count tests
+  already follow this rule.
+- **Explain wrong style first** when a timing field is unused by the row's style,
+  even when its value also is not a whole number. Existing tests pin this order;
+  it changes neither refusal nor preservation of the current plan/log.
+- **Summarize binary routine names** as `<binary, N bytes>` and preserve complete
+  ordinary text names. The implementation now calls the existing `render_value`
+  only for byte-valued routine names. Execution-field value rendering and its
+  40-character limit are unchanged; backup data is never rewritten.
+
+These answers supersede the pending-decision statements in the retained closeout
+history. ADR-015 records them. A three-case route regression covers a 1,024-byte
+name, an empty blob and a text name longer than 40 characters. The two binary
+cases failed before the fix, while text already passed; the four backup test
+modules then passed **215 tests** with the fix. The tests also assert that the
+plan, log and backup tables, including ids and stored binary data, are unchanged
+on refusal. Final validation and diff-review results follow below when complete.
+
+The owner selected **preparing #674 for baseline review first**, then directly
+accepted all four Windows/Linux mobile/tablet candidate baselines at head
+`9392a76a58237438ad52c0b8dfef41c9d2a272d3`: "Accept all four candidate baselines;
+no merge." Its exact-head CI has 34 successful checks and it is now ready for
+review. No baseline was regenerated and no merge is authorized. #686 remains
+draft pending its own gates; #674 has not been incorporated into this branch.
+
+**Approved-decision validation.** All four required reviewers returned scoped PASS
+for this delta, carrying their earlier reviews forward for unchanged surfaces.
+The new real-UI smoke verified the binary marker in the actual HTTP 400 and toast,
+the toast still visible after five seconds, and identical before/after plan, log
+and both backup tables with a nonempty log. Its server's private database identity
+was verified through a unique fixture marker before any HTTP mutation. Chromium
+also loaded all twelve review images and verified synchronized panel scrolling.
+The initial smoke attempt stopped before browser work because the OS listener
+lookup returned no entry; it is retained separately. A later smoke passed, but
+another session's three-file pytest run was then discovered; the smoke was repeated
+after that process exited and passed again. No exclusive-host claim is made for
+the overlapping attempt. Evidence is in `approved-decisions/` beneath the existing
+Codex evidence folder.
+
+The first fresh full pytest invocation used eight workers and finished **6,690
+passed, 14 failed, 3 skipped**. Its source/branch hashes were stable. Twelve failed
+shell checks selected `C:\WINDOWS\system32\bash.EXE`, which reported that WSL has
+no distribution, instead of the installed Git Bash. One config check failed because
+the diagnostic runner forced `DB_FILE` while the test reloaded the default runtime
+path. One synthetic worktree-fixture subprocess timed out at its unchanged 40 s
+limit. All fourteen cases then passed serially in **4.63 s** with Git Bash first in
+the child process's PATH, no forced `DB_FILE` (the runtime still private), and a
+shorter scratch path. The original full invocation remains failed; the focused
+pass does not convert it to green or establish the timeout's cause. No application,
+workflow, guard or test assertion was changed to address these runner conditions.
+The corrected full invocation uses four workers with `--dist loadfile`; its result
+is recorded separately when complete. The runner now checks for foreign test work
+before starting and during the run and invalidates only its own run if it appears.
+
+**Subsequent runner results and #674 merge.** The next corrected invocation was
+stopped when a foreign test workload appeared; it is incomplete, not green. A
+config-module diagnostic then found that the private runtime also needed its
+`data/` directory precreated. With that setup, the full config module plus the
+other earlier failing cases passed (33 tests). The subsequent full invocation
+(`pytest-20261114T234328Z`) ended with **6,587 passed, 1 failed, 3 skipped** under
+`-x`; source and branch stayed stable and the workload monitor saw no competing
+test runner. The failure was `test_real_app_client_lands_on_its_scratch_database`:
+the scratch runner's `--basetemp` basename was `p567-...`, while that isolation
+assertion requires a path component starting with `pytest-`. Renaming only the
+scratch path to `pytest-567-...` let the unchanged isolation module pass all ten
+tests. The failed invocation is retained and is not a full-suite pass.
+
+After baseline acceptance the owner separately authorized squash-merging **#674
+only at `9392a76a58237438ad52c0b8dfef41c9d2a272d3`**, conditional on an unchanged
+head. The head remained exact, all 34 checks passed, and merge state was clean.
+It merged as `4afe8ec774d20f7feabf576761dfa37f1a86d7f9` without changing this
+checkout during pytest. This supersedes the earlier baseline-only/no-merge status
+for #674. No additional PNG was regenerated. #686 remains draft and is explicitly
+not authorized for merge. Integration and combined-source gates follow separately.
