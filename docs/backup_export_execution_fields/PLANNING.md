@@ -1321,3 +1321,41 @@ It merged as `4afe8ec774d20f7feabf576761dfa37f1a86d7f9` without changing this
 checkout during pytest. This supersedes the earlier baseline-only/no-merge status
 for #674. No additional PNG was regenerated. #686 remains draft and is explicitly
 not authorized for merge. Integration and combined-source gates follow separately.
+
+## Combined-source local closeout — 15 November 2026
+
+Commit `a9dc3e23d5bee05db52bc5d8910da30359506170` integrates accepted #674 squash
+`4afe8ec774d20f7feabf576761dfa37f1a86d7f9` with approved-decision commit `f200fa16`.
+The merge was conflict-free. The four accepted baseline PNGs and capture change
+are inherited from `main`; this PR generates no further baseline or exception.
+
+| Gate | Result on the combined code/test tree |
+|---|---|
+| Full pytest, four workers, `--dist loadfile` | **6,704 passed, 3 skipped**, 19 min 51 s (`pytest-20261115T000517Z`) |
+| Three visual-seed specs, one worker, zero retries | **100 passed, 0 failed/skipped/flaky**, 1.9 min (`visual-20261115T002553Z`) |
+| All 30 functional specs, functional seed, one worker, zero retries | **602 passed, 0 failed/skipped/flaky**, 13.7 min (`functional-20261115T002942Z`), including all 36 Backup Center tests and both previously failing `ui-hardening` cases |
+| TypeScript / pyright baseline diff / inventory check | Clean / **0 diagnostics, 0 net-new** / up to date |
+| Required scoped reviews for approved binary display | Code, architecture, product-risk and unslop: **PASS**; earlier reviews carry forward outside this delta |
+| New real-UI refusal smoke | Binary marker in real HTTP 400 and toast, toast visible after five seconds, all four table snapshots and ids unchanged; private DB identity verified before HTTP mutation |
+
+These were separate, sequential full partitions, each with private data/runtime
+paths. Every tracked file's before/after hash, HEAD and branch stayed stable; the
+workload monitor detected no competing test runner. The visual process exited and
+its listener was absent before the functional run, which started after `TIME_WAIT`
+drained to 16. No browser retries, baseline writes or assertion/tolerance/timeout
+changes were used. Both test listeners were absent after the functional runner
+exited. The real database retains SHA-256
+`3c690ca221db891a68482ab67e7c115b0afa3aeca8b67dec50410ac7ed3173b5`,
+size 839,680 bytes and its original modification time.
+
+The earlier failures and incomplete attempts remain in the preceding history and
+their original artifact directories. These passes resolve the current local gate;
+they do not prove the causes of the earlier network/visual failures. The separate
+light-thumbnail observation #675 and the empty-string wording follow-up remain
+outside this PR. The original mutation arms and complete (a)–(e) manual smoke
+remain evidence for unchanged behavior. Evidence root:
+`artifacts/567-closeout-codex-20261115/`.
+
+This final entry changes documentation only; the combined executable code and
+tests stay at the validated tree. Exact-head CI and ready status are reported in
+the PR description after push. **#686 is explicitly not authorized for merge.**
