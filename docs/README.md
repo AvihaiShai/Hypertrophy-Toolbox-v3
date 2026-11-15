@@ -82,7 +82,6 @@ Proposed entries do not authorize implementation. The archive container is index
 - [dnone_display_utilities/](dnone_display_utilities/) — shipped display-utility cleanup evidence
 - [doc_truth/](doc_truth/) — shipped documentation-truth repairs
 - [fatigue_meter/](fatigue_meter/) — shipped meter and heatmap; Stage 4 closed, with calibration contracts and evidence retained
-- [local_first_assets/](local_first_assets/) — shipped local asset work
 - [p1_4_debug_scaffolding/](p1_4_debug_scaffolding/) — completed debug-scaffolding work
 - [page_readiness/](page_readiness/) — shipped page-readiness work
 - [pyright_filter_predicates/](pyright_filter_predicates/) — closed Pyright burn-down record
@@ -113,6 +112,7 @@ These files are historical reference only. They should not be treated as active 
 - **[archive/ci_cd/](archive/ci_cd/)** - Completed CI/CD Improvement Plan + per-phase council plans (Phases 0–5, shipped via PRs #40–#51). Note: the live `docs/ci_cd_phase3/pyright-baseline.json` CI artifact stays in the active tree (referenced by `.github/workflows/ci.yml`), not archived.
 - **[archive/VOLUME_TAXONOMY_AUDIT.md](archive/VOLUME_TAXONOMY_AUDIT.md)** - Phase 0 live database audit (2026-04-25). Completed audit, now archived.
 - **[archive/workout_cool_integration/checkpoint3_coverage.md](archive/workout_cool_integration/checkpoint3_coverage.md)** - Completed free-exercise-db mapper coverage baseline (pre-curation snapshot).
+- **[archive/2026/local-first-assets/PLANNING.md](archive/2026/local-first-assets/PLANNING.md)** - Local-first navigation assets plan, council response matrix and as-built record (shipped #341); current contract: `tests/test_local_first_assets.py` and `static/vendor/*/NOTICE.md`.
 
 ## Removed From Active Docs
 
