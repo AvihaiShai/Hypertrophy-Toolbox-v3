@@ -9,6 +9,18 @@ All notable changes to Hypertrophy Toolbox v3.
 - Recorded the worktree campaign closure and the already-published amendment, corrected U1 follow-up and fast-uri PR navigation, and linked P2.4's accepted limitation to #687.
 - Added the Python 3.15 acceptance closeout from #566 while retaining failed, unrun and retried browser results accurately. Historical evidence and all three Batch 2 candidate plans remain in the checkout.
 
+## Unreleased - 2026-11-14
+
+### Documentation retention
+
+- Retired six shipped feature plans to Git history: `docs/agent_workflow_integrity/PLANNING.md`,
+  `docs/blank_null_rep_bounds/PLANNING.md`, `docs/page_readiness/PLANNING.md`,
+  `docs/pyright_volume_splitter/PLANNING.md`, `docs/superset_routine_selection/PLANNING.md` and
+  `docs/wpb4_unassigned_bucket/PLANNING.md`. The shipped code and its tests carry the behavior;
+  [`docs/README.md`](README.md) (*Removed From Active Docs*) links each plan at this batch's main
+  base, `189756f473601850c82912f43f25f16396bdc8fa`. The last batch-branch commit containing all
+  six is `97003ee62c45fd56a0d4d659da2327ed4c44fbd1`; their contents are identical at both commits.
+
 ## Unreleased - 2026-11-11
 
 ### Documentation retention

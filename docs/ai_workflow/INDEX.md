@@ -28,7 +28,7 @@ Unmigrated entries and retained sequencing stay in [OPEN_WORK_EXECUTION_PLAN.md]
 
 ## Closed and shipped (history)
 
-- [Blank/null rep bounds](../blank_null_rep_bounds/PLANNING.md) — Gate 0 #465 (`52ca8a82`), production fix #467 (`38606f4d`, 2026-08-31): blank persisted rep bounds rejected at plan-to-log export
+- [Blank/null rep bounds](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/blank_null_rep_bounds/PLANNING.md) (retired to Git history 2026-11-14; pinned link) — Gate 0 #465 (`52ca8a82`), production fix #467 (`38606f4d`, 2026-08-31): blank persisted rep bounds rejected at plan-to-log export
 - [Fatigue meter](../fatigue_meter/PLANNING.md) — Phase 1 shipped; Phase 2 Path 1 shipped 2026-05-23 via PR #35 (`d5b80bf`); Phase 2 Stage 3 verify-suite gate closed 2026-05-24 (`1a93f66`). [Phase 2 Stage 4](../fatigue_meter/PHASE2_PLANNING.md) **closed 2026-08-13** via #338 (`700b5da`) — no real-use evidence, no threshold change. The [Fatigue heatmap](../fatigue_meter/HEATMAP_PLANNING.md) shipped via #339 (`ea82ef1`) as visualization only. Phase 1 Stage 4 closed separately, 2026-05-20.
 - [workout.cool integration](../workout_cool_integration/PLANNING.md) — §3 + §3.6 + §4 + §4.6 + §5 all shipped (§3.6 Profile bodymap landed 2026-05-23, `18ad223`; §5 first curated batch landed 2026-05-22, `cf21191`)
 - [YouTube reference videos](../workout_cool_integration/YOUTUBE_REFERENCE_VIDEOS.md) — closed 2026-05-23 (`cf21191` 36 rows + `ff244aa` +20 rows = **56 curated rows**); long tail uses the search fallback by design

@@ -2639,7 +2639,7 @@ above, or on its own Gate 0/1 sign-off.
 > that would each have surfaced after the golden was regenerated, including that
 > `GENERATE_GOLDEN` is **shared** with `tests/test_fatigue_golden.py` — leaving it
 > set silently re-baselines a second protected zone while reporting `skipped`.
-> Full record: [`wpb4_unassigned_bucket/PLANNING.md`](../../../wpb4_unassigned_bucket/PLANNING.md).
+> Full record: [`wpb4_unassigned_bucket/PLANNING.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/wpb4_unassigned_bucket/PLANNING.md).
 > **2026-08-01 — TESTING STRATEGY PHASE 0 + PHASE 1 ARE COMPLETE.**
 > Eight pull requests merged the same day. The repository now measures its own test surface
 > instead of describing it, and the destructive-path E2E guard is a required check.
