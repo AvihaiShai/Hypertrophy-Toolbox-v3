@@ -31,7 +31,8 @@ import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
+import { get as httpGet } from 'node:http';
 import { connect } from 'node:net';
 
 /* This harness spawns its own Flask and then drives whatever answers on the
@@ -49,7 +50,60 @@ const PROBE_PORT = Number(process.env.PW_PORT || DEFAULT_PORT);
 if (!Number.isInteger(PROBE_PORT) || PROBE_PORT < 1 || PROBE_PORT > 65535) {
   throw new Error(`PW_PORT must be an integer between 1 and 65535, got "${process.env.PW_PORT}".`);
 }
-const BASE_URL = process.env.PW_BASE_URL || `http://${DEFAULT_HOST}:${PROBE_PORT}`;
+
+/* An open port says only that SOMETHING accepts connections there (#574). A
+   foreign server already holding PW_PORT passed readiness while the spawned
+   Flask failed to bind, and a PW_BASE_URL naming another port sent navigation
+   to whatever answered it. So the probe drives only its own loopback origin,
+   and before it measures anything it proves that its own child answers there:
+   a one-time challenge request must come back 200 AND appear in that child's
+   own stderr access log. */
+const PROBE_ORIGIN = `http://${DEFAULT_HOST}:${PROBE_PORT}`;
+const IDENTITY_TIMEOUT_MS = 5000;
+
+function resolveBaseUrl() {
+  const declared = process.env.PW_BASE_URL;
+  if (!declared) return PROBE_ORIGIN;
+  let url;
+  try {
+    url = new URL(declared);
+  } catch {
+    throw new Error(`PW_BASE_URL is not a valid URL: "${declared}".`);
+  }
+  const matchesOwnOrigin =
+    url.protocol === 'http:' &&
+    url.hostname === DEFAULT_HOST &&
+    (url.port || '80') === String(PROBE_PORT) &&
+    url.pathname === '/' &&
+    !url.search &&
+    !url.hash;
+  if (!matchesOwnOrigin) {
+    throw new Error(
+      `PW_BASE_URL (${declared}) is not the probe's own origin ${PROBE_ORIGIN}. ` +
+        'The probe serves its own Flask on PW_PORT and drives only that origin. ' +
+        'Set PW_PORT instead, or leave PW_BASE_URL unset.',
+    );
+  }
+  return PROBE_ORIGIN;
+}
+
+const BASE_URL = resolveBaseUrl();
+
+/* The spawned Flask child. `childExit` is set the moment it exits; any exit the
+   probe did not ask for invalidates the run, because the port it held may now
+   belong to someone else. */
+let server = null;
+let childExit = null;
+let stoppingServer = false;
+
+function assertChildAlive(stage) {
+  if (childExit) {
+    throw new Error(
+      `the probe's Flask child exited unexpectedly (code ${childExit.code}, ` +
+        `signal ${childExit.signal}) before ${stage}; nothing it measured can be trusted.`,
+    );
+  }
+}
 
 // 11 rendered routes. `/fatigue` is included deliberately: templates/fatigue.html
 // links no page bundle at all, so it is painted 100% by the seven shared
@@ -552,6 +606,7 @@ async function probeContext(browser, route, theme, reducedMotion) {
     document.documentElement?.setAttribute('data-theme', value);
   }, theme);
 
+  assertChildAlive(`navigating to ${route.path}`);
   await page.goto(`${BASE_URL}${route.path}`, { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
 
@@ -585,7 +640,7 @@ async function main() {
   }
 
   const python = process.platform === 'win32' ? '.venv/Scripts/python.exe' : '.venv/bin/python';
-  const server = spawn(python, ['app.py'], {
+  server = spawn(python, ['app.py'], {
     env: {
       ...process.env,
       DB_FILE: dbPath,
@@ -593,7 +648,21 @@ async function main() {
       FLASK_DEBUG: '0',
       FLASK_USE_RELOADER: '0',
     },
-    stdio: 'ignore',
+    // stderr carries werkzeug's access log, the identity evidence below.
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  server.once('exit', (code, signal) => {
+    if (!stoppingServer) childExit = { code, signal };
+  });
+
+  // Consumed for the whole run, not just the handshake: a pipe nobody reads
+  // fills up and blocks the child mid-write. Only the text before the
+  // challenge is matched is kept.
+  let childStderr = '';
+  let collectingStderr = true;
+  server.stderr.setEncoding('utf8');
+  server.stderr.on('data', (chunk) => {
+    if (collectingStderr) childStderr += chunk;
   });
 
   // A raw TCP probe, not fetch(): undici asserts internally when it meets the
@@ -619,9 +688,64 @@ async function main() {
   };
 
   if (!(await waitForServer())) {
-    server.kill();
     throw new Error(`server did not come up at ${BASE_URL}`);
   }
+
+  // node:http rather than fetch() for the same undici reason as above.
+  const requestStatus = (url) =>
+    new Promise((done, fail) => {
+      const request = httpGet(url, (response) => {
+        response.resume();
+        done(response.statusCode);
+      });
+      request.setTimeout(IDENTITY_TIMEOUT_MS, () =>
+        request.destroy(new Error(`no response from ${url} within ${IDENTITY_TIMEOUT_MS} ms`)),
+      );
+      request.once('error', fail);
+    });
+
+  const verifyServerIdentity = async () => {
+    const challenge = randomBytes(16).toString('hex');
+    const challengePath = `/?__probe_identity=${challenge}`;
+    const expectedLine = `"GET ${challengePath} HTTP/1.1" 200`;
+    assertChildAlive('the identity challenge');
+    const status = await requestStatus(`${BASE_URL}${challengePath}`);
+    if (status !== 200) {
+      throw new Error(
+        `identity challenge to ${BASE_URL} returned HTTP ${status}, not 200; ` +
+          'the answering server is not established as the probe\'s own Flask child.',
+      );
+    }
+    const deadline = Date.now() + IDENTITY_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      assertChildAlive('its identity was established');
+      const matchedLine = childStderr.split(/\r?\n/).find((line) => line.includes(expectedLine));
+      if (matchedLine) {
+        collectingStderr = false;
+        childStderr = '';
+        return {
+          verified: true,
+          origin: BASE_URL,
+          childPid: server.pid,
+          challengePath,
+          status,
+          childStderrLine: matchedLine.trim(),
+          verifiedAt: new Date().toISOString(),
+        };
+      }
+      await new Promise((done) => setTimeout(done, 100));
+    }
+    throw new Error(
+      `the identity challenge to ${BASE_URL} was answered with 200, but the probe's ` +
+        `own Flask child (pid ${server.pid}) never logged it within ${IDENTITY_TIMEOUT_MS} ms. ` +
+        'Another server is answering on this origin; refusing to measure it.',
+    );
+  };
+
+  const serverIdentity = await verifyServerIdentity();
+  console.log(
+    `server identity verified: pid ${serverIdentity.childPid} logged ${serverIdentity.challengePath}`,
+  );
 
   // The same launch flags `playwright.config.ts:36-40` uses for the visual
   // suite. Without them the Welcome page's dark gradient dithers differently
@@ -650,6 +774,7 @@ async function main() {
   const summary = {
     schemaVersion: 1,
     baseUrl: BASE_URL,
+    serverIdentity,
     viewport: VIEWPORT,
     routes: routes.map((route) => route.name),
     themes: THEMES,
@@ -930,7 +1055,9 @@ async function main() {
     }
   }
 
+  assertChildAlive('the run finished');
   await browser.close();
+  stoppingServer = true;
   server.kill();
 
   const failed = [
@@ -966,5 +1093,9 @@ async function main() {
 
 main().catch((error) => {
   console.error(error);
+  if (server && !childExit) {
+    stoppingServer = true;
+    server.kill();
+  }
   process.exit(1);
 });
