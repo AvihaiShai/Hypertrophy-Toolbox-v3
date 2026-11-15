@@ -377,7 +377,8 @@ is empty, the constant no longer matches, and the test forces its own deletion.
 > are done: `EXPECTED_SNAPSHOT_COUNTS` reads **66 / 15 per platform**, `snapshotManifest`
 > was regenerated, and `AWAITING_SEGMENTED_REGENERATION` is empty. **Re-read this
 > checklist before any *future* regeneration** — it is still the correct four-step
-> procedure, but step 2's target is now 66/15, not the 66 → 68 written below.
+> procedure, but step 2's target is now 66/15, not the 66 → 68 written below, and step 3
+> carries a later correction: never use `emit_baseline.py` for the manifest.
 
 Regenerating the baselines is a separate, reviewed change. It must do all four of these
 together, or CI goes red:
@@ -393,6 +394,13 @@ together, or CI goes red:
 3. `docs/CSS_PHASE4_WP4_4_A_BASELINE.json` → `snapshotManifest` — regenerate with
    `scripts/css_audit/emit_baseline.py`. **Deliberately not touched here** (off-limits
    for this branch); it is the reason step 2 cannot be done early either.
+   *(Correction recorded 2026-11-15, AUD-0029 in #580: for any future regeneration, do
+   **not** run `emit_baseline.py`. It rebuilds the whole baseline file — re-pins
+   `sourceCommit`, re-derives the surface metrics and can drop `stylelintSevenSurfaces` —
+   and the win32 regeneration measured 170 leaf values moving to fix one digest. Edit only
+   the affected `snapshotManifest` digest by hand, per
+   [`visual_baseline_win32/CHECKPOINT.md`](../visual_baseline_win32/CHECKPOINT.md#6-hard-prohibitions)
+   §6. The step above is retained as originally written.)*
 4. Remove the regenerated platform's relative paths from
    `tests/test_visual_capture_contracts.py::AWAITING_SEGMENTED_REGENERATION`.
    The set becomes empty after both platform workflows are complete.
