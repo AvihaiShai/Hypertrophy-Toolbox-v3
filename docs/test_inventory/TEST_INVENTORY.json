@@ -241,7 +241,7 @@
     "total_tests": 704
   },
   "pytest": {
-    "collected_deterministic": 4460,
+    "collected_deterministic": 4469,
     "deterministic_files": 142,
     "environment_dependent_files": [
       {
@@ -700,7 +700,7 @@
       },
       {
         "file": "tests/test_superset_service.py",
-        "tests": 9
+        "tests": 18
       },
       {
         "file": "tests/test_template_landmarks.py",
