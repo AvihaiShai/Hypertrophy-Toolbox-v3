@@ -89,9 +89,10 @@ def _validate_superset_link_request(
 def _apply_superset_link(
     db: DatabaseHandler, exercise_ids: list, routine_name: str
 ):
+    import secrets
     import time
 
-    superset_group = f"SS-{routine_name}-{int(time.time())}"
+    superset_group = f"SS-{routine_name}-{int(time.time())}-{secrets.token_hex(6)}"
 
     # Update both exercises with the superset group
     db.execute_query(

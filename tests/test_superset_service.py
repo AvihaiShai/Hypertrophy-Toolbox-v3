@@ -1,5 +1,6 @@
 """Characterization coverage for the WP1.4 superset service boundary."""
 import logging
+import re
 import subprocess
 import sys
 import time
@@ -156,7 +157,9 @@ def test_link_preserves_timestamp_id_and_database_row_order(
 
     assert response.status_code == 200
     payload = response.get_json()
-    assert payload['data']['superset_group'] == "SS-A-1700000000"
+    assert re.fullmatch(
+        r"SS-A-1700000000-[0-9a-f]{12}", payload['data']['superset_group']
+    )
     assert [row['id'] for row in payload['data']['exercises']] == [
         first_id,
         second_id,
@@ -176,6 +179,85 @@ def test_unlink_invalid_truthy_exercise_id_keeps_generic_500(client):
     payload = response.get_json()
     assert payload['error']['code'] == "INTERNAL_ERROR"
     assert payload['error']['message'] == "Failed to unlink superset"
+
+
+def _same_second_pairs(
+    client, clean_db, exercise_factory, workout_plan_factory, monkeypatch,
+    *, legacy=False,
+):
+    monkeypatch.setattr(time, "time", lambda: 1_700_000_000.9)
+    ids = [
+        workout_plan_factory(
+            exercise_name=exercise_factory(f"Same-second exercise {index}"),
+            routine="A",
+        )
+        for index in range(4)
+    ]
+    if legacy:
+        first_group = "SS-A-1700000000"
+        clean_db.execute_query(
+            "UPDATE user_selection SET superset_group = ? WHERE id IN (?, ?)",
+            (first_group, *ids[:2]),
+        )
+    else:
+        first = client.post("/api/superset/link", json={"exercise_ids": ids[:2]})
+        assert first.status_code == 200
+        first_group = first.get_json()["data"]["superset_group"]
+    second = client.post("/api/superset/link", json={"exercise_ids": ids[2:]})
+    assert second.status_code == 200
+    return ids, first_group, second.get_json()["data"]["superset_group"]
+
+
+def test_disjoint_supersets_created_in_the_same_second_stay_separate(
+    client, clean_db, exercise_factory, workout_plan_factory, monkeypatch,
+):
+    ids, first_group, second_group = _same_second_pairs(
+        client, clean_db, exercise_factory, workout_plan_factory, monkeypatch,
+    )
+    assert first_group != second_group
+    rows = clean_db.fetch_all(
+        "SELECT id, superset_group FROM user_selection ORDER BY id"
+    )
+    assert {row["id"]: row["superset_group"] for row in rows} == {
+        ids[0]: first_group, ids[1]: first_group,
+        ids[2]: second_group, ids[3]: second_group,
+    }
+
+
+@pytest.mark.parametrize("legacy", [False, True], ids=["new-pairs", "legacy-pair"])
+@pytest.mark.parametrize("operation", ["unlink", "remove"])
+@pytest.mark.parametrize("pair_index", [0, 1], ids=["first-pair", "second-pair"])
+def test_same_second_superset_operation_leaves_other_pair_intact(
+    client, clean_db, exercise_factory, workout_plan_factory, monkeypatch,
+    legacy, operation, pair_index,
+):
+    ids, first_group, second_group = _same_second_pairs(
+        client, clean_db, exercise_factory, workout_plan_factory, monkeypatch,
+        legacy=legacy,
+    )
+    target = ids[pair_index * 2]
+    untouched_ids = ids[2:] if pair_index == 0 else ids[:2]
+    untouched_group = second_group if pair_index == 0 else first_group
+    if operation == "unlink":
+        response = client.post("/api/superset/unlink", json={"exercise_id": target})
+        assert response.status_code == 200
+        assert set(response.get_json()["data"]["unlinked_ids"]) == set(
+            ids[pair_index * 2:pair_index * 2 + 2]
+        )
+    else:
+        response = client.post("/remove_exercise", json={"id": target})
+        assert response.status_code == 200
+        assert clean_db.fetch_one(
+            "SELECT id FROM user_selection WHERE id = ?", (target,),
+        ) is None
+    partner = ids[pair_index * 2 + 1]
+    assert clean_db.fetch_one(
+        "SELECT superset_group FROM user_selection WHERE id = ?", (partner,),
+    )["superset_group"] is None
+    for untouched_id in untouched_ids:
+        assert clean_db.fetch_one(
+            "SELECT superset_group FROM user_selection WHERE id = ?", (untouched_id,),
+        )["superset_group"] == untouched_group
 
 
 def test_antagonist_pairing_preserves_first_match_and_pair_order():
