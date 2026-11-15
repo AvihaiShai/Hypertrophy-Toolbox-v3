@@ -1,7 +1,7 @@
 """Contracts for the Vitest surface of the generated test inventory.
 
 `Test Inventory Drift` is a required branch-protection context, and after this
-packet it also pins the JS-unit suite: 14 files, 269 cases, and every case's
+packet it also pins the JS-unit suite: 15 files, 270 cases, and every case's
 identity. (245 before U1-FOLLOWUP-1; 231 until the KI-010 toast fix of 2026-08-27,
 which inverted two characterization cases and added fourteen -- see
 docs/toast_type_word_collision/PLANNING.md.) Two things can quietly unpin it, and `--check` sees neither, because
@@ -56,8 +56,8 @@ MARKDOWN_PATH = REPO_ROOT / "docs" / "test_inventory" / "TEST_INVENTORY.md"
 # are the point of the file: if the artifact and these disagree, one of them is
 # wrong and a human decides which -- regenerating is only the right repair when
 # the JS suite really did change.
-EXPECTED_TOTAL_CASES = 269
-EXPECTED_TOTAL_FILES = 14
+EXPECTED_TOTAL_CASES = 270
+EXPECTED_TOTAL_FILES = 15
 EXPECTED_PER_FILE = {
     "static/js/modules/__tests__/exercise-helpers.test.js": 15,
     "static/js/modules/__tests__/exercises.test.js": 29,
@@ -66,6 +66,7 @@ EXPECTED_PER_FILE = {
     "static/js/modules/__tests__/fetch-wrapper.test.js": 3,
     "static/js/modules/__tests__/session-summary-helpers.test.js": 7,
     "static/js/modules/__tests__/summary-helpers.test.js": 22,
+    "static/js/modules/__tests__/summary-tooltips.test.js": 1,
     "static/js/modules/__tests__/toast.test.js": 61,
     "static/js/modules/__tests__/user-profile-data.test.js": 12,
     "static/js/modules/__tests__/volume-splitter.test.js": 24,
