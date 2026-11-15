@@ -163,6 +163,67 @@ def test_runtime_probe_drives_the_port_it_starts() -> None:
     assert not re.search(r"port: 5000", probe), "a literal port survived in the probe"
 
 
+def test_runtime_probe_proves_its_own_child_answers() -> None:
+    """An open port is not identity (#574).
+
+    A foreign server already holding PW_PORT passed readiness while the spawned
+    Flask failed to bind, and a PW_BASE_URL naming another port sent navigation
+    elsewhere. The probe must drive only its own loopback origin, and must see
+    a one-time challenge request in its own child's stderr before measuring.
+    """
+    probe = read(PROBE)
+    assert "const BASE_URL = resolveBaseUrl();" in probe
+    assert "is not the probe's own origin" in probe, "a foreign PW_BASE_URL must throw"
+    assert "stdio: ['ignore', 'ignore', 'pipe']," in probe, (
+        "the child's stderr is the identity evidence and must be piped"
+    )
+    assert "server.stderr.on('data'" in probe, "stderr must be drained for the whole run"
+    assert "randomBytes(16)" in probe and "/?__probe_identity=" in probe
+    assert '`"GET ${challengePath} HTTP/1.1" 200`' in probe
+    assert "const serverIdentity = await verifyServerIdentity();" in probe
+    assert re.search(r"^\s+serverIdentity,$", probe, re.MULTILINE), (
+        "the identity evidence must be recorded in summary.json"
+    )
+    assert "assertChildAlive(`navigating to ${route.path}`);" in probe, (
+        "every navigation must first check that the child is still alive"
+    )
+
+
+def test_werkzeug_logs_the_request_line_the_probe_matches(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """The probe's identity check reads werkzeug's access-log line, so pin its format.
+
+    Behavioral: a real werkzeug server answers a real request. If the format
+    drifts, the probe would fail closed on every run; this names the cause.
+    """
+    import threading
+    import urllib.request
+
+    from werkzeug.serving import make_server
+
+    def app(environ, start_response):
+        start_response("200 OK", [("Content-Type", "text/plain")])
+        return [b"ok"]
+
+    server = make_server("127.0.0.1", 0, app)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with caplog.at_level("INFO", logger="werkzeug"):
+            with urllib.request.urlopen(
+                f"http://127.0.0.1:{server.server_port}/?__probe_identity=abc123"
+            ) as response:
+                assert response.status == 200
+    finally:
+        server.shutdown()
+        thread.join(5)
+    assert any(
+        '"GET /?__probe_identity=abc123 HTTP/1.1" 200' in record.getMessage()
+        for record in caplog.records
+    ), [record.getMessage() for record in caplog.records]
+
+
 def test_app_honours_the_port_the_config_passes(monkeypatch: pytest.MonkeyPatch) -> None:
     """`HT_PORT` has to reach the server, or the whole chain above is decorative.
 

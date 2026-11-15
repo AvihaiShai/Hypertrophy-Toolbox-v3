@@ -241,7 +241,7 @@
     "total_tests": 702
   },
   "pytest": {
-    "collected_deterministic": 4458,
+    "collected_deterministic": 4460,
     "deterministic_files": 142,
     "environment_dependent_files": [
       {
@@ -576,7 +576,7 @@
       },
       {
         "file": "tests/test_playwright_url_contracts.py",
-        "tests": 14
+        "tests": 16
       },
       {
         "file": "tests/test_playwright_version_contract.py",
