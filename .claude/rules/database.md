@@ -30,8 +30,8 @@ paths:
 | `progression_goals` | `id INTEGER` | — | `database.py:566` |
 | `volume_plans` | `id INTEGER` | — | `database.py:585` |
 | `muscle_volumes` | `id INTEGER` | `plan_id` → `volume_plans` CASCADE | `database.py:592` |
-| `program_backups` | `id INTEGER` | — | `utils/program_backup.py:57` |
-| `program_backup_items` | `id INTEGER` | `backup_id` → `program_backups` CASCADE | `utils/program_backup.py:71` |
+| `program_backups` | `id INTEGER` | — | `utils/program_backup.py:96` |
+| `program_backup_items` | `id INTEGER` | `backup_id` → `program_backups` CASCADE | `utils/program_backup.py:110` |
 
 ## DatabaseHandler pattern (required for all DB access)
 ```python
