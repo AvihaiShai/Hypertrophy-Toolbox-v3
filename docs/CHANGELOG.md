@@ -2,6 +2,17 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - 2026-11-16
+
+### Documentation retention
+
+- Retired four closed archive records to Git history: `docs/archive/DOCS_AUDIT_PLAN.md`,
+  `docs/archive/MISSING_TESTS_CHECKLIST.md`, `docs/archive/MISSING_TESTS_PART2.md` and
+  `docs/archive/SUPERSET_FEATURE.md`. The shipped code and its tests, the product reference
+  suite and the generated test inventory carry what they described;
+  [`docs/README.md`](README.md) (*Removed From Active Docs*) links each file at this batch's
+  main base, `a0c32d637ee1e5e450d3e858a8ff75538956263f`, which contains all four.
+
 ## Unreleased - 2026-11-15
 
 ### Documentation archive

@@ -824,7 +824,8 @@ detached at this commit); the shared checkout was never switched or edited.
   authority defects** (all `SHARED_PLAN.md`, P1.8), **2 sit in active folders but
   are historical** (`workout_cool_integration/*` pointing at a deleted generated
   screenshots directory), and **6 are archive records** in
-  `archive/MISSING_TESTS_PART2.md`. Only the first group is work. The orphan
+  `archive/MISSING_TESTS_PART2.md` (retired to Git history 2026-11-16; last on
+  main at `a0c32d63`). Only the first group is work. The orphan
   methodology is basename-frequency and therefore false-positive-prone: v22's
   exclusion of `PROFILE_ESTIMATOR_CLUSTERS.md` is **confirmed correct**
   (`tests/test_profile_estimator_contract.py`, `utils/profile_estimator.py`

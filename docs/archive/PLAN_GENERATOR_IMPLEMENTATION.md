@@ -546,4 +546,4 @@ When `priority_muscles` is specified:
 
 ## References
 - User spec document (Feb 2026)
-- Existing `SUPERSET_FEATURE.md` for execution style patterns
+- Existing `SUPERSET_FEATURE.md` for execution style patterns (retired to Git history 2026-11-16; [commit-pinned copy](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/SUPERSET_FEATURE.md))

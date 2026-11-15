@@ -314,7 +314,7 @@ untouched.**
 
 - [docs/ai_workflow/QUALITY_GATE.md](ai_workflow/QUALITY_GATE.md) — already a change-type → required-tests/reviewers traceability map with a frontend feature → E2E-spec table. Codex's "build a traceability matrix" should **extend this**, not start fresh.
 - [docs/UI_SCENARIOS_GAP_ANALYSIS.md](UI_SCENARIOS_GAP_ANALYSIS.md) — Known-Issues registry (KI-001…KI-009), each row linked to the regression test that locks it.
-- `docs/archive/MISSING_TESTS_CHECKLIST.md` / `_PART2.md` — historical gap checklists (archived).
+- [`MISSING_TESTS_CHECKLIST.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_CHECKLIST.md) / [`_PART2.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_PART2.md) — historical gap checklists (retired to Git history 2026-11-16; links are commit-pinned).
 - The repo's agent workflow already includes a **manual-qa-reviewer** charter (exploratory QA via Playwright MCP against the running app) — directly relevant to the "never test manually" goal: part of the residual manual layer is already delegated to an agent.
 
 ---

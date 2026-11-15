@@ -106,11 +106,7 @@ Proposed entries do not authorize implementation. The archive container is index
 
 These files are historical reference only. They should not be treated as active backlog:
 
-- **[archive/MISSING_TESTS_CHECKLIST.md](archive/MISSING_TESTS_CHECKLIST.md)** - Historical missing-tests tracker
-- **[archive/MISSING_TESTS_PART2.md](archive/MISSING_TESTS_PART2.md)** - Follow-up historical test tracker
-- **[archive/SUPERSET_FEATURE.md](archive/SUPERSET_FEATURE.md)** - Completed superset feature implementation notes
 - **[archive/PLAN_GENERATOR_IMPLEMENTATION.md](archive/PLAN_GENERATOR_IMPLEMENTATION.md)** - Completed starter-plan implementation tracker
-- **[archive/DOCS_AUDIT_PLAN.md](archive/DOCS_AUDIT_PLAN.md)** - Archived docs/code audit rollout record
 - **[archive/ci_cd/](archive/ci_cd/)** - Completed CI/CD Improvement Plan + per-phase council plans (Phases 0–5, shipped via PRs #40–#51). Note: the live `docs/ci_cd_phase3/pyright-baseline.json` CI artifact stays in the active tree (referenced by `.github/workflows/ci.yml`), not archived.
 - **[archive/VOLUME_TAXONOMY_AUDIT.md](archive/VOLUME_TAXONOMY_AUDIT.md)** - Phase 0 live database audit (2026-04-25). Completed audit, now archived.
 - **[archive/workout_cool_integration/checkpoint3_coverage.md](archive/workout_cool_integration/checkpoint3_coverage.md)** - Completed free-exercise-db mapper coverage baseline (pre-curation snapshot).
@@ -137,6 +133,13 @@ plan at `189756f4`, the main snapshot immediately before this batch:
 - [pyright_volume_splitter](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/pyright_volume_splitter/PLANNING.md) — shipped as #328
 - [superset_routine_selection](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/superset_routine_selection/PLANNING.md) — shipped as #346
 - [wpb4_unassigned_bucket](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/wpb4_unassigned_bucket/PLANNING.md) — shipped as #256
+
+Four closed archive records were retired to Git history on 2026-11-16 under the same criteria.
+Each link opens the file at `a0c32d63`, the main snapshot this batch was cut from:
+
+- [archive/DOCS_AUDIT_PLAN.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/DOCS_AUDIT_PLAN.md) — April 2026 docs/code audit rollout, every tier closed; the rules it enforced now live in `CLAUDE.md` and `.claude/rules/`
+- [archive/MISSING_TESTS_CHECKLIST.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_CHECKLIST.md) and [archive/MISSING_TESTS_PART2.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_PART2.md) — completed coverage trackers; the current test list is [`test_inventory/TEST_INVENTORY.md`](test_inventory/TEST_INVENTORY.md)
+- [archive/SUPERSET_FEATURE.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/SUPERSET_FEATURE.md) — shipped superset notes; current behavior is in [`product/APP_FLOW.md`](product/APP_FLOW.md), [`product/BACKEND_SCHEMA.md`](product/BACKEND_SCHEMA.md) and `tests/test_superset.py`
 
 This index is maintained by hand. It carries no dated freshness stamp on purpose — one
 was previously written here and went stale without anyone noticing. Check `git log` for
