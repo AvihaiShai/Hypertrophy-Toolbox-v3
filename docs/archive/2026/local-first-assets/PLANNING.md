@@ -31,7 +31,7 @@ cannot be satisfied by editing `base.html` alone.
 
 Plan v1 stopped there, at four hosts and five assets. That was wrong, and the
 way it was wrong is the packet's main lesson: the count came from
-[`E2E_PERFORMANCE_PROFILE.md`](../E2E_PERFORMANCE_PROFILE.md) Finding 4, which
+[`E2E_PERFORMANCE_PROFILE.md`](../../../E2E_PERFORMANCE_PROFILE.md) Finding 4, which
 profiled `/workout_plan` and read `base.html`, and therefore never saw
 `/volume_splitter` loading Popper and tippy.js from a fifth host. All three
 council reviewers caught it independently. The settled scope — five hosts, nine
