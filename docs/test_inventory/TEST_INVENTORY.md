@@ -12,11 +12,11 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **701** |
+| Playwright tests (chromium) | **702** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **553** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4299** across 140 files |
-| pytest test files (all) | **141** |
+| pytest collected nodes (deterministic subset) | **4458** across 142 files |
+| pytest test files (all) | **143** |
 | JS unit cases (Vitest) | **269** across 14 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
@@ -42,7 +42,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `learned-calibration.spec.ts` | 8 | yes |
 | `listener-cleanup.spec.ts` | 3 | — |
 | `nav-dropdown.spec.ts` | 7 | yes |
-| `program-backup.spec.ts` | 35 | — |
+| `program-backup.spec.ts` | 36 | — |
 | `progression.spec.ts` | 29 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
 | `smoke-navigation.spec.ts` | 19 | yes |
@@ -72,6 +72,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_app_factory.py` | 44 |
 | `tests/test_auto_backup.py` | 7 |
 | `tests/test_axe_contracts.py` | 8 |
+| `tests/test_backup_execution_contract.py` | 100 |
 | `tests/test_body_composition_history_busy_signal_contracts.py` | 13 |
 | `tests/test_body_composition_routes.py` | 20 |
 | `tests/test_body_fat.py` | 43 |
@@ -156,8 +157,9 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_priority7_error_handling.py` | 28 |
 | `tests/test_profile_estimator.py` | 104 |
 | `tests/test_profile_estimator_contract.py` | 6 |
-| `tests/test_program_backup.py` | 41 |
-| `tests/test_program_backup_restore_fuzz.py` | 15 |
+| `tests/test_program_backup.py` | 45 |
+| `tests/test_program_backup_execution_fields.py` | 17 |
+| `tests/test_program_backup_restore_fuzz.py` | 53 |
 | `tests/test_progression_plan_routes.py` | 23 |
 | `tests/test_progression_plan_utils.py` | 46 |
 | `tests/test_pyright_baseline_diff.py` | 13 |

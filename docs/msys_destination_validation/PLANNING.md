@@ -8,6 +8,9 @@ fresh bundled-CLI check passed. The four acceptance levels and remaining coverag
 recorded at the end of this document and in [CLOSEOUT.md](CLOSEOUT.md). Panel rendering remains
 unmeasured; `PREVENTION_COMPLETE` is not claimed. Plan v1 drafted 2026-10-28; council rounds 1–3
 complete; Plan v2 (final, rev. round 3). First drafted 2026-10-17 by session `S8-MSYS-GATE0`.
+*(Later update, recorded 2026-11-15: the
+[VS Code panel follow-up](CLOSEOUT.md#vs-code-panel-follow-up--2026-10-28) later on 2026-10-28
+records owner-confirmed NEW rendering on 2.1.312; UNKNOWN panel rendering remains unmeasured.)*
 
 **Planning size:** Large / new workflow (`docs/ai_workflow/QUALITY_GATE.md`, plan-stage routing).
 The work changes the executable destructive-command guard or adds a new agent-workflow control,

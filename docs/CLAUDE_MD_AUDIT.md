@@ -15,7 +15,7 @@ Intentional low-level SQLite owners remain:
 - `utils/auto_backup.py` uses SQLite's online backup API to copy the live DB to `data/auto_backup/`.
 - `utils/maintenance.py` imports `sqlite3` only for error handling while using `DatabaseHandler`.
 
-`utils/user_selection.py`, `utils/volume_export.py`, and `routes/volume_splitter.py` now use `DatabaseHandler`.
+`utils/user_selection.py` was later removed (`c739cabd`); `utils/volume_export.py` and `routes/volume_splitter.py` now use `DatabaseHandler`.
 
 ## 2. Response Contract Exceptions
 

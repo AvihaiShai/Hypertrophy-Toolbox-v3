@@ -33,6 +33,11 @@ nothing else:
   unconditionally at Gate 0; that is scope approval, not authorization to do unrelated work
   during this dispatch. `tests/test_css_wp4_4_theme_dark_contracts.py` is unmodified. §6.4
   records the repair as available and proves, by execution, that it is still needed.
+  *(Later update, recorded 2026-11-15: the repair was made separately under
+  [#573](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/573) by
+  [PR #679](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/679) (`7012aabd`), which
+  requires each Q1 survivor declaration to occur exactly once. The statement above remains true
+  of this packet.)*
 - No snapshot was regenerated; `--update-snapshots` was not run, and `e2e/__screenshots__/**`
   is byte-identical to `main`. The stale Linux baselines are a **separate recovery packet**,
   explicitly not P3 work.

@@ -207,7 +207,7 @@ Every error envelope is `{"ok": false, "status": "error", "message", "error": {"
 
 - Making removal atomic, or any change to commit, rollback, lock or ordering behaviour. That would be a behaviour change needing separate approval.
 - Changing messages, codes, status codes or envelope keys; adding validation; fixing any F3 edge case, including the double-raise on a non-object body.
-- Any other handler, including the next candidates the report lists (`clear_workout_plan`, `set_execution_style`, `get_workout_plan`, `update_exercise_order` with its partial-commit decision, and the `add_exercise` typed result).
+- Any other handler, including the next candidates the report lists (`clear_workout_plan`, `set_execution_style`, `get_workout_plan`, `update_exercise_order` with its partial-commit decision, and the `add_exercise` typed result). *(Later update, recorded 2026-11-15: the `update_exercise_order` partial-commit decision was taken in #570 and made all-or-nothing by PR #672, `b276c402`; extracting the handler remains a separate candidate.)*
 - `routes/user_profile.py`, `routes/progression_plan.py`, `utils/program_backup.py` (AGREED_PLAN §10 F2 candidates, DB-row gated, later).
 - Blueprint split (A7), new blueprints and `app.py`.
 - `tests/conftest.py`, `utils/database.py`, `utils/supersets.py` and `static/js/**`. The stale JS test line citations are left as they are. `templates/**`, E2E specs and workflows.

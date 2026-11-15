@@ -294,6 +294,13 @@ not introduced or repaired here; closing it means adding a post-selection wait a
 those two call sites, which is a behavior change to the assertions and a separate
 packet.
 
+> **Later update, recorded 2026-11-15.** Tracked as AUD-1267 in
+> [#600](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/600), which the owner closed
+> on 2026-11-13. #671 (`f6b65d47`) makes `selectFirstExercise()` wait for the
+> `data-workout-controls-busy` marker to clear. The closing evidence is one local Windows run of
+> `e2e/ui-hardening.spec.ts` (37 of 37 on the first attempt); the JavaScript that sets the marker
+> was not read.
+
 **Measured, same server / DB / session (port 5334), wall clock. Control ran
 FIRST so the session's rising `TIME_WAIT` biases against the converted side:**
 

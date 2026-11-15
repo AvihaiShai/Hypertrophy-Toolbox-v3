@@ -8,7 +8,7 @@ tracking.
 
 This feature was originally specced as a section on the Profile page and
 tracked as **Issue #21** in
-[`docs/user_profile/development_issues.md`](../../user_profile/development_issues.md).
+[`docs/archive/2026/user-profile/development_issues.md`](../2026/user-profile/development_issues.md).
 On **2026-04-28** the scope changed: it was promoted to a standalone tab
 (see the scope-change note inside the issue body) and moved to its own
 docs folder. Issue numbering is preserved (so the issue keeps the same
