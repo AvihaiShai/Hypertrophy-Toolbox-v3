@@ -560,7 +560,7 @@ and optionally activate the result.
 | Saved-plan list | API | `GET /api/volume_history`; `GET /api/volume_plan/<id>` to load one |
 | Activate / deactivate | API | `POST /api/volume_plan/<id>/activate` or `/deactivate`. A missing plan is `PLAN_NOT_FOUND` 404 |
 | Delete plan | Presentation → API | Modal, then `DELETE /api/volume_plan/<id>` |
-| Export volume | Download | `POST /api/export_volume_excel`, saved as a blob |
+| Export volume | Download | `POST /api/export_volume_excel`, saved as a blob on success. Malformed root/volume shapes and nonfinite or boolean volume values return HTTP 400 `VALIDATION_ERROR`. Parsed falsy roots retain header-only exports; malformed or empty JSON bodies remain 400 `BAD_REQUEST`, and unsupported content types remain 415. On an HTTP failure the UI shows one generic error toast and creates no download; unexpected builder failures are logged and return a safe 500 |
 | Export to Excel | Download | `GET /export_to_excel` — the plan export |
 | Active-plan summary | Presentation | Expands the current active plan |
 | Tooltips | Presentation | Popper and Tippy, vendored locally |

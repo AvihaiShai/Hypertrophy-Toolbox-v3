@@ -1,12 +1,116 @@
 import pytest
 import sqlite3
+import json
+import re
 from datetime import datetime
 from email.utils import parsedate_to_datetime
+from io import BytesIO
 from typing import cast
+from unittest.mock import Mock
+
+from openpyxl import load_workbook
 
 import routes.volume_splitter as volume_splitter_routes
 from utils.database import DatabaseHandler
 from utils.volume_export import export_volume_plan
+
+
+class TestVolumeExcelExport:
+    @pytest.mark.parametrize('payload,message', [
+        *[(value, 'Request data must be a JSON object') for value in ([1], 'bad', True, 1, 1.5)],
+        *[({'volumes': value}, 'Volumes must be a JSON object')
+          for value in (None, [], [12], '', 'bad', 12, False)],
+        *[({'volumes': {'Chest': value}}, 'Volume values must be finite numbers')
+          for value in (None, '12', [], {}, True, False, float('nan'), float('inf'), -float('inf'))],
+    ])
+    def test_rejects_invalid_input_before_building_workbook(self, client, monkeypatch, payload, message):
+        builder = Mock()
+        monkeypatch.setattr(volume_splitter_routes, 'build_volume_excel', builder)
+        response = client.post('/api/export_volume_excel', json=payload)
+        assert response.status_code == 400
+        assert_error_payload(response.get_json(), 'VALIDATION_ERROR', message)
+        builder.assert_not_called()
+
+    @pytest.mark.parametrize('payload', [None, False, 0, 0.0, '', [], {}, {'volumes': {}}])
+    def test_retains_header_only_exports(self, client, payload):
+        response = client.post('/api/export_volume_excel', data=json.dumps(payload), content_type='application/json')
+        assert response.status_code == 200
+        book = load_workbook(BytesIO(response.data), read_only=True, data_only=True)
+        try:
+            assert book.sheetnames == ['Volume Plan']
+            assert list(book['Volume Plan'].values) == [('Muscle Group', 'Sets per Week', 'Sets per Session')]
+        finally:
+            book.close()
+
+    @pytest.mark.parametrize('data,content_type,status,code', [
+        ('', 'application/json', 400, 'BAD_REQUEST'),
+        ('{bad', 'application/json', 400, 'BAD_REQUEST'),
+        ('{}', 'text/plain', 415, 'UNSUPPORTED_MEDIA_TYPE'),
+        ('', None, 415, 'UNSUPPORTED_MEDIA_TYPE'),
+    ])
+    def test_preserves_parser_outcomes(self, client, monkeypatch, data, content_type, status, code):
+        builder = Mock()
+        monkeypatch.setattr(volume_splitter_routes, 'build_volume_excel', builder)
+        response = client.post('/api/export_volume_excel', data=data, content_type=content_type)
+        assert response.status_code == status
+        assert response.get_json()['error']['code'] == code
+        assert response.get_json()['ok'] is False
+        builder.assert_not_called()
+
+    @pytest.mark.parametrize('days,per_session', [
+        (None, 4), ('bad', 4), ('', 4), ([], 4), ({}, 4),
+        (0, 12), (-2, 12), (False, 12), (True, 12),
+        (3, 4), ('4', 3), (2.9, 6), (float('nan'), 4),
+    ])
+    def test_preserves_training_day_coercion(self, client, days, per_session):
+        response = client.post('/api/export_volume_excel', json={'training_days': days, 'volumes': {'Chest': 12}})
+        assert response.status_code == 200
+        book = load_workbook(BytesIO(response.data), read_only=True, data_only=True)
+        try:
+            assert list(book['Volume Plan'].values)[1] == ('Chest', 12, per_session)
+        finally:
+            book.close()
+
+    def test_preserves_successful_workbook_contract(self, client):
+        response = client.post('/api/export_volume_excel', json={
+            'volumes': {'Chest': 12.5, 'Back': -2.5, 'Calves': 0},
+        })
+        assert response.status_code == 200
+        assert response.mimetype == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        assert re.search(r'attachment; filename=volume_plan_\d{8}_\d{6}\.xlsx', response.headers['Content-Disposition'])
+        book = load_workbook(BytesIO(response.data), data_only=True)
+        try:
+            assert book.sheetnames == ['Volume Plan']
+            header, *rows = list(book['Volume Plan'].values)
+            assert header == ('Muscle Group', 'Sets per Week', 'Sets per Session')
+            assert {row[0]: row[1:] for row in rows} == {'Chest': (12.5, 4.2), 'Back': (-2.5, -0.8), 'Calves': (0, 0)}
+            assert [book['Volume Plan'].column_dimensions[column].width for column in 'ABC'] == [15, 15, 15]
+        finally:
+            book.close()
+
+    @pytest.mark.parametrize('volume', [12, 10 ** 400], ids=['ordinary', 'large-finite-integer'])
+    def test_logs_local_builder_failures_without_leaking_detail(self, client, monkeypatch, volume):
+        builder = Mock(side_effect=RuntimeError('private builder detail'))
+        log = Mock()
+        monkeypatch.setattr(volume_splitter_routes, 'build_volume_excel', builder)
+        monkeypatch.setattr(volume_splitter_routes.logger, 'exception', log)
+        payload = {'volumes': {'Chest': volume}}
+        response = client.post('/api/export_volume_excel', json=payload)
+        assert response.status_code == 500
+        assert_error_payload(response.get_json(), 'INTERNAL_ERROR', 'Failed to export volume plan')
+        assert b'private builder detail' not in response.data
+        builder.assert_called_once_with(payload)
+        log.assert_called_once_with('Error exporting volume plan')
+
+    @pytest.mark.parametrize('days', [float('inf'), -float('inf')])
+    def test_training_day_overflow_retains_safe_500(self, client, monkeypatch, days):
+        log = Mock()
+        monkeypatch.setattr(volume_splitter_routes.logger, 'exception', log)
+        response = client.post('/api/export_volume_excel', json={'training_days': days, 'volumes': {'Chest': 12}})
+        assert response.status_code == 500
+        assert_error_payload(response.get_json(), 'INTERNAL_ERROR', 'Failed to export volume plan')
+        assert b'OverflowError' not in response.data
+        log.assert_called_once_with('Error exporting volume plan')
 
 
 def assert_success_payload(payload, *, message=None, expect_data=True):

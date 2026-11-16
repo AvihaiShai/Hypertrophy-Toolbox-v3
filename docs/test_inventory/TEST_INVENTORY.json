@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 555
+      "tests": 558
     },
     "specs": [
       {
@@ -219,7 +219,7 @@
       {
         "in_required_functional_set": true,
         "spec": "volume-splitter.spec.ts",
-        "tests": 61
+        "tests": 64
       },
       {
         "in_required_functional_set": true,
@@ -238,10 +238,10 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 704
+    "total_tests": 707
   },
   "pytest": {
-    "collected_deterministic": 4469,
+    "collected_deterministic": 4520,
     "deterministic_files": 142,
     "environment_dependent_files": [
       {
@@ -756,7 +756,7 @@
       },
       {
         "file": "tests/test_volume_splitter_api.py",
-        "tests": 14
+        "tests": 65
       },
       {
         "file": "tests/test_volume_taxonomy.py",

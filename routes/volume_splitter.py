@@ -1,3 +1,5 @@
+from math import isfinite
+
 from flask import Blueprint, render_template, jsonify, request, send_file
 from utils.errors import error_response, success_response
 from utils.logger import get_logger
@@ -192,10 +194,26 @@ def delete_volume_plan(plan_id):
 @volume_splitter_bp.route('/api/export_volume_excel', methods=['POST'])
 def export_volume_excel():
     data = request.get_json() or {}
-    excel_file, download_name = build_volume_excel(data)
-    return send_file(
-        excel_file,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True,
-        download_name=download_name
-    )
+    if not isinstance(data, dict):
+        return error_response('VALIDATION_ERROR', 'Request data must be a JSON object', 400)
+    volumes = data.get('volumes', {})
+    if not isinstance(volumes, dict):
+        return error_response('VALIDATION_ERROR', 'Volumes must be a JSON object', 400)
+    for weekly_sets in volumes.values():
+        if (
+            isinstance(weekly_sets, bool)
+            or not isinstance(weekly_sets, (int, float))
+            or (isinstance(weekly_sets, float) and not isfinite(weekly_sets))
+        ):
+            return error_response('VALIDATION_ERROR', 'Volume values must be finite numbers', 400)
+    try:
+        excel_file, download_name = build_volume_excel(data)
+        return send_file(
+            excel_file,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=download_name
+        )
+    except Exception:
+        logger.exception('Error exporting volume plan')
+        return error_response('INTERNAL_ERROR', 'Failed to export volume plan', 500)

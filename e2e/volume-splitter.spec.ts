@@ -81,6 +81,75 @@ async function expectVolumeSliderValue(page: Page, muscle: string, expectedValue
   await expect(valueBadge).toHaveText(String(expectedValue));
 }
 
+dataSafetyTest.describe('Volume Excel download contract', () => {
+  dataSafetyTest.beforeEach(async ({ page }) => {
+    await page.goto(ROUTES.VOLUME_SPLITTER);
+    await waitForVolumeSplitterReady(page);
+  });
+
+  dataSafetyTest('valid volume data downloads an XLSX', async ({ page }) => {
+    await setVolumeSlider(page, 'Chest', 12);
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator(SELECTORS.EXPORT_VOLUME_EXCEL_BTN).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/^volume_plan_\d{4}-\d{2}-\d{2}\.xlsx$/);
+    expect(await download.failure()).toBeNull();
+    const stream = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+    expect(Buffer.concat(chunks).subarray(0, 4).toString('hex')).toBe('504b0304');
+  });
+
+  dataSafetyTest.describe('HTTP failures', () => {
+    dataSafetyTest.use({ consoleAllowlist: { expected: [
+      {
+        match: /^Failed to load resource: the server responded with a status of (400 \(Bad Request\)|500 \(Internal Server Error\))$/,
+        reason: 'The volume export endpoint is deliberately mocked to fail with 400 or 500',
+      },
+      {
+        match: /^Error exporting to Excel: Error: Failed to export volume plan\n {4}at https?:\/\/[A-Za-z0-9.:\[\]-]{1,100}\/static\/js\/modules\/volume-splitter\.js:[0-9]{1,5}:[0-9]{1,5}$/,
+        reason: 'The existing export catch logs the deliberately mocked HTTP failure',
+      },
+    ] } });
+
+    for (const status of [400, 500]) {
+      dataSafetyTest(`${status} shows one error without downloading, then recovers`, async ({ page }) => {
+        const downloads: string[] = [];
+        page.on('download', download => downloads.push(download.suggestedFilename()));
+        await page.evaluate(() => {
+          const probe = { objectURLs: 0, errorToasts: 0 };
+          (window as unknown as { volumeExportProbe: typeof probe }).volumeExportProbe = probe;
+          const createURL = URL.createObjectURL.bind(URL);
+          URL.createObjectURL = blob => { probe.objectURLs++; return createURL(blob); };
+          new MutationObserver(records => {
+            probe.errorToasts += records.filter(record => record.target instanceof Element
+              && record.target.matches('span.toast-message')
+              && record.target.textContent === 'Failed to export plan. Please try again.').length;
+          }).observe(document.getElementById('toast-body')!, { childList: true, subtree: true });
+        });
+        await page.route('**/api/export_volume_excel', route => route.fulfill({
+          status,
+          json: { ok: false, status: 'error', message: 'private server detail',
+            error: { code: status === 400 ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR', message: 'private server detail' } },
+        }));
+
+        await page.locator(SELECTORS.EXPORT_VOLUME_EXCEL_BTN).click();
+        await expect(page.locator('#liveToast.show')).toHaveCount(1);
+        await expect(page.locator('#toast-body')).toHaveText('Failed to export plan. Please try again.');
+        expect(await page.evaluate(() => (window as unknown as {
+          volumeExportProbe: { objectURLs: number; errorToasts: number };
+        }).volumeExportProbe)).toEqual({ objectURLs: 0, errorToasts: 1 });
+        expect(downloads).toEqual([]);
+
+        await page.unroute('**/api/export_volume_excel');
+        const recoveredDownload = page.waitForEvent('download');
+        await page.locator(SELECTORS.EXPORT_VOLUME_EXCEL_BTN).click();
+        expect((await recoveredDownload).suggestedFilename()).toMatch(/\.xlsx$/);
+      });
+    }
+  });
+});
+
 test.describe('Volume Splitter Page', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();

@@ -605,7 +605,12 @@ function exportToExcel() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.blob())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to export volume plan');
+        }
+        return response.blob();
+    })
     .then(blob => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

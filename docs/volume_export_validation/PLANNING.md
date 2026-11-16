@@ -1,8 +1,8 @@
 # Plan Review — Volume export validation (#625)
 
-**Status:** Gate 0 approved on 16 November 2026. The three council reviews are
-recorded below, with every finding accepted in Plan v2. Gate 1 is unsigned;
-Q1 and the finished plan await the owner's approval before implementation.
+**Status:** Gates 0 and 1 approved on 16 November 2026. The owner approved Plan v2,
+confirmed the response-matrix dispositions and resolved Q1 by preserving current
+parser behavior. Implementation is authorized; no merge authority is granted.
 
 ## Section 0 — Requirements Brief
 
@@ -310,8 +310,9 @@ The plan otherwise preserves calculation semantics, training-day behavior, safe 
 
 ## Response matrix
 
-Manager-proposed dispositions, applied by the same PM in council Step 4. There are
-no rejected or deferred findings. The owner confirms these dispositions at Gate 1.
+Manager-proposed dispositions, applied by the same PM in council Step 4 and
+confirmed by the owner's Gate 1 approval on 16 November 2026. There are no rejected
+or deferred findings.
 
 | Finding | Reviewer | Disposition | Action in v2 |
 |---|---|---|---|
@@ -500,14 +501,75 @@ authorized by this plan.
 The recommended Q1 disposition is to preserve current parser behavior: empty
 `application/json` body → 400 `BAD_REQUEST`; unsupported/missing JSON content type
 → 415 `UNSUPPORTED_MEDIA_TYPE`; successfully parsed falsy JSON roots retain the
-header-only-workbook fallback. The owner must confirm this interpretation with
-Plan v2 before implementation.
+header-only-workbook fallback. The owner confirmed this interpretation with
+Plan v2 on 16 November 2026, as recorded below.
+
+### Gate 1 sign-off — 16 November 2026
+
+**Direct owner reply, verbatim:**
+
+> Approve Plan v2 and preserve parser behavior
+
+The reply answered the question approving this #625 Plan v2 while preserving an
+empty JSON body's HTTP 400, unsupported/non-JSON content type's HTTP 415 and parsed
+JSON `null`'s header-only workbook fallback, and explicitly excluding boolean
+volume values. It approves Plan v2 and confirms every response-matrix disposition.
+Q1 is resolved in favor of the parser behavior specified above. Boolean values
+inside the `volumes` map remain rejected, as the approved plan requires; parsed
+falsy roots retain their separate existing fallback.
+
+The implementation agent may proceed with this bounded route/caller packet and
+its required validation and reviews. This approval grants no merge authority and
+does not select the other entries in #625.
 
 ## Sign-off
 
 - [x] Gate 0 approval recorded with its exact direct reply and packet scope.
 - [x] Every council finding has a disposition; all are accepted in Plan v2.
 - [x] Council provenance and continuity block complete; evidence gap is none.
-- [ ] Q1 parser wording reconciled with the owner.
-- [ ] Owner approved Plan v2 — Gate 1.
-- [ ] Ready to implement.
+- [x] Q1 parser wording reconciled with the owner: preserve current parser behavior.
+- [x] Owner approved Plan v2 and its response-matrix dispositions — Gate 1, 16 November 2026.
+- [x] Ready to implement; required implementation tests and reviews still apply.
+
+## Implementation evidence — 16 November 2026
+
+Implemented on `fix/625-volume-export-validation`. The route validates finite
+numeric volume values while excluding booleans, preserves parser 400/415 outcomes
+by parsing before its export catch, and logs unexpected failures while returning
+a generic 500. The caller checks `response.ok` before creating a blob or download.
+`utils/volume_splitter_service.py` and its calculation remain unchanged.
+
+| Check | Result |
+|---|---|
+| New API cases before production changes | 25 intended failures and 26 compatibility passes |
+| Three planned pytest modules | 118 passed |
+| Seven planned Chromium specs | 226 passed, zero retries |
+| Focused download/error/recovery cases | 3 passed |
+| TypeScript | Clean |
+| Pyright baseline comparison | Zero diagnostics, zero net-new diagnostics; baseline unchanged |
+| Generated inventory and diff checks | Passed |
+| Independent code, unslop and product-risk reviews | PASS, no findings |
+
+The readiness contract's exact literal changed from six initialization sites to
+seven for the one added `beforeEach`; its deterministic waiter and exact assertion
+remain intact. An initial pyright run reported four optional-`book.active`
+diagnostics in the new tests. Selecting the named `Volume Plan` sheet corrected
+them; the original receipt is retained and the baseline was not changed.
+
+A separate private-runtime UI smoke downloaded a valid workbook, then injected
+400 and 500 responses. Each error showed one generic readable toast and created
+zero object URLs or downloads. Restoring successful responses produced one
+download and one object URL. Both downloaded workbooks reopened successfully
+with equal row values; the toast screenshot was inspected for readability.
+
+Required review identities: `code-reviewer` — `/root/export_code_review`;
+`unslop-reviewer` — `/root/export_unslop_review`; `product-risk-reviewer` —
+`/root/volume_export_product`.
+
+Evidence is retained under `artifacts/607-625-20261116/`, including
+`pytest625-typed.xml`, `625-e2e-gate.log`, `625-ui-smoke.json`,
+`625-workbook-smoke.json` and `625-pyright.json`.
+
+This entry precedes PR publication. Remote CI and merge remain pending; these
+local results do not claim either. Merge requires the owner's separate approval
+of the named PR and head.
