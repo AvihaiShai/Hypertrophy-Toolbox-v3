@@ -218,6 +218,22 @@
     }
 }
 
+/* Current Goals (#716). Between the shared card layout (<=576px) and desktop,
+   the .tbl-wrap--full modifier leaves overflow visible, so the seven-column
+   table spilled past the viewport, where the body clips it. Scroll it inside
+   its labelled, focusable region instead. */
+@media screen and (min-width: 576.02px) and (max-width: 1200px) {
+    .current-goals .tbl-wrap.tbl-wrap--full {
+        overflow-x: auto;
+    }
+}
+
+.current-goals .current-goals__scroll-hint {
+    color: var(--progression-copy-muted);
+    font-size: 0.85rem;
+    margin: 0 0 0.5rem;
+}
+
 /* Hierarchical Dropdown Styles */
 .routine-dropdown {
     position: relative;

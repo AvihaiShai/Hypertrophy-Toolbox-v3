@@ -43,7 +43,11 @@
     <!-- Current Goals -->
     <div class="current-goals frame-calm-glass mt-4" data-visual-surface>
         <h4>Current Goals</h4>
-        <div class="tbl-wrap tbl-wrap--full" role="region" aria-label="Current progression goals table">
+        {# Shown, and referenced by aria-describedby, only while the table really
+           overflows its region (progression-plan.js); the threshold moves with
+           content and the UI scale, so no fixed breakpoint can decide it. #}
+        <p id="currentGoalsScrollHint" class="current-goals__scroll-hint" hidden>Scroll sideways to see all goal columns.</p>
+        <div class="tbl-wrap tbl-wrap--full" role="region" aria-label="Current progression goals table" tabindex="0">
             {# data-visual-preserve-border is a test-only hook with no value and no
                styling, behaviour or accessibility effect. The visual determinism layer
                flattens border geometry on every [data-visual-surface]; this table's
@@ -59,11 +63,11 @@
                 <thead>
                     <tr>
                         <th scope="col" class="col--high" data-label="Exercise">Exercise</th>
-                        <th scope="col" class="col--med" data-label="Goal Type">Goal Type</th>
-                        <th scope="col" class="col--med is-num" data-label="Current Value">Current Value</th>
-                        <th scope="col" class="col--med is-num" data-label="Target Value">Target Value</th>
-                        <th scope="col" class="col--med" data-label="Goal Date">Goal Date</th>
-                        <th scope="col" class="col--med" data-label="Status">Status</th>
+                        <th scope="col" data-label="Goal Type">Goal Type</th>
+                        <th scope="col" class="is-num" data-label="Current Value">Current Value</th>
+                        <th scope="col" class="is-num" data-label="Target Value">Target Value</th>
+                        <th scope="col" data-label="Goal Date">Goal Date</th>
+                        <th scope="col" data-label="Status">Status</th>
                         <th scope="col" class="col--high" data-label="Actions">Actions</th>
                     </tr>
                 </thead>

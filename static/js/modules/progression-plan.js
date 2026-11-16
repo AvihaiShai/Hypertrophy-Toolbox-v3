@@ -21,7 +21,35 @@ function getProgressionSuccessMessage(response, fallbackMessage) {
     return fallbackMessage;
 }
 
+// The Current Goals table scrolls inside its region at tablet widths (#716).
+// Whether it actually overflows depends on the goals and on the UI scale, so the
+// hint is shown and announced only while the region really scrolls. Observing
+// the table as well as the region catches rows or buttons being removed.
+function initializeGoalsScrollHint() {
+    const region = document.querySelector('.current-goals .tbl-wrap');
+    const hint = document.getElementById('currentGoalsScrollHint');
+    if (!region || !hint || typeof ResizeObserver === 'undefined') return;
+
+    const update = () => {
+        const scrolls = ['auto', 'scroll'].includes(getComputedStyle(region).overflowX)
+            && region.scrollWidth > region.clientWidth + 1;
+        hint.hidden = !scrolls;
+        if (scrolls) {
+            region.setAttribute('aria-describedby', hint.id);
+        } else {
+            region.removeAttribute('aria-describedby');
+        }
+    };
+
+    const observer = new ResizeObserver(update);
+    observer.observe(region);
+    const table = region.querySelector('table');
+    if (table) observer.observe(table);
+    update();
+}
+
 export function initializeProgressionPlan() {
+    initializeGoalsScrollHint();
     const exerciseSelect = document.getElementById('exerciseSelect');
     const suggestionsContainer = document.getElementById('suggestionsContainer');
     const suggestionsList = document.getElementById('suggestionsList');
