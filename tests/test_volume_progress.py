@@ -1,3 +1,4 @@
+import logging
 import sqlite3
 from unittest.mock import patch
 
@@ -649,4 +650,208 @@ def test_volume_progress_performance_sanity(client, clean_db):
         f"/api/volume_progress averaged {elapsed_ms:.1f} ms across {samples} samples "
         "with 80 user_selection rows (target: well under 100 ms; 200 ms is the slow-query log threshold)."
     )
+
+
+# ── #713 blank-P/S/T aggregation branches (AUD-0073, AUD-0074, AUD-0075) ──
+#
+# Every exercise below has blank primary/secondary/tertiary muscle groups, so
+# aggregate_planned_sets() routes it through _aggregate_blank_pst_row().
+
+
+def _create_blank_pst_exercise(db, name, *, primary=None, secondary=None, advanced=None):
+    return _create_exercise(
+        db,
+        name,
+        primary=primary,
+        secondary=secondary,
+        tertiary=None,
+        advanced=advanced,
+    )
+
+
+def _nonzero_totals(totals):
+    return {muscle: value for muscle, value in totals.items() if value}
+
+
+def _volume_progress_data(client):
+    response = client.get("/api/volume_progress")
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["ok"] is True
+    return payload["data"]
+
+
+def _planned_by_row(data):
+    return [(row["muscle_group"], row["planned"]) for row in data["rows"]]
+
+
+def test_blank_pst_backfill_strategy_contributes_nothing_and_warns(
+    clean_db, monkeypatch, caplog
+):
+    """AUD-0073: under 'backfill' a blank row that reaches aggregation is
+    diagnosed and logged, never attributed, and never counted as an orphan.
+
+    BLANK_PST_STRATEGY is a module constant with no parameter or config, so
+    the backfill branch is only reachable by patching it, as the exclude test
+    above does.
+    """
+    import utils.volume_taxonomy as taxonomy
+
+    monkeypatch.setattr(taxonomy, "BLANK_PST_STRATEGY", "backfill")
+    caplog.set_level(logging.WARNING, logger="hypertrophy_toolbox")
+
+    tokened = _create_blank_pst_exercise(clean_db, "Backfill Blank Press")
+    _add_isolated_tokens(clean_db, tokened, ["upper-pectoralis", "long-head-triceps"])
+    _select_exercise(clean_db, tokened, sets=4)
+    tokenless = _create_blank_pst_exercise(clean_db, "Backfill Blank Holdout")
+    _select_exercise(clean_db, tokenless, sets=3)
+
+    for mode in ("basic", "advanced"):
+        totals, diagnostics = aggregate_planned_sets(mode)
+
+        assert _nonzero_totals(totals) == {}, mode
+        assert diagnostics == {
+            "unmapped_muscles": [],
+            "ignored_tokens": [],
+            "rejected_tokens": [],
+            "blank_pst_rows": [tokened, tokenless],
+            "csv_fallback_count": 0,
+            "blank_pst_orphan": 0,
+        }, mode
+
+    warnings = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "hypertrophy_toolbox" and record.levelno == logging.WARNING
+    ]
+    expected_per_mode = [
+        f"blank_pst row leaked past backfill: {tokened}",
+        f"blank_pst row leaked past backfill: {tokenless}",
+    ]
+    assert warnings == expected_per_mode * 2
+
+
+def test_blank_pst_basic_mode_maps_neck_only_tokens_after_normalization(clean_db):
+    """AUD-0074: Basic mode credits neck-only tokens to Neck, whatever their
+    case or surrounding whitespace, without reporting them as ignored."""
+    exercise = _create_blank_pst_exercise(clean_db, "Blank Neck Flexion")
+    _add_isolated_tokens(clean_db, exercise, ["Splenius", "STERNOCLEIDOMASTOID "])
+    _select_exercise(clean_db, exercise, sets=3)
+
+    totals, diagnostics = aggregate_planned_sets("basic")
+
+    # Both tokens resolve to Neck; the duplicate target is counted once.
+    assert _nonzero_totals(totals) == pytest.approx({"Neck": 3.0})
+    assert diagnostics == {
+        "unmapped_muscles": [],
+        "ignored_tokens": [],
+        "rejected_tokens": [],
+        "blank_pst_rows": [exercise],
+        "csv_fallback_count": 0,
+        "blank_pst_orphan": 0,
+    }
+
+
+def test_blank_pst_basic_mode_mixed_neck_and_advanced_tokens_via_csv(clean_db):
+    """AUD-0074: a neck token mixed with ordinary isolated tokens in the CSV
+    fallback column splits the sets evenly across Neck and the mapped groups."""
+    exercise = _create_blank_pst_exercise(
+        clean_db,
+        "Blank Mixed Neck Press",
+        advanced=" SPLENIUS ;upper_pectoralis, Long Head Tricep",
+    )
+    _select_exercise(clean_db, exercise, sets=3)
+
+    totals, diagnostics = aggregate_planned_sets("basic")
+
+    assert _nonzero_totals(totals) == pytest.approx(
+        {"Neck": 1.0, "Chest": 1.0, "Triceps": 1.0}
+    )
+    assert diagnostics == {
+        "unmapped_muscles": [],
+        "ignored_tokens": [],
+        "rejected_tokens": [],
+        "blank_pst_rows": [exercise],
+        "csv_fallback_count": 1,
+        "blank_pst_orphan": 0,
+    }
+
+
+def test_blank_pst_orphan_without_tokens_through_volume_progress_endpoint(client, clean_db):
+    """AUD-0075 (a): a blank row with no isolated tokens is one orphan."""
+    exercise = _create_blank_pst_exercise(clean_db, "Orphan No Token Curl")
+    _select_exercise(clean_db, exercise, sets=3)
+    plan_id = _export_plan({"training_days": 3, "volumes": {"Chest": 12}})
+    assert activate_volume_plan(plan_id)
+
+    data = _volume_progress_data(client)
+
+    assert data["active_plan"]["mode"] == "basic"
+    assert data["diagnostics"] == {
+        "unmapped_muscles": [],
+        "ignored_tokens": [],
+        "rejected_tokens": [],
+        "blank_pst_rows": [exercise],
+        "csv_fallback_count": 0,
+        "blank_pst_orphan": 1,
+    }
+    assert _planned_by_row(data) == [("Chest", 0.0)]
+
+
+def test_blank_pst_orphan_advanced_mode_without_resolved_targets_through_endpoint(
+    client, clean_db
+):
+    """AUD-0075 (b): in Advanced mode, tokens that resolve to no advanced
+    muscle make the row one orphan; neck tokens have no advanced bucket."""
+    exercise = _create_blank_pst_exercise(clean_db, "Orphan Advanced Neck Hold")
+    _add_isolated_tokens(clean_db, exercise, ["splenius", "mystery-muscle"])
+    _select_exercise(clean_db, exercise, sets=3)
+    plan_id = _export_plan(
+        {"training_days": 4, "mode": "advanced", "volumes": {"upper-pectoralis": 12}},
+        mode="advanced",
+    )
+    assert activate_volume_plan(plan_id)
+
+    data = _volume_progress_data(client)
+
+    assert data["active_plan"]["mode"] == "advanced"
+    assert data["diagnostics"] == {
+        "unmapped_muscles": ["mystery-muscle"],
+        "ignored_tokens": ["splenius"],
+        "rejected_tokens": [],
+        "blank_pst_rows": [exercise],
+        "csv_fallback_count": 0,
+        "blank_pst_orphan": 1,
+    }
+    assert _planned_by_row(data) == [("upper-pectoralis", 0.0)]
+
+
+def test_blank_pst_orphan_basic_mode_without_mapped_targets_through_endpoint(
+    client, clean_db
+):
+    """AUD-0075 (c): in Basic mode, tokens that map to no Basic group make
+    the row one orphan. Empty and whitespace-only groups count as blank."""
+    exercise = _create_blank_pst_exercise(
+        clean_db,
+        "Orphan Basic Unknown Raise",
+        primary="",
+        secondary="  ",
+        advanced="mystery-muscle; another-unknown",
+    )
+    _select_exercise(clean_db, exercise, sets=3)
+    plan_id = _export_plan({"training_days": 3, "volumes": {"Chest": 12}})
+    assert activate_volume_plan(plan_id)
+
+    data = _volume_progress_data(client)
+
+    assert data["active_plan"]["mode"] == "basic"
+    assert data["diagnostics"] == {
+        "unmapped_muscles": ["mystery-muscle", "another-unknown"],
+        "ignored_tokens": [],
+        "rejected_tokens": [],
+        "blank_pst_rows": [exercise],
+        "csv_fallback_count": 1,
+        "blank_pst_orphan": 1,
+    }
+    assert _planned_by_row(data) == [("Chest", 0.0)]
 
