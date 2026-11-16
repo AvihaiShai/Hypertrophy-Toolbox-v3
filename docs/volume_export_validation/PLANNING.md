@@ -609,3 +609,32 @@ and deferred/parked boundaries. Closing #625 after this repair lands therefore
 does not claim those proposals were implemented or authorize their implementation.
 
 Docs retention at closeout: keep active — `docs/volume_export_validation/PLANNING.md`; PR #711 and issues #625/#712 hold current delivery and deferred-work status; retain this approval, compatibility and validation record at its existing path.
+
+### Latest owner disposition — 16 November 2026
+
+**Direct owner reply, verbatim:**
+
+> Keep PR open
+
+This answered the merge-and-close request naming PR #711 at
+`24ba6c2be6ee708f9689b79ee0a93f535ed24d98`. Keep the PR unmerged and #625 open.
+The subsequent integration with newer `main` does not acquire merge authority.
+The deferred entries remain maintained in #712.
+
+### Second main integration — 16 November 2026
+
+Integrated `main` at `b5a675813077a9dce3698cb791db9915349be5a8` after
+#706 and #710 landed. The generated inventory Markdown was the only conflict;
+both inventory artifacts were regenerated. The five reviewed volume route,
+caller and test files remain identical to the prior approved implementation.
+
+The repeated gates passed: 118 pytest cases, 229 Chromium cases with zero
+retries/skips/flakes, clean TypeScript, zero pyright diagnostics/net-new
+diagnostics, inventory check and diff check. The three additional browser cases
+come from #710. Receipts are under `artifacts/625-closeout-20261116/`, including
+`pytest-final-integration.log`, `final-integration/e2e-results.json` and
+`pyright-final-integration.json`. The live database hash is unchanged.
+
+PR #711 remains unmerged and #625 remains open under the owner's latest reply.
+Final-head remote CI is tracked on the PR; these local results do not claim a
+remote pass or authorize a merge.

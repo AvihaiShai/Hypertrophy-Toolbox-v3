@@ -68,13 +68,13 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 558
+      "tests": 561
     },
     "specs": [
       {
         "in_required_functional_set": true,
         "spec": "accessibility.spec.ts",
-        "tests": 38
+        "tests": 41
       },
       {
         "in_required_functional_set": true,
@@ -238,7 +238,7 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 707
+    "total_tests": 710
   },
   "pytest": {
     "collected_deterministic": 4527,
