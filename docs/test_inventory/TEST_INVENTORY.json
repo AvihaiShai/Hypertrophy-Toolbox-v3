@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 553
+      "tests": 555
     },
     "specs": [
       {
@@ -174,7 +174,7 @@
       {
         "in_required_functional_set": true,
         "spec": "summary-pages.spec.ts",
-        "tests": 20
+        "tests": 22
       },
       {
         "in_required_functional_set": true,
@@ -238,7 +238,7 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 702
+    "total_tests": 704
   },
   "pytest": {
     "collected_deterministic": 4469,
@@ -1201,6 +1201,10 @@
         "name": "unwrapApiPayload > unwraps a wrapped envelope to its data"
       },
       {
+        "file": "static/js/modules/__tests__/summary-tooltips.test.js",
+        "name": "replaces rows without leaving an open tip or replacing persistent instances"
+      },
+      {
         "file": "static/js/modules/__tests__/toast.test.js",
         "name": "showToast - action button click behavior > B36: the click hides the live instance BEFORE running onClick"
       },
@@ -1936,6 +1940,10 @@
         "file": "static/js/modules/__tests__/summary-helpers.test.js"
       },
       {
+        "cases": 1,
+        "file": "static/js/modules/__tests__/summary-tooltips.test.js"
+      },
+      {
         "cases": 61,
         "file": "static/js/modules/__tests__/toast.test.js"
       },
@@ -1964,7 +1972,7 @@
         "file": "static/js/modules/__tests__/workout-plan-state.test.js"
       }
     ],
-    "total_cases": 269,
-    "total_files": 14
+    "total_cases": 270,
+    "total_files": 15
   }
 }

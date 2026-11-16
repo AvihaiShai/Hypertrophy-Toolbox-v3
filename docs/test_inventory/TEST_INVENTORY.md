@@ -12,12 +12,12 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **702** |
+| Playwright tests (chromium) | **704** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **553** tests across 25 specs |
+| Required functional gate — `E2E Functional (Chromium)` | **555** tests across 25 specs |
 | pytest collected nodes (deterministic subset) | **4469** across 142 files |
 | pytest test files (all) | **143** |
-| JS unit cases (Vitest) | **269** across 14 files |
+| JS unit cases (Vitest) | **270** across 15 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
@@ -46,7 +46,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `progression.spec.ts` | 29 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
 | `smoke-navigation.spec.ts` | 19 | yes |
-| `summary-pages.spec.ts` | 20 | yes |
+| `summary-pages.spec.ts` | 22 | yes |
 | `superset-edge-cases.spec.ts` | 16 | yes |
 | `ui-hardening.spec.ts` | 37 | yes |
 | `user-profile.spec.ts` | 24 | yes |
@@ -214,7 +214,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 
 ## Vitest test files
 
-Collected with `vitest list --staticParse=false --json=<path>`, which lists cases without running them. `.skip`, `.todo` and `describe.skip` cases are omitted by the lister entirely, so a disabled case is indistinguishable here from a deleted one and **no status is recorded**: a count of 269 means 269 cases that would run.
+Collected with `vitest list --staticParse=false --json=<path>`, which lists cases without running them. `.skip`, `.todo` and `describe.skip` cases are omitted by the lister entirely, so a disabled case is indistinguishable here from a deleted one and **no status is recorded**: a count of 270 means 270 cases that would run.
 
 The per-case identity list -- what detects a case being renamed rather than removed -- lives in `TEST_INVENTORY.json` under `vitest.cases`, not here.
 
@@ -227,6 +227,7 @@ The per-case identity list -- what detects a case being renamed rather than remo
 | `static/js/modules/__tests__/fetch-wrapper.test.js` | 3 |
 | `static/js/modules/__tests__/session-summary-helpers.test.js` | 7 |
 | `static/js/modules/__tests__/summary-helpers.test.js` | 22 |
+| `static/js/modules/__tests__/summary-tooltips.test.js` | 1 |
 | `static/js/modules/__tests__/toast.test.js` | 61 |
 | `static/js/modules/__tests__/user-profile-data.test.js` | 12 |
 | `static/js/modules/__tests__/volume-splitter.test.js` | 24 |

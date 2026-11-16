@@ -8,12 +8,61 @@
  * - Table rendering
  */
 import type { Page } from '@playwright/test';
+import { test as guardedTest } from './console-guard';
 import { test, expect, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
 
 const CONTRIBUTION_MODE_OPTIONS = [
   { value: 'total', text: 'Total (Primary + Secondary + Tertiary)' },
   { value: 'direct', text: 'Direct Only (Primary Muscle Only)' },
 ];
+
+for (const route of [ROUTES.WEEKLY_SUMMARY, ROUTES.SESSION_SUMMARY]) {
+  guardedTest(`refresh removes open category tooltips on ${route}`, async ({ page }) => {
+    let releaseRefresh!: () => void;
+    const refreshGate = new Promise<void>(resolve => { releaseRefresh = resolve; });
+    const row = {
+      routine: 'Tooltip test', muscle_group: 'Chest', effective_sets: 12,
+      raw_sets: 12, total_volume: 100, total_exercises: 1,
+    };
+    await page.route(`**${route}?**`, async request => {
+      if (request.request().url().includes('contribution_mode=direct')) await refreshGate;
+      await request.fulfill({ json: {
+        ok: true, status: 'success', data: {
+          weekly_summary: [row], session_summary: [row], isolated_muscles: [],
+          categories: [{ category: 'Mechanic', subcategory: 'Compound', total_exercises: 1 }],
+        },
+      } });
+    });
+    await page.goto(route);
+    await waitForPageReady(page);
+    const selector = page.locator('#contribution-mode');
+    const cell = page.locator('#categories-table-body [data-bs-toggle="tooltip"]').first();
+    await expect(cell).toBeVisible();
+    await selector.focus();
+    await cell.hover();
+    await expect(page.locator('.tooltip.show')).toHaveCount(1);
+    await expect(page.locator('.tooltip.show')).toHaveCSS('opacity', '1');
+    const oldCell = await cell.elementHandle();
+    const response = page.waitForResponse(result =>
+      result.url().includes(`${route}?`) && result.url().includes('contribution_mode=direct'));
+    const refreshRequest = page.waitForRequest(request =>
+      request.url().includes(`${route}?`) && request.url().includes('contribution_mode=direct'));
+    await page.keyboard.press('ArrowDown');
+    await refreshRequest;
+    // Keep the response pending until a real hover tip is open on the rows it replaces.
+    await page.mouse.move(5, 5);
+    await cell.hover();
+    await expect(page.locator('.tooltip.show')).toHaveCSS('opacity', '1');
+    releaseRefresh();
+    await response;
+    await expect(selector).toHaveValue('direct');
+    await expect.poll(() => oldCell!.evaluate(element => element.isConnected)).toBe(false);
+    await page.mouse.move(5, 5);
+    await expect.poll(() => page.locator('.tooltip.show').evaluateAll(tips =>
+      tips.filter(tip => !document.querySelector(`[aria-describedby~="${tip.id}"]`)).length,
+    )).toBe(0);
+  });
+}
 
 function unwrapApiData(payload: unknown) {
   if (
