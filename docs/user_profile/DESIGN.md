@@ -3,7 +3,7 @@
 
 > Pinned design constants for the User Profile feature. **All values here are normative**: implementing slices must use these exact strings, numbers, and lookup keys.
 
-> Read [PLANNING.md](PLANNING.md) for the surrounding plan. Append progress to [EXECUTION_LOG.md](EXECUTION_LOG.md).
+> Current feature reference. Implementation history and outstanding verification observations are in [EXECUTION_LOG.md](EXECUTION_LOG.md); the completed plan is [retired to Git history](../README.md#removed-from-active-docs).
 
 ---
 
@@ -291,7 +291,9 @@ reason ∈ {
 
 `source` (`'log'|'profile'|'default'`) drives UI caption text only — never branched on by tests. `reason` is the contract surface for `tests/test_profile_estimator.py` assertions and for troubleshooting via logs. No exception ever leaves `estimate_for_exercise`; on unexpected DB error, return the default struct with `reason='default_missing'` and emit `logger.exception(...)`.
 
-> 🔍 **REVIEW (Opus 2026-04-26):** The estimation precedence logic is sound. One note for Slice-C2 implementing agents: the "last logged set" lookup queries `workout_log` directly — there is **no need to JOIN to `user_selection`**. The `workout_log` table stores all needed columns (`scored_weight`, `scored_min_reps`, etc.) as recorded at log time. See PLANNING.md Phase C.2 review comment for the exact COALESCE column mapping.
+> 🔍 **REVIEW (Opus 2026-04-26):** The estimation precedence logic is sound. One note for Slice-C2 implementing agents: the "last logged set" lookup queries `workout_log` directly — there is **no need to JOIN to `user_selection`**. The `workout_log` table stores all needed columns (`scored_weight`, `scored_min_reps`, etc.) as recorded at log time. See [PLANNING.md Phase C.2 review comment](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/user_profile/PLANNING.md#c2-public-functions) for the exact COALESCE column mapping.
+
+**Current implementation reference (2026-11-16):** the mapping is maintained in [`_lookup_last_logged()`](../../utils/profile_estimator.py#L185), with precedence coverage in [`test_last_logged_set_wins_over_profile_estimate`](../../tests/test_profile_estimator.py#L236).
 
 ---
 

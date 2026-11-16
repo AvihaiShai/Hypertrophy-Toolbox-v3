@@ -75,19 +75,16 @@ Proposed entries do not authorize implementation. The archive container is index
 
 ### Closed (history)
 
-- [worktree_cleanup/](worktree_cleanup/) — campaign closed by owner decision on 2026-11-10 (#669); the closeout, owner acceptance, evidence and amendment reference stay here; the three plans are archived (see *Archive*)
+- [worktree_cleanup/](worktree_cleanup/) — campaign closed by owner decision on 2026-11-10 (#669); the closeout, owner acceptance and evidence stay here; the three plans are archived (see *Archive*), and the navigation stub is retired below
 
-- [backup_schema_version/](backup_schema_version/) — closed D6 investigation; ADR-008 records the outcome
 - [css_phase4_wp4_4/](css_phase4_wp4_4/) — completed WP4.4 arc and handoff history
 - [css_scale_btn_cleanup/](css_scale_btn_cleanup/) — completed scale-button cleanup, council findings, and evidence
 - [css_table_helpers_cleanup/](css_table_helpers_cleanup/) — completed table-helper cleanup and evidence
 - [css_theme_dark_p3/](css_theme_dark_p3/) — arc terminated after shipped a0; no later packet authorized
 - [deep_gate_robustness_gate0/](deep_gate_robustness_gate0/) — shipped: Gate 1 implementation #474 (`55953069`, deep-gate e2e selection fail-closed)
 - [dnone_display_utilities/](dnone_display_utilities/) — shipped display-utility cleanup evidence
-- [doc_truth/](doc_truth/) — shipped documentation-truth repairs
 - [fatigue_meter/](fatigue_meter/) — shipped meter and heatmap; Stage 4 closed, with calibration contracts and evidence retained
 - [msys_destination_validation/](msys_destination_validation/) — guard destination validation and drive-root monitor, merged in #654; delegated acceptance and coverage limits in its closeout
-- [p1_4_debug_scaffolding/](p1_4_debug_scaffolding/) — completed debug-scaffolding work
 - [pyright_filter_predicates/](pyright_filter_predicates/) — closed Pyright burn-down record
 - [pyright_volume_progress/](pyright_volume_progress/) — closed Pyright burn-down record
 - [quality_gate_routing/](quality_gate_routing/) — shipped quality-gate routing work
@@ -106,12 +103,9 @@ Proposed entries do not authorize implementation. The archive container is index
 
 These files are historical reference only. They should not be treated as active backlog:
 
-- **[archive/MISSING_TESTS_CHECKLIST.md](archive/MISSING_TESTS_CHECKLIST.md)** - Historical missing-tests tracker
-- **[archive/MISSING_TESTS_PART2.md](archive/MISSING_TESTS_PART2.md)** - Follow-up historical test tracker
-- **[archive/SUPERSET_FEATURE.md](archive/SUPERSET_FEATURE.md)** - Completed superset feature implementation notes
 - **[archive/PLAN_GENERATOR_IMPLEMENTATION.md](archive/PLAN_GENERATOR_IMPLEMENTATION.md)** - Completed starter-plan implementation tracker
 - **[archive/DOCS_AUDIT_PLAN.md](archive/DOCS_AUDIT_PLAN.md)** - Archived docs/code audit rollout record
-- **[archive/ci_cd/](archive/ci_cd/)** - Completed CI/CD Improvement Plan + per-phase council plans (Phases 0–5, shipped via PRs #40–#51). Note: the live `docs/ci_cd_phase3/pyright-baseline.json` CI artifact stays in the active tree (referenced by `.github/workflows/ci.yml`), not archived.
+- **[archive/ci_cd/](archive/ci_cd/)** - Completed CI/CD Improvement Plan and retained council plans (shipped via PRs #40–#51); the Phase 1 plan is retired below. Note: the live `docs/ci_cd_phase3/pyright-baseline.json` CI artifact stays in the active tree (referenced by `.github/workflows/ci.yml`), not archived.
 - **[archive/VOLUME_TAXONOMY_AUDIT.md](archive/VOLUME_TAXONOMY_AUDIT.md)** - Phase 0 live database audit (2026-04-25). Completed audit, now archived.
 - **[archive/workout_cool_integration/checkpoint3_coverage.md](archive/workout_cool_integration/checkpoint3_coverage.md)** - Completed free-exercise-db mapper coverage baseline (pre-curation snapshot).
 - **[archive/2026/local-first-assets/PLANNING.md](archive/2026/local-first-assets/PLANNING.md)** - Local-first navigation assets plan, council response matrix and as-built record (shipped #341); current contract: `tests/test_local_first_assets.py` and `static/vendor/*/NOTICE.md`.
@@ -137,6 +131,25 @@ plan at `189756f4`, the main snapshot immediately before this batch:
 - [pyright_volume_splitter](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/pyright_volume_splitter/PLANNING.md) — shipped as #328
 - [superset_routine_selection](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/superset_routine_selection/PLANNING.md) — shipped as #346
 - [wpb4_unassigned_bucket](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/189756f473601850c82912f43f25f16396bdc8fa/docs/wpb4_unassigned_bucket/PLANNING.md) — shipped as #256
+
+Twelve completed records and navigation stubs were retired to Git history on 2026-11-16
+under the same criteria. Each historical link opens the file at `a0c32d63`, the last
+commit containing all twelve on this batch branch. Current references are listed alongside it.
+
+| Retired file | Maintained home |
+|---|---|
+| [archive/2026/fetch-wrapper/WP3_5_FETCH_INVENTORY.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/2026/fetch-wrapper/WP3_5_FETCH_INVENTORY.md) | [Transport closeout](REFACTOR_PLAN.md#wp35-json-api-transport-consolidation) and [fetch wrapper](../static/js/modules/fetch-wrapper.js) |
+| [archive/MISSING_TESTS_CHECKLIST.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_CHECKLIST.md) | [Current test inventory](test_inventory/TEST_INVENTORY.md) and maintained tests |
+| [archive/MISSING_TESTS_PART2.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_PART2.md) | [Current test inventory](test_inventory/TEST_INVENTORY.md) and maintained tests |
+| [archive/SUPERSET_FEATURE.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/SUPERSET_FEATURE.md) | [Product flow](product/APP_FLOW.md), [schema](product/BACKEND_SCHEMA.md) and [superset tests](../tests/test_superset.py) |
+| [archive/ci_cd/phase1/PLANNING.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/ci_cd/phase1/PLANNING.md) | [E2E inclusion and privacy rules](../e2e/CLAUDE.md), current CI and retained [A11 evidence](archive/2026/master-handover/CURRENT_STATE_HISTORY.md) |
+| [archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION.md) | [Planning](archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION_PLANNING.md) and [execution](archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION_EXECUTION.md) siblings |
+| [backup_schema_version/PLANNING.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/backup_schema_version/PLANNING.md) | [ADR-008](DECISIONS.md#adr-008-backup_schema_version-is-a-reserved-informational-label-not-an-enforced-contract), [#373](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/373) and [restore fuzz tests](../tests/test_program_backup_restore_fuzz.py) |
+| [deep_gate_robustness_gate0/GATE1_PLAN.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/deep_gate_robustness_gate0/GATE1_PLAN.md) | [Runner contract tests](../tests/test_playwright_runner_contracts.py); [original evidence](deep_gate_robustness_gate0/EVIDENCE.md) stays |
+| [doc_truth/PLANNING.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/doc_truth/PLANNING.md) | [Duplication registry](DUPLICATION_REGISTRY.md), [quality gate](ai_workflow/QUALITY_GATE.md) and [retention rules](ai_workflow/DOC_RETENTION.md) |
+| [p1_4_debug_scaffolding/PLANNING.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/p1_4_debug_scaffolding/PLANNING.md) | [#291](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/291) preserves decisions, visual measurements and residual observations |
+| [user_profile/PLANNING.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/user_profile/PLANNING.md) | [Design](user_profile/DESIGN.md), [estimator](../utils/profile_estimator.py) and [tests](../tests/test_profile_estimator.py); [execution log](user_profile/EXECUTION_LOG.md) stays |
+| [worktree_cleanup/AMENDMENT_2026-09-28.md](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/worktree_cleanup/AMENDMENT_2026-09-28.md) | [Retained council record](archive/2026/worktree-plans/drive-root-amendment/PLANNING.md#historical-source-reference-landing) reproduces this navigation stub; the September original remains private |
 
 This index is maintained by hand. It carries no dated freshness stamp on purpose — one
 was previously written here and went stale without anyone noticing. Check `git log` for

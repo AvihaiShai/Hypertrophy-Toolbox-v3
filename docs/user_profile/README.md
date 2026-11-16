@@ -9,6 +9,5 @@ Personalizes Workout Controls on `/workout_plan` from a saved profile:
 
 Reference docs:
 
-- [Planning](PLANNING.md)
 - [Design constants](DESIGN.md)
 - [Execution log](EXECUTION_LOG.md)
