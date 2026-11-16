@@ -1359,3 +1359,31 @@ remain evidence for unchanged behavior. Evidence root:
 This final entry changes documentation only; the combined executable code and
 tests stay at the validated tree. Exact-head CI and ready status are reported in
 the PR description after push. **#686 is explicitly not authorized for merge.**
+
+## Excel export implementation evidence — 16 November 2026
+
+PR 2 proceeds under the existing Gate 1 approval, from `main` at `9deb04c8`.
+The Workout Plan sheet appends the three approved timing headers in both modes;
+all three query variants select the stored values. Export does not validate,
+normalize or default those fields. The export UI and other sheets are unchanged.
+
+| Check | Result |
+|---|---|
+| Before implementation | Both literal A–U header/sheet checks passed; both V–X acceptance cases failed as expected |
+| Six planned pytest modules | 153 passed |
+| Remove timing fields from the queries | Five acceptance cases failed; two compatibility cases passed |
+| Move time cap before Exercise Order | Four header/position cases failed; three query cases passed |
+| Restore after mutations | Production file SHA-256 matched its original; all seven new cases passed |
+| Chromium `api-integration.spec.ts`, zero retries | 57 passed |
+| Pyright baseline comparison | Zero diagnostics and zero net-new diagnostics |
+| Downloaded workbooks, both modes | Opened read-only in Microsoft Excel 16.0; U–X headers, AMRAP 90 seconds, EMOM 45 seconds × 8 rounds and empty cells read back correctly; both sheets exported to PDF |
+| Inventory | Regenerated; only the seven added pytest nodes change the inventory |
+
+The initial test draft guessed two sheet names incorrectly. Its four failures
+are retained; correcting the expected fixture sheet list produced the two-pass,
+two-expected-failure baseline above before production code changed.
+
+Evidence and review receipts are retained under
+`artifacts/fable-follow-through-20261116/`. Independent code and unslop review
+and final PR status are recorded in the PR description. No merge is authorized
+by this entry.
