@@ -6170,7 +6170,7 @@ remembered to look at — is byte-identical across both merges. The file lists a
 touched **exactly one** file, this document, and PR #420 touched **exactly five** —
 [`CSS_OWNERSHIP_MAP.md`](../CSS_OWNERSHIP_MAP.md),
 [`DUPLICATION_REGISTRY.md`](../DUPLICATION_REGISTRY.md), [`REFACTOR_PLAN.md`](../REFACTOR_PLAN.md),
-[`scan/README.md`](../scan/README.md) and this document — with **zero** files under
+[`scan/README.md`](../archive/2026/grounding-scan/README.md) and this document — with **zero** files under
 `static/js/**`, no workflow, no dependency, no generated inventory and no `vitest.config.js` in
 either. The suite the window is qualifying is therefore still **13 files / 231 cases**, re-read
 from [`TEST_INVENTORY.json`](../test_inventory/TEST_INVENTORY.json) at `77f4adf`

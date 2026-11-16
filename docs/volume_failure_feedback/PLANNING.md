@@ -1557,7 +1557,7 @@ repo-wide"* — now two — which also carries a moved `:301-306` anchor. The ST
 uses is scoped to §13.0's LIVE ledger block, so neither STEP12 site is edited here. **All four
 remain owner action owed.**
 
-Dated scan records under [`docs/scan/`](../scan/) and closed-packet planning documents also carry
+Dated scan records under [`docs/archive/2026/grounding-scan/`](../archive/2026/grounding-scan/) and closed-packet planning documents also carry
 `volume-splitter.js` anchors this diff moves. They are **preserved readings, not live claims**, and
 are deliberately not re-anchored.
 

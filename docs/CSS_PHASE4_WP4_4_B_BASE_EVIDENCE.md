@@ -87,7 +87,7 @@ with an explanation, rather than silently yielding an unstyled element.
 
 ## 2. What was retained — including two corrections to inherited claims
 
-`docs/scan/PHASE_20.md` (the codebase grounding scan) nominated more of this
+`docs/archive/2026/grounding-scan/phases/PHASE_20.md` (the codebase grounding scan) nominated more of this
 file than survived re-measurement. Two of its claims are **false** and are now
 pinned by contract so they are not acted on later. The third row, `:root` custom
 properties, is an M9 retention that states no scan claim; it is not a third falsified
@@ -103,7 +103,7 @@ Also retained: `body`, `h1, h2, h3`, `h2`, `h3`, `p, label` — all measured liv
 
 This is the second time in the arc that an inherited deadness claim has failed
 re-verification (WP4.4-c corrected the `.is-success` ownership attribution).
-Treat `docs/scan/` nominations as hypotheses, never as findings.
+Treat `docs/archive/2026/grounding-scan/` nominations as hypotheses, never as findings.
 
 ---
 

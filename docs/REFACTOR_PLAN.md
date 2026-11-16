@@ -277,7 +277,7 @@ This supersedes v2. It incorporates:
 
 The scan artifacts are merged into this checkout (WP-1.0, 2026-07-04):
 `docs/SCAN_FINDINGS.md`, `docs/SCAN_RECOMMENDATIONS.md`, `docs/SCAN_PROGRESS.md`,
-and `docs/scan/PHASE_02.md`–`PHASE_22.md`.
+and `docs/scan/PHASE_02.md`–`PHASE_22.md` (all since moved to `docs/archive/2026/grounding-scan/`).
 
 The scan's headline is right: the architectural direction survived, but the sizing and
 sequencing did not. Python work needs broader schema/route scope, the proposed JS seams

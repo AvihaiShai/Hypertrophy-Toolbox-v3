@@ -21,7 +21,7 @@ while the class stays absent. `test_deleted_classes_are_still_unreachable` is
 what makes that a gate rather than an assumption.
 
 The retention half matters just as much: three claims inherited from
-`docs/scan/PHASE_20.md` were re-measured for this packet and found **false**.
+`docs/archive/2026/grounding-scan/phases/PHASE_20.md` were re-measured for this packet and found **false**.
 `@keyframes fadeIn` and the three `.text-*` utilities were all documented as
 dead and are all live. They are pinned below so the next packet does not act on
 the stale claim.
@@ -119,7 +119,7 @@ def test_deleted_classes_are_still_unreachable() -> None:
 
 
 def test_fadein_keyframes_are_retained_and_still_consumed() -> None:
-    """A correction to `docs/scan/PHASE_20.md`, pinned so it is not re-made.
+    """A correction to `docs/archive/2026/grounding-scan/phases/PHASE_20.md`, pinned so it is not re-made.
 
     That scan listed `@keyframes fadeIn` as dead, on the reasoning that it backed
     the `.fade-enter*` classes it had just found unreferenced. It does not:
@@ -134,7 +134,7 @@ def test_fadein_keyframes_are_retained_and_still_consumed() -> None:
 def test_bootstrap_text_utilities_are_retained() -> None:
     """The other correction: these are not redundant with Bootstrap.
 
-    `docs/scan/PHASE_20.md` called them duplicates of Bootstrap's own utilities
+    `docs/archive/2026/grounding-scan/phases/PHASE_20.md` called them duplicates of Bootstrap's own utilities
     and therefore safe to drop. The compiled `bootstrap.custom.min.css` in this
     repo contains **no** `.text-center`, `.text-muted` or `.text-danger` rule —
     the custom build excludes that part of the utilities API — so base.css is

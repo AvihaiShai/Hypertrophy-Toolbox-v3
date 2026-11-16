@@ -88,7 +88,6 @@ Proposed entries do not authorize implementation. The archive container is index
 - [pyright_filter_predicates/](pyright_filter_predicates/) — closed Pyright burn-down record
 - [pyright_volume_progress/](pyright_volume_progress/) — closed Pyright burn-down record
 - [quality_gate_routing/](quality_gate_routing/) — shipped quality-gate routing work
-- [scan/](scan/) — completed grounding-scan evidence
 - [toast_type_word_collision/](toast_type_word_collision/) — shipped KI-010; retains code and test references
 - [u1_followup_1_vitest/](u1_followup_1_vitest/) — U1-FOLLOWUP-1 Vitest coverage: implementation #551, closeout #553
 - [user_profile/](user_profile/) — shipped profile; design and estimator/calibration references remain current
@@ -110,6 +109,7 @@ These files are historical reference only. They should not be treated as active 
 - **[archive/workout_cool_integration/checkpoint3_coverage.md](archive/workout_cool_integration/checkpoint3_coverage.md)** - Completed free-exercise-db mapper coverage baseline (pre-curation snapshot).
 - **[archive/2026/local-first-assets/PLANNING.md](archive/2026/local-first-assets/PLANNING.md)** - Local-first navigation assets plan, council response matrix and as-built record (shipped #341); current contract: `tests/test_local_first_assets.py` and `static/vendor/*/NOTICE.md`.
 - **[archive/2026/worktree-plans/](archive/2026/worktree-plans/)** - Closed worktree cleanup plans, archived 2026-11-15 (#688) with their text unchanged apart from link repairs: [P1.2 ledger](archive/2026/worktree-plans/p1_2/PLANNING.md) (August 2026), [Operation A council record](archive/2026/worktree-plans/operation-a/PLANNING.md) and [drive-root amendment council record](archive/2026/worktree-plans/drive-root-amendment/PLANNING.md) (published in #659). The campaign was closed by #669; current rules: `ai_workflow/PARALLEL_WORKFLOW.md`, closeout: `worktree_cleanup/CLOSEOUT.md`.
+- **[archive/2026/grounding-scan/](archive/2026/grounding-scan/)** - Codebase grounding scan of 2026-07-03 (merged in #89). The findings ledger, progress log and recommendations were archived on 2026-10-19. The [README](archive/2026/grounding-scan/README.md) and the 21 per-phase evidence files under [`phases/`](archive/2026/grounding-scan/phases/) followed on 2026-11-16: the phase files are byte-identical, and the README gains an archive note and re-pointed links. Evidence, not backlog: re-measure any nomination against current code. Current sources: `DUPLICATION_REGISTRY.md` and the owning GitHub issues.
 
 ## Removed From Active Docs
 
