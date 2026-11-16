@@ -148,6 +148,7 @@ jobs:
           e2e/workout-plan-desktop-contract.spec.ts
 
     - name: Run visual specs (generate)
+      id: visual_generate
       if: steps.mode.outputs.mode == 'generate'
       env:
         PW_VISUAL_SEED: '1'
@@ -172,6 +173,41 @@ jobs:
           echo "a compare run wrote to e2e/__screenshots__; baselines change only through a reviewed generate run"
           exit 1
         fi
+
+    # Retry-assisted greens otherwise discard their original failure diagnostics.
+    # This does not add tracing to the initial attempt or alter its verdict.
+    - name: Prepare visual retry diagnostics
+      id: retry_diagnostics
+      if: ${{ !cancelled() && (steps.visual.outcome == 'success' || steps.visual.outcome == 'failure' || steps.visual_generate.outcome == 'success' || steps.visual_generate.outcome == 'failure') }}
+      continue-on-error: true
+      env:
+        VISUAL_MODE: ${{ steps.mode.outputs.mode }}
+        COMPARE_OUTCOME: ${{ steps.visual.outcome }}
+        GENERATE_OUTCOME: ${{ steps.visual_generate.outcome }}
+        PW_VISUAL_SEED: '1'
+      run: |
+        case "$VISUAL_MODE" in
+          compare) STEP_OUTCOME="$COMPARE_OUTCOME" ;;
+          generate) STEP_OUTCOME="$GENERATE_OUTCOME" ;;
+          *) echo "unknown visual mode: $VISUAL_MODE" >&2; exit 1 ;;
+        esac
+        python -m scripts.prepare_visual_retry_artifact \
+          --report artifacts/playwright/results.json \
+          --artifact-root artifacts/playwright \
+          --staging artifacts/playwright-retry-diagnostics \
+          --label 'Deep Gate Visual (Linux)' \
+          --step-outcome "$STEP_OUTCOME" --mode "$VISUAL_MODE" \
+          --github-output "$GITHUB_OUTPUT" --summary-file "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload recovered visual diagnostics
+      if: ${{ !cancelled() && !failure() && (steps.retry_diagnostics.outputs.upload_needed == 'true' || steps.retry_diagnostics.outcome == 'failure') }}
+      continue-on-error: true
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: visual-linux-retry-diagnostics-${{ github.run_id }}-a${{ github.run_attempt }}
+        path: artifacts/playwright-retry-diagnostics
+        if-no-files-found: warn
+        retention-days: 14
 
     # generate → upload the freshly rendered Linux baselines for owner review+commit.
     # CI never pushes to main (branch-protected) — every pixel change is committed
