@@ -14,10 +14,12 @@ from __future__ import annotations
 import math
 from typing import Literal, Optional
 
+from utils.errors import ValidationError
+
 Gender = Literal["M", "F"]
 
 # Validation ranges — server-side guardrails. Out-of-range inputs raise
-# ValueError; routes translate that into a structured 4xx response.
+# ValidationError; routes translate that into a structured 4xx response.
 CIRCUMFERENCE_MIN_CM = 20.0
 CIRCUMFERENCE_MAX_CM = 250.0
 HEIGHT_MIN_CM = 100.0
@@ -60,18 +62,18 @@ ACE_BANDS_FEMALE: tuple[tuple[str, float, Optional[float]], ...] = (
 
 def _normalize_gender(gender: str) -> Gender:
     if not isinstance(gender, str):
-        raise ValueError("gender must be 'M' or 'F'")
+        raise ValidationError("gender must be 'M' or 'F'")
     upper = gender.strip().upper()
     if upper not in ("M", "F"):
-        raise ValueError("gender must be 'M' or 'F'")
+        raise ValidationError("gender must be 'M' or 'F'")
     return upper  # type: ignore[return-value]
 
 
 def _check_range(value: float, lo: float, hi: float, field: str, unit: str) -> None:
     if value is None or not isinstance(value, (int, float)) or math.isnan(float(value)):
-        raise ValueError(f"{field} must be a number in [{lo}, {hi}] {unit}")
+        raise ValidationError(f"{field} must be a number in [{lo}, {hi}] {unit}")
     if value < lo or value > hi:
-        raise ValueError(f"{field} must be in [{lo}, {hi}] {unit}")
+        raise ValidationError(f"{field} must be in [{lo}, {hi}] {unit}")
 
 
 def compute_navy(
@@ -95,20 +97,20 @@ def compute_navy(
 
     if sex == "M":
         if hip_cm is not None:
-            raise ValueError("hip must not be provided when gender is 'M'")
+            raise ValidationError("hip must not be provided when gender is 'M'")
         delta = waist_cm - neck_cm
         if delta <= 0:
-            raise ValueError("waist circumference must be larger than neck circumference")
+            raise ValidationError("waist circumference must be larger than neck circumference")
         bfp = 495.0 / (
             1.0324 - 0.19077 * math.log10(delta) + 0.15456 * math.log10(height_cm)
         ) - 450.0
     else:
         if hip_cm is None:
-            raise ValueError("hip is required when gender is 'F'")
+            raise ValidationError("hip is required when gender is 'F'")
         _check_range(hip_cm, CIRCUMFERENCE_MIN_CM, CIRCUMFERENCE_MAX_CM, "hip", "cm")
         delta = waist_cm + hip_cm - neck_cm
         if delta <= 0:
-            raise ValueError("waist + hip must be larger than neck circumference")
+            raise ValidationError("waist + hip must be larger than neck circumference")
         bfp = 495.0 / (
             1.29579 - 0.35004 * math.log10(delta) + 0.22100 * math.log10(height_cm)
         ) - 450.0
@@ -130,9 +132,9 @@ def compute_bmi(
     """
     sex = _normalize_gender(gender)
     if not isinstance(age_years, int) or isinstance(age_years, bool):
-        raise ValueError("age_years must be a non-negative integer")
+        raise ValidationError("age_years must be a non-negative integer")
     if age_years < 0 or age_years > 120:
-        raise ValueError("age_years must be in [0, 120]")
+        raise ValidationError("age_years must be in [0, 120]")
     _check_range(height_cm, HEIGHT_MIN_CM, HEIGHT_MAX_CM, "height", "cm")
     _check_range(bodyweight_kg, BODYWEIGHT_MIN_KG, BODYWEIGHT_MAX_KG, "bodyweight", "kg")
 
@@ -161,7 +163,7 @@ def ace_category(bfp: float, gender: str) -> str:
     """
     sex = _normalize_gender(gender)
     if not isinstance(bfp, (int, float)) or math.isnan(float(bfp)):
-        raise ValueError("bfp must be a number")
+        raise ValidationError("bfp must be a number")
     bands = ACE_BANDS_MALE if sex == "M" else ACE_BANDS_FEMALE
     for label, lo, hi in bands:
         if hi is None:
@@ -181,9 +183,9 @@ def jackson_pollock_ideal(age_years: int, gender: str) -> float:
     """
     sex = _normalize_gender(gender)
     if not isinstance(age_years, int) or isinstance(age_years, bool):
-        raise ValueError("age_years must be a non-negative integer")
+        raise ValidationError("age_years must be a non-negative integer")
     if age_years < 0 or age_years > 120:
-        raise ValueError("age_years must be in [0, 120]")
+        raise ValidationError("age_years must be in [0, 120]")
 
     col = 2 if sex == "M" else 1
     first_age = JACKSON_POLLOCK_TABLE[0][0]

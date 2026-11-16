@@ -241,7 +241,7 @@
     "total_tests": 707
   },
   "pytest": {
-    "collected_deterministic": 4476,
+    "collected_deterministic": 4485,
     "deterministic_files": 142,
     "environment_dependent_files": [
       {
@@ -436,7 +436,7 @@
       },
       {
         "file": "tests/test_errors_utils.py",
-        "tests": 31
+        "tests": 36
       },
       {
         "file": "tests/test_exercise_manager.py",
@@ -608,7 +608,7 @@
       },
       {
         "file": "tests/test_program_backup.py",
-        "tests": 45
+        "tests": 47
       },
       {
         "file": "tests/test_program_backup_execution_fields.py",
@@ -620,7 +620,7 @@
       },
       {
         "file": "tests/test_progression_plan_routes.py",
-        "tests": 23
+        "tests": 24
       },
       {
         "file": "tests/test_progression_plan_utils.py",
@@ -796,7 +796,7 @@
       },
       {
         "file": "tests/test_workout_plan_routes.py",
-        "tests": 91
+        "tests": 92
       },
       {
         "file": "tests/test_workout_plan_service.py",

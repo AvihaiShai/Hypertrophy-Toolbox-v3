@@ -19,6 +19,30 @@ class APIError(Exception):
         super().__init__(self.message)
 
 
+GENERIC_VALIDATION_MESSAGE = "Invalid request data."
+
+
+class ValidationError(ValueError):
+    """A ``ValueError`` whose message is safe to return to the client."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+
+def validation_error_response(
+    exc: ValueError, code: str = "VALIDATION_ERROR", status_code: int = 400
+) -> tuple:
+    """Echo a ``ValidationError``'s message; answer any other ``ValueError`` generically.
+
+    Reads ``exc.message``, never ``str(exc)``, so exception text cannot reach the
+    response (CodeQL py/stack-trace-exposure).
+    """
+    if isinstance(exc, ValidationError):
+        return error_response(code, exc.message, status_code)
+    return error_response(code, GENERIC_VALIDATION_MESSAGE, status_code)
+
+
 def success_response(data: Any = None, message: Optional[str] = None) -> Dict:
     """
     Standard success response format.

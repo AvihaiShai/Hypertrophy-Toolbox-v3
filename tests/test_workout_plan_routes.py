@@ -1114,3 +1114,27 @@ def test_generator_preserves_expected_value_error_text(client, clean_db):
     assert payload["error"]["code"] == "VALIDATION_ERROR"
     assert payload["message"] == "priority_muscles must be a list"
     assert payload["error"]["message"] == payload["message"]
+
+
+def test_generator_nan_volume_scale_returns_generic_validation_error(client, clean_db, exercise_factory):
+    # Raw JSON text: Python's json accepts the NaN literal, and NaN passes both
+    # range comparisons, so the failure is int(NaN) deep in the generator.
+    for name in ("Bench Press", "Squat", "Deadlift"):
+        exercise_factory(name)
+
+    response = client.post(
+        "/generate_starter_plan",
+        data='{"training_days": 3, "environment": "gym", "experience_level": "novice", '
+        '"volume_scale": NaN, "persist": false}',
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    payload = response.get_json()
+    assert payload["ok"] is False
+    assert payload["error"]["code"] == "VALIDATION_ERROR"
+    assert payload["message"] == "Invalid request data."
+    assert payload["error"]["message"] == payload["message"]
+    body = response.get_data(as_text=True)
+    for leaked in ("surrogates", "codec", "NaN to integer"):
+        assert leaked not in body

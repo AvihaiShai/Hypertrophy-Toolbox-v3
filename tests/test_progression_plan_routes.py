@@ -104,6 +104,26 @@ def test_get_exercise_suggestions_returns_validation_error_for_missing_exercise(
     assert_error_envelope(payload, "VALIDATION_ERROR", "exercise is required")
 
 
+def test_get_exercise_suggestions_lone_surrogate_returns_generic_validation_error(
+    client, clean_db
+):
+    # Raw JSON text: the "\ud800" escape decodes to a lone surrogate, which
+    # sqlite cannot encode. The codec's text must not reach the client.
+    response = client.post(
+        "/get_exercise_suggestions",
+        data='{"exercise": "\\ud800"}',
+        content_type="application/json",
+        headers=XHR_HEADERS,
+    )
+
+    assert response.status_code == 400
+    payload = response.get_json()
+    assert_error_envelope(payload, "VALIDATION_ERROR", "Invalid request data.")
+    body = response.get_data(as_text=True)
+    for leaked in ("surrogates", "codec", "NaN to integer"):
+        assert leaked not in body
+
+
 def test_get_current_value_returns_wrapped_latest_weight_value(
     client, clean_db, exercise_factory, workout_plan_factory, workout_log_factory
 ):
