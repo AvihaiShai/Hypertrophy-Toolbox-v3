@@ -599,3 +599,13 @@ check remains due before push.
 
 This local integration supersedes the original base-conflict status. Fresh-head
 remote CI awaits the push; no remote pass or merge is claimed.
+
+## Closure tracking — 16 November 2026
+
+The owner's subsequent request to finish this packet through closure is tracked
+by PR #711. The other eight entries from mixed-scope #625 now have a maintained
+destination in #712, preserving their audit IDs, source links, evidence states
+and deferred/parked boundaries. Closing #625 after this repair lands therefore
+does not claim those proposals were implemented or authorize their implementation.
+
+Docs retention at closeout: keep active — `docs/volume_export_validation/PLANNING.md`; PR #711 and issues #625/#712 hold current delivery and deferred-work status; retain this approval, compatibility and validation record at its existing path.
