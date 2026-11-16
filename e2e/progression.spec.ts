@@ -7,8 +7,9 @@
  * - Goals table
  * - Delete confirmation modal
  */
+import type { Page } from '@playwright/test';
 import { test, expect, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
-import { test as dataSafetyTest } from './console-guard';
+import { test as dataSafetyTest, test as guardedTest } from './console-guard';
 
 dataSafetyTest.describe('Progression suggestion data safety', () => {
   dataSafetyTest('renders a suggestion failure message as literal text', async ({ page }) => {
@@ -717,14 +718,317 @@ test.describe('Progression Mobile Responsive', () => {
     const goalsTable = page.locator('.current-goals table');
     await expect(goalsTable).toBeVisible();
 
-    // Table should be within viewport or scrollable
-    const isScrollable = await page.evaluate(() => {
-      const tableContainer = document.querySelector('.table-responsive, .current-goals');
-      return tableContainer ? tableContainer.scrollWidth > tableContainer.clientWidth : false;
-    });
-
-    expect(isScrollable !== null).toBeTruthy();
+    // The page itself must not overflow sideways (#716). The previous
+    // `isScrollable !== null` check could not fail.
+    const widths = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(widths.scrollWidth).toBeLessThanOrEqual(widths.clientWidth);
   });
+});
+
+/**
+ * Current Goals table responsive contract (#716).
+ *
+ * Populated through the real save route with the visual fixture's three goals,
+ * and asserted from rendered geometry and computed style. Text extraction alone
+ * cannot see the original defect: a header hidden with `display: none` still
+ * has text, and at 768px five headers were hidden while their cells stayed
+ * visible, in a 770px page clipped to a 768px viewport.
+ */
+const GOAL_FIXTURES = [
+  { exercise: 'Barbell Bench Press', goal_type: 'weight', current_value: 60, target_value: 70, goal_date: '2026-03-02' },
+  { exercise: 'Barbell Squat', goal_type: 'weight', current_value: 100, target_value: 120, goal_date: '2026-03-16' },
+  { exercise: 'Barbell Deadlift', goal_type: 'reps', current_value: 5, target_value: 8, goal_date: '2026-04-06' },
+] as const;
+
+// `scrolls` is the measured outcome for these three goals at UI scale 1: the
+// table's minimum width is about 713px, so it scrolls inside its 638px region
+// at 768px and fits the 894px region at 1024px. Card mode never scrolls.
+const GOAL_BANDS = [
+  { name: 'mobile', width: 375, height: 812, layout: 'cards', scrolls: false },
+  { name: 'tablet', width: 768, height: 1024, layout: 'table', scrolls: true },
+  { name: 'tablet-landscape', width: 1024, height: 768, layout: 'table', scrolls: false },
+  { name: 'desktop', width: 1440, height: 900, layout: 'table', scrolls: false },
+] as const;
+
+type GoalBand = (typeof GOAL_BANDS)[number];
+type GoalTheme = 'light' | 'dark';
+
+const GOALS_REGION = '.current-goals .tbl-wrap';
+const SCROLL_HINT = '#currentGoalsScrollHint';
+
+async function openGoalsAt(page: Page, band: GoalBand, theme: GoalTheme) {
+  await page.setViewportSize({ width: band.width, height: band.height });
+  await page.addInitScript((dark) => localStorage.setItem('darkMode', dark ? 'true' : 'false'), theme === 'dark');
+  await page.goto(ROUTES.PROGRESSION);
+  await waitForPageReady(page);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+}
+
+async function measureGoalsTable(page: Page) {
+  return page.evaluate(({ regionSelector, hintSelector }) => {
+    const box = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width };
+    };
+    const shown = (el: Element) => {
+      const cs = getComputedStyle(el);
+      return cs.display !== 'none' && cs.visibility !== 'hidden' && el.getBoundingClientRect().width > 0;
+    };
+    const region = document.querySelector(regionSelector) as HTMLElement;
+    const table = region.querySelector('table') as HTMLTableElement;
+    const hint = document.querySelector(hintSelector) as HTMLElement | null;
+    const root = document.documentElement;
+    return {
+      viewport: root.clientWidth,
+      documentScrollWidth: root.scrollWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      region: {
+        box: box(region),
+        scrollWidth: region.scrollWidth,
+        clientWidth: region.clientWidth,
+        overflowX: getComputedStyle(region).overflowX,
+        tabIndex: region.tabIndex,
+        role: region.getAttribute('role'),
+        label: region.getAttribute('aria-label'),
+        describedBy: region.getAttribute('aria-describedby'),
+      },
+      hint: hint
+        ? { present: true, id: hint.id, shown: shown(hint), text: (hint.textContent ?? '').trim() }
+        : { present: false, id: '', shown: false, text: '' },
+      theadShown: shown(table.tHead as HTMLTableSectionElement),
+      headers: [...(table.tHead as HTMLTableSectionElement).rows[0].cells].map((th) => ({
+        text: (th.textContent ?? '').trim(),
+        shown: shown(th),
+        box: box(th),
+      })),
+      rows: [...table.tBodies[0].rows].map((tr) => ({
+        goalId: tr.querySelector('[data-goal-id]')?.getAttribute('data-goal-id') ?? '',
+        cells: [...tr.cells].map((td) => ({
+          label: td.dataset.label ?? '',
+          text: td.innerText.trim(),
+          shown: shown(td),
+          display: getComputedStyle(td).display,
+          before: getComputedStyle(td, '::before').content,
+          box: box(td),
+          buttons: [...td.querySelectorAll('button')].map(box),
+        })),
+      })),
+    };
+  }, { regionSelector: GOALS_REGION, hintSelector: SCROLL_HINT });
+}
+
+guardedTest.describe('Progression goals table responsive contract (#716)', () => {
+  let goalIds: number[] = [];
+
+  guardedTest.beforeEach(async ({ page }) => {
+    goalIds = [];
+    for (const goal of GOAL_FIXTURES) {
+      const response = await page.request.post('/save_progression_goal', {
+        data: goal,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      expect(response.status(), await response.text()).toBe(200);
+      const body = await response.json();
+      goalIds.push(Number(body.data.goal_id));
+    }
+  });
+
+  guardedTest.afterEach(async ({ page }) => {
+    for (const id of goalIds) {
+      const response = await page.request.delete(`/delete_progression_goal/${id}`);
+      expect([200, 404]).toContain(response.status());
+    }
+  });
+
+  for (const band of GOAL_BANDS) {
+    for (const theme of ['light', 'dark'] as const) {
+      guardedTest(`goals table keeps every value under its own visible label: ${band.name} ${theme}`, async ({ page }) => {
+        await openGoalsAt(page, band, theme);
+        const m = await measureGoalsTable(page);
+
+        // The page never overflows sideways; the region stays inside the viewport.
+        expect(m.documentScrollWidth, 'document overflows the viewport').toBeLessThanOrEqual(m.viewport);
+        expect(m.bodyScrollWidth, 'body overflows the viewport').toBeLessThanOrEqual(m.viewport);
+        expect(m.region.box.right).toBeLessThanOrEqual(m.viewport + 0.5);
+
+        // Every seeded goal is rendered, and every row pairs each value with its column label.
+        for (const id of goalIds) {
+          expect(m.rows.map((row) => row.goalId)).toContain(String(id));
+        }
+        const headerTexts = m.headers.map((header) => header.text);
+        expect(headerTexts).toEqual(['Exercise', 'Goal Type', 'Current Value', 'Target Value', 'Goal Date', 'Status', 'Actions']);
+        for (const row of m.rows) {
+          expect(row.cells.map((cell) => cell.label)).toEqual(headerTexts);
+          for (const cell of row.cells) {
+            expect(cell.shown, `${cell.label} cell is not rendered`).toBe(true);
+            expect(cell.text, `${cell.label} cell is empty`).not.toBe('');
+          }
+        }
+
+        if (band.layout === 'table') {
+          expect(m.theadShown).toBe(true);
+          for (const header of m.headers) {
+            expect(header.shown, `${header.text} header is not rendered`).toBe(true);
+          }
+          for (const row of m.rows) {
+            row.cells.forEach((cell, i) => {
+              const header = m.headers[i].box;
+              expect(Math.abs(cell.box.left - header.left), `${cell.label} left edge`).toBeLessThanOrEqual(1);
+              expect(Math.abs(cell.box.right - header.right), `${cell.label} right edge`).toBeLessThanOrEqual(1);
+              expect(header.bottom).toBeLessThanOrEqual(cell.box.top + 1);
+            });
+          }
+        } else {
+          // Card mode: the header row is replaced by a generated label per value.
+          expect(m.theadShown).toBe(false);
+          for (const row of m.rows) {
+            for (const cell of row.cells) {
+              expect(cell.display).toBe('grid');
+              expect(cell.before).toBe(JSON.stringify(cell.label));
+              expect(cell.box.right).toBeLessThanOrEqual(m.viewport + 0.5);
+              for (const button of cell.buttons) {
+                expect(button.right).toBeLessThanOrEqual(m.viewport + 0.5);
+              }
+            }
+          }
+        }
+
+        // The region is always a named, focusable landmark. When, and only when,
+        // its content overflows, it scrolls and the visible hint describes it.
+        expect(m.region.role).toBe('region');
+        expect(m.region.label).toBe('Current progression goals table');
+        expect(m.region.tabIndex).toBe(0);
+        const scrolls = m.region.scrollWidth > m.region.clientWidth + 1;
+        expect(scrolls, `region ${m.region.scrollWidth}/${m.region.clientWidth}`).toBe(band.scrolls);
+        expect(m.hint.present, 'scroll hint element is missing').toBe(true);
+        // A ResizeObserver toggles the hint; wait for it to settle, then re-read.
+        if (scrolls) {
+          expect(['auto', 'scroll']).toContain(m.region.overflowX);
+          await expect(page.locator(SCROLL_HINT)).toBeVisible();
+        } else {
+          await expect(page.locator(SCROLL_HINT)).toBeHidden();
+        }
+        const settled = await measureGoalsTable(page);
+        if (scrolls) {
+          expect(settled.hint.shown).toBe(true);
+          expect(settled.hint.text).toBe('Scroll sideways to see all goal columns.');
+          expect(settled.region.describedBy).toBe(settled.hint.id);
+        } else {
+          expect(settled.hint.shown).toBe(false);
+          expect(settled.region.describedBy).toBeNull();
+        }
+
+        if (band.layout === 'table') {
+          // Scrolled fully to the end, the last column and its actions are
+          // inside the region, and headers still line up with their cells.
+          await page.locator(GOALS_REGION).evaluate((el) => el.scrollTo({ left: el.scrollWidth, behavior: 'instant' }));
+          const end = await measureGoalsTable(page);
+          const lastHeader = end.headers[end.headers.length - 1].box;
+          expect(lastHeader.right).toBeLessThanOrEqual(end.region.box.right + 1);
+          for (const row of end.rows) {
+            const actions = row.cells[row.cells.length - 1];
+            expect(Math.abs(actions.box.left - lastHeader.left)).toBeLessThanOrEqual(1);
+            expect(actions.box.right).toBeLessThanOrEqual(end.region.box.right + 1);
+            for (const button of actions.buttons) {
+              expect(button.left).toBeGreaterThanOrEqual(end.region.box.left - 1);
+              expect(button.right).toBeLessThanOrEqual(end.region.box.right + 1);
+            }
+          }
+        }
+      });
+    }
+  }
+
+  const tablet = GOAL_BANDS.find((band) => band.name === 'tablet') as GoalBand;
+  for (const theme of ['light', 'dark'] as const) {
+    guardedTest(`goals table scroll region is focusable and keyboard operable at tablet width: ${theme}`, async ({ page }) => {
+      await openGoalsAt(page, tablet, theme);
+      const region = page.locator(GOALS_REGION);
+
+      // The region is the next tab stop after the exercise selector.
+      await page.locator('#exerciseSelect').focus();
+      await page.keyboard.press('Tab');
+      await expect(region).toBeFocused();
+      const ring = await region.evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return { focusVisible: el.matches(':focus-visible'), style: cs.outlineStyle, width: parseFloat(cs.outlineWidth) };
+      });
+      expect(ring.focusVisible).toBe(true);
+      expect(ring.style).not.toBe('none');
+      expect(ring.width).toBeGreaterThanOrEqual(2);
+
+      // Arrow keys scroll the focused region.
+      expect(await region.evaluate((el) => el.scrollLeft)).toBe(0);
+      await page.keyboard.press('ArrowRight');
+      await expect.poll(() => region.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+
+      // Tabbing reaches every action, and no focused action is hidden by the
+      // region's clip. Chromium does not scroll a partly visible focus target
+      // fully into view, so at scrollLeft 0 the actions are partly visible,
+      // which is what WCAG 2.4.11 (AA) requires; the arrow keys reveal the rest.
+      await region.evaluate((el) => el.scrollTo({ left: 0, behavior: 'instant' }));
+      const actions = page.locator('.current-goals tbody .goal-actions button');
+      const actionCount = await actions.count();
+      expect(actionCount).toBeGreaterThanOrEqual(goalIds.length * 2);
+      for (let i = 0; i < actionCount; i++) {
+        await page.keyboard.press('Tab');
+        await expect(actions.nth(i)).toBeFocused();
+        const visibleWidth = await page.evaluate((selector) => {
+          const r = (document.querySelector(selector) as HTMLElement).getBoundingClientRect();
+          const b = (document.activeElement as HTMLElement).getBoundingClientRect();
+          return Math.min(b.right, r.right) - Math.max(b.left, r.left);
+        }, GOALS_REGION);
+        expect(visibleWidth, `focused action ${i} is clipped out of the region`).toBeGreaterThan(0);
+      }
+
+      // The focused action is operable from the keyboard.
+      await page.keyboard.press('Enter');
+      const modal = page.locator('#deleteGoalModal');
+      await expect(modal).toBeVisible();
+      await modal.getByRole('button', { name: 'Cancel' }).click();
+      await expect(modal).toBeHidden();
+
+      // The visible hint describes the scrolling region.
+      await expect(page.locator(SCROLL_HINT)).toBeVisible();
+      await expect(region).toHaveAttribute('aria-describedby', 'currentGoalsScrollHint');
+    });
+  }
+
+  for (const band of GOAL_BANDS.filter((candidate) => candidate.name !== 'tablet-landscape')) {
+    guardedTest(`goal completion and removal work in the ${band.name} layout`, async ({ page }) => {
+      await openGoalsAt(page, band, 'light');
+      const [completeId, removeId, keepId] = goalIds;
+      const rowFor = (id: number) =>
+        page.locator('.current-goals tbody tr').filter({ has: page.locator(`.delete-goal[data-goal-id="${id}"]`) });
+
+      const completed = page.waitForResponse((r) =>
+        r.url().endsWith(`/complete_progression_goal/${completeId}`) && r.request().method() === 'POST');
+      await rowFor(completeId).locator('.complete-goal').click();
+      expect((await completed).status()).toBe(200);
+      await expect(rowFor(completeId).locator('.goal-status-badge')).toHaveText('Completed');
+      await expect(rowFor(completeId).locator('.complete-goal')).toHaveCount(0);
+
+      await rowFor(removeId).locator('.delete-goal').click();
+      const modal = page.locator('#deleteGoalModal');
+      await expect(modal).toBeVisible();
+      const removed = page.waitForResponse((r) =>
+        r.url().endsWith(`/delete_progression_goal/${removeId}`) && r.request().method() === 'DELETE');
+      await modal.locator('#confirmDeleteGoal').click();
+      expect((await removed).status()).toBe(200);
+      await expect(rowFor(removeId)).toHaveCount(0);
+      await expect(modal).toBeHidden();
+
+      // Both changes persisted: completed goals leave the current list.
+      await page.reload();
+      await waitForPageReady(page);
+      await expect(rowFor(completeId)).toHaveCount(0);
+      await expect(rowFor(removeId)).toHaveCount(0);
+      await expect(rowFor(keepId)).toHaveCount(1);
+    });
+  }
 });
 
 /**

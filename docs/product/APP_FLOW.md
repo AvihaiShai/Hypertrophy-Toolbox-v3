@@ -526,6 +526,7 @@ logged sets, and it ignores the Counting Mode toggle.
 | Date field | Presentation | flatpickr picker, vendored locally |
 | Complete goal | API | `POST /complete_progression_goal/<id>` |
 | Delete goal | Presentation → API | Modal, then `DELETE /delete_progression_goal/<id>` |
+| Current Goals table | Presentation | Cards at 576px and below; above that, all seven columns with their headers. From 576.02px to 1200px the table scrolls inside its focusable, labelled region, and the "Scroll sideways" hint is shown and announced only while the region actually overflows (#716) |
 
 ### What the suggestion is, and is not
 
