@@ -3,7 +3,7 @@ Flask==3.1.3
 Jinja2==3.1.6
 Werkzeug==3.1.9
 itsdangerous==2.2.0
-click==8.5.0
+click==8.5.1
 XlsxWriter==3.3.1
 openpyxl==3.1.5
 pytest==9.2.0
@@ -32,4 +32,4 @@ vulture==2.16
 # it is excluded from the frozen build in Hypertrophy-Toolbox.spec alongside
 # pytest. tests/conftest.py registers a derandomized, database-less CI profile,
 # because Run Tests is a required check with no retry.
-hypothesis==6.170.14
+hypothesis==6.170.15

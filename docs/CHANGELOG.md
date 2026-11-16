@@ -2,6 +2,30 @@
 
 All notable changes to Hypertrophy Toolbox v3.
 
+## Unreleased - 2026-11-16
+
+### Documentation retention
+
+- Retired twelve completed records and navigation stubs to Git history:
+  - `docs/archive/2026/fetch-wrapper/WP3_5_FETCH_INVENTORY.md`
+  - `docs/archive/MISSING_TESTS_CHECKLIST.md`
+  - `docs/archive/MISSING_TESTS_PART2.md`
+  - `docs/archive/SUPERSET_FEATURE.md`
+  - `docs/archive/ci_cd/phase1/PLANNING.md`
+  - `docs/archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION.md`
+  - `docs/backup_schema_version/PLANNING.md`
+  - `docs/deep_gate_robustness_gate0/GATE1_PLAN.md`
+  - `docs/doc_truth/PLANNING.md`
+  - `docs/p1_4_debug_scaffolding/PLANNING.md`
+  - `docs/user_profile/PLANNING.md`
+  - `docs/worktree_cleanup/AMENDMENT_2026-09-28.md`
+
+  [Removed From Active Docs](README.md#removed-from-active-docs) records each maintained
+  replacement and its historical copy at `a0c32d637ee1e5e450d3e858a8ff75538956263f`,
+  the last-containing commit on this batch branch. Repaired navigation and historical
+  references in the same change. Unique evidence, unresolved work and
+  `archive/DOCS_AUDIT_PLAN.md` remain in the checkout.
+
 ## Unreleased - 2026-11-15
 
 ### Documentation archive

@@ -743,7 +743,7 @@ Two reviewers ran against the staged diff. `unslop-reviewer` returned 11 finding
 | N6 | `urllib.error` imported and never used; it advertises error handling that does not exist. | Import deleted. Confirmed no path swallows an API error into a pass — `_api_get` lets `HTTPError`/`URLError` propagate, so a 403 or rate-limit fails the gate **closed**. Retry-on-transient was considered and declined as scope; recorded as **R-8**. |
 | N7 | Two "shipped" claims about #362/#366 need a measurement, not a PR body. | Measured: `gh pr view` reports #362 MERGED `52331bf`, #366 MERGED `f627161`, #368 MERGED `9be1a3f`. The claims stand on the measurement. |
 | NITs | empty `expected` passes vacuously; `sorted` crashes on a null name; `kill` without `wait`; `\|\| echo 000` doubling curl's own `000`; bare `1897` literal; stale fixture docstring | All adopted. |
-| ADR numbering | `docs/backup_schema_version/` (untracked, unlanded) also targets ADR-007 | R1 takes ADR-007; that packet already carries a renumber instruction and must move to ADR-008. Flagged in the PR body, not silently resolved here. |
+| ADR numbering | [`docs/backup_schema_version/`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/backup_schema_version/PLANNING.md) (untracked, unlanded) also targets ADR-007 | R1 takes ADR-007; that packet already carries a renumber instruction and must move to ADR-008. Flagged in the PR body, not silently resolved here. |
 
 ### Residual register additions
 

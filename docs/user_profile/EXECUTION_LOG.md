@@ -3,7 +3,7 @@
 
 > Living journal kept by each implementing agent. **Do not retroactively rewrite entries.** Append-only.
 
-> Companion to [PLANNING.md](PLANNING.md). Each phase ticks its checkboxes in PLANNING.md only after the matching entry is appended here.
+> Companion to the [completed plan](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/user_profile/PLANNING.md), retired to Git history on 2026-11-16. Historical `PLANNING.md` references below resolve to that copy; dated entries and outstanding verification observations are preserved.
 
 ---
 

@@ -416,6 +416,7 @@ Pattern A is preferred over Pattern B (two icons) to avoid table clutter. The wo
 - Modal includes a "Watch on YouTube ↗" link that opens the video externally in a new tab (`target="_blank"`, `rel="noopener noreferrer"`).
 - If the iframe fails to load (uploader disabled embedding), modal degrades to just the external link.
 - For exercises with NULL `youtube_video_id`, the same button opens a "Search YouTube" modal whose CTA is `https://www.youtube.com/results?search_query=<encoded exercise name>` (option-3 hybrid; see §5.4).
+  - **Superseded 2026-06-14:** uncurated exercises open a YouTube search tab directly; see [the shipped reference-video behavior](YOUTUBE_REFERENCE_VIDEOS.md#user-facing-behavior). The search modal above is historical.
 
 **Modal lifecycle:**
 
@@ -506,6 +507,7 @@ The play-icon button appears on **both** `/workout_plan` and `/workout_log`. Rev
 - E2E `e2e/workout-plan.spec.ts` AND `e2e/workout-log.spec.ts` (per §5.5 in-scope):
   - Click the play icon on an exercise that has a `youtube_video_id` → modal opens, iframe `src` starts with `https://www.youtube.com/embed/`, modal contains a "Watch on YouTube" link with `target="_blank"` and `rel="noopener noreferrer"`.
   - Click the play icon on an exercise with NULL `youtube_video_id` → modal opens with a "Search YouTube" CTA whose href is `https://www.youtube.com/results?search_query=<encoded exercise name>`.
+    - **Superseded 2026-06-14:** assert a direct YouTube search tab for uncurated exercises; the modal lifecycle checks below apply to curated videos. See [the shipped reference-video behavior](YOUTUBE_REFERENCE_VIDEOS.md#user-facing-behavior).
   - Closing the modal clears the iframe `src` (no invisible playback).
   - Reopening for a different exercise swaps to the new video / search URL.
   - Keyboard focus returns to the triggering button on close.
