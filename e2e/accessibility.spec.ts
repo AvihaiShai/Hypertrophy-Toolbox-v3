@@ -691,6 +691,88 @@ test.describe('Responsive Accessibility', () => {
   });
 });
 
+test.describe('Native zoom and application scale', () => {
+  for (const modifier of ['ctrlKey', 'metaKey'] as const) {
+    test(`${modifier} zoom shortcuts leave application scale unchanged at every focus target`, async ({ page }) => {
+      await page.goto(ROUTES.HOME);
+      await waitForPageReady(page);
+
+      const observations = await page.evaluate((modifier) => {
+        const controller = (window as unknown as {
+          accessibilityController: { setScale(level: number): void; currentScale: number };
+        }).accessibilityController;
+        controller.setScale(7);
+        const probes = document.createElement('div');
+        probes.innerHTML = '<input><textarea></textarea><div contenteditable="true" tabindex="0"></div>';
+        document.body.appendChild(probes);
+        document.body.tabIndex = -1;
+        const state = () => ({
+          level: controller.currentScale,
+          stored: localStorage.getItem('ui-scale-level'),
+          cookie: document.cookie,
+          zoom: document.documentElement.style.zoom,
+        });
+        const before = state();
+        const result = [];
+        for (const target of [document.body, ...Array.from(probes.children) as HTMLElement[]]) {
+          target.focus();
+          for (const key of ['=', '+', '-', '0']) {
+            const event = new KeyboardEvent('keydown', {
+              key, [modifier]: true, bubbles: true, cancelable: true,
+            });
+            target.dispatchEvent(event);
+            result.push({ target: target.tagName, key, focused: document.activeElement === target,
+              prevented: event.defaultPrevented, before, after: state() });
+          }
+        }
+        probes.remove();
+        return result;
+      }, modifier);
+
+      expect(observations).toHaveLength(16);
+      for (const observation of observations) {
+        expect(observation.focused, `${observation.target} must hold focus`).toBe(true);
+        expect(observation.prevented, `${modifier} ${observation.key} on ${observation.target}`).toBe(false);
+        expect(observation.after).toEqual(observation.before);
+      }
+    });
+  }
+
+  test('application scale controls support keyboard activation, limits and reload persistence', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(ROUTES.HOME);
+    await waitForPageReady(page);
+    const decrease = page.locator('#scale-decrease');
+    const increase = page.locator('#scale-increase');
+    const indicator = page.locator('#scale-indicator');
+
+    await expect(increase).toBeVisible();
+    await expect(indicator).toHaveText('6');
+    await increase.focus();
+    await page.keyboard.press('Enter');
+    await expect(indicator).toHaveText('7');
+    await page.keyboard.press('Space');
+    await expect(indicator).toHaveText('8');
+    await expect(increase).toBeDisabled();
+    await expect(increase).toHaveAttribute('aria-disabled', 'true');
+
+    await page.reload();
+    await waitForPageReady(page);
+    await expect(indicator).toHaveText('8');
+    expect(await page.locator('html').evaluate(el => el.style.zoom)).toBe('1.2');
+    expect(await page.evaluate(() => localStorage.getItem('ui-scale-level'))).toBe('8');
+    expect((await page.context().cookies()).find(cookie => cookie.name === 'ui-scale-level')?.value).toBe('8');
+
+    for (let level = 7; level >= 1; level--) {
+      await decrease.click();
+      await expect(indicator).toHaveText(String(level));
+    }
+    await expect(decrease).toBeDisabled();
+    await expect(decrease).toHaveAttribute('aria-disabled', 'true');
+    expect(await page.locator('html').evaluate(el => el.style.zoom)).toBe('0.75');
+  });
+});
+
 test.describe('Screen Reader Support', () => {
   test('live regions exist for updates', async ({ page }) => {
     await page.goto(ROUTES.WORKOUT_PLAN);

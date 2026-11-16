@@ -12,9 +12,9 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **704** |
+| Playwright tests (chromium) | **707** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **555** tests across 25 specs |
+| Required functional gate — `E2E Functional (Chromium)` | **558** tests across 25 specs |
 | pytest collected nodes (deterministic subset) | **4469** across 142 files |
 | pytest test files (all) | **143** |
 | JS unit cases (Vitest) | **270** across 15 files |
@@ -26,7 +26,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 
 | Spec | Tests | In required functional set |
 |---|---:|:---:|
-| `accessibility.spec.ts` | 38 | yes |
+| `accessibility.spec.ts` | 41 | yes |
 | `api-integration.spec.ts` | 57 | yes |
 | `body-composition.spec.ts` | 10 | yes |
 | `browser-navigation-state.spec.ts` | 3 | yes |
