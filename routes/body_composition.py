@@ -16,7 +16,12 @@ from flask import Blueprint, jsonify, render_template, request
 
 from utils import body_composition_service as service
 from utils.database import DatabaseHandler
-from utils.errors import error_response, success_response
+from utils.errors import (
+    ValidationError,
+    error_response,
+    success_response,
+    validation_error_response,
+)
 from utils.logger import get_logger
 
 body_composition_bp = Blueprint("body_composition", __name__)
@@ -26,7 +31,7 @@ logger = get_logger()
 def _get_json_payload() -> dict[str, Any]:
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
-        raise ValueError("Invalid JSON data")
+        raise ValidationError("Invalid JSON data")
     return data
 
 
@@ -69,7 +74,7 @@ def create_snapshot():
         return jsonify(success_response(data=snapshot, message="Snapshot saved"))
     except ValueError as exc:
         logger.warning("Validation error saving body composition snapshot", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to save body composition snapshot", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to save snapshot", 500)

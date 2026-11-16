@@ -2,7 +2,13 @@ from flask import Blueprint, render_template, request, jsonify, redirect
 from datetime import datetime
 
 from utils.database import DatabaseHandler
-from utils.errors import error_response, is_xhr_request, success_response
+from utils.errors import (
+    ValidationError,
+    error_response,
+    is_xhr_request,
+    success_response,
+    validation_error_response,
+)
 from utils.fatigue_context import build_fatigue_context_batch
 from utils.logger import get_logger
 from utils.rep_range_integrity import (
@@ -28,18 +34,18 @@ def _get_json_payload(route_name):
     data = request.get_json(silent=True)
     if data is None or not isinstance(data, dict):
         logger.warning("Invalid JSON in %s request", route_name)
-        raise ValueError("Invalid JSON data")
+        raise ValidationError("Invalid JSON data")
     return data
 
 
 def _require_text_field(data, field_name):
     value = data.get(field_name)
     if value is None:
-        raise ValueError(f"{field_name} is required")
+        raise ValidationError(f"{field_name} is required")
 
     normalized_value = str(value).strip()
     if not normalized_value:
-        raise ValueError(f"{field_name} is required")
+        raise ValidationError(f"{field_name} is required")
 
     return normalized_value
 
@@ -68,7 +74,7 @@ def _parse_numeric_goal_value(value, field_name):
     try:
         return float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field_name} must be a number") from exc
+        raise ValidationError(f"{field_name} must be a number") from exc
 
 
 def _normalize_progression_goal_payload(data):
@@ -77,15 +83,15 @@ def _normalize_progression_goal_payload(data):
     goal_date = (data.get("goal_date") or "").strip()
 
     if not exercise or not goal_type or not goal_date:
-        raise ValueError("Missing required data")
+        raise ValidationError("Missing required data")
 
     if goal_type not in VALID_GOAL_TYPES:
-        raise ValueError("Invalid goal type")
+        raise ValidationError("Invalid goal type")
 
     try:
         normalized_goal_date = datetime.strptime(goal_date, "%Y-%m-%d").date().isoformat()
     except ValueError as exc:
-        raise ValueError("goal_date must use YYYY-MM-DD format") from exc
+        raise ValidationError("goal_date must use YYYY-MM-DD format") from exc
 
     current_value = _parse_numeric_goal_value(data.get("current_value"), "current_value")
     target_value = _parse_numeric_goal_value(data.get("target_value"), "target_value")
@@ -94,7 +100,7 @@ def _normalize_progression_goal_payload(data):
         current_value = None
         target_value = None
     elif current_value is None or target_value is None:
-        raise ValueError("current_value and target_value are required")
+        raise ValidationError("current_value and target_value are required")
 
     return {
         "exercise": exercise,
@@ -201,7 +207,7 @@ def get_suggestions():
                 "exercise": data.get("exercise") if isinstance(data, dict) else None,
             },
         )
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception as exc:
         requested = data.get("exercise") if isinstance(data, dict) else None
         logger.exception("Error in get_suggestions", extra={"exercise": requested})
@@ -267,7 +273,7 @@ def save_goal():
                 "goal_type": data.get("goal_type") if isinstance(data, dict) else None,
             },
         )
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception as e:
         logger.exception(
             "Error saving progression goal",
@@ -333,7 +339,7 @@ def get_current_value():
         exercise = _require_text_field(data, "exercise")
         goal_type = (data.get("goal_type") or "").strip().lower()
         if not goal_type:
-            raise ValueError("goal_type is required")
+            raise ValidationError("goal_type is required")
 
         logger.debug(
             "Fetching current value for exercise=%s goal_type=%s",
@@ -405,7 +411,7 @@ def get_current_value():
                 "goal_type": data.get("goal_type") if isinstance(data, dict) else None,
             },
         )
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception(
             "Error in get_current_value",

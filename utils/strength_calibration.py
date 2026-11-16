@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 from utils.database import DatabaseHandler, upsert_user_profile_lift
+from utils.errors import ValidationError
 from utils.logger import get_logger
 from utils.normalization import normalize_equipment, normalize_muscle
 from utils.lift_matching import match_direct_lift_key
@@ -128,7 +129,7 @@ def set_calibration_settings(
 ) -> dict[str, Any]:
     """Upsert calibration settings; preserve the related flag when omitted."""
     if mode not in VALID_CALIBRATION_MODES:
-        raise ValueError(f"mode must be one of {VALID_CALIBRATION_MODES}")
+        raise ValidationError(f"mode must be one of {VALID_CALIBRATION_MODES}")
 
     if allow_related_exercise_learning is None:
         db.execute_query(

@@ -11,7 +11,12 @@ from utils.database import (
     upsert_user_profile_lift,
     upsert_user_profile_preference,
 )
-from utils.errors import error_response, success_response
+from utils.errors import (
+    ValidationError,
+    error_response,
+    success_response,
+    validation_error_response,
+)
 from utils.fatigue import VALID_PERIODS
 from utils.fatigue_context import (
     VALID_FATIGUE_CONTEXT_SOURCES,
@@ -234,7 +239,7 @@ def _get_json_payload(route_name: str) -> Any:
     data = request.get_json(silent=True)
     if data is None:
         logger.warning("Invalid JSON in %s request", route_name)
-        raise ValueError("Invalid JSON data")
+        raise ValidationError("Invalid JSON data")
     return data
 
 
@@ -251,9 +256,9 @@ def _nullable_float(value: Any, field_name: str, minimum: float, maximum: float)
     try:
         parsed = float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field_name} must be a number") from exc
+        raise ValidationError(f"{field_name} must be a number") from exc
     if parsed < minimum or parsed > maximum:
-        raise ValueError(f"{field_name} must be between {minimum:g} and {maximum:g}")
+        raise ValidationError(f"{field_name} must be between {minimum:g} and {maximum:g}")
     return parsed
 
 
@@ -263,12 +268,12 @@ def _nullable_int(value: Any, field_name: str, minimum: int, maximum: int) -> Op
     try:
         parsed_float = float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field_name} must be an integer") from exc
+        raise ValidationError(f"{field_name} must be an integer") from exc
     if not parsed_float.is_integer():
-        raise ValueError(f"{field_name} must be an integer")
+        raise ValidationError(f"{field_name} must be an integer")
     parsed = int(parsed_float)
     if parsed < minimum or parsed > maximum:
-        raise ValueError(f"{field_name} must be between {minimum} and {maximum}")
+        raise ValidationError(f"{field_name} must be between {minimum} and {maximum}")
     return parsed
 
 
@@ -280,7 +285,7 @@ def _optional_bool(data: dict[str, Any], field_name: str) -> Optional[bool]:
         return value
     if value in (0, 1):
         return bool(value)
-    raise ValueError(f"{field_name} must be true or false")
+    raise ValidationError(f"{field_name} must be true or false")
 
 
 def _load_latest_body_composition(db: DatabaseHandler) -> Optional[dict[str, Any]]:
@@ -480,11 +485,11 @@ def save_user_profile():
     try:
         data = _get_json_payload("save_user_profile")
         if not isinstance(data, dict):
-            raise ValueError("Invalid JSON data")
+            raise ValidationError("Invalid JSON data")
 
         gender = _nullable_text(data.get("gender"))
         if gender is not None and gender not in VALID_GENDERS:
-            raise ValueError("gender must be one of M, F")
+            raise ValidationError("gender must be one of M, F")
 
         profile = {
             "gender": gender,
@@ -503,7 +508,7 @@ def save_user_profile():
         return jsonify(success_response(data=saved, message="Profile saved"))
     except ValueError as exc:
         logger.warning("Validation error saving user profile", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to save user profile", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to save user profile", 500)
@@ -519,16 +524,16 @@ def save_user_profile_lifts():
         else:
             entries = data
         if not isinstance(entries, list):
-            raise ValueError("Expected a list of lift entries")
+            raise ValidationError("Expected a list of lift entries")
 
         saved_entries = []
         with DatabaseHandler() as db:
             for entry in entries:
                 if not isinstance(entry, dict):
-                    raise ValueError("Each lift entry must be an object")
+                    raise ValidationError("Each lift entry must be an object")
                 lift_key = _nullable_text(entry.get("lift_key"))
                 if lift_key not in KEY_LIFTS:
-                    raise ValueError("Unknown lift_key")
+                    raise ValidationError("Unknown lift_key")
 
                 weight_kg = _nullable_float(entry.get("weight_kg"), "weight_kg", 0, 1000)
                 reps = _nullable_int(entry.get("reps"), "reps", 0, 100)
@@ -540,7 +545,7 @@ def save_user_profile_lifts():
         return jsonify(success_response(data=saved_entries, message="Reference lifts saved"))
     except ValueError as exc:
         logger.warning("Validation error saving user profile lifts", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to save user profile lifts", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to save reference lifts", 500)
@@ -552,25 +557,25 @@ def save_user_profile_preferences():
     try:
         data = _get_json_payload("save_user_profile_preferences")
         if not isinstance(data, dict):
-            raise ValueError("Invalid JSON data")
+            raise ValidationError("Invalid JSON data")
 
         unknown_tiers = set(data) - VALID_TIERS
         if unknown_tiers:
-            raise ValueError("Unknown tier")
+            raise ValidationError("Unknown tier")
 
         saved = {}
         with DatabaseHandler() as db:
             for tier, rep_range in data.items():
                 normalized_rep_range = _nullable_text(rep_range)
                 if normalized_rep_range not in VALID_REP_RANGES:
-                    raise ValueError("rep_range must be heavy, moderate, or light")
+                    raise ValidationError("rep_range must be heavy, moderate, or light")
                 upsert_user_profile_preference(tier, normalized_rep_range, db=db)
                 saved[tier] = normalized_rep_range
 
         return jsonify(success_response(data=saved, message="Preferences saved"))
     except ValueError as exc:
         logger.warning("Validation error saving user profile preferences", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to save user profile preferences", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to save preferences", 500)
@@ -614,10 +619,10 @@ def calibration_settings():
     try:
         data = _get_json_payload("calibration_settings")
         if not isinstance(data, dict):
-            raise ValueError("Invalid JSON data")
+            raise ValidationError("Invalid JSON data")
         mode = _nullable_text(data.get("mode"))
         if mode not in VALID_CALIBRATION_MODES:
-            raise ValueError(f"mode must be one of {', '.join(VALID_CALIBRATION_MODES)}")
+            raise ValidationError(f"mode must be one of {', '.join(VALID_CALIBRATION_MODES)}")
         allow_related = _optional_bool(data, "allow_related_exercise_learning")
 
         with DatabaseHandler() as db:
@@ -629,7 +634,7 @@ def calibration_settings():
         return jsonify(success_response(data=saved, message="Calibration settings saved"))
     except ValueError as exc:
         logger.warning("Validation error saving calibration settings", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to save calibration settings", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to save calibration settings", 500)
@@ -661,16 +666,16 @@ def fatigue_context_settings():
     try:
         data = _get_json_payload("fatigue_context_settings")
         if not isinstance(data, dict):
-            raise ValueError("Invalid JSON data")
+            raise ValidationError("Invalid JSON data")
         enabled = _optional_bool(data, "enabled")
         source = _nullable_text(data.get("context_source"))
         if source is not None and source not in VALID_FATIGUE_CONTEXT_SOURCES:
-            raise ValueError(
+            raise ValidationError(
                 f"context_source must be one of {', '.join(VALID_FATIGUE_CONTEXT_SOURCES)}"
             )
         period = _nullable_text(data.get("context_period"))
         if period is not None and period not in VALID_PERIODS:
-            raise ValueError(
+            raise ValidationError(
                 f"context_period must be one of {', '.join(VALID_PERIODS)}"
             )
 
@@ -688,7 +693,7 @@ def fatigue_context_settings():
         logger.warning(
             "Validation error saving fatigue context settings", extra={"error": str(exc)}
         )
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to save fatigue context settings", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to save fatigue context settings", 500)
@@ -701,10 +706,10 @@ def reset_calibration():
     try:
         data = _get_json_payload("reset_calibration")
         if not isinstance(data, dict):
-            raise ValueError("Invalid JSON data")
+            raise ValidationError("Invalid JSON data")
         exercise = _nullable_text(data.get("exercise"))
         if exercise is None:
-            raise ValueError("exercise is required")
+            raise ValidationError("exercise is required")
 
         with DatabaseHandler() as db:
             reset_calibration_for_exercise(exercise, db=db)
@@ -713,7 +718,7 @@ def reset_calibration():
         )
     except ValueError as exc:
         logger.warning("Validation error resetting calibration", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to reset calibration", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to reset calibration", 500)
@@ -726,13 +731,13 @@ def ignore_calibration_transfer_route():
     try:
         data = _get_json_payload("ignore_calibration_transfer")
         if not isinstance(data, dict):
-            raise ValueError("Invalid JSON data")
+            raise ValidationError("Invalid JSON data")
         source = _nullable_text(data.get("source_exercise"))
         target = _nullable_text(data.get("target_exercise"))
         if source is None:
-            raise ValueError("source_exercise is required")
+            raise ValidationError("source_exercise is required")
         if target is None:
-            raise ValueError("target_exercise is required")
+            raise ValidationError("target_exercise is required")
 
         with DatabaseHandler() as db:
             ignore_calibration_transfer(source, target, db=db)
@@ -744,7 +749,7 @@ def ignore_calibration_transfer_route():
         )
     except ValueError as exc:
         logger.warning("Validation error ignoring calibration transfer", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to ignore calibration transfer", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to ignore calibration transfer", 500)
@@ -783,10 +788,10 @@ def promote_calibration_route():
     try:
         data = _get_json_payload("promote_calibration")
         if not isinstance(data, dict):
-            raise ValueError("Invalid JSON data")
+            raise ValidationError("Invalid JSON data")
         exercise = _nullable_text(data.get("exercise"))
         if exercise is None:
-            raise ValueError("exercise is required")
+            raise ValidationError("exercise is required")
         overwrite = bool(_optional_bool(data, "overwrite"))
 
         with DatabaseHandler() as db:
@@ -821,7 +826,7 @@ def promote_calibration_route():
         )
     except ValueError as exc:
         logger.warning("Validation error promoting calibration", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to promote calibration", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to promote calibration", 500)
@@ -834,13 +839,13 @@ def unignore_calibration_transfer_route():
     try:
         data = _get_json_payload("unignore_calibration_transfer")
         if not isinstance(data, dict):
-            raise ValueError("Invalid JSON data")
+            raise ValidationError("Invalid JSON data")
         source = _nullable_text(data.get("source_exercise"))
         target = _nullable_text(data.get("target_exercise"))
         if source is None:
-            raise ValueError("source_exercise is required")
+            raise ValidationError("source_exercise is required")
         if target is None:
-            raise ValueError("target_exercise is required")
+            raise ValidationError("target_exercise is required")
 
         with DatabaseHandler() as db:
             unignore_calibration_transfer(source, target, db=db)
@@ -852,7 +857,7 @@ def unignore_calibration_transfer_route():
         )
     except ValueError as exc:
         logger.warning("Validation error restoring calibration transfer", extra={"error": str(exc)})
-        return error_response("VALIDATION_ERROR", str(exc), 400)
+        return validation_error_response(exc)
     except Exception:
         logger.exception("Failed to restore calibration transfer", extra={"payload": data})
         return error_response("INTERNAL_ERROR", "Failed to restore calibration transfer", 500)

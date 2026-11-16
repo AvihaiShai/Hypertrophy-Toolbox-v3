@@ -815,6 +815,50 @@ class TestProgramBackupAPI:
         assert data['ok'] is False
         assert data['error']['code'] == 'VALIDATION_ERROR'
 
+    def test_api_create_backup_lone_surrogate_name_returns_generic_error(self, client, clean_db):
+        """A lone-surrogate name fails in sqlite; the codec text must not be echoed."""
+        response = client.post(
+            '/api/backups',
+            data='{"name": "\\ud800"}',
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data['ok'] is False
+        assert data['error']['code'] == 'VALIDATION_ERROR'
+        assert data['message'] == 'Invalid request data.'
+        body = response.get_data(as_text=True)
+        for leaked in ('surrogates', 'codec', 'NaN to integer'):
+            assert leaked not in body
+        assert list_backups() == []
+
+    def test_api_patch_backup_lone_surrogate_name_returns_generic_error(
+        self, client, clean_db, exercise_factory, workout_plan_factory
+    ):
+        """PATCH with a lone-surrogate name answers generically and keeps the old name."""
+        exercise_factory("Test Exercise")
+        workout_plan_factory(exercise_name="Test Exercise")
+        backup = create_backup(name="Before")
+
+        response = client.patch(
+            f'/api/backups/{backup["id"]}',
+            data='{"name": "\\ud800"}',
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data['ok'] is False
+        assert data['error']['code'] == 'VALIDATION_ERROR'
+        assert data['message'] == 'Invalid request data.'
+        body = response.get_data(as_text=True)
+        for leaked in ('surrogates', 'codec', 'NaN to integer'):
+            assert leaked not in body
+        refreshed = get_backup_details(backup['id'])
+        assert refreshed is not None
+        assert refreshed['name'] == 'Before'
+
     def test_api_patch_backup_not_found(self, client, clean_db):
         """Test PATCH /api/backups/<id> returns 404 when the backup does not exist."""
         response = client.patch(
