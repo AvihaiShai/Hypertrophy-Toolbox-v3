@@ -13,11 +13,8 @@ the Steps below only sequence it.
    - `git ls-files --others --exclude-standard`
    - If a feature branch has an upstream/base, also include `git diff --name-only <merge-base>...HEAD`.
    - De-duplicate the list. If it is empty, stop.
-2. **Targeted tests** — derive from the diff using `docs/ai_workflow/QUALITY_GATE.md`:
-   - `routes/X.py` → try `tests/test_X_routes.py`, then `tests/test_X.py`; also `rg` tests for imports/blueprint names.
-   - `utils/X.py` → try `tests/test_X.py`; also `rg` tests for imports.
-   - `templates/X.html` or `static/js/**/X*` → normalize `_` to `-` and use the feature-to-spec map in `QUALITY_GATE.md`.
-   - Run via `/run-tests <files>` and `/run-e2e <specs>`. If the union is empty or the diff is cross-cutting, fall back to `/verify-suite`.
+2. **Targeted tests** — derive targeted tests from [`docs/ai_workflow/QUALITY_GATE.md`](../../docs/ai_workflow/QUALITY_GATE.md), using its change-type table, targeted-test derivation and frontend feature map. Run the union for all changed paths; use the more specific matching rule and the documented full-suite fallback when meaningful coverage cannot be derived. A local excerpt is guidance only and cannot replace or weaken that canonical routing. Preserve all mandatory reviewers and plan/owner gates.
+   - Run via `/run-tests <files>` and `/run-e2e <specs>`; use `/verify-suite` where the canonical routing names it.
 3. **`code-reviewer` agent**: invoke on the staged diff. Address every finding or document why deferred.
 4. **`unslop-reviewer` agent**: invoke on the staged diff. Address every finding before commit; AI smells are not "preferences".
 5. **`/handover`**: prepend a session block to `MASTER_HANDOVER.local.md` capturing what shipped + new test counts.

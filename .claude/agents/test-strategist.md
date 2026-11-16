@@ -17,16 +17,9 @@ You are the test strategist for the Hypertrophy Toolbox Flask app. You answer on
 
 For every changed (or to-be-changed) path:
 
-1. **Existing coverage** — name the pytest file(s) and Playwright spec(s) that already exercise the path. Use the QUALITY_GATE derivation rules:
-   - `routes/X.py` → `tests/test_X_routes.py`, then `tests/test_X.py`, plus `rg "routes\.X|X_bp|/route_name" tests` hits.
-   - `utils/X.py` → `tests/test_X.py`, plus `rg "from utils.X import" tests` hits.
-   - `templates/X.html` / `static/js/**/X*` → normalize `_`→`-` and look up the QUALITY_GATE feature map.
+1. **Existing coverage** — name the pytest file(s) and Playwright spec(s) that already exercise the path. Derive them from [docs/ai_workflow/QUALITY_GATE.md](../../docs/ai_workflow/QUALITY_GATE.md), using its change-type table, targeted-test derivation and frontend feature map. Run the union for all changed paths; use the more specific matching rule and the documented full-suite fallback when meaningful coverage cannot be derived. A local excerpt is guidance only and cannot replace or weaken that canonical routing. Preserve all mandatory reviewers and plan/owner gates.
 2. **Coverage gaps** — code paths the plan adds with **no** existing test. Name the test file that should be created (`tests/test_<module>.py`, `e2e/<feature>.spec.ts`) and the case it should cover.
-3. **Gate selection** — which of these is required (see [docs/ai_workflow/QUALITY_GATE.md](../../docs/ai_workflow/QUALITY_GATE.md) for the canonical mapping):
-   - **Targeted** (`/run-tests <files>` + `/run-e2e <specs>`) — single-module, no schema/cross-cutting impact.
-   - **Full** (`/verify-suite`) — schema change, `app.py`, `tests/conftest.py`, or any cross-cutting refactor.
-   - **CSS** (`/build-css` + `e2e/visual.spec.ts` if visual surface changes) — anything in `scss/**`.
-   - **Manual dry-run / self-review** — `.claude/**`, root `CLAUDE.md`, folder `CLAUDE.md`, `docs/ai_workflow/**`. Run tests only if source behavior changed; otherwise rely on careful self-review.
+3. **Gate selection** — state the required gates and reviewers exactly as the canonical change-type table and fallbacks in [docs/ai_workflow/QUALITY_GATE.md](../../docs/ai_workflow/QUALITY_GATE.md) give them (targeted `/run-tests` + `/run-e2e`, `/verify-suite`, full `pytest`, `/build-css`, or manual self-review). Do not restate or paraphrase the table here.
 4. **Re-baseline / known-red awareness** — if the plan touches a surface with a documented known-red, name it. Current entries (per [docs/ai_workflow/QUALITY_GATE.md](../../docs/ai_workflow/QUALITY_GATE.md) "Known exceptions"):
    - `e2e/program-backup.spec.ts:79` — historical DB-pollution flake.
 5. **Fixture impact** — the test `app` fixture is `create_app()`, so a new blueprint needs no `tests/conftest.py` edit, only its `EXPECTED_BLUEPRINTS` entry in `tests/test_app_factory.py`. A new table reaches the test schema through `run_all_initializers()`; a user-state table also needs the `clean_db` fixture's `DELETE` list. Flag either. See [tests/CLAUDE.md](../../tests/CLAUDE.md).
@@ -49,7 +42,7 @@ For every changed (or to-be-changed) path:
 - <change required, or "none">
 
 ## Verdict
-<Targeted gate sufficient | Full /verify-suite required | Cannot determine — request more detail>
+<Targeted gate sufficient | Full gate required (name it per QUALITY_GATE.md: /verify-suite or the row's full-pytest set) | Cannot determine — request more detail>
 ```
 
 No speculative tests. If you cannot derive the spec from the QUALITY_GATE map plus a quick `rg`, say "no map hit — propose `<spec>` or run `/verify-suite`".
