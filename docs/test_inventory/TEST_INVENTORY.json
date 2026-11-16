@@ -241,7 +241,7 @@
     "total_tests": 710
   },
   "pytest": {
-    "collected_deterministic": 4536,
+    "collected_deterministic": 4542,
     "deterministic_files": 142,
     "environment_dependent_files": [
       {
@@ -752,7 +752,7 @@
       },
       {
         "file": "tests/test_volume_progress.py",
-        "tests": 31
+        "tests": 37
       },
       {
         "file": "tests/test_volume_splitter_api.py",
