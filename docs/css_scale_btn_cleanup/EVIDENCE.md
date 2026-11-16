@@ -24,13 +24,15 @@ Plan and council record: [`PLANNING.md`](PLANNING.md), [`COUNCIL_FINDINGS.md`](C
 > corpus from 160 to 162. The full seeded matrix now returns **66 passed** on this
 > packet's tree, twice, with **zero snapshots written**.
 >
-> **This retires the one claim the packet previously could not make.** The earlier
-> revision recorded non-attribution as proven and regression-freedom as *"NOT PROVEN, and
-> not provable until #304 is completed"*, because 58 of 66 tests were already red and the
-> pixel oracle was running at roughly 12% of its discriminating power. That is now
-> discharged directly: the #309 baselines were generated on `main`, which does **not**
-> contain this deletion, so all 66 captures passed within the configured tolerance
-> (`maxDiffPixels: 800`, `threshold: 0`, `e2e/visual-helpers.ts` at the packet commit `9c837774`:397,:479); identity of computed styles rests on the independent 339,120-record differential (§9c last paragraph).
+> **The previously blocked visual gate passed within its configured tolerance.**
+> Before #309, 58 of 66 tests were already red, so that comparison established
+> non-attribution rather than regression-freedom. The #309 baselines were generated
+> on `main` without this deletion. The 66-test suite passed; screenshot assertions used the
+> configured tolerance (`maxDiffPixels: 800`, `threshold: 0`), and the five named
+> `BYTE_GATE_EXEMPT` captures received no pixel comparison. This is not evidence
+> of PNG byte identity. The independent 339,120-record computed-style differential
+> remains the exact computed-value comparison; packet-time comparator provenance
+> is recorded in §9c.
 >
 > Everything re-measured below reproduced exactly (Stylelint −7, differential 0/339,120,
 > flip 22/22, oracle PASS both sides, contracts 36). The rows that moved are pytest,
@@ -312,7 +314,21 @@ whole contract file after restore: 37 passed
 all 6 red paths proven
 ```
 
-*Note (2026-11-13): the transcript above reports 37; the committed tree collects 36 (inventory at `9c837774`); not reconciled. The raw transcript is not retained in the repository.*
+**Count reconciliation (2026-11-16, AUD-0383).** The 37 line above describes an
+intermediate contract shape, not the delivered total. The initial packet
+[`a610d676`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/commit/a610d6769f4770bde2595cb0e563554b2fdc8532)
+and its evidence update `d8a7a201` contain 37 nodes and already quote this same
+37-passed transcript. The review fix
+[`9aef088d`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/commit/9aef088dbf5bf900f5c75cfcc0fb9c048328af10)
+removes the duplicate `test_bare_scale_btn_family_is_entirely_absent`; the
+legacy-class and empty-breakpoint contracts remain. The final PR #302 head
+`c3f1a33d` and delivered `9c837774` therefore have **36 nodes**, matching the
+terminal inventory and §9d restored totals. Static enumeration accounts for
+the difference: 19 → 18 test functions, with unchanged parametrizations of
+3 retained annotations and 17 sibling CSS surfaces (37 → 36 nodes). The raw
+red-path log is not retained, so its exact invocation is not reconstructed;
+the quoted 37 is retained only as intermediate evidence. No delivered test
+is changed by this correction.
 
 ### The `data-scale` strengthening is measured, not claimed
 
@@ -448,7 +464,7 @@ so every run here was pinned with `PW_PORT=5057`. Both flaky specs
 The direction is settled the same way it was before: a control that fails at least as
 often as the candidate, on disjoint tests, none reproducing.
 
-### 9c. The Windows visual gate is UNBLOCKED, and the packet is pixel-clean on it
+### 9c. The Windows visual gate passed at its configured tolerance
 
 > **Supersedes this section's previous content**, which recorded the gate as **BLOCKED**
 > at 58 failed / 8 passed on both sides, and stated that regression-freedom was *"NOT
@@ -472,20 +488,31 @@ run.
 | candidate, repeat | this packet's deletion | **66 passed / 0 failed** |
 | `visual-baseline-thumbnails.spec.ts` | this packet's deletion | **18 passed / 0 failed** |
 
-**Why this is a stronger proof than a matched control would be.** The #309 baselines were
-generated on `main`, which does **not** contain this deletion. The candidate reproducing
-all 66 within the configured tolerance (`maxDiffPixels: 800`, `threshold: 0`; raw per-capture diff counts of the packet-time run are not retained) is therefore a *cross-tree* comparison, rather than a
-self-consistency check. No same-tree control run is needed to make that claim, and none
-is cited.
+**Comparator provenance (2026-11-16, AUD-0382).** PR #302's final head was
+[`c3f1a33d`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/commit/c3f1a33da0b9b763897859e59d761d97960db2e7),
+delivered as `9c837774`. At that head,
+[`e2e/visual-helpers.ts`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/c3f1a33da0b9b763897859e59d761d97960db2e7/e2e/visual-helpers.ts#L378)
+sets `maxDiffPixels: 800`, `threshold: 0`, `animations: 'disabled'`, and
+`caret: 'hide'`, with masks for the auto-backup banner, timestamps/volatile elements,
+toasts and GIFs. `threshold: 0` still permits up to 800 differing pixels; it is not
+a zero-difference assertion. The same file's `BYTE_GATE_EXEMPT` set names
+`workout-plan-desktop-{light,dark}` and
+`plan-desktop-{light-advanced,dark-advanced,dark-simple}`. Those tests render but
+bypass screenshot comparison. Thus **66 passed** and **18 passed** are test totals,
+not counts of byte-identical captures.
 
-**What this retires.** The previous revision measured the pixel oracle at roughly **12%**
-of its discriminating power: with 58 of 66 already red, a regression landing on any
-already-failing test was undetectable, so the packet could prove only that it had not
-*caused* the 58 inherited failures. The oracle now runs at full resolution and returns
-clean, so the substitute instrument that carried the claim in the meantime — the
-339,120-record computed-style differential — is corroborated rather than relied upon.
-Both agree, and the pixel gate `QUALITY_GATE.md` requires for a shared surface is now
-satisfied on its own terms.
+The #309 baselines were generated on `main` without this deletion, so the screenshot
+assertions that actually ran are a **cross-tree comparison at the configured
+tolerance**. Raw per-capture comparator outputs for the accepted packet-time runs
+were not retained in the repository; these pass totals establish neither zero
+differing pixels nor PNG byte identity. The older ~12% description was a heuristic
+based on the inherited 58/8 split, not a measurement of comparator sensitivity.
+
+The accepted visual gate result is retained with those limits. The independent
+**0 / 339,120** rest-state computed-style differential remains the exact
+computed-value evidence (§5); it is not replaced or weakened by the tolerant visual
+pass. No screenshot, tolerance, mask, retry, contract or measured result is changed
+by this reconciliation.
 
 ---
 

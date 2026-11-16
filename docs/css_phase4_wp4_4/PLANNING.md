@@ -5,11 +5,11 @@
 **Planning size:** Large / cross-cutting per [QUALITY_GATE.md](../ai_workflow/QUALITY_GATE.md#plan-stage-routing) → **Gate 0 required**, then Gate 1 via [`/council-plan`](../../.claude/commands/council-plan.md).
 **Status:** **Gate 0 APPROVED** (owner, subject to rulings R1–R6 below). **Gate 1 APPROVED** (owner, 2026-07-27, subject to rulings N1–N10). **N4 CONTINUATION APPROVED** (owner, 2026-07-31) under [`N4_CONTINUATION_AUTHORITY.md`](N4_CONTINUATION_AUTHORITY.md). Plan v2 remains the executable technical plan; the dated continuation authority supersedes its spent hard-stop instructions and records the bounded post-N4 exceptions.
 **Base:** `main` @ `f4f9ee6` (clean).
-**Current authorized order:** completed packets through `h` → N4 approved → PR #211 harness prerequisite merged → `i` → `j` → `k` (completed 2026-08-01).
+**Final order (completed 2026-08-01):** packets through `h` → N4 approval → PR #211 harness prerequisite → `i` (#212, corrected by #215) → `j` (#216) → `k` (#217). No packet is active.
 
 ---
 
-### ▶ EXECUTION STATUS (2026-07-31; superseded 2026-08-01) — arc CLOSED at k: i #212 (`5f7b5acb`), j #216 (`47c76872`), k #217 (`c521d3a8`)
+### Final execution status (2026-08-01) — arc CLOSED at k: i #212 (`5f7b5acb`), j #216 (`47c76872`), k #217 (`c521d3a8`)
 
 All ten pre-checkpoint packets are merged. The owner approved the proof-first,
 narrow-or-abandon execution of `i` and continuous sequential execution through `j` and
@@ -33,7 +33,7 @@ in [`EXECUTION_HANDOFF_I_K.md`](EXECUTION_HANDOFF_I_K.md) (historical ledger).
 | **visual harness prerequisite** | **#211** | **`1019d34`** |
 
 ```
-a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ▶ → j → k
+a ✔ → c ✔ → b ✔ → e ✔ → d1 ✔ → f1 ✔ → d2 ✔ → f2 ✔ → g ✔ → h ✔ → N4 ✔ → helper ✔ → i ✔ → j ✔ → k ✔
 ```
 
 **`h` shipped:** 101 declarations, 138 lines, 20 `!important` declarations, 87 cuts and 11
@@ -44,9 +44,10 @@ pin, 18 `.btn.btn-video`, 2 removal-oracle withdrawals and 6 `.value-changed`. T
 **Both N4 pre-change inventories are prepared and merged:**
 [Inventory A — the complete `:is()` family](../CSS_PHASE4_WP4_4_N4_INVENTORY_A_IS_FAMILY.md) ·
 [Inventory B — G3 Workout Log regions A–C](../CSS_PHASE4_WP4_4_N4_INVENTORY_B_REGIONS_ABC.md).
-**N4 approval was given on 2026-07-31.** Do not ask for it again. Packet i may narrow to
-safe branches or end in the pre-authorized N3 abandonment; either resolution proceeds to
-j and k.
+**N4 approval was given on 2026-07-31.** The authorized narrowing-or-abandonment
+route for i, followed by j and k, has completed. These historical rulings do not
+authorize another execution; the final ledger is
+[`EXECUTION_HANDOFF_I_K.md`](EXECUTION_HANDOFF_I_K.md).
 
 **Binding lesson from g + h:** a zero-winner ownership result is **not** a removal verdict;
 an inline-`!important` sentinel proves reachability and probe integrity only; **only a
