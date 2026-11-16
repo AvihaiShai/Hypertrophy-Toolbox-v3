@@ -190,8 +190,6 @@
         // Update UI to reflect current scale
         this.updateControlsUI();
 
-        // Setup keyboard shortcuts (Ctrl/Cmd + +/-)
-        this.setupKeyboardShortcuts();
     };
 
     /**
@@ -225,34 +223,6 @@
             increaseBtn.disabled = this.currentScale >= MAX_SCALE;
             increaseBtn.setAttribute('aria-disabled', this.currentScale >= MAX_SCALE ? 'true' : 'false');
         }
-    };
-
-    /**
-     * Setup keyboard shortcuts for scaling
-     */
-    AccessibilityController.prototype.setupKeyboardShortcuts = function() {
-        document.addEventListener('keydown', (e) => {
-            // Check for Ctrl/Cmd modifier
-            const isModifierPressed = e.ctrlKey || e.metaKey;
-            
-            if (isModifierPressed) {
-                // Ctrl/Cmd + Plus (=) to increase
-                if (e.key === '=' || e.key === '+') {
-                    e.preventDefault();
-                    this.increaseScale();
-                }
-                // Ctrl/Cmd + Minus to decrease
-                else if (e.key === '-') {
-                    e.preventDefault();
-                    this.decreaseScale();
-                }
-                // Ctrl/Cmd + 0 to reset
-                else if (e.key === '0') {
-                    e.preventDefault();
-                    this.resetScale();
-                }
-            }
-        });
     };
 
     // Initialize and expose globally
