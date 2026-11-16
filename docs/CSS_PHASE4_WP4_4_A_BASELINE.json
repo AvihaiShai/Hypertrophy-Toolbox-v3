@@ -2266,7 +2266,7 @@
       "blindsPackets": [
         "c"
       ],
-      "why": "F1 — motion.css's entire output is zeroed before capture, so a packet deleting the whole file yields a byte-identical matrix."
+      "why": "F1 — the capture helper zeroes animation and transition timing, not motion.css's static paint declarations. Whole-file pixel blindness was not established."
     },
     {
       "selector": "*, *::before, *::after",
