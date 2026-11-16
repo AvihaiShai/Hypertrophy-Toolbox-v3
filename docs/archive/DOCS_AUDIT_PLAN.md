@@ -114,10 +114,10 @@ Apply these rules to every tier:
 ### Execution Log
 
 - Completed archive move to `docs/archive/` for:
-  - `MISSING_TESTS_CHECKLIST.md`
-  - `MISSING_TESTS_PART2.md`
+  - [`MISSING_TESTS_CHECKLIST.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_CHECKLIST.md)
+  - [`MISSING_TESTS_PART2.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_PART2.md)
   - `PUPPETEER_TEST_FINDINGS.md`
-  - `SUPERSET_FEATURE.md`
+  - [`SUPERSET_FEATURE.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/SUPERSET_FEATURE.md)
   - `PLAN_GENERATOR_IMPLEMENTATION.md`
 - Deleted:
   - `static/css/styles_action_buttons.css`
@@ -136,10 +136,10 @@ Apply these rules to every tier:
 
 Move these historical tracking docs to `docs/archive/`:
 
-- `MISSING_TESTS_CHECKLIST.md`
-- `MISSING_TESTS_PART2.md`
+- [`MISSING_TESTS_CHECKLIST.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_CHECKLIST.md)
+- [`MISSING_TESTS_PART2.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/MISSING_TESTS_PART2.md)
 - `PUPPETEER_TEST_FINDINGS.md`
-- `SUPERSET_FEATURE.md`
+- [`SUPERSET_FEATURE.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/SUPERSET_FEATURE.md)
 - `PLAN_GENERATOR_IMPLEMENTATION.md`
 
 These still have reference value, but they read like active backlog when kept in the top-level docs folder.

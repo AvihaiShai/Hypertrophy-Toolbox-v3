@@ -73,7 +73,7 @@ Flagging as a seed for whoever executes WP2.1, not a required change.
 
 `[NEW]` `REP_RANGE_PCT` (line 282) — confirmed **definition-only** dead code: repo-wide
 grep (`REP_RANGE_PCT`) hits only this definition and one doc mention
-(`docs/user_profile/PLANNING.md:125`, a completed-checklist reference, not a live
+([`docs/user_profile/PLANNING.md:125`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/user_profile/PLANNING.md#L125), a completed-checklist reference, not a live
 import). Matches `docs/REFACTOR_PLAN.md` WP0.2's deletion candidate list exactly —
 `[CONFIRMS-PLAN]`.
 

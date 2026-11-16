@@ -20,6 +20,104 @@ from utils.export_utils import (
     create_excel_workbook,
     _remove_temp_file_with_retry,
 )
+from utils.export_service import build_export_query
+
+
+@pytest.fixture(params=['simple', 'advanced'])
+def execution_export(request, client, exercise_factory, workout_plan_factory,
+                     workout_log_factory, clean_db):
+    for index, (style, cap, interval, rounds) in enumerate([
+        ('standard', None, None, None),
+        ('amrap', 90, None, None),
+        ('emom', None, 45, 8),
+        ('emom', None, None, None),
+        ('amrap', 'legacy-value', None, None),
+    ], 1):
+        name = exercise_factory(f'Export {index}')
+        plan_id = workout_plan_factory(exercise_name=name)
+        clean_db.execute_query(
+            'UPDATE user_selection SET execution_style = ?, time_cap_seconds = ?, '
+            'emom_interval_seconds = ?, emom_rounds = ?, exercise_order = ? WHERE id = ?',
+            (style, cap, interval, rounds, index, plan_id),
+        )
+        if index == 1:
+            workout_log_factory(plan_id=plan_id, exercise=name)
+
+    response = client.get(f'/export_to_excel?view_mode={request.param}')
+    assert response.status_code == 200
+    workbook = load_workbook(BytesIO(response.data), read_only=True, data_only=True)
+    try:
+        yield request.param, response, workbook
+    finally:
+        workbook.close()
+
+
+class TestExecutionFieldExport:
+    EXISTING_HEADERS = {
+        'simple': [
+            'Routine', 'Exercise', 'Primary Muscle', 'Secondary Muscle',
+            'Tertiary Muscle', 'Isolated Muscles', 'Utility', 'Movement Pattern',
+            'Movement Subpattern', 'Sets', 'Min Rep', 'Max Rep', 'RIR', 'RPE',
+            'Weight', 'Style', 'Grips', 'Stabilizers', 'Synergists',
+            'Superset Group', 'Exercise Order',
+        ],
+        'advanced': [
+            'Routine', 'Exercise', 'Primary Muscle Group', 'Secondary Muscle Group',
+            'Tertiary Muscle Group', 'Advanced Isolated Muscles', 'Utility',
+            'Movement Pattern', 'Movement Subpattern', 'Sets', 'Min Rep Range',
+            'Max Rep Range', 'RIR', 'RPE', 'Weight', 'Execution Style', 'Grips',
+            'Stabilizers', 'Synergists', 'Superset Group', 'Exercise Order',
+        ],
+    }
+
+    def test_existing_columns_and_sheets(self, execution_export):
+        mode, response, workbook = execution_export
+        headers, *rows = list(workbook['Workout Plan'].values)
+        assert list(headers[:21]) == self.EXISTING_HEADERS[mode]
+        assert [row[1] for row in rows] == [f'Export {i}' for i in range(1, 6)]
+        for index, row in enumerate(rows, 1):
+            assert row[9:15] == (3, 6, 8, 3, 7, 50)
+            assert row[20] == index
+        assert workbook.sheetnames == [
+            'Workout Plan', 'Workout Log', 'Weekly Summary', 'Session Summary',
+            'Categories',
+        ]
+        assert response.mimetype == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        assert 'attachment' in response.headers['Content-Disposition']
+        assert 'workout_tracker_summary_' in response.headers['Content-Disposition']
+
+    def test_timing_columns_and_values(self, execution_export):
+        mode, _, workbook = execution_export
+        headers, *rows = list(workbook['Workout Plan'].values)
+        assert list(headers) == self.EXISTING_HEADERS[mode] + [
+            'Time Cap (sec)', 'EMOM Interval (sec)', 'EMOM Rounds',
+        ]
+        assert [row[21:] for row in rows] == [
+            (None, None, None), (90, None, None), (None, 45, 8),
+            (None, None, None), ('legacy-value', None, None),
+        ]
+
+    @pytest.mark.parametrize('optional_columns', [
+        ('superset_group', 'exercise_order'), ('exercise_order',), (),
+    ])
+    def test_timing_values_in_each_query_branch(
+        self, optional_columns, monkeypatch, clean_db, workout_plan_factory,
+    ):
+        plan_id = workout_plan_factory()
+        clean_db.execute_query(
+            'UPDATE user_selection SET execution_style = ?, '
+            'emom_interval_seconds = ?, emom_rounds = ? WHERE id = ?',
+            ('emom', 45, 8, plan_id),
+        )
+        monkeypatch.setattr(
+            'utils.export_service._column_exists',
+            lambda db, table, column: column in optional_columns,
+        )
+        rows = clean_db.fetch_all(build_export_query(clean_db))
+        assert len(rows) == 1
+        assert {key: rows[0][key] for key in (
+            'time_cap_seconds', 'emom_interval_seconds', 'emom_rounds',
+        )} == {'time_cap_seconds': None, 'emom_interval_seconds': 45, 'emom_rounds': 8}
 
 
 class TestFilenameSanitization:

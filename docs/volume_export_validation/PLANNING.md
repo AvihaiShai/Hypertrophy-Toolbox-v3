@@ -573,3 +573,29 @@ Evidence is retained under `artifacts/607-625-20261116/`, including
 This entry precedes PR publication. Remote CI and merge remain pending; these
 local results do not claim either. Merge requires the owner's separate approval
 of the named PR and head.
+
+### Integration recheck — 16 November 2026
+
+After PR #711 was published at `a31cfa89`, `main` advanced externally to
+`c761a5de388427ace1c331c418f0ee249bf2bdce`, including other-lane/owner merges of
+#708 and #709 plus dependency and documentation updates. That main was merged
+into this feature. Only the two generated inventory files conflicted; the
+generator resolved them, including main's additional export tests, without
+hand-editing the inventory.
+
+The integrated tree has no diff against reviewed `a31cfa89` in
+`routes/volume_splitter.py`, `static/js/modules/volume-splitter.js`,
+`tests/test_volume_splitter_api.py`,
+`tests/test_volume_history_busy_signal_contracts.py` or
+`e2e/volume-splitter.spec.ts`. The prior scoped reviews carry forward only for
+that unchanged implementation; no new review is claimed. Design and approvals
+are unchanged.
+
+Repeated integration gates passed: 118 pytest cases, 226 Chromium cases with
+zero retries, clean TypeScript, and zero pyright diagnostics/net-new diagnostics.
+Receipts under `artifacts/607-625-20261116/` are `pytest625-integrated.xml`,
+`625-e2e-integrated.log` and `625-pyright-integrated.json`. The final inventory
+check remains due before push.
+
+This local integration supersedes the original base-conflict status. Fresh-head
+remote CI awaits the push; no remote pass or merge is claimed.

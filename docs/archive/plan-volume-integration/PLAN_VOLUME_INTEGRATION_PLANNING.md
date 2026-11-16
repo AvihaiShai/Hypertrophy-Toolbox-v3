@@ -2,7 +2,7 @@
 
 > **SHIPPED / historical reference only (2026-04-25):** Plan ↔ Distribute volume progress integration shipped via `f136f60` (merged as `99f64ad`). The live app now has `utils/volume_progress.py`, `/api/volume_progress`, and `e2e/volume-progress.spec.ts`. Do not use this archived split plan as active implementation instructions.
 
-> Split from `docs/PLAN_VOLUME_INTEGRATION.md` to keep agent context smaller.
+> Split from [`docs/PLAN_VOLUME_INTEGRATION.md`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/a0c32d637ee1e5e450d3e858a8ff75538956263f/docs/archive/plan-volume-integration/PLAN_VOLUME_INTEGRATION.md) to keep agent context smaller.
 > Use `PLAN_VOLUME_INTEGRATION_EXECUTION.md` for the implementation checklist and active phase gates.
 > Original section numbers are preserved where useful so historical review references still resolve.
 > Cross-references to §5-§13 live in the execution doc.
