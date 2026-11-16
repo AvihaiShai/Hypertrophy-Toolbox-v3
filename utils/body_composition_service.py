@@ -26,6 +26,7 @@ from utils.body_fat import (
     compute_navy,
 )
 from utils.database import DatabaseHandler
+from utils.errors import ValidationError
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -50,13 +51,13 @@ def nullable_text(value: Any) -> Optional[str]:
 
 def required_float(value: Any, field: str, lo: float, hi: float) -> float:
     if value in (None, ""):
-        raise ValueError(f"{field} is required")
+        raise ValidationError(f"{field} is required")
     try:
         parsed = float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field} must be a number") from exc
+        raise ValidationError(f"{field} must be a number") from exc
     if parsed < lo or parsed > hi:
-        raise ValueError(f"{field} must be between {lo:g} and {hi:g}")
+        raise ValidationError(f"{field} must be between {lo:g} and {hi:g}")
     return parsed
 
 
@@ -66,24 +67,24 @@ def nullable_float(value: Any, field: str, lo: float, hi: float) -> Optional[flo
     try:
         parsed = float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field} must be a number") from exc
+        raise ValidationError(f"{field} must be a number") from exc
     if parsed < lo or parsed > hi:
-        raise ValueError(f"{field} must be between {lo:g} and {hi:g}")
+        raise ValidationError(f"{field} must be between {lo:g} and {hi:g}")
     return parsed
 
 
 def required_int(value: Any, field: str, lo: int, hi: int) -> int:
     if value in (None, ""):
-        raise ValueError(f"{field} is required")
+        raise ValidationError(f"{field} is required")
     try:
         parsed_float = float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field} must be an integer") from exc
+        raise ValidationError(f"{field} must be an integer") from exc
     if not parsed_float.is_integer():
-        raise ValueError(f"{field} must be an integer")
+        raise ValidationError(f"{field} must be an integer")
     parsed = int(parsed_float)
     if parsed < lo or parsed > hi:
-        raise ValueError(f"{field} must be between {lo} and {hi}")
+        raise ValidationError(f"{field} must be between {lo} and {hi}")
     return parsed
 
 
@@ -101,7 +102,7 @@ def parse_captured_at(value: Any) -> Optional[str]:
     if value in (None, ""):
         return None
     if not isinstance(value, str):
-        raise ValueError("captured_at must be an ISO 8601 timestamp string")
+        raise ValidationError("captured_at must be an ISO 8601 timestamp string")
     normalized = value.strip()
     if not normalized:
         return None
@@ -109,7 +110,7 @@ def parse_captured_at(value: Any) -> Optional[str]:
     try:
         datetime.fromisoformat(parse_input)
     except ValueError as exc:
-        raise ValueError("captured_at must be an ISO 8601 timestamp") from exc
+        raise ValidationError("captured_at must be an ISO 8601 timestamp") from exc
     return normalized
 
 
@@ -135,19 +136,19 @@ def row_to_snapshot(row: Any) -> dict[str, Any]:
 def profile_demographics(profile: dict[str, Any]) -> tuple[str, int, float, float]:
     """Return validated demographics from user_profile for snapshot creation."""
     if not profile:
-        raise ValueError(
+        raise ValidationError(
             "Complete your User Profile demographics before saving a snapshot"
         )
 
     required = ("gender", "age", "height_cm", "weight_kg")
     if any(profile.get(field) in (None, "") for field in required):
-        raise ValueError(
+        raise ValidationError(
             "Complete your User Profile demographics before saving a snapshot"
         )
 
     gender = nullable_text(profile.get("gender"))
     if gender not in VALID_GENDERS:
-        raise ValueError("gender must be 'M' or 'F'")
+        raise ValidationError("gender must be 'M' or 'F'")
     age_years = required_int(profile.get("age"), "age_years", 10, 100)
     height_cm = required_float(
         profile.get("height_cm"), "height_cm", HEIGHT_MIN_CM, HEIGHT_MAX_CM
@@ -185,14 +186,14 @@ def compute_snapshot_fields(
     notes = nullable_text(data.get("notes"))
 
     if gender == "M" and hip_cm is not None:
-        raise ValueError("hip_cm must not be provided when gender is 'M'")
+        raise ValidationError("hip_cm must not be provided when gender is 'M'")
 
     any_tape = any(v is not None for v in (neck_cm, waist_cm, hip_cm))
     required_tape = (neck_cm, waist_cm) if gender == "M" else (neck_cm, waist_cm, hip_cm)
     all_required_tape = all(v is not None for v in required_tape)
     if any_tape and not all_required_tape:
         missing = "neck_cm, waist_cm" if gender == "M" else "neck_cm, waist_cm, hip_cm"
-        raise ValueError(f"Tape measurements are incomplete — all of {missing} are required for the Navy method")
+        raise ValidationError(f"Tape measurements are incomplete — all of {missing} are required for the Navy method")
 
     bmi_result = compute_bmi(
         gender=gender,

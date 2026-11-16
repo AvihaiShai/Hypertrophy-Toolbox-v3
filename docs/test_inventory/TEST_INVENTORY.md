@@ -15,7 +15,7 @@ Every test count in this repository's prose should link here rather than restate
 | Playwright tests (chromium) | **710** |
 | Playwright spec files | **33** |
 | Required functional gate — `E2E Functional (Chromium)` | **561** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4527** across 142 files |
+| pytest collected nodes (deterministic subset) | **4536** across 142 files |
 | pytest test files (all) | **143** |
 | JS unit cases (Vitest) | **270** across 15 files |
 | Hard waits (lines containing waitForTimeout) | **82** across 14 files |
@@ -114,7 +114,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_effective_sets.py` | 63 |
 | `tests/test_erase_data_guard.py` | 10 |
 | `tests/test_error_page_contract.py` | 11 |
-| `tests/test_errors_utils.py` | 31 |
+| `tests/test_errors_utils.py` | 36 |
 | `tests/test_exercise_manager.py` | 38 |
 | `tests/test_exercise_media.py` | 6 |
 | `tests/test_export_blank_rep_bounds_contract.py` | 5 |
@@ -157,10 +157,10 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_priority7_error_handling.py` | 28 |
 | `tests/test_profile_estimator.py` | 104 |
 | `tests/test_profile_estimator_contract.py` | 6 |
-| `tests/test_program_backup.py` | 45 |
+| `tests/test_program_backup.py` | 47 |
 | `tests/test_program_backup_execution_fields.py` | 17 |
 | `tests/test_program_backup_restore_fuzz.py` | 53 |
-| `tests/test_progression_plan_routes.py` | 23 |
+| `tests/test_progression_plan_routes.py` | 24 |
 | `tests/test_progression_plan_utils.py` | 46 |
 | `tests/test_pyright_baseline_diff.py` | 13 |
 | `tests/test_python_version_contract.py` | 19 |
@@ -204,7 +204,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_workout_log_calibration_route.py` | 7 |
 | `tests/test_workout_log_routes.py` | 58 |
 | `tests/test_workout_log_utils.py` | 30 |
-| `tests/test_workout_plan_routes.py` | 91 |
+| `tests/test_workout_plan_routes.py` | 92 |
 | `tests/test_workout_plan_service.py` | 11 |
 | `tests/test_worktree_ci_contracts.py` | 12 |
 | `tests/test_worktree_environment_preflight.py` | 72 |

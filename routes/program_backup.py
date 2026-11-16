@@ -5,7 +5,7 @@ Provides endpoints for creating, listing, restoring, deleting, and browsing
 program backups.
 """
 from flask import Blueprint, request, jsonify, render_template
-from utils.errors import success_response, error_response
+from utils.errors import success_response, error_response, validation_error_response
 from utils.logger import get_logger
 from utils.program_backup import (
     BackupRestoreRefused,
@@ -112,7 +112,7 @@ def api_create_backup():
         
     except ValueError as e:
         logger.warning(f"Validation error creating backup: {e}")
-        return error_response("VALIDATION_ERROR", str(e), 400)
+        return validation_error_response(e)
     except Exception as e:
         logger.exception("Error creating backup")
         return error_response("INTERNAL_ERROR", "Failed to create backup", 500)
@@ -203,7 +203,7 @@ def api_restore_backup(backup_id: int):
         )
     except ValueError as e:
         logger.warning(f"Validation error restoring backup: {e}")
-        return error_response("NOT_FOUND", str(e), 404)
+        return validation_error_response(e, "NOT_FOUND", 404)
     except Exception as e:
         logger.exception(f"Error restoring backup {backup_id}")
         return error_response("INTERNAL_ERROR", "Failed to restore backup", 500)
@@ -249,7 +249,7 @@ def api_update_backup(backup_id: int):
         try:
             updated = update_backup_metadata(backup_id, name=name, note=note)
         except ValueError as e:
-            return error_response("VALIDATION_ERROR", str(e), 400)
+            return validation_error_response(e)
 
         if updated is None:
             return error_response("NOT_FOUND", f"Backup with id {backup_id} not found", 404)

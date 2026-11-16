@@ -88,8 +88,10 @@ with an explanation, rather than silently yielding an unstyled element.
 ## 2. What was retained — including two corrections to inherited claims
 
 `docs/scan/PHASE_20.md` (the codebase grounding scan) nominated more of this
-file than survived re-measurement. Two of its claims are **false** (the third row, `:root` custom properties, is an M9 retention that states no scan claim) and are now
-pinned by contract so they are not acted on later.
+file than survived re-measurement. Two of its claims are **false** and are now
+pinned by contract so they are not acted on later. The third row, `:root` custom
+properties, is an M9 retention that states no scan claim; it is not a third falsified
+nomination.
 
 | Retained | Scan's claim | Measured reality |
 |---|---|---|

@@ -136,13 +136,21 @@ gitignored under A11; §5 reproduces it.
 | Control | Rule | Result |
 |---|---|---|
 | Specificity model unit checks | M4 | **10 / 10 pass**, asserted before use |
-| ID-free assertion (G3's own claim) | G3 | **passed** — all 26 arms have `a = 0` |
+| ID-free assertion (G3's own claim) | G3 | **passed** — all 21 region A/B/C arms have `a = 0` |
 | DOM presence | — | 1 table, **17** header cells, **102** body cells in all 12 contexts |
 | Dark-theme presence | — | `data-theme="dark"` and **17** dark-matched header cells in all 6 dark contexts |
 | **Same-CSS control** | M5 | every context captured twice — **56,304 records, 0 differing** |
 | **Known-live control** | M5 | live winners found in **A (10), B (1), C (4)** — no region reports zero |
 | **Resolution self-check** | M4 | **4,800 checked, 0 mismatches** |
 | Transition settling | M6a | transitions finished via the Web Animations API before any computed read |
+
+**Denominator correction (2026-11-16, AUD-0349).** The original committed
+[driver at `89523edc`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/89523edcba7df540e2490fbec9849bf159f722dc/scripts/css_audit/n4_regions_abc.mjs#L85)
+defines five anchors: A 5 arms, B 5, C 5 + 3 + 3. Its ID-free loop checks
+`regions → rules → selectorLines` only; it does not include other page rules.
+That is 21 arms, matching §2. The former **26** in the control row had no
+support in this driver. This corrects the population description; the retained
+56,304 ownership records and all verdicts are unchanged.
 
 ### 4.1 Three oracle defects the controls caught, every one pointing "dead"
 

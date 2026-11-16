@@ -164,7 +164,7 @@ accepted six.
 |---|---|
 | **Incorrect verdict** | Mid-transition reads on any element whose transition the suppressor failed to stop. Observed directly: C45's baseline read `0 0 0 1.7978px rgba(220,53,69,0.141)` — a value strictly between C43's `3.2px/0.251` and C45's `4px/0.349`, i.e. an interpolation, not either rule's value. Downstream this produced `reversion-failed` on C21/C28/C45 and **13 same-CSS control drift records**, all on C21. Under M5 that invalidates the sweep. For the CTLF control the wrong answer is `owned=0` — an annotation that *is* the effective owner classified as `never-owner`. |
 | **Control that exposed it** | The same-CSS control (M5): run the identical candidate loop twice on identical CSS. 13 of 18,174 paired records differed, always in the same direction — first pass mid-flight, second pass settled. |
-| **Root cause** | The suppressor is `*, *::before, *::after { transition: none !important }` — **unlayered, specificity (0,0,0)**. Two independent classes of rule beat it, and both exist in this codebase: (1) **layered `!important`** — `pages-workout-plan.css:959` declares `transition: all 200ms … !important` inside `@layer workout`, and `tokens.css:2` orders `workout` first, so for `!important` the layer order inverts and layered beats unlayered outright; (2) **unlayered `!important` with any specificity at all** — e.g. `components.css:25`. M6a was therefore never actually enforced app-wide, only believed to be. |
+| **Root cause** | The suppressor is `*, *::before, *::after { transition: none !important }` — **unlayered, specificity (0,0,0)**. Two independent classes of rule beat it, and both exist in this codebase: (1) **layered `!important`** — `pages-workout-plan.css:959` declares `transition: all 200ms … !important` inside `@layer workout`, and `tokens.css:2` orders `workout` first, so for `!important` the layer order inverts and layered beats unlayered outright; (2) **unlayered `!important` with any specificity at all** — e.g. `components.css:25`. In d2's original harness, M6a was therefore not enforced app-wide. This finding does not describe the separate inline suppression in `runtime_probe.mjs`. |
 | **Why it survived to the full matrix** | The six-control population contained **no transitioned element**. A control suite that cannot fail a defect cannot catch it. |
 | **Correction** | The repair does not go through the cascade at all: `settle()` finishes in-flight `CSSTransition` objects via the Web Animations API, which no stylesheet can outrank. Infinite CSS animations (the 8 uncertifiable Welcome elements, plan C7) are `CSSAnimation`, are excluded by construction, and are left running. To keep the full matrix affordable the settle set is narrowed to the elements that *defeat* the suppressor — those whose computed `transition-duration` is still non-zero after suppression — which is exactly the population the defect is about. That gating was verified to change **0 verdict fields across 506 contexts**. |
 | **Post-correction control** | New control **CTLF**: a candidate whose element carries a **layered `!important`** transition, mirroring `pages-workout-plan.css:959`. Green: `owned=1/1 kept=1/1 same=1/1`. The `suppressorSelfCheck` reports `cssSuppressorBeaten: true` (the defect is real and still real) and `settleReachesEndValue: true` (the repair works anyway). Same-CSS control drift falls to **0**. |
@@ -630,10 +630,13 @@ then restored and re-verified (sha `adce3716…`, contracts 22/22).
   Firefox oracle, which this arc does not have.
 - **`.is-invalid:focus` (C35/C36)** — measured live and protected; the focus
   half of the validation pair.
-- **D7's consequences for earlier packets.** The suppressor defect was present
-  for every WP4.4 packet that used a sentinel. This packet does not re-open
-  `a`–`f1`; it records the defect, ships the repair in its own harness, and
-  flags that `scripts/css_audit/runtime_probe.mjs` still carries the beatable
-  CSS-only suppressor (Measured 2026-11: `runtime_probe.mjs` has no stylesheet suppressor; it sets `transition-property: none !important` inline per element at :269, which a stylesheet cannot outrank. D7 was a defect of d2's own harness). **Fixing the shared harness belongs to a packet that
-  owns it (A11), not to `d2`.**
+- **D7's scope.** The demonstrated defect was d2's universal stylesheet
+  suppressor, repaired in d2's own harness. The shared
+  `scripts/css_audit/runtime_probe.mjs` instead sets
+  `transition-property: none !important` inline on each element; the stylesheet
+  competitors named in D7 cannot outrank that inline declaration. The source at
+  [d2's delivered commit `0a912d9`](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/blob/0a912d9ebb9d1ec7b9aadb5856fdbf1d56c7aa92/scripts/css_audit/runtime_probe.mjs)
+  already uses this inline method. D7 does not establish a defect in that shared
+  probe or in every earlier sentinel packet. No shared-harness repair or
+  reopening of `a`–`f1` follows from this evidence.
 - **The rest-state differential limitation** in §5.4.

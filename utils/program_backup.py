@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional, Set
 
 from utils.backup_execution_contract import MISSING_STYLE, check_execution_fields, render_value
 from utils.database import DatabaseHandler
+from utils.errors import ValidationError
 from utils.logger import get_logger
 from utils.workout_validation import validate_workout_bounds
 
@@ -201,16 +202,16 @@ def create_backup(
         sqlite3.Error: On database errors
     """
     if not name or not name.strip():
-        raise ValueError("Backup name is required")
+        raise ValidationError("Backup name is required")
 
     name = name.strip()
     if len(name) > 100:
-        raise ValueError("Backup name must be 100 characters or fewer")
+        raise ValidationError("Backup name must be 100 characters or fewer")
 
     if note is not None:
         note = note.strip()
         if len(note) > 500:
-            raise ValueError("Backup note must be 500 characters or fewer")
+            raise ValidationError("Backup note must be 500 characters or fewer")
         note = note or None
     
     should_close = False
@@ -353,7 +354,7 @@ def update_backup_metadata(
         sqlite3.Error: On database errors
     """
     if name is None and note is None:
-        raise ValueError("At least one of 'name' or 'note' must be provided")
+        raise ValidationError("At least one of 'name' or 'note' must be provided")
 
     with DatabaseHandler() as db:
         existing = db.fetch_one(
@@ -374,16 +375,16 @@ def update_backup_metadata(
         if name is not None:
             normalized_name = name.strip()
             if not normalized_name:
-                raise ValueError("Backup name is required")
+                raise ValidationError("Backup name is required")
             if len(normalized_name) > 100:
-                raise ValueError("Backup name must be 100 characters or fewer")
+                raise ValidationError("Backup name must be 100 characters or fewer")
             updates.append("name = ?")
             params.append(normalized_name)
 
         if note is not None:
             normalized_note = note.strip()
             if len(normalized_note) > 500:
-                raise ValueError("Backup note must be 500 characters or fewer")
+                raise ValidationError("Backup note must be 500 characters or fewer")
             updates.append("note = ?")
             params.append(normalized_note or None)
 
@@ -513,7 +514,7 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
         """, (backup_id,))
         
         if not backup:
-            raise ValueError(f"Backup with id {backup_id} not found")
+            raise ValidationError(f"Backup with id {backup_id} not found")
         
         backup_name = backup['name']
         

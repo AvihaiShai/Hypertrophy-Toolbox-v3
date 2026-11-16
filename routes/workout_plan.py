@@ -7,7 +7,7 @@ from utils.exercise_manager import (
     add_exercise as add_exercise_to_db,
     get_exercises,
 )
-from utils.errors import success_response, error_response
+from utils.errors import success_response, error_response, validation_error_response
 from utils.exercise_media import resolve_exercise_media_path
 from utils import exercise_replacement as replacement_service
 from utils import supersets as superset_service
@@ -598,7 +598,7 @@ def generate_starter_plan_route():
         
     except ValueError as e:
         logger.warning(f"Validation error in generate_starter_plan: {e}")
-        return error_response("VALIDATION_ERROR", str(e), 400)
+        return validation_error_response(e)
     except Exception as e:
         logger.exception("Error generating starter plan")
         return error_response("INTERNAL_ERROR", "Failed to generate starter plan", 500)

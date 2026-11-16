@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from utils.database import DatabaseHandler
+from utils.errors import ValidationError
 from utils.logger import get_logger
 from utils.movement_patterns import (
     MovementPattern,
@@ -260,20 +261,20 @@ class GeneratorConfig:
     def __post_init__(self):
         """Validate configuration after initialization."""
         if self.training_days < 1 or self.training_days > 5:
-            raise ValueError("training_days must be between 1 and 5")
+            raise ValidationError("training_days must be between 1 and 5")
         if self.environment not in ("gym", "home"):
-            raise ValueError("environment must be 'gym' or 'home'")
+            raise ValidationError("environment must be 'gym' or 'home'")
         if self.experience_level not in ("novice", "intermediate", "advanced"):
-            raise ValueError("experience_level must be 'novice', 'intermediate', or 'advanced'")
+            raise ValidationError("experience_level must be 'novice', 'intermediate', or 'advanced'")
         if self.goal not in ("hypertrophy", "strength", "general"):
-            raise ValueError("goal must be 'hypertrophy', 'strength', or 'general'")
+            raise ValidationError("goal must be 'hypertrophy', 'strength', or 'general'")
         if self.volume_scale <= 0 or self.volume_scale > 2:
-            raise ValueError("volume_scale must be between 0 and 2")
+            raise ValidationError("volume_scale must be between 0 and 2")
         
         # Validate time budget (Phase 3)
         if self.time_budget_minutes is not None:
             if not isinstance(self.time_budget_minutes, int) or self.time_budget_minutes < 15 or self.time_budget_minutes > 180:
-                raise ValueError("time_budget_minutes must be between 15 and 180")
+                raise ValidationError("time_budget_minutes must be between 15 and 180")
         
         # Merge mode cannot be used with overwrite=True
         if self.merge_mode and self.overwrite:
@@ -283,7 +284,7 @@ class GeneratorConfig:
         # Validate priority muscles
         if self.priority_muscles:
             if not isinstance(self.priority_muscles, list):
-                raise ValueError("priority_muscles must be a list")
+                raise ValidationError("priority_muscles must be a list")
             if len(self.priority_muscles) > 2:
                 logger.warning(
                     "More than 2 priority muscles provided (%d). Using first 2.",

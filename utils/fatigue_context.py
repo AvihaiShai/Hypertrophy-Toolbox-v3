@@ -24,6 +24,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from utils.database import DatabaseHandler
+from utils.errors import ValidationError
 from utils.fatigue import (
     DEFAULT_PERIOD,
     MUSCLE_VOLUME_LANDMARKS,
@@ -99,11 +100,11 @@ def set_fatigue_context_settings(
     new_period = current["context_period"] if context_period is None else context_period
 
     if new_source not in VALID_FATIGUE_CONTEXT_SOURCES:
-        raise ValueError(
+        raise ValidationError(
             f"context_source must be one of {VALID_FATIGUE_CONTEXT_SOURCES}"
         )
     if new_period not in VALID_PERIODS:
-        raise ValueError(f"context_period must be one of {VALID_PERIODS}")
+        raise ValidationError(f"context_period must be one of {VALID_PERIODS}")
 
     db.execute_query(
         """

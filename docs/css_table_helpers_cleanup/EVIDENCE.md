@@ -283,7 +283,7 @@ DEFERRED_HELPER_COUNTS = {"tbl-show-sm": 2, ..., "tbl-hide-lg": 1}
 |---|---|---|---|
 | **C1** | `test_breakpoint_helper_family_is_absent_from_layout_css` | **W1** | Asserts a **state** (`0` rule heads), not a tally. Counts rule heads by scanning brace boundaries, so it sees the class at any nesting depth, inside `@media`, and in any position within a compound or descendant chain — including `.foo.tbl-show-sm` and `.tbl-show-sm .bar`, which the selector-shape matcher used elsewhere in the suite would miss. Reports the offender by name. |
 | **C2** | `test_breakpoint_helper_family_is_all_or_nothing` | indivisibility | Fails on any partial state in **either** direction — an `@media` override left with no base rule, or base rules left with no overrides. **Outcome-independent**: the same contract holds whether the family is deleted or restored, so indivisibility survives past this packet rather than expiring with it. |
-| **C3** | `test_breakpoint_helper_classes_are_unreachable` | **W2**, the largest gap | Turns the deletion's premise into a standing gate. The detector matches the **bare stems `tbl-show` / `tbl-hide` anywhere** in `templates/**` and `static/js/**` — deliberately *simpler* than `test_deleted_classes_are_still_unreachable`'s form-enumerating parser, not a wider version of it. That test enumerates `class="…"` attributes and `classList.add/toggle/replace` literals, so it cannot see `className =`, `setAttribute('class', …)`, or a runtime-assembled name; enumerating more forms only moves the boundary. A substring match catches any construction containing the contiguous stems `tbl-show` / `tbl-hide` in `templates/**` and `static/js/**` (outside comments and `__tests__`), including `'tbl-show-' + size` and `` `tbl-hide-${size}` ``, which are real class names containing no full class literal. A name assembled from non-contiguous fragments (for example `'tbl-' + kind + '-' + size`) is not detected. Discharges M10 permanently instead of as a one-time measurement. |
+| **C3** | `test_breakpoint_helper_classes_are_unreachable` | **W2**, the largest gap | Turns the deletion's premise into a standing gate. The detector matches the **bare stems `tbl-show` / `tbl-hide` anywhere** in `templates/**` and `static/js/**` — deliberately *simpler* than `test_deleted_classes_are_still_unreachable`'s form-enumerating parser, not a wider version of it. That test enumerates `class="…"` attributes and `classList.add/toggle/replace` literals, so it cannot see `className =`, `setAttribute('class', …)`, or a runtime-assembled name; enumerating more forms only moves the boundary. A substring match catches any construction containing the contiguous stems `tbl-show` / `tbl-hide` in `templates/**` and `static/js/**` (outside comments and `__tests__`), including `'tbl-show-' + size` and `` `tbl-hide-${size}` ``, which are real class names containing no full class literal. A name assembled from non-contiguous fragments (for example `'tbl-' + kind + '-' + size`) is not detected. Pins the contiguous-stem reachability premise as a standing check; construction from non-contiguous fragments still needs source review. |
 | **C4** | `test_breakpoint_helper_classes_have_no_definition_site_in_a_sibling_bundle` | **W3** | Globs **every** `static/css/*.css`, so a bundle added later is covered automatically — unlike the existing five-surface hard-coded list. Excludes `layout.css` by name; C1 owns that file at the stronger rule-head granularity. That split is what makes C4 hold unchanged under both outcomes instead of being red-on-arrival under retention. |
 | **C5** | `test_layout_css_has_no_empty_media_block` | new guarantee | Forecloses the specific sloppy deletion — rules removed, three empty `@media` shells left — that passes C1 and leaves a residue a later reader takes for intentional. Scoped to `layout.css`: `pages-workout-log.css:459,464,469,496,501` already carry five whitespace-only `@media` blocks that WP4.3j-b-dead kept deliberately. |
 
@@ -326,15 +326,16 @@ tree restored and re-confirmed green.
 | `class="tbl-hide-lg"` in a template | C3 | RED |
 | `classList.add('tbl-show-sm')` in a module | C3 | RED |
 | `className = 'tbl-show-' + size` | C3 | RED |
-
-**The three C3 rows exercise three application *shapes*, not three detector branches.** C3
-is one substring scan; all three are red for the same reason, and that is the design — a
-single mechanism that no application form can slip past. They are listed separately
-because each is a shape a real change could take, and each was executed.
 | `.tbl-show-sm {}` in `components.css` | C4 | RED |
 | leave `@media (min-width: 1201px) { }` behind | C5 | RED |
 | merged restoration collapsing the three bands into one `@media` (sums to 3 base / 6 nested) | C2 | RED |
 | drop the print rule's live `.tbl-controls` branch | `test_retained_rules_are_still_present` | RED |
+
+**The three C3 rows exercise three application *shapes*, not three detector branches.** C3
+is one substring scan; all three contain a contiguous `tbl-show` or `tbl-hide` stem and
+are red for that reason. They were each executed. A class name assembled from
+non-contiguous fragments such as `'tbl-' + kind + '-' + size` can evade this detector;
+these red paths do not establish coverage of that construction.
 
 ### What `code-reviewer` changed after the first encoding
 
@@ -804,4 +805,8 @@ node scripts/css_audit/stylelint_surfaces.mjs artifacts/tblhelpers/stylelint_aft
 ```
 
 Analysis scripts live under the gitignored `artifacts/` tree. `scripts/css_audit/` stays
-packet-`a`-owned and was **not modified** (A11); `runtime_probe.mjs` is used unchanged.
+packet-`a`-owned and was **not modified** (A11). The accepted rest-state pair used
+the three-line port-adapted scratch copy `runtime_probe_5178.mjs` against the second
+server on 5178 (§9b); the candidate oracle used the first server on 5177. The recipe
+above records both. This is the accepted historical topology, not a request to
+start either server during this evidence correction.

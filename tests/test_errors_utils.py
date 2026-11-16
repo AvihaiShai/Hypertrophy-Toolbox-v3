@@ -16,7 +16,10 @@ from utils.errors import (
     is_xhr_request,
     APIError,
     ERROR_CODES,
+    GENERIC_VALIDATION_MESSAGE,
+    ValidationError,
     get_request_id,
+    validation_error_response,
 )
 from utils.request_id import get_request_id as canonical_get_request_id
 
@@ -205,6 +208,65 @@ class TestAPIError:
         """Should use message in string representation."""
         error = APIError("INTERNAL_ERROR", "Something went wrong", 500)
         assert str(error) == "Something went wrong"
+
+
+class TestValidationErrorResponse:
+    """Tests for ValidationError and validation_error_response."""
+
+    def test_validation_error_is_value_error_with_message(self):
+        """ValidationError keeps ValueError compatibility and stores its message."""
+        error = ValidationError("exercise is required")
+        assert isinstance(error, ValueError)
+        assert error.message == "exercise is required"
+        assert str(error) == "exercise is required"
+
+    def test_validation_error_echoes_its_message(self, app):
+        """A ValidationError's own message reaches the client."""
+        with app.test_request_context():
+            response, status = validation_error_response(ValidationError("exercise is required"))
+            body = response.get_json()
+            assert status == 400
+            assert body["message"] == "exercise is required"
+            assert body["error"]["code"] == "VALIDATION_ERROR"
+            assert body["error"]["message"] == "exercise is required"
+
+    def test_plain_value_error_gets_generic_message(self, app):
+        """A plain ValueError's text never reaches the client."""
+        with app.test_request_context():
+            response, status = validation_error_response(
+                ValueError("cannot convert float NaN to integer")
+            )
+            body = response.get_json()
+            assert status == 400
+            assert body["message"] == GENERIC_VALIDATION_MESSAGE
+            assert body["error"]["message"] == GENERIC_VALIDATION_MESSAGE
+
+    def test_unicode_encode_error_gets_generic_message(self, app):
+        """A UnicodeEncodeError (a ValueError) is answered generically."""
+        try:
+            "\ud800".encode("utf-8")
+        except UnicodeEncodeError as exc:
+            caught = exc
+        else:  # pragma: no cover - the encode above always fails
+            pytest.fail("lone surrogate unexpectedly encoded")
+        with app.test_request_context():
+            response, status = validation_error_response(caught)
+            body = response.get_json()
+            assert status == 400
+            assert body["message"] == GENERIC_VALIDATION_MESSAGE
+            assert "surrogates" not in response.get_data(as_text=True)
+            assert "codec" not in response.get_data(as_text=True)
+
+    def test_custom_code_and_status_are_kept(self, app):
+        """The restore route's NOT_FOUND / 404 pairing passes through."""
+        with app.test_request_context():
+            response, status = validation_error_response(
+                ValidationError("Backup with id 9 not found"), "NOT_FOUND", 404
+            )
+            body = response.get_json()
+            assert status == 404
+            assert body["error"]["code"] == "NOT_FOUND"
+            assert body["message"] == "Backup with id 9 not found"
 
 
 class TestErrorCodes:
