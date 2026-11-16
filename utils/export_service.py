@@ -109,6 +109,9 @@ WORKOUT_PLAN_COLUMNS = {
         'synergists',
         'superset_group',
         'exercise_order',
+        'time_cap_seconds',
+        'emom_interval_seconds',
+        'emom_rounds',
     ],
     # Display names for simple view (user-friendly)
     'simple': {
@@ -133,6 +136,9 @@ WORKOUT_PLAN_COLUMNS = {
         'synergists': 'Synergists',
         'superset_group': 'Superset Group',
         'exercise_order': 'Exercise Order',
+        'time_cap_seconds': 'Time Cap (sec)',
+        'emom_interval_seconds': 'EMOM Interval (sec)',
+        'emom_rounds': 'EMOM Rounds',
     },
     # Display names for advanced/scientific view
     'advanced': {
@@ -157,6 +163,9 @@ WORKOUT_PLAN_COLUMNS = {
         'synergists': 'Synergists',
         'superset_group': 'Superset Group',
         'exercise_order': 'Exercise Order',
+        'time_cap_seconds': 'Time Cap (sec)',
+        'emom_interval_seconds': 'EMOM Interval (sec)',
+        'emom_rounds': 'EMOM Rounds',
     }
 }
 
@@ -260,6 +269,7 @@ def build_export_query(db):
                 e.movement_pattern, e.movement_subpattern, us.sets, us.min_rep_range,
                 us.max_rep_range, us.rir, us.rpe, us.weight, us.execution_style,
                 e.grips, e.stabilizers, e.synergists, us.superset_group, us.exercise_order,
+                us.time_cap_seconds, us.emom_interval_seconds, us.emom_rounds,
                 CASE WHEN us.superset_group IS NOT NULL THEN smo.min_order ELSE us.exercise_order END as sort_order
             FROM user_selection us
             LEFT JOIN exercises e ON us.exercise = e.exercise_name
@@ -274,7 +284,8 @@ def build_export_query(db):
                 e.tertiary_muscle_group, e.advanced_isolated_muscles, e.utility,
                 e.movement_pattern, e.movement_subpattern, us.sets, us.min_rep_range,
                 us.max_rep_range, us.rir, us.rpe, us.weight, us.execution_style,
-                e.grips, e.stabilizers, e.synergists, us.superset_group, us.exercise_order
+                e.grips, e.stabilizers, e.synergists, us.superset_group, us.exercise_order,
+                us.time_cap_seconds, us.emom_interval_seconds, us.emom_rounds
             FROM user_selection us
             LEFT JOIN exercises e ON us.exercise = e.exercise_name
             ORDER BY us.routine, us.exercise_order, us.exercise
@@ -286,7 +297,8 @@ def build_export_query(db):
                 e.tertiary_muscle_group, e.advanced_isolated_muscles, e.utility,
                 e.movement_pattern, e.movement_subpattern, us.sets, us.min_rep_range,
                 us.max_rep_range, us.rir, us.rpe, us.weight, us.execution_style,
-                e.grips, e.stabilizers, e.synergists, us.superset_group
+                e.grips, e.stabilizers, e.synergists, us.superset_group,
+                us.time_cap_seconds, us.emom_interval_seconds, us.emom_rounds
             FROM user_selection us
             LEFT JOIN exercises e ON us.exercise = e.exercise_name
             ORDER BY us.routine, us.exercise
