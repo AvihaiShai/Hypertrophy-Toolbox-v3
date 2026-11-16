@@ -140,6 +140,7 @@ Run the union. If the union is empty, run `/verify-suite`.
 |---|---|
 | `welcome`, `base`, `navbar`, `darkMode` | `smoke-navigation.spec.ts`, `nav-dropdown.spec.ts`, `dark-mode.spec.ts` |
 | `workout_plan`, `workout-plan`, `filters`, `exercises`, `routine-cascade` | `workout-plan.spec.ts`, `exercise-interactions.spec.ts`, `superset-edge-cases.spec.ts` |
+| `clearWorkoutPlan`, Clear Plan, `clear-plan` | `ui-hardening.spec.ts` (modal dismissal, control defaults and absent storage key after clear/reload); also run the workout-plan specs above |
 | `workout_log`, `workout-log` | `workout-log.spec.ts` |
 | `weekly_summary`, `session_summary`, `summary`, `charts` | `summary-pages.spec.ts` |
 | `progression_plan`, `progression-plan` | `progression.spec.ts` |
