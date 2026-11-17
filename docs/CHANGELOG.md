@@ -26,6 +26,15 @@ All notable changes to Hypertrophy Toolbox v3.
   references in the same change. Unique evidence, unresolved work and
   `archive/DOCS_AUDIT_PLAN.md` remain in the checkout.
 
+### Documentation archive
+
+- Archived the grounding-scan evidence set (owner-approved 2026-11-15):
+  `docs/scan/README.md` → [`archive/2026/grounding-scan/README.md`](archive/2026/grounding-scan/README.md) and
+  `docs/scan/PHASE_02.md`–`PHASE_22.md` → [`archive/2026/grounding-scan/phases/`](archive/2026/grounding-scan/phases/).
+  The 21 phase files are byte-identical. The README gains a two-line archive note and nine re-pointed link targets.
+  Inbound links and path citations are repaired in the same change; dated inventories that name `docs/scan/`
+  are left as history.
+
 ## Unreleased - 2026-11-15
 
 ### Documentation archive

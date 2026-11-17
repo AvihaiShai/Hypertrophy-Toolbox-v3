@@ -140,7 +140,7 @@ as it bit the first verification pass of this plan.
 |---|---|---|---|
 | `utils/volume_progress.py:304` | `totals = {muscle: 0.0 for muscle in _mode_muscles(normalized_mode)}` | no — dict comprehension over the iterable | no |
 | `utils/volume_progress.py:455` | `muscle_order = _mode_muscles(mode)`, consumed only by the `for muscle in muscle_order` comprehension at `:456–460` | no — builds a **new** list `all_muscles` | no |
-| `docs/scan/PHASE_03.md:410` | prose reference only | — | — |
+| `docs/archive/2026/grounding-scan/phases/PHASE_03.md:410` | prose reference only | — | — |
 
 No caller outside the module; no route, template, or test references it. Nothing
 mutates the returned object, appends to it, compares it by identity, or serializes it
@@ -333,7 +333,7 @@ path becomes required. §6 makes this a mechanical gate rather than a promise.
 `backfill` branch (`:203–205`), all three `blank_pst_orphan` increments (`:209`,
 `:226`, `:247`) and the `_BASIC_ONLY_TOKEN_TO_BASIC` early-`continue` (`:234–236`) have
 no test anywhere (`rg blank_pst_orphan tests` returns nothing;
-`docs/scan/PHASE_03.md:272` already records the backfill gap). This packet does not
+`docs/archive/2026/grounding-scan/phases/PHASE_03.md:272` already records the backfill gap). This packet does not
 close them — it must not, being type-only — but they are listed so the §3.7 pin is not
 mistaken for full coverage of the function.
 
