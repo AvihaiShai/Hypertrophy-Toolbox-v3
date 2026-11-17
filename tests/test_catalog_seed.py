@@ -11,8 +11,8 @@ from utils.schema_registry import OWNED_TABLES_DROP_ORDER
 
 CATALOG_TABLES = {"exercises", "exercise_isolated_muscles"}
 EXPECTED_CATALOGS = {
-    "exercises": (1897, "a29fa11f38890e8e"),
-    "exercise_isolated_muscles": (1598, "85c4d585567f2f71"),
+    "exercises": (1897, "7ffde34d5cc3f22c"),
+    "exercise_isolated_muscles": (1598, "8335911c7f5f99e6"),
 }
 
 
@@ -71,6 +71,33 @@ def test_seed_catalog_counts_and_logical_hashes_are_stable():
             assert _logical_row_hash(connection, table).startswith(
                 expected_hash_prefix
             )
+
+
+def test_barbell_coan_deadlift_classification():
+    """#715: classified like Barbell Sumo Deadlift, keeping the hinge pattern."""
+    name = "Barbell Coan Deadlift"
+    with _connect_seed() as connection:
+        row = connection.execute(
+            "SELECT primary_muscle_group, secondary_muscle_group, "
+            "tertiary_muscle_group, advanced_isolated_muscles, "
+            "movement_pattern, movement_subpattern "
+            "FROM exercises WHERE exercise_name = ?",
+            (name,),
+        ).fetchone()
+        isolated = connection.execute(
+            "SELECT muscle FROM exercise_isolated_muscles WHERE exercise_name = ?",
+            (name,),
+        ).fetchall()
+
+    assert row == (
+        "Gluteus Maximus",
+        "Quadriceps",
+        "Lower Back",
+        "gluteus maximus",
+        "hinge",
+        "deadlift",
+    )
+    assert isolated == [("gluteus-maximus",)]
 
 
 def test_seed_has_no_recoverable_user_pages_or_sequence_state():
