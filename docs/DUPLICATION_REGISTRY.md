@@ -7,8 +7,8 @@ arithmetic looks identical."* Each entry records: owner (canonical location), in
 (`file:line`), current semantics, guarding tests, and an explicit future decision.
 
 **Scope of the WP that produced this file:** docs-only. Zero production/test/E2E code was
-changed. No duplication was removed. Basis: `docs/SCAN_FINDINGS.md` +
-`docs/scan/PHASE_*.md` (2026-07-03 line-by-line grounding scan) cross-checked against a
+changed. No duplication was removed. Basis: `docs/archive/2026/grounding-scan/SCAN_FINDINGS.md` +
+`docs/archive/2026/grounding-scan/phases/PHASE_*.md` (2026-07-03 line-by-line grounding scan) cross-checked against a
 fresh code read (2026-07-10). Every instance below cites a live `file:line`.
 
 **Decision vocabulary:**
