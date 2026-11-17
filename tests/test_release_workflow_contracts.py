@@ -12,9 +12,11 @@ question about them.
 Several contracts are deliberately *positive*: a negative scan for a forbidden string
 scores green exactly when the line that carried the guarantee is deleted.
 """
+import ast
 import importlib
 import os
 import re
+import shlex
 import subprocess
 from datetime import datetime, timedelta, timezone
 
@@ -127,6 +129,8 @@ VISUAL_STEP_SEQUENCE = (
     "Run visual specs (compare)",
     "Run visual specs (generate)",
     "Assert compare mode wrote no baseline",
+    "Prepare visual retry diagnostics",
+    "Upload recovered visual diagnostics",
     "Upload generated Linux baselines",
     "Upload Playwright report + diffs",
 )
@@ -1408,7 +1412,7 @@ def test_the_visual_workflow_keeps_baseline_generation_behind_its_generate_mode(
     assert names[start : start + 4] == [mode_name, compare_name, generate_name, guard_name]
 
     mode, compare, generate, guard = (by_name[n] for n in names[start : start + 4])
-    for raw, step_id in ((mode, "mode"), (compare, "visual")):
+    for raw, step_id in ((mode, "mode"), (compare, "visual"), (generate, "visual_generate")):
         assert re.findall(r"^      id: (.+)$", raw, re.MULTILINE) == [step_id]
     assert step_condition(mode) is None
     assert step_condition(compare) == "steps.mode.outputs.mode == 'compare'"
@@ -1451,6 +1455,117 @@ def test_generated_baselines_upload_only_in_generate_mode_and_reports_only_on_fa
     assert step_condition(report) == "failure()"
     for line in ("name: visual-linux-report", "path: artifacts/playwright", "retention-days: 7"):
         assert re.search(rf"^        {re.escape(line)}$", report, re.MULTILINE), line
+
+
+def retry_condition(raw, *, cancelled=False, failed=False, compare="skipped", generate="skipped", upload="", processor="skipped"):
+    expression = step_condition(raw)
+    assert expression is not None
+    values = {
+        "cancelled()": cancelled, "failure()": failed,
+        "steps.visual.outcome": compare, "steps.visual_generate.outcome": generate,
+        "steps.retry_diagnostics.outputs.upload_needed": upload,
+        "steps.retry_diagnostics.outcome": processor,
+    }
+    for token, value in values.items():
+        expression = expression.replace(token, repr(value))
+    expression = expression.replace("&&", " and ").replace("||", " or ").replace("!", " not ").strip()
+    tree = ast.parse(expression, mode="eval")
+    allowed = (ast.Expression, ast.BoolOp, ast.UnaryOp, ast.Compare, ast.Constant, ast.And, ast.Or, ast.Not, ast.Eq)
+    assert all(isinstance(node, allowed) for node in ast.walk(tree)), expression
+    return eval(compile(tree, "<visual diagnostic condition>", "eval"), {"__builtins__": {}})
+
+
+@pytest.mark.parametrize("cancelled,compare,generate,expected", [
+    (False, "success", "skipped", True),
+    (False, "failure", "skipped", True),
+    (False, "skipped", "success", True),
+    (False, "skipped", "failure", True),
+    (False, "skipped", "skipped", False),
+    (True, "success", "skipped", False),
+    (True, "failure", "skipped", False),
+])
+def test_retry_summary_requires_an_executed_test_step(cancelled, compare, generate, expected):
+    raw = visual_steps()["Prepare visual retry diagnostics"]
+    assert retry_condition(raw, cancelled=cancelled, compare=compare, generate=generate) is expected
+
+
+@pytest.mark.parametrize("cancelled,failed,upload,processor,expected", [
+    (False, False, "false", "success", False),
+    (False, False, "true", "success", True),
+    (False, False, "", "failure", True),
+    (False, False, "", "skipped", False),
+    (False, True, "true", "success", False),
+    (False, True, "", "failure", False),
+    (True, False, "true", "success", False),
+])
+def test_recovered_upload_covers_retry_or_unknown_and_never_duplicates_red_job(cancelled, failed, upload, processor, expected):
+    raw = visual_steps()["Upload recovered visual diagnostics"]
+    assert retry_condition(raw, cancelled=cancelled, failed=failed, upload=upload, processor=processor) is expected
+    red = visual_steps()["Upload Playwright report + diffs"]
+    assert retry_condition(red, failed=failed) is failed
+
+
+def test_retry_summary_supplies_the_real_selected_outcome_and_complete_cli():
+    raw = visual_steps()["Prepare visual retry diagnostics"]
+    assert re.search(r"^      id: retry_diagnostics$", raw, re.MULTILINE)
+    assert step_env(raw) == {
+        "VISUAL_MODE": "${{ steps.mode.outputs.mode }}",
+        "COMPARE_OUTCOME": "${{ steps.visual.outcome }}",
+        "GENERATE_OUTCOME": "${{ steps.visual_generate.outcome }}",
+        "PW_VISUAL_SEED": "'1'",
+    }
+    script = run_script(raw)
+    assert script is not None and "${{" not in script
+    invocation = "python -m" + script.split("python -m", 1)[1]
+    argv = shlex.split(invocation.replace("\\\n", " "))
+    assert argv[:3] == ["python", "-m", "scripts.prepare_visual_retry_artifact"]
+    assert dict(zip(argv[3::2], argv[4::2], strict=True)) == {
+        "--report": "artifacts/playwright/results.json",
+        "--artifact-root": "artifacts/playwright",
+        "--staging": "artifacts/playwright-retry-diagnostics",
+        "--label": "Deep Gate Visual (Linux)",
+        "--step-outcome": "$STEP_OUTCOME", "--mode": "$VISUAL_MODE",
+        "--github-output": "$GITHUB_OUTPUT", "--summary-file": "$GITHUB_STEP_SUMMARY",
+    }
+
+
+@pytest.mark.parametrize("mode,compare,generate,expected", [
+    ("compare", "success", "skipped", "success"),
+    ("compare", "failure", "skipped", "failure"),
+    ("generate", "skipped", "success", "success"),
+    ("generate", "skipped", "failure", "failure"),
+])
+def test_retry_summary_shell_selects_test_outcome_without_using_job_verdict(mode, compare, generate, expected):
+    raw = visual_steps()["Prepare visual retry diagnostics"]
+    script = run_script(raw)
+    assert script is not None
+    selector = script.split("python -m", 1)[0] + 'printf "%s" "$STEP_OUTCOME"\n'
+    result = subprocess.run(
+        [bash_executable(), "-e", "-c", selector],
+        env={**os.environ, "VISUAL_MODE": mode, "COMPARE_OUTCOME": compare, "GENERATE_OUTCOME": generate},
+        capture_output=True, text=True, timeout=10, check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == expected
+
+
+def test_retry_diagnostics_are_nonblocking_bounded_and_after_the_capture_guard():
+    by_name = visual_steps()
+    names = list(by_name)
+    assert names.index("Assert compare mode wrote no baseline") < names.index("Prepare visual retry diagnostics")
+    for name in ("Prepare visual retry diagnostics", "Upload recovered visual diagnostics"):
+        assert re.search(r"^      continue-on-error: true$", by_name[name], re.MULTILINE)
+    upload = by_name["Upload recovered visual diagnostics"]
+    for line in (
+        "name: visual-linux-retry-diagnostics-${{ github.run_id }}-a${{ github.run_attempt }}",
+        "path: artifacts/playwright-retry-diagnostics", "if-no-files-found: warn", "retention-days: 14",
+    ):
+        assert re.search(rf"^        {re.escape(line)}$", upload, re.MULTILINE)
+    assert re.search(r"^      uses: actions/upload-artifact@[0-9a-f]{40}", upload, re.MULTILINE)
+    assert tuple(jobs(VISUAL_LINUX)) == ("visual-linux",)
+    for name in ("Run visual specs (compare)", "Run visual specs (generate)"):
+        assert "--trace" not in command(by_name[name])
+        assert "--retries" not in command(by_name[name])
 
 
 def evaluate(expression, event, visual_mode):

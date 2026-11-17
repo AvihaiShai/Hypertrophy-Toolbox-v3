@@ -241,8 +241,8 @@
     "total_tests": 723
   },
   "pytest": {
-    "collected_deterministic": 4542,
-    "deterministic_files": 142,
+    "collected_deterministic": 4596,
+    "deterministic_files": 143,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -583,6 +583,10 @@
         "tests": 1
       },
       {
+        "file": "tests/test_prepare_visual_retry_artifact.py",
+        "tests": 34
+      },
+      {
         "file": "tests/test_priority0_api_contract.py",
         "tests": 11
       },
@@ -644,7 +648,7 @@
       },
       {
         "file": "tests/test_release_workflow_contracts.py",
-        "tests": 104
+        "tests": 124
       },
       {
         "file": "tests/test_remove_exercise_characterization.py",
@@ -823,7 +827,7 @@
         "tests": 41
       }
     ],
-    "total_files": 143
+    "total_files": 144
   },
   "schema_version": 2,
   "vitest": {
