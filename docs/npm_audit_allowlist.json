@@ -1,15 +1,5 @@
 {
   "schemaVersion": 1,
   "note": "Accepted exceptions to the js-supply-chain gate (scripts/npm_audit_gate.mjs). Policy, entry format and the rules behind every field: docs/NPM_AUDIT_SEVERITY_POLICY_DECISION.md sections 4, 6.1, 6.2 and 6.3. An empty list is written as \"allow\": [] and never as a missing file. Adding an entry requires an owner decision; every field is required, the id is a GHSA id, and expiresOn may be at most 90 days after approvedOn (D-3). An entry whose advisory has left the audit fails the gate and must be deleted (D-5). The braces exception was retired under D-5 and section 6.3 E-6; remediation and validation: docs/BRACES_REMEDIATION.md.",
-  "allow": [
-    {
-      "id": "GHSA-fc5q-39xc-vjpf",
-      "package": "picomatch",
-      "severity": "high",
-      "rationale": "Development tooling only. No patched release is published. Testing npm's proposed dependency changes left this advisory present and added critical findings. Track remediation and exception removal in GitHub issue #724.",
-      "owner": "AvihaiShai",
-      "approvedOn": "2026-11-18",
-      "expiresOn": "2026-12-02"
-    }
-  ]
+  "allow": []
 }
