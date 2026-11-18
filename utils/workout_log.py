@@ -1,7 +1,4 @@
 from .database import DatabaseHandler
-from .logger import get_logger
-
-logger = get_logger()
 
 
 ASSISTED_BODYWEIGHT_EXERCISES = frozenset({
@@ -91,7 +88,7 @@ def get_weight_progression_indicator(exercise_name, planned_weight, scored_weigh
 
 
 def get_workout_logs():
-    """Fetch all workout log entries."""
+    """Fetch all workout log entries, allowing read errors to reach the caller."""
     query = """
     SELECT
         wl.id,
@@ -116,12 +113,9 @@ def get_workout_logs():
     LEFT JOIN exercises e ON wl.exercise = e.exercise_name COLLATE NOCASE
     ORDER BY wl.routine, wl.exercise
     """
-    try:
-        with DatabaseHandler() as db:
-            return db.fetch_all(query)
-    except Exception as e:
-        logger.exception("Error fetching workout logs: %s", e)
-        return []
+    with DatabaseHandler() as db:
+        return db.fetch_all(query)
+
 
 def check_progression(log_entry):
     """Check if progressive overload was achieved."""

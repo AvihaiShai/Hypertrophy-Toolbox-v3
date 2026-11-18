@@ -325,7 +325,7 @@ live.
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | **Generate Starter Plan** | Presentation → API | Modal collects days, environment, experience, goal, volume scale, movement restrictions, equipment whitelist, and up to two priority muscles; submits `POST /generate_starter_plan`. Every dropdown's options are **hardcoded in the template** — `GET /get_generator_options` exists but nothing calls it. Selecting zero equipment is blocked client-side with a warning toast before any request; more than two priority muscles is trimmed to two with a warning |
-| Export to Workout Log | API → Navigation | `POST /export_to_workout_log`, then redirects to `/workout_log` after ~1.5 s |
+| Export to Workout Log | API → Navigation | `POST /export_to_workout_log`. After a successful import, the browser navigates to `/workout_log` after ~1.5 s |
 | Export to Excel | Download | `GET /export_to_excel?view_mode=…`, response read as a blob and saved via a temporary `<a download>`. The `view_mode` value is read from `localStorage` |
 | Load Program | Navigation | → `/backup?intent=browse` |
 | Clear Plan | Presentation → API | Modal, then `POST /clear_workout_plan` |
@@ -355,6 +355,12 @@ the `planned_*` snapshot and the `scored_*` values.
 Neither `GET /export_workout_log` nor `GET /get_workout_logs` has any control bound to it in the
 current templates — the page's rows are server-rendered, so the log page never needs to fetch
 them. Both are listed in *Known discrepancies* below.
+
+| Read | Healthy result | Read failure |
+|---|---|---|
+| `GET /workout_log` | HTTP 200 with the normal table, including zero rows when the log is empty | HTTP 500 with “Unable to load workout log.” Browser navigation shows the shared error page. JSON and XHR requests receive `INTERNAL_ERROR`. This describes the current page load, including when navigation follows a successful import. |
+| `GET /export_workout_log` | An XLSX attachment when rows exist, or HTTP 404 with JSON `NOT_FOUND` when the log is empty | HTTP 500 with JSON `INTERNAL_ERROR` and no attachment |
+| `GET /get_workout_logs` | HTTP 200 with the log list in the JSON success envelope's `data` field, including `[]` when empty | HTTP 500 with JSON `INTERNAL_ERROR` |
 
 ---
 

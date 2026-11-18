@@ -6,7 +6,7 @@ from utils.workout_log import (
     get_workout_logs,
     is_assisted_bodyweight_exercise,
 )
-from utils.errors import success_response, error_response
+from utils.errors import error_response, is_xhr_request, success_response
 from utils.export_utils import create_excel_workbook, generate_timestamped_filename
 from utils.logger import get_logger
 from utils.workout_log_service import (
@@ -34,9 +34,17 @@ def workout_log():
             get_weight_progression_indicator=get_weight_progression_indicator,
             is_assisted_bodyweight_exercise=is_assisted_bodyweight_exercise,
         )
-    except Exception as e:
+    except Exception:
         logger.exception("Error loading workout log page")
-        return error_response("INTERNAL_ERROR", "Unable to load workout log.", 500)
+        message = "Unable to load workout log."
+        if is_xhr_request():
+            return error_response("INTERNAL_ERROR", message, 500)
+        return render_template(
+            "error.html",
+            error_title="Server Error",
+            error_code=500,
+            error_message=message,
+        ), 500
 
 @workout_log_bp.route("/update_workout_log", methods=["POST"])
 def update_workout_log():

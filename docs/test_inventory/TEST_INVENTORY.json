@@ -241,7 +241,7 @@
     "total_tests": 723
   },
   "pytest": {
-    "collected_deterministic": 4598,
+    "collected_deterministic": 4604,
     "deterministic_files": 143,
     "environment_dependent_files": [
       {
@@ -792,7 +792,7 @@
       },
       {
         "file": "tests/test_workout_log_routes.py",
-        "tests": 58
+        "tests": 64
       },
       {
         "file": "tests/test_workout_log_utils.py",
