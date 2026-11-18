@@ -461,6 +461,7 @@ options.
 The play-icon button appears on **both** `/workout_plan` and `/workout_log`. Reviewing past sessions is a primary use case where a quick form-check video is valuable; making the button plan-only would create asymmetric behavior across two pages that share the same exercise dataset.
 
 - New component `static/js/modules/exercise-video-modal.js` — exports `openExerciseVideoModal(videoId, exerciseName)` and `openYouTubeSearch(exerciseName)`. Imported and wired by both the workout-plan row renderer and the workout-log table.
+  - **Superseded 2026-06-14:** the shipped module exports `openExerciseVideoModal(videoId, exerciseName, trigger)` and `buildPlayButton({ videoId, exerciseName })`. The planned `openYouTubeSearch` export never shipped. Uncurated exercises open a YouTube search tab directly. See [the shipped reference-video behavior](YOUTUBE_REFERENCE_VIDEOS.md#user-facing-behavior).
 - New CSS in `pages-workout-plan.css` AND `pages-workout-log.css` (the modal/iframe styles can live in `components.css` if both pages need an identical button surface; otherwise duplicate the small play-button block to keep page-scoped styles independent).
 - New template partial at `templates/partials/exercise_video_modal.html` (the existing partials directory; there is no `templates/_partials/`). The partial is included once in `base.html` so a single modal serves both pages.
 
@@ -510,8 +511,10 @@ The play-icon button appears on **both** `/workout_plan` and `/workout_log`. Rev
     - **Superseded 2026-06-14:** assert a direct YouTube search tab for uncurated exercises; the modal lifecycle checks below apply to curated videos. See [the shipped reference-video behavior](YOUTUBE_REFERENCE_VIDEOS.md#user-facing-behavior).
   - Closing the modal clears the iframe `src` (no invisible playback).
   - Reopening for a different exercise swaps to the new video / search URL.
+    - **Superseded 2026-06-14:** only curated videos reach the modal, so reopening swaps the embed URL.
   - Keyboard focus returns to the triggering button on close.
   - Icon-only buttons have accessible names (`aria-label="Play reference video for <exercise name>"`).
+    - Uncurated buttons use `aria-label="Search YouTube for a <exercise name> reference video"` and open a search tab.
 - No new backend route is added — modal logic is pure frontend — so no new pytest route test is required *beyond* the `/get_workout_plan` and `/get_workout_logs` contract assertions above.
 - Verification gate (run before marking done):
   ```bash

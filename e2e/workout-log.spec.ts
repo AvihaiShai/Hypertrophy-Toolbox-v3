@@ -633,9 +633,9 @@ test.describe('Workout Log Mobile Responsive', () => {
 // §5 — Exercise reference video modal on /workout_log (PLANNING.md §5.5)
 //
 // The modal partial is included once in base.html, so the same flow as on
-// /workout_plan applies here: every server-rendered log row carries a play
-// button whose click opens the modal. NULL youtube_video_id falls through
-// to the search variant.
+// /workout_plan applies here. Every server-rendered log row carries a video
+// button. A valid youtube_video_id opens the modal. A NULL youtube_video_id
+// opens a YouTube search tab directly.
 // ============================================================================
 
 test.describe('Exercise reference video modal (workout-log)', () => {
