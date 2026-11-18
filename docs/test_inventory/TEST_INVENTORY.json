@@ -241,7 +241,7 @@
     "total_tests": 723
   },
   "pytest": {
-    "collected_deterministic": 4604,
+    "collected_deterministic": 4618,
     "deterministic_files": 143,
     "environment_dependent_files": [
       {
@@ -460,7 +460,7 @@
       },
       {
         "file": "tests/test_exports.py",
-        "tests": 65
+        "tests": 69
       },
       {
         "file": "tests/test_fatigue.py",
@@ -684,7 +684,7 @@
       },
       {
         "file": "tests/test_session_summary_routes.py",
-        "tests": 33
+        "tests": 38
       },
       {
         "file": "tests/test_static_cache_policy.py",
@@ -776,7 +776,7 @@
       },
       {
         "file": "tests/test_weekly_summary_routes.py",
-        "tests": 30
+        "tests": 35
       },
       {
         "file": "tests/test_weekly_summary_unassigned.py",

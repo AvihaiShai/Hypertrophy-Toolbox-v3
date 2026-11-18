@@ -316,10 +316,7 @@ def calculate_exercise_categories() -> List[Dict[str, Any]]:
 
 
 def calculate_isolated_muscles_stats() -> List[Dict[str, Any]]:
-    """
-    Calculate statistics for advanced isolated muscles using the mapping table.
-    Assumes tables: user_selection us, exercises e, exercise_isolated_muscles eim.
-    """
+    """Calculate isolated muscle statistics, allowing read errors to reach callers."""
     query = """
     SELECT
         eim.muscle                          AS isolated_muscle,
@@ -333,12 +330,8 @@ def calculate_isolated_muscles_stats() -> List[Dict[str, Any]]:
     GROUP BY eim.muscle
     ORDER BY eim.muscle ASC
     """
-    try:
-        with DatabaseHandler() as db:
-            return db.fetch_all(query)
-    except Exception as e:
-        logger.exception("Error calculating isolated muscles stats: %s", e)
-        return []
+    with DatabaseHandler() as db:
+        return db.fetch_all(query)
 
 
 _PATTERN_COVERAGE_QUERY = """

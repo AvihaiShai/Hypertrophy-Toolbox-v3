@@ -6,38 +6,10 @@ Mirrors test_session_summary_routes.py for the /weekly_summary endpoint.
 
 import pytest
 from unittest.mock import patch
-from flask import Flask
 
-import utils.config
-from routes.weekly_summary import weekly_summary_bp, _parse_counting_mode, _parse_contribution_mode
+from routes.weekly_summary import _parse_counting_mode, _parse_contribution_mode
 from utils.effective_sets import CountingMode, ContributionMode
-
-
-@pytest.fixture
-def app(tmp_path):
-    """Create test Flask application.
-
-    ``DB_FILE`` is pinned to a per-test temporary path. These tests drive the
-    route in isolation with the calculator mocked, but the error handler also
-    runs the rep-range diagnostic, which opens a database — without this the
-    diagnostic would read (and create) the checkout's real ``data/database.db``.
-    """
-    original_db_file = utils.config.DB_FILE
-    utils.config.DB_FILE = str(tmp_path / "test_weekly_summary_routes.db")
-
-    app = Flask(__name__)
-    app.config['TESTING'] = True
-    app.register_blueprint(weekly_summary_bp)
-    try:
-        yield app
-    finally:
-        utils.config.DB_FILE = original_db_file
-
-
-@pytest.fixture
-def client(app):
-    """Create test client."""
-    return app.test_client()
+from utils.weekly_summary import calculate_exercise_categories, calculate_weekly_summary
 
 
 def assert_success_payload(payload):
@@ -53,6 +25,59 @@ def assert_error_payload(payload, code, message):
     assert payload["message"] == message
     assert payload["error"]["code"] == code
     assert payload["error"]["message"] == message
+
+
+class TestWeeklySummaryIsolatedRead:
+    @pytest.mark.parametrize("headers", [
+        {}, {"Accept": "application/json"}, {"X-Requested-With": "XMLHttpRequest"},
+    ], ids=["html", "json", "xhr"])
+    def test_failed_mapping_table_read(self, client, clean_db, workout_plan_factory, headers):
+        workout_plan_factory()
+        clean_db.execute_query("DROP TABLE exercise_isolated_muscles")
+        assert calculate_weekly_summary()
+        assert calculate_exercise_categories()
+
+        response = client.get("/weekly_summary", headers=headers)
+
+        assert response.status_code == 500
+        if headers:
+            assert response.is_json
+            assert_error_payload(response.get_json(), "INTERNAL_ERROR", "Unable to fetch weekly summary")
+        else:
+            assert response.mimetype == "text/html"
+            assert b'<h1 class="error-status-code">500</h1>' in response.data
+            assert b"Unable to load weekly summary." in response.data
+            assert b'id="weekly-summary-table"' not in response.data
+        assert b"exercise_isolated_muscles" not in response.data
+        assert b"Traceback" not in response.data
+
+    @pytest.mark.parametrize("mapped", [False, True], ids=["unmapped", "mapped"])
+    def test_healthy_mapping_table_read(self, client, clean_db, workout_plan_factory, mapped):
+        workout_plan_factory(sets=2)
+        if mapped:
+            clean_db.execute_query(
+                "INSERT INTO exercise_isolated_muscles (exercise_name, muscle) VALUES (?, ?)",
+                ("Test Exercise", "upper-pectoralis"),
+            )
+
+        response = client.get("/weekly_summary", headers={"Accept": "application/json"})
+        assert response.status_code == 200
+        data = assert_success_payload(response.get_json())
+        assert data["weekly_summary"]
+        assert data["categories"]
+
+        page = client.get("/weekly_summary")
+        assert page.status_code == 200
+        assert b'id="weekly-summary-table"' in page.data
+        assert (b'data-label="Isolated Muscle"' in page.data) is mapped
+        if mapped:
+            assert len(data["isolated_muscles"]) == 1
+            row = data["isolated_muscles"][0]
+            assert row["isolated_muscle"] == "upper-pectoralis"
+            assert row["total_sets"] == 2
+            assert b'data-label="Isolated Muscle">upper-pectoralis</td>' in page.data
+        else:
+            assert data["isolated_muscles"] == []
 
 
 class TestParseCountingMode:
