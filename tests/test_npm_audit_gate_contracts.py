@@ -506,9 +506,9 @@ def test_the_gate_greens_on(tmp_path, case):
 # --------------------------------------------------- the committed artifacts
 
 
-# Owner approved the picomatch exception on 2026-11-18. Issue #724 tracks
-# remediation and removal of this entry.
-OWNER_APPROVED_ALLOWLIST_IDS: set[str] = {"GHSA-fc5q-39xc-vjpf"}
+# GitHub withdrew the picomatch advisory, and npm audit no longer reports it.
+# The exception was retired under D-5 (#724).
+OWNER_APPROVED_ALLOWLIST_IDS: set[str] = set()
 
 
 def test_the_committed_allowlist_holds_exactly_the_owner_approved_entries():
