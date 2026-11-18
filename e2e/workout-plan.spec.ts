@@ -298,6 +298,59 @@ test.describe('Workout Plan Page', () => {
     await expect(planRow(routineB, sharedExercise!)).toHaveCount(1);
   });
 
+  test('add exercise: adding to a routine hidden by the active tab names the routine in the toast', async ({ page }) => {
+    const allTab = page.locator('#routine-tabs [data-routine="all"]');
+    const workoutATab = page.locator('#routine-tabs [data-routine="GYM - Full Body - Workout A"]');
+    const workoutBTab = page.locator('#routine-tabs [data-routine="GYM - Full Body - Workout B"]');
+    const exerciseSelect = page.locator(SELECTORS.EXERCISE_SEARCH);
+    const addButton = page.locator(SELECTORS.ADD_EXERCISE_BTN);
+    const toast = page.locator(SELECTORS.TOAST);
+    const toastBody = page.locator(SELECTORS.TOAST_BODY);
+    const exerciseNames = page.locator('#workout_plan_table_body .exercise-name');
+
+    const selectDay = async (day: string) => {
+      const catalogLoaded = page.waitForResponse(response =>
+        response.url().includes('/get_routine_exercises/') && response.ok(),
+      );
+      await page.locator(SELECTORS.ROUTINE_DAY).selectOption(day);
+      await catalogLoaded;
+    };
+
+    const addExercise = async (exercise: string) => {
+      await exerciseSelect.selectOption(exercise);
+      await addButton.click();
+    };
+
+    await page.locator(SELECTORS.ROUTINE_ENV).selectOption('GYM');
+    await page.locator(SELECTORS.ROUTINE_PROGRAM).selectOption('Full Body');
+    await selectDay('Workout A');
+    await addExercise('Barbell Squat');
+    await expect(workoutATab.locator('.tab-count')).toHaveText('1');
+    await expect(allTab).toHaveAttribute('aria-selected', 'true');
+    await expect(toast).toBeVisible();
+    await expect(toastBody).toHaveText('Exercise added successfully');
+
+    await selectDay('Workout B');
+    await addExercise('Barbell Bench Press');
+    await expect(workoutBTab.locator('.tab-count')).toHaveText('1');
+    await workoutBTab.click();
+    await addExercise('Dumbbell Bench Press');
+    await expect(workoutBTab.locator('.tab-count')).toHaveText('2');
+    await expect(toast).toBeVisible();
+    await expect(toastBody).toHaveText('Exercise added successfully');
+    await expect(exerciseNames).toHaveText(['Barbell Bench Press', 'Dumbbell Bench Press']);
+
+    await selectDay('Workout A');
+    await addExercise('Barbell Deadlift');
+    await expect(workoutATab.locator('.tab-count')).toHaveText('2');
+    await expect(toast).toBeVisible();
+    await expect(toastBody).toHaveText(
+      "Exercise added to GYM - Full Body - Workout A. Open that routine's tab to see it.",
+    );
+    await expect(workoutBTab).toHaveAttribute('aria-selected', 'true');
+    await expect(exerciseNames).toHaveText(['Barbell Bench Press', 'Dumbbell Bench Press']);
+  });
+
   test('clear filters button resets all filter dropdowns', async ({ page }) => {
     // Find filter dropdowns and set some values
     const filterForm = page.locator('#filters-form');
