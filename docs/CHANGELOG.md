@@ -4,6 +4,18 @@ All notable changes to Hypertrophy Toolbox v3.
 
 ## Unreleased - 2026-11-16
 
+### Catalog
+
+- Reclassified `Barbell Coan Deadlift` (#715) in the shipped catalog. It was the only
+  hinge exercise with a Quadriceps primary. It is now Gluteus Maximus primary,
+  Quadriceps secondary and Lower Back tertiary, with isolated muscle
+  `gluteus-maximus`, to match `Barbell Sumo Deadlift`. The movement pattern stays
+  `hinge` / `deadlift`. New installs credit its sets to Gluteus Maximus in the weekly
+  and session summaries. Existing installs keep their current values, because muscle
+  fields and isolated-muscle mappings are user-owned and the catalog upgrade refreshes
+  only movement and media columns. To use the new classification there, edit the
+  exercise.
+
 ### Documentation retention
 
 - Retired twelve completed records and navigation stubs to Git history:

@@ -241,7 +241,7 @@
     "total_tests": 723
   },
   "pytest": {
-    "collected_deterministic": 4596,
+    "collected_deterministic": 4598,
     "deterministic_files": 143,
     "environment_dependent_files": [
       {
@@ -300,7 +300,7 @@
       },
       {
         "file": "tests/test_catalog_seed.py",
-        "tests": 3
+        "tests": 4
       },
       {
         "file": "tests/test_catalog_seed_bootstrap.py",
@@ -308,7 +308,7 @@
       },
       {
         "file": "tests/test_catalog_upgrade.py",
-        "tests": 19
+        "tests": 20
       },
       {
         "file": "tests/test_ci_expansion_contracts.py",

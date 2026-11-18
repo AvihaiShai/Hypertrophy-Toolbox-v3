@@ -298,6 +298,51 @@ class TestNeverDestructive:
         )
         assert [row["muscle"] for row in rows] == ["a-muscle-the-user-chose"]
 
+    def test_shipped_coan_reclassification_leaves_existing_installs_alone(
+        self, db_handler
+    ):
+        """#715: the corrected seed row reaches new installs only.
+
+        An existing install holding the pre-#715 values keeps them after an
+        upgrade from the real shipped seed: muscle fields and isolated mappings
+        are user-owned, and an unedited row cannot be told from an edited one.
+        """
+        name = "Barbell Coan Deadlift"
+        db_handler.execute_query(
+            "INSERT INTO exercises (exercise_name, primary_muscle_group, "
+            "secondary_muscle_group, tertiary_muscle_group, "
+            "advanced_isolated_muscles, movement_pattern, movement_subpattern) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (name, "Quadriceps", "Gluteus Maximus", "Lower Back",
+             "quadriceps", "hinge", "deadlift"),
+        )
+        db_handler.execute_query(
+            "INSERT INTO exercise_isolated_muscles (exercise_name, muscle) "
+            "VALUES (?, ?)",
+            (name, "quadriceps"),
+        )
+        shipped = Path(__file__).resolve().parents[1] / "data" / "catalog.seed.db"
+
+        upgrade_catalog_from_seed(seed_path=shipped)
+
+        row = db_handler.fetch_one(
+            "SELECT primary_muscle_group, secondary_muscle_group, "
+            "tertiary_muscle_group, advanced_isolated_muscles "
+            "FROM exercises WHERE exercise_name = ?",
+            (name,),
+        )
+        assert dict(row) == {
+            "primary_muscle_group": "Quadriceps",
+            "secondary_muscle_group": "Gluteus Maximus",
+            "tertiary_muscle_group": "Lower Back",
+            "advanced_isolated_muscles": "quadriceps",
+        }
+        rows = db_handler.fetch_all(
+            "SELECT muscle FROM exercise_isolated_muscles WHERE exercise_name = ?",
+            (name,),
+        )
+        assert [r["muscle"] for r in rows] == ["quadriceps"]
+
     def test_no_user_owned_table_is_touched(self, runtime, seed, tmp_path):
         before = {
             table: runtime.fetch_one(f'SELECT COUNT(*) AS n FROM "{table}"')[
