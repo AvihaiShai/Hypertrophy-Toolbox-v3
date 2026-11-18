@@ -1199,3 +1199,5 @@ matrix, RQ2 is settled by A-S1, and RQ4 keeps the v1 choice.
 - [x] Agent provenance complete — both `product-manager` IDs, same-PM-resumed yes/no, the three reviewer IDs, and an evidence-gap line (or `none`).
 - [x] Owner approved Plan v2 (Gate 1) and the dispositions above on 2026-11-18.
 - [x] Ready to implement. Run the diff-time gate after code.
+
+Docs retention at closeout: keep active — `docs/firefox_ui_scale/PLANNING.md`; [PR #728](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/728) records the shipped behavior and browser verification; retain the approved zoom fallback and the Firefox acceptance criteria.

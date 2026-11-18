@@ -243,3 +243,5 @@ Code, architecture, product-risk and unslop reviewers read the candidate and the
 - [x] Blocking reviewers have rereviewed Plan v2 and cleared the blockers.
 - [x] Owner approved Plan v2 with the recorded reductions (Gate 1).
 - [x] Ready to implement within the owner-approved scope.
+
+Docs retention at closeout: keep active — `docs/sets_reps_bounds/PLANNING.md`; [PR #729](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/729) records the shipped validation and restore behavior; retain the scope decisions, legacy repair requirements and deferred work.
