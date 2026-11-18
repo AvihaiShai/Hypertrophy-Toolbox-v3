@@ -3,7 +3,7 @@
  *
  * Public API:
  *   openExerciseVideoModal(videoId, exerciseName)
- *     - videoId: 11-char YouTube video id, or null/empty to fall back to search
+ *     - videoId: 11-char YouTube video id, or null/empty to open a YouTube search tab
  *     - exerciseName: human-readable name; rendered in title + alt text
  *
  *   buildPlayButton({ videoId, exerciseName }) -> HTMLButtonElement
@@ -13,11 +13,11 @@
  * Behavior:
  *   - Opening sets the iframe src; closing clears it so playback stops.
  *   - 11-char id regex (^[A-Za-z0-9_-]{11}$) is enforced client-side; anything
- *     else (NULL, '', malformed) falls through to the YouTube-search variant.
+ *     else (NULL, '', malformed) opens a YouTube search tab directly.
  *   - On close, focus returns to the trigger button.
  *
- * No network requests are made directly — the modal embeds via the official
- * youtube.com/embed iframe and links out to youtube.com/results for search.
+ * The modal embeds via the official youtube.com/embed iframe. Uncurated
+ * rows open youtube.com/results in a new tab.
  */
 
 const YOUTUBE_ID_RE = /^[A-Za-z0-9_-]{11}$/;

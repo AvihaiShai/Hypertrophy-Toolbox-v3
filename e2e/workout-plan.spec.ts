@@ -887,9 +887,9 @@ test.describe('Muscle selector body map', () => {
 // ============================================================================
 // §5 — Exercise reference video modal (PLANNING.md §5)
 //
-// Pattern A: a single play button per row opens a modal. Curated exercises
-// embed via youtube.com/embed; uncurated exercises fall through to a
-// search-on-YouTube CTA. Closing the modal clears the iframe src.
+// Pattern A: a single video button per row. Curated exercises open a modal
+// that embeds via youtube.com/embed. Uncurated exercises open a YouTube
+// search tab directly. Closing the modal clears the iframe src.
 // ============================================================================
 
 test.describe('Exercise reference video modal (workout-plan)', () => {

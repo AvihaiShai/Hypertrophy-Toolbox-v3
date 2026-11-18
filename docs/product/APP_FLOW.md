@@ -316,7 +316,7 @@ live.
 | Link superset | API | `POST /api/superset/link` with exactly two ids; one id is `VALIDATION_ERROR` 400 — verified live |
 | Unlink superset | API | `POST /api/superset/unlink` |
 | Execution style | API | `GET /api/execution_style_options`, then `POST /api/execution_style` |
-| Video / image preview | Presentation | Opens a modal. The plan table is built client-side, so its media path is validated in JavaScript by `resolveExerciseMediaSrc()` — a mirror of the server-side shape rules in `utils/media_path.py`. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
+| Video / image preview | Presentation | Curated videos open in a modal. The video button opens a YouTube search in a new tab when the exercise lacks a valid video ID. Thumbnails show a preview on hover or focus. The plan table is built client-side, so its media path is validated in JavaScript by `resolveExerciseMediaSrc()` — a mirror of the server-side shape rules in `utils/media_path.py`. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
 | Routine tabs | Presentation | Filters displayed rows |
 | Volume panel toggle | Presentation → API | Expands the panel, which reads `GET /api/volume_progress` |
 
@@ -357,7 +357,7 @@ the `planned_*` snapshot and the `scored_*` values.
 | Progression status check | API | `GET /check_progression/<log_id>` |
 | Delete row | API | `POST /delete_workout_log` |
 | Clear Log | Presentation → API | Modal, then `POST /clear_workout_log` |
-| Reference video / thumbnail | Presentation | Opens the shared video modal. This page is server-rendered, so its media path is revalidated at render by the `safe_media_path` Jinja filter — the only template in the application that uses it. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
+| Reference video / thumbnail | Presentation | A curated video opens the shared video modal. The video button opens a YouTube search in a new tab when the exercise lacks a valid video ID. This page is server-rendered, so its media path is revalidated at render by the `safe_media_path` Jinja filter — the only template in the application that uses it. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
 
 Scored reps accept whole numbers of at least 0 within SQLite's integer range. The minimum cannot
 exceed a usable maximum. A saved value displays as the stored number, so a zero displays as `0`,

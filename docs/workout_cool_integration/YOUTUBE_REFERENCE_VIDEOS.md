@@ -12,8 +12,9 @@ What is complete:
 - `exercises.youtube_video_id` exists as a nullable text column.
 - `/get_workout_plan` and `/get_workout_logs` expose `youtube_video_id`.
 - `/workout_plan` and `/workout_log` both render the play button.
-- `static/js/modules/exercise-video-modal.js` opens either an embedded YouTube
-  iframe for valid IDs or a YouTube search fallback for missing/invalid IDs.
+- `static/js/modules/exercise-video-modal.js` opens the embedded YouTube
+  video modal for valid IDs and opens a YouTube search in a new tab for missing
+  or invalid IDs.
 - `scripts/apply_youtube_curated.py` validates and applies curated IDs
   all-or-nothing.
 - `tests/test_youtube_video_id.py` covers schema, validation, importer, and
