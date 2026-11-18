@@ -13,18 +13,15 @@ poisoned rows never reaches this module at all.
 
 Per-call-site predicates
 ------------------------
-There is deliberately no single canonical scan. Each scanner reproduces the
-``validate_workout_bounds`` call its own caller makes, and the two callers do not
-make the same one:
+The analysis and export scanners describe different failure modes.
 
 * the analysis surfaces fail on rep-range arithmetic alone, so
   :func:`scan_rep_ranges` and :func:`scan_exercise_plan_default` validate
   ``min_rep_range`` and ``max_rep_range`` **one field at a time**, with
   ``allow_null=False``;
-* ``export_plan_to_workout_log`` makes a **single combined call** over all four
-  bounded columns with ``allow_null=True`` and ``allow_blank=False``
-  (``utils/export_service.py:493-500``), so :func:`scan_export_bounds` makes
-  that same one call -- accepting actual null while rejecting an exact blank.
+* ``export_plan_to_workout_log`` and :func:`scan_export_bounds` share one
+  combined policy for weight, RIR, sets, and reps. The export permits actual
+  null rep bounds for compatibility and rejects blank text.
 
 That split is what makes each result honest rather than merely convenient, and
 "Minimum reps cannot exceed maximum reps." is the case that shows why. Per-field
@@ -35,11 +32,8 @@ their message byte-for-byte unchanged. It is wrong for the export, where that
 verdict is precisely what blocks the write -- so :func:`scan_export_bounds`
 reports it, as it reports the weight and RIR range verdicts for the same reason.
 
-Reproducing the caller's call rather than approximating it also keeps the
-reported reason identical to the caller's when a row has more than one fault: the
-combined call parses all four columns before range-checking any, so a per-field
-replay interleaves parse and range checks and can name a different column than
-the one the export actually stopped on.
+Sharing the export validator also keeps the reported reason identical when one
+row has more than one fault.
 
 Failure policy
 --------------
@@ -63,7 +57,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from utils.database import DatabaseHandler
 from utils.logger import get_logger
-from utils.workout_validation import validate_workout_bounds
+from utils.workout_validation import validate_plan_log_bounds, validate_workout_bounds
 
 logger = get_logger()
 
@@ -124,23 +118,6 @@ def _rep_rejection(row: Dict[str, Any]) -> Optional[str]:
         if message:
             return message
     return None
-
-
-def _export_rejection(row: Dict[str, Any]) -> Optional[str]:
-    """The message ``export_plan_to_workout_log`` returns for this row, or ``None``.
-
-    One combined call over all four bounded columns, including the caller's
-    independently selected null and blank policies
-    (``utils/export_service.py:493-500``).
-    """
-    return validate_workout_bounds(
-        weight=row.get("weight"),
-        rir=row.get("rir"),
-        min_reps=row.get("min_rep_range"),
-        max_reps=row.get("max_rep_range"),
-        allow_null=True,
-        allow_blank=False,
-    )
 
 
 def _findings(
@@ -219,21 +196,18 @@ def scan_exercise_plan_default(exercise: str) -> List[Dict[str, str]]:
 def scan_export_bounds() -> List[Dict[str, str]]:
     """Rows ``export_plan_to_workout_log`` rejects, in the order it reads them.
 
-    Reproduces that caller's own validation by making the same single combined
-    call (:func:`_export_rejection`), so a numeric ``min > max`` row is named
-    here. Neither query orders explicitly, so both see the same table order and
-    the row that blocked the export is normally the first one reported here;
-    adding an ORDER BY to this one alone would make them diverge.
+    Uses the same combined validator. Neither query orders explicitly, so the
+    row that blocked the export is normally the first one reported here.
     """
     try:
         with DatabaseHandler() as db:
             rows = db.fetch_all(
                 """
-                SELECT routine, exercise, weight, rir, min_rep_range, max_rep_range
+                SELECT routine, exercise, weight, rir, sets, min_rep_range, max_rep_range
                 FROM user_selection
                 """
             )
-        return _findings(rows, _export_rejection)
+        return _findings(rows, validate_plan_log_bounds)
     except Exception:
         logger.exception("Plan-bounds diagnostic failed; reporting no rows")
         return []

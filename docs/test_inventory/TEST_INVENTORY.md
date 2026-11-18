@@ -12,13 +12,13 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **723** |
+| Playwright tests (chromium) | **728** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **574** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4623** across 144 files |
+| Required functional gate — `E2E Functional (Chromium)` | **578** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **4699** across 144 files |
 | pytest test files (all) | **145** |
-| JS unit cases (Vitest) | **270** across 15 files |
-| Hard waits (lines containing waitForTimeout) | **82** across 14 files |
+| JS unit cases (Vitest) | **271** across 15 files |
+| Hard waits (lines containing waitForTimeout) | **81** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
 
@@ -42,7 +42,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `learned-calibration.spec.ts` | 8 | yes |
 | `listener-cleanup.spec.ts` | 3 | — |
 | `nav-dropdown.spec.ts` | 7 | yes |
-| `program-backup.spec.ts` | 36 | — |
+| `program-backup.spec.ts` | 37 | — |
 | `progression.spec.ts` | 42 | yes |
 | `replace-exercise-errors.spec.ts` | 3 | yes |
 | `smoke-navigation.spec.ts` | 19 | yes |
@@ -50,7 +50,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `superset-edge-cases.spec.ts` | 16 | yes |
 | `ui-hardening.spec.ts` | 37 | yes |
 | `user-profile.spec.ts` | 24 | yes |
-| `validation-boundary.spec.ts` | 23 | yes |
+| `validation-boundary.spec.ts` | 27 | yes |
 | `visual-baseline-thumbnails.spec.ts` | 18 | — |
 | `visual-field-separator.spec.ts` | 42 | yes |
 | `visual.spec.ts` | 66 | — |
@@ -120,7 +120,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_export_blank_rep_bounds_contract.py` | 5 |
 | `tests/test_export_blank_rep_bounds_gate0.py` | 12 |
 | `tests/test_export_weekly_summary_sheet.py` | 4 |
-| `tests/test_exports.py` | 69 |
+| `tests/test_exports.py` | 71 |
 | `tests/test_fatigue.py` | 134 |
 | `tests/test_fatigue_context.py` | 29 |
 | `tests/test_fatigue_golden.py` | 1 |
@@ -160,7 +160,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_profile_estimator_contract.py` | 6 |
 | `tests/test_program_backup.py` | 47 |
 | `tests/test_program_backup_execution_fields.py` | 17 |
-| `tests/test_program_backup_restore_fuzz.py` | 53 |
+| `tests/test_program_backup_restore_fuzz.py` | 58 |
 | `tests/test_progression_plan_routes.py` | 24 |
 | `tests/test_progression_plan_utils.py` | 46 |
 | `tests/test_pyright_baseline_diff.py` | 13 |
@@ -204,9 +204,9 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_weekly_summary_unassigned.py` | 20 |
 | `tests/test_workout_controls_busy_signal_contracts.py` | 9 |
 | `tests/test_workout_log_calibration_route.py` | 7 |
-| `tests/test_workout_log_routes.py` | 64 |
+| `tests/test_workout_log_routes.py` | 86 |
 | `tests/test_workout_log_utils.py` | 30 |
-| `tests/test_workout_plan_routes.py` | 92 |
+| `tests/test_workout_plan_routes.py` | 139 |
 | `tests/test_workout_plan_service.py` | 11 |
 | `tests/test_worktree_ci_contracts.py` | 12 |
 | `tests/test_worktree_environment_preflight.py` | 72 |
@@ -216,7 +216,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 
 ## Vitest test files
 
-Collected with `vitest list --staticParse=false --json=<path>`, which lists cases without running them. `.skip`, `.todo` and `describe.skip` cases are omitted by the lister entirely, so a disabled case is indistinguishable here from a deleted one and **no status is recorded**: a count of 270 means 270 cases that would run.
+Collected with `vitest list --staticParse=false --json=<path>`, which lists cases without running them. `.skip`, `.todo` and `describe.skip` cases are omitted by the lister entirely, so a disabled case is indistinguishable here from a deleted one and **no status is recorded**: a count of 271 means 271 cases that would run.
 
 The per-case identity list -- what detects a case being renamed rather than removed -- lives in `TEST_INVENTORY.json` under `vitest.cases`, not here.
 
@@ -235,7 +235,7 @@ The per-case identity list -- what detects a case being renamed rather than remo
 | `static/js/modules/__tests__/volume-splitter.test.js` | 24 |
 | `static/js/modules/__tests__/workout-controls-persistence.test.js` | 35 |
 | `static/js/modules/__tests__/workout-plan-helpers.test.js` | 13 |
-| `static/js/modules/__tests__/workout-plan-seams.test.js` | 29 |
+| `static/js/modules/__tests__/workout-plan-seams.test.js` | 30 |
 | `static/js/modules/__tests__/workout-plan-state.test.js` | 2 |
 
 ## Hard waits by file
@@ -257,4 +257,4 @@ Flake-and-latency debt (blindspot B5). Phase 5 step 16 burns this down worst-fil
 | `e2e/ui-hardening.spec.ts` | 1 |
 | `e2e/validation-boundary.spec.ts` | 2 |
 | `e2e/volume-splitter.spec.ts` | 23 |
-| `e2e/workout-log.spec.ts` | 7 |
+| `e2e/workout-log.spec.ts` | 6 |

@@ -330,6 +330,139 @@ class TestUpdateWorkoutLog:
         assert resp.status_code == 200
 
 
+class TestScoredRepCountInputs:
+    @pytest.mark.parametrize("clear", [None, ""], ids=["null", "empty-string"])
+    def test_zero_persists_and_renders_then_clear_stores_null(
+        self, client, clean_db, workout_log_entry, clear,
+    ):
+        log_id = workout_log_entry["id"]
+        response = client.post("/update_workout_log", json={
+            "id": log_id, "updates": {"scored_min_reps": "0", "scored_max_reps": 0},
+        })
+        assert response.status_code == 200, response.get_json()
+        assert clean_db.fetch_one(
+            "SELECT scored_min_reps, scored_max_reps, typeof(scored_min_reps) AS min_type, "
+            "typeof(scored_max_reps) AS max_type FROM workout_log WHERE id = ?", (log_id,),
+        ) == {"scored_min_reps": 0, "scored_max_reps": 0, "min_type": "integer", "max_type": "integer"}
+
+        page = client.get("/workout_log")
+        assert page.status_code == 200
+        body = page.get_data(as_text=True)
+        for field in ("scored_min_reps", "scored_max_reps"):
+            cell = body.split(f'data-field="{field}"', 1)[1].split("</td>", 1)[0]
+            assert 'value="0"' in cell
+            assert '<span class="editable-text">0</span>' in cell
+
+        cleared = client.post("/update_workout_log", json={
+            "id": log_id, "updates": {"scored_min_reps": clear},
+        })
+        assert cleared.status_code == 200, cleared.get_json()
+        assert clean_db.fetch_one(
+            "SELECT scored_min_reps, scored_max_reps, typeof(scored_min_reps) AS min_type "
+            "FROM workout_log WHERE id = ?", (log_id,),
+        ) == {"scored_min_reps": None, "scored_max_reps": 0, "min_type": "null"}
+
+        page = client.get("/workout_log")
+        assert page.status_code == 200
+        body = page.get_data(as_text=True)
+        cell = body.split('data-field="scored_min_reps"', 1)[1].split("</td>", 1)[0]
+        assert 'value=""' in cell
+        assert '<span class="editable-text">--</span>' in cell
+
+    @pytest.mark.parametrize("value,expected", [
+        (8.0, 8), ("8.0", 8),
+        (9007199254740993, 9007199254740993),
+        ("9007199254740993", 9007199254740993),
+        (9223372036854775807, 9223372036854775807),
+        ("9223372036854775807", 9223372036854775807),
+    ])
+    def test_scored_count_preserves_sqlite_integer_storage(
+        self, client, clean_db, workout_log_entry, value, expected,
+    ):
+        log_id = workout_log_entry["id"]
+        response = client.post("/update_workout_log", json={
+            "id": log_id, "updates": {"scored_min_reps": value, "scored_max_reps": value},
+        })
+        assert response.status_code == 200, response.get_json()
+        assert clean_db.fetch_one(
+            "SELECT scored_min_reps, scored_max_reps, typeof(scored_min_reps) AS min_type, "
+            "typeof(scored_max_reps) AS max_type FROM workout_log WHERE id = ?", (log_id,),
+        ) == {
+            "scored_min_reps": expected, "scored_max_reps": expected,
+            "min_type": "integer", "max_type": "integer",
+        }
+
+    @pytest.mark.parametrize("invalid", [
+        -1, 2.5, True, False, "8.5", "invalid", float("nan"), float("inf"),
+        9223372036854775808, "9223372036854775808",
+    ])
+    def test_rejected_score_update_preserves_the_whole_row(
+        self, client, clean_db, workout_log_factory, invalid,
+    ):
+        log_id = workout_log_factory(scored_min_reps=0, scored_max_reps=0)
+        before = clean_db.fetch_one("SELECT * FROM workout_log WHERE id = ?", (log_id,))
+
+        response = client.post("/update_workout_log", json={
+            "id": log_id,
+            "updates": {"scored_min_reps": 3, "scored_max_reps": invalid, "scored_weight": 65},
+        })
+
+        assert response.status_code == 400, response.get_json()
+        assert response.get_json()["ok"] is False
+        assert response.get_json()["error"]["code"] == "VALIDATION_ERROR"
+        assert clean_db.fetch_one("SELECT * FROM workout_log WHERE id = ?", (log_id,)) == before
+
+    @pytest.mark.parametrize("stored_maximum", ["", -1, 4.5], ids=["blank", "negative", "fraction"])
+    def test_legacy_scored_rep_can_be_repaired_without_rewriting_the_sibling(
+        self, client, clean_db, workout_log_factory, stored_maximum,
+    ):
+        log_id = workout_log_factory(scored_min_reps=5, scored_max_reps=stored_maximum)
+        assert client.get("/workout_log").status_code == 200
+
+        response = client.post("/update_workout_log", json={
+            "id": log_id, "updates": {"scored_min_reps": 6, "scored_weight": 65},
+        })
+        assert response.status_code == 200, response.get_json()
+        assert clean_db.fetch_one(
+            "SELECT scored_min_reps, scored_max_reps, scored_weight FROM workout_log WHERE id = ?", (log_id,),
+        ) == {"scored_min_reps": 6, "scored_max_reps": stored_maximum, "scored_weight": 65}
+
+        repaired = client.post("/update_workout_log", json={
+            "id": log_id, "updates": {"scored_min_reps": 7, "scored_max_reps": 8},
+        })
+        assert repaired.status_code == 200, repaired.get_json()
+        assert clean_db.fetch_one(
+            "SELECT scored_min_reps, scored_max_reps FROM workout_log WHERE id = ?", (log_id,),
+        ) == {"scored_min_reps": 7, "scored_max_reps": 8}
+
+    def test_calibration_observes_the_committed_pair_only(
+        self, client, clean_db, workout_log_factory, monkeypatch,
+    ):
+        log_id = workout_log_factory()
+        observed = []
+
+        def recompute(_exercise, *, db):
+            observed.append(clean_db.fetch_one(
+                "SELECT scored_min_reps, scored_max_reps FROM workout_log WHERE id = ?", (log_id,),
+            ))
+            return {"mode": "off", "status": "off"}
+
+        monkeypatch.setattr("utils.workout_log_service.recompute_calibration_after_log", recompute)
+
+        rejected = client.post("/update_workout_log", json={
+            "id": log_id, "updates": {"scored_min_reps": 5, "scored_max_reps": 4.5},
+        })
+        assert rejected.status_code == 400
+        assert observed == []
+
+        response = client.post("/update_workout_log", json={
+            "id": log_id, "updates": {"scored_min_reps": 0, "scored_max_reps": 0},
+        })
+        assert response.status_code == 200, response.get_json()
+        assert observed == [{"scored_min_reps": 0, "scored_max_reps": 0}]
+        assert response.get_json()["data"]["calibration"]["status"] == "off"
+
+
 class TestDeleteWorkoutLog:
     """Tests for POST /delete_workout_log endpoint."""
 

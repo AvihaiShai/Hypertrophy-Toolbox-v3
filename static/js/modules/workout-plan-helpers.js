@@ -156,12 +156,24 @@ export function buildExecutionStylePayload(exerciseId, selectedStyle, { timeCap,
     return payload;
 }
 
+/**
+ * Display text for a count draft the server accepted, so "08", "5.0" and "1e1"
+ * show as "8", "5" and "10" without a reload. A decimal or exponent draft
+ * beyond the safe-integer range is shown as typed until the next reload.
+ */
+export function storedCountText(draft) {
+    const text = String(draft).trim();
+    if (/^[+-]?\d+$/.test(text)) return BigInt(text).toString();
+    const number = Number(text);
+    return Number.isSafeInteger(number) ? String(number) : text;
+}
+
 export function buildAddExercisePayload({ exercise, routine, sets, minRepRange, maxRepRange, rir, weight, rpe }) {
     return {
         exercise, routine,
-        sets: parseInt(sets),
-        min_rep_range: parseInt(minRepRange),
-        max_rep_range: parseInt(maxRepRange),
+        sets,
+        min_rep_range: minRepRange,
+        max_rep_range: maxRepRange,
         rir: parseInt(rir || 0),
         weight: parseFloat(weight),
         rpe: rpe ? parseFloat(rpe) : null,

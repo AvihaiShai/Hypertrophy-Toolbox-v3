@@ -1005,3 +1005,64 @@ class TestExportDiagnosticsNameTheOffendingRow:
 
         assert response.status_code == 200
         assert "Fix these in the Workout Plan editor." not in response.data.decode()
+
+    def test_invalid_duplicate_prevents_import_of_earlier_valid_row(
+        self, client, clean_db, exercise_factory, workout_plan_factory, workout_log_factory,
+    ):
+        valid = exercise_factory("Earlier Valid Import Press")
+        duplicate = exercise_factory("Later Duplicate Import Press")
+        valid_plan_id = workout_plan_factory(exercise_name=valid, routine="Import A")
+        duplicate_plan_id = workout_plan_factory(exercise_name=duplicate, routine="Import B")
+        workout_log_factory(plan_id=duplicate_plan_id, exercise=duplicate, routine="Import B")
+        clean_db.execute_query("UPDATE user_selection SET sets = ? WHERE id = ?", (-2, duplicate_plan_id))
+        before = clean_db.fetch_all("SELECT * FROM workout_log ORDER BY id")
+
+        response = client.post("/export_to_workout_log")
+
+        assert response.status_code == 400, response.get_json()
+        error = response.get_json()["error"]
+        assert error["code"] == "VALIDATION_ERROR"
+        assert error["message"].startswith("Sets must be at least 1.")
+        assert "Import B" in error["message"]
+        assert duplicate in error["message"]
+        assert clean_db.fetch_all("SELECT * FROM workout_log ORDER BY id") == before
+
+        clean_db.execute_query("UPDATE user_selection SET sets = ? WHERE id = ?", (2, duplicate_plan_id))
+        response = client.post("/export_to_workout_log")
+        assert response.status_code == 200, response.get_json()
+        assert clean_db.fetch_all("SELECT workout_plan_id FROM workout_log ORDER BY id") == [
+            {"workout_plan_id": duplicate_plan_id}, {"workout_plan_id": valid_plan_id},
+        ]
+
+
+def test_rejected_plan_count_does_not_change_summary_or_excel_totals(
+    client, clean_db, exercise_factory, workout_plan_factory,
+):
+    exercise = exercise_factory(
+        "Counts Summary Press", primary_muscle_group="Chest",
+        secondary_muscle_group=None, tertiary_muscle_group=None,
+    )
+    plan_id = workout_plan_factory(
+        exercise_name=exercise, sets=2, min_rep_range=8, max_rep_range=8, weight=50,
+    )
+    response = client.post("/update_exercise", json={"id": plan_id, "updates": {"sets": -2}})
+    assert response.status_code == 400
+    assert response.get_json()["error"]["code"] == "VALIDATION_ERROR"
+
+    summary = client.get("/weekly_summary", headers={"Accept": "application/json"})
+    assert summary.status_code == 200
+    chest = next(row for row in summary.get_json()["data"]["weekly_summary"] if row["muscle_group"] == "Chest")
+    assert (chest["raw_sets"], chest["raw_total_reps"], chest["raw_total_volume"]) == (2, 16, 800)
+
+    export = client.get("/export_to_excel")
+    assert export.status_code == 200
+    workbook = load_workbook(BytesIO(export.data), read_only=True, data_only=True)
+    try:
+        rows = workbook["Weekly Summary"].values
+        headings = next(rows)
+        chest = next(row for row in rows if row[headings.index("muscle_group")] == "Chest")
+        assert tuple(chest[headings.index(metric)] for metric in (
+            "raw_weekly_sets", "raw_total_reps", "raw_total_volume",
+        )) == (2, 16, 800)
+    finally:
+        workbook.close()

@@ -78,9 +78,11 @@ To add a filterable column:
 Validation is currently path-specific; do not assume browser input attributes are a
 server contract. `utils/workout_validation.py` applies the shared persisted-workout
 bounds: weight **0–1000 kg inclusive**, RIR **0–10 inclusive**, and minimum reps no
-greater than maximum reps. These bounds are enforced for plan add/update,
-plan-to-workout-log import, and scored-log update paths; invalid writes use the standard
-HTTP 400 `VALIDATION_ERROR` envelope. Scored-log fields retain their nullable/blank
+greater than maximum reps. Plan sets and plan rep bounds are whole numbers of **at least
+1**; scored reps are whole numbers of **at least 0** (#596). These bounds are enforced for
+plan add/update, plan-to-workout-log import, program restore, and scored-log update paths;
+invalid writes use the standard HTTP 400 `VALIDATION_ERROR` envelope, and restore skips and
+reports an invalid row instead. Scored-log fields retain their nullable/blank
 clear contract, while plan required-field validation continues to reject supplied blanks.
 
 ## Auth boundaries

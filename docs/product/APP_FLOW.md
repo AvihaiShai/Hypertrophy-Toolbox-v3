@@ -297,9 +297,9 @@ the volume panel, and the controls animation. It deliberately does **not** call
 | Clear filters | Presentation → API | Resets the form, then `GET /get_all_exercises` |
 | Routine cascade — environment → program → day | Presentation → API | Three dependent `<select>`s compose the hidden `#routine` value. Completing the cascade with a real day synchronously clears transient superset checkbox, row-highlight, and action-bar state, then — **only when no filter dropdown holds a value** — issues `GET /get_routine_exercises/<routine>`; with active filters it re-applies them via `POST /filter_exercises` instead. Empty intermediate values — including Clear Filters and the stateless page reset — do not clear that selection. The reset never unlinks a persisted superset or changes the plan rows on display. **The endpoint ignores the routine and returns the full catalog** — deliberately: the dropdown it feeds is an *add* control, so every exercise must stay offered no matter which routine already uses it |
 | Exercise `<select>` | API | On change, `GET /get_exercise_info/<name>` for metadata; `GET /api/user_profile/estimate?exercise=…` for the suggested numbers |
-| Weight / sets / RIR / RPE / min-rep / max-rep | Presentation | Local inputs. Bounds are enforced on submit by the server, not by the browser attributes |
+| Weight / sets / RIR / RPE / min-rep / max-rep | Presentation | Local inputs. Sets and both rep fields retain their typed values through submission so validation can catch invalid counts |
 | Estimate trace toggle | Presentation | Expands the derivation behind the suggested numbers |
-| **Add Exercise** | API | `POST /add_exercise` → row appended, table refreshed |
+| **Add Exercise** | API | `POST /add_exercise`. Valid values append a row and refresh the table. A rejected submission shows the validation message and leaves the plan unchanged |
 
 `GET /get_exercise_info/<name>` for an unknown exercise returns HTTP 404 `NOT_FOUND` — verified
 live.
@@ -309,7 +309,7 @@ live.
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | Table load / refresh | API | `GET /get_workout_plan` returns every plan row with its exercise metadata. Called on load and after any mutation |
-| Inline field edit | API | `POST /update_exercise` with `{id, updates}`. Server-side bounds: weight 0–1000 kg, RIR 0–10, min ≤ max; violations are `VALIDATION_ERROR` 400 |
+| Inline field edit | API | `POST /update_exercise` with `{id, updates}`. Weight is limited to 0–1000 kg and RIR to 0–10. A validation failure returns HTTP 400 `VALIDATION_ERROR`, keeps the last saved value visible and leaves all submitted fields unchanged |
 | Drag to reorder | API | `POST /update_exercise_order`, using the vendored Sortable library. The batch is all-or-nothing: an invalid entry (`VALIDATION_ERROR` 400) or a failed write leaves every row's order unchanged |
 | Remove row | API | `POST /remove_exercise`. A non-numeric id is `VALIDATION_ERROR` 400 — verified live |
 | Replace exercise | API | `POST /replace_exercise` — **see the three-outcome table above** |
@@ -320,12 +320,19 @@ live.
 | Routine tabs | Presentation | Filters displayed rows |
 | Volume panel toggle | Presentation → API | Expands the panel, which reads `GET /api/volume_progress` |
 
+Plan sets and rep bounds must be whole numbers of at least 1, within SQLite's integer range.
+Inline edits apply these bounds to the submitted count fields. Minimum reps must be at most
+maximum reps when both are usable. An inline edit can repair either field when the stored
+companion is invalid. The two rep bounds can also be repaired together in one request.
+A blank inline count edit reverts to the saved value without sending a write. After a
+successful save the cell shows the stored number, so `08` displays as `8`.
+
 ### Plan-level actions
 
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | **Generate Starter Plan** | Presentation → API | Modal collects days, environment, experience, goal, volume scale, movement restrictions, equipment whitelist, and up to two priority muscles; submits `POST /generate_starter_plan`. Every dropdown's options are **hardcoded in the template** — `GET /get_generator_options` exists but nothing calls it. Selecting zero equipment is blocked client-side with a warning toast before any request; more than two priority muscles is trimmed to two with a warning |
-| Export to Workout Log | API → Navigation | `POST /export_to_workout_log`. After a successful import, the browser navigates to `/workout_log` after ~1.5 s |
+| Export to Workout Log | API → Navigation | `POST /export_to_workout_log` validates the full plan before adding log rows or skipping duplicates. Invalid sets or reps return HTTP 400 `VALIDATION_ERROR` with the affected routine, exercise and reason, and no row is imported until that plan row is corrected inline. After a successful import, the browser navigates to `/workout_log` after ~1.5 s |
 | Export to Excel | Download | `GET /export_to_excel?view_mode=…`, response read as a blob and saved via a temporary `<a download>`. The `view_mode` value is read from `localStorage`. If the isolated-muscle statistics read fails, full export returns HTTP 500 with `EXPORT_FAILED`. The Workout Plan shows an error toast and the download does not start. A successful read with no mappings permits a workbook without the Isolated Muscles sheet |
 | Load Program | Navigation | → `/backup?intent=browse` |
 | Clear Plan | Presentation → API | Modal, then `POST /clear_workout_plan` |
@@ -345,12 +352,17 @@ the `planned_*` snapshot and the `scored_*` values.
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | Import from Plan | API | `POST /export_to_workout_log`, same endpoint the Plan page uses |
-| Scored weight / min reps / max reps / RIR / RPE | API | `POST /update_workout_log` with `{id, updates: {field: value}}` per field. **An empty string is sent as `null`**, which is how a scored value is cleared — the nullable columns are the contract that makes partial logging work |
+| Scored weight / min reps / max reps / RIR / RPE | API | `POST /update_workout_log` with `{id, updates: {field: value}}` per field. Clearing a scored value sends `null` |
 | Progression date | API | `POST /update_progression_date` |
 | Progression status check | API | `GET /check_progression/<log_id>` |
 | Delete row | API | `POST /delete_workout_log` |
 | Clear Log | Presentation → API | Modal, then `POST /clear_workout_log` |
 | Reference video / thumbnail | Presentation | Opens the shared video modal. This page is server-rendered, so its media path is revalidated at render by the `safe_media_path` Jinja filter — the only template in the application that uses it. The video itself loads from YouTube and needs internet ([third-party assets](#third-party-assets--all-served-locally)) |
+
+Scored reps accept whole numbers of at least 0 within SQLite's integer range. The minimum cannot
+exceed a usable maximum. A saved value displays as the stored number, so a zero displays as `0`,
+including after reload, and its progression indicator is shown. A clear displays as `--`. Invalid drafts show a warning and keep the last saved value visible. If the server
+rejects a scored edit, it returns HTTP 400 `VALIDATION_ERROR` and leaves the row unchanged.
 
 Neither `GET /export_workout_log` nor `GET /get_workout_logs` has any control bound to it in the
 current templates — the page's rows are server-rendered, so the log page never needs to fetch
@@ -678,14 +690,19 @@ rounds. It carries no logged history, no profile, no goals, no body composition,
 plans, and no settings. Restoring therefore loses all training history permanently, and does
 not restore anything outside the program.
 
-Restore decides everything before it writes anything. Rows naming an exercise no longer in the
-catalog are skipped and reported in `skipped`; rows whose weight, rep range or RIR fails the
-plan's bounds validation are skipped and reported in `invalid` (each with its routine, exercise
-and reason) rather than failing the restore. The three steps then run in one transaction that
-is rolled back on a database error. The response data is `backup_id`, `backup_name`,
-`restored_count`, `skipped` and `invalid`; an unknown id is `NOT_FOUND` 404. The Backup Center
-lists the skipped and invalid rows inline, and when `restored_count` is 0 it shows a warning
-toast and warning styling instead of a success message.
+Restore classifies rows before writing. `skipped` lists unique exercise names missing from
+the catalog. `invalid` reports each row whose sets, rep bounds, weight or RIR fails validation,
+with its routine, exercise and reason. The three steps run in one transaction and roll back
+on a database error. The response data is `backup_id`, `backup_name`, `restored_count`, `skipped`
+and `invalid`. An unknown id returns HTTP 404 `NOT_FOUND`.
+
+When rows are skipped, the API message, Backup Center panel and toast state the total skipped
+rows and the counts by reason. A missing exercise used in two routines counts as two skipped
+rows and appears once in the details list. The panel lists invalid rows with their reasons.
+When zero rows are restored, the panel uses warning styling and the toast reports the outcome
+as a warning. Restore still replaces the active program in that case. When rows were skipped
+and none restored, the message ends with "Your current plan and workout log were cleared."
+Restored sets and rep bounds are stored as the whole numbers validation parsed.
 
 #### Execution settings, and when a restore is refused
 

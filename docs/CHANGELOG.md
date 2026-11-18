@@ -16,6 +16,21 @@ All notable changes to Hypertrophy Toolbox v3.
   only movement and media columns. To use the new classification there, edit the
   exercise.
 
+### Plan and log input
+
+- Sets and rep counts are now validated on every write (#596). Plan sets and plan rep
+  bounds must be whole numbers of at least 1, and scored reps whole numbers of at least
+  0. Negative, zero (for the plan) and fractional counts are rejected with a message
+  instead of being stored, so they can no longer produce negative totals in the
+  summaries and exports. The Add Exercise form no longer auto-corrects a count; it
+  rejects it. Existing rows with invalid counts stay editable so they can be repaired.
+- Exporting the plan to the workout log is refused while any plan row has an invalid
+  count. The message names the routine and exercise to correct.
+- Restoring a backup skips rows with invalid counts and reports how many rows were
+  skipped and why. When every row is skipped, the message says the current plan and
+  workout log were cleared.
+- A saved scored rep of zero now displays as `0`, with its progression indicator.
+
 ### Documentation retention
 
 - Retired twelve completed records and navigation stubs to Git history:

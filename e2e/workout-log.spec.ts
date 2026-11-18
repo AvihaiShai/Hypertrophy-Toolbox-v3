@@ -7,7 +7,7 @@
  * - Editing scored values
  * - Deleting entries
  */
-import { test, expect, ROUTES, SELECTORS, waitForPageReady } from './fixtures';
+import { test, expect, ROUTES, SELECTORS, expectToast, waitForPageReady } from './fixtures';
 import type { Page } from '@playwright/test';
 
 async function importCurrentWorkoutPlan(page: Page): Promise<void> {
@@ -242,20 +242,118 @@ test.describe('Workout Log with Data', () => {
     }
   });
 
-  test('reps field accepts valid values', async ({ page }) => {
+  test('scored reps preserve saved zero after rejection and clear only on an empty edit', async ({ page }) => {
     await importCurrentWorkoutPlan(page);
 
-    const repsInput = page.locator('input[name*="reps"], .scored-reps-input').first();
-    const count = await repsInput.count();
+    const firstRow = page.locator('.workout-log-table tr[data-log-id]').first();
+    await expect(firstRow).toBeVisible();
+    const logId = await firstRow.getAttribute('data-log-id');
+    expect(logId).toMatch(/^\d+$/);
+    const row = page.locator(`.workout-log-table tr[data-log-id="${logId}"]`);
+    const minCell = row.locator('[data-field="scored_min_reps"]');
+    const maxCell = row.locator('[data-field="scored_max_reps"]');
+    const minDisplay = minCell.locator('.editable-text');
+    const maxDisplay = maxCell.locator('.editable-text');
+    const minInput = minCell.locator('input[type="number"]');
+    const maxInput = maxCell.locator('input[type="number"]');
 
-    if (count > 0) {
-      await repsInput.fill('12');
-      await repsInput.blur();
-      
-      await page.waitForTimeout(500);
-      
-      const value = await repsInput.inputValue();
-      expect(value).toBe('12');
+    const readStoredReps = async () => {
+      const response = await page.request.get('/get_workout_logs');
+      expect(response.ok()).toBeTruthy();
+      const rows: Array<{ id: number; scored_min_reps: number | null; scored_max_reps: number | null }> =
+        (await response.json()).data;
+      const stored = rows.find(entry => String(entry.id) === logId);
+      if (!stored) throw new Error(`Workout log entry ${logId} was not found`);
+      return { scored_min_reps: stored.scored_min_reps, scored_max_reps: stored.scored_max_reps };
+    };
+    const original = await readStoredReps();
+    const waitForScoreWrite = () => page.waitForResponse(response =>
+      new URL(response.url()).pathname === '/update_workout_log' && response.request().method() === 'POST',
+    );
+    const submittedUpdates: unknown[] = [];
+    page.on('request', request => {
+      if (new URL(request.url()).pathname === '/update_workout_log' && request.method() === 'POST') {
+        submittedUpdates.push(request.postDataJSON().updates);
+      }
+    });
+
+    try {
+      const reset = await page.request.post('/update_workout_log', {
+        data: { id: logId, updates: { scored_min_reps: null, scored_max_reps: null } },
+      });
+      expect(reset.ok()).toBeTruthy();
+      await page.clock.install();
+      await page.reload();
+      await waitForPageReady(page);
+      await expect(minDisplay).toHaveText('--');
+
+      await minDisplay.click();
+      await minInput.fill('0.0');
+      const minSaved = waitForScoreWrite();
+      await minInput.press('Enter');
+      expect((await minSaved).ok()).toBeTruthy();
+      await expect(minDisplay).toHaveText('0');
+      await expect(minInput).toBeEnabled();
+
+      await minDisplay.click();
+      await expect(minInput).toHaveValue('0');
+      await minInput.fill('7');
+      await minInput.press('Escape');
+      await expect(minDisplay).toHaveText('0');
+
+      await maxDisplay.click();
+      await maxInput.fill('0');
+      const maxSaved = waitForScoreWrite();
+      await maxInput.blur();
+      expect((await maxSaved).ok()).toBeTruthy();
+      await expect(maxDisplay).toHaveText('0');
+      expect(await readStoredReps()).toEqual({ scored_min_reps: 0, scored_max_reps: 0 });
+
+      await page.reload();
+      await waitForPageReady(page);
+      await expect(minDisplay).toHaveText('0');
+      await expect(maxDisplay).toHaveText('0');
+
+      await minDisplay.click();
+      await minInput.fill('');
+      await minInput.pressSequentially('1e');
+      await expect(minInput).toHaveValue('');
+      expect(await minInput.evaluate(input => (input as HTMLInputElement).validity.badInput)).toBe(true);
+      await minInput.press('Enter');
+      await expectToast(page, 'Scored reps must be a whole number of at least 0.');
+      await page.clock.runFor(750);
+      await expect(minDisplay).toBeVisible();
+      await expect(minDisplay).toHaveText('0');
+      expect(submittedUpdates).toEqual([{ scored_min_reps: '0.0' }, { scored_max_reps: '0' }]);
+      expect(await readStoredReps()).toEqual({ scored_min_reps: 0, scored_max_reps: 0 });
+
+      await minDisplay.click();
+      await minInput.fill('1');
+      const minRejected = waitForScoreWrite();
+      await minInput.press('Enter');
+      const rejection = await minRejected;
+      expect(rejection.status()).toBe(400);
+      expect(await rejection.json()).toMatchObject({ error: { code: 'VALIDATION_ERROR' } });
+      await expectToast(page, 'Minimum reps cannot exceed maximum reps.');
+      await expect(minDisplay).toHaveText('0');
+      await expect(minInput).toBeEnabled();
+      expect(await readStoredReps()).toEqual({ scored_min_reps: 0, scored_max_reps: 0 });
+
+      await minDisplay.click();
+      await minInput.fill('');
+      const minCleared = waitForScoreWrite();
+      await minInput.blur();
+      const clearResponse = await minCleared;
+      expect(clearResponse.ok()).toBeTruthy();
+      expect(clearResponse.request().postDataJSON().updates).toEqual({ scored_min_reps: null });
+      await expect(minDisplay).toHaveText('--');
+      expect(await readStoredReps()).toEqual({ scored_min_reps: null, scored_max_reps: 0 });
+      await page.reload();
+      await waitForPageReady(page);
+      await expect(minDisplay).toHaveText('--');
+      await expect(maxDisplay).toHaveText('0');
+    } finally {
+      await page.request.post('/update_workout_log', { data: { id: logId, updates: original } });
     }
   });
 

@@ -198,6 +198,18 @@ _OUT_OF_BOUNDS_CASES = [
         {"min_rep_range": "text"},
         "Minimum reps must be a finite number.",
     ),
+    (
+        "sets_zero",
+        {"sets": 0},
+        {"sets": "integer"},
+        "Sets must be at least 1.",
+    ),
+    (
+        "max_rep_fraction",
+        {"max_rep_range": 8.5},
+        {"max_rep_range": "real"},
+        "Maximum reps must be a whole number.",
+    ),
 ]
 
 
@@ -612,6 +624,77 @@ def test_restore_reports_catalog_and_invalid_rows_on_separate_channels(
     assert data["skipped"] == [dropped]
     assert [entry["exercise"] for entry in data["invalid"]] == [bad_bounds]
     assert data["invalid"][0]["reason"] == "Weight must be between 0 and 1000 kg."
+
+
+@pytest.mark.parametrize("include_valid_row", [True, False], ids=["mixed", "all-skipped"])
+def test_restore_counts_skipped_rows_before_deduplicating_catalog_names(
+    client, clean_db, exercise_factory, workout_plan_factory, workout_log_factory, include_valid_row,
+):
+    retired = exercise_factory("Repeated Retired Exercise")
+    invalid = exercise_factory("Invalid Count Exercise")
+    active = exercise_factory("Current Active Exercise")
+    workout_plan_factory(exercise_name=retired, routine="Retired A")
+    workout_plan_factory(exercise_name=retired, routine="Retired B")
+    workout_plan_factory(exercise_name=invalid, routine="Invalid Routine")
+    expected_exercises = []
+    if include_valid_row:
+        retained = exercise_factory("Restorable Exercise")
+        workout_plan_factory(exercise_name=retained, routine="Retained Routine")
+        expected_exercises.append({"exercise": retained, "routine": "Retained Routine"})
+    backup_id = create_backup(name=_BACKUP_NAME)["id"]
+
+    clean_db.execute_query(
+        "UPDATE program_backup_items SET sets = ? WHERE backup_id = ? AND exercise = ?",
+        (-2, backup_id, invalid),
+    )
+    clean_db.execute_query("DELETE FROM user_selection WHERE exercise = ?", (retired,))
+    clean_db.execute_query("DELETE FROM exercises WHERE exercise_name = ?", (retired,))
+    current_plan_id = workout_plan_factory(exercise_name=active, routine="Current Routine")
+    workout_log_factory(plan_id=current_plan_id, exercise=active)
+
+    response = client.post(f"/api/backups/{backup_id}/restore", content_type="application/json")
+
+    assert response.status_code == 200, response.get_json()
+    payload = response.get_json()
+    assert payload["ok"] is True
+    assert payload["data"] == {
+        "backup_id": backup_id,
+        "backup_name": _BACKUP_NAME,
+        "restored_count": len(expected_exercises),
+        "skipped": [retired],
+        "invalid": [{"routine": "Invalid Routine", "exercise": invalid, "reason": "Sets must be at least 1."}],
+    }
+    assert "Skipped 3 rows (2 missing from the catalog, 1 with invalid values)." in payload["message"]
+    cleared_notice = "Your current plan and workout log were cleared."
+    if include_valid_row:
+        assert payload["message"].startswith("Restored 1 exercise")
+        assert cleared_notice not in payload["message"]
+    else:
+        assert payload["message"].startswith("Nothing was restored")
+        assert payload["message"].endswith(cleared_notice)
+    assert clean_db.fetch_all("SELECT exercise, routine FROM user_selection") == expected_exercises
+    assert clean_db.fetch_all("SELECT id FROM workout_log") == []
+
+
+def test_restore_stores_the_parsed_integer_count(
+    client, clean_db, exercise_factory, workout_plan_factory,
+):
+    exercise = exercise_factory("Padded Count Exercise")
+    workout_plan_factory(exercise_name=exercise, routine="Padded Routine")
+    backup_id = create_backup(name=_BACKUP_NAME)["id"]
+    # "\x1c" is whitespace to Python's number parser but not to SQLite, so the
+    # raw backup value would land in user_selection as text.
+    clean_db.execute_query(
+        "UPDATE program_backup_items SET sets = ? WHERE backup_id = ?",
+        ("\x1c4", backup_id),
+    )
+
+    response = client.post(f"/api/backups/{backup_id}/restore", content_type="application/json")
+
+    assert response.status_code == 200, response.get_json()
+    assert clean_db.fetch_all("SELECT sets, typeof(sets) AS kind FROM user_selection") == [
+        {"sets": 4, "kind": "integer"},
+    ]
 
 
 def test_restore_stays_replace_mode_while_skipping_an_invalid_row(

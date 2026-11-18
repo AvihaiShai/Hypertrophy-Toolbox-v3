@@ -12,7 +12,7 @@ from utils.program_backup import (
     create_backup,
     list_backups,
     get_backup_details,
-    restore_backup,
+    restore_backup_with_counts,
     delete_backup,
     update_backup_metadata,
     get_active_program_count,
@@ -184,11 +184,26 @@ def api_restore_backup(backup_id: int):
     try:
         logger.info(f"Restoring backup {backup_id}")
         
-        result = restore_backup(backup_id)
-        
+        result, missing_count, invalid_count = restore_backup_with_counts(backup_id)
         message = f"Restored {result['restored_count']} exercises from '{result['backup_name']}'"
-        if result['skipped']:
-            message += f" ({len(result['skipped'])} skipped due to missing exercises)"
+        skipped_count = missing_count + invalid_count
+        if skipped_count:
+            restored_count = result['restored_count']
+            if restored_count == 0:
+                message = f"Nothing was restored from '{result['backup_name']}'"
+            elif restored_count == 1:
+                message = f"Restored 1 exercise from '{result['backup_name']}'"
+
+            reasons = []
+            if missing_count:
+                reasons.append(f"{missing_count} missing from the catalog")
+            if invalid_count:
+                reasons.append(f"{invalid_count} with invalid values")
+            rows = 'row' if skipped_count == 1 else 'rows'
+            message += f". Skipped {skipped_count} {rows} ({', '.join(reasons)})."
+            if restored_count == 0:
+                # Restore replaces the active program even when no row qualifies.
+                message += " Your current plan and workout log were cleared."
         
         return jsonify(success_response(data=result, message=message))
         

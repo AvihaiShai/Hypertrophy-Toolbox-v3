@@ -157,6 +157,7 @@ test.describe('Backup Center Page', () => {
 
   test('restore renders a warning inline result panel when nothing can be restored', async ({ page }) => {
     const backupName = `Restore Result E2E ${Date.now()}`;
+    const message = `Nothing was restored from '${backupName}'. Skipped 1 row (1 missing from the catalog). Your current plan and workout log were cleared.`;
 
     await page.locator('#backup-center-name').fill(backupName);
     await page.locator('#backup-center-save-submit').click();
@@ -173,6 +174,7 @@ test.describe('Backup Center Page', () => {
         body: JSON.stringify({
           ok: true,
           status: 'success',
+          message,
           data: {
             backup_id: 1,
             backup_name: backupName,
@@ -186,12 +188,13 @@ test.describe('Backup Center Page', () => {
 
     await expect(page.locator('#backup-restore-result')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#backup-restore-result')).toHaveClass(/is-warning/);
-    await expect(page.locator('#backup-restore-result-title')).toContainText('Nothing was restored');
+    await expect(page.locator('#backup-restore-result-title')).toHaveText(message);
     await expect(page.locator('#backup-restore-result-list li')).toHaveCount(1);
   });
 
   test('restore with missing exercises shows skipped names inline', async ({ page }) => {
     const backupName = `Partial Restore E2E ${Date.now()}`;
+    const message = `Restored 3 exercises from '${backupName}'. Skipped 2 rows (2 missing from the catalog).`;
 
     await page.locator('#backup-center-name').fill(backupName);
     await page.locator('#backup-center-save-submit').click();
@@ -208,6 +211,7 @@ test.describe('Backup Center Page', () => {
         body: JSON.stringify({
           ok: true,
           status: 'success',
+          message,
           data: {
             backup_id: 1,
             backup_name: backupName,
@@ -221,8 +225,7 @@ test.describe('Backup Center Page', () => {
 
     await expect(page.locator('#backup-restore-result')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#backup-restore-result')).not.toHaveClass(/is-warning/);
-    await expect(page.locator('#backup-restore-result-title')).toContainText('3 exercises restored');
-    await expect(page.locator('#backup-restore-result-title')).toContainText('2 skipped');
+    await expect(page.locator('#backup-restore-result-title')).toHaveText(message);
     await expect(page.locator('#backup-restore-result-list li')).toHaveCount(2);
     await expect(page.locator('#backup-restore-result-list li').nth(0)).toContainText('Missing Exercise A');
     await expect(page.locator('#backup-restore-result-list li').nth(1)).toContainText('Missing Exercise B');
@@ -230,6 +233,7 @@ test.describe('Backup Center Page', () => {
 
   test('restore with invalid rows names the routine, exercise and reason', async ({ page }) => {
     const backupName = `Invalid Restore E2E ${Date.now()}`;
+    const message = `Restored 2 exercises from '${backupName}'. Skipped 1 row (1 with invalid values).`;
 
     await page.locator('#backup-center-name').fill(backupName);
     await page.locator('#backup-center-save-submit').click();
@@ -246,6 +250,7 @@ test.describe('Backup Center Page', () => {
         body: JSON.stringify({
           ok: true,
           status: 'success',
+          message,
           data: {
             backup_id: 1,
             backup_name: backupName,
@@ -265,10 +270,7 @@ test.describe('Backup Center Page', () => {
     await page.locator('#backup-action-confirm-btn').click();
 
     await expect(page.locator('#backup-restore-result')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#backup-restore-result-title')).toContainText('2 exercises restored');
-    await expect(page.locator('#backup-restore-result-title')).toContainText('invalid values');
-    // The catalog wording must not appear when the catalog is not the reason.
-    await expect(page.locator('#backup-restore-result-title')).not.toContainText('catalog');
+    await expect(page.locator('#backup-restore-result-title')).toHaveText(message);
 
     const item = page.locator('#backup-restore-result-list li');
     await expect(item).toHaveCount(1);
@@ -277,55 +279,76 @@ test.describe('Backup Center Page', () => {
     await expect(item).toContainText('Minimum reps must be a finite number.');
   });
 
-  test('restore with both skip reasons renders two labelled groups', async ({ page }) => {
-    const backupName = `Mixed Restore E2E ${Date.now()}`;
+  for (const [description, restoredCount] of [
+    ['after a partial restore', 1],
+    ['when every row is skipped', 0],
+  ] as const) {
+    test(`restore shows exact skip counts and reasons ${description}`, async ({ page }) => {
+      const backupName = `Mixed Restore ${restoredCount} E2E ${Date.now()}`;
+      const outcome = restoredCount === 1
+        ? `Restored 1 exercise from '${backupName}'.`
+        : `Nothing was restored from '${backupName}'.`;
+      const skips = 'Skipped 3 rows (2 missing from the catalog, 1 with invalid values).';
+      const message = restoredCount === 1
+        ? `${outcome} ${skips}`
+        : `${outcome} ${skips} Your current plan and workout log were cleared.`;
 
-    await page.locator('#backup-center-name').fill(backupName);
-    await page.locator('#backup-center-save-submit').click();
-    await expectToast(page, backupName);
+      await page.locator('#backup-center-name').fill(backupName);
+      await page.locator('#backup-center-save-submit').click();
+      await expectToast(page, backupName);
 
-    await page.locator('#backup-search').fill(backupName);
-    await page.locator('[data-role="backup-record"]').filter({ hasText: backupName }).first().click();
+      await page.locator('#backup-search').fill(backupName);
+      await page.locator('[data-role="backup-record"]').filter({ hasText: backupName }).first().click();
 
-    await page.locator('#backup-detail-restore').click();
-    await page.route('**/api/backups/*/restore', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          ok: true,
-          status: 'success',
-          data: {
-            backup_id: 1,
-            backup_name: backupName,
-            restored_count: 1,
-            skipped: ['Retired Exercise'],
-            invalid: [
-              {
-                routine: 'GYM - Full Body - Workout A',
-                exercise: 'Incline Press',
-                reason: 'Weight must be between 0 and 1000 kg.',
-              },
-            ],
-          },
-        }),
+      await page.locator('#backup-detail-restore').click();
+      await page.route('**/api/backups/*/restore', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            ok: true,
+            status: 'success',
+            message,
+            data: {
+              backup_id: 1,
+              backup_name: backupName,
+              restored_count: restoredCount,
+              // Two rows shared this retired exercise name. The API lists it once.
+              skipped: ['Retired Exercise'],
+              invalid: [
+                {
+                  routine: 'GYM - Full Body - Workout A',
+                  exercise: 'Incline Press',
+                  reason: 'Sets must be at least 1.',
+                },
+              ],
+            },
+          }),
+        });
       });
+      await page.locator('#backup-action-confirm-btn').click();
+
+      const panel = page.locator('#backup-restore-result');
+      await expect(panel).toBeVisible();
+      if (restoredCount === 0) {
+        await expect(panel).toHaveClass(/is-warning/);
+      } else {
+        await expect(panel).not.toHaveClass(/is-warning/);
+      }
+      await expect(page.locator('#backup-restore-result-title')).toHaveText(message);
+      await expectToast(page, message);
+      await expect(page.locator(SELECTORS.TOAST_BODY)).toHaveText(message);
+
+      const groups = page.locator('#backup-restore-result-list > li');
+      await expect(groups).toHaveCount(2);
+      await expect(groups.nth(0)).toContainText('Missing from the catalog');
+      await expect(groups.nth(0).locator('ul > li')).toHaveText(['Retired Exercise']);
+      await expect(groups.nth(1)).toContainText('Invalid values');
+      await expect(groups.nth(1).locator('ul > li')).toHaveText([
+        'Incline Press (GYM - Full Body - Workout A) - Sets must be at least 1.',
+      ]);
     });
-    await page.locator('#backup-action-confirm-btn').click();
-
-    await expect(page.locator('#backup-restore-result')).toBeVisible({ timeout: 10000 });
-    // Singular: the count is 1, so the noun must agree.
-    await expect(page.locator('#backup-restore-result-title')).toContainText('1 exercise restored');
-    await expect(page.locator('#backup-restore-result-title')).not.toContainText('1 exercises');
-
-    // Two labelled groups, each a nested list under its own <li>.
-    const groups = page.locator('#backup-restore-result-list > li');
-    await expect(groups).toHaveCount(2);
-    await expect(groups.nth(0)).toContainText('Missing from the catalog');
-    await expect(groups.nth(0).locator('ul > li')).toHaveText(['Retired Exercise']);
-    await expect(groups.nth(1)).toContainText('Invalid values');
-    await expect(groups.nth(1).locator('ul > li')).toContainText('Incline Press');
-  });
+  }
 
   test('sort by Name A-Z reorders the library', async ({ page }) => {
     const zebra = `Zebra ${Date.now()}`;

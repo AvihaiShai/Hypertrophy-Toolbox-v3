@@ -16,9 +16,13 @@ from utils.logger import get_logger
 from utils.filter_values import fetch_filter_values
 from utils.plan_generator import GENERATOR_ROUTINE_PROGRAMS, generate_starter_plan
 from utils import schema_registry
-from utils.rep_range_integrity import accepts_in_isolation
 from utils.volume_progress import get_volume_progress
-from utils.workout_validation import UNSET, validate_workout_bounds
+from utils.workout_validation import (
+    UNSET,
+    parse_workout_count,
+    rep_bound_for_update,
+    validate_workout_bounds,
+)
 
 workout_plan_bp = Blueprint('workout_plan', __name__)
 logger = get_logger()
@@ -92,6 +96,8 @@ def add_exercise():
             rir=data.get('rir', UNSET),
             min_reps=data.get('min_rep_range', UNSET),
             max_reps=data.get('max_rep_range', UNSET),
+            sets=data.get('sets', UNSET),
+            rep_minimum=1,
             allow_null=True,
         )
         if bounds_error:
@@ -337,18 +343,6 @@ def get_routine_exercises(routine):
         logger.exception(f"Error fetching exercises for routine {routine}")
         return error_response("INTERNAL_ERROR", "Failed to fetch exercises for routine", 500)
 
-def _bounded_or_stored(bounded_updates, column, keyword, current):
-    """The value to hand the validator for one rep column."""
-    if column in bounded_updates:
-        return bounded_updates[column]
-    if not current:
-        return UNSET
-    stored = current.get(column, UNSET)
-    if stored is UNSET or not accepts_in_isolation(keyword, stored):
-        return UNSET
-    return stored
-
-
 @workout_plan_bp.route("/update_exercise", methods=["POST"])
 def update_exercise():
     """Update exercise details in the workout plan."""
@@ -373,53 +367,39 @@ def update_exercise():
             }
         )
             
-        # Build the update query dynamically based on provided fields
-        update_fields = []
-        params = []
         valid_fields = {'sets', 'min_rep_range', 'max_rep_range', 'rir', 'rpe', 'weight'}
         bounded_updates = {key: value for key, value in updates.items() if key in valid_fields}
+        if not bounded_updates:
+            return error_response("VALIDATION_ERROR", "No valid fields to update", 400)
 
-        min_reps = max_reps = UNSET
-        if 'min_rep_range' in bounded_updates or 'max_rep_range' in bounded_updates:
-            with DatabaseHandler() as db:
+        with DatabaseHandler() as db:
+            min_reps = max_reps = UNSET
+            if 'min_rep_range' in bounded_updates or 'max_rep_range' in bounded_updates:
                 current = db.fetch_one(
                     "SELECT min_rep_range, max_rep_range FROM user_selection WHERE id = ?",
                     (exercise_id,),
                 )
-            # The stored sibling is read for one reason only: the min <= max
-            # comparison. Feeding it back when it is itself unusable rejected an
-            # edit to the *other* column, naming a field the user never touched
-            # -- which made a row poisoned by a pre-#384 restore repairable only
-            # by editing the poisoned column first. An unusable sibling is left
-            # UNSET so the comparison is skipped rather than the edit refused.
-            min_reps = _bounded_or_stored(bounded_updates, 'min_rep_range', 'min_reps', current)
-            max_reps = _bounded_or_stored(bounded_updates, 'max_rep_range', 'max_reps', current)
-        bounds_error = validate_workout_bounds(
-            weight=bounded_updates.get('weight', UNSET),
-            rir=bounded_updates.get('rir', UNSET),
-            min_reps=min_reps,
-            max_reps=max_reps,
-        )
-        if bounds_error:
-            return error_response("VALIDATION_ERROR", bounds_error, 400)
-        
-        for field, value in updates.items():
-            if field in valid_fields:
-                update_fields.append(f"{field} = ?")
-                params.append(value)
-        
-        if not update_fields:
-            return error_response("VALIDATION_ERROR", "No valid fields to update", 400)
-            
-        query = f"""
-            UPDATE user_selection 
-            SET {', '.join(update_fields)}
-            WHERE id = ?
-        """
-        params.append(exercise_id)
-        
-        with DatabaseHandler() as db:
-            db.execute_query(query, tuple(params))
+                min_reps = rep_bound_for_update(bounded_updates, current, 'min_rep_range', minimum=1)
+                max_reps = rep_bound_for_update(bounded_updates, current, 'max_rep_range', minimum=1)
+
+            bounds_error = validate_workout_bounds(
+                weight=bounded_updates.get('weight', UNSET),
+                rir=bounded_updates.get('rir', UNSET),
+                min_reps=min_reps,
+                max_reps=max_reps,
+                sets=bounded_updates.get('sets', UNSET),
+                rep_minimum=1,
+            )
+            if bounds_error:
+                return error_response("VALIDATION_ERROR", bounds_error, 400)
+
+            for field in ('sets', 'min_rep_range', 'max_rep_range'):
+                if field in bounded_updates:
+                    bounded_updates[field], _ = parse_workout_count(bounded_updates[field], 1)
+
+            assignments = ', '.join(f'{field} = ?' for field in bounded_updates)
+            params = (*bounded_updates.values(), exercise_id)
+            db.execute_query(f'UPDATE user_selection SET {assignments} WHERE id = ?', params)
         
         logger.info(
             "Exercise updated successfully",

@@ -117,6 +117,15 @@ def get_workout_logs():
         return db.fetch_all(query)
 
 
+def _is_rep_progression(scored_reps, planned_reps):
+    # Older databases can hold an empty string in an INTEGER column.
+    return (
+        isinstance(scored_reps, (int, float))
+        and isinstance(planned_reps, (int, float))
+        and scored_reps > planned_reps
+    )
+
+
 def check_progression(log_entry):
     """Check if progressive overload was achieved."""
     exercise_name = log_entry.get('exercise') if hasattr(log_entry, 'get') else log_entry['exercise']
@@ -129,13 +138,9 @@ def check_progression(log_entry):
         log_entry['planned_rpe'] is not None and 
         log_entry['scored_rpe'] > log_entry['planned_rpe'],
 
-        log_entry['scored_min_reps'] is not None and 
-        log_entry['planned_min_reps'] is not None and 
-        log_entry['scored_min_reps'] > log_entry['planned_min_reps'],
+        _is_rep_progression(log_entry['scored_min_reps'], log_entry['planned_min_reps']),
 
-        log_entry['scored_max_reps'] is not None and 
-        log_entry['planned_max_reps'] is not None and 
-        log_entry['scored_max_reps'] > log_entry['planned_max_reps'],
+        _is_rep_progression(log_entry['scored_max_reps'], log_entry['planned_max_reps']),
 
         is_weight_progression(
             exercise_name,
