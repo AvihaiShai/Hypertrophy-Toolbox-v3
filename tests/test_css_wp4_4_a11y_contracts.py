@@ -5,10 +5,10 @@ contracts lock the premises that deletion rested on, and -- just as importantly
 -- lock the d1/d2 boundary and the accessibility guarantees d1 was required to
 preserve.
 
-d2 re-weighted exactly one annotation and RETAINED the other 50. Its contracts
-lock both halves of that result: the certified removal keeps its declaration,
-and the retentions -- especially the ones a reader would mistake for oversights
--- keep their `!important`.
+d2 re-weighted one annotation and retained 50. In #607 the owner approved
+replacing the Firefox exclusion on 2026-11-18. That removed eight annotations
+and added one for the unsupported-zoom fallback, leaving 43. These contracts
+preserve the other certified retentions and the de-weighted declaration.
 
 Packet-owned. This file never edits, and must not be confused with, the shared
 `tests/test_css_cascade_contracts.py`, which d1 and d2 run but do not touch
@@ -78,8 +78,9 @@ LEGACY_CLASSES = (
 # The generation that IS live -- present in templates/base.html:190-202 and
 # census > 0 in 160/160 measured contexts. d1 must not have touched these, and
 # they are what makes the deletion safe rather than merely quiet.
+# #607 removed the four occurrences in the owner-approved Firefox exclusion.
 LIVE_GENERATION = {
-    "scale-control-compact": 5,
+    "scale-control-compact": 1,
     "scale-btn-compact": 6,
     "scale-indicator": 2,
 }
@@ -234,18 +235,16 @@ def test_important_count_is_exactly_the_d2_certified_result() -> None:
     `!important`, so all 51 survived it. d2 re-weighted **one** of them --
     `.is-invalid { box-shadow }` -- after certifying that the declaration
     remains the effective owner in every state it is intended to own, so the
-    file now carries 50.
+    file then carried 50.
 
-    The number is deliberately exact in both directions. Dropping to 49 means
-    an annotation was de-weighted without certification; rising to 51 means
-    d2's single certified removal was reverted or a new annotation was added.
+    #607 removed the eight annotations in the Firefox exclusion with owner
+    approval and added one for the capability fallback. The new total is 43.
 
-    Red path: removing `!important` from any other declaration gives 49 and
-    fails; restoring it on `.is-invalid { box-shadow }` gives 51 and fails.
+    Red path: one fewer or one more annotation fails.
     """
-    assert _strip_comments(_css()).count("!important") == 50, (
-        "a11y.css !important count moved off d2's certified result of 50 "
-        "(d1 left 51; d2 removed exactly one, on `.is-invalid { box-shadow }`)."
+    assert _strip_comments(_css()).count("!important") == 43, (
+        "Expected 43 a11y.css annotations: 50 from d2, minus 8 from the "
+        "owner-approved Firefox exclusion removal, plus 1 capability fallback."
     )
 
 
@@ -336,23 +335,15 @@ def test_measured_retentions_keep_their_important(selector: str) -> None:
 
 
 def test_chromium_invisible_annotations_were_not_removed() -> None:
-    """12 annotations never reach Chromium; that is not evidence about them.
+    """Four annotated `-moz-box-shadow` declarations remain.
 
-    Eight sit inside `@-moz-document url-prefix()`, which Chromium never
-    parses, and four are `-moz-box-shadow`, which its declaration parser drops.
-    A Chromium-only oracle cannot see them, so it cannot certify them, and
-    "the harness reported nothing" must never be read as "safe to remove".
+    The owner approved deleting the eight annotations in the Firefox exclusion
+    for #607 on 2026-11-18. Chromium's parser still discards the four declarations
+    below, so testing Chromium alone cannot establish whether they are needed.
 
-    Red path: de-weighting any declaration inside the `@-moz-document` block,
-    or any `-moz-box-shadow`, fails this test.
+    Red path: de-weighting any of those declarations fails this test.
     """
     css = _strip_comments(_css())
-    moz = re.search(r"@-moz-document url-prefix\(\)\s*\{(.*?\n\})\s*\n", css, flags=re.S)
-    assert moz, "a11y.css lost its @-moz-document block"
-    assert moz.group(1).count("!important") == 8, (
-        "the @-moz-document block no longer carries 8 !important declarations; "
-        "Chromium cannot see this block, so d2's oracle can never certify it"
-    )
     # Count the ANNOTATED declarations, not the property name. Counting
     # `-moz-box-shadow` alone stays green when one is de-weighted, since the
     # property is still there -- the red-path proof caught exactly that.

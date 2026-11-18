@@ -239,9 +239,12 @@ Two consequences worth knowing before changing anything:
 - **A screenshot only ever proves one band.** Any pixel comparison is band-specific; the visual
   suite's viewport choice decides which of the seven is under test.
 
-There is also a **user-controlled zoom** independent of the bands: the navbar `−`/`+` buttons
-write a `ui-scale-level` cookie (1–8), which `app.py` maps to a zoom factor from `0.75` to `1.2`,
-default level 6 = `1`. Invalid values fall back to 6.
+The navbar `−`/`+` buttons control **application scale** independently of the responsive bands
+and browser zoom. They write a `ui-scale-level` cookie (1–8), which `app.py` maps to factors
+from `0.75` to `1.2`. Invalid values fall back to level 6 (factor `1`). Browsers that support
+CSS `zoom` show the control subject to the existing responsive visibility. Browsers without
+CSS `zoom` support hide the control and its trailing divider.
+Firefox validation covers version 160.0.1, tested on 2026-11-18.
 
 ### Spacing, radius, and container tokens
 

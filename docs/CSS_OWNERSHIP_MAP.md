@@ -27,7 +27,7 @@ Listed in measured link order. Line numbers skip `:14` and `:17`, which are the 
 | `base.html:21` | `layout.css` | Shared layout structure and responsive shell behavior |
 | `base.html:22` | `components.css` | Buttons, forms, tables, cards, modals, tooltips, toasts, and calm overlay primitives |
 | `base.html:23` | `navbar.css` | Global navbar layout and calm glass navbar presentation |
-| `base.html:24` | `a11y.css` | Accessibility controls, scale system, focus fixes, and Firefox fallbacks |
+| `base.html:24` | `a11y.css` | Accessibility controls, application scale, focus fixes, and the CSS zoom capability fallback |
 | *`base.html:27`* | *`{% block page_css %}`* | *Route bundle injection point — see Page-Specific CSS Loading below* |
 | `base.html:28` | `motion.css` | Shared animations and reduced-motion behavior |
 | `base.html:29` | `theme-dark.css` | Dark-theme tokens and shared dark overrides |

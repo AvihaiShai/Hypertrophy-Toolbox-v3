@@ -241,8 +241,8 @@
     "total_tests": 723
   },
   "pytest": {
-    "collected_deterministic": 4618,
-    "deterministic_files": 143,
+    "collected_deterministic": 4623,
+    "deterministic_files": 144,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -719,6 +719,10 @@
         "tests": 17
       },
       {
+        "file": "tests/test_ui_scale_capability_contracts.py",
+        "tests": 5
+      },
+      {
         "file": "tests/test_user_profile_routes.py",
         "tests": 30
       },
@@ -827,7 +831,7 @@
         "tests": 41
       }
     ],
-    "total_files": 144
+    "total_files": 145
   },
   "schema_version": 2,
   "vitest": {
