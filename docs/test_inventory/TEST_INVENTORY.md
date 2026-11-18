@@ -12,9 +12,9 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **728** |
+| Playwright tests (chromium) | **729** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **578** tests across 25 specs |
+| Required functional gate — `E2E Functional (Chromium)` | **579** tests across 25 specs |
 | pytest collected nodes (deterministic subset) | **4699** across 144 files |
 | pytest test files (all) | **145** |
 | JS unit cases (Vitest) | **271** across 15 files |
@@ -58,7 +58,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `volume-splitter.spec.ts` | 64 | yes |
 | `workout-log.spec.ts` | 23 | yes |
 | `workout-plan-desktop-contract.spec.ts` | 16 | — |
-| `workout-plan.spec.ts` | 38 | yes |
+| `workout-plan.spec.ts` | 39 | yes |
 
 ## pytest files
 

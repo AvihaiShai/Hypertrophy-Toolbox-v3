@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 578
+      "tests": 579
     },
     "specs": [
       {
@@ -234,11 +234,11 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-plan.spec.ts",
-        "tests": 38
+        "tests": 39
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 728
+    "total_tests": 729
   },
   "pytest": {
     "collected_deterministic": 4699,

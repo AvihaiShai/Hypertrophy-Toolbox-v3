@@ -15,6 +15,7 @@ import {
     collectMissingRequiredSelections,
 } from './workout-plan-helpers.js';
 import { neutralizeEstimateState } from './workout-plan-estimates.js';
+import { workoutPlanState } from './workout-plan-state.js';
 import { WORKOUT_CONTROL_DEFAULTS } from './workout-controls-persistence.js';
 
 const addExerciseDeps = {
@@ -302,7 +303,12 @@ async function sendExerciseData(exerciseData) {
 
     try {
         const data = await api.post('/add_exercise', exerciseData, { showErrorToast: false });
-        const message = data.message || data.data?.message || 'Exercise added successfully';
+        const { routine } = exerciseData;
+        const { currentRoutineTabFilter } = workoutPlanState;
+        const exerciseHiddenByTab = currentRoutineTabFilter !== 'all' && currentRoutineTabFilter !== routine;
+        const message = exerciseHiddenByTab
+            ? `Exercise added to ${routine}. Open that routine's tab to see it.`
+            : data.message || data.data?.message || 'Exercise added successfully';
 
         showToast('success', message);
         const addBtn = document.getElementById('add_exercise_btn');

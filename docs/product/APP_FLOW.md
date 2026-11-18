@@ -299,7 +299,7 @@ the volume panel, and the controls animation. It deliberately does **not** call
 | Exercise `<select>` | API | On change, `GET /get_exercise_info/<name>` for metadata; `GET /api/user_profile/estimate?exercise=…` for the suggested numbers |
 | Weight / sets / RIR / RPE / min-rep / max-rep | Presentation | Local inputs. Sets and both rep fields retain their typed values through submission so validation can catch invalid counts |
 | Estimate trace toggle | Presentation | Expands the derivation behind the suggested numbers |
-| **Add Exercise** | API | `POST /add_exercise`. Valid values append a row and refresh the table. A rejected submission shows the validation message and leaves the plan unchanged |
+| **Add Exercise** | API | `POST /add_exercise`. Valid values append a row and refresh the table. If the active routine tab hides the new row, the success toast names the routine it was added to. A rejected submission shows the validation message and leaves the plan unchanged |
 
 `GET /get_exercise_info/<name>` for an unknown exercise returns HTTP 404 `NOT_FOUND` — verified
 live.
