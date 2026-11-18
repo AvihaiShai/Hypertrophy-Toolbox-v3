@@ -8,7 +8,8 @@
  * - Zero and empty value handling
  * - Decimal/float handling
  */
-import { test, expect, ROUTES, SELECTORS, waitForWorkoutPlanReady, resetWorkoutPlan } from './fixtures';
+import type { Page } from '@playwright/test';
+import { test, expect, ROUTES, SELECTORS, expectToast, waitForWorkoutPlanReady, resetWorkoutPlan } from './fixtures';
 
 /**
  * Helper to select a complete routine
@@ -49,12 +50,14 @@ async function selectExercise(page: import('@playwright/test').Page) {
 }
 
 async function expectExerciseSubmission(
-  page: import('@playwright/test').Page,
+  page: Page,
   expectedStatus: number,
-  expectedPayload: Record<string, number>
+  expectedPayload: Record<string, number | string>,
+  expectedError?: string,
 ) {
   const rows = page.locator('#workout_plan_table_body tr');
   const initialCount = await rows.count();
+  const initialPlan = expectedError ? await readPlanEntries(page) : undefined;
   const responsePromise = page.waitForResponse(response =>
     response.url().endsWith('/add_exercise') && response.request().method() === 'POST'
   );
@@ -67,8 +70,40 @@ async function expectExerciseSubmission(
   if (expectedStatus === 200) {
     await expect.poll(() => rows.count()).toBe(initialCount + 1);
   } else {
+    if (expectedError) {
+      expect(await response.json()).toMatchObject({
+        ok: false,
+        error: { code: 'VALIDATION_ERROR', message: expectedError },
+      });
+      await expectToast(page, expectedError);
+      expect(await readPlanEntries(page)).toEqual(initialPlan);
+    }
     await expect.poll(() => rows.count()).toBe(initialCount);
   }
+}
+
+async function readPlanEntries(page: Page): Promise<Array<{ sets: number }>> {
+  const response = await page.request.get('/get_workout_plan');
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()).data;
+}
+
+const countInputSelectors = { sets: '#sets', min_rep_range: '#min_rep', max_rep_range: '#max_rep_range' };
+
+async function expectRejectedCount(
+  page: Page, field: keyof typeof countInputSelectors, value: string, message: string,
+) {
+  await page.fill('#sets', '3');
+  await page.fill('#min_rep', '8');
+  await page.fill('#max_rep_range', '12');
+  await page.fill('#weight', '100');
+
+  const input = page.locator(countInputSelectors[field]);
+  await input.fill(value);
+  await expect(input).toHaveValue(value);
+  await input.blur();
+  await expect(input).toHaveValue(value);
+  await expectExerciseSubmission(page, 400, { [field]: value }, message);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -88,31 +123,16 @@ test.describe('Negative Value Validation', () => {
     consoleErrors.assertNoErrors();
   });
 
-  test('clamps negative sets to the current minimum', async ({ page }) => {
-    await page.fill('#sets', '-1');
-    await page.fill('#min_rep', '8');
-    await page.fill('#max_rep_range', '12');
-    await page.fill('#weight', '100');
-
-    await expectExerciseSubmission(page, 200, { sets: 1 });
+  test('rejects negative sets without clamping', async ({ page }) => {
+    await expectRejectedCount(page, 'sets', '-1', 'Sets must be at least 1.');
   });
 
-  test('clamps negative min rep to the current minimum', async ({ page }) => {
-    await page.fill('#sets', '3');
-    await page.fill('#min_rep', '-5');
-    await page.fill('#max_rep_range', '12');
-    await page.fill('#weight', '100');
-
-    await expectExerciseSubmission(page, 200, { min_rep_range: 1 });
+  test('rejects negative min reps without clamping', async ({ page }) => {
+    await expectRejectedCount(page, 'min_rep_range', '-5', 'Minimum reps must be at least 1.');
   });
 
   test('rejects negative max rep value', async ({ page }) => {
-    await page.fill('#sets', '3');
-    await page.fill('#min_rep', '8');
-    await page.fill('#max_rep_range', '-10');
-    await page.fill('#weight', '100');
-
-    await expectExerciseSubmission(page, 400, { max_rep_range: 1 });
+    await expectRejectedCount(page, 'max_rep_range', '-10', 'Maximum reps must be at least 1.');
   });
 
   test('clamps negative weight to zero', async ({ page }) => {
@@ -145,8 +165,8 @@ test.describe('Rep Range Validation', () => {
     await page.fill('#weight', '100');
 
     await expectExerciseSubmission(page, 400, {
-      min_rep_range: 15,
-      max_rep_range: 8,
+      min_rep_range: '15',
+      max_rep_range: '8',
     });
   });
 
@@ -157,8 +177,8 @@ test.describe('Rep Range Validation', () => {
     await page.fill('#weight', '100');
 
     await expectExerciseSubmission(page, 200, {
-      min_rep_range: 8,
-      max_rep_range: 12,
+      min_rep_range: '8',
+      max_rep_range: '12',
     });
   });
 
@@ -169,8 +189,8 @@ test.describe('Rep Range Validation', () => {
     await page.fill('#weight', '100');
 
     await expectExerciseSubmission(page, 200, {
-      min_rep_range: 5,
-      max_rep_range: 5,
+      min_rep_range: '5',
+      max_rep_range: '5',
     });
   });
 });
@@ -188,22 +208,16 @@ test.describe('Zero Value Validation', () => {
     consoleErrors.assertNoErrors();
   });
 
-  test('clamps zero sets to the current minimum', async ({ page }) => {
-    await page.fill('#sets', '0');
-    await page.fill('#min_rep', '8');
-    await page.fill('#max_rep_range', '12');
-    await page.fill('#weight', '100');
-
-    await expectExerciseSubmission(page, 200, { sets: 1 });
+  test('rejects zero sets without clamping', async ({ page }) => {
+    await expectRejectedCount(page, 'sets', '0', 'Sets must be at least 1.');
   });
 
-  test('clamps zero min rep to the current minimum', async ({ page }) => {
-    await page.fill('#sets', '3');
-    await page.fill('#min_rep', '0');
-    await page.fill('#max_rep_range', '12');
-    await page.fill('#weight', '100');
+  test('rejects zero min reps without clamping', async ({ page }) => {
+    await expectRejectedCount(page, 'min_rep_range', '0', 'Minimum reps must be at least 1.');
+  });
 
-    await expectExerciseSubmission(page, 200, { min_rep_range: 1 });
+  test('rejects zero max reps without clamping', async ({ page }) => {
+    await expectRejectedCount(page, 'max_rep_range', '0', 'Maximum reps must be at least 1.');
   });
 
   test('accepts zero weight for bodyweight or assisted exercise', async ({ page }) => {
@@ -308,22 +322,16 @@ test.describe('Decimal/Float Value Handling', () => {
     await expectExerciseSubmission(page, 200, { weight: 102.5 });
   });
 
-  test('handles decimal sets by rounding', async ({ page }) => {
-    await page.fill('#sets', '3.5');  // Should round to 3 or 4
-    await page.fill('#min_rep', '8');
-    await page.fill('#max_rep_range', '12');
-    await page.fill('#weight', '100');
-
-    await expectExerciseSubmission(page, 200, { sets: 3 });
+  test('rejects fractional sets without rounding', async ({ page }) => {
+    await expectRejectedCount(page, 'sets', '3.5', 'Sets must be a whole number.');
   });
 
-  test('handles decimal reps by rounding or rejecting', async ({ page }) => {
-    await page.fill('#sets', '3');
-    await page.fill('#min_rep', '8.5');
-    await page.fill('#max_rep_range', '12');
-    await page.fill('#weight', '100');
+  test('rejects fractional min reps without rounding', async ({ page }) => {
+    await expectRejectedCount(page, 'min_rep_range', '8.5', 'Minimum reps must be a whole number.');
+  });
 
-    await expectExerciseSubmission(page, 200, { min_rep_range: 8 });
+  test('rejects fractional max reps without rounding', async ({ page }) => {
+    await expectRejectedCount(page, 'max_rep_range', '12.5', 'Maximum reps must be a whole number.');
   });
 });
 
@@ -406,7 +414,7 @@ test.describe('Extreme Value Handling', () => {
     await page.fill('#max_rep_range', '12');
     await page.fill('#weight', '100');
 
-    await expectExerciseSubmission(page, 200, { sets: 9999 });
+    await expectExerciseSubmission(page, 200, { sets: '9999' });
   });
 
   test('handles very large weight value', async ({ page }) => {
@@ -425,8 +433,75 @@ test.describe('Extreme Value Handling', () => {
     await page.fill('#weight', '100');
 
     await expectExerciseSubmission(page, 200, {
-      min_rep_range: 500,
-      max_rep_range: 1000,
+      min_rep_range: '500',
+      max_rep_range: '1000',
     });
+  });
+
+  test('inline sets accept counts above the hint and keep the last saved value on rejection', async ({ page }) => {
+    await page.fill('#sets', '3');
+    await page.fill('#min_rep', '8');
+    await page.fill('#max_rep_range', '12');
+    await page.fill('#weight', '100');
+    await expectExerciseSubmission(page, 200, { sets: '3' });
+
+    const cell = page.locator('#workout_plan_table_body td[data-field="sets"]');
+    const input = cell.locator('input');
+    const edit = async (value: string) => {
+      await cell.click();
+      await expect(input).toHaveAttribute('max', '10');
+      await input.fill(value);
+      const update = page.waitForResponse(response =>
+        response.url().endsWith('/update_exercise') && response.request().method() === 'POST',
+      );
+      await input.press('Enter');
+      const response = await update;
+      expect(response.request().postDataJSON()).toMatchObject({ updates: { sets: value } });
+      return response;
+    };
+
+    expect((await edit('11')).ok()).toBeTruthy();
+    await expect(cell).toHaveText('11');
+    const confirmedPlan = await readPlanEntries(page);
+    expect(confirmedPlan).toMatchObject([{ sets: 11 }]);
+
+    const rejected = await edit('1.5');
+    expect(rejected.status()).toBe(400);
+    expect(await rejected.json()).toMatchObject({ error: { code: 'VALIDATION_ERROR' } });
+    await expectToast(page, 'Sets must be a whole number.');
+    await expect(cell).toHaveText('11');
+    expect(await readPlanEntries(page)).toEqual(confirmedPlan);
+  });
+
+  test('inline sets show the stored number and a blank edit reverts without a write', async ({ page }) => {
+    await page.fill('#sets', '3');
+    await page.fill('#min_rep', '8');
+    await page.fill('#max_rep_range', '12');
+    await page.fill('#weight', '100');
+    await expectExerciseSubmission(page, 200, { sets: '3' });
+
+    const cell = page.locator('#workout_plan_table_body td[data-field="sets"]');
+    const input = cell.locator('input');
+
+    await cell.click();
+    await input.fill('08');
+    const update = page.waitForResponse(response =>
+      response.url().endsWith('/update_exercise') && response.request().method() === 'POST',
+    );
+    await input.press('Enter');
+    expect((await update).ok()).toBeTruthy();
+    await expect(cell).toHaveText('8');
+
+    const writes: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().endsWith('/update_exercise')) writes.push(request.method());
+    });
+    await cell.click();
+    await input.fill('');
+    await input.press('Enter');
+    await expect(input).toHaveCount(0);
+    await expect(cell).toHaveText('8');
+    expect(await readPlanEntries(page)).toMatchObject([{ sets: 8 }]);
+    expect(writes).toEqual([]);
   });
 });

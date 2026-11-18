@@ -4,7 +4,7 @@ from utils.database import DatabaseHandler
 from utils.filter_predicates import FilterPredicates
 from utils.logger import get_logger
 from utils.normalization import normalize_exercise_row, split_csv
-from utils.workout_validation import validate_workout_bounds
+from utils.workout_validation import parse_workout_count, validate_workout_bounds
 
 
 logger = get_logger()
@@ -30,10 +30,10 @@ class ExerciseManager:
         rpe: Optional[float] = None,
     ) -> str:
         """Add a selection entry, preventing duplicate routine/exercise pairs."""
-        # weight == 0 is a valid value (bodyweight/assisted exercises); only
-        # None/absent/empty-string weight counts as missing. The other required
-        # fields keep their existing truthiness check.
-        if not all([routine, exercise, sets, min_rep_range, max_rep_range]) or weight is None or weight == "":
+        # Zero weight is valid for bodyweight and assisted exercises.
+        if not routine or not exercise or any(
+            value is None or value == "" for value in (sets, min_rep_range, max_rep_range, weight)
+        ):
             logger.warning("Rejecting add_exercise due to missing fields")
             return "Error: Missing required fields."
 
@@ -42,12 +42,17 @@ class ExerciseManager:
             rir=rir,
             min_reps=min_rep_range,
             max_reps=max_rep_range,
+            sets=sets,
+            rep_minimum=1,
             allow_null=True,
         )
         if bounds_error:
             logger.warning("Rejecting add_exercise: %s", bounds_error)
             return f"Error: {bounds_error}"
 
+        parsed_sets, _ = parse_workout_count(sets, 1)
+        parsed_min_reps, _ = parse_workout_count(min_rep_range, 1)
+        parsed_max_reps, _ = parse_workout_count(max_rep_range, 1)
         duplicate_check_query = (
             "SELECT COUNT(*) AS count FROM user_selection WHERE routine = ? AND exercise = ?"
         )
@@ -83,7 +88,7 @@ class ExerciseManager:
                     next_order = max_order + 1
                     db.execute_query(
                         insert_query_with_order,
-                        (routine, exercise, sets, min_rep_range, max_rep_range, rir, weight, rpe, next_order),
+                        (routine, exercise, parsed_sets, parsed_min_reps, parsed_max_reps, rir, weight, rpe, next_order),
                     )
                     logger.debug(
                         "Inserted exercise '%s' into routine '%s' with order %d",
@@ -95,7 +100,7 @@ class ExerciseManager:
                     # Backward-compatible insert for legacy schemas.
                     db.execute_query(
                         insert_query_without_order,
-                        (routine, exercise, sets, min_rep_range, max_rep_range, rir, weight, rpe),
+                        (routine, exercise, parsed_sets, parsed_min_reps, parsed_max_reps, rir, weight, rpe),
                     )
                     logger.warning(
                         "Inserted exercise '%s' without exercise_order (legacy schema detected)",

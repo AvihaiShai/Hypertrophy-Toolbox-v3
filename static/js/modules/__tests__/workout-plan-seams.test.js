@@ -26,6 +26,7 @@ import {
     resolveProfileEstimate,
     resolveStep,
     resolveSwapErrorToast,
+    storedCountText,
     supersetRowClasses,
     traceHeadline,
     traceStepValueText,
@@ -86,13 +87,16 @@ describe('execution style seams', () => {
 });
 
 describe('payload builders', () => {
-    it('coerces add-exercise fields and applies RIR/RPE empty semantics', () => {
+    it('preserves add-exercise count text and applies RIR/RPE empty semantics', () => {
         const base = { exercise: 'Squat', routine: 'GYM - A - 1', sets: '3', minRepRange: '6', maxRepRange: '10', weight: '82.5' };
         expect(buildAddExercisePayload({ ...base, rir: '', rpe: '' })).toEqual({
-            exercise: 'Squat', routine: 'GYM - A - 1', sets: 3, min_rep_range: 6,
-            max_rep_range: 10, rir: 0, weight: 82.5, rpe: null,
+            exercise: 'Squat', routine: 'GYM - A - 1', sets: '3', min_rep_range: '6',
+            max_rep_range: '10', rir: 0, weight: 82.5, rpe: null,
         });
         expect(buildAddExercisePayload({ ...base, rir: '2', rpe: '8.5' })).toMatchObject({ rir: 2, rpe: 8.5 });
+        expect(buildAddExercisePayload({ ...base, sets: '9223372036854775807', minRepRange: '6.5', maxRepRange: '-10' })).toMatchObject({
+            sets: '9223372036854775807', min_rep_range: '6.5', max_rep_range: '-10',
+        });
     });
 
     it('builds field, replacement, superset, and ordering payloads', () => {
@@ -103,6 +107,15 @@ describe('payload builders', () => {
         expect(buildSupersetUnlinkPayload(7)).toEqual({ exercise_id: 7 });
         expect(buildExerciseOrderPayload([9, 7])).toEqual([{ id: 9, order: 1 }, { id: 7, order: 2 }]);
         expect(buildExerciseOrderPayload([])).toEqual([]);
+    });
+
+    it('shows the whole number the server stores for an accepted count draft', () => {
+        expect(storedCountText('8')).toBe('8');
+        expect(storedCountText('08')).toBe('8');
+        expect(storedCountText('5.0')).toBe('5');
+        expect(storedCountText('1e1')).toBe('10');
+        expect(storedCountText('-0')).toBe('0');
+        expect(storedCountText('9223372036854775807')).toBe('9223372036854775807');
     });
 });
 

@@ -21,6 +21,12 @@ const addExerciseDeps = {
     refreshPlan: () => {},
 };
 
+const COUNT_INPUT_LABELS = {
+    sets: 'Sets',
+    min_rep: 'Minimum reps',
+    max_rep_range: 'Maximum reps',
+};
+
 /**
  * Inject the plan-refresh callback the successful submission path depends on.
  * Called once by workout-plan.js at module load.
@@ -236,6 +242,13 @@ export function handleAddExercise(e) {
         }
     }
 
+    for (const [id, label] of Object.entries(COUNT_INPUT_LABELS)) {
+        if (document.getElementById(id)?.validity.badInput) {
+            showToast('warning', `${label} must be a whole number of at least 1.`);
+            return;
+        }
+    }
+
     // Get all required form values
     const exercise = document.getElementById('exercise')?.value;
     const routine = document.getElementById('routine')?.value;
@@ -328,24 +341,26 @@ export function initializeDefaultValues() {
     // set, so they cannot drift apart.
     Object.entries(WORKOUT_CONTROL_DEFAULTS).forEach(([id, value]) => {
         const input = document.getElementById(id);
-        if (input) {
-            input.value = value;
+        if (!input) return;
+        input.value = value;
 
-            // Clamp to min/max on commit (blur / Enter). Using `change`
-            // instead of `input` so we don't overwrite mid-typing — that
-            // previously stripped decimals (parseInt) and snapped a
-            // momentarily-empty field to a hardcoded default.
-            input.addEventListener('change', function() {
-                if (this.value === '') return;
-                const minAttr = this.getAttribute('min');
-                const maxAttr = this.getAttribute('max');
-                const parsed = parseFloat(this.value);
-                if (Number.isNaN(parsed)) return;
-                const clamped = clampToAttrRange(parsed, minAttr, maxAttr);
-                if (clamped !== parsed) {
-                    this.value = clamped;
-                }
-            });
-        }
+        // Counts are sent as typed so the server can reject them, never clamped.
+        if (Object.hasOwn(COUNT_INPUT_LABELS, id)) return;
+
+        // Clamp to min/max on commit (blur / Enter). Using `change`
+        // instead of `input` so we don't overwrite mid-typing — that
+        // previously stripped decimals (parseInt) and snapped a
+        // momentarily-empty field to a hardcoded default.
+        input.addEventListener('change', function() {
+            if (this.value === '') return;
+            const minAttr = this.getAttribute('min');
+            const maxAttr = this.getAttribute('max');
+            const parsed = parseFloat(this.value);
+            if (Number.isNaN(parsed)) return;
+            const clamped = clampToAttrRange(parsed, minAttr, maxAttr);
+            if (clamped !== parsed) {
+                this.value = clamped;
+            }
+        });
     });
 }

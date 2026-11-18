@@ -73,12 +73,14 @@ export async function updateBackupMetadata(backupId, { name, note }) {
 /**
  * Restore a backup
  * @param {number} backupId - ID of the backup to restore
- * @returns {Promise<Object>} Restore result
+ * @param {{ includeEnvelope?: boolean }} [options]
+ * @returns {Promise<Object>} Restore result, or the response envelope when requested
  */
-export async function restoreBackup(backupId) {
+export async function restoreBackup(backupId, { includeEnvelope = false } = {}) {
     try {
-        const data = await api.post(`/api/backups/${backupId}/restore`, {}, { showErrorToast: false });
-        return data.data !== undefined ? data.data : data;
+        const response = await api.post(`/api/backups/${backupId}/restore`, {}, { showErrorToast: false });
+        if (includeEnvelope) return response;
+        return response.data !== undefined ? response.data : response;
     } catch (error) {
         console.error('Error restoring backup:', error);
         throw error;

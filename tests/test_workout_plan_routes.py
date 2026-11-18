@@ -599,6 +599,94 @@ class TestUpdateExercise:
         assert resp.status_code == 200
 
 
+class TestPlanCountInputs:
+    @pytest.fixture(params=["add", "inline"])
+    def write_counts(self, request, client, exercise_factory, workout_plan_factory):
+        name = exercise_factory("Count Boundary Press")
+        if request.param == "add":
+            def add(updates):
+                return client.post("/add_exercise", json={
+                    "routine": "Push", "exercise": name, "sets": 3, "min_rep_range": 8,
+                    "max_rep_range": 12, "weight": 50, "rir": 2, **updates,
+                })
+
+            return add
+
+        plan_id = workout_plan_factory(exercise_name=name, min_rep_range=8, max_rep_range=12)
+
+        def update(updates):
+            return client.post("/update_exercise", json={"id": plan_id, "updates": updates})
+
+        return update
+
+    @pytest.mark.parametrize("value,expected", [
+        (1.0, 1), ("1", 1),
+        (9007199254740993, 9007199254740993),
+        ("9007199254740993", 9007199254740993),
+        (9223372036854775807, 9223372036854775807),
+        ("9223372036854775807", 9223372036854775807),
+    ])
+    def test_whole_counts_use_exact_sqlite_integer_storage(self, clean_db, write_counts, value, expected):
+        response = write_counts({"sets": value, "min_rep_range": value, "max_rep_range": value})
+        assert response.status_code == 200, response.get_json()
+        assert response.get_json()["ok"] is True
+        assert clean_db.fetch_all(
+            "SELECT sets, min_rep_range, max_rep_range, typeof(sets) AS sets_type, "
+            "typeof(min_rep_range) AS min_type, typeof(max_rep_range) AS max_type "
+            "FROM user_selection"
+        ) == [{
+            "sets": expected, "min_rep_range": expected, "max_rep_range": expected,
+            "sets_type": "integer", "min_type": "integer", "max_type": "integer",
+        }]
+
+    @pytest.mark.parametrize("updates", [
+        {"sets": 0}, {"sets": -1}, {"sets": 1.5}, {"sets": True}, {"sets": False},
+        {"sets": ""}, {"sets": None}, {"sets": 9223372036854775808},
+        {"min_rep_range": 0}, {"min_rep_range": ""}, {"min_rep_range": None},
+        {"min_rep_range": float("nan")}, {"max_rep_range": -1},
+        {"max_rep_range": "8.5"}, {"max_rep_range": "malformed"},
+        {"max_rep_range": float("inf")}, {"max_rep_range": "9223372036854775808"},
+    ])
+    def test_rejected_count_leaves_all_plan_rows_unchanged(self, clean_db, write_counts, updates):
+        before = clean_db.fetch_all("SELECT * FROM user_selection ORDER BY id")
+
+        response = write_counts({"weight": 65, **updates})
+
+        assert response.status_code == 400, response.get_json()
+        assert response.get_json()["ok"] is False
+        assert response.get_json()["error"]["code"] == "VALIDATION_ERROR"
+        assert clean_db.fetch_all("SELECT * FROM user_selection ORDER BY id") == before
+
+    def test_legacy_count_can_be_repaired_without_rewriting_its_sibling(
+        self, client, clean_db, workout_plan_factory,
+    ):
+        plan_id = workout_plan_factory(min_rep_range=8, max_rep_range=-1)
+
+        response = client.post("/update_exercise", json={
+            "id": plan_id, "updates": {"min_rep_range": 6, "weight": 55},
+        })
+        assert response.status_code == 200, response.get_json()
+        before = clean_db.fetch_one("SELECT * FROM user_selection WHERE id = ?", (plan_id,))
+        assert before["min_rep_range"] == 6
+        assert before["max_rep_range"] == -1
+        assert before["weight"] == 55
+
+        rejected = client.post("/update_exercise", json={
+            "id": plan_id, "updates": {"min_rep_range": 7, "max_rep_range": 7.5, "weight": 65},
+        })
+        assert rejected.status_code == 400
+        assert rejected.get_json()["error"]["code"] == "VALIDATION_ERROR"
+        assert clean_db.fetch_one("SELECT * FROM user_selection WHERE id = ?", (plan_id,)) == before
+
+        repaired = client.post("/update_exercise", json={
+            "id": plan_id, "updates": {"min_rep_range": 9, "max_rep_range": 10},
+        })
+        assert repaired.status_code == 200, repaired.get_json()
+        assert clean_db.fetch_one(
+            "SELECT min_rep_range, max_rep_range FROM user_selection WHERE id = ?", (plan_id,),
+        ) == {"min_rep_range": 9, "max_rep_range": 10}
+
+
 class TestUpdateExerciseOrder:
     """Tests for POST /update_exercise_order endpoint."""
 

@@ -21,6 +21,7 @@ import {
     formatRoutineForTab,
     nextSupersetColorIndex,
     renderExecutionStyleBadge,
+    storedCountText,
     supersetRowClasses,
 } from './workout-plan-helpers.js';
 import { escapeHtml } from './exercise-helpers.js';
@@ -31,6 +32,12 @@ import {
 import { showToast } from './toast.js';
 import { api } from './fetch-wrapper.js';
 import { notifyVolumeAffectingPlanChange } from './workout-plan-events.js';
+
+const COUNT_FIELD_LABELS = {
+    sets: 'Sets',
+    min_rep_range: 'Minimum reps',
+    max_rep_range: 'Maximum reps',
+};
 
 // Feature callbacks injected by workout-plan.js so the table module never
 // imports back into the monolith (no circular import). Defaults are no-ops so a
@@ -516,11 +523,12 @@ export function updateCachedExercise(exerciseId, updatedData) {
 
 
 function makeTableCellEditable(cell, exerciseId, fieldName) {
-    // Prevent creating multiple inputs if already editing
-    if (cell.querySelector('input')) {
+    // Prevent creating multiple inputs if already editing or saving
+    if (cell.querySelector('input') || cell.getAttribute('aria-busy') === 'true') {
         return;
     }
 
+    const countLabel = COUNT_FIELD_LABELS[fieldName];
     const originalValue = cell.textContent.trim();
     const input = document.createElement('input');
     input.type = 'number';
@@ -560,33 +568,50 @@ function makeTableCellEditable(cell, exerciseId, fieldName) {
     input.select();
 
     const finishEditing = async (save = true) => {
+        if (input.parentNode !== cell) return;
+
         const storedOriginal = input.dataset.originalValue;
         const newValue = input.value.trim();
+        const badCountInput = countLabel && input.validity.badInput;
+        cell.removeChild(input);
 
-        // Remove input and restore cell
-        if (input.parentNode === cell) {
-            cell.removeChild(input);
+        if (save && badCountInput) {
+            cell.textContent = storedOriginal;
+            showToast('warning', `${countLabel} must be a whole number of at least 1.`);
+            return;
         }
 
-        if (save && newValue && newValue !== storedOriginal) {
-            try {
-                const response = await updateExerciseField(exerciseId, fieldName, newValue);
-                if (response.ok) {
-                    cell.textContent = newValue;
-                    showToast('Exercise updated successfully');
-                    if (fieldName === 'sets') {
-                        notifyVolumeAffectingPlanChange('sets-edit');
-                    }
-                } else {
-                    throw new Error('Update failed');
+        // A blank draft reverts without a write, for counts as for other fields.
+        if (!save || !newValue || newValue === storedOriginal) {
+            cell.textContent = countLabel ? storedOriginal : newValue || storedOriginal;
+            return;
+        }
+
+        if (countLabel) {
+            cell.textContent = storedOriginal;
+            cell.setAttribute('aria-busy', 'true');
+        }
+        try {
+            const response = await updateExerciseField(exerciseId, fieldName, newValue);
+            if (response.ok) {
+                cell.textContent = countLabel ? storedCountText(newValue) : newValue;
+                showToast('Exercise updated successfully');
+                if (fieldName === 'sets') {
+                    notifyVolumeAffectingPlanChange('sets-edit');
                 }
-            } catch (error) {
+            } else {
+                throw new Error('Update failed');
+            }
+        } catch (error) {
+            cell.textContent = storedOriginal;
+            if (countLabel && error.code === 'VALIDATION_ERROR') {
+                showToast('warning', error.message);
+            } else {
                 console.error('Error updating exercise:', error);
-                cell.textContent = storedOriginal;
                 showToast('Failed to update exercise', true);
             }
-        } else {
-            cell.textContent = newValue || storedOriginal;
+        } finally {
+            if (countLabel) cell.removeAttribute('aria-busy');
         }
     };
 
@@ -600,7 +625,9 @@ function makeTableCellEditable(cell, exerciseId, fieldName) {
 
     // Delay adding the outside click handler to prevent immediate trigger
     setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
+        if (input.parentNode === cell) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
     }, 10);
 
     input.addEventListener('keydown', (e) => {

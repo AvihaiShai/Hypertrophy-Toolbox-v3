@@ -124,40 +124,42 @@
                         <td data-label="Planned RIR" class="metric-lane metric-lane--rir metric-lane--planned" data-field="planned_rir">{{ log.planned_rir }}</td>
                         <td data-label="Planned RPE" class="metric-lane metric-lane--rpe metric-lane--planned" data-field="planned_rpe">{{ log.planned_rpe }}</td>
                         <td data-label="Planned Weight" class="metric-lane metric-lane--weight metric-lane--planned" data-field="planned_weight">{{ log.planned_weight }}</td>
+                        {% set has_scored_min_reps = log.scored_min_reps not in (none, '', 'None') %}
                         <td data-label="Scored Min Reps" class="editable scored-cell metric-lane metric-lane--min-reps metric-lane--scored" data-field="scored_min_reps">
                             <div class="scored-value-container">
                                 <input type="number" 
                                        class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_min_reps if log.scored_min_reps and log.scored_min_reps != 'None' else '' }}"
+                                       value="{{ log.scored_min_reps if has_scored_min_reps else '' }}"
                                        min="0"
                                        style="display: none;">
-                                <span class="editable-text">{{ log.scored_min_reps if log.scored_min_reps and log.scored_min_reps != 'None' else '--' }}</span>
-                                {% if log.scored_min_reps and log.scored_min_reps != 'None' and log.planned_min_reps %}
-                                    {% if log.scored_min_reps|int > log.planned_min_reps|int %}
-                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Above target! (+{{ log.scored_min_reps|int - log.planned_min_reps|int }})"></i>
-                                    {% elif log.scored_min_reps|int == log.planned_min_reps|int %}
+                                <span class="editable-text">{{ log.scored_min_reps if has_scored_min_reps else '--' }}</span>
+                                {% if log.scored_min_reps is integer and log.planned_min_reps is integer and log.planned_min_reps %}
+                                    {% if log.scored_min_reps > log.planned_min_reps %}
+                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Above target! (+{{ log.scored_min_reps - log.planned_min_reps }})"></i>
+                                    {% elif log.scored_min_reps == log.planned_min_reps %}
                                         <i class="fas fa-equals progression-indicator text-warning" title="Met target"></i>
                                     {% else %}
-                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Below target ({{ log.scored_min_reps|int - log.planned_min_reps|int }})"></i>
+                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Below target ({{ log.scored_min_reps - log.planned_min_reps }})"></i>
                                     {% endif %}
                                 {% endif %}
                             </div>
                         </td>
+                        {% set has_scored_max_reps = log.scored_max_reps not in (none, '', 'None') %}
                         <td data-label="Scored Max Reps" class="editable scored-cell metric-lane metric-lane--max-reps metric-lane--scored" data-field="scored_max_reps">
                             <div class="scored-value-container">
                                 <input type="number" 
                                        class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_max_reps if log.scored_max_reps and log.scored_max_reps != 'None' else '' }}"
+                                       value="{{ log.scored_max_reps if has_scored_max_reps else '' }}"
                                        min="0"
                                        style="display: none;">
-                                <span class="editable-text">{{ log.scored_max_reps if log.scored_max_reps and log.scored_max_reps != 'None' else '--' }}</span>
-                                {% if log.scored_max_reps and log.scored_max_reps != 'None' and log.planned_max_reps %}
-                                    {% if log.scored_max_reps|int > log.planned_max_reps|int %}
-                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Above target! (+{{ log.scored_max_reps|int - log.planned_max_reps|int }})"></i>
-                                    {% elif log.scored_max_reps|int == log.planned_max_reps|int %}
+                                <span class="editable-text">{{ log.scored_max_reps if has_scored_max_reps else '--' }}</span>
+                                {% if log.scored_max_reps is integer and log.planned_max_reps is integer and log.planned_max_reps %}
+                                    {% if log.scored_max_reps > log.planned_max_reps %}
+                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Above target! (+{{ log.scored_max_reps - log.planned_max_reps }})"></i>
+                                    {% elif log.scored_max_reps == log.planned_max_reps %}
                                         <i class="fas fa-equals progression-indicator text-warning" title="Met target"></i>
                                     {% else %}
-                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Below target ({{ log.scored_max_reps|int - log.planned_max_reps|int }})"></i>
+                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Below target ({{ log.scored_max_reps - log.planned_max_reps }})"></i>
                                     {% endif %}
                                 {% endif %}
                             </div>

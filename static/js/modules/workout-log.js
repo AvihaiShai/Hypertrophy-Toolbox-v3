@@ -1,6 +1,7 @@
 import { showToast } from './toast.js';
 import { api, isHandledApiError, logApiError } from './fetch-wrapper.js';
 import { openExerciseVideoModal } from './exercise-video-modal.js';
+import { storedCountText } from './workout-plan-helpers.js';
 
 const ASSISTED_BODYWEIGHT_EXERCISES = new Set([
     'machine assisted chin up',
@@ -377,13 +378,14 @@ export async function updateProgressionStatus(logId) {
 }
 
 export async function updateScoredValue(logId, field, value) {
+    const isRep = isScoredRepField(field);
     try {
         const response = await api.post('/update_workout_log', {
             id: logId,
             updates: {
                 [field]: value === '' ? null : value
             }
-        });
+        }, { showErrorToast: !isRep });
 
         // Update the display text
         const row = document.querySelector(`tr[data-log-id="${logId}"]`);
@@ -391,7 +393,8 @@ export async function updateScoredValue(logId, field, value) {
         if (cell) {
             const display = cell.querySelector('.editable-text');
             if (display) {
-                display.textContent = value || '--';
+                const cleared = value === '' || value == null;
+                display.textContent = (isRep && !cleared ? storedCountText(value) : value) || '--';
             }
             
             // Update progression indicator for this cell
@@ -402,6 +405,10 @@ export async function updateScoredValue(logId, field, value) {
 
         notifyCalibrationOutcome(response?.data?.calibration);
     } catch (error) {
+        if (isRep && error.code === 'VALIDATION_ERROR') {
+            showToast('warning', error.message);
+            return;
+        }
         console.error('Error updating value:', error);
         showToast('error', 'Failed to update value');
     }
@@ -536,6 +543,10 @@ function updateProgressionIndicator(row, field, scoredValue) {
     }
 }
 
+export function isScoredRepField(field) {
+    return field === 'scored_min_reps' || field === 'scored_max_reps';
+}
+
 export function validateScoredValue(value, field) {
     if (value === '') return true;
     
@@ -547,6 +558,9 @@ export function validateScoredValue(value, field) {
             return num > 0 && num <= 10;
         case 'scored_reps':
             return num > 0 && num <= 100;
+        case 'scored_min_reps':
+        case 'scored_max_reps':
+            return Number.isInteger(num) && num >= 0;
         case 'scored_weight':
             return num >= 0 && num <= 1000;
         case 'scored_rir':

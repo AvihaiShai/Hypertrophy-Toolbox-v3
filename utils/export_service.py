@@ -17,7 +17,7 @@ from utils.weekly_summary import (
     calculate_isolated_muscles_stats,
     calculate_weekly_summary,
 )
-from utils.workout_validation import validate_workout_bounds
+from utils.workout_validation import validate_plan_log_bounds
 
 logger = get_logger()
 
@@ -502,14 +502,7 @@ def export_plan_to_workout_log():
         # Validate the full source set before inserting any log row so a
         # legacy/out-of-band invalid plan cannot produce a partial import.
         for exercise in workout_plan:
-            bounds_error = validate_workout_bounds(
-                weight=exercise["weight"],
-                rir=exercise["rir"],
-                min_reps=exercise["min_rep_range"],
-                max_reps=exercise["max_rep_range"],
-                allow_null=True,
-                allow_blank=False,
-            )
+            bounds_error = validate_plan_log_bounds(exercise)
             if bounds_error:
                 return PlanExportResult(False, bounds_error, "VALIDATION_ERROR", 400)
 

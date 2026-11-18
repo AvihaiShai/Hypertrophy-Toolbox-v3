@@ -56,19 +56,19 @@
       },
       {
         "file": "e2e/workout-log.spec.ts",
-        "lines": 7
+        "lines": 6
       }
     ],
     "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 82
+    "total_lines": 81
   },
   "playwright": {
     "project": "chromium",
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 574
+      "tests": 578
     },
     "specs": [
       {
@@ -154,7 +154,7 @@
       {
         "in_required_functional_set": false,
         "spec": "program-backup.spec.ts",
-        "tests": 36
+        "tests": 37
       },
       {
         "in_required_functional_set": true,
@@ -194,7 +194,7 @@
       {
         "in_required_functional_set": true,
         "spec": "validation-boundary.spec.ts",
-        "tests": 23
+        "tests": 27
       },
       {
         "in_required_functional_set": false,
@@ -238,10 +238,10 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 723
+    "total_tests": 728
   },
   "pytest": {
-    "collected_deterministic": 4623,
+    "collected_deterministic": 4699,
     "deterministic_files": 144,
     "environment_dependent_files": [
       {
@@ -460,7 +460,7 @@
       },
       {
         "file": "tests/test_exports.py",
-        "tests": 69
+        "tests": 71
       },
       {
         "file": "tests/test_fatigue.py",
@@ -620,7 +620,7 @@
       },
       {
         "file": "tests/test_program_backup_restore_fuzz.py",
-        "tests": 53
+        "tests": 58
       },
       {
         "file": "tests/test_progression_plan_routes.py",
@@ -796,7 +796,7 @@
       },
       {
         "file": "tests/test_workout_log_routes.py",
-        "tests": 64
+        "tests": 86
       },
       {
         "file": "tests/test_workout_log_utils.py",
@@ -804,7 +804,7 @@
       },
       {
         "file": "tests/test_workout_plan_routes.py",
-        "tests": 92
+        "tests": 139
       },
       {
         "file": "tests/test_workout_plan_service.py",
@@ -1858,7 +1858,11 @@
       },
       {
         "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
-        "name": "payload builders > coerces add-exercise fields and applies RIR/RPE empty semantics"
+        "name": "payload builders > preserves add-exercise count text and applies RIR/RPE empty semantics"
+      },
+      {
+        "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
+        "name": "payload builders > shows the whole number the server stores for an accepted count draft"
       },
       {
         "file": "static/js/modules/__tests__/workout-plan-seams.test.js",
@@ -1972,7 +1976,7 @@
         "file": "static/js/modules/__tests__/workout-plan-helpers.test.js"
       },
       {
-        "cases": 29,
+        "cases": 30,
         "file": "static/js/modules/__tests__/workout-plan-seams.test.js"
       },
       {
@@ -1980,7 +1984,7 @@
         "file": "static/js/modules/__tests__/workout-plan-state.test.js"
       }
     ],
-    "total_cases": 270,
+    "total_cases": 271,
     "total_files": 15
   }
 }

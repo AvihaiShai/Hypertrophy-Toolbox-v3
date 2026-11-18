@@ -1,5 +1,6 @@
 import { fetchWeeklySummary, fetchSessionSummary } from './summary.js';
-import { handleDateChange } from './workout-log.js';
+import { handleDateChange, isScoredRepField, updateScoredValue, validateScoredValue } from './workout-log.js';
+import { showToast } from './toast.js';
 
 /**
  * Add custom +/- buttons to number inputs for reliable increment/decrement
@@ -93,6 +94,13 @@ function addCustomSpinnerButtons(input) {
 }
 
 export function initializeUIHandlers() {
+    let activeScoredRepEditor = null;
+
+    function confirmedRepValue(cell) {
+        const displayed = cell.querySelector('.editable-text').textContent.trim();
+        return displayed === '--' ? '' : displayed;
+    }
+
     function showEditableText(inputElement, nextTextValue = null) {
         const cell = inputElement.closest('.editable');
         if (!cell) {
@@ -115,6 +123,57 @@ export function initializeUIHandlers() {
         }
     }
 
+    function initializeScoredRepEditor(input, cell, field) {
+        const logId = cell.closest('tr[data-log-id]').dataset.logId;
+        const wrapper = input.closest('.number-input-wrapper');
+        let edited = false;
+        const editor = { cell, finish };
+
+        async function finish(save) {
+            if (activeScoredRepEditor !== editor) return;
+            activeScoredRepEditor = null;
+
+            const value = input.value;
+            const valid = !input.validity.badInput && validateScoredValue(value, field);
+            const changed = save && edited;
+            const submit = changed && valid && value !== confirmedRepValue(cell);
+            edited = false;
+            input.classList.remove('is-invalid', 'is-valid');
+            if (submit) input.disabled = true;
+            showEditableText(input);
+
+            if (changed && !valid) {
+                showToast('warning', 'Scored reps must be a whole number of at least 0.');
+            }
+            if (!submit) return;
+
+            try {
+                await updateScoredValue(logId, field, value);
+            } finally {
+                input.disabled = false;
+            }
+        }
+
+        // Keep drafts local until the editor closes. The API updates the visible
+        // value only after confirming the save, so Escape and rejection leave it intact.
+        input.addEventListener('focus', () => { activeScoredRepEditor = editor; });
+        input.addEventListener('input', () => {
+            edited = true;
+            const valid = !input.validity.badInput && validateScoredValue(input.value, field);
+            input.classList.toggle('is-invalid', !valid);
+            input.classList.toggle('is-valid', valid);
+        });
+        wrapper.addEventListener('focusout', (event) => {
+            if (!wrapper.contains(event.relatedTarget)) void finish(true);
+        });
+        wrapper.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' || (event.key === 'Enter' && event.target === input)) {
+                event.preventDefault();
+                void finish(event.key === 'Enter');
+            }
+        });
+    }
+
     // Handle editable fields
     document.querySelectorAll('.editable').forEach(cell => {
         cell.addEventListener('click', function(e) {
@@ -130,6 +189,10 @@ export function initializeUIHandlers() {
             const wrapper = this.querySelector('.number-input-wrapper');
             
             if (input) {
+                if (isScoredRepField(this.dataset.field)) {
+                    if (input.disabled || input.style.display !== 'none') return;
+                    input.value = confirmedRepValue(this);
+                }
                 text.style.display = 'none';
                 input.style.display = 'block';
                 // Also show the wrapper if it exists (for number inputs with custom buttons)
@@ -166,6 +229,9 @@ export function initializeUIHandlers() {
         if (e.target.classList.contains('number-spinner-btn') || 
             e.target.closest('.number-spinner-btn')) {
             return;
+        }
+        if (activeScoredRepEditor && !activeScoredRepEditor.cell.contains(e.target)) {
+            void activeScoredRepEditor.finish(true);
         }
         
         if (!e.target.closest('.editable') && !e.target.classList.contains('editable-input')) {
@@ -216,6 +282,14 @@ export function initializeUIHandlers() {
 
     // Add validation for editable inputs (excluding date inputs which have their own handler)
     document.querySelectorAll('.editable-input:not(.date-input)').forEach(input => {
+        const cell = input.closest('[data-field]');
+        const field = cell?.dataset.field;
+        if (input.type === 'number' && isScoredRepField(field) && cell.closest('tr[data-log-id]')) {
+            addCustomSpinnerButtons(input);
+            initializeScoredRepEditor(input, cell, field);
+            return;
+        }
+
         // Combined input handler for validation and spinner interaction
         input.addEventListener('input', function() {
             // Validation

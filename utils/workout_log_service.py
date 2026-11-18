@@ -19,7 +19,12 @@ from utils.strength_calibration import (
     recompute_calibration_after_log,
     update_calibration_for_exercise,
 )
-from utils.workout_validation import UNSET, validate_workout_bounds
+from utils.workout_validation import (
+    UNSET,
+    parse_workout_count,
+    rep_bound_for_update,
+    validate_workout_bounds,
+)
 
 logger = get_logger()
 
@@ -55,9 +60,6 @@ def update_log_entry(log_id: Any, updates: dict) -> Optional[dict]:
     if not valid_updates:
         raise WorkoutLogServiceError("VALIDATION_ERROR", "No valid fields to update", 400)
 
-    set_clause = ", ".join(f"{k} = ?" for k in valid_updates.keys())
-    query = f"UPDATE workout_log SET {set_clause} WHERE id = ?"
-    params = list(valid_updates.values()) + [log_id]
     scored_changed = any(k.startswith("scored_") for k in valid_updates)
 
     calibration = None
@@ -75,19 +77,27 @@ def update_log_entry(log_id: Any, updates: dict) -> Optional[dict]:
 
         min_reps = max_reps = UNSET
         if "scored_min_reps" in valid_updates or "scored_max_reps" in valid_updates:
-            min_reps = valid_updates.get("scored_min_reps", existing["scored_min_reps"])
-            max_reps = valid_updates.get("scored_max_reps", existing["scored_max_reps"])
+            min_reps = rep_bound_for_update(valid_updates, existing, "scored_min_reps", minimum=0)
+            max_reps = rep_bound_for_update(valid_updates, existing, "scored_max_reps", minimum=0)
         bounds_error = validate_workout_bounds(
             weight=valid_updates.get("scored_weight", UNSET),
             rir=valid_updates.get("scored_rir", UNSET),
             min_reps=min_reps,
             max_reps=max_reps,
+            rep_minimum=0,
             allow_null=True,
         )
         if bounds_error:
             raise WorkoutLogServiceError("VALIDATION_ERROR", bounds_error, 400)
 
-        db.execute_query(query, params)
+        for field in ("scored_min_reps", "scored_max_reps"):
+            if field in valid_updates:
+                value = valid_updates[field]
+                valid_updates[field] = None if value is None or value == "" else parse_workout_count(value, 0)[0]
+
+        assignments = ", ".join(f"{field} = ?" for field in valid_updates)
+        params = (*valid_updates.values(), log_id)
+        db.execute_query(f"UPDATE workout_log SET {assignments} WHERE id = ?", params)
 
         # Recompute learned calibration from the updated logs, reusing the
         # open handler (plan §"DatabaseHandler Requirement"). Guarded so a

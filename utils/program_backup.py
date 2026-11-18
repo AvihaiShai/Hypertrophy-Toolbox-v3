@@ -15,13 +15,13 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, NamedTuple, Optional, Set
 
 from utils.backup_execution_contract import MISSING_STYLE, check_execution_fields, render_value
 from utils.database import DatabaseHandler
 from utils.errors import ValidationError
 from utils.logger import get_logger
-from utils.workout_validation import validate_workout_bounds
+from utils.workout_validation import parse_workout_count, validate_workout_bounds
 
 logger = get_logger()
 
@@ -59,6 +59,7 @@ _REQUIRED_PLAN_COLUMNS = (
     "rir", "rpe", "weight",
 )
 _OPTIONAL_PLAN_COLUMNS = ("exercise_order", "superset_group") + _EXECUTION_COLUMN_NAMES
+_PLAN_COUNT_COLUMNS = ("sets", "min_rep_range", "max_rep_range")
 
 
 class BackupRestoreRefused(Exception):
@@ -77,6 +78,12 @@ class BackupRestoreRefused(Exception):
         self.backup_name = backup_name
         self.rows = rows
         self.row_count = row_count
+
+
+class BackupRestoreResult(NamedTuple):
+    data: Dict[str, Any]
+    missing_row_count: int
+    invalid_row_count: int
 
 
 def initialize_backup_tables(db: Optional[DatabaseHandler] = None) -> None:
@@ -461,8 +468,8 @@ def get_backup_details(backup_id: int) -> Optional[Dict[str, Any]]:
 def _validate_restore_item(item: Dict[str, Any]) -> Optional[str]:
     """Return a user-facing reason a backup item cannot be restored, or ``None``.
 
-    Applies the canonical ``validate_workout_bounds`` contract to the four bounded
-    columns. ``rir`` is the only nullable one in program_backup_items, so it is
+    Applies the canonical bounds to the plan counts, weight and RIR. ``rir`` is
+    the only nullable one of these columns in program_backup_items, so it is
     omitted -- left UNSET -- when and only when it is exactly ``None``; an empty
     string stays present and is rejected. ``allow_null`` is deliberately not used:
     it maps ``""`` onto null, which would let a blank pass the bounds check and
@@ -472,15 +479,31 @@ def _validate_restore_item(item: Dict[str, Any]) -> Optional[str]:
         'weight': item.get('weight'),
         'min_reps': item.get('min_rep_range'),
         'max_reps': item.get('max_rep_range'),
+        'sets': item.get('sets'),
     }
     rir = item.get('rir')
     if rir is not None:
         fields['rir'] = rir
 
-    return validate_workout_bounds(**fields, allow_null=False)
+    return validate_workout_bounds(**fields, rep_minimum=1, allow_null=False)
+
+
+def _restore_value(item: Dict[str, Any], column: str) -> Any:
+    """Return the value to insert for one column of a validated backup item."""
+    value = item.get(column)
+    if column == 'execution_style' and value is None:
+        return MISSING_STYLE
+    if column in _PLAN_COUNT_COLUMNS:
+        return parse_workout_count(value, 1)[0]
+    return value
 
 
 def restore_backup(backup_id: int) -> Dict[str, Any]:
+    """Restore a backup and return its existing result fields."""
+    return restore_backup_with_counts(backup_id).data
+
+
+def restore_backup_with_counts(backup_id: int) -> BackupRestoreResult:
     """
     Restore a backup to the active program (replace mode).
     
@@ -494,7 +517,7 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
         backup_id: The ID of the backup to restore
     
     Returns:
-        Dict with restore results including:
+        Restore data and actual skipped row counts. The data contains:
         - restored_count: Number of items successfully restored
         - skipped: List of exercises that were skipped (missing from catalog)
         - invalid: List of rows skipped for invalid workout bounds
@@ -618,13 +641,11 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
             db.execute_query("DELETE FROM user_selection", commit=False)
 
             # One INSERT per row, never executemany. A missing style is written
-            # as MISSING_STYLE; a missing timing value stays NULL.
+            # as MISSING_STYLE; a missing timing value stays NULL. Counts are
+            # written as the integers validation parsed, as plan writes do.
             for item in restorable:
                 params = tuple(
-                    MISSING_STYLE
-                    if column == 'execution_style' and item.get(column) is None
-                    else item.get(column)
-                    for column in insert_columns
+                    _restore_value(item, column) for column in insert_columns
                 )
                 db.execute_query(insert_sql, params, commit=False)
             db.connection.commit()
@@ -633,6 +654,8 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
             raise
 
         restored_count = len(restorable)
+        missing_row_count = len(skipped)
+        invalid_row_count = len(invalid)
 
         # Normalize skipped entries while preserving order
         skipped_unique = list(dict.fromkeys(skipped))
@@ -643,18 +666,19 @@ def restore_backup(backup_id: int) -> Dict[str, Any]:
                 'backup_id': backup_id,
                 'backup_name': backup_name,
                 'restored_count': restored_count,
-                'skipped_count': len(skipped_unique),
-                'invalid_count': len(invalid)
+                'skipped_count': missing_row_count,
+                'invalid_count': invalid_row_count,
             }
         )
 
-        return {
+        result = {
             'backup_id': backup_id,
             'backup_name': backup_name,
             'restored_count': restored_count,
             'skipped': skipped_unique,
             'invalid': invalid
         }
+        return BackupRestoreResult(result, missing_row_count, invalid_row_count)
 
 
 def delete_backup(backup_id: int) -> bool:
