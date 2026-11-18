@@ -23,6 +23,60 @@ from utils.export_utils import (
 from utils.export_service import build_export_query
 
 
+@pytest.fixture
+def plan_and_log_for_isolated_export(workout_plan_factory, workout_log_factory):
+    plan_id = workout_plan_factory(sets=2)
+    workout_log_factory(plan_id=plan_id)
+
+
+class TestIsolatedMuscleSheet:
+    @pytest.mark.parametrize("view_mode", ["simple", "advanced"])
+    def test_failed_mapping_table_read(self, client, clean_db, plan_and_log_for_isolated_export, view_mode):
+        clean_db.execute_query("DROP TABLE exercise_isolated_muscles")
+
+        response = client.get(f"/export_to_excel?view_mode={view_mode}")
+
+        assert response.status_code == 500
+        assert response.is_json
+        payload = response.get_json()
+        assert payload["ok"] is False
+        assert payload["status"] == "error"
+        assert payload["error"]["code"] == "EXPORT_FAILED"
+        assert payload["error"]["message"] == "Failed to export data to Excel. Please try again."
+        assert "Content-Disposition" not in response.headers
+        assert not response.data.startswith(b"PK")
+        assert b"exercise_isolated_muscles" not in response.data
+        assert b"Traceback" not in response.data
+
+    @pytest.mark.parametrize("mapped", [False, True], ids=["unmapped", "mapped"])
+    def test_healthy_mapping_table_read(self, client, clean_db, plan_and_log_for_isolated_export, mapped):
+        if mapped:
+            clean_db.execute_query(
+                "INSERT INTO exercise_isolated_muscles (exercise_name, muscle) VALUES (?, ?)",
+                ("Test Exercise", "upper-pectoralis"),
+            )
+
+        response = client.get("/export_to_excel")
+
+        assert response.status_code == 200
+        assert response.headers["Content-Disposition"].startswith("attachment;")
+        workbook = load_workbook(BytesIO(response.data), read_only=True, data_only=True)
+        try:
+            assert "Workout Plan" in workbook.sheetnames
+            assert "Workout Log" in workbook.sheetnames
+            assert "Weekly Summary" in workbook.sheetnames
+            assert "Session Summary" in workbook.sheetnames
+            assert "Categories" in workbook.sheetnames
+            assert ("Isolated Muscles" in workbook.sheetnames) is mapped
+            if mapped:
+                headers, values = list(workbook["Isolated Muscles"].values)
+                row = dict(zip(headers, values))
+                assert row["isolated_muscle"] == "upper-pectoralis"
+                assert row["total_sets"] == 2
+        finally:
+            workbook.close()
+
+
 @pytest.fixture(params=['simple', 'advanced'])
 def execution_export(request, client, exercise_factory, workout_plan_factory,
                      workout_log_factory, clean_db):

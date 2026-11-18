@@ -326,7 +326,7 @@ live.
 |---|---|---|
 | **Generate Starter Plan** | Presentation → API | Modal collects days, environment, experience, goal, volume scale, movement restrictions, equipment whitelist, and up to two priority muscles; submits `POST /generate_starter_plan`. Every dropdown's options are **hardcoded in the template** — `GET /get_generator_options` exists but nothing calls it. Selecting zero equipment is blocked client-side with a warning toast before any request; more than two priority muscles is trimmed to two with a warning |
 | Export to Workout Log | API → Navigation | `POST /export_to_workout_log`. After a successful import, the browser navigates to `/workout_log` after ~1.5 s |
-| Export to Excel | Download | `GET /export_to_excel?view_mode=…`, response read as a blob and saved via a temporary `<a download>`. The `view_mode` value is read from `localStorage` |
+| Export to Excel | Download | `GET /export_to_excel?view_mode=…`, response read as a blob and saved via a temporary `<a download>`. The `view_mode` value is read from `localStorage`. If the isolated-muscle statistics read fails, full export returns HTTP 500 with `EXPORT_FAILED`. The Workout Plan shows an error toast and the download does not start. A successful read with no mappings permits a workbook without the Isolated Muscles sheet |
 | Load Program | Navigation | → `/backup?intent=browse` |
 | Clear Plan | Presentation → API | Modal, then `POST /clear_workout_plan` |
 
@@ -388,7 +388,7 @@ Three specifics that are easy to state wrong:
 
 | Control | Action type | Behavior |
 |---|---|---|
-| Muscle Contribution Mode `<select>` | API | Re-requests `GET /weekly_summary?contribution_mode=total\|direct` with JSON headers. `TOTAL` credits primary 100%, secondary 50%, tertiary 25%; `DIRECT_ONLY` credits primary only |
+| Muscle Contribution Mode `<select>` | API | Re-requests `GET /weekly_summary?contribution_mode=total\|direct` with JSON headers. `TOTAL` credits primary 100%, secondary 50%, tertiary 25%; `DIRECT_ONLY` credits primary only. A failed isolated-muscle read returns HTTP 500 with `INTERNAL_ERROR` and the table shows “Failed to load data.” |
 | Export to Excel | Download | `GET /export_to_excel` — the **workout plan** export, not a summary export |
 | Pattern coverage panel | API | `GET /api/pattern_coverage` |
 | **Projected fatigue badge** | Presentation + Navigation | Server-rendered on every request. Shows a band label and an info tooltip; its "View per-muscle breakdown" link navigates to `/fatigue` |
@@ -397,6 +397,10 @@ Three specifics that are easy to state wrong:
 **`counting_mode` has no UI control.** It is a query parameter (`raw` / `effective`, default
 `effective`); the page renders both counts side by side instead of switching between them.
 Unrecognized values for either mode fall back to the default rather than erroring.
+
+If the isolated-muscle statistics read fails on initial navigation, the page returns HTTP 500
+and shows the shared error page. A successful read with no matches leaves the page available
+and hides the isolated-muscle panel.
 
 ### How the two numbers relate
 
@@ -436,9 +440,13 @@ per-session averages.
 |---|---|---|
 | Routine filter | API | `GET /session_summary?routine=…` with JSON headers |
 | Start / end date | API | Same endpoint, `start_date` / `end_date` |
-| Muscle Contribution Mode | API | Same endpoint, `contribution_mode` |
+| Muscle Contribution Mode | API | Same endpoint, `contribution_mode`. A failed isolated-muscle read during this refresh returns HTTP 500 with `INTERNAL_ERROR` and the table shows “Failed to load data.” |
 | **Projected fatigue badge** | Presentation + Navigation | Same always-on server-rendered badge as Weekly Summary; links to `/fatigue` |
 | Export to Excel | Download | `GET /export_to_excel` |
+
+If the isolated-muscle statistics read fails on initial navigation, the page returns HTTP 500
+and shows the shared error page. A successful read with no matches leaves the page available
+and hides the isolated-muscle panel.
 
 **What the date window actually filters.** Volume comes from `user_selection` — the plan. Session
 counts come from `workout_log`. The date range filters **only the log side**. So narrowing the

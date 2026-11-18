@@ -4,38 +4,11 @@ Tests for routes/session_summary.py - Session summary API endpoints.
 
 import pytest
 from unittest.mock import patch
-from flask import Flask
 
-import utils.config
-from routes.session_summary import session_summary_bp, _parse_counting_mode, _parse_contribution_mode
+from routes.session_summary import _parse_counting_mode, _parse_contribution_mode
 from utils.effective_sets import CountingMode, ContributionMode
-
-
-@pytest.fixture
-def app(tmp_path):
-    """Create test Flask application.
-
-    ``DB_FILE`` is pinned to a per-test temporary path. These tests drive the
-    route in isolation with the calculator mocked, but the error handler also
-    runs the rep-range diagnostic, which opens a database — without this the
-    diagnostic would read (and create) the checkout's real ``data/database.db``.
-    """
-    original_db_file = utils.config.DB_FILE
-    utils.config.DB_FILE = str(tmp_path / "test_session_summary_routes.db")
-
-    app = Flask(__name__)
-    app.config['TESTING'] = True
-    app.register_blueprint(session_summary_bp)
-    try:
-        yield app
-    finally:
-        utils.config.DB_FILE = original_db_file
-
-
-@pytest.fixture
-def client(app):
-    """Create test client."""
-    return app.test_client()
+from utils.session_summary import calculate_session_summary
+from utils.weekly_summary import calculate_exercise_categories
 
 
 def assert_success_payload(payload):
@@ -51,6 +24,63 @@ def assert_error_payload(payload, code, message):
     assert payload["message"] == message
     assert payload["error"]["code"] == code
     assert payload["error"]["message"] == message
+
+
+@pytest.fixture
+def logged_plan(workout_plan_factory, workout_log_factory):
+    plan_id = workout_plan_factory(sets=2)
+    workout_log_factory(plan_id=plan_id)
+
+
+class TestSessionSummaryIsolatedRead:
+    @pytest.mark.parametrize("headers", [
+        {}, {"Accept": "application/json"}, {"X-Requested-With": "XMLHttpRequest"},
+    ], ids=["html", "json", "xhr"])
+    def test_failed_mapping_table_read(self, client, clean_db, logged_plan, headers):
+        clean_db.execute_query("DROP TABLE exercise_isolated_muscles")
+        assert calculate_session_summary()
+        assert calculate_exercise_categories()
+
+        response = client.get("/session_summary", headers=headers)
+
+        assert response.status_code == 500
+        if headers:
+            assert response.is_json
+            assert_error_payload(response.get_json(), "INTERNAL_ERROR", "Unable to fetch session summary")
+        else:
+            assert response.mimetype == "text/html"
+            assert b'<h1 class="error-status-code">500</h1>' in response.data
+            assert b"Unable to load session summary." in response.data
+            assert b'id="session-summary-table"' not in response.data
+        assert b"exercise_isolated_muscles" not in response.data
+        assert b"Traceback" not in response.data
+
+    @pytest.mark.parametrize("mapped", [False, True], ids=["unmapped", "mapped"])
+    def test_healthy_mapping_table_read(self, client, clean_db, logged_plan, mapped):
+        if mapped:
+            clean_db.execute_query(
+                "INSERT INTO exercise_isolated_muscles (exercise_name, muscle) VALUES (?, ?)",
+                ("Test Exercise", "upper-pectoralis"),
+            )
+
+        response = client.get("/session_summary", headers={"Accept": "application/json"})
+        assert response.status_code == 200
+        data = assert_success_payload(response.get_json())
+        assert any(row["has_logged_sessions"] for row in data["session_summary"])
+        assert data["categories"]
+
+        page = client.get("/session_summary")
+        assert page.status_code == 200
+        assert b'id="session-summary-table"' in page.data
+        assert (b'data-label="Isolated Muscle"' in page.data) is mapped
+        if mapped:
+            assert len(data["isolated_muscles"]) == 1
+            row = data["isolated_muscles"][0]
+            assert row["isolated_muscle"] == "upper-pectoralis"
+            assert row["total_sets"] == 2
+            assert b'data-label="Isolated Muscle">upper-pectoralis</td>' in page.data
+        else:
+            assert data["isolated_muscles"] == []
 
 
 class TestParseCountingMode:
