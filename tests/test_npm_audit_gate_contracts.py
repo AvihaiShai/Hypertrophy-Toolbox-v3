@@ -506,13 +506,13 @@ def test_the_gate_greens_on(tmp_path, case):
 # --------------------------------------------------- the committed artifacts
 
 
-# New exceptions require an owner decision. The braces remediation retires the
-# last exception under D-5 and section 6.3 E-6; see docs/BRACES_REMEDIATION.md.
-OWNER_APPROVED_ALLOWLIST_IDS: set[str] = set()
+# Owner approved the picomatch exception on 2026-11-18. Issue #724 tracks
+# remediation and removal of this entry.
+OWNER_APPROVED_ALLOWLIST_IDS: set[str] = {"GHSA-fc5q-39xc-vjpf"}
 
 
 def test_the_committed_allowlist_holds_exactly_the_owner_approved_entries():
-    """R2's empty allowlist, restored under section 6.3 E-6 after remediation.
+    """Pin the exact set approved by the owner under the npm audit policy.
 
     `"allow": []` and a deleted file must never look alike, so the contents are
     asserted through a parsed document rather than through the file's absence.

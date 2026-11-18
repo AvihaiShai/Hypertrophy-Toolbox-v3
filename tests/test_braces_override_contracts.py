@@ -12,6 +12,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 REVIEWED_ALIAS = "npm:@zklogic/braces@3.0.7"
+BRACES_ADVISORY_ID = "GHSA-vfj7-8cjw-p6xm"
 REVIEWED_INTEGRITY = (
     "sha512-+MYCuqCdcYsZCVkG7BkHXWrkXklBDq+cTxrSMrCI8o1BQg6iAEPhkNuWrfwSt0Ll"
     "adX0XSx3V1HYV7RzMsKEWQ=="
@@ -54,7 +55,13 @@ def test_locked_braces_graph_uses_reviewed_artifact_without_waiver() -> None:
     assert package["overrides"]["braces"] == REVIEWED_ALIAS
     assert package["devDependencies"]["stylelint"] == "16.11.0"
     assert lock["packages"]["node_modules/stylelint"]["version"] == "16.11.0"
-    assert allowlist["allow"] == []
+    braces_waivers = [
+        entry
+        for entry in allowlist["allow"]
+        if entry["id"] == BRACES_ADVISORY_ID
+        or entry["package"] in {"braces", "@zklogic/braces"}
+    ]
+    assert braces_waivers == [], "The reviewed braces artifact requires no waiver"
 
     resolutions = {
         path: entry
