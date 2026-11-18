@@ -315,3 +315,5 @@ Excel export while retaining healthy results.
 - [Council plan command](../../.claude/commands/council-plan.md)
 - [Quality Gate](../ai_workflow/QUALITY_GATE.md)
 - [Route conventions](../../.claude/rules/routes.md)
+
+Docs retention at closeout: keep active — `docs/summary_isolated_read_errors/PLANNING.md`; [PR #727](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/727) records the shipped behavior and verification; retain the approved page and export failure contract and the deferred roadmap items.

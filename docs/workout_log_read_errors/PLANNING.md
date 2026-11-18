@@ -295,3 +295,5 @@ Verification on 2026-11-18 used disposable SQLite fixtures and runtimes under
 - [Council plan command](../../.claude/commands/council-plan.md)
 - [Quality Gate](../ai_workflow/QUALITY_GATE.md)
 - [Route conventions](../../.claude/rules/routes.md)
+
+Docs retention at closeout: keep active — `docs/workout_log_read_errors/PLANNING.md`; [PR #726](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/726) records the shipped behavior and verification; retain the approved error contract and deferred assistance and helper work.

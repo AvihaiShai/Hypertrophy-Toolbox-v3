@@ -149,3 +149,5 @@ run is recorded as incomplete.
 - [x] Owner approves this plan (2026-11-18): "Gate 1 approved. Proceed with the plan,
   regression tests, required verification and reviewers. Preserve existing
   installations' muscle values and document that limitation."
+
+Docs retention at closeout: keep active — `docs/coan_deadlift_classification/PLANNING.md`; [PR #723](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/pull/723) records the shipped change; retain the classification rationale and the compatibility decision for existing installations.
