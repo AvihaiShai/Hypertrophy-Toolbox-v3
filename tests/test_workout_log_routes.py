@@ -15,9 +15,13 @@ class TestWorkoutLogPageRender:
     """Tests for GET /workout_log page rendering."""
 
     def test_workout_log_page_loads(self, client, clean_db):
-        """Page must render."""
+        """A healthy empty log renders the normal table with zero rows."""
         resp = client.get("/workout_log")
         assert resp.status_code == 200
+        body = resp.get_data(as_text=True)
+        assert 'id="workout-log-table"' in body
+        assert '<tr data-log-id=' not in body
+        assert 'class="error-status-code"' not in body
 
     def test_workout_log_page_shows_entries(self, client, clean_db, workout_log_entry):
         """Page must render and surface the seeded entry."""
@@ -89,6 +93,68 @@ class TestWorkoutLogPageRender:
         assert 'value="0.0"' in html
         assert '<span class="editable-text">0.0</span>' in html
         assert "Assistance decreased!" in html
+
+
+class TestWorkoutLogReadFailures:
+    """Distinguish a database read failure from a healthy empty result."""
+
+    def test_navigation_returns_html_error(self, client, missing_workout_log_table):
+        resp = client.get("/workout_log")
+
+        assert resp.status_code == 500
+        assert resp.mimetype == "text/html"
+        body = resp.get_data(as_text=True)
+        assert "<title>Server Error - Hypertrophy Toolbox</title>" in body
+        assert '<h1 class="error-status-code">500</h1>' in body
+        assert '<p class="error-message">Unable to load workout log.</p>' in body
+        assert 'id="workout-log-table"' not in body
+        assert "no such table" not in body
+        assert "Traceback" not in body
+
+    @pytest.mark.parametrize("headers", [
+        {"Accept": "application/json"},
+        {"X-Requested-With": "XMLHttpRequest"},
+    ], ids=["json-accept", "xhr"])
+    def test_json_request_returns_log_error(self, client, missing_workout_log_table, headers):
+        resp = client.get("/workout_log", headers=headers)
+
+        assert resp.status_code == 500
+        assert resp.is_json
+        payload = resp.get_json()
+        assert payload["ok"] is False
+        assert payload["status"] == "error"
+        assert payload["error"]["code"] == "INTERNAL_ERROR"
+        assert payload["error"]["message"] == "Unable to load workout log."
+        body = resp.get_data(as_text=True)
+        assert "no such table" not in body
+        assert "Traceback" not in body
+
+    def test_standalone_export_returns_error_without_workbook(self, client, missing_workout_log_table):
+        resp = client.get("/export_workout_log")
+
+        assert resp.status_code == 500
+        assert resp.mimetype == "application/json"
+        payload = resp.get_json()
+        assert payload["ok"] is False
+        assert payload["status"] == "error"
+        assert payload["error"]["code"] == "INTERNAL_ERROR"
+        assert payload["error"]["message"] == "Failed to export workout log"
+        assert "Content-Disposition" not in resp.headers
+        assert not resp.data.startswith(b"PK")
+        body = resp.get_data(as_text=True)
+        assert "no such table" not in body
+        assert "Traceback" not in body
+
+    def test_independent_list_retains_json_error(self, client, missing_workout_log_table):
+        resp = client.get("/get_workout_logs")
+
+        assert resp.status_code == 500
+        assert resp.is_json
+        payload = resp.get_json()
+        assert payload["ok"] is False
+        assert payload["status"] == "error"
+        assert payload["error"]["code"] == "INTERNAL_ERROR"
+        assert payload["error"]["message"] == "Failed to fetch workout logs"
 
 
 class TestUpdateWorkoutLog:
@@ -408,13 +474,22 @@ class TestGetWorkoutLogs:
         assert data["ok"] is True
         assert data["data"] == []
 
-    def test_get_workout_logs_with_entries(self, client, clean_db, workout_log_entry):
-        """Should return all workout log entries."""
+    def test_get_workout_logs_with_entries(
+        self, client, clean_db, workout_log_entry, workout_log_factory, workout_plan_entry
+    ):
+        """Return log and plan fields with the newest entries first."""
+        older_id = workout_log_factory(workout_plan_entry["id"], exercise="Incline Bench Press")
+        clean_db.execute_query(
+            "UPDATE workout_log SET created_at = ? WHERE id = ?",
+            ("2020-01-01 00:00:00", older_id),
+        )
         resp = client.get("/get_workout_logs")
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["ok"] is True
-        assert len(data["data"]) >= 1
+        assert [entry["id"] for entry in data["data"]] == [workout_log_entry["id"], older_id]
+        assert data["data"][0]["plan_exercise"] == "Bench Press"
+        assert data["data"][0]["plan_routine"] == "Push"
 
 
 class TestExportToWorkoutLog:
@@ -471,6 +546,7 @@ class TestExportWorkoutLog:
         """Should return 404 when no logs to export."""
         resp = client.get("/export_workout_log")
         assert resp.status_code == 404
+        assert resp.get_json()["error"]["code"] == "NOT_FOUND"
 
     def test_export_workout_log_returns_excel(self, client, clean_db, workout_log_entry):
         """Should return an xlsx content type and an attachment disposition."""
@@ -528,8 +604,42 @@ class TestExportWorkoutLog:
             header_row.pop()
         assert header_row == expected_headers
 
+    def test_export_workout_log_workbook_preserves_order(
+        self, client, workout_log_factory, workout_plan_entry
+    ):
+        from io import BytesIO
+        from openpyxl import load_workbook
+
+        plan_id = workout_plan_entry["id"]
+        workout_log_factory(plan_id, routine="Routine B", exercise="Bench Press")
+        workout_log_factory(plan_id, routine="Routine A", exercise="Row")
+        workout_log_factory(plan_id, routine="Routine A", exercise="Bench Press")
+
+        resp = client.get("/export_workout_log")
+        assert resp.status_code == 200
+
+        wb = load_workbook(BytesIO(resp.data), read_only=True)
+        try:
+            rows = wb["Workout Log"].values
+            headings = next(rows)
+            routine_column = headings.index("routine")
+            exercise_column = headings.index("exercise")
+            assert [(row[routine_column], row[exercise_column]) for row in rows] == [
+                ("Routine A", "Bench Press"),
+                ("Routine A", "Row"),
+                ("Routine B", "Bench Press"),
+            ]
+        finally:
+            wb.close()
+
 
 # Fixtures for workout_log tests
+@pytest.fixture
+def missing_workout_log_table(clean_db):
+    """Force a real read error in this test's disposable database."""
+    clean_db.execute_query("DROP TABLE workout_log")
+
+
 @pytest.fixture
 def workout_log_entry(clean_db, workout_plan_entry):
     """Create a basic workout log entry for testing."""
