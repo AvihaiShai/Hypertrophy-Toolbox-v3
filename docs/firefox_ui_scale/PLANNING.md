@@ -1,8 +1,6 @@
 # Plan Review — Firefox application scale (#607, AUD-1291)
 
-**Status:** The owner approved Gate 0 on 2026-11-18. Plan v1, the council review, the
-response matrix and Plan v2 were completed on 2026-11-18. Plan v2 awaits owner approval
-(Gate 1). Implementation is not authorized until then.
+**Status:** The owner approved Gate 0 and Plan v2 (Gate 1) on 2026-11-18.
 
 **Planning size:** Large under
 [QUALITY_GATE.md](../ai_workflow/QUALITY_GATE.md#plan-stage-routing). The change
@@ -1174,7 +1172,7 @@ separate owner decision.
 
 ### Open questions for Gate 1
 
-**For the owner:**
+**Owner dispositions, approved 2026-11-18:**
 - **OQ1. Hide only the trailing divider.** Recommended. It matches the owner's
   singular "its associated divider" and the A-S1 structure.
 - **OQ2. Post a follow-up if C0 contradicts the correction.** If C0 shows that today's
@@ -1183,6 +1181,11 @@ separate owner decision.
   retroactively. Recommended.
 - **OQ3. No committed evidence summary.** The PR description and a #607 comment are
   enough, with the raw evidence under `artifacts/`. Recommended.
+
+The owner also approved checking rendered geometry before `accessibility.js`
+initializes in C4 and C9. Temporarily delay the script in the disposable profile
+and measure computed zoom or geometry before releasing it, then confirm a normal
+navigation or reload.
 
 **For the reviewers:** none open. RQ1, RQ3 and RQ5 are answered in the response
 matrix, RQ2 is settled by A-S1, and RQ4 keeps the v1 choice.
@@ -1194,5 +1197,5 @@ matrix, RQ2 is settled by A-S1, and RQ4 keeps the v1 choice.
 - [x] Gate 0 complete when required by planning size; otherwise marked not applicable. — owner, 2026-11-18
 - [x] Every finding has a disposition. — dispositions proposed by the coordinator, 2026-11-18; the owner confirms them at Gate 1
 - [x] Agent provenance complete — both `product-manager` IDs, same-PM-resumed yes/no, the three reviewer IDs, and an evidence-gap line (or `none`).
-- [ ] Owner approved Plan v2 (Gate 1).
-- [ ] Ready to implement — proceed to code, then `/unslop` or `/verify-and-polish` for the diff-time gate.
+- [x] Owner approved Plan v2 (Gate 1) and the dispositions above on 2026-11-18.
+- [x] Ready to implement. Run the diff-time gate after code.
