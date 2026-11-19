@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 580
+      "tests": 590
     },
     "specs": [
       {
@@ -149,7 +149,7 @@
       {
         "in_required_functional_set": true,
         "spec": "nav-dropdown.spec.ts",
-        "tests": 7
+        "tests": 17
       },
       {
         "in_required_functional_set": false,
@@ -238,7 +238,7 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 730
+    "total_tests": 740
   },
   "pytest": {
     "collected_deterministic": 4701,

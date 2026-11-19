@@ -7,7 +7,7 @@ adjudication. Red-path proofs are recorded in the packet evidence documents.
 The assertions are deliberately **structural and occurrence-aware** rather than
 substring-based. `.navbar` is the selector text of BOTH the rule f1 deleted
 (`body:not(:has(#navbar)) .navbar`) and the rule f1 retained (`.navbar` at
-navbar.css:892), so `assert ".navbar" in css` cannot tell a successful deletion
+navbar.css:883), so `assert ".navbar" in css` cannot tell a successful deletion
 from a restored one. That defect class was found in packet `e` and again in
 packet `d1`; this file avoids it by parsing rules and counting occurrences.
 
@@ -231,9 +231,12 @@ def test_f2_calm_container_declarations_share_the_unlayered_base_rule() -> None:
 # Step 1 of #736 removes the two layered phone brand overrides and the unlayered
 # fixed Body Composition width. Content sizing also retires the fixed-width token.
 IMPORTANT_DECLARATIONS = 93
-CUSTOM_PROPERTY_DECLARATIONS = 71
+# Includes the unlayered `--nav-height: var(--nav-height-compact)` on the open compact
+# panel (#733), which keeps its top and height on the compact header's bottom edge.
+CUSTOM_PROPERTY_DECLARATIONS = 72
 LAYER_BLOCKS = 1
-STYLE_RULES = 187
+# Includes the rule that carries it, `#navbar.nb-compact nav.navbar-collapse.show`.
+STYLE_RULES = 188
 KEYFRAME_STEPS = 5
 
 
@@ -254,7 +257,8 @@ def test_layer_membership_is_frozen() -> None:
     assert len(re.findall(r"@layer\s+[\w-]+\s*\{", css)) == LAYER_BLOCKS
     rules = _rules(_css())
     assert sum(1 for r in rules if r["layer"]) == 99
-    assert sum(1 for r in rules if r["layer"] is None) == 88
+    # The #733 compact-panel rule is unlayered.
+    assert sum(1 for r in rules if r["layer"] is None) == 89
 
 
 def test_f2_consolidated_rule_count_is_exact() -> None:
