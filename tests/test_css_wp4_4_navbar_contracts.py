@@ -231,9 +231,12 @@ def test_f2_calm_container_declarations_share_the_unlayered_base_rule() -> None:
 # Measured on the post-f2 file. Importance, custom properties, layer blocks,
 # and keyframes are unchanged from f1; only the style-rule count moves.
 IMPORTANT_DECLARATIONS = 93
-CUSTOM_PROPERTY_DECLARATIONS = 72
+# 72 -> 73 (#733): one unlayered `--nav-height: var(--nav-height-compact)` on the
+# open compact panel so its top and height follow the 56px header; no declaration deleted.
+CUSTOM_PROPERTY_DECLARATIONS = 73
 LAYER_BLOCKS = 1
-STYLE_RULES = 190
+# 190 -> 191 (#733): the one new unlayered rule above (`#navbar.nb-compact nav.navbar-collapse.show`).
+STYLE_RULES = 191
 KEYFRAME_STEPS = 5
 
 
@@ -255,7 +258,8 @@ def test_layer_membership_is_frozen() -> None:
     assert len(re.findall(r"@layer\s+[\w-]+\s*\{", css)) == LAYER_BLOCKS
     rules = _rules(_css())
     assert sum(1 for r in rules if r["layer"]) == 101
-    assert sum(1 for r in rules if r["layer"] is None) == 89
+    # 89 -> 90 (#733): the new unlayered compact-panel rule; layered count stays 101.
+    assert sum(1 for r in rules if r["layer"] is None) == 90
 
 
 def test_f2_consolidated_rule_count_is_exact() -> None:

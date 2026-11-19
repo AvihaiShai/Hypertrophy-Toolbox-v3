@@ -158,6 +158,10 @@ Glass surfaces are real and live: the navbar computes to
 `backdrop-filter: blur(20px) saturate(1.8)` in both themes, over `rgba(255,255,255,.75)` light and
 `rgba(12,16,21,.94)` dark. Buttons carry a lighter `blur(4px)`.
 
+At hamburger widths (up to 1359.98px) the open navbar menu panel is the exception: it is fully
+opaque, `--surface-2` (`#ffffff` light, `#26313d` dark), because blur cannot work inside the
+header's own backdrop root and any translucency let page text ghost behind the links.
+
 ---
 
 ## Typography
@@ -389,6 +393,10 @@ Plan page: `transition-duration: 0s`, `animation-duration: 0s`, and `0s` on `bod
   render a text label beside the color.
 - **Controls are labelled.** The icon-only navbar buttons — dark mode, muscle naming, scale −/+ —
   each carry an `aria-label` and a `title`; the scale indicator is `aria-live="polite"`.
+- **The open navbar menu traps focus.** While the hamburger menu is open, Tab wraps inside it and
+  page content is inert with scrolling locked. Escape and a click on empty panel space close it and
+  return focus to the toggler. Widening the viewport to 1360px or wider releases the trap, the
+  scroll lock and the inert state.
 - **Modals trap focus.** `static/js/modules/modal-focus-trap.js` loads globally from `base.html`.
 - **Toasts announce.** The toast element itself carries `role="alert"`, `aria-live="assertive"`,
   and `aria-atomic="true"` — the live region is the toast, not its positioning container.

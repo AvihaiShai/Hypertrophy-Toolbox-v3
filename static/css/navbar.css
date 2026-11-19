@@ -883,14 +883,14 @@
 }
 
 /* ==========================================================================
-   Legacy Support - Preserve existing classes for JS compatibility
-   These styles are maintained for backward compatibility but are overridden
-   by the scoped styles above when within #navbar
+   Unlayered fixed-position owner for the header (AUD-0418): #navbar is
+   <header class="navbar ...">, and this rule is unlayered while
+   `#navbar { position: sticky }` sits in @layer navbar, so it is the live winner.
    ========================================================================== */
 
-/* Deprecated: Use #navbar scoped styles instead */
+/* Live: unlayered declarations beat the layered #navbar rules above */
 .navbar {
-  /* Legacy fallback - only applies outside #navbar wrapper */
+  /* Applies to #navbar itself, not only to bare .navbar elements */
   position: fixed;
   top: 0;
   left: 0;
@@ -966,13 +966,13 @@
   gap: var(--s-3, 12px);
 }
 
-#navbar .navbar-collapse {
+#navbar .navbar-collapse:not(.show) {
   height: 100% !important;
   background: transparent !important;
   background-color: transparent !important;
 }
 
-#navbar .navbar-nav {
+#navbar :where(.navbar-collapse:not(.show)) .navbar-nav {
   height: 100% !important;
   align-items: center !important;
   background: transparent !important;
@@ -1275,13 +1275,13 @@
 
   #navbar nav.navbar-collapse.show {
     align-items: stretch;
-    background: color-mix(in srgb, var(--surface-2, #ffffff) 88%, transparent);
+    background: var(--surface-2);
     backdrop-filter: blur(var(--calm-glass-blur, 18px)) saturate(var(--calm-glass-sat, 150%));
     -webkit-backdrop-filter: blur(var(--calm-glass-blur, 18px)) saturate(var(--calm-glass-sat, 150%));
     box-shadow: var(--shadow-elev-2, 0 8px 24px rgba(15, 18, 32, 0.12));
     display: flex !important;
     flex-direction: column;
-    height: calc(100vh - var(--nav-height, 64px)) !important;
+    height: calc(100dvh - var(--nav-height, 64px)) !important;
     inset: 0;
     max-height: none !important;
     overflow-y: auto;
@@ -1292,13 +1292,14 @@
   }
 
   [data-theme="dark"] #navbar nav.navbar-collapse.show {
-    background: color-mix(in srgb, var(--surface-2, #1d2238) 88%, transparent);
+    background: var(--surface-2);
   }
 
   #navbar nav.navbar-collapse.show .navbar-nav {
     align-items: stretch !important;
     flex-direction: column;
     gap: var(--s-2, 8px);
+    height: auto;
     width: 100%;
   }
 
@@ -1470,14 +1471,23 @@
   color: var(--nav-pill-ink-strong);
 }
 
+/* Compact header: the open panel starts at the 56px header bottom, in both hamburger bands */
+@media (max-width: 1359.98px) {
+  #navbar.nb-compact nav.navbar-collapse.show {
+    --nav-height: var(--nav-height-compact);
+  }
+}
+
 @media (max-width: 991.98px) {
   :where(#navbar) nav.navbar-collapse.show {
-    background: color-mix(in srgb, var(--surface-2, #ffffff) 88%, transparent);
+    background: var(--surface-2);
+    height: calc(100dvh - var(--nav-height));
     border-top: 1px solid var(--nav-glass-border-soft);
   }
 
   :where(#navbar) nav.navbar-collapse.show .navbar-nav {
     gap: var(--s-2, 8px);
+    height: auto;
   }
 
   :where(#navbar) nav.navbar-collapse.show .nav-link {

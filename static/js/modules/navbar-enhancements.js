@@ -9,7 +9,9 @@
 export function initializeNavbarEnhancements() {
   const navbar = document.getElementById('navbar');
   if (!navbar) return;
-  
+  if (navbar.dataset.navbarEnhancementsInitialized === 'true') return;
+  navbar.dataset.navbarEnhancementsInitialized = 'true';
+
   const mobileMenuToggle = navbar.querySelector('.navbar-toggler, .nb-menu-btn');
   const mobileMenu = navbar.querySelector('#navbarNav');
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -102,7 +104,7 @@ export function initializeNavbarEnhancements() {
       
       // Close on Escape
       if (e.key === 'Escape' && isMenuOpen) {
-        closeMobileMenu();
+        hideMobileMenu();
       }
     }
     
@@ -138,9 +140,6 @@ export function initializeNavbarEnhancements() {
       }
     }
     
-    // Make unlockBodyScroll accessible for resize handler
-    window.navbarUnlockBodyScroll = unlockBodyScroll;
-    
     // Open mobile menu
     function openMobileMenu() {
       isMenuOpen = true;
@@ -160,58 +159,74 @@ export function initializeNavbarEnhancements() {
       document.addEventListener('keydown', trapFocus);
     }
     
-    // Close mobile menu
-    function closeMobileMenu() {
+    // Ask Bootstrap to close; cleanup runs once from hidden.bs.collapse
+    function hideMobileMenu() {
+      bootstrap.Collapse.getOrCreateInstance(mobileMenu, { toggle: false }).hide();
+    }
+
+    // Release menu state (safe to call repeatedly)
+    function releaseMenuState() {
       isMenuOpen = false;
-      mobileMenu.classList.remove('show');
       navbar.setAttribute('aria-expanded', 'false');
       mobileMenuToggle.setAttribute('aria-expanded', 'false');
       unlockBodyScroll();
-      
+
       // Remove event listeners
       mobileMenu.removeEventListener('keydown', trapFocus);
       document.removeEventListener('keydown', trapFocus);
-      
+    }
+
+    // Close mobile menu
+    function closeMobileMenu() {
+      releaseMenuState();
+
       // Return focus to toggle button
       mobileMenuToggle.focus();
     }
-    
+
+    // Leave the hamburger layout: reset by hand without moving focus
+    function leaveHamburgerLayout() {
+      releaseMenuState();
+      mobileMenu.classList.remove('show');
+      mobileMenuToggle.classList.add('collapsed');
+    }
+
+    function isDesktopLayout() {
+      return window.matchMedia('(min-width: 1360px)').matches;
+    }
+
     // Handle Bootstrap collapse events (since we're using Bootstrap's collapse)
     mobileMenu.addEventListener('shown.bs.collapse', () => {
-      openMobileMenu();
+      if (isDesktopLayout()) {
+        leaveHamburgerLayout();
+      } else {
+        openMobileMenu();
+      }
     });
-    
+
     mobileMenu.addEventListener('hidden.bs.collapse', () => {
       closeMobileMenu();
     });
-    
+
     // Close on overlay click (if clicking outside menu content)
     mobileMenu.addEventListener('click', (e) => {
       if (e.target === mobileMenu) {
-        closeMobileMenu();
-        mobileMenuToggle.click(); // Trigger Bootstrap collapse
+        hideMobileMenu();
       }
     });
-    
+
+    // Close the menu when the viewport leaves the hamburger layout
+    window.addEventListener('resize', () => {
+      if (isDesktopLayout() && mobileMenu.classList.contains('show')) {
+        leaveHamburgerLayout();
+      }
+    }, { passive: true });
+
     // Initial state check
     if (mobileMenu.classList.contains('show')) {
       openMobileMenu();
     }
   }
-  
-  // Handle window resize - close mobile menu on resize to desktop
-  function handleResize() {
-    if (window.innerWidth > 992 && mobileMenu && mobileMenu.classList.contains('show')) {
-      mobileMenu.classList.remove('show');
-      navbar.setAttribute('aria-expanded', 'false');
-      mobileMenuToggle?.setAttribute('aria-expanded', 'false');
-      if (window.navbarUnlockBodyScroll) {
-        window.navbarUnlockBodyScroll();
-      }
-    }
-  }
-  
-  window.addEventListener('resize', handleResize, { passive: true });
 }
 
 function initializeDesktopHoverDropdowns(navbar) {
