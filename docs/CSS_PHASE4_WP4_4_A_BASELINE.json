@@ -193,7 +193,7 @@
         {
           "layer": "navbar",
           "openLine": 6,
-          "closeLine": 883
+          "closeLine": 874
         }
       ],
       "pages-welcome.css": [
@@ -1829,7 +1829,7 @@
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
       "line": "504",
-      "pinnedString": "getPropertyValue('--volume-track-bg')",
+      "pinnedString": "var(--volume-track-bg)",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {

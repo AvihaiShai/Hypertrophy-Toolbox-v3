@@ -241,7 +241,7 @@
     "total_tests": 730
   },
   "pytest": {
-    "collected_deterministic": 4700,
+    "collected_deterministic": 4701,
     "deterministic_files": 144,
     "environment_dependent_files": [
       {
@@ -344,7 +344,7 @@
       },
       {
         "file": "tests/test_css_cascade_contracts.py",
-        "tests": 30
+        "tests": 31
       },
       {
         "file": "tests/test_css_display_utilities_contracts.py",
