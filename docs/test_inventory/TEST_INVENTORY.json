@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 579
+      "tests": 580
     },
     "specs": [
       {
@@ -224,7 +224,7 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-log.spec.ts",
-        "tests": 23
+        "tests": 24
       },
       {
         "in_required_functional_set": false,
@@ -238,7 +238,7 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 729
+    "total_tests": 730
   },
   "pytest": {
     "collected_deterministic": 4699,

@@ -94,56 +94,39 @@ function addCustomSpinnerButtons(input) {
 }
 
 export function initializeUIHandlers() {
-    let activeScoredRepEditor = null;
+    let activeScoreEditor = null;
 
-    function confirmedRepValue(cell) {
+    function confirmedScore(cell) {
         const displayed = cell.querySelector('.editable-text').textContent.trim();
         return displayed === '--' ? '' : displayed;
     }
 
-    function showEditableText(inputElement, nextTextValue = null) {
-        const cell = inputElement.closest('.editable');
-        if (!cell) {
-            return;
-        }
-
-        const text = cell.querySelector('.editable-text');
-        const wrapper = cell.querySelector('.number-input-wrapper');
-
-        if (text) {
-            if (nextTextValue !== null) {
-                text.textContent = nextTextValue === '' ? '--' : nextTextValue;
-            }
-            text.style.display = text.classList.contains('date-display') ? 'flex' : 'block';
-        }
-
-        inputElement.style.display = 'none';
-        if (wrapper) {
-            wrapper.style.display = 'none';
-        }
-    }
-
-    function initializeScoredRepEditor(input, cell, field) {
+    function initializeScoreEditor(input, cell, field) {
         const logId = cell.closest('tr[data-log-id]').dataset.logId;
         const wrapper = input.closest('.number-input-wrapper');
         let edited = false;
         const editor = { cell, finish };
 
         async function finish(save) {
-            if (activeScoredRepEditor !== editor) return;
-            activeScoredRepEditor = null;
+            if (activeScoreEditor !== editor) return;
+            activeScoreEditor = null;
 
             const value = input.value;
             const valid = !input.validity.badInput && validateScoredValue(value, field);
             const changed = save && edited;
-            const submit = changed && valid && value !== confirmedRepValue(cell);
+            const submit = changed && valid && value !== confirmedScore(cell);
             edited = false;
             input.classList.remove('is-invalid', 'is-valid');
             if (submit) input.disabled = true;
-            showEditableText(input);
+            input.style.display = 'none';
+            wrapper.style.display = 'none';
+            cell.querySelector('.editable-text').style.display = 'block';
 
             if (changed && !valid) {
-                showToast('warning', 'Scored reps must be a whole number of at least 0.');
+                const message = isScoredRepField(field)
+                    ? 'Scored reps must be a whole number of at least 0.'
+                    : `Enter a number from ${input.min} to ${input.max} for ${cell.dataset.label}.`;
+                showToast('warning', message);
             }
             if (!submit) return;
 
@@ -156,7 +139,7 @@ export function initializeUIHandlers() {
 
         // Keep drafts local until the editor closes. The API updates the visible
         // value only after confirming the save, so Escape and rejection leave it intact.
-        input.addEventListener('focus', () => { activeScoredRepEditor = editor; });
+        input.addEventListener('focus', () => { activeScoreEditor = editor; });
         input.addEventListener('input', () => {
             edited = true;
             const valid = !input.validity.badInput && validateScoredValue(input.value, field);
@@ -189,9 +172,9 @@ export function initializeUIHandlers() {
             const wrapper = this.querySelector('.number-input-wrapper');
             
             if (input) {
-                if (isScoredRepField(this.dataset.field)) {
+                if (this.classList.contains('scored-cell')) {
                     if (input.disabled || input.style.display !== 'none') return;
-                    input.value = confirmedRepValue(this);
+                    input.value = confirmedScore(this);
                 }
                 text.style.display = 'none';
                 input.style.display = 'block';
@@ -230,8 +213,8 @@ export function initializeUIHandlers() {
             e.target.closest('.number-spinner-btn')) {
             return;
         }
-        if (activeScoredRepEditor && !activeScoredRepEditor.cell.contains(e.target)) {
-            void activeScoredRepEditor.finish(true);
+        if (activeScoreEditor && !activeScoreEditor.cell.contains(e.target)) {
+            void activeScoreEditor.finish(true);
         }
         
         if (!e.target.closest('.editable') && !e.target.classList.contains('editable-input')) {
@@ -266,138 +249,10 @@ export function initializeUIHandlers() {
 
     initializeSummaryMethodHandlers();
 
-    // Global flag for spinner interaction tracking
-    let activeSpinnerInput = null;
-    let globalBlurTimeout = null;
-    
-    // Debounce timers for spinner input updates (to avoid too many API calls)
-    const inputDebounceTimers = new Map();
-    
-    // Global mouseup handler (only add once)
-    document.addEventListener('mouseup', function() {
-        setTimeout(() => {
-            activeSpinnerInput = null;
-        }, 50);
-    });
-
-    // Add validation for editable inputs (excluding date inputs which have their own handler)
-    document.querySelectorAll('.editable-input:not(.date-input)').forEach(input => {
-        const cell = input.closest('[data-field]');
-        const field = cell?.dataset.field;
-        if (input.type === 'number' && isScoredRepField(field) && cell.closest('tr[data-log-id]')) {
-            addCustomSpinnerButtons(input);
-            initializeScoredRepEditor(input, cell, field);
-            return;
-        }
-
-        // Combined input handler for validation and spinner interaction
-        input.addEventListener('input', function() {
-            // Validation
-            const field = this.closest('[data-field]')?.dataset?.field;
-            if (field) {
-                const isValid = validateScoredValue(this.value, field);
-                this.classList.toggle('is-invalid', !isValid);
-                this.classList.toggle('is-valid', isValid);
-            }
-            // Value changed (possibly via spinner), cancel any pending hide
-            if (globalBlurTimeout) {
-                clearTimeout(globalBlurTimeout);
-                globalBlurTimeout = null;
-            }
-            
-            // For number inputs (spinners), debounce and trigger the update
-            // This ensures spinner clicks actually save the value
-            if (this.type === 'number' && typeof window.updateScoredValue === 'function') {
-                const row = this.closest('tr[data-log-id]');
-                const cell = this.closest('[data-field]');
-                if (row && cell) {
-                    const logId = row.dataset.logId;
-                    const fieldName = cell.dataset.field;
-                    const value = this.value;
-                    
-                    // Clear existing timer for this input
-                    const timerKey = `${logId}-${fieldName}`;
-                    if (inputDebounceTimers.has(timerKey)) {
-                        clearTimeout(inputDebounceTimers.get(timerKey));
-                    }
-                    
-                    // Debounce: wait 500ms after last input before saving
-                    // This allows rapid spinner clicks without hammering the API
-                    inputDebounceTimers.set(timerKey, setTimeout(() => {
-                        window.updateScoredValue(logId, fieldName, value);
-                        inputDebounceTimers.delete(timerKey);
-                    }, 500));
-                }
-            }
-        });
-        
-        // Mousedown on input (including spinners) - flag that interaction is happening
-        input.addEventListener('mousedown', function() {
-            activeSpinnerInput = this;
-            // Clear any pending blur timeout
-            if (globalBlurTimeout) {
-                clearTimeout(globalBlurTimeout);
-                globalBlurTimeout = null;
-            }
-        });
-
-        // Auto-close on blur after focus actually leaves the editable control.
-        // Number inputs keep the same path, but custom spinner buttons prevent blur while in use.
-        input.addEventListener('blur', function() {
-            const inputElement = this;
-            if (globalBlurTimeout) {
-                clearTimeout(globalBlurTimeout);
-            }
-
-            globalBlurTimeout = setTimeout(() => {
-                const wrapper = inputElement.closest('.number-input-wrapper');
-                const activeElement = document.activeElement;
-
-                if (
-                    document.activeElement === inputElement ||
-                    activeSpinnerInput === inputElement ||
-                    (wrapper && activeElement && wrapper.contains(activeElement))
-                ) {
-                    return;
-                }
-
-                showEditableText(inputElement, inputElement.value);
-                globalBlurTimeout = null;
-            }, 200);
-        });
-
-        if (input.type === 'number') {
-            // For number inputs, add custom +/- buttons since native spinners can be unreliable
-            addCustomSpinnerButtons(input);
-        }
-        
-        // Add Enter key support to submit and close the input
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                // Trigger change event and blur to close the input
-                this.dispatchEvent(new Event('change', { bubbles: true }));
-                showEditableText(this, this.value);
-                this.blur();
-            } else if (e.key === 'Escape') {
-                // Cancel editing on Escape - revert to original value
-                e.preventDefault();
-                const cell = this.closest('.editable');
-                if (cell) {
-                    const text = cell.querySelector('.editable-text');
-                    // Reset input value to original text (don't save)
-                    if (text && text.textContent.trim() !== 'Click to set' && 
-                        text.textContent.trim() !== 'Click to set date' &&
-                        text.textContent.trim() !== 'Click to edit' &&
-                        text.textContent.trim() !== '--') {
-                        this.value = text.textContent.trim();
-                    }
-                    // Show text, hide input and wrapper
-                    showEditableText(this);
-                }
-                this.blur();
-            }
-        });
+    document.querySelectorAll('tr[data-log-id] .scored-cell input[type="number"]').forEach(input => {
+        const cell = input.closest('.scored-cell');
+        addCustomSpinnerButtons(input);
+        initializeScoreEditor(input, cell, cell.dataset.field);
     });
 }
 

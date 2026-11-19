@@ -1515,6 +1515,12 @@ table.workout-log-table tbody tr:nth-child(even) td.metric-lane,
     overflow: visible !important;
 }
 
+/* Keep the open editor above adjacent cells so its spinner receives the click. */
+.workout-log-table .scored-cell:focus-within {
+    position: relative;
+    z-index: 1;
+}
+
 /* Style the number input wrapper */
 .workout-log-table .number-input-wrapper {
     display: none; /* Hidden by default, shown when input is shown */

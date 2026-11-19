@@ -164,36 +164,38 @@
                                 {% endif %}
                             </div>
                         </td>
+                        {% set has_scored_rir = log.scored_rir not in (none, '', 'None') %}
                         <td data-label="Scored RIR" class="editable scored-cell metric-lane metric-lane--rir metric-lane--scored" data-field="scored_rir">
                             <div class="scored-value-container">
                                 <input type="number" 
                                        class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_rir if log.scored_rir and log.scored_rir != 'None' else '' }}"
-                                       min="0"
+                                       value="{{ log.scored_rir if has_scored_rir else '' }}"
+                                       min="0" max="10"
                                        style="display: none;">
-                                <span class="editable-text">{{ log.scored_rir if log.scored_rir and log.scored_rir != 'None' else '--' }}</span>
+                                <span class="editable-text">{{ log.scored_rir if has_scored_rir else '--' }}</span>
                                 {# For RIR, LOWER is BETTER (means you pushed harder) #}
-                                {% if log.scored_rir is not none and log.scored_rir != 'None' and log.planned_rir is not none %}
-                                    {% if log.scored_rir|int < log.planned_rir|int %}
-                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Pushed harder! (RIR -{{ log.planned_rir|int - log.scored_rir|int }})"></i>
-                                    {% elif log.scored_rir|int == log.planned_rir|int %}
+                                {% if has_scored_rir and log.planned_rir is not none %}
+                                    {% if log.scored_rir|float < log.planned_rir|float %}
+                                        <i class="fas fa-arrow-up progression-indicator text-success" title="Pushed harder! (RIR -{{ (log.planned_rir|float - log.scored_rir|float)|round(2) }})"></i>
+                                    {% elif log.scored_rir|float == log.planned_rir|float %}
                                         <i class="fas fa-equals progression-indicator text-warning" title="Met target RIR"></i>
                                     {% else %}
-                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Easier than planned (RIR +{{ log.scored_rir|int - log.planned_rir|int }})"></i>
+                                        <i class="fas fa-arrow-down progression-indicator text-danger" title="Easier than planned (RIR +{{ (log.scored_rir|float - log.planned_rir|float)|round(2) }})"></i>
                                     {% endif %}
                                 {% endif %}
                             </div>
                         </td>
+                        {% set has_scored_rpe = log.scored_rpe not in (none, '', 'None') %}
                         <td data-label="Scored RPE" class="editable scored-cell metric-lane metric-lane--rpe metric-lane--scored" data-field="scored_rpe">
                             <div class="scored-value-container">
                                 <input type="number" 
                                        class="editable-input number-input form-control input-calm-inset"
-                                       value="{{ log.scored_rpe if log.scored_rpe and log.scored_rpe != 'None' else '' }}"
-                                       min="0"
+                                       value="{{ log.scored_rpe if has_scored_rpe else '' }}"
+                                       min="0" max="10"
                                        style="display: none;">
-                                <span class="editable-text">{{ log.scored_rpe if log.scored_rpe and log.scored_rpe != 'None' else '--' }}</span>
+                                <span class="editable-text">{{ log.scored_rpe if has_scored_rpe else '--' }}</span>
                                 {# For RPE, HIGHER means you pushed harder - it's a measure of effort #}
-                                {% if log.scored_rpe is not none and log.scored_rpe != 'None' and log.planned_rpe is not none %}
+                                {% if has_scored_rpe and log.planned_rpe is not none %}
                                     {% if log.scored_rpe|float > log.planned_rpe|float %}
                                         <i class="fas fa-arrow-up progression-indicator text-success" title="Higher effort! (+{{ (log.scored_rpe|float - log.planned_rpe|float)|round(1) }})"></i>
                                     {% elif log.scored_rpe|float == log.planned_rpe|float %}
@@ -210,7 +212,7 @@
                                        class="editable-input number-input form-control input-calm-inset"
                                        value="{{ log.scored_weight if log.scored_weight is not none and log.scored_weight != 'None' else '' }}"
                                        step="0.5"
-                                       min="0"
+                                       min="0" max="1000"
                                        style="display: none;">
                                 <span class="editable-text">{{ log.scored_weight if log.scored_weight is not none and log.scored_weight != 'None' else '--' }}</span>
                                 {% if log.scored_weight is not none and log.scored_weight != 'None' and log.planned_weight is not none %}

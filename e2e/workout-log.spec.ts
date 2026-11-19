@@ -461,6 +461,7 @@ test.describe('Workout Log with Data', () => {
           && response.request().method() === 'POST',
       );
       await weightInput.fill('60');
+      await weightInput.press('Enter');
       expect((await weightUpdate).ok()).toBeTruthy();
       await expect(badge).toHaveText('Achieved');
 
@@ -494,6 +495,92 @@ test.describe('Workout Log with Data', () => {
       await page.request.post('/clear_workout_plan');
     }
   });
+});
+
+test('score edits preserve RIR zero and server progression, and Escape discards every numeric draft', async ({ page, request }) => {
+  const routine = `GYM - Score editing ${Date.now()} - Workout A`;
+  const added = await request.post('/add_exercise', {
+    data: {
+      routine, exercise: 'Machine Assisted Chin Up', sets: 1,
+      min_rep_range: 6, max_rep_range: 10, rir: 2, rpe: 8, weight: 65,
+    },
+  });
+  expect(added.ok()).toBeTruthy();
+  const plan = await request.get('/get_workout_plan');
+  const planRow = (await plan.json()).data.find((entry: { routine: string }) => entry.routine === routine);
+  expect(planRow).toBeDefined();
+
+  try {
+    expect((await request.post('/export_to_workout_log')).ok()).toBeTruthy();
+    const readEntry = async () => {
+      const response = await request.get('/get_workout_logs');
+      expect(response.ok()).toBeTruthy();
+      return (await response.json()).data.find((entry: { routine: string }) => entry.routine === routine);
+    };
+    const { id } = await readEntry();
+    await page.clock.install();
+    await page.goto(ROUTES.WORKOUT_LOG);
+    const row = page.locator(`tr[data-log-id="${id}"]`);
+    const cell = (field: string) => row.locator(`[data-field="${field}"]`);
+    const rir = cell('scored_rir');
+    const badge = row.locator('[data-label="Progressive Overload"] .badge');
+    const expectProgression = async (expected: 'Achieved' | 'Pending') => {
+      const response = await request.get(`/check_progression/${id}`);
+      expect((await response.json()).data.status).toBe(expected);
+      await expect(badge).toHaveText(expected);
+    };
+    const updates: unknown[] = [];
+    page.on('request', req => {
+      if (new URL(req.url()).pathname === '/update_workout_log' && req.method() === 'POST') {
+        updates.push(req.postDataJSON().updates);
+      }
+    });
+
+    await expectProgression('Pending');
+    await rir.locator('.editable-text').click();
+    await rir.locator('input').fill('0');
+    await rir.locator('input').press('Enter');
+    await expect(rir.locator('.editable-text')).toHaveText('0');
+    await expectProgression('Achieved');
+    await page.reload();
+    await expect(rir.locator('.editable-text')).toHaveText('0');
+    await expectProgression('Achieved');
+
+    const saved = { scored_rir: 0, scored_rpe: null, scored_weight: null, scored_min_reps: null, scored_max_reps: null };
+    for (const [field, original] of Object.entries(saved)) {
+      const editor = cell(field);
+      const input = editor.locator('input');
+      await editor.locator('.editable-text').click();
+      await expect(input).toHaveValue(original === null ? '' : String(original));
+      if (field === 'scored_weight') {
+        await editor.locator('.number-spinner-plus').click();
+        await expect(input).toHaveValue('0.5');
+      } else {
+        await input.fill('1');
+      }
+      // Cross the old debounce deadline both inside the editor and after Escape.
+      await page.clock.fastForward(750);
+      await input.press('Escape');
+      await expect(input).toBeHidden();
+      await expect(editor.locator('.editable-text')).toHaveText(original === null ? '--' : String(original));
+    }
+    await page.clock.fastForward(750);
+    expect(updates).toEqual([{ scored_rir: '0' }]);
+    expect(await readEntry()).toMatchObject(saved);
+
+    await rir.locator('.editable-text').click();
+    await rir.locator('input').fill('');
+    await row.locator('.exercise-name').click();
+    await expect(rir.locator('.editable-text')).toHaveText('--');
+    await expectProgression('Pending');
+    await page.reload();
+    await expect(rir.locator('.editable-text')).toHaveText('--');
+    await expectProgression('Pending');
+    expect((await readEntry()).scored_rir).toBeNull();
+    expect(updates).toEqual([{ scored_rir: '0' }, { scored_rir: null }]);
+  } finally {
+    expect((await request.post('/remove_exercise', { data: { id: planRow.id } })).ok()).toBeTruthy();
+  }
 });
 
 test.describe('Workout Log Date Filter', () => {
