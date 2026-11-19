@@ -68,6 +68,13 @@ test.describe('Backup Center Page', () => {
     await expect(page.getByRole('heading', { name: 'Backup Center' })).toBeVisible();
     await expect(page.locator('#backup-center-save-form')).toBeVisible();
     await expect(page.locator('#backup-center-list')).toBeVisible();
+    await page.evaluate(() => localStorage.setItem('darkMode', 'true'));
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    const bodyInk = await page.locator('body').evaluate(el => getComputedStyle(el).color);
+    for (const field of ['backup-center-name', 'backup-center-note']) {
+      await expect(page.locator(`label[for="${field}"]`)).toHaveCSS('color', bodyInk);
+    }
   });
 
   test('backup center requires a backup name', async ({ page }) => {

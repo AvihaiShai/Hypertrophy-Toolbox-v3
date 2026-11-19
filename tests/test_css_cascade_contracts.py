@@ -501,7 +501,13 @@ def test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners() ->
     assert "row.className = 'muscle-row mb-3'" in volume_js
     assert "card.dataset.type = suggestion.type" in volume_js
     assert "'volume-value-pill--excessive'" in volume_js
-    assert "getPropertyValue('--volume-track-bg')" in volume_js
+    # The native rail paints the recommendation. The input retains its larger hit area.
+    for stop in ("--volume-range-start", "--volume-range-end"):
+        assert f"setProperty('{stop}'" in volume_js
+        assert f"var({stop}," in css
+    for track in ("::-webkit-slider-runnable-track", "::-moz-range-track"):
+        assert f".volume-sliders .form-range{track} {{\n    background: var(--volume-range-gradient);" in css
+    assert "var(--volume-track-bg)" in css and "var(--volume-track-optimal)" in css
 
 
 def test_welcome_tokens_extract_exact_values_without_dead_custom_properties() -> None:

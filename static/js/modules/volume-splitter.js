@@ -803,10 +803,8 @@ function updateSliderTrack(slider, range) {
     const minPercent = Math.max(0, Math.min(100, (safeRange.min / sliderMax) * 100));
     const maxPercent = Math.max(minPercent, Math.min(100, (safeRange.max / sliderMax) * 100));
 
-    const baseColor = getComputedStyle(document.documentElement).getPropertyValue('--volume-track-bg').trim() || '#e9ecef';
-    const highlightColor = getComputedStyle(document.documentElement).getPropertyValue('--volume-track-optimal').trim() || '#0d6efd';
-
-    slider.style.background = `linear-gradient(90deg, ${baseColor} 0%, ${baseColor} ${minPercent}%, ${highlightColor} ${minPercent}%, ${highlightColor} ${maxPercent}%, ${baseColor} ${maxPercent}%, ${baseColor} 100%)`;
+    slider.style.setProperty('--volume-range-start', `${minPercent}%`);
+    slider.style.setProperty('--volume-range-end', `${maxPercent}%`);
 }
 
 function updateAllSliderTracks() {

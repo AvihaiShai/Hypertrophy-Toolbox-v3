@@ -92,7 +92,13 @@
                     {% set routine_parts = log.routine.split(' - ') if log.routine else ['', '', ''] %}
                     <tr data-log-id="{{ log.id }}" data-assisted-bodyweight="{{ 'true' if is_assisted_bodyweight_exercise(log.exercise) else 'false' }}">
                         <td data-label="#">{{ loop.index }}</td>
-                        <td data-label="Routine" class="routine-cell"><span class="routine-env">{{ routine_parts[0] if routine_parts|length > 0 else '' }}</span><span class="routine-program">{{ routine_parts[1] if routine_parts|length > 1 else '' }}</span><span class="routine-workout">{{ routine_parts[2] if routine_parts|length > 2 else '' }}</span></td>
+                        <td data-label="Routine" class="routine-cell">
+                            <div>
+                                <span class="routine-env">{{ routine_parts[0] if routine_parts|length > 0 else '' }}</span>
+                                <span class="routine-program">{{ routine_parts[1] if routine_parts|length > 1 else '' }}</span>
+                                <span class="routine-workout">{{ routine_parts[2] if routine_parts|length > 2 else '' }}</span>
+                            </div>
+                        </td>
                         <td data-label="Exercise" class="exercise-cell">
                             <div class="exercise-cell-content">
                                 {# §4 — free-exercise-db thumbnail. `safe_media_path` revalidates against the §4.3 shape rules (defense-in-depth — the apply script validates on write, but rows can be edited out-of-band). #}

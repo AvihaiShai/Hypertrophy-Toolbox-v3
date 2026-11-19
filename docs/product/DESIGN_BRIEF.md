@@ -317,6 +317,18 @@ visible through the data grid.
 Table cell padding is genuinely per-page, not per-component: 10px on the Plan page, 12px/16px on
 Weekly Summary, 6.4px/8px on Profile — each page bundle tunes its own density.
 
+### Navigation and data entry
+
+Expanded navigation links size to their labels. The phone header shows the same Home link
+and product name. Keep the entire theme control inside the viewport. On phones up to 576px,
+each Workout Log label and its value share the full card width. Desktop column percentages
+apply above that breakpoint.
+
+The Backup save form uses the shared primary text color in dark mode. The Volume Splitter
+paints its recommended interval on the native slider track in both themes. The input keeps
+its larger pointer target and native keyboard controls. Template icons must have a glyph in
+the bundled Font Awesome Free 5 solid font.
+
 ### Intentional exceptions
 
 **The Backup Center's tables are outside the theme-token system.** Measured on `/backup`, dark

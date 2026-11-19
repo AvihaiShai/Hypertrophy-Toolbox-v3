@@ -200,6 +200,26 @@ test.describe('Workout Log with Data', () => {
     // At minimum, no errors should occur
   });
 
+  test('phone Log fields use the full card width on a populated row', async ({ page }) => {
+    await importCurrentWorkoutPlan(page);
+    const row = page.locator('.workout-log-table tr[data-log-id]').first();
+    await expect(row.locator('.exercise-name')).toBeVisible();
+    for (const width of [375, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      const geometry = await row.evaluate(el => ({
+        row: el.getBoundingClientRect().width,
+        fields: Array.from(el.querySelectorAll('td'), td => td.getBoundingClientRect().width),
+        pageWidth: document.documentElement.scrollWidth,
+      }));
+      expect(geometry.pageWidth).toBeLessThanOrEqual(width);
+      expect(Math.min(...geometry.fields)).toBeGreaterThan(geometry.row * 0.85);
+      const score = row.locator('[data-field="scored_rir"]');
+      await score.locator('.editable-text').click();
+      await expect(score.locator('input')).toBeFocused();
+      await score.locator('input').press('Escape');
+    }
+  });
+
   test('scored fields can be edited', async ({ page }) => {
     await importCurrentWorkoutPlan(page);
 
@@ -684,25 +704,6 @@ test.describe('Workout Log Mobile Responsive', () => {
 
   test.afterEach(async ({ consoleErrors }) => {
     consoleErrors.assertNoErrors();
-  });
-
-  test('table is scrollable on mobile', async ({ page }) => {
-    const table = page.locator('.workout-log-table');
-    await expect(table).toBeVisible();
-
-    // Table or its container should allow horizontal scroll
-    const isScrollable = await page.evaluate(() => {
-      const tableContainer = document.querySelector('.table-responsive, .table-container');
-      const table = document.querySelector('.workout-log-table');
-      
-      if (tableContainer) {
-        return tableContainer.scrollWidth > tableContainer.clientWidth;
-      }
-      return table ? table.scrollWidth > (table.parentElement?.clientWidth || 0) : false;
-    });
-
-    // Should be scrollable or fit within view
-    expect(isScrollable !== null).toBeTruthy();
   });
 
   test('import button accessible on mobile', async ({ page }) => {
