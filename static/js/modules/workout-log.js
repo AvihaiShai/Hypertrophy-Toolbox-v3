@@ -25,38 +25,17 @@ function isAssistedBodyweightRow(row) {
     return ASSISTED_BODYWEIGHT_EXERCISES.has(normalizeExerciseName(exerciseName));
 }
 
-function isWeightProgression(row, plannedWeight, scoredWeight) {
-    if (!Number.isFinite(scoredWeight) || !Number.isFinite(plannedWeight)) return false;
-    return isAssistedBodyweightRow(row)
-        ? scoredWeight < plannedWeight
-        : scoredWeight > plannedWeight;
-}
-
-function parseOptionalNumber(text) {
-    const parsed = parseFloat(text);
-    return Number.isFinite(parsed) ? parsed : null;
-}
-
 function computeProgressionState(row) {
-    const plannedRir = parseFloat(row.querySelector('[data-field="planned_rir"]')?.textContent) || 0;
-    const plannedRpe = parseFloat(row.querySelector('[data-field="planned_rpe"]')?.textContent) || 0;
-    const plannedMinReps = parseFloat(row.querySelector('[data-field="planned_min_reps"]')?.textContent) || 0;
-    const plannedMaxReps = parseFloat(row.querySelector('[data-field="planned_max_reps"]')?.textContent) || 0;
-    const plannedWeight = parseOptionalNumber(row.querySelector('[data-field="planned_weight"]')?.textContent);
+    function improved(metric, lowerIsBetter = false) {
+        const planned = parseFloat(row.querySelector(`[data-field="planned_${metric}"]`)?.textContent);
+        const scored = parseFloat(row.querySelector(`[data-field="scored_${metric}"] .editable-text`)?.textContent);
+        if (!Number.isFinite(planned) || !Number.isFinite(scored)) return false;
+        return lowerIsBetter ? scored < planned : scored > planned;
+    }
 
-    const scoredRir = parseFloat(row.querySelector('[data-field="scored_rir"] .editable-text')?.textContent) || 0;
-    const scoredRpe = parseFloat(row.querySelector('[data-field="scored_rpe"] .editable-text')?.textContent) || 0;
-    const scoredMinReps = parseFloat(row.querySelector('[data-field="scored_min_reps"] .editable-text')?.textContent) || 0;
-    const scoredMaxReps = parseFloat(row.querySelector('[data-field="scored_max_reps"] .editable-text')?.textContent) || 0;
-    const scoredWeight = parseOptionalNumber(row.querySelector('[data-field="scored_weight"] .editable-text')?.textContent);
-
-    return Boolean(
-        (scoredRir && plannedRir && scoredRir < plannedRir) ||
-        (scoredRpe && plannedRpe && scoredRpe > plannedRpe) ||
-        (scoredMinReps && plannedMinReps && scoredMinReps > plannedMinReps) ||
-        (scoredMaxReps && plannedMaxReps && scoredMaxReps > plannedMaxReps) ||
-        isWeightProgression(row, plannedWeight, scoredWeight)
-    );
+    return improved('rir', true) || improved('rpe') ||
+        improved('min_reps') || improved('max_reps') ||
+        improved('weight', isAssistedBodyweightRow(row));
 }
 
 function updateProgressionBadge(row) {
@@ -394,7 +373,7 @@ export async function updateScoredValue(logId, field, value) {
             const display = cell.querySelector('.editable-text');
             if (display) {
                 const cleared = value === '' || value == null;
-                display.textContent = (isRep && !cleared ? storedCountText(value) : value) || '--';
+                display.textContent = cleared ? '--' : (isRep ? storedCountText(value) : value);
             }
             
             // Update progression indicator for this cell
@@ -469,7 +448,7 @@ function updateProgressionIndicator(row, field, scoredValue) {
         // For RIR, LOWER is BETTER
         isImproved = scored < plannedValue;
         isSame = scored === plannedValue;
-        diff = plannedValue - scored;
+        diff = Number(Math.abs(plannedValue - scored).toFixed(2));
         
         if (isImproved) {
             indicator.classList.add('fa-arrow-up', 'text-success');
@@ -479,7 +458,7 @@ function updateProgressionIndicator(row, field, scoredValue) {
             indicator.title = 'Met target RIR';
         } else {
             indicator.classList.add('fa-arrow-down', 'text-danger');
-            indicator.title = `Easier than planned (RIR +${scored - plannedValue})`;
+            indicator.title = `Easier than planned (RIR +${diff})`;
         }
     } else if (field === 'scored_rpe') {
         // For RPE, HIGHER means more effort (better)
@@ -564,7 +543,6 @@ export function validateScoredValue(value, field) {
         case 'scored_weight':
             return num >= 0 && num <= 1000;
         case 'scored_rir':
-            return num >= 0 && num <= 5;
         case 'scored_rpe':
             return num >= 0 && num <= 10;
         default:

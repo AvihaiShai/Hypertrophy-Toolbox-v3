@@ -352,7 +352,7 @@ the `planned_*` snapshot and the `scored_*` values.
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | Import from Plan | API | `POST /export_to_workout_log`, same endpoint the Plan page uses |
-| Scored weight / min reps / max reps / RIR / RPE | API | `POST /update_workout_log` with `{id, updates: {field: value}}` per field. Clearing a scored value sends `null` |
+| Scored weight / min reps / max reps / RIR / RPE | API | `POST /update_workout_log` with `{id, updates: {field: value}}` per field. Enter or leaving the editor saves a changed value once. Escape discards the draft, including spinner changes. Clearing a saved score sends `null` |
 | Progression date | API | `POST /update_progression_date` |
 | Progression status check | API | `GET /check_progression/<log_id>` |
 | Delete row | API | `POST /delete_workout_log` |
