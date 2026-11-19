@@ -34,7 +34,7 @@ This bounded reconciliation supersedes the named pending-status claims below; it
 | GitHub `main` | `9338543a` (#664). Push run `43301522250` succeeded (29 jobs succeeded; PR-only Dependency Review skipped) |
 | Open PRs | Nine at the reading. #679 (`test(css)`: Q1 survivor assertions, #573); #678 (`fast-uri` 3.1.7 to 3.1.9 in the lockfile; addresses the four open Dependabot alerts); #677 (`CLAUDE.md` trims and subsystem gotchas); #676 (draft, backup and export execution-fields plan, #567 / #568); #674 (draft, #609 Filter Exercises card shadow removed from visual captures); Dependabot #665 (sass), #666 (`@types/node` group), #667 (xlsxwriter), #668 (hypothesis). Re-read live state before acting |
 | Branch protection | Unchanged: 12 exact contexts, each bound to GitHub Actions `app_id: 15368`; `strict: false`; `enforce_admins: false`; no required reviews. `JS Unit (Vitest)` is not a required context. No repository ruleset is listed |
-| Repository security | Secret scanning and push protection enabled 2026-10-21 (S2). CodeQL default setup configured **scan-only** on 2026-10-24 on the owner's bounded answer ([#588](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/588)): languages actions, javascript-typescript, python; default suite; weekly schedule; no native blocking rule and CodeQL is not a required context. 1 open code-scanning alert (#2, `py/stack-trace-exposure`, `utils/errors.py`, opened 2026-10-24). Dependabot security updates stay off under D-6; **4 open Dependabot alerts**, all npm `fast-uri` (2 medium, 2 low), opened 2026-10-24; PR #678 is open for them. Actions policy unchanged: all actions allowed, SHA pinning not required (C3 selected, not applied) |
+| Repository security | Secret scanning and push protection enabled 2026-10-21 (S2). CodeQL default setup configured **scan-only** on 2026-10-24 on the owner's bounded answer ([#588](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/588)): languages actions, javascript-typescript, python; default suite; weekly schedule; no native blocking rule and CodeQL is not a required context. No code-scanning alert and no Dependabot alert is open (read 2026-11-19). Dependabot security updates stay off under D-6. Actions policy (C3, applied 2026-11-19): only six approved `actions/*` repositories are allowed and full-SHA pinning is required; both broad trust flags are off. The first `main` push run and the first Dependabot job under it are not yet observed ([#589](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/589)) |
 | Orphan workflow | `345538425` is still `disabled_manually` (C5) |
 | Linux visual compare | Scheduled `deep-gate-visual.yml` ran 2026-10-26 (`40295844558`), 2026-11-02 (`41434489444`) and 2026-11-09 (`42610012553`), each `success`. The first two were green only through one Playwright retry each (`1 flaky / 99 passed`), which is not a pass ([`visual_determinism/PLANNING.md`](visual_determinism/PLANNING.md) §8.1); the 11-09 run was clean (`100 passed`). No baseline was written in any of the three. Readings: [`ci_cd_expansion/PLANNING.md`](ci_cd_expansion/PLANNING.md) §16.11, with the owner's 2026-11-13 ruling that a green reached through a retry does not count ([#583](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/583)). Branch dispatches for #674 on 2026-11-12: generate run `43270547903` rendered `plan-desktop-light-simple` 15,535 px off its baseline, compare run `43271645153` passed ([#675](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/675)) |
 | Weekly gates (Mondays) | `deep-gate.yml` scheduled runs 2026-10-26, 2026-11-02, 2026-11-09 all `success`, each clean (no retry). Manual dispatches do not count toward the scheduled threshold |
@@ -128,7 +128,7 @@ Constraints to know before acting. Decisions and obligations live in queue §0.2
 - [`deep_gate_linux_visual_failure_20260831/`](deep_gate_linux_visual_failure_20260831/GATE1.md): option C landed as #548; the three scheduled compare readings are in CI PLANNING §16.11 (#583 / #641; queue §0.2).
 - [`visual_determinism/`](visual_determinism/PLANNING.md): the ADR-011 residual.
 - [`service_extraction/`](service_extraction/PLANNING.md): WS4 handlers after slice 1, each with its own gates.
-- [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): post-split scheduled qualification (readings in §16.11); settings C1c, C2, C3 and C4 (C1b CodeQL applied scan-only 2026-10-24); B4, D1 and F1/F3 unstarted.
+- [`ci_cd_expansion/`](ci_cd_expansion/PLANNING.md): post-split scheduled qualification (readings in §16.11); settings — C3 applied 2026-11-19, C1c declined and C2 deferred by the owner the same day, C4 JS Unit open under #592 (C1b CodeQL applied scan-only 2026-10-24); F1/F3 unstarted; B4 and D1 declined 2026-11-19.
 
 The full list is [`README.md`](README.md) *Feature folders → Active*.
 
@@ -144,12 +144,19 @@ holds the detail.
   ([#583](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/583)). A manual dispatch
   cannot substitute, and qualification does not itself authorize activation.
 - **WS5** is next in line for the `ci.yml` slot (queue §0.3); it still needs its own approval
-  and gates.
-- **Settings:** C1c, C2, C3 and C4 await the owner
+  and gates. Its acceptance issue #585 closed as not planned on 2026-11-17.
+- **Settings:** C3 (selected actions, full-SHA pinning) was applied on 2026-11-19. The owner
+  declined the C1c CodeQL rule and deferred C2 `strict` the same day, until two or more
+  concurrent PRs are routine. C4: JS Unit stays with
+  [#592](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/592); a delegated team
+  decision declined for now making Dependency Review, Visual Regression (Windows baselines)
+  and Workflow Lint required, so they stay advisory
   ([`SETTINGS_ACTIVATION.md`](ci_cd_expansion/SETTINGS_ACTIVATION.md); queue §0.2).
-- **Ledger:** §13.0 stops at row 131 (`b77cb742`); later merges are unrecorded
-  ([#582](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/582), queue §0.4).
-- **Security triage:** PR #678 merged and records the fast-uri alert fixes. CodeQL alert #2 remains open and awaits owner disposition in GitHub Security (#588); this reconciliation grants no fix or dismissal authority.
+- **Ledger:** §13.0 stops at row 131 (`b77cb742`). Later merges are not in the committed
+  ledger; the 85 observations up to `8884ec51` are posted in
+  [#592](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/592), which holds
+  custody since 2026-11-19 (queue §0.4).
+- **Security triage:** PR #678 merged and records the fast-uri alert fixes; alert state is in the *Repository security* row above.
 
 ### Maintenance rule
 
