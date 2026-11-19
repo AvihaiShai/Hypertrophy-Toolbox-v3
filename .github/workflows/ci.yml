@@ -980,6 +980,23 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         }
 
+    # Issue #614: on a fresh runner each host's first preflight call can stall
+    # machine-wide for 10-30+ seconds. With four workers starting together,
+    # every worker's first call then crossed the tests' 30-second subprocess
+    # limit. Make that call here, once per host, serially and outside that
+    # limit. The limit, both hosts and the worker policy below are unchanged.
+    - name: Make the first preflight call on both hosts
+      shell: pwsh
+      timeout-minutes: 15
+      env:
+        TEMP: ${{ runner.temp }}
+        TMP: ${{ runner.temp }}
+        TMPDIR: ${{ runner.temp }}
+        PYTHONDONTWRITEBYTECODE: '1'
+      run: |
+        python -m tests.worktree_cleanup.first_call
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
     # Linux's full suite retains portable snapshot/scope/path-refusal tests.
     # Native identities, junctions and creator/launcher contracts execute here
     # under BOTH hosts. A skipped capability must fail this job, never green it.

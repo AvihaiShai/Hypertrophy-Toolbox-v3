@@ -59,6 +59,8 @@ def test_windows_job_runs_all_operation_a_modules_and_checks_execution():
         module.replace(".", "/") + ".py" for module in MODULES
     ]
     assert "-n 4 --dist load " in command
+    # Issue #614: each host's first preflight call is made before the tests start.
+    assert job.index("python -m tests.worktree_cleanup.first_call\n") < job.index("python -m pytest ")
     assert not re.search(r"(?:^| )(-k|-m|--ignore|--deselect)(?:[ =]|$)", command.split("pytest ", 1)[1])
     assert "--junitxml=artifacts/pytest/worktree-windows.xml" in command
     assert "if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }" in job
