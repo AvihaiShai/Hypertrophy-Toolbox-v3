@@ -593,15 +593,6 @@
     color: #f48fb1;
 }
 
-/* Dark mode for slider track - form-range */
-[data-theme='dark'] .volume-sliders .form-range::-webkit-slider-runnable-track {
-    background-color: var(--volume-track-bg);
-}
-
-[data-theme='dark'] .volume-sliders .form-range::-moz-range-track {
-    background-color: var(--volume-track-bg);
-}
-
 /* Dark mode slider focus states */
 [data-theme='dark'] .form-range:focus::-webkit-slider-thumb {
     box-shadow: 0 0 0 1px var(--volume-dark-focus-ring), 0 0 0 0.25rem var(--volume-dark-focus-halo) !important;
@@ -832,6 +823,18 @@
 
 .volume-sliders .form-range {
     min-height: 1.5rem;
+    --volume-range-gradient: linear-gradient(to right,
+        var(--volume-track-bg) var(--volume-range-start, 0%),
+        var(--volume-track-optimal) var(--volume-range-start, 0%) var(--volume-range-end, 0%),
+        var(--volume-track-bg) var(--volume-range-end, 0%));
+}
+
+.volume-sliders .form-range::-webkit-slider-runnable-track {
+    background: var(--volume-range-gradient);
+}
+
+.volume-sliders .form-range::-moz-range-track {
+    background: var(--volume-range-gradient);
 }
 
 .volume-insights-panel {

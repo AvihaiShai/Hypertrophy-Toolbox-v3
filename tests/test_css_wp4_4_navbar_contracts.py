@@ -7,7 +7,7 @@ adjudication. Red-path proofs are recorded in the packet evidence documents.
 The assertions are deliberately **structural and occurrence-aware** rather than
 substring-based. `.navbar` is the selector text of BOTH the rule f1 deleted
 (`body:not(:has(#navbar)) .navbar`) and the rule f1 retained (`.navbar` at
-navbar.css:892), so `assert ".navbar" in css` cannot tell a successful deletion
+navbar.css:883), so `assert ".navbar" in css` cannot tell a successful deletion
 from a restored one. That defect class was found in packet `e` and again in
 packet `d1`; this file avoids it by parsing rules and counting occurrences.
 
@@ -228,15 +228,15 @@ def test_f2_calm_container_declarations_share_the_unlayered_base_rule() -> None:
 # Whole-surface invariants
 # --------------------------------------------------------------------------
 
-# Measured on the post-f2 file. Importance, custom properties, layer blocks,
-# and keyframes are unchanged from f1; only the style-rule count moves.
+# Step 1 of #736 removes the two layered phone brand overrides and the unlayered
+# fixed Body Composition width. Content sizing also retires the fixed-width token.
 IMPORTANT_DECLARATIONS = 93
-# 72 -> 73 (#733): one unlayered `--nav-height: var(--nav-height-compact)` on the
+# 71 -> 72 (#733): one unlayered `--nav-height: var(--nav-height-compact)` on the
 # open compact panel so its top and height follow the 56px header; no declaration deleted.
-CUSTOM_PROPERTY_DECLARATIONS = 73
+CUSTOM_PROPERTY_DECLARATIONS = 72
 LAYER_BLOCKS = 1
-# 190 -> 191 (#733): the one new unlayered rule above (`#navbar.nb-compact nav.navbar-collapse.show`).
-STYLE_RULES = 191
+# 187 -> 188 (#733): the one new unlayered rule above (`#navbar.nb-compact nav.navbar-collapse.show`).
+STYLE_RULES = 188
 KEYFRAME_STEPS = 5
 
 
@@ -245,9 +245,8 @@ def test_no_important_was_added_or_removed() -> None:
     assert len(re.findall(r"!\s*important", _strip_comments(_css()))) == IMPORTANT_DECLARATIONS
 
 
-def test_no_custom_property_declaration_was_deleted() -> None:
-    """Custom properties paint nothing and are non-winners for every property,
-    so the ordinary non-winner rule must never be applied to them."""
+def test_navbar_custom_property_count_matches_contract() -> None:
+    """Pin the token count after removing the fixed desktop link width."""
     decls = [d for r in _rules(_css()) for d in r["decls"] if d.lstrip().startswith("--")]
     assert len(decls) == CUSTOM_PROPERTY_DECLARATIONS
 
@@ -257,13 +256,13 @@ def test_layer_membership_is_frozen() -> None:
     css = _strip_comments(_css())
     assert len(re.findall(r"@layer\s+[\w-]+\s*\{", css)) == LAYER_BLOCKS
     rules = _rules(_css())
-    assert sum(1 for r in rules if r["layer"]) == 101
-    # 89 -> 90 (#733): the new unlayered compact-panel rule; layered count stays 101.
-    assert sum(1 for r in rules if r["layer"] is None) == 90
+    assert sum(1 for r in rules if r["layer"]) == 99
+    # 88 -> 89 (#733): the new unlayered compact-panel rule; layered count stays 99.
+    assert sum(1 for r in rules if r["layer"] is None) == 89
 
 
 def test_f2_consolidated_rule_count_is_exact() -> None:
-    """Three duplicate source rules were folded; the exact final count is pinned."""
+    """Pin the post-consolidation count including the Step 1 brand and sizing repairs."""
     assert len(_rules(_css())) == STYLE_RULES
 
 

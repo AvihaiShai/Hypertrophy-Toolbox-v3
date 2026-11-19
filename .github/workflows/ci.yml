@@ -1625,14 +1625,16 @@ jobs:
   # workflow edit: run `python scripts/generate_test_inventory.py` and commit the
   # regenerated artifact in the PR that moved the count.
   #
-  # The name carries no "(non-required)" suffix. This job is not in branch
-  # protection, so it was renamed freely -- unlike the two E2E jobs that still
-  # carry the suffix while being genuinely required. See QUALITY_GATE.md
-  # "CI job naming"; never rename those two.
+  # The name carries no "(non-required)" suffix: it was renamed while the job was
+  # still outside branch protection. The job is now a required context, so the
+  # name is frozen -- renaming it orphans the required check, exactly as for the
+  # two E2E jobs that still carry the suffix. See QUALITY_GATE.md "CI job
+  # naming"; never rename any of the three.
   #
   # Deliberately no browser install and no Flask server: `playwright test --list`
-  # only parses specs and `pytest --collect-only` imports without running, so this
-  # job never binds port 5000 (section 8.2) and stays cheap.
+  # and `vitest list` only parse specs, and `pytest --collect-only` imports without
+  # running, so this job never binds port 5000 (section 8.2) and stays cheap. The
+  # Vitest listing is why the job runs `npm ci`.
   test-inventory:
     name: Test Inventory Drift
     runs-on: ubuntu-latest
@@ -1699,7 +1701,7 @@ jobs:
         python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
         import json
         d = json.load(open("docs/test_inventory/TEST_INVENTORY.json"))
-        pw, py, hw = d["playwright"], d["pytest"], d["hard_waits"]
+        pw, py, hw, vt = d["playwright"], d["pytest"], d["hard_waits"], d["vitest"]
         req = pw["required_functional_set"]
         print("### Test inventory (drift check is blocking)")
         print()
@@ -1708,6 +1710,7 @@ jobs:
         print(f"| Playwright tests (chromium) | {pw['total_tests']} across {pw['total_spec_files']} specs |")
         print(f"| Required functional gate | {req['tests']} tests across {req['spec_files']} specs |")
         print(f"| pytest collected nodes | {py['collected_deterministic']} across {py['deterministic_files']} files (deterministic subset of {py['total_files']}) |")
+        print(f"| Vitest cases | {vt['total_cases']} across {vt['total_files']} files |")
         print(f"| Hard waits ({hw['metric']}) | {hw['total_lines']} across {hw['files_with_waits']} files |")
         print()
         print("Drift against the committed inventory is enforced by the previous step, which fails this job.")

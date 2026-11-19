@@ -72,6 +72,17 @@ test.describe('P5 navbar dropdown and backup navigation', () => {
     );
     expect(overflowingLabels).toEqual([]);
 
+    const theme = page.locator(SELECTORS.DARK_MODE_TOGGLE);
+    for (const width of [1360, 1440, 1501, 1601]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect.poll(() => theme.evaluate(button => {
+        const { left, right, top, height } = button.getBoundingClientRect();
+        return right <= innerWidth && [left + 2, right - 2].every(x =>
+          button.contains(document.elementFromPoint(x, top + height / 2)),
+        );
+      })).toBe(true);
+    }
+
     const brandPadding = await page.locator(SELECTORS.NAV_BRAND).evaluate((brand) => {
       const style = getComputedStyle(brand);
       return {
@@ -167,6 +178,10 @@ test.describe('P5 navbar dropdown and backup navigation', () => {
     await page.goto(ROUTES.HOME);
     await waitForPageReady(page);
 
+    const brand = page.getByRole('link', { name: 'Hypertrophy Toolbox' });
+    await expect(brand.getByText('Hypertrophy Toolbox')).toBeVisible();
+    await expect(brand).toHaveAttribute('aria-current', 'page');
+
     await openMobileNavbar(page);
     await openAnalyzeDropdown(page, 'click');
 
@@ -183,6 +198,8 @@ test.describe('P5 navbar dropdown and backup navigation', () => {
     await page.locator(SELECTORS.NAV_WEEKLY_SUMMARY).click();
     await waitForPageReady(page);
     await expect(page).toHaveURL(/\/weekly_summary/);
+
+    await expect(brand).not.toHaveAttribute('aria-current', 'page');
 
     await page.goto(ROUTES.HOME);
     await waitForPageReady(page);

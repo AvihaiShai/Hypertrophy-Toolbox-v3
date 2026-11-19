@@ -275,6 +275,10 @@ body:not(:has(#navbar)) .navbar,
     color: var(--ink-1);
 }
 
+[data-theme='dark'] .backup-save-form .form-label {
+    color: var(--ink-1);
+}
+
 [data-theme='dark'] .backup-center-intro,
 [data-theme='dark'] .backup-save-help,
 [data-theme='dark'] .backup-record-meta,

@@ -511,23 +511,15 @@ test.describe('Volume Splitter Page', () => {
   });
 
   test('muscle group volume can be adjusted', async ({ page }) => {
-    const slidersContainer = page.locator('#sliders');
-    
-    // Wait for sliders to be populated
-    await page.waitForTimeout(500);
-
-    const sliders = slidersContainer.locator('input[type="range"]');
-    const firstSlider = sliders.first();
-
-    if (await firstSlider.isVisible()) {
-      const initialValue = await firstSlider.inputValue();
-      
-      // Change slider value
-      await firstSlider.fill('15');
-      const newValue = await firstSlider.inputValue();
-      
-      expect(newValue).toBe('15');
-    }
+    const row = page.locator('#sliders .muscle-row').first();
+    const slider = row.getByRole('slider');
+    await expect(slider).toBeVisible();
+    await slider.focus();
+    await slider.press('Home');
+    await slider.press('ArrowRight');
+    await expect(slider).toHaveValue('1');
+    await expect(row.locator('.current-value')).toHaveText('1');
+    expect((await slider.boundingBox())!.height).toBeGreaterThanOrEqual(24);
   });
 
   test('advanced mode shows more muscle groups', async ({ page }) => {
@@ -1069,13 +1061,15 @@ test.describe('Volume Splitter calculation failure feedback', () => {
       if (!slider) {
         return null;
       }
-      return { background: slider.style.background, sliderMax: Number(slider.max) || 60 };
+      return {
+        start: parseFloat(slider.style.getPropertyValue('--volume-range-start')),
+        end: parseFloat(slider.style.getPropertyValue('--volume-range-end')),
+        max: Number(slider.max),
+      };
     });
     expect(track).not.toBeNull();
-    const stops = [...track!.background.matchAll(/([\d.]+)%/g)].map(match => Number(match[1]));
-    expect(stops.length).toBeGreaterThanOrEqual(6);
-    expect(stops[1]).toBeCloseTo((1 / track!.sliderMax) * 100, 3);
-    expect(stops[3]).toBeCloseTo((2 / track!.sliderMax) * 100, 3);
+    expect(track!.start).toBeCloseTo((1 / track!.max) * 100, 3);
+    expect(track!.end).toBeCloseTo((2 / track!.max) * 100, 3);
   });
 
   test('c1 announces the failure through the live region', async ({ page }) => {

@@ -221,7 +221,9 @@ gh api "repos/$Repo/rulesets/$RulesetId" @Headers
 
 Before rollback verify this is the exact newly created ruleset and that another session has not changed it. The body is `{"enforcement":"disabled"}`. Compare other rulesets unchanged. This restores no active C1 rule while retaining configuration evidence; it does not make the literal ruleset list empty.
 
-### C2 strict — prepare only
+### C2 strict — deferred 2026-11-19, not applied
+
+**Deferred by the owner on 2026-11-19 (AUD-0084, [#588](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/588)): revisit when two or more concurrent PRs are routine. No setting was changed and `strict` is still false.** This section is where the deferral is tracked. A wish to activate opens a new issue; the sheet below is then the starting point, after a fresh read of live protection.
 
 ```powershell
 gh api "repos/$Repo/branches/main/protection/required_status_checks" @Headers
@@ -234,9 +236,26 @@ The body is exactly `{"strict":true}`. Expected strict true and exact current ch
 
 Refreshed read-only at 2026-10-22T15:27–15:35Z (main `b77cb742`, then `295f2acd` after docs-only #558): strict false; the same 12 checks, each `app_id` 15368; `enforce_admins` false; no rulesets. Protection and ruleset objects equal the 21:50Z S2 readback. GitHub's documentation does not say that a strict-only PATCH keeps omitted `checks`, so the immediate full readback is the proof, and any other difference triggers rollback. With `enforce_admins: false` the owner can still merge a behind PR as admin, and `allow_update_branch: false` does not hide *Update branch* when strict applies. Strict also voids a named-head merge approval whenever `main` moves first: the updated branch has a new head and needs fresh CI.
 
-Recommendation: apply C2 after the WS5 workflow PR (slot 3) merges, in a window with no PR in its final merge sequence. Strict requires the branch to be up to date before merge, so activating during serial merges creates additional refresh/CI work. Refreshed payloads, expected objects, a GET-only pre-flight and the runbook are private under `artifacts/c2c3-activation-prep-20261022/` (shared checkout, gitignored).
+The 2026-10-22 recommendation was to apply C2 after the WS5 workflow PR (slot 3) merged. That precondition lapsed when #585 closed as not planned on 2026-11-17, and the owner's deferral above replaces it. When C2 is revisited, apply it in a window with no PR in its final merge sequence. Strict requires the branch to be up to date before merge, so activating during serial merges creates additional refresh/CI work. Refreshed payloads, expected objects, a GET-only pre-flight and the runbook are private under `artifacts/c2c3-activation-prep-20261022/` (shared checkout, gitignored).
 
-### C3 selected actions and full SHA — prepare only
+### C3 selected actions and full SHA — applied 2026-11-19
+
+**Applied on 2026-11-19 at 14:31:34Z**, on the owner's approval of the same day and with the repository-pattern allowlist the owner chose on 2026-10-24. Live state, read back after the last write:
+
+```json
+{"enabled":true,"allowed_actions":"selected","sha_pinning_required":true}
+{"github_owned_allowed":false,"verified_allowed":false,"patterns_allowed":["actions/checkout@*","actions/dependency-review-action@*","actions/download-artifact@*","actions/setup-node@*","actions/setup-python@*","actions/upload-artifact@*"]}
+```
+
+The gates, both attempts and every readback are in the [#588 activation record](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/588#issuecomment-7012135130). The rest of this section is the 2026-10-22 preparation, kept as written. Where the activation differed from it:
+
+- **The exact-SHA list below was not used.** The six `@*` repository patterns above are live, with SHA pinning required, so a reviewed action bump needs no allowlist change. A new action repository needs its pattern added first.
+- **A `PUT` to `actions/permissions` sets `github_owned_allowed` back to `true`** and keeps the patterns. The three-write sequence below therefore ends one write short: repeat the allowlist `PUT` after the SHA-pinning `PUT` and read both objects back. The same applies to any later write to `actions/permissions`.
+- **Switching to `all` and back does not keep an installed allowlist.** The hidden list read as the default `{"github_owned_allowed":true,"patterns_allowed":[],"verified_allowed":false}` both during activation and after a rollback that followed an installed six-pattern list. The sentence below saying the hidden list "keeps the installed allowlist" is wrong.
+- **Rollback was exercised once.** The first attempt read back `github_owned_allowed: true` and was rolled back with the `all` body; the policy read `all` and the selected-actions GET returned HTTP 409 again.
+- **Four `archive/` tags pin actions by tag** and cannot start a workflow under C3. The owner accepted that under AUD-0087; they are not re-pinned.
+
+Observed under C3 on 2026-11-19: pull-request run `44545463624` (#741, all 30 jobs successful on attempt 1, including the reusable packaged-Windows call and Dependency Review) and CodeQL default-setup run `44545455354` (three analyses successful). **Not yet observed:** the first `main` push run, the first Dependabot job and `dynamic/dependabot/update-graph` (version updates run on Mondays), and the Deep Gate, Deep Gate Visual, Deep Gate Watch and Release workflows, which use the same six actions at the same commits. Results are recorded in [#589](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/589) under AUD-0086. A run that fails to start because of the policy is the rollback trigger; once #589 is closed, such a failure opens a new issue.
 
 The policy body `c3-policy.json` is exactly:
 
@@ -277,6 +296,10 @@ gh api "repos/$Repo/actions/permissions" @Headers
 ```
 
 Expected selected/SHA true and both broad flags false with exactly reviewed patterns. Observed execution of every caller remains an activation gate. Rollback: `rollback.ps1 -Action C3AllActions`, then GET policy shows enabled/all/SHA false and selected-actions returns the original 409. Because its before policy is hidden by 409, exact restoration of latent selected settings cannot be claimed; this restores effective before behavior. If the hidden list was captured during activation, a later quiet window can restore it exactly: switch to `selected`, PUT the captured list, then return to `all`. Without that capture, the hidden list keeps the installed allowlist, which has no effect while the mode is `all`.
+
+### Required-check promotions — declined for now, 2026-11-19
+
+Dependency Review, Visual Regression (Windows baselines) and Workflow Lint run on every pull request and are **not** required checks. On 2026-11-19 a delegated team decision under [#588](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/588), not the owner's signature, declined for now making them required (AUD-0090, AUD-0096, AUD-0098), together with the native proofs, which matter only if the checks become required. A later promotion needs a new issue, the owner's own approval and its native proof first; what each proof still lacks is in the [#589 disposition record](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/589#issuecomment-7012487421). The JS Unit promotion is separate and stays with [#592](https://github.com/AvihaiShai/Hypertrophy-Toolbox-v3/issues/592).
 
 ### C5 orphan — authorized root execution only
 

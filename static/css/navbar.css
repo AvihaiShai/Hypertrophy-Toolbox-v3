@@ -810,15 +810,6 @@
       width: 20px;
       height: 20px;
     }
-
-    #navbar .navbar-brand span {
-      display: none;
-    }
-
-    /* Show brand text on very small screens if icon-only */
-    #navbar .navbar-brand-content::after {
-      content: attr(data-short-text);
-    }
   }
 
   @media (max-width: 768px) {
@@ -1035,7 +1026,6 @@
   --nav-pill-ink-strong: var(--ink-1, #0f1220);
   --nav-pill-shadow: var(--shadow-elev-1, 0 1px 2px rgba(15, 18, 32, 0.06), 0 2px 8px rgba(15, 18, 32, 0.06));
   --nav-pill-inset: var(--shadow-neu-in, inset 4px 4px 10px rgba(167, 175, 200, 0.35), inset -4px -4px 10px rgba(255, 255, 255, 0.90));
-  --nav-primary-pill-width: 116px;
 }
 
 [data-theme="dark"] :where(#navbar) {
@@ -1167,13 +1157,9 @@
 
 @media (min-width: 1360px) {
   #navbar nav.navbar-collapse > .navbar-nav:first-child > .nav-item > .nav-link {
-    inline-size: var(--nav-primary-pill-width);
+    inline-size: max-content;
     justify-content: center;
     padding-inline: 6px !important;
-  }
-
-  #navbar nav.navbar-collapse > .navbar-nav:first-child > .nav-item > #nav-body-composition {
-    inline-size: 192px;
   }
 
   #navbar nav.navbar-collapse > .navbar-nav:first-child > .nav-item > .nav-link > span {

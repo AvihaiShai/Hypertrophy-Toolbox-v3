@@ -9,6 +9,17 @@ def read(relative_path: str) -> str:
     return (ROOT / relative_path).read_text(encoding="utf-8")
 
 
+def test_template_icon_names_are_defined_in_bundled_fontawesome():
+    font = read("static/vendor/fontawesome/css/all.min.css")
+    glyphs = set(re.findall(r"\.(fa-[\w-]+):before\b", font))
+    for page in ("workout_plan", "user_profile", "body_composition"):
+        template = read(f"templates/{page}.html")
+        for classes in re.findall(r'<i\b[^>]*\bclass="([^"]+)"', template):
+            names = set(classes.split())
+            if "fas" in names and "{" not in classes:
+                assert names & glyphs, f"{page}: missing bundled glyph for {classes}"
+
+
 def test_visual_helper_uses_stable_hooks_not_presentation_classes():
     helper = read("e2e/visual-helpers.ts")
     presentation_selectors = (

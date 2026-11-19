@@ -42,8 +42,7 @@
                id="nav-brand" 
                data-testid="nav-brand"
                href="/"
-               role="button"
-               aria-current="page">
+               {% if request.path == '/' %}aria-current="page"{% endif %}>
                <span class="navbar-brand-content">
                    <img src="{{ url_for('static', filename='images/icons8-bench-press.gif') }}"
                         alt=""

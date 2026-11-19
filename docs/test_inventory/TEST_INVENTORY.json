@@ -52,7 +52,7 @@
       },
       {
         "file": "e2e/volume-splitter.spec.ts",
-        "lines": 23
+        "lines": 22
       },
       {
         "file": "e2e/workout-log.spec.ts",
@@ -61,7 +61,7 @@
     ],
     "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 81
+    "total_lines": 80
   },
   "playwright": {
     "project": "chromium",
@@ -241,7 +241,7 @@
     "total_tests": 740
   },
   "pytest": {
-    "collected_deterministic": 4699,
+    "collected_deterministic": 4701,
     "deterministic_files": 144,
     "environment_dependent_files": [
       {
@@ -344,7 +344,7 @@
       },
       {
         "file": "tests/test_css_cascade_contracts.py",
-        "tests": 30
+        "tests": 31
       },
       {
         "file": "tests/test_css_display_utilities_contracts.py",
@@ -740,7 +740,7 @@
       },
       {
         "file": "tests/test_visual_selector_contracts.py",
-        "tests": 5
+        "tests": 6
       },
       {
         "file": "tests/test_vitest_inventory_contracts.py",

@@ -103,10 +103,9 @@ frozen under the CI job naming rule below: this job sits in branch protection, s
 renaming it orphans the required context and every PR then blocks on a check that
 will never report again. Correct the understanding here; do not correct the label.
 
-**Known-stale, deliberately not fixed here:** the comment at `.github/workflows/ci.yml`
-above the `test-inventory` job still says that job "is not in branch protection".
-That was true when written and is superseded by the CI job naming section below.
-Trust this table and that section, not the workflow comment.
+The comment at `.github/workflows/ci.yml` above the `test-inventory` job used to say
+that job "is not in branch protection". It was corrected on 2026-11-19 (#582, AUD-0112)
+and now agrees with this table and the CI job naming section below.
 
 ## Diff collection (used by `/unslop`)
 
