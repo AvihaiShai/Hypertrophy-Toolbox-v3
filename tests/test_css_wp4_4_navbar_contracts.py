@@ -231,11 +231,11 @@ def test_f2_calm_container_declarations_share_the_unlayered_base_rule() -> None:
 # Step 1 of #736 removes the two layered phone brand overrides and the unlayered
 # fixed Body Composition width. Content sizing also retires the fixed-width token.
 IMPORTANT_DECLARATIONS = 93
-# 71 -> 72 (#733): one unlayered `--nav-height: var(--nav-height-compact)` on the
-# open compact panel so its top and height follow the 56px header; no declaration deleted.
+# Includes the unlayered `--nav-height: var(--nav-height-compact)` on the open compact
+# panel (#733), which keeps its top and height on the compact header's bottom edge.
 CUSTOM_PROPERTY_DECLARATIONS = 72
 LAYER_BLOCKS = 1
-# 187 -> 188 (#733): the one new unlayered rule above (`#navbar.nb-compact nav.navbar-collapse.show`).
+# Includes the rule that carries it, `#navbar.nb-compact nav.navbar-collapse.show`.
 STYLE_RULES = 188
 KEYFRAME_STEPS = 5
 
@@ -257,7 +257,7 @@ def test_layer_membership_is_frozen() -> None:
     assert len(re.findall(r"@layer\s+[\w-]+\s*\{", css)) == LAYER_BLOCKS
     rules = _rules(_css())
     assert sum(1 for r in rules if r["layer"]) == 99
-    # 88 -> 89 (#733): the new unlayered compact-panel rule; layered count stays 99.
+    # The #733 compact-panel rule is unlayered.
     assert sum(1 for r in rules if r["layer"] is None) == 89
 
 

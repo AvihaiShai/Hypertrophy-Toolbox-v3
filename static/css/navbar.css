@@ -1457,7 +1457,7 @@
   color: var(--nav-pill-ink-strong);
 }
 
-/* Compact header: the open panel starts at the 56px header bottom, in both hamburger bands */
+/* Compact header: the open panel starts at the header's bottom edge, in both hamburger bands */
 @media (max-width: 1359.98px) {
   #navbar.nb-compact nav.navbar-collapse.show {
     --nav-height: var(--nav-height-compact);

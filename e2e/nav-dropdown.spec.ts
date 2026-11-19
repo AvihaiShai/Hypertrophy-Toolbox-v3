@@ -302,8 +302,23 @@ async function waitForPanelSettled(page: Page): Promise<void> {
 }
 
 async function openAndSettle(page: Page): Promise<void> {
-  await page.locator(TOGGLER).click();
+  await openMobileNavbar(page);
   await waitForPanelSettled(page);
+}
+
+function panelGeometryProblems(label: string, g: Awaited<ReturnType<typeof measurePanel>>): string[] {
+  const problems: string[] = [];
+  if (Math.abs(g.top - g.headerBottom) > 0.5) {
+    problems.push(`${label}: panel top ${g.top} != header bottom ${g.headerBottom}`);
+  }
+  if (Math.abs(g.bottom - g.innerHeight) > 0.5) {
+    problems.push(`${label}: panel bottom ${g.bottom} != innerHeight ${g.innerHeight}`);
+  }
+  const needed = g.innerHeight - g.headerBottom - 1;
+  if (g.clientHeight < needed) {
+    problems.push(`${label}: panel clientHeight ${g.clientHeight} < ${needed} (scrollHeight ${g.scrollHeight})`);
+  }
+  return problems;
 }
 
 async function unreachableControls(page: Page): Promise<string[]> {
@@ -440,6 +455,16 @@ async function menuIsReleased(page: Page): Promise<string[]> {
   return problems;
 }
 
+/** Guards the release assertions: they prove nothing unless the open menu held the page first. */
+async function expectPageHeld(page: Page): Promise<void> {
+  await expect
+    .poll(async () => {
+      const s = await menuSample(page);
+      return s.overflow === 'hidden' && s.inert > 0;
+    }, { message: 'the open menu locks page scroll and makes page content inert' })
+    .toBe(true);
+}
+
 async function waitForMenuClosed(page: Page, timeout = 3_000): Promise<void> {
   await expect
     .poll(
@@ -490,16 +515,7 @@ test.describe('#733 mobile menu panel', () => {
       await openAndSettle(page);
       const g = await measurePanel(page);
       if (g.compact !== scenario.compact) problems.push(`${label}: header compact state is ${g.compact}`);
-      if (Math.abs(g.top - g.headerBottom) > 0.5) {
-        problems.push(`${label}: panel top ${g.top} != header bottom ${g.headerBottom}`);
-      }
-      if (Math.abs(g.bottom - g.innerHeight) > 0.5) {
-        problems.push(`${label}: panel bottom ${g.bottom} != innerHeight ${g.innerHeight}`);
-      }
-      const needed = g.innerHeight - g.headerBottom - 1;
-      if (g.clientHeight < needed) {
-        problems.push(`${label}: panel clientHeight ${g.clientHeight} < ${needed} (scrollHeight ${g.scrollHeight})`);
-      }
+      problems.push(...panelGeometryProblems(label, g));
       for (const bad of await unreachableControls(page)) problems.push(`${label}: ${bad}`);
     }
 
@@ -519,19 +535,16 @@ test.describe('#733 mobile menu panel', () => {
       expect(g.scrollHeight, `${label}: content must overflow the short viewport`).toBeGreaterThan(
         g.innerHeight - g.headerBottom,
       );
-      if (Math.abs(g.top - g.headerBottom) > 0.5) {
-        problems.push(`${label}: panel top ${g.top} != header bottom ${g.headerBottom}`);
-      }
-      if (Math.abs(g.bottom - g.innerHeight) > 0.5) {
-        problems.push(`${label}: panel bottom ${g.bottom} != innerHeight ${g.innerHeight}`);
-      }
-      const needed = g.innerHeight - g.headerBottom - 1;
-      if (g.clientHeight < needed) {
-        problems.push(`${label}: panel clientHeight ${g.clientHeight} < ${needed} (scrollHeight ${g.scrollHeight})`);
-      }
+      problems.push(...panelGeometryProblems(label, g));
+      // A wheel gesture, because scrollIntoView also moves a box the user cannot scroll.
+      await page.mouse.move(scenario.width / 2, (g.headerBottom + g.innerHeight) / 2);
+      await page.mouse.wheel(0, 120);
+      await expect
+        .poll(() => page.evaluate(() => document.getElementById('navbarNav')!.scrollTop), {
+          message: `${label}: a wheel gesture over the panel scrolls it`,
+        })
+        .toBeGreaterThan(0);
       for (const bad of await unreachableControls(page)) problems.push(`${label}: ${bad}`);
-      const scrolled = await page.evaluate(() => document.getElementById('navbarNav')!.scrollTop);
-      if (scrolled <= 0) problems.push(`${label}: panel did not scroll to reach the last control`);
     }
     expect(problems).toEqual([]);
   });
@@ -561,6 +574,7 @@ test.describe('#733 mobile menu panel', () => {
       if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' });
       await loadAt(page, { width: 375, height: 812, theme: 'light', compact: false });
       await openAndSettle(page);
+      await expectPageHeld(page);
       await countCollapseEvents(page);
 
       const point = await findEmptyPanelPoint(page);
@@ -612,11 +626,10 @@ test.describe('#733 mobile menu panel', () => {
         await page.setViewportSize({ width: 375, height: 812 });
       }
 
-      // Let any pending Bootstrap transition finish before judging the state.
-      await sampleFor(1_000, () => menuSample(page));
-      const closed = await menuSample(page);
-      if (closed.show || closed.collapsing) {
-        problems.push(`${method}: menu is not closed after the close action (show=${closed.show})`);
+      try {
+        await waitForMenuClosed(page);
+      } catch {
+        problems.push(`${method}: menu is not closed after the close action`);
         continue;
       }
 
@@ -642,6 +655,7 @@ test.describe('#733 mobile menu panel', () => {
   test('widening 375 to 1440 with the menu open leaves no focus trap and reopening still traps focus', async ({ page }) => {
     await loadAt(page, { width: 375, height: 812, theme: 'light', compact: false });
     await openAndSettle(page);
+    await expectPageHeld(page);
 
     await page.setViewportSize({ width: 1440, height: 900 });
     await expect.soft.poll(() => menuSample(page).then((s) => s.show), { timeout: 3_000 }).toBe(false);
@@ -655,8 +669,7 @@ test.describe('#733 mobile menu panel', () => {
 
     // Reopen at the hamburger width: trap works again, Escape closes.
     await page.setViewportSize({ width: 375, height: 812 });
-    await page.locator(TOGGLER).click();
-    await waitForPanelSettled(page);
+    await openAndSettle(page);
     const ids = await page.evaluate(() => {
       const items = Array.from(
         document.querySelectorAll<HTMLElement>(
@@ -708,12 +721,14 @@ test.describe('#733 mobile menu panel', () => {
 
     await loadAt(page, { width: 1100, height: 900, theme: 'light', compact: false });
     await openAndSettle(page);
+    await expectPageHeld(page);
     await stayOpenAt(1101);
     await stayOpenAt(1359);
     await closeAt('1359 to 1360', 1360);
 
     await loadAt(page, { width: 1100, height: 900, theme: 'light', compact: false });
     await openAndSettle(page);
+    await expectPageHeld(page);
     await closeAt('1100 to 1440', 1440);
 
     expect(problems).toEqual([]);
@@ -774,15 +789,11 @@ test.describe('#733 mobile menu panel', () => {
         listener: EventListenerOrEventListenerObject | null,
         options?: boolean | AddEventListenerOptions,
       ) {
-        try {
-          if (this instanceof Element && this.id === 'navbarNav') {
-            const key = `navbarNav:${type}`;
-            log[key] = (log[key] ?? 0) + 1;
-          } else if (this === window && type === 'resize' && /navbar-enhancements/.test(new Error().stack ?? '')) {
-            log['window:resize(navbar-enhancements)'] = (log['window:resize(navbar-enhancements)'] ?? 0) + 1;
-          }
-        } catch {
-          // instrumentation must never break the page
+        if (this instanceof Element && this.id === 'navbarNav') {
+          const key = `navbarNav:${type}`;
+          log[key] = (log[key] ?? 0) + 1;
+        } else if (this === window && type === 'resize' && /navbar-enhancements/.test(new Error().stack ?? '')) {
+          log['window:resize(navbar-enhancements)'] = (log['window:resize(navbar-enhancements)'] ?? 0) + 1;
         }
         return original.call(this, type, listener, options);
       } as typeof EventTarget.prototype.addEventListener;
@@ -796,7 +807,6 @@ test.describe('#733 mobile menu panel', () => {
     const log = await page.evaluate(
       () => (window as unknown as { __navListenerLog: Record<string, number> }).__navListenerLog,
     );
-    test.info().annotations.push({ type: 'navbarNav listener registrations', description: JSON.stringify(log) });
     expect({
       shown: log['navbarNav:shown.bs.collapse'] ?? 0,
       hidden: log['navbarNav:hidden.bs.collapse'] ?? 0,

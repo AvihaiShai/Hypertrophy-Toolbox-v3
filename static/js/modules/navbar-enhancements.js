@@ -61,6 +61,7 @@ export function initializeNavbarEnhancements() {
   if (mobileMenuToggle && mobileMenu) {
     // Track menu state
     let isMenuOpen = false;
+    let focusTimer = null;
     let focusableElements = [];
     let firstFocusableElement = null;
     let lastFocusableElement = null;
@@ -150,7 +151,7 @@ export function initializeNavbarEnhancements() {
       updateFocusableElements();
       
       // Focus first element after a brief delay
-      setTimeout(() => {
+      focusTimer = setTimeout(() => {
         firstFocusableElement?.focus();
       }, 100);
       
@@ -167,6 +168,7 @@ export function initializeNavbarEnhancements() {
     // Release menu state (safe to call repeatedly)
     function releaseMenuState() {
       isMenuOpen = false;
+      clearTimeout(focusTimer);
       navbar.setAttribute('aria-expanded', 'false');
       mobileMenuToggle.setAttribute('aria-expanded', 'false');
       unlockBodyScroll();
@@ -174,14 +176,6 @@ export function initializeNavbarEnhancements() {
       // Remove event listeners
       mobileMenu.removeEventListener('keydown', trapFocus);
       document.removeEventListener('keydown', trapFocus);
-    }
-
-    // Close mobile menu
-    function closeMobileMenu() {
-      releaseMenuState();
-
-      // Return focus to toggle button
-      mobileMenuToggle.focus();
     }
 
     // Leave the hamburger layout: reset by hand without moving focus
@@ -205,10 +199,11 @@ export function initializeNavbarEnhancements() {
     });
 
     mobileMenu.addEventListener('hidden.bs.collapse', () => {
-      closeMobileMenu();
+      releaseMenuState();
+      mobileMenuToggle.focus();
     });
 
-    // Close on overlay click (if clicking outside menu content)
+    // Close when the panel's own empty space is clicked, not a control inside it
     mobileMenu.addEventListener('click', (e) => {
       if (e.target === mobileMenu) {
         hideMobileMenu();
