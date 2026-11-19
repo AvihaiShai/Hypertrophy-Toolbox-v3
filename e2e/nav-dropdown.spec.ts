@@ -224,9 +224,7 @@ test.describe('P5 navbar dropdown and backup navigation', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Issue #733: mobile menu panel. Every assertion here is an observable outcome
-// (geometry, hit-testing, computed colour, focus, scroll lock, inert state and
-// listener registration); none of them depends on how the fix is written.
+// Issue #733: mobile menu panel.
 // ---------------------------------------------------------------------------
 
 type Theme = 'light' | 'dark';
@@ -570,7 +568,7 @@ test.describe('#733 mobile menu panel', () => {
 
       await page.mouse.click(point!.x, point!.y);
 
-      // Hold well past the ~600ms window in which the current code reopens the menu.
+      // Hold past the ~600ms window in which a toggled close would reopen the menu.
       const samples = await sampleFor(1_500, () => menuSample(page));
       const reopened = samples.filter((s) => s.show || s.aria !== 'false' || s.shown > 0);
       expect(
@@ -614,7 +612,7 @@ test.describe('#733 mobile menu panel', () => {
         await page.setViewportSize({ width: 375, height: 812 });
       }
 
-      // Let any reopen (current empty-click behaviour) play out before judging the state.
+      // Let any pending Bootstrap transition finish before judging the state.
       await sampleFor(1_000, () => menuSample(page));
       const closed = await menuSample(page);
       if (closed.show || closed.collapsing) {

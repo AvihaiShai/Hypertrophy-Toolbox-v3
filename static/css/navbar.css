@@ -874,7 +874,7 @@
 }
 
 /* ==========================================================================
-   Unlayered fixed-position owner for the header (AUD-0418): #navbar is
+   Unlayered fixed-position owner for the header: #navbar is
    <header class="navbar ...">, and this rule is unlayered while
    `#navbar { position: sticky }` sits in @layer navbar, so it is the live winner.
    ========================================================================== */

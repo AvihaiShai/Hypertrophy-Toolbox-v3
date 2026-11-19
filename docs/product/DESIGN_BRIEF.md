@@ -159,8 +159,9 @@ Glass surfaces are real and live: the navbar computes to
 `rgba(12,16,21,.94)` dark. Buttons carry a lighter `blur(4px)`.
 
 At hamburger widths (up to 1359.98px) the open navbar menu panel is the exception: it is fully
-opaque, `--surface-2` (`#ffffff` light, `#26313d` dark), because blur cannot work inside the
-header's own backdrop root and any translucency let page text ghost behind the links.
+opaque, `--surface-2` (`#ffffff` light, `#26313d` dark). Measured in Chromium, the panel's own
+`backdrop-filter` did not blur the page behind it, so a translucent panel let page text show
+through behind the links.
 
 ---
 
