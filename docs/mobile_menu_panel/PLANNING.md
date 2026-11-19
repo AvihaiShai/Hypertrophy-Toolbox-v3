@@ -356,3 +356,31 @@ This amendment is the owner's direct instruction. No council re-review was run o
 
 **Commands**: `nav-dropdown` spec 17/17 twice; six contract pytest files 150 passed, 1 failed (`test_this_packet_wrote_no_production_css`, reads uncommitted `git status` under `static/css`; expected red until the change is committed); smoke-navigation + dark-mode + accessibility + listener-cleanup 70/70; `tsc --noEmit` clean; inventory `--check` up to date. Computed-style differential of the closed state (16 scenarios, about 97k values): 0 differences, same-CSS control also 0. Stylelint seven surfaces 2760 -> 2757 (only `navbar.css` `declaration-property-value-disallowed-list` 98 -> 95).
 **Known reds / blockers**: the one working-tree pytest above; Linux deep gate and full visual matrix not run here.
+
+## Evidence — merge of `main` and post-merge review (19 Nov 2026)
+
+PR #740 merged to `main` as `5dc83cef` after this branch was cut, so D1 fell to this branch. Commits after `f700e92c`: `6468fb14` (merge of `origin/main`), `8e77b732` (comment and prose follow-up from the first review round, which read the pre-merge diff) and `bc8fadca` (post-merge review fixes). Every gate below ran on `bc8fadca`. The commit after it changes only this file and the screenshots under `docs/product/review-733/`.
+
+**Merge (D1)**: conflicts in `tests/test_css_wp4_4_navbar_contracts.py` and `docs/test_inventory/TEST_INVENTORY.md`. The pins were recounted with the contract file's own parser against the merged `navbar.css`, not taken from either side: custom properties 72, style rules 188, unlayered 89, layered 99, `!important` 93, layer span lines 6-874. The docstring pointer to the `.navbar` rule moved from `navbar.css:892` to `883`. The inventory was regenerated: 740 Playwright tests, 590 required-functional, 4701 pytest nodes, 80 hard waits. Where the sections above say 101 layered rules, `closeLine: 883` or 190/191 rules, they describe the file before the merge.
+
+**Red before, green after (criterion 5)**: `e2e/nav-dropdown.spec.ts` against `main`'s `navbar.css` and `navbar-enhancements.js` (a local proxy served those two files from `5dc83cef`; every other byte came from the branch): 10 failed, 7 passed. All ten `#733 mobile menu panel` tests were red, each on its own assertion. On the branch: 17 passed.
+
+**Post-merge review**: `code-reviewer` and `unslop-reviewer` read the diff against `origin/main`. Fixed in `bc8fadca`:
+- The short-viewport test could not fail if panel scrolling were disabled, because its `scrollTop` check was satisfied by its own `scrollIntoView`. It now scrolls with a wheel gesture. Mutation `overflow-y: hidden` on the open panel: exactly that test fails.
+- The release assertions never showed that the lock had engaged. They now assert a locked, inert page first. Mutation with the scroll lock removed: exactly the four tests carrying that assertion fail.
+- The 100ms open-menu focus timer survived a resize teardown and moved focus to the desktop Plan link, against D5 (nothing is focused programmatically). The teardown now clears it. Checked both ways with the timer stretched: focus landed on `#nav-workout-plan` before the fix and stayed where it was after. No test was added for it.
+- Cleanup: the one-caller `closeMobileMenu` folded into the `hidden.bs.collapse` handler, a fixed one-second hold replaced by a wait for the closed state, a shared geometry helper, an unreachable `try/catch` removed, pin comments reworded.
+
+`code-reviewer` re-read that delta and reported no finding. Not changed, with reasons: `hideMobileMenu` has no `typeof bootstrap` guard (the menu can only be open after Bootstrap fired `shown`); the collect-then-assert pattern in two tests stays (it reports every failing method in one run and still fails the test); the corrected `.navbar` comment block keeps its line count (D2); the trailing-whitespace hunks in `navbar-enhancements.js` and the `var(--nav-height, 64px)` / `var(--nav-height)` difference stay as they are.
+
+**Gates on `bc8fadca`**:
+- pytest, full suite: 6946 passed, 1 failed, 3 skipped. The failure is `test_worktree_lifecycle.py::test_open_terminal_child_payload_sets_target_runtime_before_use[pwsh]`, the known local failure where `pwsh` on PATH is a Microsoft Store alias; CI's pytest job is the arbiter.
+- E2E (Chromium), the ten gate specs: 185 passed.
+- Visual: `visual.spec.ts` with `PW_VISUAL_SEED=1` on Windows, 66 passed, no snapshot updated.
+- Closed-state computed-style differential, `main`'s two navbar files against the branch's, 16 scenarios (375, 768, 1100 and 1440 wide, light and dark, normal and compact header): 376,296 values, 0 differences. A control run with `main`'s files on both sides also reported 0.
+- Stylelint, seven surfaces, `main` at `5dc83cef` to the branch: 2758 to 2755. `declaration-no-important` 1214 to 1214 (`navbar.css` 93 to 93). `declaration-property-value-disallowed-list` 1057 to 1054 (`navbar.css` 98 to 95). No other category or surface moved.
+- `tsc --noEmit` clean; inventory `--check` up to date.
+
+**Open panel, measured** (screenshots in `docs/product/review-733/`, visual seed database, `/workout_plan`; "before" is `main` at `5dc83cef`): at 375x812 the panel went from 63px tall with 1 of 13 controls reachable to 748px with 13 of 13. Its background went from `rgba(0, 0, 0, 0)` to `rgb(255, 255, 255)` light and `rgb(38, 49, 61)` dark. At 1100x900 with the compact header the panel top moved from 64 to 56, the header's bottom edge.
+
+**Not done here**: the Linux visual deep gate (one dispatch authorized at Gate 1) is dispatched after the push, and its result is reported in the PR. Merge needs the owner's confirmation naming the PR.
