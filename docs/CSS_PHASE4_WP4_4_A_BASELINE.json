@@ -193,7 +193,7 @@
         {
           "layer": "navbar",
           "openLine": 6,
-          "closeLine": 883
+          "closeLine": 874
         }
       ],
       "pages-welcome.css": [
@@ -898,7 +898,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "795ea5ef6975475773bc0b47e7588fb222be52224e8bbc39f5560eaa1d3c2479"
+      "nameAndSizeSha256": "783d472e31b49e350cf90157d78cf3be26ae6180375e2558acaee7c8d1148199"
     },
     "win32/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -919,7 +919,7 @@
         "plan-tablet-light-advanced.png",
         "plan-tablet-light-simple.png"
       ],
-      "nameAndSizeSha256": "9d722b82a8163f97981e9e0030ea6962b74fff854e9b64b8eabde295e8f30de2"
+      "nameAndSizeSha256": "eb4e46a8c489f44f7d6edb0efe60ee66bcd5e1f9aa6f77bc629640f1c3a78cff"
     },
     "linux/visual.spec.ts-snapshots": {
       "count": 66,
@@ -991,7 +991,7 @@
         "workout-plan-tablet-dark.png",
         "workout-plan-tablet-light.png"
       ],
-      "nameAndSizeSha256": "dc0bf3df6f891caf33590a3718c51c09c7a27460852607da2e88fbd1880bab77"
+      "nameAndSizeSha256": "b5e9280e663f1153d5ecbbfeec2a2db89e507163040f4af10479ca112aa1c71b"
     },
     "linux/visual-baseline-thumbnails.spec.ts-snapshots": {
       "count": 15,
@@ -1012,7 +1012,7 @@
         "plan-tablet-light-advanced.png",
         "plan-tablet-light-simple.png"
       ],
-      "nameAndSizeSha256": "636925f51ba41a09b9db22801ea8a276a8b1400e6f521a685f976e3edf127522"
+      "nameAndSizeSha256": "492ad0ab493ace3f7000ecfb210041d002565be2a63844eddc5147cb17efaa8b"
     }
   },
   "fatigueBaselines": {
@@ -1829,7 +1829,7 @@
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_volume_splitter_tokens_preserve_runtime_ownership_and_dark_winners",
       "line": "504",
-      "pinnedString": "getPropertyValue('--volume-track-bg')",
+      "pinnedString": "var(--volume-track-bg)",
       "candidateSurfaces": "a11y.css, components.css, motion.css, theme-dark.css"
     },
     {

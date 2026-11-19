@@ -5600,7 +5600,7 @@ svg[id^="body-posterior-hypertrophy-advanced"] .muscle-region.partial {
     color: color-mix(in srgb, var(--warning) 72%, var(--ink-1));
 }
 
-.workout-estimate-learned-badge .fa-wand-magic-sparkles {
+.workout-estimate-learned-badge .fa-magic {
     font-size: 0.72rem;
 }
 

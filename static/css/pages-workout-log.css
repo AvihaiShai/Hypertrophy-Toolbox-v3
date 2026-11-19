@@ -28,8 +28,6 @@ html body .workout-log-frame .tbl-wrap {
 
 /* Routine cell - 3-line vertical layout (Environment, Program, Workout) */
 .workout-log-table .routine-cell {
-  min-width: 50px !important;
-  max-width: 80px !important;
   width: auto !important;
   white-space: normal !important;
   overflow: visible !important;
@@ -186,67 +184,75 @@ body:has(.workout-log-page) {
     min-width: 0 !important;
 }
 
-.workout-log-table th:nth-child(1),
-.workout-log-table td:nth-child(1) { width: 1.5%; } /* # */
+/* Row cards use the full row for each label/value pair. */
+@media (width > 576px) {
+    .workout-log-table .routine-cell {
+        min-width: 50px !important;
+        max-width: 80px !important;
+    }
 
-.workout-log-table th:nth-child(2),
-.workout-log-table td:nth-child(2) { width: 4%; } /* Routine */
+    .workout-log-table th:nth-child(1),
+    .workout-log-table td:nth-child(1) { width: 1.5%; } /* # */
 
-.workout-log-table th:nth-child(3),
-.workout-log-table td:nth-child(3) { width: 7.5%; } /* Exercise */
+    .workout-log-table th:nth-child(2),
+    .workout-log-table td:nth-child(2) { width: 4%; } /* Routine */
 
-.workout-log-table th:nth-child(4),
-.workout-log-table td:nth-child(4) { width: 3%; } /* Plan Sets */
+    .workout-log-table th:nth-child(3),
+    .workout-log-table td:nth-child(3) { width: 7.5%; } /* Exercise */
 
-.workout-log-table th:nth-child(5),
-.workout-log-table td:nth-child(5) { width: 4%; } /* Plan Min */
+    .workout-log-table th:nth-child(4),
+    .workout-log-table td:nth-child(4) { width: 3%; } /* Plan Sets */
 
-.workout-log-table th:nth-child(6),
-.workout-log-table td:nth-child(6) { width: 4%; } /* Plan Max */
+    .workout-log-table th:nth-child(5),
+    .workout-log-table td:nth-child(5) { width: 4%; } /* Plan Min */
 
-.workout-log-table th:nth-child(7),
-.workout-log-table td:nth-child(7) { width: 3.5%; } /* Plan RIR */
+    .workout-log-table th:nth-child(6),
+    .workout-log-table td:nth-child(6) { width: 4%; } /* Plan Max */
 
-.workout-log-table th:nth-child(8),
-.workout-log-table td:nth-child(8) { width: 3.5%; } /* Plan RPE */
+    .workout-log-table th:nth-child(7),
+    .workout-log-table td:nth-child(7) { width: 3.5%; } /* Plan RIR */
 
-.workout-log-table th:nth-child(9),
-.workout-log-table td:nth-child(9) { width: 4%; } /* Plan Wt */
+    .workout-log-table th:nth-child(8),
+    .workout-log-table td:nth-child(8) { width: 3.5%; } /* Plan RPE */
 
-.workout-log-table th:nth-child(10),
-.workout-log-table td:nth-child(10) { width: 4%; } /* Score Min */
+    .workout-log-table th:nth-child(9),
+    .workout-log-table td:nth-child(9) { width: 4%; } /* Plan Wt */
 
-.workout-log-table th:nth-child(11),
-.workout-log-table td:nth-child(11) { width: 4%; } /* Score Max */
+    .workout-log-table th:nth-child(10),
+    .workout-log-table td:nth-child(10) { width: 4%; } /* Score Min */
 
-.workout-log-table th:nth-child(12),
-.workout-log-table td:nth-child(12) { width: 3.5%; } /* Score RIR */
+    .workout-log-table th:nth-child(11),
+    .workout-log-table td:nth-child(11) { width: 4%; } /* Score Max */
 
-.workout-log-table th:nth-child(13),
-.workout-log-table td:nth-child(13) { width: 3.5%; } /* Score RPE */
+    .workout-log-table th:nth-child(12),
+    .workout-log-table td:nth-child(12) { width: 3.5%; } /* Score RIR */
 
-.workout-log-table th:nth-child(14),
-.workout-log-table td:nth-child(14) { width: 4%; } /* Score Wt */
+    .workout-log-table th:nth-child(13),
+    .workout-log-table td:nth-child(13) { width: 3.5%; } /* Score RPE */
 
-.workout-log-table th:nth-child(15),
-.workout-log-table td:nth-child(15) { width: 4.5%; } /* Last Prog */
+    .workout-log-table th:nth-child(14),
+    .workout-log-table td:nth-child(14) { width: 4%; } /* Score Wt */
 
-.workout-log-table th:nth-child(16),
-.workout-log-table td:nth-child(16) { width: 4.5%; } /* Overload */
+    .workout-log-table th:nth-child(15),
+    .workout-log-table td:nth-child(15) { width: 4.5%; } /* Last Prog */
 
-.workout-log-table th:nth-child(17),
-.workout-log-table td:nth-child(17) { width: 6%; min-width: 76px !important; } /* Actions */
+    .workout-log-table th:nth-child(16),
+    .workout-log-table td:nth-child(16) { width: 4.5%; } /* Overload */
 
-.workout-log-table th:nth-child(17) {
-    overflow: visible !important;
-    text-overflow: clip !important;
-    white-space: normal !important;
-    line-height: 1.15 !important;
-}
+    .workout-log-table th:nth-child(17),
+    .workout-log-table td:nth-child(17) { width: 6%; min-width: 76px !important; } /* Actions */
 
-.workout-log-table td:nth-child(17) {
-    overflow: visible !important;
-    text-overflow: clip !important;
+    .workout-log-table th:nth-child(17) {
+        overflow: visible !important;
+        text-overflow: clip !important;
+        white-space: normal !important;
+        line-height: 1.15 !important;
+    }
+
+    .workout-log-table td:nth-child(17) {
+        overflow: visible !important;
+        text-overflow: clip !important;
+    }
 }
 
 /* Table header styling - 2026 Glass Style (matching workout plan) */
@@ -484,9 +490,11 @@ table.workout-log-table td {
         font-size: 0.75rem;
     }
 
-    .workout-log-table .routine-cell {
-        min-width: 40px !important;
-        max-width: 60px !important;
+    @media (width > 576px) {
+        .workout-log-table .routine-cell {
+            min-width: 40px !important;
+            max-width: 60px !important;
+        }
     }
 
     .workout-log-table .routine-cell .routine-env,
