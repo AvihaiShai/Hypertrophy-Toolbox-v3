@@ -2,9 +2,9 @@
 
 **Status** — Gate 0 signed by the owner on 2026-11-20, with both corrections in Section 0
 (check C10 and criteria 18 and 19). The council reviewed Astra's Plan v1 (`a0daa535`) on
-2026-11-20 and left one blocking finding open (TS-1: criteria 3, 4 and 12 have no named
-check). See [Council review of Plan v1](#council-review-of-plan-v1). Astra revises the plan,
-the council then verifies the fixes, and after that the owner decides Gate 1.
+2026-11-20. [Plan v2](#plan-v2) maps all 19 signed criteria to checks and incorporates
+the 26 findings recorded at `28c8a151`. Claude's council verifies the revision next,
+including the TS-1 blocker. Owner Gate 1 is pending.
 
 **Planning size:** Large under
 [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md#plan-stage-routing), because the work edits
@@ -844,7 +844,7 @@ replacement where applicable. Keep unrelated entries and historical guarantees i
 |---|---|---|
 | Plan v1 author | not applicable | Astra (Codex), assigned directly by the owner for step 2. No Claude `product-manager` wrote Section 0 or Plan v1. |
 | Response matrix | not applicable | Proposed dispositions written by the main Claude session that ran the council, not by a `product-manager`. See the evidence gap below. |
-| Plan v2 | not written | Astra owns every revision to the pilot plan (`artifacts/design-736/RUN_PROMPT.md`, approval 1). |
+| Plan v2 author | not applicable | Astra (Codex) revised the plan after the owner relayed the council findings on 2026-11-20. |
 | `architecture-reviewer` | `aa1e122e4107e5b7f` | Fresh context, briefed with the file path and the owner's constraints only. |
 | `test-strategist` | `ad8ed0a59bfb2dee4` | Same brief, plus the repository's known hidden CI gates to check. |
 | `product-risk-reviewer` | `a5d5874a5d192824d` | Same brief, plus the RIR/RPE, #738 and database-isolation focus areas. |
@@ -1133,11 +1133,146 @@ Verdict: sound with non-blocking findings. I found nothing that, as written, los
    - Failure: with a different routine, `ORDER BY routine, exercise` places the row differently and the sort expectations shift.
    - Fix: pin the routine to `GYM - Full Body - Workout A`, and state that `workout_plan_id` stays NULL. The backfill at `db_initializer.py:279-326` only links on an exact unique match, so a unique name is safe.
 
+## Plan v2
+
+Astra, 2026-11-20. This revision adopts the goal, scope, artifacts and four implementation
+steps of Plan v1. The following checks, implementation details and gates supersede the
+corresponding v1 instructions. Section 0 remains the signed requirements. All 26 proposed
+dispositions are accepted for this revision.
+
+### Acceptance criteria and their checks (TS-1, TS-6)
+
+**Frame** below means the serial, opt-in `e2e/workout-log-frame.check.ts` run against the
+seven-record Section 0 fixture. **Log spec** means `e2e/workout-log.spec.ts` in the required
+Chromium shard. The frame check owns the full matrix. The Log spec sets up its required
+records in the functional lane's scratch DB before opening the page. Follow the existing
+#738 case's plan/import and read-back pattern, assert fixture preconditions and identify
+records by exercise, routine and ID. A missing record fails the check.
+
+| Criterion | Named check and pass condition |
+|---|---|
+| 1. Gutter | Frame, **page edges and header offset**. Run C1 at all three base widths, both themes, empty and populated. Also measure navbar bottom to header top, 16 px at 390 and 24 px at 768 and 1440. |
+| 2. Radius, type and surfaces | Frame, **component styles**. Run C2–C4 over the full base matrix with Section 0's selectors, computed-style populations and rounding. |
+| 3. One primary action | Frame, **Import variant by log state**. In `#main-content` count visible `.ui-btn--primary` and independently count actions with the computed primary fill. Both sets contain only “Import Current Workout Plan” when empty and are empty when populated. Check populated Import's secondary and Clear Log's outline-danger styles in both themes. Pin the state change in the functional empty/import flow too. |
+| 4. Phone card content | Frame, **RPE placement by exercise**, at 390 px before any edits. For each of the seven closed cards assert its name, routine, status, planned line and visible Min Reps, Max Reps, Weight and RIR, in order and within the viewport. Squat shows RPE 9 and Seated Military Press shows blank RPE in the main row. For Bench Press, Bent Over Row, Curl, Deadlift and the long Cable row, RPE is hidden on load and appears on opening that card's Details. Count one RPE editor per record across both states. Pin the logged, planned-only and ordinary cases in the Log spec. |
+| 5. Phone card size | Frame, **closed card measurements**, C6 at 390 px. Measure the six seed names, full Cable name, field targets and height of every one-line-name card. |
+| 6. Details | Log spec, **Details by touch and keyboard**. Check initially collapsed, tap to open, close and reopen by keyboard. Assert the row's six planned values, date, Reference Video, Delete Entry and `aria-expanded`. Verify closed controls leave the tab order. |
+| 7. Two-column cards | Frame, **tablet grid**. At 768 px measure two distinct record columns and assert C5. |
+| 8. Desktop table | Frame, **desktop column groups**. At 1440 px check Planned and Logged over their six and five fields, cell-to-header IDs, and C7 including each heading's fit and the 220 px Exercise minimum. |
+| 9. Sorting follows the field | Frame, **weight then exercise**, at 1440 px with the group row visible. Activate Logged Weight first and assert the five weighted records in order (Curl 30, Bench Press 60, Bent Over Row 70, Squat 100, Deadlift 120). Activate Exercise and assert the complete ascending name list, Bench first and Cable last. Activate it again and require the reverse list. Repeat from a fresh page with keyboard Enter and check `aria-sort` on the active heading. |
+| 10. Editing | Log spec, **commit, cancel, clear and reject**, in both layouts. Count POSTs by record and field for changed Enter and blur (one each), Escape and unchanged input (zero). Assert stored null and displayed `--` on clear, the warning and unchanged value on validation or server rejection, and the confirmed value after reload. Exercise a breakpoint crossing with an active editor and an edit followed immediately by sort. |
+| 11. Zero and status | Frame, **Deadlift RIR 2 → 0**, after the geometry and sort passes. The committed seed plans 5–8 reps, 120 kg and RIR 2. The frame fixture logs 5/5 reps, 120 kg and blank RPE. Save RIR 2 and verify Pending, then enter 0 and require exactly one successful zero POST for that ID. Read numeric 0 via `/get_workout_logs`, reload and assert visible 0, its Improved mark and Achieved equal to `/check_progression/<id>`. Only RIR can improve in this transition. Retain the #738 Log spec. |
+| 12. Phone end to end | Log spec, **leave and reopen the edited exercise**, at 390 px. Find the target by its displayed name among other records and remember its ID. Enter a changed value that moves Pending to Achieved, wait for its successful POST, navigate to Workout Plan and assert that destination loaded. Reopen Workout Log through navigation, find the same name and ID, and compare its displayed value and badge to the stored value and progression response. Run this journey on the seven-record frame fixture as well. |
+| 13. Dark theme and contrast | Frame, **shared dark selectors** (C8). The `/workout_log` axe scan in `accessibility.spec.ts` measures both themes against their registered counts, targeting zero in light and retaining zero in dark. Inspect the populated, open-Details and editing states. |
+| 14. Overrides | Frame, **retired Log selectors** (C9). Count each Section 0 family after its stated exceptions. Check the total falls below 242 and inspect the CSS diff for any added `!important`. Retain the cascade contracts below. |
+| 15. Scale and long names | Frame, **scale-8 readability**, at 390 and 1440 px. Assert scale factor 1.2, C5 and the entire Cable name visible without clipping or ellipsis, including within the desktop scroll region. |
+| 16. Other pages | **Platform visual comparisons and bundle inventory**. Compare the complete full-page and thumbnail sets on win32 and Linux. Inspect the changed-file list against the 24 authorized Log PNGs and count the runtime CSS bundles against the signed total of 18. |
+| 17. Evidence | **PR evidence review**. Reproduce the documented runner command. Attach or identify the failing pinned control and two independent candidate reports with identical metrics, plus ordinary screenshots at 390 and 1440 px, light/dark, empty/populated, and at scale 8. Include the populated 1360 px table for the owner's by-eye review. |
+| 18. The switch | Frame, **C10 at 1359 and 1360**. Assert two card columns and hidden headings at 1359, then visible group/field headings, no heading overflow and Exercise ≥220 px at 1360. Assert C5 at both. Pin both sides of the breakpoint on populated records in the Log spec. |
+| 19. First RPE entry | Frame and Log spec, **first RPE without opening Details**. At 390 px require Military Press planned RPE 8, planned RIR null and all five scores null. Check visible RIR and RPE triggers with Details closed, enter 9 once, read that record's stored 9 and reload. RPE 9 and the RIR trigger remain visible with Details closed. |
+
+Run the populated measurements, per-card placement and sort sequence before the first write.
+Give each editing scenario its starting values independently. For criterion 12 the unlogged
+Cable record can change from Pending to Achieved by entering RIR 1 against planned RIR 2.
+After all populated checks, clear only the scratch log and measure the empty state.
+
+### Fixture and control (AR-5–7, PR-1, PR-8, TS-4–5)
+
+- A typed Python launcher creates a fresh directory under `artifacts/workout-log-frame/`.
+  Before importing app modules or starting any child, it resolves the expected DB and
+  runtime paths, requires both inside that specific run, and refuses the checkout's
+  `legacy_database_path()` and paths escaping the run. It explicitly supplies `DB_FILE`
+  and `HT_RUNTIME_DIR` to seed preparation, scratch edits, Playwright and both candidate
+  and control Flask processes. The seed source is the committed visual fixture. Use the
+  explicit scratch path for `DatabaseHandler`, with the existing seeder guard enabled.
+- In the test server process, compare effective `utils.config.DB_FILE` and runtime root
+  with the launcher's expected paths before `init_runtime()`. Emit the resolved pair to
+  the runner and verify it again at readiness before browser writes. Also read the seven
+  expected IDs and values over the existing read API. A focused runner pytest passes a
+  live-path destination and a path outside the run, and asserts refusal before any
+  seeding, DB open or child launch. It can use a stand-in live path in a temporary tree.
+- Set the long Cable record's routine to `GYM - Full Body - Workout A` and
+  `workout_plan_id` to SQL NULL. Assert the seven names and effort values before measuring.
+  For `--control-ref 5dc83cef`, run the archived app and inspect its CSS from the export,
+  using the working checkout's absolute venv interpreter and Playwright installation in
+  `node_modules`. Check the loaded app originates in the export. The old-UI C1–C4/C10
+  failures come from measurements on legacy elements. A failed setup is an error.
+- Set explicit `testMatch` for `workout-log-frame.check.ts` in the dedicated config.
+  Verify discovery with both configs' `--list`. Use the passed port and `baseURL` for
+  origins, and wait for responses or observable DOM state throughout the new TS code.
+  Run the inventory generator, its `--check` mode and inventory/runner/URL pytest pins
+  after adding the dedicated files and required-shard cases.
+
+### Shared components, sort and focus (AR-1–4, AR-8, PR-2–7)
+
+- Coordinate `layout.css`, `components.css`, `theme-dark.css` and the shared editor in
+  `ui-handlers.js` under #736. Remove `table`, `table-striped`, `table-calm`, `tbl` and
+  `tbl--responsive` from the Log table. The last is a CSS class. The JS controller binds
+  `[data-table-responsive]`, which this table already omits. Replace Bootstrap button,
+  field and badge colour classes on migrated controls (`btn`, `btn-*`, `form-control`,
+  `bg-success`, `bg-warning`) with their shared components. Keep the Section 0 selector
+  hooks, including `.badge.ui-badge`, `.log-play-video-btn`, the input/spinner hooks,
+  table ID/classes named under **Hooks that stay**, and the modal's action hooks.
+  In `theme-dark.css` remove only the `:where([data-theme="dark"] .workout-log-frame)`
+  branch of the grouped glass rule. Record the removal in the ownership map and ledger.
+- Replace `initializeSimpleTableSorting` and `sortTableByColumn` with the keyed sorter.
+  The group and Actions headers have no sort handler. Before reading confirmed scores,
+  await any write started by focus leaving the editor. On rejection sort the restored
+  values. In the Log spec hold the update response, activate Logged Weight during the
+  pending save, release it and assert the final order reflects the new value and only
+  one write occurred. Choose a value that crosses another weighted row.
+- Give each planned metric one keyed value per record, and each numeric `.editable-text`
+  only its confirmed number or `--`. Keep labels, icons and the mobile summary outside
+  the nodes read by the existing progression comparison. Treat null, empty, legacy
+  `'None'` and displayed `'--'` as absent for placement, and keep zero present. Omit
+  missing effort terms in the planned summary and use `--` for a missing planned value
+  in Details. Keep the legacy raw inputs to the sort comparator for missing values.
+- Update badge variants at initialization (through `checkProgressiveOverload` and
+  `updateProgressionBadge`), after score writes and in the server-response badge updater,
+  preserving both base classes. On first load
+  check all seven rows' bare values, unique planned keys and badge text against their
+  own progression endpoint. After a confirmed RPE save or clear, re-evaluate placement.
+  Test Return and Escape restoring focus to the field trigger. If the field moves
+  behind closed Details, focus its disclosure. On deliberate Tab, blur or header
+  activation, respect the user's new visible focus target. Keep the single-write guard.
+
+### Verification gates (TS-2–3, TS-7–10)
+
+- The shared `ui-handlers.js` edit requires **full pytest and full Chromium** through
+  `/verify-suite` within `/verify-and-polish`. Plan v1's targeted list is for quick
+  feedback. Include the isolated backup and fatigue-context coverage, the separate
+  frame runner, the seeded manual checks, Stylelint, Vitest and inventory checks.
+  Run `npx tsc --noEmit` and CI's pyright JSON measurement followed by
+  `scripts/pyright_baseline_diff.py` against `docs/ci_cd_phase3/pyright-baseline.json`.
+- Retarget the three named cascade tests in their existing slots. The responsive/frame
+  test asserts absence of the retired frame padding and responsive table chrome. The
+  header/cell glass test asserts absence of header/cell glass, zebra and metric tints.
+  The hover test asserts absence of the retired row-hover filters. Keep coverage for
+  shared selectors' surviving consumers. In `visual-field-separator.spec.ts` measure
+  visible card fields at 375 and 768 px and table fields at 1440 px, preserving 3:1
+  and the negative control. Change measured axe counts and X7 together and run
+  `tests/test_axe_contracts.py`.
+- Hand-edit only the measured changes in `CSS_PHASE4_WP4_4_A_BASELINE.json`, including
+  shared-surface line counts, selector groups and pinned declarations. After by-eye
+  approval and capture generation, compute the four affected `snapshotManifest` digests
+  with the sorted filename/byte-size algorithm in `test_css_wp4_4_a_baseline_contracts.py`.
+  Use that contract to verify the ledger. Skip the whole-ledger emitter.
+- Keep real `tbody tr` and thumbnail images in both layouts. Check the PR's
+  `visual-windows` comparison after the approved Windows PNGs are pushed. Until then
+  it compares the new UI to the previous full-page images. Compare Windows thumbnails
+  locally and both Linux sets in the final deep-gate compare. Require a clean first
+  attempt for `log-desktop-light`, including its existing 800-pixel tolerance.
+
+At plan revision, the existing inventory generator's `--check` passed and all 48 cases
+in `tests/test_vitest_inventory_contracts.py` passed. The Deadlift prescription above
+was checked directly in the committed read-only visual seed. The acceptance checks
+in the table are implementation deliverables after owner Gate 1.
+
 ### Gate 1 sign-off
 
 - [x] Gate 0 complete (owner, 2026-11-20).
 - [x] Every finding has a proposed disposition.
 - [x] Agent provenance complete, with the evidence gap stated.
-- [ ] Astra revises Plan v1 for TS-1 and the accepted non-blocking findings.
+- [x] Astra recorded Plan v2 for TS-1 and all accepted non-blocking findings.
 - [ ] The council verifies the fixes.
 - [ ] Owner approves the plan (Gate 1).
