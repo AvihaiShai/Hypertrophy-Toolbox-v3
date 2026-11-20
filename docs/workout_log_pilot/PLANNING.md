@@ -5,7 +5,8 @@
 2026-11-20. [Plan v2](#plan-v2) maps all 19 signed criteria to checks and incorporates
 the 26 findings recorded at `28c8a151`. The council verified Plan v2 at `c3b3a767` on
 2026-11-20 and found no blocker. TS-1 is resolved. See
-[Council verification of Plan v2](#council-verification-of-plan-v2). Owner Gate 1 is pending.
+[Council verification of Plan v2](#council-verification-of-plan-v2). The owner approved
+Gate 1 on 2026-11-20, and Astra implements Plan v2. Gate 2 and the merge stay with the owner.
 
 **Planning size:** Large under
 [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md#plan-stage-routing), because the work edits
@@ -1276,7 +1277,9 @@ in the table are implementation deliverables after owner Gate 1.
 - [x] Agent provenance complete, with the evidence gap stated.
 - [x] Astra recorded Plan v2 for TS-1 and all accepted non-blocking findings.
 - [x] The council verifies the fixes (2026-11-20, `c3b3a767`: no blocker; see below).
-- [ ] Owner approves the plan (Gate 1).
+- [x] Owner approves the plan (Gate 1). Approved by the owner on 2026-11-20, in their words:
+  "I approve Gate 1 for the Workout Log pilot on Plan v2 at 05797c95. Astra may begin
+  implementation."
 
 ---
 
