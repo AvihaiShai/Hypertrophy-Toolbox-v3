@@ -1,8 +1,10 @@
 # Plan Review — Workout Log pilot (#736 step 2)
 
 **Status** — Gate 0 signed by the owner on 2026-11-20, with both corrections in Section 0
-(check C10 and criteria 18 and 19). Astra's Plan v1 is ready for council review. The owner
-decides Gate 1 after that review.
+(check C10 and criteria 18 and 19). The council reviewed Astra's Plan v1 (`a0daa535`) on
+2026-11-20 and left one blocking finding open (TS-1: criteria 3, 4 and 12 have no named
+check). See [Council review of Plan v1](#council-review-of-plan-v1). Astra revises the plan,
+the council then verifies the fixes, and after that the owner decides Gate 1.
 
 **Planning size:** Large under
 [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md#plan-stage-routing), because the work edits
@@ -838,7 +840,304 @@ replacement where applicable. Keep unrelated entries and historical guarantees i
 
 ## Agent provenance
 
-Plan v1 author is Astra (Codex), assigned directly by the owner for step 2. A Claude
-`product-manager` agent ID does not apply to this draft. The council records its three
-reviewer IDs and actual author continuity when it reviews the plan. Review and Gate 1
-are pending.
+| Role | Agent ID | Notes |
+|---|---|---|
+| Plan v1 author | not applicable | Astra (Codex), assigned directly by the owner for step 2. No Claude `product-manager` wrote Section 0 or Plan v1. |
+| Response matrix | not applicable | Proposed dispositions written by the main Claude session that ran the council, not by a `product-manager`. See the evidence gap below. |
+| Plan v2 | not written | Astra owns every revision to the pilot plan (`artifacts/design-736/RUN_PROMPT.md`, approval 1). |
+| `architecture-reviewer` | `aa1e122e4107e5b7f` | Fresh context, briefed with the file path and the owner's constraints only. |
+| `test-strategist` | `ad8ed0a59bfb2dee4` | Same brief, plus the repository's known hidden CI gates to check. |
+| `product-risk-reviewer` | `a5d5874a5d192824d` | Same brief, plus the RIR/RPE, #738 and database-isolation focus areas. |
+
+**Same product-manager resumed for the matrix + Plan v2?** No. No `product-manager` took
+part. Astra wrote Plan v1 outside the Claude agent system, and the owner's run prompt assigns
+the revision to Astra.
+
+**Evidence gap** — No `product-manager` continuity exists to record, because the owner's role
+split puts the plan with Astra. The main Claude session wrote the response matrix below
+because the run prompt asks only that the findings be recorded in this file. It did not
+revise Plan v1. The three reviewers ran once each on `a0daa535`. No ID was invented and no
+review was rerun.
+
+---
+
+## Council review of Plan v1
+
+**Reviewed** — Plan v1 at `a0daa535` (branch `feat/736-workout-log-pilot`, based on
+`origin/main` at `44797998`), on 2026-11-20. All three reviewers read the file cold and
+checked its claims against the code. Each received the owner's constraints and the
+proportionality rule: a finding blocks only if it names a concrete loss, a wrong result or a
+blocked operation.
+
+**Verdicts**
+
+- `architecture-reviewer` — sound with non-blocking findings (8).
+- `test-strategist` — blocking (2 blocking, 8 non-blocking).
+- `product-risk-reviewer` — sound with non-blocking findings (8).
+
+**Outcome** — One blocking finding is open, TS-1. The main session downgrades TS-2 to
+non-blocking (reason in the matrix). The owner relays the findings to Astra, and Astra
+revises Plan v1. The council then verifies the fixes before the plan goes to the owner for
+Gate 1.
+
+### Response matrix (proposed dispositions)
+
+These are proposals for the owner and Astra. Gate 1 is the owner's decision. IDs refer to
+the reviewer sections below: AR is `architecture-reviewer`, TS is `test-strategist` and PR
+is `product-risk-reviewer`.
+
+| ID | Finding | Severity | Proposed disposition | Action for Astra's revision |
+|---|---|---|---|---|
+| TS-1 | Criteria 3 (one primary), 4 (per-card RPE placement, including the Barbell Squat main-row case) and 12 (leave the Log and return) have no named check | **Blocking** (upheld) | Accept | Add a criterion-to-check table covering all 19 criteria. Suggested homes: criterion 3 counts visible `.ui-btn--primary` in the empty and populated frame-check passes; criterion 4 asserts RPE placement per record name; criterion 12 is a 390 px `workout-log.spec.ts` case that navigates away and back. Verified: Plan v1 names only a reload for persistence and names no primary-button or Squat check. |
+| TS-2 | The Chromium list misses specs that load the shared `ui-handlers.js` editor | Downgraded to non-blocking | Accept | The described failure does not occur as written: Plan v1's gate list ends with `/verify-and-polish`, whose first step is the full `/verify-suite` (full pytest and full Chromium). State plainly that the full Chromium suite is the gate for the shared handler edit, so the targeted list is not read as the whole gate. |
+| TS-3 | `tsc` and pyright are missing from the gates | Non-blocking | Accept | Add `npx tsc --noEmit` and `scripts/pyright_baseline_diff.py`. Type the new runner, because `main` has no pyright headroom. |
+| TS-4 | A literal loopback origin or a hard wait in the new `.ts` files reds a pytest pin or the inventory | Non-blocking | Accept | Build URLs only from the passed port or `baseURL`. Use no `waitForTimeout`. |
+| TS-5 | `.check.ts` sits outside the default glob and the CI shard | Non-blocking (claim verified) | Accept | Set an explicit `testMatch` in the dedicated config. No other change. |
+| TS-6 | Criteria 18 and 19 have no regression pin after merge | Non-blocking | Accept | Add lighter assertions of both to `e2e/workout-log.spec.ts` and regenerate the inventory. |
+| TS-7 | The "existing tool" wording for the CSS baseline ledger conflicts with `e2e/CLAUDE.md` | Non-blocking | Accept | Hand-edit the four manifest digests with the test's own algorithm. Hand-edit the other affected entries, or review an `emit_baseline.py` diff entry by entry. |
+| TS-8 | Retargeted cascade tests must keep their negative assertions. The axe register and `A11Y_EXCEPTIONS.md` move together | Non-blocking | Accept | Say what each retargeted test asserts. Cite `tests/test_axe_contracts.py` among the pins. |
+| TS-9 | Name the visual-baseline failure modes | Non-blocking | Accept | Record that `visual-windows` stays red until the win32 captures are pushed, and that `log-desktop-light` is a known flipper under its tolerance. |
+| TS-10 | `visual-field-separator.spec.ts` covers 375 and 768 px, where the Log becomes cards | Non-blocking | Accept | Retarget the card fields as well as the 1440 px table. |
+| AR-1 | The "legacy responsive-table opt-in" the plan drops is probably the `tbl--responsive` CSS class, not a controller opt-in | Non-blocking | Accept | Name the exact class or attribute. Verified: `templates/workout_log.html:66` has `tbl--responsive` and no `data-table-responsive`. |
+| AR-2 | The positional `th` sorting must go, or group headers and Actions stay clickable | Non-blocking | Accept | State that `initializeSimpleTableSorting` and `sortTableByColumn` are removed, not wrapped. |
+| AR-3 | Plan v1 edits `theme-dark.css`, which Section 0 says gets "Nothing for the Log" | Non-blocking | Accept | Say the edit is a removal only, name the selector, and record it in the ownership map and the baseline ledger. |
+| AR-4 | Bootstrap classes kept on the same elements (`.table-striped`, `.btn`, `.badge`) can break C2 to C4 or force `!important` | Non-blocking | Accept | List which Bootstrap classes are dropped and which hook classes stay. |
+| AR-5 | The `--control-ref` export needs `.venv` and `node_modules` to start | Non-blocking | Accept | Say the export reuses the working tree's `.venv` and `node_modules`. Keep the control at `5dc83cef`, because the owner-signed Section 0 names that commit. |
+| AR-6 / PR-1 | The runner's database isolation is implicit. `HT_RUNTIME_DIR` alone copies the real database | Non-blocking | Accept | Set `DB_FILE` and `HT_RUNTIME_DIR` explicitly for every child process. Before launch, assert that the resolved path is under the run's scratch directory and is not the live path. Assert the server's path again after start. Add a refusal test. |
+| AR-7 | A new file under `e2e/` could trip the inventory or spec-list pins | Non-blocking | Accept | Covered by TS-5 and the inventory regeneration already planned. |
+| AR-8 | No coordination note for the shared-surface edits | Non-blocking | Accept | Add one line saying the shared CSS and `ui-handlers.js` edits are coordinated under #736. |
+| PR-2 | A sort right after an edit orders rows by the old value | Non-blocking | Accept | Await the pending write before sorting, or re-sort after the save settles. Add an "edit, then click a header" case. |
+| PR-3 | The `'--'` cleared sentinel is missing from the missing-value set. The display of a missing planned value is unspecified | Non-blocking | Accept | Add `'--'` for logged values. Specify the card and Details wording for a missing planned value. Keep the sort text unchanged. |
+| PR-4 | The criterion 9 Exercise-sort oracle cannot fail, because the server already returns that order | Non-blocking (test honesty) | Accept | Assert the order after a second activation (descending), or after sorting by another field first. Criterion 9's wording stays as signed. |
+| PR-5 | The criterion 11 oracle may save nothing, because the fixture already stores Deadlift RIR 0 and the editor skips an unchanged value | Non-blocking (test honesty) | Accept | Drive the zero through a real change (2, then 0). Judge it on a row where RIR is the only improving field. |
+| PR-6 | Label text inside the value nodes, or the load-time `className` rewrite, can flip badges or cause spurious writes | Non-blocking | Accept | Assert that `.editable-text` holds only the bare value and that each row has one `data-field="planned_*"`. Assert that the load-time badge matches `GET /check_progression/<id>` for all seven rows. Name the load-time badge call as a site to change. |
+| PR-7 | Focus handling after commit, Escape and re-placement is unspecified | Non-blocking | Accept | Return focus to the field's trigger. Focus the Details button when the field has moved behind closed Details. |
+| PR-8 | The added Cable record's routine is not stated | Non-blocking | Accept | Pin it to `GYM - Full Body - Workout A` with `workout_plan_id` NULL. |
+
+No finding is rejected or deferred.
+
+### architecture-reviewer (agent `aa1e122e4107e5b7f`)
+
+*Verbatim. Numbering is the reviewer's own; the matrix prefixes it with AR.*
+
+I read the Plan v1 section against Section 0 and spot-checked its claims against the code. I found no blocking findings. The verdict is **sound with non-blocking findings**. I did not read the entire plan or every file it names: the Section 0 test-pin table (lines 372 to 560) is unread. In the CSS I only matched `tbl--responsive` rules. I did not run `gh issue view 736`.
+
+1. **Non-blocking. Plan: "Drop the Log's legacy responsive-table opt-in so its other controller cannot hide the new keyed columns."**
+   - Evidence:
+     - `static/js/table-responsiveness.js:425` binds only `[data-table-responsive]` tables.
+     - `templates/workout_log.html:64-66` has no such attribute. The table carries the class `tbl--responsive` and `data-visual-surface`.
+     - My grep of `workout-log.js` and `table-responsiveness.js` found no `tbl--responsive` consumer, apart from the Log's own CSS (`pages-workout-log.css:261` and others).
+   - Failure: the "opt-in" the plan removes is probably the `tbl--responsive` class, which is a CSS hook and not a controller opt-in. An implementer may delete a class that other CSS or tests still use, or miss a real opt-in that is set elsewhere.
+   - Fix: name the exact attribute or class to drop. Confirm with `Grep "tableResponsive|data-table-responsive"` across `templates/` and `static/js/`. Drop the claim if nothing sets it for the Log.
+
+2. **Non-blocking. Plan: "Use `data-sort-field` … so the global `th[data-sort]` handler never binds."**
+   - Evidence: `ui-handlers.js:298` binds `th[data-sort]` on `th` elements only. The Log's current sorting is positional (`workout-log.js:246-291`, `columnIndex` and `a.cells[columnIndex]`), and it binds a click to every `th`, with a "Click to sort" title and a pointer cursor (lines 247-254).
+   - Failure: the plan's field-keyed buttons would avoid the global handler. But if `initializeSimpleTableSorting` is not replaced, the group headers and Actions `th` stay clickable. Group headers would then sort by position. That contradicts "leave group headers and Actions out of the sort".
+   - Fix: state explicitly that `initializeSimpleTableSorting` and `sortTableByColumn` are deleted and not wrapped.
+
+3. **Non-blocking. Plan, Artifacts and the `components.css` and `layout.css` edits.**
+   - Evidence: Section 0 says `theme-dark.css` receives "Nothing for the Log". Plan v1 says to "Remove the superseded Log branch of the existing dark selector" in `theme-dark.css`. Section 0 also notes 1 Log mention in `theme-dark.css`.
+   - Failure: this is an edit to a shared dark bundle that Section 0 does not scope as a removal. Section 0 only says nothing is added.
+   - Fix: say that the edit is a removal only. Name the selector, and record it in `CSS_OWNERSHIP_MAP.md` and the CSS baseline ledger, which the plan already lists.
+
+4. **Non-blocking. Plan: "legacy hooks stay", for example `.badge`, `.workout-log-frame` and `.workout-log-table`, while the new classes carry the styling.**
+   - Evidence: the template keeps these as hook classes on elements such as `workout-log-frame` at `workout_log.html:61` and `.table` at line 66.
+   - Failure: Bootstrap's `.table` and `.table-striped` (also `.badge` and `.btn`) on the same elements bring Bootstrap styling into the check. This can break C2 to C4, which require no shadow, one radius set and no background image, and it can force `!important`.
+   - Fix: drop `table-striped`, `table-calm` and `tbl` from the Log's table, and the Bootstrap `.btn` and `.badge` visual classes from the new components. Keep only the hook classes that specs read. List which classes are dropped, so the C9 count is predictable.
+
+5. **Non-blocking. Plan: the `--control-ref 5dc83cef` control, with the pinned export pointing the server and CSS checks at it.**
+   - Evidence: the plan's base is `44797998`. It includes #743 (navbar), which postdates `5dc83cef`.
+   - Failure: the control runs on a different navbar from the candidate. C1 to C4 are scoped to `#main-content`, so the result is probably unaffected. But the export also needs the venv and `node_modules`. If the control is not wired to them, it cannot start.
+   - Fix: say the export reuses the working tree's `.venv` and `node_modules`. Alternatively pin the control to `44797998`, which is what the code now does.
+
+6. **Non-blocking. Plan: the scratch fixture, "In a transaction through `DatabaseHandler` with the explicit scratch path".**
+   - Evidence: `utils/database.py:292-294` is `__init__(database_path=None)`, so it accepts a path. That matches the plan. This does follow the module rule on DB access.
+   - Failure: none. Still, the plan relies on `HT_RUNTIME_DIR` alone not being enough, because `HT_RUNTIME_DIR` alone copies the real DB into the scratch runtime. The plan says "binds all later DB and runtime paths" but does not name `DB_FILE`.
+   - Fix: name both `DB_FILE` and `HT_RUNTIME_DIR` as set by the launcher, and add an assertion that the server's DB path is the scratch path. This protects the "never the real database" constraint.
+
+7. **Non-blocking. Plan: the `.check.ts` suffix and the dedicated config.**
+   - Evidence: `playwright.config.ts:109` uses `testDir: './e2e'` with no `testMatch` override, so Playwright's default glob applies. It does not match `.check.ts`, which holds up the plan's claim. I found no `.check.ts` or `testMatch` references under `.github`.
+   - Failure: none for CI collection. But `tests/` pins on the e2e inventory and `ci.yml` spec lists may glob `e2e/*.ts`. A new file under `e2e/` could trip the inventory-drift check or a spec-list pin (`== 25`).
+   - Fix: confirm by running the inventory generator and `pytest` on the test-inventory pins before Gate 1 closes. The plan already says to regenerate the inventory.
+
+8. **Non-blocking. Scope and shared surfaces.**
+   - The plan edits shared files:
+     - `components.css`, `layout.css`, `tokens.css`, `ui-handlers.js` and the dark bundle.
+     - `docs/product/DESIGN_BRIEF.md` is listed, which meets the owner constraint.
+   - It does not touch `app.py`, blueprints, schema or routes. The module-boundary, blueprint, schema, DB, response-contract, logger and normalization checks are all not applicable.
+   - It does not declare a coordination note for the shared CSS and `ui-handlers.js` edits, per `WORKSTREAM_OWNERSHIP.md`. The owner's #736 decisions and the Gate 0 sign-off probably cover it.
+   - Fix: add one line saying shared-surface edits are coordinated under #736.
+
+**Verdict: sound with non-blocking findings.**
+
+### test-strategist (agent `ad8ed0a59bfb2dee4`)
+
+*Verbatim, except that the reviewer's own headings are demoted one level to fit this section.
+Numbering is the reviewer's own; the matrix prefixes it with TS.*
+
+**Review of Plan v1 (Workout Log pilot, #736 step 2): required gates, coverage gaps and hidden CI gates**
+
+Evidence is read from the repo at the checked-out `feat/736-workout-log-pilot`. I edited nothing.
+
+#### Findings
+
+**1. BLOCKING — Criteria 3, 4 and 12 have no named check.**
+- Plan text: "implement the acceptance checks for all 19 criteria" (Plan v1 Scope, line 625). The frame-check section (lines 743-795) and the Sorting and editing section (lines 735-741) name checks only for the following.
+  - Criteria 1, 2, 5, 7, 8 and 15 and checks C1–C10, via the frame check.
+  - Criteria 9, 11 and 19, via the frame check.
+  - Criteria 6, 10 and part of 18, via the `workout-log.spec.ts` additions.
+- Not named anywhere:
+  - Criterion 3: exactly one filled primary when empty and none when populated. It is not in the C1–C10 table (lines 298-309) and not in the plan's counting steps.
+  - Criterion 4, as a per-card rule: five cards must show logged RPE behind Details. The Barbell Squat main-row case is also not named.
+  - Criterion 12: "leaves the Log and returns". The plan names reload only (line 738), not a navigate-away-and-back.
+- Failure: three signed Gate 0 criteria can merge with no test, which is the "criterion with no check" case.
+- Fix: add a criterion-to-check table to Plan v1. Suggested homes:
+  - Criterion 3: the frame check, counting visible `.ui-btn--primary` in the empty and populated passes.
+  - Criterion 4: assert RPE placement per record name.
+  - Criterion 12: a phone-viewport `workout-log.spec.ts` case that navigates away and back.
+
+**2. BLOCKING — The "Expected gates" Chromium list is too small for the `static/js/modules/ui-handlers.js` edit.**
+- Plan text: Artifacts row for `static/js/modules/workout-log.js` and `ui-handlers.js`, and the Chromium list at lines 819-822.
+- Evidence:
+  - `static/js/app.js:6` and `:220` import and call `initializeUIHandlers()` on every page.
+  - The QUALITY_GATE feature map has no `ui-handlers` row.
+  - The Targeted-test derivation says to run the union, and `/verify-suite` when no meaningful coverage can be derived.
+  - The plan's list omits `workout-plan`, `exercise-interactions`, `superset-edge-cases`, `progression`, `user-profile`, `volume-splitter`, `api-integration`, `browser-navigation-state`, `program-backup` and `fatigue-context`. These pages also load the changed global handler.
+  - `workout-plan.spec.ts` and `exercise-interactions.spec.ts` also cover the shared components.css/layout.css Log-branch removals.
+- Failure: a regression in the shared editor, tooltip or dropdown code on another page passes the plan's own gate set. The same specs are in the CI `e2e-functional-shard` list (ci.yml:487-511) and would first fail on the PR.
+- Fix: name the full `/verify-suite` (full pytest plus the full Chromium suite). `/verify-and-polish` already runs it, so the plan is half-way there. Alternatively confine the ui-handlers.js edit to a Log-only module and keep the targeted list.
+
+**3. NON-BLOCKING (add to the gate list) — `tsc` and pyright are missing from the gates.**
+- `tsconfig.json:13` includes `e2e/**/*.ts` and `playwright.config.ts`. The new `e2e/workout-log-frame.check.ts` and `e2e/playwright.workout-log-frame.config.ts` are therefore checked by the required `Type Check (tsc blocking + pyright measure-only)` job. The new `e2e/scripts/run_workout_log_frame.py` falls under the repo-wide pyright baseline diff. `pyrightconfig.json` excludes only `artifacts`, `docs/archive` and similar, not `e2e/scripts`. Main has zero pyright headroom.
+- Fix: add `npx tsc --noEmit` and `scripts/pyright_baseline_diff.py` to the gates, and write the runner with explicit types.
+
+**4. NON-BLOCKING — A literal loopback origin or a hard wait in the new `.ts` files reds a pytest pin.**
+- `tests/test_playwright_url_contracts.py:129-144` scans every `e2e/**/*.ts` with `https?://(127.0.0.1|localhost):\d+`. That includes the new config and check files. A literal origin with a port number, such as `http://127.0.0.1:5077` in the dedicated config, reds that test. Build the URL only from the passed port or from `baseURL`.
+- `scripts/generate_test_inventory.py:509` counts `waitForTimeout` lines across `e2e` `*.ts` files. A hard wait in the check file creates inventory drift. Use no hard waits.
+
+**5. NON-BLOCKING — Claim verified: `.check.ts` is outside the default glob and the CI shard.**
+- The root config (`playwright.config.ts:109`) sets `testDir: './e2e'` and no `testMatch`, so Playwright's default `*.spec|test` pattern applies and `workout-log-frame.check.ts` is not matched.
+- CI passes explicit `e2e/*.spec.ts` paths (ci.yml:486-511). The pytest contracts enumerate `*.spec.ts` only (`test_playwright_runner_contracts.py:170`, `test_playwright_shard_launcher_contracts.py:89`, `test_static_replay_contracts.py:44`).
+- The dedicated config must set an explicit `testMatch`. The default pattern would not select the file either.
+- Consequence: the frame check is never run by CI and not counted by the inventory (the generator's per-spec counts are `*.spec.ts` only). The plan itself keeps it out of CI (Section 0, lines 503-504).
+
+**6. NON-BLOCKING — The two owner corrections have no regression pin after merge.**
+- Criteria 18 (1359/1360 switch) and 19 (first RPE entry on a plan with RPE and no RIR) are asserted only in the opt-in `.check.ts`.
+- The `workout-log.spec.ts` additions (lines 735-738) list Details, names, Enter/blur, Escape, validation, zero, clearing, reload, an RPE edit starting behind Details, and a viewport transition. They do not list the A5 RPE-only row or the 1359/1360 boundary.
+- Fix: put a lighter assertion of each in `e2e/workout-log.spec.ts`, which runs in the required shard, injecting rows as `accessibility.spec.ts` does. These count as test additions, so regenerate the inventory.
+
+**7. NON-BLOCKING — The CSS baseline "existing tool" instruction conflicts with repo guidance.**
+- Plan text: "Update only affected parts of the CSS baseline ledger from the existing tool" (line 811).
+- `e2e/CLAUDE.md` says to hand-edit only the affected `snapshotManifest` digest and never run `scripts/css_audit/emit_baseline.py`, which rewrites the whole file. QUALITY_GATE also routes a change to `emit_baseline.py` to `/verify-suite`.
+- Verified: `tests/test_css_wp4_4_a_baseline_contracts.py:641-645` computes each manifest digest as `sha256` over file names plus byte sizes. The four digests (win32 and linux, `visual.spec.ts` and `visual-baseline-thumbnails.spec.ts`; JSON lines 831, 903, 924, 996) therefore move once the PNG bytes change, while the counts stay 66 and 15. The 24 files exist on disk (12 per platform: six `workout-log-*` and six `log-*`).
+- Fix: state "hand-edit the four digests, compute them with the test's own algorithm". Hand-edit the `sharedSurfaceLines`, `:is()` and pinned-declaration entries too, or review the `emit_baseline.py` diff entry by entry.
+
+**8. NON-BLOCKING — The retargeted cascade tests must keep their negative assertions.**
+- The three `tests/test_css_cascade_contracts.py` tests named in Section 0 assert deleted rule text.
+- The owner constraint is "never weaken or delete a test". Retarget each to assert the family is still absent from the Log bundle, not remove the case. The plan says "Retarget only" but does not say what replaces them.
+- `tests/test_axe_contracts.py` binds `A11Y_EXCEPTIONS.md` rows to `AXE_REGISTER`. The plan's X7 and `AXE_REGISTER` edit must change both (`e2e/accessibility.spec.ts:898`, `workout_log:light` node count 2). Cite `tests/test_axe_contracts.py` among the pins.
+
+**9. NON-BLOCKING — Visual-baseline plumbing is accurate but the failure modes should be named.**
+- The `--list` filters match the real titles: `workout-log mobile light` in `visual.spec.ts:42`, and `log-${viewport}-${theme}` in the thumbnails spec at line 121.
+- The thumbnails spec asserts at lines 131-137 that `#workout-log-table tbody tr` rows number at least 4 and that at least one `img.exercise-thumbnail` has a `/static/vendor/free-exercise-db/` src. Cards must keep real `tbody tr` and `img` nodes at 375 px, which the plan's "same row" design does.
+- `e2e/CLAUDE.md` says `log-desktop-light` is a known-flipping capture under the 800 px tolerance. The plan's "clean first attempt" requirement is correct.
+- `visual-windows` runs on every PR and compares only the win32 `visual.spec.ts` set. It is non-required, so merge is not blocked. It will be red until the win32 PNGs are pushed. Win32 thumbnails are compared only by the local run. Linux thumbnails are compared only by the weekly or dispatched Linux gate.
+
+**10. NON-BLOCKING — Frame-check thresholds and the visual-field-separator spec.**
+- `e2e/visual-field-separator.spec.ts` runs in the required shard against 3 viewports. At 375 px and 768 px the Log is now cards, so retarget the selector for card fields as well as the 1440 px table. The plan names only a selector rename.
+
+#### Corrected gate list
+
+- **pytest:** full `.venv/Scripts/python.exe -m pytest tests/ -q`. It covers the cascade, `test_visual_selector_contracts`, `test_css_wp4_4_*`, `test_axe_contracts`, `test_console_guard_contracts`, `test_playwright_url_contracts`, `test_playwright_*_contracts`, `test_visual_capture_contracts`, `test_css_wp4_4_a_baseline_contracts` (snapshot manifest) and `test_vitest_inventory_contracts` (unaffected, since no Vitest case is added).
+- **Chromium:** `/verify-suite`. It should include at least the plan's list plus `workout-plan`, `exercise-interactions`, `superset-edge-cases`, `progression`, `user-profile`, `volume-splitter`, `api-integration` and `browser-navigation-state`. Also run `program-backup` isolated, and `fatigue-context`.
+- **Visual:**
+  - The full `visual.spec.ts` matrix with `PW_VISUAL_SEED=1`.
+  - The thumbnails spec, win32 local.
+  - `Deep Gate Visual (Linux)` in generate mode for the 12 Linux Log captures, then compare mode on the final head.
+  - `visual-windows` on the PR.
+- **Stylelint:** `node scripts/css_audit/stylelint_surfaces.mjs` with no category rise, plus Stylelint on `pages-workout-log.css`.
+- **Type and static:** `npx tsc --noEmit` and `scripts/pyright_baseline_diff.py` (finding 3).
+- **JS:** `npm run test:js`.
+- **Inventory:** `python scripts/generate_test_inventory.py` then `--check`. Do it with no untracked `.md` in a globbed surface directory.
+- **New:**
+  - The frame check, `python e2e/scripts/run_workout_log_frame.py`, with its control run.
+  - The `workout-log.spec.ts` tests for criteria 3, 4, 12, 18 and 19.
+  - Manual smoke of editors, video, import and clear on the seeded app.
+- **Known red:** `e2e/program-backup.spec.ts:79`, an isolated-pass flake.
+- **Fixture work:** none. No `tests/conftest.py`, blueprint or table change.
+
+#### Verdict
+
+**Blocking.** Findings 1 and 2 must be resolved in Plan v1 before Gate 1.
+- Finding 1: three signed acceptance criteria lack a named check.
+- Finding 2: the global `ui-handlers.js` edit is gated by a targeted Chromium list. The canonical rule requires the union or `/verify-suite`, and a regression on another page would be caught first by the PR checks.
+- The remaining findings are non-blocking.
+- The plan's claims were verified against the repo: the `.check.ts` glob exclusion, the 24 baseline files, the four manifest digests, and the visual spec titles and filters.
+- The Section 0 content itself matches the repo evidence I checked.
+
+### product-risk-reviewer (agent `a5d5874a5d192824d`)
+
+*Verbatim, except that two angle-bracket placeholders the transport had escaped are restored.
+Numbering is the reviewer's own; the matrix prefixes it with PR.*
+
+Verdict: sound with non-blocking findings. I found nothing that, as written, loses an edit, writes a wrong value or touches the real database. Nothing in the plan touches calculation logic, Effective sets, local-first stance or the schema. I made no edits.
+
+**Verified against the code**
+- **Database isolation holds.** `prepare_visual_db.py:84-93` assigns `utils.config.DB_FILE` before any initializer runs. `DatabaseHandler`, `catalog_seed.py:44` and `auto_backup.py:48,20` all read `utils.config.DB_FILE` at call time, and the auto-backup folder sits beside the DB. So the seed, the catalog upgrade and the startup backup all land in the scratch directory. `assert_safe_output` (`:41-53`) refuses the live path.
+- **Zero and legacy values are handled correctly today.** The template uses `not in (none,'','None')` (`workout_log.html:133,153,173,194`), so 0 counts as logged. The server's `check_progression` (`utils/workout_log.py:129-152`) uses `is not None`, and the client's `computeProgressionState` (`workout-log.js:28-39`) uses `Number.isFinite(parseFloat(...))`. All three treat 0 as a value.
+- **The save lifecycle guard holds.** `finish()` clears `activeScoreEditor` first (`ui-handlers.js:110-113`), so a second blur or an explicit commit during a layout switch cannot write twice.
+- **Wording.** "Scored" becomes "Logged" in visible copy under owner-accepted A4. The only visible "Scored" strings are the table headings, `data-label`, the legend, and the toast at `ui-handlers.js:127` with its pin at `e2e/workout-log.spec.ts:343`. That spec is already in the plan's modify list. Server messages never say "scored".
+
+**Findings**
+
+1. **Non-blocking. Plan, Frame check section: the isolation guards are implicit.**
+   - Evidence: `utils/config.py:22` falls back to the real `data/database.db` when `DB_FILE` is unset. The memory note says `HT_RUNTIME_DIR` alone copies the real DB into the scratch runtime. `init_runtime()` (`runtime_init.py:89-100`) runs migration when `DB_FILE` is unset. The plan says the launcher "supplies DB path, isolated runtime root", but not that the runner fails closed.
+   - Failure: a stray `DatabaseHandler()` call without a path, or the `--control-ref` export server launched without `DB_FILE`, would use or copy the developer's real DB.
+   - Fix: have the runner set `DB_FILE` and `HT_RUNTIME_DIR` explicitly for every child, including the prepare step, the control-export server and the scratch-edit process. Before launch it should assert the resolved DB path sits under `artifacts/workout-log-frame/<unique>/` and differs from `legacy_database_path()`. It should assert the same for the server's DB through a post-start probe. Add a test showing the runner refuses when the DB path resolves to the live DB.
+
+2. **Non-blocking. Plan, Sorting and editing: a sort right after an edit orders by the old value.**
+   - Evidence: focusing a header button fires `focusout`, which calls `finish(true)` and starts an async save (`ui-handlers.js:149-151`, `:133-134`). The sort click then reads `.editable-text`, which `updateScoredValue` only updates after the response (`workout-log.js:369-376`).
+   - Failure: no stored value is wrong, but the rows end up ordered by the pre-edit value and stay out of order until the next sort.
+   - Fix: await the pending write before sorting, or re-run the active sort after the save settles. Add a browser case for "edit then click a header".
+
+3. **Non-blocking. Plan, Sorting and editing: the plan misses the `'--'` sentinel and leaves the "None" display unspecified.**
+   - Evidence:
+     - The plan's missing-value list is null, empty and `'None'`. Confirmed logged values reach JS as `.editable-text` text, where a cleared value is `'--'` (`ui-handlers.js:99-102`; `workout-log.js:375`).
+     - Planned cells print `{{ log.planned_rir }}`, so a NULL becomes the literal "None" (`workout_log.html:130-131`). The new planned line and the Details planned values are not told how to show missing values.
+     - Changing "None" to "--" would move blank planned values in sort, because `'None'.localeCompare` sorts after digits and `'--'` before them. Section 0 puts "where blank values land" out of scope.
+   - Failure: after clearing logged RPE, a placement helper that doesn't treat `'--'` as missing leaves RPE in the main row. The cards could show "RIR None".
+   - Fix: add `'--'` to the missing set for logged values, specify the card and Details wording for a missing planned value, and keep the sort text unchanged.
+
+4. **Non-blocking, test-honesty. Plan, Frame check section: the criterion 9 Exercise-sort oracle cannot fail.**
+   - Evidence: `get_workout_logs()` already orders by `routine, exercise` (`utils/workout_log.py:114`), and `sortTableByColumn` has no `sort-asc` class on first click, so it sorts ascending. "Barbell Bench Press first, Cable last" is therefore the initial order before any sort.
+   - Failure: a broken Exercise sort still passes.
+   - Fix: assert the order after a second click (descending), or after first sorting by another field.
+
+5. **Non-blocking, test-honesty. Plan, Frame check section: the criterion 11 oracle is weak and may not save anything.**
+   - Evidence: the fixture already stores Deadlift RIR 0 and weight 120. The submit guard `value !== confirmedScore(cell)` (`ui-handlers.js:117`) skips a save of an unchanged 0. If planned weight is below 120, the badge is Achieved from weight alone, whatever RIR does. I could not read the seed's planned values from the binary seed.
+   - Failure: "save RIR 0 and reload" is a no-op, and a regression that treats 0 as missing could still pass.
+   - Fix: drive 0 through a real change (set RIR to 2, then to 0), and judge the zero on a row where RIR is the only improving field.
+
+6. **Non-blocking. Plan, Frame, components and layout / Sorting and editing: badge and progression-state hazards when the markup changes.**
+   - Evidence: `updateProgressionBadge` rewrites `badge.className` wholesale (`workout-log.js:46`), and `initializeProgressionChecks` runs it for every row on load (`:293-298`). `computeProgressionState` takes the first `[data-field="planned_*"]` and `[data-field="scored_*"] .editable-text` by `textContent`.
+   - Failure: any label text added inside those nodes (for example a mobile label or a button name) makes `parseFloat` return NaN. `confirmedScore` would also return label text, so every unchanged edit would count as changed and be written. The load-time badge can silently flip, and the `ui-badge` class would be wiped on load.
+   - Fix: add an acceptance assertion that `.editable-text` text equals the bare value, that no second `data-field="planned_*"` exists per row, and that the load-time badge matches `GET /check_progression/<id>` for all seven fixture rows. Name the load-time call as one of the badge sites to change.
+
+7. **Non-blocking. Plan, Layout switching: focus handling is unspecified after save, Escape and re-placement.**
+   - Evidence: `finish()` hides the input and shows the text with no focus restore (`ui-handlers.js:121-123`). Placement refresh after an RPE save or clear moves a field between the main row and Details.
+   - Failure: a keyboard user loses their place, and may be left on a field that just moved behind a closed Details.
+   - Fix: return focus to the field's trigger after commit or cancel. If the field has moved into closed Details, focus the Details button.
+
+8. **Non-blocking. Plan, Frame check fixture: the new record's routine is not stated.**
+   - Evidence: Plan v1 gives the name, sets, reps, weight and RIR for the added Cable row but no routine.
+   - Failure: with a different routine, `ORDER BY routine, exercise` places the row differently and the sort expectations shift.
+   - Fix: pin the routine to `GYM - Full Body - Workout A`, and state that `workout_plan_id` stays NULL. The backfill at `db_initializer.py:279-326` only links on an exact unique match, so a unique name is safe.
+
+### Gate 1 sign-off
+
+- [x] Gate 0 complete (owner, 2026-11-20).
+- [x] Every finding has a proposed disposition.
+- [x] Agent provenance complete, with the evidence gap stated.
+- [ ] Astra revises Plan v1 for TS-1 and the accepted non-blocking findings.
+- [ ] The council verifies the fixes.
+- [ ] Owner approves the plan (Gate 1).
