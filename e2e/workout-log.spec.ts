@@ -330,7 +330,7 @@ test.describe('Workout Log with Data', () => {
       await expect(minInput).toHaveValue('');
       expect(await minInput.evaluate(input => (input as HTMLInputElement).validity.badInput)).toBe(true);
       await minInput.press('Enter');
-      await expectToast(page, 'Scored reps must be a whole number of at least 0.');
+      await expectToast(page, 'Logged reps must be a whole number of at least 0.');
       await page.clock.runFor(750);
       await expect(minDisplay).toBeVisible();
       await expect(minDisplay).toHaveText('0');

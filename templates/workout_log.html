@@ -95,7 +95,7 @@
                             {% if key == 'rpe' %}id="rpe-{{ id }}"{% endif %}>
                             <span class="log-field-label">{{ label }}</span>
                             <div class="scored-value-container">
-                                <input type="number" class="editable-input number-input" min="0" aria-label="Logged {{ label }} for {{ log.exercise }}"
+                                <input type="number" class="ui-field-input editable-input number-input" min="0" aria-label="Logged {{ label }} for {{ log.exercise }}"
                                        {% if key in ('rir', 'rpe') %}max="10"{% elif key == 'weight' %}step="0.5" max="1000"{% endif %}
                                        value="{{ log[field] if log[field] not in missing else '' }}" style="display: none;">
                                 <button type="button" class="ui-field log-trigger"><span class="visually-hidden">Edit logged {{ label }} for {{ log.exercise }} </span><span class="editable-text">{{ log[field] if log[field] not in missing else '--' }}</span></button>

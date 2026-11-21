@@ -240,7 +240,7 @@ FROZEN_FAMILY_COUNTS = {
     # M9: custom properties never enter a dead nomination.
     r"^\s*--[\w-]+\s*:": 3,
     # M11: condition-specific coverage was required, not deletion.
-    r"@media": 34,
+    r"@media": 36,
     r"prefers-reduced-motion": 3,
     # N2 freezes layer membership arc-wide.
     r"@layer": 1,
@@ -457,7 +457,7 @@ def test_the_deletion_was_pure_removal() -> None:
     rewrote a value rather than removing it, cannot satisfy both of these.
     """
     raw = _css()
-    assert raw.count("\n") == AFTER_LINES - 139  # Workout Log migration (#736)
+    assert raw.count("\n") == AFTER_LINES - 116  # Workout Log migration (#736)
     assert len(re.findall(r"!important", _strip_comments(raw))) == AFTER_IMPORTANT - 36  # retired Log glass declarations
     assert BEFORE_IMPORTANT - AFTER_IMPORTANT == 20
     assert BEFORE_LINES - AFTER_LINES == 138

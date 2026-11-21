@@ -127,7 +127,7 @@ export function initializeUIHandlers() {
 
             if (changed && !valid) {
                 const message = isScoredRepField(field)
-                    ? 'Scored reps must be a whole number of at least 0.'
+                    ? 'Logged reps must be a whole number of at least 0.'
                     : `Enter a number from ${input.min} to ${input.max} for ${cell.dataset.label}.`;
                 showToast('warning', message);
             }

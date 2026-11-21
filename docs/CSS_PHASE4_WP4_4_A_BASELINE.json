@@ -2846,8 +2846,8 @@
     "issue": 736,
     "surfaces": {
       "components.css": {
-        "lines": 5068,
-        "bytes": 163430,
+        "lines": 5091,
+        "bytes": 164379,
         "importantLines": 883,
         "importantOccurrences": 883,
         "importantDeclarations": 883
@@ -2874,8 +2874,8 @@
         "importantDeclarations": 0
       },
       "pages-workout-log.css": {
-        "lines": 137,
-        "bytes": 6377,
+        "lines": 128,
+        "bytes": 5567,
         "importantLines": 10,
         "importantOccurrences": 10,
         "importantDeclarations": 10

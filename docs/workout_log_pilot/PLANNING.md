@@ -8,6 +8,20 @@ the 26 findings recorded at `28c8a151`. The council verified Plan v2 at `c3b3a76
 [Council verification of Plan v2](#council-verification-of-plan-v2). The owner approved
 Gate 1 on 2026-11-20, and Astra implements Plan v2. Gate 2 and the merge stay with the owner.
 
+**Implementation and visual review, 2026-11-22.** The pilot is implemented on
+`feat/736-workout-log-pilot` in `604663ad`. On the pinned control at `5dc83cef`, the
+frame check reproduced C1–C4 and C10 failures. The 390 px Bench Press record measured
+898.5 px high on the control and 241 px on the pilot. The 1360 px table's Exercise column
+measured 299 px. Neither desktop width had a clipped heading. Both candidate runs
+produced the same metrics across 22 combinations of size, scale, theme and content.
+
+Local evidence lives under `artifacts/workout-log-frame/`. Compare
+`control-ns2lb1yv/` with `candidate-9ilqky7_/` for the ordinary screenshots.
+`candidate-wml_q6h5/` holds the independent repeat. Each directory includes the
+fixture and measurements. Run `.venv/Scripts/python.exe e2e/scripts/run_workout_log_frame.py`
+to reproduce the candidate, or append `--control-ref 5dc83cef` for the control.
+The next owner decision is visual sign-off for baseline generation.
+
 **Planning size:** Large under
 [`QUALITY_GATE.md`](../ai_workflow/QUALITY_GATE.md#plan-stage-routing), because the work edits
 shared CSS surfaces. Gate 0 and a council-reviewed Gate 1 both precede implementation.

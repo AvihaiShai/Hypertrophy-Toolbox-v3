@@ -109,7 +109,7 @@ def test_the_repair_added_no_lines() -> None:
     may edit.
     """
     # The approved Log pilot removes the former Log frame before the layer.
-    assert _css().count("\n") == 5068
+    assert _css().count("\n") == 5091
 
 
 def test_all_thirteen_rules_carry_the_progression_split() -> None:
