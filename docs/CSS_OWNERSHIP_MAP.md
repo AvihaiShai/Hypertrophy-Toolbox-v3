@@ -65,7 +65,7 @@ The runtime CSS surface is organized around the target bundles below.
 | `a11y.css` | UI scaling, focus states, and browser-specific accessibility fallbacks |
 | `pages-welcome.css` | Welcome route presentation |
 | `pages-workout-plan.css` | Workout plan route-specific controls and views |
-| `pages-workout-log.css` | Workout log route-specific layouts and table behavior |
+| `pages-workout-log.css` | Workout Log card placement, keyed column widths, editor positioning and Clear Log modal. Shared frame and component styling lives in layout.css and components.css. |
 | `pages-weekly-summary.css` | Weekly summary route visuals |
 | `pages-session-summary.css` | Session summary route visuals |
 | `pages-progression.css` | Progression route visuals |

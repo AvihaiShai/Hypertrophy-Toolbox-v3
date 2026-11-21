@@ -155,37 +155,37 @@ WHOLE_RULE_DELETIONS = {
 # The assertion is per-property inside that rule's own body, so a resurrection
 # cannot hide in a different rule that happens to set the same property.
 # ---------------------------------------------------------------------------
-COLLAPSE_TOGGLE_LINE = 4750
+COLLAPSE_TOGGLE_LINE = 4569
 
 PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
-    (".frame-title", 4497): (
+    (".frame-title", 4316): (
         "background", "color", "font-size", "font-weight", "letter-spacing",
         "padding", "position", "text-transform",
     ),
-    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 4506): (
+    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 4325): (
         "backdrop-filter", "background", "color",
     ),
     (
         "[data-theme='dark'] & .action-frame .frame-title, "
         "[data-theme='dark'] & .filters-section .filters-title",
-        4511,
+        4330,
     ): ("background", "color"),
-    (".filters-section", 4519): (
+    (".filters-section", 4338): (
         "backdrop-filter", "background", "border", "border-radius", "box-shadow",
         "contain", "isolation", "position",
     ),
-    (".filters-title", 4526): (
+    (".filters-title", 4345): (
         "backdrop-filter", "background", "color", "font-size", "font-weight",
         "letter-spacing", "padding", "position", "text-transform",
     ),
-    (".action-frame", 4579): ("background-color", "display", "flex-direction", "margin-bottom"),
-    (".collapsible-frame", 4647): ("background", "border", "border-radius", "box-shadow"),
-    (".frame-header", 4671): (
+    (".action-frame", 4398): ("background-color", "display", "flex-direction", "margin-bottom"),
+    (".collapsible-frame", 4466): ("background", "border", "border-radius", "box-shadow"),
+    (".frame-header", 4490): (
         "align-items", "background", "display", "padding", "position", "z-index",
     ),
-    (".frame-title, .filters-title", 4696): ("font-size", "padding-bottom", "position"),
-    ("[data-theme='dark'] & .frame-header", 4730): ("background", "border-bottom"),
-    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 4744): ("color",),
+    (".frame-title, .filters-title", 4515): ("font-size", "padding-bottom", "position"),
+    ("[data-theme='dark'] & .frame-header", 4549): ("background", "border-bottom"),
+    ("[data-theme='dark'] & .frame-title, [data-theme='dark'] & .filters-title", 4563): ("color",),
     # `background` and `color` are absent from this tuple on purpose: the
     # removal oracle withdrew both from the deletion set (see the module
     # docstring), so they must still be present in the rule. They are asserted
@@ -196,13 +196,13 @@ PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
         "gap", "height", "letter-spacing", "margin", "min-width", "padding",
         "transition",
     ),
-    (".collapse-toggle i", 4769): ("transition",),
-    (".frame-content", 4807): ("overflow", "transition"),
-    (".filters-section .frame-header", 4869): ("padding",),
-    ("[data-theme='dark'] & .collapsible-frame .frame-header", 4917): ("background-color",),
-    (".frame-header-2025", 4943): ("display", "align-items"),
-    (".collapse-toggle .toggle-icon", 4977): ("transition",),
-    (".frame-content", 4992): ("overflow",),
+    (".collapse-toggle i", 4588): ("transition",),
+    (".frame-content", 4626): ("overflow", "transition"),
+    (".filters-section .frame-header", 4688): ("padding",),
+    ("[data-theme='dark'] & .collapsible-frame .frame-header", 4736): ("background-color",),
+    (".frame-header-2025", 4762): ("display", "align-items"),
+    (".collapse-toggle .toggle-icon", 4796): ("transition",),
+    (".frame-content", 4811): ("overflow",),
 }
 
 # ---------------------------------------------------------------------------
@@ -212,6 +212,8 @@ PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
 # after the deletion, so any later edit that reaches into an excluded family
 # reds here rather than being argued about.
 # ---------------------------------------------------------------------------
+# Counts include the #736 Log pilot: it removed the shared Log glass section
+# and exempted its field buttons from the legacy editable-cell rules.
 FROZEN_FAMILY_COUNTS = {
     # A9 / N4: the whole `:is()` family belongs to WP4.4-i.
     r":is\(": 19,
@@ -225,20 +227,20 @@ FROZEN_FAMILY_COUNTS = {
     # The global totals stay in this dict as well. Holding the invariant only as
     # the sum of two separate test functions means deleting either one silently
     # halves the lock, and nothing would red.
-    r":where\(": 59,
-    r":hover": 117,
+    r":where\(": 76,
+    r":hover": 110,
     # M10 / PR#3: reachable only through a JS-applied class.
     r"\.value-changed": 20,
     # M12 / PR#10: hover, focus and active are out of scope, declared up front.
-    r":focus": 174,
+    r":focus": 177,
     r":active": 16,
     # An inline sentinel cannot address a pseudo-element, so none was eligible.
-    r"::[\w-]+": 51,
+    r"::[\w-]+": 50,
     r"@keyframes": 9,
     # M9: custom properties never enter a dead nomination.
     r"^\s*--[\w-]+\s*:": 3,
     # M11: condition-specific coverage was required, not deletion.
-    r"@media": 33,
+    r"@media": 34,
     r"prefers-reduced-motion": 3,
     # N2 freezes layer membership arc-wide.
     r"@layer": 1,
@@ -279,8 +281,8 @@ I_OWNED_SELECTOR_LINES = 14
 
 # Frozen: identical before and after the split, because the split only ever
 # duplicates a token onto the same physical line it already occupied.
-WHERE_OUTSIDE_FAMILY = 57
-HOVER_OUTSIDE_FAMILY = 113
+WHERE_OUTSIDE_FAMILY = 74
+HOVER_OUTSIDE_FAMILY = 106
 
 # The exact attributable delta. R1's first arm is the only family line carrying
 # `:where(`; R6 and R12 are the only two carrying `:hover`. Each gains exactly
@@ -443,8 +445,8 @@ def test_the_packet_stayed_above_the_frozen_layer_span() -> None:
 
     assert close_index is not None
     assert css.count("@layer") == 1
-    assert css.count("\n", 0, open_index) + 1 == 3539
-    assert css.count("\n", 0, close_index) + 1 == 4104
+    assert css.count("\n", 0, open_index) + 1 == 3358
+    assert css.count("\n", 0, close_index) + 1 == 3923
 
 
 def test_the_deletion_was_pure_removal() -> None:
@@ -455,8 +457,8 @@ def test_the_deletion_was_pure_removal() -> None:
     rewrote a value rather than removing it, cannot satisfy both of these.
     """
     raw = _css()
-    assert raw.count("\n") == AFTER_LINES
-    assert len(re.findall(r"!important", _strip_comments(raw))) == AFTER_IMPORTANT
+    assert raw.count("\n") == AFTER_LINES - 139  # Workout Log migration (#736)
+    assert len(re.findall(r"!important", _strip_comments(raw))) == AFTER_IMPORTANT - 36  # retired Log glass declarations
     assert BEFORE_IMPORTANT - AFTER_IMPORTANT == 20
     assert BEFORE_LINES - AFTER_LINES == 138
 

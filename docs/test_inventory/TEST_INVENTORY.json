@@ -56,19 +56,19 @@
       },
       {
         "file": "e2e/workout-log.spec.ts",
-        "lines": 6
+        "lines": 5
       }
     ],
     "files_with_waits": 14,
     "metric": "lines containing waitForTimeout",
-    "total_lines": 80
+    "total_lines": 79
   },
   "playwright": {
     "project": "chromium",
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 590
+      "tests": 591
     },
     "specs": [
       {
@@ -224,7 +224,7 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-log.spec.ts",
-        "tests": 24
+        "tests": 25
       },
       {
         "in_required_functional_set": false,
@@ -238,11 +238,11 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 740
+    "total_tests": 741
   },
   "pytest": {
-    "collected_deterministic": 4701,
-    "deterministic_files": 144,
+    "collected_deterministic": 4704,
+    "deterministic_files": 145,
     "environment_dependent_files": [
       {
         "file": "tests/test_guard_destructive_command.py",
@@ -795,6 +795,10 @@
         "tests": 7
       },
       {
+        "file": "tests/test_workout_log_frame_runner.py",
+        "tests": 3
+      },
+      {
         "file": "tests/test_workout_log_routes.py",
         "tests": 86
       },
@@ -831,7 +835,7 @@
         "tests": 41
       }
     ],
-    "total_files": 145
+    "total_files": 146
   },
   "schema_version": 2,
   "vitest": {

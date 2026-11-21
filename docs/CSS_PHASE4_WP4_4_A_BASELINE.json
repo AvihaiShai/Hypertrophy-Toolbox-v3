@@ -185,8 +185,8 @@
       "components.css": [
         {
           "layer": "workout",
-          "openLine": 3539,
-          "closeLine": 4104
+          "openLine": 3358,
+          "closeLine": 3923
         }
       ],
       "navbar.css": [
@@ -1557,80 +1557,34 @@
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
       "startLine": 1421,
-      "endLine": 1536,
+      "endLine": 1428,
       "surfaces": [
         "components.css"
       ],
       "indirectBundleMaps": [],
-      "assertionCount": 26,
+      "assertionCount": 4,
       "assertionLines": [
-        1452,
-        1453,
-        1454,
-        1467,
-        1468,
-        1473,
-        1474,
-        1489,
-        1490,
-        1491,
-        1498,
-        1499,
-        1500,
-        1503,
-        1504,
-        1505,
-        1506,
-        1507,
-        1508,
-        1509,
-        1515,
-        1516,
-        1536,
-        1464,
-        1483,
-        1526
+        1425,
+        1426,
+        1428,
+        1424
       ],
       "firstLine": "def test_workout_log_drops_inert_responsive_table_and_frame_families() -> None:"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "startLine": 1539,
-      "endLine": 1739,
+      "startLine": 1431,
+      "endLine": 1437,
       "surfaces": [
         "components.css"
       ],
       "indirectBundleMaps": [],
-      "assertionCount": 27,
+      "assertionCount": 3,
       "assertionLines": [
-        1601,
-        1606,
-        1622,
-        1630,
-        1631,
-        1652,
-        1653,
-        1664,
-        1668,
-        1669,
-        1678,
-        1693,
-        1695,
-        1696,
-        1723,
-        1724,
-        1726,
-        1729,
-        1730,
-        1739,
-        1603,
-        1614,
-        1646,
-        1647,
-        1686,
-        1719,
-        1709
+        1436,
+        1437,
+        1434
       ],
       "firstLine": "def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:"
     }
@@ -2066,155 +2020,29 @@
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1454",
-      "pinnedString": ".workout-log-frame .workout-log-table thead th,\n",
+      "line": "1425",
+      "pinnedString": "col[data-column=\"routine\"]",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1468",
-      "pinnedString": "html body .workout-log-frame,",
+      "line": "1426",
+      "pinnedString": "grid-template-columns: repeat(2, minmax(0, 1fr))",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1474",
-      "pinnedString": "padding: 0 !important;",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1489",
-      "pinnedString": "#workout[data-page=\"workout-plan\"], .workout-log-page",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1490",
-      "pinnedString": "var(--wp-table-cell-padding, 0.75rem 1rem) !important",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1491",
-      "pinnedString": "var(--wp-table-fs, 0.88rem) !important",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1499",
-      "pinnedString": "overflow-x: auto;",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1500",
-      "pinnedString": "display: block;",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1503",
-      "pinnedString": ".workout-log-page {\n        padding: 0 !important;\n    }",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1504",
-      "pinnedString": ".workout-log-table .btn-danger.btn-sm {",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1505",
-      "pinnedString": ".workout-log-table .btn-danger i {",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1506",
-      "pinnedString": "min-width: 28px !important;",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1507",
-      "pinnedString": "min-width: 30px !important;",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1508",
-      "pinnedString": ".workout-log-table .routine-cell {",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1509",
-      "pinnedString": ".workout-log-table .routine-cell .routine-program {",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_inert_responsive_table_and_frame_families",
-      "line": "1516",
-      "pinnedString": "min-width: 180px;",
+      "line": "1428",
+      "pinnedString": ".progression-plan-container .table.table-calm",
       "candidateSurfaces": "components.css"
     },
     {
       "file": "tests/test_css_cascade_contracts.py",
       "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "line": "1631",
-      "pinnedString": "color: var(--ink-1, #eef1f6) !important;",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "line": "1653",
-      "pinnedString": ".workout-log-table tbody tr:hover td",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "line": "1678",
-      "pinnedString": "text-transform: none !important;",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "line": "1724",
-      "pinnedString": "overflow-x: auto;",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "line": "1729",
-      "pinnedString": "[data-theme='dark'] .workout-log-table .editable-input {",
-      "candidateSurfaces": "components.css"
-    },
-    {
-      "file": "tests/test_css_cascade_contracts.py",
-      "test": "test_workout_log_drops_cascade_dead_header_and_cell_glass",
-      "line": "1730",
-      "pinnedString": "[data-theme='dark'] .workout-log-table .badge {",
+      "line": "1437",
+      "pinnedString": ".summary-frame.frame-calm-glass",
       "candidateSurfaces": "components.css"
     }
   ],
@@ -3013,5 +2841,45 @@
     "selfCheckCases": 17,
     "splitSelfCheckCases": 3,
     "selfCheckFailures": 0
+  },
+  "workoutLogPilot": {
+    "issue": 736,
+    "surfaces": {
+      "components.css": {
+        "lines": 5068,
+        "bytes": 163430,
+        "importantLines": 883,
+        "importantOccurrences": 883,
+        "importantDeclarations": 883
+      },
+      "layout.css": {
+        "lines": 1862,
+        "bytes": 50103,
+        "importantLines": 33,
+        "importantOccurrences": 34,
+        "importantDeclarations": 28
+      },
+      "theme-dark.css": {
+        "lines": 573,
+        "bytes": 21960,
+        "importantLines": 125,
+        "importantOccurrences": 125,
+        "importantDeclarations": 124
+      },
+      "tokens.css": {
+        "lines": 507,
+        "bytes": 15001,
+        "importantLines": 0,
+        "importantOccurrences": 0,
+        "importantDeclarations": 0
+      },
+      "pages-workout-log.css": {
+        "lines": 137,
+        "bytes": 6377,
+        "importantLines": 10,
+        "importantOccurrences": 10,
+        "importantDeclarations": 10
+      }
+    }
   }
 }

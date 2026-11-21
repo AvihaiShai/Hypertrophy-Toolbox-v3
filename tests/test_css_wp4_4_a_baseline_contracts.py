@@ -154,7 +154,7 @@ def test_layer_membership_is_recorded_exactly_and_frozen() -> None:
 
     # The two layered blocks inside surfaces this arc owns.
     assert layers["spans"]["components.css"] == [
-        {"layer": "workout", "openLine": 3539, "closeLine": 4104}
+        {"layer": "workout", "openLine": 3358, "closeLine": 3923}
     ]
     assert layers["spans"]["navbar.css"] == [
         {"layer": "navbar", "openLine": 6, "closeLine": 874}

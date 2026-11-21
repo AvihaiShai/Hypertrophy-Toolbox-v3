@@ -350,6 +350,12 @@ generated data with `persisted: false` and `persist_error: "Failed to save gener
 **Purpose.** Record what was actually performed against what was planned. Each row carries both
 the `planned_*` snapshot and the `scored_*` values.
 
+Below 1360 px each exercise appears as a card. Two cards fit per row from 768 px.
+Each card shows its planned prescription and editable logged reps, weight and RIR.
+A logged RPE or an RPE-only prescription adds RPE to the main row. Details opens the
+remaining values, Last Progression, Reference Video and Delete Entry. On desktop,
+the Planned and Logged groups have individually sortable field headings.
+
 | Control | Action type | Endpoint / behavior |
 |---|---|---|
 | Import from Plan | API | `POST /export_to_workout_log`, same endpoint the Plan page uses |

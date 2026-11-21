@@ -202,7 +202,7 @@ def test_shared_frame_and_route_surfaces_have_one_owner() -> None:
         for css in routes.values()
     ) == 0
 
-    assert routes["log"].count(log_start) == 1
+    assert log_start not in routes["log"]
     assert routes["log"].count(summary_start) == 0
     assert routes["weekly"].count(summary_start) == 1
     assert routes["session"].count(summary_start) == 1
@@ -236,11 +236,11 @@ def test_relocated_frame_selectors_remain_reachable_from_runtime_hooks() -> None
     ).read_text(encoding="utf-8")
     fixtures = (ROOT / "e2e" / "fixtures.ts").read_text(encoding="utf-8")
 
-    for template in (plan, log):
-        assert 'class="collapsible-frame' in template
-        assert "frame-header-2025" in template
+    assert 'class="collapsible-frame' in plan
+    assert "frame-header-2025" in plan
+    assert 'class="ui-page-header"' in log
     assert ".collapsible-frame" in plan_js
-    assert ".collapsible-frame" in log_js
+    assert ".collapsible-frame" not in log_js
     assert 'class="workout-log-frame"' in log
     assert "PAGE_WORKOUT_LOG: '.workout-log-frame'" in fixtures
     assert 'class="summary-frame frame-calm-glass"' in weekly
@@ -1419,380 +1419,28 @@ def test_workout_plan_drops_dead_filter_button_family() -> None:
 
 
 def test_workout_log_drops_inert_responsive_table_and_frame_families() -> None:
-    """WP4.3j-b-dead: the responsive families the j-b audit proved inert are gone.
-
-    Three families were deleted from `pages-workout-log.css`, each because a
-    browser walk at fourteen widths (1200/1201 ... 2560/2561) showed it never
-    owned a computed value:
-
-    * the eight-query `RESPONSIVE FRAME ADJUSTMENTS` ladder -- its frame padding
-      lost to the important zero-padding `html body .workout-log-frame` rule, and
-      its `thead th` padding/font-size lost to the important `:is()` table-cell
-      rule in `components.css`;
-    * the `thead th` and `td` padding/font-size/letter-spacing blocks in the
-      first responsive ladder, which lost to that same shared rule;
-    * the base `.workout-log-frame` `padding: var(--frame-padding, ...)`
-      declaration, which lost to the same important zero-padding rule.
-
-    The second half of this contract is the more important half: the families the
-    audit did *not* classify -- the 992px table overflow rule, page padding,
-    delete-button and icon sizing, routine-cell widths and typography, and the
-    late legend query -- must still be present. This packet was a deletion of
-    proven-dead declarations, not a redesign of responsive behavior.
-    """
-    css = (ROOT / "static" / "css" / "pages-workout-log.css").read_text(
-        encoding="utf-8"
-    )
-    body = COMMENT_RE.sub("", css)
-
-    # --- 1. The eight-query frame ladder is gone. ---
-    # Only the standalone media-gated rules were deleted. The same selector still
-    # appears as a comma arm of the live base header group, which must survive --
-    # hence matching on the `{` terminator rather than the bare selector.
-    assert "RESPONSIVE FRAME ADJUSTMENTS" not in body
-    assert ".workout-log-frame .workout-log-table thead th {" not in body
-    assert ".workout-log-frame .workout-log-table thead th,\n" in body
-    for dead_padding in (
-        "padding: 0.35rem 0.15rem;",
-        "padding: 0.4rem 0.175rem;",
-        "padding: 0.425rem 0.2rem;",
-        "padding: 0.45rem 0.225rem;",
-        "padding: 0.5rem 0.25rem;",
-        "padding: 0.65rem 0.35rem;",
-        "padding: 0.85rem 0.5rem;",
-    ):
-        assert dead_padding not in body
-
-    # --- 2. The base frame padding declaration is gone; the owner remains. ---
-    assert "--frame-padding" not in body
-    assert "html body .workout-log-frame," in body
-    owner = re.search(
-        r"html body \.workout-log-frame,\s*html body \.workout-log-frame \.tbl-wrap \{[^}]*\}",
-        body,
-    )
-    assert owner is not None
-    assert "padding: 0 !important;" in owner.group(0)
-
-    # --- 3. The dead first-ladder cell blocks are gone. ---
-    # Anchored on the media-query indent: `table.workout-log-table thead th {`
-    # closes the live base group at column 0 and must not be matched here.
-    for dead_cell_rule in (
-        "\n    .workout-log-table thead th {",
-        "\n    .workout-log-table td {",
-    ):
-        assert dead_cell_rule not in body
-
-    # --- 4. The shared owner that beat them is untouched. ---
-    components = (ROOT / "static" / "css" / "components.css").read_text(
-        encoding="utf-8"
-    )
-    assert '#workout[data-page="workout-plan"], .workout-log-page' in components
-    assert "var(--wp-table-cell-padding, 0.75rem 1rem) !important" in components
-    assert "var(--wp-table-fs, 0.88rem) !important" in components
-
-    # --- 5. Every explicitly out-of-scope responsive family survives. ---
-    # The 992px table overflow rule.
-    overflow = re.search(
-        r"@media \(max-width: 992px\) \{\s*\.workout-log-table \{[^}]*\}", body
-    )
-    assert overflow is not None
-    assert "overflow-x: auto;" in overflow.group(0)
-    assert "display: block;" in overflow.group(0)
-
-    # Page padding, delete-button and icon sizing, routine-cell width + type.
-    assert ".workout-log-page {\n        padding: 0 !important;\n    }" in body
-    assert ".workout-log-table .btn-danger.btn-sm {" in body
-    assert ".workout-log-table .btn-danger i {" in body
-    assert "min-width: 28px !important;" in body
-    assert "min-width: 30px !important;" in body
-    assert ".workout-log-table .routine-cell {" in body
-    assert ".workout-log-table .routine-cell .routine-program {" in body
-
-    # The separate late legend query.
-    legend = re.search(
-        r"@media \(max-width: 1200px\) \{\s*\.legend-item \{[^}]*\}", body
-    )
-    assert legend is not None
-    assert "min-width: 180px;" in legend.group(0)
-
-    # --- 6. The ladder shells are retained, only their dead rules removed. ---
-    for shell in (
-        "@media (min-width: 1281px) and (max-width: 1366px) {",
-        "@media (min-width: 1367px) and (max-width: 1536px) {",
-        "@media (min-width: 1537px) and (max-width: 1600px) {",
-        "@media (min-width: 1921px) and (max-width: 2560px) {",
-        "@media (min-width: 2561px) {",
-    ):
-        assert shell in body
-
-    # --- 7. Deleting inert declarations must not have added weight. ---
-    # None of the declarations WP4.3j-b-dead removed carried `!important`, so
-    # that packet left the count unchanged at 285. WP4.3j-c-dead then removed
-    # 68 important declarations along with its 37 cascade-dead rules, taking it
-    # to 217. WP4.3j-d-hover-paint then removed four more, taking it to 213.
-    # The dark-tone refresh adds 29 scoped declarations to beat legacy shared
-    # glass rules that themselves use `!important`; keep that intentional delta
-    # locked so unrelated changes cannot silently add more cascade weight.
-    assert body.count("!important") == 242
+    css = COMMENT_RE.sub("", (ROOT / "static/css/pages-workout-log.css").read_text(encoding="utf-8"))
+    for selector in (".workout-log-frame", ".tbl--responsive", ".collapsible-frame", "--frame-padding"):
+        assert selector not in css
+    assert 'col[data-column="routine"]' in css
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in css
+    shared = (ROOT / "static/css/components.css").read_text(encoding="utf-8")
+    assert ".progression-plan-container .table.table-calm" in shared
 
 
 def test_workout_log_drops_cascade_dead_header_and_cell_glass() -> None:
-    """WP4.3j-c-dead: the 37 rules the j-c audit proved never win are gone.
-
-    Every rule below was re-verified against the live cascade before deletion:
-    each matched real elements in at least three of the six contexts, and none
-    was the winning owner of any of the 15,336 audited (target x property)
-    records. Their deadness is conditional on `#workout-log-table` keeping
-    `table` and `table-calm`, which is what lets the shared `components.css`
-    rule match, so that premise is asserted here too.
-    """
-    body = COMMENT_RE.sub(
-        "", (ROOT / "static" / "css" / "pages-workout-log.css").read_text(encoding="utf-8")
-    )
-
-    # --- 1. All 37 authorized rules are absent. ------------------------------
-    # Each entry is a selector arm unique to one deleted rule: present before
-    # this packet, absent after it. The region-E arms carry `thead`/`tbody`,
-    # which is what separates them from the retained column-width rules that
-    # also use `.workout-log-table th:nth-child(N)`.
-    deleted_rule_arms = (
-        # region D - dark-mode table-cell glass (base / even-row / hover)
-        "[data-theme='dark'] .workout-log-frame .workout-log-table td",
-        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td",
-        "[data-theme='dark'] .workout-log-frame .workout-log-table tbody tr:hover td",
-        # region E - positional metric-lane glass, light and dark
-        ".workout-log-table thead th:nth-child(5)",
-        ".workout-log-table tbody tr:nth-child(even) td:nth-child(5)",
-        "[data-theme='dark'] .workout-log-table thead th:nth-child(5)",
-        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(5)",
-        ".workout-log-table thead th:nth-child(6)",
-        ".workout-log-table tbody tr:nth-child(even) td:nth-child(6)",
-        "[data-theme='dark'] .workout-log-table thead th:nth-child(6)",
-        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(6)",
-        ".workout-log-table thead th:nth-child(7)",
-        ".workout-log-table tbody tr:nth-child(even) td:nth-child(7)",
-        "[data-theme='dark'] .workout-log-table thead th:nth-child(7)",
-        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(7)",
-        ".workout-log-table thead th:nth-child(8)",
-        ".workout-log-table tbody tr:nth-child(even) td:nth-child(8)",
-        "[data-theme='dark'] .workout-log-table thead th:nth-child(8)",
-        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(8)",
-        ".workout-log-table thead th:nth-child(9)",
-        ".workout-log-table tbody tr:nth-child(even) td:nth-child(9)",
-        "[data-theme='dark'] .workout-log-table thead th:nth-child(9)",
-        "[data-theme='dark'] .workout-log-table tbody tr:nth-child(even) td:nth-child(9)",
-        # region F - comprehensive dark-mode visibility (`color: #e0e0e0`)
-        "[data-theme='dark'] .workout-log-table tbody td",
-        "[data-theme='dark'] .workout-log-table td:nth-child(1)",
-        "[data-theme='dark'] .workout-log-table td:nth-child(2)",
-        "[data-theme='dark'] .workout-log-table td:nth-child(4)",
-        "[data-theme='dark'] .workout-log-table td:nth-child(5)",
-        "[data-theme='dark'] .workout-log-table td:nth-child(15)",
-        "[data-theme='dark'] .workout-log-table td:nth-child(16)",
-        "[data-theme='dark'] .workout-log-table th:nth-child(5)",
-        # region G - the six non-hover final-override rules
-        ".tbl.workout-log-table thead th",
-        ".tbl.workout-log-table tbody td",
-        "[data-theme='dark'] .tbl.workout-log-table thead th",
-        "[data-theme='dark'] .tbl.workout-log-table tbody td",
-        ".tbl.workout-log-table tbody tr:nth-child(even) td",
-        "[data-theme='dark'] .tbl.workout-log-table tbody tr:nth-child(even) td",
-    )
-    assert len(set(deleted_rule_arms)) == 37
-    for arm in deleted_rule_arms:
-        assert arm not in body, arm
-
-    # The positional lane system is gone whole, not merely at its entry points.
-    assert "COLUMN COLOR PAIRING SYSTEM" not in body
-    for lane_colour in (
-        "rgba(239, 246, 255, 0.7)",  # min reps, light
-        "rgba(236, 253, 245, 0.7)",  # max reps, light
-        "rgba(255, 251, 235, 0.7)",  # RIR, light
-        "rgba(245, 243, 255, 0.7)",  # RPE, light
-        "rgba(255, 241, 242, 0.7)",  # weight, light
-    ):
-        assert lane_colour not in body
-
-    # --- 2. The shared components.css owners that beat them are unchanged. ---
-    components = (ROOT / "static" / "css" / "components.css").read_text(encoding="utf-8")
-    shared_arm = (
-        ':is(#workout[data-page="workout-plan"], .workout-log-page, '
-        ".summary-frame.frame-calm-glass)"  # WP4.4-i split the progression branch out
-    )
-    assert shared_arm in components
-    # The (1,4,2) rule that owns dark cell text - what the region-F
-    # `color: #e0e0e0` declarations lost to in every context.
-    dark_cell = re.search(
-        r"\[data-theme='dark'\] :is\(#workout\[data-page=\"workout-plan\"\][^{]*?"
-        r"\.table\.table-calm tbody td \{[^}]*\}",
-        components,
-    )
-    assert dark_cell is not None
-    assert "color: var(--ink-1, #eef1f6) !important;" in dark_cell.group(0)
-
-    # --- 3. Both hover rules survive, and so do their winning filters. -------
-    # `filter` is the only property any page-local rule in the final-override
-    # block owns: L1527 in light, L1538 in dark, 51 winning records each.
-    for hover_selector, hover_filter in (
-        (
-            ".tbl.workout-log-table tbody tr:hover td",
-            "filter: saturate(1.02) brightness(0.99);",
-        ),
-        (
-            "[data-theme='dark'] .tbl.workout-log-table tbody tr:hover td",
-            "filter: saturate(0.96) brightness(1.02);",
-        ),
-    ):
-        assert hover_selector in body
-        assert hover_filter in body
-    # Three hover filters remain in the file. The third belongs to the region-C
-    # light hover rule, which proposes a hover `filter` and loses to the
-    # region-G light winner above; region C is out of this packet's scope and
-    # is retained verbatim.
-    assert body.count("filter: saturate(") == 3
-    assert ".workout-log-table tbody tr:hover td" in body
-
-    # --- 4. Region H, the (1,5,2) lane system, matches its approved digest. --
-    # It is the one page-local family on this page that renders, because it
-    # matches the shared owner's ID-level specificity deliberately rather than
-    # answering it with more `!important`.
-    raw = (ROOT / "static" / "css" / "pages-workout-log.css").read_text(encoding="utf-8")
-    region_h_anchor = (
-        "EXPLICIT METRIC LANE PAIRING\n"
-        "   Planned/scored pairs share a hue"
-    )
-    assert raw.count(region_h_anchor) == 1
-    start = raw.index(region_h_anchor)
-    end = raw.index("NUMBER INPUT SPINNERS")
-    region_h = raw[start:end]
-    assert region_h.count("\n") == 282
-    assert (
-        hashlib.sha256(region_h.replace("\r\n", "\n").encode()).hexdigest()
-        == REGION_H_SHA256
-    )
-
-    # --- 5. The unverified declarations remain structurally represented. -----
-    # The dark planned/scored header paint was intentionally softened; this
-    # keeps the same declarations while locking the lower-chroma replacements.
-    # The ninth declaration is the untouched base-header text transform.
-    assert "text-transform: none !important;" in body
-    for unverified in (
-        "background-color: color-mix(in srgb, rgb(var(--metric-dark-rgb)) 14%, var(--surface-1, #192028)) !important;",
-        "border-bottom-color: rgba(var(--metric-dark-rgb), 0.22) !important;",
-        "background-color: color-mix(in srgb, rgb(var(--metric-dark-rgb)) 22%, var(--surface-1, #192028)) !important;",
-        "border-bottom-color: rgba(var(--metric-dark-rgb), 0.3) !important;",
-        "color: var(--metric-heading-dark, rgba(255, 255, 255, 0.95)) !important;",
-    ):
-        assert unverified in body
-
-    # --- 6. The premise the deadness is conditional on. ----------------------
-    # If `#workout-log-table` ever lost `table` or `table-calm` the shared rule
-    # would stop matching, and the deleted rules would have been the fallback.
-    log_template = (ROOT / "templates" / "workout_log.html").read_text(encoding="utf-8")
-    table_tag = re.search(r'<table id="workout-log-table".*?>', log_template, re.DOTALL)
-    assert table_tag is not None
-    table_classes = re.search(r'class="([^"]+)"', table_tag.group(0))
-    assert table_classes is not None
-    assert {"table", "table-calm"} <= set(table_classes.group(1).split())
-    # No JavaScript removes or toggles them: the only runtime class changes on
-    # this table are the `tbl--view-simple` / `tbl--view-advanced` additions.
-    for js_path in sorted((ROOT / "static" / "js").rglob("*.js")):
-        js = js_path.read_text(encoding="utf-8")
-        for forbidden in (
-            "classList.remove('table-calm')",
-            'classList.remove("table-calm")',
-            "classList.toggle('table-calm')",
-            'classList.toggle("table-calm")',
-            "classList.remove('table')",
-            'classList.remove("table")',
-        ):
-            assert forbidden not in js, f"{js_path.name}: {forbidden}"
-
-    # --- 7. Everything excluded from this packet's scope survives. -----------
-    for shell in (
-        "@media (min-width: 1281px) and (max-width: 1366px) {",
-        "@media (min-width: 1367px) and (max-width: 1536px) {",
-        "@media (min-width: 1537px) and (max-width: 1600px) {",
-        "@media (min-width: 1921px) and (max-width: 2560px) {",
-        "@media (min-width: 2561px) {",
-    ):
-        assert shell in body
-    overflow = re.search(
-        r"@media \(max-width: 992px\) \{\s*\.workout-log-table \{[^}]*\}", body
-    )
-    assert overflow is not None
-    assert "overflow-x: auto;" in overflow.group(0)
-    legend = re.search(r"@media \(max-width: 1200px\) \{\s*\.legend-item \{[^}]*\}", body)
-    assert legend is not None
-    # Retained neighbours of the deleted blocks: the editable-input and badge
-    # rules that share the dark-mode section with region F.
-    assert "[data-theme='dark'] .workout-log-table .editable-input {" in body
-    assert "[data-theme='dark'] .workout-log-table .badge {" in body
-
-    # --- 8. The measured weight reduction. -----------------------------------
-    # 68 `!important` declarations left with the 37 rules (285 -> 217). The j-c
-    # audit projected 71 because it counted region F over its line span, which
-    # also covers the retained editable-input and badge rules. WP4.3j-d then
-    # removed four cascade-dead hover-paint declarations (217 -> 213). The
-    # scoped dark-tone refresh adds 29 declarations to beat legacy shared glass
-    # rules, yielding the intentional current total below.
-    assert body.count("!important") == 242
-
-
-def _assert_workout_log_hover_rules_are_filter_only(css: str) -> None:
-    hover_rules = (
-        (
-            ".tbl.workout-log-table tbody tr:hover td,\n"
-            ".tbl--responsive.workout-log-table tbody tr:hover td,\n"
-            ".workout-log-frame .tbl tbody tr:hover td,\n"
-            ".workout-log-frame .tbl--responsive tbody tr:hover td",
-            ".workout-log-frame .tbl--responsive tbody tr:hover td",
-            "filter: saturate(1.02) brightness(0.99);",
-        ),
-        (
-            "[data-theme='dark'] .tbl.workout-log-table tbody tr:hover td,\n"
-            "[data-theme='dark'] .tbl--responsive.workout-log-table tbody tr:hover td,\n"
-            "[data-theme='dark'] .workout-log-frame .tbl tbody tr:hover td,\n"
-            "[data-theme='dark'] .workout-log-frame .tbl--responsive tbody tr:hover td",
-            "[data-theme='dark'] .workout-log-frame .tbl--responsive tbody tr:hover td",
-            "filter: saturate(0.96) brightness(1.02);",
-        ),
-    )
-    for selector_list, final_selector, expected_filter in hover_rules:
-        assert css.count(selector_list + " {") == 1
-        rule_body = _wp_rule_body(css, final_selector)
-        assert rule_body.strip() == expected_filter
-        assert "background" not in rule_body
-        assert "box-shadow" not in rule_body
-
-    # Region C's separate hover family and third filter remain deliberately
-    # untouched; its var()-backed paint still consumes the Region H variables.
-    region_c_selector = (
-        ".workout-log-table tbody tr:hover td,\n"
-        ".workout-log-frame .workout-log-table tbody tr:hover td,\n"
-        ".tbl--responsive.workout-log-table tbody tr:hover td"
-    )
-    assert css.count(region_c_selector + " {") == 1
-    region_c_body = _wp_rule_body(
-        css, ".tbl--responsive.workout-log-table tbody tr:hover td"
-    )
-    assert "background: var(--lane-hover-bg," in region_c_body
-    assert "box-shadow: var(--lane-hover-shadow," in region_c_body
-    assert "filter: saturate(1.02) brightness(0.99);" in region_c_body
-    assert css.count("filter: saturate(") == 3
+    css = COMMENT_RE.sub("", (ROOT / "static/css/pages-workout-log.css").read_text(encoding="utf-8"))
+    for declaration in ("backdrop-filter:", "linear-gradient(", "box-shadow:", ".metric-lane", "nth-child("):
+        assert declaration not in css
+    shared = (ROOT / "static/css/components.css").read_text(encoding="utf-8")
+    assert ".workout-log-frame td" not in shared
+    assert ".summary-frame.frame-calm-glass" in shared
 
 
 def test_workout_log_hover_rules_own_only_their_live_filters() -> None:
-    """WP4.3j-d: Region G hover rules retain selectors/filters, not dead paint.
-
-    Real mouse hover across light/dark and desktop/tablet/mobile proved all four
-    paint declarations entered the candidate set but never won. The two filters
-    are known-live controls and remain the winning owners in every context.
-    """
-    css = (ROOT / "static" / "css" / "pages-workout-log.css").read_text(
-        encoding="utf-8"
-    )
-    _assert_workout_log_hover_rules_are_filter_only(css)
+    css = COMMENT_RE.sub("", (ROOT / "static/css/pages-workout-log.css").read_text(encoding="utf-8"))
+    assert "tr:hover" not in css
+    assert "filter:" not in css
 
 
 def test_recommended_volume_range_paints_both_native_slider_tracks() -> None:

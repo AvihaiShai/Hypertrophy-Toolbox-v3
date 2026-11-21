@@ -38,12 +38,17 @@ function computeProgressionState(row) {
         improved('weight', isAssistedBodyweightRow(row));
 }
 
+function setBadgeVariant(badge, achieved) {
+    badge.classList.toggle('ui-badge--achieved', achieved);
+    badge.classList.toggle('ui-badge--pending', !achieved);
+}
+
 function updateProgressionBadge(row) {
     const badge = row?.querySelector('.badge');
     if (!badge) return;
 
     const isProgressive = computeProgressionState(row);
-    badge.className = `badge ${isProgressive ? 'bg-success' : 'bg-warning'}`;
+    setBadgeVariant(badge, isProgressive);
     badge.textContent = isProgressive ? 'Achieved' : 'Pending';
 }
 
@@ -73,11 +78,9 @@ export function initializeWorkoutLog() {
     // Initialize simple table sorting
     const workoutLogTable = document.querySelector('.workout-log-table');
     if (workoutLogTable) {
-        initializeSimpleTableSorting(workoutLogTable);
+        initializeRecordLayouts(workoutLogTable);
+        initializeFieldSorting(workoutLogTable);
     }
-
-    // Initialize collapse toggles for the import section
-    initializeCollapseToggles();
 
     // Move modal to body for proper z-index stacking, THEN bind events
     moveModalToBody();
@@ -130,33 +133,6 @@ function moveModalToBody() {
     if (modal && modal.parentElement !== document.body) {
         document.body.appendChild(modal);
     }
-}
-
-/**
- * Initialize collapse toggle functionality for the import controls frame
- */
-function initializeCollapseToggles() {
-    const toggleButtons = document.querySelectorAll('.workout-log-controls-frame .collapse-toggle');
-    
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const frame = this.closest('.collapsible-frame');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            const toggleText = this.querySelector('.toggle-text');
-            
-            // Toggle collapsed state
-            frame.classList.toggle('collapsed');
-            
-            // Update aria-expanded
-            this.setAttribute('aria-expanded', !isExpanded);
-            
-            // Update button text
-            if (toggleText) {
-                toggleText.textContent = isExpanded ? 'Show' : 'Hide';
-            }
-        });
-    });
 }
 
 /**
@@ -243,56 +219,104 @@ export async function confirmClearWorkoutLog() {
 window.importFromWorkoutPlan = importFromWorkoutPlan;
 window.confirmClearWorkoutLog = confirmClearWorkoutLog;
 
-function initializeSimpleTableSorting(table) {
-    const headers = table.querySelectorAll('th');
-    headers.forEach((header, index) => {
-        header.style.cursor = 'pointer';
-        header.title = 'Click to sort';
-        header.addEventListener('click', () => {
-            sortTableByColumn(table, index);
+const pendingScores = new Set();
+
+export function saveEditedScore(id, field, value) {
+    const write = updateScoredValue(id, field, value);
+    pendingScores.add(write);
+    return write.finally(() => pendingScores.delete(write));
+}
+
+function initializeFieldSorting(table) {
+    for (const button of table.querySelectorAll('[data-sort-field]')) {
+        button.addEventListener('click', async () => {
+            await Promise.all(pendingScores);
+            const key = button.dataset.sortField;
+            const header = button.closest('th');
+            const descending = header.getAttribute('aria-sort') === 'ascending';
+            table.querySelector('[aria-sort]')?.removeAttribute('aria-sort');
+            header.setAttribute('aria-sort', descending ? 'descending' : 'ascending');
+            const body = table.tBodies[0];
+            function value(row) {
+                const cell = row.querySelector(`[data-key="${key}"]`);
+                return cell.dataset.sortValue ?? (cell.querySelector('.editable-text') ?? cell).textContent.trim();
+            }
+            const sorted = Array.from(body.rows).sort((a, b) => {
+                const left = value(a), right = value(b);
+                const first = parseFloat(left), second = parseFloat(right);
+                const order = Number.isNaN(first) || Number.isNaN(second)
+                    ? left.localeCompare(right) : first - second;
+                return descending ? -order : order;
+            });
+            for (const row of sorted) body.appendChild(row);
         });
+    }
+}
+
+function placeRecordCells(row, desktop) {
+    const cells = Array.from(row.cells);
+    const byKey = new Map(cells.map(cell => [cell.dataset.key, cell]));
+    const planned = ['planned_min_reps', 'planned_max_reps', 'planned_rir', 'planned_rpe', 'planned_weight'];
+    const desktopOrder = ['number', 'routine', 'exercise', 'planned_sets', ...planned, 'scored_min_reps',
+        'scored_max_reps', 'scored_rir', 'scored_rpe', 'scored_weight', 'last_progression_date', 'status', 'actions'];
+    const phoneOrder = ['exercise', 'status', 'routine', 'planned_sets', 'scored_min_reps', 'scored_max_reps',
+        'scored_weight', 'scored_rir'];
+    if (row.dataset.mainRpe === 'true') phoneOrder.push('scored_rpe');
+    phoneOrder.push('number', ...planned);
+    if (row.dataset.mainRpe === 'false') phoneOrder.push('scored_rpe');
+    phoneOrder.push('last_progression_date', 'actions');
+    // Leave the focused cell attached while moving its siblings into reading order.
+    const active = document.activeElement;
+    const anchor = active?.closest('td');
+    const order = (desktop ? desktopOrder : phoneOrder).map(key => byKey.get(key));
+    const pivot = order.indexOf(anchor);
+    for (const [index, cell] of order.entries()) {
+        if (cell !== anchor) row.insertBefore(cell, index < pivot ? anchor : null);
+    }
+    const video = row.querySelector('.log-play-video-btn');
+    const target = desktop ? row.querySelector('.log-exercise') : byKey.get('actions');
+    if (video.parentElement !== target) {
+        if (desktop) target.appendChild(video);
+        else target.prepend(video);
+        if (active === video && video.getClientRects().length) video.focus();
+    }
+    if (active && row.contains(active) && !active.getClientRects().length) {
+        const destination = desktop ? row.querySelector('[data-field="scored_rir"] .log-trigger') : row.querySelector('.log-details');
+        destination.focus();
+    }
+}
+
+function initializeRecordLayouts(table) {
+    const media = window.matchMedia('(min-width: 1360px)');
+    for (const row of table.tBodies[0].rows) {
+        row.querySelector('.log-details').addEventListener('click', event => {
+            const expanded = row.classList.toggle('details-open');
+            event.currentTarget.setAttribute('aria-expanded', String(expanded));
+        });
+        for (const cell of row.querySelectorAll('.scored-cell')) {
+            updateProgressionIndicator(row, cell.dataset.field, cell.querySelector('.editable-text').textContent);
+        }
+        placeRecordCells(row, media.matches);
+    }
+    media.addEventListener('change', () => {
+        for (const row of table.tBodies[0].rows) placeRecordCells(row, media.matches);
     });
 }
 
-function sortTableByColumn(table, columnIndex) {
-    const tbody = table.querySelector('tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    const header = table.querySelectorAll('th')[columnIndex];
-    const isAscending = header.classList.contains('sort-asc');
-    
-    // Remove sort classes from all headers
-    table.querySelectorAll('th').forEach(h => {
-        h.classList.remove('sort-asc', 'sort-desc');
-    });
-    
-    // Add appropriate sort class
-    header.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
-    
-    rows.sort((a, b) => {
-        const aValue = a.cells[columnIndex]?.textContent.trim() || '';
-        const bValue = b.cells[columnIndex]?.textContent.trim() || '';
-        
-        // Try to parse as number
-        const aNum = parseFloat(aValue);
-        const bNum = parseFloat(bValue);
-        
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-            return isAscending ? bNum - aNum : aNum - bNum;
-        }
-        
-        // String comparison
-        return isAscending ? 
-            bValue.localeCompare(aValue) : 
-            aValue.localeCompare(bValue);
-    });
-    
-    // Re-append sorted rows
-    rows.forEach(row => tbody.appendChild(row));
+function refreshRpePlacement(row) {
+    const present = text => !['', '--', 'None'].includes(text.trim());
+    const text = selector => row.querySelector(selector).textContent;
+    const mainRpe = present(text('[data-field="scored_rpe"] .editable-text')) ||
+        (present(text('[data-field="planned_rpe"]')) && !present(text('[data-field="planned_rir"]')));
+    if (row.dataset.mainRpe !== String(mainRpe)) {
+        row.dataset.mainRpe = String(mainRpe);
+        placeRecordCells(row, window.matchMedia('(min-width: 1360px)').matches);
+    }
 }
 
 export function initializeProgressionChecks() {
     // Initialize progression status for all log entries
-    document.querySelectorAll('[data-log-id]').forEach(entry => {
+    document.querySelectorAll('tr[data-log-id]').forEach(entry => {
         const logId = entry.dataset.logId;
         checkProgressiveOverload(logId);
     });
@@ -346,7 +370,7 @@ export async function updateProgressionStatus(logId) {
 
         const badge = document.querySelector(`tr[data-log-id="${logId}"] .progression-badge`);
         if (badge && response.data) {
-            badge.className = `badge ${response.data.is_progressive ? 'bg-success' : 'bg-warning'}`;
+            setBadgeVariant(badge, response.data.is_progressive);
             badge.textContent = response.data.status;
         }
 
@@ -378,6 +402,7 @@ export async function updateScoredValue(logId, field, value) {
             
             // Update progression indicator for this cell
             updateProgressionIndicator(row, field, value);
+            if (field === 'scored_rpe') refreshRpePlacement(row);
         }
 
         updateProgressionBadge(row);
@@ -451,13 +476,13 @@ function updateProgressionIndicator(row, field, scoredValue) {
         diff = Number(Math.abs(plannedValue - scored).toFixed(2));
         
         if (isImproved) {
-            indicator.classList.add('fa-arrow-up', 'text-success');
+            indicator.classList.add('fa-arrow-up', 'log-improved');
             indicator.title = `Pushed harder! (RIR -${diff})`;
         } else if (isSame) {
-            indicator.classList.add('fa-equals', 'text-warning');
+            indicator.classList.add('fa-equals');
             indicator.title = 'Met target RIR';
         } else {
-            indicator.classList.add('fa-arrow-down', 'text-danger');
+            indicator.classList.add('fa-arrow-down', 'log-below');
             indicator.title = `Easier than planned (RIR +${diff})`;
         }
     } else if (field === 'scored_rpe') {
@@ -467,13 +492,13 @@ function updateProgressionIndicator(row, field, scoredValue) {
         diff = (scored - plannedValue).toFixed(1);
         
         if (isImproved) {
-            indicator.classList.add('fa-arrow-up', 'text-success');
+            indicator.classList.add('fa-arrow-up', 'log-improved');
             indicator.title = `Higher effort! (+${diff})`;
         } else if (isSame) {
-            indicator.classList.add('fa-equals', 'text-warning');
+            indicator.classList.add('fa-equals');
             indicator.title = 'Met target RPE';
         } else {
-            indicator.classList.add('fa-arrow-down', 'text-danger');
+            indicator.classList.add('fa-arrow-down', 'log-below');
             indicator.title = `Lower effort (${diff})`;
         }
     } else if (field === 'scored_weight') {
@@ -484,15 +509,15 @@ function updateProgressionIndicator(row, field, scoredValue) {
         const absDiff = Math.abs(scored - plannedValue).toFixed(1);
         
         if (isImproved) {
-            indicator.classList.add('fa-arrow-up', 'text-success');
+            indicator.classList.add('fa-arrow-up', 'log-improved');
             indicator.title = isAssistedBodyweight
                 ? `Assistance decreased! (-${absDiff}kg assistance)`
                 : `Weight increased! (+${diff}kg)`;
         } else if (isSame) {
-            indicator.classList.add('fa-equals', 'text-warning');
+            indicator.classList.add('fa-equals');
             indicator.title = isAssistedBodyweight ? 'Same assistance' : 'Same weight';
         } else {
-            indicator.classList.add('fa-arrow-down', 'text-danger');
+            indicator.classList.add('fa-arrow-down', 'log-below');
             indicator.title = isAssistedBodyweight
                 ? `Assistance increased (+${absDiff}kg assistance)`
                 : `Weight decreased (${diff}kg)`;
@@ -504,13 +529,13 @@ function updateProgressionIndicator(row, field, scoredValue) {
         diff = scored - plannedValue;
         
         if (isImproved) {
-            indicator.classList.add('fa-arrow-up', 'text-success');
+            indicator.classList.add('fa-arrow-up', 'log-improved');
             indicator.title = `Above target! (+${diff})`;
         } else if (isSame) {
-            indicator.classList.add('fa-equals', 'text-warning');
+            indicator.classList.add('fa-equals');
             indicator.title = 'Met target';
         } else {
-            indicator.classList.add('fa-arrow-down', 'text-danger');
+            indicator.classList.add('fa-arrow-down', 'log-below');
             indicator.title = `Below target (${diff})`;
         }
     }
@@ -596,7 +621,7 @@ export async function checkProgressionStatus(logId) {
         const data = await api.get(`/check_progression/${logId}`, { showLoading: false, showErrorToast: false });
         const result = data.data !== undefined ? data.data : data;
         
-        progressionBadge.className = `badge ${result.achieved ? 'bg-success' : 'bg-warning'}`;
+        setBadgeVariant(progressionBadge, result.achieved);
         progressionBadge.textContent = result.achieved ? 'Achieved' : 'Pending';
     } catch (error) {
         console.error('Error checking progression:', error);
@@ -611,7 +636,14 @@ export async function deleteWorkoutLog(logId) {
         // Remove the row from the table
         const row = document.querySelector(`tr[data-log-id="${logId}"]`);
         if (row) {
+            const page = row.closest('.workout-log-page');
             row.remove();
+            if (page && !page.querySelector('tr[data-log-id]')) {
+                page.querySelector('.workout-log-frame').hidden = true;
+                page.querySelector('.progression-legend').hidden = true;
+                page.querySelector('.ui-empty-state').hidden = false;
+                page.querySelector('#import-from-plan-btn').classList.replace('ui-btn--secondary', 'ui-btn--primary');
+            }
         }
 
         showToast('success', 'Log entry deleted successfully');
@@ -671,6 +703,8 @@ export async function handleDateChange(event, logId) {
                 // Show calendar icon when no date is set
                 display.innerHTML = '<i class="fas fa-calendar-alt date-icon"></i>';
             }
+            const exercise = cell.closest('tr').querySelector('.exercise-name').textContent;
+            display.setAttribute('aria-label', `Edit Last Progression for ${exercise}${displayDate ? ', ' + displayDate : ''}`);
             display.style.display = 'flex';
         }
         

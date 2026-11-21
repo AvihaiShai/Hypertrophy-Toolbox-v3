@@ -51,7 +51,7 @@ test.describe('Workout Log Page', () => {
     await expect(page.locator('h1')).toContainText('Workout Log');
 
     // Check import controls section exists
-    const importSection = page.locator('[data-section="import-controls"]');
+    const importSection = page.locator('.ui-page-actions');
     await expect(importSection).toBeVisible();
 
     // Check import button exists
@@ -65,12 +65,12 @@ test.describe('Workout Log Page', () => {
 
     // Check table structure
     const table = page.locator('.workout-log-table');
-    await expect(table).toBeVisible();
+    await expect(table).toBeAttached();
   });
 
   test('progression legend is visible', async ({ page }) => {
     const legend = page.locator('.progression-legend');
-    await expect(legend).toBeVisible();
+    await expect(legend).toBeVisible({visible: await page.locator('tr[data-log-id]').count() > 0});
     
     // Check legend items
     await expect(legend).toContainText('Improved');
@@ -83,32 +83,20 @@ test.describe('Workout Log Page', () => {
     const headers = table.locator('thead th');
 
     // Check expected headers exist
-    const headerTexts = await headers.allInnerTexts();
+    const headerTexts = await headers.allTextContents();
     const headerString = headerTexts.join(' ').toLowerCase();
     
     expect(headerString).toContain('routine');
     expect(headerString).toContain('exercise');
     expect(headerString).toContain('planned');
-    expect(headerString).toContain('scored');
+    expect(headerString).toContain('logged');
     expect(headerString).toContain('actions');
   });
 
-  test('import controls collapsible works', async ({ page }) => {
-    const collapseToggle = page.locator('[data-section="import-controls"] .collapse-toggle');
-    const content = page.locator('#import-content');
-    
-    // Should be visible initially
-    await expect(content).toBeVisible();
-    
-    // Click to collapse
-    await collapseToggle.click();
-    await page.waitForTimeout(300); // Wait for animation
-    
-    // Content should be hidden
-    const isHidden = await content.evaluate(el => {
-      return window.getComputedStyle(el).display === 'none' || el.classList.contains('collapsed');
-    });
-    // Note: Implementation may vary - check if height/display changes
+  test('Import is primary only when the log is empty', async ({page}) => {
+    const populated = await page.locator('tr[data-log-id]').count() > 0;
+    await expect(page.locator('.ui-empty-state')).toBeVisible({visible: !populated});
+    await expect(page.locator('#import-from-plan-btn')).toHaveClass(populated ? /ui-btn--secondary/ : /ui-btn--primary/);
   });
 
   test('clear log modal opens', async ({ page }) => {
@@ -130,15 +118,8 @@ test.describe('Workout Log Page', () => {
 
   test('editable cells are present in table', async ({ page }) => {
     // Check if editable cells exist (they may only appear when there's data)
-    const editableCells = page.locator('.editable.scored-cell');
-    
-    // The table structure should include editable columns
-    const tableHeaders = page.locator('.workout-log-table thead th');
-    const headerTexts = await tableHeaders.allInnerTexts();
-    const editableHeaders = headerTexts.filter(text => text.toLowerCase().includes('scored'));
-    
-    // Should have scored (editable) columns
-    expect(editableHeaders.length).toBeGreaterThan(0);
+    await expect(page.locator('[data-sort-field^="scored_"]')).toHaveCount(5);
+    await expect(page.locator('#log-scored')).toHaveAttribute('colspan', '5');
   });
 });
 
@@ -200,23 +181,32 @@ test.describe('Workout Log with Data', () => {
     // At minimum, no errors should occur
   });
 
-  test('phone Log fields use the full card width on a populated row', async ({ page }) => {
+  test('phone Log fields have touch targets and Details at the card breakpoint', async ({ page }) => {
     await importCurrentWorkoutPlan(page);
     const row = page.locator('.workout-log-table tr[data-log-id]').first();
     await expect(row.locator('.exercise-name')).toBeVisible();
     for (const width of [375, 390]) {
       await page.setViewportSize({ width, height: 844 });
-      const geometry = await row.evaluate(el => ({
-        row: el.getBoundingClientRect().width,
-        fields: Array.from(el.querySelectorAll('td'), td => td.getBoundingClientRect().width),
-        pageWidth: document.documentElement.scrollWidth,
-      }));
-      expect(geometry.pageWidth).toBeLessThanOrEqual(width);
-      expect(Math.min(...geometry.fields)).toBeGreaterThan(geometry.row * 0.85);
+      const trigger = row.locator('[data-field="scored_rir"] .log-trigger');
+      const bounds = await trigger.boundingBox();
+      expect(bounds?.width).toBeGreaterThanOrEqual(44);
+      expect(bounds?.height).toBeGreaterThanOrEqual(44);
+      const details = row.getByRole('button', {name:'Details', exact:true});
+      await details.click();
+      await expect(row.getByRole('button', {name:/reference video/i})).toBeVisible();
+      await expect(row.locator('.date-display')).toBeVisible();
+      await details.press('Space');
+      await expect(details).toHaveAttribute('aria-expanded', 'false');
+      await expect(row.locator('.date-display')).toBeHidden();
       const score = row.locator('[data-field="scored_rir"]');
       await score.locator('.editable-text').click();
       await expect(score.locator('input')).toBeFocused();
       await score.locator('input').press('Escape');
+    }
+    for (const width of [1359, 1360]) {
+      await page.setViewportSize({width, height: 900});
+      await expect(page.locator('#log-planned')).toBeVisible({visible: width === 1360});
+      await expect(row.locator('.log-details')).toBeVisible({visible: width === 1359});
     }
   });
 
@@ -603,6 +593,81 @@ test('score edits preserve RIR zero and server progression, and Escape discards 
   }
 });
 
+test('phone effort entry persists on the intended exercise and desktop sorting awaits its save', async ({page, request}) => {
+  const routine = `GYM - Log pilot ${Date.now()} - Workout A`;
+  const planIds: number[] = [];
+  try {
+    for (const [exercise, effort] of [
+      ['Barbell Curl', {rir: 2}], ['Barbell Seated Military Press', {rpe: 8}],
+    ] as const) {
+      const response = await request.post('/add_exercise', {data: {
+        routine, exercise, sets: 3, min_rep_range: 8, max_rep_range: 12, weight: 30, ...effort,
+      }});
+      expect(response.ok()).toBe(true);
+      const plan = (await (await request.get('/get_workout_plan')).json()).data as
+        {id: number; routine: string; exercise: string}[];
+      planIds.push(plan.find(entry => entry.routine === routine && entry.exercise === exercise)!.id);
+    }
+    expect((await request.post('/export_to_workout_log')).ok()).toBe(true);
+    const records = async () => (await (await request.get('/get_workout_logs')).json()).data as
+      {id: number; routine: string; exercise: string; scored_rpe: number|null; planned_rpe: number|null; planned_rir: number|null}[];
+    const [curl, press] = (await records()).filter(entry => entry.routine === routine)
+      .sort((a,b) => a.exercise.localeCompare(b.exercise));
+    expect(press).toMatchObject({exercise:'Barbell Seated Military Press', scored_rpe:null, planned_rpe:8, planned_rir:null});
+    expect(curl.exercise).toBe('Barbell Curl');
+    for (const [id, weight] of [[curl.id,30], [press.id,50]]) {
+      expect((await request.post('/update_workout_log', {data: {id, updates:{scored_weight:weight}}})).ok()).toBe(true);
+    }
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(ROUTES.WORKOUT_LOG);
+    const card = page.locator(`tr[data-log-id="${press.id}"]`).filter({hasText:press.exercise});
+    const ordinary = page.locator(`tr[data-log-id="${curl.id}"]`);
+    await expect(card.locator('.log-details')).toHaveAttribute('aria-expanded','false');
+    await expect(ordinary.locator('[data-field="scored_rpe"] .log-trigger')).toBeHidden();
+    await expect(card.locator('[data-field="scored_rir"] .log-trigger')).toBeVisible();
+    const rpe = card.locator('[data-field="scored_rpe"]');
+    await rpe.locator('.log-trigger').click();
+    await rpe.locator('input').fill('9');
+    const submitted = page.waitForResponse(res => res.url().endsWith('/update_workout_log'));
+    await rpe.locator('input').press('Enter');
+    expect((await submitted).ok()).toBe(true);
+    await expect(rpe.locator('.log-trigger')).toBeFocused();
+    await page.goto(ROUTES.WORKOUT_PLAN);
+    await expect(page.locator('#workout_plan_table_body')).toBeAttached();
+    await page.locator('#navbar .navbar-toggler').click();
+    await page.locator('#navbar a[href="/workout_log"]:visible').first().click();
+    await expect(card.locator('.log-details')).toHaveAttribute('aria-expanded','false');
+    await expect(rpe.locator('.editable-text')).toHaveText(/^9(?:\.0)?$/);
+    expect((await records()).find(entry => entry.id === press.id)?.scored_rpe).toBe(9);
+    await expect(card.locator('.ui-badge')).toHaveText((await (await request.get(`/check_progression/${press.id}`)).json()).data.status);
+
+    const weight = ordinary.locator('[data-field="scored_weight"]');
+    await weight.locator('.log-trigger').click();
+    await weight.locator('input').fill('60');
+    await page.setViewportSize({width:1440,height:900});
+    await expect(weight.locator('input')).toBeFocused();
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    let writes = 0;
+    await page.route('**/update_workout_log', async route => {
+      writes++;
+      await held;
+      await route.continue();
+    });
+    const sort = page.locator('[data-sort-field="scored_weight"]');
+    try {
+      await sort.click();
+      await expect.poll(() => writes).toBe(1);
+    } finally { release(); }
+    await expect(sort.locator('..')).toHaveAttribute('aria-sort','ascending');
+    const ordered = await page.locator('tr[data-log-id]').evaluateAll(rows => rows.map(row => row.getAttribute('data-log-id')));
+    expect(ordered.indexOf(String(press.id))).toBeLessThan(ordered.indexOf(String(curl.id)));
+    expect(writes).toBe(1);
+  } finally {
+    for (const id of planIds) await request.post('/remove_exercise', {data:{id}});
+  }
+});
+
 test.describe('Workout Log Date Filter', () => {
   test.beforeEach(async ({ page, consoleErrors }) => {
     consoleErrors.startCollecting();
@@ -639,9 +704,7 @@ test.describe('Workout Log Date Filter', () => {
       await expect(firstDateInput).toBeAttached();
     }
     
-    // Table should be visible
-    const table = page.locator('.workout-log-table');
-    await expect(table).toBeVisible();
+    await expect(page.locator('.workout-log-table')).toBeAttached();
   });
 });
 
@@ -773,7 +836,7 @@ test.describe('Exercise reference video modal (workout-log)', () => {
     expect(rowCount).toBeGreaterThan(0);
 
     const firstRow = rows.first();
-    const playBtn = firstRow.locator('.btn-video.log-play-video-btn');
+    const playBtn = firstRow.locator('.log-play-video-btn');
     await expect(playBtn).toBeVisible();
 
     // Default seed is uncurated → search-variant icon + accessible name.

@@ -1,5 +1,5 @@
 import { fetchWeeklySummary, fetchSessionSummary } from './summary.js';
-import { handleDateChange, isScoredRepField, updateScoredValue, validateScoredValue } from './workout-log.js';
+import { handleDateChange, isScoredRepField, saveEditedScore, validateScoredValue } from './workout-log.js';
 import { showToast } from './toast.js';
 
 /**
@@ -24,6 +24,7 @@ function addCustomSpinnerButtons(input) {
     // Create minus button
     const minusBtn = document.createElement('button');
     minusBtn.type = 'button';
+    minusBtn.setAttribute('aria-label', 'Decrease ' + input.getAttribute('aria-label'));
     minusBtn.className = 'number-spinner-btn number-spinner-minus';
     minusBtn.innerHTML = '−'; // Use Unicode minus for better click area
     minusBtn.style.cssText = `
@@ -37,6 +38,7 @@ function addCustomSpinnerButtons(input) {
     // Create plus button
     const plusBtn = document.createElement('button');
     plusBtn.type = 'button';
+    plusBtn.setAttribute('aria-label', 'Increase ' + input.getAttribute('aria-label'));
     plusBtn.className = 'number-spinner-btn number-spinner-plus';
     plusBtn.innerHTML = '+'; // Use plain text for better click area
     plusBtn.style.cssText = minusBtn.style.cssText;
@@ -107,7 +109,7 @@ export function initializeUIHandlers() {
         let edited = false;
         const editor = { cell, finish };
 
-        async function finish(save) {
+        async function finish(save, restoreFocus = false) {
             if (activeScoreEditor !== editor) return;
             activeScoreEditor = null;
 
@@ -120,7 +122,8 @@ export function initializeUIHandlers() {
             if (submit) input.disabled = true;
             input.style.display = 'none';
             wrapper.style.display = 'none';
-            cell.querySelector('.editable-text').style.display = 'block';
+            const trigger = cell.querySelector('.log-trigger, .editable-text');
+            trigger.style.display = '';
 
             if (changed && !valid) {
                 const message = isScoredRepField(field)
@@ -128,12 +131,16 @@ export function initializeUIHandlers() {
                     : `Enter a number from ${input.min} to ${input.max} for ${cell.dataset.label}.`;
                 showToast('warning', message);
             }
-            if (!submit) return;
-
-            try {
-                await updateScoredValue(logId, field, value);
-            } finally {
-                input.disabled = false;
+            if (restoreFocus) trigger.focus();
+            if (submit) {
+                try {
+                    await saveEditedScore(logId, field, value);
+                } finally {
+                    input.disabled = false;
+                }
+                if (restoreFocus && !trigger.getClientRects().length && document.activeElement === document.body) {
+                    cell.closest('tr').querySelector('.log-details')?.focus();
+                }
             }
         }
 
@@ -152,7 +159,7 @@ export function initializeUIHandlers() {
         wrapper.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' || (event.key === 'Enter' && event.target === input)) {
                 event.preventDefault();
-                void finish(event.key === 'Enter');
+                void finish(event.key === 'Enter', true);
             }
         });
     }
@@ -168,7 +175,7 @@ export function initializeUIHandlers() {
             }
             
             const input = this.querySelector('.editable-input');
-            const text = this.querySelector('.editable-text');
+            const text = this.querySelector('.log-trigger, .editable-text');
             const wrapper = this.querySelector('.number-input-wrapper');
             
             if (input) {
@@ -221,9 +228,9 @@ export function initializeUIHandlers() {
             document.querySelectorAll('.editable-input').forEach(input => {
                 input.style.display = 'none';
             });
-            document.querySelectorAll('.editable-text').forEach(text => {
+            document.querySelectorAll('.log-trigger, .editable-text:not(.log-trigger .editable-text)').forEach(text => {
                 // Use flex for date displays, block for others
-                text.style.display = text.classList.contains('date-display') ? 'flex' : 'block';
+                text.style.display = text.classList.contains('log-trigger') ? '' : text.classList.contains('date-display') ? 'flex' : 'block';
             });
             // Also hide number input wrappers
             document.querySelectorAll('.number-input-wrapper').forEach(wrapper => {

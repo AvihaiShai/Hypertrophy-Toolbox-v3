@@ -895,7 +895,7 @@ const AXE_REGISTER: Record<string, AxeFinding[]> = {
     { rule: 'color-contrast', nodes: 1 },
   ],
 
-  'workout_log:light': [{ rule: 'color-contrast', nodes: 2 }],
+  'workout_log:light': [],
   // The muted route palette clears the two action-button findings, and its
   // route-owned guidance tone clears the last dark contrast finding.
   'workout_log:dark': [],

@@ -12,13 +12,13 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **740** |
+| Playwright tests (chromium) | **741** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **590** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4701** across 144 files |
-| pytest test files (all) | **145** |
+| Required functional gate — `E2E Functional (Chromium)` | **591** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **4704** across 145 files |
+| pytest test files (all) | **146** |
 | JS unit cases (Vitest) | **271** across 15 files |
-| Hard waits (lines containing waitForTimeout) | **80** across 14 files |
+| Hard waits (lines containing waitForTimeout) | **79** across 14 files |
 
 The required-functional figure is derived from the `e2e-functional-shard` job in `.github/workflows/ci.yml`, not typed in, so it cannot disagree with what CI runs.
 
@@ -56,7 +56,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `visual.spec.ts` | 66 | — |
 | `volume-progress.spec.ts` | 16 | yes |
 | `volume-splitter.spec.ts` | 64 | yes |
-| `workout-log.spec.ts` | 24 | yes |
+| `workout-log.spec.ts` | 25 | yes |
 | `workout-plan-desktop-contract.spec.ts` | 16 | — |
 | `workout-plan.spec.ts` | 39 | yes |
 
@@ -204,6 +204,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_weekly_summary_unassigned.py` | 20 |
 | `tests/test_workout_controls_busy_signal_contracts.py` | 9 |
 | `tests/test_workout_log_calibration_route.py` | 7 |
+| `tests/test_workout_log_frame_runner.py` | 3 |
 | `tests/test_workout_log_routes.py` | 86 |
 | `tests/test_workout_log_utils.py` | 30 |
 | `tests/test_workout_plan_routes.py` | 139 |
@@ -257,4 +258,4 @@ Flake-and-latency debt (blindspot B5). Phase 5 step 16 burns this down worst-fil
 | `e2e/ui-hardening.spec.ts` | 1 |
 | `e2e/validation-boundary.spec.ts` | 2 |
 | `e2e/volume-splitter.spec.ts` | 22 |
-| `e2e/workout-log.spec.ts` | 6 |
+| `e2e/workout-log.spec.ts` | 5 |
