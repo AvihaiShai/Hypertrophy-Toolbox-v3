@@ -234,8 +234,13 @@ function initializeFieldSorting(table) {
             const key = button.dataset.sortField;
             const header = button.closest('th');
             const descending = header.getAttribute('aria-sort') === 'ascending';
-            table.querySelector('[aria-sort]')?.removeAttribute('aria-sort');
+            const previous = table.querySelector('[aria-sort]');
+            if (previous) {
+                previous.removeAttribute('aria-sort');
+                previous.querySelector('i').className = 'fas fa-sort';
+            }
             header.setAttribute('aria-sort', descending ? 'descending' : 'ascending');
+            header.querySelector('i').className = descending ? 'fas fa-sort-down' : 'fas fa-sort-up';
             const body = table.tBodies[0];
             function value(row) {
                 const cell = row.querySelector(`[data-key="${key}"]`);
@@ -465,6 +470,7 @@ function updateProgressionIndicator(row, field, scoredValue) {
     // Create new indicator
     const indicator = document.createElement('i');
     indicator.classList.add('fas', 'progression-indicator');
+    indicator.setAttribute('aria-hidden', 'true');
     
     // Determine the comparison logic based on field type
     let isImproved, isSame, diff;
@@ -540,11 +546,7 @@ function updateProgressionIndicator(row, field, scoredValue) {
         }
     }
     
-    // Add indicator to the container
-    const container = scoredCell.querySelector('.scored-value-container');
-    if (container) {
-        container.appendChild(indicator);
-    }
+    scoredCell.querySelector('.log-trigger').prepend(indicator);
 }
 
 export function isScoredRepField(field) {

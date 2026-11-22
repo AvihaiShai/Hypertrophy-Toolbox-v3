@@ -12,7 +12,7 @@
 {% set metrics = [('sets', 'Sets'), ('min_reps', 'Min Reps'), ('max_reps', 'Max Reps'), ('rir', 'RIR'), ('rpe', 'RPE'), ('weight', 'Weight')] %}
 {% macro heading(key, label, group='') %}
 <th scope="col" id="log-{{ key }}" data-label="{{ label }}">
-    <button class="log-sort" data-sort-field="{{ key }}" type="button" aria-label="Sort by {{ group }} {{ label }}">{{ label }}</button>
+    <button class="log-sort" data-sort-field="{{ key }}" type="button" aria-label="Sort by {{ group }} {{ label }}">{{ label }}<i class="fas fa-sort" aria-hidden="true"></i></button>
 </th>
 {% endmacro %}
 <div class="workout-log-page">
@@ -64,7 +64,7 @@
                     <td headers="log-number" data-key="number" data-sort-value="{{ loop.index }}">
                         <span class="log-number">{{ loop.index }}</span>
                         <button type="button" class="ui-btn ui-btn--ghost log-details" aria-expanded="false"
-                                aria-controls="{% for key, label in metrics %}plan-{{ id }}-{{ key }} {% endfor %}rpe-{{ id }} date-{{ id }} actions-{{ id }}">Details</button>
+                                aria-controls="{% for key, label in metrics %}plan-{{ id }}-{{ key }} {% endfor %}rpe-{{ id }} date-{{ id }} actions-{{ id }}">Details<i class="fas fa-chevron-down" aria-hidden="true"></i></button>
                     </td>
                     <td headers="log-routine" data-key="routine" data-sort-value="{{ log.routine }}">
                         <span>{{ routine[-1] }}</span> <small>{{ routine[:-1] | join(' · ') }}</small>
@@ -98,11 +98,14 @@
                                 <input type="number" class="ui-field-input editable-input number-input" min="0" aria-label="Logged {{ label }} for {{ log.exercise }}"
                                        {% if key in ('rir', 'rpe') %}max="10"{% elif key == 'weight' %}step="0.5" max="1000"{% endif %}
                                        value="{{ log[field] if log[field] not in missing else '' }}" style="display: none;">
-                                <button type="button" class="ui-field log-trigger"><span class="visually-hidden">Edit logged {{ label }} for {{ log.exercise }} </span><span class="editable-text">{{ log[field] if log[field] not in missing else '--' }}</span></button>
-                                {% if key == 'weight' and log.scored_weight not in missing %}
-                                    {% set mark = get_weight_progression_indicator(log.exercise, log.planned_weight, log.scored_weight) %}
-                                    {% if mark %}<i class="fas {{ mark.icon }} progression-indicator" title="{{ mark.title }}"></i>{% endif %}
-                                {% endif %}
+                                <button type="button" class="ui-field log-trigger">
+                                    <span class="visually-hidden">Edit logged {{ label }} for {{ log.exercise }} </span>
+                                    {% if key == 'weight' and log.scored_weight not in missing %}
+                                        {% set mark = get_weight_progression_indicator(log.exercise, log.planned_weight, log.scored_weight) %}
+                                        {% if mark %}<i class="fas {{ mark.icon }} progression-indicator" title="{{ mark.title }}" aria-hidden="true"></i>{% endif %}
+                                    {% endif %}
+                                    <span class="editable-text">{{ log[field] if log[field] not in missing else '--' }}</span>
+                                </button>
                             </div>
                         </td>
                     {% endfor %}

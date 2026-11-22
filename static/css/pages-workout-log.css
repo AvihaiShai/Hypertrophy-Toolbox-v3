@@ -69,24 +69,36 @@ body.modal-open #clearLogModal {
 .log-exercise img { object-fit: cover; }
 .log-exercise button { margin-left: auto; padding-inline: 4px; min-height: 32px; }
 .log-card-only, .log-details, .log-prescription, .log-field-label { display: none; }
-.log-sort { background: none; border: 0; padding: 0; font: inherit; color: inherit; }
-[aria-sort="ascending"] .log-sort::after { content: " ↑"; }
-[aria-sort="descending"] .log-sort::after { content: " ↓"; }
+.log-sort { display: inline-flex; align-items: center; gap: 2px; background: none; border: 0; padding: 0; font: inherit; color: inherit; }
+.log-sort i { font-size: 10px; }
+.log-details[aria-expanded="true"] i { transform: rotate(180deg); }
 .log-plan-value, .scored-value-container { font-variant-numeric: tabular-nums; }
-.scored-value-container { position: relative; }
-.scored-value-container .progression-indicator { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 10px; }
-.scored-value-container .ui-field { justify-content: flex-end; }
-.scored-value-container .number-input-wrapper { min-width: 104px; position: relative; z-index: 1; background: var(--surface-2); }
-.scored-value-container input { min-width: 44px; width: 100%; }
+.scored-value-container .progression-indicator { flex: none; margin-right: auto; font-size: 10px; }
+.scored-value-container .ui-field { justify-content: flex-end; gap: 2px; padding-inline: 3px; }
+.number-input-wrapper:not([hidden]) { display: grid; gap: 2px; }
+.number-input-wrapper input { min-width: 0; width: 100%; text-align: center; appearance: textfield; }
+.number-input-wrapper input::-webkit-inner-spin-button { appearance: none; }
+.number-spinner-btn {
+  padding: 0;
+  border: 1px solid var(--ink-3);
+  border-radius: var(--ui-control-radius);
+  background: var(--surface-1);
+  color: var(--ink-1);
+  font: 500 16px/1 Inter, sans-serif;
+}
 [data-key="routine"] small { display: block; }
 [data-key="actions"] .delete-btn { min-width: 32px; }
 @media (min-width: 1360px) {
+  .number-input-wrapper { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .number-input-wrapper input { grid-area: 1 / 1 / 2 / -1; height: 28px; }
+  .number-spinner-btn { height: 24px; }
+  .number-input-wrapper:not([hidden]) + .log-trigger { display: none; }
   .ui-data-table { min-width: 1275px; }
   .ui-data-table [headers^="log-planned"] { color: var(--ink-2); text-align: right; }
   .ui-data-table [data-key="planned_sets"], .ui-data-table [data-key="scored_min_reps"] { border-left: 1px solid var(--ui-hairline); }
   col[data-column="number"] { width: 34px; }
   col[data-column="routine"] { width: 102px; }
-  col[data-column^="planned_"] { width: 48px; }
+  col[data-column^="planned_"] { width: 54px; }
   col[data-column^="scored_"] { width: 62px; }
   col[data-column="scored_weight"] { width: 76px; }
   col[data-column="last_progression_date"] { width: 96px; }
@@ -98,12 +110,17 @@ body.modal-open #clearLogModal {
   .ui-data-table colgroup, .ui-data-table thead, .log-number { display: none; }
   .ui-data-table tbody { display: grid; gap: 12px; }
   .ui-record-card {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 4px 8px;
     align-content: start;
   }
-  .ui-record-card[data-main-rpe="true"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .ui-record-card[data-main-rpe="true"] {
+    /* The third field includes the comparison mark and decimal weight. */
+    grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr) repeat(2, minmax(0, .9fr));
+    column-gap: 4px;
+  }
   .ui-record-card td { grid-column: 1 / -1; min-width: 0; }
   .ui-record-card .scored-cell { grid-column: auto; }
   .ui-record-card [data-key="exercise"] { grid-column: 1 / -2; }
@@ -113,6 +130,7 @@ body.modal-open #clearLogModal {
   .log-details, .log-card-only { display: inline-flex; }
   .log-details { min-width: 70px; }
   .log-prescription, .log-field-label { display: block; }
+  .scored-cell .log-field-label { white-space: nowrap; }
   .log-plan-value::before { content: attr(data-label) " "; color: var(--ink-2); }
   .ui-record-card:not(.details-open) :is(.log-plan-value, [data-key="actions"], [data-key="last_progression_date"]) { display: none; }
   .ui-record-card:not(.details-open) [data-key^="planned_"]:not([data-key="planned_sets"]),
@@ -120,8 +138,17 @@ body.modal-open #clearLogModal {
   .ui-record-card [data-key="routine"] small { display: inline; }
   .ui-record-card [data-key="routine"] small:not(:empty)::before { content: " · "; }
   .ui-record-card [data-key="actions"] button { min-height: 44px; }
-  .ui-record-card .scored-cell:focus-within:has(.number-input:focus) { grid-column: 1 / -1; }
-  .ui-record-card .number-input-wrapper { width: 100%; }
+  /* Reserve a row under the active field. Its editor spans the card while
+     the selected value and the other fields keep their original positions. */
+  .scored-cell:has(.number-input-wrapper:not([hidden])) { padding-bottom: 48px; }
+  .ui-record-card .number-input-wrapper {
+    position: absolute;
+    inset-inline: 16px;
+    margin-top: 48px;
+    grid-template-columns: 44px minmax(44px, 1fr) 44px;
+    height: 44px;
+  }
+  .number-input-wrapper:not([hidden]) + .log-trigger { border-color: var(--ink-1); }
 }
 @media (min-width: 768px) and (max-width: 1359.98px) {
   .ui-data-table tbody { grid-template-columns: repeat(2, minmax(0, 1fr)); }

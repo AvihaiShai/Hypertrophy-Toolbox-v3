@@ -14,8 +14,7 @@ function addCustomSpinnerButtons(input) {
     // Create wrapper for the input + buttons
     const wrapper = document.createElement('div');
     wrapper.className = 'number-input-wrapper';
-    // Start hidden; the edit-click handler switches to inline-flex when the user opens the editor
-    wrapper.style.cssText = 'display: none; align-items: center; gap: 2px;';
+    wrapper.hidden = true;
     
     // Insert wrapper in place of input
     input.parentNode.insertBefore(wrapper, input);
@@ -27,13 +26,6 @@ function addCustomSpinnerButtons(input) {
     minusBtn.setAttribute('aria-label', 'Decrease ' + input.getAttribute('aria-label'));
     minusBtn.className = 'number-spinner-btn number-spinner-minus';
     minusBtn.innerHTML = '−'; // Use Unicode minus for better click area
-    minusBtn.style.cssText = `
-        width: 26px; height: 26px; padding: 0; border: 1px solid #ccc;
-        background: #f8f9fa; border-radius: 4px; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 16px; font-weight: bold; color: #495057; line-height: 1;
-        user-select: none;
-    `;
     
     // Create plus button
     const plusBtn = document.createElement('button');
@@ -41,7 +33,6 @@ function addCustomSpinnerButtons(input) {
     plusBtn.setAttribute('aria-label', 'Increase ' + input.getAttribute('aria-label'));
     plusBtn.className = 'number-spinner-btn number-spinner-plus';
     plusBtn.innerHTML = '+'; // Use plain text for better click area
-    plusBtn.style.cssText = minusBtn.style.cssText;
     
     // Insert buttons
     wrapper.insertBefore(minusBtn, input);
@@ -121,9 +112,9 @@ export function initializeUIHandlers() {
             input.classList.remove('is-invalid', 'is-valid');
             if (submit) input.disabled = true;
             input.style.display = 'none';
-            wrapper.style.display = 'none';
+            wrapper.hidden = true;
             const trigger = cell.querySelector('.log-trigger, .editable-text');
-            trigger.style.display = '';
+            trigger.disabled = false;
 
             if (changed && !valid) {
                 const message = isScoredRepField(field)
@@ -183,11 +174,12 @@ export function initializeUIHandlers() {
                     if (input.disabled || input.style.display !== 'none') return;
                     input.value = confirmedScore(this);
                 }
-                text.style.display = 'none';
                 input.style.display = 'block';
-                // Also show the wrapper if it exists (for number inputs with custom buttons)
                 if (wrapper) {
-                    wrapper.style.display = 'inline-flex';
+                    wrapper.hidden = false;
+                    text.disabled = true;
+                } else {
+                    text.style.display = 'none';
                 }
                 input.focus();
                 
@@ -234,7 +226,7 @@ export function initializeUIHandlers() {
             });
             // Also hide number input wrappers
             document.querySelectorAll('.number-input-wrapper').forEach(wrapper => {
-                wrapper.style.display = 'none';
+                wrapper.hidden = true;
             });
         }
     });

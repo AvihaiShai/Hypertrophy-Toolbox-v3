@@ -20,6 +20,8 @@ async function exercisePilot(page: Page, fixture: Record<string, unknown>[]) {
       if (key === 'click') await sort.click();
       else await sort.press('Enter');
       await expect(sort.locator('..')).toHaveAttribute('aria-sort', direction);
+      await expect(sort.locator(direction === 'ascending' ? '.fa-sort-up' : '.fa-sort-down')).toBeVisible();
+      await expect(page.locator('th:not([aria-sort]) .log-sort .fa-sort')).toHaveCount(15);
       const sorted = await rows.allTextContents();
       if (field === 'exercise') expect(sorted).toEqual(direction === 'ascending' ? names : [...names].reverse());
       else expect(sorted.filter(name => fixture.find(record => record.exercise === name)?.scored_weight != null))
@@ -78,6 +80,70 @@ async function exercisePilot(page: Page, fixture: Record<string, unknown>[]) {
   await expect(row(cable)).toHaveAttribute('data-log-id', id!);
   await expect(row(cable).locator('[data-field="scored_rir"] .editable-text')).toHaveText('1');
   await expect(row(cable).locator('.ui-badge')).toHaveText('Achieved');
+}
+
+async function captureEditor(page: Page, run: string, width: number, theme: string) {
+  // Squat has all five main fields and a maintained 100.0 kg weight.
+  const row = page.locator('tr[data-log-id]').filter({has: page.getByText('Barbell Squat', {exact: true})});
+  const filename = (state: string) => path.join(run, `populated-${width}-${theme}-scale6-${state}`);
+  const card = width < 1360;
+  const weight = row.locator('[data-field="scored_weight"]');
+  await expect(weight.locator('.editable-text')).toHaveText('100.0');
+  const weightLayout = await weight.evaluate(cell => {
+    const mark = cell.querySelector('.progression-indicator')!.getBoundingClientRect();
+    const field = cell.querySelector('.log-trigger')!.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(cell.querySelector('.editable-text')!);
+    const digits = range.getBoundingClientRect();
+    return {gap: digits.left - mark.right, fits: mark.left > field.left && digits.right < field.right};
+  });
+  expect.soft(weightLayout.gap, `weight mark clearance at ${width}`).toBeGreaterThan(0);
+  expect.soft(weightLayout.fits, 'mark and digits inside the weight field').toBe(true);
+  if (card) {
+    const buttons = row.locator('.scored-cell .log-trigger:visible');
+    const tops = await buttons.evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().top));
+    expect.soft(tops).toHaveLength(5);
+    expect.soft(new Set(tops).size, 'resting field alignment').toBe(1);
+    await row.locator('.log-details').click();
+    await expect(row.locator('.log-details i')).toBeVisible();
+    await row.scrollIntoViewIfNeeded();
+    await page.screenshot({path: filename('details.png'), fullPage: width === 390});
+    await row.locator('.log-details').click();
+  }
+  const cell = row.locator('[data-field="scored_min_reps"]');
+  await cell.locator('.log-trigger').click();
+  const editor = await cell.evaluate(td => {
+    const box = (node: Element) => node.getBoundingClientRect();
+    const wrapper = td.querySelector('.number-input-wrapper')!;
+    const sizes = [...wrapper.children].map(el => [box(el).width, box(el).height]);
+    const labels = [...td.closest('tr')!.querySelectorAll('.scored-cell .log-field-label')];
+    const labelTops = labels.map(el => box(el).top);
+    const lineHeights = labels.map(el => {
+      const text = document.createRange();
+      text.selectNodeContents(el);
+      return text.getClientRects().length;
+    });
+    const contained = [wrapper, ...wrapper.children].every(el =>
+      box(el).left >= box(td).left && box(el).right <= box(td).right);
+    const row = td.closest('tr')!;
+    const triggers = [...row.querySelectorAll('.log-trigger')].filter(el => el.getClientRects().length);
+    const fitsBelow = box(wrapper).left >= box(row).left && box(wrapper).right <= box(row).right &&
+      triggers.every(el => box(el).bottom <= box(wrapper).top) &&
+      box(wrapper).bottom <= box(row.querySelector('.log-details')!).top;
+    return {sizes, contained, fitsBelow, labelTops, lineHeights, cellWidth: box(td).width, editorWidth: box(wrapper).width};
+  });
+  fs.writeFileSync(filename('geometry.json'), JSON.stringify({...weightLayout, ...editor}, null, 2));
+  if (card) {
+    expect.soft(editor.fitsBelow, 'editor between the field row and Details').toBe(true);
+    expect.soft(editor.sizes.every(pair => pair.every(side => side >= 44)), 'editor touch targets').toBe(true);
+    expect.soft(new Set(editor.labelTops).size, 'five fields in one row').toBe(1);
+    expect.soft(editor.lineHeights, 'single-line labels').toEqual([1,1,1,1,1]);
+  } else {
+    expect.soft(editor.contained, 'editor and controls inside table cell').toBe(true);
+  }
+  await row.scrollIntoViewIfNeeded();
+  await page.screenshot({path: filename('editing.png'), fullPage: width === 390});
+  await cell.locator('input').press('Escape');
 }
 
 // Run with e2e/scripts/run_workout_log_frame.py. The launcher owns the scratch server.
@@ -188,9 +254,15 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
           await expect(page.locator('tr[data-log-id]')).toHaveCount(populated ? 7 : 0);
           await page.evaluate(() => document.fonts.ready.then(() => undefined));
           await page.screenshot({path: path.join(run, `${populated ? 'populated' : 'empty'}-${width}-${theme}-scale${scale}.png`)});
+          if (width === 390) {
+            await page.screenshot({path: path.join(run, `${populated ? 'populated' : 'empty'}-390-${theme}-scale${scale}-full.png`), fullPage: true});
+          }
           await page.addStyleTag({content: '*,*::before,*::after { transition: none !important; animation: none !important; }'});
           entries.push({populated, scale, width, theme, ...await measure(page, control)});
           if (!control && scale === 6) {
+            if (populated && [390, 768, 1360].includes(width)) {
+              await captureEditor(page, run, width, theme);
+            }
             const expected = populated ? [] : ['import-from-plan-btn'];
             expect(await page.locator('#main-content .ui-btn--primary:visible').evaluateAll(buttons => buttons.map(b => b.id))).toEqual(expected);
             expect(await page.locator('#main-content button:visible').evaluateAll((buttons, fill) =>
