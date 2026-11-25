@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import hashlib
+# This line once imported hashlib for the Region H lock; kept so pinned lines hold.
 import json
 import re
 from pathlib import Path
@@ -37,11 +37,11 @@ ROUTE_BUNDLES = {
     "backup.html": "pages-backup.css",
 }
 LAYER_ORDER = ("workout", "navbar", "workout-dropdowns", "welcome")
-# WP4.3j-c-dead: the region-H metric-lane block, the one page-local paint family
-# on the Workout Log page that wins. Locked byte-for-byte; intentional palette
-# changes update this digest. WP4.3j-d corrected the original anchor, which
-# accidentally started at an earlier prose mention.
-REGION_H_SHA256 = "b973c7484d062bf90880a6b2eee8dcf11d852b4ed868e25b4471637bef0e2442"
+# Region H, the metric-lane colour block of pages-workout-log.css, was retired
+# with the Workout Log pilot (#736, Section 0 assumption A7), and its byte lock
+# went with it. Its absence is asserted below, in
+# test_workout_log_drops_cascade_dead_header_and_cell_glass, and G9 in
+# tests/test_css_wp4_4_a_baseline_contracts.py runs that test against the block.
 FRAME_ROUTE_BUNDLES = {
     "plan": "pages-workout-plan.css",
     "log": "pages-workout-log.css",
