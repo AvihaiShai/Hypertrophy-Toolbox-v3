@@ -1,7 +1,7 @@
 # Bootstrap — Attribution
 
 The runtime JavaScript bundle (`js/bootstrap.bundle.min.js`) is
-[Bootstrap](https://github.com/twbs/bootstrap) 5.3.8 by The Bootstrap Authors,
+[Bootstrap](https://github.com/twbs/bootstrap) 5.3.9 by The Bootstrap Authors,
 used under the MIT License (see `LICENSE`).
 
 `templates/base.html` loads it. It powers the navbar collapse and Analyze
@@ -25,7 +25,7 @@ standalone Popper that `/volume_splitter` loads.
 
 ## Deviations from upstream
 
-**None.** Both files are copied verbatim from the `bootstrap@5.3.8` package
+**None.** Both files are copied verbatim from the `bootstrap@5.3.9` package
 already pinned in `package.json`, and the bundle's SHA-256 was verified equal
 to the jsdelivr response for the same version — the URL this replaced. See
 `VERSION`.
