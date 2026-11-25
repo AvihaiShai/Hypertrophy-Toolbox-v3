@@ -12,6 +12,8 @@ type CardPart = { text: string; box: Box | null };
 // Section 0 pins these: the panel surface and the danger text, per theme.
 const PANEL_SURFACE: Record<Theme, string> = { light: 'rgb(255, 255, 255)', dark: 'rgb(38, 49, 61)' };
 const DANGER_TEXT: Record<Theme, string> = { light: 'rgb(192, 54, 44)', dark: 'rgb(240, 138, 128)' };
+// Section 0: the Achieved green, #0b7a55 light and #5fd3a6 dark. Improved marks share it.
+const ACHIEVED_TEXT: Record<Theme, string> = { light: 'rgb(11, 122, 85)', dark: 'rgb(95, 211, 166)' };
 // Section 0: the six planned fields and the five logged fields, in heading order.
 const PLANNED_HEADINGS = ['Sets', 'Min Reps', 'Max Reps', 'RIR', 'RPE', 'Weight'];
 const LOGGED_HEADINGS = ['Min Reps', 'Max Reps', 'RIR', 'RPE', 'Weight'];
@@ -291,6 +293,232 @@ async function expectEffortInMainRow(card: Locator, rpeText: RegExp) {
   const rirBox = await rirTrigger.isVisible() ? await rirTrigger.boundingBox() : null;
   const sameRow = !!rpeBox && !!rirBox && Math.abs(rpeBox.y - rirBox.y) <= 1;
   expect.soft(sameRow, 'logged RPE and RIR share one row').toBe(true);
+}
+
+/** A measured length for a failure message, to one decimal. */
+function px(value: number): string {
+  return `${Math.round(value * 10) / 10} px`;
+}
+
+/** Text extents and field boxes of every logged field shown on every phone card. */
+async function readCardFields(page: Page) {
+  return page.locator('tr[data-log-id]').evaluateAll(rows => {
+    type Edges = { left: number; right: number; top: number; bottom: number };
+    const rendered = (node: Element | null): node is Element =>
+      !!node && node.getClientRects().length > 0 && getComputedStyle(node).visibility === 'visible';
+    const edges = (rects: DOMRect[]): Edges | null => rects.length === 0 ? null : {
+      left: Math.min(...rects.map(rect => rect.left)),
+      right: Math.max(...rects.map(rect => rect.right)),
+      top: Math.min(...rects.map(rect => rect.top)),
+      bottom: Math.max(...rects.map(rect => rect.bottom)),
+    };
+    // A Range follows the glyphs, so text that runs past its own box is still seen.
+    const textEdges = (node: Element) => {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return edges(Array.from(range.getClientRects()).filter(rect => rect.width > 0));
+    };
+    const text = (node: Element | null) => (node?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    return rows.map(row => {
+      const shown = Array.from(row.querySelectorAll('.scored-cell'))
+        .filter(cell => rendered(cell.querySelector('.log-trigger')));
+      return {
+        exercise: text(row.querySelector('.exercise-name')),
+        card: edges([row.getBoundingClientRect()])!,
+        fields: shown.map(cell => {
+          const label = cell.querySelector('.log-field-label');
+          const trigger = cell.querySelector<HTMLElement>('.log-trigger')!;
+          const value = trigger.querySelector('.editable-text');
+          const mark = cell.querySelector('.progression-indicator');
+          return {
+            field: cell.getAttribute('data-field') ?? '',
+            label: rendered(label) ? { text: text(label), box: textEdges(label) } : null,
+            box: edges([trigger.getBoundingClientRect()])!,
+            value: rendered(value) ? textEdges(value) : null,
+            mark: rendered(mark) ? edges([mark.getBoundingClientRect()]) : null,
+            scrollWidth: trigger.scrollWidth,
+            clientWidth: trigger.clientWidth,
+          };
+        }),
+      };
+    });
+  });
+}
+
+/**
+ * Criteria 4 and 15 on a phone card: field labels do not collide and stay inside
+ * the card, and each logged value and comparison mark fits its field. Every
+ * comparison allows 0.5 px, the check's rounding step.
+ */
+async function expectCardFieldsReadable(page: Page, fixture: Record<string, unknown>[], where: string) {
+  const tolerance = 0.5;
+  const cards = await readCardFields(page);
+  const sharesLine = (first: Box, next: Box) =>
+    Math.min(first.bottom, next.bottom) - Math.max(first.top, next.top) > tolerance;
+  const overlap = (first: Box, next: Box) =>
+    Math.min(first.right, next.right) - Math.max(first.left, next.left);
+  const escapes = (inner: Box, outer: Box) => Math.max(
+    outer.left - inner.left, inner.right - outer.right, outer.top - inner.top, inner.bottom - outer.bottom,
+  );
+  const wrongLabels: string[] = [];
+  const colliding: string[] = [];
+  const outsideCard: string[] = [];
+  const overflowing: string[] = [];
+  const marksOutside: string[] = [];
+  const marksOnDigits: string[] = [];
+  for (const record of fixture) {
+    const exercise = String(record.exercise);
+    const card = cards.find(entry => entry.exercise === exercise);
+    const mainRpe = record.scored_rpe != null || (record.planned_rpe != null && record.planned_rir == null);
+    const expected = CARD_FIELDS.filter(entry => entry.field !== 'scored_rpe' || mainRpe);
+    const shown = card?.fields ?? [];
+    const labelTexts = shown.map(entry => entry.label?.text ?? '(no label)');
+    if (labelTexts.join('|') !== expected.map(entry => entry.label).join('|')) {
+      wrongLabels.push(`${exercise}: ${labelTexts.join(', ') || 'no card'}`);
+    }
+    if (!card) continue;
+    for (const [index, entry] of shown.entries()) {
+      const name = entry.label?.text || entry.field;
+      const labelBox = entry.label?.box;
+      if (labelBox) {
+        if (escapes(labelBox, card.card) > tolerance) {
+          outsideCard.push(`${exercise}: "${name}" leaves the card by ${px(escapes(labelBox, card.card))}`);
+        }
+        for (const later of shown.slice(index + 1)) {
+          const laterBox = later.label?.box;
+          if (laterBox && sharesLine(labelBox, laterBox) && overlap(labelBox, laterBox) > tolerance) {
+            const depth = px(overlap(labelBox, laterBox));
+            colliding.push(`${exercise}: "${name}" and "${later.label?.text}" overlap by ${depth}`);
+          }
+        }
+      }
+      if (entry.scrollWidth > entry.clientWidth) {
+        overflowing.push(`${exercise}: ${name} content is ${entry.scrollWidth} px in a ${entry.clientWidth} px field`);
+      }
+      if (!entry.value) {
+        overflowing.push(`${exercise}: ${name} value is not rendered`);
+      } else if (escapes(entry.value, entry.box) > tolerance) {
+        overflowing.push(`${exercise}: ${name} value leaves its field by ${px(escapes(entry.value, entry.box))}`);
+      }
+      if (entry.mark && escapes(entry.mark, entry.box) > tolerance) {
+        marksOutside.push(`${exercise}: ${name} mark leaves its field by ${px(escapes(entry.mark, entry.box))}`);
+      }
+      if (entry.mark && entry.value && sharesLine(entry.mark, entry.value) &&
+          overlap(entry.mark, entry.value) > tolerance) {
+        marksOnDigits.push(`${exercise}: ${name} mark covers the value by ${px(overlap(entry.mark, entry.value))}`);
+      }
+    }
+  }
+  expect.soft(wrongLabels, `cards without their main-row field labels ${where}`).toEqual([]);
+  expect.soft(colliding, `field labels that overlap on one line ${where}`).toEqual([]);
+  expect.soft(outsideCard, `field labels outside their card ${where}`).toEqual([]);
+  expect.soft(overflowing, `logged values that overflow their field ${where}`).toEqual([]);
+  expect.soft(marksOutside, `comparison marks outside their field ${where}`).toEqual([]);
+  expect.soft(marksOnDigits, `comparison marks that cover the value ${where}`).toEqual([]);
+}
+
+/** Section 0 "Type": the title at every width, and a phone card's labels and logged values. */
+async function expectPinnedType(page: Page, width: number, where: string) {
+  const type = await page.locator('#main-content').evaluate(main => {
+    const round = (value: string) => Math.round(parseFloat(value) * 2) / 2;
+    const read = (node: Element) => {
+      const style = getComputedStyle(node);
+      return { size: round(style.fontSize), lineHeight: round(style.lineHeight), weight: style.fontWeight };
+    };
+    const shown = (node: Element) => node.getClientRects().length > 0;
+    const distinct = (selector: string) => {
+      const styles = Array.from(main.querySelectorAll(selector)).filter(shown).map(read);
+      const seen = new Map(styles.map(style => [JSON.stringify(style), style]));
+      return Array.from(seen.keys()).sort().map(key => seen.get(key)!);
+    };
+    return {
+      title: read(main.querySelector('h1')!),
+      labels: distinct('tr[data-log-id] .scored-cell .log-field-label'),
+      values: distinct('tr[data-log-id] .scored-cell .log-trigger .editable-text'),
+    };
+  });
+  const title = width < 768 ? { size: 20, lineHeight: 28, weight: '600' } : { size: 24, lineHeight: 32, weight: '600' };
+  expect.soft(type.title, `page title size, line height and weight ${where}`).toEqual(title);
+  if (width < 768) {
+    expect.soft(type.labels, `field label size, line height and weight ${where}`)
+      .toEqual([{ size: 12, lineHeight: 16, weight: '500' }]);
+    expect.soft(type.values, `logged value size, line height and weight ${where}`)
+      .toEqual([{ size: 16, lineHeight: 24, weight: '500' }]);
+  }
+}
+
+/** Section 0: Improved is the Achieved green, Below Target the danger red, Maintained --ink-2. */
+async function expectComparisonMarkColours(page: Page, theme: Theme, where: string) {
+  const read = await page.locator('#main-content').evaluate(main => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--ink-2)';
+    document.body.append(probe);
+    const ink2 = getComputedStyle(probe).color;
+    probe.remove();
+    const marks = Array.from(main.querySelectorAll('tr[data-log-id] .scored-cell .progression-indicator'))
+      .filter(mark => mark.getClientRects().length > 0)
+      .map(mark => ({
+        exercise: (mark.closest('tr')!.querySelector('.exercise-name')?.textContent ?? '').trim(),
+        field: mark.closest('.scored-cell')!.getAttribute('data-field'),
+        kind: ['fa-equals', 'fa-arrow-up', 'fa-arrow-down'].find(name => mark.classList.contains(name)) ?? 'unknown',
+        colour: getComputedStyle(mark).color,
+      }));
+    return { ink2, marks };
+  });
+  const colours = (kind: string) =>
+    Array.from(new Set(read.marks.filter(mark => mark.kind === kind).map(mark => mark.colour))).sort();
+  // The fixture logs Bench Press at its planned 60 kg, so this mark is a Maintained one.
+  const benchWeight = read.marks.find(mark => mark.exercise === 'Barbell Bench Press' && mark.field === 'scored_weight');
+  expect.soft(benchWeight?.kind, `Bench Press weight mark ${where}`).toBe('fa-equals');
+  expect.soft(colours('fa-equals'), `Maintained mark colour is --ink-2 (${read.ink2}) ${where}`).toEqual([read.ink2]);
+  expect.soft(colours('fa-arrow-up'), `Improved mark colour ${where}`).toEqual([ACHIEVED_TEXT[theme]]);
+  expect.soft(colours('fa-arrow-down'), `Below Target mark colour ${where}`).toEqual([DANGER_TEXT[theme]]);
+}
+
+/** The open Last Progression editor stays in its column and off the status badge. */
+async function expectDateEditorInsideColumn(page: Page, where: string) {
+  const tolerance = 0.5;
+  const row = page.locator('tr[data-log-id]').first();
+  const cell = row.locator('td[data-field="last_progression_date"]');
+  const input = cell.locator('input[type="date"]');
+  const display = cell.getByRole('button', { name: /Last Progression/ });
+  const saves: string[] = [];
+  const countSave = (request: Request) => {
+    if (new URL(request.url()).pathname === '/update_progression_date') saves.push(request.method());
+  };
+  page.on('request', countSave);
+  await display.click();
+  await expect.soft(input, `date editor opens ${where}`).toBeVisible();
+  const boxes = await row.evaluate(tr => {
+    const edges = (node: Element) => {
+      const box = node.getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+    };
+    const column = tr.querySelector('td[data-field="last_progression_date"]')!;
+    return {
+      input: edges(column.querySelector('input[type="date"]')!),
+      cell: edges(column),
+      badge: edges(tr.querySelector('[data-key="status"] .badge')!),
+    };
+  });
+  const width = (box: Box) => box.right - box.left;
+  const escape = Math.max(
+    boxes.cell.left - boxes.input.left, boxes.input.right - boxes.cell.right,
+    boxes.cell.top - boxes.input.top, boxes.input.bottom - boxes.cell.bottom,
+  );
+  const across = Math.min(boxes.input.right, boxes.badge.right) - Math.max(boxes.input.left, boxes.badge.left);
+  const down = Math.min(boxes.input.bottom, boxes.badge.bottom) - Math.max(boxes.input.top, boxes.badge.top);
+  const sizes = `a ${px(width(boxes.input))} input in a ${px(width(boxes.cell))} cell`;
+  expect.soft(escape, `date input leaves its cell (${sizes}) ${where}`).toBeLessThanOrEqual(tolerance);
+  const covered = across > tolerance && down > tolerance ? across : 0;
+  expect.soft(covered, `date input under the status badge, in px ${where}`).toBe(0);
+  // Close without saving: dismiss the picker, then leave the cell.
+  await input.press('Escape');
+  await page.locator('#main-content h1').click();
+  await expect.soft(input, `date editor closes ${where}`).toBeHidden();
+  await expect.soft(display, `date field returns ${where}`).toBeVisible();
+  page.off('request', countSave);
+  expect.soft(saves, `closing the date editor saves nothing ${where}`).toEqual([]);
 }
 
 async function exercisePilot(page: Page, fixture: Record<string, unknown>[]) {
@@ -596,6 +824,17 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
           }
           await page.addStyleTag({content: '*,*::before,*::after { transition: none !important; animation: none !important; }'});
           entries.push({populated, scale, width, theme, ...await measure(page, control)});
+          if (!control && populated) {
+            // Read on the resting page, before any editor opens in this pass.
+            const pass = `at ${width} px in ${theme} at scale ${scale}`;
+            if (width === 390) {
+              await expectCardFieldsReadable(page, fixture, pass);
+            }
+            if (scale === 6 && (width === 390 || width === 1440)) {
+              await expectPinnedType(page, width, pass);
+              await expectComparisonMarkColours(page, theme as Theme, pass);
+            }
+          }
           if (!control && scale === 6) {
             if (populated && [390, 768, 1360].includes(width)) {
               await captureEditor(page, run, width, theme);
@@ -628,6 +867,9 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
               await first.locator('[data-field="scored_rir"] .log-trigger').click();
               await audit();
               await first.locator('[data-field="scored_rir"] input').press('Escape');
+            }
+            if (populated && width === 1440 && theme === 'light') {
+              await expectDateEditorInsideColumn(page, where);
             }
           }
         }
