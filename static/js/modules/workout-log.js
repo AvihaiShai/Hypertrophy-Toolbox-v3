@@ -712,8 +712,11 @@ export async function handleDateChange(event, logId) {
             display.style.display = 'flex';
         }
         
-        // Hide the input after successful update
+        // Hide the input after successful update. Focus returns to the date
+        // field unless the user has already moved it elsewhere.
+        const hadFocus = document.activeElement === input;
         input.style.display = 'none';
+        if (hadFocus && display) display.focus();
 
         // Changing the date does not affect progression, but repaint from the
         // same shared decision used by initial load and scored-value updates.

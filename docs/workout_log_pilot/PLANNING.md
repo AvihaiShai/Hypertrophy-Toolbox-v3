@@ -1570,3 +1570,63 @@ changed. Markup that other code may select on moved in three places.
 
 **Coverage not added.** Tests were outside this round's edit scope. No test asserts the
 "Compared with the plan:", "Set Date" or behind-Details "Logged RPE" text.
+
+### Second round, 2026-11-25
+
+Implementer's record for the by-eye findings B1, B2 and B5 and the frame assertions added at
+`1b712de0`. The edits were uncommitted when these commands ran. The ledger numbers here
+replace the ones above.
+
+**Changed paths**
+
+- `static/css/pages-workout-log.css` — field labels wrap, and each field shares a label row
+  and a field row with its neighbours through `subgrid`, so the field boxes stay on one line.
+  A field column is never narrower than its value with its mark. Labels are weight 500. A
+  comparison mark is `--ink-2` unless it is Improved or Below Target. The date input fills its
+  cell: the date column is 122 px and the status column 86 px. A cell with an open numeric
+  editor drops its block padding, so a table row stays 56 px.
+- `static/css/components.css` — a field below 1360 px is 16 / 24 px.
+- `static/css/tokens.css`, `static/css/layout.css` — `--ui-title-line` (28 px, 32 px from
+  768 px) sets the page title's line height.
+- `templates/workout_log.html` — the date input carries `ui-field-input`.
+- `static/js/modules/workout-log.js` — after a date saves, focus returns to the date button
+  unless the user has already moved it.
+- `docs/CSS_PHASE4_WP4_4_A_BASELINE.json`.
+
+**Commands and results**
+
+| Command | Result |
+|---|---|
+| `.venv/Scripts/python.exe e2e/scripts/run_workout_log_frame.py`, twice | Both passed. The two `metrics.json` files are byte-identical (`candidate-9wu2g5u_`, `candidate-u3gswng7`) |
+| The same with `--control-ref 5dc83cef` | Passed (`control-5nsd25em`) |
+| `npx playwright test e2e/workout-log.spec.ts e2e/empty-states.spec.ts e2e/smoke-navigation.spec.ts e2e/visual-field-separator.spec.ts e2e/accessibility.spec.ts --project=chromium --reporter=line` | 145 passed |
+| `pytest tests/ -q -n 8 --dist loadfile -k "css or visual or axe or landmark or workout_log or template or inventory or playwright or console"` | 757 passed, 1 skipped, 1 failed (the uncommitted-CSS test named above) |
+| `npx stylelint static/css/pages-workout-log.css` | 0 errors, 18 warnings, the same count as before the round |
+| `npx tsc --noEmit`, `npx vitest run` | No errors; 271 passed |
+
+**Measurements**, in CSS px, on a throwaway frame-run database
+(`artifacts/workout-log-frame/layout-probe-qjznf225`). The Squat card has five fields and the
+widest value, `100.0`.
+
+| Layout | Squat label lines | Smallest label gap on any card | Squat field widths | Squat card height |
+|---|---|---|---|---|
+| 390 px, scale 6 | all one line | 8.2 | 60.4, 60.4, 78.5, 54.4, 54.4 | 239 |
+| 390 px, scale 8 (325 px) | Min Reps and Max Reps on two | 9.8 | 45.6, 45.6, 64.2, 44, 44 | 265.5 |
+| 360 px, scale 6 | Max Reps on two | 5.6 | 54.5, 54.5, 70.9, 49.1, 49 | 255 |
+| 320 px, scale 6 | Min Reps and Max Reps on two | 8.5 | 44, 44, 64.5, 44, 44 | 266 |
+
+- Every field is 44 px tall and the fields of a card sit on one row in all four layouts.
+- At scale 8 the Squat weight field holds its mark, a 2 px gap and `100.0` with nothing to
+  spare. At 320 px its field row runs 2.5 px into the card's 16 px right padding.
+- The page title is 20 / 28 px below 768 px and 24 / 32 px from 768 px.
+- At 1440 and 1360 px the open date input is 114 px in a 122 px cell, 4 px inside it on the
+  left and right and 8 px clear of the status badge. A row is 56 px with the date editor or a
+  numeric editor open. The Exercise column is 245.8 px at 1360 px and 325.8 px at 1440 px,
+  and no heading is clipped.
+
+**Baseline ledger.** `workoutLogPilot.surfaces`, re-measured by hand: `pages-workout-log.css`
+194 lines and 8774 bytes, `tokens.css` 510 and 15129, `components.css` 5091 and 164658,
+`layout.css` 1862 and 50119.
+
+**Migration notes.** Presentation only. The date input gains the `ui-field-input` class, and
+the card's field layout now needs `subgrid` (Chromium 117, Firefox 71, Safari 16).

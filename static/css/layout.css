@@ -1851,7 +1851,7 @@ body:not(:has(#navbar)) .navbar,
   gap: 8px;
 }
 .ui-page-header { justify-content: space-between; margin-bottom: 12px; }
-.ui-page-title { margin: 0; font: 600 var(--ui-title-size)/1.35 Inter, sans-serif; }
+.ui-page-title { margin: 0; font: 600 var(--ui-title-size)/var(--ui-title-line) Inter, sans-serif; }
 @media (max-width: 767.98px) {
   .ui-page-actions { width: 100%; }
   .ui-page-actions > :first-child { flex-grow: 1; }

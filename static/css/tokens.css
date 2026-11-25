@@ -490,6 +490,7 @@
   --ui-pending-bg: #fdf1d8;
   --ui-gutter: 16px;
   --ui-title-size: 20px;
+  --ui-title-line: 28px;
 }
 [data-theme="dark"] {
   --ui-hairline: #3a4654;
@@ -502,7 +503,7 @@
   --ui-pending-bg: #42392d;
 }
 @media (min-width: 768px) {
-  :root { --ui-gutter: 24px; --ui-title-size: 24px; }
+  :root { --ui-gutter: 24px; --ui-title-size: 24px; --ui-title-line: 32px; }
 }
 @media (min-width: 1360px) {
   :root { --ui-gutter: 32px; }

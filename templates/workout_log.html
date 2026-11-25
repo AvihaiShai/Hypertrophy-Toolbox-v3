@@ -115,7 +115,7 @@
                     <td id="date-{{ id }}" headers="log-last_progression_date" data-key="last_progression_date" data-field="last_progression_date" class="editable date-editable"
                         data-sort-value="{{ progressed }}">
                         <span class="log-field-label">Last Progression</span>
-                        <input type="date" class="editable-input date-input" value="{{ log.last_progression_date if log.last_progression_date not in missing else '' }}"
+                        <input type="date" class="ui-field-input editable-input date-input" value="{{ log.last_progression_date if log.last_progression_date not in missing else '' }}"
                                data-log-id="{{ id }}" aria-label="Last Progression for {{ log.exercise }}" style="display: none;">
                         <button type="button" class="ui-field editable-text date-display" aria-label="Edit Last Progression for {{ log.exercise }}, {{ progressed or 'Set Date' }}">
                             {% if progressed %}{{ progressed }}{% else %}<i class="fas fa-calendar-alt date-icon" aria-hidden="true"></i>Set Date{% endif %}
