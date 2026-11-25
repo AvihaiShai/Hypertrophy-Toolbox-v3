@@ -8,7 +8,72 @@
  * - Deleting entries
  */
 import { test, expect, ROUTES, SELECTORS, expectToast, waitForPageReady } from './fixtures';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
+
+// Section 0: the filled primary is #4263eb in the light theme this suite runs in.
+const PRIMARY_FILL_LIGHT = 'rgb(66, 99, 235)';
+// Section 0, "Behind Details", plus logged RPE when the plan also holds an RIR.
+const DETAILS_ONLY_CONTROLS = ['Last Progression', 'Reference Video', 'Delete Entry', 'Logged RPE'];
+const PLANNED_VALUE_KEYS = ['sets', 'min_reps', 'max_reps', 'rir', 'rpe', 'weight'] as const;
+
+/** Ids of the visible actions in the page content that render the filled primary. */
+async function filledPrimaryActions(page: Page): Promise<string[]> {
+  const actions = page.locator('#main-content').locator('button:visible, a:visible');
+  return actions.evaluateAll((nodes, fill) => {
+    const filled = nodes.filter(node => getComputedStyle(node).backgroundColor === fill);
+    return filled.map(node => node.id || (node.textContent ?? '').trim());
+  }, PRIMARY_FILL_LIGHT);
+}
+
+/** Ids of the visible actions in the page content that carry the primary variant class. */
+async function primaryVariantActions(page: Page): Promise<string[]> {
+  const actions = page.locator('#main-content .ui-btn--primary:visible');
+  return actions.evaluateAll(nodes => nodes.map(node => node.id));
+}
+
+/** Names the focused control when focus is inside the card, or null when it left. */
+async function focusedCardControl(card: Locator, controls: string[]): Promise<string | null> {
+  return card.evaluate((row, names) => {
+    const active = document.activeElement;
+    if (!active || !row.contains(active)) return null;
+    const described = `${active.getAttribute('aria-label') ?? ''} ${active.textContent ?? ''}`;
+    const label = described.replace(/\s+/g, ' ').trim();
+    const known = names.find(name => label.toLowerCase().includes(name.toLowerCase()));
+    return known ?? label;
+  }, controls);
+}
+
+/** Every stop the keyboard reaches inside one card, walking both ways from Details. */
+async function cardTabStops(page: Page, card: Locator): Promise<string[]> {
+  const details = card.getByRole('button', { name: 'Details', exact: true });
+  const stops: string[] = [];
+  for (const key of ['Tab', 'Shift+Tab']) {
+    await details.focus();
+    for (let step = 0; step < 12; step += 1) {
+      await page.keyboard.press(key);
+      const stop = await focusedCardControl(card, DETAILS_ONLY_CONTROLS);
+      if (stop === null) break;
+      stops.push(stop);
+    }
+  }
+  return stops;
+}
+
+/** Criterion 19: with Details closed, logged RPE and RIR share the visible main row. */
+async function expectEffortInMainRow(card: Locator, rpeText: RegExp): Promise<void> {
+  const details = card.getByRole('button', { name: 'Details', exact: true });
+  const rpe = card.locator('[data-field="scored_rpe"]');
+  const rpeTrigger = rpe.locator('.log-trigger');
+  const rirTrigger = card.locator('[data-field="scored_rir"] .log-trigger');
+  await expect(details).toHaveAttribute('aria-expanded', 'false');
+  await expect(rpeTrigger).toBeVisible();
+  await expect(rpe.locator('.editable-text')).toBeVisible();
+  await expect(rpe.locator('.editable-text')).toHaveText(rpeText);
+  await expect(rirTrigger).toBeVisible();
+  const rpeBox = await rpeTrigger.boundingBox();
+  const rirBox = await rirTrigger.boundingBox();
+  expect(Math.abs(rpeBox!.y - rirBox!.y), 'logged RPE and RIR share one row').toBeLessThanOrEqual(1);
+}
 
 async function importCurrentWorkoutPlan(page: Page): Promise<void> {
   const importResponse = page.waitForResponse(response => {
@@ -179,6 +244,32 @@ test.describe('Workout Log with Data', () => {
     
     // Either rows exist or toast shows (depending on implementation)
     // At minimum, no errors should occur
+  });
+
+  test('a real import leaves no filled primary and turns Import secondary', async ({ page }) => {
+    // Criterion 3, both directions on one page: empty first, then a real import.
+    expect((await page.request.post('/clear_workout_log')).ok()).toBe(true);
+    await page.reload();
+    await waitForPageReady(page);
+    const records = page.locator('tr[data-log-id]');
+    const importBtn = page.locator('#import-from-plan-btn');
+    const clearBtn = page.locator('#clear-log-btn');
+    await expect(records).toHaveCount(0);
+    await expect(page.locator('.ui-empty-state')).toBeVisible();
+    expect(await primaryVariantActions(page)).toEqual(['import-from-plan-btn']);
+    expect(await filledPrimaryActions(page)).toEqual(['import-from-plan-btn']);
+
+    await importCurrentWorkoutPlan(page);
+
+    await expect(records.first()).toBeVisible();
+    await expect(page.locator('.ui-empty-state')).toBeHidden();
+    await expect(importBtn).toBeVisible();
+    await expect(importBtn).toHaveClass(/(^|\s)ui-btn--secondary(\s|$)/);
+    await expect(importBtn).not.toHaveClass(/(^|\s)ui-btn--primary(\s|$)/);
+    await expect(clearBtn).toBeVisible();
+    await expect(clearBtn).toHaveClass(/(^|\s)ui-btn--danger(\s|$)/);
+    expect(await primaryVariantActions(page)).toEqual([]);
+    expect(await filledPrimaryActions(page)).toEqual([]);
   });
 
   test('phone Log fields have touch targets and Details at the card breakpoint', async ({ page }) => {
@@ -640,6 +731,12 @@ test('phone effort entry persists on the intended exercise and desktop sorting a
     await expect(rpe.locator('.editable-text')).toHaveText(/^9(?:\.0)?$/);
     expect((await records()).find(entry => entry.id === press.id)?.scored_rpe).toBe(9);
     await expect(card.locator('.ui-badge')).toHaveText((await (await request.get(`/check_progression/${press.id}`)).json()).data.status);
+    // Criterion 19: the saved RPE stays in the main row, on return and after a reload.
+    await expectEffortInMainRow(card, /^9(?:\.0)?$/);
+    await page.reload();
+    await expect(card).toHaveCount(1);
+    await expectEffortInMainRow(card, /^9(?:\.0)?$/);
+    expect((await records()).find(entry => entry.id === press.id)?.scored_rpe).toBe(9);
 
     const weight = ordinary.locator('[data-field="scored_weight"]');
     await weight.locator('.log-trigger').click();
@@ -666,6 +763,100 @@ test('phone effort entry persists on the intended exercise and desktop sorting a
   } finally {
     for (const id of planIds) await request.post('/remove_exercise', {data:{id}});
   }
+});
+
+test.describe('Workout Log Details on a phone', () => {
+  test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+
+  test('Details opens by touch and by keyboard and hides its controls when closed', async ({ page, request }) => {
+    const routine = `GYM - Log details ${Date.now()} - Workout A`;
+    const exercise = 'Barbell Curl';
+    const added = await request.post('/add_exercise', {
+      data: {
+        routine, exercise, sets: 3, min_rep_range: 8, max_rep_range: 12, rir: 2, rpe: 8, weight: 30,
+      },
+    });
+    expect(added.ok()).toBe(true);
+    const plan = (await (await request.get('/get_workout_plan')).json()).data as
+      { id: number; routine: string; exercise: string }[];
+    const planRow = plan.find(entry => entry.routine === routine && entry.exercise === exercise);
+    expect(planRow).toBeDefined();
+
+    try {
+      expect((await request.post('/export_to_workout_log')).ok()).toBe(true);
+      const logs = (await (await request.get('/get_workout_logs')).json()).data as
+        Record<string, unknown>[];
+      const record = logs.find(entry => entry.routine === routine && entry.exercise === exercise);
+      // Planned by RIR and RPE with nothing logged, so logged RPE sits behind Details.
+      expect(record).toMatchObject({
+        planned_sets: 3, planned_min_reps: 8, planned_max_reps: 12,
+        planned_rir: 2, planned_rpe: 8, planned_weight: 30, scored_rpe: null,
+      });
+
+      await page.goto(ROUTES.WORKOUT_LOG);
+      const card = page.locator(`tr[data-log-id="${record!.id}"]`).filter({ hasText: exercise });
+      await expect(card).toHaveCount(1);
+      const details = card.getByRole('button', { name: 'Details', exact: true });
+      const plannedValue = (key: string) => card.locator(`[data-field="planned_${key}"]`);
+      const dateLabel = card.getByText('Last Progression', { exact: true });
+      const controls = {
+        'Last Progression': card.getByRole('button', { name: /Last Progression/ }),
+        'Reference Video': card.getByRole('button', { name: /reference video/i }),
+        'Delete Entry': card.getByRole('button', { name: /Delete Entry/ }),
+        'Logged RPE': card.locator('[data-field="scored_rpe"] .log-trigger'),
+      };
+
+      const expectClosed = async () => {
+        await expect(details).toHaveAttribute('aria-expanded', 'false');
+        for (const key of PLANNED_VALUE_KEYS) {
+          await expect(plannedValue(key), `planned ${key} while closed`).toBeHidden();
+        }
+        await expect(dateLabel).toBeHidden();
+        for (const [name, control] of Object.entries(controls)) {
+          await expect(control, `${name} while closed`).toBeHidden();
+        }
+        const stops = await cardTabStops(page, card);
+        // The walk is only evidence if it reaches the fields that stay in the main row.
+        expect(stops.some(stop => /logged RIR/i.test(stop)), 'Tab reaches logged RIR').toBe(true);
+        for (const name of DETAILS_ONLY_CONTROLS) {
+          expect(stops, `${name} is out of the tab order while closed`).not.toContain(name);
+        }
+      };
+
+      const expectOpen = async () => {
+        await expect(details).toHaveAttribute('aria-expanded', 'true');
+        for (const key of PLANNED_VALUE_KEYS) {
+          const stored = Number(record![`planned_${key}`]);
+          await expect(plannedValue(key), `planned ${key} while open`).toBeVisible();
+          await expect(plannedValue(key)).toHaveText(new RegExp(`^${stored}(?:\\.0)?$`));
+        }
+        await expect(dateLabel).toBeVisible();
+        for (const [name, control] of Object.entries(controls)) {
+          await expect(control, `${name} while open`).toBeVisible();
+        }
+        // Section 0: below 768 px every button is at least 44 px tall.
+        for (const name of ['Reference Video', 'Delete Entry'] as const) {
+          const box = await controls[name].boundingBox();
+          expect(box!.height, `${name} height at 390 px`).toBeGreaterThanOrEqual(44);
+        }
+        const stops = await cardTabStops(page, card);
+        for (const name of DETAILS_ONLY_CONTROLS) {
+          expect(stops, `Tab reaches ${name} while open`).toContain(name);
+        }
+      };
+
+      await expectClosed();
+      await details.tap();
+      await expectOpen();
+      await details.press('Enter');
+      await expectClosed();
+      await details.press('Space');
+      await expectOpen();
+    } finally {
+      const removed = await request.post('/remove_exercise', { data: { id: planRow!.id } });
+      expect(removed.ok()).toBe(true);
+    }
+  });
 });
 
 test.describe('Workout Log Date Filter', () => {

@@ -12,10 +12,10 @@ Every test count in this repository's prose should link here rather than restate
 
 | Metric | Value |
 |---|---|
-| Playwright tests (chromium) | **741** |
+| Playwright tests (chromium) | **743** |
 | Playwright spec files | **33** |
-| Required functional gate — `E2E Functional (Chromium)` | **591** tests across 25 specs |
-| pytest collected nodes (deterministic subset) | **4704** across 145 files |
+| Required functional gate — `E2E Functional (Chromium)` | **593** tests across 25 specs |
+| pytest collected nodes (deterministic subset) | **4706** across 145 files |
 | pytest test files (all) | **146** |
 | JS unit cases (Vitest) | **271** across 15 files |
 | Hard waits (lines containing waitForTimeout) | **79** across 14 files |
@@ -56,7 +56,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `visual.spec.ts` | 66 | — |
 | `volume-progress.spec.ts` | 16 | yes |
 | `volume-splitter.spec.ts` | 64 | yes |
-| `workout-log.spec.ts` | 25 | yes |
+| `workout-log.spec.ts` | 27 | yes |
 | `workout-plan-desktop-contract.spec.ts` | 16 | — |
 | `workout-plan.spec.ts` | 39 | yes |
 
@@ -204,7 +204,7 @@ The required-functional figure is derived from the `e2e-functional-shard` job in
 | `tests/test_weekly_summary_unassigned.py` | 20 |
 | `tests/test_workout_controls_busy_signal_contracts.py` | 9 |
 | `tests/test_workout_log_calibration_route.py` | 7 |
-| `tests/test_workout_log_frame_runner.py` | 3 |
+| `tests/test_workout_log_frame_runner.py` | 5 |
 | `tests/test_workout_log_routes.py` | 86 |
 | `tests/test_workout_log_utils.py` | 30 |
 | `tests/test_workout_plan_routes.py` | 139 |

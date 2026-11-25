@@ -207,8 +207,8 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
     whole-file totals that partition implies, asserted on the raw text so the two
     files would disagree if either drifted.
 
-    The partition is measured on comment-stripped text and implies `:hover` 117;
-    the raw count is 118 because one `:hover` lives inside a comment. That single
+    The partition is measured on comment-stripped text and implies `:hover` 110;
+    the raw count is 111 because one `:hover` lives inside a comment. That single
     occurrence is asserted here rather than left as an unstated offset.
     """
     css = _css()
@@ -219,7 +219,7 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
         block.count(":hover") for block in re.findall(r"/\*.*?\*/", css, re.DOTALL)
     )
     assert commented_hovers == 1, (
-        "the raw/stripped :hover offset changed; the 118 above and the 117 in "
+        "the raw/stripped :hover offset changed; the 111 above and the 110 in "
         "test_css_wp4_4_components_contracts.py no longer reconcile"
     )
     # The pilot removed 36 of the 919 important declarations WP4.4-h shipped.

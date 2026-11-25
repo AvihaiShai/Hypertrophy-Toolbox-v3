@@ -68,7 +68,7 @@
     "required_functional_set": {
       "gate": "E2E Functional (Chromium)",
       "spec_files": 25,
-      "tests": 591
+      "tests": 593
     },
     "specs": [
       {
@@ -224,7 +224,7 @@
       {
         "in_required_functional_set": true,
         "spec": "workout-log.spec.ts",
-        "tests": 25
+        "tests": 27
       },
       {
         "in_required_functional_set": false,
@@ -238,10 +238,10 @@
       }
     ],
     "total_spec_files": 33,
-    "total_tests": 741
+    "total_tests": 743
   },
   "pytest": {
-    "collected_deterministic": 4704,
+    "collected_deterministic": 4706,
     "deterministic_files": 145,
     "environment_dependent_files": [
       {
@@ -796,7 +796,7 @@
       },
       {
         "file": "tests/test_workout_log_frame_runner.py",
-        "tests": 3
+        "tests": 5
       },
       {
         "file": "tests/test_workout_log_routes.py",
