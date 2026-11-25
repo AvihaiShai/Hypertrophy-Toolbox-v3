@@ -74,7 +74,7 @@ a `NOTICE.md`, and a `VERSION` file recording the exact source it was taken from
 | Asset | Version | Vendored at | Loaded by |
 |---|---|---|---|
 | Inter web font + `@font-face` CSS | Google Fonts v20 | `static/vendor/inter/` | `templates/base.html` — every page |
-| Bootstrap JavaScript bundle | 5.3.8 | `static/vendor/bootstrap/` | `templates/base.html` — every page |
+| Bootstrap JavaScript bundle | 5.3.9 | `static/vendor/bootstrap/` | `templates/base.html` — every page |
 | Font Awesome | 5.15.4 | `static/vendor/fontawesome/` | `templates/base.html` — every page |
 | Sortable | 1.14.0 | `static/vendor/sortable/` | `templates/workout_plan.html` |
 | flatpickr | 4.6.13 | `static/vendor/flatpickr/` | `templates/progression_plan.html` |

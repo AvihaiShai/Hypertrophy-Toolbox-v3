@@ -4,7 +4,7 @@ This directory contains the custom Bootstrap SCSS configuration for the Hypertro
 
 ## Purpose
 
-Instead of loading the full Bootstrap 5.3.8 bundle, we create a minimal build with only the components we actually use (approximately 124KB instead of 232KB minified).
+Instead of loading the full Bootstrap 5.3.9 bundle, we create a minimal build with only the components we actually use (approximately 124KB instead of 232KB minified).
 
 ## Setup
 
