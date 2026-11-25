@@ -60,7 +60,7 @@ body.modal-open #clearLogModal {
 
 
 .progression-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-.progression-legend, .log-field-label, [data-key="routine"] small { font-size: 12px; color: var(--ink-2); }
+.progression-legend, .log-field-label, [data-key="routine"] small { font-size: 12px; line-height: 16px; color: var(--ink-2); }
 .log-improved { color: var(--ui-achieved); }
 .log-below { color: var(--ui-danger); }
 .log-exercise { display: flex; align-items: center; gap: 8px; }
@@ -78,14 +78,8 @@ body.modal-open #clearLogModal {
 .number-input-wrapper:not([hidden]) { display: grid; gap: 2px; }
 .number-input-wrapper input { min-width: 0; width: 100%; text-align: center; appearance: textfield; }
 .number-input-wrapper input::-webkit-inner-spin-button { appearance: none; }
-.number-spinner-btn {
-  padding: 0;
-  border: 1px solid var(--ink-3);
-  border-radius: var(--ui-control-radius);
-  background: var(--surface-1);
-  color: var(--ink-1);
-  font: 500 16px/1 Inter, sans-serif;
-}
+.number-spinner-btn { padding: 0; }
+.date-display:has(.date-icon) { color: var(--ink-2); }
 [data-key="routine"] small { display: block; }
 [data-key="actions"] .delete-btn { min-width: 32px; }
 @media (min-width: 1360px) {
@@ -101,7 +95,7 @@ body.modal-open #clearLogModal {
   col[data-column^="planned_"] { width: 54px; }
   col[data-column^="scored_"] { width: 62px; }
   col[data-column="scored_weight"] { width: 76px; }
-  col[data-column="last_progression_date"] { width: 96px; }
+  col[data-column="last_progression_date"] { width: 104px; }
   col[data-column="status"] { width: 95px; }
   col[data-column="actions"] { width: 56px; }
 }
@@ -123,14 +117,41 @@ body.modal-open #clearLogModal {
   }
   .ui-record-card td { grid-column: 1 / -1; min-width: 0; }
   .ui-record-card .scored-cell { grid-column: auto; }
-  .ui-record-card [data-key="exercise"] { grid-column: 1 / -2; }
-  .ui-record-card [data-key="status"] { grid-column: -2 / -1; justify-self: end; }
+  /* The routine caption and the status share the second row, under the name.
+     The thumbnail hangs 18px below the 22px name line, beside that row. */
+  .ui-record-card .log-exercise { align-items: flex-start; gap: 12px; }
   .log-exercise .exercise-name { font-size: 16px; line-height: 22px; }
-  .log-exercise img, .log-thumbnail-placeholder { width: 40px; height: 40px; }
+  .log-exercise img, .log-thumbnail-placeholder { width: 40px; height: 40px; margin-bottom: -18px; }
+  .ui-record-card [data-key="routine"] {
+    grid-row: 2;
+    align-self: center;
+    /* 52px clears the thumbnail. 80px keeps a wrapping caption clear of the
+       status badge, which is 70px wide at its longest label. */
+    padding-left: 52px;
+    padding-right: 80px;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  .ui-record-card [data-key="status"] { grid-row: 2; justify-self: end; align-self: center; }
+  .ui-record-card [data-key="planned_sets"], .ui-record-card .scored-cell { margin-top: 8px; }
   .log-details, .log-card-only { display: inline-flex; }
   .log-details { min-width: 70px; }
   .log-prescription, .log-field-label { display: block; }
+  .log-field-label { margin-bottom: 4px; }
   .scored-cell .log-field-label { white-space: nowrap; }
+  /* Behind Details the RPE field takes its full name from the cell's data-label. */
+  .ui-record-card[data-main-rpe="false"] [data-key="scored_rpe"]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .ui-record-card[data-main-rpe="false"] [data-key="scored_rpe"] .log-field-label { display: none; }
   .log-plan-value::before { content: attr(data-label) " "; color: var(--ink-2); }
   .ui-record-card:not(.details-open) :is(.log-plan-value, [data-key="actions"], [data-key="last_progression_date"]) { display: none; }
   .ui-record-card:not(.details-open) [data-key^="planned_"]:not([data-key="planned_sets"]),

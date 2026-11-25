@@ -1497,3 +1497,76 @@ I found no new calculation, local-first, terminology or workflow-migration risk:
 #### Verdict
 
 **Fixes verified, no blocker.** PR-1 to PR-8 are all resolved. Finding 1 is a wording tidy, not a blocker.
+
+---
+
+## Evidence — fix round, 2026-11-25
+
+Implementer's record for the round after the pilot review at `19f3302e`. The edits were
+uncommitted when these commands ran. Gate 2 is not approved here.
+
+**Changed paths**
+
+- `templates/workout_log.html` — `.workout-log-frame` now wraps the empty-state panel and the
+  table's scroll region, so the frame is visible in both states and only the region is hidden on
+  an empty log. The legend gains "Compared with the plan:". An unset Last Progression shows
+  "Set Date".
+- `static/js/modules/workout-log.js` — the card order is name, routine, status. The sort waits
+  with `Promise.allSettled`. Deleting the last record hides the region, not the frame.
+- `static/css/pages-workout-log.css` — the routine caption and status sit under the name beside
+  the thumbnail. Both span the card's second row, and the caption keeps 80 px clear on the right
+  for the badge, so a long caption wraps beside it. Every 12 px role has a 16 px line, with 4 px
+  under each field label. Logged RPE takes its full label behind Details. Spinner chrome left
+  this file.
+- `static/css/components.css`, `static/css/tokens.css` — `--ui-field-surface` (`--surface-2`
+  light, `--surface-0` dark) for `.ui-field` and `.ui-field-input`, the empty-state title's
+  24 px line height, and the spinner chrome.
+- `docs/product/APP_FLOW.md`, `docs/product/DESIGN_BRIEF.md`,
+  `docs/CSS_PHASE4_WP4_4_A_BASELINE.json`, `scripts/css_audit/j_known_live_mutation.mjs`.
+
+**Commands and results**
+
+| Command | Result |
+|---|---|
+| `npx playwright test e2e/workout-log.spec.ts e2e/visual-field-separator.spec.ts e2e/accessibility.spec.ts --project=chromium --reporter=line` | 110 passed |
+| `npx playwright test e2e/smoke-navigation.spec.ts e2e/empty-states.spec.ts --project=chromium --reporter=line` | 35 passed |
+| `.venv/Scripts/python.exe e2e/scripts/run_workout_log_frame.py`, twice | Both passed. The two `metrics.json` files are byte-identical (`candidate-6qmna1y4`, `candidate-z9xx9yjq`) |
+| The same with `--control-ref 5dc83cef` | Passed (`control-0wohnl_h`) |
+| `pytest tests/ -q -n 8 --dist loadfile -k "css or visual or axe or landmark or workout_log or template or inventory or playwright or console"` | 757 passed, 1 skipped, 1 failed |
+| `npx stylelint static/css/pages-workout-log.css` | 0 errors, 18 warnings, the same count as before the round |
+| `node scripts/css_audit/stylelint_surfaces.mjs <out.json>` | 2652 warnings, identical by rule and by file to the `25b009ba` output |
+| `npx tsc --noEmit`, `npx vitest run` | No errors; 271 passed |
+
+Every row is from the final state of the edits. At 390 px a closed card with a one-line name
+measures 239 px (limit 250). The Exercise column is 255 px at 1360 px and 335 px at 1440 px
+(limit 220).
+
+**Long routine caption.** Measured on a throwaway frame-run database
+(`artifacts/workout-log-frame/routine-probe-gn_rswls`, seeded and guarded by the frame runner)
+with three records renamed to `GYM - Upper Lower Hypertrophy Split - Workout B Heavy`. The
+browser had a 15 px scrollbar, so the layouts were 375 and 753 px wide. On four-field and
+five-field cards, in one column and in two, the caption took two lines beside the badge. The
+gap to the badge was at least 10 px and the page did not scroll sideways. The badge is 69.5 px
+wide for Achieved and 63 px for Pending. The routine names were restored afterwards.
+
+**Baseline ledger.** `workoutLogPilot.surfaces` in `docs/CSS_PHASE4_WP4_4_A_BASELINE.json`,
+re-measured by hand as newline count and LF-normalized bytes: `pages-workout-log.css` 176 lines
+and 7673 bytes, `tokens.css` 509 and 15081, `components.css` 5091 and 164622.
+
+**Known red.** `tests/test_css_theme_dark_p3_audit_contracts.py::test_this_packet_wrote_no_production_css`
+asserts that `git status --porcelain -- static/css` is empty, so it fails while the CSS edits
+are uncommitted. It was not rerun on a committed tree in this round.
+
+**Migration notes.** Presentation only: no calculation, route, schema or response shape
+changed. Markup that other code may select on moved in three places.
+
+- `role="region"`, its `aria-label` and `tabindex="0"` moved from `.workout-log-frame` to a
+  child `div`. `.workout-log-frame` is no longer hidden on an empty log.
+- The Last Progression cell carries `data-sort-value` with the displayed date, or an empty
+  string. The sorter read the same two strings from the button's text before, so the order
+  is unchanged.
+- The unset date button's accessible name now ends with ", Set Date". Its visible text must
+  appear in the name (axe `label-content-name-mismatch`).
+
+**Coverage not added.** Tests were outside this round's edit scope. No test asserts the
+"Compared with the plan:", "Set Date" or behind-Details "Logged RPE" text.

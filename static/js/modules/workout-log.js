@@ -230,7 +230,7 @@ export function saveEditedScore(id, field, value) {
 function initializeFieldSorting(table) {
     for (const button of table.querySelectorAll('[data-sort-field]')) {
         button.addEventListener('click', async () => {
-            await Promise.all(pendingScores);
+            await Promise.allSettled(pendingScores);
             const key = button.dataset.sortField;
             const header = button.closest('th');
             const descending = header.getAttribute('aria-sort') === 'ascending';
@@ -264,7 +264,7 @@ function placeRecordCells(row, desktop) {
     const planned = ['planned_min_reps', 'planned_max_reps', 'planned_rir', 'planned_rpe', 'planned_weight'];
     const desktopOrder = ['number', 'routine', 'exercise', 'planned_sets', ...planned, 'scored_min_reps',
         'scored_max_reps', 'scored_rir', 'scored_rpe', 'scored_weight', 'last_progression_date', 'status', 'actions'];
-    const phoneOrder = ['exercise', 'status', 'routine', 'planned_sets', 'scored_min_reps', 'scored_max_reps',
+    const phoneOrder = ['exercise', 'routine', 'status', 'planned_sets', 'scored_min_reps', 'scored_max_reps',
         'scored_weight', 'scored_rir'];
     if (row.dataset.mainRpe === 'true') phoneOrder.push('scored_rpe');
     phoneOrder.push('number', ...planned);
@@ -641,7 +641,7 @@ export async function deleteWorkoutLog(logId) {
             const page = row.closest('.workout-log-page');
             row.remove();
             if (page && !page.querySelector('tr[data-log-id]')) {
-                page.querySelector('.workout-log-frame').hidden = true;
+                page.querySelector('.workout-log-frame [role="region"]').hidden = true;
                 page.querySelector('.progression-legend').hidden = true;
                 page.querySelector('.ui-empty-state').hidden = false;
                 page.querySelector('#import-from-plan-btn').classList.replace('ui-btn--secondary', 'ui-btn--primary');
@@ -702,11 +702,13 @@ export async function handleDateChange(event, logId) {
             if (displayDate) {
                 display.innerHTML = displayDate;
             } else {
-                // Show calendar icon when no date is set
-                display.innerHTML = '<i class="fas fa-calendar-alt date-icon"></i>';
+                // Show the calendar icon and its prompt when no date is set
+                display.innerHTML = '<i class="fas fa-calendar-alt date-icon" aria-hidden="true"></i>Set Date';
             }
+            // Sorting reads the date, not the prompt.
+            cell.dataset.sortValue = displayDate;
             const exercise = cell.closest('tr').querySelector('.exercise-name').textContent;
-            display.setAttribute('aria-label', `Edit Last Progression for ${exercise}${displayDate ? ', ' + displayDate : ''}`);
+            display.setAttribute('aria-label', `Edit Last Progression for ${exercise}, ${displayDate || 'Set Date'}`);
             display.style.display = 'flex';
         }
         

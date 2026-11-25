@@ -5035,7 +5035,7 @@ h1, h2, h3 {
   border-radius: var(--ui-panel-radius);
 }
 .ui-empty-state { padding-block: 32px; text-align: center; }
-.ui-empty-state h2 { font-size: 18px; font-weight: 600; }
+.ui-empty-state h2 { font-size: 18px; line-height: 24px; font-weight: 600; }
 .ui-empty-state p { margin: 0; font-size: 14px; color: var(--ink-2); }
 .ui-btn, .ui-field {
   display: inline-flex;
@@ -5054,7 +5054,7 @@ h1, h2, h3 {
 .ui-btn--ghost { color: var(--ink-2); background: transparent; border-color: transparent; }
 .ui-btn--danger { color: var(--ui-danger); }
 .ui-btn--small, .ui-field { min-height: 32px; padding-inline: 6px; }
-.ui-field { width: 100%; text-align: right; font-variant-numeric: tabular-nums; }
+.ui-field { width: 100%; text-align: right; font-variant-numeric: tabular-nums; background: var(--ui-field-surface); }
 .ui-field:focus-visible, .ui-btn:focus-visible, .log-sort:focus-visible {
   outline: 2px solid var(--ink-2);
   outline-offset: 1px;
@@ -5066,13 +5066,13 @@ h1, h2, h3 {
 @media (max-width: 767.98px) {
   .ui-field, .ui-btn { min-height: 44px; }
 }
-
-.ui-field-input {
+.ui-field-input, :has(> .ui-field-input) > .number-spinner-btn {
   color: var(--ink-1);
-  background: var(--surface-2);
   border: 1px solid var(--ink-3);
   border-radius: var(--ui-control-radius);
 }
+.ui-field-input { background: var(--ui-field-surface); }
+:has(> .ui-field-input) > .number-spinner-btn { background: var(--surface-1); font: 500 16px/1 Inter, sans-serif; }
 @media (min-width: 1360px) {
   [role="region"]:has(> .ui-data-table) { overflow-x: auto; border-radius: var(--ui-panel-radius); }
   .ui-data-table { border: 1px solid var(--ui-hairline); border-radius: var(--ui-panel-radius); overflow: hidden; }

@@ -2847,7 +2847,7 @@
     "surfaces": {
       "components.css": {
         "lines": 5091,
-        "bytes": 164379,
+        "bytes": 164622,
         "importantLines": 883,
         "importantOccurrences": 883,
         "importantDeclarations": 883
@@ -2867,15 +2867,15 @@
         "importantDeclarations": 124
       },
       "tokens.css": {
-        "lines": 507,
-        "bytes": 15001,
+        "lines": 509,
+        "bytes": 15081,
         "importantLines": 0,
         "importantOccurrences": 0,
         "importantDeclarations": 0
       },
       "pages-workout-log.css": {
-        "lines": 128,
-        "bytes": 5567,
+        "lines": 176,
+        "bytes": 7673,
         "importantLines": 10,
         "importantOccurrences": 10,
         "importantDeclarations": 10

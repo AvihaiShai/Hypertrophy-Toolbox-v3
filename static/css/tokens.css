@@ -481,6 +481,7 @@
   --ui-panel-radius: 12px;
   --ui-pill-radius: 999px;
   --ui-hairline: #dfe3ec;
+  --ui-field-surface: var(--surface-2);
   --ui-primary: #4263eb;
   --ui-danger: #c0362c;
   --ui-achieved: #0b7a55;
@@ -492,6 +493,7 @@
 }
 [data-theme="dark"] {
   --ui-hairline: #3a4654;
+  --ui-field-surface: var(--surface-0);
   --ui-primary: #5264ad;
   --ui-danger: #f08a80;
   --ui-achieved: #5fd3a6;

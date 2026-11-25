@@ -18,9 +18,8 @@ The Workout Log uses a shared page frame with 16 px gutters on phones, 24 px fro
 and 32 px from 1360 px. The empty state gives Import the indigo fill. Once exercises appear,
 Import uses an outline and the exercise results take priority. Inter text uses weights 400,
 500 and 600. Controls and thumbnails have an 8 px radius, cards use 12 px and status labels
-use a pill. Field borders use `--ink-3` against the panel. Light and dark status colors and
-surfaces come from the same component tokens. The layout and component rules live in
-`layout.css` and `components.css`.
+use a pill. Fields have a 1 px `--ink-3` border on `--surface-2` in light and on `--surface-0`
+in dark. Light and dark status colors and surfaces come from the same component tokens.
 
 ## Why this was measured and not grepped
 

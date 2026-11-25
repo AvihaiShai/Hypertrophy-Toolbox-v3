@@ -25,16 +25,18 @@
                     data-bs-toggle="modal" data-bs-target="#clearLogModal">Clear Log</button>
         </div>
     </header>
-    <section class="ui-panel ui-empty-state" {% if workout_logs %}hidden{% endif %}>
-        <h2>No exercises logged yet</h2>
-        <p>Import your current workout plan to start logging this session. It copies every exercise from the plan with its planned values.</p>
-    </section>
     <div class="progression-legend" {% if not workout_logs %}hidden{% endif %}>
+        <span>Compared with the plan:</span>
         <span><i class="fas fa-arrow-up log-improved" aria-hidden="true"></i> Improved</span>
         <span><i class="fas fa-equals" aria-hidden="true"></i> Maintained</span>
         <span><i class="fas fa-arrow-down log-below" aria-hidden="true"></i> Below Target</span>
     </div>
-    <div class="workout-log-frame" role="region" aria-label="Workout log entries" tabindex="0" {% if not workout_logs %}hidden{% endif %}>
+    <div class="workout-log-frame">
+        <section class="ui-panel ui-empty-state" {% if workout_logs %}hidden{% endif %}>
+            <h2>No exercises logged yet</h2>
+            <p>Import your current workout plan to start logging this session. It copies every exercise from the plan with its planned values.</p>
+        </section>
+        <div role="region" aria-label="Workout log entries" tabindex="0" {% if not workout_logs %}hidden{% endif %}>
         <table id="workout-log-table" data-testid="workout-log-table" class="workout-log-table ui-data-table" aria-label="Workout log entries">
             <colgroup><col data-column="number"><col data-column="routine"><col data-column="exercise"></colgroup>
             {% for prefix in ['planned', 'scored'] %}
@@ -109,12 +111,14 @@
                             </div>
                         </td>
                     {% endfor %}
-                    <td id="date-{{ id }}" headers="log-last_progression_date" data-key="last_progression_date" data-field="last_progression_date" class="editable date-editable">
+                    {% set progressed = log.last_progression_date|datetime('%d-%m-%y') if log.last_progression_date not in missing else '' %}
+                    <td id="date-{{ id }}" headers="log-last_progression_date" data-key="last_progression_date" data-field="last_progression_date" class="editable date-editable"
+                        data-sort-value="{{ progressed }}">
                         <span class="log-field-label">Last Progression</span>
                         <input type="date" class="editable-input date-input" value="{{ log.last_progression_date if log.last_progression_date not in missing else '' }}"
                                data-log-id="{{ id }}" aria-label="Last Progression for {{ log.exercise }}" style="display: none;">
-                        <button type="button" class="ui-field editable-text date-display" aria-label="Edit Last Progression for {{ log.exercise }}{% if log.last_progression_date not in missing %}, {{ log.last_progression_date|datetime('%d-%m-%y') }}{% endif %}">
-                            {% if log.last_progression_date not in missing %}{{ log.last_progression_date|datetime('%d-%m-%y') }}{% else %}<i class="fas fa-calendar-alt date-icon" aria-hidden="true"></i>{% endif %}
+                        <button type="button" class="ui-field editable-text date-display" aria-label="Edit Last Progression for {{ log.exercise }}, {{ progressed or 'Set Date' }}">
+                            {% if progressed %}{{ progressed }}{% else %}<i class="fas fa-calendar-alt date-icon" aria-hidden="true"></i>Set Date{% endif %}
                         </button>
                     </td>
                     <td headers="log-status" data-label="Progressive Overload" data-key="status">
@@ -130,6 +134,7 @@
             {% endfor %}
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
