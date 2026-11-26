@@ -289,9 +289,19 @@ async function expectEffortInMainRow(card: Locator, rpeText: RegExp) {
   await expect.soft(rpe.locator('.editable-text'), 'logged RPE value in the main row').toBeVisible();
   await expect.soft(rpe.locator('.editable-text')).toHaveText(rpeText);
   await expect.soft(rirTrigger, 'logged RIR trigger in the main row').toBeVisible();
-  const rpeBox = await rpeTrigger.isVisible() ? await rpeTrigger.boundingBox() : null;
-  const rirBox = await rirTrigger.isVisible() ? await rirTrigger.boundingBox() : null;
-  const sameRow = !!rpeBox && !!rirBox && Math.abs(rpeBox.y - rirBox.y) <= 1;
+  // Both tops come from one read. After a reload the browser may still be scrolling to
+  // its restored position, and two reads taken apart place one row at two offsets.
+  const tops = await card.evaluateAll(rows => {
+    const top = (field: string) => {
+      const trigger = rows.length === 1 ? rows[0].querySelector(`[data-field="${field}"] .log-trigger`) : null;
+      if (!trigger) return null;
+      const box = trigger.getBoundingClientRect();
+      const shown = box.width > 0 && box.height > 0 && getComputedStyle(trigger).visibility === 'visible';
+      return shown ? box.top : null;
+    };
+    return { rpe: top('scored_rpe'), rir: top('scored_rir') };
+  });
+  const sameRow = tops.rpe !== null && tops.rir !== null && Math.abs(tops.rpe - tops.rir) <= 1;
   expect.soft(sameRow, 'logged RPE and RIR share one row').toBe(true);
 }
 

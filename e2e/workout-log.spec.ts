@@ -8,7 +8,7 @@
  * - Deleting entries
  */
 import { test, expect, ROUTES, SELECTORS, expectToast, waitForPageReady } from './fixtures';
-import type { Locator, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '@playwright/test';
 
 // Section 0: the filled primary is #4263eb in the light theme this suite runs in.
 const PRIMARY_FILL_LIGHT = 'rgb(66, 99, 235)';
@@ -19,8 +19,15 @@ const PLANNED_VALUE_KEYS = ['sets', 'min_reps', 'max_reps', 'rir', 'rpe', 'weigh
 const MAIN_ROW_FIELDS = [
   'scored_min_reps', 'scored_max_reps', 'scored_weight', 'scored_rir', 'scored_rpe',
 ] as const;
+type MainRowField = (typeof MAIN_ROW_FIELDS)[number];
+// How a five-field card arranges its logged fields: on one row, or wrapped three and two.
+const FIVE_FIELDS_ON_ONE_ROW: string[][] = [[...MAIN_ROW_FIELDS]];
+const FIVE_FIELDS_WRAPPED: string[][] = [
+  ['scored_min_reps', 'scored_max_reps', 'scored_weight'],
+  ['scored_rir', 'scored_rpe'],
+];
 // The owner's Barbell Squat case on #736, as the card prints each logged value.
-const SQUAT_LOGGED_TEXT: Record<(typeof MAIN_ROW_FIELDS)[number], string> = {
+const SQUAT_LOGGED_TEXT: Record<MainRowField, string> = {
   scored_min_reps: '10',
   scored_max_reps: '10',
   scored_weight: '100.0',
@@ -82,13 +89,21 @@ async function expectEffortInMainRow(card: Locator, rpeText: RegExp): Promise<vo
   await expect(rpe.locator('.editable-text')).toBeVisible();
   await expect(rpe.locator('.editable-text')).toHaveText(rpeText);
   await expect(rirTrigger).toBeVisible();
-  const rpeBox = await rpeTrigger.boundingBox();
-  const rirBox = await rirTrigger.boundingBox();
-  expect(Math.abs(rpeBox!.y - rirBox!.y), 'logged RPE and RIR share one row').toBeLessThanOrEqual(1);
+  // Both tops come from one read. After a reload the browser may still be scrolling to
+  // its restored position, and two reads taken apart place one row at two offsets.
+  const tops = await card.evaluate(row => {
+    const top = (field: string) =>
+      row.querySelector(`[data-field="${field}"] .log-trigger`)!.getBoundingClientRect().top;
+    return { rpe: top('scored_rpe'), rir: top('scored_rir') };
+  });
+  expect(Math.abs(tops.rpe - tops.rir), 'logged RPE and RIR share one row').toBeLessThanOrEqual(1);
 }
 
-/** Edges and overflow of one phone card's five logged fields, read in one pass. */
-async function readMainRowFit(card: Locator) {
+/**
+ * Edges and overflow of one phone card's logged fields, read in one pass. A card that
+ * keeps logged RPE behind Details passes the four fields it shows.
+ */
+async function readMainRowFit(card: Locator, shown: readonly MainRowField[] = MAIN_ROW_FIELDS) {
   return card.evaluate((row, fields) => {
     type Edges = { left: number; right: number; top: number; bottom: number };
     const edges = (rects: DOMRect[]): Edges | null => rects.length === 0 ? null : {
@@ -125,7 +140,7 @@ async function readMainRowFit(card: Locator) {
         };
       }),
     };
-  }, MAIN_ROW_FIELDS);
+  }, shown);
 }
 
 type MainRowFit = Awaited<ReturnType<typeof readMainRowFit>>;
@@ -203,6 +218,215 @@ function mainRowFitProblems(read: MainRowFit, viewportWidth: number): string[] {
     const span = `${px(read.card.left)} to ${px(read.card.right)}`;
     problems.push(`the card spans ${span} in a ${viewportWidth} px viewport`);
   }
+  if (read.page.scrollWidth > read.page.clientWidth) {
+    const sizes = `scrollWidth ${read.page.scrollWidth}, clientWidth ${read.page.clientWidth}`;
+    problems.push(`the page scrolls sideways (${sizes})`);
+  }
+  return problems;
+}
+
+/** The rendered logged fields as rows, top to bottom and left to right. Tops within 1 px share a row. */
+function mainRowGroups(read: MainRowFit): string[][] {
+  const rows: { top: number; fields: { name: string; left: number }[] }[] = [];
+  for (const entry of read.fields) {
+    if (!entry.box) continue;
+    const { top, left } = entry.box;
+    const row = rows.find(known => Math.abs(known.top - top) <= 1);
+    if (row) row.fields.push({ name: entry.field, left });
+    else rows.push({ top, fields: [{ name: entry.field, left }] });
+  }
+  return rows.sort((first, next) => first.top - next.top)
+    .map(row => row.fields.sort((first, next) => first.left - next.left).map(field => field.name));
+}
+
+/**
+ * The phone-card acceptance on the given logged fields: each field, its value and its
+ * comparison mark are visible, and the card has no fit problem. Returns the measured card.
+ */
+async function expectMainRowFit(
+  card: Locator, fields: readonly MainRowField[], viewportWidth: number, where: string,
+): Promise<MainRowFit> {
+  for (const field of fields) {
+    const cell = card.locator(`[data-field="${field}"]`);
+    await expect.soft(cell.locator('.log-trigger'), `${field} field ${where}`).toBeVisible();
+    await expect.soft(cell.locator('.editable-text'), `${field} value ${where}`).toBeVisible();
+    await expect.soft(cell.locator('.progression-indicator'), `${field} mark ${where}`).toBeVisible();
+  }
+  const read = await readMainRowFit(card, fields);
+  expect.soft(mainRowFitProblems(read, viewportWidth), `phone card fit ${where}`).toEqual([]);
+  return read;
+}
+
+type LoggedSquat = { id: number; stored: () => Promise<Record<string, unknown>> };
+
+/**
+ * Runs the body against one Barbell Squat record on a routine of its own, then removes it.
+ * The plan is the owner's case on #736: 6 to 10 reps at 100 kg with RIR 2 and RPE 8, so
+ * every field that is logged has a planned value and carries a comparison mark.
+ */
+async function withLoggedSquat(
+  request: APIRequestContext, label: string, logged: Record<string, number>,
+  body: (record: LoggedSquat) => Promise<void>,
+): Promise<void> {
+  const routine = `GYM - ${label} ${Date.now()} - Workout A`;
+  const exercise = 'Barbell Squat';
+  const added = await request.post('/add_exercise', {
+    data: {
+      routine, exercise, sets: 3, min_rep_range: 6, max_rep_range: 10, rir: 2, rpe: 8, weight: 100,
+    },
+  });
+  expect(added.ok()).toBe(true);
+  const plan = (await (await request.get('/get_workout_plan')).json()).data as
+    { id: number; routine: string; exercise: string }[];
+  const planRow = plan.find(entry => entry.routine === routine && entry.exercise === exercise);
+  expect(planRow).toBeDefined();
+
+  try {
+    expect((await request.post('/export_to_workout_log')).ok()).toBe(true);
+    const stored = async () => {
+      const logs = (await (await request.get('/get_workout_logs')).json()).data as
+        Record<string, unknown>[];
+      const record = logs.find(entry => entry.routine === routine && entry.exercise === exercise);
+      expect(record, `the ${routine} record`).toBeDefined();
+      return record!;
+    };
+    const id = Number((await stored()).id);
+    const written = await request.post('/update_workout_log', { data: { id, updates: logged } });
+    expect(written.ok()).toBe(true);
+    expect(await stored()).toMatchObject({
+      planned_min_reps: 6, planned_max_reps: 10, planned_weight: 100,
+      planned_rir: 2, planned_rpe: 8, ...logged,
+    });
+    await body({ id, stored });
+  } finally {
+    const removed = await request.post('/remove_exercise', { data: { id: planRow!.id } });
+    expect(removed.ok()).toBe(true);
+  }
+}
+
+/**
+ * Loads the Workout Log at a phone width with the app scale at level 8. The level goes
+ * through the app's own controller, which stores it for the server to render.
+ */
+async function openLogAtScale8(page: Page, width: number): Promise<void> {
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto(ROUTES.WORKOUT_LOG);
+  await page.evaluate(() => {
+    const scale = (window as unknown as {
+      accessibilityController: { setScale(level: number): void };
+    }).accessibilityController;
+    scale.setScale(8);
+  });
+  await page.goto(ROUTES.WORKOUT_LOG);
+  await expect(page.locator('html')).toHaveAttribute('data-scale', '8');
+  const zoom = await page.locator('html').evaluate(el => Number(getComputedStyle(el).zoom));
+  expect(zoom, `app scale factor at ${width} px at scale 8`).toBe(1.2);
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+}
+
+/** Opens a logged field's inline editor on a phone card and waits for its input to take focus. */
+async function openLoggedEditor(card: Locator, field: MainRowField): Promise<Locator> {
+  const cell = card.locator(`[data-field="${field}"]`);
+  await cell.locator('.log-trigger').click();
+  const input = cell.locator('input');
+  await expect(input, `${field} editor input`).toBeFocused();
+  return input;
+}
+
+/** Saves a logged value through the card's inline editor and waits for the card to print it. */
+async function saveLoggedValue(page: Page, card: Locator, field: MainRowField, text: string): Promise<void> {
+  const id = await card.getAttribute('data-log-id');
+  const input = await openLoggedEditor(card, field);
+  await input.fill(text);
+  const saved = page.waitForResponse(response =>
+    new URL(response.url()).pathname === '/update_workout_log' &&
+    response.request().method() === 'POST' &&
+    String(response.request().postDataJSON().id) === id);
+  await input.press('Enter');
+  expect((await saved).ok(), `saving ${field} as ${text}`).toBe(true);
+  // The page prints the value and refits the card in one step, once the save is confirmed.
+  await expect(card.locator(`[data-field="${field}"] .editable-text`)).toHaveText(text);
+}
+
+/** Edges of one field's open inline editor and of what it must stay clear of, in one pass. */
+async function readEditorFit(card: Locator, field: MainRowField) {
+  return card.evaluate((row, name) => {
+    const edges = (node: Element) => {
+      const box = node.getBoundingClientRect();
+      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+    };
+    const rendered = (node: Element | null | undefined): node is Element =>
+      !!node && node.getClientRects().length > 0 && getComputedStyle(node).visibility === 'visible';
+    const cell = row.querySelector(`[data-field="${name}"]`);
+    const wrapper = cell?.querySelector('.number-input-wrapper');
+    const details = row.querySelector('.log-details');
+    const root = document.documentElement;
+    return {
+      card: edges(row),
+      page: { scrollWidth: root.scrollWidth, clientWidth: root.clientWidth },
+      editor: rendered(wrapper) ? edges(wrapper) : null,
+      controls: rendered(wrapper) ? Array.from(wrapper.children).map(control => ({
+        name: control.tagName === 'INPUT' ? 'input' : (control.textContent ?? '').trim(),
+        box: rendered(control) ? edges(control) : null,
+      })) : [],
+      fields: Array.from(row.querySelectorAll('.scored-cell')).flatMap(other => {
+        const trigger = other.querySelector('.log-trigger');
+        return rendered(trigger) ? [{ field: other.getAttribute('data-field') ?? '', box: edges(trigger) }] : [];
+      }),
+      details: rendered(details) ? edges(details) : null,
+    };
+  }, field);
+}
+
+type EditorFit = Awaited<ReturnType<typeof readEditorFit>>;
+
+/**
+ * An open inline editor on a phone card, as measured failures: the editor and its three
+ * controls are inside the card and the viewport, each control is a 44 x 44 target, the
+ * editor covers no logged field and not the Details button, and the page does not scroll
+ * sideways. Containment and overlap allow 0.5 px. Sizes allow nothing.
+ */
+function editorFitProblems(read: EditorFit, viewportWidth: number): string[] {
+  const tolerance = 0.5;
+  const px = (value: number) => `${Math.round(value * 10) / 10} px`;
+  const escapes = (inner: FitEdges, outer: FitEdges) => Math.max(
+    outer.left - inner.left,
+    inner.right - outer.right,
+    outer.top - inner.top,
+    inner.bottom - outer.bottom,
+  );
+  const overlaps = (first: FitEdges, next: FitEdges) =>
+    Math.min(first.right, next.right) - Math.max(first.left, next.left) > tolerance &&
+    Math.min(first.bottom, next.bottom) - Math.max(first.top, next.top) > tolerance;
+  const problems: string[] = [];
+  if (!read.editor) return ['the editor is not rendered'];
+  const parts: [string, FitEdges | null][] = [
+    ['editor', read.editor],
+    ...read.controls.map((control): [string, FitEdges | null] => [`editor ${control.name}`, control.box]),
+  ];
+  if (read.controls.length !== 3) {
+    problems.push(`the editor has ${read.controls.length} controls, not minus, input and plus`);
+  }
+  for (const [name, box] of parts) {
+    if (!box) {
+      problems.push(`${name}: not rendered`);
+      continue;
+    }
+    if (escapes(box, read.card) > tolerance) {
+      problems.push(`${name}: leaves the card by ${px(escapes(box, read.card))}`);
+    }
+    if (box.left < -tolerance || box.right > viewportWidth + tolerance) {
+      problems.push(`${name}: spans ${px(box.left)} to ${px(box.right)} in a ${viewportWidth} px viewport`);
+    }
+    if (name !== 'editor' && (box.right - box.left < 44 || box.bottom - box.top < 44)) {
+      problems.push(`${name}: is ${px(box.right - box.left)} x ${px(box.bottom - box.top)}, under 44 x 44`);
+    }
+  }
+  for (const entry of read.fields) {
+    if (overlaps(read.editor, entry.box)) problems.push(`the editor covers the ${entry.field} field`);
+  }
+  if (!read.details) problems.push('the Details button is not rendered');
+  else if (overlaps(read.editor, read.details)) problems.push('the editor covers the Details button');
   if (read.page.scrollWidth > read.page.clientWidth) {
     const sizes = `scrollWidth ${read.page.scrollWidth}, clientWidth ${read.page.clientWidth}`;
     problems.push(`the page scrolls sideways (${sizes})`);
@@ -981,6 +1205,163 @@ test('phone card fits five logged fields at 320, 360 and 390 px at scale 8', asy
     const removed = await request.post('/remove_exercise', { data: { id: planRow!.id } });
     expect(removed.ok()).toBe(true);
   }
+});
+
+test('phone card at scale 8 wraps when a wider logged value is saved and returns to one row for a narrower one', async ({ page, request }) => {
+  // Measured on 8bccacf0 at scale 8, one load per width from 300 to 440 px: with a logged
+  // weight of 2.5 these five fields share one row from 341 px up, and with 1000.0 from 378 px
+  // up. 360 px is 19 px above the first and 18 px below the second.
+  const width = 360;
+  const logged = {
+    scored_min_reps: 10, scored_max_reps: 10, scored_weight: 2.5, scored_rir: 1, scored_rpe: 9.5,
+  };
+  await withLoggedSquat(request, 'Log refit on save', logged, async ({ id, stored }) => {
+    await openLogAtScale8(page, width);
+    const card = page.locator(`tr[data-log-id="${id}"]`);
+    await expect(card).toHaveCount(1);
+    // The page script places four of the five marks, so their count means the card is laid out.
+    await expect(card.locator('.scored-cell .progression-indicator')).toHaveCount(5);
+    const rows = async () => mainRowGroups(await readMainRowFit(card));
+
+    const before = await expectMainRowFit(card, MAIN_ROW_FIELDS, width, 'before a save');
+    expect(mainRowGroups(before), 'rows before a save').toEqual(FIVE_FIELDS_ON_ONE_ROW);
+
+    await saveLoggedValue(page, card, 'scored_weight', '1000.0');
+    expect((await stored()).scored_weight).toBe(1000);
+    await expect.poll(rows, 'rows after saving the wider weight').toEqual(FIVE_FIELDS_WRAPPED);
+    await expectMainRowFit(card, MAIN_ROW_FIELDS, width, 'after saving the wider weight');
+
+    await saveLoggedValue(page, card, 'scored_weight', '2.5');
+    expect((await stored()).scored_weight).toBe(2.5);
+    await expect.poll(rows, 'rows after saving the narrower weight').toEqual(FIVE_FIELDS_ON_ONE_ROW);
+    await expectMainRowFit(card, MAIN_ROW_FIELDS, width, 'after saving the narrower weight');
+  });
+});
+
+test('phone card at scale 8 refits its five logged fields when the viewport narrows to 320 px and widens back to 390 px', async ({ page, request }) => {
+  // The owner's values on #736. Measured on 8bccacf0 at scale 8: one row from 378 px up.
+  const logged = {
+    scored_min_reps: 10, scored_max_reps: 10, scored_weight: 100, scored_rir: 1, scored_rpe: 10,
+  };
+  await withLoggedSquat(request, 'Log refit on resize', logged, async ({ id }) => {
+    await openLogAtScale8(page, 390);
+    const card = page.locator(`tr[data-log-id="${id}"]`);
+    await expect(card).toHaveCount(1);
+    await expect(card.locator('.scored-cell .progression-indicator')).toHaveCount(5);
+    const rows = async () => mainRowGroups(await readMainRowFit(card));
+    // A reload would drop this mark, so finding it at the end means the page only resized.
+    await page.evaluate(() => { document.documentElement.dataset.resizeProbe = 'kept'; });
+
+    const wide = await expectMainRowFit(card, MAIN_ROW_FIELDS, 390, 'at 390 px before the resize');
+    expect(mainRowGroups(wide), 'rows at 390 px before the resize').toEqual(FIVE_FIELDS_ON_ONE_ROW);
+
+    await page.setViewportSize({ width: 320, height: 844 });
+    await expect.poll(rows, 'rows after narrowing to 320 px').toEqual(FIVE_FIELDS_WRAPPED);
+    await expectMainRowFit(card, MAIN_ROW_FIELDS, 320, 'after narrowing to 320 px');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(rows, 'rows after widening back to 390 px').toEqual(FIVE_FIELDS_ON_ONE_ROW);
+    await expectMainRowFit(card, MAIN_ROW_FIELDS, 390, 'after widening back to 390 px');
+
+    await expect(page.locator('html'), 'the page was resized, not reloaded')
+      .toHaveAttribute('data-resize-probe', 'kept');
+  });
+});
+
+test('inline editor stays inside a wrapped phone card at 320 px at scale 8 and a second-row value saves', async ({ page, request }) => {
+  const width = 320;
+  // The owner's values on #736. Measured on 8bccacf0 at scale 8: wrapped below 378 px.
+  const logged = {
+    scored_min_reps: 10, scored_max_reps: 10, scored_weight: 100, scored_rir: 1, scored_rpe: 10,
+  };
+  await withLoggedSquat(request, 'Log wrapped editor', logged, async ({ id, stored }) => {
+    await openLogAtScale8(page, width);
+    const card = page.locator(`tr[data-log-id="${id}"]`);
+    await expect(card).toHaveCount(1);
+    await expect(card.locator('.scored-cell .progression-indicator')).toHaveCount(5);
+    const resting = await expectMainRowFit(card, MAIN_ROW_FIELDS, width, 'before an editor opens');
+    expect(mainRowGroups(resting), 'rows before an editor opens').toEqual(FIVE_FIELDS_WRAPPED);
+
+    const saves: unknown[] = [];
+    page.on('request', sent => {
+      if (new URL(sent.url()).pathname === '/update_workout_log' && sent.method() === 'POST') {
+        saves.push(sent.postDataJSON().updates);
+      }
+    });
+
+    // A first-row field, then both second-row fields. Only the RPE editor saves.
+    for (const field of ['scored_weight', 'scored_rir', 'scored_rpe'] as const) {
+      const where = `with the ${field} editor open`;
+      const input = await openLoggedEditor(card, field);
+      // The card makes room for the editor over a 0.2 s transition, so the fit is polled
+      // until the row has settled.
+      const problems = async () => editorFitProblems(await readEditorFit(card, field), width);
+      await expect.poll(problems, `editor fit ${where}`).toEqual([]);
+      // The fields keep their two rows and their fit while the editor is open.
+      const open = await expectMainRowFit(card, MAIN_ROW_FIELDS, width, where);
+      expect.soft(mainRowGroups(open), `rows ${where}`).toEqual(FIVE_FIELDS_WRAPPED);
+      if (field !== 'scored_rpe') {
+        await input.press('Escape');
+        await expect(input).toBeHidden();
+        await expect(card.locator(`[data-field="${field}"] .editable-text`), `${field} after Escape`)
+          .toHaveText(SQUAT_LOGGED_TEXT[field]);
+      } else {
+        await input.fill('9.5');
+        const saved = page.waitForResponse(response =>
+          new URL(response.url()).pathname === '/update_workout_log' &&
+          response.request().method() === 'POST');
+        await input.press('Enter');
+        expect((await saved).ok()).toBe(true);
+        await expect(input).toBeHidden();
+      }
+    }
+
+    const rpe = card.locator('[data-field="scored_rpe"]');
+    await expect(rpe.locator('.editable-text'), 'the saved RPE as shown').toHaveText('9.5');
+    await expect(rpe.locator('.log-trigger'), 'focus returns to the RPE field').toBeFocused();
+    expect(saves, 'only the RPE edit is written').toEqual([{ scored_rpe: '9.5' }]);
+    expect(await stored(), 'the saved RPE as stored').toMatchObject({ ...logged, scored_rpe: 9.5 });
+    const after = await expectMainRowFit(card, MAIN_ROW_FIELDS, width, 'after the save');
+    expect(mainRowGroups(after), 'rows after the save').toEqual(FIVE_FIELDS_WRAPPED);
+
+    // The value survives a reload, still wrapped and still inside the card.
+    await page.reload();
+    await expect(card.locator('.scored-cell .progression-indicator')).toHaveCount(5);
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
+    await expect(rpe.locator('.editable-text'), 'the saved RPE after a reload').toHaveText('9.5');
+    const reloaded = await expectMainRowFit(card, MAIN_ROW_FIELDS, width, 'after a reload');
+    expect(mainRowGroups(reloaded), 'rows after a reload').toEqual(FIVE_FIELDS_WRAPPED);
+  });
+});
+
+test('wrapped four-field phone card fits two and two at 320 px at scale 8', async ({ page, request }) => {
+  const width = 320;
+  const fields = MAIN_ROW_FIELDS.filter(field => field !== 'scored_rpe');
+  // Wide values in every field. No RPE is logged and the plan holds an RIR, so logged RPE
+  // stays behind Details and the card shows four fields.
+  const logged = { scored_min_reps: 100, scored_max_reps: 100, scored_weight: 1000, scored_rir: 10 };
+  const printed: Record<string, string> = {
+    scored_min_reps: '100', scored_max_reps: '100', scored_weight: '1000.0', scored_rir: '10',
+  };
+  await withLoggedSquat(request, 'Log four fields', logged, async ({ id, stored }) => {
+    expect((await stored()).scored_rpe).toBeNull();
+    await openLogAtScale8(page, width);
+    const card = page.locator(`tr[data-log-id="${id}"]`);
+    await expect(card).toHaveCount(1);
+    await expect(card.getByRole('button', { name: 'Details', exact: true }))
+      .toHaveAttribute('aria-expanded', 'false');
+    await expect(card.locator('.scored-cell .progression-indicator')).toHaveCount(4);
+    await expect(card.locator('[data-field="scored_rpe"] .log-trigger')).toBeHidden();
+    for (const field of fields) {
+      await expect(card.locator(`[data-field="${field}"] .editable-text`), `${field} as printed`)
+        .toHaveText(printed[field]);
+    }
+    const read = await expectMainRowFit(card, fields, width, 'on the four-field card');
+    expect(mainRowGroups(read), 'rows of the four-field card').toEqual([
+      ['scored_min_reps', 'scored_max_reps'],
+      ['scored_weight', 'scored_rir'],
+    ]);
+  });
 });
 
 test.describe('Workout Log Details on a phone', () => {
