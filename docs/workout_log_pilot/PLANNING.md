@@ -1700,7 +1700,7 @@ RIR 2 and RPE 8 at 100 kg, logged `10`, `10`, `100.0`, `1`, `10.0`, a mark in ev
 | `npx tsc --noEmit`, `npx vitest run` | No errors; 271 passed |
 | `PW_VISUAL_SEED=1 npx playwright test e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts -g "workout-log\|workout_log thumbnails"` | 7 failed, 5 did not run. The committed win32 Log baselines date from `5dc83cef`, before the pilot: `workout-log-mobile-light` expects 375 × 6159 and the page is 375 × 1770 |
 
-**Unresolved: a race in the frame check.** The eight failing runs fail only
+**A race in the frame check, fixed in `dbe81bb6`.** The eight failing runs fail only
 `logged RPE and RIR share one row` (`e2e/workout-log-frame.check.ts:295`, reached from `:703`
 straight after `page.reload()` at `:700`). The helper reads the RPE box and the RIR box in two
 calls while the reloaded page is still scrolling to its restored position. The check was run
@@ -1708,8 +1708,13 @@ three times against the application source at `54e6ab2c` with no edits
 (`head-z15446qz`, `head-0svxic9h`, `head-irzyjkjx`) and failed the same assertion in two of
 them. A replay of the helper's own steps over 40 reloads read the two boxes at different
 heights 13 times on these edits and 18 times on the committed assets. In the twelve
-mismatches printed, both boxes had settled at the same height 400 ms later. The check was not
-edited.
+mismatches printed, both boxes had settled at the same height 400 ms later. The implementer
+did not edit the check. The test author then confirmed the cause over 44 probed reloads: the
+two tops were equal in every animation frame, and the old read mismatched only while the page
+was scrolling back to its saved position. `dbe81bb6` reads both tops in one pass, in the frame
+check and in `e2e/workout-log.spec.ts`, with the 1 px tolerance unchanged. Five consecutive
+frame-check runs then passed with byte-identical `metrics.json`, and the `5dc83cef` control
+still passed.
 
 **Baseline ledger.** `workoutLogPilot.surfaces`, re-measured by hand: `pages-workout-log.css`
 205 lines and 9510 bytes. The other surfaces are unchanged.
@@ -1721,14 +1726,25 @@ list's height with an inline `min-height` while it measures, then clears it.
 
 **Coverage.** `e2e/workout-log.spec.ts` (`phone card fits five logged fields at 320, 360 and
 390 px at scale 8`) and the frame check's `expectNarrowPhoneCardsFit` cover the fit at scale 8.
-No automated check covers the refit after a live scale change, a resize or a saved value, a
-wrapped four-field card, or the editor inside a wrapped card. Those were exercised by a probe
-script on the throwaway database and found working.
+`dbe81bb6` adds four checks to the same spec, all at scale 8: the refit after a saved value
+(360 px), the refit after a resize from 390 to 320 px and back without a reload, the editor
+inside a wrapped card (320 px) and a wrapped four-field card (320 px). No automated check
+covers the refit after a live scale change. The implementer exercised it with a probe script
+on the throwaway database and found it working.
 
 **Left as it is**
 
 - After a live resize or scale change the cards are refitted on the next frame, so one frame
-  can show the previous wrapping. This follows from the code and was not measured.
+  can show the previous wrapping. The test author sampled it: two frames at 320 px showed the
+  old one-row layout before the refit.
+- On every load the page script reorders and fits the cards just after first paint (first
+  paint at 40 to 76 ms, the script at 71 to 118 ms). The reorder dates from `604663ad`. At
+  320 px at scale 8 the test author's card with the owner's values shows two or three frames
+  on one row, 9 to 24 px past the card, before it wraps and grows from 388 to 513 px.
+- For about 150 ms after an inline editor opens it sits over the Details button below it (up
+  to 50 px at scale 8, 42 px at scale 6), because `.editable` in `components.css` animates the
+  row it reserves. This predates the round and also happens on one-row cards. The settled
+  state is clean.
 - At 320 px at scale 8 a five-field card logged `1000`, `1000`, `1000.0` wraps, and its first
   row runs 11.1 px into the right padding, 9.1 px inside the card's box. Nothing is clipped
   and the page does not scroll. It fits at 360 px and wider.
