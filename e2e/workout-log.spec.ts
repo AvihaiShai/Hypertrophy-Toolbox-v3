@@ -8,6 +8,7 @@
  * - Deleting entries
  */
 import { test, expect, ROUTES, SELECTORS, expectToast, waitForPageReady } from './fixtures';
+import { test as guardedTest } from './console-guard';
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
 
 // Section 0: the filled primary is #4263eb in the light theme this suite runs in.
@@ -1458,43 +1459,95 @@ test.describe('Workout Log Details on a phone', () => {
   });
 });
 
-test.describe('Workout Log Date Filter', () => {
-  test.beforeEach(async ({ page, consoleErrors }) => {
-    consoleErrors.startCollecting();
-    await page.goto(ROUTES.WORKOUT_LOG);
-    await waitForPageReady(page);
-  });
+guardedTest.describe('Workout Log sorting', () => {
+  // The sortable header is shown from 1360 px wide. Below that the records are cards.
+  guardedTest.use({ viewport: { width: 1440, height: 900 } });
 
-  test.afterEach(async ({ consoleErrors }) => {
-    consoleErrors.assertNoErrors();
-  });
-
-  test('date filter exists', async ({ page }) => {
-    // The workout log has date inputs per row for "Last Progression" date
-    // Check that at least one date-related input exists in the table
-    const dateInputs = page.locator('.workout-log-table input[type="date"], .date-input');
-    const count = await dateInputs.count();
-    
-    // If there are logs, there should be date inputs
-    // If no logs, that's also valid
-    expect(count >= 0).toBeTruthy();
-  });
-
-  test('date filter changes displayed data', async ({ page }) => {
-    // This page doesn't have a global date filter, but has per-row date inputs
-    // for Last Progression. Test that the date inputs in the table work.
-    const dateInputs = page.locator('.workout-log-table .date-input, .workout-log-table input[type="date"]');
-    const count = await dateInputs.count();
-    
-    if (count > 0) {
-      // Get the first date input that's visible/editable
-      const firstDateInput = dateInputs.first();
-      
-      // The date inputs might be hidden until clicked, so just verify they exist
-      await expect(firstDateInput).toBeAttached();
+  const routine = 'GYM - Sort regression - Workout A';
+  const bench = 'Barbell Bench Press';
+  const deadlift = 'Barbell Deadlift';
+  const squat = 'Barbell Banded Back Squat';
+  const entries = [
+    { exercise: bench, rpe: 10, date: '2026-12-03', score: 12.5 },
+    { exercise: deadlift, rpe: null, date: null, score: 8 },
+    { exercise: squat, rpe: 2, date: '2026-04-18', score: 0 },
+  ];
+  const rows = (page: Page) => page.locator('tr[data-log-id]').filter({ hasText: 'Sort regression' });
+  const sortButton = (page: Page, field: string) =>
+    page.locator(`#workout-log-table thead button.log-sort[data-sort-field="${field}"]`);
+  // Removing a plan row also removes the log record imported from it.
+  const removeRoutine = async (request: APIRequestContext) => {
+    const plan = await request.get('/get_workout_plan');
+    await expect(plan).toBeOK();
+    for (const row of (await plan.json()).data) {
+      if (row.routine === routine) {
+        await expect(await request.post('/remove_exercise', { data: { id: row.id } })).toBeOK();
+      }
     }
-    
-    await expect(page.locator('.workout-log-table')).toBeAttached();
+  };
+
+  guardedTest.beforeEach(async ({ request, page }) => {
+    // A run that stopped before its cleanup would have left this routine behind.
+    await removeRoutine(request);
+    for (const { exercise, rpe } of entries) {
+      await expect(await request.post('/add_exercise', {
+        data: { exercise, rpe, routine, sets: 1, min_rep_range: 6, max_rep_range: 8, weight: 20 },
+      })).toBeOK();
+    }
+    await expect(await request.post('/export_to_workout_log')).toBeOK();
+    const logs = await request.get('/get_workout_logs');
+    await expect(logs).toBeOK();
+    const saved: { id: number; routine: string; exercise: string }[] = (await logs.json()).data;
+    for (const { exercise, date, score } of entries) {
+      const row = saved.find(log => log.routine === routine && log.exercise === exercise);
+      expect(row).toBeDefined();
+      await expect(await request.post('/update_workout_log', {
+        data: { id: row!.id, updates: { last_progression_date: date, scored_weight: score } },
+      })).toBeOK();
+    }
+    await page.goto(ROUTES.WORKOUT_LOG);
+    await expect(rows(page)).toHaveCount(3);
+  });
+
+  guardedTest.afterEach(async ({ request }) => {
+    await removeRoutine(request);
+  });
+
+  guardedTest('sorts saved and edited dates chronologically with undated rows last', async ({ page }) => {
+    const names = rows(page).locator('.exercise-name');
+    const date = sortButton(page, 'last_progression_date');
+    await date.click();
+    await expect(names).toHaveText([squat, bench, deadlift]);
+    await date.click();
+    await expect(names).toHaveText([bench, squat, deadlift]);
+
+    const cell = rows(page).filter({ hasText: bench }).locator('[data-field="last_progression_date"]');
+    await cell.locator('.date-display').click();
+    await cell.locator('input').fill('2025-12-03');
+    await expect(cell.locator('input')).toBeHidden();
+    await date.click();
+    await expect(names).toHaveText([bench, squat, deadlift]);
+  });
+
+  guardedTest('sorts planned and scored numbers with missing and cleared values last', async ({ page }) => {
+    const names = rows(page).locator('.exercise-name');
+    const planned = sortButton(page, 'planned_rpe');
+    await planned.click();
+    await expect(names).toHaveText([squat, bench, deadlift]);
+    await planned.click();
+    await expect(names).toHaveText([bench, squat, deadlift]);
+
+    const cell = rows(page).filter({ hasText: deadlift }).locator('[data-field="scored_weight"]');
+    await cell.locator('.log-trigger').click();
+    await cell.locator('input').fill('');
+    await cell.locator('input').press('Enter');
+    await expect(cell.locator('.editable-text')).toHaveText('--');
+
+    const scored = sortButton(page, 'scored_weight');
+    await scored.click();
+    await expect(names).toHaveText([squat, bench, deadlift]);
+    await scored.click();
+    await expect(names).toHaveText([bench, squat, deadlift]);
   });
 });
 
