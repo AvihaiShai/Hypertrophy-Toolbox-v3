@@ -291,9 +291,31 @@ function placeRecordCells(row, desktop) {
     }
 }
 
+// A grid cannot count the columns its content needs, so the script measures. A card
+// whose logged fields run past its content box on one row takes the two-row template.
+function fitRecordFields(body) {
+    const rows = Array.from(body.querySelectorAll('tr[data-log-id]'));
+    const cards = !window.matchMedia('(min-width: 1360px)').matches;
+    // Every card is measured on one row. The list holds its height meanwhile, so
+    // the page does not shorten under a scroll position near its end.
+    if (cards) body.style.minHeight = getComputedStyle(body).height;
+    for (const row of rows) delete row.dataset.fieldRows;
+    // The exercise cell spans every column. Columns wider than the content box
+    // leave it nearer the card's right edge than its left.
+    const crowded = cards ? rows.filter(row => {
+        const card = row.getBoundingClientRect();
+        const span = row.querySelector('[data-key="exercise"]').getBoundingClientRect();
+        return card.right - span.right < span.left - card.left - 0.5;
+    }) : [];
+    for (const row of crowded) row.dataset.fieldRows = '2';
+    body.style.minHeight = '';
+}
+
 function initializeRecordLayouts(table) {
     const media = window.matchMedia('(min-width: 1360px)');
-    for (const row of table.tBodies[0].rows) {
+    const body = table.tBodies[0];
+    const fit = () => fitRecordFields(body);
+    for (const row of body.rows) {
         row.querySelector('.log-details').addEventListener('click', event => {
             const expanded = row.classList.toggle('details-open');
             event.currentTarget.setAttribute('aria-expanded', String(expanded));
@@ -304,8 +326,19 @@ function initializeRecordLayouts(table) {
         placeRecordCells(row, media.matches);
     }
     media.addEventListener('change', () => {
-        for (const row of table.tBodies[0].rows) placeRecordCells(row, media.matches);
+        for (const row of body.rows) placeRecordCells(row, media.matches);
+        fit();
     });
+    fit();
+    document.fonts.ready.then(fit);
+    // A card's width follows the viewport, the app scale and the page scrollbar.
+    // Fitting changes the observed height, so it waits for the next frame.
+    let width;
+    new ResizeObserver(([entry]) => {
+        if (entry.contentRect.width === width) return;
+        width = entry.contentRect.width;
+        requestAnimationFrame(fit);
+    }).observe(body);
 }
 
 function refreshRpePlacement(row) {
@@ -408,6 +441,7 @@ export async function updateScoredValue(logId, field, value) {
             // Update progression indicator for this cell
             updateProgressionIndicator(row, field, value);
             if (field === 'scored_rpe') refreshRpePlacement(row);
+            fitRecordFields(row.parentElement);
         }
 
         updateProgressionBadge(row);

@@ -125,6 +125,17 @@ body.modal-open #clearLogModal {
     grid-template-columns: repeat(2, minmax(min-content, 1fr)) minmax(min-content, 1.3fr) repeat(2, minmax(min-content, .9fr));
     column-gap: 4px;
   }
+  /* workout-log.js sets data-field-rows on a card whose logged fields do not fit
+     one row. Four fields wrap two and two. Five wrap three and two, which keeps
+     RIR and RPE together. */
+  .ui-record-card[data-field-rows="2"] { grid-template-columns: repeat(2, minmax(min-content, 1fr)); }
+  .ui-record-card[data-field-rows="2"][data-main-rpe="true"] {
+    grid-template-columns: repeat(2, minmax(min-content, 1fr)) minmax(min-content, 1.3fr);
+    column-gap: 8px;
+  }
+  /* The 44px floor is the width as rendered, so an app scale above 1 does not
+     widen it. The half pixel keeps the rendered box from rounding below 44. */
+  .scored-value-container .ui-field { min-width: min(44px, calc(44px / var(--ui-scale, 1) + .5px)); }
   .ui-record-card td { grid-column: 1 / -1; min-width: 0; }
   /* Each field shares a label row and a field row with its neighbours, so a
      label that wraps leaves the field boxes on one line. */

@@ -352,7 +352,8 @@ the `planned_*` snapshot and the `scored_*` values.
 
 Below 1360 px each exercise appears as a card. Two cards fit per row from 768 px.
 Each card shows its planned prescription and editable logged reps, weight and RIR.
-A logged RPE or an RPE-only prescription adds RPE to the main row. Details opens the
+A logged RPE or an RPE-only prescription adds RPE to the main row. A card too narrow
+for its logged fields on one row wraps them onto two. Details opens the
 remaining values, Last Progression, Reference Video and Delete Entry. On desktop,
 the Planned and Logged groups have individually sortable field headings.
 

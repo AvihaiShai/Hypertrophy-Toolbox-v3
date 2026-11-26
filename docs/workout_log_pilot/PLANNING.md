@@ -1630,3 +1630,107 @@ widest value, `100.0`.
 
 **Migration notes.** Presentation only. The date input gains the `ui-field-input` class, and
 the card's field layout now needs `subgrid` (Chromium 117, Firefox 71, Safari 16).
+
+### Third round — narrow five-field cards, 2026-11-26
+
+Implementer's record for the owner's finding on `54e6ab2c`: a card with five logged fields did
+not fit a 320 or 360 px phone at scale 8. The edits were uncommitted when these commands ran.
+The `pages-workout-log.css` ledger numbers here replace the ones above.
+
+**Changed paths**
+
+- `static/css/pages-workout-log.css` — a card marked `data-field-rows="2"` wraps its logged
+  fields onto two rows. Five fields wrap three and two: Min Reps, Max Reps and Weight, then RIR
+  and RPE. Four fields wrap two and two. Each row keeps the shared label row and field row, so
+  the open editor still sits under the row it belongs to. Below 1360 px a logged field's
+  minimum width is 44 px as rendered: above scale 6 the layout minimum is 44 px divided by the
+  scale factor plus 0.5 px (37.2 px at scale 8). It is unchanged at scale 6 and below.
+- `static/js/modules/workout-log.js` — `fitRecordFields` measures every card on one row and
+  sets or clears `data-field-rows`. It runs at load, when the fonts are ready, when the card
+  list changes width, when the layout crosses 1360 px and after a logged value saves.
+- `docs/product/APP_FLOW.md`, `docs/CSS_PHASE4_WP4_4_A_BASELINE.json`.
+
+**Why a script decides.** Whether five fields fit depends on their values. At 390 px at
+scale 8 the owner's values fit one row and `100`, `100`, `1000.0`, `10`, `10.0` do not. A grid
+takes its column count from the template, never from its content. `flex-wrap` does wrap by
+content, but its lines share neither columns nor the label and field rows that the open
+editor relies on. The card already takes its cell order from the same script.
+
+**Measurements**, in px as rendered, on a throwaway frame-run database
+(`artifacts/workout-log-frame/narrow-probe-rndxmnho`). The owner's Barbell Squat record: planned
+RIR 2 and RPE 8 at 100 kg, logged `10`, `10`, `100.0`, `1`, `10.0`, a mark in every field.
+
+| Viewport, scale | Rows | Field widths | Field height | Rightmost field to the content edge, to the card edge | Card height | Page `scrollWidth` / `clientWidth` |
+|---|---|---|---|---|---|---|
+| 320 px, scale 8 | 2 | 67.3, 67.3, 87.5, then 67.3, 67.3 | 52.8 | 0, 20.2 | 455.4 | 320 / 320 |
+| 360 px, scale 8 | 2 | 79.4, 79.4, 103.3, then 79.4, 79.4 | 52.8 | 0, 20.2 | 417 | 360 / 360 |
+| 390 px, scale 8 | 1 | 51.9, 51.9, 77, 46.7, 64.6 | 52.8 | 0, 20.2 | 342.6 | 390 / 390 |
+| 320 px, scale 6 | 2 | 72.1, 72.1, 93.8, then 72.1, 72.1 | 44 | 0, 17 | 348 | 320 / 320 |
+| 360 px, scale 6 | 1 | 53.3, 53.3, 69.3, 48, 54.2 | 44 | 0, 17 | 275 | 360 / 360 |
+| 390 px, scale 6 | 1 | 60.4, 60.4, 78.5, 54.4, 54.4 | 44 | 0, 17 | 239 | 390 / 390 |
+
+- On this head the same record left its card by 57.7 px at 320 px and 17.7 px at 360 px at
+  scale 8, the page was 359 px wide in a 320 px viewport, and at 390 px the row ran 7.9 px
+  into the card's right padding.
+- With `100`, `100`, `1000.0`, `10`, `10.0` the card has two rows at 320, 360, 390 and 768 px
+  at scale 8 and at 320 px at scale 6, and one row at 360, 390 and 768 px at scale 6.
+- An all-blank five-field card has two rows at 320 px at scale 8 and one row everywhere else.
+- A four-field card stays on one row with the fixture's values at every width. With `100`,
+  `100`, `1000.0`, `10` it wraps two and two at 320 and 360 px at scale 8.
+- The probe read 112 cards: both value sets at 320, 360, 390 and 768 px at scales 6 and 8. No
+  field left its card or its padding, no value was clipped, no mark touched its value, every
+  field was at least 44 × 44 and no page scrolled sideways.
+- At scale 6, at 360, 375, 390, 768, 1024, 1359, 1360 and 1440 px, with Details closed, with
+  Details open and with an editor open, every box inside `#main-content` is where it was on
+  this head: 0 differences to 0.01 px over 22 states. A closed one-line card at 390 px is
+  239 px with four fields and with five.
+- The frame check's `metrics.json` differs from the one measured on this head in 2 of 22
+  entries, both 390 px at scale 8: two five-field cards have RIR and RPE fields 51 to 51.5 px
+  wide where they were 53.
+
+**Commands and results**
+
+| Command | Result |
+|---|---|
+| `npx playwright test e2e/workout-log.spec.ts e2e/empty-states.spec.ts e2e/smoke-navigation.spec.ts e2e/visual-field-separator.spec.ts e2e/accessibility.spec.ts --project=chromium --reporter=line` | 146 passed |
+| `.venv/Scripts/python.exe e2e/scripts/run_workout_log_frame.py`, ten runs on the final edits | 2 passed (`candidate-dp_up5ng`, `candidate-jocfc6a_`). 8 failed on one assertion, described below. All ten `metrics.json` files are byte-identical |
+| The same with `--control-ref 5dc83cef` | Passed (`control-eux75vgm`) |
+| `pytest tests/ -q -n 8 --dist loadfile -k "css or visual or axe or landmark or workout_log or template or inventory or playwright or console"` | 757 passed, 1 skipped, 1 failed (the uncommitted-CSS test named in the first round) |
+| `npx stylelint static/css/pages-workout-log.css` | 0 errors, 18 warnings, the same count as before the round |
+| `npx tsc --noEmit`, `npx vitest run` | No errors; 271 passed |
+| `PW_VISUAL_SEED=1 npx playwright test e2e/visual.spec.ts e2e/visual-baseline-thumbnails.spec.ts -g "workout-log\|workout_log thumbnails"` | 7 failed, 5 did not run. The committed win32 Log baselines date from `5dc83cef`, before the pilot: `workout-log-mobile-light` expects 375 × 6159 and the page is 375 × 1770 |
+
+**Unresolved: a race in the frame check.** The eight failing runs fail only
+`logged RPE and RIR share one row` (`e2e/workout-log-frame.check.ts:295`, reached from `:703`
+straight after `page.reload()` at `:700`). The helper reads the RPE box and the RIR box in two
+calls while the reloaded page is still scrolling to its restored position. The check was run
+three times against the application source at `54e6ab2c` with no edits
+(`head-z15446qz`, `head-0svxic9h`, `head-irzyjkjx`) and failed the same assertion in two of
+them. A replay of the helper's own steps over 40 reloads read the two boxes at different
+heights 13 times on these edits and 18 times on the committed assets. In the twelve
+mismatches printed, both boxes had settled at the same height 400 ms later. The check was not
+edited.
+
+**Baseline ledger.** `workoutLogPilot.surfaces`, re-measured by hand: `pages-workout-log.css`
+205 lines and 9510 bytes. The other surfaces are unchanged.
+
+**Migration notes.** Presentation only: no calculation, route, schema or response shape
+changed. `tr.ui-record-card` gains the attribute `data-field-rows="2"` while its fields are
+wrapped, and loses it when they fit one row or the table is shown. The script holds the card
+list's height with an inline `min-height` while it measures, then clears it.
+
+**Coverage.** `e2e/workout-log.spec.ts` (`phone card fits five logged fields at 320, 360 and
+390 px at scale 8`) and the frame check's `expectNarrowPhoneCardsFit` cover the fit at scale 8.
+No automated check covers the refit after a live scale change, a resize or a saved value, a
+wrapped four-field card, or the editor inside a wrapped card. Those were exercised by a probe
+script on the throwaway database and found working.
+
+**Left as it is**
+
+- After a live resize or scale change the cards are refitted on the next frame, so one frame
+  can show the previous wrapping. This follows from the code and was not measured.
+- At 320 px at scale 8 a five-field card logged `1000`, `1000`, `1000.0` wraps, and its first
+  row runs 11.1 px into the right padding, 9.1 px inside the card's box. Nothing is clipped
+  and the page does not scroll. It fits at 360 px and wider.
+- Below scale 6 a logged field renders under 44 px: 33 px tall at level 1. This round did
+  not change it.
