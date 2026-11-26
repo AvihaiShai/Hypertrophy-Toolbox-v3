@@ -258,7 +258,10 @@ function sortTableByColumn(table, columnIndex) {
     const tbody = table.querySelector('tbody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const header = table.querySelectorAll('th')[columnIndex];
-    const isAscending = header.classList.contains('sort-asc');
+    const descending = header.classList.contains('sort-asc');
+    const direction = descending ? -1 : 1;
+    const dateColumn = header.dataset.sortType === 'date';
+    const numericColumn = header.classList.contains('is-num');
     
     // Remove sort classes from all headers
     table.querySelectorAll('th').forEach(h => {
@@ -266,24 +269,28 @@ function sortTableByColumn(table, columnIndex) {
     });
     
     // Add appropriate sort class
-    header.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
+    header.classList.add(descending ? 'sort-desc' : 'sort-asc');
     
-    rows.sort((a, b) => {
-        const aValue = a.cells[columnIndex]?.textContent.trim() || '';
-        const bValue = b.cells[columnIndex]?.textContent.trim() || '';
-        
-        // Try to parse as number
-        const aNum = parseFloat(aValue);
-        const bNum = parseFloat(bValue);
-        
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-            return isAscending ? bNum - aNum : aNum - bNum;
+    function sortValue(row) {
+        const cell = row.cells[columnIndex];
+        if (dateColumn) return cell.querySelector('.date-input').defaultValue;
+        if (numericColumn) {
+            const value = (cell.querySelector('.editable-text') ?? cell).textContent.trim();
+            return value === 'None' || value === '--' ? '' : value;
         }
-        
-        // String comparison
-        return isAscending ? 
-            bValue.localeCompare(aValue) : 
-            aValue.localeCompare(bValue);
+        return cell.textContent.trim();
+    }
+
+    rows.sort((a, b) => {
+        const left = sortValue(a);
+        const right = sortValue(b);
+        if (left === right) return 0;
+        if (left === '') return 1;
+        if (right === '') return -1;
+
+        if (dateColumn) return direction * left.localeCompare(right);
+        const difference = parseFloat(left) - parseFloat(right);
+        return direction * (Number.isNaN(difference) ? left.localeCompare(right) : difference);
     });
     
     // Re-append sorted rows
@@ -660,6 +667,9 @@ export async function handleDateChange(event, logId) {
             id: id,
             date: inputValue // Send YYYY-MM-DD format to backend
         }, { showLoading: false, showErrorToast: false });
+
+        // The sorter reads the last saved ISO date, including while another edit is open.
+        input.defaultValue = inputValue;
 
         // Update the display text and hide the input
         const cell = input.closest('.editable');
