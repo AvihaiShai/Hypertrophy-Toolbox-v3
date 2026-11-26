@@ -729,6 +729,9 @@ export async function handleDateChange(event, logId) {
             date: inputValue // Send YYYY-MM-DD format to backend
         }, { showLoading: false, showErrorToast: false });
 
+        // The sorter reads the last saved ISO date, including while another edit is open.
+        input.defaultValue = inputValue;
+
         // Update the display text and hide the input
         const cell = input.closest('.editable');
         const display = cell.querySelector('.editable-text');
