@@ -417,6 +417,106 @@ async function expectCardFieldsReadable(page: Page, fixture: Record<string, unkn
   expect.soft(marksOnDigits, `comparison marks that cover the value ${where}`).toEqual([]);
 }
 
+/**
+ * The owner's acceptance for #736 on every phone card: each logged field is a 44 x 44
+ * target inside its card and clear of its neighbours, a field that holds a logged and a
+ * planned value shows its comparison mark, the card is inside the viewport and the page
+ * does not scroll sideways. Containment and overlap allow 0.5 px. Sizes allow nothing.
+ * expectCardFieldsReadable holds the value and the mark inside each field.
+ */
+async function expectCardFieldsInsideCard(
+  page: Page, fixture: Record<string, unknown>[], width: number, where: string,
+) {
+  const tolerance = 0.5;
+  const cards = await readCardFields(page);
+  const root = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  }));
+  const escapes = (inner: Box, outer: Box) => Math.max(
+    outer.left - inner.left,
+    inner.right - outer.right,
+    outer.top - inner.top,
+    inner.bottom - outer.bottom,
+  );
+  const overlaps = (first: Box, next: Box) =>
+    Math.min(first.right, next.right) - Math.max(first.left, next.left) > tolerance &&
+    Math.min(first.bottom, next.bottom) - Math.max(first.top, next.top) > tolerance;
+  const missingCards: string[] = [];
+  const fieldsOutside: string[] = [];
+  const smallFields: string[] = [];
+  const fieldsOverlapping: string[] = [];
+  const missingMarks: string[] = [];
+  const cardsOutside: string[] = [];
+  for (const record of fixture) {
+    const exercise = String(record.exercise);
+    const card = cards.find(entry => entry.exercise === exercise);
+    if (!card) {
+      missingCards.push(exercise);
+      continue;
+    }
+    if (card.card.left < -tolerance || card.card.right > width + tolerance) {
+      cardsOutside.push(`${exercise}: card spans ${px(card.card.left)} to ${px(card.card.right)}`);
+    }
+    for (const [index, entry] of card.fields.entries()) {
+      const name = entry.label?.text || entry.field;
+      const fieldWidth = entry.box.right - entry.box.left;
+      const fieldHeight = entry.box.bottom - entry.box.top;
+      if (escapes(entry.box, card.card) > tolerance) {
+        const depth = px(escapes(entry.box, card.card));
+        const edge = `field right ${px(entry.box.right)}, card right ${px(card.card.right)}`;
+        fieldsOutside.push(`${exercise}: ${name} leaves the card by ${depth} (${edge})`);
+      }
+      if (fieldWidth < 44 || fieldHeight < 44) {
+        smallFields.push(`${exercise}: ${name} is ${px(fieldWidth)} x ${px(fieldHeight)}`);
+      }
+      for (const later of card.fields.slice(index + 1)) {
+        if (overlaps(entry.box, later.box)) {
+          fieldsOverlapping.push(`${exercise}: ${name} overlaps ${later.label?.text || later.field}`);
+        }
+      }
+      const planned = record[entry.field.replace('scored_', 'planned_')];
+      if (record[entry.field] != null && planned != null && !entry.mark) {
+        missingMarks.push(`${exercise}: ${name} shows no comparison mark`);
+      }
+    }
+  }
+  expect.soft(missingCards, `fixture records without a card ${where}`).toEqual([]);
+  expect.soft(fieldsOutside, `logged fields outside their card ${where}`).toEqual([]);
+  expect.soft(smallFields, `logged fields under 44 x 44 px ${where}`).toEqual([]);
+  expect.soft(fieldsOverlapping, `logged fields that overlap ${where}`).toEqual([]);
+  expect.soft(missingMarks, `logged fields without their comparison mark ${where}`).toEqual([]);
+  expect.soft(cardsOutside, `cards outside the ${width} px viewport ${where}`).toEqual([]);
+  const sideways = `page scrollWidth in a ${root.clientWidth} px wide document ${where}`;
+  expect.soft(root.scrollWidth, sideways).toBeLessThanOrEqual(root.clientWidth);
+}
+
+/**
+ * Owner acceptance on #736: the scale-8 label and field-fit pass again at 320 and 360 px.
+ * The pass keeps the theme and scale cookies of the 390 px load it follows. It adds no
+ * metrics entry.
+ */
+async function expectNarrowPhoneCardsFit(
+  page: Page, run: string, fixture: Record<string, unknown>[], theme: string,
+) {
+  for (const width of [320, 360]) {
+    const where = `at ${width} px in ${theme} at scale 8`;
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/workout_log');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    await expect(page.locator('html')).toHaveAttribute('data-scale', '8');
+    expect(await page.locator('html').evaluate(el => Number(getComputedStyle(el).zoom))).toBe(1.2);
+    await expect(page.locator('tr[data-log-id]')).toHaveCount(7);
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
+    const capture = path.join(run, `populated-${width}-${theme}-scale8-full.png`);
+    await page.screenshot({ path: capture, fullPage: true });
+    const still = '*,*::before,*::after { transition: none !important; animation: none !important; }';
+    await page.addStyleTag({ content: still });
+    await expectCardFieldsReadable(page, fixture, where);
+    await expectCardFieldsInsideCard(page, fixture, width, where);
+  }
+}
+
 /** Section 0 "Type": the title at every width, and a phone card's labels and logged values. */
 async function expectPinnedType(page: Page, width: number, where: string) {
   const type = await page.locator('#main-content').evaluate(main => {
@@ -833,6 +933,11 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
             if (scale === 6 && (width === 390 || width === 1440)) {
               await expectPinnedType(page, width, pass);
               await expectComparisonMarkColours(page, theme as Theme, pass);
+            }
+            if (scale === 8 && width === 390) {
+              await expectCardFieldsInsideCard(page, fixture, width, pass);
+              // Last in this pass: the narrower loads replace the 390 px page.
+              await expectNarrowPhoneCardsFit(page, run, fixture, theme);
             }
           }
           if (!control && scale === 6) {

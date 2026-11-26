@@ -15,6 +15,18 @@ const PRIMARY_FILL_LIGHT = 'rgb(66, 99, 235)';
 // Section 0, "Behind Details", plus logged RPE when the plan also holds an RIR.
 const DETAILS_ONLY_CONTROLS = ['Last Progression', 'Reference Video', 'Delete Entry', 'Logged RPE'];
 const PLANNED_VALUE_KEYS = ['sets', 'min_reps', 'max_reps', 'rir', 'rpe', 'weight'] as const;
+// Section 0, "Always visible": the logged fields of a phone card, in main-row order.
+const MAIN_ROW_FIELDS = [
+  'scored_min_reps', 'scored_max_reps', 'scored_weight', 'scored_rir', 'scored_rpe',
+] as const;
+// The owner's Barbell Squat case on #736, as the card prints each logged value.
+const SQUAT_LOGGED_TEXT: Record<(typeof MAIN_ROW_FIELDS)[number], string> = {
+  scored_min_reps: '10',
+  scored_max_reps: '10',
+  scored_weight: '100.0',
+  scored_rir: '1',
+  scored_rpe: '10.0',
+};
 
 /** Ids of the visible actions in the page content that render the filled primary. */
 async function filledPrimaryActions(page: Page): Promise<string[]> {
@@ -73,6 +85,129 @@ async function expectEffortInMainRow(card: Locator, rpeText: RegExp): Promise<vo
   const rpeBox = await rpeTrigger.boundingBox();
   const rirBox = await rirTrigger.boundingBox();
   expect(Math.abs(rpeBox!.y - rirBox!.y), 'logged RPE and RIR share one row').toBeLessThanOrEqual(1);
+}
+
+/** Edges and overflow of one phone card's five logged fields, read in one pass. */
+async function readMainRowFit(card: Locator) {
+  return card.evaluate((row, fields) => {
+    type Edges = { left: number; right: number; top: number; bottom: number };
+    const edges = (rects: DOMRect[]): Edges | null => rects.length === 0 ? null : {
+      left: Math.min(...rects.map(rect => rect.left)),
+      right: Math.max(...rects.map(rect => rect.right)),
+      top: Math.min(...rects.map(rect => rect.top)),
+      bottom: Math.max(...rects.map(rect => rect.bottom)),
+    };
+    const rendered = (node: Element | null | undefined): node is Element =>
+      !!node && node.getClientRects().length > 0 && getComputedStyle(node).visibility === 'visible';
+    const box = (node: Element | null | undefined) =>
+      rendered(node) ? edges([node.getBoundingClientRect()]) : null;
+    // A Range follows the glyphs, so text that runs past its own box is still measured.
+    const textBox = (node: Element | null | undefined) => {
+      if (!rendered(node)) return null;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return edges(Array.from(range.getClientRects()).filter(rect => rect.width > 0));
+    };
+    const root = document.documentElement;
+    return {
+      card: edges([row.getBoundingClientRect()])!,
+      page: { scrollWidth: root.scrollWidth, clientWidth: root.clientWidth },
+      fields: fields.map(field => {
+        const cell = row.querySelector(`[data-field="${field}"]`);
+        const trigger = cell?.querySelector<HTMLElement>('.log-trigger');
+        return {
+          field,
+          box: box(trigger),
+          value: textBox(cell?.querySelector('.editable-text')),
+          mark: box(cell?.querySelector('.progression-indicator')),
+          scrollWidth: trigger?.scrollWidth ?? 0,
+          clientWidth: trigger?.clientWidth ?? 0,
+        };
+      }),
+    };
+  }, MAIN_ROW_FIELDS);
+}
+
+type MainRowFit = Awaited<ReturnType<typeof readMainRowFit>>;
+type FitEdges = MainRowFit['card'];
+
+/** How many rows the rendered logged fields occupy, counting tops within 1 px as one row. */
+function mainRowCount(read: MainRowFit): number {
+  const tops = read.fields.flatMap(entry => entry.box ? [entry.box.top] : []);
+  const rows: number[] = [];
+  for (const top of tops) {
+    if (!rows.some(known => Math.abs(known - top) <= 1)) rows.push(top);
+  }
+  return rows.length;
+}
+
+/**
+ * The owner's acceptance for a phone card, as measured failures: every logged field is a
+ * 44 x 44 target inside the card, its value and comparison mark sit inside the field and
+ * clear of each other, the card is inside the viewport and the page does not scroll
+ * sideways. Containment and overlap allow 0.5 px. Sizes allow nothing.
+ */
+function mainRowFitProblems(read: MainRowFit, viewportWidth: number): string[] {
+  const tolerance = 0.5;
+  const px = (value: number) => `${Math.round(value * 10) / 10} px`;
+  const escapes = (inner: FitEdges, outer: FitEdges) => Math.max(
+    outer.left - inner.left,
+    inner.right - outer.right,
+    outer.top - inner.top,
+    inner.bottom - outer.bottom,
+  );
+  const overlaps = (first: FitEdges, next: FitEdges) =>
+    Math.min(first.right, next.right) - Math.max(first.left, next.left) > tolerance &&
+    Math.min(first.bottom, next.bottom) - Math.max(first.top, next.top) > tolerance;
+  const problems: string[] = [];
+  for (const [index, entry] of read.fields.entries()) {
+    const name = entry.field;
+    if (!entry.box) {
+      problems.push(`${name}: the field is not rendered`);
+      continue;
+    }
+    const width = entry.box.right - entry.box.left;
+    const height = entry.box.bottom - entry.box.top;
+    if (width < 44 || height < 44) {
+      problems.push(`${name}: the field is ${px(width)} x ${px(height)}, under 44 x 44`);
+    }
+    if (escapes(entry.box, read.card) > tolerance) {
+      const depth = px(escapes(entry.box, read.card));
+      const edge = `field right ${px(entry.box.right)}, card right ${px(read.card.right)}`;
+      problems.push(`${name}: the field leaves its card by ${depth} (${edge})`);
+    }
+    for (const later of read.fields.slice(index + 1)) {
+      if (later.box && overlaps(entry.box, later.box)) {
+        problems.push(`${name}: the field overlaps the ${later.field} field`);
+      }
+    }
+    if (entry.scrollWidth > entry.clientWidth) {
+      const sizes = `${entry.scrollWidth} px of content in a ${entry.clientWidth} px field`;
+      problems.push(`${name}: the value is clipped (${sizes})`);
+    }
+    if (!entry.value) {
+      problems.push(`${name}: the value is not rendered`);
+    } else if (escapes(entry.value, entry.box) > tolerance) {
+      problems.push(`${name}: the value leaves its field by ${px(escapes(entry.value, entry.box))}`);
+    }
+    if (!entry.mark) {
+      problems.push(`${name}: the comparison mark is not rendered`);
+    } else if (escapes(entry.mark, entry.box) > tolerance) {
+      problems.push(`${name}: the mark leaves its field by ${px(escapes(entry.mark, entry.box))}`);
+    }
+    if (entry.mark && entry.value && overlaps(entry.mark, entry.value)) {
+      problems.push(`${name}: the mark overlaps the value`);
+    }
+  }
+  if (read.card.left < -tolerance || read.card.right > viewportWidth + tolerance) {
+    const span = `${px(read.card.left)} to ${px(read.card.right)}`;
+    problems.push(`the card spans ${span} in a ${viewportWidth} px viewport`);
+  }
+  if (read.page.scrollWidth > read.page.clientWidth) {
+    const sizes = `scrollWidth ${read.page.scrollWidth}, clientWidth ${read.page.clientWidth}`;
+    problems.push(`the page scrolls sideways (${sizes})`);
+  }
+  return problems;
 }
 
 async function importCurrentWorkoutPlan(page: Page): Promise<void> {
@@ -762,6 +897,89 @@ test('phone effort entry persists on the intended exercise and desktop sorting a
     expect(writes).toBe(1);
   } finally {
     for (const id of planIds) await request.post('/remove_exercise', {data:{id}});
+  }
+});
+
+test('phone card fits five logged fields at 320, 360 and 390 px at scale 8', async ({ page, request }) => {
+  // The owner's case on #736: Barbell Squat, planned RIR 2 and RPE 8 at 100 kg, logged RPE 10.0.
+  const routine = `GYM - Log scale fit ${Date.now()} - Workout A`;
+  const exercise = 'Barbell Squat';
+  const added = await request.post('/add_exercise', {
+    data: {
+      routine, exercise, sets: 3, min_rep_range: 6, max_rep_range: 10, rir: 2, rpe: 8, weight: 100,
+    },
+  });
+  expect(added.ok()).toBe(true);
+  const plan = (await (await request.get('/get_workout_plan')).json()).data as
+    { id: number; routine: string; exercise: string }[];
+  const planRow = plan.find(entry => entry.routine === routine && entry.exercise === exercise);
+  expect(planRow).toBeDefined();
+
+  try {
+    expect((await request.post('/export_to_workout_log')).ok()).toBe(true);
+    const stored = async () => {
+      const logs = (await (await request.get('/get_workout_logs')).json()).data as
+        Record<string, unknown>[];
+      return logs.find(entry => entry.routine === routine && entry.exercise === exercise);
+    };
+    const imported = await stored();
+    expect(imported).toBeDefined();
+    const logged = {
+      scored_min_reps: 10, scored_max_reps: 10, scored_weight: 100, scored_rir: 1, scored_rpe: 10,
+    };
+    const written = await request.post('/update_workout_log', {
+      data: { id: imported!.id, updates: logged },
+    });
+    expect(written.ok()).toBe(true);
+    // Every logged field has a planned value to compare with, so every field carries a mark.
+    expect(await stored()).toMatchObject({
+      planned_min_reps: 6, planned_max_reps: 10, planned_weight: 100,
+      planned_rir: 2, planned_rpe: 8, ...logged,
+    });
+
+    // Level 8 through the app's own controller, which stores it for the server to render.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(ROUTES.WORKOUT_LOG);
+    await page.evaluate(() => {
+      const scale = (window as unknown as {
+        accessibilityController: { setScale(level: number): void };
+      }).accessibilityController;
+      scale.setScale(8);
+    });
+
+    const card = page.locator(`tr[data-log-id="${imported!.id}"]`).filter({ hasText: exercise });
+    const details = card.getByRole('button', { name: 'Details', exact: true });
+    const cell = (field: string) => card.locator(`[data-field="${field}"]`);
+    for (const width of [320, 360, 390]) {
+      const where = `at ${width} px at scale 8`;
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto(ROUTES.WORKOUT_LOG);
+      await expect(page.locator('html')).toHaveAttribute('data-scale', '8');
+      const zoom = await page.locator('html').evaluate(el => Number(getComputedStyle(el).zoom));
+      expect(zoom, `app scale factor ${where}`).toBe(1.2);
+      await expect(card).toHaveCount(1);
+      await expect(details).toHaveAttribute('aria-expanded', 'false');
+      // The marks are placed by the page script, so their presence means the card is laid out.
+      await expect(card.locator('.scored-cell .progression-indicator')).toHaveCount(5);
+      await page.evaluate(() => document.fonts.ready.then(() => undefined));
+      for (const field of MAIN_ROW_FIELDS) {
+        const value = cell(field).locator('.editable-text');
+        await expect(value, `${field} as printed ${where}`).toHaveText(SQUAT_LOGGED_TEXT[field]);
+        await expect.soft(cell(field).locator('.log-trigger'), `${field} field ${where}`).toBeVisible();
+        await expect.soft(value, `${field} value ${where}`).toBeVisible();
+        await expect.soft(cell(field).locator('.progression-indicator'), `${field} mark ${where}`)
+          .toBeVisible();
+      }
+      const read = await readMainRowFit(card);
+      expect.soft(mainRowFitProblems(read, width), `phone card fit ${where}`).toEqual([]);
+      if (width === 390) {
+        // Measured on 0511344b: at 390 px the five fields share one row inside the card.
+        expect.soft(mainRowCount(read), `rows of logged fields ${where}`).toBe(1);
+      }
+    }
+  } finally {
+    const removed = await request.post('/remove_exercise', { data: { id: planRow!.id } });
+    expect(removed.ok()).toBe(true);
   }
 });
 
