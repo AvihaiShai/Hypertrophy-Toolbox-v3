@@ -355,7 +355,10 @@ Each card shows its planned prescription and editable logged reps, weight and RI
 A logged RPE or an RPE-only prescription adds RPE to the main row. A card too narrow
 for its logged fields on one row wraps them onto two. Details opens the
 remaining values, Last Progression, Reference Video and Delete Entry. On desktop,
-the Planned and Logged groups have individually sortable field headings.
+the Planned and Logged groups have individually sortable field headings. Number
+columns sort as numbers, so zero and decimals take their numeric place, and Last
+Progression sorts by its saved date, including a date just saved in the row. An
+empty date and a missing or cleared number sort last in both directions.
 
 | Control | Action type | Endpoint / behavior |
 |---|---|---|

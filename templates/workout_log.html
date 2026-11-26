@@ -113,7 +113,7 @@
                     {% endfor %}
                     {% set progressed = log.last_progression_date|datetime('%d-%m-%y') if log.last_progression_date not in missing else '' %}
                     <td id="date-{{ id }}" headers="log-last_progression_date" data-key="last_progression_date" data-field="last_progression_date" class="editable date-editable"
-                        data-sort-value="{{ progressed }}">
+                        data-sort-value="{{ log.last_progression_date if log.last_progression_date not in missing else '' }}">
                         <span class="log-field-label">Last Progression</span>
                         <input type="date" class="ui-field-input editable-input date-input" value="{{ log.last_progression_date if log.last_progression_date not in missing else '' }}"
                                data-log-id="{{ id }}" aria-label="Last Progression for {{ log.exercise }}" style="display: none;">

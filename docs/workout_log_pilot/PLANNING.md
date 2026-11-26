@@ -1750,3 +1750,108 @@ on the throwaway database and found it working.
   and the page does not scroll. It fits at 360 px and wider.
 - Below scale 6 a logged field renders under 44 px: 33 px tall at level 1. This round did
   not change it.
+
+### Fourth round — #749 sort order on the redesigned sorter, 2026-11-26
+
+Implementer's record for giving this branch's sorter the order that #749 put on `main`. The
+merge at `7e54fe49` kept this branch's sorter, and `08f69786` ported #749's two tests. The
+edits were uncommitted when these commands ran. Gate 2 is not approved here.
+
+**Changed paths**
+
+- `static/js/modules/workout-log.js` — the comparison in `initializeFieldSorting`, and in
+  `handleDateChange` the value written to the date cell's `data-sort-value`. The line
+  `input.defaultValue = inputValue`, which came in with the merge and which this sorter never
+  read, is removed.
+- `templates/workout_log.html` — the Last Progression cell's `data-sort-value` holds the saved
+  date as stored (`2026-12-03`), where it held the displayed `03-12-26`. An unset date is still
+  an empty string.
+- `docs/product/APP_FLOW.md` — the Log's sorting sentence.
+
+**What the sorter reads**
+
+| Columns | Value read | Order |
+|---|---|---|
+| `#` and the six Planned fields | `data-sort-value`, through `parseFloat` | Numeric. A value that is not a finite number (`None`, an empty string) is missing |
+| The five Logged fields | The saved value shown in `.editable-text`, through `parseFloat` | Numeric. `--` is missing |
+| Last Progression | `data-sort-value`, the saved ISO date. A successful save in the editor rewrites it | `localeCompare`. An empty string is missing |
+| Routine, Exercise | `data-sort-value`, the full stored name | `localeCompare`, as before |
+| Progressive Overload | The badge text | `localeCompare`, as before |
+
+A column is numeric when its key is `number` or starts with `planned_` or `scored_`. Every
+pair in one column goes through the same comparison. A missing value sorts after every present
+value in both directions, and two missing values compare equal, so they keep the order they had.
+`aria-sort`, the sort icon and the wait for a pending score write are unchanged.
+
+**Commands and results**
+
+| Command | Result |
+|---|---|
+| `PW_PORT=5091 PW_DB_PATH=artifacts/e2e/database.e2e.wl736.db npx playwright test e2e/workout-log.spec.ts e2e/empty-states.spec.ts e2e/smoke-navigation.spec.ts e2e/visual-field-separator.spec.ts e2e/accessibility.spec.ts --project=chromium --reporter=line` | 150 passed, including both `Workout Log sorting` tests |
+| `.venv/Scripts/python.exe e2e/scripts/run_workout_log_frame.py`, twice | Both passed (`candidate-dce0uhg2`, `candidate-it14pwap`). `cmp` finds the two `metrics.json` files identical, and identical to `candidate-4tvatxpi` from the previous head |
+| The same with `--control-ref 5dc83cef` | Passed (`control-whex637q`) |
+| `pytest tests/ -q -n 8 --dist loadfile -p no:cacheprovider -k "css or visual or axe or landmark or workout_log or template or inventory or playwright or console"` | 758 passed, 1 skipped, none failed. No CSS file is edited in this round |
+| `npx tsc --noEmit`, `npx vitest run` | No errors; 271 passed |
+
+`npx stylelint` was not run: no CSS changed. No line or byte ledger pins the two changed
+application files. The implementer did not run the two sorting tests on the unedited head. The
+test author did, on `7e54fe49`: both failed, on five of their seven order assertions (dates by
+day of month, an empty date first when ascending, a missing planned RPE first when descending,
+a cleared logged weight first when ascending).
+
+**Probe of the other columns.** A scratch script clicked every sort button at 1440 px on a
+throwaway frame-run database (`artifacts/workout-log-frame/sort-probe-thefl9y1`, seeded and
+guarded by the frame runner, then edited so every numeric column and the date held a missing
+value, with zeros, decimals and ties among the rest). It judged each order against the database
+rows: 62 orders, 16 columns ascending and descending from a fresh load and 15 again after
+sorting Exercise descending first. All 62 passed three checks: missing values last, present
+values in order, tied rows in the order they had before the click. The sort button kept focus
+after every click, one heading carried `aria-sort`, and the page did not scroll sideways.
+From a fresh load, ascending then descending:
+
+| Column | Ascending | Descending |
+|---|---|---|
+| Planned RIR | Row 0, Curl 1, Squat 2, Cable 2, Bench 2, Deadlift –, Press – | Squat 2, Cable 2, Bench 2, Curl 1, Row 0, Deadlift –, Press – |
+| Planned Weight | Row 0, Press 2.5, Cable 12.5, Curl 12.5, Bench 60, Deadlift –, Squat – | Bench 60, Cable 12.5, Curl 12.5, Press 2.5, Row 0, Deadlift –, Squat – |
+| Logged Min Reps | Row 0, Deadlift 5, Cable 9, Squat 10, Bench 10, Press –, Curl – | Squat 10, Bench 10, Cable 9, Deadlift 5, Row 0, Press –, Curl – |
+| Logged Max Reps | Cable 0, Deadlift 5, Squat 10, Bench 10, Row 12, Press –, Curl – | Row 12, Squat 10, Bench 10, Deadlift 5, Cable 0, Press –, Curl – |
+| Logged RIR | Deadlift 0, Row 0, Squat 1, Bench 1, Cable 3, Press –, Curl – | Cable 3, Squat 1, Bench 1, Deadlift 0, Row 0, Press –, Curl – |
+| Logged RPE | Deadlift 0, Cable 7.5, Bench 7.5, Squat 9, Row 10, Press –, Curl – | Row 10, Squat 9, Cable 7.5, Bench 7.5, Deadlift 0, Press –, Curl – |
+| Last Progression | Deadlift 2025-12-31, Cable 2026-01-05, Squat 2026-04-18, Row 2026-04-18, Bench 2026-12-03, Press –, Curl – | Bench 2026-12-03, Squat 2026-04-18, Row 2026-04-18, Cable 2026-01-05, Deadlift 2025-12-31, Press –, Curl – |
+| Routine | Deadlift, Press, Squat, Cable (Workout A), Bench, Row (Workout B), Curl (HOME) | Curl, Bench, Row, Deadlift, Press, Squat, Cable |
+| # | 1 to 7 | 7 to 1 |
+| Progressive Overload | Squat, Bench (Achieved), Deadlift, Press, Cable, Row, Curl (Pending) | Deadlift, Press, Cable, Row, Curl, Squat, Bench |
+
+Exercise sorted by name in both directions. Planned Sets, Min Reps, Max Reps and RPE and
+Logged Weight passed the same checks. Through the inline editors, with no reload: a cleared
+Logged RIR and a cleared Logged RPE moved to the end in both directions, a Logged Min Reps
+saved as `0` sorted first ascending beside the other zero, and a date saved as `2024-02-29`
+on the undated Curl record sorted first ascending and last of the dated records descending.
+
+**Migration notes.** No route, response shape, calculation or schema changed. The row order
+after a sort changes exactly as #749 describes: Last Progression sorts by its saved ISO date,
+a date saved in the editor is used by the next sort, an empty date and a missing or cleared
+planned or logged number sort last in both directions, and zero sorts as a number. Three
+statements earlier in this file no longer hold and are superseded by #749's contract: Section
+0's "the comparison itself does not change" and its out-of-scope entry on where blank values
+land, Plan v2's "keep the legacy raw inputs to the sort comparator", and the first round's
+note that the date cell's `data-sort-value` holds the displayed date. A text column no longer
+compares a pair of values numerically when both happen to start with a number. No exercise
+name in the seeded catalog starts with a digit.
+
+**Coverage.** The two `Workout Log sorting` tests ported in `08f69786`: dates saved and
+edited, planned RPE, and logged weight with a zero and a cleared value. No automated test
+covers the other numeric columns, tie order or the text columns' missing-value rule. The
+probe above exercised them once.
+
+**Left as it is**
+
+- A Last Progression date cannot be cleared in the editor. In the probe the page posted an
+  empty date, `/update_progression_date` answered HTTP 400 and the date editor stayed open.
+  The sort value stayed at the saved date. `routes/workout_log.py` is identical to
+  `origin/main`.
+- The sorter waits for a pending score write but not for a pending date save. This is read
+  from the code and was not measured: a sort clicked before a date save returns would use the
+  previous date until the next sort.
+- A numeric cell holding text that is neither a number nor a missing marker would sort as
+  missing. The probe did not construct one.

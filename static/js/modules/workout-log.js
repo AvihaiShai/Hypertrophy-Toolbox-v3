@@ -242,15 +242,19 @@ function initializeFieldSorting(table) {
             header.setAttribute('aria-sort', descending ? 'descending' : 'ascending');
             header.querySelector('i').className = descending ? 'fas fa-sort-down' : 'fas fa-sort-up';
             const body = table.tBodies[0];
+            // A column compares as numbers or as text, never both. Saved dates are ISO text.
+            const numeric = key === 'number' || /^(planned|scored)_/.test(key);
             function value(row) {
                 const cell = row.querySelector(`[data-key="${key}"]`);
-                return cell.dataset.sortValue ?? (cell.querySelector('.editable-text') ?? cell).textContent.trim();
+                const text = cell.dataset.sortValue ?? (cell.querySelector('.editable-text') ?? cell).textContent.trim();
+                return numeric ? parseFloat(text) : text;
             }
+            // An empty date and a missing or cleared number stay last in both directions.
+            const missing = item => numeric ? !Number.isFinite(item) : item === '';
             const sorted = Array.from(body.rows).sort((a, b) => {
                 const left = value(a), right = value(b);
-                const first = parseFloat(left), second = parseFloat(right);
-                const order = Number.isNaN(first) || Number.isNaN(second)
-                    ? left.localeCompare(right) : first - second;
+                if (missing(left) || missing(right)) return Number(missing(left)) - Number(missing(right));
+                const order = numeric ? left - right : left.localeCompare(right);
                 return descending ? -order : order;
             });
             for (const row of sorted) body.appendChild(row);
@@ -729,9 +733,6 @@ export async function handleDateChange(event, logId) {
             date: inputValue // Send YYYY-MM-DD format to backend
         }, { showLoading: false, showErrorToast: false });
 
-        // The sorter reads the last saved ISO date, including while another edit is open.
-        input.defaultValue = inputValue;
-
         // Update the display text and hide the input
         const cell = input.closest('.editable');
         const display = cell.querySelector('.editable-text');
@@ -742,8 +743,8 @@ export async function handleDateChange(event, logId) {
                 // Show the calendar icon and its prompt when no date is set
                 display.innerHTML = '<i class="fas fa-calendar-alt date-icon" aria-hidden="true"></i>Set Date';
             }
-            // Sorting reads the date, not the prompt.
-            cell.dataset.sortValue = displayDate;
+            // Sorting reads the saved ISO date, not the displayed one.
+            cell.dataset.sortValue = inputValue;
             const exercise = cell.closest('tr').querySelector('.exercise-name').textContent;
             display.setAttribute('aria-label', `Edit Last Progression for ${exercise}, ${displayDate || 'Set Date'}`);
             display.style.display = 'flex';
