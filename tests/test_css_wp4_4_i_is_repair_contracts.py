@@ -108,8 +108,8 @@ def test_the_repair_added_no_lines() -> None:
     reds `tests/test_css_wp4_4_a_baseline_contracts.py` — a file neither packet
     may edit.
     """
-    # The approved Log pilot removes the former Log frame before the layer.
-    assert _css().count("\n") == 5091
+    # The Log pilot left 5,091 lines; the Plan components append 334 more.
+    assert _css().count("\n") == 5425
 
 
 def test_all_thirteen_rules_carry_the_progression_split() -> None:
@@ -207,19 +207,19 @@ def test_the_family_token_counts_match_the_approved_delta() -> None:
     whole-file totals that partition implies, asserted on the raw text so the two
     files would disagree if either drifted.
 
-    The partition is measured on comment-stripped text and implies `:hover` 110;
-    the raw count is 111 because one `:hover` lives inside a comment. That single
+    The partition is measured on comment-stripped text and implies `:hover` 112;
+    the raw count is 113 because one `:hover` lives inside a comment. That single
     occurrence is asserted here rather than left as an unstated offset.
     """
     css = _css()
     assert css.count(":is(") == 19
-    assert css.count(":where(") == 76
-    assert css.count(":hover") == 111
+    assert css.count(":where(") == 77  # Includes the legacy modal shadow exclusion
+    assert css.count(":hover") == 113  # Includes two shared menu item states
     commented_hovers = sum(
         block.count(":hover") for block in re.findall(r"/\*.*?\*/", css, re.DOTALL)
     )
     assert commented_hovers == 1, (
-        "the raw/stripped :hover offset changed; the 111 above and the 110 in "
+        "the raw/stripped :hover offset changed; the 113 above and the 112 in "
         "test_css_wp4_4_components_contracts.py no longer reconcile"
     )
     # The pilot removed 36 of the 919 important declarations WP4.4-h shipped.

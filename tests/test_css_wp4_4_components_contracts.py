@@ -214,6 +214,9 @@ PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
 # ---------------------------------------------------------------------------
 # Counts include the #736 Log pilot: it removed the shared Log glass section
 # and exempted its field buttons from the legacy editable-cell rules.
+# The #736 Plan components add one modal :where() exclusion, two menu hover
+# selectors, six focus selectors, three close-button pseudo-elements, one
+# modal custom property declaration and three media queries.
 FROZEN_FAMILY_COUNTS = {
     # A9 / N4: the whole `:is()` family belongs to WP4.4-i.
     r":is\(": 19,
@@ -227,20 +230,20 @@ FROZEN_FAMILY_COUNTS = {
     # The global totals stay in this dict as well. Holding the invariant only as
     # the sum of two separate test functions means deleting either one silently
     # halves the lock, and nothing would red.
-    r":where\(": 76,
-    r":hover": 110,
+    r":where\(": 77,
+    r":hover": 112,
     # M10 / PR#3: reachable only through a JS-applied class.
     r"\.value-changed": 20,
     # M12 / PR#10: hover, focus and active are out of scope, declared up front.
-    r":focus": 177,
+    r":focus": 183,
     r":active": 16,
     # An inline sentinel cannot address a pseudo-element, so none was eligible.
-    r"::[\w-]+": 50,
+    r"::[\w-]+": 53,
     r"@keyframes": 9,
     # M9: custom properties never enter a dead nomination.
-    r"^\s*--[\w-]+\s*:": 3,
+    r"^\s*--[\w-]+\s*:": 4,
     # M11: condition-specific coverage was required, not deletion.
-    r"@media": 36,
+    r"@media": 39,
     r"prefers-reduced-motion": 3,
     # N2 freezes layer membership arc-wide.
     r"@layer": 1,
@@ -279,10 +282,9 @@ PROGRESSION_BRANCH = ".progression-plan-container"
 
 I_OWNED_SELECTOR_LINES = 14
 
-# Frozen: identical before and after the split, because the split only ever
-# duplicates a token onto the same physical line it already occupied.
-WHERE_OUTSIDE_FAMILY = 74
-HOVER_OUTSIDE_FAMILY = 106
+# The #736 Plan deltas are all outside the 14 lines owned by WP4.4-i.
+WHERE_OUTSIDE_FAMILY = 74 + 1  # Legacy modal shadow exclusion
+HOVER_OUTSIDE_FAMILY = 106 + 2  # Shared menu item states
 
 # The exact attributable delta. R1's first arm is the only family line carrying
 # `:where(`; R6 and R12 are the only two carrying `:hover`. Each gains exactly
@@ -335,7 +337,7 @@ def test_partial_rules_survive_without_their_dead_declarations() -> None:
 
 
 def test_excluded_families_are_numerically_frozen() -> None:
-    """Every excluded family has exactly the count it had before the deletion.
+    """Each excluded family has an exact count after the approved #736 edits.
 
     This is the packet's real scope statement. The deletion set is 101
     declarations of paint and layout in the rest state; nothing it removed lives
@@ -366,10 +368,8 @@ def _family_partition(css: str) -> tuple[list[str], list[str]]:
 def test_where_and_hover_are_frozen_outside_the_i_owned_family() -> None:
     """h's premise, re-expressed: h touched no `:where()`/`:hover` construct.
 
-    This is the half that stayed frozen. Every occurrence outside WP4.4-i's
-    fourteen selector lines is pinned at exactly the count WP4.4-h shipped, so an
-    unrelated addition or removal anywhere else in the file reds here exactly as
-    it did under the old global counts.
+    This pins the exact counts outside WP4.4-i's fourteen selector lines, with
+    the #736 modal and menu selectors accounted for explicitly.
     """
     css = _strip_comments(_css())
     inside, outside = _family_partition(css)
@@ -378,6 +378,7 @@ def test_where_and_hover_are_frozen_outside_the_i_owned_family() -> None:
         f"expected {I_OWNED_SELECTOR_LINES} family selector lines, got {len(inside)}"
     )
     rest = "\n".join(outside)
+    assert _rule_heads(rest, ".modal-content:where(:not(.ui-modal))") == 1
     assert rest.count(":where(") == WHERE_OUTSIDE_FAMILY
     assert rest.count(":hover") == HOVER_OUTSIDE_FAMILY
     # The five remaining `:is(` tokens are the ID-scoped Workout Plan input
@@ -457,7 +458,9 @@ def test_the_deletion_was_pure_removal() -> None:
     rewrote a value rather than removing it, cannot satisfy both of these.
     """
     raw = _css()
-    assert raw.count("\n") == AFTER_LINES - 116  # Workout Log migration (#736)
+    # The Workout Log migration removed 116 lines. The Workout Plan components
+    # appended 334 lines and kept the modal exclusion on the existing line.
+    assert raw.count("\n") == AFTER_LINES - 116 + 334
     assert len(re.findall(r"!important", _strip_comments(raw))) == AFTER_IMPORTANT - 36  # retired Log glass declarations
     assert BEFORE_IMPORTANT - AFTER_IMPORTANT == 20
     assert BEFORE_LINES - AFTER_LINES == 138

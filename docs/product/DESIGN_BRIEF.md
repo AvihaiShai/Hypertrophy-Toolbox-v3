@@ -343,6 +343,29 @@ paints its recommended interval on the native slider track in both themes. The i
 its larger pointer target and native keyboard controls. Template icons must have a glyph in
 the bundled Font Awesome Free 5 solid font.
 
+### Shared controls and overlays
+
+The opt-in rules in `components.css` define these values. The computed Plan samples above
+come from the revision named at the top of this brief.
+
+| Token | Light | Dark | Role | `var()` refs |
+|---|---|---|---|---:|
+| `--ui-modal-radius` | `16px` | `16px` | Modal surface, header and footer corners and the drawer's left corners | 7 |
+| `--ui-danger-fill` | `#c0362c` | `#a84f49` | Filled destructive confirmation with white text | 2 |
+| `--ui-drawer-backdrop` | `rgba(10, 15, 30, 0.34)` | `rgba(10, 15, 30, 0.34)` | Backdrop behind the open drawer | 1 |
+
+| Component | Style |
+|---|---|
+| Pressed button and neutral badge | The pressed button uses `--ink-1` text and an `--ink-3` border on `--surface-1`. The neutral badge uses `--ink-2` on `--surface-1`. |
+| Filter chip | A 32 px pill button with 12 / 16 px type and an `--ink-3` border. Its minimum height is 44 px below 768 px. |
+| Routine tabs | Tabs wrap. Each tab has an 8 px radius, 14 / 20 px type and a minimum height of 40 px, increasing to 44 px below 768 px. The selected tab uses `--ink-1` text and an `--ink-3` border on `--surface-1`. |
+| Menu | The popover aligns with the right edge of the actions row. It uses a `--surface-2` fill, a 12 px radius, a hairline and `--shadow-elev-2`. It is at least 200 px wide when space permits. Items have a minimum height of 40 px, increasing to 44 px below 768 px. The destructive item uses `--ui-danger`. |
+| Ruled table and record card | A 1 px `--ink-3` edge draws each card under 1360 px and each table body cell's bottom border from 1360 px. |
+| Modal | An opaque `--surface-2` surface, a 16 px radius, a 1 px hairline and `--shadow-elev-2`. The surface, header and footer use `backdrop-filter: none`. The plain header title uses weight 600 and 18 / 24 px type. The body and footer have 16 px padding, with 8 px between footer actions. Dialogs leave a gutter on either side and cap at 480 px for confirmations, 800 px by default and 1120 px for the wide variant. |
+| Drawer | The right-hand sheet fills the viewport height and is up to 360 px wide. It uses `--surface-2`, `--shadow-elev-2`, a hairline on the left and 16 px radii on the left corners. The body scrolls vertically and has 16 px padding. The transform transition takes 220 ms. |
+
+Modal and drawer close buttons measure 40 × 40 px, increasing to 44 × 44 px below 768 px.
+
 ### Intentional exceptions
 
 **The Backup Center's tables are outside the theme-token system.** Measured on `/backup`, dark

@@ -2296,3 +2296,17 @@ Five characterization cases passed on the original page. Removing the last exerc
 Both new opt-in checks passed their historical control at `8b023d1a`. C1–C5 and WP10 failed as expected on Plan. The four retained modals matched their measured references across both widths and themes, and all 20 comparisons for the overlays slated for migration detected a difference. The reference records geometry at the plan's half-pixel precision. Both opt-in candidates were red before implementation. The targeted Python run had 71 passes and one expected failure for the missing Add exercise heading. TypeScript passed.
 
 Local evidence is under `artifacts/design-736/step3/commit2-qa/`. The functional logs are `12-characterization.txt`, `18-acceptance.txt` and `24-catalog-control.txt`. The Plan controls and candidates are in `16-plan-control.txt` and `17-plan-candidate.txt`, overlay results in `22-overlay-control.txt` and `23-overlay-candidate.txt`, and the Python result in `20-pytest.txt`.
+
+### Dark modal surfaces
+
+How can the migrated dialogs become opaque while the four retained dialogs keep their dark glass appearance? The dark stylesheet applies five important declarations to every `.modal-content`. Architecture and product risk voted to scope that rule to the existing `.frame-calm-glass` class. Test strategy voted for a separate opt-out attribute to preserve the legacy default on any future unmarked Bootstrap modal. The 2–1 decision is to use `:where([data-theme="dark"] .modal-content.frame-calm-glass)` when the templates migrate in commit 4. All eight current modal contents have the glass class. The four migrated surfaces will drop it, and the four retained surfaces will keep it. A future unmarked Bootstrap modal will not inherit the dark glass fallback from this rule.
+
+The second-vendor review suggested negating the glass class on the premise that the four retained surfaces lacked it. Inspection of the Welcome, Progression and Volume Splitter templates contradicts that premise. The measured legacy overlay references remain the acceptance check. Restoring the original broad dark selector should fail a migrated dark-dialog check.
+
+### Shared component verification
+
+The final additive styles passed all 100 Windows visual and desktop-contract cases on the original markup. Each of the 22 functional acceptance cases still failed, the same five characterizations stayed green, and the template-order test still failed at the Add exercise heading. The opt-in Plan and overlay candidates also retained their expected failures.
+
+Across the seven shared stylesheets the same Stylelint configuration reported 2,652 warnings on the historical control and 2,651 on the candidate. No category increased. The drawer backdrop token retains the existing SCSS color. Component-owned class names on modal parts and tab items avoid introducing new descending-specificity findings and will be added alongside their Bootstrap and routine classes in commit 4. The stylesheet contracts passed 96 focused cases. The broader 260-case CSS run found only the audit that intentionally fails whenever production CSS has uncommitted edits. The components bundle still contains 883 important declarations.
+
+Evidence lives under `artifacts/design-736/step3/commit3-final-visual-cd631978/`, `commit3-final-functional-2b574fdc/` and `commit3-pins/`.

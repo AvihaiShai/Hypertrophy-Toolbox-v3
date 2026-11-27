@@ -2846,8 +2846,8 @@
     "issue": 736,
     "surfaces": {
       "components.css": {
-        "lines": 5091,
-        "bytes": 164658,
+        "lines": 5425,
+        "bytes": 171424,
         "importantLines": 883,
         "importantOccurrences": 883,
         "importantDeclarations": 883
@@ -2867,8 +2867,8 @@
         "importantDeclarations": 124
       },
       "tokens.css": {
-        "lines": 510,
-        "bytes": 15129,
+        "lines": 514,
+        "bytes": 15262,
         "importantLines": 0,
         "importantOccurrences": 0,
         "importantDeclarations": 0
