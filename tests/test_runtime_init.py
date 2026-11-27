@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import ast
 import dataclasses
-import json
 import os
 import shutil
 import sqlite3
@@ -25,7 +24,7 @@ import pytest
 import utils.config
 import utils.runtime_init as runtime_init
 import utils.runtime_migration as runtime_migration
-from utils.catalog_seed import bootstrap_runtime_database, resolve_catalog_seed_path
+from utils.catalog_seed import bootstrap_runtime_database
 from utils.schema_registry import OWNED_TABLES_DROP_ORDER
 from tests.app_factory_support import (
     OUTCOME_PROBE,
@@ -34,6 +33,7 @@ from tests.app_factory_support import (
     probe_env as _probe_env,
     run_probe,
     run_python as _run_python,
+    stage_probe_installation,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -156,18 +156,21 @@ def test_importing_runtime_init_loads_no_app_or_routes(tmp_path):
     ``flask`` may load transitively (``utils/logger.py`` imports it), so only
     the application layers are checked.
     """
-    probe = (
-        "import json, sys; sys.path.insert(0, sys.argv[1]); "
-        "import utils.runtime_init; "
-        "print(json.dumps(sorted(m for m in sys.modules "
-        "if m in ('app', 'app_launcher', 'routes') or m.startswith('routes.'))))"
-    )
-    stdout = _run_python(
-        tmp_path, ["-c", probe, str(ROOT)],
-        _probe_env(HT_RUNTIME_DIR=str(tmp_path / "rt")),
+    probe = """
+import json, sys
+import utils.runtime_init
+print(json.dumps({"application_imports": sorted(
+    name for name in sys.modules
+    if name in ("app", "app_launcher", "routes") or name.startswith("routes.")
+)}))
+"""
+    report = run_probe(
+        tmp_path, probe, env=_probe_env(
+            HT_RUNTIME_DIR=str(tmp_path / "rt"), DB_FILE=str(tmp_path / "database.db"),
+        ),
     )
 
-    assert json.loads(stdout.strip().splitlines()[-1]) == []
+    assert report["application_imports"] == []
 
 
 # --- AC3: the guard ------------------------------------------------------------
@@ -353,7 +356,6 @@ def test_reset_is_never_referenced_by_production_code():
 
 SNAPSHOT_PROBE = """
 import json, sys
-sys.path.insert(0, sys.argv[1])
 from utils.runtime_init import init_runtime
 first = init_runtime(db_file=sys.argv[2])
 second = init_runtime(db_file=sys.argv[2])
@@ -368,13 +370,14 @@ print(json.dumps({
 def test_second_call_takes_no_second_snapshot_subprocess(tmp_path):
     """Outside TESTING a real snapshot is taken, so a repeat would be visible."""
     database = tmp_path / "database.db"
-    shutil.copyfile(resolve_catalog_seed_path(), database)
+    installation = stage_probe_installation(tmp_path)
+    shutil.copyfile(installation / "data" / "catalog.seed.db", database)
 
-    stdout = _run_python(
-        tmp_path, ["-c", SNAPSHOT_PROBE, str(ROOT), str(database)],
-        _probe_env(HT_RUNTIME_DIR=str(tmp_path / "rt")),
+    report = run_probe(
+        tmp_path, SNAPSHOT_PROBE, str(database),
+        env=_probe_env(HT_RUNTIME_DIR=str(tmp_path / "rt")),
+        installation=installation,
     )
-    report = json.loads(stdout.strip().splitlines()[-1])
 
     snapshots = _snapshots(tmp_path)
     assert len(snapshots) == 1, snapshots

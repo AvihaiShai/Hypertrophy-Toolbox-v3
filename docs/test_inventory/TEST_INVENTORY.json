@@ -241,7 +241,7 @@
     "total_tests": 775
   },
   "pytest": {
-    "collected_deterministic": 4760,
+    "collected_deterministic": 4761,
     "deterministic_files": 145,
     "environment_dependent_files": [
       {
@@ -640,7 +640,7 @@
       },
       {
         "file": "tests/test_real_app_db_isolation.py",
-        "tests": 10
+        "tests": 11
       },
       {
         "file": "tests/test_release_gate.py",
