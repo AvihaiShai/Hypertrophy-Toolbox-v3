@@ -38,7 +38,6 @@ export type FrameRead = {
 
 export type FrameRun = { run: string; source: string; baseURL: string; control: boolean };
 
-/** Section 0: the gutter is 16 px under 768 px, 24 px under 1360 px and 32 px from there. */
 export const gutter = (width: number) => width < 768 ? 16 : width < 1360 ? 24 : 32;
 
 /** The app's zoom factor at each scale level the check uses. */

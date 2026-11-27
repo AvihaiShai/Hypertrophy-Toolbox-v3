@@ -567,7 +567,6 @@ function makeTableCellEditable(cell, exercise, fieldKey) {
     input.value = originalValue === 'N/A' ? '' : originalValue;
     input.className = 'ui-field-input';
     input.setAttribute('aria-label', cell.dataset.label);
-    input.dataset.originalValue = originalValue;
 
     // Add validation rules based on field type
     switch(fieldName) {

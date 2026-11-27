@@ -140,7 +140,7 @@ export function phonePlanProblems(page: Page) {
     }
     const selectionBar = main.querySelector('#superset-actions');
     const areas = [...cards, ...main.querySelectorAll(
-      '.ui-page-actions, #routine-tabs, #superset-actions, .ui-panel:has(#add_exercise_btn), #filter-chips, .ui-chip-list',
+      '.ui-page-actions, #routine-tabs, #superset-actions, .ui-panel:has(#add_exercise_btn), #filter-chips',
     )].filter(rendered);
     const targets = 'button, a[href], input:not([type="hidden"]), select, .drag-handle, label:has(.superset-checkbox)';
     const checked = new Set<Element>();

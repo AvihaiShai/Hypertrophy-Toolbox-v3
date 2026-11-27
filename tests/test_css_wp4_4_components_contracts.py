@@ -155,7 +155,6 @@ WHOLE_RULE_DELETIONS = {
 # The assertion is per-property inside that rule's own body, so a resurrection
 # cannot hide in a different rule that happens to set the same property.
 # ---------------------------------------------------------------------------
-# Removing the four legacy Swap paint blocks moved these anchors up 23 lines.
 COLLAPSE_TOGGLE_LINE = 3713
 
 PARTIAL_RULE_DELETIONS: dict[tuple[str, int], tuple[str, ...]] = {
