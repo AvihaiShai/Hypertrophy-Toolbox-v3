@@ -72,11 +72,14 @@ async function addExercise(page: import('@playwright/test').Page, exerciseName?:
   
   expect(targetExercise, 'an unused exercise option should be available').toBeTruthy();
   await exerciseSelect.selectOption({ label: targetExercise! });
+  await waitForWorkoutPlanReady(page);
   
   await page.fill('#sets', '3');
   await page.fill('#min_rep', '8');
   await page.fill('#max_rep_range', '12');
   await page.fill('#weight', '100');
+  await expect(page.locator('#min_rep')).toHaveValue('8');
+  await expect(page.locator('#max_rep_range')).toHaveValue('12');
   
   const rowCountBefore = await page.locator('#workout_plan_table_body tr').count();
   const responsePromise = page.waitForResponse(response =>
