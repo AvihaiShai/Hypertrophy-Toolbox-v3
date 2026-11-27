@@ -268,13 +268,10 @@ class TestPatternCoverageEndpoint:
     """Tests for the pattern coverage API endpoint."""
     
     @pytest.fixture
-    def client(self, tmp_path):
+    def client(self, tmp_path, monkeypatch):
         """Create a test client with mock database."""
         from flask import Flask
 
-        # Set testing environment
-        os.environ["TESTING"] = "1"
-        
         db_path = tmp_path / "test_api.db"
         conn = sqlite3.connect(str(db_path))
         cursor = conn.cursor()
@@ -303,15 +300,14 @@ class TestPatternCoverageEndpoint:
         conn.close()
         
         import utils.config
-        original_path = utils.config.DB_FILE
-        utils.config.DB_FILE = str(db_path)
+        monkeypatch.setattr(utils.config, "DB_FILE", str(db_path))
         
         # Create app
         app = Flask(__name__)
         from routes.weekly_summary import weekly_summary_bp
         app.register_blueprint(weekly_summary_bp)
         
-        yield app.test_client()
+        return app.test_client()
     
     def test_pattern_coverage_endpoint_200(self, client):
         """Endpoint should return 200 OK."""
