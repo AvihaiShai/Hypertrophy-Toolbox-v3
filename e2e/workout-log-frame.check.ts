@@ -1,11 +1,22 @@
 import type { Locator, Page, Request, Response } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-import postcss from 'postcss';
 import AxeBuilder from '@axe-core/playwright';
+import {
+  THEMES, expectFrameRun, expectFrameSettings, expectNoThemedUiSelectors, fontsLoaded, freezeMotion,
+  installFrameSettings, openFramePass, readFrame, readStylesheets, sharedChecks, writeMetrics,
+} from './frame-check';
+import type { FrameSelectors, Theme } from './frame-check';
 import { expect, test } from './strict-fixtures';
 
-type Theme = 'light' | 'dark';
+// Section 0, C1: the page header block and each panel. The control at 5dc83cef predates
+// the shared frame, so its real elements are found by their legacy classes.
+const FRAME: FrameSelectors = { header: '.ui-page-header', panels: '.ui-panel, #workout-log-table' };
+const LEGACY_FRAME: FrameSelectors = {
+  header: '.page-header',
+  panels: '.workout-log-controls-frame, .workout-log-frame, #workout-log-table',
+};
+
 type Box = { left: number; right: number; top: number; bottom: number };
 type CardPart = { text: string; box: Box | null };
 
@@ -507,21 +518,18 @@ async function expectCardFieldsInsideCard(
  * metrics entry.
  */
 async function expectNarrowPhoneCardsFit(
-  page: Page, run: string, fixture: Record<string, unknown>[], theme: string,
+  page: Page, run: string, fixture: Record<string, unknown>[], theme: Theme,
 ) {
   for (const width of [320, 360]) {
     const where = `at ${width} px in ${theme} at scale 8`;
     await page.setViewportSize({ width, height: 844 });
     await page.goto('/workout_log');
-    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-    await expect(page.locator('html')).toHaveAttribute('data-scale', '8');
-    expect(await page.locator('html').evaluate(el => Number(getComputedStyle(el).zoom))).toBe(1.2);
+    await expectFrameSettings(page, theme, 8);
     await expect(page.locator('tr[data-log-id]')).toHaveCount(7);
-    await page.evaluate(() => document.fonts.ready.then(() => undefined));
+    await fontsLoaded(page);
     const capture = path.join(run, `populated-${width}-${theme}-scale8-full.png`);
     await page.screenshot({ path: capture, fullPage: true });
-    const still = '*,*::before,*::after { transition: none !important; animation: none !important; }';
-    await page.addStyleTag({ content: still });
+    await freezeMotion(page);
     await expectCardFieldsReadable(page, fixture, where);
     await expectCardFieldsInsideCard(page, fixture, width, where);
   }
@@ -821,88 +829,47 @@ async function captureEditor(page: Page, run: string, width: number, theme: stri
   await cell.locator('input').press('Escape');
 }
 
-// Run with e2e/scripts/run_workout_log_frame.py. The launcher owns the scratch server.
-async function measure(page: Page, control: boolean) {
-  return page.locator('#main-content').evaluate((main, legacy) => {
-    const round = (value: number) => Math.round(value * 2) / 2;
-    const visible = (node: Element) => node.getClientRects().length > 0;
-    const population = Array.from(main.querySelectorAll('*')).filter(visible);
-    const sizes = new Set<number>(), weights = new Set<string>(), radii = new Set<number>();
-    const effects = new Set<string>();
-    for (const node of population) {
-      const style = getComputedStyle(node);
-      const radius = round(parseFloat(style.borderTopLeftRadius));
-      if (radius) radii.add(radius);
-      if (!style.fontFamily.includes('Font Awesome') &&
-          Array.from(node.childNodes).some(child => child.nodeType === Node.TEXT_NODE && child.textContent?.trim())) {
-        sizes.add(round(parseFloat(style.fontSize)));
-        weights.add(style.fontWeight);
-      }
-      for (const property of ['box-shadow', 'background-image', 'backdrop-filter']) {
-        if (style.getPropertyValue(property) !== 'none') effects.add(property);
-      }
-    }
-    const title = main.querySelector('h1')!;
-    const header = main.querySelector(legacy ? '.page-header' : '.ui-page-header')!;
-    const frames = [header, ...main.querySelectorAll(legacy
-      ? '.workout-log-controls-frame, .workout-log-frame, #workout-log-table'
-      : '.ui-panel, #workout-log-table')].filter(visible);
-    const edges = frames.map(node => {
-      const box = node.getBoundingClientRect();
-      return [round(box.left), round(document.documentElement.clientWidth - box.right)];
-    });
-    const rows = Array.from(main.querySelectorAll('tr[data-log-id]'));
-    const heads = Array.from(main.querySelectorAll<HTMLElement>('th')).filter(visible);
-    const exercise = main.querySelector('td[data-label="Exercise"]');
-    const cards = rows.map(row => {
-      const name = row.querySelector<HTMLElement>('.exercise-name')!;
-      const range = document.createRange();
-      range.selectNodeContents(name);
-      const rects = Array.from(range.getClientRects());
-      const box = name.getBoundingClientRect();
-      const fields = Array.from(row.querySelectorAll('.log-trigger')).filter(visible);
-      return {
-        lines: new Set(rects.map(rect => round(rect.top))).size,
-        fullName: rects.every(rect => rect.left >= box.left - 1 && rect.right <= box.right + 1 &&
-          rect.bottom <= box.bottom + 1) && getComputedStyle(name).textOverflow !== 'ellipsis',
-        height: round(row.getBoundingClientRect().height),
-        fieldSizes: fields.map(field => [round(field.getBoundingClientRect().width), round(field.getBoundingClientRect().height)]),
-      };
-    });
+/** The Log's headings, columns and cards, read in the same pass as the shared frame. */
+function measureRecords(main: Element) {
+  const round = (value: number) => Math.round(value * 2) / 2;
+  const visible = (node: Element) => node.getClientRects().length > 0;
+  const rows = Array.from(main.querySelectorAll('tr[data-log-id]'));
+  const heads = Array.from(main.querySelectorAll<HTMLElement>('th')).filter(visible);
+  const exercise = main.querySelector('td[data-label="Exercise"]');
+  const cards = rows.map(row => {
+    const name = row.querySelector<HTMLElement>('.exercise-name')!;
+    const range = document.createRange();
+    range.selectNodeContents(name);
+    const rects = Array.from(range.getClientRects());
+    const box = name.getBoundingClientRect();
+    const fields = Array.from(row.querySelectorAll('.log-trigger')).filter(visible);
     return {
-      edges, radii: [...radii].sort((a,b) => a-b), sizes: [...sizes].sort((a,b) => a-b),
-      weights: [...weights].sort(), effects: [...effects].sort(),
-      title: round(parseFloat(getComputedStyle(title).fontSize)),
-      offset: round(header.getBoundingClientRect().top - document.querySelector('#navbar')!.getBoundingClientRect().bottom),
-      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      headings: heads.length, clipped: heads.filter(h => h.scrollWidth > h.clientWidth).map(h => h.innerText),
-      columns: new Set(rows.map(row => round(row.getBoundingClientRect().left))).size,
-      exerciseWidth: exercise && round(exercise.getBoundingClientRect().width),
-      firstHeight: rows.length ? round(rows[0].getBoundingClientRect().height) : null,
-      groups: heads.filter(h => h.getAttribute('scope') === 'colgroup').map(h => h.innerText.trim()), cards,
+      lines: new Set(rects.map(rect => round(rect.top))).size,
+      fullName: rects.every(rect => rect.left >= box.left - 1 && rect.right <= box.right + 1 &&
+        rect.bottom <= box.bottom + 1) && getComputedStyle(name).textOverflow !== 'ellipsis',
+      height: round(row.getBoundingClientRect().height),
+      fieldSizes: fields.map(field => [round(field.getBoundingClientRect().width), round(field.getBoundingClientRect().height)]),
     };
-  }, control);
+  });
+  return {
+    headings: heads.length, clipped: heads.filter(h => h.scrollWidth > h.clientWidth).map(h => h.innerText),
+    columns: new Set(rows.map(row => round(row.getBoundingClientRect().left))).size,
+    exerciseWidth: exercise && round(exercise.getBoundingClientRect().width),
+    firstHeight: rows.length ? round(rows[0].getBoundingClientRect().height) : null,
+    groups: heads.filter(h => h.getAttribute('scope') === 'colgroup').map(h => h.innerText.trim()), cards,
+  };
 }
 
-test('measure the Workout Log on its own seeded server', async ({page, baseURL}) => {
-  const run = process.env.FRAME_RUN;
-  if (!run || !baseURL) throw new Error('Start the fixture with run_workout_log_frame.py');
-  const control = !!process.env.FRAME_CONTROL;
-  const identity = await page.request.get('/__frame_identity');
-  expect(await identity.json()).toEqual({
-    database: path.join(run, 'database.db'), runtime: path.join(run, 'runtime'), source: process.env.FRAME_SOURCE,
-  });
+// Run with e2e/scripts/run_frame_check.py --route workout_log, or the Log's own command
+// e2e/scripts/run_workout_log_frame.py. The launcher owns the scratch server.
+test('measure the Workout Log on its own seeded server', async ({page, baseURL: served}) => {
+  const { run, source, baseURL, control } = await expectFrameRun(page, served);
   const fixture = JSON.parse(fs.readFileSync(path.join(run, 'fixture.json'), 'utf8')) as Record<string, unknown>[];
   const read = async () => (await (await page.request.get('/get_workout_logs')).json()).data;
   expect(await read()).toHaveLength(7);
   expect(await read()).toEqual(expect.arrayContaining(fixture.map(row => expect.objectContaining(row))));
   const entries = [];
-  await page.addInitScript(() => {
-    const dark = document.cookie.split('; ').includes('frame-theme=dark');
-    localStorage.setItem('darkMode', String(dark));
-    const scale = document.cookie.match(/ui-scale-level=(\d)/);
-    localStorage.setItem('ui-scale-level', scale![1]);
-  });
+  await installFrameSettings(page);
   for (const populated of [true, false]) {
     if (!populated) {
       if (!control) {
@@ -915,25 +882,18 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
     for (const scale of [6, 8]) {
       const widths = scale === 8 ? [390, 1440] : populated ? [390, 768, 1359, 1360, 1440] : [390, 768, 1440];
       for (const width of widths) {
-        for (const theme of ['light', 'dark']) {
+        for (const theme of THEMES) {
           if ((width === 1359 || width === 1360) && theme === 'dark') continue;
-          await page.setViewportSize({width, height: width === 390 ? 844 : width === 768 ? 1024 : 900});
-          await page.context().addCookies([
-            {name: 'frame-theme', value: theme, url: baseURL},
-            {name: 'ui-scale-level', value: String(scale), url: baseURL},
-          ]);
-          await page.goto('/workout_log');
-          await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-          await expect(page.locator('html')).toHaveAttribute('data-scale', String(scale));
-          expect(await page.locator('html').evaluate(el => Number(getComputedStyle(el).zoom))).toBe(scale === 6 ? 1 : 1.2);
+          await openFramePass(page, baseURL, '/workout_log', {scale, width, theme});
           await expect(page.locator('tr[data-log-id]')).toHaveCount(populated ? 7 : 0);
-          await page.evaluate(() => document.fonts.ready.then(() => undefined));
+          await fontsLoaded(page);
           await page.screenshot({path: path.join(run, `${populated ? 'populated' : 'empty'}-${width}-${theme}-scale${scale}.png`)});
           if (width === 390) {
             await page.screenshot({path: path.join(run, `${populated ? 'populated' : 'empty'}-390-${theme}-scale${scale}-full.png`), fullPage: true});
           }
-          await page.addStyleTag({content: '*,*::before,*::after { transition: none !important; animation: none !important; }'});
-          entries.push({populated, scale, width, theme, ...await measure(page, control)});
+          await freezeMotion(page);
+          const frame = await readFrame(page, control ? LEGACY_FRAME : FRAME, measureRecords);
+          entries.push({populated, scale, width, theme, ...frame});
           if (!control && populated) {
             // Read on the resting page, before any editor opens in this pass.
             const pass = `at ${width} px in ${theme} at scale ${scale}`;
@@ -942,7 +902,7 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
             }
             if (scale === 6 && (width === 390 || width === 1440)) {
               await expectPinnedType(page, width, pass);
-              await expectComparisonMarkColours(page, theme as Theme, pass);
+              await expectComparisonMarkColours(page, theme, pass);
             }
             if (scale === 8 && width === 390) {
               await expectCardFieldsInsideCard(page, fixture, width, pass);
@@ -961,7 +921,7 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
               theme === 'dark' ? 'rgb(82, 100, 173)' : 'rgb(66, 99, 235)')).toEqual(expected);
             const where = `at ${width} px in ${theme}`;
             if (populated) {
-              await expectPopulatedActionVariants(page, theme as Theme, where);
+              await expectPopulatedActionVariants(page, theme, where);
             }
             if (populated && width === 1440) {
               await expectDesktopColumnGroups(page, where);
@@ -991,16 +951,12 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
       }
     }
   }
-  fs.writeFileSync(path.join(run, 'metrics.json'), JSON.stringify(entries, null, 2) + '\n');
+  writeMetrics(run, entries);
   const base = entries.filter(e => e.scale === 6);
-  const gutter = (width: number) => width < 768 ? 16 : width < 1360 ? 24 : 32;
+  // The control was never required to fail C5, so only C1 to C4 join the Log's own C10.
+  const { C1, C2, C3, C4 } = sharedChecks(entries);
   const checks = {
-    C1: base.every(e => e.edges.every(pair => pair.every(edge => edge === gutter(e.width))) &&
-      e.offset === (e.width < 768 ? 16 : 24)),
-    C2: base.every(e => e.radii.every(radius => [8,12,999].includes(radius))),
-    C3: base.every(e => e.sizes.every(size => [12,14,16,18,20,24].includes(size)) &&
-      e.weights.every(weight => ['400','500','600'].includes(weight)) && e.title === Math.max(...e.sizes)),
-    C4: base.every(e => e.effects.length === 0),
+    C1, C2, C3, C4,
     C10: base.filter(e => e.width === 1359 || e.width === 1360).every(e =>
       e.overflow <= 0 && (e.width === 1359 ? e.columns === 2 && e.headings === 0 :
         e.groups.join('/') === 'Planned/Logged' && e.clipped.length === 0 && Number(e.exerciseWidth) >= 220)),
@@ -1023,21 +979,19 @@ test('measure the Workout Log on its own seeded server', async ({page, baseURL})
         expect.soft(entry.exerciseWidth!).toBeGreaterThanOrEqual(220);
       }
     }
-    const cssDir = path.join(process.env.FRAME_SOURCE!, 'static', 'css');
-    for (const name of fs.readdirSync(cssDir).filter(name => name.endsWith('.css') && name !== 'tokens.css' && !name.endsWith('.min.css'))) {
-      const css = postcss.parse(fs.readFileSync(path.join(cssDir, name), 'utf8'));
+    const sheets = readStylesheets(source);
+    expectNoThemedUiSelectors(sheets);
+    // C9, the Log's own bundle: no shared-component rule and, outside the Clear Log modal, no !important.
+    for (const { css } of sheets.filter(sheet => sheet.name === 'pages-workout-log.css')) {
       let important = 0;
       css.walkRules(rule => {
-        if (rule.selector.includes('[data-theme')) expect.soft(rule.selector).not.toMatch(/\.ui-[\w-]+/);
-        if (name === 'pages-workout-log.css' && !rule.selector.includes('#clearLogModal')) {
+        if (!rule.selector.includes('#clearLogModal')) {
           expect.soft(rule.selector).not.toMatch(/\.tbl\b|\.frame-header|\.collapsible-frame|\.metric-lane|\.form-control|\.badge\b|\.container-fluid|\.page-header\b/);
           rule.walkDecls(decl => { expect.soft(decl.important).toBeFalsy(); });
         }
       });
-      if (name === 'pages-workout-log.css') {
-        css.walkDecls(decl => { if (decl.important) important++; });
-        expect(important).toBeLessThan(242);
-      }
+      css.walkDecls(decl => { if (decl.important) important++; });
+      expect(important).toBeLessThan(242);
     }
   }
 });
