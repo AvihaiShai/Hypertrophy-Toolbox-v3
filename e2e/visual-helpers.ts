@@ -1,4 +1,5 @@
-import { expect } from '@playwright/test';
+import { existsSync } from 'node:fs';
+import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 
 export type VisualTheme = 'light' | 'dark';
@@ -453,11 +454,19 @@ export async function expectFullPageScreenshot(
 
   const base = name.replace(/\.png$/i, '');
   const segments = Math.ceil(documentHeight / CAPTURE_SEGMENT_HEIGHT_PX);
+  const testInfo = test.info();
+  const { updateSnapshots } = testInfo.config;
 
-  for (let index = 0; index < segments; index += 1) {
+  // Compare the final band before an earlier failure can prevent it from running.
+  for (let offset = 0; offset < segments; offset += 1) {
+    const index = offset === 0 ? segments - 1 : offset - 1;
     const y = index * CAPTURE_SEGMENT_HEIGHT_PX;
     const height = Math.min(CAPTURE_SEGMENT_HEIGHT_PX, documentHeight - y);
     const segmentName = `${base}-segment-${index + 1}.png`;
+    const compareExistingFinalSegment = index === segments - 1 &&
+      !testInfo.project.ignoreSnapshots &&
+      (updateSnapshots === 'none' || updateSnapshots === 'missing') &&
+      existsSync(testInfo.snapshotPath(segmentName, { kind: 'screenshot' }));
 
     assertCaptureFits(segmentName, height);
     await expect(page).toHaveScreenshot(segmentName, {
@@ -467,6 +476,9 @@ export async function expectFullPageScreenshot(
       // single full-page capture returns unpainted.
       clip: { x: 0, y, width: documentWidth, height },
     });
+    if (compareExistingFinalSegment) {
+      console.log(`[visual-tail-compared] ${segmentName} segment ${index + 1} of ${segments} retry=${testInfo.retry}`);
+    }
   }
 }
 
